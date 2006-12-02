@@ -1,0 +1,301 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>SNAP Tutorial. Section 7.</title>
+  <meta content="text/html; charset=iso-8859-1"
+ http-equiv="Content-Type">
+</head>
+<body>
+<h2>Section 7. Segmentation Using Edge Based Snakes<br>
+</h2>
+<p>This section assumes that the reader has competed the region
+competition based segmentation tasks in the previous section. The
+instructions offered in this section are less detailed than previous
+sections, since the reader would have gained sufficient experience
+using the tool in the preceding sections.<br>
+</p>
+
+<h3>Step 1. Prepare SNAP for Edge-Based Ventricle Segmentation<br></h3>
+
+<p> The first task in this section is to use edge-based snakes to segment the ventricles in our image. 
+In this step we will perform  the preliminary tasks: clearing the previous segmentation, selecting the
+appropriate label and entering SNAP mode.</p>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p> Discard the previous segmentation. Refer to 
+        <a href="TutorialSectionRegionSegmentation.html#discard">Step 1 in Section 6</a> for instructions.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p> Set 'Ventricles' as the active drawing label and set the <b>Draw Over</b> mode to 'All labels'. Refer to 
+        <a href="TutorialSectionRegionSegmentation.html#label">Step 2 in Section 6</a> for instructions.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p> Select the snake tool in the IRIS toolbox </p>
+        <p> Position the 3D selection box to include the ventricles </p>
+        <p> Press the <b>Segment 3D</b> to enter the automatic segmentation mode. </p>
+        <p> The above tasks are described in <a href="TutorialSectionRegionSegmentation.html#select">Step 3 in Section 6</a> 
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+
+<h3>Step 2. Computing the Edge-Based Feature Image</h3>
+<p> At this point, you should be in the automatic segmentation mode of SNAP, on step 1 of the segmentation pipeline </p>
+
+<p> In this step we will compute the feature image that assigns near-zero values to the pixels close to 
+intensity edges in the grey image and assigns values close to one to regions of uniform intensity</p>
+
+<p>First let's tell SnAP which type of the feature image we will be
+using:</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Select the option <strong>Image Edges</strong> in the
+section A of the Segmentation Pipeline Wizard. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<p align="center"><img src="Artwork/ttEdgePipeline1.gif"></p>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p>Press the button labeled <strong>Preprocess Image...</strong>. The <i>Image Edge Filter</i> window will appear: </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"><img src="Artwork/ttEdgeFilterBox.gif"></p>
+ 
+ <p>This window is used to specify how intensity edges are used in constructing the feature image (this construction was outlined in 
+ <a href="TutorialSectionIntroductionToAutomatic.html#featureimage">Section 5, Step 2</a>). There are three parameters that you can set in this window: scale of Gaussian blurring, edge contrast and edge mapping exponent.</p>
+ 
+<p>The scale of Gaussian blurring describes how much the greyscale image is blurred before the edges in the image are calculated. At small values of the blurring scale all of the edges in the image will be used in constructing the feature image, which can lead to a prevalence of noisy edges, i.e., intensity discontinuities that do not correspond to boundaries between anatomical structures. For the larger blurring scales, only the most prevalent intensity edges become visible in the feature image, but fine-scale qualities of edges become lost. The selection of the blurring scale is a careful process where a tradeoff is made between too much noise and too little detail. Luckily, the edges between the ventricles and the surrounding tissues are very conspicuous and 'survive' a significant amount of blurring.</p>
+
+<p> The other two parameters, the edge contrast and edge mapping exponent, determine the shape of the curve shown in the above window. This curve is used to map edge stregth to feature image values. The steeper the curve, the greater the contrast between flat regions and edges. 
+ Remember that the speed of snake propagation at a point is proportional to the value of the feature image at that point.</p>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconTip.gif"></td>
+      <td>
+        <p>On a fast computer it is advisable to check the <b>Preview result</b> checkbox in order to receive live feedback as you change the parameters in the <i>Image Edge Filter</i> window.</p>
+      </td>
+    </tr>
+  </tbody>
+</table> 
+<br>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p>Set the 'Scale of Gaussian Blurring' to 0.6</p>
+        <p>Set the 'Edge Contrast' value to 0.030</p>
+        <p>Keep the 'Edge Mapping Exponent' value at 2.0</p>
+        <p>Press <b>Okay</b> to compute the feature image</p>
+      </td>
+    </tr>
+  </tbody>
+</table> 
+
+<p> After this step, the SNAP window should look like this: </p>
+<p align="center"><img src="Artwork/ttEdgeFeatureImage.gif"></p>
+
+<h3>Step 3. Snake Initialization</h3>
+
+<p> In this step we will initialize the snake using bubbles which will grow to assume the shape of the vertricles. When initializing edge based snakes, it is improtant to keep the bubbles entirely within the structure that we are interested in segmenting. Bubble placement for region-competition based feature images 
+was described in <a href="TutorialSectionRegionSegmentation.html#bubbles">Section 6, Step 4.</a>.</p>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p>Press the <b>Next</b> buttor to proceed to the next stage of automatic segmentation: 'Step 2. Snake Initialization'</p>
+      </td>
+    </tr>
+  </tbody>
+</table> 
+<br>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p> Set the bubble radius to <b>3</b></p>
+        <p> Place four bubbles inside of the lateral ventricles in the axial view, as illustrated below:</p>
+      </td>
+    </tr>
+  </tbody>
+</table> 
+<br>
+
+<p align="center"><img src="Artwork/ttEdgeBubbles.gif"></p>
+
+<h3>Step 4. Setting Snake Parameters and Segmentation </h3>
+
+<p> In this step we will experiment with the parameters used for edge-based segmentation. </p>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p>Press the <b>Next</b> buttor to proceed to the next stage of automatic segmentation: 'Step 3. Segmentation'</p>
+        <p>Press the <b>Set Parameters...</b> button to bring up the parameter selection window.</p>
+      </td>
+    </tr>
+  </tbody>
+</table> 
+<br>
+
+<p> We will begin by experimenting with snake evolution with the advection force turned off. You will see how without this force the snake is likely to 'leak' pas the boundaries of the ventricles </p>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p>Set the 'Balloon Force' to 1.0</p>
+        <p>Set the 'Curvature Force' to 0.2</p>        
+        <p>Set the 'Advection Force' to 0.0</p>        
+        <p>Accept the new parameter settings.</p>        
+      </td>
+    </tr>
+  </tbody>
+</table> 
+<br>
+
+<p align="center"><img src="Artwork/ttEdgeParameters1.gif"></p>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p>Run the snake evolution using the button with the 'Play' (triangle) symbol</p>
+        <p>As the snake leaks past the boundaries of the ventricles, press the button with the 'Stop' (square) symbol</p>        
+      </td>
+    </tr>
+  </tbody>
+</table> 
+<br>
+
+<p align="center"><img src="Artwork/ttEdgeLeaky.gif"></p>
+
+<p> The leaking occurs because the balloon force acts outwards with a strength proportional to the value of the feature image. Since the feature image is positive, the balloon force never stops acting, so the snake never stops growing. Luckily, the advection force can be used to get the snake to stop. The advection force acts inwards when the snake crosses an edge and keeps the snake from expanding further</p>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p>Rewind the segmentation using the button with the Rewind (pair of triangles facing left) symbol.</p>
+        <p>Bring up the parameter selection window</p> 
+        <p>Set the advection force to 5.0 and press <b>Accept</b></p>
+        <p>Run the snake evolution again, stopping it after a 1000 iterations or so.</p>        
+      </td>
+    </tr>
+  </tbody>
+</table> 
+
+<p> This time the snake does not leak! </p>
+
+<p align="center"><img src="Artwork/ttEdgeNoLeaks.gif"></p>
+
+<h3>Step 5. Further Experiments </h3>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p>Experiment with different values of the ballon, curvature and advection forces. What are the values ideal for segmenting the ventricles?</p>        
+      </td>
+    </tr>
+  </tbody>
+</table> 
+<br>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p>Try recomputing the feature image using different parameters, such as a smaller scale of Gaussian blurring. You should be able to get a better segmentation than before.</p>        
+      </td>
+    </tr>
+  </tbody>
+</table> 
+<br>
+
+<p> By now you have mastered the most important features of SNAP!</p>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36" src="Artwork/ttIconAction.gif"></td>
+      <td>
+        <p>Experiment with segmenting other structures in the brain. For example, it's possible to segment the caudates using edge-based snakes. Even the hippocampus can be partially segmented, but extensive manual post-processing will be necessary.</p>        
+      </td>
+    </tr>
+  </tbody>
+</table> 
+<br>
+
+</body>
+</html>

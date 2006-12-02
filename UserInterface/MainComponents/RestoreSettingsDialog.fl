@@ -1,0 +1,70 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0104 
+header_name {.h} 
+code_name {.cxx}
+class RestoreSettingsDialog {open : { private RestoreSettingsDialogBase }
+} {
+  Function {MakeWindow()} {open
+  } {
+    Fl_Window m_WinMain {
+      label {Restore Settings?}
+      callback {OnCancelAction();} open selected
+      xywh {123 300 401 256} type Double box PLASTIC_DOWN_BOX hide
+      code0 {\#include "RestoreSettingsDialogBase.h"}
+    } {
+      Fl_Group {} {
+        label {Would you like SnAP to restore the settings that were used the last time you worked with this image?  
+
+The following settings can be restored:} open
+        xywh {10 10 385 65} labelsize 12 align 149
+      } {}
+      Fl_Group {} {open
+        xywh {20 70 360 115}
+      } {
+        Fl_Check_Button m_ChkLabels {
+          label {Labels for segmentation}
+          xywh {55 80 320 20} down_box DOWN_BOX value 1 labelsize 12
+        }
+        Fl_Check_Button m_ChkPreprocessing {
+          label {Image preprocessing parameters}
+          xywh {55 100 320 20} down_box DOWN_BOX value 1 labelsize 12
+        }
+        Fl_Check_Button m_ChkParameters {
+          label {Automatic segmentation parameters}
+          xywh {55 120 320 20} down_box DOWN_BOX value 1 labelsize 12
+        }
+        Fl_Check_Button m_ChkDisplayOptions {
+          label {Display options}
+          xywh {55 140 320 20} down_box DOWN_BOX value 1 labelsize 12
+        }
+      }
+      Fl_Button {} {
+        label {&Restore Settings}
+        callback {OnRestoreSettingsAction();}
+        xywh {85 220 120 25} box PLASTIC_UP_BOX shortcut 0x80072 color 180 labelfont 1 labelsize 12
+      }
+      Fl_Button {} {
+        label {Don't Restore}
+        callback {OnDoNotRestoreSettingsAction();}
+        xywh {220 220 105 25} box PLASTIC_UP_BOX shortcut 0xff1b color 180 labelsize 12
+      }
+      Fl_Choice m_InFutureApproach {
+        label {In the future, } open
+        xywh {90 185 230 20} down_box BORDER_BOX labelsize 12 textsize 12
+      } {
+        menuitem {} {
+          label {continue asking this question}
+          xywh {0 0 100 20} labelsize 12
+        }
+        menuitem {} {
+          label {don't ask again about this image}
+          xywh {20 20 100 20} labelsize 12
+        }
+        menuitem {} {
+          label {never ask me this question}
+          xywh {30 30 100 20} labelsize 12
+        }
+      }
+    }
+  }
+} 

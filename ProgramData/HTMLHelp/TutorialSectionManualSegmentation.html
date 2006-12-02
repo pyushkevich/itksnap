@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SNAP Tutorial. Section 4.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body>
+ <h2>Section 4. Manual Segmentation </h2>
+ <p>This section describes how SNAP can be used for manual segmentation. You will learn about working with segmentation labels, painting regions ontwo-dimensional slices of the image, and saving and loading segmentation results.
+ This section requires approximately 10 minutes to complete.</p>
+ <h3>Step 1. About Segmentation and Segmentation Labels</h3>
+ <p>To segment an anatomical structure in SNAP means to assign a label to each voxel in the structure. A label is a number between 0 and 255. Associated with each label is a name and a set of display settings, such as the color used to display the label. For example, we can associate the name 'cuadate' and the color red with the label 3. When you first load a grey image into SNAP, the special label 0 is assigned to each voxel in the image. This label is associated with the name 'Clear' and means that a pixel has not been segmented yet.</p>
+ <hr>
+ <h3><a name="EditLabel"></a>Step 2. Create a Few Labels</h3>
+ <p>When you first load SNAP, it creates a default set of six labels, with names 'Label 1' through 'Label 6'. Before starting segmentation, we will edit these labels, assigning them meaningful names and colors.</p>
+ <p>The SNAP control panel contains a sub-panel that is used to interact with segmentation labels. It is shown below.</p>
+ <p align="center"><img src="Artwork/ttManualSegmentLabelSubPanel.gif" width="144" height="207"></p>
+ <p>At the top of this sub-panel are two drop-down boxes. The first box is used to select the label that is currently used for manual and automatic segmentation. The second box is used to select the label or labels that are affected by the segmentation. We will see how to use these drop boxes a few steps below. Below the drop-boxes is located a button called 'Edit Labels...', which is used to associate names and colors with label numbers. </p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td>Press the 'Edit labels...' button. The following window will appear.</td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentLabelEditor.gif"></p>
+ <p align="left">This label editor can be used to modify information associated with each label and to add new labels. The left pane of the editor lists the labels that are currently available. The right pane is used to modify the label currently selected in the list. You can change the color in which the label appears in SNAP, the name associated with the label, and the transparency of the label.</p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Change the description text box to 'Caudate' </p>
+         <p>Change the color associated with the label to light green</p>
+         <p>Press the 'Close Window' button to apply the changes and close the window </p>
+     </td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentLabelEditorChanged.gif"></p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconTip.gif" width="36" height="36"></td>
+     <td><p>The following additional information is associated with each label: </p>
+       <p><strong>Opacity:</strong> A label can be made to appear partially transparent when it is displayed in the 3D window. This is useful when one structure, such as the skull, obstructs the view of another.</p>       
+     <p><strong>Visibility:</strong> A label can be hidden from display, either in the 3D window or in all windows. Like transparency, this can be used to hide obstructing structures. Additionally, you can tell SNAP to apply manual and automatic segmentation only to voxels with labels that are not hidden. Thus, by hiding a label, it is possible to prevent various segmentation operations from affecting it. </p>     </td>
+   </tr>
+ </table>
+ <br>
+ <hr>
+ <h3>Step 3. Load Labels from a File</h3>
+ <p>If you have downloaded an image archive, as recommended in <a href="TutorialSectionLoadingImages.html#Download">Section 2, Step 1</a>, then you can load a set of segmentation labels from a file. </p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Select <strong>File | Load Data | Label Descriptions</strong>... using the menu bar. A dialog will appear. </p>
+       <p>Use the '<strong>Browse...</strong>' button to locate and select the file <strong>MRIcrop-seg.label</strong></p>
+       <p>Load this file by pressing the Ok button. </p></td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentLabelFileDialog.gif" width="227" height="110"></p>
+ <p>The  file contains a dozen or so labels for describing brain anatomy. If you open the label editor, it should look like this: </p>
+ <p align="center"><img src="Artwork/ttManualSegmentLabelEditorLoaded.gif"></p>
+
+<br>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconTip.gif" width="36" height="36"></td>
+     <td><p>You can create your own label files. Just use the label editor to change existing labels and to add new labels, and then select <strong>File | Save Data | Label Descriptions</strong>... from the menu bar. </p>
+     </td>
+   </tr>
+ </table>
+ <br>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconTip.gif" width="36" height="36"></td>
+     <td><p>Every time you work with an image, SNAP remembers all sorts of information about your session, and restores this information next time that you open the image. The list of labels is part of the information that SNAP remembers.</p>
+     </td>
+   </tr>
+ </table>
+<br>
+
+ <hr>
+ <h3>Step 4. Segment the Caudate Nucleus</h3>
+ <p>In the step, we will manually segment the caudate nucleus. This step assumes that you are working with the image <strong>MRIcrop-orig.gipl</strong>, as recommended in <a href="TutorialSectionLoadingImages.html#Download">Section 2, Step 1</a>.</p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Make sure that the 'Segmentation Label' subpanel looks like this:</p>
+     </td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentLabelSubPanel02.gif" width="144" height="207"></p>
+ <p align="left">This means that we are going to apply the label called 'caduates' to the voxels that we segment. The 'draw over all labels' settings means that segmentation will override all labels that have already been assigned to voxels.</p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Enter the <a href="TutorialSectionViewingImages.html#Crosshairs">crosshairs mode</a>. </p>
+       <p>Position the crosshairs in such a way that the right caudate nucleus (shown below) is visible in all three slices.</p></td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentRightCaudate.gif" width="266" height="223"></p>
+ <p align="left">Now we are ready to begin manual slice-by-slice segmentation.</p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td>Select the polygon tool in the IRIS toolbox (shown below) </td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentToolbarManual.gif" width="144" height="118"> </p>
+ <p align="left">The polygon tool is used to paint closed polygons on top of the axial, sagittal and coronal slice windows. These polygons are then filled with the currently selected label. By painting polygons slice by slice, a whole 3D structure can be selected. </p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Click the <strong>left</strong> mouse button somewhere on the boundary of the right caudate.</p>
+     <p>Continue clicking the <strong>left</strong> button along a sequence of points along the boundary.</p>     </td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentPaintStart.gif" width="218" height="213"></p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Click the <strong>right</strong> mouse button to close the polygon (i.e., to connect the first an the last vertices).</p>
+     </td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentPaintClosePath.gif" width="218" height="213"></p>
+ <p align="left">The green rectangle around the polygon indicates that all of the vertices are currently <em>selected.</em> Selected vertices can be moved by clicking and dragging the left mouse button. Let's select some vertices and move them:</p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Use the mouse to draw a box around some of the vertices in the polygon (to draw the box, click and hold the left mouse button near the upper left part of the slice window, drag the mouse towards the lower right corner and release the button once the box contains two or more vertices). </p>
+     </td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentPaintSelectSome.gif" width="218" height="213"> </p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Click and hold the left mouse button <strong>inside</strong> the green box and drag it to move the selected vertices. </p></td>
+   </tr>
+ </table>
+ <p>In addition to selecting vertices and moving them, you can use the buttons located under each slice window to manipulate the polygon. Use the <strong>'delete'</strong> button to delete the currently selected vertices from the polygon. Use the <strong>'insert'</strong> button to insert new vertices between adjacent pairs of selected vertices. </p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Edit the polygon by selecting, moving, deleting and inserting vertices until you are satisfied with it.</p>
+       <p>Use the <strong>'accept'</strong> button to fill the polygon with the segmentation label 'caudates'. </p></td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentPaintFill.gif" width="218" height="213"></p>
+ <p align="left">Once you have clicked <strong>'accept'</strong>, the voxels inside of the polygon are assigned the currently selected segmentation label.</p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconTip.gif" width="36" height="36"></td>
+     <td><p>If you are not satisfied with your result and want to erase it, you can do so by changing the active drawing label to the <strong>'Clear'</strong> label, and painting a polygon on top of the part of the segmentation that you want to erase. When you press <strong>'accept'</strong>, the voxels withing this polygon will be assigned the clear label. </p></td>
+   </tr>
+ </table>
+ <p>SNAP remembers the last polygon that you used and lets you paste it. This makes segmenting a structure faster. </p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Move to the next slice in the slice window where you just painted (using the scroll bar or the mouse wheel).</p>
+         <p>Press the <strong>'paste'</strong> button to recall the last accepted polygon.</p>
+     </td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentPaintPaste.gif" width="218" height="213"></p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Edit the pasted polygon by selecting and moving vertices, and accept it when satisfied.</p></td>
+   </tr>
+ </table>
+ <p align="left">So, by moving from slice to slice, pasting, editing and accepting polygons you can quickly segment the caudate. Notice that as you accept polygons in one of the slice windows, it becomes visible in the other slice windows as a line of voxels. SNAP is unique in letting you view and edit the segmentation in all three orthogonal slice windows at once.</p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>[Optional] Continue segmenting the caudate in all three slice windows until you are satisfied with the result.</p>
+       <p>Press the <strong>'update mesh</strong>' button located below the 3D view window to see the segmented structure in three dimensions. </p></td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentResult.gif" width="266" height="223"></p>
+ <p align="left">You can learn a lot more about interacting with the 3D window in a later section. </p>
+ <hr>
+ <h3 align="left"><a name="Save"></a>Step 5. [Optional] Save your work</h3>
+ <p align="left">SNAP saves segmentation results as images. Each voxel in this image contains a number between 0 and 255, which indicates the segmentation label assigned to the voxel. Segmentation images can be saved in a variety of image formats and can be read by other programs.</p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Select <strong>File | Save Data | Segmentation Data</strong>... using the menu bar. A dialog will appear. </p>
+     </td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttManualSegmentSaveWizard.gif" width="286" height="217"></p>
+ <p align="left">The dialog asks you for the file name of the image that will be saved. You can type in a filename, use the <strong>'Browse'</strong> button to search for an appropriate location on your computer, or you can use the <strong>'History'</strong> button to enter up a recently used file name.</p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Supply a filename to the wizard using the <strong>'Browse'</strong> button. </p></td>
+   </tr>
+ </table>
+ <p align="left">Once you select an image, its compete filename and image format will be displayed in the wizard, as illustrated below. SNAP tries to guess the format of the image file based on the file's extension. For some files, SNAP may not guess correctly, and you will need to select the correct format from the drop box</p>
+ <p align="center">.<img src="Artwork/ttManualSegmentSaveWizardFilled.gif" width="286" height="217"></p>
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td><p>Press <strong>'Save'</strong> to save the segmentation. </p></td>
+   </tr>
+ </table>
+ <p>&nbsp;</p>
+</body>
+</html>

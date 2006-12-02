@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>SNAP Tutorial. Section 1.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body>
+<h2>Section 1. Introduction.
+</h2>
+<p>This section explains the purpose of the SNAP tool, and describes the screen layout. This section is organized as a series of questions and answers about the general capabilities and structure of the SNAP tool. For brevity, only the most basic questions are answered here; more questions will be answered in later sections of the tutorial. </p>
+<h3>How is This Tutorial Organized?</h3>
+<p>This tutorial is a walk-through of a SNAP segmentation session. The information presented in this tutorial falls into the following categories:</p>
+<ul>
+  <li>General information. <br>
+    This is information about SNAP that is necessary in order to use the tool. Most of the text in the tutorial falls into this category. <br>
+  </li>
+  <li>Action items (denoted by icon <img src="Artwork/ttIconAction.gif" width="18" height="18" align="absmiddle">). <br>
+    These are actions that the user should perform in the course of the tutorial, such as clicking on buttons and entering text. <br>
+  </li>
+  <li>Tips and tricks (denoted by icon <img src="Artwork/ttIconTip.gif" width="18" height="18" align="absmiddle">). <br>
+    This is extra information that can increase your productivity when using the tool but is not essential.<br>
+  </li>
+  <li>Information for experts (denoted by icon <img src="Artwork/ttIconExpert.gif" width="18" height="18" align="absmiddle">). <br>
+  This is additional, often mathematical information for advanced users.</li>
+</ul>
+<h3>How Do I Get and Run SNAP Under Microsoft Windows&#8482;<strong></strong>?</h3>
+<p>On the Microsoft Windows&#8482; platform, SNAP is distributed as a standalone program. It can be easily installed like any other program, and launched from the Microsoft Windows&#8482;<strong> Start</strong> menu.</p>
+<p>The SNAP self-installer is available for download at <a href="http://www.itksnap.org/download/snap">http://www.itksnap.org/download/snap</a></p>
+<h3>How Do I Get and Run SNAP as Part of ITK?</h3>
+<p>On all supported platforms, SNAP is distributed as a part if the Insight Toolkit <em>InsightApplications</em> directory. Obtaining, building and running SNAP as part of this distribution requires considerable knowledge of system administration and computer programming.</p>
+<p>The directions on obtaining and installing SNAP are available at <a href="http://www.itksnap.org/download/snap">http://www.itksnap.org/download/snap</a></p>
+<p>If SNAP has been installed on your system, consult your system administrator for instructions on starting it. </p>
+<h3>What Exactly Does SNAP Do? </h3>
+<p>SNAP provides a set of tools to make segmentation of volumetric data easier and faster. SNAP can be used in two different modes: manual segmetnation and semi-automatic segmentation. The manual mode is used for segmentation using hand contouring and for cleaning up the results of automatic segmentation. In the semi-automatic mode, a powerful <em>level set </em>segmentation algorithm is used to segment anatomical structures in three dimensions. This algorithm requires some guidance from the user, and SNAP provides an easy interface to provide such guidance.</p>
+<h3>What Kinds of Users is SNAP Designed for? </h3>
+<p>First and foremost, SNAP was designed for clinical users. A user who already uses a computer for image segmentation, and thus understands the fundamentals of three-dimensional medical imaging will be able to use SNAP after completing this tutorial. SNAP does not require a deep understanding of the underlying mathematics and computer science to use.</p>
+<p>SNAP user interface also provides some controls designed specifically for <em>expert users</em>, who are familiar with the level set algorithms. In this tutorial, some sections are written for the expert users, and are optional. </p>
+<h3> What Kinds of Images Can SNAP Process?</h3>
+<p>SNAP can be used to segment a variety of three-dimensional images. The images have to be homogeneous, i.e., having a single intensity value per pixel. In other words, SNAP can be used with MRI, CT and PET images, but not with color cryosection or diffusion tensor images. SNAP reads a variety of image formats, including RAW, Analyze, GIPL and MetaImage.</p>
+<h3> How Does SNAP Represent Segmentation Results?</h3>
+<p>SNAP represents segmentation by assigning labels to pixels (voxels) in the input image. For instance, when segmenting a brain MRI, some of the pixels in the image may be assigned the label 'grey matter', others will be assigned the label 'lateral vetricle', etc. It is up to the user to come up with the list of labels to use in a particular segmentation task. Each voxel in the input image can only be assigned a single label. The output of SNAP is a volumetric image of labels. </p>
+<p>In this tutorial, we will use the term<em> grey image</em> to refer to the three-dimensional input image, e.g., an MRI or a CT image. We will use the term <em>label image </em>to refer to the corresponding three-dimensional volume of labels. </p>
+<h3>What Are the Main Limitations of SNAP? </h3>
+<p>Since SNAP can only assign a single label to each pixel in the grey image, it can not be used for segmentation with sub-voxel accuracy.</p>
+<h3>What Are the Different Parts of the SNAP User Interface? </h3>
+<p>The picture below shows the SNAP user interface in <em>manual segmentation mode</em>. </p>
+<p align="center"><img src="Artwork/ttIntroScreenLayout.gif"></p>
+<p>Most of the SNAP window is occupied by four panels, three of which show orthogonal slices through an image, and the fourth, located at bottom left, shows the three-dimensional view of the segmentation. This tutorial will refer to these panels as <em>slice panels </em> and the <em>3D panel</em>. Under each of these panels are located several blue buttons, which are used to interact with each panel individually.</p>
+<p>The left portion of the SNAP window is occupied by a tall thin area called the <em>control panel</em>. At the top of the control panel is located a <em>menu bar</em>, which is used for saving and loading images, for setting options, and for accessing the help system. The rest of the control panel houses a variety of buttons, sliders and other controls, which appear and disappear depending on the current mode of operation. We will see how to use the control panel in the subsequent sections. </p>
+<p>In addition to the main window shown above, several other windows will pop-up during the SNAP session. These windows are used to coordinate specific tasks, such as loading and saving images, or selecting parameters in the semi-automatic segmentation mode.</p>
+
+<h3>What Input Devices does SNAP Require?</h3>
+<p>SNAP requires the use of a mouse, trackball, or an equivalent input device. A three-button mouse with a scroll wheel is preferred, but is not necessary. If your input device does not have a right or a middle mouse button, use the following combinations keyboard mouse combinations:</p>
+<ul>
+  <li>Right Click: hold the <strong>Alt</strong> key and click the left mouse button.</li>
+  <li>Middle Click: hold the <strong>Ctrl</strong> key and click either the left or the right mouse button. </li>
+</ul>
+
+<h3>What Additional Documentation is Available? </h3>
+<p>See the list of publications at <a href="http://itksnap.org/manual.php">http://itksnap.org/manual.php</a>
+</p>
+</body>
+</html>

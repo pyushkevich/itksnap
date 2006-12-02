@@ -1,0 +1,89 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0103 
+header_name {.h} 
+code_name {.cxx}
+class IntensityCurveUI {open : { private IntensityCurveUIBase }
+} {
+  Function {MakeWindow()} {open
+  } {
+    Fl_Window m_WinCurve {
+      label {SNAP: Image Contrast Adjustment} open selected
+      xywh {882 276 435 540} type Double box PLASTIC_DOWN_BOX
+      code0 {\#include "IntensityCurveUIBase.h"}
+      code1 {\#include "IntensityCurveBox.h"} non_modal visible
+    } {
+      Fl_Group {} {
+        label {Curve-based Contrast Adjustment:} open
+        xywh {20 105 385 285} box PLASTIC_DOWN_FRAME labelfont 1 labelsize 12 align 5
+      } {
+        Fl_Box m_BoxCurve {
+          label {Curve Display Area}
+          xywh {40 115 350 215} box BORDER_BOX color 246 labelfont 1 labelsize 12 align 16
+          class IntensityCurveBox
+        }
+        Fl_Button {} {
+          label {&Reset Curve}
+          callback {this->OnReset();}
+          xywh {275 355 115 25} box PLASTIC_UP_BOX shortcut 0x80072 labelsize 12
+        }
+        Fl_Group {} {
+          label {input image intensity} open
+          xywh {240 330 150 15} labelsize 11 align 0
+        } {}
+        Fl_Group {} {open
+          image {Artwork/outputintensity.gif} xywh {28 120 15 125} align 24
+        } {}
+        Fl_Value_Slider m_InControlPoints {
+          label {Curve control points:}
+          callback {this->OnControlPointNumberChange();}
+          xywh {40 360 125 20} type Horizontal color 55 selection_color 180 labelsize 12 align 5 minimum 3 maximum 10 step 1 value 3
+        }
+      }
+      Fl_Group {} {
+        label {Histogram Display Options (advanced):} open
+        xywh {20 415 385 80} box PLASTIC_DOWN_FRAME color 55 labelfont 1 labelsize 12 align 5
+      } {
+        Fl_Value_Input m_InHistogramMaxLevel {
+          label {Histogram cutoff (%):}
+          callback {this->OnUpdateHistogram();}
+          xywh {155 460 55 25} labelsize 12 when 4 maximum 100 step 0.5 value 100 textsize 12
+        }
+        Fl_Value_Input m_InHistogramBinSize {
+          label {Histogram bin size:}
+          callback {this->OnUpdateHistogram();}
+          xywh {155 430 55 25} labelsize 12 when 4 minimum 1 maximum 65535 step 1 value 5 textsize 12
+        }
+        Fl_Check_Button m_ChkHistogramLog {
+          label {Logarithmic scale}
+          callback {this->OnUpdateHistogram();}
+          xywh {265 425 125 25} down_box DOWN_BOX labelsize 12
+        }
+        Fl_Button {} {
+          label {Update Histogram}
+          callback {this->OnUpdateHistogram();}
+          xywh {275 460 115 25} box PLASTIC_UP_BOX shortcut 0xff1b selection_color 38 labelsize 12 hide deactivate
+        }
+      }
+      Fl_Button {} {
+        label Close
+        callback {this->OnClose();}
+        xywh {165 505 95 25} box PLASTIC_UP_BOX shortcut 0xff1b color 180 selection_color 38 labelfont 1 labelsize 12
+      }
+      Fl_Group {} {
+        label {Window-based Contrast Adjustment:} open
+        xywh {20 30 385 50} box PLASTIC_DOWN_FRAME color 55 labelfont 1 labelsize 12 align 5
+      } {
+        Fl_Value_Input m_InLevel {
+          label {Level:}
+          callback {this->OnWindowLevelChange();}
+          xywh {130 45 85 25} labelsize 12 when 4 step 1 textsize 12
+        }
+        Fl_Value_Input m_InWindow {
+          label {Window:}
+          callback {this->OnWindowLevelChange();}
+          xywh {305 45 85 25} labelsize 12 when 4 step 1 textsize 12
+        }
+      }
+    }
+  }
+} 

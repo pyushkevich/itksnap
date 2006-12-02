@@ -1,0 +1,186 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>SNAP Tutorial. Section 3.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body>
+<h2>Section 3. Viewing the 3D Image.</h2>
+<p>This section shows you how to interact with a three-dimensional image in SNAP. It assumes that you have successfully loaded an image following the instructions in the <a href="TutorialSectionLoadingImages.html">previous section</a>. This section requires approximately 10 minutes to complete.</p>
+<table width="100%"  border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td valign="top"><h3>Step 1. Examining the Control Panel.</h3>
+      <p>After loading a <em>grey image</em>, SNAP puts itself into <em>manual segmentation mode. </em>The control panel for this mode is displayed to the right. It is divided into four sub-panels, which are labeled &quot;IRIS Toolbox&quot;, &quot;Tool Options&quot;, &quot;Segmentation Label&quot;, and &quot;3D Toolbox&quot;. The <em>IRIS toolbox</em> contains four buttons, which are used to select different modes of interaction with SNAP. These interaction modes are called <em>tools </em>for short. The contents of the <em>tool options</em> <em>sub-panel </em>depend on the tool that is currently selected in the IRIS toolbox. The <em>segmentation label sub-panel</em> is used to select the labels used for manual and automatic segmentation, and the <em>3D toolbox </em>provides additional tools used to interact with the three-dimensional rendering of the segmented structures. </p>            <p>In this section of the tutorial you will learn how to use two of these tools in the IRIS toolbox: the <em>crosshairs tool</em> and the <em>zoom/pan tool</em>, which provide different ways to quickly navigate through the three-dimensional image. </p>
+    <p></p></td>
+    <td width="128"><div align="center"><img src="Artwork/ttViewImageControlPanel.gif" width="88" height="369"></div></td>
+  </tr>
+</table>
+<hr>
+<h3>Step 2. Viewing Orthogonal Slices. </h3>
+<p>Once you have successfully loaded an image, the SNAP main window should look like this: </p>
+<p align="center"><img src="Artwork/ttLoadImageResult.gif" width="266" height="223"></p>
+<p>Let's focus our attention on the three of the four dark windows that are displaying slices of the volumetric image (the fourth window is used for 3D display and will be discussed later). These three slice windows display three views of the image volume, in the orthogonal axial, coronal, and sagittal planes. </p>
+<p>Notice that a scrollbar is located next to each slice window. Under each scrollbar is located a slice counter, which shows the index of the displayed slice and the total number of slices in the direction perpendicular to the  slice. </p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td>Use the scrollbars to change the currently displayed slice in one of the three slice windows. If your mouse has a scroll wheel, you can use it to change the slice instead. Make sure that the mouse cursor is inside of the slice window that you want to interact with. </td>
+  </tr>
+</table>
+<p>A key feature of SNAP is that the three slices are not viewed independently, but rather linked by a <em>common cursor.</em> As you manipulate the scroll bars, you will notice that the blue lines in the <em>other two </em>slice windows are moving. These blue lines indicate the intersection between orthogonal slices.  As we will see shortly, the common cursor makes it easy to examine the volumetric image near any particular voxel. </p>
+<h3><a name="Crosshairs"></a>Step 3. Navigating the Image in Crosshairs Mode</h3>
+<p>Crosshairs mode is used to quickly focus all three slide views onto a location in the image. When you click on one of the slices, the other two slices are adjusted so that the pixel where you clicked becomes the point of intersection of the three slices. Thus, you can easily examine the orthogonal views of the image in the neighborhood of any pixel.</p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td>Select the crosshairs tool in the IRIS toolbox (shown below) </td>
+  </tr>
+</table>
+<p align="center"><img src="Artwork/ttViewImageControlPanelToolbox01.gif" width="143" height="116"> </p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td><p>Left-click on any one of the three slices. Watch how the other two slices change. </p>    </td>
+  </tr>
+</table>
+<div align="center">
+  <p><img src="Artwork/ttViewImageSliceWindowClick.gif" width="203" height="191"></p>
+</div>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconTip.gif" width="36" height="36"></td>
+    <td><p>You can also hold down the left mouse button and move the mouse around the slice for faster navigation.</p>
+      <p>Remember that you can use the scroll wheel of your mouse to change the slice currently displayed in the slice window under the mouse. This lets you move around the image in three dimensions, without moving the mouse away from the slice window!</p></td>
+  </tr>
+</table>
+<p align="left">You will notice that the common cursor formed by the blue dashed lines always points to the same voxel in all three slice views. The grey level intensity of the voxel and the segmentation label corresponding to it are displayed in the <em>tool options</em> sub-panel of the control panel: </p>
+<p align="center"><img src="Artwork/ttViewImageControlPanelToolOptions01.gif" width="142" height="159"> </p>
+<p align="left">Since we have not done any segmentation yet, the segmentation label at every voxel has numeric value 0 and is called &quot;Clear&quot;. The action of clicking on a voxel in the image to check its greylevel intentensity value is called <em>probing</em>. We will make use of probing later in this tutorial.</p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconTip.gif" width="36" height="36"></td>
+    <td><p>In other SNAP modes where the left mouse button is used for other tasks, you can still move the crosshairs by using the <strong>middle</strong> mouse button, or by holding the <strong>Alt</strong> key on the keyboard and using the <strong>left </strong>mouse button. </p></td>
+  </tr>
+</table>
+<h3>Step 4. Navigating the Image in Zoom/Pan Mode</h3>
+<p>While the crosshairs tool lets you move around the image, the <strong>zoom/pan </strong>tool allows you to zoom in on a particular region of a slice and to pan around when the whole slice does not fit into a slice window.</p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td>Select the zoom/pan tool in the IRIS toolbox (shown below) </td>
+  </tr>
+</table>
+<p align="center"><img src="Artwork/ttViewImageControlPanelToolbox02.gif" width="143" height="116"></p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td><p>Click and hold the <strong>right</strong> mouse button anywhere in one of the slice windows, and drag the mouse <strong>up</strong> to zoom into the slice. Drag the mouse <strong>down</strong> to zoom out. </p>
+    <p>Click and hold the <strong>left</strong> mouse button anywhere in one of the slice windows, and drag the mouse in any direction to pan around the image. </p>
+    <p>Click the <strong>Reset View</strong> button located below each slice window to restore the original zoom level, as illustrated below.</p></td>
+  </tr>
+</table>
+<p align="center"><img src="Artwork/ttViewImageSliceWindowZoom.gif" width="218" height="212"></p>
+<p align="left">By default, SNAP lets you change the zoom in all three slice windows independently. However, it is often desireable to make sure that each of the three slices is displayed using the same zoom level. The tool options sub-panel, which is shown below, allows you to link the zoom level between the three slice views, as well as to specify zoom level explicitly. </p>
+<p align="center"><img src="Artwork/ttViewImageControlPanelToolOptions02.gif" width="142" height="159"> </p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td><p>Tick the &quot;Zoom slices together&quot; check-box in the tool options sub-panel. Try zooming in and out in one of the slice windows by dragging the mouse (as before). Notice how the other slices zoom in accordingly.</p>
+      <p>Type in the number <em>200</em> into the &quot;Zoom %&quot; text box, and press the <strong>Enter</strong> key. The slices will zoom to double the default zoom level.</p>
+    <p>Click the &quot;Reset 2D views&quot; button. The zoom level will return to default in all three slices. </p></td>
+  </tr>
+</table>
+<br>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconTip.gif" width="36" height="36"></td>
+    <td><p>When slices are zoomed together, the number of pixels on the computer screen corresponding to a unit of length in the space of the 3D image is the same in all three slice windows. When slices are zoomed independently, the a distance in image space may correspond to different distances in the slice windows.</p>
+    </td>
+  </tr>
+</table>
+<h3><a name="Curve"></a>Step 5. Adjusting Image Contrast (a.k.a. Windowing)</h3>
+<p>The MRI image that we have loaded in the last section of this tutorial has fairly low contrast. It is difficult to see some of the structures in the image. SNAP provides a windowing dialog for adjusting the mapping between intensities in the 3D image and the intensities of the displayed slices.</p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td>Select <strong>Options | Intensity Curve...</strong> using the menu bar. The windowing dialog will appear. </td>
+  </tr>
+</table>
+<p align="center"><img src="Artwork/ttViewImageIntensityDialog.gif" border="1"> </p>
+<p align="left">This dialog consists of a plot area on the left and several controls and buttons on the right. The plot area displays the current mapping between image intensities and display intensities as a think red line with four embedded yellow diamonds. These diamonds are called <em>control points</em> and can be used to change the shape of the mapping. Also, the plot area shows in blue the histogram of the intensities in the grey image. Notice that most of the intensities fall in the lower third of the intensity range. So, to improve the contrast, we will adjust the mapping accordingly.</p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td><p>Type the number 100 into the 'Window' text box, and press the Enter key.</p></td>
+  </tr>
+</table>
+<p align="center"><img src="Artwork/ttViewImageIntensityDialogWindowing.gif" border="1"></p>
+<p align="left">Notice how the red line changes, and the displayed slices change contrast. You can also directly manipulate the curve by moving the control points. </p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td><p>Move the mouse over one of the yellow control points, hold down the left mouse button and move the mouse to update the mapping </p></td>
+  </tr>
+</table>
+<p align="center"><img src="Artwork/ttViewImageIntensityDialogWindowingCurve.gif" border="1"></p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconTip.gif" width="36" height="36"></td>
+    <td><p>The number shown in the text box labeled 'Level' is the image intenisty of the leftmost control point. The number shown in the  text box labeled 'Window' is the difference between the rightmost and leftmost control points. The slider 'Control Points' allows you to change the number of the control points, increasing the control over the shape of the mapping curve. </p></td>
+  </tr>
+</table>
+<br>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td><p>Press the 'Close' button to close the dialog</p></td>
+  </tr>
+</table>
+<h3>Step 6. [Optional] Adjusting Slice Display Order. </h3>
+<p>By default, SNAP shows the axial slice in the upper left, the sagittal in the upper right, and the coronal slice in the lower right. You can change the order of the display using the 'Display Options' dialog. </p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td>
+<p>Select <strong>Options | Display Options...</strong> using the menu bar. The display options dialog will appear. </p>
+<p>Choose the 'Layout' tab.</p></td>
+  </tr>
+</table>
+<p align="center"><img src="Artwork/ttViewImageDisplayOptions.gif" border="1"></p>
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td><p>Experiment with selecting different display configurations.</p>
+    <p>Press 'Apply' to put the selected configuration into effect. </p>
+    <p>Press 'Close' to close the dialog. </p>    </td>
+  </tr>
+</table>
+
+<h3>Step 7. [Optional] Adjusting Display Apperance. </h3>
+<p>You can adjust the appearance of certain elements of the SNAP User Interface. This is useful if you are preparing a manuscript or a presentation and want to make sure that elements such as crosshairs are clearly visible.</p>
+
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td>
+<p>Select <strong>Options | Display Options...</strong> using the menu bar. The display options dialog will appear. </p>
+<p>Choose the 'Appearance' tab.</p></td>
+  </tr>
+</table>
+
+<p align="center"><img src="Artwork/ttViewImageAppearance.gif" border="1"></p>
+
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+  <tr>
+    <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+    <td><p>Choose one of the available user inteface elements and adjust its color, line thickness, etc.</p>
+    <p>Press 'Apply' to make changes. </p>
+    <p>Press 'Reset' to restore default settings. </p>
+    <p>Press 'Close' to close the dialog. </p>    </td>
+  </tr>
+</table>
+
+</body>
+</html>

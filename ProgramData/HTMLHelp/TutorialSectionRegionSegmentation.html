@@ -1,0 +1,957 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>SNAP Tutorial. Section 6.</title>
+  <meta content="text/html; charset=iso-8859-1"
+ http-equiv="Content-Type">
+</head>
+<body>
+<h2>Section 6. Automatic Segmentation using Region Competition Snakes</h2>
+<p>This section gives step by step instructions on segmenting an image
+using the region competition snake (in last section's terminology,
+snake evolution that uses the region feature image). This section
+assumes that you are working with the image <strong>MRIcrop-orig.gipl</strong>,
+as recommended in <a href="TutorialSectionLoadingImages.html#Download">Section
+2, Step 1</a>. We will segment the caudate nucleus and the ventricles
+in this image. This section also assumes that you are using the label
+file <strong>MRIcrop-seg.label</strong>. </p>
+<p>You can, however, follow the general directions of this section
+using a different image, but you will have to use your own judgement in
+selecting various parameters.</p>
+<hr>
+<h3><a name="discard"></a>Step 1. Discard the Previous Segmentation.</h3>
+<p>In <a href="TutorialSectionManualSegmentation.html">Section 4</a>,
+we have created a manual segmentation. In order to perform the
+segmentation automatically, we will discard the manual segmetnation.
+This involves reloading the greyscale image. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Select <strong>File | Load Data | Greyscale Image</strong>.</p>
+      <p>Use the <strong>History</strong> button to select the image
+loaded most recently.</p>
+      <p>Step through the rest of the wizard, as descibed in <a
+ href="TutorialSectionLoadingImages.html#Orientation">Section 2</a>. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<hr>
+<a name="label"></a><h3>Step 2. Select the Label to Use for Automatic Segmentation</h3>
+<p>We will be segmenting the caudate nucleus. We have to make sure that
+the appropriate combination of the current drawing label and background
+(draw over) label is selected.</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Make sure that the label <strong>"caudates"</strong> is
+selected as the current drawing label</p>
+      <p>Make sure that <strong>"All Labels"</strong> is selected in
+the <strong>Draw over</strong> drop-down box. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"><img height="207" width="144"
+ src="Artwork/ttManualSegmentLabelSubPanel02.gif"></p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconTip.gif"></td>
+      <td>
+      <p>The <strong>draw over</strong> label functions the same way
+in automatic segmentation as in manual segmentation. It lets you apply
+the results of automatic segmentation to all labels, to all visible
+labels, to the clear label, or to a particular label. This gives you a
+lot of creative control when segmenting multiple structures. For
+instance, to segment a structure that is embedded inside another
+structure, you can first segment the outer structure with label <strong>A</strong>
+and then segment the inner structure with label <strong>B</strong> and
+with the draw-over label set to <strong>A</strong>.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<hr>
+<h3><a name="select"></a>Step 3. Select the Region of Interest using the Snake Interaction
+Mode.</h3>
+<p>The automatic segmentation component of SNAP requires a lot of
+computer resources. Both the amount of memory and the time required to
+compete a segmentation can be reduces by selecting a sub-region of the
+image on which to perform segmentation. In this step, we will select a
+subregion of the image that contains the caudate nucleus. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Make sure that the slice is fully visible in each the slice
+windows by pressing the <strong>Reset View</strong> buttons underneath
+the slice windows. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Select the snake tool in the IRIS toolbox (shown below) </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"><img height="118" width="144"
+ src="Artwork/ttRegionToolbar.gif"></p>
+<p align="left">As you select the snake tool, a pink-colored dashed <em>selection
+box </em>will appear at the border of the each slice in the slice
+windows, as shown below:</p>
+<table cellpadding="5" align="center" border="0" width="10%">
+  <tbody>
+    <tr>
+      <td><img height="212" width="218"
+ src="Artwork/ttRegionROISelection01.gif"></td>
+      <td><img height="174" width="224"
+ src="Artwork/ttRegionROISelection02.gif"></td>
+    </tr>
+  </tbody>
+</table>
+<p>The selection box displays the region of interest that will be used
+in automatic segmentation. The use of word <em>region</em> here should
+not be confused with <em>region competition</em>. The region of
+interest is a rectalinear box, while the regions in region competition
+are of arbitrary shape and are defined by uniform intensity. We will
+now adjust the region of interest by dragging the sides of the
+selection box </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>In one of the slices position the mouse cursor near one of the
+corners of the selection box </p>
+      <p><strong>Hold down</strong> the left mouse button and <strong>drag
+      </strong>the mouse towards the center of the image. The size of
+the box will be adjusted as you move the mouse. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="left">As you are dragging the selection box, its edges change
+color from red to yellow.</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Using all three slice windows, adjust the selection box to
+include the left and right caudate nuclei. Try to simulate the
+selection box in the picture below. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"><img height="447" width="532"
+ src="Artwork/ttRegionROISelectionFinal.gif"></p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconTip.gif"></td>
+      <td>
+      <p>If the selection box disappears in one of the slice windows,
+that means that the crosshairs position is outside of the selection
+box. You can adjust the crosshairs position in one of the adjacent
+slices. </p>
+      <p>The crosshair position can be adjusted in this mode using the
+left mouse button as usual. However, you will need to click a few
+pixels away from the selection box to move the crosshairs. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>Notice that the tool options control subpanel contains two buttons: <strong>Reset
+Region</strong> and <strong>Segment 3D</strong>. The former is used to
+reset the region of interest to the entire image. The second is used to
+enter the automatic segmentaiton mode of SNAP. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Once you have adjusted the region of interest, press the <strong>Segment
+3D </strong>button.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<hr>
+<h3 align="left">Step 4. Familiarize Yourself with the Automatic
+Segmentation Mode.</h3>
+<p align="left">When you press the <strong>Segment 3D </strong>button,
+the SnAP user interface changes considerably.</p>
+<p align="center"><img height="447" width="532"
+ src="Artwork/ttRegionNewInterface.gif"></p>
+<p align="left">Let's look at some of the new elements that have
+appeared:</p>
+<ol>
+  <li>The slice windows have fewer buttons and only show the region of
+interest selected in the previous step.<br>
+  </li>
+  <li>The IRIS toolbar has been replaced by a smaller toolbar
+containing only two buttons. These buttons are used to change the
+crosshairs position and to zoom and pan around the region of interest.
+The buttons are used in the same way as in the manual SNAP mode that
+you are used to, except that fewer options for setting zoom are
+provided. <br>
+  </li>
+  <li>A large panel labeled "Segmentation Pipeline" appears underneath
+the new toolbar. This panel contains the 'wizard ' used for controlling
+automatic segmentation. We will work with this wizard extensively in
+this section.<br>
+  </li>
+  <li>A button labeled <strong>Cancel Segmentation</strong> appears at
+the bottom of the control panel. You can use this button at any time to
+return to abort the automatic segmentation and return to the manual
+SNAP mode. <br>
+  </li>
+  <li>A pair of buttons appear underneath the 3D window. These buttons
+have the same functionality as the similar looking buttons in the 3D
+toolbox in the manual mode.</li>
+</ol>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAttention.gif"></td>
+      <td>
+      <p>If the image slices appear washed out, i.e., have low
+contrast, use the <strong>Intensity Curve</strong> window to change
+the contrast as described in <a
+ href="TutorialSectionViewingImages.html#Curve">Section 3</a>. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<hr>
+<h3>Step 4. Construct a Region Competition Feature Image.</h3>
+<p>Recall the concept of edge and region competition feature images
+from the last <a href="TutorialSectionIntroductionToAutomatic.html">section</a>.In
+this step we will construct a region competition feature image
+appropriate for segmenting the caudate nuclei.</p>
+<p>First let's tell SnAP which type of the feature image we will be
+using:</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Select the option <strong>Intensity Regions</strong> in the
+section A of the Segmentation Pipeline Wizard. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>Now, let's estimate the range of intensities to which the voxels in
+the caudate nucleus belong.</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Move the crosshairs around the caudate nuclei. Look at the
+values of the grey level intensity, which is reported in a box labeled <strong>"Grey"</strong>
+underneath the toolbar. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>You will find that the intensities in the caudate range between the
+high 40's and low 60's. This information is improtant for contructing
+the feature image. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Press the button labeled <strong>Preprocess Image...</strong>
+This button is used to construct the feature image. The following
+window will appear </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"><img height="229" width="243"
+ src="Artwork/ttRegionPreprocessor01.gif"></p>
+<p>This window is used to specify the mapping between the greyscale
+image intensities and the values of the feature image, which fall into
+the range between -1 and 1. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>In the <strong>Intensity Region Filter</strong> window </p>
+      <ol>
+        <li>Set the threshold direction to <strong>Below and Above</strong>.</li>
+        <li>Set the lower threshold to <strong>48</strong>.</li>
+        <li>Set the upper threshold to <strong>63</strong></li>
+        <li>Set the smoothness to <strong>1.7</strong></li>
+      </ol>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconTip.gif"></td>
+      <td>
+      <p>After you use the mouse to click on and move the knobs that
+are used to change the threshold and smoothness values, you can use the<strong>
+left and right arrow keys</strong> to move these knobs one value at a
+time. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>As soon as you change some of the parameters, the SnAP slice windows
+will display the feature image instead of the grey image. As you change
+the parameters, the slice windows are updated immideately. If you
+uncheck the <strong>Preview result</strong> checkbox, the slice
+windows will only reflect the values of the parameters when you press
+the <strong>Apply</strong> button. </p>
+<p>Our goal in setting the parameters is to make sure that the voxels
+inside of fthe caudate nuclei are assigned positive values in the
+feature image, and that the voxels outside of it are assigned negative
+values. There are two ways to check that this happens:</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>Move the crosshairs around in the slice windows (the
+intensity region filter window will remain on top). Look at the values
+of the feature image, which are reported in a box labeled <strong>"Preproc"</strong>
+underneath the toolbar. </td>
+    </tr>
+  </tbody>
+</table>
+<p>or</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Check the <strong>Combined Display</strong> check box. The
+greylevel image is shown again, but the pixels where the feature image
+is positive are painted over with the color of the current segmentation
+label, as shown below. This is an easy way to make sure that the pixels
+in the caudate have a positive feature image value. </p>
+      <p>Uncheck <strong>Combined Display</strong> check box to see
+the feature image again. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"><img height="223" width="266"
+ src="Artwork/ttRegionPreprocessor02.gif"></p>
+<p>The smoothness value determines the steepness of the mapping curve.
+It does not affect the sign of the feature function at any particular
+voxel, but it does have an effect on the smoothness of the snake
+evolution. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>When you are satisfied with the feature image, press <strong>Okay</strong>
+to compute the feature image at all voxels and close the intensity
+region filter window. </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconTip.gif"></td>
+      <td>
+      <p>SnAP lets you save and load feature images. Just use the
+appropriate menu items in the <strong>File</strong> menu. You can also
+load feature images by pressing the <strong>Load from File... </strong>button
+in the segmentation pipeline wizard.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconExpert.gif"></td>
+      <td>
+      <p>Voxels in feature images are saved as floating point numbers,
+so some applications may not be able to load the saved images. You can
+not save feature images in GIPL format because if does not support
+floating point voxels. The Meta format is recommended. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>We are now almost done with the first step of the Segmentation
+Pipeline Wizard.</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>Press the <strong>Next </strong>button in the Segmentation
+Pipeline Wizard to proceed to the next step.</td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<hr>
+<h3><a name="bubbles"></a>Step 5. Initialize the Snake with Bubbles</h3>
+<p>The Segmentation Pipeline Wizard should be displaying "Step 2 od 3",
+as shown below.</p>
+<p align="center"><img height="382" width="144"
+ src="Artwork/ttRegionWizard02.gif"></p>
+<p>This step of the wizard is used to position spherical bubbles to
+that initialize the snake, as described in the previous <a
+ href="TutorialSectionIntroductionToAutomatic.html#Init">section</a>. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Move the crosshairs such that the crosshairs position is
+inside of the right caudate nucleus in all three slice windows.</p>
+      <p>Press the <strong>Add Bubble </strong>button to place a
+bubble at the crosshairs position. </p>
+      <p>Use the <strong>Radius </strong>slider to change the radius
+of the bubble.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>After adding a bubble, the SnAP window should look like this:</p>
+<p align="center"><img height="223" width="266"
+ src="Artwork/ttRegionAddBubble01.gif"></p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Place one more bubble inside the right caudate and place two
+bubbles inside the left caudate. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>The result should look something like this: </p>
+<p align="center"><img height="223" width="266"
+ src="Artwork/ttRegionAddBubble02.gif"></p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconTip.gif"></td>
+      <td>
+      <p>To remove a bubble, select it in the list of bubbles
+underneath the <strong>Radius</strong> slider and press the <strong>Remove
+bubble</strong> button. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>Finally, </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>Press the <strong>Next </strong>button in the Segmentation
+Pipeline Wizard to proceed to the next step.</td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconTip.gif"></td>
+      <td>
+      <p>As an alternative to using bubbles, you can use manual
+segmentation to initialize the snake. Before starting automatic
+segmentation, create a manual segmentation as described in <a
+ href="TutorialSectionManualSegmentation.html">Section 4</a> using the
+same label that you wish to use for snake segmentation. The manual
+segmentation will be used as the snake initialization, and you would
+not have to add any bubbles. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<hr>
+<h3>Step 6. Run the Snake Evolution </h3>
+<p>The Segmentation Pipeline Wizard should be displaying "Step 3 od 3",
+as shown below. </p>
+<p align="center"><img height="382" width="144"
+ src="Artwork/ttRegionWizard03.gif"></p>
+<p>This wizard page allows you to set the parameters for snake
+evolution, and it allows you to control the snake using VCR-style
+controls. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Press <strong>Set Parameters...</strong> to open the snake
+parameter window.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>The Snake Parameters window is shown below. This window consists of
+two parts. On the left is a control panel used to specify various
+parameters, mainly the weights of the propagation, curvature, and
+advection forces that were discussed in <a
+ href="TutorialSectionIntroductionToAutomatic.html#Velocity">Section 5</a>.
+These velocities are displayed using a fixed feature image, and not the
+feature image that you are working with. Nevertheless, this image is
+useful for understanding the relative contribution of the forces to
+snake evolution</p>
+
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconTip.gif"></td>
+      <td>
+        <p>
+        The red curve for which the velocities are shown can be changed using the mouse. Left-click once in one of the four windows showing the curve and yellow 'control points' will appear. Move the control points by dragging using with the left mouse button. Try moving the curve and see how the foces change.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The snake parameter window also lets you save snake evolution
+parameter settings to a file and to load them from a file.</p>
+<p align="center"><img height="287" width="433"
+ src="Artwork/ttRegionParameterWindow.gif"></p>
+<br>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Change the curvature velocity weight to from <strong>0.20 </strong>
+to <strong>0.15</strong> </p>
+      <p>Press <strong>Accept</strong> to close the window</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconExpert.gif"></td>
+      <td>
+      <p>The <strong>Mathematical Mode</strong> tab of the Snake
+Parameters Window shows mathematical expression for the partial
+differential equation that drives the snake evolution, and allows you
+to set the parameters directly as constants in this equation.</p>
+      <p>You can also choose to display the <strong>experimental
+equation</strong>, which contains more terms and gives you more control
+over snake evolution. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconExpert.gif"></td>
+      <td>
+      <p>The <strong>Advanced Mode</strong> tab of the Snake
+Parameters Window is discussed in the section on <a
+ href="TutorialSectionTipsAndTricks.html#AdvancedParms">Tips and Tricks</a>.
+It can be used to speed up large segmentations.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="left">Now that we've set the snake parameters, we are ready
+to run the snake evolution. Notice the VCR-style controls located in
+the Segmentation Pipeline Wizard. </p>
+<p align="center"><img height="382" width="144"
+ src="Artwork/ttRegionWizard03.gif"></p>
+<p align="left">These controls have the following functionality:</p>
+<ul>
+  <li>The leftmost control is used to <strong>rewind </strong>the
+snake after it had been evolving for some time.</li>
+  <li>The second control is used to <strong>run</strong> the snake
+until stopped.</li>
+  <li>The third control is used to <strong>stop</strong> the running
+snake</li>
+  <li>The rightmost control is used to <strong>step</strong> the
+snake, i.e., to run for a fixed number of iterations.</li>
+</ul>
+<p>Underneath the VCR buttons is a control that allows you to set the
+size of the step used in snake evolution. The larger the step value,
+the fewer times will the user interface be updated as the snake
+evolves. For small segmentations, it is advisable to leave the step
+size at 1. Next to the step size dropbox is a display that shows the
+current iteration. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Press the <strong>Step </strong> button several times to run
+the snake for a few iterations</p>
+      <p>Press the <strong>Run </strong>button once and watch the
+snake fill up the caudates.</p>
+      <p>Press the <strong>Stop </strong> button when the caudates
+have been filled up </p>
+      <p>Press the <strong>Rewind</strong> button if you want to
+restart.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>To see the segmentation result in 3D, you can press the <strong>Update
+Mesh </strong> button underneath the 3D window, or you can select the <strong>Update
+Continuously </strong>checkbox.</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAttention.gif"></td>
+      <td>
+      <p>Warning! Selecting <strong>Update Continuously</strong> will
+degrade segmentation performace significantly, possibly by orders of
+magnitude!</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>The result of the segmentation should look something like this. </p>
+<p align="center"><img height="223" width="266"
+ src="Artwork/ttRegionResult.gif"></p>
+<hr>
+<h3>Step 7. Finalize the Segmentation </h3>
+<p>The final step in the automatic segmentation process is to return to
+the SNAP manual segmentation mode, incorporating the segmentation
+results with other structures that have been previously segmented.</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Press the <strong>Finish</strong> button in the Segmentation
+Pipeline Wizard</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>The Segmentation Pipeline Wizard will disappear, and the layout of
+the SNAP control panel will return to normal. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p><strong>[Optional]</strong> Save your segmentation as
+described in <a href="TutorialSectionManualSegmentation.html#Save">Section
+4</a>. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<hr>
+<h3>Step 8. Use the 3D Tools to Edit the Segmentation Results </h3>
+<p>In this step we will postprocess the results of the segmentation
+using 3D tools. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Press the <strong>Update Mesh </strong> button below the 3D
+window to render the results </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<p align="left">Now, let us examine the different tools available in
+the <strong>3D Toolbox</strong>, which is shown below.</p>
+<p align="center"><img height="121" width="142"
+ src="Artwork/ttRegion3DTools.gif"></p>
+<p align="left">The toolbox contains four tools. Top to bottom, left to
+right, they are </p>
+<ul>
+  <li><strong>3D Trackball Tool</strong>: Used to rotate, zoom, and pan
+in the 3D window.</li>
+  <li><strong>3D Crosshair Tool:</strong> Used to set the crosshair
+location by clicking on anatomical structures shown in the 3D window</li>
+  <li><strong>3D Scalpel Tool:</strong> Used to repaint or erase parts
+of the anatomical structures shown in the 3D window</li>
+  <li><strong>3D Spray Paint Tool</strong>: Used to add anatomical
+landmarks to the surface of anatomical structures shown in the 3D window</li>
+</ul>
+<p>Let's begin by examining the 3D trackball tool:</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Select the <strong>3D Trackball Tool</strong></p>
+      <p>Press and hold the <strong>left mouse button </strong>and
+move the mouse to rotate the 3D view.</p>
+      <p>Press and hold the <strong>right mouse button </strong>and
+move the mouse up or down to zoom in and out in the 3D view</p>
+      <p>Press and hold the <strong>middle mouse button</strong> and
+move the mouse to pan in the 3D view. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>Now try the 3D crosshair tool: </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Select the <strong>3D Crosshair Tool</strong></p>
+      <p>Position the mouse over any point on the caudates and click
+the <strong>left mouse button</strong>. The crosshair position will
+move to the selected point and the slices shown in the slice windows
+will be changed.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>Now, something more complex. We will use the 3D scalpel tool to
+assign different labels to the left and right caudate nuclei. </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Use the <strong>Edit Labels </strong>button to add two new
+labels called 'left caudate' and 'right caudate' with different colors
+(for information on editing labels, see <a
+ href="TutorialSectionManualSegmentation.html#EditLabel">Section 3</a>).
+      </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Select 'right caudate' as the current drawing label, and
+select 'caudates' (the label used for automatic segmentation) as the
+label to draw over, as shown below. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"><img height="209" width="142"
+ src="Artwork/ttRegionScalpelLabels.gif"></p>
+<p>The 3D scalpel tool works by partitioning the space into two regions
+separated by a plane. The segmentation labels on one side of the plane
+are replaced by the current drawing label, as long as they agree with
+the current setting of the draw over label. In order to use the scalpel
+tool, we need to first rotate the 3D view such that a line can be drawn
+between the two caudates.</p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Use the <strong>3D Trackball</strong> tool to rotate the 3D
+view in such a way that the caudates can be separated by an imaginary
+line, as shown below. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"><img height="212" width="217"
+ src="Artwork/ttRegion3DImaginaryLine.gif"></p>
+<p align="left">Now, we will use the 3D scalpel tool to actually draw a
+line in place of the imaginary line </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Select the <strong>3D Scalpel Tool</strong></p>
+      <p>Click the <strong>left mouse button</strong> at one end of
+the imaginary line separating the caudates</p>
+      <p>Move the mouse around the 3D window. You will see a white line
+indicating where the 'cut' will be made, and an arrow indicating which
+half of the space will be relabeled.</p>
+      <p>Click the <strong>left mouse button</strong> again at the
+other end of the imaginary line </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="left">The result of this operation should look like this:</p>
+<p align="center"><img height="213" width="218"
+ src="Artwork/ttRegion3DScalpelLine.gif"> </p>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconTip.gif"></td>
+      <td>
+      <p>If you are not satisfied with the 'cut', press the <strong>Reset
+View</strong> button and try again.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Otherwise, press the <strong>Accept</strong> button to
+repaint one of the caudates with the active drawing label and press the
+      <strong>Update Mesh</strong> to see the result in 3D. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"><img height="213" width="218"
+ src="Artwork/ttRegion3DScalpelResult.gif"></p>
+<p align="left">The 3D scalpel is a very powerful tool for editing
+segmentation results. Using the clear label as the active drawing
+label, you can erase parts of the segmentation that have leaked outside
+of the caudates. </p>
+<hr>
+<h3>Step 9. [Optional] Segment the Ventricles</h3>
+<table cellspacing="0" cellpadding="4" align="center" border="1"
+ width="80%">
+  <tbody>
+    <tr>
+      <td valign="top" width="36"><img height="36" width="36"
+ src="Artwork/ttIconAction.gif"></td>
+      <td>
+      <p>Use the procedure outlined in the steps above to segment the
+ventricles in the image. You will need to use the <strong>Above</strong>
+threshold direction setting when creating the feature image. </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p align="center"><img height="229" width="243"
+ src="Artwork/ttRegionFunctionForVentricles.gif"></p>
+<p align="left">The result should look like this</p>
+<p align="center"><img height="213" width="218"
+ src="Artwork/ttRegionVentricleResult.gif"> </p>
+</body>
+</html>

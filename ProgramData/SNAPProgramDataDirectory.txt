@@ -1,0 +1,2 @@
+This file is needed by SNAP to find data that it needs to run.  Don't remove
+this file or modify the contents of this directory!

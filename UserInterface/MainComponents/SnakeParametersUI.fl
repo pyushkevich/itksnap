@@ -1,0 +1,502 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0106 
+header_name {.h} 
+code_name {.cxx}
+class SnakeParametersUI {open : {private SnakeParametersUIBase}
+} {
+  Function {MakeWindow()} {open
+  } {
+    Fl_Window m_Window {
+      label {Snake Parameters} open selected
+      xywh {256 218 716 482} type Double box PLASTIC_DOWN_BOX
+      code0 {\#include "SnakeParametersUIBase.h"} non_modal visible
+    } {
+      Fl_Tabs m_TabsMode {open
+        xywh {5 5 350 360} box PLASTIC_UP_BOX color 60 labelfont 2 labelsize 12 align 0
+      } {
+        Fl_Group m_GrpEasy {
+          label {Intuitive Mode} open
+          xywh {5 25 350 340} color 22 selection_color 94 labelfont 2 labelsize 11
+        } {
+          Fl_Group m_GrpPropagationEasy {
+            label {Balloon force:} open
+            xywh {15 55 330 70} box PLASTIC_DOWN_BOX color 22 labelsize 12 align 5
+          } {
+            Fl_Group {} {open
+              xywh {55 90 245 35}
+            } {
+              Fl_Value_Slider m_InPropagationWeightEasy {
+                callback {o->take_focus();
+OnPropagationWeightChange(o);}
+                xywh {55 90 225 15} type Horizontal color 52 labelsize 12 align 4 minimum -3 maximum 3 step 0.1 value 1
+              }
+              Fl_Group {} {
+                label expanding open
+                xywh {250 110 50 15} labelsize 10 align 144
+              } {}
+              Fl_Group {} {
+                label contracting open
+                xywh {70 110 50 15} labelsize 10 align 16
+              } {}
+              Fl_Group {} {
+                label static open
+                xywh {160 110 50 15} labelsize 10 align 16
+              } {}
+              Fl_Group {} {
+                label {^} open
+                xywh {70 105 50 10} labelfont 1 labelsize 10 align 16
+              } {}
+              Fl_Group {} {
+                label {^} open
+                xywh {250 105 50 10} labelfont 1 labelsize 10 align 16
+              } {}
+              Fl_Group {} {
+                label {^} open
+                xywh {160 105 50 10} labelfont 1 labelsize 10 align 16
+              } {}
+            }
+            Fl_Button m_BtnEasyHelpPropagation {
+              label {More info...}
+              callback {this->ShowHelp("TutorialSectionIntroductionToAutomatic.html\#Propagation");}
+              xywh {274 61 65 20} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
+            }
+          }
+          Fl_Group m_GrpCurvatureEasy {
+            label {Curvature force:}
+            xywh {15 155 330 70} box PLASTIC_DOWN_BOX color 22 labelsize 12 align 5
+          } {
+            Fl_Group {} {
+              xywh {55 190 245 35}
+            } {
+              Fl_Value_Slider m_InCurvatureWeightEasy {
+                callback {o->take_focus();
+OnCurvatureWeightChange(o);}
+                xywh {55 190 225 15} type Horizontal color 52 labelsize 12 align 4 value 0.7
+              }
+              Fl_Group {} {
+                label spherical open
+                xywh {250 210 50 15} labelsize 10 align 144
+              } {}
+              Fl_Group {} {
+                label detailed open
+                xywh {70 210 50 15} labelsize 10 align 16
+              } {}
+              Fl_Group {} {
+                label smooth open
+                xywh {155 210 50 15} labelsize 10 align 16
+              } {}
+              Fl_Group {} {
+                label {^} open
+                xywh {70 205 50 10} labelfont 1 labelsize 10 align 16
+              } {}
+              Fl_Group {} {
+                label {^} open
+                xywh {250 205 50 10} labelfont 1 labelsize 10 align 16
+              } {}
+              Fl_Group {} {
+                label {^} open
+                xywh {155 205 50 10} labelfont 1 labelsize 10 align 16
+              } {}
+            }
+            Fl_Group {} {
+              label {Makes the boundary smoother and may help prevent leaking at corners and narrow places.}
+              xywh {20 160 245 25} labelsize 10 align 148
+            } {}
+            Fl_Button m_BtnEasyHelpCurvature {
+              label {More info...}
+              callback {this->ShowHelp("TutorialSectionIntroductionToAutomatic.html\#Curvature");}
+              xywh {274 161 65 20} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
+            }
+          }
+          Fl_Group m_GrpAdvectionEasy {
+            label {Advection force:}
+            xywh {15 255 330 70} box PLASTIC_DOWN_BOX color 22 labelsize 12 align 5
+          } {
+            Fl_Group {} {
+              xywh {55 290 250 35}
+            } {
+              Fl_Value_Slider m_InAdvectionWeightEasy {
+                callback {o->take_focus();
+OnAdvectionWeightChange(o);}
+                xywh {55 290 225 15} type Horizontal color 52 labelsize 12 align 4 maximum 5 value 0.7
+              }
+              Fl_Group {} {
+                label {large effect} open
+                xywh {245 310 60 15} labelsize 10 align 144
+              } {}
+              Fl_Group {} {
+                label {no effect} open
+                xywh {70 310 50 15} labelsize 10 align 16
+              } {}
+              Fl_Group {} {
+                label smooth open
+                xywh {155 310 50 15} labelsize 10 align 16 hide
+              } {}
+              Fl_Group {} {
+                label {^} open
+                xywh {70 305 50 10} labelfont 1 labelsize 10 align 16
+              } {}
+              Fl_Group {} {
+                label {^} open
+                xywh {250 305 50 10} labelfont 1 labelsize 10 align 16
+              } {}
+              Fl_Group {} {
+                label {^} open
+                xywh {155 305 50 10} labelfont 1 labelsize 10 align 16 hide
+              } {}
+            }
+            Fl_Group {} {
+              label {Pushes boundary back as it tries to cross edges, 
+causing the segmentation to converge.} open
+              xywh {20 260 260 25} labelsize 10 align 148
+            } {}
+            Fl_Button m_BtnEasyHelpAdvection {
+              label {More info...}
+              callback {this->ShowHelp("TutorialSectionIntroductionToAutomatic.html\#Advection");}
+              xywh {274 261 65 20} box PLASTIC_UP_BOX color 180 labelsize 11
+            }
+          }
+          Fl_Group {} {
+            label {Pushes the boundary inwards or outwards, proportionally to the preprocessed image intensity.} open
+            xywh {20 60 260 25} labelsize 10 align 148
+          } {}
+        }
+        Fl_Group m_GrpMath {
+          label {Mathematical Mode}
+          xywh {5 25 350 320} color 22 selection_color 102 labelfont 2 labelsize 11 align 2 hide
+        } {
+          Fl_Group {} {
+            label {Front propagation equation:} open
+            xywh {20 55 330 60} labelsize 12 align 5
+          } {
+            Fl_Check_Button m_BtnAdvancedEquation {
+              label {Use experimental equation (advanced)}
+              callback {OnAdvancedEquationAction();}
+              xywh {135 90 205 15} down_box DOWN_BOX color 109 selection_color 32 labelsize 11
+            }
+            Fl_Wizard m_WizEquation {open
+              xywh {20 55 325 30}
+            } {
+              Fl_Group m_GrpEquationEdge {open
+                image {Artwork/formula01.gif} xywh {20 55 325 30} box BORDER_BOX color 7 align 16
+              } {}
+              Fl_Group m_GrpEquationRegion {open
+                image {Artwork/formula02.gif} xywh {20 55 325 30} box BORDER_BOX color 7 align 16 hide
+              } {}
+              Fl_Group m_GrpEquationExperimental {open
+                image {Artwork/formula03.gif} xywh {20 55 325 30} box BORDER_BOX color 7 align 16 hide
+              } {}
+            }
+          }
+          Fl_Group m_GrpCurvatureMath {
+            label {Curvature term:}
+            xywh {20 210 325 40} box PLASTIC_DOWN_BOX color 22 labelsize 12 align 5
+          } {
+            Fl_Value_Input m_InCurvatureWeightMathText {
+              label {b:}
+              callback {OnCurvatureWeightChange(o);}
+              xywh {45 220 45 20} labelfont 12 maximum 5 step 0.01 textsize 12
+            }
+            Fl_Value_Input m_InCurvatureExponentMathText {
+              callback {OnCurvatureExponentChange(o);}
+              image {Artwork/rb.gif} xywh {235 220 30 20} labelsize 11 maximum 2 step 1 textsize 12 hide
+            }
+            Fl_Slider m_InCurvatureWeightMathSlider {
+              callback {o->take_focus();
+OnCurvatureWeightChange(o);}
+              xywh {95 220 110 20} type Horizontal step 0.01
+            }
+            Fl_Slider m_InCurvatureExponentMathSlider {
+              callback {OnCurvatureExponentChange(o);}
+              xywh {270 220 65 20} type Horizontal color 51 selection_color 60 maximum 3 step 1 hide
+            }
+          }
+          Fl_Group m_GrpAdvectionMath {
+            label {Advection Term:} open
+            xywh {20 275 325 40} box PLASTIC_DOWN_BOX color 22 labelsize 12 align 5
+          } {
+            Fl_Value_Input m_InAdvectionWeightMathText {
+              label {g:}
+              callback {OnAdvectionWeightChange(o);}
+              xywh {45 285 45 20} labelfont 12 maximum 5 step 0.01 textsize 12
+            }
+            Fl_Value_Input m_InAdvectionExponentMathText {
+              callback {OnAdvectionExponentChange(o);}
+              image {Artwork/rc.gif} xywh {235 285 30 20} labelsize 11 maximum 2 step 1 textsize 12 hide
+            }
+            Fl_Slider m_InAdvectionWeightMathSlider {
+              callback {o->take_focus();
+OnAdvectionWeightChange(o);}
+              xywh {95 285 110 20} type Horizontal maximum 5 step 0.01
+            }
+            Fl_Slider m_InAdvectionExponentMathSlider {
+              callback {OnAdvectionExponentChange(o);}
+              xywh {270 285 65 20} type Horizontal color 51 selection_color 60 maximum 2 step 1 hide
+            }
+          }
+          Fl_Group m_GrpPropagationMath {
+            label {Propagation (baloon force) term:} open
+            xywh {20 145 325 40} box PLASTIC_DOWN_BOX color 22 selection_color 59 labelsize 12 align 5
+          } {
+            Fl_Value_Input m_InPropagationWeightMathText {
+              label {a:}
+              callback {OnPropagationWeightChange(o);}
+              xywh {45 155 45 20} labelfont 12 minimum -5 maximum 5 step 0.01 value 1 textsize 12
+            }
+            Fl_Slider m_InPropagationWeightMathSlider {
+              callback {o->take_focus();
+OnPropagationWeightChange(o);}
+              xywh {95 155 110 20} type Horizontal minimum -1 step 0.1 value 1
+            }
+            Fl_Value_Input m_InPropagationExponentMathText {
+              callback {OnPropagationExponentChange(o);}
+              image {Artwork/ra.gif} xywh {235 155 30 20} labelfont 2 labelsize 12 maximum 2 step 1 value 1 textsize 12 hide
+            }
+            Fl_Slider m_InPropagationExponentMathSlider {
+              callback {OnPropagationExponentChange(o);}
+              xywh {270 155 65 20} type Horizontal color 51 selection_color 60 maximum 2 step 1 value 1 hide
+            }
+          }
+        }
+        Fl_Group {} {
+          label {Advanced Settings} open
+          xywh {5 25 350 320} color 22 selection_color 210 labelfont 2 labelsize 11 hide
+        } {
+          Fl_Group m_GrpTimeStep {
+            label {Time step computation:} open
+            xywh {20 185 320 100} box PLASTIC_DOWN_BOX color 22 selection_color 245 labelsize 12 align 5
+          } {
+            Fl_Value_Slider m_InTimeStep {
+              label {Speed-up factor:}
+              callback {o->take_focus();
+OnTimeStepChange(o);}
+              tooltip {Specify how much faster the snake evolution should be performed} xywh {185 230 145 20} type Horizontal labelsize 11 align 4 minimum 1 maximum 10 step 0.25 value 2 textsize 11 deactivate
+            }
+            Fl_Round_Button {m_BtnTimeStepAuto[0]} {
+              callback {this->OnTimeStepAutoAction();}
+              xywh {30 190 260 20} type Radio down_box ROUND_DOWN_BOX value 1
+            }
+            Fl_Round_Button {m_BtnTimeStepAuto[1]} {
+              callback {this->OnTimeStepAutoAction();}
+              xywh {30 210 150 20} type Radio down_box ROUND_DOWN_BOX
+            }
+            Fl_Group {} {
+              label {Automatically compute optimal time step} open
+              xywh {45 190 200 20} labelsize 11 align 20
+            } {}
+            Fl_Group {} {
+              label {Override optimal time step (faster but less robust):}
+              callback {this->OnTimeStepAutoAction();} open
+              xywh {45 210 285 20} labelsize 11 align 20
+            } {}
+            Fl_Value_Slider m_InSmoothingWeight {
+              label {Noise reduction:}
+              callback {o->take_focus();
+OnSmoothingWeightChange(o);}
+              tooltip {Experimental feature: additional smoothing of the snake} xywh {185 255 145 20} type Horizontal labelsize 11 align 4 value 0.1 textsize 11 deactivate
+            }
+          }
+          Fl_Group {} {
+            label {Algorithm configuration:} open
+            xywh {20 55 320 110} box PLASTIC_DOWN_BOX color 22 labelsize 12 align 5
+          } {
+            Fl_Choice m_InSolver {
+              label {Use algorithm:}
+              callback {OnSolverChange();} open
+              xywh {105 65 225 20} down_box BORDER_BOX labelsize 11 textsize 11
+            } {
+              menuitem {} {
+                label {ITK Sparse Field Level Set Algorithm}
+                xywh {0 0 100 20} labelsize 11
+              }
+              menuitem {} {
+                label {ITK Narrow Band Level Set Algorithm}
+                xywh {10 10 100 20} labelsize 11
+              }
+              menuitem {} {
+                label {ITK Dense Level Set Algorithm}
+                xywh {20 20 100 20} labelsize 11
+              }
+              menuitem {} {
+                label {SNAP Original Algorithm}
+                xywh {30 30 100 20} labelsize 11 hide
+              }
+            }
+            Fl_Wizard m_WizSolverOptions {
+              label {Options:} open
+              xywh {35 105 295 50} box THIN_UP_FRAME color 245 labelsize 11 align 5
+            } {
+              Fl_Group m_GrpSparseSolverOptions {open
+                xywh {35 105 290 50}
+              } {}
+              Fl_Group m_GrpNarrowSolverOptions {open
+                xywh {35 105 290 50} hide
+              } {}
+              Fl_Group m_GrpLegacySolverOptions {open
+                xywh {35 105 295 50} hide
+              } {
+                Fl_Check_Button m_ChkLegacyClamp {
+                  label {Clamp to ground (faster, less accurate)}
+                  callback {OnLegacyClampChange(o);}
+                  xywh {45 110 270 15} down_box DOWN_BOX value 1 labelsize 11
+                }
+                Fl_Value_Slider m_InLegacyGround {
+                  label {'Ground' value:}
+                  callback {OnLegacyGroundChange(o);}
+                  xywh {190 130 130 15} type Horizontal labelsize 11 align 4 maximum 5 step 0.1 value 2
+                }
+              }
+            }
+          }
+        }
+      }
+      Fl_Button m_BtnClose {
+        label Cancel
+        callback {this->OnCloseAction();}
+        xywh {405 445 64 25} box PLASTIC_UP_BOX shortcut 0xff1b color 180 labelsize 12
+      }
+      Fl_Button m_BtnHelp {
+        label {&Help!}
+        callback {this->OnHelpAction();}
+        xywh {330 445 64 25} box PLASTIC_UP_BOX shortcut 0x80068 color 180 labelsize 12
+      }
+      Fl_Button m_BtnAccept {
+        label {&Accept}
+        callback {this->OnOkAction();}
+        xywh {255 445 64 25} box PLASTIC_UP_BOX shortcut 0x80061 color 180 labelfont 1 labelsize 12
+      }
+      Fl_Group {} {
+        label {Conceptual illustration of the forces in 2D:} open
+        xywh {365 25 345 405} box PLASTIC_UP_BOX color 22 labelfont 2 labelsize 12
+      } {
+        Fl_Group {} {
+          label {Curvature force} open
+          xywh {540 46 164 164} box FLAT_BOX color 0 labelsize 12
+        } {
+          Fl_Box {m_BoxPreview[1]} {
+            xywh {542 48 160 160} box FLAT_BOX color 27 labelsize 10
+            code0 {\#include "SnakeParametersPreviewBox.h"}
+            class SnakeParametersPreviewBox
+          }
+        }
+        Fl_Group {} {
+          label {Advection force} open
+          xywh {370 231 164 164} box FLAT_BOX color 0 labelsize 12
+        } {
+          Fl_Box {m_BoxPreview[2]} {
+            xywh {372 233 160 160} box FLAT_BOX color 27 labelsize 10
+            code0 {\#include "SnakeParametersPreviewBox.h"}
+            class SnakeParametersPreviewBox
+          }
+        }
+        Fl_Group {} {
+          label {Combined force} open
+          xywh {540 231 164 164} box FLAT_BOX color 0 labelsize 12
+        } {
+          Fl_Box {m_BoxPreview[3]} {
+            xywh {542 233 160 160} box FLAT_BOX color 27 labelsize 10
+            code0 {\#include "SnakeParametersPreviewBox.h"}
+            class SnakeParametersPreviewBox
+          }
+        }
+        Fl_Group {} {
+          label {Balloon force} open
+          xywh {370 46 164 164} box FLAT_BOX color 0 labelsize 12
+        } {
+          Fl_Box {m_BoxPreview[0]} {
+            xywh {372 48 160 160} box FLAT_BOX color 27 labelsize 10
+            code0 {\#include "SnakeParametersPreviewBox.h"}
+            class SnakeParametersPreviewBox
+          }
+        }
+        Fl_Check_Button m_BtnAnimate {
+          label {Show animated 2D segmentation preview}
+          callback {this->OnAnimateAction();}
+          xywh {485 405 220 20} down_box DOWN_BOX labelsize 11
+        }
+      }
+      Fl_Group {} {open
+        xywh {5 375 350 55} box PLASTIC_UP_BOX color 22
+      } {
+        Fl_Button m_BtnLoadParameters {
+          label {&Load Parameters...}
+          callback {this->OnLoadParametersAction();}
+          xywh {65 390 105 25} box PLASTIC_UP_BOX shortcut 0x8006c color 180 labelsize 11
+        }
+        Fl_Button m_BtnSaveParameters {
+          label {&Save Parameters...}
+          callback {this->OnSaveParametersAction();}
+          xywh {185 390 105 25} box PLASTIC_UP_BOX shortcut 0x80073 color 180 labelsize 11
+        }
+      }
+    }
+    Fl_Window {} {
+      label {Junk box} open
+      xywh {70 117 378 423} type Double hide
+    } {
+      Fl_Group m_GrpClassic {
+        label {Classic Mode} open
+        xywh {10 30 350 375} color 245 selection_color 245 labelfont 2 labelsize 11
+      } {
+        Fl_Group m_GrpSnakeParametersProperties {
+          label {Propagation:} open
+          xywh {15 80 335 60} box PLASTIC_UP_FRAME color 245 labeltype ENGRAVED_LABEL labelsize 12 align 5
+        } {
+          Fl_Group {} {
+            label {Time Step:} open
+            xywh {25 100 165 35} labelsize 10 align 5
+          } {
+            Fl_Value_Slider m_InTimeStepClassic {
+              callback {OnTimeStepChange(o);}
+              xywh {25 100 150 15} type Horizontal labelsize 10 align 5 value 0.1 deactivate
+            }
+            Fl_Check_Button m_BtnTimeStepAutoClassic {
+              label {Compute automatically}
+              callback {this->OnTimeStepAutoAction();}
+              xywh {35 115 130 20} down_box DOWN_BOX value 1 labelsize 10
+            }
+          }
+          Fl_Value_Slider m_InPropagationWeightClassic {
+            label {Speed:}
+            callback {OnPropagationWeightChange(o);}
+            xywh {190 100 150 15} type Horizontal labelsize 10 align 5 minimum -5 maximum 5 step 0.1 value 5
+          }
+        }
+        Fl_Group m_GrpSnakeParametersConstraints {
+          label {Constraints:} open
+          xywh {15 165 335 105} box PLASTIC_UP_FRAME color 245 selection_color 177 labeltype ENGRAVED_LABEL labelsize 12 align 5
+        } {
+          Fl_Group m_GrpSnakeParametersSliders {open
+            xywh {15 170 335 95} color 205 labelsize 10
+          } {
+            Fl_Value_Slider m_InCurvatureWeightClassic {
+              label {c_MCF:}
+              callback {OnCurvatureWeightChange(o);}
+              xywh {25 185 150 15} type Horizontal labelsize 10 align 5 value 0.7
+            }
+            Fl_Value_Slider m_InCurvatureExponentClassic {
+              label {r_MCF:}
+              callback {OnCurvatureExponentChange(o);}
+              xywh {190 185 150 15} type Horizontal labelsize 10 align 5 minimum -1 maximum 2 step 1
+            }
+            Fl_Value_Slider m_InAdvectionWeightClassic {
+              label {c_delg:}
+              callback {OnAdvectionWeightChange(o);}
+              xywh {25 215 150 15} type Horizontal labelsize 10 align 5 step 1
+            }
+            Fl_Value_Slider m_InAdvectionExponentClassic {
+              label {r_delg:}
+              callback {OnAdvectionExponentChange(o);}
+              xywh {190 215 150 15} type Horizontal labelsize 10 align 5 step 1
+            }
+            Fl_Value_Slider m_InPropagationExponentClassic {
+              label {r_c:}
+              callback {OnPropagationExponentChange(o);}
+              xywh {190 245 150 15} type Horizontal labelsize 10 align 5 maximum 2 step 1 value 1
+            }
+          }
+        }
+      }
+    }
+  }
+} 

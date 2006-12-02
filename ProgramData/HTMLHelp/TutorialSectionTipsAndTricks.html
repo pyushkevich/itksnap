@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>SNAP Tutorial. Section 9.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+<body>
+  
+<h1>Section 9. Tips and Tricks</h1>
+<p>This section contains a list of loosely organized list of SNAP features that can make it a more powerful tool than it may appear at first look. Click below to jump to a specific tip:</p>
+
+<ol>
+<li><a href="#info">Displaying image information</a></li>
+<li><a href="#focus">Focusing on a Single Slice View</a></li>
+<li><a href="#init">Another Way to Initialize Segmentations</a></li>
+<li><a href="#aniso"> Automatic Segmentation of Anisotropic Images</a></li>
+<li><a href="#advanced"> Advanced Parameter Settings</a></li>
+<li><a href="#large"> Large Segmentations in SNAP</a></li>
+</ol>
+
+<h3><a name="info"></a> Displaying Image Information </h3>
+<p>SNAP includes an image information window that can be brought up at any time. The window displays dimensions of the image, voxel size, current cursor location and other useful information.</p>
+
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td>Select <b>File | Image Info ...</b> </td>
+   </tr>
+ </table>
+
+<p align="center"><img src="Artwork/ttTipsImageInfo.gif"></p>
+
+
+<h3><a name="focus"></a> Focusing on a Single Slice View</h3>
+<p>When performing manual segmentation, it may be useful to dedicate a larger area of the screen to a single slice of the 3D image. SNAP allows you to replace the standard four-view layout (three slice views and a 3D view) with a single-view layout. </p>
+
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td>Click on the plus button ( <img src="Artwork/ttTipsFocusPlus.gif" align="middle"> ) in one of the four views to expand that view. </td>
+   </tr>
+ </table>
+
+<p align="center"><img src="Artwork/ttTipsFocusResult.gif"></p>
+
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td>Click on the plus button ( <img src="Artwork/ttTipsFocusPlus.gif" align="middle"> ) in the expanded view to collapse the view and display the other three views. </td>
+   </tr>
+ </table>
+
+<h3><a name="init"></a> Another Way to Initialize Segmentations </h3>
+<p>In this tutorial, automatic segmentations were initialized using 'bubbles'. There is an other way to initialize segmentation. Whenever you enter the automatic segmentation mode with some label <i>X</i> as the current drawing label, all the pixels already labelled <i>X</i> will be passed on to the automatic segmentation mode as initialization pixels. Therefore, you can use the results of one segmentation attempt to initialize another. You can also use manual segmentation tools to construct the snake initialization.
+</p>
+
+<h3><a name="aniso"></a> Automatic Segmentation of Anisotropic Images </h3>
+<p> The snake evolution algorithms used in SNAP are poorly suited for non-isotropic images, especially wen anisotropy is great, e.g., when pixels have size 1x1x3 or 1x1x5, which is quite common in medical images. The option to resample an image has been added to SNAP especially for dealing with such images </p>
+
+<p> Before entering the automatic segmentation mode, you have an option to resample the region of interest passed on to automatic segmentation. Just check the box 'Resample Region' before pressing the <b>Segment 3D</b> button.</p>
+
+<p align="center"><img src="Artwork/ttTipsResample1.gif"></p>
+
+<p> After you press <b>Segment 3D</b>, the <i>Region Resampling</i> window will appear:</p>
+
+<p align="center"><img src="Artwork/ttTipsResample3.gif"></p>
+
+<p> You can use this window to change the dimensions of the pixels that will be passed on to SNAP's automatic segmentation mode. For instance, if the input image has 1x1x5 pixels, you can have SNAP replace each pixel by 5 isotropic ones, as shown above. Be aware, however, that supersampling an image in this way increases memory usage (fivefold in this case), and should be done only for small regions of interest. A more conservative option is to resample 1x1x5 pixels to 2x2x2 pixels.</p>
+
+<p> The automatic segmentation will be performed on the resampled image, and the results will be resampled back to the resolution of the original, anisotropic image.</p>
+
+<p> You can choose between cubic, linear, and nearest neighbor interpolation modes. Cubic produces the best quality resampled images, but is slow. Nearest neighbor interpolation is fast but results in greatest distortion. Cubic interpolaion is recommended in most cases.</p>
+
+
+<h3><a name="AdvancedParms"></a><a name="advanced"> Advanced Parameter Settings </h3>
+  
+  <p>The 'Advanced' tab of the snake parameter setting window is shown below:</p>
+  <p align="center"><img src="Artwork/ttTipsAdvanced.gif"></p>
+
+  <p> This tab allows you to change the algorithm used for snake propagation. At the time of this writing, the default <i>Sparse Field Level Set Algorithm</i> is the most efficient option. The <i>Narrow Band Level Set Algorithm</i> is a little slower and some small differences in the results of the two methods have been detected. The Narrow Band algorithm is more robust with respect to increasing the segmentation time step (see next paragraph). The <i>Dense Level Set Algorithm</i> is included purely for experimental purposes. It is orders of maginitude slower that the other two options. </p>
+
+  <p> This tab also allows you to override the default <i> time step </i> used in snake propagation.
+  The default setting is to use the so-called optimal time step: the largest time step that allows some mathematical guarantees on the segmentation error to be established. In practice, it is possible to use a larger time step value, resulting in proportionally faster segmentations, but at a cost of (sometimes unpredictable) error. We recommend overriding the optimal step when doing rough segmentations on large regions of interest. </p> 
+
+  <p> The experimental noise reduction option can be used in conjunction with overriding the optimal time step. For very large speedups, it may reduce the error accumulation. We recommend to leave the noise reduction setting at zero.</p>
+  
+<h3><a name="large"></a> Large Segmentations in SNAP</h3>
+<p> You may have noticed that the speed of segmentation in SNAP is roughly proportional to the size of the structure you are segmenting. If that were always the case, it would take a very long time to segment large structures such as the whole of the brain white matter or gray matter. Luckily, SNAP provides a couple of ways to speed up large segmentations.</p>
+
+<p>The first way is to take advantage of the option to <i> resample </i> the region of interest when entering the automatic segmentation mode. The details on such resampling are given in the <a href="#aniso">Tip on Automatic Segmentation of Anisotropic Images</a>.For example, if the original image has 1mm cube pixels and you resample it to 2x2x2 resolution, you will reduce the amount of memory needed for segmentation by eightfold and will speedup the segmentation by an eightfold as well. The gains in speed come, of course, at the price of accuracy. However, you can use subsampling to get a 'quick and dirty' segmentation and then use that segmentation as an initialization to another segmentation, this time without resampling. See the <a href="#init">Tip on Another Way to Initialize Segmentations</a> for more details on using segmentation results for initialization of subsequent segmentations. </p>
+
+<p> The second way to speed up segmentations is to override the default time step used for snake propagation. See the <a href="#advanced">Tip on Advanced Parameter Settings</a> for details.
+
+<h3><a name="spray"> Using the Spray Paint 3D Tool for Landmark Placement</h3>
+  <p> The manual mode of SNAP includes the <i> 3D spray paint tool </i>. </p>
+
+  <p align="center"><img src="Artwork/ttSprayPaintTool.gif"></p>
+  
+  <p>This tool is used to mark points on the surface of the 3D rendering of the segmentation results with the active drawing label. Simply select this tool, position the mouse over a rendered segmentation results (e.g., ventricles, as shown below), and press the left mouse button. Tiny bubbles will appear on the surface of the segmented structure under the mouse. You can move the mouse while pressing the left mouse button. Press the <b>Accept</b> button to relabel the pixels corresponding to these bubbles with the active drawing label, or press the <b> Reset View </b> to discard the spray painted bubbles.</p>
+
+  <p align="center"><img src="Artwork/ttSprayPaintCross.gif"></p>
+
+  <p> Spray painting is useful for assigning unique labels to specific anatomical landmarks. It can also be used for tracing curves on the surface of anatomical structures, e.g., for rough tracing of the sulci or gyri. </p>
+  
+<p>&nbsp; </p>
+</body>
+</html>

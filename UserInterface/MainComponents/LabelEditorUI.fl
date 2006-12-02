@@ -1,0 +1,121 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0105 
+header_name {.h} 
+code_name {.cxx}
+class LabelEditorUI {open : { private LabelEditorUIBase }
+} {
+  Function {MakeWindow()} {open
+  } {
+    Fl_Window m_WinMain {
+      label {SnAP Label Editor} open selected
+      xywh {382 364 440 392} type Double
+      code0 {\#include "LabelEditorUIBase.h"} visible
+    } {
+      Fl_Group {} {
+        label {Available labels:} open
+        xywh {10 25 200 320} box BORDER_BOX selection_color 0 labelfont 1 labelsize 12 align 5
+      } {
+        Fl_Browser m_BrsLabelList {
+          callback {OnLabelSelectAction()}
+          xywh {15 35 190 305} type Hold labelsize 12 textfont 4 textsize 11
+        }
+      }
+      Fl_Tabs {} {
+        label {Selected Label:} open
+        xywh {220 25 210 320} box PLASTIC_THIN_UP_BOX selection_color 53 labelfont 1 labelsize 12 align 5
+      } {
+        Fl_Group {} {
+          label Appearance open
+          xywh {220 50 210 295} labelsize 12
+        } {
+          Fl_Input m_InLabelName {
+            label {Description:}
+            callback {OnLabelPropertyChange()}
+            xywh {225 75 200 20} color 53 labelsize 12 align 5 when 1 textsize 12
+          }
+          Fl_Value_Slider m_InLabelOpacity {
+            label {Opacity:}
+            callback {OnLabelPropertyChange()}
+            xywh {225 240 200 20} type Horizontal color 53 selection_color 12 labelsize 12 align 5 value 0.2
+          }
+          Fl_Group m_GrpLabelColor {
+            label {Color:}
+            callback {OnLabelPropertyChange()} open
+            xywh {225 120 200 95} box PLASTIC_DOWN_BOX labelsize 12 align 5
+            code0 {\#include <FL/Fl_Color_Chooser.H>}
+            class Fl_Color_Chooser
+          } {}
+          Fl_Group {} {
+            label {Visibility:} open
+            xywh {225 285 200 50} box PLASTIC_DOWN_BOX labelsize 12 align 5
+          } {
+            Fl_Check_Button m_ChkVisibility {
+              label {Hide label in all windows}
+              callback {OnLabelPropertyChange()}
+              xywh {235 310 180 20} down_box DOWN_BOX selection_color 180 labelsize 12
+            }
+            Fl_Check_Button m_ChkMeshVisibility {
+              label {Hide label in the 3D window}
+              callback {OnLabelPropertyChange()}
+              xywh {235 290 180 20} down_box DOWN_BOX selection_color 180 labelsize 12
+            }
+          }
+        }
+        Fl_Group {} {
+          label {Label Id} open
+          xywh {220 50 210 295} labelsize 12 hide
+        } {
+          Fl_Group {} {
+            label {Label's position in the list:} open
+            xywh {225 75 200 85} box PLASTIC_DOWN_BOX labelsize 12 align 5
+          } {
+            Fl_Button {} {
+              label {Move up}
+              callback {OnMoveUpAction()}
+              xywh {250 125 75 25} box PLASTIC_UP_BOX color 48 labelsize 12
+            }
+            Fl_Button {} {
+              label {Move down}
+              callback {OnMoveDownAction()}
+              xywh {335 125 75 25} box PLASTIC_UP_BOX color 48 labelsize 12
+            }
+            Fl_Value_Input m_InLabelId {
+              label {Numeric Id:}
+              xywh {310 90 50 25} labelsize 12 when 4 textsize 12
+            }
+            Fl_Button m_BtnSetId {
+              label Set
+              callback {OnSetIdAction()}
+              xywh {365 90 45 25} box PLASTIC_UP_BOX color 48 labelsize 12
+            }
+          }
+          Fl_Check_Button m_ChkPromptId {
+            label {Allow me to enter label ids when
+adding new labels}
+            xywh {225 180 195 20} down_box DOWN_BOX selection_color 180 labelsize 12 align 21
+          }
+        }
+      }
+      Fl_Button {} {
+        label New
+        callback {OnNewAction()}
+        xywh {10 355 70 25} box PLASTIC_UP_BOX color 180 labelsize 12
+      }
+      Fl_Button {} {
+        label Delete
+        callback {OnDeleteAction()}
+        xywh {160 355 70 25} box PLASTIC_UP_BOX color 180 labelsize 12
+      }
+      Fl_Button {} {
+        label Duplicate
+        callback {OnDuplicateAction()}
+        xywh {85 355 70 25} box PLASTIC_UP_BOX color 180 labelsize 12
+      }
+      Fl_Button {} {
+        label {Close Window}
+        callback {OnCloseAction()}
+        xywh {320 355 110 25} box PLASTIC_UP_BOX color 180 labelfont 1 labelsize 12
+      }
+    }
+  }
+} 

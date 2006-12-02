@@ -1,0 +1,134 @@
+======================================
+ InsightSNAP Release Notes
+ Version 1.4
+======================================
+
+-----------------
+1. New Features
+-----------------
+
+
+1.1. New in Version 1.4
+-----------------------
+
+1.1.1. New Features and User Interface Improvements
+
+ -  New and improved label editor. You can easily switch between labels while in
+    the editor and the interface for adding new labels is more intuitive. You
+    can now delete labels.
+
+ -  New and improved interface for intensity reparameterization. The histogram
+    display is more visible and you have more control over the number of bins in
+    the histogram and the scaling of the bars (linear or log). 
+
+ -  SNAP remembers all settings associated with loading an image. This means that
+    any image loaded previously can be reloaded without going throught the 
+    wizard. 
+
+ -  We've added File->Load Previous menu to let you load images quickly
+
+ -  SNAP can now read DICOM file series (experimental support) and it can read 
+    and write VoxBo CUB image files.
+
+ -  SNAP remembers more image-associated settings from session to session. For
+    example, it will remember the intensity reparameterization that you last
+    used. SNAP will also remember the orientation ("RAI" code) that was last
+    used to read each image. 
+
+ -  New Image Information window is available under the File menu. It displays
+    the size of the image and the current cursor position. 
+
+ -  A color map feature has been added in the automatic segmentation mode. The
+    color map lets you select different color schemes for displaying the
+    probability map / speed image.
+
+ -  Small improvements to the active contour 2D example dialog have been made
+
+ -  A progress monitor has been added for the 3D renderer in main SNAP window.
+
+ -  New buttons allow taking of snapshots in each of the SNAP image windows
+
+ -  The tutorial has been updated to reflect the new features.
+
+1.1.2. Bug Fixes.
+
+ -  SNAP should crash a lot less than before
+
+ -  The Left-Right orientation should be correctly handled by SNAP. You still
+    have to supply the correct orientation ("RAI Code") when loading the image.
+
+ -  The bug with the segmentation being shifted when using "Resample Region"
+    option has been fixed
+
+ -  3D window handles images with non-zero origin better
+
+ -  Initialization bubbles have been fixed to be floating point
+
+ -  Lots of other small bugs have been fixed!
+
+1.1.3. Programmatic Enhancements
+
+ -  SNAP and IRIS now share the sameset of OpenGL windows. This should prevent
+    crashes on some platforms.
+
+1.1.4. Other
+
+ -  SNAP available as a universal (Intel/PPC) binary for MacOS at itksnap.org
+
+
+1.2. New in Version 1.2
+-----------------------
+
+1.2.1. User Interface Improvements
+
+ -  The ability to switch between 4-view mode and single view mode. Each of the 
+    slice views and the 3D view can be expanded to occupy the entire SNAP window.
+
+ -  A zoom thumbnail is now displayed when a slice view is zoomed in. The thumbnail 
+    view can be used to pan the slice.
+
+ -  User can specify whether he/she prefers to start in linked zoom mode or in 
+    unlinked zoom mode.
+
+ -  User can change the appearance of various display elements, including the
+    crosshairs, the region of interest selection box, the window background and
+    more. 
+
+ -  SNAP automatically determines the image orientation (RAI) when that information
+    is available in the image file
+
+ -  SNAP remembers the last ROI used for each image.
+
+1.2.2. Programmatic Improvements
+
+ -  The level set segmentation pipeline has been rewritten, taking advantage of
+    the stop and go functionality of ITK finite difference filters. This means
+    fewer unexplained crashes and simpler code.
+
+ -  A state-machine has been added to the user interface logic code. This
+    machine automatically activates and deactivates UI widgets based on a set of
+    flags. Rules such as Flag A => Flag B can be added to the state machine.
+
+1.2.3 Bug Fixes
+
+ -  Slice views update correctly when the SNAP window is resized
+
+ -  Accepting a polygon now works for high resolution images.
+
+ -  Fixed a crash on some systems when running edge-based snake segmentation with an
+    advection term.
+
+
+2. Known Issues
+-----------------
+ -  
+
+
+3. Wish List
+-----------------
+ -  The ability to perform 2D level set segmentation in each slice view.
+
+ -  The ability to export level set segmentation results as meshes or as floating
+    point images.
+
+ -  Ability to use different color maps in automatic segmentation mode.

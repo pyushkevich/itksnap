@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SNAP Tutorial. Section 8.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body>
+ <h2>Section 8. Computing Volumes and Statistics </h2>
+ <p>This brief section describes how to use SNAP to calculate volumes of the segmented structures, as well as the statistics of the image intensity for each structure. This section will take under 5 minutes to complete.</p>
+
+<h3>Step 1. Load an image and an existing segmentation</h3>
+<p>We will begin by loading the image that we have been working with all along. You may already have this image loaded, in which case, reloading the image will clear the results of your previous segmentations.</p>
+
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td>Load image <b>MRIcrop-orig.gipl</b> as described in <a href="TutorialSectionLoadingImages.html"> Section 2 <a></td>
+   </tr>
+ </table>
+
+<p> The completed segmentation for this image is located in the same directory as the image itself and is called <b>MRIcrop-seg.gipl</b> </p>
+
+ <table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td>Select <b>File | Load Data | Segmentation Data</b> to bring up the image input wizard.<br>
+Use the wizard to load the image <b>MRIcrop-seg.gipl</b>
+<br> Press the <b>Update Mesh</b> button in the 3D window panel to render the segmentation in 3D.
+
+</td>
+   </tr>
+ </table>
+
+ <p align="center"><img src="Artwork/ttVolumeStatsMesh.gif"></p>
+<br> 
+
+ <h3>Step 2. Compute Volumes and Statistics</h3>
+ <p>In the previous step, you have loaded a segmentation that includes several structures. Now, you will create a file that contains the following information about each structure: </p>
+<ul>
+  <li> Number of voxels that belong to the structure</li>
+  <li> Volume of the structure (in cubic millimeters) </li>
+  <li> Mean image intensity inside the structure </li>
+  <li> Standard deviation of the image intensity in the structure </li>
+</ul>
+
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td>Select <b> File | Save Data | Volumes & Statistics </b>.</td>
+   </tr>
+ </table>
+ <p align="center"><img src="Artwork/ttVolumeStatsDialog.gif"></p>
+
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+   <tr>
+     <td width="36" valign="top"><img src="Artwork/ttIconAction.gif" width="36" height="36"></td>
+     <td>Specify a filename with a <b>.txt</b> extension and press <b>Ok</b>.</td>
+   </tr>
+ </table>
+
+<p>The volumes and statistics will be saved in a text file that you specify. The contents of this file are displayed below. The file can be imported into various spreadsheet applications.</p>
+
+<table width="80%"  border="1" align="center" cellpadding="4" cellspacing="0">
+<tr><td>
+<pre>
+##########################################################
+# SNAP Voxel Count File
+# File format:
+# LABEL: ID / NUMBER / VOLUME / MEAN / SD
+# Fields:
+#    LABEL         Label description
+#    ID            The numerical id of the label
+#    NUMBER        Number of voxels that have that label
+#    VOLUME        Volume of those voxels in cubic mm
+#    MEAN          Mean intensity of those voxels
+#    SD            Standard deviation of those voxels
+##########################################################
+vent-lat                                :    1 /      18138 /      18138 /    22.0791 /    6.70728
+vent-3rd                                :    2 /       2633 /       2633 /     25.763 /    6.36361
+vent-4th                                :    3 /       4775 /       4775 /    25.4262 /    6.60467
+hippo-R                                 :    4 /       2250 /       2250 /    55.6178 /    4.47806
+hippo-L                                 :    5 /       2548 /       2548 /    52.6429 /    4.15063
+vent-temp                               :    6 /       1047 /       1047 /    23.5244 /    7.34334
+caudates                                :    7 /       7661 /       7661 /    56.3759 /    3.92178
+corpus-callosum                         :    8 /      16841 /      16841 /    69.2177 /    6.05497
+</pre></td></tr></table>
+
+</body>
+</html>
