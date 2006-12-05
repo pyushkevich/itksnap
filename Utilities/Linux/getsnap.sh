@@ -46,8 +46,8 @@ logfile=$basedir/buildlog
 
 # Release versions for the supporting software. Change to HEAD to get
 # the most current version of the code
-CMAKE_REL="CMake-2-0-6"
-ITK_REL="ITK-2-6"
+CMAKE_REL="CMake-2-4-2"
+ITK_REL="ITK-2-8"
 VTK_REL="release-4-4"
 SNAP_REL="ITK-SNAP-1-4"
 
@@ -121,8 +121,8 @@ function get_fltk {
   cd $basedir/fltk
 
   # Use SVN to check out fltk
-  echo "Checking out FLTK 1.1.x from SVN"
-  svn co http://svn.easysw.com/public/fltk/fltk/branches/branch-1.1/ fltk-1.1 >> $logfile
+  echo "Checking out FLTK 1.1.6 from SVN"
+  svn co http://svn.easysw.com/public/fltk/fltk/tags/branch-1.1_6/ fltk-1.1 >> $logfile
 
   # Build FLTK
   echo "Building FLTK"
@@ -263,9 +263,9 @@ function get_app {
 # Perform the actual build tasks
 # -------------------------------------------------------------
 get_cmake
+get_itk
 get_fltk
 get_vtk
-get_itk
 get_app
 
 echo "SNAP executable is located in $instdir/bin/InsightSNAP!"
