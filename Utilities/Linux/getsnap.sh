@@ -240,7 +240,6 @@ function get_itksnap {
     -DITK_DIR:PATH="$basedir/itk/bingcc" \
     -DVTK_DIR:PATH="$basedir/vtk/bingcc" \
     -DFLTK_DIR:PATH="$basedir/fltk/bingcc" \
-#    -DSNAP_USE_XFT_LIBRARY:BOOL=ON \
     -DCMAKE_INSTALL_PREFIX:PATH=$instdir \
     $basedir/itksnap/itksnap >> $logfile
 
