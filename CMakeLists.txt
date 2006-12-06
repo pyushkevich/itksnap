@@ -9,6 +9,14 @@ SUBDIRS(ProgramData)
 #########################################################
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS #
 #########################################################
+IF(DEFINED InsightApplications_SOURCE_DIR)
+  SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS FALSE CACHE BOOL 
+	"Is SNAP being built separate from InsightApplications?")
+ELSE(DEFINED InsightApplications_SOURCE_DIR)
+  SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS TRUE CACHE BOOL 
+	"Is SNAP being built separate from InsightApplications?")
+ENDIF(DEFINED InsightApplications_SOURCE_DIR)			
+
 IF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
   INCLUDE(${SNAP_SOURCE_DIR}/CMake/standalone.cmake)
 ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )

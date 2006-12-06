@@ -54,6 +54,10 @@
     independently of the ITK code freezes. It also makes it easier to add new 
     developers.
 
+ -  SNAP CMake files should automatically detect when SNAP is being built
+    outside of ITK's InsightApplications. This means you can build SNAP on it's
+    own and the download size is reduced
+
 
 1.2. New in Version 1.4
 -----------------------
