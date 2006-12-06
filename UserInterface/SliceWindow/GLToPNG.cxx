@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GLToPNG.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:27 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2006/12/06 14:36:18 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -35,7 +35,7 @@ vtkImageData* GLToVTKImageData(unsigned int format, int x, int y, int w, int h)
     } 
   else 
     {
-    cerr << "Invalid GLenum" << endl;
+    std::cerr << "Invalid GLenum" << endl;
     exit(1);
     }
 

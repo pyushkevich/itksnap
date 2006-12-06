@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 13:27:46 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2006/12/06 14:36:18 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -56,7 +56,7 @@
 
 #include "itkImageIOBase.h"
 #include <itksys/SystemTools.hxx>
-#include <strstream>
+// #include <strstream>
 #include <iomanip>
 #include <string>
 #include <vector>
@@ -3529,6 +3529,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.4  2006/12/06 14:36:18  pyushkevich
+ *Fixes for VC6
+ *
  *Revision 1.3  2006/12/06 13:27:46  pyushkevich
  *Followup checking for 1.4.1
  *
