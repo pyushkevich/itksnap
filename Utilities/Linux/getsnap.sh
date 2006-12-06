@@ -49,7 +49,7 @@ logfile=$basedir/buildlog
 CMAKE_REL="CMake-2-4-2"
 ITK_REL="ITK-2-8"
 VTK_REL="release-4-4"
-SNAP_REL="ITK-SNAP-1-4"
+SNAP_REL="HEAD"
 
 # -------------------------------------------------------------
 # Check for necessary software
@@ -74,7 +74,7 @@ echo "Preparing to build itk-snap. This will take 1-2 hours and 500MB!"
 echo "Log messages are placed into $logfile"
 
 # Create the directory tree for the build
-for dir in "app/bingcc" "itk/bingcc" "vtk/bingcc" "fltk" "fltk/install" "cmake/install" $instdir
+for dir in "itksnap/bingcc" "itk/bingcc" "vtk/bingcc" "fltk/bingcc" "cmake/install" $instdir
 do
   mkdir -p $basedir/$dir
   if [ $? -ne 0 ]; then exit; fi
@@ -121,23 +121,26 @@ function get_fltk {
   cd $basedir/fltk
 
   # Use SVN to check out fltk
-  echo "Checking out FLTK 1.1.6 from SVN"
-  svn co http://svn.easysw.com/public/fltk/fltk/tags/branch-1.1_6/ fltk-1.1 >> $logfile
+  echo "Checking out FLTK 1.1.7 from SVN"
+  svn co http://svn.easysw.com/public/fltk/fltk/tags/release-1.1.7/ fltk-1.1.7 >> $logfile
 
-  # Build FLTK
+  # Run CCMAKE in the FLTK bin directory
   echo "Building FLTK"
-  cd $basedir/fltk/fltk-1.1
-  autoconf >> $logfile
-  ./configure --prefix=$basedir/fltk/install --enable-xft >> $logfile
+  cd $basedir/fltk/bingcc
+  $cmakebin \
+    -DBUILD_EXAMPLES:BOOL=OFF \
+    -DBUILD_TESTING:BOOL=ON \
+    -DCMAKE_BUILD_TYPE:STRING=Release \
+    -DCMAKE_CXX_FLAGS_RELEASE:STRING="-O3 -DNDEBUG" \
+    $basedir/fltk/fltk-1.1.7 >> $logfile
   make >> $logfile
-  make install >> $logfile
 
   # Make sure that we have the necessary files
-  for file in "bin/fluid" "lib/libfltk.a"
+  for file in "bin/fluid" "bin/libfltk.a"
   do
-    if [ ! -e $basedir/fltk/install/$file ]
+    if [ ! -e $basedir/fltk/bingcc/$file ]
     then
-      echo "Failed to create FLTK object $basedir/fltk/install/$file"
+      echo "Failed to create FLTK object $basedir/fltk/bingcc/$file"
       exit -1
     fi
   done 
@@ -213,18 +216,19 @@ function get_itk {
 }
 
 # -------------------------------------------------------------
-# Check out and build InsightApplications
+# Check out and build ITK-SNAP
 # -------------------------------------------------------------
-function get_app {
-  cd $basedir/app
+function get_itksnap {
+  cd $basedir/itksnap
 
   # Use CVS to check out InsightApplications
-  echo "Checking out InsightApplications (Release $SNAP_REL) from CVS"
-  cvs -qd :pserver:anonymous@www.itk.org:/cvsroot/Insight co -r $SNAP_REL InsightApplications >> $logfile
+  echo "Checking out ITK-SNAP (Release $SNAP_REL) from CVS"
+  # cvs -qd :pserver:anonymous@www.itk.org:/cvsroot/Insight co -r $SNAP_REL InsightApplications >> $logfile
+  cvs -qd :pserver:itk-snap.cvs.sourceforge.net/cvsroot/itk-snap co -r $SNAP_REL itksnap
 
   # Configure VTK using CMake
   echo "Building SNAP"
-  cd $basedir/app/bingcc
+  cd $basedir/itksnap/bingcc
   $cmakebin \
     -DBUILD_EXAMPLES:BOOL=OFF \
     -DBUILD_TESTING:BOOL=OFF \
@@ -235,20 +239,12 @@ function get_app {
     -DUSE_FLTK:BOOL=ON \
     -DITK_DIR:PATH="$basedir/itk/bingcc" \
     -DVTK_DIR:PATH="$basedir/vtk/bingcc" \
-    -DFLTK_DIR:PATH="$basedir/fltk/install" \
-    -DFLTK_INCLUDE_DIR:PATH="$basedir/fltk/install/include" \
-    -DFLTK_FLUID_EXECUTABLE:FILEPATH="$basedir/fltk/install/bin/fluid" \
-    -DFLTK_CONFIG_SCRIPT:FILEPATH="$basedir/fltk/install/bin/fluid/fltk-config" \
-    -DFLTK_BASE_LIBRARY:FILEPATH="$basedir/fltk/install/lib/libfltk.a" \
-    -DFLTK_FORMS_LIBRARY:FILEPATH="$basedir/fltk/install/lib/libfltk_forms.a" \
-    -DFLTK_GL_LIBRARY:FILEPATH="$basedir/fltk/install/lib/libfltk_gl.a" \
-    -DFLTK_IMAGES_LIBRARY:FILEPATH="$basedir/fltk/install/lib/libfltk_images.a" \
-    -DSNAP_USE_XFT_LIBRARY:BOOL=ON \
+    -DFLTK_DIR:PATH="$basedir/fltk/bingcc" \
+#    -DSNAP_USE_XFT_LIBRARY:BOOL=ON \
     -DCMAKE_INSTALL_PREFIX:PATH=$instdir \
-    $basedir/app/InsightApplications >> $logfile
+    $basedir/itksnap/itksnap >> $logfile
 
   # Make only in the SNAP directory
-  cd SNAP
   make >> $logfile
   make install >> $logfile
 
@@ -266,6 +262,6 @@ get_cmake
 get_itk
 get_fltk
 get_vtk
-get_app
+get_itksnap
 
 echo "SNAP executable is located in $instdir/bin/InsightSNAP!"

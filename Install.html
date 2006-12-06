@@ -27,8 +27,8 @@ Create the following directory structure, which is recommended and will be assum
 
 <pre>
   basedir/
-  basedir/app                          // Base directory for ITK applications
-  basedir/app/bingcc                   // ITK Applications binary directory
+  basedir/itksnap                      // Base directory for ITK-SNAP
+  basedir/itksnap/bingcc               // ITK-SNAP binary directory
   
   basedir/itk                          // Base directory for ITK
   basedir/itk/bingcc                   // ITK binary directory
@@ -37,6 +37,7 @@ Create the following directory structure, which is recommended and will be assum
   basedir/vtk/bingcc                   // VTK binary directory
 
   basedir/fltk                         // FLTK directory
+  basedir/fltk/bingcc                  // FLTK directory
 </pre>
 
 <h3> 2. Install and Build ITK </h3>
@@ -140,17 +141,43 @@ Create the following directory structure, which is recommended and will be assum
 
 <h3> 4. Install and Build FLTK </h3>
 
-<p> FLTK is a multiplatform GUI toolkit.  SnAP has been developed and tested using version 1.1.2 of FLTK, but later 1.1.* versions should work as well.  In all the following commands, replace the <b>*</b> character with the correct version number, the current version is 1.1.4</p>
+<p> FLTK is a multiplatform GUI toolkit. We will use FLTK version 1.1.7, which is CMake-friendly </p>
 
 <ol>
-  <li> Download the 1.1.x FLTK tarball <b>fltk-1.1.*-source.tar.gz</b> from 
+  <li> Download the 1.1.7 FLTK tarball <b>fltk-1.1.7-source.tar.gz</b> from 
   <a href="http://www.fltk.org/software.php">www.fltk.org/software.php</a>.  You will have to follow some links to start the download. </li><br>
-  <li> Place the downloaded file <b>fltk-1.1.*-source.tar.gz</b> into the <i>basedir/fltk</i> directory.  Execute the following command to uncompress FLTK 
+  <li> Place the downloaded file <b>fltk-1.1.7-source.tar.gz</b> into the <i>basedir/fltk</i> directory.  Execute the following command to uncompress FLTK 
   <pre>
     cd [basedir]/fltk
-    tar -xzvf fltk-1.1.*-source.tar.gz 
-  </pre></li>
+    tar -xzvf fltk-1.1.7-source.tar.gz 
+  </pre>
+  </li>
 
+  <li> Go to the FLTK build directory:
+  <pre>
+    cd [basedir]/fltk/bingcc
+  </pre>
+  </li>
+
+  <li> Execute the CMake command: 
+  <pre>
+    ccmake ../fltk-1.1.7
+  </pre>
+  </li>
+
+  <li> The CMake user interface will appear.  Set the following options in this interface: 
+  <pre>
+    BUILD_EXAMPLES = OFF
+    CMAKE_BUILD_TYPE = Release
+  </pre></li>
+  <li> Use the <b>c</b> command to configure FLTK and 
+  use the <b>g</b> command to generate makefiles </li><br>
+  <li> The following command will build FLTK.  This will be fairly fast
+  <pre>
+    make
+  </pre></li>
+</ol>
+<!--
   <li> [Optional]. To enable anti-aliased fonts on Linux, in the
   following step pass the option <b>--enable-xft</b> to the <b>./configure</b>
   command. You will also need to specify the advanced option
@@ -171,28 +198,34 @@ the <b>su</b> command below.</li><br>
     exit                                  # Only if you executed 'su'
   </pre></li>    
 </ol>
+-->
 
 <p> At this point, you will have a working installation of FLTK on your system.  Please refer to FLTK documentation (at <a href="http://www.fltk.org">www.fltk.org</a>) for troubleshooting information.</p>
 
-<h3> 5. Install and Build the ITK InsightApplications directory </h3>
+<h3> 5. Install and Build ITK-SNAP </h3>
 
-<p> We will use CVS to download ITK Applications, including SNAP.  For more instructions, please refer to the <i>ITK Software Guide</i> located at <a href="http://www.itk.org/HTML/Documentation.htm">www.itk.org</a></p>
+<p> We will use CVS to download ITK-SNAP. SNAP is included as part of InsightApplications in ITK. However, starting with version 1.4.1, only major releases of SNAP will be placed in InsightApplications. Day-to-day development and interim releases use the SourceForge CVS, which is independent of ITK. We recommend that you use the SourceForge CVS links given below to download ITK-SNAP </p>
 
 <ol>
   <li> Enter the root directory for appilcations:
   <pre>
-    cd [basedir]/app
+    cd [basedir]/itksnap
   </pre></li>
   
-  <li> Execute the following command to download ITK Applications. This will
-  take several minutes. 
+  <li> Execute the following command to download ITK-SNAP. This will
+  take several minutes. If you want a specific release, e.g., release 1.4.1., then 
+  add <b>-r ITKSNAP-1-4-1</b> after the <b>co</b> command.
   <pre>
+    cvs -d:pserver:anonymous@itk-snap.cvs.sourceforge.net:/cvsroot/itk-snap login
+    (respond with empty password)
+
+    cvs -z3 -d:pserver:anonymous@itk-snap.cvs.sourceforge.net:/cvsroot/itk-snap co itksnap
     cvs -d :pserver:anonymous@www.itk.org:/cvsroot/Insight co InsightApplications
   </pre></li>
   
   <li> Enter the build directory for appilcations:
   <pre>
-    cd [basedir]/app/bingcc
+    cd [basedir]/itksnap/bingcc
   </pre></li>
   
   <li> Execute the CMake command: 
@@ -212,38 +245,28 @@ the <b>su</b> command below.</li><br>
   <li> Use the <b>c</b> command to configure InsightApplications.  More options will appear: </li>
   <pre>
     VTK_DIR = [basedir]/vtk/bingcc
-  </pre>
-  <li> [Linux, Optional]: If you installed FLTK in a non-system directory, you will need to point to it. You will probably
-  need to only specify the first of these options, the rest will likely be filled in for you. </li>
-  <pre>
-    FLTK_INCLUDE_DIR = [dir]/include                # dir = Directory where you installed fltk
-    FLTK_BASE_LIBRARY = [dir]/lib/libfltk.a
-    FLTK_FORMS_LIBRARY = [dir]/lib/libfltk_forms.a
-    FLTK_GL_LIBRARY = [dir]/lib/libfltk_gl.a
-    FLTK_IMAGES_LIBRARY = [dir]/lib/libfltk_images.a
-    FLTK_FLUID_EXECUTABLE = [dir]/bin/fluid
+    FLTK_DIR = [basedir]/fltk/bingcc
   </pre>
   <li> [Optional]: You can specify the following additional advanced options (press t to toggle advanced mode)</li>
   <pre>
     USE_VTK_PATENTED                # Whether to use patented code. You must have a license
                                     # for using patented code from VTK to do this!
-    SNAP_USE_XFT_LIBRARY            # Use if you built FLTK with --enable-xft
   </pre>
   <li> Use the <b>c</b> command to configure InsightApplications and 
   use the <b>g</b> command to generate makefiles </li><br>
-  <li> To build all ITK Applications, including SNAP, execute the following command.  Alternatively, to only build SNAP, first change directory to <i>basedir/app/bingcc/SNAP</i> and run the same command.
+  <li> To build SNAP issue the following command:
   <pre>
     make
   </pre></li>
 </ol>
 
-<p> At this point, you will have a working installation of ITK InsightApplications on your system.  Please refer to ITK documentation for troubleshooting information. </p>
+<p> At this point, you will have a working installation of ITK-SNAP on your system.  Please refer to ITK documentation for troubleshooting information. </p>
 
 <h3> 6. Running SNAP </h3>
 <ol>
   <li> Enter the SNAP binary directory:
   <pre>
-    cd [basedir]/app/bingcc/SNAP
+    cd [basedir]/itksnap/bingcc/SNAP
   </pre></li>
   <li> Run the SNAP executable
   <pre>
@@ -266,8 +289,8 @@ directory. To do so, execute the following commands:
 <pre>
     su
     mkdir /opt/snap                 # Replace /opt with desired directory      
-    cp [basedir]/app/bingcc/SNAP/InsightSNAP /opt/snap
-    cp -a [basedir]/app/bingcc/SNAP/ProgramData /opt/snap
+    cp [basedir]/itksnap/bingcc/InsightSNAP /opt/snap
+    cp -a [basedir]/itksnap/bingcc/ProgramData /opt/snap
 </pre></li>
 
   <li>[Optional]. Create a symbolic link to the SNAP executable to make it
@@ -283,10 +306,10 @@ directory. To do so, execute the following commands:
 
 <h3> 8. Troubleshooting </h3>
 
-<p> For troubleshooting the installation of ITK, VTK, FLTK and InsightApplications, please refer to the corresponding web sites noted above</p>
+<p> For troubleshooting the installation of ITK, VTK, FLTK and ITK-SNAP, please refer to the corresponding web sites noted above</p>
 
 <p> We recommend that you join the <a
-  href="http://www.itksnap.org/bb">ITK-SNAP Forum</a> or the <a
+  href="http://www.itksnap.org/forum.php">ITK-SNAP Forum</a> or the <a
   href="http://www.itk.org/HTML/MailingLists.htm">ITK Users' Mailing List</a>, where you
 can find answers to questions posed by other users as well as post your own
 questions. </p>
