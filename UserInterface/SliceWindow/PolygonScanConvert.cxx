@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PolygonScanConvert.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:27 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2006/12/06 01:26:07 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -46,9 +46,9 @@ PolygonScanConvertBase
 
   // Start the tesselation
   GLUtesselator *tess = gluNewTess();
-  gluTessCallback(tess,(GLenum) GLU_TESS_VERTEX, (TessCallback) glVertex3dv);
-  gluTessCallback(tess,(GLenum) GLU_TESS_BEGIN, (TessCallback) glBegin); 
-  gluTessCallback(tess,(GLenum) GLU_TESS_END, (TessCallback) glEnd);
+  gluTessCallback(tess,(GLenum) GLU_TESS_VERTEX, (TessCallback) &glVertex3dv);
+  gluTessCallback(tess,(GLenum) GLU_TESS_BEGIN, (TessCallback) &glBegin); 
+  gluTessCallback(tess,(GLenum) GLU_TESS_END, (TessCallback) &glEnd);
   gluTessCallback(tess,(GLenum) GLU_TESS_ERROR, 
     (TessCallback) &PolygonScanConvertBase::ErrorCallback);     
   gluTessCallback(tess,(GLenum) GLU_TESS_COMBINE, 
@@ -144,8 +144,8 @@ void PolygonScanConvertBase::ErrorCallback(GLenum errorCode)
 }
 
 void PolygonScanConvertBase::CombineCallback(GLdouble coords[3], 
-                GLdouble **irisNotUsed(vertex_data),  
-                GLfloat *irisNotUsed(weight), 
+                GLdouble **vertex_data,  
+                GLfloat *weight, 
                 GLdouble **dataOut) 
 {
   GLdouble *vertex = new GLdouble[3];

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SpeedColorMap.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:13 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2006/12/06 01:26:06 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -39,8 +39,8 @@ public:
   OutputType operator()(float t)
     {
     // We do bounds checking, just in case
-    if(t < -1.0f) return m_ColorEntry.front();
-    if(t >= 1.0f) return m_ColorEntry.back();
+    if(t < -0.99999f) return m_ColorEntry.front();
+    if(t >= 0.99999f) return m_ColorEntry.back();
 
     // Project u into the array of intensities
     float u = t * m_DeltaT - m_Shift;

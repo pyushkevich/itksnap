@@ -1,8 +1,8 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0106 
+version 1.0107 
 header_name {.h} 
 code_name {.cxx}
-class ImageIOWizard {open : { private ImageIOWizardBase }
+class ImageIOWizard {open : {private ImageIOWizardBase}
 } {
   Function {MakeWindow()} {open return_type {virtual void}
   } {
@@ -25,7 +25,7 @@ class ImageIOWizard {open : { private ImageIOWizardBase }
           Fl_Input m_InFilePageBrowser {
             label {Image file name:}
             callback {this->OnFilePageFileInputChange();}
-            xywh {30 100 405 25} labelsize 12 align 5 when 1 textsize 12
+            tooltip {Enter the filename of the image you want to load, or select one using the 'Browse' and 'History' buttons} xywh {30 100 405 25} labelsize 12 align 5 when 1 textsize 12
           }
           Fl_Button {} {
             label {&Browse...}
@@ -35,14 +35,14 @@ class ImageIOWizard {open : { private ImageIOWizardBase }
           Fl_Menu_Button m_InFilePageHistory {
             label History
             callback {this->OnFilePageFileHistoryChange();}
-            xywh {355 130 80 25} box PLASTIC_UP_BOX selection_color 181 labelsize 12 align 20 textsize 12
+            tooltip {Select one of the recently loaded images} xywh {355 130 80 25} box PLASTIC_UP_BOX selection_color 181 labelsize 12 align 20 textsize 12
           } {}
           Fl_Choice m_InFilePageFormat {
             label {Image file format:}
             callback {this->OnFilePageFileFormatChange();}
-            xywh {30 190 210 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+            tooltip {Use this dropdown box to select an image format if one is not selected for you automatically. Normally, SNAP will figure out the file format once you select an image file using the 'Browse' button.} xywh {30 190 210 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
           } {
-            menuitem {} {
+            MenuItem {} {
               label {Select a format...}
               xywh {10 10 100 20} labelsize 12 hide
             }
@@ -92,17 +92,17 @@ class ImageIOWizard {open : { private ImageIOWizardBase }
             Fl_Value_Input m_InHeaderPageDimX {
               label {X:}
               callback {this->OnHeaderPageInputChange();}
-              xywh {185 105 70 25} labelsize 12 textsize 12
+              tooltip {The dimension of the image volume, in voxels} xywh {185 105 70 25} labelsize 12 textsize 12
             }
             Fl_Value_Input m_InHeaderPageDimY {
               label {Y:}
               callback {this->OnHeaderPageInputChange();}
-              xywh {275 105 70 25} labelsize 12 textsize 12
+              tooltip {The dimension of the image volume, in voxels} xywh {275 105 70 25} labelsize 12 textsize 12
             }
             Fl_Value_Input m_InHeaderPageDimZ {
               label {Z:}
               callback {this->OnHeaderPageInputChange();}
-              xywh {365 105 70 25} labelsize 12 textsize 12
+              tooltip {The dimension of the image volume, in voxels} xywh {365 105 70 25} labelsize 12 textsize 12
             }
           }
           Fl_Group {} {
@@ -112,17 +112,17 @@ class ImageIOWizard {open : { private ImageIOWizardBase }
             Fl_Value_Input m_InHeaderPageSpacingX {
               label {X:}
               callback {this->OnHeaderPageInputChange();}
-              tooltip {Spacing between voxels in each dimension} xywh {185 145 70 25} labelsize 12 maximum 100 step 0.01 value 1 textsize 12
+              tooltip {Voxel size in each dimension (in mm)} xywh {185 145 70 25} labelsize 12 maximum 100 step 0.01 value 1 textsize 12
             }
             Fl_Value_Input m_InHeaderPageSpacingY {
               label {Y:}
               callback {this->OnHeaderPageInputChange();}
-              tooltip {Spacing between voxels in each dimension} xywh {275 145 70 25} labelsize 12 maximum 100 step 0.01 value 1 textsize 12
+              tooltip {Voxel size in each dimension (in mm)} xywh {275 145 70 25} labelsize 12 maximum 100 step 0.01 value 1 textsize 12
             }
             Fl_Value_Input m_InHeaderPageSpacingZ {
               label {Z:}
               callback {this->OnHeaderPageInputChange();}
-              tooltip {Spacing between voxels in each dimension} xywh {365 145 70 25} labelsize 12 maximum 100 step 0.01 value 1 textsize 12
+              tooltip {Voxel size in each dimension (in mm)} xywh {365 145 70 25} labelsize 12 maximum 100 step 0.01 value 1 textsize 12
             }
           }
           Fl_Group {} {
@@ -131,37 +131,37 @@ class ImageIOWizard {open : { private ImageIOWizardBase }
           } {
             Fl_Choice m_InHeaderPageVoxelType {
               callback {this->OnHeaderPageInputChange();} open
-              xywh {185 185 195 25} down_box BORDER_BOX labelsize 12 align 20 textsize 12
+              tooltip {Data type of the voxels} xywh {185 185 195 25} down_box BORDER_BOX labelsize 12 align 20 textsize 12
             } {
-              menuitem {} {
+              MenuItem {} {
                 label {8 bit, unsigned (uchar)}
                 xywh {5 5 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {8 bit, signed (char)}
                 xywh {15 15 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {16 bit, unsigned (ushort)}
                 xywh {25 25 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {16 bit, signed (short)}
                 xywh {35 35 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {32 bit, unsigned (uint)}
                 xywh {45 45 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {32 bit, signed (int)}
                 xywh {55 55 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {32 bit, floating point (float)}
                 xywh {65 65 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {64 bit, floating point (double)}
                 xywh {75 75 100 20} labelsize 12
               }
@@ -173,13 +173,13 @@ class ImageIOWizard {open : { private ImageIOWizardBase }
           } {
             Fl_Choice m_InHeaderPageByteAlign {
               callback {this->OnHeaderPageInputChange();} open
-              xywh {185 225 195 25} down_box BORDER_BOX labelsize 12 align 20 textsize 12
+              tooltip {Format in which multi-byte values are stored in the image} xywh {185 225 195 25} down_box BORDER_BOX labelsize 12 align 20 textsize 12
             } {
-              menuitem {} {
+              MenuItem {} {
                 label {Big Endian (UNIX, Mac)}
                 xywh {15 15 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {Little Endian (Intel, AMD)}
                 xywh {25 25 100 20} labelsize 12
               }
@@ -254,12 +254,12 @@ class ImageIOWizard {open : { private ImageIOWizardBase }
             xywh {230 160 65 25} labelsize 12 maximum 10000 step 1 value 1 textsize 12 deactivate
           }
           Fl_Value_Input {} {
-            label {Last Slice:} selected
+            label {Last Slice:}
             xywh {370 160 65 25} labelsize 12 maximum 10000 step 1 value 1 textsize 12 deactivate
           }
         }
         Fl_Group m_PageOrientation {
-          label {Image Orientation}
+          label {Image Orientation} open
           xywh {0 0 470 330} box PLASTIC_DOWN_BOX labelfont 2 labelsize 10 hide
         } {
           Fl_Group {} {
@@ -271,57 +271,57 @@ class ImageIOWizard {open : { private ImageIOWizardBase }
             callback {this->OnOrientationPageSelectPreset();} open
             xywh {35 70 200 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
           } {
-            menuitem {} {
+            MenuItem {} {
               label {Axial MRI}
               xywh {5 5 100 20} value 1 labelsize 12
             }
-            menuitem {} {
+            MenuItem {} {
               label {Sagittal MRI}
               xywh {15 15 100 20} labelsize 12
             }
-            menuitem {} {
+            MenuItem {} {
               label {Coronal MRI}
               xywh {25 25 100 20} labelsize 12
             }
-            menuitem {} {
+            MenuItem {} {
               label CT
               xywh {35 35 100 20} labelsize 12
             }
-            menuitem m_ItemOrientationPageCustom {
+            MenuItem m_ItemOrientationPageCustom {
               label Custom
               xywh {45 45 100 20} labelsize 12
             }
           }
           Fl_Group m_GrpOrientationPageCustom {
-            label {Custom orientation setting:}
+            label {Custom orientation setting:} open
             xywh {35 120 200 90} box PLASTIC_DOWN_FRAME labelsize 12 align 5 deactivate
           } {
             Fl_Choice m_InOrientationPageX {
               label {X Axis:}
               callback {this->OnOrientationPageSelect();} open
-              xywh {90 130 135 20} down_box BORDER_BOX labelsize 12 when 1 textsize 12
+              tooltip {The direction of the image's X axis in patient space} xywh {90 130 135 20} down_box BORDER_BOX labelsize 12 when 1 textsize 12
             } {
-              menuitem {} {
+              MenuItem {} {
                 label {right to left}
                 xywh {5 5 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {left to right}
                 xywh {15 15 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {anterior to posterior}
                 xywh {25 25 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {posterior to anterior}
                 xywh {35 35 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {inferior to superior}
                 xywh {45 45 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {superior to inferior}
                 xywh {55 55 100 20} labelsize 12
               }
@@ -329,29 +329,29 @@ class ImageIOWizard {open : { private ImageIOWizardBase }
             Fl_Choice m_InOrientationPageY {
               label {Y Axis:}
               callback {this->OnOrientationPageSelect();} open
-              xywh {90 155 135 20} down_box BORDER_BOX labelsize 12 textsize 12
+              tooltip {The direction of the image's Y axis in patient space} xywh {90 155 135 20} down_box BORDER_BOX labelsize 12 textsize 12
             } {
-              menuitem {} {
+              MenuItem {} {
                 label {right to left}
                 xywh {15 15 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {left to right}
                 xywh {25 25 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {anterior to posterior}
                 xywh {35 35 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {posterior to anterior}
                 xywh {45 45 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {inferior to superior}
                 xywh {55 55 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {superior to inferior}
                 xywh {65 65 100 20} labelsize 12
               }
@@ -359,29 +359,29 @@ class ImageIOWizard {open : { private ImageIOWizardBase }
             Fl_Choice m_InOrientationPageZ {
               label {Z Axis:}
               callback {this->OnOrientationPageSelect();} open
-              xywh {90 180 135 20} down_box BORDER_BOX labelsize 12 textsize 12
+              tooltip {The direction of the image's Z axis in patient space} xywh {90 180 135 20} down_box BORDER_BOX labelsize 12 textsize 12
             } {
-              menuitem {} {
+              MenuItem {} {
                 label {right to left}
                 xywh {25 25 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {left to right}
                 xywh {35 35 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {anterior to posterior}
                 xywh {45 45 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {posterior to anterior}
                 xywh {55 55 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {inferior to superior}
                 xywh {65 65 100 20} labelsize 12
               }
-              menuitem {} {
+              MenuItem {} {
                 label {superior to inferior}
                 xywh {75 75 100 20} labelsize 12
               }
@@ -397,7 +397,7 @@ class ImageIOWizard {open : { private ImageIOWizardBase }
               tooltip {The RAI code is a three-letter code indicating the orientation of the image in XYZ coordinates. Each letter stands for (R)ight, (Left), (A)nterior, (P)osterior, (I)nferior and (S)uperior. The first letter is the orientation of the X coordinate, the second of Y and the third of Z. So, RAI means X:Right to Left; Y:Anterior to Posterior; Z:Inferior to Superior.} xywh {160 245 60 25} labelsize 12 when 1 textsize 12
             }
           }
-          Fl_Group m_GrpOrientationPageGraphic {
+          Fl_Group m_GrpOrientationPageGraphic {open
             xywh {245 60 215 190} box RSHADOW_BOX color 7 labelsize 11 align 144
           } {
             Fl_Wizard m_WizOrientationPageDoll {
@@ -502,7 +502,7 @@ the selected image orientation} open
           }
         }
         Fl_Group m_PageSummary {
-          label Summary
+          label Summary open
           xywh {0 0 470 330} box PLASTIC_DOWN_BOX labelfont 2 labelsize 10 hide
         } {
           Fl_Group {} {
@@ -554,8 +554,8 @@ the selected image orientation} open
             xywh {100 135 95 22} color 54 labelsize 12 textsize 12
           }
           Fl_Output m_OutSummaryOrigin {
-            label {Origin:}
-            xywh {100 165 95 22} color 54 labelsize 12 textsize 12
+            label {Origin:} selected
+            tooltip {Note: origin information is not compatible with SPM/MRICro for Analyze files} xywh {100 165 95 22} color 54 labelsize 12 textsize 12
           }
           Fl_Group {} {
             label {Additional Information:} open
@@ -586,7 +586,7 @@ the selected image orientation} open
           Fl_Input m_InSaveFilePageBrowser {
             label {Filename:}
             callback {this->OnSaveFilePageFileInputChange();}
-            xywh {30 100 405 25} labelsize 12 align 5 when 1 textsize 12
+            tooltip {Enter the filename of the image you want to save, or select one using the 'Browse' and 'History' buttons} xywh {30 100 405 25} labelsize 12 align 5 when 1 textsize 12
           }
           Fl_Button {} {
             label {&Browse...}
@@ -601,9 +601,9 @@ the selected image orientation} open
           Fl_Choice m_InSaveFilePageFormat {
             label {Image file format:}
             callback {this->OnSaveFilePageFileFormatChange();} open
-            xywh {30 190 210 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+            tooltip {Use this dropdown box to select an image format if one is not selected for you automatically. Normally, SNAP will figure out the file format once you select an image file using the 'Browse' button.} xywh {30 190 210 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
           } {
-            menuitem {} {
+            MenuItem {} {
               label {Select a format...}
               xywh {0 0 100 20} labelsize 12 hide
             }

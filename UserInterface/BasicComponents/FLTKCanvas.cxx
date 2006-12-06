@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: FLTKCanvas.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:20 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2006/12/06 01:26:06 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -96,25 +96,6 @@ FLTKCanvas
     event.XSpace = to_float(xProjection);
     }
 
-  // Take care of focus grabbing on entry
-  if(eventID == FL_ENTER && m_GrabFocusOnEntry)
-    {
-    this->take_focus();
-    m_Focus = true;
-    redraw();
-    return 1;
-    }
-  else if(eventID == FL_LEAVE && m_GrabFocusOnEntry)
-    {
-    m_Focus = false;
-    redraw();
-    return 1;
-    }
-  else if(eventID == FL_FOCUS && m_GrabFocusOnEntry)
-    {
-    return 1;
-    }
-
   // Record the event as the drag-start if the mouse was pressed
   if (eventID == FL_PUSH)
     {
@@ -173,6 +154,25 @@ FLTKCanvas
     // Break out if the event was taken care of
     if (result)
       return 1;
+    }
+
+  // Take care of focus grabbing on entry
+  if(eventID == FL_ENTER && m_GrabFocusOnEntry)
+    {
+    this->take_focus();
+    m_Focus = true;
+    redraw();
+    return 1;
+    }
+  else if(eventID == FL_LEAVE && m_GrabFocusOnEntry)
+    {
+    m_Focus = false;
+    redraw();
+    return 1;
+    }
+  else if(eventID == FL_FOCUS && m_GrabFocusOnEntry)
+    {
+    return 1;
     }
 
   // The event was not handled

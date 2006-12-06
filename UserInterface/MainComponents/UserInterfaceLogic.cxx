@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:23 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2006/12/06 01:26:07 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -146,6 +146,9 @@ void UserInterfaceLogic
   m_Activation->SetFlagImplies(UIF_SNAP_SNAKE_RUNNING, UIF_SNAP_SNAKE_INITIALIZED);
   m_Activation->SetFlagImplies(UIF_SNAP_SNAKE_EDITABLE, UIF_SNAP_SNAKE_INITIALIZED);
   m_Activation->SetFlagImplies(UIF_SNAP_SNAKE_EDITABLE, UIF_SNAP_SNAKE_RUNNING, true, false);
+  m_Activation->SetFlagImplies(UIF_SNAP_SNAKE_INITIALIZED, UIF_SNAP_ACTIVE);
+  m_Activation->SetFlagImplies(UIF_SNAP_PREPROCESSING_DONE, UIF_SNAP_ACTIVE);
+
 
   // Set up the exclusive relationships between flags
   m_Activation->SetFlagImplies( UIF_SNAP_ACTIVE, UIF_IRIS_ACTIVE, true, false );
@@ -207,9 +210,13 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuIntensityCurve, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuExportSlice, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSavePreprocessed, UIF_SNAP_PREPROCESSING_DONE);
+  m_Activation->AddMenuItem(m_MenuSaveLevelSet, UIF_SNAP_SNAKE_INITIALIZED);
   m_Activation->AddMenuItem(m_MenuLoadPreprocessed, UIF_SNAP_PAGE_PREPROCESSING);
   m_Activation->AddMenuItem(m_MenuLoadAdvection, UIF_SNAP_PAGE_PREPROCESSING);
   m_Activation->AddMenuItem(m_MenuImageInfo, UIF_IRIS_WITH_GRAY_LOADED);
+
+  for(i = 0; i < 5; i++)
+    m_Activation->AddMenuItem(m_MenuLoadPreviousFirst + i, UIF_IRIS_ACTIVE);
 }
 
 UserInterfaceLogic
@@ -233,11 +240,13 @@ UserInterfaceLogic
   m_WizGreyIO = new GreyImageIOWizardLogic; 
   m_WizSegmentationIO = new SegmentationImageIOWizardLogic;
   m_WizPreprocessingIO = new PreprocessingImageIOWizardLogic;
+  m_WizLevelSetIO = new PreprocessingImageIOWizardLogic;
   
   // Initialize the Image IO wizards
   m_WizGreyIO->MakeWindow();
   m_WizSegmentationIO->MakeWindow();
   m_WizPreprocessingIO->MakeWindow();
+  m_WizLevelSetIO->MakeWindow();
 
   // Provide the registry callback for the greyscale image wizard
   m_GreyCallbackInterface = new GreyImageInfoCallback(m_SystemInterface);
@@ -354,6 +363,7 @@ UserInterfaceLogic
   delete m_WizGreyIO;
   delete m_WizSegmentationIO;
   delete m_WizPreprocessingIO;
+  delete m_WizLevelSetIO;
 
   // Delete the IO wizard registry adaptor
   delete m_GreyCallbackInterface;
@@ -1308,9 +1318,6 @@ UserInterfaceLogic
   m_Driver->SetCurrentImageDataToIRIS();
   m_Driver->ReleaseSNAPImageData();
 
-  // The segmentation has changed, so the mesh should be updatable
-  m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
-  
   // Inform the global state that we're not in sNAP
   m_GlobalState->SetSNAPActive(false);
 
@@ -1347,6 +1354,9 @@ UserInterfaceLogic
   // Activate/deactivate menu items
   m_Activation->UpdateFlag(UIF_IRIS_ACTIVE, true);
 
+  // The segmentation has changed, so the mesh should be updatable
+  m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
+  
   // Hide the color map window
   m_WinColorMap->hide();
 
@@ -1546,11 +1556,12 @@ UserInterfaceLogic
   m_SNAPWindowManager3D->ClearScreen();
   m_SNAPWindowManager3D->ResetView();
 
+  // Indicate that preprocessing is not done
+  m_Activation->UpdateFlag(UIF_SNAP_ACTIVE, true);
+  m_Activation->UpdateFlag(UIF_SNAP_PREPROCESSING_DONE, false);
+
   // Go to the first page in the SNAP wizard
   SetActiveSegmentationPipelinePage( 0 );
-
-  // Indicate that preprocessing is not done
-  m_Activation->UpdateFlag(UIF_SNAP_PREPROCESSING_DONE, false);
 
   // Repaint everything
   RedrawWindows();
@@ -1608,14 +1619,15 @@ UserInterfaceLogic
   // Initialize the paintbrush panel
   PaintbrushSettings pbs = m_GlobalState->GetPaintbrushSettings();
   m_InPaintbrushSize->value(pbs.radius);
-  if(pbs.flat)
-    m_BtnPaintbrushDimension2D->value(1);
-  else
-    m_BtnPaintbrushDimension3D->value(1);
+  
   if(pbs.shape == PAINTBRUSH_RECTANGULAR)
     m_InPaintbrushShape->value(m_ChoicePaintbrushRectangular);
   else
     m_InPaintbrushShape->value(m_ChoicePaintbrushRound);
+  
+  m_BtnPaintbrushIsotropic->value(pbs.isotropic ? 1 : 0);
+  m_BtnPaintbrushChaseMode->value(pbs.chase ? 1 : 0);
+  m_BtnPaintbrush3D->value(pbs.flat ? 0 : 1);
 }
 
 void 
@@ -2195,11 +2207,13 @@ UserInterfaceLogic
 
   // Update the settings from the GUI
   pbs.radius = (unsigned int) m_InPaintbrushSize->value();
-  pbs.flat = m_BtnPaintbrushDimension2D->value() ? true : false;
+  pbs.flat = m_BtnPaintbrush3D->value() ? false : true;
+  pbs.isotropic = m_BtnPaintbrushIsotropic->value() ? true : false;
+  pbs.chase = m_BtnPaintbrushChaseMode->value() ? true : false;
 
-  if(m_InPaintbrushShape->mvalue() == m_ChoicePaintbrushRectangular)
+  if(m_InPaintbrushShape->value() == 0)
     pbs.shape = PAINTBRUSH_RECTANGULAR;
-  else
+  else if(m_InPaintbrushShape->value() == 1)
     pbs.shape = PAINTBRUSH_ROUND;
 
   // Set the paintbrush attributes
@@ -2207,6 +2221,14 @@ UserInterfaceLogic
 
   // Update the windows
   RedrawWindows();
+}
+
+void
+UserInterfaceLogic
+::OnPaintbrushPaint()
+{
+  // The user painted something. We should make it possible to modifu the mesh
+  m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
 }
 
 void 
@@ -2670,7 +2692,7 @@ void
 UserInterfaceLogic
 ::OnSegmentationImageUpdate()
 {
-  m_SegmentationLoaded =1; 
+  m_SegmentationLoaded = 1; 
 
   // The list of labels may have changed
   OnLabelListUpdate();
@@ -3196,6 +3218,32 @@ UserInterfaceLogic
     }
 }
 
+void 
+UserInterfaceLogic
+::OnMenuSaveLevelSet() 
+{
+  // Better have a snake image to save
+  assert(m_Driver->GetSNAPImageData()->IsSnakeLoaded());
+
+  // Set the history for the wizard
+  m_WizLevelSetIO->SetHistory(
+    m_SystemInterface->GetHistory("LevelSetImage"));
+
+  // Save the speed
+  if(m_WizLevelSetIO->DisplaySaveWizard(
+    m_Driver->GetSNAPImageData()->GetSnake()->GetImage(),
+    m_GlobalState->GetLevelSetFileName()))
+    {
+    // Update the history for the wizard
+    m_SystemInterface->UpdateHistory(
+      "LevelSetImage",m_WizPreprocessingIO->GetSaveFileName());
+    
+    // Store the new filename
+    m_GlobalState->SetLevelSetFileName(
+      m_WizPreprocessingIO->GetSaveFileName());
+    }
+}
+
 
 void UserInterfaceLogic
 ::OnMenuIntensityCurve() 
@@ -3477,6 +3525,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.2  2006/12/06 01:26:07  pyushkevich
+ *Preparing for 1.4.1. Seems to be stable in Windows but some bugs might be still there
+ *
  *Revision 1.1  2006/12/02 04:22:23  pyushkevich
  *Initial sf checkin
  *

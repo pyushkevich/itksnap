@@ -17,11 +17,11 @@ Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "A
 Name: "quicklaunchicon"; Description: "Create a &Quick Launch icon"; GroupDescription: "Additional icons:"; Flags: unchecked
 
 [Files]
-Source: "@MY_BINARY_DIR@\Release\InsightSNAP.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "@MY_BINARY_DIR@\ProgramData\*.*"; DestDir: "{app}\ProgramData"; Flags: ignoreversion recursesubdirs
+Source: "@SNAP_BINARY_DIR@\Release\InsightSNAP.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "@SNAP_BINARY_DIR@\ProgramData\*.*"; DestDir: "{app}\ProgramData"; Flags: ignoreversion recursesubdirs
 Source: "c:\windows\system32\msvcp71.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "c:\windows\system32\msvcr71.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "@MY_SOURCE_DIR@\Utilities\InnoSetup\itksnap.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "@SNAP_SOURCE_DIR@\Utilities\InnoSetup\itksnap.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 

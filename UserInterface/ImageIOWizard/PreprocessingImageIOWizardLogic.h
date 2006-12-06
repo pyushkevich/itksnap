@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PreprocessingImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:22 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2006/12/06 01:26:06 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -21,7 +21,7 @@
 /**
  * \class PreprocessingImageIOWizardLogic
  * \brief A concrete instantiation of a wizard for loading and saving 
- * grey images
+ * floating point images
  */
 class PreprocessingImageIOWizardLogic : 
   public RestrictedImageIOWizardLogic<float> 

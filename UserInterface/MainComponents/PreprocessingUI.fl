@@ -1,21 +1,21 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0102 
+version 1.0107 
 header_name {.h} 
 code_name {.cxx}
-class PreprocessingUI {open : { private PreprocessingUIBase }
+class PreprocessingUI {open : {private PreprocessingUIBase}
 } {
   Function {MakeWindow()} {open
   } {
     Fl_Window m_WinInOut {
-      label {Intensity Region Filter} open selected
-      xywh {463 480 399 350} type Double box PLASTIC_DOWN_BOX hide
-      code0 {\#include "PreprocessingUIBase.h"} non_modal
+      label {Intensity Region Filter} open
+      xywh {988 69 399 350} type Double box PLASTIC_DOWN_BOX
+      code0 {\#include "PreprocessingUIBase.h"} non_modal visible
     } {
       Fl_Value_Slider m_InThresholdSteepness {
         label Smoothness
         callback {o->take_focus();
 this->OnThresholdSettingsChange();}
-        xywh {25 265 200 20} type Horizontal color 51 selection_color 197 labelsize 12 align 5 step 0.1 value 0.25
+        tooltip {Set the smoothness of the speed function} xywh {25 265 200 20} type Horizontal color 51 selection_color 197 labelsize 12 align 5 step 0.1 value 0.25
       }
       Fl_Group m_GrpThresholdDirection {
         label {Threshold direction:} open
@@ -27,11 +27,11 @@ this->OnThresholdSettingsChange();}
         }
         Fl_Round_Button m_RadioThresholdBelow {
           callback {this->OnThresholdDirectionChange();}
-          xywh {260 180 120 20} type Radio down_box ROUND_DOWN_BOX
+          tooltip {Select this for a one-sided threshold, where values with low intensities are treated as 'background'} xywh {260 180 120 20} type Radio down_box ROUND_DOWN_BOX
         }
         Fl_Round_Button m_RadioThresholdBoth {
           callback {this->OnThresholdDirectionChange();}
-          xywh {260 220 120 20} type Radio down_box ROUND_DOWN_BOX value 1
+          tooltip {Select this for a two-sided threshold, where values between the lower and upper thresholds are considered 'object' and values outside the thresholds are 'background'} xywh {260 220 120 20} type Radio down_box ROUND_DOWN_BOX value 1
         }
         Fl_Group {} {
           label Below open
@@ -39,7 +39,7 @@ this->OnThresholdSettingsChange();}
         } {}
         Fl_Group {} {
           label Above open
-          xywh {275 200 80 20} labelsize 12 align 20
+          tooltip {Select this for a one-sided threshold, where values with high intensities are treated as 'background'} xywh {275 200 80 20} labelsize 12 align 20
         } {}
         Fl_Group {} {
           label {Below and Above} open
@@ -49,34 +49,34 @@ this->OnThresholdSettingsChange();}
       Fl_Button m_BtnThresholdOk {
         label Okay
         callback {this->OnThresholdOk();}
-        xywh {170 300 65 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x1ff0d color 180 selection_color 134 labelfont 1 labelsize 12
+        tooltip {Accept the speed image and close the window} xywh {170 300 65 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x1ff0d color 180 selection_color 134 labelfont 1 labelsize 12
       }
       Fl_Button m_BtnThresholdApply {
         label {&Apply}
         callback {this->OnThresholdApply();}
-        xywh {245 300 65 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x80061 color 180 selection_color 134 labelsize 12
+        tooltip {Accept the speed image, but do not close the window} xywh {245 300 65 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x80061 color 180 selection_color 134 labelsize 12
       }
       Fl_Button m_BtnThresholdClose {
         label Close
-        callback {this->OnThresholdClose();}
+        callback {this->OnThresholdClose();} selected
         xywh {320 300 65 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0xff1b color 180 selection_color 134 labelsize 12
       }
       Fl_Check_Button m_InThresholdPreview {
         label {Preview result}
         callback {this->OnThresholdPreviewChange();}
-        xywh {250 245 105 25} down_box DOWN_BOX value 1 labelsize 12
+        tooltip {Select this to have the main program windows update automatically as you change threshold parameters} xywh {250 245 105 25} down_box DOWN_BOX value 1 labelsize 12
       }
       Fl_Check_Button m_InThresholdOverlay {
         label {Combined display}
         callback {this->OnThresholdOverlayChange();}
-        tooltip {When this option is selected, the preprocessing result will be painted over the input image} xywh {250 265 125 25} down_box DOWN_BOX labelsize 12 align 148
+        tooltip {When this option is selected, the voxels where the speed function is positive will be overlaid with the current segmentation label} xywh {250 265 125 25} down_box DOWN_BOX labelsize 12 align 148
       }
       Fl_Group {} {
         label {The thresholding function} open
         xywh {25 15 350 120} box BORDER_FRAME color 0 labelsize 11 align 2
       } {
         Fl_Box m_BoxThresholdFunctionPlot {
-          xywh {25 15 350 120}
+          tooltip {This window displays a mapping from the input image intensity to the 'speed' function. The mapping is controlled by setting an upper and lower threshold. Intensities falling between the thresholds are mapped to +1 and intensities outside the threshold are set to -1. The mapping is fuzzy and its softness is controlled by the smoothness parameter} xywh {25 15 350 120}
           class FunctionPlot2DBox
         }
       }
@@ -86,55 +86,55 @@ this->OnThresholdSettingsChange();}
       Fl_Value_Input m_InLowerThresholdText {
         label {Lower threshold}
         callback {this->OnThresholdLowerChange(o->value());}
-        xywh {25 175 40 20} color 51 labelsize 12 align 5 maximum 100 step 0.1 textsize 10
+        tooltip {Set the threshold below which the speed function will be negative} xywh {25 175 40 20} color 51 labelsize 12 align 5 maximum 100 step 0.1 textsize 10
       }
       Fl_Slider m_InLowerThreshold {
         callback {o->take_focus();
 this->OnThresholdLowerChange(o->value());}
-        xywh {70 175 155 20} type Horizontal color 51 selection_color 197 value 0.3
+        tooltip {Set the threshold below which the speed function will be negative} xywh {70 175 155 20} type Horizontal color 51 selection_color 197 value 0.3
       }
       Fl_Value_Input m_InUpperThresholdText {
         label {Upper threshold}
         callback {this->OnThresholdUpperChange(o->value());}
-        xywh {25 220 40 20} color 51 labelsize 12 align 5 maximum 100 step 0.1 textsize 10
+        tooltip {Set the threshold above which the speed function will be negative} xywh {25 220 40 20} color 51 labelsize 12 align 5 maximum 100 step 0.1 textsize 10
       }
       Fl_Slider m_InUpperThreshold {
         callback {o->take_focus();
 this->OnThresholdUpperChange(o->value());}
-        xywh {70 220 155 20} type Horizontal color 51 selection_color 197 value 0.3
+        tooltip {Set the threshold above which the speed function will be negative} xywh {70 220 155 20} type Horizontal color 51 selection_color 197 value 0.3
       }
     }
     Fl_Window m_WinEdge {
       label {Image Edge Filter} open
-      xywh {48 188 400 351} type Double box PLASTIC_DOWN_BOX hide non_modal
+      xywh {732 549 400 351} type Double box PLASTIC_DOWN_BOX non_modal visible
     } {
       Fl_Value_Slider m_InEdgeScale {
         label {Scale of Gaussian blurring (sigma)}
         callback {o->take_focus();
 this->OnEdgeSettingsChange();}
-        xywh {25 175 225 20} type Horizontal color 51 selection_color 197 labelsize 12 align 5 minimum 0.1 maximum 3 step 0.1 value 1
+        tooltip {Set the scale of Gaussian blurring applied to the image before computing the gradient magnitude (and the speed function). Use smaller values to emphasize finer edges in the input image, and use larger values if you want the active contour evolution to be driven by the strongest edges.} xywh {25 175 225 20} type Horizontal color 51 selection_color 197 labelsize 12 align 5 minimum 0.1 maximum 3 step 0.1 value 1
       }
       Fl_Value_Slider m_InEdgeKappa {
         label {Edge contrast (kappa)}
         callback {o->take_focus();
 this->OnEdgeSettingsChange();}
-        xywh {25 220 225 20} type Horizontal color 51 selection_color 197 labelsize 12 align 5 minimum 0.002 maximum 0.2 step 0.002 value 0.1
+        tooltip {This parameter affects the shape of the mapping between gradient magnitude and the speed function} xywh {25 220 225 20} type Horizontal color 51 selection_color 197 labelsize 12 align 5 minimum 0.002 maximum 0.2 step 0.002 value 0.1
       }
       Fl_Value_Slider m_InEdgeExponent {
         label {Edge mapping exponent}
         callback {o->take_focus();
 this->OnEdgeSettingsChange();}
-        xywh {25 265 225 20} type Horizontal color 51 selection_color 197 labelsize 12 align 5 minimum 1 maximum 3 step 0.05 value 2
+        tooltip {This parameter affects the shape of the mapping between gradient magnitude and the speed function} xywh {25 265 225 20} type Horizontal color 51 selection_color 197 labelsize 12 align 5 minimum 1 maximum 3 step 0.05 value 2
       }
       Fl_Button m_BtnEdgeOK {
         label Okay
         callback {this->OnEdgeOk();}
-        xywh {170 300 65 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x1ff0d color 180 selection_color 134 labelfont 1 labelsize 12
+        tooltip {Accept the speed image and close the window} xywh {170 300 65 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x1ff0d color 180 selection_color 134 labelfont 1 labelsize 12
       }
       Fl_Button m_BtnEdgeApply {
         label {&Apply}
         callback {this->OnEdgeApply();}
-        xywh {245 300 65 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x80061 color 180 selection_color 134 labelsize 12
+        tooltip {Accept the speed image, but do not close the window} xywh {245 300 65 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x80061 color 180 selection_color 134 labelsize 12
       }
       Fl_Button m_BtnEdgeClose {
         label Close
@@ -144,14 +144,14 @@ this->OnEdgeSettingsChange();}
       Fl_Check_Button m_InEdgePreview {
         label {Preview result}
         callback {this->OnEdgePreviewChange();}
-        xywh {270 170 105 25} down_box DOWN_BOX labelsize 12
+        tooltip {Select this to have the main program windows update automatically as you change threshold parameters} xywh {270 170 105 25} down_box DOWN_BOX labelsize 12
       }
       Fl_Group {} {
         label {The function g() applied to the gradient magnitude image} open
         xywh {25 15 350 120} box BORDER_FRAME color 0 labelsize 11 align 2
       } {
         Fl_Box m_BoxEdgeFunctionPlot {
-          xywh {25 15 350 120} box BORDER_BOX color 7 align 25
+          tooltip {This window displays a mapping between gradient magnitude of the input image and  the 'speed' function. The 'speed' function should be close to 0 near edges in the input image (where gradient magnitude is high), and it should be close to 1 at regions where image intensity is nearly constant (gradient magnitude close to 0). Gradient magnitude of the image is computed at a scale (sigma). At larger scales, small fine edges are smoothed out.} xywh {25 15 350 120} box BORDER_BOX color 7 align 25
           class FunctionPlot2DBox
         }
       }

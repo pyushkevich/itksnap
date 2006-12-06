@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:11 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2006/12/06 01:26:06 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.                                      
 
@@ -75,7 +75,7 @@ enum ColorMapPreset
 enum PaintbrushShape
 {
   PAINTBRUSH_RECTANGULAR = 0,
-  PAINTBRUSH_ROUND = 0
+  PAINTBRUSH_ROUND = 1
 };
 
 /** Paintbrush settings */
@@ -84,6 +84,8 @@ struct PaintbrushSettings
   unsigned int radius;
   PaintbrushShape shape;
   bool flat;
+  bool isotropic;
+  bool chase;
 };
   
 /**
@@ -345,6 +347,12 @@ public:
   /** Get the preprocessing image file name */
   irisGetStringMacro(PreprocessingFileName);
 
+  /** Set the preprocessing image file name */
+  irisSetStringMacro(LevelSetFileName);
+
+  /** Get the preprocessing image file name */
+  irisGetStringMacro(LevelSetFileName);
+
   /** Set the advection file name */
   void SetAdvectionFileName(unsigned int i, const char *name)
     { m_AdvectionFileName[i] = name; }
@@ -483,6 +491,9 @@ private:
   // File name of the current preprocessing file
   std::string m_PreprocessingFileName;
 
+  // File name of level set image file
+  std::string m_LevelSetFileName;
+
   // File names for advection images
   std::string m_AdvectionFileName[3];
 
@@ -500,6 +511,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.2  2006/12/06 01:26:06  pyushkevich
+ *Preparing for 1.4.1. Seems to be stable in Windows but some bugs might be still there
+ *
  *Revision 1.1  2006/12/02 04:22:11  pyushkevich
  *Initial sf checkin
  *

@@ -464,8 +464,11 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 
 ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 
-
-
+# Get rid of this ridiculous warning in VS8
+IF( CMAKE_GENERATOR MATCHES "Visual Studio 8" )
+  ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
+ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 8" )
+  
 # ----------------------------------------------------------------
 # Define External Libraries
 # ----------------------------------------------------------------
@@ -526,10 +529,10 @@ SET(SNAP_EXTERNAL_LIBS
 FLTK_WRAP_UI(itksnapui ${APPLICATION_FLUIDS})
 
 # The SNAP logic library
-ADD_LIBRARY(itksnaplogic ${LOGIC_CXX})
+ADD_LIBRARY(itksnaplogic ${LOGIC_CXX} ${LOGIC_HEADERS})
 
 # The user interface code library
-ADD_LIBRARY(itksnapui ${UI_CXX} ${itksnapui_FLTK_UI_SRCS})
+ADD_LIBRARY(itksnapui ${UI_CXX} ${UI_HEADERS} ${itksnapui_FLTK_UI_SRCS})
 
 # This is experimental: it seems that shared libraries do not
 # build accurately (at least on MacOS) without the following

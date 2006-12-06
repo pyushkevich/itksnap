@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:27 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2006/12/06 01:26:07 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -20,6 +20,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
+#include <set>
+#include <vnl/vnl_random.h>
 
 using namespace std;
 
@@ -251,6 +253,11 @@ PolygonDrawing
     }
 }
 
+bool PolygonVertexTest(const PolygonDrawing::Vertex &v1, const PolygonDrawing::Vertex &v2)
+{
+  return v1.x == v2.x && v1.y == v2.y;
+}
+
 /**
  * AcceptPolygon()
  *
@@ -274,6 +281,25 @@ void
 PolygonDrawing
 ::AcceptPolygon(ByteImageType *image) 
 {
+  // Remove duplicates from the vertex array
+  VertexIterator itEnd = std::unique(m_Vertices.begin(), m_Vertices.end(), PolygonVertexTest);
+  m_Vertices.erase(itEnd, m_Vertices.end());
+
+  // There may still be duplicates in the array, in which case we should
+  // add a tiny offset to them. Thanks to Jeff Tsao for this bug fix! 
+  std::set< std::pair<float, float> > xVertexSet;
+  vnl_random rnd;
+  for(VertexIterator it = m_Vertices.begin(); it != m_Vertices.end(); ++it)
+    {
+    while(xVertexSet.find(make_pair(it->x, it->y)) != xVertexSet.end())
+      {
+      it->x += 0.0001 * rnd.drand32(-1.0, 1.0);
+      it->y += 0.0001 * rnd.drand32(-1.0, 1.0);
+      }
+    xVertexSet.insert(make_pair(it->x, it->y));
+    }
+
+
   // Scan convert the points into the slice
   typedef PolygonScanConvert<
     unsigned char, GL_UNSIGNED_BYTE, VertexIterator> ScanConvertType;
@@ -676,6 +702,9 @@ PolygonDrawing
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.2  2006/12/06 01:26:07  pyushkevich
+ *Preparing for 1.4.1. Seems to be stable in Windows but some bugs might be still there
+ *
  *Revision 1.1  2006/12/02 04:22:27  pyushkevich
  *Initial sf checkin
  *

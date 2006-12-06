@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: HelpViewerLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:22 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2006/12/06 01:26:07 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -84,7 +84,8 @@ HelpViewerLogic
     return;
 
   // Clear the forward stack
-  m_LinkList.erase(++m_Iterator,m_LinkList.end());
+  if(m_Iterator != m_LinkList.end())
+    m_LinkList.erase(++m_Iterator,m_LinkList.end());
 
   // Add the new link to the list
   m_LinkList.push_back(string(url));

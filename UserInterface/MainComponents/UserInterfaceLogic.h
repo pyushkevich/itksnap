@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:23 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2006/12/06 01:26:07 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -541,6 +541,7 @@ public:
 
   // Paintbrush action callbacks
   void OnPaintbrushAttributesUpdate();
+  void OnPaintbrushPaint();
 
   // IRIS: 3D Window callbacks
   void OnIRISMeshUpdateAction();
@@ -627,6 +628,7 @@ protected:
   void OnMenuIntensityCurve();
   void OnMenuLoadPreprocessed();  
   void OnMenuSavePreprocessed(); 
+  void OnMenuSaveLevelSet(); 
   void OnLoadRecentAction(unsigned int iRecent);
   void OnLoadPreprocessedImageAction();
   void OnMenuLoadAdvection();
@@ -719,6 +721,9 @@ private:
 
   /** Wizard used to load and save preprocessing image files */
   PreprocessingImageIOWizardLogic *m_WizPreprocessingIO;
+
+  /** Wizard used to load and save preprocessing image files */
+  PreprocessingImageIOWizardLogic *m_WizLevelSetIO;
 
   /** UI object used for handling Curve editing */
   IntensityCurveUILogic *m_IntensityCurveUI;
@@ -832,6 +837,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.2  2006/12/06 01:26:07  pyushkevich
+ *Preparing for 1.4.1. Seems to be stable in Windows but some bugs might be still there
+ *
  *Revision 1.1  2006/12/02 04:22:23  pyushkevich
  *Initial sf checkin
  *

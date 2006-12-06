@@ -1,17 +1,48 @@
 ======================================
  InsightSNAP Release Notes
- Version 1.4
+ Version 1.4.1
 ======================================
 
 -----------------
 1. New Features
 -----------------
 
+1.1. New in Version 1.4.1
+-------------------------
 
-1.1. New in Version 1.4
+1.1.1. New Features and UI Improvements
+
+ -  Added paintbrush tool to the main toolbar. Paintbrush can be used to quickly
+    touch up segmentations. Left mouse button paints with selected label, right
+    button acts as an erasor
+
+ -  Went through and added/edited tooltips in the program to be more accurate. It
+    should be easier to make sense of the program now
+
+ -  Added a menu option for saving the level set image during active contour
+    evolution. This is an important feature because it allows users to save
+    segmentations before sub-voxel accuracy is lost. In particular, this can be
+    used in conjunction with ParaView to generate meshes from segmentations.
+
+1.1.2. Bug Fixes
+
+ -  Fixed bug that was causing crashes on Win32 during polygon drawing (thanks
+    to Jeffrey Tsao for this bug fix!
+
+ -  Fixed problems with the getsnap.sh linux script
+
+1.1.3. Distribution Changes 
+
+ -  Interim SNAP releases are now hosted on SourceForge. ITK repository will only
+    be used to host major releases (like 1.6). This allows us to check stuff in
+    independently of the ITK code freezes. It also makes it easier to add new 
+    developers
+
+
+1.2. New in Version 1.4
 -----------------------
 
-1.1.1. New Features and User Interface Improvements
+1.2.1. New Features and User Interface Improvements
 
  -  New and improved label editor. You can easily switch between labels while in
     the editor and the interface for adding new labels is more intuitive. You
@@ -50,7 +81,7 @@
 
  -  The tutorial has been updated to reflect the new features.
 
-1.1.2. Bug Fixes.
+1.2.2. Bug Fixes.
 
  -  SNAP should crash a lot less than before
 
@@ -66,20 +97,20 @@
 
  -  Lots of other small bugs have been fixed!
 
-1.1.3. Programmatic Enhancements
+1.2.3. Programmatic Enhancements
 
  -  SNAP and IRIS now share the sameset of OpenGL windows. This should prevent
     crashes on some platforms.
 
-1.1.4. Other
+1.2.4. Other
 
  -  SNAP available as a universal (Intel/PPC) binary for MacOS at itksnap.org
 
 
-1.2. New in Version 1.2
+1.3. New in Version 1.2
 -----------------------
 
-1.2.1. User Interface Improvements
+1.3.1. User Interface Improvements
 
  -  The ability to switch between 4-view mode and single view mode. Each of the 
     slice views and the 3D view can be expanded to occupy the entire SNAP window.
@@ -99,7 +130,7 @@
 
  -  SNAP remembers the last ROI used for each image.
 
-1.2.2. Programmatic Improvements
+1.3.2. Programmatic Improvements
 
  -  The level set segmentation pipeline has been rewritten, taking advantage of
     the stop and go functionality of ITK finite difference filters. This means
@@ -109,7 +140,7 @@
     machine automatically activates and deactivates UI widgets based on a set of
     flags. Rules such as Flag A => Flag B can be added to the state machine.
 
-1.2.3 Bug Fixes
+1.3.3 Bug Fixes
 
  -  Slice views update correctly when the SNAP window is resized
 
