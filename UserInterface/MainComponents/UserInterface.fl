@@ -36,10 +36,10 @@ class UserInterface {open : {public UserInterfaceBase}
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
       callback {OnMainWindowCloseAction();} open
-      xywh {721 407 875 710} type Double align 0 resizable
+      xywh {391 325 875 710} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"} visible
     } {
-      Fl_Menu_Bar m_MenubarMain {open selected
+      Fl_Menu_Bar m_MenubarMain {open
         xywh {0 0 145 25} labelsize 12 textsize 12
       } {
         Submenu {} {
@@ -215,7 +215,7 @@ class UserInterface {open : {public UserInterfaceBase}
           label {Control Pane} open
           xywh {0 25 145 680} box NO_BOX color 22 align 16
         } {
-          Fl_Group m_GrpToolbarPage {open
+          Fl_Group m_GrpToolbarPage {
             xywh {0 25 145 680} color 53 labelsize 12
           } {
             Fl_Group m_GrpInteractionModes {
@@ -473,7 +473,7 @@ ITK-SNAP!  Visit our new website:
               }
             }
           }
-          Fl_Group m_GrpSNAPPage {open
+          Fl_Group m_GrpSNAPPage {
             xywh {0 25 145 680} color 53 hide
           } {
             Fl_Group {} {
@@ -858,7 +858,7 @@ this->OnSNAPLabelOpacityChange();}
             }
           }
         }
-        Fl_Group {m_GrpSlicePanel[1]} {
+        Fl_Group {m_GrpSlicePanel[1]} {open
           xywh {510 0 365 355} box UP_BOX
         } {
           Fl_Box {m_SliceWindow[1]} {
@@ -867,7 +867,7 @@ this->OnSNAPLabelOpacityChange();}
             code0 {\#include "FLTKCanvas.h"}
             class FLTKCanvas
           }
-          Fl_Group {} {
+          Fl_Group {} {open
             xywh {513 325 357 30}
           } {
             Fl_Button {m_BtnResetView[1]} {
@@ -878,28 +878,28 @@ this->OnSNAPLabelOpacityChange();}
             Fl_Output {m_OutSliceIndex[1]} {
               xywh {800 330 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
             }
-            Fl_Group {m_GrpPolygonEdit[1]} {open
+            Fl_Group {m_GrpPolygonEdit[1]} {open selected
               xywh {538 325 195 30} hide
             } {
               Fl_Button {m_BtnPolygonAccept[1]} {
                 label accept
                 callback {OnAcceptPolygonAction(1);}
-                tooltip {Fill in the polygon using the currently selected label} xywh {548 330 40 18} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Fill in the polygon using the currently selected label} xywh {548 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonPaste[1]} {
                 label paste
                 callback {OnPastePolygonAction(1);}
-                tooltip {Paste the previously used polygon into the window} xywh {683 330 40 18} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Paste the previously used polygon into the window} xywh {683 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonInsert[1]} {
                 label insert
                 callback {OnInsertIntoPolygonSelectedAction(1);}
-                tooltip {Insert a new vertex between pairs of selected vertices} xywh {593 330 40 18} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Insert a new vertex between pairs of selected vertices} xywh {593 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonDelete[1]} {
                 label delete
                 callback {OnDeletePolygonSelectedAction(1);}
-                tooltip {Delete the selected vertices} xywh {638 330 40 18} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Delete the selected vertices} xywh {638 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
             }
             Fl_Group {} {open
@@ -934,7 +934,7 @@ this->OnSNAPLabelOpacityChange();}
             }
           }
         }
-        Fl_Group {m_GrpSlicePanel[2]} {
+        Fl_Group {m_GrpSlicePanel[2]} {open
           xywh {510 355 365 355} box UP_BOX
         } {
           Fl_Box {m_SliceWindow[2]} {
@@ -954,7 +954,7 @@ this->OnSNAPLabelOpacityChange();}
             Fl_Output {m_OutSliceIndex[2]} {
               xywh {800 685 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
             }
-            Fl_Group {m_GrpPolygonEdit[2]} {
+            Fl_Group {m_GrpPolygonEdit[2]} {open
               xywh {538 680 195 30} hide
             } {
               Fl_Button {m_BtnPolygonAccept[2]} {

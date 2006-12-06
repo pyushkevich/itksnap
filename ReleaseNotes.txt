@@ -24,19 +24,35 @@
     segmentations before sub-voxel accuracy is lost. In particular, this can be
     used in conjunction with ParaView to generate meshes from segmentations.
 
+ -  You can now save and restore the camera settings in the 3D view within a
+    single SNAP session. This can be useful for generating screen shots of
+    different segmentation from the same viewpoint. Press 's' in the 3D window
+    to save the camera state and 'r' to restore it.
+
 1.1.2. Bug Fixes
 
- -  Fixed bug that was causing crashes on Win32 during polygon drawing (thanks
-    to Jeffrey Tsao for this bug fix!
+ -  MAJOR: fixed bug that was causing crashes on Win32 during polygon drawing 
+    (thanks to Jeff Tsao for this bug fix!)
 
  -  Fixed problems with the getsnap.sh linux script
+
+ -  Some menu items were enabled when they should not have been, now are
+    disabled.
+
+ -  Rare bug where speed function very close to 1 was not being rounded
+    correctly and may have caused crashes on some systems
+
+ -  Fixed problem where the screen was blank after loading preprocessed image
+
+ -  Fixed crash when changing bubble radius and then going back to 
+    preprocessing mode
 
 1.1.3. Distribution Changes 
 
  -  Interim SNAP releases are now hosted on SourceForge. ITK repository will only
     be used to host major releases (like 1.6). This allows us to check stuff in
     independently of the ITK code freezes. It also makes it easier to add new 
-    developers
+    developers.
 
 
 1.2. New in Version 1.4

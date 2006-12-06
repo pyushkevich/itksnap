@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 01:26:07 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2006/12/06 13:27:46 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -1123,8 +1123,9 @@ void
 UserInterfaceLogic
 ::OnRestartPreprocessingAction()
 {
-  // Reset the active bubble
-  m_GlobalState->SetActiveBubble(0);
+  // Reset the active bubble (if there are any)
+  m_GlobalState->SetActiveBubble(
+    m_GlobalState->GetBubbleArray().size() > 0 ? 0 : -1);
 
   // Flip to the first page
   SetActiveSegmentationPipelinePage(0);
@@ -2751,6 +2752,9 @@ UserInterfaceLogic
     // Run the callback associated with that change
     OnSNAPViewOriginalSelect();
     }
+
+  // Make sure color mapping is correct
+  UpdateSpeedColorMap();
 }
 
 // This method should be called whenever the UI starts and every time that
@@ -3236,7 +3240,7 @@ UserInterfaceLogic
     {
     // Update the history for the wizard
     m_SystemInterface->UpdateHistory(
-      "LevelSetImage",m_WizPreprocessingIO->GetSaveFileName());
+      "LevelSetImage", m_WizLevelSetIO->GetSaveFileName());
     
     // Store the new filename
     m_GlobalState->SetLevelSetFileName(
@@ -3525,6 +3529,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.3  2006/12/06 13:27:46  pyushkevich
+ *Followup checking for 1.4.1
+ *
  *Revision 1.2  2006/12/06 01:26:07  pyushkevich
  *Preparing for 1.4.1. Seems to be stable in Windows but some bugs might be still there
  *
