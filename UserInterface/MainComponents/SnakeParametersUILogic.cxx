@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SnakeParametersUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:23 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/02/20 19:42:51 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -194,11 +194,6 @@ void SnakeParametersUILogic
     m_InAdvectionExponentMathSlider->show();
     m_InCurvatureExponentMathSlider->show();
     m_InPropagationExponentMathSlider->show();
-
-    m_InAdvectionWeightClassic->show();
-    m_InAdvectionExponentClassic->show();
-    m_InCurvatureExponentClassic->show();
-    m_InPropagationExponentClassic->show();
     }
   else
     {
@@ -214,53 +209,42 @@ void SnakeParametersUILogic
     m_InAdvectionExponentMathSlider->hide();
     m_InCurvatureExponentMathSlider->hide();
     m_InPropagationExponentMathSlider->hide();
-
-    m_InAdvectionWeightClassic->hide();
-    m_InAdvectionExponentClassic->hide();
-    m_InCurvatureExponentClassic->hide();
-    m_InPropagationExponentClassic->hide();
     }
 
   // Curvature weight
   float value = m_Parameters.GetCurvatureWeight();
   m_InCurvatureWeightMathText->value(value);
   m_InCurvatureWeightMathSlider->value(value);
-  m_InCurvatureWeightClassic->value(value);
   m_InCurvatureWeightEasy->value(value);
 
   // Curvature exponent
   value = m_Parameters.GetCurvatureSpeedExponent() + 1;
   m_InCurvatureExponentMathText->value(value);
   m_InCurvatureExponentMathSlider->value(value);
-  m_InCurvatureExponentClassic->value(value);
   //m_InCurvatureExponentEasy->value(value);
   
   // Propagation weight 
   value = m_Parameters.GetPropagationWeight();
   m_InPropagationWeightMathText->value(value);
   m_InPropagationWeightMathSlider->value(value);
-  m_InPropagationWeightClassic->value(value);
   //m_InPropagationWeightEasy->value(value);
   
   // Propagation exponent 
   value = m_Parameters.GetPropagationSpeedExponent();
   m_InPropagationExponentMathText->value(value);
   m_InPropagationExponentMathSlider->value(value);
-  m_InPropagationExponentClassic->value(value);
   //m_InPropagationExponentEasy->value(value);
   
   // Advection weight 
   value = m_Parameters.GetAdvectionWeight();
   m_InAdvectionWeightMathText->value(value);
   m_InAdvectionWeightMathSlider->value(value);
-  m_InAdvectionWeightClassic->value(value);
   m_InAdvectionWeightEasy->value(value);
   
   // Advection exponent 
   value = m_Parameters.GetAdvectionSpeedExponent();
   m_InAdvectionExponentMathText->value(value);
   m_InAdvectionExponentMathSlider->value(value);
-  m_InAdvectionExponentClassic->value(value);
   //m_InAdvectionExponentEasy->value(value);
 
   // Experimental / normal equation display

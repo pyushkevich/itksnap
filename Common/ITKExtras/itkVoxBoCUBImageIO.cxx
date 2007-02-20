@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkVoxBoCUBImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:10 $
-  Version:   $Revision: 1.1 $  
+  Date:      $Date: 2007/02/20 19:42:51 $
+  Version:   $Revision: 1.2 $  
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -445,7 +445,7 @@ void VoxBoCUBImageIO::ReadImageInformation()
 
     // Read the key and strip the colon from it
     iss >> key;
-    if(key[key.size() - 1] == ':')
+    if(key.size() > 0 && key[key.size() - 1] == ':')
       {
       // Strip the colon off the key
       key = key.substr(0, key.size() - 1);
