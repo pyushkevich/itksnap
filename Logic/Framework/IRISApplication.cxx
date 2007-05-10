@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 14:36:02 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/05/10 20:19:50 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -25,6 +25,8 @@
 #include "IRISImageData.h"
 #include "IRISVectorTypesToITKConversion.h"
 #include "SNAPImageData.h"
+#include "MeshObject.h"
+#include "MeshExportSettings.h"
 #include "IntensityCurveVTK.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
@@ -620,6 +622,38 @@ IRISApplication
     }
 
   fout.close();
+}
+
+
+
+void
+IRISApplication
+::ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *progress) 
+  throw(itk::ExceptionObject)
+{
+  // Based on the export settings, we will export one of the labels or all labels
+  MeshObject mob;
+  mob.Initialize(this);
+  mob.GenerateVTKMeshes(progress);
+
+  // If only one mesh is to be exported, life is easy
+  if(sets.GetFlagSingleLabel())
+    {
+    for(size_t i = 0; i < mob.GetNumberOfVTKMeshes(); i++)
+      {
+      if(mob.GetVTKMeshLabel(i) == sets.GetExportLabel())
+        {
+        // Get the VTK mesh for the label
+        vtkPolyData *mesh = mob.GetVTKMesh(i);
+
+        // Export the mesh
+        GuidedMeshIO io;
+        io.SaveMesh(sets.GetMeshFileName().c_str(), sets.GetMeshFormat(), mesh);
+        }
+      }
+    }
+
+  mob.DiscardVTKMeshes();
 }
 
 

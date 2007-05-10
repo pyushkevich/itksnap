@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 01:26:07 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/05/10 20:19:50 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -57,6 +57,7 @@ public:
   virtual void OnMenuSaveGreyROI() = 0;
   virtual void OnMenuLoadSegmentation() = 0;
   virtual void OnMenuSaveSegmentation() = 0;
+  virtual void OnMenuSaveSegmentationMesh() = 0;
   virtual void OnMenuLoadPreprocessed() = 0;  
   virtual void OnMenuSavePreprocessed() = 0; 
   virtual void OnMenuSaveLevelSet() = 0; 

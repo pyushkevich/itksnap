@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPCommon.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:10 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/05/10 20:19:50 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -62,11 +62,11 @@ extern const char SNAPLastIncompatibleReleaseDate[];
 // CAREFUL: do not redefine this to INT without disabling the usage of
 // UnaryFunctorCache in the GreyImageWrapper type.  Greyscale instensities
 // 0 to MAXGREYVAL are used in a cache table, which would be too big with int
-typedef unsigned char LabelType;
+typedef unsigned short LabelType;
 typedef short GreyType;
 extern const GreyType MAXGREYVAL;
 extern const GreyType MINGREYVAL;
-#define MAX_COLOR_LABELS 256
+#define MAX_COLOR_LABELS 1024
 
 /************************************************************************/
 /* PY: Some macros because I am tired of typing get/set                 */

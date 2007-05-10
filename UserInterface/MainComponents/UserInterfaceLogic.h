@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 01:26:07 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/05/10 20:19:50 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -35,6 +35,7 @@ class SNAPSliceWindow;
 class GreyImageIOWizardLogic;
 class SegmentationImageIOWizardLogic;
 class PreprocessingImageIOWizardLogic;
+class MeshIOWizardUILogic;
 class SliceWindowCoordinator;
 class SimpleFileDialogLogic;
 class ResizeRegionDialogLogic;
@@ -623,6 +624,7 @@ protected:
   void OnMenuLoadLabels();
   void OnMenuSaveGreyROI();
   void OnMenuSaveSegmentation();
+  void OnMenuSaveSegmentationMesh();
   void OnMenuSaveLabels();
   void OnMenuWriteVoxelCounts();
   void OnMenuIntensityCurve();
@@ -724,6 +726,9 @@ private:
 
   /** Wizard used to load and save preprocessing image files */
   PreprocessingImageIOWizardLogic *m_WizLevelSetIO;
+
+  /** Wizard for 3D mesh export */
+  MeshIOWizardUILogic *m_WizMeshExport;
 
   /** UI object used for handling Curve editing */
   IntensityCurveUILogic *m_IntensityCurveUI;
@@ -837,6 +842,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.3  2007/05/10 20:19:50  pyushkevich
+ *Added VTK mesh export code and GUI
+ *
  *Revision 1.2  2006/12/06 01:26:07  pyushkevich
  *Preparing for 1.4.1. Seems to be stable in Windows but some bugs might be still there
  *

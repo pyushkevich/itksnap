@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: MeshObject.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:15 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/05/10 20:19:50 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -21,6 +21,7 @@ class GlobalState;
 class IRISImageData;
 class ColorLabel;
 class AllPurposeProgressAccumulator;
+class vtkPolyData;
 
 namespace itk {
   class Command;
@@ -49,6 +50,9 @@ private:
   // The labels associated with the allocated display lists
   std::vector<LabelType> m_Labels;
 
+  // The VTK meshes (optionally available)
+  std::vector<vtkPolyData *> m_Meshes;
+
   /** 
    * This method applies the settings in a color label if color label 
    * is displayable
@@ -69,7 +73,8 @@ public:
   MeshObject( const MeshObject& M ) { *this=M; } 
   MeshObject& operator= ( const MeshObject& M ) { *this=M; return *this; }
   ~MeshObject();
-
+  
+  // Reset the label array and the display list index. 
   void Reset();
 
   /**
@@ -106,6 +111,40 @@ public:
    */
   void GenerateMesh(itk::Command *command);
 
+  /**
+   * Generate VTK meshes from input data. This method is called by
+   * GenerateMesh internally. But the user of this class can choose
+   * to call this method directly if the meshes are needed for export
+   */
+  void GenerateVTKMeshes(itk::Command *command);
+
+  /** 
+   * Convert VTK meshes to display lists. This method is called inside
+   * GenerateMesh. Normally, you would not use this method.
+   */
+  void GenerateDisplayLists();
+
+  /**
+   * Discard VTK meshes. This method is called by GenerateMesh intenally.
+   * You should call this method after calling GenerateVTKMesh.
+   */
+  void DiscardVTKMeshes();
+
+  /** 
+   * Get the number of VTK meshes available
+   */
+  size_t GetNumberOfVTKMeshes() const;
+
+  /**
+   * Get the i-th VTK mesh
+   */
+  vtkPolyData *GetVTKMesh(size_t iMesh) const;
+
+  /**
+   * Get the label associated with i-th mesh
+   */
+  LabelType GetVTKMeshLabel(size_t iMesh) const;
+
   /* MeshObject::Display();
    *
    * DESCRIPTION:
@@ -130,6 +169,9 @@ public:
 
 /*
  *$Log: MeshObject.h,v $
+ *Revision 1.2  2007/05/10 20:19:50  pyushkevich
+ *Added VTK mesh export code and GUI
+ *
  *Revision 1.1  2006/12/02 04:22:15  pyushkevich
  *Initial sf checkin
  *

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: MeshObject.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:14 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/05/10 20:19:50 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -95,6 +95,208 @@ MeshObject
   m_Labels.clear();
 }
 
+void 
+MeshObject
+::GenerateVTKMeshes(itk::Command *command)
+{
+  unsigned int i;
+
+  // The mesh array should be empty
+  assert(m_Meshes.size() == 0);
+
+  // Reset the label array and the display list index
+  Reset();
+
+  // The mesh is constructed differently depending on whether there is an
+  // actively evolving level set or not SNAP mode or in IRIS mode
+  if (m_GlobalState->GetSnakeActive() && 
+      m_Driver->GetSNAPImageData()->IsSnakeLoaded()) 
+    {
+    
+    // We are in SNAP.  Use one of SNAP's images
+    SNAPImageData *snapData = m_Driver->GetSNAPImageData();
+
+    // Create a pipeline for mesh generation
+    LevelSetMeshPipeline *meshPipeline = new LevelSetMeshPipeline();
+
+    // Get the float distance transform from the level set mechanism
+    meshPipeline->SetImage(snapData->GetLevelSetImage());
+    
+    // Compute the mesh only for the current segmentation color
+    vtkPolyData *mesh = vtkPolyData::New();
+    meshPipeline->ComputeMesh(mesh);
+    m_Meshes.push_back(mesh);
+    
+    // Deallocate the filter
+    delete meshPipeline;
+  }
+  else    
+    {
+    // Create a pipeline for mesh generation
+    IRISMeshPipeline *meshPipeline = new IRISMeshPipeline();
+  
+    // Initialize the pipeline with the correct image
+    if(!m_GlobalState->GetSnakeActive())
+      {
+      // We are not currently in SNAP.  Use the segmentation image with its
+      // different colors
+      meshPipeline->SetImage(
+        m_Driver->GetCurrentImageData()->GetSegmentation()->GetImage());    
+  
+      }
+    else
+      {
+      // We are in SNAP.  Use one of SNAP's images
+      SNAPImageData *snapData = m_Driver->GetSNAPImageData();
+      meshPipeline->SetImage(snapData->GetSegmentation()->GetImage());
+      }
+  
+    // Pass the settings on to the pipeline
+    meshPipeline->SetMeshOptions(m_GlobalState->GetMeshOptions());
+  
+    // Run the first step in this pipeline
+    meshPipeline->ComputeBoundingBoxes();
+
+    // Add the listener to the progress accumulator
+    unsigned long xObserverTag = 
+      m_Progress->AddObserver(itk::ProgressEvent(), command);
+
+    // Initialize the progress meter
+    for(i = 1; i < MAX_COLOR_LABELS; i++)
+      {
+      ColorLabel cl = m_Driver->GetColorLabelTable()->GetColorLabel(i);
+      if(cl.IsVisibleIn3D() && meshPipeline->CanComputeMesh(i))
+        { 
+        m_Progress->RegisterSource(
+          meshPipeline->GetProgressAccumulator(),
+          1.0 * meshPipeline->GetVoxelsInBoundingBox(i));
+        }
+      }
+
+    // Compute a list of meshes in the filter
+    for(i = 1; i < MAX_COLOR_LABELS; i++) 
+      {
+      ColorLabel cl = m_Driver->GetColorLabelTable()->GetColorLabel(i);
+      if(cl.IsVisibleIn3D() && meshPipeline->CanComputeMesh(i))
+        {
+        vtkPolyData *mesh = vtkPolyData::New();
+        meshPipeline->ComputeMesh(i,mesh);
+        m_Meshes.push_back(mesh);
+        m_Labels.push_back(i);
+
+        // Advance the progress accumulator
+        m_Progress->StartNextRun(meshPipeline->GetProgressAccumulator());
+        }
+      }
+
+    // Remove all the progress sources
+    m_Progress->UnregisterAllSources();
+
+    // Remove progress observer
+    m_Progress->RemoveObserver(xObserverTag);
+    
+    // Deallocate the filter
+    delete meshPipeline;
+    }
+}
+
+void 
+MeshObject
+::GenerateDisplayLists()
+{
+  // Generate an array of display lists
+  m_DisplayListNumber = m_Meshes.size();
+  m_DisplayListIndex = glGenLists(m_DisplayListNumber);
+  
+  // Create a display list for each of the objects in the pipeline
+  for(unsigned int dl=0;dl<m_DisplayListNumber;dl++)
+    {
+    // Get the triangle strip information.
+    vtkCellArray *triStrips = m_Meshes[dl]->GetStrips();
+
+    // Get the vertex information.
+    vtkPoints *verts = m_Meshes[dl]->GetPoints();
+
+    // Get the normal information.
+    vtkDataArray *norms = m_Meshes[dl]->GetPointData()->GetNormals();
+    
+    // Build display list
+    glNewList(m_DisplayListIndex + dl,GL_COMPILE);
+
+    vtkIdType ntris = 0;
+    vtkIdType npts;
+    vtkIdType *pts;
+    for ( triStrips->InitTraversal(); triStrips->GetNextCell(npts,pts); ) 
+      {
+      ntris += npts-2;
+      glBegin( GL_TRIANGLE_STRIP );
+      for (vtkIdType j = 0; j < npts; j++) 
+        {
+        // Some ugly code to ensure VTK version compatibility
+        double vx = verts->GetPoint(pts[j])[0];
+        double vy = verts->GetPoint(pts[j])[1];
+        double vz = verts->GetPoint(pts[j])[2];
+        double nx = norms->GetTuple(pts[j])[0];
+        double ny = norms->GetTuple(pts[j])[1];
+        double nz = norms->GetTuple(pts[j])[2];
+        
+        // Specify normal.
+        glNormal3d(nx, ny, nz);
+
+        // Specify vertex.
+        glVertex3d(vx, vy, vz);
+        }
+      glEnd();
+      }
+    glEndList();    
+    }
+}
+
+
+void 
+MeshObject
+::DiscardVTKMeshes()
+{
+  for(size_t i = 0; i < m_Meshes.size(); i++)
+    {  
+    // Delete the mesh
+    m_Meshes[i]->Delete();    
+    }
+
+  m_Meshes.clear();
+}
+
+size_t 
+MeshObject
+::GetNumberOfVTKMeshes() const
+{
+  return m_Meshes.size();
+}
+
+vtkPolyData *
+MeshObject
+::GetVTKMesh(size_t iMesh) const
+{
+  return m_Meshes[iMesh];
+}
+
+LabelType
+MeshObject
+::GetVTKMeshLabel(size_t iMesh) const
+{
+  return m_Labels[iMesh];
+}
+
+void 
+MeshObject
+::GenerateMesh(itk::Command *command)
+{
+  GenerateVTKMeshes(command);
+  GenerateDisplayLists();
+  DiscardVTKMeshes();
+}
+
+/*
 void 
 MeshObject
 ::GenerateMesh(itk::Command *command)
@@ -251,6 +453,7 @@ MeshObject
     meshes[dl]->Delete();    
     }
 }
+*/
 
 /*
  *  Apply color label, a shorthand
@@ -360,6 +563,9 @@ MeshObject
 
 /*
  *$Log: MeshObject.cxx,v $
+ *Revision 1.2  2007/05/10 20:19:50  pyushkevich
+ *Added VTK mesh export code and GUI
+ *
  *Revision 1.1  2006/12/02 04:22:14  pyushkevich
  *Initial sf checkin
  *

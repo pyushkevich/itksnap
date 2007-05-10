@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 14:36:18 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/05/10 20:19:50 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -47,6 +47,7 @@
 #include "ResizeRegionDialogLogic.h"
 #include "RestoreSettingsDialogLogic.h"
 #include "SegmentationImageIOWizardLogic.h"
+#include "MeshIOWizardUILogic.h"
 #include "SimpleFileDialogLogic.h"
 #include "SliceWindowCoordinator.h"
 #include "SNAPAppearanceSettings.h"
@@ -204,6 +205,7 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuLoadSegmentation, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveGreyROI, UIF_SNAP_ACTIVE);
   m_Activation->AddMenuItem(m_MenuSaveSegmentation, UIF_IRIS_WITH_GRAY_LOADED);
+  m_Activation->AddMenuItem(m_MenuSaveSegmentationMesh, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveLabels, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadLabels, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveVoxelCounts, UIF_IRIS_WITH_GRAY_LOADED);
@@ -241,12 +243,14 @@ UserInterfaceLogic
   m_WizSegmentationIO = new SegmentationImageIOWizardLogic;
   m_WizPreprocessingIO = new PreprocessingImageIOWizardLogic;
   m_WizLevelSetIO = new PreprocessingImageIOWizardLogic;
+  m_WizMeshExport = new MeshIOWizardUILogic;
   
   // Initialize the Image IO wizards
   m_WizGreyIO->MakeWindow();
   m_WizSegmentationIO->MakeWindow();
   m_WizPreprocessingIO->MakeWindow();
   m_WizLevelSetIO->MakeWindow();
+  m_WizMeshExport->MakeWindow();
 
   // Provide the registry callback for the greyscale image wizard
   m_GreyCallbackInterface = new GreyImageInfoCallback(m_SystemInterface);
@@ -364,6 +368,7 @@ UserInterfaceLogic
   delete m_WizSegmentationIO;
   delete m_WizPreprocessingIO;
   delete m_WizLevelSetIO;
+  delete m_WizMeshExport;
 
   // Delete the IO wizard registry adaptor
   delete m_GreyCallbackInterface;
@@ -3087,6 +3092,30 @@ void UserInterfaceLogic
     }
 }
 
+void UserInterfaceLogic
+::OnMenuSaveSegmentationMesh() 
+{
+  // Better have a segmentation image
+  assert(m_Driver->GetIRISImageData()->IsSegmentationLoaded());
+
+  // Send the history information to the wizard
+  m_WizMeshExport->SetHistory(
+    m_SystemInterface->GetHistory("SegmentationMesh"));
+
+  // Display the segmentation wizard
+  if(m_WizMeshExport->DisplayWizard(m_Driver))
+    {
+    // Get the save settings
+    MeshExportSettings sets = m_WizMeshExport->GetExportSettings();
+
+    // Use the settings to save the mesh
+    m_Driver->ExportSegmentationMesh(sets, m_ProgressCommand);
+
+    // Update the history
+    m_SystemInterface->UpdateHistory("SegmentationMesh", sets.GetMeshFileName().c_str());
+    }
+}
+
 void 
 UserInterfaceLogic
 ::OnMenuLoadPreprocessed() 
@@ -3529,6 +3558,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.5  2007/05/10 20:19:50  pyushkevich
+ *Added VTK mesh export code and GUI
+ *
  *Revision 1.4  2006/12/06 14:36:18  pyushkevich
  *Fixes for VC6
  *

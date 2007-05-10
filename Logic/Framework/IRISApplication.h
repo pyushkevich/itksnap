@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:11 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/05/10 20:19:50 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -25,6 +25,7 @@
 // Forward reference to the classes pointed at
 class IRISImageData;
 class SNAPImageData;
+class MeshExportSettings;
 namespace itk {
   template <class TPixel, unsigned int VDimension> class Image;
 }
@@ -173,6 +174,13 @@ public:
 
   /** Export voxel statistis to a file */
   void ExportSegmentationStatistics(const char *file) 
+    throw(itk::ExceptionObject);
+
+  /**
+   * Export the 3D mesh to a file, using settings passed in the
+   * MeshExportSettings structure.
+   */
+  void ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *cmd)
     throw(itk::ExceptionObject);
 
   /** 

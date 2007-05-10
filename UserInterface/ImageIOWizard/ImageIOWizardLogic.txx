@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:21 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/05/10 20:19:50 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -1269,7 +1269,7 @@ ImageIOWizardLogic<TPixel>
     // Try to load the registry associated with this filename
     if(m_Callback)
       m_Callback->FindRegistryAssociatedWithImage(
-        m_InFilePageBrowser->value(), m_Registry);
+        m_InSaveFilePageBrowser->value(), m_Registry);
 
     // If the registry contains a file format, override with that
     FileFormat fmt = 

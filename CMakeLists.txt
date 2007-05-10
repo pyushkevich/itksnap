@@ -52,6 +52,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/SpeedImageWrapper.cxx
   Logic/LevelSet/SnakeParameters.cxx
   Logic/Mesh/AllPurposeProgressAccumulator.cxx
+  Logic/Mesh/GuidedMeshIO.cxx
   Logic/Mesh/IRISMeshPipeline.cxx
   Logic/Mesh/LevelSetMeshPipeline.cxx
   Logic/Mesh/MeshObject.cxx
@@ -109,6 +110,7 @@ SET(LOGIC_HEADERS
   Logic/LevelSet/SNAPLevelSetFunction.txx
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.h
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.txx
+  Logic/Mesh/GuidedMeshIO.cxx
   Logic/Mesh/IRISMeshPipeline.h
   Logic/Mesh/LevelSetMeshPipeline.h
   Logic/Mesh/MeshObject.h
@@ -153,6 +155,7 @@ SET(UI_CXX
   UserInterface/MainComponents/SimpleFileDialogLogic.cxx
   UserInterface/MainComponents/SnakeParametersUILogic.cxx
   UserInterface/MainComponents/UserInterfaceLogic.cxx
+  UserInterface/MeshIOWizard/MeshIOWizardUILogic.cxx
   UserInterface/SliceWindow/BubblesInteractionMode.cxx
   UserInterface/SliceWindow/CrosshairsInteractionMode.cxx
   UserInterface/SliceWindow/GenericSliceWindow.cxx
@@ -212,6 +215,9 @@ SET(UI_HEADERS
   UserInterface/MainComponents/SimpleFileDialogLogic.h
   UserInterface/MainComponents/UserInterfaceBase.h
   UserInterface/MainComponents/UserInterfaceLogic.h
+  UserInterface/MeshIOWizard/MeshExportSettings.h
+  UserInterface/MeshIOWizard/MeshIOWizardUIBase.h
+  UserInterface/MeshIOWizard/MeshIOWizardUILogic.h
   UserInterface/SliceWindow/BubblesInteractionMode.h
   UserInterface/SliceWindow/CrosshairsInteractionMode.h
   UserInterface/SliceWindow/GenericSliceWindow.h
@@ -255,6 +261,7 @@ SET(TESTING_HEADERS
 # The FL files for SNAP
 SET(APPLICATION_FLUIDS
   UserInterface/ImageIOWizard/ImageIOWizard.fl
+  UserInterface/MeshIOWizard/MeshIOWizardUI.fl
   UserInterface/MainComponents/AppearanceDialogUI.fl
   UserInterface/MainComponents/HelpViewer.fl
   UserInterface/MainComponents/IntensityCurveUI.fl
@@ -460,6 +467,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/UserInterface/BasicComponents
     ${SNAP_SOURCE_DIR}/UserInterface/Common
     ${SNAP_SOURCE_DIR}/UserInterface/ImageIOWizard
+    ${SNAP_SOURCE_DIR}/UserInterface/MeshIOWizard
     ${SNAP_SOURCE_DIR}/UserInterface/MainComponents
     ${SNAP_SOURCE_DIR}/UserInterface/MainComponents/Artwork
     ${SNAP_SOURCE_DIR}/UserInterface/SliceWindow

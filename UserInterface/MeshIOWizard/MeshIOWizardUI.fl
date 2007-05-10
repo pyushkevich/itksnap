@@ -1,0 +1,128 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0108 
+header_name {.h} 
+code_name {.cxx}
+class MeshIOWizardUI {open : MeshIOWizardUIBase
+} {
+  Function {MakeWindow()} {open return_type {virtual void}
+  } {
+    Fl_Window m_WinWizard {
+      label {3D Mesh Export Wizard} open
+      xywh {627 170 470 330} type Double
+      code0 {\#include "MeshIOWizardUIBase.h"} visible
+    } {
+      Fl_Wizard m_GrpWizard {open
+        xywh {0 0 475 330} box PLASTIC_DOWN_BOX
+      } {
+        Fl_Group m_PageMesh {
+          label {Mesh Selection} open
+          xywh {0 20 470 310} labelsize 12
+        } {
+          Fl_Group {} {open
+            xywh {25 65 415 195} labeltype ENGRAVED_LABEL align 21
+          } {
+            Fl_Round_Button m_BtnMeshPageSingleExport {
+              label {Export 3D mesh for a single selected label:}
+              callback {this->OnMeshPageRadioChange();}
+              xywh {50 85 310 20} type Radio down_box ROUND_DOWN_BOX value 1 labelsize 12
+            }
+            Fl_Round_Button m_BtnMeshPageMultiExport {
+              label {Export meshes for all the labels in the segmentation:}
+              callback {this->OnMeshPageRadioChange();}
+              xywh {50 165 310 20} type Radio down_box ROUND_DOWN_BOX labelsize 12 deactivate
+            }
+            Fl_Choice m_InMeshPageSelectedLabel {
+              label {Label to export:} open
+              xywh {160 115 185 20} down_box BORDER_BOX labelsize 12 textsize 12
+            } {}
+            Fl_Group {} {open
+              xywh {60 185 340 50}
+            } {
+              Fl_Round_Button m_BtnMeshPageIndexedExport {
+                label {As individual mesh files (indexed by 001, 002, etc)}
+                callback {this->OnMeshPageRadioChange();}
+                xywh {70 190 310 20} type Radio down_box ROUND_DOWN_BOX value 1 labelsize 12 deactivate
+              }
+              Fl_Round_Button m_BtnMeshPageSceneExport {
+                label {As a single 3D scene (not supported by all file formats)}
+                callback {this->OnMeshPageRadioChange();}
+                xywh {70 210 310 20} type Radio down_box ROUND_DOWN_BOX labelsize 12 deactivate
+              }
+            }
+          }
+          Fl_Button m_BtnMeshPageNext {
+            label {&Next  >}
+            callback {this->OnMeshPageNext();}
+            xywh {290 295 80 25} box PLASTIC_UP_BOX shortcut 0x8006e color 180 labelfont 1 labelsize 12
+          }
+          Fl_Button {} {
+            label {< Back}
+            xywh {200 295 80 25} box PLASTIC_UP_BOX color 180 labelsize 12 deactivate
+          }
+          Fl_Button {} {
+            label Cancel
+            callback {this->OnCancel();}
+            xywh {380 295 80 25} box PLASTIC_UP_BOX shortcut 0xff1b color 180 labelsize 12
+          }
+          Fl_Group {} {
+            label {Select which segmentation labels to export:}
+            xywh {10 30 370 40} labeltype EMBOSSED_LABEL align 20
+          } {}
+        }
+        Fl_Group m_PageFile {
+          label {File Selection} open
+          xywh {0 20 470 310} labelsize 12 hide
+        } {
+          Fl_Group {} {
+            label {Choose a filename to save the 3D mesh:}
+            xywh {10 30 370 40} labeltype EMBOSSED_LABEL align 20
+          } {}
+          Fl_Input m_InFilePageBrowser {
+            label {Filename:}
+            callback {this->OnFilePageFileInputChange();}
+            tooltip {Enter the filename of the image you want to save, or select one using the 'Browse' and 'History' buttons} xywh {30 110 405 25} labelsize 12 align 5 when 1 textsize 12
+          }
+          Fl_Button {} {
+            label {&Browse...}
+            callback {this->OnFilePageBrowse();}
+            xywh {265 140 80 25} box PLASTIC_UP_BOX shortcut 0x80062 labelsize 12
+          }
+          Fl_Menu_Button m_InFilePageHistory {
+            label History
+            callback {this->OnFilePageFileHistoryChange();} open
+            xywh {355 140 80 25} box PLASTIC_UP_BOX selection_color 181 labelsize 12 align 20 textsize 12
+          } {}
+          Fl_Choice m_InFilePageFormat {
+            label {Mesh file format:}
+            callback {this->OnFilePageFileFormatChange();} open
+            tooltip {Use this dropdown box to select an image format if one is not selected for you automatically. Normally, SNAP will figure out the file format once you select an image file using the 'Browse' button.} xywh {30 200 210 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+          } {
+            MenuItem {} {
+              label {Select a format...}
+              xywh {30 30 100 20} labelsize 12 hide
+            }
+          }
+          Fl_Button m_BtnFilePageNext {
+            label {&Save}
+            callback {this->OnFilePageNext();}
+            xywh {290 295 80 25} box PLASTIC_UP_BOX shortcut 0x8006e color 180 labelfont 1 labelsize 12 deactivate
+          }
+          Fl_Button m_BtnFilePageBack {
+            label {< Back}
+            callback {this->OnFilePageBack()}
+            xywh {200 295 80 25} box PLASTIC_UP_BOX color 180 labelsize 12
+          }
+          Fl_Button {} {
+            label Cancel
+            callback {this->OnCancel();}
+            xywh {380 295 80 25} box PLASTIC_UP_BOX shortcut 0xff1b color 180 labelsize 12
+          }
+        }
+        Fl_Group m_PageOptions {
+          label Options open
+          xywh {0 20 470 310} labelsize 12 hide
+        } {}
+      }
+    }
+  }
+} 

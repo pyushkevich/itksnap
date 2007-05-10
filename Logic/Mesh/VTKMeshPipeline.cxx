@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: VTKMeshPipeline.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:15 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/05/10 20:19:50 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -303,7 +303,10 @@ VTKMeshPipeline
   m_VTKExporter->SetInput(m_InputImage);
 
   // Update the pipeline
-  m_StripperFilter->UpdateWholeExtent();
+  m_StripperFilter->Update();
+
+  // Set the source of outMesh to null
+  m_StripperFilter->UnRegisterAllOutputs();
 }
 
 void

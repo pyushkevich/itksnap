@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0107 
+version 1.0108 
 header_name {.h} 
 code_name {.cxx}
 decl {\#include <stdio.h>} {public
@@ -36,7 +36,7 @@ class UserInterface {open : {public UserInterfaceBase}
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
       callback {OnMainWindowCloseAction();} open
-      xywh {391 325 875 710} type Double align 0 resizable
+      xywh {653 300 875 710} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"} visible
     } {
       Fl_Menu_Bar m_MenubarMain {open
@@ -110,20 +110,25 @@ class UserInterface {open : {public UserInterfaceBase}
             label {&Save Data} open
             xywh {20 20 100 20} labelsize 12 divider
           } {
-            MenuItem m_MenuSaveGreyROI {
-              label {&Greyscale Image Region}
-              callback {this->OnMenuSaveGreyROI();}
-              xywh {40 40 100 20} shortcut 0x50067 labelsize 12 deactivate
-            }
             MenuItem m_MenuSaveSegmentation {
-              label {Segmentation &Data}
+              label {&Segmentation Image...}
               callback {this->OnMenuSaveSegmentation();}
-              xywh {30 30 100 20} shortcut 0x50064 labelsize 12 deactivate divider
+              tooltip {Save the segmentation results as an image} xywh {30 30 100 20} shortcut 0x40073 labelsize 12 deactivate
+            }
+            MenuItem m_MenuSaveSegmentationMesh {
+              label {Segmentation &Mesh...}
+              callback {this->OnMenuSaveSegmentationMesh();} selected
+              tooltip {Save the segmentation results as an image} xywh {40 40 100 20} shortcut 0x5006d labelsize 12 deactivate divider
             }
             MenuItem m_MenuSavePreprocessed {
               label {&Preprocessed Image}
               callback {this->OnMenuSavePreprocessed();}
               xywh {40 40 100 20} shortcut 0x50070 labelsize 12 deactivate
+            }
+            MenuItem m_MenuSaveGreyROI {
+              label {&Greyscale Image Region}
+              callback {this->OnMenuSaveGreyROI();}
+              xywh {40 40 100 20} shortcut 0x50067 labelsize 12 deactivate
             }
             MenuItem m_MenuSaveLevelSet {
               label {&Level Set Function}
@@ -878,7 +883,7 @@ this->OnSNAPLabelOpacityChange();}
             Fl_Output {m_OutSliceIndex[1]} {
               xywh {800 330 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
             }
-            Fl_Group {m_GrpPolygonEdit[1]} {open selected
+            Fl_Group {m_GrpPolygonEdit[1]} {open
               xywh {538 325 195 30} hide
             } {
               Fl_Button {m_BtnPolygonAccept[1]} {

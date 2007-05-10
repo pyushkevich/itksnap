@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 01:26:06 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/05/10 20:19:50 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.                                      
 
@@ -46,6 +46,13 @@ enum CoverageModeType
   PAINT_OVER_ALL,
   PAINT_OVER_ONE,
   PAINT_OVER_COLORS
+};
+
+enum MeshFilterType
+{
+  SELECT_MESH_SINGLE,
+  SELECT_MESH_VISIBLE,
+  SELECT_MESH_ALL
 };
 
 enum SnakeType 
@@ -511,6 +518,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.3  2007/05/10 20:19:50  pyushkevich
+ *Added VTK mesh export code and GUI
+ *
  *Revision 1.2  2006/12/06 01:26:06  pyushkevich
  *Preparing for 1.4.1. Seems to be stable in Windows but some bugs might be still there
  *
