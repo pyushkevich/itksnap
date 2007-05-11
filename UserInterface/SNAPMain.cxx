@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:26 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/05/11 13:06:50 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -160,7 +160,7 @@ bool LoadUserPreferencesInteractive(SystemInterface &system)
 
 // Setup printing of stack trace on segmentation faults. This only
 // works on select GNU systems
-#if defined(__GNUC__) && !defined(__CYGWIN__) && !defined(__APPLE__)
+#if defined(__GNUC__) && !defined(__CYGWIN__) && !defined(__APPLE__) && !defined(sun)
 
 #include <signal.h>
 #include <execinfo.h>
@@ -385,6 +385,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.2  2007/05/11 13:06:50  pyushkevich
+ *Sun compatibility fix
+ *
  *Revision 1.1  2006/12/02 04:22:26  pyushkevich
  *Initial sf checkin
  *
