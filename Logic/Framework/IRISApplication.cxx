@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/05/10 20:19:50 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/05/11 12:48:44 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -648,7 +648,8 @@ IRISApplication
 
         // Export the mesh
         GuidedMeshIO io;
-        io.SaveMesh(sets.GetMeshFileName().c_str(), sets.GetMeshFormat(), mesh);
+        Registry rFormat = sets.GetMeshFormat();
+        io.SaveMesh(sets.GetMeshFileName().c_str(), rFormat, mesh);
         }
       }
     }

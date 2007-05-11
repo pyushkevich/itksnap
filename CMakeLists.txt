@@ -110,7 +110,7 @@ SET(LOGIC_HEADERS
   Logic/LevelSet/SNAPLevelSetFunction.txx
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.h
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.txx
-  Logic/Mesh/GuidedMeshIO.cxx
+  Logic/Mesh/GuidedMeshIO.h
   Logic/Mesh/IRISMeshPipeline.h
   Logic/Mesh/LevelSetMeshPipeline.h
   Logic/Mesh/MeshObject.h
