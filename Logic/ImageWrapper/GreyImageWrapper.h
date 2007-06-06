@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:12 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/06 22:27:20 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -15,7 +15,7 @@
 #ifndef __GreyImageWrapper_h_
 #define __GreyImageWrapper_h_
 
-#include "ImageWrapper.h"
+#include "ScalarImageWrapper.h"
 // #include "IntensityCurveInterface.h"
 // #include "UnaryFunctorCache.h"
 
@@ -37,7 +37,7 @@ template <class TInput, class TOutput, class TFunctor>
  * Adds ability to remap intensity from short to byte using an
  * arbitrary function when outputing slices.
  */
-class GreyImageWrapper : public ImageWrapper<GreyType>
+class GreyImageWrapper : public ScalarImageWrapper<GreyType>
 {
 public:
 

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2007/05/10 20:19:50 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/06/06 22:27:20 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -55,6 +55,7 @@ public:
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::Size<3> SizeType;
   typedef itk::Image<GreyType,3> GreyImageType;
+  typedef itk::Image<RGBType,3> RGBImageType;
   typedef itk::Image<LabelType,3> LabelImageType;
   typedef itk::Image<float,3> SpeedImageType;
   typedef itk::Command CommandType;
@@ -101,6 +102,11 @@ public:
    */
   void UpdateIRISGreyImage(GreyImageType *newGreyImage,
                            const char *newImageRAICode);
+
+  void UpdateIRISRGBImage(RGBImageType *newRGBImage,
+                           const char *newImageRAICode);
+
+  void UpdateIRISRGBImage(RGBImageType *newRGBImage);
 
   /** 
    * Update the IRIS image data with an external segmentation image (e.g., 

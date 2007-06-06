@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2007/05/10 20:19:50 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/06/06 22:27:20 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.                                      
 
@@ -152,6 +152,12 @@ public:
 
   /** Set whether polygons drawn are inverted or not */
   irisGetMacro(PolygonInvert,bool );
+
+  /** Get the transparency of the RGB overlay */
+  irisSetMacro(RGBAlpha,unsigned char );
+
+  /** Set the transparency of the segmentation overlay */
+  irisGetMacro(RGBAlpha,unsigned char );
 
   /** Get the transparency of the segmentation overlay */
   irisSetMacro(SegmentationAlpha,unsigned char );
@@ -342,6 +348,12 @@ public:
   /** Get the grey image file name */
   irisGetStringMacro(GreyFileName);
 
+  /** Set the RGB image file name */
+  irisSetStringMacro(RGBFileName);
+
+  /** Get the RGB image file name */
+  irisGetStringMacro(RGBFileName);
+
   /** Set the segmentation image file name */
   irisSetStringMacro(SegmentationFileName);
 
@@ -409,6 +421,9 @@ private:
 
   /** Whether polygons drawn are inverted or not */
   bool m_PolygonInvert;
+
+  /** The transparency of the RGB overlay */
+  unsigned char m_RGBAlpha;
 
   /** The transparency of the segmentation overlay */
   unsigned char m_SegmentationAlpha;
@@ -492,6 +507,9 @@ private:
   // File name of the current grey file
   std::string m_GreyFileName;
 
+  // File name of the current RGB file
+  std::string m_RGBFileName;
+
   // File name of the current grey file
   std::string m_SegmentationFileName;
 
@@ -518,6 +536,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.4  2007/06/06 22:27:20  garyhuizhang
+ *Added support for RGB images in SNAP
+ *
  *Revision 1.3  2007/05/10 20:19:50  pyushkevich
  *Added VTK mesh export code and GUI
  *

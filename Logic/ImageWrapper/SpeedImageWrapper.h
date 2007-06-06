@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SpeedImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:13 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/06 22:27:21 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -15,7 +15,7 @@
 #ifndef __SpeedImageWrapper_h_
 #define __SpeedImageWrapper_h_
 
-#include "ImageWrapper.h"
+#include "ScalarImageWrapper.h"
 #include "SpeedImageWrapper.h"
 #include "SpeedColorMap.h"
 #include "itkRGBAPixel.h"
@@ -42,12 +42,12 @@ namespace itk {
  *
  * \sa ImageWrapper
  */
-class SpeedImageWrapper : public ImageWrapper<float>
+class SpeedImageWrapper : public ScalarImageWrapper<float>
 {
 public:
   // Basics
   typedef SpeedImageWrapper Self;
-  typedef ImageWrapper<float> Superclass;
+  typedef ScalarImageWrapper<float> Superclass;
   typedef Superclass::ImageType ImageType;
 
   // The type definition for the image used to display speed slices

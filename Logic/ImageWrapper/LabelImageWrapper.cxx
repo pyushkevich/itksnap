@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: LabelImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:13 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/06 22:27:20 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -12,14 +12,15 @@
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
      PURPOSE.  See the above copyright notices for more information.
 =========================================================================*/
-#include "ImageWrapper.h"
 #include "ImageWrapper.txx"
+#include "ScalarImageWrapper.txx"
 #include "LabelImageWrapper.h"
 #include "ColorLabel.h"
 #include "ColorLabelTable.h"
 
 // Create an instance of ImageWrapper of appropriate type
 template class ImageWrapper<LabelType>;
+template class ScalarImageWrapper<LabelType>;
 
 LabelImageWrapper
 ::LabelImageWrapper()
@@ -44,7 +45,7 @@ LabelImageWrapper
 
 LabelImageWrapper
 ::LabelImageWrapper(const LabelImageWrapper &source)
-: ImageWrapper<LabelType>(source)
+: ScalarImageWrapper<LabelType>(source)
 {
   // Instantiate the cache
   m_IntensityMapCache = CacheType::New();

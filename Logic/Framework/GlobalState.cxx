@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GlobalState.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 01:26:06 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/06/06 22:27:20 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -32,6 +32,7 @@ GlobalState
   m_PolygonInvert = false;
   m_LockHeld = 0;
   m_LockOwner = 0;
+  m_RGBAlpha = 0;
   m_SegmentationAlpha = 0;
 
   // SNAP is off initially

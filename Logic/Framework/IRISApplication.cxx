@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/05/11 12:48:44 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/06/06 22:27:20 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -254,6 +254,53 @@ IRISApplication
 
 void 
 IRISApplication
+::UpdateIRISRGBImage(RGBImageType *newRGBImage, 
+                      const char *newImageRAI)
+{
+  // This has to happen in 'pure' IRIS mode
+  assert(m_SNAPImageData == NULL);
+
+  // Get the size of the image as a vector of uint
+  Vector3ui size = 
+    to_unsigned_int(
+      Vector3ul(
+        newRGBImage->GetBufferedRegion().GetSize().GetSize()));
+  
+  // Store the new RAI code
+  m_ImageToAnatomyRAI[0] = newImageRAI[0];
+  m_ImageToAnatomyRAI[1] = newImageRAI[1];
+  m_ImageToAnatomyRAI[2] = newImageRAI[2];
+
+  // Compute the new image geometry for the IRIS data
+  ImageCoordinateGeometry icg(m_ImageToAnatomyRAI,m_DisplayToAnatomyRAI,size);
+  
+  // Update the image information in m_Driver->GetCurrentImageData()
+  m_IRISImageData->SetRGBImage(newRGBImage,icg);    
+  
+  // Reinitialize the intensity mapping curve 
+  m_IntensityCurve->Initialize(3);
+
+  // Update the new grey image wrapper with the intensity mapping curve
+  m_IRISImageData->GetGrey()->SetIntensityMapFunction(m_IntensityCurve);
+
+  // Update the crosshairs position
+  Vector3ui cursor = size;
+  cursor /= 2;
+  m_IRISImageData->SetCrosshairs(cursor);
+  
+  // TODO: Unify this!
+  m_GlobalState->SetCrosshairsPosition(cursor) ;
+
+  // Update the preprocessing settings in the global state
+  m_GlobalState->SetEdgePreprocessingSettings(
+    EdgePreprocessingSettings::MakeDefaultSettings());
+  m_GlobalState->SetThresholdSettings(
+    ThresholdSettings::MakeDefaultSettings(
+      m_IRISImageData->GetGrey()));
+}
+
+void 
+IRISApplication
 ::UpdateSNAPSpeedImage(SpeedImageType *newSpeedImage, 
                        SnakeType snakeMode)
 {
@@ -286,6 +333,17 @@ IRISApplication
     {
     m_SNAPImageData->GetSpeed()->SetModeToInsideOutsideSnake();
     }
+}
+
+void
+IRISApplication
+::UpdateIRISRGBImage(RGBImageType *newRGBImage)
+{
+  // This has to happen in 'pure' IRIS mode
+  assert(m_SNAPImageData == NULL);
+
+  // Update the iris data
+  m_IRISImageData->SetRGBImage(newRGBImage); 
 }
 
 void

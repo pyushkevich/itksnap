@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: LevelSetImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:13 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/06 22:27:21 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -16,7 +16,7 @@
 #define __LevelSetImageWrapper_h_
 
 #include "itkRGBAPixel.h"
-#include "ImageWrapper.h"
+#include "ScalarImageWrapper.h"
 
 // Forward references to ITK
 namespace itk {
@@ -35,7 +35,7 @@ class ColorLabel;
  * 
  * \sa ImageWrapper
  */
-class LevelSetImageWrapper : public ImageWrapper<float>
+class LevelSetImageWrapper : public ScalarImageWrapper<float>
 {
 public:
 

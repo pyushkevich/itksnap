@@ -1,0 +1,27 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0107 
+header_name {.h} 
+code_name {.cxx}
+class RGBOverlayUI {open : {private RGBOverlayUIBase}
+} {
+  Function {MakeWindow()} {open
+  } {
+    Fl_Window m_WinRGBOverlay {
+      label {RGB Overlay Options} open
+      xywh {1015 324 250 100} type Double box PLASTIC_DOWN_BOX
+      code0 {\#include "RGBOverlayUIBase.h"} non_modal visible
+    } {
+      Fl_Button {} {
+        label Close
+        callback {this->OnClose();}
+        xywh {77 65 95 25} box PLASTIC_UP_BOX shortcut 0xff1b color 180 selection_color 38 labelfont 1 labelsize 12
+      }
+      Fl_Value_Slider m_InRGBOverlayOpacity {
+        label {Adjust RGB Overlay Overall Opacity}
+        callback {o->take_focus();this->OnRGBOverlayOpacityChange();}
+        tooltip {Transparency of the RGB overlay}
+        xywh {25 25 200 20} type Horizontal labelsize 12 align 5 maximum 255 step 1 value 128
+      }
+    }
+  }
+} 

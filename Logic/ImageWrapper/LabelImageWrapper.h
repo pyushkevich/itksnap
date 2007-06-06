@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: LabelImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:13 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/06 22:27:21 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -16,7 +16,7 @@
 #define __LabelImageWrapper_h_
 
 #include "itkRGBAPixel.h"
-#include "ImageWrapper.h"
+#include "ScalarImageWrapper.h"
 #include "UnaryFunctorCache.h"
 
 
@@ -40,7 +40,7 @@ class ColorLabelTable;
  *
  * \sa ImageWrapper
  */
-class LabelImageWrapper : public ImageWrapper<LabelType>
+class LabelImageWrapper : public ScalarImageWrapper<LabelType>
 {
 public:
 

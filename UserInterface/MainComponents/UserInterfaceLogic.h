@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/05/10 20:19:50 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/06/06 22:27:22 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -25,6 +25,7 @@
 // Necessary forward references
 class HelpViewerLogic;
 class IntensityCurveUILogic;
+class RGBOverlayUILogic;
 class PreprocessingUILogic;
 class RestoreSettingsDialogLogic;
 class SnakeParametersUILogic;
@@ -33,6 +34,8 @@ class LabelEditorUILogic;
 class IRISSliceWindow;
 class SNAPSliceWindow;
 class GreyImageIOWizardLogic;
+class RGBImageIOWizardLogic;
+class RestrictedRGBImageIOWizardLogic;
 class SegmentationImageIOWizardLogic;
 class PreprocessingImageIOWizardLogic;
 class MeshIOWizardUILogic;
@@ -495,6 +498,9 @@ public:
   /** Called before unloading a grey image, saves settings associated with it */
   void OnGreyImageUnload();
 
+  /** Update the user interface after loading a new RGB image  */
+  void OnRGBImageUpdate();
+
   /** Update the user interface after loading a new segmentation image  */
   void OnSegmentationImageUpdate();
 
@@ -620,6 +626,8 @@ protected:
 
   // Menu item callbacks
   void OnMenuLoadGrey();
+  void OnMenuLoadRGB();
+  void OnMenuLoadRGBOverlay();
   void OnMenuLoadSegmentation();
   void OnMenuLoadLabels();
   void OnMenuSaveGreyROI();
@@ -628,6 +636,7 @@ protected:
   void OnMenuSaveLabels();
   void OnMenuWriteVoxelCounts();
   void OnMenuIntensityCurve();
+  void OnMenuShowRGBOverlayOptions();
   void OnMenuLoadPreprocessed();  
   void OnMenuSavePreprocessed(); 
   void OnMenuSaveLevelSet(); 
@@ -679,8 +688,10 @@ private:
   enum UIStateFlags {
     UIF_NULL,
     UIF_GRAY_LOADED,
+    UIF_RGB_LOADED,
     UIF_IRIS_ACTIVE,
     UIF_IRIS_WITH_GRAY_LOADED,
+    UIF_IRIS_WITH_RGB_LOADED,
     UIF_IRIS_MESH_DIRTY,
     UIF_IRIS_MESH_ACTION_PENDING, 
     UIF_IRIS_ROI_VALID,
@@ -718,6 +729,12 @@ private:
   /** Wizard used to load grey image files */
   GreyImageIOWizardLogic *m_WizGreyIO;
 
+  /** Wizard used to load RGB image files */
+  RGBImageIOWizardLogic *m_WizRGBIO;
+
+  /** Wizard used to load RGB image files */
+  RestrictedRGBImageIOWizardLogic *m_WizRGBOverlayIO;
+
   /** Wizard used to load and save segmentation image files */
   SegmentationImageIOWizardLogic *m_WizSegmentationIO;
 
@@ -732,6 +749,9 @@ private:
 
   /** UI object used for handling Curve editing */
   IntensityCurveUILogic *m_IntensityCurveUI;
+
+  /** UI object used for handling RGB Overlay options */
+  RGBOverlayUILogic *m_RGBOverlayUI;
 
   /** UI object for label editing */
   LabelEditorUILogic *m_LabelEditorUI;
@@ -781,6 +801,9 @@ private:
 
   // Intensity curve update callback (uses ITK event system)
   void OnIntensityCurveUpdate();
+
+  // RGB Overlay update callback (uses ITK event system)
+  void OnRGBOverlayOptionsUpdate();
 
   /** Initialization subroutine that sets up the activation manager */
   void InitializeActivationFlags();
@@ -842,6 +865,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.4  2007/06/06 22:27:22  garyhuizhang
+ *Added support for RGB images in SNAP
+ *
  *Revision 1.3  2007/05/10 20:19:50  pyushkevich
  *Added VTK mesh export code and GUI
  *

@@ -18,7 +18,9 @@ class UserInterface {open : {public UserInterfaceBase}
 } {
   declblock {\#if 1 // Local variable declarations} {after {\#endif}
   } {
-    decl {int m_FileLoaded;} {public
+    decl {int m_GreyFileLoaded;} {public
+    }
+    decl {int m_RGBFileLoaded;} {public
     }
     decl {int m_SegmentationLoaded;} {public
     }
@@ -54,6 +56,16 @@ class UserInterface {open : {public UserInterfaceBase}
               label {&Greyscale Image}
               callback {this->OnMenuLoadGrey();}
               xywh {5 5 100 20} shortcut 0x40067 labelsize 12
+            }
+            MenuItem m_MenuLoadRGB {
+              label {&RGB Image}
+              callback {this->OnMenuLoadRGB();}
+              xywh {15 15 100 20} shortcut 0x40072 labelsize 12
+            }
+            MenuItem m_MenuLoadRGBOverlay {
+              label {&RGB Overlay}
+              callback {this->OnMenuLoadRGBOverlay();}
+              xywh {15 15 100 20} shortcut 0x40072 labelsize 12 deactivate
             }
             MenuItem m_MenuLoadSegmentation {
               label {Segmentation &Data}
@@ -178,13 +190,18 @@ class UserInterface {open : {public UserInterfaceBase}
           }
         }
         Submenu {} {
-          label {&Options}
+          label {&Options} open
           xywh {5 5 100 20} labelsize 12
         } {
           MenuItem m_MenuIntensityCurve {
             label {Adjust Image &Contrast...}
             callback {this->OnMenuIntensityCurve();}
             xywh {15 15 100 20} shortcut 0x40069 labelsize 12 deactivate
+          }
+          MenuItem m_MenuRGBOverlayOptions {
+            label {Adjust RGB Overlay}
+            callback {OnMenuShowRGBOverlayOptions()}
+            xywh {0 0 31 20} labelsize 12 deactivate
           }
           MenuItem {} {
             label {&Display Options...}

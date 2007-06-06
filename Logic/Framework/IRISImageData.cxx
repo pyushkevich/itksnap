@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:11 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/06 22:27:20 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -58,6 +58,8 @@ typedef itk::SmartPointer<IRISIMageDataDummyFunctorType> IRISIMageDataDummyFunct
 #include "IRISImageData.h"
 
 #include "LabelImageWrapper.h"
+
+#include "RGBImageWrapper.h"
 
 // System includes
 #include <fstream>
@@ -129,6 +131,7 @@ IRISImageData
 
   // Populate the array of linked wrappers
   m_LinkedWrappers.push_back(&m_GreyWrapper);
+  m_LinkedWrappers.push_back(&m_RGBWrapper);
   m_LinkedWrappers.push_back(&m_LabelWrapper);
 }
 
@@ -153,15 +156,59 @@ IRISImageData
 {
   // Make a new grey wrapper
   m_GreyWrapper.SetImage(newGreyImage);
-
+  
   // Clear the segmentation data to zeros
   m_LabelWrapper.InitializeToWrapper(&m_GreyWrapper, (LabelType) 0);
-
+  
+  // Clear the RGB data to zeros
+  RGBType zero;
+  zero[0] = 0;
+  zero[1] = 0;
+  zero[2] = 0;
+  m_RGBWrapper.InitializeToWrapper(&m_GreyWrapper, zero);
+  m_RGBWrapper.SetAlpha(0);
+  
   // Store the image size info
   m_Size = m_GreyWrapper.GetSize();
-
+  
   // Pass the coordinate transform to the wrappers
   SetImageGeometry(newGeometry);
+}
+
+void 
+IRISImageData
+::SetRGBImage(RGBImageType *newRGBImage,
+               const ImageCoordinateGeometry &newGeometry) 
+{
+  m_RGBWrapper.SetImage(newRGBImage);
+  m_RGBWrapper.SetAlpha(255);
+  
+  m_GreyWrapper.InitializeToWrapper(&m_RGBWrapper, (GreyType) 0);
+  
+  m_LabelWrapper.InitializeToWrapper(&m_RGBWrapper, (LabelType) 0);
+  
+  // Store the image size info
+  m_Size = m_RGBWrapper.GetSize();
+  
+  // Pass the coordinate transform to the wrappers
+  SetImageGeometry(newGeometry);
+}
+
+void 
+IRISImageData
+::SetRGBImage(RGBImageType *newRGBImage)
+{
+  // Check that the image matches the size of the grey image
+  assert(m_GreyWrapper.GetImage()->GetBufferedRegion() == 
+         newRGBImage->GetBufferedRegion());
+  
+  // Pass the image to the segmentation wrapper
+  m_RGBWrapper.SetImage(newRGBImage);
+  m_RGBWrapper.SetAlpha(255);
+  
+  // Sync up spacing between the grey and RGB image
+  newRGBImage->SetSpacing(m_GreyWrapper.GetImage()->GetSpacing());
+  newRGBImage->SetOrigin(m_GreyWrapper.GetImage()->GetOrigin());
 }
 
 void 
@@ -186,6 +233,13 @@ IRISImageData
 ::IsGreyLoaded() 
 {
   return m_GreyWrapper.IsInitialized();
+}
+
+bool 
+IRISImageData
+::IsRGBLoaded() 
+{
+  return m_RGBWrapper.IsInitialized();
 }
 
 bool 

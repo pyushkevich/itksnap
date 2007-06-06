@@ -48,6 +48,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/GuidedImageIO.cxx
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/LevelSetImageWrapper.cxx
+  Logic/ImageWrapper/RGBImageWrapper.cxx
   Logic/ImageWrapper/SpeedColorMap.cxx
   Logic/ImageWrapper/SpeedImageWrapper.cxx
   Logic/LevelSet/SnakeParameters.cxx
@@ -142,12 +143,14 @@ SET(UI_CXX
   UserInterface/BasicComponents/SnakeParametersPreviewPipeline.cxx
   UserInterface/Common/SNAPAppearanceSettings.cxx
   UserInterface/ImageIOWizard/GreyImageIOWizardLogic.cxx
+  UserInterface/ImageIOWizard/RGBImageIOWizardLogic.cxx
   UserInterface/ImageIOWizard/PreprocessingImageIOWizardLogic.cxx
   UserInterface/ImageIOWizard/SegmentationImageIOWizardLogic.cxx
   UserInterface/MainComponents/AppearanceDialogUILogic.cxx
   UserInterface/MainComponents/HelpViewerLogic.cxx
   UserInterface/MainComponents/IntensityCurveBox.cxx
   UserInterface/MainComponents/IntensityCurveUILogic.cxx
+  UserInterface/MainComponents/RGBOverlayUILogic.cxx
   UserInterface/MainComponents/LabelEditorUILogic.cxx
   UserInterface/MainComponents/PreprocessingUILogic.cxx
   UserInterface/MainComponents/ResizeRegionDialogLogic.cxx
@@ -201,6 +204,8 @@ SET(UI_HEADERS
   UserInterface/MainComponents/IntensityCurveBox.h
   UserInterface/MainComponents/IntensityCurveUIBase.h
   UserInterface/MainComponents/IntensityCurveUILogic.h
+  UserInterface/MainComponents/RGBOverlayUIBase.h
+  UserInterface/MainComponents/RGBOverlayUILogic.h
   UserInterface/MainComponents/LabelEditorUIBase.h
   UserInterface/MainComponents/LabelEditorUILogic.h
   UserInterface/MainComponents/PreprocessingUIBase.h
@@ -265,6 +270,7 @@ SET(APPLICATION_FLUIDS
   UserInterface/MainComponents/AppearanceDialogUI.fl
   UserInterface/MainComponents/HelpViewer.fl
   UserInterface/MainComponents/IntensityCurveUI.fl
+  UserInterface/MainComponents/RGBOverlayUI.fl
   UserInterface/MainComponents/LabelEditorUI.fl
   UserInterface/MainComponents/PreprocessingUI.fl
   UserInterface/MainComponents/ResizeRegionDialog.fl

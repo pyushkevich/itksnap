@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:27 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/06 22:27:22 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -23,6 +23,7 @@
 #include "FLTKCanvas.h"
 #include "SNAPCommonUI.h"
 #include "GreyImageWrapper.h"
+#include "RGBImageWrapper.h"
 #include "LabelImageWrapper.h"
 #include "RecursiveInteractionMode.h"
 
@@ -246,6 +247,9 @@ protected:
   // Grey texture object
   GreyTextureType *m_GreyTexture;
 
+  // RGB texture object
+  LabelTextureType *m_RGBTexture;
+  
   // Label texture object
   LabelTextureType *m_LabelTexture;
   
@@ -266,6 +270,9 @@ protected:
   
   // This method is called in draw() to paint the grey slice
   virtual void DrawGreyTexture();
+
+  // This method is called in draw() to paint the RGB slice
+  virtual void DrawRGBTexture();
 
   // This method is called in draw() to paint the segmentation slice
   virtual void DrawSegmentationTexture();

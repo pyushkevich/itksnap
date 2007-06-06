@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:27 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/06 22:27:22 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -59,6 +59,11 @@ GenericSliceWindow
   // Initialize the Grey slice texture
   m_GreyTexture = new GreyTextureType;
   
+  // Initialize the RGB slice texture (not default)
+  m_RGBTexture = new LabelTextureType;
+  m_RGBTexture->SetGlComponents(4);
+  m_RGBTexture->SetGlFormat(GL_RGBA);
+  
   // Initialize the Segmentation slice texture (not default)
   m_LabelTexture = new LabelTextureType;
   m_LabelTexture->SetGlComponents(4);
@@ -95,6 +100,7 @@ GenericSliceWindow
 
   // Delete textures
   delete m_GreyTexture;
+  delete m_RGBTexture;
   delete m_LabelTexture;
 }
 
@@ -112,6 +118,10 @@ GenericSliceWindow
   m_GreyTexture->SetImage(
     m_ImageData->GetGrey()->GetDisplaySlice(m_Id));
 
+  // Initialize the RGB slice texture
+  m_RGBTexture->SetImage(
+    m_ImageData->GetRGB()->GetDisplaySlice(m_Id));
+  
   // Initialize the segmentation slice texture
   m_LabelTexture->SetImage(
     m_ImageData->GetSegmentation()->GetDisplaySlice(m_Id));
@@ -342,6 +352,7 @@ GenericSliceWindow
   
   // Make the grey and segmentation image textures up-to-date
   DrawGreyTexture();
+  DrawRGBTexture();
   DrawSegmentationTexture();
 
   // Draw the overlays
@@ -374,6 +385,18 @@ GenericSliceWindow
 
   // Paint the grey texture with color as background
   m_GreyTexture->Draw(clrBackground);
+}
+
+void 
+GenericSliceWindow
+::DrawRGBTexture() 
+{
+  // We should have a slice to return
+  assert(m_ImageData->IsRGBLoaded() 
+    && m_ImageSliceIndex >= 0);
+
+  // Update the texture memory
+  m_RGBTexture->DrawTransparent(m_GlobalState->GetRGBAlpha());
 }
 
 void 

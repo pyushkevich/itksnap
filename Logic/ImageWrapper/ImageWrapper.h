@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: ImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:12 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/06 22:27:20 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -18,7 +18,6 @@
 // Smart pointers have to be included from ITK, can't forward reference them
 #include "SNAPCommon.h"
 #include "ImageCoordinateTransform.h"
-#include <itkMinimumMaximumImageCalculator.h>
 #include <itkImageRegionIterator.h>
 
 // Forward declarations to IRIS classes
@@ -70,11 +69,6 @@ public:
   // Slicer type
   typedef IRISSlicer<TPixel> SlicerType;
   typedef typename itk::SmartPointer<SlicerType> SlicerPointer;
-
-  // MinMax calculator type
-  typedef itk::MinimumMaximumImageCalculator<ImageType> MinMaxCalculatorType;
-  typedef typename itk::SmartPointer<MinMaxCalculatorType> 
-    MinMaxCalculatorPointer;
 
   // Iterator types
   typedef typename itk::ImageRegionIterator<ImageType> Iterator;
@@ -164,34 +158,6 @@ public:
    */
   virtual Vector3ui GetSize() const;
 
-  /**
-   * Get the minimum intensity value.  Call ComputeImageIntensityRange() 
-   * first.
-   */
-  virtual TPixel GetImageMin();
-
-  /**
-   * Get the maximum intensity value.  Call ComputeImageIntensityRange() 
-   * first.
-   */
-  virtual TPixel GetImageMax();
-
-  /**
-   * Get the scaling factor used to convert between intensities stored
-   * in this image and the 'true' image intensities
-   */
-  virtual double GetImageScaleFactor();
-
-  /**
-   * Remap the intensity range of the image to a given range
-   */
-  virtual void RemapIntensityToRange(TPixel min, TPixel max);
-
-  /**
-   * Remap the intensity range to max possible range
-   */
-  virtual void RemapIntensityToMaximumRange();
-
   /** Get the current slice index */
   virtual Vector3ui GetSliceIndex() const;
 
@@ -246,8 +212,8 @@ public:
    * into another image, potentially resampling the region to use a different
    * voxel size
    */
-  ImagePointer DeepCopyRegion(const SNAPSegmentationROISettings &roi,
-                              itk::Command *progressCommand = NULL) const;
+  virtual ImagePointer DeepCopyRegion(const SNAPSegmentationROISettings &roi,
+                              itk::Command *progressCommand = NULL) const = 0;
 
   /**
    * Get an iterator for traversing the image.  The iterator is initialized
@@ -282,15 +248,6 @@ protected:
   /** The associated slicer filters */
   SlicerPointer m_Slicer[3];
 
-  /** 
-   * The min-max calculator used to hold min/max values.  This should be
-   * replaced by a filter, when the latter is more efficient
-   */
-  MinMaxCalculatorPointer m_MinMaxCalc;
-
-  /** The intensity scaling factor */
-  double m_ImageScaleFactor;
-
   /** The current cursor position (slice index) in image dimensions */
   Vector3ui m_SliceIndex;
 
@@ -305,12 +262,6 @@ protected:
 
   /** Transform from image space to display space */
   ImageCoordinateTransform m_DisplayToImageTransform[3];
-
-  /**
-   * Compute the intensity range of the image if it's out of date.  
-   * This is done before calling GetImateMin, GetImateMax and GetImageScaleFactor methods.
-   */
-  void CheckImageIntensityRange();
 
   /**
    * Handle a change in the image pointer (i.e., a load operation on the image or 

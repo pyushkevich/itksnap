@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/05/10 20:19:50 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2007/06/06 22:27:22 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -22,8 +22,10 @@
 
 #include "GlobalState.h"
 #include "GreyImageWrapper.h"
+#include "RGBImageWrapper.h"
 #include "EdgePreprocessingImageFilter.h"
 #include "IntensityCurveUILogic.h"
+#include "RGBOverlayUILogic.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "IRISVectorTypesToITKConversion.h"
@@ -43,6 +45,7 @@
 #include "PreprocessingUILogic.h"
 #include "SnakeParametersUILogic.h"
 #include "GreyImageIOWizardLogic.h"
+#include "RGBImageIOWizardLogic.h"
 #include "PreprocessingImageIOWizardLogic.h"
 #include "ResizeRegionDialogLogic.h"
 #include "RestoreSettingsDialogLogic.h"
@@ -202,6 +205,8 @@ void UserInterfaceLogic
 
   // Link menu items to flags
   m_Activation->AddMenuItem(m_MenuLoadGrey, UIF_IRIS_ACTIVE);
+  m_Activation->AddMenuItem(m_MenuLoadRGB, UIF_IRIS_ACTIVE);
+  m_Activation->AddMenuItem(m_MenuLoadRGBOverlay, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadSegmentation, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveGreyROI, UIF_SNAP_ACTIVE);
   m_Activation->AddMenuItem(m_MenuSaveSegmentation, UIF_IRIS_WITH_GRAY_LOADED);
@@ -210,6 +215,7 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuLoadLabels, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveVoxelCounts, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuIntensityCurve, UIF_GRAY_LOADED);
+  m_Activation->AddMenuItem(m_MenuRGBOverlayOptions, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuExportSlice, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSavePreprocessed, UIF_SNAP_PREPROCESSING_DONE);
   m_Activation->AddMenuItem(m_MenuSaveLevelSet, UIF_SNAP_SNAKE_INITIALIZED);
@@ -240,6 +246,8 @@ UserInterfaceLogic
 
   // Instantiate the IO wizards
   m_WizGreyIO = new GreyImageIOWizardLogic; 
+  m_WizRGBIO = new RGBImageIOWizardLogic; 
+  m_WizRGBOverlayIO = new RestrictedRGBImageIOWizardLogic; 
   m_WizSegmentationIO = new SegmentationImageIOWizardLogic;
   m_WizPreprocessingIO = new PreprocessingImageIOWizardLogic;
   m_WizLevelSetIO = new PreprocessingImageIOWizardLogic;
@@ -247,6 +255,8 @@ UserInterfaceLogic
   
   // Initialize the Image IO wizards
   m_WizGreyIO->MakeWindow();
+  m_WizRGBIO->MakeWindow();
+  m_WizRGBOverlayIO->MakeWindow();
   m_WizSegmentationIO->MakeWindow();
   m_WizPreprocessingIO->MakeWindow();
   m_WizLevelSetIO->MakeWindow();
@@ -260,6 +270,14 @@ UserInterfaceLogic
   m_IntensityCurveUI = new IntensityCurveUILogic;
   m_IntensityCurveUI->MakeWindow();
 
+  // Instantiate RGB Overlay options window
+  m_RGBOverlayUI = new RGBOverlayUILogic;
+  m_RGBOverlayUI->MakeWindow();
+  SimpleCommandType::Pointer cmdRGBOverlayUI = SimpleCommandType::New();
+  cmdRGBOverlayUI->SetCallbackFunction(this, &UserInterfaceLogic::OnRGBOverlayOptionsUpdate);
+  m_RGBOverlayUI->GetEventSystem()->AddObserver(
+    RGBOverlayUILogic::OpacityUpdateEvent(), cmdRGBOverlayUI);
+  
   // Create the label editor window
   m_LabelEditorUI = new LabelEditorUILogic();
   m_LabelEditorUI->MakeWindow();
@@ -365,6 +383,8 @@ UserInterfaceLogic
 {
   // Delete the IO wizards
   delete m_WizGreyIO;
+  delete m_WizRGBIO;
+  delete m_WizRGBOverlayIO;
   delete m_WizSegmentationIO;
   delete m_WizPreprocessingIO;
   delete m_WizLevelSetIO;
@@ -385,6 +405,7 @@ UserInterfaceLogic
   delete m_DlgResampleRegion;
   delete m_DlgAppearance;
   delete m_LabelEditorUI;
+  delete m_RGBOverlayUI;
 
   // Delete the window managers
   for(int i = 0; i < 3; i++)
@@ -409,7 +430,7 @@ void
 UserInterfaceLogic
 ::OnResetROIAction()
 {
-  if (!m_FileLoaded) return;
+  if (!m_GreyFileLoaded) return;
 
   // Get the grey image's region
   GlobalState::RegionType roi = 
@@ -1585,7 +1606,8 @@ UserInterfaceLogic
   m_InAboutPageVersion->label(SNAPUISoftVersion);
 
   // Set local variables
-  m_FileLoaded = 0;
+  m_GreyFileLoaded = 0;
+  m_RGBFileLoaded = 0;
   m_SegmentationLoaded = 0;
 
   // Sync global state to GUI
@@ -1595,6 +1617,9 @@ UserInterfaceLogic
   m_GlobalState->SetSegmentationAlpha(128);
   m_InIRISLabelOpacity->Fl_Valuator::value(128);
 
+  m_GlobalState->SetRGBAlpha(128);
+  m_RGBOverlayUI->SetOpacity(128);
+  
   // Initialize the color map for the first time
   UpdateColorLabelMenu();
 
@@ -1674,7 +1699,7 @@ UserInterfaceLogic
   m_InDrawingColor->add("Clear label", 0, NULL, (void *) 0);
 
   // Add each of the color labels to the drop down boxes
-  if (m_FileLoaded)
+  if (m_GreyFileLoaded)
     {
     for (size_t i = 1; i < MAX_COLOR_LABELS; i++) 
       {
@@ -2244,6 +2269,13 @@ UserInterfaceLogic
   m_DlgAppearance->ShowDialog();
 }
 
+void 
+UserInterfaceLogic
+::OnMenuShowRGBOverlayOptions()
+{
+  m_RGBOverlayUI->DisplayWindow();
+}
+
 void
 UserInterfaceLogic
 ::UpdateWindowFocus(Fl_Group *parent, Fl_Group **panels, Fl_Gl_Window **boxes, int iWindow)
@@ -2576,7 +2608,7 @@ UserInterfaceLogic
 {
   // Blank the screen - useful on a load of new grey data when there is 
   // already a segmentation file present
-  m_IRISWindowManager3D->ClearScreen(); 
+  m_IRISWindowManager3D->ClearScreen();
 
   // Flip over to the toolbar page
   m_WizControlPane->value(m_GrpToolbarPage);
@@ -2588,7 +2620,7 @@ UserInterfaceLogic
   OnImageGeometryUpdate();
 
   // We now have valid grey data
-  m_FileLoaded = 1;
+  m_GreyFileLoaded = 1;
   m_SegmentationLoaded = 0;
 
   m_InDrawingColor->set_changed();
@@ -2690,6 +2722,21 @@ UserInterfaceLogic
   OnLabelListUpdate();
 
   // Redraw the user interface
+  RedrawWindows();
+  m_WinMain->redraw();
+}
+
+void 
+UserInterfaceLogic
+::OnRGBImageUpdate()
+{
+  m_RGBFileLoaded = 1;
+  
+  if(!m_Driver->GetCurrentImageData()->IsGreyLoaded())
+    return;
+
+  m_IRISWindowManager3D->ResetView();
+  
   RedrawWindows();
   m_WinMain->redraw();
 }
@@ -2908,6 +2955,95 @@ UserInterfaceLogic
     // Update the user interface accordingly
     OnGreyImageUpdate();
     }
+}
+
+void 
+UserInterfaceLogic
+::OnMenuLoadRGB() 
+{
+  // Set the history for the input wizard
+  m_WizRGBIO->SetHistory(m_SystemInterface->GetHistory("RGBImage"));
+  
+  // Show the input wizard with no file selected
+  m_WizRGBIO->DisplayInputWizard("");
+
+  // If the load operation was successful, populate the data and GUI with the
+  // new image
+  if(m_WizRGBIO->IsImageLoaded()) 
+    {
+    // Update the system's history list
+    m_SystemInterface->UpdateHistory("RGBImage",m_WizRGBIO->GetFileName());
+
+    // Update the list of recently open files
+    GenerateRecentFilesMenu();
+
+    // Perform the clean-up tasks before loading the image
+    //OnGreyImageUnload();
+
+    // Send the image and RAI to the IRIS application driver
+    m_Driver->UpdateIRISRGBImage(m_WizRGBIO->GetLoadedImage(),
+                                  m_WizRGBIO->GetLoadedImageRAI());
+
+    // Save the filename
+    m_GlobalState->SetRGBFileName(m_WizRGBIO->GetFileName());
+    m_GlobalState->SetSegmentationFileName("");
+    
+    m_GlobalState->SetRGBAlpha(255);
+    m_RGBOverlayUI->SetOpacity(255);
+    
+    // Update the user interface accordingly
+    OnGreyImageUpdate();
+    // Enable some menu items
+    m_Activation->UpdateFlag(UIF_IRIS_WITH_GRAY_LOADED, false);
+    
+    OnRGBImageUpdate();
+    }
+}
+
+void 
+UserInterfaceLogic
+::OnMenuLoadRGBOverlay() 
+{
+  // Grey image should be loaded
+  assert(m_Driver->GetCurrentImageData()->IsGreyLoaded());
+
+  // Should not be in SNAP mode
+  assert(!m_GlobalState->GetSNAPActive());
+  
+  // Set up the input wizard with the grey image
+  m_WizRGBOverlayIO->SetGreyImage(
+    m_Driver->GetCurrentImageData()->GetGrey()->GetImage());
+
+  // Set the history for the input wizard
+  m_WizRGBOverlayIO->SetHistory(
+    m_SystemInterface->GetHistory("RGBImage"));
+  
+  // Show the input wizard
+  m_WizRGBOverlayIO->DisplayInputWizard(
+    m_GlobalState->GetRGBFileName());
+
+  // If the load operation was successful, populate the data and GUI with the
+  // new image
+  if(m_WizRGBOverlayIO->IsImageLoaded()) 
+    {
+    // Update the system's history list
+    m_SystemInterface->UpdateHistory("RGBImage",m_WizRGBOverlayIO->GetFileName());
+    
+    // Send the image and RAI to the IRIS application driver
+    m_Driver->UpdateIRISRGBImage(m_WizRGBOverlayIO->GetLoadedImage());
+
+    // Save the filename
+    m_GlobalState->SetRGBFileName(m_WizRGBOverlayIO->GetFileName());
+    
+    m_GlobalState->SetRGBAlpha(128);
+    m_RGBOverlayUI->SetOpacity(128);
+    
+    // Update the user interface accordingly
+    OnRGBImageUpdate();
+    }
+  
+  // Disconnect the input wizard from the grey image
+  m_WizRGBOverlayIO->SetGreyImage(NULL);
 }
 
 
@@ -3304,6 +3440,13 @@ void UserInterfaceLogic
   RedrawWindows();
 }
 
+void UserInterfaceLogic
+::OnRGBOverlayOptionsUpdate()
+{
+  m_GlobalState->SetRGBAlpha(m_RGBOverlayUI->GetOpacity());
+  this->RedrawWindows();
+}
+
 void
 UserInterfaceLogic
 ::OnIRISLabelOpacityChange()
@@ -3558,6 +3701,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.6  2007/06/06 22:27:22  garyhuizhang
+ *Added support for RGB images in SNAP
+ *
  *Revision 1.5  2007/05/10 20:19:50  pyushkevich
  *Added VTK mesh export code and GUI
  *

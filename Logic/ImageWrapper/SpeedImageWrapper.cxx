@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SpeedImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:13 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/06 22:27:21 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -14,12 +14,13 @@
 =========================================================================*/
 #include "SpeedImageWrapper.h"
 #include "ImageWrapper.txx"
+#include "ScalarImageWrapper.txx"
 
 using namespace itk;
 
 SpeedImageWrapper
 ::SpeedImageWrapper()
-: ImageWrapper<float> ()
+: ScalarImageWrapper<float> ()
 {
   // Intialize display filters
   for(unsigned int i=0;i<3;i++) 

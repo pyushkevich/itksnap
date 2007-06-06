@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISImageData.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:11 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/06 22:27:20 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -19,6 +19,7 @@
 #include "IRISException.h"
 #include "LabelImageWrapper.h"
 #include "GreyImageWrapper.h"
+#include "RGBImageWrapper.h"
 #include "GlobalState.h"
 #include "ImageCoordinateGeometry.h"
 
@@ -39,6 +40,7 @@ class IRISImageData
 public:
   // Image type definitions
   typedef GreyImageWrapper::ImageType GreyImageType;
+  typedef RGBImageWrapper::ImageType RGBImageType;
   typedef LabelImageWrapper::ImageType LabelImageType;
   typedef itk::ImageRegion<3> RegionType;
 
@@ -52,6 +54,14 @@ public:
   GreyImageWrapper* GetGrey() {
     assert(m_GreyWrapper.IsInitialized());
     return &m_GreyWrapper;
+  }
+
+  /**
+   * Access the RGB image (read only access is allowed)
+   */
+  RGBImageWrapper* GetRGB() {
+    assert(m_GreyWrapper.IsInitialized() && m_RGBWrapper.IsInitialized());
+    return &m_RGBWrapper;
   }
 
   /**
@@ -101,6 +111,11 @@ public:
   void SetGreyImage(GreyImageType *newGreyImage,
                     const ImageCoordinateGeometry &newGeometry);
 
+  void SetRGBImage(RGBImageType *newRGBImage,
+                    const ImageCoordinateGeometry &newGeometry);
+  
+  void SetRGBImage(RGBImageType *newRGBImage);
+  
   /**
    * This method sets the segmentation image (see note for SetGrey).
    */
@@ -124,6 +139,11 @@ public:
   bool IsGreyLoaded();
 
   /**
+   * Check validity of RGB image
+   */
+  bool IsRGBLoaded();
+
+  /**
    * Check validity of segmentation image
    */
   bool IsSegmentationLoaded();
@@ -145,6 +165,9 @@ public:
 protected:
   // Wrapper around the grey-scale image
   GreyImageWrapper m_GreyWrapper;
+
+  // Wrapper around the RGB image
+  RGBImageWrapper m_RGBWrapper;
 
   // Wrapper around the segmentatoin image
   LabelImageWrapper m_LabelWrapper;

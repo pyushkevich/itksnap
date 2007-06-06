@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPCommon.h,v $
   Language:  C++
-  Date:      $Date: 2007/05/10 20:19:50 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/06/06 22:27:20 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -34,6 +34,9 @@ extern std::ostream &snaperr;
 
 // Include the VectorNx defintions
 #include "IRISVectorTypes.h"
+
+// RGB Pixel support
+#include <itkRGBPixel.h>
 
 /** Definitions for the string streams, for compatibility */
 typedef itk::OStringStream IRISOStringStream;
@@ -66,6 +69,8 @@ typedef unsigned short LabelType;
 typedef short GreyType;
 extern const GreyType MAXGREYVAL;
 extern const GreyType MINGREYVAL;
+typedef itk::RGBPixel<unsigned char> RGBType;
+
 #define MAX_COLOR_LABELS 1024
 
 /************************************************************************/
