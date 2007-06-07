@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:20 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/06/07 00:49:16 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -165,8 +165,12 @@ IRISImageData
   zero[0] = 0;
   zero[1] = 0;
   zero[2] = 0;
-  m_RGBWrapper.InitializeToWrapper(&m_GreyWrapper, zero);
-  m_RGBWrapper.SetAlpha(0);
+
+  // If the RGB wrapper is loaded, we unload it
+  if(IsRGBLoaded())
+    {
+    m_RGBWrapper.Reset();
+    }
   
   // Store the image size info
   m_Size = m_GreyWrapper.GetSize();
@@ -209,6 +213,13 @@ IRISImageData
   // Sync up spacing between the grey and RGB image
   newRGBImage->SetSpacing(m_GreyWrapper.GetImage()->GetSpacing());
   newRGBImage->SetOrigin(m_GreyWrapper.GetImage()->GetOrigin());
+
+  // Propagate the geometry information to this wrapper
+  for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
+    {
+    m_RGBWrapper.SetImageToDisplayTransform(
+      iSlice,m_ImageGeometry.GetImageToDisplayTransform(iSlice));
+    }
 }
 
 void 

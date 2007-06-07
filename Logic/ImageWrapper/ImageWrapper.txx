@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: ImageWrapper.txx,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:20 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/06/07 00:49:16 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -187,7 +187,10 @@ ImageWrapper<TPixel>
 ::Reset() 
 {
   if (m_Initialized)
+    {
     m_Image->ReleaseData();
+    m_Image = NULL;
+    }
   m_Initialized = false;
 }
 

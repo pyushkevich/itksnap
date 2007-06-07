@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:22 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/06/07 00:49:16 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -119,8 +119,11 @@ GenericSliceWindow
     m_ImageData->GetGrey()->GetDisplaySlice(m_Id));
 
   // Initialize the RGB slice texture
-  m_RGBTexture->SetImage(
-    m_ImageData->GetRGB()->GetDisplaySlice(m_Id));
+  if(imageData->IsRGBLoaded())
+    {
+    m_RGBTexture->SetImage(
+      m_ImageData->GetRGB()->GetDisplaySlice(m_Id));
+    }
   
   // Initialize the segmentation slice texture
   m_LabelTexture->SetImage(
@@ -391,12 +394,13 @@ void
 GenericSliceWindow
 ::DrawRGBTexture() 
 {
-  // We should have a slice to return
-  assert(m_ImageData->IsRGBLoaded() 
-    && m_ImageSliceIndex >= 0);
+  assert(m_ImageSliceIndex >= 0);
 
-  // Update the texture memory
-  m_RGBTexture->DrawTransparent(m_GlobalState->GetRGBAlpha());
+  if(m_ImageData->IsRGBLoaded())
+    {
+    // Update the texture memory
+    m_RGBTexture->DrawTransparent(m_GlobalState->GetRGBAlpha());
+    }
 }
 
 void 
@@ -465,6 +469,7 @@ GenericSliceWindow
 
   // Draw the grey scale image (the background will be picked automatically)
   DrawGreyTexture();
+  DrawRGBTexture();
  
   // Draw the crosshairs and stuff
   DrawOverlays();

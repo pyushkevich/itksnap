@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:22 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/06/07 00:49:16 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -688,10 +688,13 @@ private:
   enum UIStateFlags {
     UIF_NULL,
     UIF_GRAY_LOADED,
-    UIF_RGB_LOADED,
+    UIF_RGBBASE_LOADED,
+    UIF_RGBOVL_LOADED,
+    UIF_RGBANY_LOADED,
+    UIF_BASEIMG_LOADED,
     UIF_IRIS_ACTIVE,
+    UIF_IRIS_WITH_BASEIMG_LOADED,
     UIF_IRIS_WITH_GRAY_LOADED,
-    UIF_IRIS_WITH_RGB_LOADED,
     UIF_IRIS_MESH_DIRTY,
     UIF_IRIS_MESH_ACTION_PENDING, 
     UIF_IRIS_ROI_VALID,
@@ -865,6 +868,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.5  2007/06/07 00:49:16  pyushkevich
+ *Debugged RGB changes
+ *
  *Revision 1.4  2007/06/06 22:27:22  garyhuizhang
  *Added support for RGB images in SNAP
  *

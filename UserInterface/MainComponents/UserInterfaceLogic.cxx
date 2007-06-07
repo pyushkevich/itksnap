@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:22 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2007/06/07 00:49:16 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -135,12 +135,18 @@ void UserInterfaceLogic
   // Set the parent-child relationships between flags
   m_Activation->SetFlagImplies(UIF_SNAP_SPEED_AVAILABLE, UIF_SNAP_ACTIVE);
   m_Activation->SetFlagImplies(UIF_SNAP_MESH_CONTINUOUS_UPDATE, UIF_SNAP_SNAKE_INITIALIZED);
+  m_Activation->SetFlagImplies(UIF_GRAY_LOADED, UIF_BASEIMG_LOADED);
+  m_Activation->SetFlagImplies(UIF_RGBBASE_LOADED, UIF_BASEIMG_LOADED);
+  m_Activation->SetFlagImplies(UIF_RGBBASE_LOADED, UIF_RGBANY_LOADED);
+  m_Activation->SetFlagImplies(UIF_RGBOVL_LOADED, UIF_RGBANY_LOADED);
   m_Activation->SetFlagImplies(UIF_IRIS_WITH_GRAY_LOADED, UIF_GRAY_LOADED);
-  m_Activation->SetFlagImplies(UIF_IRIS_WITH_GRAY_LOADED, UIF_IRIS_ACTIVE);
-  m_Activation->SetFlagImplies(UIF_IRIS_MESH_DIRTY, UIF_IRIS_WITH_GRAY_LOADED);
-  m_Activation->SetFlagImplies(UIF_IRIS_MESH_ACTION_PENDING, UIF_IRIS_WITH_GRAY_LOADED);
+  m_Activation->SetFlagImplies(UIF_IRIS_WITH_BASEIMG_LOADED, UIF_BASEIMG_LOADED);
+  m_Activation->SetFlagImplies(UIF_IRIS_WITH_BASEIMG_LOADED, UIF_IRIS_ACTIVE);
+  m_Activation->SetFlagImplies(UIF_IRIS_WITH_GRAY_LOADED, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->SetFlagImplies(UIF_IRIS_MESH_DIRTY, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->SetFlagImplies(UIF_IRIS_MESH_ACTION_PENDING, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->SetFlagImplies(UIF_IRIS_ROI_VALID, UIF_GRAY_LOADED);
-  m_Activation->SetFlagImplies(UIF_LINKED_ZOOM, UIF_GRAY_LOADED);
+  m_Activation->SetFlagImplies(UIF_LINKED_ZOOM, UIF_BASEIMG_LOADED);
   m_Activation->SetFlagImplies(UIF_SNAP_PREPROCESSING_ACTIVE, UIF_SNAP_ACTIVE);
 
   m_Activation->SetFlagImplies(UIF_SNAP_PAGE_PREPROCESSING, UIF_SNAP_ACTIVE);
@@ -191,31 +197,31 @@ void UserInterfaceLogic
   // Activate slice-related widgets indexed by dimension
   for(i = 0; i < 3; i++)
     {
-    m_Activation->AddWidget(m_InSliceSlider[i], UIF_GRAY_LOADED);
-    m_Activation->AddWidget(m_OutSliceIndex[i], UIF_GRAY_LOADED);
+    m_Activation->AddWidget(m_InSliceSlider[i], UIF_BASEIMG_LOADED);
+    m_Activation->AddWidget(m_OutSliceIndex[i], UIF_BASEIMG_LOADED);
     }
 
   // Activate the widgets that have four copies
   for(i = 0; i < 4; i++)
     {
-    m_Activation->AddWidget(m_BtnSaveAsPNG[i], UIF_GRAY_LOADED);
-    m_Activation->AddWidget(m_BtnResetView[i], UIF_GRAY_LOADED);
-    m_Activation->AddWidget(m_BtnPanelZoom[i], UIF_GRAY_LOADED);
+    m_Activation->AddWidget(m_BtnSaveAsPNG[i], UIF_BASEIMG_LOADED);
+    m_Activation->AddWidget(m_BtnResetView[i], UIF_BASEIMG_LOADED);
+    m_Activation->AddWidget(m_BtnPanelZoom[i], UIF_BASEIMG_LOADED);
     }
 
   // Link menu items to flags
   m_Activation->AddMenuItem(m_MenuLoadGrey, UIF_IRIS_ACTIVE);
   m_Activation->AddMenuItem(m_MenuLoadRGB, UIF_IRIS_ACTIVE);
   m_Activation->AddMenuItem(m_MenuLoadRGBOverlay, UIF_IRIS_WITH_GRAY_LOADED);
-  m_Activation->AddMenuItem(m_MenuLoadSegmentation, UIF_IRIS_WITH_GRAY_LOADED);
+  m_Activation->AddMenuItem(m_MenuLoadSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveGreyROI, UIF_SNAP_ACTIVE);
-  m_Activation->AddMenuItem(m_MenuSaveSegmentation, UIF_IRIS_WITH_GRAY_LOADED);
-  m_Activation->AddMenuItem(m_MenuSaveSegmentationMesh, UIF_IRIS_WITH_GRAY_LOADED);
-  m_Activation->AddMenuItem(m_MenuSaveLabels, UIF_IRIS_WITH_GRAY_LOADED);
-  m_Activation->AddMenuItem(m_MenuLoadLabels, UIF_IRIS_WITH_GRAY_LOADED);
-  m_Activation->AddMenuItem(m_MenuSaveVoxelCounts, UIF_IRIS_WITH_GRAY_LOADED);
+  m_Activation->AddMenuItem(m_MenuSaveSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuSaveSegmentationMesh, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuSaveLabels, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuLoadLabels, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuSaveVoxelCounts, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuIntensityCurve, UIF_GRAY_LOADED);
-  m_Activation->AddMenuItem(m_MenuRGBOverlayOptions, UIF_GRAY_LOADED);
+  m_Activation->AddMenuItem(m_MenuRGBOverlayOptions, UIF_RGBANY_LOADED);
   m_Activation->AddMenuItem(m_MenuExportSlice, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSavePreprocessed, UIF_SNAP_PREPROCESSING_DONE);
   m_Activation->AddMenuItem(m_MenuSaveLevelSet, UIF_SNAP_SNAKE_INITIALIZED);
@@ -2613,6 +2619,9 @@ UserInterfaceLogic
   // Flip over to the toolbar page
   m_WizControlPane->value(m_GrpToolbarPage);
 
+  // Loading a gray image means unloading the RGB image
+  m_Activation->UpdateFlag(UIF_RGBANY_LOADED, false);
+
   // Enable some menu items
   m_Activation->UpdateFlag(UIF_IRIS_WITH_GRAY_LOADED, true);
 
@@ -2731,6 +2740,11 @@ UserInterfaceLogic
 ::OnRGBImageUpdate()
 {
   m_RGBFileLoaded = 1;
+
+  // We need to reinitialize the slice windows
+  OnImageGeometryUpdate();
+  // for (unsigned int i=0; i<3; i++) 
+  //  m_IRISWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
   
   if(!m_Driver->GetCurrentImageData()->IsGreyLoaded())
     return;
@@ -2993,8 +3007,10 @@ UserInterfaceLogic
     
     // Update the user interface accordingly
     OnGreyImageUpdate();
+
     // Enable some menu items
-    m_Activation->UpdateFlag(UIF_IRIS_WITH_GRAY_LOADED, false);
+    m_Activation->UpdateFlag(UIF_GRAY_LOADED, false);
+    m_Activation->UpdateFlag(UIF_RGBBASE_LOADED, true);
     
     OnRGBImageUpdate();
     }
@@ -3044,6 +3060,11 @@ UserInterfaceLogic
   
   // Disconnect the input wizard from the grey image
   m_WizRGBOverlayIO->SetGreyImage(NULL);
+
+  // Set the state
+  m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, true);
+
+  this->RedrawWindows();
 }
 
 
@@ -3701,6 +3722,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.7  2007/06/07 00:49:16  pyushkevich
+ *Debugged RGB changes
+ *
  *Revision 1.6  2007/06/06 22:27:22  garyhuizhang
  *Added support for RGB images in SNAP
  *
