@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SnakeParametersUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/02/20 19:42:51 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/06/11 15:45:20 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -530,9 +530,9 @@ void SnakeParametersUILogic
   // Get the edge and region example image file names
   string fnImage[2];
   fnImage[0] = 
-    m_SystemInterface->GetFileInRootDirectory("Images2D/EdgeForcesExample.hdr");
+    m_SystemInterface->GetFileInRootDirectory("Images2D/EdgeForcesExample.png");
   fnImage[1] = 
-    m_SystemInterface->GetFileInRootDirectory("Images2D/RegionForcesExample.hdr");
+    m_SystemInterface->GetFileInRootDirectory("Images2D/RegionForcesExample.png");
 
   // Typedefs
   typedef itk::ImageFileReader<ExampleImageType> ReaderType;
