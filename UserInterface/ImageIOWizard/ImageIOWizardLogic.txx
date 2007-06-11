@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2007/05/10 20:19:50 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/06/11 15:51:15 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -63,7 +63,8 @@ ImageIOWizardLogic<TPixel>
   m_OrientationIndexToDollVertex[2][1][0] = 6; // 110 in IAR
 
   // Initialize the file format extensions 
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_MHA] = "mha,mhd";
+  m_FileFormatPattern[GuidedImageIOBase::FORMAT_MHA] = "mha,mhd"; 
+  m_FileFormatPattern[GuidedImageIOBase::FORMAT_NRRD] = "nrrd,nhdr";
   m_FileFormatPattern[GuidedImageIOBase::FORMAT_GIPL] = "gipl,gipl.gz";
   m_FileFormatPattern[GuidedImageIOBase::FORMAT_VOXBO_CUB] = "cub,cub.gz";
   m_FileFormatPattern[GuidedImageIOBase::FORMAT_RAW] = "raw*";
@@ -77,6 +78,7 @@ ImageIOWizardLogic<TPixel>
 
   // Initialize the file format descriptions
   m_FileFormatDescription[GuidedImageIOBase::FORMAT_MHA] = "MetaImage File";
+  m_FileFormatDescription[GuidedImageIOBase::FORMAT_NRRD] = "NRRD File";
   m_FileFormatDescription[GuidedImageIOBase::FORMAT_GIPL] = "GIPL File";
   m_FileFormatDescription[GuidedImageIOBase::FORMAT_VOXBO_CUB] = "VoxBo CUB File";
   m_FileFormatDescription[GuidedImageIOBase::FORMAT_RAW] = "Raw Binary File";

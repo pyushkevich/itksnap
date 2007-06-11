@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GuidedImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:20 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/06/11 15:51:15 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -21,6 +21,7 @@
 #include "itkAnalyzeImageIO.h"
 #include "itkGiplImageIO.h"
 #include "itkMetaImageIO.h"
+#include "itkNrrdImageIO.h"
 #include "itkRawImageIO.h"
 #include "itkGDCMImageIO.h"
 #include "itkGE4ImageIO.h"
@@ -41,6 +42,7 @@ GuidedImageIOBase
 ::GuidedImageIOBase()
 {
   m_EnumFileFormat.AddPair(FORMAT_MHA, "MetaImage");
+  m_EnumFileFormat.AddPair(FORMAT_NRRD, "NRRD");
   m_EnumFileFormat.AddPair(FORMAT_GIPL, "GIPL");
   m_EnumFileFormat.AddPair(FORMAT_RAW, "Raw Binary");
   m_EnumFileFormat.AddPair(FORMAT_ANALYZE, "Analyze"); 
@@ -140,6 +142,8 @@ GuidedImageIO<TPixel>
   // Choose the approach based on the file format
   if(format == FORMAT_MHA)
     m_IOBase = MetaImageIO::New();
+  else if(format == FORMAT_NRRD)
+    m_IOBase = NrrdImageIO::New();
   else if(format == FORMAT_ANALYZE)
     m_IOBase = AnalyzeImageIO::New();
   else if(format == FORMAT_GIPL)

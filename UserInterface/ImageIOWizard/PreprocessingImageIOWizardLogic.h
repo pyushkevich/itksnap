@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PreprocessingImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 01:26:06 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/06/11 15:51:15 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -37,6 +37,7 @@ public:
     return Superclass::CanLoadFileFormat(type) && (
       type == GuidedImageIOBase::FORMAT_MHA || 
       type == GuidedImageIOBase::FORMAT_ANALYZE || 
+      type == GuidedImageIOBase::FORMAT_NRRD || 
       type == GuidedImageIOBase::FORMAT_RAW);
   }
 

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GuidedImageIO.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:12 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/06/11 15:51:15 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -33,7 +33,7 @@ public:
   enum FileFormat {
     FORMAT_MHA=0, FORMAT_GIPL, FORMAT_RAW, FORMAT_ANALYZE,
     FORMAT_DICOM, FORMAT_GE4, FORMAT_GE5, FORMAT_NIFTI, FORMAT_SIEMENS, 
-    FORMAT_VTK, FORMAT_VOXBO_CUB, FORMAT_COUNT};
+    FORMAT_VTK, FORMAT_VOXBO_CUB, FORMAT_NRRD, FORMAT_COUNT};
 
   enum RawPixelType {
     PIXELTYPE_UCHAR=0, PIXELTYPE_CHAR, PIXELTYPE_USHORT, PIXELTYPE_SHORT, 
