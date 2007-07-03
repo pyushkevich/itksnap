@@ -2,6 +2,7 @@
 #include "vtkPolyDataWriter.h"
 #include "vtkSTLWriter.h"
 #include "vtkBYUWriter.h"
+#include "vtkTriangleFilter.h"
 #include "itkExceptionObject.h"
 
 GuidedMeshIO
@@ -45,19 +46,25 @@ GuidedMeshIO
     }
   else if(format == FORMAT_STL)
     {
+    vtkTriangleFilter *tri = vtkTriangleFilter::New();
     vtkSTLWriter *writer = vtkSTLWriter::New();
-    writer->SetInput(mesh);
+    tri->SetInput(mesh);
+    writer->SetInput(tri->GetOutput());
     writer->SetFileName(FileName);
     writer->Update();
     writer->Delete();
+    tri->Delete();
     }
   else if(format == FORMAT_BYU)
     {
+    vtkTriangleFilter *tri = vtkTriangleFilter::New();
     vtkBYUWriter *writer = vtkBYUWriter::New();
-    writer->SetInput(mesh);
+    tri->SetInput(mesh);
+    writer->SetInput(tri->GetOutput());
     writer->SetFileName(FileName);
     writer->Update();
     writer->Delete();
+    tri->Delete();
     }
   else 
     throw itk::ExceptionObject("Illegal format specified for saving image");
