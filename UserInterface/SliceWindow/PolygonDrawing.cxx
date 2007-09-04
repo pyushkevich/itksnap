@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 01:26:07 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/09/04 16:56:13 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -539,6 +539,14 @@ PolygonDrawing
         return 1;
         }
       }
+    else if (event == FL_DRAG)
+      {
+      if(m_Vertices.size() == 0 || 
+        m_Vertices.back().x != x || m_Vertices.back().y != y)
+        {
+        m_Vertices.push_back( Vertex(x, y, false) );
+        }      
+      }
     break;
 
   case EDITING_STATE:
@@ -702,6 +710,9 @@ PolygonDrawing
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.3  2007/09/04 16:56:13  pyushkevich
+ *tablet support 1
+ *
  *Revision 1.2  2006/12/06 01:26:07  pyushkevich
  *Preparing for 1.4.1. Seems to be stable in Windows but some bugs might be still there
  *

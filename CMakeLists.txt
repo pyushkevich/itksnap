@@ -538,9 +538,9 @@ SET(SNAP_SYSTEM_LIBS
 
 # Designate the external libraries used by SNAP
 SET(SNAP_EXTERNAL_LIBS 
+  ${SNAP_FLTK_LIBS} 
   ${SNAP_ITK_LIBS} 
   ${SNAP_VTK_LIBS} 
-  ${SNAP_FLTK_LIBS} 
   ${SNAP_SYSTEM_LIBS})
 
 # *****************************************************

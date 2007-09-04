@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/06/07 00:49:16 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2007/09/04 16:56:13 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -3681,6 +3681,7 @@ UserInterfaceLogic
   return oss.str();
 }
 
+
 void
 UserInterfaceLogic
 ::OnActiveWindowSaveSnapshot(unsigned int window)
@@ -3722,6 +3723,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.8  2007/09/04 16:56:13  pyushkevich
+ *tablet support 1
+ *
  *Revision 1.7  2007/06/07 00:49:16  pyushkevich
  *Debugged RGB changes
  *
