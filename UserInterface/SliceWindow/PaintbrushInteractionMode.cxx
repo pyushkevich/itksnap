@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PaintbrushInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 01:26:07 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/09/15 15:59:20 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -63,11 +63,11 @@ TestInside(const Vector3d &x, const PaintbrushSettings &ps)
   // Test inside/outside  
   if(ps.shape == PAINTBRUSH_ROUND)
     {
-    return xTest.squared_magnitude() < (ps.radius * ps.radius) - 0.5;
+    return xTest.squared_magnitude() <= (ps.radius-0.25) * (ps.radius-0.25);
     }
   else if(ps.shape == PAINTBRUSH_RECTANGULAR)
     {
-    return xTest.inf_norm() < ps.radius - 0.5;
+    return xTest.inf_norm() <= ps.radius - 0.25;
     }
   else return false;
   }
@@ -76,16 +76,95 @@ void
 PaintbrushInteractionMode::
 BuildBrush(const PaintbrushSettings &ps)
 {
+  // This is a simple 2D marching algorithm. At any given state of the 
+  // marching, there is a 'tail' and a 'head' of an arrow. To the right
+  // of the arrow is a voxel that's inside the brush and to the left a
+  // voxel that's outside. Depending on the two voxels that are 
+  // ahead of the arrow to the left and right (in in, in out, out out)
+  // at the next step the arrow turns right, continues straight or turns
+  // left. This goes on until convergence
+  
+  // Initialize the marching. This requires constructing the first arrow
+  // and marching it to the left until it is between out and in voxels.
+  // If the brush has even diameter, the arrow is from (0,0) to (1,0). If
+  // the brush has odd diameter (center at voxel center) then the arrow 
+  // is from (-0.5, -0.5) to (-0.5, 0.5)
+  Vector2d xTail, xHead;
+  if(fmod(ps.radius,1.0) == 0)
+    { xTail = Vector2d(0.0, 0.0); xHead = Vector2d(0.0, 1.0); }
+  else
+    { xTail = Vector2d(-0.5, -0.5); xHead = Vector2d(-0.5, 0.5); }
 
-  // Find the left-most voxel that is inside of the brush
+  // Shift the arrow to the left until it is in position
+  while(TestInside(Vector2d(xTail(0) - 0.5, xTail(1) + 0.5),ps))
+    { xTail(0) -= 1.0; xHead(0) -= 1.0; }
+
+  // Record the starting point, which is the current tail. Once the head
+  // returns to the starting point, the loop is done
+  Vector2d xStart = xTail;
+
+  // Do the loop
+  m_Walk.clear();
+  size_t n = 0;
+  while((xHead - xStart).squared_magnitude() > 0.01 && (++n) < 10000)
+    {
+    // Add the current head to the loop
+    m_Walk.push_back(xHead);
+
+    // Check the voxels ahead to the right and left
+    Vector2d xStep = xHead - xTail;
+    Vector2d xLeft(-xStep(1), xStep(0));
+    Vector2d xRight(xStep(1), -xStep(0));
+    bool il = TestInside(xHead + 0.5 * (xStep + xLeft),ps);
+    bool ir = TestInside(xHead + 0.5 * (xStep + xRight),ps);
+
+    // Update the tail
+    xTail = xHead;
+
+    // Decide which way to go
+    if(il && ir)
+      xHead += xLeft;
+    else if(!il && ir)
+      xHead += xStep;
+    else if(!il && !ir)
+      xHead += xRight;
+    else 
+      assert(0);
+    }
+
+  // Add the last vertex
+  m_Walk.push_back(xStart);
+}
+
+/*
+void 
+PaintbrushInteractionMode::
+BuildBrush(const PaintbrushSettings &ps)
+{
   Vector2d xFirstVox(0, 0);
+
+  // Shift in case the center of the brush falls at vertex center
+  
+  // Step left from the center in units of 0.5 until we are outside
+  // of the brush
   while(TestInside(xFirstVox, ps))
     xFirstVox(0) -= 1.0;
+
+  // Find the left-most voxel that is inside of the brush
+  // Vector2d xFirstVox(0, 0);
+  // while(TestInside(xFirstVox, ps))
+  //  xFirstVox(0) -= 1.0;
 
   // Set the starting location
   Vector2d xStart(xFirstVox(0) + 0.5, -0.5);
   Vector2d xWalk(xFirstVox(0) + 0.5, 0.5);
   Vector2d xStep(0, 1);
+
+  if(fmod(ps.radius, 1.0) == 0)
+    {
+    xStart = Vector2d(xFirstVox(0) + 1.0, 0.0);
+    xWalk = Vector2d(xFirstVox(0) + 1.0, 1.0);
+    }
 
   int i = 0;
   m_Walk.clear();
@@ -109,7 +188,7 @@ BuildBrush(const PaintbrushSettings &ps)
   // Push the last point on the walk
   m_Walk.push_back(xStart);
 }
-
+*/
 
 void
 PaintbrushInteractionMode
@@ -130,11 +209,6 @@ PaintbrushInteractionMode
   // Build the mask edges
   BuildBrush(pbs);
 
-  // Get the cursor position on the slice
-  Vector3ui xCursorInteger = m_GlobalState->GetCrosshairsPosition();
-  Vector3f xCursorImage = to_float(xCursorInteger) + Vector3f(0.5f);
-  Vector3f xCursorSlice = m_Parent->MapImageToSlice(xCursorImage);
-
   // Set line properties
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -143,8 +217,11 @@ PaintbrushInteractionMode
   SNAPAppearanceSettings::ApplyUIElementLineSettings(elt);
 
   // Get the brush position
-  Vector3f xPos = m_Parent->MapImageToSlice(
-    to_float(m_MousePosition) + Vector3f(0.5f));
+  Vector3f xPos;
+  if(fmod(pbs.radius,1.0) == 0)
+    xPos = m_Parent->MapImageToSlice(to_float(m_MousePosition));
+  else
+    xPos = m_Parent->MapImageToSlice(to_float(m_MousePosition) + Vector3f(0.5f));
 
   // Refit matrix so that the lines are centered on the current pixel
   glPushMatrix();
@@ -186,8 +263,8 @@ PaintbrushInteractionMode
     {
     if(i != imgLabel->GetDisplaySliceImageAxis(m_Parent->m_Id) || pbs.flat == false)
       {
-      xTestRegion.SetIndex(i, m_MousePosition(i) - pbs.radius + 1);
-      xTestRegion.SetSize(i, 2 * pbs.radius - 1);
+      xTestRegion.SetIndex(i, m_MousePosition(i) - pbs.radius); // + 1);
+      xTestRegion.SetSize(i, 2 * pbs.radius + 1); // - 1);
       }
     else
       {
@@ -202,13 +279,22 @@ PaintbrushInteractionMode
   // Flag to see if anything was changed
   bool flagUpdate = false;
 
+  // Shift vector (different depending on whether the brush has odd/even diameter
+  Vector3f offset(0.0);
+  if(fmod(pbs.radius,1.0)==0)
+    {
+    offset.fill(0.5);
+    offset(m_Parent->m_ImageAxes[2]) = 0.0;
+    }
+
   // Iterate over the region
   LabelImageWrapper::Iterator it(imgLabel->GetImage(), xTestRegion);
   for(; !it.IsAtEnd(); ++it)
     {
     // Check if we are inside the sphere
     LabelImageWrapper::ImageType::IndexType idx = it.GetIndex();
-    Vector3f xDelta = to_float(Vector3l(idx.GetIndex())) - to_float(m_MousePosition);
+    Vector3f xDelta = offset + to_float(Vector3l(idx.GetIndex())) - to_float(m_MousePosition);
+
     Vector3d xDeltaSliceSpace = to_double(
       m_Parent->m_ImageToDisplayTransform.TransformVector(xDelta));
 
@@ -256,6 +342,10 @@ PaintbrushInteractionMode
     m_ParentUI->OnPaintbrushPaint();
     m_ParentUI->RedrawWindows();
     }
+  else
+    {
+    m_Parent->GetCanvas()->redraw();
+    }
 }
 
 int
@@ -281,7 +371,11 @@ PaintbrushInteractionMode
 void 
 PaintbrushInteractionMode
 ::ComputeMousePosition(FLTKEvent const &event)
-  {
+  {   
+  // Get the paintbrush properties
+  PaintbrushSettings pbs = 
+    m_ParentUI->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
+
   // Find the pixel under the mouse
   Vector3f xClick = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
 
@@ -289,7 +383,15 @@ PaintbrushInteractionMode
   Vector3f xCross = m_Parent->MapSliceToImage(xClick);
 
   // Round the cross-hairs position down to integer
-  Vector3i xCrossInteger = to_int(xCross);
+  Vector3i xCrossInteger;
+  if(fmod(pbs.radius, 1.0) == 0.0)
+    {
+    Vector3f offset(0.5);
+    offset(m_Parent->m_ImageAxes[2]) = 0.0;
+    xCrossInteger = to_int(xCross + offset);
+    }
+  else
+    xCrossInteger = to_int(xCross);
   
   // Make sure that the cross-hairs position is within bounds by clamping
   // it to image dimensions
@@ -375,8 +477,7 @@ PaintbrushInteractionMode
     ComputeMousePosition(event);
 
     // Scan convert the points into the slice
-    ApplyBrush(event);
-    
+    ApplyBrush(event);    
 
     // Eat the event unless cursor chasing is enabled
     return pbs.chase ? 0 : 1;                        

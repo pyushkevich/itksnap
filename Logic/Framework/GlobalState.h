@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:20 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/09/15 15:59:20 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.                                      
 
@@ -88,7 +88,7 @@ enum PaintbrushShape
 /** Paintbrush settings */
 struct PaintbrushSettings
 {
-  unsigned int radius;
+  double radius;
   PaintbrushShape shape;
   bool flat;
   bool isotropic;
@@ -536,6 +536,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.5  2007/09/15 15:59:20  pyushkevich
+ *Improved the paintbrush mode, allowed more variety of brush sizes
+ *
  *Revision 1.4  2007/06/06 22:27:20  garyhuizhang
  *Added support for RGB images in SNAP
  *

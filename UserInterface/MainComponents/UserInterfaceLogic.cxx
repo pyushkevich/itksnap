@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/04 16:56:13 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2007/09/15 15:59:20 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -1655,7 +1655,7 @@ UserInterfaceLogic
 
   // Initialize the paintbrush panel
   PaintbrushSettings pbs = m_GlobalState->GetPaintbrushSettings();
-  m_InPaintbrushSize->value(pbs.radius);
+  m_InPaintbrushSize->value(pbs.radius * 2.0);
   
   if(pbs.shape == PAINTBRUSH_RECTANGULAR)
     m_InPaintbrushShape->value(m_ChoicePaintbrushRectangular);
@@ -2243,7 +2243,7 @@ UserInterfaceLogic
   PaintbrushSettings pbs = m_GlobalState->GetPaintbrushSettings();
 
   // Update the settings from the GUI
-  pbs.radius = (unsigned int) m_InPaintbrushSize->value();
+  pbs.radius = 0.5 * m_InPaintbrushSize->value();
   pbs.flat = m_BtnPaintbrush3D->value() ? false : true;
   pbs.isotropic = m_BtnPaintbrushIsotropic->value() ? true : false;
   pbs.chase = m_BtnPaintbrushChaseMode->value() ? true : false;
@@ -3723,6 +3723,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.9  2007/09/15 15:59:20  pyushkevich
+ *Improved the paintbrush mode, allowed more variety of brush sizes
+ *
  *Revision 1.8  2007/09/04 16:56:13  pyushkevich
  *tablet support 1
  *
