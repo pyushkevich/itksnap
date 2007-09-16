@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PaintbrushInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/15 15:59:20 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/09/16 19:59:14 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -362,6 +362,9 @@ PaintbrushInteractionMode
     // Scan convert the points into the slice
     ApplyBrush(event);
 
+    // Record the event
+    m_LastMouseEvent = event;
+
     // Eat the event unless cursor chasing is enabled
     return pbs.chase ? 0 : 1;              
     }
@@ -370,14 +373,14 @@ PaintbrushInteractionMode
 
 void 
 PaintbrushInteractionMode
-::ComputeMousePosition(FLTKEvent const &event)
+::ComputeMousePosition(const Vector3f &xEvent)
   {   
   // Get the paintbrush properties
   PaintbrushSettings pbs = 
     m_ParentUI->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
 
   // Find the pixel under the mouse
-  Vector3f xClick = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
+  Vector3f xClick = m_Parent->MapWindowToSlice(xEvent.extract(2));
 
   // Compute the new cross-hairs position in image space
   Vector3f xCross = m_Parent->MapSliceToImage(xClick);
@@ -406,7 +409,7 @@ PaintbrushInteractionMode
 ::OnMouseMotion(FLTKEvent const &event)
   {
   // Find the pixel under the mouse
-  ComputeMousePosition(event);
+  ComputeMousePosition(event.XSpace);
 
   // Repaint
   m_ParentUI->RedrawWindows();
@@ -419,10 +422,13 @@ PaintbrushInteractionMode
 ::OnMouseEnter(const FLTKEvent &event)
   {
   // Find the pixel under the mouse
-  ComputeMousePosition(event);
+  ComputeMousePosition(event.XSpace);
 
   // Repaint
   m_ParentUI->RedrawWindows();
+
+  // Record the event
+  m_LastMouseEvent = event;
 
   return 1;  
   }
@@ -434,6 +440,9 @@ PaintbrushInteractionMode
   // Repaint
   m_MouseInside = false;
   m_ParentUI->RedrawWindows();
+
+  // Record the event
+  m_LastMouseEvent = event;
 
   return 1;
   }
@@ -450,7 +459,7 @@ PaintbrushInteractionMode
   if(event.Button == FL_LEFT_MOUSE || event.Button == FL_RIGHT_MOUSE)
     {
     // Find the pixel under the mouse
-    ComputeMousePosition(event);
+    ComputeMousePosition(event.XSpace);
 
     // Scan convert the points into the slice
     ApplyBrush(event);
@@ -473,11 +482,30 @@ PaintbrushInteractionMode
   // Check if the right button was pressed
   if(event.Button == FL_LEFT_MOUSE || event.Button == FL_RIGHT_MOUSE)
     {
-    // Find the pixel under the mouse
-    ComputeMousePosition(event);
+    // See how much we have moved since the last event
+    double delta = (event.XCanvas - m_LastMouseEvent.XCanvas).magnitude();
+    if(delta > pbs.radius)
+      {
+      size_t nSteps = (int)ceil(delta / pbs.radius);
+      for(size_t i = 0; i < nSteps; i++)
+        {
+        float t = (1.0 + i) / nSteps;
+        Vector3f X = t * m_LastMouseEvent.XSpace + (1.0f - t) * event.XSpace;
+        ComputeMousePosition(X);
+        ApplyBrush(event);
+        }
+      }
+    else
+      {
+      // Find the pixel under the mouse
+      ComputeMousePosition(event.XSpace);
 
-    // Scan convert the points into the slice
-    ApplyBrush(event);    
+      // Scan convert the points into the slice
+      ApplyBrush(event);    
+      }
+
+    // Record the event
+    m_LastMouseEvent = event;
 
     // Eat the event unless cursor chasing is enabled
     return pbs.chase ? 0 : 1;                        

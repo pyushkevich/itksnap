@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PaintbrushInteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 01:26:07 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/09/16 19:59:14 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -55,13 +55,15 @@ private:
   // Build a display list to represent the paint brush
   void BuildBrush(const PaintbrushSettings &ps);
   void ApplyBrush(const FLTKEvent &event);
-  void ComputeMousePosition(FLTKEvent const &event);
+  void ComputeMousePosition(const Vector3f &xEvent);
   bool TestInside(const Vector2d &x, const PaintbrushSettings &ps);
   bool TestInside(const Vector3d &x, const PaintbrushSettings &ps);
 
-
   Vector3ui m_MousePosition;
   bool m_MouseInside;
+
+  // Last FLTK event involving the mouse
+  FLTKEvent m_LastMouseEvent;
 
   // The window handler needs to access our privates
   friend class IRISSliceWindow;

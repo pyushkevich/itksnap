@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISSlicer.txx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:15 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/09/16 19:59:14 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -123,6 +123,7 @@ void IRISSlicer<TPixel>
     }
 }
 
+/*
 template<class TPixel> 
 void IRISSlicer<TPixel>
 ::GenerateData()
@@ -156,6 +157,71 @@ void IRISSlicer<TPixel>
     else
       CopySliceLineBackwardPixelBackward(it,outputPtr);
 }
+*/
+
+template<class TPixel> 
+void IRISSlicer<TPixel>
+::GenerateData()
+{
+  // Here's the input and output
+  InputImagePointer  inputPtr = this->GetInput();
+  OutputImagePointer  outputPtr = this->GetOutput();
+  
+  // Allocate (why is this necessary?)
+  this->AllocateOutputs();
+
+  // Get the image dimensions
+  InputImageType::SizeType szVol = inputPtr->GetBufferedRegion().GetSize();
+
+  // Set the strides in image coordinates
+  Vector3i stride_image(1, szVol[0], szVol[1] * szVol[2]);
+
+  // Determine the strides for the pixel step and line step
+  int sPixel = (m_PixelTraverseForward ? 1 : -1) *
+    stride_image[m_PixelDirectionImageAxis];
+  int sLine = (m_LineTraverseForward ? 1 : -1) *
+    stride_image[m_LineDirectionImageAxis];
+  
+  // We never take full line-strides, because as we iterate, we
+  // take n pixel-strides before needing to worry about changing
+  // the line. Therefore, we compute the step needed to go to the
+  // start of next line after taking n pixel-strides
+  int sLineDelta = sLine - sPixel * szVol[m_PixelDirectionImageAxis];
+
+  // Determine the first voxel that we will traverse
+  Vector3i xStartVoxel;
+  xStartVoxel[m_PixelDirectionImageAxis] = 
+    m_PixelTraverseForward ? 0 : szVol[m_PixelDirectionImageAxis] - 1;
+  xStartVoxel[m_LineDirectionImageAxis] = 
+    m_LineTraverseForward ? 0 : szVol[m_LineDirectionImageAxis] - 1;
+  xStartVoxel[m_SliceDirectionImageAxis] = m_SliceIndex;
+
+  // Get the offset of the first voxel
+  size_t iStart = dot_product(stride_image, xStartVoxel);
+
+  // Get the size of the output region (whole slice)
+  OutputImageType::RegionType rgn = outputPtr->GetBufferedRegion();
+  size_t nPixel = rgn.GetSize()[0], nLine = rgn.GetSize()[1];
+
+  // Get pointers to input and output data
+  const TPixel *pSource = inputPtr->GetBufferPointer();
+  TPixel *pTarget = outputPtr->GetBufferPointer();
+
+  // Position the source
+  pSource += iStart;
+
+  // Main loop: copy data from source to target
+  for(size_t il = 0; il < nLine; il++)
+    {
+    for(size_t ip = 0; ip < nPixel; ip++)
+      {
+      *pTarget = *pSource;
+      pSource += sPixel;
+      pTarget++; 
+      }
+    pSource += sLineDelta;
+    }
+}
 
 template<class TPixel> 
 void IRISSlicer<TPixel>
@@ -171,6 +237,7 @@ void IRISSlicer<TPixel>
   os << indent << "Pixels Traversed Forward: " << m_PixelTraverseForward << std::endl;
 }
 
+/*
 // Traverse pixels forward and lines forward
 template<class TPixel> 
 void IRISSlicer<TPixel>
@@ -295,6 +362,7 @@ void IRISSlicer<TPixel>
     itImage.NextLine();
     }
 }
+*/
 
 /*
 template<class TPixel> 

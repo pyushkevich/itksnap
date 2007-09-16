@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISSlicer.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:15 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/09/16 19:59:14 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -137,10 +137,10 @@ private:
   bool m_PixelTraverseForward;
   
   // The worker methods in this filter
-  void CopySliceLineForwardPixelForward(InputIteratorType, OutputImageType *);
-  void CopySliceLineForwardPixelBackward(InputIteratorType, OutputImageType *);
-  void CopySliceLineBackwardPixelForward(InputIteratorType, OutputImageType *);
-  void CopySliceLineBackwardPixelBackward(InputIteratorType, OutputImageType *);
+  // void CopySliceLineForwardPixelForward(InputIteratorType, OutputImageType *);
+  // void CopySliceLineForwardPixelBackward(InputIteratorType, OutputImageType *);
+  // void CopySliceLineBackwardPixelForward(InputIteratorType, OutputImageType *);
+  // void CopySliceLineBackwardPixelBackward(InputIteratorType, OutputImageType *);
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION
