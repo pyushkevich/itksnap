@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISSlicer.txx,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 14:22:03 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/09/17 16:10:31 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -186,7 +186,8 @@ void IRISSlicer<TPixel>
   // take n pixel-strides before needing to worry about changing
   // the line. Therefore, we compute the step needed to go to the
   // start of next line after taking n pixel-strides
-  int sLineDelta = sLine - sPixel * szVol[m_PixelDirectionImageAxis];
+  int sRowOfPixels = sPixel * szVol[m_PixelDirectionImageAxis];
+  int sLineDelta = sLine - sRowOfPixels;
 
   // Determine the first voxel that we will traverse
   Vector3i xStartVoxel;
@@ -217,8 +218,8 @@ void IRISSlicer<TPixel>
     for(size_t ip = 0; ip < nPixel; ip++)
       {
       *pTarget = *pSource;
-      pSource += sPixel;
-      pTarget++; 
+      pTarget++;
+      pSource+=sPixel;
       }
     pSource += sLineDelta;
     }

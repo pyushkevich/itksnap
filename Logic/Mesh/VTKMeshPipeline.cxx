@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: VTKMeshPipeline.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/05/10 20:19:50 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/09/17 16:10:31 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -77,10 +77,8 @@ VTKMeshPipeline
   m_StripperFilter = vtkStripper::New();
   m_StripperFilter->ReleaseDataFlagOn();
 
-#ifdef USE_VTK_PATENTED
-
   // Create and configure the marching cubes filter
-  m_MarchingCubesFilter = vtkImageMarchingCubes::New();
+  m_MarchingCubesFilter = vtkMarchingCubes::New();
   m_MarchingCubesFilter->ReleaseDataFlagOn();
   m_MarchingCubesFilter->ComputeScalarsOff();
   m_MarchingCubesFilter->ComputeGradientsOff();
@@ -88,33 +86,8 @@ VTKMeshPipeline
   m_MarchingCubesFilter->SetValue(0,0.0f);
 
   // Create and configure a filter for triangle decimation
-  m_DecimateFilter = vtkDecimate::New();
+  m_DecimateFilter = vtkDecimatePro::New();
   m_DecimateFilter->ReleaseDataFlagOn();  
-
-#else // USE_VTK_PATENTED
-
-  // Create and configure the contour filter
-  m_ContourFilter = vtkContourFilter::New();
-  m_ContourFilter->ReleaseDataFlagOn();
-  m_ContourFilter->ComputeNormalsOff();
-  m_ContourFilter->ComputeScalarsOff();
-  m_ContourFilter->ComputeGradientsOff();
-  m_ContourFilter->UseScalarTreeOn();
-  m_ContourFilter->SetNumberOfContours(1);
-  m_ContourFilter->SetValue(0,0.0f);
-
-  // Create and configure the normal computer
-  m_NormalsFilter = vtkPolyDataNormals::New();
-  m_NormalsFilter->SplittingOff();
-  m_NormalsFilter->ConsistencyOff();
-  m_NormalsFilter->ReleaseDataFlagOn();
-
-  // Create and configure a filter for triangle decimation
-  m_DecimateProFilter = vtkDecimatePro::New();
-  m_DecimateProFilter->ReleaseDataFlagOn();
-
-#endif // USE_VTK_PATENTED  
-  
 }
 
 VTKMeshPipeline
@@ -126,14 +99,8 @@ VTKMeshPipeline
   m_PolygonSmoothingFilter->Delete();
   m_StripperFilter->Delete();
 
-#ifdef USE_VTK_PATENTED
   m_MarchingCubesFilter->Delete();
   m_DecimateFilter->Delete();
-#else  
-  m_ContourFilter->Delete();
-  m_NormalsFilter->Delete();
-  m_DecimateProFilter->Delete();
-#endif
 }
 
 void
@@ -173,27 +140,14 @@ VTKMeshPipeline
 
   // 2. Set input to the appropriate contour filter
 
-#ifdef USE_VTK_PATENTED
-  
   // Marching cubes gets the tail
   m_MarchingCubesFilter->SetInput(pipeImageTail);
   m_Progress->RegisterSource(m_MarchingCubesFilter, 10.0);
   pipePolyTail = m_MarchingCubesFilter->GetOutput();
 
-#else // USE_VTK_PATENTED
-
-  // Contour filter gets the tail
-  m_ContourFilter->SetInput(pipeImageTail);
-  m_Progress->RegisterSource(m_ContourFilter, 10.0);
-  pipePolyTail = m_ContourFilter->GetOutput();
-
-#endif // USE_VTK_PATENTED  
-
   // 3. Check if decimation is required
   if(options.GetUseDecimation())
     {
-
-#ifdef USE_VTK_PATENTED
 
     // Decimate filter gets the pipe tail
     m_DecimateFilter->SetInput(pipePolyTail);
@@ -204,51 +158,18 @@ VTKMeshPipeline
     m_DecimateFilter->SetTargetReduction(
       options.GetDecimateTargetReduction());
 
-    m_DecimateFilter->SetAspectRatio(
-      options.GetDecimateAspectRatio());
-
-    m_DecimateFilter->SetInitialError(
+    m_DecimateFilter->SetMaximumError(
       options.GetDecimateInitialError());
 
-    m_DecimateFilter->SetErrorIncrement(
-      options.GetDecimateErrorIncrement());
-
-    m_DecimateFilter->SetMaximumIterations(
-      options.GetDecimateMaximumIterations());
-
-    m_DecimateFilter->SetInitialFeatureAngle(
+    m_DecimateFilter->SetFeatureAngle(
       options.GetDecimateFeatureAngle());
 
     m_DecimateFilter->SetPreserveTopology(
       options.GetDecimatePreserveTopology());
 
-#else // USE_VTK_PATENTED    
-    
-    // Decimate Pro filter gets the pipe tail
-    m_DecimateProFilter->SetInput(pipePolyTail);
-    m_Progress->RegisterSource(m_DecimateProFilter, 5.0);
-    pipePolyTail = m_DecimateProFilter->GetOutput();
-
-    // Apply parameters to the decimation filter
-    m_DecimateProFilter->SetTargetReduction(
-      options.GetDecimateTargetReduction());
-
-    m_DecimateProFilter->SetPreserveTopology(
-      options.GetDecimatePreserveTopology());
-
-#endif // USE_VTK_PATENTED  
-    
     } // If decimate enabled
 
   // 4. Compute the normals (non-patented only)
-
-#ifndef USE_VTK_PATENTED  
-
-  m_NormalsFilter->SetInput(pipePolyTail);
-  m_Progress->RegisterSource(m_NormalsFilter, 1.0);
-  pipePolyTail = m_NormalsFilter->GetOutput();
-
-#endif // USE_VTK_PATENTED
 
   // 5. Include/exclude mesh smoothing filter
   if(options.GetUseMeshSmoothing())
@@ -301,12 +222,17 @@ VTKMeshPipeline
 
   // Update the ITK portion of the pipeline
   m_VTKExporter->SetInput(m_InputImage);
+  m_VTKImporter->Modified();
 
   // Update the pipeline
-  m_StripperFilter->Update();
+  // m_StripperFilter->Update();
 
   // Set the source of outMesh to null
-  m_StripperFilter->UnRegisterAllOutputs();
+  // outMesh->UpdateInformation();
+  // outMesh->Update();
+  // m_StripperFilter->UnRegister(m_StripperFilter->GetOutput());
+  m_StripperFilter->Update();
+  // outMesh->DeepCopy(m_StripperFilter->GetOutput());
 }
 
 void

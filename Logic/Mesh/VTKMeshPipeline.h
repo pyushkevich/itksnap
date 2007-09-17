@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: VTKMeshPipeline.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:15 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/09/17 16:10:31 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -36,16 +36,8 @@
 #include <vtkSmoothPolyDataFilter.h>
 #include <vtkStripper.h>
 #include <vtkCallbackCommand.h>
-
-// Optional selection of patented or non-patented algorithms
-#ifdef USE_VTK_PATENTED
-  #include <vtkImageMarchingCubes.h>
-  #include <vtkDecimate.h>
-#else
-  #include <vtkContourFilter.h>
-  #include <vtkPolyDataNormals.h>
-  #include <vtkDecimatePro.h>
-#endif
+#include <vtkMarchingCubes.h>
+#include <vtkDecimatePro.h>
 
 #ifndef vtkFloatingPointType
 # define vtkFloatingPointType vtkFloatingPointType
@@ -114,26 +106,11 @@ private:
   // Triangle stripper
   vtkStripper *m_StripperFilter;  
   
-#ifdef USE_VTK_PATENTED
-  
   // Marching cubes filter
-  vtkImageMarchingCubes *     m_MarchingCubesFilter;
+  vtkMarchingCubes *     m_MarchingCubesFilter;
   
   // The triangle decimation driver
-  vtkDecimate *               m_DecimateFilter;
-
-#else // USE_VTK_PATENTED
-
-  // The contour filter
-  vtkContourFilter *          m_ContourFilter;
-
-  // A filter that computes normals
-  vtkPolyDataNormals *        m_NormalsFilter;
-
-  // The triangle decimation driver
-  vtkDecimatePro *            m_DecimateProFilter;
-
-#endif // USE_VTK_PATENTED
+  vtkDecimatePro *               m_DecimateFilter;
 
   // Progress event monitor
   AllPurposeProgressAccumulator::Pointer m_Progress;

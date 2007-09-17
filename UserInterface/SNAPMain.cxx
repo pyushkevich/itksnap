@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 14:22:06 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/09/17 16:10:31 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -27,6 +27,7 @@
 #include "SNAPRegistryIO.h"
 #include "SystemInterface.h"
 #include "UserInterfaceLogic.h"
+#include "vtkOpenGLExtensionManager.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -263,12 +264,14 @@ int main(int argc, char **argv)
   Fl::gl_visual(FL_RGB);  
   Fl::background(236,233,216);
 
-  // Let's check the GL extensions available
-
-  
   // Show the IRIS Interface
   ui->Launch();
 
+  // Let's check the GL extensions available
+  vtkOpenGLExtensionManager *man = vtkOpenGLExtensionManager::New();
+  man->Update();
+  std::cout << man->GetExtensionsString() << std::endl;
+  
   // Show the splash screen
   ui->ShowSplashScreen();
 
@@ -388,6 +391,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.4  2007/09/17 16:10:31  pyushkevich
+ *Updated to VTK 5
+ *
  *Revision 1.3  2007/09/17 14:22:06  pyushkevich
  *fixed slicing bug
  *

@@ -503,6 +503,7 @@ SET(SNAP_ITK_LIBS
 # Core VTK libraries
 SET(SNAP_VTK_CORE_LIBS
   vtkCommon
+  vtkRendering
   vtkFiltering
   vtkGraphics
   vtkImaging
