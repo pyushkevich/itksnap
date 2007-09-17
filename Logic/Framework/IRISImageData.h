@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISImageData.h,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:20 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/09/17 04:53:35 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -125,13 +125,6 @@ public:
    * Set voxel in segmentation image
    */
   void SetSegmentationVoxel(const Vector3ui &index, LabelType value);
-
-  /**
-   * Apply a paintbrush (paint a region) using the paintbrush settings
-   */
-  void ApplyPaintbrushOperation(
-    PaintbrushSettings &ps, const Vector3ui &index, 
-    unsigned int direction, LabelType value);
 
   /**
    * Check validity of greyscale image

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/06/07 00:49:16 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/09/17 04:53:35 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -60,14 +60,20 @@ GenericSliceWindow
   m_GreyTexture = new GreyTextureType;
   
   // Initialize the RGB slice texture (not default)
-  m_RGBTexture = new LabelTextureType;
+  m_RGBTexture = new RGBTextureType;
   m_RGBTexture->SetGlComponents(4);
   m_RGBTexture->SetGlFormat(GL_RGBA);
   
   // Initialize the Segmentation slice texture (not default)
-  m_LabelTexture = new LabelTextureType;
-  m_LabelTexture->SetGlComponents(4);
-  m_LabelTexture->SetGlFormat(GL_RGBA);
+  m_LabelRGBTexture = new RGBTextureType;
+  m_LabelRGBTexture->SetGlComponents(4);
+  m_LabelRGBTexture->SetGlFormat(GL_RGBA);
+
+  // Initialize the color index texture on systems that support it (?)
+  m_LabelColorIndexTexture = new LabelTextureType;
+  m_LabelColorIndexTexture->SetGlComponents(1);
+  m_LabelColorIndexTexture->SetGlFormat(GL_COLOR_INDEX);
+  m_LabelColorIndexTexture->SetGlType(GL_UNSIGNED_SHORT);
 
   // Initalize the margin
   m_Margin = 2;
@@ -101,7 +107,8 @@ GenericSliceWindow
   // Delete textures
   delete m_GreyTexture;
   delete m_RGBTexture;
-  delete m_LabelTexture;
+  delete m_LabelRGBTexture;
+  delete m_LabelColorIndexTexture;
 }
 
 void 
@@ -126,8 +133,11 @@ GenericSliceWindow
     }
   
   // Initialize the segmentation slice texture
-  m_LabelTexture->SetImage(
+  m_LabelRGBTexture->SetImage(
     m_ImageData->GetSegmentation()->GetDisplaySlice(m_Id));
+
+  m_LabelColorIndexTexture->SetImage(
+    m_ImageData->GetSegmentation()->GetSlice(m_Id));
 
   // Store the transforms between the display and image spaces
   m_ImageToDisplayTransform = 
@@ -411,8 +421,7 @@ GenericSliceWindow
   assert(m_ImageData->IsSegmentationLoaded() 
     && m_ImageSliceIndex >= 0);
 
-  // Update the texture memory
-  m_LabelTexture->DrawTransparent(m_GlobalState->GetSegmentationAlpha());
+  m_LabelRGBTexture->DrawTransparent(m_GlobalState->GetSegmentationAlpha());
 }
 
 void

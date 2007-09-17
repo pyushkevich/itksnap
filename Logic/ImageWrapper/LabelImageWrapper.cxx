@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: LabelImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:20 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/09/17 04:53:35 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -25,40 +25,25 @@ template class ScalarImageWrapper<LabelType>;
 LabelImageWrapper
 ::LabelImageWrapper()
 {
-  // Instantiate the cache
-  m_IntensityMapCache = CacheType::New();
-
-  // Set the target of the cache
-  m_IntensityMapCache->SetInputFunctor(&m_IntensityFunctor);
-
   // Instantiate the filters
   for(unsigned int i=0;i<3;i++) 
   {
-    m_IntensityFilter[i] = IntensityFilterType::New();
-    m_IntensityFilter[i]->SetFunctor(m_IntensityMapCache->GetCachingFunctor());
-    m_IntensityFilter[i]->SetInput(m_Slicer[i]->GetOutput());
+    m_RGBAFilter[i] = RGBAFilterType::New();
+    m_RGBAFilter[i]->SetInput(m_Slicer[i]->GetOutput());
   }
 
-  // Initialize the color table as well
-  m_IntensityFunctor.m_ColorLabelTable = NULL;
+  SetLabelColorTable(NULL);
 }
 
 LabelImageWrapper
 ::LabelImageWrapper(const LabelImageWrapper &source)
 : ScalarImageWrapper<LabelType>(source)
 {
-  // Instantiate the cache
-  m_IntensityMapCache = CacheType::New();
-
-  // Set the target of the cache
-  m_IntensityMapCache->SetInputFunctor(&m_IntensityFunctor);
-
   // Instantiate the filters
   for(unsigned int i=0;i<3;i++) 
   {
-    m_IntensityFilter[i] = IntensityFilterType::New();
-    m_IntensityFilter[i]->SetFunctor(m_IntensityMapCache->GetCachingFunctor());
-    m_IntensityFilter[i]->SetInput(m_Slicer[i]->GetOutput());
+    m_RGBAFilter[i] = RGBAFilterType::New();
+    m_RGBAFilter[i]->SetInput(m_Slicer[i]->GetOutput());
   }
 
   // Initialize the color table as well
@@ -74,7 +59,7 @@ ColorLabelTable *
 LabelImageWrapper
 ::GetLabelColorTable() const
 {
-  return m_IntensityFunctor.m_ColorLabelTable;
+  return m_RGBAFilter[0]->GetColorTable();
 }
 
 void 
@@ -82,62 +67,27 @@ LabelImageWrapper
 ::SetLabelColorTable(ColorLabelTable *table) 
 {
   // Set the new table
-  m_IntensityFunctor.m_ColorLabelTable = table;
-
-  // Reinitialize the cache
-  // TODO: Constant for 255
-  m_IntensityMapCache->SetEvaluationRange(0,255);
-
-  // Update the color mapping cache and the filters
-  UpdateColorMappingCache();
+  for(unsigned int i=0;i<3;i++) 
+    m_RGBAFilter[i]->SetColorTable(table);
 }
 
 void 
 LabelImageWrapper
 ::UpdateColorMappingCache() 
 {
-  assert(m_IntensityFunctor.m_ColorLabelTable);
-
-  // Update the label table
-  m_IntensityMapCache->ComputeCache();
+  // Better have a color table
+  assert(GetColorLabelTable());
 
   // Dirty the intensity filters
   for(unsigned int i=0;i<3;i++)
-    m_IntensityFilter[i]->Modified();  
+    m_RGBAFilter[i]->Modified();  
 }
 
 LabelImageWrapper::DisplaySliceType *
 LabelImageWrapper
 ::GetDisplaySlice(unsigned int dim)
 {
-  return m_IntensityFilter[dim]->GetOutput();
-}
-
-LabelImageWrapper::DisplayPixelType
-LabelImageWrapper::IntensityFunctor
-::operator()(const LabelType &x) const
-{
-  // Better have the table!
-  assert(m_ColorLabelTable);
-
-  // Get the appropriate color label
-  const ColorLabel &label = m_ColorLabelTable->GetColorLabel(x);
-
-  // Create a new pixel
-  DisplayPixelType pixel;
-
-  // Figure out the alpha for display
-  unsigned char alpha = 
-    label.IsVisible() ? (label.IsOpaque() ? 255 : label.GetAlpha()) : 0;
-
-  // Copy the color and transparency attributes
-  // pixel.Set(label.GetRGB(0),label.GetRGB(1),label.GetRGB(2),alpha);
-  pixel[0] = label.GetRGB(0);
-  pixel[1] = label.GetRGB(1);
-  pixel[2] = label.GetRGB(2);
-  pixel[3] = alpha;
-
-  return pixel;
+  return m_RGBAFilter[dim]->GetOutput();
 }
 
 /**

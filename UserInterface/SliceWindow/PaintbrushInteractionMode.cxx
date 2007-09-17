@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PaintbrushInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/16 19:59:14 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/09/17 04:53:35 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -263,8 +263,8 @@ PaintbrushInteractionMode
     {
     if(i != imgLabel->GetDisplaySliceImageAxis(m_Parent->m_Id) || pbs.flat == false)
       {
-      xTestRegion.SetIndex(i, m_MousePosition(i) - pbs.radius); // + 1);
-      xTestRegion.SetSize(i, 2 * pbs.radius + 1); // - 1);
+      xTestRegion.SetIndex(i, (long) (m_MousePosition(i) - pbs.radius)); // + 1);
+      xTestRegion.SetSize(i, (long) (2 * pbs.radius + 1)); // - 1);
       }
     else
       {

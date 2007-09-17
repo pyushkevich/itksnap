@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: OpenGLSliceTexture.txx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:27 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/09/17 04:53:35 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -18,9 +18,6 @@ OpenGLSliceTexture<TPixel>
 {
   // Set to -1 to force a call to 'generate'
   m_IsTextureInitalized = false;
-
-  // Create the filter
-  m_PadFilter = FilterType::New();
 
   // Set the update time to -1
   m_UpdateTime = 0;
@@ -76,17 +73,6 @@ OpenGLSliceTexture<TPixel>
     while (m_TextureSize(i) < szImage[i])
       m_TextureSize(i) <<= 1;
 
-  // Compute the pad offset
-  vnl_vector_fixed<unsigned long,2> 
-    offset(m_TextureSize(0) - szImage[0],m_TextureSize(1) - szImage[1]);
-
-  // Set the parameters of the pad filter
-  m_PadFilter->SetInput(m_Image);
-  m_PadFilter->SetPadUpperBound(offset.data_block());
-
-  // Apply the padding
-  m_PadFilter->UpdateLargestPossibleRegion();
-
   // Create the texture index if necessary
   if(!m_IsTextureInitalized)
     {
@@ -102,18 +88,19 @@ OpenGLSliceTexture<TPixel>
   glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
   glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
   glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-  
-  // Pump the pixels into the texture
-  /* glTexImage2D(GL_TEXTURE_2D,0,m_GlComponents,
-               m_TextureSize(0),m_TextureSize(1),
-               0,m_GlFormat,m_GlType,
-               m_PadFilter->GetOutput()->GetBufferPointer()); */
-  
-  gluBuild2DMipmaps(
-    GL_TEXTURE_2D, m_GlComponents, 
+
+  // Turn off modulo-4 rounding in GL
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+  // Allocate texture of slightly bigger size
+  glTexImage2D(GL_TEXTURE_2D, 0, m_GlComponents,
     m_TextureSize(0), m_TextureSize(1),
-    m_GlFormat,m_GlType,
-    m_PadFilter->GetOutput()->GetBufferPointer());
+    0, m_GlFormat, m_GlType, NULL);
+
+  // Copy a subtexture of correct size into the image
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, szImage[0], szImage[1],
+    m_GlFormat, m_GlType, m_Image->GetBufferPointer());
 
   // Remember the image's timestamp
   m_UpdateTime = m_Image->GetPipelineMTime();

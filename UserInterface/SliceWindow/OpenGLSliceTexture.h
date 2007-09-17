@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: OpenGLSliceTexture.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:27 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/09/17 04:53:35 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -25,7 +25,6 @@
 #endif
 
 #include "itkImage.h"
-#include "itkConstantPadImageFilter.h"
 
 /**
  * \class OpenGLSliceTexture
@@ -83,18 +82,11 @@ public:
 
 private:
   
-  // Filter typedefs
-  typedef itk::ConstantPadImageFilter<ImageType,ImageType> FilterType;
-  typedef typename itk::SmartPointer<FilterType> FilterPointer;
-
   // The dimensions of the texture as stored in memory
   Vector2ui m_TextureSize;
 
   // The pointer to the image from which the texture is computed
   ImagePointer m_Image;
-
-  // The padding filter used to resize the image
-  FilterPointer m_PadFilter;
 
   // The texture number (index)
   GLuint m_TextureIndex;

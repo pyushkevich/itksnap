@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/06/07 00:49:16 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/09/17 04:53:35 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -78,44 +78,6 @@ IRISImageData
   // Store the voxel
   m_LabelWrapper.GetVoxelForUpdate(index) = value;
 
-  // Mark the image as modified
-  m_LabelWrapper.GetImage()->Modified();
-}
-
-void
-IRISImageData
-::ApplyPaintbrushOperation(
-    PaintbrushSettings &ps, const Vector3ui &index, 
-    unsigned int direction, LabelType value)
-{
-  // Make sure that the grey data and the segmentation data exist
-  assert(m_GreyWrapper.IsInitialized() && m_LabelWrapper.IsInitialized());
-
-  // Create a region encompassing the paintbrush
-  LabelImageType::RegionType region;
-  for(size_t i = 0; i < 3; i++)
-    {
-    region.SetIndex(i, index[i] - ps.radius);
-    region.SetSize(i, 2 * ps.radius - 1);
-    }
-
-  // Traverse the interior of the region
-  ImageRegionIteratorWithIndex<LabelImageType> it(m_LabelWrapper.GetImage(), region);
-  for( ; !it.IsAtEnd(); ++it)
-    {
-    if(ps.flat && it.GetIndex()[direction] != index[direction])
-      continue;
-    if(ps.shape == PAINTBRUSH_ROUND)
-      {
-      Vector3d dist;
-      for(size_t j = 0; j < 3; j++)
-        dist[j] = index[j] - it.GetIndex()[j];
-      if(ceil(dist.magnitude()) > ps.radius)
-        continue;
-      }
-    it.Set(value);
-    }
-  
   // Mark the image as modified
   m_LabelWrapper.GetImage()->Modified();
 }

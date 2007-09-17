@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: MeshIOWizardUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/05/10 20:19:51 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/09/17 04:53:35 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -368,3 +368,4 @@ MeshIOWizardUILogic
   // Whether or not the load has been succesfull
   return m_MeshSelected;  
 }
+

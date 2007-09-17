@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:22 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/09/17 04:53:35 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -239,19 +239,20 @@ protected:
 
   // Grey texture object typedefs
   typedef OpenGLSliceTexture<unsigned char> GreyTextureType;
+  typedef OpenGLSliceTexture<LabelType> LabelTextureType;
 
   // Label texture object typedefs
   typedef LabelImageWrapper::DisplayPixelType RGBAType;
-  typedef OpenGLSliceTexture<RGBAType> LabelTextureType;
+  typedef OpenGLSliceTexture<RGBAType> RGBTextureType;
     
   // Grey texture object
   GreyTextureType *m_GreyTexture;
 
   // RGB texture object
-  LabelTextureType *m_RGBTexture;
+  RGBTextureType *m_RGBTexture, *m_LabelRGBTexture;
   
   // Label texture object
-  LabelTextureType *m_LabelTexture;
+  LabelTextureType *m_LabelColorIndexTexture;
   
   // Check whether the thumbnail should be draw or not
   bool IsThumbnailOn();

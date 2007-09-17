@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISSlicer.txx,v $
   Language:  C++
-  Date:      $Date: 2007/09/16 19:59:14 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/09/17 04:53:35 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -171,10 +171,10 @@ void IRISSlicer<TPixel>
   this->AllocateOutputs();
 
   // Get the image dimensions
-  InputImageType::SizeType szVol = inputPtr->GetBufferedRegion().GetSize();
+  typename InputImageType::SizeType szVol = inputPtr->GetBufferedRegion().GetSize();
 
   // Set the strides in image coordinates
-  Vector3i stride_image(1, szVol[0], szVol[1] * szVol[2]);
+  Vector3i stride_image(1, szVol[0], szVol[1] * szVol[0]);
 
   // Determine the strides for the pixel step and line step
   int sPixel = (m_PixelTraverseForward ? 1 : -1) *
@@ -200,7 +200,7 @@ void IRISSlicer<TPixel>
   size_t iStart = dot_product(stride_image, xStartVoxel);
 
   // Get the size of the output region (whole slice)
-  OutputImageType::RegionType rgn = outputPtr->GetBufferedRegion();
+  typename OutputImageType::RegionType rgn = outputPtr->GetBufferedRegion();
   size_t nPixel = rgn.GetSize()[0], nLine = rgn.GetSize()[1];
 
   // Get pointers to input and output data
