@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/05/11 13:06:50 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/09/17 14:22:06 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -262,6 +262,9 @@ int main(int argc, char **argv)
   Fl::visual(FL_DOUBLE|FL_INDEX);
   Fl::gl_visual(FL_RGB);  
   Fl::background(236,233,216);
+
+  // Let's check the GL extensions available
+
   
   // Show the IRIS Interface
   ui->Launch();
@@ -385,6 +388,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.3  2007/09/17 14:22:06  pyushkevich
+ *fixed slicing bug
+ *
  *Revision 1.2  2007/05/11 13:06:50  pyushkevich
  *Sun compatibility fix
  *

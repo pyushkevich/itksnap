@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISSlicer.txx,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 04:53:35 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/09/17 14:22:03 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -194,7 +194,8 @@ void IRISSlicer<TPixel>
     m_PixelTraverseForward ? 0 : szVol[m_PixelDirectionImageAxis] - 1;
   xStartVoxel[m_LineDirectionImageAxis] = 
     m_LineTraverseForward ? 0 : szVol[m_LineDirectionImageAxis] - 1;
-  xStartVoxel[m_SliceDirectionImageAxis] = m_SliceIndex;
+  xStartVoxel[m_SliceDirectionImageAxis] = 
+    szVol[m_SliceDirectionImageAxis] == 1 ? 0 : m_SliceIndex;
 
   // Get the offset of the first voxel
   size_t iStart = dot_product(stride_image, xStartVoxel);

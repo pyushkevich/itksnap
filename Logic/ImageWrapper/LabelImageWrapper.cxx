@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: LabelImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 04:53:35 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/09/17 14:22:02 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -76,7 +76,7 @@ LabelImageWrapper
 ::UpdateColorMappingCache() 
 {
   // Better have a color table
-  assert(GetColorLabelTable());
+  assert(GetLabelColorTable());
 
   // Dirty the intensity filters
   for(unsigned int i=0;i<3;i++)
