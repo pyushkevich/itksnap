@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PaintbrushInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 04:53:35 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2007/09/17 20:33:09 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -451,24 +451,7 @@ int
 PaintbrushInteractionMode
 ::OnMouseRelease(FLTKEvent const &event, FLTKEvent const &pressEvent)
 {
-  // Get the paintbrush properties
-  PaintbrushSettings pbs = 
-    m_ParentUI->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
-
-  // Check if the right button was pressed
-  if(event.Button == FL_LEFT_MOUSE || event.Button == FL_RIGHT_MOUSE)
-    {
-    // Find the pixel under the mouse
-    ComputeMousePosition(event.XSpace);
-
-    // Scan convert the points into the slice
-    ApplyBrush(event);
-    
-    // Eat the event unless cursor chasing is enabled
-    return pbs.chase ? 0 : 1;                  
-    }
-
-  return 0;
+  return OnMouseDrag(event, pressEvent);
 }
 
 int

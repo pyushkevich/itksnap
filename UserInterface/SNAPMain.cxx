@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 16:10:31 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/09/17 20:33:09 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -270,7 +270,6 @@ int main(int argc, char **argv)
   // Let's check the GL extensions available
   vtkOpenGLExtensionManager *man = vtkOpenGLExtensionManager::New();
   man->Update();
-  std::cout << man->GetExtensionsString() << std::endl;
   
   // Show the splash screen
   ui->ShowSplashScreen();
@@ -391,6 +390,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.5  2007/09/17 20:33:09  pyushkevich
+ *VTK5 compatibility
+ *
  *Revision 1.4  2007/09/17 16:10:31  pyushkevich
  *Updated to VTK 5
  *
