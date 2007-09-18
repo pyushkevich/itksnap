@@ -277,7 +277,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 xywh {5 165 137 136} box NO_BOX color 22 labeltype NO_LABEL labelsize 12 labelcolor 4
               } {
                 Fl_Group m_GrpToolOptionPolygon {
-                  label 3
+                  label 3 open
                   xywh {5 165 135 135} color 22 labelsize 10 labelcolor 4 hide
                 } {
                   Fl_Group {} {
@@ -287,8 +287,8 @@ class UserInterface {open : {public UserInterfaceBase}
                   Fl_Value_Slider m_InIRISFreehandFittingRate {
                     label {Freehand curve fitting
  (nodes per pixel)}
-                    callback {OnIRISFreehandFittingRateUpdate()}
-                    xywh {15 225 115 15} type Horizontal labelsize 11 align 5 maximum 10 step 0.5 value 5
+                    callback {OnIRISFreehandFittingRateUpdate()} selected
+                    tooltip {Changes what happens when you draw a freehand curve. The larger this number, the fewer line segments will be used to represent the freehand drawing.} xywh {15 225 115 15} type Horizontal labelsize 11 align 5 maximum 10 step 0.5
                   }
                 }
                 Fl_Group m_GrpToolOptionPaintCan {
@@ -343,7 +343,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   } {}
                 }
                 Fl_Group m_GrpToolOptionCrosshairs {
-                  label 1 selected
+                  label 1
                   xywh {5 165 135 135} labeltype NO_LABEL labelfont 1 labelsize 12 align 17
                 } {
                   Fl_Output m_OutGreyProbe {
