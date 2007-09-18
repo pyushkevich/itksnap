@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/15 15:59:20 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2007/09/18 18:42:40 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -2185,6 +2185,15 @@ UserInterfaceLogic
   OnPolygonStateUpdate(window);
 }
 
+void
+UserInterfaceLogic
+::OnIRISFreehandFittingRateUpdate()
+{
+  for(size_t i = 0; i < 3; i++)
+    m_IRISWindowManager2D[i]->SetFreehandFittingRate(
+      m_InIRISFreehandFittingRate->value());
+}
+
 void 
 UserInterfaceLogic
 ::OnPolygonStateUpdate(unsigned int id)
@@ -3723,6 +3732,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.10  2007/09/18 18:42:40  pyushkevich
+ *Added tablet drawing to polygon mode
+ *
  *Revision 1.9  2007/09/15 15:59:20  pyushkevich
  *Improved the paintbrush mode, allowed more variety of brush sizes
  *

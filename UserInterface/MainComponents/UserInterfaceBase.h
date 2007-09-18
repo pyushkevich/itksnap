@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:22 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/09/18 18:42:40 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -97,6 +97,7 @@ public:
   virtual void OnDeletePolygonSelectedAction(unsigned int window) = 0;
   virtual void OnInsertIntoPolygonSelectedAction(unsigned int window) = 0;
   virtual void OnPastePolygonAction(unsigned int window) = 0;
+  virtual void OnIRISFreehandFittingRateUpdate() = 0;
 
   // IRIS: Paintbrush tools
   virtual void OnPaintbrushAttributesUpdate() = 0;
@@ -195,6 +196,9 @@ public:
   virtual void OnPolygonStateUpdate(unsigned int) = 0;
   virtual void OnZoomUpdate() = 0;
   virtual void OnIRISMeshEditingAction() = 0;
+
+  // Non-callbacks
+  virtual double GetFreehandFittingRate() = 0;
 
 protected:
     GlobalState *m_GlobalState;

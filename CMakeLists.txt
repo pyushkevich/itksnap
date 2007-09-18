@@ -78,6 +78,12 @@ SET(LOGIC_HEADERS
   Common/SystemInterface.h
   Common/ITKExtras/itkVoxBoCUBImageIO.h
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
+  Common/ITKExtras/itkTustisonBSplineKernelFunction.h
+  Common/ITKExtras/itkTustisonBSplineKernelFunction.txx
+  Common/ITKExtras/itkTustisonBSplineScatteredDataPointSetToImageFilter.h
+  Common/ITKExtras/itkTustisonBSplineScatteredDataPointSetToImageFilter.txx
+  Common/ITKExtras/itkTustisonPointSetToImageFilter.h
+  Common/ITKExtras/itkTustisonPointSetToImageFilter.txx
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
   Logic/Common/ImageCoordinateGeometry.h

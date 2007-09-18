@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/04 16:56:13 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/09/18 18:42:40 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -22,6 +22,10 @@
 #include <algorithm>
 #include <set>
 #include <vnl/vnl_random.h>
+
+#include "itkImage.h"
+#include "itkPointSet.h"
+#include "itkTustisonBSplineScatteredDataPointSetToImageFilter.h"
 
 using namespace std;
 
@@ -207,7 +211,10 @@ PolygonDrawing
     }
   
   if (m_Vertices.empty()) 
+    {
     m_State = INACTIVE_STATE;
+    m_SelectedVertices = false;
+    }
 }
 
 void 
@@ -251,6 +258,122 @@ PolygonDrawing
     // On to the next point
     ++it;
     }
+}
+
+void
+PolygonDrawing
+::ProcessFreehandCurve()
+{
+  // Special case: no fitting  
+  if(m_FreehandFittingRate == 0.0)
+    {
+    for(VertexIterator it = m_DragVertices.begin(); 
+      it != m_DragVertices.end(); ++it)
+      {
+      m_Vertices.push_back(*it);
+      }
+    m_DragVertices.clear();
+    return;
+    }
+
+  // We will fit a b-spline of the 0-th order to the freehand curve
+  if(m_Vertices.size() > 0)
+    {
+    // Prepend the last vertex before freehand drawing
+    m_DragVertices.push_front(m_Vertices.back());
+    m_Vertices.pop_back();
+    }
+
+  // Create a list of input points
+  typedef itk::Vector<double, 2> VectorType;
+  typedef itk::Image<VectorType, 1> ImageType;
+  typedef itk::PointSet<VectorType, 1> PointSetType;
+  PointSetType::Pointer pointSet = PointSetType::New();
+
+  double len = 0;
+  double t = 0, dt = 1.0 / (m_DragVertices.size());
+  size_t i = 0;
+  Vertex last;
+  for(VertexIterator it = m_DragVertices.begin(); 
+    it != m_DragVertices.end(); ++it)
+    {
+    PointSetType::PointType point;
+    point[0] = t;
+    pointSet->SetPoint(i,point);
+    VectorType v;
+    v[0] = it->x; v[1] = it->y;
+    pointSet->SetPointData(i, v);
+    t+=dt; i++;
+    if(it != m_DragVertices.begin())
+      {
+      double dx = last.x - it->x;
+      double dy = last.y - it->y;
+      len += sqrt(dx * dx + dy * dy);
+      }
+    last = *it;
+    }
+
+  // Compute the number of control points
+  size_t nctl = (size_t)ceil(len / m_FreehandFittingRate);
+  if(nctl < 3)
+    nctl = 3;
+
+  // Compute the number of levels and the control points at coarsest level
+  size_t nl = 1; size_t ncl = nctl;
+  while(ncl >= 8)
+    { ncl >>= 1; nl++; }
+  
+
+  // Create the scattered interpolator
+  typedef itk::TustisonBSplineScatteredDataPointSetToImageFilter<
+    PointSetType, ImageType> FilterType;
+  FilterType::Pointer filter = FilterType::New();
+
+  ImageType::SpacingType spacing; spacing.Fill( 0.001 );
+  ImageType::SizeType size; size.Fill((int)(1.0/spacing[0]));
+  ImageType::PointType origin; origin.Fill(0.0);
+  
+  filter->SetSize( size );
+  filter->SetOrigin( origin );
+  filter->SetSpacing( spacing );
+  filter->SetInput( pointSet );
+  filter->SetSplineOrder( 1 );
+  FilterType::ArrayType ncps;
+  ncps.Fill(ncl);
+  filter->SetNumberOfLevels(nl);
+  filter->SetNumberOfControlPoints(ncps);
+  filter->SetGenerateOutputImage(false);
+
+  // Run the filter
+  filter->Update();
+
+  ImageType::Pointer lattice = filter->GetPhiLattice();
+  size_t n = lattice->GetBufferedRegion().GetNumberOfPixels();
+  for(size_t i = 0; i < n; i++)
+    {
+    ImageType::IndexType idx;
+    idx.Fill(i);
+    VectorType v = lattice->GetPixel(idx);
+    m_Vertices.push_back(Vertex(v[0],v[1],false));
+    }
+
+  /*
+
+  // Get the control points?
+  double du = 1.0 / nctl;
+  for(double u = 0; u < 1.00001; u += du)
+    {
+    if(u > 1.0) u = 1.0;
+    PointSetType::PointType point;
+    point[0] = u;
+    VectorType v;
+    filter->Evaluate(point,v);
+    m_Vertices.push_back(Vertex(v[0],v[1],false));
+    }
+    */
+
+  // Empty the drag list
+  // m_DragVertices.clear();
 }
 
 bool PolygonVertexTest(const PolygonDrawing::Vertex &v1, const PolygonDrawing::Vertex &v2)
@@ -409,11 +532,22 @@ PolygonDrawing
   }
   else 
   {
+    // Draw the vertices
     glBegin(GL_LINE_STRIP);
     glColor3f(1,0,0);
     for(it = m_Vertices.begin(); it!=m_Vertices.end();++it) 
       glVertex3f(it->x, it->y, 0);
     glEnd();
+
+    // Draw the drag vertices
+    if(m_DragVertices.size())
+      {
+      glBegin(GL_LINE_STRIP);
+      glColor3f(1,1,0);
+      for(it = m_DragVertices.begin(); it!=m_DragVertices.end();++it) 
+        glVertex3f(it->x, it->y, 0);
+      glEnd();
+      }
   }
     
   // draw the vertices
@@ -427,6 +561,15 @@ PolygonDrawing
 
     glVertex3f(it->x,it->y,0.0f);
   }
+
+  // Draw the last dragging vertex point
+  if(m_DragVertices.size())
+    {
+    Vertex last = m_DragVertices.back();
+    glColor3f(1,1,0);
+    glVertex3f(last.x, last.y, 0.0f);
+    }
+
   glEnd();
 
   // draw edit or pick box
@@ -515,6 +658,7 @@ PolygonDrawing
   case DRAWING_STATE:
     if (event == FL_PUSH) 
       {
+      m_DragVertices.clear();
       if (button == FL_LEFT_MOUSE)
         {
         // Left click means to add a vertex to the polygon. However, for
@@ -544,8 +688,16 @@ PolygonDrawing
       if(m_Vertices.size() == 0 || 
         m_Vertices.back().x != x || m_Vertices.back().y != y)
         {
-        m_Vertices.push_back( Vertex(x, y, false) );
+        m_DragVertices.push_back( Vertex(x, y, false) );
         }      
+      }
+    else if (event == FL_RELEASE)
+      {
+      // If some dragging has been done, convert it to polygons
+      if(m_DragVertices.size() > 0)
+        {
+        ProcessFreehandCurve();
+        }
       }
     break;
 
@@ -710,6 +862,9 @@ PolygonDrawing
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.4  2007/09/18 18:42:40  pyushkevich
+ *Added tablet drawing to polygon mode
+ *
  *Revision 1.3  2007/09/04 16:56:13  pyushkevich
  *tablet support 1
  *

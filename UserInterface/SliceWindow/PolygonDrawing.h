@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PolygonDrawing.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:27 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/09/18 18:42:40 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -72,11 +72,16 @@ public:
   /** How many vertices are selected */
   irisGetMacro(CachedPolygon,bool);
 
+  /** Set the accuracy of freehand curve fitting */
+  irisGetMacro(FreehandFittingRate, double);
+  irisSetMacro(FreehandFittingRate, double);
+
 private:
   // Array of vertices, cached vertices from last operation
   typedef std::list<Vertex> VertexList;
   typedef VertexList::iterator VertexIterator;
   VertexList m_Vertices, m_Cache;
+  VertexList m_DragVertices;
 
   // State of the system
   PolygonState m_State;
@@ -95,12 +100,18 @@ private:
 
   void ComputeEditBox();
   void Add(float x, float y, int selected);
+  void ProcessFreehandCurve();
+
+  double m_FreehandFittingRate;
 };
 
 #endif // __PolygonDrawing_h_
 
 /*
  *$Log: PolygonDrawing.h,v $
+ *Revision 1.2  2007/09/18 18:42:40  pyushkevich
+ *Added tablet drawing to polygon mode
+ *
  *Revision 1.1  2006/12/02 04:22:27  pyushkevich
  *Initial sf checkin
  *

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/06/07 00:49:16 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2007/09/18 18:42:40 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -545,6 +545,7 @@ public:
   void OnDeletePolygonSelectedAction(unsigned int window);
   void OnPastePolygonAction(unsigned int window);
   void OnPolygonStateUpdate(unsigned int id);
+  void OnIRISFreehandFittingRateUpdate();
 
   // Paintbrush action callbacks
   void OnPaintbrushAttributesUpdate();
@@ -579,6 +580,10 @@ public:
 
   // Save As PNG
   void OnActiveWindowSaveSnapshot(unsigned int window);
+
+  // Get the value of the freehand drawing widget
+  double GetFreehandFittingRate()
+    { return m_InIRISFreehandFittingRate->value(); }
 
 protected:
 
@@ -868,6 +873,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.6  2007/09/18 18:42:40  pyushkevich
+ *Added tablet drawing to polygon mode
+ *
  *Revision 1.5  2007/06/07 00:49:16  pyushkevich
  *Debugged RGB changes
  *

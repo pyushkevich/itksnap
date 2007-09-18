@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 01:26:07 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/09/18 18:42:40 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -48,6 +48,7 @@ IRISSliceWindow
 
   // Get a pointer to the drawing object
   m_PolygonDrawing = m_PolygonMode->m_Drawing;
+  m_PolygonDrawing->SetFreehandFittingRate(parentUI->GetFreehandFittingRate());
 
   // Initialize polygon slice canvas to NULL
   m_PolygonSlice = NULL;
