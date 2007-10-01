@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PolygonDrawing.h,v $
   Language:  C++
-  Date:      $Date: 2007/09/18 18:42:40 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/10/01 00:13:15 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -80,6 +80,7 @@ private:
   // Array of vertices, cached vertices from last operation
   typedef std::list<Vertex> VertexList;
   typedef VertexList::iterator VertexIterator;
+  typedef VertexList::reverse_iterator VertexRIterator;
   VertexList m_Vertices, m_Cache;
   VertexList m_DragVertices;
 
@@ -109,6 +110,9 @@ private:
 
 /*
  *$Log: PolygonDrawing.h,v $
+ *Revision 1.3  2007/10/01 00:13:15  pyushkevich
+ *Polygon Drawing updates
+ *
  *Revision 1.2  2007/09/18 18:42:40  pyushkevich
  *Added tablet drawing to polygon mode
  *

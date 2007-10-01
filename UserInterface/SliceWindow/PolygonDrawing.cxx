@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/18 18:42:40 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/10/01 00:13:15 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -548,6 +548,24 @@ PolygonDrawing
         glVertex3f(it->x, it->y, 0);
       glEnd();
       }
+
+    // Draw stippled line from last point to end point
+    if(m_DragVertices.size() + m_Vertices.size() > 2)
+      {
+      glPushAttrib(GL_LINE_BIT);
+      glEnable(GL_LINE_STIPPLE);
+      glLineStipple(1, 0x9999);
+      glBegin(GL_LINES);
+      glColor3f(1,0,0);
+      if(m_DragVertices.size())
+        glVertex3f(m_DragVertices.back().x, m_DragVertices.back().y, 0);
+      else
+        glVertex3f(m_Vertices.back().x, m_Vertices.back().y, 0);
+      glColor3f(1,0,0);
+      glVertex3f(m_Vertices.front().x, m_Vertices.front().y, 0);
+      glEnd();
+      glPopAttrib();
+      }
   }
     
   // draw the vertices
@@ -685,11 +703,27 @@ PolygonDrawing
       }
     else if (event == FL_DRAG)
       {
+      if(m_Vertices.size() == 0)
+        {
+        m_Vertices.push_back(Vertex(x,y,false));
+        }
+      else 
+        {
+        Vertex &v = m_Vertices.back();
+        double dx = (v.x-x) / pixel_x;
+        double dy = (v.y-y) / pixel_y;
+        double d = dx*dx+dy*dy;
+        if(d >= m_FreehandFittingRate * m_FreehandFittingRate)
+          m_Vertices.push_back(Vertex(x,y,false));
+        }
+
+      /*  
       if(m_Vertices.size() == 0 || 
         m_Vertices.back().x != x || m_Vertices.back().y != y)
         {
         m_DragVertices.push_back( Vertex(x, y, false) );
         }      
+      */
       }
     else if (event == FL_RELEASE)
       {
@@ -862,6 +896,9 @@ PolygonDrawing
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.5  2007/10/01 00:13:15  pyushkevich
+ *Polygon Drawing updates
+ *
  *Revision 1.4  2007/09/18 18:42:40  pyushkevich
  *Added tablet drawing to polygon mode
  *
