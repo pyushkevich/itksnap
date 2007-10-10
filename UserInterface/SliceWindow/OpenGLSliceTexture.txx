@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: OpenGLSliceTexture.txx,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 04:53:35 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/10/10 15:17:32 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -131,7 +131,7 @@ OpenGLSliceTexture<TPixel>
   int h = m_Image->GetBufferedRegion().GetSize()[1];
   double tx = w * 1.0 / m_TextureSize(0);
   double ty = h * 1.0 / m_TextureSize(1);
-    
+
   // Draw quad 
   glBegin(GL_QUADS);
   glTexCoord2d(0,0);
@@ -172,16 +172,21 @@ OpenGLSliceTexture<TPixel>
   // Set the color to white
   glColor4ub(255,255,255,alpha);
     
+  int w = m_Image->GetBufferedRegion().GetSize()[0];
+  int h = m_Image->GetBufferedRegion().GetSize()[1];
+  double tx = w * 1.0 / m_TextureSize(0);
+  double ty = h * 1.0 / m_TextureSize(1);
+
   // Draw quad 
   glBegin(GL_QUADS);
   glTexCoord2d(0,0);
   glVertex2d(0,0);
-  glTexCoord2d(0,1);
-  glVertex2d(0,m_TextureSize(1));
-  glTexCoord2d(1,1);
-  glVertex2d(m_TextureSize(0),m_TextureSize(1));
-  glTexCoord2d(1,0);
-  glVertex2d(m_TextureSize(0),0);
+  glTexCoord2d(0,ty);
+  glVertex2d(0,h);
+  glTexCoord2d(tx,ty);
+  glVertex2d(w,h);
+  glTexCoord2d(tx,0);
+  glVertex2d(w,0);
   glEnd();
 
   glPopAttrib();
