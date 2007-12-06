@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 20:33:09 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2007/12/06 20:43:37 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
   parser.AddSynonim("--labels","-l");
 
   CommandLineArgumentParseResult parseResult;
-  if(!parser.TryParseCommandLine(argc,argv,parseResult))
+  if(!parser.TryParseCommandLine(argc,argv,parseResult,false))
     {
     // Print usage info and exit
     cerr << "ITK-SnAP Command Line Usage:" << endl;
@@ -390,6 +390,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.6  2007/12/06 20:43:37  pyushkevich
+ *More gentle parsing of command line arguments
+ *
  *Revision 1.5  2007/09/17 20:33:09  pyushkevich
  *VTK5 compatibility
  *

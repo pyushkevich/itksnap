@@ -3,6 +3,8 @@
 #############################################
 PROJECT(SNAP)
 
+INCLUDE(CPack)
+
 SUBDIRS(ProgramData)
 
 
