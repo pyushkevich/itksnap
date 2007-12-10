@@ -1,3 +1,3 @@
-INSTALL_FILES(/share/snap/ProgramData/Images2D "\\.(png)$")
-INSTALL_FILES(/share/snap/ProgramData/Images2D "\\.(hdr)$")
-INSTALL_FILES(/share/snap/ProgramData/Images2D "\\.(img.gz)$")
+INSTALL_FILES(${SNAP_DATA_INSTALL_DIR}/Images2D "\\.(png)$")
+INSTALL_FILES(${SNAP_DATA_INSTALL_DIR}/Images2D "\\.(hdr)$")
+INSTALL_FILES(${SNAP_DATA_INSTALL_DIR}/Images2D "\\.(img.gz)$")

@@ -1,1 +1,1 @@
-INSTALL_FILES(/share/snap/ProgramData/HTMLHelp/Artwork "\\.(gif|png)$")
+INSTALL_FILES(${SNAP_DATA_INSTALL_DIR}/HTMLHelp/Artwork "\\.(gif|png)$")

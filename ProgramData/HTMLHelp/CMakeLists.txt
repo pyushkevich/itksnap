@@ -1,2 +1,2 @@
 SUBDIRS(Artwork)
-INSTALL_FILES(/share/snap/ProgramData/HTMLHelp "\\.(html|css)$")
+INSTALL_FILES(${SNAP_DATA_INSTALL_DIR}/HTMLHelp "\\.(html|css)$")

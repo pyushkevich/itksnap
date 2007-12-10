@@ -3,10 +3,16 @@
 #############################################
 PROJECT(SNAP)
 
-INCLUDE(CPack)
-
-SUBDIRS(ProgramData)
-
+#############################################
+# VERSION INFORMATION                       #
+#############################################
+SET(SNAP_VERSION_MAJOR 1)
+SET(SNAP_VERSION_MINOR 5)
+SET(SNAP_VERSION_PATCH 4)
+SET(SNAP_VERSION_FULL "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}")
+SET(SNAP_VERSION_RELEASE_DATE "20070919")
+SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20031109")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Sep 19, 2007")
 
 #########################################################
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS #
@@ -27,13 +33,18 @@ ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
 # SOURCE FILE SPECIFICATION                 #
 #############################################
 
+# One of the files needs to be configured (to insert version info)
+CONFIGURE_FILE(
+  ${SNAP_SOURCE_DIR}/Common/SNAPCommon.cxx.in
+  ${SNAP_BINARY_DIR}/SNAPCommon.cxx @ONLY IMMEDIATE)
+
 # The part of the source code devoted to the SNAP application logic
 # is organized into a separate library
 SET(LOGIC_CXX
+  ${SNAP_BINARY_DIR}/SNAPCommon.cxx
   Common/CommandLineArgumentParser.cxx
   Common/IRISException.cxx
   Common/Registry.cxx
-  Common/SNAPCommon.cxx
   Common/SystemInterface.cxx
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
@@ -577,14 +588,14 @@ SET(SNAP_INTERNAL_LIBS itksnapui itksnaplogic)
 # *****************************************************
 # Define SNAP Executables
 # *****************************************************
+SET(SNAP_EXE InsightSNAP)
 
 # Disable FLTK warnings
 ITK_DISABLE_FLTK_GENERATED_WARNINGS("${APPLICATION_FLUIDS}")
 
 # Define the main SNAP executable
-SET(SNAP_EXE_PARAMETERS "WIN32" UserInterface/SNAPMain.cxx)
-ADD_GUI_EXECUTABLE(InsightSNAP "${SNAP_EXE_PARAMETERS}")
-TARGET_LINK_LIBRARIES(InsightSNAP 
+ADD_EXECUTABLE(${SNAP_EXE} WIN32 MACOSX_BUNDLE UserInterface/SNAPMain.cxx)
+TARGET_LINK_LIBRARIES(${SNAP_EXE}
   ${SNAP_INTERNAL_LIBS}
   ${SNAP_EXTERNAL_LIBS})
 
@@ -593,8 +604,7 @@ OPTION(SNAP_PNG_CAPTURE_TOOL
   "Should the screen capture tool by Hui Gary Zhang be built?" OFF)
 MARK_AS_ADVANCED(SNAP_PNG_CAPTURE_TOOL)
 IF(SNAP_PNG_CAPTURE_TOOL)
-  SET(SNAP_CC_PNG_EXE_PARAMETERS "WIN32" UserInterface/SNAP_CC_PNG.cxx)
-  ADD_GUI_EXECUTABLE(SNAP_CC_PNG "${SNAP_CC_PNG_EXE_PARAMETERS}")
+  ADD_EXECUTABLE(SNAP_CC_PNG UserInterface/SNAP_CC_PNG.cxx)
   TARGET_LINK_LIBRARIES(SNAP_CC_PNG 
     ${SNAP_INTERNAL_LIBS}
     ${SNAP_EXTERNAL_LIBS})
@@ -603,7 +613,7 @@ ENDIF(SNAP_PNG_CAPTURE_TOOL)
 # The testing executables
 IF(BUILD_TESTING)
   
-  ADD_GUI_EXECUTABLE(SNAPTests "${TESTING_CXX}")
+  ADD_EXECUTABLE(SNAPTests "${TESTING_CXX}")
   TARGET_LINK_LIBRARIES(SNAPTests 
     ${SNAP_INTERNAL_LIBS} 
     ${SNAP_EXTERNAL_LIBS})
@@ -614,9 +624,10 @@ IF(BUILD_TESTING)
     itksnaplogic 
     ${SNAP_EXTERNAL_LIBS})
 
-  INSTALL_TARGETS(/bin SNAPTutorialTest)
+  # INSTALL_TARGETS(/bin SNAPTutorialTest)
 
 ENDIF(BUILD_TESTING)
+
 
 # ----------------------------------------------------------------
 # Miscelaneous tasks (not related to link and compilation)
@@ -636,4 +647,71 @@ CONFIGURE_FILE(
   ${SNAP_BINARY_DIR}/Utilities/InnoSetup/InstallSNAP.iss)
 
 # Add an option to install SNAP into /usr/local or something
-INSTALL_TARGETS(/bin InsightSNAP)
+INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION lib/snap-${SNAP_VERSION_FULL})
+
+# Include all program data
+SET(SNAP_MAIN_INSTALL_DIR /lib/snap-${SNAP_VERSION_FULL})
+SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR}/ProgramData)
+SUBDIRS(ProgramData)
+
+# Generate forward shared executable
+SUBDIRS(Utilities/Linux)
+
+# ----------------------------------------------------------------
+# LIBRARY BUNDLING
+# ----------------------------------------------------------------
+IF(UNIX AND NOT WIN32)
+  FIND_LIBRARY(LIBSTDCPP stdc++)
+  FIND_LIBRARY(LIBGCC_S gcc_s)
+  FIND_LIBRARY(LIBLINUX ld_linux)
+  INSTALL(FILES ${LIBSTDCPP} DESTINATION lib/snap-${SNAP_VERSION_FULL} COMPONENT Runtime)
+ENDIF(UNIX AND NOT WIN32)
+
+
+# ----------------------------------------------------------------
+# PACKAGING with CPack
+# ----------------------------------------------------------------
+include (InstallRequiredSystemLibraries)
+
+# Allow package generation
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ITK-SNAP 3D Image Segmentation Tool")
+SET(CPACK_PACKAGE_VENDOR "itksnap.org")
+SET(CPACK_PACKAGE_VERSION_MAJOR "${SNAP_VERSION_MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${SNAP_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${SNAP_VERSION_PATCH}")
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "itksnap-${SNAP_VERSION_FULL}")
+SET(CPACK_GENERATOR "TGZ")
+
+# Shamelessly stolen from ParaView_
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME
+  "itksnap-${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}")
+IF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
+  EXEC_PROGRAM(uname ARGS "-m" OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
+ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
+IF(NOT DEFINED CPACK_SYSTEM_NAME)
+  SET(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
+ENDIF(NOT DEFINED CPACK_SYSTEM_NAME)
+IF(${CPACK_SYSTEM_NAME} MATCHES Windows)
+  IF(CMAKE_CL_64)
+    SET(CPACK_SYSTEM_NAME win64-${CMAKE_SYSTEM_PROCESSOR})
+  ELSE(CMAKE_CL_64)
+    SET(CPACK_SYSTEM_NAME win32-${CMAKE_SYSTEM_PROCESSOR})
+  ENDIF(CMAKE_CL_64)
+ENDIF(${CPACK_SYSTEM_NAME} MATCHES Windows)
+IF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
+  SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
+ENDIF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
+
+IF(WIN32 AND NOT UNIX)
+  # There is a bug in NSI that does not handle full unix paths properly. Make
+  # sure there is at least one set of four (4) backlasshes.
+  SET(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
+  SET(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\MyExecutable.exe")
+  SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} My Famous Project")
+  SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.my-project-home-page.org")
+  SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.my-personal-home-page.com")
+  SET(CPACK_NSIS_CONTACT "me@my-personal-home-page.com")
+  SET(CPACK_NSIS_MODIFY_PATH ON)
+ENDIF(WIN32 AND NOT UNIX)
+SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
+INCLUDE(CPack)

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPCommon.h,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:20 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/12/10 01:14:01 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -41,12 +41,6 @@ extern std::ostream &snaperr;
 /** Definitions for the string streams, for compatibility */
 typedef itk::OStringStream IRISOStringStream;
 typedef std::istringstream IRISIStringStream;
-
-// Short name (release tag, e.g. $Name:  $)
-extern const char SNAPVersionShort[];
-
-// Full RCS info
-extern const char SNAPVersion[];
 
 // Non-cvs version
 extern const char SNAPSoftVersion[];
