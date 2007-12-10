@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: SNAPCommon.cxx,v $
+  Module:    $RCSfile: SNAPCommon.cxx.in,v $
   Language:  C++
-  Date:      $Date: 2007/09/18 18:43:56 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/12/10 01:23:52 $
+  Version:   $Revision: 1.1 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -14,22 +14,17 @@
 =========================================================================*/
 #include "SNAPCommon.h"
 
-// Short name (release tag, e.g. $Name:  $)
-const char SNAPVersionShort[] = "$Name:  $";
-
-// Full RCS info
-const char SNAPVersion[] = "@(#) $Id: SNAPCommon.cxx,v 1.4 2007/09/18 18:43:56 pyushkevich Exp $";
-
 // Non-cvs version
-const char SNAPSoftVersion[] = "ITK-SNAP 1.5.4";
+const char SNAPSoftVersion[] = "ITK-SNAP @SNAP_VERSION_FULL@";
 
 // A string that appears in the user interface
-const char SNAPUISoftVersion[] = "Version 1.5.4\n Sep 19, 2007";
+const char SNAPUISoftVersion[] = 
+  "Version @SNAP_VERSION_FULL@\n @SNAP_VERSION_RELEASE_DATE_FORMATTED@";
 
 // Release date of the current version
-const char SNAPCurrentVersionReleaseDate[] = "20070919";
+const char SNAPCurrentVersionReleaseDate[] = "@SNAP_VERSION_RELEASE_DATE@";
 
 // Release date of the latest version whose user preference files are
 // incompatible with the current version and will be erased
-const char SNAPLastIncompatibleReleaseDate[] = "20031109";
+const char SNAPLastIncompatibleReleaseDate[] = "@SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE@";
 

@@ -1,0 +1,27 @@
+
+#if defined(CMAKE_INTDIR)
+  #define CONFIG_DIR_PRE CMAKE_INTDIR "/"
+  #define CONFIG_DIR_POST "/" CMAKE_INTDIR
+#else
+  #define CONFIG_DIR_PRE ""
+  #define CONFIG_DIR_POST ""
+#endif
+#define itksys_SHARED_FORWARD_DIR_BUILD "@SNAP_FORWARD_DIR_BUILD@"
+#define itksys_SHARED_FORWARD_PATH_BUILD @SNAP_FORWARD_PATH_BUILD@
+#define itksys_SHARED_FORWARD_PATH_INSTALL @SNAP_FORWARD_PATH_INSTALL@
+#define itksys_SHARED_FORWARD_EXE_BUILD "@SNAP_FORWARD_DIR_BUILD@/@SNAP_FORWARD_EXE@"
+#define itksys_SHARED_FORWARD_EXE_INSTALL "@SNAP_FORWARD_DIR_INSTALL@/@SNAP_FORWARD_EXE@"
+#define itksys_SHARED_FORWARD_OPTION_COMMAND "--command"
+#define itksys_SHARED_FORWARD_OPTION_PRINT "--print"
+#define itksys_SHARED_FORWARD_OPTION_LDD "--ldd"
+#if defined(CMAKE_INTDIR)
+  #define itksys_SHARED_FORWARD_CONFIG_NAME CMAKE_INTDIR
+#endif
+
+#include <itksys/SharedForward.h>
+
+int main(int argc, char** argv)
+{
+  return itksys_shared_forward_to_real(argc, argv);
+}
+
