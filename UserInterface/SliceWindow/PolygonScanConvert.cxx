@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PolygonScanConvert.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/06 01:26:07 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/12/25 15:46:24 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -113,13 +113,13 @@ PolygonScanConvertBase
       
       // Set up the copy so that the strides are correct
       glPixelStorei(GL_PACK_ALIGNMENT, 1);
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
       glPixelStorei(GL_PACK_ROW_LENGTH, width);
       glPixelStorei(GL_PACK_SKIP_PIXELS, xTile);
       glPixelStorei(GL_PACK_SKIP_ROWS, yTile);
 
       // Copy the pixels to the buffer
-      glReadPixels(
-        0, 0, wCopy, hCopy, GL_LUMINANCE, glType, buffer);
+      glReadPixels(0, 0, wCopy, hCopy, GL_RED, glType, buffer);
 
       // Restore the GL state
       glPopMatrix();

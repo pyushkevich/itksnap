@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:20 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -20,9 +20,12 @@
 #include "ColorLabelTable.h"
 #include "itkCommand.h"
 #include "SystemInterface.h"
+#include "UndoDataManager.h"
+
 // #include "itkImage.h"
 
 // Forward reference to the classes pointed at
+class GenericImageData;
 class IRISImageData;
 class SNAPImageData;
 class MeshExportSettings;
@@ -83,7 +86,7 @@ public:
   /**
    * Get the image data currently used
    */
-  irisGetMacro(CurrentImageData,IRISImageData *);
+  irisGetMacro(CurrentImageData,GenericImageData *);
 
   /**
    * Enter the IRIS mode
@@ -225,9 +228,29 @@ public:
    */
   void LoadLabelImageFile(const char *filename);
 
+  /**
+   * Store the current state as an undo point, allowing the user to revert
+   * to this state at a later point. The state in this context is just the
+   * segmentation image in IRIS.
+   */
+  void StoreUndoPoint(const char *text);
+
+  /** Check whether undo is possible */
+  bool IsUndoPossible();
+
+  /** Check whether undo is possible */
+  bool IsRedoPossible();
+
+  /** Undo (revert to last stored undo point) */
+  void Undo();
+
+  /** Redo (undo the undo) */
+  void Redo();
+
 private:
   // Image data objects
-  IRISImageData *m_IRISImageData,*m_CurrentImageData;
+  GenericImageData *m_CurrentImageData;
+  IRISImageData *m_IRISImageData;
   SNAPImageData *m_SNAPImageData;
 
   // Color label data
@@ -251,5 +274,13 @@ private:
 
   // Current cursor position
   Vector3i m_CursorPosition;
+
+  // Undo data manager. Perhaps this should really be in IRISImageData, but
+  // there is a lot of stuff here that is ambiguous in this way. The manager
+  // stores 'deltas', i.e., differences between states of the segmentation
+  // image. These deltas are compressed, allowing us to store a bunch of 
+  // undo steps with little cost in performance or memory
+  typedef UndoDataManager<LabelType> UndoManagerType;
+  UndoManagerType m_UndoManager;
 };
 

@@ -95,7 +95,8 @@ TustisonBSplineScatteredDataPointSetToImageFilter<TInputPointSet, TOutputImage>
         }     
       for ( unsigned int j = 0; j < C.cols(); j++ )
         {
-        RealType c = pow( 2.0, static_cast<RealType>( C.cols()-j-1 ) );
+        double p = C.cols()-j-1;
+        RealType c = std::pow(2.0,p);
         for ( unsigned int k = 0; k < C.rows(); k++)
           {
           R(k, j) *= c;
@@ -381,8 +382,9 @@ TustisonBSplineScatteredDataPointSetToImageFilter<TInputPointSet, TOutputImage>
         }
       }
 
-    for ( unsigned int i = 0; 
-          i < pow( 2.0, static_cast<RealType>( ImageDimension ) ); i++ )
+	double pwr = static_cast<RealType>( ImageDimension );
+	double xxn = pow(2.0, pwr);
+    for ( unsigned int i = 0; i < xxn; i++ )
       {
 
       PointDataType sum( 0.0 );

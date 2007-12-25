@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2007/09/18 18:42:40 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -49,7 +49,7 @@ public:
    * The initialize method extends the parent's version, sets up some 
    * polygon drawing attributes
    */
-  void InitializeSlice(IRISImageData *imageData);
+  void InitializeSlice(GenericImageData *imageData);
 
   /**
    * CachedPolygon()

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PolygonInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/10/01 00:13:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/12/25 15:46:24 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -42,13 +42,6 @@ PolygonInteractionMode
     && event.SoftButton != FL_RIGHT_MOUSE
     && event.Key != ' ')
     return 0;
-
-  // If the event is a drag event, ignore it if there is no change
-  // in the coordinate of the event
-  if(event.Id == FL_DRAG)
-    {
-    std::cout << event.XCanvas << std::endl;
-    }
 
   // We'll need these shorthands
   int id = m_Parent->m_Id;

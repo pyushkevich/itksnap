@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:20 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -53,6 +53,7 @@ using namespace itk;
 
 IRISApplication
 ::IRISApplication() 
+: m_UndoManager(4,200000)
 {
   // Construct new global state object
   m_GlobalState = new GlobalState;
@@ -250,6 +251,9 @@ IRISApplication
   m_GlobalState->SetThresholdSettings(
     ThresholdSettings::MakeDefaultSettings(
       m_IRISImageData->GetGrey()));
+
+  // Reset the UNDO manager
+  m_UndoManager.Clear();
 }
 
 void 
@@ -297,6 +301,9 @@ IRISApplication
   m_GlobalState->SetThresholdSettings(
     ThresholdSettings::MakeDefaultSettings(
       m_IRISImageData->GetGrey()));
+
+  // Reset the UNDO manager
+  m_UndoManager.Clear();
 }
 
 void 
@@ -363,6 +370,9 @@ IRISApplication
   for( ; !it.IsAtEnd(); ++it)
     if(!m_ColorLabelTable->IsColorLabelValid(it.Get()))
       m_ColorLabelTable->SetColorLabelValid(it.Get(), true);
+
+  // Reset the UNDO manager
+  m_UndoManager.Clear();
 }
 
 LabelType
@@ -517,6 +527,137 @@ IRISApplication
   // The target has been modified
   target->Modified();
 }
+
+void 
+IRISApplication
+::StoreUndoPoint(const char *text)
+{
+  // Set the current state as the undo point. We store the difference between
+  // the last 'undo' image and the current segmentation image, and then copy
+  // the current segmentation image into the undo image
+  LabelImageWrapper *undo = m_IRISImageData->GetUndoImage();
+  LabelImageWrapper *seg = m_IRISImageData->GetSegmentation();
+  
+  LabelType *dseg = seg->GetVoxelPointer();
+  LabelType *dundo = undo->GetVoxelPointer();
+  size_t n = seg->GetNumberOfVoxels();
+
+  // Create the Undo delta object
+  UndoManagerType::Delta *delta = new UndoManagerType::Delta();
+
+  // Copy and encode
+  for(size_t i = 0; i < n; i++)
+    {
+    LabelType vSrc = dseg[i], vDst = dundo[i];
+    delta->Encode(vSrc - vDst);
+    dundo[i] = vSrc;
+    }
+
+  // Important last step!
+  delta->FinishEncoding();
+
+  // Set modified flag on the undo image
+  undo->GetImage()->Modified();
+
+  // Add the delta object
+  m_UndoManager.AppendDelta(delta);
+}
+
+bool
+IRISApplication
+::IsUndoPossible()
+{
+  return m_UndoManager.IsUndoPossible();
+}
+
+void
+IRISApplication
+::Undo()
+{
+  // In order to undo, we must take the 'current' delta and apply
+  // it to the image
+  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForUndo();
+
+  LabelImageWrapper *imUndo = m_IRISImageData->GetUndoImage();
+  LabelImageWrapper *imSeg = m_IRISImageData->GetSegmentation();
+  LabelType *dundo = imUndo->GetVoxelPointer();
+  LabelType *dseg = imSeg->GetVoxelPointer();
+
+  // Applying the delta means adding 
+  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
+    {
+    size_t n = delta->GetRLELength(i);
+    LabelType d = delta->GetRLEValue(i);
+    if(d == 0)
+      {
+      dundo += n;
+      dseg += n;
+      }
+    else
+      {
+      for(size_t j = 0; j < n; j++)
+        {
+        *dundo -= d;
+        *dseg = *dundo;
+        ++dundo; ++dseg;
+        }
+      }
+    }
+
+  // Set modified flags
+  imSeg->GetImage()->Modified();
+  imUndo->GetImage()->Modified();
+}
+
+
+bool
+IRISApplication
+::IsRedoPossible()
+{
+  return m_UndoManager.IsRedoPossible();
+}
+
+void
+IRISApplication
+::Redo()
+{
+  // In order to undo, we must take the 'current' delta and apply
+  // it to the image
+  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForRedo();
+
+  LabelImageWrapper *imUndo = m_IRISImageData->GetUndoImage();
+  LabelImageWrapper *imSeg = m_IRISImageData->GetSegmentation();
+  LabelType *dundo = imUndo->GetVoxelPointer();
+  LabelType *dseg = imSeg->GetVoxelPointer();
+
+  // Applying the delta means adding 
+  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
+    {
+    size_t n = delta->GetRLELength(i);
+    LabelType d = delta->GetRLEValue(i);
+    if(d == 0)
+      {
+      dundo += n;
+      dseg += n;
+      }
+    else
+      {
+      for(size_t j = 0; j < n; j++)
+        {
+        *dundo += d;
+        *dseg = *dundo;
+        ++dundo; ++dseg;
+        }
+      }
+    }
+
+  // Set modified flags
+  imSeg->GetImage()->Modified();
+  imUndo->GetImage()->Modified();
+}
+
+
+
 
 void 
 IRISApplication

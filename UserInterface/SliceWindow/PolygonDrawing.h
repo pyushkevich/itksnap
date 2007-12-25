@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PolygonDrawing.h,v $
   Language:  C++
-  Date:      $Date: 2007/10/01 00:13:15 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -45,8 +45,10 @@ public:
     { 
     float x, y; 
     bool selected;
-    Vertex(float x_, float y_, bool on_) : x(x_), y(y_), selected(on_) {}
-    Vertex() : x(0.0f), y(0.0f), selected(false) {}
+    bool control;
+    Vertex(float x_, float y_, bool on_, bool ctl_) 
+      : x(x_), y(y_), selected(on_), control(ctl_) {}
+    Vertex() : x(0.0f), y(0.0f), selected(false), control(true) {}
     float &operator[](unsigned int i) 
       { return (i==0) ? x : y; }
     };
@@ -110,6 +112,9 @@ private:
 
 /*
  *$Log: PolygonDrawing.h,v $
+ *Revision 1.4  2007/12/25 15:46:23  pyushkevich
+ *Added undo/redo functionality to itk-snap
+ *
  *Revision 1.3  2007/10/01 00:13:15  pyushkevich
  *Polygon Drawing updates
  *

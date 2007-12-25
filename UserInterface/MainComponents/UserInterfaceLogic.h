@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/09/18 18:42:40 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -574,7 +574,14 @@ public:
   
   // Opacity slider callbacks
   void OnIRISLabelOpacityChange();
-  
+
+  // Undo/Redo buttons
+  void OnUndoAction();
+  void OnRedoAction();
+
+  // Method for creating undo points
+  void StoreUndoPoint(const char *text);
+
   // Methods to tweak window positions
   void OnWindowFocus(int iWindow);
 
@@ -704,6 +711,8 @@ private:
     UIF_IRIS_MESH_ACTION_PENDING, 
     UIF_IRIS_ROI_VALID,
     UIF_LINKED_ZOOM,
+    UIF_UNDO_POSSIBLE,
+    UIF_REDO_POSSIBLE,
 
     UIF_SNAP_ACTIVE,
     UIF_SNAP_PAGE_PREPROCESSING,
@@ -873,6 +882,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.7  2007/12/25 15:46:23  pyushkevich
+ *Added undo/redo functionality to itk-snap
+ *
  *Revision 1.6  2007/09/18 18:42:40  pyushkevich
  *Added tablet drawing to polygon mode
  *

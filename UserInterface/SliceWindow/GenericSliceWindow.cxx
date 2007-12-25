@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 04:53:35 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -113,7 +113,7 @@ GenericSliceWindow
 
 void 
 GenericSliceWindow
-::InitializeSlice(IRISImageData *imageData)
+::InitializeSlice(GenericImageData *imageData)
 {
   // Register should have been called already
   assert(m_IsRegistered);

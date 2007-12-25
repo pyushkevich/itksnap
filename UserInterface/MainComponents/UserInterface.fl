@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0107 
+version 1.0108 
 header_name {.h} 
 code_name {.cxx}
 decl {\#include <stdio.h>} {public
@@ -38,7 +38,7 @@ class UserInterface {open : {public UserInterfaceBase}
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
       callback {OnMainWindowCloseAction();} open
-      xywh {653 300 875 710} type Double align 0 resizable
+      xywh {695 221 875 710} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"} visible
     } {
       Fl_Menu_Bar m_MenubarMain {open
@@ -270,12 +270,33 @@ class UserInterface {open : {public UserInterfaceBase}
             }
             Fl_Group {} {
               label {Tool Options} open
-              xywh {5 164 137 137} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
+              xywh {5 164 135 137} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
             } {
               Fl_Wizard m_TabsToolOptions {
                 label {Active Tool Settings} open
-                xywh {5 165 137 136} box NO_BOX color 22 labeltype NO_LABEL labelsize 12 labelcolor 4
+                xywh {5 165 135 136} box NO_BOX color 22 labeltype NO_LABEL labelsize 12 labelcolor 4
               } {
+                Fl_Group m_GrpToolOptionCrosshairs {
+                  label 1
+                  xywh {5 165 135 135} labeltype NO_LABEL labelfont 1 labelsize 12 align 17
+                } {
+                  Fl_Output m_OutGreyProbe {
+                    label {Intensity:}
+                    tooltip {Intensity value at cursor position} xywh {15 230 50 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
+                  }
+                  Fl_Output m_OutLabelProbe {
+                    label {Label:}
+                    tooltip {Label at current position} xywh {80 230 50 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
+                  }
+                  Fl_Output m_OutLabelProbeText {
+                    label {Label description:}
+                    tooltip {Label at current position} xywh {15 270 115 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
+                  }
+                  Fl_Group {} {
+                    label {Crosshairs Tool} open
+                    tooltip {This tool navigates around the image. Press and drag with the left mouse button to reposition the cursor in the three slice views. Use the mouse wheel to change the slice. The arrow and PgUp/PgDn also work.} xywh {10 170 125 25} box PLASTIC_DOWN_BOX color 61 labelsize 12 align 16
+                  } {}
+                }
                 Fl_Group m_GrpToolOptionPolygon {
                   label 3 open
                   xywh {5 165 135 135} color 22 labelsize 10 labelcolor 4 hide
@@ -284,15 +305,34 @@ class UserInterface {open : {public UserInterfaceBase}
                     label {Polygon Tool} open
                     tooltip {Use this tool to draw polygons. The left mouse button is used to add points to the polygon, the right button will close the polygon. After the polygon is closed you select and move control points. Once you 'accept' a polygon, it is added to the segmentation.} xywh {10 170 125 25} box PLASTIC_DOWN_BOX color 243 labelsize 12 align 16
                   } {}
-                  Fl_Value_Slider m_InIRISFreehandFittingRate {
-                    label {Freehand curve fitting
- (nodes per pixel)}
-                    callback {OnIRISFreehandFittingRateUpdate()} selected
-                    tooltip {Changes what happens when you draw a freehand curve. The larger this number, the fewer line segments will be used to represent the freehand drawing.} xywh {15 225 115 15} type Horizontal labelsize 11 align 5 maximum 10 step 0.5
+                  Fl_Group {} {
+                    label {Freehand drawing:} open
+                    xywh {15 217 120 78} labelsize 11 align 5
+                  } {
+                    Fl_Round_Button m_InIRISFreehandContinuous {
+                      label continuous
+                      callback {OnIRISFreehandFittingRateUpdate()}
+                      xywh {20 220 85 15} type Radio down_box ROUND_DOWN_BOX labelsize 11
+                    }
+                    Fl_Round_Button m_InIRISFreehandLineSegment {
+                      label {line segments:}
+                      callback {OnIRISFreehandFittingRateUpdate()}
+                      xywh {20 234 85 15} type Radio down_box ROUND_DOWN_BOX value 1 labelsize 11
+                    }
+                    Fl_Value_Slider m_InIRISFreehandFittingRate {
+                      label {segment length}
+                      callback {OnIRISFreehandFittingRateUpdate()}
+                      tooltip {Changes what happens when you draw a freehand curve. The larger this number, the fewer line segments will be used to represent the freehand drawing.} xywh {40 250 90 15} type Horizontal labelsize 11 minimum 1 maximum 16 step 1 value 8
+                    }
+                  }
+                  Fl_Button {} {
+                    label {?}
+                    callback {this->ShowHTMLPage("ContextHelp_Freehand.html");}
+                    xywh {116 202 18 18} box PLASTIC_ROUND_UP_BOX color 180 labelfont 1 labelsize 12 align 16
                   }
                 }
                 Fl_Group m_GrpToolOptionPaintCan {
-                  label 4 open
+                  label 4
                   xywh {5 165 135 135} labelsize 10 hide
                 } {}
                 Fl_Group m_GrpToolOptionSnAP {
@@ -342,30 +382,9 @@ class UserInterface {open : {public UserInterfaceBase}
                     tooltip {Use this tool to change the zoom level and to pan around the image. Hold and drag the left mouse button to zoom and hold and drag the right button to pan.} xywh {10 170 125 25} box PLASTIC_DOWN_BOX color 91 labelsize 12 align 16
                   } {}
                 }
-                Fl_Group m_GrpToolOptionCrosshairs {
-                  label 1
-                  xywh {5 165 135 135} labeltype NO_LABEL labelfont 1 labelsize 12 align 17
-                } {
-                  Fl_Output m_OutGreyProbe {
-                    label {Intensity:}
-                    tooltip {Intensity value at cursor position} xywh {15 230 50 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
-                  }
-                  Fl_Output m_OutLabelProbe {
-                    label {Label:}
-                    tooltip {Label at current position} xywh {80 230 50 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
-                  }
-                  Fl_Output m_OutLabelProbeText {
-                    label {Label description:}
-                    tooltip {Label at current position} xywh {15 270 115 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
-                  }
-                  Fl_Group {} {
-                    label {Crosshairs Tool} open
-                    tooltip {This tool navigates around the image. Press and drag with the left mouse button to reposition the cursor in the three slice views. Use the mouse wheel to change the slice. The arrow and PgUp/PgDn also work.} xywh {10 170 125 25} box PLASTIC_DOWN_BOX color 61 labelsize 12 align 16
-                  } {}
-                }
                 Fl_Group m_GrpToolOptionBrush {
                   label 6 open
-                  xywh {5 165 137 135} color 22 labelsize 10 labelcolor 4 hide
+                  xywh {5 165 135 135} color 22 labelsize 10 labelcolor 4 hide
                 } {
                   Fl_Group {} {
                     label {Paintbrush Tool} open
@@ -409,13 +428,13 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
             Fl_Group {} {
-              label {Segmentation Label}
-              xywh {5 324 135 216} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
+              label {Segmentation Options}
+              xywh {5 324 135 243} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
             } {
               Fl_Button {} {
                 label {Edit labels...}
                 callback {OnEditLabelsAction();}
-                tooltip {Press this button to bring up the label editor} xywh {25 505 95 25} box PLASTIC_UP_BOX color 180 labelsize 11
+                tooltip {Press this button to bring up the label editor} xywh {20 505 105 25} box PLASTIC_UP_BOX color 180 labelsize 11
               }
               Fl_Group m_GrpCurrentColor {
                 label {Active drawing label:} open
@@ -448,26 +467,41 @@ OnDrawOverLabelUpdate();} open
                 callback {m_GlobalState->SetPolygonInvert(o->value() != 0);}
                 tooltip {When "draw inverted" is checked, paint operations (polygon drawing, 3D tools, automatic segmentation) are applied to the inversly: the outside of the polygon is painted, etc.} xywh {15 435 115 20} down_box DOWN_BOX labelsize 11
               }
+              Fl_Button m_BtnIRISUndo {
+                label Undo
+                callback {OnUndoAction();}
+                tooltip {Undo the last drawing operation} xywh {20 535 50 25} box PLASTIC_UP_BOX shortcut 0x4007a color 180 labelsize 11 deactivate
+              }
+              Fl_Button m_BtnIRISRedo {
+                label Redo
+                callback {OnRedoAction();}
+                tooltip {Redo the last drawing operation} xywh {75 535 50 25} box PLASTIC_UP_BOX shortcut 0x40079 color 180 labelsize 11 deactivate
+              }
+              Fl_Button {} {
+                label {?}
+                callback {this->ShowHTMLPage("ContextHelp_SegmentationOptions.html");} selected
+                xywh {115 437 18 18} box PLASTIC_ROUND_UP_BOX color 180 labelfont 1 labelsize 12 align 16
+              }
             }
             Fl_Group {} {
               label {3D Toolbox}
-              xywh {5 565 135 95} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
+              xywh {5 590 135 95} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
             } {
               Fl_Button {} {
                 callback {SetToolbarMode3D(CROSSHAIRS_3D_MODE);}
-                tooltip {3D navigation tool: use the left mouse button to position the crosshairs at point on the segmentation surface} image {Artwork/crosshair3D.gif} xywh {55 575 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16
+                tooltip {3D navigation tool: use the left mouse button to position the crosshairs at point on the segmentation surface} image {Artwork/crosshair3D.gif} xywh {55 600 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16
               }
               Fl_Button {} {
                 callback {SetToolbarMode3D(TRACKBALL_MODE);}
-                tooltip {3D trackball tool: left mouse button rotates the 3D view, right mouse button zooms and the middle button pans.} image {Artwork/rotate3d.gif} xywh {15 575 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX value 1 color 180 selection_color 180 align 16
+                tooltip {3D trackball tool: left mouse button rotates the 3D view, right mouse button zooms and the middle button pans.} image {Artwork/rotate3d.gif} xywh {15 600 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX value 1 color 180 selection_color 180 align 16
               }
               Fl_Button {} {
                 callback {SetToolbarMode3D(SPRAYPAINT_MODE);}
-                tooltip {3D spraypaint tool. Click (and hold) the left mouse button to relabel voxels on the boundaries of segmented objects} image {Artwork/spray.gif} xywh {15 615 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16
+                tooltip {3D spraypaint tool. Click (and hold) the left mouse button to relabel voxels on the boundaries of segmented objects} image {Artwork/spray.gif} xywh {15 640 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16
               }
               Fl_Button {} {
                 callback {SetToolbarMode3D(SCALPEL_MODE);}
-                tooltip {3D scalpel tool. Click at two locations in the 3D window to define a cutplane, then choose 'accept' to apply a paint operation on one side of the cutplane} image {Artwork/scalpel.gif} xywh {95 575 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16
+                tooltip {3D scalpel tool. Click at two locations in the 3D window to define a cutplane, then choose 'accept' to apply a paint operation on one side of the cutplane} image {Artwork/scalpel.gif} xywh {95 600 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16
               }
             }
           }

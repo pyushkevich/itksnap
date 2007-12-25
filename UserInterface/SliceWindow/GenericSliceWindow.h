@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 04:53:35 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -29,7 +29,7 @@
 
 // Forward references to parent classes
 class IRISApplication;
-class IRISImageData;
+class GenericImageData;
 class GlobalState;
 class UserInterfaceBase;  
 
@@ -77,7 +77,7 @@ public:
    * This method should called when the image dimensions and transforms
    * get updated.
    */
-  virtual void InitializeSlice(IRISImageData *imageData);
+  virtual void InitializeSlice(GenericImageData *imageData);
 
   /**
    * Reset the view parameters of the window (zoom, view position) to
@@ -168,7 +168,7 @@ protected:
   UserInterfaceBase *m_ParentUI;   
 
   /** The image data object that is displayed in this window */
-  IRISImageData *m_ImageData;
+  GenericImageData *m_ImageData;
 
   /** Interaction mode used to position the crosshairs */
   CrosshairsInteractionMode *m_CrosshairsMode;

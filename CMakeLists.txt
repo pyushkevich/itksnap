@@ -8,11 +8,11 @@ PROJECT(SNAP)
 #############################################
 SET(SNAP_VERSION_MAJOR 1)
 SET(SNAP_VERSION_MINOR 5)
-SET(SNAP_VERSION_PATCH 4)
+SET(SNAP_VERSION_PATCH 6)
 SET(SNAP_VERSION_FULL "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}")
-SET(SNAP_VERSION_RELEASE_DATE "20070919")
+SET(SNAP_VERSION_RELEASE_DATE "20071225")
 SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20031109")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Sep 19, 2007")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Dec 25, 2007")
 
 #########################################################
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS #
@@ -53,10 +53,12 @@ SET(LOGIC_CXX
   Logic/Common/SNAPRegistryIO.cxx
   Logic/Common/ColorLabelTable.cxx
   Logic/Common/SNAPSegmentationROISettings.cxx
+  Logic/Framework/GenericImageData.cxx
   Logic/Framework/GlobalState.cxx
   Logic/Framework/IRISApplication.cxx
   Logic/Framework/IRISImageData.cxx
   Logic/Framework/SNAPImageData.cxx
+  Logic/Framework/UndoDataManager_LabelType.cxx
   Logic/ImageWrapper/GreyImageWrapper.cxx
   Logic/ImageWrapper/GuidedImageIO.cxx
   Logic/ImageWrapper/LabelImageWrapper.cxx
@@ -105,10 +107,13 @@ SET(LOGIC_HEADERS
   Logic/Common/ImageRayIntersectionFinder.txx
   Logic/Common/SNAPRegistryIO.h
   Logic/Common/SNAPSegmentationROISettings.h
+  Logic/Framework/GenericImageData.h
   Logic/Framework/GlobalState.h
   Logic/Framework/IRISApplication.h
   Logic/Framework/IRISImageData.h
   Logic/Framework/SNAPImageData.h
+  Logic/Framework/UndoDataManager.h
+  Logic/Framework/UndoDataManager.txx
   Logic/ImageWrapper/GreyImageWrapper.h
   Logic/ImageWrapper/GuidedImageIO.h
   Logic/ImageWrapper/ImageIORoutines.h
@@ -302,6 +307,8 @@ SET(APPLICATION_FLUIDS
 # All program files
 SET(PROGRAM_DATA_FILES
   ProgramData/SNAPProgramDataDirectory.txt
+  ProgramData/HTMLHelp/ContextHelp_Freehand.html
+  ProgramData/HTMLHelp/ContextHelp_SegmentationOptions.html
   ProgramData/HTMLHelp/Credits.html
   ProgramData/HTMLHelp/Tutorial.html
   ProgramData/HTMLHelp/TutorialSectionEdgeBasedSegmentation.html
@@ -655,7 +662,7 @@ SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR}/ProgramData)
 SUBDIRS(ProgramData)
 
 # Generate forward shared executable
-SUBDIRS(Utilities/Linux)
+SUBDIRS(Utilities/Forwarding)
 
 # ----------------------------------------------------------------
 # LIBRARY BUNDLING

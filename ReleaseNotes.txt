@@ -1,22 +1,40 @@
 ======================================
  InsightSNAP Release Notes
- Version 1.4.1
+ Version 1.6.0 (upcoming release)
 ======================================
 
 -----------------
 1. New Features
 -----------------
 
-1.1. New in Version 1.5
+1.1. New in Version 1.6.0 (upcoming release)
 -------------------------
 
 1.1.1. New Features and UI Improvements
 
  -  Support for RGB (color) images in SNAP. This is great for segmenting in DTI
     data (manually, for the time being). RGB images can be loaded as the base 
-    image or as an overlay over the gray.
+    image or as an overlay over the gray. 
 
- -  Support for exporting segmentations as VTK meshes
+ -  Segmentations can be exported as VTK meshes (for example, for loading in 
+    ParaView).
+
+ -  Multilevel undo/redo functionality for all segmentation operations (polygon,
+    paintbrush, freehand, 3D segmentation, 3D cutplane).
+
+ -  Freehand drawing support in polygon mode (hold and drag the mouse button). 
+    This feature is especially useful for using SNAP on a tablet.
+
+1.1.2. Bug Fixes
+
+ -  Various bugs have been fixed :)
+
+1.1.3. Distribution Changes
+
+ -  SNAP website fully migrated to sourceforge.net
+
+ -  Linux binaries will be available starting with 1.6.0
+
 
 1.2. New in Version 1.4.1
 -------------------------

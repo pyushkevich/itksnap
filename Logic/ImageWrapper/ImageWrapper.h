@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: ImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:20 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -194,8 +194,13 @@ public:
   /**
    * This method exposes the scalar pointer in the image
    */
-  virtual const TPixel *GetVoxelPointer() const;
+  virtual TPixel *GetVoxelPointer() const;
 
+  /**
+   * Get the number of voxels
+   */
+  size_t GetNumberOfVoxels() const;
+    
   /**
    * Pring debugging info
    * TODO: Delete this or make is worthwhile

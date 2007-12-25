@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SliceWindowCoordinator.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:27 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/12/25 15:46:24 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -94,7 +94,7 @@ protected:
   UserInterfaceBase *m_ParentUI;   
 
   /** The image data object that is displayed in this window */
-  IRISImageData *m_ImageData;
+  GenericImageData *m_ImageData;
 
   /** The pointers to three window interactors managed by this class */
   GenericSliceWindow *m_Window[3];

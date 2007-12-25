@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PaintbrushInteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2007/09/16 19:59:14 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -34,6 +34,7 @@ public:
   int OnKeyDown(const FLTKEvent &event);
   int OnMouseRelease(const FLTKEvent &event, const FLTKEvent &pressEvent);
   int OnMouseDrag(const FLTKEvent &event, const FLTKEvent &pressEvent);
+  int DragReleaseHandler(FLTKEvent const &event, const FLTKEvent &pressEvent, bool drag);
   int OnShortcut(const FLTKEvent &event);
   int OnMouseMotion(const FLTKEvent &event);             
   int OnMouseEnter(const FLTKEvent &event);

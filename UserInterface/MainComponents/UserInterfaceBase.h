@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2007/09/18 18:42:40 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -157,6 +157,10 @@ public:
   virtual void OnIRISLabelOpacityChange() = 0;
   virtual void OnSNAPLabelOpacityChange() = 0;
 
+  // Undo/Redo buttons
+  virtual void OnUndoAction() = 0;
+  virtual void OnRedoAction() = 0;
+
   // SNAP: 3D window related callbacks  
   virtual void OnSNAPMeshUpdateAction() = 0;
   virtual void OnSNAPMeshContinuousUpdateAction() = 0;
@@ -199,6 +203,8 @@ public:
 
   // Non-callbacks
   virtual double GetFreehandFittingRate() = 0;
+
+  virtual void StoreUndoPoint(const char *text) = 0;
 
 protected:
     GlobalState *m_GlobalState;

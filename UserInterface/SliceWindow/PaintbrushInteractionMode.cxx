@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PaintbrushInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 20:33:09 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -449,14 +449,7 @@ PaintbrushInteractionMode
 
 int
 PaintbrushInteractionMode
-::OnMouseRelease(FLTKEvent const &event, FLTKEvent const &pressEvent)
-{
-  return OnMouseDrag(event, pressEvent);
-}
-
-int
-PaintbrushInteractionMode
-::OnMouseDrag(FLTKEvent const &event, FLTKEvent const &pressEvent)
+::DragReleaseHandler(FLTKEvent const &event, FLTKEvent const &pressEvent, bool drag)
 {
   // Get the paintbrush properties
   PaintbrushSettings pbs = 
@@ -485,6 +478,10 @@ PaintbrushInteractionMode
 
       // Scan convert the points into the slice
       ApplyBrush(event);    
+
+      // Set an undo point if not in drag mode
+      if(!drag)
+        m_Parent->m_ParentUI->StoreUndoPoint("Drawing with paintbrush");
       }
 
     // Record the event
@@ -495,6 +492,20 @@ PaintbrushInteractionMode
     }
 
   return 0;
+}
+
+int
+PaintbrushInteractionMode
+::OnMouseRelease(FLTKEvent const &event, FLTKEvent const &pressEvent)
+{
+  return DragReleaseHandler(event, pressEvent,false);
+}
+
+int
+PaintbrushInteractionMode
+::OnMouseDrag(FLTKEvent const &event, FLTKEvent const &pressEvent)
+{
+  return DragReleaseHandler(event, pressEvent,true);
 }
 
 int

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/18 18:42:40 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -159,6 +159,8 @@ void UserInterfaceLogic
   m_Activation->SetFlagImplies(UIF_SNAP_SNAKE_INITIALIZED, UIF_SNAP_ACTIVE);
   m_Activation->SetFlagImplies(UIF_SNAP_PREPROCESSING_DONE, UIF_SNAP_ACTIVE);
 
+  m_Activation->SetFlagImplies(UIF_UNDO_POSSIBLE, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->SetFlagImplies(UIF_REDO_POSSIBLE, UIF_IRIS_WITH_BASEIMG_LOADED);
 
   // Set up the exclusive relationships between flags
   m_Activation->SetFlagImplies( UIF_SNAP_ACTIVE, UIF_IRIS_ACTIVE, true, false );
@@ -189,7 +191,10 @@ void UserInterfaceLogic
   m_Activation->AddWidget(m_BtnSnakeRewind, UIF_SNAP_SNAKE_INITIALIZED);
   m_Activation->AddWidget(m_BtnSnakeStop, UIF_SNAP_SNAKE_INITIALIZED);
   m_Activation->AddWidget(m_BtnSnakeStep, UIF_SNAP_SNAKE_INITIALIZED);
-  
+
+  m_Activation->AddWidget(m_BtnIRISUndo, UIF_UNDO_POSSIBLE);
+  m_Activation->AddWidget(m_BtnIRISRedo, UIF_REDO_POSSIBLE);
+
   // Add more complex relationships
   m_Activation->AddCheckBox(m_ChkContinuousView3DUpdate, 
     UIF_SNAP_SNAKE_INITIALIZED, false, false);
@@ -231,6 +236,8 @@ void UserInterfaceLogic
 
   for(i = 0; i < 5; i++)
     m_Activation->AddMenuItem(m_MenuLoadPreviousFirst + i, UIF_IRIS_ACTIVE);
+
+
 }
 
 UserInterfaceLogic
@@ -1423,6 +1430,9 @@ UserInterfaceLogic
   // This is a safeguard in case the progress events do not fire
   m_WinProgress->hide();
 
+  // Create an undo point
+  this->StoreUndoPoint("Automatic segmentation");
+
   // Close up SNAP
   this->CloseSegmentationCommon();
 }
@@ -2151,6 +2161,9 @@ UserInterfaceLogic
 
     // The segmentation has been dirtied
     m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
+
+    // Set the undo point
+    this->StoreUndoPoint("Polygon drawing");
     }
   else
     {
@@ -2189,9 +2202,23 @@ void
 UserInterfaceLogic
 ::OnIRISFreehandFittingRateUpdate()
 {
-  for(size_t i = 0; i < 3; i++)
-    m_IRISWindowManager2D[i]->SetFreehandFittingRate(
-      m_InIRISFreehandFittingRate->value());
+  if(m_InIRISFreehandContinuous->value())
+    {
+    m_InIRISFreehandFittingRate->deactivate();
+    for(size_t i = 0; i < 3; i++)
+      {
+      m_IRISWindowManager2D[i]->SetFreehandFittingRate(0);  
+      }
+    }
+  else
+    {
+    m_InIRISFreehandFittingRate->activate();
+    for(size_t i = 0; i < 3; i++)
+      {
+      m_IRISWindowManager2D[i]->SetFreehandFittingRate(
+        m_InIRISFreehandFittingRate->value());
+      }
+    }
 }
 
 void 
@@ -2415,6 +2442,7 @@ UserInterfaceLogic
 {
   m_IRISWindowManager3D->Accept();
   RedrawWindows();
+  StoreUndoPoint("3D operation");
   
   m_Activation->UpdateFlag(UIF_IRIS_MESH_ACTION_PENDING, false);
   m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
@@ -2634,6 +2662,10 @@ UserInterfaceLogic
   // Enable some menu items
   m_Activation->UpdateFlag(UIF_IRIS_WITH_GRAY_LOADED, true);
 
+  // Disable undo and redo 
+  m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
+  m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
+
   // Image geometry has changed
   OnImageGeometryUpdate();
 
@@ -2779,6 +2811,8 @@ UserInterfaceLogic
 
   m_IRISWindowManager3D->ResetView();
   m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
+  m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
+  m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
   
   UpdateMainLabel();
   
@@ -3730,8 +3764,49 @@ UserInterfaceLogic
     m_RenderWindow->SaveAsPNG(m_LastSnapshotFileName.c_str());
 }
 
+void
+UserInterfaceLogic
+::OnUndoAction()
+{
+  m_Driver->Undo();
+
+  // Update the flags in the UI
+  m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
+  m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
+  m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
+  RedrawWindows();
+}
+
+void
+UserInterfaceLogic
+::OnRedoAction()
+{
+  m_Driver->Redo();
+
+  // Update the flags in the UI
+  m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
+  m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
+  m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
+  RedrawWindows();
+}
+
+void
+UserInterfaceLogic
+::StoreUndoPoint(const char *text)
+{
+  // the actual undo point is handled in IRISApplication
+  m_Driver->StoreUndoPoint(text);
+
+  // Update the flags in the UI
+  m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
+  m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
+}
+
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.11  2007/12/25 15:46:23  pyushkevich
+ *Added undo/redo functionality to itk-snap
+ *
  *Revision 1.10  2007/09/18 18:42:40  pyushkevich
  *Added tablet drawing to polygon mode
  *

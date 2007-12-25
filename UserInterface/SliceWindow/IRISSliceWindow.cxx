@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: IRISSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/09/18 18:42:40 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -66,7 +66,7 @@ IRISSliceWindow
 
 void 
 IRISSliceWindow
-::InitializeSlice(IRISImageData *imageData)
+::InitializeSlice(GenericImageData *imageData)
 {
   // Call the parent's version of this method
   GenericSliceWindow::InitializeSlice(imageData);

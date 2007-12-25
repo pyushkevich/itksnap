@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/10/01 00:13:15 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2007/12/25 15:46:23 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -251,7 +251,7 @@ PolygonDrawing
     if(it->selected && itNext->selected)
       {
       // Insert a new vertex
-      Vertex vNew(0.5 * (it->x + itNext->x), 0.5 * (it->y + itNext->y), true);
+      Vertex vNew(0.5 * (it->x + itNext->x), 0.5 * (it->y + itNext->y), true, true);
       it = m_Vertices.insert(++it, vNew);
       }
 
@@ -354,7 +354,7 @@ PolygonDrawing
     ImageType::IndexType idx;
     idx.Fill(i);
     VectorType v = lattice->GetPixel(idx);
-    m_Vertices.push_back(Vertex(v[0],v[1],false));
+    m_Vertices.push_back(Vertex(v[0],v[1],false,true));
     }
 
   /*
@@ -380,6 +380,8 @@ bool PolygonVertexTest(const PolygonDrawing::Vertex &v1, const PolygonDrawing::V
 {
   return v1.x == v2.x && v1.y == v2.y;
 }
+
+#include "itkImageFileWriter.h"
 
 /**
  * AcceptPolygon()
@@ -429,6 +431,12 @@ PolygonDrawing
   
   ScanConvertType::RasterizeFilled(
     m_Vertices.begin(), m_Vertices.size(), image);
+
+  typedef itk::ImageFileWriter<ByteImageType> WType;
+  WType::Pointer we = WType::New();
+  we->SetInput(image);
+  we->SetFileName("test.png");
+  we->Update();
 
   // Copy polygon into polygon m_Cache
   m_CachedPolygon = true;
@@ -572,12 +580,15 @@ PolygonDrawing
   glBegin(GL_POINTS);
   for(it = m_Vertices.begin(); it!=m_Vertices.end();++it) 
   {
-    if (it->selected) 
-      glColor3f(0.0f, 1.0f, 0.0f); 
-    else
-      glColor3f(1.0f, 0.0f, 0.0f);
+    if(it->control)
+      {
+      if (it->selected) 
+        glColor3f(0.0f, 1.0f, 0.0f); 
+      else
+        glColor3f(1.0f, 0.0f, 0.0f);
 
-    glVertex3f(it->x,it->y,0.0f);
+      glVertex3f(it->x,it->y,0.0f);
+      }
   }
 
   // Draw the last dragging vertex point
@@ -668,7 +679,7 @@ PolygonDrawing
     if ((event == FL_PUSH) && (button == FL_LEFT_MOUSE)) 
       {
       m_State = DRAWING_STATE;
-      m_Vertices.push_back( Vertex(x, y, false) );
+      m_Vertices.push_back( Vertex(x, y, false, true) );
       return 1;
       }
     break;
@@ -685,7 +696,7 @@ PolygonDrawing
         if(m_Vertices.size() == 0 || 
           m_Vertices.back().x != x || m_Vertices.back().y != y)
           {
-          m_Vertices.push_back( Vertex(x, y, false) );
+          m_Vertices.push_back( Vertex(x, y, false, true) );
           }
         return 1;
         } 
@@ -705,16 +716,23 @@ PolygonDrawing
       {
       if(m_Vertices.size() == 0)
         {
-        m_Vertices.push_back(Vertex(x,y,false));
+        m_Vertices.push_back(Vertex(x,y,false,true));
         }
       else 
         {
-        Vertex &v = m_Vertices.back();
-        double dx = (v.x-x) / pixel_x;
-        double dy = (v.y-y) / pixel_y;
-        double d = dx*dx+dy*dy;
-        if(d >= m_FreehandFittingRate * m_FreehandFittingRate)
-          m_Vertices.push_back(Vertex(x,y,false));
+        if(m_FreehandFittingRate == 0)
+          {
+          m_Vertices.push_back(Vertex(x,y,false,false));
+          }
+        else
+          {
+          Vertex &v = m_Vertices.back();
+          double dx = (v.x-x) / pixel_x;
+          double dy = (v.y-y) / pixel_y;
+          double d = dx*dx+dy*dy;
+          if(d >= m_FreehandFittingRate * m_FreehandFittingRate)
+            m_Vertices.push_back(Vertex(x,y,false,true));
+          }
         }
 
       /*  
@@ -728,10 +746,12 @@ PolygonDrawing
     else if (event == FL_RELEASE)
       {
       // If some dragging has been done, convert it to polygons
-      if(m_DragVertices.size() > 0)
-        {
-        ProcessFreehandCurve();
-        }
+      // if(m_DragVertices.size() > 0)
+      //  {
+      //  ProcessFreehandCurve();
+      //  }
+      if(m_Vertices.size() && m_Vertices.back().control == false)
+        m_Vertices.back().control = true;
       }
     break;
 
@@ -817,6 +837,7 @@ PolygonDrawing
             m_EditBox[2] += (y - m_StartY);
             m_EditBox[3] += (y - m_StartY);
 
+            // If the selection is bounded by control vertices, we simply shift it
             for(it = m_Vertices.begin(); it!=m_Vertices.end(); ++it) 
               {
               if (it->selected) 
@@ -825,6 +846,8 @@ PolygonDrawing
                 it->y += (y - m_StartY);
                 }
               }
+
+            // If the selection is bounded by freehand vertices, we apply a smooth
             m_StartX = x;
             m_StartY = y;
             }
@@ -896,6 +919,9 @@ PolygonDrawing
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.6  2007/12/25 15:46:23  pyushkevich
+ *Added undo/redo functionality to itk-snap
+ *
  *Revision 1.5  2007/10/01 00:13:15  pyushkevich
  *Polygon Drawing updates
  *
