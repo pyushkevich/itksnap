@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/06 20:43:37 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2007/12/26 12:26:52 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -27,7 +27,6 @@
 #include "SNAPRegistryIO.h"
 #include "SystemInterface.h"
 #include "UserInterfaceLogic.h"
-#include "vtkOpenGLExtensionManager.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -267,10 +266,6 @@ int main(int argc, char **argv)
   // Show the IRIS Interface
   ui->Launch();
 
-  // Let's check the GL extensions available
-  vtkOpenGLExtensionManager *man = vtkOpenGLExtensionManager::New();
-  man->Update();
-  
   // Show the splash screen
   ui->ShowSplashScreen();
 
@@ -390,6 +385,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.7  2007/12/26 12:26:52  pyushkevich
+ *Removed the OpenGL extension thing
+ *
  *Revision 1.6  2007/12/06 20:43:37  pyushkevich
  *More gentle parsing of command line arguments
  *
