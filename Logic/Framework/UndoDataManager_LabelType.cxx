@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: UndoDataManager_LabelType.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/25 15:46:23 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2007/12/26 12:32:34 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -16,4 +16,4 @@
 #include "UndoDataManager.h"
 #include "UndoDataManager.txx"
 
-template UndoDataManager<LabelType>;
+template class UndoDataManager<LabelType>;
