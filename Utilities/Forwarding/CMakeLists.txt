@@ -9,7 +9,7 @@ IF(NOT WIN32)
   SET(SNAP_FORWARD_PATH_INSTALL "\"${SNAP_FORWARD_DIR_INSTALL}\"")
   SET(SNAP_FORWARD_EXE ${SNAP_EXE})
   CONFIGURE_FILE(
-    ${SNAP_SOURCE_DIR}/Utilities/Linux/SharedForwardExe.c.in
+    ${SNAP_SOURCE_DIR}/Utilities/Forwarding/SharedForwardExe.c.in
     ${CMAKE_CURRENT_BINARY_DIR}/shared-forward.c
     @ONLY IMMEDIATE)
   ADD_EXECUTABLE(itksnap ${CMAKE_CURRENT_BINARY_DIR}/shared-forward.c)
