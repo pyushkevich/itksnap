@@ -46,9 +46,9 @@ logfile=$basedir/buildlog
 
 # Release versions for the supporting software. Change to HEAD to get
 # the most current version of the code
-CMAKE_REL="CMake-2-4-2"
-ITK_REL="ITK-2-8"
-VTK_REL="release-4-4"
+CMAKE_REL="CMake-2-4-7"
+ITK_REL="ITK-3-2"
+VTK_REL="release-5-0-3"
 SNAP_REL="HEAD"
 
 # -------------------------------------------------------------
