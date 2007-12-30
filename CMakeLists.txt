@@ -648,10 +648,16 @@ FOREACH(DATAFILE ${PROGRAM_DATA_FILES})
     COPYONLY)
 ENDFOREACH(DATAFILE)
 
-# Copy the InnoSetup installer configuration script
-CONFIGURE_FILE(
-  ${SNAP_SOURCE_DIR}/Utilities/InnoSetup/InstallSNAP.iss.in
-  ${SNAP_BINARY_DIR}/Utilities/InnoSetup/InstallSNAP.iss)
+# Include all program data
+SUBDIRS(ProgramData)
+
+# ----------------------------------------------------------------
+# INSTALLATION AND PACKAGING with CPack
+# ----------------------------------------------------------------
+INCLUDE(CMake/CustomBuildSettings.cmake)
+
+# Generate forward shared executable
+SUBDIRS(Utilities/Forwarding)
 
 # Install the SNAP executable in the appropriate place.
 IF(WIN32 AND NOT UNIX)
@@ -662,17 +668,6 @@ ELSE(WIN32 AND NOT UNIX)
   SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR}/ProgramData)
   INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION lib/snap-${SNAP_VERSION_FULL})
 ENDIF(WIN32 AND NOT UNIX)
-
-# Include all program data
-SUBDIRS(ProgramData)
-
-# Generate forward shared executable
-SUBDIRS(Utilities/Forwarding)
-
-# ----------------------------------------------------------------
-# PACKAGING with CPack
-# ----------------------------------------------------------------
-#include (InstallRequiredSystemLibraries)
 
 # On Win32, we must include the redistributable
 IF(WIN32 AND MSVC80)
@@ -692,13 +687,9 @@ SET(CPACK_PACKAGE_VERSION_MINOR "${SNAP_VERSION_MINOR}")
 SET(CPACK_PACKAGE_VERSION_PATCH "${SNAP_VERSION_PATCH}")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "itksnap-${SNAP_VERSION_FULL}")
 
-IF(NOT WIN32)
-  SET(CPACK_GENERATOR "TGZ")
-ENDIF(NOT WIN32)
 
 # Shamelessly stolen from ParaView_
-SET(CPACK_SOURCE_PACKAGE_FILE_NAME
-  "itksnap-${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}")
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}")
 IF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
   EXEC_PROGRAM(uname ARGS "-m" OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
 ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
@@ -716,6 +707,7 @@ IF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
   SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
 ENDIF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
 
+# Show GPL license
 SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
 
 IF(WIN32 AND NOT UNIX)
@@ -723,12 +715,10 @@ IF(WIN32 AND NOT UNIX)
   # There is a bug in NSI that does not handle full unix paths properly. Make
   # sure there is at least one set of four (4) backlasshes.
   SET(CPACK_GENERATOR "NSIS")
-  ### SET(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
   SET(CPACK_NSIS_INSTALLED_ICON_NAME "InsightSNAP.exe")
   SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ITK-SNAP")
   SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.itksnap.org")
   SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.itksnap.org/credits.php")
-  ### SET(CPACK_NSIS_CONTACT ".com")
   SET(CPACK_NSIS_MODIFY_PATH OFF)
   
   # Give it a windowsy directory name
@@ -738,6 +728,13 @@ IF(WIN32 AND NOT UNIX)
   SET(CPACK_PACKAGE_EXECUTABLES InsightSNAP "ITK-SNAP")
   
 ELSE(WIN32 AND NOT UNIX)
+
+  # Set the generator to either STGZ or Apple
+  IF(NOT APPLE)
+    SET(CPACK_GENERATOR "STGZ")
+  ELSE(NOT APPLE)
+    SET(CPACK_GENERATOR "DMG")
+  ENDIF(NOT APPLE)
 
   # Executable is the forward sharing exe
   SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
