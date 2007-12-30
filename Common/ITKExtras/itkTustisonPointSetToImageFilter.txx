@@ -1,13 +1,19 @@
 /*=========================================================================
 
-Program:   Insight Segmentation & Registration Toolkit
+Program:   ITK-SNAP
 Module:    $RCSfile: itkTustisonPointSetToImageFilter.txx,v $
 Language:  C++
-Date:      $Date: 2007/09/18 18:42:40 $
-Version:   $Revision: 1.1 $
+Date:      $Date: 2007/12/30 04:05:12 $
+Version:   $Revision: 1.2 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
-See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+
+  This file is part of ITK-SNAP 
+
+  ITK-SNAP is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
 This software is distributed WITHOUT ANY WARRANTY; without even 
 the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 

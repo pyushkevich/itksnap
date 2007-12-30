@@ -1,12 +1,18 @@
 /*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
+  Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:21 $
-  Version:   $Revision: 1.1 $
-  Copyright (c) 2003 Insight Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+  Date:      $Date: 2007/12/30 04:05:16 $
+  Version:   $Revision: 1.2 $
+  Copyright (c) 2007 Paul A. Yushkevich
+  
+  This file is part of ITK-SNAP 
+
+  ITK-SNAP is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
      This software is distributed WITHOUT ANY WARRANTY; without even 
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 

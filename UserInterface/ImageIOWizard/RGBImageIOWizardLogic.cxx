@@ -1,11 +1,11 @@
 /*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
+  Program:   ITK-SNAP
   Module:    $RCSfile: RGBImageIOWizardLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:21 $
-  Version:   $Revision: 1.1 $
-  Copyright (c) 2003 Insight Consortium. All rights reserved.
+  Date:      $Date: 2007/12/30 04:05:16 $
+  Version:   $Revision: 1.2 $
+  Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even 

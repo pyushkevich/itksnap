@@ -7,8 +7,8 @@ PROJECT(SNAP)
 # VERSION INFORMATION                       #
 #############################################
 SET(SNAP_VERSION_MAJOR 1)
-SET(SNAP_VERSION_MINOR 5)
-SET(SNAP_VERSION_PATCH 6)
+SET(SNAP_VERSION_MINOR 6)
+SET(SNAP_VERSION_PATCH 0-rc1)
 SET(SNAP_VERSION_FULL "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}")
 SET(SNAP_VERSION_RELEASE_DATE "20071225")
 SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20031109")
@@ -653,32 +653,36 @@ CONFIGURE_FILE(
   ${SNAP_SOURCE_DIR}/Utilities/InnoSetup/InstallSNAP.iss.in
   ${SNAP_BINARY_DIR}/Utilities/InnoSetup/InstallSNAP.iss)
 
-# Add an option to install SNAP into /usr/local or something
-INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION lib/snap-${SNAP_VERSION_FULL})
+# Install the SNAP executable in the appropriate place.
+IF(WIN32 AND NOT UNIX)
+  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION bin)
+  SET(SNAP_DATA_INSTALL_DIR /ProgramData)
+ELSE(WIN32 AND NOT UNIX)
+  SET(SNAP_MAIN_INSTALL_DIR /lib/snap-${SNAP_VERSION_FULL})
+  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR}/ProgramData)
+  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION lib/snap-${SNAP_VERSION_FULL})
+ENDIF(WIN32 AND NOT UNIX)
 
 # Include all program data
-SET(SNAP_MAIN_INSTALL_DIR /lib/snap-${SNAP_VERSION_FULL})
-SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR}/ProgramData)
 SUBDIRS(ProgramData)
 
 # Generate forward shared executable
 SUBDIRS(Utilities/Forwarding)
 
 # ----------------------------------------------------------------
-# LIBRARY BUNDLING
-# ----------------------------------------------------------------
-IF(UNIX AND NOT WIN32)
-  FIND_LIBRARY(LIBSTDCPP stdc++)
-  FIND_LIBRARY(LIBGCC_S gcc_s)
-  FIND_LIBRARY(LIBLINUX ld_linux)
-  INSTALL(FILES ${LIBSTDCPP} DESTINATION lib/snap-${SNAP_VERSION_FULL} COMPONENT Runtime)
-ENDIF(UNIX AND NOT WIN32)
-
-
-# ----------------------------------------------------------------
 # PACKAGING with CPack
 # ----------------------------------------------------------------
-include (InstallRequiredSystemLibraries)
+#include (InstallRequiredSystemLibraries)
+
+# On Win32, we must include the redistributable
+IF(WIN32 AND MSVC80)
+  FIND_PROGRAM(VCREDIST_X86 vcredist_x86.exe)
+  IF(VCREDIST_X86)
+    INSTALL(FILES ${VCREDIST_X86} DESTINATION lib/snap-${SNAP_VERSION_FULL})
+    SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
+      "ExecWait '\\\"$INSTDIR\\\\vcredist_x86.exe\\\"'")
+  ENDIF(VCREDIST_X86)
+ENDIF(WIN32 AND MSVC80)
 
 # Allow package generation
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ITK-SNAP 3D Image Segmentation Tool")
@@ -687,7 +691,10 @@ SET(CPACK_PACKAGE_VERSION_MAJOR "${SNAP_VERSION_MAJOR}")
 SET(CPACK_PACKAGE_VERSION_MINOR "${SNAP_VERSION_MINOR}")
 SET(CPACK_PACKAGE_VERSION_PATCH "${SNAP_VERSION_PATCH}")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "itksnap-${SNAP_VERSION_FULL}")
-SET(CPACK_GENERATOR "TGZ")
+
+IF(NOT WIN32)
+  SET(CPACK_GENERATOR "TGZ")
+ENDIF(NOT WIN32)
 
 # Shamelessly stolen from ParaView_
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME
@@ -710,15 +717,26 @@ IF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
 ENDIF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
 
 IF(WIN32 AND NOT UNIX)
+
   # There is a bug in NSI that does not handle full unix paths properly. Make
   # sure there is at least one set of four (4) backlasshes.
-  SET(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
-  SET(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\MyExecutable.exe")
-  SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} My Famous Project")
-  SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.my-project-home-page.org")
-  SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.my-personal-home-page.com")
-  SET(CPACK_NSIS_CONTACT "me@my-personal-home-page.com")
-  SET(CPACK_NSIS_MODIFY_PATH ON)
+  SET(CPACK_GENERATOR "NSIS")
+  ### SET(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
+  SET(CPACK_NSIS_INSTALLED_ICON_NAME "InsightSNAP.exe")
+  SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ITK-SNAP")
+  SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.itksnap.org")
+  SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.itksnap.org/credits.php")
+  ### SET(CPACK_NSIS_CONTACT ".com")
+  SET(CPACK_NSIS_MODIFY_PATH OFF)
+  
+  # On Win32, the executable is the actual exe
+  SET(CPACK_PACKAGE_EXECUTABLES InsightSNAP "ITK-SNAP")
+  
+ELSE(WIN32 AND NOT UNIX)
+
+  # Executable is the forward sharing exe
+  SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
+
 ENDIF(WIN32 AND NOT UNIX)
-SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
+
 INCLUDE(CPack)
