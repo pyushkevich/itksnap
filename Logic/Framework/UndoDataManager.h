@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UndoDataManager.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/12/30 18:21:47 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -80,7 +80,6 @@ public:
         {
         if(m_CurrentLength > 0)
           m_Array.push_back(std::make_pair(m_CurrentLength, m_LastValue));
-        std::cout << "Delta size: " << m_Array.size() << std::endl;
         }
 
       size_t GetNumberOfRLEs()

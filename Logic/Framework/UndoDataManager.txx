@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UndoDataManager.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/12/30 18:21:47 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -67,7 +67,6 @@ UndoDataManager<TPixel>
   // to the end. So that's the loop that we do
   while(m_Position != m_DeltaList.end())
     {
-    std::cout << "Pruned from end, size " << (*m_Position)->GetNumberOfRLEs() << std::endl;
     m_TotalSize -= (*m_Position)->GetNumberOfRLEs();
     delete *m_Position;
     m_Position = m_DeltaList.erase(m_Position);
@@ -78,7 +77,6 @@ UndoDataManager<TPixel>
   while(m_DeltaList.size() > m_MinDeltas 
     && m_TotalSize + delta->GetNumberOfRLEs() > m_MaxTotalSize)
     {
-    std::cout << "Pruned from start, size " << (*itHead)->GetNumberOfRLEs() << std::endl;
     m_TotalSize -= (*itHead)->GetNumberOfRLEs();
     delete *itHead;
     itHead = m_DeltaList.erase(itHead);

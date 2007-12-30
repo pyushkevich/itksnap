@@ -29,6 +29,7 @@
 # Paul Y.
 # *************************************************************
 
+set -x -e
 
 # -------------------------------------------------------------
 # Options that the user can supply
@@ -48,7 +49,7 @@ logfile=$basedir/buildlog
 # the most current version of the code
 CMAKE_REL="CMake-2-4-7"
 ITK_REL="ITK-3-2"
-VTK_REL="release-5-0-3"
+VTK_REL="VTK-5-0-3"
 SNAP_REL="HEAD"
 
 # -------------------------------------------------------------
@@ -74,9 +75,14 @@ echo "Preparing to build itk-snap. This will take 1-2 hours and 500MB!"
 echo "Log messages are placed into $logfile"
 
 # Create the directory tree for the build
-for dir in "itksnap/bingcc" "itk/bingcc" "vtk/bingcc" "fltk/bingcc" "cmake/install" $instdir
+for dir in "$basedir/itksnap/bingcc" \
+  "$basedir/itk/bingcc" \
+  "$basedir/vtk/bingcc" \
+  "$basedir/fltk/bingcc" \
+  "$basedir/cmake/install" \
+  $instdir
 do
-  mkdir -p $basedir/$dir
+  mkdir -p $dir
   if [ $? -ne 0 ]; then exit; fi
 done
 
@@ -257,9 +263,9 @@ function get_itksnap {
 # -------------------------------------------------------------
 # Perform the actual build tasks
 # -------------------------------------------------------------
-get_cmake
-get_itk
-get_fltk
+### get_cmake
+### get_itk
+### get_fltk
 get_vtk
 get_itksnap
 
