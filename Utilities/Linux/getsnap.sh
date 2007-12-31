@@ -23,13 +23,14 @@
 # them. Beware that the build flags must match those used in 
 # this script.
 #
-# Please report build problems at http://itksnap.org/bb
+# Please report build problems to itksnap-users Google Group
 #
 # Good Luck!!!
 # Paul Y.
 # *************************************************************
 
-set -x -e
+# Uncomment the line below to debug
+### set -x -e
 
 # -------------------------------------------------------------
 # Options that the user can supply
@@ -39,7 +40,7 @@ set -x -e
 basedir="`pwd`/itksnap_build"
 
 # The installation directory, defaults to $basedir/install; 
-# SNAP executable goes here
+# SNAP executable goes here (in bin/itksnap)
 instdir=$basedir/install
 
 # The location of the build log file
@@ -263,9 +264,9 @@ function get_itksnap {
 # -------------------------------------------------------------
 # Perform the actual build tasks
 # -------------------------------------------------------------
-### get_cmake
-### get_itk
-### get_fltk
+get_cmake
+get_itk
+get_fltk
 get_vtk
 get_itksnap
 
