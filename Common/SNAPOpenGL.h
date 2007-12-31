@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPOpenGL.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:12 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2007/12/31 13:12:04 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -40,7 +40,7 @@
 
 // Include OpenGL headers according to the platform
 #ifdef __APPLE__
-  #include <GL/glu.h>
+  #include <OpenGL/glu.h>
   #include <FL/gl.h>
 #else
   #include <FL/gl.h>

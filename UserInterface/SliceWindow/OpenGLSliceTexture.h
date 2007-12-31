@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OpenGLSliceTexture.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2007/12/31 13:12:05 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,8 +35,7 @@
 #ifndef __OpenGLSliceTexture_h_
 #define __OpenGLSliceTexture_h_
 
-#include <FL/gl.h>
-#include <GL/glu.h>
+#include "SNAPOpenGL.h"
 
 #ifndef _WIN32
 #ifndef GLU_VERSION_1_2

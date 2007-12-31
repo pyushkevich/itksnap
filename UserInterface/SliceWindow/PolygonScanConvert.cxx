@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonScanConvert.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2007/12/31 13:12:05 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -42,7 +42,7 @@
 #ifdef WIN32
 typedef void (CALLBACK *TessCallback)();
 #else
-typedef void (*TessCallback)();
+typedef GLvoid (*TessCallback)(...);
 #endif
 
 void 
