@@ -25,6 +25,8 @@
  -  Freehand drawing support in polygon mode (hold and drag the mouse button). 
     This feature is especially useful for using SNAP on a tablet.
 
+ -  Added keyboard shortcuts 'a','s','d' for the opacity slider
+
 1.1.2. Bug Fixes
 
  -  Various bugs have been fixed :)
