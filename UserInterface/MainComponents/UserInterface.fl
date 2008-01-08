@@ -273,7 +273,7 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {5 164 135 137} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
             } {
               Fl_Wizard m_TabsToolOptions {
-                label {Active Tool Settings} open
+                label {Active Tool Settings}
                 xywh {5 165 135 136} box NO_BOX color 22 labeltype NO_LABEL labelsize 12 labelcolor 4
               } {
                 Fl_Group m_GrpToolOptionCrosshairs {
@@ -298,7 +298,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   } {}
                 }
                 Fl_Group m_GrpToolOptionPolygon {
-                  label 3 open
+                  label 3
                   xywh {5 165 135 135} color 22 labelsize 10 labelcolor 4 hide
                 } {
                   Fl_Group {} {
@@ -383,7 +383,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   } {}
                 }
                 Fl_Group m_GrpToolOptionBrush {
-                  label 6 open
+                  label 6
                   xywh {5 165 135 135} color 22 labelsize 10 labelcolor 4 hide
                 } {
                   Fl_Group {} {
@@ -428,7 +428,7 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
             Fl_Group {} {
-              label {Segmentation Options}
+              label {Segmentation Options} open
               xywh {5 324 135 243} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
             } {
               Fl_Button {} {
@@ -447,8 +447,11 @@ class UserInterface {open : {public UserInterfaceBase}
               Fl_Value_Slider m_InIRISLabelOpacity {
                 label {Overall label opacity:}
                 callback {o->take_focus();
-this->OnIRISLabelOpacityChange();}
-                tooltip {Change the transparency of the labels} xywh {15 480 115 15} type Horizontal labelsize 11 align 5 maximum 255 step 1 value 128
+this->OnIRISLabelOpacityChange();} selected
+                tooltip {Change the transparency of the labels
+
+Keyboard shortcuts:
+ 'a' to decrease, 'd' to increase, 's' to toggle.} xywh {15 480 115 15} type Horizontal labelsize 11 align 5 maximum 255 step 1 value 128
               }
               Fl_Choice m_InDrawingColor {
                 label {Active drawing label:}
@@ -479,7 +482,7 @@ OnDrawOverLabelUpdate();} open
               }
               Fl_Button {} {
                 label {?}
-                callback {this->ShowHTMLPage("ContextHelp_SegmentationOptions.html");} selected
+                callback {this->ShowHTMLPage("ContextHelp_SegmentationOptions.html");}
                 xywh {115 437 18 18} box PLASTIC_ROUND_UP_BOX color 180 labelfont 1 labelsize 12 align 16
               }
             }

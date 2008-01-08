@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: FLTKWidgetActivationManager.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:43:03 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/01/08 20:34:50 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -85,6 +85,10 @@ public:
     SetFlagImplies( A, C, true, false );
     SetFlagImplies( B, C, true, false );
     }
+
+  /** Get the value of a flag */
+  bool GetFlag(TFlag flag)
+    { return m_Flags[flag].State; }
 
   /** 
    * Update a flag to a new value. Ignore the third parameter, it

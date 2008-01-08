@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:18 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2008/01/08 20:34:52 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -86,6 +86,9 @@
 #include <vector>
 #include <cctype>
 
+
+// Global pointer to the 'current' UI object
+UserInterfaceLogic* UserInterfaceLogic::m_GlobalUI = NULL;
 
 
 // Disable some utterly annoying windows messages
@@ -409,6 +412,9 @@ UserInterfaceLogic
 
   // Enter the IRIS-ACTiVE state
   m_Activation->UpdateFlag(UIF_IRIS_ACTIVE, true);
+
+  // Opacity toggle value set to default
+  m_OpacityToggleValue = 128;
 }
 
 UserInterfaceLogic
@@ -1553,10 +1559,60 @@ UserInterfaceLogic
     openWindows[i]->hide();
 }
 
+int 
+UserInterfaceLogic
+::GlobalEventHandler(int ev)
+{
+  if(ev == FL_SHORTCUT)
+    {
+    // Opacity slider toggle/increase/decrease
+    if(m_GlobalUI->m_Activation->GetFlag(UIF_IRIS_WITH_BASEIMG_LOADED))
+      {
+      if(Fl::event_key() == 'a')
+        {
+        double opacity = m_GlobalUI->m_InIRISLabelOpacity->value() - 8.0;
+        if(opacity >= 0.0)
+          m_GlobalUI->m_InIRISLabelOpacity->value(opacity); 
+        m_GlobalUI->OnIRISLabelOpacityChange();
+        return 1;
+        }
+      else if(Fl::event_key() == 'd')
+        {
+        double opacity = m_GlobalUI->m_InIRISLabelOpacity->value() + 8.0;
+        if(opacity <= 255.0)
+          m_GlobalUI->m_InIRISLabelOpacity->value(opacity); 
+        m_GlobalUI->OnIRISLabelOpacityChange();
+        return 1;
+        }
+      else if(Fl::event_key() == 's')
+        {
+        double opacity = m_GlobalUI->m_InIRISLabelOpacity->value();
+        if(opacity > 0)
+          {
+          m_GlobalUI->m_OpacityToggleValue = opacity;
+          m_GlobalUI->m_InIRISLabelOpacity->value(0);
+          }
+        else
+          {
+          m_GlobalUI->m_InIRISLabelOpacity->value(m_GlobalUI->m_OpacityToggleValue);
+          m_GlobalUI->m_OpacityToggleValue = 128;
+          }
+        m_GlobalUI->OnIRISLabelOpacityChange(); 
+        return 1;
+        }
+      }
+    }
+  return 0;
+}
+
 void
 UserInterfaceLogic
 ::Launch()
 {
+  // Add the global event handler
+  UserInterfaceLogic::m_GlobalUI = this;
+  Fl::add_handler(&UserInterfaceLogic::GlobalEventHandler);
+
   // Make sure the window is visible
   m_WinMain->show();
 
@@ -3824,6 +3880,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.13  2008/01/08 20:34:52  pyushkevich
+ *Implement toggle for opacity slider
+ *
  *Revision 1.12  2007/12/30 04:05:18  pyushkevich
  *GPL License
  *

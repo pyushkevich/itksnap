@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:18 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2008/01/08 20:34:52 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -710,6 +710,10 @@ private:
   // Pointer to the driving IRIS application object
   IRISApplication *m_Driver;
 
+  // Pointer to the instance of the UserInterfaceLogic that has been launched
+  // (for static members, like GlobalEventHandler)
+  static UserInterfaceLogic *m_GlobalUI;
+
   // Pointer to the system interface object
   SystemInterface *m_SystemInterface;
 
@@ -836,6 +840,12 @@ private:
   // A list of recently open files shown in the load recent menu
   std::string m_RecentFileNames[5];
 
+  // Temporary value used for opacity slider toggling
+  double m_OpacityToggleValue;
+
+  // Global event handler (shortcuts, etc)
+  static int GlobalEventHandler(int);
+
   // Intensity curve update callback (uses ITK event system)
   void OnIntensityCurveUpdate();
 
@@ -902,6 +912,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.9  2008/01/08 20:34:52  pyushkevich
+ *Implement toggle for opacity slider
+ *
  *Revision 1.8  2007/12/30 04:05:18  pyushkevich
  *GPL License
  *
