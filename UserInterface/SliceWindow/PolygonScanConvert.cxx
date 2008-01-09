@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonScanConvert.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/01/08 20:57:13 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/01/09 21:20:34 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,7 +41,7 @@
 // Typecast for the callback functions
 #ifdef WIN32
 typedef void (CALLBACK *TessCallback)();
-#elif defined (__APPLE__)
+#elif defined (__APPL__)
 typedef GLvoid (*TessCallback)(...);
 #else
 typedef void (*TessCallback)();
