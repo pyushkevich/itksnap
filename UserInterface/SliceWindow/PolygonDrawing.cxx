@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:43:03 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2008/01/10 18:00:51 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -401,8 +401,6 @@ bool PolygonVertexTest(const PolygonDrawing::Vertex &v1, const PolygonDrawing::V
   return v1.x == v2.x && v1.y == v2.y;
 }
 
-#include "itkImageFileWriter.h"
-
 /**
  * AcceptPolygon()
  *
@@ -451,12 +449,6 @@ PolygonDrawing
   
   ScanConvertType::RasterizeFilled(
     m_Vertices.begin(), m_Vertices.size(), image);
-
-  typedef itk::ImageFileWriter<ByteImageType> WType;
-  WType::Pointer we = WType::New();
-  we->SetInput(image);
-  we->SetFileName("test.png");
-  we->Update();
 
   // Copy polygon into polygon m_Cache
   m_CachedPolygon = true;
@@ -939,6 +931,9 @@ PolygonDrawing
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.8  2008/01/10 18:00:51  pyushkevich
+ *took out test.png from Polygon drawing
+ *
  *Revision 1.7  2007/12/30 04:43:03  pyushkevich
  *License/Packaging updates
  *
