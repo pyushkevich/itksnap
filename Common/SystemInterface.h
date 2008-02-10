@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:12 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/02/10 23:55:21 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -40,6 +40,10 @@
 
 class IRISApplication;
 class SNAPRegistryIO;
+
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 /**
  * \class SystemInterface 
@@ -120,6 +124,18 @@ public:
   */
   void LoadPreviousGreyImageFile(const char *filename, Registry *registry);
 
+  /** Interprocess communication: attach to shared memory */
+  void IPCCursorAttach();
+
+  /** Interprocess communication: read shared memory */
+  bool IPCCursorRead(Vector3d &vout);
+
+  /** Interprocess communication: write shared memory */
+  bool IPCCursorWrite(const Vector3d &vin);
+
+  /** Interprocess communication: release shared memory */
+  void IPCCursorClose();
+
 private:
   std::string m_UserPreferenceFile;
   std::string m_DataDirectory;
@@ -130,6 +146,16 @@ private:
 
   // Filename encoder
   std::string EncodeFilename(const std::string &src);
+
+  // System-specific IPC related stuff
+#ifdef WIN32
+  HANDLE m_IPCHandle;
+#else
+  int m_IPCHandle;
+#endif
+
+  // Generic: shared data for IPC
+  void *m_IPCSharedData;
 };
 
 

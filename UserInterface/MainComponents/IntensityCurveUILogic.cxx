@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -194,6 +194,46 @@ IntensityCurveUILogic
   // Fire the reset event
   OnCurveChange();
 }
+
+void
+IntensityCurveUILogic
+::OnAutoFitWindow()
+  {
+  // Get the histogram
+  const std::vector<unsigned int> &hist = m_BoxCurve->GetHistogram();
+
+  // Integrate the histogram until reaching 1%
+  GreyType ilow = m_ImageWrapper->GetImageMin();
+  size_t accum = 0;
+  size_t accum_goal = m_ImageWrapper->GetNumberOfVoxels() / 100;
+  for(size_t i = 0; i < hist.size(); i++)
+    {
+    if(accum + hist[i] < accum_goal)
+      {
+      accum += hist[i];
+      ilow += m_BoxCurve->GetHistogramBinSize();
+      }
+    else break;
+    }
+
+  // Same, but from above
+  GreyType ihigh = m_ImageWrapper->GetImageMax();
+  accum = 0;
+  for(size_t i = hist.size() - 1; i >= 0; i--)
+    {
+    if(accum + hist[i] < accum_goal)
+      {
+      accum += hist[i];
+      ihigh -= m_BoxCurve->GetHistogramBinSize();
+      }
+    else break;
+    }
+ 
+  m_InLevel->value(ilow);
+  m_InWindow->value(ihigh - ilow);
+
+  this->OnWindowLevelChange();
+  }
 
 void 
 IntensityCurveUILogic

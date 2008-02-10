@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -375,6 +375,18 @@ IRISApplication
 
 void
 IRISApplication
+::ClearIRISSegmentationImage()
+{
+  // This has to happen in 'pure' IRIS mode
+  assert(m_SNAPImageData == NULL);
+
+  // Fill the image with blanks
+  this->m_IRISImageData->GetSegmentation()->GetImage()->FillBuffer(0);
+  this->m_IRISImageData->GetSegmentation()->GetImage()->Modified();
+}
+
+void
+IRISApplication
 ::UpdateIRISSegmentationImage(LabelImageType *newSegmentationImage)
 {
   // This has to happen in 'pure' IRIS mode
@@ -392,7 +404,7 @@ IRISApplication
       m_ColorLabelTable->SetColorLabelValid(it.Get(), true);
 
   // Reset the UNDO manager
-  m_UndoManager.Clear();
+  // m_UndoManager.Clear();
 }
 
 LabelType
@@ -546,6 +558,21 @@ IRISApplication
 
   // The target has been modified
   target->Modified();
+}
+
+void
+IRISApplication
+::SetCursorPosition(const Vector3ui cursor)
+{
+  m_GlobalState->SetCrosshairsPosition(cursor); 
+  this->GetCurrentImageData()->SetCrosshairs(cursor);
+}
+
+Vector3ui
+IRISApplication
+::GetCursorPosition() const
+{
+  return m_GlobalState->GetCrosshairsPosition();
 }
 
 void 

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/01/08 20:34:52 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -184,6 +184,7 @@ void UserInterfaceLogic
 
   m_Activation->SetFlagImplies(UIF_UNDO_POSSIBLE, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->SetFlagImplies(UIF_REDO_POSSIBLE, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->SetFlagImplies(UIF_UNSAVED_CHANGES, UIF_IRIS_WITH_BASEIMG_LOADED);
 
   // Set up the exclusive relationships between flags
   m_Activation->SetFlagImplies( UIF_SNAP_ACTIVE, UIF_IRIS_ACTIVE, true, false );
@@ -658,7 +659,7 @@ UserInterfaceLogic
   ShowSNAP();
 
   // We are going to preserve the cursor position if it was in the ROI
-  Vector3ui newCursor, oldCursor = m_GlobalState->GetCrosshairsPosition();
+  Vector3ui newCursor, oldCursor = m_Driver->GetCursorPosition();
 
   // Image geometry has changed. This method also resets the cursor 
   // position, which is something we don't want.
@@ -667,9 +668,7 @@ UserInterfaceLogic
   // So we reset the cursor position manually here if the cursor was in the ROI
   if(roi.TransformImageVoxelToROIVoxel(oldCursor, newCursor))
     {
-    // TODO: Fix this redundancy
-    m_Driver->GetCurrentImageData()->SetCrosshairs(newCursor);
-    m_GlobalState->SetCrosshairsPosition(newCursor);
+    m_Driver->SetCursorPosition(newCursor);
     this->OnCrosshairPositionUpdate();
     }
 }
@@ -913,7 +912,7 @@ UserInterfaceLogic
 {
   // Create a new bubble
   Bubble bub;
-  bub.center = to_int(m_GlobalState->GetCrosshairsPosition());
+  bub.center = to_int(m_Driver->GetCursorPosition());
   bub.radius = m_InBubbleRadius->value();
 
   // Add the bubble to the global state
@@ -1400,7 +1399,7 @@ UserInterfaceLogic
   m_IRISWindowManager3D->ResetView();
 
   // We are going to preserve the cursor position if it was in the ROI
-  Vector3ui newCursor, oldCursor = m_GlobalState->GetCrosshairsPosition();
+  Vector3ui newCursor, oldCursor = m_Driver->GetCursorPosition();
 
   // Image geometry has changed. This method also resets the cursor 
   // position, which is something we don't want.
@@ -1408,9 +1407,8 @@ UserInterfaceLogic
 
   // So we reset the cursor position manually here if the cursor was in the ROI
   SNAPSegmentationROISettings roi = m_GlobalState->GetSegmentationROISettings();
-  roi.TransformROIVoxelToImageVoxel(oldCursor, newCursor);
-  m_Driver->GetCurrentImageData()->SetCrosshairs(newCursor);
-  m_GlobalState->SetCrosshairsPosition(newCursor);
+  roi.TransformROIVoxelToImageVoxel(oldCursor, newCursor);  
+  m_Driver->SetCursorPosition(newCursor);
   this->OnCrosshairPositionUpdate();
 
   // Clear the list of bubbles
@@ -1535,8 +1533,14 @@ void
 UserInterfaceLogic
 ::OnMainWindowCloseAction()
 {
+  // Make sure the user doesn't lose any data
+  if(!PromptBeforeLosingChanges()) return;
+
   // We don't want to just exit when users press escape
   if(Fl::event_key() == FL_Escape) return;
+
+  // Check if there have been unsaved changes to the segmentation
+  // TODO:
 
   // Associate the current state with the current image
   OnGreyImageUnload();
@@ -1557,6 +1561,43 @@ UserInterfaceLogic
   // Close all the windows
   for(unsigned int i=0;i<openWindows.size();i++)
     openWindows[i]->hide();
+}
+
+void 
+UserInterfaceLogic
+::GlobalIdleHandler(void *userData)
+{
+  // This only matters if an image is loaded
+  if(m_GlobalUI->m_Activation->GetFlag(UIF_IRIS_WITH_BASEIMG_LOADED)
+    && m_GlobalUI->m_BtnSynchronizeCursor->value())
+    {
+    // Check if the cursor has been moved in another SNAP session
+    Vector3d vcursor;
+    if(m_GlobalUI->m_SystemInterface->IPCCursorRead(vcursor))
+      {
+      // Map the cursor position to the image coordinates
+      GenericImageData *id = m_GlobalUI->m_Driver->GetCurrentImageData();
+      Vector3d origin = id->GetImageOrigin();
+      Vector3d spacing = id->GetImageSpacing();
+      Vector3d vox = element_quotient(vcursor - origin, spacing);
+
+      // Check if the voxel position is inside the image region
+      itk::Index<3> pos; Vector3ui vpos; 
+      pos[0] = vpos[0] = (unsigned int) (vox[0] + 0.5);
+      pos[1] = vpos[1] = (unsigned int) (vox[1] + 0.5);
+      pos[2] = vpos[2] = (unsigned int) (vox[2] + 0.5);
+      
+      if(vpos != m_GlobalUI->m_Driver->GetCursorPosition() 
+        && id->GetImageRegion().IsInside(pos))
+        {      
+        m_GlobalUI->m_Driver->SetCursorPosition(vpos);
+        m_GlobalUI->OnCrosshairPositionUpdate();
+        m_GlobalUI->RedrawWindows();
+        }
+      }
+    }
+
+  Fl::wait(0.1);
 }
 
 int 
@@ -1612,6 +1653,9 @@ UserInterfaceLogic
   // Add the global event handler
   UserInterfaceLogic::m_GlobalUI = this;
   Fl::add_handler(&UserInterfaceLogic::GlobalEventHandler);
+
+  // Add the idle event handler
+  Fl::add_idle(&UserInterfaceLogic::GlobalIdleHandler);
 
   // Make sure the window is visible
   m_WinMain->show();
@@ -1833,7 +1877,7 @@ UserInterfaceLogic
 ::ResetScrollbars() 
 {
   // Get the cursor position in image coordinated
-  Vector3d cursor = to_double(m_GlobalState->GetCrosshairsPosition());
+  Vector3d cursor = to_double(m_Driver->GetCursorPosition());
 
   // Update the correct scroll bars
   for (unsigned int dim=0; dim<3; dim++)
@@ -1853,6 +1897,18 @@ UserInterfaceLogic
 {
   this->ResetScrollbars();
   this->UpdateImageProbe();
+
+  // When the crosshair position is updated, we send the information 
+  // to the inter-process communications system
+  if(m_GlobalUI->m_Activation->GetFlag(UIF_IRIS_WITH_BASEIMG_LOADED)
+    && m_GlobalUI->m_BtnSynchronizeCursor->value())
+    {
+    Vector3d cursor = to_double(m_Driver->GetCursorPosition());
+    Vector3d origin = m_Driver->GetCurrentImageData()->GetImageOrigin();
+    Vector3d spacing = m_Driver->GetCurrentImageData()->GetImageSpacing();
+    Vector3d cspace = element_product(spacing, cursor) + origin;
+    m_Driver->GetSystemInterface()->IPCCursorWrite(cspace);
+    }
 }
 
 void 
@@ -1923,7 +1979,7 @@ UserInterfaceLogic
 ::UpdateImageProbe() 
 {
   // Code common to SNAP and IRIS
-  Vector3ui crosshairs = m_GlobalState->GetCrosshairsPosition();
+  Vector3ui crosshairs = m_Driver->GetCursorPosition();
     
   // String streams for different labels
   IRISOStringStream sGrey,sSegmentation,sSpeed;
@@ -2192,17 +2248,14 @@ UserInterfaceLogic
   unsigned int value = (unsigned int) ( - m_InSliceSlider[id]->value());
   
   // Get the cursor position
-  Vector3ui cursor = m_GlobalState->GetCrosshairsPosition();
+  Vector3ui cursor = m_Driver->GetCursorPosition();
 
   // Determine which image axis the display window 'id' corresponds to
   unsigned int imageAxis = GetImageAxisForDisplayWindow(id);
 
   // Update the cursor
   cursor[imageAxis] = value;
-
-  // TODO: Unify this!
-  m_Driver->GetCurrentImageData()->SetCrosshairs(cursor);
-  m_GlobalState->SetCrosshairsPosition(cursor);
+  m_Driver->SetCursorPosition(cursor);
 
   // Update the little display box under the scroll bar
   UpdatePositionDisplay(id);
@@ -2469,8 +2522,7 @@ UserInterfaceLogic
   // Set the crosshairs to the center of the image
   Vector3ui size = m_Driver->GetCurrentImageData()->GetVolumeExtents();
   Vector3ui xCross = size / ((unsigned int) 2);
-  m_GlobalState->SetCrosshairsPosition(xCross);
-  m_Driver->GetCurrentImageData()->SetCrosshairs(xCross);
+  m_Driver->SetCursorPosition(xCross);
 
   // Update the crosshairs display
   this->OnCrosshairPositionUpdate();
@@ -2742,6 +2794,9 @@ UserInterfaceLogic
   m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
   m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
 
+  // There are now no unsaved changes
+  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
+
   // Image geometry has changed
   OnImageGeometryUpdate();
 
@@ -2881,15 +2936,20 @@ UserInterfaceLogic
   // The list of labels may have changed
   OnLabelListUpdate();
 
+  // We treat loading/clearing the segmentation as a change to the segmentation,
+  // i.e., something that can be undone.
+  StoreUndoPoint("Loaded/Cleared Segmentation");
+
   // Re-Initialize the 2D windows
   // for (unsigned int i=0; i<3; i++) 
   //   m_IRISWindow2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
 
   m_IRISWindowManager3D->ResetView();
   m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
-  m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
-  m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
   
+  // There are now no unsaved changes
+  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
+
   UpdateMainLabel();
   
   RedrawWindows();
@@ -3052,6 +3112,29 @@ UserInterfaceLogic
     fl_alert("Error loading image:\n%s",exc.GetDescription());
     }
 
+}
+
+bool
+UserInterfaceLogic
+::PromptBeforeLosingChanges()
+{
+  // If there are unsaved changes, ask the user if they want to quit
+  if(m_Activation->GetFlag(UIF_UNSAVED_CHANGES))
+    {
+    if(fl_ask("There are unsaved changes to the segmentation.\n"
+      "Are you sure you want to quit?"))
+      {
+      return true;
+      }
+    else
+      {
+      return false;
+      }
+    }
+  else
+    {
+    return true;
+    }
 }
 
 void 
@@ -3279,6 +3362,27 @@ void UserInterfaceLogic
   
   if(fName)
     m_Driver->ExportSlice(iSlice, fName);
+}
+
+void UserInterfaceLogic
+::OnSynchronizeCursorAction()
+{
+}
+
+void UserInterfaceLogic
+::OnMenuNewSegmentation()
+{
+  // Grey image should be loaded
+  assert(m_Driver->GetCurrentImageData()->IsGreyLoaded());
+
+  // Should not be in SNAP mode
+  assert(!m_GlobalState->GetSNAPActive());
+
+  // Get the driver to clear the image
+  m_Driver->ClearIRISSegmentationImage();
+
+  // Update the user interface
+  OnSegmentationImageUpdate();
 }
 
 void UserInterfaceLogic
@@ -3876,10 +3980,16 @@ UserInterfaceLogic
   // Update the flags in the UI
   m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
   m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
+
+  // Update the saved changes flag (now true)
+  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, true);
 }
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.14  2008/02/10 23:55:22  pyushkevich
+ *Added "Auto" button to the intensity curve window; Added prompt before quitting on unsaved data; Fixed issues with undo on segmentation image load; Added synchronization between SNAP sessions.
+ *
  *Revision 1.13  2008/01/08 20:34:52  pyushkevich
  *Implement toggle for opacity slider
  *

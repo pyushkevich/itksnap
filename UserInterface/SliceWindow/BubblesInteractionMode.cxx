@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: BubblesInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:27 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -99,7 +99,7 @@ BubblesInteractionMode
 
         // Get the current crosshairs position
         Vector3f cursorImage = 
-          to_float(m_GlobalState->GetCrosshairsPosition()) + Vector3f(0.5f);
+          to_float(m_Driver->GetCursorPosition()) + Vector3f(0.5f);
 
         // Get the image space dimension that corresponds to this window
         int iid = m_Parent->m_ImageAxes[2];

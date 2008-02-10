@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RegionInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -302,7 +302,7 @@ RegionInteractionMode
   // Check that the current slice is actually within the bounding box
   // int slice = m_Parent->m_SliceIndex;
   int dim = m_Parent->m_ImageAxes[2];
-  int slice = m_GlobalState->GetCrosshairsPosition()[dim];
+  int slice = m_Driver->GetCursorPosition()[dim];
   int bbMin = m_GlobalState->GetSegmentationROI().GetIndex(dim);
   int bbMax = bbMin + m_GlobalState->GetSegmentationROI().GetSize(dim);
 

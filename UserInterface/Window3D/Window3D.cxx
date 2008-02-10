@@ -3,8 +3,8 @@
   Progra_P:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: Window3D.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:29 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -567,7 +567,7 @@ Window3D
   // Compute the center of rotation  
   m_CenterOfRotation = m_Origin + 
     vector_multiply_mixed<float,unsigned int,3>(
-      m_Spacing, m_GlobalState-> GetCrosshairsPosition());
+      m_Spacing, m_Driver->GetCursorPosition());
 
   // Set up the projection matrix
   SetupProjection();
@@ -747,9 +747,7 @@ Window3D
   Vector3i hit;
   if (IntersectSegData(x, y, hit))
     {
-    // TODO: Unify this!
-    m_Driver->GetCurrentImageData()->SetCrosshairs(to_unsigned_int(hit));
-    m_GlobalState->SetCrosshairsPosition(to_unsigned_int(hit));
+    m_Driver->SetCursorPosition(to_unsigned_int(hit));
     }
 
   m_ParentUI->OnCrosshairPositionUpdate();
@@ -832,7 +830,7 @@ void Window3D::ComputeMatricies( GLint *vport, double *mview, double *proj )
 {
   // Compute the center of rotation
   m_CenterOfRotation = m_Origin + 
-    vector_multiply_mixed<float,unsigned int,3>(m_Spacing, m_GlobalState->GetCrosshairsPosition());
+    vector_multiply_mixed<float,unsigned int,3>(m_Spacing, m_Driver->GetCursorPosition());
 
   // Set up the model view matrix
   glMatrixMode(GL_MODELVIEW);
@@ -1098,7 +1096,7 @@ void Window3D::DrawCrosshairs()
 
   // Get the crosshair position
   Vector3f xCross = 
-    to_float(m_GlobalState->GetCrosshairsPosition()) + Vector3f(0.5f);
+    to_float(m_Driver->GetCursorPosition()) + Vector3f(0.5f);
 
   // Get the UI element properties for the image box
   SNAPAppearanceSettings::Element &eltBox = 
@@ -1294,6 +1292,9 @@ Window3D
 
 /*
  *$Log: Window3D.cxx,v $
+ *Revision 1.3  2008/02/10 23:55:22  pyushkevich
+ *Added "Auto" button to the intensity curve window; Added prompt before quitting on unsaved data; Fixed issues with undo on segmentation image load; Added synchronization between SNAP sessions.
+ *
  *Revision 1.2  2007/12/30 04:05:29  pyushkevich
  *GPL License
  *

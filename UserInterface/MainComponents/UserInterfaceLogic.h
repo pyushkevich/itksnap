@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/01/08 20:34:52 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -657,6 +657,7 @@ protected:
   void OnSliceSliderChange(int id);
 
   // Menu item callbacks
+  void OnMenuNewSegmentation();
   void OnMenuLoadGrey();
   void OnMenuLoadRGB();
   void OnMenuLoadRGBOverlay();
@@ -676,6 +677,7 @@ protected:
   void OnLoadPreprocessedImageAction();
   void OnMenuLoadAdvection();
   void OnMenuImageInfo();
+
 
   // Save a slice
   void OnMenuExportSlice(unsigned int iSlice);
@@ -698,6 +700,10 @@ protected:
 
   // Image Info Window Callbacks
   void OnCloseImageInfoAction();
+
+  // Toggle cursor synchronization
+  void OnSynchronizeCursorAction();
+
 
   char *m_ChosedFile;
 
@@ -737,6 +743,7 @@ private:
     UIF_LINKED_ZOOM,
     UIF_UNDO_POSSIBLE,
     UIF_REDO_POSSIBLE,
+    UIF_UNSAVED_CHANGES,
 
     UIF_SNAP_ACTIVE,
     UIF_SNAP_PAGE_PREPROCESSING,
@@ -846,6 +853,9 @@ private:
   // Global event handler (shortcuts, etc)
   static int GlobalEventHandler(int);
 
+  // Main idle function (for cursor sync)
+  static void GlobalIdleHandler(void *);
+
   // Intensity curve update callback (uses ITK event system)
   void OnIntensityCurveUpdate();
 
@@ -892,6 +902,10 @@ private:
   // Update the bubble display
   void UpdateBubbleUI();
 
+  // Prompt the user if there are unsaved changes. Returns true if it's ok to 
+  // proceed without saving
+  bool PromptBeforeLosingChanges();
+
   /* Command used for progress tracking */
   itk::SmartPointer<ProgressCommandType> m_ProgressCommand;
 
@@ -912,6 +926,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.10  2008/02/10 23:55:22  pyushkevich
+ *Added "Auto" button to the intensity curve window; Added prompt before quitting on unsaved data; Fixed issues with undo on segmentation image load; Added synchronization between SNAP sessions.
+ *
  *Revision 1.9  2008/01/08 20:34:52  pyushkevich
  *Implement toggle for opacity slider
  *

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -17,7 +17,7 @@
 #include "GlobalState.h"
 #include "PolygonDrawing.h"
 #include "UserInterfaceBase.h"
-
+#include "IRISApplication.h"
 
 PolygonInteractionMode
 ::PolygonInteractionMode(GenericSliceWindow *parent)
@@ -58,7 +58,7 @@ PolygonInteractionMode
     {
     // Map the cursor position into slice coordinates
     Vector3f xEvent = m_Parent->MapImageToSlice(
-      to_float(m_GlobalState->GetCrosshairsPosition()));
+      to_float(m_Driver->GetCursorPosition()));
 
     // Get the event state based on shift-ctrl
     int fakeButton = (event.State & FL_SHIFT) ? FL_RIGHT_MOUSE : FL_LEFT_MOUSE;

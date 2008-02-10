@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -192,12 +192,6 @@ public:
 
   /** Set the transparency of the segmentation overlay */
   irisGetMacro(SegmentationAlpha,unsigned char );
-
-  /** Get the current crosshairs position */
-  irisSetMacro(CrosshairsPosition,Vector3ui );
-
-  /** Set the current crosshairs position */
-  irisGetMacro(CrosshairsPosition,Vector3ui );
 
   /** Get the current toolbar mode */
   irisSetMacro(ToolbarMode,ToolbarModeType );
@@ -435,6 +429,15 @@ public:
     { m_ActiveBubble = -1; }
 
 private:
+
+  /** Get the current crosshairs position */
+  irisSetMacro(CrosshairsPosition,Vector3ui );
+
+  /** Set the current crosshairs position */
+  irisGetMacro(CrosshairsPosition,Vector3ui );
+
+  friend class IRISApplication;
+
   /** Color label used to draw polygons */
   unsigned char m_DrawingColorLabel;
 
@@ -564,6 +567,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.7  2008/02/10 23:55:22  pyushkevich
+ *Added "Auto" button to the intensity curve window; Added prompt before quitting on unsaved data; Fixed issues with undo on segmentation image load; Added synchronization between SNAP sessions.
+ *
  *Revision 1.6  2007/12/30 04:05:13  pyushkevich
  *GPL License
  *

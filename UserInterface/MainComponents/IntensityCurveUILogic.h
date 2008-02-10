@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -95,6 +95,14 @@ public:
   // Callbacks made from the user interface
   void OnClose();
   void OnReset();
+
+  /** 
+   * This method adjusts the level and the window so that the 
+   * window covers the range between 1st and 99th percentiles
+   * if image intensity. This is effective at leaving out the
+   * hypo/hyper-intensities
+   */
+  void OnAutoFitWindow();
   void OnWindowLevelChange();
   void OnControlPointNumberChange();
   void OnUpdateHistogram();

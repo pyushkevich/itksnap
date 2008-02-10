@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISImageData.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -66,7 +66,6 @@ public:
   void SetSegmentationImage(LabelImageType *newLabelImage)
     {
     GenericImageData::SetSegmentationImage(newLabelImage);
-    m_UndoWrapper.InitializeToWrapper(&m_LabelWrapper, (LabelType) 0);
     }
 
   void SetGreyImage(GreyImageType *newGreyImage,

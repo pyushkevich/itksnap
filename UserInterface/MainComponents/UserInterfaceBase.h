@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:18 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -73,6 +73,7 @@ public:
   virtual void SetToolbarMode3D(ToolbarMode3DType mode) = 0;
   
   // Menu item callbacks
+  virtual void OnMenuNewSegmentation() = 0;
   virtual void OnMenuLoadGrey() = 0;
   virtual void OnMenuSaveGreyROI() = 0;
   virtual void OnMenuLoadRGB() = 0;
@@ -98,6 +99,7 @@ public:
   // IRIS: Slice selection actions  
   virtual void OnSliceSliderChange(int id) = 0;
   virtual void UpdatePositionDisplay(int id) = 0;
+  virtual void OnSynchronizeCursorAction() = 0;
 
   // IRIS: Zoom/pan interaction callbacks
   virtual void OnResetView2DAction(unsigned int window) = 0;

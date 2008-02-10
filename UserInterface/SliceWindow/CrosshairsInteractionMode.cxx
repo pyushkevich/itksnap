@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:27 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -85,7 +85,7 @@ CrosshairsInteractionMode
   float scroll = (float) Fl::event_dy();
   
   // Get the cross-hairs position in image space
-  Vector3ui xCrossImage = m_GlobalState->GetCrosshairsPosition();
+  Vector3ui xCrossImage = m_Driver->GetCursorPosition();
 
   // Map it into slice space
   Vector3f xCrossSlice = 
@@ -106,7 +106,7 @@ CrosshairsInteractionMode
   m_Parent->m_ImageData->SetCrosshairs(xCrossClamped);
   
   // Set the crosshair
-  m_GlobalState->SetCrosshairsPosition(xCrossClamped);
+  m_Driver->SetCursorPosition(xCrossClamped);
 
   // Cause a repaint
   m_NeedToRepaintControls = true;
@@ -135,7 +135,7 @@ CrosshairsInteractionMode
   m_Parent->m_ImageData->SetCrosshairs(xCrossClamped);
   
   // Update the crosshairs position in the global state
-  m_GlobalState->SetCrosshairsPosition(xCrossClamped);
+  m_Driver->SetCursorPosition(xCrossClamped);
 
   // Cause a repaint
   m_NeedToRepaintControls = true;
@@ -179,7 +179,7 @@ CrosshairsInteractionMode
   // Get the crosshair coordinates, in slice space
   Vector3f xCross = 
     m_Parent->MapImageToSlice(
-      to_float(m_GlobalState->GetCrosshairsPosition()));
+      to_float(m_Driver->GetCursorPosition()));
 
   // Add the motion vector
   UpdateCrosshairs(xCross + xMotion);
@@ -214,7 +214,7 @@ OnDraw()
   if(!elt.Visible) return;
 
   // Get the current cursor position
-  Vector3ui xCursorInteger = m_GlobalState->GetCrosshairsPosition();
+  Vector3ui xCursorInteger = m_Driver->GetCursorPosition();
 
   // Shift the cursor position by by 0.5 in order to have it appear
   // between voxels

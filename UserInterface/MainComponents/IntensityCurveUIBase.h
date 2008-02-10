@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveUIBase.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -45,6 +45,7 @@ public:
   // Callbacks made from the user interface
   virtual void OnClose() = 0;
   virtual void OnReset() = 0;
+  virtual void OnAutoFitWindow() = 0;
   virtual void OnWindowLevelChange() = 0;
   virtual void OnControlPointNumberChange() = 0;
   virtual void OnUpdateHistogram() = 0;

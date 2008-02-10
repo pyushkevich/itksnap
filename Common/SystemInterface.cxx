@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:43:03 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/02/10 23:55:21 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,6 +44,14 @@
 #include <ctime>
 #include <iomanip>
 
+#ifdef WIN32
+  #include <iostream>
+#else
+  #include <sys/types.h> 
+  #include <sys/ipc.h> 
+  #include <sys/shm.h> 
+#endif
+
 using namespace std;
 
 SystemInterface
@@ -55,12 +63,28 @@ SystemInterface
   // Register the Image IO factories that are not part of ITK
   itk::ObjectFactoryBase::RegisterFactory( 
     itk::VoxBoCUBImageIOFactory::New() );
+
+  // Create a preferences object
+  Fl_Preferences test(Fl_Preferences::USER,"itk.org","SNAP");
+  
+  // Use it to get a path for user data
+  char userDataPath[1024]; 
+  test.getUserdataPath(userDataPath,1024);
+  
+  // Construct a valid path
+  m_UserPreferenceFile = string(userDataPath) + "/" + "UserPreferences.txt";
+
+  // Attach to the shared memory
+  IPCCursorAttach();
 }
 
 SystemInterface
 ::~SystemInterface()
 {
   delete m_RegistryIO;
+
+  // Detach shared memory
+  IPCCursorClose();
 }
 
 
@@ -76,16 +100,6 @@ void
 SystemInterface
 ::LoadUserPreferences()
 {
-  // Create a preferences object
-  Fl_Preferences test(Fl_Preferences::USER,"itk.org","SNAP");
-  
-  // Use it to get a path for user data
-  char userDataPath[1024]; 
-  test.getUserdataPath(userDataPath,1024);
-  
-  // Construct a valid path
-  m_UserPreferenceFile = string(userDataPath) + "/" + "UserPreferences.txt";
-
   // Check if the file exists, may throw an exception here
   if(itksys::SystemTools::FileExists(m_UserPreferenceFile.c_str()))
   {
@@ -415,3 +429,73 @@ SystemInterface
 
 
 
+void
+SystemInterface
+::IPCCursorAttach()
+{
+  // Initialize the data pointer
+  m_IPCSharedData = NULL;
+
+#ifdef WIN32
+  // Create a shared memory block (key based on the preferences file)
+  m_IPCHandle = CreateFileMapping(
+    INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(Vector3d), m_UserPreferenceFile.c_str());
+
+  // If the return value is NULL, something failed
+  if(m_IPCHandle)
+    {
+    // Attach to the shared memory block
+    m_IPCSharedData = MapViewOfFile(m_IPCHandle, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(Vector3d));
+    }
+
+#else
+
+  // Create a unique key for this user 
+  key_t keyid = ftok(m_UserPreferenceFile.c_str(), 0);
+
+  // Get a handle to shared memory
+  m_IPCHandle = shmget(keyid, sizeof(Vector3d), 0644);
+
+  // Get a pointer to shared data block
+  m_IPCSharedData = shmat(m_IPCHandle, (void *) 0, 0);
+
+#endif
+}
+
+bool 
+SystemInterface
+::IPCCursorRead(Vector3d &vout)
+{
+  // Read from the shared memory
+  if(m_IPCSharedData)
+    {
+    vout.copy_in(static_cast<double *>(m_IPCSharedData));
+    return true;
+    }
+  return false;
+}
+
+bool
+SystemInterface
+::IPCCursorWrite(const Vector3d &vin)
+{
+  // Write to the shared memory
+  if(m_IPCSharedData)
+    {
+    vin.copy_out(static_cast<double *>(m_IPCSharedData));
+    return true;
+    }
+  return false;
+}
+
+void 
+SystemInterface
+::IPCCursorClose()
+{
+#ifdef WIN32
+  CloseHandle(m_IPCHandle);
+#else
+  shmdt(m_IPCSharedData);
+  shmctl(m_IPCHandle, IPC_RMID, NULL);
+#endif
+}

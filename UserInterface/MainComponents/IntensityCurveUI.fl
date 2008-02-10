@@ -1,8 +1,8 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0103 
+version 1.0108 
 header_name {.h} 
 code_name {.cxx}
-class IntensityCurveUI {open : { private IntensityCurveUIBase }
+class IntensityCurveUI {open : {private IntensityCurveUIBase}
 } {
   Function {MakeWindow()} {open
   } {
@@ -76,12 +76,17 @@ class IntensityCurveUI {open : { private IntensityCurveUIBase }
         Fl_Value_Input m_InLevel {
           label {Level:}
           callback {this->OnWindowLevelChange();}
-          xywh {130 45 85 25} labelsize 12 when 4 step 1 textsize 12
+          xywh {70 45 70 25} labelsize 12 when 4 step 1 textsize 12
         }
         Fl_Value_Input m_InWindow {
           label {Window:}
           callback {this->OnWindowLevelChange();}
-          xywh {305 45 85 25} labelsize 12 when 4 step 1 textsize 12
+          xywh {210 45 70 25} labelsize 12 when 4 step 1 textsize 12
+        }
+        Fl_Button {} {
+          label {&Auto}
+          callback {this->OnAutoFitWindow();}
+          tooltip {Automatically fit window and level based on the image histogram} xywh {315 45 70 25} box PLASTIC_UP_BOX shortcut 0x80061 labelsize 12
         }
       }
     }

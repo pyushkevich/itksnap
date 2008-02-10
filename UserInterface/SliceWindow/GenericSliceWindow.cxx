@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -358,7 +358,7 @@ GenericSliceWindow
     return;
 
   // Compute the position of the cross-hairs in display space
-  Vector3ui cursorImageSpace = m_GlobalState->GetCrosshairsPosition();
+  Vector3ui cursorImageSpace = m_Driver->GetCursorPosition();
   Vector3f cursorDisplaySpace = 
     m_ImageToDisplayTransform.TransformPoint(
       to_float(cursorImageSpace) + Vector3f(0.5f));

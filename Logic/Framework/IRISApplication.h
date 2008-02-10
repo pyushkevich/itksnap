@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/02/10 23:55:22 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -138,6 +138,11 @@ public:
   void UpdateIRISSegmentationImage(LabelImageType *newSegmentationImage);
 
   /** 
+   * Clear the IRIS segmentation image
+   */
+  void ClearIRISSegmentationImage();
+
+  /** 
    * Update the SNAP image data with an external speed image (e.g., 
    * loaded from a file).
    */
@@ -193,8 +198,12 @@ public:
    * Set the current cursor position.  This will cause all the active image
    * wrappers to update their current slice numbers
    */
-  void SetCursorPosition(Vector3i cursor);
-  irisGetMacro(CursorPosition,Vector3i);     
+  void SetCursorPosition(const Vector3ui cursor);
+
+  /**
+   * Get the cursor position
+   */
+  Vector3ui GetCursorPosition() const;
 
   /**
    * Export the current slice of the image into a file
@@ -291,9 +300,6 @@ private:
 
   // Slice intensity mapping information
   IntensityCurveInterface::Pointer m_IntensityCurve;
-
-  // Current cursor position
-  Vector3i m_CursorPosition;
 
   // Undo data manager. Perhaps this should really be in IRISImageData, but
   // there is a lot of stuff here that is ambiguous in this way. The manager

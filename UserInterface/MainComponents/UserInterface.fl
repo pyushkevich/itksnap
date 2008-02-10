@@ -49,7 +49,17 @@ class UserInterface {open : {public UserInterfaceBase}
           xywh {10 10 100 20} labelsize 12
         } {
           Submenu {} {
-            label {&Load Data} open
+            label {&New} open
+            xywh {0 0 62 20} labelsize 12
+          } {
+            MenuItem m_MenuNewSegmentation {
+              label {&Segmentation Image}
+              callback {this->OnMenuNewSegmentation()}
+              tooltip {Creates a new empty segmentation} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
+            }
+          }
+          Submenu {} {
+            label {&Open} open
             xywh {5 5 100 20} labelsize 12
           } {
             MenuItem m_MenuLoadGrey {
@@ -58,7 +68,7 @@ class UserInterface {open : {public UserInterfaceBase}
               tooltip {Load an image that you want to segment} xywh {5 5 100 20} shortcut 0x40067 labelsize 12
             }
             MenuItem m_MenuLoadSegmentation {
-              label {Segmentation &Data}
+              label {&Segmentation Image}
               callback {this->OnMenuLoadSegmentation();}
               tooltip {Load a previously created segmentation} xywh {15 15 100 20} shortcut 0x40064 labelsize 12 deactivate
             }
@@ -73,7 +83,7 @@ class UserInterface {open : {public UserInterfaceBase}
               tooltip {Load an RGB (color)  image, e.g., from a diffusion tensor imaging study} xywh {15 15 100 20} shortcut 0x40072 labelsize 12
             }
             MenuItem m_MenuLoadRGBOverlay {
-              label {&RGB Overlay}
+              label {RGB &Overlay}
               callback {this->OnMenuLoadRGBOverlay();}
               tooltip {Load an RGB image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50072 labelsize 12 deactivate divider
             }
@@ -88,39 +98,9 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {25 25 100 20} shortcut 0x4006c labelsize 12
             }
           }
-          Submenu m_MenuLoadPrevious {
-            label {Load &Previous} open
-            xywh {5 5 100 20} labelsize 12 divider
-          } {
-            MenuItem m_MenuLoadPreviousFirst {
-              label {Not Available}
-              callback {OnLoadRecentAction(0);}
-              xywh {0 0 100 20} shortcut 0x40031 labelsize 12 deactivate
-            }
-            MenuItem {} {
-              label {Not Available}
-              callback {OnLoadRecentAction(1);}
-              xywh {10 10 100 20} shortcut 0x40032 labelsize 12 deactivate
-            }
-            MenuItem {} {
-              label {Not Available}
-              callback {OnLoadRecentAction(2);}
-              xywh {20 20 100 20} shortcut 0x40033 labelsize 12 deactivate
-            }
-            MenuItem {} {
-              label {Not Available}
-              callback {OnLoadRecentAction(3);}
-              xywh {30 30 100 20} shortcut 0x40034 labelsize 12 deactivate
-            }
-            MenuItem m_MenuLoadPreviousLast {
-              label {Not Available}
-              callback {OnLoadRecentAction(4);}
-              xywh {40 40 100 20} shortcut 0x40035 labelsize 12 deactivate
-            }
-          }
           Submenu {} {
-            label {&Save Data} open
-            xywh {20 20 100 20} labelsize 12 divider
+            label {&Save} open
+            xywh {20 20 100 20} labelsize 12
           } {
             MenuItem m_MenuSaveSegmentation {
               label {&Segmentation Image...}
@@ -178,6 +158,36 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
           }
+          Submenu m_MenuLoadPrevious {
+            label {&Recent Images} open
+            xywh {5 5 100 20} labelsize 12 divider
+          } {
+            MenuItem m_MenuLoadPreviousFirst {
+              label {Not Available}
+              callback {OnLoadRecentAction(0);}
+              xywh {0 0 100 20} shortcut 0x40031 labelsize 12 deactivate
+            }
+            MenuItem {} {
+              label {Not Available}
+              callback {OnLoadRecentAction(1);}
+              xywh {10 10 100 20} shortcut 0x40032 labelsize 12 deactivate
+            }
+            MenuItem {} {
+              label {Not Available}
+              callback {OnLoadRecentAction(2);}
+              xywh {20 20 100 20} shortcut 0x40033 labelsize 12 deactivate
+            }
+            MenuItem {} {
+              label {Not Available}
+              callback {OnLoadRecentAction(3);}
+              xywh {30 30 100 20} shortcut 0x40034 labelsize 12 deactivate
+            }
+            MenuItem m_MenuLoadPreviousLast {
+              label {Not Available}
+              callback {OnLoadRecentAction(4);}
+              xywh {40 40 100 20} shortcut 0x40035 labelsize 12 deactivate
+            }
+          }
           MenuItem m_MenuImageInfo {
             label {&Image Info...}
             callback {this->OnMenuImageInfo();}
@@ -194,7 +204,7 @@ class UserInterface {open : {public UserInterfaceBase}
           xywh {5 5 100 20} labelsize 12
         } {
           MenuItem m_MenuIntensityCurve {
-            label {Adjust Image &Contrast...}
+            label {Image &Contrast...}
             callback {this->OnMenuIntensityCurve();}
             xywh {15 15 100 20} shortcut 0x40069 labelsize 12 deactivate
           }
@@ -282,20 +292,25 @@ class UserInterface {open : {public UserInterfaceBase}
                 } {
                   Fl_Output m_OutGreyProbe {
                     label {Intensity:}
-                    tooltip {Intensity value at cursor position} xywh {15 230 50 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
+                    tooltip {Intensity value at cursor position} xywh {15 214 50 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
                   }
                   Fl_Output m_OutLabelProbe {
                     label {Label:}
-                    tooltip {Label at current position} xywh {80 230 50 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
+                    tooltip {Label at current position} xywh {80 214 50 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
                   }
                   Fl_Output m_OutLabelProbeText {
                     label {Label description:}
-                    tooltip {Label at current position} xywh {15 270 115 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
+                    tooltip {Label at current position} xywh {15 254 115 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 11 align 5 textsize 11
                   }
                   Fl_Group {} {
                     label {Crosshairs Tool} open
                     tooltip {This tool navigates around the image. Press and drag with the left mouse button to reposition the cursor in the three slice views. Use the mouse wheel to change the slice. The arrow and PgUp/PgDn also work.} xywh {10 170 125 25} box PLASTIC_DOWN_BOX color 61 labelsize 12 align 16
                   } {}
+                  Fl_Check_Button m_BtnSynchronizeCursor {
+                    label {Synchronize cursor}
+                    callback {this->OnSynchronizeCursorAction();} selected
+                    tooltip {Synchronizes the crosshair position across multple sessions of ITK-SNAP} xywh {15 280 115 15} down_box DOWN_BOX value 1 labelsize 11
+                  }
                 }
                 Fl_Group m_GrpToolOptionPolygon {
                   label 3
@@ -447,7 +462,7 @@ class UserInterface {open : {public UserInterfaceBase}
               Fl_Value_Slider m_InIRISLabelOpacity {
                 label {Overall label opacity:}
                 callback {o->take_focus();
-this->OnIRISLabelOpacityChange();} selected
+this->OnIRISLabelOpacityChange();}
                 tooltip {Change the transparency of the labels
 
 Keyboard shortcuts:
