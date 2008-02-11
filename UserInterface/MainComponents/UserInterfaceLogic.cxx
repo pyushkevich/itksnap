@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/11 12:59:40 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2008/02/11 17:49:20 $
+  Version:   $Revision: 1.16 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -243,6 +243,7 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuLoadRGB, UIF_IRIS_ACTIVE);
   m_Activation->AddMenuItem(m_MenuLoadRGBOverlay, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuNewSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveGreyROI, UIF_SNAP_ACTIVE);
   m_Activation->AddMenuItem(m_MenuSaveSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveSegmentationMesh, UIF_IRIS_WITH_BASEIMG_LOADED);
@@ -3121,8 +3122,10 @@ UserInterfaceLogic
   // If there are unsaved changes, ask the user if they want to quit
   if(m_Activation->GetFlag(UIF_UNSAVED_CHANGES))
     {
-    if(fl_ask("There are unsaved changes to the segmentation.\n"
-      "Are you sure you want to quit?"))
+    if(
+      fl_choice("There are unsaved changes to the segmentation.\n"
+        "Are you sure you want to quit?",
+        "Return to SNAP", "Quit and Discard Changes", NULL))
       {
       return true;
       }
@@ -3992,6 +3995,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.16  2008/02/11 17:49:20  pyushkevich
+ *Touchups
+ *
  *Revision 1.15  2008/02/11 12:59:40  pyushkevich
  *bug fix with shared cursor on Linux
  *

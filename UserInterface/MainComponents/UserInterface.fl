@@ -49,16 +49,6 @@ class UserInterface {open : {public UserInterfaceBase}
           xywh {10 10 100 20} labelsize 12
         } {
           Submenu {} {
-            label {&New} open
-            xywh {0 0 62 20} labelsize 12
-          } {
-            MenuItem m_MenuNewSegmentation {
-              label {&Segmentation Image}
-              callback {this->OnMenuNewSegmentation()}
-              tooltip {Creates a new empty segmentation} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
-            }
-          }
-          Submenu {} {
             label {&Open} open
             xywh {5 5 100 20} labelsize 12
           } {
@@ -160,7 +150,7 @@ class UserInterface {open : {public UserInterfaceBase}
           }
           Submenu m_MenuLoadPrevious {
             label {&Recent Images} open
-            xywh {5 5 100 20} labelsize 12 divider
+            xywh {5 5 100 20} labelsize 12
           } {
             MenuItem m_MenuLoadPreviousFirst {
               label {Not Available}
@@ -186,6 +176,16 @@ class UserInterface {open : {public UserInterfaceBase}
               label {Not Available}
               callback {OnLoadRecentAction(4);}
               xywh {40 40 100 20} shortcut 0x40035 labelsize 12 deactivate
+            }
+          }
+          Submenu {} {
+            label {&New} open
+            xywh {0 0 62 20} labelsize 12 divider
+          } {
+            MenuItem m_MenuNewSegmentation {
+              label {&Segmentation Image}
+              callback {this->OnMenuNewSegmentation()}
+              tooltip {Creates a new empty segmentation} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
             }
           }
           MenuItem m_MenuImageInfo {
