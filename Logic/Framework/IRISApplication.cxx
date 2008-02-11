@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2008/02/11 13:06:52 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -104,7 +104,6 @@ IRISApplication
   m_DisplayToAnatomyRAI[2] = "RIP";
 }
 
-
 const char *
 IRISApplication::
 GetImageToAnatomyRAI()
@@ -127,9 +126,11 @@ IRISApplication
   m_IntensityCurve = NULL;
 
   delete m_IRISImageData;
-  delete m_SNAPImageData;
+  if(m_SNAPImageData)
+    delete m_SNAPImageData;
   delete m_GlobalState;
   delete m_ColorLabelTable;
+  delete m_SystemInterface;
 }
 
 void 

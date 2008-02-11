@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:21 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/02/11 13:06:52 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -454,7 +454,7 @@ SystemInterface
   key_t keyid = ftok(m_UserPreferenceFile.c_str(), 0);
 
   // Get a handle to shared memory
-  m_IPCHandle = shmget(keyid, sizeof(Vector3d), 0644);
+  m_IPCHandle = shmget(keyid, sizeof(Vector3d), IPC_CREAT | 0644);
 
   // Get a pointer to shared data block
   m_IPCSharedData = shmat(m_IPCHandle, (void *) 0, 0);
@@ -495,7 +495,13 @@ SystemInterface
 #ifdef WIN32
   CloseHandle(m_IPCHandle);
 #else
+  // Detach from the shared memory segment
   shmdt(m_IPCSharedData);
-  shmctl(m_IPCHandle, IPC_RMID, NULL);
+
+  // If there is noone attached to the memory segment, destroy it
+  struct shmid_ds dsinfo;
+  shmctl(m_IPCHandle, IPC_STAT, &dsinfo);
+  if(dsinfo.shm_nattch == 0)
+    shmctl(m_IPCHandle, IPC_RMID, NULL);
 #endif
 }

@@ -12,6 +12,23 @@
 
 1.1.1. New Features and UI Improvements
 
+ -  Automatic window and level computation based on the image histogram. The
+    window and level are set to the 1st and 99th percentiles of the intensity
+    histogram, respectively. This is much more robust to hypo and
+    hyper-intensity in medical imaging data. The feature is accessed in the
+    "Options->Image Contrast" menu.
+
+ -  Cursor synchronization across multiple SNAP sessions (similar to the Yoke 
+    feature in MRIcro). The mechanism uses POSIX shared memory. Can be turned
+    off using the 'Synchronize Cursor' checkbox. Currently, only enabled in 
+    manual segmentation mode; probably will enable in snake mode in the near
+    future.
+
+ -  SNAP will prompt you before closing if there are unsaved changes.
+
+ -  A new 'New->Segmentation Image' menu item will clear the current
+    segmentation.
+
  -  Support for RGB (color) images in SNAP. This is great for segmenting in DTI
     data (manually, for the time being). RGB images can be loaded as the base 
     image or as an overlay over the gray. 
@@ -20,12 +37,15 @@
     ParaView).
 
  -  Multilevel undo/redo functionality for all segmentation operations (polygon,
-    paintbrush, freehand, 3D segmentation, 3D cutplane).
+    paintbrush, freehand, 3D segmentation, 3D cutplane). Undo memory is
+    preserved when loading new segmentation images.
 
  -  Freehand drawing support in polygon mode (hold and drag the mouse button). 
     This feature is especially useful for using SNAP on a tablet.
 
  -  Added keyboard shortcuts 'a','s','d' for the opacity slider
+
+ -  Shortened/simplified some of the menu items
 
 1.1.2. Bug Fixes
 
