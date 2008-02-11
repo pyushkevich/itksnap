@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/02/11 18:21:14 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -203,7 +203,8 @@ IntensityCurveUILogic
   const std::vector<unsigned int> &hist = m_BoxCurve->GetHistogram();
 
   // Integrate the histogram until reaching 1%
-  GreyType ilow = m_ImageWrapper->GetImageMin();
+  GreyType imin = m_ImageWrapper->GetImageMin();
+  GreyType ilow = imin;
   size_t accum = 0;
   size_t accum_goal = m_ImageWrapper->GetNumberOfVoxels() / 100;
   for(size_t i = 0; i < hist.size(); i++)
@@ -217,7 +218,8 @@ IntensityCurveUILogic
     }
 
   // Same, but from above
-  GreyType ihigh = m_ImageWrapper->GetImageMax();
+  GreyType imax = m_ImageWrapper->GetImageMax();
+  GreyType ihigh = imax;
   accum = 0;
   for(size_t i = hist.size() - 1; i >= 0; i--)
     {
@@ -228,9 +230,19 @@ IntensityCurveUILogic
       }
     else break;
     }
- 
-  m_InLevel->value(ilow);
-  m_InWindow->value(ihigh - ilow);
+
+  // If for some reason the window is off, we set everything to max/min
+  if(ilow >= ihigh)
+    { ilow = imin; ihigh = imax; }
+
+  // Compute and constrain the window
+  GreyType iwin = ihigh - ilow;
+
+  m_InWindow->maximum(imax - ilow);
+  m_InWindow->value(iwin);
+
+  m_InLevel->maximum(imax - iwin);
+  m_InLevel->value(ilow);  
 
   this->OnWindowLevelChange();
   }

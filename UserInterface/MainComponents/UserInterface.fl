@@ -53,37 +53,37 @@ class UserInterface {open : {public UserInterfaceBase}
             xywh {5 5 100 20} labelsize 12
           } {
             MenuItem m_MenuLoadGrey {
-              label {&Greyscale Image}
+              label {&Greyscale Image...}
               callback {this->OnMenuLoadGrey();}
               tooltip {Load an image that you want to segment} xywh {5 5 100 20} shortcut 0x40067 labelsize 12
             }
             MenuItem m_MenuLoadSegmentation {
-              label {&Segmentation Image}
+              label {&Segmentation Image...}
               callback {this->OnMenuLoadSegmentation();}
               tooltip {Load a previously created segmentation} xywh {15 15 100 20} shortcut 0x40064 labelsize 12 deactivate
             }
             MenuItem m_MenuLoadPreprocessed {
-              label {&Preprocessed Image}
+              label {&Preprocessed Image...}
               callback {this->OnLoadPreprocessedImageAction();}
               xywh {15 15 100 20} shortcut 0x40070 labelsize 12 deactivate divider
             }
             MenuItem m_MenuLoadRGB {
-              label {&RGB Image}
+              label {&RGB Image...}
               callback {this->OnMenuLoadRGB();}
               tooltip {Load an RGB (color)  image, e.g., from a diffusion tensor imaging study} xywh {15 15 100 20} shortcut 0x40072 labelsize 12
             }
             MenuItem m_MenuLoadRGBOverlay {
-              label {RGB &Overlay}
+              label {RGB &Overlay...}
               callback {this->OnMenuLoadRGBOverlay();}
               tooltip {Load an RGB image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50072 labelsize 12 deactivate divider
             }
             MenuItem m_MenuLoadAdvection {
-              label {&Advection Field (Advanced)}
+              label {&Advection Field (Advanced)...}
               callback {this->OnMenuLoadAdvection();}
               tooltip {experimental feature} xywh {35 35 100 20} labelsize 12 hide deactivate divider
             }
             MenuItem m_MenuLoadLabels {
-              label {&Label Descriptions}
+              label {&Label Descriptions...}
               callback {this->OnMenuLoadLabels();}
               xywh {25 25 100 20} shortcut 0x4006c labelsize 12
             }
@@ -103,27 +103,27 @@ class UserInterface {open : {public UserInterfaceBase}
               tooltip {Save the segmentation results as an image} xywh {40 40 100 20} shortcut 0x5006d labelsize 12 deactivate divider
             }
             MenuItem m_MenuSavePreprocessed {
-              label {&Preprocessed Image}
+              label {&Preprocessed Image...}
               callback {this->OnMenuSavePreprocessed();}
               xywh {40 40 100 20} shortcut 0x50070 labelsize 12 deactivate
             }
             MenuItem m_MenuSaveGreyROI {
-              label {&Greyscale Image Region}
+              label {&Greyscale Image Region...}
               callback {this->OnMenuSaveGreyROI();}
               xywh {40 40 100 20} shortcut 0x50067 labelsize 12 deactivate
             }
             MenuItem m_MenuSaveLevelSet {
-              label {&Level Set Function}
+              label {&Level Set Function...}
               callback {this->OnMenuSaveLevelSet();}
               tooltip {Save the floating-point level set function during segmentation} xywh {50 50 100 20} shortcut 0x5006c labelsize 12 deactivate divider
             }
             MenuItem m_MenuSaveLabels {
-              label {&Label Descriptions}
+              label {&Label Descriptions...}
               callback {this->OnMenuSaveLabels();}
               xywh {40 40 100 20} shortcut 0x5006c labelsize 12
             }
             MenuItem m_MenuSaveVoxelCounts {
-              label {&Volumes && Statistics}
+              label {&Volumes && Statistics...}
               callback {this->OnMenuWriteVoxelCounts();}
               xywh {10 10 100 20} shortcut 0x50076 labelsize 12 deactivate divider
             }
@@ -214,8 +214,8 @@ class UserInterface {open : {public UserInterfaceBase}
             xywh {5 5 100 20} labelsize 12 divider
           }
           MenuItem m_MenuRGBOverlayOptions {
-            label {Adjust RGB Overlay}
-            callback {OnMenuShowRGBOverlayOptions()}
+            label {Adjust RGB Overlay...}
+            callback {OnMenuShowRGBOverlayOptions()} selected
             tooltip {Adjust the opacity of the RGB image} xywh {0 0 31 20} labelsize 12 deactivate
           }
         }
@@ -308,7 +308,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   } {}
                   Fl_Check_Button m_BtnSynchronizeCursor {
                     label {Synchronize cursor}
-                    callback {this->OnSynchronizeCursorAction();} selected
+                    callback {this->OnSynchronizeCursorAction();}
                     tooltip {Synchronizes the crosshair position across multple sessions of ITK-SNAP} xywh {15 280 115 15} down_box DOWN_BOX value 1 labelsize 11
                   }
                 }
