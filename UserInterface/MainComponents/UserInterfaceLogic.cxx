@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2008/02/11 12:59:40 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3367,6 +3367,11 @@ void UserInterfaceLogic
 void UserInterfaceLogic
 ::OnSynchronizeCursorAction()
 {
+  if(m_BtnSynchronizeCursor->value())
+    {
+    // Send the cursor position to the rest of the world
+    this->OnCrosshairPositionUpdate();
+    }
 }
 
 void UserInterfaceLogic
@@ -3987,6 +3992,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.15  2008/02/11 12:59:40  pyushkevich
+ *bug fix with shared cursor on Linux
+ *
  *Revision 1.14  2008/02/10 23:55:22  pyushkevich
  *Added "Auto" button to the intensity curve window; Added prompt before quitting on unsaved data; Fixed issues with undo on segmentation image load; Added synchronization between SNAP sessions.
  *
