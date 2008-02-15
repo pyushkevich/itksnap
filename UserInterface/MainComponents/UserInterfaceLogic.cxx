@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/11 17:49:20 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2008/02/15 18:34:16 $
+  Version:   $Revision: 1.17 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2257,6 +2257,7 @@ UserInterfaceLogic
   // Update the cursor
   cursor[imageAxis] = value;
   m_Driver->SetCursorPosition(cursor);
+  this->OnCrosshairPositionUpdate();
 
   // Update the little display box under the scroll bar
   UpdatePositionDisplay(id);
@@ -3995,6 +3996,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.17  2008/02/15 18:34:16  pyushkevich
+ *scrolling bug fix; packaging includes date in filename
+ *
  *Revision 1.16  2008/02/11 17:49:20  pyushkevich
  *Touchups
  *
