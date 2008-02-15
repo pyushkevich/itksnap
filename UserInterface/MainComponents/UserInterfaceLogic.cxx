@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/15 18:34:16 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2008/02/15 19:55:31 $
+  Version:   $Revision: 1.18 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1598,7 +1598,7 @@ UserInterfaceLogic
       }
     }
 
-  Fl::wait(0.1);
+  Fl::repeat_timeout(0.03, &UserInterfaceLogic::GlobalIdleHandler);
 }
 
 int 
@@ -1656,7 +1656,7 @@ UserInterfaceLogic
   Fl::add_handler(&UserInterfaceLogic::GlobalEventHandler);
 
   // Add the idle event handler
-  Fl::add_idle(&UserInterfaceLogic::GlobalIdleHandler);
+  Fl::add_timeout(0.03, &UserInterfaceLogic::GlobalIdleHandler);
 
   // Make sure the window is visible
   m_WinMain->show();
@@ -3996,6 +3996,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.18  2008/02/15 19:55:31  pyushkevich
+ *fixed 100% cpu usage bug (from idle function)
+ *
  *Revision 1.17  2008/02/15 18:34:16  pyushkevich
  *scrolling bug fix; packaging includes date in filename
  *
