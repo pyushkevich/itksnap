@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/15 19:55:31 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2008/02/16 22:38:34 $
+  Version:   $Revision: 1.19 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1414,7 +1414,7 @@ UserInterfaceLogic
 
   // Clear the list of bubbles
   m_GlobalState->SetBubbleArray(GlobalState::BubbleArray());
-  m_GlobalState->SetActiveBubble(0);
+  m_GlobalState->SetActiveBubble(-1);
 
   // Activate/deactivate menu items
   m_Activation->UpdateFlag(UIF_IRIS_ACTIVE, true);
@@ -3996,6 +3996,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.19  2008/02/16 22:38:34  pyushkevich
+ *Bug fix with bubbles
+ *
  *Revision 1.18  2008/02/15 19:55:31  pyushkevich
  *fixed 100% cpu usage bug (from idle function)
  *
