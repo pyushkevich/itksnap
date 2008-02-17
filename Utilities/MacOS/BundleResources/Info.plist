@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList.dtd">
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>InsightSNAP</string>
+	   <key>CFBundleIconFile</key>
+	   <string>itksnap</string>
+	   <key>CFBundleIdentifier</key>
+	   <string>org.itksnap</string>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>CFBundleVersion</key>
+        <string>59</string>
+        <key>CFBundleShortVersionString</key>
+	   <string>@SNAP_VERSION_FULL@</string>
+        <key>CFBundleSignature</key>
+        <string>itksnap</string>
+</dict>
+</plist>
