@@ -304,132 +304,6 @@ SET(APPLICATION_FLUIDS
   UserInterface/MainComponents/UserInterface.fl
 )
 
-# All program files
-SET(PROGRAM_DATA_FILES
-  ProgramData/SNAPProgramDataDirectory.txt
-  ProgramData/HTMLHelp/ContextHelp_Freehand.html
-  ProgramData/HTMLHelp/ContextHelp_SegmentationOptions.html
-  ProgramData/HTMLHelp/Credits.html
-  ProgramData/HTMLHelp/Tutorial.html
-  ProgramData/HTMLHelp/TutorialSectionEdgeBasedSegmentation.html
-  ProgramData/HTMLHelp/TutorialSectionIntroduction.html
-  ProgramData/HTMLHelp/TutorialSectionIntroductionToAutomatic.html
-  ProgramData/HTMLHelp/TutorialSectionLoadingImages.html
-  ProgramData/HTMLHelp/TutorialSectionManualSegmentation.html
-  ProgramData/HTMLHelp/TutorialSectionRegionSegmentation.html
-  ProgramData/HTMLHelp/TutorialSectionTipsAndTricks.html
-  ProgramData/HTMLHelp/TutorialSectionViewingImages.html
-  ProgramData/HTMLHelp/TutorialSectionVolumes.html
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroEdgesPicture.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroEdgesPipeline01.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroEdgesPipeline02.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroEdgesPipeline03.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroEdgesPipeline04.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroEdgesScale.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroRegionScale.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroRegionsExample.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroRegionsHisto.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroRegionsRemapFunction.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroRegionsSegment01.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroRegionsSegment02.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroRegionsSegment03.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroRegionsSegment04.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroSnakeConcept01.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroSnakeConcept02.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroSnakeConcept03.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroSnakeConcept04.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroSnakeMerge01.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroSnakeMerge02.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroSnakeMerge03.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroSnakeMerge04.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroSnakeVelocities.gif
-  ProgramData/HTMLHelp/Artwork/ttAutoIntroSnakeVelocitiesMotion01.gif
-  ProgramData/HTMLHelp/Artwork/ttEdgeBubbles.gif
-  ProgramData/HTMLHelp/Artwork/ttEdgeFeatureImage.gif
-  ProgramData/HTMLHelp/Artwork/ttEdgeFilterBox.gif
-  ProgramData/HTMLHelp/Artwork/ttEdgeLeaky.gif
-  ProgramData/HTMLHelp/Artwork/ttEdgeNoLeaks.gif
-  ProgramData/HTMLHelp/Artwork/ttEdgeParameters1.gif
-  ProgramData/HTMLHelp/Artwork/ttEdgePipeline1.gif
-  ProgramData/HTMLHelp/Artwork/ttIconAction.gif
-  ProgramData/HTMLHelp/Artwork/ttIconAttention.gif
-  ProgramData/HTMLHelp/Artwork/ttIconExpert.gif
-  ProgramData/HTMLHelp/Artwork/ttIconTip.gif
-  ProgramData/HTMLHelp/Artwork/ttIntroScreenLayout.gif
-  ProgramData/HTMLHelp/Artwork/ttLoadImageBrowser.gif
-  ProgramData/HTMLHelp/Artwork/ttLoadImageMenuBar.gif
-  ProgramData/HTMLHelp/Artwork/ttLoadImageResult.gif
-  ProgramData/HTMLHelp/Artwork/ttLoadImageWizardOrientation.gif
-  ProgramData/HTMLHelp/Artwork/ttLoadImageWizardPreview.gif
-  ProgramData/HTMLHelp/Artwork/ttLoadImageWizardPreviewWithFile.gif
-  ProgramData/HTMLHelp/Artwork/ttLoadImageWizardSummary.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentLabelEditor.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentLabelEditorChanged.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentLabelEditorLoaded.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentLabelFileDialog.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentLabelSubPanel.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentLabelSubPanel02.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentPaintClosePath.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentPaintFill.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentPaintPaste.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentPaintSelectSome.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentPaintStart.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentResult.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentRightCaudate.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentSaveWizard.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentSaveWizardFilled.gif
-  ProgramData/HTMLHelp/Artwork/ttManualSegmentToolbarManual.gif
-  ProgramData/HTMLHelp/Artwork/ttRegion3DImaginaryLine.gif
-  ProgramData/HTMLHelp/Artwork/ttRegion3DScalpelLine.gif
-  ProgramData/HTMLHelp/Artwork/ttRegion3DScalpelResult.gif
-  ProgramData/HTMLHelp/Artwork/ttRegion3DTools.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionAddBubble01.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionAddBubble02.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionFunctionForVentricles.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionNewInterface.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionParameterWindow.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionPreprocessor01.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionPreprocessor02.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionROISelection01.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionROISelection02.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionROISelectionFinal.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionResult.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionScalpelLabels.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionToolbar.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionVentricleResult.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionWizard02.gif
-  ProgramData/HTMLHelp/Artwork/ttRegionWizard03.gif
-  ProgramData/HTMLHelp/Artwork/ttSprayPaintCross.gif
-  ProgramData/HTMLHelp/Artwork/ttSprayPaintTool.gif
-  ProgramData/HTMLHelp/Artwork/ttTipsAdvanced.gif
-  ProgramData/HTMLHelp/Artwork/ttTipsFocusPlus.gif
-  ProgramData/HTMLHelp/Artwork/ttTipsFocusResult.gif
-  ProgramData/HTMLHelp/Artwork/ttTipsImageInfo.gif
-  ProgramData/HTMLHelp/Artwork/ttTipsResample1.gif
-  ProgramData/HTMLHelp/Artwork/ttTipsResample2.gif
-  ProgramData/HTMLHelp/Artwork/ttTipsResample3.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageAppearance.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageControlPanel.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageControlPanelToolOptions01.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageControlPanelToolOptions02.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageControlPanelToolbox01.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageControlPanelToolbox02.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageDisplayOptions.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageIntensityDialog.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageIntensityDialogWindowing.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageIntensityDialogWindowingCurve.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageSliceWindowClick.gif
-  ProgramData/HTMLHelp/Artwork/ttViewImageSliceWindowZoom.gif
-  ProgramData/HTMLHelp/Artwork/ttVolumeStatsDialog.gif
-  ProgramData/HTMLHelp/Artwork/ttVolumeStatsMesh.gif
-  ProgramData/Images2D/EdgeForcesExample.png
-  ProgramData/Images2D/EdgeForcesExample.hdr
-  ProgramData/Images2D/EdgeForcesExample.img.gz
-  ProgramData/Images2D/RegionForcesExample.png
-  ProgramData/Images2D/RegionForcesExample.hdr
-  ProgramData/Images2D/RegionForcesExample.img.gz
-  ProgramData/Presets/SnakeParameterPreviewCurve.txt
-)
 
 #############################################
 # SYSTEM-SPECIFIC SETTINGS                  #
@@ -639,17 +513,17 @@ ENDIF(BUILD_TESTING)
 # ----------------------------------------------------------------
 # Miscelaneous tasks (not related to link and compilation)
 # ----------------------------------------------------------------
+# All program files - use recursive globbing
+FILE(GLOB_RECURSE PROGRAM_DATA_FILES ProgramData "*.txt" "*.html" "*.gif" "*.png" "*.img.gz" "*.hdr")
 
 # Copy documentation from the source tree to the build tree
 FOREACH(DATAFILE ${PROGRAM_DATA_FILES})
+  FILE(RELATIVE_PATH SHORTNAME ${SNAP_SOURCE_DIR} ${DATAFILE})
   CONFIGURE_FILE(
-    ${SNAP_SOURCE_DIR}/${DATAFILE}
-    ${SNAP_BINARY_DIR}/${DATAFILE}
-    COPYONLY)
+    ${SNAP_SOURCE_DIR}/${SHORTNAME}
+    ${SNAP_BINARY_DIR}/${SHORTNAME}
+   COPYONLY)
 ENDFOREACH(DATAFILE)
-
-# Include all program data
-SUBDIRS(ProgramData)
 
 # ----------------------------------------------------------------
 # INSTALLATION AND PACKAGING with CPack
@@ -660,14 +534,39 @@ INCLUDE(CMake/CustomBuildSettings.cmake)
 SUBDIRS(Utilities/Forwarding)
 
 # Install the SNAP executable in the appropriate place.
+
+# Windows (Microsoft Visual Studio)
 IF(WIN32 AND NOT UNIX)
   INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION bin)
-  SET(SNAP_DATA_INSTALL_DIR /ProgramData)
-ELSE(WIN32 AND NOT UNIX)
-  SET(SNAP_MAIN_INSTALL_DIR /lib/snap-${SNAP_VERSION_FULL})
-  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR}/ProgramData)
-  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION lib/snap-${SNAP_VERSION_FULL})
+  SET(SNAP_DATA_INSTALL_DIR "")
 ENDIF(WIN32 AND NOT UNIX)
+
+# Apple
+IF(APPLE)
+  # Copy executable into the bundle
+  SET(SNAP_MAIN_INSTALL_DIR ITK-SNAP.app/Contents/MacOS)
+  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
+  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
+
+  # Configure the XML file
+  CONFIGURE_FILE(
+    ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/Info.plist
+    ${SNAP_BINARY_DIR}/Utilities/MacOS/BundleResources/Info.plist)
+  INSTALL(FILES ${SNAP_BINARY_DIR}/Utilities/MacOS/BundleResources/Info.plist
+    DESTINATION ITK-SNAP.app/Contents) 
+  INSTALL(FILES ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns
+    DESTINATION ITK-SNAP.app/Contents/Resources)
+ENDIF(APPLE)
+
+# Other UNIX
+IF(UNIX AND NOT APPLE)
+  SET(SNAP_MAIN_INSTALL_DIR lib/snap-${SNAP_VERSION_FULL})
+  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
+  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
+ENDIF(UNIX AND NOT APPLE)
+
+# Install the Program Data files
+INSTALL(DIRECTORY ${SNAP_BINARY_DIR}/ProgramData DESTINATION ${SNAP_DATA_INSTALL_DIR})
 
 # On Win32, we must include the redistributable
 IF(MSVC80 OR MSVC90)
@@ -686,7 +585,6 @@ SET(CPACK_PACKAGE_VERSION_MAJOR "${SNAP_VERSION_MAJOR}")
 SET(CPACK_PACKAGE_VERSION_MINOR "${SNAP_VERSION_MINOR}")
 SET(CPACK_PACKAGE_VERSION_PATCH "${SNAP_VERSION_PATCH}")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "itksnap-${SNAP_VERSION_FULL}")
-
 
 # Shamelessly stolen from ParaView_
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_FULL}-${SNAP_VERSION_RELEASE_DATE}")
@@ -733,7 +631,7 @@ ELSE(WIN32 AND NOT UNIX)
   IF(NOT APPLE)
     SET(CPACK_GENERATOR "STGZ")
   ELSE(NOT APPLE)
-    SET(CPACK_GENERATOR "TGZ;PackageMaker")
+    SET(CPACK_GENERATOR "ZIP")
   ENDIF(NOT APPLE)
 
   # Executable is the forward sharing exe
