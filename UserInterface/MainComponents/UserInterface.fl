@@ -127,6 +127,26 @@ class UserInterface {open : {public UserInterfaceBase}
               callback {this->OnMenuWriteVoxelCounts();}
               xywh {10 10 100 20} shortcut 0x50076 labelsize 12 deactivate divider
             }
+            Submenu m_MenuSaveScreenshots {
+              label {&Screenshots...} open
+              xywh {10 10 100 20} labelsize 12 deactivate divider
+            } {
+              MenuItem m_MenuSaveScreenshotsAxial {
+                label {&Axial...}
+                callback {OnMenuSaveScreenshots(0);}
+                xywh {50 50 100 20} labelsize 12
+              }
+              MenuItem m_MenuSaveScreenshotsSaggital {
+                label {&Saggital...}
+                callback {OnMenuSaveScreenshots(1);}
+                xywh {50 50 100 20} labelsize 12
+              }
+              MenuItem m_MenuSaveScreenshotsCoronal {
+                label {&Coronal...}
+                callback {OnMenuSaveScreenshots(2);}
+                xywh {50 50 100 20} labelsize 12
+              }
+            }
             Submenu m_MenuExportSlice {
               label {E&xport Slice} open
               xywh {0 0 100 20} labelsize 12 deactivate

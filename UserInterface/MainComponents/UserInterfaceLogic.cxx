@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/16 22:38:34 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2008/02/23 23:41:12 $
+  Version:   $Revision: 1.20 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -250,6 +250,7 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuSaveLabels, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadLabels, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveVoxelCounts, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuSaveScreenshots, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuIntensityCurve, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuRGBOverlayOptions, UIF_RGBANY_LOADED);
   m_Activation->AddMenuItem(m_MenuExportSlice, UIF_GRAY_LOADED);
@@ -3358,6 +3359,45 @@ void UserInterfaceLogic
 }
 
 void UserInterfaceLogic
+::OnMenuSaveScreenshots(unsigned int iSlice)
+{
+  // iSlice needs to be between 0 and 2
+  assert (iSlice >= 0 && iSlice <= 2);
+  
+  // let the user pick the directory for saving the screenshots
+  char *path = fl_dir_chooser("Select the directory to save the screenshots", NULL, NULL);
+  
+  // set up the 1st snapshot name
+  std::string fname(path);
+  
+  switch (iSlice) {
+    default:
+    case 0: fname += "axial0001.png";
+		  break;
+    case 1: fname += "saggital0001.png";
+		  break;
+    case 2: fname += "coronal0001.png";
+		  break;
+  }
+  
+  Vector3ui xSize = m_Driver->GetCurrentImageData()->GetVolumeExtents();
+  Vector3ui xCrossImage(xSize[0]/2, xSize[1]/2, xSize[2]/2);
+  const unsigned int idx = (iSlice + 2) % 3;
+  xCrossImage[idx] = 0;
+  
+  for (int i = 0; i < xSize[idx]; ++i) {
+  	m_Driver->SetCursorPosition(xCrossImage);
+  	m_Driver->GetCurrentImageData()->SetCrosshairs(xCrossImage);
+  	this->OnCrosshairPositionUpdate();
+  	this->RedrawWindows();
+	m_SliceWindow[iSlice]->SaveAsPNG(fname.c_str());
+	xCrossImage[idx]++;
+	m_LastSnapshotFileName = fname;
+	fname = GenerateScreenShotFilename();
+  }
+}
+
+void UserInterfaceLogic
 ::OnMenuExportSlice(unsigned int iSlice)
 {
   // We need to get a filename for the export
@@ -3996,6 +4036,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.20  2008/02/23 23:41:12  garyhuizhang
+ *add support for saving screenshots of the whole image volume
+ *
  *Revision 1.19  2008/02/16 22:38:34  pyushkevich
  *Bug fix with bubbles
  *

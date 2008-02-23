@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2008/02/23 23:41:12 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -667,6 +667,7 @@ protected:
   void OnMenuSaveSegmentation();
   void OnMenuSaveSegmentationMesh();
   void OnMenuSaveLabels();
+  void OnMenuSaveScreenshots(unsigned int iSlice);
   void OnMenuWriteVoxelCounts();
   void OnMenuIntensityCurve();
   void OnMenuShowRGBOverlayOptions();
@@ -926,6 +927,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.11  2008/02/23 23:41:12  garyhuizhang
+ *add support for saving screenshots of the whole image volume
+ *
  *Revision 1.10  2008/02/10 23:55:22  pyushkevich
  *Added "Auto" button to the intensity curve window; Added prompt before quitting on unsaved data; Fixed issues with undo on segmentation image load; Added synchronization between SNAP sessions.
  *
