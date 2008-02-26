@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/23 23:41:12 $
-  Version:   $Revision: 1.20 $
+  Date:      $Date: 2008/02/26 21:28:29 $
+  Version:   $Revision: 1.21 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3368,9 +3368,17 @@ void UserInterfaceLogic
   char *path = fl_dir_chooser("Select the directory to save the screenshots", NULL, NULL);
   
   // set up the 1st snapshot name
-  std::string fname(path);
+  std::string fname;
+  if (path)
+  {
+    fname = path;
+  } else
+  {
+    return;
+  }
   
-  switch (iSlice) {
+  switch (iSlice)
+  {
     default:
     case 0: fname += "axial0001.png";
 		  break;
@@ -3380,21 +3388,35 @@ void UserInterfaceLogic
 		  break;
   }
   
+  // back up cursor location
+  Vector3ui xCrossImageOld = m_Driver->GetCursorPosition();
+  Vector3ui xCrossImage = xCrossImageOld;
   Vector3ui xSize = m_Driver->GetCurrentImageData()->GetVolumeExtents();
-  Vector3ui xCrossImage(xSize[0]/2, xSize[1]/2, xSize[2]/2);
   const unsigned int idx = (iSlice + 2) % 3;
   xCrossImage[idx] = 0;
   
-  for (int i = 0; i < xSize[idx]; ++i) {
-  	m_Driver->SetCursorPosition(xCrossImage);
-  	m_Driver->GetCurrentImageData()->SetCrosshairs(xCrossImage);
-  	this->OnCrosshairPositionUpdate();
-  	this->RedrawWindows();
-	m_SliceWindow[iSlice]->SaveAsPNG(fname.c_str());
-	xCrossImage[idx]++;
-	m_LastSnapshotFileName = fname;
-	fname = GenerateScreenShotFilename();
+  // turn sync off temporarily
+  unsigned int syncValue = m_BtnSynchronizeCursor->value();
+  m_BtnSynchronizeCursor->value(0);
+
+  for (int i = 0; i < xSize[idx]; ++i)
+  {
+    m_Driver->SetCursorPosition(xCrossImage);
+    this->OnCrosshairPositionUpdate();
+    this->RedrawWindows();
+    m_SliceWindow[iSlice]->SaveAsPNG(fname.c_str());
+    xCrossImage[idx]++;
+    m_LastSnapshotFileName = fname;
+    fname = GenerateScreenShotFilename();
   }
+  
+  // recover the original cursor position
+  m_Driver->SetCursorPosition(xCrossImageOld);
+  this->OnCrosshairPositionUpdate();
+  this->RedrawWindows();
+  
+  // turn sync back on
+  m_BtnSynchronizeCursor->value(syncValue);
 }
 
 void UserInterfaceLogic
@@ -4036,6 +4058,11 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.21  2008/02/26 21:28:29  garyhuizhang
+ *improve the behavior of savescreenshot series
+ *1) restore the cursor location before the call
+ *2) handle the situation when user did not provide a directory for screenshots
+ *
  *Revision 1.20  2008/02/23 23:41:12  garyhuizhang
  *add support for saving screenshots of the whole image volume
  *
