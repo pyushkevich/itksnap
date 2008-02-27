@@ -127,23 +127,43 @@ class UserInterface {open : {public UserInterfaceBase}
               callback {this->OnMenuWriteVoxelCounts();}
               xywh {10 10 100 20} shortcut 0x50076 labelsize 12 deactivate divider
             }
-            Submenu m_MenuSaveScreenshots {
-              label {&Screenshots...} open
+            Submenu m_MenuSaveScreenshot {
+              label {Screenshot...} open
+              xywh {10 10 100 20} labelsize 12 deactivate
+            } {
+              MenuItem m_MenuSaveScreenshotAxial {
+                label {Axial...}
+                callback {OnMenuSaveScreenshot(0);}
+                xywh {50 50 100 20} labelsize 12
+              }
+              MenuItem m_MenuSaveScreenshotSaggital {
+                label {Saggital...}
+                callback {OnMenuSaveScreenshot(1);}
+                xywh {50 50 100 20} labelsize 12
+              }
+              MenuItem m_MenuSaveScreenshotCoronal {
+                label {Coronal...}
+                callback {OnMenuSaveScreenshot(2);}
+                xywh {50 50 100 20} labelsize 12
+              }
+            }
+            Submenu m_MenuSaveScreenshotSeries {
+              label {Screenshot Series...} open
               xywh {10 10 100 20} labelsize 12 deactivate divider
             } {
-              MenuItem m_MenuSaveScreenshotsAxial {
-                label {&Axial...}
-                callback {OnMenuSaveScreenshots(0);}
+              MenuItem m_MenuSaveScreenshotSeriesAxial {
+                label {Axial...}
+                callback {OnMenuSaveScreenshotSeries(0);}
                 xywh {50 50 100 20} labelsize 12
               }
-              MenuItem m_MenuSaveScreenshotsSaggital {
-                label {&Saggital...}
-                callback {OnMenuSaveScreenshots(1);}
+              MenuItem m_MenuSaveScreenshotSeriesSaggital {
+                label {Saggital...}
+                callback {OnMenuSaveScreenshotSeries(1);}
                 xywh {50 50 100 20} labelsize 12
               }
-              MenuItem m_MenuSaveScreenshotsCoronal {
-                label {&Coronal...}
-                callback {OnMenuSaveScreenshots(2);}
+              MenuItem m_MenuSaveScreenshotSeriesCoronal {
+                label {Coronal...}
+                callback {OnMenuSaveScreenshotSeries(2);}
                 xywh {50 50 100 20} labelsize 12
               }
             }

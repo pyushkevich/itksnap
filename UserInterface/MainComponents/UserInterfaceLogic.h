@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/02/23 23:41:12 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2008/02/27 04:34:46 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -667,7 +667,8 @@ protected:
   void OnMenuSaveSegmentation();
   void OnMenuSaveSegmentationMesh();
   void OnMenuSaveLabels();
-  void OnMenuSaveScreenshots(unsigned int iSlice);
+  void OnMenuSaveScreenshot(unsigned int iSlice);
+  void OnMenuSaveScreenshotSeries(unsigned int iSlice);
   void OnMenuWriteVoxelCounts();
   void OnMenuIntensityCurve();
   void OnMenuShowRGBOverlayOptions();
@@ -927,6 +928,10 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.12  2008/02/27 04:34:46  garyhuizhang
+ *1) rename OnMenuSaveScreenshots to OnMenuSaveScreenshotSeries
+ *2) support menu access to both save single screenshot and screenshot series
+ *
  *Revision 1.11  2008/02/23 23:41:12  garyhuizhang
  *add support for saving screenshots of the whole image volume
  *

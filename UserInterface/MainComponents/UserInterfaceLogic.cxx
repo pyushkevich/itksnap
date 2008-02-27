@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/26 21:28:29 $
-  Version:   $Revision: 1.21 $
+  Date:      $Date: 2008/02/27 04:34:46 $
+  Version:   $Revision: 1.22 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -250,7 +250,8 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuSaveLabels, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadLabels, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveVoxelCounts, UIF_IRIS_WITH_BASEIMG_LOADED);
-  m_Activation->AddMenuItem(m_MenuSaveScreenshots, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuSaveScreenshot, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuSaveScreenshotSeries, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuIntensityCurve, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuRGBOverlayOptions, UIF_RGBANY_LOADED);
   m_Activation->AddMenuItem(m_MenuExportSlice, UIF_GRAY_LOADED);
@@ -3359,7 +3360,15 @@ void UserInterfaceLogic
 }
 
 void UserInterfaceLogic
-::OnMenuSaveScreenshots(unsigned int iSlice)
+::OnMenuSaveScreenshot(unsigned int iSlice)
+{
+  // iSlice needs to be between 0 and 2
+  assert (iSlice >= 0 && iSlice <= 2);
+  OnActiveWindowSaveSnapshot(iSlice);
+}
+
+void UserInterfaceLogic
+::OnMenuSaveScreenshotSeries(unsigned int iSlice)
 {
   // iSlice needs to be between 0 and 2
   assert (iSlice >= 0 && iSlice <= 2);
@@ -4058,6 +4067,10 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.22  2008/02/27 04:34:46  garyhuizhang
+ *1) rename OnMenuSaveScreenshots to OnMenuSaveScreenshotSeries
+ *2) support menu access to both save single screenshot and screenshot series
+ *
  *Revision 1.21  2008/02/26 21:28:29  garyhuizhang
  *improve the behavior of savescreenshot series
  *1) restore the cursor location before the call
