@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2008/03/25 19:31:31 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -111,6 +111,13 @@ enum PaintbrushShape
 {
   PAINTBRUSH_RECTANGULAR = 0,
   PAINTBRUSH_ROUND = 1
+};
+
+enum AnatomicalDirection
+{
+  ANATOMY_AXIAL = 0,
+  ANATOMY_SAGITTAL,
+  ANATOMY_CORONAL
 };
 
 /** Paintbrush settings */
@@ -567,6 +574,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.8  2008/03/25 19:31:31  pyushkevich
+ *Bug fixes for release 1.6.0
+ *
  *Revision 1.7  2008/02/10 23:55:22  pyushkevich
  *Added "Auto" button to the intensity curve window; Added prompt before quitting on unsaved data; Fixed issues with undo on segmentation image load; Added synchronization between SNAP sessions.
  *

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/11 13:06:52 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2008/03/25 19:31:31 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -732,15 +732,51 @@ void IRISApplication
   m_CurrentImageData = m_SNAPImageData;
 }
 
+size_t 
+IRISApplication
+::GetImageDirectionForAnatomicalDirection(AnatomicalDirection iAnat)
+{
+  string rai1 = "SRA", rai2 = "ILP";
+  char c1 = rai1[iAnat], c2 = rai2[iAnat];
+  for(size_t j = 0; j < 3; j++)
+    {
+    if(
+      m_ImageToAnatomyRAI[j] == c1 || 
+      m_ImageToAnatomyRAI[j] == c2)
+      {
+      return j;
+      }
+    }
+  assert(0);
+  return 0;
+}
+
+size_t 
+IRISApplication
+::GetDisplayWindowForAnatomicalDirection(
+  AnatomicalDirection iAnat)
+{
+  string rai1 = "SRA", rai2 = "ILP";
+  char c1 = rai1[iAnat], c2 = rai2[iAnat];
+  for(size_t j = 0; j < 3; j++)
+    {
+    char sd = m_DisplayToAnatomyRAI[j][2];
+    if(sd == c1 || sd == c2)
+      return j;
+    }
+
+  assert(0);
+  return 0;
+}
+
 void
 IRISApplication
-::ExportSlice(unsigned int iSliceAnatomy, const char *file)
+::ExportSlice(AnatomicalDirection iSliceAnat, const char *file)
 {
   // Get the slice index in image coordinates
-  ImageCoordinateTransform ita = 
-    m_CurrentImageData->GetImageGeometry().GetImageToAnatomyTransform();
-  unsigned int iSliceImg = ita.Inverse().GetCoordinateIndexZeroBased(iSliceAnatomy);
-
+  size_t iSliceImg = 
+    GetImageDirectionForAnatomicalDirection(iSliceAnat);
+  
   // Get the grey slice
   GreyImageWrapper::DisplaySlicePointer imgGrey = 
     m_CurrentImageData->GetGrey()->GetDisplaySlice(iSliceImg);

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/03/25 19:31:31 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -178,6 +178,14 @@ public:
   /** Get the current display to anatomy RAI code */
   const char *GetDisplayToAnatomyRAI(unsigned int slice);
 
+  /** Get the image axis for a given anatomical direction */
+  size_t GetImageDirectionForAnatomicalDirection(
+    AnatomicalDirection iAnat);
+
+  /** Get the display window corresponding to an anatomical direction */
+  size_t GetDisplayWindowForAnatomicalDirection(
+    AnatomicalDirection iAnat);
+
   /**
    * Intensity mapping curve used for Grey images
    * in the application
@@ -208,7 +216,7 @@ public:
   /**
    * Export the current slice of the image into a file
    */
-  void ExportSlice(unsigned int iSliceAnatomy, const char *file);
+  void ExportSlice(AnatomicalDirection iSliceAnatomy, const char *file);
 
   /** Export voxel statistis to a file */
   void ExportSegmentationStatistics(const char *file) 

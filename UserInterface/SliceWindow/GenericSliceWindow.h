@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/03/25 19:31:33 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -137,6 +137,10 @@ public:
    * Map a point in image coordinates to slice coordinates
    */
   Vector3f MapImageToSlice(const Vector3f &xImage);
+
+  /** Return the image axis along which this window shows slices */
+  size_t GetSliceDirectionInImageSpace()
+    { return m_ImageAxes[2]; }
 
   /** Set the zoom factor (number of pixels on the screen per millimeter in
    * image space */

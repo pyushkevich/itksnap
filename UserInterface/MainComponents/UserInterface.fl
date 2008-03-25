@@ -128,7 +128,7 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {10 10 100 20} shortcut 0x50076 labelsize 12 deactivate divider
             }
             Submenu m_MenuSaveScreenshot {
-              label {Screenshot...} open
+              label {Screenshot} open
               xywh {10 10 100 20} labelsize 12 deactivate
             } {
               MenuItem m_MenuSaveScreenshotAxial {
@@ -148,7 +148,7 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
             Submenu m_MenuSaveScreenshotSeries {
-              label {Screenshot Series...} open
+              label {Screenshot Series} open
               xywh {10 10 100 20} labelsize 12 deactivate divider
             } {
               MenuItem m_MenuSaveScreenshotSeriesAxial {

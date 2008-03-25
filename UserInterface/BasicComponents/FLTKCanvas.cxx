@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: FLTKCanvas.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/03/25 19:31:31 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -192,6 +192,12 @@ FLTKCanvas
     }
   else if(eventID == FL_FOCUS && m_GrabFocusOnEntry)
     {
+    // m_Focus = true;
+    return 1;
+    }
+  else if(eventID == FL_UNFOCUS && m_GrabFocusOnEntry)
+    {
+    // m_Focus = false;
     return 1;
     }
 

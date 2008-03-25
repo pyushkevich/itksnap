@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PaintbrushInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2008/03/25 19:31:33 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -450,7 +450,7 @@ PaintbrushInteractionMode
   // Record the event
   m_LastMouseEvent = event;
 
-  return 1;  
+  return 0;  
   }
 
 int 
@@ -464,7 +464,7 @@ PaintbrushInteractionMode
   // Record the event
   m_LastMouseEvent = event;
 
-  return 1;
+  return 0;
   }
 
 int

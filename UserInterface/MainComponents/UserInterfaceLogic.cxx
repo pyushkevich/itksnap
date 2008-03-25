@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/27 04:34:46 $
-  Version:   $Revision: 1.22 $
+  Date:      $Date: 2008/03/25 19:31:31 $
+  Version:   $Revision: 1.23 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1571,7 +1571,7 @@ UserInterfaceLogic
 ::GlobalIdleHandler(void *userData)
 {
   // This only matters if an image is loaded
-  if(m_GlobalUI->m_Activation->GetFlag(UIF_IRIS_WITH_BASEIMG_LOADED)
+  if(m_GlobalUI->m_Activation->GetFlag(UIF_BASEIMG_LOADED)
     && m_GlobalUI->m_BtnSynchronizeCursor->value())
     {
     // Check if the cursor has been moved in another SNAP session
@@ -1607,42 +1607,55 @@ int
 UserInterfaceLogic
 ::GlobalEventHandler(int ev)
 {
+  return m_GlobalUI->OnGlobalEvent(ev);
+}
+
+int 
+UserInterfaceLogic
+::OnGlobalEvent(int ev)
+{
   if(ev == FL_SHORTCUT)
     {
     // Opacity slider toggle/increase/decrease
-    if(m_GlobalUI->m_Activation->GetFlag(UIF_IRIS_WITH_BASEIMG_LOADED))
+    if(m_Activation->GetFlag(UIF_IRIS_WITH_BASEIMG_LOADED))
       {
       if(Fl::event_key() == 'a')
         {
-        double opacity = m_GlobalUI->m_InIRISLabelOpacity->value() - 8.0;
+        double opacity = m_InIRISLabelOpacity->value() - 8.0;
         if(opacity >= 0.0)
-          m_GlobalUI->m_InIRISLabelOpacity->value(opacity); 
-        m_GlobalUI->OnIRISLabelOpacityChange();
+          m_InIRISLabelOpacity->value(opacity); 
+        OnIRISLabelOpacityChange();
         return 1;
         }
       else if(Fl::event_key() == 'd')
         {
-        double opacity = m_GlobalUI->m_InIRISLabelOpacity->value() + 8.0;
+        double opacity = m_InIRISLabelOpacity->value() + 8.0;
         if(opacity <= 255.0)
-          m_GlobalUI->m_InIRISLabelOpacity->value(opacity); 
-        m_GlobalUI->OnIRISLabelOpacityChange();
+          m_InIRISLabelOpacity->value(opacity); 
+        OnIRISLabelOpacityChange();
         return 1;
         }
       else if(Fl::event_key() == 's')
         {
-        double opacity = m_GlobalUI->m_InIRISLabelOpacity->value();
+        double opacity = m_InIRISLabelOpacity->value();
         if(opacity > 0)
           {
-          m_GlobalUI->m_OpacityToggleValue = opacity;
-          m_GlobalUI->m_InIRISLabelOpacity->value(0);
+          m_OpacityToggleValue = opacity;
+          m_InIRISLabelOpacity->value(0);
           }
         else
           {
-          m_GlobalUI->m_InIRISLabelOpacity->value(m_GlobalUI->m_OpacityToggleValue);
-          m_GlobalUI->m_OpacityToggleValue = 128;
+          m_InIRISLabelOpacity->value(m_OpacityToggleValue);
+          m_OpacityToggleValue = 128;
           }
-        m_GlobalUI->OnIRISLabelOpacityChange(); 
+        OnIRISLabelOpacityChange(); 
         return 1;
+        }
+      else if(Fl::event_key == 'i' && Fl::event_alt())
+        {
+        m_IntensityCurveUI->DisplayWindow();
+        m_IntensityCurveUI->OnAutoFitWindow();
+        m_IntensityCurveUI->OnClose();
         }
       }
     }
@@ -3359,22 +3372,79 @@ void UserInterfaceLogic
     m_SystemInterface->GetHistory("LabelDescriptions"));
 }
 
-void UserInterfaceLogic
-::OnMenuSaveScreenshot(unsigned int iSlice)
+void
+UserInterfaceLogic
+::OnActiveWindowSaveSnapshot(unsigned int window)
 {
-  // iSlice needs to be between 0 and 2
-  assert (iSlice >= 0 && iSlice <= 2);
-  OnActiveWindowSaveSnapshot(iSlice);
+  // Generate a filename for the screenshot
+  std::string finput = GenerateScreenShotFilename();
+  
+  // Create a file chooser
+  std::string file = itksys::SystemTools::GetFilenameName(finput);
+  std::string path = itksys::SystemTools::GetFilenamePath(finput);
+
+  // Store the current directory
+  std::string dir = itksys::SystemTools::GetCurrentWorkingDirectory();
+  itksys::SystemTools::ChangeDirectory(path.c_str());
+
+  // Get the filename 
+  const char *fchosen = 
+    fl_file_chooser("Save PNG Snapshot", "PNG Files (*.png)", file.c_str());
+  
+  // Restore the current directory
+  itksys::SystemTools::ChangeDirectory(dir.c_str());
+
+  if(!fchosen)
+    return;
+
+  // Store the filename for incrementing numerical names
+  m_LastSnapshotFileName = fchosen;
+
+  // Check if the user omitted the extension
+  if(itksys::SystemTools::GetFilenameExtension(m_LastSnapshotFileName) == "")
+    m_LastSnapshotFileName = m_LastSnapshotFileName + ".png";
+
+  // Choose which window to save with
+  if(window < 3)
+    m_SliceWindow[window]->SaveAsPNG(m_LastSnapshotFileName.c_str());
+  else
+    m_RenderWindow->SaveAsPNG(m_LastSnapshotFileName.c_str());
 }
 
 void UserInterfaceLogic
+::OnMenuSaveScreenshot(unsigned int iSlice)
+{
+  size_t iWindow = 
+    m_Driver->GetDisplayWindowForAnatomicalDirection(
+      (AnatomicalDirection) iSlice);
+  OnActiveWindowSaveSnapshot(iWindow);
+}
+
+void 
+UserInterfaceLogic
 ::OnMenuSaveScreenshotSeries(unsigned int iSlice)
 {
   // iSlice needs to be between 0 and 2
   assert (iSlice >= 0 && iSlice <= 2);
-  
+
+  // iSlice refers to which anatomical direction the user wants to
+  // animate along (0 = axial, 1 = sagittal, 2 = coronal). We need
+  // to know which window that corresponds to, as well as what image
+  // dimension
+
+  // Find the display window corresponding to this anatomical direction
+  size_t iWindow = 
+    m_Driver->GetDisplayWindowForAnatomicalDirection(
+      (AnatomicalDirection) iSlice);
+
+  // Get the image slicing direction
+  size_t iImageDir = 
+    m_Driver->GetImageDirectionForAnatomicalDirection(
+      (AnatomicalDirection) iSlice);
+
   // let the user pick the directory for saving the screenshots
-  char *path = fl_dir_chooser("Select the directory to save the screenshots", NULL, NULL);
+  char *path = fl_dir_chooser(
+    "Select the directory to save the screenshots", NULL, NULL);
   
   // set up the 1st snapshot name
   std::string fname;
@@ -3401,20 +3471,19 @@ void UserInterfaceLogic
   Vector3ui xCrossImageOld = m_Driver->GetCursorPosition();
   Vector3ui xCrossImage = xCrossImageOld;
   Vector3ui xSize = m_Driver->GetCurrentImageData()->GetVolumeExtents();
-  const unsigned int idx = (iSlice + 2) % 3;
-  xCrossImage[idx] = 0;
+  xCrossImage[iImageDir] = 0;
   
   // turn sync off temporarily
   unsigned int syncValue = m_BtnSynchronizeCursor->value();
   m_BtnSynchronizeCursor->value(0);
 
-  for (int i = 0; i < xSize[idx]; ++i)
+  for (int i = 0; i < xSize[iImageDir]; ++i)
   {
     m_Driver->SetCursorPosition(xCrossImage);
     this->OnCrosshairPositionUpdate();
     this->RedrawWindows();
-    m_SliceWindow[iSlice]->SaveAsPNG(fname.c_str());
-    xCrossImage[idx]++;
+    m_SliceWindow[iWindow]->SaveAsPNG(fname.c_str());
+    xCrossImage[iImageDir]++;
     m_LastSnapshotFileName = fname;
     fname = GenerateScreenShotFilename();
   }
@@ -3422,7 +3491,7 @@ void UserInterfaceLogic
   // recover the original cursor position
   m_Driver->SetCursorPosition(xCrossImageOld);
   this->OnCrosshairPositionUpdate();
-  this->RedrawWindows();
+  this->RedrawWindows();  
   
   // turn sync back on
   m_BtnSynchronizeCursor->value(syncValue);
@@ -3434,9 +3503,9 @@ void UserInterfaceLogic
   // We need to get a filename for the export
   char* fName = fl_file_chooser(
     "Export Slice As", "Image Files (*.{png,jpg,gif,tiff})", NULL);
-  
+
   if(fName)
-    m_Driver->ExportSlice(iSlice, fName);
+    m_Driver->ExportSlice((AnatomicalDirection) iSlice, fName);
 }
 
 void UserInterfaceLogic
@@ -3985,44 +4054,6 @@ UserInterfaceLogic
 }
 
 
-void
-UserInterfaceLogic
-::OnActiveWindowSaveSnapshot(unsigned int window)
-{
-  // Generate a filename for the screenshot
-  std::string finput = GenerateScreenShotFilename();
-  
-  // Create a file chooser
-  std::string file = itksys::SystemTools::GetFilenameName(finput);
-  std::string path = itksys::SystemTools::GetFilenamePath(finput);
-
-  // Store the current directory
-  std::string dir = itksys::SystemTools::GetCurrentWorkingDirectory();
-  itksys::SystemTools::ChangeDirectory(path.c_str());
-
-  // Get the filename 
-  const char *fchosen = 
-    fl_file_chooser("Save PNG Snapshot", "PNG Files (*.png)", file.c_str());
-  
-  // Restore the current directory
-  itksys::SystemTools::ChangeDirectory(dir.c_str());
-
-  if(!fchosen)
-    return;
-
-  // Store the filename for incrementing numerical names
-  m_LastSnapshotFileName = fchosen;
-
-  // Check if the user omitted the extension
-  if(itksys::SystemTools::GetFilenameExtension(m_LastSnapshotFileName) == "")
-    m_LastSnapshotFileName = m_LastSnapshotFileName + ".png";
-
-  // Choose which window to save with
-  if(window < 3)
-    m_SliceWindow[window]->SaveAsPNG(m_LastSnapshotFileName.c_str());
-  else
-    m_RenderWindow->SaveAsPNG(m_LastSnapshotFileName.c_str());
-}
 
 void
 UserInterfaceLogic
@@ -4067,6 +4098,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.23  2008/03/25 19:31:31  pyushkevich
+ *Bug fixes for release 1.6.0
+ *
  *Revision 1.22  2008/02/27 04:34:46  garyhuizhang
  *1) rename OnMenuSaveScreenshots to OnMenuSaveScreenshotSeries
  *2) support menu access to both save single screenshot and screenshot series

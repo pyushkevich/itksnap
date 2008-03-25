@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/02/27 04:34:46 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2008/03/25 19:31:33 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -855,6 +855,9 @@ private:
   // Global event handler (shortcuts, etc)
   static int GlobalEventHandler(int);
 
+  // Called by the above, responds to global events
+  int OnGlobalEvent(int);
+
   // Main idle function (for cursor sync)
   static void GlobalIdleHandler(void *);
 
@@ -928,6 +931,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.13  2008/03/25 19:31:33  pyushkevich
+ *Bug fixes for release 1.6.0
+ *
  *Revision 1.12  2008/02/27 04:34:46  garyhuizhang
  *1) rename OnMenuSaveScreenshots to OnMenuSaveScreenshotSeries
  *2) support menu access to both save single screenshot and screenshot series

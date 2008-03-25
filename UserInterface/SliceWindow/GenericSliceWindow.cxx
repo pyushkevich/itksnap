@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2008/03/25 19:31:33 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -688,4 +688,3 @@ GenericSliceWindow::EventHandler
   m_ParentUI = m_Parent->m_ParentUI;
   m_GlobalState = m_Parent->m_GlobalState;
 }
-
