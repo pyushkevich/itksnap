@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/03/25 19:31:31 $
-  Version:   $Revision: 1.23 $
+  Date:      $Date: 2008/04/01 14:25:27 $
+  Version:   $Revision: 1.24 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1651,7 +1651,7 @@ UserInterfaceLogic
         OnIRISLabelOpacityChange(); 
         return 1;
         }
-      else if(Fl::event_key == 'i' && Fl::event_alt())
+      else if(Fl::event_key() == 'i' && Fl::event_alt())
         {
         m_IntensityCurveUI->DisplayWindow();
         m_IntensityCurveUI->OnAutoFitWindow();
@@ -4098,6 +4098,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.24  2008/04/01 14:25:27  pyushkevich
+ *Minor bug fix: alt-i to do automatic intensity adjustment
+ *
  *Revision 1.23  2008/03/25 19:31:31  pyushkevich
  *Bug fixes for release 1.6.0
  *
