@@ -27,11 +27,11 @@
     manual segmentation mode; probably will enable in snake mode in the near
     future.
 
-    --- NOTE FOR MacOS Users ---
-    MacOS doesn't allow you double-click the application icon to open a 
-    new instance. To open multiple instances of ITK-SNAP, you need to launch 
-    it from the command line.
-    ----------------------------    
+        --- NOTE FOR MacOS Users ---
+        MacOS doesn't allow you double-click the application icon to open a 
+        new instance. To open multiple instances of ITK-SNAP, you need to launch 
+        it from the command line.
+        ----------------------------    
 
  -  SNAP will prompt you before closing if there are unsaved changes.
 
@@ -40,7 +40,10 @@
 
  -  Support for RGB (color) images in SNAP. This is great for segmenting in DTI
     data (manually, for the time being). RGB images can be loaded as the base 
-    image or as an overlay over the gray. 
+    image or as an overlay over the gray. To create these RGB images, use the new
+    DTI-TK developed by Hui (Gary) Zhang, available from
+
+        http://www.picsl.upenn.edu/resources_dtitk.aspx
 
  -  Segmentations can be exported as VTK meshes (for example, for loading in 
     ParaView).
