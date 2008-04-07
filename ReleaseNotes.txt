@@ -1,22 +1,25 @@
 ======================================
  InsightSNAP Release Notes
- Version 1.6.0 (upcoming release)
+ Version 1.6.0
 ======================================
 
 -----------------
 1. New Features
 -----------------
 
-1.1. New in Version 1.6.0 (upcoming release)
+1.1. New in Version 1.6.0
 -------------------------
 
 1.1.1. New Features and UI Improvements
+
+ -  You can now save a sequence of all axial, coronal or sagittal slices with
+    overlays as PNG files (File->Save->Screenshot Series). 
 
  -  Automatic window and level computation based on the image histogram. The
     window and level are set to the 1st and 99th percentiles of the intensity
     histogram, respectively. This is much more robust to hypo and
     hyper-intensity in medical imaging data. The feature is accessed in the
-    "Options->Image Contrast" menu.
+    "Options->Image Contrast" menu (or hit Alt-I in the main window).
 
  -  Cursor synchronization across multiple SNAP sessions (similar to the Yoke 
     feature in MRIcro). The mechanism uses POSIX shared memory. Can be turned
