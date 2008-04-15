@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: FLTKWidgetActivationManager.h,v $
   Language:  C++
-  Date:      $Date: 2008/01/08 20:34:50 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/04/15 21:42:30 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,7 +41,7 @@
 #include <map>
 #include <set>
 #include <list>
-
+#include <string>
 
 /**
  * \class WidgetActivationManager 

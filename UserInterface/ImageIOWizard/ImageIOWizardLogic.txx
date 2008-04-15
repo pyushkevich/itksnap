@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/04/15 21:42:30 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1129,7 +1129,7 @@ void ImageIOWizardLogic<TPixel>
 ::OnOrientationPageSelect() 
 {
   // Return the currently set RAI
-  static char *raiList = "RLAPIS";
+  static const char *raiList = "RLAPIS";
 
   // Compute the RAI code based on the state of the drop-downs
   char rai[4];
