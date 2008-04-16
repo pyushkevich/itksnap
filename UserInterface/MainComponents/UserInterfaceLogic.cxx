@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/04/01 14:25:27 $
-  Version:   $Revision: 1.24 $
+  Date:      $Date: 2008/04/16 13:48:01 $
+  Version:   $Revision: 1.25 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1916,7 +1916,7 @@ UserInterfaceLogic
 
   // When the crosshair position is updated, we send the information 
   // to the inter-process communications system
-  if(m_GlobalUI->m_Activation->GetFlag(UIF_IRIS_WITH_BASEIMG_LOADED)
+  if(m_GlobalUI->m_Activation->GetFlag(UIF_BASEIMG_LOADED)
     && m_GlobalUI->m_BtnSynchronizeCursor->value())
     {
     Vector3d cursor = to_double(m_Driver->GetCursorPosition());
@@ -4098,6 +4098,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.25  2008/04/16 13:48:01  pyushkevich
+ *Major bug fix: cursor was not working in automatic segmentation mode
+ *
  *Revision 1.24  2008/04/01 14:25:27  pyushkevich
  *Minor bug fix: alt-i to do automatic intensity adjustment
  *
