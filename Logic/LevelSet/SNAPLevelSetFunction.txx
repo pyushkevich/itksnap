@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPLevelSetFunction.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/05/19 18:49:07 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -347,7 +347,8 @@ SNAPLevelSetFunction<TImageType>
                  GlobalDataStruct *) const
 {
   IndexType idx = neighborhood.GetIndex();
-  ContinuousIndexType cdx;
+  typedef typename VectorInterpolatorType::ContinuousIndexType VectorContinuousIndexType;
+  VectorContinuousIndexType cdx;
   for (unsigned i = 0; i < ImageDimension; ++i)
     {
     cdx[i] = static_cast<double>(idx[i]) - offset[i];
