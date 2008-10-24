@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPLevelSetDriver.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/10/24 12:52:08 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,13 +38,14 @@
 #include "SNAPCommon.h"
 #include "SnakeParameters.h"
 #include "SNAPLevelSetFunction.h"
-#include "SNAPLevelSetStopAndGoFilter.h"
+// #include "SNAPLevelSetStopAndGoFilter.h"
 
 template <class TFilter> class LevelSetExtensionFilter;
 class LevelSetExtensionFilterInterface;
  
 namespace itk {
   template <class TInputImage, class TOutputImage> class ImageToImageFilter;
+  template <class TInputImage, class TOutputImage> class FiniteDifferenceImageFilter;
   template <class TOwner> class SimpleMemberCommand;
   template <class TOwner> class MemberCommand;
   class Command;

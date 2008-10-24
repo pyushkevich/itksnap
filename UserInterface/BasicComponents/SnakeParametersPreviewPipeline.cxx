@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersPreviewPipeline.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/10/24 12:52:08 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -45,7 +45,6 @@
 #include "itkBSplineInterpolationWeightFunction.h"
 #include "itkBSplineKernelFunction.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
-#include "itkParallelSparseFieldLevelSetImageFilter.h"
 #include "itkNarrowBandLevelSetImageFilter.h"
 #include "itkVTKImageExport.h"
 #include "vtkCellArray.h"

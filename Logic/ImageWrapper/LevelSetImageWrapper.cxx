@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LevelSetImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/10/24 12:52:08 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,7 +52,7 @@ LevelSetImageWrapper::MappingFunctor
 
   // Use this code to display the level set directly
   // TODO: Add an option to use this form of display
-  /*
+  /* 
   LevelSetImageWrapper::DisplayPixelType pixel(m_OutsidePixel);
 
   if(in > -4.0 && in < 4.0) 
@@ -72,6 +72,16 @@ LevelSetImageWrapper::MappingFunctor
 
     pixel[3] = m_InsidePixel[3];
   }
+  else if(in <= -4.0)
+    {
+    pixel[0] = 0; pixel[1] = 0; pixel[2] = 255;
+    pixel[3] = 255;
+    }
+  else if(in >= 4.0)
+    {
+    pixel[0] = 255; pixel[1] = 0; pixel[2] = 0;
+    pixel[3] = 255;
+    }
 
   return pixel;
   */

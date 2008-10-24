@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPLevelSetStopAndGoFilter.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/10/24 12:52:08 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,7 +35,7 @@
 #ifndef __SNAPLevelSetStopAndGoFilter_h_
 #define __SNAPLevelSetStopAndGoFilter_h_
 
-#include "itkSparseFieldLevelSetImageFilter.h"
+#include "itkParallelSparseFieldLevelSetImageFilter.h"
 
 /**
  * \class SNAPLevelSetStopAndGoFilter
@@ -47,12 +47,12 @@
  */
 template <class TInputImage, class TOutputImage>
 class ITK_EXPORT SNAPLevelSetStopAndGoFilter
-  : public itk::SparseFieldLevelSetImageFilter<TInputImage, TOutputImage>
+  : public itk::ParallelSparseFieldLevelSetImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
   typedef SNAPLevelSetStopAndGoFilter Self;
-  typedef itk::SparseFieldLevelSetImageFilter<TInputImage, TOutputImage>
+  typedef itk::ParallelSparseFieldLevelSetImageFilter<TInputImage, TOutputImage>
    Superclass;
   typedef itk::SmartPointer<Self> Pointer;
   typedef itk::SmartPointer<const Self> ConstPointer;
@@ -62,7 +62,7 @@ public:
 
   /** Run-time type information. */
   itkTypeMacro(SNAPLevelSetStopAndGoFilter,
-               itk::SparseFieldLevelSetImageFilter);
+               itk::ParallelSparseFieldLevelSetImageFilter);
 
   /** New object of this type */
   itkNewMacro(SNAPLevelSetStopAndGoFilter);

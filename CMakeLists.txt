@@ -1,4 +1,12 @@
 #############################################
+# CMAKE PRELIMINARIES                       #
+#############################################
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+IF(COMMAND CMAKE_POLICY)
+  CMAKE_POLICY(SET CMP0003 NEW)
+ENDIF(COMMAND CMAKE_POLICY)  
+
+#############################################
 # PROJECT: SNAP                             #
 #############################################
 PROJECT(SNAP)
@@ -28,6 +36,21 @@ ENDIF(DEFINED InsightApplications_SOURCE_DIR)
 IF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
   INCLUDE(${SNAP_SOURCE_DIR}/CMake/standalone.cmake)
 ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
+
+
+#############################################
+# REQUIRE ITK 3.8 OR LATER                  #
+#############################################
+SET(ITK_VERSION "${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}")
+IF(ITK_VERSION VERSION_LESS "3.8")
+  MESSAGE(SEND_ERROR "SNAP requires ITK 3.8 or later")  
+ELSE(ITK_VERSION VERSION_LESS "3.8")
+  # Enable bug fixes for 3.8
+  IF(ITK_VERSION VERSION_EQUAL "3.8")
+    MESSAGE(STATUS "Enabling ITK 3.8 SparseFieldLevelSet bug fix")
+    ADD_DEFINITIONS(-DUSE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
+  ENDIF(ITK_VERSION VERSION_EQUAL "3.8")       
+ENDIF(ITK_VERSION VERSION_LESS "3.8")
 
 #############################################
 # SOURCE FILE SPECIFICATION                 #
@@ -93,12 +116,6 @@ SET(LOGIC_HEADERS
   Common/SystemInterface.h
   Common/ITKExtras/itkVoxBoCUBImageIO.h
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
-  Common/ITKExtras/itkTustisonBSplineKernelFunction.h
-  Common/ITKExtras/itkTustisonBSplineKernelFunction.txx
-  Common/ITKExtras/itkTustisonBSplineScatteredDataPointSetToImageFilter.h
-  Common/ITKExtras/itkTustisonBSplineScatteredDataPointSetToImageFilter.txx
-  Common/ITKExtras/itkTustisonPointSetToImageFilter.h
-  Common/ITKExtras/itkTustisonPointSetToImageFilter.txx
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
   Logic/Common/ImageCoordinateGeometry.h

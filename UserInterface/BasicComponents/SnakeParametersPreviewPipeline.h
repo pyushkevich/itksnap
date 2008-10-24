@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersPreviewPipeline.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/10/24 12:52:08 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -55,7 +55,7 @@ class LevelSetPreviewPipeline2D;
 
 namespace itk {
   template<class TInputImage, class TOutputImage> 
-    class SparseFieldLevelSetImageFilter;
+    class ParallelSparseFieldLevelSetImageFilter;
 };
 
 class LevelSetPreview2d;

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPLevelSetDriver.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/10/24 12:52:08 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -46,9 +46,14 @@
 
 #include "itkCommand.h"
 #include "itkNarrowBandLevelSetImageFilter.h"
-#include "itkParallelSparseFieldLevelSetImageFilter.h"
 #include "itkDenseFiniteDifferenceImageFilter.h"
 #include "LevelSetExtensionFilter.h"
+
+#if defined(USE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
+#include "itkParallelSparseFieldLevelSetImageFilterBugFix.h"
+#else 
+#include "itkParallelSparseFieldLevelSetImageFilter.h"
+#endif
 
 // Disable some windows debug length messages
 #if defined(_MSC_VER)
@@ -140,8 +145,14 @@ SNAPLevelSetDriver<VDimension>
   if(m_Parameters.GetSolver() == SnakeParameters::PARALLEL_SPARSE_FIELD_SOLVER)
     {
     // Define an extension to the appropriate filter class
+#if defined(USE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
+    typedef ParallelSparseFieldLevelSetImageFilterBugFix<
+      FloatImageType, FloatImageType> LevelSetFilterType;
+#else
     typedef ParallelSparseFieldLevelSetImageFilter<
       FloatImageType, FloatImageType> LevelSetFilterType;
+#endif
+
     typedef typename LevelSetFilterType::Pointer LevelSetFilterPointer;
     LevelSetFilterPointer filter = LevelSetFilterType::New();
 

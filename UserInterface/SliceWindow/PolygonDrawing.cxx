@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/01/10 18:00:51 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2008/10/24 12:52:08 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -45,7 +45,8 @@
 
 #include "itkImage.h"
 #include "itkPointSet.h"
-#include "itkTustisonBSplineScatteredDataPointSetToImageFilter.h"
+
+#include "itkBSplineScatteredDataPointSetToImageFilter.h"
 
 using namespace std;
 
@@ -345,7 +346,7 @@ PolygonDrawing
   
 
   // Create the scattered interpolator
-  typedef itk::TustisonBSplineScatteredDataPointSetToImageFilter<
+  typedef itk::BSplineScatteredDataPointSetToImageFilter<
     PointSetType, ImageType> FilterType;
   FilterType::Pointer filter = FilterType::New();
 
@@ -931,6 +932,11 @@ PolygonDrawing
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.9  2008/10/24 12:52:08  pyushkevich
+ *FIX: Bug on ITK 3.8 with level set being inverted
+ *FIX: Bug with NIFTI orientation
+ *ENH: Clean up itk extras directory
+ *
  *Revision 1.8  2008/01/10 18:00:51  pyushkevich
  *took out test.png from Polygon drawing
  *

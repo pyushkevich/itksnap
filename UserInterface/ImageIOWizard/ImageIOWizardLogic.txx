@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2008/04/15 21:42:30 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/10/24 12:52:08 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -774,7 +774,41 @@ ImageIOWizardLogic<TPixel>
     flagGuessed = true;
     }
 
+  // Otherwise, use the direction cosines to infer image orientation
+  else
+    {
+    flagGuessed = true;
+
+    // Each direction cosine is dotted with each of the orientation vectors
+    vnl_vector_fixed<double, 3> 
+      dir_l(1.0, 0.0, 0.0), dir_p(0.0, 1.0, 0.0), dir_s(0.0, 0.0, 1.0);
+    char RAI[4]; RAI[3] = 0;
+    for(size_t d = 0; d < 3; d++)
+      {
+      vnl_vector<double> mydir = m_Image->GetDirection().GetVnlMatrix().get_row(d);
+      double cos_l = dot_product(mydir, dir_l);
+      double cos_p = dot_product(mydir, dir_p);
+      double cos_s = dot_product(mydir, dir_s);
+      if(fabs(cos_l) > fabs(cos_p) && fabs(cos_l) > fabs(cos_s))
+        RAI[d] = (cos_l > 0) ? 'R' : 'L';
+      else if(fabs(cos_p) > fabs(cos_l) && fabs(cos_p) > fabs(cos_s))
+        RAI[d] = (cos_p > 0) ? 'A' : 'P';
+      else if(fabs(cos_s) > fabs(cos_l) && fabs(cos_s) > fabs(cos_p))
+        RAI[d] = (cos_s > 0) ? 'I' : 'S';
+      else
+        { 
+        flagGuessed = false;
+        break;
+        }
+      }
+
+    // Set the orientation
+    if(flagGuessed)
+      SetRAI(RAI);
+    }
+
   // Otherwise, try to use the image's header to retrieve the RAI code
+  /*
   else
     {
     // Get the meta data for the image
@@ -846,6 +880,7 @@ ImageIOWizardLogic<TPixel>
       flagGuessed = true;
       }
     }
+    */
 
   if(flagGuessed)
     {

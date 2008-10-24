@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/10/24 12:52:08 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -213,6 +213,9 @@ SNAPImageData
   const std::vector<Bubble> &bubbles, unsigned int labelColor)
 {
   assert(m_SpeedWrapper.IsInitialized());
+
+  // Inside/outside values
+  const float INSIDE_VALUE = -1.0, OUTSIDE_VALUE = 1.0;
   
   // Store the label color
   m_SnakeColorLabel = labelColor;
@@ -220,8 +223,8 @@ SNAPImageData
   // Types of images used here
   typedef Image<float,3> FloatImageType;
 
-  // Initialize the level set initialization wrapper, set pixels to 1.0
-  m_SnakeInitializationWrapper.InitializeToWrapper(&m_GreyWrapper, 1.0f);
+  // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
+  m_SnakeInitializationWrapper.InitializeToWrapper(&m_GreyWrapper, OUTSIDE_VALUE);
 
   // Create the initial level set image by merging the segmentation data from
   // IRIS region with the bubbles
@@ -258,8 +261,8 @@ SNAPImageData
       // Increase the number of initialization voxels
       nInitVoxels++;
 
-      // Set the target value to inside (-1.0)
-      itTarget.Value() = -1.0f;
+      // Set the target value to inside
+      itTarget.Value() = INSIDE_VALUE;
       }
 
     // Go to the next pixel
@@ -315,7 +318,7 @@ SNAPImageData
       
       if(pt.SquaredEuclideanDistanceTo(ptCenter) <= r2)
         {
-        itThisBubble.Value() = -1.0;
+        itThisBubble.Value() = INSIDE_VALUE;
         nInitVoxels++;
         }
 
