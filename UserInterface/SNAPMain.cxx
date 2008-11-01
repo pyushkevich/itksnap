@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:43:03 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -210,10 +210,24 @@ void SetupSignalHandlers()
 }
 
 #endif
-  
+
+void usage()
+{
+  cout << "ITK-SNAP Image Segmentation Tool" << endl;
+  cout << "Usage: " << endl;
+  cout << "  itksnap [options] [image]" << endl;
+  cout << "Options: " << endl;
+  cout << "  -g FILE      : Load gray image (for backward compatibility," << endl;
+  cout << "                 can simply pass filename on the command line)" << endl;
+  cout << "  -s FILE      : Load segmentation image" << endl;
+  cout << "  -l FILE      : Load segmentation labels from FILE" << endl;
+  cout << "  --rgb FILE   : Load RGB image (as standalone, or if -g is also" << endl;
+  cout << "                 specified, as an overlay)" << endl;
+  cout << "  --rai CODE   : Set the orientation code of the image to CODE" << endl;
+}
+
 // creates global pointers
 // sets up the GUI and lets things run
-// -g c:\grant\app\Images\MRIcrop-orig.gipl -s c:\grant\app\Images\MRIcrop-seg.gipl --rai RAI --labels c:\grant\app\Images\MRIcrop-seg.label
 int main(int argc, char **argv) 
 {
   // Handle signals gracefully, with trace-back
@@ -221,6 +235,9 @@ int main(int argc, char **argv)
 
   // Turn off ITK warning windows
   itk::Object::GlobalWarningDisplayOff();
+
+  // Parse the command line arguments
+
   
   // Parse command line parameters
   CommandLineArgumentParser parser;
@@ -238,23 +255,29 @@ int main(int argc, char **argv)
   parser.AddSynonim("--labels","--label");
   parser.AddSynonim("--labels","-l");
 
+  parser.AddOption("--rgb", 1);
+
   CommandLineArgumentParseResult parseResult;
-  if(!parser.TryParseCommandLine(argc,argv,parseResult,false))
+  int iTrailing = 0;
+  if(!parser.TryParseCommandLine(argc,argv,parseResult,false,iTrailing))
     {
     // Print usage info and exit
     cerr << "ITK-SnAP Command Line Usage:" << endl;
-    cerr << "   snap [options]" << endl;
+    cerr << "   snap [options] [grey_image]" << endl;
     
     cerr << "Options:" << endl;
     
     cerr << "   --grey, -g FILE              : " <<
-      "Load greyscale image FILE" << endl;
+      "Load greyscale image FILE (optional)" << endl;
     
     cerr << "   --segmentation, -s FILE      : " <<
       "Load segmentation image FILE" << endl;
     
     cerr << "   --labels, -l FILE            : " <<
       "Load label description file FILE" << endl;
+    
+    cerr << "   --rgb FILE            : " <<
+      "Load RGB image FILE (as overlay if combined with -g)" << endl;
     
     cerr << "   --orientation, --rai XYZ     : " << 
       "Use 3 letter orientation code XYZ, def: RAI" << endl;
@@ -289,31 +312,43 @@ int main(int argc, char **argv)
   // Show the splash screen
   ui->ShowSplashScreen();
 
-  // Check if the user passed in command line arguments
+  // Check if a gray image is specified 
+  const char *fnGrey = NULL, *fnRGB = NULL;
   if(parseResult.IsOptionPresent("--grey"))
+    fnGrey = parseResult.GetOptionParameter("--grey");
+  else if(iTrailing < argc)
+    fnGrey = argv[iTrailing];
+
+  // Check in an RGB image is specified 
+  if(parseResult.IsOptionPresent("--rgb"))
+    fnRGB = parseResult.GetOptionParameter("--rgb");
+
+  // Check for RAI code
+  const char *raiCode = NULL;
+  if(parseResult.IsOptionPresent("--orientation"))
     {
-    // Get the filename
-    const char *fnGrey = parseResult.GetOptionParameter("--grey");
-
-    // Check for RAI
-    const char *raiCode = NULL;
-    if(parseResult.IsOptionPresent("--orientation"))
+    const char *newRAI = parseResult.GetOptionParameter("--orientation");
+    if(ImageCoordinateGeometry::IsRAICodeValid(newRAI))
       {
-      const char *newRAI = parseResult.GetOptionParameter("--orientation");
-      if(ImageCoordinateGeometry::IsRAICodeValid(newRAI))
-        raiCode = newRAI;
-      else
-        cerr << "Invalid orientation code: '" << newRAI << "'. " << endl;
+      raiCode = newRAI;
       }
+    else
+      {
+      cerr << "Invalid orientation code: '" << newRAI << "'. " << endl;
+      return -1;
+      }
+    }
 
+  // Load greyscale image
+  if(fnGrey)
+    {
     // Update the splash screen
     ui->UpdateSplashScreen("Loading grey image...");
 
     // Try loading the image
     try 
       {
-      iris->LoadGreyImageFile(fnGrey, raiCode);
-      ui->OnGreyImageUpdate();
+      ui->NonInteractiveLoadGrey(fnGrey, raiCode);
       }  
     catch(itk::ExceptionObject &exc)
       {
@@ -321,7 +356,32 @@ int main(int argc, char **argv)
       cerr << "Reason: " << exc << endl;
       return -1;
       }
+    }
 
+  if(fnRGB)
+    {
+    // Update the splash screen
+    ui->UpdateSplashScreen("Loading RGB image...");
+
+    // Try loading the image
+    try 
+      {
+      if(fnGrey)
+        ui->NonInteractiveLoadRGBOverlay(fnRGB);
+      else
+        ui->NonInteractiveLoadRGBStandalone(fnRGB, raiCode);
+      }  
+    catch(itk::ExceptionObject &exc)
+      {
+      cerr << "Error loading file '" << fnRGB << "'" << endl;
+      cerr << "Reason: " << exc << endl;
+      return -1;
+      }
+    }
+
+  // If one main image loaded, load segmentation
+  if(fnGrey || fnRGB)
+    {
     // Load the segmentation if supplied
     if(parseResult.IsOptionPresent("--segmentation"))
       {
@@ -334,8 +394,7 @@ int main(int argc, char **argv)
       // Try to load the image
       try
         {
-        iris->LoadLabelImageFile(fname);
-        ui->OnSegmentationImageUpdate();
+        ui->NonInteractiveLoadSegmentation(fname);
         }
       catch(itk::ExceptionObject &exc)
         {
@@ -357,15 +416,8 @@ int main(int argc, char **argv)
 
     try 
       {
-      // Load the labels
-      iris->GetColorLabelTable()->LoadFromFile(fname);
-
-      // Initialize the drawing color label to the first available label
-      iris->GetGlobalState()->SetDrawingColorLabel(
-        iris->GetColorLabelTable()->GetFirstValidLabel());
-    
-      // Update the user interfafce
-      ui->OnLabelListUpdate();
+      // Load the label file
+      ui->NonInteractiveLoadLabels(fname);
       }
     catch(itk::ExceptionObject &exc)
       {
@@ -405,6 +457,11 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.9  2008/11/01 11:32:00  pyushkevich
+ *Compatibility with ITK 3.8 support for reading oriented images
+ *Command line loading of RGB images
+ *Improved load-image commands in UserInterfaceLogic
+ *
  *Revision 1.8  2007/12/30 04:43:03  pyushkevich
  *License/Packaging updates
  *

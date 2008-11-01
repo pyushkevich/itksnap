@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -253,6 +253,9 @@ public:
   /** Transform a voxel index into a spatial position */
   Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const;
 
+  /** Transform a voxel index into NIFTI coordinates (RAS) */
+  Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3ui &iVoxel) const;
+
   /** 
    * Replace all voxels with intensity values iOld with values iNew. 
    * \return number of voxels that had been modified
@@ -287,6 +290,9 @@ protected:
 
   /** Transform from image space to display space */
   ImageCoordinateTransform m_DisplayToImageTransform[3];
+
+  // Transform from image index to NIFTI world coordinates
+  vnl_matrix_fixed<double, 4, 4> m_NiftiSform;
 
   /**
    * Handle a change in the image pointer (i.e., a load operation on the image or 

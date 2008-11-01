@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/04/16 13:48:01 $
-  Version:   $Revision: 1.25 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.26 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1534,6 +1534,23 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
+::OnImageInformationVoxelCoordinatesUpdate()
+{
+  // Read the cursor values
+  Vector3ui cpos;
+  for(size_t i = 0; i < 3; i++)
+    {
+    cpos[i] = (unsigned int) m_InImageInfoCursorIndex[i]->clamp(
+      m_InImageInfoCursorIndex[i]->round(
+        m_InImageInfoCursorIndex[i]->value()));
+    }
+  m_Driver->SetCursorPosition(cpos);
+  OnCrosshairPositionUpdate();
+  RedrawWindows();
+}
+
+void 
+UserInterfaceLogic
 ::OnMainWindowCloseAction()
 {
   // Make sure the user doesn't lose any data
@@ -2011,10 +2028,15 @@ UserInterfaceLogic
   // Update the cursor position in the image info window
   Vector3d xPosition = m_Driver->GetCurrentImageData()->GetGrey()->
     TransformVoxelIndexToPosition(crosshairs);
+
+  Vector3d xNIFTI = m_Driver->GetCurrentImageData()->GetGrey()->
+    TransformVoxelIndexToNIFTICoordinates(crosshairs);
+
   for(size_t d = 0; d < 3; d++)
     {
-    m_OutImageInfoCursorIndex[d]->value(crosshairs[d]);
+    m_InImageInfoCursorIndex[d]->value(crosshairs[d]);
     m_OutImageInfoCursorPosition[d]->value(xPosition[d]);
+    m_OutImageInfoCursorNIFTIPosition[d]->value(xNIFTI[d]);
     }
   
   // The rest depends on the current mode
@@ -2857,9 +2879,19 @@ UserInterfaceLogic
     m_OutImageInfoDimensions[d]->value(wrpGrey->GetSize()[d]);
     m_OutImageInfoOrigin[d]->value(wrpGrey->GetImage()->GetOrigin()[d]);
     m_OutImageInfoSpacing[d]->value(wrpGrey->GetImage()->GetSpacing()[d]);
+
+    m_InImageInfoCursorIndex[d]->maximum(wrpGrey->GetSize()[d] - 1);
+    m_InImageInfoCursorIndex[d]->minimum(0);
+    m_InImageInfoCursorIndex[d]->step(1);
+    
+    m_OutImageInfoCursorPosition[d]->precision(2);
+    m_OutImageInfoCursorNIFTIPosition[d]->precision(2);
     }
   m_OutImageInfoRange[0]->value(wrpGrey->GetImageMin());
   m_OutImageInfoRange[1]->value(wrpGrey->GetImageMax());
+
+  // Set the RAI code in the image info dialog
+  this->m_OutImageInfoOriginRAICode->value(m_Driver->GetImageToAnatomyRAI());
 
   // Now that we've loaded the image, check if there are any settings 
   // associated with it.  If there are, give the user an option to restore 
@@ -3079,51 +3111,21 @@ UserInterfaceLogic
   string fnRecent = m_RecentFileNames[iRecent];
 
   // Show a wait cursor
-  m_WinMain->cursor(FL_CURSOR_WAIT,FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
+  m_WinMain->cursor(FL_CURSOR_WAIT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
 
   // TODO: At some point, we have to prompt the user that there are unsaved changes...
   try
     {
-    // Load the settings associated with this file
-    Registry regFull;
-    m_SystemInterface->FindRegistryAssociatedWithFile(fnRecent.c_str(), regFull);
-      
-    // Get the folder dealing with grey image properties
-    Registry &regGrey = regFull.Folder("Files.Grey");
-
-    // Create the image reader
-    GuidedImageIO<GreyType> io;
-    
-    // Load the image (exception may occur here)
-    GreyImageWrapper::ImagePointer imgGrey = 
-      io.ReadImage(fnRecent.c_str(), regGrey);
-
-    // Update the system's history list
-    m_SystemInterface->UpdateHistory("GreyImage", fnRecent.c_str());
-
-    // Update the list of recently open files
-    GenerateRecentFilesMenu();
-
-    // Perform the clean-up tasks before loading the image
-    OnGreyImageUnload();
-
-    // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISGreyImage(imgGrey,regGrey["Orientation"]["RAI"]);
-
-    // Save the filename
-    m_GlobalState->SetGreyFileName(fnRecent.c_str());
-    m_GlobalState->SetSegmentationFileName("");
-
-    // Update the user interface accordingly
-    OnGreyImageUpdate();
+    // Load the file non-interactively
+    this->NonInteractiveLoadGrey(fnRecent.c_str(), NULL);
 
     // Restore the cursor
-    m_WinMain->cursor(FL_CURSOR_DEFAULT,FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
+    m_WinMain->cursor(FL_CURSOR_DEFAULT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
     }
   catch(itk::ExceptionObject &exc) 
     {
     // Restore the cursor
-    m_WinMain->cursor(FL_CURSOR_DEFAULT,FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
+    m_WinMain->cursor(FL_CURSOR_DEFAULT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
 
     // Alert the user to the failure
     fl_alert("Error loading image:\n%s",exc.GetDescription());
@@ -3158,6 +3160,33 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
+::NonInteractiveLoadGrey(const char *fname, const char *raiCode)
+{
+  // Perform the clean-up tasks before loading the image
+  OnGreyImageUnload();
+
+  // Load the image on the logical side
+  m_Driver->LoadGreyImageFile(fname, raiCode);
+
+  // Update the system's history list
+  m_SystemInterface->UpdateHistory("GreyImage", 
+    itksys::SystemTools::CollapseFullPath(fname).c_str());
+
+  // Update the list of recently open files
+  GenerateRecentFilesMenu();
+
+  // Save the filename
+  m_GlobalState->SetGreyFileName(fname);
+  m_GlobalState->SetSegmentationFileName("");
+
+  // Update the user interface accordingly
+  OnGreyImageUpdate();
+}
+
+
+
+void 
+UserInterfaceLogic
 ::OnMenuLoadGrey() 
 {
   // Set the history for the input wizard
@@ -3171,7 +3200,7 @@ UserInterfaceLogic
   if(m_WizGreyIO->IsImageLoaded()) 
     {
     // Update the system's history list
-    m_SystemInterface->UpdateHistory("GreyImage",m_WizGreyIO->GetFileName());
+    m_SystemInterface->UpdateHistory("GreyImage", m_WizGreyIO->GetFileName());
 
     // Update the list of recently open files
     GenerateRecentFilesMenu();
@@ -3194,6 +3223,53 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
+::NonInteractiveLoadRGBStandalone(const char *fname, const char *raiCode)
+{
+  // Perform the loading on the Logic side
+  m_Driver->LoadRGBImageFile(fname, raiCode);
+
+  // Add the filename to the history
+  m_SystemInterface->UpdateHistory("RGBImage",  
+    itksys::SystemTools::CollapseFullPath(fname).c_str());
+
+  // Set the RGB UI state      
+  m_GlobalState->SetRGBAlpha(255);
+  m_RGBOverlayUI->SetOpacity(255);
+
+  // Update the user interface accordingly
+  OnGreyImageUpdate();
+
+  // Enable some menu items
+  m_Activation->UpdateFlag(UIF_GRAY_LOADED, false);
+  m_Activation->UpdateFlag(UIF_RGBBASE_LOADED, true);
+  
+  OnRGBImageUpdate();
+}
+
+void 
+UserInterfaceLogic
+::NonInteractiveLoadRGBOverlay(const char *fname)
+{
+  // Send the image and RAI to the IRIS application driver
+  m_Driver->LoadRGBImageFile(fname);
+
+  // Update the system's history list
+  m_SystemInterface->UpdateHistory("RGBImage",  
+    itksys::SystemTools::CollapseFullPath(fname).c_str());
+  
+  // Set the RGB UI state      
+  m_GlobalState->SetRGBAlpha(128);
+  m_RGBOverlayUI->SetOpacity(128);
+  
+  // Update the user interface accordingly
+  OnRGBImageUpdate();
+
+  // Set the state
+  m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, true); 
+}
+
+void 
+UserInterfaceLogic
 ::OnMenuLoadRGB() 
 {
   // Set the history for the input wizard
@@ -3206,18 +3282,12 @@ UserInterfaceLogic
   // new image
   if(m_WizRGBIO->IsImageLoaded()) 
     {
-    // Update the system's history list
-    m_SystemInterface->UpdateHistory("RGBImage",m_WizRGBIO->GetFileName());
-
-    // Update the list of recently open files
-    GenerateRecentFilesMenu();
-
-    // Perform the clean-up tasks before loading the image
-    //OnGreyImageUnload();
-
     // Send the image and RAI to the IRIS application driver
     m_Driver->UpdateIRISRGBImage(m_WizRGBIO->GetLoadedImage(),
                                   m_WizRGBIO->GetLoadedImageRAI());
+
+    // Update the system's history list
+    m_SystemInterface->UpdateHistory("RGBImage",m_WizRGBIO->GetFileName());
 
     // Save the filename
     m_GlobalState->SetRGBFileName(m_WizRGBIO->GetFileName());
@@ -3277,15 +3347,39 @@ UserInterfaceLogic
     
     // Update the user interface accordingly
     OnRGBImageUpdate();
+
+    // Set the state
+    m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, true);
     }
   
   // Disconnect the input wizard from the grey image
   m_WizRGBOverlayIO->SetGreyImage(NULL);
 
-  // Set the state
-  m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, true);
-
   this->RedrawWindows();
+}
+
+void
+UserInterfaceLogic
+::NonInteractiveLoadLabels(const char *file)
+{
+  // Read the labels from file
+  m_Driver->GetColorLabelTable()->LoadFromFile(file);
+
+  // Reset the current drawing and overlay labels
+  m_GlobalState->SetDrawingColorLabel(
+    m_Driver->GetColorLabelTable()->GetFirstValidLabel());
+  m_GlobalState->SetOverWriteColorLabel(0);
+  
+  // Update the label editor window
+  m_LabelEditorUI->OnLabelListUpdate(
+    m_GlobalState->GetDrawingColorLabel());
+
+  // Update the user interface in response
+  OnLabelListUpdate();
+
+  // Update the history
+  m_SystemInterface->UpdateHistory("LabelDescriptions", 
+    itksys::SystemTools::CollapseFullPath(file).c_str());  
 }
 
 
@@ -3293,34 +3387,16 @@ void
 UserInterfaceLogic
 ::OnLoadLabelsAction() 
 {
-  // Get the selected file name
-  const char *file = m_DlgLabelsIO->GetFileName();
-
   // Try reading the file
   try 
     {
     // Read the labels from file
-    m_Driver->GetColorLabelTable()->LoadFromFile(file);
-
-    // Reset the current drawing and overlay labels
-    m_GlobalState->SetDrawingColorLabel(
-      m_Driver->GetColorLabelTable()->GetFirstValidLabel());
-    m_GlobalState->SetOverWriteColorLabel(0);
-    
-    // Update the label editor window
-    m_LabelEditorUI->OnLabelListUpdate(
-      m_GlobalState->GetDrawingColorLabel());
-
-    // Update the user interface in response
-    OnLabelListUpdate();
-
-    // Update the history
-    m_SystemInterface->UpdateHistory("LabelDescriptions",file);
+    this->NonInteractiveLoadLabels(m_DlgLabelsIO->GetFileName());
     }
   catch (itk::ExceptionObject &exc) 
     {
     // Alert the user to the failure
-    fl_alert("Error loading labels:\n%s",exc.GetDescription());
+    fl_alert("Error loading labels:\n%s", exc.GetDescription());
 
     // Rethrow the exception
     throw;
@@ -3532,6 +3608,24 @@ void UserInterfaceLogic
 
   // Update the user interface
   OnSegmentationImageUpdate();
+}
+
+
+void UserInterfaceLogic
+::NonInteractiveLoadSegmentation(const char *fname)
+{
+  // Send the image and RAI to the IRIS application driver
+  m_Driver->LoadLabelImageFile(fname);
+
+  // Update the system's history list
+  m_SystemInterface->UpdateHistory("SegmentationImage",  
+    itksys::SystemTools::CollapseFullPath(fname).c_str());
+
+  // Save the segmentation file name
+  m_GlobalState->SetSegmentationFileName(fname);
+
+  // Update the user interface accordingly
+  OnSegmentationImageUpdate();  
 }
 
 void UserInterfaceLogic
@@ -4098,6 +4192,11 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.26  2008/11/01 11:32:00  pyushkevich
+ *Compatibility with ITK 3.8 support for reading oriented images
+ *Command line loading of RGB images
+ *Improved load-image commands in UserInterfaceLogic
+ *
  *Revision 1.25  2008/04/16 13:48:01  pyushkevich
  *Major bug fix: cursor was not working in automatic segmentation mode
  *

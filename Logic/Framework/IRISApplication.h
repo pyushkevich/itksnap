@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2008/03/25 19:31:31 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -257,6 +257,12 @@ public:
    * code (orientation), which you can override (i.e., on command line)
    */
   void LoadGreyImageFile(const char *filename, const char *rai = NULL);
+
+  /** 
+   * Load the RGB image file (either as main, or as overlay, depending on
+   * whether grey has already been loaded)
+   */
+  void LoadRGBImageFile(const char *filename, const char *rai = NULL);
 
   /**
    * This is the most high-level method to load a segmentation image. The

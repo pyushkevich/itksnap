@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/03/25 19:31:33 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -55,6 +55,7 @@ class IRISSliceWindow;
 class SNAPSliceWindow;
 class GreyImageIOWizardLogic;
 class RGBImageIOWizardLogic;
+class RestrictedUImageIOWizardLogic;
 class RestrictedRGBImageIOWizardLogic;
 class SegmentationImageIOWizardLogic;
 class PreprocessingImageIOWizardLogic;
@@ -612,6 +613,13 @@ public:
   double GetFreehandFittingRate()
     { return m_InIRISFreehandFittingRate->value(); }
 
+  // Load Images Non-Interactively
+  void NonInteractiveLoadRGBStandalone(const char *fname, const char *raiCode);
+  void NonInteractiveLoadRGBOverlay(const char *fname);
+  void NonInteractiveLoadGrey(const char *fname, const char *raiCode);
+  void NonInteractiveLoadSegmentation(const char *fname);
+  void NonInteractiveLoadLabels(const char *fname);
+
 protected:
 
   /**
@@ -702,6 +710,7 @@ protected:
 
   // Image Info Window Callbacks
   void OnCloseImageInfoAction();
+  void OnImageInformationVoxelCoordinatesUpdate();
 
   // Toggle cursor synchronization
   void OnSynchronizeCursorAction();
@@ -931,6 +940,11 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.14  2008/11/01 11:32:00  pyushkevich
+ *Compatibility with ITK 3.8 support for reading oriented images
+ *Command line loading of RGB images
+ *Improved load-image commands in UserInterfaceLogic
+ *
  *Revision 1.13  2008/03/25 19:31:33  pyushkevich
  *Bug fixes for release 1.6.0
  *

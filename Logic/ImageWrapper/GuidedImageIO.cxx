@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,6 +35,7 @@
 #include "GuidedImageIO.h"
 #include "SNAPCommon.h"
 #include "SNAPRegistryIO.h"
+#include "ImageCoordinateGeometry.h"
 #include "itkImage.h"
 
 #include "itkImageIOBase.h"
@@ -54,6 +55,7 @@
 #include "itkImageFileWriter.h"
 #include "itkImageSeriesReader.h"
 #include "itkGDCMSeriesFileNames.h"
+
 
 using namespace itk;
 using namespace std;
@@ -290,6 +292,42 @@ GuidedImageIO<TPixel>
   // Return the image pointer
   return m_Image;
 }
+
+template<typename TPixel>
+std::string
+GuidedImageIO<TPixel>
+::GetRAICode(ImageType *image, Registry &folder)
+{
+  // See what's stored in the registry
+  std::string rai_registry = folder["Orientation"][""];
+  if(ImageCoordinateGeometry::IsRAICodeValid(rai_registry.c_str()))
+    return rai_registry;
+
+  // Each direction cosine is dotted with each of the orientation vectors
+  vnl_vector_fixed<double, 3> 
+    dir_l(1.0, 0.0, 0.0), dir_p(0.0, 1.0, 0.0), dir_s(0.0, 0.0, 1.0);
+  char RAI[4]; RAI[3] = 0;
+  for(size_t d = 0; d < 3; d++)
+    {
+    vnl_vector<double> mydir = m_Image->GetDirection().GetVnlMatrix().get_row(d);
+    double cos_l = dot_product(mydir, dir_l);
+    double cos_p = dot_product(mydir, dir_p);
+    double cos_s = dot_product(mydir, dir_s);
+    if(fabs(cos_l) > fabs(cos_p) && fabs(cos_l) > fabs(cos_s))
+      RAI[d] = (cos_l > 0) ? 'R' : 'L';
+    else if(fabs(cos_p) > fabs(cos_l) && fabs(cos_p) > fabs(cos_s))
+      RAI[d] = (cos_p > 0) ? 'A' : 'P';
+    else if(fabs(cos_s) > fabs(cos_l) && fabs(cos_s) > fabs(cos_p))
+      RAI[d] = (cos_s > 0) ? 'I' : 'S';
+    else
+      { 
+      // Very odd orientation, where image is oriented 90 degrees. 
+      return std::string("RAI");
+      }
+    }
+
+  return std::string(RAI);
+  }
 
 template<typename TPixel>
 void

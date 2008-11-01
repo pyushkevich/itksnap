@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/03/25 19:31:31 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1151,16 +1151,41 @@ IRISApplication
   // Load the image (exception may occur here)
   GreyImageType::Pointer imgGrey = io.ReadImage(filename, regGrey);
 
-  // Get the orientation from the registry
-  string sOrient = (rai == NULL)
-    ? regGrey["Orientation"]["RAI"]
-    : rai;
+  // Determine the RAI code, unless one is provided to us
+  string sOrient = rai ? rai : io.GetRAICode(imgGrey, regGrey);
 
   // Set the image as the current grayscale image
   UpdateIRISGreyImage(imgGrey, sOrient.c_str());
 
   // Save the filename for the UI
   m_GlobalState->SetGreyFileName(filename);  
+}
+
+void
+IRISApplication
+::LoadRGBImageFile(const char *filename, const char *rai)
+{
+  // Load the settings associated with this file
+  Registry regFull;
+  m_SystemInterface->FindRegistryAssociatedWithFile(filename, regFull);
+    
+  // Get the folder dealing with grey image properties
+  Registry &regRGB = regFull.Folder("Files.RGB");
+
+  // Create the image reader
+  GuidedImageIO<RGBType> io;
+  
+  // Load the image (exception may occur here)
+  RGBImageType::Pointer imgRGB = io.ReadImage(filename, regRGB);
+
+  // Determine the RAI code, unless one is provided to us
+  string sOrient = rai ? rai : io.GetRAICode(imgRGB, regRGB);
+
+  // Set the image as the current grayscale image  
+  UpdateIRISRGBImage(imgRGB, sOrient.c_str());
+
+  // Save the filename for the UI
+  m_GlobalState->SetRGBFileName(filename);  
 }
 
 

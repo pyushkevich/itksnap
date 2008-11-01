@@ -128,7 +128,7 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {10 10 100 20} shortcut 0x50076 labelsize 12 deactivate divider
             }
             Submenu m_MenuSaveScreenshot {
-              label {Screenshot} open
+              label Screenshot open
               xywh {10 10 100 20} labelsize 12 deactivate
             } {
               MenuItem m_MenuSaveScreenshotAxial {
@@ -255,7 +255,7 @@ class UserInterface {open : {public UserInterfaceBase}
           }
           MenuItem m_MenuRGBOverlayOptions {
             label {Adjust RGB Overlay...}
-            callback {OnMenuShowRGBOverlayOptions()} selected
+            callback {OnMenuShowRGBOverlayOptions()}
             tooltip {Adjust the opacity of the RGB image} xywh {0 0 31 20} labelsize 12 deactivate
           }
         }
@@ -1244,84 +1244,107 @@ this->OnSNAPLabelOpacityChange();}
     }
     Fl_Window m_WinImageInfo {
       label {Image Information}
-      xywh {489 644 515 320} type Double box PLASTIC_DOWN_BOX color 40 hide non_modal
+      xywh {738 566 515 384} type Double box PLASTIC_DOWN_BOX color 40 non_modal visible
     } {
       Fl_Group {} {
         label {Image Information:}
-        xywh {10 35 495 275} box PLASTIC_DOWN_BOX labeltype EMBOSSED_LABEL labelsize 16 labelcolor 15 align 5
+        xywh {10 35 495 340} box PLASTIC_DOWN_BOX labeltype EMBOSSED_LABEL labelsize 16 labelcolor 15 align 5
       } {
         Fl_Value_Output {m_OutImageInfoDimensions[0]} {
           label {Image dimensions  x:}
-          xywh {245 50 65 25}
+          xywh {245 45 65 25}
         }
         Fl_Value_Output {m_OutImageInfoDimensions[1]} {
           label {y:}
-          xywh {330 50 65 25}
+          xywh {330 45 65 25}
         }
         Fl_Value_Output {m_OutImageInfoDimensions[2]} {
           label {z:}
-          xywh {415 50 65 25}
+          xywh {415 45 65 25}
         }
         Fl_Value_Output {m_OutImageInfoSpacing[0]} {
           label {Voxel spacing  x:}
-          xywh {245 80 65 25}
+          xywh {245 75 65 25}
         }
         Fl_Value_Output {m_OutImageInfoSpacing[1]} {
           label {y:}
-          xywh {330 80 65 25}
+          xywh {330 75 65 25}
         }
         Fl_Value_Output {m_OutImageInfoSpacing[2]} {
           label {z:}
-          xywh {415 80 65 25}
+          xywh {415 75 65 25}
         }
         Fl_Value_Output {m_OutImageInfoOrigin[0]} {
           label {Image origin  x:}
-          xywh {245 110 65 25}
+          xywh {245 105 65 25}
         }
         Fl_Value_Output {m_OutImageInfoOrigin[1]} {
           label {y:}
-          xywh {330 110 65 25}
+          xywh {330 105 65 25}
         }
         Fl_Value_Output {m_OutImageInfoOrigin[2]} {
           label {z:}
-          xywh {415 110 65 25}
+          xywh {415 105 65 25}
         }
         Fl_Value_Output {m_OutImageInfoRange[0]} {
           label {Intensity range  min:}
-          xywh {245 150 65 25}
+          xywh {245 165 65 25}
         }
         Fl_Value_Output {m_OutImageInfoRange[1]} {
           label {max:}
-          xywh {350 150 65 25}
+          xywh {350 165 65 25}
         }
         Fl_Value_Output {m_OutImageInfoCursorIndex[0]} {
-          label {Cursor voxel index  x:}
-          xywh {245 190 65 25}
-        }
-        Fl_Value_Output {m_OutImageInfoCursorIndex[1]} {
-          label {y:}
-          xywh {330 190 65 25}
-        }
-        Fl_Value_Output {m_OutImageInfoCursorIndex[2]} {
-          label {z:}
-          xywh {415 190 65 25}
+          label {Voxel coordinates  x:}
+          xywh {245 195 65 25}
         }
         Fl_Value_Output {m_OutImageInfoCursorPosition[0]} {
-          label {Cursor spatial position  x:}
-          xywh {245 220 65 25}
+          label {World coordinates (ITK)  x:}
+          xywh {245 255 65 25}
         }
         Fl_Value_Output {m_OutImageInfoCursorPosition[1]} {
           label {y:}
-          xywh {330 220 65 25}
+          xywh {330 255 65 25}
         }
         Fl_Value_Output {m_OutImageInfoCursorPosition[2]} {
           label {z:}
-          xywh {415 220 65 25}
+          xywh {415 255 65 25}
         }
         Fl_Button {} {
           label Close
           callback {this->OnCloseImageInfoAction();}
-          xywh {225 270 85 30} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 labelfont 1 labelsize 12
+          xywh {225 330 85 30} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 labelfont 1 labelsize 12
+        }
+        Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[0]} {
+          label {World coordinates (NIFTI)  x:}
+          xywh {245 285 65 25}
+        }
+        Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[1]} {
+          label {y:}
+          xywh {330 285 65 25}
+        }
+        Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[2]} {
+          label {z:}
+          xywh {415 285 65 25}
+        }
+        Fl_Output m_OutImageInfoOriginRAICode {
+          label {RAI Code:}
+          xywh {245 136 65 24} color 49
+        }
+        Fl_Value_Input {m_InImageInfoCursorIndex[0]} {
+          label {Voxel coordinates  x:}
+          callback {this->OnImageInformationVoxelCoordinatesUpdate();} selected
+          xywh {245 226 65 24}
+        }
+        Fl_Value_Input {m_InImageInfoCursorIndex[1]} {
+          label {y:}
+          callback {this->OnImageInformationVoxelCoordinatesUpdate();} selected
+          xywh {330 226 65 24}
+        }
+        Fl_Value_Input {m_InImageInfoCursorIndex[2]} {
+          label {z:}
+          callback {this->OnImageInformationVoxelCoordinatesUpdate();} selected
+          xywh {415 226 65 24}
         }
       }
     }

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -123,6 +123,13 @@ public:
    * such as header size and image dimensions.
    */
   ImageType* ReadImage(const char *FileName, Registry &folder);
+
+  /** 
+   * Get RAI code for an image. If there is nothing in the registry, this will
+   * try getting the code from the image header. If there is no way to get the
+   * image code, this will return an empty string
+   */
+  std::string GetRAICode(ImageType *image, Registry &folder);
 
   /** Save an image using the Registry folder to specify parameters */
   void SaveImage(const char *FileName, Registry &folder, ImageType *image);

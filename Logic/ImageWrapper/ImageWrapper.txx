@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:43:03 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -155,6 +155,30 @@ ImageWrapper<TPixel>
   // Mark the image as Modified to enforce correct sequence of 
   // operations with MinMaxCalc
   m_Image->Modified();
+
+  // Set the NIFTI/RAS transform
+  vnl_matrix<double> m_dir, m_ras_matrix;
+  vnl_diag_matrix<double> m_scale, m_lps_to_ras;
+  vnl_vector<double> v_origin, v_ras_offset;
+
+  // Compute the matrix
+  m_dir = m_Image->GetDirection().GetVnlMatrix();
+  m_scale.set(m_Image->GetSpacing().GetVnlVector());
+  m_lps_to_ras.set(vnl_vector<double>(3, 1.0));
+  m_lps_to_ras[0] = -1;
+  m_lps_to_ras[1] = -1;
+  m_ras_matrix = m_lps_to_ras * m_dir * m_scale;
+
+  // Compute the vector
+  v_origin = m_Image->GetOrigin().GetVnlVector();
+  v_ras_offset = m_lps_to_ras * v_origin;
+
+  // Create the larger matrix
+  vnl_vector<double> vcol(4, 1.0);
+  vcol.update(v_ras_offset);
+  m_NiftiSform.set_identity();
+  m_NiftiSform.update(m_ras_matrix);
+  m_NiftiSform.set_column(3, vcol);
 
   // We have been initialized
   m_Initialized = true;
@@ -440,6 +464,24 @@ ImageWrapper<TPixel>
   for(size_t q = 0; q < 3; q++) xOut[q] = xPoint[q];
 
   return xOut;
+}
+
+template<class TPixel>
+Vector3d
+ImageWrapper<TPixel>
+::TransformVoxelIndexToNIFTICoordinates(const Vector3ui &iVoxel) const
+{
+  // Create homogeneous vector
+  vnl_vector_fixed<double, 4> x;
+  for(size_t d = 0; d < 3; d++)
+    x[d] = (double) iVoxel[d];
+  x[3] = 1.0;
+
+  // Transform to NIFTI coords
+  vnl_vector_fixed<double, 4> p = m_NiftiSform * x;  
+
+  // Return the component
+  return Vector3d(p.data_block());
 }
 
 template <class TPixel>

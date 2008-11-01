@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CommandLineArgumentParser.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:11 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -75,16 +75,16 @@ bool
 CommandLineArgumentParser
 ::TryParseCommandLine(int argc, char *argv[], 
                       CommandLineArgumentParseResult &outResult,
-                      bool failOnUnknownTrailingParameters)
+                      bool failOnUnknownTrailingParameters, int &argc_out)
 {
   // Clear the result
   outResult.Clear();
 
   // Go through the arguments
-  for(int i=1; i < argc; i++)
+  for(argc_out=1; argc_out < argc; argc_out++)
     {
     // Get the next argument
-    string arg(argv[i]);
+    string arg(argv[argc_out]);
 
     // Check if the argument is known
     if(m_OptionMap.find(arg) == m_OptionMap.end())
@@ -95,12 +95,15 @@ CommandLineArgumentParser
         cerr << "Unrecognized command line option '" << arg << "'" << endl;
         return false;
         }
-      else return true;
+      else
+        {
+        return true;
+        }
       }
 
     // Check if the number of parameters is correct
     int nParameters = m_OptionMap[arg].NumberOfParameters;
-    if(i+nParameters >= argc) 
+    if(argc_out+nParameters >= argc) 
       {
       // Too few parameters
       cerr << "Too few parameters to command line option '" << arg 
@@ -112,8 +115,8 @@ CommandLineArgumentParser
     outResult.AddOption(m_OptionMap[arg].CommonName,nParameters);
 
     // Pass in the parameters
-    for(int j=0;j<nParameters;j++,i++)
-      outResult.AddParameter(m_OptionMap[arg].CommonName,string(argv[i+1]));
+    for(int j=0;j<nParameters;j++,argc_out++)
+      outResult.AddParameter(m_OptionMap[arg].CommonName,string(argv[argc_out+1]));
     
     }
 

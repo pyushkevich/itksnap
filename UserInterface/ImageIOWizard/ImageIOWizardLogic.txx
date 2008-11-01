@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2008/10/24 12:52:08 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -761,136 +761,19 @@ void
 ImageIOWizardLogic<TPixel>
 ::GuessImageOrientation()
 {
-  // Flag as to whether we guessed an orientation or not
-  bool flagGuessed = false;
-
-  // First, check if the application has an idea of what the orientation should be
-  // from earlier attempts to load the image. To do this, we make a callback to 
-  // the parent application
-  std::string sStoredOrientation = m_Registry["Orientation"][""];
-  if(ImageCoordinateGeometry::IsRAICodeValid(sStoredOrientation.c_str()))
-    {
-    SetRAI(sStoredOrientation.c_str());
-    flagGuessed = true;
-    }
-
-  // Otherwise, use the direction cosines to infer image orientation
-  else
-    {
-    flagGuessed = true;
-
-    // Each direction cosine is dotted with each of the orientation vectors
-    vnl_vector_fixed<double, 3> 
-      dir_l(1.0, 0.0, 0.0), dir_p(0.0, 1.0, 0.0), dir_s(0.0, 0.0, 1.0);
-    char RAI[4]; RAI[3] = 0;
-    for(size_t d = 0; d < 3; d++)
-      {
-      vnl_vector<double> mydir = m_Image->GetDirection().GetVnlMatrix().get_row(d);
-      double cos_l = dot_product(mydir, dir_l);
-      double cos_p = dot_product(mydir, dir_p);
-      double cos_s = dot_product(mydir, dir_s);
-      if(fabs(cos_l) > fabs(cos_p) && fabs(cos_l) > fabs(cos_s))
-        RAI[d] = (cos_l > 0) ? 'R' : 'L';
-      else if(fabs(cos_p) > fabs(cos_l) && fabs(cos_p) > fabs(cos_s))
-        RAI[d] = (cos_p > 0) ? 'A' : 'P';
-      else if(fabs(cos_s) > fabs(cos_l) && fabs(cos_s) > fabs(cos_p))
-        RAI[d] = (cos_s > 0) ? 'I' : 'S';
-      else
-        { 
-        flagGuessed = false;
-        break;
-        }
-      }
-
-    // Set the orientation
-    if(flagGuessed)
-      SetRAI(RAI);
-    }
-
-  // Otherwise, try to use the image's header to retrieve the RAI code
-  /*
-  else
-    {
-    // Get the meta data for the image
-    MetaDataDictionary &mdd = m_Image->GetMetaDataDictionary();
-
-    // Find the entry dealing with orientation
-    typedef MetaDataObject<ValidCoordinateOrientationFlags> ObjectType;
-    ObjectType *entry = 
-      reinterpret_cast<ObjectType *> ( mdd[ITK_CoordinateOrientation].GetPointer() );
-
-    // If the entry has a value, map it to RAI
-    if(entry)
-      {
-      // This is a really dumb way to process the flag, but it's the only way that
-      // is guaranteed to stay up to date with ITK's flags. Thanks, VIM, for macros! 
-      ValidCoordinateOrientationFlags flag = entry->GetMetaDataObjectValue();
-      switch(flag) 
-        {
-        case ITK_COORDINATE_ORIENTATION_RIP : SetRAI("RIP"); break;
-        case ITK_COORDINATE_ORIENTATION_LIP : SetRAI("LIP"); break;
-        case ITK_COORDINATE_ORIENTATION_RSP : SetRAI("RSP"); break;
-        case ITK_COORDINATE_ORIENTATION_LSP : SetRAI("LSP"); break;
-        case ITK_COORDINATE_ORIENTATION_RIA : SetRAI("RIA"); break;
-        case ITK_COORDINATE_ORIENTATION_LIA : SetRAI("LIA"); break;
-        case ITK_COORDINATE_ORIENTATION_RSA : SetRAI("RSA"); break;
-        case ITK_COORDINATE_ORIENTATION_LSA : SetRAI("LSA"); break;
-        case ITK_COORDINATE_ORIENTATION_IRP : SetRAI("IRP"); break;
-        case ITK_COORDINATE_ORIENTATION_ILP : SetRAI("ILP"); break;
-        case ITK_COORDINATE_ORIENTATION_SRP : SetRAI("SRP"); break;
-        case ITK_COORDINATE_ORIENTATION_SLP : SetRAI("SLP"); break;
-        case ITK_COORDINATE_ORIENTATION_IRA : SetRAI("IRA"); break;
-        case ITK_COORDINATE_ORIENTATION_ILA : SetRAI("ILA"); break;
-        case ITK_COORDINATE_ORIENTATION_SRA : SetRAI("SRA"); break;
-        case ITK_COORDINATE_ORIENTATION_SLA : SetRAI("SLA"); break;
-        case ITK_COORDINATE_ORIENTATION_RPI : SetRAI("RPI"); break;
-        case ITK_COORDINATE_ORIENTATION_LPI : SetRAI("LPI"); break;
-        case ITK_COORDINATE_ORIENTATION_RAI : SetRAI("RAI"); break;
-        case ITK_COORDINATE_ORIENTATION_LAI : SetRAI("LAI"); break;
-        case ITK_COORDINATE_ORIENTATION_RPS : SetRAI("RPS"); break;
-        case ITK_COORDINATE_ORIENTATION_LPS : SetRAI("LPS"); break;
-        case ITK_COORDINATE_ORIENTATION_RAS : SetRAI("RAS"); break;
-        case ITK_COORDINATE_ORIENTATION_LAS : SetRAI("LAS"); break;
-        case ITK_COORDINATE_ORIENTATION_PRI : SetRAI("PRI"); break;
-        case ITK_COORDINATE_ORIENTATION_PLI : SetRAI("PLI"); break;
-        case ITK_COORDINATE_ORIENTATION_ARI : SetRAI("ARI"); break;
-        case ITK_COORDINATE_ORIENTATION_ALI : SetRAI("ALI"); break;
-        case ITK_COORDINATE_ORIENTATION_PRS : SetRAI("PRS"); break;
-        case ITK_COORDINATE_ORIENTATION_PLS : SetRAI("PLS"); break;
-        case ITK_COORDINATE_ORIENTATION_ARS : SetRAI("ARS"); break;
-        case ITK_COORDINATE_ORIENTATION_ALS : SetRAI("ALS"); break;
-        case ITK_COORDINATE_ORIENTATION_IPR : SetRAI("IPR"); break;
-        case ITK_COORDINATE_ORIENTATION_SPR : SetRAI("SPR"); break;
-        case ITK_COORDINATE_ORIENTATION_IAR : SetRAI("IAR"); break;
-        case ITK_COORDINATE_ORIENTATION_SAR : SetRAI("SAR"); break;
-        case ITK_COORDINATE_ORIENTATION_IPL : SetRAI("IPL"); break;
-        case ITK_COORDINATE_ORIENTATION_SPL : SetRAI("SPL"); break;
-        case ITK_COORDINATE_ORIENTATION_IAL : SetRAI("IAL"); break;
-        case ITK_COORDINATE_ORIENTATION_SAL : SetRAI("SAL"); break;
-        case ITK_COORDINATE_ORIENTATION_PIR : SetRAI("PIR"); break;
-        case ITK_COORDINATE_ORIENTATION_PSR : SetRAI("PSR"); break;
-        case ITK_COORDINATE_ORIENTATION_AIR : SetRAI("AIR"); break;
-        case ITK_COORDINATE_ORIENTATION_ASR : SetRAI("ASR"); break;
-        case ITK_COORDINATE_ORIENTATION_PIL : SetRAI("PIL"); break;
-        case ITK_COORDINATE_ORIENTATION_PSL : SetRAI("PSL"); break;
-        case ITK_COORDINATE_ORIENTATION_AIL : SetRAI("AIL"); break;
-        case ITK_COORDINATE_ORIENTATION_ASL : SetRAI("ASL"); break;
-        default: SetRAI("RAI"); break;
-        }
-      flagGuessed = true;
-      }
-    }
-    */
-
-  if(flagGuessed)
+  // Use the functionality in GuidedImageIO
+  std::string rai_guess = m_GuidedIO.GetRAICode(m_Image, m_Registry);
+  if(rai_guess.length())
     {
     // Set the preset to default
+    SetRAI(rai_guess.c_str());
     m_InOrientationPagePreset->value(4);
     OnOrientationPageSelectPreset();
     }
   else
     {      
     // Set the preset to default
+    SetRAI("RAI");
     m_InOrientationPagePreset->value(0);
     OnOrientationPageSelectPreset();
     }

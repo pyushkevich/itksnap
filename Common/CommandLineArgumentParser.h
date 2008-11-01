@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CommandLineArgumentParser.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:11 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -106,7 +106,8 @@ public:
   /** Try processing a command line.  Returns false if something breaks */
   bool TryParseCommandLine(int argc, char *argv[], 
                            CommandLineArgumentParseResult &outResult,
-                           bool failOnUnknownTrailingParameters = true);
+                           bool failOnUnknownTrailingParameters,
+                           int &argc_out);
 private:
   // Synonim list type
   typedef std::list< std::string > NameListType;

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2008/02/27 04:34:46 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -138,6 +138,7 @@ public:
 
   // IRIS: Image Info Window callbacks
   virtual void OnCloseImageInfoAction() = 0;
+  virtual void OnImageInformationVoxelCoordinatesUpdate() = 0;
   
   // SNAP Preprocessing page actions
   virtual void OnInOutSnakeSelect() = 0;

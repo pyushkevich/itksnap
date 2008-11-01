@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISVectorTypes.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:43:03 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/01 11:32:00 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -45,6 +45,7 @@
 
 // For the little vector operations
 #include <vnl/vnl_vector_fixed.h>
+#include <vnl/vnl_matrix_fixed.h>
 
 /**
  * \class iris_vector_fixed
@@ -116,6 +117,9 @@ typedef iris_vector_fixed<long,3> Vector3l;
 typedef iris_vector_fixed<unsigned long,3> Vector3ul;
 typedef iris_vector_fixed<float,3> Vector3f;
 typedef iris_vector_fixed<double,3> Vector3d;
+
+// A matrix definition
+typedef vnl_matrix_fixed<double,3,3> Matrix3d;
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "IRISVectorTypes.txx"
