@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0107 
+version 1.0108 
 header_name {.h} 
 code_name {.cxx}
 class ImageIOWizard {open : {private ImageIOWizardBase}
@@ -8,7 +8,7 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
   } {
     Fl_Window m_WinInput {
       label {SnAP Image Input Wizard} open
-      xywh {200 612 470 330} type Double
+      xywh {311 585 470 330} type Double
       code0 {\#include "ImageIOWizardBase.h"} modal visible
     } {
       Fl_Wizard m_WizInput {open
@@ -16,7 +16,7 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
       } {
         Fl_Group m_PageFile {
           label {File Selection}
-          xywh {0 0 470 330} box PLASTIC_DOWN_BOX labelfont 2 labelsize 10
+          xywh {0 0 470 330} box PLASTIC_DOWN_BOX labelfont 2 labelsize 10 hide
         } {
           Fl_Group {} {
             label {Select a file that contains an image:}
@@ -68,7 +68,7 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
           }
         }
         Fl_Group m_PageHeader {
-          label {Header Info} open
+          label {Header Info}
           xywh {0 0 470 330} box PLASTIC_DOWN_BOX labelfont 2 labelsize 10 hide deactivate
         } {
           Fl_Group {} {
@@ -206,7 +206,7 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
             }
           }
         }
-        Fl_Group m_PageDICOM {open
+        Fl_Group m_PageDICOM {
           xywh {0 0 480 340} hide deactivate
         } {
           Fl_Group {} {
@@ -258,252 +258,9 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
             xywh {370 160 65 25} labelsize 12 maximum 10000 step 1 value 1 textsize 12 deactivate
           }
         }
-        Fl_Group m_PageOrientation {
-          label {Image Orientation} open
-          xywh {0 0 470 330} box PLASTIC_DOWN_BOX labelfont 2 labelsize 10 hide
-        } {
-          Fl_Group {} {
-            label {Image Orientation:}
-            xywh {10 15 370 40} labeltype EMBOSSED_LABEL align 20
-          } {}
-          Fl_Choice m_InOrientationPagePreset {
-            label {Select an orientation preset:}
-            callback {this->OnOrientationPageSelectPreset();} open
-            xywh {35 70 200 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
-          } {
-            MenuItem {} {
-              label {Axial MRI}
-              xywh {5 5 100 20} value 1 labelsize 12
-            }
-            MenuItem {} {
-              label {Sagittal MRI}
-              xywh {15 15 100 20} labelsize 12
-            }
-            MenuItem {} {
-              label {Coronal MRI}
-              xywh {25 25 100 20} labelsize 12
-            }
-            MenuItem {} {
-              label CT
-              xywh {35 35 100 20} labelsize 12
-            }
-            MenuItem m_ItemOrientationPageCustom {
-              label Custom
-              xywh {45 45 100 20} labelsize 12
-            }
-          }
-          Fl_Group m_GrpOrientationPageCustom {
-            label {Custom orientation setting:} open
-            xywh {35 120 200 90} box PLASTIC_DOWN_FRAME labelsize 12 align 5 deactivate
-          } {
-            Fl_Choice m_InOrientationPageX {
-              label {X Axis:}
-              callback {this->OnOrientationPageSelect();} open
-              tooltip {The direction of the image's X axis in patient space} xywh {90 130 135 20} down_box BORDER_BOX labelsize 12 when 1 textsize 12
-            } {
-              MenuItem {} {
-                label {right to left}
-                xywh {5 5 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {left to right}
-                xywh {15 15 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {anterior to posterior}
-                xywh {25 25 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {posterior to anterior}
-                xywh {35 35 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {inferior to superior}
-                xywh {45 45 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {superior to inferior}
-                xywh {55 55 100 20} labelsize 12
-              }
-            }
-            Fl_Choice m_InOrientationPageY {
-              label {Y Axis:}
-              callback {this->OnOrientationPageSelect();} open
-              tooltip {The direction of the image's Y axis in patient space} xywh {90 155 135 20} down_box BORDER_BOX labelsize 12 textsize 12
-            } {
-              MenuItem {} {
-                label {right to left}
-                xywh {15 15 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {left to right}
-                xywh {25 25 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {anterior to posterior}
-                xywh {35 35 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {posterior to anterior}
-                xywh {45 45 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {inferior to superior}
-                xywh {55 55 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {superior to inferior}
-                xywh {65 65 100 20} labelsize 12
-              }
-            }
-            Fl_Choice m_InOrientationPageZ {
-              label {Z Axis:}
-              callback {this->OnOrientationPageSelect();} open
-              tooltip {The direction of the image's Z axis in patient space} xywh {90 180 135 20} down_box BORDER_BOX labelsize 12 textsize 12
-            } {
-              MenuItem {} {
-                label {right to left}
-                xywh {25 25 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {left to right}
-                xywh {35 35 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {anterior to posterior}
-                xywh {45 45 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {posterior to anterior}
-                xywh {55 55 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {inferior to superior}
-                xywh {65 65 100 20} labelsize 12
-              }
-              MenuItem {} {
-                label {superior to inferior}
-                xywh {75 75 100 20} labelsize 12
-              }
-            }
-          }
-          Fl_Group {} {
-            label {Advanced settings:} open
-            xywh {35 235 200 45} box PLASTIC_DOWN_FRAME labelsize 12 align 5
-          } {
-            Fl_Input m_InRAICode {
-              label {RAI Code:}
-              callback {this->OnOrientationPageRAIChange();}
-              tooltip {The RAI code is a three-letter code indicating the orientation of the image in XYZ coordinates. Each letter stands for (R)ight, (Left), (A)nterior, (P)osterior, (I)nferior and (S)uperior. The first letter is the orientation of the X coordinate, the second of Y and the third of Z. So, RAI means X:Right to Left; Y:Anterior to Posterior; Z:Inferior to Superior.} xywh {160 245 60 25} labelsize 12 when 1 textsize 12
-            }
-          }
-          Fl_Group m_GrpOrientationPageGraphic {open
-            xywh {245 60 215 190} box RSHADOW_BOX color 7 labelsize 11 align 144
-          } {
-            Fl_Wizard m_WizOrientationPageDoll {
-              xywh {250 65 205 180} box NO_BOX
-            } {
-              Fl_Group {m_GrpOrientationPageDoll[0]} {open
-                image {Artwork/dollRAI.gif} xywh {250 65 205 180} align 0
-              } {}
-              Fl_Group {m_GrpOrientationPageDoll[1]} {open
-                image {Artwork/dollRIA.gif} xywh {250 65 205 180} align 0 hide
-              } {}
-              Fl_Group {m_GrpOrientationPageDoll[2]} {open
-                image {Artwork/dollARI.gif} xywh {250 65 205 180} align 0 hide
-              } {}
-              Fl_Group {m_GrpOrientationPageDoll[3]} {open
-                image {Artwork/dollAIR.gif} xywh {250 65 205 180} box FLAT_BOX color 7 align 0 hide
-              } {}
-              Fl_Group {m_GrpOrientationPageDoll[4]} {open
-                image {Artwork/dollIRA.gif} xywh {250 65 205 180} align 0 hide
-              } {}
-              Fl_Group {m_GrpOrientationPageDoll[5]} {open
-                image {Artwork/dollIAR.gif} xywh {250 65 205 180} align 0 hide
-              } {}
-              Fl_Group m_GrpOrientationPageDollInvalid {open
-                image {Artwork/dollInvalid.gif} xywh {250 65 205 180} align 16 hide
-              } {
-                Fl_Group {} {
-                  label {Orientation invalid} open
-                  xywh {250 225 205 20} align 16
-                } {}
-              }
-            }
-            Fl_Output {m_OutOrientationPageCorner[0]} {
-              label {@\#9->   }
-              xywh {280 225 60 20} box BORDER_BOX color 215 labelfont 4 labelsize 12 align 9 textsize 11
-            }
-            Fl_Output {m_OutOrientationPageCorner[1]} {
-              label {    @\#3->}
-              xywh {250 140 60 20} box BORDER_BOX color 215 labelfont 4 labelsize 12 align 2 textsize 11
-            }
-            Fl_Output {m_OutOrientationPageCorner[2]} {
-              label {@\#3->}
-              xywh {265 85 60 20} box BORDER_BOX color 215 labelfont 4 labelsize 12 align 10 textsize 11
-            }
-            Fl_Output {m_OutOrientationPageCorner[3]} {
-              label {    @\#3->}
-              xywh {250 70 60 20} box BORDER_BOX color 215 labelfont 4 labelsize 12 align 2 textsize 11
-            }
-            Fl_Output {m_OutOrientationPageCorner[4]} {
-              label {@\#7->    }
-              xywh {395 215 60 20} box BORDER_BOX color 215 labelfont 4 labelsize 12 align 1 textsize 11
-            }
-            Fl_Output {m_OutOrientationPageCorner[5]} {
-              label {@\#7->}
-              xywh {395 165 60 20} box BORDER_BOX color 215 labelfont 4 labelsize 12 textsize 11
-            }
-            Fl_Output {m_OutOrientationPageCorner[6]} {
-              label {  @\#1->}
-              xywh {395 80 60 20} box BORDER_BOX color 215 labelfont 4 labelsize 12 align 6 textsize 11
-            }
-            Fl_Output {m_OutOrientationPageCorner[7]} {
-              label {@\#1->      }
-              xywh {360 70 60 20} box BORDER_BOX color 215 labelfont 4 labelsize 12 align 10 textsize 11
-            }
-            Fl_Group {} {
-              label z open
-              xywh {290 185 30 25} labelfont 1 align 0
-            } {}
-            Fl_Group {} {
-              label x open
-              xywh {358 200 30 25} labelfont 1 align 0
-            } {}
-            Fl_Group {} {
-              label y open
-              xywh {401 140 30 25} labelfont 1 align 0
-            } {}
-          }
-          Fl_Group {} {
-            label {A graphical representation of 
-the selected image orientation} open
-            xywh {260 255 175 30} labelsize 11 align 145
-          } {}
-          Fl_Group {} {
-            label {Button Group} open
-            xywh {190 285 280 45} labeltype NO_LABEL
-          } {
-            Fl_Button m_BtnOrientationPageNext {
-              label {&Next  >}
-              callback {this->OnOrientationPageNext();}
-              xywh {290 295 80 25} box PLASTIC_UP_BOX shortcut 0x8006e color 180 labelfont 1 labelsize 12
-            }
-            Fl_Button {} {
-              label {< Back}
-              callback {this->OnOrientationPageBack();}
-              xywh {200 295 80 25} box PLASTIC_UP_BOX color 180 labelsize 12
-            }
-            Fl_Button {} {
-              label Cancel
-              callback {this->OnCancel();}
-              xywh {380 295 80 25} box PLASTIC_UP_BOX shortcut 0xff1b color 180 labelsize 12
-            }
-          }
-        }
         Fl_Group m_PageSummary {
-          label Summary open
-          xywh {0 0 470 330} box PLASTIC_DOWN_BOX labelfont 2 labelsize 10 hide
+          label Summary open selected
+          xywh {0 0 470 330} box PLASTIC_DOWN_BOX labelfont 2 labelsize 10
         } {
           Fl_Group {} {
             label {Image Summary:}
@@ -529,40 +286,62 @@ the selected image orientation} open
               xywh {380 295 80 25} box PLASTIC_UP_BOX shortcut 0xff1b color 180 labelsize 12
             }
           }
-          Fl_Value_Output m_OutSummarySize {
-            label {Size in KB:}
-            xywh {100 255 95 20} color 54 labelsize 12 maximum 1e+008 textsize 12
-          }
           Fl_Output m_OutSummaryFileName {
             label {File name:}
-            xywh {100 75 350 20} color 54 labelsize 12 textsize 12
+            xywh {100 65 350 20} color 54 labelsize 12 textsize 12
           }
-          Fl_Output m_OutSummaryPixelType {
-            label {Data type:}
-            xywh {100 195 95 20} color 54 labelsize 12 textsize 12
+          Fl_Value_Output {m_OutSummaryDimensions[0]} {
+            label {Dimensions:}
+            xywh {100 95 45 20} color 7 labelsize 12 textsize 12
+          }
+          Fl_Value_Output {m_OutSummaryDimensions[1]} {
+            xywh {145 95 45 20} color 7 labelsize 12 textsize 12
+          }
+          Fl_Value_Output {m_OutSummaryDimensions[2]} {
+            xywh {190 95 45 20} color 7 labelsize 12 textsize 12
+          }
+          Fl_Output m_OutSummaryOrientation {
+            label {Orientation:}
+            tooltip {Note: origin information is not compatible with SPM/MRICro for Analyze files} xywh {315 95 135 20} color 54 labelsize 12 textsize 12
+          }
+          Fl_Value_Output {m_OutSummarySpacing[0]} {
+            label {Spacing:}
+            xywh {100 125 45 20} color 7 labelsize 12 step 0.01 textsize 12
+          }
+          Fl_Value_Output {m_OutSummarySpacing[1]} {
+            xywh {145 125 45 20} color 7 labelsize 12 step 0.01 textsize 12
+          }
+          Fl_Value_Output {m_OutSummarySpacing[2]} {
+            xywh {190 125 45 20} color 7 labelsize 12 step 0.01 textsize 12
+          }
+          Fl_Value_Output {m_OutSummaryOrigin[0]} {
+            label {Origin:}
+            xywh {315 125 45 20} color 7 labelsize 12 step 0.01 textsize 12
+          }
+          Fl_Value_Output {m_OutSummaryOrigin[1]} {
+            xywh {360 125 45 20} color 7 labelsize 12 step 0.01 textsize 12
+          }
+          Fl_Value_Output {m_OutSummaryOrigin[2]} {
+            xywh {405 125 45 20} color 7 labelsize 12 step 0.01 textsize 12
           }
           Fl_Output m_OutSummaryByteOrder {
             label {Byte order:}
-            xywh {100 225 95 20} color 54 labelsize 12 textsize 12
+            xywh {315 155 135 20} color 54 labelsize 12 textsize 12
           }
-          Fl_Output m_OutSummaryDimensions {
-            label {Dimensions:}
-            xywh {100 105 95 20} color 54 labelsize 12 textsize 12
+          Fl_Output m_OutSummaryPixelType {
+            label {Data type:}
+            xywh {100 155 135 20} color 54 labelsize 12 textsize 12
           }
-          Fl_Output m_OutSummarySpacing {
-            label {Voxel size:}
-            xywh {100 135 95 22} color 54 labelsize 12 textsize 12
-          }
-          Fl_Output m_OutSummaryOrigin {
-            label {Origin:} selected
-            tooltip {Note: origin information is not compatible with SPM/MRICro for Analyze files} xywh {100 165 95 22} color 54 labelsize 12 textsize 12
+          Fl_Value_Output m_OutSummarySize {
+            label {Size in KB:}
+            xywh {315 185 135 20} color 54 labelsize 12 maximum 1e+008 textsize 12
           }
           Fl_Group {} {
-            label {Additional Information:} open
-            xywh {215 120 235 155} box PLASTIC_DOWN_BOX color 7 labelsize 12 align 5
+            label {Additional Information:}
+            xywh {95 215 355 70} box PLASTIC_DOWN_BOX color 7 labelsize 12 align 5
           } {
             Fl_Text_Display m_OutSummaryMetaData {
-              xywh {220 125 225 145} labelsize 12 align 5 textfont 4 textsize 10
+              xywh {100 220 345 60} labelsize 12 align 0 textfont 4 textsize 10
             }
           }
         }

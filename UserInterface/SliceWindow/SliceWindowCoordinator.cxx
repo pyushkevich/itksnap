@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SliceWindowCoordinator.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -117,6 +117,18 @@ SliceWindowCoordinator
     }
 }
 
+void
+SliceWindowCoordinator
+::SetZoomLevelAllWindows(float level)
+{
+  // Now scale the zoom in each window
+  for(unsigned int i=0;i<3;i++)
+    {
+    m_Window[i]->SetViewZoom(level);
+    }
+}
+
+
 
 void
 SliceWindowCoordinator
@@ -174,12 +186,21 @@ SliceWindowCoordinator
     }
 }
 
+
 float
 SliceWindowCoordinator
-::GetCommonZoom()
+::GetCommonZoomLevel()
 {
   assert(m_LinkedZoom && m_WindowsRegistered);
-  return m_Window[0]->GetViewZoom() / m_Window[0]->GetOptimalZoom();
+  return m_Window[0]->GetViewZoom();
+}
+
+float
+SliceWindowCoordinator
+::GetCommonOptimalFitZoomLevel()
+{
+  assert(m_LinkedZoom && m_WindowsRegistered);
+  return m_Window[0]->GetOptimalZoom();
 }
 
 float

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:43:03 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -76,6 +76,23 @@ public:
   virtual ~GenericImageData() {};
 
 
+  /** 
+   * Access the 'main' image, either grey or RGB. The main image is the
+   * one that all other images must mimic
+   */
+  ImageWrapperBase* GetMain()
+    {
+    assert(m_MainImage->IsInitialized());
+    return m_MainImage;
+    }
+
+  bool IsMainLoaded()
+    {
+    return m_MainImage->IsInitialized();
+    }
+
+  
+
   /**
    * Access the greyscale image (read only access is allowed)
    */
@@ -142,7 +159,7 @@ public:
   virtual void SetRGBImage(RGBImageType *newRGBImage,
                     const ImageCoordinateGeometry &newGeometry);
   
-  virtual void SetRGBImage(RGBImageType *newRGBImage);
+  virtual void SetRGBImageAsOverlay(RGBImageType *newRGBImage);
   
   /**
    * This method sets the segmentation image (see note for SetGrey).
@@ -195,7 +212,15 @@ protected:
 
   // A list of linked wrappers, whose cursor position and image geometry
   // are updated concurrently
-  std::list<ImageWrapperBase *> m_LinkedWrappers;
+  typedef std::list<ImageWrapperBase *> WrapperList;
+  typedef WrapperList::iterator WrapperIterator;
+  typedef WrapperList::const_iterator WrapperConstIterator;
+  WrapperList m_LinkedWrappers;
+
+  // A pointer to the 'main' image, i.e., the image that is treated as the 
+  // reference for all other images. It is typically the grey image, but 
+  // since we now allow for RGB images, it can point to the RGB image too
+  ImageWrapperBase *m_MainImage;
 
   // Dimensions of the images (must match) 
   Vector3ui m_Size;
@@ -206,6 +231,8 @@ protected:
   // Image coordinate geometry (it's placed here because the transform depends
   // on image size)
   ImageCoordinateGeometry m_ImageGeometry;
+
+ 
 };
 
 #endif

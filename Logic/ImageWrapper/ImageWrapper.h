@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -47,6 +47,9 @@ namespace itk {
   template <unsigned int VDimension> class ImageBase;
 }
 
+
+
+
 /**
  * \class ImageWrapper
  * \brief Abstract parent class for all image wrappers
@@ -64,6 +67,8 @@ public:
   virtual void SetSliceIndex(const Vector3ui &) = 0;
   virtual itk::ImageBase<3> *GetImageBase() const = 0;
   virtual bool IsInitialized() const = 0;
+  virtual Vector3ui GetSize() const = 0;
+
 };
 
 /**
@@ -256,6 +261,9 @@ public:
   /** Transform a voxel index into NIFTI coordinates (RAS) */
   Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3ui &iVoxel) const;
 
+  /** Transform NIFTI coordinates to a continuous voxel index */
+  Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const;
+
   /** 
    * Replace all voxels with intensity values iOld with values iNew. 
    * \return number of voxels that had been modified
@@ -267,6 +275,47 @@ public:
    * \return number of voxels that had been modified
    */
   virtual unsigned int SwapIntensities(TPixel iFirst, TPixel iSecond);
+
+  /** Get the NIFTI s-form matrix for this image */
+  virtual vnl_matrix_fixed<double, 4, 4> GetNiftiSform() const
+    { return m_NiftiSform; }
+
+  /** 
+   * This static function constructs a NIFTI matrix from the ITK direction
+   * cosines matrix and Spacing and Origin vectors
+   */
+  static vnl_matrix_fixed<double,4,4> ConstructNiftiSform(
+    vnl_matrix<double> m_dir, 
+    vnl_vector<double> v_origin,
+    vnl_vector<double> v_spacing)
+  {
+    // Set the NIFTI/RAS transform
+    vnl_matrix<double> m_ras_matrix;
+    vnl_diag_matrix<double> m_scale, m_lps_to_ras;
+    vnl_vector<double> v_ras_offset;
+
+    // Compute the matrix
+    m_scale.set(v_spacing);
+    m_lps_to_ras.set(vnl_vector<double>(3, 1.0));
+    m_lps_to_ras[0] = -1;
+    m_lps_to_ras[1] = -1;
+    m_ras_matrix = m_lps_to_ras * m_dir * m_scale;
+
+    // Compute the vector
+    v_ras_offset = m_lps_to_ras * v_origin;
+
+    // Create the larger matrix
+    vnl_vector<double> vcol(4, 1.0);
+    vcol.update(v_ras_offset);
+    
+    vnl_matrix_fixed<double,4,4> m_sform;
+    m_sform.set_identity();
+    m_sform.update(m_ras_matrix);
+    m_sform.set_column(3, vcol);
+    return m_sform;
+  }
+
+
 
 protected:
 
@@ -292,7 +341,7 @@ protected:
   ImageCoordinateTransform m_DisplayToImageTransform[3];
 
   // Transform from image index to NIFTI world coordinates
-  vnl_matrix_fixed<double, 4, 4> m_NiftiSform;
+  vnl_matrix_fixed<double, 4, 4> m_NiftiSform, m_NiftiInvSform;
 
   /**
    * Handle a change in the image pointer (i.e., a load operation on the image or 

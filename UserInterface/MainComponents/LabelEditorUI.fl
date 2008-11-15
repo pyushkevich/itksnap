@@ -1,14 +1,14 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0105 
+version 1.0108 
 header_name {.h} 
 code_name {.cxx}
-class LabelEditorUI {open : { private LabelEditorUIBase }
+class LabelEditorUI {open : {private LabelEditorUIBase}
 } {
   Function {MakeWindow()} {open
   } {
     Fl_Window m_WinMain {
-      label {SnAP Label Editor} open selected
-      xywh {382 364 440 392} type Double
+      label {Segmentation Label Editor - ITK-SNAP}
+      xywh {811 254 440 392} type Double
       code0 {\#include "LabelEditorUIBase.h"} visible
     } {
       Fl_Group {} {
@@ -99,22 +99,73 @@ adding new labels}
       Fl_Button {} {
         label New
         callback {OnNewAction()}
-        xywh {10 355 70 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        xywh {10 355 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Button {} {
         label Delete
         callback {OnDeleteAction()}
-        xywh {160 355 70 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        xywh {150 355 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Button {} {
         label Duplicate
         callback {OnDuplicateAction()}
-        xywh {85 355 70 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        xywh {80 355 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Button {} {
-        label {Close Window}
+        label Close
         callback {OnCloseAction()}
-        xywh {320 355 110 25} box PLASTIC_UP_BOX color 180 labelfont 1 labelsize 12
+        xywh {360 355 70 25} box PLASTIC_UP_BOX color 180 labelfont 1 labelsize 12
+      }
+      Fl_Button {} {
+        label {Merge...}
+        callback {OnMergeDialogAction()}
+        xywh {220 355 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
+      }
+    }
+    Fl_Window m_WinMerge {
+      label {Merge Labels - ITK-SNAP} open
+      xywh {883 696 305 182} type Double visible
+    } {
+      Fl_Choice {m_MergeLabel[0]} {
+        label {Input label 1:}
+        callback {this->OnMergeLabelChange();} open
+        xywh {115 20 135 20} down_box BORDER_BOX labelsize 12 textsize 12
+      } {}
+      Fl_Choice {m_MergeLabel[1]} {
+        label {Input label 2:}
+        callback {this->OnMergeLabelChange();} open
+        xywh {115 50 135 20} down_box BORDER_BOX labelsize 12 textsize 12
+      } {}
+      Fl_Choice {m_MergeLabel[2]} {
+        label {Output label:}
+        callback {this->OnMergeLabelChange();} open
+        xywh {115 80 135 20} down_box BORDER_BOX labelsize 12 textsize 12
+      } {}
+      Fl_Check_Button m_ChkMergeTopological {
+        label {Topology-preserving merge}
+        xywh {90 110 215 20} down_box DOWN_BOX labelsize 12 deactivate
+      }
+      Fl_Group {m_GrpMergeColor[0]} {
+        label {Active drawing label:} open
+        xywh {255 20 35 20} box BORDER_BOX color 23 selection_color 57 labeltype NO_LABEL labelsize 11 align 0
+      } {}
+      Fl_Group {m_GrpMergeColor[1]} {
+        label {Active drawing label:} open
+        xywh {255 50 35 20} box BORDER_BOX color 23 selection_color 57 labeltype NO_LABEL labelsize 11 align 0
+      } {}
+      Fl_Group {m_GrpMergeColor[2]} {
+        label {Active drawing label:} open
+        xywh {255 80 35 20} box BORDER_BOX color 23 selection_color 57 labeltype NO_LABEL labelsize 11 align 0
+      } {}
+      Fl_Button m_BtnMerge {
+        label Merge
+        callback {OnMergeAction()}
+        xywh {155 145 65 25} box PLASTIC_UP_BOX color 180 labelfont 1 labelsize 12 deactivate
+      }
+      Fl_Button {} {
+        label Close
+        callback {m_WinMerge->hide();}
+        xywh {225 145 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
     }
   }

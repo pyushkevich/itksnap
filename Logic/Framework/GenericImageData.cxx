@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -114,6 +114,9 @@ GenericImageData
   m_LinkedWrappers.push_back(&m_GreyWrapper);
   m_LinkedWrappers.push_back(&m_RGBWrapper);
   m_LinkedWrappers.push_back(&m_LabelWrapper);
+
+  // Start out with the main image pointing to the grey
+  m_MainImage = &m_GreyWrapper;
 }
 
 Vector3d 
@@ -137,6 +140,9 @@ GenericImageData
 {
   // Make a new grey wrapper
   m_GreyWrapper.SetImage(newGreyImage);
+
+  // Make the grey wrapper the main image
+  m_MainImage = &m_GreyWrapper;
   
   // Clear the segmentation data to zeros
   m_LabelWrapper.InitializeToWrapper(&m_GreyWrapper, (LabelType) 0);
@@ -167,9 +173,12 @@ GenericImageData
 {
   m_RGBWrapper.SetImage(newRGBImage);
   m_RGBWrapper.SetAlpha(255);
+
+  // Set the RGB as the main image
+  m_MainImage = &m_RGBWrapper;
   
-  m_GreyWrapper.InitializeToWrapper(&m_RGBWrapper, (GreyType) 0);
-  
+  // Initialize other wrappers to match this one
+  m_GreyWrapper.InitializeToWrapper(&m_RGBWrapper, (GreyType) 0);  
   m_LabelWrapper.InitializeToWrapper(&m_RGBWrapper, (LabelType) 0);
   
   // Store the image size info
@@ -181,11 +190,12 @@ GenericImageData
 
 void 
 GenericImageData
-::SetRGBImage(RGBImageType *newRGBImage)
+::SetRGBImageAsOverlay(RGBImageType *newRGBImage)
 {
   // Check that the image matches the size of the grey image
   assert(m_GreyWrapper.GetImage()->GetBufferedRegion() == 
          newRGBImage->GetBufferedRegion());
+  assert(m_MainImage == &m_GreyWrapper);
   
   // Pass the image to the segmentation wrapper
   m_RGBWrapper.SetImage(newRGBImage);
@@ -271,12 +281,16 @@ GenericImageData
   m_ImageGeometry = geometry;
 
   // Propagate the geometry to the image wrappers
-  std::list<ImageWrapperBase *>::iterator it = m_LinkedWrappers.begin();
-  while(it != m_LinkedWrappers.end())
+  for(WrapperIterator it = m_LinkedWrappers.begin(); 
+    it != m_LinkedWrappers.end(); ++it)
     {
-    ImageWrapperBase *wrapper = *it++;
+    ImageWrapperBase *wrapper = *it;
     if(wrapper->IsInitialized())
       {
+      // Set the direction matrix in the image
+      wrapper->GetImageBase()->SetDirection(
+        itk::Matrix<double,3,3>(geometry.GetImageDirectionCosineMatrix()));
+
       // Update the geometry for each slice
       for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
         {

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/03/25 19:31:33 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -544,6 +544,9 @@ GenericSliceWindow
     // Display the letters (RAI)
     DrawOrientationLabels();
 
+    // Display the rulers
+    DrawRulers();
+
     // Draw the zoom mode (does't really draw, repaints a UI widget)
     m_ZoomPanMode->OnDraw();
     }
@@ -608,6 +611,74 @@ GenericSliceWindow
   gl_draw(labels[0][1],w - (offset+margin),0,offset,h,FL_ALIGN_RIGHT);
   gl_draw(labels[1][0],0,0,w,offset,FL_ALIGN_BOTTOM);
   gl_draw(labels[1][1],0,h - (offset+1),w,offset,FL_ALIGN_TOP);
+
+
+  glPopMatrix();
+  glPopAttrib();
+}
+
+void
+GenericSliceWindow
+::DrawRulers()
+{
+  // Get the properties for the labels
+  const SNAPAppearanceSettings::Element &elt = 
+    m_ParentUI->GetAppearanceSettings()->GetUIElement(
+      SNAPAppearanceSettings::RULER);
+
+  // Leave if the labels are disabled
+  if(!elt.Visible) return;  
+
+  glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  SNAPAppearanceSettings::ApplyUIElementLineSettings(elt);
+  glColor4d( elt.NormalColor[0], elt.NormalColor[1], elt.NormalColor[2], 1.0 );
+  gl_font(FL_HELVETICA, elt.FontSize);
+
+  // Pick the scale of the ruler 
+  int w = m_Canvas->w(), h = m_Canvas->h();
+
+  // The ruler bar should be as large as possible but less than one half
+  // of the screen width (not to go over the markers)
+  double maxw = 0.5 * w - 20.0;
+
+  double scale = 1.0;
+  while(m_ViewZoom * scale > maxw) scale /= 10.0;
+  while(m_ViewZoom * scale < 0.1 * maxw) scale *= 10.0;
+
+  // Draw a zoom bar
+  double bw = scale * m_ViewZoom;
+  glBegin(GL_LINES);
+  glVertex2d(5,h - 5);
+  glVertex2d(5,h - 20);
+  glVertex2d(5,h - 10);
+  glVertex2d(5 + bw,h - 10);
+  glVertex2d(5 + bw,h - 5);
+  glVertex2d(5 + bw,h - 20);
+  glEnd();
+
+  // Based on the log of the scale, determine the unit
+  string unit = "mm";
+  if(scale >= 10 && scale < 1000)
+    { unit = "cm"; scale /= 10; }
+  else if(scale >= 1000)
+    { unit = "m"; scale /= 1000; }
+  else if(scale < 1 && scale > 0.001)
+    { unit = "\xb5m"; scale *= 1000; }
+  else if(scale < 0.001)
+    { unit = "nm"; scale *= 1000000; }
+
+  ostringstream oss;
+  oss << scale << " " << unit;
+
+  // See if we can squeeze the label under the ruler
+  if(bw > elt.FontSize * 4)
+    gl_draw(oss.str().c_str(), 10, h - 30, bw, 20, FL_ALIGN_TOP);
+  else
+    gl_draw(oss.str().c_str(), bw+10, h - 20, bw+elt.FontSize * 4+10, 15, FL_ALIGN_LEFT);
+
 
   glPopMatrix();
   glPopAttrib();

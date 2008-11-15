@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MeshExportSettings.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:26 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -64,6 +64,8 @@ public:
 
   irisGetMacro(ExportLabel, LabelType);
   irisSetMacro(ExportLabel, LabelType);
+
+  virtual ~MeshExportSettings() {}
 
 private:
   StringType m_MeshFileName;

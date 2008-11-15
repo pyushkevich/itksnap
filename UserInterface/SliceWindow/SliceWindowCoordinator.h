@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SliceWindowCoordinator.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -71,6 +71,9 @@ public:
    * regardless */
   void SetZoomFactorAllWindows(float factor);
 
+  /** Set the zoom to an absolute value in all windows */
+  void SetZoomLevelAllWindows(float level);
+
   /** Reset the zoom in all windows to an optimal value, ie, such a zoom
    * that the image fits into each of the windows.  Depending on whether 
    * the zoom is linked or not, this will either zoom each slice as much
@@ -93,7 +96,10 @@ public:
   void OnWindowResize();
 
   /** Get the common zoom factor */
-  float GetCommonZoom();
+  float GetCommonZoomLevel();
+
+  /** Get the zoom factor that will fit all three slices optimally */
+  float GetCommonOptimalFitZoomLevel();
 
   /** Constrain a zoom factor to reasonable limits */
   float ClampZoom(unsigned int window,float zoom);

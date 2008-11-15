@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -95,28 +95,27 @@ IRISApplication
   m_IntensityCurve = IntensityCurveVTK::New();
   m_IntensityCurve->Initialize(3);
 
-  // Initialize the image-anatomy transformation with RAI code
-  m_ImageToAnatomyRAI = "RAI";
-
   // Initialize the display-anatomy transformation with RPI code
   m_DisplayToAnatomyRAI[0] = "RPS";
   m_DisplayToAnatomyRAI[1] = "AIR";
   m_DisplayToAnatomyRAI[2] = "RIP";
 }
 
-const char *
+std::string
 IRISApplication::
 GetImageToAnatomyRAI()
 {
-  return m_ImageToAnatomyRAI.c_str();
+  assert(m_CurrentImageData->IsMainLoaded());
+  return ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(
+    m_CurrentImageData->GetImageGeometry().GetImageDirectionCosineMatrix());
 }
 
 
-const char *
+std::string
 IRISApplication::
 GetDisplayToAnatomyRAI(unsigned int slice)
 {
-  return m_DisplayToAnatomyRAI[slice].c_str();
+  return m_DisplayToAnatomyRAI[slice];
 }
 
 
@@ -139,6 +138,7 @@ IRISApplication
                           CommandType *progressCommand) 
 {
   assert(m_SNAPImageData == NULL);
+  assert(m_IRISImageData->IsMainLoaded());
 
   // Create the SNAP image data object
   m_SNAPImageData = new SNAPImageData(this);
@@ -151,8 +151,10 @@ IRISApplication
   Vector3ui size = to_unsigned_int(
     Vector3ul(imgNewGrey->GetLargestPossibleRegion().GetSize().GetSize()));
 
-  // Compute an image coordinate geometry for the region of interest
-  ImageCoordinateGeometry icg(m_ImageToAnatomyRAI,m_DisplayToAnatomyRAI,size);
+  // Compute an image coordinate geometry for the region of interest  
+  ImageCoordinateGeometry icg(
+    m_IRISImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
+    m_DisplayToAnatomyRAI, size);
 
   // Assign the new wrapper to the target
   m_SNAPImageData->SetGreyImage(imgNewGrey,icg);
@@ -187,7 +189,11 @@ IRISApplication
     m_ColorLabelTable->GetColorLabel(passThroughLabel));
 
   // Assign the intensity mapping function to the Snap data
-  m_SNAPImageData->GetGrey()->SetIntensityMapFunction(m_IntensityCurve);
+  m_SNAPImageData->GetGrey()->SetReferenceIntensityRange(
+    m_IRISImageData->GetGrey()->GetImageMin(),
+    m_IRISImageData->GetGrey()->GetImageMax());
+  m_SNAPImageData->GetGrey()->SetIntensityMapFunction(
+    m_IntensityCurve);
 
   // Initialize the speed image of the SNAP image data
   m_SNAPImageData->InitializeSpeed();
@@ -205,13 +211,13 @@ IRISApplication
   m_DisplayToAnatomyRAI[1] = rai1;
   m_DisplayToAnatomyRAI[2] = rai2;
 
-  if(!m_IRISImageData->IsGreyLoaded()) 
+  if(!m_IRISImageData->IsMainLoaded()) 
     return;
   
   // Create the appropriate transform and pass it to the IRIS data
   m_IRISImageData->SetImageGeometry(
     ImageCoordinateGeometry(
-      m_ImageToAnatomyRAI,
+      m_IRISImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
       m_DisplayToAnatomyRAI,
       m_IRISImageData->GetVolumeExtents()));
 
@@ -222,15 +228,14 @@ IRISApplication
   // Create the appropriate transform and pass it to the SNAP data
   m_SNAPImageData->SetImageGeometry(
     ImageCoordinateGeometry(
-      m_ImageToAnatomyRAI,
+      m_SNAPImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
       m_DisplayToAnatomyRAI,
       m_SNAPImageData->GetVolumeExtents()));
 }
 
 void 
 IRISApplication
-::UpdateIRISGreyImage(GreyImageType *newGreyImage, 
-                      const char *newImageRAI)
+::UpdateIRISGreyImage(GreyImageType *newGreyImage)
 {
   // This has to happen in 'pure' IRIS mode
   assert(m_SNAPImageData == NULL);
@@ -240,17 +245,13 @@ IRISApplication
     to_unsigned_int(
       Vector3ul(
         newGreyImage->GetBufferedRegion().GetSize().GetSize()));
-  
-  // Store the new RAI code
-  m_ImageToAnatomyRAI[0] = newImageRAI[0];
-  m_ImageToAnatomyRAI[1] = newImageRAI[1];
-  m_ImageToAnatomyRAI[2] = newImageRAI[2];
 
   // Compute the new image geometry for the IRIS data
-  ImageCoordinateGeometry icg(m_ImageToAnatomyRAI,m_DisplayToAnatomyRAI,size);
+  ImageCoordinateGeometry icg(
+    newGreyImage->GetDirection().GetVnlMatrix(), m_DisplayToAnatomyRAI, size);
   
   // Update the image information in m_Driver->GetCurrentImageData()
-  m_IRISImageData->SetGreyImage(newGreyImage,icg);    
+  m_IRISImageData->SetGreyImage(newGreyImage, icg);    
   
   // Reinitialize the intensity mapping curve 
   m_IntensityCurve->Initialize(3);
@@ -279,8 +280,7 @@ IRISApplication
 
 void 
 IRISApplication
-::UpdateIRISRGBImage(RGBImageType *newRGBImage, 
-                      const char *newImageRAI)
+::UpdateIRISRGBImage(RGBImageType *newRGBImage)
 {
   // This has to happen in 'pure' IRIS mode
   assert(m_SNAPImageData == NULL);
@@ -290,14 +290,11 @@ IRISApplication
     to_unsigned_int(
       Vector3ul(
         newRGBImage->GetBufferedRegion().GetSize().GetSize()));
-  
-  // Store the new RAI code
-  m_ImageToAnatomyRAI[0] = newImageRAI[0];
-  m_ImageToAnatomyRAI[1] = newImageRAI[1];
-  m_ImageToAnatomyRAI[2] = newImageRAI[2];
 
   // Compute the new image geometry for the IRIS data
-  ImageCoordinateGeometry icg(m_ImageToAnatomyRAI,m_DisplayToAnatomyRAI,size);
+  ImageCoordinateGeometry icg(
+    newRGBImage->GetDirection().GetVnlMatrix(),
+    m_DisplayToAnatomyRAI, size);
   
   // Update the image information in m_Driver->GetCurrentImageData()
   m_IRISImageData->SetRGBImage(newRGBImage,icg);    
@@ -365,13 +362,14 @@ IRISApplication
 
 void
 IRISApplication
-::UpdateIRISRGBImage(RGBImageType *newRGBImage)
+::UpdateIRISRGBImageOverlay(RGBImageType *newRGBImage)
 {
   // This has to happen in 'pure' IRIS mode
   assert(m_SNAPImageData == NULL);
+  assert(m_IRISImageData->IsGreyLoaded());
 
   // Update the iris data
-  m_IRISImageData->SetRGBImage(newRGBImage); 
+  m_IRISImageData->SetRGBImageAsOverlay(newRGBImage); 
 }
 
 void
@@ -384,6 +382,9 @@ IRISApplication
   // Fill the image with blanks
   this->m_IRISImageData->GetSegmentation()->GetImage()->FillBuffer(0);
   this->m_IRISImageData->GetSegmentation()->GetImage()->Modified();
+
+  // Clear the undo buffer
+  m_UndoManager.Clear();
 }
 
 void
@@ -405,7 +406,7 @@ IRISApplication
       m_ColorLabelTable->SetColorLabelValid(it.Get(), true);
 
   // Reset the UNDO manager
-  // m_UndoManager.Clear();
+  m_UndoManager.Clear();
 }
 
 LabelType
@@ -736,17 +737,15 @@ size_t
 IRISApplication
 ::GetImageDirectionForAnatomicalDirection(AnatomicalDirection iAnat)
 {
+  std::string myrai = this->GetImageToAnatomyRAI();
+  
   string rai1 = "SRA", rai2 = "ILP";
+  
   char c1 = rai1[iAnat], c2 = rai2[iAnat];
   for(size_t j = 0; j < 3; j++)
-    {
-    if(
-      m_ImageToAnatomyRAI[j] == c1 || 
-      m_ImageToAnatomyRAI[j] == c2)
-      {
+    if(myrai[j] == c1 || myrai[j] == c2)
       return j;
-      }
-    }
+  
   assert(0);
   return 0;
 }
@@ -1136,7 +1135,7 @@ IRISApplication
 
 void 
 IRISApplication
-::LoadGreyImageFile(const char *filename, const char *rai)
+::LoadGreyImageFile(const char *filename)
 {
   // Load the settings associated with this file
   Registry regFull;
@@ -1149,13 +1148,10 @@ IRISApplication
   GuidedImageIO<GreyType> io;
   
   // Load the image (exception may occur here)
-  GreyImageType::Pointer imgGrey = io.ReadImage(filename, regGrey);
-
-  // Determine the RAI code, unless one is provided to us
-  string sOrient = rai ? rai : io.GetRAICode(imgGrey, regGrey);
+  GreyImageType::Pointer imgGrey = io.ReadImage(filename, regGrey, true);
 
   // Set the image as the current grayscale image
-  UpdateIRISGreyImage(imgGrey, sOrient.c_str());
+  UpdateIRISGreyImage(imgGrey);
 
   // Save the filename for the UI
   m_GlobalState->SetGreyFileName(filename);  
@@ -1163,7 +1159,7 @@ IRISApplication
 
 void
 IRISApplication
-::LoadRGBImageFile(const char *filename, const char *rai)
+::LoadRGBImageFile(const char *filename)
 {
   // Load the settings associated with this file
   Registry regFull;
@@ -1176,13 +1172,10 @@ IRISApplication
   GuidedImageIO<RGBType> io;
   
   // Load the image (exception may occur here)
-  RGBImageType::Pointer imgRGB = io.ReadImage(filename, regRGB);
-
-  // Determine the RAI code, unless one is provided to us
-  string sOrient = rai ? rai : io.GetRAICode(imgRGB, regRGB);
+  RGBImageType::Pointer imgRGB = io.ReadImage(filename, regRGB, false);
 
   // Set the image as the current grayscale image  
-  UpdateIRISRGBImage(imgRGB, sOrient.c_str());
+  UpdateIRISRGBImage(imgRGB);
 
   // Save the filename for the UI
   m_GlobalState->SetRGBFileName(filename);  
@@ -1205,11 +1198,32 @@ IRISApplication
   GuidedImageIO<LabelType> io;
   
   // Load the image (exception may occur here)
-  LabelImageType::Pointer imgLabel = io.ReadImage(filename, regGrey);
+  LabelImageType::Pointer imgLabel = io.ReadImage(filename, regGrey, false);
 
   // Set the image as the current grayscale image
   UpdateIRISSegmentationImage(imgLabel);
 
   // Save the filename for the UI
-  m_GlobalState->SetSegmentationFileName(filename);  
+  m_GlobalState->SetSegmentationFileName(filename);
+  m_GlobalState->SetLastAssociatedPreprocessingFileName(filename);
 }
+
+void 
+IRISApplication
+::ReorientImage(vnl_matrix_fixed<double, 3, 3> inDirection)
+{
+  // This should only be possible in IRIS mode
+  assert(m_CurrentImageData == m_IRISImageData);
+
+  // The main image should be loaded at this point
+  assert(m_CurrentImageData->IsMainLoaded());
+
+  // Compute a new coordinate transform object
+  ImageCoordinateGeometry icg(
+    inDirection, m_DisplayToAnatomyRAI, 
+    m_CurrentImageData->GetMain()->GetSize());
+
+  // Send this coordinate transform to the image data
+  m_CurrentImageData->SetImageGeometry(icg);
+}
+

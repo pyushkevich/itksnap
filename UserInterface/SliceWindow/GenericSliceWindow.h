@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2008/03/25 19:31:33 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -316,6 +316,9 @@ protected:
 
   /** This method draws the RAI labels at the four sides of the slice */
   void DrawOrientationLabels();
+
+  /** Draw a ruler for seeing distances on the screen */
+  void DrawRulers();
 
   /** Draw a window that shows where in the image the zoom region is located */
   void DrawThumbnail();

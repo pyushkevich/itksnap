@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPCommon.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:12 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,7 +41,7 @@
 // to have them included every time
 #include <assert.h>
 #include <iostream>
-
+#include <ctime>
 
 // Specify a standard stream for verbose messages
 extern std::ostream &verbose;

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,6 +36,7 @@ SNAPAppearanceSettings
     { 1, 1, 1, 1, 0, 1, 1 },    // 3D Image Box
     { 1, 1, 1, 1, 0, 1, 1 },    // 3D ROI Box
     { 1, 1, 1, 1, 0, 1, 1 },    // Paintbrush outline
+    { 1, 0, 1, 0, 1, 1, 1 }     // Rulers
     };
 
 SNAPAppearanceSettings::Element 
@@ -158,6 +159,16 @@ SNAPAppearanceSettings
   elt->FontSize = 0;
   elt->Visible = true;
   elt->AlphaBlending = false;
+
+  // Markers
+  elt = &m_DefaultElementSettings[RULER];
+  elt->NormalColor = Vector3d(0.3, 1.0, 0.0);
+  elt->ActiveColor = Vector3d(0.0, 0.0, 0.0);
+  elt->LineThickness = 1.0;
+  elt->DashSpacing = 0.0;
+  elt->FontSize = 12;
+  elt->Visible = true;
+  elt->AlphaBlending = true;
 }
 
 const char *
@@ -165,7 +176,7 @@ SNAPAppearanceSettings
 ::m_ElementNames[SNAPAppearanceSettings::ELEMENT_COUNT] = 
   { "CROSSHAIRS", "MARKERS", "ROI_BOX", "BACKGROUND_2D", "BACKGROUND_3D", 
     "ZOOM_THUMBNAIL", "CROSSHAIRS_3D", "CROSSHAIRS_THUMB", "IMAGE_BOX_3D",
-    "ROI_BOX_3D", "PAINTBRUSH_OUTLINE"};
+    "ROI_BOX_3D", "RULER", "PAINTBRUSH_OUTLINE"};
 
 SNAPAppearanceSettings
 ::SNAPAppearanceSettings()
@@ -174,7 +185,7 @@ SNAPAppearanceSettings
   InitializeDefaultSettings();
 
   // Set the common flags
-  m_FlagLinkedZoomByDefault = false;
+  m_FlagLinkedZoomByDefault = true;
   m_ZoomThumbnailMaximumSize = 160;
   m_ZoomThumbnailSizeInPercent = 30.0;
   m_FlagDisplayZoomThumbnail = true;

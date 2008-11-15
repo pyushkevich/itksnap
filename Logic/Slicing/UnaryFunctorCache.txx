@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UnaryFunctorCache.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -67,11 +67,10 @@ UnaryFunctorCache<TInput,TOutput,TFunctor>
   m_Cache = new TOutput[m_CacheLength];
 
   // Compute the cache elements
-  for(unsigned int iCache = 0, iFunc = m_CacheBegin;
-    iCache < m_CacheLength;
-    iCache++,iFunc++)
+  int iFunc = m_CacheBegin;
+  for(unsigned int iCache = 0; iCache < m_CacheLength; iCache++)
     {
-    m_Cache[iCache] = (*m_InputFunctor)(iFunc);
+    m_Cache[iCache] = (*m_InputFunctor)(iFunc++);
     }
 }
 

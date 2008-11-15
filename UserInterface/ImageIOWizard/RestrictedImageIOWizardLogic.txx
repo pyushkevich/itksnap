@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -56,9 +56,6 @@ RestrictedImageIOWizardLogic<TPixel>
   this->m_InHeaderPageSpacingY->value(requiredSpacing[1]);
   this->m_InHeaderPageSpacingZ->value(requiredSpacing[2]);
 
-  // Disable the orientation page
-  this->m_PageOrientation->deactivate();
-
   // Call the parent's method
   return Superclass::DisplayInputWizard(file);    
 }
@@ -81,6 +78,59 @@ RestrictedImageIOWizardLogic<TPixel>
 
     return false;
     }
+
+  // Check if there is a discrepancy in the header fields. This will not
+  // preclude the user from loading the image, but it will generate a 
+  // warning, hopefully leading users to adopt more flexible file formats
+  bool match_spacing = true, match_origin = true, match_direction = true;
+  for(size_t i = 0; i < 3; i++)
+    {
+    if(m_GreyImage->GetSpacing()[i] != this->m_Image->GetSpacing()[i])
+      match_spacing = false;
+
+    if(m_GreyImage->GetOrigin()[i] != this->m_Image->GetOrigin()[i])
+      match_origin = false;
+
+    for(size_t j = 0; j < 3; j++)
+      {
+      double diff = fabs(m_GreyImage->GetDirection()(i,j) - this->m_Image->GetDirection()(i,j));
+      if(diff > 1.0e-4)
+        match_direction = false;
+      }
+    }
+
+  if(!match_spacing || !match_origin || !match_direction)
+    {
+    // Come up with a warning message
+    std::string object, verb;
+    if(!match_spacing && !match_origin && !match_direction)
+      { object = "spacing, origin and orientation"; }
+    else if (!match_spacing && !match_origin)
+      { object = "spacing and origin"; }
+    else if (!match_spacing && !match_direction)
+      { object = "spacing and orientation"; }
+    else if (!match_origin && !match_direction)
+      { object = "origin and orientation";}
+    else if (!match_spacing)
+      { object = "spacing"; }
+    else if (!match_direction)
+      { object = "orientation";}
+    else if (!match_origin)
+      { object = "origin"; }
+
+    // Create an alert box
+    fl_choice(
+      "There is a mismatch between the header of the image that you are\n"
+      "loading and the header of the 'grey' image currently open in SNAP.\n\n"
+      "The images have different %s. \n\n"
+      "SNAP will ignore the header information in the image you are loading.\n",
+      "Ok", NULL, NULL,
+      object.c_str());
+
+    return true;
+    }
+
+
   else
     return true;
 }

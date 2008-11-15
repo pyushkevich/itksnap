@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/11 13:06:52 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -75,7 +75,7 @@ SystemInterface
   m_UserPreferenceFile = string(userDataPath) + "/" + "UserPreferences.txt";
 
   // Attach to the shared memory
-  IPCCursorAttach();
+  IPCAttach();
 }
 
 SystemInterface
@@ -84,7 +84,7 @@ SystemInterface
   delete m_RegistryIO;
 
   // Detach shared memory
-  IPCCursorClose();
+  IPCClose();
 }
 
 
@@ -428,24 +428,30 @@ SystemInterface
 }
 
 
+// We start versioning at 1000. Every time we change
+// the protocol, we should increment the version id
+const short SystemInterface::IPC_VERSION = 0x1000;
 
 void
 SystemInterface
-::IPCCursorAttach()
+::IPCAttach()
 {
   // Initialize the data pointer
   m_IPCSharedData = NULL;
 
+  // Determine size of shared memory
+  size_t msize = sizeof(IPCMessage) + sizeof(short);
+
 #ifdef WIN32
   // Create a shared memory block (key based on the preferences file)
   m_IPCHandle = CreateFileMapping(
-    INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(Vector3d), m_UserPreferenceFile.c_str());
+    INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, msize, m_UserPreferenceFile.c_str());
 
   // If the return value is NULL, something failed
   if(m_IPCHandle)
     {
     // Attach to the shared memory block
-    m_IPCSharedData = MapViewOfFile(m_IPCHandle, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(Vector3d));
+    m_IPCSharedData = MapViewOfFile(m_IPCHandle, FILE_MAP_ALL_ACCESS, 0, 0, msize);
     }
 
 #else
@@ -454,35 +460,84 @@ SystemInterface
   key_t keyid = ftok(m_UserPreferenceFile.c_str(), 0);
 
   // Get a handle to shared memory
-  m_IPCHandle = shmget(keyid, sizeof(Vector3d), IPC_CREAT | 0644);
+  m_IPCHandle = shmget(keyid, msize, IPC_CREAT | 0644);
 
   // Get a pointer to shared data block
   m_IPCSharedData = shmat(m_IPCHandle, (void *) 0, 0);
 
 #endif
+
 }
 
 bool 
 SystemInterface
-::IPCCursorRead(Vector3d &vout)
+::IPCRead(IPCMessage &msg)
 {
-  // Read from the shared memory
-  if(m_IPCSharedData)
-    {
-    vout.copy_in(static_cast<double *>(m_IPCSharedData));
-    return true;
-    }
-  return false;
+  // Must have some shared memory
+  if(!m_IPCSharedData) 
+    return false;
+
+  // Read the first short, make sure it's the version number
+  short *vid = static_cast<short *>(m_IPCSharedData);
+  if(*vid != IPC_VERSION)
+    return false;
+
+  // Cast shared memory to the message type
+  IPCMessage *p = reinterpret_cast<IPCMessage *>(vid + 1);
+
+  // Return a copy
+  msg = *p;
+
+  // Success!
+  return true;
 }
 
 bool
 SystemInterface
-::IPCCursorWrite(const Vector3d &vin)
+::IPCBroadcastCursor(Vector3d cursor)
+{
+  // Try reading the current memory
+  IPCMessage mcurr;
+  
+  // This may fail, but that's ok
+  IPCRead(mcurr);
+
+  // Update the message
+  mcurr.cursor = cursor;
+  return IPCBroadcast(mcurr);
+}
+
+bool
+SystemInterface
+::IPCBroadcastZoomLevel(double zoom_level)
+{
+  // Try reading the current memory
+  IPCMessage mcurr;
+  
+  // This may fail, but that's ok
+  IPCRead(mcurr);
+
+  // Update the message
+  mcurr.zoom_level = zoom_level;
+  return IPCBroadcast(mcurr);
+}
+
+bool
+SystemInterface
+::IPCBroadcast(const IPCMessage &msg)
 {
   // Write to the shared memory
   if(m_IPCSharedData)
     {
-    vin.copy_out(static_cast<double *>(m_IPCSharedData));
+    // Write version number
+    short *vid = static_cast<short *>(m_IPCSharedData);
+    *vid = IPC_VERSION;
+
+    // Write message
+    IPCMessage *p = reinterpret_cast<IPCMessage *>(vid + 1);
+    *p = msg;
+
+    // Done
     return true;
     }
   return false;
@@ -490,7 +545,7 @@ SystemInterface
 
 void 
 SystemInterface
-::IPCCursorClose()
+::IPCClose()
 {
 #ifdef WIN32
   CloseHandle(m_IPCHandle);

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISImageData.h,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -80,11 +80,6 @@ public:
     {
     GenericImageData::SetRGBImage(newRGBImage, newGeometry);
     m_UndoWrapper.InitializeToWrapper(&m_LabelWrapper, (LabelType) 0);
-    }
-
-  void SetRGBImage(RGBImageType *newRGBImage)
-    {
-    GenericImageData::SetRGBImage(newRGBImage);
     }
 
 

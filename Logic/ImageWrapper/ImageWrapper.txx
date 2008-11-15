@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -53,6 +53,7 @@
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
 
+#include <vnl/vnl_inverse.h>
 #include <iostream>
 
 template <class TPixel> 
@@ -157,28 +158,11 @@ ImageWrapper<TPixel>
   m_Image->Modified();
 
   // Set the NIFTI/RAS transform
-  vnl_matrix<double> m_dir, m_ras_matrix;
-  vnl_diag_matrix<double> m_scale, m_lps_to_ras;
-  vnl_vector<double> v_origin, v_ras_offset;
-
-  // Compute the matrix
-  m_dir = m_Image->GetDirection().GetVnlMatrix();
-  m_scale.set(m_Image->GetSpacing().GetVnlVector());
-  m_lps_to_ras.set(vnl_vector<double>(3, 1.0));
-  m_lps_to_ras[0] = -1;
-  m_lps_to_ras[1] = -1;
-  m_ras_matrix = m_lps_to_ras * m_dir * m_scale;
-
-  // Compute the vector
-  v_origin = m_Image->GetOrigin().GetVnlVector();
-  v_ras_offset = m_lps_to_ras * v_origin;
-
-  // Create the larger matrix
-  vnl_vector<double> vcol(4, 1.0);
-  vcol.update(v_ras_offset);
-  m_NiftiSform.set_identity();
-  m_NiftiSform.update(m_ras_matrix);
-  m_NiftiSform.set_column(3, vcol);
+  m_NiftiSform = ConstructNiftiSform(
+    m_Image->GetDirection().GetVnlMatrix(),
+    m_Image->GetOrigin().GetVnlVector(),
+    m_Image->GetSpacing().GetVnlVector());
+  m_NiftiInvSform = vnl_inverse(m_NiftiSform);
 
   // We have been initialized
   m_Initialized = true;
@@ -484,6 +468,24 @@ ImageWrapper<TPixel>
   return Vector3d(p.data_block());
 }
 
+template<class TPixel>
+Vector3d
+ImageWrapper<TPixel>
+::TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const
+{
+  // Create homogeneous vector
+  vnl_vector_fixed<double, 4> x;
+  for(size_t d = 0; d < 3; d++)
+    x[d] = (double) vNifti[d];
+  x[3] = 1.0;
+
+  // Transform to NIFTI coords
+  vnl_vector_fixed<double, 4> p = m_NiftiInvSform * x;  
+
+  // Return the component
+  return Vector3d(p.data_block());  
+}
+
 template <class TPixel>
 unsigned int 
 ImageWrapper<TPixel>
@@ -536,6 +538,6 @@ ImageWrapper<TPixel>
   // Return the number of replacements
   return nReplaced;
 }
-  
+
 
 #endif // __ImageWrapper_txx_

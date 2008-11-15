@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: FLTKWidgetActivationManager.h,v $
   Language:  C++
-  Date:      $Date: 2008/04/15 21:42:30 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,6 +52,15 @@ template<typename TFlag>
 class WidgetActivationManager {
 public:
 
+  
+  /** Observer, used to callback when a flag changes */
+  class Observer 
+    {
+    public:
+      virtual ~Observer() {};
+      virtual void OnStateChange(TFlag flag, bool value) = 0;
+    };
+
   /** 
    * With default parameters, this call specifies that flag A implies flag B.
    * Using the optional parameters, you can specify A->!B, !A->B or !A->!B.
@@ -91,6 +100,16 @@ public:
     { return m_Flags[flag].State; }
 
   /** 
+   * Add a listener/observer to a flag. When the flag is changed, the observer
+   * is executed with the pointer to the flag that has been changed and its new
+   * value 
+   */
+  void AddObserver(Observer *observer, TFlag flag)
+    {
+    m_Flags[flag].Observers.insert(observer);
+    }
+
+  /** 
    * Update a flag to a new value. Ignore the third parameter, it
    * is used internally to throw an exception if the flag machine
    * enters an infinite loop
@@ -123,7 +142,11 @@ public:
     typename std::set<WidgetWrapper *>::iterator itWidget = fd.Widgets.begin();    
     while( itWidget != fd.Widgets.end() )
       (*itWidget++)->OnStateChange(value);
-        
+
+    // Fire all the observers
+    typename std::set<Observer *>::iterator itObserver = fd.Observers.begin();    
+    while( itObserver != fd.Observers.end() )
+      (*itObserver++)->OnStateChange(flag, value);
     }
 
   /** Destructor, deletes widget wrappers */
@@ -139,9 +162,11 @@ public:
    */
   class WidgetWrapper {
   public:
-      virtual ~WidgetWrapper() {}
+    virtual ~WidgetWrapper() {}
     virtual void OnStateChange(bool newState) = 0;
   };
+
+  
 
 protected:
 
@@ -172,6 +197,9 @@ protected:
     // A list of widget controllers that are affected by the flag's state
     std::set<WidgetWrapper *> Widgets;
 
+    // A list of generic observers for this widget
+    std::set<Observer *> Observers;
+
     // The state of the menu item
     bool State;
 
@@ -189,6 +217,7 @@ protected:
     m_AllWidgets.insert(widget);
     widget->OnStateChange(false);
     }
+
 
 private:
   // A list of flags and associated flag data

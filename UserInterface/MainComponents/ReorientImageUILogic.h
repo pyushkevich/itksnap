@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   ITK-SNAP
-  Module:    $RCSfile: LabelEditorUIBase.h,v $
+  Module:    $RCSfile: ReorientImageUILogic.h,v $
   Language:  C++
   Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Version:   $Revision: 1.1 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -32,29 +32,49 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-#ifndef __LabelEditorUIBase_h_
-#define __LabelEditorUIBase_h_
 
-/**
- * \class LabelEditorUIBase
- * \brief Base class for Label editor UI logic
- */
-class LabelEditorUIBase {
+#ifndef __ReorientImageUILogic_h_
+#define __ReorientImageUILogic_h_
+
+#include "ReorientImageUI.h"
+#include <vnl/vnl_matrix_fixed.h>
+
+class UserInterfaceLogic;
+class GenericImageData;
+
+class ReorientImageUILogic : public ReorientImageUI
+{
 public:
-    virtual ~LabelEditorUIBase() {}
+  // Constructor
+  ReorientImageUILogic();
+  virtual ~ReorientImageUILogic() {}
+  
   // Callbacks
-  virtual void OnNewAction() = 0;
-  virtual void OnDuplicateAction() = 0;
-  virtual void OnDeleteAction() = 0;
-  virtual void OnSetIdAction() = 0;
-  virtual void OnMoveUpAction() = 0;
-  virtual void OnMoveDownAction() = 0;
-  virtual void OnCloseAction() = 0;
-  virtual void OnLabelSelectAction() = 0;
-  virtual void OnLabelPropertyChange() = 0;
-  virtual void OnMergeDialogAction() = 0;
-  virtual void OnMergeAction() = 0;
-  virtual void OnMergeLabelChange() = 0;
+  void OnDesiredRAIUpdate();
+  void OnOkAction();
+  void OnApplyAction();
+  void OnCloseAction();
+
+  void ShowDialog();
+  void Register(UserInterfaceLogic *parent_ui);
+
+private:
+
+  void UpdateDesiredDerivedFields();
+
+  // This code matches the orientation graphic to a RAI
+  void UpdateOrientationGraphic(
+    const char *rai, bool oblique, Fl_Wizard *grpDoll, Fl_Wizard *grpDollAxis[]);
+
+  UserInterfaceLogic *m_ParentUI;
+  GenericImageData *m_ImageData;
+
+  // Direction matrix for the desired RAI code
+  vnl_matrix_fixed<double, 3, 3> m_DesiredDirection;
+
+  static const char m_RAICodes[3][2];
+  static const char *m_AxisLabels[3][2];
 };
+
 
 #endif

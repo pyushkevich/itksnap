@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -211,21 +211,6 @@ void SetupSignalHandlers()
 
 #endif
 
-void usage()
-{
-  cout << "ITK-SNAP Image Segmentation Tool" << endl;
-  cout << "Usage: " << endl;
-  cout << "  itksnap [options] [image]" << endl;
-  cout << "Options: " << endl;
-  cout << "  -g FILE      : Load gray image (for backward compatibility," << endl;
-  cout << "                 can simply pass filename on the command line)" << endl;
-  cout << "  -s FILE      : Load segmentation image" << endl;
-  cout << "  -l FILE      : Load segmentation labels from FILE" << endl;
-  cout << "  --rgb FILE   : Load RGB image (as standalone, or if -g is also" << endl;
-  cout << "                 specified, as an overlay)" << endl;
-  cout << "  --rai CODE   : Set the orientation code of the image to CODE" << endl;
-}
-
 // creates global pointers
 // sets up the GUI and lets things run
 int main(int argc, char **argv) 
@@ -247,9 +232,6 @@ int main(int argc, char **argv)
   parser.AddOption("--segmentation",1);
   parser.AddSynonim("--segmentation","-s");
   parser.AddSynonim("--segmentation","-seg");
-
-  parser.AddOption("--orientation",1);
-  parser.AddSynonim("--orientation","--rai");
 
   parser.AddOption("--labels",1);
   parser.AddSynonim("--labels","--label");
@@ -279,8 +261,6 @@ int main(int argc, char **argv)
     cerr << "   --rgb FILE            : " <<
       "Load RGB image FILE (as overlay if combined with -g)" << endl;
     
-    cerr << "   --orientation, --rai XYZ     : " << 
-      "Use 3 letter orientation code XYZ, def: RAI" << endl;
     return -1;
     }
 
@@ -323,22 +303,6 @@ int main(int argc, char **argv)
   if(parseResult.IsOptionPresent("--rgb"))
     fnRGB = parseResult.GetOptionParameter("--rgb");
 
-  // Check for RAI code
-  const char *raiCode = NULL;
-  if(parseResult.IsOptionPresent("--orientation"))
-    {
-    const char *newRAI = parseResult.GetOptionParameter("--orientation");
-    if(ImageCoordinateGeometry::IsRAICodeValid(newRAI))
-      {
-      raiCode = newRAI;
-      }
-    else
-      {
-      cerr << "Invalid orientation code: '" << newRAI << "'. " << endl;
-      return -1;
-      }
-    }
-
   // Load greyscale image
   if(fnGrey)
     {
@@ -348,7 +312,7 @@ int main(int argc, char **argv)
     // Try loading the image
     try 
       {
-      ui->NonInteractiveLoadGrey(fnGrey, raiCode);
+      ui->NonInteractiveLoadGrey(fnGrey);
       }  
     catch(itk::ExceptionObject &exc)
       {
@@ -369,7 +333,7 @@ int main(int argc, char **argv)
       if(fnGrey)
         ui->NonInteractiveLoadRGBOverlay(fnRGB);
       else
-        ui->NonInteractiveLoadRGBStandalone(fnRGB, raiCode);
+        ui->NonInteractiveLoadRGBStandalone(fnRGB);
       }  
     catch(itk::ExceptionObject &exc)
       {
@@ -457,6 +421,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.10  2008/11/15 12:20:38  pyushkevich
+ *Several new features added for release 1.8, including (1) support for reading floating point and mapping to short range; (2) use of image direction cosines to determine image orientation; (3) new reorient image dialog and changes to the IO wizard; (4) display of NIFTI world coordinates and yoking based on them; (5) multi-session zoom; (6) fixes to the way we keep track of unsaved changes to segmentation, including a new discard dialog; (7) more streamlined code for offline loading; (8) new command-line options, allowing RGB files to be read and opening SNAP by doubleclicking images; (9) versioning for IPC communications; (10) ruler for display windows; (11) bug fixes and other stuff I can't remember
+ *
  *Revision 1.9  2008/11/01 11:32:00  pyushkevich
  *Compatibility with ITK 3.8 support for reading oriented images
  *Command line loading of RGB images

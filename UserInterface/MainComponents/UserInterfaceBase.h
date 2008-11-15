@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -75,6 +75,7 @@ public:
   // Menu item callbacks
   virtual void OnMenuNewSegmentation() = 0;
   virtual void OnMenuLoadGrey() = 0;
+  virtual void OnMenuSaveGrey() = 0;
   virtual void OnMenuSaveGreyROI() = 0;
   virtual void OnMenuLoadRGB() = 0;
   virtual void OnMenuLoadRGBOverlay() = 0;
@@ -96,6 +97,7 @@ public:
   virtual void OnMenuShowDisplayOptions() = 0;
   virtual void OnMenuExportSlice(unsigned int iSlice) = 0;
   virtual void OnMenuImageInfo() = 0;
+  virtual void OnMenuReorientImage() = 0;
   virtual void OnMenuQuit() = 0;
   
   // IRIS: Slice selection actions  
@@ -107,7 +109,8 @@ public:
   virtual void OnResetView2DAction(unsigned int window) = 0;
   virtual void OnResetAllViews2DAction() = 0;
   virtual void OnLinkedZoomChange() = 0;
-  virtual void OnZoomPercentageChange() = 0;
+  virtual void OnZoomLevelChange() = 0;
+  virtual void OnMultisessionZoomChange() = 0;
   
   // IRIS: Color label selection and editing callbacks
   virtual void UpdateColorChips() = 0;
@@ -221,9 +224,9 @@ public:
   virtual void CenterChildWindowInMainWindow(Fl_Window *) = 0;
   virtual void OnPreprocessingPreviewStatusUpdate(bool) = 0;
   virtual void OnSpeedImageUpdate() = 0;
-  virtual void OnCrosshairPositionUpdate() = 0;
+  virtual void OnCrosshairPositionUpdate(bool flagBroadcastUpdate = true) = 0;
   virtual void OnPolygonStateUpdate(unsigned int) = 0;
-  virtual void OnZoomUpdate() = 0;
+  virtual void OnZoomUpdate(bool flagBroadcastUpdate = true) = 0;
   virtual void OnIRISMeshEditingAction() = 0;
 
   // Non-callbacks

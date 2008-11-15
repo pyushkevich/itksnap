@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: RGBImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:21 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -27,7 +27,7 @@ namespace itk {
 };
 
 // Disable 'inheritance by dominance' warining in VC6
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_MSC_VER)
   #pragma warning (disable: 4250)
 #endif
 

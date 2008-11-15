@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPRegistryIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -389,8 +389,8 @@ SNAPRegistryIO
     registry.Folder("IRIS.IntensityCurve"));
 
   // Write file related information
-  registry["Files.Segmentation.FileName"] << gs->GetSegmentationFileName();
-  registry["Files.Preprocessing.FileName"] << gs->GetPreprocessingFileName();
+  registry["Files.Segmentation.FileName"] << gs->GetLastAssociatedSegmentationFileName();
+  registry["Files.Preprocessing.FileName"] << gs->GetLastAssociatedPreprocessingFileName();
   registry["Files.Grey.Orientation"] << app->GetImageToAnatomyRAI();
   registry["Files.Grey.Dimensions"] << 
     to_int(app->GetIRISImageData()->GetVolumeExtents());
@@ -510,9 +510,9 @@ SNAPRegistryIO
     } // If restore labels
 
   // Read other settings
-  gs->SetSegmentationFileName(
+  gs->SetLastAssociatedSegmentationFileName(
     registry["Files.Segmentation.FileName"][""]);  
-  gs->SetPreprocessingFileName(
+  gs->SetLastAssociatedPreprocessingFileName(
     registry["Files.Preprocessing.FileName"][""]);
 
   // Done!

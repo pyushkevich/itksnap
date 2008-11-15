@@ -1,0 +1,219 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0108 
+header_name {.h} 
+code_name {.cxx}
+class ReorientImageUI {open : ReorientImageUIBase
+} {
+  Function {MakeWindow()} {open
+  } {
+    Fl_Window m_WinReorient {
+      label {Change Image Orientation} open selected
+      xywh {712 314 580 429} type Double box PLASTIC_DOWN_BOX resizable
+      code0 {\#include "ReorientImageUIBase.h"} visible
+    } {
+      Fl_Group {} {
+        label Desired open
+        xywh {345 30 225 390} box PLASTIC_DOWN_BOX labeltype EMBOSSED_LABEL align 5
+      } {
+        Fl_Input m_InDesiredRAI {
+          callback {this->OnDesiredRAIUpdate();}
+          xywh {355 40 70 25} labelsize 12 when 1 textsize 12
+        }
+        Fl_Output m_OutDesiredRAIError {
+          xywh {355 65 95 15} box FLAT_BOX color 52 labeltype NO_LABEL labelsize 10 align 0 textfont 1 textsize 10 textcolor 72
+        }
+        Fl_Output {m_OutDesiredAxisDirection[0]} {
+          xywh {355 85 205 25} color 49 labelsize 12 textsize 12
+        }
+        Fl_Output {m_OutDesiredAxisDirection[1]} {
+          xywh {355 115 205 25} color 49 labelsize 12 textsize 12
+        }
+        Fl_Output {m_OutDesiredAxisDirection[2]} {
+          xywh {355 145 205 25} color 49 labelsize 12 textsize 12
+        }
+        Fl_Output m_OutDesiredSForm {
+          label {output:}
+          xywh {355 185 205 55} type Multiline color 49 labeltype NO_LABEL align 20 textfont 4 textsize 9
+        }
+        Fl_Group {} {open
+          xywh {355 255 205 155} box ROUNDED_BOX color 7 align 16
+        } {
+          Fl_Wizard m_GrpDesiredDoll {open
+            xywh {395 270 130 120} box NO_BOX
+          } {
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollRAI.gif} xywh {395 270 130 120} align 16
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollRIA.gif} xywh {395 270 130 120} align 16 hide
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollARI.gif} xywh {395 270 130 120} align 16 hide
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollAIR.gif} xywh {395 270 130 120} align 16 hide
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollIRA.gif} xywh {395 270 130 120} align 16 hide
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollIAR.gif} xywh {395 270 130 120} align 16 hide
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollInvalid.gif} xywh {395 270 130 120} align 16 hide
+            } {}
+          }
+          Fl_Wizard {m_GrpDesiredDollAxis[0]} {open
+            xywh {435 380 75 30} box NO_BOX
+          } {
+            Fl_Group {} {
+              image {../ImageIOWizard/Artwork/x02.png} xywh {435 380 75 30} align 0 hide
+            } {}
+            Fl_Group {} {
+              image {../ImageIOWizard/Artwork/x01.png} xywh {435 380 75 30} align 0
+            } {}
+          }
+          Fl_Wizard {m_GrpDesiredDollAxis[1]} {open
+            xywh {520 285 30 95} box NO_BOX
+          } {
+            Fl_Group {} {
+              image {../ImageIOWizard/Artwork/y02.png} xywh {520 285 20 85} align 0 hide
+            } {}
+            Fl_Group {} {
+              image {../ImageIOWizard/Artwork/y01.png} xywh {520 285 20 85} align 0
+            } {}
+          }
+          Fl_Wizard {m_GrpDesiredDollAxis[2]} {open
+            xywh {380 345 50 65} box NO_BOX
+          } {
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/z01.png} xywh {380 345 40 55} align 0
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/z02.png} xywh {380 345 40 55} align 0 hide
+            } {}
+          }
+        }
+      }
+      Fl_Group {} {
+        label Current open
+        xywh {105 30 225 390} box PLASTIC_DOWN_BOX labeltype EMBOSSED_LABEL align 5
+      } {
+        Fl_Output m_OutCurrentRAI {
+          xywh {115 40 70 25} color 49 labelsize 12 textsize 12
+        }
+        Fl_Output {m_OutCurrentAxisDirection[0]} {
+          xywh {115 85 205 25} color 49 labelsize 12 textsize 12
+        }
+        Fl_Output {m_OutCurrentAxisDirection[1]} {
+          xywh {115 115 205 25} color 49 labelsize 12 textsize 12
+        }
+        Fl_Output {m_OutCurrentAxisDirection[2]} {
+          xywh {115 145 205 25} color 49 labelsize 12 textsize 12
+        }
+        Fl_Group {} {open
+          xywh {115 255 205 155} box ROUNDED_BOX color 7 align 16
+        } {
+          Fl_Wizard m_GrpCurrentDoll {open
+            xywh {155 270 130 120} box NO_BOX
+          } {
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollRAI.gif} xywh {155 270 130 120} align 16
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollRIA.gif} xywh {155 270 130 120} align 16 hide
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollARI.gif} xywh {155 270 130 120} align 16 hide
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollAIR.gif} xywh {155 270 130 120} align 16 hide
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollIRA.gif} xywh {155 270 130 120} align 16 hide
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollIAR.gif} xywh {155 270 130 120} align 16 hide
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/dollInvalid.gif} xywh {155 270 130 120} align 16 hide
+            } {}
+          }
+          Fl_Wizard {m_GrpCurrentDollAxis[0]} {open
+            xywh {195 380 75 30} box NO_BOX
+          } {
+            Fl_Group {} {
+              image {../ImageIOWizard/Artwork/x02.png} xywh {195 380 75 30} align 0 hide
+            } {}
+            Fl_Group {} {
+              image {../ImageIOWizard/Artwork/x01.png} xywh {195 380 75 30} align 0
+            } {}
+          }
+          Fl_Wizard {m_GrpCurrentDollAxis[1]} {open
+            xywh {280 285 30 95} box NO_BOX
+          } {
+            Fl_Group {} {
+              image {../ImageIOWizard/Artwork/y02.png} xywh {280 285 20 85} align 0 hide
+            } {}
+            Fl_Group {} {
+              image {../ImageIOWizard/Artwork/y01.png} xywh {280 285 20 85} align 0
+            } {}
+          }
+          Fl_Wizard {m_GrpCurrentDollAxis[2]} {open
+            xywh {140 345 50 65} box NO_BOX
+          } {
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/z01.png} xywh {140 345 40 55} align 0
+            } {}
+            Fl_Group {} {open
+              image {../ImageIOWizard/Artwork/z02.png} xywh {140 345 40 55} align 0 hide
+            } {}
+          }
+        }
+        Fl_Output m_OutCurrentSForm {
+          label {output:}
+          xywh {115 185 205 55} type Multiline color 49 labeltype NO_LABEL align 20 textfont 4 textsize 9
+        }
+        Fl_Output m_OutCurrentRAIClosest {
+          xywh {115 65 130 15} box FLAT_BOX color 52 labeltype NO_LABEL labelsize 10 align 0 textfont 1 textsize 10 textcolor 60
+        }
+      }
+      Fl_Group {} {
+        label {RAI Code:} open
+        xywh {10 40 85 25} labelsize 12 align 24
+      } {}
+      Fl_Group {} {
+        label {Voxel X Axis:} open
+        xywh {10 85 85 25} labelsize 12 align 24
+      } {}
+      Fl_Group {} {
+        label {Voxel Y Axis:} open
+        xywh {10 115 85 25} labelsize 12 align 24
+      } {}
+      Fl_Group {} {
+        label {Voxel Z Axis:} open
+        xywh {10 145 85 25} labelsize 12 align 24
+      } {}
+      Fl_Group {} {
+        label {Voxel to World
+Matrix (NIFTI):} open
+        xywh {10 185 85 25} labelsize 12 align 24
+      } {}
+      Fl_Button {} {
+        label {&Apply}
+        callback {this->OnApplyAction();}
+        xywh {10 360 80 25} box PLASTIC_UP_BOX shortcut 0x80061 color 180 labelfont 1 labelsize 12
+      }
+      Fl_Button {} {
+        label Close
+        callback {this->OnCloseAction();}
+        xywh {10 390 80 25} box PLASTIC_UP_BOX shortcut 0xff1b color 180 labelsize 12
+      }
+      Fl_Button {} {
+        label {&Ok}
+        callback {this->OnOkAction();}
+        xywh {10 330 80 25} box PLASTIC_UP_BOX shortcut 0x8006f color 180 labelfont 1 labelsize 12
+      }
+    }
+  }
+} 

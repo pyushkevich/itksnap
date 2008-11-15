@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -46,10 +46,25 @@ namespace itk
   class ImageIOBase;
 }
 
+/**
+ * A descriptor of file formats supported in ITK. Describes whether
+ * the format can support different needs in SNAP 
+ */
+struct FileFormatDescriptor 
+{
+  std::string name;
+  std::string pattern;
+  bool can_write;
+  bool can_store_orientation;
+  bool can_store_float;
+  bool can_store_short;
+};
+
+
 class GuidedImageIOBase
 {
 public:
-    virtual ~GuidedImageIOBase() { /*To avoid compiler warning.*/ }
+    
   enum FileFormat {
     FORMAT_MHA=0, FORMAT_GIPL, FORMAT_RAW, FORMAT_ANALYZE,
     FORMAT_DICOM, FORMAT_GE4, FORMAT_GE5, FORMAT_NIFTI, FORMAT_SIEMENS, 
@@ -63,11 +78,18 @@ public:
   /** Default constructor */
   GuidedImageIOBase();
 
+  /** Destructor */  
+  virtual ~GuidedImageIOBase() { }
+  
   /** Parse registry to get file format */
   FileFormat GetFileFormat(Registry &folder, FileFormat dflt = FORMAT_COUNT);
 
   /** Set the file format in a registry */
   void SetFileFormat(Registry &folder, FileFormat format);
+
+  /** Get format descriptor for a format */
+  static const FileFormatDescriptor GetFileFormatDescriptor(FileFormat fmt)
+    { return m_FileFormatDescrictorArray[fmt]; }
 
   /** Parse registry to get pixel type of raw file */
   RawPixelType GetPixelType(Registry &folder, RawPixelType dflt = PIXELTYPE_COUNT);
@@ -88,11 +110,14 @@ protected:
   template<typename TRaw> class RawIOGenerator 
     {
     public:
-      static itk::ImageIOBase *CreateRawImageIO(Registry &folder);
+      static void CreateRawImageIO(Registry &folder, typename itk::ImageIOBase::Pointer &ptr);
     };
   
   // The IO Base Object
   itk::SmartPointer<itk::ImageIOBase> m_IOBase;
+
+  // File format descriptors
+  static const FileFormatDescriptor m_FileFormatDescrictorArray[];
 
 };
 
@@ -122,7 +147,8 @@ public:
    * type, and for special types, such as Raw it can provide the parameters
    * such as header size and image dimensions.
    */
-  ImageType* ReadImage(const char *FileName, Registry &folder);
+  ImageType* ReadImage(
+    const char *FileName, Registry &folder, bool flagCastFromNative);
 
   /** 
    * Get RAI code for an image. If there is nothing in the registry, this will
@@ -139,8 +165,15 @@ private:
   /** Create an ImageIO object using a registry */
   void CreateImageIO(Registry &folder, FileFormat &format);
 
+  /** Templated function that reads a scalar image in its native datatype */
+  template <typename TScalar> void ReadFromNative();
+  template <typename TScalar, typename TNative> void ReadAndCastImage();
+
   // The image resulting from the load operations
   ImagePointer m_Image;
+
+  // Mapping from stored voxel intensities to native (input) intensities
+  double m_NativeScale, m_NativeShift;
 };
 
 #endif

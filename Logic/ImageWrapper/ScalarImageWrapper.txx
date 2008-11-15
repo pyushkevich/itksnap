@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: ScalarImageWrapper.txx,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:21 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -155,9 +155,9 @@ ScalarImageWrapper<TPixel>
     if(progressCommand)
       fltSample->AddObserver(itk::AnyEvent(),progressCommand);
 
-  // Perform resampling
+    // Perform resampling
     fltSample->GetOutput()->SetRequestedRegion(vNewROI);
-  fltSample->Update();  
+    fltSample->Update();  
 
     // Pipe into the chopper
     fltChop->SetInput(fltSample->GetOutput());

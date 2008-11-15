@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -64,6 +64,7 @@ class SliceWindowCoordinator;
 class SimpleFileDialogLogic;
 class ResizeRegionDialogLogic;
 class AppearanceDialogUILogic;
+class ReorientImageUILogic;
 class Window3D;
 
 template <class TFlag> class FLTKWidgetActivationManager;
@@ -545,13 +546,15 @@ public:
   void OnResetView2DAction(unsigned int window);
   void OnResetAllViews2DAction();
   void OnLinkedZoomChange();
-  void OnZoomPercentageChange();
+  void OnZoomLevelChange();
+  void OnMultisessionZoomChange();
 
   // Internal callback used to update the zoom percentage displayed
-  void OnZoomUpdate();
+  void OnZoomUpdate(bool flagBroadcastUpdate = true);
 
-  // Internal callback for when the crosshairs position changes
-  void OnCrosshairPositionUpdate();
+  // Internal callback for when the crosshairs position changes. The flag
+  // specifies if this update should be broadcast to other SNAP instances
+  void OnCrosshairPositionUpdate(bool flagBroadcastUpdate = true);
 
   // Internal method called when slices need to be re-connected to the image,
   // i.e., when a new image is loaded or the image-display geometry changes
@@ -614,9 +617,9 @@ public:
     { return m_InIRISFreehandFittingRate->value(); }
 
   // Load Images Non-Interactively
-  void NonInteractiveLoadRGBStandalone(const char *fname, const char *raiCode);
+  void NonInteractiveLoadRGBStandalone(const char *fname);
   void NonInteractiveLoadRGBOverlay(const char *fname);
-  void NonInteractiveLoadGrey(const char *fname, const char *raiCode);
+  void NonInteractiveLoadGrey(const char *fname);
   void NonInteractiveLoadSegmentation(const char *fname);
   void NonInteractiveLoadLabels(const char *fname);
 
@@ -666,6 +669,7 @@ protected:
 
   // Menu item callbacks
   void OnMenuNewSegmentation();
+  void OnMenuSaveGrey();
   void OnMenuLoadGrey();
   void OnMenuLoadRGB();
   void OnMenuLoadRGBOverlay();
@@ -687,6 +691,7 @@ protected:
   void OnLoadPreprocessedImageAction();
   void OnMenuLoadAdvection();
   void OnMenuImageInfo();
+  void OnMenuReorientImage();
 
 
   // Save a slice
@@ -772,6 +777,12 @@ private:
     UIF_SNAP_MESH_CONTINUOUS_UPDATE
   };
 
+  /** Reason why a user may be prompted to save changes */
+  enum PromptReason {
+    REASON_QUIT,
+    REASON_LOAD_MAIN,
+    REASON_LOAD_SEGMENTATION };
+
   // Widget activation manager - simplifies the headache of keeping widgets
   // activated and deactivated
   FLTKWidgetActivationManager<UIStateFlags> *m_Activation; 
@@ -830,6 +841,9 @@ private:
   /** A dialog for showing display options */
   AppearanceDialogUILogic *m_DlgAppearance;
 
+  /** Image reorientation dialog */
+  ReorientImageUILogic *m_DlgReorientImage;
+
   /** Help window */
   HelpViewerLogic *m_HelpUI;
 
@@ -876,6 +890,9 @@ private:
   // RGB Overlay update callback (uses ITK event system)
   void OnRGBOverlayOptionsUpdate();
 
+  // Callbacks for state flags
+  void OnUnsavedChangesStateChange(UIStateFlags flag, bool value);
+
   /** Initialization subroutine that sets up the activation manager */
   void InitializeActivationFlags();
 
@@ -918,13 +935,14 @@ private:
 
   // Prompt the user if there are unsaved changes. Returns true if it's ok to 
   // proceed without saving
-  bool PromptBeforeLosingChanges();
+  bool PromptBeforeLosingChanges(PromptReason reason);
 
   /* Command used for progress tracking */
   itk::SmartPointer<ProgressCommandType> m_ProgressCommand;
 
   // A function used to run the snake in the background
   friend void fnSnakeIdleFunction(void *userData);
+  friend class UserInterfaceLogicMemberObserver;
 
   // Update the menu of recent files
   void GenerateRecentFilesMenu();
@@ -934,12 +952,20 @@ private:
 
   // A string where the last saved filename is stored
   std::string m_LastSnapshotFileName;
+
+  // State of the UNDO system at the time the segmentation image
+  // was last saved or loaded. This allows us to set the unsaved
+  // changes flag during undo and redo operations
+  std::list<unsigned long> m_UndoStateAtLastIO;
 };
 
 #endif
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.15  2008/11/15 12:20:38  pyushkevich
+ *Several new features added for release 1.8, including (1) support for reading floating point and mapping to short range; (2) use of image direction cosines to determine image orientation; (3) new reorient image dialog and changes to the IO wizard; (4) display of NIFTI world coordinates and yoking based on them; (5) multi-session zoom; (6) fixes to the way we keep track of unsaved changes to segmentation, including a new discard dialog; (7) more streamlined code for offline loading; (8) new command-line options, allowing RGB files to be read and opening SNAP by doubleclicking images; (9) versioning for IPC communications; (10) ruler for display windows; (11) bug fixes and other stuff I can't remember
+ *
  *Revision 1.14  2008/11/01 11:32:00  pyushkevich
  *Compatibility with ITK 3.8 support for reading oriented images
  *Command line loading of RGB images

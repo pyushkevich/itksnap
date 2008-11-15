@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UndoDataManager.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 18:21:47 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -55,6 +55,7 @@ public:
       Delta()
         {
         m_CurrentLength = 0;
+        m_UniqueID = m_UniqueIDCounter++;
         }
       
       void Encode(const TPixel &value)
@@ -91,12 +92,19 @@ public:
       size_t GetRLELength(size_t i)
         { return m_Array[i].first; }
 
+      unsigned long GetUniqueID() const
+        { return m_UniqueID; }
+
     protected:
       typedef std::pair<size_t, TPixel> RLEPair;
       typedef std::vector<RLEPair> RLEArray;
       RLEArray m_Array;
       size_t m_CurrentLength;
       TPixel m_LastValue;
+
+      // Each delta is assigned a unique ID at creation
+      unsigned long m_UniqueID;
+      static unsigned long m_UniqueIDCounter;
     };
 
   UndoDataManager(size_t nMinDeltas, size_t nMaxTotalSize);
@@ -113,9 +121,20 @@ public:
   size_t GetNumberOfDeltas()
     { return m_DeltaList.size(); }
 
+  /** 
+   * A state descriptor. This descriptor is used to compare the
+   * state of the undo queue between two time points. The idea is
+   * to know whether an image has changed from the time it was 
+   * saved or not. The state is basically the recording of all 
+   * deltas from the starting point to the current position
+   */
+  typedef std::list<unsigned long> StateDescriptor;
+  StateDescriptor GetState() const;
+
 private:
   typedef std::list<Delta *> DList;
   typedef typename DList::iterator DIterator;
+  typedef typename DList::const_iterator DConstIterator;
   DList m_DeltaList;
   DIterator m_Position;
   size_t m_TotalSize, m_MinDeltas, m_MaxTotalSize;

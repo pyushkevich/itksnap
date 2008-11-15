@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2008/03/25 19:31:31 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -395,6 +395,18 @@ public:
   /** Get the preprocessing image file name */
   irisGetStringMacro(PreprocessingFileName);
 
+  /** Set the segmentation image file name */
+  irisSetStringMacro(LastAssociatedSegmentationFileName);
+
+  /** Get the segmentation image file name */
+  irisGetStringMacro(LastAssociatedSegmentationFileName);
+
+  /** Set the preprocessing image file name */
+  irisSetStringMacro(LastAssociatedPreprocessingFileName);
+
+  /** Get the preprocessing image file name */
+  irisGetStringMacro(LastAssociatedPreprocessingFileName);
+
   /** Set the preprocessing image file name */
   irisSetStringMacro(LevelSetFileName);
 
@@ -550,9 +562,11 @@ private:
 
   // File name of the current grey file
   std::string m_SegmentationFileName;
+  std::string m_LastAssociatedSegmentationFileName;
 
   // File name of the current preprocessing file
   std::string m_PreprocessingFileName;
+  std::string m_LastAssociatedPreprocessingFileName;
 
   // File name of level set image file
   std::string m_LevelSetFileName;
@@ -574,6 +588,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.9  2008/11/15 12:20:38  pyushkevich
+ *Several new features added for release 1.8, including (1) support for reading floating point and mapping to short range; (2) use of image direction cosines to determine image orientation; (3) new reorient image dialog and changes to the IO wizard; (4) display of NIFTI world coordinates and yoking based on them; (5) multi-session zoom; (6) fixes to the way we keep track of unsaved changes to segmentation, including a new discard dialog; (7) more streamlined code for offline loading; (8) new command-line options, allowing RGB files to be read and opening SNAP by doubleclicking images; (9) versioning for IPC communications; (10) ruler for display windows; (11) bug fixes and other stuff I can't remember
+ *
  *Revision 1.8  2008/03/25 19:31:31  pyushkevich
  *Bug fixes for release 1.6.0
  *

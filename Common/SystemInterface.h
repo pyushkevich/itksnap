@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.h,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:21 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -124,17 +124,29 @@ public:
   */
   void LoadPreviousGreyImageFile(const char *filename, Registry *registry);
 
+  /** Structure passed on to IPC */
+  struct IPCMessage 
+    {
+    // The cursor position in world coordinates
+    Vector3d cursor;
+
+    // The common zoom factor (screen pixels / mm)
+    double zoom_level;        
+    };
+
   /** Interprocess communication: attach to shared memory */
-  void IPCCursorAttach();
+  void IPCAttach();
 
   /** Interprocess communication: read shared memory */
-  bool IPCCursorRead(Vector3d &vout);
+  bool IPCRead(IPCMessage &mout);
 
   /** Interprocess communication: write shared memory */
-  bool IPCCursorWrite(const Vector3d &vin);
+  bool IPCBroadcast(const IPCMessage &mout);
+  bool IPCBroadcastCursor(Vector3d cursor);
+  bool IPCBroadcastZoomLevel(double zoom);
 
   /** Interprocess communication: release shared memory */
-  void IPCCursorClose();
+  void IPCClose();
 
 private:
   std::string m_UserPreferenceFile;
@@ -153,6 +165,11 @@ private:
 #else
   int m_IPCHandle;
 #endif
+
+  // The version of the SNAP-IPC protocol. This way, when versions are different
+  // IPC will not work. This is to account for an off chance of a someone running
+  // two different versions of SNAP
+  static const short IPC_VERSION;
 
   // Generic: shared data for IPC
   void *m_IPCSharedData;

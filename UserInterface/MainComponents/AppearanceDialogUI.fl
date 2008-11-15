@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0107 
+version 1.0108 
 header_name {.h} 
 code_name {.cxx}
 class AppearanceDialogUI {open : AppearanceDialogUIBase
@@ -8,7 +8,7 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
   } {
     Fl_Window m_WinDisplayOptions {
       label {Display Options} open
-      xywh {855 395 420 415} type Double box PLASTIC_DOWN_BOX align 0
+      xywh {410 378 420 415} type Double box PLASTIC_DOWN_BOX align 0
       code0 {\#include "AppearanceDialogUIBase.h"}
       code1 {\#include <FL/Fl_Color_Chooser.H>} non_modal visible
     } {
@@ -238,7 +238,7 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
         } {
           Fl_Choice m_InUIElement {
             label {Select a user interface element to edit:}
-            callback {OnUIElementSelection(o->value())} open
+            callback {OnUIElementSelection(o->value())} open selected
             xywh {25 75 370 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
           } {
             MenuItem {} {
@@ -254,8 +254,12 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
               xywh {10 10 100 20} labelsize 12
             }
             MenuItem {} {
-              label {Paintbrush Outline} selected
+              label {Paintbrush Outline}
               xywh {10 10 100 20} labelsize 12
+            }
+            MenuItem {} {
+              label Rulers
+              xywh {20 20 100 20} labelsize 12
             }
             MenuItem {} {
               label {Window background}

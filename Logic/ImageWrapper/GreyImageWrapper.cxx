@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -63,6 +63,9 @@ GreyImageWrapper
     m_IntensityFilter[i]->SetFunctor(m_IntensityMapCache->GetCachingFunctor());
     m_IntensityFilter[i]->SetInput(m_Slicer[i]->GetOutput());
   }
+
+  // By default, reference range is not used
+  m_FlagUseReferenceIntensityRange = false;
 }
 
 GreyImageWrapper
@@ -71,7 +74,22 @@ GreyImageWrapper
 }
 
 void GreyImageWrapper
-::SetIntensityMapFunction(IntensityMapType *curve) 
+::SetReferenceIntensityRange(GreyType refMin, GreyType refMax)
+{
+  m_FlagUseReferenceIntensityRange = true;
+  m_ReferenceIntensityMin = refMin;
+  m_ReferenceIntensityMax = refMax;  
+}
+
+void GreyImageWrapper
+::ClearReferenceIntensityRange()
+{
+  m_FlagUseReferenceIntensityRange = false;
+}
+
+void GreyImageWrapper
+::SetIntensityMapFunction(
+  IntensityMapType *curve) 
 {
   // Store the curve pointer in the functor
   m_IntensityFunctor.m_IntensityMap = curve;
@@ -81,7 +99,16 @@ void GreyImageWrapper
   GreyType iMax = GetImageMax();
 
   // Set the input range of the functor
-  m_IntensityFunctor.SetInputRange(iMin,iMax);
+  if(m_FlagUseReferenceIntensityRange)
+    {
+    m_IntensityFunctor.SetInputRange(
+      m_ReferenceIntensityMin,
+      m_ReferenceIntensityMax);
+    }
+  else
+    {
+    m_IntensityFunctor.SetInputRange(iMin, iMax);
+    }
     
   // Set the active range of the cache
   m_IntensityMapCache->SetEvaluationRange(iMin,iMax);

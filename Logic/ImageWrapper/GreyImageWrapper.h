@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -69,10 +69,24 @@ public:
   typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
 
   /**
-   * Set the intensity curve to be used for mapping
-   * image intensities for producing slices
+   * Set the intensity curve to be used for mapping image intensities 
+   * from GreyType to DisplayType. The curve is defined on the domain
+   * [0, 1]. By default, the entire intensity range of the image is
+   * mapped to the domain of the curve. However, in some situations 
+   * (e.g., when the image is a subregion of another image with respect
+   * to which the curve was created), the domain of the curve should 
+   * correspond to a different intensity range. That can be specified
+   * using the SetReferenceIntensityRange() function
    */
   void SetIntensityMapFunction(IntensityMapType *curve);   
+
+  /**
+   * Set the reference intensity range - a range of intensity that 
+   * is mapped to the domain of the intensity curve
+   * @see SetIntensityMapFunction
+   */
+  void SetReferenceIntensityRange(GreyType refMin, GreyType refMax);
+  void ClearReferenceIntensityRange();
 
   /**
    * Get the display slice in a given direction.  To change the
@@ -135,6 +149,15 @@ private:
   typedef itk::UnaryFunctorImageFilter<
     GreySliceType,DisplaySliceType,CacheFunctor> IntensityFilterType;
   typedef itk::SmartPointer<IntensityFilterType> IntensityFilterPointer;
+
+  /**
+   * Reference intensity range. This is used for images that are subregions
+   * of larger images. When evaluating the intensity of these images, the 
+   * intensity curve needs to be applied to the intensity range of the larger 
+   * image, not that of the region.
+   */
+  GreyType m_ReferenceIntensityMin, m_ReferenceIntensityMax;
+  bool m_FlagUseReferenceIntensityRange;
 
   /**
    * An instance of the private intensity mapper (this mapper wraps the

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.26 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.27 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -69,6 +69,7 @@
 #include "PreprocessingImageIOWizardLogic.h"
 #include "ResizeRegionDialogLogic.h"
 #include "RestoreSettingsDialogLogic.h"
+#include "ReorientImageUILogic.h"
 #include "SegmentationImageIOWizardLogic.h"
 #include "MeshIOWizardUILogic.h"
 #include "SimpleFileDialogLogic.h"
@@ -141,6 +142,36 @@ private:
   Registry m_Registry;
 };
 
+
+class UserInterfaceLogicMemberObserver : 
+  public FLTKWidgetActivationManager<UserInterfaceLogic::UIStateFlags>::Observer
+{
+public:
+  // Member function type
+  typedef void (UserInterfaceLogic::*TMemberFunctionPointer)(
+    UserInterfaceLogic::UIStateFlags flag, bool value);
+
+  // Constructor
+  UserInterfaceLogicMemberObserver(
+    UserInterfaceLogic *p, TMemberFunctionPointer member)
+    {
+    this->m_Pointer = p;
+    this->m_Member = member;
+    }
+
+  // Callback
+  void OnStateChange(UserInterfaceLogic::UIStateFlags flag, bool state)
+    {
+    if(m_Member && m_Pointer)
+      {
+      ((*m_Pointer).*(m_Member))(flag, state);
+      }
+    }
+private:
+  UserInterfaceLogic *m_Pointer;
+  TMemberFunctionPointer m_Member;
+};
+
 void UserInterfaceLogic
 ::InitializeActivationFlags()
 {
@@ -169,7 +200,7 @@ void UserInterfaceLogic
   m_Activation->SetFlagImplies(UIF_IRIS_MESH_DIRTY, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->SetFlagImplies(UIF_IRIS_MESH_ACTION_PENDING, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->SetFlagImplies(UIF_IRIS_ROI_VALID, UIF_GRAY_LOADED);
-  m_Activation->SetFlagImplies(UIF_LINKED_ZOOM, UIF_BASEIMG_LOADED);
+  // m_Activation->SetFlagImplies(UIF_LINKED_ZOOM, UIF_BASEIMG_LOADED);
   m_Activation->SetFlagImplies(UIF_SNAP_PREPROCESSING_ACTIVE, UIF_SNAP_ACTIVE);
 
   m_Activation->SetFlagImplies(UIF_SNAP_PAGE_PREPROCESSING, UIF_SNAP_ACTIVE);
@@ -194,6 +225,15 @@ void UserInterfaceLogic
     UIF_SNAP_PAGE_SEGMENTATION, 
     UIF_SNAP_PAGE_BUBBLES, 
     UIF_SNAP_PAGE_PREPROCESSING );
+
+  // ---------------------------------------------------------
+  //    Add observers to flags
+  // ---------------------------------------------------------
+  m_Activation->AddObserver(
+    new UserInterfaceLogicMemberObserver(
+      this, &UserInterfaceLogic::OnUnsavedChangesStateChange),
+    UIF_UNSAVED_CHANGES);
+
   
   // ---------------------------------------------------------
   //    Relate flags to widgets
@@ -206,7 +246,9 @@ void UserInterfaceLogic
   m_Activation->AddWidget(m_BtnSNAPMeshUpdate, UIF_SNAP_SNAKE_INITIALIZED);
   m_Activation->AddWidget(m_BtnMeshUpdate, UIF_IRIS_MESH_DIRTY);
   m_Activation->AddWidget(m_BtnStartSnake, UIF_IRIS_ROI_VALID);
-  m_Activation->AddWidget(m_InZoomPercentage, UIF_LINKED_ZOOM);
+  m_Activation->AddWidget(m_InZoomLevel, UIF_LINKED_ZOOM);
+  m_Activation->AddWidget(m_GrpLinkedZoomUnits, UIF_LINKED_ZOOM);
+  m_Activation->AddWidget(m_ChkMultisessionZoom, UIF_LINKED_ZOOM);
   m_Activation->AddWidget(m_BtnAccept3D, UIF_IRIS_MESH_ACTION_PENDING);
 
   m_Activation->AddWidget(m_BtnAcceptSegmentation, UIF_SNAP_SNAKE_INITIALIZED);
@@ -241,6 +283,7 @@ void UserInterfaceLogic
   // Link menu items to flags
   m_Activation->AddMenuItem(m_MenuLoadGrey, UIF_IRIS_ACTIVE);
   m_Activation->AddMenuItem(m_MenuLoadRGB, UIF_IRIS_ACTIVE);
+  m_Activation->AddMenuItem(m_MenuSaveGrey, UIF_IRIS_WITH_GRAY_LOADED); 
   m_Activation->AddMenuItem(m_MenuLoadRGBOverlay, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuNewSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
@@ -259,7 +302,9 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuSaveLevelSet, UIF_SNAP_SNAKE_INITIALIZED);
   m_Activation->AddMenuItem(m_MenuLoadPreprocessed, UIF_SNAP_PAGE_PREPROCESSING);
   m_Activation->AddMenuItem(m_MenuLoadAdvection, UIF_SNAP_PAGE_PREPROCESSING);
-  m_Activation->AddMenuItem(m_MenuImageInfo, UIF_IRIS_WITH_GRAY_LOADED);
+  m_Activation->AddMenuItem(m_MenuImageInfo, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuReorientImage, UIF_IRIS_WITH_BASEIMG_LOADED);
+  
 
   for(i = 0; i < 5; i++)
     m_Activation->AddMenuItem(m_MenuLoadPreviousFirst + i, UIF_IRIS_ACTIVE);
@@ -360,6 +405,11 @@ UserInterfaceLogic
   m_DlgAppearance->MakeWindow();
   m_DlgAppearance->Register(this);
 
+  // Initialize the reorientation dialog
+  m_DlgReorientImage = new ReorientImageUILogic;
+  m_DlgReorientImage->MakeWindow();
+  m_DlgReorientImage->Register(this);
+
   // Create the window managers for SNAP and IRIS. Start in IRIS mode
   for(int i=0; i<3; i++)
     {    
@@ -447,6 +497,7 @@ UserInterfaceLogic
   delete m_DlgRestoreSettings;
   delete m_DlgResampleRegion;
   delete m_DlgAppearance;
+  delete m_DlgReorientImage;
   delete m_LabelEditorUI;
   delete m_RGBOverlayUI;
 
@@ -1419,7 +1470,11 @@ UserInterfaceLogic
   m_GlobalState->SetActiveBubble(-1);
 
   // Activate/deactivate menu items
-  m_Activation->UpdateFlag(UIF_IRIS_ACTIVE, true);
+  // TODO: build a better state machine
+  if(m_Activation->GetFlag(UIF_GRAY_LOADED))
+    m_Activation->UpdateFlag(UIF_IRIS_WITH_GRAY_LOADED, true);
+  else
+    m_Activation->UpdateFlag(UIF_IRIS_WITH_BASEIMG_LOADED, true);
 
   // The segmentation has changed, so the mesh should be updatable
   m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
@@ -1525,6 +1580,13 @@ UserInterfaceLogic
   CenterChildWindowInMainWindow(m_WinImageInfo);
 }
 
+void
+UserInterfaceLogic
+::OnMenuReorientImage()
+{
+  m_DlgReorientImage->ShowDialog();  
+}
+
 void 
 UserInterfaceLogic
 ::OnCloseImageInfoAction()
@@ -1554,7 +1616,7 @@ UserInterfaceLogic
 ::OnMainWindowCloseAction()
 {
   // Make sure the user doesn't lose any data
-  if(!PromptBeforeLosingChanges()) return;
+  if(!PromptBeforeLosingChanges(REASON_QUIT)) return;
 
   // We don't want to just exit when users press escape
   if(Fl::event_key() == FL_Escape) return;
@@ -1587,32 +1649,47 @@ void
 UserInterfaceLogic
 ::GlobalIdleHandler(void *userData)
 {
-  // This only matters if an image is loaded
-  if(m_GlobalUI->m_Activation->GetFlag(UIF_BASEIMG_LOADED)
-    && m_GlobalUI->m_BtnSynchronizeCursor->value())
+  // Need base image for all of this
+  if(m_GlobalUI->m_Activation->GetFlag(UIF_BASEIMG_LOADED))
     {
-    // Check if the cursor has been moved in another SNAP session
-    Vector3d vcursor;
-    if(m_GlobalUI->m_SystemInterface->IPCCursorRead(vcursor))
-      {
-      // Map the cursor position to the image coordinates
-      GenericImageData *id = m_GlobalUI->m_Driver->GetCurrentImageData();
-      Vector3d origin = id->GetImageOrigin();
-      Vector3d spacing = id->GetImageSpacing();
-      Vector3d vox = element_quotient(vcursor - origin, spacing);
 
-      // Check if the voxel position is inside the image region
-      itk::Index<3> pos; Vector3ui vpos; 
-      pos[0] = vpos[0] = (unsigned int) (vox[0] + 0.5);
-      pos[1] = vpos[1] = (unsigned int) (vox[1] + 0.5);
-      pos[2] = vpos[2] = (unsigned int) (vox[2] + 0.5);
-      
-      if(vpos != m_GlobalUI->m_Driver->GetCursorPosition() 
-        && id->GetImageRegion().IsInside(pos))
-        {      
-        m_GlobalUI->m_Driver->SetCursorPosition(vpos);
-        m_GlobalUI->OnCrosshairPositionUpdate();
-        m_GlobalUI->RedrawWindows();
+    // Read the IPC message
+    SystemInterface::IPCMessage ipcm;
+    if(m_GlobalUI->m_SystemInterface->IPCRead(ipcm))
+      {
+      // Update the cursor
+      if(m_GlobalUI->m_BtnSynchronizeCursor->value())
+        {
+        // Map the cursor position to the image coordinates
+        GenericImageData *id = m_GlobalUI->m_Driver->GetCurrentImageData();
+        Vector3d vox = 
+          id->GetGrey()->TransformNIFTICoordinatesToVoxelIndex(ipcm.cursor);
+
+        // Round the cursor to integer value
+        itk::Index<3> pos; Vector3ui vpos; 
+        pos[0] = vpos[0] = (unsigned int) (vox[0] + 0.5);
+        pos[1] = vpos[1] = (unsigned int) (vox[1] + 0.5);
+        pos[2] = vpos[2] = (unsigned int) (vox[2] + 0.5);
+        
+        // Check if the voxel position is inside the image region
+        if(vpos != m_GlobalUI->m_Driver->GetCursorPosition() 
+          && id->GetImageRegion().IsInside(pos))
+          {      
+          m_GlobalUI->m_Driver->SetCursorPosition(vpos);
+          m_GlobalUI->OnCrosshairPositionUpdate(false);
+          m_GlobalUI->RedrawWindows();
+          }
+        }
+
+      // Update the zoom factor (IRIS mode only)
+      if(m_GlobalUI->m_ChkMultisessionZoom->value() 
+        && m_GlobalUI->m_Activation->GetFlag(UIF_IRIS_ACTIVE))
+        {
+        if(ipcm.zoom_level != m_GlobalUI->m_SliceCoordinator->GetCommonZoomLevel())
+          {
+          m_GlobalUI->m_SliceCoordinator->SetZoomLevelAllWindows(ipcm.zoom_level);
+          m_GlobalUI->OnZoomUpdate(false);
+          }
         }
       }
     }
@@ -1811,8 +1888,7 @@ UserInterfaceLogic
   // Apply the special appearance settings that determine startup behavior
   if(m_AppearanceSettings->GetFlagLinkedZoomByDefault())
     {
-    m_ChkLinkedZoom->value(1);
-    m_InZoomPercentage->value(100.0);
+    m_ChkLinkedZoom->value(1);    
     OnLinkedZoomChange();
     }
 
@@ -1926,21 +2002,25 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
-::OnCrosshairPositionUpdate()
+::OnCrosshairPositionUpdate(bool flagBroadcastUpdate)
 {
   this->ResetScrollbars();
   this->UpdateImageProbe();
 
   // When the crosshair position is updated, we send the information 
   // to the inter-process communications system
-  if(m_GlobalUI->m_Activation->GetFlag(UIF_BASEIMG_LOADED)
+  if(flagBroadcastUpdate 
+    && m_GlobalUI->m_Activation->GetFlag(UIF_BASEIMG_LOADED)
     && m_GlobalUI->m_BtnSynchronizeCursor->value())
     {
-    Vector3d cursor = to_double(m_Driver->GetCursorPosition());
-    Vector3d origin = m_Driver->GetCurrentImageData()->GetImageOrigin();
-    Vector3d spacing = m_Driver->GetCurrentImageData()->GetImageSpacing();
-    Vector3d cspace = element_product(spacing, cursor) + origin;
-    m_Driver->GetSystemInterface()->IPCCursorWrite(cspace);
+    // Map the cursor to NIFTI coordinates
+    Vector3d cursor = 
+      m_Driver->GetCurrentImageData()->GetGrey()->
+        TransformVoxelIndexToNIFTICoordinates(
+          m_Driver->GetCursorPosition());
+
+    // Write the NIFTI cursor to shared memory
+    m_Driver->GetSystemInterface()->IPCBroadcastCursor(cursor);
     }
 }
 
@@ -2086,41 +2166,49 @@ void
 UserInterfaceLogic
 ::UpdateMainLabel() 
 {
-  // Will print to this label
-  IRISOStringStream mainLabel;
+  // Get the main image name
+  string fnMain = "";
+  if(m_Activation->GetFlag(UIF_GRAY_LOADED))
+    fnMain = m_GlobalState->GetGreyFileName();
+  else if(m_Activation->GetFlag(UIF_RGBBASE_LOADED))
+    fnMain = m_GlobalState->GetRGBFileName();
 
-  // Print version
-  mainLabel << SNAPSoftVersion << ": ";
-
-  // Get the grey and segmentation file names
-  string fnGrey = m_GlobalState->GetGreyFileName();
-  string fnSeg = m_GlobalState->GetSegmentationFileName();
-
-  // Grey file name
-  if (fnGrey.length()) 
-    {
-    // Strip the path of the file
-    mainLabel << itksys::SystemTools::GetFilenameName(fnGrey.c_str());
-    mainLabel << " - ";
-
-    // Segmentation file name
-    if (fnSeg.length()) 
-      {
-      // Strip the path of the file
-      mainLabel << itksys::SystemTools::GetFilenameName(fnSeg.c_str());
-      }
-    else
-      {
-      mainLabel << "No segmentation loaded";
-      }
-    }
+  // Truncate the main image file    
+  if(fnMain.length())
+    fnMain = itksys::SystemTools::GetFilenameName(fnMain);
   else
+    fnMain = "[No Image]";
+
+  // Get the segmentation file name
+  string fnSeg = m_GlobalState->GetSegmentationFileName();
+  if(fnSeg.length())
+    fnSeg = itksys::SystemTools::GetFilenameName(fnSeg);
+  else
+    fnSeg = "[New Segmentation]";
+
+  // Build up the label
+  std::ostringstream oss;
+
+  // Print the main image
+  oss << fnMain;
+  
+  // TODO: print if the main image is dirty
+
+  // Print the segmentation image
+  if(fnMain != "[No Image]")
     {
-    mainLabel << "No image loaded";
+    oss << " - " << fnSeg;
+
+    // Print the * if image is dirty
+    if(m_Activation->GetFlag(UIF_UNSAVED_CHANGES))
+      oss << "*";
     }
+
+  // Print program name and version
+  oss << " - " << SNAPSoftVersion;
 
   // Store the label
-  m_MainWindowLabel = mainLabel.str();
+  m_MainWindowLabel = oss.str();
 
   // Apply to the window
   m_WinMain->label(m_MainWindowLabel.c_str());
@@ -2590,6 +2678,9 @@ UserInterfaceLogic
 
   // Reset the view in 2D windows to fit
   m_SliceCoordinator->ResetViewToFitInAllWindows();
+
+  // Fire zoom update event
+  this->OnZoomUpdate();
 }
   
 void 
@@ -2891,7 +2982,18 @@ UserInterfaceLogic
   m_OutImageInfoRange[1]->value(wrpGrey->GetImageMax());
 
   // Set the RAI code in the image info dialog
-  this->m_OutImageInfoOriginRAICode->value(m_Driver->GetImageToAnatomyRAI());
+  ImageCoordinateGeometry::DirectionMatrix dmat = 
+    m_Driver->GetCurrentImageData()->GetImageGeometry().GetImageDirectionCosineMatrix();
+  string raicode = 
+    ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(dmat);
+  string raitext;
+  if(ImageCoordinateGeometry::IsDirectionMatrixOblique(dmat))
+    {
+    raitext = string("Oblique (closest to ") + raicode + string(")");
+    }
+  else
+    raitext = raicode;  
+  this->m_OutImageInfoOriginRAICode->value(raitext.c_str());
 
   // Now that we've loaded the image, check if there are any settings 
   // associated with it.  If there are, give the user an option to restore 
@@ -2900,43 +3002,15 @@ UserInterfaceLogic
   if(m_SystemInterface->FindRegistryAssociatedWithFile(
     m_GlobalState->GetGreyFileName(),associated))
     {
-    // Display the restore associated settings dialog
-    m_DlgRestoreSettings->DisplayDialog(this,&associated);
+    // Load the settings using RegistryIO
+    SNAPRegistryIO rio;
+    rio.ReadImageAssociatedSettings(associated,m_Driver,true,true,true,true);
 
-    // Restore the settings if requested
-    if(m_DlgRestoreSettings->GetRestoreSettings())
-      {
-      // Load the settings using RegistryIO
-      SNAPRegistryIO rio;
-      rio.ReadImageAssociatedSettings(associated,m_Driver,
-                                      m_DlgRestoreSettings->GetRestoreLabels(),
-                                      m_DlgRestoreSettings->GetRestorePreprocessing(),
-                                      m_DlgRestoreSettings->GetRestoreParameters(),
-                                      m_DlgRestoreSettings->GetRestoreDisplayOptions());
+    // Update the opacity slider
+    m_InIRISLabelOpacity->value(m_GlobalState->GetSegmentationAlpha());
 
-      // Update the label display if necessary
-      if(m_DlgRestoreSettings->GetRestoreLabels())
-        {
-        // Update the opacity slider
-        m_InIRISLabelOpacity->value(m_GlobalState->GetSegmentationAlpha());
-
-        // Update the polygon inversion state
-        m_ChkInvertPolygon->value(m_GlobalState->GetPolygonInvert() ? 1 : 0);
-        }          
-
-      // Update the mesh options display if necessary
-      // if(m_DlgRestoreSettings->GetRestoreDisplayOptions())
-      //  {
-      //  FillRenderingOptions();
-      //  }
-      }
-    
-    // The associated settings may have been updated in the dialog.
-    if(m_DlgRestoreSettings->GetAssociatedSettingsHaveChanged())
-      {
-      m_SystemInterface->AssociateRegistryWithFile(
-        m_GlobalState->GetGreyFileName(),associated); 
-      }
+    // Update the polygon inversion state
+    m_ChkInvertPolygon->value(m_GlobalState->GetPolygonInvert() ? 1 : 0);
     }
     
   // Redraw the crosshairs in the 3D window  
@@ -2985,10 +3059,6 @@ UserInterfaceLogic
   // The list of labels may have changed
   OnLabelListUpdate();
 
-  // We treat loading/clearing the segmentation as a change to the segmentation,
-  // i.e., something that can be undone.
-  StoreUndoPoint("Loaded/Cleared Segmentation");
-
   // Re-Initialize the 2D windows
   // for (unsigned int i=0; i<3; i++) 
   //   m_IRISWindow2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
@@ -2996,11 +3066,16 @@ UserInterfaceLogic
   m_IRISWindowManager3D->ResetView();
   m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
   
-  // There are now no unsaved changes
+  // There are now no unsaved changes (this will update the main window too)
   m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
 
-  UpdateMainLabel();
-  
+  // Save the state of the Undo manager at the time the image was updated
+  m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState();
+
+  // Disable undo and redo 
+  m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
+  m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
+
   RedrawWindows();
   m_WinMain->redraw();
 }
@@ -3095,6 +3170,9 @@ void
 UserInterfaceLogic
 ::OnLoadRecentAction(unsigned int iRecent)
 {
+  // Make sure the user doesn't lose any data
+  if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
+
   // Get the history of grayscale images. Here we must be careful that every time
   // the history is updated, we also remember to update the recent files menu!!!
   const SystemInterface::HistoryListType &history = 
@@ -3117,7 +3195,7 @@ UserInterfaceLogic
   try
     {
     // Load the file non-interactively
-    this->NonInteractiveLoadGrey(fnRecent.c_str(), NULL);
+    this->NonInteractiveLoadGrey(fnRecent.c_str());
 
     // Restore the cursor
     m_WinMain->cursor(FL_CURSOR_DEFAULT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
@@ -3130,27 +3208,22 @@ UserInterfaceLogic
     // Alert the user to the failure
     fl_alert("Error loading image:\n%s",exc.GetDescription());
     }
-
 }
 
 bool
 UserInterfaceLogic
-::PromptBeforeLosingChanges()
+::PromptBeforeLosingChanges(PromptReason reason)
 {
   // If there are unsaved changes, ask the user if they want to quit
   if(m_Activation->GetFlag(UIF_UNSAVED_CHANGES))
     {
-    if(
-      fl_choice("There are unsaved changes to the segmentation.\n"
-        "Are you sure you want to quit?",
-        "Return to SNAP", "Quit and Discard Changes", NULL))
-      {
-      return true;
-      }
-    else
-      {
-      return false;
-      }
+    // Show the dialog
+    m_WinConfirmDiscard->show();
+    while(m_WinConfirmDiscard->shown())
+      Fl::wait();
+
+    // Check the value
+    return m_ChkHiddenDiscardChanges->value() == 1;
     }
   else
     {
@@ -3160,13 +3233,13 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
-::NonInteractiveLoadGrey(const char *fname, const char *raiCode)
+::NonInteractiveLoadGrey(const char *fname)
 {
   // Perform the clean-up tasks before loading the image
   OnGreyImageUnload();
 
   // Load the image on the logical side
-  m_Driver->LoadGreyImageFile(fname, raiCode);
+  m_Driver->LoadGreyImageFile(fname);
 
   // Update the system's history list
   m_SystemInterface->UpdateHistory("GreyImage", 
@@ -3189,6 +3262,9 @@ void
 UserInterfaceLogic
 ::OnMenuLoadGrey() 
 {
+  // Make sure the user doesn't lose any data
+if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
+
   // Set the history for the input wizard
   m_WizGreyIO->SetHistory(m_SystemInterface->GetHistory("GreyImage"));
   
@@ -3209,8 +3285,7 @@ UserInterfaceLogic
     OnGreyImageUnload();
 
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISGreyImage(m_WizGreyIO->GetLoadedImage(),
-                                  m_WizGreyIO->GetLoadedImageRAI());
+    m_Driver->UpdateIRISGreyImage(m_WizGreyIO->GetLoadedImage());
 
     // Save the filename
     m_GlobalState->SetGreyFileName(m_WizGreyIO->GetFileName());
@@ -3223,10 +3298,10 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
-::NonInteractiveLoadRGBStandalone(const char *fname, const char *raiCode)
+::NonInteractiveLoadRGBStandalone(const char *fname)
 {
   // Perform the loading on the Logic side
-  m_Driver->LoadRGBImageFile(fname, raiCode);
+  m_Driver->LoadRGBImageFile(fname);
 
   // Add the filename to the history
   m_SystemInterface->UpdateHistory("RGBImage",  
@@ -3272,6 +3347,9 @@ void
 UserInterfaceLogic
 ::OnMenuLoadRGB() 
 {
+  // Make sure the user doesn't lose any data
+  if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
+
   // Set the history for the input wizard
   m_WizRGBIO->SetHistory(m_SystemInterface->GetHistory("RGBImage"));
   
@@ -3283,8 +3361,7 @@ UserInterfaceLogic
   if(m_WizRGBIO->IsImageLoaded()) 
     {
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISRGBImage(m_WizRGBIO->GetLoadedImage(),
-                                  m_WizRGBIO->GetLoadedImageRAI());
+    m_Driver->UpdateIRISRGBImage(m_WizRGBIO->GetLoadedImage());
 
     // Update the system's history list
     m_SystemInterface->UpdateHistory("RGBImage",m_WizRGBIO->GetFileName());
@@ -3337,7 +3414,7 @@ UserInterfaceLogic
     m_SystemInterface->UpdateHistory("RGBImage",m_WizRGBOverlayIO->GetFileName());
     
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISRGBImage(m_WizRGBOverlayIO->GetLoadedImage());
+    m_Driver->UpdateIRISRGBImageOverlay(m_WizRGBOverlayIO->GetLoadedImage());
 
     // Save the filename
     m_GlobalState->SetRGBFileName(m_WizRGBOverlayIO->GetFileName());
@@ -3603,6 +3680,9 @@ void UserInterfaceLogic
   // Should not be in SNAP mode
   assert(!m_GlobalState->GetSNAPActive());
 
+  // Prompt to save changes
+  if(!PromptBeforeLosingChanges(REASON_LOAD_SEGMENTATION)) return;
+
   // Get the driver to clear the image
   m_Driver->ClearIRISSegmentationImage();
 
@@ -3621,9 +3701,6 @@ void UserInterfaceLogic
   m_SystemInterface->UpdateHistory("SegmentationImage",  
     itksys::SystemTools::CollapseFullPath(fname).c_str());
 
-  // Save the segmentation file name
-  m_GlobalState->SetSegmentationFileName(fname);
-
   // Update the user interface accordingly
   OnSegmentationImageUpdate();  
 }
@@ -3636,7 +3713,10 @@ void UserInterfaceLogic
 
   // Should not be in SNAP mode
   assert(!m_GlobalState->GetSNAPActive());
-  
+
+  // Prompt to save changes
+  if(!PromptBeforeLosingChanges(REASON_LOAD_SEGMENTATION)) return;
+
   // Set up the input wizard with the grey image
   m_WizSegmentationIO->SetGreyImage(
     m_Driver->GetCurrentImageData()->GetGrey()->GetImage());
@@ -3647,7 +3727,7 @@ void UserInterfaceLogic
   
   // Show the input wizard
   m_WizSegmentationIO->DisplayInputWizard(
-    m_GlobalState->GetSegmentationFileName());
+    m_GlobalState->GetLastAssociatedSegmentationFileName());
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
@@ -3662,6 +3742,7 @@ void UserInterfaceLogic
 
     // Save the segmentation file name
     m_GlobalState->SetSegmentationFileName(m_WizSegmentationIO->GetFileName());
+    m_GlobalState->SetLastAssociatedSegmentationFileName(m_WizSegmentationIO->GetFileName());
 
     // Update the user interface accordingly
     OnSegmentationImageUpdate();
@@ -3669,6 +3750,22 @@ void UserInterfaceLogic
 
   // Disconnect the input wizard from the grey image
   m_WizSegmentationIO->SetGreyImage(NULL);
+}
+
+void UserInterfaceLogic
+::OnMenuSaveGrey()
+{
+  // Set the history for the wizard
+  m_WizGreyIO->SetHistory(m_SystemInterface->GetHistory("GreyImage"));
+
+  // Save the segmentation
+  if(m_WizGreyIO->DisplaySaveWizard(
+    m_Driver->GetIRISImageData()->GetGrey()->GetImage(), NULL))
+    {
+    // Update the history for the wizard
+    m_SystemInterface->UpdateHistory(
+      "GreyImage", m_WizGreyIO->GetSaveFileName());
+    }
 }
 
 void UserInterfaceLogic
@@ -3703,7 +3800,7 @@ void UserInterfaceLogic
   // Save the segmentation
   if(m_WizSegmentationIO->DisplaySaveWizard(
     m_Driver->GetIRISImageData()->GetSegmentation()->GetImage(),
-    m_GlobalState->GetSegmentationFileName()))
+    m_GlobalState->GetLastAssociatedSegmentationFileName()))
     {
     // Update the history for the wizard
     m_SystemInterface->UpdateHistory(
@@ -3712,6 +3809,15 @@ void UserInterfaceLogic
     // Store the new filename
     m_GlobalState->SetSegmentationFileName(
       m_WizSegmentationIO->GetSaveFileName());
+    m_GlobalState->SetLastAssociatedSegmentationFileName(
+      m_WizSegmentationIO->GetSaveFileName());
+
+    // Save the state of the undo manager
+    m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState();
+
+    // The segmentation is no longer dirty
+    m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
+
     }
 }
 
@@ -3819,7 +3925,7 @@ UserInterfaceLogic
 
   // Show the input wizard
   m_WizPreprocessingIO->DisplayInputWizard(
-    m_GlobalState->GetPreprocessingFileName());
+    m_GlobalState->GetLastAssociatedPreprocessingFileName());
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
@@ -3836,6 +3942,7 @@ UserInterfaceLogic
     
     // Save the segmentation file name
     m_GlobalState->SetPreprocessingFileName(m_WizPreprocessingIO->GetFileName());
+    m_GlobalState->SetLastAssociatedPreprocessingFileName(m_WizPreprocessingIO->GetFileName());
 
     // Update the UI flag
     m_Activation->UpdateFlag(UIF_SNAP_PREPROCESSING_DONE, true);
@@ -3862,7 +3969,7 @@ UserInterfaceLogic
   // Save the speed
   if(m_WizPreprocessingIO->DisplaySaveWizard(
     m_Driver->GetSNAPImageData()->GetSpeed()->GetImage(),
-    m_GlobalState->GetPreprocessingFileName()))
+    m_GlobalState->GetLastAssociatedPreprocessingFileName()))
     {
     // Update the history for the wizard
     m_SystemInterface->UpdateHistory(
@@ -3870,6 +3977,8 @@ UserInterfaceLogic
     
     // Store the new filename
     m_GlobalState->SetPreprocessingFileName(
+      m_WizPreprocessingIO->GetSaveFileName());
+    m_GlobalState->SetLastAssociatedPreprocessingFileName(
       m_WizPreprocessingIO->GetSaveFileName());
     }
 }
@@ -4066,6 +4175,7 @@ UserInterfaceLogic
     }
   else
     {
+    m_ChkMultisessionZoom->value(0);
     m_SliceCoordinator->SetLinkedZoom(false);
     m_Activation->UpdateFlag(UIF_LINKED_ZOOM, false);
     }
@@ -4076,27 +4186,45 @@ UserInterfaceLogic
 
 void
 UserInterfaceLogic
-::OnZoomPercentageChange()
+::OnMultisessionZoomChange()
 {
-  float zoom = m_InZoomPercentage->value();
-  m_SliceCoordinator->SetZoomFactorAllWindows(zoom / 100.0f);  
+  // Make sure we broadcast the current zoom level
+  this->OnZoomUpdate();
+}
+
+void
+UserInterfaceLogic
+::OnZoomLevelChange()
+{
+  float zoom = m_InZoomLevel->value();
+  m_SliceCoordinator->SetZoomLevelAllWindows(zoom);
+  OnZoomUpdate();
 }
 
 void 
 UserInterfaceLogic
-::OnZoomUpdate()
+::OnZoomUpdate(bool flagBroadcast)
 {
   // This method should be called whenever the zoom changes
   if(m_SliceCoordinator->GetLinkedZoom())
     {
     // Get the zoom from the first window and display it on the screen
-    m_InZoomPercentage->value(m_SliceCoordinator->GetCommonZoom() * 100);
+    m_InZoomLevel->value(m_SliceCoordinator->GetCommonZoomLevel());
+
+    // Broadcast the zoom level to other sessions
+    if(flagBroadcast 
+      && m_ChkMultisessionZoom->value()
+      && m_Activation->GetFlag(UIF_IRIS_ACTIVE))
+      {
+      m_SystemInterface->IPCBroadcastZoomLevel(
+        m_SliceCoordinator->GetCommonZoomLevel());
+      }
     }
 
   else
     {
     // Otherwise, clear the display
-    m_InZoomPercentage->value(0);
+    m_InZoomLevel->value(0);
     }
 }
 
@@ -4159,6 +4287,11 @@ UserInterfaceLogic
   m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
   m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
   m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
+
+  // Update the saved changes flag (now true, unless equal to saved image)
+  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, 
+    m_UndoStateAtLastIO != m_Driver->GetUndoManager().GetState());
+
   RedrawWindows();
 }
 
@@ -4172,6 +4305,11 @@ UserInterfaceLogic
   m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
   m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
   m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
+
+  // Update the saved changes flag (now true, unless equal to saved image)
+  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, 
+    m_UndoStateAtLastIO != m_Driver->GetUndoManager().GetState());
+
   RedrawWindows();
 }
 
@@ -4186,12 +4324,23 @@ UserInterfaceLogic
   m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
   m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
 
-  // Update the saved changes flag (now true)
-  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, true);
+  // Update the saved changes flag (now true, unless equal to saved image)
+  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, 
+    m_UndoStateAtLastIO != m_Driver->GetUndoManager().GetState());
+}
+
+void 
+UserInterfaceLogic
+::OnUnsavedChangesStateChange(UIStateFlags flag, bool value)
+{
+  this->UpdateMainLabel();
 }
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.27  2008/11/15 12:20:38  pyushkevich
+ *Several new features added for release 1.8, including (1) support for reading floating point and mapping to short range; (2) use of image direction cosines to determine image orientation; (3) new reorient image dialog and changes to the IO wizard; (4) display of NIFTI world coordinates and yoking based on them; (5) multi-session zoom; (6) fixes to the way we keep track of unsaved changes to segmentation, including a new discard dialog; (7) more streamlined code for offline loading; (8) new command-line options, allowing RGB files to be read and opening SNAP by doubleclicking images; (9) versioning for IPC communications; (10) ruler for display windows; (11) bug fixes and other stuff I can't remember
+ *
  *Revision 1.26  2008/11/01 11:32:00  pyushkevich
  *Compatibility with ITK 3.8 support for reading oriented images
  *Command line loading of RGB images

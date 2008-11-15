@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/11 18:21:14 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -56,6 +56,7 @@ IntensityCurveUILogic
 {
   // Give the image to the histogram
   m_ImageWrapper = wrapper;
+  m_BoxCurve->SetHistogramBinSize(1);
   m_BoxCurve->ComputeHistogram(wrapper, 4);
 
   // Pull out the current histogram settings
@@ -80,17 +81,17 @@ IntensityCurveUILogic
 
   // Get 'absolute' image intensity range, i.e., the largest and smallest
   // intensity in the whole image
-  GreyType iAbsMin = m_ImageWrapper->GetImageMin();
-  GreyType iAbsMax = m_ImageWrapper->GetImageMax();
-  GreyType iAbsSpan = (iAbsMax - iAbsMin);
+  double iAbsMin = m_ImageWrapper->GetImageMin();
+  double iAbsMax = m_ImageWrapper->GetImageMax();
+  double iAbsSpan = (iAbsMax - iAbsMin);
 
   // The the curve intensity range
-  GreyType iMin = iAbsMin + static_cast<GreyType>(iAbsSpan * t0); 
-  GreyType iMax = iAbsMin + static_cast<GreyType>(iAbsSpan * t1);
+  double iMin = iAbsMin + iAbsSpan * t0; 
+  double iMax = iAbsMin + iAbsSpan * t1;
 
   // Compute the level and window in intensity units
-  GreyType level = iMin;
-  GreyType window = iMax - iMin;
+  double level = iMin;
+  double window = iMax - iMin;
 
   // Compute and constrain the level 
   m_InLevel->value(level);
@@ -236,7 +237,7 @@ IntensityCurveUILogic
     { ilow = imin; ihigh = imax; }
 
   // Compute and constrain the window
-  GreyType iwin = ihigh - ilow;
+  double iwin = ihigh - ilow;
 
   m_InWindow->maximum(imax - ilow);
   m_InWindow->value(iwin);

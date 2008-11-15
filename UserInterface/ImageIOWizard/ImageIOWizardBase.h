@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardBase.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -54,11 +54,6 @@ public:
   virtual void OnHeaderPageInputChange() = 0;
   virtual void OnDICOMPageNext() = 0;
   virtual void OnDICOMPageBack() = 0;
-  virtual void OnOrientationPageNext() = 0;
-  virtual void OnOrientationPageBack() = 0;
-  virtual void OnOrientationPageSelectPreset() = 0;
-  virtual void OnOrientationPageSelect() = 0;
-  virtual void OnOrientationPageRAIChange() = 0;
   virtual void OnSummaryPageFinish() = 0;
   virtual void OnSummaryPageBack() = 0;
 

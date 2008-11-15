@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PreprocessingImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -54,11 +54,11 @@ public:
    * point images. This method returns the allowed types */
   virtual bool CanLoadFileFormat(FileFormat type) const
   {
-    return Superclass::CanLoadFileFormat(type) && (
-      type == GuidedImageIOBase::FORMAT_MHA || 
-      type == GuidedImageIOBase::FORMAT_ANALYZE || 
-      type == GuidedImageIOBase::FORMAT_NRRD || 
-      type == GuidedImageIOBase::FORMAT_RAW);
+    if(!Superclass::CanLoadFileFormat(type))
+      return false;
+    FileFormatDescriptor fd = 
+      GuidedImageIOBase::GetFileFormatDescriptor(type);   
+    return fd.can_store_float;
   }
 
   /** Not all file types support saving and loading floating 
@@ -67,6 +67,10 @@ public:
   {
     return Superclass::CanSaveFileFormat(type) && CanLoadFileFormat(type);
   }
+
+  bool IsNativeFormatSupported() const
+    { return false; };    
+
 
 };
 

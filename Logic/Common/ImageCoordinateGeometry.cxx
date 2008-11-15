@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageCoordinateGeometry.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:12 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,24 +41,27 @@ ImageCoordinateGeometry
 }
 
 ImageCoordinateGeometry
-::ImageCoordinateGeometry(std::string imageAnatomyRAICode,
+::ImageCoordinateGeometry(DirectionMatrix imageDirection,
                           std::string displayAnatomyRAICode[3],
                           const Vector3ui &imageSize)
 {
-  SetGeometry(imageAnatomyRAICode,displayAnatomyRAICode,imageSize);
+  SetGeometry(imageDirection,displayAnatomyRAICode,imageSize);
 }
 
 
 void
 ImageCoordinateGeometry
-::SetGeometry(std::string imageAnatomyRAICode,
+::SetGeometry(DirectionMatrix imageDirection,
               std::string displayAnatomyRAICode[3],
               const Vector3ui &imageSize)
 {
-  // Make sure the RAI codes are valid
-  assert(IsRAICodeValid(imageAnatomyRAICode.c_str()));
-  
-    
+  // Store the image direction matrix
+  m_ImageDirectionCosineMatrix = imageDirection; 
+
+  // Remap the direction matrix to an RAI code
+  std::string imageAnatomyRAICode = 
+    ConvertDirectionMatrixToClosestRAICode(m_ImageDirectionCosineMatrix);  
+
   // We can easily compute the image to anatomy transform
   m_ImageToAnatomyTransform.SetTransform(
     ConvertRAIToCoordinateMapping(imageAnatomyRAICode.c_str()),imageSize);
@@ -86,7 +89,6 @@ ImageCoordinateGeometry
       m_ImageToDisplayTransform[slice].Inverse();
     }
 }
-
 
 bool 
 ImageCoordinateGeometry
@@ -156,6 +158,53 @@ ImageCoordinateGeometry
 
   return result;
 }
+
+
+std::string 
+ImageCoordinateGeometry
+::ConvertDirectionMatrixToClosestRAICode(DirectionMatrix mat)
+{
+  // RAI codes for cardinal directions
+  const static std::string rai_start("RAI"), rai_end("LPS");
+  std::string rai_out("...");
+
+  for(size_t i = 0; i < 3; i++)
+    {
+    // Get the direction of the i-th voxel coordinate
+    vnl_vector<double> dir_i = mat.get_row(i);
+
+    // Get the maximum angle with any axis
+    double maxabs_i = dir_i.inf_norm();
+    for(size_t off = 0; off < 3; off++)
+      {
+      // This trick allows us to visit (i,i) first, so that if one of the
+      // direction cosines makes the same angle with two of the axes, we 
+      // can still assign a valid RAI code
+      size_t j = (i + off) % 3;
+
+      // Is j the best-matching direction?
+      if(fabs(dir_i[j]) == maxabs_i)
+        {
+        rai_out[i] = dir_i[j] > 0 ? rai_start[j] : rai_end[j];
+        break;
+        }
+      }
+    }
+      
+  return rai_out;  
+}
+
+bool
+ImageCoordinateGeometry
+::IsDirectionMatrixOblique(DirectionMatrix mat)
+{
+  for(size_t i = 0; i < 3; i++)
+    for(size_t j = 0; j < 3; j++)
+      if(fabs(mat[i][j]) > 0 && fabs(mat[i][j]) < 1)
+        return true;
+  return false;
+}
+
 
 Vector3i
 ImageCoordinateGeometry

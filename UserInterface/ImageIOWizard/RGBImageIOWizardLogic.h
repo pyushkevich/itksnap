@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: RGBImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/06/06 22:27:22 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -24,10 +24,18 @@
  * RGB images
  */
 class RGBImageIOWizardLogic : 
-  public ImageIOWizardLogic<RGBType> {};
+  public ImageIOWizardLogic<RGBType> 
+{
+  bool IsNativeFormatSupported() const
+    { return false; };    
+};
 
 class RestrictedRGBImageIOWizardLogic : 
-  public RestrictedImageIOWizardLogic<RGBType> {};
+  public RestrictedImageIOWizardLogic<RGBType> 
+{
+  bool IsNativeFormatSupported() const
+    { return false; };      
+};
 
 #endif
 

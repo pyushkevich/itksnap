@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -56,26 +56,38 @@
 #include "itkImageSeriesReader.h"
 #include "itkGDCMSeriesFileNames.h"
 
+#include "itkMinimumMaximumImageCalculator.h"
+#include "itkShiftScaleImageFilter.h"
+#include "itkNumericTraits.h"
+
 
 using namespace itk;
 using namespace std;
 
+const FileFormatDescriptor 
+GuidedImageIOBase
+::m_FileFormatDescrictorArray[] = {
+  {"MetaImage", "mha,mhd",           true,  true,  true,  true},
+  {"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
+  {"Raw Binary", "raw",              false, false, true,  true},
+  {"Analyze", "hdr,img,img.gz",      true,  false, true,  true},
+  {"DICOM", "dcm",                   false, true,  true,  true},
+  {"GE Version 4", "ge4",            false, false, true,  true},
+  {"GE Version 5", "ge5",            false, false, true,  true},
+  {"NIFTI", "nii,nia,nii.gz,nia.gz", true,  true,  true,  true},
+  {"Siemens Vision", "ima",          false, false, true,  true},
+  {"VTK", "vtk",                     true,  false, true,  true},
+  {"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
+  {"NRRD", "nrrd,nhdr",              true,  true,  true,  true},
+  {"INVALID FORMAT", "",             false, false, false, false}};
+
 GuidedImageIOBase
 ::GuidedImageIOBase()
 {
-  m_EnumFileFormat.AddPair(FORMAT_MHA, "MetaImage");
-  m_EnumFileFormat.AddPair(FORMAT_NRRD, "NRRD");
-  m_EnumFileFormat.AddPair(FORMAT_GIPL, "GIPL");
-  m_EnumFileFormat.AddPair(FORMAT_RAW, "Raw Binary");
-  m_EnumFileFormat.AddPair(FORMAT_ANALYZE, "Analyze"); 
-  m_EnumFileFormat.AddPair(FORMAT_DICOM, "DICOM");
-  m_EnumFileFormat.AddPair(FORMAT_GE4, "GE Version 4");
-  m_EnumFileFormat.AddPair(FORMAT_GE5, "GE Version 5");
-  m_EnumFileFormat.AddPair(FORMAT_NIFTI, "NIFTI");
-  m_EnumFileFormat.AddPair(FORMAT_SIEMENS, "Siemens Vision");
-  m_EnumFileFormat.AddPair(FORMAT_VTK, "VTK");
-  m_EnumFileFormat.AddPair(FORMAT_VOXBO_CUB, "VoxBo CUB");
-  m_EnumFileFormat.AddPair(FORMAT_COUNT, "INVALID FORMAT");
+  for(int i = 0; i < FORMAT_COUNT; i++)
+    m_EnumFileFormat.AddPair(
+      (FileFormat)(FORMAT_MHA + i), 
+      m_FileFormatDescrictorArray[i].name.c_str());
 
   m_EnumRawPixelType.AddPair(PIXELTYPE_CHAR, "CHAR");
   m_EnumRawPixelType.AddPair(PIXELTYPE_UCHAR, "UCHAR");
@@ -116,9 +128,9 @@ void GuidedImageIOBase
 
 
 template<typename TRaw> 
-ImageIOBase *
+void
 GuidedImageIOBase::RawIOGenerator<TRaw>
-::CreateRawImageIO(Registry &folder)
+::CreateRawImageIO(Registry &folder, typename ImageIOBase::Pointer &ptr)
 {
   // Create the Raw IO
   typedef RawImageIO<TRaw,3> IOType;  
@@ -150,7 +162,7 @@ GuidedImageIOBase::RawIOGenerator<TRaw>
   rawIO->SetFileTypeToBinary();
 
   // Return the pointer
-  return rawIO.GetPointer();
+  ptr = rawIO;
 }
 
 template<typename TPixel>
@@ -195,32 +207,180 @@ GuidedImageIO<TPixel>
 
     // Use header page values to initialize the RAW io
     if(type == PIXELTYPE_UCHAR) 
-      m_IOBase = GuidedImageIOBase::RawIOGenerator<unsigned char>::CreateRawImageIO(fldRaw);
+      GuidedImageIOBase::RawIOGenerator<unsigned char>::CreateRawImageIO(fldRaw, m_IOBase);
     else if(type == PIXELTYPE_CHAR) 
-      m_IOBase = GuidedImageIOBase::RawIOGenerator<char>::CreateRawImageIO(fldRaw);
+      GuidedImageIOBase::RawIOGenerator<char>::CreateRawImageIO(fldRaw, m_IOBase);
     else if(type == PIXELTYPE_USHORT) 
-      m_IOBase = GuidedImageIOBase::RawIOGenerator<unsigned short>::CreateRawImageIO(fldRaw);
+      GuidedImageIOBase::RawIOGenerator<unsigned short>::CreateRawImageIO(fldRaw, m_IOBase);
     else if(type == PIXELTYPE_SHORT) 
-      m_IOBase = GuidedImageIOBase::RawIOGenerator<short>::CreateRawImageIO(fldRaw);
+      GuidedImageIOBase::RawIOGenerator<short>::CreateRawImageIO(fldRaw, m_IOBase);
     else if(type == PIXELTYPE_UINT) 
-      m_IOBase = GuidedImageIOBase::RawIOGenerator<unsigned int>::CreateRawImageIO(fldRaw);
+      GuidedImageIOBase::RawIOGenerator<unsigned int>::CreateRawImageIO(fldRaw, m_IOBase);
     else if(type == PIXELTYPE_INT) 
-      m_IOBase = GuidedImageIOBase::RawIOGenerator<int>::CreateRawImageIO(fldRaw);
+      GuidedImageIOBase::RawIOGenerator<int>::CreateRawImageIO(fldRaw, m_IOBase);
     else if(type == PIXELTYPE_FLOAT) 
-      m_IOBase = GuidedImageIOBase::RawIOGenerator<float>::CreateRawImageIO(fldRaw);
+      GuidedImageIOBase::RawIOGenerator<float>::CreateRawImageIO(fldRaw, m_IOBase);
     else if(type == PIXELTYPE_DOUBLE) 
-      m_IOBase = GuidedImageIOBase::RawIOGenerator<double>::CreateRawImageIO(fldRaw);
+      GuidedImageIOBase::RawIOGenerator<double>::CreateRawImageIO(fldRaw, m_IOBase);
     else
-      throw itk::ExceptionObject("Unknown Pixel Type when reading Raw File");
+      throw ExceptionObject("Unknown Pixel Type when reading Raw File");
     }
   else
     m_IOBase = NULL;
 }
 
 template<typename TPixel>
+template<typename TScalar, typename TNative>
+void 
+GuidedImageIO<TPixel>::ReadAndCastImage()
+{
+  typedef Image<TNative, 3> InputImageType;
+  typedef Image<TScalar, 3> OutputImageType;
+  typedef ImageFileReader<InputImageType> ReaderType;
+
+  // Create reader
+  typename ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName(m_IOBase->GetFileName());
+  reader->SetImageIO(m_IOBase);
+
+  // Read image in its native format
+  reader->Update();
+  typename InputImageType::Pointer input = reader->GetOutput();
+
+  // If the types are identical, we are done
+  if(typeid(TScalar) == typeid(TNative))
+    {
+    m_Image = dynamic_cast<ImageType *>(input.GetPointer());
+    return;
+    }
+
+  // We must compute a scale and shift factor
+  double scale = 1.0, shift = 0.0;
+
+  // Compute the minimum and maximum of the input image
+  typedef MinimumMaximumImageCalculator<InputImageType> CalcType;
+  typename CalcType::Pointer calc = CalcType::New();
+  calc->SetImage(input);
+  calc->Compute();  
+  TNative imin = calc->GetMinimum();
+  TNative imax = calc->GetMaximum();
+  TScalar omax = NumericTraits<TScalar>::max();
+  TScalar omin = NumericTraits<TScalar>::min();
+
+  // Now we have to be careful, depending on the type of the input voxel
+  // For float and double, we map the input range into the output range
+  if(!NumericTraits<TNative>::is_integer)
+    {
+    // Test whether the input image is actually an integer image cast to 
+    // floating point. In that case, there is no need for conversion
+    bool isint = false;
+    if(1.0 * omin <= imin && 1.0 * omax >= imax)
+      {
+      isint = true;
+      typedef itk::ImageRegionConstIterator<InputImageType> IteratorType;
+      for(IteratorType it(input, input->GetBufferedRegion()); 
+        !it.IsAtEnd(); ++it)
+        {
+        TNative vin = it.Get();
+        TNative vcmp = static_cast<TNative>(static_cast<TScalar>(vin + 0.5));
+        if(vin != vcmp)
+          { isint = false; break; }
+        }
+      }
+
+    // If underlying data is really integer, no scale or shift is necessary
+    // except that to round (so floating values like 0.9999999 get mapped to 
+    // 1 not to 0
+    if(isint)
+      {
+      scale = 1.0; shift = 0.5;
+      }
+
+    // If the min and max are the same, we map that value to zero
+    else if(imin == imax)
+      {
+      scale = 1.0; shift = -imax;
+      }
+    else
+      {  
+      // Compute the scaling factor to map image into output range
+      scale = (1.0 * omax - 1.0 * omin) / (imax - imin);
+      shift = omin / scale - imin;
+      }
+    }
+
+  // For integer types we only need to take action if the range is outside
+  // of the supported range. We cast to double to make sure the comparison 
+  // is valid
+  else if(1.0 * imin < 1.0 * omin || 1.0 * imax > omax)
+    {
+    // Can we solve the problem by a shift only?
+    if(1.0 * imax - 1.0 * imin <= 1.0 * omax - 1.0 * omin)
+      {
+      scale = 1.0;
+      shift = 1.0 * omin - 1.0 * imin;
+      }
+    }
+
+  // Execute the scale/shift filter
+  typedef ShiftScaleImageFilter<InputImageType, OutputImageType> MapType;
+  typename MapType::Pointer mapper = MapType::New();
+  mapper->SetInput(input);
+  mapper->SetScale(scale);
+  mapper->SetShift(shift);
+  mapper->Update();
+  typename OutputImageType::Pointer output = mapper->GetOutput();
+
+  // Cast the output of the filter to the GuidedImageIO's pixel type 
+  // (we have to do it like this to avoid templating problems)
+  m_Image = dynamic_cast<ImageType *>(output.GetPointer());
+  // Store the shift and the scale needed to take the TScalar values 
+  // to the TNative values
+  m_NativeScale = 1.0 / scale;
+  m_NativeShift = - shift;
+}
+
+
+template<typename TPixel>
+template<typename TScalar>
+void
+GuidedImageIO<TPixel>
+::ReadFromNative()
+{
+  // These two types are meant to be the same
+  assert(typeid(TScalar) == typeid(TPixel));
+
+  // Read image in its native format and cast to the current format
+  ImageIOBase::IOComponentType itype = m_IOBase->GetComponentType();
+  switch(itype) 
+    {
+    case ImageIOBase::UCHAR:  ReadAndCastImage<TScalar,  unsigned char>(); break;
+    case ImageIOBase::CHAR:   ReadAndCastImage<TScalar,    signed char>(); break;
+    case ImageIOBase::USHORT: ReadAndCastImage<TScalar, unsigned short>(); break;
+    case ImageIOBase::SHORT:  ReadAndCastImage<TScalar,   signed short>(); break;
+    case ImageIOBase::UINT:   ReadAndCastImage<TScalar,   unsigned int>(); break;
+    case ImageIOBase::INT:    ReadAndCastImage<TScalar,     signed int>(); break;
+    case ImageIOBase::ULONG:  ReadAndCastImage<TScalar,  unsigned long>(); break;
+    case ImageIOBase::LONG:   ReadAndCastImage<TScalar,    signed long>(); break;
+    case ImageIOBase::FLOAT:  ReadAndCastImage<TScalar,          float>(); break;
+    case ImageIOBase::DOUBLE: ReadAndCastImage<TScalar,         double>(); break;
+    default: 
+      throw ExceptionObject("Unknown Pixel Type when reading image");
+    }
+
+}
+
+
+
+
+
+                 
+
+
+template<typename TPixel>
 typename GuidedImageIO<TPixel>::ImageType*
 GuidedImageIO<TPixel>
-::ReadImage(const char *FileName, Registry &folder)
+::ReadImage(const char *FileName, Registry &folder, bool flagCastFromNative)
 {
   // Create the header corresponding to the current image type
   FileFormat format;
@@ -272,18 +432,36 @@ GuidedImageIO<TPixel>
     } 
   else
     {
-    // Just read a single image
-    typedef ImageFileReader<ImageType> ReaderType;
-    typename ReaderType::Pointer reader = ReaderType::New();
-  
-    // Configure the reader
-    reader->SetFileName(FileName);
-    if(m_IOBase)
-      reader->SetImageIO(m_IOBase);
-  
-    // Update the reader
-    reader->Update();
-    m_Image = reader->GetOutput();   
+
+    // If we are asked to read in native format
+    if(flagCastFromNative && m_IOBase)
+      {
+      // Read the image information to determine native type
+      m_IOBase->SetFileName(FileName);
+      m_IOBase->ReadImageInformation(); 
+
+      // Select the right templated function
+      if     (typeid(TPixel) == typeid( unsigned char)) this->ReadFromNative< unsigned char>();
+      else if(typeid(TPixel) == typeid(   signed char)) this->ReadFromNative<   signed char>();
+      else if(typeid(TPixel) == typeid(unsigned short)) this->ReadFromNative<unsigned short>();
+      else if(typeid(TPixel) == typeid(  signed short)) this->ReadFromNative<  signed short>();
+      else if(typeid(TPixel) == typeid(  unsigned int)) this->ReadFromNative<  unsigned int>();
+      else if(typeid(TPixel) == typeid(    signed int)) this->ReadFromNative<    signed int>();
+      else if(typeid(TPixel) == typeid( unsigned long)) this->ReadFromNative< unsigned long>();
+      else if(typeid(TPixel) == typeid(   signed long)) this->ReadFromNative<   signed long>();
+      else assert(0);
+      }
+
+    else
+      {
+      typedef ImageFileReader<ImageType> ReaderType;
+      typename ReaderType::Pointer reader = ReaderType::New();
+      reader->SetFileName(FileName);
+      if(m_IOBase)
+        reader->SetImageIO(m_IOBase);
+      reader->Update();
+      m_Image = reader->GetOutput();
+      }
     }
 
   // Disconnect the image from the readers, allowing them to be deleted
@@ -303,31 +481,11 @@ GuidedImageIO<TPixel>
   if(ImageCoordinateGeometry::IsRAICodeValid(rai_registry.c_str()))
     return rai_registry;
 
-  // Each direction cosine is dotted with each of the orientation vectors
-  vnl_vector_fixed<double, 3> 
-    dir_l(1.0, 0.0, 0.0), dir_p(0.0, 1.0, 0.0), dir_s(0.0, 0.0, 1.0);
-  char RAI[4]; RAI[3] = 0;
-  for(size_t d = 0; d < 3; d++)
-    {
-    vnl_vector<double> mydir = m_Image->GetDirection().GetVnlMatrix().get_row(d);
-    double cos_l = dot_product(mydir, dir_l);
-    double cos_p = dot_product(mydir, dir_p);
-    double cos_s = dot_product(mydir, dir_s);
-    if(fabs(cos_l) > fabs(cos_p) && fabs(cos_l) > fabs(cos_s))
-      RAI[d] = (cos_l > 0) ? 'R' : 'L';
-    else if(fabs(cos_p) > fabs(cos_l) && fabs(cos_p) > fabs(cos_s))
-      RAI[d] = (cos_p > 0) ? 'A' : 'P';
-    else if(fabs(cos_s) > fabs(cos_l) && fabs(cos_s) > fabs(cos_p))
-      RAI[d] = (cos_s > 0) ? 'I' : 'S';
-    else
-      { 
-      // Very odd orientation, where image is oriented 90 degrees. 
-      return std::string("RAI");
-      }
-    }
-
-  return std::string(RAI);
-  }
+  // Compute the RAI code from the direction cosines
+  return ImageCoordinateGeometry::
+    ConvertDirectionMatrixToClosestRAICode(
+      m_Image->GetDirection().GetVnlMatrix());
+}
 
 template<typename TPixel>
 void
@@ -339,7 +497,7 @@ GuidedImageIO<TPixel>
   CreateImageIO(folder, format);
 
   // Save the image
-  typedef itk::ImageFileWriter<ImageType> WriterType;
+  typedef ImageFileWriter<ImageType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
   
   writer->SetFileName(FileName);

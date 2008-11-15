@@ -15,12 +15,12 @@ PROJECT(SNAP)
 # VERSION INFORMATION                       #
 #############################################
 SET(SNAP_VERSION_MAJOR 1)
-SET(SNAP_VERSION_MINOR 6)
-SET(SNAP_VERSION_PATCH 0.1)
+SET(SNAP_VERSION_MINOR 7)
+SET(SNAP_VERSION_PATCH 1)
 SET(SNAP_VERSION_FULL "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}")
-SET(SNAP_VERSION_RELEASE_DATE "20080416")
-SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20031109")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Apr 16, 2008")
+SET(SNAP_VERSION_RELEASE_DATE "20081115")
+SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20081115")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Nov 15, 2008")
 
 #########################################################
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS #
@@ -38,19 +38,6 @@ IF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
 ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
 
 
-#############################################
-# REQUIRE ITK 3.8 OR LATER                  #
-#############################################
-SET(ITK_VERSION "${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}")
-IF(ITK_VERSION VERSION_LESS "3.8")
-  MESSAGE(SEND_ERROR "SNAP requires ITK 3.8 or later")  
-ELSE(ITK_VERSION VERSION_LESS "3.8")
-  # Enable bug fixes for 3.8
-  IF(ITK_VERSION VERSION_EQUAL "3.8")
-    MESSAGE(STATUS "Enabling ITK 3.8 SparseFieldLevelSet bug fix")
-    ADD_DEFINITIONS(-DUSE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
-  ENDIF(ITK_VERSION VERSION_EQUAL "3.8")       
-ENDIF(ITK_VERSION VERSION_LESS "3.8")
 
 #############################################
 # SOURCE FILE SPECIFICATION                 #
@@ -194,6 +181,7 @@ SET(UI_CXX
   UserInterface/MainComponents/RGBOverlayUILogic.cxx
   UserInterface/MainComponents/LabelEditorUILogic.cxx
   UserInterface/MainComponents/PreprocessingUILogic.cxx
+  UserInterface/MainComponents/ReorientImageUILogic.cxx
   UserInterface/MainComponents/ResizeRegionDialogLogic.cxx
   UserInterface/MainComponents/RestoreSettingsDialogLogic.cxx
   UserInterface/MainComponents/SimpleFileDialogLogic.cxx
@@ -251,6 +239,8 @@ SET(UI_HEADERS
   UserInterface/MainComponents/LabelEditorUILogic.h
   UserInterface/MainComponents/PreprocessingUIBase.h
   UserInterface/MainComponents/PreprocessingUILogic.h
+  UserInterface/MainComponents/ReorientImageUIBase.h
+  UserInterface/MainComponents/ReorientImageUILogic.h
   UserInterface/MainComponents/ResizeRegionDialogBase.h
   UserInterface/MainComponents/ResizeRegionDialogLogic.h
   UserInterface/MainComponents/RestoreSettingsDialogBase.h
@@ -311,11 +301,12 @@ SET(APPLICATION_FLUIDS
   UserInterface/MainComponents/AppearanceDialogUI.fl
   UserInterface/MainComponents/HelpViewer.fl
   UserInterface/MainComponents/IntensityCurveUI.fl
-  UserInterface/MainComponents/RGBOverlayUI.fl
   UserInterface/MainComponents/LabelEditorUI.fl
   UserInterface/MainComponents/PreprocessingUI.fl
+  UserInterface/MainComponents/ReorientImageUI.fl
   UserInterface/MainComponents/ResizeRegionDialog.fl
   UserInterface/MainComponents/RestoreSettingsDialog.fl
+  UserInterface/MainComponents/RGBOverlayUI.fl
   UserInterface/MainComponents/SimpleFileDialog.fl
   UserInterface/MainComponents/SnakeParametersUI.fl
   UserInterface/MainComponents/UserInterface.fl

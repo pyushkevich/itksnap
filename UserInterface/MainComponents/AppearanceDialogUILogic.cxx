@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -50,6 +50,7 @@ AppearanceDialogUILogic
     SNAPAppearanceSettings::CROSSHAIRS,
     SNAPAppearanceSettings::ROI_BOX,
     SNAPAppearanceSettings::PAINTBRUSH_OUTLINE,
+    SNAPAppearanceSettings::RULER,
     SNAPAppearanceSettings::BACKGROUND_2D,
     SNAPAppearanceSettings::BACKGROUND_3D,
     SNAPAppearanceSettings::CROSSHAIRS_3D,

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,74 +41,23 @@
 #include <cmath>
 #include <map>
 #include <string>
+#include <iomanip>
+#include <sstream>
 
 #include "itkImage.h"
 #include "itkImageIOBase.h"
 #include "itkIOCommon.h"
-#include "itkSpatialOrientation.h"
 #include "itkMetaDataObject.h"
 #include "itkGDCMSeriesFileNames.h"
 #include <itksys/SystemTools.hxx>
 
 using std::map;
 using namespace itk;
-using namespace itk::SpatialOrientation;
 
 template <class TPixel>
 ImageIOWizardLogic<TPixel>
 ::ImageIOWizardLogic() 
 {                 
-  // Initialize the menu item map
-  m_MapOrientationIndexAndFlipToMenuItem[0][0] = 0;   // R in RAI
-  m_MapOrientationIndexAndFlipToMenuItem[0][1] = 1;   // L in RAI
-  m_MapOrientationIndexAndFlipToMenuItem[1][0] = 2;   // A in RAI
-  m_MapOrientationIndexAndFlipToMenuItem[1][1] = 3;   // P in RAI
-  m_MapOrientationIndexAndFlipToMenuItem[2][0] = 4;   // I in RAI
-  m_MapOrientationIndexAndFlipToMenuItem[2][1] = 5;   // S in RAI
-
-  // Initialize the axes to doll pages map
-  m_MapOrientationIndexToDollPageIndex[0][1][2] = 0; // RAI
-  m_MapOrientationIndexToDollPageIndex[0][2][1] = 1; // RIA
-  m_MapOrientationIndexToDollPageIndex[1][0][2] = 2; // ARI
-  m_MapOrientationIndexToDollPageIndex[1][2][0] = 3; // AIR
-  m_MapOrientationIndexToDollPageIndex[2][0][1] = 4; // IRA
-  m_MapOrientationIndexToDollPageIndex[2][1][0] = 5; // IAR
-
-  // Initialize the axes to origin vertex map
-  m_OrientationIndexToDollVertex[0][1][2] = 7; // 111 in RAI
-  m_OrientationIndexToDollVertex[0][2][1] = 0; // 000 in RIA
-  m_OrientationIndexToDollVertex[1][0][2] = 3; // 011 in ARI
-  m_OrientationIndexToDollVertex[1][2][0] = 1; // 001 in AIR
-  m_OrientationIndexToDollVertex[2][0][1] = 4; // 100 in IRA
-  m_OrientationIndexToDollVertex[2][1][0] = 6; // 110 in IAR
-
-  // Initialize the file format extensions 
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_MHA] = "mha,mhd"; 
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_NRRD] = "nrrd,nhdr";
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_GIPL] = "gipl,gipl.gz";
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_VOXBO_CUB] = "cub,cub.gz";
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_RAW] = "raw*";
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_ANALYZE] = "hdr,img,img.gz";  
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_NIFTI] = "nii,nia,nii.gz,nia.gz";
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_DICOM] = "dcm";
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_GE4] = "ge4";
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_GE5] = "ge5";
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_SIEMENS] = "ima";
-  m_FileFormatPattern[GuidedImageIOBase::FORMAT_VTK] = "vtk";
-
-  // Initialize the file format descriptions
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_MHA] = "MetaImage File";
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_NRRD] = "NRRD File";
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_GIPL] = "GIPL File";
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_VOXBO_CUB] = "VoxBo CUB File";
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_RAW] = "Raw Binary File";
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_ANALYZE] = "Analyze File";
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_NIFTI] = "NIFTI (SPM5) File"; 
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_DICOM] = "DICOM File Series";
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_GE4] = "GE Version 4 File";
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_GE5] = "GE Version 5 File";
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_SIEMENS] = "Siemens Vision File";
-  m_FileFormatDescription[GuidedImageIOBase::FORMAT_VTK] = "VTK Image File";
 
   // Initialize the DICOM directory lister
   m_DICOMLister = GDCMSeriesFileNames::New();
@@ -131,7 +80,9 @@ void ImageIOWizardLogic<TPixel>
   for(unsigned int i = 0; i < GuidedImageIOBase::FORMAT_COUNT; i++)
     {
     // Create an appropriate description
-    StringType text = m_FileFormatDescription[i];
+    FileFormat fmt = static_cast<FileFormat>(i);
+    FileFormatDescriptor fd = GuidedImageIOBase::GetFileFormatDescriptor(fmt);
+    StringType text = fd.name + " File";
     
     // Add a menu option to the save menu, disabling it if it's unsupported
     m_InFilePageFormat->add(text.c_str(),0,NULL,NULL,
@@ -164,13 +115,9 @@ void ImageIOWizardLogic<TPixel>
     {
     last = m_PageFile;
     }
-  else if (current == m_PageOrientation)
-    {
-    last = m_PageHeader;
-    }
   else if (current == m_PageSummary)
     {
-    last = m_PageOrientation;
+    last = m_PageHeader;
     }
   else
     {
@@ -205,13 +152,9 @@ void ImageIOWizardLogic<TPixel>
     else if(m_PageDICOM->active())
       next = m_PageDICOM;
     else
-      next = m_PageOrientation;
+      next = m_PageSummary;
     }
   else if (current == m_PageHeader || current == m_PageDICOM) 
-    {
-    next = m_PageOrientation;
-    }    
-  else if (current == m_PageOrientation)
     {
     next = m_PageSummary;
     }    
@@ -239,10 +182,6 @@ void ImageIOWizardLogic<TPixel>
     {
     OnDICOMPageEnter();
     }
-  else if (next == m_PageOrientation)
-    {
-    OnOrientationPageEnter();
-    }
   else if (next == m_PageSummary)
     {
     OnSummaryPageEnter();
@@ -265,9 +204,12 @@ ImageIOWizardLogic<TPixel>
   // Go through all supported formats
   for(unsigned int i=0;i < GuidedImageIOBase::FORMAT_COUNT;i++)
     {
+    FileFormat fmt = static_cast<FileFormat>(i);
+    FileFormatDescriptor fd = GuidedImageIOBase::GetFileFormatDescriptor(fmt);
+
     // Check if the file format is supported
-    if((forLoading && this->CanLoadFileFormat((FileFormat) i)) ||
-       (!forLoading && this->CanSaveFileFormat((FileFormat) i)))
+    if((forLoading && this->CanLoadFileFormat(fmt)) ||
+       (!forLoading && this->CanSaveFileFormat(fmt)))
       {
       // Add comma to allImageFiles
       if(allImageFilesNeedsComma)
@@ -276,7 +218,7 @@ ImageIOWizardLogic<TPixel>
         allImageFilesNeedsComma = true;
 
       // Add extension to all image files
-      allImageFiles += m_FileFormatPattern[i];
+      allImageFiles += fd.pattern;
 
       // Add a tab to the pattern
       if(patternNeedsTab)
@@ -285,9 +227,9 @@ ImageIOWizardLogic<TPixel>
         patternNeedsTab = true;
 
       // Construct the pattern
-      pattern += m_FileFormatDescription[i];
+      pattern += fd.name;
       pattern += " Files (*.{";
-      pattern += m_FileFormatPattern[i];
+      pattern += fd.pattern;
       pattern += "})";
       }
     }
@@ -310,16 +252,19 @@ ImageIOWizardLogic<TPixel>
   // Iterate over the known file types
   for(unsigned int i = 0;i < GuidedImageIOBase::FORMAT_COUNT;i++)
     {
+    FileFormat fmt = static_cast<FileFormat>(i);
+    FileFormatDescriptor fd = GuidedImageIOBase::GetFileFormatDescriptor(fmt);
+
     // Check if the file format is supported
-    if((forLoading && this->CanLoadFileFormat((FileFormat) i)) ||
-       (!forLoading && this->CanSaveFileFormat((FileFormat) i)))
+    if((forLoading && this->CanLoadFileFormat(fmt)) ||
+       (!forLoading && this->CanSaveFileFormat(fmt)))
       {
       // Create a matching pattern
-      StringType pattern = "*.{" + m_FileFormatPattern[i] + "}";
+      StringType pattern = "*.{" + fd.pattern + "}";
 
       // Check if the filename matches the pattern
       if(fl_filename_match(testFile,pattern.c_str()))
-        return (FileFormat) i;
+        return fmt;
       }
     }
 
@@ -334,15 +279,14 @@ bool ImageIOWizardLogic<TPixel>
   return true; 
 }
 
+ 
 template <class TPixel>
 bool ImageIOWizardLogic<TPixel>
 ::CanSaveFileFormat(FileFormat format) const 
 { 
-  return (
-    format != GuidedImageIOBase::FORMAT_DICOM &&
-    format != GuidedImageIOBase::FORMAT_GE4 &&
-    format != GuidedImageIOBase::FORMAT_GE5 &&
-    format != GuidedImageIOBase::FORMAT_SIEMENS);
+  FileFormatDescriptor fd = 
+    GuidedImageIOBase::GetFileFormatDescriptor(format); 
+  return fd.can_write;
 }
 
 template <class TPixel>
@@ -451,8 +395,8 @@ void ImageIOWizardLogic<TPixel>
 ::OnFilePageNext() 
 {
   // Check if a file has been specified
-  const char *fname = m_InFilePageBrowser->value();
-  assert(fname && strlen(fname) > 0);
+  assert(m_InFilePageBrowser->value() 
+    && strlen(m_InFilePageBrowser->value()) > 0);
 
   // Check that a format has been specified
   assert(m_InFilePageFormat->value() > 0);
@@ -639,18 +583,15 @@ ImageIOWizardLogic<TPixel>
     {     
     // Since we want to store the image IO, we need to use these two calls 
     // instead of just calling ReadImage with the registry
-    m_Image = m_GuidedIO.ReadImage(m_InFilePageBrowser->value(), m_Registry);
+    m_Image = m_GuidedIO.ReadImage(
+      m_InFilePageBrowser->value(), m_Registry, this->IsNativeFormatSupported());
     m_ImageIO = m_GuidedIO.GetIOBase();
 
     // Disconnect the image from the reader to free up memory (?)
     m_Image->DisconnectPipeline();
 
     // Check if the image is really valid
-    if(rc = CheckImageValidity())
-      {
-      // Try to determine the RAI code
-      GuessImageOrientation();
-      }
+    rc = CheckImageValidity();
     }
   catch(ExceptionObject &exc)
   {
@@ -702,23 +643,6 @@ ImageIOWizardLogic<TPixel>
 template <class TPixel>
 void 
 ImageIOWizardLogic<TPixel>
-::OnOrientationPageNext() 
-{
-  // Go on to the summary page
-  GoForward();
-}
-
-template <class TPixel>
-void 
-ImageIOWizardLogic<TPixel>
-::OnOrientationPageBack() 
-{
-  GoBack();
-}
-
-template <class TPixel>
-void 
-ImageIOWizardLogic<TPixel>
 ::OnFilePageEnter()
 {
 
@@ -756,49 +680,18 @@ ImageIOWizardLogic<TPixel>
     m_InHeaderPageByteAlign->value(1);
 }
 
-template <class TPixel>
-void 
-ImageIOWizardLogic<TPixel>
-::GuessImageOrientation()
-{
-  // Use the functionality in GuidedImageIO
-  std::string rai_guess = m_GuidedIO.GetRAICode(m_Image, m_Registry);
-  if(rai_guess.length())
+template<class AnyType>
+bool
+try_print_metadata(std::ostream &sout, itk::MetaDataDictionary &mdd, std::string key)
+  {
+  AnyType value;
+  if(itk::ExposeMetaData<AnyType>(mdd, key, value))
     {
-    // Set the preset to default
-    SetRAI(rai_guess.c_str());
-    m_InOrientationPagePreset->value(4);
-    OnOrientationPageSelectPreset();
+    sout << key << " = " << value << std::endl;
+    return true;
     }
-  else
-    {      
-    // Set the preset to default
-    SetRAI("RAI");
-    m_InOrientationPagePreset->value(0);
-    OnOrientationPageSelectPreset();
-    }
-}
-
-template <class TPixel>
-void 
-ImageIOWizardLogic<TPixel>
-::OnOrientationPageEnter()
-{
-  // Check if the currently selected RAI is valid
-  if(ImageCoordinateGeometry::IsRAICodeValid(m_InRAICode->value()))
-    {
-    // Make sure that the old RAI gets integrated with the new image
-    SetRAI(m_InRAICode->value());
-    }
-  else
-    {
-    // Enter the default mode
-    m_InOrientationPagePreset->value(0);
-
-    // Make sure the preset is applied
-    OnOrientationPageSelectPreset();
-    }
-}
+  else return false;
+  }
 
 template <class TPixel>
 void 
@@ -820,20 +713,30 @@ ImageIOWizardLogic<TPixel>
     // Print file name
     m_OutSummaryFileName->value(m_ImageIO->GetFileName());
 
-    // Print file dimensions
-    sout << m_Image->GetBufferedRegion().GetSize();
-    m_OutSummaryDimensions->value(sout.str().c_str());
+    // Print file dimensions, spacing and origin
+    for(size_t i = 0; i < 3; i++)
+      {
+      m_OutSummaryDimensions[i]->value(
+        m_Image->GetBufferedRegion().GetSize()[i]);
+      m_OutSummarySpacing[i]->value(
+        m_Image->GetSpacing()[i]);
+      m_OutSummaryOrigin[i]->value(
+        m_Image->GetOrigin()[i]);
+      }
 
     // Print file size in bytes
     m_OutSummarySize->value((int)(m_ImageIO->GetImageSizeInBytes() / (1024.0)));
     
-    // Print pixel spacing 
-    sout.str(""); sout << m_Image->GetSpacing();
-    m_OutSummarySpacing->value(sout.str().c_str());
-
-    // Print the image origin
-    sout.str(""); sout << m_Image->GetOrigin();
-    m_OutSummaryOrigin->value(sout.str().c_str());
+    // Print out the orientation information
+    sout.str("");
+    vnl_matrix<double> dir = m_Image->GetDirection().GetVnlMatrix();
+    std::string rai = 
+      ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(dir);
+    if(ImageCoordinateGeometry::IsDirectionMatrixOblique(dir))
+      sout << "Oblique (closest to " << rai << ")";
+    else
+      sout << rai;
+    m_OutSummaryOrientation->value(sout.str().c_str());
     
     // TODO: This is a workaround on an itk bug with RawImageIO
     if(m_ImageIO->GetComponentType() != ImageIOBase::UNKNOWNCOMPONENTTYPE)
@@ -854,218 +757,68 @@ ImageIOWizardLogic<TPixel>
     // Dump the contents of the meta data dictionary
     m_SummaryTextBuffer->text("");
     MetaDataDictionary &mdd = m_ImageIO->GetMetaDataDictionary();
-    MetaDataDictionary::ConstIterator itMeta = mdd.Begin();
-    while(itMeta != mdd.End())
+    for(
+      MetaDataDictionary::ConstIterator itMeta = mdd.Begin();
+      itMeta != mdd.End(); ++itMeta)      
       {
       // Get the metadata as a generic object
-      std::string key = itMeta->first;
-      itk::MetaDataObjectBase *meta = itMeta->second;
+      std::string key = itMeta->first, v_string;
+      std::ostringstream sout;
 
-      // Check if the meta data string is a 
-      if( typeid(std::string) == meta->GetMetaDataObjectTypeInfo() )
+      if(itk::ExposeMetaData<std::string>(mdd, key, v_string))
         {
-        // Cast the value to a string and print it
-        typedef MetaDataObject<std::string> ObjectType;
-        std::string value = ((ObjectType *)(meta))->GetMetaDataObjectValue();
-
-        // For some weird reason, some of the strings returned by this method 
+        // For some weird reason, some of the strings returned by this method
         // contain '\0' characters. We will replace them by spaces
-        sout.str("");
-        for(unsigned int i=0;i<value.length();i++)
-          if(value[i] >= ' ') sout << value[i];
-        value = sout.str();
+        std::ostringstream tmpout("");
+        for(unsigned int i = 0; i < v_string.length(); i++)
+          if(v_string[i] >= ' ') 
+            tmpout << v_string[i];
+        v_string = tmpout.str();
 
         // Make sure the value has more than blanks
-        if(value.find_first_not_of(" ") != value.npos)
+        if(v_string.find_first_not_of(" ") != v_string.npos)
+          sout << key << " = " << v_string << std::endl;
+        }
+      else 
+        {
+        bool rc = false;
+        if(!rc) rc |= try_print_metadata<double>(sout, mdd, key);
+        if(!rc) rc |= try_print_metadata<float>(sout, mdd, key);
+        if(!rc) rc |= try_print_metadata<int>(sout, mdd, key);
+        if(!rc) rc |= try_print_metadata<unsigned int>(sout, mdd, key);
+        if(!rc) rc |= try_print_metadata<long>(sout, mdd, key);
+        if(!rc) rc |= try_print_metadata<unsigned long>(sout, mdd, key);
+        if(!rc) rc |= try_print_metadata<short>(sout, mdd, key);
+        if(!rc) rc |= try_print_metadata<unsigned short>(sout, mdd, key);
+        if(!rc) rc |= try_print_metadata<char>(sout, mdd, key);
+        if(!rc) rc |= try_print_metadata<unsigned char>(sout, mdd, key);
+
+        if(!rc)
           {
-          m_SummaryTextBuffer->append(key.c_str());
-          m_SummaryTextBuffer->append(" = ");
-          m_SummaryTextBuffer->append(value.c_str());
-          m_SummaryTextBuffer->append("\n");
+          sout << key << " of unsupported type " 
+            << itMeta->second->GetMetaDataObjectTypeName() << std::endl;
           }
         }
-      ++itMeta;
+
+      m_SummaryTextBuffer->append(sout.str().c_str());
       }
     }
   else 
     {
-    m_OutSummaryFileName->value("Error loading image.");
-    m_OutSummaryDimensions->value("n/a");
-    m_OutSummarySize->value(0);
-    m_OutSummarySpacing->value("n/a");
-    m_OutSummaryOrigin->value("n/a");
+    m_OutSummaryFileName->value("Error loading image.");        
+    m_OutSummarySize->value(0); 
+    m_OutSummaryOrientation->value("n/a");
     m_OutSummaryPixelType->value("n/a");
     m_OutSummaryByteOrder->value("n/a");
     m_SummaryTextBuffer->text("");
-    }
-}
 
-
-template <class TPixel>
-void 
-ImageIOWizardLogic<TPixel>
-::SetRAIToInvalid(const char *rai) 
-{
-  // Invalidate the page
-  m_BtnOrientationPageNext->deactivate();
-  m_WizOrientationPageDoll->value(m_GrpOrientationPageDollInvalid);
-  
-  // Pass the invalid RAI to the RAI editor (needed when this method is called
-  // in response to the editor
-  m_InRAICode->value(rai);
-
-  // Hide all the corner widgets
-  for(unsigned int j=0;j<8;j++)
-    {
-    m_OutOrientationPageCorner[j]->hide();
-    m_OutOrientationPageCorner[j]->value("");
-    }
-}
-
-
-template <class TPixel>
-void 
-ImageIOWizardLogic<TPixel>
-::SetRAI(const char *rai) 
-{
-  // Make sure we have a valid RAI - caller should check first
-  assert(rai && ImageCoordinateGeometry::IsRAICodeValid(rai));
-
-  // Convert RAI to a numeric mapping
-  Vector3i map = 
-    ImageCoordinateGeometry::ConvertRAIToCoordinateMapping(rai);
-
-  // Get the coordinate indices and directions
-  unsigned int cidx[3];
-  unsigned int cflip[3];
-
-  for(unsigned int i=0;i<3;i++) 
-    {
-    cidx[i] = abs(map[i]) - 1;
-    cflip[i] = map[i] < 0 ? 1 : 0;
-    }
-  
-  // Apply the RAI to the orientation page drop down boxes
-  m_InOrientationPageX->value(
-    m_MapOrientationIndexAndFlipToMenuItem[cidx[0]][cflip[0]]);
-  m_InOrientationPageY->value(
-    m_MapOrientationIndexAndFlipToMenuItem[cidx[1]][cflip[1]]);
-  m_InOrientationPageZ->value(
-    m_MapOrientationIndexAndFlipToMenuItem[cidx[2]][cflip[2]]);
-
-  // Use the orientation transform to choose the correct doll page
-  m_WizOrientationPageDoll->value(
-    m_GrpOrientationPageDoll[
-      m_MapOrientationIndexToDollPageIndex[cidx[0]][cidx[1]][cidx[2]]]);
-
-  // Find the origin code
-  unsigned int origin = 
-    m_OrientationIndexToDollVertex[cidx[0]][cidx[1]][cidx[2]];
-
-  // Flip the origin if necessary
-  origin ^= (4 * cflip[0] + 2 * cflip[1] + 1 * cflip[2]);
-
-  // Compute the anti-origin
-  unsigned int anti = 7 ^ origin;
-
-  // Set the state of the corner display boxes
-  for(unsigned int j=0;j<8;j++)
-    {
-    if(j == origin)
+    for(size_t i = 0; i < 3; i++)
       {
-      // Origin is visible
-      m_OutOrientationPageCorner[j]->show();
-
-      // Origin gets the zero index
-      m_OutOrientationPageCorner[j]->value("0,0,0");
-      }
-    else if(j == anti)
-      {
-      // Anti-origin is visible
-      m_OutOrientationPageCorner[j]->show();
-
-      // Anti-origin gets the image dimensions
-      typename ImageType::SizeType size = 
-        m_Image->GetLargestPossibleRegion().GetSize();
-
-      // Print the size out
-      char str[256];
-      sprintf(str,"%ld,%ld,%ld",size[0],size[1],size[2]);
-      
-      // Origin gets the zero index
-      m_OutOrientationPageCorner[j]->value(str);
-      }
-    else
-      {
-      // Everything else is hidder
-      m_OutOrientationPageCorner[j]->value("");
-      m_OutOrientationPageCorner[j]->hide();
+      m_OutSummaryDimensions[i]->value(0);
+      m_OutSummarySpacing[i]->value(0);
+      m_OutSummaryOrigin[i]->value(0);
       }
     }
-  
-  // Plug the RAI code into the code editor
-  m_InRAICode->value(rai);
-  
-  // Set the state to valid, allowing user to continue to next page
-  m_BtnOrientationPageNext->activate();
-};
-
-template <class TPixel>
-void 
-ImageIOWizardLogic<TPixel>
-::OnOrientationPageSelectPreset() 
-{
-
-  // Whether or not custom is allowed
-  int useCustom = 0;
-
-  switch (m_InOrientationPagePreset->value()) {
-  case 0 : 
-    SetRAI("RAI");break;
-  case 1 :
-    SetRAI("ASR");break;
-  case 2 : 
-    SetRAI("RSP");break;
-  case 3:
-    SetRAI("RAI");break;
-  case 4:
-    useCustom = 1;
-    break;
-  default:
-    assert(0 == "Unknown Preset");
-  }
-
-  // Enable or disable the pane
-  if (useCustom)
-    m_GrpOrientationPageCustom->activate();
-  else
-    m_GrpOrientationPageCustom->deactivate();
-}
-
-template <class TPixel>
-void ImageIOWizardLogic<TPixel>
-::OnOrientationPageSelect() 
-{
-  // Return the currently set RAI
-  static const char *raiList = "RLAPIS";
-
-  // Compute the RAI code based on the state of the drop-downs
-  char rai[4];
-  rai[0] = raiList[m_InOrientationPageX->value()];
-  rai[1] = raiList[m_InOrientationPageY->value()];
-  rai[2] = raiList[m_InOrientationPageZ->value()];
-  rai[3] = '\0';
-  
-  // Check if valid
-  if (ImageCoordinateGeometry::IsRAICodeValid(rai))
-    {
-    // Run the standard SetRAI procedure (update all related controls)
-    SetRAI(rai);
-    }    
-  else
-    {
-    SetRAIToInvalid("");
-    }    
 }
 
 template <class TPixel>
@@ -1080,8 +833,6 @@ ImageIOWizardLogic<TPixel>
     m_ImageLoaded = true;
 
     // Save the registry produced in this wizard
-    if(GetLoadedImageRAI())
-      m_Registry["Orientation"] << GetLoadedImageRAI();
     if(m_Callback)
       m_Callback->UpdateRegistryAssociatedWithImage(
         m_InFilePageBrowser->value(), m_Registry);
@@ -1090,35 +841,6 @@ ImageIOWizardLogic<TPixel>
     m_WinInput->hide();
   }
 }
-
-template <class TPixel>
-void 
-ImageIOWizardLogic<TPixel>
-::OnOrientationPageRAIChange()
-{
-  // The user has manually edited the RAI code
-  const char *rai = m_InRAICode->value();
-
-  // If the rai code is not 3 characters long, return (don't react to edits)
-  if(strlen(rai) != 3)
-    return;
-
-  // Set the preset mode to custom
-  m_InOrientationPagePreset->value(4);
-  m_GrpOrientationPageCustom->activate();
-
-  // Check that the code is valid
-  if(ImageCoordinateGeometry::IsRAICodeValid(rai))
-    {
-    SetRAI(rai);
-    }
-  else
-    {
-    SetRAIToInvalid(rai);
-    }
-}
-
-
 
 template <class TPixel>
 ImageIOWizardLogic<TPixel>::~ImageIOWizardLogic() 

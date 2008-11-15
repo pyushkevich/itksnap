@@ -37,11 +37,11 @@ class UserInterface {open : {public UserInterfaceBase}
   } {
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
-      callback {OnMainWindowCloseAction();} open
+      callback {OnMainWindowCloseAction();}
       xywh {695 221 875 710} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"} visible
     } {
-      Fl_Menu_Bar m_MenubarMain {open
+      Fl_Menu_Bar m_MenubarMain {
         xywh {0 0 145 25} labelsize 12 textsize 12
       } {
         Submenu {} {
@@ -92,6 +92,11 @@ class UserInterface {open : {public UserInterfaceBase}
             label {&Save} open
             xywh {20 20 100 20} labelsize 12
           } {
+            MenuItem m_MenuSaveGrey {
+              label {&Greyscale Image...}
+              callback {this->OnMenuSaveGrey();}
+              tooltip {Save the segmentation results as an image} xywh {40 40 100 20} labelsize 12 deactivate divider
+            }
             MenuItem m_MenuSaveSegmentation {
               label {&Segmentation Image...}
               callback {this->OnMenuSaveSegmentation();}
@@ -108,9 +113,9 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {40 40 100 20} shortcut 0x50070 labelsize 12 deactivate
             }
             MenuItem m_MenuSaveGreyROI {
-              label {&Greyscale Image Region...}
+              label {Greyscale Image &Region...}
               callback {this->OnMenuSaveGreyROI();}
-              xywh {40 40 100 20} shortcut 0x50067 labelsize 12 deactivate
+              xywh {40 40 100 20} shortcut 0x50072 labelsize 12 deactivate
             }
             MenuItem m_MenuSaveLevelSet {
               label {&Level Set Function...}
@@ -231,7 +236,12 @@ class UserInterface {open : {public UserInterfaceBase}
           MenuItem m_MenuImageInfo {
             label {&Image Info...}
             callback {this->OnMenuImageInfo();}
-            xywh {5 5 100 20} labelsize 12 divider
+            xywh {5 5 100 20} labelsize 12
+          }
+          MenuItem m_MenuReorientImage {
+            label {&Reorient Image...}
+            callback {this->OnMenuReorientImage();}
+            tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {15 15 100 20} labelsize 12 divider
           }
           MenuItem {} {
             label {&Quit}
@@ -291,7 +301,7 @@ class UserInterface {open : {public UserInterfaceBase}
             xywh {0 25 145 680} color 53 labelsize 12
           } {
             Fl_Group m_GrpInteractionModes {
-              label {IRIS Toolbox} open
+              label {IRIS Toolbox}
               xywh {5 45 135 95} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
             } {
               Fl_Button m_BtnCrosshairsMode {
@@ -312,7 +322,7 @@ class UserInterface {open : {public UserInterfaceBase}
               }
               Fl_Button {} {
                 callback {SetToolbarMode(PAINTBRUSH_MODE);}
-                tooltip {Paintbrush tool} image {Artwork/paintbrush.gif} xywh {55 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX shortcut 0x35 color 180 selection_color 180 labelfont 1 labelsize 20 align 16 when 1
+                tooltip {Paintbrush tool} image {Artwork/paintbrush.gif} xywh {55 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x35 color 180 selection_color 180 labelfont 1 labelsize 20 align 16 when 1
               }
               Fl_Button {} {
                 tooltip {3D paint: spray paint and cut planes} xywh {95 95 35 35} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX shortcut 0x35 color 22 selection_color 22 align 16 when 0 hide deactivate
@@ -323,7 +333,7 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {5 164 135 137} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
             } {
               Fl_Wizard m_TabsToolOptions {
-                label {Active Tool Settings}
+                label {Active Tool Settings} open
                 xywh {5 165 135 136} box NO_BOX color 22 labeltype NO_LABEL labelsize 12 labelcolor 4
               } {
                 Fl_Group m_GrpToolOptionCrosshairs {
@@ -347,7 +357,7 @@ class UserInterface {open : {public UserInterfaceBase}
                     tooltip {This tool navigates around the image. Press and drag with the left mouse button to reposition the cursor in the three slice views. Use the mouse wheel to change the slice. The arrow and PgUp/PgDn also work.} xywh {10 170 125 25} box PLASTIC_DOWN_BOX color 61 labelsize 12 align 16
                   } {}
                   Fl_Check_Button m_BtnSynchronizeCursor {
-                    label {Synchronize cursor}
+                    label {Multisession cursor}
                     callback {this->OnSynchronizeCursorAction();}
                     tooltip {Synchronizes the crosshair position across multple sessions of ITK-SNAP} xywh {15 280 115 15} down_box DOWN_BOX value 1 labelsize 11
                   }
@@ -414,27 +424,36 @@ class UserInterface {open : {public UserInterfaceBase}
                   }
                 }
                 Fl_Group m_GrpToolOptionZoomPan {
-                  label 2
+                  label 2 open
                   xywh {5 165 135 135} labelsize 10 hide
                 } {
-                  Fl_Button {} {
-                    label {Reset 2D views}
-                    callback {this->OnResetAllViews2DAction();}
-                    xywh {25 265 95 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 11 align 128
-                  }
-                  Fl_Value_Input m_InZoomPercentage {
-                    label {Zoom (%):}
-                    callback {OnZoomPercentageChange();}
-                    xywh {75 225 55 20} color 52 labelsize 11 when 8 textsize 11 deactivate
-                  }
-                  Fl_Check_Button m_ChkLinkedZoom {
-                    label {Zoom slices together}
-                    callback {OnLinkedZoomChange();}
-                    tooltip {Select this to have the same zoom level in all three orthogonal views} xywh {15 200 120 25} down_box DOWN_BOX labelsize 11
-                  }
                   Fl_Group {} {
                     label {Zoom / Pan Tool} open
                     tooltip {Use this tool to change the zoom level and to pan around the image. Hold and drag the left mouse button to zoom and hold and drag the right button to pan.} xywh {10 170 125 25} box PLASTIC_DOWN_BOX color 91 labelsize 12 align 16
+                  } {}
+                  Fl_Check_Button m_ChkLinkedZoom {
+                    label { Zoom views together}
+                    callback {OnLinkedZoomChange();}
+                    tooltip {Select this to have the same zoom level in all three orthogonal views} xywh {10 200 120 15} down_box DOWN_BOX labelsize 11
+                  }
+                  Fl_Check_Button m_ChkMultisessionZoom {
+                    label { Multi-session zoom}
+                    callback {OnMultisessionZoomChange();}
+                    tooltip {Select this to have the same zoom level in all three orthogonal views} xywh {10 220 120 15} down_box DOWN_BOX labelsize 11 when 1 deactivate
+                  }
+                  Fl_Value_Input m_InZoomLevel {
+                    label {Zoom:}
+                    callback {OnZoomLevelChange();}
+                    tooltip {Zoom is specified as the number of screen pixels per millimeter in patient space} xywh {55 240 45 20} color 52 labelsize 11 when 8 step 0.001 textsize 11 deactivate
+                  }
+                  Fl_Button {} {
+                    label {Fit all views}
+                    callback {this->OnResetAllViews2DAction();}
+                    xywh {25 270 95 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 11 align 128
+                  }
+                  Fl_Group m_GrpLinkedZoomUnits {
+                    label {px/mm} open
+                    xywh {100 240 30 20} labelsize 10 align 20 deactivate
                   } {}
                 }
                 Fl_Group m_GrpToolOptionBrush {
@@ -1207,8 +1226,8 @@ this->OnSNAPLabelOpacityChange();}
       }
     }
     Fl_Window m_WinSplash {
-      label {Welcome to ITK-SnAP} open
-      xywh {-32000 -32000 432 196} type Double align 16 hide resizable
+      label {Welcome to ITK-SnAP}
+      xywh {4 27 432 196} type Double align 16 resizable visible
     } {
       Fl_Group {} {open
         image {Artwork/logo_new.gif} xywh {5 5 420 155} color 0 align 16
@@ -1224,7 +1243,7 @@ this->OnSNAPLabelOpacityChange();}
     }
     Fl_Window m_WinProgress {
       label {SNAP Progress Meter}
-      xywh {434 461 485 70} type Double box BORDER_BOX color 53 hide modal noborder
+      xywh {434 461 485 70} type Double box BORDER_BOX color 53 modal noborder visible
     } {
       Fl_Group {} {
         label {Working... Please Wait!} open
@@ -1244,7 +1263,7 @@ this->OnSNAPLabelOpacityChange();}
     }
     Fl_Window m_WinImageInfo {
       label {Image Information}
-      xywh {738 566 515 384} type Double box PLASTIC_DOWN_BOX color 40 non_modal visible
+      xywh {92 480 515 384} type Double box PLASTIC_DOWN_BOX color 40 hide non_modal
     } {
       Fl_Group {} {
         label {Image Information:}
@@ -1276,39 +1295,35 @@ this->OnSNAPLabelOpacityChange();}
         }
         Fl_Value_Output {m_OutImageInfoOrigin[0]} {
           label {Image origin  x:}
-          xywh {245 105 65 25}
+          xywh {245 105 65 25} step 0.001
         }
         Fl_Value_Output {m_OutImageInfoOrigin[1]} {
           label {y:}
-          xywh {330 105 65 25}
+          xywh {330 105 65 25} step 0.001
         }
         Fl_Value_Output {m_OutImageInfoOrigin[2]} {
           label {z:}
-          xywh {415 105 65 25}
+          xywh {415 105 65 25} step 0.001
         }
         Fl_Value_Output {m_OutImageInfoRange[0]} {
           label {Intensity range  min:}
-          xywh {245 165 65 25}
+          xywh {245 175 95 25}
         }
         Fl_Value_Output {m_OutImageInfoRange[1]} {
           label {max:}
-          xywh {350 165 65 25}
-        }
-        Fl_Value_Output {m_OutImageInfoCursorIndex[0]} {
-          label {Voxel coordinates  x:}
-          xywh {245 195 65 25}
+          xywh {385 175 95 25}
         }
         Fl_Value_Output {m_OutImageInfoCursorPosition[0]} {
           label {World coordinates (ITK)  x:}
-          xywh {245 255 65 25}
+          xywh {245 255 65 25} step 0.001
         }
         Fl_Value_Output {m_OutImageInfoCursorPosition[1]} {
           label {y:}
-          xywh {330 255 65 25}
+          xywh {330 255 65 25} step 0.001
         }
         Fl_Value_Output {m_OutImageInfoCursorPosition[2]} {
           label {z:}
-          xywh {415 255 65 25}
+          xywh {415 255 65 25} step 0.001
         }
         Fl_Button {} {
           label Close
@@ -1317,40 +1332,40 @@ this->OnSNAPLabelOpacityChange();}
         }
         Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[0]} {
           label {World coordinates (NIFTI)  x:}
-          xywh {245 285 65 25}
+          xywh {245 285 65 25} step 0.001
         }
         Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[1]} {
           label {y:}
-          xywh {330 285 65 25}
+          xywh {330 285 65 25} step 0.001
         }
         Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[2]} {
           label {z:}
-          xywh {415 285 65 25}
+          xywh {415 285 65 25} step 0.001
         }
         Fl_Output m_OutImageInfoOriginRAICode {
           label {RAI Code:}
-          xywh {245 136 65 24} color 49
+          xywh {245 136 235 24} color 49
         }
         Fl_Value_Input {m_InImageInfoCursorIndex[0]} {
           label {Voxel coordinates  x:}
-          callback {this->OnImageInformationVoxelCoordinatesUpdate();} selected
+          callback {this->OnImageInformationVoxelCoordinatesUpdate();}
           xywh {245 226 65 24}
         }
         Fl_Value_Input {m_InImageInfoCursorIndex[1]} {
           label {y:}
-          callback {this->OnImageInformationVoxelCoordinatesUpdate();} selected
+          callback {this->OnImageInformationVoxelCoordinatesUpdate();}
           xywh {330 226 65 24}
         }
         Fl_Value_Input {m_InImageInfoCursorIndex[2]} {
           label {z:}
-          callback {this->OnImageInformationVoxelCoordinatesUpdate();} selected
+          callback {this->OnImageInformationVoxelCoordinatesUpdate();}
           xywh {415 226 65 24}
         }
       }
     }
     Fl_Window m_WinColorMap {
       label {Preprocessed Image Color Map}
-      xywh {-32000 -32000 315 105} type Double hide non_modal
+      xywh {4 27 315 105} type Double non_modal visible
     } {
       Fl_Wizard m_WizColorMap {open
         xywh {0 0 325 115}
@@ -1474,7 +1489,7 @@ this->OnSNAPLabelOpacityChange();}
       }
     }
     Fl_Window m_WinAbout {
-      label {About ITK-SNAP} open
+      label {About ITK-SNAP}
       xywh {675 299 433 224} type Double hide
     } {
       Fl_Group {} {open
@@ -1501,6 +1516,39 @@ Build Date X.XX} open
         label {http://www.itksnap.org/bb} open
         xywh {210 195 185 30} labelfont 1 labelsize 12 labelcolor 136 align 21
       } {}
+    }
+    Fl_Window m_WinConfirmDiscard {
+      label {Discard Unsaved Changes?}
+      callback {m_ChkHiddenDiscardChanges->value(0);
+m_WinConfirmDiscard->hide();} open selected
+      xywh {663 660 503 133} type Double box PLASTIC_DOWN_BOX modal visible
+    } {
+      Fl_Button {} {
+        label {Go Back}
+        callback {m_ChkHiddenDiscardChanges->value(0);
+m_WinConfirmDiscard->hide();}
+        xywh {250 90 90 30} box PLASTIC_UP_BOX color 180 labelfont 1 labelsize 12 hotspot
+      }
+      Fl_Button {} {
+        label {Discard Changes}
+        callback {m_ChkHiddenDiscardChanges->value(1);
+m_WinConfirmDiscard->hide();}
+        xywh {350 90 125 30} box PLASTIC_UP_BOX color 180 labelsize 12
+      }
+      Fl_Group {} {
+        label {The changes you have made to the segmentation will be lost 
+if you continue. Please confirm that you want to discard these 
+changes, or press 'go back' in order to save the changes first.} open
+        xywh {85 20 400 55} align 21
+      } {}
+      Fl_Group {} {
+        label {!} open
+        xywh {15 20 55 55} box OFLAT_BOX color 224 selection_color 37 labelfont 9 labelsize 48 labelcolor 7 align 16
+      } {}
+      Fl_Check_Button m_ChkHiddenDiscardChanges {
+        label button
+        xywh {35 100 64 15} down_box DOWN_BOX hide deactivate
+      }
     }
   }
 } 

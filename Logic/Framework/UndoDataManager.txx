@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UndoDataManager.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 18:21:47 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -32,6 +32,11 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
+
+template<typename TPixel>
+unsigned long 
+UndoDataManager<TPixel>::Delta::m_UniqueIDCounter = 0;
+
 template<typename TPixel>
 UndoDataManager<TPixel>
 ::UndoDataManager(size_t nMinDeltas, size_t nMaxTotalSize)
@@ -136,4 +141,18 @@ UndoDataManager<TPixel>
 
   // Return the current delta
   return del;
+}
+
+template<typename TPixel>
+typename UndoDataManager<TPixel>::StateDescriptor
+UndoDataManager<TPixel>
+::GetState() const
+{
+  StateDescriptor sd;
+  for(DConstIterator it = m_DeltaList.begin(); it != m_Position; ++it)
+    {
+    const Delta *delta = *it;
+    sd.push_back(delta->GetUniqueID());
+    }
+  return sd;
 }

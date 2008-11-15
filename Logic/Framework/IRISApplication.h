@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -82,6 +82,7 @@ public:
   typedef itk::Image<LabelType,3> LabelImageType;
   typedef itk::Image<float,3> SpeedImageType;
   typedef itk::Command CommandType;
+  typedef UndoDataManager<LabelType> UndoManagerType;
 
   /**
    * Constructor for the IRIS/SNAP application
@@ -123,13 +124,10 @@ public:
    * grey image is loaded.  The prerequisite to this method is that the SNAP data
    * not be active (CurrentImageData == IRISImageData).
    */
-  void UpdateIRISGreyImage(GreyImageType *newGreyImage,
-                           const char *newImageRAICode);
-
-  void UpdateIRISRGBImage(RGBImageType *newRGBImage,
-                           const char *newImageRAICode);
+  void UpdateIRISGreyImage(GreyImageType *newGreyImage);
 
   void UpdateIRISRGBImage(RGBImageType *newRGBImage);
+  void UpdateIRISRGBImageOverlay(RGBImageType *newRGBImage);
 
   /** 
    * Update the IRIS image data with an external segmentation image (e.g., 
@@ -173,10 +171,10 @@ public:
   void SetDisplayToAnatomyRAI(const char *rai0,const char *rai1,const char *rai2);
 
   /** Get the current image to anatomy RAI code */
-  const char *GetImageToAnatomyRAI();
+  std::string GetImageToAnatomyRAI();
 
   /** Get the current display to anatomy RAI code */
-  const char *GetDisplayToAnatomyRAI(unsigned int slice);
+  std::string GetDisplayToAnatomyRAI(unsigned int slice);
 
   /** Get the image axis for a given anatomical direction */
   size_t GetImageDirectionForAnatomicalDirection(
@@ -256,13 +254,13 @@ public:
    * load an image based on the filename. The second parameter is the rai
    * code (orientation), which you can override (i.e., on command line)
    */
-  void LoadGreyImageFile(const char *filename, const char *rai = NULL);
+  void LoadGreyImageFile(const char *filename);
 
   /** 
    * Load the RGB image file (either as main, or as overlay, depending on
    * whether grey has already been loaded)
    */
-  void LoadRGBImageFile(const char *filename, const char *rai = NULL);
+  void LoadRGBImageFile(const char *filename);
 
   /**
    * This is the most high-level method to load a segmentation image. The
@@ -290,6 +288,13 @@ public:
   /** Redo (undo the undo) */
   void Redo();
 
+  irisGetMacro(UndoManager, const UndoManagerType &);
+
+  /** 
+   * Reorient the main image (and all overlays) 
+   */
+  void ReorientImage(vnl_matrix_fixed<double, 3, 3> inDirection);
+
 private:
   // Image data objects
   GenericImageData *m_CurrentImageData;
@@ -306,9 +311,6 @@ private:
   // SystemInterface used to get things from the system
   SystemInterface *m_SystemInterface;
 
-  /** RAI between image space and anatomy space */
-  std::string m_ImageToAnatomyRAI;
-
   /** RAI between anatomy space and image space */
   std::string m_DisplayToAnatomyRAI[3];
 
@@ -320,7 +322,7 @@ private:
   // stores 'deltas', i.e., differences between states of the segmentation
   // image. These deltas are compressed, allowing us to store a bunch of 
   // undo steps with little cost in performance or memory
-  typedef UndoDataManager<LabelType> UndoManagerType;
+  
   UndoManagerType m_UndoManager;
 };
 

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -125,11 +125,6 @@ public:
   virtual void OnHeaderPageInputChange();  
   virtual void OnDICOMPageNext();
   virtual void OnDICOMPageBack();
-  virtual void OnOrientationPageNext();
-  virtual void OnOrientationPageBack();
-  virtual void OnOrientationPageSelectPreset();
-  virtual void OnOrientationPageSelect();
-  virtual void OnOrientationPageRAIChange();
   virtual void OnSummaryPageFinish();
   virtual void OnSummaryPageBack();
 
@@ -137,7 +132,6 @@ public:
   virtual void OnFilePageEnter();
   virtual void OnHeaderPageEnter();
   virtual void OnDICOMPageEnter();
-  virtual void OnOrientationPageEnter();
   virtual void OnSummaryPageEnter();
 
   // Save related functions
@@ -158,18 +152,7 @@ public:
   {
     assert(IsImageLoaded());
     return m_Image;
-  }
-  
-  /**
-   * Get the RAI orientation code read from the image or supplied by the
-   * user.  Returns NULL if RAI is invalid
-   */
-  const char *GetLoadedImageRAI()
-  {
-    const char *rai = m_InRAICode->value();
-    return ImageCoordinateGeometry::IsRAICodeValid(rai) ? rai : NULL;
-  }
-  
+  }  
   
   /**
    * Has the image been loaded successfully?
@@ -255,16 +238,6 @@ protected:
   /** A guided image IO object used to load images */
   GuidedImageIO<TPixel> m_GuidedIO;
 
-  /** A mapping from axis index and flip state to orientation menu items */
-  unsigned int m_MapOrientationIndexAndFlipToMenuItem[3][2];
-  
-  /** A mapping from axis orientation index to doll wizard page */
-  unsigned int m_MapOrientationIndexToDollPageIndex[3][3][3];
-
-  /** A mapping from axis orientation index to position of origin 
-   * on the doll image */
-  unsigned int m_OrientationIndexToDollVertex[3][3][3];
-
   /** Text buffer for one of the summary widgets */
   Fl_Text_Buffer *m_SummaryTextBuffer;
 
@@ -287,6 +260,12 @@ protected:
    * Allow children to specify which file formats they can and can't load
    */
   virtual bool CanLoadFileFormat(FileFormat format) const;
+
+  /**
+   * Allow children to specify whether they can support loading images in
+   * native format
+   */
+  virtual bool IsNativeFormatSupported() const = 0;
 
   /**
    * This method should return a string containing the patterns of files
@@ -318,20 +297,11 @@ protected:
   // Check image validity after the initial load
   virtual bool CheckImageValidity() { return true; }
 
-  // Try to determine the RAI code of the image
-  virtual void GuessImageOrientation();
-
   // Check if the image is valid
   virtual bool CheckFinalValidity() 
   {
     return (m_Image);
   }
-
-  // Apply a new RAI structure
-  void SetRAI(const char *);
-  
-  // Set the state reflecting an invalid RAI
-  void SetRAIToInvalid(const char *);
 };
 
 // TXX not included on purpose!

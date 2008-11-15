@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageCoordinateGeometry.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/15 12:20:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -46,11 +46,13 @@
 class ImageCoordinateGeometry
   {
 public:
+  typedef vnl_matrix<double> DirectionMatrix;
+
   /** Constructor initializes geometry with default identity transforms */
   ImageCoordinateGeometry();
 
   /** Constructor that calls GetGeometry */
-  ImageCoordinateGeometry(std::string imageAnatomyRAICode,
+  ImageCoordinateGeometry(DirectionMatrix imageDirection,
                           std::string displayAnatomyRAICode[3],
                           const Vector3ui &imageSize);
 
@@ -60,12 +62,15 @@ public:
   /** Initializes geometry with tranforms specified by character
    * RAI codes for the image-anatomy and display-anatomy transforms and the 
    * image size */
-  void SetGeometry(std::string imageAnatomyRAICode,
+  void SetGeometry(DirectionMatrix imageDirection,
                    std::string displayAnatomyRAICode[3],
                    const Vector3ui &imageSize);
 
   /** Get the transform from image to patient coordinate system */
   irisGetMacro(ImageToAnatomyTransform,const ImageCoordinateTransform &);
+
+  /** Get the image to anatomy direction matrix */
+  irisGetMacro(ImageDirectionCosineMatrix, DirectionMatrix);
 
   /** Get the transform from patient to display coordinate system */
   const ImageCoordinateTransform & GetAnatomyToDisplayTransform(unsigned int i)
@@ -91,6 +96,12 @@ public:
   /** Map an RAI code to a mapping vector of positive or negative 1,2,3 */
   static Vector3i ConvertRAIToCoordinateMapping(const char *code);  
 
+  /** Map ITK direction cosines matrix to the closest RAI code */
+  static std::string ConvertDirectionMatrixToClosestRAICode(DirectionMatrix mat);
+
+  /** Check if the direction cosines are oblique (not parallel to coord system) */
+  static bool IsDirectionMatrixOblique(DirectionMatrix mat);
+
   /** Invert a mapping vector of 1,2,3 */
   static Vector3i InvertMappingVector(const Vector3i &mapping);
 
@@ -103,6 +114,9 @@ private:
   // Three anatomy to display transforms (for each of the 3D slices)
   ImageCoordinateTransform m_ImageToDisplayTransform[3];
   ImageCoordinateTransform m_DisplayToImageTransform[3];
+
+  // Image to anatomy direction matrix
+  DirectionMatrix m_ImageDirectionCosineMatrix;
   };
 
 #endif
