@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelEditorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/17 19:38:23 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -77,14 +77,19 @@ public:
   void OnCloseAction();
   void OnLabelSelectAction();
   void OnLabelPropertyChange();
-  void OnMergeDialogAction();
-  void OnMergeAction();
-  void OnMergeLabelChange();
+  void OnToolsDialogAction();
+  void OnToolsApplyAction();
+  void OnToolsCloseAction();
+  void OnToolsOperationChange();
 
 private:
   UserInterfaceBase *m_Parent;
   GlobalState *m_GlobalState;
   IRISApplication *m_Driver;
+
+  // Internal menus
+  static const size_t TOOL_PAGE_LABEL_MENU_COUNT;
+  Fl_Menu_Item **m_ToolPageLabelMenu;
 
   // Internal functions
   int FindSpaceForNewLabel();

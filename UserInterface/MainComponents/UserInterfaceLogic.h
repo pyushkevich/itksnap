@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2008/11/17 19:38:23 $
+  Version:   $Revision: 1.16 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -484,7 +484,6 @@ public:
   // Color label callbacks
   void UpdateColorLabelMenu();
   void UpdateColorLabelSelection();
-  void UpdateColorChips();
   void OnDrawingLabelUpdate();
   void OnDrawOverLabelUpdate();
   
@@ -524,7 +523,7 @@ public:
   void OnRGBImageUpdate();
 
   /** Update the user interface after loading a new segmentation image  */
-  void OnSegmentationImageUpdate();
+  void OnSegmentationImageUpdate(bool reloaded);
 
   /** Update the user interface after loading a new labels file  */
   // void OnSegmentationLabelsUpdate(bool resetCurrentAndDrawOverLabels);
@@ -605,6 +604,7 @@ public:
 
   // Method for creating undo points
   void StoreUndoPoint(const char *text);
+  void ClearUndoPoints();
 
   // Methods to tweak window positions
   void OnWindowFocus(int iWindow);
@@ -622,6 +622,11 @@ public:
   void NonInteractiveLoadGrey(const char *fname);
   void NonInteractiveLoadSegmentation(const char *fname);
   void NonInteractiveLoadLabels(const char *fname);
+
+  // Update menu of color labels
+  // TODO: move this to a separate class in FLTK widget directory
+  Fl_Menu_Item *GenerateColorLabelMenu(bool all, bool visible, bool clear);
+  void DeleteColorLabelMenu(Fl_Menu_Item *menu);
 
 protected:
 
@@ -719,7 +724,6 @@ protected:
 
   // Toggle cursor synchronization
   void OnSynchronizeCursorAction();
-
 
   char *m_ChosedFile;
 
@@ -957,12 +961,18 @@ private:
   // was last saved or loaded. This allows us to set the unsaved
   // changes flag during undo and redo operations
   std::list<unsigned long> m_UndoStateAtLastIO;
+
+  // Menu containing color labels, for use in FLTK menus
+  Fl_Menu_Item *m_MenuDrawingLabels, *m_MenuDrawOverLabels;
 };
 
 #endif
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.16  2008/11/17 19:38:23  pyushkevich
+ *Added tools dialog to label editor window
+ *
  *Revision 1.15  2008/11/15 12:20:38  pyushkevich
  *Several new features added for release 1.8, including (1) support for reading floating point and mapping to short range; (2) use of image direction cosines to determine image orientation; (3) new reorient image dialog and changes to the IO wizard; (4) display of NIFTI world coordinates and yoking based on them; (5) multi-session zoom; (6) fixes to the way we keep track of unsaved changes to segmentation, including a new discard dialog; (7) more streamlined code for offline loading; (8) new command-line options, allowing RGB files to be read and opening SNAP by doubleclicking images; (9) versioning for IPC communications; (10) ruler for display windows; (11) bug fixes and other stuff I can't remember
  *

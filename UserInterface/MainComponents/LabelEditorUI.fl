@@ -7,8 +7,8 @@ class LabelEditorUI {open : {private LabelEditorUIBase}
   Function {MakeWindow()} {open
   } {
     Fl_Window m_WinMain {
-      label {Segmentation Label Editor - ITK-SNAP}
-      xywh {811 254 440 392} type Double
+      label {Segmentation Label Editor - ITK-SNAP} open
+      xywh {811 254 440 405} type Double
       code0 {\#include "LabelEditorUIBase.h"} visible
     } {
       Fl_Group {} {
@@ -92,80 +92,123 @@ class LabelEditorUI {open : {private LabelEditorUIBase}
           Fl_Check_Button m_ChkPromptId {
             label {Allow me to enter label ids when
 adding new labels}
-            xywh {225 180 195 20} down_box DOWN_BOX selection_color 180 labelsize 12 align 21
+            xywh {225 205 195 20} down_box DOWN_BOX selection_color 180 labelsize 12 align 21
           }
         }
       }
       Fl_Button {} {
         label New
         callback {OnNewAction()}
-        xywh {10 355 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        xywh {10 370 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Button {} {
         label Delete
         callback {OnDeleteAction()}
-        xywh {150 355 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        xywh {160 370 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Button {} {
         label Duplicate
         callback {OnDuplicateAction()}
-        xywh {80 355 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        xywh {85 370 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Button {} {
         label Close
         callback {OnCloseAction()}
-        xywh {360 355 70 25} box PLASTIC_UP_BOX color 180 labelfont 1 labelsize 12
+        xywh {360 370 70 25} box PLASTIC_UP_BOX color 180 labelfont 1 labelsize 12
       }
       Fl_Button {} {
-        label {Merge...}
-        callback {OnMergeDialogAction()}
-        xywh {220 355 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        label {Tools...}
+        callback {OnToolsDialogAction()}
+        xywh {235 370 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
+      Fl_Group {} {
+        label {Note: changes to label ids and deletion of labels can not be undone!} open
+        xywh {10 345 420 20} labelsize 10 align 20
+      } {}
     }
-    Fl_Window m_WinMerge {
-      label {Merge Labels - ITK-SNAP} open
-      xywh {883 696 305 182} type Double visible
+    Fl_Window m_WinTools {
+      label {Label Tools - ITK-SNAP} open
+      xywh {826 696 296 270} type Double modal visible
     } {
-      Fl_Choice {m_MergeLabel[0]} {
-        label {Input label 1:}
-        callback {this->OnMergeLabelChange();} open
-        xywh {115 20 135 20} down_box BORDER_BOX labelsize 12 textsize 12
-      } {}
-      Fl_Choice {m_MergeLabel[1]} {
-        label {Input label 2:}
-        callback {this->OnMergeLabelChange();} open
-        xywh {115 50 135 20} down_box BORDER_BOX labelsize 12 textsize 12
-      } {}
-      Fl_Choice {m_MergeLabel[2]} {
-        label {Output label:}
-        callback {this->OnMergeLabelChange();} open
-        xywh {115 80 135 20} down_box BORDER_BOX labelsize 12 textsize 12
-      } {}
-      Fl_Check_Button m_ChkMergeTopological {
-        label {Topology-preserving merge}
-        xywh {90 110 215 20} down_box DOWN_BOX labelsize 12 deactivate
-      }
-      Fl_Group {m_GrpMergeColor[0]} {
-        label {Active drawing label:} open
-        xywh {255 20 35 20} box BORDER_BOX color 23 selection_color 57 labeltype NO_LABEL labelsize 11 align 0
-      } {}
-      Fl_Group {m_GrpMergeColor[1]} {
-        label {Active drawing label:} open
-        xywh {255 50 35 20} box BORDER_BOX color 23 selection_color 57 labeltype NO_LABEL labelsize 11 align 0
-      } {}
-      Fl_Group {m_GrpMergeColor[2]} {
-        label {Active drawing label:} open
-        xywh {255 80 35 20} box BORDER_BOX color 23 selection_color 57 labeltype NO_LABEL labelsize 11 align 0
-      } {}
-      Fl_Button m_BtnMerge {
-        label Merge
-        callback {OnMergeAction()}
-        xywh {155 145 65 25} box PLASTIC_UP_BOX color 180 labelfont 1 labelsize 12 deactivate
+      Fl_Button m_BtnToolsApply {
+        label Apply
+        callback {OnToolsApplyAction()}
+        xywh {80 235 65 25} box PLASTIC_UP_BOX color 180 labelfont 1 labelsize 12
       }
       Fl_Button {} {
         label Close
-        callback {m_WinMerge->hide();}
-        xywh {225 145 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        callback {OnToolsCloseAction();}
+        xywh {155 235 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
+      }
+      Fl_Choice m_InToolsOperation {
+        label {Operation:}
+        callback {OnToolsOperationChange();} open
+        xywh {15 25 265 20} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+      } {
+        MenuItem {} {
+          label {Replace label by another}
+          xywh {5 5 30 20} labelsize 12
+        }
+        MenuItem {} {
+          label {Topology-preserving merge}
+          xywh {10 10 30 20} labelsize 12
+        }
+        MenuItem {} {
+          label {Enforce well-composed property}
+          xywh {20 20 30 20} labelsize 12
+        }
+      }
+      Fl_Wizard m_WizToolControls {open
+        xywh {15 55 265 160} box PLASTIC_DOWN_BOX
+      } {
+        Fl_Group {m_GrpToolPage[0]} {open selected
+          xywh {15 55 265 160} labelsize 11 align 21
+        } {
+          Fl_Choice {m_InToolPageLabel[0]} {
+            label {Source label:} open
+            xywh {30 135 235 20} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+          } {}
+          Fl_Choice {m_InToolPageLabel[1]} {
+            label {Target label:} open
+            xywh {30 180 235 20} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+          } {}
+          Fl_Group {} {
+            label {This operation simply relabels all voxels assigned
+ the source label with the target label.} open
+            xywh {20 60 255 50} labelsize 11 align 21
+          } {}
+        }
+        Fl_Group {m_GrpToolPage[1]} {open
+          xywh {15 55 265 160} labelsize 11 align 21 hide
+        } {
+          Fl_Choice {m_InToolPageLabel[2]} {
+            label {Source label:} open
+            xywh {30 135 235 20} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+          } {}
+          Fl_Choice {m_InToolPageLabel[3]} {
+            label {Target label:} open
+            xywh {30 180 235 20} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+          } {}
+          Fl_Group {} {
+            label {This tool grows the source label into the target label
+preserving the topology of the source label.} open
+            xywh {20 60 255 50} labelsize 11 align 21
+          } {}
+        }
+        Fl_Group {m_GrpToolPage[2]} {open
+          xywh {15 55 265 160} labelsize 11 align 21 hide
+        } {
+          Fl_Choice {m_InToolPageLabel[4]} {
+            label {Target label:} open
+            xywh {30 135 235 20} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+          } {}
+          Fl_Group {} {
+            label {This tool makes the segmentation for the target label
+well-composed. Well-composed segmentations have
+non-ambiguous topology and lead to better meshes.} open
+            xywh {20 60 255 50} labelsize 11 align 21
+          } {}
+        }
       }
     }
   }

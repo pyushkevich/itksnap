@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.27 $
+  Date:      $Date: 2008/11/17 19:38:23 $
+  Version:   $Revision: 1.28 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -100,6 +100,27 @@ UserInterfaceLogic* UserInterfaceLogic::m_GlobalUI = NULL;
 
 using namespace itk;
 using namespace std;
+
+#define COLORBAR_LABEL FL_FREE_LABELTYPE
+
+void xyz_draw(const Fl_Label *label, int x, int y, int w, int h, Fl_Align align) {  
+  // We can't trust the label's color because it can be changed when the menu item
+  // is selected. Instead, we encode the color in the label itself using octal notation
+  unsigned int box_color;  
+  sscanf(label->value,"%x",&box_color);
+  fl_font(label->font, label->size);
+  fl_color((Fl_Color)label->color);
+  fl_draw(label->value + 9, x + h + label->size / 2, y, w-h, h, FL_ALIGN_LEFT);
+  fl_draw_box(FL_BORDER_BOX, x, y, h, h, (Fl_Color) box_color);
+}
+
+void xyz_measure(const Fl_Label *label, int &w, int &h) 
+{  
+  fl_font(label->font, label->size);
+  fl_measure(label->value + 9, w, h);
+  w += h + label->size / 2; 
+}
+
 
 /**
  * \class GreyImageInfoCallback
@@ -316,6 +337,13 @@ UserInterfaceLogic
 ::UserInterfaceLogic(IRISApplication *iris)
 : UserInterface()
 {
+  // Initialize the menu lists to NULL
+  m_MenuDrawingLabels = NULL;
+  m_MenuDrawOverLabels = NULL;
+
+  // TODO: move this!
+  Fl::set_labeltype(COLORBAR_LABEL, xyz_draw, xyz_measure);
+
   // Store the pointers to application and system high level objects
   m_Driver = iris;
   m_SystemInterface = iris->GetSystemInterface();
@@ -469,11 +497,16 @@ UserInterfaceLogic
 
   // Opacity toggle value set to default
   m_OpacityToggleValue = 128;
+
 }
 
 UserInterfaceLogic
 ::~UserInterfaceLogic() 
 {
+  // Delete the menus
+  DeleteColorLabelMenu(m_MenuDrawingLabels);
+  DeleteColorLabelMenu(m_MenuDrawOverLabels);
+
   // Delete the IO wizards
   delete m_WizGreyIO;
   delete m_WizRGBIO;
@@ -1775,10 +1808,6 @@ UserInterfaceLogic
     m_SliceWindow[i]->show();
   m_RenderWindow->show();
 
-  // Show other GL-based windows
-  m_GrpCurrentColor->show();
-  m_OutDrawOverColor->show();
-
   // Show the IRIS interface
 }
 
@@ -1929,40 +1958,102 @@ UserInterfaceLogic
       m_InDrawOverColor->value(j + 2);
 }
 
+void
+UserInterfaceLogic
+::DeleteColorLabelMenu(Fl_Menu_Item *menu)
+{
+  if(menu) 
+    {
+    for(Fl_Menu_Item *mi = menu; mi->text != NULL; ++mi)
+      delete mi->text;
+    delete menu;
+    }
+}
+
+void InitMenuItem(Fl_Menu_Item *p, const ColorLabel &cl, LabelType id)
+{
+  char *strcopy = (char *) calloc(strlen(cl.GetLabel()) + 10, sizeof(char));
+  sprintf(strcopy, "%08x %s", 
+    fl_rgb_color(cl.GetRGB(0),cl.GetRGB(1),cl.GetRGB(2)),
+    cl.GetLabel()); 
+  p->label(COLORBAR_LABEL, strcopy);
+  p->shortcut(0);
+  p->callback((Fl_Callback *) 0);
+  p->user_data((void *) (size_t) id);
+  p->flags = 0;     
+  p->labelcolor(FL_BLACK);
+  p->labelfont(0);
+  p->labelsize(0);
+}
+
+void InitMenuItem(Fl_Menu_Item *p, const char *text)
+{
+  char *strcopy = (char *) calloc(strlen(text) + 1, sizeof(char));
+  strcpy(strcopy, text); 
+  p->label(FL_NORMAL_LABEL, strcopy);
+  p->shortcut(0);
+  p->callback((Fl_Callback *) 0);
+  p->user_data(0);
+  p->flags = 0;     
+  p->labelcolor(FL_BLACK);
+  p->labelfont(0);
+  p->labelsize(0);
+}
+
+
+Fl_Menu_Item *
+UserInterfaceLogic
+::GenerateColorLabelMenu(bool all, bool visible, bool clear) 
+{
+  // Compute the number of labels
+  ColorLabelTable *clt = m_Driver->GetColorLabelTable();
+  size_t n = clt->GetNumberOfValidLabels() - 1;
+  if(all) n++;
+  if(visible) n++;
+  if(clear) n++;
+
+  // Create the new menu and a pointer
+  Fl_Menu_Item *menu = new Fl_Menu_Item[n+1], *p = menu;
+
+  // Add the all labels item
+  if(all)
+    InitMenuItem(p++, "All labels");
+  if(visible)
+    InitMenuItem(p++, "Visible labels");
+  if(clear)
+    InitMenuItem(p++, clt->GetColorLabel(0), 0);
+  for (size_t i = 1; i < MAX_COLOR_LABELS; i++) 
+    {
+    const ColorLabel &cl = clt->GetColorLabel(i);
+    if (cl.IsValid()) 
+      InitMenuItem(p++, cl, i);
+    }
+
+  // Last item is NULL
+  p->text = NULL;
+
+  // Return the menu
+  return menu;
+}
+
 void 
 UserInterfaceLogic
 ::UpdateColorLabelMenu() 
 {  
-  // Set up the over-paint label
+  // Set up the paint-over menu
   m_InDrawOverColor->clear();
-  m_InDrawOverColor->add("All labels");
-  m_InDrawOverColor->add("Visible labels");
-  m_InDrawOverColor->add("Clear label", 0, NULL, (void *) 0);
-  
-  // Set up the draw color
-  m_InDrawingColor->clear();
-  m_InDrawingColor->add("Clear label", 0, NULL, (void *) 0);
+  DeleteColorLabelMenu(m_MenuDrawOverLabels);
+  m_MenuDrawOverLabels = GenerateColorLabelMenu(true, true, true);
+  m_InDrawOverColor->menu(m_MenuDrawOverLabels);
 
-  // Add each of the color labels to the drop down boxes
-  if (m_GreyFileLoaded)
-    {
-    for (size_t i = 1; i < MAX_COLOR_LABELS; i++) 
-      {
-      ColorLabel cl = m_Driver->GetColorLabelTable()->GetColorLabel(i);
-      if (cl.IsValid()) 
-        {
-        // Add these entries
-        m_InDrawOverColor->add(cl.GetLabel(), 0, NULL, (void *) i);
-        m_InDrawingColor->add(cl.GetLabel(), 0, NULL, (void *) i);
-        }
-      }
-    }
+  // Set up the draw color menu
+  m_InDrawingColor->clear();
+  DeleteColorLabelMenu(m_MenuDrawingLabels);
+  m_MenuDrawingLabels = GenerateColorLabelMenu(false, false, true);
+  m_InDrawingColor->menu(m_MenuDrawingLabels);
   
   // Update the color label that is currently selected
   UpdateColorLabelSelection();
-  
-  // Update the color chips
-  UpdateColorChips();
 }
 
 void 
@@ -2026,31 +2117,6 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
-::UpdateColorChips()
-{
-  uchar index = m_GlobalState->GetDrawingColorLabel();
-  uchar rgb[3];
-  m_Driver->GetColorLabelTable()->GetColorLabel(index).GetRGBVector(rgb);
-  m_GrpCurrentColor->color(fl_rgb_color(rgb[0], rgb[1], rgb[2]));
-  m_GrpCurrentColor->redraw();
-
-  if(m_GlobalState->GetCoverageMode() == PAINT_OVER_ONE)
-    {
-    index = m_GlobalState->GetOverWriteColorLabel();
-    m_Driver->GetColorLabelTable()->GetColorLabel(index).GetRGBVector(rgb);
-    m_OutDrawOverColor->color(fl_rgb_color(rgb[0], rgb[1], rgb[2]));
-    m_OutDrawOverColor->redraw();
-    }
-  else
-    {
-    rgb[0]=rgb[1]=rgb[2]=192;
-    m_OutDrawOverColor->color(fl_rgb_color(rgb[0],rgb[1],rgb[2]));
-    m_OutDrawOverColor->redraw();
-    }
-}
-
-void 
-UserInterfaceLogic
 ::OnDrawingLabelUpdate()
 {
   // Get the drawing label that was selected
@@ -2059,9 +2125,6 @@ UserInterfaceLogic
   
   // Set the global state
   m_GlobalState->SetDrawingColorLabel((LabelType) iLabel);
-  
-  // Update the color chips
-  this->UpdateColorChips();
 }
 
 void 
@@ -2082,9 +2145,6 @@ UserInterfaceLogic
     m_GlobalState->SetCoverageMode(PAINT_OVER_ONE);
     m_GlobalState->SetOverWriteColorLabel(iLabel);
     }
-
-  // Update the color chips
-  this->UpdateColorChips();
 }
 
 void 
@@ -2353,9 +2413,6 @@ void
 UserInterfaceLogic
 ::OnLabelListUpdate()
 {
-  // Update the little color chips that show the current label
-  UpdateColorChips();
-
   // Update the drop down box of labels to reflect the current settings
   UpdateColorLabelMenu();
 
@@ -3052,30 +3109,29 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
-::OnSegmentationImageUpdate()
+::OnSegmentationImageUpdate(bool reloaded)
 {
-  m_SegmentationLoaded = 1; 
+  // Certain things required only if image is reloaded
+  if(reloaded)
+    {
+    // TODO: what the heck is this variable?
+    m_SegmentationLoaded = 1; 
 
-  // The list of labels may have changed
-  OnLabelListUpdate();
+    // The list of labels may have changed
+    OnLabelListUpdate();
 
-  // Re-Initialize the 2D windows
-  // for (unsigned int i=0; i<3; i++) 
-  //   m_IRISWindow2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
+    // The 3D window needs to be reset
+    m_IRISWindowManager3D->ResetView();
+    }
 
-  m_IRISWindowManager3D->ResetView();
-  m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
-  
-  // There are now no unsaved changes (this will update the main window too)
-  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
-
-  // Save the state of the Undo manager at the time the image was updated
-  m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState();
-
-  // Disable undo and redo 
+  // Toggle the undo/redo flags
   m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
   m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
 
+  // The mesh is now dirty
+  m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
+
+  // Disable undo and redo 
   RedrawWindows();
   m_WinMain->redraw();
 }
@@ -3686,8 +3742,14 @@ void UserInterfaceLogic
   // Get the driver to clear the image
   m_Driver->ClearIRISSegmentationImage();
 
+  // There are now no unsaved changes (this will update the main window too)
+  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
+
+  // Save the state of the Undo manager at the time the image was updated
+  m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState();
+
   // Update the user interface
-  OnSegmentationImageUpdate();
+  OnSegmentationImageUpdate(true);
 }
 
 
@@ -3701,8 +3763,11 @@ void UserInterfaceLogic
   m_SystemInterface->UpdateHistory("SegmentationImage",  
     itksys::SystemTools::CollapseFullPath(fname).c_str());
 
-  // Update the user interface accordingly
-  OnSegmentationImageUpdate();  
+  // There are now no unsaved changes (this will update the main window too)
+  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
+
+  // Save the state of the Undo manager at the time the image was updated
+  m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState(); 
 }
 
 void UserInterfaceLogic
@@ -3744,8 +3809,11 @@ void UserInterfaceLogic
     m_GlobalState->SetSegmentationFileName(m_WizSegmentationIO->GetFileName());
     m_GlobalState->SetLastAssociatedSegmentationFileName(m_WizSegmentationIO->GetFileName());
 
-    // Update the user interface accordingly
-    OnSegmentationImageUpdate();
+    // There are now no unsaved changes (this will update the main window too)
+    m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
+
+    // Save the state of the Undo manager at the time the image was updated
+    m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState();
     }
 
   // Disconnect the input wizard from the grey image
@@ -4329,6 +4397,21 @@ UserInterfaceLogic
     m_UndoStateAtLastIO != m_Driver->GetUndoManager().GetState());
 }
 
+void
+UserInterfaceLogic
+::ClearUndoPoints()
+{
+  m_Driver->ClearUndoPoints();
+
+  // Update the flags in the UI
+  m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
+  m_Activation->UpdateFlag(UIF_REDO_POSSIBLE, m_Driver->IsRedoPossible());
+
+  // Update the saved changes flag (now true, unless equal to saved image)
+  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, 
+    m_UndoStateAtLastIO != m_Driver->GetUndoManager().GetState());
+}
+
 void 
 UserInterfaceLogic
 ::OnUnsavedChangesStateChange(UIStateFlags flag, bool value)
@@ -4338,8 +4421,8 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
- *Revision 1.27  2008/11/15 12:20:38  pyushkevich
- *Several new features added for release 1.8, including (1) support for reading floating point and mapping to short range; (2) use of image direction cosines to determine image orientation; (3) new reorient image dialog and changes to the IO wizard; (4) display of NIFTI world coordinates and yoking based on them; (5) multi-session zoom; (6) fixes to the way we keep track of unsaved changes to segmentation, including a new discard dialog; (7) more streamlined code for offline loading; (8) new command-line options, allowing RGB files to be read and opening SNAP by doubleclicking images; (9) versioning for IPC communications; (10) ruler for display windows; (11) bug fixes and other stuff I can't remember
+ *Revision 1.28  2008/11/17 19:38:23  pyushkevich
+ *Added tools dialog to label editor window
  *
  *Revision 1.26  2008/11/01 11:32:00  pyushkevich
  *Compatibility with ITK 3.8 support for reading oriented images

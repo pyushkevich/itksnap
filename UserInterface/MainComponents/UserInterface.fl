@@ -37,7 +37,7 @@ class UserInterface {open : {public UserInterfaceBase}
   } {
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
-      callback {OnMainWindowCloseAction();}
+      callback {OnMainWindowCloseAction();} open
       xywh {695 221 875 710} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"} visible
     } {
@@ -297,7 +297,7 @@ class UserInterface {open : {public UserInterfaceBase}
           label {Control Pane} open
           xywh {0 25 145 680} box NO_BOX color 22 align 16
         } {
-          Fl_Group m_GrpToolbarPage {open
+          Fl_Group m_GrpToolbarPage {open selected
             xywh {0 25 145 680} color 53 labelsize 12
           } {
             Fl_Group m_GrpInteractionModes {
@@ -330,15 +330,15 @@ class UserInterface {open : {public UserInterfaceBase}
             }
             Fl_Group {} {
               label {Tool Options} open
-              xywh {5 164 135 137} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
+              xywh {5 164 135 167} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
             } {
               Fl_Wizard m_TabsToolOptions {
                 label {Active Tool Settings} open
-                xywh {5 165 135 136} box NO_BOX color 22 labeltype NO_LABEL labelsize 12 labelcolor 4
+                xywh {5 165 135 166} box NO_BOX color 22 labeltype NO_LABEL labelsize 12 labelcolor 4
               } {
                 Fl_Group m_GrpToolOptionCrosshairs {
                   label 1
-                  xywh {5 165 135 135} labeltype NO_LABEL labelfont 1 labelsize 12 align 17
+                  xywh {5 165 135 165} labeltype NO_LABEL labelfont 1 labelsize 12 align 17
                 } {
                   Fl_Output m_OutGreyProbe {
                     label {Intensity:}
@@ -359,12 +359,12 @@ class UserInterface {open : {public UserInterfaceBase}
                   Fl_Check_Button m_BtnSynchronizeCursor {
                     label {Multisession cursor}
                     callback {this->OnSynchronizeCursorAction();}
-                    tooltip {Synchronizes the crosshair position across multple sessions of ITK-SNAP} xywh {15 280 115 15} down_box DOWN_BOX value 1 labelsize 11
+                    tooltip {Synchronizes the crosshair position across multple sessions of ITK-SNAP} xywh {15 285 115 45} down_box DOWN_BOX value 1 labelsize 11
                   }
                 }
                 Fl_Group m_GrpToolOptionPolygon {
                   label 3
-                  xywh {5 165 135 135} color 22 labelsize 10 labelcolor 4 hide
+                  xywh {5 165 135 165} color 22 labelsize 10 labelcolor 4 hide
                 } {
                   Fl_Group {} {
                     label {Polygon Tool} open
@@ -398,11 +398,11 @@ class UserInterface {open : {public UserInterfaceBase}
                 }
                 Fl_Group m_GrpToolOptionPaintCan {
                   label 4
-                  xywh {5 165 135 135} labelsize 10 hide
+                  xywh {5 165 135 165} labelsize 10 hide
                 } {}
                 Fl_Group m_GrpToolOptionSnAP {
                   label 5
-                  xywh {5 165 135 135} labelsize 10 hide
+                  xywh {5 165 135 165} labelsize 10 hide
                 } {
                   Fl_Group {} {
                     label {SnAP Region Tool} open
@@ -411,7 +411,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   Fl_Button m_BtnResetROI {
                     label {Reset Region}
                     callback {OnResetROIAction();}
-                    tooltip {Set region of interest to entire volume} xywh {20 235 105 25} box PLASTIC_UP_BOX color 181 labelsize 11
+                    tooltip {Set region of interest to entire volume} xywh {20 265 105 25} box PLASTIC_UP_BOX color 181 labelsize 11
                   }
                   Fl_Check_Button m_ChkResampleRegion {
                     label { Resample region}
@@ -420,12 +420,12 @@ class UserInterface {open : {public UserInterfaceBase}
                   Fl_Button m_BtnStartSnake {
                     label {Segment 3D}
                     callback {OnSnakeStartAction();}
-                    xywh {20 265 105 25} box PLASTIC_UP_BOX shortcut 0x40061 color 181 labelfont 1 labelsize 11
+                    xywh {20 295 105 25} box PLASTIC_UP_BOX shortcut 0x40061 color 181 labelfont 1 labelsize 11
                   }
                 }
                 Fl_Group m_GrpToolOptionZoomPan {
                   label 2 open
-                  xywh {5 165 135 135} labelsize 10 hide
+                  xywh {5 165 135 165} labelsize 10 hide
                 } {
                   Fl_Group {} {
                     label {Zoom / Pan Tool} open
@@ -444,21 +444,21 @@ class UserInterface {open : {public UserInterfaceBase}
                   Fl_Value_Input m_InZoomLevel {
                     label {Zoom:}
                     callback {OnZoomLevelChange();}
-                    tooltip {Zoom is specified as the number of screen pixels per millimeter in patient space} xywh {55 240 45 20} color 52 labelsize 11 when 8 step 0.001 textsize 11 deactivate
+                    tooltip {Zoom is specified as the number of screen pixels per millimeter in patient space} xywh {55 245 45 20} color 52 labelsize 11 when 8 step 0.001 textsize 11 deactivate
                   }
                   Fl_Button {} {
                     label {Fit all views}
                     callback {this->OnResetAllViews2DAction();}
-                    xywh {25 270 95 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 11 align 128
+                    xywh {25 295 95 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 11 align 128
                   }
                   Fl_Group m_GrpLinkedZoomUnits {
                     label {px/mm} open
-                    xywh {100 240 30 20} labelsize 10 align 20 deactivate
+                    xywh {100 245 30 20} labelsize 10 align 20 deactivate
                   } {}
                 }
                 Fl_Group m_GrpToolOptionBrush {
                   label 6
-                  xywh {5 165 135 135} color 22 labelsize 10 labelcolor 4 hide
+                  xywh {5 165 135 165} color 22 labelsize 10 labelcolor 4 hide
                 } {
                   Fl_Group {} {
                     label {Paintbrush Tool} open
@@ -486,38 +486,30 @@ class UserInterface {open : {public UserInterfaceBase}
                   Fl_Check_Button m_BtnPaintbrushIsotropic {
                     label Isotropic
                     callback {OnPaintbrushAttributesUpdate()}
-                    tooltip {Enable this in order to make the brush size more or less independent of the voxel size} xywh {75 255 64 15} down_box DOWN_BOX labelsize 11
+                    tooltip {Enable this in order to make the brush size more or less independent of the voxel size} xywh {75 260 64 15} down_box DOWN_BOX labelsize 11
                   }
                   Fl_Check_Button m_BtnPaintbrushChaseMode {
                     label {Cursor chases brush}
                     callback {OnPaintbrushAttributesUpdate()}
-                    tooltip {Enable this to make the crosshairs (the cursor) follow the paintbrush} xywh {10 275 120 15} down_box DOWN_BOX labelsize 11
+                    tooltip {Enable this to make the crosshairs (the cursor) follow the paintbrush} xywh {10 280 120 15} down_box DOWN_BOX labelsize 11
                   }
                   Fl_Check_Button m_BtnPaintbrush3D {
                     label {3D brush}
                     callback {OnPaintbrushAttributesUpdate()}
-                    tooltip {Enable to make the brush three-dimensional, so it paints in all three views at once} xywh {10 255 64 15} down_box DOWN_BOX labelsize 11
+                    tooltip {Enable to make the brush three-dimensional, so it paints in all three views at once} xywh {10 260 64 15} down_box DOWN_BOX labelsize 11
                   }
                 }
               }
             }
             Fl_Group {} {
               label {Segmentation Options} open
-              xywh {5 324 135 243} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
+              xywh {5 354 135 211} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
             } {
               Fl_Button {} {
-                label {Edit labels...}
+                label {Label editor...}
                 callback {OnEditLabelsAction();}
-                tooltip {Press this button to bring up the label editor} xywh {20 505 105 25} box PLASTIC_UP_BOX color 180 labelsize 11
+                tooltip {Press this button to bring up the label editor} xywh {20 500 105 25} box PLASTIC_UP_BOX color 180 labelsize 11
               }
-              Fl_Group m_GrpCurrentColor {
-                label {Active drawing label:} open
-                xywh {16 369 112 10} box BORDER_BOX color 23 selection_color 57 labeltype NO_LABEL labelsize 11 align 5
-              } {}
-              Fl_Group m_OutDrawOverColor {
-                label {Background label:} open
-                xywh {16 419 112 10} box BORDER_BOX color 23 labeltype NO_LABEL labelsize 11 align 5
-              } {}
               Fl_Value_Slider m_InIRISLabelOpacity {
                 label {Overall label opacity:}
                 callback {o->take_focus();
@@ -525,19 +517,19 @@ this->OnIRISLabelOpacityChange();}
                 tooltip {Change the transparency of the labels
 
 Keyboard shortcuts:
- 'a' to decrease, 'd' to increase, 's' to toggle.} xywh {15 480 115 15} type Horizontal labelsize 11 align 5 maximum 255 step 1 value 128
+ 'a' to decrease, 'd' to increase, 's' to toggle.} xywh {15 475 115 15} type Horizontal labelsize 11 align 5 maximum 255 step 1 value 128
               }
               Fl_Choice m_InDrawingColor {
                 label {Active drawing label:}
                 callback {o->take_focus();
 OnDrawingLabelUpdate();} open
-                tooltip {This selects the color label with which you paint when using manual tools and automatic segmentation} xywh {15 349 115 18} down_box BORDER_BOX color 52 selection_color 136 labelsize 11 align 5 textsize 11
+                tooltip {This selects the color label with which you paint when using manual tools and automatic segmentation} xywh {15 377 115 18} down_box BORDER_BOX color 52 labelsize 11 align 5 textsize 11
               } {}
               Fl_Choice m_InDrawOverColor {
                 label {Draw over:}
                 callback {o->take_focus();
 OnDrawOverLabelUpdate();} open
-                tooltip {This selects the label OVER WHICH you paint. Normally you want to paint over all labels, but you can also paint over a specific label, only over unlabeled voxels (clear label) or over all visible labels. To change a label's visibility choose 'Edit Labels'.} xywh {15 399 115 18} down_box BORDER_BOX color 52 labelsize 11 align 5 textsize 11
+                tooltip {This selects the label OVER WHICH you paint. Normally you want to paint over all labels, but you can also paint over a specific label, only over unlabeled voxels (clear label) or over all visible labels. To change a label's visibility choose 'Edit Labels'.} xywh {15 412 115 18} down_box BORDER_BOX color 52 labelsize 11 align 5 textsize 11
               } {}
               Fl_Check_Button m_ChkInvertPolygon {
                 label {Draw inverted}
@@ -547,12 +539,12 @@ OnDrawOverLabelUpdate();} open
               Fl_Button m_BtnIRISUndo {
                 label Undo
                 callback {OnUndoAction();}
-                tooltip {Undo the last drawing operation} xywh {20 535 50 25} box PLASTIC_UP_BOX shortcut 0x4007a color 180 labelsize 11 deactivate
+                tooltip {Undo the last drawing operation} xywh {20 530 50 25} box PLASTIC_UP_BOX shortcut 0x4007a color 180 labelsize 11 deactivate
               }
               Fl_Button m_BtnIRISRedo {
                 label Redo
                 callback {OnRedoAction();}
-                tooltip {Redo the last drawing operation} xywh {75 535 50 25} box PLASTIC_UP_BOX shortcut 0x40079 color 180 labelsize 11 deactivate
+                tooltip {Redo the last drawing operation} xywh {75 530 50 25} box PLASTIC_UP_BOX shortcut 0x40079 color 180 labelsize 11 deactivate
               }
               Fl_Button {} {
                 label {?}
@@ -1520,7 +1512,7 @@ Build Date X.XX} open
     Fl_Window m_WinConfirmDiscard {
       label {Discard Unsaved Changes?}
       callback {m_ChkHiddenDiscardChanges->value(0);
-m_WinConfirmDiscard->hide();} open selected
+m_WinConfirmDiscard->hide();} open
       xywh {663 660 503 133} type Double box PLASTIC_DOWN_BOX modal visible
     } {
       Fl_Button {} {

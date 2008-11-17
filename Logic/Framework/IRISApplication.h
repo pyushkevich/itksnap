@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2008/11/17 19:38:23 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -234,6 +234,12 @@ public:
    * or to keep it */
   LabelType DrawOverLabel(LabelType iTarget);
 
+  /**
+   * Really simple replacement of one label with another. Returns the 
+   * number of voxels changed.
+   */
+  size_t ReplaceLabel(LabelType drawing, LabelType drawover);
+
   /*
    * Cut the segmentation using a plane and relabed the segmentation
    * on the side of that plane
@@ -275,6 +281,12 @@ public:
    * segmentation image in IRIS.
    */
   void StoreUndoPoint(const char *text);
+
+  /** 
+   * Clear all the undo points, e.g., after an operation that can not be
+   * undone
+   */
+  void ClearUndoPoints();
 
   /** Check whether undo is possible */
   bool IsUndoPossible();

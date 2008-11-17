@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelEditorUIBase.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/17 19:38:23 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,9 +52,10 @@ public:
   virtual void OnCloseAction() = 0;
   virtual void OnLabelSelectAction() = 0;
   virtual void OnLabelPropertyChange() = 0;
-  virtual void OnMergeDialogAction() = 0;
-  virtual void OnMergeAction() = 0;
-  virtual void OnMergeLabelChange() = 0;
+  virtual void OnToolsDialogAction() = 0;
+  virtual void OnToolsApplyAction() = 0;
+  virtual void OnToolsCloseAction() = 0;
+  virtual void OnToolsOperationChange() = 0;
 };
 
 #endif

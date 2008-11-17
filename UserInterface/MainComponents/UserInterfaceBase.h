@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2008/11/17 19:38:23 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,6 +52,7 @@ class SystemInterface;
 class SNAPAppearanceSettings;
 class SliceWindowCoordinator;
 class Fl_Window;
+struct Fl_Menu_Item;
 
 /**
  * \class UserInterfaceBase
@@ -113,7 +114,6 @@ public:
   virtual void OnMultisessionZoomChange() = 0;
   
   // IRIS: Color label selection and editing callbacks
-  virtual void UpdateColorChips() = 0;
   virtual void OnDrawingLabelUpdate() = 0;
   virtual void OnDrawOverLabelUpdate() = 0;
   virtual void UpdateEditLabelWindow() = 0;
@@ -181,6 +181,9 @@ public:
   
   virtual void UpdateMainLabel() = 0;
 
+  virtual void DeleteColorLabelMenu(Fl_Menu_Item *menu) = 0;
+  virtual Fl_Menu_Item *GenerateColorLabelMenu(bool,bool,bool) = 0;
+
   // Opacity sliders  
   virtual void OnIRISLabelOpacityChange() = 0;
   virtual void OnSNAPLabelOpacityChange() = 0;
@@ -220,7 +223,7 @@ public:
   virtual void ResetScrollbars() = 0;
   virtual void UpdateImageProbe() = 0;
   virtual void OnLabelListUpdate() = 0;
-  virtual void OnSegmentationImageUpdate() = 0;
+  virtual void OnSegmentationImageUpdate(bool) = 0;
   virtual void CenterChildWindowInMainWindow(Fl_Window *) = 0;
   virtual void OnPreprocessingPreviewStatusUpdate(bool) = 0;
   virtual void OnSpeedImageUpdate() = 0;
@@ -233,6 +236,7 @@ public:
   virtual double GetFreehandFittingRate() = 0;
 
   virtual void StoreUndoPoint(const char *text) = 0;
+  virtual void ClearUndoPoints() = 0;
 
 protected:
     GlobalState *m_GlobalState;

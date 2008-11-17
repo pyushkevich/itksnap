@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelEditorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/17 19:38:23 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -337,9 +337,15 @@ LabelEditorUILogic
 
   // The segmentation image has been modified, let the parent know
   if(nUpdated > 0)
-    m_Parent->OnSegmentationImageUpdate();
-  else 
-    m_Parent->OnLabelListUpdate();
+    {
+    // This operation can not be undone!
+    m_Parent->ClearUndoPoints();
+    m_Parent->OnSegmentationImageUpdate(false);    
+    }
+    
+  // Update the label list
+  m_Parent->OnLabelListUpdate();
+
 }
   
 void
@@ -389,9 +395,11 @@ LabelEditorUILogic
 
   // The segmentation image has been modified, let the parent know
   if(nUpdated > 0)
-    m_Parent->OnSegmentationImageUpdate();
-  else 
-    m_Parent->OnLabelListUpdate();
+    {
+    // This operation can not be undone!
+    m_Parent->ClearUndoPoints();
+    m_Parent->OnSegmentationImageUpdate(false);    
+    }
 }
   
 void
@@ -452,24 +460,103 @@ LabelEditorUILogic
   SetEditorLabel(GetSelectedLabelId());
 }
 
-void
+const size_t 
 LabelEditorUILogic
-::OnMergeDialogAction()
-{
-  m_WinMerge->show();
-}
-
+::TOOL_PAGE_LABEL_MENU_COUNT = 5;
 
 void
 LabelEditorUILogic
-::OnMergeAction()
+::OnToolsDialogAction()
 {
+  // Flags decribing whether each dropdown includes the clear label
+  int flagIncludeClear[TOOL_PAGE_LABEL_MENU_COUNT] = { 0, 1, 1, 0, 0 };
+  int flagInitToCurrent[TOOL_PAGE_LABEL_MENU_COUNT] = { 0, 1, 1, 0, 1 };
+  int flagInitToDrawOver[TOOL_PAGE_LABEL_MENU_COUNT] = { 1, 0, 0, 1, 0 };
+
+  // Initialize the menus
+  m_ToolPageLabelMenu = new Fl_Menu_Item*[TOOL_PAGE_LABEL_MENU_COUNT];
+
+  // Populate the label dropdowns
+  for(size_t i = 0; i < TOOL_PAGE_LABEL_MENU_COUNT; i++)
+    {
+    // Populate the dropdown
+    m_ToolPageLabelMenu[i] = m_Parent->GenerateColorLabelMenu(
+      false, false, flagIncludeClear[i]);
+    m_InToolPageLabel[i]->menu(m_ToolPageLabelMenu[i]);
+
+    // Find an item to select
+    LabelType selected = this->GetSelectedLabelId();
+    LabelType drawover = m_Driver->GetGlobalState()->GetOverWriteColorLabel();
+    for(Fl_Menu_Item *p = m_ToolPageLabelMenu[i]; p->text; ++p)
+      {
+      LabelType id = (LabelType)(size_t)p->user_data();
+      if(flagInitToCurrent[i] && id == selected)
+        m_InToolPageLabel[i]->value(p);
+      else if(flagInitToDrawOver[i] && id == drawover)
+        m_InToolPageLabel[i]->value(p);
+      }
+    }  
   
+  // Show the dialog
+  m_WinTools->show();
+}
+
+
+void
+LabelEditorUILogic
+::OnToolsApplyAction()
+{
+  // Relabeling operation
+  if(m_InToolsOperation->value() == 0)
+    {
+    // Get the labels
+    LabelType src = (LabelType) (size_t) m_InToolPageLabel[0]->mvalue()->user_data();
+    LabelType trg = (LabelType) (size_t) m_InToolPageLabel[1]->mvalue()->user_data();
+
+    // Do the simple merge
+    size_t nChanged = m_Driver->ReplaceLabel(trg, src);
+    if(nChanged == 0)
+      fl_alert("No voxels were affected by this operation!");
+    else
+      {
+      m_Parent->StoreUndoPoint("Relabeling");
+      m_Parent->OnSegmentationImageUpdate(false);
+      }
+    }
+
+  // Topological merge operation
+  else if(m_InToolsOperation->value() == 1)
+    {
+    fl_alert("This operation is not yet implemented");
+    }
+
+  // Topological merge operation
+  else if(m_InToolsOperation->value() == 2)
+    {
+    fl_alert("This operation is not yet implemented");
+    }
 }
 
 void
 LabelEditorUILogic
-::OnMergeLabelChange()
+::OnToolsOperationChange()
 {
+  m_WizToolControls->value(
+    m_WizToolControls->child(m_InToolsOperation->value()));
+}
 
+void
+LabelEditorUILogic
+::OnToolsCloseAction()
+{
+  // Empty all menus
+  for(size_t i = 0; i < TOOL_PAGE_LABEL_MENU_COUNT; i++)
+    {
+    // Populate the dropdown
+    m_InToolPageLabel[i]->clear();
+    m_Parent->DeleteColorLabelMenu(m_ToolPageLabelMenu[i]);
+    m_ToolPageLabelMenu[i] = NULL;
+    }
+  delete m_ToolPageLabelMenu;
+  m_WinTools->hide();
 }

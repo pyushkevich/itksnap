@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorLabel.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:12 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/17 19:38:23 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -84,6 +84,9 @@ public:
 
   // Set the Alpha attribute
   irisSetMacro(Alpha,unsigned char);
+
+  // Get the value
+  irisGetMacro(Value, LabelType);
 
   // Check Opaqueness
   bool IsOpaque() const 

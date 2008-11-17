@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2008/11/17 19:38:23 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -612,6 +612,13 @@ IRISApplication
   m_UndoManager.AppendDelta(delta);
 }
 
+void
+IRISApplication
+::ClearUndoPoints()
+{
+  m_UndoManager.Clear();
+}
+
 bool
 IRISApplication
 ::IsUndoPossible()
@@ -937,6 +944,37 @@ IRISApplication
     }
 
   mob.DiscardVTKMeshes();
+}
+
+size_t
+IRISApplication
+::ReplaceLabel(LabelType drawing, LabelType drawover)
+{
+  // Get the label image
+  assert(m_CurrentImageData->IsSegmentationLoaded());
+  LabelImageWrapper::ImagePointer imgLabel = 
+    m_CurrentImageData->GetSegmentation()->GetImage();
+
+  // Get the number of voxels
+  size_t nvoxels = 0;
+
+  // Update the segmentation
+  typedef ImageRegionIterator<
+    LabelImageWrapper::ImageType> IteratorType;
+  for(IteratorType it(imgLabel, imgLabel->GetBufferedRegion());  
+    !it.IsAtEnd(); ++it)
+    {
+    if(it.Get() == drawover)
+      {
+      it.Set(drawing);
+      ++nvoxels;
+      }
+    }
+
+  // Register that the image has been updated
+  imgLabel->Modified();
+
+  return nvoxels;
 }
 
 

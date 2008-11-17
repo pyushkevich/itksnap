@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2008/11/17 19:38:23 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -159,16 +159,16 @@ public:
   virtual ~GlobalState();
   
   /** Get color label used to draw polygons */
-  irisSetMacro(DrawingColorLabel,unsigned char );
+  irisSetMacro(DrawingColorLabel,LabelType);
 
   /** Set color label used to draw polygons */
-  irisGetMacro(DrawingColorLabel,unsigned char );
+  irisGetMacro(DrawingColorLabel,LabelType);
   
   /** Get color label over which we can draw */
-  irisSetMacro(OverWriteColorLabel,unsigned char );
+  irisSetMacro(OverWriteColorLabel,LabelType);
 
   /** Set color label over which we can draw */
-  irisGetMacro(OverWriteColorLabel,unsigned char );
+  irisGetMacro(OverWriteColorLabel,LabelType);
   
   /** Get whether the grey image display uses linear interpolation */
   irisSetMacro(InterpolateGrey,bool );
@@ -458,10 +458,10 @@ private:
   friend class IRISApplication;
 
   /** Color label used to draw polygons */
-  unsigned char m_DrawingColorLabel;
+  LabelType m_DrawingColorLabel;
 
   /** Color label over which we can draw */
-  unsigned char m_OverWriteColorLabel;
+  LabelType m_OverWriteColorLabel;
 
   /** Whether the grey image display uses linear interpolation */
   bool m_InterpolateGrey;
@@ -588,6 +588,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.10  2008/11/17 19:38:23  pyushkevich
+ *Added tools dialog to label editor window
+ *
  *Revision 1.9  2008/11/15 12:20:38  pyushkevich
  *Several new features added for release 1.8, including (1) support for reading floating point and mapping to short range; (2) use of image direction cosines to determine image orientation; (3) new reorient image dialog and changes to the IO wizard; (4) display of NIFTI world coordinates and yoking based on them; (5) multi-session zoom; (6) fixes to the way we keep track of unsaved changes to segmentation, including a new discard dialog; (7) more streamlined code for offline loading; (8) new command-line options, allowing RGB files to be read and opening SNAP by doubleclicking images; (9) versioning for IPC communications; (10) ruler for display windows; (11) bug fixes and other stuff I can't remember
  *

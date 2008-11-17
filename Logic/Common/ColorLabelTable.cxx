@@ -345,3 +345,15 @@ ColorLabelTable
   // Set the flag
   m_Label[id].SetValid(flag); 
   }
+
+
+size_t 
+ColorLabelTable
+::GetNumberOfValidLabels()
+{
+  size_t n = 0;
+  for(size_t i = 0; i < MAX_COLOR_LABELS; i++)
+    if(m_Label[i].IsValid())
+      ++n;
+  return n;
+}
