@@ -357,3 +357,4 @@ ColorLabelTable
       ++n;
   return n;
 }
+

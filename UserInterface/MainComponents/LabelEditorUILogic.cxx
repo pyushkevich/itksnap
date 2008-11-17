@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelEditorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:38:23 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/11/17 19:47:41 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -560,3 +560,4 @@ LabelEditorUILogic
   delete m_ToolPageLabelMenu;
   m_WinTools->hide();
 }
+

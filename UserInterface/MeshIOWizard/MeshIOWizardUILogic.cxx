@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MeshIOWizardUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:27 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/17 19:47:41 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -237,7 +237,7 @@ MeshIOWizardUILogic
   assert(m_InFilePageFormat->value() > 0);
 
   // There must be a selected label
-  assert(m_InMeshPageSelectedLabel->value() < m_ColorLabelMenuIndex.size());
+  assert((size_t) m_InMeshPageSelectedLabel->value() < m_ColorLabelMenuIndex.size());
 
   // The mesh has been selected
   m_MeshSelected = true;

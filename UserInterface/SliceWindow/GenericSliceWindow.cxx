@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2008/11/17 19:47:41 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -675,9 +675,9 @@ GenericSliceWindow
 
   // See if we can squeeze the label under the ruler
   if(bw > elt.FontSize * 4)
-    gl_draw(oss.str().c_str(), 10, h - 30, bw, 20, FL_ALIGN_TOP);
+    gl_draw(oss.str().c_str(), 10, h - 30, (int) bw, 20, FL_ALIGN_TOP);
   else
-    gl_draw(oss.str().c_str(), bw+10, h - 20, bw+elt.FontSize * 4+10, 15, FL_ALIGN_LEFT);
+    gl_draw(oss.str().c_str(), (int) bw+10, h - 20, (int) bw + elt.FontSize * 4+10, 15, FL_ALIGN_LEFT);
 
 
   glPopMatrix();
@@ -759,3 +759,4 @@ GenericSliceWindow::EventHandler
   m_ParentUI = m_Parent->m_ParentUI;
   m_GlobalState = m_Parent->m_GlobalState;
 }
+

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PaintbrushInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/03/25 19:31:33 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2008/11/17 19:47:41 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -56,8 +56,6 @@ PaintbrushInteractionMode
 ::~PaintbrushInteractionMode()
 {
 }
-
-#include "Fl/fl_ask.H"
 
 bool
 PaintbrushInteractionMode::
@@ -275,7 +273,6 @@ PaintbrushInteractionMode
   // Get the paintbrush properties
   PaintbrushSettings pbs = 
     m_ParentUI->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
-  double r2 = pbs.radius * pbs.radius;
 
   // Define a region of interest
   LabelImageWrapper::ImageType::RegionType xTestRegion;

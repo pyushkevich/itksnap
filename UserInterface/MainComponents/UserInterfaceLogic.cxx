@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:38:23 $
-  Version:   $Revision: 1.28 $
+  Date:      $Date: 2008/11/17 19:47:41 $
+  Version:   $Revision: 1.29 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3653,7 +3653,7 @@ UserInterfaceLogic
 
   // let the user pick the directory for saving the screenshots
   char *path = fl_dir_chooser(
-    "Select the directory to save the screenshots", NULL, NULL);
+    "Select the directory to save the screenshots", NULL, 0);
   
   // set up the 1st snapshot name
   std::string fname;
@@ -3686,7 +3686,7 @@ UserInterfaceLogic
   unsigned int syncValue = m_BtnSynchronizeCursor->value();
   m_BtnSynchronizeCursor->value(0);
 
-  for (int i = 0; i < xSize[iImageDir]; ++i)
+  for (size_t i = 0; i < xSize[iImageDir]; ++i)
   {
     m_Driver->SetCursorPosition(xCrossImage);
     this->OnCrosshairPositionUpdate();
@@ -4421,6 +4421,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.29  2008/11/17 19:47:41  pyushkevich
+ *Get linux to compile
+ *
  *Revision 1.28  2008/11/17 19:38:23  pyushkevich
  *Added tools dialog to label editor window
  *

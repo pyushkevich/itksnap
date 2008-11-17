@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/11/17 19:47:41 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -42,6 +42,8 @@
 #include "itkVoxBoCUBImageIOFactory.h"
 #include <algorithm>
 #include <ctime>
+#include <cerrno>
+#include <cstring>
 #include <iomanip>
 
 #ifdef WIN32
@@ -462,8 +464,26 @@ SystemInterface
   // Get a handle to shared memory
   m_IPCHandle = shmget(keyid, msize, IPC_CREAT | 0644);
 
-  // Get a pointer to shared data block
-  m_IPCSharedData = shmat(m_IPCHandle, (void *) 0, 0);
+  // There may be an error!
+  if(m_IPCHandle < 0)
+    {
+    cerr << "Shared memory (shmget) error: " << strerror(errno) << endl;
+    cerr << "Multisession support is disabled" << endl;
+    m_IPCSharedData = NULL;
+    }
+  else
+    {
+    // Get a pointer to shared data block
+    m_IPCSharedData = shmat(m_IPCHandle, (void *) 0, 0);
+
+    // Check errors again
+    if(!m_IPCSharedData)
+      {
+      cerr << "Shared memory (shmat) error: " << strerror(errno) << endl;
+      cerr << "Multisession support is disabled" << endl;
+      m_IPCSharedData = NULL;
+      }
+    }
 
 #endif
 
