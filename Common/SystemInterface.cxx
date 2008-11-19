@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:47:41 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/11/19 10:11:44 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -459,7 +459,7 @@ SystemInterface
 #else
 
   // Create a unique key for this user 
-  key_t keyid = ftok(m_UserPreferenceFile.c_str(), 0);
+  key_t keyid = ftok(m_UserPreferenceFile.c_str(), IPC_VERSION);
 
   // Get a handle to shared memory
   m_IPCHandle = shmget(keyid, msize, IPC_CREAT | 0644);
