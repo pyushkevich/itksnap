@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 02:41:03 $
-  Version:   $Revision: 1.30 $
+  Date:      $Date: 2008/11/20 04:24:00 $
+  Version:   $Revision: 1.31 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3085,12 +3085,12 @@ UserInterfaceLogic
     m_Driver->GetCurrentImageData()->GetGrey()->GetNativeMapping();
   if(native.scale != 1.0 || native.shift != 0.0)
     fl_alert(
-      "The image you have loaded uses a data type different\n"
-      "from the 16 bit signed integer data type used internally\n"
-      "by ITK-SNAP. The intensity values reported in ITK-SNAP\n"
-      "be approximate. \n\n"
-      "If you later use ITK-SNAP to save the image to a file, you\n"
-      "will lose precision relative to the image you loaded\n");
+      "The image you just loaded has a data type with greater range\n"
+      "and precision than the 16-bit signed integer data type used \n"
+      "internally by ITK-SNAP. Approximate intensity values will be\n"
+      "reported by the program.\n\n"
+      "CAUTION: if you use ITK-SNAP to save the image to a file, \n"
+      "precision from the original image will be lost!\n");
 
   // Redraw the user interface
   RedrawWindows();
@@ -4435,6 +4435,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.31  2008/11/20 04:24:00  pyushkevich
+ *Bugfixes
+ *
  *Revision 1.30  2008/11/20 02:41:03  pyushkevich
  *Now when non-native format is loaded, the intensity is mapped to original values
  *

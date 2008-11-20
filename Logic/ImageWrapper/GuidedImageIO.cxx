@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 02:41:03 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2008/11/20 04:24:00 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -435,14 +435,21 @@ GuidedImageIO<TPixel>
     } 
   else
     {
+    // Try reading the file in our own format 
+    typedef ImageFileReader<ImageType> ReaderType;
+    typename ReaderType::Pointer reader = ReaderType::New();
+    reader->SetFileName(FileName);
+    if(m_IOBase)
+      reader->SetImageIO(m_IOBase);
+    reader->Update();
+
+    // If the internal format does not match, try native read
+    m_Image = reader->GetOutput();
+    m_IOBase = reader->GetImageIO();
 
     // If we are asked to read in native format
-    if(flagCastFromNative && m_IOBase)
+    if(flagCastFromNative && m_IOBase->GetComponentTypeInfo() != typeid(TPixel) )
       {
-      // Read the image information to determine native type
-      m_IOBase->SetFileName(FileName);
-      m_IOBase->ReadImageInformation(); 
-
       // Select the right templated function
       if     (typeid(TPixel) == typeid( unsigned char)) this->ReadFromNative< unsigned char>();
       else if(typeid(TPixel) == typeid(   signed char)) this->ReadFromNative<   signed char>();
@@ -453,17 +460,6 @@ GuidedImageIO<TPixel>
       else if(typeid(TPixel) == typeid( unsigned long)) this->ReadFromNative< unsigned long>();
       else if(typeid(TPixel) == typeid(   signed long)) this->ReadFromNative<   signed long>();
       else assert(0);
-      }
-
-    else
-      {
-      typedef ImageFileReader<ImageType> ReaderType;
-      typename ReaderType::Pointer reader = ReaderType::New();
-      reader->SetFileName(FileName);
-      if(m_IOBase)
-        reader->SetImageIO(m_IOBase);
-      reader->Update();
-      m_Image = reader->GetOutput();
       }
     }
 
