@@ -276,9 +276,9 @@ SET(UI_HEADERS
 
 # The source code for SNAP testing project
 SET(TESTING_CXX
-  Testing/SNAPTestDriver.cxx
   Testing/TestCompareLevelSets.cxx
   Testing/TestMain.cxx
+  Testing/SNAPTestDriver.cxx
 )
 
 # The source code for the tutorial test
@@ -498,25 +498,6 @@ IF(SNAP_PNG_CAPTURE_TOOL)
     ${SNAP_INTERNAL_LIBS}
     ${SNAP_EXTERNAL_LIBS})
 ENDIF(SNAP_PNG_CAPTURE_TOOL)
-
-# The testing executables
-IF(BUILD_TESTING)
-  
-  ADD_EXECUTABLE(SNAPTests ${TESTING_CXX})
-  TARGET_LINK_LIBRARIES(SNAPTests 
-    ${SNAP_INTERNAL_LIBS} 
-    ${SNAP_EXTERNAL_LIBS})
-    
-  
-  ADD_EXECUTABLE(SNAPTutorialTest ${TESTING_TUTORIAL_CXX})
-  TARGET_LINK_LIBRARIES(SNAPTutorialTest 
-    itksnaplogic 
-    ${SNAP_EXTERNAL_LIBS})
-
-  # INSTALL_TARGETS(/bin SNAPTutorialTest)
-
-ENDIF(BUILD_TESTING)
-
 
 # ----------------------------------------------------------------
 # Miscelaneous tasks (not related to link and compilation)
