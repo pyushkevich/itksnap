@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: itkVoxBoCUBImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:12 $
-  Version:   $Revision: 1.3 $  
+  Date:      $Date: 2008/11/20 04:23:28 $
+  Version:   $Revision: 1.4 $  
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   
@@ -638,7 +638,7 @@ VoxBoCUBImageIO
 
   // Write the orientation code
   MetaDataDictionary &dic = GetMetaDataDictionary();
-  OrientationFlags oflag;
+  OrientationFlags oflag = SpatialOrientation::ITK_COORDINATE_ORIENTATION_INVALID;
   if(ExposeMetaData<OrientationFlags>(dic, ITK_CoordinateOrientation, oflag))
     {
     InverseOrientationMap::const_iterator it = 

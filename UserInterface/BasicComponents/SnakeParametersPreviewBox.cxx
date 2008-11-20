@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersPreviewBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/20 04:23:28 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -240,7 +240,7 @@ SnakeParametersPreviewBox::Interactor
     {
     // The closest point index
     m_ActiveControl = 0;
-    double minDistance;
+    double minDistance = 0.0;
 
     // Get a hold of the control points
     const SnakeParametersPreviewPipeline::ControlPointList 

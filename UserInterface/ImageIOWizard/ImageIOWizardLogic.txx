@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2008/11/20 04:23:28 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -684,7 +684,7 @@ template<class AnyType>
 bool
 try_print_metadata(std::ostream &sout, itk::MetaDataDictionary &mdd, std::string key)
   {
-  AnyType value;
+  AnyType value = 0;
   if(itk::ExposeMetaData<AnyType>(mdd, key, value))
     {
     sout << key << " = " << value << std::endl;

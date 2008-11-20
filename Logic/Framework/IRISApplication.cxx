@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 02:41:03 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2008/11/20 04:23:28 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1044,7 +1044,7 @@ IRISApplication
   Vector3ui lIndex;
   Vector3ui lSize = xLabelWrapper->GetSize();
 
-  double delta[3][3], dratio[3];
+  double delta[3][3] = {{0.,0.,0.},{0.,0.,0.},{0.,0.,0.}}, dratio[3] = {0., 0., 0.};
   int    signrx, signry, signrz;
 
   double rx = ray[0];
