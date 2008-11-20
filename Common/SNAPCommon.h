@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPCommon.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 02:41:03 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2008/11/20 05:10:39 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -93,7 +93,8 @@ typedef itk::RGBPixel<unsigned char> RGBType;
  */
 struct GreyTypeToNativeFunctor        
 {
-  double shift, scale;
+  double scale;
+  double shift;
   double operator() (GreyType g) const
     { return g * scale + shift; }
   GreyTypeToNativeFunctor() : scale(1.0), shift(0.0) {}

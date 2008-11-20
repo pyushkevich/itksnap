@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPTestDriver.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:20 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2008/11/20 05:10:39 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -210,7 +210,7 @@ SNAPTestDriver
 
         // Get the command line result
         CommandLineArgumentParseResult testParms;
-        if(clap.TryParseCommandLine(argc,argv,testParms))
+        if(clap.TryParseCommandLine(argc,argv,testParms,false))
           {
           test->SetCommandLineParameters(testParms);
           test->Run();
@@ -247,3 +247,18 @@ SNAPTestDriver
     }
 }
 
+template class ScalarImageWrapper<unsigned char>;
+template class ScalarImageWrapper<signed char>;
+template class ScalarImageWrapper<unsigned int> ;
+template class ScalarImageWrapper<signed int> ;
+template class ScalarImageWrapper<unsigned long> ;
+template class ScalarImageWrapper<signed long> ;
+template class ScalarImageWrapper<double> ;
+
+template class ImageWrapper<unsigned char>;
+template class ImageWrapper<signed char>;
+template class ImageWrapper<unsigned int> ;
+template class ImageWrapper<signed int> ;
+template class ImageWrapper<unsigned long> ;
+template class ImageWrapper<signed long> ;
+template class ImageWrapper<double> ;

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageRayIntersectionFinder.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2008/11/20 05:10:39 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -45,7 +45,7 @@ ImageRayIntersectionFinder<TPixel,THitTester>
   typename ImageType::SizeType size = 
     image->GetLargestPossibleRegion().GetSize();
 
-  double delta[3][3], dratio[3];
+  double delta[3][3] = {{0.,0.,0.},{0.,0.,0.},{0.,0.,0.}}, dratio[3]={0.,0.,0.};
   int    signrx, signry, signrz;
 
   double rayLen = ray.two_norm();

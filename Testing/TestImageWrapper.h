@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: TestImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:20 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2008/11/20 05:10:39 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -16,8 +16,8 @@
 #define __TestImageWrapper_h_
 
 #include "TestBase.h"
-#include "ImageWrapper.h"
-#include "ImageWrapper.txx"
+#include "ScalarImageWrapper.h"
+#include "ScalarImageWrapper.txx"
 
 /**
  * This class is used to test the functionality in the ImageWrapper class
@@ -27,7 +27,7 @@ class TestImageWrapper : public TestBaseOneImage<TPixel>
 {
 public:
   typedef TestBaseOneImage<TPixel> Superclass;
-  typedef ImageWrapper<TPixel> WrapperType;
+  typedef ScalarImageWrapper<TPixel> WrapperType;
 
   void PrintUsage();
   void Run();

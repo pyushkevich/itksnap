@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: TestCompareLevelSets.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:20 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2008/11/20 05:10:39 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -468,7 +468,7 @@ TestCompareLevelSets
   IRISApplication *app = new IRISApplication();
   
   // Pass the images to the application
-  app->UpdateIRISGreyImage(grey,"RAI");
+  app->UpdateIRISGreyImage(grey, GreyTypeToNativeFunctor());
   app->UpdateIRISSegmentationImage(bubble);
 
   // Specify the label used for segmentation
@@ -741,7 +741,7 @@ TestCompareLevelSets
   IRISApplication *app = new IRISApplication();
   
   // Pass the image to the application
-  app->UpdateIRISGreyImage(m_Image,"RAI");
+  app->UpdateIRISGreyImage(m_Image, GreyTypeToNativeFunctor());
 
   // Start SNAP logic with the entire region
   SNAPSegmentationROISettings roiSettings;
