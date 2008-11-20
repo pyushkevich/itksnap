@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/20 02:41:03 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -136,10 +136,12 @@ GenericImageData
 void 
 GenericImageData
 ::SetGreyImage(GreyImageType *newGreyImage,
-               const ImageCoordinateGeometry &newGeometry) 
+               const ImageCoordinateGeometry &newGeometry,
+               const GreyTypeToNativeFunctor &native) 
 {
   // Make a new grey wrapper
   m_GreyWrapper.SetImage(newGreyImage);
+  m_GreyWrapper.SetNativeMapping(native);
 
   // Make the grey wrapper the main image
   m_MainImage = &m_GreyWrapper;

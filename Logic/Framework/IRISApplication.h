@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:38:23 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2008/11/20 02:41:03 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -124,7 +124,8 @@ public:
    * grey image is loaded.  The prerequisite to this method is that the SNAP data
    * not be active (CurrentImageData == IRISImageData).
    */
-  void UpdateIRISGreyImage(GreyImageType *newGreyImage);
+  void UpdateIRISGreyImage(
+    GreyImageType *newGreyImage, const GreyTypeToNativeFunctor &native);
 
   void UpdateIRISRGBImage(RGBImageType *newRGBImage);
   void UpdateIRISRGBImageOverlay(RGBImageType *newRGBImage);

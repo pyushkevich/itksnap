@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:47:41 $
-  Version:   $Revision: 1.29 $
+  Date:      $Date: 2008/11/20 02:41:03 $
+  Version:   $Revision: 1.30 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2158,19 +2158,17 @@ UserInterfaceLogic
   IRISOStringStream sGrey,sSegmentation,sSpeed;
 
   // Get the grey intensity
-  sGrey << m_Driver->GetCurrentImageData()->GetGrey()->GetVoxel(crosshairs);
+  GenericImageData *id = m_Driver->GetCurrentImageData();
+  sGrey << id->GetGrey()->GetVoxelMappedToNative(crosshairs);
 
   // Get the segmentation lavel intensity
-  int iSegmentation = 
-    (int)m_Driver->GetCurrentImageData()->GetSegmentation()->GetVoxel(crosshairs);
+  int iSegmentation = (int) id->GetSegmentation()->GetVoxel(crosshairs);
   sSegmentation << iSegmentation;
 
   // Update the cursor position in the image info window
-  Vector3d xPosition = m_Driver->GetCurrentImageData()->GetGrey()->
-    TransformVoxelIndexToPosition(crosshairs);
+  Vector3d xPosition = id->GetGrey()->TransformVoxelIndexToPosition(crosshairs);
 
-  Vector3d xNIFTI = m_Driver->GetCurrentImageData()->GetGrey()->
-    TransformVoxelIndexToNIFTICoordinates(crosshairs);
+  Vector3d xNIFTI = id->GetGrey()->TransformVoxelIndexToNIFTICoordinates(crosshairs);
 
   for(size_t d = 0; d < 3; d++)
     {
@@ -3082,6 +3080,18 @@ UserInterfaceLogic
   // Update the list of labels
   OnLabelListUpdate();
 
+  // Warn if the image has been scaled
+  GreyTypeToNativeFunctor native = 
+    m_Driver->GetCurrentImageData()->GetGrey()->GetNativeMapping();
+  if(native.scale != 1.0 || native.shift != 0.0)
+    fl_alert(
+      "The image you have loaded uses a data type different\n"
+      "from the 16 bit signed integer data type used internally\n"
+      "by ITK-SNAP. The intensity values reported in ITK-SNAP\n"
+      "be approximate. \n\n"
+      "If you later use ITK-SNAP to save the image to a file, you\n"
+      "will lose precision relative to the image you loaded\n");
+
   // Redraw the user interface
   RedrawWindows();
   m_WinMain->redraw();
@@ -3341,7 +3351,11 @@ if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
     OnGreyImageUnload();
 
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISGreyImage(m_WizGreyIO->GetLoadedImage());
+    m_Driver->UpdateIRISGreyImage(
+      m_WizGreyIO->GetLoadedImage(), 
+      GreyTypeToNativeFunctor(
+        m_WizGreyIO->GetNativeScale(),
+        m_WizGreyIO->GetNativeShift()));
 
     // Save the filename
     m_GlobalState->SetGreyFileName(m_WizGreyIO->GetFileName());
@@ -4421,6 +4435,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.30  2008/11/20 02:41:03  pyushkevich
+ *Now when non-native format is loaded, the intensity is mapped to original values
+ *
  *Revision 1.29  2008/11/17 19:47:41  pyushkevich
  *Get linux to compile
  *

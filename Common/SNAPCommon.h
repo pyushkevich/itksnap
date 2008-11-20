@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPCommon.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/11/20 02:41:03 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -86,6 +86,19 @@ extern const GreyType MINGREYVAL;
 typedef itk::RGBPixel<unsigned char> RGBType;
 
 #define MAX_COLOR_LABELS 1024
+
+/** 
+ A structure used to map intensity from gray to 'native' intensity for
+ images that are not of short datatype
+ */
+struct GreyTypeToNativeFunctor        
+{
+  double shift, scale;
+  double operator() (GreyType g) const
+    { return g * scale + shift; }
+  GreyTypeToNativeFunctor() : scale(1.0), shift(0.0) {}
+  GreyTypeToNativeFunctor(double a, double b) : scale(a), shift(b) {}
+};
 
 /************************************************************************/
 /* PY: Some macros because I am tired of typing get/set                 */

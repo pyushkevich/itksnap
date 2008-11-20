@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/20 02:41:03 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -208,6 +208,13 @@ public:
    * previously loaded images */
   void SetImageInfoCallback(ImageInfoCallbackInterface *iCallback)
     { this->m_Callback = iCallback; }
+
+  /** Get the scale and shift used to map image intensity to native space */
+  double GetNativeShift() 
+    { return m_GuidedIO.GetNativeShift(); }
+
+  double GetNativeScale() 
+    { return m_GuidedIO.GetNativeScale(); }
 
 protected:
 

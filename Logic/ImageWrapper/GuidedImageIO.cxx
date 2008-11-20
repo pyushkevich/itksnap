@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/11/20 02:41:03 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -382,6 +382,9 @@ typename GuidedImageIO<TPixel>::ImageType*
 GuidedImageIO<TPixel>
 ::ReadImage(const char *FileName, Registry &folder, bool flagCastFromNative)
 {
+  // Initialize the scaling and shift to 1 and 0
+  m_NativeScale = 1.0; m_NativeShift = 0.0;
+
   // Create the header corresponding to the current image type
   FileFormat format;
   CreateImageIO(folder, format);

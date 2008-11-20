@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/11/20 02:41:03 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -153,8 +153,10 @@ public:
    * The second parameter to this method is the new geometry object, which depends
    * on the size of the grey image and will be updated.
    */
-  virtual void SetGreyImage(GreyImageType *newGreyImage,
-                    const ImageCoordinateGeometry &newGeometry);
+  virtual void SetGreyImage(
+    GreyImageType *newGreyImage,
+    const ImageCoordinateGeometry &newGeometry,
+    const GreyTypeToNativeFunctor &native);
 
   virtual void SetRGBImage(RGBImageType *newRGBImage,
                     const ImageCoordinateGeometry &newGeometry);

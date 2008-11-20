@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/11/20 02:41:03 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -159,6 +159,9 @@ public:
 
   /** Save an image using the Registry folder to specify parameters */
   void SaveImage(const char *FileName, Registry &folder, ImageType *image);
+
+  irisGetMacro(NativeShift, double);
+  irisGetMacro(NativeScale, double);
 
 private:
   

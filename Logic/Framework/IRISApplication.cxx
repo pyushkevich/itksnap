@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:38:23 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2008/11/20 02:41:03 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -157,7 +157,9 @@ IRISApplication
     m_DisplayToAnatomyRAI, size);
 
   // Assign the new wrapper to the target
-  m_SNAPImageData->SetGreyImage(imgNewGrey,icg);
+  m_SNAPImageData->SetGreyImage(
+    imgNewGrey, icg,
+    m_IRISImageData->GetGrey()->GetNativeMapping());
   
   // Override the interpolator in ROI for label interpolation, or we will get
   // nonsense
@@ -235,7 +237,8 @@ IRISApplication
 
 void 
 IRISApplication
-::UpdateIRISGreyImage(GreyImageType *newGreyImage)
+::UpdateIRISGreyImage(GreyImageType *newGreyImage, 
+                      const GreyTypeToNativeFunctor &native)
 {
   // This has to happen in 'pure' IRIS mode
   assert(m_SNAPImageData == NULL);
@@ -251,7 +254,7 @@ IRISApplication
     newGreyImage->GetDirection().GetVnlMatrix(), m_DisplayToAnatomyRAI, size);
   
   // Update the image information in m_Driver->GetCurrentImageData()
-  m_IRISImageData->SetGreyImage(newGreyImage, icg);    
+  m_IRISImageData->SetGreyImage(newGreyImage, icg, native);    
   
   // Reinitialize the intensity mapping curve 
   m_IntensityCurve->Initialize(3);
@@ -1189,7 +1192,8 @@ IRISApplication
   GreyImageType::Pointer imgGrey = io.ReadImage(filename, regGrey, true);
 
   // Set the image as the current grayscale image
-  UpdateIRISGreyImage(imgGrey);
+  UpdateIRISGreyImage(imgGrey, 
+    GreyTypeToNativeFunctor(io.GetNativeScale(), io.GetNativeShift()));
 
   // Save the filename for the UI
   m_GlobalState->SetGreyFileName(filename);  

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/11/20 02:41:03 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -87,6 +87,19 @@ public:
    */
   void SetReferenceIntensityRange(GreyType refMin, GreyType refMax);
   void ClearReferenceIntensityRange();
+
+  /**
+   * Set the transformation to native intensity space
+   */
+  irisSetMacro(NativeMapping, GreyTypeToNativeFunctor);
+  irisGetMacro(NativeMapping, GreyTypeToNativeFunctor);
+
+
+  /**
+   * Get voxel intensity in native space
+   */
+  double GetVoxelMappedToNative(const Vector3ui &vec)
+    { return m_NativeMapping(this->GetVoxel(vec)); }
 
   /**
    * Get the display slice in a given direction.  To change the
@@ -176,6 +189,13 @@ private:
    * into unsigned char images
    */
   IntensityFilterPointer m_IntensityFilter[3];
+
+  /** 
+   * The grey image is an image of shorts. But the real image on disk may
+   * be an image of floats or doubles. So we store a transformation from
+   * internal intensity values to 'native' intensity values
+   */
+  GreyTypeToNativeFunctor m_NativeMapping;
 };
 
 #endif // __GreyImageWrapper_h_
