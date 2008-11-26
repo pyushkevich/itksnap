@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:38:23 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2008/11/26 03:10:15 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -53,6 +53,10 @@ class SNAPAppearanceSettings;
 class SliceWindowCoordinator;
 class Fl_Window;
 struct Fl_Menu_Item;
+
+namespace itk {
+  class Object;
+};
 
 /**
  * \class UserInterfaceBase
@@ -231,6 +235,9 @@ public:
   virtual void OnPolygonStateUpdate(unsigned int) = 0;
   virtual void OnZoomUpdate(bool flagBroadcastUpdate = true) = 0;
   virtual void OnIRISMeshEditingAction() = 0;
+
+  // Progress callbacks
+  virtual void OnITKProgressEvent(itk::Object *source, const itk::EventObject &event) = 0;
 
   // Non-callbacks
   virtual double GetFreehandFittingRate() = 0;

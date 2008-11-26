@@ -101,6 +101,16 @@ SET(LOGIC_HEADERS
   Common/SNAPCommon.h
   Common/SNAPOpenGL.h
   Common/SystemInterface.h
+  Common/ITKExtras/itkBSplineScatteredDataPointSetToImageFilter.h
+  Common/ITKExtras/itkBSplineScatteredDataPointSetToImageFilter.txx
+  Common/ITKExtras/itkBinaryDiamondStructuringElement.h
+  Common/ITKExtras/itkBinaryDiamondStructuringElement.txx
+  Common/ITKExtras/itkCoxDeBoorBSplineKernelFunction.h
+  Common/ITKExtras/itkCoxDeBoorBSplineKernelFunction.txx
+  Common/ITKExtras/itkParallelSparseFieldLevelSetImageFilterBugFix.h
+  Common/ITKExtras/itkParallelSparseFieldLevelSetImageFilterBugFix.txx
+  Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.h
+  Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.txx
   Common/ITKExtras/itkVoxBoCUBImageIO.h
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
   Logic/Common/ColorLabel.h

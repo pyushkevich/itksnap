@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelEditorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:47:41 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/11/26 03:10:15 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -33,7 +33,7 @@
 
 =========================================================================*/
 #include "LabelEditorUILogic.h"
-#include "UserInterfaceBase.h"
+#include "UserInterfaceLogic.h"
 #include "GlobalState.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
@@ -498,9 +498,12 @@ LabelEditorUILogic
     }  
   
   // Show the dialog
+  UserInterfaceLogic::CenterChildWindowInParentWindow(m_WinTools, m_WinMain);
   m_WinTools->show();
 }
 
+#include "itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.h"
+#include "itkBinaryThresholdImageFilter.h"
 
 void
 LabelEditorUILogic
@@ -527,7 +530,75 @@ LabelEditorUILogic
   // Topological merge operation
   else if(m_InToolsOperation->value() == 1)
     {
-    fl_alert("This operation is not yet implemented");
+    // Get the segmentation image
+    typedef itk::Image<LabelType, 3> LabelImageType;
+    LabelImageType::Pointer iSeg =
+      m_Driver->GetCurrentImageData()->GetSegmentation()->GetImage();
+
+    // Get the labels
+    LabelType l_src = (LabelType) (size_t) m_InToolPageLabel[0]->mvalue()->user_data();
+    LabelType l_trg = (LabelType) (size_t) m_InToolPageLabel[1]->mvalue()->user_data();
+
+    // Extract binary images for each label
+    typedef itk::BinaryThresholdImageFilter<LabelImageType,LabelImageType> ThreshType;
+    ThreshType::Pointer tsrc = ThreshType::New();
+    tsrc->SetInput(iSeg);
+    tsrc->SetLowerThreshold(l_src);
+    tsrc->SetUpperThreshold(l_src);
+    tsrc->SetInsideValue(1);
+    tsrc->SetOutsideValue(0);
+    tsrc->Update();
+    
+    ThreshType::Pointer ttrg = ThreshType::New();
+    ttrg->SetInput(iSeg);
+    ttrg->SetLowerThreshold(l_trg);
+    ttrg->SetUpperThreshold(l_trg);
+    ttrg->SetInsideValue(1);
+    ttrg->SetOutsideValue(0);
+    ttrg->Update();
+
+    // Create a progress object
+    typedef itk::MemberCommand<UserInterfaceBase> CommandType;
+    CommandType::Pointer pcom = CommandType::New();
+    pcom->SetCallbackFunction(m_Parent, &UserInterfaceBase::OnITKProgressEvent);
+
+    // Create the evolution filter
+    typedef itk::TopologyPreservingDigitalSurfaceEvolutionImageFilter<LabelImageType> FilterType;
+    FilterType::Pointer filter = FilterType::New();
+    filter->SetInput(tsrc->GetOutput());
+    filter->SetTargetImage(ttrg->GetOutput());
+    filter->SetNumberOfIterations(100);
+    filter->SetForegroundValue(1);
+    filter->SetUseInversionMode(false);
+    filter->InPlaceOn();
+    filter->AddObserver(itk::AnyEvent(), pcom);
+    filter->Update();
+
+    // Merge back into the segmentation
+    typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
+    IteratorType itseg(iSeg, iSeg->GetBufferedRegion());
+    IteratorType itnew(filter->GetOutput(), iSeg->GetBufferedRegion());
+    size_t nChanged = 0;
+    while(!itseg.IsAtEnd())
+      {
+      if(itnew.Get())
+        {
+        itseg.Set(l_src);
+        ++nChanged;
+        }
+      ++itseg; ++itnew;
+      }
+
+    // Let parent know something happened
+    if(nChanged)
+      {
+      m_Parent->StoreUndoPoint("Topological Merge");
+      m_Parent->OnSegmentationImageUpdate(false);
+      }
+    else
+      {
+      fl_alert("No voxel labels were changed");
+      }
     }
 
   // Topological merge operation
