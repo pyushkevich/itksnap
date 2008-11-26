@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelEditorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/26 03:10:15 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2008/11/26 03:27:34 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -592,6 +592,7 @@ LabelEditorUILogic
     // Let parent know something happened
     if(nChanged)
       {
+      iSeg->Modified();
       m_Parent->StoreUndoPoint("Topological Merge");
       m_Parent->OnSegmentationImageUpdate(false);
       }

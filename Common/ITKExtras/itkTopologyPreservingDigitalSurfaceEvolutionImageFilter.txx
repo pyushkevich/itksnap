@@ -193,6 +193,8 @@ TopologyPreservingDigitalSurfaceEvolutionImageFilter<TImage>
         }
       }
     }
+
+  this->UpdateProgress(1.0);
 }  
 
 template<class TImage>
