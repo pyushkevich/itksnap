@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CommandLineArgumentParser.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/01 11:32:00 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2008/12/01 21:27:25 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -95,9 +95,14 @@ CommandLineArgumentParser
         cerr << "Unrecognized command line option '" << arg << "'" << endl;
         return false;
         }
+      else if(arg[0] == '-')
+        {
+        cerr << "Ignoring unknown command line option '" << arg << "'" << endl;
+        continue;
+        }
       else
         {
-        return true;
+          return true;
         }
       }
 
