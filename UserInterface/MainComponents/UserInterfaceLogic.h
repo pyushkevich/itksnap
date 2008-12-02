@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:38:23 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2008/12/02 21:43:24 $
+  Version:   $Revision: 1.17 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -573,6 +573,7 @@ public:
   // Paintbrush action callbacks
   void OnPaintbrushAttributesUpdate();
   void OnPaintbrushPaint();
+  void UpdatePaintbrushAttributes();
 
   // IRIS: 3D Window callbacks
   void OnIRISMeshUpdateAction();
@@ -970,6 +971,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.17  2008/12/02 21:43:24  pyushkevich
+ *Reorganization of the watershed code
+ *
  *Revision 1.16  2008/11/17 19:38:23  pyushkevich
  *Added tools dialog to label editor window
  *

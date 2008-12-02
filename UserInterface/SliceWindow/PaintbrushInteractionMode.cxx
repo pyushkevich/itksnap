@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PaintbrushInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/12/02 05:14:19 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2008/12/02 21:43:24 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,7 +38,6 @@
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkGradientMagnitudeImageFilter.h"
 #include "itkWatershedImageFilter.h"
-
 #include "GlobalState.h"
 #include "PolygonDrawing.h"
 #include "UserInterfaceBase.h"
@@ -50,11 +49,137 @@
 using namespace std;
 
 
+class BrushWatershedPipeline
+{
+public:
+  typedef itk::Image<GreyType, 3> GreyImageType;
+  typedef itk::Image<LabelType, 3> LabelImageType;
+  typedef itk::Image<float, 3> FloatImageType;
+  typedef itk::Image<unsigned long, 3> WatershedImageType;
+
+  BrushWatershedPipeline()
+    {
+    roi = ROIType::New();
+    adf = ADFType::New();
+    adf->SetInput(roi->GetOutput());
+    adf->SetConductanceParameter(0.5);
+    gmf = GMFType::New();
+    gmf->SetInput(adf->GetOutput());
+    wf = WFType::New();
+    wf->SetInput(gmf->GetOutput());
+    }
+
+  void PrecomputeWatersheds(
+    GreyImageType *grey, 
+    LabelImageType *label, 
+    itk::ImageRegion<3> region,
+    itk::Index<3> vcenter,
+    size_t smoothing_iter)
+    {
+    this->region = region;
+
+    // Get the offset of vcenter in the region
+    if(region.IsInside(vcenter))
+      for(size_t d = 0; d < 3; d++)
+        this->vcenter[d] = vcenter[d] - region.GetIndex()[d];
+    else
+      for(size_t d = 0; d < 3; d++)
+        this->vcenter[d] = region.GetSize()[d] / 2;
+
+    // Create a backup of the label image
+    LROIType::Pointer lroi = LROIType::New();
+    lroi->SetInput(label);
+    lroi->SetRegionOfInterest(region);
+    lroi->Update();
+    lsrc = lroi->GetOutput();
+    lsrc->DisconnectPipeline();
+
+    // Initialize the watershed pipeline
+    roi->SetInput(grey);
+    roi->SetRegionOfInterest(region);
+    adf->SetNumberOfIterations(smoothing_iter);
+
+    // Set the initial level to lowest possible - to get all watersheds
+    wf->SetLevel(1.0);
+    wf->Update();
+    }
+
+  void RecomputeWatersheds(double level)
+    {
+    // Reupdate the filter with new level
+    wf->SetLevel(level);
+    wf->Update();
+    }
+
+  bool UpdateLabelImage(
+    LabelImageType *ltrg, 
+    CoverageModeType mode, 
+    LabelType drawing_color,
+    LabelType overwrt_color)
+    {
+    // Get the watershed ID at the center voxel 
+    unsigned long wid = wf->GetOutput()->GetPixel(vcenter);
+
+    // Keep track of changed voxels
+    bool flagChanged = false;
+
+    // Do the update 
+    typedef itk::ImageRegionConstIterator<WatershedImageType> WIter;
+    typedef itk::ImageRegionIterator<LabelImageType> LIter;
+    WIter wit(wf->GetOutput(), wf->GetOutput()->GetBufferedRegion());
+    LIter sit(lsrc, lsrc->GetBufferedRegion());
+    LIter tit(ltrg, region);
+    for(; !wit.IsAtEnd(); ++sit,++tit,++wit)
+      {
+      LabelType pxLabel = sit.Get();
+      if(wit.Get() == wid)
+        {
+        // Standard paint mode
+        if (mode == PAINT_OVER_ALL || 
+          (mode == PAINT_OVER_ONE && pxLabel == overwrt_color) ||
+          (mode == PAINT_OVER_COLORS && pxLabel != 0))
+          {
+          pxLabel = drawing_color;
+          }
+        }
+      if(pxLabel != tit.Get())
+        {
+        tit.Set(pxLabel);
+        flagChanged = true;
+        }
+      }
+
+    if(flagChanged)
+      ltrg->Modified();
+    return flagChanged;
+    }
+
+private:
+  typedef itk::RegionOfInterestImageFilter<GreyImageType, FloatImageType> ROIType;
+  typedef itk::RegionOfInterestImageFilter<LabelImageType, LabelImageType> LROIType;
+  typedef itk::GradientAnisotropicDiffusionImageFilter<FloatImageType,FloatImageType> ADFType;
+  typedef itk::GradientMagnitudeImageFilter<FloatImageType, FloatImageType> GMFType;
+  typedef itk::WatershedImageFilter<FloatImageType> WFType;
+  
+  ROIType::Pointer roi;  
+  ADFType::Pointer adf;
+  GMFType::Pointer gmf;
+  WFType::Pointer wf;
+
+  itk::ImageRegion<3> region;
+  LabelImageType::Pointer lsrc;
+  itk::Index<3> vcenter;
+};
+
+
+
+
 PaintbrushInteractionMode
 ::PaintbrushInteractionMode(GenericSliceWindow *parent)
 : GenericSliceWindow::EventHandler(parent)
 {                
   m_MouseInside = false;
+  m_Watershed = new BrushWatershedPipeline();
 }
 
 PaintbrushInteractionMode
@@ -316,63 +441,20 @@ PaintbrushInteractionMode
   bool flagUpdate = false;
 
   // Special code for Watershed brush
-  if(pbs.mode == PAINTBRUSH_WATERSHED && event.Button == FL_LEFT_MOUSE)
+  if(pbs.mode == PAINTBRUSH_WATERSHED && event.Button == FL_LEFT_MOUSE && event.Id == FL_PUSH)
     {
-    typedef itk::Image<GreyType, 3> ImageType;
-    typedef itk::Image<float, 3> FloatImageType;
-    typedef itk::RegionOfInterestImageFilter<ImageType, FloatImageType> ROIType;
-    typedef itk::GradientAnisotropicDiffusionImageFilter<FloatImageType,FloatImageType> ADFType;
-    typedef itk::GradientMagnitudeImageFilter<FloatImageType, FloatImageType> GMFType;
-    typedef itk::WatershedImageFilter<FloatImageType> WFType;
+    // Precompute the watersheds
+    m_Watershed->PrecomputeWatersheds(
+      m_Driver->GetCurrentImageData()->GetGrey()->GetImage(),
+      m_Driver->GetCurrentImageData()->GetSegmentation()->GetImage(),
+      xTestRegion, to_itkIndex(m_MousePosition), pbs.watershed.smooth_iterations);
 
-    ROIType::Pointer roi = ROIType::New();
-    roi->SetInput(m_Driver->GetCurrentImageData()->GetGrey()->GetImage());
-    roi->SetRegionOfInterest(xTestRegion);
-    roi->Update();
+    m_Watershed->RecomputeWatersheds(pbs.watershed.level);
 
-    ADFType::Pointer adf = ADFType::New();
-    adf->SetInput(roi->GetOutput());
-    adf->SetConductanceParameter(0.5);
-    adf->SetNumberOfIterations(pbs.watershed.smooth_iterations);
-    adf->Update();
-
-    GMFType::Pointer gmf = GMFType::New();
-    gmf->SetInput(adf->GetOutput());
-    gmf->Update();
-
-    WFType::Pointer wf = WFType::New();
-    wf->SetInput(gmf->GetOutput());
-    wf->SetLevel(pbs.watershed.level);
-    wf->Update();
-
-    // Get the central pixel
-    itk::Index<3> probe;
-    probe[0] = xTestRegion.GetSize()[0] >> 1;
-    probe[1] = xTestRegion.GetSize()[1] >> 1;
-    probe[2] = xTestRegion.GetSize()[2] >> 1;
-    unsigned long wid = wf->GetOutput()->GetPixel(probe);
-    
-    // Do the update
-    typedef itk::ImageRegionConstIterator<WFType::OutputImageType> WFIter;
-    WFIter wfit(wf->GetOutput(), wf->GetOutput()->GetBufferedRegion());
-    LabelImageWrapper::Iterator it(imgLabel->GetImage(), xTestRegion);
-    for(; !it.IsAtEnd(); ++it,++wfit)
-      {
-      if(wfit.Get() == wid)
-        {
-        // Paint the pixel
-        LabelType pxLabel = it.Get();
-
-        // Standard paint mode
-        if (mode == PAINT_OVER_ALL || 
-          (mode == PAINT_OVER_ONE && pxLabel == overwrt_color) ||
-          (mode == PAINT_OVER_COLORS && pxLabel != 0))
-          {
-          it.Set(drawing_color);
-          if(pxLabel != drawing_color) flagUpdate = true;
-          }
-        }
-      }
+    // Update the segmentation image
+    flagUpdate = m_Watershed->UpdateLabelImage(
+      m_Driver->GetCurrentImageData()->GetSegmentation()->GetImage(),
+      mode, drawing_color, overwrt_color);
     }
   else
     {
@@ -553,40 +635,52 @@ PaintbrushInteractionMode
   PaintbrushSettings pbs = 
     m_ParentUI->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
 
-  // Check if the right button was pressed
-  if(event.Button == FL_LEFT_MOUSE || event.Button == FL_RIGHT_MOUSE)
+  // The behavior is different for 'fast' regular brushes and adaptive brush. For the 
+  // adaptive brush, dragging affects parameter settings
+  if(pbs.mode == PAINTBRUSH_WATERSHED)
     {
-    // See how much we have moved since the last event
-    double delta = (event.XCanvas - m_LastMouseEvent.XCanvas).magnitude();
-    if(delta > pbs.radius)
+    if(event.Id == FL_RELEASE)
+      m_Parent->m_ParentUI->StoreUndoPoint("Drawing with paintbrush");
+    return true; 
+    }
+
+  else
+    {
+    // Check if the right button was pressed
+    if(event.Button == FL_LEFT_MOUSE || event.Button == FL_RIGHT_MOUSE)
       {
-      size_t nSteps = (int)ceil(delta / pbs.radius);
-      for(size_t i = 0; i < nSteps; i++)
+      // See how much we have moved since the last event
+      double delta = (event.XCanvas - m_LastMouseEvent.XCanvas).magnitude();
+      if(delta > pbs.radius)
         {
-        float t = (1.0 + i) / nSteps;
-        Vector3f X = t * m_LastMouseEvent.XSpace + (1.0f - t) * event.XSpace;
-        ComputeMousePosition(X);
-        ApplyBrush(event);
+        size_t nSteps = (int)ceil(delta / pbs.radius);
+        for(size_t i = 0; i < nSteps; i++)
+          {
+          float t = (1.0 + i) / nSteps;
+          Vector3f X = t * m_LastMouseEvent.XSpace + (1.0f - t) * event.XSpace;
+          ComputeMousePosition(X);
+          ApplyBrush(event);
+          }
         }
+      else
+        {
+        // Find the pixel under the mouse
+        ComputeMousePosition(event.XSpace);
+
+        // Scan convert the points into the slice
+        ApplyBrush(event);    
+
+        // Set an undo point if not in drag mode
+        if(!drag)
+          m_Parent->m_ParentUI->StoreUndoPoint("Drawing with paintbrush");
+        }
+
+      // Record the event
+      m_LastMouseEvent = event;
+
+      // Eat the event unless cursor chasing is enabled
+      return pbs.chase ? 0 : 1;                        
       }
-    else
-      {
-      // Find the pixel under the mouse
-      ComputeMousePosition(event.XSpace);
-
-      // Scan convert the points into the slice
-      ApplyBrush(event);    
-
-      // Set an undo point if not in drag mode
-      if(!drag)
-        m_Parent->m_ParentUI->StoreUndoPoint("Drawing with paintbrush");
-      }
-
-    // Record the event
-    m_LastMouseEvent = event;
-
-    // Eat the event unless cursor chasing is enabled
-    return pbs.chase ? 0 : 1;                        
     }
 
   return 0;
@@ -610,6 +704,32 @@ int
 PaintbrushInteractionMode
 ::OnKeyDown(FLTKEvent const &event)
 {
+  // Get the paintbrush properties
+  PaintbrushSettings pbs = 
+    m_ParentUI->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
+
+  // The behavior is different for 'fast' regular brushes and adaptive brush. For the 
+  // adaptive brush, dragging affects parameter settings
+  if(pbs.mode == PAINTBRUSH_WATERSHED)  
+    {
+    double shift = 0.0;
+    if(event.Key == ',')
+      shift = -1.0;
+    else if(event.Key == '.')
+      shift = 1.0;
+    if(shift != 0.0)
+      {
+      pbs.watershed.level += shift * 0.05;
+      if(pbs.watershed.level < 0.0) pbs.watershed.level = 0.0;
+      if(pbs.watershed.level > 1.0) pbs.watershed.level = 1.0;
+
+      
+      m_ParentUI->GetDriver()->GetGlobalState()->SetPaintbrushSettings(pbs);
+      m_ParentUI->UpdatePaintbrushAttributes();
+
+      return 1;
+      }
+    }
   return 0;
 }
 

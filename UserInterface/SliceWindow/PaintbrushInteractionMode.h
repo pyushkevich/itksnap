@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PaintbrushInteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2008/12/02 21:43:24 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -37,6 +37,9 @@
 
 #include "GenericSliceWindow.h"
 #include "GlobalState.h"
+
+// Reference to watershed filter object
+class BrushWatershedPipeline;
 
 /**
  * \class PaintbrushInteractionMode
@@ -82,6 +85,9 @@ private:
 
   Vector3ui m_MousePosition;
   bool m_MouseInside;
+
+  // Watershed pipeline object
+  BrushWatershedPipeline *m_Watershed;
 
   // Last FLTK event involving the mouse
   FLTKEvent m_LastMouseEvent;
