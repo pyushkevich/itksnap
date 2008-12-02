@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 04:24:00 $
-  Version:   $Revision: 1.31 $
+  Date:      $Date: 2008/12/02 05:14:19 $
+  Version:   $Revision: 1.32 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1923,16 +1923,21 @@ UserInterfaceLogic
 
   // Initialize the paintbrush panel
   PaintbrushSettings pbs = m_GlobalState->GetPaintbrushSettings();
+
+  // Get the mode (not nice C, but so be it)
+  int mode = (int) pbs.mode;
+  m_InPaintbrushShape->value(m_ChoicePaintbrush[mode]);
+  m_WizPaintbrushParameters->value(m_GrpPaintbrushParameters[mode]);
+
+  // Set the size
   m_InPaintbrushSize->value(pbs.radius * 2.0);
   
-  if(pbs.shape == PAINTBRUSH_RECTANGULAR)
-    m_InPaintbrushShape->value(m_ChoicePaintbrushRectangular);
-  else
-    m_InPaintbrushShape->value(m_ChoicePaintbrushRound);
-  
+  // Set the other parameters
   m_BtnPaintbrushIsotropic->value(pbs.isotropic ? 1 : 0);
   m_BtnPaintbrushChaseMode->value(pbs.chase ? 1 : 0);
   m_BtnPaintbrush3D->value(pbs.flat ? 0 : 1);
+  m_InPaintbrushSmoothing->value(pbs.watershed.smooth_iterations);
+  m_InPaintbrushGranularity->value(pbs.watershed.level);
 }
 
 void 
@@ -2595,10 +2600,16 @@ UserInterfaceLogic
   pbs.isotropic = m_BtnPaintbrushIsotropic->value() ? true : false;
   pbs.chase = m_BtnPaintbrushChaseMode->value() ? true : false;
 
-  if(m_InPaintbrushShape->value() == 0)
-    pbs.shape = PAINTBRUSH_RECTANGULAR;
-  else if(m_InPaintbrushShape->value() == 1)
-    pbs.shape = PAINTBRUSH_ROUND;
+  pbs.watershed.level = m_InPaintbrushGranularity->value();
+  pbs.watershed.smooth_iterations = m_InPaintbrushSmoothing->value();
+
+
+  // Set the mode
+  pbs.mode = (PaintbrushMode) (m_InPaintbrushShape->value());
+
+  // Update the wizard
+  m_WizPaintbrushParameters->value(
+    m_GrpPaintbrushParameters[m_InPaintbrushShape->value()]);
 
   // Set the paintbrush attributes
   m_GlobalState->SetPaintbrushSettings(pbs);
@@ -4435,6 +4446,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.32  2008/12/02 05:14:19  pyushkevich
+ *New feature: watershed-based adaptive paint brush. Based on the similar tool in ITK-Grey (which was derived from ITK-SNAP).
+ *
  *Revision 1.31  2008/11/20 04:24:00  pyushkevich
  *Bugfixes
  *

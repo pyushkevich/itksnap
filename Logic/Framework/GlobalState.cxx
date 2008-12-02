@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2008/12/02 05:14:19 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -88,10 +88,12 @@ GlobalState
 
   // Set paintbrush defaults
   m_PaintbrushSettings.radius = 4;
-  m_PaintbrushSettings.shape = PAINTBRUSH_RECTANGULAR;
+  m_PaintbrushSettings.mode = PAINTBRUSH_RECTANGULAR;
   m_PaintbrushSettings.flat = true;
   m_PaintbrushSettings.isotropic = false;
   m_PaintbrushSettings.chase = false;
+  m_PaintbrushSettings.watershed.level = 0.2;
+  m_PaintbrushSettings.watershed.smooth_iterations = 15;
 }
 
 GlobalState

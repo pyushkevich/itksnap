@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PaintbrushInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:47:41 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2008/12/02 05:14:19 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -33,6 +33,11 @@
 
 =========================================================================*/
 #include "PaintbrushInteractionMode.h"
+
+#include "itkRegionOfInterestImageFilter.h"
+#include "itkGradientAnisotropicDiffusionImageFilter.h"
+#include "itkGradientMagnitudeImageFilter.h"
+#include "itkWatershedImageFilter.h"
 
 #include "GlobalState.h"
 #include "PolygonDrawing.h"
@@ -79,15 +84,14 @@ TestInside(const Vector3d &x, const PaintbrushSettings &ps)
     }
 
   // Test inside/outside  
-  if(ps.shape == PAINTBRUSH_ROUND)
+  if(ps.mode == PAINTBRUSH_ROUND)
     {
     return xTest.squared_magnitude() <= (ps.radius-0.25) * (ps.radius-0.25);
     }
-  else if(ps.shape == PAINTBRUSH_RECTANGULAR)
+  else
     {
     return xTest.inf_norm() <= ps.radius - 0.25;
     }
-  else return false;
   }
 
 void 
@@ -258,6 +262,21 @@ PaintbrushInteractionMode
   glPopAttrib();
 }
 
+/*
+#include "itkImageFileWriter.h"
+
+template<class ImageType> void
+DebugDumpImage(ImageType *img, const char *fname)
+{
+  typedef itk::ImageFileWriter<ImageType> WriterType;
+  WriterType::Pointer w = WriterType::New();
+  w->SetFileName(fname);
+  w->SetInput(img);
+  w->Update();
+}
+*/
+
+
 void
 PaintbrushInteractionMode
 ::ApplyBrush(FLTKEvent const &event)
@@ -296,60 +315,122 @@ PaintbrushInteractionMode
   // Flag to see if anything was changed
   bool flagUpdate = false;
 
-  // Shift vector (different depending on whether the brush has odd/even diameter
-  Vector3f offset(0.0);
-  if(fmod(pbs.radius,1.0)==0)
+  // Special code for Watershed brush
+  if(pbs.mode == PAINTBRUSH_WATERSHED && event.Button == FL_LEFT_MOUSE)
     {
-    offset.fill(0.5);
-    offset(m_Parent->m_ImageAxes[2]) = 0.0;
+    typedef itk::Image<GreyType, 3> ImageType;
+    typedef itk::Image<float, 3> FloatImageType;
+    typedef itk::RegionOfInterestImageFilter<ImageType, FloatImageType> ROIType;
+    typedef itk::GradientAnisotropicDiffusionImageFilter<FloatImageType,FloatImageType> ADFType;
+    typedef itk::GradientMagnitudeImageFilter<FloatImageType, FloatImageType> GMFType;
+    typedef itk::WatershedImageFilter<FloatImageType> WFType;
+
+    ROIType::Pointer roi = ROIType::New();
+    roi->SetInput(m_Driver->GetCurrentImageData()->GetGrey()->GetImage());
+    roi->SetRegionOfInterest(xTestRegion);
+    roi->Update();
+
+    ADFType::Pointer adf = ADFType::New();
+    adf->SetInput(roi->GetOutput());
+    adf->SetConductanceParameter(0.5);
+    adf->SetNumberOfIterations(pbs.watershed.smooth_iterations);
+    adf->Update();
+
+    GMFType::Pointer gmf = GMFType::New();
+    gmf->SetInput(adf->GetOutput());
+    gmf->Update();
+
+    WFType::Pointer wf = WFType::New();
+    wf->SetInput(gmf->GetOutput());
+    wf->SetLevel(pbs.watershed.level);
+    wf->Update();
+
+    // Get the central pixel
+    itk::Index<3> probe;
+    probe[0] = xTestRegion.GetSize()[0] >> 1;
+    probe[1] = xTestRegion.GetSize()[1] >> 1;
+    probe[2] = xTestRegion.GetSize()[2] >> 1;
+    unsigned long wid = wf->GetOutput()->GetPixel(probe);
+    
+    // Do the update
+    typedef itk::ImageRegionConstIterator<WFType::OutputImageType> WFIter;
+    WFIter wfit(wf->GetOutput(), wf->GetOutput()->GetBufferedRegion());
+    LabelImageWrapper::Iterator it(imgLabel->GetImage(), xTestRegion);
+    for(; !it.IsAtEnd(); ++it,++wfit)
+      {
+      if(wfit.Get() == wid)
+        {
+        // Paint the pixel
+        LabelType pxLabel = it.Get();
+
+        // Standard paint mode
+        if (mode == PAINT_OVER_ALL || 
+          (mode == PAINT_OVER_ONE && pxLabel == overwrt_color) ||
+          (mode == PAINT_OVER_COLORS && pxLabel != 0))
+          {
+          it.Set(drawing_color);
+          if(pxLabel != drawing_color) flagUpdate = true;
+          }
+        }
+      }
     }
-
-  // Iterate over the region
-  LabelImageWrapper::Iterator it(imgLabel->GetImage(), xTestRegion);
-  for(; !it.IsAtEnd(); ++it)
+  else
     {
-    // Check if we are inside the sphere
-    LabelImageWrapper::ImageType::IndexType idx = it.GetIndex();
-    Vector3f xDelta = offset + to_float(Vector3l(idx.GetIndex())) - to_float(m_MousePosition);
-
-    Vector3d xDeltaSliceSpace = to_double(
-      m_Parent->m_ImageToDisplayTransform.TransformVector(xDelta));
-
-    // Check if the pixel is inside
-    if(!TestInside(xDeltaSliceSpace, pbs))
-      continue;
-
-    // if(pbs.shape == PAINTBRUSH_ROUND && xDelta.squared_magnitude() >= r2)
-    //  continue;
-
-    // Paint the pixel
-    LabelType pxLabel = it.Get();
-
-    // Standard paint mode
-    if(event.Button == FL_LEFT_MOUSE)
+    // Shift vector (different depending on whether the brush has odd/even diameter
+    Vector3f offset(0.0);
+    if(fmod(pbs.radius,1.0)==0)
       {
-      if (mode == PAINT_OVER_ALL || 
-        (mode == PAINT_OVER_ONE && pxLabel == overwrt_color) ||
-        (mode == PAINT_OVER_COLORS && pxLabel != 0))
-        {
-        it.Set(drawing_color);
-        if(pxLabel != drawing_color) flagUpdate = true;
-        }
+      offset.fill(0.5);
+      offset(m_Parent->m_ImageAxes[2]) = 0.0;
       }
-    // Background paint mode (clear label over current label)
-    else if(event.Button == FL_RIGHT_MOUSE)
+
+    // Iterate over the region
+    LabelImageWrapper::Iterator it(imgLabel->GetImage(), xTestRegion);
+    for(; !it.IsAtEnd(); ++it)
       {
-      if(drawing_color != 0 && pxLabel == drawing_color) 
+      // Check if we are inside the sphere
+      LabelImageWrapper::ImageType::IndexType idx = it.GetIndex();
+      Vector3f xDelta = offset + to_float(Vector3l(idx.GetIndex())) - to_float(m_MousePosition);
+
+      Vector3d xDeltaSliceSpace = to_double(
+        m_Parent->m_ImageToDisplayTransform.TransformVector(xDelta));
+
+      // Check if the pixel is inside
+      if(!TestInside(xDeltaSliceSpace, pbs))
+        continue;
+
+      // if(pbs.shape == PAINTBRUSH_ROUND && xDelta.squared_magnitude() >= r2)
+      //  continue;
+
+      // Paint the pixel
+      LabelType pxLabel = it.Get();
+
+      // Standard paint mode
+      if(event.Button == FL_LEFT_MOUSE)
         {
-        it.Set(0);
-        if(pxLabel != 0) flagUpdate = true;
+        if (mode == PAINT_OVER_ALL || 
+          (mode == PAINT_OVER_ONE && pxLabel == overwrt_color) ||
+          (mode == PAINT_OVER_COLORS && pxLabel != 0))
+          {
+          it.Set(drawing_color);
+          if(pxLabel != drawing_color) flagUpdate = true;
+          }
         }
-      else if(drawing_color == 0 && mode == PAINT_OVER_ONE)
+      // Background paint mode (clear label over current label)
+      else if(event.Button == FL_RIGHT_MOUSE)
         {
-        it.Set(overwrt_color);
-        if(pxLabel != overwrt_color) flagUpdate = true;
+        if(drawing_color != 0 && pxLabel == drawing_color) 
+          {
+          it.Set(0);
+          if(pxLabel != 0) flagUpdate = true;
+          }
+        else if(drawing_color == 0 && mode == PAINT_OVER_ONE)
+          {
+          it.Set(overwrt_color);
+          if(pxLabel != overwrt_color) flagUpdate = true;
+          }
         }
-      }
+      }         
     }
 
   // Image has been updated

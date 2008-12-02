@@ -297,7 +297,7 @@ class UserInterface {open : {public UserInterfaceBase}
           label {Control Pane} open
           xywh {0 25 145 680} box NO_BOX color 22 align 16
         } {
-          Fl_Group m_GrpToolbarPage {open selected
+          Fl_Group m_GrpToolbarPage {open
             xywh {0 25 145 680} color 53 labelsize 12
           } {
             Fl_Group m_GrpInteractionModes {
@@ -337,7 +337,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 xywh {5 165 135 166} box NO_BOX color 22 labeltype NO_LABEL labelsize 12 labelcolor 4
               } {
                 Fl_Group m_GrpToolOptionCrosshairs {
-                  label 1
+                  label 1 selected
                   xywh {5 165 135 165} labeltype NO_LABEL labelfont 1 labelsize 12 align 17
                 } {
                   Fl_Output m_OutGreyProbe {
@@ -424,7 +424,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   }
                 }
                 Fl_Group m_GrpToolOptionZoomPan {
-                  label 2 open
+                  label 2
                   xywh {5 165 135 165} labelsize 10 hide
                 } {
                   Fl_Group {} {
@@ -457,7 +457,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   } {}
                 }
                 Fl_Group m_GrpToolOptionBrush {
-                  label 6
+                  label 6 open
                   xywh {5 165 135 165} color 22 labelsize 10 labelcolor 4 hide
                 } {
                   Fl_Group {} {
@@ -469,34 +469,60 @@ class UserInterface {open : {public UserInterfaceBase}
                     callback {OnPaintbrushAttributesUpdate()} open
                     tooltip {Choose the shape of the paintbrush tool} xywh {55 200 80 20} down_box BORDER_BOX labelsize 12 when 1 textsize 12
                   } {
-                    MenuItem m_ChoicePaintbrushRectangular {
+                    MenuItem {m_ChoicePaintbrush[0]} {
                       label Square
                       xywh {0 0 31 21} labelsize 12
                     }
-                    MenuItem m_ChoicePaintbrushRound {
+                    MenuItem {m_ChoicePaintbrush[1]} {
                       label Round
                       xywh {0 0 31 21} labelsize 12
+                    }
+                    MenuItem {m_ChoicePaintbrush[2]} {
+                      label Adaptive
+                      xywh {10 10 31 21} labelsize 12
                     }
                   }
                   Fl_Counter m_InPaintbrushSize {
                     label {Size:}
                     callback {OnPaintbrushAttributesUpdate()}
-                    xywh {55 227 80 18} type Simple box PLASTIC_UP_BOX color 180 selection_color 25 labelsize 12 align 4 minimum 1 maximum 100 step 1 value 1 textsize 11
+                    xywh {55 224 80 16} type Simple box PLASTIC_THIN_UP_BOX color 180 selection_color 25 labelsize 12 align 4 minimum 1 maximum 100 step 1 value 1 textsize 11
                   }
                   Fl_Check_Button m_BtnPaintbrushIsotropic {
                     label Isotropic
                     callback {OnPaintbrushAttributesUpdate()}
-                    tooltip {Enable this in order to make the brush size more or less independent of the voxel size} xywh {75 260 64 15} down_box DOWN_BOX labelsize 11
+                    tooltip {Enable this in order to make the brush size more or less independent of the voxel size} xywh {75 250 64 15} down_box DOWN_BOX labelsize 11
                   }
                   Fl_Check_Button m_BtnPaintbrushChaseMode {
                     label {Cursor chases brush}
                     callback {OnPaintbrushAttributesUpdate()}
-                    tooltip {Enable this to make the crosshairs (the cursor) follow the paintbrush} xywh {10 280 120 15} down_box DOWN_BOX labelsize 11
+                    tooltip {Enable this to make the crosshairs (the cursor) follow the paintbrush} xywh {10 267 120 15} down_box DOWN_BOX labelsize 11
                   }
                   Fl_Check_Button m_BtnPaintbrush3D {
                     label {3D brush}
                     callback {OnPaintbrushAttributesUpdate()}
-                    tooltip {Enable to make the brush three-dimensional, so it paints in all three views at once} xywh {10 260 64 15} down_box DOWN_BOX labelsize 11
+                    tooltip {Enable to make the brush three-dimensional, so it paints in all three views at once} xywh {10 250 64 15} down_box DOWN_BOX labelsize 11
+                  }
+                  Fl_Wizard m_WizPaintbrushParameters {open
+                    xywh {10 285 125 40} box NO_BOX
+                  } {
+                    Fl_Group {m_GrpPaintbrushParameters[0]} {open
+                      xywh {10 285 125 40} hide
+                    } {}
+                    Fl_Group {m_GrpPaintbrushParameters[1]} {open
+                      xywh {10 285 125 40} hide
+                    } {}
+                    Fl_Group {m_GrpPaintbrushParameters[2]} {open
+                      xywh {10 285 125 40}
+                    } {
+                      Fl_Value_Input m_InPaintbrushSmoothing {
+                        label {Smoothing:}
+                        xywh {95 307 40 18} labelsize 11 minimum 1 maximum 100 step 1 value 15 textsize 11
+                      }
+                      Fl_Value_Input m_InPaintbrushGranularity {
+                        label {Granularity:}
+                        xywh {95 287 40 18} labelsize 11 step 0.01 value 0.2 textsize 11
+                      }
+                    }
                   }
                 }
               }

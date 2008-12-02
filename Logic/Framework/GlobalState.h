@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:38:23 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2008/12/02 05:14:19 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -107,11 +107,13 @@ enum ColorMapPreset
   COLORMAP_BLACK_YELLOW_WHITE
 };
 
-enum PaintbrushShape
+enum PaintbrushMode
 {
   PAINTBRUSH_RECTANGULAR = 0,
-  PAINTBRUSH_ROUND = 1
+  PAINTBRUSH_ROUND = 1,
+  PAINTBRUSH_WATERSHED = 2
 };
+  
 
 enum AnatomicalDirection
 {
@@ -120,14 +122,27 @@ enum AnatomicalDirection
   ANATOMY_CORONAL
 };
 
+/** Watershed settings for paintbrush */
+struct PaintbrushWatershedSettings
+{
+  // Level of thresholding
+  double level;
+
+  // Amount of smoothing
+  unsigned int smooth_iterations;
+
+};
+
 /** Paintbrush settings */
 struct PaintbrushSettings
 {
   double radius;
-  PaintbrushShape shape;
+  PaintbrushMode mode;
   bool flat;
   bool isotropic;
   bool chase;
+
+  PaintbrushWatershedSettings watershed;
 };
   
 /**
@@ -588,6 +603,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.11  2008/12/02 05:14:19  pyushkevich
+ *New feature: watershed-based adaptive paint brush. Based on the similar tool in ITK-Grey (which was derived from ITK-SNAP).
+ *
  *Revision 1.10  2008/11/17 19:38:23  pyushkevich
  *Added tools dialog to label editor window
  *
