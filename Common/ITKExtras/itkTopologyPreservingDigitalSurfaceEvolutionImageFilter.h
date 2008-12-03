@@ -53,8 +53,8 @@ public:
   itkSetMacro( NumberOfIterations, unsigned int );
   itkGetConstMacro( NumberOfIterations, unsigned int );
   
-  itkSetMacro( ForegroundValue, int );
-  itkGetConstMacro( ForegroundValue, int );
+  itkSetMacro( ForegroundValue, PixelType );
+  itkGetConstMacro( ForegroundValue, PixelType );
   
   itkSetMacro( UseInversionMode, bool );
   itkGetConstMacro( UseInversionMode, bool );

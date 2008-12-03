@@ -194,7 +194,7 @@ TopologyPreservingDigitalSurfaceEvolutionImageFilter<TImage>
       }
     }
 
-  this->UpdateProgress(1.0);
+  this->UpdateProgress( 1.0 );
 }  
 
 template<class TImage>
@@ -356,7 +356,8 @@ TopologyPreservingDigitalSurfaceEvolutionImageFilter<TImage>
       } 
     }
 
-  if( criticalC3ConfigurationFound && count == 2 )
+  if( criticalC3ConfigurationFound && ( count == 2 || 
+    count == 2 * ImageDimension ) )
     {
     return true; 
     }
