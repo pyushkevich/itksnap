@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBinaryDiamondStructuringElement.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/26 03:10:15 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2008/12/10 18:42:15 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -30,10 +30,10 @@ BinaryDiamondStructuringElement<TPixel, VDimension, TAllocator>
 ::CreateStructuringElement()
 {
 
-  unsigned int minRadius = this->GetRadius(0);
+  unsigned int minRadius = this->GetRadius( 0 );
   for ( unsigned d = 1; d < NeighborhoodDimension; d++ )
     {
-    if ( minRadius < this->GetRadius( d ) )
+    if ( minRadius > this->GetRadius( d ) )
       {
       minRadius = this->GetRadius( d );
       }    
