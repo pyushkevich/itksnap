@@ -225,12 +225,19 @@ TopologyPreservingDigitalSurfaceEvolutionImageFilter<TImage>
   subtracter->Update();
 
   typedef BinaryThresholdImageFilter<ImageType, ImageType> ThresholderType;
+
   typename ThresholderType::Pointer thresholder = ThresholderType::New();
+
   thresholder->SetInput( subtracter->GetOutput() );
+
   thresholder->SetLowerThreshold( this->m_ForegroundValue );
+
   thresholder->SetUpperThreshold( this->m_ForegroundValue );
+
   thresholder->SetInsideValue( this->m_SurfaceLabel );
+
   thresholder->SetOutsideValue( this->m_BackgroundValue );
+
   thresholder->Update();
 
   this->m_LabelSurfaceImage = thresholder->GetOutput();

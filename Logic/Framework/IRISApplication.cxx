@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 04:23:28 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2009/01/16 21:31:41 $
+  Version:   $Revision: 1.16 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -385,6 +385,10 @@ IRISApplication
   // Fill the image with blanks
   this->m_IRISImageData->GetSegmentation()->GetImage()->FillBuffer(0);
   this->m_IRISImageData->GetSegmentation()->GetImage()->Modified();
+
+  // Fill the undo image with blanks too
+  this->m_IRISImageData->GetUndoImage()->GetImage()->FillBuffer(0);
+  this->m_IRISImageData->GetUndoImage()->GetImage()->Modified();
 
   // Clear the undo buffer
   m_UndoManager.Clear();

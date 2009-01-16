@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISImageData.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 02:41:03 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/01/16 21:31:41 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -63,27 +63,15 @@ public:
    * We override the parent's SetSegmentationImage in order to initialize the
    * undo wrapper to match.
    */
-  void SetSegmentationImage(LabelImageType *newLabelImage)
-    {
-    GenericImageData::SetSegmentationImage(newLabelImage);
-    }
+  void SetSegmentationImage(LabelImageType *newLabelImage);
 
   void SetGreyImage(
     GreyImageType *newGreyImage,
     const ImageCoordinateGeometry &newGeometry,
-    const GreyTypeToNativeFunctor &native) 
-    {
-    GenericImageData::SetGreyImage(
-      newGreyImage, newGeometry, native);
-    m_UndoWrapper.InitializeToWrapper(&m_LabelWrapper, (LabelType) 0);
-    }
+    const GreyTypeToNativeFunctor &native);
 
   void SetRGBImage(RGBImageType *newRGBImage,
-                   const ImageCoordinateGeometry &newGeometry) 
-    {
-    GenericImageData::SetRGBImage(newRGBImage, newGeometry);
-    m_UndoWrapper.InitializeToWrapper(&m_LabelWrapper, (LabelType) 0);
-    }
+                   const ImageCoordinateGeometry &newGeometry);
 
 
 protected:

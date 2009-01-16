@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/12/02 21:43:24 $
-  Version:   $Revision: 1.33 $
+  Date:      $Date: 2009/01/16 21:31:41 $
+  Version:   $Revision: 1.34 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3142,7 +3142,10 @@ UserInterfaceLogic
   if(reloaded)
     {
     // TODO: what the heck is this variable?
-    m_SegmentationLoaded = 1; 
+    m_SegmentationLoaded = 1;
+
+    // When an image is reloaded, we clear the previous undo points
+    m_Driver->ClearUndoPoints();
 
     // The list of labels may have changed
     OnLabelListUpdate();
@@ -3773,8 +3776,14 @@ void UserInterfaceLogic
   // Get the driver to clear the image
   m_Driver->ClearIRISSegmentationImage();
 
-  // There are now no unsaved changes (this will update the main window too)
+  // There are now no unsaved changes
   m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
+
+  // Clear the segmentation file name
+  m_GlobalState->SetSegmentationFileName("");
+
+  // Update the main window label
+  this->UpdateMainLabel();
 
   // Save the state of the Undo manager at the time the image was updated
   m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState();
@@ -3794,11 +3803,17 @@ void UserInterfaceLogic
   m_SystemInterface->UpdateHistory("SegmentationImage",  
     itksys::SystemTools::CollapseFullPath(fname).c_str());
 
-  // There are now no unsaved changes (this will update the main window too)
+  // There are now no unsaved changes
   m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
+
+  // Update main window label
+  this->UpdateMainLabel();
 
   // Save the state of the Undo manager at the time the image was updated
   m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState(); 
+
+  // The mesh has become dirty
+  this->OnSegmentationImageUpdate(true);
 }
 
 void UserInterfaceLogic
@@ -3838,13 +3853,19 @@ void UserInterfaceLogic
 
     // Save the segmentation file name
     m_GlobalState->SetSegmentationFileName(m_WizSegmentationIO->GetFileName());
-    m_GlobalState->SetLastAssociatedSegmentationFileName(m_WizSegmentationIO->GetFileName());
+    m_GlobalState->SetLastAssociatedSegmentationFileName(m_WizSegmentationIO->GetFileName());   
 
-    // There are now no unsaved changes (this will update the main window too)
+    // There are now no unsaved changes
     m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
+
+    // Update the label of the main window
+    this->UpdateMainLabel();
 
     // Save the state of the Undo manager at the time the image was updated
     m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState();
+
+    // Segmentation has been updated
+    this->OnSegmentationImageUpdate(true);
     }
 
   // Disconnect the input wizard from the grey image
@@ -4452,6 +4473,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.34  2009/01/16 21:31:41  pyushkevich
+ *Fixed issues with loading and creating new segmentation images; namely undo/redo bugs and update mesh button not being available.
+ *
  *Revision 1.33  2008/12/02 21:43:24  pyushkevich
  *Reorganization of the watershed code
  *

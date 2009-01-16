@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/01/16 21:31:41 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,3 +35,36 @@
 // ITK Includes
 #include "IRISImageData.h"
 
+void IRISImageData::SetSegmentationImage(LabelImageType *newLabelImage)
+{
+  // Set the new segmentation image
+  GenericImageData::SetSegmentationImage(newLabelImage);
+  
+  // Update the undo wrapper to match
+  LabelImageWrapper::Iterator itUndo = m_UndoWrapper.GetImageIterator();
+  LabelImageWrapper::ConstIterator itSeg = m_LabelWrapper.GetImageConstIterator();
+
+  while(!itUndo.IsAtEnd())
+    {
+    itUndo.Set(itSeg.Get());
+    ++itUndo;
+    ++itSeg;
+    }
+}
+
+void IRISImageData::SetGreyImage(
+  GreyImageType *newGreyImage,
+  const ImageCoordinateGeometry &newGeometry,
+  const GreyTypeToNativeFunctor &native) 
+{
+  GenericImageData::SetGreyImage(
+    newGreyImage, newGeometry, native);
+  m_UndoWrapper.InitializeToWrapper(&m_LabelWrapper, (LabelType) 0);
+}
+
+void IRISImageData::SetRGBImage(RGBImageType *newRGBImage,
+                                const ImageCoordinateGeometry &newGeometry) 
+{
+  GenericImageData::SetRGBImage(newRGBImage, newGeometry);
+  m_UndoWrapper.InitializeToWrapper(&m_LabelWrapper, (LabelType) 0);
+}
