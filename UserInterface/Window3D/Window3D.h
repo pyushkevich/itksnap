@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: Window3D.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:29 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/17 10:40:28 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -129,6 +129,9 @@ public:
   
   /** Enter the spraypaint mode of operation */
   virtual void EnterSpraypaintMode();
+
+  irisGetMacro(Trackball, Trackball);
+  irisSetMacro(Trackball, Trackball);
 
   /** A parent class from which all the Fl event handlers associated
    * with this class should be derived */
@@ -270,6 +273,9 @@ private:
 
 /*
  *$Log: Window3D.h,v $
+ *Revision 1.3  2009/01/17 10:40:28  pyushkevich
+ *Added synchronization to 3D window viewpoint
+ *
  *Revision 1.2  2007/12/30 04:05:29  pyushkevich
  *GPL License
  *

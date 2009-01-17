@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/16 21:31:41 $
-  Version:   $Revision: 1.34 $
+  Date:      $Date: 2009/01/17 10:40:28 $
+  Version:   $Revision: 1.35 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1714,6 +1714,26 @@ UserInterfaceLogic
           }
         }
 
+      // Update the 3D trackball
+      if(m_GlobalUI->m_BtnSynchronizeCursor->value())
+        {
+        // Get the current 3D window object
+        Window3D *w3d = 
+          m_GlobalUI->m_GlobalState->GetSNAPActive() 
+          ? m_GlobalUI->m_SNAPWindowManager3D 
+          : m_GlobalUI->m_IRISWindowManager3D;
+
+        // Compare the two trackballs
+        Trackball tball = w3d->GetTrackball();
+        char *p1 = reinterpret_cast<char *>(&tball);
+        char *p2 = reinterpret_cast<char *>(&ipcm.trackball);
+        if(!std::equal(p1,p1+sizeof(Trackball),p2))
+          {
+          w3d->SetTrackball(ipcm.trackball);
+          m_GlobalUI->RedrawWindows();
+          }
+        }
+
       // Update the zoom factor (IRIS mode only)
       if(m_GlobalUI->m_ChkMultisessionZoom->value() 
         && m_GlobalUI->m_Activation->GetFlag(UIF_IRIS_ACTIVE))
@@ -2102,6 +2122,22 @@ UserInterfaceLogic
 
     // Write the NIFTI cursor to shared memory
     m_Driver->GetSystemInterface()->IPCBroadcastCursor(cursor);
+    }
+}
+
+void
+UserInterfaceLogic
+::OnTrackballUpdate(bool flagBroadcastUpdate)
+{
+  if(flagBroadcastUpdate
+    && m_GlobalUI->m_Activation->GetFlag(UIF_BASEIMG_LOADED)
+    && m_GlobalUI->m_BtnSynchronizeCursor->value())
+    {
+    Trackball tball = 
+      m_GlobalState->GetSNAPActive() ? 
+      m_SNAPWindowManager3D->GetTrackball() : 
+      m_IRISWindowManager3D->GetTrackball();
+    m_Driver->GetSystemInterface()->IPCBroadcastTrackball(tball);
     }
 }
 
@@ -4473,6 +4509,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.35  2009/01/17 10:40:28  pyushkevich
+ *Added synchronization to 3D window viewpoint
+ *
  *Revision 1.34  2009/01/16 21:31:41  pyushkevich
  *Fixed issues with loading and creating new segmentation images; namely undo/redo bugs and update mesh button not being available.
  *

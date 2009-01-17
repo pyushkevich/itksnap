@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2008/12/02 21:43:24 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2009/01/17 10:40:28 $
+  Version:   $Revision: 1.16 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -233,6 +233,7 @@ public:
   virtual void OnPreprocessingPreviewStatusUpdate(bool) = 0;
   virtual void OnSpeedImageUpdate() = 0;
   virtual void OnCrosshairPositionUpdate(bool flagBroadcastUpdate = true) = 0;
+  virtual void OnTrackballUpdate(bool flagBroadcastUpdate = true) = 0;
   virtual void OnPolygonStateUpdate(unsigned int) = 0;
   virtual void OnZoomUpdate(bool flagBroadcastUpdate = true) = 0;
   virtual void OnIRISMeshEditingAction() = 0;

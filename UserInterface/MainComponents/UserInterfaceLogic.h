@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/12/02 21:43:24 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009/01/17 10:40:28 $
+  Version:   $Revision: 1.18 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -555,6 +555,9 @@ public:
   // specifies if this update should be broadcast to other SNAP instances
   void OnCrosshairPositionUpdate(bool flagBroadcastUpdate = true);
 
+  // Callback for when 3D view changes
+  void OnTrackballUpdate(bool flagBroadcastUpdate = true);
+
   // Internal method called when slices need to be re-connected to the image,
   // i.e., when a new image is loaded or the image-display geometry changes
   void OnImageGeometryUpdate();
@@ -971,6 +974,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.18  2009/01/17 10:40:28  pyushkevich
+ *Added synchronization to 3D window viewpoint
+ *
  *Revision 1.17  2008/12/02 21:43:24  pyushkevich
  *Reorganization of the watershed code
  *

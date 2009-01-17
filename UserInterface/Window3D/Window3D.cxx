@@ -3,8 +3,8 @@
   Progra_P:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: Window3D.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/17 10:40:28 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -490,6 +490,9 @@ Window3D
   m_Plane.valid = -1; // Resets the Cut m_Plane
   
   m_Samples.clear();
+
+  // Fire 3D view update event
+  m_ParentUI->OnTrackballUpdate();
 }
 
 void 
@@ -676,6 +679,7 @@ Window3D
   if ( m_Mode != WIN3D_NONE ) return;
   m_Mode = WIN3D_ROTATE;
   m_Trackball.StartRot(x, y, m_Canvas->w(), m_Canvas->h());
+  m_ParentUI->OnTrackballUpdate();
 }
 
 void 
@@ -685,6 +689,7 @@ Window3D
   if ( m_Mode != WIN3D_NONE ) return;
   m_Mode = WIN3D_PAN;
   m_Trackball.StartPan(x, y);
+  m_ParentUI->OnTrackballUpdate();
 }
 
 void 
@@ -694,6 +699,7 @@ Window3D
   if ( m_Mode != WIN3D_NONE ) return;
   m_Mode = WIN3D_ZOOM;
   m_Trackball.StartZoom(y);
+  m_ParentUI->OnTrackballUpdate();
 }
 
 void 
@@ -716,6 +722,7 @@ Window3D
     default: break;
     }
 
+  m_ParentUI->OnTrackballUpdate();
   m_Canvas->redraw();
 }
 
@@ -734,6 +741,7 @@ Window3D
     default: break;
     }
   m_Mode = WIN3D_NONE;
+  m_ParentUI->OnTrackballUpdate();
 }
 
 void 
@@ -1285,6 +1293,7 @@ Window3D
     // Restore the trackball state
     m_Trackball = m_TrackballBackup;
     m_Canvas->redraw();
+    m_ParentUI->OnTrackballUpdate();
     return 1;
     }
   return 0;
@@ -1292,6 +1301,9 @@ Window3D
 
 /*
  *$Log: Window3D.cxx,v $
+ *Revision 1.4  2009/01/17 10:40:28  pyushkevich
+ *Added synchronization to 3D window viewpoint
+ *
  *Revision 1.3  2008/02/10 23:55:22  pyushkevich
  *Added "Auto" button to the intensity curve window; Added prompt before quitting on unsaved data; Fixed issues with undo on segmentation image load; Added synchronization between SNAP sessions.
  *

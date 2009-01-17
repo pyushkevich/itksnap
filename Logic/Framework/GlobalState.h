@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2008/12/02 05:14:19 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/01/17 10:40:28 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -144,7 +144,7 @@ struct PaintbrushSettings
 
   PaintbrushWatershedSettings watershed;
 };
-  
+
 /**
  * Bubble structure: an object of this class stores information about an 
  * individual bubble initialized in the Snake window
@@ -603,6 +603,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.12  2009/01/17 10:40:28  pyushkevich
+ *Added synchronization to 3D window viewpoint
+ *
  *Revision 1.11  2008/12/02 05:14:19  pyushkevich
  *New feature: watershed-based adaptive paint brush. Based on the similar tool in ITK-Grey (which was derived from ITK-SNAP).
  *

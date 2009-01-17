@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/19 10:11:44 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/01/17 10:40:28 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -432,7 +432,7 @@ SystemInterface
 
 // We start versioning at 1000. Every time we change
 // the protocol, we should increment the version id
-const short SystemInterface::IPC_VERSION = 0x1000;
+const short SystemInterface::IPC_VERSION = 0x1001;
 
 void
 SystemInterface
@@ -524,6 +524,21 @@ SystemInterface
 
   // Update the message
   mcurr.cursor = cursor;
+  return IPCBroadcast(mcurr);
+}
+
+bool
+SystemInterface
+::IPCBroadcastTrackball(Trackball tball)
+{
+  // Try reading the current memory
+  IPCMessage mcurr;
+  
+  // This may fail, but that's ok
+  IPCRead(mcurr);
+
+  // Update the message
+  mcurr.trackball = tball;
   return IPCBroadcast(mcurr);
 }
 

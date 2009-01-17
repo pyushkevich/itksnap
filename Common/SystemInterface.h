@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/01/17 10:40:28 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -37,6 +37,7 @@
 #define __SystemInterface_h_
 
 #include "Registry.h"
+#include "Trackball.h"
 
 class IRISApplication;
 class SNAPRegistryIO;
@@ -131,7 +132,10 @@ public:
     Vector3d cursor;
 
     // The common zoom factor (screen pixels / mm)
-    double zoom_level;        
+    double zoom_level;   
+
+    // 3D view settings
+    Trackball trackball;
     };
 
   /** Interprocess communication: attach to shared memory */
@@ -143,6 +147,7 @@ public:
   /** Interprocess communication: write shared memory */
   bool IPCBroadcast(const IPCMessage &mout);
   bool IPCBroadcastCursor(Vector3d cursor);
+  bool IPCBroadcastTrackball(Trackball tball);
   bool IPCBroadcastZoomLevel(double zoom);
 
   /** Interprocess communication: release shared memory */
