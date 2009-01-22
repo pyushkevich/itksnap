@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/22 23:14:10 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -186,6 +186,7 @@ SNAPAppearanceSettings
 
   // Set the common flags
   m_FlagLinkedZoomByDefault = true;
+  m_FlagFloatingPointWarningByDefault = true;
   m_ZoomThumbnailMaximumSize = 160;
   m_ZoomThumbnailSizeInPercent = 30.0;
   m_FlagDisplayZoomThumbnail = true;
@@ -207,6 +208,9 @@ SNAPAppearanceSettings
 
   m_FlagLinkedZoomByDefault = 
     r["FlagLinkedZoomByDefault"][m_FlagLinkedZoomByDefault];
+
+  m_FlagFloatingPointWarningByDefault = 
+    r["FlagFloatingPointWarningByDefault"][m_FlagFloatingPointWarningByDefault];
 
   m_ZoomThumbnailSizeInPercent = 
     r["ZoomThumbnailSizeInPercent"][m_ZoomThumbnailSizeInPercent];
@@ -243,6 +247,7 @@ SNAPAppearanceSettings
   // Save the flags and settings
   r["FlagDisplayZoomThumbnail"] << m_FlagDisplayZoomThumbnail;
   r["FlagLinkedZoomByDefault"] << m_FlagLinkedZoomByDefault;
+  r["FlagFloatingPointWarningByDefault"] << m_FlagFloatingPointWarningByDefault;
   r["ZoomThumbnailSizeInPercent"] << m_ZoomThumbnailSizeInPercent;
   r["ZoomThumbnailMaximumSize"] << m_ZoomThumbnailMaximumSize;
 

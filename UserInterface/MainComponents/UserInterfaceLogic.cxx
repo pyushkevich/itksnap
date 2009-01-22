@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/17 10:40:28 $
-  Version:   $Revision: 1.35 $
+  Date:      $Date: 2009/01/22 23:14:10 $
+  Version:   $Revision: 1.36 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3136,14 +3136,16 @@ UserInterfaceLogic
   // Warn if the image has been scaled
   GreyTypeToNativeFunctor native = 
     m_Driver->GetCurrentImageData()->GetGrey()->GetNativeMapping();
-  if(native.scale != 1.0 || native.shift != 0.0)
+  if(m_AppearanceSettings->GetFlagFloatingPointWarningByDefault() == 1 && (native.scale != 1.0 || native.shift != 0.0))
     fl_alert(
       "The image you just loaded has a data type with greater range\n"
       "and precision than the 16-bit signed integer data type used \n"
       "internally by ITK-SNAP. Approximate intensity values will be\n"
       "reported by the program.\n\n"
       "CAUTION: if you use ITK-SNAP to save the image to a file, \n"
-      "precision from the original image will be lost!\n");
+      "precision from the original image will be lost!\n\n"
+	 "You can turn off this warning by going to \"Options -> \n"
+	 "Display Options -> General\"\n\n");
 
   // Redraw the user interface
   RedrawWindows();
@@ -4509,6 +4511,10 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.36  2009/01/22 23:14:10  garyhuizhang
+ *1) Add an option under Options -> Display Options -> General for toggling on/off the warning when loading floating point images.
+ *2) The warning message is modified to include the instruction for turning it off.
+ *
  *Revision 1.35  2009/01/17 10:40:28  pyushkevich
  *Added synchronization to 3D window viewpoint
  *

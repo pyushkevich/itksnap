@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/22 23:14:10 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -101,6 +101,9 @@ AppearanceDialogUILogic
   m_Appearance->SetFlagLinkedZoomByDefault(
     m_ChkOptionsSliceLinkedZoom->value() != 0);
   
+  m_Appearance->SetFlagFloatingPointWarningByDefault(
+    m_ChkOptionsFloatingPointWarning->value() != 0);
+  
   m_Appearance->SetZoomThumbnailSizeInPercent(
     m_InOptionsSliceThumbnailPercent->value());
   
@@ -125,6 +128,9 @@ AppearanceDialogUILogic
   
   m_Appearance->SetFlagLinkedZoomByDefault(
     m_DefaultAppearance->GetFlagLinkedZoomByDefault());
+  
+  m_Appearance->SetFlagFloatingPointWarningByDefault(
+    m_DefaultAppearance->GetFlagFloatingPointWarningByDefault());
   
   m_Appearance->SetZoomThumbnailSizeInPercent(
     m_DefaultAppearance->GetZoomThumbnailSizeInPercent());
@@ -499,6 +505,8 @@ AppearanceDialogUILogic
     m_Appearance->GetFlagDisplayZoomThumbnail() ? 1 : 0);
   m_ChkOptionsSliceLinkedZoom->value(
     m_Appearance->GetFlagLinkedZoomByDefault() ? 1 : 0);
+  m_ChkOptionsFloatingPointWarning->value(
+    m_Appearance->GetFlagFloatingPointWarningByDefault() ? 1 : 0);
   m_InOptionsSliceThumbnailPercent->value(
     m_Appearance->GetZoomThumbnailSizeInPercent());
   m_InOptionsSliceThumbnailMaxSize->value(
