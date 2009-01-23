@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/22 23:14:10 $
-  Version:   $Revision: 1.36 $
+  Date:      $Date: 2009/01/23 05:04:33 $
+  Version:   $Revision: 1.37 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3086,8 +3086,8 @@ UserInterfaceLogic
     m_OutImageInfoCursorPosition[d]->precision(2);
     m_OutImageInfoCursorNIFTIPosition[d]->precision(2);
     }
-  m_OutImageInfoRange[0]->value(wrpGrey->GetImageMin());
-  m_OutImageInfoRange[1]->value(wrpGrey->GetImageMax());
+  m_OutImageInfoRange[0]->value(wrpGrey->GetImageMinNative());
+  m_OutImageInfoRange[1]->value(wrpGrey->GetImageMaxNative());
 
   // Set the RAI code in the image info dialog
   ImageCoordinateGeometry::DirectionMatrix dmat = 
@@ -4511,6 +4511,10 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.37  2009/01/23 05:04:33  garyhuizhang
+ *Bug fix: floating point values are now correctly displayed in image
+ *contrast dialog and image info dialog
+ *
  *Revision 1.36  2009/01/22 23:14:10  garyhuizhang
  *1) Add an option under Options -> Display Options -> General for toggling on/off the warning when loading floating point images.
  *2) The warning message is modified to include the instruction for turning it off.

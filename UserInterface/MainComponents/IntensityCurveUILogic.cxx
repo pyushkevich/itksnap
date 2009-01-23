@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/01/23 05:04:33 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -81,8 +81,8 @@ IntensityCurveUILogic
 
   // Get 'absolute' image intensity range, i.e., the largest and smallest
   // intensity in the whole image
-  double iAbsMin = m_ImageWrapper->GetImageMin();
-  double iAbsMax = m_ImageWrapper->GetImageMax();
+  double iAbsMin = m_ImageWrapper->GetImageMinNative();
+  double iAbsMax = m_ImageWrapper->GetImageMaxNative();
   double iAbsSpan = (iAbsMax - iAbsMin);
 
   // The the curve intensity range
@@ -100,7 +100,7 @@ IntensityCurveUILogic
 
   // Compute and constrain the window
   m_InWindow->value(window);
-  m_InWindow->minimum(1);
+  m_InWindow->minimum(0.01);
   m_InWindow->maximum(iAbsMax - level);
 }
 
@@ -115,12 +115,12 @@ IntensityCurveUILogic
 
   // Get 'absolute' image intensity range, i.e., the largest and smallest
   // intensity in the whole image
-  GreyType iAbsMin = m_ImageWrapper->GetImageMin();
-  GreyType iAbsMax = m_ImageWrapper->GetImageMax();
+  double iAbsMin = m_ImageWrapper->GetImageMinNative();
+  double iAbsMax = m_ImageWrapper->GetImageMaxNative();
 
   // Get the new values of min and max
-  int iMin = (int) m_InLevel->value();
-  int iMax = iMin + (int)m_InWindow->value();
+  double iMin = m_InLevel->value();
+  double iMax = iMin + m_InWindow->value();
 
   // Min better be less than max
   assert(iMin < iMax);
@@ -237,13 +237,17 @@ IntensityCurveUILogic
     { ilow = imin; ihigh = imax; }
 
   // Compute and constrain the window
-  double iwin = ihigh - ilow;
+  GreyTypeToNativeFunctor native = m_ImageWrapper->GetNativeMapping();
+  double ilowNative = native(ilow);
+  double ihighNative = native(ihigh);
+  double imaxNative = native(imax);
+  double iwin = ihighNative - ilowNative;
 
-  m_InWindow->maximum(imax - ilow);
+  m_InWindow->maximum(imaxNative - ilowNative);
   m_InWindow->value(iwin);
 
-  m_InLevel->maximum(imax - iwin);
-  m_InLevel->value(ilow);  
+  m_InLevel->maximum(imaxNative - iwin);
+  m_InLevel->value(ilowNative);  
 
   this->OnWindowLevelChange();
   }

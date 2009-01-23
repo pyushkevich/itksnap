@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 02:41:03 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/01/23 05:04:33 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -100,6 +100,14 @@ public:
    */
   double GetVoxelMappedToNative(const Vector3ui &vec)
     { return m_NativeMapping(this->GetVoxel(vec)); }
+
+  /**
+   * Get min/max voxel intensity in native space
+   */
+  double GetImageMinNative()
+    { return m_NativeMapping(this->GetImageMin()); }
+  double GetImageMaxNative()
+    { return m_NativeMapping(this->GetImageMax()); }
 
   /**
    * Get the display slice in a given direction.  To change the

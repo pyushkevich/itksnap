@@ -76,12 +76,12 @@ class IntensityCurveUI {open : {private IntensityCurveUIBase}
         Fl_Value_Input m_InLevel {
           label {Level:}
           callback {this->OnWindowLevelChange();}
-          xywh {70 45 70 25} labelsize 12 when 4 step 1 textsize 12
+          xywh {70 45 70 25} labelsize 12 when 4 step .01 textsize 12
         }
         Fl_Value_Input m_InWindow {
           label {Window:}
           callback {this->OnWindowLevelChange();}
-          xywh {210 45 70 25} labelsize 12 when 4 step 1 textsize 12
+          xywh {210 45 70 25} labelsize 12 when 4 step .01 textsize 12
         }
         Fl_Button {} {
           label {&Auto}
