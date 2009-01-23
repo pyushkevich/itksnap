@@ -3,8 +3,8 @@
   Progra_P:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: Window3D.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/01/23 20:54:11 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,6 +52,8 @@
 #else
 # define itk_cross_3d cross_3d
 #endif
+
+#include <vnl/vnl_det.h>
 
 /** These classes are used internally for m_Ray intersection testing */
 class LabelImageHitTester 
@@ -918,9 +920,16 @@ Window3D
   // Compute the length of the normal and exit if it's zero
   double l = n.two_norm();
   if(l == 0.0) return false;
+
   
   // Compute the distance to the origin
   m_Plane.vNormal = n.normalize();
+
+  // Check if the normal requires flipping (if the Jacobian of the world matrix
+  // is negative)
+  if(vnl_det(m_WorldMatrix) < 0)
+    m_Plane.vNormal = -m_Plane.vNormal;
+
   m_Plane.dIntercept = dot_product(x1,m_Plane.vNormal);
 
   // Now, this is not enough, because we want to be able to draw the plane
@@ -944,6 +953,10 @@ Window3D
 
   // Compute the center of the volume
   Vector3d xVol = to_double(m_VolumeSize) * 0.5;
+
+  // Compute the center of the volume in world coordinates
+  Vector3d xVolCenter = 
+    affine_transform_point(m_WorldMatrix, to_double(m_ImageSize) * 0.5);
   
   // Use that to compute the center of the square
   double edgeLength = (xVol[0] > xVol[1]) ? xVol[0] : xVol[1];
@@ -952,8 +965,8 @@ Window3D
   // Now compute the center point of the square   
   Vector3d m_Origin = m_Driver->GetCurrentImageData()->GetImageOrigin();
   Vector3d xCenter = 
-    to_double(m_Origin) + xVol - m_Plane.vNormalWorld *
-     (dot_product(to_double(m_Origin) + xVol,m_Plane.vNormalWorld) - interceptWorld);
+    xVolCenter - m_Plane.vNormalWorld *
+     (dot_product(xVolCenter,m_Plane.vNormalWorld) - interceptWorld);
   
   // Compute the 'up' vector and the 'in' vector
   Vector3d vUp = (x2World - x1World).normalize();
@@ -1302,6 +1315,9 @@ Window3D
 
 /*
  *$Log: Window3D.cxx,v $
+ *Revision 1.6  2009/01/23 20:54:11  pyushkevich
+ *FIX: fixed cut plane behavior, which was broken by earlier 3D changes
+ *
  *Revision 1.5  2009/01/23 20:09:38  pyushkevich
  *FIX: 3D rendering now takes place in Nifti(RAS) world coordinates, rather than the VTK (x spacing + origin) coordinates. As part of this, itk::OrientedImage is now used for 3D images in SNAP. Still have to fix cut plane code in Window3D
  *
