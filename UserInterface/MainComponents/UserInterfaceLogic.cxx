@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.38 $
+  Date:      $Date: 2009/01/23 21:48:59 $
+  Version:   $Revision: 1.39 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2911,6 +2911,11 @@ UserInterfaceLogic
       m_TabsToolOptions->value(m_GrpToolOptionBrush);
       break;
 
+    case ANNOTATION_MODE:
+      m_IRISWindowManager2D[i]->EnterAnnotationMode();
+      m_TabsToolOptions->value(m_GrpToolOptionCrosshairs);
+      break;
+
     case ROI_MODE:
       m_IRISWindowManager2D[i]->EnterRegionMode();
       m_TabsToolOptions->value(m_GrpToolOptionSnAP);
@@ -4515,6 +4520,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.39  2009/01/23 21:48:59  pyushkevich
+ *ENH: Added hidden annotation mode (very bad code)
+ *
  *Revision 1.38  2009/01/23 20:09:38  pyushkevich
  *FIX: 3D rendering now takes place in Nifti(RAS) world coordinates, rather than the VTK (x spacing + origin) coordinates. As part of this, itk::OrientedImage is now used for 3D images in SNAP. Still have to fix cut plane code in Window3D
  *

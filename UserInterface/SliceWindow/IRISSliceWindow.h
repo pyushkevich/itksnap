@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/01/23 21:48:59 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -42,6 +42,7 @@
 class PolygonInteractionMode;
 class RegionInteractionMode;
 class PaintbrushInteractionMode;
+class AnnotationInteractionMode;
 
 /**
  * \class IRISSliceWindow
@@ -64,6 +65,9 @@ public:
 
   /** Enter the paintbrush mode of operation */
   void EnterPaintbrushMode();
+
+  /** Enter the annotation mode of operation */
+  void EnterAnnotationMode();
 
   /**
    * The initialize method extends the parent's version, sets up some 
@@ -159,6 +163,9 @@ protected:
 
   /** Interaction mode for paintbrush tools */
   PaintbrushInteractionMode *m_PaintbrushMode;
+
+  /** Annotation mode */
+  AnnotationInteractionMode *m_AnnotationMode;
 
   /** polygon drawing object */
   PolygonDrawing *m_PolygonDrawing;

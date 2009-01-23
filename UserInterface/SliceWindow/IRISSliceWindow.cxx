@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/01/23 21:48:59 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -39,6 +39,7 @@
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "UserInterfaceBase.h"
+#include "AnnotationInteractionMode.h"
 #include "CrosshairsInteractionMode.h"
 #include "PolygonInteractionMode.h"
 #include "PaintbrushInteractionMode.h"
@@ -65,6 +66,7 @@ IRISSliceWindow
   m_PolygonMode = new PolygonInteractionMode(this);
   m_RegionMode = new RegionInteractionMode(this);
   m_PaintbrushMode = new PaintbrushInteractionMode(this);
+  m_AnnotationMode = new AnnotationInteractionMode(this);
 
   // Get a pointer to the drawing object
   m_PolygonDrawing = m_PolygonMode->m_Drawing;
@@ -77,11 +79,17 @@ IRISSliceWindow
   m_PolygonMode->Register();
   m_RegionMode->Register();
   m_PaintbrushMode->Register();
+  m_AnnotationMode->Register();
+
 }
 
 IRISSliceWindow
 ::~IRISSliceWindow()
 {
+  delete m_PolygonMode;
+  delete m_RegionMode;
+  delete m_AnnotationMode;
+  delete m_PaintbrushMode;
 }
 
 void 
@@ -121,6 +129,9 @@ IRISSliceWindow
   // Draw the paintbrush stuff if selected
   if(IsInteractionModeAdded(m_PaintbrushMode) && !m_ThumbnailIsDrawing)
     m_PaintbrushMode->OnDraw();
+
+  // Always draw annotations, whether active or not
+  m_AnnotationMode->OnDraw();
 }
 
 void 
@@ -135,6 +146,13 @@ IRISSliceWindow
 ::EnterPaintbrushMode()
 {
   EnterInteractionMode(m_PaintbrushMode);
+}
+
+void 
+IRISSliceWindow
+::EnterAnnotationMode()
+{
+  EnterInteractionMode(m_AnnotationMode);
 }
 
 void 

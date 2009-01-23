@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/17 10:40:28 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/01/23 21:48:59 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -58,6 +58,7 @@ enum ToolbarModeType
   NAVIGATION_MODE,
   CROSSHAIRS_MODE,
   PAINTBRUSH_MODE,
+  ANNOTATION_MODE,
   ROI_MODE
 };
 
@@ -603,6 +604,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.13  2009/01/23 21:48:59  pyushkevich
+ *ENH: Added hidden annotation mode (very bad code)
+ *
  *Revision 1.12  2009/01/17 10:40:28  pyushkevich
  *Added synchronization to 3D window viewpoint
  *

@@ -16,11 +16,11 @@ PROJECT(SNAP)
 #############################################
 SET(SNAP_VERSION_MAJOR 1)
 SET(SNAP_VERSION_MINOR 7)
-SET(SNAP_VERSION_PATCH 1)
+SET(SNAP_VERSION_PATCH 3)
 SET(SNAP_VERSION_FULL "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}")
-SET(SNAP_VERSION_RELEASE_DATE "20081203")
+SET(SNAP_VERSION_RELEASE_DATE "20090123")
 SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20031109")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Dec 3, 2008")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Jan 21, 2009")
 
 #########################################################
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS #
@@ -198,6 +198,7 @@ SET(UI_CXX
   UserInterface/MainComponents/SnakeParametersUILogic.cxx
   UserInterface/MainComponents/UserInterfaceLogic.cxx
   UserInterface/MeshIOWizard/MeshIOWizardUILogic.cxx
+  UserInterface/SliceWindow/AnnotationInteractionMode.cxx
   UserInterface/SliceWindow/BubblesInteractionMode.cxx
   UserInterface/SliceWindow/CrosshairsInteractionMode.cxx
   UserInterface/SliceWindow/GenericSliceWindow.cxx
@@ -264,6 +265,7 @@ SET(UI_HEADERS
   UserInterface/MeshIOWizard/MeshExportSettings.h
   UserInterface/MeshIOWizard/MeshIOWizardUIBase.h
   UserInterface/MeshIOWizard/MeshIOWizardUILogic.h
+  UserInterface/SliceWindow/AnnotationInteractionMode.h
   UserInterface/SliceWindow/BubblesInteractionMode.h
   UserInterface/SliceWindow/CrosshairsInteractionMode.h
   UserInterface/SliceWindow/GenericSliceWindow.h
