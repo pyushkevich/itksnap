@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/01/23 21:22:02 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -103,7 +103,7 @@ PolygonInteractionMode
   return Vector2f(x[0],x[1]);
 }
 
-
+                          
 void
 PolygonInteractionMode
 ::OnDraw()
