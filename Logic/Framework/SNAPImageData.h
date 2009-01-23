@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPImageData.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -70,7 +70,7 @@ class SNAPImageData : public GenericImageData
 public:
 
   // The type of the internal level set image
-  typedef itk::Image<float,3> FloatImageType;
+  typedef itk::OrientedImage<float,3> FloatImageType;
   typedef FloatImageType LevelSetImageType;
 
   SNAPImageData(IRISApplication *m_Parent);
@@ -256,7 +256,7 @@ private:
 
   // Typedefs for defining the advection image that can be loaded externally
   typedef itk::FixedArray<float, 3> VectorType;
-  typedef itk::Image< VectorType, 3> VectorImageType;
+  typedef itk::OrientedImage< VectorType, 3> VectorImageType;
   typedef itk::SmartPointer<VectorImageType> VectorImagePointer;
 
   // The advection image

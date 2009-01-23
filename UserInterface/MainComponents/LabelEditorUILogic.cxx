@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelEditorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/26 03:27:34 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -531,7 +531,7 @@ LabelEditorUILogic
   else if(m_InToolsOperation->value() == 1)
     {
     // Get the segmentation image
-    typedef itk::Image<LabelType, 3> LabelImageType;
+    typedef itk::OrientedImage<LabelType, 3> LabelImageType;
     LabelImageType::Pointer iSeg =
       m_Driver->GetCurrentImageData()->GetSegmentation()->GetImage();
 

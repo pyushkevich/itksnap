@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ScalarImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:43:03 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,7 +52,7 @@ template<class TPixel> class ScalarImageWrapper : public ImageWrapper<TPixel>
 public:
 
   // Basic type definitions
-  typedef itk::Image<TPixel,3> ImageType;
+  typedef itk::OrientedImage<TPixel,3> ImageType;
   typedef typename itk::SmartPointer<ImageType> ImagePointer;
 
   // Slice image type

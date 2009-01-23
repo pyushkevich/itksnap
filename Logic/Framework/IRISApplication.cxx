@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/16 21:31:41 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.17 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -505,6 +505,7 @@ IRISApplication
     fltSample->SetSize(roi.GetROI().GetSize());
     fltSample->SetOutputSpacing(target->GetSpacing());
     fltSample->SetOutputOrigin(source->GetOrigin());
+    fltSample->SetOutputDirection(source->GetDirection());
 
     // Watch the segmentation progress
     if(progressCommand) 

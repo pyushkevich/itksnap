@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 02:41:03 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -33,7 +33,7 @@
 
 =========================================================================*/
 // ITK Includes
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkImageIterator.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"

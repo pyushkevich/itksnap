@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LevelSetMeshPipeline.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,7 +41,7 @@
 
 // Forward reference to itk classes
 namespace itk {
-  template <class TPixel,unsigned int VDimension> class Image;
+  template <class TPixel,unsigned int VDimension> class OrientedImage;
 }
 
 // Forward reference to our own VTK pipeline
@@ -59,7 +59,7 @@ class LevelSetMeshPipeline
 {
 public:  
   /** Input image type */
-  typedef itk::Image<float,3> InputImageType;
+  typedef itk::OrientedImage<float,3> InputImageType;
   typedef itk::SmartPointer<InputImageType> InputImagePointer;
 
   /** Set the input segmentation image */

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -51,7 +51,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
 
 using namespace itk;

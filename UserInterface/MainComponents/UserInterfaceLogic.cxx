@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 05:04:33 $
-  Version:   $Revision: 1.37 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.38 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,6 +36,10 @@
 //  by hand 
 #if defined(__BORLANDC__)
 #include "SNAPBorlandDummyTypes.h"
+#endif
+
+#if defined(_MSC_VER)
+#pragma warning ( disable : 4996 )
 #endif
 
 #include "UserInterfaceLogic.h"
@@ -4014,7 +4018,7 @@ void
 UserInterfaceLogic
 ::OnMenuLoadAdvection()
 {
-  typedef itk::Image<float, 3> AdvectionImage;
+  typedef itk::OrientedImage<float, 3> AdvectionImage;
   AdvectionImage::Pointer imgAdvection[3];
   
   // Preprocessing image can only be loaded in SNAP mode
@@ -4511,6 +4515,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.38  2009/01/23 20:09:38  pyushkevich
+ *FIX: 3D rendering now takes place in Nifti(RAS) world coordinates, rather than the VTK (x spacing + origin) coordinates. As part of this, itk::OrientedImage is now used for 3D images in SNAP. Still have to fix cut plane code in Window3D
+ *
  *Revision 1.37  2009/01/23 05:04:33  garyhuizhang
  *Bug fix: floating point values are now correctly displayed in image
  *contrast dialog and image info dialog

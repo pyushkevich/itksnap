@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISMeshPipeline.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -42,7 +42,7 @@
 
 // Forward reference to itk classes
 namespace itk {
-  template <class TPixel,unsigned int VDimension> class Image;
+  template <class TPixel,unsigned int VDimension> class OrientedImage;
   template <class TInputImage, class TOutputImage> class RegionOfInterestImageFilter;
   template <class TInputImage, class TOutputImage> class BinaryThresholdImageFilter;
 }
@@ -62,7 +62,7 @@ class IRISMeshPipeline
 {
 public:
   /** Input image type */
-  typedef itk::Image<LabelType,3> InputImageType;
+  typedef itk::OrientedImage<LabelType,3> InputImageType;
   typedef itk::SmartPointer<InputImageType> InputImagePointer;
   
   /** Set the input segmentation image */
@@ -98,7 +98,7 @@ public:
 
 private:
   // Type definitions for the various filters used by this object
-  typedef itk::Image<float,3>                        InternalImageType;
+  typedef itk::OrientedImage<float,3>                InternalImageType;
   typedef itk::SmartPointer<InternalImageType>       InternalImagePointer;
   
   typedef itk::RegionOfInterestImageFilter<

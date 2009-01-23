@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: VTKMeshPipeline.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -34,6 +34,7 @@
 =========================================================================*/
 #include "VTKMeshPipeline.h"
 #include "AllPurposeProgressAccumulator.h"
+#include "ImageWrapper.h"
 #include <map>
 
 using namespace std;
@@ -105,6 +106,13 @@ VTKMeshPipeline
   m_MarchingCubesFilter->SetNumberOfContours(1);
   m_MarchingCubesFilter->SetValue(0,0.0f);
 
+  // Create the transform filter
+  m_TransformFilter = vtkTransformPolyDataFilter::New();
+  m_TransformFilter->ReleaseDataFlagOn();
+
+  // Create the transform
+  m_Transform = vtkTransform::New();
+
   // Create and configure a filter for triangle decimation
   m_DecimateFilter = vtkDecimatePro::New();
   m_DecimateFilter->ReleaseDataFlagOn();  
@@ -120,6 +128,8 @@ VTKMeshPipeline
   m_StripperFilter->Delete();
 
   m_MarchingCubesFilter->Delete();
+  m_TransformFilter->Delete();
+  m_Transform->Delete();
   m_DecimateFilter->Delete();
 }
 
@@ -162,8 +172,13 @@ VTKMeshPipeline
 
   // Marching cubes gets the tail
   m_MarchingCubesFilter->SetInput(pipeImageTail);
-  m_Progress->RegisterSource(m_MarchingCubesFilter, 10.0);
+  m_Progress->RegisterSource(m_MarchingCubesFilter, 10.0f);
   pipePolyTail = m_MarchingCubesFilter->GetOutput();
+
+  // 2.5 Pipe marching cubes output to the transform
+  m_TransformFilter->SetInput(pipePolyTail);
+  m_Progress->RegisterSource(m_TransformFilter, 1.0f);
+  pipePolyTail = m_TransformFilter->GetOutput();
 
   // 3. Check if decimation is required
   if(options.GetUseDecimation())
@@ -252,13 +267,39 @@ VTKMeshPipeline
   // outMesh->Update();
   // m_StripperFilter->UnRegister(m_StripperFilter->GetOutput());
   m_StripperFilter->Update();
-  // outMesh->DeepCopy(m_StripperFilter->GetOutput());
+
+  // In the case that the jacobian of the transform is negative,
+  // flip the normals around
+  if(m_Transform->GetMatrix()->Determinant() < 0)
+    {
+    vtkPointData *pd = m_StripperFilter->GetOutput()->GetPointData();
+    vtkDataArray *nrm = pd->GetNormals();
+    for(size_t i = 0; i < nrm->GetNumberOfTuples(); i++)
+      for(size_t j = 0; j < nrm->GetNumberOfComponents(); j++)
+        nrm->SetComponent(i,j,-nrm->GetComponent(i,j));
+    nrm->Modified();
+    }
 }
 
 void
 VTKMeshPipeline
 ::SetImage(ImageType *image)
 {
+  // Store the image 
   m_InputImage = image;
+
+  // Compute the transform from VTK coordinates to NIFTI/RAS coordinates
+  vnl_matrix_fixed<double, 4, 4> vtk2nii = 
+    ImageWrapper<float>::ConstructVTKtoNiftiTransform(
+      image->GetDirection().GetVnlMatrix(),
+      image->GetOrigin().GetVnlVector(),
+      image->GetSpacing().GetVnlVector());
+
+  // Update the VTK transform to match
+  m_Transform->SetMatrix(vtk2nii.data_block());
+
+  // Pass the transform to the transform filter
+  m_TransformFilter->SetTransform(m_Transform);
 }
+
 

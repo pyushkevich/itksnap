@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: VTKMeshPipeline.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,7 +41,7 @@
 
 // ITK includes (this file is not widely included in SNAP, so it's OK
 // to include a bunch of headers here).
-#include <itkImage.h>
+#include <itkOrientedImage.h>
 #include <itkVTKImageExport.h>
 
 // VTK includes
@@ -58,6 +58,8 @@
 #include <vtkCallbackCommand.h>
 #include <vtkMarchingCubes.h>
 #include <vtkDecimatePro.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkTransform.h>
 
 #ifndef vtkFloatingPointType
 # define vtkFloatingPointType vtkFloatingPointType
@@ -75,7 +77,7 @@ class VTKMeshPipeline
 {
 public:
   /** Input image type */
-  typedef itk::Image<float,3> ImageType;
+  typedef itk::OrientedImage<float,3> ImageType;
   typedef itk::SmartPointer<ImageType> ImagePointer;
   
   /** Set the input segmentation image */
@@ -84,8 +86,7 @@ public:
   /** Set the mesh options for this filter */
   void SetMeshOptions(const MeshOptions &options);
 
-  /** Compute a mesh for a particular color label.  Returns true if 
-   * the color label is not present in the image */
+  /** Compute a mesh for a particular color label */
   void ComputeMesh(vtkPolyData *outData);
 
   /** Get the progress accumulator */
@@ -128,6 +129,12 @@ private:
   
   // Marching cubes filter
   vtkMarchingCubes *     m_MarchingCubesFilter;
+
+  // Transform filter used to map to RAS space
+  vtkTransformPolyDataFilter *m_TransformFilter;
+
+  // The transform used
+  vtkTransform * m_Transform;
   
   // The triangle decimation driver
   vtkDecimatePro *               m_DecimateFilter;

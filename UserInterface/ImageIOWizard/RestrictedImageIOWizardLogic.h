@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -49,7 +49,7 @@ public:
   typedef ImageIOWizardLogic<TPixel> Superclass;
   typedef typename itk::Size<3> SizeType;
 
-  typedef typename itk::Image<GreyType,3> GreyImageType;
+  typedef typename itk::OrientedImage<GreyType,3> GreyImageType;
   typedef typename itk::SmartPointer<GreyImageType> GreyImagePointer;
 
   /** Some extra work is done before displaying the wizard in this method */

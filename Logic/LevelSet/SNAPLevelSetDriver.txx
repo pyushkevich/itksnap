@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPLevelSetDriver.txx,v $
   Language:  C++
-  Date:      $Date: 2008/10/24 12:52:08 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -171,7 +171,7 @@ SNAPLevelSetDriver<VDimension>
     {
     // Define an extension to the appropriate filter class
     typedef itk::NarrowBandLevelSetImageFilter<
-      FloatImageType,FloatImageType> LevelSetFilterType;
+      FloatImageType,FloatImageType,float,FloatImageType> LevelSetFilterType;
     typedef LevelSetExtensionFilter<LevelSetFilterType> ExtensionFilter;
     typename ExtensionFilter::Pointer filter = ExtensionFilter::New();
 

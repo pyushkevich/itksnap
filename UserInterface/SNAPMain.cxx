@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -48,7 +48,7 @@
 #include "SystemInterface.h"
 #include "UserInterfaceLogic.h"
 
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkImageFileReader.h"
 #include "itkNumericTraits.h"
 
@@ -71,7 +71,7 @@ const GreyType MINGREYVAL = itk::NumericTraits<GreyType>::min();
 // A templated load image method
 template<class TPixel>
 bool LoadImageFromFileInteractive(
-  const char *file, typename itk::SmartPointer< itk::Image<TPixel,3> > &target)
+  const char *file, typename itk::SmartPointer< itk::OrientedImage<TPixel,3> > &target)
 {
   try
     {
@@ -421,6 +421,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.11  2009/01/23 20:09:38  pyushkevich
+ *FIX: 3D rendering now takes place in Nifti(RAS) world coordinates, rather than the VTK (x spacing + origin) coordinates. As part of this, itk::OrientedImage is now used for 3D images in SNAP. Still have to fix cut plane code in Window3D
+ *
  *Revision 1.10  2008/11/15 12:20:38  pyushkevich
  *Several new features added for release 1.8, including (1) support for reading floating point and mapping to short range; (2) use of image direction cosines to determine image orientation; (3) new reorient image dialog and changes to the IO wizard; (4) display of NIFTI world coordinates and yoking based on them; (5) multi-session zoom; (6) fixes to the way we keep track of unsaved changes to segmentation, including a new discard dialog; (7) more streamlined code for offline loading; (8) new command-line options, allowing RGB files to be read and opening SNAP by doubleclicking images; (9) versioning for IPC communications; (10) ruler for display windows; (11) bug fixes and other stuff I can't remember
  *

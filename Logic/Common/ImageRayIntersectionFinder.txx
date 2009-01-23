@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageRayIntersectionFinder.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 05:10:39 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -33,7 +33,7 @@
 
 =========================================================================*/
 
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 
 template <class TPixel, class THitTester>
 int

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: EdgePreprocessingImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -123,7 +123,7 @@ public:
 
   /** Type used for internal calculations */
   typedef float                                                RealType;
-  typedef itk::Image<RealType,3>                      InternalImageType;
+  typedef itk::OrientedImage<RealType,3>              InternalImageType;
   typedef itk::SmartPointer<InternalImageType>     InternalImagePointer;
 
   /** Functor type used for thresholding */

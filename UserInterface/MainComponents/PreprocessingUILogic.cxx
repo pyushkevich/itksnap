@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PreprocessingUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 16:30:54 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -27,7 +27,7 @@
 #include "ThresholdSettings.h"
 #include "UserInterfaceBase.h"
 
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkEventObject.h" 
 
 using namespace itk;

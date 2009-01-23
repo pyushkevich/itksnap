@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISVectorTypes.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:12 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -175,6 +175,47 @@ vector_multiply_mixed(const vnl_vector_fixed<T1,VSize> &x,
     z(i) = x(i) * y(i);
   return z;
 }
+
+/**
+ * Apply an affine transform (4x4 matrix) to a point (1x3 vector)
+ * The vector may be of any type, the output is same as matrix
+ */
+template <class TReal, class TAny, unsigned int VSize> 
+inline iris_vector_fixed<TReal, VSize> 
+affine_transform_point(const vnl_matrix_fixed<TReal,VSize+1,VSize+1> &A,
+                      const vnl_vector_fixed<TAny,VSize> &x)
+{
+  iris_vector_fixed<TReal,VSize> y;
+  for(unsigned int i=0;i<VSize;i++)
+    {
+    y[i] = A(i,VSize);
+    for(unsigned int j=0;j<VSize;j++)
+      y[i] += A(i,j) * x[j];
+    }
+  return y;
+}
+
+/**
+ * Apply an affine transform (4x4 matrix) to a vector (1x3 vector)
+ * The vector may be of any type, the output is same as matrix
+ * Offset is not applied!
+ */
+template <class TReal, class TAny, unsigned int VSize> 
+inline iris_vector_fixed<TReal, VSize> 
+affine_transform_vector(const vnl_matrix_fixed<TReal,VSize+1,VSize+1> &A,
+                      const vnl_vector_fixed<TAny,VSize> &x)
+{
+  iris_vector_fixed<TReal,VSize> y;
+  for(unsigned int i=0;i<VSize;i++)
+    {
+    y[i] = 0;
+    for(unsigned int j=0;j<VSize;j++)
+      y[i] += A(i,j) * x[j];
+    }
+  return y;
+}
+
+
 
 /**
  * Compute x*y+z for three inhomogeneous vectors, returning result in the 

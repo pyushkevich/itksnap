@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISMeshPipeline.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -184,7 +184,7 @@ IRISMeshPipeline
   InputImageType::RegionType bbWiderRegion = m_BoundingBox[label];
   bbWiderRegion.PadByRadius(5);
   bbWiderRegion.Crop(m_InputImage->GetLargestPossibleRegion()); 
-  
+
   // Pass the region to the ROI filter and propagate the filter
   m_ROIFilter->SetInput(m_InputImage);
   m_ROIFilter->SetRegionOfInterest(bbWiderRegion);

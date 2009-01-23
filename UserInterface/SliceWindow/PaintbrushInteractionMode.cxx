@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PaintbrushInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/12/02 21:43:24 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,9 +52,9 @@ using namespace std;
 class BrushWatershedPipeline
 {
 public:
-  typedef itk::Image<GreyType, 3> GreyImageType;
-  typedef itk::Image<LabelType, 3> LabelImageType;
-  typedef itk::Image<float, 3> FloatImageType;
+  typedef itk::OrientedImage<GreyType, 3> GreyImageType;
+  typedef itk::OrientedImage<LabelType, 3> LabelImageType;
+  typedef itk::OrientedImage<float, 3> FloatImageType;
   typedef itk::Image<unsigned long, 3> WatershedImageType;
 
   BrushWatershedPipeline()

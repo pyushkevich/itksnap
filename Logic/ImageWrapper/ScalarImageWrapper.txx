@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: ScalarImageWrapper.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -149,7 +149,8 @@ ScalarImageWrapper<TPixel>
     // Set the image sizes and spacing
     fltSample->SetSize(vNewSize);
     fltSample->SetOutputSpacing(vNewSpacing.data_block());
-    fltSample->SetOutputOrigin(this->m_Image->GetOrigin());
+    fltSample->SetOutputOrigin(m_Image->GetOrigin());
+    fltSample->SetOutputDirection(m_Image->GetDirection());
 
     // Set the progress bar
     if(progressCommand)

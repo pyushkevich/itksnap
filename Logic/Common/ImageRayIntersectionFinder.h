@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageRayIntersectionFinder.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -51,7 +51,7 @@ class ImageRayIntersectionFinder
 public:
     virtual ~ImageRayIntersectionFinder() {}
   /** Image type */
-  typedef itk::Image<TPixel,3> ImageType;
+  typedef itk::OrientedImage<TPixel,3> ImageType;
 
   /** Set the hit-test functor to evaluate for hits */
   irisSetMacro(HitTester,THitTester);

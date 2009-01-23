@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 02:41:03 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -96,7 +96,7 @@ public:
   // typedef ImageWrapper<TPixel> WrapperType;
 
   // Image type definition
-  typedef itk::Image<TPixel, 3> ImageType;
+  typedef itk::OrientedImage<TPixel, 3> ImageType;
   typedef typename itk::SmartPointer<ImageType> ImagePointer;
 
   // Image IO type definition

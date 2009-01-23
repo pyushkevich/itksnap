@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 02:41:03 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -37,7 +37,7 @@
 
 #include "Registry.h"
 #include "itkSmartPointer.h"
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkImageIOBase.h"
 
 namespace itk
@@ -137,7 +137,7 @@ public:
   typedef GuidedImageIOBase::RawPixelType RawPixelType;
 
   // Image type. This is only for 3D images.
-  typedef itk::Image<TPixel, 3> ImageType;
+  typedef itk::OrientedImage<TPixel, 3> ImageType;
   typedef itk::SmartPointer<ImageType> ImagePointer;
   typedef itk::SmartPointer<itk::ImageIOBase> IOBasePointer;
 

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersPreviewPipeline.h,v $
   Language:  C++
-  Date:      $Date: 2008/10/24 12:52:08 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -37,7 +37,7 @@
 
 #include "SNAPOpenGL.h"
 #include "SNAPCommonUI.h"
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkRGBAPixel.h"
 #include "itkCovariantVector.h"
 #include "itkUnaryFunctorImageFilter.h"
@@ -78,12 +78,12 @@ public:
   virtual ~SnakeParametersPreviewPipeline();
 
   // Images used by this class (internally and externally)
-  typedef itk::Image<unsigned char, 2> CharImageType;
-  typedef itk::Image<float, 2> FloatImageType;
+  typedef itk::OrientedImage<unsigned char, 2> CharImageType;
+  typedef itk::OrientedImage<float, 2> FloatImageType;
 
   // Define a color image for display
   typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
-  typedef itk::Image<DisplayPixelType,2> DisplayImageType;
+  typedef itk::OrientedImage<DisplayPixelType,2> DisplayImageType;
 
   // Index type used to refer to pixels
   typedef FloatImageType::IndexType IndexType;

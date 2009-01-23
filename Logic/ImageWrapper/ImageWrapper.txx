@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -196,6 +196,7 @@ ImageWrapper<TPixel>
   newImage->FillBuffer(value);
   newImage->SetOrigin(source->GetImageBase()->GetOrigin());
   newImage->SetSpacing(source->GetImageBase()->GetSpacing());
+  newImage->SetDirection(source->GetImageBase()->GetDirection());
 
   // Call the common update method
   UpdateImagePointer(newImage);

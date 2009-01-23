@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: Window3D.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/17 10:40:28 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -216,20 +216,24 @@ private:
   // Extent of the image, in image coords
   Vector3ui m_ImageSize;   
 
+  // Matrix from voxel space to world coordinates (NIFTI/RAS coords)
+  typedef vnl_matrix_fixed<double, 4, 4> Mat4d;
+  Mat4d m_WorldMatrix;
+
   // Dimensions of a voxel, in mm
-  Vector3f m_Spacing, m_Origin;   
+  // Vector3f m_Spacing, m_Origin;   
 
   // Dimensions of the image (dimensions * spacing)
-  Vector3f m_VolumeSize;
+  Vector3d m_VolumeSize;
 
   // Center of image, in world coords
-  Vector3f m_Center;    
+  Vector3d m_Center;    
 
   // Center of rotation, in world coords
-  Vector3f m_CenterOfRotation;    
+  Vector3d m_CenterOfRotation;    
 
   // width of view, in world coords
-  Vector3f m_DefaultHalf, m_ViewHalf; 
+  Vector3d m_DefaultHalf, m_ViewHalf; 
 
   // A ray and a point used for projecting mouse-clicks onto the 3D surface
   Vector3d m_Ray;
@@ -273,6 +277,9 @@ private:
 
 /*
  *$Log: Window3D.h,v $
+ *Revision 1.4  2009/01/23 20:09:38  pyushkevich
+ *FIX: 3D rendering now takes place in Nifti(RAS) world coordinates, rather than the VTK (x spacing + origin) coordinates. As part of this, itk::OrientedImage is now used for 3D images in SNAP. Still have to fix cut plane code in Window3D
+ *
  *Revision 1.3  2009/01/17 10:40:28  pyushkevich
  *Added synchronization to 3D window viewpoint
  *

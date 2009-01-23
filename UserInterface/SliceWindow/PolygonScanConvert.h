@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonScanConvert.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,7 +36,7 @@
 #define __PolygonScanConvert_h_
 
 #include "SNAPOpenGL.h"
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 
 class PolygonScanConvertBase
 {

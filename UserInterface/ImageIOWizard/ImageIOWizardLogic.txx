@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 04:23:28 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,7 +44,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkImageIOBase.h"
 #include "itkIOCommon.h"
 #include "itkMetaDataObject.h"

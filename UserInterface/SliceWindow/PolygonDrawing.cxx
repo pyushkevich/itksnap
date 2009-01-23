@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/10/24 12:52:08 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -43,7 +43,7 @@
 #include <set>
 #include <vnl/vnl_random.h>
 
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkPointSet.h"
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
@@ -932,6 +932,9 @@ PolygonDrawing
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.10  2009/01/23 20:09:38  pyushkevich
+ *FIX: 3D rendering now takes place in Nifti(RAS) world coordinates, rather than the VTK (x spacing + origin) coordinates. As part of this, itk::OrientedImage is now used for 3D images in SNAP. Still have to fix cut plane code in Window3D
+ *
  *Revision 1.9  2008/10/24 12:52:08  pyushkevich
  *FIX: Bug on ITK 3.8 with level set being inverted
  *FIX: Bug with NIFTI orientation

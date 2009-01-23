@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PreprocessingUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -99,8 +99,8 @@ private:
   UserInterfaceBase *m_ParentUI;
 
   /** The image types used for preprocessing */
-  typedef itk::Image<GreyType,3> GreyImageType;
-  typedef itk::Image<float,3> SpeedImageType;
+  typedef itk::OrientedImage<GreyType,3> GreyImageType;
+  typedef itk::OrientedImage<float,3> SpeedImageType;
   
   /** The filter type for in/out processing */
   typedef SmoothBinaryThresholdImageFilter<

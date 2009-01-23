@@ -3,8 +3,8 @@
   Progra_P:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: Window3D.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/17 10:40:28 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -347,8 +347,7 @@ Window3D
   m_Plane.valid = -1;
 
   // Reset the vectors to zero
-  m_Spacing.fill(1.0);
-  m_Origin.fill(0.0);
+  m_WorldMatrix.set_identity();
   m_ImageSize.fill(0);
   m_Center.fill(0);
   m_DefaultHalf.fill(0);
@@ -466,17 +465,18 @@ Window3D
     // data dimensions
     m_ImageSize = m_Driver->GetCurrentImageData()->GetVolumeExtents();  
 
-    // voxel m_Spacing        
-    m_Spacing = to_float(m_Driver->GetCurrentImageData()->GetImageSpacing()); 
-    m_Origin = to_float(m_Driver->GetCurrentImageData()->GetImageOrigin());
+    // world transform
+    m_WorldMatrix = m_Driver->GetCurrentImageData()->GetGrey()->GetNiftiSform();
 
     // Volume size
-    m_VolumeSize = vector_multiply_mixed<float,unsigned int,3>(m_Spacing, m_ImageSize);
+    m_VolumeSize = vector_multiply_mixed<double,unsigned int,3>(
+      m_Driver->GetCurrentImageData()->GetImageSpacing(),
+      m_ImageSize);
     } 
   else
     {
     m_ImageSize.fill(0);
-    m_Spacing.fill(0.0);
+    m_WorldMatrix.set_identity();
     m_VolumeSize.fill(0.0);
     }
 
@@ -567,10 +567,9 @@ Window3D
   glClearColor(clrBack[0],clrBack[1],clrBack[2],1);
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-  // Compute the center of rotation  
-  m_CenterOfRotation = m_Origin + 
-    vector_multiply_mixed<float,unsigned int,3>(
-      m_Spacing, m_Driver->GetCursorPosition());
+  // Compute the center of rotation
+  m_CenterOfRotation = 
+    affine_transform_point(m_WorldMatrix, m_Driver->GetCursorPosition());
 
   // Set up the projection matrix
   SetupProjection();
@@ -585,16 +584,17 @@ Window3D
   glMultMatrixf( m_Trackball.GetRot() );
   glTranslate( - m_CenterOfRotation );
 
-  // Scale by the voxel spacing
+  // Apply the world matrix - all subsequent ops are in voxel space
   glPushMatrix();
-  glTranslate(m_Origin);
-  glScale(m_Spacing);
+  glMultMatrixd(m_WorldMatrix.transpose().data_block());
+  // glTranslate(m_Origin);
+  // glScale(m_Spacing);
 
   // Draw things in pixel coords
   DrawCrosshairs();
   DrawSamples();
   
-  // Undo scaling by voxel spacing
+  // Undo world matrix - back to drawing in native space
   glPopMatrix();
 
   // Draw the cut plane
@@ -813,7 +813,7 @@ Window3D
 ::SetupProjection()
 {
   // Get the view extent 'radius'
-  m_ViewHalf = m_DefaultHalf / m_Trackball.GetZoom();
+  m_ViewHalf = m_DefaultHalf / (double) m_Trackball.GetZoom();
   
   double x, y;
   if(m_ViewHalf[X] * m_Canvas->h() > m_ViewHalf[Y] * m_Canvas->w())
@@ -837,8 +837,8 @@ Window3D
 void Window3D::ComputeMatricies( GLint *vport, double *mview, double *proj )
 {
   // Compute the center of rotation
-  m_CenterOfRotation = m_Origin + 
-    vector_multiply_mixed<float,unsigned int,3>(m_Spacing, m_Driver->GetCursorPosition());
+  m_CenterOfRotation = 
+    affine_transform_point(m_WorldMatrix, m_Driver->GetCursorPosition());
 
   // Set up the model view matrix
   glMatrixMode(GL_MODELVIEW);
@@ -849,8 +849,7 @@ void Window3D::ComputeMatricies( GLint *vport, double *mview, double *proj )
   glTranslatef( m_Trackball.GetPanX(), m_Trackball.GetPanY(), 0.0 );
   glMultMatrixf( m_Trackball.GetRot() );
   glTranslate( -m_CenterOfRotation );
-  glTranslate(m_Origin);
-  glScale( m_Spacing );
+  glMultMatrixd(m_WorldMatrix.transpose().data_block());
 
   glGetIntegerv( GL_VIEWPORT, vport );
   glGetDoublev( GL_MODELVIEW_MATRIX, mview );
@@ -929,10 +928,11 @@ Window3D
   // plane.
 
   // Compute the points on the plane in world space
-  Vector3d x1World = vector_multiply_add_mixed<double,float,float,3>(x1, m_Spacing, m_Origin);
-  Vector3d x2World = vector_multiply_add_mixed<double,float,float,3>(x2, m_Spacing, m_Origin);
-  Vector3d p1World = vector_multiply_add_mixed<double,float,float,3>(p1, m_Spacing, m_Origin);
-  Vector3d p2World = vector_multiply_add_mixed<double,float,float,3>(p2, m_Spacing, m_Origin);
+  
+  Vector3d x1World = affine_transform_point(m_WorldMatrix, x1);
+  Vector3d x2World = affine_transform_point(m_WorldMatrix, x2);
+  Vector3d p1World = affine_transform_point(m_WorldMatrix, p1);
+  Vector3d p2World = affine_transform_point(m_WorldMatrix, p2);
   
   // Compute the normal in world coordinates
   Vector3d nWorld = - itk_cross_3d((vnl_vector<double>) (x2World - x1World),
@@ -950,6 +950,7 @@ Window3D
   edgeLength = (edgeLength > xVol[2]) ? edgeLength : xVol[2];
 
   // Now compute the center point of the square   
+  Vector3d m_Origin = m_Driver->GetCurrentImageData()->GetImageOrigin();
   Vector3d xCenter = 
     to_double(m_Origin) + xVol - m_Plane.vNormalWorld *
      (dot_product(to_double(m_Origin) + xVol,m_Plane.vNormalWorld) - interceptWorld);
@@ -1301,6 +1302,9 @@ Window3D
 
 /*
  *$Log: Window3D.cxx,v $
+ *Revision 1.5  2009/01/23 20:09:38  pyushkevich
+ *FIX: 3D rendering now takes place in Nifti(RAS) world coordinates, rather than the VTK (x spacing + origin) coordinates. As part of this, itk::OrientedImage is now used for 3D images in SNAP. Still have to fix cut plane code in Window3D
+ *
  *Revision 1.4  2009/01/17 10:40:28  pyushkevich
  *Added synchronization to 3D window viewpoint
  *

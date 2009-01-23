@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -39,6 +39,7 @@
 #include "SNAPCommon.h"
 #include "ImageCoordinateTransform.h"
 #include <itkImageRegionIterator.h>
+#include <itkOrientedImage.h>
 
 // Forward declarations to IRIS classes
 template <class TPixel> class IRISSlicer;
@@ -73,7 +74,7 @@ public:
 
 /**
  * \class ImageWrapper
- * \brief A wrapper around an itk::Image and related pipelines.
+ * \brief A wrapper around an itk::OrientedImage and related pipelines.
  * 
  * Image Wrapper serves as a wrapper around an image pointer, and 
  * is used to unify the treatment of different kinds of images in
@@ -84,7 +85,7 @@ template<class TPixel> class ImageWrapper : public ImageWrapperBase
 public:
 
   // Basic type definitions
-  typedef itk::Image<TPixel,3> ImageType;
+  typedef itk::OrientedImage<TPixel,3> ImageType;
   typedef typename itk::SmartPointer<ImageType> ImagePointer;
 
   // Slice image type
@@ -315,7 +316,21 @@ public:
     return m_sform;
   }
 
-
+  static vnl_matrix_fixed<double,4,4> ConstructVTKtoNiftiTransform(
+    vnl_matrix<double> m_dir, 
+    vnl_vector<double> v_origin,
+    vnl_vector<double> v_spacing)
+    {
+    vnl_matrix_fixed<double,4,4> vox2nii = ConstructNiftiSform(m_dir, v_origin, v_spacing);
+    vnl_matrix_fixed<double,4,4> vtk2vox; 
+    vtk2vox.set_identity();
+    for(size_t i = 0; i < 3; i++)
+      {
+      vtk2vox(i,i) = 1.0 / v_spacing[i];
+      vtk2vox(i,3) = - v_origin[i] / v_spacing[i];
+      }
+    return vox2nii * vtk2vox;
+    }
 
 protected:
 

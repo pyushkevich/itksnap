@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ReorientImageUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,7 +38,7 @@
 #include "UserInterfaceLogic.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include <cassert>
 #include <string>
 #include <iomanip>

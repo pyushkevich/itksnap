@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 02:41:03 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -50,7 +50,7 @@ class IRISImageData;
 class SNAPImageData;
 class MeshExportSettings;
 namespace itk {
-  template <class TPixel, unsigned int VDimension> class Image;
+  template <class TPixel, unsigned int VDimension> class OrientedImage;
 }
 
 /**
@@ -77,10 +77,10 @@ public:
   typedef IntensityCurveInterface::Pointer IntensityCurvePointer;
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::Size<3> SizeType;
-  typedef itk::Image<GreyType,3> GreyImageType;
-  typedef itk::Image<RGBType,3> RGBImageType;
-  typedef itk::Image<LabelType,3> LabelImageType;
-  typedef itk::Image<float,3> SpeedImageType;
+  typedef itk::OrientedImage<GreyType,3> GreyImageType;
+  typedef itk::OrientedImage<RGBType,3> RGBImageType;
+  typedef itk::OrientedImage<LabelType,3> LabelImageType;
+  typedef itk::OrientedImage<float,3> SpeedImageType;
   typedef itk::Command CommandType;
   typedef UndoDataManager<LabelType> UndoManagerType;
 

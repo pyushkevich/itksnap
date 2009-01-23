@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:18 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -42,7 +42,7 @@
 #include "FL/fl_ask.H"
 
 #include "itkEventObject.h" 
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageRegionIterator.h"
 #include "itkPNGImageIO.h"

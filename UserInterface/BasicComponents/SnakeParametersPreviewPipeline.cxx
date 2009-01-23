@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersPreviewPipeline.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/10/24 12:52:08 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/23 20:09:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -76,7 +76,7 @@ extern void fl_alert(const char *, ...);
 class LevelSetPreview2d
 {
 public:
-  typedef itk::Image<float, 2> FloatImageType;
+  typedef itk::OrientedImage<float, 2> FloatImageType;
   typedef SnakeParametersPreviewPipeline::SampledPointList CurveType;
 
   // Constructor
@@ -194,9 +194,9 @@ public:
         // The contour is not dirty any more
         m_ContourDirty = false;
         }
-      
+
       m_Driver = new SNAPLevelSetDriver2d(
-        m_LevelSetImage, m_SpeedImage, m_Parameters);
+        m_LevelSetImage.GetPointer(), m_SpeedImage, m_Parameters);
 
       m_DriverDirty = false;
       m_DemoLoopTime = 0;
