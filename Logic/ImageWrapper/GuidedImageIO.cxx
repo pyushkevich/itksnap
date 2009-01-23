@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/01/23 20:35:30 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -234,8 +234,8 @@ template<typename TScalar, typename TNative>
 void 
 GuidedImageIO<TPixel>::ReadAndCastImage()
 {
-  typedef Image<TNative, 3> InputImageType;
-  typedef Image<TScalar, 3> OutputImageType;
+  typedef OrientedImage<TNative, 3> InputImageType;
+  typedef OrientedImage<TScalar, 3> OutputImageType;
   typedef ImageFileReader<InputImageType> ReaderType;
 
   // Create reader
