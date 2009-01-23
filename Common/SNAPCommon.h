@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPCommon.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 05:10:39 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/01/23 16:30:53 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -91,7 +91,7 @@ typedef itk::RGBPixel<unsigned char> RGBType;
  A structure used to map intensity from gray to 'native' intensity for
  images that are not of short datatype
  */
-struct GreyTypeToNativeFunctor        
+struct GreyTypeToNativeFunctor
 {
   double scale;
   double shift;
@@ -99,6 +99,21 @@ struct GreyTypeToNativeFunctor
     { return g * scale + shift; }
   GreyTypeToNativeFunctor() : scale(1.0), shift(0.0) {}
   GreyTypeToNativeFunctor(double a, double b) : scale(a), shift(b) {}
+};
+
+/** 
+ A structure used to map 'native' intensity to gray intensity for
+ images that are not of short datatype
+ */
+struct NativeToGreyTypeFunctor
+{
+  double scale;
+  double shift;
+  GreyType operator() (double g) const
+    { return GreyType(g * scale + shift); }
+  NativeToGreyTypeFunctor() : scale(1.0), shift(0.0) {}
+  NativeToGreyTypeFunctor(double a, double b) : scale(a), shift(b) {}
+  NativeToGreyTypeFunctor(GreyTypeToNativeFunctor g2n) : scale(1.0/g2n.scale), shift(-g2n.shift/g2n.scale) {}
 };
 
 /************************************************************************/

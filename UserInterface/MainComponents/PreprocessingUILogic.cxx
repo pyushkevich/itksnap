@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PreprocessingUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/01/23 16:30:54 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -106,14 +106,16 @@ PreprocessingUILogic
   ThresholdSettings settings = m_GlobalState->GetThresholdSettings();
 
   // Shorthands
-  float lower = settings.GetLowerThreshold();
-  float upper = settings.GetUpperThreshold();
+  GreyTypeToNativeFunctor g2n =
+    m_Driver->GetCurrentImageData()->GetGrey()->GetNativeMapping();
+  float lower = g2n(settings.GetLowerThreshold());
+  float upper = g2n(settings.GetUpperThreshold());
 
   // Set the ranges for the two thresholds.  These ranges do not require the
   // lower slider to be less than the upper slider, that will be corrected
   // dynamically as the user moves the sliders
-  GreyType iMin = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMin();
-  GreyType iMax = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMax();
+  double iMin = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
+  double iMax = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative();
 
   m_InLowerThreshold->minimum(iMin);
   m_InLowerThresholdText->minimum(iMin);
@@ -133,8 +135,8 @@ PreprocessingUILogic
   // Make sure that the specified range is valid
   if(lower > upper)
     {
-    lower = (int) (0.67 * iMin + 0.33 * iMax);
-    upper = (int) (0.33 * iMin + 0.67 * iMax);
+    lower = 0.67 * iMin + 0.33 * iMax;
+    upper = 0.33 * iMin + 0.67 * iMax;
     }
 
   // Make sure the current values of the upper and lower threshold are 
@@ -192,8 +194,9 @@ PreprocessingUILogic
   // Set up the plot range, etc
   FunctionPlot2DSettings &plotSettings = 
     m_BoxThresholdFunctionPlot->GetPlotter().GetSettings();
-  plotSettings.SetPlotRangeMin(Vector2f(iMin,-1.0f));
-  plotSettings.SetPlotRangeMax(Vector2f(iMax,1.0f));
+  NativeToGreyTypeFunctor n2g(g2n);
+  plotSettings.SetPlotRangeMin(Vector2f(n2g(iMin),-1.0f));
+  plotSettings.SetPlotRangeMax(Vector2f(n2g(iMax),1.0f));
 
   // Compute the plot to be displayed
   UpdateThresholdPlot();
@@ -224,7 +227,7 @@ PreprocessingUILogic
     m_InLowerThresholdText->deactivate();
 
     SetLowerThresholdControlValue(
-      m_Driver->GetCurrentImageData()->GetGrey()->GetImageMin());
+      m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative());
     
     m_InUpperThreshold->activate();
     m_InUpperThresholdText->activate();
@@ -235,7 +238,7 @@ PreprocessingUILogic
     m_InLowerThresholdText->activate();
 
     SetUpperThresholdControlValue(
-      m_Driver->GetCurrentImageData()->GetGrey()->GetImageMax());
+      m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative());
 
     m_InUpperThreshold->deactivate();
     m_InUpperThresholdText->deactivate();
@@ -328,8 +331,11 @@ PreprocessingUILogic
 {
   // Pass the current GUI settings to the filter
   ThresholdSettings settings;
-  settings.SetLowerThreshold(m_InLowerThreshold->value());
-  settings.SetUpperThreshold(m_InUpperThreshold->value());
+  GreyTypeToNativeFunctor g2n =
+    m_Driver->GetCurrentImageData()->GetGrey()->GetNativeMapping();
+  NativeToGreyTypeFunctor n2g(g2n);
+  settings.SetLowerThreshold(n2g(m_InLowerThreshold->value()));
+  settings.SetUpperThreshold(n2g(m_InUpperThreshold->value()));
   settings.SetSmoothness(m_InThresholdSteepness->value());
   settings.SetLowerThresholdEnabled(m_InLowerThreshold->active());
   settings.SetUpperThresholdEnabled(m_InUpperThreshold->active());  
@@ -690,8 +696,11 @@ PreprocessingUILogic
     m_GlobalState->GetThresholdSettings();
 
   // We need to know the min/max of the image
-  float iMin = m_InLowerThreshold->minimum();
-  float iMax = m_InUpperThreshold->maximum();
+  GreyTypeToNativeFunctor g2n =
+    m_Driver->GetCurrentImageData()->GetGrey()->GetNativeMapping();
+  NativeToGreyTypeFunctor n2g(g2n);
+  float iMin = n2g(m_InLowerThreshold->minimum());
+  float iMax = n2g(m_InUpperThreshold->maximum());
 
   // Pass the settings to the functor
   functor.SetParameters(iMin,iMax,settings);
