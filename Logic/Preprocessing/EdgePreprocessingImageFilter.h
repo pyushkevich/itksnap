@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: EdgePreprocessingImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/24 01:50:21 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -37,6 +37,7 @@
 
 #include "itkCommand.h"
 #include "itkCastImageFilter.h"
+#include "itkOrientedImage.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkGradientMagnitudeImageFilter.h"
 #include "itkImageAdaptor.h"
