@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/10/24 12:52:08 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/01/29 18:42:54 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -221,7 +221,7 @@ SNAPImageData
   m_SnakeColorLabel = labelColor;
 
   // Types of images used here
-  typedef Image<float,3> FloatImageType;
+  typedef OrientedImage<float,3> FloatImageType;
 
   // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
   m_SnakeInitializationWrapper.InitializeToWrapper(&m_GreyWrapper, OUTSIDE_VALUE);
