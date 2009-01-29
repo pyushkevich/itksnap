@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/29 18:42:54 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/01/29 23:03:21 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -291,6 +291,17 @@ SNAPImageData
     FloatImageType::IndexType idxLower, idxUpper;     
     imgLevelSet->TransformPhysicalPointToIndex(ptLower,idxLower);
     imgLevelSet->TransformPhysicalPointToIndex(ptUpper,idxUpper);
+    
+    // compute the correct lower/upper index
+    for(unsigned int i=0;i<3;i++)
+      {
+	 if(idxLower[i] > idxUpper[i])
+	   {
+	   int tmp = idxLower[i];
+	   idxLower[i] = idxUpper[i];
+	   idxUpper[i] = tmp;
+	   }
+      }
     
     // Create a region
     FloatImageType::SizeType szBubble;
