@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/30 22:41:27 $
-  Version:   $Revision: 1.40 $
+  Date:      $Date: 2009/01/30 23:08:21 $
+  Version:   $Revision: 1.41 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1811,7 +1811,7 @@ UserInterfaceLogic
 	   return 1;
         }
 	 // selecting active drawing label
-	 else if(Fl::event_state() != FL_CTRL && Fl::event_key() == ',')
+	 else if(Fl::event_state() != FL_CTRL && Fl::event_state() != FL_CTRL + FL_SHIFT && Fl::event_key() == ',')
         {
         LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
 	   for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
@@ -1823,7 +1823,7 @@ UserInterfaceLogic
         OnDrawingLabelUpdate();
         return 1;
 	   }
-	 else if(Fl::event_state() != FL_CTRL && Fl::event_key() == '.')
+	 else if(Fl::event_state() != FL_CTRL && Fl::event_state() != FL_CTRL + FL_SHIFT && Fl::event_key() == '.')
         {
         LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
 	   for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
@@ -1836,7 +1836,7 @@ UserInterfaceLogic
         return 1;
 	   }
 	 // selecting drawing over label
-	 else if(Fl::event_state() == FL_CTRL && Fl::event_key() == ',')
+	 else if((Fl::event_state() == FL_CTRL || Fl::event_state() == FL_CTRL + FL_SHIFT) && Fl::event_key() == ',')
         {
         LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
         if(m_GlobalState->GetCoverageMode() == PAINT_OVER_ALL)
@@ -1852,7 +1852,7 @@ UserInterfaceLogic
         OnDrawOverLabelUpdate();
         return 1;
 	   }
-	 else if(Fl::event_state() == FL_CTRL && Fl::event_key() == '.')
+	 else if((Fl::event_state() == FL_CTRL || Fl::event_state() == FL_CTRL + FL_SHIFT) && Fl::event_key() == '.')
         {
         LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
         if(m_GlobalState->GetCoverageMode() == PAINT_OVER_ALL)
@@ -1871,7 +1871,7 @@ UserInterfaceLogic
 	 // paintbrush size controls
 	 if(m_GlobalState->GetToolbarMode() == PAINTBRUSH_MODE)
 	   {
-        if(Fl::event_state() == FL_SHIFT && Fl::event_key() == '-')
+        if(Fl::event_state() != FL_CTRL && Fl::event_key() == '-')
 	     {
           double pbsize = m_InPaintbrushSize->value() - 1.0;
           if(pbsize >= 1.0)
@@ -1879,7 +1879,7 @@ UserInterfaceLogic
           OnPaintbrushAttributesUpdate();
           return 1;
           }
-        else if(Fl::event_state() == FL_SHIFT && Fl::event_key() == '=')
+        else if(Fl::event_state() != FL_CTRL && Fl::event_key() == '=')
           {
           double pbsize = m_InPaintbrushSize->value() + 1.0;
           if(pbsize <= 100.0)
@@ -4600,6 +4600,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.41  2009/01/30 23:08:21  garyhuizhang
+ *ENH: better implementation of the keyboard shortcuts that do not require the SHIFT key
+ *
  *Revision 1.40  2009/01/30 22:41:27  garyhuizhang
  *ENH: new keyboard shortcuts for adjusting paintbrush size, changing active/drawover labels
  *
