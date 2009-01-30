@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/29 23:03:21 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/01/30 17:29:59 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -273,7 +273,7 @@ SNAPImageData
   for(unsigned int iBubble=0; iBubble < bubbles.size(); iBubble++)
     {
     // Compute the extents of the bubble
-    typedef Point<float,3> PointType;
+    typedef Point<double,3> PointType;
     PointType ptLower,ptUpper,ptCenter;
 
     // Compute the physical position of the bubble center
