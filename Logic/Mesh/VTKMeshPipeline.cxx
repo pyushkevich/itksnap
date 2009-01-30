@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: VTKMeshPipeline.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/01/30 23:44:15 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -274,8 +274,8 @@ VTKMeshPipeline
     {
     vtkPointData *pd = m_StripperFilter->GetOutput()->GetPointData();
     vtkDataArray *nrm = pd->GetNormals();
-    for(size_t i = 0; i < nrm->GetNumberOfTuples(); i++)
-      for(size_t j = 0; j < nrm->GetNumberOfComponents(); j++)
+    for(size_t i = 0; i < (size_t)nrm->GetNumberOfTuples(); i++)
+      for(size_t j = 0; j < (size_t)nrm->GetNumberOfComponents(); j++)
         nrm->SetComponent(i,j,-nrm->GetComponent(i,j));
     nrm->Modified();
     }

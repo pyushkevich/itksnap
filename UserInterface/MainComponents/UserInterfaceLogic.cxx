@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/30 23:08:21 $
-  Version:   $Revision: 1.41 $
+  Date:      $Date: 2009/01/30 23:44:15 $
+  Version:   $Revision: 1.42 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2728,7 +2728,7 @@ UserInterfaceLogic
   pbs.chase = m_BtnPaintbrushChaseMode->value() ? true : false;
 
   pbs.watershed.level = m_InPaintbrushGranularity->value();
-  pbs.watershed.smooth_iterations = m_InPaintbrushSmoothing->value();
+  pbs.watershed.smooth_iterations = (unsigned int) m_InPaintbrushSmoothing->value();
 
   // Set the mode
   pbs.mode = (PaintbrushMode) (m_InPaintbrushShape->value());
@@ -4600,6 +4600,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.42  2009/01/30 23:44:15  garyhuizhang
+ *FIX: clean up the remaining minor compiler warnings
+ *
  *Revision 1.41  2009/01/30 23:08:21  garyhuizhang
  *ENH: better implementation of the keyboard shortcuts that do not require the SHIFT key
  *
