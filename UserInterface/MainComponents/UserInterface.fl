@@ -327,10 +327,10 @@ class UserInterface {open : {public UserInterfaceBase}
               Fl_Button {} {
                 tooltip {3D paint: spray paint and cut planes} xywh {95 95 35 35} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX shortcut 0x35 color 22 selection_color 22 align 16 when 0 hide deactivate
               }
-              Fl_Button {} {
-                callback {SetToolbarMode(ANNOTATION_MODE);} selected
-                tooltip {Annotation tool} xywh {95 95 35 35} type Radio box NO_BOX down_box PLASTIC_DOWN_BOX shortcut 0x36 color 180 selection_color 180 labelsize 12 align 16 when 1
-              }
+              #Fl_Button {} {
+                #callback {SetToolbarMode(ANNOTATION_MODE);} selected
+                #tooltip {Annotation tool} xywh {95 95 35 35} type Radio box NO_BOX down_box PLASTIC_DOWN_BOX shortcut 0x36 color 180 selection_color 180 labelsize 12 align 16 when 1
+              #}
             }
             Fl_Group {} {
               label {Tool Options} open
