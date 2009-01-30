@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 21:48:59 $
-  Version:   $Revision: 1.39 $
+  Date:      $Date: 2009/01/30 22:41:27 $
+  Version:   $Revision: 1.40 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1802,11 +1802,91 @@ UserInterfaceLogic
         OnIRISLabelOpacityChange(); 
         return 1;
         }
+	 // auto image contrast adjustment
       else if(Fl::event_key() == 'i' && Fl::event_alt())
         {
         m_IntensityCurveUI->DisplayWindow();
         m_IntensityCurveUI->OnAutoFitWindow();
         m_IntensityCurveUI->OnClose();
+	   return 1;
+        }
+	 // selecting active drawing label
+	 else if(Fl::event_state() != FL_CTRL && Fl::event_key() == ',')
+        {
+        LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
+	   for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
+          if(iDrawing == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())) && i > 1)
+            {
+            m_InDrawingColor->value(i-1);
+		  break;
+		  }
+        OnDrawingLabelUpdate();
+        return 1;
+	   }
+	 else if(Fl::event_state() != FL_CTRL && Fl::event_key() == '.')
+        {
+        LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
+	   for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
+          if(iDrawing == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())) && i < static_cast<size_t>(m_InDrawingColor->size()))
+            {
+            m_InDrawingColor->value(i+1);
+		  break;
+		  }
+        OnDrawingLabelUpdate();
+        return 1;
+	   }
+	 // selecting drawing over label
+	 else if(Fl::event_state() == FL_CTRL && Fl::event_key() == ',')
+        {
+        LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
+        if(m_GlobalState->GetCoverageMode() == PAINT_OVER_ALL)
+          return 1;
+        else if(m_GlobalState->GetCoverageMode() == PAINT_OVER_COLORS)
+          m_InDrawOverColor->value(0);
+        else for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
+          if(iDrawOver == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())))
+            {
+            m_InDrawOverColor->value(i + 1);
+            break;
+            }
+        OnDrawOverLabelUpdate();
+        return 1;
+	   }
+	 else if(Fl::event_state() == FL_CTRL && Fl::event_key() == '.')
+        {
+        LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
+        if(m_GlobalState->GetCoverageMode() == PAINT_OVER_ALL)
+          m_InDrawOverColor->value(1);
+        else if(m_GlobalState->GetCoverageMode() == PAINT_OVER_COLORS)
+          m_InDrawOverColor->value(2);
+        else for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
+          if(iDrawOver == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())) && i < static_cast<size_t>(m_InDrawingColor->size()))
+            {
+            m_InDrawOverColor->value(i + 3);
+            break;
+            }
+        OnDrawOverLabelUpdate();
+        return 1;
+	   }
+	 // paintbrush size controls
+	 if(m_GlobalState->GetToolbarMode() == PAINTBRUSH_MODE)
+	   {
+        if(Fl::event_state() == FL_SHIFT && Fl::event_key() == '-')
+	     {
+          double pbsize = m_InPaintbrushSize->value() - 1.0;
+          if(pbsize >= 1.0)
+            m_InPaintbrushSize->value(pbsize);
+          OnPaintbrushAttributesUpdate();
+          return 1;
+          }
+        else if(Fl::event_state() == FL_SHIFT && Fl::event_key() == '=')
+          {
+          double pbsize = m_InPaintbrushSize->value() + 1.0;
+          if(pbsize <= 100.0)
+            m_InPaintbrushSize->value(pbsize);
+          OnPaintbrushAttributesUpdate();
+          return 1;
+          }
         }
       }
     }
@@ -1968,7 +2048,7 @@ UserInterfaceLogic
   else if (m_GlobalState->GetCoverageMode() == PAINT_OVER_COLORS)
     m_InDrawOverColor->value(1);
   else for(size_t j = 0; j < static_cast<size_t>(m_InDrawingColor->size()); j++)
-    if(iDrawOver == static_cast<LabelType>(reinterpret_cast<size_t>( m_InDrawingColor->menu()[j].user_data())))
+    if(iDrawOver == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[j].user_data())))
       m_InDrawOverColor->value(j + 2);
 }
 
@@ -4520,6 +4600,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.40  2009/01/30 22:41:27  garyhuizhang
+ *ENH: new keyboard shortcuts for adjusting paintbrush size, changing active/drawover labels
+ *
  *Revision 1.39  2009/01/23 21:48:59  pyushkevich
  *ENH: Added hidden annotation mode (very bad code)
  *
