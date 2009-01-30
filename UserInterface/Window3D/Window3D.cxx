@@ -3,8 +3,8 @@
   Progra_P:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: Window3D.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:54:11 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/01/30 20:57:34 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1296,7 +1296,7 @@ int
 Window3D
 ::OnKeyAction(int key)
 {
-  if(key == 's')
+  if(Fl::event_state() != FL_CTRL && key == 's')
     {
     // Store the state of the trackball
     m_TrackballBackup = m_Trackball;
@@ -1315,6 +1315,9 @@ Window3D
 
 /*
  *$Log: Window3D.cxx,v $
+ *Revision 1.7  2009/01/30 20:57:34  garyhuizhang
+ *Bug Fix: check if any of the CTRL keys is pressed in Windows3D::OnKeyAction()
+ *
  *Revision 1.6  2009/01/23 20:54:11  pyushkevich
  *FIX: fixed cut plane behavior, which was broken by earlier 3D changes
  *
