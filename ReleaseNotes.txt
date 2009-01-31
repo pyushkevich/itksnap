@@ -8,7 +8,7 @@
 1. New Features
 -----------------
 
-1.1. New in Version 1.7.1 (future 1.8 release)
+1.1. New in Version 1.7.3 (future 1.8 release)
 ----------------------------------------------
 
 1.1.1. New Features and UI Improvements
@@ -60,6 +60,20 @@
     I->S) coordinate frame. ITK coordinates are (x * spacing + origin), and
     ignore orientation. 
 
+ -  3D Meshes generated and rendered by SNAP are now represented in NIFTI world
+    coordinates. Previously, the coordinates were computed using the formula
+
+      x_mesh = x_voxel * spacing + origin
+
+    In version 1.8 and beyond, the mesh coordinates are computed as
+
+      x_mesh = nifti_sform_matrix * [x_voxel; 1]
+
+    This means that the meshes output by earlier versions of SNAP may be
+    translated and rotated relative to the meshes output by version 1.8. This will
+    not affect users who simply view meshes in SNAP; however users who export
+    meshes to other programs will be affected. 
+
  -  Multisession cursor (similar to yoking in MRIcro) now uses these NIFTI
     coordinates rather than ITK coordinates. This is a key feature because it
     enables users to work with MRI scans acquired during the same session with
@@ -89,6 +103,13 @@
     to one correspondence between screen pixels and voxels by setting the zoom
     to 1 px/mm.
 
+ -  Multisession 3D views. When the multisession cursor is selected, the 3D
+    views are also synchronized across sessions. This works even if the images
+    opened in the two SNAP sessions have different dimensions, orientation and
+    spacing. SNAP 3D window now uses NIFTI world coordinates, so as long as the two
+    images overlap in world space, so will the 3D views of the two images. This
+    feature is useful when comparing two segmentations of the same image.
+
  -  A new ruler display in slice windows. Can be disabled or modified on the
     display options dialog. 
 
@@ -116,6 +137,9 @@
     some region to A, label this region with label B, and then grow A into B
     with topology preservation. This is a work in progress, and feedback would
     be welcome on this feature.
+
+ -  Documented existing keyboard shortcuts and added some new ones. Available
+    shortcuts can be listed by selecting Help->Shortcuts.
 
 1.1.2. Programmatic/Distribution Changes
 
