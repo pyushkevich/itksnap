@@ -95,12 +95,8 @@ SET(LOGIC_HEADERS
   Common/Credits.h
   Common/IRISException.h
   Common/IRISVectorTypes.h
-  Common/IRISVectorTypesToITKConversion.h
   Common/IRISVectorTypes.txx
-  Common/Registry.h
-  Common/SNAPCommon.h
-  Common/SNAPOpenGL.h
-  Common/SystemInterface.h
+  Common/IRISVectorTypesToITKConversion.h
   Common/ITKExtras/itkBSplineScatteredDataPointSetToImageFilter.h
   Common/ITKExtras/itkBSplineScatteredDataPointSetToImageFilter.txx
   Common/ITKExtras/itkBinaryDiamondStructuringElement.h
@@ -113,6 +109,11 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.txx
   Common/ITKExtras/itkVoxBoCUBImageIO.h
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
+  Common/Registry.h
+  Common/SNAPBorlandDummyTypes.h
+  Common/SNAPCommon.h
+  Common/SNAPOpenGL.h
+  Common/SystemInterface.h
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
   Logic/Common/ImageCoordinateGeometry.h
@@ -134,13 +135,16 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapper.txx
   Logic/ImageWrapper/LabelImageWrapper.h
+  Logic/ImageWrapper/LabelToRGBAFilter.h
   Logic/ImageWrapper/LevelSetImageWrapper.h
+  Logic/ImageWrapper/RGBImageWrapper.h
+  Logic/ImageWrapper/ScalarImageWrapper.h
+  Logic/ImageWrapper/ScalarImageWrapper.txx
   Logic/ImageWrapper/SpeedColorMap.h
   Logic/ImageWrapper/SpeedImageWrapper.h
+  Logic/ImageWrapper/VectorImageWrapper.h
+  Logic/ImageWrapper/VectorImageWrapper.txx
   Logic/LevelSet/LevelSetExtensionFilter.h
-  Logic/LevelSet/SnakeParameters.h
-  Logic/LevelSet/SignedDistanceFilter.h
-  Logic/LevelSet/SignedDistanceFilter.txx
   Logic/LevelSet/SNAPAdvectionFieldImageFilter.h
   Logic/LevelSet/SNAPAdvectionFieldImageFilter.txx
   Logic/LevelSet/SNAPLevelSetDriver.h
@@ -149,6 +153,10 @@ SET(LOGIC_HEADERS
   Logic/LevelSet/SNAPLevelSetFunction.txx
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.h
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.txx
+  Logic/LevelSet/SignedDistanceFilter.h
+  Logic/LevelSet/SignedDistanceFilter.txx
+  Logic/LevelSet/SnakeParameters.h
+  Logic/Mesh/AllPurposeProgressAccumulator.h
   Logic/Mesh/GuidedMeshIO.h
   Logic/Mesh/IRISMeshPipeline.h
   Logic/Mesh/LevelSetMeshPipeline.h
@@ -161,12 +169,12 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/SmoothBinaryThresholdImageFilter.h
   Logic/Preprocessing/SmoothBinaryThresholdImageFilter.txx
   Logic/Preprocessing/ThresholdSettings.h
-  Logic/Slicing/IntensityCurveInterface.h
-  Logic/Slicing/IntensityCurveVTK.h
   Logic/Slicing/IRISSlicer.h
   Logic/Slicing/IRISSlicer.txx
+  Logic/Slicing/IntensityCurveInterface.h
+  Logic/Slicing/IntensityCurveVTK.h
   Logic/Slicing/UnaryFunctorCache.h
-  Logic/Slicing/UnaryFunctorCache.txx
+  Logic/Slicing/UnaryFunctorCache.txx  
 )
 
 # These files contain the user interface source code
@@ -222,18 +230,22 @@ SET(UI_HEADERS
   UserInterface/BasicComponents/ColorMapBox.h
   UserInterface/BasicComponents/FLTKCanvas.h
   UserInterface/BasicComponents/FLTKEvent.h
-  UserInterface/BasicComponents/FunctionPlot2DBox.h
+  UserInterface/BasicComponents/FLTKWidgetActivationManager.h
   UserInterface/BasicComponents/FunctionPlot2D.h
+  UserInterface/BasicComponents/FunctionPlot2DBox.h
   UserInterface/BasicComponents/InteractionMode.h
+  UserInterface/BasicComponents/InteractionModeClient.h
+  UserInterface/BasicComponents/RecursiveInteractionMode.h
   UserInterface/BasicComponents/SnakeParametersPreviewBox.h
   UserInterface/BasicComponents/SnakeParametersPreviewPipeline.h
-  UserInterface/Common/SNAPCommonUI.h
   UserInterface/Common/SNAPAppearanceSettings.h
+  UserInterface/Common/SNAPCommonUI.h
   UserInterface/ImageIOWizard/GreyImageIOWizardLogic.h
   UserInterface/ImageIOWizard/ImageIOWizardBase.h
   UserInterface/ImageIOWizard/ImageIOWizardLogic.h
   UserInterface/ImageIOWizard/ImageIOWizardLogic.txx
   UserInterface/ImageIOWizard/PreprocessingImageIOWizardLogic.h
+  UserInterface/ImageIOWizard/RGBImageIOWizardLogic.h
   UserInterface/ImageIOWizard/RestrictedImageIOWizardLogic.h
   UserInterface/ImageIOWizard/RestrictedImageIOWizardLogic.txx
   UserInterface/ImageIOWizard/SegmentationImageIOWizardLogic.h
@@ -244,22 +256,22 @@ SET(UI_HEADERS
   UserInterface/MainComponents/IntensityCurveBox.h
   UserInterface/MainComponents/IntensityCurveUIBase.h
   UserInterface/MainComponents/IntensityCurveUILogic.h
-  UserInterface/MainComponents/RGBOverlayUIBase.h
-  UserInterface/MainComponents/RGBOverlayUILogic.h
   UserInterface/MainComponents/LabelEditorUIBase.h
   UserInterface/MainComponents/LabelEditorUILogic.h
   UserInterface/MainComponents/PreprocessingUIBase.h
   UserInterface/MainComponents/PreprocessingUILogic.h
+  UserInterface/MainComponents/RGBOverlayUIBase.h
+  UserInterface/MainComponents/RGBOverlayUILogic.h
   UserInterface/MainComponents/ReorientImageUIBase.h
   UserInterface/MainComponents/ReorientImageUILogic.h
   UserInterface/MainComponents/ResizeRegionDialogBase.h
   UserInterface/MainComponents/ResizeRegionDialogLogic.h
   UserInterface/MainComponents/RestoreSettingsDialogBase.h
   UserInterface/MainComponents/RestoreSettingsDialogLogic.h
-  UserInterface/MainComponents/SnakeParametersUIBase.h
-  UserInterface/MainComponents/SnakeParametersUILogic.h
   UserInterface/MainComponents/SimpleFileDialogBase.h
   UserInterface/MainComponents/SimpleFileDialogLogic.h
+  UserInterface/MainComponents/SnakeParametersUIBase.h
+  UserInterface/MainComponents/SnakeParametersUILogic.h
   UserInterface/MainComponents/UserInterfaceBase.h
   UserInterface/MainComponents/UserInterfaceLogic.h
   UserInterface/MeshIOWizard/MeshExportSettings.h
@@ -268,9 +280,9 @@ SET(UI_HEADERS
   UserInterface/SliceWindow/AnnotationInteractionMode.h
   UserInterface/SliceWindow/BubblesInteractionMode.h
   UserInterface/SliceWindow/CrosshairsInteractionMode.h
+  UserInterface/SliceWindow/GLToPNG.h
   UserInterface/SliceWindow/GenericSliceWindow.h
   UserInterface/SliceWindow/IRISSliceWindow.h
-  UserInterface/SliceWindow/GLToPNG.h
   UserInterface/SliceWindow/OpenGLSliceTexture.h
   UserInterface/SliceWindow/OpenGLSliceTexture.txx
   UserInterface/SliceWindow/PaintbrushInteractionMode.h
