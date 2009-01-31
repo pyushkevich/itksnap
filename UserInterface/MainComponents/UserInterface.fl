@@ -1,6 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0109
-use_FL_COMMAND
+version 1.0108 
 header_name {.h} 
 code_name {.cxx}
 decl {\#include <stdio.h>} {public
@@ -42,7 +41,7 @@ class UserInterface {open : {public UserInterfaceBase}
       xywh {695 221 875 710} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"} visible
     } {
-      Fl_Menu_Bar m_MenubarMain {
+      Fl_Menu_Bar m_MenubarMain {open
         xywh {0 0 145 25} labelsize 12 textsize 12
       } {
         Submenu {} {
@@ -271,13 +270,18 @@ class UserInterface {open : {public UserInterfaceBase}
           }
         }
         Submenu {} {
-          label {&Help}
+          label {&Help} open
           xywh {0 0 100 20} labelsize 12
         } {
           MenuItem {} {
             label {&Help Index}
             callback {this->OnLaunchTutorialAction();}
             xywh {30 30 100 20} shortcut 0xffbe labelsize 12
+          }
+          MenuItem {} {
+            label {&Keyboard shortcuts}
+            callback {this->ShowHTMLPage("Shortcuts.html");} selected
+            xywh {40 40 100 20} labelsize 12
           }
           MenuItem {} {
             label {&Credits}
@@ -328,10 +332,6 @@ class UserInterface {open : {public UserInterfaceBase}
               Fl_Button {} {
                 tooltip {3D paint: spray paint and cut planes} xywh {95 95 35 35} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX shortcut 0x35 color 22 selection_color 22 align 16 when 0 hide deactivate
               }
-              #Fl_Button {} {
-                #callback {SetToolbarMode(ANNOTATION_MODE);} selected
-                #tooltip {Annotation tool} xywh {95 95 35 35} type Radio box NO_BOX down_box PLASTIC_DOWN_BOX shortcut 0x36 color 180 selection_color 180 labelsize 12 align 16 when 1
-              #}
             }
             Fl_Group {} {
               label {Tool Options} open

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/01/31 09:02:50 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -61,6 +61,7 @@ CrosshairsInteractionMode
                    const FLTKEvent &irisNotUsed(pressEvent))
 {
   UpdateCrosshairs(event);
+  m_Parent->m_GlobalState->SetUpdateSliceFlag(1);
   return 1;
 }
 
@@ -131,14 +132,14 @@ CrosshairsInteractionMode
   Vector3ui xCrossClamped = to_unsigned_int(
     xCrossInteger.clamp(Vector3i(0),xSize - Vector3i(1)));
 
-  // Update the crosshairs position in the current image data
-  m_Parent->m_ImageData->SetCrosshairs(xCrossClamped);
-  
   // Update the crosshairs position in the global state
   m_Driver->SetCursorPosition(xCrossClamped);
 
   // Cause a repaint
   m_NeedToRepaintControls = true;
+
+  // Update the crosshairs position in the current image data
+  m_ParentUI->OnCrosshairPositionUpdate(true);  
   m_ParentUI->RedrawWindows();  
 }
 

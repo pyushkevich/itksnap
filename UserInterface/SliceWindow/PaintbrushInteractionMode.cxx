@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PaintbrushInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/01/31 09:02:50 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -56,6 +56,7 @@ public:
   typedef itk::OrientedImage<LabelType, 3> LabelImageType;
   typedef itk::OrientedImage<float, 3> FloatImageType;
   typedef itk::Image<unsigned long, 3> WatershedImageType;
+  typedef WatershedImageType::IndexType IndexType;
 
   BrushWatershedPipeline()
     {
@@ -109,6 +110,14 @@ public:
     // Reupdate the filter with new level
     wf->SetLevel(level);
     wf->Update();
+    }
+
+  bool IsPixelInSegmentation(IndexType idx)
+    {
+    // Get the watershed ID at the center voxel 
+    unsigned long wctr = wf->GetOutput()->GetPixel(vcenter);
+    unsigned long widx = wf->GetOutput()->GetPixel(idx);
+    return wctr == widx;
     }
 
   bool UpdateLabelImage(
@@ -418,14 +427,22 @@ PaintbrushInteractionMode
   PaintbrushSettings pbs = 
     m_ParentUI->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
 
+  // Whether watershed filter is used (adaptive brush)
+  bool flagWatershed = (
+    pbs.mode == PAINTBRUSH_WATERSHED 
+    && event.Button == FL_LEFT_MOUSE 
+    && event.Id == FL_PUSH);
+
   // Define a region of interest
   LabelImageWrapper::ImageType::RegionType xTestRegion;
   for(size_t i = 0; i < 3; i++)
     {
     if(i != imgLabel->GetDisplaySliceImageAxis(m_Parent->m_Id) || pbs.flat == false)
       {
-      xTestRegion.SetIndex(i, (long) (m_MousePosition(i) - pbs.radius)); // + 1);
-      xTestRegion.SetSize(i, (long) (2 * pbs.radius + 1)); // - 1);
+      // For watersheds, the radius must be > 2
+      double rad = (flagWatershed && pbs.radius < 1.5) ? 1.5 : pbs.radius;
+      xTestRegion.SetIndex(i, (long) (m_MousePosition(i) - rad)); // + 1);
+      xTestRegion.SetSize(i, (long) (2 * rad + 1)); // - 1);
       }
     else
       {
@@ -441,7 +458,7 @@ PaintbrushInteractionMode
   bool flagUpdate = false;
 
   // Special code for Watershed brush
-  if(pbs.mode == PAINTBRUSH_WATERSHED && event.Button == FL_LEFT_MOUSE && event.Id == FL_PUSH)
+  if(flagWatershed)
     {
     // Precompute the watersheds
     m_Watershed->PrecomputeWatersheds(
@@ -450,70 +467,69 @@ PaintbrushInteractionMode
       xTestRegion, to_itkIndex(m_MousePosition), pbs.watershed.smooth_iterations);
 
     m_Watershed->RecomputeWatersheds(pbs.watershed.level);
-
-    // Update the segmentation image
-    flagUpdate = m_Watershed->UpdateLabelImage(
-      m_Driver->GetCurrentImageData()->GetSegmentation()->GetImage(),
-      mode, drawing_color, overwrt_color);
     }
-  else
+
+  // Shift vector (different depending on whether the brush has odd/even diameter
+  Vector3f offset(0.0);
+  if(fmod(pbs.radius,1.0)==0)
     {
-    // Shift vector (different depending on whether the brush has odd/even diameter
-    Vector3f offset(0.0);
-    if(fmod(pbs.radius,1.0)==0)
-      {
-      offset.fill(0.5);
-      offset(m_Parent->m_ImageAxes[2]) = 0.0;
-      }
-
-    // Iterate over the region
-    LabelImageWrapper::Iterator it(imgLabel->GetImage(), xTestRegion);
-    for(; !it.IsAtEnd(); ++it)
-      {
-      // Check if we are inside the sphere
-      LabelImageWrapper::ImageType::IndexType idx = it.GetIndex();
-      Vector3f xDelta = offset + to_float(Vector3l(idx.GetIndex())) - to_float(m_MousePosition);
-
-      Vector3d xDeltaSliceSpace = to_double(
-        m_Parent->m_ImageToDisplayTransform.TransformVector(xDelta));
-
-      // Check if the pixel is inside
-      if(!TestInside(xDeltaSliceSpace, pbs))
-        continue;
-
-      // if(pbs.shape == PAINTBRUSH_ROUND && xDelta.squared_magnitude() >= r2)
-      //  continue;
-
-      // Paint the pixel
-      LabelType pxLabel = it.Get();
-
-      // Standard paint mode
-      if(event.Button == FL_LEFT_MOUSE)
-        {
-        if (mode == PAINT_OVER_ALL || 
-          (mode == PAINT_OVER_ONE && pxLabel == overwrt_color) ||
-          (mode == PAINT_OVER_COLORS && pxLabel != 0))
-          {
-          it.Set(drawing_color);
-          if(pxLabel != drawing_color) flagUpdate = true;
-          }
-        }
-      // Background paint mode (clear label over current label)
-      else if(event.Button == FL_RIGHT_MOUSE)
-        {
-        if(drawing_color != 0 && pxLabel == drawing_color) 
-          {
-          it.Set(0);
-          if(pxLabel != 0) flagUpdate = true;
-          }
-        else if(drawing_color == 0 && mode == PAINT_OVER_ONE)
-          {
-          it.Set(overwrt_color);
-          if(pxLabel != overwrt_color) flagUpdate = true;
-          }
-        }
-      }         
+    offset.fill(0.5);
+    offset(m_Parent->m_ImageAxes[2]) = 0.0;
     }
+
+  // Iterate over the region
+  LabelImageWrapper::Iterator it(imgLabel->GetImage(), xTestRegion);
+  for(; !it.IsAtEnd(); ++it)
+    {
+    // Check if we are inside the sphere
+    LabelImageWrapper::ImageType::IndexType idx = it.GetIndex();
+    Vector3f xDelta = offset + to_float(Vector3l(idx.GetIndex())) - to_float(m_MousePosition);
+
+    Vector3d xDeltaSliceSpace = to_double(
+      m_Parent->m_ImageToDisplayTransform.TransformVector(xDelta));
+
+    // Check if the pixel is inside
+    if(!TestInside(xDeltaSliceSpace, pbs))
+      continue;
+
+    // Check if the pixel is in the watershed
+    LabelImageWrapper::ImageType::IndexType idxoff = to_itkIndex(
+      Vector3l(idx.GetIndex()) - Vector3l(xTestRegion.GetIndex().GetIndex()));
+    if(flagWatershed && !m_Watershed->IsPixelInSegmentation(idxoff))
+      continue;
+
+    // if(pbs.shape == PAINTBRUSH_ROUND && xDelta.squared_magnitude() >= r2)
+    //  continue;
+
+    // Paint the pixel
+    LabelType pxLabel = it.Get();
+
+    // Standard paint mode
+    if(event.Button == FL_LEFT_MOUSE)
+      {
+      if (mode == PAINT_OVER_ALL || 
+        (mode == PAINT_OVER_ONE && pxLabel == overwrt_color) ||
+        (mode == PAINT_OVER_COLORS && pxLabel != 0))
+        {
+        it.Set(drawing_color);
+        if(pxLabel != drawing_color) flagUpdate = true;
+        }
+      }
+    // Background paint mode (clear label over current label)
+    else if(event.Button == FL_RIGHT_MOUSE)
+      {
+      if(drawing_color != 0 && pxLabel == drawing_color) 
+        {
+        it.Set(0);
+        if(pxLabel != 0) flagUpdate = true;
+        }
+      else if(drawing_color == 0 && mode == PAINT_OVER_ONE)
+        {
+        it.Set(overwrt_color);
+        if(pxLabel != overwrt_color) flagUpdate = true;
+        }
+      }
+    }         
 
   // Image has been updated
   if(flagUpdate)
@@ -636,12 +652,13 @@ PaintbrushInteractionMode
     m_ParentUI->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
 
   // The behavior is different for 'fast' regular brushes and adaptive brush. For the 
-  // adaptive brush, dragging affects parameter settings
-  if(pbs.mode == PAINTBRUSH_WATERSHED)
+  // adaptive brush, dragging is disabled.
+  if(pbs.mode == PAINTBRUSH_WATERSHED && event.Button == FL_LEFT_MOUSE)
     {
     if(event.Id == FL_RELEASE)
       m_Parent->m_ParentUI->StoreUndoPoint("Drawing with paintbrush");
-    return true; 
+    
+    return pbs.chase ? 0 : 1; 
     }
 
   else
