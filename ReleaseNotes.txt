@@ -16,9 +16,7 @@
  -  Support for reading floating point images of arbitrary range. SNAP still
     represents gray images internally as signed short, but now it can load a
     floating point image and remap its intensity range to signed shorts. When
-    displaying intensity values, it will map back to float (although this is
-    only enabled on the main window's intensity display, see missing features
-    below).
+    displaying intensity values, it will map back to float.
 
  -  A new 'Adaptive' paintbrush. Under the paintbrush tool, it can be selected
     using the 'Shape' drop down.  This tool can speed up manual segmentation
@@ -157,12 +155,6 @@
 1.1.3. Bug Fixes
 
  -  Level set fix for ITK 3.8 fixes automatic segmentation's weird behavior
-
-1.1.4. Missing features
-
- -  Display 'native' intensity values (for floating point images remapped to
-    short) in the intensity contrast window and in the automatic snake mode.
-
 
 1.2. New in Version 1.6.0.1
 ---------------------------
