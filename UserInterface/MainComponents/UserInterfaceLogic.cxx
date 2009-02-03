@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/30 23:44:15 $
-  Version:   $Revision: 1.42 $
+  Date:      $Date: 2009/02/03 19:12:35 $
+  Version:   $Revision: 1.43 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -4327,6 +4327,28 @@ UserInterfaceLogic
   m_HelpUI->ShowHelp(file.c_str());  
 }
 
+void 
+UserInterfaceLogic
+::OnMenuCheckUpdate()
+{
+  // Check for updates using new socket code
+  std::string nver;
+  SystemInterface::UpdateStatus us = 
+    m_SystemInterface->CheckUpdate(nver, 1, 0);
+  if(us == SystemInterface::US_UP_TO_DATE)
+    {
+    fl_alert("Your version of ITK-SNAP is up to date");
+    }
+  else if(us == SystemInterface::US_OUT_OF_DATE)
+    {
+    fl_alert("A newer ITK-SNAP version (%s) is available at itksnap.org", nver.c_str());
+    }
+  else if(us == SystemInterface::US_CONNECTION_FAILED)
+    {
+    fl_alert("Could not connect to server. \nVisit itksnap.org to see if a new version is available");
+    }
+}
+
 void
 UserInterfaceLogic
 ::ShowSplashScreen()
@@ -4600,6 +4622,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.43  2009/02/03 19:12:35  pyushkevich
+ *ENH: added support for checking version via internet
+ *
  *Revision 1.42  2009/01/30 23:44:15  garyhuizhang
  *FIX: clean up the remaining minor compiler warnings
  *

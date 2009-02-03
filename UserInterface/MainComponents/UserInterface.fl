@@ -50,7 +50,7 @@ class UserInterface {open : {public UserInterfaceBase}
           xywh {10 10 100 20} labelsize 12
         } {
           Submenu {} {
-            label {&Open} open
+            label {&Open}
             xywh {5 5 100 20} labelsize 12
           } {
             MenuItem m_MenuLoadGrey {
@@ -90,7 +90,7 @@ class UserInterface {open : {public UserInterfaceBase}
             }
           }
           Submenu {} {
-            label {&Save} open
+            label {&Save}
             xywh {20 20 100 20} labelsize 12
           } {
             MenuItem m_MenuSaveGrey {
@@ -195,7 +195,7 @@ class UserInterface {open : {public UserInterfaceBase}
             }
           }
           Submenu m_MenuLoadPrevious {
-            label {&Recent Images} open
+            label {&Recent Images}
             xywh {5 5 100 20} labelsize 12
           } {
             MenuItem m_MenuLoadPreviousFirst {
@@ -225,7 +225,7 @@ class UserInterface {open : {public UserInterfaceBase}
             }
           }
           Submenu {} {
-            label {&New} open
+            label {&New}
             xywh {0 0 62 20} labelsize 12 divider
           } {
             MenuItem m_MenuNewSegmentation {
@@ -271,7 +271,7 @@ class UserInterface {open : {public UserInterfaceBase}
           }
         }
         Submenu {} {
-          label {&Help} open
+          label {&Help} open selected
           xywh {0 0 100 20} labelsize 12
         } {
           MenuItem {} {
@@ -281,7 +281,7 @@ class UserInterface {open : {public UserInterfaceBase}
           }
           MenuItem {} {
             label {&Keyboard shortcuts}
-            callback {this->ShowHTMLPage("Shortcuts.html");} selected
+            callback {this->ShowHTMLPage("Shortcuts.html");}
             xywh {40 40 100 20} labelsize 12
           }
           MenuItem {} {
@@ -293,6 +293,11 @@ class UserInterface {open : {public UserInterfaceBase}
             label {&About}
             callback {m_WinAbout->show();}
             xywh {30 30 100 20} labelsize 12
+          }
+          MenuItem {} {
+            label {Check for &Updates}
+            callback {this->OnMenuCheckUpdate();}
+            tooltip {Connect to the ITK-SNAP server to check if your version is up to date.} xywh {50 50 100 20} labelsize 12
           }
         }
       }

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISException.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:11 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/02/03 19:12:35 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -33,6 +33,7 @@
 
 =========================================================================*/
 #include "IRISException.h"
+#include <cstdarg>
 
 IRISException
 ::operator const char *() 
@@ -47,9 +48,14 @@ IRISException
 }
 
 IRISException
-::IRISException(const char *message) 
+::IRISException(const char *message, ...)
 {
-  m_SimpleMessage = message;
+  char buffer[1024];
+  va_list args;
+  va_start(args, message);
+  vsprintf(buffer,message,args);
+  va_end (args);
+  m_SimpleMessage = buffer;
 }
 
 IRISException

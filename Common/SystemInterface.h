@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/17 10:40:28 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/02/03 19:12:35 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -152,6 +152,18 @@ public:
 
   /** Interprocess communication: release shared memory */
   void IPCClose();
+
+  /** Enum for automatic update checking */
+  enum UpdateStatus 
+    {
+    US_UP_TO_DATE, US_OUT_OF_DATE, US_CONNECTION_FAILED 
+    };
+
+  /** 
+    Check if an update is available. First parameter is output version string,
+    other parameters specify timeout in seconds, millonth of a second 
+   */
+  UpdateStatus CheckUpdate(std::string &newversion, size_t sec, size_t usec);
 
 private:
   std::string m_UserPreferenceFile;

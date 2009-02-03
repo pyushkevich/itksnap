@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPCommon.cxx.in,v $
   Language:  C++
-  Date:      $Date: 2007/12/10 01:23:52 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/02/03 19:12:35 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -16,6 +16,12 @@
 
 // Non-cvs version
 const char SNAPSoftVersion[] = "ITK-SNAP @SNAP_VERSION_FULL@";
+
+// Just the number part of the SNAP version
+const char SNAPSoftVersionNumber[] = "@SNAP_VERSION_FULL@";
+
+// Hardware architecture for this build
+const char SNAPArch[] = "@CPACK_SYSTEM_NAME@";
 
 // A string that appears in the user interface
 const char SNAPUISoftVersion[] = 

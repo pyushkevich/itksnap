@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/17 10:40:28 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/02/03 19:12:35 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -34,6 +34,7 @@
 =========================================================================*/
 #include "SystemInterface.h"
 #include "IRISApplication.h"
+#include "IRISException.h"
 #include "GlobalState.h"
 #include "SNAPRegistryIO.h"
 #include "FL/Fl_Preferences.H"
@@ -594,4 +595,147 @@ SystemInterface
   if(dsinfo.shm_nattch == 0)
     shmctl(m_IPCHandle, IPC_RMID, NULL);
 #endif
+}
+
+
+// Socket headers
+#ifdef WIN32
+#include <winsock.h>
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#endif
+
+
+SystemInterface::UpdateStatus
+SystemInterface
+::CheckUpdate(std::string &newversion, size_t sec, size_t usec)
+{
+  int rv = -1, sockfd = -1, n = -1;
+  UpdateStatus us = US_CONNECTION_FAILED;
+  
+#ifdef WIN32
+  // Initialize windows sockets
+  WSADATA wsaData;
+  if(WSAStartup(MAKEWORD(1, 1), &wsaData) != 0)
+    return US_CONNECTION_FAILED;
+#endif
+
+  // Remaining operations require closing socket/WSA on failure
+  try
+    {
+#ifdef WIN32
+
+    // Resolve the host
+    struct hostent *he;
+    if((he = gethostbyname("www.itksnap.org")) == NULL)
+      throw IRISException("Can't resolve address");
+
+    // Get the IP address
+    char *ipaddr = inet_ntoa (*(struct in_addr *)*he->h_addr_list);
+
+    // Set up the socket
+    if((sockfd=socket(AF_INET, SOCK_STREAM, 0)) < 0)
+      throw IRISException("socket creation failed"); 
+    
+    // Connect
+    struct sockaddr_in sa;
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = inet_addr(ipaddr);
+    sa.sin_port = htons(80);
+
+    if((rv = connect(sockfd, (sockaddr *)&sa, sizeof(sa))) < 0)
+      throw IRISException("connect failed");
+
+#else
+
+    // Get address info
+    struct addrinfo hints, *res;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    if((rv = getaddrinfo("www.itksnap.org","80",&hints,&res)) != 0)
+      throw IRISException("getaddrinfo failed");
+    
+    // Create socket
+    if((sockfd=socket(res->ai_family, res->ai_socktype, res->ai_protocol)) < 0)
+      throw IRISException("socket creation failed"); 
+
+    // Connect to server
+    if((rv = connect(sockfd, res->ai_addr, res->ai_addrlen)) < 0)
+      throw IRISException("connect failed");
+
+#endif
+
+    // Create the HTTP request
+    ostringstream oss;
+    oss << "GET /version/" << SNAPArch 
+      << " HTTP/1.1\r\nHost: www.itksnap.org\r\n\r\n";
+
+    // Create HTTP request
+    if((n = send(sockfd, oss.str().c_str(), oss.str().length(), 0)) < 0)
+      throw IRISException("Can't write to server");
+
+    // Set up select to watch for data available
+    fd_set readfds;
+    struct timeval tv;
+    FD_ZERO(&readfds);
+    FD_SET(sockfd, &readfds);
+    tv.tv_sec = sec;
+    tv.tv_usec = usec;
+    if((rv = select(sockfd+1, &readfds, NULL, NULL, &tv)) < 0)
+      throw IRISException("Select failed");
+    else if(rv == 0)
+      throw IRISException("Timed out");
+
+    // Read buffer 
+    char buffer[0x8000];
+    if((n = recv(sockfd, buffer, 0x7fff, 0)) <= 0)
+      throw IRISException("Can't read from server");
+
+    // Parse the output
+    istringstream iss(string(buffer, n));
+    char line[1024];
+
+    // Check first line
+    iss.getline(line, 1024);
+    if(!strcmp(line,"HTTP/1.1 200 OK"))
+      throw IRISException("HTTP request failed");
+
+    // Read lines from output until two blank lines
+    while(strlen(line) > 0 && line[0] != '\r' && !iss.eof())
+      { iss.getline(line, 1024); }
+
+    // Read the next line
+    iss.getline(line, 1024);
+
+    // Print the line
+    newversion = line;
+    
+    // Compare version
+    if(atof(newversion.c_str()) > atof(SNAPSoftVersion + 10))
+      us = US_OUT_OF_DATE;
+    else 
+      us = US_UP_TO_DATE;
+    }
+  catch(...)
+    {
+    us = US_CONNECTION_FAILED;
+    }
+
+  // Close socket if necessary
+  if(sockfd >= 0)
+#ifdef WIN32
+    closesocket(sockfd);
+#else
+    close(sockfd);
+#endif
+
+  // Windows cleanup
+#ifdef WIN32
+  WSACleanup();
+#endif
+
+  return us;
 }

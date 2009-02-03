@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPCommon.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 16:30:53 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/02/03 19:12:35 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -64,6 +64,12 @@ typedef std::istringstream IRISIStringStream;
 
 // Non-cvs version
 extern const char SNAPSoftVersion[];
+
+// Just the number part of the SNAP version
+extern const char SNAPSoftVersionNumber[];
+
+// Hardware architecture for this build
+extern const char SNAPArch[];
 
 // A string that appears in the user interface
 extern const char SNAPUISoftVersion[];
