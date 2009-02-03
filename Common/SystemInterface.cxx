@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/03 20:18:56 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/02/03 20:28:14 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -715,18 +715,15 @@ SystemInterface
     iss >> vpatch;
     iss >> vqual;
 
-    oss.clear();
-    oss << vmajor << "." << vminor << "." << vpatch << vqual;
-    newversion = oss.str();
+    // Format the version in printable format
+    ostringstream over;
+    over << vmajor << "." << vminor << "." << vpatch << vqual;
+    newversion = over.str();
 
-    // Print the line
-    newversion = line;
-    
     // Compare version
-    if(vmajor > SNAP
-    double ver_old = atof(SNAPSoftVersionNumber);
-    double ver_new = atof(newversion.c_str());
-    if(ver_new > ver_old)
+    if(vmajor > SNAPVersionMajor
+      || vmajor == SNAPVersionMajor && vminor > SNAPVersionMinor
+      || vmajor == SNAPVersionMajor && vminor == SNAPVersionMinor && vpatch > SNAPVersionPatch)
       us = US_OUT_OF_DATE;
     else 
       us = US_UP_TO_DATE;
