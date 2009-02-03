@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 21:48:59 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/02/03 22:30:26 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -59,10 +59,10 @@ public:
   AnnotationInteractionMode(GenericSliceWindow *parent);
   virtual ~AnnotationInteractionMode();
 
-  int OnMousePress(const FLTKEvent &event) { return 0; };
+  int OnMousePress(const FLTKEvent &event);
   int OnKeyDown(const FLTKEvent &event) {return 0;};
-  int OnMouseRelease(const FLTKEvent &event, const FLTKEvent &pressEvent);
-  int OnMouseDrag(const FLTKEvent &event, const FLTKEvent &pressEvent) {return 0;};
+  int OnMouseRelease(const FLTKEvent &event, const FLTKEvent &pressEvent) {return 0;};
+  int OnMouseDrag(const FLTKEvent &event, const FLTKEvent &pressEvent);
   int OnShortcut(const FLTKEvent &event) {return 0;};
   void OnDraw();  
 
@@ -75,8 +75,8 @@ private:
 
   // What happened on last click
   bool m_FlagDrawingLine;
-  Vector3d m_LineStart;
-
+  LineIntervalType m_CurrentLine;
+ 
   // The window handler needs to access our privates
   friend class IRISSliceWindow;
 };
