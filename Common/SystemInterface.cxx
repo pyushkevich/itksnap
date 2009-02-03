@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/03 19:12:35 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/02/03 19:51:50 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -671,7 +671,7 @@ SystemInterface
     // Create the HTTP request
     ostringstream oss;
     oss << "GET /version/" << SNAPArch 
-      << " HTTP/1.1\r\nHost: www.itksnap.org\r\n\r\n";
+      << ".txt HTTP/1.1\r\nHost: www.itksnap.org\r\n\r\n";
 
     // Create HTTP request
     if((n = send(sockfd, oss.str().c_str(), oss.str().length(), 0)) < 0)
@@ -700,7 +700,7 @@ SystemInterface
 
     // Check first line
     iss.getline(line, 1024);
-    if(!strcmp(line,"HTTP/1.1 200 OK"))
+    if(strncmp(line,"HTTP/1.1 200 OK",strlen("HTTP/1.1 200 OK")))
       throw IRISException("HTTP request failed");
 
     // Read lines from output until two blank lines
@@ -714,7 +714,7 @@ SystemInterface
     newversion = line;
     
     // Compare version
-    if(atof(newversion.c_str()) > atof(SNAPSoftVersion + 10))
+    if(atof(newversion.c_str()) > atof(SNAPSoftVersionNumber))
       us = US_OUT_OF_DATE;
     else 
       us = US_UP_TO_DATE;

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/03 19:12:35 $
-  Version:   $Revision: 1.43 $
+  Date:      $Date: 2009/02/03 19:51:50 $
+  Version:   $Revision: 1.44 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -4331,6 +4331,9 @@ void
 UserInterfaceLogic
 ::OnMenuCheckUpdate()
 {
+  // Show a wait cursor
+  m_WinMain->cursor(FL_CURSOR_WAIT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
+
   // Check for updates using new socket code
   std::string nver;
   SystemInterface::UpdateStatus us = 
@@ -4347,6 +4350,9 @@ UserInterfaceLogic
     {
     fl_alert("Could not connect to server. \nVisit itksnap.org to see if a new version is available");
     }
+
+  // Show a wait cursor
+  m_WinMain->cursor(FL_CURSOR_DEFAULT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
 }
 
 void
@@ -4622,6 +4628,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.44  2009/02/03 19:51:50  pyushkevich
+ *fixes
+ *
  *Revision 1.43  2009/02/03 19:12:35  pyushkevich
  *ENH: added support for checking version via internet
  *
