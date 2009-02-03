@@ -14,10 +14,23 @@ PROJECT(SNAP)
 #############################################
 # VERSION INFORMATION                       #
 #############################################
+# On SNAP versions.
+# =================
+# The SNAP version consists of four fields: major, minor, patch and qualifier
+# for example, version 1.7.3-beta has major version 1, minor version 7, patch 3
+# and qualifier "-beta". Major, minor and patch must be numbers, but the qualifier
+# is an arbitrary string and may be blank. 
+# 
+# Important:
+#   - The qualifier is just a descriptor. No two version should have the same 
+#     major/minor/patch and different qualifiers. So it's completely wrong to 
+#     release version 1.7.3-beta and then version 1.7.3. The right way to do it
+#     is to have 1.7.3-beta followed by 1.7.5-rc1 followed by 1.8.0 and so on
 SET(SNAP_VERSION_MAJOR 1)
 SET(SNAP_VERSION_MINOR 7)
-SET(SNAP_VERSION_PATCH 3-beta)
-SET(SNAP_VERSION_FULL "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}")
+SET(SNAP_VERSION_PATCH 3)
+SET(SNAP_VERSION_QUALIFIER "-beta")
+SET(SNAP_VERSION_FULL "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}${SNAP_VERSION_QUALIFIER}")
 SET(SNAP_VERSION_RELEASE_DATE "20090131")
 SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20031109")
 SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Jan 31, 2009")
