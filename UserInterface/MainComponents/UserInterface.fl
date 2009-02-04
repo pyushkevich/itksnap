@@ -658,9 +658,6 @@ ITK-SNAP!  Visit our new website:
                 callback {SetToolbarMode(NAVIGATION_MODE);}
                 tooltip {Navigation: zoom, pan, and rotate} image {Artwork/zoom.gif} xywh {55 54 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x6e color 180 selection_color 180 align 16
               }
-              Fl_Button {} {
-                tooltip {3D paint: spray paint and cut planes} xywh {95 54 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 46 selection_color 46 align 16
-              }
               Fl_Output m_OutSNAPProbe {
                 label {Grey:}
                 tooltip {Intensity value at cursor position} xywh {10 135 40 20} box THIN_DOWN_BOX color 52 selection_color 48 labelsize 10 align 5 textsize 10
