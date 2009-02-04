@@ -35,87 +35,7 @@ SET(SNAP_VERSION_RELEASE_DATE "20090131")
 SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20031109")
 SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Jan 31, 2009")
 
-#########################################################
-# FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS #
-#########################################################
-IF(DEFINED InsightApplications_SOURCE_DIR)
-  SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS FALSE CACHE BOOL 
-	"Is SNAP being built separate from InsightApplications?")
-ELSE(DEFINED InsightApplications_SOURCE_DIR)
-  SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS TRUE CACHE BOOL 
-	"Is SNAP being built separate from InsightApplications?")
-ENDIF(DEFINED InsightApplications_SOURCE_DIR)			
-
-IF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
-  INCLUDE(${SNAP_SOURCE_DIR}/CMake/standalone.cmake)
-ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
-
-#########################################################
-# INSTALLATION AND PACKAGING with CPack                 #
-# (don't move this to the end of the file b/c some      #
-#  variables are used in SNAPCommon.cxx)                #
-#########################################################
-INCLUDE(CMake/CustomBuildSettings.cmake)
-
-# Generate forward shared executable
-SUBDIRS(Utilities/Forwarding)
-
-# Install the SNAP executable in the appropriate place.
-
-# Windows (Microsoft Visual Studio)
-IF(WIN32 AND NOT UNIX)
-  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION bin)
-  SET(SNAP_DATA_INSTALL_DIR ".")
-ENDIF(WIN32 AND NOT UNIX)
-
-# Apple
-IF(APPLE)
-  # Copy executable into the bundle
-  SET(SNAP_MAIN_INSTALL_DIR ITK-SNAP.app/Contents/MacOS)
-  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
-  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
-
-  # Configure the XML file
-  CONFIGURE_FILE(
-    ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/Info.plist
-    ${SNAP_BINARY_DIR}/Utilities/MacOS/BundleResources/Info.plist)
-  INSTALL(FILES ${SNAP_BINARY_DIR}/Utilities/MacOS/BundleResources/Info.plist
-    DESTINATION ITK-SNAP.app/Contents) 
-  INSTALL(FILES ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns
-    DESTINATION ITK-SNAP.app/Contents/Resources)
-ENDIF(APPLE)
-
-# Other UNIX
-IF(UNIX AND NOT APPLE)
-  SET(SNAP_MAIN_INSTALL_DIR lib/snap-${SNAP_VERSION_FULL})
-  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
-  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
-ENDIF(UNIX AND NOT APPLE)
-
-# Install the Program Data files
-INSTALL(DIRECTORY ${SNAP_BINARY_DIR}/ProgramData DESTINATION ${SNAP_DATA_INSTALL_DIR})
-
-# On Win32, we must include the redistributable
-IF(MSVC80 OR MSVC90)
-  FIND_PROGRAM(VCREDIST_X86 vcredist_x86.exe)
-  IF(VCREDIST_X86)
-    INSTALL(FILES ${VCREDIST_X86} DESTINATION bin)
-    SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
-      "ExecWait '\\\"$INSTDIR\\\\bin\\\\vcredist_x86.exe\\\"'")
-  ENDIF(VCREDIST_X86)
-ENDIF(MSVC80 OR MSVC90)
-
-# Allow package generation
-SET(CPACK_PACKAGE_NAME "itksnap")
-SET(CPACK_PACKAGE_CONTACT "Paul A. Yushkevich")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ITK-SNAP 3D Image Segmentation Tool")
-SET(CPACK_PACKAGE_VENDOR "itksnap.org")
-SET(CPACK_PACKAGE_VERSION_MAJOR "${SNAP_VERSION_MAJOR}")
-SET(CPACK_PACKAGE_VERSION_MINOR "${SNAP_VERSION_MINOR}")
-SET(CPACK_PACKAGE_VERSION_PATCH "${SNAP_VERSION_PATCH}")
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "itksnap-${SNAP_VERSION_FULL}")
-
-# Shamelessly stolen from ParaView_
+# Shamelessly stolen from ParaView
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_FULL}-${SNAP_VERSION_RELEASE_DATE}")
 IF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
   EXEC_PROGRAM(uname ARGS "-m" OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
@@ -134,42 +54,20 @@ IF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
   SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
 ENDIF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
 
-# Show GPL license
-SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
+#########################################################
+# FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS #
+#########################################################
+IF(DEFINED InsightApplications_SOURCE_DIR)
+  SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS FALSE CACHE BOOL 
+	"Is SNAP being built separate from InsightApplications?")
+ELSE(DEFINED InsightApplications_SOURCE_DIR)
+  SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS TRUE CACHE BOOL 
+	"Is SNAP being built separate from InsightApplications?")
+ENDIF(DEFINED InsightApplications_SOURCE_DIR)			
 
-IF(WIN32 AND NOT UNIX)
-
-  # There is a bug in NSI that does not handle full unix paths properly. Make
-  # sure there is at least one set of four (4) backlasshes.
-  SET(CPACK_GENERATOR "NSIS")
-  SET(CPACK_NSIS_INSTALLED_ICON_NAME "InsightSNAP.exe")
-  SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ITK-SNAP")
-  SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.itksnap.org")
-  SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.itksnap.org/credits.php")
-  SET(CPACK_NSIS_MODIFY_PATH OFF)
-  
-  # Give it a windowsy directory name
-  SET(CPACK_PACKAGE_INSTALL_DIRECTORY "ITK-SNAP ${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}")
-  
-  # On Win32, the executable is the actual exe
-  SET(CPACK_PACKAGE_EXECUTABLES InsightSNAP "ITK-SNAP")
-  
-ELSE(WIN32 AND NOT UNIX)
-
-  # Set the generator to either STGZ or Apple
-  IF(NOT APPLE)
-    SET(CPACK_GENERATOR "TGZ;RPM;DEB")
-  ELSE(NOT APPLE)
-    SET(CPACK_GENERATOR "ZIP")
-  ENDIF(NOT APPLE)
-
-  # Executable is the forward sharing exe
-  SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
-
-ENDIF(WIN32 AND NOT UNIX)
-
-INCLUDE(CPack)
-INCLUDE(CTest)
+IF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
+  INCLUDE(${SNAP_SOURCE_DIR}/CMake/standalone.cmake)
+ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
 
 #############################################
 # SOURCE FILE SPECIFICATION                 #
@@ -670,4 +568,103 @@ FOREACH(DATAFILE ${PROGRAM_DATA_FILES})
    COPYONLY)
 ENDFOREACH(DATAFILE)
 
+#########################################################
+# INSTALLATION AND PACKAGING with CPack                 #
+#########################################################
+INCLUDE(CMake/CustomBuildSettings.cmake)
+
+# Generate forward shared executable
+SUBDIRS(Utilities/Forwarding)
+
+# Install the SNAP executable in the appropriate place.
+
+# Windows (Microsoft Visual Studio)
+IF(WIN32 AND NOT UNIX)
+  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION bin)
+  SET(SNAP_DATA_INSTALL_DIR ".")
+ENDIF(WIN32 AND NOT UNIX)
+
+# Apple
+IF(APPLE)
+  # Copy executable into the bundle
+  SET(SNAP_MAIN_INSTALL_DIR ITK-SNAP.app/Contents/MacOS)
+  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
+  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
+
+  # Configure the XML file
+  CONFIGURE_FILE(
+    ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/Info.plist
+    ${SNAP_BINARY_DIR}/Utilities/MacOS/BundleResources/Info.plist)
+  INSTALL(FILES ${SNAP_BINARY_DIR}/Utilities/MacOS/BundleResources/Info.plist
+    DESTINATION ITK-SNAP.app/Contents) 
+  INSTALL(FILES ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns
+    DESTINATION ITK-SNAP.app/Contents/Resources)
+ENDIF(APPLE)
+
+# Other UNIX
+IF(UNIX AND NOT APPLE)
+  SET(SNAP_MAIN_INSTALL_DIR lib/snap-${SNAP_VERSION_FULL})
+  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
+  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
+ENDIF(UNIX AND NOT APPLE)
+
+# Install the Program Data files
+INSTALL(DIRECTORY ${SNAP_BINARY_DIR}/ProgramData DESTINATION ${SNAP_DATA_INSTALL_DIR})
+
+# On Win32, we must include the redistributable
+IF(MSVC80 OR MSVC90)
+  FIND_PROGRAM(VCREDIST_X86 vcredist_x86.exe)
+  IF(VCREDIST_X86)
+    INSTALL(FILES ${VCREDIST_X86} DESTINATION bin)
+    SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
+      "ExecWait '\\\"$INSTDIR\\\\bin\\\\vcredist_x86.exe\\\"'")
+  ENDIF(VCREDIST_X86)
+ENDIF(MSVC80 OR MSVC90)
+
+# Allow package generation
+SET(CPACK_PACKAGE_NAME "itksnap")
+SET(CPACK_PACKAGE_CONTACT "Paul A. Yushkevich")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ITK-SNAP 3D Image Segmentation Tool")
+SET(CPACK_PACKAGE_VENDOR "itksnap.org")
+SET(CPACK_PACKAGE_VERSION_MAJOR "${SNAP_VERSION_MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${SNAP_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${SNAP_VERSION_PATCH}")
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "itksnap-${SNAP_VERSION_FULL}")
+
+# Show GPL license
+SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
+
+IF(WIN32 AND NOT UNIX)
+
+  # There is a bug in NSI that does not handle full unix paths properly. Make
+  # sure there is at least one set of four (4) backlasshes.
+  SET(CPACK_GENERATOR "NSIS")
+  SET(CPACK_NSIS_INSTALLED_ICON_NAME "InsightSNAP.exe")
+  SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ITK-SNAP")
+  SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.itksnap.org")
+  SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.itksnap.org/credits.php")
+  SET(CPACK_NSIS_MODIFY_PATH OFF)
+  
+  # Give it a windowsy directory name
+  SET(CPACK_PACKAGE_INSTALL_DIRECTORY "ITK-SNAP ${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}")
+  
+  # On Win32, the executable is the actual exe
+  SET(CPACK_PACKAGE_EXECUTABLES InsightSNAP "ITK-SNAP")
+  
+ELSE(WIN32 AND NOT UNIX)
+
+  # Set the generator to either STGZ or Apple
+  IF(NOT APPLE)
+    SET(CPACK_GENERATOR "TGZ;RPM;DEB")
+  ELSE(NOT APPLE)
+    SET(CPACK_GENERATOR "ZIP")
+  ENDIF(NOT APPLE)
+
+  # Executable is the forward sharing exe
+  SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
+
+ENDIF(WIN32 AND NOT UNIX)
+
+INCLUDE(CPack)
+INCLUDE(CTest)
 
