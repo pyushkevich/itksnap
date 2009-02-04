@@ -335,9 +335,6 @@ class UserInterface {open : {public UserInterfaceBase}
                 callback {SetToolbarMode(PAINTBRUSH_MODE);}
                 tooltip {Paintbrush tool} image {Artwork/paintbrush.gif} xywh {55 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x35 color 180 selection_color 180 labelfont 1 labelsize 20 align 16 when 1
               }
-              Fl_Button {} {
-                tooltip {3D paint: spray paint and cut planes} xywh {95 95 35 35} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX shortcut 0x35 color 22 selection_color 22 align 16 when 0 hide deactivate
-              }
             }
             Fl_Group {} {
               label {Tool Options} open
