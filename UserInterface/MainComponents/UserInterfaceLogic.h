@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 16:21:14 $
-  Version:   $Revision: 1.20 $
+  Date:      $Date: 2009/02/05 23:03:41 $
+  Version:   $Revision: 1.21 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -732,7 +732,7 @@ protected:
   void OnSynchronizeCursorAction();
 
   // Toggle hidden features
-  void OnHiddenFeaturesToggleAction(bool enable_hidden);
+  void OnHiddenFeaturesToggleAction();
 
   char *m_ChosedFile;
 
@@ -979,6 +979,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.21  2009/02/05 23:03:41  garyhuizhang
+ *ENH: support for saving the hidden feature flag
+ *
  *Revision 1.20  2009/02/05 16:21:14  pyushkevich
  *ENH: added hidden features button
  *

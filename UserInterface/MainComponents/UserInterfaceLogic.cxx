@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 16:21:14 $
-  Version:   $Revision: 1.46 $
+  Date:      $Date: 2009/02/05 23:03:40 $
+  Version:   $Revision: 1.47 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2035,6 +2035,9 @@ UserInterfaceLogic
   // Update the user interface
   this->GetDriver()->SetDisplayToAnatomyRAI(rai1.c_str(), rai2.c_str(), rai3.c_str());
   this->OnImageGeometryUpdate();
+  
+  // Initialize hidden feature usage option
+  OnHiddenFeaturesToggleAction();
 }
 
 void 
@@ -4636,20 +4639,19 @@ UserInterfaceLogic
 
 void
 UserInterfaceLogic
-::OnHiddenFeaturesToggleAction(bool enable_hidden)
+::OnHiddenFeaturesToggleAction()
 {
-  if(enable_hidden)
-    {
+  if(m_AppearanceSettings->GetFlagEnableHiddenFeaturesByDefault())
     m_BtnAnnotationMode->show();
-    }
   else
-    {
     m_BtnAnnotationMode->hide();
-    }
 }
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.47  2009/02/05 23:03:40  garyhuizhang
+ *ENH: support for saving the hidden feature flag
+ *
  *Revision 1.46  2009/02/05 16:21:14  pyushkevich
  *ENH: added hidden features button
  *

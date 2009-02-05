@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 16:21:14 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2009/02/05 23:03:40 $
+  Version:   $Revision: 1.19 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -248,8 +248,7 @@ public:
   virtual void StoreUndoPoint(const char *text) = 0;
   virtual void ClearUndoPoints() = 0;
   
-  virtual void OnHiddenFeaturesToggleAction(bool enable_hidden) = 0;
-
+  virtual void OnHiddenFeaturesToggleAction() = 0;
 
 protected:
     GlobalState *m_GlobalState;
