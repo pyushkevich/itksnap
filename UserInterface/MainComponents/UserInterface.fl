@@ -271,7 +271,7 @@ class UserInterface {open : {public UserInterfaceBase}
           }
         }
         Submenu {} {
-          label {&Help} open selected
+          label {&Help} open
           xywh {0 0 100 20} labelsize 12
         } {
           MenuItem {} {
@@ -335,10 +335,11 @@ class UserInterface {open : {public UserInterfaceBase}
                 callback {SetToolbarMode(PAINTBRUSH_MODE);}
                 tooltip {Paintbrush tool} image {Artwork/paintbrush.gif} xywh {55 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x35 color 180 selection_color 180 labelfont 1 labelsize 20 align 16 when 1
               }
-#              Fl_Button {} {
-#                callback {SetToolbarMode(ANNOTATION_MODE);}
-#                tooltip {SNAP tool: select a region of interest for automatic segmentation} xywh {95 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x36 color 180 selection_color 180 labelsize 10 align 144 when 1
-#              }
+              Fl_Button m_BtnAnnotationMode {
+                label A
+                callback {SetToolbarMode(ANNOTATION_MODE);} selected
+                tooltip {Annotation tool (in development)} xywh {95 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x36 color 180 selection_color 180 labeltype EMBOSSED_LABEL labelfont 1 labelsize 18 align 144 when 1 hide
+              }
             }
             Fl_Group {} {
               label {Tool Options} open
@@ -408,10 +409,6 @@ class UserInterface {open : {public UserInterfaceBase}
                     xywh {116 202 18 18} box PLASTIC_ROUND_UP_BOX color 180 labelfont 1 labelsize 12 align 16
                   }
                 }
-                Fl_Group m_GrpToolOptionPaintCan {
-                  label 4
-                  xywh {5 165 135 165} labelsize 10 hide
-                } {}
                 Fl_Group m_GrpToolOptionSnAP {
                   label 5
                   xywh {5 165 135 165} labelsize 10 hide
@@ -469,7 +466,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   } {}
                 }
                 Fl_Group m_GrpToolOptionBrush {
-                  label 6 open
+                  label 6
                   xywh {5 165 135 165} color 22 labelsize 10 labelcolor 4 hide
                 } {
                   Fl_Group {} {
@@ -538,6 +535,14 @@ class UserInterface {open : {public UserInterfaceBase}
                       }
                     }
                   }
+                }
+                Fl_Group m_GrpToolOptionAnnotation {
+                  xywh {5 165 135 165} labelsize 10 hide
+                } {
+                  Fl_Group {} {
+                    label {Annotation Tool} open
+                    tooltip {Left-click and drag to draw line. Use left mouse to edit line. Right click to accept line. Right click again to delete line. THIS IS A WORK IN PROGRESS.} xywh {10 175 125 25} box PLASTIC_DOWN_BOX color 125 labelsize 12 align 16
+                  } {}
                 }
               }
             }
@@ -1256,7 +1261,7 @@ this->OnSNAPLabelOpacityChange();}
     }
     Fl_Window m_WinSplash {
       label {Welcome to ITK-SnAP}
-      xywh {4 27 432 196} type Double align 16 resizable visible
+      xywh {5 49 430 195} type Double align 16 resizable visible
     } {
       Fl_Group {} {open
         image {Artwork/logo_new.gif} xywh {5 5 420 155} color 0 align 16
@@ -1394,7 +1399,7 @@ this->OnSNAPLabelOpacityChange();}
     }
     Fl_Window m_WinColorMap {
       label {Preprocessed Image Color Map}
-      xywh {4 27 315 105} type Double non_modal visible
+      xywh {5 49 315 105} type Double non_modal visible
     } {
       Fl_Wizard m_WizColorMap {open
         xywh {0 0 325 115}
@@ -1550,7 +1555,7 @@ Build Date X.XX} open
       label {Discard Unsaved Changes?}
       callback {m_ChkHiddenDiscardChanges->value(0);
 m_WinConfirmDiscard->hide();} open
-      xywh {663 660 503 133} type Double box PLASTIC_DOWN_BOX modal visible
+      xywh {663 660 500 130} type Double box PLASTIC_DOWN_BOX hide modal
     } {
       Fl_Button {} {
         label {Go Back}

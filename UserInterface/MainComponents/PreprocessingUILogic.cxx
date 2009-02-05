@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PreprocessingUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/02/05 16:21:14 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -108,8 +108,8 @@ PreprocessingUILogic
   // Shorthands
   GreyTypeToNativeFunctor g2n =
     m_Driver->GetCurrentImageData()->GetGrey()->GetNativeMapping();
-  float lower = g2n(settings.GetLowerThreshold());
-  float upper = g2n(settings.GetUpperThreshold());
+  float lower = g2n((GreyType)settings.GetLowerThreshold());
+  float upper = g2n((GreyType)settings.GetUpperThreshold());
 
   // Set the ranges for the two thresholds.  These ranges do not require the
   // lower slider to be less than the upper slider, that will be corrected

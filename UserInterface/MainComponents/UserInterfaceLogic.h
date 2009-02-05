@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/03 19:12:35 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2009/02/05 16:21:14 $
+  Version:   $Revision: 1.20 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -731,6 +731,9 @@ protected:
   // Toggle cursor synchronization
   void OnSynchronizeCursorAction();
 
+  // Toggle hidden features
+  void OnHiddenFeaturesToggleAction(bool enable_hidden);
+
   char *m_ChosedFile;
 
 private:
@@ -976,6 +979,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.20  2009/02/05 16:21:14  pyushkevich
+ *ENH: added hidden features button
+ *
  *Revision 1.19  2009/02/03 19:12:35  pyushkevich
  *ENH: added support for checking version via internet
  *

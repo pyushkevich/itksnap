@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 14:58:29 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/02/05 16:21:14 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -114,6 +114,10 @@ AppearanceDialogUILogic
   m_Appearance->SaveToRegistry(
     m_Parent->GetSystemInterface()->Folder("UserInterface.AppearanceSettings"));  
 
+  // Handle the hidden features button
+  m_Parent->OnHiddenFeaturesToggleAction(
+    m_ChkOptionsHiddenFeatures->value() != 0);
+
   // Redraw the UI windows
   m_Parent->RedrawWindows();
 }
@@ -216,30 +220,28 @@ AppearanceDialogUILogic
 ::OnSliceAnatomyOptionsChange(unsigned int order)
 {
   // Depending on the order, put appropriate text
-  const char *v1, *v2, *v3;
-  SNAPAppearanceSettings::UISliceLayout layout = 
-    (SNAPAppearanceSettings::UISliceLayout) order;
+  const char *axial = "Axial", *coronal = "Coronal", *sagittal = "Sagittal";
+  const char *v1=NULL, *v2=NULL, *v3=NULL;
   switch(order)
     {
     case SNAPAppearanceSettings::LAYOUT_ACS:
-      v1 = "Axial"; v2 = "Coronal"; v3 = "Sagittal"; break;
+      v1 = axial; v2 = coronal; v3 = sagittal; break;
     case SNAPAppearanceSettings::LAYOUT_ASC:
-      v1 = "Axial"; v2 = "Sagittal"; v3 = "Coronal"; break;
+      v1 = axial; v2 = sagittal; v3 = coronal; break;
     case SNAPAppearanceSettings::LAYOUT_CAS:
-      v1 = "Coronal"; v2 = "Axial"; v3 = "Sagittal"; break;
+      v1 = coronal; v2 = axial; v3 = sagittal; break;
     case SNAPAppearanceSettings::LAYOUT_CSA:
-      v1 = "Coronal"; v2 = "Sagittal"; v3 = "Axial"; break;
+      v1 = coronal; v2 = sagittal; v3 = axial; break;
     case SNAPAppearanceSettings::LAYOUT_SAC:
-      v1 = "Sagittal"; v2 = "Axial"; v3 = "Coronal"; break;
+      v1 = sagittal; v2 = axial; v3 = coronal; break;
     case SNAPAppearanceSettings::LAYOUT_SCA:
-      v1 = "Sagittal"; v2 = "Coronal"; v3 = "Axial"; break;
+      v1 = sagittal; v2 = coronal; v3 = axial; break;
     };
 
   // Place the text in the boxes
   m_OutDisplayOptionsPanel[0]->value(v1);
   m_OutDisplayOptionsPanel[1]->value(v2);
   m_OutDisplayOptionsPanel[2]->value(v3);
-  m_OutDisplayOptionsPanel[3]->value("3D");  
 }
 
 // 3D Rendering callbacks

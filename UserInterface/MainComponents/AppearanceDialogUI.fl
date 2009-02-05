@@ -17,7 +17,7 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
       } {
         Fl_Group {} {
           label General open
-          xywh {10 35 400 335} labelsize 12 hide
+          xywh {10 35 400 335} labelsize 12
         } {
           Fl_Check_Button m_ChkOptionsSliceThumbnailOn {
             label {Show thumbnail when the slice does not fit in the window}
@@ -53,10 +53,14 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
             callback {OnSliceDisplayResetAction()}
             xywh {335 335 65 25} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX shortcut 0x80072 color 181 labelsize 12
           }
+          Fl_Check_Button m_ChkOptionsHiddenFeatures {
+            label {Enable undocumented features (for developers only)}
+            xywh {20 275 375 25} down_box DOWN_BOX labelsize 12
+          }
         }
         Fl_Group {} {
-          label Layout open selected
-          xywh {10 35 400 335} labelsize 12
+          label Layout open
+          xywh {10 35 400 335} labelsize 12 hide
         } {
           Fl_Group {} {
             label {Available layouts:} open
@@ -463,7 +467,7 @@ user interface elements} xywh {330 335 65 25} box PLASTIC_UP_BOX down_box PLASTI
       }
       Fl_Button {} {
         label Close
-        callback {this->OnCloseAction();}
+        callback {this->OnCloseAction();} selected
         xywh {155 380 110 25} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX color 180 labelsize 12
       }
     }

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 14:58:29 $
-  Version:   $Revision: 1.45 $
+  Date:      $Date: 2009/02/05 16:21:14 $
+  Version:   $Revision: 1.46 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3001,7 +3001,7 @@ UserInterfaceLogic
 
     case ANNOTATION_MODE:
       m_IRISWindowManager2D[i]->EnterAnnotationMode();
-      m_TabsToolOptions->value(m_GrpToolOptionCrosshairs);
+      m_TabsToolOptions->value(m_GrpToolOptionAnnotation);
       break;
 
     case ROI_MODE:
@@ -4634,8 +4634,25 @@ UserInterfaceLogic
   this->UpdateMainLabel();
 }
 
+void
+UserInterfaceLogic
+::OnHiddenFeaturesToggleAction(bool enable_hidden)
+{
+  if(enable_hidden)
+    {
+    m_BtnAnnotationMode->show();
+    }
+  else
+    {
+    m_BtnAnnotationMode->hide();
+    }
+}
+
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.46  2009/02/05 16:21:14  pyushkevich
+ *ENH: added hidden features button
+ *
  *Revision 1.45  2009/02/05 14:58:29  pyushkevich
  *FIX: save slice layout appearance settings to registry; ENH: added linear interpolation option for grey images
  *

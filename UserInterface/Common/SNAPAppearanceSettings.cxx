@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 14:58:29 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/02/05 16:21:14 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -357,3 +357,4 @@ void SNAPAppearanceSettings
   rai2 = axes[order[i][1]];
   rai3 = axes[order[i][2]];
 }
+

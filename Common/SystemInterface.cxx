@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/03 20:28:14 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/02/05 16:21:14 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -748,3 +748,4 @@ SystemInterface
 
   return us;
 }
+
