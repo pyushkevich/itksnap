@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/02/05 22:19:10 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -65,6 +65,8 @@ bool
 RestrictedImageIOWizardLogic<TPixel>
 ::CheckImageValidity()
 {
+  // TODO: Move this code to IRISApplications and call from here and from
+  // command-line loading.
   SizeType requiredSize = m_GreyImage->GetBufferedRegion().GetSize();
   SizeType loadedSize = this->m_Image->GetBufferedRegion().GetSize();
 
