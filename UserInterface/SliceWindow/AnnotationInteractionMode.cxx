@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/04 00:25:28 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/02/05 23:04:44 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -29,6 +29,24 @@ AnnotationInteractionMode
 AnnotationInteractionMode
 ::~AnnotationInteractionMode()
 {
+}
+
+int
+AnnotationInteractionMode
+::OnKeyDown(const FLTKEvent &event)
+{
+  // on mac there are two delete keys
+  // one maps to backspace on other pc
+  if(Fl::event_key() == FL_Delete || Fl::event_key() == FL_BackSpace)
+    {
+    m_Lines.clear();
+    // Redraw
+    m_Parent->GetCanvas()->redraw();
+    // only return 1 when the keystroke is handled
+    return 1;
+    }
+  // leave it for additional handling
+  return 0;
 }
 
 int

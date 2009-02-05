@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/03 22:30:26 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/02/05 23:04:44 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -60,7 +60,7 @@ public:
   virtual ~AnnotationInteractionMode();
 
   int OnMousePress(const FLTKEvent &event);
-  int OnKeyDown(const FLTKEvent &event) {return 0;};
+  int OnKeyDown(const FLTKEvent &event);
   int OnMouseRelease(const FLTKEvent &event, const FLTKEvent &pressEvent) {return 0;};
   int OnMouseDrag(const FLTKEvent &event, const FLTKEvent &pressEvent);
   int OnShortcut(const FLTKEvent &event) {return 0;};
