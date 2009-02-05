@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OpenGLSliceTexture.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/02/05 14:58:30 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -46,6 +46,7 @@ OpenGLSliceTexture<TPixel>
   m_GlComponents = 1;
   m_GlFormat = GL_LUMINANCE;
   m_GlType = GL_UNSIGNED_BYTE;
+  m_InterpolationMode = GL_NEAREST;
 }
 
 template<class TPixel>
@@ -66,6 +67,19 @@ OpenGLSliceTexture<TPixel>
     m_Image = inImage;
     m_UpdateTime = 0;
   }
+}
+
+template<class TPixel>
+void
+OpenGLSliceTexture<TPixel>
+::SetInterpolation(GLenum interp)
+{
+  assert(interp == GL_LINEAR || interp == GL_NEAREST);
+  if(interp != m_InterpolationMode)
+    {
+    m_InterpolationMode = interp;
+    m_UpdateTime = 0; // make it out-of-date
+    }
 }
 
 template<class TPixel>
@@ -106,8 +120,8 @@ OpenGLSliceTexture<TPixel>
 
   // Properties for the texture
   glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_InterpolationMode );
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_InterpolationMode );
 
   // Turn off modulo-4 rounding in GL
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

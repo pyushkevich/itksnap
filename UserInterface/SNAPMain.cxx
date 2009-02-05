@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/02/05 14:58:30 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -221,9 +221,6 @@ int main(int argc, char **argv)
   // Turn off ITK warning windows
   itk::Object::GlobalWarningDisplayOff();
 
-  // Parse the command line arguments
-
-  
   // Parse command line parameters
   CommandLineArgumentParser parser;
   parser.AddOption("--grey",1);
@@ -421,6 +418,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.12  2009/02/05 14:58:30  pyushkevich
+ *FIX: save slice layout appearance settings to registry; ENH: added linear interpolation option for grey images
+ *
  *Revision 1.11  2009/01/23 20:09:38  pyushkevich
  *FIX: 3D rendering now takes place in Nifti(RAS) world coordinates, rather than the VTK (x spacing + origin) coordinates. As part of this, itk::OrientedImage is now used for 3D images in SNAP. Still have to fix cut plane code in Window3D
  *

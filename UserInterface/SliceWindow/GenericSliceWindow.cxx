@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:47:41 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/02/05 14:58:30 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -78,7 +78,7 @@ GenericSliceWindow
 
   // Initialize the Grey slice texture
   m_GreyTexture = new GreyTextureType;
-  
+
   // Initialize the RGB slice texture (not default)
   m_RGBTexture = new RGBTextureType;
   m_RGBTexture->SetGlComponents(4);
@@ -415,6 +415,11 @@ GenericSliceWindow
     ? m_ParentUI->GetAppearanceSettings()->GetUIElement(
         SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
     : Vector3d(1.0);
+
+  // Set the interpolation mode to current default
+  m_GreyTexture->SetInterpolation(
+    m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
+    == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
 
   // Paint the grey texture with color as background
   m_GreyTexture->Draw(clrBackground);

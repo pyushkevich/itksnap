@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/22 23:14:10 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/02/05 14:58:29 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,8 +41,8 @@
 
 // Include the common items from the logic part of SNAP
 #include "SNAPCommonUI.h"
-
-class Registry;
+#include "Registry.h"
+#include <string>
 
 /**
  * \class SNAPAppearanceSettings
@@ -78,6 +78,18 @@ public:
     {
     NORMAL_COLOR = 0, ACTIVE_COLOR, LINE_THICKNESS, DASH_SPACING, 
     FONT_SIZE, VISIBLE, ALPHA_BLEND, FEATURE_COUNT
+    };
+
+  /** Enumeration of interpolation modes */
+  enum UIGreyInterpolation
+    {
+    NEAREST = 0, LINEAR
+    };
+
+  /** Enumeration of 2D display layouts */
+  enum UISliceLayout
+    {
+    LAYOUT_ASC = 0, LAYOUT_ACS, LAYOUT_SAC, LAYOUT_SCA, LAYOUT_CAS, LAYOUT_CSA, LAYOUT_COUNT
     };
 
   SNAPAppearanceSettings();
@@ -117,6 +129,26 @@ public:
   irisGetMacro(ZoomThumbnailMaximumSize, int); 
   irisSetMacro(ZoomThumbnailMaximumSize, int);
 
+  irisGetMacro(GreyInterpolationMode, UIGreyInterpolation); 
+  irisSetMacro(GreyInterpolationMode, UIGreyInterpolation);
+
+  irisGetMacro(FlagLayoutPatientAnteriorShownLeft, bool);
+  irisSetMacro(FlagLayoutPatientAnteriorShownLeft, bool);
+
+  irisGetMacro(FlagLayoutPatientRightShownLeft, bool);
+  irisSetMacro(FlagLayoutPatientRightShownLeft, bool);
+
+  irisGetMacro(SliceLayout, UISliceLayout); 
+  irisSetMacro(SliceLayout, UISliceLayout);
+
+  /** 
+   * This method uses SliceLayout, FlagLayoutPatientAnteriorShownLeft and
+   * FlagLayoutPatientRightShownLeft to generate RAI codes for the three
+   * display views. 
+   * Use in conjunction with IRISApplication::SetDisplayToAnatomyRAI
+   */
+  void GetAnatomyToDisplayTransforms(std::string &rai1, std::string &rai2, std::string &rai3);
+
 private:
   // Global settings
   bool m_FlagDisplayZoomThumbnail;
@@ -125,6 +157,22 @@ private:
   double m_ZoomThumbnailSizeInPercent;
   int m_ZoomThumbnailMaximumSize;
 
+  // Interpolation used for rendering slices (for now, linear or n-nbr)
+  UIGreyInterpolation m_GreyInterpolationMode;
+
+  /** This is needed to read enum of interpolation modes from registry */
+  RegistryEnumMap<UIGreyInterpolation> m_EnumMapInterpolationMode;
+
+  // Current 2D view layout
+  UISliceLayout m_SliceLayout;
+
+  // View layout additional flags
+  bool m_FlagLayoutPatientAnteriorShownLeft;
+  bool m_FlagLayoutPatientRightShownLeft;
+
+  // This is needed to read 2D view layout enums
+  RegistryEnumMap<UISliceLayout> m_EnumMapSliceLayout;
+
   /** An array of user interface elements */
   Element m_Elements[ELEMENT_COUNT];
     
@@ -132,11 +180,11 @@ private:
    * applicable or not */
   static const int m_Applicable[ELEMENT_COUNT][FEATURE_COUNT];
 
+  /** Names of the appearance elements */
+  static const char *m_ElementNames[];
+
   /** The set of default values for each element */
   static Element m_DefaultElementSettings[ELEMENT_COUNT];
-
-  /** Text constants for the elements */
-  static const char *m_ElementNames[ELEMENT_COUNT];
 
   /** Initialize the default settings */
   static void InitializeDefaultSettings();

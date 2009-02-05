@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/22 23:14:10 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/02/05 14:58:29 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -154,9 +154,6 @@ void
 AppearanceDialogUILogic
 ::OnScreenLayoutApplyAction()
 {
-  unsigned int order[6][3] = 
-    {{0,1,2},{0,2,1},{1,0,2},{1,2,0},{2,0,1},{2,1,0}};
-
   // Search for the selected orientation toggle
   unsigned int i;
   for(i=0;i<6;i++)
@@ -166,50 +163,83 @@ AppearanceDialogUILogic
   // Make sure something is selected
   if(i == 6) return;
 
-  // Start with stock orientations
-  string axes[3] = {string("RPS"),string("AIL"),string("RIP")};
+  // Update the selected layout
+  m_Appearance->SetSliceLayout(
+    (SNAPAppearanceSettings::UISliceLayout) i);
+  m_Appearance->SetFlagLayoutPatientAnteriorShownLeft(
+    m_ChkOptionsViews2DNoseLeft->value() == 0 ? false : true);
+  m_Appearance->SetFlagLayoutPatientRightShownLeft(
+    m_ChkOptionsViews2DRightIsLeft->value() == 0 ? false : true);
 
-  // Switch the configurable directions
-  if(m_ChkOptionsViews2DRightIsLeft->value() == 0)
-    {
-    axes[0][0] = axes[2][0] = 'L';
-    }
-  if(m_ChkOptionsViews2DNoseLeft->value() == 0)
-    {
-    axes[1][0] = 'P';
-    }
+  // Finally handle the linear interpolation option
+  m_Appearance->SetGreyInterpolationMode(
+    m_ChkOptionsViews2DLinearInterpolation->value() ? 
+    SNAPAppearanceSettings::LINEAR : SNAPAppearanceSettings::NEAREST);
 
-  // Check if the configuration is different
-  if(axes[order[i][0]] != string(m_Parent->GetDriver()->GetDisplayToAnatomyRAI(0)) ||
-     axes[order[i][1]] != string(m_Parent->GetDriver()->GetDisplayToAnatomyRAI(1)) ||
-     axes[order[i][2]] != string(m_Parent->GetDriver()->GetDisplayToAnatomyRAI(2)))
-    {
-    // Assign the configuration
-    m_Parent->GetDriver()->SetDisplayToAnatomyRAI(
-      axes[order[i][0]].c_str(), 
-      axes[order[i][1]].c_str(), 
-      axes[order[i][2]].c_str());
-    
-    // Reassign slices to windows
-    m_Parent->OnImageGeometryUpdate();
+  // Place the options in the registry
+  m_Appearance->SaveToRegistry(
+    m_Parent->GetSystemInterface()->Folder("UserInterface.AppearanceSettings"));  
 
-    // Redraw the windows
-    m_Parent->RedrawWindows();
-    }  
+  // Get the RAI codes
+  string rai[3];
+  m_Appearance->GetAnatomyToDisplayTransforms(rai[0], rai[1], rai[2]);
+
+  // Update geometry only if one of these three RAIs is different from the current
+  for(size_t j = 0; j < 3; j++)
+    if(m_Parent->GetDriver()->GetDisplayToAnatomyRAI(j) != rai[j])
+      {
+      m_Parent->GetDriver()->SetDisplayToAnatomyRAI(
+        rai[0].c_str(), rai[1].c_str(), rai[2].c_str());
+      m_Parent->OnImageGeometryUpdate();
+      break;
+      }
+
+  // Update the user interface
+  m_Parent->RedrawWindows();
 }
 
 void  
 AppearanceDialogUILogic
 ::OnScreenLayoutResetAction()
 {
-  
+  for(size_t i=0; i < 6; i++)
+    m_BtnOptionsViews2D[i]->value(i==0 ? 1 : 0);
+  m_ChkOptionsViews2DNoseLeft->value(1);
+  m_ChkOptionsViews2DRightIsLeft->value(1);
+  m_ChkOptionsViews2DLinearInterpolation->value(0);
+  OnSliceAnatomyOptionsChange(0);
+  OnScreenLayoutApplyAction();  
 }
 
 void  
 AppearanceDialogUILogic
 ::OnSliceAnatomyOptionsChange(unsigned int order)
 {
-  
+  // Depending on the order, put appropriate text
+  const char *v1, *v2, *v3;
+  SNAPAppearanceSettings::UISliceLayout layout = 
+    (SNAPAppearanceSettings::UISliceLayout) order;
+  switch(order)
+    {
+    case SNAPAppearanceSettings::LAYOUT_ACS:
+      v1 = "Axial"; v2 = "Coronal"; v3 = "Sagittal"; break;
+    case SNAPAppearanceSettings::LAYOUT_ASC:
+      v1 = "Axial"; v2 = "Sagittal"; v3 = "Coronal"; break;
+    case SNAPAppearanceSettings::LAYOUT_CAS:
+      v1 = "Coronal"; v2 = "Axial"; v3 = "Sagittal"; break;
+    case SNAPAppearanceSettings::LAYOUT_CSA:
+      v1 = "Coronal"; v2 = "Sagittal"; v3 = "Axial"; break;
+    case SNAPAppearanceSettings::LAYOUT_SAC:
+      v1 = "Sagittal"; v2 = "Axial"; v3 = "Coronal"; break;
+    case SNAPAppearanceSettings::LAYOUT_SCA:
+      v1 = "Sagittal"; v2 = "Coronal"; v3 = "Axial"; break;
+    };
+
+  // Place the text in the boxes
+  m_OutDisplayOptionsPanel[0]->value(v1);
+  m_OutDisplayOptionsPanel[1]->value(v2);
+  m_OutDisplayOptionsPanel[2]->value(v3);
+  m_OutDisplayOptionsPanel[3]->value("3D");  
 }
 
 // 3D Rendering callbacks
@@ -488,12 +518,22 @@ void
 AppearanceDialogUILogic
 ::FillSliceLayoutOptions() 
 {
-  // Hack
-  if(!m_OutDisplayOptionsPanel[0]->value() ||
-     strlen(m_OutDisplayOptionsPanel[0]->value()) == 0)
-    {
-    OnSliceAnatomyOptionsChange(0);
-    }
+  // Select the appropriate display layout
+  size_t layout_index = (size_t ) m_Appearance->GetSliceLayout();
+  for(size_t i = 0; i < 6; i++)
+    m_BtnOptionsViews2D[i]->value(i == layout_index ? 1 : 0);
+
+  // Set the checkbox values accordingly
+  m_ChkOptionsViews2DNoseLeft->value(
+    m_Appearance->GetFlagLayoutPatientAnteriorShownLeft() ? 1 : 0);
+  m_ChkOptionsViews2DRightIsLeft->value(
+    m_Appearance->GetFlagLayoutPatientRightShownLeft() ? 1 : 0);
+  m_ChkOptionsViews2DLinearInterpolation->value(
+    m_Appearance->GetGreyInterpolationMode() == SNAPAppearanceSettings::LINEAR
+    ? 1 : 0);
+
+  // Update the display as if the user changed it
+  OnSliceAnatomyOptionsChange(layout_index);  
 }
 
 void 

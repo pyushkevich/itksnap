@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0108 
+version 1.0109 
 header_name {.h} 
 code_name {.cxx}
 class AppearanceDialogUI {open : AppearanceDialogUIBase
@@ -16,7 +16,7 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
         xywh {10 10 400 360} box PLASTIC_THIN_UP_BOX color 41 labelsize 12 align 0
       } {
         Fl_Group {} {
-          label General
+          label General open
           xywh {10 35 400 335} labelsize 12 hide
         } {
           Fl_Check_Button m_ChkOptionsSliceThumbnailOn {
@@ -55,8 +55,8 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
           }
         }
         Fl_Group {} {
-          label Layout
-          xywh {10 35 400 335} labelsize 12 hide
+          label Layout open selected
+          xywh {10 35 400 335} labelsize 12
         } {
           Fl_Group {} {
             label {Available layouts:} open
@@ -188,16 +188,20 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
             } {}
           }
           Fl_Group {} {
-            label {Additional options:}
-            xywh {190 200 205 53} box PLASTIC_DOWN_BOX labelsize 12 align 5
+            label {Additional options:} open
+            xywh {190 200 205 73} box PLASTIC_DOWN_BOX labelsize 12 align 5
           } {
             Fl_Check_Button m_ChkOptionsViews2DNoseLeft {
-              label {Display the nose to the left}
-              xywh {200 208 175 18} down_box DOWN_BOX value 1 labelsize 12
+              label {Display anterior to the left}
+              tooltip {Select whether patient's anterior is displayed to the left or to the right in the sagittal view.} xywh {200 208 175 18} down_box DOWN_BOX value 1 labelsize 12
             }
             Fl_Check_Button m_ChkOptionsViews2DRightIsLeft {
               label {Patient right is screen left}
-              xywh {200 228 175 18} down_box DOWN_BOX value 1 labelsize 12
+              tooltip {Use this checkbox to switch between radiological and neurological conventions.} xywh {200 228 175 18} down_box DOWN_BOX value 1 labelsize 12
+            }
+            Fl_Check_Button m_ChkOptionsViews2DLinearInterpolation {
+              label {Use linear interpolation}
+              tooltip {By default, SNAP uses nearest neighbor interpolation to render the grey image. This makes voxel edges visible. Select this to use linear interpolation, which blurs voxel edges.} xywh {200 247 175 18} down_box DOWN_BOX labelsize 12
             }
           }
           Fl_Group {} {
@@ -238,11 +242,11 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
         }
         Fl_Group {} {
           label Appearance open
-          xywh {10 35 400 335} labelsize 12
+          xywh {10 35 400 335} labelsize 12 hide
         } {
           Fl_Choice m_InUIElement {
             label {Select a user interface element to edit:}
-            callback {OnUIElementSelection(o->value())} open selected
+            callback {OnUIElementSelection(o->value())} open
             xywh {25 75 370 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
           } {
             MenuItem {} {

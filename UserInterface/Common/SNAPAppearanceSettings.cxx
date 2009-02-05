@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/22 23:14:10 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/02/05 14:58:29 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -21,6 +21,8 @@
 #include "SNAPAppearanceSettings.h"
 #include "Registry.h"
 #include "FL/gl.h"
+
+using namespace std;
 
 const int 
 SNAPAppearanceSettings
@@ -190,8 +192,22 @@ SNAPAppearanceSettings
   m_ZoomThumbnailMaximumSize = 160;
   m_ZoomThumbnailSizeInPercent = 30.0;
   m_FlagDisplayZoomThumbnail = true;
+  m_GreyInterpolationMode = NEAREST;
 
+  m_SliceLayout = LAYOUT_ASC;
+  m_FlagLayoutPatientAnteriorShownLeft = true;
+  m_FlagLayoutPatientRightShownLeft = true;
 
+  m_EnumMapInterpolationMode.AddPair(NEAREST,"NearestNeighbor");
+  m_EnumMapInterpolationMode.AddPair(LINEAR,"Linear");
+
+  m_EnumMapSliceLayout.AddPair(LAYOUT_ASC,"ASC");
+  m_EnumMapSliceLayout.AddPair(LAYOUT_ACS,"ACS");
+  m_EnumMapSliceLayout.AddPair(LAYOUT_SAC,"SAC");
+  m_EnumMapSliceLayout.AddPair(LAYOUT_SCA,"SCA");
+  m_EnumMapSliceLayout.AddPair(LAYOUT_CAS,"CAS");
+  m_EnumMapSliceLayout.AddPair(LAYOUT_CSA,"CSA");
+  
   // Set the UI elements to their default values  
   for(unsigned int iElement = 0; iElement < ELEMENT_COUNT; iElement++)
     m_Elements[iElement] = m_DefaultElementSettings[iElement];
@@ -217,6 +233,15 @@ SNAPAppearanceSettings
 
   m_ZoomThumbnailMaximumSize = 
     r["ZoomThumbnailMaximumSize"][m_ZoomThumbnailMaximumSize];
+
+  m_GreyInterpolationMode = 
+    r["GreyImageInterpolationMode"].GetEnum(m_EnumMapInterpolationMode, NEAREST);
+
+  // Read slice layout information
+  m_SliceLayout = 
+    r["SliceLayout"].GetEnum(m_EnumMapSliceLayout, LAYOUT_ASC);
+  m_FlagLayoutPatientAnteriorShownLeft = r["PatientAnteriorShownLeft"][true];
+  m_FlagLayoutPatientRightShownLeft = r["PatientRightShownLeft"][true];
 
   // Load the user interface elements
   for(unsigned int iElement = 0; iElement < ELEMENT_COUNT; iElement++)
@@ -250,6 +275,13 @@ SNAPAppearanceSettings
   r["FlagFloatingPointWarningByDefault"] << m_FlagFloatingPointWarningByDefault;
   r["ZoomThumbnailSizeInPercent"] << m_ZoomThumbnailSizeInPercent;
   r["ZoomThumbnailMaximumSize"] << m_ZoomThumbnailMaximumSize;
+  r["GreyImageInterpolationMode"].PutEnum(m_EnumMapInterpolationMode, m_GreyInterpolationMode);
+
+  // Write slice layout information
+  r["SliceLayout"].PutEnum(m_EnumMapSliceLayout, m_SliceLayout);
+  r["PatientAnteriorShownLeft"] << m_FlagLayoutPatientAnteriorShownLeft;
+  r["PatientRightShownLeft"] << m_FlagLayoutPatientRightShownLeft;
+
 
   // Save each of the screen elements
   for(unsigned int iElement = 0; iElement < ELEMENT_COUNT; iElement++)
@@ -298,3 +330,30 @@ SNAPAppearanceSettings
 }
 
 
+void SNAPAppearanceSettings
+::GetAnatomyToDisplayTransforms(string &rai1, string &rai2, string &rai3)
+{
+  unsigned int order[6][3] = 
+    {{0,1,2},{0,2,1},{1,0,2},{1,2,0},{2,0,1},{2,1,0}};
+
+  // Start with stock orientations
+  string axes[3] = {string("RPS"),string("AIL"),string("RIP")};
+
+  // Switch the configurable directions
+  if(!m_FlagLayoutPatientRightShownLeft)
+    {
+    axes[0][0] = axes[2][0] = 'L';
+    }
+  if(!m_FlagLayoutPatientAnteriorShownLeft)
+    {
+    axes[1][0] = 'P';
+    }
+
+  // Convert layout index to integer
+  size_t i = (size_t) m_SliceLayout;
+
+  // Set the axes
+  rai1 = axes[order[i][0]];
+  rai2 = axes[order[i][1]];
+  rai3 = axes[order[i][2]];
+}

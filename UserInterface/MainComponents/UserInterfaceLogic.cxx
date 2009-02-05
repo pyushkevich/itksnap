@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/03 19:51:50 $
-  Version:   $Revision: 1.44 $
+  Date:      $Date: 2009/02/05 14:58:29 $
+  Version:   $Revision: 1.45 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2027,6 +2027,14 @@ UserInterfaceLogic
 
   // Initialize the paintbrush panel
   this->UpdatePaintbrushAttributes();
+
+  // Set the anatomy to display transforms for each of the windows  
+  string rai1, rai2, rai3;
+  m_AppearanceSettings->GetAnatomyToDisplayTransforms(rai1, rai2, rai3);
+
+  // Update the user interface
+  this->GetDriver()->SetDisplayToAnatomyRAI(rai1.c_str(), rai2.c_str(), rai3.c_str());
+  this->OnImageGeometryUpdate();
 }
 
 void 
@@ -4628,6 +4636,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.45  2009/02/05 14:58:29  pyushkevich
+ *FIX: save slice layout appearance settings to registry; ENH: added linear interpolation option for grey images
+ *
  *Revision 1.44  2009/02/03 19:51:50  pyushkevich
  *fixes
  *

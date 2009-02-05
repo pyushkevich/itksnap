@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OpenGLSliceTexture.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/02/05 14:58:30 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -89,6 +89,13 @@ public:
   void Update();
 
   /**
+   * Set the interpolation mode for the texture. If the interpolation mode
+   * is changed, Update() will be called on the next Draw() command. The value
+   * must be GL_NEAREST or GL_LINEAR
+   */
+  void SetInterpolation(GLenum newmode);
+
+  /**
    * Draw the texture in the current OpenGL context on a polygon with vertices
    * (0,0) - (size_x,size_y). Paramters are the background color of the polygon
    */
@@ -124,6 +131,9 @@ private:
 
   // The type for Gl op
   GLenum m_GlType;
+
+  // Interpolation mode
+  GLenum m_InterpolationMode;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION
