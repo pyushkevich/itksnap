@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/02/05 16:41:47 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -187,6 +187,7 @@ public:
   friend class PolygonInteractionMode;
   friend class ThumbnailInteractionMode;
   friend class PaintbrushInteractionMode;
+  friend class AnnotationInteractionMode;
 
 protected:
 
