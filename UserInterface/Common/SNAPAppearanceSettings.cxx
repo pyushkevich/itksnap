@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 16:21:14 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/02/05 23:18:44 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -189,6 +189,7 @@ SNAPAppearanceSettings
   // Set the common flags
   m_FlagLinkedZoomByDefault = true;
   m_FlagFloatingPointWarningByDefault = true;
+  m_FlagEnableHiddenFeaturesByDefault = false;
   m_ZoomThumbnailMaximumSize = 160;
   m_ZoomThumbnailSizeInPercent = 30.0;
   m_FlagDisplayZoomThumbnail = true;
@@ -227,6 +228,9 @@ SNAPAppearanceSettings
 
   m_FlagFloatingPointWarningByDefault = 
     r["FlagFloatingPointWarningByDefault"][m_FlagFloatingPointWarningByDefault];
+
+  m_FlagEnableHiddenFeaturesByDefault = 
+    r["FlagEnableHiddenFeaturesByDefault"][m_FlagEnableHiddenFeaturesByDefault];
 
   m_ZoomThumbnailSizeInPercent = 
     r["ZoomThumbnailSizeInPercent"][m_ZoomThumbnailSizeInPercent];
@@ -273,6 +277,7 @@ SNAPAppearanceSettings
   r["FlagDisplayZoomThumbnail"] << m_FlagDisplayZoomThumbnail;
   r["FlagLinkedZoomByDefault"] << m_FlagLinkedZoomByDefault;
   r["FlagFloatingPointWarningByDefault"] << m_FlagFloatingPointWarningByDefault;
+  r["FlagEnableHiddenFeaturesByDefault"] << m_FlagEnableHiddenFeaturesByDefault;
   r["ZoomThumbnailSizeInPercent"] << m_ZoomThumbnailSizeInPercent;
   r["ZoomThumbnailMaximumSize"] << m_ZoomThumbnailMaximumSize;
   r["GreyImageInterpolationMode"].PutEnum(m_EnumMapInterpolationMode, m_GreyInterpolationMode);

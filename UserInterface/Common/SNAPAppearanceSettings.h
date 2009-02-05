@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 14:58:29 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/02/05 23:18:44 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -123,6 +123,9 @@ public:
   irisGetMacro(FlagFloatingPointWarningByDefault, bool); 
   irisSetMacro(FlagFloatingPointWarningByDefault, bool);
 
+  irisGetMacro(FlagEnableHiddenFeaturesByDefault, bool); 
+  irisSetMacro(FlagEnableHiddenFeaturesByDefault, bool); 
+
   irisGetMacro(ZoomThumbnailSizeInPercent, double); 
   irisSetMacro(ZoomThumbnailSizeInPercent, double);
 
@@ -154,6 +157,7 @@ private:
   bool m_FlagDisplayZoomThumbnail;
   bool m_FlagLinkedZoomByDefault;
   bool m_FlagFloatingPointWarningByDefault;
+  bool m_FlagEnableHiddenFeaturesByDefault;
   double m_ZoomThumbnailSizeInPercent;
   int m_ZoomThumbnailMaximumSize;
 
