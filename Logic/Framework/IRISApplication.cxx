@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009/02/05 21:59:41 $
+  Version:   $Revision: 1.18 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1246,6 +1246,11 @@ IRISApplication
   
   // Load the image (exception may occur here)
   LabelImageType::Pointer imgLabel = io.ReadImage(filename, regGrey, false);
+
+  // The header of the label image is made to match that of the grey image
+  imgLabel->SetOrigin(m_CurrentImageData->GetGrey()->GetImage()->GetOrigin());
+  imgLabel->SetSpacing(m_CurrentImageData->GetGrey()->GetImage()->GetSpacing());
+  imgLabel->SetDirection(m_CurrentImageData->GetGrey()->GetImage()->GetDirection());
 
   // Set the image as the current grayscale image
   UpdateIRISSegmentationImage(imgLabel);
