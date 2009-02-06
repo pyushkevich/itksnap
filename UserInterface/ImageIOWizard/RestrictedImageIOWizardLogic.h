@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/02/06 18:56:04 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -53,7 +53,7 @@ public:
   typedef typename itk::SmartPointer<GreyImageType> GreyImagePointer;
 
   /** Some extra work is done before displaying the wizard in this method */
-  virtual bool DisplayInputWizard(const char *file);
+  virtual bool DisplayInputWizard(const char *file, const char *type = NULL);
 
   /** Set the grey image that provides some metadata for loading the 
    * segmentation image */

@@ -18,7 +18,7 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
           label {File Selection}
           xywh {0 0 470 330} box PLASTIC_DOWN_BOX labelfont 2 labelsize 10 hide
         } {
-          Fl_Group {} {
+          Fl_Group m_InFilePage {
             label {Select a file that contains an image:}
             xywh {10 15 370 40} labeltype EMBOSSED_LABEL align 20
           } {}
@@ -358,7 +358,7 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
           label {File Selection}
           xywh {0 0 470 330} box PLASTIC_DOWN_BOX labelfont 2 labelsize 10
         } {
-          Fl_Group {} {
+          Fl_Group m_InSaveFile {
             label {Choose a file name to save the image:}
             xywh {10 15 370 40} labeltype EMBOSSED_LABEL align 20
           } {}

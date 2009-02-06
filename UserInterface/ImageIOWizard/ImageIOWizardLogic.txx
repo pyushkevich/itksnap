@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/02/06 18:56:04 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -851,8 +851,21 @@ ImageIOWizardLogic<TPixel>::~ImageIOWizardLogic()
 template <class TPixel>
 bool 
 ImageIOWizardLogic<TPixel>
-::DisplayInputWizard(const char *file) 
+::DisplayInputWizard(const char *file, const char *type)
 {
+  // Set up the custom title if type is provided
+  if(type)
+    {
+    std::string title = "Wizard for loading a ";
+    title += type;
+    title += " image";
+    m_WinInput->copy_label(title.c_str());
+    std::string topic = "Select a ";
+    topic += type;
+    topic += " image to load:";
+    m_InFilePage->copy_label(topic.c_str());
+    }
+
   // The loaded flag is false
   m_ImageLoaded = false;
 
@@ -888,8 +901,21 @@ ImageIOWizardLogic<TPixel>
 template <class TPixel>
 bool 
 ImageIOWizardLogic<TPixel>
-::DisplaySaveWizard(ImageType *image,const char *file)
+::DisplaySaveWizard(ImageType *image, const char *file, const char *type)
 {
+  // Set up the custom title if type is provided
+  if(type)
+    {
+    std::string title = "Wizard for saving a ";
+    title += type;
+    title += " image";
+    m_WinOutput->copy_label(title.c_str());
+    std::string topic = "Choose a file name to save the ";
+    topic += type;
+    topic += " image:";
+    m_InSaveFile->copy_label(topic.c_str());
+    }
+
   // Clear the saved flag
   m_ImageSaved = false;
 

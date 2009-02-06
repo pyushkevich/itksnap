@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 23:03:40 $
-  Version:   $Revision: 1.47 $
+  Date:      $Date: 2009/02/06 18:56:04 $
+  Version:   $Revision: 1.48 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3493,7 +3493,7 @@ if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
   m_WizGreyIO->SetHistory(m_SystemInterface->GetHistory("GreyImage"));
   
   // Show the input wizard with no file selected
-  m_WizGreyIO->DisplayInputWizard("");
+  m_WizGreyIO->DisplayInputWizard("", "greyscale");
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
@@ -3582,7 +3582,7 @@ UserInterfaceLogic
   m_WizRGBIO->SetHistory(m_SystemInterface->GetHistory("RGBImage"));
   
   // Show the input wizard with no file selected
-  m_WizRGBIO->DisplayInputWizard("");
+  m_WizRGBIO->DisplayInputWizard("", "RGB");
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
@@ -3632,7 +3632,7 @@ UserInterfaceLogic
   
   // Show the input wizard
   m_WizRGBOverlayIO->DisplayInputWizard(
-    m_GlobalState->GetRGBFileName());
+    m_GlobalState->GetRGBFileName(), "RGB overlay");
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
@@ -3976,7 +3976,7 @@ void UserInterfaceLogic
   
   // Show the input wizard
   m_WizSegmentationIO->DisplayInputWizard(
-    m_GlobalState->GetLastAssociatedSegmentationFileName());
+    m_GlobalState->GetLastAssociatedSegmentationFileName(), "segmentation");
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
@@ -4018,7 +4018,8 @@ void UserInterfaceLogic
 
   // Save the segmentation
   if(m_WizGreyIO->DisplaySaveWizard(
-    m_Driver->GetIRISImageData()->GetGrey()->GetImage(), NULL))
+    m_Driver->GetIRISImageData()->GetGrey()->GetImage(),
+    NULL, "greyscale"))
     {
     // Update the history for the wizard
     m_SystemInterface->UpdateHistory(
@@ -4037,7 +4038,8 @@ void UserInterfaceLogic
 
   // Save the segmentation
   if(m_WizGreyIO->DisplaySaveWizard(
-    m_Driver->GetCurrentImageData()->GetGrey()->GetImage(),NULL))
+    m_Driver->GetCurrentImageData()->GetGrey()->GetImage(),
+    NULL, "greyscale"))
     {
     // Update the history for the wizard
     m_SystemInterface->UpdateHistory(
@@ -4058,7 +4060,8 @@ void UserInterfaceLogic
   // Save the segmentation
   if(m_WizSegmentationIO->DisplaySaveWizard(
     m_Driver->GetIRISImageData()->GetSegmentation()->GetImage(),
-    m_GlobalState->GetLastAssociatedSegmentationFileName()))
+    m_GlobalState->GetLastAssociatedSegmentationFileName(),
+    "segmentation"))
     {
     // Update the history for the wizard
     m_SystemInterface->UpdateHistory(
@@ -4134,7 +4137,7 @@ UserInterfaceLogic
 
     // Show the input wizard
     m_WizPreprocessingIO->DisplayInputWizard(
-      m_GlobalState->GetAdvectionFileName(i));
+      m_GlobalState->GetAdvectionFileName(i), "ITK-SNAP preprocessing");
 
     // If the load operation was successful, populate the data and GUI with the
     // new image
@@ -4183,7 +4186,7 @@ UserInterfaceLogic
 
   // Show the input wizard
   m_WizPreprocessingIO->DisplayInputWizard(
-    m_GlobalState->GetLastAssociatedPreprocessingFileName());
+    m_GlobalState->GetLastAssociatedPreprocessingFileName(), "ITK-SNAP preprocessing");
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
@@ -4227,7 +4230,8 @@ UserInterfaceLogic
   // Save the speed
   if(m_WizPreprocessingIO->DisplaySaveWizard(
     m_Driver->GetSNAPImageData()->GetSpeed()->GetImage(),
-    m_GlobalState->GetLastAssociatedPreprocessingFileName()))
+    m_GlobalState->GetLastAssociatedPreprocessingFileName(),
+    "ITK-SNAP preprocessing"))
     {
     // Update the history for the wizard
     m_SystemInterface->UpdateHistory(
@@ -4255,7 +4259,8 @@ UserInterfaceLogic
   // Save the speed
   if(m_WizLevelSetIO->DisplaySaveWizard(
     m_Driver->GetSNAPImageData()->GetSnake()->GetImage(),
-    m_GlobalState->GetLevelSetFileName()))
+    m_GlobalState->GetLevelSetFileName(),
+    "ITK-SNAP levelset"))
     {
     // Update the history for the wizard
     m_SystemInterface->UpdateHistory(
@@ -4649,6 +4654,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.48  2009/02/06 18:56:04  garyhuizhang
+ *ENH: add image type specific information to image load/save wizard
+ *
  *Revision 1.47  2009/02/05 23:03:40  garyhuizhang
  *ENH: support for saving the hidden feature flag
  *

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 22:19:10 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/02/06 18:56:04 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,7 +38,7 @@
 template<class TPixel>
 bool
 RestrictedImageIOWizardLogic<TPixel>
-::DisplayInputWizard(const char *file)
+::DisplayInputWizard(const char *file, const char *type)
 {
   // Make sure there is a grey image as a reference
   assert(m_GreyImage);
@@ -57,7 +57,7 @@ RestrictedImageIOWizardLogic<TPixel>
   this->m_InHeaderPageSpacingZ->value(requiredSpacing[2]);
 
   // Call the parent's method
-  return Superclass::DisplayInputWizard(file);    
+  return Superclass::DisplayInputWizard(file, type);
 }
 
 template<class TPixel>

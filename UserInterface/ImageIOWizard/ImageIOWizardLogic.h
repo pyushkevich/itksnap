@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/02/06 18:56:04 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -179,13 +179,13 @@ public:
    *
    * The method returns true if an image was loaded with success, false in case of cancellation
    */
-  virtual bool DisplayInputWizard(const char *file);   
+  virtual bool DisplayInputWizard(const char *file, const char *type = NULL);
 
   /**
    * A method to save an image using the wizard (at this point it's just a one
    * page wizard 
    */
-  virtual bool DisplaySaveWizard(ImageType *image, const char *file);
+  virtual bool DisplaySaveWizard(ImageType *image, const char *file, const char *type = NULL);
 
   /**
    * Get the filename that was loaded
