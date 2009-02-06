@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 23:04:44 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/02/06 02:32:22 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -117,7 +117,7 @@ AnnotationInteractionMode
 ::OnDraw()
 {
   // Push the line state
-  glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);  
+  glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
   // set line and point drawing parameters
   glPointSize(4);
@@ -135,7 +135,7 @@ AnnotationInteractionMode
     glVertex2d(m_CurrentLine.first[0], m_CurrentLine.first[1]);
     glVertex2d(m_CurrentLine.second[0], m_CurrentLine.second[1]);
     glEnd();
-    glPushAttrib(GL_LINE_BIT);
+    glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
     glEnable(GL_LINE_STIPPLE);
     glLineStipple(1, 0x9999);
     glBegin(GL_LINES);
@@ -148,8 +148,11 @@ AnnotationInteractionMode
   glBegin(GL_LINES);
   for(LineIntervalList::iterator it = m_Lines.begin(); it!=m_Lines.end(); it++)
     {
-    glVertex2d(it->first[0], it->first[1]);
-    glVertex2d(it->second[0], it->second[1]);
+    if(it->first[2] == m_Parent->m_DisplayAxisPosition)
+      {
+      glVertex2d(it->first[0], it->first[1]);
+      glVertex2d(it->second[0], it->second[1]);
+	 }
     }
   glEnd();
 
