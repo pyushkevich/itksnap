@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2009/02/06 18:56:04 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/02/09 17:07:47 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -566,8 +566,6 @@ ImageIOWizardLogic<TPixel>
   GoBack();
 }
 
-
-
 template <class TPixel>
 bool 
 ImageIOWizardLogic<TPixel>
@@ -846,6 +844,49 @@ template <class TPixel>
 ImageIOWizardLogic<TPixel>::~ImageIOWizardLogic() 
 {
   delete m_SummaryTextBuffer;
+}
+
+template <class TPixel>
+bool
+ImageIOWizardLogic<TPixel>
+::NonInteractiveInputWizard(const char *file)
+{
+  // Indicate no file loaded yet
+  m_ImageLoaded = false;
+  
+  // Set the GUI filename input with the argument
+  m_InFilePageBrowser->value(file);
+  
+  // Clear the registry
+  m_Registry.Clear();
+
+  // Try to read the file
+  if(file != NULL && strlen(file) > 0)
+    {
+    if(m_Callback)
+      m_Callback->FindRegistryAssociatedWithImage(file, m_Registry);
+
+    // If the registry contains a file format, override with that
+    FileFormat fmt = 
+    m_GuidedIO.GetFileFormat(m_Registry, GuidedImageIOBase::FORMAT_COUNT);
+
+    // Try to select a file format according to the file name
+    if(fmt == GuidedImageIOBase::FORMAT_COUNT)
+      fmt = DetermineFileFormatFromFileName(true, file);
+
+    switch(fmt)
+      {
+      case GuidedImageIOBase::FORMAT_RAW:
+      case GuidedImageIOBase::FORMAT_DICOM:
+        std::cerr << "Loading RAW or DICOM data from command line is not supported" << std::endl;
+        m_ImageLoaded = false;
+        break;
+      default:
+        m_ImageLoaded = DoLoadImage();
+      }
+    }
+
+  return m_ImageLoaded;
 }
 
 template <class TPixel>

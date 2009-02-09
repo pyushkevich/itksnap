@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 23:03:41 $
-  Version:   $Revision: 1.21 $
+  Date:      $Date: 2009/02/09 17:07:47 $
+  Version:   $Revision: 1.22 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -704,7 +704,6 @@ protected:
   void OnMenuImageInfo();
   void OnMenuReorientImage();
 
-
   // Save a slice
   void OnMenuExportSlice(unsigned int iSlice);
 
@@ -733,6 +732,9 @@ protected:
 
   // Toggle hidden features
   void OnHiddenFeaturesToggleAction();
+
+  // Common code for loading segmentation
+  void LoadSegmentation(const bool noninteractive, const char *fname = NULL);
 
   char *m_ChosedFile;
 
@@ -979,6 +981,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.22  2009/02/09 17:07:47  garyhuizhang
+ *FIX: code refactoring -- command line and GUI loading of segmentation now shares the same code.  this enables the validity checking of segmentation image on command line originally implemented for GUI.
+ *
  *Revision 1.21  2009/02/05 23:03:41  garyhuizhang
  *ENH: support for saving the hidden feature flag
  *

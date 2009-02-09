@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/06 18:56:04 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/02/09 17:07:47 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -186,6 +186,9 @@ public:
    * page wizard 
    */
   virtual bool DisplaySaveWizard(ImageType *image, const char *file, const char *type = NULL);
+
+  // Non-interactive wizard
+  virtual bool NonInteractiveInputWizard(const char *file);
 
   /**
    * Get the filename that was loaded

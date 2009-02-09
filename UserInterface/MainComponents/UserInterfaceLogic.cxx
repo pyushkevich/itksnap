@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/06 18:56:04 $
-  Version:   $Revision: 1.48 $
+  Date:      $Date: 2009/02/09 17:07:47 $
+  Version:   $Revision: 1.49 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3930,32 +3930,8 @@ void UserInterfaceLogic
   OnSegmentationImageUpdate(true);
 }
 
-
 void UserInterfaceLogic
-::NonInteractiveLoadSegmentation(const char *fname)
-{
-  // Send the image and RAI to the IRIS application driver
-  m_Driver->LoadLabelImageFile(fname);
-
-  // Update the system's history list
-  m_SystemInterface->UpdateHistory("SegmentationImage",  
-    itksys::SystemTools::CollapseFullPath(fname).c_str());
-
-  // There are now no unsaved changes
-  m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
-
-  // Update main window label
-  this->UpdateMainLabel();
-
-  // Save the state of the Undo manager at the time the image was updated
-  m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState(); 
-
-  // The mesh has become dirty
-  this->OnSegmentationImageUpdate(true);
-}
-
-void UserInterfaceLogic
-::OnMenuLoadSegmentation() 
+::LoadSegmentation(const bool noninteractive, const char *fname)
 {
   // Grey image should be loaded
   assert(m_Driver->GetCurrentImageData()->IsGreyLoaded());
@@ -3963,20 +3939,20 @@ void UserInterfaceLogic
   // Should not be in SNAP mode
   assert(!m_GlobalState->GetSNAPActive());
 
-  // Prompt to save changes
-  if(!PromptBeforeLosingChanges(REASON_LOAD_SEGMENTATION)) return;
-
   // Set up the input wizard with the grey image
   m_WizSegmentationIO->SetGreyImage(
     m_Driver->GetCurrentImageData()->GetGrey()->GetImage());
 
-  // Set the history for the input wizard
-  m_WizSegmentationIO->SetHistory(
-    m_SystemInterface->GetHistory("SegmentationImage"));
-  
-  // Show the input wizard
-  m_WizSegmentationIO->DisplayInputWizard(
-    m_GlobalState->GetLastAssociatedSegmentationFileName(), "segmentation");
+  if(noninteractive)
+    {
+    m_WizSegmentationIO->NonInteractiveInputWizard(fname);
+    }
+  else
+    {
+    // Show the input wizard
+    m_WizSegmentationIO->DisplayInputWizard(
+      m_GlobalState->GetLastAssociatedSegmentationFileName(), "segmentation");
+    }
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
@@ -4008,6 +3984,23 @@ void UserInterfaceLogic
 
   // Disconnect the input wizard from the grey image
   m_WizSegmentationIO->SetGreyImage(NULL);
+
+}
+
+void UserInterfaceLogic
+::NonInteractiveLoadSegmentation(const char *fname)
+{
+  LoadSegmentation(true, fname);
+}
+
+void UserInterfaceLogic
+::OnMenuLoadSegmentation() 
+{
+  // Prompt to save changes
+  if(!PromptBeforeLosingChanges(REASON_LOAD_SEGMENTATION)) return;
+
+  LoadSegmentation(false);
+
 }
 
 void UserInterfaceLogic
@@ -4654,6 +4647,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.49  2009/02/09 17:07:47  garyhuizhang
+ *FIX: code refactoring -- command line and GUI loading of segmentation now shares the same code.  this enables the validity checking of segmentation image on command line originally implemented for GUI.
+ *
  *Revision 1.48  2009/02/06 18:56:04  garyhuizhang
  *ENH: add image type specific information to image load/save wizard
  *

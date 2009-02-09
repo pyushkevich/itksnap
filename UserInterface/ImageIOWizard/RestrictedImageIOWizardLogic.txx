@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2009/02/06 18:56:04 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/02/09 17:07:47 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -128,6 +128,11 @@ RestrictedImageIOWizardLogic<TPixel>
       "SNAP will ignore the header information in the image you are loading.\n",
       "Ok", NULL, NULL,
       object.c_str());
+
+    // Make the header of the image match that of the grey image
+    this->m_Image->SetOrigin(m_GreyImage->GetOrigin());
+    this->m_Image->SetSpacing(m_GreyImage->GetSpacing());
+    this->m_Image->SetDirection(m_GreyImage->GetDirection());
 
     return true;
     }
