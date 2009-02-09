@@ -1,6 +1,6 @@
 ======================================
  InsightSNAP Release Notes
- Version 1.7.3-beta
+ Version 1.8.0
 ======================================
 
 
@@ -8,7 +8,7 @@
 1. New Features
 -----------------
 
-1.1. New in Version 1.7.3 (future 1.8 release)
+1.1. New in Version 1.8
 ----------------------------------------------
 
 1.1.1. New Features and UI Improvements
