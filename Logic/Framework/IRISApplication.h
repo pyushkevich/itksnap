@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/02/09 16:45:16 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -273,6 +273,10 @@ public:
    * This is the most high-level method to load a segmentation image. The
    * segmentation image can only be loaded after the grey image has been 
    * loaded and it must have the same dimensions
+   * 
+   * This function is deprecated and replaced by the more robust version
+   * in the ImageIOWizardLogic class!
+   *
    */
   void LoadLabelImageFile(const char *filename);
 

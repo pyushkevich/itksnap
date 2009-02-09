@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 21:59:41 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2009/02/09 16:45:16 $
+  Version:   $Revision: 1.19 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1236,14 +1236,14 @@ IRISApplication
   // Load the settings associated with this file
   Registry regFull;
   m_SystemInterface->FindRegistryAssociatedWithFile(filename, regFull);
-    
+
   // Get the folder dealing with grey image properties
   // TODO: Figure out something about this!!!
   Registry &regGrey = regFull.Folder("Files.Grey");
 
   // Create the image reader
   GuidedImageIO<LabelType> io;
-  
+
   // Load the image (exception may occur here)
   LabelImageType::Pointer imgLabel = io.ReadImage(filename, regGrey, false);
 
