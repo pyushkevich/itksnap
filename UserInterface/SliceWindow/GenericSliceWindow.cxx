@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 14:58:30 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/02/10 16:20:34 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -166,7 +166,9 @@ GenericSliceWindow
     imageData->GetImageGeometry().GetDisplayToImageTransform(m_Id);
   m_DisplayToAnatomyTransform = 
     imageData->GetImageGeometry().GetAnatomyToDisplayTransform(m_Id).Inverse();
-  
+  m_AnatomyToDisplayTransform =
+    imageData->GetImageGeometry().GetAnatomyToDisplayTransform(m_Id);
+
   // Get the volume extents & voxel scale factors
   Vector3ui imageSizeInImageSpace = m_ImageData->GetVolumeExtents();
   Vector3f imageScalingInImageSpace = to_float(m_ImageData->GetImageSpacing());
@@ -307,6 +309,34 @@ GenericSliceWindow
 
   // Return this vector
   return uvSlice;
+}
+
+Vector3f
+GenericSliceWindow
+::MapWindowToAnatomy(const Vector2f &uvWindow)
+{
+  // Get the slice coordinates
+  Vector3f uvSlice = MapWindowToSlice(uvWindow);
+
+  // Map to the patient coordinates
+  Vector3f uvAnatomy = m_DisplayToAnatomyTransform.TransformPoint(uvSlice);
+
+  // Return the vector
+  return uvAnatomy;
+}
+
+Vector2f
+GenericSliceWindow
+::MapAnatomyToWindow(const Vector3f &uvAnatomy)
+{
+  // Get the slice coordinates
+  Vector3f uvSlice = m_AnatomyToDisplayTransform.TransformPoint(uvAnatomy);
+
+  // Map to the window coordinates
+  Vector2f uvWindow = MapSliceToWindow(uvSlice);
+
+  // Return the vector
+  return uvWindow;
 }
 
 void

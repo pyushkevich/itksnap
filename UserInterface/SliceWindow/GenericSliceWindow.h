@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 16:41:47 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/02/10 16:20:36 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -115,6 +115,18 @@ public:
 
   /** The FLTK draw method (paints the window) */
   void OnDraw();
+
+  /**
+   * Map a point in window coordinates to a point in patient coordinates
+   * (Window coordinates are the ones stored in FLTKEvent.xSpace)
+   */
+  Vector3f MapWindowToAnatomy(const Vector2f &xWindow);
+
+  /**
+   * Map a point in patient coordinates to a point in window coordinates
+   * (Window coordinates are the ones stored in FLTKEvent.xSpace)
+   */
+  Vector2f MapAnatomyToWindow(const Vector3f &xAnatomy);
 
   /**
    * Map a point in window coordinates to a point in slice coordinates
@@ -244,7 +256,10 @@ protected:
 
   // The transform from display coordinates to patient coordinates
   ImageCoordinateTransform m_DisplayToAnatomyTransform;
-  
+
+  // The transform from patient coordinates to display coordinates
+  ImageCoordinateTransform m_AnatomyToDisplayTransform;
+
   // Dimensions of the current slice (the third component is the size of the
   // image in the slice direction)
   Vector3i m_SliceSize;             
