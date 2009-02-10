@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 04:29:30 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/02/10 15:17:38 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -154,7 +154,16 @@ AnnotationInteractionMode
     length = sqrt(length);
     std::ostringstream oss;
     oss << length;
-    gl_draw(oss.str().c_str(), (int) m_CurrentLine.second[0], (int)m_CurrentLine.second[1]);
+
+    // Compute the offset of 5 screen pixels
+    Vector3f v_offset = 
+      m_Parent->MapWindowToSlice(Vector2f(5.f,5.f)) - m_Parent->MapWindowToSlice(Vector2f(0.f,0.f));
+    Vector3f v_dims = 
+      m_Parent->MapWindowToSlice(Vector2f(48.f,12.f)) - m_Parent->MapWindowToSlice(Vector2f(0.f,0.f));
+
+    gl_draw(oss.str().c_str(), 
+      (float) (m_CurrentLine.second[0] + v_offset(0)), 
+      (float) (m_CurrentLine.second[1] + v_offset(1)));
     }
   // Draw each of the lines
   glBegin(GL_POINTS);

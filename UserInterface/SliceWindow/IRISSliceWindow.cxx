@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 21:48:59 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/02/10 15:17:38 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -130,8 +130,9 @@ IRISSliceWindow
   if(IsInteractionModeAdded(m_PaintbrushMode) && !m_ThumbnailIsDrawing)
     m_PaintbrushMode->OnDraw();
 
-  // Always draw annotations, whether active or not
-  m_AnnotationMode->OnDraw();
+  // Always draw annotations, whether active or not - but not in the thumbnail
+  if(!m_ThumbnailIsDrawing)
+    m_AnnotationMode->OnDraw();
 }
 
 void 
