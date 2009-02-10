@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 16:20:34 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/02/10 16:49:30 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -270,6 +270,25 @@ GenericSliceWindow
   return  m_ImageToDisplayTransform.TransformPoint(xImage);
 }
 
+Vector3f
+GenericSliceWindow
+::MapSliceToAnatomy(const Vector3f &xSlice)
+{
+  assert(m_IsSliceInitialized);
+
+  // Get corresponding position in patient space
+  return  m_DisplayToAnatomyTransform.TransformPoint(xSlice);
+}
+
+Vector3f
+GenericSliceWindow
+::MapAnatomyToSlice(const Vector3f &xAnatomy)
+{
+  assert(m_IsSliceInitialized);
+
+  // Get corresponding position in patient space
+  return  m_AnatomyToDisplayTransform.TransformPoint(xAnatomy);
+}
 
 Vector2f 
 GenericSliceWindow
