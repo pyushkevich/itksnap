@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 16:50:05 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/02/10 17:54:23 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -18,6 +18,12 @@
 #include "PolygonDrawing.h"
 #include "UserInterfaceBase.h"
 #include "IRISApplication.h"
+#include <cmath>
+#include <iomanip>
+
+#ifndef PI
+#define PI 3.14159265358979323846
+#endif
 
 AnnotationInteractionMode
 ::AnnotationInteractionMode(GenericSliceWindow *parent)
@@ -130,11 +136,11 @@ AnnotationInteractionMode
   glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glColor3d(1.,0.,0.);
 
   // Draw current line
   if(m_FlagDrawingLine)
     {
+    glColor3d(1.,1.,0.);
     glBegin(GL_POINTS);
     glVertex2d(m_CurrentLine.first[0], m_CurrentLine.first[1]);
     glVertex2d(m_CurrentLine.second[0], m_CurrentLine.second[1]);
@@ -147,14 +153,16 @@ AnnotationInteractionMode
     glVertex2d(m_CurrentLine.second[0], m_CurrentLine.second[1]);
     glEnd();
     glPopAttrib();
+
+    // Compute the length of the drawing line
     Vector3f Pt1InAnatomy = m_Parent->MapSliceToAnatomy(m_CurrentLine.first);
     Vector3f Pt2InAnatomy = m_Parent->MapSliceToAnatomy(m_CurrentLine.second);
     double length = (Pt1InAnatomy[0] - Pt2InAnatomy[0]) * (Pt1InAnatomy[0] - Pt2InAnatomy[0])
                   + (Pt1InAnatomy[1] - Pt2InAnatomy[1]) * (Pt1InAnatomy[1] - Pt2InAnatomy[1])
                   + (Pt1InAnatomy[2] - Pt2InAnatomy[2]) * (Pt1InAnatomy[2] - Pt2InAnatomy[2]);
     length = sqrt(length);
-    std::ostringstream oss;
-    oss << length;
+    std::ostringstream oss_length;
+    oss_length << std::setprecision(4) << length << " " << "mm";
 
     // Compute the offset of 5 screen pixels
     Vector3f v_offset = 
@@ -162,11 +170,36 @@ AnnotationInteractionMode
     Vector3f v_dims = 
       m_Parent->MapWindowToSlice(Vector2f(48.f,12.f)) - m_Parent->MapWindowToSlice(Vector2f(0.f,0.f));
 
-    gl_draw(oss.str().c_str(), 
+    // Show the length of the drawing line
+    gl_draw(oss_length.str().c_str(), 
       (float) (m_CurrentLine.second[0] + v_offset(0)), 
       (float) (m_CurrentLine.second[1] + v_offset(1)));
+
+    // Compute and show the intersection angles of the drawing line with the other (visible) lines
+    for(LineIntervalList::iterator it = m_Lines.begin(); it!=m_Lines.end(); it++)
+      {
+      if(shownOnAllSlices || it->first[2] == m_Parent->m_DisplayAxisPosition)
+        {
+        Vector3f vit = it->second - it->first;
+        vit /= sqrt(vit[0]*vit[0] + vit[1]*vit[1]);
+	   Vector3f vc = m_CurrentLine.second - m_CurrentLine.first;
+        vc /= sqrt(vc[0]*vc[0] + vc[1]*vc[1]);
+
+        // Compute the dot product and no need for the third components that are zeros
+        double angle = 180.0 * acos(fabs(vc[0]*vit[0]+vc[1]*vit[1])) / PI;
+        std::ostringstream oss_angle;
+        oss_angle << std::setprecision(3) << angle << " " << "deg";
+
+	   // Show the length of the drawing line
+        gl_draw(oss_angle.str().c_str(), 
+          (float) (0.5*(it->first[0] + it->second[0]) + v_offset(0)), 
+          (float) (0.5*(it->first[1] + it->second[1]) + v_offset(1)));
+        }
+      }
     }
+
   // Draw each of the lines
+  glColor3d(1.,0.,0.);
   glBegin(GL_POINTS);
   for(LineIntervalList::iterator it = m_Lines.begin(); it!=m_Lines.end(); it++)
     {
