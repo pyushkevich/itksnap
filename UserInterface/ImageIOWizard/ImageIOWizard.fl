@@ -7,7 +7,7 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
   Function {MakeWindow()} {open return_type {virtual void}
   } {
     Fl_Window m_WinInput {
-      label {SnAP Image Input Wizard} open
+      label {ITK-SNAP Image Input Wizard} open
       xywh {311 585 470 330} type Double
       code0 {\#include "ImageIOWizardBase.h"} modal visible
     } {
@@ -348,7 +348,7 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
       }
     }
     Fl_Window m_WinOutput {
-      label {SnAP Save Image Wizard}
+      label {ITK-SNAP Save Image Wizard}
       xywh {809 580 470 330} type Double modal visible
     } {
       Fl_Wizard m_WizOutput {
@@ -380,7 +380,7 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
           Fl_Choice m_InSaveFilePageFormat {
             label {Image file format:}
             callback {this->OnSaveFilePageFileFormatChange();} open
-            tooltip {Use this dropdown box to select an image format if one is not selected for you automatically. Normally, SNAP will figure out the file format once you select an image file using the 'Browse' button.} xywh {30 190 210 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+            tooltip {Use this dropdown box to select an image format if one is not selected for you automatically. Normally, ITK-SNAP will figure out the file format once you select an image file using the 'Browse' button.} xywh {30 190 210 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
           } {
             MenuItem {} {
               label {Select a format...}

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/09 17:07:47 $
-  Version:   $Revision: 1.49 $
+  Date:      $Date: 2009/02/10 00:10:12 $
+  Version:   $Revision: 1.50 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2757,6 +2757,23 @@ UserInterfaceLogic
 
 void
 UserInterfaceLogic
+::OnAnnotationAttributesUpdate()
+{
+  // Get the current annotation settings
+  AnnotationSettings as = m_GlobalState->GetAnnotationSettings();
+
+  // Update the settings from the GUI
+  as.shownOnAllSlices = m_BtnAnnotationShownOnAllSlices->value() ? true : false;
+
+  // Set the annotation settings
+  m_GlobalState->SetAnnotationSettings(as);
+
+  // Update the windows
+  RedrawWindows();
+}
+
+void
+UserInterfaceLogic
 ::OnPaintbrushPaint()
 {
   // The user painted something. We should make it possible to modifu the mesh
@@ -3009,7 +3026,7 @@ UserInterfaceLogic
 
     case ROI_MODE:
       m_IRISWindowManager2D[i]->EnterRegionMode();
-      m_TabsToolOptions->value(m_GrpToolOptionSnAP);
+      m_TabsToolOptions->value(m_GrpToolOptionSNAP);
       break;
 
     default:
@@ -4647,6 +4664,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.50  2009/02/10 00:10:12  garyhuizhang
+ *ENH: Support two drawing options in the Annotation mode: 1) each line shown only on the slice level it is drawn; 2) each line is shown on all slice levels
+ *
  *Revision 1.49  2009/02/09 17:07:47  garyhuizhang
  *FIX: code refactoring -- command line and GUI loading of segmentation now shares the same code.  this enables the validity checking of segmentation image on command line originally implemented for GUI.
  *

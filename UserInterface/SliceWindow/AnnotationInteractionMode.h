@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 23:04:44 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/02/10 00:10:12 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,6 +44,7 @@
 #define __AnnotationInteractionMode_h_
 
 #include "GenericSliceWindow.h"
+#include "GlobalState.h"
 #include <list>
 #include <utility>
 

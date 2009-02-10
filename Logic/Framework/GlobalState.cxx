@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/12/02 05:14:19 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/02/10 00:10:12 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -94,6 +94,9 @@ GlobalState
   m_PaintbrushSettings.chase = false;
   m_PaintbrushSettings.watershed.level = 0.2;
   m_PaintbrushSettings.watershed.smooth_iterations = 15;
+
+  // Set annotation defaults
+  m_AnnotationSettings.shownOnAllSlices = false;
 }
 
 GlobalState

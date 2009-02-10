@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/06 02:32:22 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/02/10 00:10:12 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -116,6 +116,10 @@ void
 AnnotationInteractionMode
 ::OnDraw()
 {
+  // Get the current annotation settings
+  AnnotationSettings as = m_ParentUI->GetDriver()->GetGlobalState()->GetAnnotationSettings();
+  const bool shownOnAllSlices = as.shownOnAllSlices;
+
   // Push the line state
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -148,7 +152,7 @@ AnnotationInteractionMode
   glBegin(GL_LINES);
   for(LineIntervalList::iterator it = m_Lines.begin(); it!=m_Lines.end(); it++)
     {
-    if(it->first[2] == m_Parent->m_DisplayAxisPosition)
+    if(shownOnAllSlices || it->first[2] == m_Parent->m_DisplayAxisPosition)
       {
       glVertex2d(it->first[0], it->first[1]);
       glVertex2d(it->second[0], it->second[1]);

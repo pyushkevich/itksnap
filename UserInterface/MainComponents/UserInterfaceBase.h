@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 23:03:40 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2009/02/10 00:10:12 $
+  Version:   $Revision: 1.20 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -135,6 +135,9 @@ public:
   virtual void OnPaintbrushAttributesUpdate() = 0;
   virtual void OnPaintbrushPaint() = 0;
   virtual void UpdatePaintbrushAttributes() = 0;
+
+  // IRIS: Annotation mode
+  virtual void OnAnnotationAttributesUpdate() = 0;
 
   // IRIS: 3D Window callbacks
   virtual void OnMeshResetViewAction() = 0;

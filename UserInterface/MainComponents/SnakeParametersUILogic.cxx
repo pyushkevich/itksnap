@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/02/10 00:10:12 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -501,10 +501,10 @@ void SnakeParametersUILogic
     string message = 
       (m_Parameters.GetSnakeType() == SnakeParameters::EDGE_SNAKE) ?
       "Warning!  The snake evolution parameters in the file are for the\n"
-      "REGION COMPETITION mode.  SnAP is currently in EDGE STOPPING mode.\n"
+      "REGION COMPETITION mode.  ITK-SNAP is currently in EDGE STOPPING mode.\n"
       "Do you wish to load the parameters anyway?" : 
       "Warning!  The snake evolution parameters in the file are for the\n"
-      "EDGE STOPPING mode.  SnAP is currently in REGION COMPETITION mode.\n"
+      "EDGE STOPPING mode.  ITK-SNAP is currently in REGION COMPETITION mode.\n"
       "Do you wish to load the parameters anyway?";
 
     // Show the message

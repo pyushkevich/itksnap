@@ -13,7 +13,7 @@ class RestoreSettingsDialog {open : { private RestoreSettingsDialogBase }
       code0 {\#include "RestoreSettingsDialogBase.h"}
     } {
       Fl_Group {} {
-        label {Would you like SnAP to restore the settings that were used the last time you worked with this image?  
+        label {Would you like ITK-SNAP to restore the settings that were used the last time you worked with this image?  
 
 The following settings can be restored:} open
         xywh {10 10 385 65} labelsize 12 align 149

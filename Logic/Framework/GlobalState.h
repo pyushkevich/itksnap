@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 21:48:59 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/02/10 00:10:12 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -144,6 +144,12 @@ struct PaintbrushSettings
   bool chase;
 
   PaintbrushWatershedSettings watershed;
+};
+
+/** Annotation settings */
+struct AnnotationSettings
+{
+  bool shownOnAllSlices;
 };
 
 /**
@@ -376,6 +382,12 @@ public:
   /** Set the current paintbrush settings */
   irisSetMacro(PaintbrushSettings, const PaintbrushSettings &);
 
+  /** Get the current paintbrush settings */
+  irisGetMacro(AnnotationSettings, const AnnotationSettings &);
+
+  /** Set the current paintbrush settings */
+  irisSetMacro(AnnotationSettings, const AnnotationSettings &);
+
 #ifdef DRAWING_LOCK
   int GetDrawingLock( short );
   int ReleaseDrawingLock( short );
@@ -595,15 +607,21 @@ private:
 
   // Current bubble
   int m_ActiveBubble;
-  
+
   // Paintbrush settings
   PaintbrushSettings m_PaintbrushSettings;
+
+  // Annotation settings
+  AnnotationSettings m_AnnotationSettings;
 };
 
 #endif // __GlobalState_h_
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.14  2009/02/10 00:10:12  garyhuizhang
+ *ENH: Support two drawing options in the Annotation mode: 1) each line shown only on the slice level it is drawn; 2) each line is shown on all slice levels
+ *
  *Revision 1.13  2009/01/23 21:48:59  pyushkevich
  *ENH: Added hidden annotation mode (very bad code)
  *
