@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 00:10:12 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/02/10 04:29:30 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -147,8 +147,23 @@ AnnotationInteractionMode
     glVertex2d(m_CurrentLine.second[0], m_CurrentLine.second[1]);
     glEnd();
     glPopAttrib();
+    double length = (m_CurrentLine.first[0] - m_CurrentLine.second[0])
+                   *(m_CurrentLine.first[0] - m_CurrentLine.second[0]) +
+                    (m_CurrentLine.first[1] - m_CurrentLine.second[1])
+                   *(m_CurrentLine.first[1] - m_CurrentLine.second[1]);
+    length = sqrt(length);
+    std::ostringstream oss;
+    oss << length;
+    gl_draw(oss.str().c_str(), (int) m_CurrentLine.second[0], (int)m_CurrentLine.second[1]);
     }
   // Draw each of the lines
+  glBegin(GL_POINTS);
+  for(LineIntervalList::iterator it = m_Lines.begin(); it!=m_Lines.end(); it++)
+    {
+    if(shownOnAllSlices || it->first[2] == m_Parent->m_DisplayAxisPosition)
+      glVertex2d(0.5*(it->first[0] + it->second[0]), 0.5*(it->first[1] + it->second[1]));
+    }
+  glEnd();
   glBegin(GL_LINES);
   for(LineIntervalList::iterator it = m_Lines.begin(); it!=m_Lines.end(); it++)
     {
