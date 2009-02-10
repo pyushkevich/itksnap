@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 15:17:38 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/02/10 16:50:05 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -71,7 +71,7 @@ AnnotationInteractionMode
   else if(Fl::event_button() == FL_LEFT_MOUSE)
     {
     // Record the location
-    Vector3d xEvent = to_double(m_Parent->MapWindowToSlice(event.XSpace.extract(2)));
+    Vector3f xEvent = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
     m_CurrentLine.second = xEvent;
     }
 
@@ -93,7 +93,7 @@ AnnotationInteractionMode
     return 1;
 
   // Record the location
-  Vector3d xEvent = to_double(m_Parent->MapWindowToSlice(event.XSpace.extract(2)));
+  Vector3f xEvent = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
 
   // Record the location of the event
   if(m_FlagDrawingLine)
@@ -147,10 +147,11 @@ AnnotationInteractionMode
     glVertex2d(m_CurrentLine.second[0], m_CurrentLine.second[1]);
     glEnd();
     glPopAttrib();
-    double length = (m_CurrentLine.first[0] - m_CurrentLine.second[0])
-                   *(m_CurrentLine.first[0] - m_CurrentLine.second[0]) +
-                    (m_CurrentLine.first[1] - m_CurrentLine.second[1])
-                   *(m_CurrentLine.first[1] - m_CurrentLine.second[1]);
+    Vector3f Pt1InAnatomy = m_Parent->MapSliceToAnatomy(m_CurrentLine.first);
+    Vector3f Pt2InAnatomy = m_Parent->MapSliceToAnatomy(m_CurrentLine.second);
+    double length = (Pt1InAnatomy[0] - Pt2InAnatomy[0]) * (Pt1InAnatomy[0] - Pt2InAnatomy[0])
+                  + (Pt1InAnatomy[1] - Pt2InAnatomy[1]) * (Pt1InAnatomy[1] - Pt2InAnatomy[1])
+                  + (Pt1InAnatomy[2] - Pt2InAnatomy[2]) * (Pt1InAnatomy[2] - Pt2InAnatomy[2]);
     length = sqrt(length);
     std::ostringstream oss;
     oss << length;

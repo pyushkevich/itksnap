@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 00:10:12 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/02/10 16:50:05 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -70,7 +70,7 @@ public:
 private:
 
   // Annotations
-  typedef std::pair<Vector3d, Vector3d> LineIntervalType;
+  typedef std::pair<Vector3f, Vector3f> LineIntervalType;
   typedef std::list<LineIntervalType> LineIntervalList;
   LineIntervalList m_Lines;
 
