@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 16:49:30 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/02/11 20:01:55 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -166,8 +166,6 @@ GenericSliceWindow
     imageData->GetImageGeometry().GetDisplayToImageTransform(m_Id);
   m_DisplayToAnatomyTransform = 
     imageData->GetImageGeometry().GetAnatomyToDisplayTransform(m_Id).Inverse();
-  m_AnatomyToDisplayTransform =
-    imageData->GetImageGeometry().GetAnatomyToDisplayTransform(m_Id);
 
   // Get the volume extents & voxel scale factors
   Vector3ui imageSizeInImageSpace = m_ImageData->GetVolumeExtents();
@@ -270,26 +268,6 @@ GenericSliceWindow
   return  m_ImageToDisplayTransform.TransformPoint(xImage);
 }
 
-Vector3f
-GenericSliceWindow
-::MapSliceToAnatomy(const Vector3f &xSlice)
-{
-  assert(m_IsSliceInitialized);
-
-  // Get corresponding position in patient space
-  return  m_DisplayToAnatomyTransform.TransformPoint(xSlice);
-}
-
-Vector3f
-GenericSliceWindow
-::MapAnatomyToSlice(const Vector3f &xAnatomy)
-{
-  assert(m_IsSliceInitialized);
-
-  // Get corresponding position in patient space
-  return  m_AnatomyToDisplayTransform.TransformPoint(xAnatomy);
-}
-
 Vector2f 
 GenericSliceWindow
 ::MapSliceToWindow(const Vector3f &xSlice)
@@ -328,34 +306,6 @@ GenericSliceWindow
 
   // Return this vector
   return uvSlice;
-}
-
-Vector3f
-GenericSliceWindow
-::MapWindowToAnatomy(const Vector2f &uvWindow)
-{
-  // Get the slice coordinates
-  Vector3f uvSlice = MapWindowToSlice(uvWindow);
-
-  // Map to the patient coordinates
-  Vector3f uvAnatomy = m_DisplayToAnatomyTransform.TransformPoint(uvSlice);
-
-  // Return the vector
-  return uvAnatomy;
-}
-
-Vector2f
-GenericSliceWindow
-::MapAnatomyToWindow(const Vector3f &uvAnatomy)
-{
-  // Get the slice coordinates
-  Vector3f uvSlice = m_AnatomyToDisplayTransform.TransformPoint(uvAnatomy);
-
-  // Map to the window coordinates
-  Vector2f uvWindow = MapSliceToWindow(uvSlice);
-
-  // Return the vector
-  return uvWindow;
 }
 
 void

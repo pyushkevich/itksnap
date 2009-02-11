@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 16:49:30 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/02/11 20:01:55 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -117,18 +117,6 @@ public:
   void OnDraw();
 
   /**
-   * Map a point in window coordinates to a point in patient coordinates
-   * (Window coordinates are the ones stored in FLTKEvent.xSpace)
-   */
-  Vector3f MapWindowToAnatomy(const Vector2f &xWindow);
-
-  /**
-   * Map a point in patient coordinates to a point in window coordinates
-   * (Window coordinates are the ones stored in FLTKEvent.xSpace)
-   */
-  Vector2f MapAnatomyToWindow(const Vector3f &xAnatomy);
-
-  /**
    * Map a point in window coordinates to a point in slice coordinates
    * (Window coordinates are the ones stored in FLTKEvent.xSpace)
    */
@@ -149,16 +137,6 @@ public:
    * Map a point in image coordinates to slice coordinates
    */
   Vector3f MapImageToSlice(const Vector3f &xImage);
-
-  /**
-   * Map a point in slice coordinates to a point in the patient coordinates
-   */
-  Vector3f MapSliceToAnatomy(const Vector3f &xSlice);
-
-  /**
-   * Map a point in patient coordinates to slice coordinates
-   */
-  Vector3f MapAnatomyToSlice(const Vector3f &xAnatomy);
 
   /** Return the image axis along which this window shows slices */
   size_t GetSliceDirectionInImageSpace()
@@ -266,9 +244,6 @@ protected:
 
   // The transform from display coordinates to patient coordinates
   ImageCoordinateTransform m_DisplayToAnatomyTransform;
-
-  // The transform from patient coordinates to display coordinates
-  ImageCoordinateTransform m_AnatomyToDisplayTransform;
 
   // Dimensions of the current slice (the third component is the size of the
   // image in the slice direction)
