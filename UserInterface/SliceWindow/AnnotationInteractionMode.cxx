@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 17:54:23 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/02/11 16:48:11 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -45,7 +45,11 @@ AnnotationInteractionMode
   // one maps to backspace on other pc
   if(Fl::event_key() == FL_Delete || Fl::event_key() == FL_BackSpace)
     {
-    m_Lines.clear();
+    // delete all or delete just the last line
+    if(Fl::event_state() == FL_SHIFT)
+      m_Lines.clear();
+    else
+      m_Lines.pop_back();
     // Redraw
     m_Parent->GetCanvas()->redraw();
     // only return 1 when the keystroke is handled
@@ -59,34 +63,37 @@ int
 AnnotationInteractionMode
 ::OnMousePress(const FLTKEvent &event)
 {
-  if(Fl::event_button() == FL_RIGHT_MOUSE)
-    {
-    if(m_FlagDrawingLine)
-      {
-      // Commit the current line
-	 m_Lines.push_back(m_CurrentLine);
-      m_FlagDrawingLine = false;
-	 }
-    else
-      // Erase the last line
-      if(!m_Lines.empty())
-        {
-        m_Lines.pop_back();
-        }
-    }
-  else if(Fl::event_button() == FL_LEFT_MOUSE)
+  // when active drawing
+  if(m_FlagDrawingLine)
     {
     // Record the location
     Vector3f xEvent = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
-    m_CurrentLine.second = xEvent;
+    // Handle different mouse buttons
+    if(Fl::event_button() == FL_LEFT_MOUSE)
+      // Move the second point around the first point which is fixed
+      m_CurrentLine.second = xEvent;
+    else if (Fl::event_button() == FL_MIDDLE_MOUSE)
+      {
+      // Translation of the segment
+      Vector3f delta = xEvent - m_CurrentLine.second;
+	 m_CurrentLine.second = xEvent;
+      m_CurrentLine.first += delta;
+      }
+    else if(Fl::event_button() == FL_RIGHT_MOUSE)
+      {
+      // Commit the segment
+      m_Lines.push_back(m_CurrentLine);
+      m_FlagDrawingLine = false;
+      }
+    // Redraw
+    m_Parent->GetCanvas()->redraw();
+
+    // Even though no action may have been performed, we don't want other handlers
+    // to get the left and right mouse button events
+    return 1;
     }
-
-  // Redraw
-  m_Parent->GetCanvas()->redraw();
-
-  // Even though no action may have been performed, we don't want other handlers
-  // to get the left and right mouse button events
-  return 1;
+  else
+    return 0;
 }
 
 int
@@ -95,7 +102,7 @@ AnnotationInteractionMode
               const FLTKEvent &pressEvent)
 {
   // Make sure it's left mouse button being pressed
-  if(Fl::event_button() != FL_LEFT_MOUSE)
+  if(Fl::event_button() == FL_RIGHT_MOUSE)
     return 1;
 
   // Record the location
@@ -104,9 +111,18 @@ AnnotationInteractionMode
   // Record the location of the event
   if(m_FlagDrawingLine)
     {
-    m_CurrentLine.second = xEvent;
+    if(Fl::event_button() == FL_LEFT_MOUSE)
+      // Move the second point around the first point which is fixed
+      m_CurrentLine.second = xEvent;
+    else if(Fl::event_button() == FL_MIDDLE_MOUSE)
+	 {
+      // Translation of the segment
+      Vector3f delta = xEvent - m_CurrentLine.second;
+	 m_CurrentLine.second = xEvent;
+      m_CurrentLine.first += delta;
+      }
     }
-  else
+  else if(Fl::event_button() == FL_LEFT_MOUSE)
     {
     m_CurrentLine.first = xEvent;
     m_CurrentLine.second = xEvent;
@@ -143,6 +159,8 @@ AnnotationInteractionMode
     glColor3d(1.,1.,0.);
     glBegin(GL_POINTS);
     glVertex2d(m_CurrentLine.first[0], m_CurrentLine.first[1]);
+    glVertex2d(0.5 * (m_CurrentLine.first[0] + m_CurrentLine.second[0]),
+               0.5 * (m_CurrentLine.first[1] + m_CurrentLine.second[1]));
     glVertex2d(m_CurrentLine.second[0], m_CurrentLine.second[1]);
     glEnd();
     glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
