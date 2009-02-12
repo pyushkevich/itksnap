@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AnnotationInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/11 16:48:11 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/02/12 00:13:06 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -48,7 +48,7 @@ AnnotationInteractionMode
     // delete all or delete just the last line
     if(Fl::event_state() == FL_SHIFT)
       m_Lines.clear();
-    else
+    else if(!m_Lines.empty())
       m_Lines.pop_back();
     // Redraw
     m_Parent->GetCanvas()->redraw();
@@ -146,8 +146,8 @@ AnnotationInteractionMode
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
   // set line and point drawing parameters
-  glPointSize(4);
-  glLineWidth(0.5);
+  glPointSize(3);
+  glLineWidth(1.0);
   glEnable(GL_LINE_SMOOTH);
   glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
   glEnable(GL_BLEND);
@@ -173,11 +173,10 @@ AnnotationInteractionMode
     glPopAttrib();
 
     // Compute the length of the drawing line
-    Vector3f Pt1InAnatomy = m_Parent->MapSliceToAnatomy(m_CurrentLine.first);
-    Vector3f Pt2InAnatomy = m_Parent->MapSliceToAnatomy(m_CurrentLine.second);
-    double length = (Pt1InAnatomy[0] - Pt2InAnatomy[0]) * (Pt1InAnatomy[0] - Pt2InAnatomy[0])
-                  + (Pt1InAnatomy[1] - Pt2InAnatomy[1]) * (Pt1InAnatomy[1] - Pt2InAnatomy[1])
-                  + (Pt1InAnatomy[2] - Pt2InAnatomy[2]) * (Pt1InAnatomy[2] - Pt2InAnatomy[2]);
+    Vector2f pt1InAna = m_Parent->MapSliceToPhysicalWindow(m_CurrentLine.first);
+    Vector2f pt2InAna = m_Parent->MapSliceToPhysicalWindow(m_CurrentLine.second);
+    double length = (pt1InAna[0] - pt2InAna[0]) * (pt1InAna[0] - pt2InAna[0])
+                  + (pt1InAna[1] - pt2InAna[1]) * (pt1InAna[1] - pt2InAna[1]);
     length = sqrt(length);
     std::ostringstream oss_length;
     oss_length << std::setprecision(4) << length << " " << "mm";
@@ -189,8 +188,8 @@ AnnotationInteractionMode
       m_Parent->MapWindowToSlice(Vector2f(48.f,12.f)) - m_Parent->MapWindowToSlice(Vector2f(0.f,0.f));
 
     // Show the length of the drawing line
-    gl_draw(oss_length.str().c_str(), 
-      (float) (m_CurrentLine.second[0] + v_offset(0)), 
+    gl_draw(oss_length.str().c_str(),
+      (float) (m_CurrentLine.second[0] + v_offset(0)),
       (float) (m_CurrentLine.second[1] + v_offset(1)));
 
     // Compute and show the intersection angles of the drawing line with the other (visible) lines
@@ -198,9 +197,9 @@ AnnotationInteractionMode
       {
       if(shownOnAllSlices || it->first[2] == m_Parent->m_DisplayAxisPosition)
         {
-        Vector3f vit = it->second - it->first;
+        Vector2f vit = m_Parent->MapSliceToPhysicalWindow(it->first) - m_Parent->MapSliceToPhysicalWindow(it->second);
         vit /= sqrt(vit[0]*vit[0] + vit[1]*vit[1]);
-	   Vector3f vc = m_CurrentLine.second - m_CurrentLine.first;
+	   Vector2f vc = pt1InAna - pt2InAna;
         vc /= sqrt(vc[0]*vc[0] + vc[1]*vc[1]);
 
         // Compute the dot product and no need for the third components that are zeros

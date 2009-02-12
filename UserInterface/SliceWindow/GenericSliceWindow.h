@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/11 20:01:55 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/02/12 00:13:06 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -128,6 +128,11 @@ public:
    */
   Vector2f MapSliceToWindow(const Vector3f &xSlice);
   
+  /**
+   * Map a point in slice coordinates to a point in PHYISCAL window coordinates
+   */
+  Vector2f MapSliceToPhysicalWindow(const Vector3f &xSlice);
+
   /**
    * Map a point in slice coordinates to a point in the image coordinates
    */

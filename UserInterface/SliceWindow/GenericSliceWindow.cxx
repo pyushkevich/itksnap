@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/11 20:01:55 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2009/02/12 00:13:06 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -306,6 +306,20 @@ GenericSliceWindow
 
   // Return this vector
   return uvSlice;
+}
+
+Vector2f 
+GenericSliceWindow
+::MapSliceToPhysicalWindow(const Vector3f &xSlice)
+{
+  assert(m_IsSliceInitialized);
+
+  // Compute the physical window coordinates
+  Vector2f uvPhysical;
+  uvPhysical[0] = xSlice[0] * m_SliceSpacing[0];
+  uvPhysical[1] = xSlice[1] * m_SliceSpacing[1];
+
+  return uvPhysical;
 }
 
 void
