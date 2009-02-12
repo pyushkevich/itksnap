@@ -542,17 +542,6 @@ TARGET_LINK_LIBRARIES(${SNAP_EXE}
   ${SNAP_INTERNAL_LIBS}
   ${SNAP_EXTERNAL_LIBS})
 
-# The customized executable for creating a screen shot
-OPTION(SNAP_PNG_CAPTURE_TOOL 
-  "Should the screen capture tool by Hui Gary Zhang be built?" OFF)
-MARK_AS_ADVANCED(SNAP_PNG_CAPTURE_TOOL)
-IF(SNAP_PNG_CAPTURE_TOOL)
-  ADD_EXECUTABLE(SNAP_CC_PNG UserInterface/SNAP_CC_PNG.cxx)
-  TARGET_LINK_LIBRARIES(SNAP_CC_PNG 
-    ${SNAP_INTERNAL_LIBS}
-    ${SNAP_EXTERNAL_LIBS})
-ENDIF(SNAP_PNG_CAPTURE_TOOL)
-
 # ----------------------------------------------------------------
 # Miscelaneous tasks (not related to link and compilation)
 # ----------------------------------------------------------------
