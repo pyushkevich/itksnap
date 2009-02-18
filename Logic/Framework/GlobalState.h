@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 00:10:12 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2009/02/18 00:22:44 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -115,7 +115,6 @@ enum PaintbrushMode
   PAINTBRUSH_WATERSHED = 2
 };
   
-
 enum AnatomicalDirection
 {
   ANATOMY_AXIAL = 0,
@@ -382,10 +381,10 @@ public:
   /** Set the current paintbrush settings */
   irisSetMacro(PaintbrushSettings, const PaintbrushSettings &);
 
-  /** Get the current paintbrush settings */
+  /** Get the current annotation settings */
   irisGetMacro(AnnotationSettings, const AnnotationSettings &);
 
-  /** Set the current paintbrush settings */
+  /** Set the current annotation settings */
   irisSetMacro(AnnotationSettings, const AnnotationSettings &);
 
 #ifdef DRAWING_LOCK
@@ -613,12 +612,16 @@ private:
 
   // Annotation settings
   AnnotationSettings m_AnnotationSettings;
+
 };
 
 #endif // __GlobalState_h_
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.15  2009/02/18 00:22:44  garyhuizhang
+ *FIX: minor clean up
+ *
  *Revision 1.14  2009/02/10 00:10:12  garyhuizhang
  *ENH: Support two drawing options in the Annotation mode: 1) each line shown only on the slice level it is drawn; 2) each line is shown on all slice levels
  *

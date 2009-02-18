@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 00:10:12 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/02/18 00:22:44 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -97,6 +97,7 @@ GlobalState
 
   // Set annotation defaults
   m_AnnotationSettings.shownOnAllSlices = false;
+
 }
 
 GlobalState
