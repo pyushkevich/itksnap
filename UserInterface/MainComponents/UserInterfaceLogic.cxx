@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/18 01:14:52 $
-  Version:   $Revision: 1.51 $
+  Date:      $Date: 2009/02/18 01:19:13 $
+  Version:   $Revision: 1.52 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1809,6 +1809,14 @@ UserInterfaceLogic
         m_IntensityCurveUI->OnAutoFitWindow();
         m_IntensityCurveUI->OnClose();
 	   return 1;
+        }
+      // toggle crosshairs display
+      else if(Fl::event_key() == 'c')
+        {
+        SNAPAppearanceSettings::Element &e = m_AppearanceSettings->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
+        e.Visible = !e.Visible;
+        RedrawWindows();
+        return 1;
         }
 	 // selecting active drawing label
 	 else if(Fl::event_state() != FL_CTRL && Fl::event_state() != FL_CTRL + FL_SHIFT && Fl::event_key() == ',')
@@ -4669,6 +4677,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.52  2009/02/18 01:19:13  garyhuizhang
+ *ENH: added keyboard shortcut 'c' for toggling the visibility of crosshairs
+ *
  *Revision 1.51  2009/02/18 01:14:52  garyhuizhang
  *ENH: support adjusting the default behavior of linked zoom and multi-session zoom
  *
