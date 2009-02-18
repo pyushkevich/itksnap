@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 00:10:12 $
-  Version:   $Revision: 1.50 $
+  Date:      $Date: 2009/02/18 01:14:52 $
+  Version:   $Revision: 1.51 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2025,6 +2025,11 @@ UserInterfaceLogic
     OnLinkedZoomChange();
     }
 
+  if(m_AppearanceSettings->GetFlagMultisessionZoomByDefault())
+    {
+    m_ChkMultisessionZoom->value(1);
+    OnZoomUpdate();
+    }
   // Initialize the paintbrush panel
   this->UpdatePaintbrushAttributes();
 
@@ -4664,6 +4669,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.51  2009/02/18 01:14:52  garyhuizhang
+ *ENH: support adjusting the default behavior of linked zoom and multi-session zoom
+ *
  *Revision 1.50  2009/02/10 00:10:12  garyhuizhang
  *ENH: Support two drawing options in the Annotation mode: 1) each line shown only on the slice level it is drawn; 2) each line is shown on all slice levels
  *

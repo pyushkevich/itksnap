@@ -39,9 +39,13 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
             label {By default, use the same zoom in all slice views (linked zoom)}
             xywh {20 135 375 25} down_box DOWN_BOX labelsize 12
           }
+          Fl_Check_Button m_ChkOptionsSliceMultisessionZoom {
+            label {By default, use the multi-session zoom}
+            xywh {20 155 375 25} down_box DOWN_BOX labelsize 12
+          }
           Fl_Check_Button m_ChkOptionsFloatingPointWarning {
             label {By default, issue warning when loading floating point images}
-            xywh {20 155 375 25} down_box DOWN_BOX labelsize 12
+            xywh {20 175 375 25} down_box DOWN_BOX labelsize 12
           }
           Fl_Button {} {
             label {&Apply}
