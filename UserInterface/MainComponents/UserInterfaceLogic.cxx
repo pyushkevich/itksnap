@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/18 01:19:13 $
-  Version:   $Revision: 1.52 $
+  Date:      $Date: 2009/04/18 05:28:09 $
+  Version:   $Revision: 1.53 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1811,11 +1811,19 @@ UserInterfaceLogic
 	   return 1;
         }
       // toggle crosshairs display
-      else if(Fl::event_key() == 'c')
+      else if(Fl::event_key() == 'c' && Fl::event_state() != FL_SHIFT)
         {
         SNAPAppearanceSettings::Element &e = m_AppearanceSettings->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
         e.Visible = !e.Visible;
         RedrawWindows();
+        return 1;
+        }
+      // center the 2D views
+      else if(Fl::event_key() == 'c' && Fl::event_state() == FL_SHIFT)
+        {
+        m_IRISWindowManager2D[0]->ResetViewPosition();
+        m_IRISWindowManager2D[1]->ResetViewPosition();
+        m_IRISWindowManager2D[2]->ResetViewPosition();
         return 1;
         }
 	 // selecting active drawing label
@@ -4677,6 +4685,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.53  2009/04/18 05:28:09  garyhuizhang
+ *added key stroke to reset the view center to image center
+ *
  *Revision 1.52  2009/02/18 01:19:13  garyhuizhang
  *ENH: added keyboard shortcut 'c' for toggling the visibility of crosshairs
  *

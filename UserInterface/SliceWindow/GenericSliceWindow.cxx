@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/12 00:13:06 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2009/04/18 05:28:09 $
+  Version:   $Revision: 1.16 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -732,6 +732,21 @@ GenericSliceWindow
 ::EnterZoomPanMode()
 {
   EnterInteractionMode(m_ZoomPanMode);
+}
+
+void
+GenericSliceWindow
+::ResetViewPosition()
+{
+  // Compute slice size in spatial coordinates
+  Vector2f worldSize(
+    m_SliceSize[0] * m_SliceSpacing[0],
+    m_SliceSize[1] * m_SliceSpacing[1]);
+
+  // Set the view position (position of the center of the image?)
+  m_ViewPosition = worldSize * 0.5f;
+
+  m_Canvas->redraw();
 }
 
 void 

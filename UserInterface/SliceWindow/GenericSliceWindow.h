@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/12 00:13:06 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/04/18 05:28:09 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -146,6 +146,9 @@ public:
   /** Return the image axis along which this window shows slices */
   size_t GetSliceDirectionInImageSpace()
     { return m_ImageAxes[2]; }
+
+  /** Reset the view position to center of the image */
+  void ResetViewPosition ();
 
   /** Set the zoom factor (number of pixels on the screen per millimeter in
    * image space */
