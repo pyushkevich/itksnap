@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/04/18 05:28:09 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/05/04 20:15:57 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -163,6 +163,12 @@ public:
 
   /** Set the zoom management flag */
   irisSetMacro(ManagedZoom,bool);
+
+  /** Set the view position **/
+  irisSetMacro(ViewPosition, Vector2f);
+
+  /** Get the view position **/
+  irisGetMacro(ViewPosition, Vector2f);
 
   /** Get the slice spacing in the display space orientation */
   irisGetMacro(SliceSpacing,Vector3f);

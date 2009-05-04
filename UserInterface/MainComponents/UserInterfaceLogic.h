@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 00:10:12 $
-  Version:   $Revision: 1.23 $
+  Date:      $Date: 2009/05/04 20:15:57 $
+  Version:   $Revision: 1.24 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -557,6 +557,9 @@ public:
   // specifies if this update should be broadcast to other SNAP instances
   void OnCrosshairPositionUpdate(bool flagBroadcastUpdate = true);
 
+  // Internal callback for when the view position changes
+  void OnViewPositionsUpdate (bool flagBroadcastUpdate = true);
+
   // Callback for when 3D view changes
   void OnTrackballUpdate(bool flagBroadcastUpdate = true);
 
@@ -984,6 +987,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.24  2009/05/04 20:15:57  garyhuizhang
+ *multisession panning support added
+ *
  *Revision 1.23  2009/02/10 00:10:12  garyhuizhang
  *ENH: Support two drawing options in the Annotation mode: 1) each line shown only on the slice level it is drawn; 2) each line is shown on all slice levels
  *

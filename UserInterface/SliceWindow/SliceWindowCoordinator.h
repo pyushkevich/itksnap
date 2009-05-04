@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SliceWindowCoordinator.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/05/04 20:15:57 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -111,16 +111,16 @@ public:
 protected:
 
   /** Pointer to the application driver for this UI object */
-  IRISApplication *m_Driver;
+  //IRISApplication *m_Driver;
 
   /** Pointer to the global state object (shorthand) */
-  GlobalState *m_GlobalState;
+  //GlobalState *m_GlobalState;
 
   /** Pointer to GUI that contains this Window3D object */
-  UserInterfaceBase *m_ParentUI;   
+  //UserInterfaceBase *m_ParentUI;   
 
   /** The image data object that is displayed in this window */
-  GenericImageData *m_ImageData;
+  //GenericImageData *m_ImageData;
 
   /** The pointers to three window interactors managed by this class */
   GenericSliceWindow *m_Window[3];

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/04/18 05:28:09 $
-  Version:   $Revision: 1.53 $
+  Date:      $Date: 2009/05/04 20:15:57 $
+  Version:   $Revision: 1.54 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1707,7 +1707,6 @@ UserInterfaceLogic
         pos[0] = vpos[0] = (unsigned int) (vox[0] + 0.5);
         pos[1] = vpos[1] = (unsigned int) (vox[1] + 0.5);
         pos[2] = vpos[2] = (unsigned int) (vox[2] + 0.5);
-        
         // Check if the voxel position is inside the image region
         if(vpos != m_GlobalUI->m_Driver->GetCursorPosition() 
           && id->GetImageRegion().IsInside(pos))
@@ -1718,7 +1717,16 @@ UserInterfaceLogic
           }
         }
 
-      // Update the 3D trackball
+	 // Update the view positions
+      if(m_GlobalUI->m_BtnSynchronizeCursor->value())
+        {
+        m_GlobalUI->m_IRISWindowManager2D[0]->SetViewPosition(ipcm.viewPosition[0]);
+        m_GlobalUI->m_IRISWindowManager2D[1]->SetViewPosition(ipcm.viewPosition[1]);
+        m_GlobalUI->m_IRISWindowManager2D[2]->SetViewPosition(ipcm.viewPosition[2]);
+	   m_GlobalUI->RedrawWindows();
+	   }
+
+	 // Update the 3D trackball
       if(m_GlobalUI->m_BtnSynchronizeCursor->value())
         {
         // Get the current 3D window object
@@ -1818,12 +1826,13 @@ UserInterfaceLogic
         RedrawWindows();
         return 1;
         }
-      // center the 2D views
+      // center the 2D views (reset view positions)
       else if(Fl::event_key() == 'c' && Fl::event_state() == FL_SHIFT)
         {
         m_IRISWindowManager2D[0]->ResetViewPosition();
         m_IRISWindowManager2D[1]->ResetViewPosition();
         m_IRISWindowManager2D[2]->ResetViewPosition();
+	   OnViewPositionsUpdate();
         return 1;
         }
 	 // selecting active drawing label
@@ -2238,6 +2247,25 @@ UserInterfaceLogic
 
     // Write the NIFTI cursor to shared memory
     m_Driver->GetSystemInterface()->IPCBroadcastCursor(cursor);
+    }
+}
+
+void
+UserInterfaceLogic
+::OnViewPositionsUpdate(bool flagBroadcastUpdate)
+{
+  if(flagBroadcastUpdate 
+    && m_GlobalUI->m_Activation->GetFlag(UIF_BASEIMG_LOADED)
+    && m_GlobalUI->m_BtnSynchronizeCursor->value())
+    {
+    // determine the view positions
+    Vector2f vPos[3];
+    for(unsigned int i=0; i<3; ++i)
+      {
+      vPos[i] = m_GlobalUI->m_IRISWindowManager2D[i]->GetViewPosition();
+      }
+    // write to shared memory
+    m_Driver->GetSystemInterface()->IPCBroadcastViewPosition(vPos);
     }
 }
 
@@ -2901,7 +2929,10 @@ UserInterfaceLogic
     if(m_GlobalState->GetSNAPActive())
       m_SNAPWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
     else
+      {
       m_IRISWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
+	 OnViewPositionsUpdate();
+	 }
 
     // Get the image axis that corresponds to the display window i
     unsigned int imageAxis = GetImageAxisForDisplayWindow(i);
@@ -4471,9 +4502,12 @@ UserInterfaceLogic
 ::OnResetView2DAction(unsigned int window)
 {
   m_SliceCoordinator->ResetViewToFitInOneWindow(window);
-  
+
   // Update the zoom level display
   OnZoomUpdate();
+
+  // Update the view position
+  OnViewPositionsUpdate();
 }
 
 void
@@ -4481,9 +4515,12 @@ UserInterfaceLogic
 ::OnResetAllViews2DAction()
 {
   m_SliceCoordinator->ResetViewToFitInAllWindows();
-  
+
   // Update the zoom level display
   OnZoomUpdate();
+
+  // Update the view position
+  OnViewPositionsUpdate();
 }
 
 void
@@ -4542,7 +4579,6 @@ UserInterfaceLogic
         m_SliceCoordinator->GetCommonZoomLevel());
       }
     }
-
   else
     {
     // Otherwise, clear the display
@@ -4685,6 +4721,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.54  2009/05/04 20:15:57  garyhuizhang
+ *multisession panning support added
+ *
  *Revision 1.53  2009/04/18 05:28:09  garyhuizhang
  *added key stroke to reset the view center to image center
  *

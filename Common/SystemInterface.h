@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/03 19:12:35 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/05/04 20:15:57 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -134,6 +134,9 @@ public:
     // The common zoom factor (screen pixels / mm)
     double zoom_level;   
 
+    // The common view positions
+    Vector2f viewPosition[3];
+
     // 3D view settings
     Trackball trackball;
     };
@@ -149,6 +152,7 @@ public:
   bool IPCBroadcastCursor(Vector3d cursor);
   bool IPCBroadcastTrackball(Trackball tball);
   bool IPCBroadcastZoomLevel(double zoom);
+  bool IPCBroadcastViewPosition(Vector2f vec[3]);
 
   /** Interprocess communication: release shared memory */
   void IPCClose();

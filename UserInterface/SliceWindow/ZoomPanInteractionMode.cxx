@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ZoomPanInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:29 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/05/04 20:15:57 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -79,7 +79,8 @@ ZoomPanInteractionMode
 
     // Under the left button, the tool changes the view_pos by the
     // distance traversed
-    m_Parent->m_ViewPosition = m_StartViewPosition - xOffset;
+    m_Parent->SetViewPosition(m_StartViewPosition - xOffset);
+    m_ParentUI->OnViewPositionsUpdate();
     } 
   else if (dragEvent.SoftButton == FL_RIGHT_MOUSE)
     {

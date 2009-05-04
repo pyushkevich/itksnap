@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 16:21:14 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2009/05/04 20:15:57 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -555,6 +555,24 @@ SystemInterface
 
   // Update the message
   mcurr.zoom_level = zoom_level;
+  return IPCBroadcast(mcurr);
+}
+
+bool
+SystemInterface
+::IPCBroadcastViewPosition(Vector2f vec[3])
+{
+  // Try reading the current memory
+  IPCMessage mcurr;
+  
+  // This may fail, but that's ok
+  IPCRead(mcurr);
+
+  // Update the message
+  mcurr.viewPosition[0] = vec[0];
+  mcurr.viewPosition[1] = vec[1];
+  mcurr.viewPosition[2] = vec[2];
+
   return IPCBroadcast(mcurr);
 }
 
