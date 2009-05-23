@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 05:04:33 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/05/23 03:59:25 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -65,7 +65,8 @@ public:
   typedef itk::FunctionBase<float,float> IntensityMapType;
 
   // Definition for the display slice type
-  typedef itk::Image<unsigned char,2> DisplaySliceType;
+  typedef unsigned char DisplayPixelType;
+  typedef itk::Image<DisplayPixelType,2> DisplaySliceType;
   typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
 
   /**
@@ -130,7 +131,7 @@ private:
   public:
 
     /** Map a grey value */
-    unsigned char operator()(const GreyType &value) const;
+    DisplayPixelType operator()(const GreyType &value) const;
 
     // The storage for the float->float intensity map
     IntensityMapType *m_IntensityMap;

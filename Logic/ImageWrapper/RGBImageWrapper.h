@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: RGBImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/05/23 03:59:25 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -16,7 +16,6 @@
 #define __RGBImageWrapper_h_
 
 #include "VectorImageWrapper.h"
-#include "RGBImageWrapper.h"
 #include "itkRGBAPixel.h"
 
 // Forward references to ITK
@@ -83,8 +82,9 @@ private:
   
   // Type of the display intensity mapping filter used when the 
   // input is a in-out image
+  typedef itk::Image<RGBType,2> RGBSliceType;
   typedef itk::UnaryFunctorImageFilter<
-    ImageWrapper<RGBType>::SliceType,DisplaySliceType,IntensityFunctor> 
+    RGBSliceType,DisplaySliceType,IntensityFunctor> 
     IntensityFilterType;
   typedef itk::SmartPointer<IntensityFilterType> IntensityFilterPointer;
 
