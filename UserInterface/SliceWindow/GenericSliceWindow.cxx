@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/04/18 05:28:09 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/05/25 17:11:28 $
+  Version:   $Revision: 1.17 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -76,8 +76,10 @@ GenericSliceWindow
   // The slice is not yet initialized
   m_IsSliceInitialized = false;
 
-  // Initialize the Grey slice texture
+  // Initialize the Grey slice texture (not default)
   m_GreyTexture = new GreyTextureType;
+  m_GreyTexture->SetGlComponents(4);
+  m_GreyTexture->SetGlFormat(GL_RGBA);
 
   // Initialize the RGB slice texture (not default)
   m_RGBTexture = new RGBTextureType;

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/05/04 20:15:57 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2009/05/25 17:11:28 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -285,7 +285,7 @@ protected:
   unsigned int m_Margin;
 
   // Grey texture object typedefs
-  typedef OpenGLSliceTexture<unsigned char> GreyTextureType;
+  typedef OpenGLSliceTexture<GreyImageWrapper::DisplayPixelType> GreyTextureType;
   typedef OpenGLSliceTexture<LabelType> LabelTextureType;
 
   // Label texture object typedefs

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 21:48:59 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/05/25 17:11:28 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -171,7 +171,7 @@ protected:
   PolygonDrawing *m_PolygonDrawing;
 
   // Type definition for the slice used for polygon rendering
-  typedef GreyImageWrapper::DisplaySliceType PolygonSliceType;
+  typedef itk::Image<unsigned char,2> PolygonSliceType;
   typedef itk::SmartPointer<PolygonSliceType> PolygonSlicePointer;
   
   /** Slice used for polygon drawing and merging */

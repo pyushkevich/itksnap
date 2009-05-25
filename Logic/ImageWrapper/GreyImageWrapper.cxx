@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/05/25 17:11:28 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -137,7 +137,7 @@ GreyImageWrapper::IntensityFunctor
   m_IntensityFactor = 1.0f / (intensityMax-intensityMin);
 }
 
-unsigned char
+GreyImageWrapper::DisplayPixelType
 GreyImageWrapper::IntensityFunctor
 ::operator()(const GreyType &in) const 
 {
@@ -147,8 +147,15 @@ GreyImageWrapper::IntensityFunctor
   // Compute the mapping
   float outZeroOne = m_IntensityMap->Evaluate(inZeroOne);
 
-  // Map the output to a byte
-  return (unsigned char)(255.0f * outZeroOne);
+  // Map the output to a RGBA pixel
+  DisplayPixelType pixel;
+  const unsigned char tmp = (unsigned char)(255.0f * outZeroOne);
+  pixel[0] = tmp;
+  pixel[1] = tmp;
+  pixel[2] = tmp;
+  pixel[3] = 0;
+
+  return pixel;
 }
 
 

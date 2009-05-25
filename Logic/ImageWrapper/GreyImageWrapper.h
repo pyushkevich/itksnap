@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/05/23 03:59:25 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/05/25 17:11:28 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,6 +36,7 @@
 #define __GreyImageWrapper_h_
 
 #include "ScalarImageWrapper.h"
+#include "itkRGBAPixel.h"
 // #include "IntensityCurveInterface.h"
 // #include "UnaryFunctorCache.h"
 
@@ -65,7 +66,7 @@ public:
   typedef itk::FunctionBase<float,float> IntensityMapType;
 
   // Definition for the display slice type
-  typedef unsigned char DisplayPixelType;
+  typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
   typedef itk::Image<DisplayPixelType,2> DisplaySliceType;
   typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
 
@@ -161,9 +162,9 @@ private:
 
   // Type of intensity function used to map 3D volume intensity into
   // 2D slice intensities
-  typedef UnaryFunctorCache<GreyType,unsigned char,IntensityFunctor> CacheType;
+  typedef UnaryFunctorCache<GreyType,DisplayPixelType,IntensityFunctor> CacheType;
   typedef itk::SmartPointer<CacheType> CachePointer;  
-  typedef CachingUnaryFunctor<GreyType,unsigned char,IntensityFunctor>
+  typedef CachingUnaryFunctor<GreyType,DisplayPixelType,IntensityFunctor>
      CacheFunctor;
 
   // Filters applied to slices
