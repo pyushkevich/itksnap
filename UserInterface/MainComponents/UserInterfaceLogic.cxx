@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/05/04 20:15:57 $
-  Version:   $Revision: 1.54 $
+  Date:      $Date: 2009/05/25 16:35:49 $
+  Version:   $Revision: 1.55 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -4008,6 +4008,9 @@ void UserInterfaceLogic
   // Should not be in SNAP mode
   assert(!m_GlobalState->GetSNAPActive());
 
+  // Set the history for the input wizard
+  m_WizSegmentationIO->SetHistory(m_SystemInterface->GetHistory("SegmentationImage"));
+
   // Set up the input wizard with the grey image
   m_WizSegmentationIO->SetGreyImage(
     m_Driver->GetCurrentImageData()->GetGrey()->GetImage());
@@ -4721,6 +4724,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.55  2009/05/25 16:35:49  garyhuizhang
+ *bug fix: history not activated when loading segmentation files
+ *
  *Revision 1.54  2009/05/04 20:15:57  garyhuizhang
  *multisession panning support added
  *
