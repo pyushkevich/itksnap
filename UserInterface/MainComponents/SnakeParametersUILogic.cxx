@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 00:10:12 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/05/25 17:09:44 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -655,7 +655,7 @@ SnakeParametersUILogic
   m_IODialog = new SimpleFileDialogLogic;
   m_IODialog->MakeWindow();
   m_IODialog->SetFileBoxTitle("Snake Parameters File:");
-  m_IODialog->SetPattern("Text files (*.{txt})");
+  m_IODialog->SetPattern("Text files\t*.txt");
   m_IODialog->SetLoadCallback(
     this,&SnakeParametersUILogic::LoadParametersCallback);
   m_IODialog->SetSaveCallback(

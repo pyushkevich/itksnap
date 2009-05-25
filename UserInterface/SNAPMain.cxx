@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 14:58:30 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/05/25 17:09:44 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -37,6 +37,8 @@
 #if defined(__BORLANDC__)
 #include "SNAPBorlandDummyTypes.h"
 #endif
+
+#include "Fl/Fl_Native_File_Chooser.H"
 
 #include "CommandLineArgumentParser.h"
 #include "ImageCoordinateGeometry.h"
@@ -125,21 +127,24 @@ bool FindDataDirectoryInteractive(const char *sExePath, SystemInterface &system)
       string sTitle = "Find a directory that contains file " + sMissingFile;
 
       // Look for the file using a file chooser
-      Fl_File_Chooser fc(sMissingFile.c_str(),"Directory Token File (*.txt)",
-                         Fl_File_Chooser::SINGLE,sTitle.c_str());
+	 Fl_Native_File_Chooser fc;
+	 fc.type(Fl_Native_File_Chooser::BROWSE_FILE);
+	 fc.title(sTitle.c_str());
+	 fc.filter("Directory Token File\t*.txt");
+	 fc.preset_file(sMissingFile.c_str());
       
       // Show the file chooser
-      fc.show();
-      while(fc.visible()) Fl::wait();
-
-      // Get the filename from the user
-      const char *file = fc.value();
+	 const char *fName = NULL;
+      if (fc.show())
+        {
+	   fName = fc.filename();
+	   }
       
       // If user hit cancel, continue
-      if(!file) continue;
+      if(!fName || !strlen(fName)) continue;
 
       // Make sure that the filename matches and get the path
-      string sBrowseName = itksys::SystemTools::GetFilenameName(file);
+      string sBrowseName = itksys::SystemTools::GetFilenameName(fName);
              
       // If not, check if they've selected a valid directory
       if(sBrowseName != sMissingFile)
@@ -150,7 +155,7 @@ bool FindDataDirectoryInteractive(const char *sExePath, SystemInterface &system)
         }
 
       // Make sure that the filename matches and get the path
-      string sBrowsePath = itksys::SystemTools::GetFilenamePath(file);
+      string sBrowsePath = itksys::SystemTools::GetFilenamePath(fName);
 
       // Set the path
       system["System.ProgramDataDirectory"] << sBrowsePath;
@@ -418,6 +423,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.13  2009/05/25 17:09:44  garyhuizhang
+ *ENH: switch from Fl_File_Chooser to Fl_Native_File_Chooser which requires the fltk to be patched with Fl_Native_File_Chooser add-on.
+ *
  *Revision 1.12  2009/02/05 14:58:30  pyushkevich
  *FIX: save slice layout appearance settings to registry; ENH: added linear interpolation option for grey images
  *

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2009/02/09 17:07:47 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/05/25 17:09:44 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,7 +35,7 @@
 #ifndef __ImageIOWizardLogic_txx_
 #define __ImageIOWizardLogic_txx_
 
-#include "FL/Fl_File_Chooser.H"
+#include "FL/Fl_Native_File_Chooser.H"
 #include "FL/Fl_Text_Buffer.H"
 #include <stdio.h>
 #include <cmath>
@@ -198,7 +198,7 @@ ImageIOWizardLogic<TPixel>
   bool patternNeedsTab = false;
 
   // String containing the "All Image Files" pattern
-  StringType allImageFiles = "All Image Files (*.{"; 
+  StringType allImageFiles = "All Image Files\t*.{";
   bool allImageFilesNeedsComma = false;
 
   // Go through all supported formats
@@ -222,24 +222,23 @@ ImageIOWizardLogic<TPixel>
 
       // Add a tab to the pattern
       if(patternNeedsTab)
-        pattern += "\t";
+        pattern += "\n";
       else
         patternNeedsTab = true;
 
       // Construct the pattern
       pattern += fd.name;
-      pattern += " Files (*.{";
+      pattern += " Files\t*.{";
       pattern += fd.pattern;
-      pattern += "})";
+      pattern += "}";
       }
     }
 
   // Finish the all image pattern
-  allImageFiles += "})\t";
+  allImageFiles += "}\n";
 
   // Compete the pattern
   pattern = allImageFiles + pattern;
-  
   return pattern;
 }
 
@@ -300,10 +299,19 @@ void ImageIOWizardLogic<TPixel>
   path = strlen(path) ? path : NULL;
 
   // Configure a file dialog
-  char *fName = fl_file_chooser("Load Image", pattern.c_str(), path);
-  
+  const char *fName = NULL;
+  Fl_Native_File_Chooser chooser;
+  chooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
+  chooser.title("Load Image");
+  chooser.preset_file(path);
+  chooser.filter(pattern.c_str());
+  if (chooser.show() == 0)
+   {
+   fName = chooser.filename();
+   }
+
   // Bring up th choice dialog
-  if (fName)
+  if (fName && strlen(fName))
     {
     // Set the new filename
     m_InFilePageBrowser->value(fName);
@@ -1058,8 +1066,18 @@ ImageIOWizardLogic<TPixel>
   StringType pattern = this->GetFilePattern(false);
 
   // Create a file chooser
-  char *fName = fl_file_chooser("Save Image As", pattern.c_str(), path);
-  if (fName)
+  const char *fName = NULL;
+  Fl_Native_File_Chooser chooser;
+  chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+  chooser.title("Save Image As");
+  chooser.preset_file(path);
+  chooser.filter(pattern.c_str());
+  if (chooser.show() == 0)
+   {
+   fName = chooser.filename();
+   }
+
+  if (fName && strlen(fName))
     {
     // Set the new filename
     m_InSaveFilePageBrowser->value(fName);

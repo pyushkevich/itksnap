@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SimpleFileDialogLogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:18 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/05/25 17:09:44 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -40,7 +40,7 @@
 #include "SimpleFileDialog.h"
 #include "itkCommand.h"
 
-class Fl_File_Chooser;
+class Fl_Native_File_Chooser;
 namespace itk {
   class Command;
 }
@@ -147,9 +147,8 @@ private:
   CommandPointer m_SaveCallback;
   CommandPointer m_LoadCallback;
 
-  // File choosers
-  Fl_File_Chooser *m_FileChooserLoad;
-  Fl_File_Chooser *m_FileChooserSave;
+  // File chooser
+  Fl_Native_File_Chooser *m_FileChooser;
 
 };
 

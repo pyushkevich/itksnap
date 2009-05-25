@@ -12,9 +12,6 @@ decl {\#include <string.h>} {public
 decl {\#include <FL/fl_ask.H>} {public
 } 
 
-decl {\#include <FL/Fl_File_Chooser.H>} {public
-} 
-
 class UserInterface {open : {public UserInterfaceBase}
 } {
   declblock {\#if 1 // Local variable declarations} {after {\#endif}

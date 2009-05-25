@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SimpleFileDialogLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/05/25 17:09:44 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -34,7 +34,7 @@
 =========================================================================*/
 #include "SimpleFileDialogLogic.h"
 #include "itkCommand.h"
-#include "FL/Fl_File_Chooser.H"
+#include "FL/Fl_Native_File_Chooser.H"
 
 #include <algorithm>
 
@@ -43,17 +43,14 @@ using namespace std;
 SimpleFileDialogLogic
 ::SimpleFileDialogLogic()
 {
-  m_FileChooserLoad = NULL;
-  m_FileChooserSave = NULL;
+  m_FileChooser = NULL;
 }
 
 SimpleFileDialogLogic
 ::~SimpleFileDialogLogic()
 {
-  if(m_FileChooserLoad)
-    delete m_FileChooserLoad;
-  if(m_FileChooserSave)
-    delete m_FileChooserSave;
+  if(m_FileChooser)
+    delete m_FileChooser;
 }
 
 void
@@ -61,10 +58,7 @@ SimpleFileDialogLogic
 ::MakeWindow()
 {
   SimpleFileDialog::MakeWindow();
-  m_FileChooserLoad = 
-    new Fl_File_Chooser(NULL,NULL,Fl_File_Chooser::SINGLE,"Select a File");
-  m_FileChooserSave = 
-    new Fl_File_Chooser(NULL,NULL,Fl_File_Chooser::CREATE,"Select a File");
+  m_FileChooser = new Fl_Native_File_Chooser;
 }
 
 void
@@ -151,26 +145,35 @@ void
 SimpleFileDialogLogic
 ::OnBrowseAction()
 {
-  // Choose which file chooser to use
-  Fl_File_Chooser *fc = (m_SaveMode) ? m_FileChooserSave : m_FileChooserLoad;
-
+  if (m_SaveMode)
+    {
+    m_FileChooser->type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+    m_FileChooser->title("Save a file");
+    }
+  else
+    {
+    m_FileChooser->type(Fl_Native_File_Chooser::BROWSE_FILE);
+    m_FileChooser->title("Load a file");
+    }
+  
   // If there is something in the file box, pass it to the chooser
   if(m_InFile->value() && strlen(m_InFile->value()))
-    fc->value(m_InFile->value());
+    m_FileChooser->preset_file(m_InFile->value());
 
   // Set the pattern
-  fc->filter(m_Pattern.c_str());
+  m_FileChooser->filter(m_Pattern.c_str());
 
   // Show the dialog
-  fc->show();  
-  while(fc->shown()) Fl::wait();
-
-  // Once the dialog is done, get the value
-  if(fc->value() && strlen(fc->value()))
+  if (m_FileChooser->show())
     {
-    m_InFile->value(fc->value());
-    m_BtnOk->activate();
-    }  
+    const char *fName = NULL;
+    fName = m_FileChooser->filename();
+    if (fName && strlen(fName))
+	 {
+	 m_InFile->value(fName);
+	 m_BtnOk->activate();
+	 }
+    }
 }
 
 void 

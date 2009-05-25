@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MeshIOWizardUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:47:41 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/05/25 17:09:44 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,7 +35,7 @@
 #include "MeshIOWizardUILogic.h"
 #include "IRISApplication.h"
 #include "GuidedMeshIO.h"
-#include "FL/Fl_File_Chooser.H"
+#include "FL/Fl_Native_File_Chooser.H"
 
 using namespace std;
 
@@ -121,10 +121,18 @@ MeshIOWizardUILogic
   path = strlen(path) ? path : NULL;
 
   // Configure a file dialog
-  char *fName = fl_file_chooser("Select a mesh file", pattern.c_str(), path);
-
+  const char *fName = NULL;
+  Fl_Native_File_Chooser chooser;
+  chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+  chooser.title("Select a mesh file");
+  chooser.filter(pattern.c_str());
+  chooser.directory(path);
+  if (chooser.show())
+    {
+    fName = chooser.filename();
+    }
   // Bring up th choice dialog
-  if (fName)
+  if (fName && !strlen(fName))
     {
     // Set the new filename
     m_InFilePageBrowser->value(fName);

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/05/25 16:35:49 $
-  Version:   $Revision: 1.55 $
+  Date:      $Date: 2009/05/25 17:09:44 $
+  Version:   $Revision: 1.56 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,6 +41,8 @@
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4996 )
 #endif
+
+#include "FL/Fl_Native_File_Chooser.H"
 
 #include "UserInterfaceLogic.h"
 
@@ -80,8 +82,6 @@
 #include "SliceWindowCoordinator.h"
 #include "SNAPAppearanceSettings.h"
 #include "FLTKWidgetActivationManager.h"
-
-#include "FL/Fl_File_Chooser.H"
 
 #include "itkImageIOBase.h"
 #include <itksys/SystemTools.hxx>
@@ -475,7 +475,7 @@ UserInterfaceLogic
   m_DlgLabelsIO = new SimpleFileDialogLogic();
   m_DlgLabelsIO->MakeWindow();
   m_DlgLabelsIO->SetFileBoxTitle("Label description file:");
-  m_DlgLabelsIO->SetPattern("All Label Files (*.{label,lbl,lab,txt})");
+  m_DlgLabelsIO->SetPattern("All Label Files\t*.{label,lbl,lab,txt}");
   m_DlgLabelsIO->SetLoadCallback(this,&UserInterfaceLogic::OnLoadLabelsAction);
   m_DlgLabelsIO->SetSaveCallback(this,&UserInterfaceLogic::OnSaveLabelsAction);
 
@@ -483,7 +483,7 @@ UserInterfaceLogic
   m_DlgVoxelCountsIO = new SimpleFileDialogLogic();
   m_DlgVoxelCountsIO->MakeWindow();
   m_DlgVoxelCountsIO->SetFileBoxTitle("Voxel count file:");
-  m_DlgVoxelCountsIO->SetPattern("Text files (*.{txt})");
+  m_DlgVoxelCountsIO->SetPattern("Text files\t*.txt");
   m_DlgVoxelCountsIO->SetSaveCallback(
     this,&UserInterfaceLogic::OnWriteVoxelCountsAction);
 
@@ -3837,18 +3837,27 @@ UserInterfaceLogic
   std::string dir = itksys::SystemTools::GetCurrentWorkingDirectory();
   itksys::SystemTools::ChangeDirectory(path.c_str());
 
-  // Get the filename 
-  const char *fchosen = 
-    fl_file_chooser("Save PNG Snapshot", "PNG Files (*.png)", file.c_str());
+  // We need to get a filename for the export
+  Fl_Native_File_Chooser chooser;
+  chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+  chooser.title("Save PNG Snapshot");
+  chooser.filter("PNG Files\t*.png");
+  chooser.directory(path.c_str());
+  chooser.preset_file(file.c_str());
+  const char *fChosen = NULL;
+  if (chooser.show())
+    {
+    fChosen = chooser.filename();
+    }
   
   // Restore the current directory
   itksys::SystemTools::ChangeDirectory(dir.c_str());
 
-  if(!fchosen)
+  if(!fChosen || !strlen(fChosen))
     return;
 
   // Store the filename for incrementing numerical names
-  m_LastSnapshotFileName = fchosen;
+  m_LastSnapshotFileName = fChosen;
 
   // Check if the user omitted the extension
   if(itksys::SystemTools::GetFilenameExtension(m_LastSnapshotFileName) == "")
@@ -3893,18 +3902,24 @@ UserInterfaceLogic
       (AnatomicalDirection) iSlice);
 
   // let the user pick the directory for saving the screenshots
-  char *path = fl_dir_chooser(
-    "Select the directory to save the screenshots", NULL, 0);
-  
+  Fl_Native_File_Chooser chooser;
+  chooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
+  chooser.title("Select the directory to save the screenshots");
+  const char *path = NULL;
+  if (chooser.show())
+    {
+    path = chooser.filename();
+    }
   // set up the 1st snapshot name
   std::string fname;
-  if (path)
-  {
+  if (path && strlen(path))
+    {
     fname = path;
-  } else
-  {
+    }
+  else
+    {
     return;
-  }
+    }
   
   switch (iSlice)
   {
@@ -3951,11 +3966,18 @@ void UserInterfaceLogic
 ::OnMenuExportSlice(unsigned int iSlice)
 {
   // We need to get a filename for the export
-  char* fName = fl_file_chooser(
-    "Export Slice As", "Image Files (*.{png,jpg,gif,tiff})", NULL);
-
-  if(fName)
-    m_Driver->ExportSlice((AnatomicalDirection) iSlice, fName);
+  Fl_Native_File_Chooser chooser;
+  chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+  chooser.title("Export Slice As");
+  chooser.filter("Image Files\t*.{png,jpg,gif,tiff}");
+  if (chooser.show())
+    {
+    const char *fName = chooser.filename();
+    if (fName && strlen(fName))
+	 {
+      m_Driver->ExportSlice((AnatomicalDirection) iSlice, fName);
+	 }
+    }
 }
 
 void UserInterfaceLogic
@@ -4724,6 +4746,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.56  2009/05/25 17:09:44  garyhuizhang
+ *ENH: switch from Fl_File_Chooser to Fl_Native_File_Chooser which requires the fltk to be patched with Fl_Native_File_Chooser add-on.
+ *
  *Revision 1.55  2009/05/25 16:35:49  garyhuizhang
  *bug fix: history not activated when loading segmentation files
  *
