@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/05/29 17:32:42 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -69,6 +69,11 @@ public:
   virtual itk::ImageBase<3> *GetImageBase() const = 0;
   virtual bool IsInitialized() const = 0;
   virtual Vector3ui GetSize() const = 0;
+  virtual itk::ImageRegion<3> GetBufferedRegion() const = 0;
+  virtual Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const = 0;
+  virtual Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3ui &iVoxel) const = 0;
+  virtual Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const = 0;
+  virtual vnl_matrix_fixed<double, 4, 4> GetNiftiSform() const = 0;
 
 };
 
@@ -183,6 +188,12 @@ public:
    * Get the size of the image
    */
   virtual Vector3ui GetSize() const;
+
+  /**
+   * Get the buffered region of the image
+   */
+  virtual itk::ImageRegion<3> GetBufferedRegion() const
+    { return m_Image->GetBufferedRegion(); }
 
   /** Get the current slice index */
   virtual Vector3ui GetSliceIndex() const;
