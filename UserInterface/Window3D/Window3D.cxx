@@ -3,8 +3,8 @@
   Progra_P:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: Window3D.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/30 23:08:21 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/06/02 04:32:46 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -462,13 +462,13 @@ Window3D
   m_Trackball.TrackRot(10,8,20,20);
   m_Trackball.StopRot();
 
-  if (m_Driver->GetCurrentImageData()->IsGreyLoaded())
+  if (m_Driver->GetCurrentImageData()->IsMainLoaded())
     {
     // data dimensions
     m_ImageSize = m_Driver->GetCurrentImageData()->GetVolumeExtents();  
 
     // world transform
-    m_WorldMatrix = m_Driver->GetCurrentImageData()->GetGrey()->GetNiftiSform();
+    m_WorldMatrix = m_Driver->GetCurrentImageData()->GetMain()->GetNiftiSform();
 
     // Volume size
     m_VolumeSize = vector_multiply_mixed<double,unsigned int,3>(
@@ -751,7 +751,7 @@ Window3D
 ::OnCrosshairClickAction(int x,int y)
 {
   // Make sure that there is a valid image
-  if (!m_Driver->GetCurrentImageData()->IsGreyLoaded()) return;
+  if (!m_Driver->GetCurrentImageData()->IsMainLoaded()) return;
 
   // Only respond to the left mouse button (why?)
   Vector3i hit;
@@ -769,7 +769,7 @@ Window3D
 ::OnSpraypaintClickAction(int x,int y)
 {
   // Make sure that there is a valid image
-  if (!m_Driver->GetCurrentImageData()->IsGreyLoaded()) return;
+  if (!m_Driver->GetCurrentImageData()->IsMainLoaded()) return;
 
   Vector3i hit;
   if (this->IntersectSegData(x, y, hit))
@@ -785,7 +785,7 @@ Window3D
 ::OnScalpelPointPairAction(int x1, int y1, int x2, int y2)
 {
   // Requires a loaded image
-  if (!m_Driver->GetCurrentImageData()->IsGreyLoaded()) return;
+  if (!m_Driver->GetCurrentImageData()->IsMainLoaded()) return;
 
   // Pass in the first point
   // OnCutPlanePointRayAction(x1, y1, 1);
@@ -1315,6 +1315,9 @@ Window3D
 
 /*
  *$Log: Window3D.cxx,v $
+ *Revision 1.9  2009/06/02 04:32:46  garyhuizhang
+ *ENH: layer support
+ *
  *Revision 1.8  2009/01/30 23:08:21  garyhuizhang
  *ENH: better implementation of the keyboard shortcuts that do not require the SHIFT key
  *
