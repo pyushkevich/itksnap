@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2009/06/05 04:00:07 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/06/05 06:26:19 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,10 +41,10 @@ bool
 RestrictedImageIOWizardLogic<TPixel>
 ::DisplayInputWizard(const char *file, const char *type)
 {
-  // Make sure there is a grey image as a reference
+  // Make sure there is a main image as a reference
   assert(m_MainImage);
 
-  // Get the size and spacing of the grey image
+  // Get the size and spacing of the main image
   SizeType requiredSize = m_MainImage->GetBufferedRegion().GetSize();
 
   const double *requiredSpacing = m_MainImage->GetImageBase()->GetSpacing().GetDataPointer();
@@ -77,7 +77,7 @@ RestrictedImageIOWizardLogic<TPixel>
     // Bark at the user
     fl_alert(
       "The size of the image you are attempting to load does not match "
-      "the size of the 'grey' image already loaded.");
+      "the size of the main image already loaded.");
 
     return false;
     }
@@ -124,13 +124,13 @@ RestrictedImageIOWizardLogic<TPixel>
     // Create an alert box
     fl_choice(
       "There is a mismatch between the header of the image that you are\n"
-      "loading and the header of the 'grey' image currently open in SNAP.\n\n"
+      "loading and the header of the main image currently open in SNAP.\n\n"
       "The images have different %s. \n\n"
       "SNAP will ignore the header information in the image you are loading.\n",
       "Ok", NULL, NULL,
       object.c_str());
 
-    // Make the header of the image match that of the grey image
+    // Make the header of the image match that of the main image
     this->m_Image->SetOrigin(m_MainImage->GetImageBase()->GetOrigin());
     this->m_Image->SetSpacing(m_MainImage->GetImageBase()->GetSpacing());
     this->m_Image->SetDirection(m_MainImage->GetImageBase()->GetDirection());
