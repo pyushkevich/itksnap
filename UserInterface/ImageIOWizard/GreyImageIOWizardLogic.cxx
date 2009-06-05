@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageIOWizardLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/06/05 04:00:58 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -43,3 +43,4 @@
 #include "RestrictedImageIOWizardLogic.txx"
 
 template class ImageIOWizardLogic<GreyType>;
+template class RestrictedImageIOWizardLogic<GreyType>;

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/06/05 04:00:58 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -40,15 +40,22 @@
 
 /**
  * \class GreyImageIOWizardLogic
- * \brief A concrete instantiation of a wizard for loading and saving 
+ * \brief A concrete instantiation of a wizard for loading and saving
  * grey images
  */
-class GreyImageIOWizardLogic : 
-  public ImageIOWizardLogic<GreyType> 
+class GreyImageIOWizardLogic :
+  public ImageIOWizardLogic<GreyType>
 {
   bool IsNativeFormatSupported() const
-    { return true; };  
+    { return true; };
 };
+
+class RestrictedGreyImageIOWizardLogic :
+  public RestrictedImageIOWizardLogic<GreyType>
+{
+  bool IsNativeFormatSupported() const
+    { return true; };
+}
 
 #endif
 
