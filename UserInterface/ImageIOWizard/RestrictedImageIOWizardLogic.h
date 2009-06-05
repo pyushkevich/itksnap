@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/06 18:56:04 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/06/05 04:00:07 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,6 +36,7 @@
 #define __RestrictedImageIOWizardLogic_h_
 
 #include "ImageIOWizardLogic.h"
+#include "ImageWrapper.h"
 
 /**
  * \class RestrictedImageIOWizardLogic.h
@@ -49,15 +50,12 @@ public:
   typedef ImageIOWizardLogic<TPixel> Superclass;
   typedef typename itk::Size<3> SizeType;
 
-  typedef typename itk::OrientedImage<GreyType,3> GreyImageType;
-  typedef typename itk::SmartPointer<GreyImageType> GreyImagePointer;
-
   /** Some extra work is done before displaying the wizard in this method */
   virtual bool DisplayInputWizard(const char *file, const char *type = NULL);
 
-  /** Set the grey image that provides some metadata for loading the 
+  /** Set the main image that provides some metadata for loading the 
    * segmentation image */
-  irisSetMacro(GreyImage,GreyImageType *);
+  irisSetMacro(MainImage,ImageWrapperBase *);
 
 protected:
 
@@ -69,8 +67,8 @@ protected:
   virtual void GuessImageOrientation() {};
 
 private:
-  /** Grey image template */
-  GreyImagePointer m_GreyImage;
+  /** Main image template */
+  ImageWrapperBase *m_MainImage;
 };
 
 // TXX not included on purporse

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2009/05/25 17:09:44 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/06/05 04:00:07 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -42,12 +42,12 @@ RestrictedImageIOWizardLogic<TPixel>
 ::DisplayInputWizard(const char *file, const char *type)
 {
   // Make sure there is a grey image as a reference
-  assert(m_GreyImage);
+  assert(m_MainImage);
 
   // Get the size and spacing of the grey image
-  SizeType requiredSize = m_GreyImage->GetBufferedRegion().GetSize();
+  SizeType requiredSize = m_MainImage->GetBufferedRegion().GetSize();
 
-  const double *requiredSpacing = m_GreyImage->GetSpacing().GetDataPointer();
+  const double *requiredSpacing = m_MainImage->GetImageBase()->GetSpacing().GetDataPointer();
 
   // Prepare the header page of the wizard UI
   this->m_InHeaderPageDimX->value(requiredSize[0]);
@@ -68,7 +68,7 @@ RestrictedImageIOWizardLogic<TPixel>
 {
   // TODO: Move this code to IRISApplications and call from here and from
   // command-line loading.
-  SizeType requiredSize = m_GreyImage->GetBufferedRegion().GetSize();
+  SizeType requiredSize = m_MainImage->GetBufferedRegion().GetSize();
   SizeType loadedSize = this->m_Image->GetBufferedRegion().GetSize();
 
   // Check whether or not the image size matches the 'forced' image size
@@ -88,15 +88,15 @@ RestrictedImageIOWizardLogic<TPixel>
   bool match_spacing = true, match_origin = true, match_direction = true;
   for(size_t i = 0; i < 3; i++)
     {
-    if(m_GreyImage->GetSpacing()[i] != this->m_Image->GetSpacing()[i])
+    if(m_MainImage->GetImageBase()->GetSpacing()[i] != this->m_Image->GetSpacing()[i])
       match_spacing = false;
 
-    if(m_GreyImage->GetOrigin()[i] != this->m_Image->GetOrigin()[i])
+    if(m_MainImage->GetImageBase()->GetOrigin()[i] != this->m_Image->GetOrigin()[i])
       match_origin = false;
 
     for(size_t j = 0; j < 3; j++)
       {
-      double diff = fabs(m_GreyImage->GetDirection()(i,j) - this->m_Image->GetDirection()(i,j));
+      double diff = fabs(m_MainImage->GetImageBase()->GetDirection()(i,j) - this->m_Image->GetDirection()(i,j));
       if(diff > 1.0e-4)
         match_direction = false;
       }
@@ -131,9 +131,9 @@ RestrictedImageIOWizardLogic<TPixel>
       object.c_str());
 
     // Make the header of the image match that of the grey image
-    this->m_Image->SetOrigin(m_GreyImage->GetOrigin());
-    this->m_Image->SetSpacing(m_GreyImage->GetSpacing());
-    this->m_Image->SetDirection(m_GreyImage->GetDirection());
+    this->m_Image->SetOrigin(m_MainImage->GetImageBase()->GetOrigin());
+    this->m_Image->SetSpacing(m_MainImage->GetImageBase()->GetSpacing());
+    this->m_Image->SetDirection(m_MainImage->GetImageBase()->GetDirection());
 
     return true;
     }
