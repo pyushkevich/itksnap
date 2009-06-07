@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RGBImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/06/07 22:44:45 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -40,24 +40,27 @@
 template class ImageWrapper<RGBType>;
 template class VectorImageWrapper<RGBType>;
 
-unsigned char RGBImageWrapper::IntensityFunctor::m_Alpha = 0;
-
 using namespace itk;
 
 RGBImageWrapper
 ::RGBImageWrapper()
 : VectorImageWrapper<RGBType> ()
 {
+  // Initialize the intensity functor
+  m_IntensityFunctor.m_Alpha = 255;
+
   // Intialize display filters
   for(unsigned int i=0;i<3;i++) 
     {
     // Create the intensity mapping filter
     m_DisplayFilter[i] = IntensityFilterType::New();
-    
+
+    // Set the intensity functor
+    m_DisplayFilter[i]->SetFunctor(m_IntensityFunctor);
+
     // Set the corresponding slice as the input image
     m_DisplayFilter[i]->SetInput(GetSlice(i));
     }
-
 }
 
 RGBImageWrapper
@@ -81,7 +84,7 @@ void
 RGBImageWrapper
 ::SetAlpha (unsigned char alpha)
 {
-RGBImageWrapper::IntensityFunctor::m_Alpha = alpha;
+  m_IntensityFunctor.m_Alpha = alpha;
 }
 
 RGBImageWrapper::DisplayPixelType
@@ -90,7 +93,6 @@ RGBImageWrapper::IntensityFunctor
 {
   // Create a new pixel
   DisplayPixelType pixel;
-
   pixel[0] = x[0];
   pixel[1] = x[1];
   pixel[2] = x[2];

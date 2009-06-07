@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: RGBImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/05/23 03:59:25 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/06/07 22:44:45 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -70,14 +70,21 @@ private:
   
   class IntensityFunctor {
   public:
-      /** The operator that maps label to color */
-      DisplayPixelType operator()(const RGBType &x) const;
-      
-	 // Dummy equality operators, since there is no data here
-      bool operator == (const IntensityFunctor &) const { return true; }
-      bool operator != (const IntensityFunctor &) const { return false; }
-	 
-	 static unsigned char m_Alpha;
+    /** The operator that maps label to color */
+    DisplayPixelType operator()(const RGBType &x) const;
+
+    // Equality operators required, if variables defined!!!
+    bool operator == (const IntensityFunctor &z) const
+      {
+      return m_Alpha == z.m_Alpha;
+      }
+    bool operator != (const IntensityFunctor &z) const
+      {
+      return !(*this == z);
+      }
+
+    //static unsigned char m_Alpha;
+    unsigned char m_Alpha;
   };
   
   // Type of the display intensity mapping filter used when the 
@@ -89,6 +96,8 @@ private:
   typedef itk::SmartPointer<IntensityFilterType> IntensityFilterPointer;
 
   IntensityFilterPointer m_DisplayFilter[3];
+
+  IntensityFunctor m_IntensityFunctor;
 
 };
 
