@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/05/25 17:11:28 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/06/07 22:55:48 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -117,6 +117,11 @@ public:
    */
   DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
+  /**
+   * Set the alpha
+   */
+  void SetAlpha (unsigned char alpha);
+
   /** Constructor initializes mappers */
   GreyImageWrapper();
 
@@ -140,16 +145,19 @@ private:
     // Intensity mapping factors
     GreyType m_IntensityMin;
     float m_IntensityFactor;
+ 
+    // Alpha
+    unsigned char m_Alpha;
 
-    // Dummy equality operators, since there is no data here
+    // Equality operators required, if variables defined!!!
     bool operator == (const IntensityFunctor &z) const 
       { 
       return 
         m_IntensityMap == z.m_IntensityMap &&
         m_IntensityFactor == z.m_IntensityFactor &&
-        m_IntensityMin == z.m_IntensityMin;
+        m_IntensityMin == z.m_IntensityMin &&
+	   m_Alpha == z.m_Alpha;
       }
-
 
     bool operator != (const IntensityFunctor &z) const 
       { return !(*this == z); }

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/05/25 17:11:28 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/06/07 22:55:48 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -50,6 +50,9 @@ GreyImageWrapper
 ::GreyImageWrapper()
 : ScalarImageWrapper<GreyType> ()
 {
+  // Initialize the intensity functor
+  m_IntensityFunctor.m_Alpha = 255;
+
   // Instantiate the cache
   m_IntensityMapCache = CacheType::New();
 
@@ -128,6 +131,12 @@ GreyImageWrapper
   return m_IntensityFilter[dim]->GetOutput();
 }
 
+void
+GreyImageWrapper
+::SetAlpha(unsigned char alpha)
+{
+  m_IntensityFunctor.m_Alpha = alpha;
+}
 
 void 
 GreyImageWrapper::IntensityFunctor
@@ -153,7 +162,7 @@ GreyImageWrapper::IntensityFunctor
   pixel[0] = tmp;
   pixel[1] = tmp;
   pixel[2] = tmp;
-  pixel[3] = 0;
+  pixel[3] = m_Alpha;
 
   return pixel;
 }
