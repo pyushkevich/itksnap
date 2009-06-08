@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/08 04:27:09 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/06/08 04:32:04 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -126,7 +126,7 @@ public:
   /**
    * Set the colormap
    */
-  void SetColormap (ColorMapType colormap);
+  void SetColorMap (ColorMapType colormap);
 
   /** Constructor initializes mappers */
   GreyImageWrapper();

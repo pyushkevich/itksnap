@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/08 04:27:09 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/06/08 04:32:04 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -141,7 +141,7 @@ GreyImageWrapper
 
 void
 GreyImageWrapper
-::SetColormap(ColorMapType colormap)
+::SetColorMap(ColorMapType colormap)
 {
   m_IntensityFunctor.m_Colormap = colormap;
 }
