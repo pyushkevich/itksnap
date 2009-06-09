@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/05/25 17:11:28 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009/06/09 05:49:45 $
+  Version:   $Revision: 1.18 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -81,6 +81,11 @@ GenericSliceWindow
   m_GreyTexture->SetGlComponents(4);
   m_GreyTexture->SetGlFormat(GL_RGBA);
 
+  // Initialize the Grey overlay slice texture (not default)
+  m_GreyOverlayTexture = new GreyTextureType;
+  m_GreyOverlayTexture->SetGlComponents(4);
+  m_GreyOverlayTexture->SetGlFormat(GL_RGBA);
+
   // Initialize the RGB slice texture (not default)
   m_RGBTexture = new RGBTextureType;
   m_RGBTexture->SetGlComponents(4);
@@ -92,10 +97,10 @@ GenericSliceWindow
   m_LabelRGBTexture->SetGlFormat(GL_RGBA);
 
   // Initialize the color index texture on systems that support it (?)
-  m_LabelColorIndexTexture = new LabelTextureType;
-  m_LabelColorIndexTexture->SetGlComponents(1);
-  m_LabelColorIndexTexture->SetGlFormat(GL_COLOR_INDEX);
-  m_LabelColorIndexTexture->SetGlType(GL_UNSIGNED_SHORT);
+//  m_LabelColorIndexTexture = new LabelTextureType;
+//  m_LabelColorIndexTexture->SetGlComponents(1);
+//  m_LabelColorIndexTexture->SetGlFormat(GL_COLOR_INDEX);
+//  m_LabelColorIndexTexture->SetGlType(GL_UNSIGNED_SHORT);
 
   // Initalize the margin
   m_Margin = 2;
@@ -128,9 +133,10 @@ GenericSliceWindow
 
   // Delete textures
   delete m_GreyTexture;
+  delete m_GreyOverlayTexture;
   delete m_RGBTexture;
   delete m_LabelRGBTexture;
-  delete m_LabelColorIndexTexture;
+//  delete m_LabelColorIndexTexture;
 }
 
 void 
@@ -143,23 +149,45 @@ GenericSliceWindow
   // Store the image data pointer
   m_ImageData = imageData;
 
+  // The main image should be loaded
+  if (!imageData->IsMainLoaded())
+    {
+    // If not
+    m_IsSliceInitialized = false;
+    ClearInteractionStack();
+    return;
+    }
+
   // Initialize the grey slice texture
-  m_GreyTexture->SetImage(
-    m_ImageData->GetGrey()->GetDisplaySlice(m_Id));
+  if (imageData->IsGreyLoaded())
+    {
+    m_GreyTexture->SetImage(
+      m_ImageData->GetGrey()->GetDisplaySlice(m_Id));
+    }
+
+  // Initialize the grey overlay slice texture
+  if (imageData->IsGreyOverlayLoaded())
+    {
+    m_GreyOverlayTexture->SetImage(
+      m_ImageData->GetGreyOverlay()->GetDisplaySlice(m_Id));
+    }
 
   // Initialize the RGB slice texture
-  if(imageData->IsRGBLoaded())
+  if (imageData->IsRGBLoaded())
     {
     m_RGBTexture->SetImage(
       m_ImageData->GetRGB()->GetDisplaySlice(m_Id));
     }
   
   // Initialize the segmentation slice texture
-  m_LabelRGBTexture->SetImage(
-    m_ImageData->GetSegmentation()->GetDisplaySlice(m_Id));
+  if (imageData->IsSegmentationLoaded())
+    {
+    m_LabelRGBTexture->SetImage(
+      m_ImageData->GetSegmentation()->GetDisplaySlice(m_Id));
+    }
 
-  m_LabelColorIndexTexture->SetImage(
-    m_ImageData->GetSegmentation()->GetSlice(m_Id));
+//  m_LabelColorIndexTexture->SetImage(
+//    m_ImageData->GetSegmentation()->GetSlice(m_Id));
 
   // Store the transforms between the display and image spaces
   m_ImageToDisplayTransform = 
@@ -401,6 +429,7 @@ GenericSliceWindow
   // Make the grey and segmentation image textures up-to-date
   DrawGreyTexture();
   DrawRGBTexture();
+  DrawGreyOverlayTexture();
   DrawSegmentationTexture();
 
   // Draw the overlays
@@ -423,7 +452,7 @@ GenericSliceWindow
 ::DrawGreyTexture() 
 {
   // We should have a slice to return
-  assert(m_ImageData->IsGreyLoaded() && m_ImageSliceIndex >= 0);
+  assert(m_ImageSliceIndex >= 0);
 
   // Get the color to use for background
   Vector3d clrBackground = m_ThumbnailIsDrawing
@@ -435,20 +464,54 @@ GenericSliceWindow
   m_GreyTexture->SetInterpolation(
     m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
     == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
+  
+  if (m_ImageData->IsGreyLoaded())
+    {
+    // Paint the grey texture with color as background
+    m_GreyTexture->Draw(clrBackground);
+    }
+}
 
-  // Paint the grey texture with color as background
-  m_GreyTexture->Draw(clrBackground);
+void 
+GenericSliceWindow
+::DrawGreyOverlayTexture() 
+{
+  // We should have a slice to return
+  assert(m_ImageSliceIndex >= 0);
+
+  // Get the color to use for background
+  Vector3d clrBackground = m_ThumbnailIsDrawing
+    ? m_ParentUI->GetAppearanceSettings()->GetUIElement(
+        SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
+    : Vector3d(1.0);
+
+  // Set the interpolation mode to current default
+  m_GreyOverlayTexture->SetInterpolation(
+    m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
+    == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
+
+  if (m_ImageData->IsGreyOverlayLoaded())
+    {
+    // Paint the grey texture with color as background
+    m_GreyOverlayTexture->DrawTransparent(128);
+    }
 }
 
 void 
 GenericSliceWindow
 ::DrawRGBTexture() 
 {
+  // We should have a slice to return
   assert(m_ImageSliceIndex >= 0);
 
-  if(m_ImageData->IsRGBLoaded())
+  // Set the interpolation mode to current default
+  m_RGBTexture->SetInterpolation(
+    m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
+    == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
+
+  if (m_ImageData->IsRGBLoaded())
     {
-    // Update the texture memory
+    // Update the texture memory with RGB layer
     m_RGBTexture->DrawTransparent(m_GlobalState->GetRGBAlpha());
     }
 }
@@ -458,10 +521,12 @@ GenericSliceWindow
 ::DrawSegmentationTexture() 
 {
   // We should have a slice to return
-  assert(m_ImageData->IsSegmentationLoaded() 
-    && m_ImageSliceIndex >= 0);
+  assert(m_ImageSliceIndex >= 0);
 
-  m_LabelRGBTexture->DrawTransparent(m_GlobalState->GetSegmentationAlpha());
+  if (m_ImageData->IsSegmentationLoaded())
+    {
+    m_LabelRGBTexture->DrawTransparent(m_GlobalState->GetSegmentationAlpha());
+    }
 }
 
 void
