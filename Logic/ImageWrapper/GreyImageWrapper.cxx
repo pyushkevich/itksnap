@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/08 04:32:04 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/06/09 05:35:12 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -50,9 +50,14 @@ GreyImageWrapper
 ::GreyImageWrapper()
 : ScalarImageWrapper<GreyType> ()
 {
+  // Initialize the intensity curve
+  m_IntensityCurveVTK = IntensityCurveVTK::New();
+  m_IntensityCurveVTK->Initialize(3);
+
   // Initialize the intensity functor
   m_IntensityFunctor.m_Alpha = 255;
   m_IntensityFunctor.m_Colormap = COLORMAP_GREY;
+  m_IntensityFunctor.m_IntensityMap = m_IntensityCurveVTK;
 
   // Instantiate the cache
   m_IntensityMapCache = CacheType::New();
@@ -75,6 +80,7 @@ GreyImageWrapper
 GreyImageWrapper
 ::~GreyImageWrapper()
 {
+  m_IntensityCurveVTK = NULL;
 }
 
 void GreyImageWrapper
@@ -91,13 +97,16 @@ void GreyImageWrapper
   m_FlagUseReferenceIntensityRange = false;
 }
 
-void GreyImageWrapper
-::SetIntensityMapFunction(
-  IntensityMapType *curve) 
+IntensityCurveInterface*
+GreyImageWrapper
+::GetIntensityMapFunction()
 {
-  // Store the curve pointer in the functor
-  m_IntensityFunctor.m_IntensityMap = curve;
+  return m_IntensityCurveVTK;
+}
 
+void GreyImageWrapper
+::UpdateIntensityMapFunction()
+{
   // Get the range of the image
   GreyType iMin = GetImageMin();
   GreyType iMax = GetImageMax();
@@ -122,7 +131,7 @@ void GreyImageWrapper
 
   // Dirty the intensity filters
   for(unsigned int i=0;i<3;i++)
-    m_IntensityFilter[i]->Modified();  
+    m_IntensityFilter[i]->Modified();
 }
 
 GreyImageWrapper::DisplaySlicePointer

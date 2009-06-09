@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/08 04:32:04 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/06/09 05:35:13 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,7 +38,7 @@
 #include "ScalarImageWrapper.h"
 #include "itkRGBAPixel.h"
 #include "GlobalState.h"
-// #include "IntensityCurveInterface.h"
+#include "IntensityCurveVTK.h"
 // #include "UnaryFunctorCache.h"
 
 // Forward references
@@ -63,16 +63,13 @@ class GreyImageWrapper : public ScalarImageWrapper<GreyType>
 {
 public:
 
-  // Definition of the intensity map function
-  typedef itk::FunctionBase<float,float> IntensityMapType;
-
   // Definition for the display slice type
   typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
   typedef itk::Image<DisplayPixelType,2> DisplaySliceType;
   typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
 
   /**
-   * Set the intensity curve to be used for mapping image intensities 
+   * Get the intensity curve to be used for mapping image intensities 
    * from GreyType to DisplayType. The curve is defined on the domain
    * [0, 1]. By default, the entire intensity range of the image is
    * mapped to the domain of the curve. However, in some situations 
@@ -81,12 +78,14 @@ public:
    * correspond to a different intensity range. That can be specified
    * using the SetReferenceIntensityRange() function
    */
-  void SetIntensityMapFunction(IntensityMapType *curve);   
+  IntensityCurveInterface* GetIntensityMapFunction();
+
+  void UpdateIntensityMapFunction();
 
   /**
    * Set the reference intensity range - a range of intensity that 
    * is mapped to the domain of the intensity curve
-   * @see SetIntensityMapFunction
+   * @see GetIntensityMapFunction
    */
   void SetReferenceIntensityRange(GreyType refMin, GreyType refMax);
   void ClearReferenceIntensityRange();
@@ -146,7 +145,7 @@ private:
     DisplayPixelType operator()(const GreyType &value) const;
 
     // The storage for the float->float intensity map
-    IntensityMapType *m_IntensityMap;
+    IntensityCurveInterface *m_IntensityMap;
 
     // Intensity mapping factors
     GreyType m_IntensityMin;
@@ -211,6 +210,11 @@ private:
    * A cache used for the intensity mapping function
    */
   CachePointer m_IntensityMapCache;
+
+  /**
+   *
+   */
+  IntensityCurveVTK::Pointer m_IntensityCurveVTK;
 
   /**
    * Filters used to remap the intensity of the slices in this image
