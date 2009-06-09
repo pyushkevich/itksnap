@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/05/25 17:09:44 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/06/09 05:50:04 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -335,7 +335,7 @@ int main(int argc, char **argv)
       if(fnGrey)
         ui->NonInteractiveLoadRGBOverlay(fnRGB);
       else
-        ui->NonInteractiveLoadRGBStandalone(fnRGB);
+        ui->NonInteractiveLoadRGB(fnRGB);
       }  
     catch(itk::ExceptionObject &exc)
       {
@@ -423,6 +423,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.14  2009/06/09 05:50:04  garyhuizhang
+ *ENH: main image & grey overlay support
+ *
  *Revision 1.13  2009/05/25 17:09:44  garyhuizhang
  *ENH: switch from Fl_File_Chooser to Fl_Native_File_Chooser which requires the fltk to be patched with Fl_Native_File_Chooser add-on.
  *
