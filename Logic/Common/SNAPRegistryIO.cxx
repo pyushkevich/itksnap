@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPRegistryIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/06/09 05:43:00 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -385,8 +385,11 @@ SNAPRegistryIO
     registry.Folder("IRIS.MeshOptions"));
 
   // Save the intensity mapping curve
-  app->GetIntensityCurve()->SaveToRegistry(
-    registry.Folder("IRIS.IntensityCurve"));
+  if (app->GetIRISImageData()->IsGreyLoaded())
+    {
+    app->GetCurrentImageData()->GetGrey()->GetIntensityMapFunction()->
+      SaveToRegistry(registry.Folder("IRIS.IntensityCurve"));
+    }
 
   // Write file related information
   registry["Files.Segmentation.FileName"] << gs->GetLastAssociatedSegmentationFileName();
@@ -452,11 +455,14 @@ SNAPRegistryIO
     
     // Read the thresholding settings (note that since they depend on an image
     // we have to use re-initialized defaults
+    if (app->GetIRISImageData()->IsGreyLoaded())
+      {
     gs->SetThresholdSettings(
       SNAPRegistryIO::ReadThresholdSettings(
         registry.Folder("SNAP.Preprocessing.Region"),
         ThresholdSettings::MakeDefaultSettings(
           app->GetIRISImageData()->GetGrey())));
+	 }
     }
 
   // Read the display options
@@ -469,11 +475,12 @@ SNAPRegistryIO
         gs->GetMeshOptions()));
 
     // Restore the intensity mapping curve
-    app->GetIntensityCurve()->LoadFromRegistry(
-      registry.Folder("IRIS.IntensityCurve"));
-    app->GetCurrentImageData()->GetGrey()->SetIntensityMapFunction(
-      app->GetIntensityCurve());
-   
+    if (app->GetIRISImageData()->IsGreyLoaded())
+      {
+      app->GetCurrentImageData()->GetGrey()->GetIntensityMapFunction()->
+        LoadFromRegistry(registry.Folder("IRIS.IntensityCurve"));
+      app->GetCurrentImageData()->GetGrey()->UpdateIntensityMapFunction();
+	 }
     }
 
   // Read the information about the bounding box and ROI sub-sampling

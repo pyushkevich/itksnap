@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/09 16:45:16 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/06/09 05:42:24 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -32,7 +32,6 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-#include "IntensityCurveInterface.h"
 #include "ImageCoordinateTransform.h"
 #include "itkImageRegion.h"
 #include "itkExceptionObject.h"
@@ -74,7 +73,6 @@ class IRISApplication
 {
 public:
   // Typedefs
-  typedef IntensityCurveInterface::Pointer IntensityCurvePointer;
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::Size<3> SizeType;
   typedef itk::OrientedImage<GreyType,3> GreyImageType;
@@ -126,9 +124,11 @@ public:
    */
   void UpdateIRISGreyImage(
     GreyImageType *newGreyImage, const GreyTypeToNativeFunctor &native);
+  void UpdateIRISGreyOverlay(
+    GreyImageType *newGreyOverlay, const GreyTypeToNativeFunctor &native);
 
   void UpdateIRISRGBImage(RGBImageType *newRGBImage);
-  void UpdateIRISRGBImageOverlay(RGBImageType *newRGBImage);
+  void UpdateIRISRGBOverlay(RGBImageType *newRGBOverlay);
 
   /** 
    * Update the IRIS image data with an external segmentation image (e.g., 
@@ -184,12 +184,6 @@ public:
   /** Get the display window corresponding to an anatomical direction */
   size_t GetDisplayWindowForAnatomicalDirection(
     AnatomicalDirection iAnat);
-
-  /**
-   * Intensity mapping curve used for Grey images
-   * in the application
-   */
-  irisGetMacro(IntensityCurve,IntensityCurvePointer);
 
   /**
    * Get the global state object
@@ -267,7 +261,7 @@ public:
    * Load the RGB image file (either as main, or as overlay, depending on
    * whether grey has already been loaded)
    */
-  void LoadRGBImageFile(const char *filename);
+  void LoadRGBImageFile(const char *filename, const bool isMain = true);
 
   /**
    * This is the most high-level method to load a segmentation image. The
@@ -330,9 +324,6 @@ private:
 
   /** RAI between anatomy space and image space */
   std::string m_DisplayToAnatomyRAI[3];
-
-  // Slice intensity mapping information
-  IntensityCurveInterface::Pointer m_IntensityCurve;
 
   // Undo data manager. Perhaps this should really be in IRISImageData, but
   // there is a lot of stuff here that is ambiguous in this way. The manager

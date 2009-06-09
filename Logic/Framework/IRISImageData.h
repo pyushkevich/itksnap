@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISImageData.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/16 21:31:41 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/06/09 05:42:24 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -55,7 +55,7 @@ public:
    * to preserve state)
    */
   LabelImageWrapper* GetUndoImage() {
-    assert(m_GreyWrapper.IsInitialized() && m_UndoWrapper.IsInitialized());
+    assert(m_MainImage->IsInitialized() && m_UndoWrapper.IsInitialized());
     return &m_UndoWrapper;
   }
 

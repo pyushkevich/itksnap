@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/09 16:45:16 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2009/06/09 05:42:24 $
+  Version:   $Revision: 1.20 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -47,7 +47,6 @@
 #include "SNAPImageData.h"
 #include "MeshObject.h"
 #include "MeshExportSettings.h"
-#include "IntensityCurveVTK.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -91,10 +90,6 @@ IRISApplication
   // Set the current IRIS pointer
   m_CurrentImageData = m_IRISImageData;
 
-  // Construct a new intensity curve
-  m_IntensityCurve = IntensityCurveVTK::New();
-  m_IntensityCurve->Initialize(3);
-
   // Initialize the display-anatomy transformation with RPI code
   m_DisplayToAnatomyRAI[0] = "RPS";
   m_DisplayToAnatomyRAI[1] = "AIR";
@@ -122,8 +117,6 @@ GetDisplayToAnatomyRAI(unsigned int slice)
 IRISApplication
 ::~IRISApplication() 
 {
-  m_IntensityCurve = NULL;
-
   delete m_IRISImageData;
   if(m_SNAPImageData)
     delete m_SNAPImageData;
@@ -194,8 +187,7 @@ IRISApplication
   m_SNAPImageData->GetGrey()->SetReferenceIntensityRange(
     m_IRISImageData->GetGrey()->GetImageMin(),
     m_IRISImageData->GetGrey()->GetImageMax());
-  m_SNAPImageData->GetGrey()->SetIntensityMapFunction(
-    m_IntensityCurve);
+  m_SNAPImageData->GetGrey()->UpdateIntensityMapFunction();
 
   // Initialize the speed image of the SNAP image data
   m_SNAPImageData->InitializeSpeed();
@@ -256,11 +248,8 @@ IRISApplication
   // Update the image information in m_Driver->GetCurrentImageData()
   m_IRISImageData->SetGreyImage(newGreyImage, icg, native);    
   
-  // Reinitialize the intensity mapping curve 
-  m_IntensityCurve->Initialize(3);
-
   // Update the new grey image wrapper with the intensity mapping curve
-  m_IRISImageData->GetGrey()->SetIntensityMapFunction(m_IntensityCurve);
+  m_IRISImageData->GetGrey()->UpdateIntensityMapFunction();
 
   // Update the crosshairs position
   Vector3ui cursor = size;
@@ -268,7 +257,7 @@ IRISApplication
   m_IRISImageData->SetCrosshairs(cursor);
   
   // TODO: Unify this!
-  m_GlobalState->SetCrosshairsPosition(cursor) ;
+  m_GlobalState->SetCrosshairsPosition(cursor);
 
   // Update the preprocessing settings in the global state
   m_GlobalState->SetEdgePreprocessingSettings(
@@ -300,28 +289,15 @@ IRISApplication
     m_DisplayToAnatomyRAI, size);
   
   // Update the image information in m_Driver->GetCurrentImageData()
-  m_IRISImageData->SetRGBImage(newRGBImage,icg);    
+  m_IRISImageData->SetRGBImage(newRGBImage,icg);
   
-  // Reinitialize the intensity mapping curve 
-  m_IntensityCurve->Initialize(3);
-
-  // Update the new grey image wrapper with the intensity mapping curve
-  m_IRISImageData->GetGrey()->SetIntensityMapFunction(m_IntensityCurve);
-
   // Update the crosshairs position
   Vector3ui cursor = size;
   cursor /= 2;
   m_IRISImageData->SetCrosshairs(cursor);
   
   // TODO: Unify this!
-  m_GlobalState->SetCrosshairsPosition(cursor) ;
-
-  // Update the preprocessing settings in the global state
-  m_GlobalState->SetEdgePreprocessingSettings(
-    EdgePreprocessingSettings::MakeDefaultSettings());
-  m_GlobalState->SetThresholdSettings(
-    ThresholdSettings::MakeDefaultSettings(
-      m_IRISImageData->GetGrey()));
+  m_GlobalState->SetCrosshairsPosition(cursor);
 
   // Reset the UNDO manager
   m_UndoManager.Clear();
@@ -365,14 +341,39 @@ IRISApplication
 
 void
 IRISApplication
-::UpdateIRISRGBImageOverlay(RGBImageType *newRGBImage)
+::UpdateIRISGreyOverlay(GreyImageType *newGreyOverlay,
+                        const GreyTypeToNativeFunctor &native)
+{
+  // This has to happen in 'pure' IRIS mode
+  assert(m_SNAPImageData == NULL);
+  assert(m_IRISImageData->IsMainLoaded());
+
+  // Update the iris data
+  m_IRISImageData->SetGreyImageAsOverlay(newGreyOverlay, native);
+
+  // Update the new grey image wrapper with the intensity mapping curve
+  // hack, using the same as the main grey
+  m_IRISImageData->GetGreyOverlay()->UpdateIntensityMapFunction();
+
+  // for overlay, we don't want to change the cursor location
+  // just force the IRISSlicer to update
+  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+}
+
+void
+IRISApplication
+::UpdateIRISRGBOverlay(RGBImageType *newRGBOverlay)
 {
   // This has to happen in 'pure' IRIS mode
   assert(m_SNAPImageData == NULL);
   assert(m_IRISImageData->IsGreyLoaded());
 
   // Update the iris data
-  m_IRISImageData->SetRGBImageAsOverlay(newRGBImage); 
+  m_IRISImageData->SetRGBImageAsOverlay(newRGBOverlay);
+
+  // for overlay, we don't want to change the cursor location
+  // just force the IRISSlicer to update
+  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
 }
 
 void
@@ -1206,7 +1207,7 @@ IRISApplication
 
 void
 IRISApplication
-::LoadRGBImageFile(const char *filename)
+::LoadRGBImageFile(const char *filename, const bool isMain)
 {
   // Load the settings associated with this file
   Registry regFull;
@@ -1221,13 +1222,20 @@ IRISApplication
   // Load the image (exception may occur here)
   RGBImageType::Pointer imgRGB = io.ReadImage(filename, regRGB, false);
 
-  // Set the image as the current grayscale image  
-  UpdateIRISRGBImage(imgRGB);
+  if (isMain)
+    {
+    // Set the image as the current main image  
+    UpdateIRISRGBImage(imgRGB);
+    }
+  else
+    {
+    // Set the image as the overlay
+    UpdateIRISRGBOverlay(imgRGB);
+    }
 
   // Save the filename for the UI
   m_GlobalState->SetRGBFileName(filename);  
 }
-
 
 void 
 IRISApplication

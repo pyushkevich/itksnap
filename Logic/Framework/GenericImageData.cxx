@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/06/09 05:42:23 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -91,8 +91,8 @@ void
 GenericImageData
 ::SetSegmentationVoxel(const Vector3ui &index, LabelType value)
 {
-  // Make sure that the grey data and the segmentation data exist
-  assert(m_GreyWrapper.IsInitialized() && m_LabelWrapper.IsInitialized());
+  // Make sure that the main image data and the segmentation data exist
+  assert(m_MainImage->IsInitialized() && m_LabelWrapper.IsInitialized());
 
   // Store the voxel
   m_LabelWrapper.GetVoxelForUpdate(index) = value;
@@ -112,6 +112,7 @@ GenericImageData
 
   // Populate the array of linked wrappers
   m_LinkedWrappers.push_back(&m_GreyWrapper);
+  m_LinkedWrappers.push_back(&m_GreyOverlayWrapper);
   m_LinkedWrappers.push_back(&m_RGBWrapper);
   m_LinkedWrappers.push_back(&m_LabelWrapper);
 
@@ -123,14 +124,16 @@ Vector3d
 GenericImageData
 ::GetImageSpacing() 
 {
-  return m_GreyWrapper.GetImage()->GetSpacing().GetVnlVector();
+  assert(m_MainImage->IsInitialized());
+  return m_MainImage->GetImageBase()->GetSpacing().GetVnlVector();
 }
 
 Vector3d 
 GenericImageData
 ::GetImageOrigin() 
 {
-  return m_GreyWrapper.GetImage()->GetOrigin().GetVnlVector();
+  assert(m_MainImage->IsInitialized());
+  return m_MainImage->GetImageBase()->GetOrigin().GetVnlVector();
 }
 
 void 
@@ -145,30 +148,45 @@ GenericImageData
 
   // Make the grey wrapper the main image
   m_MainImage = &m_GreyWrapper;
-  
+
   // Clear the segmentation data to zeros
   m_LabelWrapper.InitializeToWrapper(&m_GreyWrapper, (LabelType) 0);
-  
-  // Clear the RGB data to zeros
-  RGBType zero;
-  zero[0] = 0;
-  zero[1] = 0;
-  zero[2] = 0;
 
-  // If the RGB wrapper is loaded, we unload it
-  if(IsRGBLoaded())
-    {
-    m_RGBWrapper.Reset();
-    }
-  
   // Store the image size info
   m_Size = m_GreyWrapper.GetSize();
-  
+
   // Pass the coordinate transform to the wrappers
   SetImageGeometry(newGeometry);
 }
 
-void 
+void
+GenericImageData
+::SetGreyImageAsOverlay(GreyImageType *newGreyImage,
+                        const GreyTypeToNativeFunctor &native)
+{
+  // Check that the image matches the size of the main image
+  assert(m_MainImage->GetBufferedRegion() ==
+         newGreyImage->GetBufferedRegion());
+
+  // Pass the image to the segmentation wrapper
+  m_GreyOverlayWrapper.SetImage(newGreyImage);
+  m_GreyOverlayWrapper.SetNativeMapping(native);
+  m_GreyOverlayWrapper.SetAlpha(255);
+  m_GreyOverlayWrapper.SetColorMap(COLORMAP_JET);
+
+  // Sync up spacing between the grey and RGB image
+  newGreyImage->SetSpacing(m_MainImage->GetImageBase()->GetSpacing());
+  newGreyImage->SetOrigin(m_MainImage->GetImageBase()->GetOrigin());
+
+  // Propagate the geometry information to this wrapper
+  for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
+    {
+    m_GreyOverlayWrapper.SetImageToDisplayTransform(
+      iSlice,m_ImageGeometry.GetImageToDisplayTransform(iSlice));
+    }
+}
+
+void
 GenericImageData
 ::SetRGBImage(RGBImageType *newRGBImage,
                const ImageCoordinateGeometry &newGeometry) 
@@ -178,31 +196,30 @@ GenericImageData
 
   // Set the RGB as the main image
   m_MainImage = &m_RGBWrapper;
-  
+
   // Initialize other wrappers to match this one
-  m_GreyWrapper.InitializeToWrapper(&m_RGBWrapper, (GreyType) 0);  
   m_LabelWrapper.InitializeToWrapper(&m_RGBWrapper, (LabelType) 0);
-  
+
   // Store the image size info
   m_Size = m_RGBWrapper.GetSize();
-  
+
   // Pass the coordinate transform to the wrappers
   SetImageGeometry(newGeometry);
 }
 
-void 
+void
 GenericImageData
 ::SetRGBImageAsOverlay(RGBImageType *newRGBImage)
 {
   // Check that the image matches the size of the grey image
-  assert(m_GreyWrapper.GetImage()->GetBufferedRegion() == 
+  assert(m_GreyWrapper.GetBufferedRegion() ==
          newRGBImage->GetBufferedRegion());
   assert(m_MainImage == &m_GreyWrapper);
-  
+
   // Pass the image to the segmentation wrapper
   m_RGBWrapper.SetImage(newRGBImage);
   m_RGBWrapper.SetAlpha(255);
-  
+
   // Sync up spacing between the grey and RGB image
   newRGBImage->SetSpacing(m_GreyWrapper.GetImage()->GetSpacing());
   newRGBImage->SetOrigin(m_GreyWrapper.GetImage()->GetOrigin());
@@ -215,43 +232,50 @@ GenericImageData
     }
 }
 
-void 
+void
 GenericImageData
 ::SetSegmentationImage(LabelImageType *newLabelImage) 
 {
   // Check that the image matches the size of the grey image
-  assert(m_GreyWrapper.IsInitialized() &&
-    m_GreyWrapper.GetImage()->GetBufferedRegion() == 
+  assert(m_MainImage->IsInitialized() &&
+    m_MainImage->GetBufferedRegion() == 
          newLabelImage->GetBufferedRegion());
 
   // Pass the image to the segmentation wrapper
   m_LabelWrapper.SetImage(newLabelImage);
 
   // Sync up spacing between the grey and label image
-  newLabelImage->SetSpacing(m_GreyWrapper.GetImage()->GetSpacing());
-  newLabelImage->SetOrigin(m_GreyWrapper.GetImage()->GetOrigin());
+  newLabelImage->SetSpacing(m_MainImage->GetImageBase()->GetSpacing());
+  newLabelImage->SetOrigin(m_MainImage->GetImageBase()->GetOrigin());
 }
 
-bool 
+bool
 GenericImageData
-::IsGreyLoaded() 
+::IsGreyLoaded()
 {
   return m_GreyWrapper.IsInitialized();
 }
 
-bool 
+bool
 GenericImageData
-::IsRGBLoaded() 
+::IsGreyOverlayLoaded()
+{
+  return m_GreyOverlayWrapper.IsInitialized();
+}
+
+bool
+GenericImageData
+::IsRGBLoaded()
 {
   return m_RGBWrapper.IsInitialized();
 }
 
-bool 
+bool
 GenericImageData
-::IsSegmentationLoaded() 
+::IsSegmentationLoaded()
 {
   return m_LabelWrapper.IsInitialized();
-}    
+}
 
 void
 GenericImageData
@@ -266,16 +290,15 @@ GenericImageData
     }
 }
 
-
 GenericImageData::RegionType
 GenericImageData
 ::GetImageRegion() const
 {
-  assert(m_GreyWrapper.IsInitialized());
-  return m_GreyWrapper.GetImage()->GetBufferedRegion();
+  assert(m_MainImage->IsInitialized());
+  return m_MainImage->GetBufferedRegion();
 }
 
-void 
+void
 GenericImageData
 ::SetImageGeometry(const ImageCoordinateGeometry &geometry)
 {
@@ -283,7 +306,7 @@ GenericImageData
   m_ImageGeometry = geometry;
 
   // Propagate the geometry to the image wrappers
-  for(WrapperIterator it = m_LinkedWrappers.begin(); 
+  for(WrapperIterator it = m_LinkedWrappers.begin();
     it != m_LinkedWrappers.end(); ++it)
     {
     ImageWrapperBase *wrapper = *it;

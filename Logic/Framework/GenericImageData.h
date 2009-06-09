@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 02:41:03 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/06/09 05:42:24 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -75,7 +75,6 @@ public:
   GenericImageData(IRISApplication *parent);
   virtual ~GenericImageData() {};
 
-
   /** 
    * Access the 'main' image, either grey or RGB. The main image is the
    * one that all other images must mimic
@@ -91,8 +90,6 @@ public:
     return m_MainImage->IsInitialized();
     }
 
-  
-
   /**
    * Access the greyscale image (read only access is allowed)
    */
@@ -102,10 +99,18 @@ public:
   }
 
   /**
+   * Access the greyscale overlay image (read only access is allowed)
+   */
+  GreyImageWrapper* GetGreyOverlay() {
+    assert(m_GreyOverlayWrapper.IsInitialized());
+    return &m_GreyOverlayWrapper;
+  }
+
+  /**
    * Access the RGB image (read only access is allowed)
    */
   RGBImageWrapper* GetRGB() {
-    assert(m_GreyWrapper.IsInitialized() && m_RGBWrapper.IsInitialized());
+    assert(m_RGBWrapper.IsInitialized());
     return &m_RGBWrapper;
   }
 
@@ -114,7 +119,7 @@ public:
    * to preserve state)
    */
   LabelImageWrapper* GetSegmentation() {
-    assert(m_GreyWrapper.IsInitialized() && m_LabelWrapper.IsInitialized());
+    assert(m_MainImage->IsInitialized() && m_LabelWrapper.IsInitialized());
     return &m_LabelWrapper;
   }
 
@@ -122,8 +127,8 @@ public:
    * Get the extents of the image volume
    */
   Vector3ui GetVolumeExtents() const {
-    assert(m_GreyWrapper.IsInitialized());
-    assert(m_GreyWrapper.GetSize() == m_Size);
+    assert(m_MainImage->IsInitialized());
+    assert(m_MainImage->GetSize() == m_Size);
     return m_Size;
   }
 
@@ -158,6 +163,10 @@ public:
     const ImageCoordinateGeometry &newGeometry,
     const GreyTypeToNativeFunctor &native);
 
+  virtual void SetGreyImageAsOverlay(
+    GreyImageType *newGreyImage,
+    const GreyTypeToNativeFunctor &native);
+
   virtual void SetRGBImage(RGBImageType *newRGBImage,
                     const ImageCoordinateGeometry &newGeometry);
   
@@ -177,6 +186,11 @@ public:
    * Check validity of greyscale image
    */
   bool IsGreyLoaded();
+
+  /**
+   * Check validity of greyscale image
+   */
+  bool IsGreyOverlayLoaded();
 
   /**
    * Check validity of RGB image
@@ -206,6 +220,9 @@ protected:
   // Wrapper around the grey-scale image
   GreyImageWrapper m_GreyWrapper;
 
+  // Wrapper around the grey-scale overlay image
+  GreyImageWrapper m_GreyOverlayWrapper;
+
   // Wrapper around the RGB image
   RGBImageWrapper m_RGBWrapper;
 
@@ -234,7 +251,6 @@ protected:
   // on image size)
   ImageCoordinateGeometry m_ImageGeometry;
 
- 
 };
 
 #endif

@@ -16,12 +16,6 @@ class UserInterface {open : {public UserInterfaceBase}
 } {
   declblock {\#if 1 // Local variable declarations} {after {\#endif}
   } {
-    decl {int m_GreyFileLoaded;} {public
-    }
-    decl {int m_RGBFileLoaded;} {public
-    }
-    decl {int m_SegmentationLoaded;} {public
-    }
     decl {Vector3i fileRAI;} {public
     }
     decl {Vector3i intRAI;} {public
@@ -70,11 +64,6 @@ class UserInterface {open : {public UserInterfaceBase}
               callback {this->OnMenuLoadRGB();}
               tooltip {Load an RGB (color)  image, e.g., from a diffusion tensor imaging study} xywh {15 15 100 20} shortcut 0x40072 labelsize 12
             }
-            MenuItem m_MenuLoadRGBOverlay {
-              label {RGB &Overlay...}
-              callback {this->OnMenuLoadRGBOverlay();}
-              tooltip {Load an RGB image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50072 labelsize 12 deactivate divider
-            }
             MenuItem m_MenuLoadAdvection {
               label {&Advection Field (Advanced)...}
               callback {this->OnMenuLoadAdvection();}
@@ -84,6 +73,21 @@ class UserInterface {open : {public UserInterfaceBase}
               label {&Label Descriptions...}
               callback {this->OnMenuLoadLabels();}
               xywh {25 25 100 20} shortcut 0x4006c labelsize 12
+            }
+          }
+          Submenu {} {
+            label {&Add}
+            xywh {5 5 100 20} labelsize 12
+          } {
+            MenuItem m_MenuLoadGreyOverlay {
+              label {Grey &Overlay...}
+              callback {this->OnMenuLoadGreyOverlay();}
+              tooltip {Load a Grey image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50067 labelsize 12 deactivate divider
+            }
+            MenuItem m_MenuLoadRGBOverlay {
+              label {RGB &Overlay...}
+              callback {this->OnMenuLoadRGBOverlay();}
+              tooltip {Load an RGB image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50072 labelsize 12 deactivate divider
             }
           }
           Submenu {} {
@@ -195,30 +199,65 @@ class UserInterface {open : {public UserInterfaceBase}
             label {&Recent Images}
             xywh {5 5 100 20} labelsize 12
           } {
-            MenuItem m_MenuLoadPreviousFirst {
-              label {Not Available}
-              callback {OnLoadRecentAction(0);}
-              xywh {0 0 100 20} shortcut 0x40031 labelsize 12 deactivate
+            Submenu m_MenuLoadPreviousGrey {
+              xywh {5 5 100 20} labelsize 12
+              label {Grey}
+            } {
+              MenuItem m_MenuLoadPreviousFirstGrey {
+                label {Not Available}
+                callback {OnLoadRecentGreyAction(0);}
+                xywh {0 0 100 20} shortcut 0x40031 labelsize 12 deactivate
+              }
+              MenuItem {} {
+                label {Not Available}
+                callback {OnLoadRecentGreyAction(1);}
+                xywh {10 10 100 20} shortcut 0x40032 labelsize 12 deactivate
+              }
+              MenuItem {} {
+                label {Not Available}
+                callback {OnLoadRecentGreyAction(2);}
+                xywh {20 20 100 20} shortcut 0x40033 labelsize 12 deactivate
+              }
+              MenuItem {} {
+                label {Not Available}
+                callback {OnLoadRecentGreyAction(3);}
+                xywh {30 30 100 20} shortcut 0x40034 labelsize 12 deactivate
+              }
+              MenuItem m_MenuLoadPreviousLastGrey {
+                label {Not Available}
+                callback {OnLoadRecentGreyAction(4);}
+                xywh {40 40 100 20} shortcut 0x40035 labelsize 12 deactivate
+              }
             }
-            MenuItem {} {
-              label {Not Available}
-              callback {OnLoadRecentAction(1);}
-              xywh {10 10 100 20} shortcut 0x40032 labelsize 12 deactivate
-            }
-            MenuItem {} {
-              label {Not Available}
-              callback {OnLoadRecentAction(2);}
-              xywh {20 20 100 20} shortcut 0x40033 labelsize 12 deactivate
-            }
-            MenuItem {} {
-              label {Not Available}
-              callback {OnLoadRecentAction(3);}
-              xywh {30 30 100 20} shortcut 0x40034 labelsize 12 deactivate
-            }
-            MenuItem m_MenuLoadPreviousLast {
-              label {Not Available}
-              callback {OnLoadRecentAction(4);}
-              xywh {40 40 100 20} shortcut 0x40035 labelsize 12 deactivate
+            Submenu m_MenuLoadPreviousRGB {
+              xywh {5 5 100 20} labelsize 12
+              label {RGB}
+            } {
+              MenuItem m_MenuLoadPreviousFirstRGB {
+                label {Not Available}
+                callback {OnLoadRecentRGBAction(0);}
+                xywh {0 0 100 20} shortcut 0x50031 labelsize 12 deactivate
+              }
+              MenuItem {} {
+                label {Not Available}
+                callback {OnLoadRecentRGBAction(1);}
+                xywh {10 10 100 20} shortcut 0x50032 labelsize 12 deactivate
+              }
+              MenuItem {} {
+                label {Not Available}
+                callback {OnLoadRecentRGBAction(2);}
+                xywh {20 20 100 20} shortcut 0x50033 labelsize 12 deactivate
+              }
+              MenuItem {} {
+                label {Not Available}
+                callback {OnLoadRecentRGBAction(3);}
+                xywh {30 30 100 20} shortcut 0x50034 labelsize 12 deactivate
+              }
+              MenuItem m_MenuLoadPreviousLastRGB {
+                label {Not Available}
+                callback {OnLoadRecentRGBAction(4);}
+                xywh {40 40 100 20} shortcut 0x50035 labelsize 12 deactivate
+              }
             }
           }
           Submenu {} {
@@ -229,6 +268,11 @@ class UserInterface {open : {public UserInterfaceBase}
               label {&Segmentation Image}
               callback {this->OnMenuNewSegmentation()}
               tooltip {Creates a new empty segmentation} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
+            }
+            MenuItem m_MenuResetAll {
+              label {&Reset}
+              callback {this->OnMenuResetAll()}
+              tooltip {Reset} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
             }
           }
           MenuItem m_MenuImageInfo {
@@ -324,7 +368,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 callback {SetToolbarMode(POLYGON_DRAWING_MODE);}
                 tooltip {Polygon tool: slice-by-slice manual segmentation} image {Artwork/poly.gif} xywh {95 55 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x33 color 180 selection_color 180 align 16 when 1
               }
-              Fl_Button {} {
+              Fl_Button m_BtnSNAPMode {
                 callback {SetToolbarMode(ROI_MODE);}
                 tooltip {SNAP tool: select a region of interest for automatic segmentation} image {Artwork/snake.gif} xywh {15 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x34 color 180 selection_color 180 labelsize 10 align 144 when 1
               }

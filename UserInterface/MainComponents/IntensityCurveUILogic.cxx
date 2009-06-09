@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 05:04:33 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/06/09 05:46:38 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -203,11 +203,11 @@ IntensityCurveUILogic
   // Get the histogram
   const std::vector<unsigned int> &hist = m_BoxCurve->GetHistogram();
 
-  // Integrate the histogram until reaching 1%
+  // Integrate the histogram until reaching 0.1%
   GreyType imin = m_ImageWrapper->GetImageMin();
   GreyType ilow = imin;
   size_t accum = 0;
-  size_t accum_goal = m_ImageWrapper->GetNumberOfVoxels() / 100;
+  size_t accum_goal = m_ImageWrapper->GetNumberOfVoxels() / 1000;
   for(size_t i = 0; i < hist.size(); i++)
     {
     if(accum + hist[i] < accum_goal)

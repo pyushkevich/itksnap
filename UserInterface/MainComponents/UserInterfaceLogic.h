@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/05/04 20:15:57 $
-  Version:   $Revision: 1.24 $
+  Date:      $Date: 2009/06/09 05:46:38 $
+  Version:   $Revision: 1.25 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -54,9 +54,6 @@ class LabelEditorUILogic;
 class IRISSliceWindow;
 class SNAPSliceWindow;
 class GreyImageIOWizardLogic;
-class RGBImageIOWizardLogic;
-class RestrictedUImageIOWizardLogic;
-class RestrictedRGBImageIOWizardLogic;
 class SegmentationImageIOWizardLogic;
 class PreprocessingImageIOWizardLogic;
 class MeshIOWizardUILogic;
@@ -110,6 +107,9 @@ public:
 
   /** Resets the region of interest to contain the entire volume */
   void OnResetROIAction();
+
+  /** Reset to the initial state */
+  void OnMenuResetAll();
 
   /**
    *
@@ -515,14 +515,23 @@ public:
   /** Get the reference to the appearance settings */
   irisGetMacro(AppearanceSettings, SNAPAppearanceSettings *);
 
-  /** Update the user interface after loading a new grey image  */
+  /** Clear memory before loading a new main image */
+  void UnloadAllImages();
+
+  /** Update the common user interface after loading a new main image  */
+  void OnMainImageUpdate();
+
+  /** Update the common user interface after loading an overlay image  */
+  void OnOverlayImageUpdate();
+
+  /** Update the user interface after loading a new grey main image  */
   void OnGreyImageUpdate();
+
+  /** Update the user interface after loading a new RGB main image  */
+  void OnRGBImageUpdate();
 
   /** Called before unloading a grey image, saves settings associated with it */
   void OnGreyImageUnload();
-
-  /** Update the user interface after loading a new RGB image  */
-  void OnRGBImageUpdate();
 
   /** Update the user interface after loading a new segmentation image  */
   void OnSegmentationImageUpdate(bool reloaded);
@@ -629,7 +638,7 @@ public:
     { return m_InIRISFreehandFittingRate->value(); }
 
   // Load Images Non-Interactively
-  void NonInteractiveLoadRGBStandalone(const char *fname);
+  void NonInteractiveLoadRGB(const char *fname);
   void NonInteractiveLoadRGBOverlay(const char *fname);
   void NonInteractiveLoadGrey(const char *fname);
   void NonInteractiveLoadSegmentation(const char *fname);
@@ -689,6 +698,7 @@ protected:
   void OnMenuSaveGrey();
   void OnMenuLoadGrey();
   void OnMenuLoadRGB();
+  void OnMenuLoadGreyOverlay();
   void OnMenuLoadRGBOverlay();
   void OnMenuLoadSegmentation();
   void OnMenuLoadLabels();
@@ -704,7 +714,8 @@ protected:
   void OnMenuLoadPreprocessed();  
   void OnMenuSavePreprocessed(); 
   void OnMenuSaveLevelSet(); 
-  void OnLoadRecentAction(unsigned int iRecent);
+  void OnLoadRecentGreyAction(unsigned int iRecent);
+  void OnLoadRecentRGBAction(unsigned int iRecent);
   void OnLoadPreprocessedImageAction();
   void OnMenuLoadAdvection();
   void OnMenuImageInfo();
@@ -801,6 +812,7 @@ private:
   /** Reason why a user may be prompted to save changes */
   enum PromptReason {
     REASON_QUIT,
+    REASON_RESET,
     REASON_LOAD_MAIN,
     REASON_LOAD_SEGMENTATION };
 
@@ -819,12 +831,6 @@ private:
 
   /** Wizard used to load grey image files */
   GreyImageIOWizardLogic *m_WizGreyIO;
-
-  /** Wizard used to load RGB image files */
-  RGBImageIOWizardLogic *m_WizRGBIO;
-
-  /** Wizard used to load RGB image files */
-  RestrictedRGBImageIOWizardLogic *m_WizRGBOverlayIO;
 
   /** Wizard used to load and save segmentation image files */
   SegmentationImageIOWizardLogic *m_WizSegmentationIO;
@@ -891,7 +897,8 @@ private:
   ImageInfoCallbackInterface *m_GreyCallbackInterface;
 
   // A list of recently open files shown in the load recent menu
-  std::string m_RecentFileNames[5];
+  std::string m_RecentGreyFileNames[5];
+  std::string m_RecentRGBFileNames[5];
 
   // Temporary value used for opacity slider toggling
   double m_OpacityToggleValue;
@@ -966,7 +973,8 @@ private:
   friend class UserInterfaceLogicMemberObserver;
 
   // Update the menu of recent files
-  void GenerateRecentFilesMenu();
+  void GenerateRecentGreyFilesMenu();
+  void GenerateRecentRGBFilesMenu();
 
   // Generate a PNG filename for use in saving snapshots
   std::string GenerateScreenShotFilename();
@@ -987,6 +995,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.25  2009/06/09 05:46:38  garyhuizhang
+ *ENH: main image support & grey overlay support
+ *
  *Revision 1.24  2009/05/04 20:15:57  garyhuizhang
  *multisession panning support added
  *

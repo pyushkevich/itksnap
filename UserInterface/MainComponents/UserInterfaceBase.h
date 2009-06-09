@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/05/04 20:15:57 $
-  Version:   $Revision: 1.21 $
+  Date:      $Date: 2009/06/09 05:46:38 $
+  Version:   $Revision: 1.22 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -83,6 +83,7 @@ public:
   virtual void OnMenuSaveGrey() = 0;
   virtual void OnMenuSaveGreyROI() = 0;
   virtual void OnMenuLoadRGB() = 0;
+  virtual void OnMenuLoadGreyOverlay() = 0;
   virtual void OnMenuLoadRGBOverlay() = 0;
   virtual void OnMenuLoadSegmentation() = 0;
   virtual void OnMenuSaveSegmentation() = 0;
@@ -96,7 +97,8 @@ public:
   virtual void OnMenuSaveScreenshotSeries(unsigned int iSlice) = 0;
   virtual void OnMenuLoadAdvection() = 0;
   virtual void OnMenuWriteVoxelCounts() = 0;
-  virtual void OnLoadRecentAction(unsigned int iRecent) = 0;  
+  virtual void OnLoadRecentGreyAction(unsigned int iRecent) = 0;  
+  virtual void OnLoadRecentRGBAction(unsigned int iRecent) = 0;  
   virtual void OnMenuIntensityCurve() = 0;  
   virtual void OnMenuShowRGBOverlayOptions() = 0;  
   virtual void OnMenuShowDisplayOptions() = 0;
@@ -105,7 +107,8 @@ public:
   virtual void OnMenuReorientImage() = 0;
   virtual void OnMenuQuit() = 0;
   virtual void OnMenuCheckUpdate() = 0;
-  
+  virtual void OnMenuResetAll() = 0;
+
   // IRIS: Slice selection actions  
   virtual void OnSliceSliderChange(int id) = 0;
   virtual void UpdatePositionDisplay(int id) = 0;
@@ -226,6 +229,8 @@ public:
   virtual SNAPAppearanceSettings *GetAppearanceSettings() const = 0;
   virtual SliceWindowCoordinator *GetSliceCoordinator() const = 0;
 
+  virtual void OnMainImageUpdate() = 0;
+  virtual void OnOverlayImageUpdate() = 0;
   virtual void OnImageGeometryUpdate() = 0;
   virtual void RedrawWindows() = 0;
   virtual void OnIRISMeshDisplaySettingsUpdate() = 0;

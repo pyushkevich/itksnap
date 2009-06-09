@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/05/25 17:09:44 $
-  Version:   $Revision: 1.56 $
+  Date:      $Date: 2009/06/09 05:46:38 $
+  Version:   $Revision: 1.57 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -91,10 +91,8 @@
 #include <vector>
 #include <cctype>
 
-
 // Global pointer to the 'current' UI object
 UserInterfaceLogic* UserInterfaceLogic::m_GlobalUI = NULL;
-
 
 // Disable some utterly annoying windows messages
 #if defined(_MSC_VER)
@@ -124,7 +122,6 @@ void xyz_measure(const Fl_Label *label, int &w, int &h)
   fl_measure(label->value + 9, w, h);
   w += h + label->size / 2; 
 }
-
 
 /**
  * \class GreyImageInfoCallback
@@ -167,7 +164,6 @@ private:
   Registry m_Registry;
 };
 
-
 class UserInterfaceLogicMemberObserver : 
   public FLTKWidgetActivationManager<UserInterfaceLogic::UIStateFlags>::Observer
 {
@@ -180,8 +176,8 @@ public:
   UserInterfaceLogicMemberObserver(
     UserInterfaceLogic *p, TMemberFunctionPointer member)
     {
-    this->m_Pointer = p;
-    this->m_Member = member;
+    m_Pointer = p;
+    m_Member = member;
     }
 
   // Callback
@@ -285,9 +281,10 @@ void UserInterfaceLogic
 
   m_Activation->AddWidget(m_BtnIRISUndo, UIF_UNDO_POSSIBLE);
   m_Activation->AddWidget(m_BtnIRISRedo, UIF_REDO_POSSIBLE);
+  m_Activation->AddWidget(m_BtnSNAPMode, UIF_GRAY_LOADED);
 
   // Add more complex relationships
-  m_Activation->AddCheckBox(m_ChkContinuousView3DUpdate, 
+  m_Activation->AddCheckBox(m_ChkContinuousView3DUpdate,
     UIF_SNAP_SNAKE_INITIALIZED, false, false);
 
   // Activate slice-related widgets indexed by dimension
@@ -308,7 +305,8 @@ void UserInterfaceLogic
   // Link menu items to flags
   m_Activation->AddMenuItem(m_MenuLoadGrey, UIF_IRIS_ACTIVE);
   m_Activation->AddMenuItem(m_MenuLoadRGB, UIF_IRIS_ACTIVE);
-  m_Activation->AddMenuItem(m_MenuSaveGrey, UIF_IRIS_WITH_GRAY_LOADED); 
+  m_Activation->AddMenuItem(m_MenuSaveGrey, UIF_IRIS_WITH_GRAY_LOADED);
+  m_Activation->AddMenuItem(m_MenuLoadGreyOverlay, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadRGBOverlay, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuNewSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
@@ -329,11 +327,12 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuLoadAdvection, UIF_SNAP_PAGE_PREPROCESSING);
   m_Activation->AddMenuItem(m_MenuImageInfo, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuReorientImage, UIF_IRIS_WITH_BASEIMG_LOADED);
-  
-
-  for(i = 0; i < 5; i++)
-    m_Activation->AddMenuItem(m_MenuLoadPreviousFirst + i, UIF_IRIS_ACTIVE);
-
+  m_Activation->AddMenuItem(m_ChoicePaintbrush[2], UIF_IRIS_WITH_GRAY_LOADED);
+  for (unsigned int i = 0; i < 5; i++)
+    {
+    m_Activation->AddMenuItem(m_MenuLoadPreviousFirstGrey + i, UIF_IRIS_ACTIVE);
+    m_Activation->AddMenuItem(m_MenuLoadPreviousFirstRGB + i, UIF_IRIS_ACTIVE);
+    }
 
 }
 
@@ -363,8 +362,6 @@ UserInterfaceLogic
 
   // Instantiate the IO wizards
   m_WizGreyIO = new GreyImageIOWizardLogic; 
-  m_WizRGBIO = new RGBImageIOWizardLogic; 
-  m_WizRGBOverlayIO = new RestrictedRGBImageIOWizardLogic; 
   m_WizSegmentationIO = new SegmentationImageIOWizardLogic;
   m_WizPreprocessingIO = new PreprocessingImageIOWizardLogic;
   m_WizLevelSetIO = new PreprocessingImageIOWizardLogic;
@@ -372,8 +369,6 @@ UserInterfaceLogic
   
   // Initialize the Image IO wizards
   m_WizGreyIO->MakeWindow();
-  m_WizRGBIO->MakeWindow();
-  m_WizRGBOverlayIO->MakeWindow();
   m_WizSegmentationIO->MakeWindow();
   m_WizPreprocessingIO->MakeWindow();
   m_WizLevelSetIO->MakeWindow();
@@ -494,7 +489,8 @@ UserInterfaceLogic
   InitializeUI();
 
   // Update the recent files menu
-  GenerateRecentFilesMenu();
+  GenerateRecentGreyFilesMenu();
+  GenerateRecentRGBFilesMenu();
 
   // Enter the IRIS-ACTiVE state
   m_Activation->UpdateFlag(UIF_IRIS_ACTIVE, true);
@@ -513,8 +509,6 @@ UserInterfaceLogic
 
   // Delete the IO wizards
   delete m_WizGreyIO;
-  delete m_WizRGBIO;
-  delete m_WizRGBOverlayIO;
   delete m_WizSegmentationIO;
   delete m_WizPreprocessingIO;
   delete m_WizLevelSetIO;
@@ -561,7 +555,8 @@ void
 UserInterfaceLogic
 ::OnResetROIAction()
 {
-  if (!m_GreyFileLoaded) return;
+  // requires grey image
+  if (!m_Driver->GetCurrentImageData()->IsGreyLoaded()) return;
 
   // Get the grey image's region
   GlobalState::RegionType roi = 
@@ -575,7 +570,20 @@ UserInterfaceLogic
   m_GlobalState->SetIsValidROI(true);
   
   // Update the UI
-  this->RedrawWindows();
+  RedrawWindows();
+}
+
+void
+UserInterfaceLogic
+::OnMenuResetAll()
+{
+  // Make sure the user doesn't lose any data
+  if(!PromptBeforeLosingChanges(REASON_RESET)) return;
+  
+  UnloadAllImages();
+  m_WizControlPane->value(m_GrpWelcomePage);
+  UpdateMainLabel();
+  RedrawWindows();
 }
 
 //--------------------------------------------
@@ -760,7 +768,7 @@ UserInterfaceLogic
   if(roi.TransformImageVoxelToROIVoxel(oldCursor, newCursor))
     {
     m_Driver->SetCursorPosition(newCursor);
-    this->OnCrosshairPositionUpdate();
+    OnCrosshairPositionUpdate();
     }
 }
 
@@ -1500,7 +1508,7 @@ UserInterfaceLogic
   SNAPSegmentationROISettings roi = m_GlobalState->GetSegmentationROISettings();
   roi.TransformROIVoxelToImageVoxel(oldCursor, newCursor);  
   m_Driver->SetCursorPosition(newCursor);
-  this->OnCrosshairPositionUpdate();
+  OnCrosshairPositionUpdate();
 
   // Clear the list of bubbles
   m_GlobalState->SetBubbleArray(GlobalState::BubbleArray());
@@ -1550,10 +1558,10 @@ UserInterfaceLogic
   m_WinProgress->hide();
 
   // Create an undo point
-  this->StoreUndoPoint("Automatic segmentation");
+  StoreUndoPoint("Automatic segmentation");
 
   // Close up SNAP
-  this->CloseSegmentationCommon();
+  CloseSegmentationCommon();
 }
 
 void 
@@ -1571,7 +1579,7 @@ UserInterfaceLogic
   // Show or hide progress bar if necessary
   if(progress < 1.0f && !m_WinProgress->visible())
     {
-    this->CenterChildWindowInMainWindow(m_WinProgress);
+    CenterChildWindowInMainWindow(m_WinProgress);
     m_WinProgress->show();
     }
   else if (progress == 1.0f && m_WinProgress->visible())
@@ -1606,7 +1614,7 @@ void
 UserInterfaceLogic
 ::OnMenuQuit()
 {
-  this->OnMainWindowCloseAction();
+  OnMainWindowCloseAction();
 }
 
 void 
@@ -1700,7 +1708,7 @@ UserInterfaceLogic
         // Map the cursor position to the image coordinates
         GenericImageData *id = m_GlobalUI->m_Driver->GetCurrentImageData();
         Vector3d vox = 
-          id->GetGrey()->TransformNIFTICoordinatesToVoxelIndex(ipcm.cursor);
+          id->GetMain()->TransformNIFTICoordinatesToVoxelIndex(ipcm.cursor);
 
         // Round the cursor to integer value
         itk::Index<3> pos; Vector3ui vpos; 
@@ -1946,7 +1954,7 @@ UserInterfaceLogic
 {
   // Show the right wizard page
   m_WizControlPane->value(
-    m_Driver->GetCurrentImageData()->IsGreyLoaded() ? 
+    m_Driver->GetCurrentImageData()->IsMainLoaded() ? 
     m_GrpToolbarPage : m_GrpWelcomePage);
 
   // Show the right toolbar page under the render window
@@ -2009,11 +2017,6 @@ UserInterfaceLogic
   m_InWelcomePageVersion->label(SNAPUISoftVersion);
   m_InAboutPageVersion->label(SNAPUISoftVersion);
 
-  // Set local variables
-  m_GreyFileLoaded = 0;
-  m_RGBFileLoaded = 0;
-  m_SegmentationLoaded = 0;
-
   // Sync global state to GUI
   m_BtnCrosshairsMode->setonly();
   // SetToolbarMode(CROSSHAIRS_MODE);
@@ -2028,7 +2031,7 @@ UserInterfaceLogic
   UpdateColorLabelMenu();
 
   // Window title
-  this->UpdateMainLabel();
+  UpdateMainLabel();
 
   m_GlobalState->SetShowSpeed(false);
 
@@ -2056,15 +2059,15 @@ UserInterfaceLogic
     OnZoomUpdate();
     }
   // Initialize the paintbrush panel
-  this->UpdatePaintbrushAttributes();
+  UpdatePaintbrushAttributes();
 
   // Set the anatomy to display transforms for each of the windows  
   string rai1, rai2, rai3;
   m_AppearanceSettings->GetAnatomyToDisplayTransforms(rai1, rai2, rai3);
 
   // Update the user interface
-  this->GetDriver()->SetDisplayToAnatomyRAI(rai1.c_str(), rai2.c_str(), rai3.c_str());
-  this->OnImageGeometryUpdate();
+  m_Driver->SetDisplayToAnatomyRAI(rai1.c_str(), rai2.c_str(), rai3.c_str());
+  OnImageGeometryUpdate();
   
   // Initialize hidden feature usage option
   OnHiddenFeaturesToggleAction();
@@ -2230,8 +2233,8 @@ void
 UserInterfaceLogic
 ::OnCrosshairPositionUpdate(bool flagBroadcastUpdate)
 {
-  this->ResetScrollbars();
-  this->UpdateImageProbe();
+  ResetScrollbars();
+  UpdateImageProbe();
 
   // When the crosshair position is updated, we send the information 
   // to the inter-process communications system
@@ -2241,7 +2244,7 @@ UserInterfaceLogic
     {
     // Map the cursor to NIFTI coordinates
     Vector3d cursor = 
-      m_Driver->GetCurrentImageData()->GetGrey()->
+      m_Driver->GetCurrentImageData()->GetMain()->
         TransformVoxelIndexToNIFTICoordinates(
           m_Driver->GetCursorPosition());
 
@@ -2329,16 +2332,19 @@ UserInterfaceLogic
 
   // Get the grey intensity
   GenericImageData *id = m_Driver->GetCurrentImageData();
-  sGrey << id->GetGrey()->GetVoxelMappedToNative(crosshairs);
+  if (m_Driver->GetCurrentImageData()->IsGreyLoaded())
+    {
+    sGrey << id->GetGrey()->GetVoxelMappedToNative(crosshairs);
+    }
 
   // Get the segmentation lavel intensity
   int iSegmentation = (int) id->GetSegmentation()->GetVoxel(crosshairs);
   sSegmentation << iSegmentation;
 
   // Update the cursor position in the image info window
-  Vector3d xPosition = id->GetGrey()->TransformVoxelIndexToPosition(crosshairs);
+  Vector3d xPosition = id->GetMain()->TransformVoxelIndexToPosition(crosshairs);
 
-  Vector3d xNIFTI = id->GetGrey()->TransformVoxelIndexToNIFTICoordinates(crosshairs);
+  Vector3d xNIFTI = id->GetMain()->TransformVoxelIndexToNIFTICoordinates(crosshairs);
 
   for(size_t d = 0; d < 3; d++)
     {
@@ -2568,7 +2574,7 @@ UserInterfaceLogic
   m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
 
   // Redraw the windows 
-  this->RedrawWindows();
+  RedrawWindows();
   m_WinMain->redraw();
 }
 */
@@ -2607,7 +2613,7 @@ UserInterfaceLogic
   // Update the cursor
   cursor[imageAxis] = value;
   m_Driver->SetCursorPosition(cursor);
-  this->OnCrosshairPositionUpdate();
+  OnCrosshairPositionUpdate();
 
   // Update the little display box under the scroll bar
   UpdatePositionDisplay(id);
@@ -2644,7 +2650,7 @@ UserInterfaceLogic
     m_Activation->UpdateFlag(UIF_IRIS_MESH_DIRTY, true);
 
     // Set the undo point
-    this->StoreUndoPoint("Polygon drawing");
+    StoreUndoPoint("Polygon drawing");
     }
   else
     {
@@ -2907,12 +2913,11 @@ UserInterfaceLogic
   UpdateWindowFocus(m_GrpRightPane, panels, boxes, iWindow);
 }
 
-
 void
 UserInterfaceLogic
 ::OnImageGeometryUpdate()
 {
-  if(!m_Driver->GetCurrentImageData()->IsGreyLoaded())
+  if(!m_Driver->GetCurrentImageData()->IsMainLoaded())
     return;
 
   // Set the crosshairs to the center of the image
@@ -2921,7 +2926,7 @@ UserInterfaceLogic
   m_Driver->SetCursorPosition(xCross);
 
   // Update the crosshairs display
-  this->OnCrosshairPositionUpdate();
+  OnCrosshairPositionUpdate();
 
   // Update the source for slice windows as well as scroll bars
   for (unsigned int i=0; i<3; i++) 
@@ -2943,18 +2948,14 @@ UserInterfaceLogic
     m_InSliceSlider[i]->slider_size( 1.0/ size[imageAxis] );
     m_InSliceSlider[i]->linesize(1);
     }
-      
-  // Group the three windows inside the window coordinator
-  m_SliceCoordinator->RegisterWindows(
-    reinterpret_cast<GenericSliceWindow **>(m_IRISWindowManager2D));    
 
   // Reset the view in 2D windows to fit
   m_SliceCoordinator->ResetViewToFitInAllWindows();
 
   // Fire zoom update event
-  this->OnZoomUpdate();
+  OnZoomUpdate();
 }
-  
+
 void 
 UserInterfaceLogic
 ::OnMeshResetViewAction()
@@ -3039,7 +3040,7 @@ UserInterfaceLogic
 ::SetToolbarMode(ToolbarModeType mode)
 {
   // There must be an active image before we do this stuff
-  assert(m_Driver->GetCurrentImageData()->IsGreyLoaded());
+  assert(m_Driver->GetCurrentImageData()->IsMainLoaded());
 
   // Set the mode on the toolbar
   m_GlobalState->SetToolbarMode(mode);
@@ -3172,7 +3173,9 @@ UserInterfaceLogic
 {
   // This method is called when a grey image gets unloaded.  It saves the 
   // current settings and associates them with the grey image file
-  
+  if (!m_Driver->GetCurrentImageData()->IsGreyLoaded())
+    return;
+
   // Make sure there is actually an image
   string fnGrey = m_GlobalState->GetGreyFileName();
   if(fnGrey.length())
@@ -3180,9 +3183,48 @@ UserInterfaceLogic
       fnGrey.c_str(),m_Driver);
 }
 
-void 
+void
 UserInterfaceLogic
-::OnGreyImageUpdate()
+::UnloadAllImages()
+{
+  // Clear the memory and reset the flags
+  // Note the order of unload!!!
+  if (m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
+    m_Driver->GetCurrentImageData()->GetSegmentation()->Reset();
+
+  if (m_Driver->GetCurrentImageData()->IsRGBLoaded())
+    m_Driver->GetCurrentImageData()->GetRGB()->Reset();
+
+  if (m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
+    m_Driver->GetCurrentImageData()->GetGreyOverlay()->Reset();
+
+  if (m_Driver->GetCurrentImageData()->IsGreyLoaded())
+    m_Driver->GetCurrentImageData()->GetGrey()->Reset();
+
+  if (m_GlobalState->GetSNAPActive())
+    {
+    m_SNAPWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_SNAPWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_SNAPWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
+
+    m_SNAPWindowManager3D->ClearScreen();
+    m_SNAPWindowManager3D->ResetView();
+    } else
+    { 
+    m_IRISWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_IRISWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_IRISWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
+    
+    m_IRISWindowManager3D->ClearScreen();
+    m_IRISWindowManager3D->ResetView();
+    }
+
+  m_Activation->UpdateFlag(UIF_BASEIMG_LOADED, false);
+}
+
+void
+UserInterfaceLogic
+::OnMainImageUpdate()
 {
   // Blank the screen - useful on a load of new grey data when there is 
   // already a segmentation file present
@@ -3191,11 +3233,8 @@ UserInterfaceLogic
   // Flip over to the toolbar page
   m_WizControlPane->value(m_GrpToolbarPage);
 
-  // Loading a gray image means unloading the RGB image
-  m_Activation->UpdateFlag(UIF_RGBANY_LOADED, false);
-
   // Enable some menu items
-  m_Activation->UpdateFlag(UIF_IRIS_WITH_GRAY_LOADED, true);
+  m_Activation->UpdateFlag(UIF_IRIS_WITH_BASEIMG_LOADED, true);
 
   // Disable undo and redo 
   m_Activation->UpdateFlag(UIF_UNDO_POSSIBLE, m_Driver->IsUndoPossible());
@@ -3207,17 +3246,13 @@ UserInterfaceLogic
   // Image geometry has changed
   OnImageGeometryUpdate();
 
-  // We now have valid grey data
-  m_GreyFileLoaded = 1;
-  m_SegmentationLoaded = 0;
-
   m_InDrawingColor->set_changed();
   m_InDrawOverColor->set_changed();
 
-  m_GlobalState->SetGreyExtension((char *)m_WizGreyIO->GetFileName());
-  
   // Update the label of the UI
   UpdateMainLabel();
+
+  m_GlobalState->SetSegmentationFileName("");
 
   // Get the largest image region
   GlobalState::RegionType roi = m_Driver->GetIRISImageData()->GetImageRegion();
@@ -3241,22 +3276,20 @@ UserInterfaceLogic
   OnPolygonStateUpdate(2);
 
   // Update the image info window controls
-  GreyImageWrapper *wrpGrey = m_Driver->GetCurrentImageData()->GetGrey();
+  ImageWrapperBase *wrp = m_Driver->GetCurrentImageData()->GetMain();
   for(size_t d = 0; d < 3; d++)
     {
-    m_OutImageInfoDimensions[d]->value(wrpGrey->GetSize()[d]);
-    m_OutImageInfoOrigin[d]->value(wrpGrey->GetImage()->GetOrigin()[d]);
-    m_OutImageInfoSpacing[d]->value(wrpGrey->GetImage()->GetSpacing()[d]);
+    m_OutImageInfoDimensions[d]->value(wrp->GetSize()[d]);
+    m_OutImageInfoOrigin[d]->value(wrp->GetImageBase()->GetOrigin()[d]);
+    m_OutImageInfoSpacing[d]->value(wrp->GetImageBase()->GetSpacing()[d]);
 
-    m_InImageInfoCursorIndex[d]->maximum(wrpGrey->GetSize()[d] - 1);
+    m_InImageInfoCursorIndex[d]->maximum(wrp->GetSize()[d] - 1);
     m_InImageInfoCursorIndex[d]->minimum(0);
     m_InImageInfoCursorIndex[d]->step(1);
     
     m_OutImageInfoCursorPosition[d]->precision(2);
     m_OutImageInfoCursorNIFTIPosition[d]->precision(2);
     }
-  m_OutImageInfoRange[0]->value(wrpGrey->GetImageMinNative());
-  m_OutImageInfoRange[1]->value(wrpGrey->GetImageMaxNative());
 
   // Set the RAI code in the image info dialog
   ImageCoordinateGeometry::DirectionMatrix dmat = 
@@ -3270,14 +3303,14 @@ UserInterfaceLogic
     }
   else
     raitext = raicode;  
-  this->m_OutImageInfoOriginRAICode->value(raitext.c_str());
+  m_OutImageInfoOriginRAICode->value(raitext.c_str());
 
   // Now that we've loaded the image, check if there are any settings 
   // associated with it.  If there are, give the user an option to restore 
   // these settings
   Registry associated;
   if(m_SystemInterface->FindRegistryAssociatedWithFile(
-    m_GlobalState->GetGreyFileName(),associated))
+    m_GlobalState->GetGreyFileName(),associated)) // CHECK!!!
     {
     // Load the settings using RegistryIO
     SNAPRegistryIO rio;
@@ -3293,14 +3326,39 @@ UserInterfaceLogic
   // Redraw the crosshairs in the 3D window  
   m_IRISWindowManager3D->ResetView(); 
 
+  // Update the list of labels
+  OnLabelListUpdate();
+
+  // Redraw the user interface
+  RedrawWindows();
+  m_WinMain->redraw();
+}
+
+void 
+UserInterfaceLogic
+::OnGreyImageUpdate()
+{
+  // Update the list of recently open files
+  GenerateRecentGreyFilesMenu();
+
+  // Update the image info window controls
+  GreyImageWrapper *wrpGrey = m_Driver->GetCurrentImageData()->GetGrey();
+  m_OutImageInfoRange[0]->value(wrpGrey->GetImageMinNative());
+  m_OutImageInfoRange[1]->value(wrpGrey->GetImageMaxNative());
+
   // Redraw the intensity mapping window and controls
-  m_IntensityCurveUI->SetCurve(m_Driver->GetIntensityCurve());    
+  m_IntensityCurveUI->SetCurve(m_Driver->GetCurrentImageData()->GetGrey()->
+    GetIntensityMapFunction());
   m_IntensityCurveUI->SetImageWrapper(
     m_Driver->GetCurrentImageData()->GetGrey());
   m_IntensityCurveUI->OnCurveChange();
 
-  // Update the list of labels
-  OnLabelListUpdate();
+  // Common user interface updates
+  OnMainImageUpdate();
+
+  // Disable/Enable some menu items
+  m_Activation->UpdateFlag(UIF_RGBANY_LOADED, false);
+  m_Activation->UpdateFlag(UIF_IRIS_WITH_GRAY_LOADED, true);
 
   // Warn if the image has been scaled
   GreyTypeToNativeFunctor native = 
@@ -3315,28 +3373,52 @@ UserInterfaceLogic
       "precision from the original image will be lost!\n\n"
 	 "You can turn off this warning by going to \"Options -> \n"
 	 "Display Options -> General\"\n\n");
+}
 
-  // Redraw the user interface
-  RedrawWindows();
-  m_WinMain->redraw();
+void
+UserInterfaceLogic
+::OnRGBImageUpdate()
+{
+  // Update the list of recently open files
+  GenerateRecentRGBFilesMenu();
+
+  m_GlobalState->SetRGBAlpha(255);
+  m_RGBOverlayUI->SetOpacity(255);
+ 
+  // Update the image info window controls
+  m_OutImageInfoRange[0]->value(0);
+  m_OutImageInfoRange[1]->value(0);
+
+  // Common user interface updates
+  OnMainImageUpdate();
+
+  // Disable/Enable some menu items
+  m_Activation->UpdateFlag(UIF_GRAY_LOADED, false);
+  m_Activation->UpdateFlag(UIF_RGBBASE_LOADED, true);
 }
 
 void 
 UserInterfaceLogic
-::OnRGBImageUpdate()
+::OnOverlayImageUpdate()
 {
-  m_RGBFileLoaded = 1;
+  // a main image has to be loaded
+  assert(m_Driver->GetCurrentImageData()->IsMainLoaded());
 
-  // We need to reinitialize the slice windows
-  OnImageGeometryUpdate();
-  // for (unsigned int i=0; i<3; i++) 
-  //  m_IRISWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
-  
-  if(!m_Driver->GetCurrentImageData()->IsGreyLoaded())
-    return;
+  // fake a crosshair location change to force the IRISSlicer filter
+  // to update the content (can we avoid this?)
+  //Vector3ui xCross = m_Driver->GetCursorPosition();
+  //m_Driver->SetCursorPosition(xCross);
 
-  m_IRISWindowManager3D->ResetView();
-  
+  // Update the source for slice windows
+  for (unsigned int i=0; i<3; i++) 
+    {
+    if(m_GlobalState->GetSNAPActive())
+      m_SNAPWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
+    else
+      m_IRISWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
+    }
+
+  // Redraw the user interface
   RedrawWindows();
   m_WinMain->redraw();
 }
@@ -3348,9 +3430,6 @@ UserInterfaceLogic
   // Certain things required only if image is reloaded
   if(reloaded)
     {
-    // TODO: what the heck is this variable?
-    m_SegmentationLoaded = 1;
-
     // When an image is reloaded, we clear the previous undo points
     m_Driver->ClearUndoPoints();
 
@@ -3423,7 +3502,7 @@ UserInterfaceLogic
 // the history is updated.
 void 
 UserInterfaceLogic
-::GenerateRecentFilesMenu()
+::GenerateRecentGreyFilesMenu()
 {
   // Load the list of recent files from the history file
   const SystemInterface::HistoryListType &history = 
@@ -3433,35 +3512,71 @@ UserInterfaceLogic
   for(unsigned int i = 0; i < 5; i++)
     {
     // Get a pointer to the corresponding menu item
-    Fl_Menu_Item *item = m_MenuLoadPreviousFirst + i;
+    Fl_Menu_Item *item = m_MenuLoadPreviousFirstGrey + i;
 
     // Update it
     if( i < history.size()) 
       {
       // Populate each of the menu items
-      m_RecentFileNames[i] = history[history.size() - (i+1)];
-      item->label(m_RecentFileNames[i].c_str());
+      m_RecentGreyFileNames[i] = history[history.size() - (i+1)];
+      item->label(m_RecentGreyFileNames[i].c_str());
       item->activate();
       }
     else
       {
-      m_RecentFileNames[i] = "Not Available";
-      item->label(m_RecentFileNames[i].c_str());
+      m_RecentGreyFileNames[i] = "Not Available";
+      item->label(m_RecentGreyFileNames[i].c_str());
       item->activate();
       }
     }
 
   // Enable / disable the overall menu
   if(history.size())
-    m_MenuLoadPrevious->activate();
+    m_MenuLoadPreviousGrey->activate();
   else
-    m_MenuLoadPrevious->deactivate();
+    m_MenuLoadPreviousGrey->deactivate();
 }
 
+void 
+UserInterfaceLogic
+::GenerateRecentRGBFilesMenu()
+{
+  // Load the list of recent files from the history file
+  const SystemInterface::HistoryListType &history = 
+    m_SystemInterface->GetHistory("RGBImage");
+
+  // Take the five most recent items and create menu items
+  for(unsigned int i = 0; i < 5; i++)
+    {
+    // Get a pointer to the corresponding menu item
+    Fl_Menu_Item *item = m_MenuLoadPreviousFirstRGB + i;
+
+    // Update it
+    if( i < history.size()) 
+      {
+      // Populate each of the menu items
+      m_RecentRGBFileNames[i] = history[history.size() - (i+1)];
+      item->label(m_RecentRGBFileNames[i].c_str());
+      item->activate();
+      }
+    else
+      {
+      m_RecentRGBFileNames[i] = "Not Available";
+      item->label(m_RecentRGBFileNames[i].c_str());
+      item->activate();
+      }
+    }
+
+  // Enable / disable the overall menu
+  if(history.size())
+    m_MenuLoadPreviousRGB->activate();
+  else
+    m_MenuLoadPreviousRGB->deactivate();
+}
 
 void
 UserInterfaceLogic
-::OnLoadRecentAction(unsigned int iRecent)
+::OnLoadRecentGreyAction(unsigned int iRecent)
 {
   // Make sure the user doesn't lose any data
   if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
@@ -3479,7 +3594,7 @@ UserInterfaceLogic
     }
 
   // Get the recent file name
-  string fnRecent = m_RecentFileNames[iRecent];
+  string fnRecent = m_RecentGreyFileNames[iRecent];
 
   // Show a wait cursor
   m_WinMain->cursor(FL_CURSOR_WAIT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
@@ -3488,7 +3603,51 @@ UserInterfaceLogic
   try
     {
     // Load the file non-interactively
-    this->NonInteractiveLoadGrey(fnRecent.c_str());
+    NonInteractiveLoadGrey(fnRecent.c_str());
+
+    // Restore the cursor
+    m_WinMain->cursor(FL_CURSOR_DEFAULT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
+    }
+  catch(itk::ExceptionObject &exc) 
+    {
+    // Restore the cursor
+    m_WinMain->cursor(FL_CURSOR_DEFAULT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
+
+    // Alert the user to the failure
+    fl_alert("Error loading image:\n%s",exc.GetDescription());
+    }
+}
+
+void
+UserInterfaceLogic
+::OnLoadRecentRGBAction(unsigned int iRecent)
+{
+  // Make sure the user doesn't lose any data
+  if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
+
+  // Get the history of grayscale images. Here we must be careful that every time
+  // the history is updated, we also remember to update the recent files menu!!!
+  const SystemInterface::HistoryListType &history = 
+    m_SystemInterface->GetHistory("RGBImage");
+
+  // Check that the history is OK
+  if(history.size() <= iRecent)
+    {
+    fl_alert("Unable to load recent file due to internal error!");
+    return;
+    }
+
+  // Get the recent file name
+  string fnRecent = m_RecentRGBFileNames[iRecent];
+
+  // Show a wait cursor
+  m_WinMain->cursor(FL_CURSOR_WAIT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
+
+  // TODO: At some point, we have to prompt the user that there are unsaved changes...
+  try
+    {
+    // Load the file non-interactively
+    NonInteractiveLoadRGB(fnRecent.c_str());
 
     // Restore the cursor
     m_WinMain->cursor(FL_CURSOR_DEFAULT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
@@ -3531,6 +3690,12 @@ UserInterfaceLogic
   // Perform the clean-up tasks before loading the image
   OnGreyImageUnload();
 
+  // Remember the current toolbar mode
+  ToolbarModeType mode = m_GlobalState->GetToolbarMode();
+ 
+  // Unload all image data
+  UnloadAllImages();
+
   // Load the image on the logical side
   m_Driver->LoadGreyImageFile(fname);
 
@@ -3538,65 +3703,74 @@ UserInterfaceLogic
   m_SystemInterface->UpdateHistory("GreyImage", 
     itksys::SystemTools::CollapseFullPath(fname).c_str());
 
-  // Update the list of recently open files
-  GenerateRecentFilesMenu();
-
   // Save the filename
   m_GlobalState->SetGreyFileName(fname);
-  m_GlobalState->SetSegmentationFileName("");
+  m_GlobalState->SetGreyExtension(fname);
 
   // Update the user interface accordingly
   OnGreyImageUpdate();
+
+  // Recover the toolbar mode
+  SetToolbarMode(mode);
 }
-
-
 
 void 
 UserInterfaceLogic
 ::OnMenuLoadGrey() 
 {
   // Make sure the user doesn't lose any data
-if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
+  if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
 
   // Set the history for the input wizard
   m_WizGreyIO->SetHistory(m_SystemInterface->GetHistory("GreyImage"));
-  
+
   // Show the input wizard with no file selected
-  m_WizGreyIO->DisplayInputWizard("", "greyscale");
+  m_WizGreyIO->DisplayInputWizard("", "Greyscale");
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
-  if(m_WizGreyIO->IsImageLoaded()) 
+  if(m_WizGreyIO->IsImageLoaded())
     {
-    // Update the system's history list
-    m_SystemInterface->UpdateHistory("GreyImage", m_WizGreyIO->GetFileName());
-
-    // Update the list of recently open files
-    GenerateRecentFilesMenu();
-
     // Perform the clean-up tasks before loading the image
     OnGreyImageUnload();
 
+    // Remember the current toolbar mode
+    ToolbarModeType mode = m_GlobalState->GetToolbarMode();
+ 
+    // Unload all image data
+    UnloadAllImages();
+
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISGreyImage(
-      m_WizGreyIO->GetLoadedImage(), 
-      GreyTypeToNativeFunctor(
-        m_WizGreyIO->GetNativeScale(),
-        m_WizGreyIO->GetNativeShift()));
+    m_Driver->UpdateIRISGreyImage(m_WizGreyIO->GetLoadedImage(),
+                    GreyTypeToNativeFunctor(
+                        m_WizGreyIO->GetNativeScale(),
+                        m_WizGreyIO->GetNativeShift()));
+
+    // Update the system's history list
+    m_SystemInterface->UpdateHistory("GreyImage", m_WizGreyIO->GetFileName());
 
     // Save the filename
     m_GlobalState->SetGreyFileName(m_WizGreyIO->GetFileName());
-    m_GlobalState->SetSegmentationFileName("");
+    m_GlobalState->SetGreyExtension((char *)m_WizGreyIO->GetFileName());
 
     // Update the user interface accordingly
     OnGreyImageUpdate();
+
+    // Recover the toolbar mode
+    SetToolbarMode(mode);
     }
 }
 
 void 
 UserInterfaceLogic
-::NonInteractiveLoadRGBStandalone(const char *fname)
+::NonInteractiveLoadRGB(const char *fname)
 {
+  // Remember the current toolbar mode
+  ToolbarModeType mode = m_GlobalState->GetToolbarMode();
+ 
+  // Unload all image data
+  UnloadAllImages();
+
   // Perform the loading on the Logic side
   m_Driver->LoadRGBImageFile(fname);
 
@@ -3604,18 +3778,14 @@ UserInterfaceLogic
   m_SystemInterface->UpdateHistory("RGBImage",  
     itksys::SystemTools::CollapseFullPath(fname).c_str());
 
-  // Set the RGB UI state      
-  m_GlobalState->SetRGBAlpha(255);
-  m_RGBOverlayUI->SetOpacity(255);
+  // Save the filename
+  m_GlobalState->SetRGBFileName(fname);
 
   // Update the user interface accordingly
-  OnGreyImageUpdate();
-
-  // Enable some menu items
-  m_Activation->UpdateFlag(UIF_GRAY_LOADED, false);
-  m_Activation->UpdateFlag(UIF_RGBBASE_LOADED, true);
-  
   OnRGBImageUpdate();
+
+  // Recover the toolbar mode
+  SetToolbarMode(mode);
 }
 
 void 
@@ -3623,21 +3793,24 @@ UserInterfaceLogic
 ::NonInteractiveLoadRGBOverlay(const char *fname)
 {
   // Send the image and RAI to the IRIS application driver
-  m_Driver->LoadRGBImageFile(fname);
+  m_Driver->LoadRGBImageFile(fname, false);
 
   // Update the system's history list
   m_SystemInterface->UpdateHistory("RGBImage",  
     itksys::SystemTools::CollapseFullPath(fname).c_str());
-  
+
+  // Update the list of recently open files
+  GenerateRecentRGBFilesMenu();
+
   // Set the RGB UI state      
   m_GlobalState->SetRGBAlpha(128);
   m_RGBOverlayUI->SetOpacity(128);
-  
-  // Update the user interface accordingly
-  OnRGBImageUpdate();
 
   // Set the state
   m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, true); 
+
+  // Update the user interface accordingly
+  OnOverlayImageUpdate();
 }
 
 void 
@@ -3647,37 +3820,88 @@ UserInterfaceLogic
   // Make sure the user doesn't lose any data
   if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
 
+  // Create the wizard
+  RGBImageIOWizardLogic wizRGBIO;
+  wizRGBIO.MakeWindow();
+
   // Set the history for the input wizard
-  m_WizRGBIO->SetHistory(m_SystemInterface->GetHistory("RGBImage"));
-  
+  wizRGBIO.SetHistory(m_SystemInterface->GetHistory("RGBImage"));
+
   // Show the input wizard with no file selected
-  m_WizRGBIO->DisplayInputWizard("", "RGB");
+  wizRGBIO.DisplayInputWizard("", "RGB");
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
-  if(m_WizRGBIO->IsImageLoaded()) 
+  if(wizRGBIO.IsImageLoaded()) 
     {
+    // Unload all image data
+    UnloadAllImages();
+
+    // Remember the current toolbar mode
+    ToolbarModeType mode = m_GlobalState->GetToolbarMode();
+ 
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISRGBImage(m_WizRGBIO->GetLoadedImage());
+    m_Driver->UpdateIRISRGBImage(wizRGBIO.GetLoadedImage());
 
     // Update the system's history list
-    m_SystemInterface->UpdateHistory("RGBImage",m_WizRGBIO->GetFileName());
+    m_SystemInterface->UpdateHistory("RGBImage",wizRGBIO.GetFileName());
 
     // Save the filename
-    m_GlobalState->SetRGBFileName(m_WizRGBIO->GetFileName());
-    m_GlobalState->SetSegmentationFileName("");
-    
-    m_GlobalState->SetRGBAlpha(255);
-    m_RGBOverlayUI->SetOpacity(255);
-    
-    // Update the user interface accordingly
-    OnGreyImageUpdate();
+    m_GlobalState->SetRGBFileName(wizRGBIO.GetFileName());
 
-    // Enable some menu items
-    m_Activation->UpdateFlag(UIF_GRAY_LOADED, false);
-    m_Activation->UpdateFlag(UIF_RGBBASE_LOADED, true);
-    
+    // Update the user interface accordingly
     OnRGBImageUpdate();
+
+    // Recover the toolbar mode
+    SetToolbarMode(mode);
+    }
+}
+
+void
+UserInterfaceLogic
+::OnMenuLoadGreyOverlay()
+{
+  // a main image should be loaded
+  assert(m_Driver->GetCurrentImageData()->IsMainLoaded());
+
+  // Should not be in SNAP mode
+  assert(!m_GlobalState->GetSNAPActive());
+
+  // Create the wizard
+  RestrictedGreyImageIOWizardLogic wizGreyOverlayIO;
+  wizGreyOverlayIO.MakeWindow();
+
+  // Set up the input wizard with the main image
+  wizGreyOverlayIO.SetMainImage(
+    m_Driver->GetCurrentImageData()->GetMain());
+
+  // Set the history for the input wizard
+  wizGreyOverlayIO.SetHistory(
+    m_SystemInterface->GetHistory("GreyImage"));
+
+  // Show the input wizard
+  wizGreyOverlayIO.DisplayInputWizard(
+    m_GlobalState->GetGreyFileName(), "Greyscale overlay");
+
+  // If the load operation was successful, populate the data and GUI with the
+  // new image
+  if(wizGreyOverlayIO.IsImageLoaded())
+    {
+    // Send the image and RAI to the IRIS application driver
+    m_Driver->UpdateIRISGreyOverlay(wizGreyOverlayIO.GetLoadedImage(),
+                    GreyTypeToNativeFunctor(
+                        wizGreyOverlayIO.GetNativeScale(),
+                        wizGreyOverlayIO.GetNativeShift()));
+
+    // Update the system's history list
+    m_SystemInterface->UpdateHistory("GreyImage", wizGreyOverlayIO.GetFileName());
+
+    // Save the filename
+    m_GlobalState->SetGreyFileName(wizGreyOverlayIO.GetFileName());
+    m_GlobalState->SetGreyExtension((char *)wizGreyOverlayIO.GetFileName());
+
+    // Update the user interface accordingly
+    OnOverlayImageUpdate();
     }
 }
 
@@ -3690,46 +3914,45 @@ UserInterfaceLogic
 
   // Should not be in SNAP mode
   assert(!m_GlobalState->GetSNAPActive());
-  
-  // Set up the input wizard with the grey image
-  m_WizRGBOverlayIO->SetGreyImage(
-    m_Driver->GetCurrentImageData()->GetGrey()->GetImage());
+
+  // Create the wizard
+  RestrictedRGBImageIOWizardLogic wizRGBOverlayIO;
+  wizRGBOverlayIO.MakeWindow();
+
+  // Set up the input wizard with the main image
+  wizRGBOverlayIO.SetMainImage(
+    m_Driver->GetCurrentImageData()->GetMain());
 
   // Set the history for the input wizard
-  m_WizRGBOverlayIO->SetHistory(
+  wizRGBOverlayIO.SetHistory(
     m_SystemInterface->GetHistory("RGBImage"));
-  
+
   // Show the input wizard
-  m_WizRGBOverlayIO->DisplayInputWizard(
+  wizRGBOverlayIO.DisplayInputWizard(
     m_GlobalState->GetRGBFileName(), "RGB overlay");
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
-  if(m_WizRGBOverlayIO->IsImageLoaded()) 
+  if (wizRGBOverlayIO.IsImageLoaded()) 
     {
     // Update the system's history list
-    m_SystemInterface->UpdateHistory("RGBImage",m_WizRGBOverlayIO->GetFileName());
-    
+    m_SystemInterface->UpdateHistory("RGBImage",wizRGBOverlayIO.GetFileName());
+
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISRGBImageOverlay(m_WizRGBOverlayIO->GetLoadedImage());
+    m_Driver->UpdateIRISRGBOverlay(wizRGBOverlayIO.GetLoadedImage());
 
     // Save the filename
-    m_GlobalState->SetRGBFileName(m_WizRGBOverlayIO->GetFileName());
-    
+    m_GlobalState->SetRGBFileName(wizRGBOverlayIO.GetFileName());
+
     m_GlobalState->SetRGBAlpha(128);
     m_RGBOverlayUI->SetOpacity(128);
-    
+ 
     // Update the user interface accordingly
-    OnRGBImageUpdate();
-
+    OnOverlayImageUpdate();
+ 
     // Set the state
     m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, true);
     }
-  
-  // Disconnect the input wizard from the grey image
-  m_WizRGBOverlayIO->SetGreyImage(NULL);
-
-  this->RedrawWindows();
 }
 
 void
@@ -3765,7 +3988,7 @@ UserInterfaceLogic
   try 
     {
     // Read the labels from file
-    this->NonInteractiveLoadLabels(m_DlgLabelsIO->GetFileName());
+    NonInteractiveLoadLabels(m_DlgLabelsIO->GetFileName());
     }
   catch (itk::ExceptionObject &exc) 
     {
@@ -3945,8 +4168,8 @@ UserInterfaceLogic
   for (size_t i = 0; i < xSize[iImageDir]; ++i)
   {
     m_Driver->SetCursorPosition(xCrossImage);
-    this->OnCrosshairPositionUpdate();
-    this->RedrawWindows();
+    OnCrosshairPositionUpdate();
+    RedrawWindows();
     m_SliceWindow[iWindow]->SaveAsPNG(fname.c_str());
     xCrossImage[iImageDir]++;
     m_LastSnapshotFileName = fname;
@@ -3955,8 +4178,8 @@ UserInterfaceLogic
   
   // recover the original cursor position
   m_Driver->SetCursorPosition(xCrossImageOld);
-  this->OnCrosshairPositionUpdate();
-  this->RedrawWindows();  
+  OnCrosshairPositionUpdate();
+  RedrawWindows();  
   
   // turn sync back on
   m_BtnSynchronizeCursor->value(syncValue);
@@ -3986,7 +4209,7 @@ void UserInterfaceLogic
   if(m_BtnSynchronizeCursor->value())
     {
     // Send the cursor position to the rest of the world
-    this->OnCrosshairPositionUpdate();
+    OnCrosshairPositionUpdate();
     }
 }
 
@@ -3994,7 +4217,7 @@ void UserInterfaceLogic
 ::OnMenuNewSegmentation()
 {
   // Grey image should be loaded
-  assert(m_Driver->GetCurrentImageData()->IsGreyLoaded());
+  assert(m_Driver->GetCurrentImageData()->IsMainLoaded());
 
   // Should not be in SNAP mode
   assert(!m_GlobalState->GetSNAPActive());
@@ -4012,7 +4235,7 @@ void UserInterfaceLogic
   m_GlobalState->SetSegmentationFileName("");
 
   // Update the main window label
-  this->UpdateMainLabel();
+  UpdateMainLabel();
 
   // Save the state of the Undo manager at the time the image was updated
   m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState();
@@ -4025,7 +4248,7 @@ void UserInterfaceLogic
 ::LoadSegmentation(const bool noninteractive, const char *fname)
 {
   // Grey image should be loaded
-  assert(m_Driver->GetCurrentImageData()->IsGreyLoaded());
+  assert(m_Driver->GetCurrentImageData()->IsMainLoaded());
 
   // Should not be in SNAP mode
   assert(!m_GlobalState->GetSNAPActive());
@@ -4034,8 +4257,8 @@ void UserInterfaceLogic
   m_WizSegmentationIO->SetHistory(m_SystemInterface->GetHistory("SegmentationImage"));
 
   // Set up the input wizard with the grey image
-  m_WizSegmentationIO->SetGreyImage(
-    m_Driver->GetCurrentImageData()->GetGrey()->GetImage());
+  m_WizSegmentationIO->SetMainImage(
+    m_Driver->GetCurrentImageData()->GetMain());
 
   if(noninteractive)
     {
@@ -4067,17 +4290,17 @@ void UserInterfaceLogic
     m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
 
     // Update the label of the main window
-    this->UpdateMainLabel();
+    UpdateMainLabel();
 
     // Save the state of the Undo manager at the time the image was updated
     m_UndoStateAtLastIO = m_Driver->GetUndoManager().GetState();
 
     // Segmentation has been updated
-    this->OnSegmentationImageUpdate(true);
+    OnSegmentationImageUpdate(true);
     }
 
   // Disconnect the input wizard from the grey image
-  m_WizSegmentationIO->SetGreyImage(NULL);
+  m_WizSegmentationIO->SetMainImage(NULL);
 
 }
 
@@ -4197,7 +4420,7 @@ void
 UserInterfaceLogic
 ::OnMenuLoadPreprocessed() 
 {
-  this->OnLoadPreprocessedImageAction();
+  OnLoadPreprocessedImageAction();
 }
 
 void
@@ -4211,8 +4434,8 @@ UserInterfaceLogic
   assert(m_GlobalState->GetSNAPActive());
   
   // Set up the input wizard with the grey image
-  m_WizPreprocessingIO->SetGreyImage(
-    m_Driver->GetCurrentImageData()->GetGrey()->GetImage());
+  m_WizPreprocessingIO->SetMainImage(
+    m_Driver->GetCurrentImageData()->GetMain());
 
   // Load the three advection images as floating point
   bool flagLoadCompleted = true;
@@ -4248,7 +4471,7 @@ UserInterfaceLogic
     }
   
   // Disconnect the input wizard from the grey image
-  m_WizPreprocessingIO->SetGreyImage(NULL);
+  m_WizPreprocessingIO->SetMainImage(NULL);
 
   // Add the advection image to SNAP
   if(flagLoadCompleted)
@@ -4264,8 +4487,8 @@ UserInterfaceLogic
   assert(m_GlobalState->GetSNAPActive());
   
   // Set up the input wizard with the grey image
-  m_WizPreprocessingIO->SetGreyImage(
-    m_Driver->GetCurrentImageData()->GetGrey()->GetImage());
+  m_WizPreprocessingIO->SetMainImage(
+    m_Driver->GetCurrentImageData()->GetMain());
 
   // Set the history for the input wizard
   m_WizPreprocessingIO->SetHistory(
@@ -4300,7 +4523,7 @@ UserInterfaceLogic
     }
 
   // Disconnect the input wizard from the grey image
-  m_WizPreprocessingIO->SetGreyImage(NULL);
+  m_WizPreprocessingIO->SetMainImage(NULL);
 }
 
 void 
@@ -4366,11 +4589,6 @@ void UserInterfaceLogic
   // The image should be loaded before bringing up the curve
   assert(m_Driver->GetCurrentImageData()->IsGreyLoaded());
 
-  // Update the curve in the UI dialog (is this necessary?)
-  // m_IntensityCurveUI->SetCurve(m_Driver->GetIntensityCurve());    
-  // m_IntensityCurveUI->SetImageWrapper(
-  //  m_Driver->GetCurrentImageData()->GetGrey());
-
   // Show the window
   m_IntensityCurveUI->DisplayWindow();
 }
@@ -4379,8 +4597,7 @@ void UserInterfaceLogic
 ::OnIntensityCurveUpdate() 
 {
   // Update the image wrapper
-  m_Driver->GetCurrentImageData()->GetGrey()->SetIntensityMapFunction(
-    m_Driver->GetIntensityCurve());
+  m_Driver->GetCurrentImageData()->GetGrey()->UpdateIntensityMapFunction();
 
   // Update the display
   RedrawWindows();
@@ -4390,7 +4607,7 @@ void UserInterfaceLogic
 ::OnRGBOverlayOptionsUpdate()
 {
   m_GlobalState->SetRGBAlpha(m_RGBOverlayUI->GetOpacity());
-  this->RedrawWindows();
+  RedrawWindows();
 }
 
 void
@@ -4398,7 +4615,7 @@ UserInterfaceLogic
 ::OnIRISLabelOpacityChange()
 {
   m_GlobalState->SetSegmentationAlpha( (unsigned char) m_InIRISLabelOpacity->value());  
-  this->RedrawWindows();
+  RedrawWindows();
 }
 
 void
@@ -4406,7 +4623,7 @@ UserInterfaceLogic
 ::OnSNAPLabelOpacityChange()
 {
   m_GlobalState->SetSegmentationAlpha( (unsigned char) m_InSNAPLabelOpacity->value());  
-  this->RedrawWindows();
+  RedrawWindows();
 }
 
 void
@@ -4573,7 +4790,7 @@ UserInterfaceLogic
 ::OnMultisessionZoomChange()
 {
   // Make sure we broadcast the current zoom level
-  this->OnZoomUpdate();
+  OnZoomUpdate();
 }
 
 void
@@ -4731,7 +4948,7 @@ void
 UserInterfaceLogic
 ::OnUnsavedChangesStateChange(UIStateFlags flag, bool value)
 {
-  this->UpdateMainLabel();
+  UpdateMainLabel();
 }
 
 void
@@ -4746,6 +4963,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.57  2009/06/09 05:46:38  garyhuizhang
+ *ENH: main image support & grey overlay support
+ *
  *Revision 1.56  2009/05/25 17:09:44  garyhuizhang
  *ENH: switch from Fl_File_Chooser to Fl_Native_File_Chooser which requires the fltk to be patched with Fl_Native_File_Chooser add-on.
  *
