@@ -269,6 +269,16 @@ class UserInterface {open : {public UserInterfaceBase}
               callback {this->OnMenuNewSegmentation()}
               tooltip {Creates a new empty segmentation} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
             }
+            MenuItem m_MenuUnloadGreyOverlayLast {
+              label {&Unload Last Grey Overlay}
+              callback {this->OnMenuUnloadGreyOverlayLast()}
+              tooltip {Unload Last Grey Overlay} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
+            }
+            MenuItem m_MenuUnloadGreyOverlays {
+              label {&Unload Grey Overlays}
+              callback {this->OnMenuUnloadGreyOverlays()}
+              tooltip {Unload Grey Overlays} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
+            }
             MenuItem m_MenuResetAll {
               label {&Reset}
               callback {this->OnMenuResetAll()}

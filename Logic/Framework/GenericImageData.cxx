@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:42:23 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/06/10 02:52:46 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -112,7 +112,6 @@ GenericImageData
 
   // Populate the array of linked wrappers
   m_LinkedWrappers.push_back(&m_GreyWrapper);
-  m_LinkedWrappers.push_back(&m_GreyOverlayWrapper);
   m_LinkedWrappers.push_back(&m_RGBWrapper);
   m_LinkedWrappers.push_back(&m_LabelWrapper);
 
@@ -145,6 +144,9 @@ GenericImageData
   // Make a new grey wrapper
   m_GreyWrapper.SetImage(newGreyImage);
   m_GreyWrapper.SetNativeMapping(native);
+  m_GreyWrapper.SetAlpha(255);
+  m_GreyWrapper.SetColorMap(COLORMAP_GREY);
+  m_GreyWrapper.UpdateIntensityMapFunction();
 
   // Make the grey wrapper the main image
   m_MainImage = &m_GreyWrapper;
@@ -161,35 +163,66 @@ GenericImageData
 
 void
 GenericImageData
-::SetGreyImageAsOverlay(GreyImageType *newGreyImage,
-                        const GreyTypeToNativeFunctor &native)
+::SetGreyOverlay(GreyImageType *newGreyImage,
+                 const GreyTypeToNativeFunctor &native)
 {
   // Check that the image matches the size of the main image
   assert(m_MainImage->GetBufferedRegion() ==
          newGreyImage->GetBufferedRegion());
 
   // Pass the image to the segmentation wrapper
-  m_GreyOverlayWrapper.SetImage(newGreyImage);
-  m_GreyOverlayWrapper.SetNativeMapping(native);
-  m_GreyOverlayWrapper.SetAlpha(255);
-  m_GreyOverlayWrapper.SetColorMap(COLORMAP_JET);
+  GreyImageWrapper *newGreyOverlayWrapper = new GreyImageWrapper;
+  newGreyOverlayWrapper->SetImage(newGreyImage);
+  newGreyOverlayWrapper->SetNativeMapping(native);
+  newGreyOverlayWrapper->SetAlpha(255);
+  newGreyOverlayWrapper->SetColorMap(COLORMAP_JET);
+  newGreyOverlayWrapper->UpdateIntensityMapFunction();
 
-  // Sync up spacing between the grey and RGB image
+  // Sync up spacing between the main and grey overlay image
   newGreyImage->SetSpacing(m_MainImage->GetImageBase()->GetSpacing());
   newGreyImage->SetOrigin(m_MainImage->GetImageBase()->GetOrigin());
 
   // Propagate the geometry information to this wrapper
   for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
     {
-    m_GreyOverlayWrapper.SetImageToDisplayTransform(
+    newGreyOverlayWrapper->SetImageToDisplayTransform(
       iSlice,m_ImageGeometry.GetImageToDisplayTransform(iSlice));
     }
+
+  // Add to the overlay wrapper list and the linked wrapper list
+  m_GreyOverlayWrappers.push_back(newGreyOverlayWrapper);
+  m_LinkedWrappers.push_back(newGreyOverlayWrapper);
+}
+
+void
+GenericImageData
+::UnloadGreyOverlays()
+{
+  while (m_GreyOverlayWrappers.size() > 0)
+    UnloadGreyOverlayLast();
+}
+
+void
+GenericImageData
+::UnloadGreyOverlayLast()
+{
+  // Make sure at least one grey overlay is loaded
+  if (!IsGreyOverlayLoaded())
+    return;
+
+  // Release the data associated with the last overlay
+  GreyImageWrapper *last = GetGreyOverlayLast();
+  last->Reset();
+
+  // Clear it off the wrapper lists
+  m_GreyOverlayWrappers.pop_back();
+  m_LinkedWrappers.pop_back();
 }
 
 void
 GenericImageData
 ::SetRGBImage(RGBImageType *newRGBImage,
-               const ImageCoordinateGeometry &newGeometry) 
+              const ImageCoordinateGeometry &newGeometry) 
 {
   m_RGBWrapper.SetImage(newRGBImage);
   m_RGBWrapper.SetAlpha(255);
@@ -220,7 +253,7 @@ GenericImageData
   m_RGBWrapper.SetImage(newRGBImage);
   m_RGBWrapper.SetAlpha(255);
 
-  // Sync up spacing between the grey and RGB image
+  // Sync up spacing between the main and RGB overlay image
   newRGBImage->SetSpacing(m_GreyWrapper.GetImage()->GetSpacing());
   newRGBImage->SetOrigin(m_GreyWrapper.GetImage()->GetOrigin());
 
@@ -244,7 +277,7 @@ GenericImageData
   // Pass the image to the segmentation wrapper
   m_LabelWrapper.SetImage(newLabelImage);
 
-  // Sync up spacing between the grey and label image
+  // Sync up spacing between the main and label image
   newLabelImage->SetSpacing(m_MainImage->GetImageBase()->GetSpacing());
   newLabelImage->SetOrigin(m_MainImage->GetImageBase()->GetOrigin());
 }
@@ -260,7 +293,7 @@ bool
 GenericImageData
 ::IsGreyOverlayLoaded()
 {
-  return m_GreyOverlayWrapper.IsInitialized();
+  return (m_GreyOverlayWrappers.size() > 0);
 }
 
 bool
@@ -281,7 +314,7 @@ void
 GenericImageData
 ::SetCrosshairs(const Vector3ui &crosshairs)
 {
-  std::list<ImageWrapperBase *>::iterator it = m_LinkedWrappers.begin();
+  WrapperIterator it = m_LinkedWrappers.begin();
   while(it != m_LinkedWrappers.end())
     {
     ImageWrapperBase *wrapper = *it++;

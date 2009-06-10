@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:46:38 $
-  Version:   $Revision: 1.25 $
+  Date:      $Date: 2009/06/10 02:52:46 $
+  Version:   $Revision: 1.26 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -699,6 +699,8 @@ protected:
   void OnMenuLoadGrey();
   void OnMenuLoadRGB();
   void OnMenuLoadGreyOverlay();
+  void OnMenuUnloadGreyOverlayLast();
+  void OnMenuUnloadGreyOverlays();
   void OnMenuLoadRGBOverlay();
   void OnMenuLoadSegmentation();
   void OnMenuLoadLabels();
@@ -995,6 +997,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.26  2009/06/10 02:52:46  garyhuizhang
+ *ENH: multiple grey overlay images support
+ *
  *Revision 1.25  2009/06/09 05:46:38  garyhuizhang
  *ENH: main image support & grey overlay support
  *

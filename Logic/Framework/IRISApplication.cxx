@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:42:24 $
-  Version:   $Revision: 1.20 $
+  Date:      $Date: 2009/06/10 02:52:46 $
+  Version:   $Revision: 1.21 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -244,18 +244,15 @@ IRISApplication
   // Compute the new image geometry for the IRIS data
   ImageCoordinateGeometry icg(
     newGreyImage->GetDirection().GetVnlMatrix(), m_DisplayToAnatomyRAI, size);
-  
+
   // Update the image information in m_Driver->GetCurrentImageData()
   m_IRISImageData->SetGreyImage(newGreyImage, icg, native);    
-  
-  // Update the new grey image wrapper with the intensity mapping curve
-  m_IRISImageData->GetGrey()->UpdateIntensityMapFunction();
 
   // Update the crosshairs position
   Vector3ui cursor = size;
   cursor /= 2;
   m_IRISImageData->SetCrosshairs(cursor);
-  
+
   // TODO: Unify this!
   m_GlobalState->SetCrosshairsPosition(cursor);
 
@@ -349,11 +346,31 @@ IRISApplication
   assert(m_IRISImageData->IsMainLoaded());
 
   // Update the iris data
-  m_IRISImageData->SetGreyImageAsOverlay(newGreyOverlay, native);
+  m_IRISImageData->SetGreyOverlay(newGreyOverlay, native);
 
-  // Update the new grey image wrapper with the intensity mapping curve
-  // hack, using the same as the main grey
-  m_IRISImageData->GetGreyOverlay()->UpdateIntensityMapFunction();
+  // for overlay, we don't want to change the cursor location
+  // just force the IRISSlicer to update
+  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+}
+
+void
+IRISApplication
+::UnloadGreyOverlays()
+{
+  // unload all the grey overlays
+  m_IRISImageData->UnloadGreyOverlays();
+
+  // for overlay, we don't want to change the cursor location
+  // just force the IRISSlicer to update
+  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+}
+
+void
+IRISApplication
+::UnloadGreyOverlayLast()
+{
+  // unload the last grey overlay
+  m_IRISImageData->UnloadGreyOverlayLast();
 
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update

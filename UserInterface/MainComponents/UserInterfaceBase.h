@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:46:38 $
-  Version:   $Revision: 1.22 $
+  Date:      $Date: 2009/06/10 02:52:46 $
+  Version:   $Revision: 1.23 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -84,6 +84,8 @@ public:
   virtual void OnMenuSaveGreyROI() = 0;
   virtual void OnMenuLoadRGB() = 0;
   virtual void OnMenuLoadGreyOverlay() = 0;
+  virtual void OnMenuUnloadGreyOverlayLast() = 0;
+  virtual void OnMenuUnloadGreyOverlays() = 0;
   virtual void OnMenuLoadRGBOverlay() = 0;
   virtual void OnMenuLoadSegmentation() = 0;
   virtual void OnMenuSaveSegmentation() = 0;

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:42:24 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2009/06/10 02:52:46 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -126,9 +126,12 @@ public:
     GreyImageType *newGreyImage, const GreyTypeToNativeFunctor &native);
   void UpdateIRISGreyOverlay(
     GreyImageType *newGreyOverlay, const GreyTypeToNativeFunctor &native);
+  void UnloadGreyOverlays();
+  void UnloadGreyOverlayLast();
 
   void UpdateIRISRGBImage(RGBImageType *newRGBImage);
   void UpdateIRISRGBOverlay(RGBImageType *newRGBOverlay);
+  void UnloadRGBOverlay();
 
   /** 
    * Update the IRIS image data with an external segmentation image (e.g., 

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:42:24 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/06/10 02:52:46 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -102,8 +102,13 @@ public:
    * Access the greyscale overlay image (read only access is allowed)
    */
   GreyImageWrapper* GetGreyOverlay() {
-    assert(m_GreyOverlayWrapper.IsInitialized());
-    return &m_GreyOverlayWrapper;
+    assert(m_GreyOverlayWrappers.size() > 0);
+    return static_cast<GreyImageWrapper *>(m_GreyOverlayWrappers.back());
+  }
+
+  GreyImageWrapper* GetGreyOverlayLast() {
+    assert(m_GreyOverlayWrappers.size() > 0);
+    return static_cast<GreyImageWrapper *>(m_GreyOverlayWrappers.back());
   }
 
   /**
@@ -163,9 +168,12 @@ public:
     const ImageCoordinateGeometry &newGeometry,
     const GreyTypeToNativeFunctor &native);
 
-  virtual void SetGreyImageAsOverlay(
+  virtual void SetGreyOverlay(
     GreyImageType *newGreyImage,
     const GreyTypeToNativeFunctor &native);
+
+  virtual void UnloadGreyOverlays();
+  virtual void UnloadGreyOverlayLast();
 
   virtual void SetRGBImage(RGBImageType *newRGBImage,
                     const ImageCoordinateGeometry &newGeometry);
@@ -220,9 +228,6 @@ protected:
   // Wrapper around the grey-scale image
   GreyImageWrapper m_GreyWrapper;
 
-  // Wrapper around the grey-scale overlay image
-  GreyImageWrapper m_GreyOverlayWrapper;
-
   // Wrapper around the RGB image
   RGBImageWrapper m_RGBWrapper;
 
@@ -235,6 +240,7 @@ protected:
   typedef WrapperList::iterator WrapperIterator;
   typedef WrapperList::const_iterator WrapperConstIterator;
   WrapperList m_LinkedWrappers;
+  WrapperList m_GreyOverlayWrappers;
 
   // A pointer to the 'main' image, i.e., the image that is treated as the 
   // reference for all other images. It is typically the grey image, but 

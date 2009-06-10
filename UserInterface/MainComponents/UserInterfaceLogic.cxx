@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:46:38 $
-  Version:   $Revision: 1.57 $
+  Date:      $Date: 2009/06/10 02:52:46 $
+  Version:   $Revision: 1.58 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3196,7 +3196,7 @@ UserInterfaceLogic
     m_Driver->GetCurrentImageData()->GetRGB()->Reset();
 
   if (m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
-    m_Driver->GetCurrentImageData()->GetGreyOverlay()->Reset();
+    m_Driver->UnloadGreyOverlays();
 
   if (m_Driver->GetCurrentImageData()->IsGreyLoaded())
     m_Driver->GetCurrentImageData()->GetGrey()->Reset();
@@ -3903,6 +3903,62 @@ UserInterfaceLogic
     // Update the user interface accordingly
     OnOverlayImageUpdate();
     }
+}
+
+void
+UserInterfaceLogic
+::OnMenuUnloadGreyOverlayLast()
+{
+  if (m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
+    m_Driver->UnloadGreyOverlayLast();
+
+  if (m_GlobalState->GetSNAPActive())
+    {
+    m_SNAPWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_SNAPWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_SNAPWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
+
+    m_SNAPWindowManager3D->ClearScreen();
+    m_SNAPWindowManager3D->ResetView();
+    } else
+    { 
+    m_IRISWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_IRISWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_IRISWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
+    
+    m_IRISWindowManager3D->ClearScreen();
+    m_IRISWindowManager3D->ResetView();
+    }
+
+  RedrawWindows();
+}
+
+void
+UserInterfaceLogic
+::OnMenuUnloadGreyOverlays()
+{
+  if (m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
+    m_Driver->UnloadGreyOverlays();
+
+  if (m_GlobalState->GetSNAPActive())
+    {
+    m_SNAPWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_SNAPWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_SNAPWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
+
+    m_SNAPWindowManager3D->ClearScreen();
+    m_SNAPWindowManager3D->ResetView();
+    } else
+    { 
+    m_IRISWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_IRISWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_IRISWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
+    
+    m_IRISWindowManager3D->ClearScreen();
+    m_IRISWindowManager3D->ResetView();
+    }
+
+  RedrawWindows();
 }
 
 void 
@@ -4963,6 +5019,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.58  2009/06/10 02:52:46  garyhuizhang
+ *ENH: multiple grey overlay images support
+ *
  *Revision 1.57  2009/06/09 05:46:38  garyhuizhang
  *ENH: main image support & grey overlay support
  *
