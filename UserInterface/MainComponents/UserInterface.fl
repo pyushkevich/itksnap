@@ -51,36 +51,36 @@ class UserInterface {open : {public UserInterfaceBase}
             tooltip {Load an RGB (color)  image, e.g., from a diffusion tensor imaging study} xywh {15 15 100 20} shortcut 0x40072 labelsize 12
           }
           MenuItem m_MenuLoadAdvection {
-            label {&Advection Field (Advanced)...}
+            label {Advection Field (Advanced)}
             callback {this->OnMenuLoadAdvection();}
             tooltip {experimental feature} xywh {35 35 100 20} labelsize 12 hide deactivate divider
           }
           Submenu {} {
-            label {&Save}
+            label {Save}
             xywh {20 20 100 20} labelsize 12
           } {
             MenuItem m_MenuSaveGrey {
-              label {&Greyscale Image...}
+              label {Greyscale Image}
               callback {this->OnMenuSaveGrey();}
               tooltip {Save the segmentation results as an image} xywh {40 40 100 20} labelsize 12 deactivate divider
             }
             MenuItem m_MenuSavePreprocessed {
-              label {&Preprocessed Image...}
+              label {Preprocessed Image}
               callback {this->OnMenuSavePreprocessed();}
               xywh {40 40 100 20} shortcut 0x50070 labelsize 12 deactivate
             }
             MenuItem m_MenuSaveGreyROI {
-              label {Greyscale Image &Region...}
+              label {Greyscale Image Region}
               callback {this->OnMenuSaveGreyROI();}
               xywh {40 40 100 20} shortcut 0x50072 labelsize 12 deactivate
             }
             MenuItem m_MenuSaveLevelSet {
-              label {&Level Set Function...}
+              label {Level Set Function}
               callback {this->OnMenuSaveLevelSet();}
               tooltip {Save the floating-point level set function during segmentation} xywh {50 50 100 20} shortcut 0x5006c labelsize 12 deactivate divider
             }
             MenuItem m_MenuSaveVoxelCounts {
-              label {&Volumes && Statistics...}
+              label {Volumes && Statistics}
               callback {this->OnMenuWriteVoxelCounts();}
               xywh {10 10 100 20} shortcut 0x50076 labelsize 12 deactivate divider
             }
@@ -89,17 +89,17 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {10 10 100 20} labelsize 12 deactivate
             } {
               MenuItem m_MenuSaveScreenshotAxial {
-                label {Axial...}
+                label {Axial}
                 callback {OnMenuSaveScreenshot(0);}
                 xywh {50 50 100 20} labelsize 12
               }
               MenuItem m_MenuSaveScreenshotSaggital {
-                label {Saggital...}
+                label {Saggital}
                 callback {OnMenuSaveScreenshot(1);}
                 xywh {50 50 100 20} labelsize 12
               }
               MenuItem m_MenuSaveScreenshotCoronal {
-                label {Coronal...}
+                label {Coronal}
                 callback {OnMenuSaveScreenshot(2);}
                 xywh {50 50 100 20} labelsize 12
               }
@@ -109,44 +109,44 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {10 10 100 20} labelsize 12 deactivate divider
             } {
               MenuItem m_MenuSaveScreenshotSeriesAxial {
-                label {Axial...}
+                label {Axial}
                 callback {OnMenuSaveScreenshotSeries(0);}
                 xywh {50 50 100 20} labelsize 12
               }
               MenuItem m_MenuSaveScreenshotSeriesSaggital {
-                label {Saggital...}
+                label {Saggital}
                 callback {OnMenuSaveScreenshotSeries(1);}
                 xywh {50 50 100 20} labelsize 12
               }
               MenuItem m_MenuSaveScreenshotSeriesCoronal {
-                label {Coronal...}
+                label {Coronal}
                 callback {OnMenuSaveScreenshotSeries(2);}
                 xywh {50 50 100 20} labelsize 12
               }
             }
             Submenu m_MenuExportSlice {
-              label {E&xport Slice} open
+              label {Export Slice} open
               xywh {0 0 100 20} labelsize 12 deactivate
             } {
               MenuItem m_MenuExportSliceAxial {
-                label {&Axial...}
+                label {Axial}
                 callback {OnMenuExportSlice(0);}
                 xywh {50 50 100 20} labelsize 12
               }
               MenuItem m_MenuExportSliceSagittal {
-                label {&Sagittal...}
+                label {Sagittal}
                 callback {OnMenuExportSlice(1);}
                 xywh {60 60 100 20} labelsize 12
               }
               MenuItem m_MenuExportSliceCoronal {
-                label {&Colornal...}
+                label {Colornal}
                 callback {OnMenuExportSlice(2);}
                 xywh {70 70 100 20} labelsize 12
               }
             }
           }
           Submenu m_MenuLoadPrevious {
-            label {&Recent Images}
+            label {Open Recent}
             xywh {5 5 100 20} labelsize 12
           } {
             Submenu m_MenuLoadPreviousGrey {
@@ -211,12 +211,12 @@ class UserInterface {open : {public UserInterfaceBase}
             }
           }
           MenuItem m_MenuResetAll {
-            label {Reset}
+            label {Unload All Images}
             callback {this->OnMenuResetAll()}
             tooltip Reset xywh {0 0 30 20} shortcut 0x4006e labelsize 12
           }
           MenuItem {} {
-            label {&Quit}
+            label {Quit}
             callback {this->OnMenuQuit();}
             xywh {45 45 100 20} shortcut 0x40071 labelsize 12
           }
@@ -231,7 +231,7 @@ class UserInterface {open : {public UserInterfaceBase}
             tooltip {Load a previously created segmentation} xywh {15 15 100 20} shortcut 0x40064 labelsize 12 deactivate
           }
           MenuItem m_MenuNewSegmentation {
-            label {Clear Current}
+            label {Clear}
             callback {this->OnMenuNewSegmentation()}
             tooltip {Creates a new empty segmentation} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
           }
@@ -286,22 +286,22 @@ class UserInterface {open : {public UserInterfaceBase}
           xywh {5 5 100 20} labelsize 12
         } {
           MenuItem m_MenuImageInfo {
-            label {&Image Info...}
+            label {Image Info}
             callback {this->OnMenuImageInfo();}
             xywh {5 5 100 20} labelsize 12
           }
           MenuItem m_MenuIntensityCurve {
-            label {Image Contrast...}
+            label {Image Contrast}
             callback {this->OnMenuIntensityCurve();}
             xywh {15 15 100 20} shortcut 0x40069 labelsize 12 deactivate
           }
           MenuItem m_MenuReorientImage {
-            label {&Reorient Image...}
+            label {Reorient Image}
             callback {this->OnMenuReorientImage();}
             tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {15 15 100 20} labelsize 12 divider
           }
           MenuItem {} {
-            label {Display Options...}
+            label {Display Options}
             callback {OnMenuShowDisplayOptions();}
             xywh {5 5 100 20} labelsize 12 divider
           }
@@ -316,27 +316,27 @@ class UserInterface {open : {public UserInterfaceBase}
           xywh {0 0 100 20} labelsize 12
         } {
           MenuItem {} {
-            label {&Help Index}
+            label {Help Index}
             callback {this->OnLaunchTutorialAction();}
             xywh {30 30 100 20} shortcut 0xffbe labelsize 12
           }
           MenuItem {} {
-            label {&Keyboard shortcuts}
+            label {Keyboard shortcuts}
             callback {this->ShowHTMLPage("Shortcuts.html");}
             xywh {40 40 100 20} labelsize 12
           }
           MenuItem {} {
-            label {&Credits}
+            label {Credits}
             callback {this->ShowHTMLPage("Credits.html");}
             xywh {20 20 100 20} shortcut 0x1ffbe labelsize 12
           }
           MenuItem {} {
-            label {&About}
+            label {About}
             callback {m_WinAbout->show();}
             xywh {30 30 100 20} labelsize 12
           }
           MenuItem {} {
-            label {Check for &Updates}
+            label {Check for Updates}
             callback {this->OnMenuCheckUpdate();}
             tooltip {Connect to the ITK-SNAP server to check if your version is up to date.} xywh {50 50 100 20} labelsize 12
           }
@@ -597,7 +597,7 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {5 354 135 211} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
             } {
               Fl_Button {} {
-                label {Label editor...}
+                label {Label editor}
                 callback {OnEditLabelsAction();}
                 tooltip {Press this button to bring up the label editor} xywh {20 500 105 25} box PLASTIC_UP_BOX color 180 labelsize 11
               }
@@ -740,7 +740,7 @@ ITK-SNAP!  Visit our new website:
                   xywh {10 190 125 340} color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
                 } {
                   Fl_Button m_BtnPreprocess {
-                    label {Preprocess Image ...}
+                    label {Preprocess Image}
                     callback {this->OnPreprocessAction();}
                     tooltip {Use this button to preprocess the grayscale image to genereate the 'speed' image. The speed image affects how fast the active contour propagates at each point in the image.} xywh {15 385 115 25} box PLASTIC_UP_BOX color 180 labelsize 11 align 144
                   }
@@ -767,7 +767,7 @@ ITK-SNAP!  Visit our new website:
                     tooltip {Go to the previous step in the active snake pipeline} xywh {15 505 55 25} box PLASTIC_UP_BOX color 180 labelsize 12 labelcolor 32 align 16 deactivate
                   }
                   Fl_Button m_BtnLoadPreprocessedImage {
-                    label {Load from File...}
+                    label {Load from File}
                     callback {this->OnLoadPreprocessedImageAction();}
                     tooltip {Load the 'speed' image from an external file.} xywh {15 430 115 25} box PLASTIC_UP_BOX color 180 labelsize 11 align 144
                   }
@@ -877,7 +877,7 @@ OnBubbleRadiusChange()}
                     tooltip {Current iteration of active contour segmentation} xywh {80 425 50 20} color 52 selection_color 48 labelsize 12 labelcolor 136 align 5 textsize 10
                   }
                   Fl_Button m_BtnSnakeParameters {
-                    label {Set Parameters...}
+                    label {Set Parameters}
                     callback {OnSnakeParametersAction();}
                     tooltip {Change active contour evolution parameters} xywh {15 280 115 25} box PLASTIC_UP_BOX color 180 labelsize 12
                   }
@@ -962,7 +962,7 @@ this->OnSNAPLabelOpacityChange();}
                 tooltip {Transparency of the segmentation overlay} xywh {10 650 125 15} type Horizontal labelsize 12 align 5 maximum 255 step 1 value 128
               }
               Fl_Button m_BtnPreprocessedColorMap {
-                label {Color Map...}
+                label {Color Map}
                 callback {OnPreprocessedColorMapAction();}
                 tooltip {Change the color map used to display the 'speed' image} xywh {65 605 70 20} box PLASTIC_UP_BOX color 180 labelsize 11 align 144
               }
