@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/10 02:52:46 $
-  Version:   $Revision: 1.23 $
+  Date:      $Date: 2009/06/12 05:11:08 $
+  Version:   $Revision: 1.24 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -90,8 +90,7 @@ public:
   virtual void OnMenuLoadSegmentation() = 0;
   virtual void OnMenuSaveSegmentation() = 0;
   virtual void OnMenuSaveSegmentationMesh() = 0;
-  virtual void OnMenuLoadPreprocessed() = 0;  
-  virtual void OnMenuSavePreprocessed() = 0; 
+  virtual void OnMenuSavePreprocessed() = 0;
   virtual void OnMenuSaveLevelSet() = 0; 
   virtual void OnMenuLoadLabels() = 0;
   virtual void OnMenuSaveLabels() = 0;

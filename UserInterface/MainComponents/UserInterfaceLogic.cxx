@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/10 02:52:46 $
-  Version:   $Revision: 1.58 $
+  Date:      $Date: 2009/06/12 05:11:08 $
+  Version:   $Revision: 1.59 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -323,7 +323,6 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuExportSlice, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSavePreprocessed, UIF_SNAP_PREPROCESSING_DONE);
   m_Activation->AddMenuItem(m_MenuSaveLevelSet, UIF_SNAP_SNAKE_INITIALIZED);
-  m_Activation->AddMenuItem(m_MenuLoadPreprocessed, UIF_SNAP_PAGE_PREPROCESSING);
   m_Activation->AddMenuItem(m_MenuLoadAdvection, UIF_SNAP_PAGE_PREPROCESSING);
   m_Activation->AddMenuItem(m_MenuImageInfo, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuReorientImage, UIF_IRIS_WITH_BASEIMG_LOADED);
@@ -4472,13 +4471,6 @@ void UserInterfaceLogic
     }
 }
 
-void 
-UserInterfaceLogic
-::OnMenuLoadPreprocessed() 
-{
-  OnLoadPreprocessedImageAction();
-}
-
 void
 UserInterfaceLogic
 ::OnMenuLoadAdvection()
@@ -5019,6 +5011,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.59  2009/06/12 05:11:08  garyhuizhang
+ *ENH: reorganized user interface
+ *
  *Revision 1.58  2009/06/10 02:52:46  garyhuizhang
  *ENH: multiple grey overlay images support
  *

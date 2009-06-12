@@ -30,65 +30,30 @@ class UserInterface {open : {public UserInterfaceBase}
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
       callback {OnMainWindowCloseAction();} open
-      xywh {695 221 875 710} type Double align 0 resizable
+      xywh {351 44 875 735} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"} visible
     } {
-      Fl_Menu_Bar m_MenubarMain {open
-        xywh {0 0 145 25} labelsize 12 textsize 12
+      Fl_Menu_Bar m_MenubarMain {
+        xywh {0 0 875 25} labelsize 12 textsize 12
       } {
         Submenu {} {
-          label {&File} open
+          label {File} open
           xywh {10 10 100 20} labelsize 12
         } {
-          Submenu {} {
-            label {&Open}
-            xywh {5 5 100 20} labelsize 12
-          } {
-            MenuItem m_MenuLoadGrey {
-              label {&Greyscale Image...}
-              callback {this->OnMenuLoadGrey();}
-              tooltip {Load an image that you want to segment} xywh {5 5 100 20} shortcut 0x40067 labelsize 12
-            }
-            MenuItem m_MenuLoadSegmentation {
-              label {&Segmentation Image...}
-              callback {this->OnMenuLoadSegmentation();}
-              tooltip {Load a previously created segmentation} xywh {15 15 100 20} shortcut 0x40064 labelsize 12 deactivate
-            }
-            MenuItem m_MenuLoadPreprocessed {
-              label {&Preprocessed Image...}
-              callback {this->OnLoadPreprocessedImageAction();}
-              xywh {15 15 100 20} shortcut 0x40070 labelsize 12 deactivate divider
-            }
-            MenuItem m_MenuLoadRGB {
-              label {&RGB Image...}
-              callback {this->OnMenuLoadRGB();}
-              tooltip {Load an RGB (color)  image, e.g., from a diffusion tensor imaging study} xywh {15 15 100 20} shortcut 0x40072 labelsize 12
-            }
-            MenuItem m_MenuLoadAdvection {
-              label {&Advection Field (Advanced)...}
-              callback {this->OnMenuLoadAdvection();}
-              tooltip {experimental feature} xywh {35 35 100 20} labelsize 12 hide deactivate divider
-            }
-            MenuItem m_MenuLoadLabels {
-              label {&Label Descriptions...}
-              callback {this->OnMenuLoadLabels();}
-              xywh {25 25 100 20} shortcut 0x4006c labelsize 12
-            }
+          MenuItem m_MenuLoadGrey {
+            label {Open Greyscale Image}
+            callback {this->OnMenuLoadGrey();}
+            tooltip {Load an image that you want to segment} xywh {5 5 100 20} shortcut 0x40067 labelsize 12
           }
-          Submenu {} {
-            label {&Add}
-            xywh {5 5 100 20} labelsize 12
-          } {
-            MenuItem m_MenuLoadGreyOverlay {
-              label {Grey &Overlay...}
-              callback {this->OnMenuLoadGreyOverlay();}
-              tooltip {Load a Grey image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50067 labelsize 12 deactivate divider
-            }
-            MenuItem m_MenuLoadRGBOverlay {
-              label {RGB &Overlay...}
-              callback {this->OnMenuLoadRGBOverlay();}
-              tooltip {Load an RGB image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50072 labelsize 12 deactivate divider
-            }
+          MenuItem m_MenuLoadRGB {
+            label {Open RGB Image}
+            callback {this->OnMenuLoadRGB();}
+            tooltip {Load an RGB (color)  image, e.g., from a diffusion tensor imaging study} xywh {15 15 100 20} shortcut 0x40072 labelsize 12
+          }
+          MenuItem m_MenuLoadAdvection {
+            label {&Advection Field (Advanced)...}
+            callback {this->OnMenuLoadAdvection();}
+            tooltip {experimental feature} xywh {35 35 100 20} labelsize 12 hide deactivate divider
           }
           Submenu {} {
             label {&Save}
@@ -98,16 +63,6 @@ class UserInterface {open : {public UserInterfaceBase}
               label {&Greyscale Image...}
               callback {this->OnMenuSaveGrey();}
               tooltip {Save the segmentation results as an image} xywh {40 40 100 20} labelsize 12 deactivate divider
-            }
-            MenuItem m_MenuSaveSegmentation {
-              label {&Segmentation Image...}
-              callback {this->OnMenuSaveSegmentation();}
-              tooltip {Save the segmentation results as an image} xywh {30 30 100 20} shortcut 0x40073 labelsize 12 deactivate
-            }
-            MenuItem m_MenuSaveSegmentationMesh {
-              label {Segmentation &Mesh...}
-              callback {this->OnMenuSaveSegmentationMesh();}
-              tooltip {Save the segmentation results as an image} xywh {40 40 100 20} shortcut 0x5006d labelsize 12 deactivate divider
             }
             MenuItem m_MenuSavePreprocessed {
               label {&Preprocessed Image...}
@@ -123,11 +78,6 @@ class UserInterface {open : {public UserInterfaceBase}
               label {&Level Set Function...}
               callback {this->OnMenuSaveLevelSet();}
               tooltip {Save the floating-point level set function during segmentation} xywh {50 50 100 20} shortcut 0x5006c labelsize 12 deactivate divider
-            }
-            MenuItem m_MenuSaveLabels {
-              label {&Label Descriptions...}
-              callback {this->OnMenuSaveLabels();}
-              xywh {40 40 100 20} shortcut 0x5006c labelsize 12
             }
             MenuItem m_MenuSaveVoxelCounts {
               label {&Volumes && Statistics...}
@@ -200,8 +150,8 @@ class UserInterface {open : {public UserInterfaceBase}
             xywh {5 5 100 20} labelsize 12
           } {
             Submenu m_MenuLoadPreviousGrey {
+              label Grey
               xywh {5 5 100 20} labelsize 12
-              label {Grey}
             } {
               MenuItem m_MenuLoadPreviousFirstGrey {
                 label {Not Available}
@@ -230,8 +180,8 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
             Submenu m_MenuLoadPreviousRGB {
+              label RGB
               xywh {5 5 100 20} labelsize 12
-              label {RGB}
             } {
               MenuItem m_MenuLoadPreviousFirstRGB {
                 label {Not Available}
@@ -260,40 +210,10 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
           }
-          Submenu {} {
-            label {&New}
-            xywh {0 0 62 20} labelsize 12 divider
-          } {
-            MenuItem m_MenuNewSegmentation {
-              label {&Segmentation Image}
-              callback {this->OnMenuNewSegmentation()}
-              tooltip {Creates a new empty segmentation} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
-            }
-            MenuItem m_MenuUnloadGreyOverlayLast {
-              label {&Unload Last Grey Overlay}
-              callback {this->OnMenuUnloadGreyOverlayLast()}
-              tooltip {Unload Last Grey Overlay} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
-            }
-            MenuItem m_MenuUnloadGreyOverlays {
-              label {&Unload Grey Overlays}
-              callback {this->OnMenuUnloadGreyOverlays()}
-              tooltip {Unload Grey Overlays} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
-            }
-            MenuItem m_MenuResetAll {
-              label {&Reset}
-              callback {this->OnMenuResetAll()}
-              tooltip {Reset} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
-            }
-          }
-          MenuItem m_MenuImageInfo {
-            label {&Image Info...}
-            callback {this->OnMenuImageInfo();}
-            xywh {5 5 100 20} labelsize 12
-          }
-          MenuItem m_MenuReorientImage {
-            label {&Reorient Image...}
-            callback {this->OnMenuReorientImage();}
-            tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {15 15 100 20} labelsize 12 divider
+          MenuItem m_MenuResetAll {
+            label {Reset}
+            callback {this->OnMenuResetAll()}
+            tooltip Reset xywh {0 0 30 20} shortcut 0x4006e labelsize 12
           }
           MenuItem {} {
             label {&Quit}
@@ -302,27 +222,97 @@ class UserInterface {open : {public UserInterfaceBase}
           }
         }
         Submenu {} {
-          label {&Options} open
+          label {Segmentation}
           xywh {5 5 100 20} labelsize 12
         } {
+          MenuItem m_MenuLoadSegmentation {
+            label {Load From Image}
+            callback {this->OnMenuLoadSegmentation();}
+            tooltip {Load a previously created segmentation} xywh {15 15 100 20} shortcut 0x40064 labelsize 12 deactivate
+          }
+          MenuItem m_MenuNewSegmentation {
+            label {Clear Current}
+            callback {this->OnMenuNewSegmentation()}
+            tooltip {Creates a new empty segmentation} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
+          }
+          MenuItem m_MenuSaveSegmentation {
+            label {Save As Image}
+            callback {this->OnMenuSaveSegmentation();}
+            tooltip {Save the segmentation results as an image} xywh {30 30 100 20} shortcut 0x40073 labelsize 12 deactivate
+          }
+          MenuItem m_MenuSaveSegmentationMesh {
+            label {Save As Mesh}
+            callback {this->OnMenuSaveSegmentationMesh();}
+            tooltip {Save the segmentation results as an image} xywh {40 40 100 20} shortcut 0x5006d labelsize 12 deactivate divider
+          }
+          MenuItem m_MenuLoadLabels {
+            label {Load Label Descriptions}
+            callback {this->OnMenuLoadLabels();}
+            xywh {25 25 100 20} shortcut 0x4006c labelsize 12
+          }
+          MenuItem m_MenuSaveLabels {
+            label {Save Label Descriptions}
+            callback {this->OnMenuSaveLabels();}
+            xywh {40 40 100 20} shortcut 0x5006c labelsize 12
+          }
+        }
+        Submenu {} {
+          label {Overlay}
+          xywh {5 5 100 20} labelsize 12
+        } {
+          MenuItem m_MenuLoadGreyOverlay {
+            label {Add Greyscale Overlay}
+            callback {this->OnMenuLoadGreyOverlay();}
+            tooltip {Load a Grey image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50067 labelsize 12 deactivate
+          }
+          MenuItem m_MenuUnloadGreyOverlayLast {
+            label {Unload Last Greyscale Overlay}
+            callback {this->OnMenuUnloadGreyOverlayLast()}
+            tooltip {Unload Last Greyscale Overlay} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
+          }
+          MenuItem m_MenuUnloadGreyOverlays {
+            label {Unload All Greyscale Overlays}
+            callback {this->OnMenuUnloadGreyOverlays()}
+            tooltip {Unload All Greyscale Overlays} xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
+          }
+          MenuItem m_MenuLoadRGBOverlay {
+            label {Add RGB Overlay}
+            callback {this->OnMenuLoadRGBOverlay();}
+            tooltip {Load an RGB image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50072 labelsize 12 deactivate
+          }
+        }
+        Submenu {} {
+          label {Options}
+          xywh {5 5 100 20} labelsize 12
+        } {
+          MenuItem m_MenuImageInfo {
+            label {&Image Info...}
+            callback {this->OnMenuImageInfo();}
+            xywh {5 5 100 20} labelsize 12
+          }
           MenuItem m_MenuIntensityCurve {
-            label {Image &Contrast...}
+            label {Image Contrast...}
             callback {this->OnMenuIntensityCurve();}
             xywh {15 15 100 20} shortcut 0x40069 labelsize 12 deactivate
           }
+          MenuItem m_MenuReorientImage {
+            label {&Reorient Image...}
+            callback {this->OnMenuReorientImage();}
+            tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {15 15 100 20} labelsize 12 divider
+          }
           MenuItem {} {
-            label {&Display Options...}
+            label {Display Options...}
             callback {OnMenuShowDisplayOptions();}
             xywh {5 5 100 20} labelsize 12 divider
           }
           MenuItem m_MenuRGBOverlayOptions {
-            label {Adjust RGB Overlay...}
+            label {Adjust RGB Overlay}
             callback {OnMenuShowRGBOverlayOptions()}
             tooltip {Adjust the opacity of the RGB image} xywh {0 0 31 20} labelsize 12 deactivate
           }
         }
         Submenu {} {
-          label {&Help} open
+          label {Help} open
           xywh {0 0 100 20} labelsize 12
         } {
           MenuItem {} {
@@ -353,14 +343,14 @@ class UserInterface {open : {public UserInterfaceBase}
         }
       }
       Fl_Group Controls {open
-        xywh {0 24 145 686} box BORDER_FRAME color 0
+        xywh {0 24 145 712} box BORDER_FRAME color 0
       } {
         Fl_Wizard m_WizControlPane {
           label {Control Pane} open
-          xywh {0 25 145 680} box NO_BOX color 22 align 16
+          xywh {0 25 145 700} box NO_BOX color 22 align 16
         } {
           Fl_Group m_GrpToolbarPage {open
-            xywh {0 25 145 680} color 53 labelsize 12
+            xywh {0 25 145 700} color 53 labelsize 12
           } {
             Fl_Group m_GrpInteractionModes {
               label {IRIS Toolbox} open
@@ -388,7 +378,7 @@ class UserInterface {open : {public UserInterfaceBase}
               }
               Fl_Button m_BtnAnnotationMode {
                 label A
-                callback {SetToolbarMode(ANNOTATION_MODE);} selected
+                callback {SetToolbarMode(ANNOTATION_MODE);}
                 tooltip {Annotation tool (in development)} xywh {95 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x36 color 180 selection_color 180 labeltype EMBOSSED_LABEL labelfont 1 labelsize 18 align 144 when 1 hide
               }
             }
@@ -599,7 +589,7 @@ class UserInterface {open : {public UserInterfaceBase}
                     callback {OnAnnotationAttributesUpdate()}
                     tooltip {Enable this in order to make the annotation drawn on a particular slice level to be shown on all other slices} xywh {10 205 120 15} down_box DOWN_BOX labelsize 11
                   }
-			 }
+                }
               }
             }
             Fl_Group {} {
@@ -1003,313 +993,312 @@ this->OnSNAPLabelOpacityChange();}
           }
         }
         Fl_Group {} {
-          label Spacer
-          xywh {0 705 145 5} color 53 labeltype NO_LABEL resizable
+          label Spacer selected
+          xywh {0 730 145 5} color 53 labeltype NO_LABEL resizable
         } {}
       }
       Fl_Group m_GrpRightPane {open
-        xywh {145 0 730 710} box FLAT_BOX color 166 resizable
+        xywh {145 25 730 710} box FLAT_BOX color 166 resizable
       } {
         Fl_Group {m_GrpSlicePanel[0]} {
-          label {m_GrpIRISSlicePanel[0]}
-          xywh {145 0 365 355} box UP_BOX
+          xywh {145 25 365 355} box UP_BOX
         } {
           Fl_Box {m_SliceWindow[0]} {
             label {m_GrpIRISAxial(0)}
-            xywh {150 5 333 320} box BORDER_BOX color 0 labelcolor 7 resizable
+            xywh {150 30 333 320} box BORDER_BOX color 0 labelcolor 7 resizable
             code0 {\#include "FLTKCanvas.h"}
             class FLTKCanvas
           }
           Fl_Group {} {open
-            xywh {145 325 365 30} color 48
+            xywh {145 350 365 30} color 48
           } {
             Fl_Button {m_BtnResetView[0]} {
               label {reset view}
               callback {this->OnResetView2DAction(0);}
-              tooltip {Restore the view to default zoom level} xywh {370 330 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
+              tooltip {Restore the view to default zoom level} xywh {370 355 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
             }
             Fl_Output {m_OutSliceIndex[0]} {
-              xywh {435 330 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
+              xywh {435 355 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
             }
             Fl_Group {m_GrpPolygonEdit[0]} {
-              xywh {150 325 208 30} hide
+              xywh {150 350 208 30} hide
             } {
               Fl_Button {m_BtnPolygonAccept[0]} {
                 label accept
                 callback {OnAcceptPolygonAction(0);}
-                tooltip {Fill in the polygon using the currently selected label} xywh {183 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Fill in the polygon using the currently selected label} xywh {183 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonPaste[0]} {
                 label paste
                 callback {OnPastePolygonAction(0);}
-                tooltip {Paste the previously used polygon into the window} xywh {318 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Paste the previously used polygon into the window} xywh {318 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonInsert[0]} {
                 label insert
                 callback {OnInsertIntoPolygonSelectedAction(0);}
-                tooltip {Insert a new vertex between pairs of selected vertices} xywh {228 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Insert a new vertex between pairs of selected vertices} xywh {228 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonDelete[0]} {
                 label delete
                 callback {OnDeletePolygonSelectedAction(0);}
-                tooltip {Delete the selected vertices} xywh {273 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Delete the selected vertices} xywh {273 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
             }
             Fl_Group {} {
-              xywh {145 325 5 30} color 154 resizable
+              xywh {145 350 5 30} color 154 resizable
             } {}
           }
           Fl_Group {} {
-            xywh {486 5 20 320}
+            xywh {486 30 20 320}
           } {
             Fl_Pack {} {open
-              xywh {486 5 20 50}
+              xywh {486 30 20 50}
             } {
               Fl_Button {m_BtnPanelZoom[0]} {
                 label {@+}
                 callback {OnWindowFocus(0);}
-                tooltip {Expand this view to occupy the entire screen} xywh {486 5 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139
-              }
-              Fl_Group {} {open
-                xywh {486 25 20 5}
-              } {}
-              Fl_Button {m_BtnSaveAsPNG[0]} {
-                callback {OnActiveWindowSaveSnapshot(0);}
-                tooltip {Save a snapshot of this window as a PNG image} image {Artwork/screencapture.gif} deimage {Artwork/screencapture2.gif} xywh {486 30 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139 deactivate
+                tooltip {Expand this view to occupy the entire screen} xywh {486 30 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139
               }
               Fl_Group {} {open
                 xywh {486 50 20 5}
               } {}
+              Fl_Button {m_BtnSaveAsPNG[0]} {
+                callback {OnActiveWindowSaveSnapshot(0);}
+                tooltip {Save a snapshot of this window as a PNG image} image {Artwork/screencapture.gif} deimage {Artwork/screencapture2.gif} xywh {486 55 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139 deactivate
+              }
+              Fl_Group {} {open
+                xywh {486 75 20 5}
+              } {}
             }
             Fl_Scrollbar {m_InSliceSlider[0]} {
               callback {this->OnSliceSliderChange(0);}
-              xywh {487 55 18 270} box THIN_DOWN_BOX minimum 1 maximum 0 resizable
+              xywh {487 80 18 270} box THIN_DOWN_BOX minimum 1 maximum 0 resizable
             }
           }
         }
-        Fl_Group {m_GrpSlicePanel[1]} {open
-          xywh {510 0 365 355} box UP_BOX
+        Fl_Group {m_GrpSlicePanel[1]} {
+          xywh {510 25 365 355} box UP_BOX
         } {
           Fl_Box {m_SliceWindow[1]} {
             label {m_GrpIRISSagittal(1)}
-            xywh {515 5 333 320} box BORDER_BOX color 0 labelcolor 7 resizable
+            xywh {515 30 333 320} box BORDER_BOX color 0 labelcolor 7 resizable
             code0 {\#include "FLTKCanvas.h"}
             class FLTKCanvas
           }
           Fl_Group {} {open
-            xywh {513 325 357 30}
+            xywh {513 350 357 30}
           } {
             Fl_Button {m_BtnResetView[1]} {
               label {reset view}
               callback {this->OnResetView2DAction(1);}
-              tooltip {Restore the view to default zoom level} xywh {735 330 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
+              tooltip {Restore the view to default zoom level} xywh {735 355 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
             }
             Fl_Output {m_OutSliceIndex[1]} {
-              xywh {800 330 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
+              xywh {800 355 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
             }
             Fl_Group {m_GrpPolygonEdit[1]} {open
-              xywh {538 325 195 30} hide
+              xywh {538 350 195 30} hide
             } {
               Fl_Button {m_BtnPolygonAccept[1]} {
                 label accept
                 callback {OnAcceptPolygonAction(1);}
-                tooltip {Fill in the polygon using the currently selected label} xywh {548 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Fill in the polygon using the currently selected label} xywh {548 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonPaste[1]} {
                 label paste
                 callback {OnPastePolygonAction(1);}
-                tooltip {Paste the previously used polygon into the window} xywh {683 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Paste the previously used polygon into the window} xywh {683 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonInsert[1]} {
                 label insert
                 callback {OnInsertIntoPolygonSelectedAction(1);}
-                tooltip {Insert a new vertex between pairs of selected vertices} xywh {593 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Insert a new vertex between pairs of selected vertices} xywh {593 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonDelete[1]} {
                 label delete
                 callback {OnDeletePolygonSelectedAction(1);}
-                tooltip {Delete the selected vertices} xywh {638 330 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Delete the selected vertices} xywh {638 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
             }
             Fl_Group {} {open
-              xywh {513 325 2 30} color 154 resizable
+              xywh {513 350 2 30} color 154 resizable
             } {}
           }
           Fl_Group {} {open
-            xywh {848 5 23 320}
+            xywh {848 30 23 320}
           } {
             Fl_Pack {} {open
-              xywh {851 5 20 50}
+              xywh {851 30 20 50}
             } {
               Fl_Button {m_BtnPanelZoom[1]} {
                 label {@+}
                 callback {OnWindowFocus(1);}
-                tooltip {Expand this view to occupy the entire screen} xywh {851 5 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139
-              }
-              Fl_Group {} {open
-                xywh {851 25 20 5}
-              } {}
-              Fl_Button {m_BtnSaveAsPNG[1]} {
-                callback {OnActiveWindowSaveSnapshot(1);}
-                tooltip {Save a snapshot of this window as a PNG image} image {Artwork/screencapture.gif} deimage {Artwork/screencapture2.gif} xywh {851 30 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139 deactivate
+                tooltip {Expand this view to occupy the entire screen} xywh {851 30 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139
               }
               Fl_Group {} {open
                 xywh {851 50 20 5}
               } {}
+              Fl_Button {m_BtnSaveAsPNG[1]} {
+                callback {OnActiveWindowSaveSnapshot(1);}
+                tooltip {Save a snapshot of this window as a PNG image} image {Artwork/screencapture.gif} deimage {Artwork/screencapture2.gif} xywh {851 55 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139 deactivate
+              }
+              Fl_Group {} {open
+                xywh {851 75 20 5}
+              } {}
             }
             Fl_Scrollbar {m_InSliceSlider[1]} {
               callback {this->OnSliceSliderChange(1);}
-              xywh {852 55 18 270} box THIN_DOWN_BOX minimum 1 maximum 0 resizable
+              xywh {852 80 18 270} box THIN_DOWN_BOX minimum 1 maximum 0 resizable
             }
           }
         }
-        Fl_Group {m_GrpSlicePanel[2]} {open
-          xywh {510 355 365 355} box UP_BOX
+        Fl_Group {m_GrpSlicePanel[2]} {
+          xywh {510 380 365 355} box UP_BOX
         } {
           Fl_Box {m_SliceWindow[2]} {
             label {m_GrpIRISCoronal(2)}
-            xywh {515 360 333 320} box BORDER_BOX color 0 labelcolor 7 resizable
+            xywh {515 385 333 320} box BORDER_BOX color 0 labelcolor 7 resizable
             code0 {\#include "FLTKCanvas.h"}
             class FLTKCanvas
           }
           Fl_Group {} {open
-            xywh {510 680 365 30}
+            xywh {510 705 365 30}
           } {
             Fl_Button {m_BtnResetView[2]} {
               label {reset view}
               callback {this->OnResetView2DAction(2);}
-              tooltip {Restore the view to default zoom level} xywh {735 685 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
+              tooltip {Restore the view to default zoom level} xywh {735 710 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
             }
             Fl_Output {m_OutSliceIndex[2]} {
-              xywh {800 685 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
+              xywh {800 710 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
             }
             Fl_Group {m_GrpPolygonEdit[2]} {open
-              xywh {538 680 195 30} hide
+              xywh {538 705 195 30} hide
             } {
               Fl_Button {m_BtnPolygonAccept[2]} {
                 label accept
                 callback {OnAcceptPolygonAction(2);}
-                tooltip {Fill in the polygon using the currently selected label} xywh {548 685 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Fill in the polygon using the currently selected label} xywh {548 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonPaste[2]} {
                 label paste
                 callback {OnPastePolygonAction(2);}
-                tooltip {Paste the previously used polygon into the window} xywh {683 685 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Paste the previously used polygon into the window} xywh {683 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonInsert[2]} {
                 label insert
                 callback {OnInsertIntoPolygonSelectedAction(2);}
-                tooltip {Insert a new vertex between pairs of selected vertices} xywh {593 685 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Insert a new vertex between pairs of selected vertices} xywh {593 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
               Fl_Button {m_BtnPolygonDelete[2]} {
                 label delete
                 callback {OnDeletePolygonSelectedAction(2);}
-                tooltip {Delete the selected vertices} xywh {638 685 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                tooltip {Delete the selected vertices} xywh {638 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
               }
             }
             Fl_Group {} {open
-              xywh {510 680 5 30} resizable
+              xywh {510 705 5 30} resizable
             } {}
           }
           Fl_Group {} {open
-            xywh {851 360 20 320}
+            xywh {851 385 20 320}
           } {
             Fl_Pack {} {open
-              xywh {851 360 20 50}
+              xywh {851 385 20 50}
             } {
               Fl_Button {m_BtnPanelZoom[2]} {
                 label {@+}
                 callback {OnWindowFocus(2);}
-                tooltip {Expand this view to occupy the entire screen} xywh {851 360 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139
-              }
-              Fl_Group {} {open
-                xywh {851 380 20 5}
-              } {}
-              Fl_Button {m_BtnSaveAsPNG[2]} {
-                callback {OnActiveWindowSaveSnapshot(2);}
-                tooltip {Save a snapshot of this window as a PNG image} image {Artwork/screencapture.gif} deimage {Artwork/screencapture2.gif} xywh {851 385 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139 deactivate
+                tooltip {Expand this view to occupy the entire screen} xywh {851 385 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139
               }
               Fl_Group {} {open
                 xywh {851 405 20 5}
               } {}
+              Fl_Button {m_BtnSaveAsPNG[2]} {
+                callback {OnActiveWindowSaveSnapshot(2);}
+                tooltip {Save a snapshot of this window as a PNG image} image {Artwork/screencapture.gif} deimage {Artwork/screencapture2.gif} xywh {851 410 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139 deactivate
+              }
+              Fl_Group {} {open
+                xywh {851 430 20 5}
+              } {}
             }
             Fl_Scrollbar {m_InSliceSlider[2]} {
               callback {this->OnSliceSliderChange(2);}
-              xywh {852 410 18 270} box THIN_DOWN_BOX minimum 1 maximum 0 resizable
+              xywh {852 435 18 270} box THIN_DOWN_BOX minimum 1 maximum 0 resizable
             }
           }
         }
-        Fl_Group m_GrpView3D {open
-          xywh {145 355 365 355} box UP_BOX
+        Fl_Group m_GrpView3D {
+          xywh {145 380 365 355} box UP_BOX
         } {
           Fl_Box m_RenderWindow {
             label 3D
-            xywh {150 360 355 320} box BORDER_BOX color 0 labelcolor 7 resizable
+            xywh {150 385 355 320} box BORDER_BOX color 0 labelcolor 7 resizable
             class FLTKCanvas
           }
           Fl_Group {} {open
-            xywh {145 680 365 30} color 214
+            xywh {145 705 365 30} color 214
           } {
             Fl_Pack m_ToolbarRenderWindow {open
-              xywh {385 685 118 20} type HORIZONTAL color 80
+              xywh {385 710 118 20} type HORIZONTAL color 80
             } {
               Fl_Button {m_BtnResetView[3]} {
                 label {reset view}
                 callback {OnMeshResetViewAction();}
-                tooltip {Reset the 3D view to default zoom and camera position} xywh {388 685 65 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
+                tooltip {Reset the 3D view to default zoom and camera position} xywh {388 710 65 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
               }
               Fl_Button {m_BtnSaveAsPNG[3]} {
                 callback {OnActiveWindowSaveSnapshot(3);}
-                tooltip {Save a snapshot of this window as a PNG image} image {Artwork/screencapture.gif} deimage {Artwork/screencapture2.gif} xywh {458 685 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139 deactivate
+                tooltip {Save a snapshot of this window as a PNG image} image {Artwork/screencapture.gif} deimage {Artwork/screencapture2.gif} xywh {458 710 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139 deactivate
               }
               Fl_Button {m_BtnPanelZoom[3]} {
                 label {@+}
                 callback {OnWindowFocus(3);}
-                tooltip {Expand this view to occupy the entire screen} xywh {483 685 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139
+                tooltip {Expand this view to occupy the entire screen} xywh {483 710 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139
               }
             }
             Fl_Wizard m_WizRenderingToolbar {open
-              xywh {150 680 235 30} box NO_BOX
+              xywh {150 705 235 30} box NO_BOX
             } {
               Fl_Group m_GrpRenderingIRISPage {open
-                xywh {150 680 235 30}
+                xywh {150 705 235 30}
               } {
                 Fl_Button m_BtnMeshUpdate {
                   label {update mesh}
                   callback {OnIRISMeshUpdateAction();}
-                  tooltip {Update the 3D rendering from the segmentation data} xywh {305 685 77 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
+                  tooltip {Update the 3D rendering from the segmentation data} xywh {305 710 77 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
                 }
                 Fl_Button m_BtnAccept3D {
                   label accept
                   callback {OnIRISMeshAcceptAction();}
-                  tooltip {Apply the last 3D paint operation to the image} xywh {245 685 55 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146 deactivate
+                  tooltip {Apply the last 3D paint operation to the image} xywh {245 710 55 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146 deactivate
                 }
               }
               Fl_Group m_GrpRenderingSNAPPage {open
-                xywh {150 680 235 30} hide
+                xywh {150 705 235 30} hide
               } {
                 Fl_Button m_BtnSNAPCrosshairsMode3D {
                   callback {SetToolbarMode3D(CROSSHAIRS_3D_MODE);}
-                  tooltip {3D crosshair tool: click on the segmentation to move cursor} image {Artwork/crosshair3Dtiny.gif} xywh {155 682 25 25} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x63 color 180 selection_color 180 align 16
+                  tooltip {3D crosshair tool: click on the segmentation to move cursor} image {Artwork/crosshair3Dtiny.gif} xywh {155 707 25 25} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x63 color 180 selection_color 180 align 16
                 }
                 Fl_Button m_BtnSNAPTrackballMode3D {
                   callback {SetToolbarMode3D(TRACKBALL_MODE);}
-                  tooltip {3D trackball tool: rotate, zoom and pan 3D view} image {Artwork/rotate3dTiny.gif} xywh {185 682 25 25} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x63 value 1 color 180 selection_color 180 align 16
+                  tooltip {3D trackball tool: rotate, zoom and pan 3D view} image {Artwork/rotate3dTiny.gif} xywh {185 707 25 25} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x63 value 1 color 180 selection_color 180 align 16
                 }
                 Fl_Button m_BtnSNAPMeshUpdate {
                   label {update mesh}
                   callback {OnSNAPMeshUpdateAction();}
-                  tooltip {Update the 3D mesh of the segmentation} xywh {305 685 75 20} box PLASTIC_UP_BOX color 180 labelsize 10 align 128 deactivate
+                  tooltip {Update the 3D mesh of the segmentation} xywh {305 710 75 20} box PLASTIC_UP_BOX color 180 labelsize 10 align 128 deactivate
                 }
                 Fl_Check_Button m_ChkContinuousView3DUpdate {
                   label {auto-update}
                   callback {OnSNAPMeshContinuousUpdateAction();}
-                  tooltip {Select this to have the mesh update automatically after every step in active contour evolution. This will slow down the program!} xywh {220 685 80 20} down_box DOWN_BOX labelsize 11 deactivate
+                  tooltip {Select this to have the mesh update automatically after every step in active contour evolution. This will slow down the program!} xywh {220 710 80 20} down_box DOWN_BOX labelsize 11 deactivate
                 }
               }
             }
             Fl_Group {} {open
-              xywh {145 680 5 30} resizable
+              xywh {145 705 5 30} resizable
             } {}
           }
         }
@@ -1317,7 +1306,7 @@ this->OnSNAPLabelOpacityChange();}
     }
     Fl_Window m_WinSplash {
       label {Welcome to ITK-SNAP}
-      xywh {5 49 430 195} type Double align 16 resizable visible
+      xywh {28 512 430 195} type Double align 16 resizable visible
     } {
       Fl_Group {} {open
         image {Artwork/logo_new.gif} xywh {5 5 420 155} color 0 align 16
@@ -1455,7 +1444,7 @@ this->OnSNAPLabelOpacityChange();}
     }
     Fl_Window m_WinColorMap {
       label {Preprocessed Image Color Map}
-      xywh {5 49 315 105} type Double non_modal visible
+      xywh {24 316 315 105} type Double non_modal visible
     } {
       Fl_Wizard m_WizColorMap {open
         xywh {0 0 325 115}
