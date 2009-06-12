@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:35:12 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/06/12 05:02:10 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -295,7 +295,14 @@ GreyImageWrapper::IntensityFunctor
 		 }
 	    break;
     }
-  pixel[3] = m_Alpha;
+  if (outZeroOne == 0.0)
+    {
+    pixel[3] = 0;
+    }
+  else
+    {
+    pixel[3] = m_Alpha;
+    }
 
   return pixel;
 }
