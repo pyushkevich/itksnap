@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/12 05:11:08 $
-  Version:   $Revision: 1.59 $
+  Date:      $Date: 2009/06/13 03:29:40 $
+  Version:   $Revision: 1.60 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -43,6 +43,7 @@
 #endif
 
 #include "FL/Fl_Native_File_Chooser.H"
+#include "FL/filename.H"
 
 #include "UserInterfaceLogic.h"
 
@@ -4697,7 +4698,7 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
-::OnMenuCheckUpdate()
+::OnMenuCheckForUpdate()
 {
   // Show a wait cursor
   m_WinMain->cursor(FL_CURSOR_WAIT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
@@ -4706,17 +4707,56 @@ UserInterfaceLogic
   std::string nver;
   SystemInterface::UpdateStatus us = 
     m_SystemInterface->CheckUpdate(nver, 1, 0);
+  std::string message;
+  int response = 0;
   if(us == SystemInterface::US_UP_TO_DATE)
     {
-    fl_alert("Your version of ITK-SNAP is up to date");
+    fl_message("Your version of ITK-SNAP is up to date");
     }
   else if(us == SystemInterface::US_OUT_OF_DATE)
     {
-    fl_alert("A newer ITK-SNAP version (%s) is available at itksnap.org", nver.c_str());
+    message = "A newer ITK-SNAP version " + nver + " is available!";
+    response = fl_choice(message.c_str(), "Download Later", "Download Now", NULL);
+    if (response)
+      {
+      fl_open_uri("http://www.itksnap.org/pmwiki/pmwiki.php?n=Main.Downloads");
+      }
     }
   else if(us == SystemInterface::US_CONNECTION_FAILED)
     {
-    fl_alert("Could not connect to server. \nVisit itksnap.org to see if a new version is available");
+    message = "Could not connect to server. \nVisit itksnap.org to see if a new version is available";
+    response = fl_choice(message.c_str(), "Later", "Take me there now", NULL);
+    if (response)
+      {
+      fl_open_uri("http://www.itksnap.org/pmwiki/pmwiki.php?n=Main.Downloads");
+      }
+    }
+
+  // Show a wait cursor
+  m_WinMain->cursor(FL_CURSOR_DEFAULT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
+}
+
+void 
+UserInterfaceLogic
+::OnCheckForUpdate()
+{
+  // Show a wait cursor
+  m_WinMain->cursor(FL_CURSOR_WAIT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
+
+  // Check for updates using new socket code
+  std::string nver;
+  SystemInterface::UpdateStatus us = 
+    m_SystemInterface->CheckUpdate(nver, 1, 0);
+  std::string message;
+  int response = 0;
+  if (us == SystemInterface::US_OUT_OF_DATE)
+    {
+    message = "A newer ITK-SNAP version " + nver + " is available!";
+    response = fl_choice(message.c_str(), "Download Later", "Download Now", NULL);
+    if (response)
+      {
+      fl_open_uri("http://www.itksnap.org/pmwiki/pmwiki.php?n=Main.Downloads");
+      }
     }
 
   // Show a wait cursor
@@ -4757,6 +4797,23 @@ UserInterfaceLogic
   
   // Hide the screen 
   m_WinSplash->hide();
+
+  // Check for available update
+  int response = 0;
+  if (m_AppearanceSettings->GetFlagEnableAutoCheckForUpdateByDefault() == -1)
+    {
+    response = fl_choice("ITK-SNAP can check for software update automatically. Do you want to enable this feature?", "No Thanks", "Yes, please", NULL);
+    if (response)
+      {
+      m_AppearanceSettings->SetFlagEnableAutoCheckForUpdateByDefault(1);
+	 OnCheckForUpdate();
+	 }
+    else
+      m_AppearanceSettings->SetFlagEnableAutoCheckForUpdateByDefault(0);
+    m_AppearanceSettings->SaveToRegistry(m_SystemInterface->Folder("UserInterface.AppearanceSettings"));
+    }
+  else if (m_AppearanceSettings->GetFlagEnableAutoCheckForUpdateByDefault())
+    OnCheckForUpdate();
 }
 
 void
@@ -5011,6 +5068,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.60  2009/06/13 03:29:40  garyhuizhang
+ *ENH: checking for available software update
+ *
  *Revision 1.59  2009/06/12 05:11:08  garyhuizhang
  *ENH: reorganized user interface
  *

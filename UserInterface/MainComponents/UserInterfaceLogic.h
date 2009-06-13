@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/12 05:11:08 $
-  Version:   $Revision: 1.27 $
+  Date:      $Date: 2009/06/13 03:29:40 $
+  Version:   $Revision: 1.28 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -481,7 +481,8 @@ public:
    */
   void OnMenuQuit();
 
-  void OnMenuCheckUpdate();
+  void OnMenuCheckForUpdate();
+  void OnCheckForUpdate();
 
   // Color label callbacks
   void UpdateColorLabelMenu();
@@ -996,6 +997,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.28  2009/06/13 03:29:40  garyhuizhang
+ *ENH: checking for available software update
+ *
  *Revision 1.27  2009/06/12 05:11:08  garyhuizhang
  *ENH: reorganized user interface
  *

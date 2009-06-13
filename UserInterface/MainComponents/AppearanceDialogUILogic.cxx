@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/18 01:14:52 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/06/13 03:29:40 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -107,9 +107,12 @@ AppearanceDialogUILogic
   m_Appearance->SetFlagFloatingPointWarningByDefault(
     m_ChkOptionsFloatingPointWarning->value() != 0);
   
+  m_Appearance->SetFlagEnableAutoCheckForUpdateByDefault(
+    m_ChkOptionsAutoCheckForUpdate->value() != 0);
+
   m_Appearance->SetFlagEnableHiddenFeaturesByDefault(
     m_ChkOptionsHiddenFeatures->value() != 0);
-  
+
   m_Appearance->SetZoomThumbnailSizeInPercent(
     m_InOptionsSliceThumbnailPercent->value());
   
@@ -155,7 +158,6 @@ AppearanceDialogUILogic
   // Place the options in the registry
   m_Appearance->SaveToRegistry(
     m_Parent->GetSystemInterface()->Folder("UserInterface.AppearanceSettings"));  
-
   // Redraw the UI windows
   m_Parent->RedrawWindows();
 
@@ -561,6 +563,8 @@ AppearanceDialogUILogic
     m_Appearance->GetFlagMultisessionZoomByDefault() ? 1 : 0);
   m_ChkOptionsFloatingPointWarning->value(
     m_Appearance->GetFlagFloatingPointWarningByDefault() ? 1 : 0);
+  m_ChkOptionsAutoCheckForUpdate->value(
+    m_Appearance->GetFlagEnableAutoCheckForUpdateByDefault() ? 1 : 0);
   m_ChkOptionsHiddenFeatures->value(
     m_Appearance->GetFlagEnableHiddenFeaturesByDefault() ? 1 : 0);
   m_InOptionsSliceThumbnailPercent->value(

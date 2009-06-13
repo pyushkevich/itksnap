@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/18 01:14:52 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/06/13 03:29:39 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -48,13 +48,13 @@
  * \class SNAPAppearanceSettings
  * \brief User interface settings that the user can configure
  */
-class SNAPAppearanceSettings 
+class SNAPAppearanceSettings
 {
 public:
   /**
-   * A structure that describes the appearance of a screen element 
+   * A structure that describes the appearance of a screen element
    */
-  struct Element 
+  struct Element
   {
     Vector3d NormalColor;
     Vector3d ActiveColor;
@@ -65,18 +65,18 @@ public:
   };
 
   /** An enumeration of available screen elements */
-  enum UIElements 
-    { 
-    CROSSHAIRS = 0, MARKERS, ROI_BOX, 
-    BACKGROUND_2D, BACKGROUND_3D, 
-    ZOOM_THUMBNAIL, CROSSHAIRS_3D, CROSSHAIRS_THUMB, 
+  enum UIElements
+    {
+    CROSSHAIRS = 0, MARKERS, ROI_BOX,
+    BACKGROUND_2D, BACKGROUND_3D,
+    ZOOM_THUMBNAIL, CROSSHAIRS_3D, CROSSHAIRS_THUMB,
     IMAGE_BOX_3D, ROI_BOX_3D, PAINTBRUSH_OUTLINE, RULER, ELEMENT_COUNT
-    };  
+    };
 
   /** An enumeration of the fields that an element may possess */
   enum UIElementFeatures
     {
-    NORMAL_COLOR = 0, ACTIVE_COLOR, LINE_THICKNESS, DASH_SPACING, 
+    NORMAL_COLOR = 0, ACTIVE_COLOR, LINE_THICKNESS, DASH_SPACING,
     FONT_SIZE, VISIBLE, ALPHA_BLEND, FEATURE_COUNT
     };
 
@@ -111,31 +111,34 @@ public:
     { return m_Applicable[iElement][iFeature] != 0; }
 
   // Apply the GL settings associated with an appearance element
-  static void ApplyUIElementLineSettings(const Element &elt, 
+  static void ApplyUIElementLineSettings(const Element &elt,
     bool applyThickness = true, bool applyStipple = true);
   
-  irisGetMacro(FlagDisplayZoomThumbnail, bool); 
+  irisGetMacro(FlagDisplayZoomThumbnail, bool);
   irisSetMacro(FlagDisplayZoomThumbnail, bool);
 
-  irisGetMacro(FlagLinkedZoomByDefault, bool); 
+  irisGetMacro(FlagLinkedZoomByDefault, bool);
   irisSetMacro(FlagLinkedZoomByDefault, bool);
 
-  irisGetMacro(FlagMultisessionZoomByDefault, bool); 
+  irisGetMacro(FlagMultisessionZoomByDefault, bool);
   irisSetMacro(FlagMultisessionZoomByDefault, bool);
 
-  irisGetMacro(FlagFloatingPointWarningByDefault, bool); 
+  irisGetMacro(FlagFloatingPointWarningByDefault, bool);
   irisSetMacro(FlagFloatingPointWarningByDefault, bool);
 
-  irisGetMacro(FlagEnableHiddenFeaturesByDefault, bool); 
-  irisSetMacro(FlagEnableHiddenFeaturesByDefault, bool); 
+  irisGetMacro(FlagEnableAutoCheckForUpdateByDefault, int);
+  irisSetMacro(FlagEnableAutoCheckForUpdateByDefault, int);
 
-  irisGetMacro(ZoomThumbnailSizeInPercent, double); 
+  irisGetMacro(FlagEnableHiddenFeaturesByDefault, bool);
+  irisSetMacro(FlagEnableHiddenFeaturesByDefault, bool);
+
+  irisGetMacro(ZoomThumbnailSizeInPercent, double);
   irisSetMacro(ZoomThumbnailSizeInPercent, double);
 
-  irisGetMacro(ZoomThumbnailMaximumSize, int); 
+  irisGetMacro(ZoomThumbnailMaximumSize, int);
   irisSetMacro(ZoomThumbnailMaximumSize, int);
 
-  irisGetMacro(GreyInterpolationMode, UIGreyInterpolation); 
+  irisGetMacro(GreyInterpolationMode, UIGreyInterpolation);
   irisSetMacro(GreyInterpolationMode, UIGreyInterpolation);
 
   irisGetMacro(FlagLayoutPatientAnteriorShownLeft, bool);
@@ -144,7 +147,7 @@ public:
   irisGetMacro(FlagLayoutPatientRightShownLeft, bool);
   irisSetMacro(FlagLayoutPatientRightShownLeft, bool);
 
-  irisGetMacro(SliceLayout, UISliceLayout); 
+  irisGetMacro(SliceLayout, UISliceLayout);
   irisSetMacro(SliceLayout, UISliceLayout);
 
   /** 
@@ -162,6 +165,7 @@ private:
   bool m_FlagMultisessionZoomByDefault;
   bool m_FlagFloatingPointWarningByDefault;
   bool m_FlagEnableHiddenFeaturesByDefault;
+  int m_FlagEnableAutoCheckForUpdateByDefault;
   double m_ZoomThumbnailSizeInPercent;
   int m_ZoomThumbnailMaximumSize;
 

@@ -337,7 +337,7 @@ class UserInterface {open : {public UserInterfaceBase}
           }
           MenuItem {} {
             label {Check for Updates}
-            callback {this->OnMenuCheckUpdate();}
+            callback {this->OnMenuCheckForUpdate();}
             tooltip {Connect to the ITK-SNAP server to check if your version is up to date.} xywh {50 50 100 20} labelsize 12
           }
         }

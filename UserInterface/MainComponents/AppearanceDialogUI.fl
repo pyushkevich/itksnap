@@ -47,6 +47,10 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
             label {By default, issue warning when loading floating point images}
             xywh {20 175 375 25} down_box DOWN_BOX labelsize 12
           }
+          Fl_Check_Button m_ChkOptionsAutoCheckForUpdate {
+            label {By default, auto check if newer version available at launch}
+            xywh {20 195 375 25} down_box DOWN_BOX labelsize 12
+          }
           Fl_Button {} {
             label {&Apply}
             callback {OnSliceDisplayApplyAction();}
