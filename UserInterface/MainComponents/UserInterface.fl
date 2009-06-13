@@ -55,6 +55,36 @@ class UserInterface {open : {public UserInterfaceBase}
             callback {this->OnMenuLoadAdvection();}
             tooltip {experimental feature} xywh {35 35 100 20} labelsize 12 hide deactivate divider
           }
+          Submenu m_MenuLoadPrevious {
+            label {Open Recent}
+            xywh {5 5 100 20} labelsize 12
+          } {
+            MenuItem m_MenuLoadPreviousFirst {
+              label {Not Available}
+              callback {OnLoadRecentAction(0);}
+              xywh {0 0 100 20} shortcut 0x40031 labelsize 12 deactivate
+            }
+            MenuItem {} {
+              label {Not Available}
+              callback {OnLoadRecentAction(1);}
+              xywh {10 10 100 20} shortcut 0x40032 labelsize 12 deactivate
+            }
+            MenuItem {} {
+              label {Not Available}
+              callback {OnLoadRecentAction(2);}
+              xywh {20 20 100 20} shortcut 0x40033 labelsize 12 deactivate
+            }
+            MenuItem {} {
+              label {Not Available}
+              callback {OnLoadRecentAction(3);}
+              xywh {30 30 100 20} shortcut 0x40034 labelsize 12 deactivate
+            }
+            MenuItem m_MenuLoadPreviousLast {
+              label {Not Available}
+              callback {OnLoadRecentAction(4);}
+              xywh {40 40 100 20} shortcut 0x40035 labelsize 12 deactivate
+            }
+          }
           Submenu {} {
             label {Save}
             xywh {20 20 100 20} labelsize 12
@@ -142,71 +172,6 @@ class UserInterface {open : {public UserInterfaceBase}
                 label {Colornal}
                 callback {OnMenuExportSlice(2);}
                 xywh {70 70 100 20} labelsize 12
-              }
-            }
-          }
-          Submenu m_MenuLoadPrevious {
-            label {Open Recent}
-            xywh {5 5 100 20} labelsize 12
-          } {
-            Submenu m_MenuLoadPreviousGrey {
-              label Grey
-              xywh {5 5 100 20} labelsize 12
-            } {
-              MenuItem m_MenuLoadPreviousFirstGrey {
-                label {Not Available}
-                callback {OnLoadRecentGreyAction(0);}
-                xywh {0 0 100 20} shortcut 0x40031 labelsize 12 deactivate
-              }
-              MenuItem {} {
-                label {Not Available}
-                callback {OnLoadRecentGreyAction(1);}
-                xywh {10 10 100 20} shortcut 0x40032 labelsize 12 deactivate
-              }
-              MenuItem {} {
-                label {Not Available}
-                callback {OnLoadRecentGreyAction(2);}
-                xywh {20 20 100 20} shortcut 0x40033 labelsize 12 deactivate
-              }
-              MenuItem {} {
-                label {Not Available}
-                callback {OnLoadRecentGreyAction(3);}
-                xywh {30 30 100 20} shortcut 0x40034 labelsize 12 deactivate
-              }
-              MenuItem m_MenuLoadPreviousLastGrey {
-                label {Not Available}
-                callback {OnLoadRecentGreyAction(4);}
-                xywh {40 40 100 20} shortcut 0x40035 labelsize 12 deactivate
-              }
-            }
-            Submenu m_MenuLoadPreviousRGB {
-              label RGB
-              xywh {5 5 100 20} labelsize 12
-            } {
-              MenuItem m_MenuLoadPreviousFirstRGB {
-                label {Not Available}
-                callback {OnLoadRecentRGBAction(0);}
-                xywh {0 0 100 20} shortcut 0x50031 labelsize 12 deactivate
-              }
-              MenuItem {} {
-                label {Not Available}
-                callback {OnLoadRecentRGBAction(1);}
-                xywh {10 10 100 20} shortcut 0x50032 labelsize 12 deactivate
-              }
-              MenuItem {} {
-                label {Not Available}
-                callback {OnLoadRecentRGBAction(2);}
-                xywh {20 20 100 20} shortcut 0x50033 labelsize 12 deactivate
-              }
-              MenuItem {} {
-                label {Not Available}
-                callback {OnLoadRecentRGBAction(3);}
-                xywh {30 30 100 20} shortcut 0x50034 labelsize 12 deactivate
-              }
-              MenuItem m_MenuLoadPreviousLastRGB {
-                label {Not Available}
-                callback {OnLoadRecentRGBAction(4);}
-                xywh {40 40 100 20} shortcut 0x50035 labelsize 12 deactivate
               }
             }
           }

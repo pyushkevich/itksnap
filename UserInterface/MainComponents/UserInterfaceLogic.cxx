@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/13 03:29:40 $
-  Version:   $Revision: 1.60 $
+  Date:      $Date: 2009/06/13 05:02:00 $
+  Version:   $Revision: 1.61 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -330,8 +330,7 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_ChoicePaintbrush[2], UIF_IRIS_WITH_GRAY_LOADED);
   for (unsigned int i = 0; i < 5; i++)
     {
-    m_Activation->AddMenuItem(m_MenuLoadPreviousFirstGrey + i, UIF_IRIS_ACTIVE);
-    m_Activation->AddMenuItem(m_MenuLoadPreviousFirstRGB + i, UIF_IRIS_ACTIVE);
+    m_Activation->AddMenuItem(m_MenuLoadPreviousFirst + i, UIF_IRIS_ACTIVE);
     }
 
 }
@@ -489,8 +488,7 @@ UserInterfaceLogic
   InitializeUI();
 
   // Update the recent files menu
-  GenerateRecentGreyFilesMenu();
-  GenerateRecentRGBFilesMenu();
+  GenerateRecentFilesMenu();
 
   // Enter the IRIS-ACTiVE state
   m_Activation->UpdateFlag(UIF_IRIS_ACTIVE, true);
@@ -3226,6 +3224,9 @@ void
 UserInterfaceLogic
 ::OnMainImageUpdate()
 {
+  // Update the list of recently open files
+  GenerateRecentFilesMenu();
+
   // Blank the screen - useful on a load of new grey data when there is 
   // already a segmentation file present
   m_IRISWindowManager3D->ClearScreen();
@@ -3338,9 +3339,6 @@ void
 UserInterfaceLogic
 ::OnGreyImageUpdate()
 {
-  // Update the list of recently open files
-  GenerateRecentGreyFilesMenu();
-
   // Update the image info window controls
   GreyImageWrapper *wrpGrey = m_Driver->GetCurrentImageData()->GetGrey();
   m_OutImageInfoRange[0]->value(wrpGrey->GetImageMinNative());
@@ -3379,9 +3377,6 @@ void
 UserInterfaceLogic
 ::OnRGBImageUpdate()
 {
-  // Update the list of recently open files
-  GenerateRecentRGBFilesMenu();
-
   m_GlobalState->SetRGBAlpha(255);
   m_RGBOverlayUI->SetOpacity(255);
  
@@ -3403,11 +3398,6 @@ UserInterfaceLogic
 {
   // a main image has to be loaded
   assert(m_Driver->GetCurrentImageData()->IsMainLoaded());
-
-  // fake a crosshair location change to force the IRISSlicer filter
-  // to update the content (can we avoid this?)
-  //Vector3ui xCross = m_Driver->GetCursorPosition();
-  //m_Driver->SetCursorPosition(xCross);
 
   // Update the source for slice windows
   for (unsigned int i=0; i<3; i++) 
@@ -3502,81 +3492,44 @@ UserInterfaceLogic
 // the history is updated.
 void 
 UserInterfaceLogic
-::GenerateRecentGreyFilesMenu()
+::GenerateRecentFilesMenu()
 {
   // Load the list of recent files from the history file
   const SystemInterface::HistoryListType &history = 
-    m_SystemInterface->GetHistory("GreyImage");
+    m_SystemInterface->GetHistory("MainImage");
 
   // Take the five most recent items and create menu items
   for(unsigned int i = 0; i < 5; i++)
     {
     // Get a pointer to the corresponding menu item
-    Fl_Menu_Item *item = m_MenuLoadPreviousFirstGrey + i;
+    Fl_Menu_Item *item = m_MenuLoadPreviousFirst + i;
 
     // Update it
     if( i < history.size()) 
       {
       // Populate each of the menu items
-      m_RecentGreyFileNames[i] = history[history.size() - (i+1)];
-      item->label(m_RecentGreyFileNames[i].c_str());
+      m_RecentFileNames[i] = history[history.size() - (i+1)];
+      item->label(m_RecentFileNames[i].c_str());
       item->activate();
       }
     else
       {
-      m_RecentGreyFileNames[i] = "Not Available";
-      item->label(m_RecentGreyFileNames[i].c_str());
+      m_RecentFileNames[i] = "Not Available";
+      item->label(m_RecentFileNames[i].c_str());
       item->activate();
       }
     }
 
   // Enable / disable the overall menu
   if(history.size())
-    m_MenuLoadPreviousGrey->activate();
+    m_MenuLoadPrevious->activate();
   else
-    m_MenuLoadPreviousGrey->deactivate();
-}
-
-void 
-UserInterfaceLogic
-::GenerateRecentRGBFilesMenu()
-{
-  // Load the list of recent files from the history file
-  const SystemInterface::HistoryListType &history = 
-    m_SystemInterface->GetHistory("RGBImage");
-
-  // Take the five most recent items and create menu items
-  for(unsigned int i = 0; i < 5; i++)
-    {
-    // Get a pointer to the corresponding menu item
-    Fl_Menu_Item *item = m_MenuLoadPreviousFirstRGB + i;
-
-    // Update it
-    if( i < history.size()) 
-      {
-      // Populate each of the menu items
-      m_RecentRGBFileNames[i] = history[history.size() - (i+1)];
-      item->label(m_RecentRGBFileNames[i].c_str());
-      item->activate();
-      }
-    else
-      {
-      m_RecentRGBFileNames[i] = "Not Available";
-      item->label(m_RecentRGBFileNames[i].c_str());
-      item->activate();
-      }
-    }
-
-  // Enable / disable the overall menu
-  if(history.size())
-    m_MenuLoadPreviousRGB->activate();
-  else
-    m_MenuLoadPreviousRGB->deactivate();
+    m_MenuLoadPrevious->deactivate();
 }
 
 void
 UserInterfaceLogic
-::OnLoadRecentGreyAction(unsigned int iRecent)
+::OnLoadRecentAction(unsigned int iRecent)
 {
   // Make sure the user doesn't lose any data
   if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
@@ -3584,7 +3537,7 @@ UserInterfaceLogic
   // Get the history of grayscale images. Here we must be careful that every time
   // the history is updated, we also remember to update the recent files menu!!!
   const SystemInterface::HistoryListType &history = 
-    m_SystemInterface->GetHistory("GreyImage");
+    m_SystemInterface->GetHistory("MainImage");
 
   // Check that the history is OK
   if(history.size() <= iRecent)
@@ -3594,7 +3547,15 @@ UserInterfaceLogic
     }
 
   // Get the recent file name
-  string fnRecent = m_RecentGreyFileNames[iRecent];
+  string fnRecent = m_RecentFileNames[iRecent];
+
+  // Determine if the file is a grey or a RGB image
+  bool isGrey = false;
+  const SystemInterface::HistoryListType &greyHistory = 
+    m_SystemInterface->GetHistory("GreyImage");
+  for (unsigned int i = 0; i < greyHistory.size(); ++i)
+    if (fnRecent == greyHistory[i])
+      isGrey = true;
 
   // Show a wait cursor
   m_WinMain->cursor(FL_CURSOR_WAIT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
@@ -3603,51 +3564,10 @@ UserInterfaceLogic
   try
     {
     // Load the file non-interactively
-    NonInteractiveLoadGrey(fnRecent.c_str());
-
-    // Restore the cursor
-    m_WinMain->cursor(FL_CURSOR_DEFAULT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
-    }
-  catch(itk::ExceptionObject &exc) 
-    {
-    // Restore the cursor
-    m_WinMain->cursor(FL_CURSOR_DEFAULT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
-
-    // Alert the user to the failure
-    fl_alert("Error loading image:\n%s",exc.GetDescription());
-    }
-}
-
-void
-UserInterfaceLogic
-::OnLoadRecentRGBAction(unsigned int iRecent)
-{
-  // Make sure the user doesn't lose any data
-  if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
-
-  // Get the history of grayscale images. Here we must be careful that every time
-  // the history is updated, we also remember to update the recent files menu!!!
-  const SystemInterface::HistoryListType &history = 
-    m_SystemInterface->GetHistory("RGBImage");
-
-  // Check that the history is OK
-  if(history.size() <= iRecent)
-    {
-    fl_alert("Unable to load recent file due to internal error!");
-    return;
-    }
-
-  // Get the recent file name
-  string fnRecent = m_RecentRGBFileNames[iRecent];
-
-  // Show a wait cursor
-  m_WinMain->cursor(FL_CURSOR_WAIT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
-
-  // TODO: At some point, we have to prompt the user that there are unsaved changes...
-  try
-    {
-    // Load the file non-interactively
-    NonInteractiveLoadRGB(fnRecent.c_str());
+    if (isGrey)
+      NonInteractiveLoadGrey(fnRecent.c_str());
+    else
+      NonInteractiveLoadRGB(fnRecent.c_str());
 
     // Restore the cursor
     m_WinMain->cursor(FL_CURSOR_DEFAULT, FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
@@ -3702,6 +3622,8 @@ UserInterfaceLogic
   // Update the system's history list
   m_SystemInterface->UpdateHistory("GreyImage", 
     itksys::SystemTools::CollapseFullPath(fname).c_str());
+  m_SystemInterface->UpdateHistory("MainImage", 
+    itksys::SystemTools::CollapseFullPath(fname).c_str());
 
   // Save the filename
   m_GlobalState->SetGreyFileName(fname);
@@ -3748,6 +3670,7 @@ UserInterfaceLogic
 
     // Update the system's history list
     m_SystemInterface->UpdateHistory("GreyImage", m_WizGreyIO->GetFileName());
+    m_SystemInterface->UpdateHistory("MainImage", m_WizGreyIO->GetFileName());
 
     // Save the filename
     m_GlobalState->SetGreyFileName(m_WizGreyIO->GetFileName());
@@ -3777,6 +3700,8 @@ UserInterfaceLogic
   // Add the filename to the history
   m_SystemInterface->UpdateHistory("RGBImage",  
     itksys::SystemTools::CollapseFullPath(fname).c_str());
+  m_SystemInterface->UpdateHistory("MainImage",  
+    itksys::SystemTools::CollapseFullPath(fname).c_str());
 
   // Save the filename
   m_GlobalState->SetRGBFileName(fname);
@@ -3796,11 +3721,10 @@ UserInterfaceLogic
   m_Driver->LoadRGBImageFile(fname, false);
 
   // Update the system's history list
-  m_SystemInterface->UpdateHistory("RGBImage",  
+  m_SystemInterface->UpdateHistory("RGBOverlay",
     itksys::SystemTools::CollapseFullPath(fname).c_str());
-
-  // Update the list of recently open files
-  GenerateRecentRGBFilesMenu();
+  m_SystemInterface->UpdateHistory("OverlayImage",
+    itksys::SystemTools::CollapseFullPath(fname).c_str());
 
   // Set the RGB UI state      
   m_GlobalState->SetRGBAlpha(128);
@@ -3832,7 +3756,7 @@ UserInterfaceLogic
 
   // If the load operation was successful, populate the data and GUI with the
   // new image
-  if(wizRGBIO.IsImageLoaded()) 
+  if(wizRGBIO.IsImageLoaded())
     {
     // Unload all image data
     UnloadAllImages();
@@ -3845,6 +3769,7 @@ UserInterfaceLogic
 
     // Update the system's history list
     m_SystemInterface->UpdateHistory("RGBImage",wizRGBIO.GetFileName());
+    m_SystemInterface->UpdateHistory("MainImage",wizRGBIO.GetFileName());
 
     // Save the filename
     m_GlobalState->SetRGBFileName(wizRGBIO.GetFileName());
@@ -3877,7 +3802,7 @@ UserInterfaceLogic
 
   // Set the history for the input wizard
   wizGreyOverlayIO.SetHistory(
-    m_SystemInterface->GetHistory("GreyImage"));
+    m_SystemInterface->GetHistory("GreyOverlay"));
 
   // Show the input wizard
   wizGreyOverlayIO.DisplayInputWizard(
@@ -3894,7 +3819,8 @@ UserInterfaceLogic
                         wizGreyOverlayIO.GetNativeShift()));
 
     // Update the system's history list
-    m_SystemInterface->UpdateHistory("GreyImage", wizGreyOverlayIO.GetFileName());
+    m_SystemInterface->UpdateHistory("GreyOverlay", wizGreyOverlayIO.GetFileName());
+    m_SystemInterface->UpdateHistory("OverlayImage", wizGreyOverlayIO.GetFileName());
 
     // Save the filename
     m_GlobalState->SetGreyFileName(wizGreyOverlayIO.GetFileName());
@@ -3981,7 +3907,7 @@ UserInterfaceLogic
 
   // Set the history for the input wizard
   wizRGBOverlayIO.SetHistory(
-    m_SystemInterface->GetHistory("RGBImage"));
+    m_SystemInterface->GetHistory("RGBOverlay"));
 
   // Show the input wizard
   wizRGBOverlayIO.DisplayInputWizard(
@@ -3992,7 +3918,8 @@ UserInterfaceLogic
   if (wizRGBOverlayIO.IsImageLoaded()) 
     {
     // Update the system's history list
-    m_SystemInterface->UpdateHistory("RGBImage",wizRGBOverlayIO.GetFileName());
+    m_SystemInterface->UpdateHistory("RGBOverlay",wizRGBOverlayIO.GetFileName());
+    m_SystemInterface->UpdateHistory("OverlayImage",wizRGBOverlayIO.GetFileName());
 
     // Send the image and RAI to the IRIS application driver
     m_Driver->UpdateIRISRGBOverlay(wizRGBOverlayIO.GetLoadedImage());
@@ -4385,7 +4312,7 @@ void UserInterfaceLogic
   // Save the segmentation
   if(m_WizGreyIO->DisplaySaveWizard(
     m_Driver->GetIRISImageData()->GetGrey()->GetImage(),
-    NULL, "greyscale"))
+    NULL, "Greyscale"))
     {
     // Update the history for the wizard
     m_SystemInterface->UpdateHistory(
@@ -4405,7 +4332,7 @@ void UserInterfaceLogic
   // Save the segmentation
   if(m_WizGreyIO->DisplaySaveWizard(
     m_Driver->GetCurrentImageData()->GetGrey()->GetImage(),
-    NULL, "greyscale"))
+    NULL, "Greyscale"))
     {
     // Update the history for the wizard
     m_SystemInterface->UpdateHistory(
@@ -5068,6 +4995,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.61  2009/06/13 05:02:00  garyhuizhang
+ *ENH: improved implementation of recent file lists that combines both grey and RGB main images
+ *
  *Revision 1.60  2009/06/13 03:29:40  garyhuizhang
  *ENH: checking for available software update
  *

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/13 03:29:40 $
-  Version:   $Revision: 1.28 $
+  Date:      $Date: 2009/06/13 05:02:00 $
+  Version:   $Revision: 1.29 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -716,8 +716,7 @@ protected:
   void OnMenuShowRGBOverlayOptions();
   void OnMenuSavePreprocessed(); 
   void OnMenuSaveLevelSet(); 
-  void OnLoadRecentGreyAction(unsigned int iRecent);
-  void OnLoadRecentRGBAction(unsigned int iRecent);
+  void OnLoadRecentAction(unsigned int iRecent);
   void OnLoadPreprocessedImageAction();
   void OnMenuLoadAdvection();
   void OnMenuImageInfo();
@@ -899,8 +898,7 @@ private:
   ImageInfoCallbackInterface *m_GreyCallbackInterface;
 
   // A list of recently open files shown in the load recent menu
-  std::string m_RecentGreyFileNames[5];
-  std::string m_RecentRGBFileNames[5];
+  std::string m_RecentFileNames[5];
 
   // Temporary value used for opacity slider toggling
   double m_OpacityToggleValue;
@@ -975,8 +973,7 @@ private:
   friend class UserInterfaceLogicMemberObserver;
 
   // Update the menu of recent files
-  void GenerateRecentGreyFilesMenu();
-  void GenerateRecentRGBFilesMenu();
+  void GenerateRecentFilesMenu();
 
   // Generate a PNG filename for use in saving snapshots
   std::string GenerateScreenShotFilename();
@@ -997,6 +994,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.29  2009/06/13 05:02:00  garyhuizhang
+ *ENH: improved implementation of recent file lists that combines both grey and RGB main images
+ *
  *Revision 1.28  2009/06/13 03:29:40  garyhuizhang
  *ENH: checking for available software update
  *
