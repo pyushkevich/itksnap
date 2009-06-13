@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/05/04 20:15:57 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2009/06/13 02:18:18 $
+  Version:   $Revision: 1.16 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -105,7 +105,7 @@ SystemInterface
 {
   // Check if the file exists, may throw an exception here
   if(itksys::SystemTools::FileExists(m_UserPreferenceFile.c_str()))
-  {
+    {
     // Read the contents of the preferences from file
     ReadFromFile(m_UserPreferenceFile.c_str());
 
@@ -119,10 +119,9 @@ SystemInterface
       // Clear the contents of the registry since it's incompatible
       this->Clear();
       }
-
-    // Enter the current SNAP version into the registry
-    Entry("System.CreatedBySNAPVersion") << SNAPCurrentVersionReleaseDate;
-  }
+    }
+  // Enter the current SNAP version into the registry
+  Entry("System.CreatedBySNAPVersion") << SNAPCurrentVersionReleaseDate;
 }
 
 /** 
