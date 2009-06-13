@@ -37,7 +37,7 @@ class UserInterface {open : {public UserInterfaceBase}
         xywh {0 0 875 25} labelsize 12 textsize 12
       } {
         Submenu {} {
-          label {File} open
+          label {File}
           xywh {10 10 100 20} labelsize 12
         } {
           MenuItem m_MenuLoadGrey {
@@ -57,7 +57,7 @@ class UserInterface {open : {public UserInterfaceBase}
           }
           Submenu m_MenuLoadPrevious {
             label {Open Recent}
-            xywh {5 5 100 20} labelsize 12
+            xywh {5 5 100 20} labelsize 12 divider
           } {
             MenuItem m_MenuLoadPreviousFirst {
               label {Not Available}
@@ -112,7 +112,32 @@ class UserInterface {open : {public UserInterfaceBase}
             MenuItem m_MenuSaveVoxelCounts {
               label {Volumes && Statistics}
               callback {this->OnMenuWriteVoxelCounts();}
-              xywh {10 10 100 20} shortcut 0x50076 labelsize 12 deactivate divider
+              xywh {10 10 100 20} shortcut 0x50076 labelsize 12 deactivate
+            }
+          }
+          Submenu {} {
+            label {Export}
+            xywh {20 20 100 20} labelsize 12 divider
+          } {
+            Submenu m_MenuExportSlice {
+              label {Slice}
+              xywh {0 0 100 20} labelsize 12 deactivate
+            } {
+              MenuItem m_MenuExportSliceAxial {
+                label {Axial}
+                callback {OnMenuExportSlice(0);}
+                xywh {50 50 100 20} labelsize 12
+              }
+              MenuItem m_MenuExportSliceSagittal {
+                label {Sagittal}
+                callback {OnMenuExportSlice(1);}
+                xywh {60 60 100 20} labelsize 12
+              }
+              MenuItem m_MenuExportSliceCoronal {
+                label {Colornal}
+                callback {OnMenuExportSlice(2);}
+                xywh {70 70 100 20} labelsize 12
+              }
             }
             Submenu m_MenuSaveScreenshot {
               label Screenshot open
@@ -154,31 +179,11 @@ class UserInterface {open : {public UserInterfaceBase}
                 xywh {50 50 100 20} labelsize 12
               }
             }
-            Submenu m_MenuExportSlice {
-              label {Export Slice} open
-              xywh {0 0 100 20} labelsize 12 deactivate
-            } {
-              MenuItem m_MenuExportSliceAxial {
-                label {Axial}
-                callback {OnMenuExportSlice(0);}
-                xywh {50 50 100 20} labelsize 12
-              }
-              MenuItem m_MenuExportSliceSagittal {
-                label {Sagittal}
-                callback {OnMenuExportSlice(1);}
-                xywh {60 60 100 20} labelsize 12
-              }
-              MenuItem m_MenuExportSliceCoronal {
-                label {Colornal}
-                callback {OnMenuExportSlice(2);}
-                xywh {70 70 100 20} labelsize 12
-              }
-            }
           }
           MenuItem m_MenuResetAll {
             label {Unload All Images}
             callback {this->OnMenuResetAll()}
-            tooltip Reset xywh {0 0 30 20} shortcut 0x4006e labelsize 12
+            tooltip Reset xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
           }
           MenuItem {} {
             label {Quit}
@@ -198,7 +203,7 @@ class UserInterface {open : {public UserInterfaceBase}
           MenuItem m_MenuNewSegmentation {
             label {Clear}
             callback {this->OnMenuNewSegmentation()}
-            tooltip {Creates a new empty segmentation} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
+            tooltip {Creates a new empty segmentation} xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
           }
           MenuItem m_MenuSaveSegmentation {
             label {Save As Image}
@@ -247,9 +252,14 @@ class UserInterface {open : {public UserInterfaceBase}
           }
         }
         Submenu {} {
-          label {Options}
+          label {Tools}
           xywh {5 5 100 20} labelsize 12
         } {
+          MenuItem {} {
+            label {Display Options}
+            callback {OnMenuShowDisplayOptions();}
+            xywh {5 5 100 20} labelsize 12 divider
+          }
           MenuItem m_MenuImageInfo {
             label {Image Info}
             callback {this->OnMenuImageInfo();}
@@ -264,11 +274,6 @@ class UserInterface {open : {public UserInterfaceBase}
             label {Reorient Image}
             callback {this->OnMenuReorientImage();}
             tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {15 15 100 20} labelsize 12 divider
-          }
-          MenuItem {} {
-            label {Display Options}
-            callback {OnMenuShowDisplayOptions();}
-            xywh {5 5 100 20} labelsize 12 divider
           }
           MenuItem m_MenuRGBOverlayOptions {
             label {Adjust RGB Overlay}
