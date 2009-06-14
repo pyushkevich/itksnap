@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/10 02:52:46 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/06/14 05:55:42 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -72,6 +72,10 @@ public:
   typedef LabelImageWrapper::ImageType LabelImageType;
   typedef itk::ImageRegion<3> RegionType;
 
+  typedef std::list<ImageWrapperBase *> WrapperList;
+  typedef WrapperList::iterator WrapperIterator;
+  typedef WrapperList::const_iterator WrapperConstIterator;
+
   GenericImageData(IRISApplication *parent);
   virtual ~GenericImageData() {};
 
@@ -101,9 +105,9 @@ public:
   /**
    * Access the greyscale overlay image (read only access is allowed)
    */
-  GreyImageWrapper* GetGreyOverlay() {
+  WrapperList* GetGreyOverlays() {
     assert(m_GreyOverlayWrappers.size() > 0);
-    return static_cast<GreyImageWrapper *>(m_GreyOverlayWrappers.back());
+    return &m_GreyOverlayWrappers;
   }
 
   GreyImageWrapper* GetGreyOverlayLast() {
@@ -236,9 +240,6 @@ protected:
 
   // A list of linked wrappers, whose cursor position and image geometry
   // are updated concurrently
-  typedef std::list<ImageWrapperBase *> WrapperList;
-  typedef WrapperList::iterator WrapperIterator;
-  typedef WrapperList::const_iterator WrapperConstIterator;
   WrapperList m_LinkedWrappers;
   WrapperList m_GreyOverlayWrappers;
 

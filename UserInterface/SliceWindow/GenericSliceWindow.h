@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:49:45 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/06/14 05:55:42 $
+  Version:   $Revision: 1.17 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -293,7 +293,13 @@ protected:
   typedef OpenGLSliceTexture<RGBAType> RGBTextureType;
     
   // Grey texture object
-  GreyTextureType *m_GreyTexture, *m_GreyOverlayTexture;
+  GreyTextureType *m_GreyTexture;
+
+  // Grey overlay texture objects
+  typedef std::list<GreyTextureType *> GreyOverlayTextureList;
+  typedef GreyOverlayTextureList::iterator GreyOverlayTextureIterator;
+  typedef GreyOverlayTextureList::const_iterator GreyOverlayTextureConstIterator;
+  GreyOverlayTextureList m_GreyOverlayTextureList;
 
   // RGB texture object
   RGBTextureType *m_RGBTexture, *m_LabelRGBTexture;

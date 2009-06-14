@@ -27,7 +27,7 @@ PROJECT(SNAP)
 #     release version 1.7.3-beta and then version 1.7.3. The right way to do it
 #     is to have 1.7.3-beta followed by 1.7.5-rc1 followed by 1.8.0 and so on
 SET(SNAP_VERSION_MAJOR 1)
-SET(SNAP_VERSION_MINOR 8)
+SET(SNAP_VERSION_MINOR 6)
 SET(SNAP_VERSION_PATCH 0)
 SET(SNAP_VERSION_QUALIFIER "")
 SET(SNAP_VERSION_FULL "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}${SNAP_VERSION_QUALIFIER}")
