@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/10 02:52:46 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/06/14 20:43:17 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -170,7 +170,7 @@ GenericImageData
   assert(m_MainImage->GetBufferedRegion() ==
          newGreyImage->GetBufferedRegion());
 
-  // Pass the image to the segmentation wrapper
+  // Pass the image to a Grey image wrapper
   GreyImageWrapper *newGreyOverlayWrapper = new GreyImageWrapper;
   newGreyOverlayWrapper->SetImage(newGreyImage);
   newGreyOverlayWrapper->SetNativeMapping(native);
@@ -189,9 +189,8 @@ GenericImageData
       iSlice,m_ImageGeometry.GetImageToDisplayTransform(iSlice));
     }
 
-  // Add to the overlay wrapper list and the linked wrapper list
+  // Add to the Grey overlay wrapper list and the linked wrapper list
   m_GreyOverlayWrappers.push_back(newGreyOverlayWrapper);
-  m_LinkedWrappers.push_back(newGreyOverlayWrapper);
 }
 
 void
@@ -211,12 +210,11 @@ GenericImageData
     return;
 
   // Release the data associated with the last overlay
-  GreyImageWrapper *last = GetGreyOverlayLast();
+  GreyImageWrapper *last = static_cast<GreyImageWrapper *>(m_GreyOverlayWrappers.back());
   last->Reset();
 
   // Clear it off the wrapper lists
   m_GreyOverlayWrappers.pop_back();
-  m_LinkedWrappers.pop_back();
 }
 
 void
@@ -242,27 +240,54 @@ GenericImageData
 
 void
 GenericImageData
-::SetRGBImageAsOverlay(RGBImageType *newRGBImage)
+::SetRGBOverlay(RGBImageType *newRGBImage)
 {
-  // Check that the image matches the size of the grey image
-  assert(m_GreyWrapper.GetBufferedRegion() ==
+  // Check that the image matches the size of the main image
+  assert(m_MainImage->GetBufferedRegion() ==
          newRGBImage->GetBufferedRegion());
-  assert(m_MainImage == &m_GreyWrapper);
 
-  // Pass the image to the segmentation wrapper
-  m_RGBWrapper.SetImage(newRGBImage);
-  m_RGBWrapper.SetAlpha(255);
+  // Pass the image to a RGB image wrapper
+  RGBImageWrapper *newRGBOverlayWrapper = new RGBImageWrapper;
+  newRGBOverlayWrapper->SetImage(newRGBImage);
+  newRGBOverlayWrapper->SetAlpha(255);
 
   // Sync up spacing between the main and RGB overlay image
-  newRGBImage->SetSpacing(m_GreyWrapper.GetImage()->GetSpacing());
-  newRGBImage->SetOrigin(m_GreyWrapper.GetImage()->GetOrigin());
+  newRGBImage->SetSpacing(m_MainImage->GetImageBase()->GetSpacing());
+  newRGBImage->SetOrigin(m_MainImage->GetImageBase()->GetOrigin());
 
   // Propagate the geometry information to this wrapper
   for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
     {
-    m_RGBWrapper.SetImageToDisplayTransform(
+    newRGBOverlayWrapper->SetImageToDisplayTransform(
       iSlice,m_ImageGeometry.GetImageToDisplayTransform(iSlice));
     }
+
+  // Add to the RGB overlay wrapper list
+  m_RGBOverlayWrappers.push_back(newRGBOverlayWrapper);
+}
+
+void
+GenericImageData
+::UnloadRGBOverlays()
+{
+  while (m_RGBOverlayWrappers.size() > 0)
+    UnloadRGBOverlayLast();
+}
+
+void
+GenericImageData
+::UnloadRGBOverlayLast()
+{
+  // Make sure at least one RGB overlay is loaded
+  if (!IsRGBOverlayLoaded())
+    return;
+
+  // Release the data associated with the last overlay
+  RGBImageWrapper *last = static_cast<RGBImageWrapper *>(m_RGBOverlayWrappers.back());
+  last->Reset();
+
+  // Clear it off the wrapper lists
+  m_RGBOverlayWrappers.pop_back();
 }
 
 void
@@ -305,6 +330,13 @@ GenericImageData
 
 bool
 GenericImageData
+::IsRGBOverlayLoaded()
+{
+  return (m_RGBOverlayWrappers.size() > 0);
+}
+
+bool
+GenericImageData
 ::IsSegmentationLoaded()
 {
   return m_LabelWrapper.IsInitialized();
@@ -314,11 +346,20 @@ void
 GenericImageData
 ::SetCrosshairs(const Vector3ui &crosshairs)
 {
-  WrapperIterator it = m_LinkedWrappers.begin();
-  while(it != m_LinkedWrappers.end())
+  SetCrosshairs(m_LinkedWrappers, crosshairs);
+  SetCrosshairs(m_GreyOverlayWrappers, crosshairs);
+  SetCrosshairs(m_RGBOverlayWrappers, crosshairs);
+}
+
+void
+GenericImageData
+::SetCrosshairs(WrapperList &list, const Vector3ui &crosshairs)
+{
+  WrapperIterator it = list.begin();
+  while (it != list.end())
     {
     ImageWrapperBase *wrapper = *it++;
-    if(wrapper->IsInitialized())
+    if (wrapper->IsInitialized())
       wrapper->SetSliceIndex(crosshairs);
     }
 }
@@ -335,12 +376,21 @@ void
 GenericImageData
 ::SetImageGeometry(const ImageCoordinateGeometry &geometry)
 {
+  SetImageGeometry(m_LinkedWrappers, geometry);
+  SetImageGeometry(m_GreyOverlayWrappers, geometry);
+  SetImageGeometry(m_RGBOverlayWrappers, geometry);
+}
+
+void
+GenericImageData
+::SetImageGeometry(WrapperList &list, const ImageCoordinateGeometry &geometry)
+{
   // Save the geometry
   m_ImageGeometry = geometry;
 
   // Propagate the geometry to the image wrappers
-  for(WrapperIterator it = m_LinkedWrappers.begin();
-    it != m_LinkedWrappers.end(); ++it)
+  for(WrapperIterator it = list.begin();
+    it != list.end(); ++it)
     {
     ImageWrapperBase *wrapper = *it;
     if(wrapper->IsInitialized())
@@ -358,3 +408,4 @@ GenericImageData
       }
     }
 }
+

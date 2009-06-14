@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/10 02:52:46 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2009/06/14 20:43:17 $
+  Version:   $Revision: 1.16 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -131,7 +131,8 @@ public:
 
   void UpdateIRISRGBImage(RGBImageType *newRGBImage);
   void UpdateIRISRGBOverlay(RGBImageType *newRGBOverlay);
-  void UnloadRGBOverlay();
+  void UnloadRGBOverlays();
+  void UnloadRGBOverlayLast();
 
   /** 
    * Update the IRIS image data with an external segmentation image (e.g., 

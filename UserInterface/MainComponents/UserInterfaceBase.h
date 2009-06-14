@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/13 05:02:00 $
-  Version:   $Revision: 1.26 $
+  Date:      $Date: 2009/06/14 20:43:17 $
+  Version:   $Revision: 1.27 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -87,20 +87,22 @@ public:
   virtual void OnMenuUnloadGreyOverlayLast() = 0;
   virtual void OnMenuUnloadGreyOverlays() = 0;
   virtual void OnMenuLoadRGBOverlay() = 0;
+  virtual void OnMenuUnloadRGBOverlayLast() = 0;
+  virtual void OnMenuUnloadRGBOverlays() = 0;
   virtual void OnMenuLoadSegmentation() = 0;
   virtual void OnMenuSaveSegmentation() = 0;
   virtual void OnMenuSaveSegmentationMesh() = 0;
   virtual void OnMenuSavePreprocessed() = 0;
-  virtual void OnMenuSaveLevelSet() = 0; 
+  virtual void OnMenuSaveLevelSet() = 0;
   virtual void OnMenuLoadLabels() = 0;
   virtual void OnMenuSaveLabels() = 0;
   virtual void OnMenuSaveScreenshot(unsigned int iSlice) = 0;
   virtual void OnMenuSaveScreenshotSeries(unsigned int iSlice) = 0;
   virtual void OnMenuLoadAdvection() = 0;
   virtual void OnMenuWriteVoxelCounts() = 0;
-  virtual void OnLoadRecentAction(unsigned int iRecent) = 0;  
-  virtual void OnMenuIntensityCurve() = 0;  
-  virtual void OnMenuShowRGBOverlayOptions() = 0;  
+  virtual void OnLoadRecentAction(unsigned int iRecent) = 0;
+  virtual void OnMenuIntensityCurve() = 0;
+  virtual void OnMenuShowOverlayOptions() = 0;
   virtual void OnMenuShowDisplayOptions() = 0;
   virtual void OnMenuExportSlice(unsigned int iSlice) = 0;
   virtual void OnMenuImageInfo() = 0;
@@ -109,7 +111,7 @@ public:
   virtual void OnMenuCheckForUpdate() = 0;
   virtual void OnMenuResetAll() = 0;
 
-  // IRIS: Slice selection actions  
+  // IRIS: Slice selection actions
   virtual void OnSliceSliderChange(int id) = 0;
   virtual void UpdatePositionDisplay(int id) = 0;
   virtual void OnSynchronizeCursorAction() = 0;
@@ -196,7 +198,7 @@ public:
   virtual void DeleteColorLabelMenu(Fl_Menu_Item *menu) = 0;
   virtual Fl_Menu_Item *GenerateColorLabelMenu(bool,bool,bool) = 0;
 
-  // Opacity sliders  
+  // Opacity sliders
   virtual void OnIRISLabelOpacityChange() = 0;
   virtual void OnSNAPLabelOpacityChange() = 0;
 
@@ -204,7 +206,7 @@ public:
   virtual void OnUndoAction() = 0;
   virtual void OnRedoAction() = 0;
 
-  // SNAP: 3D window related callbacks  
+  // SNAP: 3D window related callbacks
   virtual void OnSNAPMeshUpdateAction() = 0;
   virtual void OnSNAPMeshContinuousUpdateAction() = 0;
 

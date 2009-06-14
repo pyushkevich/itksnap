@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 05:55:42 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009/06/14 20:43:17 $
+  Version:   $Revision: 1.18 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -291,7 +291,7 @@ protected:
   // Label texture object typedefs
   typedef LabelImageWrapper::DisplayPixelType RGBAType;
   typedef OpenGLSliceTexture<RGBAType> RGBTextureType;
-    
+
   // Grey texture object
   GreyTextureType *m_GreyTexture;
 
@@ -302,11 +302,17 @@ protected:
   GreyOverlayTextureList m_GreyOverlayTextureList;
 
   // RGB texture object
-  RGBTextureType *m_RGBTexture, *m_LabelRGBTexture;
-  
+  RGBTextureType *m_RGBTexture;
+
+  // RGB overlay texture objects
+  typedef std::list<RGBTextureType *> RGBOverlayTextureList;
+  typedef RGBOverlayTextureList::iterator RGBOverlayTextureIterator;
+  typedef RGBOverlayTextureList::const_iterator RGBOverlayTextureConstIterator;
+  RGBOverlayTextureList m_RGBOverlayTextureList;
+
   // Label texture object
-  LabelTextureType *m_LabelColorIndexTexture;
-  
+  RGBTextureType *m_LabelRGBTexture;
+
   // Check whether the thumbnail should be draw or not
   bool IsThumbnailOn();
 
@@ -330,6 +336,9 @@ protected:
 
   // This method is called in draw() to paint the RGB slice
   virtual void DrawRGBTexture();
+
+  // This method is called in draw() to paint the RGB overlay slice
+  virtual void DrawRGBOverlayTexture();
 
   // This method is called in draw() to paint the segmentation slice
   virtual void DrawSegmentationTexture();

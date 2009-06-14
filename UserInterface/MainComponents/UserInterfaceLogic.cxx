@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 06:13:20 $
-  Version:   $Revision: 1.62 $
+  Date:      $Date: 2009/06/14 20:43:17 $
+  Version:   $Revision: 1.63 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -212,9 +212,11 @@ void UserInterfaceLogic
   m_Activation->SetFlagImplies(UIF_SNAP_SPEED_AVAILABLE, UIF_SNAP_ACTIVE);
   m_Activation->SetFlagImplies(UIF_SNAP_MESH_CONTINUOUS_UPDATE, UIF_SNAP_SNAKE_INITIALIZED);
   m_Activation->SetFlagImplies(UIF_GRAY_LOADED, UIF_BASEIMG_LOADED);
-  m_Activation->SetFlagImplies(UIF_RGBBASE_LOADED, UIF_BASEIMG_LOADED);
-  m_Activation->SetFlagImplies(UIF_RGBBASE_LOADED, UIF_RGBANY_LOADED);
+  m_Activation->SetFlagImplies(UIF_RGB_LOADED, UIF_BASEIMG_LOADED);
+  m_Activation->SetFlagImplies(UIF_RGB_LOADED, UIF_RGBANY_LOADED);
   m_Activation->SetFlagImplies(UIF_RGBOVL_LOADED, UIF_RGBANY_LOADED);
+  m_Activation->SetFlagImplies(UIF_GRAYOVL_LOADED, UIF_OVERLAY_LOADED);
+  m_Activation->SetFlagImplies(UIF_RGBOVL_LOADED, UIF_OVERLAY_LOADED);
   m_Activation->SetFlagImplies(UIF_IRIS_WITH_GRAY_LOADED, UIF_GRAY_LOADED);
   m_Activation->SetFlagImplies(UIF_IRIS_WITH_BASEIMG_LOADED, UIF_BASEIMG_LOADED);
   m_Activation->SetFlagImplies(UIF_IRIS_WITH_BASEIMG_LOADED, UIF_IRIS_ACTIVE);
@@ -306,11 +308,16 @@ void UserInterfaceLogic
   // Link menu items to flags
   m_Activation->AddMenuItem(m_MenuLoadGrey, UIF_IRIS_ACTIVE);
   m_Activation->AddMenuItem(m_MenuLoadRGB, UIF_IRIS_ACTIVE);
+  m_Activation->AddMenuItem(m_MenuSave, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuExport, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuResetAll, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveGrey, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadGreyOverlay, UIF_IRIS_WITH_BASEIMG_LOADED);
-  m_Activation->AddMenuItem(m_MenuLoadRGBOverlay, UIF_IRIS_WITH_GRAY_LOADED);
-  m_Activation->AddMenuItem(m_MenuUnloadGreyOverlays, UIF_GRAYOVL_LOADED);
   m_Activation->AddMenuItem(m_MenuUnloadGreyOverlayLast, UIF_GRAYOVL_LOADED);
+  m_Activation->AddMenuItem(m_MenuUnloadGreyOverlays, UIF_GRAYOVL_LOADED);
+  m_Activation->AddMenuItem(m_MenuLoadRGBOverlay, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuUnloadRGBOverlayLast, UIF_RGBOVL_LOADED);
+  m_Activation->AddMenuItem(m_MenuUnloadRGBOverlays, UIF_RGBOVL_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuNewSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveGreyROI, UIF_SNAP_ACTIVE);
@@ -322,7 +329,7 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuSaveScreenshot, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveScreenshotSeries, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuIntensityCurve, UIF_GRAY_LOADED);
-  m_Activation->AddMenuItem(m_MenuRGBOverlayOptions, UIF_RGBANY_LOADED);
+  m_Activation->AddMenuItem(m_MenuOverlayOptions, UIF_OVERLAY_LOADED);
   m_Activation->AddMenuItem(m_MenuExportSlice, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSavePreprocessed, UIF_SNAP_PREPROCESSING_DONE);
   m_Activation->AddMenuItem(m_MenuSaveLevelSet, UIF_SNAP_SNAKE_INITIALIZED);
@@ -2404,7 +2411,7 @@ UserInterfaceLogic
   string fnMain = "";
   if(m_Activation->GetFlag(UIF_GRAY_LOADED))
     fnMain = m_GlobalState->GetGreyFileName();
-  else if(m_Activation->GetFlag(UIF_RGBBASE_LOADED))
+  else if(m_Activation->GetFlag(UIF_RGB_LOADED))
     fnMain = m_GlobalState->GetRGBFileName();
 
   // Truncate the main image file    
@@ -2844,7 +2851,7 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
-::OnMenuShowRGBOverlayOptions()
+::OnMenuShowOverlayOptions()
 {
   m_RGBOverlayUI->DisplayWindow();
 }
@@ -3379,9 +3386,6 @@ void
 UserInterfaceLogic
 ::OnRGBImageUpdate()
 {
-  m_GlobalState->SetRGBAlpha(255);
-  m_RGBOverlayUI->SetOpacity(255);
- 
   // Update the image info window controls
   m_OutImageInfoRange[0]->value(0);
   m_OutImageInfoRange[1]->value(0);
@@ -3391,7 +3395,7 @@ UserInterfaceLogic
 
   // Disable/Enable some menu items
   m_Activation->UpdateFlag(UIF_GRAY_LOADED, false);
-  m_Activation->UpdateFlag(UIF_RGBBASE_LOADED, true);
+  m_Activation->UpdateFlag(UIF_RGB_LOADED, true);
 }
 
 void 
@@ -3904,7 +3908,7 @@ UserInterfaceLogic
 ::OnMenuLoadRGBOverlay() 
 {
   // Grey image should be loaded
-  assert(m_Driver->GetCurrentImageData()->IsGreyLoaded());
+  assert(m_Driver->GetCurrentImageData()->IsMainLoaded());
 
   // Should not be in SNAP mode
   assert(!m_GlobalState->GetSNAPActive());
@@ -3948,6 +3952,69 @@ UserInterfaceLogic
     // Set the state
     m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, true);
     }
+}
+
+void
+UserInterfaceLogic
+::OnMenuUnloadRGBOverlayLast()
+{
+  if (m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
+    m_Driver->UnloadRGBOverlayLast();
+
+  // Update the state if necessary
+  if (!m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
+    m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, false);
+
+  if (m_GlobalState->GetSNAPActive())
+    {
+    m_SNAPWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_SNAPWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_SNAPWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
+
+    m_SNAPWindowManager3D->ClearScreen();
+    m_SNAPWindowManager3D->ResetView();
+    } else
+    { 
+    m_IRISWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_IRISWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_IRISWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
+    
+    m_IRISWindowManager3D->ClearScreen();
+    m_IRISWindowManager3D->ResetView();
+    }
+
+  RedrawWindows();
+}
+
+void
+UserInterfaceLogic
+::OnMenuUnloadRGBOverlays()
+{
+  if (m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
+    m_Driver->UnloadRGBOverlays();
+  
+  // Update the state
+  m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, false);
+
+  if (m_GlobalState->GetSNAPActive())
+    {
+    m_SNAPWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_SNAPWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_SNAPWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
+
+    m_SNAPWindowManager3D->ClearScreen();
+    m_SNAPWindowManager3D->ResetView();
+    } else
+    { 
+    m_IRISWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_IRISWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
+    m_IRISWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
+    
+    m_IRISWindowManager3D->ClearScreen();
+    m_IRISWindowManager3D->ResetView();
+    }
+
+  RedrawWindows();
 }
 
 void
@@ -5007,6 +5074,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.63  2009/06/14 20:43:17  garyhuizhang
+ *ENH: multiple RGB overlay support
+ *
  *Revision 1.62  2009/06/14 06:13:20  garyhuizhang
  *ENH: menu item association for grey overlay unload
  *

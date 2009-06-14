@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/10 02:52:46 $
-  Version:   $Revision: 1.21 $
+  Date:      $Date: 2009/06/14 20:43:17 $
+  Version:   $Revision: 1.22 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -383,10 +383,34 @@ IRISApplication
 {
   // This has to happen in 'pure' IRIS mode
   assert(m_SNAPImageData == NULL);
-  assert(m_IRISImageData->IsGreyLoaded());
+  assert(m_IRISImageData->IsMainLoaded());
 
   // Update the iris data
-  m_IRISImageData->SetRGBImageAsOverlay(newRGBOverlay);
+  m_IRISImageData->SetRGBOverlay(newRGBOverlay);
+
+  // for overlay, we don't want to change the cursor location
+  // just force the IRISSlicer to update
+  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+}
+
+void
+IRISApplication
+::UnloadRGBOverlays()
+{
+  // unload all the RGB overlays
+  m_IRISImageData->UnloadRGBOverlays();
+
+  // for overlay, we don't want to change the cursor location
+  // just force the IRISSlicer to update
+  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+}
+
+void
+IRISApplication
+::UnloadRGBOverlayLast()
+{
+  // unload the last grey overlay
+  m_IRISImageData->UnloadRGBOverlayLast();
 
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update

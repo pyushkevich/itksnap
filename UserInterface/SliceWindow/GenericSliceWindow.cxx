@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 05:55:42 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2009/06/14 20:43:17 $
+  Version:   $Revision: 1.20 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -181,16 +181,36 @@ GenericSliceWindow
     m_RGBTexture->SetImage(
       m_ImageData->GetRGB()->GetDisplaySlice(m_Id));
     }
-  
+
+  // Initialize the RGB overlay slice texture
+  // First clear the RGB overlay texture list
+  while (m_RGBOverlayTextureList.size() > 0)
+    {
+    delete m_RGBOverlayTextureList.front();
+    m_RGBOverlayTextureList.pop_front();
+    }
+  // Now refill RGB overlay texture list
+  if (imageData->IsRGBOverlayLoaded())
+    {
+    std::list<ImageWrapperBase *>::iterator it = m_ImageData->GetRGBOverlays()->begin();
+    while (it != m_ImageData->GetRGBOverlays()->end())
+      {
+      RGBImageWrapper *wrapper = static_cast<RGBImageWrapper *>(*it);
+      RGBTextureType *texture = new RGBTextureType;
+      texture->SetGlComponents(4);
+      texture->SetGlFormat(GL_RGBA);
+      texture->SetImage(wrapper->GetDisplaySlice(m_Id));
+	 m_RGBOverlayTextureList.push_back(texture);
+      it++;
+    	 }
+    }
+
   // Initialize the segmentation slice texture
   if (imageData->IsSegmentationLoaded())
     {
     m_LabelRGBTexture->SetImage(
       m_ImageData->GetSegmentation()->GetDisplaySlice(m_Id));
     }
-
-//  m_LabelColorIndexTexture->SetImage(
-//    m_ImageData->GetSegmentation()->GetSlice(m_Id));
 
   // Store the transforms between the display and image spaces
   m_ImageToDisplayTransform = 
@@ -433,6 +453,7 @@ GenericSliceWindow
   DrawGreyTexture();
   DrawRGBTexture();
   DrawGreyOverlayTexture();
+  DrawRGBOverlayTexture();
   DrawSegmentationTexture();
 
   // Draw the overlays
@@ -457,19 +478,19 @@ GenericSliceWindow
   // We should have a slice to return
   assert(m_ImageSliceIndex >= 0);
 
-  // Get the color to use for background
-  Vector3d clrBackground = m_ThumbnailIsDrawing
-    ? m_ParentUI->GetAppearanceSettings()->GetUIElement(
-        SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
-    : Vector3d(1.0);
-
-  // Set the interpolation mode to current default
-  m_GreyTexture->SetInterpolation(
-    m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
-    == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
-  
   if (m_ImageData->IsGreyLoaded())
     {
+    // Get the color to use for background
+    Vector3d clrBackground = m_ThumbnailIsDrawing
+      ? m_ParentUI->GetAppearanceSettings()->GetUIElement(
+          SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
+      : Vector3d(1.0);
+
+    // Set the interpolation mode to current default
+    m_GreyTexture->SetInterpolation(
+      m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
+      == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
+
     // Paint the grey texture with color as background
     m_GreyTexture->Draw(clrBackground);
     }
@@ -496,7 +517,7 @@ GenericSliceWindow
     texture->SetInterpolation(
       m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
       == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
-    texture->DrawTransparent(128);
+    texture->DrawTransparent(m_GlobalState->GetRGBAlpha());
     it++;
     }
 }
@@ -508,15 +529,47 @@ GenericSliceWindow
   // We should have a slice to return
   assert(m_ImageSliceIndex >= 0);
 
-  // Set the interpolation mode to current default
-  m_RGBTexture->SetInterpolation(
-    m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
-    == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
-
   if (m_ImageData->IsRGBLoaded())
     {
+    // Get the color to use for background
+    Vector3d clrBackground = m_ThumbnailIsDrawing
+      ? m_ParentUI->GetAppearanceSettings()->GetUIElement(
+          SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
+      : Vector3d(1.0);
+
+    // Set the interpolation mode to current default
+    m_RGBTexture->SetInterpolation(
+      m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
+      == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
+
     // Update the texture memory with RGB layer
-    m_RGBTexture->DrawTransparent(m_GlobalState->GetRGBAlpha());
+    m_RGBTexture->Draw(clrBackground);
+    }
+}
+
+void 
+GenericSliceWindow
+::DrawRGBOverlayTexture() 
+{
+  // We should have a slice to return
+  assert(m_ImageSliceIndex >= 0);
+
+  // Get the color to use for background
+  Vector3d clrBackground = m_ThumbnailIsDrawing
+    ? m_ParentUI->GetAppearanceSettings()->GetUIElement(
+        SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
+    : Vector3d(1.0);
+
+  RGBOverlayTextureIterator it = m_RGBOverlayTextureList.begin();
+  while (it != m_RGBOverlayTextureList.end())
+    {
+    // Set the interpolation mode to current default
+    RGBTextureType *texture = *it;
+    texture->SetInterpolation(
+      m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
+      == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
+    texture->DrawTransparent(m_GlobalState->GetRGBAlpha());
+    it++;
     }
 }
 

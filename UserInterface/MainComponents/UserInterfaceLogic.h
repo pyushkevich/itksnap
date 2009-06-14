@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 06:13:20 $
-  Version:   $Revision: 1.30 $
+  Date:      $Date: 2009/06/14 20:43:17 $
+  Version:   $Revision: 1.31 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -703,6 +703,8 @@ protected:
   void OnMenuUnloadGreyOverlayLast();
   void OnMenuUnloadGreyOverlays();
   void OnMenuLoadRGBOverlay();
+  void OnMenuUnloadRGBOverlayLast();
+  void OnMenuUnloadRGBOverlays();
   void OnMenuLoadSegmentation();
   void OnMenuLoadLabels();
   void OnMenuSaveGreyROI();
@@ -713,7 +715,7 @@ protected:
   void OnMenuSaveScreenshotSeries(unsigned int iSlice);
   void OnMenuWriteVoxelCounts();
   void OnMenuIntensityCurve();
-  void OnMenuShowRGBOverlayOptions();
+  void OnMenuShowOverlayOptions();
   void OnMenuSavePreprocessed(); 
   void OnMenuSaveLevelSet(); 
   void OnLoadRecentAction(unsigned int iRecent);
@@ -780,10 +782,11 @@ private:
     UIF_NULL,
     UIF_GRAY_LOADED,
     UIF_GRAYOVL_LOADED,
-    UIF_RGBBASE_LOADED,
+    UIF_RGB_LOADED,
     UIF_RGBOVL_LOADED,
     UIF_RGBANY_LOADED,
     UIF_BASEIMG_LOADED,
+    UIF_OVERLAY_LOADED,
     UIF_IRIS_ACTIVE,
     UIF_IRIS_WITH_BASEIMG_LOADED,
     UIF_IRIS_WITH_GRAY_LOADED,
@@ -995,6 +998,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.31  2009/06/14 20:43:17  garyhuizhang
+ *ENH: multiple RGB overlay support
+ *
  *Revision 1.30  2009/06/14 06:13:20  garyhuizhang
  *ENH: menu item association for grey overlay unload
  *

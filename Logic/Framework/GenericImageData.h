@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 05:55:42 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/06/14 20:43:17 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -110,17 +110,20 @@ public:
     return &m_GreyOverlayWrappers;
   }
 
-  GreyImageWrapper* GetGreyOverlayLast() {
-    assert(m_GreyOverlayWrappers.size() > 0);
-    return static_cast<GreyImageWrapper *>(m_GreyOverlayWrappers.back());
-  }
-
   /**
    * Access the RGB image (read only access is allowed)
    */
   RGBImageWrapper* GetRGB() {
     assert(m_RGBWrapper.IsInitialized());
     return &m_RGBWrapper;
+  }
+
+  /**
+   * Access the RGB overlay image (read only access is allowed)
+   */
+  WrapperList* GetRGBOverlays() {
+    assert(m_RGBOverlayWrappers.size() > 0);
+    return &m_RGBOverlayWrappers;
   }
 
   /**
@@ -182,8 +185,11 @@ public:
   virtual void SetRGBImage(RGBImageType *newRGBImage,
                     const ImageCoordinateGeometry &newGeometry);
   
-  virtual void SetRGBImageAsOverlay(RGBImageType *newRGBImage);
+  virtual void SetRGBOverlay(RGBImageType *newRGBImage);
   
+  virtual void UnloadRGBOverlays();
+  virtual void UnloadRGBOverlayLast();
+
   /**
    * This method sets the segmentation image (see note for SetGrey).
    */
@@ -200,7 +206,7 @@ public:
   bool IsGreyLoaded();
 
   /**
-   * Check validity of greyscale image
+   * Check validity of greyscale overlay image
    */
   bool IsGreyOverlayLoaded();
 
@@ -208,6 +214,11 @@ public:
    * Check validity of RGB image
    */
   bool IsRGBLoaded();
+
+  /**
+   * Check validity of RGB overlay image
+   */
+  bool IsRGBOverlayLoaded();
 
   /**
    * Check validity of segmentation image
@@ -229,6 +240,9 @@ public:
   irisGetMacro(ImageGeometry,ImageCoordinateGeometry);
 
 protected:
+  virtual void SetCrosshairs(WrapperList &list, const Vector3ui &crosshairs);
+  virtual void SetImageGeometry(WrapperList &list, const ImageCoordinateGeometry &geometry);
+
   // Wrapper around the grey-scale image
   GreyImageWrapper m_GreyWrapper;
 
@@ -242,9 +256,10 @@ protected:
   // are updated concurrently
   WrapperList m_LinkedWrappers;
   WrapperList m_GreyOverlayWrappers;
+  WrapperList m_RGBOverlayWrappers;
 
-  // A pointer to the 'main' image, i.e., the image that is treated as the 
-  // reference for all other images. It is typically the grey image, but 
+  // A pointer to the 'main' image, i.e., the image that is treated as the
+  // reference for all other images. It is typically the grey image, but
   // since we now allow for RGB images, it can point to the RGB image too
   ImageWrapperBase *m_MainImage;
 

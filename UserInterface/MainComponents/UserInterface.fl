@@ -85,7 +85,7 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {40 40 100 20} shortcut 0x40035 labelsize 12 deactivate
             }
           }
-          Submenu {} {
+          Submenu m_MenuSave {
             label {Save}
             xywh {20 20 100 20} labelsize 12
           } {
@@ -115,7 +115,7 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {10 10 100 20} shortcut 0x50076 labelsize 12 deactivate
             }
           }
-          Submenu {} {
+          Submenu m_MenuExport {
             label {Export}
             xywh {20 20 100 20} labelsize 12 divider
           } {
@@ -250,6 +250,21 @@ class UserInterface {open : {public UserInterfaceBase}
             callback {this->OnMenuLoadRGBOverlay();}
             tooltip {Load an RGB image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50072 labelsize 12 deactivate
           }
+          MenuItem m_MenuUnloadRGBOverlayLast {
+            label {Unload Last RGB Overlay}
+            callback {this->OnMenuUnloadRGBOverlayLast()}
+            tooltip {Unload Last RGB Overlay} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
+          }
+          MenuItem m_MenuUnloadRGBOverlays {
+            label {Unload All RGB Overlays}
+            callback {this->OnMenuUnloadRGBOverlays()}
+            tooltip {Unload All RGB Overlays} xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
+          }
+          MenuItem m_MenuOverlayOptions {
+            label {Adjust Overlay Transparency}
+            callback {OnMenuShowOverlayOptions()}
+            tooltip {Adjust the transparency of the overlays} xywh {0 0 31 20} labelsize 12 deactivate
+          }
         }
         Submenu {} {
           label {Tools}
@@ -274,11 +289,6 @@ class UserInterface {open : {public UserInterfaceBase}
             label {Reorient Image}
             callback {this->OnMenuReorientImage();}
             tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {15 15 100 20} labelsize 12 divider
-          }
-          MenuItem m_MenuRGBOverlayOptions {
-            label {Adjust RGB Overlay}
-            callback {OnMenuShowRGBOverlayOptions()}
-            tooltip {Adjust the opacity of the RGB image} xywh {0 0 31 20} labelsize 12 deactivate
           }
         }
         Submenu {} {

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ReorientImageUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/06/14 20:43:17 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -102,7 +102,7 @@ ReorientImageUILogic
 
   // Get the direction matrix
   vnl_matrix_fixed<double, 3, 3> dir = 
-    m_ImageData->GetGrey()->GetImage()->GetDirection().GetVnlMatrix();
+    m_ImageData->GetMain()->GetImageBase()->GetDirection().GetVnlMatrix();
 
   // Compute the RAI code from the direction matrix
   char rai[4]; rai[3] = 0;
@@ -151,7 +151,7 @@ ReorientImageUILogic
 
   // Print the matrix
   string smat_current = 
-    PrintMatrixFormatted(m_ImageData->GetGrey()->GetNiftiSform(), 9, 3);
+    PrintMatrixFormatted(m_ImageData->GetMain()->GetNiftiSform(), 9, 3);
   m_OutCurrentSForm->value(smat_current.c_str());
 
   // Update the 'current' graphic
@@ -195,8 +195,8 @@ ReorientImageUILogic
   vnl_matrix_fixed<double, 4, 4> m_sform = 
     GreyImageWrapper::ConstructNiftiSform(
       m_DesiredDirection,
-      m_ImageData->GetGrey()->GetImage()->GetOrigin().GetVnlVector(),
-      m_ImageData->GetGrey()->GetImage()->GetSpacing().GetVnlVector());
+      m_ImageData->GetMain()->GetImageBase()->GetOrigin().GetVnlVector(),
+      m_ImageData->GetMain()->GetImageBase()->GetSpacing().GetVnlVector());
 
   // Print the matrix
   string smat_desired = 
