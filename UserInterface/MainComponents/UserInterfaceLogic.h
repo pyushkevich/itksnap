@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/13 05:02:00 $
-  Version:   $Revision: 1.29 $
+  Date:      $Date: 2009/06/14 06:13:20 $
+  Version:   $Revision: 1.30 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -779,6 +779,7 @@ private:
   enum UIStateFlags {
     UIF_NULL,
     UIF_GRAY_LOADED,
+    UIF_GRAYOVL_LOADED,
     UIF_RGBBASE_LOADED,
     UIF_RGBOVL_LOADED,
     UIF_RGBANY_LOADED,
@@ -787,7 +788,7 @@ private:
     UIF_IRIS_WITH_BASEIMG_LOADED,
     UIF_IRIS_WITH_GRAY_LOADED,
     UIF_IRIS_MESH_DIRTY,
-    UIF_IRIS_MESH_ACTION_PENDING, 
+    UIF_IRIS_MESH_ACTION_PENDING,
     UIF_IRIS_ROI_VALID,
     UIF_LINKED_ZOOM,
     UIF_UNDO_POSSIBLE,
@@ -994,6 +995,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.30  2009/06/14 06:13:20  garyhuizhang
+ *ENH: menu item association for grey overlay unload
+ *
  *Revision 1.29  2009/06/13 05:02:00  garyhuizhang
  *ENH: improved implementation of recent file lists that combines both grey and RGB main images
  *

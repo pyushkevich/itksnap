@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/13 05:02:00 $
-  Version:   $Revision: 1.61 $
+  Date:      $Date: 2009/06/14 06:13:20 $
+  Version:   $Revision: 1.62 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -309,6 +309,8 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuSaveGrey, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadGreyOverlay, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadRGBOverlay, UIF_IRIS_WITH_GRAY_LOADED);
+  m_Activation->AddMenuItem(m_MenuUnloadGreyOverlays, UIF_GRAYOVL_LOADED);
+  m_Activation->AddMenuItem(m_MenuUnloadGreyOverlayLast, UIF_GRAYOVL_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuNewSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveGreyROI, UIF_SNAP_ACTIVE);
@@ -3726,12 +3728,12 @@ UserInterfaceLogic
   m_SystemInterface->UpdateHistory("OverlayImage",
     itksys::SystemTools::CollapseFullPath(fname).c_str());
 
-  // Set the RGB UI state      
+  // Set the RGB UI state
   m_GlobalState->SetRGBAlpha(128);
   m_RGBOverlayUI->SetOpacity(128);
 
   // Set the state
-  m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, true); 
+  m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, true);
 
   // Update the user interface accordingly
   OnOverlayImageUpdate();
@@ -3826,6 +3828,9 @@ UserInterfaceLogic
     m_GlobalState->SetGreyFileName(wizGreyOverlayIO.GetFileName());
     m_GlobalState->SetGreyExtension((char *)wizGreyOverlayIO.GetFileName());
 
+    // Set the state
+    m_Activation->UpdateFlag(UIF_GRAYOVL_LOADED, true);
+
     // Update the user interface accordingly
     OnOverlayImageUpdate();
     }
@@ -3837,6 +3842,10 @@ UserInterfaceLogic
 {
   if (m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
     m_Driver->UnloadGreyOverlayLast();
+
+  // Update the state if necessary
+  if (!m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
+    m_Activation->UpdateFlag(UIF_GRAYOVL_LOADED, false);
 
   if (m_GlobalState->GetSNAPActive())
     {
@@ -3865,6 +3874,9 @@ UserInterfaceLogic
 {
   if (m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
     m_Driver->UnloadGreyOverlays();
+  
+  // Update the state
+  m_Activation->UpdateFlag(UIF_GRAYOVL_LOADED, false);
 
   if (m_GlobalState->GetSNAPActive())
     {
@@ -4995,6 +5007,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.62  2009/06/14 06:13:20  garyhuizhang
+ *ENH: menu item association for grey overlay unload
+ *
  *Revision 1.61  2009/06/13 05:02:00  garyhuizhang
  *ENH: improved implementation of recent file lists that combines both grey and RGB main images
  *
