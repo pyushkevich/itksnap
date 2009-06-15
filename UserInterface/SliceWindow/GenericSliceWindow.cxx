@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 20:43:17 $
-  Version:   $Revision: 1.20 $
+  Date:      $Date: 2009/06/15 01:54:10 $
+  Version:   $Revision: 1.21 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -152,57 +152,11 @@ GenericSliceWindow
       m_ImageData->GetGrey()->GetDisplaySlice(m_Id));
     }
 
-  // Initialize the grey overlay slice texture
-  // First clear the grey overlay texture list
-  while (m_GreyOverlayTextureList.size() > 0)
-    {
-    delete m_GreyOverlayTextureList.front();
-    m_GreyOverlayTextureList.pop_front();
-    }
-  // Now refill grey overlay texture list
-  if (imageData->IsGreyOverlayLoaded())
-    {
-    std::list<ImageWrapperBase *>::iterator it = m_ImageData->GetGreyOverlays()->begin();
-    while (it != m_ImageData->GetGreyOverlays()->end())
-      {
-      GreyImageWrapper *wrapper = static_cast<GreyImageWrapper *>(*it);
-      GreyTextureType *texture = new GreyTextureType;
-      texture->SetGlComponents(4);
-      texture->SetGlFormat(GL_RGBA);
-      texture->SetImage(wrapper->GetDisplaySlice(m_Id));
-	 m_GreyOverlayTextureList.push_back(texture);
-      it++;
-    	 }
-    }
-
   // Initialize the RGB slice texture
   if (imageData->IsRGBLoaded())
     {
     m_RGBTexture->SetImage(
       m_ImageData->GetRGB()->GetDisplaySlice(m_Id));
-    }
-
-  // Initialize the RGB overlay slice texture
-  // First clear the RGB overlay texture list
-  while (m_RGBOverlayTextureList.size() > 0)
-    {
-    delete m_RGBOverlayTextureList.front();
-    m_RGBOverlayTextureList.pop_front();
-    }
-  // Now refill RGB overlay texture list
-  if (imageData->IsRGBOverlayLoaded())
-    {
-    std::list<ImageWrapperBase *>::iterator it = m_ImageData->GetRGBOverlays()->begin();
-    while (it != m_ImageData->GetRGBOverlays()->end())
-      {
-      RGBImageWrapper *wrapper = static_cast<RGBImageWrapper *>(*it);
-      RGBTextureType *texture = new RGBTextureType;
-      texture->SetGlComponents(4);
-      texture->SetGlFormat(GL_RGBA);
-      texture->SetImage(wrapper->GetDisplaySlice(m_Id));
-	 m_RGBOverlayTextureList.push_back(texture);
-      it++;
-    	 }
     }
 
   // Initialize the segmentation slice texture
@@ -211,6 +165,9 @@ GenericSliceWindow
     m_LabelRGBTexture->SetImage(
       m_ImageData->GetSegmentation()->GetDisplaySlice(m_Id));
     }
+
+  // Initialize overlay slice
+  InitializeOverlaySlice(imageData);
 
   // Store the transforms between the display and image spaces
   m_ImageToDisplayTransform = 
@@ -246,9 +203,75 @@ GenericSliceWindow
   // If the is no current interaction mode, enter the crosshairs mode
   if(GetInteractionModeCount() == 0)
     PushInteractionMode(m_CrosshairsMode);
-  
+
   // setup default view - fit to window
   ResetViewToFit();
+}
+
+void 
+GenericSliceWindow
+::InitializeOverlaySlice(GenericImageData *imageData)
+{
+  // Register should have been called already
+  assert(m_IsRegistered);
+
+  // Store the image data pointer
+  m_ImageData = imageData;
+
+  // Clear the grey overlay texture list
+  while (m_GreyOverlayTextureList.size() > 0)
+    {
+    delete m_GreyOverlayTextureList.front();
+    m_GreyOverlayTextureList.pop_front();
+    }
+
+  // Clear the RGB overlay texture list
+  while (m_RGBOverlayTextureList.size() > 0)
+    {
+    delete m_RGBOverlayTextureList.front();
+    m_RGBOverlayTextureList.pop_front();
+    }
+
+  // The main image should be loaded
+  if (!imageData->IsMainLoaded())
+    {
+    // If not
+    m_IsSliceInitialized = false;
+    ClearInteractionStack();
+    return;
+    }
+
+  // Initialize the grey overlay slice texture
+  if (imageData->IsGreyOverlayLoaded())
+    {
+    std::list<ImageWrapperBase *>::iterator it = m_ImageData->GetGreyOverlays()->begin();
+    while (it != m_ImageData->GetGreyOverlays()->end())
+      {
+      GreyImageWrapper *wrapper = static_cast<GreyImageWrapper *>(*it);
+      GreyTextureType *texture = new GreyTextureType;
+      texture->SetGlComponents(4);
+      texture->SetGlFormat(GL_RGBA);
+      texture->SetImage(wrapper->GetDisplaySlice(m_Id));
+	 m_GreyOverlayTextureList.push_back(texture);
+      it++;
+    	 }
+    }
+
+  // Initialize the RGB overlay slice texture
+  if (imageData->IsRGBOverlayLoaded())
+    {
+    std::list<ImageWrapperBase *>::iterator it = m_ImageData->GetRGBOverlays()->begin();
+    while (it != m_ImageData->GetRGBOverlays()->end())
+      {
+      RGBImageWrapper *wrapper = static_cast<RGBImageWrapper *>(*it);
+      RGBTextureType *texture = new RGBTextureType;
+      texture->SetGlComponents(4);
+      texture->SetGlFormat(GL_RGBA);
+      texture->SetImage(wrapper->GetDisplaySlice(m_Id));
+	 m_RGBOverlayTextureList.push_back(texture);
+      it++;
+    	 }
+    }
 }
 
 void

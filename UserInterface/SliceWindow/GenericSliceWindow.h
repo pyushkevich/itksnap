@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 20:43:17 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2009/06/15 01:54:10 $
+  Version:   $Revision: 1.19 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -106,6 +106,7 @@ public:
    * get updated.
    */
   virtual void InitializeSlice(GenericImageData *imageData);
+  virtual void InitializeOverlaySlice(GenericImageData *imageData);
 
   /**
    * Reset the view parameters of the window (zoom, view position) to

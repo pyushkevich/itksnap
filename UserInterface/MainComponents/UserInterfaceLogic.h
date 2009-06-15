@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 20:43:17 $
-  Version:   $Revision: 1.31 $
+  Date:      $Date: 2009/06/15 01:54:10 $
+  Version:   $Revision: 1.32 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -516,6 +516,9 @@ public:
   /** Get the reference to the appearance settings */
   irisGetMacro(AppearanceSettings, SNAPAppearanceSettings *);
 
+  /** Update slice data when loading/unloading overly */
+  void UpdateOverlaySlice();
+
   /** Clear memory before loading a new main image */
   void UnloadAllImages();
 
@@ -998,6 +1001,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.32  2009/06/15 01:54:10  garyhuizhang
+ *BUGFIX: linked zoom misbehaving with overlay
+ *
  *Revision 1.31  2009/06/14 20:43:17  garyhuizhang
  *ENH: multiple RGB overlay support
  *

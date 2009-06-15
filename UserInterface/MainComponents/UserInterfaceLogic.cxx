@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 20:43:17 $
-  Version:   $Revision: 1.63 $
+  Date:      $Date: 2009/06/15 01:54:10 $
+  Version:   $Revision: 1.64 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3226,6 +3226,7 @@ UserInterfaceLogic
     m_IRISWindowManager3D->ResetView();
     }
 
+  m_Activation->UpdateFlag(UIF_OVERLAY_LOADED, false);
   m_Activation->UpdateFlag(UIF_BASEIMG_LOADED, false);
 }
 
@@ -3409,9 +3410,9 @@ UserInterfaceLogic
   for (unsigned int i=0; i<3; i++) 
     {
     if(m_GlobalState->GetSNAPActive())
-      m_SNAPWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
+      m_SNAPWindowManager2D[i]->InitializeOverlaySlice(m_Driver->GetCurrentImageData());
     else
-      m_IRISWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
+      m_IRISWindowManager2D[i]->InitializeOverlaySlice(m_Driver->GetCurrentImageData());
     }
 
   // Redraw the user interface
@@ -3851,24 +3852,7 @@ UserInterfaceLogic
   if (!m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
     m_Activation->UpdateFlag(UIF_GRAYOVL_LOADED, false);
 
-  if (m_GlobalState->GetSNAPActive())
-    {
-    m_SNAPWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_SNAPWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_SNAPWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
-
-    m_SNAPWindowManager3D->ClearScreen();
-    m_SNAPWindowManager3D->ResetView();
-    } else
-    { 
-    m_IRISWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_IRISWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_IRISWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
-    
-    m_IRISWindowManager3D->ClearScreen();
-    m_IRISWindowManager3D->ResetView();
-    }
-
+  UpdateOverlaySlice();
   RedrawWindows();
 }
 
@@ -3882,24 +3866,7 @@ UserInterfaceLogic
   // Update the state
   m_Activation->UpdateFlag(UIF_GRAYOVL_LOADED, false);
 
-  if (m_GlobalState->GetSNAPActive())
-    {
-    m_SNAPWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_SNAPWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_SNAPWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
-
-    m_SNAPWindowManager3D->ClearScreen();
-    m_SNAPWindowManager3D->ResetView();
-    } else
-    { 
-    m_IRISWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_IRISWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_IRISWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
-    
-    m_IRISWindowManager3D->ClearScreen();
-    m_IRISWindowManager3D->ResetView();
-    }
-
+  UpdateOverlaySlice();
   RedrawWindows();
 }
 
@@ -3965,24 +3932,7 @@ UserInterfaceLogic
   if (!m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
     m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, false);
 
-  if (m_GlobalState->GetSNAPActive())
-    {
-    m_SNAPWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_SNAPWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_SNAPWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
-
-    m_SNAPWindowManager3D->ClearScreen();
-    m_SNAPWindowManager3D->ResetView();
-    } else
-    { 
-    m_IRISWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_IRISWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_IRISWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
-    
-    m_IRISWindowManager3D->ClearScreen();
-    m_IRISWindowManager3D->ResetView();
-    }
-
+  UpdateOverlaySlice();
   RedrawWindows();
 }
 
@@ -3996,25 +3946,33 @@ UserInterfaceLogic
   // Update the state
   m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, false);
 
+  UpdateOverlaySlice();
+  RedrawWindows();
+}
+
+void
+UserInterfaceLogic
+::UpdateOverlaySlice()
+{
+  // Update the source for slice windows
   if (m_GlobalState->GetSNAPActive())
     {
-    m_SNAPWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_SNAPWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_SNAPWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
-
+    for (unsigned int i=0; i<3; i++)
+      m_SNAPWindowManager2D[i]->InitializeOverlaySlice(m_Driver->GetCurrentImageData());
     m_SNAPWindowManager3D->ClearScreen();
     m_SNAPWindowManager3D->ResetView();
-    } else
-    { 
-    m_IRISWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_IRISWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
-    m_IRISWindowManager2D[2]->InitializeSlice(m_Driver->GetCurrentImageData());
-    
+    }
+  else
+    {
+    for (unsigned int i=0; i<3; i++)
+      m_IRISWindowManager2D[i]->InitializeOverlaySlice(m_Driver->GetCurrentImageData());
     m_IRISWindowManager3D->ClearScreen();
     m_IRISWindowManager3D->ResetView();
     }
 
-  RedrawWindows();
+  if (!m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded() &&
+      !m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
+    m_Activation->UpdateFlag(UIF_OVERLAY_LOADED, false);
 }
 
 void
@@ -5074,6 +5032,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.64  2009/06/15 01:54:10  garyhuizhang
+ *BUGFIX: linked zoom misbehaving with overlay
+ *
  *Revision 1.63  2009/06/14 20:43:17  garyhuizhang
  *ENH: multiple RGB overlay support
  *
