@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/15 01:54:10 $
-  Version:   $Revision: 1.64 $
+  Date:      $Date: 2009/06/15 23:41:09 $
+  Version:   $Revision: 1.65 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3399,6 +3399,27 @@ UserInterfaceLogic
   m_Activation->UpdateFlag(UIF_RGB_LOADED, true);
 }
 
+void
+UserInterfaceLogic
+::UpdateOverlaySlice()
+{
+  // Update the source for slice windows
+  if (m_GlobalState->GetSNAPActive())
+    {
+    for (unsigned int i=0; i<3; i++)
+      m_SNAPWindowManager2D[i]->InitializeOverlaySlice(m_Driver->GetCurrentImageData());
+    }
+  else
+    {
+    for (unsigned int i=0; i<3; i++)
+      m_IRISWindowManager2D[i]->InitializeOverlaySlice(m_Driver->GetCurrentImageData());
+    }
+
+  if (!m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded() &&
+      !m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
+    m_Activation->UpdateFlag(UIF_OVERLAY_LOADED, false);
+}
+
 void 
 UserInterfaceLogic
 ::OnOverlayImageUpdate()
@@ -3407,13 +3428,9 @@ UserInterfaceLogic
   assert(m_Driver->GetCurrentImageData()->IsMainLoaded());
 
   // Update the source for slice windows
-  for (unsigned int i=0; i<3; i++) 
-    {
-    if(m_GlobalState->GetSNAPActive())
-      m_SNAPWindowManager2D[i]->InitializeOverlaySlice(m_Driver->GetCurrentImageData());
-    else
-      m_IRISWindowManager2D[i]->InitializeOverlaySlice(m_Driver->GetCurrentImageData());
-    }
+  UpdateOverlaySlice();
+
+  // Update the overlay menu items
 
   // Redraw the user interface
   RedrawWindows();
@@ -3434,7 +3451,7 @@ UserInterfaceLogic
     OnLabelListUpdate();
 
     // The 3D window needs to be reset
-    m_IRISWindowManager3D->ResetView();
+    // m_IRISWindowManager3D->ResetView();
     }
 
   // Toggle the undo/redo flags
@@ -3852,8 +3869,7 @@ UserInterfaceLogic
   if (!m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
     m_Activation->UpdateFlag(UIF_GRAYOVL_LOADED, false);
 
-  UpdateOverlaySlice();
-  RedrawWindows();
+  OnOverlayImageUpdate();
 }
 
 void
@@ -3866,8 +3882,7 @@ UserInterfaceLogic
   // Update the state
   m_Activation->UpdateFlag(UIF_GRAYOVL_LOADED, false);
 
-  UpdateOverlaySlice();
-  RedrawWindows();
+  OnOverlayImageUpdate();
 }
 
 void 
@@ -3932,8 +3947,7 @@ UserInterfaceLogic
   if (!m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
     m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, false);
 
-  UpdateOverlaySlice();
-  RedrawWindows();
+  OnOverlayImageUpdate();
 }
 
 void
@@ -3946,33 +3960,7 @@ UserInterfaceLogic
   // Update the state
   m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, false);
 
-  UpdateOverlaySlice();
-  RedrawWindows();
-}
-
-void
-UserInterfaceLogic
-::UpdateOverlaySlice()
-{
-  // Update the source for slice windows
-  if (m_GlobalState->GetSNAPActive())
-    {
-    for (unsigned int i=0; i<3; i++)
-      m_SNAPWindowManager2D[i]->InitializeOverlaySlice(m_Driver->GetCurrentImageData());
-    m_SNAPWindowManager3D->ClearScreen();
-    m_SNAPWindowManager3D->ResetView();
-    }
-  else
-    {
-    for (unsigned int i=0; i<3; i++)
-      m_IRISWindowManager2D[i]->InitializeOverlaySlice(m_Driver->GetCurrentImageData());
-    m_IRISWindowManager3D->ClearScreen();
-    m_IRISWindowManager3D->ResetView();
-    }
-
-  if (!m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded() &&
-      !m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
-    m_Activation->UpdateFlag(UIF_OVERLAY_LOADED, false);
+  OnOverlayImageUpdate();
 }
 
 void
@@ -5032,6 +5020,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.65  2009/06/15 23:41:09  garyhuizhang
+ *BUGFIX: make sure the 3D view does not get reset when loading/unloading overlay and segmentation images.
+ *
  *Revision 1.64  2009/06/15 01:54:10  garyhuizhang
  *BUGFIX: linked zoom misbehaving with overlay
  *
