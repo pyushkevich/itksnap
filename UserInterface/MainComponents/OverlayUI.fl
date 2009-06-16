@@ -4,10 +4,10 @@ header_name {.h}
 code_name {.cxx}
 class OverlayUI {open : {private OverlayUIBase}
 } {
-  Function {MakeWindow()} {open
+  Function {MakeWindow()} {
   } {
     Fl_Window m_WinOverlay {
-      label {Overlay Options} open
+      label {Overlay Options} selected
       xywh {950 336 453 506} type Double box PLASTIC_DOWN_BOX
       code0 {\#include "OverlayUIBase.h"} non_modal visible
     } {
@@ -16,14 +16,19 @@ class OverlayUI {open : {private OverlayUIBase}
         callback {this->OnClose();}
         xywh {180 470 95 25} box PLASTIC_UP_BOX shortcut 0xff1b color 180 selection_color 38 labelfont 1 labelsize 12
       }
-      Fl_Tabs {} {open
+      Fl_Tabs {} {
         xywh {25 25 400 435} box PLASTIC_THIN_UP_BOX labelsize 12
       } {
         Fl_Group m_InGreyOverlay {
-          label {Grey Overlay} open
+          label {Grey Overlay}
           xywh {25 60 400 400} labelsize 12
         } {
-          Fl_Group {} {open
+          Fl_Choice m_InGreyOverlaySelection {
+            label {Select a grey overlay to edit:}
+            callback {this->OnGreyOverlaySelectionChange();}
+            xywh {40 90 370 20} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+          } {}
+          Fl_Group {} {
             xywh {40 120 370 300} box PLASTIC_DOWN_BOX labelsize 12
           } {
             Fl_Value_Slider m_InGreyOverlayOpacity {
@@ -31,18 +36,23 @@ class OverlayUI {open : {private OverlayUIBase}
               callback {o->take_focus();this->OnGreyOverlayOpacityChange();}
               tooltip {Transparency of the overlay} xywh {95 145 200 20} type Horizontal labelsize 12 align 4 maximum 255 step 1 value 128
             }
+            Fl_Choice m_InGreyOverlayColorMap {
+              label {Color Map:}
+              callback {OnGreyOverlayColorMapChange()}
+              xywh {112 180 183 20} down_box BORDER_BOX labelsize 12 textsize 12
+            } {}
           }
-          Fl_Choice m_InGreyOverlaySelection {
-            label {Select a grey overlay to edit:}
-            callback {this->OnGreyOverlaySelectionChange();} open
-            xywh {40 90 370 20} down_box BORDER_BOX labelsize 12 align 5 textsize 12
-          } {}
         }
         Fl_Group m_InRGBOverlay {
-          label {RGB Overlay} open selected
+          label {RGB Overlay}
           xywh {25 60 400 400} labelsize 12 hide
         } {
-          Fl_Group {} {open
+          Fl_Choice m_InRGBOverlaySelection {
+            label {Select a RGB overlay to edit:}
+            callback {this->OnRGBOverlaySelectionChange();}
+            xywh {40 90 370 20} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+          } {}
+          Fl_Group {} {
             xywh {40 120 370 300} box PLASTIC_DOWN_BOX labelsize 12
           } {
             Fl_Value_Slider m_InRGBOverlayOpacity {
@@ -51,11 +61,6 @@ class OverlayUI {open : {private OverlayUIBase}
               tooltip {Transparency of the overlay} xywh {95 145 200 20} type Horizontal labelsize 12 align 4 maximum 255 step 1 value 128
             }
           }
-          Fl_Choice m_InRGBOverlaySelection {
-            label {Select a RGB overlay to edit:}
-            callback {this->OnRGBOverlaySelectionChange();} open
-            xywh {40 90 370 20} down_box BORDER_BOX labelsize 12 align 5 textsize 12
-          } {}
         }
       }
     }

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 04:55:45 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009/06/16 06:47:52 $
+  Version:   $Revision: 1.18 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -110,7 +110,7 @@ enum ColorMapPreset
 
 enum ColorMapType
 {
-  COLORMAP_GREY,
+  COLORMAP_GREY = 0,
   COLORMAP_RED,
   COLORMAP_GREEN,
   COLORMAP_BLUE,
@@ -646,6 +646,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.18  2009/06/16 06:47:52  garyhuizhang
+ *ENH: color map supports for grey overlay
+ *
  *Revision 1.17  2009/06/16 04:55:45  garyhuizhang
  *ENH: per overlay opacity adjustment
  *

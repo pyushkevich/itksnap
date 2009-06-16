@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 04:55:45 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/06/16 06:47:52 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -118,9 +118,12 @@ public:
   DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
   /**
-   * Set the colormap
+   * Get/Set the colormap
    */
+  ColorMapType GetColorMap () const;
   void SetColorMap (ColorMapType colormap);
+
+  void Update();
 
   /** Constructor initializes mappers */
   GreyImageWrapper();

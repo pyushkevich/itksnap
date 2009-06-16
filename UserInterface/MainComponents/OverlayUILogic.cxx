@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OverlayUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 05:57:00 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/06/16 06:47:52 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -46,6 +46,22 @@ void
 OverlayUILogic
 ::DisplayWindow()
 {
+  // fill the menu items for color map
+  m_InGreyOverlayColorMap->add("GREY", NULL, NULL);
+  m_InGreyOverlayColorMap->add("RED", NULL, NULL);
+  m_InGreyOverlayColorMap->add("GREEN", NULL, NULL);
+  m_InGreyOverlayColorMap->add("BLUE", NULL, NULL);
+  m_InGreyOverlayColorMap->add("HOT", NULL, NULL);
+  m_InGreyOverlayColorMap->add("COOL", NULL, NULL);
+  m_InGreyOverlayColorMap->add("SPRING", NULL, NULL);
+  m_InGreyOverlayColorMap->add("SUMMER", NULL, NULL);
+  m_InGreyOverlayColorMap->add("AUTUMN", NULL, NULL);
+  m_InGreyOverlayColorMap->add("WINTER", NULL, NULL);
+  m_InGreyOverlayColorMap->add("COPPER", NULL, NULL);
+  m_InGreyOverlayColorMap->add("HSV", NULL, NULL);
+  m_InGreyOverlayColorMap->add("JET", NULL, NULL);
+  m_InGreyOverlayColorMap->add("OVERUNDER", NULL, NULL);
+
   // Show the window
   m_WinOverlay->show();
 }
@@ -109,13 +125,13 @@ WrapperList *greyOverlays, WrapperList *RGBOverlays)
   m_WinOverlay->redraw();
 }
 
-
 void
 OverlayUILogic
 ::OnGreyOverlaySelectionChange()
 {
   m_GreyOverlayWrapper = static_cast<ImageWrapperBase *>(m_InGreyOverlaySelection->mvalue()->user_data());
   m_InGreyOverlayOpacity->value(m_GreyOverlayWrapper->GetAlpha());
+  m_InGreyOverlayColorMap->value(static_cast<GreyImageWrapper *>(m_GreyOverlayWrapper)->GetColorMap());
   // redraw
   m_WinOverlay->redraw();
 }
@@ -127,6 +143,17 @@ OverlayUILogic
   if (m_GreyOverlayWrapper)
     {
      m_GreyOverlayWrapper->SetAlpha(m_InGreyOverlayOpacity->value());
+    }
+}
+
+void
+OverlayUILogic
+::OnGreyOverlayColorMapChange()
+{
+  if (m_GreyOverlayWrapper)
+    {
+     static_cast<GreyImageWrapper *>(m_GreyOverlayWrapper)->SetColorMap((ColorMapType)m_InGreyOverlayColorMap->value());
+     static_cast<GreyImageWrapper *>(m_GreyOverlayWrapper)->Update();
     }
 }
 

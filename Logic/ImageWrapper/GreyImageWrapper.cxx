@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 04:55:45 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/06/16 06:47:52 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -140,11 +140,30 @@ GreyImageWrapper
   return m_IntensityFilter[dim]->GetOutput();
 }
 
+ColorMapType
+GreyImageWrapper
+::GetColorMap() const
+{
+  return m_IntensityFunctor.m_Colormap;
+}
+
 void
 GreyImageWrapper
 ::SetColorMap(ColorMapType colormap)
 {
   m_IntensityFunctor.m_Colormap = colormap;
+}
+
+void
+GreyImageWrapper
+::Update()
+{
+  // Compute the cache
+  m_IntensityMapCache->ComputeCache();
+
+  // Dirty the intensity filters
+  for(unsigned int i=0;i<3;i++)
+    m_IntensityFilter[i]->Modified();
 }
 
 void 

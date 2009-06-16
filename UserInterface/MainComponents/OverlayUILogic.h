@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OverlayUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 05:57:00 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/06/16 06:47:52 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -64,6 +64,7 @@ public:
 
   void OnGreyOverlaySelectionChange();
   void OnGreyOverlayOpacityChange();
+  void OnGreyOverlayColorMapChange();
   void OnRGBOverlaySelectionChange();
   void OnRGBOverlayOpacityChange();
 
