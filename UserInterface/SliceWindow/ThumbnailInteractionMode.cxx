@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ThumbnailInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:29 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/06/16 19:05:37 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -105,6 +105,7 @@ ThumbnailInteractionMode
 
     // Add to the position
     m_Parent->m_ViewPosition = m_StartViewPosition - xOffset;
+    m_Parent->m_ParentUI->OnViewPositionsUpdate();
 
     // Tell parent to repaint
     m_Parent->GetCanvas()->redraw();
