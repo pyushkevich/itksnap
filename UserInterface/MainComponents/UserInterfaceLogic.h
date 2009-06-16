@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/15 01:54:10 $
-  Version:   $Revision: 1.32 $
+  Date:      $Date: 2009/06/16 05:57:01 $
+  Version:   $Revision: 1.33 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -45,7 +45,7 @@
 // Necessary forward references
 class HelpViewerLogic;
 class IntensityCurveUILogic;
-class RGBOverlayUILogic;
+class OverlayUILogic;
 class PreprocessingUILogic;
 class RestoreSettingsDialogLogic;
 class SnakeParametersUILogic;
@@ -855,8 +855,8 @@ private:
   /** UI object used for handling Curve editing */
   IntensityCurveUILogic *m_IntensityCurveUI;
 
-  /** UI object used for handling RGB Overlay options */
-  RGBOverlayUILogic *m_RGBOverlayUI;
+  /** UI object used for handling Overlay options */
+  OverlayUILogic *m_OverlayUI;
 
   /** UI object for label editing */
   LabelEditorUILogic *m_LabelEditorUI;
@@ -921,9 +921,6 @@ private:
 
   // Intensity curve update callback (uses ITK event system)
   void OnIntensityCurveUpdate();
-
-  // RGB Overlay update callback (uses ITK event system)
-  void OnRGBOverlayOptionsUpdate();
 
   // Callbacks for state flags
   void OnUnsavedChangesStateChange(UIStateFlags flag, bool value);
@@ -1001,6 +998,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.33  2009/06/16 05:57:01  garyhuizhang
+ *ENH: initial UI for layer manager, which replacing the old RGB overlay UI
+ *
  *Revision 1.32  2009/06/15 01:54:10  garyhuizhang
  *BUGFIX: linked zoom misbehaving with overlay
  *

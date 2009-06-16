@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 04:55:45 $
-  Version:   $Revision: 1.66 $
+  Date:      $Date: 2009/06/16 05:57:00 $
+  Version:   $Revision: 1.67 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,7 +52,7 @@
 #include "RGBImageWrapper.h"
 #include "EdgePreprocessingImageFilter.h"
 #include "IntensityCurveUILogic.h"
-#include "RGBOverlayUILogic.h"
+#include "OverlayUILogic.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "IRISVectorTypesToITKConversion.h"
@@ -391,8 +391,8 @@ UserInterfaceLogic
   m_IntensityCurveUI->MakeWindow();
 
   // Instantiate RGB Overlay options window
-  m_RGBOverlayUI = new RGBOverlayUILogic;
-  m_RGBOverlayUI->MakeWindow();
+  m_OverlayUI = new OverlayUILogic;
+  m_OverlayUI->MakeWindow();
 
   // Create the label editor window
   m_LabelEditorUI = new LabelEditorUILogic();
@@ -533,7 +533,7 @@ UserInterfaceLogic
   delete m_DlgAppearance;
   delete m_DlgReorientImage;
   delete m_LabelEditorUI;
-  delete m_RGBOverlayUI;
+  delete m_OverlayUI;
 
   // Delete the window managers
   for(int i = 0; i < 3; i++)
@@ -2846,7 +2846,7 @@ void
 UserInterfaceLogic
 ::OnMenuShowOverlayOptions()
 {
-  m_RGBOverlayUI->DisplayWindow();
+  m_OverlayUI->DisplayWindow();
 }
 
 void
@@ -3424,7 +3424,7 @@ UserInterfaceLogic
   UpdateOverlaySlice();
 
   // Update the overlay menu items
-  m_RGBOverlayUI->UpdateOverlayMenuSelection(
+  m_OverlayUI->UpdateOverlayMenuSelection(
     m_Driver->GetCurrentImageData()->GetGreyOverlays(),
     m_Driver->GetCurrentImageData()->GetRGBOverlays());
 
@@ -4592,12 +4592,6 @@ void UserInterfaceLogic
   RedrawWindows();
 }
 
-void UserInterfaceLogic
-::OnRGBOverlayOptionsUpdate()
-{
-  RedrawWindows();
-}
-
 void
 UserInterfaceLogic
 ::OnIRISLabelOpacityChange()
@@ -5007,6 +5001,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.67  2009/06/16 05:57:00  garyhuizhang
+ *ENH: initial UI for layer manager, which replacing the old RGB overlay UI
+ *
  *Revision 1.66  2009/06/16 04:55:45  garyhuizhang
  *ENH: per overlay opacity adjustment
  *

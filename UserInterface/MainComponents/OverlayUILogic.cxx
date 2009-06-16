@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   ITK-SNAP
-  Module:    $RCSfile: RGBOverlayUILogic.cxx,v $
+  Module:    $RCSfile: OverlayUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 04:55:45 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/06/16 05:57:00 $
+  Version:   $Revision: 1.1 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -32,38 +32,41 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-#include "RGBOverlayUILogic.h"
+#include "OverlayUILogic.h"
 #include <sstream>
 
-RGBOverlayUILogic
-::RGBOverlayUILogic()
+OverlayUILogic
+::OverlayUILogic()
 {
-  m_ImageWrapper = NULL;
+  m_GreyOverlayWrapper = NULL;
+  m_RGBOverlayWrapper = NULL;
 }
 
 void 
-RGBOverlayUILogic
+OverlayUILogic
 ::DisplayWindow()
 {
   // Show the window
-  m_WinRGBOverlay->show();
+  m_WinOverlay->show();
 }
 
 void 
-RGBOverlayUILogic
+OverlayUILogic
 ::OnClose()
 {
-  m_WinRGBOverlay->hide();  
+  m_WinOverlay->hide();  
 }
 
 void
-RGBOverlayUILogic
+OverlayUILogic
 ::UpdateOverlayMenuSelection(
 WrapperList *greyOverlays, WrapperList *RGBOverlays)
 {
   // clear the menu
-  m_InOverlaySelection->clear();
-  m_ImageWrapper = NULL;
+  m_InGreyOverlaySelection->clear();
+  m_GreyOverlayWrapper = NULL;
+  m_InRGBOverlaySelection->clear();
+  m_RGBOverlayWrapper = NULL;
 
   // add grey overlays
   WrapperIterator it = greyOverlays->begin();
@@ -75,10 +78,15 @@ WrapperList *greyOverlays, WrapperList *RGBOverlays)
     std::stringstream itoa;
     itoa << count;
     label += itoa.str();
-    m_InOverlaySelection->add(label.c_str(), NULL, NULL, *it);
+    m_InGreyOverlaySelection->add(label.c_str(), NULL, NULL, *it);
     ++count;
     ++it;
     }
+  if (greyOverlays->size() > 0)
+    m_InGreyOverlay->activate();
+  else
+    m_InGreyOverlay->deactivate();
+
   // add RGB overlays
   it = RGBOverlays->begin();
   count = 1;
@@ -88,31 +96,57 @@ WrapperList *greyOverlays, WrapperList *RGBOverlays)
     std::stringstream itoa;
     itoa << count;
     label += itoa.str();
-    m_InOverlaySelection->add(label.c_str(), NULL, NULL, *it);
+    m_InRGBOverlaySelection->add(label.c_str(), NULL, NULL, *it);
     ++count;
     ++it;
     }
+  if (RGBOverlays->size() > 0)
+    m_InRGBOverlay->activate();
+  else
+    m_InRGBOverlay->deactivate();
+
   // redraw
-  m_WinRGBOverlay->redraw();
+  m_WinOverlay->redraw();
 }
 
+
 void
-RGBOverlayUILogic
-::OnOverlaySelectionChange()
+OverlayUILogic
+::OnGreyOverlaySelectionChange()
 {
-  m_ImageWrapper = static_cast<ImageWrapperBase *>(m_InOverlaySelection->mvalue()->user_data());
-  m_InRGBOverlayOpacity->value(m_ImageWrapper->GetAlpha());
+  m_GreyOverlayWrapper = static_cast<ImageWrapperBase *>(m_InGreyOverlaySelection->mvalue()->user_data());
+  m_InGreyOverlayOpacity->value(m_GreyOverlayWrapper->GetAlpha());
   // redraw
-  m_WinRGBOverlay->redraw();
+  m_WinOverlay->redraw();
 }
 
 void
-RGBOverlayUILogic
+OverlayUILogic
+::OnGreyOverlayOpacityChange()
+{
+  if (m_GreyOverlayWrapper)
+    {
+     m_GreyOverlayWrapper->SetAlpha(m_InGreyOverlayOpacity->value());
+    }
+}
+
+void
+OverlayUILogic
+::OnRGBOverlaySelectionChange()
+{
+  m_RGBOverlayWrapper = static_cast<ImageWrapperBase *>(m_InRGBOverlaySelection->mvalue()->user_data());
+  m_InRGBOverlayOpacity->value(m_RGBOverlayWrapper->GetAlpha());
+  // redraw
+  m_WinOverlay->redraw();
+}
+
+void
+OverlayUILogic
 ::OnRGBOverlayOpacityChange()
 {
-  if (m_ImageWrapper)
+  if (m_RGBOverlayWrapper)
     {
-     m_ImageWrapper->SetAlpha(m_InRGBOverlayOpacity->value());
+     m_RGBOverlayWrapper->SetAlpha(m_InRGBOverlayOpacity->value());
     }
 }
 

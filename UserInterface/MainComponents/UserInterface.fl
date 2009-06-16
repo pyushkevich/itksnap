@@ -261,9 +261,9 @@ class UserInterface {open : {public UserInterfaceBase}
             tooltip {Unload All RGB Overlays} xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
           }
           MenuItem m_MenuOverlayOptions {
-            label {Adjust Overlay Transparency}
+            label {Adjust Overlay Properties}
             callback {OnMenuShowOverlayOptions()}
-            tooltip {Adjust the transparency of the overlays} xywh {0 0 31 20} labelsize 12 deactivate
+            tooltip {Adjust the properties of the overlays} xywh {0 0 31 20} labelsize 12 deactivate
           }
         }
         Submenu {} {

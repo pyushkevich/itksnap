@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   ITK-SNAP
-  Module:    $RCSfile: RGBOverlayUIBase.h,v $
+  Module:    $RCSfile: OverlayUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 04:55:45 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/06/16 05:57:00 $
+  Version:   $Revision: 1.1 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -32,20 +32,47 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-#ifndef __RGBOverlayUIBase_h_
-#define __RGBOverlayUIBase_h_
+#ifndef __OverlayUILogic_h_
+#define __OverlayUILogic_h_
+
+#include "OverlayUI.h"
+#include "GenericImageData.h"
 
 /**
- * \class RGBOverlayUIBase
- * \brief Base class for intensity curve FLTK interface.
+ * \class OverlayUILogic
+ * \brief Logic for the UI interaction for Overlay Adjustment
  */
-class RGBOverlayUIBase {
+class OverlayUILogic : public OverlayUI {
 public:
-    virtual ~RGBOverlayUIBase() {}
+
+  OverlayUILogic();
+  virtual ~OverlayUILogic() {}
+
+  /**
+   * Display the dialog window (call after MakeWindow)
+   */
+  void DisplayWindow();
+
   // Callbacks made from the user interface
-  virtual void OnClose() = 0;
-  virtual void OnOverlaySelectionChange() = 0;
-  virtual void OnRGBOverlayOpacityChange() = 0;
+  void OnClose();
+
+  typedef GenericImageData::WrapperList WrapperList;
+  typedef GenericImageData::WrapperIterator WrapperIterator;
+  void UpdateOverlayMenuSelection(
+         WrapperList *greyOverlays,
+         WrapperList *RGBOverlays);
+
+  void OnGreyOverlaySelectionChange();
+  void OnGreyOverlayOpacityChange();
+  void OnRGBOverlaySelectionChange();
+  void OnRGBOverlayOpacityChange();
+
+protected:
+
+  // Currently chosen image wrapper
+  ImageWrapperBase *m_GreyOverlayWrapper;
+  ImageWrapperBase *m_RGBOverlayWrapper;
+
 };
 
-#endif // __RGBOverlayUIBase_h_
+#endif // __OverlayUILogic_h_

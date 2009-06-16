@@ -226,7 +226,7 @@ SET(UI_CXX
   UserInterface/MainComponents/HelpViewerLogic.cxx
   UserInterface/MainComponents/IntensityCurveBox.cxx
   UserInterface/MainComponents/IntensityCurveUILogic.cxx
-  UserInterface/MainComponents/RGBOverlayUILogic.cxx
+  UserInterface/MainComponents/OverlayUILogic.cxx
   UserInterface/MainComponents/LabelEditorUILogic.cxx
   UserInterface/MainComponents/PreprocessingUILogic.cxx
   UserInterface/MainComponents/ReorientImageUILogic.cxx
@@ -290,8 +290,8 @@ SET(UI_HEADERS
   UserInterface/MainComponents/LabelEditorUILogic.h
   UserInterface/MainComponents/PreprocessingUIBase.h
   UserInterface/MainComponents/PreprocessingUILogic.h
-  UserInterface/MainComponents/RGBOverlayUIBase.h
-  UserInterface/MainComponents/RGBOverlayUILogic.h
+  UserInterface/MainComponents/OverlayUIBase.h
+  UserInterface/MainComponents/OverlayUILogic.h
   UserInterface/MainComponents/ReorientImageUIBase.h
   UserInterface/MainComponents/ReorientImageUILogic.h
   UserInterface/MainComponents/ResizeRegionDialogBase.h
@@ -360,7 +360,7 @@ SET(APPLICATION_FLUIDS
   UserInterface/MainComponents/ReorientImageUI.fl
   UserInterface/MainComponents/ResizeRegionDialog.fl
   UserInterface/MainComponents/RestoreSettingsDialog.fl
-  UserInterface/MainComponents/RGBOverlayUI.fl
+  UserInterface/MainComponents/OverlayUI.fl
   UserInterface/MainComponents/SimpleFileDialog.fl
   UserInterface/MainComponents/SnakeParametersUI.fl
   UserInterface/MainComponents/UserInterface.fl
