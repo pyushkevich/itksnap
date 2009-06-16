@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RGBOverlayUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,15 +35,8 @@
 #ifndef __RGBOverlayUILogic_h_
 #define __RGBOverlayUILogic_h_
 
-#include "RGBImageWrapper.h"
 #include "RGBOverlayUI.h"
-
-#include "itkSmartPointer.h"
-#include "itkEventObject.h"
-namespace itk{
-  class Object;
-  class Command;
-};
+#include "GenericImageData.h"
 
 /**
  * \class RGBOverlayUILogic
@@ -51,9 +44,6 @@ namespace itk{
  */
 class RGBOverlayUILogic : public RGBOverlayUI {
 public:
-  // Event storage and propagation
-  typedef itk::Object EventSystemType;
-  typedef itk::SmartPointer<EventSystemType> EventSystemPointer;
 
   RGBOverlayUILogic();
   virtual ~RGBOverlayUILogic() {}
@@ -63,30 +53,23 @@ public:
    */
   void DisplayWindow();
 
-  /**
-   * Return the event system associated with this object
-   */
-  irisGetMacro(EventSystem,EventSystemPointer);
-
-  /**
-   * RGB Overlay opacity update event object
-   */
-  itkEventMacro(OpacityUpdateEvent,itk::AnyEvent);
-
-  // get the opacity value
-  unsigned char GetOpacity () const;
-  
-  // get the opacity value
-  void SetOpacity (unsigned char value);
-  
   // Callbacks made from the user interface
   void OnClose();
+
+  typedef GenericImageData::WrapperList WrapperList;
+  typedef GenericImageData::WrapperIterator WrapperIterator;
+  void UpdateOverlayMenuSelection(
+         WrapperList *greyOverlays,
+         WrapperList *RGBOverlays);
+
+  void OnOverlaySelectionChange();
+
   void OnRGBOverlayOpacityChange();
-  
+
 protected:
-  
-  // Event system for this class -> register events here
-  EventSystemPointer m_EventSystem;
+
+  // Currently chosen image wrapper
+  ImageWrapperBase *m_ImageWrapper;
 
 };
 

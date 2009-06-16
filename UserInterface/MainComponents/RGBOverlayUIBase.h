@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RGBOverlayUIBase.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,6 +44,7 @@ public:
     virtual ~RGBOverlayUIBase() {}
   // Callbacks made from the user interface
   virtual void OnClose() = 0;
+  virtual void OnOverlaySelectionChange() = 0;
   virtual void OnRGBOverlayOpacityChange() = 0;
 };
 

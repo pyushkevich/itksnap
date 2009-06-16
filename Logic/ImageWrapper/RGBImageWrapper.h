@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: RGBImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/07 22:44:45 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -50,11 +50,6 @@ public:
   typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
 
   /**
-   * Set the alpha
-   */
-  void SetAlpha (unsigned char alpha);
-  
-  /**
    * Get the display slice in a given direction.  To change the
    * display slice, call parent's MoveToSlice() method
    */
@@ -76,17 +71,14 @@ private:
     // Equality operators required, if variables defined!!!
     bool operator == (const IntensityFunctor &z) const
       {
-      return m_Alpha == z.m_Alpha;
+      return true;
       }
     bool operator != (const IntensityFunctor &z) const
       {
       return !(*this == z);
       }
-
-    //static unsigned char m_Alpha;
-    unsigned char m_Alpha;
   };
-  
+
   // Type of the display intensity mapping filter used when the 
   // input is a in-out image
   typedef itk::Image<RGBType,2> RGBSliceType;

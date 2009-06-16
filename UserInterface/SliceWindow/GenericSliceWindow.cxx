@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/15 01:54:10 $
-  Version:   $Revision: 1.21 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.22 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -532,16 +532,19 @@ GenericSliceWindow
         SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
     : Vector3d(1.0);
 
-  GreyOverlayTextureIterator it = m_GreyOverlayTextureList.begin();
-  while (it != m_GreyOverlayTextureList.end())
+  GreyOverlayTextureIterator textureIt = m_GreyOverlayTextureList.begin();
+  std::list<ImageWrapperBase *>::iterator wrapperIt = m_ImageData->GetGreyOverlays()->begin();
+  while (textureIt != m_GreyOverlayTextureList.end())
     {
     // Set the interpolation mode to current default
-    GreyTextureType *texture = *it;
+    GreyTextureType *texture = *textureIt;
+    ImageWrapperBase *wrapper = *wrapperIt;
     texture->SetInterpolation(
       m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
       == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
-    texture->DrawTransparent(m_GlobalState->GetRGBAlpha());
-    it++;
+    texture->DrawTransparent(wrapper->GetAlpha());
+    textureIt++;
+    wrapperIt++;
     }
 }
 
@@ -583,16 +586,19 @@ GenericSliceWindow
         SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
     : Vector3d(1.0);
 
-  RGBOverlayTextureIterator it = m_RGBOverlayTextureList.begin();
-  while (it != m_RGBOverlayTextureList.end())
+  RGBOverlayTextureIterator textureIt = m_RGBOverlayTextureList.begin();
+  std::list<ImageWrapperBase *>::iterator wrapperIt = m_ImageData->GetRGBOverlays()->begin();
+  while (textureIt != m_RGBOverlayTextureList.end())
     {
     // Set the interpolation mode to current default
-    RGBTextureType *texture = *it;
+    RGBTextureType *texture = *textureIt;
+    ImageWrapperBase *wrapper = *wrapperIt;
     texture->SetInterpolation(
       m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
       == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
-    texture->DrawTransparent(m_GlobalState->GetRGBAlpha());
-    it++;
+    texture->DrawTransparent(wrapper->GetAlpha());
+    textureIt++;
+    wrapperIt++;
     }
 }
 

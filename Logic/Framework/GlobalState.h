@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 04:34:00 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.17 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -227,12 +227,6 @@ public:
   /** Set whether polygons drawn are inverted or not */
   irisGetMacro(PolygonInvert,bool );
 
-  /** Get the transparency of the RGB overlay */
-  irisSetMacro(RGBAlpha,unsigned char );
-
-  /** Set the transparency of the segmentation overlay */
-  irisGetMacro(RGBAlpha,unsigned char );
-
   /** Get the transparency of the segmentation overlay */
   irisSetMacro(SegmentationAlpha,unsigned char );
 
@@ -422,11 +416,23 @@ public:
   /** Get the grey image file name */
   irisGetStringMacro(GreyFileName);
 
+  /** Set the grey overlay image file name */
+  irisSetStringMacro(GreyOverlayFileName);
+
+  /** Get the grey overlay image file name */
+  irisGetStringMacro(GreyOverlayFileName);
+
   /** Set the RGB image file name */
   irisSetStringMacro(RGBFileName);
 
   /** Get the RGB image file name */
   irisGetStringMacro(RGBFileName);
+
+  /** Set the RGB overlay image file name */
+  irisSetStringMacro(RGBOverlayFileName);
+
+  /** Get the RGB overlay image file name */
+  irisGetStringMacro(RGBOverlayFileName);
 
   /** Set the segmentation image file name */
   irisSetStringMacro(SegmentationFileName);
@@ -517,9 +523,6 @@ private:
   /** Whether polygons drawn are inverted or not */
   bool m_PolygonInvert;
 
-  /** The transparency of the RGB overlay */
-  unsigned char m_RGBAlpha;
-
   /** The transparency of the segmentation overlay */
   unsigned char m_SegmentationAlpha;
 
@@ -602,8 +605,14 @@ private:
   // File name of the current grey file
   std::string m_GreyFileName;
 
+  // File name of the current grey overlay file
+  std::string m_GreyOverlayFileName;
+
   // File name of the current RGB file
   std::string m_RGBFileName;
+
+  // File name of the current RGB overlay file
+  std::string m_RGBOverlayFileName;
 
   // File name of the current grey file
   std::string m_SegmentationFileName;
@@ -637,6 +646,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.17  2009/06/16 04:55:45  garyhuizhang
+ *ENH: per overlay opacity adjustment
+ *
  *Revision 1.16  2009/06/09 04:34:00  garyhuizhang
  *ENH: color map for grey to RGB mapping
  *

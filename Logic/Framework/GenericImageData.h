@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 20:43:17 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -106,7 +106,6 @@ public:
    * Access the greyscale overlay image (read only access is allowed)
    */
   WrapperList* GetGreyOverlays() {
-    assert(m_GreyOverlayWrappers.size() > 0);
     return &m_GreyOverlayWrappers;
   }
 
@@ -122,7 +121,6 @@ public:
    * Access the RGB overlay image (read only access is allowed)
    */
   WrapperList* GetRGBOverlays() {
-    assert(m_RGBOverlayWrappers.size() > 0);
     return &m_RGBOverlayWrappers;
   }
 

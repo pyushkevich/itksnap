@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/18 00:22:44 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,7 +52,6 @@ GlobalState
   m_PolygonInvert = false;
   m_LockHeld = 0;
   m_LockOwner = 0;
-  m_RGBAlpha = 0;
   m_SegmentationAlpha = 0;
 
   // SNAP is off initially

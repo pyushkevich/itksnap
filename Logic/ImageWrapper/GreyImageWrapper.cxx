@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/13 19:34:25 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -55,7 +55,6 @@ GreyImageWrapper
   m_IntensityCurveVTK->Initialize(3);
 
   // Initialize the intensity functor
-  m_IntensityFunctor.m_Alpha = 255;
   m_IntensityFunctor.m_Colormap = COLORMAP_GREY;
   m_IntensityFunctor.m_IntensityMap = m_IntensityCurveVTK;
 
@@ -139,13 +138,6 @@ GreyImageWrapper
 ::GetDisplaySlice(unsigned int dim)
 {
   return m_IntensityFilter[dim]->GetOutput();
-}
-
-void
-GreyImageWrapper
-::SetAlpha(unsigned char alpha)
-{
-  m_IntensityFunctor.m_Alpha = alpha;
 }
 
 void
@@ -301,7 +293,7 @@ GreyImageWrapper::IntensityFunctor
     }
   else
     {
-    pixel[3] = m_Alpha;
+    pixel[3] = 255;
     }
 
   return pixel;

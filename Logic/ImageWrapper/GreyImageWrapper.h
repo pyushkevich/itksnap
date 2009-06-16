@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:35:13 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -118,11 +118,6 @@ public:
   DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
   /**
-   * Set the alpha
-   */
-  void SetAlpha (unsigned char alpha);
-
-  /**
    * Set the colormap
    */
   void SetColorMap (ColorMapType colormap);
@@ -151,9 +146,6 @@ private:
     GreyType m_IntensityMin;
     float m_IntensityFactor;
  
-    // Alpha
-    unsigned char m_Alpha;
-
     // Color map
     ColorMapType m_Colormap;
 
@@ -164,7 +156,6 @@ private:
         m_IntensityMap == z.m_IntensityMap &&
         m_IntensityFactor == z.m_IntensityFactor &&
         m_IntensityMin == z.m_IntensityMin &&
-        m_Alpha == z.m_Alpha &&
         m_Colormap == z.m_Colormap;
       }
 

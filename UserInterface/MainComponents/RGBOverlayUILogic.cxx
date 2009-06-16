@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RGBOverlayUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -33,11 +33,12 @@
 
 =========================================================================*/
 #include "RGBOverlayUILogic.h"
+#include <sstream>
 
 RGBOverlayUILogic
 ::RGBOverlayUILogic()
 {
-  m_EventSystem = EventSystemType::New();
+  m_ImageWrapper = NULL;
 }
 
 void 
@@ -48,20 +49,6 @@ RGBOverlayUILogic
   m_WinRGBOverlay->show();
 }
 
-unsigned char
-RGBOverlayUILogic
-::GetOpacity() const
-{
-  return (unsigned char) m_InRGBOverlayOpacity->value();
-}
-
-void
-RGBOverlayUILogic
-::SetOpacity(unsigned char opacity)
-{
-  m_InRGBOverlayOpacity->Fl_Valuator::value(opacity);
-}
-
 void 
 RGBOverlayUILogic
 ::OnClose()
@@ -69,12 +56,63 @@ RGBOverlayUILogic
   m_WinRGBOverlay->hide();  
 }
 
-void 
+void
+RGBOverlayUILogic
+::UpdateOverlayMenuSelection(
+WrapperList *greyOverlays, WrapperList *RGBOverlays)
+{
+  // clear the menu
+  m_InOverlaySelection->clear();
+  m_ImageWrapper = NULL;
+
+  // add grey overlays
+  WrapperIterator it = greyOverlays->begin();
+  
+  int count = 1;
+  while (it != greyOverlays->end())
+    {
+    string label = "Grey Overlay ";
+    std::stringstream itoa;
+    itoa << count;
+    label += itoa.str();
+    m_InOverlaySelection->add(label.c_str(), NULL, NULL, *it);
+    ++count;
+    ++it;
+    }
+  // add RGB overlays
+  it = RGBOverlays->begin();
+  count = 1;
+  while (it != RGBOverlays->end())
+    {
+    string label = "RGB Overlay ";
+    std::stringstream itoa;
+    itoa << count;
+    label += itoa.str();
+    m_InOverlaySelection->add(label.c_str(), NULL, NULL, *it);
+    ++count;
+    ++it;
+    }
+  // redraw
+  m_WinRGBOverlay->redraw();
+}
+
+void
+RGBOverlayUILogic
+::OnOverlaySelectionChange()
+{
+  m_ImageWrapper = static_cast<ImageWrapperBase *>(m_InOverlaySelection->mvalue()->user_data());
+  m_InRGBOverlayOpacity->value(m_ImageWrapper->GetAlpha());
+  // redraw
+  m_WinRGBOverlay->redraw();
+}
+
+void
 RGBOverlayUILogic
 ::OnRGBOverlayOpacityChange()
 {
-  // Fire the event
-  GetEventSystem()->InvokeEvent(
-    RGBOverlayUILogic::OpacityUpdateEvent());
+  if (m_ImageWrapper)
+    {
+     m_ImageWrapper->SetAlpha(m_InRGBOverlayOpacity->value());
+    }
 }
 

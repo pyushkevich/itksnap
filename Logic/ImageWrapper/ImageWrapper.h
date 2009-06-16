@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/05/29 17:32:42 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -69,6 +69,8 @@ public:
   virtual itk::ImageBase<3> *GetImageBase() const = 0;
   virtual bool IsInitialized() const = 0;
   virtual Vector3ui GetSize() const = 0;
+  virtual unsigned char GetAlpha() const = 0;
+  virtual void SetAlpha(unsigned char) = 0;
   virtual itk::ImageRegion<3> GetBufferedRegion() const = 0;
   virtual Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const = 0;
   virtual Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3ui &iVoxel) const = 0;
@@ -343,6 +345,12 @@ public:
     return vox2nii * vtk2vox;
     }
 
+  /**
+   * Get/Set the alpha
+   */
+  irisSetMacro(Alpha, unsigned char);
+  irisGetMacro(Alpha, unsigned char);
+
 protected:
 
   /** The image that we are wrapping */
@@ -359,6 +367,11 @@ protected:
    * operations.
    */
   bool m_Initialized;
+
+  /**
+   * Transparency
+   */
+  unsigned char m_Alpha;
 
   /** Transform from image space to display space */
   ImageCoordinateTransform m_ImageToDisplayTransform[3];

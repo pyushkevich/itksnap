@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 21:02:04 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/06/16 04:55:45 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -174,7 +174,7 @@ GenericImageData
   GreyImageWrapper *newGreyOverlayWrapper = new GreyImageWrapper;
   newGreyOverlayWrapper->SetImage(newGreyImage);
   newGreyOverlayWrapper->SetNativeMapping(native);
-  newGreyOverlayWrapper->SetAlpha(255);
+  newGreyOverlayWrapper->SetAlpha(128);
   newGreyOverlayWrapper->SetColorMap(COLORMAP_GREY);
   newGreyOverlayWrapper->UpdateIntensityMapFunction();
 
@@ -249,7 +249,7 @@ GenericImageData
   // Pass the image to a RGB image wrapper
   RGBImageWrapper *newRGBOverlayWrapper = new RGBImageWrapper;
   newRGBOverlayWrapper->SetImage(newRGBImage);
-  newRGBOverlayWrapper->SetAlpha(255);
+  newRGBOverlayWrapper->SetAlpha(128);
 
   // Sync up spacing between the main and RGB overlay image
   newRGBImage->SetSpacing(m_MainImage->GetImageBase()->GetSpacing());
