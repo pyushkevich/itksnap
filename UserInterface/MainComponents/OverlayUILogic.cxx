@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OverlayUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 06:47:52 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/06/16 08:09:59 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -47,20 +47,20 @@ OverlayUILogic
 ::DisplayWindow()
 {
   // fill the menu items for color map
-  m_InGreyOverlayColorMap->add("GREY", NULL, NULL);
-  m_InGreyOverlayColorMap->add("RED", NULL, NULL);
-  m_InGreyOverlayColorMap->add("GREEN", NULL, NULL);
-  m_InGreyOverlayColorMap->add("BLUE", NULL, NULL);
-  m_InGreyOverlayColorMap->add("HOT", NULL, NULL);
-  m_InGreyOverlayColorMap->add("COOL", NULL, NULL);
-  m_InGreyOverlayColorMap->add("SPRING", NULL, NULL);
-  m_InGreyOverlayColorMap->add("SUMMER", NULL, NULL);
-  m_InGreyOverlayColorMap->add("AUTUMN", NULL, NULL);
-  m_InGreyOverlayColorMap->add("WINTER", NULL, NULL);
-  m_InGreyOverlayColorMap->add("COPPER", NULL, NULL);
-  m_InGreyOverlayColorMap->add("HSV", NULL, NULL);
-  m_InGreyOverlayColorMap->add("JET", NULL, NULL);
-  m_InGreyOverlayColorMap->add("OVERUNDER", NULL, NULL);
+  m_InGreyOverlayColorMap->add("GREY", "", NULL);
+  m_InGreyOverlayColorMap->add("RED", "", NULL);
+  m_InGreyOverlayColorMap->add("GREEN", "", NULL);
+  m_InGreyOverlayColorMap->add("BLUE", "", NULL);
+  m_InGreyOverlayColorMap->add("HOT", "", NULL);
+  m_InGreyOverlayColorMap->add("COOL", "", NULL);
+  m_InGreyOverlayColorMap->add("SPRING", "", NULL);
+  m_InGreyOverlayColorMap->add("SUMMER", "", NULL);
+  m_InGreyOverlayColorMap->add("AUTUMN", "", NULL);
+  m_InGreyOverlayColorMap->add("WINTER", "", NULL);
+  m_InGreyOverlayColorMap->add("COPPER", "", NULL);
+  m_InGreyOverlayColorMap->add("HSV", "", NULL);
+  m_InGreyOverlayColorMap->add("JET", "", NULL);
+  m_InGreyOverlayColorMap->add("OVERUNDER", "", NULL);
 
   // Show the window
   m_WinOverlay->show();
@@ -94,7 +94,7 @@ WrapperList *greyOverlays, WrapperList *RGBOverlays)
     std::stringstream itoa;
     itoa << count;
     label += itoa.str();
-    m_InGreyOverlaySelection->add(label.c_str(), NULL, NULL, *it);
+    m_InGreyOverlaySelection->add(label.c_str(), "", NULL, *it);
     ++count;
     ++it;
     }
@@ -112,7 +112,7 @@ WrapperList *greyOverlays, WrapperList *RGBOverlays)
     std::stringstream itoa;
     itoa << count;
     label += itoa.str();
-    m_InRGBOverlaySelection->add(label.c_str(), NULL, NULL, *it);
+    m_InRGBOverlaySelection->add(label.c_str(), "", NULL, *it);
     ++count;
     ++it;
     }
@@ -142,7 +142,7 @@ OverlayUILogic
 {
   if (m_GreyOverlayWrapper)
     {
-     m_GreyOverlayWrapper->SetAlpha(m_InGreyOverlayOpacity->value());
+     m_GreyOverlayWrapper->SetAlpha((unsigned char)m_InGreyOverlayOpacity->value());
     }
 }
 
@@ -173,7 +173,7 @@ OverlayUILogic
 {
   if (m_RGBOverlayWrapper)
     {
-     m_RGBOverlayWrapper->SetAlpha(m_InRGBOverlayOpacity->value());
+     m_RGBOverlayWrapper->SetAlpha((unsigned char)m_InRGBOverlayOpacity->value());
     }
 }
 
