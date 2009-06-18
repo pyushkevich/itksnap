@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 05:57:00 $
-  Version:   $Revision: 1.67 $
+  Date:      $Date: 2009/06/18 18:11:24 $
+  Version:   $Revision: 1.68 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -273,6 +273,7 @@ void UserInterfaceLogic
   m_Activation->AddWidget(m_InZoomLevel, UIF_LINKED_ZOOM);
   m_Activation->AddWidget(m_GrpLinkedZoomUnits, UIF_LINKED_ZOOM);
   m_Activation->AddWidget(m_ChkMultisessionZoom, UIF_LINKED_ZOOM);
+  m_Activation->AddWidget(m_ChkMultisessionPan, UIF_LINKED_ZOOM);
   m_Activation->AddWidget(m_BtnAccept3D, UIF_IRIS_MESH_ACTION_PENDING);
 
   m_Activation->AddWidget(m_BtnAcceptSegmentation, UIF_SNAP_SNAKE_INITIALIZED);
@@ -1729,7 +1730,8 @@ UserInterfaceLogic
         }
 
 	 // Update the view positions
-      if(m_GlobalUI->m_BtnSynchronizeCursor->value())
+      if(m_GlobalUI->m_ChkMultisessionPan->value()
+        && m_GlobalUI->m_Activation->GetFlag(UIF_IRIS_ACTIVE))
         {
         m_GlobalUI->m_IRISWindowManager2D[0]->SetViewPosition(ipcm.viewPosition[0]);
         m_GlobalUI->m_IRISWindowManager2D[1]->SetViewPosition(ipcm.viewPosition[1]);
@@ -1767,6 +1769,7 @@ UserInterfaceLogic
           m_GlobalUI->OnZoomUpdate(false);
           }
         }
+
       }
     }
 
@@ -2058,6 +2061,13 @@ UserInterfaceLogic
     m_ChkMultisessionZoom->value(1);
     OnZoomUpdate();
     }
+
+  if(m_AppearanceSettings->GetFlagMultisessionPanByDefault())
+    {
+    m_ChkMultisessionPan->value(1);
+    OnViewPositionsUpdate();
+    }
+
   // Initialize the paintbrush panel
   UpdatePaintbrushAttributes();
 
@@ -2255,11 +2265,19 @@ UserInterfaceLogic
 
 void
 UserInterfaceLogic
+::OnMultisessionPanChange()
+{
+  // Make sure we broadcast the current zoom level
+  OnViewPositionsUpdate();
+}
+
+void
+UserInterfaceLogic
 ::OnViewPositionsUpdate(bool flagBroadcastUpdate)
 {
   if(flagBroadcastUpdate 
-    && m_GlobalUI->m_Activation->GetFlag(UIF_BASEIMG_LOADED)
-    && m_GlobalUI->m_BtnSynchronizeCursor->value())
+    && m_Activation->GetFlag(UIF_IRIS_ACTIVE)
+    && m_ChkMultisessionPan->value())
     {
     // determine the view positions
     Vector2f vPos[3];
@@ -2268,7 +2286,7 @@ UserInterfaceLogic
       vPos[i] = m_GlobalUI->m_IRISWindowManager2D[i]->GetViewPosition();
       }
     // write to shared memory
-    m_Driver->GetSystemInterface()->IPCBroadcastViewPosition(vPos);
+    m_SystemInterface->IPCBroadcastViewPosition(vPos);
     }
 }
 
@@ -4815,6 +4833,7 @@ UserInterfaceLogic
   else
     {
     m_ChkMultisessionZoom->value(0);
+    m_ChkMultisessionPan->value(0);
     m_SliceCoordinator->SetLinkedZoom(false);
     m_Activation->UpdateFlag(UIF_LINKED_ZOOM, false);
     }
@@ -5001,6 +5020,10 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.68  2009/06/18 18:11:24  garyhuizhang
+ *ENH: multisession pan ui support
+ *BUGFIX: single session pan working again
+ *
  *Revision 1.67  2009/06/16 05:57:00  garyhuizhang
  *ENH: initial UI for layer manager, which replacing the old RGB overlay UI
  *

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 05:57:01 $
-  Version:   $Revision: 1.33 $
+  Date:      $Date: 2009/06/18 18:11:24 $
+  Version:   $Revision: 1.34 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -562,6 +562,7 @@ public:
   void OnLinkedZoomChange();
   void OnZoomLevelChange();
   void OnMultisessionZoomChange();
+  void OnMultisessionPanChange();
 
   // Internal callback used to update the zoom percentage displayed
   void OnZoomUpdate(bool flagBroadcastUpdate = true);
@@ -998,6 +999,10 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.34  2009/06/18 18:11:24  garyhuizhang
+ *ENH: multisession pan ui support
+ *BUGFIX: single session pan working again
+ *
  *Revision 1.33  2009/06/16 05:57:01  garyhuizhang
  *ENH: initial UI for layer manager, which replacing the old RGB overlay UI
  *

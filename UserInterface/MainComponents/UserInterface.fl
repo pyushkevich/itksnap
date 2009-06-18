@@ -471,20 +471,25 @@ class UserInterface {open : {public UserInterfaceBase}
                     callback {OnMultisessionZoomChange();}
                     tooltip {Select this to have the same zoom level in all three orthogonal views} xywh {10 220 120 15} down_box DOWN_BOX labelsize 11 when 1 deactivate
                   }
+                  Fl_Check_Button m_ChkMultisessionPan {
+                    label { Multi-session pan}
+                    callback {OnMultisessionPanChange();}
+                    tooltip {Select this to have the same pan in all three orthogonal views} xywh {10 240 120 15} down_box DOWN_BOX labelsize 11 when 1 deactivate
+                  }
                   Fl_Value_Input m_InZoomLevel {
                     label {Zoom:}
                     callback {OnZoomLevelChange();}
-                    tooltip {Zoom is specified as the number of screen pixels per millimeter in patient space} xywh {55 245 45 20} color 52 labelsize 11 when 8 step 0.001 textsize 11 deactivate
+                    tooltip {Zoom is specified as the number of screen pixels per millimeter in patient space} xywh {55 265 45 20} color 52 labelsize 11 when 8 step 0.001 textsize 11 deactivate
                   }
+                  Fl_Group m_GrpLinkedZoomUnits {
+                    label {px/mm} open
+                    xywh {100 265 30 20} labelsize 10 align 20 deactivate
+                  } {}
                   Fl_Button {} {
                     label {Fit all views}
                     callback {this->OnResetAllViews2DAction();}
                     xywh {25 295 95 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 11 align 128
                   }
-                  Fl_Group m_GrpLinkedZoomUnits {
-                    label {px/mm} open
-                    xywh {100 245 30 20} labelsize 10 align 20 deactivate
-                  } {}
                 }
                 Fl_Group m_GrpToolOptionBrush {
                   label 6

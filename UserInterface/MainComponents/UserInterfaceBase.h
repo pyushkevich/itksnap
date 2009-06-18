@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 20:43:17 $
-  Version:   $Revision: 1.27 $
+  Date:      $Date: 2009/06/18 18:11:24 $
+  Version:   $Revision: 1.28 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -122,6 +122,7 @@ public:
   virtual void OnLinkedZoomChange() = 0;
   virtual void OnZoomLevelChange() = 0;
   virtual void OnMultisessionZoomChange() = 0;
+  virtual void OnMultisessionPanChange() = 0;
   
   // IRIS: Color label selection and editing callbacks
   virtual void OnDrawingLabelUpdate() = 0;

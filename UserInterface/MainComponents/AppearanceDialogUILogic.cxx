@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/13 03:29:40 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/06/18 18:11:23 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -104,6 +104,9 @@ AppearanceDialogUILogic
   m_Appearance->SetFlagMultisessionZoomByDefault(
     m_ChkOptionsSliceMultisessionZoom->value() != 0);
   
+  m_Appearance->SetFlagMultisessionPanByDefault(
+    m_ChkOptionsSliceMultisessionPan->value() != 0);
+  
   m_Appearance->SetFlagFloatingPointWarningByDefault(
     m_ChkOptionsFloatingPointWarning->value() != 0);
   
@@ -142,6 +145,9 @@ AppearanceDialogUILogic
   
   m_Appearance->SetFlagMultisessionZoomByDefault(
     m_DefaultAppearance->GetFlagMultisessionZoomByDefault());
+  
+  m_Appearance->SetFlagMultisessionPanByDefault(
+    m_DefaultAppearance->GetFlagMultisessionPanByDefault());
   
   m_Appearance->SetFlagFloatingPointWarningByDefault(
     m_DefaultAppearance->GetFlagFloatingPointWarningByDefault());
@@ -561,6 +567,8 @@ AppearanceDialogUILogic
     m_Appearance->GetFlagLinkedZoomByDefault() ? 1 : 0);
   m_ChkOptionsSliceMultisessionZoom->value(
     m_Appearance->GetFlagMultisessionZoomByDefault() ? 1 : 0);
+  m_ChkOptionsSliceMultisessionPan->value(
+    m_Appearance->GetFlagMultisessionPanByDefault() ? 1 : 0);
   m_ChkOptionsFloatingPointWarning->value(
     m_Appearance->GetFlagFloatingPointWarningByDefault() ? 1 : 0);
   m_ChkOptionsAutoCheckForUpdate->value(

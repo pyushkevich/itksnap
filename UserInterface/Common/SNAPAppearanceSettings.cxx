@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/13 03:29:39 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/06/18 18:11:23 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -189,6 +189,7 @@ SNAPAppearanceSettings
   // Set the common flags
   m_FlagLinkedZoomByDefault = true;
   m_FlagMultisessionZoomByDefault = true;
+  m_FlagMultisessionPanByDefault = true;
   m_FlagFloatingPointWarningByDefault = true;
   m_FlagEnableHiddenFeaturesByDefault = false;
   m_FlagEnableAutoCheckForUpdateByDefault = -1;
@@ -230,6 +231,9 @@ SNAPAppearanceSettings
 
   m_FlagMultisessionZoomByDefault = 
     r["FlagMultisessionZoomByDefault"][m_FlagMultisessionZoomByDefault];
+
+  m_FlagMultisessionPanByDefault = 
+    r["FlagMultisessionPanByDefault"][m_FlagMultisessionPanByDefault];
 
   m_FlagFloatingPointWarningByDefault = 
     r["FlagFloatingPointWarningByDefault"][m_FlagFloatingPointWarningByDefault];
@@ -285,6 +289,7 @@ SNAPAppearanceSettings
   r["FlagDisplayZoomThumbnail"] << m_FlagDisplayZoomThumbnail;
   r["FlagLinkedZoomByDefault"] << m_FlagLinkedZoomByDefault;
   r["FlagMultisessionZoomByDefault"] << m_FlagMultisessionZoomByDefault;
+  r["FlagMultisessionPanByDefault"] << m_FlagMultisessionPanByDefault;
   r["FlagFloatingPointWarningByDefault"] << m_FlagFloatingPointWarningByDefault;
   r["FlagEnableHiddenFeaturesByDefault"] << m_FlagEnableHiddenFeaturesByDefault;
   r["FlagEnableAutoCheckForUpdateByDefault"] << m_FlagEnableAutoCheckForUpdateByDefault;
