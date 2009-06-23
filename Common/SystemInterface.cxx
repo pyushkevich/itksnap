@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/13 02:18:18 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/06/23 13:17:12 $
+  Version:   $Revision: 1.17 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -432,7 +432,7 @@ SystemInterface
 
 // We start versioning at 1000. Every time we change
 // the protocol, we should increment the version id
-const short SystemInterface::IPC_VERSION = 0x1001;
+const short SystemInterface::IPC_VERSION = 0x1002;
 
 void
 SystemInterface
