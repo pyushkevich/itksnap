@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/18 18:11:24 $
-  Version:   $Revision: 1.68 $
+  Date:      $Date: 2009/06/24 00:13:55 $
+  Version:   $Revision: 1.69 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -4657,7 +4657,7 @@ UserInterfaceLogic
   // Check for updates using new socket code
   std::string nver;
   SystemInterface::UpdateStatus us = 
-    m_SystemInterface->CheckUpdate(nver, 1, 0);
+    m_SystemInterface->CheckUpdate(nver, 1, 0, true);
   std::string message;
   int response = 0;
   if(us == SystemInterface::US_UP_TO_DATE)
@@ -5020,6 +5020,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.69  2009/06/24 00:13:55  garyhuizhang
+ *ENH: improved auto update management
+ *
  *Revision 1.68  2009/06/18 18:11:24  garyhuizhang
  *ENH: multisession pan ui support
  *BUGFIX: single session pan working again

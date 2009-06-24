@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.h,v $
   Language:  C++
-  Date:      $Date: 2009/05/04 20:15:57 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/06/24 00:13:55 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -160,14 +160,14 @@ public:
   /** Enum for automatic update checking */
   enum UpdateStatus 
     {
-    US_UP_TO_DATE, US_OUT_OF_DATE, US_CONNECTION_FAILED 
+    US_UP_TO_DATE, US_OUT_OF_DATE, US_CONNECTION_FAILED, US_TOO_SOON
     };
 
   /** 
     Check if an update is available. First parameter is output version string,
     other parameters specify timeout in seconds, millonth of a second 
    */
-  UpdateStatus CheckUpdate(std::string &newversion, size_t sec, size_t usec);
+  UpdateStatus CheckUpdate(std::string &newversion, size_t sec, size_t usec, bool force = false);
 
 private:
   std::string m_UserPreferenceFile;

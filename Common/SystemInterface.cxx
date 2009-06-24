@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/23 13:17:12 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009/06/24 00:13:55 $
+  Version:   $Revision: 1.18 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -627,8 +627,35 @@ SystemInterface
 
 SystemInterface::UpdateStatus
 SystemInterface
-::CheckUpdate(std::string &newversion, size_t sec, size_t usec)
+::CheckUpdate(std::string &newversion, size_t sec, size_t usec, bool force)
 {
+  if (force)
+    {
+    // std::cout << "user initiated update" << std::endl;
+    Entry("System.LastUpdateTimeStamp") << time(NULL);
+    }
+  else
+    {
+    // Check the last update time stamp
+    string lastUpdateTimeStamp = Entry("System.LastUpdateTimeStamp")["00000000"];
+    // check for update every week
+    if (atoi(lastUpdateTimeStamp.c_str()) == 0)
+      {
+   	 // std::cout << "initialize auto update" << std::endl;
+      Entry("System.LastUpdateTimeStamp") << time(NULL);
+	 }
+    else if (atoi(lastUpdateTimeStamp.c_str()) + 86400 >= time(NULL))
+      {
+      // std::cout << "too soon for auto update check" << std::endl;
+      return US_TOO_SOON;
+      }
+    else
+      {
+   	 // std::cout << "auto update" << std::endl;
+      Entry("System.LastUpdateTimeStamp") << time(NULL);
+  	 }
+    }
+
   int rv = -1, sockfd = -1, n = -1;
   UpdateStatus us = US_CONNECTION_FAILED;
   
