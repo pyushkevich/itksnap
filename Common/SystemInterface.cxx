@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/24 00:13:55 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2009/06/29 02:21:07 $
+  Version:   $Revision: 1.19 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -644,7 +644,7 @@ SystemInterface
    	 // std::cout << "initialize auto update" << std::endl;
       Entry("System.LastUpdateTimeStamp") << time(NULL);
 	 }
-    else if (atoi(lastUpdateTimeStamp.c_str()) + 86400 >= time(NULL))
+    else if (atoi(lastUpdateTimeStamp.c_str()) + 604800 >= time(NULL))
       {
       // std::cout << "too soon for auto update check" << std::endl;
       return US_TOO_SOON;
