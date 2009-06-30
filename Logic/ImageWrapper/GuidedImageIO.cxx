@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:35:30 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/06/30 19:49:52 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -334,6 +334,28 @@ GuidedImageIO<TPixel>::ReadAndCastImage()
   // Cast the output of the filter to the GuidedImageIO's pixel type 
   // (we have to do it like this to avoid templating problems)
   m_Image = dynamic_cast<ImageType *>(output.GetPointer());
+
+  // Check if voxel spacings need to be regularized
+  typename OutputImageType::DirectionType direction = m_Image->GetDirection();
+  typename OutputImageType::SpacingType spacing = m_Image->GetSpacing();
+  typename OutputImageType::DirectionType factor;
+  factor.SetIdentity();
+  bool needRegularization = false;
+  for (int i = 0; i < 3; ++i)
+    {
+    if (spacing[i] < 0)
+      {
+      spacing[i] *= -1.0;
+	 factor[i][i] *= -1.0;
+	 needRegularization = true;
+      }
+    }
+  if (needRegularization)
+    {
+    direction *= factor;
+    m_Image->SetDirection(direction);
+    m_Image->SetSpacing(spacing);
+    }
   // Store the shift and the scale needed to take the TScalar values 
   // to the TNative values
   m_NativeScale = 1.0 / scale;
