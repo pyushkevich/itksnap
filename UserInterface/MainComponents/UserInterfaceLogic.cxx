@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/24 00:13:55 $
-  Version:   $Revision: 1.69 $
+  Date:      $Date: 2009/07/01 20:15:27 $
+  Version:   $Revision: 1.70 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -4072,17 +4072,23 @@ UserInterfaceLogic
 
   // Store the current directory
   std::string dir = itksys::SystemTools::GetCurrentWorkingDirectory();
-  itksys::SystemTools::ChangeDirectory(path.c_str());
+  if (path.size())
+    {
+    itksys::SystemTools::ChangeDirectory(path.c_str());
+    }
 
   // We need to get a filename for the export
   Fl_Native_File_Chooser chooser;
   chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
   chooser.title("Save PNG Snapshot");
   chooser.filter("PNG Files\t*.png");
-  chooser.directory(path.c_str());
+  if (path.size())
+    {
+    chooser.directory(path.c_str());
+    }
   chooser.preset_file(file.c_str());
   const char *fChosen = NULL;
-  if (chooser.show())
+  if (chooser.show() == 0)
     {
     fChosen = chooser.filename();
     }
@@ -4143,7 +4149,7 @@ UserInterfaceLogic
   chooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
   chooser.title("Select the directory to save the screenshots");
   const char *path = NULL;
-  if (chooser.show())
+  if (chooser.show() == 0)
     {
     path = chooser.filename();
     }
@@ -4207,7 +4213,7 @@ void UserInterfaceLogic
   chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
   chooser.title("Export Slice As");
   chooser.filter("Image Files\t*.{png,jpg,gif,tiff}");
-  if (chooser.show())
+  if (chooser.show() == 0)
     {
     const char *fName = chooser.filename();
     if (fName && strlen(fName))
@@ -5020,6 +5026,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.70  2009/07/01 20:15:27  garyhuizhang
+ *BUGFIX: native file chooser bugs
+ *
  *Revision 1.69  2009/06/24 00:13:55  garyhuizhang
  *ENH: improved auto update management
  *
