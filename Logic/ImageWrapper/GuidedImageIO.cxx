@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/30 19:49:52 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/07/01 21:30:20 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -293,7 +293,7 @@ GuidedImageIO<TPixel>::ReadAndCastImage()
     // 1 not to 0
     if(isint)
       {
-      scale = 1.0; shift = 0.5;
+      scale = 1.0; shift = 0.0;
       }
 
     // If the min and max are the same, we map that value to zero
