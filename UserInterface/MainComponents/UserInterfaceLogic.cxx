@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/01 20:15:27 $
-  Version:   $Revision: 1.70 $
+  Date:      $Date: 2009/07/01 22:21:50 $
+  Version:   $Revision: 1.71 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2424,7 +2424,6 @@ UserInterfaceLogic
     fnMain = m_GlobalState->GetGreyFileName();
   else if(m_Activation->GetFlag(UIF_RGB_LOADED))
     fnMain = m_GlobalState->GetRGBFileName();
-
   // Truncate the main image file    
   if(fnMain.length())
     fnMain = itksys::SystemTools::GetFilenameName(fnMain);
@@ -3372,12 +3371,12 @@ UserInterfaceLogic
     m_Driver->GetCurrentImageData()->GetGrey());
   m_IntensityCurveUI->OnCurveChange();
 
-  // Common user interface updates
-  OnMainImageUpdate();
-
   // Disable/Enable some menu items
   m_Activation->UpdateFlag(UIF_RGBANY_LOADED, false);
   m_Activation->UpdateFlag(UIF_IRIS_WITH_GRAY_LOADED, true);
+
+  // Common user interface updates
+  OnMainImageUpdate();
 
   // Warn if the image has been scaled
   GreyTypeToNativeFunctor native = 
@@ -5026,6 +5025,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.71  2009/07/01 22:21:50  garyhuizhang
+ *BUGFIX: main window title label not being updated!
+ *
  *Revision 1.70  2009/07/01 20:15:27  garyhuizhang
  *BUGFIX: native file chooser bugs
  *
