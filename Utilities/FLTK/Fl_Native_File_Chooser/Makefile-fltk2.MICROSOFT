@@ -1,0 +1,62 @@
+###
+### FLTK2 MAKEFILE FOR MICROSOFT VS EXPRESS 8
+### This is Microsoft's native *free* compiler.
+###
+
+# Assumes FLTK2DIR has been set by main Makefile.MICROSOFT
+
+# SUBSYSTEM
+#	"console" to see stdout/stderr, 
+#	"windows" to make regular windows app.
+#
+SUBSYSTEM=console
+
+# CHANGE THESE FLAGS AS NEEDED FOR YOUR COMPILER
+#   If unsure what to set these to, compile one of the FLTK test programs,
+#   and match these flags to those shown in the FLTK program's build log.
+#
+#   The default settings shown here are for "Visual Studio Express 8"
+#
+#    /MD = DYNAMIC: Multithreaded DLL; MSVCRT.DLL needed at runtime
+#    /MT = STATIC: Multithreaded; MSVCRT.LIB is used; no DLL needed at runtime
+#    /Wall = add for WAAAY too much info. Useful only if you grep out OS's errors!
+#    /W3   = somewhat verbose
+#
+CC=cl /EHsc /DVS2000 /DVISUAL_STUDIO /D_CRT_SECURE_NO_DEPRECATE
+CFLAGS= /I$(FLTK2DIR) /I. /DFLTK2
+
+LIBS=/link $(FLTK2DIR)/lib/fltk2.lib \
+	ws2_32.lib msimg32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
+	advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
+
+NATIVESRCS=Fl_Native_File_Chooser.cxx \
+           Fl_Native_File_Chooser_WIN32.cxx \
+           fltk/NativeFileChooser.H \
+           fltk/NativeFileChooser_WIN32.H
+
+default: test-browser-fltk2 simple-app-fltk2
+
+NativeFileChooser.obj: $(NATIVESRCS)
+	$(CC) $(CFLAGS) /Tp Fl_Native_File_Chooser.cxx /c /FoNativeFileChooser.obj
+
+test-browser-fltk2: test-browser-fltk2.cxx NativeFileChooser.obj
+	$(CC) $(CFLAGS) /Tp test-browser-fltk2.cxx /c
+	$(CC) test-browser-fltk2.obj NativeFileChooser.obj $(LIBS) /subsystem:$(SUBSYSTEM)
+
+simple-app-fltk2: simple-app-fltk2.cxx NativeFileChooser.obj
+	$(CC) $(CFLAGS) /Tp simple-app-fltk2.cxx /c
+	$(CC) simple-app-fltk2.obj NativeFileChooser.obj $(LIBS) /subsystem:$(SUBSYSTEM)
+
+clean: FORCE
+	-del *.obj > NUL
+	-del *.pdb > NUL
+	-del *.ilk > NUL
+	-del *.idb > NUL
+	-del *.sln > NUL
+	-del *.suo > NUL
+	-del test-browser.exe > NUL
+	-del simple-app.exe > NUL
+
+# FORCE TARGET -- Do not remove
+FORCE:
+

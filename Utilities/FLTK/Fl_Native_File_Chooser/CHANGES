@@ -1,0 +1,129 @@
+# WARNING: Makefile automatically derives version number from the first line
+# of this file that starts with x.x
+#  |
+# \|/
+#  v
+
+0.84
+-----------------------------------------------------
+	o FLTK2 SUPPORT!
+	  Merged in Frederic Hoerni's mods for fltk2 support, 
+	  converted to fltk2 style namespace.
+
+	o Makefile fix for IMGLIB from Gonzalo Garramuno (fltk.general 09/30/07)
+
+	o Incorporated Ian MacArthur's Makefile for fltk-config
+
+	o 80 column compliance
+
+	o Build: 
+	    > Tar file now extracts with version number in the directory name,
+	    > 'make tar' logic now moved into separate shell script
+
+	o Windows:
+            > Fixed memory leak with lpstrFile (alloc'ed twice)
+	    > Removed unused strfree() code in ClearOFN()
+	    > Small code formatting fixes
+
+
+0.83d
+-----------------------------------------------------
+	o Linux:
+	    > Added Shane Hill's #include <sys/stat.h> to Fl_Native_File_Chooser_FLTK.cxx
+
+	o Windows:
+	    > Added OFN_NOCHANGEDIR flag to prevent GetOpenFileName() from changing the CWD
+	    > Added Andreas Sch?mann's fix for _nfilters++ to the add_filter() method
+	    > Fixed showfile() GetCurrentDirectory() call
+
+	o Copyright fixes and README.txt brought up to date
+
+
+0.83c -- 02/03/2006 fix release
+-----------------------------------------------------
+        o Windows: 
+	    > Fixed behavior of BROWSE_SAVE_FILE
+	    > Fixed SAVEAS_CONFIRM 
+	    > Mods to getcwd() macros in test-browser.cxx for MINGW
+	    > Fixes to test-browser.cxx for MinGW compiles (removed #ifdef VISUAL_STUDIO)
+
+	o Linux:
+	    > "Save File" now has working "Show SaveAs Confirm" dialog
+	    > "Save File" under linux wasn't letting user type in a filename
+            > 'int type()' method wasn't implemented, added _btype
+	    > Removed ifeq() cruft from Makefile.LINUX
+
+	o Applied Ian's fixes to Makefile.fltkconfig
+	o Makefile was sourcing user's ~/.cshrc, added '-f' to SHELL=/bin/csh -f
+
+0.83b -- 01/07/2006 erco: small patches from Ian
+------------------------------------------------
+	o Makefile.fltkconfig WINDOWS -> WIN32
+	o Tar forces owner/group to 0/0, fixed perms on images dir
+
+0.83a -- 01/06/2006 erco: small patches from Ian
+------------------------------------------------
+	o Makefile.fltkconfig patch
+	o Enforce correct perms on files in tar file
+
+0.83 -- 12/06/2005 erco: misc 
+-----------------------------------------------
+        o Windows: Added preset_file() support
+	o Linux: missing filters() method
+	o All: Added options() to API, removed macosx_*()
+	o Added options() to the API with flags:
+		o NEW_FOLDER
+		o PREVIEW
+		o SAVEAS_CONFIRM
+	o Removed macosx_*() stuff -- bad idea
+
+0.82 -- 12/05/2005 erco: misc fixes after merge
+-----------------------------------------------
+	o win32 filter fixes for Alessandro's 11/29 report
+	o Rellocated Macos reference links from code to REFERENCE-MAC.txt
+	o Made sure all #ifdefs use _WIN32 instead of other variants.
+	o Fixed problem with FLTK chooser not showing its icons (natevw)
+	o Added macosx_*() platform specific accessors
+
+    TODO: See ./TODO for outstanding items
+
+0.81 -- 11/28/2005 erco: linux version cleanup
+----------------------------------------------
+        o Support documented filters
+	o free/strdup -> new/delete
+	o added #ifndef at top of FL/Fl_Native_File_Chooser.H to prevent recursion
+
+0.80 -- 11/27/2005 erco+nate: code merge, cleanup
+-------------------------------------------------
+	o Merge in Nathan's changes
+	o Updated docs for all changes noted here
+	o Rewrote mac's filter code to support old "*.a" and new "Desc1\t*.a\nDesc2\t*.b" syntax
+	o Changed Nathan's set_filter() -> filter_value() (consistent with FLTK's own chooser)
+	o Renamed test program to test-browser.cxx
+	o Code cleanup: variable + method naming, 80 column conformance, indents, strdup/malloc -> new
+	TODO: Linux version needs code cleanup (strdup -> new, etc)
+
+0.70 -- 08/04/05 erco: general cleanup
+--------------------------------------
+
+	o Implemented Linux.
+	  This was easy -- just use Fl_File_Chooser.
+
+	o Removed references to non-existant size() method from docs;
+	  the correct method name is total_filenames()
+
+0.62 -- 02/02/2005
+------------------
+
+	o Added Ian's mods to main.cxx to use getcwd() instead of fixed path
+
+	o Added #include/#define's to support getcwd() under Windows VS
+
+0.61 -- 01/26/2005
+------------------
+	o Applied Ian MacArthur's 01/26/2005 fixes,
+	  and Makefile.fltkconfig, including tab fixes and line 90 .obj -> .o fix.
+
+	o Enabled /Wall on Windows VS7.x, and fixed all problems related to Fl_Native*
+	  (mainly, ctor type value was being ignored)
+

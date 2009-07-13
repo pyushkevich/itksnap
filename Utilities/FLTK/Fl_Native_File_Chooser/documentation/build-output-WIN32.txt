@@ -1,0 +1,86 @@
+***
+*** FLTK1 BUILD
+***
+gmake -f Makefile-fltk1.MICROSOFT FLTKDIR=c:/fltk-1.1.7
+gmake[1]: Entering directory `Z:/erco/src/Fl_Native_File_Chooser'
+cl /MD /EHsc /DVS2000 /DVISUAL_STUDIO /Zi /D_CRT_SECURE_NO_DEPRECATE /Ic:/fltk-1.1.7 /I. /DFLTK1 /Tp test-browser.cxx /c
+Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 14.00.50727.42 for 80x86
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+test-browser.cxx
+cl /MD /EHsc /DVS2000 /DVISUAL_STUDIO /Zi /D_CRT_SECURE_NO_DEPRECATE test-browser.obj Fl_Native_File_Chooser.obj /link c:/fltk-1.1.7/lib/fltk.lib wsock32.lib comctl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib winmm.lib ole32.lib oleaut32.lib uuid.lib imm32.lib /nologo /machine:I386 /subsystem:console
+del test-browser.obj 2> nul
+cl /MD /EHsc /DVS2000 /DVISUAL_STUDIO /Zi /D_CRT_SECURE_NO_DEPRECATE /Ic:/fltk-1.1.7 /I. /DFLTK1 /Tp simple-app.cxx /c
+Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 14.00.50727.42 for 80x86
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+simple-app.cxx
+cl /MD /EHsc /DVS2000 /DVISUAL_STUDIO /Zi /D_CRT_SECURE_NO_DEPRECATE simple-app.obj Fl_Native_File_Chooser.obj /link c:/fltk-1.1.7/lib/fltk.lib wsock32.lib comctl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib winmm.lib ole32.lib oleaut32.lib uuid.lib imm32.lib /nologo /machine:I386 /subsystem:console
+del simple-app.obj 2> nul
+gmake[1]: Leaving directory `Z:/erco/src/Fl_Native_File_Chooser'
+***
+*** FLTK2 BUILD ***
+***
+gmake -f Makefile-fltk2.MICROSOFT FLTK2DIR=c:/fltk-2.x-svn
+gmake[1]: Entering directory `Z:/erco/src/Fl_Native_File_Chooser'
+cl /EHsc /ZI /DVS2000 /DVISUAL_STUDIO /D_CRT_SECURE_NO_DEPRECATE /Ic:/fltk-2.x-svn /I. /DFLTK2 /Tp test-browser-fltk2.cxx /c
+Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 14.00.50727.42 for 80x86
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+test-browser-fltk2.cxx
+cl /EHsc /ZI /DVS2000 /DVISUAL_STUDIO /D_CRT_SECURE_NO_DEPRECATE test-browser-fltk2.obj NativeFileChooser.obj /link c:/fltk-2.x-svn/lib/fltk2.lib ws2_32.lib msimg32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /subsystem:console
+Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 14.00.50727.42 for 80x86
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+Microsoft (R) Incremental Linker Version 8.00.50727.42
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+/out:test-browser-fltk2.exe 
+/debug 
+c:/fltk-2.x-svn/lib/fltk2.lib 
+ws2_32.lib 
+msimg32.lib 
+kernel32.lib 
+user32.lib 
+gdi32.lib 
+winspool.lib 
+comdlg32.lib 
+advapi32.lib 
+shell32.lib 
+ole32.lib 
+oleaut32.lib 
+uuid.lib 
+/subsystem:console 
+test-browser-fltk2.obj 
+NativeFileChooser.obj 
+cl /EHsc /ZI /DVS2000 /DVISUAL_STUDIO /D_CRT_SECURE_NO_DEPRECATE /Ic:/fltk-2.x-svn /I. /DFLTK2 /Tp simple-app-fltk2.cxx /c
+Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 14.00.50727.42 for 80x86
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+simple-app-fltk2.cxx
+cl /EHsc /ZI /DVS2000 /DVISUAL_STUDIO /D_CRT_SECURE_NO_DEPRECATE simple-app-fltk2.obj NativeFileChooser.obj /link c:/fltk-2.x-svn/lib/fltk2.lib ws2_32.lib msimg32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /subsystem:console
+Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 14.00.50727.42 for 80x86
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+Microsoft (R) Incremental Linker Version 8.00.50727.42
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+/out:simple-app-fltk2.exe 
+/debug 
+c:/fltk-2.x-svn/lib/fltk2.lib 
+ws2_32.lib 
+msimg32.lib 
+kernel32.lib 
+user32.lib 
+gdi32.lib 
+winspool.lib 
+comdlg32.lib 
+advapi32.lib 
+shell32.lib 
+ole32.lib 
+oleaut32.lib 
+uuid.lib 
+/subsystem:console 
+simple-app-fltk2.obj 
+NativeFileChooser.obj 
+gmake[1]: Leaving directory `Z:/erco/src/Fl_Native_File_Chooser'

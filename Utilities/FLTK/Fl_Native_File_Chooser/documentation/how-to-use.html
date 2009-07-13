@@ -1,0 +1,69 @@
+<html><head></head><body><h2>How To Install Fl_Native_File_Chooser Into Your Own Project</h2>
+<blockquote>
+    The Fl_Native_File_Chooser project can either be added to FLTK, or
+    installed as a subdirectory either inside your own project,
+    or in a separate directory that all your projects can refer to.
+    <p>
+    Just be sure to compile with the -I (include) flag pointing
+    to where the Fl_Native_File_Chooser directory is, and to link in the
+    Fl_Native_File_Chooser.o file left in that directory after doing a 'make'.
+</p></blockquote>
+<p>
+</p><h3>Installing Fl_Native_File_Chooser Into Your Project's Directory</h3>
+<blockquote>
+    Here's an example of how to install Fl_Native_File_Chooser into your project's
+    own directory:
+</blockquote>
+<pre>        ../src/YourApp/
+	        |
+	        |-- YourApp.C
+		|-- YourApp.H		     -- Contains <b>"#include &lt;FL/Fl_Native_File_Chooser.H&gt;"</b>
+		|-- Makefile		     -- Compiles with <b>"-I./Fl_Native_File_Chooser", </b>
+		|                               links with <b>./Fl_Native_File_Chooser/Fl_Native_File_Chooser.o</b>
+		|-- <font color="RED">Fl_Native_File_Chooser</font>   -- Fl_Native_File_Chooser installed as a subdirectory<font color="RED">
+		:       |
+		        |-- FL
+			|   |
+			|   |-- Fl_Native_File_Chooser.H
+			|   :
+			|
+			|-- Fl_Native_File_Chooser.o
+			|-- Makefile
+			:</font>
+</pre>
+<blockquote>
+    This way you can still just have <b><tt>"#include &lt;FL/Fl_Native_File_Chooser.H&gt;"</tt></b> 
+    in your C++ files.. just use <b><tt>"-I./Fl_Native_File_Chooser"</tt></b> as one of the 
+    compile flags, and the #include will resolve correctly.
+    <p>
+    During linking, be sure to link in 
+    <b><tt>"./Fl_Native_File_Chooser/Fl_Native_File_Chooser.o"</tt></b>
+    as part of the link instructions for your app.
+</blockquote>
+
+</p><h3>Recommendations</h3>
+<blockquote>
+    It is advised you locate Fl_Native_File_Chooser in the same source directory
+    your FLTK version(s) are installed, eg:
+    <pre>
+    /usr/local/src/fltk-1.1.x-svn/		     <I>&lt;-- some rev of fltk</I>
+    /usr/local/src/fltk-2.0-svn/		     <I>&lt;-- some other rev of fltk</I>
+    /usr/local/src/Fl_Native_File_Chooser-0.84/  <I>&lt;-- put Fl_Native_File_Chooser here</I>
+    </pre>
+    In your Makefile, just add the Fl_Native_File_Chooser directory to your
+    include path, and add the Fl_Native_File_Chooser.o to your link line, eg:
+    <pre>
+    # FLTK1
+    INCLUDES = -I/usr/local/src/Fl_Native_File_Chooser-0.84/
+    LIBS     = /usr/local/src/Fl_Native_File_Chooser-0.84/Fl_Native_File_Chooser.o
+
+    # FLTK2
+    INCLUDES = -I/usr/local/src/Fl_Native_File_Chooser-0.84/
+    LIBS     = /usr/local/src/Fl_Native_File_Chooser-0.84/NativeFileChooser.o
+
+    foo: foo.cxx
+	    g++ $(INCLUDES) foo.cxx -c
+	    g++ foo.o $(LIBS) ..
+    </pre>
+</blockquote>
+</body></html>

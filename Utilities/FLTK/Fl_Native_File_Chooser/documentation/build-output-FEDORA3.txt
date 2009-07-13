@@ -1,0 +1,30 @@
+***
+*** FLTK1 BUILD
+***
+( make -f Makefile-fltk1 all "FLTKCONFIG=/usr/local/src/fltk-1.1.x-svn/fltk-config --use-images")
+make[1]: Entering directory `/meade/net/erco/src/Fl_Native_File_Chooser'
+g++ -Wall -O3 -I. -I/usr/local/src/fltk-1.1.x-svn -I/usr/X11R6/include -DFLTK1 test-browser.cxx -c
+g++ -Wall -O3 -I. -I/usr/local/src/fltk-1.1.x-svn -I/usr/X11R6/include -DFLTK1 Fl_Native_File_Chooser.cxx -c
+g++ test-browser.o Fl_Native_File_Chooser.o -L/usr/X11R6/lib -L/usr/local/src/fltk-1.1.x-svn/lib /usr/local/src/fltk-1.1.x-svn/lib/libfltk_images.a -lpng -lz -ljpeg /usr/local/src/fltk-1.1.x-svn/lib/libfltk.a -ldl -lm -lXext -lX11 -lm -o test-browser
+strip test-browser
+/usr/local/src/fltk-1.1.x-svn/fltk-config --use-images --post test-browser
+g++ -Wall -O3 -I. -I/usr/local/src/fltk-1.1.x-svn -I/usr/X11R6/include -DFLTK1 simple-app.cxx -c
+g++ simple-app.o Fl_Native_File_Chooser.o -L/usr/X11R6/lib -L/usr/local/src/fltk-1.1.x-svn/lib /usr/local/src/fltk-1.1.x-svn/lib/libfltk_images.a -lpng -lz -ljpeg /usr/local/src/fltk-1.1.x-svn/lib/libfltk.a -ldl -lm -lXext -lX11 -lm -o simple-app
+strip simple-app
+/usr/local/src/fltk-1.1.x-svn/fltk-config --use-images --post simple-app
+make[1]: Leaving directory `/meade/net/erco/src/Fl_Native_File_Chooser'
+***
+*** FLTK2 BUILD
+***
+( make -f Makefile-fltk2 all "FLTK2CONFIG=/usr/local/src/fltk-2.0-svn/fltk2-config --use-images")
+make[1]: Entering directory `/meade/net/erco/src/Fl_Native_File_Chooser'
+gcc -Wall -O3 -I. -I/usr/local/src/fltk-2.0-svn -I/usr/include/freetype2 -I/usr/X11R6/include -Wno-non-virtual-dtor -DFLTK2 test-browser-fltk2.cxx -c
+gcc -Wall -O3 -I. -I/usr/local/src/fltk-2.0-svn -I/usr/include/freetype2 -I/usr/X11R6/include -Wno-non-virtual-dtor -DFLTK2 Fl_Native_File_Chooser.cxx -c -o NativeFileChooser.o
+gcc test-browser-fltk2.o NativeFileChooser.o -L/usr/local/src/fltk-2.0-svn/lib /usr/local/src/fltk-2.0-svn/lib/libfltk2_images.a /usr/local/src/fltk-2.0-svn/lib/libfltk2.a -L/usr/X11R6/lib -lX11 -lXi -lXinerama -lXft -lpthread -lm -lXext -lsupc++ -lpng -lfltk2_images -ljpeg -lz -lm -o test-browser-fltk2
+strip test-browser-fltk2
+/usr/local/src/fltk-2.0-svn/fltk2-config --use-images --post test-browser-fltk2
+gcc -Wall -O3 -I. -I/usr/local/src/fltk-2.0-svn -I/usr/include/freetype2 -I/usr/X11R6/include -Wno-non-virtual-dtor -DFLTK2 simple-app-fltk2.cxx -c
+gcc simple-app-fltk2.o NativeFileChooser.o -L/usr/local/src/fltk-2.0-svn/lib /usr/local/src/fltk-2.0-svn/lib/libfltk2_images.a /usr/local/src/fltk-2.0-svn/lib/libfltk2.a -L/usr/X11R6/lib -lX11 -lXi -lXinerama -lXft -lpthread -lm -lXext -lsupc++ -lpng -lfltk2_images -ljpeg -lz -lm -o simple-app-fltk2
+strip simple-app-fltk2
+/usr/local/src/fltk-2.0-svn/fltk2-config --use-images --post simple-app-fltk2
+make[1]: Leaving directory `/meade/net/erco/src/Fl_Native_File_Chooser'

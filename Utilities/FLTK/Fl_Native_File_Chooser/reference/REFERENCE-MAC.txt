@@ -1,0 +1,30 @@
+Mac reference:
+
+    Top Level:
+    http://developer.apple.com/documentation/Carbon/Conceptual/ProvidingNavigationDialogs/nsx_concepts/chapter_2_section_2.html#//apple_ref/doc/uid/TP30001147-CH202-CHDEDCBD
+
+    Functions:
+    http://developer.apple.com/documentation/Carbon/Conceptual/ProvidingNavigationDialogs/nsx_tasks/chapter_3_section_3.html#//apple_ref/doc/uid/TP30001147-CH203-BEIGBDGD
+
+    Nav Tasks:
+    http://developer.apple.com/documentation/Carbon/Conceptual/ProvidingNavigationDialogs/nsx_tasks/chapter_3_section_1.html#//apple_ref/doc/uid/TP30001147-CH203-BABGIAGG
+
+    Preload:
+    http://groups.google.com/groups?q=NavCreateGetFileDialog+directory&hl=en&lr=&c2coff=1&selm=oster-A486E7.08390422102002%40newssvr21-ext.news.prodigy.com&rnum=1
+
+    http://developer.apple.com/qa/qa2001/qa1151.html
+
+    CFString:
+    file:///Developer/Documentation/CoreFoundation/Reference/CFStringRef/index.html#//apple_ref/doc/uid/20001211
+//
+    http://developer.apple.com/documentation/Carbon/Reference/Navigation_Services_Ref/index.html
+    http://lists.apple.com/archives/carbon-dev/2005/Feb/msg01230.html
+    http://www.mactech.com/macintosh-c/chap18-1.html
+    http://developer.apple.com/documentation/Carbon/Reference/Navigation_Services_Ref/nav_serv_ref/chapter_1.4_section_2.html -block New Folder button
+    http://developer.apple.com/documentation/Carbon/Reference/Navigation_Services_Ref/nav_serv_ref/chapter_1.4_section_9.html
+    http://developer.apple.com/documentation/Carbon/Reference/Navigation_Services_Ref/nav_serv_ref/chapter_1.4_section_6.html
+    http://lists.apple.com/archives/nav-serv-developers/2003/Apr/msg00003.html
+    http://developer.apple.com/datatype/creatorcode.html
+    http://developer.apple.com/documentation/Carbon/Conceptual/ProvidingNavigationDialogs/nsx_tasks/chapter_3_section_3.html
+//
+

@@ -1,0 +1,26 @@
+***
+*** FLTK1 BUILD
+***
+( make -f Makefile-fltk1 all "FLTKCONFIG=/usr/local/src/fltk-1.1.x-svn/fltk-config --use-images")
+g++ -Wall -O3 -I. -I/usr/local/src/fltk-1.1.x-svn -I/usr/local/src/fltk-1.1.x-svn/png -DFLTK1 test-browser.cxx -c
+g++ -Wall -O3 -I. -I/usr/local/src/fltk-1.1.x-svn -I/usr/local/src/fltk-1.1.x-svn/png -DFLTK1 Fl_Native_File_Chooser.cxx -c
+g++ test-browser.o Fl_Native_File_Chooser.o -L/usr/local/src/fltk-1.1.x-svn/lib /usr/local/src/fltk-1.1.x-svn/lib/libfltk_images.a -lfltk_png -lz -ljpeg /usr/local/src/fltk-1.1.x-svn/lib/libfltk.a -framework Carbon -framework ApplicationServices -lm -framework CoreFoundation -o test-browser
+strip test-browser
+/usr/local/src/fltk-1.1.x-svn/fltk-config --use-images --post test-browser
+g++ -Wall -O3 -I. -I/usr/local/src/fltk-1.1.x-svn -I/usr/local/src/fltk-1.1.x-svn/png -DFLTK1 simple-app.cxx -c
+g++ simple-app.o Fl_Native_File_Chooser.o -L/usr/local/src/fltk-1.1.x-svn/lib /usr/local/src/fltk-1.1.x-svn/lib/libfltk_images.a -lfltk_png -lz -ljpeg /usr/local/src/fltk-1.1.x-svn/lib/libfltk.a -framework Carbon -framework ApplicationServices -lm -framework CoreFoundation -o simple-app
+strip simple-app
+/usr/local/src/fltk-1.1.x-svn/fltk-config --use-images --post simple-app
+***
+*** FLTK2 BUILD
+***
+( make -f Makefile-fltk2 all "FLTK2CONFIG=/usr/local/src/fltk-2.0-svn/fltk2-config --use-images")
+g++ -Wall -O3 -I. -I/usr/local/src/fltk-2.0-svn -Wno-non-virtual-dtor -DFLTK2 test-browser-fltk2.cxx -c
+g++ -Wall -O3 -I. -I/usr/local/src/fltk-2.0-svn -Wno-non-virtual-dtor -DFLTK2 Fl_Native_File_Chooser.cxx -c -o NativeFileChooser.o
+g++ test-browser-fltk2.o NativeFileChooser.o -L/usr/local/src/fltk-2.0-svn/lib /usr/local/src/fltk-2.0-svn/lib/libfltk2_images.a /usr/local/src/fltk-2.0-svn/lib/libfltk2.a -lpthread -framework Carbon -framework ApplicationServices -lpng -lfltk2_images -ljpeg -lz -lm -framework CoreFoundation -o test-browser-fltk2
+strip test-browser-fltk2
+/usr/local/src/fltk-2.0-svn/fltk2-config --use-images --post test-browser-fltk2
+g++ -Wall -O3 -I. -I/usr/local/src/fltk-2.0-svn -Wno-non-virtual-dtor -DFLTK2 simple-app-fltk2.cxx -c
+g++ simple-app-fltk2.o NativeFileChooser.o -L/usr/local/src/fltk-2.0-svn/lib /usr/local/src/fltk-2.0-svn/lib/libfltk2_images.a /usr/local/src/fltk-2.0-svn/lib/libfltk2.a -lpthread -framework Carbon -framework ApplicationServices -lpng -lfltk2_images -ljpeg -lz -lm -framework CoreFoundation -o simple-app-fltk2
+strip simple-app-fltk2
+/usr/local/src/fltk-2.0-svn/fltk2-config --use-images --post simple-app-fltk2

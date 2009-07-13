@@ -1,0 +1,93 @@
+# Makefile that uses fltkconfig
+# Submitted by Ian MacArthur.
+# NOTE: This makes use of new features in fltk-config 1.1.6: --cxx and --cc flags.
+#########################################################
+
+# Assumes FLTK2CONFIG has been set by main Makefile
+
+# flags for compiler:
+CFLAGS   = -Wall -O3 -I. $(shell $(FLTK2CONFIG) --cflags) -DFLTK2
+CXXFLAGS = -Wall -O3 -I. $(shell $(FLTK2CONFIG) --cxxflags) -DFLTK2
+
+# Possible steps after linking...
+STRIP      = strip
+POSTBUILD  = $(FLTK2CONFIG) --post
+
+# libraries to link with:
+LDLIBS   = -lm
+LINKFLTK = $(shell $(FLTK2CONFIG) --ldstaticflags)
+IMGLIB   = $(shell $(FLTK2CONFIG) --use-images --ldstaticflags)
+GL_LIB   = $(shell $(FLTK2CONFIG) --use-gl --ldstaticflags)
+
+# Other general settings
+CXX     = $(shell $(FLTK2CONFIG) --cxx)
+CC      = $(shell $(FLTK2CONFIG) --cc)
+
+# now we can make specific modifications based on the operating system and host
+UNAME := $(shell uname)
+
+NATIVESRCS=Fl_Native_File_Chooser.cxx \
+           Fl_Native_File_Chooser_WIN32.cxx \
+           Fl_Native_File_Chooser_MAC.cxx \
+           Fl_Native_File_Chooser_FLTK.cxx \
+           fltk/NativeFileChooser.h \
+           fltk/NativeFileChooser_WIN32.h \
+           fltk/NativeFileChooser_MAC.h \
+           fltk/NativeFileChooser_FLTK.h
+
+ifeq '$(OS)' "Windows_NT"
+EXE = .exe
+endif # end of WIN32 options
+
+ifeq ($(strip $(UNAME)),Linux)
+EXE = 
+endif # end of linux options
+
+ifeq ($(strip $(UNAME)),Darwin)
+EXE      =
+LDLIBS  += -framework CoreFoundation
+endif # end of OSX options
+
+#.SILENT: # Make the build run quietly
+
+all: test-browser-fltk2$(EXE) simple-app-fltk2$(EXE)
+
+#########################################################
+# make sure the basic rules are in place, just in case...
+# Build commands and filename extensions...
+.SUFFIXES: .c .cxx .cpp .cc .h .fl .o
+
+# Rule to build an object file from a C++ source file
+%.o : %.cxx
+	@echo Compile $@...
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
+
+# Rule to build an object file from a C source file
+%.o : %.c
+	@echo Compile $@...
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+#########################################################
+# define rules for the known targets...
+
+NativeFileChooser.o: $(NATIVESRCS)
+	$(CXX) $(CXXFLAGS) $< -c -o NativeFileChooser.o
+
+test-browser-fltk2.o: test-browser-fltk2.cxx
+	$(CXX) $(CXXFLAGS) $< -c
+
+test-browser-fltk2$(EXE): test-browser-fltk2.o NativeFileChooser.o
+	$(CXX) test-browser-fltk2.o NativeFileChooser.o $(IMGLIB) $(LDLIBS) -o $@
+	$(STRIP) $@
+	$(POSTBUILD) test-browser-fltk2$(EXE)
+
+simple-app-fltk2.o: simple-app-fltk2.cxx
+	$(CXX) $(CXXFLAGS) $< -c
+
+simple-app-fltk2$(EXE): simple-app-fltk2.o NativeFileChooser.o
+	$(CXX) simple-app-fltk2.o NativeFileChooser.o $(IMGLIB) $(LDLIBS) -o $@
+	$(STRIP) $@
+	$(POSTBUILD) simple-app-fltk2$(EXE)
+
+# FORCE TARGET -- Do not remove
+FORCE:

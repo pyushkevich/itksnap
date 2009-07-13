@@ -449,9 +449,9 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 
 # Get rid of this ridiculous warning in VS8
-IF( CMAKE_GENERATOR MATCHES "Visual Studio 8" )
+IF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Visual Studio 9")
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
-ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 8" )
+ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Visual Studio 9")
   
 # ----------------------------------------------------------------
 # Define External Libraries
@@ -510,6 +510,10 @@ SET(SNAP_EXTERNAL_LIBS
 # SNAP Logic and UI Libraries
 # *****************************************************
 
+# The FLTK extensions
+SUBDIRS(Utilities/FLTK/Fl_Native_File_Chooser)
+INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Native_File_Chooser)
+
 # Wrap the .fl files
 FLTK_WRAP_UI(itksnapui ${APPLICATION_FLUIDS})
 
@@ -523,7 +527,7 @@ ADD_LIBRARY(itksnapui ${UI_CXX} ${UI_HEADERS} ${itksnapui_FLTK_UI_SRCS})
 # build accurately (at least on MacOS) without the following
 # two lines
 TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS})
-TARGET_LINK_LIBRARIES(itksnapui itksnaplogic ${SNAP_EXTERNAL_LIBS})
+TARGET_LINK_LIBRARIES(itksnapui itksnaplogic fltk_native_file_chooser ${SNAP_EXTERNAL_LIBS})
 
 # Designate the SNAP internal libraries
 SET(SNAP_INTERNAL_LIBS itksnapui itksnaplogic)

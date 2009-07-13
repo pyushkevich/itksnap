@@ -1,0 +1,190 @@
+> Determine why Mac and OSX don't open browser with preset file selected.
+  WINDOWS: tried to make this work, but it just doesn't support it!
+           Even calling GetOpenFileName(&_ofn); twice in a row.
+
+> 0.84: Ian MacArthur indicated mingw warns about strapp and strdump
+	being "defined but not used" cause it's a static. Should
+	probably make a lib, disable this warning, or reference 
+	the calls in an unused subroutine.
+
+> 0.83d: Namespace pollution: Yuri wants Carbon.h/win32.h
+  to not be in the public .H files.  Can probably make an 'underbar'
+  version of the class to isolate them.  See erco's post on 
+  fltk.general 06/24/07.
+
+> 0.83d: MAC / Save File:
+  If:
+      1) /tmp/foo.xxx exists
+      2) Directory: set to /tmp
+      3) Preset File set to foo.xxx
+  ..when browser opens, foo.xxx is GRAYED OUT, even though filter
+  appears to be on. Can still click on grayed out items to pick them,
+  and Save As: name changes. Weird!
+  Looks OK when 'Single File' is selected.
+
+(?) > 0.83d: WINDOWS/FILE BROWSE: 
+(?) 	If simple-app's preset filename doesn't end in a backslash,
+(?)     browser shows contents of parent dir, not dir itself.
+(?) 	Maybe append a slash if stat() shows preset filename is a DIR?
+
+-- 0.82c --
+
+
+(?) > 0.82c: Windows "Save As" is not setting correct directory in browser
+
+
+(?) > 0.82: Andreas reports problem with Mac chooser not showing thumbnails
+(?)         that live on remote drives even though the Finder does. 
+(?)         Files located on the local file system show up OK.
+(?)         (See Reference #1 below for Apple's SimpleText.c excerpts?)
+(?)         Also, see Andreas' email 12/05/2005 (Reference #2 below)
+
+(?) > 0.82: Presetting value() under linux causes chooser to open with file 
+(?)         highlighted in the chooser, but not in windows or mac.
+
+(?) > 0.82: Fl_Native_File_Chooser: WINDOWS doesn't handle returning UTF8 from
+(?)         native windows file chooser.. comes back as garbage, possibly as non-UTF8?
+(?)         (Found problem on Japanese localized machine by browsing to a dir
+(?)         with Japanese chars. Shows OK in windows browser, but when returned
+(?)         to Fl_Input, comes up as garbage, even though the Fl_Input is capable
+(?)         of showing text correctly if japanese text pasted as text into the 
+(?)         Fl_Input from Windows URL input)
+
+*** DONE ***
+(DONE) > 0.82c: "Save As" + "Show Confirm Dialog" is not showing the confirm dialog..!
+(DONE)          TESTED ON LINUX AND OSX TO WORK OK.
+
+(DONE) > 0.83c: Shane Hill on 02/07/06 reports that under Windows, doing regular
+(DONE)   file browsing results in the current working dir being changed.
+(DONE)   Luckily there appears to be a WIN32 flag for this, but the docs
+(DONE)   say it's ineffective..!?
+(DONE)     OFN_NOCHANGEDIR
+(DONE) 	Restores the current directory to its original value if the user changed
+(DONE) 	the directory while searching for files.
+(DONE) 	Windows NT 4.0/2000/XP: This flag is ineffective for GetOpenFileName.
+(DONE) 				^^^^^^^^^^^^^^^^^^^^^^^^
+
+(DONE) > 0.82: Alessandro: uses very long wildcard strings..
+(DONE)         Replace fixed arrays (char wildcard[80]) with new strapp() stuff.
+
+------------------------------------------------------------------------
+				Reference #1
+------------------------------------------------------------------------
+
+	// REFERENCE FROM SimpleText.c for erco..
+
+	short		numTypes;
+	OSType		typeList[20];
+	OSType		fileType = '\?\?\?\?';
+	NavDialogRef	navDialog;
+
+	DetermineWindowTypeOrOpen( nil, fileType, &typeList[0], &numTypes, nil );
+	
+	// Open as many documents as the user wishes through Appleevents
+	return OpenFileDialog( 'ttxt', numTypes, typeList, &navDialog );
+
+	    OSType	typeList[20];
+	    OSType	docList[20];
+
+		    pFileTypes[*numTypes]	= 'MooV';
+		    pDocumentTypes[*numTypes] 	= kMovieWindow;
+		    (*numTypes)++;
+
+
+OSStatus OpenFileDialog(
+	OSType applicationSignature, 
+	short numTypes, 
+	OSType typeList[], 
+	NavDialogRef *outDialog )
+{
+	OSStatus theErr = noErr;
+	if ( gOpenFileDialog == NULL )
+	{
+		NavDialogCreationOptions	dialogOptions;
+		NavTypeListHandle		openList = NULL;
+	
+		NavGetDefaultDialogCreationOptions( &dialogOptions );
+	
+		dialogOptions.modality = kWindowModalityNone;
+		dialogOptions.clientName = CFStringCreateWithPascalString( 
+						NULL, LMGetCurApName(), GetApplicationTextEncoding());
+		
+		openList = (NavTypeListHandle)NewOpenHandle( applicationSignature, numTypes, typeList );
+		
+		theErr = NavCreateGetFileDialog( &dialogOptions, openList,
+		                                 GetPrivateEventUPP(),
+						 NULL, NULL, NULL, &gOpenFileDialog );
+
+------------------------------------------------------------------------
+				Reference #2
+------------------------------------------------------------------------
+
+Andreas Schömann wrote:
+> Greg Ercolano wrote:
+>
+>> Andreas Schömann wrote:
+>>
+>>> I've found a problem: when loading images (jpg) via network, no thumbnail is shown in the file chooser. Actual loading works. The network device is NTFS formatted. I thought it might be an access rights problem, but with 'Finder' it works fine...
+
+    BTW, Andreas is specifically referring to the MAC file browser;
+    when you have it in 'column' mode, when you highlight eg. a jpg
+    image, the preview that normally displays off to the right
+    doesn't show up.
+
+    I looked at the SimpleText.c code that comes with the OSX
+    developer toolkit, ie:
+    /Developer//Examples/Carbon/SimpleText/*
+
+    ..and it looks like they use a few options to NavCreateGetFileDialog()
+    that I don't use, namely arg2 and arg3 to set a list of files
+    and a callback.
+
+    I have to admit I don't fully understand the Mac stuff when it
+    comes to this sort of thing. Apparently there's a global database
+    somewhere of 4 character file types that dates back to the 1980's,
+    and it appears one needs to know these names and hard code them
+    into your app (as is done in SimpleText.cxx).
+
+    I think I'll leave this unfinished, since it's not really a show
+    stopper, and I'm not sure how to make it work correctly.
+
+> 4) Here on my machine Fl_Native_File_Chooser displays a preview for _local_ images (e.g. .jpeg, .tiff and .png) 
+
+    Really?
+
+    I actually couldn't get that to work on my 10.4.3 box.
+
+    When I single click on a jpeg, png, or other image format,
+    it shows a generic image, but the correct text info about
+    the image's file type.
+
+    What does work is if I click on .c or .cxx files it shows
+    correctly, and if I click on a .rm file (Real Media),
+    it shows Real's icon logo.. (shrug)
+
+    In the Finder, when you click on images, it shows a thumbnail
+    of the actual image.
+
+> Hmmmh, somewhat confusing results...
+> Especially the different behaviour of Finder and File Chooser is a mystery to me. Why did Apple do that? Maybe this has changed with Tiger?
+> 1) and 2) tell me that one can disable file preview with 'Navigation Services', though probably not by intention.
+
+    It might be I'm missing some args to NavCreateGetFileDialog()
+    (arg2 and 3?) Unfortunately I'm not sure what is the correct
+    code to make that work, if that's even the cause.
+
+    Or maybe I need to link in some apple framework that's missing
+    to make that stuff work.
+
+> I also had a look into the documentation ( http://developer.apple.com/documentation/Carbon/Conceptual/ProvidingNavigationDialogs/index.html ) and it says that 'Navigation Services' offers to specify a 'preview callback' with 'NavCreateGetFileDialog'. This is called when the user selects a file and offers a way to preview custom file types. But Fl_Native_File_Chooser does not use this feature and in that case 'Navigation Services' inspects the file.
+
+    Right, as described above.
+    However, I'd think there'd be defaults for things like jpeg/png/etc.
+
+    I'd hate to think I have to manually provide callbacks for each
+    image type..!
+
+------------------------------------------------------------------------
+				Reference #3
+------------------------------------------------------------------------
+
