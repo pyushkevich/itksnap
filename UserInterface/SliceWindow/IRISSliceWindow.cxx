@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/10 15:17:38 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/07/13 17:26:24 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -98,6 +98,8 @@ IRISSliceWindow
 {
   // Call the parent's version of this method
   GenericSliceWindow::InitializeSlice(imageData);
+  if(!imageData->IsMainLoaded())
+	return;
 
   // Reset the polygon drawing interface
   m_PolygonDrawing->Reset();

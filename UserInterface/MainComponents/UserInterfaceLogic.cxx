@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/01 22:21:50 $
-  Version:   $Revision: 1.71 $
+  Date:      $Date: 2009/07/13 17:26:24 $
+  Version:   $Revision: 1.72 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3226,7 +3226,8 @@ UserInterfaceLogic
 
     m_SNAPWindowManager3D->ClearScreen();
     m_SNAPWindowManager3D->ResetView();
-    } else
+    } 
+  else
     { 
     m_IRISWindowManager2D[0]->InitializeSlice(m_Driver->GetCurrentImageData());
     m_IRISWindowManager2D[1]->InitializeSlice(m_Driver->GetCurrentImageData());
@@ -5025,6 +5026,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.72  2009/07/13 17:26:24  pyushkevich
+ *Fixed crash on Win32
+ *
  *Revision 1.71  2009/07/01 22:21:50  garyhuizhang
  *BUGFIX: main window title label not being updated!
  *

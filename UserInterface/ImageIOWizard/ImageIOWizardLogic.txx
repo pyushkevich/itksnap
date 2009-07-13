@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.txx,v $
   Language:  C++
-  Date:      $Date: 2009/05/25 17:09:44 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/07/13 17:26:24 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,6 +36,7 @@
 #define __ImageIOWizardLogic_txx_
 
 #include "FL/Fl_Native_File_Chooser.H"
+#include "FL/filename.H"
 #include "FL/Fl_Text_Buffer.H"
 #include <stdio.h>
 #include <cmath>

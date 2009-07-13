@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/07/13 17:26:24 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -91,6 +91,8 @@ SNAPSliceWindow
 {
   // Call parent's init
   GenericSliceWindow::InitializeSlice(imageData);
+  if(!imageData->IsMainLoaded())
+	return;
 
   // Set the pointer to the SNAP data
   m_ImageData = dynamic_cast<SNAPImageData *>(imageData);

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MeshIOWizardUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/05/25 17:09:44 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/07/13 17:26:24 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,6 +36,7 @@
 #include "IRISApplication.h"
 #include "GuidedMeshIO.h"
 #include "FL/Fl_Native_File_Chooser.H"
+#include "FL/filename.H"
 
 using namespace std;
 
