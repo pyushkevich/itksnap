@@ -30,23 +30,23 @@ class UserInterface {open : {public UserInterfaceBase}
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
       callback {OnMainWindowCloseAction();} open
-      xywh {351 44 875 735} type Double align 0 resizable
+      xywh {375 169 875 735} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"} visible
     } {
-      Fl_Menu_Bar m_MenubarMain {
+      Fl_Menu_Bar m_MenubarMain {open
         xywh {0 0 875 25} labelsize 12 textsize 12
       } {
         Submenu {} {
-          label {File}
+          label {&File}
           xywh {10 10 100 20} labelsize 12
         } {
           MenuItem m_MenuLoadGrey {
-            label {Open Greyscale Image}
+            label {Open &Greyscale Image...}
             callback {this->OnMenuLoadGrey();}
             tooltip {Load an image that you want to segment} xywh {5 5 100 20} shortcut 0x40067 labelsize 12
           }
           MenuItem m_MenuLoadRGB {
-            label {Open RGB Image}
+            label {Open &RGB Image...}
             callback {this->OnMenuLoadRGB();}
             tooltip {Load an RGB (color)  image, e.g., from a diffusion tensor imaging study} xywh {15 15 100 20} shortcut 0x40072 labelsize 12
           }
@@ -56,7 +56,7 @@ class UserInterface {open : {public UserInterfaceBase}
             tooltip {experimental feature} xywh {35 35 100 20} labelsize 12 hide deactivate divider
           }
           Submenu m_MenuLoadPrevious {
-            label {Open Recent}
+            label {&Open Recent} open
             xywh {5 5 100 20} labelsize 12 divider
           } {
             MenuItem m_MenuLoadPreviousFirst {
@@ -86,238 +86,238 @@ class UserInterface {open : {public UserInterfaceBase}
             }
           }
           Submenu m_MenuSave {
-            label {Save}
+            label {&Save} open
             xywh {20 20 100 20} labelsize 12
           } {
             MenuItem m_MenuSaveGrey {
-              label {Greyscale Image}
+              label {&Greyscale Image...}
               callback {this->OnMenuSaveGrey();}
               tooltip {Save the segmentation results as an image} xywh {40 40 100 20} labelsize 12 deactivate divider
             }
             MenuItem m_MenuSavePreprocessed {
-              label {Preprocessed Image}
+              label {&Preprocessed Image...}
               callback {this->OnMenuSavePreprocessed();}
               xywh {40 40 100 20} shortcut 0x50070 labelsize 12 deactivate
             }
             MenuItem m_MenuSaveGreyROI {
-              label {Greyscale Image Region}
+              label {Greyscale Image &Region...}
               callback {this->OnMenuSaveGreyROI();}
               xywh {40 40 100 20} shortcut 0x50072 labelsize 12 deactivate
             }
             MenuItem m_MenuSaveLevelSet {
-              label {Level Set Function}
+              label {&Level Set Function...}
               callback {this->OnMenuSaveLevelSet();}
               tooltip {Save the floating-point level set function during segmentation} xywh {50 50 100 20} shortcut 0x5006c labelsize 12 deactivate divider
             }
             MenuItem m_MenuSaveVoxelCounts {
-              label {Volumes && Statistics}
+              label {&Volumes && Statistics...}
               callback {this->OnMenuWriteVoxelCounts();}
               xywh {10 10 100 20} shortcut 0x50076 labelsize 12 deactivate
             }
           }
           Submenu m_MenuExport {
-            label {Export}
+            label {&Export} open
             xywh {20 20 100 20} labelsize 12 divider
           } {
             Submenu m_MenuExportSlice {
-              label {Slice}
+              label {&Image Slice} open
               xywh {0 0 100 20} labelsize 12 deactivate
             } {
               MenuItem m_MenuExportSliceAxial {
-                label {Axial}
+                label {&Axial...}
                 callback {OnMenuExportSlice(0);}
                 xywh {50 50 100 20} labelsize 12
               }
               MenuItem m_MenuExportSliceSagittal {
-                label {Sagittal}
+                label {&Sagittal...}
                 callback {OnMenuExportSlice(1);}
                 xywh {60 60 100 20} labelsize 12
               }
               MenuItem m_MenuExportSliceCoronal {
-                label {Colornal}
+                label {&Coronal...}
                 callback {OnMenuExportSlice(2);}
                 xywh {70 70 100 20} labelsize 12
               }
             }
             Submenu m_MenuSaveScreenshot {
-              label Screenshot open
+              label {&Screenshot} open
               xywh {10 10 100 20} labelsize 12 deactivate
             } {
               MenuItem m_MenuSaveScreenshotAxial {
-                label {Axial}
+                label {&Axial...}
                 callback {OnMenuSaveScreenshot(0);}
                 xywh {50 50 100 20} labelsize 12
               }
               MenuItem m_MenuSaveScreenshotSaggital {
-                label {Saggital}
+                label {&Sagittal...}
                 callback {OnMenuSaveScreenshot(1);}
                 xywh {50 50 100 20} labelsize 12
               }
               MenuItem m_MenuSaveScreenshotCoronal {
-                label {Coronal}
+                label {&Coronal...}
                 callback {OnMenuSaveScreenshot(2);}
                 xywh {50 50 100 20} labelsize 12
               }
             }
             Submenu m_MenuSaveScreenshotSeries {
-              label {Screenshot Series} open
+              label {Screenshot S&eries} open
               xywh {10 10 100 20} labelsize 12 deactivate divider
             } {
               MenuItem m_MenuSaveScreenshotSeriesAxial {
-                label {Axial}
+                label {&Axial...}
                 callback {OnMenuSaveScreenshotSeries(0);}
                 xywh {50 50 100 20} labelsize 12
               }
               MenuItem m_MenuSaveScreenshotSeriesSaggital {
-                label {Saggital}
+                label {&Sagittal...}
                 callback {OnMenuSaveScreenshotSeries(1);}
                 xywh {50 50 100 20} labelsize 12
               }
               MenuItem m_MenuSaveScreenshotSeriesCoronal {
-                label {Coronal}
+                label {&Coronal...}
                 callback {OnMenuSaveScreenshotSeries(2);}
                 xywh {50 50 100 20} labelsize 12
               }
             }
           }
           MenuItem m_MenuResetAll {
-            label {Unload All Images}
+            label {&Unload All Images}
             callback {this->OnMenuResetAll()}
             tooltip Reset xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
           }
           MenuItem {} {
-            label {Quit}
+            label {&Quit}
             callback {this->OnMenuQuit();}
             xywh {45 45 100 20} shortcut 0x40071 labelsize 12
           }
         }
         Submenu {} {
-          label {Segmentation}
+          label {&Segmentation}
           xywh {5 5 100 20} labelsize 12
         } {
           MenuItem m_MenuLoadSegmentation {
-            label {Load From Image}
+            label {&Load From Image...}
             callback {this->OnMenuLoadSegmentation();}
             tooltip {Load a previously created segmentation} xywh {15 15 100 20} shortcut 0x40064 labelsize 12 deactivate
           }
           MenuItem m_MenuNewSegmentation {
-            label {Clear}
+            label {&Clear}
             callback {this->OnMenuNewSegmentation()}
             tooltip {Creates a new empty segmentation} xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
           }
           MenuItem m_MenuSaveSegmentation {
-            label {Save As Image}
+            label {&Save As Image...}
             callback {this->OnMenuSaveSegmentation();}
             tooltip {Save the segmentation results as an image} xywh {30 30 100 20} shortcut 0x40073 labelsize 12 deactivate
           }
           MenuItem m_MenuSaveSegmentationMesh {
-            label {Save As Mesh}
+            label {Save As &Mesh...}
             callback {this->OnMenuSaveSegmentationMesh();}
             tooltip {Save the segmentation results as an image} xywh {40 40 100 20} shortcut 0x5006d labelsize 12 deactivate divider
           }
           MenuItem m_MenuLoadLabels {
-            label {Load Label Descriptions}
+            label {Load Label &Descriptions...}
             callback {this->OnMenuLoadLabels();}
             xywh {25 25 100 20} shortcut 0x4006c labelsize 12
           }
           MenuItem m_MenuSaveLabels {
-            label {Save Label Descriptions}
+            label {Save Label D&escriptions...}
             callback {this->OnMenuSaveLabels();}
             xywh {40 40 100 20} shortcut 0x5006c labelsize 12
           }
         }
         Submenu {} {
-          label {Overlay}
+          label {&Overlay}
           xywh {5 5 100 20} labelsize 12
         } {
           MenuItem m_MenuLoadGreyOverlay {
-            label {Add Greyscale Overlay}
+            label {Add &Greyscale Overlay...}
             callback {this->OnMenuLoadGreyOverlay();}
             tooltip {Load a Grey image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50067 labelsize 12 deactivate
           }
           MenuItem m_MenuUnloadGreyOverlayLast {
-            label {Unload Last Greyscale Overlay}
+            label {&Unload Last Greyscale Overlay}
             callback {this->OnMenuUnloadGreyOverlayLast()}
             tooltip {Unload Last Greyscale Overlay} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
           }
           MenuItem m_MenuUnloadGreyOverlays {
-            label {Unload All Greyscale Overlays}
+            label {Unload &All Greyscale Overlays}
             callback {this->OnMenuUnloadGreyOverlays()}
             tooltip {Unload All Greyscale Overlays} xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
           }
           MenuItem m_MenuLoadRGBOverlay {
-            label {Add RGB Overlay}
+            label {Add &RGB Overlay...}
             callback {this->OnMenuLoadRGBOverlay();}
             tooltip {Load an RGB image on top of an already loaded grayscale image} xywh {15 15 100 20} shortcut 0x50072 labelsize 12 deactivate
           }
           MenuItem m_MenuUnloadRGBOverlayLast {
-            label {Unload Last RGB Overlay}
+            label {U&nload Last RGB Overlay}
             callback {this->OnMenuUnloadRGBOverlayLast()}
             tooltip {Unload Last RGB Overlay} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
           }
           MenuItem m_MenuUnloadRGBOverlays {
-            label {Unload All RGB Overlays}
+            label {Unload A&ll RGB Overlays}
             callback {this->OnMenuUnloadRGBOverlays()}
             tooltip {Unload All RGB Overlays} xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
           }
           MenuItem m_MenuOverlayOptions {
-            label {Adjust Overlay Properties}
+            label {Adjust Overlay &Properties...}
             callback {OnMenuShowOverlayOptions()}
             tooltip {Adjust the properties of the overlays} xywh {0 0 31 20} labelsize 12 deactivate
           }
         }
         Submenu {} {
-          label {Tools}
+          label {&Tools}
           xywh {5 5 100 20} labelsize 12
         } {
-          MenuItem {} {
-            label {Display Options}
-            callback {OnMenuShowDisplayOptions();}
-            xywh {5 5 100 20} labelsize 12 divider
-          }
           MenuItem m_MenuImageInfo {
-            label {Image Info}
+            label {&Image Info...}
             callback {this->OnMenuImageInfo();}
             xywh {5 5 100 20} labelsize 12
           }
           MenuItem m_MenuIntensityCurve {
-            label {Image Contrast}
+            label {Image &Contrast...}
             callback {this->OnMenuIntensityCurve();}
             xywh {15 15 100 20} shortcut 0x40069 labelsize 12 deactivate
           }
           MenuItem m_MenuReorientImage {
-            label {Reorient Image}
+            label {&Reorient Image...}
             callback {this->OnMenuReorientImage();}
             tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {15 15 100 20} labelsize 12 divider
           }
+          MenuItem {} {
+            label {&Display Options...}
+            callback {OnMenuShowDisplayOptions();}
+            xywh {5 5 100 20} labelsize 12
+          }
         }
         Submenu {} {
-          label {Help} open
+          label {&Help} open
           xywh {0 0 100 20} labelsize 12
         } {
           MenuItem {} {
-            label {Help Index}
-            callback {this->OnLaunchTutorialAction();}
+            label {&Help Index...}
+            callback {fl_open_uri("http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.HomePage");}
             xywh {30 30 100 20} shortcut 0xffbe labelsize 12
           }
           MenuItem {} {
-            label {Keyboard shortcuts}
-            callback {this->ShowHTMLPage("Shortcuts.html");}
+            label {&Keyboard shortcuts...}
+            callback {fl_open_uri("http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.KeyboardShortcuts");}
             xywh {40 40 100 20} labelsize 12
           }
           MenuItem {} {
-            label {Credits}
-            callback {this->ShowHTMLPage("Credits.html");}
+            label {&Credits...}
+            callback {fl_open_uri("http://www.itksnap.org/pmwiki/pmwiki.php?n=Credits");}
             xywh {20 20 100 20} shortcut 0x1ffbe labelsize 12
           }
           MenuItem {} {
-            label {About}
+            label {&About...}
             callback {m_WinAbout->show();}
             xywh {30 30 100 20} labelsize 12
           }
           MenuItem {} {
-            label {Check for Updates}
-            callback {this->OnMenuCheckForUpdate();}
+            label {Check for &Updates...}
+            callback {this->OnMenuCheckForUpdate();} selected
             tooltip {Connect to the ITK-SNAP server to check if your version is up to date.} xywh {50 50 100 20} labelsize 12
           }
         }
@@ -978,7 +978,7 @@ this->OnSNAPLabelOpacityChange();}
           }
         }
         Fl_Group {} {
-          label Spacer selected
+          label Spacer
           xywh {0 730 145 5} color 53 labeltype NO_LABEL resizable
         } {}
       }
@@ -1553,8 +1553,9 @@ this->OnSNAPLabelOpacityChange();}
       }
     }
     Fl_Window m_WinAbout {
-      label {About ITK-SNAP}
-      xywh {675 299 433 224} type Double hide
+      label {About ITK-SNAP} open
+      xywh {675 299 433 197} type Double
+      code0 {\#include "FL/filename.H"} visible
     } {
       Fl_Group {} {open
         image {Artwork/logo_new.gif} xywh {6 5 420 155} color 0 align 16
@@ -1566,20 +1567,12 @@ Build Date X.XX} open
       } {}
       Fl_Group {} {
         label {ITK-SNAP on the web:} open
-        xywh {65 170 135 30} labelsize 12 align 21
+        xywh {10 170 185 20} labelsize 12 align 24
       } {}
-      Fl_Group {} {
-        label {http://www.itksnap.org} open
-        xywh {210 170 185 30} labelfont 1 labelsize 12 labelcolor 136 align 21
-      } {}
-      Fl_Group {} {
-        label {User support forum:} open
-        xywh {65 195 135 30} labelsize 12 align 21
-      } {}
-      Fl_Group {} {
-        label {http://www.itksnap.org/bb} open
-        xywh {210 195 185 30} labelfont 1 labelsize 12 labelcolor 136 align 21
-      } {}
+      Fl_Button {} {
+        label {http://www.itksnap.org}
+        xywh {200 170 220 20} box BORDER_FRAME down_box BORDER_FRAME color 176 selection_color 176 labelsize 12 labelcolor 176
+      }
     }
     Fl_Window m_WinConfirmDiscard {
       label {Discard Unsaved Changes?}
