@@ -527,7 +527,7 @@ ADD_LIBRARY(itksnapui ${UI_CXX} ${UI_HEADERS} ${itksnapui_FLTK_UI_SRCS})
 # build accurately (at least on MacOS) without the following
 # two lines
 TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS})
-TARGET_LINK_LIBRARIES(itksnapui itksnaplogic fltk_native_file_chooser ${SNAP_EXTERNAL_LIBS})
+TARGET_LINK_LIBRARIES(itksnapui itksnaplogic ${SNAP_EXTERNAL_LIBS})
 
 # Designate the SNAP internal libraries
 SET(SNAP_INTERNAL_LIBS itksnapui itksnaplogic)
@@ -543,6 +543,7 @@ ITK_DISABLE_FLTK_GENERATED_WARNINGS("${APPLICATION_FLUIDS}")
 # Define the main SNAP executable
 ADD_EXECUTABLE(${SNAP_EXE} WIN32 UserInterface/SNAPMain.cxx)
 TARGET_LINK_LIBRARIES(${SNAP_EXE}
+  fltk_native_file_chooser 
   ${SNAP_INTERNAL_LIBS}
   ${SNAP_EXTERNAL_LIBS})
 

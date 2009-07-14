@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:50:04 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2009/07/14 20:41:56 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,7 +38,7 @@
 #include "SNAPBorlandDummyTypes.h"
 #endif
 
-#include "Fl/Fl_Native_File_Chooser.H"
+#include "FL/Fl_Native_File_Chooser.H"
 
 #include "CommandLineArgumentParser.h"
 #include "ImageCoordinateGeometry.h"
@@ -423,6 +423,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.15  2009/07/14 20:41:56  pyushkevich
+ *Making Linux compilation work
+ *
  *Revision 1.14  2009/06/09 05:50:04  garyhuizhang
  *ENH: main image & grey overlay support
  *
