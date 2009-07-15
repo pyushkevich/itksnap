@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/07/15 13:10:12 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -165,8 +165,11 @@ public:
 
 private:
   
-  /** Create an ImageIO object using a registry */
-  void CreateImageIO(Registry &folder, FileFormat &format);
+  /** 
+   * Create an ImageIO object using a registry folder. Second parameter is
+   * true for reading the file, false for writing the file
+   */
+  FileFormat CreateImageIO(const char *fname, Registry &folder, bool read);
 
   /** Templated function that reads a scalar image in its native datatype */
   template <typename TScalar> void ReadFromNative();

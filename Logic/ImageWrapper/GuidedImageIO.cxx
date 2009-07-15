@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/01 21:30:20 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/07/15 13:10:11 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -54,6 +54,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkImageSeriesReader.h"
+#include "itkImageIOFactory.h"
 #include "itkGDCMSeriesFileNames.h"
 
 #include "itkMinimumMaximumImageCalculator.h"
@@ -166,12 +167,12 @@ GuidedImageIOBase::RawIOGenerator<TRaw>
 }
 
 template<typename TPixel>
-void
+GuidedImageIOBase::FileFormat
 GuidedImageIO<TPixel>
-::CreateImageIO(Registry &folder, FileFormat &format)
+::CreateImageIO(const char *fname, Registry &folder, bool flag_read)
 {
   // Get the format specified in the folder
-  format = GetFileFormat(folder);
+  FileFormat format = GetFileFormat(folder);
 
   // Choose the approach based on the file format
   if(format == FORMAT_MHA)
@@ -226,7 +227,14 @@ GuidedImageIO<TPixel>
       throw ExceptionObject("Unknown Pixel Type when reading Raw File");
     }
   else
-    m_IOBase = NULL;
+    {
+    // No IO base was specified in the registry folder. We will use ITK's factory
+    // system to find an IO object that can open the file
+    m_IOBase = itk::ImageIOFactory::CreateImageIO(fname, 
+      flag_read ? itk::ImageIOFactory::ReadMode : itk::ImageIOFactory::WriteMode);
+    }
+
+  return format;
 }
 
 template<typename TPixel>
@@ -335,27 +343,6 @@ GuidedImageIO<TPixel>::ReadAndCastImage()
   // (we have to do it like this to avoid templating problems)
   m_Image = dynamic_cast<ImageType *>(output.GetPointer());
 
-  // Check if voxel spacings need to be regularized
-  typename OutputImageType::DirectionType direction = m_Image->GetDirection();
-  typename OutputImageType::SpacingType spacing = m_Image->GetSpacing();
-  typename OutputImageType::DirectionType factor;
-  factor.SetIdentity();
-  bool needRegularization = false;
-  for (int i = 0; i < 3; ++i)
-    {
-    if (spacing[i] < 0)
-      {
-      spacing[i] *= -1.0;
-	 factor[i][i] *= -1.0;
-	 needRegularization = true;
-      }
-    }
-  if (needRegularization)
-    {
-    direction *= factor;
-    m_Image->SetDirection(direction);
-    m_Image->SetSpacing(spacing);
-    }
   // Store the shift and the scale needed to take the TScalar values 
   // to the TNative values
   m_NativeScale = 1.0 / scale;
@@ -371,6 +358,9 @@ GuidedImageIO<TPixel>
 {
   // These two types are meant to be the same
   assert(typeid(TScalar) == typeid(TPixel));
+
+  // Read image information to determine component type
+  m_IOBase->ReadImageInformation();
 
   // Read image in its native format and cast to the current format
   ImageIOBase::IOComponentType itype = m_IOBase->GetComponentType();
@@ -389,15 +379,7 @@ GuidedImageIO<TPixel>
     default: 
       throw ExceptionObject("Unknown Pixel Type when reading image");
     }
-
-}
-
-
-
-
-
-                 
-
+}                 
 
 template<typename TPixel>
 typename GuidedImageIO<TPixel>::ImageType*
@@ -408,8 +390,9 @@ GuidedImageIO<TPixel>
   m_NativeScale = 1.0; m_NativeShift = 0.0;
 
   // Create the header corresponding to the current image type
-  FileFormat format;
-  CreateImageIO(folder, format);
+  FileFormat format = CreateImageIO(FileName, folder, true);
+  if(!m_IOBase)
+    throw ExceptionObject("Unsupported image file type");
 
   // There is a special handler for the DICOM case!
   if(format == FORMAT_DICOM)
@@ -457,21 +440,12 @@ GuidedImageIO<TPixel>
     } 
   else
     {
-    // Try reading the file in our own format 
-    typedef ImageFileReader<ImageType> ReaderType;
-    typename ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName(FileName);
-    if(m_IOBase)
-      reader->SetImageIO(m_IOBase);
-    reader->Update();
-
-    // If the internal format does not match, try native read
-    m_Image = reader->GetOutput();
-    m_IOBase = reader->GetImageIO();
-
-    // If we are asked to read in native format
-    if(flagCastFromNative && m_IOBase->GetComponentTypeInfo() != typeid(TPixel) )
+    // If we are asked to read in native format and native format does not match TPixel
+    if(flagCastFromNative)
       {
+      // Set the filename in the image IO
+      m_IOBase->SetFileName(FileName);
+
       // Select the right templated function
       if     (typeid(TPixel) == typeid( unsigned char)) this->ReadFromNative< unsigned char>();
       else if(typeid(TPixel) == typeid(   signed char)) this->ReadFromNative<   signed char>();
@@ -483,10 +457,43 @@ GuidedImageIO<TPixel>
       else if(typeid(TPixel) == typeid(   signed long)) this->ReadFromNative<   signed long>();
       else assert(0);
       }
+    else
+      {
+      // We are not reading in native format
+      typedef ImageFileReader<ImageType> ReaderType;
+      typename ReaderType::Pointer reader = ReaderType::New();
+      reader->SetFileName(FileName);
+      reader->SetImageIO(m_IOBase);
+      reader->Update();
+      m_Image = reader->GetOutput();
+      }   
     }
 
   // Disconnect the image from the readers, allowing them to be deleted
   m_Image->DisconnectPipeline();
+
+  // Sometimes images have negative voxel spacing, which SNAP does not recognize
+  // Check if voxel spacings need to be regularized
+  typename ImageType::DirectionType direction = m_Image->GetDirection();
+  typename ImageType::SpacingType spacing = m_Image->GetSpacing();
+  typename ImageType::DirectionType factor;
+  factor.SetIdentity();
+  bool needRegularization = false;
+  for (int i = 0; i < 3; ++i)
+    {
+    if (spacing[i] < 0)
+      {
+      spacing[i] *= -1.0;
+      factor[i][i] *= -1.0;
+      needRegularization = true;
+      }
+    }
+  if (needRegularization)
+    {
+    direction *= factor;
+    m_Image->SetDirection(direction);
+    m_Image->SetSpacing(spacing);
+    }
 
   // Return the image pointer
   return m_Image;
@@ -514,8 +521,7 @@ GuidedImageIO<TPixel>
 ::SaveImage(const char *FileName, Registry &folder, ImageType *image)
 {
   // Create an Image IO based on the folder
-  FileFormat format;
-  CreateImageIO(folder, format);
+  FileFormat format = CreateImageIO(FileName, folder, false);
 
   // Save the image
   typedef ImageFileWriter<ImageType> WriterType;
