@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/13 17:26:24 $
-  Version:   $Revision: 1.72 $
+  Date:      $Date: 2009/07/15 21:35:44 $
+  Version:   $Revision: 1.73 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -4217,9 +4217,9 @@ void UserInterfaceLogic
     {
     const char *fName = chooser.filename();
     if (fName && strlen(fName))
-	 {
+	    {
       m_Driver->ExportSlice((AnatomicalDirection) iSlice, fName);
-	 }
+	    }
     }
 }
 
@@ -5026,6 +5026,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.73  2009/07/15 21:35:44  pyushkevich
+ *Fixed bug with export image slice saving wrong anatomical direction
+ *
  *Revision 1.72  2009/07/13 17:26:24  pyushkevich
  *Fixed crash on Win32
  *

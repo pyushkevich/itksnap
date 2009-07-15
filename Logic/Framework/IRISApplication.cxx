@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 20:43:17 $
-  Version:   $Revision: 1.22 $
+  Date:      $Date: 2009/07/15 21:35:44 $
+  Version:   $Revision: 1.23 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -832,10 +832,18 @@ IRISApplication
   // Get the slice index in image coordinates
   size_t iSliceImg = 
     GetImageDirectionForAnatomicalDirection(iSliceAnat);
-  
-  // Get the grey slice
-  GreyImageWrapper::DisplaySlicePointer imgGrey = 
-    m_CurrentImageData->GetGrey()->GetDisplaySlice(iSliceImg);
+
+  // Find the slicer that slices along that direction
+  GreyImageWrapper::DisplaySlicePointer imgGrey = NULL;
+  for(size_t i = 0; i < 3; i++)
+    {
+    if(iSliceImg == m_CurrentImageData->GetGrey()->GetSlicer(i)->GetSliceDirectionImageAxis())
+      {
+      imgGrey = m_CurrentImageData->GetGrey()->GetDisplaySlice(i);
+      break;
+      }
+    }
+  assert(imgGrey);
 
   // Flip the image in the Y direction
   typedef itk::FlipImageFilter<GreyImageWrapper::DisplaySliceType> FlipFilter;
