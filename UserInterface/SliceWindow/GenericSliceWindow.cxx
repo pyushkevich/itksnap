@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 04:55:45 $
-  Version:   $Revision: 1.22 $
+  Date:      $Date: 2009/07/16 22:02:28 $
+  Version:   $Revision: 1.23 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -77,17 +77,17 @@ GenericSliceWindow
   m_IsSliceInitialized = false;
 
   // Initialize the Grey slice texture (not default)
-  m_GreyTexture = new GreyTextureType;
+  m_GreyTexture = new OpenGLSliceTexture;
   m_GreyTexture->SetGlComponents(4);
   m_GreyTexture->SetGlFormat(GL_RGBA);
 
   // Initialize the RGB slice texture (not default)
-  m_RGBTexture = new RGBTextureType;
+  m_RGBTexture = new OpenGLSliceTexture;
   m_RGBTexture->SetGlComponents(4);
   m_RGBTexture->SetGlFormat(GL_RGBA);
   
   // Initialize the Segmentation slice texture (not default)
-  m_LabelRGBTexture = new RGBTextureType;
+  m_LabelRGBTexture = new OpenGLSliceTexture;
   m_LabelRGBTexture->SetGlComponents(4);
   m_LabelRGBTexture->SetGlFormat(GL_RGBA);
 
@@ -149,7 +149,7 @@ GenericSliceWindow
   if (imageData->IsGreyLoaded())
     {
     m_GreyTexture->SetImage(
-      m_ImageData->GetGrey()->GetDisplaySlice(m_Id));
+      m_ImageData->GetGrey()->GetDisplaySlice(m_Id).GetPointer());
     }
 
   // Initialize the RGB slice texture
@@ -248,11 +248,11 @@ GenericSliceWindow
     while (it != m_ImageData->GetGreyOverlays()->end())
       {
       GreyImageWrapper *wrapper = static_cast<GreyImageWrapper *>(*it);
-      GreyTextureType *texture = new GreyTextureType;
+      OpenGLSliceTexture *texture = new OpenGLSliceTexture;
       texture->SetGlComponents(4);
       texture->SetGlFormat(GL_RGBA);
-      texture->SetImage(wrapper->GetDisplaySlice(m_Id));
-	 m_GreyOverlayTextureList.push_back(texture);
+      texture->SetImage(wrapper->GetDisplaySlice(m_Id).GetPointer());
+	    m_GreyOverlayTextureList.push_back(texture);
       it++;
     	 }
     }
@@ -264,11 +264,11 @@ GenericSliceWindow
     while (it != m_ImageData->GetRGBOverlays()->end())
       {
       RGBImageWrapper *wrapper = static_cast<RGBImageWrapper *>(*it);
-      RGBTextureType *texture = new RGBTextureType;
+      OpenGLSliceTexture *texture = new OpenGLSliceTexture;
       texture->SetGlComponents(4);
       texture->SetGlFormat(GL_RGBA);
       texture->SetImage(wrapper->GetDisplaySlice(m_Id));
-	 m_RGBOverlayTextureList.push_back(texture);
+      m_RGBOverlayTextureList.push_back(texture);
       it++;
     	 }
     }
@@ -537,7 +537,7 @@ GenericSliceWindow
   while (textureIt != m_GreyOverlayTextureList.end())
     {
     // Set the interpolation mode to current default
-    GreyTextureType *texture = *textureIt;
+    OpenGLSliceTexture *texture = *textureIt;
     ImageWrapperBase *wrapper = *wrapperIt;
     texture->SetInterpolation(
       m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
@@ -591,7 +591,7 @@ GenericSliceWindow
   while (textureIt != m_RGBOverlayTextureList.end())
     {
     // Set the interpolation mode to current default
-    RGBTextureType *texture = *textureIt;
+    OpenGLSliceTexture *texture = *textureIt;
     ImageWrapperBase *wrapper = *wrapperIt;
     texture->SetInterpolation(
       m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()

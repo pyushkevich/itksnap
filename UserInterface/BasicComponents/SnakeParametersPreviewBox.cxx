@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersPreviewBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 04:23:28 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/07/16 22:02:27 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -48,7 +48,7 @@ SnakeParametersPreviewBox
 : FLTKCanvas(x,y,w,h,label), m_Interactor(this)
 {
   // Initialize the texture object
-  m_Texture = new TextureType();
+  m_Texture = new OpenGLSliceTexture;
   m_Texture->SetGlComponents(4);
   m_Texture->SetGlFormat(GL_RGBA);
 

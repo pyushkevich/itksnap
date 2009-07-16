@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/07/16 22:02:29 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -60,15 +60,6 @@ public:
 
 protected:
 
-  // Texture object type associated with the preprocessing (speed) image
-  typedef OpenGLSliceTexture<RGBAType> SpeedTextureType;
-
-  // Texture object type associated with the active segmentation image
-  typedef OpenGLSliceTexture<RGBAType> SnakeTextureType;
-  
-  // Another texture object type used to display thresholding overlays, etc
-  typedef OpenGLSliceTexture<RGBAType> OverlayTextureType;
-
   // The interaction mode for bubble drawing
   BubblesInteractionMode *m_BubblesMode;
   
@@ -77,13 +68,13 @@ protected:
   SNAPImageData *m_ImageData;
 
   // Preprocessed slice texture object
-  SpeedTextureType *m_SpeedTexture;
+  OpenGLSliceTexture *m_SpeedTexture;
 
   // Segmentation slice texture object
-  SnakeTextureType *m_SnakeTexture;
+  OpenGLSliceTexture *m_SnakeTexture;
 
   // The overlay texture object
-  OverlayTextureType *m_OverlayTexture;
+  OpenGLSliceTexture *m_OverlayTexture;
 
   // Overlay and texture drawing are customized in this class
   void DrawOverlays();

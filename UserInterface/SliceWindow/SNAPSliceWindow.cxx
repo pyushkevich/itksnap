@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/13 17:26:24 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/07/16 22:02:29 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -55,19 +55,19 @@ SNAPSliceWindow
 : GenericSliceWindow(id, parentUI, canvas)
 {
   // Initialize the texture for displaying the speed image
-  m_SpeedTexture = new SpeedTextureType;
+  m_SpeedTexture = new OpenGLSliceTexture;
   m_SpeedTexture->SetGlComponents(4);
   m_SpeedTexture->SetGlFormat(GL_RGBA);
   m_SpeedTexture->SetGlType(GL_UNSIGNED_BYTE);
 
   // Initialize the snake image texture
-  m_SnakeTexture = new SnakeTextureType;
+  m_SnakeTexture = new OpenGLSliceTexture;
   m_SnakeTexture->SetGlComponents(4);
   m_SnakeTexture->SetGlFormat(GL_RGBA);
   m_SnakeTexture->SetGlType(GL_UNSIGNED_BYTE);
 
   // Initialize the overlay texture
-  m_OverlayTexture = new OverlayTextureType;
+  m_OverlayTexture = new OpenGLSliceTexture;
   m_OverlayTexture->SetGlComponents(4);
   m_OverlayTexture->SetGlFormat(GL_RGBA);
   m_OverlayTexture->SetGlType(GL_UNSIGNED_BYTE);
@@ -152,7 +152,7 @@ void SNAPSliceWindow
     assert(m_ImageData->IsSnakeLoaded() && m_ImageSliceIndex >= 0);
 
     // Make sure that the right image is there
-    m_SnakeTexture->SetImage(m_ImageData->GetSnake()->GetDisplaySlice(m_Id));
+    m_SnakeTexture->SetImage(m_ImageData->GetSnake()->GetDisplaySlice(m_Id).GetPointer());
 
     // Paint the grey texture
     m_SnakeTexture->DrawTransparent(m_GlobalState->GetSegmentationAlpha());

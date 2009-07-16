@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   ITK-SNAP
-  Module:    $RCSfile: OpenGLSliceTexture.txx,v $
+  Module:    $RCSfile: OpenGLSliceTexture.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 14:58:30 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/07/16 22:02:28 $
+  Version:   $Revision: 1.1 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -32,8 +32,10 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-template<class TPixel>
-OpenGLSliceTexture<TPixel>
+#include "OpenGLSliceTexture.h"
+
+
+OpenGLSliceTexture
 ::OpenGLSliceTexture()
 {
   // Set to -1 to force a call to 'generate'
@@ -47,31 +49,21 @@ OpenGLSliceTexture<TPixel>
   m_GlFormat = GL_LUMINANCE;
   m_GlType = GL_UNSIGNED_BYTE;
   m_InterpolationMode = GL_NEAREST;
+
+  // Initialize the buffer pointer
+  m_Buffer = NULL;
 }
 
-template<class TPixel>
-OpenGLSliceTexture<TPixel>
+
+OpenGLSliceTexture
 ::~OpenGLSliceTexture()
 {
   if(m_IsTextureInitalized)
     glDeleteTextures(1,&m_TextureIndex);
 }
 
-template<class TPixel>
 void
-OpenGLSliceTexture<TPixel>
-::SetImage(ImagePointer inImage)
-{
-  if(m_Image != inImage)
-  {
-    m_Image = inImage;
-    m_UpdateTime = 0;
-  }
-}
-
-template<class TPixel>
-void
-OpenGLSliceTexture<TPixel>
+OpenGLSliceTexture
 ::SetInterpolation(GLenum interp)
 {
   assert(interp == GL_LINEAR || interp == GL_NEAREST);
@@ -82,9 +74,9 @@ OpenGLSliceTexture<TPixel>
     }
 }
 
-template<class TPixel>
+
 void
-OpenGLSliceTexture<TPixel>
+OpenGLSliceTexture
 ::Update()
 {
   // Better have an image
@@ -134,15 +126,15 @@ OpenGLSliceTexture<TPixel>
 
   // Copy a subtexture of correct size into the image
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, szImage[0], szImage[1],
-    m_GlFormat, m_GlType, m_Image->GetBufferPointer());
+    m_GlFormat, m_GlType, m_Buffer);
 
   // Remember the image's timestamp
   m_UpdateTime = m_Image->GetPipelineMTime();
 }
 
-template<class TPixel>
+
 void
-OpenGLSliceTexture<TPixel>
+OpenGLSliceTexture
 ::Draw(const Vector3d &clrBackground)
 {
   // Update the texture
@@ -181,9 +173,9 @@ OpenGLSliceTexture<TPixel>
   glPopAttrib();
 }
 
-template<class TPixel>
+
 void
-OpenGLSliceTexture<TPixel>
+OpenGLSliceTexture
 ::DrawTransparent(unsigned char alpha)
 {
   // Update the texture

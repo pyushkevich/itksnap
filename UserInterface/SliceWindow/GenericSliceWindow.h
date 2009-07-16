@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/15 01:54:10 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2009/07/16 22:02:28 $
+  Version:   $Revision: 1.20 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -67,7 +67,7 @@ class ZoomPanInteractionMode;
 class ThumbnailInteractionMode;
 
 // Forward reference to Gl texture object
-template <class TPixel> class OpenGLSliceTexture;
+class OpenGLSliceTexture;
 
 
 /**
@@ -285,34 +285,26 @@ protected:
   // default zoom
   unsigned int m_Margin;
 
-  // Grey texture object typedefs
-  typedef OpenGLSliceTexture<GreyImageWrapper::DisplayPixelType> GreyTextureType;
-  typedef OpenGLSliceTexture<LabelType> LabelTextureType;
-
-  // Label texture object typedefs
-  typedef LabelImageWrapper::DisplayPixelType RGBAType;
-  typedef OpenGLSliceTexture<RGBAType> RGBTextureType;
-
   // Grey texture object
-  GreyTextureType *m_GreyTexture;
+  OpenGLSliceTexture *m_GreyTexture;
 
   // Grey overlay texture objects
-  typedef std::list<GreyTextureType *> GreyOverlayTextureList;
+  typedef std::list<OpenGLSliceTexture *> GreyOverlayTextureList;
   typedef GreyOverlayTextureList::iterator GreyOverlayTextureIterator;
   typedef GreyOverlayTextureList::const_iterator GreyOverlayTextureConstIterator;
   GreyOverlayTextureList m_GreyOverlayTextureList;
 
   // RGB texture object
-  RGBTextureType *m_RGBTexture;
+  OpenGLSliceTexture *m_RGBTexture;
 
   // RGB overlay texture objects
-  typedef std::list<RGBTextureType *> RGBOverlayTextureList;
+  typedef std::list<OpenGLSliceTexture *> RGBOverlayTextureList;
   typedef RGBOverlayTextureList::iterator RGBOverlayTextureIterator;
   typedef RGBOverlayTextureList::const_iterator RGBOverlayTextureConstIterator;
   RGBOverlayTextureList m_RGBOverlayTextureList;
 
   // Label texture object
-  RGBTextureType *m_LabelRGBTexture;
+  OpenGLSliceTexture *m_LabelRGBTexture;
 
   // Check whether the thumbnail should be draw or not
   bool IsThumbnailOn();

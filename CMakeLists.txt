@@ -242,6 +242,7 @@ SET(UI_CXX
   UserInterface/SliceWindow/GenericSliceWindow.cxx
   UserInterface/SliceWindow/IRISSliceWindow.cxx
   UserInterface/SliceWindow/GLToPNG.cxx
+  UserInterface/SliceWindow/OpenGLSliceTexture.cxx  
   UserInterface/SliceWindow/PaintbrushInteractionMode.cxx
   UserInterface/SliceWindow/PolygonDrawing.cxx
   UserInterface/SliceWindow/PolygonInteractionMode.cxx
@@ -314,7 +315,6 @@ SET(UI_HEADERS
   UserInterface/SliceWindow/GenericSliceWindow.h
   UserInterface/SliceWindow/IRISSliceWindow.h
   UserInterface/SliceWindow/OpenGLSliceTexture.h
-  UserInterface/SliceWindow/OpenGLSliceTexture.txx
   UserInterface/SliceWindow/PaintbrushInteractionMode.h
   UserInterface/SliceWindow/PolygonDrawing.h
   UserInterface/SliceWindow/PolygonInteractionMode.h

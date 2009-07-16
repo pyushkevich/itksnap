@@ -3,8 +3,8 @@
   Progra_P:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: Window3D.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/02 04:32:46 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/07/16 22:02:29 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -42,6 +42,7 @@
 #include "ImageRayIntersectionFinder.h"
 #include "SNAPAppearanceSettings.h"
 #include "FLTKCanvas.h"
+#include "GenericSliceWindow.h"
 
 #include <FL/glut.H>
 
@@ -1315,6 +1316,9 @@ Window3D
 
 /*
  *$Log: Window3D.cxx,v $
+ *Revision 1.10  2009/07/16 22:02:29  pyushkevich
+ *Made OpenGLTexture non-templated
+ *
  *Revision 1.9  2009/06/02 04:32:46  garyhuizhang
  *ENH: layer support
  *

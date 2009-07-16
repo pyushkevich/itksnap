@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersPreviewBox.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/07/16 22:02:27 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -40,7 +40,7 @@
 #include "SnakeParameters.h"
 #include "itkRGBAPixel.h"
 
-template<class TPixel> class OpenGLSliceTexture;
+class OpenGLSliceTexture;
 class SnakeParametersPreviewPipeline;
 class SnakeParametersUILogic;
 
@@ -82,7 +82,6 @@ protected:
   
   // Texture type for drawing speed images
   typedef itk::RGBAPixel<unsigned char> RGBAType;
-  typedef OpenGLSliceTexture<RGBAType> TextureType;
 
   /** Parent UI */
   SnakeParametersUILogic *m_ParentUI;
@@ -91,7 +90,7 @@ protected:
   SnakeParametersPreviewPipeline *m_Pipeline;
   
   /** A texture object used to store the image */
-  TextureType *m_Texture;
+  OpenGLSliceTexture *m_Texture;
   
   /** Which force is being displayed? */
   DisplayMode m_ForceToDisplay;

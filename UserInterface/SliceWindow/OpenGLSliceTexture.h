@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OpenGLSliceTexture.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 14:58:30 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/07/16 22:02:28 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,6 +35,7 @@
 #ifndef __OpenGLSliceTexture_h_
 #define __OpenGLSliceTexture_h_
 
+#include "SNAPCommon.h"
 #include "SNAPOpenGL.h"
 
 #ifndef _WIN32
@@ -52,12 +53,12 @@
  *
  * The calls to Update will make sure that the texture is up to date.  
  */
-template<class TPixel> class OpenGLSliceTexture 
+class OpenGLSliceTexture 
 {
 public:
   // Image typedefs
-  typedef itk::Image<TPixel,2> ImageType;
-  typedef typename itk::SmartPointer<ImageType> ImagePointer;
+  typedef itk::ImageBase<2> ImageBaseType;
+  typedef itk::SmartPointer<ImageBaseType> ImageBasePointer;
 
   /** Constructor, initializes the texture object */
   OpenGLSliceTexture();
@@ -66,7 +67,16 @@ public:
   virtual ~OpenGLSliceTexture();
   
   /** Pass in a pointer to a 2D image */
-  void SetImage(ImagePointer inImage);
+  template<class TPixel> void SetImage(itk::Image<TPixel,2> *inImage)
+    {
+    if(m_Image != inImage)
+      {
+      m_Image = inImage;
+      m_Image->Update();
+      m_Buffer = inImage->GetBufferPointer();
+      m_UpdateTime = 0;
+      }
+    }
 
   /** Get the dimensions of the texture image, which are powers of 2 */
   irisGetMacro(TextureSize,Vector2ui);
@@ -112,7 +122,10 @@ private:
   Vector2ui m_TextureSize;
 
   // The pointer to the image from which the texture is computed
-  ImagePointer m_Image;
+  ImageBasePointer m_Image;
+
+  // Pointer to the image's data buffer (this should have been provided by ImageBase)
+  void *m_Buffer;
 
   // The texture number (index)
   GLuint m_TextureIndex;
@@ -135,9 +148,5 @@ private:
   // Interpolation mode
   GLenum m_InterpolationMode;
 };
-
-#ifndef ITK_MANUAL_INSTANTIATION
-#include "OpenGLSliceTexture.txx"
-#endif
 
 #endif // __OpenGLSliceTexture_h_
