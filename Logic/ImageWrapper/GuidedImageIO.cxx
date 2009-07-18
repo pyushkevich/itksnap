@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/15 13:10:11 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/07/18 17:09:08 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -521,7 +521,7 @@ GuidedImageIO<TPixel>
 ::SaveImage(const char *FileName, Registry &folder, ImageType *image)
 {
   // Create an Image IO based on the folder
-  FileFormat format = CreateImageIO(FileName, folder, false);
+  CreateImageIO(FileName, folder, false);
 
   // Save the image
   typedef ImageFileWriter<ImageType> WriterType;
