@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/14 20:41:56 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2009/07/22 21:06:24 $
+  Version:   $Revision: 1.16 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -127,18 +127,18 @@ bool FindDataDirectoryInteractive(const char *sExePath, SystemInterface &system)
       string sTitle = "Find a directory that contains file " + sMissingFile;
 
       // Look for the file using a file chooser
-	 Fl_Native_File_Chooser fc;
-	 fc.type(Fl_Native_File_Chooser::BROWSE_FILE);
-	 fc.title(sTitle.c_str());
-	 fc.filter("Directory Token File\t*.txt");
-	 fc.preset_file(sMissingFile.c_str());
-      
+      Fl_Native_File_Chooser fc;
+      fc.type(Fl_Native_File_Chooser::BROWSE_FILE);
+      fc.title(sTitle.c_str());
+      fc.filter("Directory Token File\t*.txt");
+      fc.preset_file(sMissingFile.c_str());
+          
       // Show the file chooser
-	 const char *fName = NULL;
+      const char *fName = NULL;
       if (fc.show())
         {
-	   fName = fc.filename();
-	   }
+        fName = fc.filename();
+        }
       
       // If user hit cancel, continue
       if(!fName || !strlen(fName)) continue;
@@ -294,59 +294,63 @@ int main(int argc, char **argv)
   // Show the splash screen
   ui->ShowSplashScreen();
 
-  // Check if a gray image is specified 
-  const char *fnGrey = NULL, *fnRGB = NULL;
-  if(parseResult.IsOptionPresent("--grey"))
-    fnGrey = parseResult.GetOptionParameter("--grey");
-  else if(iTrailing < argc)
-    fnGrey = argv[iTrailing];
+  // The following situations are possible for main image
+  // itksnap file                       <- load as main image, detect file type
+  // itksnap --gray file                <- load as main image, force gray
+  // itksnap --rgb file                 <- load as main image, force RGB
+  // itksnap --gray file1 --rgb file2   <- error
+  // itksnap --gray file1 file2         <- ignore file2
+  // itksnap --rgb file1 file2          <- ignore file2
+  // itksnap --gray file1 --rgb file2 file3  
+  //                                    <- error
 
-  // Check in an RGB image is specified 
-  if(parseResult.IsOptionPresent("--rgb"))
-    fnRGB = parseResult.GetOptionParameter("--rgb");
-
-  // Load greyscale image
-  if(fnGrey)
+  // Check validity of options
+  if(parseResult.IsOptionPresent("--grey") && parseResult.IsOptionPresent("--rgb"))
     {
-    // Update the splash screen
-    ui->UpdateSplashScreen("Loading grey image...");
-
-    // Try loading the image
-    try 
-      {
-      ui->NonInteractiveLoadGrey(fnGrey);
-      }  
-    catch(itk::ExceptionObject &exc)
-      {
-      cerr << "Error loading file '" << fnGrey << "'" << endl;
-      cerr << "Reason: " << exc << endl;
-      return -1;
-      }
+    cerr << "Error: options --rgb and --grey are mutually exclusive." << endl;
+    return -1;
     }
 
-  if(fnRGB)
+  // Check if a main image file is specified 
+  bool force_grey = false, force_rgb = false;
+  const char *fnMain = NULL;
+  const char *fnGrey = NULL, *fnRGB = NULL, *fnTrailing = NULL;
+  if(parseResult.IsOptionPresent("--grey"))
+    {
+    fnMain = parseResult.GetOptionParameter("--grey");
+    force_grey = true;
+    }
+  else if(parseResult.IsOptionPresent("--rgb")) 
+    {
+    fnMain = parseResult.GetOptionParameter("--rgb");
+    force_rgb = true;
+    }
+  else if(iTrailing < argc)
+    {
+    fnMain = argv[iTrailing];
+    }
+
+  // Load main image file
+  if(fnMain)
     {
     // Update the splash screen
-    ui->UpdateSplashScreen("Loading RGB image...");
+    ui->UpdateSplashScreen("Loading image...");
 
     // Try loading the image
     try 
       {
-      if(fnGrey)
-        ui->NonInteractiveLoadRGBOverlay(fnRGB);
-      else
-        ui->NonInteractiveLoadRGB(fnRGB);
+      ui->NonInteractiveLoadMainImage(fnMain, force_grey, force_rgb);
       }  
     catch(itk::ExceptionObject &exc)
       {
-      cerr << "Error loading file '" << fnRGB << "'" << endl;
+      cerr << "Error loading file '" << fnMain << "'" << endl;
       cerr << "Reason: " << exc << endl;
       return -1;
       }
     }
 
   // If one main image loaded, load segmentation
-  if(fnGrey || fnRGB)
+  if(fnMain)
     {
     // Load the segmentation if supplied
     if(parseResult.IsOptionPresent("--segmentation"))
@@ -423,6 +427,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.16  2009/07/22 21:06:24  pyushkevich
+ *Changed the IO system and wizards, removed templating
+ *
  *Revision 1.15  2009/07/14 20:41:56  pyushkevich
  *Making Linux compilation work
  *

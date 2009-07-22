@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OpenGLSliceTexture.h,v $
   Language:  C++
-  Date:      $Date: 2009/07/16 22:02:28 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/07/22 21:06:24 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -69,13 +69,10 @@ public:
   /** Pass in a pointer to a 2D image */
   template<class TPixel> void SetImage(itk::Image<TPixel,2> *inImage)
     {
-    if(m_Image != inImage)
-      {
-      m_Image = inImage;
-      m_Image->Update();
-      m_Buffer = inImage->GetBufferPointer();
-      m_UpdateTime = 0;
-      }
+    m_Image = inImage;
+    m_Image->GetSource()->UpdateLargestPossibleRegion();
+    m_Buffer = inImage->GetBufferPointer();
+    m_UpdateTime = 0;
     }
 
   /** Get the dimensions of the texture image, which are powers of 2 */

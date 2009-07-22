@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPRegistryIO.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:13 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/07/22 21:06:23 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,7 +41,6 @@
 #include "MeshOptions.h"
 #include "EdgePreprocessingSettings.h"
 #include "ThresholdSettings.h"
-#include "GuidedImageIO.h"
 
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )

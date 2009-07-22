@@ -101,6 +101,7 @@ SET(LOGIC_CXX
   Logic/Framework/UndoDataManager_LabelType.cxx
   Logic/ImageWrapper/GreyImageWrapper.cxx
   Logic/ImageWrapper/GuidedImageIO.cxx
+  Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/LevelSetImageWrapper.cxx
   Logic/ImageWrapper/RGBImageWrapper.cxx
@@ -218,10 +219,8 @@ SET(UI_CXX
   UserInterface/BasicComponents/SnakeParametersPreviewBox.cxx
   UserInterface/BasicComponents/SnakeParametersPreviewPipeline.cxx
   UserInterface/Common/SNAPAppearanceSettings.cxx
-  UserInterface/ImageIOWizard/GreyImageIOWizardLogic.cxx
-  UserInterface/ImageIOWizard/RGBImageIOWizardLogic.cxx
-  UserInterface/ImageIOWizard/PreprocessingImageIOWizardLogic.cxx
-  UserInterface/ImageIOWizard/SegmentationImageIOWizardLogic.cxx
+  UserInterface/ImageIOWizard/ImageIOWizardLogic.cxx
+  UserInterface/ImageIOWizard/RestrictedImageIOWizardLogic.cxx
   UserInterface/MainComponents/AppearanceDialogUILogic.cxx
   UserInterface/MainComponents/HelpViewerLogic.cxx
   UserInterface/MainComponents/IntensityCurveBox.cxx
@@ -271,15 +270,9 @@ SET(UI_HEADERS
   UserInterface/BasicComponents/SnakeParametersPreviewPipeline.h
   UserInterface/Common/SNAPAppearanceSettings.h
   UserInterface/Common/SNAPCommonUI.h
-  UserInterface/ImageIOWizard/GreyImageIOWizardLogic.h
   UserInterface/ImageIOWizard/ImageIOWizardBase.h
   UserInterface/ImageIOWizard/ImageIOWizardLogic.h
-  UserInterface/ImageIOWizard/ImageIOWizardLogic.txx
-  UserInterface/ImageIOWizard/PreprocessingImageIOWizardLogic.h
-  UserInterface/ImageIOWizard/RGBImageIOWizardLogic.h
   UserInterface/ImageIOWizard/RestrictedImageIOWizardLogic.h
-  UserInterface/ImageIOWizard/RestrictedImageIOWizardLogic.txx
-  UserInterface/ImageIOWizard/SegmentationImageIOWizardLogic.h
   UserInterface/MainComponents/AppearanceDialogUIBase.h
   UserInterface/MainComponents/AppearanceDialogUILogic.h
   UserInterface/MainComponents/HelpViewerBase.h

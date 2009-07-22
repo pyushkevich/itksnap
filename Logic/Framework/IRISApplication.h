@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 20:43:17 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/07/22 21:06:24 $
+  Version:   $Revision: 1.17 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -48,6 +48,7 @@ class GenericImageData;
 class IRISImageData;
 class SNAPImageData;
 class MeshExportSettings;
+class GuidedNativeImageIO;
 namespace itk {
   template <class TPixel, unsigned int VDimension> class OrientedImage;
 }
@@ -81,6 +82,9 @@ public:
   typedef itk::OrientedImage<float,3> SpeedImageType;
   typedef itk::Command CommandType;
   typedef UndoDataManager<LabelType> UndoManagerType;
+
+  // The main image can be of these types
+  enum MainImageType { MAIN_SCALAR, MAIN_RGB, MAIN_ANY };
 
   /**
    * Constructor for the IRIS/SNAP application
@@ -117,20 +121,31 @@ public:
    */
   void SetCurrentImageDataToSNAP();
 
+  /** 
+   * Set a new main image for IRIS. This method is called to load either grey or
+   * RGB image data into IRISImageData. The parameter is the GuidedNativeImageIO,
+   * which holds an image in native format. The second parameter specified whether
+   * to force RGB or grey image, or to determine image type based on the data.
+   */
+  MainImageType UpdateIRISMainImage(
+    GuidedNativeImageIO *nativeIO, MainImageType force_type);
+
+  /**
+   * Add an overlay image into IRIS. This method is called to load either grey or
+   * RGB image data into IRISImageData. The parameter is the GuidedNativeImageIO,
+   * which holds an image in native format. The second parameter specified whether
+   * to force RGB or grey image, or to determine image type based on the data.
+   */
+  MainImageType AddIRISOverlayImage(
+    GuidedNativeImageIO *nativeIO, MainImageType force_type);
+
   /**
    * Set a new grey image for the IRIS Image data.  This method is called when the
    * grey image is loaded.  The prerequisite to this method is that the SNAP data
    * not be active (CurrentImageData == IRISImageData).
    */
-  void UpdateIRISGreyImage(
-    GreyImageType *newGreyImage, const GreyTypeToNativeFunctor &native);
-  void UpdateIRISGreyOverlay(
-    GreyImageType *newGreyOverlay, const GreyTypeToNativeFunctor &native);
   void UnloadGreyOverlays();
   void UnloadGreyOverlayLast();
-
-  void UpdateIRISRGBImage(RGBImageType *newRGBImage);
-  void UpdateIRISRGBOverlay(RGBImageType *newRGBOverlay);
   void UnloadRGBOverlays();
   void UnloadRGBOverlayLast();
 
@@ -138,7 +153,7 @@ public:
    * Update the IRIS image data with an external segmentation image (e.g., 
    * loaded from a file).
    */
-  void UpdateIRISSegmentationImage(LabelImageType *newSegmentationImage);
+  void UpdateIRISSegmentationImage(GuidedNativeImageIO *io);
 
   /** 
    * Clear the IRIS segmentation image
@@ -254,18 +269,13 @@ public:
                      Vector3i &hit) const;
 
   /**
-   * This is the most high-level way to load an image in SNAP. This method 
-   * will use whatever prior information exists in image associations to 
-   * load an image based on the filename. The second parameter is the rai
-   * code (orientation), which you can override (i.e., on command line)
+   * Load the main image from file. You can either specify that the main
+   * image is of a given type (grey vs. rgb) or you can let the program 
+   * decide dynamically, based on the number of components in the file
    */
-  void LoadGreyImageFile(const char *filename);
+  MainImageType LoadMainImage(const char *filename, MainImageType force_type);
 
-  /** 
-   * Load the RGB image file (either as main, or as overlay, depending on
-   * whether grey has already been loaded)
-   */
-  void LoadRGBImageFile(const char *filename, const bool isMain = true);
+  MainImageType LoadOverlayImage(const char *filename, MainImageType force_type);
 
   /**
    * This is the most high-level method to load a segmentation image. The

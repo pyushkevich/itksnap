@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/05 04:00:07 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/07/22 21:06:24 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -43,19 +43,25 @@
  * \brief A wizard for loading and saving images whose size and spacing are 
  * restricted by another (in our case, greyscale) image
  */
-template<class TPixel>
-class RestrictedImageIOWizardLogic : public ImageIOWizardLogic<TPixel>
+class RestrictedImageIOWizardLogic : public ImageIOWizardLogic
 {
 public:
-  typedef ImageIOWizardLogic<TPixel> Superclass;
-  typedef typename itk::Size<3> SizeType;
+  typedef itk::ImageBase<3> ImageBaseType;
+  typedef ImageIOWizardLogic Superclass;
+  typedef itk::Size<3> SizeType;
+
+  /** Constructor */
+  RestrictedImageIOWizardLogic();
 
   /** Some extra work is done before displaying the wizard in this method */
   virtual bool DisplayInputWizard(const char *file, const char *type = NULL);
 
   /** Set the main image that provides some metadata for loading the 
    * segmentation image */
-  irisSetMacro(MainImage,ImageWrapperBase *);
+  irisSetMacro(MainImage,ImageBaseType *);
+
+  /** Set a restriction on the number of components */
+  irisSetMacro(NumberOfComponentsRestriction, size_t);
 
 protected:
 
@@ -66,12 +72,14 @@ protected:
   // The image orientation is set to match the orientation of the source image
   virtual void GuessImageOrientation() {};
 
+  // Restriction on the number of components
+  size_t m_NumberOfComponentsRestriction;
+
+
 private:
   /** Main image template */
-  ImageWrapperBase *m_MainImage;
+  ImageBaseType *m_MainImage;
 };
-
-// TXX not included on purporse
 
 #endif
 

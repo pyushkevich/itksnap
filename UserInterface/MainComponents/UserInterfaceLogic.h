@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/18 18:11:24 $
-  Version:   $Revision: 1.34 $
+  Date:      $Date: 2009/07/22 21:06:24 $
+  Version:   $Revision: 1.35 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -49,13 +49,12 @@ class OverlayUILogic;
 class PreprocessingUILogic;
 class RestoreSettingsDialogLogic;
 class SnakeParametersUILogic;
+class ImageIOWizardLogic;
+class RestrictedImageIOWizardLogic;
 class ImageInfoCallbackInterface;
 class LabelEditorUILogic;
 class IRISSliceWindow;
 class SNAPSliceWindow;
-class GreyImageIOWizardLogic;
-class SegmentationImageIOWizardLogic;
-class PreprocessingImageIOWizardLogic;
 class MeshIOWizardUILogic;
 class SliceWindowCoordinator;
 class SimpleFileDialogLogic;
@@ -649,6 +648,9 @@ public:
   void NonInteractiveLoadSegmentation(const char *fname);
   void NonInteractiveLoadLabels(const char *fname);
 
+  // Load main image, whether it's RGB or Gray
+  void NonInteractiveLoadMainImage(const char *fname, bool force_grey, bool force_rgb);
+
   // Update menu of color labels
   // TODO: move this to a separate class in FLTK widget directory
   Fl_Menu_Item *GenerateColorLabelMenu(bool all, bool visible, bool clear);
@@ -839,16 +841,16 @@ private:
   std::string m_MainWindowLabel;
 
   /** Wizard used to load grey image files */
-  GreyImageIOWizardLogic *m_WizGreyIO;
+  ImageIOWizardLogic *m_WizGreyIO;
 
   /** Wizard used to load and save segmentation image files */
-  SegmentationImageIOWizardLogic *m_WizSegmentationIO;
+  RestrictedImageIOWizardLogic *m_WizSegmentationIO;
 
   /** Wizard used to load and save preprocessing image files */
-  PreprocessingImageIOWizardLogic *m_WizPreprocessingIO;
+  RestrictedImageIOWizardLogic *m_WizPreprocessingIO;
 
   /** Wizard used to load and save preprocessing image files */
-  PreprocessingImageIOWizardLogic *m_WizLevelSetIO;
+  RestrictedImageIOWizardLogic *m_WizLevelSetIO;
 
   /** Wizard for 3D mesh export */
   MeshIOWizardUILogic *m_WizMeshExport;
@@ -999,6 +1001,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.35  2009/07/22 21:06:24  pyushkevich
+ *Changed the IO system and wizards, removed templating
+ *
  *Revision 1.34  2009/06/18 18:11:24  garyhuizhang
  *ENH: multisession pan ui support
  *BUGFIX: single session pan working again

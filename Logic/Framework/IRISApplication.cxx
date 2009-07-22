@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/15 21:35:44 $
-  Version:   $Revision: 1.23 $
+  Date:      $Date: 2009/07/22 21:06:24 $
+  Version:   $Revision: 1.24 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,7 +41,7 @@
 #include "IRISApplication.h"
 
 #include "GlobalState.h"
-#include "GuidedImageIO.h"
+#include "GuidedNativeImageIO.h"
 #include "IRISImageData.h"
 #include "IRISVectorTypesToITKConversion.h"
 #include "SNAPImageData.h"
@@ -227,78 +227,6 @@ IRISApplication
       m_SNAPImageData->GetVolumeExtents()));
 }
 
-void 
-IRISApplication
-::UpdateIRISGreyImage(GreyImageType *newGreyImage, 
-                      const GreyTypeToNativeFunctor &native)
-{
-  // This has to happen in 'pure' IRIS mode
-  assert(m_SNAPImageData == NULL);
-
-  // Get the size of the image as a vector of uint
-  Vector3ui size = 
-    to_unsigned_int(
-      Vector3ul(
-        newGreyImage->GetBufferedRegion().GetSize().GetSize()));
-
-  // Compute the new image geometry for the IRIS data
-  ImageCoordinateGeometry icg(
-    newGreyImage->GetDirection().GetVnlMatrix(), m_DisplayToAnatomyRAI, size);
-
-  // Update the image information in m_Driver->GetCurrentImageData()
-  m_IRISImageData->SetGreyImage(newGreyImage, icg, native);    
-
-  // Update the crosshairs position
-  Vector3ui cursor = size;
-  cursor /= 2;
-  m_IRISImageData->SetCrosshairs(cursor);
-
-  // TODO: Unify this!
-  m_GlobalState->SetCrosshairsPosition(cursor);
-
-  // Update the preprocessing settings in the global state
-  m_GlobalState->SetEdgePreprocessingSettings(
-    EdgePreprocessingSettings::MakeDefaultSettings());
-  m_GlobalState->SetThresholdSettings(
-    ThresholdSettings::MakeDefaultSettings(
-      m_IRISImageData->GetGrey()));
-
-  // Reset the UNDO manager
-  m_UndoManager.Clear();
-}
-
-void 
-IRISApplication
-::UpdateIRISRGBImage(RGBImageType *newRGBImage)
-{
-  // This has to happen in 'pure' IRIS mode
-  assert(m_SNAPImageData == NULL);
-
-  // Get the size of the image as a vector of uint
-  Vector3ui size = 
-    to_unsigned_int(
-      Vector3ul(
-        newRGBImage->GetBufferedRegion().GetSize().GetSize()));
-
-  // Compute the new image geometry for the IRIS data
-  ImageCoordinateGeometry icg(
-    newRGBImage->GetDirection().GetVnlMatrix(),
-    m_DisplayToAnatomyRAI, size);
-  
-  // Update the image information in m_Driver->GetCurrentImageData()
-  m_IRISImageData->SetRGBImage(newRGBImage,icg);
-  
-  // Update the crosshairs position
-  Vector3ui cursor = size;
-  cursor /= 2;
-  m_IRISImageData->SetCrosshairs(cursor);
-  
-  // TODO: Unify this!
-  m_GlobalState->SetCrosshairsPosition(cursor);
-
-  // Reset the UNDO manager
-  m_UndoManager.Clear();
-}
 
 void 
 IRISApplication
@@ -338,23 +266,6 @@ IRISApplication
 
 void
 IRISApplication
-::UpdateIRISGreyOverlay(GreyImageType *newGreyOverlay,
-                        const GreyTypeToNativeFunctor &native)
-{
-  // This has to happen in 'pure' IRIS mode
-  assert(m_SNAPImageData == NULL);
-  assert(m_IRISImageData->IsMainLoaded());
-
-  // Update the iris data
-  m_IRISImageData->SetGreyOverlay(newGreyOverlay, native);
-
-  // for overlay, we don't want to change the cursor location
-  // just force the IRISSlicer to update
-  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
-}
-
-void
-IRISApplication
 ::UnloadGreyOverlays()
 {
   // unload all the grey overlays
@@ -377,21 +288,6 @@ IRISApplication
   m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
 }
 
-void
-IRISApplication
-::UpdateIRISRGBOverlay(RGBImageType *newRGBOverlay)
-{
-  // This has to happen in 'pure' IRIS mode
-  assert(m_SNAPImageData == NULL);
-  assert(m_IRISImageData->IsMainLoaded());
-
-  // Update the iris data
-  m_IRISImageData->SetRGBOverlay(newRGBOverlay);
-
-  // for overlay, we don't want to change the cursor location
-  // just force the IRISSlicer to update
-  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
-}
 
 void
 IRISApplication
@@ -438,13 +334,22 @@ IRISApplication
 
 void
 IRISApplication
-::UpdateIRISSegmentationImage(LabelImageType *newSegmentationImage)
+::UpdateIRISSegmentationImage(GuidedNativeImageIO *io)
 {
   // This has to happen in 'pure' IRIS mode
   assert(m_SNAPImageData == NULL);
 
+  // Cast the image to label type
+  CastNativeImageToScalar<LabelType> caster;
+  LabelImageType::Pointer imgLabel = caster(io);
+  
+  // The header of the label image is made to match that of the grey image
+  imgLabel->SetOrigin(m_CurrentImageData->GetMain()->GetImageBase()->GetOrigin());
+  imgLabel->SetSpacing(m_CurrentImageData->GetMain()->GetImageBase()->GetSpacing());
+  imgLabel->SetDirection(m_CurrentImageData->GetMain()->GetImageBase()->GetDirection());
+
   // Update the iris data
-  m_IRISImageData->SetSegmentationImage(newSegmentationImage); 
+  m_IRISImageData->SetSegmentationImage(imgLabel); 
 
   // Update the color labels, so that for every label in the image
   // there is a valid color label
@@ -1229,31 +1134,164 @@ IRISApplication
   return 0;
 }
 
-void 
+IRISApplication::MainImageType
 IRISApplication
-::LoadGreyImageFile(const char *filename)
+::AddIRISOverlayImage(GuidedNativeImageIO *io, MainImageType force_type)
+{
+  assert(m_SNAPImageData == NULL);
+  assert(m_IRISImageData->IsMainLoaded());
+  assert(io->IsNativeImageLoaded());
+
+  // If the input type is 'ANY', determine based on number of components
+  MainImageType type = (force_type == MAIN_ANY)
+    ? (io->GetNumberOfComponentsInNativeImage() == 3 ? MAIN_RGB : MAIN_SCALAR)
+    : force_type;
+
+  // Cast the native image to desired format and pass on to IRISImageData
+  if(type == MAIN_SCALAR)
+    {
+    // Rescale the image to grey
+    RescaleNativeImageToScalar<GreyType> rescaler;
+    GreyImageType::Pointer imgGrey = rescaler(io);
+    GreyTypeToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
+
+    // Add the image as the current grayscale overlay
+    m_IRISImageData->SetGreyOverlay(imgGrey, mapper);
+    }
+  else if(type == MAIN_RGB)
+    {
+    // Cast image to RGB
+    CastNativeImageToRGB<RGBType> caster;
+    RGBImageType::Pointer imgRGB = caster(io);
+
+    // Add the image as the current RGB overlay
+    m_IRISImageData->SetRGBOverlay(imgRGB);
+    }
+  else throw ExceptionObject("Unsupported overlay image type");
+
+  // for overlay, we don't want to change the cursor location
+  // just force the IRISSlicer to update
+  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // Return the type loaded as
+  return type;
+}
+
+IRISApplication::MainImageType
+IRISApplication
+::UpdateIRISMainImage(GuidedNativeImageIO *io, MainImageType force_type)
+  {
+  // This has to happen in 'pure' IRIS mode
+  assert(m_SNAPImageData == NULL);
+
+  // If the input type is 'ANY', determine based on number of components
+  MainImageType type = (force_type == MAIN_ANY)
+    ? (io->GetNumberOfComponentsInNativeImage() == 3 ? MAIN_RGB : MAIN_SCALAR)
+    : force_type;
+
+  // Get the size of the image as a vector of uint
+  Vector3ui size = to_unsigned_int(Vector3ul(
+    io->GetNativeImage()->GetBufferedRegion().GetSize().GetSize()));
+
+  // Compute the new image geometry for the IRIS data
+  ImageCoordinateGeometry icg(
+    io->GetNativeImage()->GetDirection().GetVnlMatrix(), m_DisplayToAnatomyRAI, size);
+
+  // Cast the native image to desired format and pass on to IRISImageData
+  if(type == MAIN_SCALAR)
+    {
+    // Rescale the image to grey
+    RescaleNativeImageToScalar<GreyType> rescaler;
+    GreyImageType::Pointer imgGrey = rescaler(io);
+    GreyTypeToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
+
+    // Set the image as the current grayscale image
+    m_IRISImageData->SetGreyImage(imgGrey, icg, mapper); 
+
+    // Update the preprocessing settings in the global state
+    m_GlobalState->SetEdgePreprocessingSettings(
+      EdgePreprocessingSettings::MakeDefaultSettings());
+    m_GlobalState->SetThresholdSettings(
+      ThresholdSettings::MakeDefaultSettings(
+        m_IRISImageData->GetGrey()));
+    }
+  else if(type == MAIN_RGB)
+    {
+    CastNativeImageToRGB<RGBType> caster;
+    RGBImageType::Pointer imgRGB = caster(io);
+    m_IRISImageData->SetRGBImage(imgRGB,icg);
+    }
+  else throw ExceptionObject("Unsupported main image type");
+
+  // Update the crosshairs position
+  Vector3ui cursor = size;
+  cursor /= 2;
+  m_IRISImageData->SetCrosshairs(cursor);
+
+  // TODO: Unify this!
+  m_GlobalState->SetCrosshairsPosition(cursor);
+
+  // Reset the UNDO manager
+  m_UndoManager.Clear();
+
+  return type;
+}
+
+IRISApplication::MainImageType 
+IRISApplication
+::LoadMainImage(const char *filename, MainImageType force_type)
 {
   // Load the settings associated with this file
   Registry regFull;
   m_SystemInterface->FindRegistryAssociatedWithFile(filename, regFull);
     
   // Get the folder dealing with grey image properties
-  Registry &regGrey = regFull.Folder("Files.Grey");
+  Registry &folder = regFull.Folder("Files.Grey");
 
-  // Create the image reader
-  GuidedImageIO<GreyType> io;
-  
-  // Load the image (exception may occur here)
-  GreyImageType::Pointer imgGrey = io.ReadImage(filename, regGrey, true);
+  // Create a native image IO object
+  GuidedNativeImageIO io;
+  io.ReadNativeImage(filename, folder);
 
-  // Set the image as the current grayscale image
-  UpdateIRISGreyImage(imgGrey, 
-    GreyTypeToNativeFunctor(io.GetNativeScale(), io.GetNativeShift()));
+  // Detemine the type
+  MainImageType type = UpdateIRISMainImage(&io, force_type);
+  if(type == MAIN_SCALAR)
+    {
+    // Save the filename for the UI
+    m_GlobalState->SetGreyFileName(filename);  
+    }
+  else if(type == MAIN_RGB)
+    {
+    m_GlobalState->SetRGBFileName(filename);  
+    }
+  else throw ExceptionObject("Unsupported main image type");
 
-  // Save the filename for the UI
-  m_GlobalState->SetGreyFileName(filename);  
+  return type;
 }
 
+IRISApplication::MainImageType 
+IRISApplication
+::LoadOverlayImage(const char *filename, MainImageType force_type)
+{
+  // Load the settings associated with this file
+  Registry regFull;
+  m_SystemInterface->FindRegistryAssociatedWithFile(filename, regFull);
+    
+  // Get the folder dealing with grey image properties
+  Registry &folder = regFull.Folder("Files.Grey");
+
+  // Create a native image IO object
+  GuidedNativeImageIO io;
+  io.ReadNativeImage(filename, folder);
+
+  // Detemine the type
+  return AddIRISOverlayImage(&io, force_type);
+}
+
+
+
+
+
+/*
 void
 IRISApplication
 ::LoadRGBImageFile(const char *filename, const bool isMain)
@@ -1285,6 +1323,7 @@ IRISApplication
   // Save the filename for the UI
   m_GlobalState->SetRGBFileName(filename);  
 }
+*/
 
 void 
 IRISApplication
@@ -1298,19 +1337,12 @@ IRISApplication
   // TODO: Figure out something about this!!!
   Registry &regGrey = regFull.Folder("Files.Grey");
 
-  // Create the image reader
-  GuidedImageIO<LabelType> io;
-
-  // Load the image (exception may occur here)
-  LabelImageType::Pointer imgLabel = io.ReadImage(filename, regGrey, false);
-
-  // The header of the label image is made to match that of the grey image
-  imgLabel->SetOrigin(m_CurrentImageData->GetGrey()->GetImage()->GetOrigin());
-  imgLabel->SetSpacing(m_CurrentImageData->GetGrey()->GetImage()->GetSpacing());
-  imgLabel->SetDirection(m_CurrentImageData->GetGrey()->GetImage()->GetDirection());
+  // Read the image in native format
+  GuidedNativeImageIO io;
+  io.ReadNativeImage(filename, regGrey);
 
   // Set the image as the current grayscale image
-  UpdateIRISSegmentationImage(imgLabel);
+  UpdateIRISSegmentationImage(&io);
 
   // Save the filename for the UI
   m_GlobalState->SetSegmentationFileName(filename);

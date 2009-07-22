@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/15 21:35:44 $
-  Version:   $Revision: 1.73 $
+  Date:      $Date: 2009/07/22 21:06:24 $
+  Version:   $Revision: 1.74 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -57,6 +57,7 @@
 #include "IRISImageData.h"
 #include "IRISVectorTypesToITKConversion.h"
 #include "LabelEditorUILogic.h"
+#include "RestrictedImageIOWizardLogic.h"
 #include "SNAPImageData.h"
 #include "SNAPLevelSetDriver.h"
 #include "SNAPRegistryIO.h"
@@ -66,18 +67,15 @@
 #include "SNAPSliceWindow.h"
 #include "Window3D.h"
 
+
 // Additional UI component inludes
 #include "AppearanceDialogUILogic.h"
 #include "HelpViewerLogic.h"
 #include "PreprocessingUILogic.h"
 #include "SnakeParametersUILogic.h"
-#include "GreyImageIOWizardLogic.h"
-#include "RGBImageIOWizardLogic.h"
-#include "PreprocessingImageIOWizardLogic.h"
 #include "ResizeRegionDialogLogic.h"
 #include "RestoreSettingsDialogLogic.h"
 #include "ReorientImageUILogic.h"
-#include "SegmentationImageIOWizardLogic.h"
 #include "MeshIOWizardUILogic.h"
 #include "SimpleFileDialogLogic.h"
 #include "SliceWindowCoordinator.h"
@@ -370,11 +368,17 @@ UserInterfaceLogic
   m_AppearanceSettings->LoadFromRegistry(regAppearance);
 
   // Instantiate the IO wizards
-  m_WizGreyIO = new GreyImageIOWizardLogic; 
-  m_WizSegmentationIO = new SegmentationImageIOWizardLogic;
-  m_WizPreprocessingIO = new PreprocessingImageIOWizardLogic;
-  m_WizLevelSetIO = new PreprocessingImageIOWizardLogic;
+  m_WizGreyIO = new ImageIOWizardLogic; 
+  m_WizSegmentationIO = new RestrictedImageIOWizardLogic;
+  m_WizPreprocessingIO = new RestrictedImageIOWizardLogic;
+  m_WizLevelSetIO = new RestrictedImageIOWizardLogic;
+
   m_WizMeshExport = new MeshIOWizardUILogic;
+
+  // Allow only 3 components
+  m_WizSegmentationIO->SetNumberOfComponentsRestriction(1);
+  m_WizPreprocessingIO->SetNumberOfComponentsRestriction(1);
+  m_WizLevelSetIO->SetNumberOfComponentsRestriction(1); 
 
   // Initialize the Image IO wizards
   m_WizGreyIO->MakeWindow();
@@ -2953,8 +2957,8 @@ UserInterfaceLogic
     else
       {
       m_IRISWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
-	 OnViewPositionsUpdate();
-	 }
+	    OnViewPositionsUpdate();
+	    }
 
     // Get the image axis that corresponds to the display window i
     unsigned int imageAxis = GetImageAxisForDisplayWindow(i);
@@ -3641,6 +3645,62 @@ UserInterfaceLogic
     }
 }
 
+void
+UserInterfaceLogic
+::NonInteractiveLoadMainImage(const char *fname, bool force_grey, bool force_rgb)
+{
+  // Can't force both!
+  assert(!force_grey || !force_rgb);
+
+  // Perform the clean-up tasks before loading the image
+  OnGreyImageUnload();
+
+  // Remember the current toolbar mode
+  ToolbarModeType mode = m_GlobalState->GetToolbarMode();
+ 
+  // Unload all image data
+  UnloadAllImages();
+
+  // Tell the driver to load the main image
+  IRISApplication::MainImageType intype = 
+    force_grey ? IRISApplication::MAIN_SCALAR : 
+    (force_rgb ? IRISApplication::MAIN_RGB : IRISApplication::MAIN_ANY);
+  IRISApplication::MainImageType type = m_Driver->LoadMainImage(fname, intype);
+
+  if(type == IRISApplication::MAIN_SCALAR)
+    {
+    // Update the system's history list
+    m_SystemInterface->UpdateHistory("GreyImage", 
+      itksys::SystemTools::CollapseFullPath(fname).c_str());
+
+    // Save the filename
+    m_GlobalState->SetGreyFileName(fname);
+    m_GlobalState->SetGreyExtension(fname);
+
+    // Update the user interface accordingly
+    OnGreyImageUpdate();
+    }
+  else
+    {
+    // Add the filename to the history
+    m_SystemInterface->UpdateHistory("RGBImage",  
+      itksys::SystemTools::CollapseFullPath(fname).c_str());
+
+    // Save the filename
+    m_GlobalState->SetRGBFileName(fname);
+
+    // Update the user interface accordingly
+    OnRGBImageUpdate();
+    }
+
+  // Recover the toolbar mode
+  SetToolbarMode(mode);
+
+  // Update the history for the main image
+  m_SystemInterface->UpdateHistory("MainImage", 
+    itksys::SystemTools::CollapseFullPath(fname).c_str());
+}
+
 void 
 UserInterfaceLogic
 ::NonInteractiveLoadGrey(const char *fname)
@@ -3655,7 +3715,7 @@ UserInterfaceLogic
   UnloadAllImages();
 
   // Load the image on the logical side
-  m_Driver->LoadGreyImageFile(fname);
+  m_Driver->LoadMainImage(fname, IRISApplication::MAIN_SCALAR);
 
   // Update the system's history list
   m_SystemInterface->UpdateHistory("GreyImage", 
@@ -3701,10 +3761,8 @@ UserInterfaceLogic
     UnloadAllImages();
 
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISGreyImage(m_WizGreyIO->GetLoadedImage(),
-                    GreyTypeToNativeFunctor(
-                        m_WizGreyIO->GetNativeScale(),
-                        m_WizGreyIO->GetNativeShift()));
+    m_Driver->UpdateIRISMainImage(
+      m_WizGreyIO->GetNativeImageIO(), IRISApplication::MAIN_SCALAR);
 
     // Update the system's history list
     m_SystemInterface->UpdateHistory("GreyImage", m_WizGreyIO->GetFileName());
@@ -3733,7 +3791,7 @@ UserInterfaceLogic
   UnloadAllImages();
 
   // Perform the loading on the Logic side
-  m_Driver->LoadRGBImageFile(fname);
+  m_Driver->LoadMainImage(fname, IRISApplication::MAIN_RGB);
 
   // Add the filename to the history
   m_SystemInterface->UpdateHistory("RGBImage",  
@@ -3756,7 +3814,7 @@ UserInterfaceLogic
 ::NonInteractiveLoadRGBOverlay(const char *fname)
 {
   // Send the image and RAI to the IRIS application driver
-  m_Driver->LoadRGBImageFile(fname, false);
+  m_Driver->LoadOverlayImage(fname, IRISApplication::MAIN_RGB);
 
   // Update the system's history list
   m_SystemInterface->UpdateHistory("RGBOverlay",
@@ -3779,8 +3837,11 @@ UserInterfaceLogic
   if(!PromptBeforeLosingChanges(REASON_LOAD_MAIN)) return;
 
   // Create the wizard
-  RGBImageIOWizardLogic wizRGBIO;
+  RestrictedImageIOWizardLogic wizRGBIO;
   wizRGBIO.MakeWindow();
+
+  // Allow only 3 components
+  wizRGBIO.SetNumberOfComponentsRestriction(3);
 
   // Set the history for the input wizard
   wizRGBIO.SetHistory(m_SystemInterface->GetHistory("RGBImage"));
@@ -3799,7 +3860,8 @@ UserInterfaceLogic
     ToolbarModeType mode = m_GlobalState->GetToolbarMode();
  
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISRGBImage(wizRGBIO.GetLoadedImage());
+    m_Driver->UpdateIRISMainImage(
+      wizRGBIO.GetNativeImageIO(), IRISApplication::MAIN_RGB);
 
     // Update the system's history list
     m_SystemInterface->UpdateHistory("RGBImage",wizRGBIO.GetFileName());
@@ -3827,12 +3889,12 @@ UserInterfaceLogic
   assert(!m_GlobalState->GetSNAPActive());
 
   // Create the wizard
-  RestrictedGreyImageIOWizardLogic wizGreyOverlayIO;
+  RestrictedImageIOWizardLogic wizGreyOverlayIO;
   wizGreyOverlayIO.MakeWindow();
 
   // Set up the input wizard with the main image
   wizGreyOverlayIO.SetMainImage(
-    m_Driver->GetCurrentImageData()->GetMain());
+    m_Driver->GetCurrentImageData()->GetMain()->GetImageBase());
 
   // Set the history for the input wizard
   wizGreyOverlayIO.SetHistory(
@@ -3847,10 +3909,8 @@ UserInterfaceLogic
   if(wizGreyOverlayIO.IsImageLoaded())
     {
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISGreyOverlay(wizGreyOverlayIO.GetLoadedImage(),
-                    GreyTypeToNativeFunctor(
-                        wizGreyOverlayIO.GetNativeScale(),
-                        wizGreyOverlayIO.GetNativeShift()));
+    m_Driver->AddIRISOverlayImage(
+      wizGreyOverlayIO.GetNativeImageIO(), IRISApplication::MAIN_SCALAR);
 
     // Update the system's history list
     m_SystemInterface->UpdateHistory("GreyOverlay", wizGreyOverlayIO.GetFileName());
@@ -3905,12 +3965,15 @@ UserInterfaceLogic
   assert(!m_GlobalState->GetSNAPActive());
 
   // Create the wizard
-  RestrictedRGBImageIOWizardLogic wizRGBOverlayIO;
+  RestrictedImageIOWizardLogic wizRGBOverlayIO;
   wizRGBOverlayIO.MakeWindow();
+
+  // Allow only 3 components
+  wizRGBOverlayIO.SetNumberOfComponentsRestriction(3);
 
   // Set up the input wizard with the main image
   wizRGBOverlayIO.SetMainImage(
-    m_Driver->GetCurrentImageData()->GetMain());
+    m_Driver->GetCurrentImageData()->GetMain()->GetImageBase());
 
   // Set the history for the input wizard
   wizRGBOverlayIO.SetHistory(
@@ -3929,7 +3992,11 @@ UserInterfaceLogic
     m_SystemInterface->UpdateHistory("OverlayImage",wizRGBOverlayIO.GetFileName());
 
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISRGBOverlay(wizRGBOverlayIO.GetLoadedImage());
+    m_Driver->AddIRISOverlayImage(
+      wizRGBOverlayIO.GetNativeImageIO(), IRISApplication::MAIN_RGB);
+
+    // Release memory
+    wizRGBOverlayIO.ReleaseImage();
 
     // Save the filename
     m_GlobalState->SetRGBOverlayFileName(wizRGBOverlayIO.GetFileName());
@@ -4278,7 +4345,7 @@ void UserInterfaceLogic
 
   // Set up the input wizard with the grey image
   m_WizSegmentationIO->SetMainImage(
-    m_Driver->GetCurrentImageData()->GetMain());
+    m_Driver->GetCurrentImageData()->GetMain()->GetImageBase());
 
   if(noninteractive)
     {
@@ -4300,7 +4367,10 @@ void UserInterfaceLogic
       "SegmentationImage",m_WizSegmentationIO->GetFileName());
 
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISSegmentationImage(m_WizSegmentationIO->GetLoadedImage());
+    m_Driver->UpdateIRISSegmentationImage(m_WizSegmentationIO->GetNativeImageIO());
+
+    // Discard all image data in the wizard
+    m_WizSegmentationIO->ReleaseImage();
 
     // Save the segmentation file name
     m_GlobalState->SetSegmentationFileName(m_WizSegmentationIO->GetFileName());
@@ -4448,7 +4518,7 @@ UserInterfaceLogic
   
   // Set up the input wizard with the grey image
   m_WizPreprocessingIO->SetMainImage(
-    m_Driver->GetCurrentImageData()->GetMain());
+    m_Driver->GetCurrentImageData()->GetMain()->GetImageBase());
 
   // Load the three advection images as floating point
   bool flagLoadCompleted = true;
@@ -4471,7 +4541,9 @@ UserInterfaceLogic
         "AdvectionImage",m_WizPreprocessingIO->GetFileName());
 
       // Update the application with the new speed image
-      imgAdvection[i] = m_WizPreprocessingIO->GetLoadedImage();
+      CastNativeImageToScalar<float> caster;
+      imgAdvection[i] = caster(m_WizPreprocessingIO->GetNativeImageIO());
+      m_WizPreprocessingIO->ReleaseImage();
 
       // Save the segmentation file name
       m_GlobalState->SetAdvectionFileName(i, m_WizPreprocessingIO->GetFileName());
@@ -4501,7 +4573,7 @@ UserInterfaceLogic
   
   // Set up the input wizard with the grey image
   m_WizPreprocessingIO->SetMainImage(
-    m_Driver->GetCurrentImageData()->GetMain());
+    m_Driver->GetCurrentImageData()->GetMain()->GetImageBase());
 
   // Set the history for the input wizard
   m_WizPreprocessingIO->SetHistory(
@@ -4519,9 +4591,14 @@ UserInterfaceLogic
     m_SystemInterface->UpdateHistory(
       "PreprocessingImage",m_WizPreprocessingIO->GetFileName());
 
+    // Cast image to float
+    CastNativeImageToScalar<float> caster;
+    IRISApplication::SpeedImageType::Pointer imgSpeed = 
+      caster(m_WizPreprocessingIO->GetNativeImageIO());
+    m_WizPreprocessingIO->ReleaseImage();
+
     // Update the application with the new speed image
-    m_Driver->UpdateSNAPSpeedImage(
-      m_WizPreprocessingIO->GetLoadedImage(),
+    m_Driver->UpdateSNAPSpeedImage(imgSpeed,
       m_RadSnakeEdge->value() ? EDGE_SNAKE : IN_OUT_SNAKE);
     
     // Save the segmentation file name
@@ -5026,6 +5103,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.74  2009/07/22 21:06:24  pyushkevich
+ *Changed the IO system and wizards, removed templating
+ *
  *Revision 1.73  2009/07/15 21:35:44  pyushkevich
  *Fixed bug with export image slice saving wrong anatomical direction
  *

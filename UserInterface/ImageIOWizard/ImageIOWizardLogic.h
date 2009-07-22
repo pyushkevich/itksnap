@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/09 17:07:47 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/07/22 21:06:24 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -53,13 +53,11 @@
 #include <string>
 #include <vector>
 
-#include "GuidedImageIO.h"
+#include "GuidedNativeImageIO.h"
 
 class Fl_Text_Buffer;
 namespace itk 
 {
-  template <class TPixel,unsigned int VDimensions> class Image;
-  template <class TPixel,unsigned int VDimensions> class RAWImageIO;
   template <unsigned int VDimensions> class Size;
   template <unsigned int VDimensions> class ImageBase;
   class ImageIOBase;  
@@ -74,7 +72,7 @@ namespace itk
 class ImageInfoCallbackInterface
 {
 public:
-    virtual ~ImageInfoCallbackInterface() {}
+  virtual ~ImageInfoCallbackInterface() {}
   virtual bool FindRegistryAssociatedWithImage(
     const char *file, Registry &registry) = 0;
 
@@ -83,25 +81,21 @@ public:
 };
 
 
+
+
 /**
  * \class ImageIOWizardLogic
  * The implementation of the Image IO Wizard UI class.  This class defines the
  * callbacks in the user interface for the class.  It is templated over the type
  * of the input that is to be procured.
  */
-template <class TPixel>
 class ImageIOWizardLogic : public ImageIOWizard 
 {
 public:
-  // typedef ImageWrapper<TPixel> WrapperType;
-
-  // Image type definition
-  typedef itk::OrientedImage<TPixel, 3> ImageType;
-  typedef typename itk::SmartPointer<ImageType> ImagePointer;
-
+  
   // Image IO type definition
   typedef itk::ImageIOBase ImageIOType;
-  typedef typename itk::SmartPointer<ImageIOType> ImageIOPointer;
+  typedef itk::SmartPointer<ImageIOType> ImageIOPointer;
 
   // Other typedefs
   typedef std::string StringType;
@@ -145,14 +139,6 @@ public:
   // Custom initialization code
   virtual void MakeWindow();
 
-  /**
-   * Get the image that has been loaded by this object
-   */
-  ImageType *GetLoadedImage() 
-  {
-    assert(IsImageLoaded());
-    return m_Image;
-  }  
   
   /**
    * Has the image been loaded successfully?
@@ -168,7 +154,7 @@ public:
    */
   void ReleaseImage()
   {
-    m_Image = NULL;
+    m_GuidedIO.DeallocateNativeImage();
     m_ImageLoaded = false;
   }
 
@@ -183,9 +169,16 @@ public:
 
   /**
    * A method to save an image using the wizard (at this point it's just a one
-   * page wizard 
+   * page wizard. This method is templated over the image type. This is a half-ass
+   * solution, but it's better than having the whole wizard templated over the image
+   * type. 
    */
-  virtual bool DisplaySaveWizard(ImageType *image, const char *file, const char *type = NULL);
+  template<class TPixel> bool DisplaySaveWizard(
+    itk::OrientedImage<TPixel,3> *image, const char *file, const char *type = NULL)
+    {
+    m_SaveCallback = new TypedSaveCallback<TPixel>(this, image);
+    return DisplaySaveWizardImpl(file, type);
+    }
 
   // Non-interactive wizard
   virtual bool NonInteractiveInputWizard(const char *file);
@@ -212,20 +205,38 @@ public:
   void SetImageInfoCallback(ImageInfoCallbackInterface *iCallback)
     { this->m_Callback = iCallback; }
 
-  /** Get the scale and shift used to map image intensity to native space */
-  double GetNativeShift() 
-    { return m_GuidedIO.GetNativeShift(); }
-
-  double GetNativeScale() 
-    { return m_GuidedIO.GetNativeScale(); }
+  /** Get the native image IO */
+  GuidedNativeImageIO *GetNativeImageIO()
+    { return &m_GuidedIO; }
 
 protected:
 
+  // Base class for save callback system.
+  class TypedSaveCallbackBase
+  {
+  public:
+    virtual void Save(const char *fname, Registry &folder) = 0;
+  };
+
+  // Templated class for save callback system.
+  template<class TPixel> class TypedSaveCallback : public TypedSaveCallbackBase
+  {
+  public:
+    typedef itk::OrientedImage<TPixel, 3> ImageType;
+    TypedSaveCallback(ImageIOWizardLogic *client, ImageType *image)
+      : m_Client(client), m_Image(image) {}
+    void Save(const char *fname, Registry &folder)
+      { m_Client->GetNativeImageIO()->SaveImage(fname, folder, m_Image.GetPointer()); }
+  private:
+    ImageIOWizardLogic *m_Client;
+    typename ImageType::Pointer m_Image;
+  };
+
   /** An image being loaded */
-  ImagePointer m_Image;
+  // ImagePointer m_Image;
 
   /** The image IO mechanism */
-  ImageIOPointer m_ImageIO;
+  // ImageIOPointer m_ImageIO;
 
   /** Has the image been loaded? */
   bool m_ImageLoaded;
@@ -240,26 +251,26 @@ protected:
   ImageInfoCallbackInterface *m_Callback;
 
   /** DICOM file names lister */
-  typename itk::SmartPointer<itk::GDCMSeriesFileNames> m_DICOMLister;
+  itk::SmartPointer<itk::GDCMSeriesFileNames> m_DICOMLister;
 
   /** The registry associated with the image currently being considered for loading */
   Registry m_Registry;
 
   /** A guided image IO object used to load images */
-  GuidedImageIO<TPixel> m_GuidedIO;
+  GuidedNativeImageIO m_GuidedIO;
 
   /** Text buffer for one of the summary widgets */
   Fl_Text_Buffer *m_SummaryTextBuffer;
 
   // -- Stuff dealing with file formats --
-  typedef GuidedImageIOBase::FileFormat FileFormat;
-  typedef GuidedImageIOBase::RawPixelType RawPixelType;
+  typedef GuidedNativeImageIO::FileFormat FileFormat;
+  typedef GuidedNativeImageIO::RawPixelType RawPixelType;
 
   /** Extensions for different file formats */
-  StringType m_FileFormatPattern[GuidedImageIOBase::FORMAT_COUNT];
+  StringType m_FileFormatPattern[GuidedNativeImageIO::FORMAT_COUNT];
 
   /** Brief descriptions of different file formats */
-  StringType m_FileFormatDescription[GuidedImageIOBase::FORMAT_COUNT];  
+  StringType m_FileFormatDescription[GuidedNativeImageIO::FORMAT_COUNT];  
   
   /**
    * Allow children to specify which file formats they can and can't save
@@ -270,12 +281,6 @@ protected:
    * Allow children to specify which file formats they can and can't load
    */
   virtual bool CanLoadFileFormat(FileFormat format) const;
-
-  /**
-   * Allow children to specify whether they can support loading images in
-   * native format
-   */
-  virtual bool IsNativeFormatSupported() const = 0;
 
   /**
    * This method should return a string containing the patterns of files
@@ -310,10 +315,13 @@ protected:
   // Check if the image is valid
   virtual bool CheckFinalValidity() 
   {
-    return (m_Image);
+    return (m_GuidedIO.GetNativeImage());
   }
-};
 
-// TXX not included on purpose!
+  // The body of the save method (not templated)
+  virtual bool DisplaySaveWizardImpl(const char *file, const char *type = NULL);
+    
+  TypedSaveCallbackBase *m_SaveCallback;
+};
 
 #endif // __ImageIOWizardLogic_h_
