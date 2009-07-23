@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/22 21:06:24 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/07/23 15:50:59 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -156,8 +156,8 @@ RestrictedImageIOWizardLogic
       fl_alert(
         "The number of components per pixel (%d) in the image you are \n"
         "attempting to load does not match the required number (%d).", 
-        native->GetNumberOfComponentsPerPixel(),
-        m_NumberOfComponentsRestriction); 
+        (int) native->GetNumberOfComponentsPerPixel(),
+        (int) m_NumberOfComponentsRestriction); 
       return false;
       }
     }

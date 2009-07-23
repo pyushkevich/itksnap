@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/07/22 21:06:24 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/07/23 15:50:58 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -215,6 +215,8 @@ protected:
   class TypedSaveCallbackBase
   {
   public:
+    TypedSaveCallbackBase() {}
+    virtual ~TypedSaveCallbackBase() {}
     virtual void Save(const char *fname, Registry &folder) = 0;
   };
 

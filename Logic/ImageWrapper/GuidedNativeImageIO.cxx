@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/22 21:06:24 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/07/23 15:50:58 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -472,8 +472,8 @@ RescaleNativeImageToScalar<TPixel>
   // Special case: native image is the same as target image
   if(typeid(TPixel) == typeid(TNative))
     {
-    OutputImageType::PixelContainer *inbuff = 
-      dynamic_cast<OutputImageType::PixelContainer *>(input->GetPixelContainer());
+    typename OutputImageType::PixelContainer *inbuff = 
+      dynamic_cast<typename OutputImageType::PixelContainer *>(input->GetPixelContainer());
     assert(inbuff);
     m_Output->SetPixelContainer(inbuff);
     m_NativeScale = 1.0;
@@ -663,8 +663,8 @@ CastNativeImageBase<TPixel,TCastFunctor>
   // Special case: native image is the same as target image
   if(typeid(TPixel) == typeid(TNative))
     {
-    OutputImageType::PixelContainer *inbuff = 
-      dynamic_cast<OutputImageType::PixelContainer *>(input->GetPixelContainer());
+    typename OutputImageType::PixelContainer *inbuff = 
+      dynamic_cast<typename OutputImageType::PixelContainer *>(input->GetPixelContainer());
     assert(inbuff);
     m_Output->SetPixelContainer(inbuff);
     return;
@@ -768,3 +768,4 @@ template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Imag
 template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<LabelType,3> *);
 template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<float,3> *);
 template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<RGBType,3> *);
+

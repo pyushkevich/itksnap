@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/22 21:06:24 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/07/23 15:50:58 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1185,3 +1185,4 @@ ImageIOWizardLogic
     m_InSaveFilePageHistory->deactivate();
     }
 }
+

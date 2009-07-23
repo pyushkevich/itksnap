@@ -100,7 +100,6 @@ SET(LOGIC_CXX
   Logic/Framework/SNAPImageData.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
   Logic/ImageWrapper/GreyImageWrapper.cxx
-  Logic/ImageWrapper/GuidedImageIO.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/LevelSetImageWrapper.cxx
@@ -161,7 +160,6 @@ SET(LOGIC_HEADERS
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
   Logic/ImageWrapper/GreyImageWrapper.h
-  Logic/ImageWrapper/GuidedImageIO.h
   Logic/ImageWrapper/ImageIORoutines.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapper.txx

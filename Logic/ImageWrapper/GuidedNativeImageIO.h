@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.h,v $
   Language:  C++
-  Date:      $Date: 2009/07/22 21:06:24 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/07/23 15:50:58 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -89,6 +89,7 @@ public:
   typedef itk::SmartPointer<ImageBase> ImageBasePointer;
 
   GuidedNativeImageIO();
+  virtual ~GuidedNativeImageIO() {};
 
   /**
    * This method loads an image from the given filename. A registry can be 
@@ -211,6 +212,9 @@ template<typename TPixel>
 class RescaleNativeImageToScalar
 {
 public:
+  RescaleNativeImageToScalar() {}
+  virtual ~RescaleNativeImageToScalar() {}
+
   typedef itk::OrientedImage<TPixel,3> OutputImageType;
   typedef itk::ImageBase<3> NativeImageType;
 
@@ -268,7 +272,7 @@ template<class TPixel, unsigned int VDim> class CastToArrayFunctor
 {
 public:
   template<class TNative> void operator()(TNative *src, TPixel *trg)
-    { for(size_t i = 0; i < VDim; i++) (*trg)[i] = src[i]; }
+    { for(size_t i = 0; i < VDim; i++) (*trg)[i] = (typename TPixel::ComponentType) src[i]; }
   size_t GetNumberOfDimensions() { return VDim; }
 };
 

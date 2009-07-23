@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/22 21:06:24 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/07/23 15:50:58 $
+  Version:   $Revision: 1.17 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -314,7 +314,6 @@ int main(int argc, char **argv)
   // Check if a main image file is specified 
   bool force_grey = false, force_rgb = false;
   const char *fnMain = NULL;
-  const char *fnGrey = NULL, *fnRGB = NULL, *fnTrailing = NULL;
   if(parseResult.IsOptionPresent("--grey"))
     {
     fnMain = parseResult.GetOptionParameter("--grey");
@@ -427,6 +426,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.17  2009/07/23 15:50:58  pyushkevich
+ *Got the template-removal changes to compile on Linux
+ *
  *Revision 1.16  2009/07/22 21:06:24  pyushkevich
  *Changed the IO system and wizards, removed templating
  *
