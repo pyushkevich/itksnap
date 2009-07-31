@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/23 15:50:58 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/07/31 19:12:21 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -578,7 +578,7 @@ RescaleNativeImageToScalar<TPixel>
     {
     for(size_t i = 0; i < nvoxels; i++, bn++)
       {
-      bo[i] = (TPixel) ((*bn) * scale + shift + 0.5);
+      bo[i] = (TPixel) ((*bn + shift)*scale + 0.5);
       }
     }
   else
@@ -588,7 +588,7 @@ RescaleNativeImageToScalar<TPixel>
       double val = 0.0;
       for(size_t k = 0; k < ncomp; k++, bn++)
         val += (*bn) * (*bn);
-      bo[1] = (TPixel) (sqrt(val) * scale + shift + 0.5);
+      bo[1] = (TPixel) ((sqrt(val) + shift)*scale + 0.5);
       }
     }
 
