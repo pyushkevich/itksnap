@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/22 21:06:24 $
-  Version:   $Revision: 1.74 $
+  Date:      $Date: 2009/08/24 19:24:33 $
+  Version:   $Revision: 1.75 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -233,7 +233,6 @@ void UserInterfaceLogic
   m_Activation->SetFlagImplies(UIF_SNAP_SNAKE_EDITABLE, UIF_SNAP_SNAKE_INITIALIZED);
   m_Activation->SetFlagImplies(UIF_SNAP_SNAKE_EDITABLE, UIF_SNAP_SNAKE_RUNNING, true, false);
   m_Activation->SetFlagImplies(UIF_SNAP_SNAKE_INITIALIZED, UIF_SNAP_ACTIVE);
-  m_Activation->SetFlagImplies(UIF_SNAP_PREPROCESSING_DONE, UIF_SNAP_ACTIVE);
 
   m_Activation->SetFlagImplies(UIF_UNDO_POSSIBLE, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->SetFlagImplies(UIF_REDO_POSSIBLE, UIF_IRIS_WITH_BASEIMG_LOADED);
@@ -307,9 +306,9 @@ void UserInterfaceLogic
   // Link menu items to flags
   m_Activation->AddMenuItem(m_MenuLoadGrey, UIF_IRIS_ACTIVE);
   m_Activation->AddMenuItem(m_MenuLoadRGB, UIF_IRIS_ACTIVE);
-  m_Activation->AddMenuItem(m_MenuSave, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuExport, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuResetAll, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuSave, UIF_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveGrey, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadGreyOverlay, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuUnloadGreyOverlayLast, UIF_GRAYOVL_LOADED);
@@ -333,7 +332,7 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuSavePreprocessed, UIF_SNAP_PREPROCESSING_DONE);
   m_Activation->AddMenuItem(m_MenuSaveLevelSet, UIF_SNAP_SNAKE_INITIALIZED);
   m_Activation->AddMenuItem(m_MenuLoadAdvection, UIF_SNAP_PAGE_PREPROCESSING);
-  m_Activation->AddMenuItem(m_MenuImageInfo, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuImageInfo, UIF_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuReorientImage, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_ChoicePaintbrush[2], UIF_IRIS_WITH_GRAY_LOADED);
   for (unsigned int i = 0; i < 5; i++)
@@ -5103,6 +5102,11 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.75  2009/08/24 19:24:33  garyhuizhang
+ *BUGFIX: menu item activation rules changed
+ *1) m_MenuImageInfo and m_MenuSave imply UIF_BASEIMG_LOADED
+ *2) UIF_SNAP_PREPROCESSING_DONE no longer implies UIF_SNAP_ACTIVE
+ *
  *Revision 1.74  2009/07/22 21:06:24  pyushkevich
  *Changed the IO system and wizards, removed templating
  *
