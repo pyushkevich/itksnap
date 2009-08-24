@@ -183,7 +183,7 @@ class UserInterface {open : {public UserInterfaceBase}
           MenuItem m_MenuResetAll {
             label {&Unload All Images}
             callback {this->OnMenuResetAll()}
-            tooltip Reset xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
+            tooltip Reset xywh {0 0 30 20} shortcut 0x40075 labelsize 12 divider
           }
           MenuItem {} {
             label {&Quit}
@@ -238,12 +238,12 @@ class UserInterface {open : {public UserInterfaceBase}
           MenuItem m_MenuUnloadGreyOverlayLast {
             label {&Unload Last Greyscale Overlay}
             callback {this->OnMenuUnloadGreyOverlayLast()}
-            tooltip {Unload Last Greyscale Overlay} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
+            tooltip {Unload Last Greyscale Overlay} xywh {0 0 30 20} labelsize 12
           }
           MenuItem m_MenuUnloadGreyOverlays {
             label {Unload &All Greyscale Overlays}
             callback {this->OnMenuUnloadGreyOverlays()}
-            tooltip {Unload All Greyscale Overlays} xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
+            tooltip {Unload All Greyscale Overlays} xywh {0 0 30 20} labelsize 12 divider
           }
           MenuItem m_MenuLoadRGBOverlay {
             label {Add &RGB Overlay...}
@@ -253,12 +253,12 @@ class UserInterface {open : {public UserInterfaceBase}
           MenuItem m_MenuUnloadRGBOverlayLast {
             label {U&nload Last RGB Overlay}
             callback {this->OnMenuUnloadRGBOverlayLast()}
-            tooltip {Unload Last RGB Overlay} xywh {0 0 30 20} shortcut 0x4006e labelsize 12
+            tooltip {Unload Last RGB Overlay} xywh {0 0 30 20} labelsize 12
           }
           MenuItem m_MenuUnloadRGBOverlays {
             label {Unload A&ll RGB Overlays}
             callback {this->OnMenuUnloadRGBOverlays()}
-            tooltip {Unload All RGB Overlays} xywh {0 0 30 20} shortcut 0x4006e labelsize 12 divider
+            tooltip {Unload All RGB Overlays} xywh {0 0 30 20} labelsize 12 divider
           }
           MenuItem m_MenuOverlayOptions {
             label {Adjust Overlay &Properties...}
