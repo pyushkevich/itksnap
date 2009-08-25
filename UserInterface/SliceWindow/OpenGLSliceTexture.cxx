@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OpenGLSliceTexture.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/16 22:02:28 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/08/25 19:44:25 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -54,6 +54,24 @@ OpenGLSliceTexture
   m_Buffer = NULL;
 }
 
+OpenGLSliceTexture
+::OpenGLSliceTexture(GLuint components, GLenum format)
+{
+  // Set to -1 to force a call to 'generate'
+  m_IsTextureInitalized = false;
+
+  // Set the update time to -1
+  m_UpdateTime = 0;
+
+  // Init the GL settings to uchar, luminance defautls, which are harmless
+  m_GlComponents = components;
+  m_GlFormat = format;
+  m_GlType = GL_UNSIGNED_BYTE;
+  m_InterpolationMode = GL_NEAREST;
+
+  // Initialize the buffer pointer
+  m_Buffer = NULL;
+}
 
 OpenGLSliceTexture
 ::~OpenGLSliceTexture()

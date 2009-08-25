@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OpenGLSliceTexture.h,v $
   Language:  C++
-  Date:      $Date: 2009/07/22 21:06:24 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/08/25 19:44:25 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -62,6 +62,7 @@ public:
 
   /** Constructor, initializes the texture object */
   OpenGLSliceTexture();
+  OpenGLSliceTexture(GLuint, GLenum);
 
   /** Destructor, deallocates texture memory */
   virtual ~OpenGLSliceTexture();
