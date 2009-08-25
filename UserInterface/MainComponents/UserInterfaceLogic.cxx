@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/24 19:24:33 $
-  Version:   $Revision: 1.75 $
+  Date:      $Date: 2009/08/25 23:46:11 $
+  Version:   $Revision: 1.76 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3212,14 +3212,11 @@ UserInterfaceLogic
   if (m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
     m_Driver->GetCurrentImageData()->GetSegmentation()->Reset();
 
-  if (m_Driver->GetCurrentImageData()->IsRGBLoaded())
-    m_Driver->GetCurrentImageData()->GetRGB()->Reset();
-
   if (m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
     m_Driver->UnloadGreyOverlays();
 
-  if (m_Driver->GetCurrentImageData()->IsGreyLoaded())
-    m_Driver->GetCurrentImageData()->GetGrey()->Reset();
+  if (m_Driver->GetCurrentImageData()->IsMainLoaded())
+    m_Driver->GetCurrentImageData()->GetMain()->Reset();
 
   if (m_GlobalState->GetSNAPActive())
     {
@@ -5102,6 +5099,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.76  2009/08/25 23:46:11  garyhuizhang
+ *ENH: use main image
+ *
  *Revision 1.75  2009/08/24 19:24:33  garyhuizhang
  *BUGFIX: menu item activation rules changed
  *1) m_MenuImageInfo and m_MenuSave imply UIF_BASEIMG_LOADED

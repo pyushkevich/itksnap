@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/25 21:38:16 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/08/25 23:46:10 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -84,6 +84,7 @@ public:
   virtual Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const = 0;
   virtual vnl_matrix_fixed<double, 4, 4> GetNiftiSform() const = 0;
   virtual DisplaySlicePointer GetDisplaySlice(unsigned int dim) const = 0;
+  virtual void Reset() = 0;
 };
 
 /**
