@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/16 22:02:29 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/08/25 19:46:18 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -102,7 +102,7 @@ SNAPSliceWindow
 }
 
 void SNAPSliceWindow
-::DrawGreyTexture()
+::DrawMainTexture()
 {
   // The preprocessing image is shown when the corresponding flag is set and 
   // the display mode is not set to overlay
@@ -125,7 +125,7 @@ void SNAPSliceWindow
     }
   else
     {
-    GenericSliceWindow::DrawGreyTexture();
+    GenericSliceWindow::DrawMainTexture();
     }
 }
 

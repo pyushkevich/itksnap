@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/16 22:02:28 $
-  Version:   $Revision: 1.23 $
+  Date:      $Date: 2009/08/25 19:46:18 $
+  Version:   $Revision: 1.24 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -76,20 +76,11 @@ GenericSliceWindow
   // The slice is not yet initialized
   m_IsSliceInitialized = false;
 
-  // Initialize the Grey slice texture (not default)
-  m_GreyTexture = new OpenGLSliceTexture;
-  m_GreyTexture->SetGlComponents(4);
-  m_GreyTexture->SetGlFormat(GL_RGBA);
+  // Initialize the Main image slice texture
+  m_MainTexture = new OpenGLSliceTexture(4, GL_RGBA);
 
-  // Initialize the RGB slice texture (not default)
-  m_RGBTexture = new OpenGLSliceTexture;
-  m_RGBTexture->SetGlComponents(4);
-  m_RGBTexture->SetGlFormat(GL_RGBA);
-  
-  // Initialize the Segmentation slice texture (not default)
-  m_LabelRGBTexture = new OpenGLSliceTexture;
-  m_LabelRGBTexture->SetGlComponents(4);
-  m_LabelRGBTexture->SetGlFormat(GL_RGBA);
+  // Initialize the Segmentation slice texture
+  m_LabelRGBTexture = new OpenGLSliceTexture(4, GL_RGBA);
 
   // Initalize the margin
   m_Margin = 2;
@@ -121,8 +112,7 @@ GenericSliceWindow
   delete m_ThumbnailMode;
 
   // Delete textures
-  delete m_GreyTexture;
-  delete m_RGBTexture;
+  delete m_MainTexture;
   delete m_LabelRGBTexture;
 }
 
@@ -145,17 +135,15 @@ GenericSliceWindow
     return;
     }
 
-  // Initialize the grey slice texture
+  // Initialize the Main image slice texture
   if (imageData->IsGreyLoaded())
     {
-    m_GreyTexture->SetImage(
+    m_MainTexture->SetImage(
       m_ImageData->GetGrey()->GetDisplaySlice(m_Id).GetPointer());
     }
-
-  // Initialize the RGB slice texture
-  if (imageData->IsRGBLoaded())
+  else if (imageData->IsRGBLoaded())
     {
-    m_RGBTexture->SetImage(
+    m_MainTexture->SetImage(
       m_ImageData->GetRGB()->GetDisplaySlice(m_Id));
     }
 
@@ -248,9 +236,7 @@ GenericSliceWindow
     while (it != m_ImageData->GetGreyOverlays()->end())
       {
       GreyImageWrapper *wrapper = static_cast<GreyImageWrapper *>(*it);
-      OpenGLSliceTexture *texture = new OpenGLSliceTexture;
-      texture->SetGlComponents(4);
-      texture->SetGlFormat(GL_RGBA);
+      OpenGLSliceTexture *texture = new OpenGLSliceTexture(4, GL_RGBA);
       texture->SetImage(wrapper->GetDisplaySlice(m_Id).GetPointer());
 	    m_GreyOverlayTextureList.push_back(texture);
       it++;
@@ -264,9 +250,7 @@ GenericSliceWindow
     while (it != m_ImageData->GetRGBOverlays()->end())
       {
       RGBImageWrapper *wrapper = static_cast<RGBImageWrapper *>(*it);
-      OpenGLSliceTexture *texture = new OpenGLSliceTexture;
-      texture->SetGlComponents(4);
-      texture->SetGlFormat(GL_RGBA);
+      OpenGLSliceTexture *texture = new OpenGLSliceTexture(4, GL_RGBA);
       texture->SetImage(wrapper->GetDisplaySlice(m_Id));
       m_RGBOverlayTextureList.push_back(texture);
       it++;
@@ -473,8 +457,7 @@ GenericSliceWindow
   glScalef(m_SliceSpacing[0],m_SliceSpacing[1],1.0);
   
   // Make the grey and segmentation image textures up-to-date
-  DrawGreyTexture();
-  DrawRGBTexture();
+  DrawMainTexture();
   DrawGreyOverlayTexture();
   DrawRGBOverlayTexture();
   DrawSegmentationTexture();
@@ -496,12 +479,12 @@ GenericSliceWindow
 
 void 
 GenericSliceWindow
-::DrawGreyTexture() 
+::DrawMainTexture() 
 {
   // We should have a slice to return
   assert(m_ImageSliceIndex >= 0);
 
-  if (m_ImageData->IsGreyLoaded())
+  if (m_ImageData->IsMainLoaded())
     {
     // Get the color to use for background
     Vector3d clrBackground = m_ThumbnailIsDrawing
@@ -510,12 +493,12 @@ GenericSliceWindow
       : Vector3d(1.0);
 
     // Set the interpolation mode to current default
-    m_GreyTexture->SetInterpolation(
+    m_MainTexture->SetInterpolation(
       m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
       == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
 
     // Paint the grey texture with color as background
-    m_GreyTexture->Draw(clrBackground);
+    m_MainTexture->Draw(clrBackground);
     }
 }
 
@@ -532,7 +515,7 @@ GenericSliceWindow
         SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
     : Vector3d(1.0);
 
-  GreyOverlayTextureIterator textureIt = m_GreyOverlayTextureList.begin();
+  OverlayTextureIterator textureIt = m_GreyOverlayTextureList.begin();
   std::list<ImageWrapperBase *>::iterator wrapperIt = m_ImageData->GetGreyOverlays()->begin();
   while (textureIt != m_GreyOverlayTextureList.end())
     {
@@ -550,31 +533,6 @@ GenericSliceWindow
 
 void 
 GenericSliceWindow
-::DrawRGBTexture() 
-{
-  // We should have a slice to return
-  assert(m_ImageSliceIndex >= 0);
-
-  if (m_ImageData->IsRGBLoaded())
-    {
-    // Get the color to use for background
-    Vector3d clrBackground = m_ThumbnailIsDrawing
-      ? m_ParentUI->GetAppearanceSettings()->GetUIElement(
-          SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
-      : Vector3d(1.0);
-
-    // Set the interpolation mode to current default
-    m_RGBTexture->SetInterpolation(
-      m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
-      == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
-
-    // Update the texture memory with RGB layer
-    m_RGBTexture->Draw(clrBackground);
-    }
-}
-
-void 
-GenericSliceWindow
 ::DrawRGBOverlayTexture() 
 {
   // We should have a slice to return
@@ -586,7 +544,7 @@ GenericSliceWindow
         SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
     : Vector3d(1.0);
 
-  RGBOverlayTextureIterator textureIt = m_RGBOverlayTextureList.begin();
+  OverlayTextureIterator textureIt = m_RGBOverlayTextureList.begin();
   std::list<ImageWrapperBase *>::iterator wrapperIt = m_ImageData->GetRGBOverlays()->begin();
   while (textureIt != m_RGBOverlayTextureList.end())
     {
@@ -667,9 +625,8 @@ GenericSliceWindow
   glScalef(m_SliceSpacing[0],m_SliceSpacing[1],1.0);
   // glTranslated(w * 0.1111, h * 0.1111, 0.0);
 
-  // Draw the grey scale image (the background will be picked automatically)
-  DrawGreyTexture();
-  DrawRGBTexture();
+  // Draw the Main image (the background will be picked automatically)
+  DrawMainTexture();
  
   // Draw the crosshairs and stuff
   DrawOverlays();

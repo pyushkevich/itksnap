@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/07/16 22:02:29 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/08/25 19:46:18 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -78,7 +78,7 @@ protected:
 
   // Overlay and texture drawing are customized in this class
   void DrawOverlays();
-  void DrawGreyTexture();
+  void DrawMainTexture();
   void DrawSegmentationTexture();  
 };
 

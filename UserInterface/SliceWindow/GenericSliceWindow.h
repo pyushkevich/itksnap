@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/07/16 22:02:28 $
-  Version:   $Revision: 1.20 $
+  Date:      $Date: 2009/08/25 19:46:18 $
+  Version:   $Revision: 1.21 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -285,23 +285,17 @@ protected:
   // default zoom
   unsigned int m_Margin;
 
-  // Grey texture object
-  OpenGLSliceTexture *m_GreyTexture;
+  // Main image texture object
+  OpenGLSliceTexture *m_MainTexture;
 
   // Grey overlay texture objects
-  typedef std::list<OpenGLSliceTexture *> GreyOverlayTextureList;
-  typedef GreyOverlayTextureList::iterator GreyOverlayTextureIterator;
-  typedef GreyOverlayTextureList::const_iterator GreyOverlayTextureConstIterator;
-  GreyOverlayTextureList m_GreyOverlayTextureList;
-
-  // RGB texture object
-  OpenGLSliceTexture *m_RGBTexture;
+  typedef std::list<OpenGLSliceTexture *> OverlayTextureList;
+  typedef OverlayTextureList::iterator OverlayTextureIterator;
+  typedef OverlayTextureList::const_iterator OverlayTextureConstIterator;
+  OverlayTextureList m_GreyOverlayTextureList;
 
   // RGB overlay texture objects
-  typedef std::list<OpenGLSliceTexture *> RGBOverlayTextureList;
-  typedef RGBOverlayTextureList::iterator RGBOverlayTextureIterator;
-  typedef RGBOverlayTextureList::const_iterator RGBOverlayTextureConstIterator;
-  RGBOverlayTextureList m_RGBOverlayTextureList;
+  OverlayTextureList m_RGBOverlayTextureList;
 
   // Label texture object
   OpenGLSliceTexture *m_LabelRGBTexture;
@@ -321,14 +315,11 @@ protected:
   // Computes the zoom that gives the best fit for the window
   void ComputeOptimalZoom();
   
-  // This method is called in draw() to paint the grey slice
-  virtual void DrawGreyTexture();
+  // This method is called in draw() to paint the Main image slice
+  virtual void DrawMainTexture();
 
   // This method is called in draw() to paint the grey overlay slice
   virtual void DrawGreyOverlayTexture();
-
-  // This method is called in draw() to paint the RGB slice
-  virtual void DrawRGBTexture();
 
   // This method is called in draw() to paint the RGB overlay slice
   virtual void DrawRGBOverlayTexture();
