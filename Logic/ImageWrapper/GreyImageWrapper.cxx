@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 06:47:52 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -135,7 +135,7 @@ void GreyImageWrapper
 
 GreyImageWrapper::DisplaySlicePointer
 GreyImageWrapper
-::GetDisplaySlice(unsigned int dim)
+::GetDisplaySlice(unsigned int dim) const
 {
   return m_IntensityFilter[dim]->GetOutput();
 }

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 04:55:45 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -40,6 +40,7 @@
 #include "ImageCoordinateTransform.h"
 #include <itkImageRegionIterator.h>
 #include <itkOrientedImage.h>
+#include <itkRGBAPixel.h>
 
 // Forward declarations to IRIS classes
 template <class TPixel> class IRISSlicer;
@@ -59,6 +60,12 @@ namespace itk {
 class ImageWrapperBase
 {
 public:
+
+  // Definition for the display slice type
+  typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
+  typedef itk::Image<DisplayPixelType,2> DisplaySliceType;
+  typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
+
   virtual ~ImageWrapperBase() { /*To avoid compiler warning.*/ }
   virtual const ImageCoordinateTransform &GetImageToDisplayTransform(
     unsigned int) const = 0;
@@ -76,7 +83,7 @@ public:
   virtual Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3ui &iVoxel) const = 0;
   virtual Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const = 0;
   virtual vnl_matrix_fixed<double, 4, 4> GetNiftiSform() const = 0;
-
+  virtual DisplaySlicePointer GetDisplaySlice(unsigned int dim) const = 0;
 };
 
 /**

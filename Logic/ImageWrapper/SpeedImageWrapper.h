@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SpeedImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,7 +38,6 @@
 #include "ScalarImageWrapper.h"
 #include "SpeedImageWrapper.h"
 #include "SpeedColorMap.h"
-#include "itkRGBAPixel.h"
 
 // Forward references to ITK
 namespace itk {
@@ -69,11 +68,6 @@ public:
   typedef SpeedImageWrapper Self;
   typedef ScalarImageWrapper<float> Superclass;
   typedef Superclass::ImageType ImageType;
-
-  // The type definition for the image used to display speed slices
-  typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
-  typedef itk::Image<DisplayPixelType,2> DisplaySliceType;
-  typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
 
   // The type definition for the image used to display overlays based on
   // speed images
@@ -138,7 +132,7 @@ public:
    * Get the display slice in a given direction.  To change the
    * display slice, call parent's MoveToSlice() method
    */
-  DisplaySliceType *GetDisplaySlice(unsigned int dim);
+  DisplaySlicePointer GetDisplaySlice(unsigned int dim) const;
 
   /**
    * Get an overlay mask slice for displaying on top of the greylevel

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 06:47:52 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,7 +36,6 @@
 #define __GreyImageWrapper_h_
 
 #include "ScalarImageWrapper.h"
-#include "itkRGBAPixel.h"
 #include "GlobalState.h"
 #include "IntensityCurveVTK.h"
 // #include "UnaryFunctorCache.h"
@@ -62,11 +61,6 @@ template <class TInput, class TOutput, class TFunctor>
 class GreyImageWrapper : public ScalarImageWrapper<GreyType>
 {
 public:
-
-  // Definition for the display slice type
-  typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
-  typedef itk::Image<DisplayPixelType,2> DisplaySliceType;
-  typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
 
   /**
    * Get the intensity curve to be used for mapping image intensities 
@@ -115,7 +109,7 @@ public:
    * Get the display slice in a given direction.  To change the
    * display slice, call parent's MoveToSlice() method
    */
-  DisplaySlicePointer GetDisplaySlice(unsigned int dim);
+  DisplaySlicePointer GetDisplaySlice(unsigned int dim) const;
 
   /**
    * Get/Set the colormap

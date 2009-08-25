@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: RGBImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 04:55:45 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -16,7 +16,6 @@
 #define __RGBImageWrapper_h_
 
 #include "VectorImageWrapper.h"
-#include "itkRGBAPixel.h"
 
 // Forward references to ITK
 namespace itk {
@@ -44,16 +43,11 @@ public:
   typedef VectorImageWrapper<RGBType> Superclass;
   typedef Superclass::ImageType ImageType;
 
-  // The type definition for the image used to display speed slices
-  typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
-  typedef itk::Image<DisplayPixelType,2> DisplaySliceType;
-  typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
-
   /**
    * Get the display slice in a given direction.  To change the
    * display slice, call parent's MoveToSlice() method
    */
-  DisplaySliceType *GetDisplaySlice(unsigned int dim);
+  DisplaySlicePointer GetDisplaySlice(unsigned int dim) const;
 
   /** Constructor initializes mappers */
   RGBImageWrapper();

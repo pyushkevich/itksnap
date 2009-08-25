@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,7 +35,6 @@
 #ifndef __LabelImageWrapper_h_
 #define __LabelImageWrapper_h_
 
-#include "itkRGBAPixel.h"
 #include "ScalarImageWrapper.h"
 #include "UnaryFunctorCache.h"
 #include "LabelToRGBAFilter.h"
@@ -65,12 +64,6 @@ class LabelImageWrapper : public ScalarImageWrapper<LabelType>
 {
 public:
 
-  // Type of color slice returned by this class
-  // typedef vnl_vector_fixed<unsigned char,4> DisplayPixelType;
-  typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
-  typedef itk::Image<DisplayPixelType,2> DisplaySliceType;
-  typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
-
   /**
    * Set the table of color labels used to produce color slice images
    */  
@@ -90,7 +83,7 @@ public:
   /**
    * Get a color slice for display purposes
    */
-  DisplaySliceType *GetDisplaySlice(unsigned int dim);
+  DisplaySlicePointer GetDisplaySlice(unsigned int dim) const;
 
   /** Constructor initializes mapper */
   LabelImageWrapper();

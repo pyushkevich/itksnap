@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/25 19:46:18 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -118,7 +118,7 @@ void SNAPSliceWindow
       : Vector3d(1.0);
 
     // Make sure the correct image is pointed to
-    m_SpeedTexture->SetImage(m_ImageData->GetSpeed()->GetDisplaySlice(m_Id));
+    m_SpeedTexture->SetImage(m_ImageData->GetSpeed()->GetDisplaySlice(m_Id).GetPointer());
 
     // Paint the grey texture
     m_SpeedTexture->Draw(clrBackground);

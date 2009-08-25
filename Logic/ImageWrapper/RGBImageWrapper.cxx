@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RGBImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 04:55:45 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -65,9 +65,9 @@ RGBImageWrapper
 {
 }
 
-RGBImageWrapper::DisplaySliceType * 
+RGBImageWrapper::DisplaySlicePointer
 RGBImageWrapper
-::GetDisplaySlice(unsigned int iSlice)
+::GetDisplaySlice(unsigned int iSlice) const
 {
   // Depending on the current mode, return the display slice or the 
   // original slice from the parent

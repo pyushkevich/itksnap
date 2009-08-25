@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/25 19:46:18 $
-  Version:   $Revision: 1.24 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.25 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -127,7 +127,13 @@ GenericSliceWindow
   m_ImageData = imageData;
 
   // The main image should be loaded
-  if (!imageData->IsMainLoaded())
+  if (imageData->IsMainLoaded())
+    {
+    // Initialize the Main image slice texture
+    m_MainTexture->SetImage(
+      m_ImageData->GetMain()->GetDisplaySlice(m_Id).GetPointer());
+    }
+  else
     {
     // If not
     m_IsSliceInitialized = false;
@@ -135,23 +141,11 @@ GenericSliceWindow
     return;
     }
 
-  // Initialize the Main image slice texture
-  if (imageData->IsGreyLoaded())
-    {
-    m_MainTexture->SetImage(
-      m_ImageData->GetGrey()->GetDisplaySlice(m_Id).GetPointer());
-    }
-  else if (imageData->IsRGBLoaded())
-    {
-    m_MainTexture->SetImage(
-      m_ImageData->GetRGB()->GetDisplaySlice(m_Id));
-    }
-
   // Initialize the segmentation slice texture
   if (imageData->IsSegmentationLoaded())
     {
     m_LabelRGBTexture->SetImage(
-      m_ImageData->GetSegmentation()->GetDisplaySlice(m_Id));
+      m_ImageData->GetSegmentation()->GetDisplaySlice(m_Id).GetPointer());
     }
 
   // Initialize overlay slice
@@ -251,7 +245,7 @@ GenericSliceWindow
       {
       RGBImageWrapper *wrapper = static_cast<RGBImageWrapper *>(*it);
       OpenGLSliceTexture *texture = new OpenGLSliceTexture(4, GL_RGBA);
-      texture->SetImage(wrapper->GetDisplaySlice(m_Id));
+      texture->SetImage(wrapper->GetDisplaySlice(m_Id).GetPointer());
       m_RGBOverlayTextureList.push_back(texture);
       it++;
     	 }

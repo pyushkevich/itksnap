@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SpeedImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -70,9 +70,9 @@ SpeedImageWrapper
 {
 }
 
-SpeedImageWrapper::DisplaySliceType * 
+SpeedImageWrapper::DisplaySlicePointer
 SpeedImageWrapper
-::GetDisplaySlice(unsigned int iSlice)
+::GetDisplaySlice(unsigned int iSlice) const
 {
   // Depending on the current mode, return the display slice or the 
   // original slice from the parent

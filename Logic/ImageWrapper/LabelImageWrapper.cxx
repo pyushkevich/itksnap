@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -103,9 +103,9 @@ LabelImageWrapper
     m_RGBAFilter[i]->Modified();  
 }
 
-LabelImageWrapper::DisplaySliceType *
+LabelImageWrapper::DisplaySlicePointer
 LabelImageWrapper
-::GetDisplaySlice(unsigned int dim)
+::GetDisplaySlice(unsigned int dim) const
 {
   return m_RGBAFilter[dim]->GetOutput();
 }

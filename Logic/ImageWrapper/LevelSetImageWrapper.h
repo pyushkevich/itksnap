@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LevelSetImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:14 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,7 +35,6 @@
 #ifndef __LevelSetImageWrapper_h_
 #define __LevelSetImageWrapper_h_
 
-#include "itkRGBAPixel.h"
 #include "ScalarImageWrapper.h"
 
 // Forward references to ITK
@@ -59,11 +58,6 @@ class LevelSetImageWrapper : public ScalarImageWrapper<float>
 {
 public:
 
-  // Type of color slice returned by this class
-  typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
-  typedef itk::Image<DisplayPixelType,2> DisplaySliceType;
-  typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
-
   /** Set the color label for inside */
   void SetColorLabel(const ColorLabel &label);
   
@@ -71,7 +65,7 @@ public:
    * Get the display slice in a given direction.  To change the
    * display slice, call parent's MoveToSlice() method
    */
-  DisplaySlicePointer GetDisplaySlice(unsigned int dim);
+  DisplaySlicePointer GetDisplaySlice(unsigned int dim) const;
 
   /** Constructor initializes mappers */
   LevelSetImageWrapper();

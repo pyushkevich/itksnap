@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LevelSetImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/10/24 12:52:08 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/08/25 21:38:16 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -113,7 +113,7 @@ LevelSetImageWrapper
 
 LevelSetImageWrapper::DisplaySlicePointer 
 LevelSetImageWrapper
-::GetDisplaySlice(unsigned int iSlice)
+::GetDisplaySlice(unsigned int iSlice) const
 {
   // Depending on the current mode, return the display slice or the 
   // original slice from the parent
