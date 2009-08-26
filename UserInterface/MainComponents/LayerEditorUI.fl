@@ -9,137 +9,139 @@ class LayerEditorUI {open : LayerEditorUIBase
   } {
     Fl_Window {} {
       label {ITK-SNAP: Layer Editor} open
-      xywh {584 227 574 488} type Double box PLASTIC_DOWN_BOX color 118 visible
+      xywh {584 227 594 488} type Double box PLASTIC_DOWN_BOX resizable visible
     } {
       Fl_Tabs {} {open
-        xywh {175 5 390 475} box PLASTIC_THIN_DOWN_BOX
+        xywh {180 5 390 475} box PLASTIC_THIN_UP_BOX color 41
       } {
-        Fl_Group {} {
-          label Contrast open selected
-          xywh {175 25 390 455} box PLASTIC_THIN_DOWN_BOX labelsize 12
+        Fl_Group m_GrpContrast {
+          label Contrast open
+          xywh {180 25 390 455} labelsize 12
         } {
           Fl_Group {} {
-            label {Window-based Contrast Adjustment:} open
-            xywh {185 55 370 45} box PLASTIC_DOWN_FRAME color 55 labelfont 1 labelsize 12 align 5
+            label {Window and Level:} open
+            xywh {190 55 370 45} box PLASTIC_DOWN_BOX color 55 labelfont 1 labelsize 12 align 5
           } {
             Fl_Value_Input m_InLevel {
               label {Level:}
               callback {this->OnWindowLevelChange();}
-              xywh {230 65 70 25} labelsize 12 when 4 step 0.01 textsize 12
+              xywh {235 65 70 25} labelsize 12 when 4 step 0.01 textsize 12
             }
             Fl_Value_Input m_InWindow {
               label {Window:}
               callback {this->OnWindowLevelChange();}
-              xywh {365 65 70 25} labelsize 12 when 4 step 0.01 textsize 12
+              xywh {370 65 70 25} labelsize 12 when 4 step 0.01 textsize 12
             }
             Fl_Button {} {
               label {&Auto}
               callback {this->OnAutoFitWindow();}
-              tooltip {Automatically fit window and level based on the image histogram} xywh {470 65 70 25} box PLASTIC_UP_BOX shortcut 0x80061 labelsize 12
+              tooltip {Automatically fit window and level based on the image histogram} xywh {475 65 70 25} box PLASTIC_UP_BOX shortcut 0x80061 labelsize 12
             }
           }
           Fl_Group {} {
-            label {Curve-based Contrast Adjustment:} open
-            xywh {185 125 370 250} box PLASTIC_DOWN_FRAME labelfont 1 labelsize 12 align 5
+            label {Curve-Based Adjustment:} open
+            xywh {190 125 370 250} box PLASTIC_DOWN_BOX labelfont 1 labelsize 12 align 5
           } {
             Fl_Box m_BoxCurve {
               label {Curve Display Area}
-              xywh {205 135 340 180} box BORDER_BOX color 246 labelfont 1 labelsize 12 align 16
+              xywh {210 135 340 180} box BORDER_BOX color 246 labelfont 1 labelsize 12 align 16
               class IntensityCurveBox
             }
             Fl_Button {} {
               label {&Reset}
-              callback {this->OnReset();}
-              xywh {495 340 50 25} box PLASTIC_UP_BOX shortcut 0x80072 labelsize 12
+              callback {this->OnCurveReset();}
+              xywh {500 340 50 25} box PLASTIC_UP_BOX shortcut 0x80072 labelsize 12
             }
             Fl_Group {} {
               label {input image intensity} open
-              xywh {205 315 340 10} labelsize 11 align 24
+              xywh {210 315 340 10} labelsize 11 align 24
             } {}
             Fl_Group {} {open
-              image {Artwork/outputintensity.gif} xywh {193 135 15 125} align 24
+              image {Artwork/outputintensity.gif} xywh {198 135 15 125} align 24
             } {}
             Fl_Button {} {
               label {+}
-              callback {this->OnReset();}
-              xywh {375 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelfont 4 labelsize 18
+              callback {this->OnControlPointMoreAction();}
+              xywh {380 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelfont 4 labelsize 18
             }
             Fl_Button {} {
               label {-}
-              callback {this->OnReset();}
-              xywh {405 340 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
+              callback {this->OnControlPointLessAction();}
+              xywh {410 340 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
             }
-            Fl_Button {} {
+            Fl_Button m_BtnCurveMakeLinear {
               label C1
-              callback {this->OnReset();}
-              xywh {435 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelsize 12 align 16
+              callback {this->OnCurveMakeLinearAction();}
+              xywh {440 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelsize 12 align 16
             }
-            Fl_Button {} {
+            Fl_Button m_BtnCurveMakeCubic {
               label C3
-              callback {this->OnReset();}
-              xywh {465 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelsize 12 align 16
+              callback {this->OnCurveMakeCubicAction();}
+              xywh {470 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelsize 12 align 16
             }
-            Fl_Value_Input m_InLevel {
+            Fl_Value_Input m_InControlX {
               label {Intensity:}
-              callback {this->OnWindowLevelChange();}
-              xywh {205 340 70 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
+              callback {this->OnControlPointUpdate();}
+              xywh {210 340 70 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
             }
-            Fl_Value_Input m_InLevel {
+            Fl_Value_Input m_InControlY {
               label {Color index:}
-              callback {this->OnWindowLevelChange();}
-              xywh {280 340 70 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
+              callback {this->OnControlPointUpdate();}
+              xywh {285 340 70 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
             }
           }
           Fl_Group {} {
-            label {Histogram Display Options (advanced):} open
-            xywh {185 400 370 70} box PLASTIC_DOWN_FRAME color 55 labelfont 1 labelsize 12 align 5
+            label {Histogram Options:} open
+            xywh {190 400 370 45} box PLASTIC_DOWN_BOX color 55 labelfont 1 labelsize 12 align 5
           } {
             Fl_Value_Input m_InHistogramMaxLevel {
-              label {Histogram cutoff (%):}
+              label {Cutoff (%):}
               callback {this->OnUpdateHistogram();}
-              xywh {320 440 55 25} labelsize 12 when 4 maximum 100 step 0.5 value 100 textsize 12
+              xywh {385 410 55 25} labelsize 12 when 4 maximum 100 step 0.5 value 100 textsize 12
             }
             Fl_Value_Input m_InHistogramBinSize {
-              label {Histogram bin size:}
+              label {Bin size:}
               callback {this->OnUpdateHistogram();}
-              xywh {320 410 55 25} labelsize 12 when 4 minimum 1 maximum 65535 step 1 value 5 textsize 12
+              xywh {250 410 55 25} labelsize 12 when 4 minimum 1 maximum 65535 step 1 value 5 textsize 12
             }
             Fl_Check_Button m_ChkHistogramLog {
-              label {Logarithmic scale}
+              label {Log scale}
               callback {this->OnUpdateHistogram();}
-              xywh {400 410 125 25} down_box DOWN_BOX labelsize 12
+              xywh {470 410 80 25} down_box DOWN_BOX labelsize 12
             }
             Fl_Button {} {
               label {Update Histogram}
               callback {this->OnUpdateHistogram();}
-              xywh {440 445 115 25} box PLASTIC_UP_BOX shortcut 0xff1b selection_color 38 labelsize 12 hide deactivate
+              xywh {445 440 115 5} box PLASTIC_UP_BOX shortcut 0xff1b selection_color 38 labelsize 12 hide deactivate
             }
           }
         }
-        Fl_Group {} {
+        Fl_Group m_GrpColorMap {
           label {Color Map} open
-          xywh {175 25 390 455} box PLASTIC_THIN_DOWN_BOX labelsize 12 hide
+          xywh {180 25 390 455} labelsize 12 hide
         } {
           Fl_Group {} {
             label {Color Map Editor:} open
-            xywh {185 135 370 200} box PLASTIC_DOWN_FRAME labelfont 1 labelsize 12 align 5
+            xywh {190 135 370 200} box PLASTIC_DOWN_BOX labelfont 1 labelsize 12 align 5
           } {
-            Fl_Box {} {
+            Fl_Box m_BoxColorMap {
               label {OpenGL Colormap Display}
-              xywh {195 143 350 69} box BORDER_BOX color 246 labelfont 1 labelsize 12
+              xywh {200 143 350 69} box BORDER_BOX color 246 labelfont 1 labelsize 12
             }
-            Fl_Box {} {
+            Fl_Box m_InColorMapRGBA {
               label {color chooser}
-              xywh {315 219 230 107} box BORDER_BOX color 158
+              xywh {320 219 230 107} box BORDER_BOX color 158
+              class Fl_Color_Chooser
             }
-            Fl_Value_Input m_InLevel {
+            Fl_Value_Input m_InColorMapIndex {
               label {Color Index:}
-              callback {this->OnWindowLevelChange();}
-              xywh {195 235 70 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
+              callback {this->OnColorMapIndexUpdate();}
+              xywh {200 235 70 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
             }
-            Fl_Choice {} {
-              label {Side:} open
-              xywh {195 280 70 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+            Fl_Choice m_InColorMapSide {
+              label {Side:}
+              callback {this->OnColorMapSideUpdate();} open
+              xywh {200 280 70 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
             } {
               MenuItem {} {
                 label Both
@@ -156,333 +158,230 @@ class LayerEditorUI {open : LayerEditorUIBase
             }
             Fl_Button {} {
               label {-}
-              callback {this->OnReset();}
-              xywh {275 235 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
+              callback {this->OnColorMapPointDelete();}
+              xywh {280 235 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
             }
           }
           Fl_Group {} {
             label {Presets:} open
-            xywh {185 55 370 55} box PLASTIC_DOWN_FRAME labelfont 1 labelsize 12 align 5
+            xywh {190 55 370 55} box PLASTIC_DOWN_BOX labelfont 1 labelsize 12 align 5
           } {
-            Fl_Input_Choice {} {
-              label {Select a color map:} open
-              xywh {195 75 290 25} labelsize 12 align 5 textsize 12
+            Fl_Input_Choice m_InColorMapPreset {
+              label {Select a color map:}
+              callback {this->OnColorMapPresetUpdate()} open
+              xywh {200 75 290 25} labelsize 12 align 5 textsize 12
             } {}
             Fl_Button {} {
               label {+}
-              callback {this->OnReset();}
-              xywh {490 75 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelfont 4 labelsize 18
+              callback {this->OnColorMapAddPresetAction();}
+              xywh {495 75 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelfont 4 labelsize 18
             }
             Fl_Button {} {
               label {-}
-              callback {this->OnReset();}
-              xywh {520 75 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
+              callback {this->OnColorMapDeletePresetAction();}
+              xywh {525 75 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
             }
           }
         }
-        Fl_Group {} {
-          label {Image Info} open
-          xywh {175 25 390 455} box PLASTIC_THIN_DOWN_BOX labelsize 12 hide
+        Fl_Group m_GrpImageInfo {
+          label Information open
+          xywh {180 25 390 455} labelsize 12 hide
         } {
           Fl_Group {} {
             label Dimensions open
-            xywh {185 59 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
+            xywh {190 59 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
           } {}
           Fl_Value_Output {m_OutImageInfoDimensions[0]} {
             label {x:}
-            xywh {320 65 65 25} labelsize 12 textsize 12
+            xywh {325 65 65 25} labelsize 12 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoDimensions[1]} {
             label {y:}
-            xywh {405 65 65 25} labelsize 12 textsize 12
+            xywh {410 65 65 25} labelsize 12 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoDimensions[2]} {
             label {z:}
-            xywh {490 65 65 25} labelsize 12 textsize 12
+            xywh {495 65 65 25} labelsize 12 textsize 12
           }
           Fl_Group {} {
             label {Voxel Spacing} open
-            xywh {185 114 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
+            xywh {190 114 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
           } {}
           Fl_Value_Output {m_OutImageInfoSpacing[0]} {
             label {x:}
-            xywh {320 120 65 25} labelsize 12 textsize 12
+            xywh {325 120 65 25} labelsize 12 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoSpacing[1]} {
             label {y:}
-            xywh {405 120 65 25} labelsize 12 textsize 12
+            xywh {410 120 65 25} labelsize 12 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoSpacing[2]} {
             label {z:}
-            xywh {490 120 65 25} labelsize 12 textsize 12
+            xywh {495 120 65 25} labelsize 12 textsize 12
           }
           Fl_Group {} {
             label {Origin and Orientation} open
-            xywh {185 169 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
+            xywh {190 169 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
           } {}
           Fl_Value_Output {m_OutImageInfoOrigin[0]} {
             label {x:}
-            xywh {320 175 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {325 175 65 25} labelsize 12 step 0.001 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoOrigin[1]} {
             label {y:}
-            xywh {405 175 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {410 175 65 25} labelsize 12 step 0.001 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoOrigin[2]} {
             label {z:}
-            xywh {490 175 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {495 175 65 25} labelsize 12 step 0.001 textsize 12
           }
           Fl_Output m_OutImageInfoOriginRAICode {
             label {RAI Code:}
-            xywh {405 206 150 23} color 49 labelsize 12 textsize 12
+            xywh {410 206 150 23} color 49 labelsize 12 textsize 12
           }
           Fl_Group {} {
             label {Crosshair Position} open
-            xywh {185 254 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
+            xywh {190 254 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
           } {}
           Fl_Value_Output {m_OutImageInfoCursorPosition[0]} {
             label {x:}
-            xywh {320 290 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {325 290 65 25} labelsize 12 step 0.001 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoCursorPosition[1]} {
             label {y:}
-            xywh {405 290 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {410 290 65 25} labelsize 12 step 0.001 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoCursorPosition[2]} {
             label {z:}
-            xywh {490 290 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {495 290 65 25} labelsize 12 step 0.001 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[0]} {
             label {x:}
-            xywh {320 320 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {325 320 65 25} labelsize 12 step 0.001 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[1]} {
             label {y:}
-            xywh {405 320 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {410 320 65 25} labelsize 12 step 0.001 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[2]} {
             label {z:}
-            xywh {490 320 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {495 320 65 25} labelsize 12 step 0.001 textsize 12
           }
           Fl_Value_Input {m_InImageInfoCursorIndex[0]} {
             label {x:}
             callback {this->OnImageInformationVoxelCoordinatesUpdate();}
-            xywh {320 260 65 25} labelsize 12 textsize 12
+            xywh {325 260 65 25} labelsize 12 textsize 12
           }
           Fl_Value_Input {m_InImageInfoCursorIndex[1]} {
             label {y:}
             callback {this->OnImageInformationVoxelCoordinatesUpdate();}
-            xywh {405 260 65 25} labelsize 12 textsize 12
+            xywh {410 260 65 25} labelsize 12 textsize 12
           }
           Fl_Value_Input {m_InImageInfoCursorIndex[2]} {
             label {z:}
             callback {this->OnImageInformationVoxelCoordinatesUpdate();}
-            xywh {490 260 65 25} labelsize 12 textsize 12
+            xywh {495 260 65 25} labelsize 12 textsize 12
           }
           Fl_Group {} {open
-            xywh {295 260 15 24}
+            xywh {300 260 15 24}
           } {}
           Fl_Group {} {
             label {Voxel
 coordinates} open
-            xywh {205 260 90 25} labelsize 11 labelcolor 30 align 20
+            xywh {210 260 90 25} labelsize 11 labelcolor 30 align 20
           } {}
           Fl_Group {} {
             label {World (ITK)
 coordinates} open
-            xywh {205 290 90 25} labelsize 11 labelcolor 30 align 20
+            xywh {210 290 90 25} labelsize 11 labelcolor 30 align 20
           } {}
           Fl_Group {} {
             label {World (NIFTI)
 coordinates} open
-            xywh {205 320 90 25} labelsize 11 labelcolor 30 align 20
+            xywh {210 320 90 25} labelsize 11 labelcolor 30 align 20
           } {}
           Fl_Group {} {
             label {Intensity Range} open
-            xywh {185 374 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
+            xywh {190 374 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
           } {}
           Fl_Value_Output {m_OutImageInfoRange[0]} {
             label {min:}
-            xywh {320 380 95 25} labelsize 12 textsize 12
+            xywh {325 380 95 25} labelsize 12 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoRange[1]} {
             label {max:}
-            xywh {460 380 95 25} labelsize 12 textsize 12
+            xywh {465 380 95 25} labelsize 12 textsize 12
           }
           Fl_Group {} {
             label {Voxel Under the Cursor} open
-            xywh {185 429 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
+            xywh {190 429 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
           } {}
           Fl_Wizard m_WizImageInfoVoxelValue {open
-            xywh {195 435 360 25} box NO_BOX
+            xywh {200 435 360 25} box NO_BOX
           } {
             Fl_Group m_GrpWizImageInfoVoxelPageGray {open
-              xywh {195 435 350 25} hide
+              xywh {200 435 350 25} hide
             } {
               Fl_Value_Output m_OutImageInfoVoxelGray {
                 label {Intensity:}
-                xywh {450 435 95 25} labelsize 12 textsize 12
+                xywh {455 435 95 25} labelsize 12 textsize 12
               }
             }
             Fl_Group m_GrpWizImageInfoVoxelPageRGB {open
-              xywh {195 435 360 25}
+              xywh {200 435 360 25}
             } {
               Fl_Value_Output {m_OutImageInfoVoxelRGB[0]} {
                 label {R:}
-                xywh {320 435 65 25} labelsize 12 textsize 12
+                xywh {325 435 65 25} labelsize 12 textsize 12
               }
               Fl_Value_Output {m_OutImageInfoVoxelRGB[1]} {
                 label {G:}
-                xywh {405 435 65 25} labelsize 12 textsize 12
+                xywh {410 435 65 25} labelsize 12 textsize 12
               }
               Fl_Value_Output {m_OutImageInfoVoxelRGB[2]} {
                 label {B:}
-                xywh {490 435 65 25} labelsize 12 textsize 12
+                xywh {495 435 65 25} labelsize 12 textsize 12
               }
             }
           }
         }
       }
-      Fl_Group {} {
-        label {Layer Selection:} open
-        xywh {10 25 155 420} box PLASTIC_DOWN_BOX labelfont 1 labelsize 12 align 5
+      Fl_Group {} {open selected
+        xywh {0 0 170 490} box FLAT_BOX labeltype ENGRAVED_LABEL labelsize 16 align 17 resizable
       } {
-        Fl_Browser {} {
-          xywh {20 35 135 215} labelsize 12 textsize 12
+        Fl_Browser m_BrsLayers {
+          label {Active Layer:}
+          callback {this->OnLayerSelectionUpdate()}
+          xywh {10 55 150 165} type Select labelsize 12 align 5 textsize 11
         }
-        Fl_Value_Slider {} {
+        Fl_Group {} {
+          label {Layer Editor} open
+          xywh {10 25 150 1} box FLAT_BOX color 0 labeltype EMBOSSED_LABEL labelfont 1 labelcolor 136 align 5
+        } {}
+        Fl_Value_Slider m_InOverallOpacity {
           label {Overall opacity:}
-          xywh {20 275 135 20} type Horizontal labelsize 12 align 5 textsize 11
-        }
-      }
-      Fl_Button {} {
-        label Close
-        xywh {45 455 80 25} box PLASTIC_UP_BOX color 139 labelfont 1 labelsize 12
-      }
-    }
-    Fl_Window {} {open
-      xywh {100 146 577 744} type Double hide
-    } {
-      Fl_Group {} {
-        label {Histogram Display Options (advanced):} open
-        xywh {30 425 385 80} box PLASTIC_DOWN_FRAME color 55 labelfont 1 labelsize 12 align 5
-      } {
-        Fl_Value_Input m_InHistogramMaxLevel {
-          label {Histogram cutoff (%):}
-          callback {this->OnUpdateHistogram();}
-          xywh {165 470 55 25} labelsize 12 when 4 maximum 100 step 0.5 value 100 textsize 12
-        }
-        Fl_Value_Input m_InHistogramBinSize {
-          label {Histogram bin size:}
-          callback {this->OnUpdateHistogram();}
-          xywh {165 440 55 25} labelsize 12 when 4 minimum 1 maximum 65535 step 1 value 5 textsize 12
-        }
-        Fl_Check_Button m_ChkHistogramLog {
-          label {Logarithmic scale}
-          callback {this->OnUpdateHistogram();}
-          xywh {245 440 125 25} down_box DOWN_BOX labelsize 12
-        }
-        Fl_Button {} {
-          label {Update Histogram}
-          callback {this->OnUpdateHistogram();}
-          xywh {285 470 115 25} box PLASTIC_UP_BOX shortcut 0xff1b selection_color 38 labelsize 12 hide deactivate
-        }
-      }
-      Fl_Group {} {
-        label {Image Information:}
-        xywh {30 55 495 340} box PLASTIC_DOWN_BOX labeltype EMBOSSED_LABEL labelsize 16 labelcolor 15 align 5
-      } {
-        Fl_Value_Output {m_OutImageInfoDimensions[0]} {
-          label {Image dimensions  x:}
-          xywh {265 65 65 25}
-        }
-        Fl_Value_Output {m_OutImageInfoDimensions[1]} {
-          label {y:}
-          xywh {350 65 65 25}
-        }
-        Fl_Value_Output {m_OutImageInfoDimensions[2]} {
-          label {z:}
-          xywh {435 65 65 25}
-        }
-        Fl_Value_Output {m_OutImageInfoSpacing[0]} {
-          label {Voxel spacing  x:}
-          xywh {265 95 65 25}
-        }
-        Fl_Value_Output {m_OutImageInfoSpacing[1]} {
-          label {y:}
-          xywh {350 95 65 25}
-        }
-        Fl_Value_Output {m_OutImageInfoSpacing[2]} {
-          label {z:}
-          xywh {435 95 65 25}
-        }
-        Fl_Value_Output {m_OutImageInfoOrigin[0]} {
-          label {Image origin  x:}
-          xywh {265 125 65 25} step 0.001
-        }
-        Fl_Value_Output {m_OutImageInfoOrigin[1]} {
-          label {y:}
-          xywh {350 125 65 25} step 0.001
-        }
-        Fl_Value_Output {m_OutImageInfoOrigin[2]} {
-          label {z:}
-          xywh {435 125 65 25} step 0.001
-        }
-        Fl_Value_Output {m_OutImageInfoRange[0]} {
-          label {Intensity range  min:}
-          xywh {265 195 95 25}
-        }
-        Fl_Value_Output {m_OutImageInfoRange[1]} {
-          label {max:}
-          xywh {405 195 95 25}
-        }
-        Fl_Value_Output {m_OutImageInfoCursorPosition[0]} {
-          label {World coordinates (ITK)  x:}
-          xywh {265 275 65 25} step 0.001
-        }
-        Fl_Value_Output {m_OutImageInfoCursorPosition[1]} {
-          label {y:}
-          xywh {350 275 65 25} step 0.001
-        }
-        Fl_Value_Output {m_OutImageInfoCursorPosition[2]} {
-          label {z:}
-          xywh {435 275 65 25} step 0.001
+          callback {this->OnOverallOpacityUpdate()}
+          xywh {10 245 150 20} type Horizontal labelsize 12 align 5 textsize 11
         }
         Fl_Button {} {
           label Close
-          callback {this->OnCloseImageInfoAction();}
-          xywh {245 350 85 30} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 labelfont 1 labelsize 12
+          xywh {45 455 80 25} box PLASTIC_UP_BOX color 139 labelfont 1 labelsize 12
         }
-        Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[0]} {
-          label {World coordinates (NIFTI)  x:}
-          xywh {265 305 65 25} step 0.001
-        }
-        Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[1]} {
-          label {y:}
-          xywh {350 305 65 25} step 0.001
-        }
-        Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[2]} {
-          label {z:}
-          xywh {435 305 65 25} step 0.001
-        }
-        Fl_Output m_OutImageInfoOriginRAICode {
-          label {RAI Code:}
-          xywh {265 156 235 24} color 49
-        }
-        Fl_Value_Input {m_InImageInfoCursorIndex[0]} {
-          label {Voxel coordinates  x:}
-          callback {this->OnImageInformationVoxelCoordinatesUpdate();}
-          xywh {265 246 65 24}
-        }
-        Fl_Value_Input {m_InImageInfoCursorIndex[1]} {
-          label {y:}
-          callback {this->OnImageInformationVoxelCoordinatesUpdate();}
-          xywh {350 246 65 24}
-        }
-        Fl_Value_Input {m_InImageInfoCursorIndex[2]} {
-          label {z:}
-          callback {this->OnImageInformationVoxelCoordinatesUpdate();}
-          xywh {435 246 65 24}
+      }
+      Fl_Group {} {open
+        xywh {170 0 1 490} box FLAT_BOX color 0
+      } {}
+    }
+    Fl_Window {} {open
+      xywh {100 146 577 744} type Double visible
+    } {
+      Fl_Group {} {
+        label {Layer Selection:} open
+        xywh {15 30 155 420} box THIN_UP_BOX labelfont 1 labelsize 12 align 5
+      } {
+        Fl_Browser m_BrsLayers {
+          callback {this->OnLayerSelectionUpdate()}
+          xywh {25 40 135 215} type Select labelsize 12 textsize 12
         }
       }
     }
