@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 01:10:20 $
-  Version:   $Revision: 1.29 $
+  Date:      $Date: 2009/08/26 21:49:55 $
+  Version:   $Revision: 1.30 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -102,6 +102,7 @@ public:
   virtual void OnMenuIntensityCurve() = 0;
   virtual void OnMenuShowOverlayOptions() = 0;
   virtual void OnMenuShowDisplayOptions() = 0;
+  virtual void OnMenuShowLayerEditor() = 0;
   virtual void OnMenuExportSlice(unsigned int iSlice) = 0;
   virtual void OnMenuImageInfo() = 0;
   virtual void OnMenuReorientImage() = 0;

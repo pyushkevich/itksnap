@@ -88,6 +88,7 @@ SET(LOGIC_CXX
   Common/SystemInterface.cxx
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
+  Logic/Common/ColorMap.cxx
   Logic/Common/ImageCoordinateGeometry.cxx
   Logic/Common/ImageCoordinateTransform.cxx
   Logic/Common/SNAPRegistryIO.cxx
@@ -146,6 +147,7 @@ SET(LOGIC_HEADERS
   Common/SystemInterface.h
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
+  Logic/Common/ColorMap.h
   Logic/Common/ImageCoordinateGeometry.h
   Logic/Common/ImageCoordinateTransform.h
   Logic/Common/ImageRayIntersectionFinder.h
@@ -209,6 +211,7 @@ SET(LOGIC_HEADERS
 # These files contain the user interface source code
 SET(UI_CXX
   UserInterface/BasicComponents/ColorMapBox.cxx
+  UserInterface/BasicComponents/ColorMapWidget.cxx
   UserInterface/BasicComponents/FLTKCanvas.cxx
   UserInterface/BasicComponents/FunctionPlot2DBox.cxx
   UserInterface/BasicComponents/FunctionPlot2D.cxx
@@ -225,6 +228,7 @@ SET(UI_CXX
   UserInterface/MainComponents/IntensityCurveUILogic.cxx
   UserInterface/MainComponents/OverlayUILogic.cxx
   UserInterface/MainComponents/LabelEditorUILogic.cxx
+  UserInterface/MainComponents/LayerEditorUILogic.cxx
   UserInterface/MainComponents/PreprocessingUILogic.cxx
   UserInterface/MainComponents/ReorientImageUILogic.cxx
   UserInterface/MainComponents/ResizeRegionDialogLogic.cxx
@@ -256,6 +260,7 @@ SET(UI_CXX
 # The header files for the UI project
 SET(UI_HEADERS
   UserInterface/BasicComponents/ColorMapBox.h
+  UserInterface/BasicComponents/ColorMapWidget.h
   UserInterface/BasicComponents/FLTKCanvas.h
   UserInterface/BasicComponents/FLTKEvent.h
   UserInterface/BasicComponents/FLTKWidgetActivationManager.h
@@ -280,6 +285,8 @@ SET(UI_HEADERS
   UserInterface/MainComponents/IntensityCurveUILogic.h
   UserInterface/MainComponents/LabelEditorUIBase.h
   UserInterface/MainComponents/LabelEditorUILogic.h
+  UserInterface/MainComponents/LayerEditorUIBase.h
+  UserInterface/MainComponents/LayerEditorUILogic.h
   UserInterface/MainComponents/PreprocessingUIBase.h
   UserInterface/MainComponents/PreprocessingUILogic.h
   UserInterface/MainComponents/OverlayUIBase.h
@@ -347,6 +354,7 @@ SET(APPLICATION_FLUIDS
   UserInterface/MainComponents/HelpViewer.fl
   UserInterface/MainComponents/IntensityCurveUI.fl
   UserInterface/MainComponents/LabelEditorUI.fl
+  UserInterface/MainComponents/LayerEditorUI.fl
   UserInterface/MainComponents/PreprocessingUI.fl
   UserInterface/MainComponents/ReorientImageUI.fl
   UserInterface/MainComponents/ResizeRegionDialog.fl

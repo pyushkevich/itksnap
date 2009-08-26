@@ -257,7 +257,7 @@ class UserInterface {open : {public UserInterfaceBase}
           }
         }
         Submenu {} {
-          label {&Tools}
+          label {&Tools} open
           xywh {5 5 100 20} labelsize 12
         } {
           MenuItem m_MenuImageInfo {
@@ -278,7 +278,12 @@ class UserInterface {open : {public UserInterfaceBase}
           MenuItem {} {
             label {&Display Options...}
             callback {OnMenuShowDisplayOptions();}
-            xywh {5 5 100 20} labelsize 12
+            xywh {5 5 100 20} labelsize 12 divider
+          }
+          MenuItem m_MenuLayerEditor {
+            label {&Layer Editor...}
+            callback {OnMenuShowLayerEditor()} selected
+            xywh {0 0 30 20} labelsize 12
           }
         }
         Submenu {} {
@@ -307,7 +312,7 @@ class UserInterface {open : {public UserInterfaceBase}
           }
           MenuItem {} {
             label {Check for &Updates...}
-            callback {this->OnMenuCheckForUpdate();} selected
+            callback {this->OnMenuCheckForUpdate();}
             tooltip {Connect to the ITK-SNAP server to check if your version is up to date.} xywh {50 50 100 20} labelsize 12
           }
         }

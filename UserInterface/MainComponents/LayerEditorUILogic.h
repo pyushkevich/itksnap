@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerEditorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 11:25:58 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/08/26 21:49:55 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,8 +52,7 @@ public:
   void OnCloseAction();
 
   // Callbacks for the contrast adjustment page
-  void OnClose();
-  void OnReset();
+  void OnCurveReset();
   void OnAutoFitWindow();
   void OnWindowLevelChange();
   void OnControlPointNumberChange();
@@ -75,6 +74,22 @@ public:
 
   // Callbacks for the image info page
   void OnImageInformationVoxelCoordinatesUpdate();
+
+  // Display the dialog
+  void DisplayWindow();
+
+private:
+
+  void PopulateColorMapPresets();
+
+  // Info about the presets
+  struct PresetInfo 
+    {
+    std::string name;
+    int cline, ccirc;
+    };
+
+  static PresetInfo m_PresetInfo[];
 };
 
 #endif

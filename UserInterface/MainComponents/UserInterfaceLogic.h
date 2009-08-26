@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 01:10:20 $
-  Version:   $Revision: 1.36 $
+  Date:      $Date: 2009/08/26 21:49:56 $
+  Version:   $Revision: 1.37 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -53,6 +53,7 @@ class ImageIOWizardLogic;
 class RestrictedImageIOWizardLogic;
 class ImageInfoCallbackInterface;
 class LabelEditorUILogic;
+class LayerEditorUILogic;
 class IRISSliceWindow;
 class SNAPSliceWindow;
 class MeshIOWizardUILogic;
@@ -720,6 +721,7 @@ protected:
   void OnMenuWriteVoxelCounts();
   void OnMenuIntensityCurve();
   void OnMenuShowOverlayOptions();
+  void OnMenuShowLayerEditor();
   void OnMenuSavePreprocessed(); 
   void OnMenuSaveLevelSet(); 
   void OnLoadRecentAction(unsigned int iRecent);
@@ -855,6 +857,9 @@ private:
 
   /** UI object used for handling Overlay options */
   OverlayUILogic *m_OverlayUI;
+
+  /** Layer dialog */
+  LayerEditorUILogic *m_LayerUI;
 
   /** UI object for label editing */
   LabelEditorUILogic *m_LabelEditorUI;
@@ -996,6 +1001,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.37  2009/08/26 21:49:56  pyushkevich
+ *Improvements to the color map widget
+ *
  *Revision 1.36  2009/08/26 01:10:20  garyhuizhang
  *ENH: merge grey and RGB overlays into one wrapper list and modify the associated GUI codes
  *

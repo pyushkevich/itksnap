@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerEditorUIBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 11:25:58 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/08/26 21:49:55 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -50,8 +50,7 @@ public:
   virtual void OnCloseAction() = 0;
 
   // Callbacks for the contrast adjustment page
-  virtual void OnClose() = 0;
-  virtual void OnReset() = 0;
+  virtual void OnCurveReset() = 0;
   virtual void OnAutoFitWindow() = 0;
   virtual void OnWindowLevelChange() = 0;
   virtual void OnControlPointNumberChange() = 0;

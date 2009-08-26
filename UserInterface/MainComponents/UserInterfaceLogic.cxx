@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 01:10:20 $
-  Version:   $Revision: 1.77 $
+  Date:      $Date: 2009/08/26 21:49:55 $
+  Version:   $Revision: 1.78 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -53,6 +53,7 @@
 #include "EdgePreprocessingImageFilter.h"
 #include "IntensityCurveUILogic.h"
 #include "OverlayUILogic.h"
+#include "LayerEditorUILogic.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "IRISVectorTypesToITKConversion.h"
@@ -392,6 +393,10 @@ UserInterfaceLogic
   m_OverlayUI = new OverlayUILogic;
   m_OverlayUI->MakeWindow();
 
+  // Create the layer editor
+  m_LayerUI = new LayerEditorUILogic;
+  m_LayerUI->make_window();
+
   // Create the label editor window
   m_LabelEditorUI = new LabelEditorUILogic();
   m_LabelEditorUI->MakeWindow();
@@ -532,6 +537,7 @@ UserInterfaceLogic
   delete m_DlgReorientImage;
   delete m_LabelEditorUI;
   delete m_OverlayUI;
+  delete m_LayerUI;
 
   // Delete the window managers
   for(int i = 0; i < 3; i++)
@@ -2863,6 +2869,13 @@ UserInterfaceLogic
   m_OverlayUI->DisplayWindow();
 }
 
+void 
+UserInterfaceLogic
+::OnMenuShowLayerEditor()
+{
+  m_LayerUI->DisplayWindow();
+}
+
 void
 UserInterfaceLogic
 ::UpdateWindowFocus(Fl_Group *parent, Fl_Group **panels, Fl_Gl_Window **boxes, int iWindow)
@@ -5063,6 +5076,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.78  2009/08/26 21:49:55  pyushkevich
+ *Improvements to the color map widget
+ *
  *Revision 1.77  2009/08/26 01:10:20  garyhuizhang
  *ENH: merge grey and RGB overlays into one wrapper list and modify the associated GUI codes
  *
