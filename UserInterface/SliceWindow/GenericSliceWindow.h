@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/25 19:46:18 $
-  Version:   $Revision: 1.21 $
+  Date:      $Date: 2009/08/26 01:10:20 $
+  Version:   $Revision: 1.22 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -288,14 +288,11 @@ protected:
   // Main image texture object
   OpenGLSliceTexture *m_MainTexture;
 
-  // Grey overlay texture objects
+  // Overlay texture objects
   typedef std::list<OpenGLSliceTexture *> OverlayTextureList;
   typedef OverlayTextureList::iterator OverlayTextureIterator;
   typedef OverlayTextureList::const_iterator OverlayTextureConstIterator;
-  OverlayTextureList m_GreyOverlayTextureList;
-
-  // RGB overlay texture objects
-  OverlayTextureList m_RGBOverlayTextureList;
+  OverlayTextureList m_OverlayTextureList;
 
   // Label texture object
   OpenGLSliceTexture *m_LabelRGBTexture;
@@ -318,11 +315,8 @@ protected:
   // This method is called in draw() to paint the Main image slice
   virtual void DrawMainTexture();
 
-  // This method is called in draw() to paint the grey overlay slice
-  virtual void DrawGreyOverlayTexture();
-
-  // This method is called in draw() to paint the RGB overlay slice
-  virtual void DrawRGBOverlayTexture();
+  // This method is called in draw() to paint the overlay slice
+  virtual void DrawOverlayTexture();
 
   // This method is called in draw() to paint the segmentation slice
   virtual void DrawSegmentationTexture();

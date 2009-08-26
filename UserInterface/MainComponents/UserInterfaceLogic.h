@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/07/22 21:06:24 $
-  Version:   $Revision: 1.35 $
+  Date:      $Date: 2009/08/26 01:10:20 $
+  Version:   $Revision: 1.36 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -706,11 +706,9 @@ protected:
   void OnMenuLoadGrey();
   void OnMenuLoadRGB();
   void OnMenuLoadGreyOverlay();
-  void OnMenuUnloadGreyOverlayLast();
-  void OnMenuUnloadGreyOverlays();
   void OnMenuLoadRGBOverlay();
-  void OnMenuUnloadRGBOverlayLast();
-  void OnMenuUnloadRGBOverlays();
+  void OnMenuUnloadOverlayLast();
+  void OnMenuUnloadOverlays();
   void OnMenuLoadSegmentation();
   void OnMenuLoadLabels();
   void OnMenuSaveGreyROI();
@@ -787,10 +785,7 @@ private:
   enum UIStateFlags {
     UIF_NULL,
     UIF_GRAY_LOADED,
-    UIF_GRAYOVL_LOADED,
     UIF_RGB_LOADED,
-    UIF_RGBOVL_LOADED,
-    UIF_RGBANY_LOADED,
     UIF_BASEIMG_LOADED,
     UIF_OVERLAY_LOADED,
     UIF_IRIS_ACTIVE,
@@ -1001,6 +996,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.36  2009/08/26 01:10:20  garyhuizhang
+ *ENH: merge grey and RGB overlays into one wrapper list and modify the associated GUI codes
+ *
  *Revision 1.35  2009/07/22 21:06:24  pyushkevich
  *Changed the IO system and wizards, removed templating
  *

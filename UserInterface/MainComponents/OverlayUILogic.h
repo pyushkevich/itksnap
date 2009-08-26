@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OverlayUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 06:47:52 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/08/26 01:10:20 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -58,9 +58,7 @@ public:
 
   typedef GenericImageData::WrapperList WrapperList;
   typedef GenericImageData::WrapperIterator WrapperIterator;
-  void UpdateOverlayMenuSelection(
-         WrapperList *greyOverlays,
-         WrapperList *RGBOverlays);
+  void UpdateOverlayMenuSelection(WrapperList *overlays);
 
   void OnGreyOverlaySelectionChange();
   void OnGreyOverlayOpacityChange();

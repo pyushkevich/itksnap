@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: OverlayUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 08:09:59 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/08/26 01:10:20 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -75,8 +75,7 @@ OverlayUILogic
 
 void
 OverlayUILogic
-::UpdateOverlayMenuSelection(
-WrapperList *greyOverlays, WrapperList *RGBOverlays)
+::UpdateOverlayMenuSelection(WrapperList *overlays)
 {
   // clear the menu
   m_InGreyOverlaySelection->clear();
@@ -84,39 +83,46 @@ WrapperList *greyOverlays, WrapperList *RGBOverlays)
   m_InRGBOverlaySelection->clear();
   m_RGBOverlayWrapper = NULL;
 
-  // add grey overlays
-  WrapperIterator it = greyOverlays->begin();
+  // add overlays
+  WrapperIterator it = overlays->begin();
   
-  int count = 1;
-  while (it != greyOverlays->end())
+  int greyCount = 1;
+  int rgbCount = 1;
+  while (it != overlays->end())
     {
-    string label = "Grey Overlay ";
+    GreyImageWrapper *greyOverlay = dynamic_cast<GreyImageWrapper *>(*it);
+    string label;
     std::stringstream itoa;
-    itoa << count;
+    if (greyOverlay)
+      {
+      label = "Grey Overlay ";
+      itoa << greyCount;
+      }
+    else
+      {
+      label = "RGB Overlay ";
+      itoa << rgbCount;
+      }
     label += itoa.str();
-    m_InGreyOverlaySelection->add(label.c_str(), "", NULL, *it);
-    ++count;
+    if (greyOverlay)
+      {
+      m_InGreyOverlaySelection->add(label.c_str(), "", NULL, *it);
+      ++greyCount;
+      }
+    else
+      {
+      m_InRGBOverlaySelection->add(label.c_str(), "", NULL, *it);
+      ++rgbCount;
+      }
     ++it;
     }
-  if (greyOverlays->size() > 0)
+
+  if (greyCount > 1)
     m_InGreyOverlay->activate();
   else
     m_InGreyOverlay->deactivate();
 
-  // add RGB overlays
-  it = RGBOverlays->begin();
-  count = 1;
-  while (it != RGBOverlays->end())
-    {
-    string label = "RGB Overlay ";
-    std::stringstream itoa;
-    itoa << count;
-    label += itoa.str();
-    m_InRGBOverlaySelection->add(label.c_str(), "", NULL, *it);
-    ++count;
-    ++it;
-    }
-  if (RGBOverlays->size() > 0)
+  if (rgbCount > 1)
     m_InRGBOverlay->activate();
   else
     m_InRGBOverlay->deactivate();

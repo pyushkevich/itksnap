@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 04:55:45 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/08/26 01:10:20 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -103,13 +103,6 @@ public:
   }
 
   /**
-   * Access the greyscale overlay image (read only access is allowed)
-   */
-  WrapperList* GetGreyOverlays() {
-    return &m_GreyOverlayWrappers;
-  }
-
-  /**
    * Access the RGB image (read only access is allowed)
    */
   RGBImageWrapper* GetRGB() {
@@ -118,10 +111,10 @@ public:
   }
 
   /**
-   * Access the RGB overlay image (read only access is allowed)
+   * Access the overlay images (read only access is allowed)
    */
-  WrapperList* GetRGBOverlays() {
-    return &m_RGBOverlayWrappers;
+  WrapperList* GetOverlays() {
+    return &m_OverlayWrappers;
   }
 
   /**
@@ -173,20 +166,17 @@ public:
     const ImageCoordinateGeometry &newGeometry,
     const GreyTypeToNativeFunctor &native);
 
+  virtual void SetRGBImage(RGBImageType *newRGBImage,
+                    const ImageCoordinateGeometry &newGeometry);
+
   virtual void SetGreyOverlay(
     GreyImageType *newGreyImage,
     const GreyTypeToNativeFunctor &native);
 
-  virtual void UnloadGreyOverlays();
-  virtual void UnloadGreyOverlayLast();
-
-  virtual void SetRGBImage(RGBImageType *newRGBImage,
-                    const ImageCoordinateGeometry &newGeometry);
-  
   virtual void SetRGBOverlay(RGBImageType *newRGBImage);
-  
-  virtual void UnloadRGBOverlays();
-  virtual void UnloadRGBOverlayLast();
+
+  virtual void UnloadOverlays();
+  virtual void UnloadOverlayLast();
 
   /**
    * This method sets the segmentation image (see note for SetGrey).
@@ -204,19 +194,14 @@ public:
   bool IsGreyLoaded();
 
   /**
-   * Check validity of greyscale overlay image
-   */
-  bool IsGreyOverlayLoaded();
-
-  /**
    * Check validity of RGB image
    */
   bool IsRGBLoaded();
 
   /**
-   * Check validity of RGB overlay image
+   * Check validity of overlay images
    */
-  bool IsRGBOverlayLoaded();
+  bool IsOverlayLoaded();
 
   /**
    * Check validity of segmentation image
@@ -253,8 +238,7 @@ protected:
   // A list of linked wrappers, whose cursor position and image geometry
   // are updated concurrently
   WrapperList m_LinkedWrappers;
-  WrapperList m_GreyOverlayWrappers;
-  WrapperList m_RGBOverlayWrappers;
+  WrapperList m_OverlayWrappers;
 
   // A pointer to the 'main' image, i.e., the image that is treated as the
   // reference for all other images. It is typically the grey image, but

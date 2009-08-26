@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/25 21:38:16 $
-  Version:   $Revision: 1.25 $
+  Date:      $Date: 2009/08/26 01:10:20 $
+  Version:   $Revision: 1.26 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -197,23 +197,6 @@ GenericSliceWindow
   // Register should have been called already
   assert(m_IsRegistered);
 
-  // Store the image data pointer
-  m_ImageData = imageData;
-
-  // Clear the grey overlay texture list
-  while (m_GreyOverlayTextureList.size() > 0)
-    {
-    delete m_GreyOverlayTextureList.front();
-    m_GreyOverlayTextureList.pop_front();
-    }
-
-  // Clear the RGB overlay texture list
-  while (m_RGBOverlayTextureList.size() > 0)
-    {
-    delete m_RGBOverlayTextureList.front();
-    m_RGBOverlayTextureList.pop_front();
-    }
-
   // The main image should be loaded
   if (!imageData->IsMainLoaded())
     {
@@ -223,33 +206,29 @@ GenericSliceWindow
     return;
     }
 
-  // Initialize the grey overlay slice texture
-  if (imageData->IsGreyOverlayLoaded())
+  // Store the image data pointer
+  m_ImageData = imageData;
+
+  // Clear the overlay texture list
+  while (m_OverlayTextureList.size() > 0)
     {
-    std::list<ImageWrapperBase *>::iterator it = m_ImageData->GetGreyOverlays()->begin();
-    while (it != m_ImageData->GetGreyOverlays()->end())
+    delete m_OverlayTextureList.front();
+    m_OverlayTextureList.pop_front();
+    }
+
+  // Initialize the overlay slice texture
+  if (imageData->IsOverlayLoaded())
+    {
+    std::list<ImageWrapperBase *>::iterator it = m_ImageData->GetOverlays()->begin();
+    while (it != m_ImageData->GetOverlays()->end())
       {
-      GreyImageWrapper *wrapper = static_cast<GreyImageWrapper *>(*it);
       OpenGLSliceTexture *texture = new OpenGLSliceTexture(4, GL_RGBA);
-      texture->SetImage(wrapper->GetDisplaySlice(m_Id).GetPointer());
-	    m_GreyOverlayTextureList.push_back(texture);
+      texture->SetImage((*it)->GetDisplaySlice(m_Id).GetPointer());
+	    m_OverlayTextureList.push_back(texture);
       it++;
     	 }
     }
 
-  // Initialize the RGB overlay slice texture
-  if (imageData->IsRGBOverlayLoaded())
-    {
-    std::list<ImageWrapperBase *>::iterator it = m_ImageData->GetRGBOverlays()->begin();
-    while (it != m_ImageData->GetRGBOverlays()->end())
-      {
-      RGBImageWrapper *wrapper = static_cast<RGBImageWrapper *>(*it);
-      OpenGLSliceTexture *texture = new OpenGLSliceTexture(4, GL_RGBA);
-      texture->SetImage(wrapper->GetDisplaySlice(m_Id).GetPointer());
-      m_RGBOverlayTextureList.push_back(texture);
-      it++;
-    	 }
-    }
 }
 
 void
@@ -452,8 +431,7 @@ GenericSliceWindow
   
   // Make the grey and segmentation image textures up-to-date
   DrawMainTexture();
-  DrawGreyOverlayTexture();
-  DrawRGBOverlayTexture();
+  DrawOverlayTexture();
   DrawSegmentationTexture();
 
   // Draw the overlays
@@ -498,7 +476,7 @@ GenericSliceWindow
 
 void 
 GenericSliceWindow
-::DrawGreyOverlayTexture() 
+::DrawOverlayTexture() 
 {
   // We should have a slice to return
   assert(m_ImageSliceIndex >= 0);
@@ -509,38 +487,9 @@ GenericSliceWindow
         SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
     : Vector3d(1.0);
 
-  OverlayTextureIterator textureIt = m_GreyOverlayTextureList.begin();
-  std::list<ImageWrapperBase *>::iterator wrapperIt = m_ImageData->GetGreyOverlays()->begin();
-  while (textureIt != m_GreyOverlayTextureList.end())
-    {
-    // Set the interpolation mode to current default
-    OpenGLSliceTexture *texture = *textureIt;
-    ImageWrapperBase *wrapper = *wrapperIt;
-    texture->SetInterpolation(
-      m_ParentUI->GetAppearanceSettings()->GetGreyInterpolationMode()
-      == SNAPAppearanceSettings::LINEAR ? GL_LINEAR : GL_NEAREST);
-    texture->DrawTransparent(wrapper->GetAlpha());
-    textureIt++;
-    wrapperIt++;
-    }
-}
-
-void 
-GenericSliceWindow
-::DrawRGBOverlayTexture() 
-{
-  // We should have a slice to return
-  assert(m_ImageSliceIndex >= 0);
-
-  // Get the color to use for background
-  Vector3d clrBackground = m_ThumbnailIsDrawing
-    ? m_ParentUI->GetAppearanceSettings()->GetUIElement(
-        SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
-    : Vector3d(1.0);
-
-  OverlayTextureIterator textureIt = m_RGBOverlayTextureList.begin();
-  std::list<ImageWrapperBase *>::iterator wrapperIt = m_ImageData->GetRGBOverlays()->begin();
-  while (textureIt != m_RGBOverlayTextureList.end())
+  OverlayTextureIterator textureIt = m_OverlayTextureList.begin();
+  std::list<ImageWrapperBase *>::iterator wrapperIt = m_ImageData->GetOverlays()->begin();
+  while (textureIt != m_OverlayTextureList.end())
     {
     // Set the interpolation mode to current default
     OpenGLSliceTexture *texture = *textureIt;

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.h,v $
   Language:  C++
-  Date:      $Date: 2009/07/22 21:06:24 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009/08/26 01:10:20 $
+  Version:   $Revision: 1.18 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -144,10 +144,8 @@ public:
    * grey image is loaded.  The prerequisite to this method is that the SNAP data
    * not be active (CurrentImageData == IRISImageData).
    */
-  void UnloadGreyOverlays();
-  void UnloadGreyOverlayLast();
-  void UnloadRGBOverlays();
-  void UnloadRGBOverlayLast();
+  void UnloadOverlays();
+  void UnloadOverlayLast();
 
   /** 
    * Update the IRIS image data with an external segmentation image (e.g., 

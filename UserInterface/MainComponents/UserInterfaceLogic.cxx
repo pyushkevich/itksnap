@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/25 23:46:11 $
-  Version:   $Revision: 1.76 $
+  Date:      $Date: 2009/08/26 01:10:20 $
+  Version:   $Revision: 1.77 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -211,10 +211,6 @@ void UserInterfaceLogic
   m_Activation->SetFlagImplies(UIF_SNAP_MESH_CONTINUOUS_UPDATE, UIF_SNAP_SNAKE_INITIALIZED);
   m_Activation->SetFlagImplies(UIF_GRAY_LOADED, UIF_BASEIMG_LOADED);
   m_Activation->SetFlagImplies(UIF_RGB_LOADED, UIF_BASEIMG_LOADED);
-  m_Activation->SetFlagImplies(UIF_RGB_LOADED, UIF_RGBANY_LOADED);
-  m_Activation->SetFlagImplies(UIF_RGBOVL_LOADED, UIF_RGBANY_LOADED);
-  m_Activation->SetFlagImplies(UIF_GRAYOVL_LOADED, UIF_OVERLAY_LOADED);
-  m_Activation->SetFlagImplies(UIF_RGBOVL_LOADED, UIF_OVERLAY_LOADED);
   m_Activation->SetFlagImplies(UIF_IRIS_WITH_GRAY_LOADED, UIF_GRAY_LOADED);
   m_Activation->SetFlagImplies(UIF_IRIS_WITH_BASEIMG_LOADED, UIF_BASEIMG_LOADED);
   m_Activation->SetFlagImplies(UIF_IRIS_WITH_BASEIMG_LOADED, UIF_IRIS_ACTIVE);
@@ -311,11 +307,9 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuSave, UIF_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveGrey, UIF_IRIS_WITH_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadGreyOverlay, UIF_IRIS_WITH_BASEIMG_LOADED);
-  m_Activation->AddMenuItem(m_MenuUnloadGreyOverlayLast, UIF_GRAYOVL_LOADED);
-  m_Activation->AddMenuItem(m_MenuUnloadGreyOverlays, UIF_GRAYOVL_LOADED);
+  m_Activation->AddMenuItem(m_MenuUnloadOverlayLast, UIF_OVERLAY_LOADED);
+  m_Activation->AddMenuItem(m_MenuUnloadOverlays, UIF_OVERLAY_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadRGBOverlay, UIF_IRIS_WITH_BASEIMG_LOADED);
-  m_Activation->AddMenuItem(m_MenuUnloadRGBOverlayLast, UIF_RGBOVL_LOADED);
-  m_Activation->AddMenuItem(m_MenuUnloadRGBOverlays, UIF_RGBOVL_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuNewSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveGreyROI, UIF_SNAP_ACTIVE);
@@ -3212,8 +3206,8 @@ UserInterfaceLogic
   if (m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
     m_Driver->GetCurrentImageData()->GetSegmentation()->Reset();
 
-  if (m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
-    m_Driver->UnloadGreyOverlays();
+  if (m_Driver->GetCurrentImageData()->IsOverlayLoaded())
+    m_Driver->UnloadOverlays();
 
   if (m_Driver->GetCurrentImageData()->IsMainLoaded())
     m_Driver->GetCurrentImageData()->GetMain()->Reset();
@@ -3373,7 +3367,6 @@ UserInterfaceLogic
   m_IntensityCurveUI->OnCurveChange();
 
   // Disable/Enable some menu items
-  m_Activation->UpdateFlag(UIF_RGBANY_LOADED, false);
   m_Activation->UpdateFlag(UIF_IRIS_WITH_GRAY_LOADED, true);
 
   // Common user interface updates
@@ -3426,8 +3419,7 @@ UserInterfaceLogic
       m_IRISWindowManager2D[i]->InitializeOverlaySlice(m_Driver->GetCurrentImageData());
     }
 
-  if (!m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded() &&
-      !m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
+  if (!m_Driver->GetCurrentImageData()->IsOverlayLoaded())
     m_Activation->UpdateFlag(UIF_OVERLAY_LOADED, false);
 }
 
@@ -3443,8 +3435,7 @@ UserInterfaceLogic
 
   // Update the overlay menu items
   m_OverlayUI->UpdateOverlayMenuSelection(
-    m_Driver->GetCurrentImageData()->GetGreyOverlays(),
-    m_Driver->GetCurrentImageData()->GetRGBOverlays());
+    m_Driver->GetCurrentImageData()->GetOverlays());
 
   // Redraw the user interface
   RedrawWindows();
@@ -3819,7 +3810,7 @@ UserInterfaceLogic
     itksys::SystemTools::CollapseFullPath(fname).c_str());
 
   // Set the state
-  m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, true);
+  m_Activation->UpdateFlag(UIF_OVERLAY_LOADED, true);
 
   // Update the user interface accordingly
   OnOverlayImageUpdate();
@@ -3916,38 +3907,11 @@ UserInterfaceLogic
     m_GlobalState->SetGreyOverlayFileName(wizGreyOverlayIO.GetFileName());
 
     // Set the state
-    m_Activation->UpdateFlag(UIF_GRAYOVL_LOADED, true);
+    m_Activation->UpdateFlag(UIF_OVERLAY_LOADED, true);
 
     // Update the user interface accordingly
     OnOverlayImageUpdate();
     }
-}
-
-void
-UserInterfaceLogic
-::OnMenuUnloadGreyOverlayLast()
-{
-  if (m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
-    m_Driver->UnloadGreyOverlayLast();
-
-  // Update the state if necessary
-  if (!m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
-    m_Activation->UpdateFlag(UIF_GRAYOVL_LOADED, false);
-
-  OnOverlayImageUpdate();
-}
-
-void
-UserInterfaceLogic
-::OnMenuUnloadGreyOverlays()
-{
-  if (m_Driver->GetCurrentImageData()->IsGreyOverlayLoaded())
-    m_Driver->UnloadGreyOverlays();
-  
-  // Update the state
-  m_Activation->UpdateFlag(UIF_GRAYOVL_LOADED, false);
-
-  OnOverlayImageUpdate();
 }
 
 void 
@@ -4001,33 +3965,33 @@ UserInterfaceLogic
     OnOverlayImageUpdate();
  
     // Set the state
-    m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, true);
+    m_Activation->UpdateFlag(UIF_OVERLAY_LOADED, true);
     }
 }
 
 void
 UserInterfaceLogic
-::OnMenuUnloadRGBOverlayLast()
+::OnMenuUnloadOverlayLast()
 {
-  if (m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
-    m_Driver->UnloadRGBOverlayLast();
+  if (m_Driver->GetCurrentImageData()->IsOverlayLoaded())
+    m_Driver->UnloadOverlayLast();
 
   // Update the state if necessary
-  if (!m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
-    m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, false);
+  if (!m_Driver->GetCurrentImageData()->IsOverlayLoaded())
+    m_Activation->UpdateFlag(UIF_OVERLAY_LOADED, false);
 
   OnOverlayImageUpdate();
 }
 
 void
 UserInterfaceLogic
-::OnMenuUnloadRGBOverlays()
+::OnMenuUnloadOverlays()
 {
-  if (m_Driver->GetCurrentImageData()->IsRGBOverlayLoaded())
-    m_Driver->UnloadRGBOverlays();
+  if (m_Driver->GetCurrentImageData()->IsOverlayLoaded())
+    m_Driver->UnloadOverlays();
   
   // Update the state
-  m_Activation->UpdateFlag(UIF_RGBOVL_LOADED, false);
+  m_Activation->UpdateFlag(UIF_OVERLAY_LOADED, false);
 
   OnOverlayImageUpdate();
 }
@@ -5099,8 +5063,8 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
- *Revision 1.76  2009/08/25 23:46:11  garyhuizhang
- *ENH: use main image
+ *Revision 1.77  2009/08/26 01:10:20  garyhuizhang
+ *ENH: merge grey and RGB overlays into one wrapper list and modify the associated GUI codes
  *
  *Revision 1.75  2009/08/24 19:24:33  garyhuizhang
  *BUGFIX: menu item activation rules changed

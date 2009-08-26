@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/22 21:06:24 $
-  Version:   $Revision: 1.24 $
+  Date:      $Date: 2009/08/26 01:10:20 $
+  Version:   $Revision: 1.25 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -266,10 +266,10 @@ IRISApplication
 
 void
 IRISApplication
-::UnloadGreyOverlays()
+::UnloadOverlays()
 {
-  // unload all the grey overlays
-  m_IRISImageData->UnloadGreyOverlays();
+  // unload all the overlays
+  m_IRISImageData->UnloadOverlays();
 
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
@@ -278,35 +278,10 @@ IRISApplication
 
 void
 IRISApplication
-::UnloadGreyOverlayLast()
+::UnloadOverlayLast()
 {
-  // unload the last grey overlay
-  m_IRISImageData->UnloadGreyOverlayLast();
-
-  // for overlay, we don't want to change the cursor location
-  // just force the IRISSlicer to update
-  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
-}
-
-
-void
-IRISApplication
-::UnloadRGBOverlays()
-{
-  // unload all the RGB overlays
-  m_IRISImageData->UnloadRGBOverlays();
-
-  // for overlay, we don't want to change the cursor location
-  // just force the IRISSlicer to update
-  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
-}
-
-void
-IRISApplication
-::UnloadRGBOverlayLast()
-{
-  // unload the last grey overlay
-  m_IRISImageData->UnloadRGBOverlayLast();
+  // unload the last overlay
+  m_IRISImageData->UnloadOverlayLast();
 
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
