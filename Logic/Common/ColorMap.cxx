@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/27 20:02:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/08/27 20:16:00 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,10 +41,10 @@ ColorMap::CMPoint
   this->m_Index = 0.0;
   this->m_Type = CONTINUOUS;
 
-  this->m_RGBA[0][0] = 0.0;  this->m_RGBA[1][0] = 0.0;
-  this->m_RGBA[0][1] = 0.0;  this->m_RGBA[1][1] = 0.0;
-  this->m_RGBA[0][2] = 0.0;  this->m_RGBA[1][2] = 0.0;
-  this->m_RGBA[0][3] = 0.0;  this->m_RGBA[1][3] = 0.0;
+  this->m_RGBA[0][0] = 0;  this->m_RGBA[1][0] = 0;
+  this->m_RGBA[0][1] = 0;  this->m_RGBA[1][1] = 0;
+  this->m_RGBA[0][2] = 0;  this->m_RGBA[1][2] = 0;
+  this->m_RGBA[0][3] = 0;  this->m_RGBA[1][3] = 0;
   }
 
 // Continuous point
@@ -201,6 +201,10 @@ void ColorMap::SetToSystemPreset(SystemPreset preset)
       m_CMPoints.push_back( CMPoint(0.6   , 0xff, 0xff, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(0.9   , 0xff, 0x00, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(1.0,    0x80, 0x00, 0x00, 0xff, 0x00) );
+      break;
+    case COLORMAP_SIZE:
+      // to mute compiler warning
+      std::cerr << "COLORMAP_SIZE: should never get there ..." << std::endl;
       break;
    }
 }

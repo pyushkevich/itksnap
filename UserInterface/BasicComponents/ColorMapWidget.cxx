@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMapWidget.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/27 20:02:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/08/27 20:16:00 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -141,8 +141,8 @@ ColorMapWidget
     {
     // Create a checkerboard    
     unsigned char *boxarr = new unsigned char[boxw * boxw], *p = boxarr;
-    for(size_t i = 0; i < boxw; i++) 
-      for(size_t j = 0; j < boxw; j++)
+    for(GLsizei i = 0; i < boxw; i++) 
+      for(GLsizei j = 0; j < boxw; j++)
         if((i < boxw / 2 && j < boxw / 2) || (i > boxw / 2 && j > boxw / 2))
           *p++ = 0xef;
         else
@@ -258,13 +258,13 @@ ColorMapWidget
     ColorMap::CMPoint p = m_ColorMap.GetCMPoint(i);
 
     glColor3ub(p.m_RGBA[0][0],p.m_RGBA[0][1],p.m_RGBA[0][2]);
-    bool select = (i == m_SelectedCMPoint) && (m_SelectedSide != RIGHT);
+    bool select = ((int)i == m_SelectedCMPoint) && (m_SelectedSide != RIGHT);
     gl_draw_circle_with_border(p.m_Index, p.m_RGBA[0][3] / 255.0, 5.0, select);
 
     if(p.m_RGBA[0][3] != p.m_RGBA[1][3])
       {
       glColor3ub(p.m_RGBA[1][0],p.m_RGBA[1][1],p.m_RGBA[1][2]);
-      bool select = (i == m_SelectedCMPoint) && (m_SelectedSide != LEFT);
+      bool select = ((int)i == m_SelectedCMPoint) && (m_SelectedSide != LEFT);
       gl_draw_circle_with_border(p.m_Index, p.m_RGBA[1][3] / 255.0, 5.0, select);
       }
     }
@@ -337,7 +337,7 @@ ColorMapInteraction
   double a = e.XSpace[1] * 255;
 
   // Clip the new index
-  if(isel == 0 || isel == cm.GetNumberOfCMPoints()-1)
+  if(isel == 0 || isel == (int)cm.GetNumberOfCMPoints()-1)
     {
     // The first and last point can not be moved left or right
     j = psel.m_Index;
