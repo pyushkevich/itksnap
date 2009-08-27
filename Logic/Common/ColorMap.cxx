@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/27 20:16:00 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/08/27 20:19:22 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -114,7 +114,7 @@ ColorMap::MapIndexToRGBA(double j) const
   double dj = j - it0->m_Index;
   RGBAType rout;
   for(size_t i = 0; i < 4; i++)
-    rout[i] = it0->m_RGBA[1][i] * (1.0 - dj) + it->m_RGBA[0][i] * dj;
+    rout[i] = (unsigned char)(it0->m_RGBA[1][i] * (1.0 - dj) + it->m_RGBA[0][i] * dj);
 
   return rout;
 }
