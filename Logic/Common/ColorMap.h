@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 21:49:56 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/08/27 20:02:17 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -46,7 +46,7 @@
  * mapping is piecewise continuous. Where it is continuous, it is linear.
  *
  * The color map is represented as an ordered list of points. Each point has
- * an index value (between 0 and 1). Points may be continuous (i.e., the color
+ * an index value (between 0 and 1). CMPoints may be continuous (i.e., the color
  * map is continuous at the point) and discontinuous. A continuous point has 
  * one RGBA value, and discontinuous points have two values. In between points,
  * the color map is interpolated linearly.
@@ -60,7 +60,7 @@ class ColorMap
     typedef itk::RGBAPixel<EltType> RGBAType;
 
     /** Type of point */
-    enum PointType { CONTINUOUS, DISCONTINUOUS };
+    enum CMPointType { CONTINUOUS, DISCONTINUOUS };
 
     /** System presets */
     enum SystemPreset {
@@ -70,23 +70,25 @@ class ColorMap
       COLORMAP_JET, COLORMAP_SIZE
     };
 
-    /** Point representation */
-    struct Point 
+    /** CMPoint representation */
+    class CMPoint 
     {
-      double m_Index;
-      PointType m_Type;
-      RGBAType m_RGBA[2];
+      public:
+      
+        double m_Index;
+        CMPointType m_Type;
+        RGBAType m_RGBA[2];
+      
+        CMPoint();
+      
+        // Continuous point
+        CMPoint(double, EltType r, EltType g, EltType b, EltType a);
 
-      Point();
+        // CMPoint with alpha discontinuity
+        CMPoint(double, EltType r, EltType g, EltType b, EltType a1, EltType a2);
 
-      // Continuous point
-      Point(double, EltType r, EltType g, EltType b, EltType a);
-
-      // Point with alpha discontinuity
-      Point(double, EltType r, EltType g, EltType b, EltType a1, EltType a2);
-
-      // Point with full discontinuity
-      Point(double, 
+        // CMPoint with full discontinuity
+        CMPoint(double, 
           EltType r1, EltType g1, EltType b1, EltType a1, 
           EltType r2, EltType g2, EltType b2, EltType a2);
     };
@@ -100,25 +102,23 @@ class ColorMap
     /** This method initializes the color map to one of the system presets */
     void SetToSystemPreset(SystemPreset preset);
 
-    size_t GetNumberOfPoints()
-      { return m_Points.size(); }
+    size_t GetNumberOfCMPoints()
+      { return m_CMPoints.size(); }
 
-    Point GetPoint(size_t j)
-      { return m_Points[j]; }
+    CMPoint GetCMPoint(size_t j)
+      { return m_CMPoints[j]; }
 
-    void UpdatePoint(size_t j, const Point &p)
-      { m_Points[j] = p; }
+    void UpdateCMPoint(size_t j, const CMPoint &p)
+      { m_CMPoints[j] = p; }
 
   private:
 
-    typedef std::vector<Point> PointList;
-    typedef PointList::iterator PointIterator;
-    typedef PointList::const_iterator PointConstIterator;
+    typedef std::vector<CMPoint> CMPointList;
+    typedef CMPointList::iterator CMPointIterator;
+    typedef CMPointList::const_iterator CMPointConstIterator;
 
     // Array of points, which must always be sorted by the index
-    PointList m_Points;
-
-
+    CMPointList m_CMPoints;
 
 };
 

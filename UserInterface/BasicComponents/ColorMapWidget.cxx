@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMapWidget.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 21:49:55 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/08/27 20:02:17 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,7 +44,7 @@ ColorMapWidget
   m_Interactor = new ColorMapInteraction(this);
   this->PushInteractionMode(m_Interactor);
 
-  m_SelectedPoint = -1;
+  m_SelectedCMPoint = -1;
   m_SelectedSide = BOTH;
 }
 
@@ -94,9 +94,9 @@ ColorMapWidget
 
 
 void ColorMapWidget
-::SetSelectedPoint(int pt)
+::SetSelectedCMPoint(int pt)
 {
-  m_SelectedPoint = pt;
+  m_SelectedCMPoint = pt;
   this->redraw();
 }
 
@@ -197,9 +197,9 @@ ColorMapWidget
   glColor4ub(v0[0], v0[1], v0[2], 0xff); glVertex2d(-0.1,1.0);
 
   // Draw each of the points
-  for(size_t i = 0; i < m_ColorMap.GetNumberOfPoints(); i++)
+  for(size_t i = 0; i < m_ColorMap.GetNumberOfCMPoints(); i++)
     {
-    ColorMap::Point p = m_ColorMap.GetPoint(i);
+    ColorMap::CMPoint p = m_ColorMap.GetCMPoint(i);
     glColor4ub(p.m_RGBA[0][0], p.m_RGBA[0][1], p.m_RGBA[0][2], 0xff); 
     glVertex2d(p.m_Index, 1.0);
     glColor4ub(p.m_RGBA[0][0], p.m_RGBA[0][1], p.m_RGBA[0][2], 0x00); 
@@ -242,9 +242,9 @@ ColorMapWidget
   glBegin(GL_LINE_STRIP);
   glColor4ub(0x00,0x00,0x00,0xff);
   glVertex2d(-0.1, v0[3] / 255.0);
-  for(size_t i = 0; i < m_ColorMap.GetNumberOfPoints(); i++)
+  for(size_t i = 0; i < m_ColorMap.GetNumberOfCMPoints(); i++)
     {
-    ColorMap::Point p = m_ColorMap.GetPoint(i);
+    ColorMap::CMPoint p = m_ColorMap.GetCMPoint(i);
     glVertex2d(p.m_Index, p.m_RGBA[0][3] / 255.0);
     glVertex2d(p.m_Index, p.m_RGBA[1][3] / 255.0);
     }
@@ -253,18 +253,18 @@ ColorMapWidget
 
   // Draw circles around the points
   glLineWidth(1.0);
-  for(size_t i = 0; i < m_ColorMap.GetNumberOfPoints(); i++)
+  for(size_t i = 0; i < m_ColorMap.GetNumberOfCMPoints(); i++)
     {
-    ColorMap::Point p = m_ColorMap.GetPoint(i);
+    ColorMap::CMPoint p = m_ColorMap.GetCMPoint(i);
 
     glColor3ub(p.m_RGBA[0][0],p.m_RGBA[0][1],p.m_RGBA[0][2]);
-    bool select = (i == m_SelectedPoint) && (m_SelectedSide != RIGHT);
+    bool select = (i == m_SelectedCMPoint) && (m_SelectedSide != RIGHT);
     gl_draw_circle_with_border(p.m_Index, p.m_RGBA[0][3] / 255.0, 5.0, select);
 
     if(p.m_RGBA[0][3] != p.m_RGBA[1][3])
       {
       glColor3ub(p.m_RGBA[1][0],p.m_RGBA[1][1],p.m_RGBA[1][2]);
-      bool select = (i == m_SelectedPoint) && (m_SelectedSide != LEFT);
+      bool select = (i == m_SelectedCMPoint) && (m_SelectedSide != LEFT);
       gl_draw_circle_with_border(p.m_Index, p.m_RGBA[1][3] / 255.0, 5.0, select);
       }
     }
@@ -286,9 +286,9 @@ ColorMapInteraction
   ColorMap &cm = m_Parent->m_ColorMap;
   
   // Check if the press occurs near a control point
-  for(size_t i = 0; i < cm.GetNumberOfPoints(); i++)
+  for(size_t i = 0; i < cm.GetNumberOfCMPoints(); i++)
     {
-    ColorMap::Point p = cm.GetPoint(i);
+    ColorMap::CMPoint p = cm.GetCMPoint(i);
     double dx = fabs(e.XSpace[0] - p.m_Index);
     double dy0 = fabs(e.XSpace[1] - p.m_RGBA[0][3] / 255.0);
     double dy1 = fabs(e.XSpace[1] - p.m_RGBA[1][3] / 255.0);
@@ -297,7 +297,7 @@ ColorMapInteraction
       {
       if(dy0 / 1.2 < 5.0 / m_Parent->h())
         {
-        m_Parent->SetSelectedPoint(i);
+        m_Parent->SetSelectedCMPoint(i);
         if(p.m_Type == ColorMap::CONTINUOUS)
           m_Parent->SetSelectedSide(ColorMapWidget::BOTH);
         else
@@ -306,7 +306,7 @@ ColorMapInteraction
         }
       else if (dy1 / 1.2 < 5.0 / m_Parent->h())
         {
-        m_Parent->SetSelectedPoint(i);
+        m_Parent->SetSelectedCMPoint(i);
         m_Parent->SetSelectedSide(ColorMapWidget::RIGHT);
         return 1;
         }
@@ -314,7 +314,7 @@ ColorMapInteraction
     }
 
   // No selection has been made
-  m_Parent->SetSelectedPoint(-1);
+  m_Parent->SetSelectedCMPoint(-1);
 
   return 1;
 }
@@ -325,19 +325,19 @@ ColorMapInteraction
 {
   // Reference to the color map  
   ColorMap &cm = m_Parent->m_ColorMap;
-  int isel = m_Parent->m_SelectedPoint;
+  int isel = m_Parent->m_SelectedCMPoint;
 
   // Nothing happens if zero is selected
   if(isel < 0) return 0;
 
-  ColorMap::Point psel = cm.GetPoint(isel);
+  ColorMap::CMPoint psel = cm.GetCMPoint(isel);
 
   // Get the new alpha and index
   double j = e.XSpace[0];
   double a = e.XSpace[1] * 255;
 
   // Clip the new index
-  if(isel == 0 || isel == cm.GetNumberOfPoints()-1)
+  if(isel == 0 || isel == cm.GetNumberOfCMPoints()-1)
     {
     // The first and last point can not be moved left or right
     j = psel.m_Index;
@@ -345,8 +345,8 @@ ColorMapInteraction
   else
     {
     // Other points are constrained by neighbors
-    ColorMap::Point p0 = cm.GetPoint(isel-1);
-    ColorMap::Point p1 = cm.GetPoint(isel+1);
+    ColorMap::CMPoint p0 = cm.GetCMPoint(isel-1);
+    ColorMap::CMPoint p1 = cm.GetCMPoint(isel+1);
     if(j < p0.m_Index) j = p0.m_Index;
     if(j > p1.m_Index) j = p1.m_Index;
     }
@@ -365,7 +365,7 @@ ColorMapInteraction
     psel.m_RGBA[1][3] = (unsigned char) a;
 
   // Redraw
-  cm.UpdatePoint(isel, psel);
+  cm.UpdateCMPoint(isel, psel);
   m_Parent->redraw();
  
   return 1;

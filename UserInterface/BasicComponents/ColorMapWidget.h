@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMapWidget.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 21:49:55 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/08/27 20:02:17 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -61,7 +61,7 @@ public:
 
   enum Side {LEFT, RIGHT, BOTH};
 
-  void SetSelectedPoint(int pt);
+  void SetSelectedCMPoint(int pt);
   void SetSelectedSide(Side side);
 
 
@@ -72,7 +72,7 @@ private:
 
   unsigned int m_TextureId;
 
-  int m_SelectedPoint;
+  int m_SelectedCMPoint;
   Side m_SelectedSide;
 
   void gl_draw_circle_with_border(double x, double y, double r, bool select);
