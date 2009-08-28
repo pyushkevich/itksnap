@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 19:47:43 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/08/28 20:53:51 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -177,21 +177,50 @@ CrosshairsInteractionMode
     Vector2f(0.1 * m_Parent->GetCanvas()->w(),0.1 * m_Parent->GetCanvas()->h()));
   Vector3f z1 = m_Parent->MapWindowToSlice(
     Vector2f(0.9 * m_Parent->GetCanvas()->w(),0.9 * m_Parent->GetCanvas()->h()));
+  Vector3f y0 = m_Parent->MapWindowToSlice(
+    Vector2f(0.0 * m_Parent->GetCanvas()->w(),0.0 * m_Parent->GetCanvas()->h()));
+  Vector3f y1 = m_Parent->MapWindowToSlice(
+    Vector2f(1.0 * (m_Parent->GetCanvas()->w()-1),1.0 * (m_Parent->GetCanvas()->h()-1)));
  
   bool hotzone = false;
   Vector2f newViewPos = m_Parent->m_ViewPosition;
   for(size_t i = 0; i < 2; i++)
     {
-    if(xClick[i] < std::min(z0[i], z1[i]))
+    // There are three discrete speeds
+    int pixel_speeds[] = {5, 10, 20};
+    int min_voxel_speeds[] = {1, 2, 4};
+
+    double zmin = std::min(z0[i], z1[i]), zmax = std::max(z0[i], z1[i]);
+    double ymin = std::min(y0[i], y1[i]), ymax = std::max(y0[i], y1[i]);
+
+    if(xClick[i] < zmin)
       {
-      // Move the cursor left by 1 voxel
-      newViewPos[i] -= m_Parent->m_SliceSpacing[i];
+      // The speed is based on how close to the border we are
+      double relspeed = (zmin - xClick[i]) / (zmin - ymin);
+      int speedidx = std::min((int) (relspeed * 2.0), 2);
+      int pixspeed = pixel_speeds[speedidx];
+      
+      // We want to move 5 screen pixels every 0.1 sec. How many voxels is that
+      int nvox = std::max(min_voxel_speeds[speedidx], 
+        (int) (0.5 + pixspeed / (m_Parent->m_ViewZoom * m_Parent->m_SliceSpacing[i])));
+      
+      // Move the cursor left by nvox voxel
+      newViewPos[i] -= nvox * m_Parent->m_SliceSpacing[i];
       hotzone = true;
       }
-    else if(xClick[i] > std::max(z0[i], z1[i]))
+    else if(xClick[i] > zmax)
       {
+      // The speed is based on how close to the border we are
+      double relspeed = (xClick[i] - zmax) / (ymax - zmax);
+      int speedidx = std::min((int) (relspeed * 2.0), 2);
+      int pixspeed = pixel_speeds[speedidx];
+      
+      // We want to move 5 screen pixels every 0.1 sec. How many voxels is that
+      int nvox = std::max(min_voxel_speeds[speedidx], 
+        (int) (0.5 + pixspeed / (m_Parent->m_ViewZoom * m_Parent->m_SliceSpacing[i])));      
+
       // Move the cursor left by 1 voxel
-      newViewPos[i] += m_Parent->m_SliceSpacing[i];
+      newViewPos[i] += nvox * m_Parent->m_SliceSpacing[i];
       hotzone = true;
       }
     }
@@ -205,7 +234,7 @@ CrosshairsInteractionMode
       m_ParentUI->OnViewPositionsUpdate(true);
       this->m_LastViewposUpdateTime = clock();
       }        
-    Fl::add_timeout(0.05, CrosshairsInteractionMode::TimeoutCallback, this);
+    Fl::add_timeout(0.02, CrosshairsInteractionMode::TimeoutCallback, this);
     }
   
   xClick = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
