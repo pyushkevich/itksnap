@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.h,v $
   Language:  C++
-  Date:      $Date: 2009/07/23 15:50:58 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/08/28 16:33:54 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -89,7 +89,8 @@ public:
   typedef itk::SmartPointer<ImageBase> ImageBasePointer;
 
   GuidedNativeImageIO();
-  virtual ~GuidedNativeImageIO() {};
+  virtual ~GuidedNativeImageIO()
+    { DeallocateNativeImage(); }
 
   /**
    * This method loads an image from the given filename. A registry can be 
