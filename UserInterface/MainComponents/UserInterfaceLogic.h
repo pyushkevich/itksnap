@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 21:49:56 $
-  Version:   $Revision: 1.37 $
+  Date:      $Date: 2009/08/28 16:05:44 $
+  Version:   $Revision: 1.38 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -913,6 +913,9 @@ private:
   // Temporary value used for opacity slider toggling
   double m_OpacityToggleValue;
 
+  // Whether the main window is in fullscreen mode
+  bool m_FullScreen;
+
   // Global event handler (shortcuts, etc)
   static int GlobalEventHandler(int);
 
@@ -972,6 +975,9 @@ private:
   // proceed without saving
   bool PromptBeforeLosingChanges(PromptReason reason);
 
+  // Toggle display elements (hide control panel, slice window toolbars)
+  void ToggleDisplayElements();
+
   /* Command used for progress tracking */
   itk::SmartPointer<ProgressCommandType> m_ProgressCommand;
 
@@ -1001,6 +1007,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.38  2009/08/28 16:05:44  pyushkevich
+ *Enabled toggling of UI components with 'F3' key and fullscreen mode with 'F4' key
+ *
  *Revision 1.37  2009/08/26 21:49:56  pyushkevich
  *Improvements to the color map widget
  *

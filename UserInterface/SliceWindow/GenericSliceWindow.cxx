@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 01:10:20 $
-  Version:   $Revision: 1.26 $
+  Date:      $Date: 2009/08/28 16:05:45 $
+  Version:   $Revision: 1.27 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -714,6 +714,7 @@ GenericSliceWindow
   // The ruler bar should be as large as possible but less than one half
   // of the screen width (not to go over the markers)
   double maxw = 0.5 * w - 20.0;
+  maxw = maxw < 5 ? 5 : maxw;
 
   double scale = 1.0;
   while(m_ViewZoom * scale > maxw) scale /= 10.0;

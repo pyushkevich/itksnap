@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 21:49:55 $
-  Version:   $Revision: 1.78 $
+  Date:      $Date: 2009/08/28 16:05:43 $
+  Version:   $Revision: 1.79 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -453,9 +453,9 @@ UserInterfaceLogic
     }
 
   // Create the 3D Window managers for SNAP and IRIS
-  m_IRISWindowManager3D = new Window3D(this, m_RenderWindow);
-  m_SNAPWindowManager3D = new Window3D(this, m_RenderWindow);
-  m_RenderWindow->PushInteractionMode(m_IRISWindowManager3D);
+  m_IRISWindowManager3D = new Window3D(this, m_SliceWindow[3]);
+  m_SNAPWindowManager3D = new Window3D(this, m_SliceWindow[3]);
+  m_SliceWindow[3]->PushInteractionMode(m_IRISWindowManager3D);
 
   // Initialize the slice window coordinator object
   m_SliceCoordinator = new SliceWindowCoordinator();
@@ -503,6 +503,9 @@ UserInterfaceLogic
 
   // Opacity toggle value set to default
   m_OpacityToggleValue = 128;
+
+  // Not fullscreen
+  m_FullScreen = false;
 
 }
 
@@ -1786,153 +1789,302 @@ UserInterfaceLogic
   return m_GlobalUI->OnGlobalEvent(ev);
 }
 
+void
+UserInterfaceLogic
+::ToggleDisplayElements()
+{
+  // First press: hide left pane and menubar
+  if(m_WizMainLayout->value() == m_GrpMainLayoutNormal)
+    {
+    // Move the right pane over to the second part of the wizard
+    m_GrpRightPanePlaceholder->remove(m_GrpRightPane);
+    m_GrpMainLayoutTight->insert(*m_GrpRightPane, 0);
+    m_GrpRightPane->resize(0,0,m_GrpMainLayoutTight->w(),m_GrpMainLayoutTight->h());
+    m_WizMainLayout->value(m_GrpMainLayoutTight);
+
+    // Shrink the main window
+    if(!m_FullScreen)
+      m_WinMain->size(m_WinMain->w()-145, m_WinMain->h()-25);
+    }
+
+  // Second press: hide panels for each window
+  else if(m_WizSliceLayout[0]->value() == m_GrpSliceLayoutNormal[0])
+    {
+    for(size_t i = 0; i < 4; i++)
+      {
+      // Move the slice window over to the second part of the wizard
+      m_GrpSlicePlaceholder[i]->remove(m_SliceWindow[i]);
+      m_GrpSliceLayoutTight[i]->insert(*m_SliceWindow[i], 0);
+      m_SliceWindow[i]->resize(
+        m_GrpSliceLayoutTight[i]->x(),m_GrpSliceLayoutTight[i]->y(),
+        m_GrpSliceLayoutTight[i]->w(),m_GrpSliceLayoutTight[i]->h());
+      m_WizSliceLayout[i]->value(m_GrpSliceLayoutTight[i]);
+      }
+
+    // Shrink the main window
+    if(!m_FullScreen)
+      m_WinMain->size(m_WinMain->w()-64, m_WinMain->h()-70);
+    }
+
+  // Third press: restore everything
+  else
+    {
+    // Restore the slice windows
+    for(size_t i = 0; i < 4; i++)
+      {
+      m_GrpSliceLayoutTight[i]->remove(m_SliceWindow[i]);
+      m_GrpSlicePlaceholder[i]->insert(*m_SliceWindow[i], 0);
+      m_SliceWindow[i]->resize(
+        m_GrpSlicePlaceholder[i]->x(),
+        m_GrpSlicePlaceholder[i]->y(),
+        m_GrpSlicePlaceholder[i]->w(),
+        m_GrpSlicePlaceholder[i]->h());
+      m_WizSliceLayout[i]->value(m_GrpSliceLayoutNormal[i]);
+      }
+
+    // Restore the control panel and toolbar
+    m_GrpMainLayoutTight->remove(m_GrpRightPane);
+    m_GrpRightPanePlaceholder->insert(*m_GrpRightPane, 0);
+    m_GrpRightPane->resize(
+      m_GrpRightPanePlaceholder->x(),
+      m_GrpRightPanePlaceholder->y(),
+      m_GrpRightPanePlaceholder->w(),
+      m_GrpRightPanePlaceholder->h());
+    m_WizMainLayout->value(m_GrpMainLayoutNormal);
+
+    // Grow the main window (as long as we don't grow over max size)
+    if(!m_FullScreen) 
+      {
+      int sx, sy, sw, sh;
+      Fl::screen_xywh(sx, sy, sw, sh);
+      if(m_WinMain->w() <= sw - 145 && m_WinMain->h() <= sh + 25)
+        m_WinMain->size(m_WinMain->w()+145+64, m_WinMain->h()+25+70);
+      }
+    }
+}
+
 int 
 UserInterfaceLogic
 ::OnGlobalEvent(int ev)
 {
-  if(ev == FL_SHORTCUT)
+if(ev == FL_SHORTCUT)
+  {
+  // Opacity slider toggle/increase/decrease
+  if(m_Activation->GetFlag(UIF_IRIS_WITH_BASEIMG_LOADED))
     {
-    // Opacity slider toggle/increase/decrease
-    if(m_Activation->GetFlag(UIF_IRIS_WITH_BASEIMG_LOADED))
+    if(Fl::test_shortcut('1'))
+      { 
+      this->SetToolbarMode(CROSSHAIRS_MODE); 
+      return 1; 
+      }
+    if(Fl::test_shortcut('2'))
+      { 
+      this->SetToolbarMode(NAVIGATION_MODE); 
+      return 1; 
+      }
+    if(Fl::test_shortcut('3'))
+      { 
+      this->SetToolbarMode(POLYGON_DRAWING_MODE); 
+      return 1; 
+      }
+    if(Fl::test_shortcut('4'))
+      { 
+      this->SetToolbarMode(ROI_MODE); 
+      return 1; 
+      }
+    if(Fl::test_shortcut('5'))
+      { 
+      this->SetToolbarMode(PAINTBRUSH_MODE); 
+      return 1; 
+      }
+    else if(Fl::test_shortcut('a'))
       {
-      if(Fl::event_key() == 'a')
+      double opacity = m_InIRISLabelOpacity->value() - 8.0;
+      if(opacity >= 0.0)
+        m_InIRISLabelOpacity->value(opacity); 
+      OnIRISLabelOpacityChange();
+      return 1;
+      }
+    else if(Fl::test_shortcut('d'))
+      {
+      double opacity = m_InIRISLabelOpacity->value() + 8.0;
+      if(opacity <= 255.0)
+        m_InIRISLabelOpacity->value(opacity); 
+      OnIRISLabelOpacityChange();
+      return 1;
+      }
+    else if(Fl::test_shortcut('s'))
+      {
+      double opacity = m_InIRISLabelOpacity->value();
+      if(opacity > 0)
         {
-        double opacity = m_InIRISLabelOpacity->value() - 8.0;
-        if(opacity >= 0.0)
-          m_InIRISLabelOpacity->value(opacity); 
-        OnIRISLabelOpacityChange();
-        return 1;
+        m_OpacityToggleValue = opacity;
+        m_InIRISLabelOpacity->value(0);
         }
-      else if(Fl::event_key() == 'd')
+      else
         {
-        double opacity = m_InIRISLabelOpacity->value() + 8.0;
-        if(opacity <= 255.0)
-          m_InIRISLabelOpacity->value(opacity); 
-        OnIRISLabelOpacityChange();
-        return 1;
+        m_InIRISLabelOpacity->value(m_OpacityToggleValue);
+        m_OpacityToggleValue = 128;
         }
-      else if(Fl::event_key() == 's')
+      OnIRISLabelOpacityChange(); 
+      return 1;
+      }
+
+    else if(Fl::test_shortcut('z' | FL_CTRL))
+      {
+      this->OnUndoAction();
+      return 1;
+      }
+
+    else if(Fl::test_shortcut('y' | FL_CTRL))
+      {
+      this->OnRedoAction();
+      return 1;
+      }
+    
+    // auto image contrast adjustment
+    else if(Fl::test_shortcut(FL_ALT | 'i'))
+      {
+      m_IntensityCurveUI->DisplayWindow();
+      m_IntensityCurveUI->OnAutoFitWindow();
+      m_IntensityCurveUI->OnClose();
+      return 1;
+      }
+
+    // Toggle various controls
+    else if(Fl::test_shortcut(FL_F + 3))
+      {
+      ToggleDisplayElements();
+      return 1;
+      }
+
+    // F4 - fullscreen toggle
+    else if(Fl::test_shortcut(FL_F + 4))
+      {
+      static int w = 0, h = 0, x = 0, y = 0;
+
+      if(m_FullScreen)
         {
-        double opacity = m_InIRISLabelOpacity->value();
-        if(opacity > 0)
+        m_WinMain->fullscreen_off(x,y,w,h);
+        m_FullScreen = false;
+        }
+      else
+        {
+        w = m_WinMain->w(); h = m_WinMain->h();
+        x = m_WinMain->x(); y = m_WinMain->y();
+        m_WinMain->fullscreen();
+        m_FullScreen = true;
+        }
+      }
+
+    // Ctrl-F - fit all views
+    else if(Fl::test_shortcut(FL_CTRL | 'f'))
+      {
+      this->OnResetAllViews2DAction();
+      return 1;
+      }
+
+    // center the 2D views (reset view positions)
+    else if(Fl::test_shortcut(FL_CTRL | FL_SHIFT | 'f'))
+      {
+      m_IRISWindowManager2D[0]->ResetViewPosition();
+      m_IRISWindowManager2D[1]->ResetViewPosition();
+      m_IRISWindowManager2D[2]->ResetViewPosition();
+      OnViewPositionsUpdate();
+      return 1;
+      }
+
+    // toggle crosshairs display
+    else if(Fl::test_shortcut(FL_SHIFT | 'c'))
+      {
+      SNAPAppearanceSettings::Element &e = 
+        m_AppearanceSettings->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
+      e.Visible = !e.Visible;
+      RedrawWindows();
+      return 1;
+      }
+    // selecting active drawing label
+    else if(Fl::test_shortcut(',') || Fl::test_shortcut('<'))
+      {
+      LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
+      for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
+        if(iDrawing == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())) && i > 1)
           {
-          m_OpacityToggleValue = opacity;
-          m_InIRISLabelOpacity->value(0);
+          m_InDrawingColor->value(i-1);
+          break;
           }
-        else
-          {
-          m_InIRISLabelOpacity->value(m_OpacityToggleValue);
-          m_OpacityToggleValue = 128;
-          }
-        OnIRISLabelOpacityChange(); 
-        return 1;
-        }
-	 // auto image contrast adjustment
-      else if(Fl::event_key() == 'i' && Fl::event_alt())
-        {
-        m_IntensityCurveUI->DisplayWindow();
-        m_IntensityCurveUI->OnAutoFitWindow();
-        m_IntensityCurveUI->OnClose();
-	   return 1;
-        }
-      // toggle crosshairs display
-      else if(Fl::event_key() == 'c' && Fl::event_state() != FL_SHIFT)
-        {
-        SNAPAppearanceSettings::Element &e = m_AppearanceSettings->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
-        e.Visible = !e.Visible;
-        RedrawWindows();
-        return 1;
-        }
-      // center the 2D views (reset view positions)
-      else if(Fl::event_key() == 'c' && Fl::event_state() == FL_SHIFT)
-        {
-        m_IRISWindowManager2D[0]->ResetViewPosition();
-        m_IRISWindowManager2D[1]->ResetViewPosition();
-        m_IRISWindowManager2D[2]->ResetViewPosition();
-	   OnViewPositionsUpdate();
-        return 1;
-        }
-	 // selecting active drawing label
-	 else if(Fl::event_state() != FL_CTRL && Fl::event_state() != FL_CTRL + FL_SHIFT && Fl::event_key() == ',')
-        {
-        LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
-	   for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
-          if(iDrawing == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())) && i > 1)
-            {
-            m_InDrawingColor->value(i-1);
-		  break;
-		  }
         OnDrawingLabelUpdate();
         return 1;
-	   }
-	 else if(Fl::event_state() != FL_CTRL && Fl::event_state() != FL_CTRL + FL_SHIFT && Fl::event_key() == '.')
-        {
-        LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
-	   for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
-          if(iDrawing == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())) && i < static_cast<size_t>(m_InDrawingColor->size()))
-            {
-            m_InDrawingColor->value(i+1);
-		  break;
-		  }
+      }
+    else if(Fl::test_shortcut('.') || Fl::test_shortcut('>'))
+      {
+      LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
+      for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
+        if(iDrawing == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())) && i < static_cast<size_t>(m_InDrawingColor->size()))
+          {
+          m_InDrawingColor->value(i+1);
+          break;
+          }
         OnDrawingLabelUpdate();
         return 1;
-	   }
-	 // selecting drawing over label
-	 else if((Fl::event_state() == FL_CTRL || Fl::event_state() == FL_CTRL + FL_SHIFT) && Fl::event_key() == ',')
-        {
-        LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
-        if(m_GlobalState->GetCoverageMode() == PAINT_OVER_ALL)
-          return 1;
-        else if(m_GlobalState->GetCoverageMode() == PAINT_OVER_COLORS)
-          m_InDrawOverColor->value(0);
-        else for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
-          if(iDrawOver == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())))
-            {
-            m_InDrawOverColor->value(i + 1);
-            break;
-            }
-        OnDrawOverLabelUpdate();
+      }
+    // selecting drawing over label
+    else if(Fl::test_shortcut(FL_CTRL | ',') || Fl::test_shortcut(FL_CTRL | '<'))
+      {
+      LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
+      if(m_GlobalState->GetCoverageMode() == PAINT_OVER_ALL)
         return 1;
-	   }
-	 else if((Fl::event_state() == FL_CTRL || Fl::event_state() == FL_CTRL + FL_SHIFT) && Fl::event_key() == '.')
-        {
-        LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
-        if(m_GlobalState->GetCoverageMode() == PAINT_OVER_ALL)
-          m_InDrawOverColor->value(1);
-        else if(m_GlobalState->GetCoverageMode() == PAINT_OVER_COLORS)
-          m_InDrawOverColor->value(2);
-        else for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
-          if(iDrawOver == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())) && i < static_cast<size_t>(m_InDrawingColor->size()))
-            {
-            m_InDrawOverColor->value(i + 3);
-            break;
-            }
-        OnDrawOverLabelUpdate();
-        return 1;
-	   }
-	 // paintbrush size controls
-	 if(m_GlobalState->GetToolbarMode() == PAINTBRUSH_MODE)
-	   {
-        if(Fl::event_state() != FL_CTRL && Fl::event_key() == '-')
-	     {
-          double pbsize = m_InPaintbrushSize->value() - 1.0;
-          if(pbsize >= 1.0)
-            m_InPaintbrushSize->value(pbsize);
-          OnPaintbrushAttributesUpdate();
-          return 1;
-          }
-        else if(Fl::event_state() != FL_CTRL && Fl::event_key() == '=')
+      else if(m_GlobalState->GetCoverageMode() == PAINT_OVER_COLORS)
+        m_InDrawOverColor->value(0);
+      else for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
+        if(iDrawOver == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())))
           {
-          double pbsize = m_InPaintbrushSize->value() + 1.0;
-          if(pbsize <= 100.0)
-            m_InPaintbrushSize->value(pbsize);
-          OnPaintbrushAttributesUpdate();
-          return 1;
+          m_InDrawOverColor->value(i + 1);
+          break;
           }
+        OnDrawOverLabelUpdate();
+        return 1;
+      }
+    else if(Fl::test_shortcut(FL_CTRL | '.') || Fl::test_shortcut(FL_CTRL | '>'))
+      {
+      LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
+      if(m_GlobalState->GetCoverageMode() == PAINT_OVER_ALL)
+        m_InDrawOverColor->value(1);
+      else if(m_GlobalState->GetCoverageMode() == PAINT_OVER_COLORS)
+        m_InDrawOverColor->value(2);
+      else for(size_t i = 0; i < static_cast<size_t>(m_InDrawingColor->size()); i++)
+        if(iDrawOver == static_cast<LabelType>(reinterpret_cast<size_t>(m_InDrawingColor->menu()[i].user_data())) 
+          && i < static_cast<size_t>(m_InDrawingColor->size()))
+          {
+          m_InDrawOverColor->value(i + 3);
+          break;
+          }
+        OnDrawOverLabelUpdate();
+        return 1;
+      }
+    // paintbrush size controls
+    if(m_GlobalState->GetToolbarMode() == PAINTBRUSH_MODE)
+      {
+      if(Fl::test_shortcut('_') || Fl::test_shortcut('-'))
+        {
+        double pbsize = m_InPaintbrushSize->value() - 1.0;
+        if(pbsize >= 1.0)
+          m_InPaintbrushSize->value(pbsize);
+        OnPaintbrushAttributesUpdate();
+        return 1;
+        }
+      else if(Fl::test_shortcut('=') || Fl::test_shortcut('+'))
+        {
+        double pbsize = m_InPaintbrushSize->value() + 1.0;
+        if(pbsize <= 100.0)
+          m_InPaintbrushSize->value(pbsize);
+        OnPaintbrushAttributesUpdate();
+        return 1;
         }
       }
     }
-  return 0;
+  }
+return 0;
 }
 
 void
@@ -1950,9 +2102,8 @@ UserInterfaceLogic
   m_WinMain->show();
 
   // Show all of the GL boxes
-  for(unsigned int i = 0; i < 3; i++)
+  for(unsigned int i = 0; i < 4; i++)
     m_SliceWindow[i]->show();
-  m_RenderWindow->show();
 
   // Show the IRIS interface
 }
@@ -1972,7 +2123,7 @@ UserInterfaceLogic
   // Assign the right window managers to the slice windows
   for(unsigned int i = 0; i < 3; i++)
     m_SliceWindow[i]->SetSingleInteractionMode(m_IRISWindowManager2D[i]);
-  m_RenderWindow->SetSingleInteractionMode(m_IRISWindowManager3D);
+  m_SliceWindow[3]->SetSingleInteractionMode(m_IRISWindowManager3D);
 
   // Clear the 3D window and reset the view
   m_IRISWindowManager3D->ClearScreen();
@@ -1998,7 +2149,7 @@ UserInterfaceLogic
   // Assign the right window managers to the slice windows
   for(unsigned int i = 0; i < 3; i++)
     m_SliceWindow[i]->SetSingleInteractionMode(m_SNAPWindowManager2D[i]);
-  m_RenderWindow->SetSingleInteractionMode(m_SNAPWindowManager3D);
+  m_SliceWindow[3]->SetSingleInteractionMode(m_SNAPWindowManager3D);
 
   // Clear the snap window and reset the view
   m_SNAPWindowManager3D->ClearScreen();
@@ -2215,7 +2366,7 @@ UserInterfaceLogic
   m_SliceWindow[0]->redraw();
   m_SliceWindow[1]->redraw();
   m_SliceWindow[2]->redraw();
-  m_RenderWindow->redraw();
+  m_SliceWindow[3]->redraw();
 
   // TODO: Do we really need this?
   // Redraw the current color swath (?)
@@ -2932,9 +3083,9 @@ UserInterfaceLogic
 {
   // Get the four panels
   Fl_Group *panels[] = 
-    { m_GrpSlicePanel[0], m_GrpSlicePanel[1], m_GrpSlicePanel[2], m_GrpView3D };
+    { m_WizSliceLayout[0], m_WizSliceLayout[1], m_WizSliceLayout[2], m_WizSliceLayout[3] };
   Fl_Gl_Window *boxes[] = 
-    { m_SliceWindow[0], m_SliceWindow[1], m_SliceWindow[2], m_RenderWindow };
+    { m_SliceWindow[0], m_SliceWindow[1], m_SliceWindow[2], m_SliceWindow[3] };
 
   // Update the window focus
   UpdateWindowFocus(m_GrpRightPane, panels, boxes, iWindow);
@@ -2991,7 +3142,7 @@ UserInterfaceLogic
     m_SNAPWindowManager3D->ResetView();
   else
     m_IRISWindowManager3D->ResetView();
-  m_RenderWindow->redraw();
+  m_SliceWindow[3]->redraw();
 }
 
 void 
@@ -3012,7 +3163,7 @@ UserInterfaceLogic
 {
   // Update the mesh and redraw the window
   m_IRISWindowManager3D->UpdateMesh(m_ProgressCommand);
-  m_RenderWindow->redraw();
+  m_SliceWindow[3]->redraw();
 
   // This is a safeguard in case the progress events do not fire
   m_WinProgress->hide();
@@ -3039,7 +3190,7 @@ UserInterfaceLogic
 ::OnSNAPMeshUpdateAction()
 {
   m_SNAPWindowManager3D->UpdateMesh(m_ProgressCommand);
-  m_RenderWindow->redraw();
+  m_SliceWindow[3]->redraw();
 
   // This is a safeguard in case the progress events do not fire
   m_WinProgress->hide();
@@ -3154,7 +3305,7 @@ UserInterfaceLogic
     }
 
   // Redraw the 3D windows
-  m_RenderWindow->redraw();
+  m_SliceWindow[3]->redraw();
 }
 
 
@@ -4147,10 +4298,8 @@ UserInterfaceLogic
     m_LastSnapshotFileName = m_LastSnapshotFileName + ".png";
 
   // Choose which window to save with
-  if(window < 3)
+  if(window < 4)
     m_SliceWindow[window]->SaveAsPNG(m_LastSnapshotFileName.c_str());
-  else
-    m_RenderWindow->SaveAsPNG(m_LastSnapshotFileName.c_str());
 }
 
 void UserInterfaceLogic
@@ -5076,6 +5225,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.79  2009/08/28 16:05:43  pyushkevich
+ *Enabled toggling of UI components with 'F3' key and fullscreen mode with 'F4' key
+ *
  *Revision 1.78  2009/08/26 21:49:55  pyushkevich
  *Improvements to the color map widget
  *
