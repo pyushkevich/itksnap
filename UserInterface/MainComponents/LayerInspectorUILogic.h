@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   ITK-SNAP
-  Module:    $RCSfile: LayerEditorUILogic.h,v $
+  Module:    $RCSfile: LayerInspectorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 21:49:55 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/08/28 16:33:03 $
+  Version:   $Revision: 1.1 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -32,19 +32,19 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-#ifndef __LayerEditorUILogic_h_
-#define __LayerEditorUILogic_h_
+#ifndef __LayerInspectorUILogic_h_
+#define __LayerInspectorUILogic_h_
 
-#include "LayerEditorUI.h"
+#include "LayerInspectorUI.h"
 
 /**
- * \class LayerEditorUILogic
+ * \class LayerInspectorUILogic
  * \brief Logic class for Layer editor UI logic
  */
-class LayerEditorUILogic : public LayerEditorUI
+class LayerInspectorUILogic : public LayerInspectorUI
 {
 public:
-  virtual ~LayerEditorUILogic() {}
+  virtual ~LayerInspectorUILogic() {}
 
   // Callbacks for the main pane
   void OnLayerSelectionUpdate();

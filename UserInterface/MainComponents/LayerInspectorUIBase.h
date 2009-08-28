@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   ITK-SNAP
-  Module:    $RCSfile: LayerEditorUIBase.h,v $
+  Module:    $RCSfile: LayerInspectorUIBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 21:49:55 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/08/28 16:33:03 $
+  Version:   $Revision: 1.1 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -32,17 +32,17 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-#ifndef __LayerEditorUIBase_h_
-#define __LayerEditorUIBase_h_
+#ifndef __LayerInspectorUIBase_h_
+#define __LayerInspectorUIBase_h_
 
 /**
- * \class LayerEditorUIBase
+ * \class LayerInspectorUIBase
  * \brief Base class for Layer editor UI logic
  */
-class LayerEditorUIBase 
+class LayerInspectorUIBase 
 {
 public:
-  virtual ~LayerEditorUIBase() {}
+  virtual ~LayerInspectorUIBase() {}
 
   // Callbacks for the main pane
   virtual void OnLayerSelectionUpdate() = 0;

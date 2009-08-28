@@ -3,14 +3,14 @@ version 1.0109
 use_FL_COMMAND 
 header_name {.h} 
 code_name {.cxx}
-class LayerEditorUI {open : LayerEditorUIBase
+class LayerInspectorUI {open : LayerInspectorUIBase
 } {
   Function {make_window()} {open
   } {
     Fl_Window m_WinLayerUI {
-      label {ITK-SNAP: Layer Editor} open
+      label {ITK-SNAP: Layer Inspector} open
       xywh {621 212 581 488} type Double box PLASTIC_DOWN_BOX resizable
-      code0 {\#include "LayerEditorUIBase.h"} visible
+      code0 {\#include "LayerInspectorUIBase.h"} visible
     } {
       Fl_Tabs {} {open
         xywh {180 5 390 475} box PLASTIC_THIN_UP_BOX color 41
@@ -361,7 +361,7 @@ coordinates} open
           xywh {10 55 150 100} type Select labelsize 12 align 5 textsize 11
         }
         Fl_Group {} {
-          label {Layer Editor} open
+          label {Layer Inspector} open
           xywh {10 25 150 1} box FLAT_BOX color 0 labeltype EMBOSSED_LABEL labelfont 1 labelcolor 136 align 5
         } {}
         Fl_Value_Slider m_InOverallOpacity {

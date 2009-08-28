@@ -286,9 +286,9 @@ class UserInterface {open : {public UserInterfaceBase}
                 callback {OnMenuShowDisplayOptions();}
                 xywh {10 10 100 20} labelsize 12 divider
               }
-              MenuItem m_MenuLayerEditor {
-                label {&Layer Editor...}
-                callback {OnMenuShowLayerEditor()}
+              MenuItem m_MenuLayerInspector {
+                label {&Layer Inspector...}
+                callback {OnMenuShowLayerInspector()}
                 xywh {5 5 30 20} labelsize 12
               }
             }

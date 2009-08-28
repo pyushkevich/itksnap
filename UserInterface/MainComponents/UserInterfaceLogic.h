@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 16:05:44 $
-  Version:   $Revision: 1.38 $
+  Date:      $Date: 2009/08/28 16:33:03 $
+  Version:   $Revision: 1.39 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -53,7 +53,7 @@ class ImageIOWizardLogic;
 class RestrictedImageIOWizardLogic;
 class ImageInfoCallbackInterface;
 class LabelEditorUILogic;
-class LayerEditorUILogic;
+class LayerInspectorUILogic;
 class IRISSliceWindow;
 class SNAPSliceWindow;
 class MeshIOWizardUILogic;
@@ -721,7 +721,7 @@ protected:
   void OnMenuWriteVoxelCounts();
   void OnMenuIntensityCurve();
   void OnMenuShowOverlayOptions();
-  void OnMenuShowLayerEditor();
+  void OnMenuShowLayerInspector();
   void OnMenuSavePreprocessed(); 
   void OnMenuSaveLevelSet(); 
   void OnLoadRecentAction(unsigned int iRecent);
@@ -859,7 +859,7 @@ private:
   OverlayUILogic *m_OverlayUI;
 
   /** Layer dialog */
-  LayerEditorUILogic *m_LayerUI;
+  LayerInspectorUILogic *m_LayerUI;
 
   /** UI object for label editing */
   LabelEditorUILogic *m_LabelEditorUI;
@@ -1007,6 +1007,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.39  2009/08/28 16:33:03  garyhuizhang
+ *ENH: rename LayerEditor as LayerInspector
+ *
  *Revision 1.38  2009/08/28 16:05:44  pyushkevich
  *Enabled toggling of UI components with 'F3' key and fullscreen mode with 'F4' key
  *

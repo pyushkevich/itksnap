@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   ITK-SNAP
-  Module:    $RCSfile: LayerEditorUILogic.cxx,v $
+  Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 21:49:55 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/08/28 16:33:03 $
+  Version:   $Revision: 1.1 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -33,13 +33,13 @@
 
 =========================================================================*/
 
-#include "LayerEditorUILogic.h"
+#include "LayerInspectorUILogic.h"
 #include "IntensityCurveVTK.h"
 
 
 
 void
-LayerEditorUILogic
+LayerInspectorUILogic
 ::DisplayWindow()
 {
   // Show the window
@@ -65,7 +65,7 @@ LayerEditorUILogic
 
 // Callbacks for the main pane
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnLayerSelectionUpdate()
 {
 
@@ -73,7 +73,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnOverallOpacityUpdate()
 {
 
@@ -81,7 +81,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnCloseAction()
 {
 
@@ -91,7 +91,7 @@ LayerEditorUILogic
 
   // Callbacks for the contrast adjustment page
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnCurveReset()
 {
 
@@ -99,7 +99,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnAutoFitWindow()
 {
 
@@ -107,7 +107,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnWindowLevelChange()
 {
 
@@ -115,7 +115,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnControlPointNumberChange()
 {
 
@@ -123,7 +123,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnUpdateHistogram()
 {
 
@@ -131,7 +131,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnControlPointMoreAction()
 {
 
@@ -139,7 +139,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnControlPointLessAction()
 {
 
@@ -147,7 +147,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnCurveMakeLinearAction()
 {
 
@@ -155,7 +155,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnCurveMakeCubicAction()
 {
 
@@ -163,7 +163,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnControlPointUpdate()
 {
 
@@ -172,8 +172,8 @@ LayerEditorUILogic
 
 
 // Callbacks for the color map page
-LayerEditorUILogic::PresetInfo
-LayerEditorUILogic::m_PresetInfo[] = {
+LayerInspectorUILogic::PresetInfo
+LayerInspectorUILogic::m_PresetInfo[] = {
   {"Grayscale", 0x00ff0000},
   {"Black to red", 0x00ff0000},
   {"Black to green", 0xff000000},
@@ -190,7 +190,7 @@ LayerEditorUILogic::m_PresetInfo[] = {
   {"OverUnder", 0x00000000}};
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::PopulateColorMapPresets()
 {
   m_InColorMapPreset->clear();
@@ -200,7 +200,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnColorMapPresetUpdate()
 {
   // Apply the current preset
@@ -217,7 +217,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnColorMapAddPresetAction()
 {
 
@@ -225,7 +225,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnColorMapDeletePresetAction()
 {
 
@@ -233,7 +233,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnColorMapIndexUpdate()
 {
 
@@ -241,7 +241,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnColorMapSideUpdate()
 {
 
@@ -249,7 +249,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnColorMapPointDelete()
 {
 
@@ -257,7 +257,7 @@ LayerEditorUILogic
 
 
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnColorMapRGBAUpdate()
 {
 
@@ -267,7 +267,7 @@ LayerEditorUILogic
 
   // Callbacks for the image info page
 void 
-LayerEditorUILogic
+LayerInspectorUILogic
 ::OnImageInformationVoxelCoordinatesUpdate()
 {
 

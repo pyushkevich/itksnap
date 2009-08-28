@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 16:05:43 $
-  Version:   $Revision: 1.79 $
+  Date:      $Date: 2009/08/28 16:33:03 $
+  Version:   $Revision: 1.80 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -53,7 +53,7 @@
 #include "EdgePreprocessingImageFilter.h"
 #include "IntensityCurveUILogic.h"
 #include "OverlayUILogic.h"
-#include "LayerEditorUILogic.h"
+#include "LayerInspectorUILogic.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "IRISVectorTypesToITKConversion.h"
@@ -394,7 +394,7 @@ UserInterfaceLogic
   m_OverlayUI->MakeWindow();
 
   // Create the layer editor
-  m_LayerUI = new LayerEditorUILogic;
+  m_LayerUI = new LayerInspectorUILogic;
   m_LayerUI->make_window();
 
   // Create the label editor window
@@ -3022,7 +3022,7 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
-::OnMenuShowLayerEditor()
+::OnMenuShowLayerInspector()
 {
   m_LayerUI->DisplayWindow();
 }
@@ -5225,6 +5225,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.80  2009/08/28 16:33:03  garyhuizhang
+ *ENH: rename LayerEditor as LayerInspector
+ *
  *Revision 1.79  2009/08/28 16:05:43  pyushkevich
  *Enabled toggling of UI components with 'F3' key and fullscreen mode with 'F4' key
  *
