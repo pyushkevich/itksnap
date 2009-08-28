@@ -228,7 +228,7 @@ SET(UI_CXX
   UserInterface/MainComponents/IntensityCurveUILogic.cxx
   UserInterface/MainComponents/OverlayUILogic.cxx
   UserInterface/MainComponents/LabelEditorUILogic.cxx
-  UserInterface/MainComponents/LayerEditorUILogic.cxx
+  UserInterface/MainComponents/LayerInspectorUILogic.cxx
   UserInterface/MainComponents/PreprocessingUILogic.cxx
   UserInterface/MainComponents/ReorientImageUILogic.cxx
   UserInterface/MainComponents/ResizeRegionDialogLogic.cxx
@@ -285,8 +285,8 @@ SET(UI_HEADERS
   UserInterface/MainComponents/IntensityCurveUILogic.h
   UserInterface/MainComponents/LabelEditorUIBase.h
   UserInterface/MainComponents/LabelEditorUILogic.h
-  UserInterface/MainComponents/LayerEditorUIBase.h
-  UserInterface/MainComponents/LayerEditorUILogic.h
+  UserInterface/MainComponents/LayerInspectorUIBase.h
+  UserInterface/MainComponents/LayerInspectorUILogic.h
   UserInterface/MainComponents/PreprocessingUIBase.h
   UserInterface/MainComponents/PreprocessingUILogic.h
   UserInterface/MainComponents/OverlayUIBase.h
@@ -354,7 +354,7 @@ SET(APPLICATION_FLUIDS
   UserInterface/MainComponents/HelpViewer.fl
   UserInterface/MainComponents/IntensityCurveUI.fl
   UserInterface/MainComponents/LabelEditorUI.fl
-  UserInterface/MainComponents/LayerEditorUI.fl
+  UserInterface/MainComponents/LayerInspectorUI.fl
   UserInterface/MainComponents/PreprocessingUI.fl
   UserInterface/MainComponents/ReorientImageUI.fl
   UserInterface/MainComponents/ResizeRegionDialog.fl
