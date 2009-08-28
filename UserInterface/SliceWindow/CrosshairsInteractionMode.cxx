@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/31 09:02:50 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/08/28 19:47:43 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,6 +44,7 @@ CrosshairsInteractionMode
 : GenericSliceWindow::EventHandler(parent)
 {
   m_NeedToRepaintControls = false;
+  m_LastViewposUpdateTime = 0;
 }
 
 int
@@ -52,6 +53,7 @@ CrosshairsInteractionMode
 {
   UpdateCrosshairs(event);
   m_Parent->m_GlobalState->SetUpdateSliceFlag(0);
+  m_RepeatEvent = event;
   return 1;
 }
 
@@ -62,6 +64,7 @@ CrosshairsInteractionMode
 {
   UpdateCrosshairs(event);
   m_Parent->m_GlobalState->SetUpdateSliceFlag(1);
+  m_RepeatEvent = event;
   return 1;
 }
 
@@ -72,6 +75,7 @@ CrosshairsInteractionMode
 {
   UpdateCrosshairs(event);
   m_Parent->m_GlobalState->SetUpdateSliceFlag(1);
+  m_RepeatEvent = event;
   return 1;
 }
 
@@ -132,6 +136,7 @@ CrosshairsInteractionMode
   Vector3ui xCrossClamped = to_unsigned_int(
     xCrossInteger.clamp(Vector3i(0),xSize - Vector3i(1)));
 
+
   // Update the crosshairs position in the global state
   m_Driver->SetCursorPosition(xCrossClamped);
 
@@ -143,13 +148,70 @@ CrosshairsInteractionMode
   m_ParentUI->RedrawWindows();  
 }
 
+
+void
+CrosshairsInteractionMode
+::TimeoutCallback(void *vp)
+{
+  CrosshairsInteractionMode *cim  = (CrosshairsInteractionMode *)vp;
+  FLTKEvent ev;
+  if(cim->GetCanvas()->IsDragging())
+    {
+    FLTKEvent ev = cim->m_RepeatEvent;
+    ev.TimeStamp = clock();
+    cim->UpdateCrosshairs(ev);
+    }
+}
+
+
+
 void
 CrosshairsInteractionMode
 ::UpdateCrosshairs(const FLTKEvent &event)
 {
   // Compute the position in slice coordinates
   Vector3f xClick = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
+
+  // Check if the cursor is in one of the hot zones
+  Vector3f z0 = m_Parent->MapWindowToSlice(
+    Vector2f(0.1 * m_Parent->GetCanvas()->w(),0.1 * m_Parent->GetCanvas()->h()));
+  Vector3f z1 = m_Parent->MapWindowToSlice(
+    Vector2f(0.9 * m_Parent->GetCanvas()->w(),0.9 * m_Parent->GetCanvas()->h()));
+ 
+  bool hotzone = false;
+  Vector2f newViewPos = m_Parent->m_ViewPosition;
+  for(size_t i = 0; i < 2; i++)
+    {
+    if(xClick[i] < std::min(z0[i], z1[i]))
+      {
+      // Move the cursor left by 1 voxel
+      newViewPos[i] -= m_Parent->m_SliceSpacing[i];
+      hotzone = true;
+      }
+    else if(xClick[i] > std::max(z0[i], z1[i]))
+      {
+      // Move the cursor left by 1 voxel
+      newViewPos[i] += m_Parent->m_SliceSpacing[i];
+      hotzone = true;
+      }
+    }
+  
+  if(hotzone)
+    {
+    // Only update the viewpoint at a fixed speed
+    if(event.TimeStamp - m_LastViewposUpdateTime > 0.1 * CLOCKS_PER_SEC)
+      {
+      m_Parent->SetViewPosition(newViewPos);
+      m_ParentUI->OnViewPositionsUpdate(true);
+      this->m_LastViewposUpdateTime = clock();
+      }        
+    Fl::add_timeout(0.05, CrosshairsInteractionMode::TimeoutCallback, this);
+    }
+  
+  xClick = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
   UpdateCrosshairs(xClick);
+
+  
 }
 
 int 

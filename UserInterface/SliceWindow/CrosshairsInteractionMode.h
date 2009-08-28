@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/08/28 19:47:43 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -57,6 +57,7 @@ public:
                   const FLTKEvent &irisNotUsed(pressEvent));
   int OnKeyDown(const FLTKEvent &event);
 
+
 private:
   void UpdateCrosshairs(const FLTKEvent &event);
   void UpdateCrosshairs(const Vector3f &xCross);
@@ -65,6 +66,10 @@ private:
   // the current slice position
   bool m_NeedToRepaintControls;
 
+  FLTKEvent m_RepeatEvent;
+  long int m_LastViewposUpdateTime;
+
+  static void TimeoutCallback(void *);
 };
 
 #endif // __CrosshairsInteractionMode_h_
