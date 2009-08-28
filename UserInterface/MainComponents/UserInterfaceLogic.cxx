@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 16:57:05 $
-  Version:   $Revision: 1.81 $
+  Date:      $Date: 2009/08/28 20:35:15 $
+  Version:   $Revision: 1.82 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,7 +52,6 @@
 #include "RGBImageWrapper.h"
 #include "EdgePreprocessingImageFilter.h"
 #include "IntensityCurveUILogic.h"
-#include "OverlayUILogic.h"
 #include "LayerInspectorUILogic.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
@@ -322,7 +321,6 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuSaveScreenshot, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveScreenshotSeries, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuIntensityCurve, UIF_GRAY_LOADED);
-  m_Activation->AddMenuItem(m_MenuOverlayOptions, UIF_OVERLAY_LOADED);
   m_Activation->AddMenuItem(m_MenuExportSlice, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSavePreprocessed, UIF_SNAP_PREPROCESSING_DONE);
   m_Activation->AddMenuItem(m_MenuSaveLevelSet, UIF_SNAP_SNAKE_INITIALIZED);
@@ -388,10 +386,6 @@ UserInterfaceLogic
   // Instantiate other windows
   m_IntensityCurveUI = new IntensityCurveUILogic;
   m_IntensityCurveUI->MakeWindow();
-
-  // Instantiate RGB Overlay options window
-  m_OverlayUI = new OverlayUILogic;
-  m_OverlayUI->MakeWindow();
 
   // Create the layer editor
   m_LayerUI = new LayerInspectorUILogic;
@@ -539,7 +533,6 @@ UserInterfaceLogic
   delete m_DlgAppearance;
   delete m_DlgReorientImage;
   delete m_LabelEditorUI;
-  delete m_OverlayUI;
   delete m_LayerUI;
 
   // Delete the window managers
@@ -3019,13 +3012,6 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
-::OnMenuShowOverlayOptions()
-{
-  m_OverlayUI->DisplayWindow();
-}
-
-void 
-UserInterfaceLogic
 ::OnMenuShowLayerInspector()
 {
   m_LayerUI->DisplayWindow();
@@ -3600,10 +3586,6 @@ UserInterfaceLogic
 
   // Update the source for slice windows
   UpdateOverlaySlice();
-
-  // Update the overlay menu items
-  m_OverlayUI->UpdateOverlayMenuSelection(
-    m_Driver->GetCurrentImageData()->GetOverlays());
 
   // Redraw the user interface
   RedrawWindows();
@@ -5229,6 +5211,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.82  2009/08/28 20:35:15  garyhuizhang
+ *ENH: remove OverlayUI (replaced by LayerInspectorUI)
+ *
  *Revision 1.81  2009/08/28 16:57:05  pyushkevich
  *FIX: Fixed scrollbar crash
  *

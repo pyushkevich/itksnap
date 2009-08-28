@@ -256,11 +256,6 @@ class UserInterface {open : {public UserInterfaceBase}
                 callback {this->OnMenuUnloadOverlays()}
                 tooltip {Unload All Greyscale Overlays} xywh {5 5 30 20} labelsize 12
               }
-              MenuItem m_MenuOverlayOptions {
-                label {Adjust Overlay &Properties...}
-                callback {OnMenuShowOverlayOptions()}
-                tooltip {Adjust the properties of the overlays} xywh {5 5 31 20} labelsize 12 deactivate
-              }
             }
             Submenu {} {
               label {&Tools} open

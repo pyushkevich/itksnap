@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 16:33:03 $
-  Version:   $Revision: 1.39 $
+  Date:      $Date: 2009/08/28 20:35:15 $
+  Version:   $Revision: 1.40 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -45,7 +45,6 @@
 // Necessary forward references
 class HelpViewerLogic;
 class IntensityCurveUILogic;
-class OverlayUILogic;
 class PreprocessingUILogic;
 class RestoreSettingsDialogLogic;
 class SnakeParametersUILogic;
@@ -720,7 +719,6 @@ protected:
   void OnMenuSaveScreenshotSeries(unsigned int iSlice);
   void OnMenuWriteVoxelCounts();
   void OnMenuIntensityCurve();
-  void OnMenuShowOverlayOptions();
   void OnMenuShowLayerInspector();
   void OnMenuSavePreprocessed(); 
   void OnMenuSaveLevelSet(); 
@@ -854,9 +852,6 @@ private:
 
   /** UI object used for handling Curve editing */
   IntensityCurveUILogic *m_IntensityCurveUI;
-
-  /** UI object used for handling Overlay options */
-  OverlayUILogic *m_OverlayUI;
 
   /** Layer dialog */
   LayerInspectorUILogic *m_LayerUI;
@@ -1007,6 +1002,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.40  2009/08/28 20:35:15  garyhuizhang
+ *ENH: remove OverlayUI (replaced by LayerInspectorUI)
+ *
  *Revision 1.39  2009/08/28 16:33:03  garyhuizhang
  *ENH: rename LayerEditor as LayerInspector
  *
