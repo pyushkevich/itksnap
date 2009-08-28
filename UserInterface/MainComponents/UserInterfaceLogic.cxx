@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 16:33:03 $
-  Version:   $Revision: 1.80 $
+  Date:      $Date: 2009/08/28 16:57:05 $
+  Version:   $Revision: 1.81 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1797,9 +1797,13 @@ UserInterfaceLogic
   if(m_WizMainLayout->value() == m_GrpMainLayoutNormal)
     {
     // Move the right pane over to the second part of the wizard
-    m_GrpRightPanePlaceholder->remove(m_GrpRightPane);
-    m_GrpMainLayoutTight->insert(*m_GrpRightPane, 0);
-    m_GrpRightPane->resize(0,0,m_GrpMainLayoutTight->w(),m_GrpMainLayoutTight->h());
+    m_GrpRightPanePlaceholderNormal->remove(m_GrpRightPane);
+    m_GrpRightPanePlaceholderTight->insert(*m_GrpRightPane, 0);
+    m_GrpRightPane->resize(
+      m_GrpRightPanePlaceholderTight->x(),
+      m_GrpRightPanePlaceholderTight->y(),
+      m_GrpRightPanePlaceholderTight->w(),
+      m_GrpRightPanePlaceholderTight->h());
     m_WizMainLayout->value(m_GrpMainLayoutTight);
 
     // Shrink the main window
@@ -1843,13 +1847,13 @@ UserInterfaceLogic
       }
 
     // Restore the control panel and toolbar
-    m_GrpMainLayoutTight->remove(m_GrpRightPane);
-    m_GrpRightPanePlaceholder->insert(*m_GrpRightPane, 0);
+    m_GrpRightPanePlaceholderTight->remove(m_GrpRightPane);
+    m_GrpRightPanePlaceholderNormal->insert(*m_GrpRightPane, 0);
     m_GrpRightPane->resize(
-      m_GrpRightPanePlaceholder->x(),
-      m_GrpRightPanePlaceholder->y(),
-      m_GrpRightPanePlaceholder->w(),
-      m_GrpRightPanePlaceholder->h());
+      m_GrpRightPanePlaceholderNormal->x(),
+      m_GrpRightPanePlaceholderNormal->y(),
+      m_GrpRightPanePlaceholderNormal->w(),
+      m_GrpRightPanePlaceholderNormal->h());
     m_WizMainLayout->value(m_GrpMainLayoutNormal);
 
     // Grow the main window (as long as we don't grow over max size)
@@ -5225,6 +5229,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.81  2009/08/28 16:57:05  pyushkevich
+ *FIX: Fixed scrollbar crash
+ *
  *Revision 1.80  2009/08/28 16:33:03  garyhuizhang
  *ENH: rename LayerEditor as LayerInspector
  *

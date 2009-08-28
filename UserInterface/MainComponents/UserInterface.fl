@@ -323,11 +323,11 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
           }
-          Fl_Group m_GrpControls {open
+          Fl_Group m_GrpControls {
             xywh {0 24 145 711} box BORDER_FRAME color 0
           } {
             Fl_Wizard m_WizControlPane {
-              label {Control Pane} open
+              label {Control Pane}
               xywh {0 25 145 700} box NO_BOX color 22 align 16
             } {
               Fl_Group m_GrpToolbarPage {open
@@ -488,7 +488,7 @@ class UserInterface {open : {public UserInterfaceBase}
                       } {}
                       Fl_Button {} {
                         label {Fit all views}
-                        callback {this->OnResetAllViews2DAction();} selected
+                        callback {this->OnResetAllViews2DAction();}
                         xywh {25 295 95 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x40066 color 180 selection_color 94 labelsize 11 align 128
                       }
                     }
@@ -983,10 +983,10 @@ this->OnSNAPLabelOpacityChange();}
               xywh {0 730 145 5} color 53 labeltype NO_LABEL resizable
             } {}
           }
-          Fl_Group m_GrpRightPanePlaceholder {open
+          Fl_Group m_GrpRightPanePlaceholderNormal {
             xywh {145 25 730 710} resizable
           } {
-            Fl_Group m_GrpRightPane {
+            Fl_Group m_GrpRightPane {open
               xywh {145 25 730 710} box FLAT_BOX color 166
             } {
               Fl_Wizard {m_WizSliceLayout[0]} {open
@@ -1067,7 +1067,7 @@ this->OnSNAPLabelOpacityChange();}
                       } {}
                     }
                     Fl_Scrollbar {m_InSliceSlider[0]} {
-                      callback {this->OnSliceSliderChange(0);}
+                      callback {OnSliceSliderChange(0);}
                       xywh {487 80 18 270} box THIN_DOWN_BOX minimum 1 maximum 0 resizable
                     }
                   }
@@ -1340,7 +1340,11 @@ this->OnSNAPLabelOpacityChange();}
         }
         Fl_Group m_GrpMainLayoutTight {open
           xywh {0 0 875 735} hide
-        } {}
+        } {
+          Fl_Group m_GrpRightPanePlaceholderTight {open selected
+            xywh {0 0 875 735} resizable
+          } {}
+        }
       }
     }
     Fl_Window m_WinSplash {
