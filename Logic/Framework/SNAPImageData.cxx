@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/30 17:29:59 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/08/29 23:02:44 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -66,9 +66,9 @@ SNAPImageData
 : GenericImageData(parent)
 {
   // Update the list of linked wrappers
-  m_LinkedWrappers.push_back(&m_SpeedWrapper);
-  m_LinkedWrappers.push_back(&m_SnakeInitializationWrapper);
-  m_LinkedWrappers.push_back(&m_SnakeWrapper);
+  m_MainWrappers.push_back(&m_SpeedWrapper);
+  m_MainWrappers.push_back(&m_SnakeInitializationWrapper);
+  m_MainWrappers.push_back(&m_SnakeWrapper);
 
   // Initialize the level set driver to NULL
   m_LevelSetDriver = NULL;

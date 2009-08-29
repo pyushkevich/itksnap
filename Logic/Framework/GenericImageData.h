@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 01:10:20 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/08/29 23:02:43 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -85,13 +85,13 @@ public:
    */
   ImageWrapperBase* GetMain()
     {
-    assert(m_MainImage->IsInitialized());
-    return m_MainImage;
+    assert(m_MainImageWrapper->IsInitialized());
+    return m_MainImageWrapper;
     }
 
   bool IsMainLoaded()
     {
-    return m_MainImage->IsInitialized();
+    return m_MainImageWrapper->IsInitialized();
     }
 
   /**
@@ -122,7 +122,7 @@ public:
    * to preserve state)
    */
   LabelImageWrapper* GetSegmentation() {
-    assert(m_MainImage->IsInitialized() && m_LabelWrapper.IsInitialized());
+    assert(m_MainImageWrapper->IsInitialized() && m_LabelWrapper.IsInitialized());
     return &m_LabelWrapper;
   }
 
@@ -130,9 +130,8 @@ public:
    * Get the extents of the image volume
    */
   Vector3ui GetVolumeExtents() const {
-    assert(m_MainImage->IsInitialized());
-    assert(m_MainImage->GetSize() == m_Size);
-    return m_Size;
+    assert(m_MainImageWrapper->IsInitialized());
+    return m_MainImageWrapper->GetSize();
   }
 
   /** 
@@ -168,6 +167,8 @@ public:
 
   virtual void SetRGBImage(RGBImageType *newRGBImage,
                     const ImageCoordinateGeometry &newGeometry);
+
+  virtual void UnloadMainImage();
 
   virtual void SetGreyOverlay(
     GreyImageType *newGreyImage,
@@ -223,6 +224,9 @@ public:
   irisGetMacro(ImageGeometry,ImageCoordinateGeometry);
 
 protected:
+  virtual void SetMainImageCommon(ImageWrapperBase *wrapper,
+                          const ImageCoordinateGeometry &geometry);
+  virtual void SetOverlayCommon(ImageWrapperBase *wrapper);
   virtual void SetCrosshairs(WrapperList &list, const Vector3ui &crosshairs);
   virtual void SetImageGeometry(WrapperList &list, const ImageCoordinateGeometry &geometry);
 
@@ -232,21 +236,18 @@ protected:
   // Wrapper around the RGB image
   RGBImageWrapper m_RGBWrapper;
 
+  // A pointer to the 'main' image, i.e., the image that is treated as the
+  // reference for all other images. It is typically the grey image, but
+  // since we now allow for RGB images, it can point to the RGB image too
+  ImageWrapperBase *m_MainImageWrapper;
+
   // Wrapper around the segmentatoin image
   LabelImageWrapper m_LabelWrapper;
 
   // A list of linked wrappers, whose cursor position and image geometry
   // are updated concurrently
-  WrapperList m_LinkedWrappers;
+  WrapperList m_MainWrappers;
   WrapperList m_OverlayWrappers;
-
-  // A pointer to the 'main' image, i.e., the image that is treated as the
-  // reference for all other images. It is typically the grey image, but
-  // since we now allow for RGB images, it can point to the RGB image too
-  ImageWrapperBase *m_MainImage;
-
-  // Dimensions of the images (must match) 
-  Vector3ui m_Size;
 
   // Parent object
   IRISApplication *m_Parent;

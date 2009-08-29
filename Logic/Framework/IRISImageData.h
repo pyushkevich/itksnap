@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISImageData.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/09 05:42:24 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/08/29 23:02:44 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -46,7 +46,7 @@ class IRISImageData : public GenericImageData
 {
 public:
 
-  IRISImageData(IRISApplication *parent) 
+  IRISImageData(IRISApplication *parent)
     : GenericImageData(parent) {}
   virtual ~IRISImageData() {};
 
@@ -55,7 +55,7 @@ public:
    * to preserve state)
    */
   LabelImageWrapper* GetUndoImage() {
-    assert(m_MainImage->IsInitialized() && m_UndoWrapper.IsInitialized());
+    assert(m_MainImageWrapper->IsInitialized() && m_UndoWrapper.IsInitialized());
     return &m_UndoWrapper;
   }
 
@@ -73,6 +73,7 @@ public:
   void SetRGBImage(RGBImageType *newRGBImage,
                    const ImageCoordinateGeometry &newGeometry);
 
+  virtual void UnloadMainImage();
 
 protected:
 
