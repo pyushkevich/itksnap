@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 20:35:15 $
-  Version:   $Revision: 1.82 $
+  Date:      $Date: 2009/08/29 23:17:02 $
+  Version:   $Revision: 1.83 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -332,6 +332,7 @@ void UserInterfaceLogic
     {
     m_Activation->AddMenuItem(m_MenuLoadPreviousFirst + i, UIF_IRIS_ACTIVE);
     }
+  m_Activation->AddMenuItem(m_MenuLayerInspector, UIF_BASEIMG_LOADED);
 
 }
 
@@ -3019,6 +3020,12 @@ UserInterfaceLogic
 
 void
 UserInterfaceLogic
+::OnLayerInspectorUpdate()
+{
+}
+
+void
+UserInterfaceLogic
 ::UpdateWindowFocus(Fl_Group *parent, Fl_Group **panels, Fl_Gl_Window **boxes, int iWindow)
 {
   // The dimensions of the parent window
@@ -3356,15 +3363,7 @@ UserInterfaceLogic
 ::UnloadAllImages()
 {
   // Clear the memory and reset the flags
-  // Note the order of unload!!!
-  if (m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
-    m_Driver->GetCurrentImageData()->GetSegmentation()->Reset();
-
-  if (m_Driver->GetCurrentImageData()->IsOverlayLoaded())
-    m_Driver->UnloadOverlays();
-
-  if (m_Driver->GetCurrentImageData()->IsMainLoaded())
-    m_Driver->GetCurrentImageData()->GetMain()->Reset();
+  m_Driver->GetCurrentImageData()->UnloadMainImage();
 
   if (m_GlobalState->GetSNAPActive())
     {
@@ -3498,6 +3497,9 @@ UserInterfaceLogic
 
   // Update the list of labels
   OnLabelListUpdate();
+
+  // Update the layer inspector
+  OnLayerInspectorUpdate();
 
   // Redraw the user interface
   RedrawWindows();
@@ -3900,6 +3902,7 @@ UserInterfaceLogic
     // Send the image and RAI to the IRIS application driver
     m_Driver->UpdateIRISMainImage(
       m_WizGreyIO->GetNativeImageIO(), IRISApplication::MAIN_SCALAR);
+    m_WizGreyIO->ReleaseImage();
 
     // Update the system's history list
     m_SystemInterface->UpdateHistory("GreyImage", m_WizGreyIO->GetFileName());
@@ -5211,6 +5214,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.83  2009/08/29 23:17:02  garyhuizhang
+ *BUGFIX: fix a memory leak
+ *
  *Revision 1.82  2009/08/28 20:35:15  garyhuizhang
  *ENH: remove OverlayUI (replaced by LayerInspectorUI)
  *

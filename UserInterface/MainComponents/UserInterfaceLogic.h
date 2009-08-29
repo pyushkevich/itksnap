@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 20:35:15 $
-  Version:   $Revision: 1.40 $
+  Date:      $Date: 2009/08/29 23:17:02 $
+  Version:   $Revision: 1.41 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -617,6 +617,9 @@ public:
   // Show the help system
   void ShowHTMLPage(const char *link);
 
+  // Update Layer Inspector
+  void OnLayerInspectorUpdate();
+
   // Get the window under mouse focus or -1 if none
   int GetWindowUnderFocus(void);
   
@@ -1002,6 +1005,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.41  2009/08/29 23:17:02  garyhuizhang
+ *BUGFIX: fix a memory leak
+ *
  *Revision 1.40  2009/08/28 20:35:15  garyhuizhang
  *ENH: remove OverlayUI (replaced by LayerInspectorUI)
  *
