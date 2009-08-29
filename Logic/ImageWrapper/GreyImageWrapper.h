@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/25 21:38:16 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2009/08/29 23:18:42 $
+  Version:   $Revision: 1.16 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,7 +36,7 @@
 #define __GreyImageWrapper_h_
 
 #include "ScalarImageWrapper.h"
-#include "GlobalState.h"
+#include "ColorMap.h"
 #include "IntensityCurveVTK.h"
 // #include "UnaryFunctorCache.h"
 
@@ -114,8 +114,8 @@ public:
   /**
    * Get/Set the colormap
    */
-  ColorMapType GetColorMap () const;
-  void SetColorMap (ColorMapType colormap);
+  ColorMap GetColorMap () const;
+  void SetColorMap (const ColorMap& colormap);
 
   void Update();
 
@@ -144,7 +144,7 @@ private:
     float m_IntensityFactor;
  
     // Color map
-    ColorMapType m_Colormap;
+    ColorMap m_Colormap;
 
     // Equality operators required, if variables defined!!!
     bool operator == (const IntensityFunctor &z) const 

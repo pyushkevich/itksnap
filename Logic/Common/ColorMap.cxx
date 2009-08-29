@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/27 20:19:22 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/08/29 23:18:42 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,42 +35,61 @@
 #include "ColorMap.h"
 #include <algorithm>
 
+bool
+ColorMap::CMPoint
+::operator==(const ColorMap::CMPoint& rhs) const
+{
+  if (m_Index != rhs.m_Index)
+    return false;
+  if (m_Type != rhs.m_Type)
+    return false;
+  for (int i = 0; i < 2; ++i)
+    {
+    for (int j = 0; j < 4; ++j)
+      {
+      if (m_RGBA[i][j] != rhs.m_RGBA[i][j])
+        return false;
+      }
+    }
+  return true;
+}
+
 ColorMap::CMPoint
 ::CMPoint()
 {
-  this->m_Index = 0.0;
-  this->m_Type = CONTINUOUS;
+  m_Index = 0.0;
+  m_Type = CONTINUOUS;
 
-  this->m_RGBA[0][0] = 0;  this->m_RGBA[1][0] = 0;
-  this->m_RGBA[0][1] = 0;  this->m_RGBA[1][1] = 0;
-  this->m_RGBA[0][2] = 0;  this->m_RGBA[1][2] = 0;
-  this->m_RGBA[0][3] = 0;  this->m_RGBA[1][3] = 0;
+  m_RGBA[0][0] = 0;  m_RGBA[1][0] = 0;
+  m_RGBA[0][1] = 0;  m_RGBA[1][1] = 0;
+  m_RGBA[0][2] = 0;  m_RGBA[1][2] = 0;
+  m_RGBA[0][3] = 0;  m_RGBA[1][3] = 0;
   }
 
 // Continuous point
 ColorMap::CMPoint
 ::CMPoint(double j, EltType r, EltType g, EltType b, EltType a)
 {
-  this->m_Index = j;
-  this->m_Type = CONTINUOUS;
+  m_Index = j;
+  m_Type = CONTINUOUS;
 
-  this->m_RGBA[0][0] = r;  this->m_RGBA[1][0] = r;
-  this->m_RGBA[0][1] = g;  this->m_RGBA[1][1] = g;
-  this->m_RGBA[0][2] = b;  this->m_RGBA[1][2] = b;
-  this->m_RGBA[0][3] = a;  this->m_RGBA[1][3] = a;
+  m_RGBA[0][0] = r;  m_RGBA[1][0] = r;
+  m_RGBA[0][1] = g;  m_RGBA[1][1] = g;
+  m_RGBA[0][2] = b;  m_RGBA[1][2] = b;
+  m_RGBA[0][3] = a;  m_RGBA[1][3] = a;
 }
 
 // CMPoint with alpha discontinuity
 ColorMap::CMPoint
 ::CMPoint(double j, EltType r, EltType g, EltType b, EltType a1, EltType a2)
 {
-  this->m_Index = j;
-  this->m_Type = DISCONTINUOUS;
+  m_Index = j;
+  m_Type = DISCONTINUOUS;
 
-  this->m_RGBA[0][0] = r;  this->m_RGBA[1][0] = r;
-  this->m_RGBA[0][1] = g;  this->m_RGBA[1][1] = g;
-  this->m_RGBA[0][2] = b;  this->m_RGBA[1][2] = b;
-  this->m_RGBA[0][3] = a1; this->m_RGBA[1][3] = a2;
+  m_RGBA[0][0] = r;  m_RGBA[1][0] = r;
+  m_RGBA[0][1] = g;  m_RGBA[1][1] = g;
+  m_RGBA[0][2] = b;  m_RGBA[1][2] = b;
+  m_RGBA[0][3] = a1; m_RGBA[1][3] = a2;
 }
 
 // CMPoint with full discontinuity
@@ -79,13 +98,28 @@ ColorMap::CMPoint
     EltType r1, EltType g1, EltType b1, EltType a1,
     EltType r2, EltType g2, EltType b2, EltType a2)
 {
-  this->m_Index = j;
-  this->m_Type = DISCONTINUOUS;
+  m_Index = j;
+  m_Type = DISCONTINUOUS;
 
-  this->m_RGBA[0][0] = r1; this->m_RGBA[1][0] = r2;
-  this->m_RGBA[0][1] = g1; this->m_RGBA[1][1] = g2;
-  this->m_RGBA[0][2] = b1; this->m_RGBA[1][2] = b2;
-  this->m_RGBA[0][3] = a1; this->m_RGBA[1][3] = a2;
+  m_RGBA[0][0] = r1; m_RGBA[1][0] = r2;
+  m_RGBA[0][1] = g1; m_RGBA[1][1] = g2;
+  m_RGBA[0][2] = b1; m_RGBA[1][2] = b2;
+  m_RGBA[0][3] = a1; m_RGBA[1][3] = a2;
+}
+
+// CMPoint copy constructor
+ColorMap::CMPoint
+::CMPoint(const CMPoint& rhs)
+{
+  m_Index = rhs.m_Index;
+  m_Type = rhs.m_Type;
+  for (int i = 0; i < 2; ++i)
+    {
+    for (int j = 0; j < 4; ++j)
+      {
+      m_RGBA[i][j] = rhs.m_RGBA[i][j];
+      }
+    }
 }
 
 bool operator < (const ColorMap::CMPoint &p1, const ColorMap::CMPoint &p2)
@@ -93,8 +127,50 @@ bool operator < (const ColorMap::CMPoint &p1, const ColorMap::CMPoint &p2)
   return p1.m_Index < p2.m_Index;
 }
 
+ColorMap
+::ColorMap()
+{
+  SetToSystemPreset(COLORMAP_GREY);
+}
+
+ColorMap
+::ColorMap(SystemPreset preset)
+{
+  SetToSystemPreset(preset);
+}
+
+ColorMap
+::ColorMap(const ColorMap& rhs)
+{
+  CMPointConstIterator it = rhs.m_CMPoints.begin();
+  while (it != rhs.m_CMPoints.end())
+    {
+    m_CMPoints.push_back( *it );
+    ++it;
+    }
+}
+
+bool
+ColorMap
+::operator==(const ColorMap& rhs) const
+{
+  if (m_CMPoints.size() != rhs.m_CMPoints.size())
+    return false;
+  CMPointConstIterator it = m_CMPoints.begin();
+  CMPointConstIterator rit = rhs.m_CMPoints.begin();
+  while (it != m_CMPoints.end())
+    {
+    if (!(*it == *rit))
+      return false;
+    ++it;
+    ++rit;
+    }
+  return true;
+}
+
 ColorMap::RGBAType
-ColorMap::MapIndexToRGBA(double j) const
+ColorMap
+::MapIndexToRGBA(double j) const
 {
   // Perform binary search for the value j
   CMPoint p(j, 0x00, 0x00, 0x00, 0x00);
@@ -119,7 +195,9 @@ ColorMap::MapIndexToRGBA(double j) const
   return rout;
 }
 
-void ColorMap::SetToSystemPreset(SystemPreset preset)
+void
+ColorMap
+::SetToSystemPreset(SystemPreset preset)
 {
   m_CMPoints.clear();
   switch(preset)
@@ -203,7 +281,7 @@ void ColorMap::SetToSystemPreset(SystemPreset preset)
       m_CMPoints.push_back( CMPoint(1.0,    0x80, 0x00, 0x00, 0xff, 0x00) );
       break;
     case COLORMAP_SIZE:
-      // to mute compiler warning
+      // to suppress compiler warning
       std::cerr << "COLORMAP_SIZE: should never get there ..." << std::endl;
       break;
    }

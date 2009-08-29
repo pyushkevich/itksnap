@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/25 21:38:16 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2009/08/29 23:18:42 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -55,7 +55,6 @@ GreyImageWrapper
   m_IntensityCurveVTK->Initialize(3);
 
   // Initialize the intensity functor
-  m_IntensityFunctor.m_Colormap = COLORMAP_GREY;
   m_IntensityFunctor.m_IntensityMap = m_IntensityCurveVTK;
 
   // Instantiate the cache
@@ -79,6 +78,11 @@ GreyImageWrapper
 GreyImageWrapper
 ::~GreyImageWrapper()
 {
+  for (size_t i = 0; i < 3; ++i)
+    {
+    m_IntensityFilter[i] = NULL;
+    }
+  m_IntensityMapCache = NULL;
   m_IntensityCurveVTK = NULL;
 }
 
@@ -140,7 +144,7 @@ GreyImageWrapper
   return m_IntensityFilter[dim]->GetOutput();
 }
 
-ColorMapType
+ColorMap
 GreyImageWrapper
 ::GetColorMap() const
 {
@@ -149,7 +153,7 @@ GreyImageWrapper
 
 void
 GreyImageWrapper
-::SetColorMap(ColorMapType colormap)
+::SetColorMap(const ColorMap& colormap)
 {
   m_IntensityFunctor.m_Colormap = colormap;
 }
@@ -179,143 +183,13 @@ GreyImageWrapper::IntensityFunctor
 ::operator()(const GreyType &in) const 
 {
   // Map the input value to range of 0 to 1
-  float inZeroOne = (in - m_IntensityMin) * m_IntensityFactor;
+  double inZeroOne = (in - m_IntensityMin) * m_IntensityFactor;
   
-  // Compute the mapping
-  float outZeroOne = m_IntensityMap->Evaluate(inZeroOne);
+  // Compute the intensity mapping
+  double outZeroOne = m_IntensityMap->Evaluate(inZeroOne);
 
   // Map the output to a RGBA pixel
-  DisplayPixelType pixel;
-  float tmp;
-  switch (m_Colormap)
-    {
-    default:
-    case COLORMAP_GREY:
-         tmp = 255.0*outZeroOne;
-         pixel[0] = (unsigned char)(tmp);
-         pixel[1] = pixel[0];
-         pixel[2] = pixel[0];
-         break;
-    case COLORMAP_RED:
-         pixel[0] = (unsigned char)(255.0*outZeroOne);
-         pixel[1] = 0;
-         pixel[2] = 0;
-         break;
-    case COLORMAP_GREEN:
-         pixel[0] = 0;
-         pixel[1] = (unsigned char)(255.0*outZeroOne);
-         pixel[2] = 0;
-         break;
-    case COLORMAP_BLUE:
-         pixel[0] = 0;
-         pixel[1] = 0;
-         pixel[2] = (unsigned char)(255.0*outZeroOne);
-         break;
-    case COLORMAP_HOT:
-         tmp = 63.0/26.0*outZeroOne - 1.0/13.0;
-         tmp = (tmp < 1.0) ? tmp : 1.0;
-         tmp = (tmp > 0.0) ? tmp : 0.0;
-         pixel[0] = (unsigned char)(255.0*tmp);
-         tmp = 63.0/26.0*outZeroOne - 11.0/13.0;
-         tmp = (tmp < 1.0) ? tmp : 1.0;
-         tmp = (tmp > 0.0) ? tmp : 0.0;
-         pixel[1] = (unsigned char)(255.0*tmp);
-         tmp = 4.5*outZeroOne - 3.5;
-         tmp = (tmp < 1.0) ? tmp : 1.0;
-         tmp = (tmp > 0.0) ? tmp : 0.0;
-         pixel[2] = (unsigned char)(255.0*tmp);
-         break;
-    case COLORMAP_COOL:
-         pixel[0] = (unsigned char)(255.0*outZeroOne);
-         pixel[1] = 255 - pixel[0];
-         pixel[2] = 255;
-         break;
-    case COLORMAP_SPRING:
-         pixel[0] = 255;
-         pixel[1] = (unsigned char)(255.0*outZeroOne);
-         pixel[2] = 255 - pixel[1];
-         break;
-    case COLORMAP_SUMMER:
-         pixel[0] = (unsigned char)(255.0*outZeroOne);
-         pixel[1] = (unsigned char)(127.5*outZeroOne + 127.5);
-         pixel[2] = 102;
-         break;
-    case COLORMAP_AUTUMN:
-         pixel[0] = 255;
-         pixel[1] = (unsigned char)(255.0*outZeroOne);
-         pixel[2] = 0;
-         break;
-    case COLORMAP_WINTER:
-         pixel[0] = 0;
-         pixel[1] = (unsigned char)(255.0*outZeroOne);
-         pixel[2] = (unsigned char)(255.0 - 127.5*outZeroOne);
-         break;
-    case COLORMAP_COPPER:
-         tmp = 306.0*outZeroOne;
-         pixel[0] = (unsigned char)((255.0 < tmp) ? 255.0 : tmp);
-         pixel[1] = (unsigned char)(204.0*outZeroOne);
-         pixel[2] = (unsigned char)(127.5*outZeroOne);
-         break;
-    case COLORMAP_HSV:
-         tmp = fabs(5.0*outZeroOne - 2.5) - 5.0/6.0;
-         tmp = (tmp < 1.0) ? tmp : 1.0;
-         tmp = (tmp > 0.0) ? tmp : 0.0;
-         pixel[0] = (unsigned char)(255.0*tmp);
-         tmp = 11.0/6.0 - fabs(5.0*outZeroOne - 11.0/6.0);
-         tmp = (tmp < 1.0) ? tmp : 1.0;
-         tmp = (tmp > 0.0) ? tmp : 0.0;
-         pixel[1] = (unsigned char)(255.0*tmp);
-         tmp = 11.0/6.0 - fabs(5.0*outZeroOne - 19.0/6.0);
-         tmp = (tmp < 1.0) ? tmp : 1.0;
-         tmp = (tmp > 0.0) ? tmp : 0.0;
-         pixel[2] = (unsigned char)(255.0*tmp);
-         break;
-    case COLORMAP_JET:
-         tmp = 1.625 - fabs(3.75*outZeroOne - 2.8125);
-         tmp = (tmp < 1.0) ? tmp : 1.0;
-         tmp = (tmp > 0.0) ? tmp : 0.0;
-         pixel[0] = (unsigned char)(255.0*tmp);
-         tmp = 1.625 - fabs(3.75*outZeroOne - 1.875);
-         tmp = (tmp < 1.0) ? tmp : 1.0;
-         tmp = (tmp > 0.0) ? tmp : 0.0;
-         pixel[1] = (unsigned char)(255.0*tmp);
-         tmp = 1.625 - fabs(3.75*outZeroOne - 0.9375);
-         tmp = (tmp < 1.0) ? tmp : 1.0;
-         tmp = (tmp > 0.0) ? tmp : 0.0;
-         pixel[2] = (unsigned char)(255.0*tmp);
-         break;
-    case COLORMAP_OVERUNDER:
-         if (outZeroOne == 0.0)
-           {
-           pixel[0] = 0;
-           pixel[1] = 0;
-           pixel[2] = 255;
-           }
-         else if (outZeroOne == 1.0)
-           {
-           pixel[0] = 255;
-           pixel[1] = 0;
-           pixel[2] = 0;
-           }
-         else
-           {
-           tmp = 255.0*outZeroOne;
-           pixel[0] = (unsigned char)tmp;
-           pixel[1] = (unsigned char)tmp;
-           pixel[2] = (unsigned char)tmp;
-           }
-         break;
-    }
-  if (outZeroOne == 0.0)
-    {
-    pixel[3] = 0;
-    }
-  else
-    {
-    pixel[3] = 255;
-    }
-
-  return pixel;
+  return m_Colormap.MapIndexToRGBA(outZeroOne);
 }
 
 

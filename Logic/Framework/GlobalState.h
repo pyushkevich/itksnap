@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GlobalState.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/16 06:47:52 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2009/08/29 23:18:42 $
+  Version:   $Revision: 1.19 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -106,24 +106,6 @@ enum ColorMapPreset
   COLORMAP_BLACK_GRAY_WHITE,
   COLORMAP_BLUE_WHITE_RED,
   COLORMAP_BLACK_YELLOW_WHITE
-};
-
-enum ColorMapType
-{
-  COLORMAP_GREY = 0,
-  COLORMAP_RED,
-  COLORMAP_GREEN,
-  COLORMAP_BLUE,
-  COLORMAP_HOT,
-  COLORMAP_COOL,
-  COLORMAP_SPRING,
-  COLORMAP_SUMMER,
-  COLORMAP_AUTUMN,
-  COLORMAP_WINTER,
-  COLORMAP_COPPER,
-  COLORMAP_HSV,
-  COLORMAP_JET,
-  COLORMAP_OVERUNDER
 };
 
 enum PaintbrushMode
@@ -646,6 +628,9 @@ private:
 
 /*
  *$Log: GlobalState.h,v $
+ *Revision 1.19  2009/08/29 23:18:42  garyhuizhang
+ *ENH: GreyImageWrapper uses the new ColorMap class
+ *
  *Revision 1.18  2009/06/16 06:47:52  garyhuizhang
  *ENH: color map supports for grey overlay
  *

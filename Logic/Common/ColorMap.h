@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/27 20:02:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/08/29 23:18:42 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -78,7 +78,9 @@ class ColorMap
         double m_Index;
         CMPointType m_Type;
         RGBAType m_RGBA[2];
-      
+
+        bool operator==(const CMPoint& rhs) const;
+
         CMPoint();
       
         // Continuous point
@@ -91,6 +93,9 @@ class ColorMap
         CMPoint(double, 
           EltType r1, EltType g1, EltType b1, EltType a1, 
           EltType r2, EltType g2, EltType b2, EltType a2);
+
+        // CMPoint copy constructor
+        CMPoint(const CMPoint& rhs);
     };
 
     /** 
@@ -110,6 +115,14 @@ class ColorMap
 
     void UpdateCMPoint(size_t j, const CMPoint &p)
       { m_CMPoints[j] = p; }
+
+    bool operator==(const ColorMap& rhs) const;
+
+    ColorMap();
+
+    ColorMap (SystemPreset preset);
+
+    ColorMap (const ColorMap& rhs);
 
   private:
 

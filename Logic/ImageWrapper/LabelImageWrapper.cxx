@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/25 21:38:16 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/08/29 23:18:42 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -73,6 +73,10 @@ LabelImageWrapper
 LabelImageWrapper
 ::~LabelImageWrapper()
 {
+  for (size_t i = 0; i < 3; ++i)
+    {
+    m_RGBAFilter[i] = NULL;
+    }
 }
 
 ColorLabelTable *
