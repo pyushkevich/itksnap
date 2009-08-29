@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 16:33:03 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/08/29 23:19:40 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,6 +36,7 @@
 #define __LayerInspectorUILogic_h_
 
 #include "LayerInspectorUI.h"
+#include "ImageWrapper.h"
 
 /**
  * \class LayerInspectorUILogic
@@ -44,7 +45,8 @@
 class LayerInspectorUILogic : public LayerInspectorUI
 {
 public:
-  virtual ~LayerInspectorUILogic() {}
+  LayerInspectorUILogic();
+  virtual ~LayerInspectorUILogic() {};
 
   // Callbacks for the main pane
   void OnLayerSelectionUpdate();
@@ -90,6 +92,17 @@ private:
     };
 
   static PresetInfo m_PresetInfo[];
+
+  // The intensity curve (same pointer stored in the m_BoxCurve)
+  IntensityCurveInterface *m_Curve;
+
+  // Image wrapper lists
+  typedef std::list<ImageWrapperBase *> WrapperList;
+  typedef WrapperList::iterator WrapperIterator;
+  typedef WrapperList::const_iterator WrapperConstIterator;
+
+  WrapperList *m_MainWrappers;
+  WrapperList *m_OverlayWrappers;
 };
 
 #endif

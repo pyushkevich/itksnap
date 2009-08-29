@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 16:33:03 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/08/29 23:19:40 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,7 +36,13 @@
 #include "LayerInspectorUILogic.h"
 #include "IntensityCurveVTK.h"
 
-
+LayerInspectorUILogic
+::LayerInspectorUILogic()
+{
+  m_MainWrappers = NULL;
+  m_OverlayWrappers = NULL;
+  m_Curve = NULL;
+}
 
 void
 LayerInspectorUILogic
@@ -47,12 +53,7 @@ LayerInspectorUILogic
 
   // Initialize the color map
   ColorMap cm;
-  cm.SetToSystemPreset(ColorMap::COLORMAP_RED);
   m_BoxColorMap->SetColorMap(cm);
-
-  //curve = IntensityCurveVTK::New();
-  //curve->Initialize(4);
-  //m_BoxCurve->SetCurve(curve);
 
   // Show the GL stuff
   m_BoxColorMap->show();
@@ -60,7 +61,11 @@ LayerInspectorUILogic
   // Populate the preset chooser
   this->PopulateColorMapPresets();
 
-  // m_BoxCurve->show();
+  // Intensity curve
+  assert (m_Curve != NULL);
+  m_BoxCurve->SetCurve(m_Curve);
+
+  m_BoxCurve->show();
 }
 
 // Callbacks for the main pane
