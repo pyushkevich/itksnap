@@ -53,52 +53,26 @@
 #define fl_filename_isdir filename_isdir		// fltk1 name -> fltk2 name
 #endif
 
-// TRY TO CONVERT AN AEDesc TO AN FSSpec
+// TRY TO CONVERT AN AEDesc TO AN FSRef
 //     As per Apple Technical Q&A QA1274
 //     eg: http://developer.apple.com/qa/qa2001/qa1274.html
 //     Returns 'noErr' if OK,
 //             or an 'OSX result code' on error.
 //
-static int AEDescToFSSpec(const AEDesc* desc, FSSpec* fsspec) {
+static int AEDescToFSRef(const AEDesc* desc, FSRef* fsref) {
     OSStatus err = noErr;
     AEDesc coerceDesc;
-    // If AEDesc isn't already an FSSpec, convert it to one
-    if ( desc->descriptorType != typeFSS ) {
-        if ( ( err = AECoerceDesc(desc, typeFSS, &coerceDesc) ) == noErr ) {
-	    // Get FSSpec out of AEDesc
-            err = AEGetDescData(&coerceDesc, fsspec, sizeof(FSSpec));
+    // If AEDesc isn't already an FSRef, convert it to one
+    if ( desc->descriptorType != typeFSRef ) {
+        if ( ( err = AECoerceDesc(desc, typeFSRef, &coerceDesc) ) == noErr ) {
+	    // Get FSRef out of AEDesc
+            err = AEGetDescData(&coerceDesc, fsref, sizeof(FSRef));
             AEDisposeDesc(&coerceDesc);
         }
     } else {
-        err = AEGetDescData(desc, fsspec, sizeof(FSSpec));
+        err = AEGetDescData(desc, fsref, sizeof(FSRef));
     }
     return( err );
-}
-
-// CONVERT AN FSSpec TO A PATHNAME
-static void FSSpecToPath(const FSSpec &spec, char *buff, int bufflen) {
-    FSRef fsRef;
-    FSpMakeFSRef(&spec, &fsRef);
-    FSRefMakePath(&fsRef, (UInt8*)buff, bufflen);
-}
-
-// CONVERT REGULAR PATH -> FSSpec
-//     If file does not exist, expect fnfErr.
-//     Returns 'noErr' if OK,
-//             or an 'OSX result code' on error.
-//
-static OSStatus PathToFSSpec(const char *path, FSSpec &spec) {
-    OSStatus err;
-    FSRef ref;
-    if ((err = FSPathMakeRef((const UInt8*)path, &ref, NULL)) != noErr) {
-	return(err);
-    }
-    // FSRef -> FSSpec
-    if ((err = FSGetCatalogInfo(&ref, kFSCatInfoNone, NULL, NULL, &spec,
-    							     NULL)) != noErr) {
-	return(err);
-    }
-    return(noErr);
 }
 
 // NAVREPLY: CTOR
@@ -140,13 +114,13 @@ int FNFC_CLASS::NavReply::get_saveas_basename(char *s, int slen) {
 //    Returns 0 on success, -1 on error.
 //
 int FNFC_CLASS::NavReply::get_dirname(char *s, int slen) {
-    FSSpec fsspec;
-    if ( AEDescToFSSpec(&_reply.selection, &fsspec) != noErr ) {
+    FSRef fsref;
+    if ( AEDescToFSRef(&_reply.selection, &fsref) != noErr ) {
         // Conversion failed? Return empty name
 	s[0] = 0;
 	return(-1);
     }
-    FSSpecToPath(fsspec, s, slen);
+    FSRefMakePath(&fsref, (UInt8 *)s, slen);
     return(0);
 }
 
@@ -170,18 +144,18 @@ int FNFC_CLASS::NavReply::get_pathnames(char **&pathnames,
     for (short index=1; index<=count; index++) {
 	AEKeyword keyWord;
 	AEDesc    desc;
-	if (AEGetNthDesc(&_reply.selection, index, typeFSS, &keyWord, 
+	if (AEGetNthDesc(&_reply.selection, index, typeFSRef, &keyWord, 
 							   &desc) != noErr) {
 	    pathnames[index-1] = strnew("");
 	    continue;
 	}
-	FSSpec fsspec;
-	if (AEGetDescData(&desc, &fsspec, sizeof(FSSpec)) != noErr ) {
+	FSRef fsref;
+	if (AEGetDescData(&desc, &fsref, sizeof(FSRef)) != noErr ) {
 	    pathnames[index-1] = strnew("");
 	    continue;
 	}
 	char s[4096];
-	FSSpecToPath(fsspec, s, sizeof(s)-1);
+	FSRefMakePath(&fsref, (UInt8 *)s, sizeof(s)-1);
 	pathnames[index-1] = strnew(s);
 	AEDisposeDesc(&desc);
     }
@@ -288,14 +262,14 @@ void FNFC_CLASS::event_handler(
 	        const char *pathname = nfb->directory() 
 					   ? nfb->directory()
 					   : nfb->preset_file();
-		FSSpec spec;
-		if ( ( err = PathToFSSpec(pathname, spec) ) != noErr ) {
-		    fprintf(stderr, "PathToFSSpec(%s) failed: err=%d\n",
+		FSRef fsref;
+		if ((err = FSPathMakeRef((const UInt8*)pathname, &fsref, NULL)) != noErr) {
+		    fprintf(stderr, "FSPathMakeRef(%s) failed: err=%d\n",
 		        pathname, (int)err);
                     break;
 		}
 		AEDesc desc;
-		if ((err = AECreateDesc(typeFSS, &spec, sizeof(FSSpec), 
+		if ((err = AECreateDesc(typeFSRef, &fsref, sizeof(FSRef), 
 		                        &desc)) != noErr) {
 		    fprintf(stderr, "AECreateDesc() failed: err=%d\n",
 		        (int)err);
@@ -364,7 +338,7 @@ void FNFC_CLASS::event_handler(
 		case BROWSE_SAVE_DIRECTORY:
 		case BROWSE_DIRECTORY:
 		case BROWSE_FILE:
-		    SInt32 selectcount;
+		    long selectcount;
 		    AECountItems((AEDescList*)cbparm->
 		  		  eventData.eventDataParms.param,
 				  &selectcount);
@@ -832,14 +806,14 @@ Boolean FNFC_CLASS::filter_proc_cb2(AEDesc *theItem,
     // All files chosen or no filters
     if ( _filt_value == _filt_total ) return(true);
     
-    FSSpec fsspec;
+    FSRef fsref;
     char pathname[4096];
     
     // On fail, filter should return true by default
-    if ( AEDescToFSSpec(theItem, &fsspec) != noErr ) {
+    if ( AEDescToFSRef(theItem, &fsref) != noErr ) {
         return(true);
     }
-    FSSpecToPath(fsspec, pathname, sizeof(pathname)-1);
+    FSRefMakePath(&fsref, (UInt8 *)pathname, sizeof(pathname)-1);
 
     if ( fl_filename_isdir(pathname) ) return(true);
     if ( fl_filename_match(pathname, _filt_patt[_filt_value]) ) return(true);
