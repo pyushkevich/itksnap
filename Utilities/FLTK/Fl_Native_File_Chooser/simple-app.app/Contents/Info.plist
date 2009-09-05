@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="0.9">
+    <dict>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleExecutable</key>
+	<string>simple-app</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.fltk.simple-app</string>
+	<key>CFBundleName</key>
+	<string>simple-app</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+    </dict>
+</plist>

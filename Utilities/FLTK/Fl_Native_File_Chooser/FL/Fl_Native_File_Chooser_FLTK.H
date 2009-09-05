@@ -21,6 +21,7 @@
 //
 
 #include <FL/Fl_File_Chooser.H>
+#include <FL/Fl_File_Icon.H>
 #include <string.h>
 
 class Fl_Native_File_Chooser {

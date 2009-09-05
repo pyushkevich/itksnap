@@ -56,7 +56,7 @@ private:
     int             _btype;		// kind-of browser to show()
     int             _options;		// general options
     NavDialogRef    _ref;		// file navigation reference
-    NavActionState  _keepstate;		// holds button permissions
+    NavActionState  _keepstate;		// various chooser options
     NavMenuItemSpec _tempitem;   	// Popup menu selection
     char          **_pathnames;		// array of pathnames
     int             _tpathnames;	// total pathnames
