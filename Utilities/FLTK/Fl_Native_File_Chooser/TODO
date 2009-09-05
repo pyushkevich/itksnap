@@ -1,26 +1,63 @@
-> Determine why Mac and OSX don't open browser with preset file selected.
-  WINDOWS: tried to make this work, but it just doesn't support it!
+> Under OSX, the 'simple-app' program can't open up the file browser
+  with the preset_file() selected in the browser. WHY??
+  It selects the dir ok, but not the file.
+
+> Christophe points out differences with FLTK's API:
+
+    * type enums are different (Fl_File_Chooser::MULTI vs. Fl_Native_File_Chooser::BROWSE_MULTI_FILE)
+      SOLUTION: mark old names legacy, implement FLTK's names as alternate, modify docs.
+
+    * show() works differently (Native's show() blocks)
+      SOLUTION: Meh, not sure there is one, native choosers have to block.
+
+    * filters have slightly different syntax ("type (*.ext)\t" vs.  "type\t*.ext\n")
+      SOLUTION: Might be as simple as just ignoring parens around filter when specified.
+                Document FLTK's syntax, and indicate old syntax is legacy.
+
+    * filename() is indexed from 0 instead of 1
+    * filename() should be changed to value()
+
+      SOLUTION: Kill above two birds with one stone:
+                Mark filename() as obsolete/legacy in docs, keep method code.
+                Implement value(int) and friends to replace filename(),
+                making sure value(int) is 1 based. Make docs and for() loop
+		example 1 based.
+   
+> Christophe points out that adding but->shortcut(FL_META+'o');
+  to simple-app.cxx causes FLTK/MAC to theink the meta key is still down
+  after invoking the short cut, then cancelling out of the chooser.
+  (Just hitting 'o' after the chooser closes will re-open the browser)
+
+  Probably the native chooser for MAC/Leopard is eating the keyup
+  events. Had christophe repost question to fltk.general on 01/07/08.
+
+  CHECK HISTORY TO SEE IF THIS WAS SOLVED.
+
+> Add an option to control enable/disable of 'New Folder' button on Mac.
+  See:
+	_keepstate = kNavDontNewFolderState;
+
+  ..in the file Fl_Native_File_Chooser_MAC.cxx. Maybe change that to:
+  	     if ( ! ( _options & NEW_FOLDER ) ) {
+		 _keepstate |= kNavDontNewFolderState;
+	     }
+
+> Determine why WIN32 and OSX don't open browser with preset file selected.
+
+  09/04/2009 MAC: It is years later, and I still can't figure this out.
+              Several sources on the net say the pathname can only
+	      be a directory, not a filename for preselect to work.
+
+  XX/XX/XXXX WIN: tried to make this work, but it just doesn't support it!
            Even calling GetOpenFileName(&_ofn); twice in a row.
 
-> 0.84: Ian MacArthur indicated mingw warns about strapp and strdump
-	being "defined but not used" cause it's a static. Should
-	probably make a lib, disable this warning, or reference 
-	the calls in an unused subroutine.
 
-> 0.83d: Namespace pollution: Yuri wants Carbon.h/win32.h
-  to not be in the public .H files.  Can probably make an 'underbar'
-  version of the class to isolate them.  See erco's post on 
-  fltk.general 06/24/07.
 
-> 0.83d: MAC / Save File:
-  If:
-      1) /tmp/foo.xxx exists
-      2) Directory: set to /tmp
-      3) Preset File set to foo.xxx
-  ..when browser opens, foo.xxx is GRAYED OUT, even though filter
-  appears to be on. Can still click on grayed out items to pick them,
-  and Save As: name changes. Weird!
-  Looks OK when 'Single File' is selected.
+	    ### NOT SURE ###			### NOT SURE ###
+	    ### NOT SURE ###			### NOT SURE ###
+	    ### NOT SURE ###			### NOT SURE ###
+
+
 
 (?) > 0.83d: WINDOWS/FILE BROWSE: 
 (?) 	If simple-app's preset filename doesn't end in a backslash,
@@ -50,6 +87,30 @@
 (?)         of showing text correctly if japanese text pasted as text into the 
 (?)         Fl_Input from Windows URL input)
 
+
+	    #### DONE ####			    #### DONE ####
+	    #### DONE ####			    #### DONE ####
+	    #### DONE ####			    #### DONE ####
+
+> 0.84: Ian MacArthur indicated mingw warns about strapp and strdump
+	being "defined but not used" cause it's a static. Should
+	probably make a lib, disable this warning, or reference 
+	the calls in an unused subroutine.
+
+> 0.83d: Namespace pollution: Yuri wants Carbon.h/win32.h
+  to not be in the public .H files.  Can probably make an 'underbar'
+  version of the class to isolate them.  See erco's post on 
+  fltk.general 06/24/07.
+
+> 0.83d: MAC / Save File:
+  If:
+      1) /tmp/foo.xxx exists
+      2) Directory: set to /tmp
+      3) Preset File set to foo.xxx
+  ..when browser opens, foo.xxx is GRAYED OUT, even though filter
+  appears to be on. Can still click on grayed out items to pick them,
+  and Save As: name changes. Weird!
+  Looks OK when 'Single File' is selected.
 *** DONE ***
 (DONE) > 0.82c: "Save As" + "Show Confirm Dialog" is not showing the confirm dialog..!
 (DONE)          TESTED ON LINUX AND OSX TO WORK OK.
@@ -187,4 +248,71 @@ Andreas Schömann wrote:
 ------------------------------------------------------------------------
 				Reference #3
 ------------------------------------------------------------------------
+
+-- 0.86 --
+
+> (DONE -- 0.86) ADDITIONS REQUESTED BY MANOLO OCT 08 2008
+
+    Hi Greg,
+
+    I have been using your Fl_Native_File_Chooser with general satisfaction
+    but had to make 3 changes in Fl_Native_File_Chooser_MAC.cxx for it to
+    suit my needs, and would like to present them to you.
+
+    1) using a BROWSE_SAVE_FILE displays the list of file formats as set by the
+    filter member function plus a "Default" format that I wanted
+    to get rid of.  The solution to that is to put kNavGenericSignature
+    as 3rg argument of the NavCreatePutFileDialog call in your		<-- (DONE 0.86)
+    post() function.  Because the initially selected file format
+    can be controlled by the filter_value member function, I don't
+    see what can be the purpose of having a Default format in
+    addition to a programmable set of formats. Furthermore, presence
+    of the Default format renders the call to filter_value ignored
+    by the navigation dialog window.  Thus, I would think that using
+    this kNavGenericSignature argument would benefit
+    Fl_Native_Fie_Chooser_MAC without loss of functionality.
+    Alternatively, an accessor function to the 3rd argument of the
+    NavCreatePutFileDialog call would be helpful.
+
+    2) using a BROWSE_SAVE_FILE, with a call to the preset_file member function,
+    often fails to correctly display the desired preset filename in the navigation
+    dialog. This happens in your event_handler function, case kNavCBStart, that
+    attempts to get the FSSpec of the preset file and fails because this file
+    does not exist yet.  I thus changed the 1st statement of the kNavCBStart 
+    clause as follows:
+		if ( nfb->directory() /* || nfb->preset_file() */) {	<-- (DONE 0.86)
+
+    3) the preset_file member function does not work correctly with 
+    non-ascii containing filenames. This is easily repaired, without
+    side effect, using kCFStringEncodingUTF8 instead of			<-- (DONE 0.86)
+    kCFStringEncodingASCII in the statement just before the
+    NavDialogSetSaveFileName call.
+
+    I take this opportunity to mention to you my XCode plug-in that
+    fully drives a Win32 C/C++ cross-compiler within Apple's Xcode
+    development environment:
+    http://pbil.univ-lyon1.fr/members/mgouy/XCodeWin32Plugin/
+
+    Many thanks for your Fl_Native_Fie_Chooser,
+    and best wishes,
+
+> (DONE -- 0.86) Walter Garms points out mapped network shares (eg. Z:) don't show up
+  in 'BROWSE_DIRECTORY' mode unless the code is modified. See emails 
+  dated 05/12/2008:
+
+    --- Garms, Walter (GE EntSol, Security) wrote:
+    With your help I was able to solve the problem of the network drives. 
+    For Version 6.0, at least, the BIF_SHAREABLE flag seems to have the
+    opposite sense:  With BIF_SHAREABLE not set I see the mapped network
+    drives, and with BIF_SHAREABLE set I do not. 
+    ---
+
+    ie. he removed BIF_SHAREABLE from this section:
+
+    #if defined(BIF_NONEWFOLDERBUTTON)                              // Version 6.0
+	if ( _btype == BROWSE_DIRECTORY ) _binf.ulFlags |= BIF_NONEWFOLDERBUTTON;
+	_binf.ulFlags |= BIF_USENEWUI | BIF_SHAREABLE | BIF_RETURNONLYFSDIRS;
+					^^^^^^^^^^^^^
+    #elif defined(BIF_USENEWUI)  
+
 

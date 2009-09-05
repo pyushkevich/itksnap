@@ -21,7 +21,10 @@ chmod 755 reference documentation documentation/images \
 # RELEASE DIR
 rm -rf ./.release/ 2> /dev/null
 mkdir -p $RELEASEDIR
+
 cp -rp .TAR_RELEASE.sh * ./.release/Fl_Native_File_Chooser-$VERSION
+
+sleep 1		# prevents 'file changed' during tar
 
 # Remove local settings
 awk '/REMOVE:START/ { remove = 1; }
@@ -36,11 +39,15 @@ mv $RELEASEDIR/Makefile.new $RELEASEDIR/Makefile
   tar cvfz $TARFILE --numeric-owner \
                     --owner=0 \
 		    --group=0 \
+		    --exclude=scp-to-seriss \
 		    Fl_Native_File_Chooser-$VERSION 
 )
 
 # CLEANUP
 rm -rf ./.release 2> /dev/null
 echo "*** Created: $TARFILE"
+
+# UPLOAD
+if [ -x ./scp-to-seriss ]; then ./scp-to-seriss $TARFILE; fi
 
 exit 0

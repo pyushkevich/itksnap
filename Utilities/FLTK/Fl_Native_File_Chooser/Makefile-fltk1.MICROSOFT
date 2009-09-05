@@ -22,7 +22,7 @@ SUBSYSTEM=console
 #    /Wall = add for WAAAY too much info. Useful only if you grep out OS's errors!
 #    /W3   = somewhat verbose
 #
-CC=cl /MD /EHsc /DVS2000 /DVISUAL_STUDIO /D_CRT_SECURE_NO_DEPRECATE
+CC=cl /MD /EHsc /DVS2000 /DVISUAL_STUDIO /D_CRT_SECURE_NO_DEPRECATE /D_WIN32
 CFLAGS= /I$(FLTKDIR) /I. /DFLTK1
 
 LIBS=/link $(FLTKDIR)/lib/fltk.lib \

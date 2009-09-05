@@ -228,11 +228,11 @@ int main() {
     char start_file[MAXPATHLEN + 1];
     strcpy(start_file, "testfile");
 
-    fltk::Window *win = new fltk::Window(600, 500);
+    fltk::Window *win = new fltk::Window(600, 520, "Test Browser (FLTK2)");
 
     win->begin();
     {
-	int y = 10;
+	int y = 20;
 
 	G_type = new fltk::Browser(10,y,180,120,"Type");
 	G_type->add("Single File");
@@ -277,6 +277,8 @@ int main() {
 
 	G_filter_value = new fltk::ValueInput(80, y, win->w()-80-10, 25, "Filter Value");
 	G_filter_value->value(0);
+	G_filter_value->step(1.0);
+	G_filter_value->range(0.0,50.0);
 	G_filter_value->tooltip("Index number of the filter to be applied when browser opens.");
 	y += G_filter_value->h() + 5;
 

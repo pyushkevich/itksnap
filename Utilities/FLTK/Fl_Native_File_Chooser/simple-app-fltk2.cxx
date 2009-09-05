@@ -42,14 +42,15 @@ void Butt_CB(fltk::Widget*, void*) {
     fltk::NativeFileChooser native;
     native.title("Pick a file");
     native.type(fltk::NativeFileChooser::BROWSE_FILE);
-    native.filter("C Files\t*.{cxx,h,c}\nMakefile\tMakefile*");
+    native.filter("C Files\t*.{cxx,h,c}\n"
+                  "C Files\t*.{cxx,h,c}");
     native.preset_file(G_filename->value());
     // Show native chooser
     switch ( native.show() ) {
 	case -1: fprintf(stderr, "ERROR: %s\n", native.errmsg()); break;	// ERROR
 	case  1: fprintf(stderr, "*** CANCEL\n"); fltk::beep(); break;		// CANCEL
 	default: 								// PICKED FILE
-		if ( native.filename() )
+	    if ( native.filename() )
 		G_filename->value(native.filename());
 	    else
 		G_filename->value("NULL");
@@ -66,11 +67,12 @@ int main() {
 	G_filename->value(".");
 	G_filename->tooltip("Default filename");
 	y += G_filename->h() + 5;
-	fltk::Button *but = new fltk::Button(win->w()-80-10, win->h()-25-10, 80, 25, "Pick File");
+	fltk::Button *but = 
+	    new fltk::Button(win->w()-80-10, win->h()-25-10, 80, 25, "Pick File");
 	but->callback(Butt_CB);
     }
     win->end();
     win->resizable(win);
     win->show();
-    return fltk::run();
+    return(fltk::run());
 }

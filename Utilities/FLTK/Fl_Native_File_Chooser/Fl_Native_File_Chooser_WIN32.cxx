@@ -463,15 +463,20 @@ int FNFC_CLASS::showdir() {
 
     // TBD: make sure matches to runtime system, if need be.
     //( what if _WIN32_IE doesn't match system? does the program not run? )
+    //
     // TBD: match all 3 types of directories
+    //
+    // NOTE: *Don't* use BIF_SHAREABLE. It /disables/ mapped network shares
+    //       from being visible in BROWSE_DIRECTORY mode. 
+    //       See Walter Garm's comments in ./TODO.
 
 #if defined(BIF_NONEWFOLDERBUTTON)				// Version 6.0
     if ( _btype == BROWSE_DIRECTORY ) _binf.ulFlags |= BIF_NONEWFOLDERBUTTON;
-    _binf.ulFlags |= BIF_USENEWUI | BIF_SHAREABLE | BIF_RETURNONLYFSDIRS;
+    _binf.ulFlags |= BIF_USENEWUI | BIF_RETURNONLYFSDIRS;
 #elif defined(BIF_USENEWUI)					// Version 5.0
     if ( _btype == BROWSE_DIRECTORY ) _binf.ulFlags |= BIF_EDITBOX;
     else if ( _btype == BROWSE_SAVE_DIRECTORY ) _binf.ulFlags |= BIF_USENEWUI;
-    _binf.ulFlags |= BIF_SHAREABLE | BIF_RETURNONLYFSDIRS;
+    _binf.ulFlags |= BIF_RETURNONLYFSDIRS;
 #elif defined(BIF_EDITBOX)					// Version 4.71
     _binf.ulFlags |= BIF_RETURNONLYFSDIRS | BIF_EDITBOX;
 #else								// Version Old

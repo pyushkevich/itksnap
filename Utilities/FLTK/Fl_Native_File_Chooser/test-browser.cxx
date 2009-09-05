@@ -232,9 +232,9 @@ int main() {
     char start_file[MAXPATHLEN + 1];
     strcpy(start_file, "testfile");
 
-    Fl_Window *win = new Fl_Window(600, 500);
+    Fl_Window *win = new Fl_Window(600, 520, "Test Browser (FLTK1)");
 
-    int y = 10;
+    int y = 20;
 
     G_type = new Fl_Hold_Browser(10,y,180,120,"Type");
     G_type->add("Single File");

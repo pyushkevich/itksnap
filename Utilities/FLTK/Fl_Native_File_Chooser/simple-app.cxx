@@ -40,7 +40,8 @@ void Butt_CB(Fl_Widget*, void*) {
     Fl_Native_File_Chooser native;
     native.title("Pick a file");
     native.type(Fl_Native_File_Chooser::BROWSE_FILE);
-    native.filter("Text\t*.txt\nC Files\t*.{cxx,h,c}");
+    native.filter("Text\t*.txt\n"
+                  "C Files\t*.{cxx,h,c}");
     native.preset_file(G_filename->value());
     // Show native chooser
     switch ( native.show() ) {
@@ -57,14 +58,18 @@ void Butt_CB(Fl_Widget*, void*) {
 
 int main() {
     Fl_Window *win = new Fl_Window(600, 100, "FLTK Window");
-    int y = 10;
-    G_filename = new Fl_Input(80, y, win->w()-80-10, 25, "Filename");
-    G_filename->value(".");
-    G_filename->tooltip("Default filename");
-    y += G_filename->h() + 5;
-    Fl_Button *but = 
-        new Fl_Button(win->w()-80-10, win->h()-25-10, 80, 25, "Pick File");
-    but->callback(Butt_CB);
+    win->begin();			// (for symmetry with fltk2)
+    {
+	int y = 10;
+	G_filename = new Fl_Input(80, y, win->w()-80-10, 25, "Filename");
+	G_filename->value(".");
+	G_filename->tooltip("Default filename");
+	y += G_filename->h() + 5;
+	Fl_Button *but = 
+	    new Fl_Button(win->w()-80-10, win->h()-25-10, 80, 25, "Pick File");
+	but->callback(Butt_CB);
+    }
+    win->end();
     win->resizable(win);
     win->show();
     return(Fl::run());

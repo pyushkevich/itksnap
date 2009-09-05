@@ -6,7 +6,7 @@
 #          |
 #         \|/
 #          v
-FLTKDIR=c:/fltk-1.1.7
+FLTKDIR=C:/fltk-1.3.x-r6148
 FLTK2DIR=c:/fltk-2.x-svn
 
 all: FORCE

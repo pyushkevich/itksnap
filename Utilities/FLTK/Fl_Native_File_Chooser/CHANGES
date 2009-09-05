@@ -4,7 +4,44 @@
 # \|/
 #  v
 
-0.84
+0.86 - 09/05/2009      -- applied patches received from users
+-----------------------------------------------------
+
+	o NO API CHANGES IN THIS RELEASE -- FIXES ONLY
+
+        o Applied Gary Hui Zhang's patch from fltk.developer 09/04/2009
+	  to use FsRef instead of FsSpec (to support OSX 10.6 Snow Leopard)
+	
+	o Applied Walter Garm's recommendations to remove BIF_SHAREABLE
+	  from the WIN32 flags.
+	  
+	  When BIF_SHAREABLE is specified, apparently it HIDES shareable
+	  drives in BROWSE_DIRECTORY mode. In his case (and mine) 
+	  mapped network drives (eg. Z: -> \\meade\net) would NOT
+	  show up in BROWSE_DIRECTORY mode if the BIF_SHAREABLE enabled.
+	  (Drive would only show up if specified as the preset filename)
+
+	o Applied Manolo's 3 suggestions from Oct 08 2008:
+
+	    > Remove the 'Default' format from BROWSE_SAVE_FILE dialog
+	      by adding kNavGenericSignature as 3rg argument of
+	      NavCreatePutFileDialog()
+
+	    > Fixed BROWSE_SAVE_FILE to not fail if file does not exist yet
+
+	    > Converted all kCFStringEncodingASCII -> kCFStringEncodingUTF8
+
+	o 4 space indent conformation
+
+0.85
+-----------------------------------------------------
+	o Enable options(fltk::NativeFileChooser::NEW_FOLDER) to work for Mac.
+	  fltk1 & fltk2 docs for options() updated; NEW_FOLDER flag turned green for Mac.
+	  Feature added for Mark Brevoort. Posted patch to fltk.general on 11/21/07.
+
+        o Updated the COPYING file to be LGPL (somehow a GPL license got in there)
+
+0.84 -- 10/01/2007 release
 -----------------------------------------------------
 	o FLTK2 SUPPORT!
 	  Merged in Frederic Hoerni's mods for fltk2 support, 
@@ -26,7 +63,7 @@
 	    > Small code formatting fixes
 
 
-0.83d
+0.83d -- 11/23/2006 fix release
 -----------------------------------------------------
 	o Linux:
 	    > Added Shane Hill's #include <sys/stat.h> to Fl_Native_File_Chooser_FLTK.cxx

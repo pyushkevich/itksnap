@@ -30,6 +30,10 @@
 //        Possibly 'preset_file' could be used to select the filename.
 //
 #include "common.cxx"		// strnew/strfree/strapp/chrcat
+#include <libgen.h>		// dirname(3)
+#include <sys/types.h>		// stat(2)
+#include <sys/stat.h>		// stat(2)
+
 
 #ifdef FLTK1
 //
@@ -49,28 +53,27 @@
 #include <fltk/filename.h>
 #define FNFC_CTOR  NativeFileChooser
 #define FNFC_CLASS fltk::FNFC_CTOR
-#define fl_filename_match filename_match		// fltk1 name -> fltk2 name
-#define fl_filename_isdir filename_isdir		// fltk1 name -> fltk2 name
+#define fl_filename_match filename_match	// fltk1 name -> fltk2 name
+#define fl_filename_isdir filename_isdir	// fltk1 name -> fltk2 name
 #endif
 
 // TRY TO CONVERT AN AEDesc TO AN FSRef
 //     As per Apple Technical Q&A QA1274
 //     eg: http://developer.apple.com/qa/qa2001/qa1274.html
-//     Returns 'noErr' if OK,
-//             or an 'OSX result code' on error.
+//     Returns 'noErr' if OK, or an 'OSX result code' on error.
 //
 static int AEDescToFSRef(const AEDesc* desc, FSRef* fsref) {
     OSStatus err = noErr;
     AEDesc coerceDesc;
     // If AEDesc isn't already an FSRef, convert it to one
     if ( desc->descriptorType != typeFSRef ) {
-        if ( ( err = AECoerceDesc(desc, typeFSRef, &coerceDesc) ) == noErr ) {
+	if ( ( err = AECoerceDesc(desc, typeFSRef, &coerceDesc) ) == noErr ) {
 	    // Get FSRef out of AEDesc
-            err = AEGetDescData(&coerceDesc, fsref, sizeof(FSRef));
-            AEDisposeDesc(&coerceDesc);
-        }
+	    err = AEGetDescData(&coerceDesc, fsref, sizeof(FSRef));
+	    AEDisposeDesc(&coerceDesc);
+	}
     } else {
-        err = AEGetDescData(desc, fsref, sizeof(FSRef));
+	err = AEGetDescData(desc, fsref, sizeof(FSRef));
     }
     return( err );
 }
@@ -102,8 +105,8 @@ int FNFC_CLASS::NavReply::get_reply(NavDialogRef& ref) {
 
 // RETURN THE BASENAME USER WANTS TO 'Save As'
 int FNFC_CLASS::NavReply::get_saveas_basename(char *s, int slen) {
-    if (CFStringGetCString(_reply.saveFileName, s, slen-1,
-    					kCFStringEncodingUTF8) == false) {
+    if (CFStringGetCString(_reply.saveFileName, s, slen-1, 
+                           kCFStringEncodingUTF8) == false) {
 	s[0] = '\0';
 	return(-1);
     }
@@ -116,7 +119,7 @@ int FNFC_CLASS::NavReply::get_saveas_basename(char *s, int slen) {
 int FNFC_CLASS::NavReply::get_dirname(char *s, int slen) {
     FSRef fsref;
     if ( AEDescToFSRef(&_reply.selection, &fsref) != noErr ) {
-        // Conversion failed? Return empty name
+	// Conversion failed? Return empty name
 	s[0] = 0;
 	return(-1);
     }
@@ -128,12 +131,12 @@ int FNFC_CLASS::NavReply::get_dirname(char *s, int slen) {
 //     Returns: 0 on success with pathnames[] containing pathnames selected,
 //             -1 on error
 //
-int FNFC_CLASS::NavReply::get_pathnames(char **&pathnames,
-						    int& tpathnames) {
+int FNFC_CLASS::NavReply::get_pathnames(char **&pathnames, int& tpathnames) {
     // How many items selected?
     long count = 0;
-    if ( AECountItems(&_reply.selection, &count) != noErr ) 
-	{ return(-1); }
+    if ( AECountItems(&_reply.selection, &count) != noErr ) {
+        return(-1);
+    }
 
     // Allocate space for that many pathnames
     pathnames = new char*[count];
@@ -145,7 +148,7 @@ int FNFC_CLASS::NavReply::get_pathnames(char **&pathnames,
 	AEKeyword keyWord;
 	AEDesc    desc;
 	if (AEGetNthDesc(&_reply.selection, index, typeFSRef, &keyWord, 
-							   &desc) != noErr) {
+	                 &desc) != noErr) {
 	    pathnames[index-1] = strnew("");
 	    continue;
 	}
@@ -188,7 +191,7 @@ void FNFC_CLASS::set_single_pathname(const char *s) {
 //
 int FNFC_CLASS::get_saveas_basename(NavDialogRef& ref) {
     if ( ref == NULL ) {
-        errmsg("get_saveas_basename: ref is NULL");
+	errmsg("get_saveas_basename: ref is NULL");
 	return(-1);
     }
     NavReply reply;
@@ -229,7 +232,7 @@ int FNFC_CLASS::get_saveas_basename(NavDialogRef& ref) {
 //
 int FNFC_CLASS::get_pathnames(NavDialogRef& ref) {
     if ( ref == NULL ) {
-        errmsg("get_saveas_basename: ref is NULL");
+	errmsg("get_saveas_basename: ref is NULL");
 	return(-1);
     }
     NavReply reply;
@@ -249,119 +252,143 @@ int FNFC_CLASS::get_pathnames(NavDialogRef& ref) {
     return(0);
 }
 
-// NAV CALLBACK EVENT HANDLER
-void FNFC_CLASS::event_handler(
-				    NavEventCallbackMessage callBackSelector, 
-				    NavCBRecPtr cbparm,
-				    void *data) {
+// IS PATHNAME A DIRECTORY?
+//    1 - path is a dir
+//    0 - path not a dir or error
+//
+static int IsDir(const char *pathname) {
+    struct stat buf;
+    if ( stat(pathname, &buf) != -1 ) {
+	if ( buf.st_mode & S_IFDIR ) return(1);
+    }
+    return(0);
+}
+
+// PRESELECT PATHNAME IN BROWSER
+static void PreselectPathname(NavCBRecPtr cbparm, const char *path) {
+    // XXX: path must be a dir, or kNavCtlSetLocation fails with -50.
+    //      Why, I don't know. Let me know with a bug report. -erco
+    //
+    if ( ! IsDir(path) ) {
+	path = dirname(path);
+    }
     OSStatus err;
+    FSRef fsref;
+    err = FSPathMakeRef((const UInt8*)path, &fsref, NULL);
+    if ( err != noErr) {
+	fprintf(stderr, "FSPathMakeRef(%s) failed: err=%d\n", path, (int)err);
+	return;
+    }
+    AEDesc desc;
+    err = AECreateDesc(typeFSRef, &fsref, sizeof(FSRef), &desc);
+    if ( err != noErr) {
+	fprintf(stderr, "AECreateDesc() failed: err=%d\n", (int)err);
+    }
+    err = NavCustomControl(cbparm->context, kNavCtlSetLocation, &desc);
+    if ( err != noErr) {
+	fprintf(stderr, "NavCustomControl() failed: err=%d\n", (int)err);
+    }
+    AEDisposeDesc(&desc);
+}
+
+// NAV CALLBACK EVENT HANDLER
+void FNFC_CLASS::event_handler(NavEventCallbackMessage callBackSelector, 
+			       NavCBRecPtr cbparm,
+			       void *data) {
     FNFC_CLASS *nfb = (FNFC_CLASS*)data;
     switch (callBackSelector) {
 	case kNavCBStart:
-	    if ( nfb->directory() || nfb->preset_file() ) {
-	        const char *pathname = nfb->directory() 
-					   ? nfb->directory()
-					   : nfb->preset_file();
-		FSRef fsref;
-		if ((err = FSPathMakeRef((const UInt8*)pathname, &fsref, NULL)) != noErr) {
-		    fprintf(stderr, "FSPathMakeRef(%s) failed: err=%d\n",
-		        pathname, (int)err);
-                    break;
-		}
-		AEDesc desc;
-		if ((err = AECreateDesc(typeFSRef, &fsref, sizeof(FSRef), 
-		                        &desc)) != noErr) {
-		    fprintf(stderr, "AECreateDesc() failed: err=%d\n",
-		        (int)err);
-		}
-		if ((err = NavCustomControl(cbparm->context,
-					    kNavCtlSetLocation, 
-					    &desc)) != noErr) {
-		    fprintf(stderr, "NavCustomControl() failed: err=%d\n",
-		        (int)err);
-		}
-		AEDisposeDesc(&desc);
+	{
+	    if ( nfb->directory() ) {				// dir specified?
+	        PreselectPathname(cbparm, nfb->directory());	// use it first
+	    } else if ( nfb->preset_file() ) {			// file specified?
+	        PreselectPathname(cbparm, nfb->preset_file());	// use if no dir
 	    }
 	    if ( nfb->_btype == BROWSE_SAVE_FILE && nfb->preset_file() ) {
-		 CFStringRef namestr = 
-		     CFStringCreateWithCString(NULL,
-		     			       nfb->preset_file(),
-					       kCFStringEncodingASCII);
-		 NavDialogSetSaveFileName(cbparm->context, namestr);
-		 CFRelease(namestr);
+		CFStringRef namestr = 
+		    CFStringCreateWithCString(NULL,
+					      nfb->preset_file(),
+					      kCFStringEncodingUTF8);
+		NavDialogSetSaveFileName(cbparm->context, namestr);
+		CFRelease(namestr);
 	    }
 	    NavCustomControl(cbparm->context,
-	                     kNavCtlSetActionState,
-			     &nfb->_keepstate );
-            
+			     kNavCtlSetActionState,
+			     &nfb->_keepstate);
 	    // Select the right filter in pop-up menu
-            if ( nfb->_filt_value == nfb->_filt_total ) {
-	        // Select All Documents
-                NavPopupMenuItem kAll = kNavAllFiles;
-                NavCustomControl(cbparm->context, kNavCtlSelectAllType, &kAll);
-            } else if (nfb->_filt_value < nfb->_filt_total) {
-	        // Select custom filter
-                nfb->_tempitem.version = kNavMenuItemSpecVersion;
-                nfb->_tempitem.menuCreator = 'extn';
-                nfb->_tempitem.menuType = nfb->_filt_value;
+	    if ( nfb->_filt_value == nfb->_filt_total ) {
+		// Select All Documents
+		NavPopupMenuItem kAll = kNavAllFiles;
+		NavCustomControl(cbparm->context, kNavCtlSelectAllType, &kAll);
+	    } else if (nfb->_filt_value < nfb->_filt_total) {
+		// Select custom filter
+		nfb->_tempitem.version = kNavMenuItemSpecVersion;
+		nfb->_tempitem.menuCreator = 'extn';
+		nfb->_tempitem.menuType = nfb->_filt_value;
 		*nfb->_tempitem.menuItemName = '\0';	// needed on 10.3+
-                NavCustomControl(cbparm->context,
-		                 kNavCtlSelectCustomType,
-				 &(nfb->_tempitem));
-            }
-	    break;
-
-	case kNavCBPopupMenuSelect:
-            NavMenuItemSpecPtr ptr;
-	    // they really buried this one!
-            ptr = (NavMenuItemSpecPtr)cbparm->eventData.eventDataParms.param;
-            if ( ptr->menuCreator ) {
-	        // Gets index to filter ( menuCreator = 'extn' )
-	        nfb->_filt_value = ptr->menuType;
-	    } else {
-		// All docs filter selected ( menuCreator = '\0\0\0\0' )
-	        nfb->_filt_value = nfb->_filt_total;
+		NavCustomControl(cbparm->context,
+				kNavCtlSelectCustomType,
+				&(nfb->_tempitem));
 	    }
 	    break;
-
+	}
+	case kNavCBPopupMenuSelect:
+	{
+	    NavMenuItemSpecPtr ptr;
+	    // they really buried this one!
+	    ptr = (NavMenuItemSpecPtr)cbparm->eventData.eventDataParms.param;
+	    if ( ptr->menuCreator ) {
+		// Gets index to filter ( menuCreator = 'extn' )
+		nfb->_filt_value = ptr->menuType;
+	    } else {
+		// All docs filter selected ( menuCreator = '\0\0\0\0' )
+		nfb->_filt_value = nfb->_filt_total;
+	    }
+	    break;
+	}
 	case kNavCBSelectEntry:
-            NavActionState astate;
-            switch ( nfb->_btype ) {
-		// these don't need selection override
+	{
+	    NavActionState astate;
+	    switch ( nfb->_btype ) {
+		// These don't need selection override
 		case BROWSE_MULTI_FILE:
 		case BROWSE_MULTI_DIRECTORY:
 		case BROWSE_SAVE_FILE:
+		{
 		    break;
+		}
 
 		// These need to allow only one item, so disable
 		// Open button if user tries to select multiple files
 		case BROWSE_SAVE_DIRECTORY:
 		case BROWSE_DIRECTORY:
 		case BROWSE_FILE:
+		{
 		    long selectcount;
 		    AECountItems((AEDescList*)cbparm->
-		  		  eventData.eventDataParms.param,
-				  &selectcount);
+				 eventData.eventDataParms.param,
+				 &selectcount);
 		    if ( selectcount > 1 ) {
-		        NavCustomControl(cbparm->context,
+			NavCustomControl(cbparm->context,
 					 kNavCtlSetSelection,
 					 NULL);
-		        astate = nfb->_keepstate |
+			astate = nfb->_keepstate |
 				 kNavDontOpenState |
 				 kNavDontChooseState;
-		        NavCustomControl(cbparm->context,
+			NavCustomControl(cbparm->context,
 					 kNavCtlSetActionState,
 					 &astate );
-		    }
-		    else {
-		        astate= nfb->_keepstate | kNavNormalState;
-		        NavCustomControl(cbparm->context,
+		    } else {
+			astate= nfb->_keepstate | kNavNormalState;
+			NavCustomControl(cbparm->context,
 					 kNavCtlSetActionState,
 					 &astate );
 		    }
 		    break;
+		}
 	    }
-	    break;
+	}
+	break;
     }
 }
 
@@ -445,33 +472,34 @@ int FNFC_CLASS::show() {
     // BROWSER TITLE
     CFStringRef cfs_title;
     cfs_title = CFStringCreateWithCString(NULL,
-    					  _title ? _title : "No Title",
-					  kCFStringEncodingASCII);
+					  _title ? _title : "No Title",
+					  kCFStringEncodingUTF8);
     _opts.windowTitle = cfs_title;
 
     _keepstate = kNavNormalState;
 
     // BROWSER FILTERS
     CFArrayRef filter_array = NULL;
-    {
-	// One or more filters specified?
-	if ( _filt_total ) {
-	    // NAMES -> CFArrayRef
-	    CFStringRef tab = CFSTR("\t");
-	    CFStringRef tmp_cfs;
-	    tmp_cfs = CFStringCreateWithCString(NULL, _filt_names,
-	    					kCFStringEncodingASCII);
-	    filter_array = CFStringCreateArrayBySeparatingStrings(
-	    					NULL, tmp_cfs, tab);
-	    CFRelease(tmp_cfs);
-	    CFRelease(tab);
-	    _opts.popupExtension = filter_array;
-	    _opts.optionFlags |= kNavAllFilesInPopup;
-	} else {
-	    filter_array = NULL;
-	    _opts.popupExtension = NULL;
-	    _opts.optionFlags |= kNavAllFilesInPopup;
-	}
+
+    // One or more filters specified?
+    if ( _filt_total ) {
+	// NAMES -> CFArrayRef
+	CFStringRef tab = CFSTR("\t");
+	CFStringRef tmp_cfs;
+	tmp_cfs = CFStringCreateWithCString(NULL,
+					    _filt_names,
+					    kCFStringEncodingUTF8);
+	filter_array = CFStringCreateArrayBySeparatingStrings(NULL,
+					                      tmp_cfs,
+							      tab);
+	CFRelease(tmp_cfs);
+	CFRelease(tab);
+	_opts.popupExtension = filter_array;
+	_opts.optionFlags |= kNavAllFilesInPopup;
+    } else {
+	filter_array = NULL;
+	_opts.popupExtension = NULL;
+	_opts.optionFlags |= kNavAllFilesInPopup;
     }
 
     // HANDLE OPTIONS WE SUPPORT
@@ -510,14 +538,17 @@ int FNFC_CLASS::post() {
 
     // INITIALIZE BROWSER
     OSStatus err;
-    if ( _filt_total == 0 ) {	// Make sure they match
-	_filt_value = 0;	// TBD: move to someplace more logical?
+    if ( _filt_total == 0 ) {			// Make sure they match
+	_filt_value = 0;			// TBD: move to someplace more logical?
+    }
+
+    if ( ! ( _options & NEW_FOLDER ) ) {
+	_keepstate |= kNavDontNewFolderState;
     }
 
     switch (_btype) {
 	case BROWSE_FILE:
 	case BROWSE_MULTI_FILE:
-	    //_keepstate = kNavDontNewFolderState;	
 	    // Prompt user for one or more files
 	    if ((err = NavCreateGetFileDialog(
 			  &_opts,		// options
@@ -534,9 +565,6 @@ int FNFC_CLASS::post() {
 
 	case BROWSE_DIRECTORY:
 	case BROWSE_MULTI_DIRECTORY:
-	    _keepstate = kNavDontNewFolderState;
-	    //FALLTHROUGH
-
 	case BROWSE_SAVE_DIRECTORY:
 	    // Prompts user for one or more files or folders
 	    if ((err = NavCreateChooseFolderDialog(
@@ -554,7 +582,7 @@ int FNFC_CLASS::post() {
 	    // Prompt user for filename to 'save as'
 	    if ((err = NavCreatePutFileDialog(
 			  &_opts,		// options
-			  0,			// file types
+			  kNavGenericSignature,	// file types
 			  0,			// file creator
 			  event_handler,	// event handler
 			  (void*)this,		// callback data
@@ -791,8 +819,10 @@ Boolean FNFC_CLASS::filter_proc_cb(AEDesc *theItem,
 				   void *info,
 				   void *callBackUD,
 				   NavFilterModes filterMode) {
-     return((FNFC_CLASS*)callBackUD)->filter_proc_cb2(
-				    theItem, info, callBackUD, filterMode);
+    return((FNFC_CLASS*)callBackUD)->filter_proc_cb2(theItem,
+    						     info,
+						     callBackUD,
+						     filterMode);
 }
 
 // FILTER CALLBACK

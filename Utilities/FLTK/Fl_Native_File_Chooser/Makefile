@@ -54,10 +54,14 @@ clean: FORCE
 	-rm -rf .DS_Store      2> /dev/null
 	-rm -f ._test-browser* 2> /dev/null
 	-rm -f ._simple-app*   2> /dev/null
-
+	-rm -f *.app/Contents/MacOS/*
 
 # Create distribution tar file (for maintainer only)
 tar: clean
+	if grep -q ERCODEBUG *.cxx FL/*.H ; then \
+	    echo '### NO DEBUG CODE IN RELEASE'; \
+	    exit 1; \
+	fi
 	sh .TAR_RELEASE.sh
 
 # FORCE TARGET -- Do not remove
