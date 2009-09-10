@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.h,v $
   Language:  C++
-  Date:      $Date: 2008/02/10 23:55:22 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/10 21:16:10 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -42,7 +42,7 @@
 #include <FLTKCanvas.h>
 #include <InteractionMode.h>
 
-class IntensityCurveUILogic;
+class LayerInspectorUILogic;
 class GreyImageWrapper;
 
 /**
@@ -51,7 +51,7 @@ class GreyImageWrapper;
  */
 class IntensityCurveBox : public FLTKCanvas {
 public:
-  IntensityCurveBox(int x,int y,int w,int h,const char *label);  
+  IntensityCurveBox(int x,int y,int w,int h,const char *label);
 
   /**
    * Handle displaying the curve
@@ -59,7 +59,7 @@ public:
   void draw();
 
   /** Compute the histogram given an image wrapper */
-  void ComputeHistogram(GreyImageWrapper *source, 
+  void ComputeHistogram(GreyImageWrapper *source,
     unsigned int iMinPixelsPerBin = 1);
 
   // Get/set the intensity curve
@@ -67,8 +67,8 @@ public:
   irisSetMacro(Curve,IntensityCurveInterface *);
 
   // Get/set the parent object
-  irisGetMacro(Parent,IntensityCurveUILogic *);
-  irisSetMacro(Parent,IntensityCurveUILogic *);
+  irisGetMacro(Parent,LayerInspectorUILogic *);
+  irisSetMacro(Parent,LayerInspectorUILogic *);
 
   // Get the histogram itself
   const std::vector<unsigned int> &GetHistogram() const
@@ -93,13 +93,13 @@ private:
   /**
    * Check if a control point is close to another point (i.e. mouse position)
    */
-  int GetControlPointInVincinity(float x, float y, int pixelRadius); 
+  int GetControlPointInVicinity(float x, float y, int pixelRadius);
 
   /** The intensity mapping curve */
   IntensityCurveInterface *m_Curve;
 
   /** Parent object */
-  IntensityCurveUILogic *m_Parent;
+  LayerInspectorUILogic *m_Parent;
 
   /** Histogram of the image */
   std::vector<unsigned int> m_Histogram;   
@@ -129,6 +129,7 @@ private:
     int OnMouseEnter(const FLTKEvent &event);
     int OnMouseLeave(const FLTKEvent &event);
     int OnMouseMotion(const FLTKEvent &event);
+    int GetMovingControlPoint() const;
 
   private:
     // Pointer to the parent canvas
@@ -147,6 +148,13 @@ private:
 
   // Allow access to private data
   friend class DefaultHandler;
+
+public:
+  DefaultHandler *GetDefaultHandler()
+    {
+    return &m_DefaultHandler;
+    }
+
 };
 
 #endif // __IntensityCurveBox_h_

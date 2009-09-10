@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/09/10 21:16:10 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -33,7 +33,7 @@
 
 =========================================================================*/
 #include "IntensityCurveBox.h"
-#include "IntensityCurveUILogic.h"
+#include "LayerInspectorUILogic.h"
 #include "GreyImageWrapper.h"
 #include "itkImageRegionConstIterator.h"
 
@@ -276,8 +276,8 @@ IntensityCurveBox
 }
 
 int 
-  IntensityCurveBox
-::GetControlPointInVincinity(float x, float y, int pixelRadius) 
+IntensityCurveBox
+::GetControlPointInVicinity(float x, float y, int pixelRadius) 
 {
   float rx = pixelRadius * 1.0f / w();
   float ry = pixelRadius * 1.0f / h();
@@ -369,7 +369,7 @@ IntensityCurveBox::DefaultHandler
 {
   // Check the control point affected by the event
   m_MovingControlPoint = 
-    m_Parent->GetControlPointInVincinity(event.XSpace[0],event.XSpace[1],5);
+    m_Parent->GetControlPointInVicinity(event.XSpace[0],event.XSpace[1],5);
 
   SetCursor(m_MovingControlPoint);
 
@@ -390,6 +390,7 @@ IntensityCurveBox::DefaultHandler
 
       // Fire the update event (should this be done on drag?)
       m_Parent->GetParent()->OnCurveChange();
+	 m_Parent->GetParent()->OnControlPointUpdate();
       }
 
     // Set the cursor back to normal
@@ -414,6 +415,7 @@ IntensityCurveBox::DefaultHandler
 
       // Fire the update event (should this be done on drag?)
       m_Parent->GetParent()->OnCurveChange();
+	 m_Parent->GetParent()->OnControlPointUpdate();
       }
     }
 
@@ -439,35 +441,42 @@ IntensityCurveBox::DefaultHandler
 ::OnMouseMotion(const FLTKEvent &event)
 {
   int cp = 
-    m_Parent->GetControlPointInVincinity(event.XSpace[0],event.XSpace[1],5);
+    m_Parent->GetControlPointInVicinity(event.XSpace[0],event.XSpace[1],5);
 
   SetCursor(cp);
 
   return 1;
 }
 
-void 
+void
 IntensityCurveBox::DefaultHandler
-::SetCursor(int cp) 
+::SetCursor(int cp)
 {
-  if (cp < 0) 
+  if (cp < 0)
     {
     fl_cursor(FL_CURSOR_DEFAULT);
-    }   
-  else if (cp == 0 || 
-    cp == (int)(m_Parent->GetCurve()->GetControlPointCount()-1)) 
+    }
+  else if (cp == 0 ||
+    cp == (int)(m_Parent->GetCurve()->GetControlPointCount()-1))
     {
     fl_cursor(FL_CURSOR_WE);
-    } 
-  else     
+    }
+  else
     {
     fl_cursor(FL_CURSOR_MOVE);
     }
 }
 
-bool 
+int
 IntensityCurveBox::DefaultHandler
-::UpdateControl(const Vector3f &p) 
+::GetMovingControlPoint() const
+{
+  return m_MovingControlPoint;
+}
+
+bool
+IntensityCurveBox::DefaultHandler
+::UpdateControl(const Vector3f &p)
 {
   // Take a pointer to the spline for convenience
   IntensityCurveInterface &curve = *m_Parent->GetCurve();

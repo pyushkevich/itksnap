@@ -225,7 +225,6 @@ SET(UI_CXX
   UserInterface/MainComponents/AppearanceDialogUILogic.cxx
   UserInterface/MainComponents/HelpViewerLogic.cxx
   UserInterface/MainComponents/IntensityCurveBox.cxx
-  UserInterface/MainComponents/IntensityCurveUILogic.cxx
   UserInterface/MainComponents/LabelEditorUILogic.cxx
   UserInterface/MainComponents/LayerInspectorUILogic.cxx
   UserInterface/MainComponents/PreprocessingUILogic.cxx
@@ -280,8 +279,6 @@ SET(UI_HEADERS
   UserInterface/MainComponents/HelpViewerBase.h
   UserInterface/MainComponents/HelpViewerLogic.h
   UserInterface/MainComponents/IntensityCurveBox.h
-  UserInterface/MainComponents/IntensityCurveUIBase.h
-  UserInterface/MainComponents/IntensityCurveUILogic.h
   UserInterface/MainComponents/LabelEditorUIBase.h
   UserInterface/MainComponents/LabelEditorUILogic.h
   UserInterface/MainComponents/LayerInspectorUIBase.h
@@ -349,7 +346,6 @@ SET(APPLICATION_FLUIDS
   UserInterface/MeshIOWizard/MeshIOWizardUI.fl
   UserInterface/MainComponents/AppearanceDialogUI.fl
   UserInterface/MainComponents/HelpViewer.fl
-  UserInterface/MainComponents/IntensityCurveUI.fl
   UserInterface/MainComponents/LabelEditorUI.fl
   UserInterface/MainComponents/LayerInspectorUI.fl
   UserInterface/MainComponents/PreprocessingUI.fl
