@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/29 23:18:42 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2009/09/10 19:46:02 $
+  Version:   $Revision: 1.16 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,7 +52,7 @@ GreyImageWrapper
 {
   // Initialize the intensity curve
   m_IntensityCurveVTK = IntensityCurveVTK::New();
-  m_IntensityCurveVTK->Initialize(3);
+  m_IntensityCurveVTK->Initialize();
 
   // Initialize the intensity functor
   m_IntensityFunctor.m_IntensityMap = m_IntensityCurveVTK;
