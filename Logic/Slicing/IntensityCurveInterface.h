@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveInterface.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/09/10 19:44:50 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -58,7 +58,7 @@ public:
    * Initialize the spline with initial number of control points.
    * The spline will be a linear mapping from (0,0) to (1,1)
    */
-  virtual void Initialize(unsigned int nControlPoints) = 0;
+  virtual void Initialize(unsigned int nControlPoints = 3) = 0;
 
   /**
    * Get the value of a control point

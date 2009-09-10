@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveVTK.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/09/10 19:44:51 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -60,7 +60,7 @@ public:
   itkNewMacro(Self);
 
   // Defined in the parent class
-  void Initialize(unsigned int nControlPoints);
+  void Initialize(unsigned int nControlPoints = 3);
   void GetControlPoint(unsigned int iControlPoint, float &t, float &x) const;
   void UpdateControlPoint(unsigned int iControlPoint, float t, float x);
   bool IsMonotonic() const;
