@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/10 21:25:24 $
-  Version:   $Revision: 1.84 $
+  Date:      $Date: 2009/09/10 22:42:32 $
+  Version:   $Revision: 1.85 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3000,7 +3000,6 @@ UserInterfaceLogic
 {
   // Make sure some image is loaded
   assert(m_Driver->GetCurrentImageData()->IsMainLoaded());
-  m_LayerUI->SetOverlays(m_Driver->GetCurrentImageData()->GetOverlays());
   m_LayerUI->DisplayWindow();
 }
 
@@ -3009,6 +3008,7 @@ UserInterfaceLogic
 ::OnLayerInspectorUpdate()
 {
   m_LayerUI->SetMain(m_Driver->GetCurrentImageData()->GetMain());
+  m_LayerUI->SetOverlays(m_Driver->GetCurrentImageData()->GetOverlays());
   if (m_LayerUI->Shown())
     {
     m_LayerUI->RedrawWindow();
@@ -3572,6 +3572,9 @@ UserInterfaceLogic
 
   // Update the source for slice windows
   UpdateOverlaySlice();
+
+  // Update the layer inspector
+  OnLayerInspectorUpdate();
 
   // Redraw the user interface
   RedrawWindows();
@@ -5187,6 +5190,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.85  2009/09/10 22:42:32  garyhuizhang
+ *ENH: handle overlays in layer inspector
+ *
  *Revision 1.84  2009/09/10 21:25:24  garyhuizhang
  *ENH: Layer inspector now supports contrast adjustment of main image
  *
