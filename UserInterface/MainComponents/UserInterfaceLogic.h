@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/29 23:17:02 $
-  Version:   $Revision: 1.41 $
+  Date:      $Date: 2009/09/10 21:25:24 $
+  Version:   $Revision: 1.42 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,7 +44,6 @@
 
 // Necessary forward references
 class HelpViewerLogic;
-class IntensityCurveUILogic;
 class PreprocessingUILogic;
 class RestoreSettingsDialogLogic;
 class SnakeParametersUILogic;
@@ -853,9 +852,6 @@ private:
   /** Wizard for 3D mesh export */
   MeshIOWizardUILogic *m_WizMeshExport;
 
-  /** UI object used for handling Curve editing */
-  IntensityCurveUILogic *m_IntensityCurveUI;
-
   /** Layer dialog */
   LayerInspectorUILogic *m_LayerUI;
 
@@ -922,9 +918,6 @@ private:
 
   // Main idle function (for cursor sync)
   static void GlobalIdleHandler(void *);
-
-  // Intensity curve update callback (uses ITK event system)
-  void OnIntensityCurveUpdate();
 
   // Callbacks for state flags
   void OnUnsavedChangesStateChange(UIStateFlags flag, bool value);
@@ -1005,6 +998,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.42  2009/09/10 21:25:24  garyhuizhang
+ *ENH: Layer inspector now supports contrast adjustment of main image
+ *
  *Revision 1.41  2009/08/29 23:17:02  garyhuizhang
  *BUGFIX: fix a memory leak
  *

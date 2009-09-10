@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUIBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 16:33:03 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/09/10 21:25:24 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -53,7 +53,6 @@ public:
   virtual void OnCurveReset() = 0;
   virtual void OnAutoFitWindow() = 0;
   virtual void OnWindowLevelChange() = 0;
-  virtual void OnControlPointNumberChange() = 0;
   virtual void OnUpdateHistogram() = 0;
   virtual void OnControlPointMoreAction() = 0;
   virtual void OnControlPointLessAction() = 0;

@@ -66,7 +66,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
               callback {this->OnControlPointMoreAction();}
               xywh {380 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelfont 4 labelsize 18
             }
-            Fl_Button {} {
+            Fl_Button m_BtnCurveLessControlPoint {
               label {-}
               callback {this->OnControlPointLessAction();}
               xywh {410 340 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18

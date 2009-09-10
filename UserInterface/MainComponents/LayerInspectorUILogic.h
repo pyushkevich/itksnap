@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/29 23:19:40 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/09/10 21:25:24 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,15 +38,29 @@
 #include "LayerInspectorUI.h"
 #include "ImageWrapper.h"
 
+class GreyImageWrapper;
+
 /**
  * \class LayerInspectorUILogic
  * \brief Logic class for Layer editor UI logic
  */
 class LayerInspectorUILogic : public LayerInspectorUI
 {
+  typedef std::list<ImageWrapperBase *> WrapperList;
+  typedef WrapperList::iterator WrapperIterator;
+  typedef WrapperList::const_iterator WrapperConstIterator;
+
 public:
   LayerInspectorUILogic();
   virtual ~LayerInspectorUILogic() {};
+
+  // Hook to image data
+  void SetMain(ImageWrapperBase *main);
+  void SetOverlays(WrapperList *overlays);
+
+  // Intensity Curve
+  void UpdateWindowAndLevel();
+  void OnCurveChange();
 
   // Callbacks for the main pane
   void OnLayerSelectionUpdate();
@@ -57,7 +71,6 @@ public:
   void OnCurveReset();
   void OnAutoFitWindow();
   void OnWindowLevelChange();
-  void OnControlPointNumberChange();
   void OnUpdateHistogram();
   void OnControlPointMoreAction();
   void OnControlPointLessAction();
@@ -79,8 +92,10 @@ public:
 
   // Display the dialog
   void DisplayWindow();
+  void RedrawWindow();
+  bool Shown();
 
-private:
+protected:
 
   void PopulateColorMapPresets();
 
@@ -96,13 +111,12 @@ private:
   // The intensity curve (same pointer stored in the m_BoxCurve)
   IntensityCurveInterface *m_Curve;
 
-  // Image wrapper lists
-  typedef std::list<ImageWrapperBase *> WrapperList;
-  typedef WrapperList::iterator WrapperIterator;
-  typedef WrapperList::const_iterator WrapperConstIterator;
-
-  WrapperList *m_MainWrappers;
+  // Main image wrapper and overlay wrapper lists
+  ImageWrapperBase *m_MainWrapper;
   WrapperList *m_OverlayWrappers;
+
+  // Grey image wrapper for intensity curve
+  GreyImageWrapper *m_GreyWrapper;
 };
 
 #endif
