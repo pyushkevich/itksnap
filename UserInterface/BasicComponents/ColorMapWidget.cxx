@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMapWidget.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 23:22:55 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/09/12 23:24:01 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -34,7 +34,7 @@
 =========================================================================*/
 #include "ColorMapWidget.h"
 #include "SNAPOpenGL.h"
-
+#include "LayerInspectorUILogic.h"
 
 ColorMapWidget
 ::ColorMapWidget(int x,int y,int w,int h,const char *label)
