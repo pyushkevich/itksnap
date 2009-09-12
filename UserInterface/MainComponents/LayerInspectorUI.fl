@@ -5,18 +5,19 @@ header_name {.h}
 code_name {.cxx}
 class LayerInspectorUI {open : LayerInspectorUIBase
 } {
-  Function {make_window()} {open
+  Function {MakeWindow()} {open
   } {
     Fl_Window m_WinLayerUI {
       label {ITK-SNAP: Layer Inspector} open
-      xywh {757 203 581 488} type Double box PLASTIC_DOWN_BOX resizable
+      xywh {724 132 581 488} type Double box PLASTIC_DOWN_BOX resizable
       code0 {\#include "LayerInspectorUIBase.h"} visible
     } {
-      Fl_Tabs {} {open
+      Fl_Tabs m_LayerUITabs {open
+        callback {this->DisplayWindow();}
         xywh {180 5 390 475} box PLASTIC_THIN_UP_BOX color 41
       } {
-        Fl_Group m_GrpContrast {
-          label Contrast open
+        Fl_Group m_ImageContrastTab {
+          label Contrast open selected
           xywh {180 25 390 455} labelsize 12
         } {
           Fl_Group {} {
@@ -118,7 +119,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             }
           }
         }
-        Fl_Group m_GrpColorMap {
+        Fl_Group m_ColorMapTab {
           label {Color Map} open
           xywh {180 25 390 455} labelsize 12 hide
         } {
@@ -189,7 +190,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             } {}
           }
         }
-        Fl_Group m_GrpImageInfo {
+        Fl_Group m_ImageInfoTab {
           label Information open
           xywh {180 25 390 455} labelsize 12 hide
         } {
@@ -366,7 +367,7 @@ coordinates} open
         }
         Fl_Button {} {
           label Close
-          callback {this->OnCloseAction()} selected
+          callback {this->OnCloseAction()}
           xywh {45 455 80 25} box PLASTIC_UP_BOX color 139 labelfont 1 labelsize 12
         }
         Fl_Check_Browser m_BrsLayers {

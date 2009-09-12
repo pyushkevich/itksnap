@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/10 22:42:32 $
-  Version:   $Revision: 1.85 $
+  Date:      $Date: 2009/09/12 23:27:01 $
+  Version:   $Revision: 1.86 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -385,7 +385,8 @@ UserInterfaceLogic
 
   // Create the layer editor
   m_LayerUI = new LayerInspectorUILogic;
-  m_LayerUI->make_window();
+  m_LayerUI->MakeWindow();
+  m_LayerUI->Initialize();
 
   // Create the label editor window
   m_LabelEditorUI = new LabelEditorUILogic();
@@ -1610,8 +1611,7 @@ void
 UserInterfaceLogic
 ::OnMenuImageInfo()
 {
-  m_WinImageInfo->show();
-  CenterChildWindowInMainWindow(m_WinImageInfo);
+  m_LayerUI->DisplayImageInfoTab();
 }
 
 void
@@ -4777,7 +4777,7 @@ void UserInterfaceLogic
   assert(m_Driver->GetCurrentImageData()->IsGreyLoaded());
 
   // Show the window
-  m_LayerUI->DisplayWindow();
+  m_LayerUI->DisplayImageContrastTab();
 }
 
 void
@@ -5190,6 +5190,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.86  2009/09/12 23:27:01  garyhuizhang
+ *ENH: layer inspector now with color map support
+ *
  *Revision 1.85  2009/09/10 22:42:32  garyhuizhang
  *ENH: handle overlays in layer inspector
  *

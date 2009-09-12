@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/10 21:25:24 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/12 23:27:01 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -48,6 +48,18 @@ LayerInspectorUILogic
 
 void
 LayerInspectorUILogic
+::Initialize()
+{
+  // Color map
+  m_BoxColorMap->SetParent(this);
+  PopulateColorMapPresets();
+
+  // Intensity curve
+  m_BoxCurve->SetParent(this);
+}
+
+void
+LayerInspectorUILogic
 ::SetMain(ImageWrapperBase *wrapper)
 {
   m_MainWrapper = wrapper;
@@ -86,23 +98,55 @@ void
 LayerInspectorUILogic
 ::DisplayWindow()
 {
-  // Show the window
+  if (m_LayerUITabs->value() == m_ImageContrastTab)
+    {
+    DisplayImageContrastTab(); 
+    }
+  else if (m_LayerUITabs->value() == m_ColorMapTab)
+    {
+    DisplayColorMapTab();
+    }
+  else
+    {
+    DisplayImageInfoTab();
+    }
+}
+
+void
+LayerInspectorUILogic
+::DisplayImageContrastTab()
+{
+  m_BoxColorMap->hide();
   m_WinLayerUI->show();
-
-  // Initialize the color map
-  ColorMap cm;
-  m_BoxColorMap->SetColorMap(cm);
-
-  // Show the GL stuff
-  m_BoxColorMap->show();
-
-  // Populate the preset chooser
-  this->PopulateColorMapPresets();
-
-  // Intensity curve
+  m_LayerUITabs->value(m_ImageContrastTab);
   UpdateWindowAndLevel();
-  m_BoxCurve->SetParent(this);
   m_BoxCurve->show();
+}
+
+void
+LayerInspectorUILogic
+::DisplayColorMapTab()
+{
+  m_BoxCurve->hide();
+  m_WinLayerUI->show();
+  m_LayerUITabs->value(m_ColorMapTab);
+  // Determine the currently used color map
+  ColorMap cm = m_GreyWrapper->GetColorMap();
+  // Update the GUI
+  m_InColorMapPreset->value(cm.GetSystemPreset());
+  m_BoxColorMap->SetColorMap(cm);
+  m_BoxColorMap->redraw();
+  m_BoxColorMap->show();
+}
+
+void
+LayerInspectorUILogic
+::DisplayImageInfoTab()
+{
+  m_BoxCurve->hide();
+  m_BoxColorMap->hide();
+  m_WinLayerUI->show();
+  m_LayerUITabs->value(m_ImageInfoTab);
 }
 
 void
@@ -155,9 +199,6 @@ LayerInspectorUILogic
   // Reinitialize the curve
   m_Curve->Initialize();
 
-  // Alert the box to redisplay curve
-  m_BoxCurve->redraw();
-
   // Fire the reset event
   OnCurveChange();
 }
@@ -205,11 +246,13 @@ void
 LayerInspectorUILogic
 ::OnCurveChange()
 {
+  m_BoxColorMap->hide();
   // Update the values of the window and level
   UpdateWindowAndLevel();
 
   // Redraw the window
   m_BoxCurve->redraw();
+  m_BoxCurve->show();
 
   // Update the image wrapper
   m_GreyWrapper->UpdateIntensityMapFunction();
@@ -301,9 +344,6 @@ LayerInspectorUILogic
   // Update the curve boundary
   m_Curve->ScaleControlPointsToWindow(t0,t1);
 
-  // Alert the box to redisplay curve
-  m_BoxCurve->redraw();
-
   // Fire the reset event
   OnCurveChange();
 }
@@ -365,7 +405,7 @@ void
 LayerInspectorUILogic
 ::OnControlPointUpdate()
 {
-  int cp = m_BoxCurve->GetDefaultHandler()->GetMovingControlPoint();
+  int cp = m_BoxCurve->GetInteractor()->GetMovingControlPoint();
   float f, x;
   m_Curve->GetControlPoint(cp, f, x);
   m_InControlX->value(f);
@@ -390,6 +430,12 @@ LayerInspectorUILogic::m_PresetInfo[] = {
   {"Jet", 0x00000000},
   {"OverUnder", 0x00000000}};
 
+void
+LayerInspectorUILogic
+::OnColorMapChange()
+{
+}
+
 void 
 LayerInspectorUILogic
 ::PopulateColorMapPresets()
@@ -403,16 +449,22 @@ void
 LayerInspectorUILogic
 ::OnColorMapPresetUpdate()
 {
+  m_BoxCurve->hide();
   // Apply the current preset
   int sel = m_InColorMapPreset->value();
   ColorMap::SystemPreset preset = 
     (ColorMap::SystemPreset) (ColorMap::COLORMAP_GREY + sel);
 
-  // TODO: this should affect the rest of SNAP
+  // Update the color map
   ColorMap cm;
   cm.SetToSystemPreset(preset);
   m_BoxColorMap->SetColorMap(cm);
   m_BoxColorMap->redraw();
+  m_BoxColorMap->show();
+
+  // Update the image
+  m_GreyWrapper->SetColorMap(cm);
+  m_GreyWrapper->UpdateIntensityMapFunction();
 }
 
 void 

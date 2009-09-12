@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUIBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/10 21:25:24 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/09/12 23:27:01 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -45,11 +45,13 @@ public:
   virtual ~LayerInspectorUIBase() {}
 
   // Callbacks for the main pane
+  virtual void DisplayWindow() = 0;
   virtual void OnLayerSelectionUpdate() = 0;
   virtual void OnOverallOpacityUpdate() = 0;
   virtual void OnCloseAction() = 0;
 
   // Callbacks for the contrast adjustment page
+  virtual void DisplayImageContrastTab() = 0;
   virtual void OnCurveReset() = 0;
   virtual void OnAutoFitWindow() = 0;
   virtual void OnWindowLevelChange() = 0;
@@ -61,6 +63,7 @@ public:
   virtual void OnControlPointUpdate() = 0;
 
   // Callbacks for the color map page
+  virtual void DisplayColorMapTab() = 0;
   virtual void OnColorMapPresetUpdate() = 0;
   virtual void OnColorMapAddPresetAction() = 0;
   virtual void OnColorMapDeletePresetAction() = 0;
@@ -70,6 +73,7 @@ public:
   virtual void OnColorMapRGBAUpdate() = 0;
 
   // Callbacks for the image info page
+  virtual void DisplayImageInfoTab() = 0;
   virtual void OnImageInformationVoxelCoordinatesUpdate() = 0;
 };
 

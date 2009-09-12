@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/10 21:25:24 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/12 23:27:01 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -54,13 +54,12 @@ public:
   LayerInspectorUILogic();
   virtual ~LayerInspectorUILogic() {};
 
+  // Initialization
+  void Initialize();
+
   // Hook to image data
   void SetMain(ImageWrapperBase *main);
   void SetOverlays(WrapperList *overlays);
-
-  // Intensity Curve
-  void UpdateWindowAndLevel();
-  void OnCurveChange();
 
   // Callbacks for the main pane
   void OnLayerSelectionUpdate();
@@ -68,6 +67,8 @@ public:
   void OnCloseAction();
 
   // Callbacks for the contrast adjustment page
+  void UpdateWindowAndLevel();
+  void OnCurveChange();
   void OnCurveReset();
   void OnAutoFitWindow();
   void OnWindowLevelChange();
@@ -79,6 +80,7 @@ public:
   void OnControlPointUpdate();
 
   // Callbacks for the color map page
+  void OnColorMapChange();
   void OnColorMapPresetUpdate();
   void OnColorMapAddPresetAction();
   void OnColorMapDeletePresetAction();
@@ -94,6 +96,9 @@ public:
   void DisplayWindow();
   void RedrawWindow();
   bool Shown();
+  void DisplayImageContrastTab();
+  void DisplayColorMapTab();
+  void DisplayImageInfoTab();
 
 protected:
 
