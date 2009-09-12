@@ -215,6 +215,7 @@ SET(UI_CXX
   UserInterface/BasicComponents/FLTKCanvas.cxx
   UserInterface/BasicComponents/FunctionPlot2DBox.cxx
   UserInterface/BasicComponents/FunctionPlot2D.cxx
+  UserInterface/BasicComponents/IntensityCurveBox.cxx
   UserInterface/BasicComponents/InteractionModeClient.cxx
   UserInterface/BasicComponents/RecursiveInteractionMode.cxx
   UserInterface/BasicComponents/SnakeParametersPreviewBox.cxx
@@ -224,7 +225,6 @@ SET(UI_CXX
   UserInterface/ImageIOWizard/RestrictedImageIOWizardLogic.cxx
   UserInterface/MainComponents/AppearanceDialogUILogic.cxx
   UserInterface/MainComponents/HelpViewerLogic.cxx
-  UserInterface/MainComponents/IntensityCurveBox.cxx
   UserInterface/MainComponents/LabelEditorUILogic.cxx
   UserInterface/MainComponents/LayerInspectorUILogic.cxx
   UserInterface/MainComponents/PreprocessingUILogic.cxx
@@ -264,6 +264,7 @@ SET(UI_HEADERS
   UserInterface/BasicComponents/FLTKWidgetActivationManager.h
   UserInterface/BasicComponents/FunctionPlot2D.h
   UserInterface/BasicComponents/FunctionPlot2DBox.h
+  UserInterface/BasicComponents/IntensityCurveBox.h
   UserInterface/BasicComponents/InteractionMode.h
   UserInterface/BasicComponents/InteractionModeClient.h
   UserInterface/BasicComponents/RecursiveInteractionMode.h
@@ -278,7 +279,6 @@ SET(UI_HEADERS
   UserInterface/MainComponents/AppearanceDialogUILogic.h
   UserInterface/MainComponents/HelpViewerBase.h
   UserInterface/MainComponents/HelpViewerLogic.h
-  UserInterface/MainComponents/IntensityCurveBox.h
   UserInterface/MainComponents/LabelEditorUIBase.h
   UserInterface/MainComponents/LabelEditorUILogic.h
   UserInterface/MainComponents/LayerInspectorUIBase.h

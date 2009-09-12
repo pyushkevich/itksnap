@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/10 21:16:10 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/12 22:03:54 $
+  Version:   $Revision: 1.1 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
