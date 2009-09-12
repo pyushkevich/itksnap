@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMapWidget.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/27 20:16:00 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/12 23:22:55 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,6 +44,7 @@ ColorMapWidget
   m_Interactor = new ColorMapInteraction(this);
   this->PushInteractionMode(m_Interactor);
 
+  m_Parent = NULL;
   m_SelectedCMPoint = -1;
   m_SelectedSide = BOTH;
 }
@@ -367,7 +368,10 @@ ColorMapInteraction
   // Redraw
   cm.UpdateCMPoint(isel, psel);
   m_Parent->redraw();
- 
+
+  // Fire the update event
+  m_Parent->GetParent()->OnColorMapChange();
+
   return 1;
 }
 

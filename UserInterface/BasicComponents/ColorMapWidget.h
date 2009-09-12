@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMapWidget.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/27 20:02:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/09/12 23:22:55 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,6 +38,7 @@
 #include "FLTKCanvas.h"
 #include "ColorMap.h"
 
+class LayerInspectorUILogic;
 class ColorMapInteraction;
 
 /**
@@ -51,10 +52,13 @@ public:
   ColorMapWidget(int x,int y,int w,int h,const char *label=NULL);
   virtual ~ColorMapWidget();
 
-
   /** Set the current color map functor */
   void SetColorMap(const ColorMap &map)
     { m_ColorMap = map; redraw(); }
+
+  // Get/set the parent object
+  irisGetMacro(Parent,LayerInspectorUILogic *);
+  irisSetMacro(Parent,LayerInspectorUILogic *);
 
   /** The draw method */
   void draw();
@@ -63,9 +67,6 @@ public:
 
   void SetSelectedCMPoint(int pt);
   void SetSelectedSide(Side side);
-
-
-  friend class ColorMapInteraction;
 
 private:
   ColorMap m_ColorMap;
@@ -77,7 +78,12 @@ private:
 
   void gl_draw_circle_with_border(double x, double y, double r, bool select);
 
+  /** Parent object */
+  LayerInspectorUILogic *m_Parent;
+
   ColorMapInteraction *m_Interactor;
+
+  friend class ColorMapInteraction;
 };
 
 class ColorMapInteraction : public InteractionMode
