@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/29 23:18:42 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/12 23:27:57 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -118,6 +118,9 @@ class ColorMap
 
     bool operator==(const ColorMap& rhs) const;
 
+    SystemPreset GetSystemPreset() const
+      { return m_CMPreset; }
+
     ColorMap();
 
     ColorMap (SystemPreset preset);
@@ -133,6 +136,8 @@ class ColorMap
     // Array of points, which must always be sorted by the index
     CMPointList m_CMPoints;
 
+    // Preset
+    SystemPreset m_CMPreset;
 };
 
 

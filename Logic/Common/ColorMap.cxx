@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/29 23:18:42 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/09/12 23:27:57 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -143,6 +143,7 @@ ColorMap
 ::ColorMap(const ColorMap& rhs)
 {
   CMPointConstIterator it = rhs.m_CMPoints.begin();
+  m_CMPreset = rhs.m_CMPreset;
   while (it != rhs.m_CMPoints.end())
     {
     m_CMPoints.push_back( *it );
@@ -200,6 +201,7 @@ ColorMap
 ::SetToSystemPreset(SystemPreset preset)
 {
   m_CMPoints.clear();
+  m_CMPreset = preset;
   switch(preset)
   {
     case COLORMAP_GREY:
