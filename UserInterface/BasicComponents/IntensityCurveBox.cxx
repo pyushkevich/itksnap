@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 23:04:29 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/09/12 23:22:15 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -367,7 +367,7 @@ IntensityCurveInteraction
 ::IntensityCurveInteraction(IntensityCurveBox *parent) 
 : InteractionMode(parent)
 {
-  this->m_Parent = parent;
+  m_Parent = parent;
 }
 
 int 
@@ -397,7 +397,7 @@ IntensityCurveInteraction
 
       // Fire the update event (should this be done on drag?)
       m_Parent->GetParent()->OnCurveChange();
-	 m_Parent->GetParent()->OnControlPointUpdate();
+      m_Parent->GetParent()->OnControlPointUpdate();
       }
 
     // Set the cursor back to normal
@@ -422,7 +422,7 @@ IntensityCurveInteraction
 
       // Fire the update event (should this be done on drag?)
       m_Parent->GetParent()->OnCurveChange();
-	 m_Parent->GetParent()->OnControlPointUpdate();
+      m_Parent->GetParent()->OnControlPointUpdate();
       }
     }
 
