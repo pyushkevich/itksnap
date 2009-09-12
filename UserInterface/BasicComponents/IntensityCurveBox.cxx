@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 22:03:54 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/09/12 23:04:29 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -51,7 +51,7 @@ unsigned int IntensityCurveBox::CURVE_RESOLUTION = 64;
 
 IntensityCurveBox
 ::IntensityCurveBox(int x, int y, int w, int h, const char *label)
-: FLTKCanvas(x,y,w,h,label), m_DefaultHandler(this)
+: FLTKCanvas(x,y,w,h,label)
 {
   // Start with the blank curve
   m_Curve = NULL;
@@ -62,8 +62,15 @@ IntensityCurveBox
   m_HistogramMaxLevel = 1.0;
   m_HistogramLog = false;
 
-  // Set up the default handler
-  PushInteractionMode(&m_DefaultHandler);
+  // Set up the interactor
+  m_Interactor = new IntensityCurveInteraction(this);
+  PushInteractionMode(m_Interactor);
+}
+
+IntensityCurveBox
+::~IntensityCurveBox()
+{
+  delete m_Interactor;
 }
 
 void 
@@ -356,15 +363,15 @@ IntensityCurveBox
   delete frequency;
 }
 
-IntensityCurveBox::DefaultHandler
-::DefaultHandler(IntensityCurveBox *parent) 
+IntensityCurveInteraction
+::IntensityCurveInteraction(IntensityCurveBox *parent) 
 : InteractionMode(parent)
 {
   this->m_Parent = parent;
 }
 
 int 
-IntensityCurveBox::DefaultHandler
+IntensityCurveInteraction
 ::OnMousePress(const FLTKEvent &event)
 {
   // Check the control point affected by the event
@@ -377,7 +384,7 @@ IntensityCurveBox::DefaultHandler
 }
 
 int 
-IntensityCurveBox::DefaultHandler
+IntensityCurveInteraction
 ::OnMouseRelease(const FLTKEvent &event,
   const FLTKEvent &irisNotUsed(dragEvent))
 {
@@ -401,7 +408,7 @@ IntensityCurveBox::DefaultHandler
 }
 
 int 
-IntensityCurveBox::DefaultHandler
+IntensityCurveInteraction
 ::OnMouseDrag(const FLTKEvent &event,
   const FLTKEvent &irisNotUsed(dragEvent))
 {
@@ -423,21 +430,21 @@ IntensityCurveBox::DefaultHandler
 }
 
 int 
-IntensityCurveBox::DefaultHandler
+IntensityCurveInteraction
 ::OnMouseEnter(const FLTKEvent &irisNotUsed(event))
 {
   return 1;
 }
 
 int 
-  IntensityCurveBox::DefaultHandler
+IntensityCurveInteraction
 ::OnMouseLeave(const FLTKEvent &irisNotUsed(event))
 {
   return 1;
 }
 
 int 
-IntensityCurveBox::DefaultHandler
+IntensityCurveInteraction
 ::OnMouseMotion(const FLTKEvent &event)
 {
   int cp = 
@@ -449,7 +456,7 @@ IntensityCurveBox::DefaultHandler
 }
 
 void
-IntensityCurveBox::DefaultHandler
+IntensityCurveInteraction
 ::SetCursor(int cp)
 {
   if (cp < 0)
@@ -468,14 +475,14 @@ IntensityCurveBox::DefaultHandler
 }
 
 int
-IntensityCurveBox::DefaultHandler
+IntensityCurveInteraction
 ::GetMovingControlPoint() const
 {
   return m_MovingControlPoint;
 }
 
 bool
-IntensityCurveBox::DefaultHandler
+IntensityCurveInteraction
 ::UpdateControl(const Vector3f &p)
 {
   // Take a pointer to the spline for convenience

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 22:03:54 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/09/12 23:04:29 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,6 +44,7 @@
 
 class LayerInspectorUILogic;
 class GreyImageWrapper;
+class IntensityCurveInteraction;
 
 /**
  * \class IntensityCurveBox
@@ -52,6 +53,10 @@ class GreyImageWrapper;
 class IntensityCurveBox : public FLTKCanvas {
 public:
   IntensityCurveBox(int x,int y,int w,int h,const char *label);
+  virtual ~IntensityCurveBox();
+
+  // Get the intensity curve interactor
+  irisGetMacro(Interactor, IntensityCurveInteraction *);
 
   /**
    * Handle displaying the curve
@@ -116,44 +121,40 @@ private:
   /** Flag, whether log of the frequencies is used */
   bool m_HistogramLog;
 
-  /**
-   * Interaction handler for control point manipulation
-   */
-  class DefaultHandler : public InteractionMode {
-  public:
-    DefaultHandler(IntensityCurveBox *parent);
-
-    int OnMousePress(const FLTKEvent &event);
-    int OnMouseRelease(const FLTKEvent &event, const FLTKEvent &pressEvent);
-    int OnMouseDrag(const FLTKEvent &event, const FLTKEvent &pressEvent);
-    int OnMouseEnter(const FLTKEvent &event);
-    int OnMouseLeave(const FLTKEvent &event);
-    int OnMouseMotion(const FLTKEvent &event);
-    int GetMovingControlPoint() const;
-
-  private:
-    // Pointer to the parent canvas
-    IntensityCurveBox *m_Parent;
-
-    // Set cursor depending on selected point
-    void SetCursor(int iControlPoint);
-
-    // Update a control point to reflect mouse motion to p
-    bool UpdateControl(const Vector3f &p);
-
-    // Control point being currently edited
-    int m_MovingControlPoint;
-
-  } m_DefaultHandler;
+  IntensityCurveInteraction* m_Interactor;
 
   // Allow access to private data
-  friend class DefaultHandler;
+  friend class IntensityCurveInteraction;
 
+};
+
+/**
+ * Interaction handler for control point manipulation
+ */
+class IntensityCurveInteraction : public InteractionMode {
 public:
-  DefaultHandler *GetDefaultHandler()
-    {
-    return &m_DefaultHandler;
-    }
+  IntensityCurveInteraction(IntensityCurveBox *parent);
+
+  int OnMousePress(const FLTKEvent &event);
+  int OnMouseRelease(const FLTKEvent &event, const FLTKEvent &pressEvent);
+  int OnMouseDrag(const FLTKEvent &event, const FLTKEvent &pressEvent);
+  int OnMouseEnter(const FLTKEvent &event);
+  int OnMouseLeave(const FLTKEvent &event);
+  int OnMouseMotion(const FLTKEvent &event);
+  int GetMovingControlPoint() const;
+
+private:
+  // Pointer to the parent canvas
+  IntensityCurveBox *m_Parent;
+
+  // Set cursor depending on selected point
+  void SetCursor(int iControlPoint);
+
+  // Update a control point to reflect mouse motion to p
+  bool UpdateControl(const Vector3f &p);
+
+  // Control point being currently edited
+  int m_MovingControlPoint;
 
 };
 
