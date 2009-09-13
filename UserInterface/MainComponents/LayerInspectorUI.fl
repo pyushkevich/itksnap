@@ -12,12 +12,12 @@ class LayerInspectorUI {open : LayerInspectorUIBase
       xywh {724 132 581 488} type Double box PLASTIC_DOWN_BOX resizable
       code0 {\#include "LayerInspectorUIBase.h"} visible
     } {
-      Fl_Tabs m_LayerUITabs {open
-        callback {this->DisplayWindow();}
+      Fl_Tabs m_LayerUITabs {
+        callback {this->DisplayWindow();} open
         xywh {180 5 390 475} box PLASTIC_THIN_UP_BOX color 41
       } {
         Fl_Group m_ImageContrastTab {
-          label Contrast open selected
+          label Contrast open
           xywh {180 25 390 455} labelsize 12
         } {
           Fl_Group {} {
@@ -370,10 +370,10 @@ coordinates} open
           callback {this->OnCloseAction()}
           xywh {45 455 80 25} box PLASTIC_UP_BOX color 139 labelfont 1 labelsize 12
         }
-        Fl_Check_Browser m_BrsLayers {
+        Fl_Browser m_BrsLayers {
           label {Image Layers:}
-          callback {this->OnLayerSelectionUpdate()}
-          xywh {10 60 150 100} labelsize 12 align 5 textsize 11
+          callback {this->OnLayerSelectionUpdate()} selected
+          xywh {10 60 150 100} type Select labelsize 12 align 5 textsize 11
         }
       }
       Fl_Group {} {open

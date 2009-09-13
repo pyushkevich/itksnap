@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/13 17:33:55 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/09/13 22:11:51 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -60,38 +60,22 @@ LayerInspectorUILogic
 
 void
 LayerInspectorUILogic
-::SetMain(ImageWrapperBase *wrapper)
+::SetImageWrappers(ImageWrapperBase *wrapper, WrapperList *overlays)
 {
+  // Connect the image wrappers
   m_MainWrapper = wrapper;
-
-  // Clear entries in the browser when linking to a new main
-  m_BrsLayers->clear();
-  // Add to the browser, checked and selected by default
-  m_BrsLayers->add("MAIN", 1);
-
-  // If the main image is greyscale, hook it up with the curve ui
-  m_GreyWrapper = dynamic_cast<GreyImageWrapper *>(m_MainWrapper);
-  if (m_GreyWrapper)
-    {
-    m_Curve = m_GreyWrapper->GetIntensityMapFunction();
-    if (m_Curve->GetControlPointCount() == 3)
-      m_BtnCurveLessControlPoint->deactivate();
-    m_BoxCurve->SetCurve(m_Curve);
-    m_BoxCurve->SetHistogramBinSize(1);
-    m_BoxCurve->ComputeHistogram(m_GreyWrapper, 4);
-
-    m_InHistogramMaxLevel->value(m_BoxCurve->GetHistogramMaxLevel() * 100.f);
-    m_InHistogramBinSize->value(m_BoxCurve->GetHistogramBinSize());
-    m_ChkHistogramLog->value(m_BoxCurve->IsHistogramLog());
-    }
-}
-
-void
-LayerInspectorUILogic
-::SetOverlays(WrapperList *overlays)
-{
   m_OverlayWrappers = overlays;
-  // Add to the browser (TODO)
+
+  // Build layer browser entries
+  m_BrsLayers->clear();
+  m_BrsLayers->add("MAIN");
+  for (size_t i = 0; i < m_OverlayWrappers->size(); ++i)
+    {
+    m_BrsLayers->add("OVERLAY");
+    }
+  // Select the last loaded image by default
+  m_BrsLayers->select(1 + m_OverlayWrappers->size());
+  OnLayerSelectionUpdate();
 }
 
 void
@@ -119,8 +103,12 @@ LayerInspectorUILogic
   m_BoxColorMap->hide();
   m_WinLayerUI->show();
   m_LayerUITabs->value(m_ImageContrastTab);
-  UpdateWindowAndLevel();
-  m_BoxCurve->show();
+  if (m_ImageContrastTab->active())
+    {
+    UpdateWindowAndLevel();
+    m_BoxCurve->redraw();
+    m_BoxCurve->show();
+    }
 }
 
 void
@@ -130,13 +118,16 @@ LayerInspectorUILogic
   m_BoxCurve->hide();
   m_WinLayerUI->show();
   m_LayerUITabs->value(m_ColorMapTab);
-  // Determine the currently used color map
-  ColorMap cm = m_GreyWrapper->GetColorMap();
-  // Update the GUI
-  m_InColorMapPreset->value(cm.GetSystemPreset());
-  m_BoxColorMap->SetColorMap(cm);
-  m_BoxColorMap->redraw();
-  m_BoxColorMap->show();
+  if (m_ColorMapTab->active())
+    {
+    // Determine the currently used color map
+    ColorMap cm = m_GreyWrapper->GetColorMap();
+    // Update the GUI
+    m_InColorMapPreset->value(cm.GetSystemPreset());
+    m_BoxColorMap->SetColorMap(cm);
+    m_BoxColorMap->redraw();
+    m_BoxColorMap->show();
+    }
 }
 
 void
@@ -154,8 +145,25 @@ LayerInspectorUILogic
 ::RedrawWindow()
 {
   // Intensity curve
-  UpdateWindowAndLevel();
-  m_BoxCurve->redraw();
+  if (m_LayerUITabs->value() == m_ImageContrastTab && m_ImageContrastTab->active())
+    {
+    UpdateWindowAndLevel();
+    m_BoxCurve->redraw();
+    }
+  // Color map
+  else if (m_LayerUITabs->value() == m_ColorMapTab && m_ColorMapTab->active())
+    {
+    // Determine the currently used color map
+    ColorMap cm = m_GreyWrapper->GetColorMap();
+    // Update the GUI
+    m_InColorMapPreset->value(cm.GetSystemPreset());
+    m_BoxColorMap->SetColorMap(cm);
+    m_BoxColorMap->redraw();
+    }
+  // Image info
+  else if (m_LayerUITabs->value() == m_ImageInfoTab)
+    {
+    }
 }
 
 bool
@@ -170,9 +178,51 @@ void
 LayerInspectorUILogic
 ::OnLayerSelectionUpdate()
 {
+  if (m_BrsLayers->value() == 0)
+    return;
+  // Determine the corresponding image wrapper
+  ImageWrapperBase *wrapper = NULL;
+  if (m_BrsLayers->value() == 1)
+    {
+    wrapper = m_MainWrapper;
+    }
+  else
+    {
+    WrapperIterator it = m_OverlayWrappers->begin();
+    for (int i = 2; i < m_BrsLayers->value(); ++i)
+      ++it;
+    assert(it != m_OverlayWrappers->end());
+    wrapper = *it;
+    }
+  // If the main image is greyscale, hook it up with the curve ui
+  m_GreyWrapper = dynamic_cast<GreyImageWrapper *>(wrapper);
+  if (m_GreyWrapper)
+    {
+    m_ImageContrastTab->activate();
+    m_ColorMapTab->activate();
+    // associate with intensity curve UI
+    m_Curve = m_GreyWrapper->GetIntensityMapFunction();
+    if (m_Curve->GetControlPointCount() == 3)
+      m_BtnCurveLessControlPoint->deactivate();
+    m_BoxCurve->SetCurve(m_Curve);
+    m_BoxCurve->SetHistogramBinSize(1);
+    m_BoxCurve->ComputeHistogram(m_GreyWrapper, 4);
 
+    m_InHistogramMaxLevel->value(m_BoxCurve->GetHistogramMaxLevel() * 100.f);
+    m_InHistogramBinSize->value(m_BoxCurve->GetHistogramBinSize());
+    m_ChkHistogramLog->value(m_BoxCurve->IsHistogramLog());
+    // associate with color map UI
+    // associate with image info
+    }
+  else
+    {
+    m_ImageContrastTab->deactivate();
+    m_ColorMapTab->deactivate();
+    }
+
+  if (Shown())
+    RedrawWindow();
 }
-
 
 void 
 LayerInspectorUILogic
@@ -181,15 +231,12 @@ LayerInspectorUILogic
 
 }
 
-
 void 
 LayerInspectorUILogic
 ::OnCloseAction()
 {
   m_WinLayerUI->hide();
 }
-
-
 
 // Callbacks for the contrast adjustment page
 void 

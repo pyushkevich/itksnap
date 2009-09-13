@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 23:27:01 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/09/13 22:11:51 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -58,8 +58,8 @@ public:
   void Initialize();
 
   // Hook to image data
-  void SetMain(ImageWrapperBase *main);
-  void SetOverlays(WrapperList *overlays);
+  void SetImageWrappers(ImageWrapperBase *main,
+                        WrapperList *overlays);
 
   // Callbacks for the main pane
   void OnLayerSelectionUpdate();

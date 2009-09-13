@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 23:27:01 $
-  Version:   $Revision: 1.86 $
+  Date:      $Date: 2009/09/13 22:11:51 $
+  Version:   $Revision: 1.87 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3007,8 +3007,8 @@ void
 UserInterfaceLogic
 ::OnLayerInspectorUpdate()
 {
-  m_LayerUI->SetMain(m_Driver->GetCurrentImageData()->GetMain());
-  m_LayerUI->SetOverlays(m_Driver->GetCurrentImageData()->GetOverlays());
+  m_LayerUI->SetImageWrappers(m_Driver->GetCurrentImageData()->GetMain(),
+      m_Driver->GetCurrentImageData()->GetOverlays());
   if (m_LayerUI->Shown())
     {
     m_LayerUI->RedrawWindow();
@@ -5190,6 +5190,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.87  2009/09/13 22:11:51  garyhuizhang
+ *ENH: add layer inspector support for multiple layers
+ *
  *Revision 1.86  2009/09/12 23:27:01  garyhuizhang
  *ENH: layer inspector now with color map support
  *
