@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 23:27:01 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/09/13 17:33:55 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -434,6 +434,8 @@ void
 LayerInspectorUILogic
 ::OnColorMapChange()
 {
+  m_GreyWrapper->SetColorMap(m_BoxColorMap->GetColorMap());
+  m_GreyWrapper->UpdateIntensityMapFunction();
 }
 
 void 
