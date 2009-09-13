@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMapWidget.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 23:22:55 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/13 03:16:40 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -55,6 +55,10 @@ public:
   /** Set the current color map functor */
   void SetColorMap(const ColorMap &map)
     { m_ColorMap = map; redraw(); }
+
+  /** Get the current color map functor */
+  ColorMap GetColorMap()
+    { return m_ColorMap; }
 
   // Get/set the parent object
   irisGetMacro(Parent,LayerInspectorUILogic *);
