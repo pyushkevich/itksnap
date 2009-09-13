@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/13 22:11:51 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/09/13 22:24:37 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -149,6 +149,7 @@ LayerInspectorUILogic
     {
     UpdateWindowAndLevel();
     m_BoxCurve->redraw();
+    m_BoxCurve->show();
     }
   // Color map
   else if (m_LayerUITabs->value() == m_ColorMapTab && m_ColorMapTab->active())
@@ -159,6 +160,7 @@ LayerInspectorUILogic
     m_InColorMapPreset->value(cm.GetSystemPreset());
     m_BoxColorMap->SetColorMap(cm);
     m_BoxColorMap->redraw();
+    m_BoxColorMap->show();
     }
   // Image info
   else if (m_LayerUITabs->value() == m_ImageInfoTab)
@@ -217,7 +219,9 @@ LayerInspectorUILogic
   else
     {
     m_ImageContrastTab->deactivate();
+    m_BoxCurve->hide();
     m_ColorMapTab->deactivate();
+    m_BoxColorMap->hide();
     }
 
   if (Shown())
