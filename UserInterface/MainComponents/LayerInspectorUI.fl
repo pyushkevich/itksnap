@@ -206,15 +206,15 @@ class LayerInspectorUI {open : LayerInspectorUIBase
           } {}
           Fl_Value_Output {m_OutImageInfoSpacing[0]} {
             label {x:}
-            xywh {325 120 65 25} labelsize 12 textsize 12
+            xywh {325 120 65 25} step 0.01 labelsize 12 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoSpacing[1]} {
             label {y:}
-            xywh {410 120 65 25} labelsize 12 textsize 12
+            xywh {410 120 65 25} step 0.01 labelsize 12 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoSpacing[2]} {
             label {z:}
-            xywh {495 120 65 25} labelsize 12 textsize 12
+            xywh {495 120 65 25} step 0.01 labelsize 12 textsize 12
           }
           Fl_Group {} {
             label {Origin and Orientation} open
@@ -242,15 +242,15 @@ class LayerInspectorUI {open : LayerInspectorUIBase
           } {}
           Fl_Value_Output {m_OutImageInfoCursorPosition[0]} {
             label {x:}
-            xywh {325 290 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {325 290 65 25} labelsize 12 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoCursorPosition[1]} {
             label {y:}
-            xywh {410 290 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {410 290 65 25} labelsize 12 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoCursorPosition[2]} {
             label {z:}
-            xywh {495 290 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {495 290 65 25} labelsize 12 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[0]} {
             label {x:}

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 17:56:20 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/09/14 20:38:28 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -257,11 +257,13 @@ IntensityCurveBox
 
     if (c == (unsigned int)m_Interactor->GetMovingControlPoint())
       {
+      rx = 6.0 / w();
+      ry = 6.0 / h();
       glColor3d(1,1,0);
       }
     else
       {
-      glColor3d(1,1,1);
+      glColor3d(1,0,0);
       }
     glBegin(GL_QUADS);
     glVertex2d(t,x-ry);

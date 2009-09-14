@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 19:04:52 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/09/14 20:38:28 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -79,11 +79,23 @@ LayerInspectorUILogic
 
   // Build layer browser entries
   m_BrsLayers->clear();
-  m_BrsLayers->add("MAIN");
-  for (size_t i = 0; i < m_OverlayWrappers->size(); ++i)
+  GreyImageWrapper *wrapper = dynamic_cast<GreyImageWrapper *>(m_MainWrapper);
+  if (wrapper)
+    m_BrsLayers->add("Main Image (Greyscale)");
+  else
+    m_BrsLayers->add("Main Image (RGB)");
+
+  WrapperIterator it = m_OverlayWrappers->begin();
+  while (it != m_OverlayWrappers->end())
     {
-    m_BrsLayers->add("OVERLAY");
+    GreyImageWrapper *wrapper = dynamic_cast<GreyImageWrapper *>(*it);
+    if (wrapper)
+      m_BrsLayers->add("Overlay (Greyscale)");
+    else
+      m_BrsLayers->add("Overlay (RGB)");
+    ++it;
     }
+
   // Select the last loaded image by default
   m_BrsLayers->select(1 + m_OverlayWrappers->size());
   OnLayerSelectionUpdate();
@@ -259,7 +271,11 @@ LayerInspectorUILogic
     {
     m_OutImageInfoDimensions[d]->value(m_SelectedWrapper->GetSize()[d]);
     m_OutImageInfoOrigin[d]->value(m_SelectedWrapper->GetImageBase()->GetOrigin()[d]);
+    m_OutImageInfoOrigin[d]->maximum(m_OutImageInfoOrigin[d]->value());
+    m_OutImageInfoOrigin[d]->minimum(m_OutImageInfoOrigin[d]->value());
     m_OutImageInfoSpacing[d]->value(m_SelectedWrapper->GetImageBase()->GetSpacing()[d]);
+    m_OutImageInfoSpacing[d]->maximum(m_OutImageInfoSpacing[d]->value());
+    m_OutImageInfoSpacing[d]->minimum(m_OutImageInfoSpacing[d]->value());
 
     m_OutImageInfoCursorPosition[d]->precision(2);
     m_OutImageInfoCursorNIFTIPosition[d]->precision(2);
@@ -630,7 +646,29 @@ LayerInspectorUILogic
     {
     m_InImageInfoCursorIndex[d]->value(crosshairs[d]);
     m_OutImageInfoCursorPosition[d]->value(xPosition[d]);
+    m_OutImageInfoCursorPosition[d]->maximum(
+        m_OutImageInfoCursorPosition[d]->value());
+    m_OutImageInfoCursorPosition[d]->minimum(
+        m_OutImageInfoCursorPosition[d]->value());
     m_OutImageInfoCursorNIFTIPosition[d]->value(xNIFTI[d]);
+    m_OutImageInfoCursorNIFTIPosition[d]->maximum(
+        m_OutImageInfoCursorNIFTIPosition[d]->value());
+    m_OutImageInfoCursorNIFTIPosition[d]->minimum(
+        m_OutImageInfoCursorNIFTIPosition[d]->value());
+    }
+
+  if (m_GreyWrapper)
+    {
+    m_WizImageInfoVoxelValue->value(m_GrpWizImageInfoVoxelPageGray);
+    m_OutImageInfoVoxelGray->value(m_GreyWrapper->GetVoxelMappedToNative(crosshairs));
+    }
+  else
+    {
+    m_WizImageInfoVoxelValue->value(m_GrpWizImageInfoVoxelPageRGB);
+    RGBImageWrapper *rgb = dynamic_cast<RGBImageWrapper *>(m_SelectedWrapper);
+    m_OutImageInfoVoxelRGB[0]->value(rgb->GetVoxel(crosshairs)[0]);
+    m_OutImageInfoVoxelRGB[1]->value(rgb->GetVoxel(crosshairs)[1]);
+    m_OutImageInfoVoxelRGB[2]->value(rgb->GetVoxel(crosshairs)[2]);
     }
 }
 
