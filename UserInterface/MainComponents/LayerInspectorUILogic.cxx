@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 04:41:38 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/09/14 17:56:20 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -60,6 +60,11 @@ LayerInspectorUILogic
 
   // Intensity curve
   m_BoxCurve->SetParent(this);
+
+  // Opacity
+  m_InOverallOpacity->maximum(255);
+  m_InOverallOpacity->minimum(0);
+  m_InOverallOpacity->step(1);
 }
 
 void
@@ -191,12 +196,15 @@ void
 LayerInspectorUILogic
 ::OnLayerSelectionUpdate()
 {
+  // If user click the empty space in the browser window
   if (m_BrsLayers->value() == 0)
     return;
+
   // Determine the corresponding image wrapper
   if (m_BrsLayers->value() == 1)
     {
     m_SelectedWrapper = m_MainWrapper;
+    m_InOverallOpacity->deactivate();
     }
   else
     {
@@ -205,8 +213,13 @@ LayerInspectorUILogic
       ++it;
     assert(it != m_OverlayWrappers->end());
     m_SelectedWrapper = *it;
+    m_InOverallOpacity->activate();
     }
-  // If the main image is greyscale, hook it up with the curve ui
+
+  // Overall Opacity
+  m_InOverallOpacity->value(m_SelectedWrapper->GetAlpha());
+
+  // Hook it up with the GUI
   m_GreyWrapper = dynamic_cast<GreyImageWrapper *>(m_SelectedWrapper);
   if (m_GreyWrapper)
     {
@@ -223,8 +236,8 @@ LayerInspectorUILogic
     m_InHistogramMaxLevel->value(m_BoxCurve->GetHistogramMaxLevel() * 100.f);
     m_InHistogramBinSize->value(m_BoxCurve->GetHistogramBinSize());
     m_ChkHistogramLog->value(m_BoxCurve->IsHistogramLog());
-    // associate with color map UI
-    // associate with image info
+    // associate with color map UI (if needed)
+    // associate with image info: greyscale specific
     m_OutImageInfoRange[0]->value(m_GreyWrapper->GetImageMinNative());
     m_OutImageInfoRange[1]->value(m_GreyWrapper->GetImageMaxNative());
     }
@@ -234,12 +247,12 @@ LayerInspectorUILogic
     m_BoxCurve->hide();
     m_ColorMapTab->deactivate();
     m_BoxColorMap->hide();
-    // associate with image info
+    // associate with image info: RGB specific
     m_OutImageInfoRange[0]->value(0);
     m_OutImageInfoRange[1]->value(0);
     }
 
-  // associate with image info
+  // associate with image info: common
   for (size_t d = 0; d < 3; ++d)
     {
     m_OutImageInfoDimensions[d]->value(m_SelectedWrapper->GetSize()[d]);
@@ -275,7 +288,7 @@ void
 LayerInspectorUILogic
 ::OnOverallOpacityUpdate()
 {
-
+  m_SelectedWrapper->SetAlpha(m_InOverallOpacity->value());
 }
 
 void 
@@ -479,6 +492,17 @@ LayerInspectorUILogic
     }
   if (m_Curve->GetControlPointCount() == 3)
     m_BtnCurveLessControlPoint->deactivate();
+}
+
+void
+LayerInspectorUILogic
+::OnControlPointChange()
+{
+  float f = m_InControlX->value();
+  float x = m_InControlY->value();
+  int cp = m_BoxCurve->GetInteractor()->GetMovingControlPoint();
+  m_Curve->UpdateControlPoint(cp, f, x);
+  OnCurveChange();
 }
 
 void 
