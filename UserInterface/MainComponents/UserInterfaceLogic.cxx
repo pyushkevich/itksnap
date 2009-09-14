@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 04:41:38 $
-  Version:   $Revision: 1.88 $
+  Date:      $Date: 2009/09/14 19:04:52 $
+  Version:   $Revision: 1.89 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -384,7 +384,7 @@ UserInterfaceLogic
   m_WizGreyIO->SetImageInfoCallback(m_GreyCallbackInterface);
 
   // Create the layer editor
-  m_LayerUI = new LayerInspectorUILogic(m_Driver);
+  m_LayerUI = new LayerInspectorUILogic(this);
   m_LayerUI->MakeWindow();
   m_LayerUI->Initialize();
 
@@ -1619,30 +1619,6 @@ UserInterfaceLogic
 ::OnMenuReorientImage()
 {
   m_DlgReorientImage->ShowDialog();  
-}
-
-void 
-UserInterfaceLogic
-::OnCloseImageInfoAction()
-{
-  m_WinImageInfo->hide();
-}
-
-void 
-UserInterfaceLogic
-::OnImageInformationVoxelCoordinatesUpdate()
-{
-  // Read the cursor values
-  Vector3ui cpos;
-  for(size_t i = 0; i < 3; i++)
-    {
-    cpos[i] = (unsigned int) m_InImageInfoCursorIndex[i]->clamp(
-      m_InImageInfoCursorIndex[i]->round(
-        m_InImageInfoCursorIndex[i]->value()));
-    }
-  m_Driver->SetCursorPosition(cpos);
-  OnCrosshairPositionUpdate();
-  RedrawWindows();
 }
 
 void 
@@ -5145,6 +5121,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.89  2009/09/14 19:04:52  garyhuizhang
+ *ENH: layer inspector support for curor position input
+ *
  *Revision 1.88  2009/09/14 04:41:38  garyhuizhang
  *ENH: layer inspector with partial image info support
  *

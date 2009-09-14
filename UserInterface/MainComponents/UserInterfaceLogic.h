@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/10 21:25:24 $
-  Version:   $Revision: 1.42 $
+  Date:      $Date: 2009/09/14 19:04:52 $
+  Version:   $Revision: 1.43 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -749,10 +749,6 @@ protected:
   void OnRestoreSettingsAction();
   void OnDoNotRestoreSettingsAction();
 
-  // Image Info Window Callbacks
-  void OnCloseImageInfoAction();
-  void OnImageInformationVoxelCoordinatesUpdate();
-
   // Toggle cursor synchronization
   void OnSynchronizeCursorAction();
 
@@ -998,6 +994,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.43  2009/09/14 19:04:52  garyhuizhang
+ *ENH: layer inspector support for curor position input
+ *
  *Revision 1.42  2009/09/10 21:25:24  garyhuizhang
  *ENH: Layer inspector now supports contrast adjustment of main image
  *

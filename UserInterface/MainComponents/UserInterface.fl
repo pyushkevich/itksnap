@@ -1378,31 +1378,6 @@ this->OnSNAPLabelOpacityChange();}
         }
       }
     }
-    Fl_Window m_WinImageInfo {
-      label {Image Information}
-      xywh {92 480 515 384} type Double box PLASTIC_DOWN_BOX color 40 hide non_modal
-    } {
-      Fl_Group {} {
-        label {Image Information:}
-        xywh {10 35 495 340} box PLASTIC_DOWN_BOX labeltype EMBOSSED_LABEL labelsize 16 labelcolor 15 align 5
-      } {
-        Fl_Value_Input {m_InImageInfoCursorIndex[0]} {
-          label {Voxel coordinates  x:}
-          callback {this->OnImageInformationVoxelCoordinatesUpdate();}
-          xywh {245 226 65 24}
-        }
-        Fl_Value_Input {m_InImageInfoCursorIndex[1]} {
-          label {y:}
-          callback {this->OnImageInformationVoxelCoordinatesUpdate();}
-          xywh {330 226 65 24}
-        }
-        Fl_Value_Input {m_InImageInfoCursorIndex[2]} {
-          label {z:}
-          callback {this->OnImageInformationVoxelCoordinatesUpdate();}
-          xywh {415 226 65 24}
-        }
-      }
-    }
     Fl_Window m_WinColorMap {
       label {Preprocessed Image Color Map}
       xywh {-32000 -32000 315 105} type Double hide non_modal

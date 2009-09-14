@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 17:56:20 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/09/14 19:04:52 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,14 +35,16 @@
 
 #include "LayerInspectorUILogic.h"
 #include "IntensityCurveVTK.h"
+#include "UserInterfaceLogic.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "GreyImageWrapper.h"
 
 LayerInspectorUILogic
-::LayerInspectorUILogic(IRISApplication *iris)
+::LayerInspectorUILogic(UserInterfaceLogic *parent)
 {
-  m_Driver = iris;
+  m_Parent = parent;
+  m_Driver = m_Parent->GetDriver();
   m_MainWrapper = NULL;
   m_OverlayWrappers = NULL;
   m_SelectedWrapper = NULL;
@@ -636,5 +638,16 @@ void
 LayerInspectorUILogic
 ::OnImageInformationVoxelCoordinatesUpdate()
 {
+  // Read the cursor values
+  Vector3ui cpos;
+  for (size_t d = 0; d < 3; ++d)
+    {
+    cpos[d] = (unsigned int) m_InImageInfoCursorIndex[d]->clamp(
+        m_InImageInfoCursorIndex[d]->round(
+          m_InImageInfoCursorIndex[d]->value()));
+    }
+  m_Driver->SetCursorPosition(cpos);
+  m_Parent->OnCrosshairPositionUpdate();
+  m_Parent->RedrawWindows();
 }
 

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 17:56:20 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/09/14 19:04:52 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,6 +38,7 @@
 #include "LayerInspectorUI.h"
 #include "ImageWrapper.h"
 
+class UserInterfaceLogic;
 class IRISApplication;
 class GreyImageWrapper;
 
@@ -52,7 +53,7 @@ class LayerInspectorUILogic : public LayerInspectorUI
   typedef WrapperList::const_iterator WrapperConstIterator;
 
 public:
-  LayerInspectorUILogic(IRISApplication *);
+  LayerInspectorUILogic(UserInterfaceLogic *);
   virtual ~LayerInspectorUILogic() {};
 
   // Initialization
@@ -117,7 +118,10 @@ protected:
   // The intensity curve (same pointer stored in the m_BoxCurve)
   IntensityCurveInterface *m_Curve;
 
-  // Pointer to the driving IRIS application object
+  // Pointer to the Parent GUI
+  UserInterfaceLogic *m_Parent;
+
+  // Pointer to the IRIS application object
   IRISApplication *m_Driver;
 
   // Main image wrapper and overlay wrapper lists
