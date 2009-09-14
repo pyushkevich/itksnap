@@ -363,7 +363,7 @@ coordinates} open
         Fl_Browser m_BrsLayers {
           label {Image Layers:}
           callback {this->OnLayerSelectionUpdate()} selected
-          xywh {10 60 150 100} type Select labelsize 12 align 5 textsize 11
+          xywh {10 60 150 100} type Hold labelsize 12 align 5 textsize 11
         }
       }
       Fl_Group {} {open
