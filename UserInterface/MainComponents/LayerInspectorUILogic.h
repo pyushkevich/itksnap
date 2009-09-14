@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/13 22:11:51 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/09/14 04:41:38 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,6 +38,7 @@
 #include "LayerInspectorUI.h"
 #include "ImageWrapper.h"
 
+class IRISApplication;
 class GreyImageWrapper;
 
 /**
@@ -51,15 +52,14 @@ class LayerInspectorUILogic : public LayerInspectorUI
   typedef WrapperList::const_iterator WrapperConstIterator;
 
 public:
-  LayerInspectorUILogic();
+  LayerInspectorUILogic(IRISApplication *);
   virtual ~LayerInspectorUILogic() {};
 
   // Initialization
   void Initialize();
 
-  // Hook to image data
-  void SetImageWrappers(ImageWrapperBase *main,
-                        WrapperList *overlays);
+  // Hook to the image wrappers
+  void SetImageWrappers();
 
   // Callbacks for the main pane
   void OnLayerSelectionUpdate();
@@ -75,8 +75,6 @@ public:
   void OnUpdateHistogram();
   void OnControlPointMoreAction();
   void OnControlPointLessAction();
-  void OnCurveMakeLinearAction();
-  void OnCurveMakeCubicAction();
   void OnControlPointUpdate();
 
   // Callbacks for the color map page
@@ -90,11 +88,13 @@ public:
   void OnColorMapRGBAUpdate();
 
   // Callbacks for the image info page
+  void UpdateImageProbe();
   void OnImageInformationVoxelCoordinatesUpdate();
 
   // Display the dialog
   void DisplayWindow();
   void RedrawWindow();
+  void Hide();
   bool Shown();
   void DisplayImageContrastTab();
   void DisplayColorMapTab();
@@ -116,9 +116,15 @@ protected:
   // The intensity curve (same pointer stored in the m_BoxCurve)
   IntensityCurveInterface *m_Curve;
 
+  // Pointer to the driving IRIS application object
+  IRISApplication *m_Driver;
+
   // Main image wrapper and overlay wrapper lists
   ImageWrapperBase *m_MainWrapper;
   WrapperList *m_OverlayWrappers;
+
+  // Currently selected wrapper
+  ImageWrapperBase *m_SelectedWrapper;
 
   // Grey image wrapper for intensity curve
   GreyImageWrapper *m_GreyWrapper;

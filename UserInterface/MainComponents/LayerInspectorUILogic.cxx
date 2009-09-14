@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/13 22:24:37 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/09/14 04:41:38 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,13 +35,17 @@
 
 #include "LayerInspectorUILogic.h"
 #include "IntensityCurveVTK.h"
+#include "IRISApplication.h"
+#include "GenericImageData.h"
 #include "GreyImageWrapper.h"
 
 LayerInspectorUILogic
-::LayerInspectorUILogic()
+::LayerInspectorUILogic(IRISApplication *iris)
 {
+  m_Driver = iris;
   m_MainWrapper = NULL;
   m_OverlayWrappers = NULL;
+  m_SelectedWrapper = NULL;
   m_GreyWrapper = NULL;
   m_Curve = NULL;
 }
@@ -60,11 +64,11 @@ LayerInspectorUILogic
 
 void
 LayerInspectorUILogic
-::SetImageWrappers(ImageWrapperBase *wrapper, WrapperList *overlays)
+::SetImageWrappers()
 {
   // Connect the image wrappers
-  m_MainWrapper = wrapper;
-  m_OverlayWrappers = overlays;
+  m_MainWrapper = m_Driver->GetCurrentImageData()->GetMain();
+  m_OverlayWrappers = m_Driver->GetCurrentImageData()->GetOverlays();
 
   // Build layer browser entries
   m_BrsLayers->clear();
@@ -168,6 +172,13 @@ LayerInspectorUILogic
     }
 }
 
+void
+LayerInspectorUILogic
+::Hide()
+{
+  m_WinLayerUI->hide();
+}
+
 bool
 LayerInspectorUILogic
 ::Shown()
@@ -183,10 +194,9 @@ LayerInspectorUILogic
   if (m_BrsLayers->value() == 0)
     return;
   // Determine the corresponding image wrapper
-  ImageWrapperBase *wrapper = NULL;
   if (m_BrsLayers->value() == 1)
     {
-    wrapper = m_MainWrapper;
+    m_SelectedWrapper = m_MainWrapper;
     }
   else
     {
@@ -194,10 +204,10 @@ LayerInspectorUILogic
     for (int i = 2; i < m_BrsLayers->value(); ++i)
       ++it;
     assert(it != m_OverlayWrappers->end());
-    wrapper = *it;
+    m_SelectedWrapper = *it;
     }
   // If the main image is greyscale, hook it up with the curve ui
-  m_GreyWrapper = dynamic_cast<GreyImageWrapper *>(wrapper);
+  m_GreyWrapper = dynamic_cast<GreyImageWrapper *>(m_SelectedWrapper);
   if (m_GreyWrapper)
     {
     m_ImageContrastTab->activate();
@@ -215,6 +225,8 @@ LayerInspectorUILogic
     m_ChkHistogramLog->value(m_BoxCurve->IsHistogramLog());
     // associate with color map UI
     // associate with image info
+    m_OutImageInfoRange[0]->value(m_GreyWrapper->GetImageMinNative());
+    m_OutImageInfoRange[1]->value(m_GreyWrapper->GetImageMaxNative());
     }
   else
     {
@@ -222,8 +234,39 @@ LayerInspectorUILogic
     m_BoxCurve->hide();
     m_ColorMapTab->deactivate();
     m_BoxColorMap->hide();
+    // associate with image info
+    m_OutImageInfoRange[0]->value(0);
+    m_OutImageInfoRange[1]->value(0);
     }
 
+  // associate with image info
+  for (size_t d = 0; d < 3; ++d)
+    {
+    m_OutImageInfoDimensions[d]->value(m_SelectedWrapper->GetSize()[d]);
+    m_OutImageInfoOrigin[d]->value(m_SelectedWrapper->GetImageBase()->GetOrigin()[d]);
+    m_OutImageInfoSpacing[d]->value(m_SelectedWrapper->GetImageBase()->GetSpacing()[d]);
+
+    m_OutImageInfoCursorPosition[d]->precision(2);
+    m_OutImageInfoCursorNIFTIPosition[d]->precision(2);
+
+    m_InImageInfoCursorIndex[d]->maximum(m_SelectedWrapper->GetSize()[d] - 1);
+    m_InImageInfoCursorIndex[d]->minimum(0);
+    m_InImageInfoCursorIndex[d]->step(1);
+    }
+
+  // get the RAI code
+  ImageCoordinateGeometry::DirectionMatrix dmat =
+    m_Driver->GetCurrentImageData()->GetImageGeometry().GetImageDirectionCosineMatrix();
+  string raicode =
+    ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(dmat);
+  string raitext;
+  if (ImageCoordinateGeometry::IsDirectionMatrixOblique(dmat))
+    raitext = string("Oblique (closest to ") + raicode + string(")");
+  else
+    raitext = raicode;
+  m_OutImageInfoOriginRAICode->value(raitext.c_str());
+
+  // update GUI
   if (Shown())
     RedrawWindow();
 }
@@ -440,20 +483,6 @@ LayerInspectorUILogic
 
 void 
 LayerInspectorUILogic
-::OnCurveMakeLinearAction()
-{
-
-}
-
-void 
-LayerInspectorUILogic
-::OnCurveMakeCubicAction()
-{
-
-}
-
-void 
-LayerInspectorUILogic
 ::OnControlPointUpdate()
 {
   int cp = m_BoxCurve->GetInteractor()->GetMovingControlPoint();
@@ -563,10 +592,25 @@ LayerInspectorUILogic
 }
 
 // Callbacks for the image info page
+void
+LayerInspectorUILogic
+::UpdateImageProbe()
+{
+  // Code common to SNAP and IRIS
+  Vector3ui crosshairs = m_Driver->GetCursorPosition();
+  Vector3d xPosition = m_SelectedWrapper->TransformVoxelIndexToPosition(crosshairs);
+  Vector3d xNIFTI = m_SelectedWrapper->TransformVoxelIndexToNIFTICoordinates(crosshairs);
+  for (size_t d = 0; d < 3; ++d)
+    {
+    m_InImageInfoCursorIndex[d]->value(crosshairs[d]);
+    m_OutImageInfoCursorPosition[d]->value(xPosition[d]);
+    m_OutImageInfoCursorNIFTIPosition[d]->value(xNIFTI[d]);
+    }
+}
+
 void 
 LayerInspectorUILogic
 ::OnImageInformationVoxelCoordinatesUpdate()
 {
-
 }
 

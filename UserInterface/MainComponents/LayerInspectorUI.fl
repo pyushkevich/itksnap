@@ -65,22 +65,12 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             Fl_Button {} {
               label {+}
               callback {this->OnControlPointMoreAction();}
-              xywh {380 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelfont 4 labelsize 18
+              xywh {440 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelfont 4 labelsize 18
             }
             Fl_Button m_BtnCurveLessControlPoint {
               label {-}
               callback {this->OnControlPointLessAction();}
-              xywh {410 340 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
-            }
-            Fl_Button m_BtnCurveMakeLinear {
-              label C1
-              callback {this->OnCurveMakeLinearAction();}
-              xywh {440 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelsize 12 align 16
-            }
-            Fl_Button m_BtnCurveMakeCubic {
-              label C3
-              callback {this->OnCurveMakeCubicAction();}
-              xywh {470 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelsize 12 align 16
+              xywh {470 340 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
             }
             Fl_Value_Input m_InControlX {
               label {Intensity:}

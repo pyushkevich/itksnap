@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/13 22:11:51 $
-  Version:   $Revision: 1.87 $
+  Date:      $Date: 2009/09/14 04:41:38 $
+  Version:   $Revision: 1.88 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -384,7 +384,7 @@ UserInterfaceLogic
   m_WizGreyIO->SetImageInfoCallback(m_GreyCallbackInterface);
 
   // Create the layer editor
-  m_LayerUI = new LayerInspectorUILogic;
+  m_LayerUI = new LayerInspectorUILogic(m_Driver);
   m_LayerUI->MakeWindow();
   m_LayerUI->Initialize();
 
@@ -2495,17 +2495,8 @@ UserInterfaceLogic
   sSegmentation << iSegmentation;
 
   // Update the cursor position in the image info window
-  Vector3d xPosition = id->GetMain()->TransformVoxelIndexToPosition(crosshairs);
+  m_LayerUI->UpdateImageProbe();
 
-  Vector3d xNIFTI = id->GetMain()->TransformVoxelIndexToNIFTICoordinates(crosshairs);
-
-  for(size_t d = 0; d < 3; d++)
-    {
-    m_InImageInfoCursorIndex[d]->value(crosshairs[d]);
-    m_OutImageInfoCursorPosition[d]->value(xPosition[d]);
-    m_OutImageInfoCursorNIFTIPosition[d]->value(xNIFTI[d]);
-    }
-  
   // The rest depends on the current mode
   if(m_GlobalState->GetSNAPActive())
     {
@@ -3007,8 +2998,7 @@ void
 UserInterfaceLogic
 ::OnLayerInspectorUpdate()
 {
-  m_LayerUI->SetImageWrappers(m_Driver->GetCurrentImageData()->GetMain(),
-      m_Driver->GetCurrentImageData()->GetOverlays());
+  m_LayerUI->SetImageWrappers();
   if (m_LayerUI->Shown())
     {
     m_LayerUI->RedrawWindow();
@@ -3353,6 +3343,10 @@ void
 UserInterfaceLogic
 ::UnloadAllImages()
 {
+  // Close layer inspector if open
+  if (m_LayerUI->Shown())
+    m_LayerUI->Hide();
+
   // Clear the memory and reset the flags
   m_Driver->GetCurrentImageData()->UnloadMainImage();
 
@@ -3403,6 +3397,9 @@ UserInterfaceLogic
   // There are now no unsaved changes
   m_Activation->UpdateFlag(UIF_UNSAVED_CHANGES, false);
 
+  // Update the layer inspector
+  OnLayerInspectorUpdate();
+
   // Image geometry has changed
   OnImageGeometryUpdate();
 
@@ -3435,36 +3432,6 @@ UserInterfaceLogic
   OnPolygonStateUpdate(1);
   OnPolygonStateUpdate(2);
 
-  // Update the image info window controls
-  ImageWrapperBase *wrp = m_Driver->GetCurrentImageData()->GetMain();
-  for(size_t d = 0; d < 3; d++)
-    {
-    m_OutImageInfoDimensions[d]->value(wrp->GetSize()[d]);
-    m_OutImageInfoOrigin[d]->value(wrp->GetImageBase()->GetOrigin()[d]);
-    m_OutImageInfoSpacing[d]->value(wrp->GetImageBase()->GetSpacing()[d]);
-
-    m_InImageInfoCursorIndex[d]->maximum(wrp->GetSize()[d] - 1);
-    m_InImageInfoCursorIndex[d]->minimum(0);
-    m_InImageInfoCursorIndex[d]->step(1);
-    
-    m_OutImageInfoCursorPosition[d]->precision(2);
-    m_OutImageInfoCursorNIFTIPosition[d]->precision(2);
-    }
-
-  // Set the RAI code in the image info dialog
-  ImageCoordinateGeometry::DirectionMatrix dmat = 
-    m_Driver->GetCurrentImageData()->GetImageGeometry().GetImageDirectionCosineMatrix();
-  string raicode = 
-    ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(dmat);
-  string raitext;
-  if(ImageCoordinateGeometry::IsDirectionMatrixOblique(dmat))
-    {
-    raitext = string("Oblique (closest to ") + raicode + string(")");
-    }
-  else
-    raitext = raicode;  
-  m_OutImageInfoOriginRAICode->value(raitext.c_str());
-
   // Now that we've loaded the image, check if there are any settings 
   // associated with it.  If there are, give the user an option to restore 
   // these settings
@@ -3489,9 +3456,6 @@ UserInterfaceLogic
   // Update the list of labels
   OnLabelListUpdate();
 
-  // Update the layer inspector
-  OnLayerInspectorUpdate();
-
   // Redraw the user interface
   RedrawWindows();
   m_WinMain->redraw();
@@ -3501,11 +3465,6 @@ void
 UserInterfaceLogic
 ::OnGreyImageUpdate()
 {
-  // Update the image info window controls
-  GreyImageWrapper *wrpGrey = m_Driver->GetCurrentImageData()->GetGrey();
-  m_OutImageInfoRange[0]->value(wrpGrey->GetImageMinNative());
-  m_OutImageInfoRange[1]->value(wrpGrey->GetImageMaxNative());
-
   // Disable/Enable some menu items
   m_Activation->UpdateFlag(UIF_IRIS_WITH_GRAY_LOADED, true);
 
@@ -3531,10 +3490,6 @@ void
 UserInterfaceLogic
 ::OnRGBImageUpdate()
 {
-  // Update the image info window controls
-  m_OutImageInfoRange[0]->value(0);
-  m_OutImageInfoRange[1]->value(0);
-
   // Common user interface updates
   OnMainImageUpdate();
 
@@ -5190,6 +5145,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.88  2009/09/14 04:41:38  garyhuizhang
+ *ENH: layer inspector with partial image info support
+ *
  *Revision 1.87  2009/09/13 22:11:51  garyhuizhang
  *ENH: add layer inspector support for multiple layers
  *

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUIBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 23:27:01 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/14 04:41:38 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -58,8 +58,6 @@ public:
   virtual void OnUpdateHistogram() = 0;
   virtual void OnControlPointMoreAction() = 0;
   virtual void OnControlPointLessAction() = 0;
-  virtual void OnCurveMakeLinearAction() = 0;
-  virtual void OnCurveMakeCubicAction() = 0;
   virtual void OnControlPointUpdate() = 0;
 
   // Callbacks for the color map page
