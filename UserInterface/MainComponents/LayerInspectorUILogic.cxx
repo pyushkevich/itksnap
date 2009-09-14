@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 20:38:28 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/09/14 22:19:22 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -324,6 +324,9 @@ LayerInspectorUILogic
   // Reinitialize the curve
   m_Curve->Initialize();
 
+  // Update the controlX/controlY
+  OnControlPointUpdate();
+
   // Fire the reset event
   OnCurveChange();
 }
@@ -469,6 +472,9 @@ LayerInspectorUILogic
   // Update the curve boundary
   m_Curve->ScaleControlPointsToWindow(t0,t1);
 
+  // Update the controlX/controlY
+  OnControlPointUpdate();
+
   // Fire the reset event
   OnCurveChange();
 }
@@ -516,10 +522,48 @@ void
 LayerInspectorUILogic
 ::OnControlPointChange()
 {
-  float f = m_InControlX->value();
-  float x = m_InControlY->value();
-  int cp = m_BoxCurve->GetInteractor()->GetMovingControlPoint();
-  m_Curve->UpdateControlPoint(cp, f, x);
+  float fx = 0;
+  float fy = 0;
+  float bx = 0;
+  float by = 0;
+  unsigned int cp = m_BoxCurve->GetInteractor()->GetMovingControlPoint();
+  const double min = m_GreyWrapper->GetImageMinNative();
+  const double max = m_GreyWrapper->GetImageMaxNative();
+  const double delta = max - min;
+  if (cp == 0)
+    {
+    m_Curve->GetControlPoint(cp + 1, bx, by);
+    m_InControlX->maximum(0.9999*(bx*delta + min));
+    m_InControlX->minimum(min);
+    m_InControlY->maximum(0.9999*by);
+    m_InControlY->minimum(0);
+    m_Curve->GetControlPoint(cp, fx, fy);
+    fx = (m_InControlX->value() - min)/delta;
+    m_InControlY->value(fy);
+    }
+  else if (cp == m_Curve->GetControlPointCount() - 1)
+    {
+    m_Curve->GetControlPoint(cp - 1, bx, by);
+    m_InControlX->maximum(max);
+    m_InControlX->minimum(1.0001*(bx*delta+min));
+    m_InControlY->maximum(1.0);
+    m_InControlY->minimum(1.0001*by);
+    m_Curve->GetControlPoint(cp, fx, fy);
+    fx = (m_InControlX->value() - min)/delta;
+    m_InControlY->value(fy);
+    }
+  else
+    {
+    m_Curve->GetControlPoint(cp + 1, bx, by);
+    m_InControlX->maximum(0.9999*(bx*delta + min));
+    m_InControlY->maximum(0.9999*by);
+    m_Curve->GetControlPoint(cp - 1, bx, by);
+    m_InControlX->minimum(1.0001*(bx*delta + min));
+    m_InControlY->minimum(1.0001*by);
+    fx = (m_InControlX->value() - min)/delta;
+    fy = m_InControlY->value();
+    }
+  m_Curve->UpdateControlPoint(cp, fx, fy);
   OnCurveChange();
 }
 
@@ -528,10 +572,13 @@ LayerInspectorUILogic
 ::OnControlPointUpdate()
 {
   int cp = m_BoxCurve->GetInteractor()->GetMovingControlPoint();
-  float f, x;
-  m_Curve->GetControlPoint(cp, f, x);
-  m_InControlX->value(f);
-  m_InControlY->value(x);
+  float fx, fy;
+  m_Curve->GetControlPoint(cp, fx, fy);
+  const double min = m_GreyWrapper->GetImageMinNative();
+  const double max = m_GreyWrapper->GetImageMaxNative();
+  const double delta = max - min;
+  m_InControlX->value(fx*delta + min);
+  m_InControlY->value(fy);
 }
 
 // Callbacks for the color map page
