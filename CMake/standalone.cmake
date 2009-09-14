@@ -1,65 +1,40 @@
 #############################################
 # REQUIRE ITK 3.8 OR LATER                  #
 #############################################
-FIND_PACKAGE(ITK)
-IF(ITK_FOUND)  
+FIND_PACKAGE(ITK REQUIRED)
 
-  SET(ITK_VERSION "${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}")
-  IF(ITK_VERSION VERSION_LESS "3.8")
-    MESSAGE(FATAL_ERROR "ITK-SNAP requires ITK 3.8 or later")  
-  ELSE(ITK_VERSION VERSION_LESS "3.8")
-    # Enable bug fixes for 3.8
-    IF(ITK_VERSION EQUAL "3.8")
-      MESSAGE(STATUS "Enabling ITK 3.8 SparseFieldLevelSet bug fix")
-      ADD_DEFINITIONS(-DUSE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
-    ENDIF(ITK_VERSION EQUAL "3.8")       
-  ENDIF(ITK_VERSION VERSION_LESS "3.8")
-  
-  INCLUDE(${ITK_USE_FILE})
+SET(ITK_VERSION "${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}")
+IF(ITK_VERSION VERSION_LESS "3.8")
+  MESSAGE(FATAL_ERROR "ITK-SNAP requires ITK 3.8 or later")  
+ELSE(ITK_VERSION VERSION_LESS "3.8")
+  # Enable bug fixes for 3.8
+  IF(ITK_VERSION EQUAL "3.8")
+    MESSAGE(STATUS "Enabling ITK 3.8 SparseFieldLevelSet bug fix")
+    ADD_DEFINITIONS(-DUSE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
+  ENDIF(ITK_VERSION EQUAL "3.8")       
+ENDIF(ITK_VERSION VERSION_LESS "3.8")
 
-ELSE(ITK_FOUND)
-  MESSAGE(FATAL_ERROR
-    "Cannot build ITK-SNAP without ITK 3.8 or later.  Please set ITK_DIR.")
-ENDIF(ITK_FOUND)
-
+INCLUDE(${ITK_USE_FILE})
 
 #############################################
 # REQUIRE FLTK                              #
 #############################################
-FIND_PACKAGE(FLTK)
-IF(FLTK_FOUND)
-  INCLUDE_DIRECTORIES(${FLTK_INCLUDE_DIR})  
-ELSE(FLTK_FOUND)
-
-  MESSAGE(FATAL_ERROR
-      "Cannot build ITK-SNAP without FLTK.  Please set FLTK_DIR.")
-  
-ENDIF(FLTK_FOUND)
+FIND_PACKAGE(FLTK REQUIRED)
 
 #############################################
 # REQUIRE FLTK                              #
 #############################################
-FIND_PACKAGE(VTK)
-IF (VTK_FOUND)
+FIND_PACKAGE(VTK REQUIRED)
   
-  SET(VTK_VERSION "${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
-  IF(VTK_VERSION VERSION_LESS "5.2")
-    MESSAGE(FATAL_ERROR "ITK-SNAP requires VTK 5.2 or later")  
-  ENDIF(VTK_VERSION VERSION_LESS "5.2")
-  
-  INCLUDE (${VTK_USE_FILE})
-ELSE (VTK_FOUND)
+SET(VTK_VERSION "${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
+IF(VTK_VERSION VERSION_LESS "5.2")
+  MESSAGE(FATAL_ERROR "ITK-SNAP requires VTK 5.2 or later")  
+ENDIF(VTK_VERSION VERSION_LESS "5.2")
 
-  MESSAGE(FATAL_ERROR
-      "Cannot build ITK-SNAP without VTK 5.2 or later.  Please set VTK_DIR.")
-      
-ENDIF (VTK_FOUND)
+INCLUDE (${VTK_USE_FILE})
  
 # Look for OpenGL.
-FIND_PACKAGE(OpenGL)
-IF(OPENGL_INCLUDE_PATH)
-  INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_PATH})
-ENDIF(OPENGL_INCLUDE_PATH)
+FIND_PACKAGE(OpenGL REQUIRED)
 
 # The fluid-generated fltk sources have many warnings.  This macro
 # will disable warnings for the generated files on some compilers.
