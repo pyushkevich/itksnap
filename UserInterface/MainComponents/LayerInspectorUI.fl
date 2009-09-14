@@ -75,12 +75,12 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             Fl_Value_Input m_InControlX {
               label {Intensity:}
               callback {this->OnControlPointChange();}
-              xywh {210 340 70 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
+              xywh {210 340 70 25} labelsize 12 align 5 step 0.01 textsize 12
             }
             Fl_Value_Input m_InControlY {
               label {Color index:}
               callback {this->OnControlPointChange();}
-              xywh {285 340 70 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
+              xywh {285 340 70 25} labelsize 12 align 5 step 0.01 textsize 12
             }
           }
           Fl_Group {} {
