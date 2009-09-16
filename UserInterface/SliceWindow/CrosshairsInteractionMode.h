@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 19:47:43 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/16 20:39:14 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -68,6 +68,11 @@ private:
 
   FLTKEvent m_RepeatEvent;
   long int m_LastViewposUpdateTime;
+
+  // Copied from zoom-pan. All your base are belong to us.
+  Vector2f m_StartViewPosition;
+  float m_StartViewZoom;
+  bool m_NeedUIUpdateOnRepaint;
 
   static void TimeoutCallback(void *);
 };

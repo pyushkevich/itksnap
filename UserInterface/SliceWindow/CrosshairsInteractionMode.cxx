@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 20:53:51 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/09/16 20:39:14 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,6 +38,8 @@
 #include "IRISImageData.h"
 #include "SNAPAppearanceSettings.h"
 #include "UserInterfaceBase.h"
+#include "SliceWindowCoordinator.h"
+#include "ZoomPanInteractionMode.h"
 
 CrosshairsInteractionMode
 ::CrosshairsInteractionMode(GenericSliceWindow *parent) 
@@ -45,6 +47,7 @@ CrosshairsInteractionMode
 {
   m_NeedToRepaintControls = false;
   m_LastViewposUpdateTime = 0;
+  m_NeedUIUpdateOnRepaint = false;
 }
 
 int
@@ -54,29 +57,81 @@ CrosshairsInteractionMode
   UpdateCrosshairs(event);
   m_Parent->m_GlobalState->SetUpdateSliceFlag(0);
   m_RepeatEvent = event;
+  m_StartViewZoom = m_Parent->GetViewZoom();
+  m_StartViewPosition = m_Parent->m_ViewPosition;
   return 1;
 }
 
 int
 CrosshairsInteractionMode
-::OnMouseRelease(const FLTKEvent &event, 
-                   const FLTKEvent &irisNotUsed(pressEvent))
+::OnMouseRelease(const FLTKEvent &event,const FLTKEvent &dragEvent)
 {
-  UpdateCrosshairs(event);
-  m_Parent->m_GlobalState->SetUpdateSliceFlag(1);
-  m_RepeatEvent = event;
-  return 1;
+  if(dragEvent.SoftButton == FL_LEFT_MOUSE)
+    {
+    UpdateCrosshairs(event);
+    m_Parent->m_GlobalState->SetUpdateSliceFlag(1);
+    m_RepeatEvent = event;
+    return 1;
+    }
+  else if(dragEvent.SoftButton == FL_RIGHT_MOUSE)
+    return 1;
+  else if(dragEvent.SoftButton == FL_MIDDLE_MOUSE)
+    return 1;
+
+  return 0;
 }
 
 int
 CrosshairsInteractionMode
 ::OnMouseDrag(const FLTKEvent &event, 
-                const FLTKEvent &irisNotUsed(pressEvent))
+              const FLTKEvent &dragEvent)
 {
-  UpdateCrosshairs(event);
-  m_Parent->m_GlobalState->SetUpdateSliceFlag(1);
-  m_RepeatEvent = event;
-  return 1;
+  if(dragEvent.SoftButton == FL_LEFT_MOUSE)
+    {
+    UpdateCrosshairs(event);
+    m_Parent->m_GlobalState->SetUpdateSliceFlag(1);
+    m_RepeatEvent = event;
+    return 1;
+    }
+  else if(dragEvent.SoftButton == FL_RIGHT_MOUSE)
+    {
+    // Under the right button, the tool causes us to zoom based on the vertical
+    // motion
+    float zoom = m_StartViewZoom 
+      * pow(1.02f,(float)(event.XSpace(1) - dragEvent.XSpace(1)));
+
+    // Clamp the zoom factor to reasonable limits
+    zoom = m_ParentUI->GetSliceCoordinator()->ClampZoom(m_Parent->m_Id,zoom);
+
+    // Make sure the zoom factor is an integer fraction
+    zoom = m_Parent->GetOptimalZoom() * 
+           ((int)(zoom / m_Parent->GetOptimalZoom() * 100)) / 100.0f;
+
+    // Set the zoom factor using the window coordinator
+    m_Parent->SetViewZoom(zoom);
+    m_ParentUI->GetSliceCoordinator()->OnZoomUpdateInWindow(m_Parent->m_Id,zoom);
+
+    // Schedule an update of the zoom percentage display in the parent
+    m_NeedUIUpdateOnRepaint = true;
+    return 1;
+    } 
+  else if (dragEvent.SoftButton == FL_MIDDLE_MOUSE)
+    {
+    // Compute the start and end point in slice coordinates
+    Vector3f xStart = m_Parent->MapWindowToSlice(dragEvent.XSpace.extract(2));
+    Vector3f xEnd = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
+    Vector2f xOffset(xEnd[0] - xStart[0],xEnd[1] - xStart[1]);
+
+    // Remove the scaling by spacing
+    xOffset(0) *= m_Parent->m_SliceSpacing(0);
+    xOffset(1) *= m_Parent->m_SliceSpacing(1);
+
+    // Under the left button, the tool changes the view_pos by the
+    // distance traversed
+    m_Parent->SetViewPosition(m_StartViewPosition - xOffset);
+    m_ParentUI->OnViewPositionsUpdate();
+    return 1;
+    } 
 }
 
 int
@@ -203,6 +258,7 @@ CrosshairsInteractionMode
       // We want to move 5 screen pixels every 0.1 sec. How many voxels is that
       int nvox = std::max(min_voxel_speeds[speedidx], 
         (int) (0.5 + pixspeed / (m_Parent->m_ViewZoom * m_Parent->m_SliceSpacing[i])));
+
       
       // Move the cursor left by nvox voxel
       newViewPos[i] -= nvox * m_Parent->m_SliceSpacing[i];
@@ -224,6 +280,10 @@ CrosshairsInteractionMode
       hotzone = true;
       }
     }
+
+  // Hotzone is disabled when whole slice is visible
+  if(m_Parent->m_ViewZoom <= m_Parent->m_OptimalZoom)
+    hotzone = false;
   
   if(hotzone)
     {
@@ -292,6 +352,12 @@ OnDraw()
     
     // No need to call this until another update
     m_NeedToRepaintControls = false;
+    }
+
+  if(m_NeedUIUpdateOnRepaint)
+    {
+    m_ParentUI->OnZoomUpdate();
+    m_NeedUIUpdateOnRepaint = false;
     }
 
   // Get the line color, thickness and dash spacing for the crosshairs
