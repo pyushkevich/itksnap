@@ -318,14 +318,14 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
           }
-          Fl_Group m_GrpControls {
+          Fl_Group m_GrpControls {open
             xywh {0 24 145 711} box BORDER_FRAME color 0
           } {
             Fl_Wizard m_WizControlPane {
-              label {Control Pane}
+              label {Control Pane} open
               xywh {0 25 145 700} box NO_BOX color 22 align 16
             } {
-              Fl_Group m_GrpToolbarPage {open
+              Fl_Group m_GrpToolbarPage {
                 xywh {0 25 145 700} color 53 labelsize 12
               } {
                 Fl_Group m_GrpInteractionModes {
@@ -676,7 +676,7 @@ ITK-SNAP!  Visit our new website:
                   }
                 }
               }
-              Fl_Group m_GrpSNAPPage {
+              Fl_Group m_GrpSNAPPage {open
                 xywh {0 25 145 680} color 53 hide
               } {
                 Fl_Group {} {
@@ -800,12 +800,12 @@ the preprocessed image.} open
                       Fl_Button m_BtnAddBubble {
                         label {Add Bubble}
                         callback {OnAddBubbleAction()}
-                        tooltip {Add bubble at cursor position} xywh {15 280 55 35} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
+                        tooltip {Add bubble at cursor position} xywh {15 280 55 35} box PLASTIC_UP_BOX shortcut 0x50061 color 180 labelsize 11 align 128
                       }
                       Fl_Button m_BtnRemoveBubble {
                         label {Remove Bubble}
-                        callback {OnRemoveBubbleAction()}
-                        tooltip {Remove highlighted bubble from list} xywh {75 280 55 35} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
+                        callback {OnRemoveBubbleAction()} selected
+                        tooltip {Remove highlighted bubble from list} xywh {75 280 55 35} box PLASTIC_UP_BOX shortcut 0x50072 color 180 labelsize 11 align 128
                       }
                       Fl_Value_Slider m_InBubbleRadius {
                         label {Radius:}
@@ -1336,7 +1336,7 @@ this->OnSNAPLabelOpacityChange();}
         Fl_Group m_GrpMainLayoutTight {open
           xywh {0 0 875 735} hide
         } {
-          Fl_Group m_GrpRightPanePlaceholderTight {open selected
+          Fl_Group m_GrpRightPanePlaceholderTight {open
             xywh {0 0 875 735} resizable
           } {}
         }
@@ -1359,7 +1359,7 @@ this->OnSNAPLabelOpacityChange();}
       } {}
     }
     Fl_Window m_WinProgress {
-      label {SNAP Progress Meter}
+      label {SNAP Progress Meter} open
       xywh {434 461 485 70} type Double box BORDER_BOX color 53 modal noborder visible
     } {
       Fl_Group {} {
