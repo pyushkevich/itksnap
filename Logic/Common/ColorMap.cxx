@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 08:34:01 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -33,6 +33,7 @@
 
 =========================================================================*/
 #include "ColorMap.h"
+#include "IRISException.h"
 #include <algorithm>
 
 bool
@@ -149,6 +150,7 @@ ColorMap
     m_CMPoints.push_back( *it );
     ++it;
     }
+  this->UpdateInterpolants(); 
 }
 
 bool
@@ -184,42 +186,71 @@ ColorMap
   // Insert the point after the lower bound
   CMPointIterator itnew = m_CMPoints.insert(it, newbie);
 
+  this->UpdateInterpolants(); 
+
   return itnew - m_CMPoints.begin();
+}
+
+
+void
+ColorMap
+::UpdateInterpolants()
+{
+  // Set the size of the interpolant array to n+1
+  size_t n = m_CMPoints.size();
+  m_Interpolants.resize(n+1);
+
+  // Loop over the component
+  for(size_t d = 0; d < 4; d++)
+    {
+    // Set first and last interpolants
+    m_Interpolants[0].slope[d] = 0.0f; 
+    m_Interpolants[0].intercept[d] = m_CMPoints[0].m_RGBA[0][d];
+    m_Interpolants[n].slope[d] = 0.0f; 
+    m_Interpolants[n].intercept[d] = m_CMPoints[n-1].m_RGBA[1][d];
+
+    // Set the intermediate interpolants
+    for(size_t i = 1; i < n; i++)
+      {
+      float t0 = m_CMPoints[i-1].m_Index;
+      float t1 = m_CMPoints[i].m_Index;
+      float c0 = m_CMPoints[i-1].m_RGBA[1][d];
+      float c1 = m_CMPoints[i].m_RGBA[0][d];
+      if(t1 > t0)
+        {
+        m_Interpolants[i].slope[d] = (c1 - c0) / (t1 - t0);
+        m_Interpolants[i].intercept[d] = c0 - m_Interpolants[i].slope[d] * t0;
+        }
+      else
+        {
+        m_Interpolants[i].slope[d] = 0;
+        m_Interpolants[i].intercept[d] = c0;
+        }
+      }
+    }
 }
 
 ColorMap::RGBAType
 ColorMap
 ::MapIndexToRGBA(double j) const
 {
-  // Perform binary search for the value j
-  CMPoint p(j, 0x00, 0x00, 0x00, 0x00);
-  CMPointConstIterator it = std::lower_bound(m_CMPoints.begin(), m_CMPoints.end(), p);
+  // We use simple linear search because most colormaps
+  // are tiny and the overhead of binary search is not worth it
+  size_t n = m_CMPoints.size(), lb;
+  for(lb = 0; lb < n; lb++)
+    if(j < m_CMPoints[lb].m_Index)
+      break;
 
-  // If this is the first point, return it's value 
-  if(it == m_CMPoints.begin())
-    return m_CMPoints.front().m_RGBA[0];
+  // Get the interpolants
+  const InterpolantData &ic = m_Interpolants[lb];
 
-  // Same for the last point
-  if(it == m_CMPoints.end())
-    return m_CMPoints.back().m_RGBA[1];
-
-  // Otherwise, there are two points to interpolate between
-  CMPointConstIterator it0 = it; --it0;
-
-  double dp = it->m_Index - it0->m_Index;
-  RGBAType rout;
-  if(dp > 0)
-    {
-    double dj = (j - it0->m_Index) / dp;
-    for(size_t i = 0; i < 4; i++)
-      rout[i] = (unsigned char)(it0->m_RGBA[1][i] * (1.0 - dj) + it->m_RGBA[0][i] * dj);
-    }
-  else
-    {
-    RGBAType rout = it->m_RGBA[0];
-    }
-
-  return rout;
+  // Compute the output value
+  RGBAType c;
+  c[0] = (unsigned char)(ic.intercept[0] + ic.slope[0] * j);
+  c[1] = (unsigned char)(ic.intercept[1] + ic.slope[1] * j);
+  c[2] = (unsigned char)(ic.intercept[2] + ic.slope[2] * j);
+  c[3] = (unsigned char)(ic.intercept[3] + ic.slope[3] * j);
+  return c;
 }
 
 void
@@ -240,7 +271,6 @@ ColorMap
       }
     }
 }
-
 void
 ColorMap
 ::SetToSystemPreset(SystemPreset preset)
@@ -327,10 +357,121 @@ ColorMap
       m_CMPoints.push_back( CMPoint(0.9   , 0xff, 0x00, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(1.0,    0x80, 0x00, 0x00, 0xff, 0x00) );
       break;
+
+    case COLORMAP_BWR:
+      m_CMPoints.push_back( CMPoint(0.0,    0x00, 0x00, 0xff, 0x00, 0xff) ); 
+      m_CMPoints.push_back( CMPoint(0.5,    0xff, 0xff, 0xff, 0xff) ); 
+      m_CMPoints.push_back( CMPoint(1.0,    0xff, 0x00, 0x00, 0xff, 0x00) );
+      break;
+
+    case COLORMAP_RWB:
+      m_CMPoints.push_back( CMPoint(0.0,    0xff, 0x00, 0x00, 0x00, 0xff) ); 
+      m_CMPoints.push_back( CMPoint(0.5,    0xff, 0xff, 0xff, 0xff) ); 
+      m_CMPoints.push_back( CMPoint(1.0,    0x00, 0x00, 0xff, 0xff, 0x00) );
+      break;
+
     case COLORMAP_SIZE:
       // to suppress compiler warning
       std::cerr << "COLORMAP_SIZE: should never get there ..." << std::endl;
       break;
    }
+
+  this->UpdateInterpolants(); 
 }
 
+void ColorMap
+::SaveToRegistry(Registry &reg)
+{
+  // Store the number of control points
+  reg["NumberOfControlPoints"] << m_CMPoints.size();
+
+  RegistryEnumMap<CMPointType> emap;
+  emap.AddPair(CONTINUOUS,"Continuous");
+  emap.AddPair(DISCONTINUOUS,"Discontinuous");
+
+  // Save each control point
+  for(size_t iPoint = 0; iPoint < m_CMPoints.size(); iPoint++)
+    {
+    // Get the current values, just in case
+    CMPoint p = m_CMPoints[iPoint];
+
+    // Create a folder in the registry
+    std::string key = reg.Key("ControlPoint[%04d]",iPoint);
+    Registry &folder = reg.Folder(key);
+    folder["Index"] << p.m_Index;
+    folder["Type"].PutEnum(emap, p.m_Type);
+    folder["Left.R"] << (int) p.m_RGBA[0][0];
+    folder["Left.G"] << (int) p.m_RGBA[0][1];
+    folder["Left.B"] << (int) p.m_RGBA[0][2];
+    folder["Left.A"] << (int) p.m_RGBA[0][3];
+    folder["Right.R"] << (int) p.m_RGBA[1][0];
+    folder["Right.G"] << (int) p.m_RGBA[1][1];
+    folder["Right.B"] << (int) p.m_RGBA[1][2];
+    folder["Right.A"] << (int) p.m_RGBA[1][3];
+    }
+}
+
+
+ void ColorMap
+::LoadFromRegistry(Registry &reg)
+{
+  // Store the number of control points
+  size_t n = reg["NumberOfControlPoints"][0];
+  if(n == 0)
+    throw IRISException("Can not read color map. No entries found");
+
+  // Read each control point
+  CMPointList newpts;
+
+  RegistryEnumMap<CMPointType> emap;
+  emap.AddPair(CONTINUOUS,"Continuous");
+  emap.AddPair(DISCONTINUOUS,"Discontinuous");
+
+  // Save each control point
+  for(size_t iPoint = 0; iPoint < n; iPoint++)
+    {
+    // Get the current values, just in case
+    CMPoint p;
+
+    // Create a folder in the registry
+    std::string key = reg.Key("ControlPoint[%04d]",iPoint);
+    Registry &folder = reg.Folder(key);
+
+    p.m_Index = folder["Index"][-1.0];
+    p.m_Type = folder["Type"].GetEnum(emap, CONTINUOUS);
+    p.m_RGBA[0][0] = (unsigned char) folder["Left.R"][0];
+    p.m_RGBA[0][1] = (unsigned char) folder["Left.G"][0];
+    p.m_RGBA[0][2] = (unsigned char) folder["Left.B"][0];
+    p.m_RGBA[0][3] = (unsigned char) folder["Left.A"][0];
+    if(p.m_Type == CONTINUOUS)
+      {
+      p.m_RGBA[1][0] = p.m_RGBA[0][0];
+      p.m_RGBA[1][1] = p.m_RGBA[0][1];
+      p.m_RGBA[1][2] = p.m_RGBA[0][2];
+      p.m_RGBA[1][3] = p.m_RGBA[0][3];
+      }
+    else
+      {
+      p.m_RGBA[1][0] = (unsigned char) folder["Right.R"][0];
+      p.m_RGBA[1][1] = (unsigned char) folder["Right.G"][0];
+      p.m_RGBA[1][2] = (unsigned char) folder["Right.B"][0];
+      p.m_RGBA[1][3] = (unsigned char) folder["Right.A"][0];
+      }
+
+    // Check validity
+    if(iPoint == 0 && p.m_Index != 0.0)
+      throw IRISException("Can not read color map. First point has non-zero index.");
+
+    if(iPoint == n-1 && p.m_Index != 1.0)
+      throw IRISException("Can not read color map. Last point has index not equal to 1.");
+
+    if(iPoint > 0 && p.m_Index < newpts[iPoint-1].m_Index)
+      throw IRISException("Can not read color map. Indices are not stored in order.");
+
+    newpts.push_back(p);
+    }
+
+  // Got this far? store the new map
+  m_CMPoints = newpts;
+  this->UpdateInterpolants();
+}

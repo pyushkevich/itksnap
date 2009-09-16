@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 08:34:01 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -37,6 +37,7 @@
 #define __ColorMap_h_
 
 #include "itkRGBAPixel.h"
+#include "Registry.h"
 #include <vector>
 
 /**
@@ -67,7 +68,7 @@ class ColorMap
       COLORMAP_GREY = 0, COLORMAP_RED, COLORMAP_GREEN, COLORMAP_BLUE, 
       COLORMAP_HOT, COLORMAP_COOL, COLORMAP_SPRING, COLORMAP_SUMMER, 
       COLORMAP_AUTUMN, COLORMAP_WINTER, COLORMAP_COPPER, COLORMAP_HSV, 
-      COLORMAP_JET, COLORMAP_SIZE
+      COLORMAP_JET, COLORMAP_BWR, COLORMAP_RWB, COLORMAP_SIZE
     };
 
     /** CMPoint representation */
@@ -114,10 +115,10 @@ class ColorMap
       { return m_CMPoints[j]; }
 
     void UpdateCMPoint(size_t j, const CMPoint &p)
-      { m_CMPoints[j] = p; }
+      { m_CMPoints[j] = p; this->UpdateInterpolants(); }
 
     void DeleteCMPoint(size_t j)
-      { m_CMPoints.erase(m_CMPoints.begin() + j); }
+      { m_CMPoints.erase(m_CMPoints.begin() + j); this->UpdateInterpolants(); }
 
     /** 
      * This method inserts a new control point, which is interpolated
@@ -138,6 +139,9 @@ class ColorMap
 
     void PrintSelf();
 
+    void SaveToRegistry(Registry &reg);
+    void LoadFromRegistry(Registry &reg);
+
   private:
 
     typedef std::vector<CMPoint> CMPointList;
@@ -149,6 +153,14 @@ class ColorMap
 
     // Preset
     SystemPreset m_CMPreset;
+
+    // Recomputes internal interpolation terms
+    void UpdateInterpolants();
+
+    struct InterpolantData 
+      { float slope[4], intercept[4]; };
+    typedef std::vector<InterpolantData> InterpolantVector;
+    InterpolantVector m_Interpolants;
 };
 
 

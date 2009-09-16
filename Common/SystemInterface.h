@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/24 00:13:55 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -117,6 +117,21 @@ public:
     const char *file, IRISApplication *app,
     bool restoreLabels, bool restorePreprocessing,
     bool restoreParameters, bool restoreDisplayOptions);
+
+  /**
+   * This is a newer facility that makes saving registry objects more generic 
+   * and atomic. Basically, any 'object' can be saved, read or deleted in the
+   * user's directory. Objects are grouped by categories. The main difference
+   * with the registry is that the objects are stored on disk, so different 
+   * SNAP options are less likely to interfere with each other.
+   */
+  std::vector<std::string> GetSavedObjectNames(const char *category);
+  Registry ReadSavedObject(const char *category, const char *name);
+  void UpdateSavedObject(const char *category, const char *name, Registry &folder);
+  void DeleteSavedObject(const char *category, const char *name);
+  std::string DecodeObjectName(std::string fname);
+  std::string EncodeObjectName(std::string fname);
+
   
   /** 
   * This is a more complex method for loading a file. It work for files that have 

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMapWidget.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 08:34:01 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -93,24 +93,32 @@ ColorMapWidget
   glPopMatrix();
 }
 
+bool
+ColorMapWidget
+::SetSelection(int pt, Side side)
+{
+  bool changed = (m_SelectedCMPoint != pt) || (m_SelectedSide != side);
+  m_SelectedCMPoint = pt;
+  m_SelectedSide = side;
+  if(changed)
+    {
+    this->redraw();
+    m_Parent->OnColorMapSelectedPointUpdate();
+    }
+  return changed;
+}
+
 
 void ColorMapWidget
 ::SetSelectedCMPoint(int pt)
 {
-  // Update ourselves
-  m_SelectedCMPoint = pt;
-  this->redraw();
-
-  // Update the parent
-  m_Parent->OnColorMapSelectedPointUpdate();
-
+  this->SetSelection(pt, m_SelectedSide);
 }
 
 void ColorMapWidget
 ::SetSelectedSide(Side side)
 {
-  m_SelectedSide = side;
-  this->redraw();
+  this->SetSelection(m_SelectedCMPoint, side);
 }
 
 void
@@ -320,17 +328,16 @@ ColorMapInteraction
       {
       if(dy0 / 1.2 < 5.0 / m_Parent->h())
         {
-        m_Parent->SetSelectedCMPoint(i);
+        // We return 0 when the selected point changes to avoid dragging
         if(p.m_Type == ColorMap::CONTINUOUS)
-          m_Parent->SetSelectedSide(ColorMapWidget::BOTH);
+          m_Parent->SetSelection(i, ColorMapWidget::BOTH);
         else
-          m_Parent->SetSelectedSide(ColorMapWidget::LEFT);
+          m_Parent->SetSelection(i, ColorMapWidget::LEFT);
         return 1;
         }
       else if (dy1 / 1.2 < 5.0 / m_Parent->h())
         {
-        m_Parent->SetSelectedCMPoint(i);
-        m_Parent->SetSelectedSide(ColorMapWidget::RIGHT);
+        m_Parent->SetSelection(i, ColorMapWidget::RIGHT);
         return 1;
         }
       }
@@ -340,9 +347,7 @@ ColorMapInteraction
   if(e.XSpace[0] > 0.0 && e.XSpace[0] < 1.0)
     {
     size_t sel = cm.InsertInterpolatedCMPoint(e.XSpace[0]);
-    m_Parent->SetSelectedCMPoint(sel);
-    m_Parent->SetSelectedSide(ColorMapWidget::BOTH);
-    cm.PrintSelf();
+    m_Parent->SetSelection(sel, ColorMapWidget::BOTH);
     return 1;
     }
 
@@ -409,5 +414,7 @@ int
 ColorMapInteraction
 ::OnMouseRelease(const FLTKEvent &e, const FLTKEvent &pe)
 {
-  return this->OnMouseDrag(e,pe);
+  return 1;
+  // return 0; 
+  // this->OnMouseDrag(e,pe);
 }

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMapWidget.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 08:34:01 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -73,6 +73,9 @@ public:
   irisGetMacro(SelectedCMPoint, int);
   void SetSelectedCMPoint(int pt);
   void SetSelectedSide(Side side);
+
+  /** Sets selected point and side, returns true if changed */
+  bool SetSelection(int pt, Side side);
 
 private:
   ColorMap m_ColorMap;

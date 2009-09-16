@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 12:48:44 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -150,6 +150,7 @@ LayerInspectorUILogic
     m_BoxColorMap->SetColorMap(cm);
     m_BoxColorMap->redraw();
     m_BoxColorMap->show();
+    this->OnColorMapSelectedPointUpdate();
     }
 }
 
@@ -359,6 +360,14 @@ LayerInspectorUILogic
   double level = iMin;
   double window = iMax - iMin;
 
+  // The step is set dynamically, so that there are on the order of 
+  // 1000 steps to cover the whole intensity range. That should give
+  // a good tradeoff between precision and control. 
+  double step = pow(10, floor(0.5 + log10(iAbsSpan) - 3)); 
+  m_InWindow->step(step);
+  m_InWindow->step(step);
+  m_InControlX->step(step);
+
   // Compute and constrain the level 
   m_InLevel->value(level);
   m_InLevel->minimum(iAbsMin);
@@ -366,8 +375,58 @@ LayerInspectorUILogic
 
   // Compute and constrain the window
   m_InWindow->value(window);
-  m_InWindow->minimum(0.01);
+  m_InWindow->minimum(step);
   m_InWindow->maximum(iAbsMax - level);
+
+  // In addition to window and level, we set up the valuators for
+  // the current control point
+  int cp = m_BoxCurve->GetInteractor()->GetMovingControlPoint();
+  if(cp >= 0)
+    {
+    if(cp == 0)
+      {
+      m_InControlX->minimum(iAbsMin);
+      }
+    else
+      {
+      m_Curve->GetControlPoint(cp - 1, t0, x0);
+      m_InControlX->minimum(iAbsMin + iAbsSpan * t0 + step);
+      }
+
+    if(cp == m_Curve->GetControlPointCount() - 1)
+      {
+      m_InControlX->maximum(iAbsMax);
+      }
+    else
+      {
+      m_Curve->GetControlPoint(cp + 1, t1, x1);
+      m_InControlX->maximum(iAbsMin + iAbsSpan * t1 - step);
+      }
+
+    if(cp == 0 || cp == m_Curve->GetControlPointCount() - 1)
+      {
+      m_InControlY->deactivate();
+      }
+    else
+      {
+      m_InControlY->activate();
+      m_InControlY->minimum(x0 + 0.01);
+      m_InControlY->maximum(x1 + 0.01);
+      m_InControlY->step(0.01);
+      }    
+
+    // Set the actual value
+    float t, x;
+    m_Curve->GetControlPoint(cp, t, x);
+    m_InControlX->activate();
+    m_InControlX->value(iAbsMin + iAbsSpan * t);
+    m_InControlY->value(x);
+    }
+  else
+    {
+    m_InControlX->deactivate();
+    m_InControlY->deactivate();
+    }
 }
 
 void
@@ -512,6 +571,7 @@ LayerInspectorUILogic
   if (m_Curve->GetControlPointCount() > 3)
     {
     m_Curve->Initialize(m_Curve->GetControlPointCount() - 1);
+    m_BoxCurve->GetInteractor()->SetMovingControlPoint(0);
     OnWindowLevelChange();
     }
   if (m_Curve->GetControlPointCount() == 3)
@@ -520,52 +580,38 @@ LayerInspectorUILogic
 
 void
 LayerInspectorUILogic
-::OnControlPointChange()
+::OnControlPointTextBoxUpdate()
 {
-  float fx = 0;
-  float fy = 0;
-  float bx = 0;
-  float by = 0;
-  unsigned int cp = m_BoxCurve->GetInteractor()->GetMovingControlPoint();
-  const double min = m_GreyWrapper->GetImageMinNative();
-  const double max = m_GreyWrapper->GetImageMaxNative();
-  const double delta = max - min;
-  if (cp == 0)
+  // Get the values of the control points
+  int cp = m_BoxCurve->GetInteractor()->GetMovingControlPoint();
+  if(cp >= 0)
     {
-    m_Curve->GetControlPoint(cp + 1, bx, by);
-    m_InControlX->maximum(0.9999*(bx*delta + min));
-    m_InControlX->minimum(min);
-    m_InControlY->maximum(0.9999*by);
-    m_InControlY->minimum(0);
-    m_Curve->GetControlPoint(cp, fx, fy);
-    fx = (m_InControlX->value() - min)/delta;
-    m_InControlY->value(fy);
+    // Get the range of the intensity
+    double imin = m_GreyWrapper->GetImageMinNative();
+    double imax = m_GreyWrapper->GetImageMaxNative();
+    double delta = imax - imin;
+
+    // Update the point, although the curve may reject these values
+    float tnew = (m_InControlX->value() - imin) / delta;
+    float xnew = m_InControlY->value();
+    bool accept = m_BoxCurve->UpdateControlPoint((size_t) cp, tnew, xnew);
+
+    // Update the text boxes with actual values
+    if(!accept)
+      {
+      float told, xold;
+      m_Curve->GetControlPoint(cp, told, xold);
+      m_InControlX->value(told * delta + imin);
+      m_InControlY->value(xold);
+      }
+    else
+      {
+      this->OnCurveChange();
+      }
     }
-  else if (cp == m_Curve->GetControlPointCount() - 1)
-    {
-    m_Curve->GetControlPoint(cp - 1, bx, by);
-    m_InControlX->maximum(max);
-    m_InControlX->minimum(1.0001*(bx*delta+min));
-    m_InControlY->maximum(1.0);
-    m_InControlY->minimum(1.0001*by);
-    m_Curve->GetControlPoint(cp, fx, fy);
-    fx = (m_InControlX->value() - min)/delta;
-    m_InControlY->value(fy);
-    }
-  else
-    {
-    m_Curve->GetControlPoint(cp + 1, bx, by);
-    m_InControlX->maximum(0.9999*(bx*delta + min));
-    m_InControlY->maximum(0.9999*by);
-    m_Curve->GetControlPoint(cp - 1, bx, by);
-    m_InControlX->minimum(1.0001*(bx*delta + min));
-    m_InControlY->minimum(1.0001*by);
-    fx = (m_InControlX->value() - min)/delta;
-    fy = m_InControlY->value();
-    }
-  m_Curve->UpdateControlPoint(cp, fx, fy);
-  OnCurveChange();
 }
+
+
 
 void 
 LayerInspectorUILogic
@@ -597,7 +643,9 @@ LayerInspectorUILogic::m_PresetInfo[] = {
   {"Copper", 0x00000000},
   {"HSV", 0x00000000},
   {"Jet", 0x00000000},
-  {"OverUnder", 0x00000000}};
+  {"Blue, white and red", 0x00000000},
+  {"Red, white and blue", 0x00000000}};
+
 
 void
 LayerInspectorUILogic
@@ -612,45 +660,129 @@ void
 LayerInspectorUILogic
 ::PopulateColorMapPresets()
 {
+  // Set the system presets
   m_InColorMapPreset->clear();
   for(int i = 0; i < ColorMap::COLORMAP_SIZE; i++)
-    m_InColorMapPreset->add(m_PresetInfo[i].name.c_str());
+    {
+    if(i == ColorMap::COLORMAP_SIZE - 1)
+      {
+      string text = string("_") + m_PresetInfo[i].name;
+      m_InColorMapPreset->add(text.c_str());
+      }
+    else
+      {
+      m_InColorMapPreset->add(m_PresetInfo[i].name.c_str());
+      }
+    }
+
+  // Now add the custom presets
+  std::vector<string> saved = 
+    m_Driver->GetSystemInterface()->GetSavedObjectNames("ColorMaps");
+  for(int i = 0; i < saved.size(); i++)
+    m_InColorMapPreset->add(saved[i].c_str());
 }
 
 void 
 LayerInspectorUILogic
 ::OnColorMapPresetUpdate()
 {
+  ColorMap cm;
   m_BoxCurve->hide();
+
   // Apply the current preset
   int sel = m_InColorMapPreset->value();
-  ColorMap::SystemPreset preset = 
-    (ColorMap::SystemPreset) (ColorMap::COLORMAP_GREY + sel);
+  if(sel < 0)
+    return;
 
-  // Update the color map
-  ColorMap cm;
-  cm.SetToSystemPreset(preset);
+  if(sel < ColorMap::COLORMAP_SIZE)
+    {
+    ColorMap::SystemPreset preset = 
+      (ColorMap::SystemPreset) (ColorMap::COLORMAP_GREY + sel);
+    
+    // Update the color map
+    cm.SetToSystemPreset(preset);
+    }
+  else
+    {
+    try 
+      {
+      Registry &reg = 
+        m_Driver->GetSystemInterface()->ReadSavedObject(
+          "ColorMaps", m_InColorMapPreset->text(sel));
+      cm.LoadFromRegistry(reg);
+      }
+    catch(IRISException &exc)
+      {
+      fl_alert("Failed to read preset from file: \n%s", exc.what());
+      return;
+      }    
+    }
+
   m_BoxColorMap->SetColorMap(cm);
+  m_BoxColorMap->SetSelectedCMPoint(-1);
   m_BoxColorMap->redraw();
   m_BoxColorMap->show();
 
   // Update the image
   m_GreyWrapper->SetColorMap(cm);
   m_GreyWrapper->UpdateIntensityMapFunction();
+
+  this->OnColorMapSelectedPointUpdate();
 }
 
 void 
 LayerInspectorUILogic
 ::OnColorMapAddPresetAction()
 {
+  // What default to recommend?
+  int sel = m_InColorMapPreset->value();
+  string deflt = (sel < ColorMap::COLORMAP_SIZE)
+    ? string("My ") + m_InColorMapPreset->text(sel)
+    : m_InColorMapPreset->text(sel);
 
+  // Prompt the user for the name
+  const char *name = fl_input("How do you want to name your preset?", deflt.c_str());
+  if(!name || strlen(name) == 0)
+    return;
+
+  // Create a registry
+  Registry reg;
+  m_BoxColorMap->GetColorMap().SaveToRegistry(reg);
+
+  // Write to file
+  m_Driver->GetSystemInterface()->UpdateSavedObject("ColorMaps",name,reg);
+
+  // Refresh the list of presents
+  PopulateColorMapPresets();
+
+  // Set the current preset as the selection
+  m_InColorMapPreset->value(-1);
+  for(size_t i = 0; i < m_InColorMapPreset->size(); i++)
+    if(!strcmp(m_InColorMapPreset->text(i), name))
+      { m_InColorMapPreset->value(i); break; }
 }
 
 void 
 LayerInspectorUILogic
 ::OnColorMapDeletePresetAction()
 {
+  int sel = m_InColorMapPreset->value();
+  if(sel >= ColorMap::COLORMAP_SIZE)
+    {
+    // Delete the bad one
+    string name = m_InColorMapPreset->text(sel);
+    m_Driver->GetSystemInterface()->DeleteSavedObject("ColorMaps",name.c_str());
 
+    // Refresh the list of presents
+    PopulateColorMapPresets();
+
+    // Select the next color map
+    if(sel < m_InColorMapPreset->size()-1)
+      m_InColorMapPreset->value(sel);
+    else
+      m_InColorMapPreset->value(m_InColorMapPreset->size() - 2);
+    this->OnColorMapPresetUpdate();
+    }
 }
 
 void 
@@ -663,6 +795,12 @@ LayerInspectorUILogic
 
   if(sel >= 0)
     {
+    // Activate relevant widgets
+    m_InColorMapSide->activate();
+    m_InColorMapIndex->activate();
+    // m_InColorMapRGBA->activate();
+
+    // Get color
     ColorMap &cm = this->m_BoxColorMap->GetColorMap();
     ColorMap::CMPoint p = cm.GetCMPoint(sel);
 
@@ -717,6 +855,13 @@ LayerInspectorUILogic
       m_MenuColorMapBoth->activate();
       m_BtnColorMapDeletePoint->activate();
       }
+    }
+  else
+    {
+    m_BtnColorMapDeletePoint->deactivate();
+    m_InColorMapSide->deactivate();
+    m_InColorMapIndex->deactivate();
+    // m_InColorMapRGBA->deactivate();
     }
 }
 

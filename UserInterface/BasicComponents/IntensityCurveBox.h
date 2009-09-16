@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 23:04:29 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -87,6 +87,12 @@ public:
   irisIsMacro(HistogramLog);
   irisSetMacro(HistogramLog, bool);
 
+  // External command for moving the control points. The method will
+  // not allow updates that violate constraints. The return value is 
+  // true if the constraints were not violated. Return values tnew and
+  // xnew give the values of the control point after update. 
+  bool UpdateControlPoint(size_t i, float t, float x);
+
   /**
    * The resolution of the curve displayed on the screen
    * TODO: Control over curve resolution
@@ -121,10 +127,15 @@ private:
   /** Flag, whether log of the frequencies is used */
   bool m_HistogramLog;
 
+  // Draw circles
+  void gl_draw_circle_with_border(double x, double y, double r, bool select);
+
   IntensityCurveInteraction* m_Interactor;
 
   // Allow access to private data
   friend class IntensityCurveInteraction;
+
+  
 
 };
 
@@ -142,6 +153,7 @@ public:
   int OnMouseLeave(const FLTKEvent &event);
   int OnMouseMotion(const FLTKEvent &event);
   int GetMovingControlPoint() const;
+  void SetMovingControlPoint(int cp);
 
 private:
   // Pointer to the parent canvas

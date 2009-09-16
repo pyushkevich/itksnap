@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 08:34:01 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -76,7 +76,7 @@ public:
   void OnUpdateHistogram();
   void OnControlPointMoreAction();
   void OnControlPointLessAction();
-  void OnControlPointChange();
+  void OnControlPointTextBoxUpdate();
   void OnControlPointUpdate();
 
   // Callbacks for the color map page

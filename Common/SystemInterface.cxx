@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/29 02:21:07 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.20 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -39,6 +39,7 @@
 #include "SNAPRegistryIO.h"
 #include "FL/Fl_Preferences.H"
 #include "FL/filename.H"
+#include <itksys/Directory.hxx>
 #include <itksys/SystemTools.hxx>
 #include "itkVoxBoCUBImageIOFactory.h"
 #include <algorithm>
@@ -56,6 +57,7 @@
 #endif
 
 using namespace std;
+using namespace itksys;
 
 SystemInterface
 ::SystemInterface()
@@ -104,7 +106,7 @@ SystemInterface
 ::LoadUserPreferences()
 {
   // Check if the file exists, may throw an exception here
-  if(itksys::SystemTools::FileExists(m_UserPreferenceFile.c_str()))
+  if(SystemTools::FileExists(m_UserPreferenceFile.c_str()))
     {
     // Read the contents of the preferences from file
     ReadFromFile(m_UserPreferenceFile.c_str());
@@ -147,7 +149,7 @@ SystemInterface
   // in the $PATH variable, we don't know for sure where the data is
   // Create a vector of paths that will be searched for 
   // the file SNAPProgramDataDirectory.txt
-  StringType sExeFullPath = itksys::SystemTools::FindProgram(pathToExe);
+  StringType sExeFullPath = SystemTools::FindProgram(pathToExe);
   if(sExeFullPath.length())
     {
     // Encode the path to the executable so that we can search for an associated
@@ -175,8 +177,8 @@ SystemInterface
       GetProgramDataDirectoryTokenFileName();
 
     // Perform a sanity check on the directory
-    if(itksys::SystemTools::FileIsDirectory(sAssociatedPath.c_str()) && 
-       itksys::SystemTools::FileExists(sSearchName.c_str()))
+    if(SystemTools::FileIsDirectory(sAssociatedPath.c_str()) && 
+       SystemTools::FileExists(sSearchName.c_str()))
       {
       // We've found the path
       sRootDir = sAssociatedPath;
@@ -193,26 +195,26 @@ SystemInterface
 
     // Look at the directory where the exe sits
     vPathList.push_back(
-      itksys::SystemTools::GetFilenamePath(sExeFullPath) + "/ProgramData");
+      SystemTools::GetFilenamePath(sExeFullPath) + "/ProgramData");
 
     // Look one directory up from that
     vPathList.push_back(
-      itksys::SystemTools::GetFilenamePath(
-        itksys::SystemTools::GetFilenamePath(sExeFullPath)) + 
+      SystemTools::GetFilenamePath(
+        SystemTools::GetFilenamePath(sExeFullPath)) + 
       "/ProgramData");
 
     // Also, for UNIX installations, look for ${INSTALL_PATH}/share/snap/ProgramData
     vPathList.push_back(
-       itksys::SystemTools::GetFilenamePath(
-         itksys::SystemTools::GetFilenamePath(sExeFullPath)) + 
+       SystemTools::GetFilenamePath(
+         SystemTools::GetFilenamePath(sExeFullPath)) + 
        "/share/snap/ProgramData");
 
     // Search for the token file in the path list
     StringType sFoundFile = 
-      itksys::SystemTools::FindFile(
+      SystemTools::FindFile(
         GetProgramDataDirectoryTokenFileName(),vPathList);
     if(sFoundFile.length())
-      sRootDir = itksys::SystemTools::GetFilenamePath(sFoundFile);
+      sRootDir = SystemTools::GetFilenamePath(sFoundFile);
     }
 
   // If we still don't have a root path, there's no home
@@ -255,7 +257,7 @@ SystemInterface
 
   // Convert to unix slashes for consistency
   string path(buffer);
-  itksys::SystemTools::ConvertToUnixSlashes(path);
+  SystemTools::ConvertToUnixSlashes(path);
 
   // Convert the filename to a numeric string (to prevent clashes with the Registry class)
   path = EncodeFilename(path);
@@ -292,6 +294,171 @@ SystemInterface
 
 string
 SystemInterface
+::EncodeObjectName(string text)
+{
+  ostringstream oss;
+  size_t n = text.length();
+  for(size_t i = 0; i < n; i++)
+    {
+    char c = text[i];
+    if(c >= 'a' && c <= 'z')
+      oss << c;
+    else if(c >= 'A' && c <= 'Z')
+      oss << c;
+    else if(c >= '0' && c <= '9')
+      oss << c;
+    else if(c == ' ')
+      oss << "__";
+    else
+      {
+      char buffer[5];
+      sprintf(buffer, "_%03d", (int) c);
+      oss << buffer;
+      }
+    }
+
+  return oss.str();
+}  
+
+string
+SystemInterface
+::DecodeObjectName(string fname)
+{
+  ostringstream oss;
+  size_t n = fname.length();
+  for(size_t i = 0; i < n; i++)
+    {
+    char c = fname[i];
+    if(c == '_')
+      {
+      if(i+1 < n && fname[i+1] == '_')
+        { oss << ' '; i++; }
+      else if(i+3 < n)
+        { oss << (char)(atoi(fname.substr(i+1,3).c_str())); i+=3; }
+      else return "";
+      }
+    else
+      oss << c;
+    }
+  return oss.str();
+}
+
+vector<string> 
+SystemInterface
+::GetSavedObjectNames(const char *category)
+{
+  // Create a preferences object for the associations subdirectory
+  string subpath("SNAP/");
+  subpath += category;
+  Fl_Preferences pref(Fl_Preferences::USER,"itk.org",subpath.c_str());
+
+  // Use it to get a path for user data
+  char userDataPath[1024]; 
+  pref.getUserdataPath(userDataPath,1024);
+
+  // Get the names
+  vector<string> names;
+
+  // Get the listing of all files in there
+  Directory dlist;
+  dlist.Load(userDataPath);
+  for(size_t i = 0; i < dlist.GetNumberOfFiles(); i++)
+    {
+    string fname = dlist.GetFile(i);
+
+    // Check regular file
+    ostringstream ffull; 
+    ffull << userDataPath << "/" << fname;
+    if(SystemTools::FileExists(ffull.str().c_str(), true))
+      {
+      // Check extension
+      if(SystemTools::GetFilenameExtension(fname) == ".txt")
+        {
+        string base = SystemTools::GetFilenameWithoutExtension(fname);
+        string name = DecodeObjectName(base);
+        if(name.length())
+          names.push_back(name);
+        }
+      }
+    }
+
+  return names;
+}
+
+Registry 
+SystemInterface
+::ReadSavedObject(const char *category, const char *name)
+{
+  // Create a preferences object for the associations subdirectory
+  string subpath("SNAP/");
+  subpath += category;
+  Fl_Preferences pref(Fl_Preferences::USER,"itk.org",subpath.c_str());
+
+  // Use it to get a path for user data
+  char userDataPath[1024]; 
+  pref.getUserdataPath(userDataPath,1024);
+
+  // Create a save filename
+  IRISOStringStream sfile;
+  sfile << userDataPath << "/" << EncodeObjectName(name) << ".txt";
+  string fname = sfile.str();
+
+  // Check the filename
+  if(!SystemTools::FileExists(fname.c_str(), true))
+    throw IRISException("Saved object file does not exist");
+
+  Registry reg(fname.c_str());
+  return reg;
+}
+
+void 
+SystemInterface
+::UpdateSavedObject(const char *category, const char *name, Registry &folder)
+{
+  // Create a preferences object for the associations subdirectory
+  string subpath("SNAP/");
+  subpath += category;
+  Fl_Preferences pref(Fl_Preferences::USER,"itk.org",subpath.c_str());
+
+  // Use it to get a path for user data
+  char userDataPath[1024]; 
+  pref.getUserdataPath(userDataPath,1024);
+
+  // Create a save filename
+  IRISOStringStream sfile;
+  sfile << userDataPath << "/" << EncodeObjectName(name) << ".txt";
+  string fname = sfile.str();
+
+  // Save the data
+  folder.WriteToFile(fname.c_str());
+}
+
+void 
+SystemInterface
+::DeleteSavedObject(const char *category, const char *name)
+{
+  // Create a preferences object for the associations subdirectory
+  string subpath("SNAP/");
+  subpath += category;
+  Fl_Preferences pref(Fl_Preferences::USER,"itk.org",subpath.c_str());
+
+  // Use it to get a path for user data
+  char userDataPath[1024]; 
+  pref.getUserdataPath(userDataPath,1024);
+
+  // Create a save filename
+  IRISOStringStream sfile;
+  sfile << userDataPath << "/" << EncodeObjectName(name) << ".txt";
+
+  // Save the data
+  SystemTools::RemoveFile(sfile.str().c_str());
+}
+
+
+
+
+string
+SystemInterface
 ::EncodeFilename(const string &src)
 {
   IRISOStringStream sout;
@@ -312,7 +479,7 @@ SystemInterface
 
   // Convert to unix slashes for consistency
   string path(buffer);
-  itksys::SystemTools::ConvertToUnixSlashes(path);
+  SystemTools::ConvertToUnixSlashes(path);
   path = EncodeFilename(path);
 
   // Compute a timestamp from the start of computer time

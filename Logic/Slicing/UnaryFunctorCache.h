@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UnaryFunctorCache.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -76,15 +76,21 @@ public:
   itkTypeMacro(UnaryFunctorCache,itk::Object);
 
   /** Evaluate the function using cache lookup */
-  TOutput Evaluate(const TInput &in) const 
+  TOutput Evaluate(const TInput &in) 
     {
+    if(m_Modified)
+      this->ComputeCache();
     return m_Cache[in - m_CacheBegin];
     }
 
   /**
    * Set the function instance to call evaluate on
    */
-  irisSetMacro(InputFunctor,TFunctor *);
+  void SetInputFunctor(TFunctor *functor)
+    {
+    this->m_InputFunctor = functor;
+    m_Modified = true;
+    }
 
   /**
    * Get the function instance
@@ -104,6 +110,8 @@ public:
     m_CacheLength = end;
     m_CacheLength += 1;
     m_CacheLength -= begin;
+
+    m_Modified = true;
   }
 
   /** Compute the cache */
@@ -136,7 +144,8 @@ protected:
   TInput m_CacheBegin;
   
   /** The length of the cache */
-  unsigned int m_CacheLength;
+  unsigned int m_CacheLength, m_CacheAllocatedLength;
+  bool m_Modified;
 
 
   /**

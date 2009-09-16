@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UnaryFunctorCache.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -43,6 +43,8 @@ UnaryFunctorCache<TInput,TOutput,TFunctor>
   m_Cache = NULL;
   m_CacheBegin = 0;
   m_CacheLength = 0;
+  m_CacheAllocatedLength = 0;
+  m_Modified = false;
 }
 
 template <class TInput, class TOutput, class TFunctor>
@@ -61,17 +63,23 @@ UnaryFunctorCache<TInput,TOutput,TFunctor>
   // Functor must be declared and cache length must be non-zero
   assert(m_InputFunctor && m_CacheLength > 0);
 
-  // Allocate the cache
-  if(m_Cache)
-    delete[] m_Cache;
-  m_Cache = new TOutput[m_CacheLength];
-
+  // Allocate the cache, but only if the length changed
+  if(m_CacheAllocatedLength != m_CacheLength)
+    {
+    if(m_Cache) 
+      delete m_Cache;
+    m_Cache = new TOutput[m_CacheLength];
+    m_CacheAllocatedLength = m_CacheLength;
+    }
+    
   // Compute the cache elements
   int iFunc = m_CacheBegin;
   for(unsigned int iCache = 0; iCache < m_CacheLength; iCache++)
     {
     m_Cache[iCache] = (*m_InputFunctor)(iFunc++);
     }
+
+  m_Modified = false;
 }
 
 template <class TInput, class TOutput, class TFunctor>

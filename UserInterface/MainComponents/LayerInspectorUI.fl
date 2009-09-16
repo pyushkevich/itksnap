@@ -9,7 +9,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
   } {
     Fl_Window m_WinLayerUI {
       label {ITK-SNAP: Layer Inspector} open
-      xywh {724 132 580 485} type Double box PLASTIC_DOWN_BOX resizable
+      xywh {692 132 580 485} type Double box PLASTIC_DOWN_BOX resizable
       code0 {\#include "LayerInspectorUIBase.h"} visible
     } {
       Fl_Tabs m_LayerUITabs {
@@ -18,7 +18,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
       } {
         Fl_Group m_ImageContrastTab {
           label Contrast open
-          xywh {180 25 390 455} labelsize 12 hide
+          xywh {180 25 390 455} labelsize 12
         } {
           Fl_Group {} {
             label {Window and Level:} open
@@ -74,13 +74,13 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             }
             Fl_Value_Input m_InControlX {
               label {Input Intensity:}
-              callback {this->OnControlPointChange();}
-              xywh {210 340 90 25} labelsize 12 align 5 step 0.01 textsize 12
+              callback {this->OnControlPointTextBoxUpdate();}
+              xywh {210 340 90 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
             }
             Fl_Value_Input m_InControlY {
               label {Output Intensity:}
-              callback {this->OnControlPointChange();}
-              xywh {315 340 90 25} labelsize 12 align 5 step 0.01 textsize 12
+              callback {this->OnControlPointTextBoxUpdate();}
+              xywh {315 340 90 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
             }
           }
           Fl_Group {} {
@@ -89,7 +89,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
           } {
             Fl_Value_Input m_InHistogramMaxLevel {
               label {Cutoff (%):}
-              callback {this->OnUpdateHistogram();}
+              callback {this->OnUpdateHistogram();} selected
               xywh {385 410 55 25} labelsize 12 when 4 maximum 100 step 0.5 value 100 textsize 12
             }
             Fl_Value_Input m_InHistogramBinSize {
@@ -111,7 +111,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
         }
         Fl_Group m_ColorMapTab {
           label {Color Map} open
-          xywh {180 25 390 455} labelsize 12
+          xywh {180 25 390 455} labelsize 12 hide
         } {
           Fl_Group {} {
             label {Color Map Editor:} open
@@ -126,14 +126,14 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             Fl_Box m_InColorMapRGBA {
               label {color chooser}
               callback {this->OnColorMapRGBAUpdate()}
-              xywh {320 219 230 107} box BORDER_BOX
+              xywh {330 219 220 107} box BORDER_BOX labelsize 11
               code0 {\#include <FL/Fl_Color_Chooser.H>}
               class Fl_Color_Chooser
             }
             Fl_Value_Input m_InColorMapIndex {
               label {Color Index:}
               callback {this->OnColorMapIndexUpdate();}
-              xywh {200 235 70 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
+              xywh {200 235 65 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
             }
             Fl_Choice m_InColorMapSide {
               label {Side:}
@@ -154,9 +154,9 @@ class LayerInspectorUI {open : LayerInspectorUIBase
               }
             }
             Fl_Button m_BtnColorMapDeletePoint {
-              label {-}
-              callback {this->OnColorMapPointDelete();} selected
-              xywh {280 235 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
+              label delete
+              callback {this->OnColorMapPointDelete();}
+              xywh {275 235 45 25} box PLASTIC_UP_BOX shortcut 0x2d labelsize 10
             }
           }
           Fl_Group {} {

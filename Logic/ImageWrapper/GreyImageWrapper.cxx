@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/10 19:46:02 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.17 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -129,9 +129,6 @@ void GreyImageWrapper
   // Set the active range of the cache
   m_IntensityMapCache->SetEvaluationRange(iMin,iMax);
 
-  // Compute the cache
-  m_IntensityMapCache->ComputeCache();
-
   // Dirty the intensity filters
   for(unsigned int i=0;i<3;i++)
     m_IntensityFilter[i]->Modified();
@@ -162,9 +159,6 @@ void
 GreyImageWrapper
 ::Update()
 {
-  // Compute the cache
-  m_IntensityMapCache->ComputeCache();
-
   // Dirty the intensity filters
   for(unsigned int i=0;i<3;i++)
     m_IntensityFilter[i]->Modified();

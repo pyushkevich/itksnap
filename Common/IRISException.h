@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISException.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/03 19:12:35 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,6 +52,8 @@ public:
   IRISException(const char *message, ...);
 
   virtual ~IRISException();
+
+  const char * what() { return m_SimpleMessage.c_str(); }
 
   operator const char *();
 };

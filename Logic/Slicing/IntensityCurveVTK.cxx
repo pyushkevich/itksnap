@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveVTK.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -46,6 +46,8 @@ IntensityCurveVTK
   m_Spline->SetLeftConstraint(2);
   m_Spline->SetRightConstraint(2);
   m_Spline->SetDefaultContinuity(-1);
+  m_Spline->SetDefaultTension(0);
+  m_Spline->SetDefaultBias(0);
 }
 
 IntensityCurveVTK

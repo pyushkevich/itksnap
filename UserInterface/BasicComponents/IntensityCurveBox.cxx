@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 20:38:28 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/09/16 20:03:13 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -85,7 +85,7 @@ IntensityCurveBox
     // Set up the basic projection
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(-0.025,1.025,-0.025,1.025);
+    gluOrtho2D(-0.025,1.025,-0.05,1.05);
     glViewport(0,0,w(),h());
 
     // Establish the model view matrix
@@ -244,6 +244,7 @@ IntensityCurveBox
   glEnd();
 
   // Draw the handles
+  glLineWidth(1.0);
   for (unsigned int c=0;c<m_Curve->GetControlPointCount();c++) 
     {
     // Get the next control point
@@ -251,44 +252,16 @@ IntensityCurveBox
     m_Curve->GetControlPoint(c,t,x);
 
     // Draw a quad around the control point
-
-    double rx = 5.0 / w();
-    double ry = 5.0 / h();
-
-    if (c == (unsigned int)m_Interactor->GetMovingControlPoint())
+    if(c == (unsigned int)m_Interactor->GetMovingControlPoint())
       {
-      rx = 6.0 / w();
-      ry = 6.0 / h();
       glColor3d(1,1,0);
+      gl_draw_circle_with_border(t, x, 5.0, false);
       }
     else
       {
       glColor3d(1,0,0);
+      gl_draw_circle_with_border(t, x, 4.0, false);
       }
-    glBegin(GL_QUADS);
-    glVertex2d(t,x-ry);
-    glVertex2d(t+rx,x);
-    glVertex2d(t,x+ry);
-    glVertex2d(t-rx,x);
-    glEnd();       
-
-    glColor3d(0,0,0);
-    glLineWidth(1.0);
-    if (c == (unsigned int)m_Interactor->GetMovingControlPoint())
-      {
-      glColor3d(1,0,0);
-      }
-    else
-      {
-      glColor3d(1,0,0);
-      }
-    glBegin(GL_LINE_LOOP);
-    glVertex2d(t,x-ry);
-    glVertex2d(t+rx,x);
-    glVertex2d(t,x+ry);
-    glVertex2d(t-rx,x);
-    glEnd();
-
     }
 
   // Pop the attributes
@@ -296,6 +269,44 @@ IntensityCurveBox
 
   // Done
   glFlush();
+}
+
+void
+IntensityCurveBox
+::gl_draw_circle_with_border(double x, double y, double r, bool select)
+{
+  static std::vector<double> cx, cy;
+  if(cx.size() == 0)
+    {
+    for(double a = 0; a < 2 * vnl_math::pi - 1.0e-6; a += vnl_math::pi / 20)
+      {
+      cx.push_back(cos(a));
+      cy.push_back(sin(a));
+      }
+    }
+
+  glPushMatrix();
+  glTranslated(x, y, 0.0);
+  glScaled(1.2 / this->w(), 1.2 / this->h(), 1.0);
+
+  glBegin(GL_TRIANGLE_FAN);
+  glVertex2d(0, 0);
+  for(size_t i = 0; i < cx.size(); i++)
+    glVertex2d(r * cx[i], r * cy[i]);
+  glVertex2d(r, 0);
+  glEnd();
+
+  if(select)
+    glColor3ub(0xff,0x00,0xff);
+  else
+    glColor3ub(0x00,0x00,0x00);
+  
+  glBegin(GL_LINE_LOOP);
+  for(size_t i = 0; i < cx.size(); i++)
+    glVertex2d(r * cx[i], r * cy[i]);
+  glEnd();
+
+  glPopMatrix();
 }
 
 int 
@@ -498,67 +509,76 @@ IntensityCurveInteraction
   return m_MovingControlPoint;
 }
 
-bool
+void
 IntensityCurveInteraction
-::UpdateControl(const Vector3f &p)
+::SetMovingControlPoint(int cp)
 {
-  // Take a pointer to the spline for convenience
-  IntensityCurveInterface &curve = *m_Parent->GetCurve();
-  int last = curve.GetControlPointCount()-1;
+  m_MovingControlPoint = cp;
+}
 
-  // Check whether the motion is out of range
-  if (p[0] < 0.0 || p[0] > 1.0)
+
+bool
+IntensityCurveBox
+::UpdateControlPoint(size_t i, float t, float x)
+{
+  // Must be in range
+  assert(i < m_Curve->GetControlPointCount());
+  
+  // Get the current values
+  float told, xold;
+  m_Curve->GetControlPoint(i, told, xold);
+
+  // The control value should be in range
+  if(t < 0.0 || t > 1.0)
     return false;
 
   // First and last control points are treated specially because they
   // provide windowing style behavior
-  if (m_MovingControlPoint == 0 || m_MovingControlPoint == last) 
+  int last = m_Curve->GetControlPointCount()-1;
+  if (i == 0 || i == last) 
     {
     // Get the current domain
-    float xMin,xMax,y;        
-    curve.GetControlPoint(0,xMin,y);
-    curve.GetControlPoint(last,xMax,y);
+    float tMin,tMax,x;        
+    m_Curve->GetControlPoint(0,   tMin, x);
+    m_Curve->GetControlPoint(last,tMax, x);
 
     // Check if the new domain is valid
     float epsilon = 0.02;
-    if (m_MovingControlPoint == 0 && p[0] < xMax - epsilon) 
-      {
-      xMin = p[0];
-      } 
-    else if (m_MovingControlPoint == last && p[0] > xMin + epsilon) 
-      {
-      xMax = p[0];
-      } 
+    if (i == 0 && t < tMax - epsilon) 
+      tMin = t;
+    else if (i == last && t > tMin + epsilon) 
+      tMax = t;
     else 
-      {
       // One of the conditions failed; the window has size <= 0
       return false;
-      }
 
     // Change the domain of the curve
-    curve.ScaleControlPointsToWindow(xMin,xMax);
+    m_Curve->ScaleControlPointsToWindow(tMin, tMax);
     } 
-  else if (m_MovingControlPoint > 0) 
+  else
     {
-    // Check whether the Y coordinate is in range
-    if (p[1] < 0.0 || p[1] > 1.0)
+    // Check whether the X coordinate is in range
+    if (x < 0.0 || x > 1.0)
       return false;
-
-    // Record the position of the curve before motion
-    float x,y;
-    curve.GetControlPoint(m_MovingControlPoint,x,y);
 
     // Update the control point
-    curve.UpdateControlPoint(m_MovingControlPoint,(float) p[0],(float) p[1]);
+    m_Curve->UpdateControlPoint(i, t, x);
 
     // Check the curve for monotonicity
-    if (!curve.IsMonotonic()) {
-      curve.UpdateControlPoint(m_MovingControlPoint,x,y);
+    if(!m_Curve->IsMonotonic()) 
+      {
+      m_Curve->UpdateControlPoint(i, told, xold);
       return false;
+      }
     }
-    }
-
-
   return true;
+}
+
+bool
+IntensityCurveInteraction
+::UpdateControl(const Vector3f &p)
+{
+  return m_Parent->UpdateControlPoint(
+    m_MovingControlPoint, p[0], p[1]);
 }
 
