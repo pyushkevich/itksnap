@@ -9,7 +9,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
   } {
     Fl_Window m_WinLayerUI {
       label {ITK-SNAP: Layer Inspector} open
-      xywh {724 132 581 488} type Double box PLASTIC_DOWN_BOX resizable
+      xywh {724 132 580 485} type Double box PLASTIC_DOWN_BOX resizable
       code0 {\#include "LayerInspectorUIBase.h"} visible
     } {
       Fl_Tabs m_LayerUITabs {
@@ -18,7 +18,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
       } {
         Fl_Group m_ImageContrastTab {
           label Contrast open
-          xywh {180 25 390 455} labelsize 12
+          xywh {180 25 390 455} labelsize 12 hide
         } {
           Fl_Group {} {
             label {Window and Level:} open
@@ -111,7 +111,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
         }
         Fl_Group m_ColorMapTab {
           label {Color Map} open
-          xywh {180 25 390 455} labelsize 12 hide
+          xywh {180 25 390 455} labelsize 12
         } {
           Fl_Group {} {
             label {Color Map Editor:} open
@@ -140,22 +140,22 @@ class LayerInspectorUI {open : LayerInspectorUIBase
               callback {this->OnColorMapSideUpdate();} open
               xywh {200 280 70 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
             } {
-              MenuItem {} {
+              MenuItem m_MenuColorMapBoth {
                 label Both
                 xywh {5 5 31 20} labelsize 12
               }
-              MenuItem {} {
+              MenuItem m_MenuColorMapLeft {
                 label Left
                 xywh {15 15 31 20} labelsize 12
               }
-              MenuItem {} {
+              MenuItem m_MenuColorMapRight {
                 label Right
                 xywh {25 25 31 20} labelsize 12
               }
             }
-            Fl_Button {} {
+            Fl_Button m_BtnColorMapDeletePoint {
               label {-}
-              callback {this->OnColorMapPointDelete();}
+              callback {this->OnColorMapPointDelete();} selected
               xywh {280 235 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
             }
           }
@@ -206,15 +206,15 @@ class LayerInspectorUI {open : LayerInspectorUIBase
           } {}
           Fl_Value_Output {m_OutImageInfoSpacing[0]} {
             label {x:}
-            xywh {325 120 65 25} step 0.01 labelsize 12 textsize 12
+            xywh {325 120 65 25} labelsize 12 step 0.01 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoSpacing[1]} {
             label {y:}
-            xywh {410 120 65 25} step 0.01 labelsize 12 textsize 12
+            xywh {410 120 65 25} labelsize 12 step 0.01 textsize 12
           }
           Fl_Value_Output {m_OutImageInfoSpacing[2]} {
             label {z:}
-            xywh {495 120 65 25} step 0.01 labelsize 12 textsize 12
+            xywh {495 120 65 25} labelsize 12 step 0.01 textsize 12
           }
           Fl_Group {} {
             label {Origin and Orientation} open
@@ -362,7 +362,7 @@ coordinates} open
         }
         Fl_Browser m_BrsLayers {
           label {Image Layers:}
-          callback {this->OnLayerSelectionUpdate()} selected
+          callback {this->OnLayerSelectionUpdate()}
           xywh {10 60 150 100} type Hold labelsize 12 align 5 textsize 11
         }
       }

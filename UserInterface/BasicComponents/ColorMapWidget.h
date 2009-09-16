@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMapWidget.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/13 03:16:40 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/09/16 08:34:01 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -57,7 +57,7 @@ public:
     { m_ColorMap = map; redraw(); }
 
   /** Get the current color map functor */
-  ColorMap GetColorMap()
+  ColorMap &GetColorMap()
     { return m_ColorMap; }
 
   // Get/set the parent object
@@ -69,6 +69,8 @@ public:
 
   enum Side {LEFT, RIGHT, BOTH};
 
+  irisGetMacro(SelectedSide, Side);
+  irisGetMacro(SelectedCMPoint, int);
   void SetSelectedCMPoint(int pt);
   void SetSelectedSide(Side side);
 

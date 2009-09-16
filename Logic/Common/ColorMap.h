@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 23:27:57 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/09/16 08:34:01 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -116,6 +116,15 @@ class ColorMap
     void UpdateCMPoint(size_t j, const CMPoint &p)
       { m_CMPoints[j] = p; }
 
+    void DeleteCMPoint(size_t j)
+      { m_CMPoints.erase(m_CMPoints.begin() + j); }
+
+    /** 
+     * This method inserts a new control point, which is interpolated
+     * using the values of the existing points
+     */
+    size_t InsertInterpolatedCMPoint(double j);
+
     bool operator==(const ColorMap& rhs) const;
 
     SystemPreset GetSystemPreset() const
@@ -126,6 +135,8 @@ class ColorMap
     ColorMap (SystemPreset preset);
 
     ColorMap (const ColorMap& rhs);
+
+    void PrintSelf();
 
   private:
 

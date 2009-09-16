@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 19:04:52 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/09/16 08:34:01 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -88,6 +88,7 @@ public:
   void OnColorMapSideUpdate();
   void OnColorMapPointDelete();
   void OnColorMapRGBAUpdate();
+  void OnColorMapSelectedPointUpdate();
 
   // Callbacks for the image info page
   void UpdateImageProbe();

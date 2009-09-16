@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMapWidget.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 23:24:01 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/09/16 08:34:01 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -97,8 +97,13 @@ ColorMapWidget
 void ColorMapWidget
 ::SetSelectedCMPoint(int pt)
 {
+  // Update ourselves
   m_SelectedCMPoint = pt;
   this->redraw();
+
+  // Update the parent
+  m_Parent->OnColorMapSelectedPointUpdate();
+
 }
 
 void ColorMapWidget
@@ -197,6 +202,7 @@ ColorMapWidget
   glColor4ub(v0[0], v0[1], v0[2], 0x00); glVertex2d(-0.1,0.0);
   glColor4ub(v0[0], v0[1], v0[2], 0xff); glVertex2d(-0.1,1.0);
 
+  /*
   // Draw each of the points
   for(size_t i = 0; i < m_ColorMap.GetNumberOfCMPoints(); i++)
     {
@@ -209,6 +215,22 @@ ColorMapWidget
     glVertex2d(p.m_Index, 0.0);
     glColor4ub(p.m_RGBA[1][0], p.m_RGBA[1][1], p.m_RGBA[1][2], 0xff); 
     glVertex2d(p.m_Index, 1.0);
+    }
+  */
+  for(size_t i = 0; i < 512; i++)
+    {
+    double t = i / 511.0;
+    ColorMap::RGBAType rgba = m_ColorMap.MapIndexToRGBA(t);
+
+    glColor4ub(rgba[0], rgba[1], rgba[2], 0xff); 
+    glVertex2d(t, 1.0);
+    glColor4ub(rgba[0], rgba[1], rgba[2], 0x00); 
+    glVertex2d(t, 0.0);
+    glColor4ub(rgba[0], rgba[1], rgba[2], 0x00); 
+    glVertex2d(t, 0.0);
+    glColor4ub(rgba[0], rgba[1], rgba[2], 0xff); 
+    glVertex2d(t, 1.0);
+
     }
 
   // Draw the color after 1.0
@@ -314,10 +336,17 @@ ColorMapInteraction
       }
     }
 
-  // No selection has been made
-  m_Parent->SetSelectedCMPoint(-1);
+  // No selection has been made, so we insert a new point
+  if(e.XSpace[0] > 0.0 && e.XSpace[0] < 1.0)
+    {
+    size_t sel = cm.InsertInterpolatedCMPoint(e.XSpace[0]);
+    m_Parent->SetSelectedCMPoint(sel);
+    m_Parent->SetSelectedSide(ColorMapWidget::BOTH);
+    cm.PrintSelf();
+    return 1;
+    }
 
-  return 1;
+  return 0;
 }
 
 int 

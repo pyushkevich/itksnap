@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/12 23:27:57 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/09/16 08:34:01 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -169,6 +169,24 @@ ColorMap
   return true;
 }
 
+size_t
+ColorMap
+::InsertInterpolatedCMPoint(double j)
+{
+  // Create the new point
+  RGBAType rgba = MapIndexToRGBA(j);
+  CMPoint newbie(j, rgba[0], rgba[1], rgba[2], rgba[3]);
+
+  // Find where to insert the new point
+  CMPointIterator it = 
+    std::lower_bound(m_CMPoints.begin(), m_CMPoints.end(), newbie);
+
+  // Insert the point after the lower bound
+  CMPointIterator itnew = m_CMPoints.insert(it, newbie);
+
+  return itnew - m_CMPoints.begin();
+}
+
 ColorMap::RGBAType
 ColorMap
 ::MapIndexToRGBA(double j) const
@@ -188,12 +206,39 @@ ColorMap
   // Otherwise, there are two points to interpolate between
   CMPointConstIterator it0 = it; --it0;
 
-  double dj = j - it0->m_Index;
+  double dp = it->m_Index - it0->m_Index;
   RGBAType rout;
-  for(size_t i = 0; i < 4; i++)
-    rout[i] = (unsigned char)(it0->m_RGBA[1][i] * (1.0 - dj) + it->m_RGBA[0][i] * dj);
+  if(dp > 0)
+    {
+    double dj = (j - it0->m_Index) / dp;
+    for(size_t i = 0; i < 4; i++)
+      rout[i] = (unsigned char)(it0->m_RGBA[1][i] * (1.0 - dj) + it->m_RGBA[0][i] * dj);
+    }
+  else
+    {
+    RGBAType rout = it->m_RGBA[0];
+    }
 
   return rout;
+}
+
+void
+ColorMap
+::PrintSelf()
+{
+  for(size_t i = 0; i < m_CMPoints.size(); i++)
+    {
+    CMPoint p = m_CMPoints[i];
+    if(p.m_Type == CONTINUOUS)
+      {
+      printf("%02d-C %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[0][0], p.m_RGBA[0][1], p.m_RGBA[0][2], p.m_RGBA[0][3]);
+      }
+    else
+      {
+      printf("%02d-L %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[0][0], p.m_RGBA[0][1], p.m_RGBA[0][2], p.m_RGBA[0][3]);
+      printf("%02d-R %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[1][0], p.m_RGBA[1][1], p.m_RGBA[1][2], p.m_RGBA[1][3]);
+      }
+    }
 }
 
 void

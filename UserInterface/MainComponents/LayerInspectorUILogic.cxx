@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 22:19:22 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/09/16 08:34:01 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -306,7 +306,7 @@ void
 LayerInspectorUILogic
 ::OnOverallOpacityUpdate()
 {
-  m_SelectedWrapper->SetAlpha(m_InOverallOpacity->value());
+  m_SelectedWrapper->SetAlpha((unsigned char) m_InOverallOpacity->value());
 }
 
 void 
@@ -605,6 +605,7 @@ LayerInspectorUILogic
 {
   m_GreyWrapper->SetColorMap(m_BoxColorMap->GetColorMap());
   m_GreyWrapper->UpdateIntensityMapFunction();
+  this->OnColorMapSelectedPointUpdate();
 }
 
 void 
@@ -654,29 +655,166 @@ LayerInspectorUILogic
 
 void 
 LayerInspectorUILogic
+::OnColorMapSelectedPointUpdate()
+{
+  // Get the selected color map point
+  int sel = m_BoxColorMap->GetSelectedCMPoint();
+  ColorMapWidget::Side side = m_BoxColorMap->GetSelectedSide();
+
+  if(sel >= 0)
+    {
+    ColorMap &cm = this->m_BoxColorMap->GetColorMap();
+    ColorMap::CMPoint p = cm.GetCMPoint(sel);
+
+    // Handle continuous points
+    if(p.m_Type == ColorMap::CONTINUOUS)
+      {
+      // Set the RGB value
+      m_InColorMapRGBA->rgb(p.m_RGBA[0][0] / 255.0, p.m_RGBA[0][1] / 255.0, p.m_RGBA[0][2] / 255.0);
+
+      // Set the location to 'both'
+      m_InColorMapSide->value(0);
+      }
+    else if(side == ColorMapWidget::LEFT)
+      {
+      // Set the RGB value
+      m_InColorMapRGBA->rgb(p.m_RGBA[0][0] / 255.0, p.m_RGBA[0][1] / 255.0, p.m_RGBA[0][2] / 255.0);
+
+      // Set the location to 'both'
+      m_InColorMapSide->value(1);
+      }
+    else if(side == ColorMapWidget::RIGHT)
+      {
+      // Set the RGB value
+      m_InColorMapRGBA->rgb(p.m_RGBA[1][0] / 255.0, p.m_RGBA[1][1] / 255.0, p.m_RGBA[1][2] / 255.0);
+
+      // Set the location to 'both'
+      m_InColorMapSide->value(2);
+      }
+
+    // Set the index value
+    m_InColorMapIndex->value(p.m_Index);
+
+    // Set the max/min of the value
+    if(sel == 0)
+      {
+      m_InColorMapIndex->minimum(0.0);
+      m_InColorMapIndex->maximum(0.0);
+      m_MenuColorMapBoth->deactivate();
+      m_BtnColorMapDeletePoint->deactivate();
+      }
+    else if(sel == (int) cm.GetNumberOfCMPoints() - 1)
+      {
+      m_InColorMapIndex->minimum(1.0);
+      m_InColorMapIndex->maximum(1.0);
+      m_MenuColorMapBoth->deactivate();
+      m_BtnColorMapDeletePoint->deactivate();
+      }
+    else
+      {
+      m_InColorMapIndex->minimum(cm.GetCMPoint(sel-1).m_Index);
+      m_InColorMapIndex->maximum(cm.GetCMPoint(sel+1).m_Index);
+      m_MenuColorMapBoth->activate();
+      m_BtnColorMapDeletePoint->activate();
+      }
+    }
+}
+
+void 
+LayerInspectorUILogic
 ::OnColorMapIndexUpdate()
 {
-
+  int sel = this->m_BoxColorMap->GetSelectedCMPoint();
+  if(sel >= 0)
+    {
+    m_InColorMapIndex->value(m_InColorMapIndex->clamp(m_InColorMapIndex->value()));
+    ColorMap::CMPoint p = this->m_BoxColorMap->GetColorMap().GetCMPoint(sel);
+    p.m_Index = m_InColorMapIndex->value();
+    this->m_BoxColorMap->GetColorMap().UpdateCMPoint(sel, p);
+    m_BoxColorMap->redraw();
+    this->OnColorMapChange();
+    }
 }
 
 void 
 LayerInspectorUILogic
 ::OnColorMapSideUpdate()
 {
+  int sel = this->m_BoxColorMap->GetSelectedCMPoint();
+  if(sel >= 0)
+    {
+    ColorMap &cm = this->m_BoxColorMap->GetColorMap();
+    ColorMap::CMPoint p = cm.GetCMPoint(sel);
+    size_t val = m_InColorMapSide->value();
 
+    if(val == 0)
+      {
+      if(p.m_Type != ColorMap::CONTINUOUS)
+        {
+        // Make everything like the left
+        p.m_Type = ColorMap::CONTINUOUS;
+        p.m_RGBA[1] = p.m_RGBA[0];
+        cm.UpdateCMPoint(sel, p);
+        m_BoxColorMap->SetSelectedSide(ColorMapWidget::BOTH);
+        m_BoxColorMap->redraw();
+        this->OnColorMapChange();
+        }
+      }
+    else
+      {
+      if(p.m_Type == ColorMap::CONTINUOUS)
+        {
+        // Split the point into two
+        p.m_Type = ColorMap::DISCONTINUOUS;
+        cm.UpdateCMPoint(sel, p);
+        }
+      m_BoxColorMap->SetSelectedSide(
+        val == 1 ? ColorMapWidget::LEFT : ColorMapWidget::RIGHT);
+      m_BoxColorMap->redraw();
+      this->OnColorMapChange();
+      }
+    }
 }
 
 void 
 LayerInspectorUILogic
 ::OnColorMapPointDelete()
 {
-
+  int sel = m_BoxColorMap->GetSelectedCMPoint();
+  if(sel > 0 && sel < m_BoxColorMap->GetColorMap().GetNumberOfCMPoints() - 1)
+    {
+    m_BoxColorMap->SetSelectedCMPoint(-1);
+    m_BoxColorMap->GetColorMap()->DeleteCMPoint(sel);
+    m_BoxColorMap->redraw();
+    this->OnColorMapChange();
+    }
 }
 
 void 
 LayerInspectorUILogic
 ::OnColorMapRGBAUpdate()
 {
+  int sel = this->m_BoxColorMap->GetSelectedCMPoint();
+  if(sel >= 0)
+    {
+    ColorMap::CMPoint p = this->m_BoxColorMap->GetColorMap().GetCMPoint(sel);
+    if(p.m_Type == ColorMap::CONTINUOUS || m_InColorMapSide->value() == 1)
+      {
+      p.m_RGBA[0][0] = (unsigned char) (255 * m_InColorMapRGBA->r());
+      p.m_RGBA[0][1] = (unsigned char) (255 * m_InColorMapRGBA->g());
+      p.m_RGBA[0][2] = (unsigned char) (255 * m_InColorMapRGBA->b());
+      }
+    if(p.m_Type == ColorMap::CONTINUOUS || m_InColorMapSide->value() == 2)
+      {
+      p.m_RGBA[1][0] = (unsigned char) (255 * m_InColorMapRGBA->r());
+      p.m_RGBA[1][1] = (unsigned char) (255 * m_InColorMapRGBA->g());
+      p.m_RGBA[1][2] = (unsigned char) (255 * m_InColorMapRGBA->b());
+      }
+
+    this->m_BoxColorMap->GetColorMap().UpdateCMPoint(sel, p);
+    m_BoxColorMap->redraw();
+    this->OnColorMapChange();
+    }
 
 }
 
