@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 08:34:01 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/09/16 12:48:44 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -784,7 +784,7 @@ LayerInspectorUILogic
   if(sel > 0 && sel < m_BoxColorMap->GetColorMap().GetNumberOfCMPoints() - 1)
     {
     m_BoxColorMap->SetSelectedCMPoint(-1);
-    m_BoxColorMap->GetColorMap()->DeleteCMPoint(sel);
+    m_BoxColorMap->GetColorMap().DeleteCMPoint(sel);
     m_BoxColorMap->redraw();
     this->OnColorMapChange();
     }
