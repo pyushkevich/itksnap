@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPLevelSetDriver.txx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/09/17 14:46:04 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,7 +52,7 @@
 #if defined(USE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
 #include "itkParallelSparseFieldLevelSetImageFilterBugFix.h"
 #else 
-#include "itkParallelSparseFieldLevelSetImageFilter.h"
+#include "itkSparseFieldLevelSetImageFilter.h"
 #endif
 
 // Disable some windows debug length messages
@@ -149,7 +149,7 @@ SNAPLevelSetDriver<VDimension>
     typedef ParallelSparseFieldLevelSetImageFilterBugFix<
       FloatImageType, FloatImageType> LevelSetFilterType;
 #else
-    typedef ParallelSparseFieldLevelSetImageFilter<
+    typedef SparseFieldLevelSetImageFilter<
       FloatImageType, FloatImageType> LevelSetFilterType;
 #endif
 
@@ -257,6 +257,7 @@ SNAPLevelSetDriver<VDimension>
 ::GetCurrentState()
 {
   // Fix the spacing of the level set filter's output (huh?)
+  m_LevelSetFilter->GetOutput()->SetDirection(m_InitializationImage->GetDirection());
   m_LevelSetFilter->GetOutput()->SetSpacing(m_InitializationImage->GetSpacing());
   m_LevelSetFilter->GetOutput()->SetOrigin(m_InitializationImage->GetOrigin());
 

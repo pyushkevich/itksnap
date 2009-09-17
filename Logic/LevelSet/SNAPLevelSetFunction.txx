@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPLevelSetFunction.txx,v $
   Language:  C++
-  Date:      $Date: 2008/05/19 18:49:07 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/17 14:46:04 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -297,6 +297,7 @@ SNAPLevelSetFunction<TImageType>
   // If the exponent is zero, there is nothing to return
   if(m_PropagationSpeedExponent == 0)
     return itk::NumericTraits<ScalarValueType>::One; 
+
   
   // Otherwise, perform interpolation on the image
   IndexType idx = neighborhood.GetIndex();
