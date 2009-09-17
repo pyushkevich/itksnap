@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 20:49:39 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/09/17 13:22:36 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -132,6 +132,7 @@ CrosshairsInteractionMode
     m_ParentUI->OnViewPositionsUpdate();
     return 1;
     } 
+  return 0;
 }
 
 int

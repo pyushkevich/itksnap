@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 20:03:13 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2009/09/17 13:22:36 $
+  Version:   $Revision: 1.16 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -393,7 +393,7 @@ LayerInspectorUILogic
       m_InControlX->minimum(iAbsMin + iAbsSpan * t0 + step);
       }
 
-    if(cp == m_Curve->GetControlPointCount() - 1)
+    if(cp == (int)(m_Curve->GetControlPointCount() - 1))
       {
       m_InControlX->maximum(iAbsMax);
       }
@@ -403,7 +403,7 @@ LayerInspectorUILogic
       m_InControlX->maximum(iAbsMin + iAbsSpan * t1 - step);
       }
 
-    if(cp == 0 || cp == m_Curve->GetControlPointCount() - 1)
+    if(cp == 0 || cp == (int)(m_Curve->GetControlPointCount() - 1))
       {
       m_InControlY->deactivate();
       }
@@ -678,7 +678,7 @@ LayerInspectorUILogic
   // Now add the custom presets
   std::vector<string> saved = 
     m_Driver->GetSystemInterface()->GetSavedObjectNames("ColorMaps");
-  for(int i = 0; i < saved.size(); i++)
+  for(int i = 0; i < (int) saved.size(); i++)
     m_InColorMapPreset->add(saved[i].c_str());
 }
 
@@ -706,7 +706,7 @@ LayerInspectorUILogic
     {
     try 
       {
-      Registry &reg = 
+      Registry reg = 
         m_Driver->GetSystemInterface()->ReadSavedObject(
           "ColorMaps", m_InColorMapPreset->text(sel));
       cm.LoadFromRegistry(reg);
@@ -757,7 +757,7 @@ LayerInspectorUILogic
 
   // Set the current preset as the selection
   m_InColorMapPreset->value(-1);
-  for(size_t i = 0; i < m_InColorMapPreset->size(); i++)
+  for(int i = 0; i < m_InColorMapPreset->size(); i++)
     if(!strcmp(m_InColorMapPreset->text(i), name))
       { m_InColorMapPreset->value(i); break; }
 }
@@ -926,7 +926,7 @@ LayerInspectorUILogic
 ::OnColorMapPointDelete()
 {
   int sel = m_BoxColorMap->GetSelectedCMPoint();
-  if(sel > 0 && sel < m_BoxColorMap->GetColorMap().GetNumberOfCMPoints() - 1)
+  if(sel > 0 && sel < (int)(m_BoxColorMap->GetColorMap().GetNumberOfCMPoints() - 1))
     {
     m_BoxColorMap->SetSelectedCMPoint(-1);
     m_BoxColorMap->GetColorMap().DeleteCMPoint(sel);
