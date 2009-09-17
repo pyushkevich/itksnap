@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 21:22:02 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/09/17 20:28:39 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -37,14 +37,37 @@ PolygonInteractionMode
 ::OnEitherEvent(const FLTKEvent &event, 
                 const FLTKEvent &irisNotUsed(pressEvent))
 {
+
+  // We'll need these shorthands
+  int id = m_Parent->m_Id;
+
+  // Check for enter key
+  if(Fl::test_shortcut(FL_Enter))
+    {
+    m_Parent->m_ParentUI->OnAcceptPolygonAction(id);
+    return 1;
+    }
+  else if(Fl::test_shortcut(FL_Delete))
+    {
+    m_Parent->m_ParentUI->OnDeletePolygonSelectedAction(id);
+    return 1;
+    }
+  else if(Fl::test_shortcut(FL_Insert))
+    {
+    m_Parent->m_ParentUI->OnInsertIntoPolygonSelectedAction(id);
+    return 1;
+    }
+  else if(Fl::test_shortcut('v' | FL_CTRL))
+    {
+    m_Parent->m_ParentUI->OnPastePolygonAction(id);
+    return 1;
+    }
+
   // Pass through events that are irrelevant
   if(event.SoftButton != FL_LEFT_MOUSE 
     && event.SoftButton != FL_RIGHT_MOUSE
     && event.Key != ' ')
     return 0;
-
-  // We'll need these shorthands
-  int id = m_Parent->m_Id;
 
 #ifdef DRAWING_LOCK
   if (!m_GlobalState->GetDrawingLock(id)) break;
