@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/29 23:02:43 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/09/19 07:47:03 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -167,7 +167,7 @@ GenericImageData
   // Make the wrapper the main image
   m_MainImageWrapper = wrapper;
   m_MainWrappers.pop_front();
-  m_MainWrappers.push_back(m_MainImageWrapper);
+  m_MainWrappers.push_front(m_MainImageWrapper);
 
   // Initialize the segmentation data to zeros
   m_LabelWrapper.InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);

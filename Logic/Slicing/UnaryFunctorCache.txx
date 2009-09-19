@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UnaryFunctorCache.txx,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 20:03:13 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/09/19 07:47:03 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -33,6 +33,7 @@
 
 =========================================================================*/
 #include "UnaryFunctorCache.h"
+#include "itkSimpleFastMutexLock.h"
 
 template <class TInput, class TOutput, class TFunctor>
 UnaryFunctorCache<TInput,TOutput,TFunctor>
@@ -60,6 +61,10 @@ void
 UnaryFunctorCache<TInput,TOutput,TFunctor>
 ::ComputeCache() 
 {
+  // Can't have this running in a thread
+  static itk::SimpleFastMutexLock mutex;
+  mutex.Lock();
+
   // Functor must be declared and cache length must be non-zero
   assert(m_InputFunctor && m_CacheLength > 0);
 
@@ -80,6 +85,9 @@ UnaryFunctorCache<TInput,TOutput,TFunctor>
     }
 
   m_Modified = false;
+
+  // Back to thread safety
+  mutex.Unlock();
 }
 
 template <class TInput, class TOutput, class TFunctor>
