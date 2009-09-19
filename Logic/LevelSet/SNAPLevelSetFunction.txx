@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPLevelSetFunction.txx,v $
   Language:  C++
-  Date:      $Date: 2009/09/17 14:46:04 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/09/19 14:00:16 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -189,62 +189,6 @@ SNAPLevelSetFunction<TImageType>
       reinterpret_cast< VectorImageType* > (
         m_AdvectionFilter->GetOutput());
     }
-
-/*
-  // Allocate the advection image
-  m_AdvectionField = VectorImageType::New();
-  m_AdvectionField->SetRequestedRegion(m_SpeedImage->GetRequestedRegion());
-  m_AdvectionField->SetBufferedRegion(m_SpeedImage->GetBufferedRegion());
-  m_AdvectionField->SetLargestPossibleRegion(m_SpeedImage->GetLargestPossibleRegion());
-  m_AdvectionField->Allocate();
-
-  itk::ImageRegionIterator<GradientFilterType::OutputImageType> 
-    git( m_GradientFilter->GetOutput(), 
-         m_AdvectionField->GetRequestedRegion());
-
-  itk::ImageRegionIterator<VectorImageType> 
-    ait( m_AdvectionField, 
-         m_AdvectionField->GetRequestedRegion());
-
-  // Multiply the gradient image by the speed image if necessary
-  if(m_AdvectionSpeedExponent != 0)
-    {
-    // The image to multiply by
-    itk::ImageRegionIterator<ImageType> 
-      sit( powerMap[m_AdvectionSpeedExponent], 
-           m_AdvectionField->GetRequestedRegion());
-
-    for( git.GoToBegin(), ait.GoToBegin(), sit.GoToBegin(); 
-         !git.IsAtEnd(); 
-         ++git, ++ait, ++sit )
-      {
-      // ait.Value() = static_cast<VectorType>(git.Value() * sit.Value());
-      ait.Value() = git.Value() * sit.Value();
-      }
-    }
-  else
-    {
-    // Just copy the gradient
-    for( git.GoToBegin(), ait.GoToBegin(); !git.IsAtEnd(); ++git, ++ait)
-      {
-      ait.Value() = git.Value();
-      }
-    }
-
-  // Set up the image interpolators
-  if(m_PropagationSpeedExponent != 0)
-    m_PropagationSpeedInterpolator->SetInputImage(m_PropagationSpeedImage);
-  if(m_CurvatureSpeedExponent != 0)
-    m_CurvatureSpeedInterpolator->SetInputImage(m_CurvatureSpeedImage);
-  if(m_LaplacianSmoothingSpeedExponent != 0)
-    m_LaplacianSmoothingSpeedInterpolator->SetInputImage(
-      m_LaplacianSmoothingSpeedImage);
-
-  // Set up the advection interpolator
-  if(m_AdvectionSpeedExponent != 0)
-    m_AdvectionFieldInterpolator->SetInputImage(m_AdvectionField);
-*/
-
 
   // Set up the image interpolators to point to the generated images
   if(m_PropagationSpeedExponent != 0)

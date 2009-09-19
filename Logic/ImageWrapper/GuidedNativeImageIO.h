@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 16:33:54 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/19 14:00:16 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -193,6 +193,9 @@ private:
 
   // The file format
   FileFormat m_FileFormat;
+
+  // List of filenames for DICOM
+  std::vector<std::string> m_DICOMFiles;
 
   /** Registry mappings for these enums */
   static bool m_StaticDataInitialized;

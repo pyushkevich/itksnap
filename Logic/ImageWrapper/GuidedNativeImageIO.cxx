@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/31 19:12:21 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/09/19 14:00:16 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -263,8 +263,42 @@ GuidedNativeImageIO
     throw ExceptionObject("Unsupported image file type");
 
   // Read the information about the image
-  m_IOBase->SetFileName(FileName);
-  m_IOBase->ReadImageInformation();
+  if(m_FileFormat == FORMAT_DICOM)
+    {
+    // Check if the array of filenames has been provided for us
+    m_DICOMFiles = 
+      folder.Folder("DICOM.SliceFiles").GetArray(std::string("NULL"));
+
+    // If no filenames were specified, read the first series in the directory
+    if(m_DICOMFiles.size() == 0)
+      {
+      // Create a names generator. The input must be a directory 
+      typedef GDCMSeriesFileNames NamesGeneratorType;
+      NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
+      nameGenerator->SetDirectory(FileName);
+
+      // Get the list of series in the directory
+      const SerieUIDContainer &sids = nameGenerator->GetSeriesUIDs();
+
+      // There must be at least of series
+      if(sids.size() == 0)
+        throw ExceptionObject("No DICOM series found in the DICOM directory");
+    
+      // Read the first DICOM series in the directory
+      m_DICOMFiles = nameGenerator->GetFileNames(sids.front().c_str());
+      }
+
+    // Read the information from the first filename
+    if(m_DICOMFiles.size() == 0)
+      throw ExceptionObject("No DICOM files found in the DICOM directory");
+    m_IOBase->SetFileName(m_DICOMFiles[0]);
+    m_IOBase->ReadImageInformation();
+    }
+  else
+    {
+    m_IOBase->SetFileName(FileName);
+    m_IOBase->ReadImageInformation();
+    }
 
   // Based on the component type, read image in native mode
   ImageIOBase::IOComponentType itype = m_IOBase->GetComponentType();
@@ -301,37 +335,11 @@ GuidedNativeImageIO
     typename ReaderType::Pointer reader = ReaderType::New();
 
     // Set the IO
+    m_IOBase = GDCMImageIO::New();
     reader->SetImageIO(m_IOBase);
 
-    // Check if the array of filenames has been provided for us
-    FilenamesContainer fids = 
-      folder.Folder("DICOM.SliceFiles").GetArray(std::string("NULL"));
-    
-    // If no filenames were specified, read the first series in the directory
-    if(fids.size() == 0)
-      {
-      // Create a names generator. The input must be a directory 
-      typedef GDCMSeriesFileNames NamesGeneratorType;
-      NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
-      nameGenerator->SetDirectory(FileName);
-
-      // Get the list of series in the directory
-      const SerieUIDContainer &sids = nameGenerator->GetSeriesUIDs();
-
-      // There must be at least of series
-      if(sids.size() == 0)
-        throw ExceptionObject("No DICOM series found in the DICOM directory");
-    
-      // Read the first DICOM series in the directory
-      fids = nameGenerator->GetFileNames(sids.front().c_str());
-      }
-    
-    // Check that there are filenames
-    if(fids.size() == 0)
-      throw ExceptionObject("No DICOM files found in the DICOM directory");
-    
     // Set the filenames and read
-    reader->SetFileNames(fids);
+    reader->SetFileNames(m_DICOMFiles);
     reader->Update();
 
     // Get the output image
