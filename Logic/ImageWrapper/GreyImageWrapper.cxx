@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 20:03:13 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009/09/19 08:15:09 $
+  Version:   $Revision: 1.18 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -105,6 +105,20 @@ GreyImageWrapper
 ::GetIntensityMapFunction()
 {
   return m_IntensityCurveVTK;
+}
+
+void 
+GreyImageWrapper
+::CopyIntensityMap(const GreyImageWrapper &s)
+{
+  m_IntensityCurveVTK->Initialize(
+    s.m_IntensityCurveVTK->GetControlPointCount());
+  for(size_t i = 0; i < m_IntensityCurveVTK->GetControlPointCount(); i++)
+    {
+    float t, x;
+    s.m_IntensityCurveVTK->GetControlPoint(i, t, x);
+    m_IntensityCurveVTK->UpdateControlPoint(i, t, x);
+    }
 }
 
 void GreyImageWrapper

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/29 23:18:42 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/09/19 08:15:09 $
+  Version:   $Revision: 1.17 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -73,6 +73,11 @@ public:
    * using the SetReferenceIntensityRange() function
    */
   IntensityCurveInterface* GetIntensityMapFunction();
+
+  /**
+   * Copy the intensity curve information from another grey image wrapper
+   */
+  void CopyIntensityMap(const GreyImageWrapper &source);
 
   void UpdateIntensityMapFunction();
 

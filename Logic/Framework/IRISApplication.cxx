@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 01:10:20 $
-  Version:   $Revision: 1.25 $
+  Date:      $Date: 2009/09/19 08:15:09 $
+  Version:   $Revision: 1.26 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -187,6 +187,7 @@ IRISApplication
   m_SNAPImageData->GetGrey()->SetReferenceIntensityRange(
     m_IRISImageData->GetGrey()->GetImageMin(),
     m_IRISImageData->GetGrey()->GetImageMax());
+  m_SNAPImageData->GetGrey()->CopyIntensityMap(*m_IRISImageData->GetGrey());
   m_SNAPImageData->GetGrey()->UpdateIntensityMapFunction();
 
   // Initialize the speed image of the SNAP image data
