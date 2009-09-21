@@ -270,7 +270,7 @@ static void PreselectPathname(NavCBRecPtr cbparm, const char *path) {
     //      Why, I don't know. Let me know with a bug report. -erco
     //
     if ( ! IsDir(path) ) {
-	path = dirname(path);
+	path = dirname(const_cast<char *>(path));
     }
     OSStatus err;
     FSRef fsref;

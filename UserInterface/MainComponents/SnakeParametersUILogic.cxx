@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/05/25 17:09:44 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2009/09/21 21:55:19 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -498,17 +498,25 @@ void SnakeParametersUILogic
   // Make sure the parameters are of valid type
   if(parameters.GetSnakeType() != m_Parameters.GetSnakeType())
     {
-    string message = 
-      (m_Parameters.GetSnakeType() == SnakeParameters::EDGE_SNAKE) ?
-      "Warning!  The snake evolution parameters in the file are for the\n"
-      "REGION COMPETITION mode.  ITK-SNAP is currently in EDGE STOPPING mode.\n"
-      "Do you wish to load the parameters anyway?" : 
-      "Warning!  The snake evolution parameters in the file are for the\n"
-      "EDGE STOPPING mode.  ITK-SNAP is currently in REGION COMPETITION mode.\n"
-      "Do you wish to load the parameters anyway?";
+    int rc = 0;
+    if(m_Parameters.GetSnakeType() == SnakeParameters::EDGE_SNAKE)
+      {
+      rc = fl_choice(
+        "Warning!  The snake evolution parameters in the file are for the\n"
+        "REGION COMPETITION mode.  ITK-SNAP is currently in EDGE STOPPING mode.\n"
+        "Do you wish to load the parameters anyway?",
+        "Yes", "No", NULL);
+      }
+    else
+      {
+      rc = fl_choice(
+        "Warning!  The snake evolution parameters in the file are for the\n"
+        "EDGE STOPPING mode.  ITK-SNAP is currently in REGION COMPETITION mode.\n"
+        "Do you wish to load the parameters anyway?",
+        "Yes", "No", NULL);
+      }
 
     // Show the message
-    int rc = fl_choice(message.c_str(),"Yes","No",NULL);
     if(rc == 1) throw rc;
 
     // If region competition, drop the advection stuff

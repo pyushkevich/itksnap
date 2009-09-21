@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 20:03:13 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/09/21 21:55:19 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -535,7 +535,7 @@ IntensityCurveBox
   // First and last control points are treated specially because they
   // provide windowing style behavior
   int last = m_Curve->GetControlPointCount()-1;
-  if (i == 0 || i == last) 
+  if (i == 0 || i == (size_t) last) 
     {
     // Get the current domain
     float tMin,tMax,x;        
@@ -546,7 +546,7 @@ IntensityCurveBox
     float epsilon = 0.02;
     if (i == 0 && t < tMax - epsilon) 
       tMin = t;
-    else if (i == last && t > tMin + epsilon) 
+    else if (i == (size_t) last && t > tMin + epsilon) 
       tMax = t;
     else 
       // One of the conditions failed; the window has size <= 0

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 19:04:52 $
-  Version:   $Revision: 1.89 $
+  Date:      $Date: 2009/09/21 21:55:19 $
+  Version:   $Revision: 1.90 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -4767,8 +4767,9 @@ UserInterfaceLogic
     }
   else if(us == SystemInterface::US_OUT_OF_DATE)
     {
-    message = "A newer ITK-SNAP version " + nver + " is available!";
-    response = fl_choice(message.c_str(), "Download Later", "Download Now", NULL);
+    response = fl_choice(
+      "A newer ITK-SNAP version %s is available!",
+      "Download Later", "Download Now", NULL, nver.c_str());
     if (response)
       {
       fl_open_uri("http://www.itksnap.org/pmwiki/pmwiki.php?n=Main.Downloads");
@@ -4776,8 +4777,10 @@ UserInterfaceLogic
     }
   else if(us == SystemInterface::US_CONNECTION_FAILED)
     {
-    message = "Could not connect to server. \nVisit itksnap.org to see if a new version is available";
-    response = fl_choice(message.c_str(), "Later", "Take me there now", NULL);
+    response = fl_choice(
+      "Could not connect to server.\n"
+      "Visit itksnap.org to see if a new version is available",
+      "Later", "Take me there now", NULL);
     if (response)
       {
       fl_open_uri("http://www.itksnap.org/pmwiki/pmwiki.php?n=Main.Downloads");
@@ -4804,7 +4807,9 @@ UserInterfaceLogic
   if (us == SystemInterface::US_OUT_OF_DATE)
     {
     message = "A newer ITK-SNAP version " + nver + " is available!";
-    response = fl_choice(message.c_str(), "Download Later", "Download Now", NULL);
+    response = fl_choice(
+      "A newer ITK-SNAP version %s is available!",
+      "Download Later", "Download Now", NULL, nver.c_str());
     if (response)
       {
       fl_open_uri("http://www.itksnap.org/pmwiki/pmwiki.php?n=Main.Downloads");
@@ -5121,6 +5126,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.90  2009/09/21 21:55:19  pyushkevich
+ *FIX:various snow leopard warnings'
+ *
  *Revision 1.89  2009/09/14 19:04:52  garyhuizhang
  *ENH: layer inspector support for curor position input
  *
