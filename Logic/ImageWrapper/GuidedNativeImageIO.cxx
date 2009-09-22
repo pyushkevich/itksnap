@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/19 14:00:16 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/09/22 12:09:09 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -57,6 +57,7 @@
 #include "itkImageSeriesReader.h"
 #include "itkImageIOFactory.h"
 #include "itkGDCMSeriesFileNames.h"
+#include "itkImageToVectorImageFilter.h"
 
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkShiftScaleImageFilter.h"
@@ -330,20 +331,32 @@ GuidedNativeImageIO
   // There is a special handler for the DICOM case!
   if(m_FileFormat == FORMAT_DICOM)
     {
-    // Create an image series reader 
-    typedef ImageSeriesReader<NativeImageType> ReaderType;
-    typename ReaderType::Pointer reader = ReaderType::New();
+    // It seems that ITK can't yet read DICOM into a VectorImage. 
+    typedef itk::OrientedImage<TScalar, 3> GreyImageType;
 
-    // Set the IO
-    m_IOBase = GDCMImageIO::New();
-    reader->SetImageIO(m_IOBase);
+    // Create an image series reader 
+    typedef ImageSeriesReader<GreyImageType> ReaderType;
+    typename ReaderType::Pointer reader = ReaderType::New();
 
     // Set the filenames and read
     reader->SetFileNames(m_DICOMFiles);
+      
+    // Set the IO
+    typename GDCMImageIO::Pointer dicomio = GDCMImageIO::New();
+    dicomio->SetMaxSizeLoadEntry(0xffff);
+    m_IOBase = dicomio;
+    reader->SetImageIO(m_IOBase);
+    
+    // Update
     reader->Update();
 
-    // Get the output image
-    m_NativeImage = reader->GetOutput();
+    // Convert the image into VectorImage format
+    typedef itk::ImageToVectorImageFilter<GreyImageType> FilterType;
+    typename FilterType::Pointer flt = FilterType::New();
+    flt->SetInput(0, reader->GetOutput());
+    flt->Update();
+    m_NativeImage = flt->GetOutput();
+    m_NativeImage->SetDirection(flt->GetOutput()->GetDirection());
     } 
   else
     {
