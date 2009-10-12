@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageCoordinateGeometry.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 12:20:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/10/12 19:05:56 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -171,7 +171,7 @@ ImageCoordinateGeometry
   for(size_t i = 0; i < 3; i++)
     {
     // Get the direction of the i-th voxel coordinate
-    vnl_vector<double> dir_i = mat.get_row(i);
+    vnl_vector<double> dir_i = mat.get_column(i);
 
     // Get the maximum angle with any axis
     double maxabs_i = dir_i.inf_norm();

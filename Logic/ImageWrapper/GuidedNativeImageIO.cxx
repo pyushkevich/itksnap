@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/22 12:09:09 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2009/10/12 19:05:56 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -358,19 +358,70 @@ GuidedNativeImageIO
     m_NativeImage = flt->GetOutput();
     m_NativeImage->SetDirection(flt->GetOutput()->GetDirection());
     } 
-  else
+  else 
     {
     // Non-DICOM: read from single image
+    // We no longer use ImageFileReader here because of an issue: the 
+    // m_IOBase may have an open file handle (from call to ReadImageInfo)
+    // so passing it in to the Reader would cause an IO error (this actually
+    // happens for GIPL). So we copy some of the code from ImageFileReader
+
+    // Create the native image
+    typename NativeImageType::Pointer image = NativeImageType::New();
+
+    // Initialize the direction and spacing, etc
+    typename NativeImageType::SizeType dim;      dim.Fill(1);
+    typename NativeImageType::PointType org;     org.Fill(0.0);
+    typename NativeImageType::SpacingType spc;   spc.Fill(1.0);
+    typename NativeImageType::DirectionType dir; dir.SetIdentity();    
+    
+    size_t nd = m_IOBase->GetNumberOfDimensions(); 
+    if(nd > 3) nd = 3;
+    
+    for(size_t i = 0; i < nd; i++)
+      {
+      spc[i] = m_IOBase->GetSpacing(i);
+      org[i] = m_IOBase->GetOrigin(i);
+      for(size_t j = 0; j < nd; j++)
+        dir(j,i) = m_IOBase->GetDirection(i)[j];
+      dim[i] = m_IOBase->GetDimensions(i);
+      }
+
+    image->SetSpacing(spc);
+    image->SetOrigin(org);
+    image->SetDirection(dir);
+    image->SetMetaDataDictionary(m_IOBase->GetMetaDataDictionary());
+
+    // Set the regions and allocate
+    typename NativeImageType::RegionType region;
+    typename NativeImageType::IndexType index = {{0, 0, 0}};
+    region.SetIndex(index);
+    region.SetSize(dim);
+    image->SetRegions(region);
+    image->SetVectorLength(m_IOBase->GetNumberOfComponents());
+    image->Allocate();
+
+    // Set the IO region
+    ImageIORegion ioRegion(3);
+    ImageIORegionAdaptor<3>::Convert(region, ioRegion, index);
+    m_IOBase->SetIORegion(ioRegion);
+
+    // Read the image into the buffer
+    m_IOBase->Read(image->GetBufferPointer());
+    m_NativeImage = image;
+    
+    /*
     typedef ImageFileReader<NativeImageType> ReaderType;
     typename ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName(FileName);
     reader->SetImageIO(m_IOBase);
     reader->Update();
     m_NativeImage = reader->GetOutput();
+    */
     }   
 
   // Disconnect the image from the readers, allowing them to be deleted
-  m_NativeImage->DisconnectPipeline();
+  // m_NativeImage->DisconnectPipeline();
 
   // Sometimes images have negative voxel spacing, which SNAP does not recognize
   // Check if voxel spacings need to be regularized

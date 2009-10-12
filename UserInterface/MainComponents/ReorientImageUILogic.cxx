@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ReorientImageUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/14 20:43:17 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/10/12 19:05:56 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -111,7 +111,7 @@ ReorientImageUILogic
   for(size_t i = 0; i < 3; i++)
     {
     // Get the direction cosine for voxel direction i
-    Vector3d dcos = dir.get_row(i);
+    Vector3d dcos = dir.get_column(i);
     double dabsmax = dcos.inf_norm();
 
     for(size_t j = 0; j < 3; j++)
@@ -185,7 +185,7 @@ ReorientImageUILogic
         if(toupper(rai[i]) == m_RAICodes[j][k])
           {
           m_OutDesiredAxisDirection[i]->value(m_AxisLabels[j][k]);
-          m_DesiredDirection.set_row(i, (k==0 ? 1.0 : -1.0) * eye.get_row(j));
+          m_DesiredDirection.set_column(i, (k==0 ? 1.0 : -1.0) * eye.get_row(j));
           }
         }
       }
