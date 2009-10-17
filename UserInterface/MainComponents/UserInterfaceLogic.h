@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/14 19:04:52 $
-  Version:   $Revision: 1.43 $
+  Date:      $Date: 2009/10/17 20:39:51 $
+  Version:   $Revision: 1.44 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -658,6 +658,9 @@ public:
   Fl_Menu_Item *GenerateColorLabelMenu(bool all, bool visible, bool clear);
   void DeleteColorLabelMenu(Fl_Menu_Item *menu);
 
+  // Display tips and tricks
+  void DisplayTips();
+
 protected:
 
   /**
@@ -994,6 +997,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.44  2009/10/17 20:39:51  pyushkevich
+ *ENH: added tip of the day
+ *
  *Revision 1.43  2009/09/14 19:04:52  garyhuizhang
  *ENH: layer inspector support for curor position input
  *

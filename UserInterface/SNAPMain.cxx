@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/23 15:50:58 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009/10/17 20:39:50 $
+  Version:   $Revision: 1.18 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -185,7 +185,7 @@ bool LoadUserPreferencesInteractive(SystemInterface &system)
 
 // Setup printing of stack trace on segmentation faults. This only
 // works on select GNU systems
-#if defined(__GNUC__) && !defined(__CYGWIN__) && !defined(__APPLE__) && !defined(sun)
+#if defined(__GNUC__) && !defined(__CYGWIN__) && !defined(__APPLE__) && !defined(sun) && !defined(WIN32)
 
 #include <signal.h>
 #include <execinfo.h>
@@ -426,6 +426,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.18  2009/10/17 20:39:50  pyushkevich
+ *ENH: added tip of the day
+ *
  *Revision 1.17  2009/07/23 15:50:58  pyushkevich
  *Got the template-removal changes to compile on Linux
  *

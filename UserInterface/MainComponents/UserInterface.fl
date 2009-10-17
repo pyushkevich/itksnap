@@ -30,7 +30,7 @@ class UserInterface {open : {public UserInterfaceBase}
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
       callback {OnMainWindowCloseAction();} open
-      xywh {397 183 875 735} type Double align 0 resizable
+      xywh {380 148 875 735} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"} visible
     } {
       Fl_Wizard m_WizMainLayout {open
@@ -326,7 +326,7 @@ class UserInterface {open : {public UserInterfaceBase}
               xywh {0 25 145 700} box NO_BOX color 22 align 16
             } {
               Fl_Group m_GrpToolbarPage {
-                xywh {0 25 145 700} color 53 labelsize 12
+                xywh {0 25 145 700} color 53 labelsize 12 hide
               } {
                 Fl_Group m_GrpInteractionModes {
                   label {IRIS Toolbox}
@@ -646,8 +646,8 @@ OnDrawOverLabelUpdate();} open
                   }
                 }
               }
-              Fl_Group m_GrpWelcomePage {
-                xywh {0 25 145 680} color 53 hide
+              Fl_Group m_GrpWelcomePage {open
+                xywh {0 25 145 695} color 53
               } {
                 Fl_Group {} {
                   label {ITK-SNAP} open
@@ -655,28 +655,26 @@ OnDrawOverLabelUpdate();} open
                 } {}
                 Fl_Group m_InWelcomePageVersion {
                   label {Version X.XX
-Build Date X.XX} open
-                  xywh {5 225 135 35} labelsize 12 align 145
+Build Date X.XX
+
+itksnap.org} open
+                  xywh {5 225 135 70} labelsize 12 align 145
                 } {}
                 Fl_Group {} {
-                  label {Welcome to ITK-SNAP!} open
-                  xywh {5 456 135 219} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4 align 129
+                  label {Tip of the day:} open
+                  xywh {5 455 135 254} color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4 align 133
                 } {
-                  Fl_Group {} {
-                    label {Thank you for using
-ITK-SNAP!  Visit our new website:
-
-   www.itksnap.org} open
-                    xywh {10 466 124 164} box DOWN_BOX color 52 labelsize 11 align 149
-                  } {}
                   Fl_Button {} {
-                    label {Launch Tutorial}
-                    callback {this->OnLaunchTutorialAction();}
-                    xywh {25 640 95 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 134 labelsize 12
+                    label {Next Tip}
+                    callback {this->DisplayTips();}
+                    xywh {75 675 65 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 134 labelsize 12
+                  }
+                  Fl_Help_View m_OutTips {selected
+                    xywh {5 460 135 210}
                   }
                 }
               }
-              Fl_Group m_GrpSNAPPage {open
+              Fl_Group m_GrpSNAPPage {
                 xywh {0 25 145 680} color 53 hide
               } {
                 Fl_Group {} {
@@ -804,7 +802,7 @@ the preprocessed image.} open
                       }
                       Fl_Button m_BtnRemoveBubble {
                         label {Remove Bubble}
-                        callback {OnRemoveBubbleAction()} selected
+                        callback {OnRemoveBubbleAction()}
                         tooltip {Remove highlighted bubble from list} xywh {75 280 55 35} box PLASTIC_UP_BOX shortcut 0x50072 color 180 labelsize 11 align 128
                       }
                       Fl_Value_Slider m_InBubbleRadius {
@@ -974,17 +972,17 @@ this->OnSNAPLabelOpacityChange();}
               }
             }
             Fl_Group {} {
-              label Spacer
+              label Spacer open
               xywh {0 730 145 5} color 53 labeltype NO_LABEL resizable
             } {}
           }
-          Fl_Group m_GrpRightPanePlaceholderNormal {
+          Fl_Group m_GrpRightPanePlaceholderNormal {open
             xywh {145 25 730 710} resizable
           } {
             Fl_Group m_GrpRightPane {open
               xywh {145 25 730 710} box FLAT_BOX color 166
             } {
-              Fl_Wizard {m_WizSliceLayout[0]} {open
+              Fl_Wizard {m_WizSliceLayout[0]} {
                 xywh {145 25 365 355} box UP_BOX
               } {
                 Fl_Group {m_GrpSliceLayoutNormal[0]} {open
@@ -1071,7 +1069,7 @@ this->OnSNAPLabelOpacityChange();}
                   xywh {145 25 365 355} hide
                 } {}
               }
-              Fl_Wizard {m_WizSliceLayout[1]} {open
+              Fl_Wizard {m_WizSliceLayout[1]} {
                 xywh {510 25 365 355} box UP_BOX
               } {
                 Fl_Group {m_GrpSliceLayoutNormal[1]} {open
@@ -1158,7 +1156,7 @@ this->OnSNAPLabelOpacityChange();}
                   xywh {510 25 365 355} hide
                 } {}
               }
-              Fl_Wizard {m_WizSliceLayout[2]} {open
+              Fl_Wizard {m_WizSliceLayout[2]} {
                 xywh {510 380 365 355} box UP_BOX
               } {
                 Fl_Group {m_GrpSliceLayoutNormal[2]} {open
@@ -1245,7 +1243,7 @@ this->OnSNAPLabelOpacityChange();}
                   xywh {510 380 365 355} hide
                 } {}
               }
-              Fl_Wizard {m_WizSliceLayout[3]} {open
+              Fl_Wizard {m_WizSliceLayout[3]} {
                 xywh {145 380 365 355} box UP_BOX
               } {
                 Fl_Group {m_GrpSliceLayoutNormal[3]} {open
@@ -1333,7 +1331,7 @@ this->OnSNAPLabelOpacityChange();}
             }
           }
         }
-        Fl_Group m_GrpMainLayoutTight {open
+        Fl_Group m_GrpMainLayoutTight {
           xywh {0 0 875 735} hide
         } {
           Fl_Group m_GrpRightPanePlaceholderTight {open
@@ -1344,7 +1342,7 @@ this->OnSNAPLabelOpacityChange();}
     }
     Fl_Window m_WinSplash {
       label {Welcome to ITK-SNAP}
-      xywh {28 512 430 195} type Double align 16 resizable visible
+      xywh {28 512 430 195} type Double align 16 hide resizable
     } {
       Fl_Group {} {open
         image {Artwork/logo_new.gif} xywh {5 5 420 155} color 0 align 16
@@ -1359,7 +1357,7 @@ this->OnSNAPLabelOpacityChange();}
       } {}
     }
     Fl_Window m_WinProgress {
-      label {SNAP Progress Meter} open
+      label {SNAP Progress Meter}
       xywh {434 461 485 70} type Double box BORDER_BOX color 53 modal noborder visible
     } {
       Fl_Group {} {
@@ -1504,7 +1502,7 @@ this->OnSNAPLabelOpacityChange();}
       }
     }
     Fl_Window m_WinAbout {
-      label {About ITK-SNAP} open
+      label {About ITK-SNAP}
       xywh {533 754 433 197} type Double
       code0 {\#include "FL/filename.H"} visible
     } {
@@ -1528,7 +1526,7 @@ Build Date X.XX} open
     Fl_Window m_WinConfirmDiscard {
       label {Discard Unsaved Changes?}
       callback {m_ChkHiddenDiscardChanges->value(0);
-m_WinConfirmDiscard->hide();} open
+m_WinConfirmDiscard->hide();}
       xywh {663 660 500 130} type Double box PLASTIC_DOWN_BOX hide modal
     } {
       Fl_Button {} {

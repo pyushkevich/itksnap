@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/21 21:55:19 $
-  Version:   $Revision: 1.90 $
+  Date:      $Date: 2009/10/17 20:39:50 $
+  Version:   $Revision: 1.91 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2192,6 +2192,8 @@ UserInterfaceLogic
   
   // Initialize hidden feature usage option
   OnHiddenFeaturesToggleAction();
+
+  DisplayTips();
 }
 
 void 
@@ -5124,8 +5126,83 @@ UserInterfaceLogic
     m_BtnAnnotationMode->hide();
 }
 
+const char *tip_link_cb(Fl_Widget *w, const char *uri)
+{
+  fl_open_uri(uri);
+  return NULL;
+}
+
+const char *snap_tips[] = {
+  "There are many resources on our website, <p></p>"
+  "<BLOCKQUOTE><a href='http://itksnap.org'>itksnap.org</a></BLOCKQUOTE>,"
+  "<p></p>"
+  "including tutorials, mailing lists, bug reports, and much more!",
+
+  "ITK-SNAP reports the cursor location in NIfTI coordinates."
+  "<p>x runs left to right; y runs posterior to anterior; and x runs inferior to superior</p>",
+
+  "You can run several ITK-SNAP sessions at once. "
+  "<p>The cursor will be linked between these sessions, always pointing to the same patient coordinate.</p>",
+
+  "Did you know that ITK-SNAP can display color (RGB) images?"
+  "<p>Supported formats are NIfTI and MetaImage.</p>",
+
+  "<b>Convert3D</b> is a companion tool to ITK-SNAP. It lets you perform complex image processing operations with "
+  "a simple command-line interface.<p> Get it from</p> <p><a href='http://itksnap.org/c3d'>itksnap.org/c3d</a></p>",
+
+  "Did you know that the <b>F3</b> key can be used to hide user interface panels in ITK-SNAP?",
+
+  "Did you know that the <b>F4</b> key toggles full-screen mode?",
+
+  "Please remember to cite our 2006 Neuroimage paper when you publish results produced with ITK-SNAP!",
+
+  "ITK-SNAP supports multiple image layers. Each layer has its own contrast settings, opacity, and color map."
+  "Load layers using the 'Overlay' menu. Edit them using the Layer Inspector, under 'Tools'.",
+
+  "There are many keyboard shortcuts to make your work faster. Look them up under 'Help'",
+
+  "Since version 2.0, you can zoom (right mouse button) and pan (middle button) in crosshairs mode. "
+  "There is also an automatic paning feature when you zoom into an image.",
+
+  "The paintbrush mode includes an adaptive paintbrush that can be used to automate manual labeling."
+  "<p>It labels voxels of similar intensity</p>",
+
+  "All changes to the segmentation can be undone and redone. But you should still save your work often!",
+
+  "The little '+' icon next to each slice window is used to expand that window and hide other windows.",
+
+  "You can change the appearance of the crosshairs, zoom thumbnail, ruler, and all other overlays in slice windows."
+  "<p>Select 'Display Options' under 'Tools'",
+
+  NULL};
+
+static int ntips = 15, current_tip = -1;
+
+void
+UserInterfaceLogic
+::DisplayTips()
+{
+  if(current_tip < 0)
+    {
+    // Today's date
+    time_t ctm;    
+    time(&ctm);
+    struct tm *tinfo = localtime(&ctm);
+    current_tip = tinfo->tm_yday % ntips;
+    }
+
+  m_OutTips->value(snap_tips[current_tip]);
+  m_OutTips->link(&tip_link_cb);
+  current_tip++;
+  if(snap_tips[current_tip] == NULL)
+    current_tip = 0;
+}
+
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.91  2009/10/17 20:39:50  pyushkevich
+ *ENH: added tip of the day
+ *
  *Revision 1.90  2009/09/21 21:55:19  pyushkevich
  *FIX:various snow leopard warnings'
  *
