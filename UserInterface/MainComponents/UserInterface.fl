@@ -655,7 +655,7 @@ OnDrawOverLabelUpdate();} open
                 } {}
                 Fl_Group m_InWelcomePageVersion {
                   label {Version X.XX
-Build Date X.XX
+Build Date X.XXX
 
 itksnap.org} open
                   xywh {5 225 135 70} labelsize 12 align 145
@@ -669,7 +669,7 @@ itksnap.org} open
                     callback {this->DisplayTips();}
                     xywh {75 675 65 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 134 labelsize 12
                   }
-                  Fl_Help_View m_OutTips {selected
+                  Fl_Help_View m_OutTips {
                     xywh {5 460 135 210}
                   }
                 }
@@ -982,7 +982,7 @@ this->OnSNAPLabelOpacityChange();}
             Fl_Group m_GrpRightPane {open
               xywh {145 25 730 710} box FLAT_BOX color 166
             } {
-              Fl_Wizard {m_WizSliceLayout[0]} {
+              Fl_Wizard {m_WizSliceLayout[0]} {open
                 xywh {145 25 365 355} box UP_BOX
               } {
                 Fl_Group {m_GrpSliceLayoutNormal[0]} {open
@@ -1069,7 +1069,7 @@ this->OnSNAPLabelOpacityChange();}
                   xywh {145 25 365 355} hide
                 } {}
               }
-              Fl_Wizard {m_WizSliceLayout[1]} {
+              Fl_Wizard {m_WizSliceLayout[1]} {open
                 xywh {510 25 365 355} box UP_BOX
               } {
                 Fl_Group {m_GrpSliceLayoutNormal[1]} {open
@@ -1127,8 +1127,8 @@ this->OnSNAPLabelOpacityChange();}
                   Fl_Group {m_GrpSliceSidebar[1]} {open
                     xywh {850 30 23 320}
                   } {
-                    Fl_Pack {} {open
-                      xywh {851 30 22 50}
+                    Fl_Pack {} {open selected
+                      xywh {851 30 20 50}
                     } {
                       Fl_Button {m_BtnPanelZoom[1]} {
                         label {@+}
@@ -1136,14 +1136,14 @@ this->OnSNAPLabelOpacityChange();}
                         tooltip {Expand this view to occupy the entire screen} xywh {851 30 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139
                       }
                       Fl_Group {} {open
-                        xywh {853 50 20 5}
+                        xywh {851 50 20 5}
                       } {}
                       Fl_Button {m_BtnSaveAsPNG[1]} {
                         callback {OnActiveWindowSaveSnapshot(1);}
                         tooltip {Save a snapshot of this window as a PNG image} image {Artwork/screencapture.gif} deimage {Artwork/screencapture2.gif} xywh {851 55 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139 deactivate
                       }
                       Fl_Group {} {open
-                        xywh {853 75 20 5}
+                        xywh {851 75 20 5}
                       } {}
                     }
                     Fl_Scrollbar {m_InSliceSlider[1]} {
@@ -1156,7 +1156,7 @@ this->OnSNAPLabelOpacityChange();}
                   xywh {510 25 365 355} hide
                 } {}
               }
-              Fl_Wizard {m_WizSliceLayout[2]} {
+              Fl_Wizard {m_WizSliceLayout[2]} {open
                 xywh {510 380 365 355} box UP_BOX
               } {
                 Fl_Group {m_GrpSliceLayoutNormal[2]} {open
@@ -1211,7 +1211,7 @@ this->OnSNAPLabelOpacityChange();}
                       xywh {510 705 5 30} resizable
                     } {}
                   }
-                  Fl_Group {m_GrpSliceSidebar[2]} {
+                  Fl_Group {m_GrpSliceSidebar[2]} {open
                     xywh {851 385 20 320}
                   } {
                     Fl_Pack {} {open

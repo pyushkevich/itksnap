@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/19 14:00:16 $
-  Version:   $Revision: 1.27 $
+  Date:      $Date: 2009/10/25 13:17:04 $
+  Version:   $Revision: 1.28 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -758,8 +758,8 @@ IRISApplication
   // A structure to describe each label
   struct Entry {
     unsigned long int count;
-    unsigned long int sumGrey;
-    unsigned long int sumGreySqr;
+    double sumGrey;
+    double sumGreySqr;
     double mean;
     double stddev;
   
@@ -777,16 +777,22 @@ IRISApplication
   GreyImageWrapper::ConstIterator itGrey = 
     m_CurrentImageData->GetGrey()->GetImageConstIterator();
 
+  GreyTypeToNativeFunctor grey_to_native = 
+    m_CurrentImageData->GetGrey()->GetNativeMapping();
+
+
   // Compute the number, sum and sum of squares of grey intensities for each 
   // label
   while(!itLabel.IsAtEnd())
     {
     LabelType label = itLabel.Value();
     GreyType grey = itGrey.Value();
+    double native = grey_to_native(grey);
+    
 
     data[label].count++;
-    data[label].sumGrey += grey;
-    data[label].sumGreySqr += grey * grey;
+    data[label].sumGrey += native;
+    data[label].sumGreySqr += native * native;
 
     ++itLabel;
     ++itGrey;

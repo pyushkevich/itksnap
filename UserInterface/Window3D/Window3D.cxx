@@ -1,10 +1,10 @@
 /*=========================================================================
 
-  Progra_P:   Insight Segmentation & Registration Toolkit
+  Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: Window3D.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/16 22:02:29 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/10/25 13:17:05 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -45,6 +45,7 @@
 #include "GenericSliceWindow.h"
 
 #include <FL/glut.H>
+#include <FL/fl_ask.H>
 
 #include <vxl_version.h>
 #if VXL_VERSION_DATE_FULL > 20040406
@@ -503,7 +504,14 @@ Window3D
 ::UpdateMesh(itk::Command *command)
 {
   // make_current();
-  m_Mesh.GenerateMesh(command);
+  try 
+    {
+    m_Mesh.GenerateMesh(command);
+    }
+  catch(vtkstd::bad_alloc &exc)
+    {
+    fl_alert("Out of memory error when generating 3D mesh.");
+    }
   m_Canvas->redraw();
 }
 
@@ -1316,6 +1324,9 @@ Window3D
 
 /*
  *$Log: Window3D.cxx,v $
+ *Revision 1.11  2009/10/25 13:17:05  pyushkevich
+ *FIX: bugs in SF.net, crash on mesh update in large images, bad vols/stats output
+ *
  *Revision 1.10  2009/07/16 22:02:29  pyushkevich
  *Made OpenGLTexture non-templated
  *

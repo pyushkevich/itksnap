@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/17 20:39:50 $
-  Version:   $Revision: 1.91 $
+  Date:      $Date: 2009/10/25 13:17:05 $
+  Version:   $Revision: 1.92 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1891,13 +1891,15 @@ if(ev == FL_SHORTCUT)
 
     else if(Fl::test_shortcut('z' | FL_CTRL))
       {
-      this->OnUndoAction();
+      if(m_BtnIRISUndo->active())
+        this->OnUndoAction();
       return 1;
       }
 
     else if(Fl::test_shortcut('y' | FL_CTRL))
       {
-      this->OnRedoAction();
+      if(m_BtnIRISRedo->active())
+        this->OnRedoAction();
       return 1;
       }
     
@@ -5200,6 +5202,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.92  2009/10/25 13:17:05  pyushkevich
+ *FIX: bugs in SF.net, crash on mesh update in large images, bad vols/stats output
+ *
  *Revision 1.91  2009/10/17 20:39:50  pyushkevich
  *ENH: added tip of the day
  *
