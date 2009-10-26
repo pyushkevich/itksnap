@@ -63,6 +63,26 @@
     operating system's own web browser, from itksnap.org. This may displease users 
     connected to the internet, but this makes managing documentation a lot easier and
     hopefully will allow us to keep the documentation up to date with the features.
+    
+ -  Crash recovery. When an out-of-memory or other crash occurs, ITK-SNAP will ask you
+    if you want to save the segmentation image before exiting. Of course this may not
+    always work, but it should make a lot of frustrated users a little less frustrated.
+
+ -  Reduced the memory footprint. There is still room for improvement, of course. Currently,
+	ITK-SNAP requires 6 bytes per voxel in manual segmentation mode. More memory is needed for
+	mesh rendering, and a lot more for automatic segmentation. When loading images in 32-bit
+	or 64-bit formats, more memory may be required at the time of image IO. That is because
+	ITK NIFTI reader (and maybe other readers) keeps a second copy of the image in memory 
+	during IO. This memory is immediately deallocated though.  
+	
+ -  Unified navigation modes. The crosshair mode allows zoom and pan (RMB/MMB), and has an 
+    auto-pan feature when you move the crosshair close to the edge of the slice window.
+    The zoom/pan mode is redundant, but we left it in place for backward compatibility.
+    In the zoom/pan mode, zoom is RMB, pan is LMB, crosshair motion is MMB. In all other
+    modes, crosshair motion is accessible through MMB as well.
+    
+    
+ 
 
 1.1.2. Bug Fixes
 
@@ -81,6 +101,8 @@
     displayed (wrong coordinate labels assigned). This was caused by incorrect mapping of
     ITK direction matrix to "RAI" codes in SNAP. This affects display of NIFTI, DICOM and
     other image files. It also affects the behavior of the Reorient Image dialog.
+    
+ -  Please see the bug tracker on itksnap.org for the full listing of bug fixes.
  
 1.1.3. Website Changes
 
