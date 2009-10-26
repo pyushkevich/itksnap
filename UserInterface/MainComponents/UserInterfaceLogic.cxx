@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/25 13:17:05 $
-  Version:   $Revision: 1.92 $
+  Date:      $Date: 2009/10/26 07:34:10 $
+  Version:   $Revision: 1.93 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -636,8 +636,18 @@ UserInterfaceLogic
   // The region can not be empty
   assert(roi.GetROI().GetNumberOfPixels() > 0);
 
+  // Try allocating memory for snake
+  try 
+    {
+    m_Driver->InitializeSNAPImageData(roi,m_ProgressCommand);
+    }
+  catch(itk::MemoryAllocationError &)
+    {
+    fl_alert("Out of memory! Try using a smaller region of interest or subsampling.");
+    return;
+    }
+
   // Set the current application image mode to SNAP data
-  m_Driver->InitializeSNAPImageData(roi,m_ProgressCommand);
   m_Driver->SetCurrentImageDataToSNAP();
 
   // Inform the global state that we're in sNAP
@@ -5202,6 +5212,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.93  2009/10/26 07:34:10  pyushkevich
+ *ENH: substantially reduced memory footprint when loading float NIFTI images
+ *
  *Revision 1.92  2009/10/25 13:17:05  pyushkevich
  *FIX: bugs in SF.net, crash on mesh update in large images, bad vols/stats output
  *

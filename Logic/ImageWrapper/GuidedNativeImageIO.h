@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/19 14:00:16 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/10/26 07:34:10 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -112,7 +112,21 @@ public:
    * Get the component type in the native image
    */
   itk::ImageIOBase::IOComponentType GetComponentTypeInNativeImage() const
-    { return m_IOBase->GetComponentType(); }
+    { return m_NativeType; }
+
+  itk::ImageIOBase::ByteOrder GetByteOrderInNativeImage() const
+    { return m_NativeByteOrder; }
+
+  std::string GetComponentTypeAsStringInNativeImage() const
+    { return m_NativeTypeString; }
+
+  std::string GetFileNameOfNativeImage() const
+    { return m_NativeFileName; }
+
+  unsigned long GetFileSizeOfNativeImage() const
+    { return m_NativeSizeInBytes; }
+
+
 
   /**
    * This method returns the image internally stored in this object. This is
@@ -166,7 +180,7 @@ public:
   static void SetPixelType(Registry &folder, RawPixelType type);
 
   // Get the output of the last operation
-  irisGetMacro(IOBase, itk::ImageIOBase *);    
+  // irisGetMacro(IOBase, itk::ImageIOBase *);    
 
 private:
   
@@ -190,6 +204,14 @@ private:
 
   // The IO base used to read the files
   IOBasePointer m_IOBase;
+
+  // This information is copied from IOBase in order to delete IOBase at the 
+  // earliest possible point, so as to conserve memory
+  IOBase::IOComponentType m_NativeType;
+  size_t m_NativeComponents;
+  unsigned long m_NativeSizeInBytes;
+  std::string m_NativeTypeString, m_NativeFileName;
+  IOBase::ByteOrder m_NativeByteOrder;
 
   // The file format
   FileFormat m_FileFormat;

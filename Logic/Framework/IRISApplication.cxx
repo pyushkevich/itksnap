@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/25 13:17:04 $
-  Version:   $Revision: 1.28 $
+  Date:      $Date: 2009/10/26 07:34:10 $
+  Version:   $Revision: 1.29 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1140,6 +1140,9 @@ IRISApplication
     GreyImageType::Pointer imgGrey = rescaler(io);
     GreyTypeToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
 
+    // At this point, deallocate the native image, so that we don't use more memory
+    io->DeallocateNativeImage();
+
     // Add the image as the current grayscale overlay
     m_IRISImageData->SetGreyOverlay(imgGrey, mapper);
     }
@@ -1148,6 +1151,9 @@ IRISApplication
     // Cast image to RGB
     CastNativeImageToRGB<RGBType> caster;
     RGBImageType::Pointer imgRGB = caster(io);
+
+    // At this point, deallocate the native image, so that we don't use more memory
+    io->DeallocateNativeImage();
 
     // Add the image as the current RGB overlay
     m_IRISImageData->SetRGBOverlay(imgRGB);
@@ -1190,6 +1196,9 @@ IRISApplication
     GreyImageType::Pointer imgGrey = rescaler(io);
     GreyTypeToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
 
+    // At this point, deallocate the native image, so that we don't use more memory
+    io->DeallocateNativeImage();
+
     // Set the image as the current grayscale image
     m_IRISImageData->SetGreyImage(imgGrey, icg, mapper); 
 
@@ -1202,9 +1211,13 @@ IRISApplication
     }
   else if(type == MAIN_RGB)
     {
+    // Cast to RGB
     CastNativeImageToRGB<RGBType> caster;
     RGBImageType::Pointer imgRGB = caster(io);
     m_IRISImageData->SetRGBImage(imgRGB,icg);
+
+    // At this point, deallocate the native image, so that we don't use more memory
+    io->DeallocateNativeImage();
     }
   else throw ExceptionObject("Unsupported main image type");
 

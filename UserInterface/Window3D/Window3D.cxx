@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: Window3D.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/25 13:17:05 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/10/26 07:34:11 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -508,7 +508,7 @@ Window3D
     {
     m_Mesh.GenerateMesh(command);
     }
-  catch(vtkstd::bad_alloc &exc)
+  catch(vtkstd::bad_alloc &)
     {
     fl_alert("Out of memory error when generating 3D mesh.");
     }
@@ -1324,6 +1324,9 @@ Window3D
 
 /*
  *$Log: Window3D.cxx,v $
+ *Revision 1.12  2009/10/26 07:34:11  pyushkevich
+ *ENH: substantially reduced memory footprint when loading float NIFTI images
+ *
  *Revision 1.11  2009/10/25 13:17:05  pyushkevich
  *FIX: bugs in SF.net, crash on mesh update in large images, bad vols/stats output
  *

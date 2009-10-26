@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/23 15:50:58 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/10/26 07:34:10 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -725,29 +725,29 @@ ImageIOWizardLogic
   // The object better not be NULL!
   if(m_GuidedIO.IsNativeImageLoaded())
     {
+    // Native image
+    itk::ImageBase<3>::Pointer native = m_GuidedIO.GetNativeImage();
+
     // A stream to simplify converting to string
     IRISOStringStream sout;    
 
     // Print file name
-    m_OutSummaryFileName->value(m_GuidedIO.GetIOBase()->GetFileName());
+    m_OutSummaryFileName->value(m_GuidedIO.GetFileNameOfNativeImage().c_str());
 
     // Print file dimensions, spacing and origin
     for(size_t i = 0; i < 3; i++)
       {
-      m_OutSummaryDimensions[i]->value(
-        m_GuidedIO.GetNativeImage()->GetBufferedRegion().GetSize()[i]);
-      m_OutSummarySpacing[i]->value(
-        m_GuidedIO.GetNativeImage()->GetSpacing()[i]);
-      m_OutSummaryOrigin[i]->value(
-        m_GuidedIO.GetNativeImage()->GetOrigin()[i]);
+      m_OutSummaryDimensions[i]->value(native->GetBufferedRegion().GetSize()[i]);
+      m_OutSummarySpacing[i]->value(native->GetSpacing()[i]);
+      m_OutSummaryOrigin[i]->value(native->GetOrigin()[i]);
       }
 
     // Print file size in bytes
-    m_OutSummarySize->value((int)(m_GuidedIO.GetIOBase()->GetImageSizeInBytes() / (1024.0)));
+    m_OutSummarySize->value((int)(m_GuidedIO.GetFileSizeOfNativeImage() / (1024.0)));
     
     // Print out the orientation information
     sout.str("");
-    vnl_matrix<double> dir = m_GuidedIO.GetNativeImage()->GetDirection().GetVnlMatrix();
+    vnl_matrix<double> dir = native->GetDirection().GetVnlMatrix();
     std::string rai = 
       ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(dir);
     if(ImageCoordinateGeometry::IsDirectionMatrixOblique(dir))
@@ -757,12 +757,11 @@ ImageIOWizardLogic
     m_OutSummaryOrientation->value(sout.str().c_str());
     
     // TODO: This is a workaround on an itk bug with RawImageIO
-    if(m_GuidedIO.GetIOBase()->GetComponentType() != ImageIOBase::UNKNOWNCOMPONENTTYPE)
+    if(m_GuidedIO.GetComponentTypeInNativeImage() != ImageIOBase::UNKNOWNCOMPONENTTYPE)
       {
       // There actually is a type in the IO object
       m_OutSummaryPixelType->value(
-        m_GuidedIO.GetIOBase()->GetComponentTypeAsString(
-          m_GuidedIO.GetIOBase()->GetComponentType()).c_str());
+        m_GuidedIO.GetComponentTypeAsStringInNativeImage().c_str());
       }
     else
       {
@@ -771,11 +770,11 @@ ImageIOWizardLogic
     
     // Print the byte order
     m_OutSummaryByteOrder->value(
-       boTypes[(unsigned int)(m_GuidedIO.GetIOBase()->GetByteOrder() - ImageIOType::BigEndian)]);
+       boTypes[(unsigned int)(m_GuidedIO.GetByteOrderInNativeImage() - ImageIOType::BigEndian)]);
 
     // Dump the contents of the meta data dictionary
     m_SummaryTextBuffer->text("");
-    MetaDataDictionary &mdd = m_GuidedIO.GetIOBase()->GetMetaDataDictionary();
+    MetaDataDictionary &mdd = native->GetMetaDataDictionary();
     for(
       MetaDataDictionary::ConstIterator itMeta = mdd.Begin();
       itMeta != mdd.End(); ++itMeta)      

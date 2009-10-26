@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/12 19:05:56 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/10/26 07:34:10 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -111,6 +111,13 @@ GuidedNativeImageIO
 
     m_StaticDataInitialized = true;
     }
+
+  m_NativeType = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+  m_NativeComponents = 0;
+  m_NativeTypeString = m_IOBase->GetComponentTypeAsString(m_NativeType);
+  m_NativeFileName = "";
+  m_NativeByteOrder = itk::ImageIOBase::OrderNotApplicable;
+  m_NativeSizeInBytes = 0;
 }
 
 GuidedNativeImageIO::FileFormat 
@@ -143,8 +150,7 @@ size_t
 GuidedNativeImageIO
 ::GetNumberOfComponentsInNativeImage() const
 {
-  assert(m_IOBase);
-  return m_IOBase->GetNumberOfComponents();
+  return m_NativeComponents;
 }
 
 template<typename TRaw> 
@@ -302,8 +308,7 @@ GuidedNativeImageIO
     }
 
   // Based on the component type, read image in native mode
-  ImageIOBase::IOComponentType itype = m_IOBase->GetComponentType();
-  switch(itype) 
+  switch(m_IOBase->GetComponentType()) 
     {
     case ImageIOBase::UCHAR:  DoReadNative<unsigned char>(FileName, folder);  break;
     case ImageIOBase::CHAR:   DoReadNative<signed char>(FileName, folder);    break;
@@ -318,6 +323,15 @@ GuidedNativeImageIO
     default: 
       throw ExceptionObject("Unknown Pixel Type when reading image");
     }
+
+  // Get rid of the IOBase, it may store useless data (in case of NIFTI)
+  m_NativeType = m_IOBase->GetComponentType();
+  m_NativeComponents = m_IOBase->GetNumberOfComponents();
+  m_NativeTypeString = m_IOBase->GetComponentTypeAsString(m_NativeType);
+  m_NativeFileName = m_IOBase->GetFileName();
+  m_NativeByteOrder = m_IOBase->GetByteOrder();
+  m_NativeSizeInBytes = m_IOBase->GetImageSizeInBytes();
+  m_IOBase = NULL;
 }
 
 template<class TScalar>
