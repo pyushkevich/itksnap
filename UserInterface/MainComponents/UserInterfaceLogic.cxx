@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 07:34:10 $
-  Version:   $Revision: 1.93 $
+  Date:      $Date: 2009/10/26 08:17:58 $
+  Version:   $Revision: 1.94 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1482,6 +1482,9 @@ UserInterfaceLogic
   m_Driver->SetCurrentImageDataToIRIS();
   m_Driver->ReleaseSNAPImageData();
 
+  // Update the Layer UI
+  OnLayerInspectorUpdate();
+
   // Inform the global state that we're not in sNAP
   m_GlobalState->SetSNAPActive(false);
 
@@ -2098,6 +2101,9 @@ UserInterfaceLogic
   m_IRISWindowManager3D->ClearScreen();
   m_IRISWindowManager3D->ResetView();
 
+  // Change what's shown in the layer inspector
+  OnLayerInspectorUpdate();
+
   // Force a global redraw
   RedrawWindows();
 }
@@ -2130,6 +2136,9 @@ UserInterfaceLogic
 
   // Go to the first page in the SNAP wizard
   SetActiveSegmentationPipelinePage( 0 );
+
+  // Change what's shown in the layer inspector
+  OnLayerInspectorUpdate();
 
   // Repaint everything
   RedrawWindows();
@@ -5212,6 +5221,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.94  2009/10/26 08:17:58  pyushkevich
+ *FIX(2821319): Made intensity curve and colormap work in snake mode
+ *
  *Revision 1.93  2009/10/26 07:34:10  pyushkevich
  *ENH: substantially reduced memory footprint when loading float NIFTI images
  *

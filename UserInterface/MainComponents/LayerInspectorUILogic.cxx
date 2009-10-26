@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/02 10:59:27 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009/10/26 08:17:58 $
+  Version:   $Revision: 1.18 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -445,6 +445,9 @@ LayerInspectorUILogic
 
   // Update the image wrapper
   m_GreyWrapper->UpdateIntensityMapFunction();
+
+  // Redraw parent
+  m_Parent->RedrawWindows();
 }
 
 void 
@@ -656,6 +659,9 @@ LayerInspectorUILogic
   m_GreyWrapper->SetColorMap(m_BoxColorMap->GetColorMap());
   m_GreyWrapper->UpdateIntensityMapFunction();
   this->OnColorMapSelectedPointUpdate();
+
+  // Redraw parent
+  m_Parent->RedrawWindows();
 }
 
 void 
@@ -728,6 +734,9 @@ LayerInspectorUILogic
   // Update the image
   m_GreyWrapper->SetColorMap(cm);
   m_GreyWrapper->UpdateIntensityMapFunction();
+  
+  // Redraw parent
+  m_Parent->RedrawWindows();
 
   this->OnColorMapSelectedPointUpdate();
 }
