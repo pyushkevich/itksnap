@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorLabelTable.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:38:23 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/10/26 20:18:35 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -99,6 +99,9 @@ public:
 private:
   // A flat array of color labels
   ColorLabel m_Label[MAX_COLOR_LABELS], m_DefaultLabel[MAX_COLOR_LABELS];
+
+  static const char *ColorLabelTable::m_ColorList[];
+  static const size_t m_ColorListSize;
 };
 
 #endif
