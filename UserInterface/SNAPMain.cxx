@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/17 20:39:50 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2009/10/26 20:19:12 $
+  Version:   $Revision: 1.19 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -39,6 +39,7 @@
 #endif
 
 #include "FL/Fl_Native_File_Chooser.H"
+#include <FL/Fl_File_Chooser.H>
 
 #include "CommandLineArgumentParser.h"
 #include "ImageCoordinateGeometry.h"
@@ -402,7 +403,43 @@ int main(int argc, char **argv)
   ui->HideSplashScreen();
 
   // Run the UI
-  Fl::run();
+  bool crashed = false;
+  try
+    {
+    Fl::run();
+    }
+  catch(std::exception &exc)
+    {
+    int salvage = fl_choice(
+      "A run-time exception has occurred. ITK-SNAP must terminate.\n\n"
+      "The text of the exception follows:\n%s\n\n"
+      "ITK-SNAP can try to save your segmentation image before exiting.\n"
+      "Do you wish to do so?", 
+      "No, quit without saving!", "Yes, try saving segmentation!", NULL,
+      exc.what());
+    if(salvage)
+      {
+      char *fnsave = fl_file_chooser(
+        "Select a filename to save segmentation", 
+        "*.nii", "recovered_segmentation.nii");
+      if(fnsave)
+        {
+        try 
+          {
+          typedef itk::ImageFileWriter<LabelImageWrapper::ImageType> WriterType;
+          WriterType::Pointer writer = WriterType::New();
+          writer->SetInput(
+            ui->GetDriver()->GetIRISImageData()->GetSegmentation()->GetImage());
+          writer->SetFileName(fnsave);
+          writer->Update();
+          }
+        catch(...)
+          {
+          fl_alert("Failed to save segmentation image. Unfortunately, your work was lost.");
+          }
+        }
+      }
+    }
 
   // Write the user's preferences to disk
   try 
@@ -426,6 +463,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.19  2009/10/26 20:19:12  pyushkevich
+ *ENH: added top-level exception handler with option to save work
+ *
  *Revision 1.18  2009/10/17 20:39:50  pyushkevich
  *ENH: added tip of the day
  *
