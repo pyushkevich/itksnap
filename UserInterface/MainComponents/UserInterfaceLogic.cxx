@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 08:17:58 $
-  Version:   $Revision: 1.94 $
+  Date:      $Date: 2009/10/26 08:37:31 $
+  Version:   $Revision: 1.95 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1902,14 +1902,14 @@ if(ev == FL_SHORTCUT)
       return 1;
       }
 
-    else if(Fl::test_shortcut('z' | FL_CTRL))
+    else if(Fl::test_shortcut('z' | FL_COMMAND))
       {
       if(m_BtnIRISUndo->active())
         this->OnUndoAction();
       return 1;
       }
 
-    else if(Fl::test_shortcut('y' | FL_CTRL))
+    else if(Fl::test_shortcut('y' | FL_COMMAND))
       {
       if(m_BtnIRISRedo->active())
         this->OnRedoAction();
@@ -1950,14 +1950,14 @@ if(ev == FL_SHORTCUT)
       }
 
     // Ctrl-F - fit all views
-    else if(Fl::test_shortcut(FL_CTRL | 'f'))
+    else if(Fl::test_shortcut(FL_COMMAND | 'f'))
       {
       this->OnResetAllViews2DAction();
       return 1;
       }
 
     // center the 2D views (reset view positions)
-    else if(Fl::test_shortcut(FL_CTRL | FL_SHIFT | 'f'))
+    else if(Fl::test_shortcut(FL_COMMAND | FL_SHIFT | 'f'))
       {
       m_IRISWindowManager2D[0]->ResetViewPosition();
       m_IRISWindowManager2D[1]->ResetViewPosition();
@@ -2001,7 +2001,7 @@ if(ev == FL_SHORTCUT)
         return 1;
       }
     // selecting drawing over label
-    else if(Fl::test_shortcut(FL_CTRL | ',') || Fl::test_shortcut(FL_CTRL | '<'))
+    else if(Fl::test_shortcut(FL_COMMAND | ',') || Fl::test_shortcut(FL_COMMAND | '<'))
       {
       LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
       if(m_GlobalState->GetCoverageMode() == PAINT_OVER_ALL)
@@ -2017,7 +2017,7 @@ if(ev == FL_SHORTCUT)
         OnDrawOverLabelUpdate();
         return 1;
       }
-    else if(Fl::test_shortcut(FL_CTRL | '.') || Fl::test_shortcut(FL_CTRL | '>'))
+    else if(Fl::test_shortcut(FL_COMMAND | '.') || Fl::test_shortcut(FL_COMMAND | '>'))
       {
       LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
       if(m_GlobalState->GetCoverageMode() == PAINT_OVER_ALL)
@@ -5221,6 +5221,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.95  2009/10/26 08:37:31  pyushkevich
+ *FIX(2872319): Ctrl-Z no longer steals focus from slice window
+ *
  *Revision 1.94  2009/10/26 08:17:58  pyushkevich
  *FIX(2821319): Made intensity curve and colormap work in snake mode
  *

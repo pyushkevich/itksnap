@@ -325,32 +325,32 @@ class UserInterface {open : {public UserInterfaceBase}
               label {Control Pane} open
               xywh {0 25 145 700} box NO_BOX color 22 align 16
             } {
-              Fl_Group m_GrpToolbarPage {
-                xywh {0 25 145 700} color 53 labelsize 12 hide
+              Fl_Group m_GrpToolbarPage {open
+                xywh {0 25 145 700} color 53 labelsize 12
               } {
                 Fl_Group m_GrpInteractionModes {
-                  label {IRIS Toolbox}
+                  label {IRIS Toolbox} open
                   xywh {5 45 135 95} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
                 } {
                   Fl_Button m_BtnCrosshairsMode {
                     callback {SetToolbarMode(CROSSHAIRS_MODE);}
-                    tooltip {Crosshairs tool: left clicking moves the cursor} image {Artwork/crosshair.gif} xywh {15 55 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x31 value 1 color 180 selection_color 180 align 16 when 1
+                    tooltip {Crosshairs tool: left clicking moves the cursor} image {Artwork/crosshair.gif} xywh {15 55 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX value 1 color 180 selection_color 180 align 16 when 1
                   }
                   Fl_Button m_BtnNavigationMode {
                     callback {SetToolbarMode(NAVIGATION_MODE);}
-                    tooltip {Navigation tool: zoom and pan around the 2D slices} image {Artwork/zoom.gif} xywh {55 55 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x32 color 180 selection_color 180 align 16 when 1
+                    tooltip {Navigation tool: zoom and pan around the 2D slices} image {Artwork/zoom.gif} xywh {55 55 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16 when 1
                   }
                   Fl_Button {} {
                     callback {SetToolbarMode(POLYGON_DRAWING_MODE);}
-                    tooltip {Polygon tool: slice-by-slice manual segmentation} image {Artwork/poly.gif} xywh {95 55 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x33 color 180 selection_color 180 align 16 when 1
+                    tooltip {Polygon tool: slice-by-slice manual segmentation} image {Artwork/poly.gif} xywh {95 55 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16 when 1
                   }
                   Fl_Button m_BtnSNAPMode {
                     callback {SetToolbarMode(ROI_MODE);}
-                    tooltip {SNAP tool: select a region of interest for automatic segmentation} image {Artwork/snake.gif} xywh {15 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x34 color 180 selection_color 180 labelsize 10 align 144 when 1
+                    tooltip {SNAP tool: select a region of interest for automatic segmentation} image {Artwork/snake.gif} xywh {15 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 labelsize 10 align 144 when 1
                   }
                   Fl_Button {} {
-                    callback {SetToolbarMode(PAINTBRUSH_MODE);}
-                    tooltip {Paintbrush tool} image {Artwork/paintbrush.gif} xywh {55 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x35 color 180 selection_color 180 labelfont 1 labelsize 20 align 16 when 1
+                    callback {SetToolbarMode(PAINTBRUSH_MODE);} selected
+                    tooltip {Paintbrush tool} image {Artwork/paintbrush.gif} xywh {55 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 labelfont 1 labelsize 20 align 16 when 1
                   }
                   Fl_Button m_BtnAnnotationMode {
                     label A
@@ -611,12 +611,12 @@ OnDrawOverLabelUpdate();} open
                   Fl_Button m_BtnIRISUndo {
                     label Undo
                     callback {OnUndoAction();}
-                    tooltip {Undo the last drawing operation} xywh {20 530 50 25} box PLASTIC_UP_BOX shortcut 0x4007a color 180 labelsize 11 deactivate
+                    tooltip {Undo the last drawing operation} xywh {20 530 50 25} box PLASTIC_UP_BOX color 180 labelsize 11 deactivate
                   }
                   Fl_Button m_BtnIRISRedo {
                     label Redo
                     callback {OnRedoAction();}
-                    tooltip {Redo the last drawing operation} xywh {75 530 50 25} box PLASTIC_UP_BOX shortcut 0x40079 color 180 labelsize 11 deactivate
+                    tooltip {Redo the last drawing operation} xywh {75 530 50 25} box PLASTIC_UP_BOX color 180 labelsize 11 deactivate
                   }
                   Fl_Button {} {
                     label {?}
@@ -647,7 +647,7 @@ OnDrawOverLabelUpdate();} open
                 }
               }
               Fl_Group m_GrpWelcomePage {open
-                xywh {0 25 145 695} color 53
+                xywh {0 25 145 695} color 53 hide
               } {
                 Fl_Group {} {
                   label {ITK-SNAP} open
@@ -1127,7 +1127,7 @@ this->OnSNAPLabelOpacityChange();}
                   Fl_Group {m_GrpSliceSidebar[1]} {open
                     xywh {850 30 23 320}
                   } {
-                    Fl_Pack {} {open selected
+                    Fl_Pack {} {open
                       xywh {851 30 20 50}
                     } {
                       Fl_Button {m_BtnPanelZoom[1]} {
