@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelEditorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/10/26 16:40:19 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -423,8 +423,15 @@ LabelEditorUILogic
   // Set the values of the label
   cl.SetLabel(m_InLabelName->value());
   cl.SetRGBAVector(rgba); 
+
+  // If visibility has changed, we need to enable mesh update
+  bool old_visible = cl.IsVisible(), old_vis3d = cl.IsVisibleIn3D();
   cl.SetVisible(m_ChkVisibility->value() == 0);
   cl.SetVisibleIn3D(m_ChkMeshVisibility->value() == 0);
+  if((!old_vis3d && cl.IsVisibleIn3D()) || (!old_visible && cl.IsVisible()))
+    {
+    m_Parent->OnIRISMeshDisplaySettingsUpdate();
+    }
 
   // Store the new label
   SetColorLabel(iCurrentLabel, cl);

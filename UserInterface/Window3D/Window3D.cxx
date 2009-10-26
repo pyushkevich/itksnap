@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: Window3D.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 07:34:11 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/10/26 16:40:19 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -70,7 +70,7 @@ public:
   {
     assert(m_LabelTable);
     const ColorLabel &cl = m_LabelTable->GetColorLabel(label);
-    return cl.IsValid() && cl.IsVisible() ? 1 : 0;
+    return (cl.IsValid() && cl.IsVisible() && cl.IsVisibleIn3D()) ? 1 : 0;
   }
 
 private:
@@ -1324,6 +1324,9 @@ Window3D
 
 /*
  *$Log: Window3D.cxx,v $
+ *Revision 1.13  2009/10/26 16:40:19  pyushkevich
+ *FIX(2039124): spray paint was not respecting hidden labels. Also update mesh was not on after label vis change
+ *
  *Revision 1.12  2009/10/26 07:34:11  pyushkevich
  *ENH: substantially reduced memory footprint when loading float NIFTI images
  *
