@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 20:39:14 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/10/26 16:00:56 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -46,7 +46,24 @@
  */
 class CrosshairsInteractionMode : public GenericSliceWindow::EventHandler {
 public:
-  CrosshairsInteractionMode(GenericSliceWindow *parent);
+  /* Enum used to specify what mouse buttons different navigation functionality
+     responds to */
+
+  enum Button { 
+    LEFT=FL_LEFT_MOUSE, RIGHT=FL_RIGHT_MOUSE, MIDDLE=FL_MIDDLE_MOUSE, NONE=-1, ANY=-2 };
+
+  CrosshairsInteractionMode(
+    GenericSliceWindow *parent,
+    Button cursor_button = LEFT,
+    Button zoom_button = RIGHT,
+    Button pan_button = MIDDLE);
+
+  void SetInteractionStyle(Button cursor_button, Button zoom_button, Button pan_button)
+    {
+    m_BtnCursor = cursor_button;
+    m_BtnZoom = zoom_button;
+    m_BtnPan = pan_button;
+    }
 
   void OnDraw(); 
   int OnMousePress(const FLTKEvent &event);
@@ -68,6 +85,9 @@ private:
 
   FLTKEvent m_RepeatEvent;
   long int m_LastViewposUpdateTime;
+
+  // Buttons assigned to each of the functionalities
+  Button m_BtnCursor, m_BtnZoom, m_BtnPan;
 
   // Copied from zoom-pan. All your base are belong to us.
   Vector2f m_StartViewPosition;

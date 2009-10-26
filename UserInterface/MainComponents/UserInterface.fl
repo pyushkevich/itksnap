@@ -39,7 +39,7 @@ class UserInterface {open : {public UserInterfaceBase}
         Fl_Group m_GrpMainLayoutNormal {open
           xywh {0 0 875 735} color 86 resizable
         } {
-          Fl_Menu_Bar m_MenubarMain {
+          Fl_Menu_Bar m_MenubarMain {open
             xywh {0 0 875 25} labelsize 12 textsize 12
           } {
             Submenu {} {
@@ -288,6 +288,21 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
             Submenu {} {
+              label {&Window} open
+              xywh {0 0 62 20} labelsize 12
+            } {
+              MenuItem {} {
+                label {Hide User Interface Elements}
+                callback {this->OnMenuViewToggleUI();}
+                xywh {15 15 30 20} shortcut 0xffc0 labelsize 12
+              }
+              MenuItem {} {
+                label {Toggle Full-Screen Mode}
+                callback {this->OnMenuViewToggleFullscreen();}
+                xywh {0 0 30 20} shortcut 0xffc1 labelsize 12
+              }
+            }
+            Submenu {} {
               label {&Help} open
               xywh {5 5 100 20} labelsize 12
             } {
@@ -318,7 +333,7 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
           }
-          Fl_Group m_GrpControls {open
+          Fl_Group m_GrpControls {
             xywh {0 24 145 711} box BORDER_FRAME color 0
           } {
             Fl_Wizard m_WizControlPane {
@@ -349,7 +364,7 @@ class UserInterface {open : {public UserInterfaceBase}
                     tooltip {SNAP tool: select a region of interest for automatic segmentation} image {Artwork/snake.gif} xywh {15 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 labelsize 10 align 144 when 1
                   }
                   Fl_Button {} {
-                    callback {SetToolbarMode(PAINTBRUSH_MODE);} selected
+                    callback {SetToolbarMode(PAINTBRUSH_MODE);}
                     tooltip {Paintbrush tool} image {Artwork/paintbrush.gif} xywh {55 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 labelfont 1 labelsize 20 align 16 when 1
                   }
                   Fl_Button m_BtnAnnotationMode {
@@ -1045,7 +1060,7 @@ this->OnSNAPLabelOpacityChange();}
                     } {
                       Fl_Button {m_BtnPanelZoom[0]} {
                         label {@+}
-                        callback {OnWindowFocus(0);}
+                        callback {OnWindowFocus(0);} selected
                         tooltip {Expand this view to occupy the entire screen} xywh {486 30 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139
                       }
                       Fl_Group {} {open
@@ -1331,7 +1346,7 @@ this->OnSNAPLabelOpacityChange();}
             }
           }
         }
-        Fl_Group m_GrpMainLayoutTight {
+        Fl_Group m_GrpMainLayoutTight {open
           xywh {0 0 875 735} hide
         } {
           Fl_Group m_GrpRightPanePlaceholderTight {open

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/13 17:26:24 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/10/26 16:00:56 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,7 +44,6 @@
 #include "PolygonInteractionMode.h"
 #include "PaintbrushInteractionMode.h"
 #include "RegionInteractionMode.h"
-#include "ZoomPanInteractionMode.h"
 
 #include <assert.h>
 #include <stdio.h>

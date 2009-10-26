@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 08:37:31 $
-  Version:   $Revision: 1.95 $
+  Date:      $Date: 2009/10/26 16:00:56 $
+  Version:   $Revision: 1.96 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -575,6 +575,21 @@ UserInterfaceLogic
   UpdateMainLabel();
   RedrawWindows();
 }
+
+void
+UserInterfaceLogic
+::OnMenuViewToggleUI()
+{
+  this->ToggleDisplayElements();
+}
+
+void
+UserInterfaceLogic
+::OnMenuViewToggleFullscreen()
+{
+  this->ToggleFullScreen();
+}
+
 
 //--------------------------------------------
 //
@@ -1835,6 +1850,26 @@ UserInterfaceLogic
     }
 }
 
+void
+UserInterfaceLogic
+::ToggleFullScreen()
+{
+  static int w = 0, h = 0, x = 0, y = 0;
+
+  if(m_FullScreen)
+    {
+    m_WinMain->fullscreen_off(x,y,w,h);
+    m_FullScreen = false;
+    }
+  else
+    {
+    w = m_WinMain->w(); h = m_WinMain->h();
+    x = m_WinMain->x(); y = m_WinMain->y();
+    m_WinMain->fullscreen();
+    m_FullScreen = true;
+    }
+}
+
 int 
 UserInterfaceLogic
 ::OnGlobalEvent(int ev)
@@ -1933,20 +1968,8 @@ if(ev == FL_SHORTCUT)
     // F4 - fullscreen toggle
     else if(Fl::test_shortcut(FL_F + 4))
       {
-      static int w = 0, h = 0, x = 0, y = 0;
-
-      if(m_FullScreen)
-        {
-        m_WinMain->fullscreen_off(x,y,w,h);
-        m_FullScreen = false;
-        }
-      else
-        {
-        w = m_WinMain->w(); h = m_WinMain->h();
-        x = m_WinMain->x(); y = m_WinMain->y();
-        m_WinMain->fullscreen();
-        m_FullScreen = true;
-        }
+      ToggleFullScreen();
+      return 1;
       }
 
     // Ctrl-F - fit all views
@@ -2422,6 +2445,7 @@ UserInterfaceLogic
     // write to shared memory
     m_SystemInterface->IPCBroadcastViewPosition(vPos);
     }
+  this->RedrawWindows();
 }
 
 void
@@ -3038,6 +3062,14 @@ UserInterfaceLogic
     {
     for(int j = 0; j < 4; j++)
       {
+      // We resize all the panels so that the zoom behaves
+      // properly in linked zoom mode
+      panels[j]->resize(
+        parent->x(),parent->y(),
+        parent->w(),parent->h());
+      parent->resizable(panels[j]);
+      panels[j]->redraw();
+
       if(iWindow != j)
         {
         panels[j]->hide();
@@ -3045,12 +3077,6 @@ UserInterfaceLogic
         parent->remove(panels[j]);
         }
       }
-
-    panels[iWindow]->resize(
-      parent->x(),parent->y(),
-      parent->w(),parent->h());
-    parent->resizable(panels[iWindow]);
-    panels[iWindow]->redraw();
     }
 }
 
@@ -4928,6 +4954,7 @@ void
 UserInterfaceLogic
 ::OnResetView2DAction(unsigned int window)
 {
+  // Resets to optimal fit
   m_SliceCoordinator->ResetViewToFitInOneWindow(window);
 
   // Update the zoom level display
@@ -5221,6 +5248,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.96  2009/10/26 16:00:56  pyushkevich
+ *ENH: improved/fixed cursor movement in all modes. added menu items for F3/F4
+ *
  *Revision 1.95  2009/10/26 08:37:31  pyushkevich
  *FIX(2872319): Ctrl-Z no longer steals focus from slice window
  *

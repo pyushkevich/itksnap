@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/28 16:05:45 $
-  Version:   $Revision: 1.27 $
+  Date:      $Date: 2009/10/26 16:00:56 $
+  Version:   $Revision: 1.28 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -42,7 +42,6 @@
 #include "SliceWindowCoordinator.h"
 #include "SNAPAppearanceSettings.h"
 #include "UserInterfaceBase.h"
-#include "ZoomPanInteractionMode.h"
 #include "ThumbnailInteractionMode.h"
 
 #include <assert.h>
@@ -69,8 +68,7 @@ GenericSliceWindow
   m_Id = index;
 
   // Initialize the interaction modes
-  m_CrosshairsMode = new CrosshairsInteractionMode(this);
-  m_ZoomPanMode = new ZoomPanInteractionMode(this);
+  m_NavigationMode = new CrosshairsInteractionMode(this);
   m_ThumbnailMode = new ThumbnailInteractionMode(this);
 
   // The slice is not yet initialized
@@ -95,8 +93,7 @@ GenericSliceWindow
   m_Canvas->SetGrabFocusOnEntry(true);
 
   // Register the sub-interaction modes
-  m_CrosshairsMode->Register();
-  m_ZoomPanMode->Register();
+  m_NavigationMode->Register();
   m_ThumbnailMode->Register();
 
   // We have been registered
@@ -107,8 +104,7 @@ GenericSliceWindow
 ::~GenericSliceWindow()
 {
   // Delete the interaction modes
-  delete m_CrosshairsMode;
-  delete m_ZoomPanMode;
+  delete m_NavigationMode;
   delete m_ThumbnailMode;
 
   // Delete textures
@@ -184,7 +180,7 @@ GenericSliceWindow
 
   // If the is no current interaction mode, enter the crosshairs mode
   if(GetInteractionModeCount() == 0)
-    PushInteractionMode(m_CrosshairsMode);
+    PushInteractionMode(m_NavigationMode);
 
   // setup default view - fit to window
   ResetViewToFit();
@@ -619,11 +615,10 @@ GenericSliceWindow
     DrawRulers();
 
     // Draw the zoom mode (does't really draw, repaints a UI widget)
-    m_ZoomPanMode->OnDraw();
+    m_NavigationMode->OnDraw();
     }
 
-  // Draw the crosshairs
-  m_CrosshairsMode->OnDraw(); 
+  m_NavigationMode->OnDraw();
 }
 
 void 
@@ -764,11 +759,19 @@ GenericSliceWindow
   ClearInteractionStack();
 
   // Push the crosshairs mode - last to get events
-  PushInteractionMode(m_CrosshairsMode);
+  if(mode != m_NavigationMode)
+    {
+    // Navigation mode serves as a fallback, allowing crosshair editing with middle button
+    m_NavigationMode->SetInteractionStyle(
+      CrosshairsInteractionMode::ANY,
+      CrosshairsInteractionMode::NONE, 
+      CrosshairsInteractionMode::NONE);
+
+    PushInteractionMode(m_NavigationMode);
+    }
 
   // Push the input mode
-  if(mode != m_CrosshairsMode)
-    PushInteractionMode(mode);
+  PushInteractionMode(mode);
 
   // Push the thumbnail mode
   PushInteractionMode(m_ThumbnailMode);
@@ -778,14 +781,24 @@ void
 GenericSliceWindow
 ::EnterCrosshairsMode()
 {
-  EnterInteractionMode(m_CrosshairsMode);
+  m_NavigationMode->SetInteractionStyle(
+    CrosshairsInteractionMode::LEFT,
+    CrosshairsInteractionMode::RIGHT, 
+    CrosshairsInteractionMode::MIDDLE);
+
+  EnterInteractionMode(m_NavigationMode);
 }
 
 void 
 GenericSliceWindow
 ::EnterZoomPanMode()
 {
-  EnterInteractionMode(m_ZoomPanMode);
+  m_NavigationMode->SetInteractionStyle(
+    CrosshairsInteractionMode::MIDDLE,
+    CrosshairsInteractionMode::RIGHT, 
+    CrosshairsInteractionMode::LEFT);
+
+  EnterInteractionMode(m_NavigationMode);
 }
 
 void

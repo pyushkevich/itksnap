@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/10/17 20:39:51 $
-  Version:   $Revision: 1.44 $
+  Date:      $Date: 2009/10/26 16:00:56 $
+  Version:   $Revision: 1.45 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -481,6 +481,10 @@ public:
 
   void OnMenuCheckForUpdate();
   void OnCheckForUpdate();
+
+  void OnMenuViewToggleUI();
+  void OnMenuViewToggleFullscreen();
+
 
   // Color label callbacks
   void UpdateColorLabelMenu();
@@ -967,6 +971,7 @@ private:
 
   // Toggle display elements (hide control panel, slice window toolbars)
   void ToggleDisplayElements();
+  void ToggleFullScreen();
 
   /* Command used for progress tracking */
   itk::SmartPointer<ProgressCommandType> m_ProgressCommand;
@@ -997,6 +1002,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.45  2009/10/26 16:00:56  pyushkevich
+ *ENH: improved/fixed cursor movement in all modes. added menu items for F3/F4
+ *
  *Revision 1.44  2009/10/17 20:39:51  pyushkevich
  *ENH: added tip of the day
  *

@@ -250,7 +250,6 @@ SET(UI_CXX
   UserInterface/SliceWindow/SNAPSliceWindow.cxx
   UserInterface/SliceWindow/SliceWindowCoordinator.cxx
   UserInterface/SliceWindow/ThumbnailInteractionMode.cxx
-  UserInterface/SliceWindow/ZoomPanInteractionMode.cxx
   UserInterface/Window3D/Trackball.cxx
   UserInterface/Window3D/Window3D.cxx
 )
@@ -315,7 +314,6 @@ SET(UI_HEADERS
   UserInterface/SliceWindow/SNAPSliceWindow.h
   UserInterface/SliceWindow/SliceWindowCoordinator.h
   UserInterface/SliceWindow/ThumbnailInteractionMode.h
-  UserInterface/SliceWindow/ZoomPanInteractionMode.h
   UserInterface/Window3D/Trackball.h
   UserInterface/Window3D/Window3D.h
 )

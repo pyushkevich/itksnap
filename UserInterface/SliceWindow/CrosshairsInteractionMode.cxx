@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/17 13:22:36 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/10/26 16:00:56 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -39,11 +39,12 @@
 #include "SNAPAppearanceSettings.h"
 #include "UserInterfaceBase.h"
 #include "SliceWindowCoordinator.h"
-#include "ZoomPanInteractionMode.h"
 
 CrosshairsInteractionMode
-::CrosshairsInteractionMode(GenericSliceWindow *parent) 
-: GenericSliceWindow::EventHandler(parent)
+::CrosshairsInteractionMode(
+  GenericSliceWindow *parent, Button cursor_button, Button zoom_button, Button pan_button) 
+: GenericSliceWindow::EventHandler(parent), 
+  m_BtnCursor(cursor_button), m_BtnZoom(zoom_button), m_BtnPan(pan_button)
 {
   m_NeedToRepaintControls = false;
   m_LastViewposUpdateTime = 0;
@@ -54,11 +55,20 @@ int
 CrosshairsInteractionMode
 ::OnMousePress(const FLTKEvent &event)
 {
-  UpdateCrosshairs(event);
-  m_Parent->m_GlobalState->SetUpdateSliceFlag(0);
-  m_RepeatEvent = event;
-  m_StartViewZoom = m_Parent->GetViewZoom();
-  m_StartViewPosition = m_Parent->m_ViewPosition;
+  if(m_BtnCursor == ANY || event.SoftButton == m_BtnCursor)
+    {
+    UpdateCrosshairs(event);
+    m_Parent->m_GlobalState->SetUpdateSliceFlag(0);
+    m_RepeatEvent = event;
+    }
+  else if(m_BtnZoom == ANY || event.SoftButton == m_BtnZoom)
+    {
+    m_StartViewZoom = m_Parent->GetViewZoom();
+    }
+  else if(m_BtnPan == ANY || event.SoftButton == m_BtnPan)
+    {
+    m_StartViewPosition = m_Parent->m_ViewPosition;
+    }
   return 1;
 }
 
@@ -66,16 +76,16 @@ int
 CrosshairsInteractionMode
 ::OnMouseRelease(const FLTKEvent &event,const FLTKEvent &dragEvent)
 {
-  if(dragEvent.SoftButton == FL_LEFT_MOUSE)
+  if(m_BtnCursor == ANY || dragEvent.SoftButton == m_BtnCursor)
     {
     UpdateCrosshairs(event);
     m_Parent->m_GlobalState->SetUpdateSliceFlag(1);
     m_RepeatEvent = event;
     return 1;
     }
-  else if(dragEvent.SoftButton == FL_RIGHT_MOUSE)
+  else if(m_BtnZoom == ANY || dragEvent.SoftButton == m_BtnZoom)
     return 1;
-  else if(dragEvent.SoftButton == FL_MIDDLE_MOUSE)
+  else if(m_BtnPan == ANY || dragEvent.SoftButton == m_BtnPan)
     return 1;
 
   return 0;
@@ -86,14 +96,14 @@ CrosshairsInteractionMode
 ::OnMouseDrag(const FLTKEvent &event, 
               const FLTKEvent &dragEvent)
 {
-  if(dragEvent.SoftButton == FL_LEFT_MOUSE)
+  if(m_BtnCursor == ANY || dragEvent.SoftButton == m_BtnCursor)
     {
     UpdateCrosshairs(event);
     m_Parent->m_GlobalState->SetUpdateSliceFlag(1);
     m_RepeatEvent = event;
     return 1;
     }
-  else if(dragEvent.SoftButton == FL_RIGHT_MOUSE)
+  else if(m_BtnZoom == ANY || dragEvent.SoftButton == m_BtnZoom)
     {
     // Under the right button, the tool causes us to zoom based on the vertical
     // motion
@@ -115,7 +125,7 @@ CrosshairsInteractionMode
     m_NeedUIUpdateOnRepaint = true;
     return 1;
     } 
-  else if (dragEvent.SoftButton == FL_MIDDLE_MOUSE)
+  else if (m_BtnPan == ANY || dragEvent.SoftButton == m_BtnPan)
     {
     // Compute the start and end point in slice coordinates
     Vector3f xStart = m_Parent->MapWindowToSlice(dragEvent.XSpace.extract(2));
@@ -162,16 +172,16 @@ CrosshairsInteractionMode
   Vector3ui xSize = m_Driver->GetCurrentImageData()->GetVolumeExtents();
   Vector3ui xCrossClamped = xCrossImage.clamp(
     Vector3ui(0,0,0),xSize - Vector3ui(1,1,1));
-  
-  // Update the crosshairs position in the current image data
-  m_Parent->m_ImageData->SetCrosshairs(xCrossClamped);
-  
-  // Set the crosshair
+
+  // Update the crosshairs position in the global state
   m_Driver->SetCursorPosition(xCrossClamped);
 
   // Cause a repaint
   m_NeedToRepaintControls = true;
-  m_ParentUI->RedrawWindows();    
+
+  // Update the crosshairs position in the current image data
+  m_ParentUI->OnCrosshairPositionUpdate(true);  
+  m_ParentUI->RedrawWindows();  
 
   return 1;
 }
@@ -191,7 +201,6 @@ CrosshairsInteractionMode
   Vector3i xSize = to_int(m_Driver->GetCurrentImageData()->GetVolumeExtents());
   Vector3ui xCrossClamped = to_unsigned_int(
     xCrossInteger.clamp(Vector3i(0),xSize - Vector3i(1)));
-
 
   // Update the crosshairs position in the global state
   m_Driver->SetCursorPosition(xCrossClamped);

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/08/26 01:10:20 $
-  Version:   $Revision: 1.22 $
+  Date:      $Date: 2009/10/26 16:00:56 $
+  Version:   $Revision: 1.23 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -63,7 +63,6 @@ class UserInterfaceBase;
 
 // Forward references to interaction modes that work with this window
 class CrosshairsInteractionMode;
-class ZoomPanInteractionMode;
 class ThumbnailInteractionMode;
 
 // Forward reference to Gl texture object
@@ -197,7 +196,6 @@ public:
   friend class EventHandler;
   friend class BubblesInteractionMode;
   friend class CrosshairsInteractionMode;
-  friend class ZoomPanInteractionMode;
   friend class RegionInteractionMode;
   friend class PolygonInteractionMode;
   friend class ThumbnailInteractionMode;
@@ -218,11 +216,8 @@ protected:
   /** The image data object that is displayed in this window */
   GenericImageData *m_ImageData;
 
-  /** Interaction mode used to position the crosshairs */
-  CrosshairsInteractionMode *m_CrosshairsMode;
-
-  /** Interaction mode used to zoom and pan the image */
-  ZoomPanInteractionMode *m_ZoomPanMode;
+  /** Interaction mode used to position the crosshairs (navigation mode) */
+  CrosshairsInteractionMode *m_NavigationMode;
 
   /** Interaction mode used to control the zoom thumbnail. This mode is always
    * on and at the top of the interaction stack */

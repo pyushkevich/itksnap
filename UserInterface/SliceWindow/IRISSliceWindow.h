@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/05/25 17:11:28 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2009/10/26 16:00:56 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -151,7 +151,6 @@ public:
 
   // Allow friendly access by interactors
   friend class RegionInteractionMode;
-  friend class ZoomPanInteractionMode;
 
 protected:
 
