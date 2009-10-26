@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: LabelToRGBAFilter.h,v $
   Language:  C++
-  Date:      $Date: 2007/09/17 04:54:12 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/10/26 16:22:52 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -82,12 +82,20 @@ protected:
       outputPtr->Allocate();
       }
 
+    // Get the clear label
+    const ColorLabel &clear = m_ColorTable->GetColorLabel(0);
+
     // Simple loop
     const LabelType *xin = inputPtr->GetBufferPointer();
     OutputPixelType *xout = outputPtr->GetBufferPointer();
     for(size_t i = 0; i < n; i++)
-      m_ColorTable->GetColorLabel(xin[i]).GetRGBAVector(
-        xout[i].GetDataPointer()); 
+      {
+      const ColorLabel &cl = m_ColorTable->GetColorLabel(xin[i]);
+      if(cl.IsVisible())
+        cl.GetRGBAVector(xout[i].GetDataPointer());
+      else
+        clear.GetRGBAVector(xout[i].GetDataPointer());
+      }
     }
 
 private:
