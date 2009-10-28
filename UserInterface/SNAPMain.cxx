@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 20:19:12 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2009/10/28 08:05:36 $
+  Version:   $Revision: 1.20 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -403,7 +403,6 @@ int main(int argc, char **argv)
   ui->HideSplashScreen();
 
   // Run the UI
-  bool crashed = false;
   try
     {
     Fl::run();
@@ -463,6 +462,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.20  2009/10/28 08:05:36  pyushkevich
+ *FIX: Multisession pan causing continuous screen updates
+ *
  *Revision 1.19  2009/10/26 20:19:12  pyushkevich
  *ENH: added top-level exception handler with option to save work
  *

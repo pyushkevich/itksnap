@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 16:00:56 $
-  Version:   $Revision: 1.96 $
+  Date:      $Date: 2009/10/28 08:05:36 $
+  Version:   $Revision: 1.97 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1718,17 +1718,22 @@ UserInterfaceLogic
           }
         }
 
-	 // Update the view positions
+      // Update the view positions
       if(m_GlobalUI->m_ChkMultisessionPan->value()
         && m_GlobalUI->m_Activation->GetFlag(UIF_IRIS_ACTIVE))
         {
-        m_GlobalUI->m_IRISWindowManager2D[0]->SetViewPosition(ipcm.viewPosition[0]);
-        m_GlobalUI->m_IRISWindowManager2D[1]->SetViewPosition(ipcm.viewPosition[1]);
-        m_GlobalUI->m_IRISWindowManager2D[2]->SetViewPosition(ipcm.viewPosition[2]);
-	   m_GlobalUI->RedrawWindows();
-	   }
+        bool changed = false;
+        for(size_t i = 0; i < 3; i++)
+          if(m_GlobalUI->m_IRISWindowManager2D[i]->GetViewPosition() != ipcm.viewPosition[i])
+            {
+            m_GlobalUI->m_IRISWindowManager2D[i]->SetViewPosition(ipcm.viewPosition[i]);
+            changed = true;
+            }
+        if(changed)
+          m_GlobalUI->RedrawWindows();
+        }
 
-	 // Update the 3D trackball
+      // Update the 3D trackball
       if(m_GlobalUI->m_BtnSynchronizeCursor->value())
         {
         // Get the current 3D window object
@@ -5248,6 +5253,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.97  2009/10/28 08:05:36  pyushkevich
+ *FIX: Multisession pan causing continuous screen updates
+ *
  *Revision 1.96  2009/10/26 16:00:56  pyushkevich
  *ENH: improved/fixed cursor movement in all modes. added menu items for F3/F4
  *
