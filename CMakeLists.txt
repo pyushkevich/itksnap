@@ -600,7 +600,7 @@ IF(MSVC80 OR MSVC90)
   IF(VCREDIST_X86)
     INSTALL(FILES ${VCREDIST_X86} DESTINATION bin)
     SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
-      "ExecWait '\\\"$INSTDIR\\\\bin\\\\vcredist_x86.exe\\\"'")
+      "ExecWait '\\\"$INSTDIR\\\\bin\\\\vcredist_x86.exe\\\" /q:a'")
   ENDIF(VCREDIST_X86)
 ENDIF(MSVC80 OR MSVC90)
 
