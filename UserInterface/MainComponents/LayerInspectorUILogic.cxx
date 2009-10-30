@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 08:17:58 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2009/10/30 13:49:48 $
+  Version:   $Revision: 1.19 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -982,7 +982,7 @@ LayerInspectorUILogic
   // Code common to SNAP and IRIS
   Vector3ui crosshairs = m_Driver->GetCursorPosition();
   Vector3d xPosition = m_SelectedWrapper->TransformVoxelIndexToPosition(crosshairs);
-  Vector3d xNIFTI = m_SelectedWrapper->TransformVoxelIndexToNIFTICoordinates(crosshairs);
+  Vector3d xNIFTI = m_SelectedWrapper->TransformVoxelIndexToNIFTICoordinates(to_double(crosshairs));
   for (size_t d = 0; d < 3; ++d)
     {
     m_InImageInfoCursorIndex[d]->value(crosshairs[d]);

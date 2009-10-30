@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/28 08:05:36 $
-  Version:   $Revision: 1.97 $
+  Date:      $Date: 2009/10/30 13:49:48 $
+  Version:   $Revision: 1.98 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1690,10 +1690,9 @@ UserInterfaceLogic
   // Need base image for all of this
   if(m_GlobalUI->m_Activation->GetFlag(UIF_BASEIMG_LOADED))
     {
-
     // Read the IPC message
     SystemInterface::IPCMessage ipcm;
-    if(m_GlobalUI->m_SystemInterface->IPCRead(ipcm))
+    if(m_GlobalUI->m_SystemInterface->IPCReadIfNew(ipcm))
       {
       // Update the cursor
       if(m_GlobalUI->m_BtnSynchronizeCursor->value())
@@ -1708,6 +1707,7 @@ UserInterfaceLogic
         pos[0] = vpos[0] = (unsigned int) (vox[0] + 0.5);
         pos[1] = vpos[1] = (unsigned int) (vox[1] + 0.5);
         pos[2] = vpos[2] = (unsigned int) (vox[2] + 0.5);
+
         // Check if the voxel position is inside the image region
         if(vpos != m_GlobalUI->m_Driver->GetCursorPosition() 
           && id->GetImageRegion().IsInside(pos))
@@ -1724,11 +1724,21 @@ UserInterfaceLogic
         {
         bool changed = false;
         for(size_t i = 0; i < 3; i++)
-          if(m_GlobalUI->m_IRISWindowManager2D[i]->GetViewPosition() != ipcm.viewPosition[i])
+          {
+          // Get the relative position of the viewport to cursor
+          Vector2f vprel = m_GlobalUI->m_IRISWindowManager2D[i]->GetViewPositionRelativeToCursor();
+
+          // Get the relative position from the shared memory
+          Vector2f vprel_new = ipcm.viewPositionRelative[i];
+
+          // Check if they are different
+          if(vprel != vprel_new)
             {
-            m_GlobalUI->m_IRISWindowManager2D[i]->SetViewPosition(ipcm.viewPosition[i]);
             changed = true;
+            m_GlobalUI->m_IRISWindowManager2D[i]->SetViewPositionRelativeToCursor(vprel_new);
             }
+          }
+
         if(changed)
           m_GlobalUI->RedrawWindows();
         }
@@ -1763,11 +1773,10 @@ UserInterfaceLogic
           m_GlobalUI->OnZoomUpdate(false);
           }
         }
-
       }
     }
 
-  Fl::repeat_timeout(0.03, &UserInterfaceLogic::GlobalIdleHandler);
+    Fl::repeat_timeout(0.03, &UserInterfaceLogic::GlobalIdleHandler);
 }
 
 int 
@@ -2418,10 +2427,13 @@ UserInterfaceLogic
     Vector3d cursor = 
       m_Driver->GetCurrentImageData()->GetMain()->
         TransformVoxelIndexToNIFTICoordinates(
-          m_Driver->GetCursorPosition());
+          to_double(m_Driver->GetCursorPosition()));
 
     // Write the NIFTI cursor to shared memory
     m_Driver->GetSystemInterface()->IPCBroadcastCursor(cursor);
+
+    // Also trigger update in view positions b/c they are tied to the cursor
+    this->OnViewPositionsUpdate(true);
     }
 }
 
@@ -2441,15 +2453,18 @@ UserInterfaceLogic
     && m_Activation->GetFlag(UIF_IRIS_ACTIVE)
     && m_ChkMultisessionPan->value())
     {
-    // determine the view positions
-    Vector2f vPos[3];
-    for(unsigned int i=0; i<3; ++i)
+    // For each slice, get the view position
+    Vector2f vprel[3];
+    for(size_t i = 0; i < 3; i++)
       {
-      vPos[i] = m_GlobalUI->m_IRISWindowManager2D[i]->GetViewPosition();
+      // Get the view position in image coordinates
+      vprel[i] = m_IRISWindowManager2D[i]->GetViewPositionRelativeToCursor();
       }
-    // write to shared memory
-    m_SystemInterface->IPCBroadcastViewPosition(vPos);
+
+    // Broadcast this view position
+    m_SystemInterface->IPCBroadcastViewPosition(vprel);
     }
+
   this->RedrawWindows();
 }
 
@@ -3122,7 +3137,6 @@ UserInterfaceLogic
     else
       {
       m_IRISWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
-	    OnViewPositionsUpdate();
 	    }
 
     // Get the image axis that corresponds to the display window i
@@ -3137,6 +3151,10 @@ UserInterfaceLogic
 
   // Reset the view in 2D windows to fit
   m_SliceCoordinator->ResetViewToFitInAllWindows();
+
+  // Update view positions
+  if(!m_GlobalState->GetSNAPActive())
+    OnViewPositionsUpdate();
 
   // Fire zoom update event
   OnZoomUpdate();
@@ -5253,6 +5271,10 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.98  2009/10/30 13:49:48  pyushkevich
+ *FIX: improved behavior of synchronized pan. it now broadcasts viewport center rel. to cursor posn.
+ *FIX: improved IPC. only 'new' messages are now acted on.
+ *
  *Revision 1.97  2009/10/28 08:05:36  pyushkevich
  *FIX: Multisession pan causing continuous screen updates
  *

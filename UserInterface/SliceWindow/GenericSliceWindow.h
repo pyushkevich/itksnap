@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 16:00:56 $
-  Version:   $Revision: 1.23 $
+  Date:      $Date: 2009/10/30 13:49:48 $
+  Version:   $Revision: 1.24 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -153,6 +153,14 @@ public:
   /** Set the zoom factor (number of pixels on the screen per millimeter in
    * image space */
   void SetViewZoom(float newZoom);
+
+  /** Return the offset from the center of the viewport to the cursor position
+   * in slice units (#voxels * spacing). This is used to synchronize panning
+   * across SNAP sessions */
+  Vector2f GetViewPositionRelativeToCursor();
+
+  /** Set the offset from the center of the viewport to the cursor position */
+  void SetViewPositionRelativeToCursor(Vector2f offset);
 
   /** Get the zoom factor (number of pixels on the screen per millimeter in
    * image space */

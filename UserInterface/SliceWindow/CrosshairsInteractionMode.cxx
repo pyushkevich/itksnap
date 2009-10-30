@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 16:00:56 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/10/30 13:49:48 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -308,6 +308,7 @@ CrosshairsInteractionMode
     }
   
   xClick = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
+
   UpdateCrosshairs(xClick);
 
   
@@ -358,7 +359,7 @@ OnDraw()
   if(m_NeedToRepaintControls)
     {
     // Update the image probe and scrollbar controls
-    m_ParentUI->OnCrosshairPositionUpdate();
+    m_ParentUI->OnCrosshairPositionUpdate(false);
     
     // No need to call this until another update
     m_NeedToRepaintControls = false;

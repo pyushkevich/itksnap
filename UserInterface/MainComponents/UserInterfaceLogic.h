@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 16:00:56 $
-  Version:   $Revision: 1.45 $
+  Date:      $Date: 2009/10/30 13:49:48 $
+  Version:   $Revision: 1.46 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -767,25 +767,6 @@ protected:
 
   char *m_ChosedFile;
 
-private:
-
-  // Typedef for event callback commands
-  typedef itk::SimpleMemberCommand<UserInterfaceLogic> SimpleCommandType;
-  typedef itk::MemberCommand<UserInterfaceLogic> ProgressCommandType;
-
-  // Pointer to the driving IRIS application object
-  IRISApplication *m_Driver;
-
-  // Pointer to the instance of the UserInterfaceLogic that has been launched
-  // (for static members, like GlobalEventHandler)
-  static UserInterfaceLogic *m_GlobalUI;
-
-  // Pointer to the system interface object
-  SystemInterface *m_SystemInterface;
-
-  // Settings related to the cosmetic appearance of the application
-  SNAPAppearanceSettings *m_AppearanceSettings;
-
   // Set of logical states that the UI may encounter
   enum UIStateFlags {
     UIF_NULL,
@@ -819,6 +800,25 @@ private:
     UIF_SNAP_MESH_DIRTY,
     UIF_SNAP_MESH_CONTINUOUS_UPDATE
   };
+
+private:
+
+  // Typedef for event callback commands
+  typedef itk::SimpleMemberCommand<UserInterfaceLogic> SimpleCommandType;
+  typedef itk::MemberCommand<UserInterfaceLogic> ProgressCommandType;
+
+  // Pointer to the driving IRIS application object
+  IRISApplication *m_Driver;
+
+  // Pointer to the instance of the UserInterfaceLogic that has been launched
+  // (for static members, like GlobalEventHandler)
+  static UserInterfaceLogic *m_GlobalUI;
+
+  // Pointer to the system interface object
+  SystemInterface *m_SystemInterface;
+
+  // Settings related to the cosmetic appearance of the application
+  SNAPAppearanceSettings *m_AppearanceSettings;
 
   /** Reason why a user may be prompted to save changes */
   enum PromptReason {
@@ -1002,6 +1002,10 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.46  2009/10/30 13:49:48  pyushkevich
+ *FIX: improved behavior of synchronized pan. it now broadcasts viewport center rel. to cursor posn.
+ *FIX: improved IPC. only 'new' messages are now acted on.
+ *
  *Revision 1.45  2009/10/26 16:00:56  pyushkevich
  *ENH: improved/fixed cursor movement in all modes. added menu items for F3/F4
  *

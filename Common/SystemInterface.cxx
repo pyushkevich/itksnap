@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 20:03:13 $
-  Version:   $Revision: 1.20 $
+  Date:      $Date: 2009/10/30 13:49:48 $
+  Version:   $Revision: 1.21 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -50,10 +50,12 @@
 
 #ifdef WIN32
   #include <iostream>
+  #include <process.h>
 #else
   #include <sys/types.h> 
   #include <sys/ipc.h> 
   #include <sys/shm.h> 
+  #include <unistd.h>
 #endif
 
 using namespace std;
@@ -78,6 +80,18 @@ SystemInterface
   
   // Construct a valid path
   m_UserPreferenceFile = string(userDataPath) + "/" + "UserPreferences.txt";
+
+  // Get the process ID
+#ifdef WIN32
+  m_ProcessID = _getpid();
+#else
+  m_ProcessID = getpid();
+#endif
+
+  // Set the message ID and last sender/message id values
+  m_LastReceivedMessageID = -1;
+  m_LastSender = -1;
+  m_MessageID = 0;
 
   // Attach to the shared memory
   IPCAttach();
@@ -599,7 +613,7 @@ SystemInterface
 
 // We start versioning at 1000. Every time we change
 // the protocol, we should increment the version id
-const short SystemInterface::IPC_VERSION = 0x1002;
+const short SystemInterface::IPC_VERSION = 0x1003;
 
 void
 SystemInterface
@@ -675,6 +689,46 @@ SystemInterface
   // Return a copy
   msg = *p;
 
+  // Store the last sender / id
+  m_LastSender = p->sender_pid;
+  m_LastReceivedMessageID = p->message_id;
+
+  // Success!
+  return true;
+}
+
+
+bool 
+SystemInterface
+::IPCReadIfNew(IPCMessage &msg)
+{
+  // Must have some shared memory
+  if(!m_IPCSharedData) 
+    return false;
+
+  // Read the first short, make sure it's the version number
+  short *vid = static_cast<short *>(m_IPCSharedData);
+  if(*vid != IPC_VERSION)
+    return false;
+
+  // Cast shared memory to the message type
+  IPCMessage *p = reinterpret_cast<IPCMessage *>(vid + 1);
+
+  // If we are the sender, the message should be ignored
+  if(p->sender_pid == this->GetProcessID())
+    return false;
+
+  // If we have already seen this message from this sender, also ignore it
+  if(m_LastSender == p->sender_pid && m_LastReceivedMessageID == p->message_id)
+    return false;
+
+  // Store the last sender / id
+  m_LastSender = p->sender_pid;
+  m_LastReceivedMessageID = p->message_id;
+
+  // Return a copy
+  msg = *p;
+
   // Success!
   return true;
 }
@@ -735,16 +789,16 @@ SystemInterface
   IPCRead(mcurr);
 
   // Update the message
-  mcurr.viewPosition[0] = vec[0];
-  mcurr.viewPosition[1] = vec[1];
-  mcurr.viewPosition[2] = vec[2];
+  mcurr.viewPositionRelative[0] = vec[0];
+  mcurr.viewPositionRelative[1] = vec[1];
+  mcurr.viewPositionRelative[2] = vec[2];
 
   return IPCBroadcast(mcurr);
 }
 
 bool
 SystemInterface
-::IPCBroadcast(const IPCMessage &msg)
+::IPCBroadcast(IPCMessage msg)
 {
   // Write to the shared memory
   if(m_IPCSharedData)
@@ -752,6 +806,10 @@ SystemInterface
     // Write version number
     short *vid = static_cast<short *>(m_IPCSharedData);
     *vid = IPC_VERSION;
+
+    // Write the process ID
+    msg.sender_pid = this->GetProcessID();
+    msg.message_id = ++m_MessageID;
 
     // Write message
     IPCMessage *p = reinterpret_cast<IPCMessage *>(vid + 1);
@@ -933,8 +991,8 @@ SystemInterface
 
     // Compare version
     if(vmajor > SNAPVersionMajor
-      || vmajor == SNAPVersionMajor && vminor > SNAPVersionMinor
-      || vmajor == SNAPVersionMajor && vminor == SNAPVersionMinor && vpatch > SNAPVersionPatch)
+      || (vmajor == SNAPVersionMajor && vminor > SNAPVersionMinor)
+      || (vmajor == SNAPVersionMajor && vminor == SNAPVersionMinor && vpatch > SNAPVersionPatch))
       us = US_OUT_OF_DATE;
     else 
       us = US_UP_TO_DATE;

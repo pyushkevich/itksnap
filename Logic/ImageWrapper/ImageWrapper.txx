@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.txx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009/10/30 13:49:48 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -454,7 +454,7 @@ ImageWrapper<TPixel>
 template<class TPixel>
 Vector3d
 ImageWrapper<TPixel>
-::TransformVoxelIndexToNIFTICoordinates(const Vector3ui &iVoxel) const
+::TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const
 {
   // Create homogeneous vector
   vnl_vector_fixed<double, 4> x;

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/10/12 20:45:13 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2009/10/30 13:49:48 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -80,7 +80,7 @@ public:
   virtual void SetAlpha(unsigned char) = 0;
   virtual itk::ImageRegion<3> GetBufferedRegion() const = 0;
   virtual Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const = 0;
-  virtual Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3ui &iVoxel) const = 0;
+  virtual Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const = 0;
   virtual Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const = 0;
   virtual vnl_matrix_fixed<double, 4, 4> GetNiftiSform() const = 0;
   virtual DisplaySlicePointer GetDisplaySlice(unsigned int dim) const = 0;
@@ -283,7 +283,7 @@ public:
   Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const;
 
   /** Transform a voxel index into NIFTI coordinates (RAS) */
-  Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3ui &iVoxel) const;
+  Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const;
 
   /** Transform NIFTI coordinates to a continuous voxel index */
   Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const;

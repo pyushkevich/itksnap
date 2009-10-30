@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 16:00:56 $
-  Version:   $Revision: 1.28 $
+  Date:      $Date: 2009/10/30 13:49:48 $
+  Version:   $Revision: 1.29 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -816,13 +816,55 @@ GenericSliceWindow
   m_Canvas->redraw();
 }
 
+void
+GenericSliceWindow
+::SetViewPositionRelativeToCursor(Vector2f offset)
+{
+  // Get the crosshair position
+  Vector3ui xCursorInteger = m_Driver->GetCursorPosition();
+
+  // Shift the cursor position by by 0.5 in order to have it appear
+  // between voxels
+  Vector3f xCursorImage = to_float(xCursorInteger) + Vector3f(0.5f);
+  
+  // Get the cursor position on the slice
+  Vector3f xCursorSlice = MapImageToSlice(xCursorImage);
+
+  // Subtract from the view position
+  Vector2f vp;
+  vp[0] = offset[0] + xCursorSlice[0] * m_SliceSpacing[0];
+  vp[1] = offset[1] + xCursorSlice[1] * m_SliceSpacing[1];
+  SetViewPosition(vp);
+}
+
+Vector2f 
+GenericSliceWindow
+::GetViewPositionRelativeToCursor()
+{
+  // Get the crosshair position
+  Vector3ui xCursorInteger = m_Driver->GetCursorPosition();
+
+  // Shift the cursor position by by 0.5 in order to have it appear
+  // between voxels
+  Vector3f xCursorImage = to_float(xCursorInteger) + Vector3f(0.5f);
+  
+  // Get the cursor position on the slice
+  Vector3f xCursorSlice = MapImageToSlice(xCursorImage);
+
+  // Subtract from the view position
+  Vector2f offset;
+  offset[0] = m_ViewPosition[0] - xCursorSlice[0] * m_SliceSpacing[0];
+  offset[1] = m_ViewPosition[1] - xCursorSlice[1] * m_SliceSpacing[1];
+
+  return offset;
+}
+
 void 
 GenericSliceWindow
 ::SetViewZoom(float newZoom)
 {
   // Update the zoom
   m_ViewZoom = newZoom;  
-  // cout << m_Id << " : " << newZoom 
 
   // Repaint the window
   m_Canvas->redraw();

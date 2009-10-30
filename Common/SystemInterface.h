@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 20:03:13 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/10/30 13:49:48 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -143,18 +143,26 @@ public:
   /** Structure passed on to IPC */
   struct IPCMessage 
     {
+    // Process ID of the sender
+    long sender_pid, message_id;
+
     // The cursor position in world coordinates
     Vector3d cursor;
 
     // The common zoom factor (screen pixels / mm)
     double zoom_level;   
 
-    // The common view positions
-    Vector2f viewPosition[3];
+    // The position of the viewport center relative to cursor
+    // in all three slice views
+    Vector2f viewPositionRelative[3];
 
     // 3D view settings
     Trackball trackball;
     };
+
+  /** Get process ID */
+  long GetProcessID() 
+    { return m_ProcessID; }
 
   /** Interprocess communication: attach to shared memory */
   void IPCAttach();
@@ -162,8 +170,11 @@ public:
   /** Interprocess communication: read shared memory */
   bool IPCRead(IPCMessage &mout);
 
+  /** Read IPC message, but only if it's new data */
+  bool IPCReadIfNew(IPCMessage &mout);
+
   /** Interprocess communication: write shared memory */
-  bool IPCBroadcast(const IPCMessage &mout);
+  bool IPCBroadcast(IPCMessage mout);
   bool IPCBroadcastCursor(Vector3d cursor);
   bool IPCBroadcastTrackball(Trackball tball);
   bool IPCBroadcastZoomLevel(double zoom);
@@ -209,6 +220,9 @@ private:
 
   // Generic: shared data for IPC
   void *m_IPCSharedData;
+
+  // Process ID and other values used by IPC
+  long m_ProcessID, m_MessageID, m_LastSender, m_LastReceivedMessageID;
 };
 
 
