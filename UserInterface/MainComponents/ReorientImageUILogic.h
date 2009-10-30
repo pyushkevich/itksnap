@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ReorientImageUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/17 19:47:41 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/10/30 16:48:24 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -57,6 +57,8 @@ public:
 
   void ShowDialog();
   void Register(UserInterfaceLogic *parent_ui);
+
+  bool Shown();
 
 private:
 

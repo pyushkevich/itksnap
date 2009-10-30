@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/30 13:49:48 $
-  Version:   $Revision: 1.98 $
+  Date:      $Date: 2009/10/30 16:48:24 $
+  Version:   $Revision: 1.99 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3395,6 +3395,10 @@ UserInterfaceLogic
   if (m_LayerUI->Shown())
     m_LayerUI->Hide();
 
+  // Close reorient image dialog if open
+  if (m_DlgReorientImage->Shown())
+    m_DlgReorientImage->OnCloseAction();
+
   // Clear the memory and reset the flags
   m_Driver->GetCurrentImageData()->UnloadMainImage();
 
@@ -5271,6 +5275,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.99  2009/10/30 16:48:24  garyhuizhang
+ *ENH: allow interacting with the main window when the reorient image dialog is open
+ *
  *Revision 1.98  2009/10/30 13:49:48  pyushkevich
  *FIX: improved behavior of synchronized pan. it now broadcasts viewport center rel. to cursor posn.
  *FIX: improved IPC. only 'new' messages are now acted on.

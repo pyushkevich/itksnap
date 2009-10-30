@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ReorientImageUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/12 19:05:56 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/10/30 16:48:22 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -161,7 +161,6 @@ ReorientImageUILogic
   this->UpdateDesiredDerivedFields();
 
   // Show the window
-  m_WinReorient->set_modal();
   m_WinReorient->show();
   m_ParentUI->CenterChildWindowInMainWindow(m_WinReorient);
 }
@@ -311,3 +310,11 @@ ReorientImageUILogic
 {
   m_WinReorient->hide();
 }
+
+bool
+ReorientImageUILogic
+::Shown()
+{
+  return m_WinReorient->shown();
+}
+
