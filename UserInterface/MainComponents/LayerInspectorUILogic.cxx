@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/30 13:49:48 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2009/11/12 14:00:58 $
+  Version:   $Revision: 1.20 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -310,6 +310,7 @@ LayerInspectorUILogic
 ::OnOverallOpacityUpdate()
 {
   m_SelectedWrapper->SetAlpha((unsigned char) m_InOverallOpacity->value());
+  m_Parent->RedrawWindows();
 }
 
 void 
