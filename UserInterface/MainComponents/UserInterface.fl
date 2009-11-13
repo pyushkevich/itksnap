@@ -333,15 +333,15 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
           }
-          Fl_Group m_GrpControls {
+          Fl_Group m_GrpControls {open
             xywh {0 24 145 711} box BORDER_FRAME color 0
           } {
             Fl_Wizard m_WizControlPane {
               label {Control Pane} open
               xywh {0 25 145 700} box NO_BOX color 22 align 16
             } {
-              Fl_Group m_GrpToolbarPage {open
-                xywh {0 25 145 700} color 53 labelsize 12
+              Fl_Group m_GrpToolbarPage {
+                xywh {0 25 145 700} color 53 labelsize 12 hide
               } {
                 Fl_Group m_GrpInteractionModes {
                   label {IRIS Toolbox} open
@@ -661,8 +661,8 @@ OnDrawOverLabelUpdate();} open
                   }
                 }
               }
-              Fl_Group m_GrpWelcomePage {open
-                xywh {0 25 145 695} color 53 hide
+              Fl_Group m_GrpWelcomePage {selected
+                xywh {0 25 145 695} color 53
               } {
                 Fl_Group {} {
                   label {ITK-SNAP} open
@@ -689,7 +689,7 @@ itksnap.org} open
                   }
                 }
               }
-              Fl_Group m_GrpSNAPPage {
+              Fl_Group m_GrpSNAPPage {open
                 xywh {0 25 145 680} color 53 hide
               } {
                 Fl_Group {} {
@@ -730,7 +730,7 @@ itksnap.org} open
                     xywh {5 185 135 350} box NO_BOX color 23 labeltype NO_LABEL labelsize 12 labelcolor 4
                   } {
                     Fl_Group m_GrpSNAPStepPreprocess {
-                      label {Preprocess Image} open
+                      label {Preprocess Image}
                       xywh {10 190 125 340} color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
                     } {
                       Fl_Button m_BtnPreprocess {
@@ -813,12 +813,12 @@ the preprocessed image.} open
                       Fl_Button m_BtnAddBubble {
                         label {Add Bubble}
                         callback {OnAddBubbleAction()}
-                        tooltip {Add bubble at cursor position} xywh {15 280 55 35} box PLASTIC_UP_BOX shortcut 0x50061 color 180 labelsize 11 align 128
+                        tooltip {Add bubble at cursor position (shortcut: +)} xywh {15 280 55 35} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
                       }
                       Fl_Button m_BtnRemoveBubble {
                         label {Remove Bubble}
                         callback {OnRemoveBubbleAction()}
-                        tooltip {Remove highlighted bubble from list} xywh {75 280 55 35} box PLASTIC_UP_BOX shortcut 0x50072 color 180 labelsize 11 align 128
+                        tooltip {Remove highlighted bubble from list (shortcut: -)} xywh {75 280 55 35} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
                       }
                       Fl_Value_Slider m_InBubbleRadius {
                         label {Radius:}
@@ -997,7 +997,7 @@ this->OnSNAPLabelOpacityChange();}
             Fl_Group m_GrpRightPane {open
               xywh {145 25 730 710} box FLAT_BOX color 166
             } {
-              Fl_Wizard {m_WizSliceLayout[0]} {open
+              Fl_Wizard {m_WizSliceLayout[0]} {
                 xywh {145 25 365 355} box UP_BOX
               } {
                 Fl_Group {m_GrpSliceLayoutNormal[0]} {open
@@ -1060,7 +1060,7 @@ this->OnSNAPLabelOpacityChange();}
                     } {
                       Fl_Button {m_BtnPanelZoom[0]} {
                         label {@+}
-                        callback {OnWindowFocus(0);} selected
+                        callback {OnWindowFocus(0);}
                         tooltip {Expand this view to occupy the entire screen} xywh {486 30 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139
                       }
                       Fl_Group {} {open
@@ -1084,7 +1084,7 @@ this->OnSNAPLabelOpacityChange();}
                   xywh {145 25 365 355} hide
                 } {}
               }
-              Fl_Wizard {m_WizSliceLayout[1]} {open
+              Fl_Wizard {m_WizSliceLayout[1]} {
                 xywh {510 25 365 355} box UP_BOX
               } {
                 Fl_Group {m_GrpSliceLayoutNormal[1]} {open
@@ -1171,7 +1171,7 @@ this->OnSNAPLabelOpacityChange();}
                   xywh {510 25 365 355} hide
                 } {}
               }
-              Fl_Wizard {m_WizSliceLayout[2]} {open
+              Fl_Wizard {m_WizSliceLayout[2]} {
                 xywh {510 380 365 355} box UP_BOX
               } {
                 Fl_Group {m_GrpSliceLayoutNormal[2]} {open

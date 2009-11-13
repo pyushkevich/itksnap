@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.h,v $
   Language:  C++
-  Date:      $Date: 2009/06/18 18:11:23 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/11/13 00:59:47 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -113,7 +113,7 @@ public:
   // Apply the GL settings associated with an appearance element
   static void ApplyUIElementLineSettings(const Element &elt,
     bool applyThickness = true, bool applyStipple = true);
-  
+
   irisGetMacro(FlagDisplayZoomThumbnail, bool);
   irisSetMacro(FlagDisplayZoomThumbnail, bool);
 
@@ -153,6 +153,9 @@ public:
   irisGetMacro(SliceLayout, UISliceLayout);
   irisSetMacro(SliceLayout, UISliceLayout);
 
+  irisGetMacro(OverallVisibility, bool);
+  irisSetMacro(OverallVisibility, bool);
+
   /** 
    * This method uses SliceLayout, FlagLayoutPatientAnteriorShownLeft and
    * FlagLayoutPatientRightShownLeft to generate RAI codes for the three
@@ -172,6 +175,7 @@ private:
   int m_FlagEnableAutoCheckForUpdateByDefault;
   double m_ZoomThumbnailSizeInPercent;
   int m_ZoomThumbnailMaximumSize;
+  bool m_OverallVisibility;
 
   // Interpolation used for rendering slices (for now, linear or n-nbr)
   UIGreyInterpolation m_GreyInterpolationMode;

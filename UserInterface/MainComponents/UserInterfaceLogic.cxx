@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/30 16:48:24 $
-  Version:   $Revision: 1.99 $
+  Date:      $Date: 2009/11/13 00:59:47 $
+  Version:   $Revision: 1.100 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1951,6 +1951,24 @@ if(ev == FL_SHORTCUT)
       return 1;
       }
 
+    else if(Fl::test_shortcut('q'))
+      {
+      m_LayerUI->AdjustOverlayOpacity(-8.0);
+      return 1;
+      }
+
+    else if(Fl::test_shortcut('e'))
+      {
+      m_LayerUI->AdjustOverlayOpacity(+8.0);
+      return 1;
+      }
+
+    else if(Fl::test_shortcut('w'))
+      {
+      m_LayerUI->ToggleOverlayVisibility();
+      return 1;
+      }
+
     else if(Fl::test_shortcut('z' | FL_COMMAND))
       {
       if(m_BtnIRISUndo->active())
@@ -2000,16 +2018,6 @@ if(ev == FL_SHORTCUT)
       m_IRISWindowManager2D[1]->ResetViewPosition();
       m_IRISWindowManager2D[2]->ResetViewPosition();
       OnViewPositionsUpdate();
-      return 1;
-      }
-
-    // toggle crosshairs display
-    else if(Fl::test_shortcut(FL_SHIFT | 'c'))
-      {
-      SNAPAppearanceSettings::Element &e = 
-        m_AppearanceSettings->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
-      e.Visible = !e.Visible;
-      RedrawWindows();
       return 1;
       }
     // selecting active drawing label
@@ -2091,8 +2099,64 @@ if(ev == FL_SHORTCUT)
         return 1;
         }
       }
+    } // if UIF_IRIS_WITH_BASEIMG_LOADED
+  else if(m_Activation->GetFlag(UIF_SNAP_ACTIVE))
+    {
+    // add/remove bubble controls
+    if(m_GrpSNAPStepInitialize->visible())
+      {
+      if(m_BtnRemoveBubble->active() && (Fl::test_shortcut('_') || Fl::test_shortcut('-')))
+        {
+        this->OnRemoveBubbleAction();
+        return 1;
+        }
+      else if(m_BtnAddBubble->active() && (Fl::test_shortcut('=') || Fl::test_shortcut('+')))
+        {
+        this->OnAddBubbleAction();
+        return 1;
+        }
+      if(m_InBubbleRadius->active() && (Fl::test_shortcut('{') || Fl::test_shortcut('[')))
+        {
+        double rad = m_InBubbleRadius->value();
+        if(rad >= 1)
+          m_InBubbleRadius->value(rad - 1);
+        this->OnBubbleRadiusChange();
+        return 1;
+        }
+      else if(m_InBubbleRadius->active() && (Fl::test_shortcut('}') || Fl::test_shortcut(']')))
+        {
+        double rad = m_InBubbleRadius->value();
+        if(rad >= 1)
+          m_InBubbleRadius->value(rad + 1);
+        this->OnBubbleRadiusChange();
+        return 1;
+        }
+      }
+    } // if UIF_SNAP_ACTIVE
+
+  // The following shortcuts are general
+  if(m_Activation->GetFlag(UIF_BASEIMG_LOADED))
+    {    
+    // toggle crosshairs display
+    if(Fl::test_shortcut(FL_SHIFT | 'x'))
+      {
+      SNAPAppearanceSettings::Element &e = 
+        m_AppearanceSettings->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
+      e.Visible = !e.Visible;
+      m_DlgAppearance->OnOptionsExternalUpdate();
+      RedrawWindows();
+      return 1;
+      }
+    else if(Fl::test_shortcut('x'))
+      {
+      m_AppearanceSettings->SetOverallVisibility(
+        !m_AppearanceSettings->GetOverallVisibility());
+      m_DlgAppearance->OnOptionsExternalUpdate();
+      RedrawWindows();
+      return 1;
+      }
     }
-  }
+  } // if shortcut
 return 0;
 }
 
@@ -3126,9 +3190,6 @@ UserInterfaceLogic
   Vector3ui xCross = size / ((unsigned int) 2);
   m_Driver->SetCursorPosition(xCross);
 
-  // Update the crosshairs display
-  OnCrosshairPositionUpdate();
-
   // Update the source for slice windows as well as scroll bars
   for (unsigned int i=0; i<3; i++) 
     {
@@ -3151,6 +3212,9 @@ UserInterfaceLogic
 
   // Reset the view in 2D windows to fit
   m_SliceCoordinator->ResetViewToFitInAllWindows();
+
+  // Update the crosshairs display
+  OnCrosshairPositionUpdate();
 
   // Update view positions
   if(!m_GlobalState->GetSNAPActive())
@@ -5275,6 +5339,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.100  2009/11/13 00:59:47  pyushkevich
+ *ENH: improved shortcuts
+ *
  *Revision 1.99  2009/10/30 16:48:24  garyhuizhang
  *ENH: allow interacting with the main window when the reorient image dialog is open
  *

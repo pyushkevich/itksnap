@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/11/13 00:59:47 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -78,6 +78,10 @@ public:
   void OnElementAppearanceResetAllAction();
   void OnElementAppearanceResetAction();
   void OnElementAppearanceApplyAction();
+
+
+  void OnOptionsExternalUpdate();
+  void OnHideOverlaysAction();
 
 private:
   // Referece to the parent

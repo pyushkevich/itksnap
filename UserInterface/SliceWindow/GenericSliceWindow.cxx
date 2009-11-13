@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/30 13:49:48 $
-  Version:   $Revision: 1.29 $
+  Date:      $Date: 2009/11/13 00:59:47 $
+  Version:   $Revision: 1.30 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -431,11 +431,14 @@ GenericSliceWindow
   DrawSegmentationTexture();
 
   // Draw the overlays
-  DrawOverlays();
+  if(m_ParentUI->GetAppearanceSettings()->GetOverallVisibility())
+    {
+    DrawOverlays();
 
-  // Draw the zoom locator
-  if(IsThumbnailOn())
-    DrawThumbnail();
+    // Draw the zoom locator
+    if(IsThumbnailOn())
+      DrawThumbnail();
+    }
 
   // Clean up the GL state
   glPopMatrix();

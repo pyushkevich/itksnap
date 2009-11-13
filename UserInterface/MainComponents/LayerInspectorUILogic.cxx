@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/12 14:00:58 $
-  Version:   $Revision: 1.20 $
+  Date:      $Date: 2009/11/13 00:59:47 $
+  Version:   $Revision: 1.21 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -310,6 +310,61 @@ LayerInspectorUILogic
 ::OnOverallOpacityUpdate()
 {
   m_SelectedWrapper->SetAlpha((unsigned char) m_InOverallOpacity->value());
+  m_Parent->RedrawWindows();
+}
+
+void
+LayerInspectorUILogic
+::AdjustOverlayOpacity(double delta)
+{
+  // If the selected wrapper is an overlay, adjust it's opacity
+  if(m_SelectedWrapper != m_MainWrapper)
+    {
+    double alpha = (double) m_SelectedWrapper->GetAlpha() + delta;
+    if(alpha < 0) alpha = 0;
+    if(alpha > 255) alpha = 255;
+    m_SelectedWrapper->SetAlpha((unsigned char) alpha);
+    m_InOverallOpacity->value(alpha);
+    }
+
+  // Otherwise, adjust all the overlays
+  else
+    {
+    for(WrapperList::iterator it = m_OverlayWrappers->begin();
+      it != m_OverlayWrappers->end(); it++)
+      {
+      double alpha = (double) (*it)->GetAlpha() + delta;
+      if(alpha < 0) alpha = 0;
+      if(alpha > 255) alpha = 255;
+      (*it)->SetAlpha((unsigned char) alpha);
+      }
+    }
+
+  m_Parent->RedrawWindows();
+}
+
+void
+LayerInspectorUILogic
+::ToggleOverlayVisibility()
+{
+  // If the selected wrapper is an overlay, adjust it's opacity
+  if(m_SelectedWrapper != m_MainWrapper)
+    {
+    // Get current alpha value
+    m_SelectedWrapper->ToggleVisibility();
+    m_InOverallOpacity->value(m_SelectedWrapper->GetAlpha());
+    }
+
+  // Otherwise, adjust all the overlays
+  else
+    {
+    for(WrapperList::iterator it = m_OverlayWrappers->begin();
+      it != m_OverlayWrappers->end(); it++)
+      {
+      (*it)->ToggleVisibility();
+      }
+    }  
+
   m_Parent->RedrawWindows();
 }
 

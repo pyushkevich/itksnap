@@ -16,7 +16,7 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
         xywh {10 10 400 360} box PLASTIC_THIN_UP_BOX color 41 labelsize 12 align 0
       } {
         Fl_Group {} {
-          label General open
+          label General open selected
           xywh {10 35 400 335} labelsize 12
         } {
           Fl_Check_Button m_ChkOptionsSliceThumbnailOn {
@@ -372,6 +372,11 @@ current user interface element} xywh {255 335 65 25} box PLASTIC_UP_BOX down_box
             tooltip {Restore the default settings for all
 user interface elements} xywh {330 335 65 25} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX shortcut 0x80072 color 181 labelsize 12
           }
+          Fl_Check_Button m_ChkOptionsHideOverlays {
+            label {Hide all overlays}
+            callback {OnHideOverlaysAction()}
+            xywh {20 335 125 25} down_box DOWN_BOX labelsize 12
+          }
         }
         Fl_Group {} {
           label {3D Rendering} open
@@ -479,7 +484,7 @@ user interface elements} xywh {330 335 65 25} box PLASTIC_UP_BOX down_box PLASTI
       }
       Fl_Button {} {
         label Close
-        callback {this->OnCloseAction();} selected
+        callback {this->OnCloseAction();}
         xywh {155 380 110 25} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX color 180 labelsize 12
       }
     }

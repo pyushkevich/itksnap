@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUIBase.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:17 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/11/13 00:59:47 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,7 +38,7 @@
 class AppearanceDialogUIBase
 {
 public:
-    virtual ~AppearanceDialogUIBase() {}
+  virtual ~AppearanceDialogUIBase() {}
   virtual void OnUIElementUpdate() = 0;
   virtual void OnUIElementSelection(int value) = 0;
   virtual void OnSliceAnatomyOptionsChange(unsigned int order) = 0;
@@ -53,6 +53,9 @@ public:
   virtual void OnElementAppearanceResetAllAction() = 0;
   virtual void OnElementAppearanceResetAction() = 0;
   virtual void OnElementAppearanceApplyAction() = 0;
+
+  virtual void OnOptionsExternalUpdate() = 0;
+  virtual void OnHideOverlaysAction() = 0;
 };
 
 #endif

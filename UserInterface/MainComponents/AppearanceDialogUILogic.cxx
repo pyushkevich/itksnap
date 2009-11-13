@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/18 18:11:23 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/11/13 00:59:47 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -472,6 +472,17 @@ void
 AppearanceDialogUILogic
 ::ShowDialog()
 {
+  // Reset to options
+  OnOptionsExternalUpdate();
+
+  // Show the dialog
+  m_WinDisplayOptions->show();
+}
+
+void
+AppearanceDialogUILogic
+::OnOptionsExternalUpdate()
+{
   // Fill out the panels of the dialog
   FillAppearanceSettings();
   FillSliceLayoutOptions();
@@ -479,9 +490,6 @@ AppearanceDialogUILogic
 
   // Describe the currently selected UI element
   OnUIElementSelection( m_InUIElement->value() );
-
-  // Show the dialog
-  m_WinDisplayOptions->show();
 }
 
 void 
@@ -579,4 +587,18 @@ AppearanceDialogUILogic
     m_Appearance->GetZoomThumbnailSizeInPercent());
   m_InOptionsSliceThumbnailMaxSize->value(
     (double) m_Appearance->GetZoomThumbnailMaximumSize());
+
+  // Overall visibility
+  m_ChkOptionsHideOverlays->value(
+    m_Appearance->GetOverallVisibility() ? 0.0 : 1.0);
+}
+
+void
+AppearanceDialogUILogic
+::OnHideOverlaysAction()
+{
+  m_Appearance->SetOverallVisibility(
+    m_ChkOptionsHideOverlays->value() > 0 ? false : true);
+  
+  m_Parent->RedrawWindows();
 }

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2009/10/30 13:49:48 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2009/11/13 00:59:47 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -78,6 +78,7 @@ public:
   virtual Vector3ui GetSize() const = 0;
   virtual unsigned char GetAlpha() const = 0;
   virtual void SetAlpha(unsigned char) = 0;
+  virtual void ToggleVisibility() = 0;
   virtual itk::ImageRegion<3> GetBufferedRegion() const = 0;
   virtual Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const = 0;
   virtual Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const = 0;
@@ -360,6 +361,7 @@ public:
    */
   irisSetMacro(Alpha, unsigned char);
   irisGetMacro(Alpha, unsigned char);
+  virtual void ToggleVisibility();
 
 protected:
 
@@ -378,10 +380,11 @@ protected:
    */
   bool m_Initialized;
 
-  /**
-   * Transparency
-   */
+  /** Transparency */
   unsigned char m_Alpha;
+  
+  /** A 'saved' value of alpha for when visibility is toggled */
+  unsigned char m_ToggleAlpha;
 
   /** Transform from image space to display space */
   ImageCoordinateTransform m_ImageToDisplayTransform[3];

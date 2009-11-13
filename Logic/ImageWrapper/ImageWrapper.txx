@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.txx,v $
   Language:  C++
-  Date:      $Date: 2009/10/30 13:49:48 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009/11/13 00:59:47 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -229,6 +229,9 @@ ImageWrapper<TPixel>
     m_Image = NULL;
     }
   m_Initialized = false;
+
+  m_Alpha = 128;
+  m_ToggleAlpha = 128;
 }
 
 template <class TPixel>
@@ -538,6 +541,24 @@ ImageWrapper<TPixel>
 
   // Return the number of replacements
   return nReplaced;
+}
+
+template <class TPixel>
+void
+ImageWrapper<TPixel>
+::ToggleVisibility()
+{
+  // If visible (alpha > 0), make invisible
+  if(m_Alpha > 0)
+    {
+    m_ToggleAlpha = m_Alpha;
+    m_Alpha = 0;
+    }
+  // If invisible, return to saved alpha value
+  else
+    {
+    m_Alpha = m_ToggleAlpha;
+    }
 }
 
 

@@ -9,7 +9,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
   } {
     Fl_Window m_WinLayerUI {
       label {ITK-SNAP: Layer Inspector} open
-      xywh {692 132 580 485} type Double box PLASTIC_DOWN_BOX resizable
+      xywh {688 132 584 485} type Double box PLASTIC_DOWN_BOX resizable
       code0 {\#include "LayerInspectorUIBase.h"} visible
     } {
       Fl_Tabs m_LayerUITabs {
@@ -18,7 +18,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
       } {
         Fl_Group m_ImageContrastTab {
           label Contrast open
-          xywh {180 25 390 455} labelsize 12
+          xywh {180 25 390 455} labelsize 12 hide
         } {
           Fl_Group {} {
             label {Window and Level:} open
@@ -53,7 +53,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             Fl_Button {} {
               label {&Reset}
               callback {this->OnCurveReset();}
-              xywh {500 340 50 25} box PLASTIC_UP_BOX shortcut 0x80072 labelsize 12
+              tooltip {Reset the curve, making it linear} xywh {500 340 50 25} box PLASTIC_UP_BOX shortcut 0x80072 labelsize 12
             }
             Fl_Group {} {
               label {input image intensity} open
@@ -65,22 +65,22 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             Fl_Button {} {
               label {+}
               callback {this->OnControlPointMoreAction();}
-              xywh {440 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelfont 4 labelsize 18
+              tooltip {Insert a control point into the curve} xywh {440 340 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelfont 4 labelsize 18
             }
             Fl_Button m_BtnCurveLessControlPoint {
               label {-}
               callback {this->OnControlPointLessAction();}
-              xywh {470 340 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
+              tooltip {Delete the current control point} xywh {470 340 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
             }
             Fl_Value_Input m_InControlX {
               label {Input Intensity:}
               callback {this->OnControlPointTextBoxUpdate();}
-              xywh {210 340 90 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
+              tooltip {Image intensity (x coordinate) of the selected control point} xywh {210 340 90 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
             }
             Fl_Value_Input m_InControlY {
               label {Output Intensity:}
               callback {this->OnControlPointTextBoxUpdate();}
-              xywh {315 340 90 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
+              tooltip {Y coordinate of the selected control point (between 0 and 1)} xywh {315 340 90 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
             }
           }
           Fl_Group {} {
@@ -89,8 +89,8 @@ class LayerInspectorUI {open : LayerInspectorUIBase
           } {
             Fl_Value_Input m_InHistogramMaxLevel {
               label {Cutoff (%):}
-              callback {this->OnUpdateHistogram();} selected
-              xywh {385 410 55 25} labelsize 12 when 4 maximum 100 step 0.5 value 100 textsize 12
+              callback {this->OnUpdateHistogram();}
+              tooltip {Affects vertical scaling of the histogram. Use it when histogram is dominated by one or two very tall bars.} xywh {385 410 55 25} labelsize 12 when 4 maximum 100 step 0.5 value 100 textsize 12
             }
             Fl_Value_Input m_InHistogramBinSize {
               label {Bin size:}
@@ -100,7 +100,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             Fl_Check_Button m_ChkHistogramLog {
               label {Log scale}
               callback {this->OnUpdateHistogram();}
-              xywh {470 410 80 25} down_box DOWN_BOX labelsize 12
+              tooltip {Toggle between linear and logarithmic scale for the histogram y axis} xywh {470 410 80 25} down_box DOWN_BOX labelsize 12
             }
             Fl_Button {} {
               label {Update Histogram}
@@ -133,12 +133,12 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             Fl_Value_Input m_InColorMapIndex {
               label {Color Index:}
               callback {this->OnColorMapIndexUpdate();}
-              xywh {200 235 65 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
+              tooltip {The x-coordinate of the selected control point. This corresponds to the y-coordinate of the contrast adjustment curve.} xywh {200 235 65 25} labelsize 12 align 5 when 4 step 0.01 textsize 12
             }
             Fl_Choice m_InColorMapSide {
               label {Side:}
               callback {this->OnColorMapSideUpdate();} open
-              xywh {200 280 70 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
+              tooltip {Color map may be discontinuous at control points. Select 'Left' or 'Right' to introduce a discontinuity. Select 'Both' to make a control point continuous.} xywh {200 280 70 25} down_box BORDER_BOX labelsize 12 align 5 textsize 12
             } {
               MenuItem m_MenuColorMapBoth {
                 label Both
@@ -156,7 +156,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             Fl_Button m_BtnColorMapDeletePoint {
               label delete
               callback {this->OnColorMapPointDelete();}
-              xywh {275 235 45 25} box PLASTIC_UP_BOX shortcut 0x2d labelsize 10
+              tooltip {Delete the current control point} xywh {275 235 45 25} box PLASTIC_UP_BOX shortcut 0x2d labelsize 10
             }
           }
           Fl_Group {} {
@@ -166,12 +166,12 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             Fl_Button {} {
               label {+}
               callback {this->OnColorMapAddPresetAction();}
-              xywh {495 75 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelfont 4 labelsize 18
+              tooltip {Save current color map as a preset for future use} xywh {495 75 25 25} box PLASTIC_UP_BOX shortcut 0x3d labelfont 4 labelsize 18
             }
             Fl_Button {} {
               label {-}
               callback {this->OnColorMapDeletePresetAction();}
-              xywh {525 75 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
+              tooltip {Delete selected preset} xywh {525 75 25 25} box PLASTIC_UP_BOX shortcut 0x2d labelfont 4 labelsize 18
             }
             Fl_Choice m_InColorMapPreset {
               label {Select a color map::}
@@ -182,7 +182,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
         }
         Fl_Group m_ImageInfoTab {
           label Information open
-          xywh {180 25 390 455} labelsize 12 hide
+          xywh {180 25 390 455} labelsize 12
         } {
           Fl_Group {} {
             label Dimensions open
@@ -352,7 +352,7 @@ coordinates} open
         } {}
         Fl_Value_Slider m_InOverallOpacity {
           label {Overall opacity:}
-          callback {this->OnOverallOpacityUpdate()}
+          callback {this->OnOverallOpacityUpdate()} selected
           xywh {10 185 150 20} type Horizontal labelsize 12 align 5 textsize 11
         }
         Fl_Button {} {
@@ -365,6 +365,10 @@ coordinates} open
           callback {this->OnLayerSelectionUpdate()}
           xywh {10 60 150 100} type Hold labelsize 12 align 5 textsize 11
         }
+        Fl_Group {} {
+          label {Use Q,W,E keys to adjust} open
+          xywh {10 205 150 25} labelsize 10 labelcolor 96 align 17
+        } {}
       }
       Fl_Group {} {open
         xywh {170 0 1 490} box FLAT_BOX color 0

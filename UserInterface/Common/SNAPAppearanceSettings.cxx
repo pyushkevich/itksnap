@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/06/18 18:11:23 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2009/11/13 00:59:47 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -216,6 +216,9 @@ SNAPAppearanceSettings
   for(unsigned int iElement = 0; iElement < ELEMENT_COUNT; iElement++)
     m_Elements[iElement] = m_DefaultElementSettings[iElement];
 
+  // Initial visibility is true
+  m_OverallVisibility = true;
+
 }
 
 void
@@ -252,6 +255,8 @@ SNAPAppearanceSettings
 
   m_GreyInterpolationMode = 
     r["GreyImageInterpolationMode"].GetEnum(m_EnumMapInterpolationMode, NEAREST);
+
+  // Overall visibility is not saved or loaded
 
   // Read slice layout information
   m_SliceLayout = 
@@ -297,10 +302,13 @@ SNAPAppearanceSettings
   r["ZoomThumbnailMaximumSize"] << m_ZoomThumbnailMaximumSize;
   r["GreyImageInterpolationMode"].PutEnum(m_EnumMapInterpolationMode, m_GreyInterpolationMode);
 
+  // Overall visibility is not saved or loaded
+
   // Write slice layout information
   r["SliceLayout"].PutEnum(m_EnumMapSliceLayout, m_SliceLayout);
   r["PatientAnteriorShownLeft"] << m_FlagLayoutPatientAnteriorShownLeft;
   r["PatientRightShownLeft"] << m_FlagLayoutPatientRightShownLeft;
+  
 
 
   // Save each of the screen elements
@@ -348,7 +356,6 @@ SNAPAppearanceSettings
                    0x9999 ); // 0011 0011 0011 0011  // 1001 1001 1001 1001
     }
 }
-
 
 void SNAPAppearanceSettings
 ::GetAnatomyToDisplayTransforms(string &rai1, string &rai2, string &rai3)
