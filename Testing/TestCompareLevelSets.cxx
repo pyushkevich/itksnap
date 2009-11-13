@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: TestCompareLevelSets.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 05:10:39 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/11/13 13:42:26 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -468,7 +468,7 @@ TestCompareLevelSets
   IRISApplication *app = new IRISApplication();
   
   // Pass the images to the application
-  app->UpdateIRISGreyImage(grey, GreyTypeToNativeFunctor());
+  app->UpdateIRISMainImage(grey, GreyTypeToNativeFunctor());
   app->UpdateIRISSegmentationImage(bubble);
 
   // Specify the label used for segmentation

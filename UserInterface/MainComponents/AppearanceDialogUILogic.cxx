@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 00:59:47 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/11/13 13:42:26 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -590,7 +590,7 @@ AppearanceDialogUILogic
 
   // Overall visibility
   m_ChkOptionsHideOverlays->value(
-    m_Appearance->GetOverallVisibility() ? 0.0 : 1.0);
+    m_Appearance->GetOverallVisibility() ? 0 : 1);
 }
 
 void

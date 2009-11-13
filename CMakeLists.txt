@@ -536,6 +536,12 @@ TARGET_LINK_LIBRARIES(${SNAP_EXE}
   ${SNAP_INTERNAL_LIBS}
   ${SNAP_EXTERNAL_LIBS})
 
+# Define the testing EXE
+ADD_EXECUTABLE(snaptest ${TESTING_CXX})
+TARGET_LINK_LIBRARIES(snaptest
+  ${SNAP_INTERNAL_LIBS}
+  ${SNAP_EXTERNAL_LIBS})
+
 # ----------------------------------------------------------------
 # Miscelaneous tasks (not related to link and compilation)
 # ----------------------------------------------------------------

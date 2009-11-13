@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 00:59:47 $
-  Version:   $Revision: 1.100 $
+  Date:      $Date: 2009/11/13 13:42:26 $
+  Version:   $Revision: 1.101 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -4454,7 +4454,14 @@ void UserInterfaceLogic
     const char *fName = chooser.filename();
     if (fName && strlen(fName))
 	    {
-      m_Driver->ExportSlice((AnatomicalDirection) iSlice, fName);
+      try
+        {
+        m_Driver->ExportSlice((AnatomicalDirection) iSlice, fName);
+        }
+      catch(...)
+        {
+        fl_alert("Unable to save slice as %s", fName);
+        } 
 	    }
     }
 }
@@ -4999,18 +5006,25 @@ UserInterfaceLogic
   int response = 0;
   if (m_AppearanceSettings->GetFlagEnableAutoCheckForUpdateByDefault() == -1)
     {
-    response = fl_choice("ITK-SNAP can check for software update automatically. Do you want to enable this feature?", "No Thanks", "Yes, please", NULL);
+    response = fl_choice(
+      "ITK-SNAP can check for software update automatically.\n"
+      "Do you want to enable this feature?", "No Thanks", "Yes, please", NULL);
     if (response)
       {
       m_AppearanceSettings->SetFlagEnableAutoCheckForUpdateByDefault(1);
-	 OnCheckForUpdate();
-	 }
+      OnCheckForUpdate();
+      }
     else
+      {
       m_AppearanceSettings->SetFlagEnableAutoCheckForUpdateByDefault(0);
-    m_AppearanceSettings->SaveToRegistry(m_SystemInterface->Folder("UserInterface.AppearanceSettings"));
+      }
+    m_AppearanceSettings->SaveToRegistry(
+      m_SystemInterface->Folder("UserInterface.AppearanceSettings"));
     }
   else if (m_AppearanceSettings->GetFlagEnableAutoCheckForUpdateByDefault())
+    {
     OnCheckForUpdate();
+    }
 }
 
 void
@@ -5339,6 +5353,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.101  2009/11/13 13:42:26  pyushkevich
+ *FIX: build warning from last checkin
+ *
  *Revision 1.100  2009/11/13 00:59:47  pyushkevich
  *ENH: improved shortcuts
  *
