@@ -320,7 +320,6 @@ SET(UI_HEADERS
 
 # The source code for SNAP testing project
 SET(TESTING_CXX
-  Testing/TestCompareLevelSets.cxx
   Testing/TestMain.cxx
   Testing/SNAPTestDriver.cxx
 )

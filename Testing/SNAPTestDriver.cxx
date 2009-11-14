@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPTestDriver.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 05:10:39 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/11/14 16:19:56 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -14,7 +14,10 @@
 =========================================================================*/
 #include "SNAPTestDriver.h"
 #include "TestImageWrapper.h"
-#include "TestCompareLevelSets.h"
+#include "GreyImageWrapper.h"
+#include "LabelImageWrapper.h"
+#include "SpeedImageWrapper.h"
+
 
 #include "CommandLineArgumentParser.h"
 #include <iostream>
@@ -25,8 +28,8 @@ using namespace std;
 
 const unsigned int SNAPTestDriver::NUMBER_OF_TESTS = 5;
 const char *SNAPTestDriver::m_TestNames[] = { "ImageWrapper",
-  "IRISImageData","SNAPImageData","CompareLevelSets","Preprocessing" };
-const bool SNAPTestDriver::m_TestTemplated[] = { true, false, false, false, false };
+  "IRISImageData","SNAPImageData","Preprocessing" };
+const bool SNAPTestDriver::m_TestTemplated[] = { true, false, false, false };
 
 void
 SNAPTestDriver
@@ -53,7 +56,16 @@ SNAPTestDriver::TemplatedTestCreator<TPixel>
   string strName = name;
 
   if(strName == "ImageWrapper")
-    m_Test = new TestImageWrapper<TPixel>();
+    {
+    if(typeid(TPixel) == typeid(GreyType))
+      m_Test = new TestImageWrapper<GreyType, GreyImageWrapper>();
+    else if(typeid(TPixel) == typeid(LabelType))
+      m_Test = new TestImageWrapper<LabelType, LabelImageWrapper>();
+    else if(typeid(TPixel) == typeid(float))
+      m_Test = new TestImageWrapper<float, SpeedImageWrapper>();
+    else
+      m_Test = NULL;
+    }
   else
     m_Test = NULL;
 }
@@ -72,10 +84,7 @@ SNAPTestDriver
 {
   string strName = name;
   TestBase *test = NULL;
-
-  if(strName == "CompareLevelSets")
-    test = new TestCompareLevelSets;
-  
+ 
   return test;
 }
 
@@ -246,19 +255,3 @@ SNAPTestDriver
     PrintUsage();
     }
 }
-
-template class ScalarImageWrapper<unsigned char>;
-template class ScalarImageWrapper<signed char>;
-template class ScalarImageWrapper<unsigned int> ;
-template class ScalarImageWrapper<signed int> ;
-template class ScalarImageWrapper<unsigned long> ;
-template class ScalarImageWrapper<signed long> ;
-template class ScalarImageWrapper<double> ;
-
-template class ImageWrapper<unsigned char>;
-template class ImageWrapper<signed char>;
-template class ImageWrapper<unsigned int> ;
-template class ImageWrapper<signed int> ;
-template class ImageWrapper<unsigned long> ;
-template class ImageWrapper<signed long> ;
-template class ImageWrapper<double> ;

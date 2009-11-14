@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: TestCompareLevelSets.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 13:45:26 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009/11/14 16:19:56 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -450,27 +450,19 @@ TestCompareLevelSets
   // Get the experiment ID
   string expID = registry["ExperimentId"]["000"];
 
+  // Initialize an IRIS application 
+  IRISApplication *app = new IRISApplication();
+
+  // Load the grey image and segmentation image
+  app->LoadMainImage(registry["Image.Grey"][""], IRISApplication::MAIN_SCALAR);
+  app->LoadLabelImageFile(registry["Image.Bubble"][""]);
+
   // Some image pointers
-  GreyImageWrapper::ImagePointer grey;
-  LabelImageWrapper::ImagePointer bubble;
   SpeedImageWrapper::ImagePointer speed;
-
-  // Get the grey image from the registry
-  LoadImageFromFile(registry["Image.Grey"][""],grey);
-
-  // Get the snake initialization (segmentation from the registry)
-  LoadImageFromFile(registry["Image.Bubble"][""],bubble);
 
   // Get the preprocessing image from the registry
   LoadImageFromFile(registry["Image.Speed"][""],speed);
-
-  // Initialize an IRIS application 
-  IRISApplication *app = new IRISApplication();
   
-  // Pass the images to the application
-  app->UpdateIRISGreyImage(grey, GreyTypeToNativeFunctor());
-  app->UpdateIRISSegmentationImage(bubble);
-
   // Specify the label used for segmentation
   app->GetGlobalState()->SetDrawingColorLabel(
     (LabelType)registry["Image.BubbleLabel"][255]);
@@ -517,7 +509,7 @@ TestCompareLevelSets
   std::ofstream fout((targetPath + "report." + expID + ".txt").c_str());
 
   // Now, we have a speed image and a level set image.  We are ready to
-  // test different segmenters
+  // test different segmenter
   typedef SpeedImageWrapper::ImageType FloatImageType;
   typedef itk::DenseFiniteDifferenceImageFilter<
     FloatImageType,FloatImageType> DenseFilterType;  
@@ -538,6 +530,12 @@ TestCompareLevelSets
   snap->InitializeSegmentation(
     parameters,dummy,app->GetGlobalState()->GetDrawingColorLabel());
   SNAPLevelSetFunction<FloatImageType> *phi = snap->GetLevelSetFunction();
+
+  SNAPLevelSetDriver(
+    snap->GetSnake()->GetImage(),
+    snap->GetSpeed()->GetImage(), 
+
+
 
   // Decide on a number of iterations
   unsigned int nIterations = registry["Iterations"][10];
@@ -563,18 +561,10 @@ TestCompareLevelSets
   fltParallel->SetNumberOfLayers(3);
   fltParallel->SetIsoSurfaceValue(0.0f);
 
-  // Set up the narrow band filter
-  NarrowExtensionFilter::Pointer fltNarrow = NarrowExtensionFilter::New();
-  fltNarrow->SetSegmentationFunction(phi);
-  fltNarrow->SetInput(snap->GetSnake()->GetImage());
-  fltNarrow->SetFeatureImage(snap->GetSpeed()->GetImage());  
-  fltNarrow->SetNumberOfIterations(nIterations);
-
   // Create iteration reporters
-  IterationReporter irDense(fltDense,fout);
-  IterationReporter irSparse(fltSparse,fout);
-  IterationReporter irNarrow(fltNarrow,fout);
-  IterationReporter irParallel(fltParallel,fout);
+  IterationReporter irDense(fltDense.GetPointer(),fout);
+  IterationReporter irSparse(fltSparse.GetPointer(),fout);
+  IterationReporter irParallel(fltParallel.GetPointer(),fout);
 
   // Create a filter for filling in the interior of a distance transform
   typedef itk::UnaryFunctorImageFilter<

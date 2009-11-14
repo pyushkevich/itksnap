@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: TestBase.h,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:20 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/11/14 16:19:56 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -17,7 +17,7 @@
 
 #include "CommandLineArgumentParser.h"
 #include "ImageIORoutines.h"
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 
 /** Exception when needed parameters are omitted */
 class TestUsageException : public itk::ExceptionObject {};
@@ -63,7 +63,7 @@ class TestBaseOneImage : public TestBase
 {
 public:
   // Type definitions
-  typedef itk::Image<TPixel,3> ImageType;
+  typedef itk::OrientedImage<TPixel,3> ImageType;
   typedef typename ImageType::Pointer ImagePointer;
 
   // Print how to use this test

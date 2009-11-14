@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: TestImageWrapper.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/20 05:10:39 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009/11/14 16:19:56 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -18,16 +18,18 @@
 #include "TestBase.h"
 #include "ScalarImageWrapper.h"
 #include "ScalarImageWrapper.txx"
+#include "GreyImageWrapper.h"
+#include "LabelImageWrapper.h"
 
 /**
  * This class is used to test the functionality in the ImageWrapper class
  */
-template<class TPixel>
+template<class TPixel, class TWrapper>
 class TestImageWrapper : public TestBaseOneImage<TPixel>
 {
 public:
   typedef TestBaseOneImage<TPixel> Superclass;
-  typedef ScalarImageWrapper<TPixel> WrapperType;
+  typedef TWrapper WrapperType;
 
   void PrintUsage();
   void Run();
@@ -43,8 +45,8 @@ public:
   }
 };
 
-template<class TPixel> 
-void TestImageWrapper<TPixel> 
+template<class TPixel, class TWrapper> 
+void TestImageWrapper<TPixel, TWrapper> 
 ::PrintUsage() 
 {
   // Run the parent's part of the test
@@ -54,8 +56,8 @@ void TestImageWrapper<TPixel>
   std::cout << "  rai CODE : Pass in an RAI anatomy-image code" << std::endl;
 }
 
-template<class TPixel> 
-void TestImageWrapper<TPixel> 
+template<class TPixel, class TWrapper> 
+void TestImageWrapper<TPixel, TWrapper> 
 ::Run() 
 {
   // Run the parent's part of the test (loads image)
@@ -65,7 +67,7 @@ void TestImageWrapper<TPixel>
   std::cout << "Testing code in ImageWrapper.h" << std::endl;
 
   // Create an image wrapper
-  WrapperType *wrapper = new WrapperType;
+  WrapperType *wrapper = new WrapperType();
 
   // Insert image into the wrapper
   wrapper->SetImage(this->m_Image);
