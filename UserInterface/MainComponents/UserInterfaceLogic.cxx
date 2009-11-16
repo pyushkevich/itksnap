@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 13:45:26 $
-  Version:   $Revision: 1.102 $
+  Date:      $Date: 2009/11/16 20:29:28 $
+  Version:   $Revision: 1.103 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -320,6 +320,7 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuSaveScreenshot, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveScreenshotSeries, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuIntensityCurve, UIF_GRAY_LOADED);
+  m_Activation->AddMenuItem(m_MenuColorMap, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuExportSlice, UIF_GRAY_LOADED);
   m_Activation->AddMenuItem(m_MenuSavePreprocessed, UIF_SNAP_PREPROCESSING_DONE);
   m_Activation->AddMenuItem(m_MenuSaveLevelSet, UIF_SNAP_SNAKE_INITIALIZED);
@@ -3148,12 +3149,6 @@ UserInterfaceLogic
       {
       // We resize all the panels so that the zoom behaves
       // properly in linked zoom mode
-      panels[j]->resize(
-        parent->x(),parent->y(),
-        parent->w(),parent->h());
-      parent->resizable(panels[j]);
-      panels[j]->redraw();
-
       if(iWindow != j)
         {
         panels[j]->hide();
@@ -3161,6 +3156,11 @@ UserInterfaceLogic
         parent->remove(panels[j]);
         }
       }
+      panels[iWindow]->resize(
+        parent->x(),parent->y(),
+        parent->w(),parent->h());
+      parent->resizable(panels[iWindow]);
+      panels[iWindow]->redraw();
     }
 }
 
@@ -3457,7 +3457,7 @@ UserInterfaceLogic
 {
   // Close layer inspector if open
   if (m_LayerUI->Shown())
-    m_LayerUI->Hide();
+    m_LayerUI->OnCloseAction();
 
   // Close reorient image dialog if open
   if (m_DlgReorientImage->Shown())
@@ -4851,6 +4851,16 @@ void UserInterfaceLogic
   m_LayerUI->DisplayImageContrastTab();
 }
 
+void UserInterfaceLogic
+::OnMenuColorMap() 
+{
+  // The image should be loaded before bringing up the color map
+  assert(m_Driver->GetCurrentImageData()->IsGreyLoaded());
+
+  // Show the window
+  m_LayerUI->DisplayColorMapTab();
+}
+
 void
 UserInterfaceLogic
 ::OnIRISLabelOpacityChange()
@@ -5339,6 +5349,10 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.103  2009/11/16 20:29:28  garyhuizhang
+ *BUGFIX: a fix for messed up display on mac when switching between different panel zoom mode
+ *ENH: added color map menu item
+ *
  *Revision 1.102  2009/11/13 13:45:26  pyushkevich
  *undo bad checkin
  *

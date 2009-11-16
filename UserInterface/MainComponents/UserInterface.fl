@@ -271,6 +271,11 @@ class UserInterface {open : {public UserInterfaceBase}
                 callback {this->OnMenuIntensityCurve();}
                 xywh {20 20 100 20} shortcut 0x40069 labelsize 12 deactivate
               }
+              MenuItem m_MenuColorMap {
+                label {Image Color &Map...}
+                callback {this->OnMenuColorMap();}
+                xywh {20 20 100 20} labelsize 12 deactivate
+              }
               MenuItem m_MenuReorientImage {
                 label {&Reorient Image...}
                 callback {this->OnMenuReorientImage();}

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/10/30 13:49:48 $
-  Version:   $Revision: 1.46 $
+  Date:      $Date: 2009/11/16 20:29:29 $
+  Version:   $Revision: 1.47 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -728,6 +728,7 @@ protected:
   void OnMenuSaveScreenshotSeries(unsigned int iSlice);
   void OnMenuWriteVoxelCounts();
   void OnMenuIntensityCurve();
+  void OnMenuColorMap();
   void OnMenuShowLayerInspector();
   void OnMenuSavePreprocessed(); 
   void OnMenuSaveLevelSet(); 
@@ -1002,6 +1003,10 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.47  2009/11/16 20:29:29  garyhuizhang
+ *BUGFIX: a fix for messed up display on mac when switching between different panel zoom mode
+ *ENH: added color map menu item
+ *
  *Revision 1.46  2009/10/30 13:49:48  pyushkevich
  *FIX: improved behavior of synchronized pan. it now broadcasts viewport center rel. to cursor posn.
  *FIX: improved IPC. only 'new' messages are now acted on.

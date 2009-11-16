@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 00:59:47 $
-  Version:   $Revision: 1.21 $
+  Date:      $Date: 2009/11/16 20:29:28 $
+  Version:   $Revision: 1.22 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -192,13 +192,6 @@ LayerInspectorUILogic
     {
     UpdateImageProbe();
     }
-}
-
-void
-LayerInspectorUILogic
-::Hide()
-{
-  m_WinLayerUI->hide();
 }
 
 bool

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 00:59:47 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2009/11/16 20:29:28 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -97,7 +97,6 @@ public:
   // Display the dialog
   void DisplayWindow();
   void RedrawWindow();
-  void Hide();
   bool Shown();
   void DisplayImageContrastTab();
   void DisplayColorMapTab();
