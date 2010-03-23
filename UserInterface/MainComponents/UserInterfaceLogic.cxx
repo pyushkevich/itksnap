@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/16 20:29:28 $
-  Version:   $Revision: 1.103 $
+  Date:      $Date: 2010/03/23 21:23:13 $
+  Version:   $Revision: 1.104 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -486,6 +486,13 @@ UserInterfaceLogic
 
   // Opacity toggle value set to default
   m_OpacityToggleValue = 128;
+
+  // Configure the display layout
+  m_DisplayLayout.full_screen = false;
+  m_DisplayLayout.show_main_ui = true; 
+  m_DisplayLayout.show_panel_ui = true;
+  m_DisplayLayout.slice_config = FOUR_SLICE;
+  m_DisplayLayout.size = FULL_SIZE;
 
   // Not fullscreen
   m_FullScreen = false;
@@ -1789,6 +1796,222 @@ UserInterfaceLogic
 
 void
 UserInterfaceLogic
+::SetDisplayLayout(DisplayLayout dl)
+{
+  static int w = 0, h = 0, x = 0, y = 0;
+
+  // Check compatibility rules (some states are incompatible)
+  if(dl.size == HALF_SIZE && (dl.show_main_ui))
+    throw IRISException("Incorrect display layout");
+
+  // Handle full-screen toggle
+  if(m_DisplayLayout.full_screen && !dl.full_screen)
+    {
+    m_WinMain->fullscreen_off(x,y,w,h);
+    m_FullScreen = false;
+    }
+
+  else if(!m_DisplayLayout.full_screen && dl.full_screen)
+    {
+    w = m_WinMain->w(); h = m_WinMain->h();
+    x = m_WinMain->x(); y = m_WinMain->y();
+    m_WinMain->fullscreen();
+    m_FullScreen = true;
+    }
+
+  // Handle window size selection
+  if(m_DisplayLayout.size == FULL_SIZE && dl.size == HALF_SIZE)
+    {
+    m_WinMain->size(m_WinMain->w() / 2, m_WinMain->h() / 2);
+    }
+  else if(m_DisplayLayout.size == HALF_SIZE && dl.size == FULL_SIZE)
+    {
+    m_WinMain->size(m_WinMain->w() * 2, m_WinMain->h() * 2);
+    }
+
+  // Handle the slice window selection (1 vs 4 slices)
+  if(m_DisplayLayout.slice_config != dl.slice_config)
+    {
+    // The dimensions of the parent window
+    int x = m_GrpRightPane->x(), y = m_GrpRightPane->y();
+    int w = m_GrpRightPane->w(), h = m_GrpRightPane->h();
+
+    // Restore all panels to original configuration
+    m_WizSliceLayout[0]->resize(x, y, w >> 1, h >> 1);
+    m_WizSliceLayout[1]->resize(x + (w >> 1), y, w - (w >> 1), h >> 1);
+    m_WizSliceLayout[3]->resize(x, y + (h >> 1), w >> 1, h - (h >> 1));
+    m_WizSliceLayout[2]->resize(x + (w >> 1), y + (h >> 1), w - (w >> 1), h - (h >> 1));
+
+    // Make the resizable is set to self
+    m_GrpRightPane->resizable(m_GrpRightPane);
+
+    // Show everything
+    for(unsigned int j = 0; j < 4; j++)
+      {
+      m_GrpRightPane->add(m_WizSliceLayout[j]);
+      m_WizSliceLayout[j]->show();
+      m_SliceWindow[j]->show();
+      m_WizSliceLayout[j]->redraw();
+      }
+
+    if(dl.slice_config != FOUR_SLICE)
+      {
+      for(int j = 0; j < 4; j++)
+        {
+        // We resize all the panels so that the zoom behaves
+        // properly in linked zoom mode
+        if(dl.slice_config != AXIAL + j)
+          {
+          m_WizSliceLayout[j]->hide();
+          m_SliceWindow[j]->hide();
+          m_GrpRightPane->remove(m_WizSliceLayout[j]);
+          }
+        else
+          {
+          m_WizSliceLayout[j]->show();
+          m_SliceWindow[j]->show();
+          m_WizSliceLayout[j]->resize(
+            m_GrpRightPane->x(),m_GrpRightPane->y(),
+            m_GrpRightPane->w(),m_GrpRightPane->h());
+          m_GrpRightPane->resizable(m_WizSliceLayout[j]);
+          m_WizSliceLayout[j]->redraw();
+          }
+        }
+      }
+    }
+  
+  // Do we need to hide the main pane
+  if(m_DisplayLayout.show_main_ui && !dl.show_main_ui)
+    {
+    std::cout << "HIDING MAIN PANE" << endl;
+    // Move the right pane over to the second part of the wizard
+    m_GrpRightPanePlaceholderNormal->remove(m_GrpRightPane);
+    m_GrpRightPanePlaceholderTight->insert(*m_GrpRightPane, 0);
+    m_GrpRightPane->resize(
+      m_GrpRightPanePlaceholderTight->x(),
+      m_GrpRightPanePlaceholderTight->y(),
+      m_GrpRightPanePlaceholderTight->w(),
+      m_GrpRightPanePlaceholderTight->h());
+    m_WizMainLayout->value(m_GrpMainLayoutTight);
+
+    // Shrink the main window
+    if(!m_FullScreen)
+      m_WinMain->size(m_WinMain->w()-145, m_WinMain->h()-25);
+    }
+
+  // Do we need to restore the main panel
+  if(!m_DisplayLayout.show_main_ui && dl.show_main_ui)
+    {
+    std::cout << "RESTORING MAIN PANE" << endl;
+    // Restore the control panel and toolbar
+    m_GrpRightPanePlaceholderTight->remove(m_GrpRightPane);
+    m_GrpRightPanePlaceholderNormal->insert(*m_GrpRightPane, 0);
+    m_GrpRightPane->resize(
+      m_GrpRightPanePlaceholderNormal->x(),
+      m_GrpRightPanePlaceholderNormal->y(),
+      m_GrpRightPanePlaceholderNormal->w(),
+      m_GrpRightPanePlaceholderNormal->h());
+    m_WizMainLayout->value(m_GrpMainLayoutNormal);
+
+    // Grow the main window (as long as we don't grow over max size)
+    if(!m_FullScreen) 
+      {
+      int sx, sy, sw, sh;
+      Fl::screen_xywh(sx, sy, sw, sh);
+      if(m_WinMain->w() <= sw - 145 && m_WinMain->h() <= sh - 25)
+        m_WinMain->size(m_WinMain->w()+145, m_WinMain->h()+25);
+      }
+    }
+
+  // Do we need to hide the mini-panels
+  if(m_DisplayLayout.show_panel_ui && !dl.show_panel_ui)
+    {
+    std::cout << "HIDING SLICE PANES" << endl;
+    for(size_t i = 0; i < 4; i++)
+      {
+      // Move the slice window over to the second part of the wizard
+      m_GrpSlicePlaceholder[i]->remove(m_SliceWindow[i]);
+      m_GrpSliceLayoutTight[i]->insert(*m_SliceWindow[i], 0);
+      m_SliceWindow[i]->resize(
+        m_GrpSliceLayoutTight[i]->x(),m_GrpSliceLayoutTight[i]->y(),
+        m_GrpSliceLayoutTight[i]->w(),m_GrpSliceLayoutTight[i]->h());
+      m_WizSliceLayout[i]->value(m_GrpSliceLayoutTight[i]);
+      }
+
+    // Shrink the main window
+    if(!m_FullScreen)
+      m_WinMain->size(m_WinMain->w()-64, m_WinMain->h()-70);
+    }
+
+  // Do we need to restore the mini-panels
+  if(!m_DisplayLayout.show_panel_ui && dl.show_panel_ui)
+    {
+    std::cout << "RESTORING SLICE PANES" << endl;
+    // Restore the slice windows
+    for(size_t i = 0; i < 4; i++)
+      {
+      m_GrpSliceLayoutTight[i]->remove(m_SliceWindow[i]);
+      m_GrpSlicePlaceholder[i]->insert(*m_SliceWindow[i], 0);
+      m_SliceWindow[i]->resize(
+        m_GrpSlicePlaceholder[i]->x(),
+        m_GrpSlicePlaceholder[i]->y(),
+        m_GrpSlicePlaceholder[i]->w(),
+        m_GrpSlicePlaceholder[i]->h());
+      m_WizSliceLayout[i]->value(m_GrpSliceLayoutNormal[i]);
+      }
+
+    // Grow the main window (as long as we don't grow over max size)
+    if(!m_FullScreen) 
+      {
+      int sx, sy, sw, sh;
+      Fl::screen_xywh(sx, sy, sw, sh);
+      if(m_WinMain->w() <= sw - 64 && m_WinMain->h() <= sh - 70)
+        m_WinMain->size(m_WinMain->w()+64, m_WinMain->h()+70);
+      }
+    }
+
+  // Store the new display layout
+  m_DisplayLayout = dl;
+
+}
+
+void
+UserInterfaceLogic
+::ToggleDisplayElements()
+{
+  // Cycle through 4 visibility modes
+  DisplayLayout dl = m_DisplayLayout;
+  if(dl.show_main_ui && dl.show_panel_ui)
+    {
+    dl.show_main_ui = false;
+    dl.show_panel_ui = true;
+    dl.size = FULL_SIZE;
+    }
+  else if(!dl.show_main_ui && dl.show_panel_ui)
+    {
+    dl.show_main_ui = false;
+    dl.show_panel_ui = false;
+    dl.size = FULL_SIZE;
+    }
+  else if(!dl.show_main_ui && !dl.show_panel_ui && dl.size == FULL_SIZE)
+    {
+    dl.show_main_ui = false;
+    dl.show_panel_ui = false;
+    dl.size = HALF_SIZE;
+    }
+  else 
+    {
+    dl.show_panel_ui = true;
+    dl.show_main_ui = true;
+    dl.size = FULL_SIZE;
+    }
+
+  SetDisplayLayout(dl);
+}
+
+/*
+void
+UserInterfaceLogic
 ::ToggleDisplayElements()
 {
   // First press: hide left pane and menubar
@@ -1864,7 +2087,9 @@ UserInterfaceLogic
       }
     }
 }
+*/
 
+/*
 void
 UserInterfaceLogic
 ::ToggleFullScreen()
@@ -1883,6 +2108,16 @@ UserInterfaceLogic
     m_WinMain->fullscreen();
     m_FullScreen = true;
     }
+}
+*/
+
+void
+UserInterfaceLogic
+::ToggleFullScreen()
+{
+  DisplayLayout dl = m_DisplayLayout;
+  dl.full_screen = !dl.full_screen;
+  SetDisplayLayout(dl);
 }
 
 int 
@@ -1988,6 +2223,22 @@ if(ev == FL_SHORTCUT)
     else if(Fl::test_shortcut(FL_ALT | 'i'))
       {
       m_LayerUI->OnAutoFitWindow();
+      return 1;
+      }
+
+    // Toggle 4 views / slice views
+    else if(Fl::test_shortcut(FL_F + 2))
+      {
+      DisplayLayout dl = m_DisplayLayout;
+      switch(dl.slice_config)
+        {
+        case FOUR_SLICE : dl.slice_config = AXIAL; break;
+        case AXIAL : dl.slice_config = CORONAL; break;
+        case CORONAL : dl.slice_config = SAGITTAL; break;
+        case SAGITTAL : dl.slice_config = THREED; break;
+        case THREED : dl.slice_config = FOUR_SLICE; break;
+        }
+      SetDisplayLayout(dl);
       return 1;
       }
 
@@ -3117,6 +3368,7 @@ void
 UserInterfaceLogic
 ::UpdateWindowFocus(Fl_Group *parent, Fl_Group **panels, Fl_Gl_Window **boxes, int iWindow)
 {
+  /*
   // The dimensions of the parent window
   int x = parent->x(), y = parent->y();
   int w = parent->w(), h = parent->h();
@@ -3162,20 +3414,28 @@ UserInterfaceLogic
       parent->resizable(panels[iWindow]);
       panels[iWindow]->redraw();
     }
+    */
 }
 
 void
 UserInterfaceLogic
 ::OnWindowFocus(int iWindow)
 {
-  // Get the four panels
-  Fl_Group *panels[] = 
-    { m_WizSliceLayout[0], m_WizSliceLayout[1], m_WizSliceLayout[2], m_WizSliceLayout[3] };
-  Fl_Gl_Window *boxes[] = 
-    { m_SliceWindow[0], m_SliceWindow[1], m_SliceWindow[2], m_SliceWindow[3] };
+  DisplayLayout dl = m_DisplayLayout;
 
-  // Update the window focus
-  UpdateWindowFocus(m_GrpRightPane, panels, boxes, iWindow);
+  // If <0, enter four-slice 
+  if(iWindow < 0)
+    dl.slice_config = FOUR_SLICE;
+
+  // If 0-4, act as a toggle
+  else if(dl.slice_config == AXIAL + iWindow)
+    dl.slice_config = FOUR_SLICE;
+
+  else 
+    dl.slice_config = (SliceViewConfiguration) (AXIAL + iWindow);
+
+  // Update layout
+  SetDisplayLayout(dl);
 }
 
 void
@@ -5109,6 +5369,14 @@ UserInterfaceLogic
 
 void
 UserInterfaceLogic
+::SetZoomLevelAllWindows(float zoom)
+{
+  m_InZoomLevel->value(zoom);
+  this->OnZoomLevelChange();
+}
+
+void
+UserInterfaceLogic
 ::OnZoomLevelChange()
 {
   float zoom = m_InZoomLevel->value();
@@ -5349,6 +5617,10 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.104  2010/03/23 21:23:13  pyushkevich
+ *Added display halving capability,
+ *command line switches --zoom, --help, --compact
+ *
  *Revision 1.103  2009/11/16 20:29:28  garyhuizhang
  *BUGFIX: a fix for messed up display on mac when switching between different panel zoom mode
  *ENH: added color map menu item

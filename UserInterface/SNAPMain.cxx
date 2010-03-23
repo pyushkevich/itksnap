@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/28 08:05:36 $
-  Version:   $Revision: 1.20 $
+  Date:      $Date: 2010/03/23 21:23:07 $
+  Version:   $Revision: 1.21 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -217,6 +217,34 @@ void SetupSignalHandlers()
 
 #endif
 
+void usage()
+{
+  // Print usage info and exit
+  cout << "ITK-SnAP Command Line Usage:" << endl;
+  cout << "   snap [options] [grey_image]" << endl;
+  
+  cout << "Options:" << endl;
+  
+  cout << "   --grey, -g FILE              : " <<
+    "Load greyscale image FILE (optional)" << endl;
+  
+  cout << "   --segmentation, -s FILE      : " <<
+    "Load segmentation image FILE" << endl;
+  
+  cout << "   --labels, -l FILE            : " <<
+    "Load label description file FILE" << endl;
+  
+  cout << "   --rgb FILE                   : " <<
+    "Load RGB image FILE (as overlay if combined with -g)" << endl;
+
+  cout << "   --compact <a|c|s>            : " <<
+    "Launch in compact single-slice mode (axial, coronal, sagittal)" << endl;
+
+  cout << "   --zoom, -z FACTOR            : " <<
+    "Specify initial zoom in screen pixels / physical mm" << endl;
+}
+    
+
 // creates global pointers
 // sets up the GUI and lets things run
 int main(int argc, char **argv) 
@@ -242,29 +270,28 @@ int main(int argc, char **argv)
 
   parser.AddOption("--rgb", 1);
 
+  parser.AddOption("--zoom", 1);
+  parser.AddSynonim("--zoom", "-z");
+
+  parser.AddOption("--compact", 1);
+  parser.AddSynonim("--compact", "-c");
+
+  parser.AddOption("--help", 0);
+  parser.AddSynonim("--help", "-h");
+
+
   CommandLineArgumentParseResult parseResult;
   int iTrailing = 0;
   if(!parser.TryParseCommandLine(argc,argv,parseResult,false,iTrailing))
     {
-    // Print usage info and exit
-    cerr << "ITK-SnAP Command Line Usage:" << endl;
-    cerr << "   snap [options] [grey_image]" << endl;
-    
-    cerr << "Options:" << endl;
-    
-    cerr << "   --grey, -g FILE              : " <<
-      "Load greyscale image FILE (optional)" << endl;
-    
-    cerr << "   --segmentation, -s FILE      : " <<
-      "Load segmentation image FILE" << endl;
-    
-    cerr << "   --labels, -l FILE            : " <<
-      "Load label description file FILE" << endl;
-    
-    cerr << "   --rgb FILE            : " <<
-      "Load RGB image FILE (as overlay if combined with -g)" << endl;
-    
+    cerr << "Unable to parse command line. Run " << argv[0] << " -h for help" << endl;
     return -1;
+    }
+
+  if(parseResult.IsOptionPresent("--help"))
+    {
+    usage();
+    return 0;
     }
 
   // Create a new IRIS application
@@ -396,6 +423,40 @@ int main(int argc, char **argv)
       }
     }
 
+  // Set initial zoom if specified
+  if(parseResult.IsOptionPresent("--zoom"))
+    {
+    double zoom = atof(parseResult.GetOptionParameter("--zoom"));
+    cout << "Using ZOOM " << zoom << endl;
+    if(zoom >= 0.0)
+      {
+      ui->SetZoomLevelAllWindows(zoom);
+      }
+    else
+      {
+      cerr << "Invalid zoom level (" << zoom << ") specified" << endl;
+      }
+    }
+
+  if(parseResult.IsOptionPresent("--compact"))
+    {
+    string slice = parseResult.GetOptionParameter("--compact");
+    if(slice.length() == 0 || !(slice[0] == 'a' || slice[0] == 'c' || slice[0] == 's'))
+      cerr << "Wrong parameter passed for '--compact', ignoring" << endl;
+    else
+      {
+      DisplayLayout dl = ui->GetDisplayLayout();
+      dl.show_main_ui = false;
+      ui->SetDisplayLayout(dl);
+      dl.show_panel_ui = false;
+      ui->SetDisplayLayout(dl);
+      dl.size = HALF_SIZE;
+      ui->SetDisplayLayout(dl);
+      dl.slice_config = slice[0] == 'a' ? AXIAL : (slice[0] == 'c' ? CORONAL : SAGITTAL);
+      ui->SetDisplayLayout(dl);
+      }
+    }
+
   // Show the welcome message
   ui->UpdateSplashScreen("Welcome to SnAP!");
     
@@ -462,6 +523,10 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.21  2010/03/23 21:23:07  pyushkevich
+ *Added display halving capability,
+ *command line switches --zoom, --help, --compact
+ *
  *Revision 1.20  2009/10/28 08:05:36  pyushkevich
  *FIX: Multisession pan causing continuous screen updates
  *

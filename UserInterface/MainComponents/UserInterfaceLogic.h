@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/11/16 20:29:29 $
-  Version:   $Revision: 1.47 $
+  Date:      $Date: 2010/03/23 21:23:23 $
+  Version:   $Revision: 1.48 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -72,6 +72,19 @@ template <class TFlag> class FLTKWidgetActivationManager;
 namespace itk {
   template <class TObject> class SimpleMemberCommand;
   template <class TObject> class MemberCommand;
+};
+
+enum SliceViewConfiguration { FOUR_SLICE=0, AXIAL, SAGITTAL, CORONAL, THREED };
+
+enum WindowSize { FULL_SIZE, HALF_SIZE, CUSTOM_SIZE };
+
+struct DisplayLayout
+{
+  bool full_screen;
+  bool show_main_ui, show_panel_ui;
+  SliceViewConfiguration slice_config;
+  WindowSize size;
+  int fs_restore[4];
 };
 
 
@@ -566,6 +579,9 @@ public:
   void OnMultisessionZoomChange();
   void OnMultisessionPanChange();
 
+  // Method that allows global zoom to be set from the code (i.e., main)
+  void SetZoomLevelAllWindows(float zoom);
+
   // Internal callback used to update the zoom percentage displayed
   void OnZoomUpdate(bool flagBroadcastUpdate = true);
 
@@ -664,6 +680,13 @@ public:
 
   // Display tips and tricks
   void DisplayTips();
+
+  // Get the current display layout
+  DisplayLayout GetDisplayLayout() const 
+    { return m_DisplayLayout; } 
+
+  // Change the layout, size of the SNAP window
+  void SetDisplayLayout(DisplayLayout dlo);
 
 protected:
 
@@ -974,6 +997,9 @@ private:
   void ToggleDisplayElements();
   void ToggleFullScreen();
 
+  // Current display layout
+  DisplayLayout m_DisplayLayout;
+
   /* Command used for progress tracking */
   itk::SmartPointer<ProgressCommandType> m_ProgressCommand;
 
@@ -1003,6 +1029,10 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.48  2010/03/23 21:23:23  pyushkevich
+ *Added display halving capability,
+ *command line switches --zoom, --help, --compact
+ *
  *Revision 1.47  2009/11/16 20:29:29  garyhuizhang
  *BUGFIX: a fix for messed up display on mac when switching between different panel zoom mode
  *ENH: added color map menu item
