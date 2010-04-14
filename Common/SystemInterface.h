@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.h,v $
   Language:  C++
-  Date:      $Date: 2009/10/30 13:49:48 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2010/04/14 10:06:23 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -195,10 +195,16 @@ public:
    */
   UpdateStatus CheckUpdate(std::string &newversion, size_t sec, size_t usec, bool force = false);
 
+  /**
+   * Launch a child SNAP process with specified command line options
+   */
+  void LaunchChildSNAP(std::list<std::string> args);
+
 private:
   std::string m_UserPreferenceFile;
   std::string m_DataDirectory;
   std::string m_DocumentationDirectory;
+  std::string m_FullPathToExecutable;
 
   // An object used to write large chunks of SNAP data to the registry
   SNAPRegistryIO *m_RegistryIO;

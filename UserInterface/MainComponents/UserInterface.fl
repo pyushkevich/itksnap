@@ -30,7 +30,7 @@ class UserInterface {open : {public UserInterfaceBase}
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
       callback {OnMainWindowCloseAction();} open
-      xywh {380 148 875 735} type Double align 0 resizable
+      xywh {380 138 875 735} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"} visible
     } {
       Fl_Wizard m_WizMainLayout {open
@@ -43,7 +43,7 @@ class UserInterface {open : {public UserInterfaceBase}
             xywh {0 0 875 25} labelsize 12 textsize 12
           } {
             Submenu {} {
-              label {&File}
+              label {&File} open
               xywh {15 15 100 20} labelsize 12
             } {
               MenuItem m_MenuLoadGrey {
@@ -62,7 +62,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 tooltip {experimental feature} xywh {40 40 100 20} labelsize 12 hide deactivate divider
               }
               Submenu m_MenuLoadPrevious {
-                label {&Open Recent} open
+                label {&Open Recent}
                 xywh {10 10 100 20} labelsize 12 divider
               } {
                 MenuItem m_MenuLoadPreviousFirst {
@@ -92,7 +92,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 }
               }
               Submenu m_MenuSave {
-                label {&Save} open
+                label {&Save}
                 xywh {25 25 100 20} labelsize 12
               } {
                 MenuItem m_MenuSaveGrey {
@@ -122,7 +122,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 }
               }
               Submenu m_MenuExport {
-                label {&Export} open
+                label {&Export}
                 xywh {25 25 100 20} labelsize 12 divider
               } {
                 Submenu m_MenuExportSlice {
@@ -190,6 +190,11 @@ class UserInterface {open : {public UserInterfaceBase}
                 label {&Unload All Images}
                 callback {this->OnMenuResetAll()}
                 tooltip Reset xywh {5 5 30 20} shortcut 0x40075 labelsize 12 divider
+              }
+              MenuItem m_MenuLaunchNewInstance {
+                label {Launch New ITK-SNAP Instance}
+                callback {this->OnMenuLaunchNewInstance()} selected
+                tooltip Reset xywh {15 15 30 20} shortcut 0x40075 labelsize 12 divider
               }
               MenuItem {} {
                 label {&Quit}
@@ -666,7 +671,7 @@ OnDrawOverLabelUpdate();} open
                   }
                 }
               }
-              Fl_Group m_GrpWelcomePage {selected
+              Fl_Group m_GrpWelcomePage {
                 xywh {0 25 145 695} color 53
               } {
                 Fl_Group {} {
@@ -1523,7 +1528,7 @@ this->OnSNAPLabelOpacityChange();}
     }
     Fl_Window m_WinAbout {
       label {About ITK-SNAP}
-      xywh {533 754 433 197} type Double
+      xywh {533 678 430 195} type Double
       code0 {\#include "FL/filename.H"} visible
     } {
       Fl_Group {} {open

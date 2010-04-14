@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2010/03/23 21:23:23 $
-  Version:   $Revision: 1.48 $
+  Date:      $Date: 2010/04/14 10:06:23 $
+  Version:   $Revision: 1.49 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -497,6 +497,7 @@ public:
 
   void OnMenuViewToggleUI();
   void OnMenuViewToggleFullscreen();
+  void OnMenuLaunchNewInstance();
 
 
   // Color label callbacks
@@ -1029,6 +1030,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.49  2010/04/14 10:06:23  pyushkevich
+ *Added option to launch external SNAP
+ *
  *Revision 1.48  2010/03/23 21:23:23  pyushkevich
  *Added display halving capability,
  *command line switches --zoom, --help, --compact

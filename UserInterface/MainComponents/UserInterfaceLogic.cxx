@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/03/23 21:23:13 $
-  Version:   $Revision: 1.104 $
+  Date:      $Date: 2010/04/14 10:06:23 $
+  Version:   $Revision: 1.105 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -596,6 +596,21 @@ UserInterfaceLogic
 ::OnMenuViewToggleFullscreen()
 {
   this->ToggleFullScreen();
+}
+
+void
+UserInterfaceLogic
+::OnMenuLaunchNewInstance()
+{
+  std::list<std::string> args;
+  try
+    {
+    m_SystemInterface->LaunchChildSNAP(args);
+    }
+  catch(IRISException &exc)
+    {
+    fl_alert("Launching another SNAP instance failed.\nReason: %s", exc.what());
+    }
 }
 
 
@@ -5617,6 +5632,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.105  2010/04/14 10:06:23  pyushkevich
+ *Added option to launch external SNAP
+ *
  *Revision 1.104  2010/03/23 21:23:13  pyushkevich
  *Added display halving capability,
  *command line switches --zoom, --help, --compact

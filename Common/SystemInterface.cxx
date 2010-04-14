@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/30 13:49:48 $
-  Version:   $Revision: 1.21 $
+  Date:      $Date: 2010/04/14 10:06:23 $
+  Version:   $Revision: 1.22 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -244,8 +244,37 @@ SystemInterface
   // Append the paths to get the other directories
   m_DocumentationDirectory = m_DataDirectory + "/HTMLHelp";
 
+  // Save the path to executable
+  m_FullPathToExecutable = sExeFullPath;
+
   // Done, success
   return true;
+}
+
+
+void 
+SystemInterface
+::LaunchChildSNAP(std::list<std::string> args)
+{
+  // Must have a valid path to the EXE
+  if(m_FullPathToExecutable.length() == 0)
+    throw IRISException("Path to executable unknown in LaunchChildSNAP");
+
+  // Create the argument array
+  char **argv = new char* [args.size()+2];
+  int iarg = 0;
+  argv[iarg++] = (char *) m_FullPathToExecutable.c_str();
+  for(std::list<std::string>::iterator it=args.begin(); it!=args.end(); ++it)
+    argv[iarg++] = (char *) it->c_str();
+  argv[iarg++] = NULL;
+
+  // Create child process
+  int pid;
+  if((pid = fork()) == 0)
+    {
+    if(execvp(m_FullPathToExecutable.c_str(), argv) < 0)
+      exit(-1);
+    } 
 }
 
 std::string

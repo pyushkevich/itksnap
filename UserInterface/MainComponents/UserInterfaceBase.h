@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2009/11/16 20:29:28 $
-  Version:   $Revision: 1.36 $
+  Date:      $Date: 2010/04/14 10:06:23 $
+  Version:   $Revision: 1.37 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -111,6 +111,7 @@ public:
   virtual void OnMenuResetAll() = 0;
   virtual void OnMenuViewToggleUI() = 0;
   virtual void OnMenuViewToggleFullscreen() = 0;
+  virtual void OnMenuLaunchNewInstance() = 0;
 
   // IRIS: Slice selection actions
   virtual void OnSliceSliderChange(int id) = 0;
