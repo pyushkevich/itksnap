@@ -1,20 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-        <key>CFBundleExecutable</key>
-        <string>InsightSNAP</string>
-	   <key>CFBundleIconFile</key>
-	   <string>itksnap</string>
-	   <key>CFBundleIdentifier</key>
-	   <string>org.itksnap</string>
-        <key>CFBundlePackageType</key>
-        <string>APPL</string>
-        <key>CFBundleVersion</key>
-        <string>59</string>
-        <key>CFBundleShortVersionString</key>
-	   <string>@SNAP_VERSION_FULL@</string>
-        <key>CFBundleSignature</key>
-        <string>itksnap</string>
+	<key>CFBundleExecutable</key>
+	<string>InsightSNAP</string>
+	<key>CFBundleIconFile</key>
+	<string>itksnap</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.itksnap</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleName</key>
+	<string>ITK-SNAP</string>
+	<key>CFBundleDisplayName</key>
+	<string>ITK-SNAP</string>
+	<key>CFBundleVersion</key>
+	<string>59</string>
+	<key>CFBundleShortVersionString</key>
+	<string>@SNAP_VERSION_FULL@</string>
+	<key>CFBundleSignature</key>
+	<string>itksnap</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>NIfTI File</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>nii</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Analyze Header File</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>hdr</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Analyze Image File</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>img</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>MetaImage File</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>mha</string>
+				<string>mhd</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>GIPL Image File</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>gipl</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>VTK Image or Data File</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>vtk</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Compressed File</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>gz</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

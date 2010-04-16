@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2010/04/14 10:06:23 $
-  Version:   $Revision: 1.49 $
+  Date:      $Date: 2010/04/16 04:02:35 $
+  Version:   $Revision: 1.50 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -666,13 +666,13 @@ public:
 
   // Load Images Non-Interactively
   void NonInteractiveLoadRGB(const char *fname);
-  void NonInteractiveLoadRGBOverlay(const char *fname);
   void NonInteractiveLoadGrey(const char *fname);
   void NonInteractiveLoadSegmentation(const char *fname);
   void NonInteractiveLoadLabels(const char *fname);
 
   // Load main image, whether it's RGB or Gray
   void NonInteractiveLoadMainImage(const char *fname, bool force_grey, bool force_rgb);
+  void NonInteractiveLoadOverlayImage(const char *fname, bool force_grey, bool force_rgb);
 
   // Update menu of color labels
   // TODO: move this to a separate class in FLTK widget directory
@@ -941,6 +941,12 @@ private:
   // Global event handler (shortcuts, etc)
   static int GlobalEventHandler(int);
 
+  // Global 'open document' event handler (Apple for now)
+  static void GlobalOpenDocumentHandler(const char *fn_open);
+  
+  // Method to actually open a document
+  void OpenDraggedContent(const char *fn_open, bool interactive);
+
   // Called by the above, responds to global events
   int OnGlobalEvent(int);
 
@@ -1030,6 +1036,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.50  2010/04/16 04:02:35  pyushkevich
+ *ENH: implemented drag and drop, OSX events, new command-line interface
+ *
  *Revision 1.49  2010/04/14 10:06:23  pyushkevich
  *Added option to launch external SNAP
  *

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/03/23 21:23:07 $
-  Version:   $Revision: 1.21 $
+  Date:      $Date: 2010/04/16 04:02:35 $
+  Version:   $Revision: 1.22 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -217,26 +217,33 @@ void SetupSignalHandlers()
 
 #endif
 
+
 void usage()
 {
   // Print usage info and exit
   cout << "ITK-SnAP Command Line Usage:" << endl;
-  cout << "   snap [options] [grey_image]" << endl;
+  cout << "   snap [options] [main_image]" << endl;
   
   cout << "Options:" << endl;
+
+  cout << "   --main, -m FILE              : " <<
+    "Load main image FILE; automatically determine grey or RGB" << endl;
   
   cout << "   --grey, -g FILE              : " <<
-    "Load greyscale image FILE (optional)" << endl;
+    "Load main image FILE as greyscale" << endl;
   
+  cout << "   --rgb FILE                   : " <<
+    "Load main image FILE as RGB image" << endl;
+
   cout << "   --segmentation, -s FILE      : " <<
     "Load segmentation image FILE" << endl;
   
   cout << "   --labels, -l FILE            : " <<
     "Load label description file FILE" << endl;
-  
-  cout << "   --rgb FILE                   : " <<
-    "Load RGB image FILE (as overlay if combined with -g)" << endl;
 
+  cout << "   --overlay, -o FILE           : " <<
+    "Load overlay image FILE; automatically determine grey or RGB" << endl;
+  
   cout << "   --compact <a|c|s>            : " <<
     "Launch in compact single-slice mode (axial, coronal, sagittal)" << endl;
 
@@ -260,15 +267,21 @@ int main(int argc, char **argv)
   parser.AddOption("--grey",1);
   parser.AddSynonim("--grey","-g");
 
+  parser.AddOption("--main",1);
+  parser.AddSynonim("--main","-m");
+
+  parser.AddOption("--rgb", 1);
+
   parser.AddOption("--segmentation",1);
   parser.AddSynonim("--segmentation","-s");
   parser.AddSynonim("--segmentation","-seg");
+  
+  parser.AddOption("--overlay", 1);
+  parser.AddSynonim("--overlay", "-o");
 
   parser.AddOption("--labels",1);
   parser.AddSynonim("--labels","--label");
   parser.AddSynonim("--labels","-l");
-
-  parser.AddOption("--rgb", 1);
 
   parser.AddOption("--zoom", 1);
   parser.AddSynonim("--zoom", "-z");
@@ -324,25 +337,40 @@ int main(int argc, char **argv)
 
   // The following situations are possible for main image
   // itksnap file                       <- load as main image, detect file type
+  // itksnap --main file                <- load as main image, detect file type
   // itksnap --gray file                <- load as main image, force gray
   // itksnap --rgb file                 <- load as main image, force RGB
   // itksnap --gray file1 --rgb file2   <- error
   // itksnap --gray file1 file2         <- ignore file2
   // itksnap --rgb file1 file2          <- ignore file2
-  // itksnap --gray file1 --rgb file2 file3  
-  //                                    <- error
 
-  // Check validity of options
+  // Check validity of options for main image
   if(parseResult.IsOptionPresent("--grey") && parseResult.IsOptionPresent("--rgb"))
     {
     cerr << "Error: options --rgb and --grey are mutually exclusive." << endl;
     return -1;
     }
 
+  if(parseResult.IsOptionPresent("--main") && parseResult.IsOptionPresent("--rgb"))
+    {
+    cerr << "Error: options --main and --rgb are mutually exclusive." << endl;
+    return -1;
+    }
+
+  if(parseResult.IsOptionPresent("--main") && parseResult.IsOptionPresent("--grey"))
+    {
+    cerr << "Error: options --main and --grey are mutually exclusive." << endl;
+    return -1;
+    }
+
   // Check if a main image file is specified 
   bool force_grey = false, force_rgb = false;
   const char *fnMain = NULL;
-  if(parseResult.IsOptionPresent("--grey"))
+  if(parseResult.IsOptionPresent("--main"))
+    {
+    fnMain = parseResult.GetOptionParameter("--main");
+    }
+  else if(parseResult.IsOptionPresent("--grey"))
     {
     fnMain = parseResult.GetOptionParameter("--grey");
     force_grey = true;
@@ -355,6 +383,20 @@ int main(int argc, char **argv)
   else if(iTrailing < argc)
     {
     fnMain = argv[iTrailing];
+    }
+
+
+  // If no main, there should be no overlays, segmentation
+  if(!fnMain && parseResult.IsOptionPresent("--segmentation"))
+    {
+    cerr << "Error: --segmentation can not be used without --main, --grey, or --rgb" << endl;
+    return -1;
+    }
+  
+  if(!fnMain && parseResult.IsOptionPresent("--overlay"))
+    {
+    cerr << "Error: --overlay can not be used without --main, --grey, or --rgb" << endl;
+    return -1;
     }
 
   // Load main image file
@@ -400,6 +442,28 @@ int main(int argc, char **argv)
         return -1;
         }
       }    
+
+    // Load overlay is supplied
+    if(parseResult.IsOptionPresent("--overlay"))
+      {
+      // Get the filename
+      const char *fname = parseResult.GetOptionParameter("--overlay");
+
+      // Update the splash screen
+      ui->UpdateSplashScreen("Loading overlay image...");
+
+      // Try to load the image
+      try
+        {
+        ui->NonInteractiveLoadOverlayImage(fname, false, false);
+        }
+      catch(itk::ExceptionObject &exc)
+        {
+        cerr << "Error loading file '" << fname << "'" << endl;
+        cerr << "Reason: " << exc << endl;
+        return -1;
+        }
+      }
     }
 
   // Load labels if supplied
@@ -523,6 +587,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.22  2010/04/16 04:02:35  pyushkevich
+ *ENH: implemented drag and drop, OSX events, new command-line interface
+ *
  *Revision 1.21  2010/03/23 21:23:07  pyushkevich
  *Added display halving capability,
  *command line switches --zoom, --help, --compact

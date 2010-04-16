@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2009/10/30 13:49:48 $
-  Version:   $Revision: 1.24 $
+  Date:      $Date: 2010/04/16 04:02:35 $
+  Version:   $Revision: 1.25 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -115,6 +115,9 @@ public:
 
   /** The FLTK draw method (paints the window) */
   void OnDraw();
+
+  /** Respond to drag and drop events */
+  int OnDragAndDrop(const FLTKEvent &event);
 
   /**
    * Map a point in window coordinates to a point in slice coordinates

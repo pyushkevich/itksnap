@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2010/04/14 10:06:23 $
-  Version:   $Revision: 1.37 $
+  Date:      $Date: 2010/04/16 04:02:35 $
+  Version:   $Revision: 1.38 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -261,6 +261,8 @@ public:
   virtual void OnHiddenFeaturesToggleAction() = 0;
 
   virtual void DisplayTips() = 0;
+
+  virtual void OpenDraggedContent(const char *fn_open, bool interactive) = 0;
 
 protected:
     GlobalState *m_GlobalState;

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: FLTKCanvas.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/03/25 19:31:31 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2010/04/16 04:02:35 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -167,6 +167,14 @@ FLTKCanvas
         break;
       case FL_SHORTCUT :
         result = mode->OnShortcut(event);
+        break;
+      case FL_DND_ENTER :
+      case FL_DND_LEAVE :
+      case FL_DND_DRAG :
+      case FL_DND_RELEASE :
+      case FL_PASTE : 
+        result = mode->OnDragAndDrop(event);
+        break;
       default:
         result = mode->OnOtherEvent(event);
       };

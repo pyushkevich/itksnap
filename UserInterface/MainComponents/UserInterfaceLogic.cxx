@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/04/14 10:06:23 $
-  Version:   $Revision: 1.105 $
+  Date:      $Date: 2010/04/16 04:02:35 $
+  Version:   $Revision: 1.106 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,6 +44,7 @@
 
 #include "FL/Fl_Native_File_Chooser.H"
 #include "FL/filename.H"
+#include "FL/x.H"
 
 #include "UserInterfaceLogic.h"
 
@@ -1706,6 +1707,119 @@ UserInterfaceLogic
     openWindows[i]->hide();
 }
 
+void
+UserInterfaceLogic
+::GlobalOpenDocumentHandler(const char *fn_open)
+{
+  m_GlobalUI->OpenDraggedContent(fn_open, false);
+}
+
+void
+UserInterfaceLogic
+::OpenDraggedContent(const char *fn_open, bool interactive)
+{
+  static string win_label;
+
+  if(!m_Activation->GetFlag(UIF_BASEIMG_LOADED))
+    {
+    NonInteractiveLoadMainImage(fn_open, false, false);
+    }
+  else if(interactive)
+    {
+    // Set the label
+    win_label = fn_open;
+    m_WinOpenDropped->label(win_label.c_str());
+
+    // Display modal dialog
+    m_InOpenDroppedSelectionHidden->value(0);
+    m_WinOpenDropped->set_modal();
+    m_WinOpenDropped->show();
+    while(m_WinOpenDropped->shown())
+      Fl::wait();
+
+    // What was the selection
+    int selection = (int) m_InOpenDroppedSelectionHidden->value();
+
+    // 1: Load Main image
+    if(selection == 1)
+      {
+      try 
+        {
+        NonInteractiveLoadMainImage(fn_open, false, false);
+        }
+      catch(IRISException &exc)
+        {
+        fl_alert("Error opening main image: %s", exc.what());
+        }
+      }
+    // 2: Load Segmentation
+    else if(selection == 2)
+      {
+      try 
+        {
+        NonInteractiveLoadSegmentation(fn_open);
+        }
+      catch(IRISException &exc)
+        {
+        fl_alert("Error opening segmentation image: %s", exc.what());
+        }
+      }
+    // 3: Load Overlay
+    else if(selection == 3)
+      {
+      try 
+        {
+        NonInteractiveLoadOverlayImage(fn_open, false, false);
+        }
+      catch(IRISException &exc)
+        {
+        fl_alert("Error opening overlay image: %s", exc.what());
+        }
+      }
+    // 4: Open in another SNAP
+    else if(selection == 4)
+      {
+      // Generate the command line for the new SNAP
+      std::list<std::string> args;
+      args.push_back("--main");
+      args.push_back(fn_open);
+      
+      if(!m_InOpenDroppedViewMode[0]->value())
+        {
+        args.push_back("--compact");
+        if(m_InOpenDroppedViewMode[1]->value()) args.push_back("a");
+        else if(m_InOpenDroppedViewMode[2]->value()) args.push_back("c");
+        else if(m_InOpenDroppedViewMode[3]->value()) args.push_back("s");
+        }
+
+      try
+        {
+        m_SystemInterface->LaunchChildSNAP(args);
+        }
+      catch(IRISException &exc)
+        {
+        fl_alert("Failed to open another ITK-SNAP instance. \nReason: %s", exc.what());
+        }
+      }
+    }
+  else
+    {
+    // Generate the command line for the new SNAP
+    std::list<std::string> args;
+    args.push_back("--main");
+    args.push_back(fn_open);
+
+    try
+      {
+      m_SystemInterface->LaunchChildSNAP(args);
+      }
+    catch(IRISException &exc)
+      {
+      fl_alert("Failed to open another ITK-SNAP instance. \nReason: %s", exc.what());
+      }
+    }
+}
+
 void 
 UserInterfaceLogic
 ::GlobalIdleHandler(void *userData)
@@ -1898,7 +2012,6 @@ UserInterfaceLogic
   // Do we need to hide the main pane
   if(m_DisplayLayout.show_main_ui && !dl.show_main_ui)
     {
-    std::cout << "HIDING MAIN PANE" << endl;
     // Move the right pane over to the second part of the wizard
     m_GrpRightPanePlaceholderNormal->remove(m_GrpRightPane);
     m_GrpRightPanePlaceholderTight->insert(*m_GrpRightPane, 0);
@@ -1917,7 +2030,6 @@ UserInterfaceLogic
   // Do we need to restore the main panel
   if(!m_DisplayLayout.show_main_ui && dl.show_main_ui)
     {
-    std::cout << "RESTORING MAIN PANE" << endl;
     // Restore the control panel and toolbar
     m_GrpRightPanePlaceholderTight->remove(m_GrpRightPane);
     m_GrpRightPanePlaceholderNormal->insert(*m_GrpRightPane, 0);
@@ -1941,7 +2053,6 @@ UserInterfaceLogic
   // Do we need to hide the mini-panels
   if(m_DisplayLayout.show_panel_ui && !dl.show_panel_ui)
     {
-    std::cout << "HIDING SLICE PANES" << endl;
     for(size_t i = 0; i < 4; i++)
       {
       // Move the slice window over to the second part of the wizard
@@ -1961,7 +2072,6 @@ UserInterfaceLogic
   // Do we need to restore the mini-panels
   if(!m_DisplayLayout.show_panel_ui && dl.show_panel_ui)
     {
-    std::cout << "RESTORING SLICE PANES" << endl;
     // Restore the slice windows
     for(size_t i = 0; i < 4; i++)
       {
@@ -2581,6 +2691,19 @@ UserInterfaceLogic
   
   // Initialize hidden feature usage option
   OnHiddenFeaturesToggleAction();
+
+  // Register the open document callback
+  fl_open_callback(&UserInterfaceLogic::GlobalOpenDocumentHandler);
+
+  // On Apple, we also want to register that handler with 'open contents'
+#ifdef __APPLE__
+
+  AEEventHandlerUPP handler;
+  SRefCon refcon;
+  AEGetEventHandler(kCoreEventClass, kAEOpenDocuments, &handler, &refcon, false);
+  AEInstallEventHandler(kCoreEventClass, kAEOpenContents, handler, refcon, false);
+
+#endif 
 
   DisplayTips();
 }
@@ -4284,14 +4407,30 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
-::NonInteractiveLoadRGBOverlay(const char *fname)
+::NonInteractiveLoadOverlayImage(const char *fname, bool force_grey, bool force_rgb)
 {
-  // Send the image and RAI to the IRIS application driver
-  m_Driver->LoadOverlayImage(fname, IRISApplication::MAIN_RGB);
+  // Can't force both
+  assert(!force_grey || !force_rgb);
+
+  // Load using the right type
+  IRISApplication::MainImageType intype = 
+    force_grey ? IRISApplication::MAIN_SCALAR : 
+    (force_rgb ? IRISApplication::MAIN_RGB : IRISApplication::MAIN_ANY);
+  IRISApplication::MainImageType type = m_Driver->LoadOverlayImage(fname, intype);
 
   // Update the system's history list
-  m_SystemInterface->UpdateHistory("RGBOverlay",
-    itksys::SystemTools::CollapseFullPath(fname).c_str());
+  if(type == IRISApplication::MAIN_SCALAR)
+    {
+    m_SystemInterface->UpdateHistory("GreyOverlay",
+      itksys::SystemTools::CollapseFullPath(fname).c_str());
+    }
+  else
+    {
+    m_SystemInterface->UpdateHistory("RGBOverlay",
+      itksys::SystemTools::CollapseFullPath(fname).c_str());
+    }
+
+  // Update the overall overlay history
   m_SystemInterface->UpdateHistory("OverlayImage",
     itksys::SystemTools::CollapseFullPath(fname).c_str());
 
@@ -5632,6 +5771,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.106  2010/04/16 04:02:35  pyushkevich
+ *ENH: implemented drag and drop, OSX events, new command-line interface
+ *
  *Revision 1.105  2010/04/14 10:06:23  pyushkevich
  *Added option to launch external SNAP
  *

@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0109 
+version 1.0110 
 use_FL_COMMAND 
 header_name {.h} 
 code_name {.cxx}
@@ -29,9 +29,9 @@ class UserInterface {open : {public UserInterfaceBase}
   } {
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
-      callback {OnMainWindowCloseAction();} open
-      xywh {380 138 875 735} type Double align 0 resizable
-      code0 {\#include "UserInterfaceBase.h"} visible
+      callback {OnMainWindowCloseAction();}
+      xywh {384 183 875 735} type Double align 0 hide resizable
+      code0 {\#include "UserInterfaceBase.h"}
     } {
       Fl_Wizard m_WizMainLayout {open
         xywh {0 0 875 735} box NO_BOX resizable
@@ -189,12 +189,12 @@ class UserInterface {open : {public UserInterfaceBase}
               MenuItem m_MenuResetAll {
                 label {&Unload All Images}
                 callback {this->OnMenuResetAll()}
-                tooltip Reset xywh {5 5 30 20} shortcut 0x40075 labelsize 12 divider
+                tooltip Reset xywh {5 5 30 20} shortcut 0x40075 labelsize 12
               }
               MenuItem m_MenuLaunchNewInstance {
-                label {Launch New ITK-SNAP Instance}
-                callback {this->OnMenuLaunchNewInstance()} selected
-                tooltip Reset xywh {15 15 30 20} shortcut 0x40075 labelsize 12 divider
+                label {&New ITK-SNAP Window}
+                callback {this->OnMenuLaunchNewInstance()}
+                tooltip Reset xywh {15 15 30 20} shortcut 0x5006e labelsize 12 divider
               }
               MenuItem {} {
                 label {&Quit}
@@ -1552,7 +1552,7 @@ Build Date X.XX} open
       label {Discard Unsaved Changes?}
       callback {m_ChkHiddenDiscardChanges->value(0);
 m_WinConfirmDiscard->hide();}
-      xywh {663 660 500 130} type Double box PLASTIC_DOWN_BOX hide modal
+      xywh {663 660 500 130} type Double box PLASTIC_DOWN_BOX modal visible
     } {
       Fl_Button {} {
         label {Go Back}
@@ -1579,6 +1579,74 @@ changes, or press 'go back' in order to save the changes first.} open
       Fl_Check_Button m_ChkHiddenDiscardChanges {
         label button
         xywh {35 100 64 15} down_box DOWN_BOX hide deactivate
+      }
+    }
+    Fl_Window m_WinOpenDropped {
+      label {Open Document} open
+      xywh {829 281 520 240} type Double modal visible
+    } {
+      Fl_Group {} {
+        label {What should ITK-SNAP do with this image?} open
+        xywh {15 35 550 10} labelfont 1 align 5
+      } {}
+      Fl_Group {} {
+        label {A. Open it in the current window} open
+        xywh {15 75 490 50} box ENGRAVED_FRAME labelsize 12 align 5
+      } {
+        Fl_Button {} {
+          label {Load as Main Image}
+          callback {m_InOpenDroppedSelectionHidden->value(1);
+m_WinOpenDropped->hide();}
+          xywh {25 85 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
+        }
+        Fl_Button {} {
+          label {Load as Segmentation}
+          callback {m_InOpenDroppedSelectionHidden->value(2);
+m_WinOpenDropped->hide();}
+          xywh {185 85 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
+        }
+        Fl_Button {} {
+          label {Load as Overlay}
+          callback {m_InOpenDroppedSelectionHidden->value(3);
+m_WinOpenDropped->hide();}
+          xywh {345 85 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
+        }
+      }
+      Fl_Group {} {
+        label {B. Open it in a new ITK-SNAP window} open
+        xywh {15 150 490 80} box ENGRAVED_FRAME labelsize 12 align 5
+      } {
+        Fl_Button {} {
+          label {Open in New ITK-SNAP}
+          callback {m_InOpenDroppedSelectionHidden->value(4);
+m_WinOpenDropped->hide();} selected
+          xywh {25 160 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
+        }
+        Fl_Group {} {
+          label {Initial layout of new window:} open
+          xywh {190 175 300 50} labelsize 12 align 5
+        } {
+          Fl_Round_Button {m_InOpenDroppedViewMode[0]} {
+            label {Default 4-pane layout}
+            xywh {195 180 140 20} type Radio down_box ROUND_DOWN_BOX value 1 labelsize 12
+          }
+          Fl_Round_Button {m_InOpenDroppedViewMode[1]} {
+            label {Compact layout, axial}
+            xywh {195 200 140 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
+          }
+          Fl_Round_Button {m_InOpenDroppedViewMode[2]} {
+            label {Compact layout, coronal}
+            xywh {340 180 150 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
+          }
+          Fl_Round_Button {m_InOpenDroppedViewMode[3]} {
+            label {Compact layout, sagittal}
+            xywh {340 200 150 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
+          }
+        }
+      }
+      Fl_Value_Input m_InOpenDroppedSelectionHidden {
+        label {value:}
+        xywh {490 11 15 24} hide deactivate
       }
     }
   }

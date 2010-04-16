@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 00:59:47 $
-  Version:   $Revision: 1.30 $
+  Date:      $Date: 2010/04/16 04:02:35 $
+  Version:   $Revision: 1.31 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -903,5 +903,24 @@ GenericSliceWindow::EventHandler
   m_Driver = m_Parent->m_Driver;
   m_ParentUI = m_Parent->m_ParentUI;
   m_GlobalState = m_Parent->m_GlobalState;
+}
+
+#include <itksys/SystemTools.hxx>
+
+int
+GenericSliceWindow::OnDragAndDrop(const FLTKEvent &event)
+{
+  // Check if it is a real file
+  if(event.Id == FL_PASTE)
+    {
+    if(itksys::SystemTools::FileExists(Fl::event_text(), true))
+      {
+      m_ParentUI->OpenDraggedContent(Fl::event_text(), true);
+      return 1;
+      }
+    return 0;
+    }
+  else
+    return 1;
 }
 

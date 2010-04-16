@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: InteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2010/04/16 04:02:35 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -123,6 +123,12 @@ public:
    * Called for FLTK short-cut events
    */
   virtual int OnShortcut(const FLTKEvent &irisNotUsed(event)) 
+    { return 0; }
+
+  /**
+   * Called for FLTK Drag and Drop paste events
+   */
+  virtual int OnDragAndDrop(const FLTKEvent &irisNotUsed(event))
     { return 0; }
 
   /**
