@@ -1600,7 +1600,7 @@ changes, or press 'go back' in order to save the changes first.} open
         }
         Fl_Button {} {
           label {Load as Segmentation}
-          callback {this->OnOpenDroppedAction(2);} selected
+          callback {this->OnOpenDroppedAction(2);}
           xywh {185 100 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
         }
         Fl_Button {} {
@@ -1646,7 +1646,7 @@ changes, or press 'go back' in order to save the changes first.} open
       } {}
       Fl_Button {} {
         label Cancel
-        callback {this->OnOpenDroppedAction(4);}
+        callback {this->OnOpenDroppedAction(0);} selected
         xywh {425 270 80 30} box PLASTIC_UP_BOX color 35 labelsize 12
       }
     }
