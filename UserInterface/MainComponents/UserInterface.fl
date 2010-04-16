@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0110 
+version 1.0109 
 use_FL_COMMAND 
 header_name {.h} 
 code_name {.cxx}
@@ -1583,70 +1583,71 @@ changes, or press 'go back' in order to save the changes first.} open
     }
     Fl_Window m_WinOpenDropped {
       label {Open Document} open
-      xywh {829 281 520 240} type Double modal visible
+      xywh {323 341 520 311} type Double modal visible
     } {
       Fl_Group {} {
         label {What should ITK-SNAP do with this image?} open
-        xywh {15 35 550 10} labelfont 1 align 5
+        xywh {10 40 455 25} labelsize 12 align 20
       } {}
       Fl_Group {} {
         label {A. Open it in the current window} open
-        xywh {15 75 490 50} box ENGRAVED_FRAME labelsize 12 align 5
+        xywh {15 90 490 50} box ENGRAVED_FRAME labelsize 12 align 5
       } {
         Fl_Button {} {
           label {Load as Main Image}
-          callback {m_InOpenDroppedSelectionHidden->value(1);
-m_WinOpenDropped->hide();}
-          xywh {25 85 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
+          callback {this->OnOpenDroppedAction(1);}
+          xywh {25 100 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
         }
         Fl_Button {} {
           label {Load as Segmentation}
-          callback {m_InOpenDroppedSelectionHidden->value(2);
-m_WinOpenDropped->hide();}
-          xywh {185 85 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
+          callback {this->OnOpenDroppedAction(2);} selected
+          xywh {185 100 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
         }
         Fl_Button {} {
           label {Load as Overlay}
-          callback {m_InOpenDroppedSelectionHidden->value(3);
-m_WinOpenDropped->hide();}
-          xywh {345 85 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
+          callback {this->OnOpenDroppedAction(3);}
+          xywh {345 100 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
         }
       }
       Fl_Group {} {
         label {B. Open it in a new ITK-SNAP window} open
-        xywh {15 150 490 80} box ENGRAVED_FRAME labelsize 12 align 5
+        xywh {15 168 490 82} box ENGRAVED_FRAME labelsize 12 align 5
       } {
         Fl_Button {} {
           label {Open in New ITK-SNAP}
-          callback {m_InOpenDroppedSelectionHidden->value(4);
-m_WinOpenDropped->hide();} selected
-          xywh {25 160 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
+          callback {this->OnOpenDroppedAction(4);}
+          xywh {25 185 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
         }
         Fl_Group {} {
           label {Initial layout of new window:} open
-          xywh {190 175 300 50} labelsize 12 align 5
+          xywh {190 200 300 50} labelsize 12 align 5
         } {
           Fl_Round_Button {m_InOpenDroppedViewMode[0]} {
             label {Default 4-pane layout}
-            xywh {195 180 140 20} type Radio down_box ROUND_DOWN_BOX value 1 labelsize 12
+            xywh {195 205 140 20} type Radio down_box ROUND_DOWN_BOX value 1 labelsize 12
           }
           Fl_Round_Button {m_InOpenDroppedViewMode[1]} {
             label {Compact layout, axial}
-            xywh {195 200 140 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
+            xywh {195 225 140 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
           }
           Fl_Round_Button {m_InOpenDroppedViewMode[2]} {
             label {Compact layout, coronal}
-            xywh {340 180 150 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
+            xywh {340 205 150 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
           }
           Fl_Round_Button {m_InOpenDroppedViewMode[3]} {
             label {Compact layout, sagittal}
-            xywh {340 200 150 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
+            xywh {340 225 150 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
           }
         }
       }
-      Fl_Value_Input m_InOpenDroppedSelectionHidden {
-        label {value:}
-        xywh {490 11 15 24} hide deactivate
+      Fl_Group m_OutOpenDroppedFileName {
+        label Filename open
+        xywh {15 31 490 1} box BORDER_FRAME color 35 labeltype ENGRAVED_LABEL labelfont 3 labelsize 16 align 5
+      } {}
+      Fl_Button {} {
+        label Cancel
+        callback {this->OnOpenDroppedAction(4);}
+        xywh {425 270 80 30} box PLASTIC_UP_BOX color 35 labelsize 12
       }
     }
   }

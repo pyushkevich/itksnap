@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SystemInterface.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/04/14 10:06:23 $
-  Version:   $Revision: 1.22 $
+  Date:      $Date: 2010/04/16 05:14:38 $
+  Version:   $Revision: 1.23 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -269,12 +269,16 @@ SystemInterface
   argv[iarg++] = NULL;
 
   // Create child process
+#ifdef WIN32
+  _spawnvp(_P_NOWAIT, m_FullPathToExecutable.c_str(), argv);
+#else
   int pid;
   if((pid = fork()) == 0)
     {
     if(execvp(m_FullPathToExecutable.c_str(), argv) < 0)
       exit(-1);
     } 
+#endif
 }
 
 std::string

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2010/04/16 04:02:35 $
-  Version:   $Revision: 1.50 $
+  Date:      $Date: 2010/04/16 05:14:38 $
+  Version:   $Revision: 1.51 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -946,6 +946,7 @@ private:
   
   // Method to actually open a document
   void OpenDraggedContent(const char *fn_open, bool interactive);
+  void OnOpenDroppedAction(int selection);
 
   // Called by the above, responds to global events
   int OnGlobalEvent(int);
@@ -1036,6 +1037,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.51  2010/04/16 05:14:38  pyushkevich
+ *FIX: touched up previous checkin
+ *
  *Revision 1.50  2010/04/16 04:02:35  pyushkevich
  *ENH: implemented drag and drop, OSX events, new command-line interface
  *

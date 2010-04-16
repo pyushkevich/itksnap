@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/04/16 04:02:35 $
-  Version:   $Revision: 1.106 $
+  Date:      $Date: 2010/04/16 05:14:38 $
+  Version:   $Revision: 1.107 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1714,6 +1714,70 @@ UserInterfaceLogic
   m_GlobalUI->OpenDraggedContent(fn_open, false);
 }
 
+void 
+UserInterfaceLogic
+::OnOpenDroppedAction(int selection)
+{
+  const char *fn_open = m_OutOpenDroppedFileName->label();
+
+  // 1: Load Main image
+  if(selection == 1)
+    {
+    try { NonInteractiveLoadMainImage(fn_open, false, false); }
+    catch(ExceptionObject &exc)
+      {
+      fl_alert("Error opening main image: %s", exc.what());
+      this->RedrawWindows();
+      }
+    }
+  // 2: Load Segmentation
+  else if(selection == 2)
+    {
+    try 
+      { NonInteractiveLoadSegmentation(fn_open); }
+    catch(ExceptionObject &exc)
+      {
+      fl_alert("Error opening segmentation image: %s", exc.what());
+      this->RedrawWindows();
+      }
+    }
+  // 3: Load Overlay
+  else if(selection == 3)
+    {
+    try 
+      { NonInteractiveLoadOverlayImage(fn_open, false, false); }
+    catch(ExceptionObject &exc)
+      {
+      fl_alert("Error opening overlay image: %s", exc.what());
+      this->RedrawWindows();
+      }
+    }
+  // 4: Open in another SNAP
+  else if(selection == 4)
+    {
+    // Generate the command line for the new SNAP
+    std::list<std::string> args;
+    args.push_back("--main");
+    args.push_back(fn_open);
+    
+    if(!m_InOpenDroppedViewMode[0]->value())
+      {
+      args.push_back("--compact");
+      if(m_InOpenDroppedViewMode[1]->value()) args.push_back("a");
+      else if(m_InOpenDroppedViewMode[2]->value()) args.push_back("c");
+      else if(m_InOpenDroppedViewMode[3]->value()) args.push_back("s");
+      }
+
+    try
+      { m_SystemInterface->LaunchChildSNAP(args); }
+    catch(IRISException &exc)
+      {
+      fl_alert("Failed to open another ITK-SNAP instance. \nReason: %s", exc.what());
+      }
+    }
+  m_WinOpenDropped->hide();
+}
+
 void
 UserInterfaceLogic
 ::OpenDraggedContent(const char *fn_open, bool interactive)
@@ -1728,79 +1792,10 @@ UserInterfaceLogic
     {
     // Set the label
     win_label = fn_open;
-    m_WinOpenDropped->label(win_label.c_str());
+    m_OutOpenDroppedFileName->label(win_label.c_str());
 
     // Display modal dialog
-    m_InOpenDroppedSelectionHidden->value(0);
-    m_WinOpenDropped->set_modal();
     m_WinOpenDropped->show();
-    while(m_WinOpenDropped->shown())
-      Fl::wait();
-
-    // What was the selection
-    int selection = (int) m_InOpenDroppedSelectionHidden->value();
-
-    // 1: Load Main image
-    if(selection == 1)
-      {
-      try 
-        {
-        NonInteractiveLoadMainImage(fn_open, false, false);
-        }
-      catch(IRISException &exc)
-        {
-        fl_alert("Error opening main image: %s", exc.what());
-        }
-      }
-    // 2: Load Segmentation
-    else if(selection == 2)
-      {
-      try 
-        {
-        NonInteractiveLoadSegmentation(fn_open);
-        }
-      catch(IRISException &exc)
-        {
-        fl_alert("Error opening segmentation image: %s", exc.what());
-        }
-      }
-    // 3: Load Overlay
-    else if(selection == 3)
-      {
-      try 
-        {
-        NonInteractiveLoadOverlayImage(fn_open, false, false);
-        }
-      catch(IRISException &exc)
-        {
-        fl_alert("Error opening overlay image: %s", exc.what());
-        }
-      }
-    // 4: Open in another SNAP
-    else if(selection == 4)
-      {
-      // Generate the command line for the new SNAP
-      std::list<std::string> args;
-      args.push_back("--main");
-      args.push_back(fn_open);
-      
-      if(!m_InOpenDroppedViewMode[0]->value())
-        {
-        args.push_back("--compact");
-        if(m_InOpenDroppedViewMode[1]->value()) args.push_back("a");
-        else if(m_InOpenDroppedViewMode[2]->value()) args.push_back("c");
-        else if(m_InOpenDroppedViewMode[3]->value()) args.push_back("s");
-        }
-
-      try
-        {
-        m_SystemInterface->LaunchChildSNAP(args);
-        }
-      catch(IRISException &exc)
-        {
-        fl_alert("Failed to open another ITK-SNAP instance. \nReason: %s", exc.what());
-        }
-      }
     }
   else
     {
@@ -5771,6 +5766,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.107  2010/04/16 05:14:38  pyushkevich
+ *FIX: touched up previous checkin
+ *
  *Revision 1.106  2010/04/16 04:02:35  pyushkevich
  *ENH: implemented drag and drop, OSX events, new command-line interface
  *
