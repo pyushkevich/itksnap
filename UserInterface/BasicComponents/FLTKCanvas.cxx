@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: FLTKCanvas.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/04/16 04:02:35 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2010/05/01 21:30:32 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -226,6 +226,7 @@ FLTKCanvas
     vtkImageData* img = 
       GLToVTKImageData((unsigned int) GL_RGBA, 0, 0, w(), h());
     VTKImageDataToPNG(img, m_DumpPNG);
+    img->Delete();
   }
 }
 

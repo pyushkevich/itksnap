@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GLToPNG.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2010/05/01 21:29:32 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -95,5 +95,6 @@ void VTKImageDataToPNG(vtkImageData* img, const char* filename)
   pngw->SetInput(img);
   pngw->SetFileName(filename);
   pngw->Write();
+  pngw->Delete();
 }
 
