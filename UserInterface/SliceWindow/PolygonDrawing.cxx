@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 07:29:36 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2010/05/27 11:16:22 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -812,18 +812,18 @@ PolygonDrawing
         // Show popup menu
         Fl_Menu_Button menu(Fl::event_x_root(), Fl::event_y_root(), 80, 1);
         menu.textsize(12);
-        menu.add("close loop and accept", FL_COMMAND + FL_Enter, NULL);
-        menu.add("_close loop and edit",  FL_Enter, NULL);
-        menu.add("remove last point", FL_Delete, NULL);
+        menu.add("close loop && edit",  FL_Enter, NULL);
+        menu.add("_close loop && accept", FL_COMMAND + FL_Enter, NULL);
+        menu.add("undo last point", FL_Delete, NULL);
         menu.add("cancel drawing", FL_Escape, NULL);
 
         // Disable some options
-        if(m_Vertices.size() < 3)
+        if(!CanClosePolygon())
           {
           const_cast<Fl_Menu_Item*>(menu.menu() + 0)->deactivate();
           const_cast<Fl_Menu_Item*>(menu.menu() + 1)->deactivate();
           }
-        if(m_Vertices.size() < 1)
+        if(!CanDropLastPoint())
           {
           const_cast<Fl_Menu_Item*>(menu.menu() + 2)->deactivate();
           }
@@ -834,11 +834,11 @@ PolygonDrawing
         if(menu.value() == 0)
           {
           ClosePolygon();
-          m_Parent->GetParentUI()->OnAcceptPolygonAction(m_Parent->GetId());
           }
         if(menu.value() == 1)
           {
           ClosePolygon();
+          m_Parent->GetParentUI()->OnAcceptPolygonAction(m_Parent->GetId());
           }
         else if(menu.value() == 2)
           {
@@ -892,20 +892,22 @@ PolygonDrawing
       {
       if(Fl::test_shortcut(FL_COMMAND | FL_Enter))
         {
-        ClosePolygon();
-        if(m_Vertices.size() > 2)
+        if(CanClosePolygon())
+          {
+          ClosePolygon();
           m_Parent->GetParentUI()->OnAcceptPolygonAction(m_Parent->GetId());
+          }
         return 1;
         }
       else if(Fl::test_shortcut(FL_Enter))
         {
-        if(m_Vertices.size() > 2)
+        if(CanClosePolygon())
           ClosePolygon();
         return 1;
         }
       else if(Fl::test_shortcut(FL_Delete) || Fl::test_shortcut(FL_BackSpace))
         {
-        if(m_Vertices.size() > 0)
+        if(CanDropLastPoint())
           DropLastPoint();
         return 1;
         }
@@ -1011,11 +1013,11 @@ PolygonDrawing
         Fl_Menu_Button menu(Fl::event_x_root(), Fl::event_y_root(), 80, 1);
         menu.textsize(12);
         menu.add("_accept", FL_Enter, NULL);
-        menu.add("delete selection", FL_Delete, NULL);
-        menu.add("_subdivide selection", FL_Insert, NULL);
-        menu.add("delete polygon", FL_Escape, NULL);
+        menu.add("delete selected points", FL_Delete, NULL);
+        menu.add("_split selected segments", FL_Insert, NULL);
+        menu.add("clear", FL_Escape, NULL);
 
-        if(GetNumberOfSelectedSegments() == 0)
+        if(!CanInsertVertices())
           const_cast<Fl_Menu_Item*>(menu.menu() + 2)->deactivate();
 
         if(!m_SelectedVertices)
@@ -1128,7 +1130,7 @@ PolygonDrawing
         }
       else if(Fl::test_shortcut(FL_Insert))
         {
-        if(GetNumberOfSelectedSegments() > 0)
+        if(CanInsertVertices())
           m_Parent->GetParentUI()->OnInsertIntoPolygonSelectedAction(m_Parent->GetId());
         return 1;
         }
@@ -1231,10 +1233,37 @@ PolygonDrawing
   else return false;
 }
 
+/* Can the polygon be closed? */
+bool 
+PolygonDrawing
+::CanClosePolygon()
+{
+  return m_Vertices.size() > 2;
+}
+
+/* Can last point be dropped? */
+bool 
+PolygonDrawing
+::CanDropLastPoint()
+{
+  return m_Vertices.size() > 0;
+}
+
+/* Can edges be split? */
+bool 
+PolygonDrawing
+::CanInsertVertices()
+{
+  return GetNumberOfSelectedSegments() > 0;
+}
+
 
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.12  2010/05/27 11:16:22  pyushkevich
+ *Further improved polygon drawing interface
+ *
  *Revision 1.11  2010/05/27 07:29:36  pyushkevich
  *New popup menu for polygon drawing, other improvements to polygon tool
  *

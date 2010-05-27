@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 07:29:36 $
-  Version:   $Revision: 1.108 $
+  Date:      $Date: 2010/05/27 11:16:22 $
+  Version:   $Revision: 1.109 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3275,6 +3275,30 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
+::OnClosePolygonAction(unsigned int window)
+{
+  m_IRISWindowManager2D[window]->GetPolygonDrawing()->ClosePolygon();  
+  OnPolygonStateUpdate(window);
+}
+
+void 
+UserInterfaceLogic
+::OnUndoPointPolygonAction(unsigned int window)
+{
+  m_IRISWindowManager2D[window]->GetPolygonDrawing()->DropLastPoint();  
+  OnPolygonStateUpdate(window);
+}
+
+void 
+UserInterfaceLogic
+::OnClearPolygonAction(unsigned int window)
+{
+  m_IRISWindowManager2D[window]->GetPolygonDrawing()->Reset();  
+  OnPolygonStateUpdate(window);
+}
+
+void 
+UserInterfaceLogic
 ::OnAcceptPolygonAction(unsigned int window)
 {
   if(m_IRISWindowManager2D[window]->AcceptPolygon())
@@ -3353,40 +3377,54 @@ UserInterfaceLogic
 
   if (draw->GetState() == PolygonDrawing::INACTIVE_STATE) 
     {
-    // There is no active polygon
-    m_BtnPolygonAccept[id]->deactivate();
-    m_BtnPolygonDelete[id]->deactivate();
-    m_BtnPolygonInsert[id]->deactivate();
+    // Point to the appropriate page
+    m_WizPolygon[id]->value(m_GrpPolygonInit[id]);
 
-    // Check if there is a cached polygon for pasting
+    // Set the activation status of paste button
     if(draw->GetCachedPolygon()) 
       m_BtnPolygonPaste[id]->activate();
     else
       m_BtnPolygonPaste[id]->deactivate();      
     }
+
   else if(draw->GetState() == PolygonDrawing::DRAWING_STATE)
     {
-    // There is no active polygon
-    m_BtnPolygonAccept[id]->deactivate();
-    m_BtnPolygonDelete[id]->deactivate();
-    m_BtnPolygonInsert[id]->deactivate();
-    m_BtnPolygonPaste[id]->deactivate();
+    // Point to the appropriate page
+    m_WizPolygon[id]->value(m_GrpPolygonDraw[id]);
+
+    // Activate buttons based on status
+    if(draw->CanClosePolygon())
+      m_BtnPolygonClose[id]->activate();
+    else
+      m_BtnPolygonClose[id]->deactivate();
+
+    if(draw->CanDropLastPoint())
+      m_BtnPolygonUndoPoint[id]->activate();
+    else
+      m_BtnPolygonUndoPoint[id]->deactivate();
+
+    if(draw->CanDropLastPoint())
+      m_BtnPolygonClearDrawing[id]->activate();
+    else
+      m_BtnPolygonClearDrawing[id]->deactivate();
     }
   else
     {
+    // Point to the appropriate page
+    m_WizPolygon[id]->value(m_GrpPolygonEdit[id]);
+
     m_BtnPolygonAccept[id]->activate();
-    m_BtnPolygonPaste[id]->deactivate();
+    m_BtnPolygonClearEditing[id]->activate();
 
     if(draw->GetSelectedVertices())
-      {
       m_BtnPolygonDelete[id]->activate();
-      m_BtnPolygonInsert[id]->activate();
-      }
     else
-      {
       m_BtnPolygonDelete[id]->deactivate();
+
+    if(draw->CanInsertVertices())
+      m_BtnPolygonInsert[id]->activate();
+    else
       m_BtnPolygonInsert[id]->deactivate();
-      }
     }
 
   // Redraw the windows
@@ -3771,9 +3809,9 @@ UserInterfaceLogic
 
     // Enable the polygon editing windows
     if(mode == POLYGON_DRAWING_MODE)
-      m_GrpPolygonEdit[i]->show();
+      m_WizPolygon[i]->show();
     else
-      m_GrpPolygonEdit[i]->hide();
+      m_WizPolygon[i]->hide();
 
     }
 
@@ -5788,6 +5826,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.109  2010/05/27 11:16:22  pyushkevich
+ *Further improved polygon drawing interface
+ *
  *Revision 1.108  2010/05/27 07:29:36  pyushkevich
  *New popup menu for polygon drawing, other improvements to polygon tool
  *

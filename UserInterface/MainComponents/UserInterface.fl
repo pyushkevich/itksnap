@@ -388,7 +388,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   xywh {5 164 135 167} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
                 } {
                   Fl_Wizard m_TabsToolOptions {
-                    label {Active Tool Settings} open
+                    label {Active Tool Settings}
                     xywh {5 165 135 166} box NO_BOX color 22 labeltype NO_LABEL labelsize 12 labelcolor 4
                   } {
                     Fl_Group m_GrpToolOptionCrosshairs {
@@ -422,7 +422,7 @@ class UserInterface {open : {public UserInterfaceBase}
                       xywh {5 165 135 165} color 22 labelsize 10 labelcolor 4
                     } {
                       Fl_Group {} {
-                        label {Polygon Tool} open selected
+                        label {Polygon Tool} open
                         tooltip {Use this tool to draw polygons. The left mouse button is used to add points to the polygon, the right button will close the polygon. After the polygon is closed you select and move control points. Once you 'accept' a polygon, it is added to the segmentation.} xywh {10 170 125 25} box PLASTIC_DOWN_BOX color 243 labelsize 12 align 16
                       } {}
                       Fl_Group {} {
@@ -1031,7 +1031,7 @@ this->OnSNAPLabelOpacityChange();}
                       class FLTKCanvas
                     }
                   }
-                  Fl_Group {m_GrpSliceToolbar[0]} {
+                  Fl_Group {m_GrpSliceToolbar[0]} {open
                     xywh {145 350 365 30} color 48
                   } {
                     Fl_Button {m_BtnResetView[0]} {
@@ -1042,35 +1042,67 @@ this->OnSNAPLabelOpacityChange();}
                     Fl_Output {m_OutSliceIndex[0]} {
                       xywh {435 355 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
                     }
-                    Fl_Group {m_GrpPolygonEdit[0]} {
-                      xywh {150 350 210 30} hide
+                    Fl_Wizard {m_WizPolygon[0]} {open
+                      xywh {150 350 210 30} box NO_BOX hide
                     } {
-                      Fl_Button {m_BtnPolygonAccept[0]} {
-                        label accept
-                        callback {OnAcceptPolygonAction(0);}
-                        tooltip {Fill in the polygon using the currently selected label} xywh {183 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                      Fl_Group {m_GrpPolygonInit[0]} {open
+                        xywh {150 350 210 30}
+                      } {
+                        Fl_Button {m_BtnPolygonPaste[0]} {
+                          label {paste polygon}
+                          callback {OnPastePolygonAction(0);}
+                          tooltip {Paste the previously used polygon into the window} xywh {270 355 80 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
                       }
-                      Fl_Button {m_BtnPolygonPaste[0]} {
-                        label paste
-                        callback {OnPastePolygonAction(0);}
-                        tooltip {Paste the previously used polygon into the window} xywh {318 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                      Fl_Group {m_GrpPolygonDraw[0]} {
+                        xywh {150 350 210 30} hide
+                      } {
+                        Fl_Button {m_BtnPolygonClose[0]} {
+                          label {close loop}
+                          callback {OnClosePolygonAction(0);}
+                          tooltip {Connect last point to the first point and enter polygon editing mode} xywh {180 355 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonUndoPoint[0]} {
+                          label {undo point}
+                          callback {OnUndoPointPolygonAction(0);}
+                          tooltip {Remove the last point from the polygon} xywh {245 355 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonClearDrawing[0]} {
+                          label clear
+                          callback {OnClearPolygonAction(0);}
+                          tooltip {Clear the polygon so you can start over} xywh {310 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
                       }
-                      Fl_Button {m_BtnPolygonInsert[0]} {
-                        label insert
-                        callback {OnInsertIntoPolygonSelectedAction(0);}
-                        tooltip {Insert a new vertex between pairs of selected vertices} xywh {228 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
-                      }
-                      Fl_Button {m_BtnPolygonDelete[0]} {
-                        label delete
-                        callback {OnDeletePolygonSelectedAction(0);}
-                        tooltip {Delete the selected vertices} xywh {273 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                      Fl_Group {m_GrpPolygonEdit[0]} {open
+                        xywh {150 350 210 30} hide
+                      } {
+                        Fl_Button {m_BtnPolygonAccept[0]} {
+                          label accept
+                          callback {OnAcceptPolygonAction(0);}
+                          tooltip {Fill in the polygon using the currently selected label} xywh {175 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonInsert[0]} {
+                          label split
+                          callback {OnInsertIntoPolygonSelectedAction(0);}
+                          tooltip {Insert a new vertex between pairs of selected vertices} xywh {265 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonDelete[0]} {
+                          label delete
+                          callback {OnDeletePolygonSelectedAction(0);}
+                          tooltip {Delete the selected vertices} xywh {220 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonClearEditing[0]} {
+                          label clear
+                          callback {OnClearPolygonAction(0);}
+                          tooltip {Clear the polygon so you can start over} xywh {310 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
                       }
                     }
                     Fl_Group {} {
                       xywh {145 350 5 30} color 154 resizable
                     } {}
                   }
-                  Fl_Group {m_GrpSliceSidebar[0]} {open
+                  Fl_Group {m_GrpSliceSidebar[0]} {
                     xywh {485 30 21 320}
                   } {
                     Fl_Pack {} {open
@@ -1126,7 +1158,7 @@ this->OnSNAPLabelOpacityChange();}
                       class FLTKCanvas
                     }
                   }
-                  Fl_Group {m_GrpSliceToolbar[1]} {
+                  Fl_Group {m_GrpSliceToolbar[1]} {open
                     xywh {510 350 365 30}
                   } {
                     Fl_Button {m_BtnResetView[1]} {
@@ -1137,28 +1169,60 @@ this->OnSNAPLabelOpacityChange();}
                     Fl_Output {m_OutSliceIndex[1]} {
                       xywh {797 355 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
                     }
-                    Fl_Group {m_GrpPolygonEdit[1]} {
-                      xywh {515 350 210 30} hide
+                    Fl_Wizard {m_WizPolygon[1]} {open
+                      xywh {515 350 210 30} box NO_BOX hide
                     } {
-                      Fl_Button {m_BtnPolygonAccept[1]} {
-                        label accept
-                        callback {OnAcceptPolygonAction(1);}
-                        tooltip {Fill in the polygon using the currently selected label} xywh {545 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                      Fl_Group {m_GrpPolygonInit[1]} {open
+                        xywh {515 350 210 30}
+                      } {
+                        Fl_Button {m_BtnPolygonPaste[1]} {
+                          label {paste polygon}
+                          callback {OnPastePolygonAction(1);}
+                          tooltip {Paste the previously used polygon into the window} xywh {635 355 80 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
                       }
-                      Fl_Button {m_BtnPolygonPaste[1]} {
-                        label paste
-                        callback {OnPastePolygonAction(1);}
-                        tooltip {Paste the previously used polygon into the window} xywh {680 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                      Fl_Group {m_GrpPolygonDraw[1]} {
+                        xywh {515 350 210 30} hide
+                      } {
+                        Fl_Button {m_BtnPolygonClose[1]} {
+                          label {close loop}
+                          callback {OnClosePolygonAction(1);}
+                          tooltip {Connect last point to the first point and enter polygon editing mode} xywh {545 355 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonUndoPoint[1]} {
+                          label {undo point}
+                          callback {OnUndoPointPolygonAction(1);}
+                          tooltip {Remove the last point from the polygon} xywh {610 355 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonClearDrawing[1]} {
+                          label clear
+                          callback {OnClearPolygonAction(1);}
+                          tooltip {Clear the polygon so you can start over} xywh {675 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
                       }
-                      Fl_Button {m_BtnPolygonInsert[1]} {
-                        label insert
-                        callback {OnInsertIntoPolygonSelectedAction(1);}
-                        tooltip {Insert a new vertex between pairs of selected vertices} xywh {590 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
-                      }
-                      Fl_Button {m_BtnPolygonDelete[1]} {
-                        label delete
-                        callback {OnDeletePolygonSelectedAction(1);}
-                        tooltip {Delete the selected vertices} xywh {635 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                      Fl_Group {m_GrpPolygonEdit[1]} {open
+                        xywh {515 350 210 30} hide
+                      } {
+                        Fl_Button {m_BtnPolygonAccept[1]} {
+                          label accept
+                          callback {OnAcceptPolygonAction(1);}
+                          tooltip {Fill in the polygon using the currently selected label} xywh {540 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonInsert[1]} {
+                          label split
+                          callback {OnInsertIntoPolygonSelectedAction(1);}
+                          tooltip {Insert a new vertex between pairs of selected vertices} xywh {630 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonDelete[1]} {
+                          label delete
+                          callback {OnDeletePolygonSelectedAction(1);}
+                          tooltip {Delete the selected vertices} xywh {585 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonClearEditing[1]} {
+                          label clear
+                          callback {OnClearPolygonAction(1);}
+                          tooltip {Clear the polygon so you can start over} xywh {675 355 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
                       }
                     }
                     Fl_Group {} {open
@@ -1232,28 +1296,60 @@ this->OnSNAPLabelOpacityChange();}
                     Fl_Output {m_OutSliceIndex[2]} {
                       xywh {800 710 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
                     }
-                    Fl_Group {m_GrpPolygonEdit[2]} {
-                      xywh {515 705 210 30} hide
+                    Fl_Wizard {m_WizPolygon[2]} {open selected
+                      xywh {515 705 210 30} box NO_BOX hide
                     } {
-                      Fl_Button {m_BtnPolygonAccept[2]} {
-                        label accept
-                        callback {OnAcceptPolygonAction(2);}
-                        tooltip {Fill in the polygon using the currently selected label} xywh {548 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                      Fl_Group {m_GrpPolygonInit[2]} {open
+                        xywh {515 705 210 30}
+                      } {
+                        Fl_Button {m_BtnPolygonPaste[2]} {
+                          label {paste polygon}
+                          callback {OnPastePolygonAction(2);}
+                          tooltip {Paste the previously used polygon into the window} xywh {635 710 80 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
                       }
-                      Fl_Button {m_BtnPolygonPaste[2]} {
-                        label paste
-                        callback {OnPastePolygonAction(2);}
-                        tooltip {Paste the previously used polygon into the window} xywh {683 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                      Fl_Group {m_GrpPolygonDraw[2]} {
+                        xywh {515 705 210 30} hide
+                      } {
+                        Fl_Button {m_BtnPolygonClose[2]} {
+                          label {close loop}
+                          callback {OnClosePolygonAction(2);}
+                          tooltip {Connect last point to the first point and enter polygon editing mode} xywh {545 710 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonUndoPoint[2]} {
+                          label {undo point}
+                          callback {OnUndoPointPolygonAction(2);}
+                          tooltip {Remove the last point from the polygon} xywh {610 710 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonClearDrawing[2]} {
+                          label clear
+                          callback {OnClearPolygonAction(2);}
+                          tooltip {Clear the polygon so you can start over} xywh {675 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
                       }
-                      Fl_Button {m_BtnPolygonInsert[2]} {
-                        label insert
-                        callback {OnInsertIntoPolygonSelectedAction(2);}
-                        tooltip {Insert a new vertex between pairs of selected vertices} xywh {593 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
-                      }
-                      Fl_Button {m_BtnPolygonDelete[2]} {
-                        label delete
-                        callback {OnDeletePolygonSelectedAction(2);}
-                        tooltip {Delete the selected vertices} xywh {638 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                      Fl_Group {m_GrpPolygonEdit[2]} {open
+                        xywh {515 705 210 30} hide
+                      } {
+                        Fl_Button {m_BtnPolygonAccept[2]} {
+                          label accept
+                          callback {OnAcceptPolygonAction(2);}
+                          tooltip {Fill in the polygon using the currently selected label} xywh {540 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonInsert[2]} {
+                          label split
+                          callback {OnInsertIntoPolygonSelectedAction(2);}
+                          tooltip {Insert a new vertex between pairs of selected vertices} xywh {630 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonDelete[2]} {
+                          label delete
+                          callback {OnDeletePolygonSelectedAction(2);}
+                          tooltip {Delete the selected vertices} xywh {585 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
+                        Fl_Button {m_BtnPolygonClearEditing[2]} {
+                          label clear
+                          callback {OnClearPolygonAction(2);}
+                          tooltip {Clear the polygon so you can start over} xywh {675 710 40 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
+                        }
                       }
                     }
                     Fl_Group {} {open
@@ -1684,7 +1780,7 @@ changes, or press 'go back' in order to save the changes first.} open
       } {}
       Fl_Button {} {
         label Cancel
-        callback {this->OnOpenDroppedAction(0);} selected
+        callback {this->OnOpenDroppedAction(0);}
         xywh {425 270 80 30} box PLASTIC_UP_BOX color 35 labelsize 12
       }
     }

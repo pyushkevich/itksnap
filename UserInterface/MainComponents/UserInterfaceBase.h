@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 07:29:36 $
-  Version:   $Revision: 1.40 $
+  Date:      $Date: 2010/05/27 11:16:22 $
+  Version:   $Revision: 1.41 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -149,6 +149,9 @@ public:
   virtual void OnEditLabelsAction() = 0;
   
   // IRIS: Polygon buttons callbacks
+  virtual void OnClosePolygonAction(unsigned int window) = 0;
+  virtual void OnUndoPointPolygonAction(unsigned int window) = 0;
+  virtual void OnClearPolygonAction(unsigned int window) = 0;
   virtual void OnAcceptPolygonAction(unsigned int window) = 0;
   virtual void OnDeletePolygonSelectedAction(unsigned int window) = 0;
   virtual void OnInsertIntoPolygonSelectedAction(unsigned int window) = 0;

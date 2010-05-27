@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonDrawing.h,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 07:29:36 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2010/05/27 11:16:22 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -93,6 +93,15 @@ public:
   /* In drawing mode, close the polygon (same as RMB) */
   void ClosePolygon();
 
+  /* Can the polygon be closed? */
+  bool CanClosePolygon();
+
+  /* Can last point be dropped? */
+  bool CanDropLastPoint();
+
+  /* Can edges be split? */
+  bool CanInsertVertices();
+
   /** Get the current state of the polygon editor */
   irisGetMacro(State, PolygonState);
   
@@ -151,6 +160,9 @@ private:
 
 /*
  *$Log: PolygonDrawing.h,v $
+ *Revision 1.7  2010/05/27 11:16:22  pyushkevich
+ *Further improved polygon drawing interface
+ *
  *Revision 1.6  2010/05/27 07:29:36  pyushkevich
  *New popup menu for polygon drawing, other improvements to polygon tool
  *

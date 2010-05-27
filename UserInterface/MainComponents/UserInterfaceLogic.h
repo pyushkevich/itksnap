@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 07:29:36 $
-  Version:   $Revision: 1.52 $
+  Date:      $Date: 2010/05/27 11:16:22 $
+  Version:   $Revision: 1.53 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -590,6 +590,9 @@ public:
   irisGetMacro(SliceCoordinator,SliceWindowCoordinator *);
 
   // Polygon button callbacks
+  void OnClosePolygonAction(unsigned int window);
+  void OnUndoPointPolygonAction(unsigned int window);
+  void OnClearPolygonAction(unsigned int window);
   void OnAcceptPolygonAction(unsigned int window);
   void OnInsertIntoPolygonSelectedAction(unsigned int window);
   void OnDeletePolygonSelectedAction(unsigned int window);
@@ -1027,6 +1030,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.53  2010/05/27 11:16:22  pyushkevich
+ *Further improved polygon drawing interface
+ *
  *Revision 1.52  2010/05/27 07:29:36  pyushkevich
  *New popup menu for polygon drawing, other improvements to polygon tool
  *
