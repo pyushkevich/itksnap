@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2010/04/16 05:14:38 $
-  Version:   $Revision: 1.51 $
+  Date:      $Date: 2010/05/27 07:29:36 $
+  Version:   $Revision: 1.52 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -73,20 +73,6 @@ namespace itk {
   template <class TObject> class SimpleMemberCommand;
   template <class TObject> class MemberCommand;
 };
-
-enum SliceViewConfiguration { FOUR_SLICE=0, AXIAL, SAGITTAL, CORONAL, THREED };
-
-enum WindowSize { FULL_SIZE, HALF_SIZE, CUSTOM_SIZE };
-
-struct DisplayLayout
-{
-  bool full_screen;
-  bool show_main_ui, show_panel_ui;
-  SliceViewConfiguration slice_config;
-  WindowSize size;
-  int fs_restore[4];
-};
-
 
 /**
  * \class UserInterfaceLogic
@@ -656,6 +642,7 @@ public:
 
   // Methods to tweak window positions
   void OnWindowFocus(int iWindow);
+  void OnWindowCollapse(int iWindow);
 
   // Save As PNG
   void OnActiveWindowSaveSnapshot(unsigned int window);
@@ -688,6 +675,9 @@ public:
 
   // Change the layout, size of the SNAP window
   void SetDisplayLayout(DisplayLayout dlo);
+
+  Fl_Menu_Bar* GetMainMenuBar() { return m_MenubarMain; }
+  Fl_Window* GetMainWindow() { return m_WinMain; }
 
 protected:
 
@@ -1037,6 +1027,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.52  2010/05/27 07:29:36  pyushkevich
+ *New popup menu for polygon drawing, other improvements to polygon tool
+ *
  *Revision 1.51  2010/04/16 05:14:38  pyushkevich
  *FIX: touched up previous checkin
  *

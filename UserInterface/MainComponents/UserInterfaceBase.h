@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2010/04/16 05:14:38 $
-  Version:   $Revision: 1.39 $
+  Date:      $Date: 2010/05/27 07:29:36 $
+  Version:   $Revision: 1.40 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,11 +52,27 @@ class SystemInterface;
 class SNAPAppearanceSettings;
 class SliceWindowCoordinator;
 class Fl_Window;
+class Fl_Menu_Bar;
 struct Fl_Menu_Item;
 
 namespace itk {
   class Object;
 };
+
+// Layout properties
+enum SliceViewConfiguration { FOUR_SLICE=0, AXIAL, SAGITTAL, CORONAL, THREED };
+
+enum WindowSize { FULL_SIZE, HALF_SIZE, CUSTOM_SIZE };
+
+struct DisplayLayout
+{
+  bool full_screen;
+  bool show_main_ui, show_panel_ui;
+  SliceViewConfiguration slice_config;
+  WindowSize size;
+  int fs_restore[4];
+};
+
 
 /**
  * \class UserInterfaceBase
@@ -217,6 +233,7 @@ public:
 
   // Window size manipulation calls
   virtual void OnWindowFocus(int i) = 0;
+  virtual void OnWindowCollapse(int i) = 0;
 
   // Save as PNG
   virtual void OnActiveWindowSaveSnapshot(unsigned int window) = 0;
@@ -265,6 +282,12 @@ public:
   virtual void OpenDraggedContent(const char *fn_open, bool interactive) = 0;
   
   virtual void OnOpenDroppedAction(int selection) = 0;
+
+  virtual DisplayLayout GetDisplayLayout() const = 0;
+  virtual void SetDisplayLayout(DisplayLayout dlo) = 0;
+
+  virtual Fl_Menu_Bar* GetMainMenuBar() = 0;
+  virtual Fl_Window* GetMainWindow() = 0;
 
 protected:
     GlobalState *m_GlobalState;

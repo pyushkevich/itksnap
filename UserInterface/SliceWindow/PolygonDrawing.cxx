@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2010/05/27 07:29:36 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -35,6 +35,8 @@
 #include "PolygonDrawing.h"
 #include "PolygonScanConvert.h"
 #include "SNAPCommonUI.h"
+#include "GenericSliceWindow.h"
+#include "UserInterfaceBase.h"
 
 #include "SNAPOpenGL.h"
 #include <iostream>
@@ -42,6 +44,8 @@
 #include <algorithm>
 #include <set>
 #include <vnl/vnl_random.h>
+#include "FL/FL_ask.H"
+#include "FL/Fl_Menu_Button.H"
 
 #include "itkOrientedImage.h"
 #include "itkPointSet.h"
@@ -110,6 +114,10 @@ CombineCallback(GLdouble coords[3],
 }
 */
 
+const float PolygonDrawing::m_DrawingModeColor[] = { 1.0f, 0.0f, 0.5f };
+const float PolygonDrawing::m_EditModeNormalColor[] = { 1.0f, 0.0f, 0.0f };
+const float PolygonDrawing::m_EditModeSelectedColor[] = { 0.0f, 1.0f, 0.0f };
+
 /**
  * PolygonDrawing()
  *
@@ -117,12 +125,13 @@ CombineCallback(GLdouble coords[3],
  * create initial vertex and m_Cache arrays, init GLUm_Tesselatorelator
  */
 PolygonDrawing
-::PolygonDrawing()
+::PolygonDrawing(GenericSliceWindow *parent)
 {
   m_CachedPolygon = false;
   m_State = INACTIVE_STATE;
   m_SelectedVertices = false;
   m_DraggingPickBox = false;
+  m_Parent = parent;
 }
 
 /**
@@ -209,6 +218,33 @@ PolygonDrawing
 }
 */
 
+void
+PolygonDrawing
+::DropLastPoint()
+{
+  if(m_State == DRAWING_STATE)
+    {
+    if(m_Vertices.size())
+      m_Vertices.pop_back();
+    }
+}
+
+void
+PolygonDrawing
+::ClosePolygon()
+{
+  if(m_State == DRAWING_STATE)
+    {
+    m_State = EDITING_STATE;
+    m_SelectedVertices = true;
+
+    for(VertexIterator it = m_Vertices.begin(); it!=m_Vertices.end(); ++it)
+      it->selected = false;
+
+    ComputeEditBox();
+    }
+}
+
 /**
  * Delete()
  *
@@ -236,6 +272,8 @@ PolygonDrawing
     m_State = INACTIVE_STATE;
     m_SelectedVertices = false;
     }
+  
+  ComputeEditBox();
 }
 
 void 
@@ -244,6 +282,7 @@ PolygonDrawing
 {
   m_State = INACTIVE_STATE;
   m_Vertices.clear();
+  ComputeEditBox();
 }
 
 /**
@@ -279,6 +318,25 @@ PolygonDrawing
     // On to the next point
     ++it;
     }
+}
+
+int 
+PolygonDrawing
+::GetNumberOfSelectedSegments()
+{
+  int isel = 0;
+  for(VertexIterator it = m_Vertices.begin(); it != m_Vertices.end(); it++)
+    {
+    // Get the itNext iterator to point to the next point in the list
+    VertexIterator itNext = it;
+    if(++itNext == m_Vertices.end()) 
+      itNext = m_Vertices.begin();
+
+    // Check if the insertion is needed
+    if(it->selected && itNext->selected)
+      isel++;
+    }
+  return isel;
 }
 
 void
@@ -485,10 +543,10 @@ PolygonDrawing
 
   // Select everything
   for(VertexIterator it = m_Vertices.begin(); it!=m_Vertices.end();++it)
-    it->selected = true;
+    it->selected = false;
 
   // Set the state
-  m_SelectedVertices = true;
+  m_SelectedVertices = false;
   m_State = EDITING_STATE;
   
   // Compute the edit box
@@ -541,9 +599,9 @@ PolygonDrawing
 
       // Set the color based on the mode
       if (it->selected && itNext->selected) 
-        glColor3f(0,1,0);
+        glColor3fv(m_EditModeSelectedColor);
       else 
-        glColor3f(1,0,0);
+        glColor3fv(m_EditModeNormalColor);
   
       // Draw the line
       glVertex3f(it->x, it->y,0);
@@ -555,7 +613,7 @@ PolygonDrawing
   {
     // Draw the vertices
     glBegin(GL_LINE_STRIP);
-    glColor3f(1,0,0);
+    glColor3fv(m_DrawingModeColor);
     for(it = m_Vertices.begin(); it!=m_Vertices.end();++it) 
       glVertex3f(it->x, it->y, 0);
     glEnd();
@@ -564,7 +622,7 @@ PolygonDrawing
     if(m_DragVertices.size())
       {
       glBegin(GL_LINE_STRIP);
-      glColor3f(1,1,0);
+      glColor3fv(m_DrawingModeColor);
       for(it = m_DragVertices.begin(); it!=m_DragVertices.end();++it) 
         glVertex3f(it->x, it->y, 0);
       glEnd();
@@ -577,12 +635,12 @@ PolygonDrawing
       glEnable(GL_LINE_STIPPLE);
       glLineStipple(1, 0x9999);
       glBegin(GL_LINES);
-      glColor3f(1,0,0);
+      glColor3fv(m_DrawingModeColor);
       if(m_DragVertices.size())
         glVertex3f(m_DragVertices.back().x, m_DragVertices.back().y, 0);
       else
         glVertex3f(m_Vertices.back().x, m_Vertices.back().y, 0);
-      glColor3f(1,0,0);
+      glColor3fv(m_DrawingModeColor);
       glVertex3f(m_Vertices.front().x, m_Vertices.front().y, 0);
       glEnd();
       glPopAttrib();
@@ -596,9 +654,11 @@ PolygonDrawing
     if(it->control)
       {
       if (it->selected) 
-        glColor3f(0.0f, 1.0f, 0.0f); 
+        glColor3fv(m_EditModeSelectedColor);
+      else if (m_State == DRAWING_STATE)
+        glColor3fv(m_DrawingModeColor);
       else
-        glColor3f(1.0f, 0.0f, 0.0f);
+        glColor3fv(m_EditModeNormalColor);
 
       glVertex3f(it->x,it->y,0.0f);
       }
@@ -618,7 +678,7 @@ PolygonDrawing
   if (m_DraggingPickBox) 
   {
     glLineWidth(1);
-    glColor3f(0, 1, 0);
+    glColor3fv(m_EditModeSelectedColor);
     glBegin(GL_LINE_LOOP);
     glVertex3f(m_SelectionBox[0],m_SelectionBox[2],0.0);
     glVertex3f(m_SelectionBox[1],m_SelectionBox[2],0.0);
@@ -631,7 +691,7 @@ PolygonDrawing
     float border_x = (float)4.0 * pixel_x;
     float border_y = (float)4.0 * pixel_y;
     glLineWidth(1);
-    glColor3f(0, 1, 0);
+    glColor3fv(m_EditModeSelectedColor);
     glBegin(GL_LINE_LOOP);
     glVertex3f(m_EditBox[0] - border_x,m_EditBox[2] - border_y,0.0);
     glVertex3f(m_EditBox[1] + border_x,m_EditBox[2] - border_y,0.0);
@@ -695,6 +755,29 @@ PolygonDrawing
       m_Vertices.push_back( Vertex(x, y, false, true) );
       return 1;
       }
+    else if ((event == FL_PUSH) && (button == FL_RIGHT_MOUSE))
+      {
+      // Show popup menu
+      Fl_Menu_Button menu(Fl::event_x_root(), Fl::event_y_root(), 80, 1);
+      menu.textsize(12);
+      menu.add("paste last polygon", FL_COMMAND + 'v', NULL);
+
+      // Disable some options
+      if(m_Cache.size() == 0)
+        {
+        const_cast<Fl_Menu_Item*>(menu.menu() + 0)->deactivate();
+        }
+
+      menu.popup();
+
+      // Branch based on the decision
+      if(menu.value() == 0)
+        {
+        m_Parent->GetParentUI()->OnPastePolygonAction(m_Parent->GetId());
+        }
+
+      return 1;
+      }
     break;
 
   case DRAWING_STATE:
@@ -709,19 +792,63 @@ PolygonDrawing
         if(m_Vertices.size() == 0 || 
           m_Vertices.back().x != x || m_Vertices.back().y != y)
           {
+          // Check if the user wants to close the polygon
+          if(m_Vertices.size() > 2)
+            {
+            Vector2d A(m_Vertices.front().x / pixel_x, m_Vertices.front().y / pixel_y);
+            Vector2d C(x / pixel_x, y / pixel_y);
+            if((A-C).inf_norm() < 4)
+              {
+              ClosePolygon();
+              return 1;
+              }
+            }
           m_Vertices.push_back( Vertex(x, y, false, true) );
           }
         return 1;
         } 
       else if (button == FL_RIGHT_MOUSE) 
         {
-        m_State = EDITING_STATE;
-        m_SelectedVertices = true;
+        // Show popup menu
+        Fl_Menu_Button menu(Fl::event_x_root(), Fl::event_y_root(), 80, 1);
+        menu.textsize(12);
+        menu.add("close loop and accept", FL_COMMAND + FL_Enter, NULL);
+        menu.add("_close loop and edit",  FL_Enter, NULL);
+        menu.add("remove last point", FL_Delete, NULL);
+        menu.add("cancel drawing", FL_Escape, NULL);
 
-        for(it = m_Vertices.begin(); it!=m_Vertices.end(); ++it)
-          it->selected = true;
+        // Disable some options
+        if(m_Vertices.size() < 3)
+          {
+          const_cast<Fl_Menu_Item*>(menu.menu() + 0)->deactivate();
+          const_cast<Fl_Menu_Item*>(menu.menu() + 1)->deactivate();
+          }
+        if(m_Vertices.size() < 1)
+          {
+          const_cast<Fl_Menu_Item*>(menu.menu() + 2)->deactivate();
+          }
 
-        ComputeEditBox();
+        menu.popup();
+
+        // Branch based on the decision
+        if(menu.value() == 0)
+          {
+          ClosePolygon();
+          m_Parent->GetParentUI()->OnAcceptPolygonAction(m_Parent->GetId());
+          }
+        if(menu.value() == 1)
+          {
+          ClosePolygon();
+          }
+        else if(menu.value() == 2)
+          {
+          DropLastPoint();
+          }
+        else if(menu.value() == 3)
+          {
+          Reset();
+          }
+        
         return 1;
         }
       }
@@ -748,13 +875,7 @@ PolygonDrawing
           }
         }
 
-      /*  
-      if(m_Vertices.size() == 0 || 
-        m_Vertices.back().x != x || m_Vertices.back().y != y)
-        {
-        m_DragVertices.push_back( Vertex(x, y, false) );
-        }      
-      */
+      return 1;
       }
     else if (event == FL_RELEASE)
       {
@@ -765,7 +886,36 @@ PolygonDrawing
       //  }
       if(m_Vertices.size() && m_Vertices.back().control == false)
         m_Vertices.back().control = true;
+      return 1;
       }
+    else if (event == FL_SHORTCUT)
+      {
+      if(Fl::test_shortcut(FL_COMMAND | FL_Enter))
+        {
+        ClosePolygon();
+        if(m_Vertices.size() > 2)
+          m_Parent->GetParentUI()->OnAcceptPolygonAction(m_Parent->GetId());
+        return 1;
+        }
+      else if(Fl::test_shortcut(FL_Enter))
+        {
+        if(m_Vertices.size() > 2)
+          ClosePolygon();
+        return 1;
+        }
+      else if(Fl::test_shortcut(FL_Delete) || Fl::test_shortcut(FL_BackSpace))
+        {
+        if(m_Vertices.size() > 0)
+          DropLastPoint();
+        return 1;
+        }
+      else if(Fl::test_shortcut(FL_Escape))
+        {
+        Reset();
+        return 1;
+        }
+      }
+
     break;
 
   case EDITING_STATE:
@@ -774,22 +924,24 @@ PolygonDrawing
       m_StartX = x;
       m_StartY = y;
 
-      if ((button == FL_LEFT_MOUSE) || (button == FL_RIGHT_MOUSE)) 
+      if (button == FL_LEFT_MOUSE) 
         {
 
         // if user is pressing shift key, add/toggle m_Vertices, or drag pick box
         if (Fl::event_state(FL_SHIFT)) 
           {
           // check if vertex clicked
-          for(it = m_Vertices.begin(); it!=m_Vertices.end(); ++it)
+          if(CheckClickOnVertex(x,y,pixel_x,pixel_y,4))
             {
-            if((x >= it->x - 2.0*pixel_x) && (x <= it->x + 2.0*pixel_x)
-              && (y >= it->y - 2.0*pixel_y) && (y <= it->y + 2.0*pixel_y)) 
-              {
-              it->selected = (button == 1);
-              ComputeEditBox();
-              return 1;
-              }
+            ComputeEditBox();
+            return 1;
+            }
+
+          // check if clicked near a line segment
+          if(CheckClickOnLineSegment(x,y,pixel_x,pixel_y,4))
+            {
+            ComputeEditBox();
+            return 1;
             }
 
           // otherwise start dragging pick box
@@ -813,22 +965,82 @@ PolygonDrawing
           it->selected = false;
         m_SelectedVertices = false;
 
-        // check if point clicked
-        for(it = m_Vertices.begin(); it!=m_Vertices.end(); ++it)  
+        // Check if clicked on a pixel
+        if(CheckClickOnVertex(x,y,pixel_x,pixel_y,4))
           {
-          if((x >= it->x - 2.0*pixel_x) &&(x <= it->x + 2.0*pixel_x) 
-            && (y >= it->y - 2.0*pixel_y) && (y <= it->y + 2.0*pixel_y)) 
-            {
-            it->selected = true;
-            ComputeEditBox();
-            return 1;
-            }
+          ComputeEditBox();
+          return 1;
+          }
+
+        // check if clicked near a line segment
+        if(CheckClickOnLineSegment(x,y,pixel_x,pixel_y,4))
+          {
+          ComputeEditBox();
+          return 1;
           }
 
         // didn't click a point - start dragging pick box
         m_DraggingPickBox = true;
         m_SelectionBox[0] = m_SelectionBox[1] = x;
         m_SelectionBox[2] = m_SelectionBox[3] = y;
+        return 1;
+        }
+
+      // Popup menu business
+      else if(button == FL_RIGHT_MOUSE)
+        {
+        // If nothing is selected, select what's under the cursor
+        if(~m_SelectedVertices)
+          {
+          // Check if clicked on a pixel
+          if(CheckClickOnVertex(x,y,pixel_x,pixel_y,4))
+            {
+            ComputeEditBox();
+            m_Parent->GetParentUI()->RedrawWindows();
+            }
+
+          // check if clicked near a line segment
+          else if(CheckClickOnLineSegment(x,y,pixel_x,pixel_y,4))
+            {
+            ComputeEditBox();
+            m_Parent->GetParentUI()->RedrawWindows();
+            }
+          }
+
+        // Show popup menu
+        Fl_Menu_Button menu(Fl::event_x_root(), Fl::event_y_root(), 80, 1);
+        menu.textsize(12);
+        menu.add("_accept", FL_Enter, NULL);
+        menu.add("delete selection", FL_Delete, NULL);
+        menu.add("_subdivide selection", FL_Insert, NULL);
+        menu.add("delete polygon", FL_Escape, NULL);
+
+        if(GetNumberOfSelectedSegments() == 0)
+          const_cast<Fl_Menu_Item*>(menu.menu() + 2)->deactivate();
+
+        if(!m_SelectedVertices)
+          const_cast<Fl_Menu_Item*>(menu.menu() + 1)->deactivate();
+        
+        menu.popup();
+
+        // Branch based on the decision
+        if(menu.value() == 0)
+          {
+          m_Parent->GetParentUI()->OnAcceptPolygonAction(m_Parent->GetId());
+          }
+        if(menu.value() == 1)
+          {
+          m_Parent->GetParentUI()->OnDeletePolygonSelectedAction(m_Parent->GetId());
+          }
+        else if(menu.value() == 2)
+          {
+          m_Parent->GetParentUI()->OnInsertIntoPolygonSelectedAction(m_Parent->GetId());
+          }
+        else if(menu.value() == 3)
+          {
+          Reset();
+          }
+
         return 1;
         }
       break;
@@ -903,20 +1115,29 @@ PolygonDrawing
       break;
 
     case FL_SHORTCUT:
-      if (Fl::event_key(FL_Delete) || Fl::event_key(FL_BackSpace) ||
-        (Fl::event_state(FL_CTRL) && Fl::event_key('d')) ||
-        (Fl::event_state(FL_CTRL) && Fl::event_key('D')) ) 
-        { 
-        Delete(); 
-        return 1;
-        } 
-      else if (Fl::event_key(FL_Insert) ||
-        (Fl::event_state(FL_CTRL) && Fl::event_key('i')) ||
-        (Fl::event_state(FL_CTRL) && Fl::event_key('I')) ) 
+      if(Fl::test_shortcut(FL_Enter))
         {
-        Insert(); 
+        m_Parent->GetParentUI()->OnAcceptPolygonAction(m_Parent->GetId());
         return 1;
         }
+      else if(Fl::test_shortcut(FL_Delete) || Fl::test_shortcut(FL_BackSpace))
+        {
+        if(m_SelectedVertices)
+          m_Parent->GetParentUI()->OnDeletePolygonSelectedAction(m_Parent->GetId());
+        return 1;
+        }
+      else if(Fl::test_shortcut(FL_Insert))
+        {
+        if(GetNumberOfSelectedSegments() > 0)
+          m_Parent->GetParentUI()->OnInsertIntoPolygonSelectedAction(m_Parent->GetId());
+        return 1;
+        }
+      else if(Fl::test_shortcut(FL_Escape))
+        {
+        Reset();
+        return 1;
+        }
+
       break;
 
     default: break;
@@ -929,9 +1150,94 @@ PolygonDrawing
   return 0;
 }
 
+/**
+ * Check if a click is within k pixels of a vertex, if so select the vertices
+ * of that line segment
+ */
+bool
+PolygonDrawing
+::CheckClickOnVertex(
+  float x, float y, float pixel_x, float pixel_y, int k)
+{
+  // check if clicked within 4 pixels of a node (use closest node)
+  VertexIterator itmin = m_Vertices.end();
+  double distmin = k;
+  for(VertexIterator it = m_Vertices.begin(); it!=m_Vertices.end(); ++it)  
+    {
+    Vector2d A(it->x / pixel_x, it->y / pixel_y); 
+    Vector2d C(x / pixel_x, y / pixel_y);
+    double dist = (A-C).inf_norm();
+
+    if(distmin > dist)
+      {
+      distmin = dist;
+      itmin = it;
+      }
+    }
+
+  if(itmin != m_Vertices.end())
+    {
+    itmin->selected = true;
+    return true;
+    }
+  else return false;
+}
+
+/**
+ * Check if a click is within k pixels of a line segment, if so select the vertices
+ * of that line segment
+ */
+bool
+PolygonDrawing
+::CheckClickOnLineSegment(
+  float x, float y, float pixel_x, float pixel_y, int k)
+{
+  // check if clicked near a line segment
+  VertexIterator itmin1 = m_Vertices.end(), itmin2 = m_Vertices.end();
+  double distmin = k;
+  for(VertexIterator it = m_Vertices.begin(); it!=m_Vertices.end(); ++it)  
+    {
+    VertexIterator itnext = it;
+    if(++itnext == m_Vertices.end())
+      itnext = m_Vertices.begin();
+
+    Vector2d A(it->x / pixel_x, it->y / pixel_y); 
+    Vector2d B(itnext->x / pixel_x, itnext->y / pixel_y); 
+    Vector2d C(x / pixel_x, y / pixel_y);
+
+    double ab = (A - B).squared_magnitude();
+    if(ab > 0)
+      {
+      double alpha = - dot_product(A-B, B-C) / ab;
+      if(alpha > 0 && alpha < 1)
+        {
+        double dist = (alpha * A + (1-alpha) * B - C).magnitude();
+        if(distmin > dist)
+          {
+          distmin = dist;
+          itmin1 = it;
+          itmin2 = itnext;
+          }
+        }
+      }
+    }
+
+  if(itmin1 != m_Vertices.end())
+    {
+    itmin1->selected = true;
+    itmin2->selected = true;
+    return true;
+    }
+  else return false;
+}
+
+
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.11  2010/05/27 07:29:36  pyushkevich
+ *New popup menu for polygon drawing, other improvements to polygon tool
+ *
  *Revision 1.10  2009/01/23 20:09:38  pyushkevich
  *FIX: 3D rendering now takes place in Nifti(RAS) world coordinates, rather than the VTK (x spacing + origin) coordinates. As part of this, itk::OrientedImage is now used for 3D images in SNAP. Still have to fix cut plane code in Window3D
  *

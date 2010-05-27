@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2010/04/16 04:02:35 $
-  Version:   $Revision: 1.25 $
+  Date:      $Date: 2010/05/27 07:29:36 $
+  Version:   $Revision: 1.26 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -64,6 +64,7 @@ class UserInterfaceBase;
 // Forward references to interaction modes that work with this window
 class CrosshairsInteractionMode;
 class ThumbnailInteractionMode;
+class PopupButtonInteractionMode;
 
 // Forward reference to Gl texture object
 class OpenGLSliceTexture;
@@ -187,6 +188,9 @@ public:
   /** Get the slice spacing in the display space orientation */
   irisGetMacro(SliceSize,Vector3i);
 
+  irisGetMacro(Id, int);
+  irisGetMacro(ParentUI, UserInterfaceBase *); 
+
   /**
    * A parent class from which all the Fl event handlers associated
    * with this class should be derived
@@ -233,6 +237,9 @@ protected:
   /** Interaction mode used to control the zoom thumbnail. This mode is always
    * on and at the top of the interaction stack */
   ThumbnailInteractionMode *m_ThumbnailMode;
+
+  /** Interaction mode used to bring up a popup menu */
+  PopupButtonInteractionMode *m_PopupButtonMode;
 
   /** Whether or not we have been registered with the parent UI */
   bool m_IsRegistered;

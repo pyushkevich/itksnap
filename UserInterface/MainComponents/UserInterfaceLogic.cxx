@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/04/16 05:14:38 $
-  Version:   $Revision: 1.107 $
+  Date:      $Date: 2010/05/27 07:29:36 $
+  Version:   $Revision: 1.108 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -297,6 +297,7 @@ void UserInterfaceLogic
     m_Activation->AddWidget(m_BtnSaveAsPNG[i], UIF_BASEIMG_LOADED);
     m_Activation->AddWidget(m_BtnResetView[i], UIF_BASEIMG_LOADED);
     m_Activation->AddWidget(m_BtnPanelZoom[i], UIF_BASEIMG_LOADED);
+    m_Activation->AddWidget(m_BtnPanelCollapse[i], UIF_BASEIMG_LOADED);
     }
 
   // Link menu items to flags
@@ -3552,6 +3553,27 @@ UserInterfaceLogic
 
 void
 UserInterfaceLogic
+::OnWindowCollapse(int iWindow)
+{
+  // Make only one window visible
+  DisplayLayout dl = m_DisplayLayout;
+  dl.slice_config = (SliceViewConfiguration) (AXIAL + iWindow);
+  SetDisplayLayout(dl);
+
+  // Hide the interface
+  dl = m_DisplayLayout;
+  dl.show_main_ui = false; 
+  dl.show_panel_ui = false;
+  SetDisplayLayout(dl);
+
+  // Change the layout to half-size
+  dl = m_DisplayLayout;
+  dl.size = HALF_SIZE;
+  SetDisplayLayout(dl);
+}
+
+void
+UserInterfaceLogic
 ::OnWindowFocus(int iWindow)
 {
   DisplayLayout dl = m_DisplayLayout;
@@ -5766,6 +5788,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.108  2010/05/27 07:29:36  pyushkevich
+ *New popup menu for polygon drawing, other improvements to polygon tool
+ *
  *Revision 1.107  2010/04/16 05:14:38  pyushkevich
  *FIX: touched up previous checkin
  *

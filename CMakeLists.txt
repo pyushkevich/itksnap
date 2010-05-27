@@ -246,6 +246,7 @@ SET(UI_CXX
   UserInterface/SliceWindow/PolygonDrawing.cxx
   UserInterface/SliceWindow/PolygonInteractionMode.cxx
   UserInterface/SliceWindow/PolygonScanConvert.cxx
+  UserInterface/SliceWindow/PopupButtonInteractionMode.cxx
   UserInterface/SliceWindow/RegionInteractionMode.cxx
   UserInterface/SliceWindow/SNAPSliceWindow.cxx
   UserInterface/SliceWindow/SliceWindowCoordinator.cxx
@@ -310,6 +311,7 @@ SET(UI_HEADERS
   UserInterface/SliceWindow/PolygonDrawing.h
   UserInterface/SliceWindow/PolygonInteractionMode.h
   UserInterface/SliceWindow/PolygonScanConvert.h
+  UserInterface/SliceWindow/PopupButtonInteractionMode.h
   UserInterface/SliceWindow/RegionInteractionMode.h
   UserInterface/SliceWindow/SNAPSliceWindow.h
   UserInterface/SliceWindow/SliceWindowCoordinator.h

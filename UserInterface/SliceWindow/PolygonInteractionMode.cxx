@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/17 20:28:39 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2010/05/27 07:29:36 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -23,7 +23,7 @@ PolygonInteractionMode
 ::PolygonInteractionMode(GenericSliceWindow *parent)
 : GenericSliceWindow::EventHandler(parent)
 {
-  m_Drawing = new PolygonDrawing();
+  m_Drawing = new PolygonDrawing(parent);
 }
 
 PolygonInteractionMode
@@ -41,34 +41,6 @@ PolygonInteractionMode
   // We'll need these shorthands
   int id = m_Parent->m_Id;
 
-  // Check for enter key
-  if(Fl::test_shortcut(FL_Enter))
-    {
-    m_Parent->m_ParentUI->OnAcceptPolygonAction(id);
-    return 1;
-    }
-  else if(Fl::test_shortcut(FL_Delete))
-    {
-    m_Parent->m_ParentUI->OnDeletePolygonSelectedAction(id);
-    return 1;
-    }
-  else if(Fl::test_shortcut(FL_Insert))
-    {
-    m_Parent->m_ParentUI->OnInsertIntoPolygonSelectedAction(id);
-    return 1;
-    }
-  else if(Fl::test_shortcut('v' | FL_CTRL))
-    {
-    m_Parent->m_ParentUI->OnPastePolygonAction(id);
-    return 1;
-    }
-
-  // Pass through events that are irrelevant
-  if(event.SoftButton != FL_LEFT_MOUSE 
-    && event.SoftButton != FL_RIGHT_MOUSE
-    && event.Key != ' ')
-    return 0;
-
 #ifdef DRAWING_LOCK
   if (!m_GlobalState->GetDrawingLock(id)) break;
 #endif /* DRAWING_LOCK */
@@ -77,6 +49,7 @@ PolygonInteractionMode
   Vector2f pixelSize = GetPixelSizeVector();
 
   // Masquerade keypress events as mouse-clicks at the cursor position
+  int rc;
   if(event.Key == ' ') 
     {
     // Map the cursor position into slice coordinates
@@ -87,7 +60,7 @@ PolygonInteractionMode
     int fakeButton = (event.State & FL_SHIFT) ? FL_RIGHT_MOUSE : FL_LEFT_MOUSE;
 
     // Handle the event
-    m_Drawing->Handle(FL_PUSH, fakeButton, xEvent(0), xEvent(1),
+    rc = m_Drawing->Handle(FL_PUSH, fakeButton, xEvent(0), xEvent(1),
                       pixelSize(0),pixelSize(1));
     }
   else
@@ -96,7 +69,7 @@ PolygonInteractionMode
     Vector3f xEvent = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
 
     // Handle the event
-    m_Drawing->Handle(event.Id,event.SoftButton,xEvent(0),xEvent(1),
+    rc = m_Drawing->Handle(event.Id,event.SoftButton,xEvent(0),xEvent(1),
                       pixelSize(0),pixelSize(1));
     }
 
@@ -112,7 +85,7 @@ PolygonInteractionMode
 
   // Even though no action may have been performed, we don't want other handlers
   // to get the left and right mouse button events
-  return 1;
+  return rc;
 }
 
 Vector2f 

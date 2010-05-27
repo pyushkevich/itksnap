@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonDrawing.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:28 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2010/05/27 07:29:36 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -42,6 +42,8 @@
 #include <list>
 #include "SNAPCommonUI.h"
 
+class GenericSliceWindow;
+
 namespace itk {
   template <class TPixel, unsigned int VDimensions> class Image;
 };
@@ -73,7 +75,7 @@ public:
       { return (i==0) ? x : y; }
     };
 
-  PolygonDrawing();
+  PolygonDrawing(GenericSliceWindow *parent);
   virtual ~PolygonDrawing();
   
   void AcceptPolygon(ByteImageType *slice);
@@ -84,6 +86,12 @@ public:
   void Delete();
   void Insert();
   void Reset();
+
+  /* In drawing mode, remove the last point drawn */
+  void DropLastPoint();
+
+  /* In drawing mode, close the polygon (same as RMB) */
+  void ClosePolygon();
 
   /** Get the current state of the polygon editor */
   irisGetMacro(State, PolygonState);
@@ -125,13 +133,27 @@ private:
   void Add(float x, float y, int selected);
   void ProcessFreehandCurve();
 
+  bool CheckClickOnVertex(float x, float y, float pixel_x, float pixel_y, int k);
+  bool CheckClickOnLineSegment(float x, float y, float pixel_x, float pixel_y, int k);
+  int GetNumberOfSelectedSegments();
+
   double m_FreehandFittingRate;
+
+  // Colors used to draw polygon
+  const static float 
+    m_DrawingModeColor[], m_EditModeSelectedColor[], m_EditModeNormalColor[];
+
+  // Parent object
+  GenericSliceWindow *m_Parent;
 };
 
 #endif // __PolygonDrawing_h_
 
 /*
  *$Log: PolygonDrawing.h,v $
+ *Revision 1.6  2010/05/27 07:29:36  pyushkevich
+ *New popup menu for polygon drawing, other improvements to polygon tool
+ *
  *Revision 1.5  2007/12/30 04:05:28  pyushkevich
  *GPL License
  *

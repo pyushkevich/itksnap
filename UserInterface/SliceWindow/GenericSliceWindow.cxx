@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/04/16 04:02:35 $
-  Version:   $Revision: 1.31 $
+  Date:      $Date: 2010/05/27 07:29:36 $
+  Version:   $Revision: 1.32 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -43,6 +43,7 @@
 #include "SNAPAppearanceSettings.h"
 #include "UserInterfaceBase.h"
 #include "ThumbnailInteractionMode.h"
+#include "PopupButtonInteractionMode.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -70,6 +71,7 @@ GenericSliceWindow
   // Initialize the interaction modes
   m_NavigationMode = new CrosshairsInteractionMode(this);
   m_ThumbnailMode = new ThumbnailInteractionMode(this);
+  m_PopupButtonMode = new PopupButtonInteractionMode(this);
 
   // The slice is not yet initialized
   m_IsSliceInitialized = false;
@@ -95,6 +97,7 @@ GenericSliceWindow
   // Register the sub-interaction modes
   m_NavigationMode->Register();
   m_ThumbnailMode->Register();
+  m_PopupButtonMode->Register();
 
   // We have been registered
   m_IsRegistered = true;
@@ -106,6 +109,7 @@ GenericSliceWindow
   // Delete the interaction modes
   delete m_NavigationMode;
   delete m_ThumbnailMode;
+  delete m_PopupButtonMode;
 
   // Delete textures
   delete m_MainTexture;
@@ -440,9 +444,13 @@ GenericSliceWindow
       DrawThumbnail();
     }
 
+
   // Clean up the GL state
   glPopMatrix();
   glPopAttrib();
+
+  // Draw the little popup button
+  m_PopupButtonMode->OnDraw();
 
   // Display!
   glFlush();
@@ -778,6 +786,9 @@ GenericSliceWindow
 
   // Push the thumbnail mode
   PushInteractionMode(m_ThumbnailMode);
+
+  // Push the popup mode
+  PushInteractionMode(m_PopupButtonMode);
 }
   
 void 
