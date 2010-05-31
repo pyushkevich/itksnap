@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SimpleFileDialogLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/01 20:15:27 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2010/05/31 19:52:37 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -169,10 +169,10 @@ SimpleFileDialogLogic
     const char *fName = NULL;
     fName = m_FileChooser->filename();
     if (fName && strlen(fName))
-	 {
-	 m_InFile->value(fName);
-	 m_BtnOk->activate();
-	 }
+      {
+      m_InFile->value(fName);
+      m_BtnOk->activate();
+      }
     }
 }
 

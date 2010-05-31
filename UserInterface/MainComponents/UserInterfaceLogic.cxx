@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 11:16:22 $
-  Version:   $Revision: 1.109 $
+  Date:      $Date: 2010/05/31 19:52:37 $
+  Version:   $Revision: 1.110 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -319,6 +319,7 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuSaveLabels, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadLabels, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveVoxelCounts, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuShowVolumes, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveScreenshot, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveScreenshotSeries, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuIntensityCurve, UIF_GRAY_LOADED);
@@ -3851,6 +3852,43 @@ UserInterfaceLogic
   m_SliceWindow[3]->redraw();
 }
 
+void 
+UserInterfaceLogic
+::OnMenuShowVolumes() 
+{
+  // Display the load labels dialog
+  m_WinStatistics->show();
+  this->OnStatisticsUpdateAction();
+}
+
+void
+UserInterfaceLogic
+::OnStatisticsUpdateAction()
+{
+  SegmentationStatistics stats;
+  stats.Compute(m_Driver->GetCurrentImageData());
+  m_TableStatistics->SetSegmentationStatistics(stats, *m_Driver->GetColorLabelTable());
+  m_TableStatistics->redraw();
+}
+  
+void 
+UserInterfaceLogic
+::OnStatisticsExportAction()
+{
+  // Display the load labels dialog
+  m_DlgVoxelCountsIO->SetTitle("Save Volume Statistics");
+  m_DlgVoxelCountsIO->DisplaySaveDialog(
+    m_SystemInterface->GetHistory("VolumeStatistics"));
+}
+
+void 
+UserInterfaceLogic
+::OnStatisticsCopyAction()
+{
+  // Get the selection
+  string sel = m_TableStatistics->CopySelection();
+  Fl::copy(sel.c_str(), sel.length(), 1);
+}
 
 void 
 UserInterfaceLogic
@@ -3915,6 +3953,10 @@ UserInterfaceLogic
   // Close reorient image dialog if open
   if (m_DlgReorientImage->Shown())
     m_DlgReorientImage->OnCloseAction();
+
+  // Close volumes and statistics if open
+  if(m_WinStatistics->shown())
+    m_WinStatistics->hide();
 
   // Clear the memory and reset the flags
   m_Driver->GetCurrentImageData()->UnloadMainImage();
@@ -5826,6 +5868,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.110  2010/05/31 19:52:37  pyushkevich
+ *Added volumes and statistics window
+ *
  *Revision 1.109  2010/05/27 11:16:22  pyushkevich
  *Further improved polygon drawing interface
  *

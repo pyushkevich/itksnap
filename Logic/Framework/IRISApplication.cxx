@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 07:34:10 $
-  Version:   $Revision: 1.29 $
+  Date:      $Date: 2010/05/31 19:52:37 $
+  Version:   $Revision: 1.30 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -47,6 +47,7 @@
 #include "SNAPImageData.h"
 #include "MeshObject.h"
 #include "MeshExportSettings.h"
+#include "SegmentationStatistics.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -755,65 +756,8 @@ IRISApplication
   // Make sure that the segmentation image exists
   assert(m_CurrentImageData->IsSegmentationLoaded());
 
-  // A structure to describe each label
-  struct Entry {
-    unsigned long int count;
-    double sumGrey;
-    double sumGreySqr;
-    double mean;
-    double stddev;
-  
-    Entry() : count(0),sumGrey(0),sumGreySqr(0),mean(0),stddev(0) {}
-  };
-  
-  // histogram of the segmentation image
-  Entry data[MAX_COLOR_LABELS];
-
-  // Create an iterator for parsing the segmentation image
-  LabelImageWrapper::ConstIterator itLabel = 
-    m_CurrentImageData->GetSegmentation()->GetImageConstIterator();
-
-  // Another iterator for accessing the grey image
-  GreyImageWrapper::ConstIterator itGrey = 
-    m_CurrentImageData->GetGrey()->GetImageConstIterator();
-
-  GreyTypeToNativeFunctor grey_to_native = 
-    m_CurrentImageData->GetGrey()->GetNativeMapping();
-
-
-  // Compute the number, sum and sum of squares of grey intensities for each 
-  // label
-  while(!itLabel.IsAtEnd())
-    {
-    LabelType label = itLabel.Value();
-    GreyType grey = itGrey.Value();
-    double native = grey_to_native(grey);
-    
-
-    data[label].count++;
-    data[label].sumGrey += native;
-    data[label].sumGreySqr += native * native;
-
-    ++itLabel;
-    ++itGrey;
-    }
-  
-  // Compute the mean and standard deviation
-  for (i=0; i<MAX_COLOR_LABELS; i++)
-    {
-    // The mean
-    data[i].mean = data[i].sumGrey * 1.0 / data[i].count;
-
-    // The standard deviation
-    data[i].stddev = sqrt(
-      (data[i].sumGreySqr * 1.0 - data[i].count * data[i].mean * data[i].mean) 
-      / (data[i].count - 1));
-    }
-  
-  // Compute the size of a voxel, in mm^3
-  const double *spacing = 
-    m_CurrentImageData->GetGrey()->GetImage()->GetSpacing().GetDataPointer();
-  double volVoxel = spacing[0] * spacing[1] * spacing[2];
+  SegmentationStatistics stats;
+  stats.Compute(m_CurrentImageData);
 
   // Open the selected file for writing
   std::ofstream fout(file);
@@ -824,33 +768,7 @@ IRISApplication
                                "File can not be opened for writing");
   try 
     {
-    // Write voxel volumes to the file
-    fout << "##########################################################" << std::endl;
-    fout << "# SNAP Voxel Count File" << std::endl;
-    fout << "# File format:" << std::endl;
-    fout << "# LABEL: ID / NUMBER / VOLUME / MEAN / SD" << std::endl;
-    fout << "# Fields:" << std::endl;
-    fout << "#    LABEL         Label description" << std::endl;
-    fout << "#    ID            The numerical id of the label" << std::endl;
-    fout << "#    NUMBER        Number of voxels that have that label " << std::endl;
-    fout << "#    VOLUME        Volume of those voxels in cubic mm " << std::endl;
-    fout << "#    MEAN          Mean intensity of those voxels " << std::endl;
-    fout << "#    SD            Standard deviation of those voxels " << std::endl;
-    fout << "##########################################################" << std::endl;
-
-    for (i=1; i<MAX_COLOR_LABELS; i++) 
-      {
-      const ColorLabel &cl = m_ColorLabelTable->GetColorLabel(i);
-      if(cl.IsValid() && data[i].count > 0)
-        {
-        fout << std::left << std::setw(40) << cl.GetLabel() << ": ";
-        fout << std::right << std::setw(4) << i << " / ";
-        fout << std::right << std::setw(10) << data[i].count << " / ";
-        fout << std::setw(10) << (data[i].count * volVoxel) << " / ";
-        fout << std::internal << std::setw(10) << data[i].mean << " / ";
-        fout << std::setw(10) << data[i].stddev << std::endl;
-        }      
-      }
+    stats.ExportLegacy(fout, *m_ColorLabelTable);
     }
   catch(...)
     {

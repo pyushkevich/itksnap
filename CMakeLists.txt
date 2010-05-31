@@ -89,10 +89,11 @@ SET(LOGIC_CXX
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
   Logic/Common/ColorMap.cxx
+  Logic/Common/ColorLabelTable.cxx
   Logic/Common/ImageCoordinateGeometry.cxx
   Logic/Common/ImageCoordinateTransform.cxx
+  Logic/Common/SegmentationStatistics.cxx
   Logic/Common/SNAPRegistryIO.cxx
-  Logic/Common/ColorLabelTable.cxx
   Logic/Common/SNAPSegmentationROISettings.cxx
   Logic/Framework/GenericImageData.cxx
   Logic/Framework/GlobalState.cxx
@@ -150,6 +151,7 @@ SET(LOGIC_HEADERS
   Logic/Common/ColorMap.h
   Logic/Common/ImageCoordinateGeometry.h
   Logic/Common/ImageCoordinateTransform.h
+  Logic/Common/SegmentationStatistics.h
   Logic/Common/ImageRayIntersectionFinder.h
   Logic/Common/ImageRayIntersectionFinder.txx
   Logic/Common/SNAPRegistryIO.h
@@ -220,6 +222,7 @@ SET(UI_CXX
   UserInterface/BasicComponents/RecursiveInteractionMode.cxx
   UserInterface/BasicComponents/SnakeParametersPreviewBox.cxx
   UserInterface/BasicComponents/SnakeParametersPreviewPipeline.cxx
+  UserInterface/BasicComponents/StatisticsTable.cxx
   UserInterface/Common/SNAPAppearanceSettings.cxx
   UserInterface/ImageIOWizard/ImageIOWizardLogic.cxx
   UserInterface/ImageIOWizard/RestrictedImageIOWizardLogic.cxx
@@ -270,6 +273,7 @@ SET(UI_HEADERS
   UserInterface/BasicComponents/RecursiveInteractionMode.h
   UserInterface/BasicComponents/SnakeParametersPreviewBox.h
   UserInterface/BasicComponents/SnakeParametersPreviewPipeline.h
+  UserInterface/BasicComponents/StatisticsTable.h
   UserInterface/Common/SNAPAppearanceSettings.h
   UserInterface/Common/SNAPCommonUI.h
   UserInterface/ImageIOWizard/ImageIOWizardBase.h
@@ -502,7 +506,9 @@ SET(SNAP_EXTERNAL_LIBS
 
 # The FLTK extensions
 SUBDIRS(Utilities/FLTK/Fl_Native_File_Chooser)
+SUBDIRS(Utilities/FLTK/Fl_Table)
 INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Native_File_Chooser)
+INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Table)
 
 # Wrap the .fl files
 FLTK_WRAP_UI(itksnapui ${APPLICATION_FLUIDS})
@@ -534,6 +540,7 @@ ITK_DISABLE_FLTK_GENERATED_WARNINGS("${APPLICATION_FLUIDS}")
 ADD_EXECUTABLE(${SNAP_EXE} WIN32 UserInterface/SNAPMain.cxx)
 TARGET_LINK_LIBRARIES(${SNAP_EXE}
   fltk_native_file_chooser 
+  fltk_table 
   ${SNAP_INTERNAL_LIBS}
   ${SNAP_EXTERNAL_LIBS})
 

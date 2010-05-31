@@ -30,7 +30,7 @@ class UserInterface {open : {public UserInterfaceBase}
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
       callback {OnMainWindowCloseAction();} open
-      xywh {559 103 875 735} type Double align 0 resizable
+      xywh {510 130 875 735} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"} visible
     } {
       Fl_Wizard m_WizMainLayout {open
@@ -39,7 +39,7 @@ class UserInterface {open : {public UserInterfaceBase}
         Fl_Group m_GrpMainLayoutNormal {open
           xywh {0 0 875 735} color 86 resizable
         } {
-          Fl_Menu_Bar m_MenubarMain {
+          Fl_Menu_Bar m_MenubarMain {open
             xywh {0 0 875 25} labelsize 12 textsize 12
           } {
             Submenu {} {
@@ -92,7 +92,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 }
               }
               Submenu m_MenuSave {
-                label {&Save}
+                label {&Save} open
                 xywh {25 25 100 20} labelsize 12
               } {
                 MenuItem m_MenuSaveGrey {
@@ -118,7 +118,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 MenuItem m_MenuSaveVoxelCounts {
                   label {&Volumes && Statistics...}
                   callback {this->OnMenuWriteVoxelCounts();}
-                  xywh {15 15 100 20} shortcut 0x50076 labelsize 12 deactivate
+                  xywh {15 15 100 20} shortcut 0x50076 labelsize 12 hide deactivate
                 }
               }
               Submenu m_MenuExport {
@@ -203,7 +203,7 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
             Submenu {} {
-              label {&Segmentation}
+              label {&Segmentation} open
               xywh {10 10 100 20} labelsize 12
             } {
               MenuItem m_MenuLoadSegmentation {
@@ -222,7 +222,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 tooltip {Save the segmentation results as an image} xywh {35 35 100 20} shortcut 0x40073 labelsize 12 deactivate
               }
               MenuItem m_MenuSaveSegmentationMesh {
-                label {Save As &Mesh...}
+                label {Export As Surface &Mesh...}
                 callback {this->OnMenuSaveSegmentationMesh();}
                 tooltip {Save the segmentation results as an image} xywh {45 45 100 20} shortcut 0x5006d labelsize 12 deactivate divider
               }
@@ -279,12 +279,17 @@ class UserInterface {open : {public UserInterfaceBase}
               MenuItem m_MenuColorMap {
                 label {Image Color &Map...}
                 callback {this->OnMenuColorMap();}
-                xywh {20 20 100 20} labelsize 12 deactivate
+                xywh {20 20 100 20} labelsize 12 deactivate divider
+              }
+              MenuItem m_MenuShowVolumes {
+                label {&Volumes and Statistics...}
+                callback {this->OnMenuShowVolumes();}
+                tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {20 20 100 20} shortcut 0x50076 labelsize 12 divider
               }
               MenuItem m_MenuReorientImage {
                 label {&Reorient Image...}
                 callback {this->OnMenuReorientImage();}
-                tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {20 20 100 20} labelsize 12 divider
+                tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {30 30 100 20} labelsize 12 divider
               }
               MenuItem {} {
                 label {&Display Options...}
@@ -354,7 +359,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 xywh {0 25 145 700} color 53 labelsize 12
               } {
                 Fl_Group m_GrpInteractionModes {
-                  label {IRIS Toolbox} open
+                  label {Main Toolbox} open
                   xywh {5 45 135 95} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
                 } {
                   Fl_Button m_BtnCrosshairsMode {
@@ -388,7 +393,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   xywh {5 164 135 167} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
                 } {
                   Fl_Wizard m_TabsToolOptions {
-                    label {Active Tool Settings}
+                    label {Active Tool Settings} open
                     xywh {5 165 135 166} box NO_BOX color 22 labeltype NO_LABEL labelsize 12 labelcolor 4
                   } {
                     Fl_Group m_GrpToolOptionCrosshairs {
@@ -418,8 +423,8 @@ class UserInterface {open : {public UserInterfaceBase}
                       }
                     }
                     Fl_Group m_GrpToolOptionPolygon {
-                      label 3 open
-                      xywh {5 165 135 165} color 22 labelsize 10 labelcolor 4
+                      label 3
+                      xywh {5 165 135 165} color 22 labelsize 10 labelcolor 4 hide
                     } {
                       Fl_Group {} {
                         label {Polygon Tool} open
@@ -460,21 +465,21 @@ class UserInterface {open : {public UserInterfaceBase}
                       }
                     }
                     Fl_Group m_GrpToolOptionSNAP {
-                      label 5
-                      xywh {5 165 135 165} labelsize 10 hide
+                      label 5 open
+                      xywh {5 165 135 165} labelsize 10
                     } {
                       Fl_Group {} {
-                        label {SNAP Region Tool} open
+                        label {Snake ROI Tool} open
                         tooltip {Use this tool to enter the automatic segmentation mode. You can select a region of the image that contains the structure of interest by moving the sides and corners of the region's bounding box. Then enter the automatic segmentation mode. You can optionally change the voxel size of the region before running segmentation.} xywh {10 170 125 25} box PLASTIC_DOWN_BOX color 178 labelsize 12 align 16
                       } {}
                       Fl_Button m_BtnResetROI {
-                        label {Reset Region}
+                        label {Reset ROI}
                         callback {OnResetROIAction();}
                         tooltip {Set region of interest to entire volume} xywh {20 265 105 25} box PLASTIC_UP_BOX color 181 labelsize 11
                       }
                       Fl_Check_Button m_ChkResampleRegion {
-                        label { Resample region}
-                        xywh {20 200 110 25} down_box DOWN_BOX labelsize 11
+                        label {Resample ROI}
+                        tooltip {Check this is you want to change the voxel size of the ROI before entering automatic segmentation. This is recommended for large ROIs and anisotropic images.} xywh {20 200 110 25} down_box DOWN_BOX labelsize 11
                       }
                       Fl_Button m_BtnStartSnake {
                         label {Segment 3D}
@@ -483,7 +488,7 @@ class UserInterface {open : {public UserInterfaceBase}
                       }
                     }
                     Fl_Group m_GrpToolOptionZoomPan {
-                      label 2 open
+                      label 2
                       xywh {5 165 135 165} labelsize 10 hide
                     } {
                       Fl_Group {} {
@@ -1296,7 +1301,7 @@ this->OnSNAPLabelOpacityChange();}
                     Fl_Output {m_OutSliceIndex[2]} {
                       xywh {800 710 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
                     }
-                    Fl_Wizard {m_WizPolygon[2]} {open selected
+                    Fl_Wizard {m_WizPolygon[2]} {open
                       xywh {515 705 210 30} box NO_BOX hide
                     } {
                       Fl_Group {m_GrpPolygonInit[2]} {open
@@ -1501,7 +1506,7 @@ update}
     }
     Fl_Window m_WinSplash {
       label {Welcome to ITK-SNAP}
-      xywh {28 512 430 195} type Double align 16 hide resizable
+      xywh {60 512 430 195} type Double align 16 hide resizable
     } {
       Fl_Group {} {open
         image {Artwork/logo_new.gif} xywh {5 5 420 155} color 0 align 16
@@ -1537,7 +1542,7 @@ update}
     }
     Fl_Window m_WinColorMap {
       label {Preprocessed Image Color Map}
-      xywh {-32000 -32000 315 105} type Double hide non_modal
+      xywh {60 50 315 105} type Double non_modal visible
     } {
       Fl_Wizard m_WizColorMap {open
         xywh {0 0 325 115}
@@ -1662,8 +1667,8 @@ update}
     }
     Fl_Window m_WinAbout {
       label {About ITK-SNAP}
-      xywh {533 678 430 195} type Double
-      code0 {\#include "FL/filename.H"} visible
+      xywh {533 678 430 195} type Double hide
+      code0 {\#include "FL/filename.H"}
     } {
       Fl_Group {} {open
         image {Artwork/logo_new.gif} xywh {6 5 420 155} color 0 align 16
@@ -1716,8 +1721,8 @@ changes, or press 'go back' in order to save the changes first.} open
       }
     }
     Fl_Window m_WinOpenDropped {
-      label {Open Document} open
-      xywh {323 341 520 311} type Double modal visible
+      label {ITK-SNAP: Open Document}
+      xywh {878 285 520 311} type Double modal visible
     } {
       Fl_Group {} {
         label {What should ITK-SNAP do with this image?} open
@@ -1782,6 +1787,38 @@ changes, or press 'go back' in order to save the changes first.} open
         label Cancel
         callback {this->OnOpenDroppedAction(0);}
         xywh {425 270 80 30} box PLASTIC_UP_BOX color 35 labelsize 12
+      }
+    }
+    Fl_Window m_WinStatistics {
+      label {ITK-SNAP Volumes and Statistics} open
+      xywh {317 471 680 322} type Double box PLASTIC_DOWN_BOX visible
+    } {
+      Fl_Button m_BtnStatisticsUpdate {
+        label Update
+        callback {OnStatisticsUpdateAction();}
+        xywh {85 285 120 25} box PLASTIC_UP_BOX color 180 labelfont 1 labelsize 12
+      }
+      Fl_Button m_BtnStatisticsExport {
+        label {Export to File...}
+        callback {OnStatisticsExportAction();}
+        xywh {345 285 120 25} box PLASTIC_UP_BOX color 180 labelsize 12
+      }
+      Fl_Button m_BtnStatisticsClose {
+        label Close
+        callback {m_WinStatistics->hide();}
+        xywh {475 285 120 25} box PLASTIC_UP_BOX color 180 labelsize 12
+      }
+      Fl_Box m_TableStatistics {
+        label {Segmentation volumes and statistics:
+ } selected
+        xywh {10 40 660 231} color 53 selection_color 246 labeltype EMBOSSED_LABEL labelcolor 4 align 5
+        code0 {\#include "StatisticsTable.h"}
+        class StatisticsTable
+      }
+      Fl_Button m_BtnStatisticsCopy {
+        label {Copy to Clipboard}
+        callback {OnStatisticsCopyAction();}
+        xywh {215 285 120 25} box PLASTIC_UP_BOX shortcut 0x400063 color 180 labelsize 12
       }
     }
   }

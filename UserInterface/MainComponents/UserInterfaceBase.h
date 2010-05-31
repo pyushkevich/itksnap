@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 11:16:22 $
-  Version:   $Revision: 1.41 $
+  Date:      $Date: 2010/05/31 19:52:37 $
+  Version:   $Revision: 1.42 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -122,6 +122,7 @@ public:
   virtual void OnMenuExportSlice(unsigned int iSlice) = 0;
   virtual void OnMenuImageInfo() = 0;
   virtual void OnMenuReorientImage() = 0;
+  virtual void OnMenuShowVolumes() = 0;
   virtual void OnMenuQuit() = 0;
   virtual void OnMenuCheckForUpdate() = 0;
   virtual void OnMenuResetAll() = 0;
@@ -227,6 +228,11 @@ public:
   // SNAP: 3D window related callbacks
   virtual void OnSNAPMeshUpdateAction() = 0;
   virtual void OnSNAPMeshContinuousUpdateAction() = 0;
+
+  // Volume and statistics actions
+  virtual void OnStatisticsUpdateAction() = 0;
+  virtual void OnStatisticsExportAction() = 0;
+  virtual void OnStatisticsCopyAction() = 0;
 
   // virtual void Activate3DAccept(bool on) = 0;
 

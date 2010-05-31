@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 11:16:22 $
-  Version:   $Revision: 1.53 $
+  Date:      $Date: 2010/05/31 19:52:37 $
+  Version:   $Revision: 1.54 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -484,6 +484,7 @@ public:
   void OnMenuViewToggleUI();
   void OnMenuViewToggleFullscreen();
   void OnMenuLaunchNewInstance();
+  void OnMenuShowVolumes();
 
 
   // Color label callbacks
@@ -619,6 +620,11 @@ public:
   void OnSNAPMeshUpdateAction();
   void OnSNAPMeshResetViewAction();
   void OnSNAPMeshContinuousUpdateAction();
+
+  // Volume and statistics actions
+  void OnStatisticsUpdateAction();
+  void OnStatisticsExportAction();
+  void OnStatisticsCopyAction();
 
   // Method called when user tries to close the window
   void OnMainWindowCloseAction();
@@ -1030,6 +1036,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.54  2010/05/31 19:52:37  pyushkevich
+ *Added volumes and statistics window
+ *
  *Revision 1.53  2010/05/27 11:16:22  pyushkevich
  *Further improved polygon drawing interface
  *
