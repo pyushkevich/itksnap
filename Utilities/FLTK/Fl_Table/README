@@ -1,0 +1,106 @@
+Fl_Table -- FLTK Table Widget
+-----------------------------
+
+WHAT IS Fl_Table?
+
+    Fl_Table is a low level widget intended to help people
+    design higher level widgets, and is aimed at becoming
+    part of FLTK's core.
+
+    Fl_Table is a low level widget that helps widget designers
+    (or self motivated app designers) derive their own higher
+    level widgets to do what they need.
+
+    Fl_Table can be used to implement many table-like widgets; 
+    a 'spreadsheet', a two dimensional table browser, an
+    invoice generator.
+
+    Anything where resizable rows and columns with optional
+    row/column headers are desireable.
+
+LICENSING
+
+    Fl_Table comes with complete free source code. 
+    Fl_Table is available under the terms of the GNU Library 
+    General Public License. See COPYING for more info.
+
+    Contrary to popular belief, it can be used in commercial
+    software!
+
+BUILD INSTRUCTIONS
+
+    Tested under Linux, Mac OSX and Windows with fltk 1.3.x.
+
+    To build the test programs and related Fl_Table object files:
+
+	make
+
+   These test programs are created:
+
+       	testtablerow     -- Simple row/column test. 
+			    Scroll around, resize the columns.
+
+	exercisetablerow -- Exercises widget options to check for bugs.
+
+	sortapp          -- Sample app that loads output of an 'ls' listing, and
+			    lets you toggle-sort the columns by clicking on the 
+			    column headings.
+
+	widgettable      -- Exercises ability to embed fltk widgets in table
+
+	singleinput      -- Shows Mr. Satan's trick to use Fl_Input effectively
+			    in Fl_Table, with only a single instance of the widget.
+
+UTF8 SUPPORT
+
+    FLTK officially started supporting UTF8 in 1.3.0, and the default
+    Makefile should work with that OK.
+
+    For some years before 1.3.x, there was an FLTK utf8 'patch' that
+    was used quite a bit.. to make that work you may need to manually
+    add the -lXutf8 link option, as there was a separate Xutf8 lib.
+
+
+WHERE'S THE DOCUMENTATION?
+
+    See documentation/index.html.
+
+FEATURES
+
+    Currently the lib supports:
+
+	    o A full on X/Y table
+	    o Column headers (that can be resized, and disabled)
+	    o An Fl_Table_Row widget that specializes in row selection behavior
+	    o Complete custom drawing behavior in cells
+	    o Ctrl-selection and Shift-selection, and drag selection
+	    o Callback mechanism for when mouse events occur in table
+	      (sortapp uses this to do sorting when column header clicked)
+	    o No limit on table size (or well, there 'shouldn't' be one)
+	    o Can act as a container for fltk widgets or custom widgets
+
+RELEASE NOTES/VERSION INFORMATION
+    
+    See ./CHANGES.
+
+LIMITATIONS
+
+    Known bugs:
+
+	    o 'sortapp' is not sorting the selection states.
+	      Probably move this into the 'Row' class somehow?
+	      Problem in demo only, not the core lib.
+
+    Currently *lacks* the following, but will be in there RSN:
+
+	    o User control of scrollbar visibility and selection behavior
+
+    Not sure when I'll get to these:
+
+	    o No concept of a 'current cell' or 'cell cursor'
+	    o Keyboard navigation of cell selection
+	    o Footers (row or column)
+
+BUGS?
+    
+    Send them to erco at seriss dot com

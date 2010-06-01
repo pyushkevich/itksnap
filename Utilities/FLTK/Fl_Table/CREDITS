@@ -1,0 +1,27 @@
+CREDITS - Fl_Table
+------------------
+    This file lists the people responsible for the toolkit you
+    are now using.  If you've looking for your name in lights
+    but we've forgotten you here, please send an email to
+    "fltk-bugs@fltk.org" and we'll update this file accordingly.
+
+CORE DEVELOPERS
+
+    Greg Ercolano     12/16/2002 - initial implementation 12/16/02.
+    				   Fl_Table, Fl_Table_Row, docs.
+
+    Jean-Marc Lienher 02/22/2004 - added keyboard nav + mouse selection, 
+    				   and ported Fl_Table into fltk-utf8-1.1.4
+
+OTHER CONTRIBUTORS
+
+    Inspired by the Feb 2000 version of FLVW's Flvw_Table widget.
+    Mucho thanks to those folks.
+
+    Mister Satan   04/07/2003 - MinGW porting mods, and singleinput.cxx; a cool 
+    		                Fl_Input oriented spreadsheet example
+
+    Marek Paliwoda 01/08/2003 - Porting mods for Borland
+
+    Ori Berger 03/16/2006 - Optimizations for >500k rows/cols
+

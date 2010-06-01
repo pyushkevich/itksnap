@@ -1,0 +1,289 @@
+3.13 -- 04/08/09 -- Non-critical additions to example programs
+
+	o Added simple-display-table.cxx example
+
+	o Added cell fg/bg color control to exercisetablerow example
+
+	o Added 'documentation/how-to-use.html' (snuck into tar file 05/07/09)
+
+	o Converted Makefile's to use 'fltk-config'
+
+	o Fix for Ivica Lazarevic's row_position() bug report on 03/16/09
+
+	o Converted all code to FLTK brace and 2-space indent style
+
+	o Added some comments to documentation examples
+
+3.12 -- 04/02/06 -- Misc optimizations and non-critical additions
+
+        o 04/02/06: Small fix to exercisetablerow's Type: menu
+
+        o 04/02/06: Added Ori Berger's optimizations for push_back() -> size()/fill
+
+        o 04/02/06: default compiles for FLTK 1.1.7
+
+        o 04/02/06: [INTERNAL] 'make tar' now inserts version# into tarfile
+
+        o 02/21/05: John Taber's modifications for singleinput draw_cell() prototype
+
+3.11 -- 08/13/04 erco: added box(val) which now calls resize() to recalculate table.
+
+3.10 -- 02/22/04 erco: misc fixes, added Jean Marc's keyboard nav!
+
+	o Merged in Jean Marc's keyboard navigation and
+	  rectangular mouse selection. Tested OK on IRIX/LINUX/WINDOWS/OSX.
+
+	o Added Jean Marc's testkeyboardnav.cxx example showing how to use
+	  new keyboard nav and mouse region selection.
+
+	o TODO: Need to make mouse region selection controllable via
+	  'or'able flags:
+
+	  	> Single cell					(SELECT_CELL)
+		> Row of cells (eg. Fl_Browser, Fl_Table_Row)	(SELECT_ROW)
+		> Column of cells		      		(SELECT_COL)
+		> Freeform row/col (current behavior) 		(SELECT_MULTI)
+
+	  Implement as Fl_Table::type().
+	  
+	o Erco's mods to Jean Marc's additions:
+
+	    > Re-enabled resizing cursor
+
+	    > Some whitespace reformatting, added some comments
+
+	    > Added //FALLTHROUGH comments
+
+	    > Moved auto_drag_cb2() to just above auto_drag_cb()
+
+	    > Added Windows specific code to Fl_Table::change_cursor() to 
+	      work around a cursor problem with fltk-utf8-1.1.4.
+
+	o Added SINGLE/MULTI/NONE selection behavior.
+	  See Fl_Table_Row::type()
+
+	o Doc fixes as per dsnpa's email on 08/11/03
+
+	o CONTEXT_NEWPAGE retired as per obsolete warnings.
+	  Use CONTEXT_STARTPAGE instead.
+
+3.01 -- 08/10/03 erco: minor fixes
+
+	o Fl_Table::children() return a number two less than
+	  table->children(), to skip over Fl_Scroll's scrollbars.
+
+        o Fl_Table::handle(): prevented unwanted callback() for 
+	  downclick event during interactive resize. This was 
+	  causing sort buttons to be triggered unexpectedly 
+	  during interactive column resizing.
+
+	o sortapp: changed sort arrow from black triangle 
+	  to an engraved triangle.
+
+	o Added Fl_Table::is_interactive_resize()
+
+	o Docs updated to elaborate on callback() management.
+
+	o callback() now invoked with CONTEXT_RC_RESIZE 
+	  when columns or rows are resized via the API,
+	  eg. with col_width() or row_height().
+
+        o Fixed doc bug: Fl_Table::child() and Fl_Table::children() 
+	  were not documented, and some old development ideas were 
+	  in their place. Fixed, and added to the web docs.
+
+3.00 -- 06/28/03 erco: Major changes, callback() API modified
+
+        o Prevented unwanted auto-scrolling during col/row resizing
+
+        o No longer invokes callback if mouse button pressed in
+	  one row, and released in another.
+
+	o Fl_Table::visible_cells() added for irush and for Ori Berger 
+	  (fltk.general, 06/25/03)
+
+	o Fl_Table::rows() and cols() are now virtual for Glenn Ramsey 
+	  (fltk.general 06/25/03)
+
+	o Fl_Table::clear() made virtual.
+
+	o Now handles drawing row_headers when there are no rows,
+	  and handles drawing col_headers when there are no columns.
+
+	o On FL_LEAVE, force cursor to normal 'just in case'
+
+        o Fixed clipping when window sized /very/ small, so scroll
+	  bars don't 'leak' outside the widget.
+
+	o OPTIMIZATION: Fl_Table::table_resized() no longer 
+	  calls redraw(). If you want redraw() after calling
+	  table_resized(), you must call it explicitly.
+
+	o OPTIMIZATION: Adding rows which are offscreen no
+	  longer causes entire table to redraw, only the vertical
+	  scrollbar.
+
+        o callback() system called when rows/cols interactively
+	  resized too, sent CONTEXT_RC_RESIZE.
+
+	o Fl_Table and Fl_Table_Row: moved handle()'s static state vars
+	  into the class to avoid crosstalk between multiple instances.
+
+3.00 alpha 2 -- 06/01/03 erco
+
+        o Also modified exercisetablerow.cxx, sortapp.cxx and
+	  singleinput.cxx to follow the fltk callback() convention.
+
+	o Fixed Makefile.IRIX -- missing REZCOMMAND
+
+3.00 alpha -- 06/01/03 erco
+
+        o Refitted with the normal fltk callback() / when() conventions,
+	  to replace the old Fl_Table callback() virtual stuff.
+
+	  ALPHA TESTERS: Please see table_cb() function in testtablerow.cxx,
+	  and docs in documentation/Fl_Table.html for new methods:
+
+	       callback() -- set the callback
+	       callback_row() -- row the user clicked on
+	       callback_col() -- column the user clicked on
+	       callback_context() -- where on table the user clicked
+
+2.15 -- 05/28/03 erco
+        
+	o Docs for select_row() includes documenting 2=toggle.
+
+	o select_all_rows() modified to include 2=toggle, docs modified.
+
+2.14 -- 05/27/03 erco
+
+	o Reduced flicker for row selections, added some private 
+	  methods (Fl_Table::_redraw_cell()) and data (_redraw_leftcol),
+	  and a protected method redraw_range() to Fl_Table. 
+	  Fl_Table::draw() modified to use damage(FL_DAMAGE_CHILD).
+
+	o Updated Fl_Table_Row docs: docs for all public methods
+
+	o Added Fl_Table::clear() method
+
+	o Fl_Table::scroll_cb() now calls recalc_dimensions();
+	  vars like tix, tiy weren't being recalculated.
+
+	o Changed Fl_Table_Row::handle() from private -> protected
+
+	o Optimizations to row_scroll_position() and col_scroll_position()
+	  to allow 100,000 x 100,000 element tables to redraw quickly:
+	      BEFORE: ~5 sec redraws for the lower right corner of the table.
+	      AFTER: imperceptible redraw time for entire table.
+	  Added two private vars (toprow_scrollpos, leftcol_scrollpos)
+
+	o Updated README to include a 'What is Fl_Table?' section, 
+	  as there seems to be some confusion about what Fl_Table is
+	  and is not.
+
+	o 'singleinput' compile instructions were missing from the
+	  Makefile.MICROSOFT
+
+        o fltk-config: tried to implement in unix Makefiles, but
+          encountered a hitch with multiple FLTK versions. 
+	  Holding back on adding fltk-config until resolved.
+
+2.13 -- 05/17/03 erco
+
+        o Removed all iostream stuff -- sick of all that noise
+	  about 'deprecated headers' under Redhat 9.0 and VS .NET.
+
+        o Changed having Fl_Table_Row::handle() from returning if
+	  a child handled an event; caused new FL_PUSH mod to break
+	  selection routines.
+
+	o Changed sortapp to show ls listing instead of 'cat README'
+
+	o Implemented Glenn Ramsey's recommendation to set ret = 1
+	  on receipt of FL_PUSH.
+
+	o Modified singleinput.cxx to call take_focus() to ensure
+	  it works correctly when parented by e.g. Fl_Tabs.
+
+	o Added -lXft to Makefile.LINUX to support antialiased fonts
+	  under Redhat 9.0
+
+2.13(alpha) -- 04/29/03 erco
+
+	o Marcin Jedlinski reports 'c<newrows;' bug in widgettable.c; fixed.
+
+2.12 -- 04/20/03 erco
+
+	o Added CONTEXT_ENDPAGE, changed CONTEXT_NEWPAGE -> CONTEXT_STARTPAGE
+
+	o Added Mister Satan's singleinput.cxx example to release
+
+	o Applied Mister Satan's fixes for scrollbars appearing 1 pixel
+	  too early. ('hideh/hidev < 0' changed to '.. <= 0')
+
+	o CONTEXT_NEWPAGE sends table dimensions via x/y/w/h, instead of zeroes.
+          Docs changed to reflect this.
+
+	o Added Makefile.MINGW32, and modified uname to truncate at the underbar
+
+	o Fixed 'sortapp' so that it would work with blank lines in the example.
+
+2.11 -- 04/09/03 erco
+
+        o Removed some unused scrollbar event handling
+	o Added CONTEXT_TABLE events when clicked in dead zones
+	o Fixed problem with two Fl_Table or more Fl_Table's (MR SATAN)
+	o Allow setting row_height and col_width w/out any row/cols defined
+	o testtablerow now shows two tables, to test for event problems.
+
+2.10a -- 04/06/03 erco
+
+        o Makefile mods for Microsoft
+	o atoi() #include for Microsoft missing
+	o Removed unused variables causing warnings on SGI
+
+2.10  -- 04/06/03 erco
+
+	o Got widgets away from STL as per Matthais request (only sortapp.cxx has it)
+	o Added table_box() to set the kind of box around the inner table
+	o Added row/col_min_resize()
+	o Cleaned up management of box borders (concept: inside vs. outside)
+	o Fixed some missing line breaks in the docs
+	o Implemented separate Fl_Scroll so Fl_Table can contain fltk widgets
+	o Fixed new row headers so they don't callback() during a resize
+	o Fixed wild select when dragged off table
+	o Select-drag off table now auto-scrolls
+
+2.00  -- 04/02/03 erco
+
+        o Added row headers
+	o Added ability to make it easy to add fltk widgets to the table
+	o You can now set row/col header colors and heights/widths
+	o Fixed drawing problems with table deadzones
+
+1.30  -- 03/30/03 erco
+
+        o Added widgettable.cxx
+	o Mods to Fl_Table to facilitate embeding fltk widget
+
+1.20  -- 03/18/03 erco
+
+	o Modified sortapp.cxx: sort direction indicated by 
+	  up/down arrow in header
+
+        o Makefiles for complile/run on Linux, OSX, Windows, IRIX.
+	  Tested under Linux, OSX, Windows, but not IRIX (didn't have
+	  vector library under 6.2)
+
+	o Verified compiles and runs ok with fltk 1.1.1 and 1.1.3
+
+1.10  -- 01/09/03 erco
+
+	o Mods for bcc (thanks to Marek Paliwoda)
+	o Removed MyTable.cxx, an old file
+	o Added 'make tar' target
+	o Added CHANGES log
+
+1.00  -- 12/16/02 erco
+
+	o Initial implementation/release

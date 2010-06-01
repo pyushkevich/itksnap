@@ -1,0 +1,120 @@
+> DOXYGEN the documentation
+
+> BUG: in testtablerow, mouse wheel does not scroll lower window
+  if mouse is inside it, but PGUP/DOWN work ok. ???
+
+> Bring over changes from RUSH:
+	o (DONE) is_interactive_resize()
+	o something else I think???
+
+> exercisetablerow: Lots of messages on startup.. WHY??
+    'Demo' callback: Row=497 Col=0 Context=7 Event=0
+    'Demo' callback: Row=498 Col=0 Context=7 Event=0
+    'Demo' callback: Row=499 Col=0 Context=7 Event=0
+    'Demo' callback: Row=0 Col=0 Context=0 Event=1
+    'Demo' callback: Row=0 Col=0 Context=0 Event=1
+
+> exercisetable(): add a prompt for changing 'when()' via a pulldown.
+
+> Add a Right click popup menu, and see
+  how that would be implemented using new callback() system.
+
+> Add an any_selected() method to Fl_Table_Row(), so one
+  can easily determine if any rows are selected.
+
+> TODO: (see 3.10 Jean Marc additions)
+  Need to make mouse region selection controllable via 'or'able flags:
+
+	> Single cell					(SELECT_CELL)
+	> Row of cells (eg. Fl_Browser, Fl_Table_Row)	(SELECT_ROW)
+	> Column of cells		      		(SELECT_COL)
+	> Freeform row/col (current behavior) 		(SELECT_MULTI)
+
+> Autoscrolling is a hack.
+  Need finer control of auto-scrolling, based on proximity
+  to the table edge, like normal tty scrolling.
+
+> Don't show resize cursor when over header for left edge 
+  of cell#0, or top edge of header for row#0.
+
+> Fl_Table_Row: A way to pick different select modes;
+
+	none
+	1 of n (file browser)
+	multi
+
+  See Fl_Browser_
+
+> Keyboard navigation of a 'current cell' or 'current row'
+  using Tab and Shift Tab, Arrows, Spacebar, etc. Again,
+  see Fl_Browser.  Needs a focus box.
+
+> fltk-config
+
+    Greg Ercolano wrote:
+
+    > Does fltk-config somehow deal with the issue of having
+    > multiple FLTK dirs installed on a machine?
+
+    Yes, through the configured directories...
+
+    > I just started playing with fltk-config this morning,
+    > and noticed that it reports paths like /usr/local/lib
+    > even though I didn't run 'make install'.
+
+    Easy fix: provide your source directories when configuring,
+    e.g.:
+
+	./configure --prefix=/usr/local/src/fltk-M.m.p \
+	    --includedir=/usr/local/src/fltk-M.m.p
+
+> In FLTK 2.0, there's some way to avoid having the parent
+  draw the rectangle over the table.
+
+> Implement a way the derived class can disable/draw their own
+  dead zones. Do this for ALL dead zones.
+
+	CONTEXT_DEADZONE_TABLE
+	CONTEXT_DEADZONE_HEADER
+	CONTEXT_DEADZONE_SCROLLBAR
+
+> Need to override /all/ Fl_Group methods, eg:
+
+	add()
+	add_resizable()
+	find()
+	insert()
+	remove()
+
+> optimize for fixed rowh/colw
+
+> If has_fltk_children(), don't call the draw_cell() stuff?
+
+> Add row_margin/col_margin() to change overall spacing between cells.
+  Esp for use with fltk container. Also, gets rid of need for
+  user to handle those little edge lines in custom widgets
+
+----------------------------------------------------------------
+
+> (3.0) Document all Fl_Table_Row functions.
+
+> (3.0) Fl_Table_Row:
+  If you make a selection, but drag off the end of the last row,
+  you loose the selection.
+
+> (3.0) When resized very small, horiz scroll bar clips OUTSIDE
+  the border instead of INSIDE. Make sure when scroll bars drawn,
+  they are clipped to the INNER boarder.
+
+> (3.0) Implement callback() stuff.
+  Try to follow Fl_Browser as closely as possible.
+  For keyboard navigation, and probably right-click stiuff
+  too to bring up menus.
+
+> (3.0) Don't scroll if resizing.
+
+> (3.1) HEY!! When you click to resize a column, it ALSO sends
+  a NON-resize event to the callback(). MASK THEM!
+
+> (3.1) col_width() or row_height() should probably invoke
+  user callback() with a CONTEXT_RC_RESIZE.
