@@ -181,8 +181,8 @@ class LayerInspectorUI {open : LayerInspectorUIBase
           }
         }
         Fl_Group m_ImageInfoTab {
-          label Information open
-          xywh {180 25 390 455} labelsize 12
+          label Information
+          xywh {180 25 390 455} labelsize 12 hide
         } {
           Fl_Group {} {
             label Dimensions open
@@ -342,6 +342,21 @@ coordinates} open
             }
           }
         }
+        Fl_Group m_ImageAdvancedInfoTab {
+          label {Advanced Info} open
+          xywh {180 25 390 455} labelsize 12
+        } {
+          Fl_Box m_TableMetaData {
+            label label selected
+            xywh {190 58 370 197} labeltype NO_LABEL
+            code0 {\#include "MetaDataTable.h"}
+            class MetaDataTable
+          }
+          Fl_Group {} {
+            label {Image Meta Data} open
+            xywh {190 54 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
+          } {}
+        }
       }
       Fl_Group {} {open
         xywh {0 0 170 490} box FLAT_BOX labeltype ENGRAVED_LABEL labelsize 16 align 17 resizable
@@ -352,7 +367,7 @@ coordinates} open
         } {}
         Fl_Value_Slider m_InOverallOpacity {
           label {Overall opacity:}
-          callback {this->OnOverallOpacityUpdate()} selected
+          callback {this->OnOverallOpacityUpdate()}
           xywh {10 185 150 20} type Horizontal labelsize 12 align 5 textsize 11
         }
         Fl_Button {} {

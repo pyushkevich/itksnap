@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 07:34:10 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2010/06/01 07:27:30 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -356,9 +356,9 @@ GuidedNativeImageIO
     reader->SetFileNames(m_DICOMFiles);
       
     // Set the IO
-    typename GDCMImageIO::Pointer dicomio = GDCMImageIO::New();
-    dicomio->SetMaxSizeLoadEntry(0xffff);
-    m_IOBase = dicomio;
+    // typename GDCMImageIO::Pointer dicomio = GDCMImageIO::New();
+    // dicomio->SetMaxSizeLoadEntry(0xffff);
+    // m_IOBase = dicomio;
     reader->SetImageIO(m_IOBase);
     
     // Update
@@ -371,6 +371,12 @@ GuidedNativeImageIO
     flt->Update();
     m_NativeImage = flt->GetOutput();
     m_NativeImage->SetDirection(flt->GetOutput()->GetDirection());
+
+    // Copy the metadata from the first scan in the series
+    const typename ReaderType::DictionaryArrayType *darr = 
+      reader->GetMetaDataDictionaryArray();
+    if(darr->size() > 0)
+      m_NativeImage->SetMetaDataDictionary(*((*darr)[0]));
     } 
   else 
     {
@@ -518,6 +524,7 @@ RescaleNativeImageToScalar<TPixel>::operator()(GuidedNativeImageIO *nativeIO)
   // Allocate the output image
   m_Output = OutputImageType::New();
   m_Output->CopyInformation(native);
+  m_Output->SetMetaDataDictionary(native->GetMetaDataDictionary());
   m_Output->SetRegions(native->GetBufferedRegion());
 
   // Cast image from native format to TPixel

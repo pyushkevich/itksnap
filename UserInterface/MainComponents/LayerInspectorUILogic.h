@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/11/16 20:29:28 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2010/06/01 07:27:30 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -101,6 +101,7 @@ public:
   void DisplayImageContrastTab();
   void DisplayColorMapTab();
   void DisplayImageInfoTab();
+  void DisplayImageAdvancedInfoTab();
 
   // External update to visibility of overlays
   void AdjustOverlayOpacity(double delta);

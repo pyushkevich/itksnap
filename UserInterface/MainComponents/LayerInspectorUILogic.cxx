@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/16 20:29:28 $
-  Version:   $Revision: 1.22 $
+  Date:      $Date: 2010/06/01 07:27:30 $
+  Version:   $Revision: 1.23 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -113,7 +113,7 @@ LayerInspectorUILogic
     {
     DisplayColorMapTab();
     }
-  else
+  else if (m_LayerUITabs->value() == m_ImageInfoTab)
     {
     DisplayImageInfoTab();
     }
@@ -164,6 +164,18 @@ LayerInspectorUILogic
   m_LayerUITabs->value(m_ImageInfoTab);
   UpdateImageProbe();
 }
+
+
+void
+LayerInspectorUILogic
+::DisplayImageAdvancedInfoTab()
+{
+  m_BoxCurve->hide();
+  m_BoxColorMap->hide();
+  m_WinLayerUI->show();
+  m_LayerUITabs->value(m_ImageAdvancedInfoTab);
+}
+
 
 void
 LayerInspectorUILogic
@@ -292,6 +304,10 @@ LayerInspectorUILogic
   else
     raitext = raicode;
   m_OutImageInfoOriginRAICode->value(raitext.c_str());
+
+  // Uodate the information table
+  m_TableMetaData->SetInputImage(m_SelectedWrapper->GetImageBase());
+  m_TableMetaData->redraw();
 
   // update GUI
   if (Shown())

@@ -219,6 +219,7 @@ SET(UI_CXX
   UserInterface/BasicComponents/FunctionPlot2D.cxx
   UserInterface/BasicComponents/IntensityCurveBox.cxx
   UserInterface/BasicComponents/InteractionModeClient.cxx
+  UserInterface/BasicComponents/MetaDataTable.cxx
   UserInterface/BasicComponents/RecursiveInteractionMode.cxx
   UserInterface/BasicComponents/SnakeParametersPreviewBox.cxx
   UserInterface/BasicComponents/SnakeParametersPreviewPipeline.cxx
@@ -270,6 +271,7 @@ SET(UI_HEADERS
   UserInterface/BasicComponents/IntensityCurveBox.h
   UserInterface/BasicComponents/InteractionMode.h
   UserInterface/BasicComponents/InteractionModeClient.h
+  UserInterface/BasicComponents/MetaDataTable.h  
   UserInterface/BasicComponents/RecursiveInteractionMode.h
   UserInterface/BasicComponents/SnakeParametersPreviewBox.h
   UserInterface/BasicComponents/SnakeParametersPreviewPipeline.h
