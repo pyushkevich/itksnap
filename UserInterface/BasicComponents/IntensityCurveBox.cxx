@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/21 21:55:19 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2010/06/03 19:25:32 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -115,22 +115,34 @@ IntensityCurveBox
   m_Curve->GetControlPoint(0, t0, xDummy);
   m_Curve->GetControlPoint(m_Curve->GetControlPointCount() - 1, t1, xDummy);
   
+  // Scale the display so that leftmost point to plot maps to 0, rightmost to 1
+  float z0 = std::min(t0, 0.0f);
+  float z1 = std::max(t1, 1.0f);
+  glPushMatrix();
+  glTranslated(-z0 / (z1-z0), 0, 0);
+  glScaled(1.0 / (z1-z0), 1, 1);
+
   // Draw the quads
   glBegin(GL_QUADS);
 
   // Outer quad
   glColor3d(0.9, 0.9, 0.9);
-  glVertex2d(0,0);
-  glVertex2d(0,1);
-  glVertex2d(1,1);
-  glVertex2d(1,0);
+  glVertex2d(z0,0);
+  glVertex2d(z0,1);
+  glVertex2d(z1,1);
+  glVertex2d(z1,0);
 
-  // Inner quad
-  glColor3d(1.0, 1.0, 1.0);
-  glVertex2d(t0, 0.0); 
-  glVertex2d(t0, 1.0); 
-  glVertex2d(t1, 1.0); 
-  glVertex2d(t1, 0.0);
+  float q0 = std::max(t0, 0.0f);
+  float q1 = std::min(t1, 1.0f);
+  if(q1 > q0)
+    {
+    // Inner quad
+    glColor3d(1.0, 1.0, 1.0);
+    glVertex2d(q0, 0.0); 
+    glVertex2d(q0, 1.0); 
+    glVertex2d(q1, 1.0); 
+    glVertex2d(q1, 0.0);
+    }
 
   glEnd();
 
@@ -217,10 +229,10 @@ IntensityCurveBox
   // Draw the box around the plot area
   glColor3d(0,0,0);
   glBegin(GL_LINE_LOOP);
-  glVertex2d(0,0);
-  glVertex2d(0,1);
-  glVertex2d(1,1);
-  glVertex2d(1,0);
+  glVertex2d(z0,0);
+  glVertex2d(z0,1);
+  glVertex2d(z1,1);
+  glVertex2d(z1,0);
   glEnd();
 
   // Set up the smooth line drawing style
@@ -233,8 +245,8 @@ IntensityCurveBox
   glColor3d(1.0,0.0,0.0);
   glBegin(GL_LINE_STRIP);
 
-  float t = 0.0;
-  float tStep = 1.0f / (CURVE_RESOLUTION);
+  float t = z0;
+  float tStep = (z1-z0) / (CURVE_RESOLUTION);
   for (unsigned int i=0;i<=CURVE_RESOLUTION;i++) 
     {
     glVertex2f(t,m_Curve->Evaluate(t));
@@ -255,14 +267,16 @@ IntensityCurveBox
     if(c == (unsigned int)m_Interactor->GetMovingControlPoint())
       {
       glColor3d(1,1,0);
-      gl_draw_circle_with_border(t, x, 5.0, false);
+      gl_draw_circle_with_border(t, x, 5.0, z1-z0, false);
       }
     else
       {
       glColor3d(1,0,0);
-      gl_draw_circle_with_border(t, x, 4.0, false);
+      gl_draw_circle_with_border(t, x, 4.0, z1-z0, false);
       }
     }
+
+  glPopMatrix();
 
   // Pop the attributes
   glPopAttrib();
@@ -273,7 +287,7 @@ IntensityCurveBox
 
 void
 IntensityCurveBox
-::gl_draw_circle_with_border(double x, double y, double r, bool select)
+::gl_draw_circle_with_border(double x, double y, double r, double bw, bool select)
 {
   static std::vector<double> cx, cy;
   if(cx.size() == 0)
@@ -287,7 +301,7 @@ IntensityCurveBox
 
   glPushMatrix();
   glTranslated(x, y, 0.0);
-  glScaled(1.2 / this->w(), 1.2 / this->h(), 1.0);
+  glScaled(1.2 * bw / this->w(), 1.2 / this->h(), 1.0);
 
   glBegin(GL_TRIANGLE_FAN);
   glVertex2d(0, 0);
@@ -398,15 +412,35 @@ IntensityCurveInteraction
   m_MovingControlPoint = 0;
 }
 
+Vector3f
+IntensityCurveBox
+::GetEventCurveCoordinates(const FLTKEvent &e)
+{
+  // Draw the plot area. The intensities outside of the window and level
+  // are going to be drawn in darker shade of gray
+  float t0, t1, xDummy;
+  m_Curve->GetControlPoint(0, t0, xDummy);
+  m_Curve->GetControlPoint(m_Curve->GetControlPointCount() - 1, t1, xDummy);
+  float z0 = std::min(t0, 0.0f);
+  float z1 = std::max(t1, 1.0f);
+  
+  // Scale the display so that leftmost point to plot maps to 0, rightmost to 1
+  return Vector3f(e.XSpace[0] * (z1 - z0) + z0, e.XSpace[1], e.XSpace[2]);
+}
+
 int 
 IntensityCurveInteraction
 ::OnMousePress(const FLTKEvent &event)
 {
   // Check the control point affected by the event
+  Vector3f xCurve = m_Parent->GetEventCurveCoordinates(event);
   m_MovingControlPoint = 
-    m_Parent->GetControlPointInVicinity(event.XSpace[0],event.XSpace[1],5);
+    m_Parent->GetControlPointInVicinity(xCurve[0],xCurve[1],5);
 
   SetCursor(m_MovingControlPoint);
+
+  // Clear the dragged flag
+  m_FlagDraggedControlPoint = false;
 
   return 1;
 }
@@ -416,16 +450,26 @@ IntensityCurveInteraction
 ::OnMouseRelease(const FLTKEvent &event,
   const FLTKEvent &irisNotUsed(dragEvent))
 {
-  if (m_MovingControlPoint >= 0) {
-    // Update the control point
-    if (UpdateControl(event.XSpace))
+  Vector3f xCurve = m_Parent->GetEventCurveCoordinates(event);
+  if (m_MovingControlPoint >= 0) 
+    {
+    if(m_FlagDraggedControlPoint)
       {
-      // Repaint parent
-      m_Parent->redraw();
+      // Update the control point
+      if (UpdateControl(xCurve))
+        {
+        // Repaint parent
+        m_Parent->redraw();
 
-      // Fire the update event (should this be done on drag?)
-      m_Parent->GetParent()->OnCurveChange();
+        // Fire the update event (should this be done on drag?)
+        m_Parent->GetParent()->OnCurveChange();
+        m_Parent->GetParent()->OnControlPointUpdate();
+        }
+      }
+    else
+      {
       m_Parent->GetParent()->OnControlPointUpdate();
+      m_Parent->redraw();
       }
 
     // Set the cursor back to normal
@@ -440,10 +484,11 @@ IntensityCurveInteraction
 ::OnMouseDrag(const FLTKEvent &event,
   const FLTKEvent &irisNotUsed(dragEvent))
 {
+  Vector3f xCurve = m_Parent->GetEventCurveCoordinates(event);
   if (m_MovingControlPoint >= 0) 
     {
     // Update the moving control point
-    if (UpdateControl(event.XSpace)) 
+    if (UpdateControl(xCurve)) 
       {
       // Repaint parent
       m_Parent->redraw();
@@ -452,6 +497,9 @@ IntensityCurveInteraction
       m_Parent->GetParent()->OnCurveChange();
       m_Parent->GetParent()->OnControlPointUpdate();
       }
+
+    // Set the dragged flag
+    m_FlagDraggedControlPoint = true;
     }
 
   return 1;
@@ -475,8 +523,9 @@ int
 IntensityCurveInteraction
 ::OnMouseMotion(const FLTKEvent &event)
 {
+  Vector3f xCurve = m_Parent->GetEventCurveCoordinates(event);
   int cp = 
-    m_Parent->GetControlPointInVicinity(event.XSpace[0],event.XSpace[1],5);
+    m_Parent->GetControlPointInVicinity(xCurve[0],xCurve[1],5);
 
   SetCursor(cp);
 
@@ -529,8 +578,8 @@ IntensityCurveBox
   m_Curve->GetControlPoint(i, told, xold);
 
   // The control value should be in range
-  if(t < 0.0 || t > 1.0)
-    return false;
+  // if(t < 0.0 || t > 1.0)
+  //  return false;
 
   // First and last control points are treated specially because they
   // provide windowing style behavior

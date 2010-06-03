@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IntensityCurveBox.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 20:03:13 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2010/06/03 19:25:32 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -106,6 +106,11 @@ private:
    */
   int GetControlPointInVicinity(float x, float y, int pixelRadius);
 
+  /**
+   * Map event coordinates to image space coordinates 
+   */
+  Vector3f GetEventCurveCoordinates(const FLTKEvent &e);
+
   /** The intensity mapping curve */
   IntensityCurveInterface *m_Curve;
 
@@ -128,7 +133,7 @@ private:
   bool m_HistogramLog;
 
   // Draw circles
-  void gl_draw_circle_with_border(double x, double y, double r, bool select);
+  void gl_draw_circle_with_border(double x, double y, double r, double bw, bool select);
 
   IntensityCurveInteraction* m_Interactor;
 
@@ -167,6 +172,8 @@ private:
 
   // Control point being currently edited
   int m_MovingControlPoint;
+
+  bool m_FlagDraggedControlPoint;
 
 };
 

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPFormattedOutput.h,v $
   Language:  C++
-  Date:      $Date: 2010/06/03 13:04:02 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2010/06/03 19:25:32 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,8 +41,7 @@
 
 /**
  * \class SNAPFormattedOutput
- * \brief An extension of Fl_Value_Output with specified number of significant
- * digits (uses %.*g format)
+ * \brief An extension of Fl_Output that can take double as input
  */
 class SNAPFormattedOutput : public Fl_Output
 {

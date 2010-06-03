@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/03 12:31:27 $
-  Version:   $Revision: 1.24 $
+  Date:      $Date: 2010/06/03 19:25:32 $
+  Version:   $Revision: 1.25 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -581,8 +581,8 @@ LayerInspectorUILogic
 {
   // Assure that input and output outside of the image range
   // is handled gracefully
-  m_InLevel->value(m_InLevel->clamp(m_InLevel->value()));
-  m_InWindow->value(m_InWindow->clamp(m_InWindow->value()));
+  // m_InLevel->value(m_InLevel->clamp(m_InLevel->value()));
+  // m_InWindow->value(m_InWindow->clamp(m_InWindow->value()));
 
   // Get 'absolute' image intensity range, i.e., the largest and smallest
   // intensity in the whole image
