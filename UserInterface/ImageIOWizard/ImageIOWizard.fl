@@ -290,46 +290,49 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
             label {File name:}
             xywh {100 55 350 20} color 54 labelsize 12 textsize 12
           }
-          Fl_Value_Output {m_OutSummaryDimensions[0]} {
+          Fl_Output {m_OutSummaryDimensions[0]} {
             label {Dimensions:}
-            xywh {100 80 55 20} color 7 labelsize 12 step 3 textsize 12
+            xywh {100 80 55 20} labelsize 12 textsize 12
+            class SNAPFormattedOutput
           }
-          Fl_Value_Output {m_OutSummaryDimensions[1]} {
-            xywh {155 80 55 20} color 7 labelsize 12 step 3 textsize 12
+          Fl_Output {m_OutSummaryDimensions[1]} {
+            xywh {155 80 55 20} labelsize 12 textsize 12
+            class SNAPFormattedOutput
           }
-          Fl_Value_Output {m_OutSummaryDimensions[2]} {
-            xywh {210 80 55 20} color 7 labelsize 12 step 3 textsize 12
+          Fl_Output {m_OutSummaryDimensions[2]} {
+            xywh {210 80 55 20} labelsize 12 textsize 12
+            class SNAPFormattedOutput
           }
           Fl_Output m_OutSummaryOrientation {
             label {Orientation:}
             tooltip {Note: origin information is not compatible with SPM/MRICro for Analyze files} xywh {345 80 105 20} color 54 labelsize 12 textsize 12
           }
-          Fl_Value_Output {m_OutSummarySpacing[0]} {
-            label {Spacing:}
-            xywh {100 105 55 20} color 7 labelsize 12 step 3 textsize 12
-            code0 {\#include "SNAPValueOutput.h"}
-            class SNAPValueOutput
+          Fl_Output {m_OutSummarySpacing[0]} {
+            label {Spacing:} selected
+            xywh {100 105 55 20} labelsize 12 textsize 12
+            code0 {\#include "SNAPFormattedOutput.h"}
+            class SNAPFormattedOutput
           }
-          Fl_Value_Output {m_OutSummarySpacing[1]} {
-            xywh {155 105 55 20} color 7 labelsize 12 step 3 textsize 12
-            class SNAPValueOutput
+          Fl_Output {m_OutSummarySpacing[1]} {
+            xywh {155 105 55 20} labelsize 12 textsize 12
+            class SNAPFormattedOutput
           }
-          Fl_Value_Output {m_OutSummarySpacing[2]} {
-            xywh {210 105 55 20} color 7 labelsize 12 step 3 textsize 12
-            class SNAPValueOutput
+          Fl_Output {m_OutSummarySpacing[2]} {
+            xywh {210 105 55 20} labelsize 12 textsize 12
+            class SNAPFormattedOutput
           }
-          Fl_Value_Output {m_OutSummaryOrigin[0]} {
+          Fl_Output {m_OutSummaryOrigin[0]} {
             label {Origin:}
-            xywh {100 130 55 20} color 7 labelsize 12 step 3 textsize 12
-            class SNAPValueOutput
+            xywh {100 130 55 20} labelsize 12 textsize 12
+            class SNAPFormattedOutput
           }
-          Fl_Value_Output {m_OutSummaryOrigin[1]} {
-            xywh {155 130 55 20} color 7 labelsize 12 step 3 textsize 12
-            class SNAPValueOutput
+          Fl_Output {m_OutSummaryOrigin[1]} {
+            xywh {155 130 55 20} labelsize 12 textsize 12
+            class SNAPFormattedOutput
           }
-          Fl_Value_Output {m_OutSummaryOrigin[2]} {
-            xywh {210 130 55 20} color 7 labelsize 12 step 3 textsize 12
-            class SNAPValueOutput
+          Fl_Output {m_OutSummaryOrigin[2]} {
+            xywh {210 130 55 20} labelsize 12 textsize 12
+            class SNAPFormattedOutput
           }
           Fl_Output m_OutSummaryByteOrder {
             label {Byte order:}
@@ -347,7 +350,7 @@ class ImageIOWizard {open : {private ImageIOWizardBase}
             label {Image Header:} open
             xywh {95 180 355 105} box PLASTIC_DOWN_BOX color 7 labelsize 12 align 5
           } {
-            Fl_Box m_TableSummaryMetaData {selected
+            Fl_Box m_TableSummaryMetaData {
               xywh {100 185 345 95} selection_color 246
               code0 {\#include "MetaDataTable.h"}
               class MetaDataTable
