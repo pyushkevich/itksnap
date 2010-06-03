@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/01 07:27:30 $
-  Version:   $Revision: 1.23 $
+  Date:      $Date: 2010/06/03 12:31:27 $
+  Version:   $Revision: 1.24 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -117,6 +117,10 @@ LayerInspectorUILogic
     {
     DisplayImageInfoTab();
     }
+  else if (m_LayerUITabs->value() == m_ImageAdvancedInfoTab)
+    {
+    DisplayImageAdvancedInfoTab();
+    }
 }
 
 void
@@ -204,6 +208,9 @@ LayerInspectorUILogic
     {
     UpdateImageProbe();
     }
+  else if (m_LayerUITabs->value() == m_ImageAdvancedInfoTab)
+    {
+    }
 }
 
 bool
@@ -284,10 +291,6 @@ LayerInspectorUILogic
     m_OutImageInfoSpacing[d]->value(m_SelectedWrapper->GetImageBase()->GetSpacing()[d]);
     m_OutImageInfoSpacing[d]->maximum(m_OutImageInfoSpacing[d]->value());
     m_OutImageInfoSpacing[d]->minimum(m_OutImageInfoSpacing[d]->value());
-
-    m_OutImageInfoCursorPosition[d]->precision(2);
-    m_OutImageInfoCursorNIFTIPosition[d]->precision(2);
-
     m_InImageInfoCursorIndex[d]->maximum(m_SelectedWrapper->GetSize()[d] - 1);
     m_InImageInfoCursorIndex[d]->minimum(0);
     m_InImageInfoCursorIndex[d]->step(1);
@@ -307,7 +310,7 @@ LayerInspectorUILogic
 
   // Uodate the information table
   m_TableMetaData->SetInputImage(m_SelectedWrapper->GetImageBase());
-  m_TableMetaData->redraw();
+  m_TableMetaData->SetColumnWidth(370);
 
   // update GUI
   if (Shown())

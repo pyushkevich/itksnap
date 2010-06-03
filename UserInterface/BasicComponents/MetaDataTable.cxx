@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MetaDataTable.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/01 07:27:30 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2010/06/03 12:31:27 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -37,6 +37,7 @@
 #include "itkImage.h"
 #include "itkMetaDataDictionary.h"
 #include "itkMetaDataObject.h"
+#include "itkGDCMImageIO.h"
 using namespace std;
 using namespace itk;
 
@@ -115,16 +116,28 @@ void
 MetaDataTable
 ::SetInputImage(itk::ImageBase<3> *image)
 {
-  static char buffer[256];
+  int w = 0, h = 0;
 
-  cout << "SetInputImage " << endl;
+  // Init preferred widths
+  m_PreferredKeyWidth = 0;
+  m_PreferredValueWidth = 0;
+  m_PreferredHeight = 0;
 
   // Get the data
   m_Header.clear();
   m_Body.clear();
 
-  m_Header.push_back("Key");
+  m_Header.push_back("Header Field");
   m_Header.push_back("Value");
+
+  // Measure widths
+  fl_font(FL_HELVETICA_BOLD, 11);
+  fl_measure(m_Header[0].c_str(), m_PreferredKeyWidth, m_PreferredHeight);
+  fl_measure(m_Header[1].c_str(), m_PreferredValueWidth, m_PreferredHeight);
+  m_PreferredKeyWidth += 6;
+  m_PreferredValueWidth += 6;
+
+  fl_font(FL_HELVETICA, 11);
 
   // Get the dictionary
   itk::MetaDataDictionary &mdd = image->GetMetaDataDictionary();
@@ -133,7 +146,6 @@ MetaDataTable
     {
     // Get the metadata as a generic object
     string key = itMeta->first, v_string;
-    cout << key << endl;
     string value;
 
     // Orientation flag object
@@ -181,23 +193,54 @@ MetaDataTable
         }
       }
 
+    // Try to remap the key to DICOM
+    string dcm_label;
+    if(itk::GDCMImageIO::GetLabelFromTag(key, dcm_label))
+      key = dcm_label;
+
     // Store the values
     vector<string> row;
     row.push_back(key);
     row.push_back(value);
     m_Body.push_back(row);
+
+    // Measure text
+    w = 0, h = 0;
+    fl_measure(key.c_str(), w, h);
+    m_PreferredKeyWidth = std::max(w + 6, m_PreferredKeyWidth);
+    w = 0; h = 0;
+    fl_measure(value.c_str(), w, h);
+    m_PreferredValueWidth = std::max(w + 6, m_PreferredValueWidth);
+    m_PreferredHeight = std::max(h, m_PreferredHeight);
+
     }
 
   // Set the number of rows and columns
-  this->rows(m_Body.size());
-  this->cols(m_Header.size()-1);
-  this->row_header(1);
+  this->rows(std::max((int) m_Body.size(),10));
+  this->cols(m_Header.size());
   this->col_header(1);
   this->col_resize(4);
+  this->row_height_all(4+m_PreferredHeight);
+}
 
-  // Set the column widths (allow for scrollbar)
-  this->col_width_all(140);
-  this->row_header_width(140);
+void 
+MetaDataTable
+::SetColumnWidth(int total_width)
+{
+  // Case 1: there is no data
+  if(m_PreferredKeyWidth == 0)
+    {
+    col_width(0, total_width/2);
+    col_width(1, total_width - col_width(0));
+    }
+  else
+    {
+    int wk = std::min(total_width/2, m_PreferredKeyWidth);
+    col_width(0, wk);
+    int wv = std::max(total_width - wk, m_PreferredValueWidth);
+    col_width(1, wv);
+    row_height_all(m_PreferredHeight + 4);
+    }
 }
 
 
@@ -216,9 +259,10 @@ MetaDataTable
   switch(context)
     {
   case CONTEXT_STARTPAGE:
-    fl_font(FL_COURIER, 12);
+    fl_font(FL_HELVETICA, 11);
     return;
 
+  /*
   case CONTEXT_ROW_HEADER:
     text = m_Body[R][0];
     fl_push_clip(X, Y, W, H);
@@ -230,34 +274,38 @@ MetaDataTable
     fl_draw(text.c_str(), X+3, Y, W-6, H, FL_ALIGN_LEFT);
     fl_pop_clip();
     break;
+  */
 
   case CONTEXT_COL_HEADER:
-    text = m_Header[C+1];
+    text = m_Header[C];
 
     fl_push_clip(X, Y, W, H);
-      {
-      fl_draw_box(FL_THIN_UP_BOX, X, Y, W, H, FL_LIGHT1);
-      fl_color(FL_BLACK);
-      fl_draw(text.c_str(), X, Y, W, H, FL_ALIGN_CENTER);
-      }
+    fl_draw_box(FL_THIN_UP_BOX, X, Y, W, H, FL_LIGHT1);
+    fl_pop_clip();
+
+    fl_push_clip(X+3, Y, W-6, H);
+    fl_font(FL_HELVETICA_BOLD, 11);
+    fl_color(FL_BLACK);
+    fl_draw(text.c_str(), X+3, Y, W-6, H, FL_ALIGN_LEFT);
+    fl_font(FL_HELVETICA, 11);
     fl_pop_clip();
     break;
 
   case CONTEXT_CELL:
-    text = m_Body[R][C+1];
 
     fl_push_clip(X, Y, W, H);
     fl_draw_box(FL_THIN_UP_BOX, X, Y, W, H, 
       row_selected(R) ? selection_color() : FL_WHITE);
     fl_pop_clip();
 
-    fl_push_clip(X+3, Y, W-6, H);
+    if(R < m_Body.size())
       {
-      // TEXT
+      text = m_Body[R][C];
+      fl_push_clip(X+3, Y, W-6, H);
       fl_color(FL_BLACK);
       fl_draw(text.c_str(), X+3, Y, W-6, H, FL_ALIGN_LEFT);
+      fl_pop_clip();
       }
-    fl_pop_clip();
     break;
 
   default:

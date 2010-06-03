@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 07:34:10 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2010/06/03 12:31:27 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -63,7 +63,7 @@ ImageIOWizardLogic
   m_DICOMLister = GDCMSeriesFileNames::New();
   
   // Initialize the text buffers
-  m_SummaryTextBuffer = new Fl_Text_Buffer();
+  // m_SummaryTextBuffer = new Fl_Text_Buffer();
 
   // Initialize the callback pointer
   m_Callback = NULL;
@@ -99,7 +99,7 @@ void ImageIOWizardLogic
   m_InSaveFilePageFormat->value(0);
   
   // Add the buffer to the summary text widget
-  m_OutSummaryMetaData->buffer(m_SummaryTextBuffer);
+  // m_OutSummaryMetaData->buffer(m_SummaryTextBuffer);
 }
 
 
@@ -772,7 +772,12 @@ ImageIOWizardLogic
     m_OutSummaryByteOrder->value(
        boTypes[(unsigned int)(m_GuidedIO.GetByteOrderInNativeImage() - ImageIOType::BigEndian)]);
 
+    // Populate the metadata table
+    m_TableSummaryMetaData->SetInputImage(m_GuidedIO.GetNativeImage());
+    m_TableSummaryMetaData->SetColumnWidth(345);
+
     // Dump the contents of the meta data dictionary
+    /*
     m_SummaryTextBuffer->text("");
     MetaDataDictionary &mdd = native->GetMetaDataDictionary();
     for(
@@ -820,6 +825,7 @@ ImageIOWizardLogic
 
       m_SummaryTextBuffer->append(sout.str().c_str());
       }
+    */
     }
   else 
     {
@@ -828,7 +834,7 @@ ImageIOWizardLogic
     m_OutSummaryOrientation->value("n/a");
     m_OutSummaryPixelType->value("n/a");
     m_OutSummaryByteOrder->value("n/a");
-    m_SummaryTextBuffer->text("");
+    // m_SummaryTextBuffer->text("");
 
     for(size_t i = 0; i < 3; i++)
       {
@@ -863,7 +869,7 @@ ImageIOWizardLogic
 
 ImageIOWizardLogic::~ImageIOWizardLogic() 
 {
-  delete m_SummaryTextBuffer;
+  // delete m_SummaryTextBuffer;
 }
 
 

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/01 07:27:30 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2010/06/03 12:31:27 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -343,7 +343,7 @@ GuidedNativeImageIO
   typedef itk::VectorImage<TScalar, 3> NativeImageType;
 
   // There is a special handler for the DICOM case!
-  if(m_FileFormat == FORMAT_DICOM)
+  if(m_FileFormat == FORMAT_DICOM && m_DICOMFiles.size() > 1)
     {
     // It seems that ITK can't yet read DICOM into a VectorImage. 
     typedef itk::OrientedImage<TScalar, 3> GreyImageType;

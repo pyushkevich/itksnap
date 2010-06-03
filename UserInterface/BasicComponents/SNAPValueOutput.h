@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   ITK-SNAP
-  Module:    $RCSfile: MetaDataTable.h,v $
+  Module:    $RCSfile: SNAPValueOutput.h,v $
   Language:  C++
   Date:      $Date: 2010/06/03 12:31:27 $
-  Version:   $Revision: 1.2 $
+  Version:   $Revision: 1.1 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -32,44 +32,37 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-#ifndef __MetaDataTable_h_
-#define __MetaDataTable_h_
+#ifndef __SNAPValueOutput_h_
+#define __SNAPValueOutput_h_
 
-#include "FL/Fl_Table.H"
-#include "FL/Fl_Table_Row.H"
-#include "SNAPCommon.h"
-#include <vector>
-#include <string>
+#include "FL/Fl_Value_Output.H"
+#include <cstdio>
 
-namespace itk { template <unsigned int VDim> class ImageBase; }
-
-class MetaDataTable : public Fl_Table_Row
+/**
+ * \class SNAPValueOutput
+ * \brief An extension of Fl_Value_Output with specified number of significant
+ * digits (uses %.*g format)
+ */
+class SNAPValueOutput : public Fl_Value_Output
 {
 public:
-  MetaDataTable(int x, int y, int w, int h, const char *l=0) 
-    : Fl_Table_Row(x,y,w,h,l) { end(); }
-
-  ~MetaDataTable() { }
-
-  void SetInputImage(itk::ImageBase<3> *image);
-  
-  void SetColumnWidth(int total_width);
-
-  irisGetMacro(PreferredKeyWidth, size_t);
-  irisGetMacro(PreferredValueWidth, size_t);
+  SNAPValueOutput(int X, int Y, int W, int H,const char *l=0)
+    : Fl_Value_Output(X,Y,W,H,l) { this->step(4); }
 
 protected:
 
-  /* Draw table cell */
-  void draw_cell(TableContext context,  		
-    int R=0, int C=0, int X=0, int Y=0, int W=0, int H=0);
+  int format(char *buffer)
+    {
+    double s = step();
+    if(s >= 1.0)
+      return snprintf(buffer, 128, "%.*g", (int) s, this->value());
+    else 
+      return Fl_Value_Output::format(buffer);
+    }
 
-  std::vector< std::string > m_Header;
-  std::vector< std::vector< std::string > > m_Body;
-
-  int m_PreferredKeyWidth, m_PreferredValueWidth, m_PreferredHeight;
-
+  int handle(int event)
+    { return 0; }
 };
 
-#endif
 
+#endif

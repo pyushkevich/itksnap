@@ -113,7 +113,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 MenuItem m_MenuSaveLevelSet {
                   label {&Level Set Function...}
                   callback {this->OnMenuSaveLevelSet();}
-                  tooltip {Save the floating-point level set function during segmentation} xywh {55 55 100 20} shortcut 0x5006c labelsize 12 deactivate divider
+                  tooltip {Save the floating-point level set function during segmentation} xywh {55 55 100 20} shortcut 0x5006c labelsize 12 deactivate
                 }
                 MenuItem m_MenuSaveVoxelCounts {
                   label {&Volumes && Statistics...}
@@ -122,7 +122,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 }
               }
               Submenu m_MenuExport {
-                label {&Export}
+                label {&Export} open
                 xywh {25 25 100 20} labelsize 12 divider
               } {
                 Submenu m_MenuExportSlice {
@@ -167,7 +167,7 @@ class UserInterface {open : {public UserInterfaceBase}
                 }
                 Submenu m_MenuSaveScreenshotSeries {
                   label {Screenshot S&eries} open
-                  xywh {15 15 100 20} labelsize 12 deactivate divider
+                  xywh {15 15 100 20} labelsize 12 deactivate
                 } {
                   MenuItem m_MenuSaveScreenshotSeriesAxial {
                     label {&Axial...}
@@ -234,11 +234,16 @@ class UserInterface {open : {public UserInterfaceBase}
               MenuItem m_MenuSaveLabels {
                 label {Save Label D&escriptions...}
                 callback {this->OnMenuSaveLabels();}
-                xywh {45 45 100 20} shortcut 0x5006c labelsize 12
+                xywh {45 45 100 20} shortcut 0x5006c labelsize 12 divider
+              }
+              MenuItem m_MenuShowVolumes {
+                label {&Volumes and Statistics...}
+                callback {this->OnMenuShowVolumes();}
+                tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {25 25 100 20} shortcut 0x50076 labelsize 12
               }
             }
             Submenu {} {
-              label {&Overlay}
+              label {&Overlay} open
               xywh {10 10 100 20} labelsize 12
             } {
               MenuItem m_MenuLoadGreyOverlay {
@@ -249,7 +254,7 @@ class UserInterface {open : {public UserInterfaceBase}
               MenuItem m_MenuLoadRGBOverlay {
                 label {Add &RGB Overlay...}
                 callback {this->OnMenuLoadRGBOverlay();}
-                tooltip {Load an RGB image on top of an already loaded grayscale image} xywh {20 20 100 20} shortcut 0x50072 labelsize 12 deactivate
+                tooltip {Load an RGB image on top of an already loaded grayscale image} xywh {20 20 100 20} shortcut 0x50072 labelsize 12 deactivate divider
               }
               MenuItem m_MenuUnloadOverlayLast {
                 label {&Unload Last Overlay}
@@ -259,18 +264,18 @@ class UserInterface {open : {public UserInterfaceBase}
               MenuItem m_MenuUnloadOverlays {
                 label {Unload &All Overlays}
                 callback {this->OnMenuUnloadOverlays()}
-                tooltip {Unload All Greyscale Overlays} xywh {5 5 30 20} labelsize 12
+                tooltip {Unload All Greyscale Overlays} xywh {5 5 30 20} labelsize 12 divider
+              }
+              MenuItem m_MenuLayerInspector {
+                label {&Layer Inspector...}
+                callback {OnMenuShowLayerInspector()}
+                xywh {10 10 30 20} labelsize 12
               }
             }
             Submenu {} {
               label {&Tools} open
               xywh {10 10 100 20} labelsize 12
             } {
-              MenuItem m_MenuImageInfo {
-                label {&Image Info...}
-                callback {this->OnMenuImageInfo();}
-                xywh {10 10 100 20} labelsize 12
-              }
               MenuItem m_MenuIntensityCurve {
                 label {Image &Contrast...}
                 callback {this->OnMenuIntensityCurve();}
@@ -279,12 +284,12 @@ class UserInterface {open : {public UserInterfaceBase}
               MenuItem m_MenuColorMap {
                 label {Image Color &Map...}
                 callback {this->OnMenuColorMap();}
-                xywh {20 20 100 20} labelsize 12 deactivate divider
+                xywh {20 20 100 20} labelsize 12 deactivate
               }
-              MenuItem m_MenuShowVolumes {
-                label {&Volumes and Statistics...}
-                callback {this->OnMenuShowVolumes();}
-                tooltip {Change the mapping between voxel coordinates and world coordinates} xywh {20 20 100 20} shortcut 0x50076 labelsize 12 divider
+              MenuItem m_MenuImageInfo {
+                label {&Image Info...}
+                callback {this->OnMenuImageInfo();}
+                xywh {10 10 100 20} labelsize 12 divider
               }
               MenuItem m_MenuReorientImage {
                 label {&Reorient Image...}
@@ -294,16 +299,11 @@ class UserInterface {open : {public UserInterfaceBase}
               MenuItem {} {
                 label {&Display Options...}
                 callback {OnMenuShowDisplayOptions();}
-                xywh {10 10 100 20} labelsize 12 divider
-              }
-              MenuItem m_MenuLayerInspector {
-                label {&Layer Inspector...}
-                callback {OnMenuShowLayerInspector()}
-                xywh {5 5 30 20} labelsize 12
+                xywh {10 10 100 20} labelsize 12
               }
             }
             Submenu {} {
-              label {&Window} open
+              label {&Layout} open selected
               xywh {0 0 62 20} labelsize 12
             } {
               MenuItem {} {
@@ -1506,7 +1506,7 @@ update}
     }
     Fl_Window m_WinSplash {
       label {Welcome to ITK-SNAP}
-      xywh {60 512 430 195} type Double align 16 hide resizable
+      xywh {60 512 430 195} type Double align 16 resizable visible
     } {
       Fl_Group {} {open
         image {Artwork/logo_new.gif} xywh {5 5 420 155} color 0 align 16
@@ -1791,7 +1791,7 @@ changes, or press 'go back' in order to save the changes first.} open
     }
     Fl_Window m_WinStatistics {
       label {ITK-SNAP Volumes and Statistics} open
-      xywh {317 471 680 322} type Double box PLASTIC_DOWN_BOX visible
+      xywh {459 480 680 322} type Double resizable visible
     } {
       Fl_Button m_BtnStatisticsUpdate {
         label Update
@@ -1810,8 +1810,8 @@ changes, or press 'go back' in order to save the changes first.} open
       }
       Fl_Box m_TableStatistics {
         label {Segmentation volumes and statistics:
- } selected
-        xywh {10 40 660 231} color 53 selection_color 246 labeltype EMBOSSED_LABEL labelcolor 4 align 5
+ }
+        xywh {10 40 660 231} color 53 selection_color 246 labeltype EMBOSSED_LABEL labelcolor 4 align 5 resizable
         code0 {\#include "StatisticsTable.h"}
         class StatisticsTable
       }

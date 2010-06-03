@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0109 
+version 1.0110 
 use_FL_COMMAND 
 header_name {.h} 
 code_name {.cxx}
@@ -181,8 +181,8 @@ class LayerInspectorUI {open : LayerInspectorUIBase
           }
         }
         Fl_Group m_ImageInfoTab {
-          label Information
-          xywh {180 25 390 455} labelsize 12 hide
+          label Information open selected
+          xywh {180 25 390 455} labelsize 12
         } {
           Fl_Group {} {
             label Dimensions open
@@ -201,20 +201,24 @@ class LayerInspectorUI {open : LayerInspectorUIBase
             xywh {495 65 65 25} labelsize 12 textsize 12
           }
           Fl_Group {} {
-            label {Voxel Spacing} open
+            label {Voxel Spacing (mm)} open
             xywh {190 114 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
           } {}
           Fl_Value_Output {m_OutImageInfoSpacing[0]} {
             label {x:}
-            xywh {325 120 65 25} labelsize 12 step 0.01 textsize 12
+            xywh {325 120 65 25} labelsize 12 step 4 textsize 12
+            code0 {\#include "SNAPValueOutput.h"}
+            class SNAPValueOutput
           }
           Fl_Value_Output {m_OutImageInfoSpacing[1]} {
             label {y:}
-            xywh {410 120 65 25} labelsize 12 step 0.01 textsize 12
+            xywh {410 120 65 25} labelsize 12 step 4 textsize 12
+            class SNAPValueOutput
           }
           Fl_Value_Output {m_OutImageInfoSpacing[2]} {
             label {z:}
-            xywh {495 120 65 25} labelsize 12 step 0.01 textsize 12
+            xywh {495 120 65 25} labelsize 12 step 4 textsize 12
+            class SNAPValueOutput
           }
           Fl_Group {} {
             label {Origin and Orientation} open
@@ -222,15 +226,18 @@ class LayerInspectorUI {open : LayerInspectorUIBase
           } {}
           Fl_Value_Output {m_OutImageInfoOrigin[0]} {
             label {x:}
-            xywh {325 175 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {325 175 65 25} labelsize 12 step 4 textsize 12
+            class SNAPValueOutput
           }
           Fl_Value_Output {m_OutImageInfoOrigin[1]} {
             label {y:}
-            xywh {410 175 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {410 175 65 25} labelsize 12 step 4 textsize 12
+            class SNAPValueOutput
           }
           Fl_Value_Output {m_OutImageInfoOrigin[2]} {
             label {z:}
-            xywh {495 175 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {495 175 65 25} labelsize 12 step 4 textsize 12
+            class SNAPValueOutput
           }
           Fl_Output m_OutImageInfoOriginRAICode {
             label {RAI Code:}
@@ -242,27 +249,33 @@ class LayerInspectorUI {open : LayerInspectorUIBase
           } {}
           Fl_Value_Output {m_OutImageInfoCursorPosition[0]} {
             label {x:}
-            xywh {325 290 65 25} labelsize 12 textsize 12
+            xywh {325 290 65 25} labelsize 12 step 4 textsize 12
+            class SNAPValueOutput
           }
           Fl_Value_Output {m_OutImageInfoCursorPosition[1]} {
             label {y:}
-            xywh {410 290 65 25} labelsize 12 textsize 12
+            xywh {410 290 65 25} labelsize 12 step 4 textsize 12
+            class SNAPValueOutput
           }
           Fl_Value_Output {m_OutImageInfoCursorPosition[2]} {
             label {z:}
-            xywh {495 290 65 25} labelsize 12 textsize 12
+            xywh {495 290 65 25} labelsize 12 step 4 textsize 12
+            class SNAPValueOutput
           }
           Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[0]} {
             label {x:}
-            xywh {325 320 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {325 320 65 25} labelsize 12 step 4 textsize 12
+            class SNAPValueOutput
           }
           Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[1]} {
             label {y:}
-            xywh {410 320 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {410 320 65 25} labelsize 12 step 4 textsize 12
+            class SNAPValueOutput
           }
           Fl_Value_Output {m_OutImageInfoCursorNIFTIPosition[2]} {
             label {z:}
-            xywh {495 320 65 25} labelsize 12 step 0.001 textsize 12
+            xywh {495 320 65 25} labelsize 12 step 4 textsize 12
+            class SNAPValueOutput
           }
           Fl_Value_Input {m_InImageInfoCursorIndex[0]} {
             label {x:}
@@ -303,11 +316,13 @@ coordinates} open
           } {}
           Fl_Value_Output {m_OutImageInfoRange[0]} {
             label {min:}
-            xywh {325 380 95 25} labelsize 12 textsize 12
+            xywh {325 380 95 25} labelsize 12 step 6 textsize 12
+            class SNAPValueOutput
           }
           Fl_Value_Output {m_OutImageInfoRange[1]} {
             label {max:}
-            xywh {465 380 95 25} labelsize 12 textsize 12
+            xywh {465 380 95 25} labelsize 12 step 6 textsize 12
+            class SNAPValueOutput
           }
           Fl_Group {} {
             label {Voxel Under the Cursor} open
@@ -321,7 +336,8 @@ coordinates} open
             } {
               Fl_Value_Output m_OutImageInfoVoxelGray {
                 label {Intensity:}
-                xywh {455 435 95 25} labelsize 12 textsize 12
+                xywh {455 435 95 25} labelsize 12 step 6 textsize 12
+                class SNAPValueOutput
               }
             }
             Fl_Group m_GrpWizImageInfoVoxelPageRGB {open
@@ -329,31 +345,34 @@ coordinates} open
             } {
               Fl_Value_Output {m_OutImageInfoVoxelRGB[0]} {
                 label {R:}
-                xywh {325 435 65 25} labelsize 12 textsize 12
+                xywh {325 435 65 25} labelsize 12 step 4 textsize 12
+                class SNAPValueOutput
               }
               Fl_Value_Output {m_OutImageInfoVoxelRGB[1]} {
                 label {G:}
-                xywh {410 435 65 25} labelsize 12 textsize 12
+                xywh {410 435 65 25} labelsize 12 step 4 textsize 12
+                class SNAPValueOutput
               }
               Fl_Value_Output {m_OutImageInfoVoxelRGB[2]} {
                 label {B:}
-                xywh {495 435 65 25} labelsize 12 textsize 12
+                xywh {495 435 65 25} labelsize 12 step 4 textsize 12
+                class SNAPValueOutput
               }
             }
           }
         }
         Fl_Group m_ImageAdvancedInfoTab {
           label {Advanced Info} open
-          xywh {180 25 390 455} labelsize 12
+          xywh {180 25 390 455} labelsize 12 hide
         } {
           Fl_Box m_TableMetaData {
-            label label selected
-            xywh {190 58 370 197} labeltype NO_LABEL
+            label label
+            xywh {190 58 370 200} selection_color 246 labeltype NO_LABEL
             code0 {\#include "MetaDataTable.h"}
             class MetaDataTable
           }
           Fl_Group {} {
-            label {Image Meta Data} open
+            label {Image Header Contents} open
             xywh {190 54 370 1} box BORDER_FRAME color 8 labelfont 1 labelsize 12 align 5
           } {}
         }
