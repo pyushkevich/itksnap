@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPFormattedOutput.h,v $
   Language:  C++
-  Date:      $Date: 2010/06/03 19:25:32 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2010/06/15 16:27:44 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -57,7 +57,7 @@ public:
 
   void value(double val)
     { 
-    snprintf(m_Buffer, 128, m_Format, val);
+    sprintf(m_Buffer, m_Format, val);
     Fl_Output::value(m_Buffer);
     }
 

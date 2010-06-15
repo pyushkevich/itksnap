@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPValueOutput.h,v $
   Language:  C++
-  Date:      $Date: 2010/06/03 12:31:27 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2010/06/15 16:27:44 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -55,7 +55,7 @@ protected:
     {
     double s = step();
     if(s >= 1.0)
-      return snprintf(buffer, 128, "%.*g", (int) s, this->value());
+      return sprintf(buffer, "%.*g", (int) s, this->value());
     else 
       return Fl_Value_Output::format(buffer);
     }

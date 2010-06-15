@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 11:16:22 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2010/06/15 16:27:44 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -44,7 +44,6 @@
 #include <algorithm>
 #include <set>
 #include <vnl/vnl_random.h>
-#include "FL/FL_ask.H"
 #include "FL/Fl_Menu_Button.H"
 
 #include "itkOrientedImage.h"
@@ -1261,6 +1260,9 @@ PolygonDrawing
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.13  2010/06/15 16:27:44  pyushkevich
+ *build errors fixed
+ *
  *Revision 1.12  2010/05/27 11:16:22  pyushkevich
  *Further improved polygon drawing interface
  *
