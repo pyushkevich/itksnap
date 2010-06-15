@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MetaDataTable.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/03 12:31:27 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2010/06/15 16:54:35 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -298,7 +298,7 @@ MetaDataTable
       row_selected(R) ? selection_color() : FL_WHITE);
     fl_pop_clip();
 
-    if(R < m_Body.size())
+    if(R < (int) m_Body.size())
       {
       text = m_Body[R][C];
       fl_push_clip(X+3, Y, W-6, H);

@@ -542,9 +542,10 @@ ITK_DISABLE_FLTK_GENERATED_WARNINGS("${APPLICATION_FLUIDS}")
 ADD_EXECUTABLE(${SNAP_EXE} WIN32 UserInterface/SNAPMain.cxx)
 TARGET_LINK_LIBRARIES(${SNAP_EXE}
   fltk_native_file_chooser 
-  fltk_table 
   ${SNAP_INTERNAL_LIBS}
-  ${SNAP_EXTERNAL_LIBS})
+  ${SNAP_EXTERNAL_LIBS}
+  fltk_table 
+  )
 
 # Define the testing EXE
 ADD_EXECUTABLE(snaptest ${TESTING_CXX})

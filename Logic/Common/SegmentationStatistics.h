@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SegmentationStatistics.h,v $
   Language:  C++
-  Date:      $Date: 2010/05/31 19:52:37 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2010/06/15 16:54:35 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -71,7 +71,8 @@ public:
   /* Export to a text file as a formatted table */
   void ExportText(std::ostream &oss, const ColorLabelTable &clt);
 
-  irisGetMacro(Stats, const Entry *);
+  const Entry * GetStats() const
+    { return m_Stats; }
 
 private:
   // Label statistics

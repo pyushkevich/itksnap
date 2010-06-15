@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/05/31 19:52:37 $
-  Version:   $Revision: 1.30 $
+  Date:      $Date: 2010/06/15 16:54:35 $
+  Version:   $Revision: 1.31 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -751,8 +751,6 @@ void
 IRISApplication
 ::ExportSegmentationStatistics(const char *file)  throw(ExceptionObject)
 {
-  unsigned int i;
-  
   // Make sure that the segmentation image exists
   assert(m_CurrentImageData->IsSegmentationLoaded());
 
