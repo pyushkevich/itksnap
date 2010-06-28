@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPLevelSetDriver.txx,v $
   Language:  C++
-  Date:      $Date: 2009/09/17 14:46:04 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -61,7 +61,6 @@
 #pragma warning ( disable : 4503 )
 #endif
 
-using namespace itk;
 
 // Create an inverting functor
 class InvertFunctor {
@@ -146,10 +145,10 @@ SNAPLevelSetDriver<VDimension>
     {
     // Define an extension to the appropriate filter class
 #if defined(USE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
-    typedef ParallelSparseFieldLevelSetImageFilterBugFix<
+    typedef itk::ParallelSparseFieldLevelSetImageFilterBugFix<
       FloatImageType, FloatImageType> LevelSetFilterType;
 #else
-    typedef SparseFieldLevelSetImageFilter<
+    typedef itk::SparseFieldLevelSetImageFilter<
       FloatImageType, FloatImageType> LevelSetFilterType;
 #endif
 
@@ -190,7 +189,7 @@ SNAPLevelSetDriver<VDimension>
   else if(m_Parameters.GetSolver() == SnakeParameters::DENSE_SOLVER)
     {
     // Define an extension to the appropriate filter class
-    typedef DenseFiniteDifferenceImageFilter<
+    typedef itk::DenseFiniteDifferenceImageFilter<
       FloatImageType,FloatImageType> LevelSetFilterType;
     typedef LevelSetExtensionFilter<LevelSetFilterType> ExtensionFilter;
     typename ExtensionFilter::Pointer filter = ExtensionFilter::New();

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MetaDataTable.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/15 16:54:35 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -39,7 +39,6 @@
 #include "itkMetaDataObject.h"
 #include "itkGDCMImageIO.h"
 using namespace std;
-using namespace itk;
 
 string
 get_rai_code(itk::SpatialOrientation::ValidCoordinateOrientationFlags code)

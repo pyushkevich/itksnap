@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 07:29:36 $
-  Version:   $Revision: 1.32 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.33 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -53,7 +53,6 @@
 
 #include "itkConstantPadImageFilter.h"
 
-using namespace itk;
 using namespace std;
 
 GenericSliceWindow

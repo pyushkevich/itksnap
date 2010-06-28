@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/03 12:31:27 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -52,7 +52,6 @@
 #include <itksys/SystemTools.hxx>
 
 using std::map;
-using namespace itk;
 
 
 ImageIOWizardLogic
@@ -60,7 +59,7 @@ ImageIOWizardLogic
 {                 
 
   // Initialize the DICOM directory lister
-  m_DICOMLister = GDCMSeriesFileNames::New();
+  m_DICOMLister = itk::GDCMSeriesFileNames::New();
   
   // Initialize the text buffers
   // m_SummaryTextBuffer = new Fl_Text_Buffer();
@@ -618,7 +617,7 @@ ImageIOWizardLogic
     // Check if the image is really valid
     rc = CheckImageValidity();
     }
-  catch(ExceptionObject &exc)
+  catch(itk::ExceptionObject &exc)
   {
     // Show the error
     fl_alert("Error reading image: %s.",exc.GetDescription());
@@ -757,7 +756,7 @@ ImageIOWizardLogic
     m_OutSummaryOrientation->value(sout.str().c_str());
     
     // TODO: This is a workaround on an itk bug with RawImageIO
-    if(m_GuidedIO.GetComponentTypeInNativeImage() != ImageIOBase::UNKNOWNCOMPONENTTYPE)
+    if(m_GuidedIO.GetComponentTypeInNativeImage() != itk::ImageIOBase::UNKNOWNCOMPONENTTYPE)
       {
       // There actually is a type in the IO object
       m_OutSummaryPixelType->value(
@@ -1136,7 +1135,7 @@ ImageIOWizardLogic
     // Hide the dialog
     m_WinOutput->hide();
     }
-  catch(ExceptionObject &exc)
+  catch(itk::ExceptionObject &exc)
     { fl_alert("Error saving file: %s",exc.GetDescription()); }
   
   // Restore the cursor

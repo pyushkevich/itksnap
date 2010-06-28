@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/15 16:54:35 $
-  Version:   $Revision: 1.31 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.32 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -69,7 +69,6 @@
 #include <sstream>
 #include <iomanip>
 
-using namespace itk;
 
 IRISApplication
 ::IRISApplication() 
@@ -168,7 +167,7 @@ IRISApplication
   // of the current drawing color
   LabelType passThroughLabel = m_GlobalState->GetDrawingColorLabel();
 
-  typedef ImageRegionIterator<LabelImageType> IteratorType;  
+  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
   IteratorType itLabel(imgNewLabel,imgNewLabel->GetBufferedRegion());  
   while(!itLabel.IsAtEnd())
     {
@@ -449,8 +448,8 @@ IRISApplication
     }  
   
   // Create iterators for copying from one to the other
-  typedef ImageRegionConstIterator<SourceImageType> SourceIteratorType;
-  typedef ImageRegionIterator<TargetImageType> TargetIteratorType;
+  typedef itk::ImageRegionConstIterator<SourceImageType> SourceIteratorType;
+  typedef itk::ImageRegionIterator<TargetImageType> TargetIteratorType;
   SourceIteratorType itSource(source,source->GetLargestPossibleRegion());
   TargetIteratorType itTarget(target,roi.GetROI());
 
@@ -749,7 +748,7 @@ IRISApplication
 
 void 
 IRISApplication
-::ExportSegmentationStatistics(const char *file)  throw(ExceptionObject)
+::ExportSegmentationStatistics(const char *file)  throw(itk::ExceptionObject)
 {
   // Make sure that the segmentation image exists
   assert(m_CurrentImageData->IsSegmentationLoaded());
@@ -823,7 +822,7 @@ IRISApplication
   size_t nvoxels = 0;
 
   // Update the segmentation
-  typedef ImageRegionIterator<
+  typedef itk::ImageRegionIterator<
     LabelImageWrapper::ImageType> IteratorType;
   for(IteratorType it(imgLabel, imgLabel->GetBufferedRegion());  
     !it.IsAtEnd(); ++it)
@@ -851,7 +850,7 @@ IRISApplication
     m_CurrentImageData->GetSegmentation()->GetImage();
   
   // Get an iterator for the image
-  typedef ImageRegionIteratorWithIndex<
+  typedef itk::ImageRegionIteratorWithIndex<
     LabelImageWrapper::ImageType> IteratorType;
   IteratorType it(imgLabel, imgLabel->GetBufferedRegion());
 
@@ -1074,7 +1073,7 @@ IRISApplication
     // Add the image as the current RGB overlay
     m_IRISImageData->SetRGBOverlay(imgRGB);
     }
-  else throw ExceptionObject("Unsupported overlay image type");
+  else throw itk::ExceptionObject("Unsupported overlay image type");
 
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
@@ -1135,7 +1134,7 @@ IRISApplication
     // At this point, deallocate the native image, so that we don't use more memory
     io->DeallocateNativeImage();
     }
-  else throw ExceptionObject("Unsupported main image type");
+  else throw itk::ExceptionObject("Unsupported main image type");
 
   // Update the crosshairs position
   Vector3ui cursor = size;
@@ -1177,7 +1176,7 @@ IRISApplication
     {
     m_GlobalState->SetRGBFileName(filename);  
     }
-  else throw ExceptionObject("Unsupported main image type");
+  else throw itk::ExceptionObject("Unsupported main image type");
 
   return type;
 }

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/03 12:31:27 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -64,7 +64,6 @@
 #include "itkNumericTraits.h"
 
 
-using namespace itk;
 using namespace std;
 
 bool GuidedNativeImageIO::m_StaticDataInitialized = false;
@@ -159,7 +158,7 @@ GuidedNativeImageIO
 ::CreateRawImageIO(Registry &folder)
 {
   // Create the Raw IO
-  typedef RawImageIO<TRaw,3> IOType;  
+  typedef itk::RawImageIO<TRaw,3> IOType;
   typename IOType::Pointer rawIO = IOType::New();
   
   // Set the header size
@@ -205,17 +204,17 @@ GuidedNativeImageIO
   // Choose the approach based on the file format
   switch(m_FileFormat)
     {
-    case FORMAT_MHA:        m_IOBase = MetaImageIO::New();          break;
-    case FORMAT_NRRD:       m_IOBase = NrrdImageIO::New();          break;
-    case FORMAT_ANALYZE:    m_IOBase = AnalyzeImageIO::New();       break;
-    case FORMAT_GIPL:       m_IOBase = GiplImageIO::New();          break;
-    case FORMAT_GE4:        m_IOBase = GE4ImageIO::New();           break;
-    case FORMAT_GE5:        m_IOBase = GE5ImageIO::New();           break;
-    case FORMAT_NIFTI:      m_IOBase = NiftiImageIO::New();         break;
-    case FORMAT_SIEMENS:    m_IOBase = SiemensVisionImageIO::New(); break;
-    case FORMAT_VTK:        m_IOBase = VTKImageIO::New();           break;
-    case FORMAT_VOXBO_CUB:  m_IOBase = VoxBoCUBImageIO::New();      break;
-    case FORMAT_DICOM:      m_IOBase = GDCMImageIO::New();          break;
+    case FORMAT_MHA:        m_IOBase = itk::MetaImageIO::New();          break;
+    case FORMAT_NRRD:       m_IOBase = itk::NrrdImageIO::New();          break;
+    case FORMAT_ANALYZE:    m_IOBase = itk::AnalyzeImageIO::New();       break;
+    case FORMAT_GIPL:       m_IOBase = itk::GiplImageIO::New();          break;
+    case FORMAT_GE4:        m_IOBase = itk::GE4ImageIO::New();           break;
+    case FORMAT_GE5:        m_IOBase = itk::GE5ImageIO::New();           break;
+    case FORMAT_NIFTI:      m_IOBase = itk::NiftiImageIO::New();         break;
+    case FORMAT_SIEMENS:    m_IOBase = itk::SiemensVisionImageIO::New(); break;
+    case FORMAT_VTK:        m_IOBase = itk::VTKImageIO::New();           break;
+    case FORMAT_VOXBO_CUB:  m_IOBase = itk::VoxBoCUBImageIO::New();      break;
+    case FORMAT_DICOM:      m_IOBase = itk::GDCMImageIO::New();          break;
     case FORMAT_RAW:
       {
       // Get the Raw header sub-folder
@@ -237,7 +236,7 @@ GuidedNativeImageIO
         case PIXELTYPE_FLOAT:  CreateRawImageIO<float>(fldRaw);          break;
         case PIXELTYPE_DOUBLE: CreateRawImageIO<double>(fldRaw);         break;
         default:
-          throw ExceptionObject("Unsupported Pixel Type when reading Raw File");
+          throw itk::ExceptionObject("Unsupported Pixel Type when reading Raw File");
         }
       }
       break;
@@ -267,7 +266,7 @@ GuidedNativeImageIO
   // Create the header corresponding to the current image type
   CreateImageIO(FileName, folder, true);
   if(!m_IOBase)
-    throw ExceptionObject("Unsupported image file type");
+    throw itk::ExceptionObject("Unsupported image file type");
 
   // Read the information about the image
   if(m_FileFormat == FORMAT_DICOM)
@@ -280,16 +279,16 @@ GuidedNativeImageIO
     if(m_DICOMFiles.size() == 0)
       {
       // Create a names generator. The input must be a directory 
-      typedef GDCMSeriesFileNames NamesGeneratorType;
+      typedef itk::GDCMSeriesFileNames NamesGeneratorType;
       NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
       nameGenerator->SetDirectory(FileName);
 
       // Get the list of series in the directory
-      const SerieUIDContainer &sids = nameGenerator->GetSeriesUIDs();
+      const itk::SerieUIDContainer &sids = nameGenerator->GetSeriesUIDs();
 
       // There must be at least of series
       if(sids.size() == 0)
-        throw ExceptionObject("No DICOM series found in the DICOM directory");
+        throw itk::ExceptionObject("No DICOM series found in the DICOM directory");
     
       // Read the first DICOM series in the directory
       m_DICOMFiles = nameGenerator->GetFileNames(sids.front().c_str());
@@ -297,7 +296,7 @@ GuidedNativeImageIO
 
     // Read the information from the first filename
     if(m_DICOMFiles.size() == 0)
-      throw ExceptionObject("No DICOM files found in the DICOM directory");
+      throw itk::ExceptionObject("No DICOM files found in the DICOM directory");
     m_IOBase->SetFileName(m_DICOMFiles[0]);
     m_IOBase->ReadImageInformation();
     }
@@ -310,18 +309,18 @@ GuidedNativeImageIO
   // Based on the component type, read image in native mode
   switch(m_IOBase->GetComponentType()) 
     {
-    case ImageIOBase::UCHAR:  DoReadNative<unsigned char>(FileName, folder);  break;
-    case ImageIOBase::CHAR:   DoReadNative<signed char>(FileName, folder);    break;
-    case ImageIOBase::USHORT: DoReadNative<unsigned short>(FileName, folder); break;
-    case ImageIOBase::SHORT:  DoReadNative<signed short>(FileName, folder);   break;
-    case ImageIOBase::UINT:   DoReadNative<unsigned int>(FileName, folder);   break;
-    case ImageIOBase::INT:    DoReadNative<signed int>(FileName, folder);     break;
-    case ImageIOBase::ULONG:  DoReadNative<unsigned long>(FileName, folder);  break;
-    case ImageIOBase::LONG:   DoReadNative<signed long>(FileName, folder);    break;
-    case ImageIOBase::FLOAT:  DoReadNative<float>(FileName, folder);          break;
-    case ImageIOBase::DOUBLE: DoReadNative<double>(FileName, folder);         break;
+    case itk::ImageIOBase::UCHAR:  DoReadNative<unsigned char>(FileName, folder);  break;
+    case itk::ImageIOBase::CHAR:   DoReadNative<signed char>(FileName, folder);    break;
+    case itk::ImageIOBase::USHORT: DoReadNative<unsigned short>(FileName, folder); break;
+    case itk::ImageIOBase::SHORT:  DoReadNative<signed short>(FileName, folder);   break;
+    case itk::ImageIOBase::UINT:   DoReadNative<unsigned int>(FileName, folder);   break;
+    case itk::ImageIOBase::INT:    DoReadNative<signed int>(FileName, folder);     break;
+    case itk::ImageIOBase::ULONG:  DoReadNative<unsigned long>(FileName, folder);  break;
+    case itk::ImageIOBase::LONG:   DoReadNative<signed long>(FileName, folder);    break;
+    case itk::ImageIOBase::FLOAT:  DoReadNative<float>(FileName, folder);          break;
+    case itk::ImageIOBase::DOUBLE: DoReadNative<double>(FileName, folder);         break;
     default: 
-      throw ExceptionObject("Unknown Pixel Type when reading image");
+      throw itk::ExceptionObject("Unknown Pixel Type when reading image");
     }
 
   // Get rid of the IOBase, it may store useless data (in case of NIFTI)
@@ -349,7 +348,7 @@ GuidedNativeImageIO
     typedef itk::OrientedImage<TScalar, 3> GreyImageType;
 
     // Create an image series reader 
-    typedef ImageSeriesReader<GreyImageType> ReaderType;
+    typedef itk::ImageSeriesReader<GreyImageType> ReaderType;
     typename ReaderType::Pointer reader = ReaderType::New();
 
     // Set the filenames and read
@@ -422,8 +421,8 @@ GuidedNativeImageIO
     image->Allocate();
 
     // Set the IO region
-    ImageIORegion ioRegion(3);
-    ImageIORegionAdaptor<3>::Convert(region, ioRegion, index);
+    itk::ImageIORegion ioRegion(3);
+    itk::ImageIORegionAdaptor<3>::Convert(region, ioRegion, index);
     m_IOBase->SetIORegion(ioRegion);
 
     // Read the image into the buffer
@@ -494,7 +493,7 @@ GuidedNativeImageIO
   CreateImageIO(FileName, folder, false);
 
   // Save the image
-  typedef ImageFileWriter< itk::Image<TPixel,3> > WriterType;
+  typedef itk::ImageFileWriter< itk::Image<TPixel,3> > WriterType;
   typename WriterType::Pointer writer = WriterType::New();
   
   writer->SetFileName(FileName);
@@ -528,21 +527,21 @@ RescaleNativeImageToScalar<TPixel>::operator()(GuidedNativeImageIO *nativeIO)
   m_Output->SetRegions(native->GetBufferedRegion());
 
   // Cast image from native format to TPixel
-  ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
+  itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
   switch(itype) 
     {
-    case ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
-    case ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
-    case ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
-    case ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
-    case ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
-    case ImageIOBase::INT:    DoCast<signed int>(native);      break;
-    case ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
-    case ImageIOBase::LONG:   DoCast<signed long>(native);     break;
-    case ImageIOBase::FLOAT:  DoCast<float>(native);           break;
-    case ImageIOBase::DOUBLE: DoCast<double>(native);          break;
+    case itk::ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
+    case itk::ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
+    case itk::ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
+    case itk::ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
+    case itk::ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
+    case itk::ImageIOBase::INT:    DoCast<signed int>(native);      break;
+    case itk::ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
+    case itk::ImageIOBase::LONG:   DoCast<signed long>(native);     break;
+    case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
+    case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
     default: 
-      throw ExceptionObject("Unknown Pixel Type when reading image");
+      throw itk::ExceptionObject("Unknown Pixel Type when reading image");
     }
 
   // Return the output image
@@ -556,7 +555,7 @@ RescaleNativeImageToScalar<TPixel>
 ::DoCast(itk::ImageBase<3> *native)
 {
   // Get the native image
-  typedef VectorImage<TNative, 3> InputImageType;
+  typedef itk::VectorImage<TNative, 3> InputImageType;
   typedef itk::ImageRegionConstIterator<InputImageType> InputIterator;
   typename InputImageType::Pointer input = 
     dynamic_cast<InputImageType *>(native);
@@ -580,10 +579,10 @@ RescaleNativeImageToScalar<TPixel>
   // We must compute the range of the input data
   size_t nvoxels = input->GetBufferedRegion().GetNumberOfPixels();
   size_t ncomp = input->GetNumberOfComponentsPerPixel();
-  double imin = NumericTraits<double>::max();
-  double imax = -NumericTraits<double>::max();
-  TPixel omax = NumericTraits<TPixel>::max();
-  TPixel omin = NumericTraits<TPixel>::min();
+  double imin = itk::NumericTraits<double>::max();
+  double imax = -itk::NumericTraits<double>::max();
+  TPixel omax = itk::NumericTraits<TPixel>::max();
+  TPixel omin = itk::NumericTraits<TPixel>::min();
 
   if(ncomp > 1)
     {
@@ -612,7 +611,7 @@ RescaleNativeImageToScalar<TPixel>
 
   // Now we have to be careful, depending on the type of the input voxel
   // For float and double, we map the input range into the output range
-  if(!NumericTraits<TNative>::is_integer || ncomp > 1)
+  if(!itk::NumericTraits<TNative>::is_integer || ncomp > 1)
     {
     // Test whether the input image is actually an integer image cast to 
     // floating point. In that case, there is no need for conversion
@@ -703,21 +702,21 @@ CastNativeImageBase<TPixel,TCastFunctor>
   itk::ImageBase<3> *native = nativeIO->GetNativeImage();
 
   // Cast image from native format to TPixel
-  ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
+  itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
   switch(itype) 
     {
-    case ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
-    case ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
-    case ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
-    case ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
-    case ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
-    case ImageIOBase::INT:    DoCast<signed int>(native);      break;
-    case ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
-    case ImageIOBase::LONG:   DoCast<signed long>(native);     break;
-    case ImageIOBase::FLOAT:  DoCast<float>(native);           break;
-    case ImageIOBase::DOUBLE: DoCast<double>(native);          break;
+    case itk::ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
+    case itk::ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
+    case itk::ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
+    case itk::ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
+    case itk::ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
+    case itk::ImageIOBase::INT:    DoCast<signed int>(native);      break;
+    case itk::ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
+    case itk::ImageIOBase::LONG:   DoCast<signed long>(native);     break;
+    case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
+    case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
     default: 
-      throw ExceptionObject("Unknown Pixel Type when reading image");
+      throw itk::ExceptionObject("Unknown Pixel Type when reading image");
     }
 
   // Return the output image
@@ -731,7 +730,7 @@ CastNativeImageBase<TPixel,TCastFunctor>
 ::DoCast(itk::ImageBase<3> *native)
 {
   // Get the native image
-  typedef VectorImage<TNative, 3> InputImageType;
+  typedef itk::VectorImage<TNative, 3> InputImageType;
   typename InputImageType::Pointer input = 
     reinterpret_cast<InputImageType *>(native);
   assert(input);
@@ -793,21 +792,21 @@ CastNativeImageToScalar<TPixel>
   m_Output->Allocate();
 
   // Cast image from native format to TPixel
-  ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
+  itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
   switch(itype) 
     {
-    case ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
-    case ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
-    case ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
-    case ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
-    case ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
-    case ImageIOBase::INT:    DoCast<signed int>(native);      break;
-    case ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
-    case ImageIOBase::LONG:   DoCast<signed long>(native);     break;
-    case ImageIOBase::FLOAT:  DoCast<float>(native);           break;
-    case ImageIOBase::DOUBLE: DoCast<double>(native);          break;
+    case itk::ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
+    case itk::ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
+    case itk::ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
+    case itk::ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
+    case itk::ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
+    case itk::ImageIOBase::INT:    DoCast<signed int>(native);      break;
+    case itk::ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
+    case itk::ImageIOBase::LONG:   DoCast<signed long>(native);     break;
+    case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
+    case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
     default: 
-      throw ExceptionObject("Unknown Pixel Type when reading image");
+      throw itk::ExceptionObject("Unknown Pixel Type when reading image");
     }
 
   // Return the output image
@@ -821,14 +820,14 @@ CastNativeImageToScalar<TPixel>
 ::DoCast(itk::ImageBase<3> *native)
 {
   // Get the native image
-  typedef VectorImage<TNative, 3> InputImageType;
+  typedef itk::VectorImage<TNative, 3> InputImageType;
   typename InputImageType::Pointer input = 
     reinterpret_cast<InputImageType *>(native);
   assert(input);
 
   // If the native image does not have one component, we crash
   if(input->GetNumberOfComponentsPerPixel() != 1)
-    throw ExceptionObject(
+    throw itk::ExceptionObject(
       "Specified image can not be read as a scalar image.\n"
       "It does not have 1 component per pixel.");
 

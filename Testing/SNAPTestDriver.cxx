@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPTestDriver.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/14 16:19:56 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -23,7 +23,6 @@
 #include <iostream>
 #include <iomanip>
 
-using namespace itk;
 using namespace std;
 
 const unsigned int SNAPTestDriver::NUMBER_OF_TESTS = 5;

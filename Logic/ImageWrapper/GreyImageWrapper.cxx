@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GreyImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/19 08:15:09 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.19 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -40,7 +40,6 @@
 #include "itkFunctionBase.h"
 #include "itkUnaryFunctorImageFilter.h"
 
-using namespace itk;
 
 // Create an instance of ImageWrapper of appropriate type
 template class ImageWrapper<GreyType>;

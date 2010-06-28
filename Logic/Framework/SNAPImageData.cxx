@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/29 23:02:44 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -59,7 +59,6 @@
 
 #include "SNAPImageData.h"
 
-using namespace itk;
 
 SNAPImageData
 ::SNAPImageData(IRISApplication *parent)
@@ -116,7 +115,7 @@ SNAPImageData
 
   // Provide a progress callback (if one is provided)
   if(progressCallback)
-    filter->AddObserver(ProgressEvent(),progressCallback);
+    filter->AddObserver(itk::ProgressEvent(),progressCallback);
 
   // Run the filter on the whole image
   filter->UpdateLargestPossibleRegion();
@@ -148,7 +147,7 @@ SNAPImageData
 
   // Provide a progress callback (if one is provided)
   if(progressCallback)
-    filter->AddObserver(ProgressEvent(),progressCallback);
+    filter->AddObserver(itk::ProgressEvent(),progressCallback);
 
   // Run the filter
   filter->UpdateLargestPossibleRegion();
@@ -221,7 +220,7 @@ SNAPImageData
   m_SnakeColorLabel = labelColor;
 
   // Types of images used here
-  typedef OrientedImage<float,3> FloatImageType;
+  typedef itk::OrientedImage<float,3> FloatImageType;
 
   // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
   m_SnakeInitializationWrapper.InitializeToWrapper(&m_GreyWrapper, OUTSIDE_VALUE);
@@ -236,8 +235,8 @@ SNAPImageData
   LabelImageType::RegionType region = imgInput->GetBufferedRegion();
 
   // Create iterators to perform the copy
-  typedef ImageRegionConstIterator<LabelImageType> SourceIterator;
-  typedef ImageRegionIteratorWithIndex<FloatImageType> TargetIterator;  
+  typedef itk::ImageRegionConstIterator<LabelImageType> SourceIterator;
+  typedef itk::ImageRegionIteratorWithIndex<FloatImageType> TargetIterator;
   SourceIterator itSource(imgInput,region);
   TargetIterator itTarget(imgLevelSet,region);
 
@@ -273,7 +272,7 @@ SNAPImageData
   for(unsigned int iBubble=0; iBubble < bubbles.size(); iBubble++)
     {
     // Compute the extents of the bubble
-    typedef Point<double,3> PointType;
+    typedef itk::Point<double,3> PointType;
     PointType ptLower,ptUpper,ptCenter;
 
     // Compute the physical position of the bubble center

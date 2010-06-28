@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: VTKMeshPipeline.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/30 23:44:15 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,7 +38,6 @@
 #include <map>
 
 using namespace std;
-using namespace itk;
 
 
 VTKMeshPipeline

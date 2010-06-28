@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SpeedImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/25 21:38:16 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -36,7 +36,6 @@
 #include "ImageWrapper.txx"
 #include "ScalarImageWrapper.txx"
 
-using namespace itk;
 
 SpeedImageWrapper
 ::SpeedImageWrapper()

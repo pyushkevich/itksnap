@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersPreviewPipeline.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -61,7 +61,6 @@
 #endif
 
 using namespace std;
-using namespace itk;
 
 extern void fl_alert(const char *, ...);
 
@@ -404,7 +403,7 @@ SnakeParametersPreviewPipeline
     m_SpeedImage = image;
 
     // Create a filter to compute a gradient image
-    typedef GradientImageFilter<FloatImageType> GradientFilter;
+    typedef itk::GradientImageFilter<FloatImageType> GradientFilter;
     GradientFilter::Pointer filter = GradientFilter::New();
 
     // Set up and run the filter
@@ -567,9 +566,9 @@ SnakeParametersPreviewPipeline
 ::UpdateForces()
 {
   // Image interpolator types
-  typedef LinearInterpolateImageFunction<
+  typedef itk::LinearInterpolateImageFunction<
     FloatImageType,double> LerpType;
-  typedef VectorLinearInterpolateImageFunction<
+  typedef itk::VectorLinearInterpolateImageFunction<
     VectorImageType,double> VectorLerpType;
   
   // Create the speed image interpolator

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PreprocessingUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/05 16:21:14 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -30,7 +30,6 @@
 #include "itkOrientedImage.h"
 #include "itkEventObject.h" 
 
-using namespace itk;
 
 void 
 PreprocessingUILogic
@@ -728,7 +727,7 @@ PreprocessingUILogic
 ::OnEdgeProgress(itk::Object *object, const itk::EventObject &irisNotUsed(event))
 {
   // Get the value of the progress
-  float progress = reinterpret_cast<ProcessObject *>(object)->GetProgress();
+  float progress = reinterpret_cast<itk::ProcessObject *>(object)->GetProgress();
   
   // Display the filter's progress
   m_OutEdgeProgress->value(progress);
@@ -742,7 +741,7 @@ PreprocessingUILogic
 ::OnThresholdProgress(itk::Object *object, const itk::EventObject &irisNotUsed(event))
 {
   // Get the value of the progress
-  float progress = reinterpret_cast<ProcessObject *>(object)->GetProgress();
+  float progress = reinterpret_cast<itk::ProcessObject *>(object)->GetProgress();
   
   // Display the filter's progress
   m_OutThresholdProgress->value(progress);

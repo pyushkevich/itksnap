@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RGBImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/29 23:18:42 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -40,7 +40,6 @@
 template class ImageWrapper<RGBType>;
 template class VectorImageWrapper<RGBType>;
 
-using namespace itk;
 
 RGBImageWrapper
 ::RGBImageWrapper()

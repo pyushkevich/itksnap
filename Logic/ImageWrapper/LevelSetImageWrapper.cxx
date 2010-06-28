@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LevelSetImageWrapper.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/08/25 21:38:16 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,7 +41,6 @@
 template class ImageWrapper<float>;
 template class ScalarImageWrapper<float>;
 
-using namespace itk;
 
 LevelSetImageWrapper::DisplayPixelType
 LevelSetImageWrapper::MappingFunctor

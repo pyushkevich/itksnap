@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: EdgePreprocessingImageFilter.txx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -32,7 +32,6 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-using namespace itk;
 
 template<typename TInputImage,typename TOutputImage>
 EdgePreprocessingImageFilter<TInputImage,TOutputImage>
@@ -125,7 +124,7 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
 template<typename TInputImage,typename TOutputImage>
 void
 EdgePreprocessingImageFilter<TInputImage,TOutputImage>
-::PrintSelf(std::ostream& os, Indent indent) const
+::PrintSelf(std::ostream& os, itk::Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
 }

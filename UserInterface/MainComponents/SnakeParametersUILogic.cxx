@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/21 21:55:19 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -58,7 +58,6 @@
 #include "ThresholdSettings.h"
 #include "UserInterfaceBase.h"
 
-using namespace itk;
 
 void 
 SnakeParametersUILogic

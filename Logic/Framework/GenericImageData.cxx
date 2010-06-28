@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/19 07:47:03 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -85,7 +85,6 @@ typedef itk::SmartPointer<GenericImageDataDummyFunctorType> GenericImageDataDumm
 #include <iostream>
 #include <iomanip>
 
-using namespace itk;
 
 void 
 GenericImageData

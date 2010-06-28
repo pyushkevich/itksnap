@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: SNAPLevelSetDriver.cxx,v $
   Language:  C++
-  Date:      $Date: 2006/12/02 04:22:14 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2003 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -27,7 +27,6 @@
 #pragma warning ( disable : 4503 )
 #endif
 
-using namespace itk;
 
 template<unsigned int VDimension>
 SNAPLevelSetDriver<VDimension>

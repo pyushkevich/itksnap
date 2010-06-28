@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MeshObject.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -78,7 +78,6 @@
 // System includes
 #include <cstdlib>
 
-using namespace itk;
 using namespace std;
 
 MeshObject
@@ -583,6 +582,9 @@ MeshObject
 
 /*
  *$Log: MeshObject.cxx,v $
+ *Revision 1.4  2010/06/28 18:45:08  pyushkevich
+ *Patch from Michael Hanke to allow ITK 3.18 builds
+ *
  *Revision 1.3  2007/12/30 04:05:15  pyushkevich
  *GPL License
  *

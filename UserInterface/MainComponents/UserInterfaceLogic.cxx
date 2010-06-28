@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/05/31 19:52:37 $
-  Version:   $Revision: 1.110 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.111 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -99,7 +99,6 @@ UserInterfaceLogic* UserInterfaceLogic::m_GlobalUI = NULL;
 #pragma warning ( disable : 4503 )
 #endif
 
-using namespace itk;
 using namespace std;
 
 #define COLORBAR_LABEL FL_FREE_LABELTYPE
@@ -1610,10 +1609,10 @@ UserInterfaceLogic
 
 void 
 UserInterfaceLogic
-::OnITKProgressEvent(itk::Object *source, const EventObject &)
+::OnITKProgressEvent(itk::Object *source, const itk::EventObject &)
 {
   // Get the elapsed progress
-  itk::ProcessObject *po = reinterpret_cast<ProcessObject *>(source);
+  itk::ProcessObject *po = reinterpret_cast<itk::ProcessObject *>(source);
   float progress = po->GetProgress();
 
   // Update the progress bar and value
@@ -1726,7 +1725,7 @@ UserInterfaceLogic
   if(selection == 1)
     {
     try { NonInteractiveLoadMainImage(fn_open, false, false); }
-    catch(ExceptionObject &exc)
+    catch(itk::ExceptionObject &exc)
       {
       fl_alert("Error opening main image: %s", exc.what());
       this->RedrawWindows();
@@ -1737,7 +1736,7 @@ UserInterfaceLogic
     {
     try 
       { NonInteractiveLoadSegmentation(fn_open); }
-    catch(ExceptionObject &exc)
+    catch(itk::ExceptionObject &exc)
       {
       fl_alert("Error opening segmentation image: %s", exc.what());
       this->RedrawWindows();
@@ -1748,7 +1747,7 @@ UserInterfaceLogic
     {
     try 
       { NonInteractiveLoadOverlayImage(fn_open, false, false); }
-    catch(ExceptionObject &exc)
+    catch(itk::ExceptionObject &exc)
       {
       fl_alert("Error opening overlay image: %s", exc.what());
       this->RedrawWindows();
@@ -5868,6 +5867,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.111  2010/06/28 18:45:08  pyushkevich
+ *Patch from Michael Hanke to allow ITK 3.18 builds
+ *
  *Revision 1.110  2010/05/31 19:52:37  pyushkevich
  *Added volumes and statistics window
  *

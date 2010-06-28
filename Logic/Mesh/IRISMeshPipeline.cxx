@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISMeshPipeline.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/23 20:09:38 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -50,7 +50,6 @@
 #include "itkImageRegionConstIteratorWithIndex.h"
 
 using namespace std;
-using namespace itk;
 
 IRISMeshPipeline
 ::IRISMeshPipeline()
@@ -119,7 +118,7 @@ IRISMeshPipeline
     }
 
   // Create an iterator for parsing the image
-  typedef ImageRegionConstIteratorWithIndex<InputImageType> InputIterator;
+  typedef itk::ImageRegionConstIteratorWithIndex<InputImageType> InputIterator;
   InputIterator it(m_InputImage,m_InputImage->GetLargestPossibleRegion());
 
   // Parse through the image using an iterator and compute the bounding boxes

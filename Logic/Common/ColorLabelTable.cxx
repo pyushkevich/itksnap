@@ -6,7 +6,6 @@
 #include <string>
 
 using namespace std;
-using namespace itk;
 
 extern int fl_parse_color(
   const char* p, unsigned char& r, unsigned char& g, unsigned char& b);
@@ -75,7 +74,7 @@ ColorLabelTable
 void
 ColorLabelTable
 ::LoadFromFile(const char *file)
-  throw(ExceptionObject)
+  throw(itk::ExceptionObject)
 {
   // Create a stream for reading the file
   ifstream fin(file);
@@ -179,7 +178,7 @@ ColorLabelTable
 void
 ColorLabelTable
 ::SaveToFile(const char *file)
-  throw(ExceptionObject)
+  throw(itk::ExceptionObject)
 {
   // Open the file for writing
   ofstream fout(file);

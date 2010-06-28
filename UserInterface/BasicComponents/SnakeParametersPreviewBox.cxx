@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersPreviewBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/16 22:02:27 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2010/06/28 18:45:08 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -41,8 +41,6 @@
 
 extern void fl_alert(const char *, ...);
 
-using namespace itk;                              
-                              
 SnakeParametersPreviewBox
 ::SnakeParametersPreviewBox(int x, int y, int w, int h, const char *label)
 : FLTKCanvas(x,y,w,h,label), m_Interactor(this)
