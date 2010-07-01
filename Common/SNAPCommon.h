@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPCommon.h,v $
   Language:  C++
-  Date:      $Date: 2009/02/03 20:18:56 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2010/07/01 21:40:24 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -94,7 +94,7 @@ extern const GreyType MAXGREYVAL;
 extern const GreyType MINGREYVAL;
 typedef itk::RGBPixel<unsigned char> RGBType;
 
-#define MAX_COLOR_LABELS 1024
+#define MAX_COLOR_LABELS 0xffff
 
 /** 
  A structure used to map intensity from gray to 'native' intensity for

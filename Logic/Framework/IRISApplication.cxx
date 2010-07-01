@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/28 18:45:08 $
-  Version:   $Revision: 1.32 $
+  Date:      $Date: 2010/07/01 21:40:24 $
+  Version:   $Revision: 1.33 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -329,6 +329,15 @@ IRISApplication
 
   // Update the iris data
   m_IRISImageData->SetSegmentationImage(imgLabel); 
+
+  // Check that the range is valid
+  if(m_IRISImageData->GetSegmentation()->GetImageMax() > MAX_COLOR_LABELS)
+    {
+    m_IRISImageData->GetSegmentation()->GetImage()->FillBuffer(0);
+    throw IRISException(
+      "Segmentation image has more labels than maximum allowed (%d)", 
+      MAX_COLOR_LABELS);
+    }
 
   // Update the color labels, so that for every label in the image
   // there is a valid color label

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LabelEditorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 16:40:19 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2010/07/01 21:40:24 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -170,9 +170,9 @@ LabelEditorUILogic
   if(iLabel == 0)
     {
     fl_alert(
-      "It is not possible to define more than 255 labels in SNAP. \n"
+      "It is not possible to define more than %d labels in SNAP. \n"
       "Delete some of the existing labels to make room for the \n"
-      "label that you wish to add. \n");
+      "label that you wish to add. \n", MAX_COLOR_LABELS);
     return 0;
     }
 
@@ -194,15 +194,17 @@ LabelEditorUILogic
 
       try {
         int iAnswer = atoi(sAnswer);
-        if(iAnswer <= 0 || iAnswer > 255)
-          sMessage = "ERROR: You must enter a number between 1 and 255!\n";
+        if(iAnswer <= 0 || iAnswer > MAX_COLOR_LABELS)
+          fl_message("ERROR: You must enter a number between 1 and %d!\n", MAX_COLOR_LABELS);
         else if(GetColorLabel(iAnswer).IsValid())
-          sMessage = "ERROR: That label is already in use!\n";
+          fl_message("ERROR: That label is already in use!\n");
         else
           { iLabel = iAnswer; flagChosen = true; }
       } 
       catch(...)
-        { sMessage = "ERROR: You must enter a number between 1 and 255\n"; }
+        { 
+        fl_message("ERROR: You must enter a number between 1 and %d!\n", MAX_COLOR_LABELS);
+        }
       }
     }
 
@@ -358,9 +360,9 @@ LabelEditorUILogic
 
   // Get the id and check that it's valid
   unsigned int iNewId = (unsigned int) m_InLabelId->value();
-  if(iNewId <= 0 || iNewId > 255)
+  if(iNewId <= 0 || iNewId > MAX_COLOR_LABELS)
     {
-    fl_alert("The label id must be a number between 1 and 255");
+    fl_alert("The label id must be a number between 1 and %d", MAX_COLOR_LABELS);
     return;
     }
 

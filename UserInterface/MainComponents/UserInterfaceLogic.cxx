@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/28 18:45:08 $
-  Version:   $Revision: 1.111 $
+  Date:      $Date: 2010/07/01 21:40:24 $
+  Version:   $Revision: 1.112 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -5046,7 +5046,14 @@ void UserInterfaceLogic
       "SegmentationImage",m_WizSegmentationIO->GetFileName());
 
     // Send the image and RAI to the IRIS application driver
-    m_Driver->UpdateIRISSegmentationImage(m_WizSegmentationIO->GetNativeImageIO());
+    try
+      {
+      m_Driver->UpdateIRISSegmentationImage(m_WizSegmentationIO->GetNativeImageIO());
+      }
+    catch(IRISException &exc)
+      {
+      fl_alert("Loading segmentation failed.\nReason: %s", exc.what());
+      }
 
     // Discard all image data in the wizard
     m_WizSegmentationIO->ReleaseImage();
@@ -5867,6 +5874,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.112  2010/07/01 21:40:24  pyushkevich
+ *Increased max number of labels to 65535
+ *
  *Revision 1.111  2010/06/28 18:45:08  pyushkevich
  *Patch from Michael Hanke to allow ITK 3.18 builds
  *
