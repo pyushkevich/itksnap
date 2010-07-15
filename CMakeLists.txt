@@ -476,6 +476,13 @@ ELSE(VTK_USE_PATENTED)
 ENDIF(VTK_USE_PATENTED)
 
 # FLTK Related libraries
+
+# The FLTK extensions
+SUBDIRS(Utilities/FLTK/Fl_Native_File_Chooser)
+SUBDIRS(Utilities/FLTK/Fl_Table)
+INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Native_File_Chooser)
+INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Table)
+
 ## Workaround for problem with FindFLTK.cmake when FLTK was built using Cmake.
 IF(NOT FLTK_LIBRARIES)
   SET(FLTK_LIBRARIES  
@@ -486,7 +493,7 @@ IF(NOT FLTK_LIBRARIES)
     ${FLTK_FORMS_LIBRARY})
 ENDIF(NOT FLTK_LIBRARIES)
 
-SET(SNAP_FLTK_LIBS ${FLTK_LIBRARIES})
+SET(SNAP_FLTK_LIBS fltk_native_file_chooser fltk_table ${FLTK_LIBRARIES})
 
 # System libraries
 SET(SNAP_SYSTEM_LIBS
@@ -505,12 +512,6 @@ SET(SNAP_EXTERNAL_LIBS
 # *****************************************************
 # SNAP Logic and UI Libraries
 # *****************************************************
-
-# The FLTK extensions
-SUBDIRS(Utilities/FLTK/Fl_Native_File_Chooser)
-SUBDIRS(Utilities/FLTK/Fl_Table)
-INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Native_File_Chooser)
-INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Table)
 
 # Wrap the .fl files
 FLTK_WRAP_UI(itksnapui ${APPLICATION_FLUIDS})
@@ -541,10 +542,8 @@ ITK_DISABLE_FLTK_GENERATED_WARNINGS("${APPLICATION_FLUIDS}")
 # Define the main SNAP executable
 ADD_EXECUTABLE(${SNAP_EXE} WIN32 UserInterface/SNAPMain.cxx)
 TARGET_LINK_LIBRARIES(${SNAP_EXE}
-  fltk_native_file_chooser 
   ${SNAP_INTERNAL_LIBS}
   ${SNAP_EXTERNAL_LIBS}
-  fltk_table 
   )
 
 # Define the testing EXE
