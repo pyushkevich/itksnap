@@ -65,6 +65,9 @@ ELSE(DEFINED InsightApplications_SOURCE_DIR)
 	"Is SNAP being built separate from InsightApplications?")
 ENDIF(DEFINED InsightApplications_SOURCE_DIR)			
 
+# Temporary dual support for FLTK 1.1 and 1.3
+OPTION(USE_FLTK_1_3 "Select if you plan to build with FLTK 1.3" OFF)
+
 IF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
   INCLUDE(${SNAP_SOURCE_DIR}/CMake/standalone.cmake)
 ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
@@ -477,11 +480,13 @@ ENDIF(VTK_USE_PATENTED)
 
 # FLTK Related libraries
 
-# The FLTK extensions
-SUBDIRS(Utilities/FLTK/Fl_Native_File_Chooser)
-SUBDIRS(Utilities/FLTK/Fl_Table)
-INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Native_File_Chooser)
-INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Table)
+# The FLTK extensions (not needed after 1.3)
+IF(NOT USE_FLTK_1_3)
+  SUBDIRS(Utilities/FLTK/Fl_Native_File_Chooser)
+  SUBDIRS(Utilities/FLTK/Fl_Table)
+  INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Native_File_Chooser)
+  INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Table)
+ENDIF(NOT USE_FLTK_1_3)
 
 ## Workaround for problem with FindFLTK.cmake when FLTK was built using Cmake.
 IF(NOT FLTK_LIBRARIES)
@@ -493,7 +498,11 @@ IF(NOT FLTK_LIBRARIES)
     ${FLTK_FORMS_LIBRARY})
 ENDIF(NOT FLTK_LIBRARIES)
 
-SET(SNAP_FLTK_LIBS fltk_native_file_chooser fltk_table ${FLTK_LIBRARIES})
+IF(USE_FLTK_1_3)
+  SET(SNAP_FLTK_LIBS ${FLTK_LIBRARIES} ${FLTK_IMAGES_LIBS})
+ELSE(USE_FLTK_1_3)
+  SET(SNAP_FLTK_LIBS fltk_native_file_chooser fltk_table ${FLTK_LIBRARIES} ${FLTK_IMAGES_LIBS})
+ENDIF(USE_FLTK_1_3)
 
 # System libraries
 SET(SNAP_SYSTEM_LIBS
