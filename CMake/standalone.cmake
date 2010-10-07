@@ -20,6 +20,14 @@ INCLUDE(${ITK_USE_FILE})
 # REQUIRE FLTK                              #
 #############################################
 FIND_PACKAGE(FLTK REQUIRED)
+IF(USE_FLTK_1_3)
+  IF(APPLE)
+    GET_FILENAME_COMPONENT(FLTK_LIBDIR ${FLTK_BASE_LIBRARY} PATH)
+    LINK_DIRECTORIES(${FLTK_LIBDIR})
+    FIND_LIBRARY(FWORK_AUDIO AudioToolbox)
+    LINK_LIBRARIES(${FWORK_AUDIO})
+  ENDIF(APPLE)
+ENDIF(USE_FLTK_1_3)
 
 #############################################
 # REQUIRE FLTK                              #
