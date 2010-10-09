@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 13:42:26 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2010/10/09 04:20:08 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,6 +38,8 @@
 #include "GlobalState.h"
 #include "IRISApplication.h"
 #include "SystemInterface.h"
+#include "FL/Fl_Native_File_Chooser.H"
+#include "FL/fl_ask.H"
 #include <string>
 
 using namespace std;
@@ -57,7 +59,10 @@ AppearanceDialogUILogic
     SNAPAppearanceSettings::IMAGE_BOX_3D,
     SNAPAppearanceSettings::ROI_BOX_3D,
     SNAPAppearanceSettings::ZOOM_THUMBNAIL,
-    SNAPAppearanceSettings::CROSSHAIRS_THUMB
+    SNAPAppearanceSettings::CROSSHAIRS_THUMB,
+    SNAPAppearanceSettings::POLY_DRAW_MAIN,
+    SNAPAppearanceSettings::POLY_EDIT,
+    SNAPAppearanceSettings::POLY_DRAW_CLOSE
   };
 
 AppearanceDialogUILogic
@@ -87,6 +92,72 @@ AppearanceDialogUILogic
 ::OnCloseAction()
 {
   m_WinDisplayOptions->hide();
+}
+
+void
+AppearanceDialogUILogic
+::OnExportAction()
+{
+  // Prompt for the filename
+  Fl_Native_File_Chooser chooser;
+  chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+  chooser.title("Export Display Options to .txt file");
+  chooser.filter("Text Files\t*.txt");
+  // chooser.directory(...)
+  chooser.preset_file("itksnap_dispopts.txt");
+  const char *fChosen = NULL;
+  if (chooser.show() == 0)
+    fChosen = chooser.filename();
+
+  if(fChosen)
+    {
+    Registry reg;
+    m_Appearance->SaveToRegistry(reg.Folder("UserInterface.AppearanceSettings"));
+    reg.WriteToFile(fChosen);
+    }
+}
+
+void
+AppearanceDialogUILogic
+::OnImportAction()
+{
+  // Prompt for the filename
+  Fl_Native_File_Chooser chooser;
+  chooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
+  chooser.title("Import Display Options from .txt file");
+  chooser.filter("Text Files\t*.txt");
+  // chooser.directory(...)
+  chooser.preset_file("itksnap_dispopts.txt");
+  const char *fChosen = NULL;
+  if (chooser.show() == 0)
+    fChosen = chooser.filename();
+
+  if(fChosen)
+    {
+    try 
+      {
+      Registry reg(fChosen);
+      m_Appearance->LoadFromRegistry(reg.Folder("UserInterface.AppearanceSettings"));
+
+      // Redraw the current control
+      OnUIElementSelection(m_InUIElement->value());
+
+      // Redraw the windows
+      m_Parent->RedrawWindows();
+
+      // Place the options in the registry
+      m_Appearance->SaveToRegistry(
+        m_Parent->GetSystemInterface()->Folder("UserInterface.AppearanceSettings"));  
+      }
+    catch(Registry::IOException &exc)
+      {
+      fl_alert("Unable to open settings file: %s", exc.c_str());
+      }
+    catch(Registry::SyntaxException &exc)
+      {
+      fl_alert("Unable to parse settings: %s", exc.c_str());
+      }
+    }
 }
 
 // General slice options
@@ -422,7 +493,7 @@ AppearanceDialogUILogic
     iElement,m_DefaultAppearance->GetUIElement(iElement));
 
   // Redraw the controls
-  OnUIElementSelection(iElement);
+  OnUIElementSelection(m_InUIElement->value());
 
   // Redraw the windows
   m_Parent->RedrawWindows();

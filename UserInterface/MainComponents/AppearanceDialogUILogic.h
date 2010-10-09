@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 00:59:47 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2010/10/09 04:20:08 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -58,6 +58,10 @@ public:
   
   // Close callbacks
   void OnCloseAction() ;
+
+  // Import/export
+  void OnImportAction();
+  void OnExportAction();
 
   // General slice options
   void OnSliceDisplayApplyAction();

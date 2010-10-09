@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 00:59:47 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2010/10/09 04:20:08 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -24,6 +24,8 @@
 
 using namespace std;
 
+// Columns: NORMAL_COLOR, ACTIVE_COLOR, LINE_THICKNESS, DASH_SPACING, 
+//          FONT_SIZE,    VISIBLE,      ALPHA_BLEND,    FEATURE_COUNT
 const int 
 SNAPAppearanceSettings
 ::m_Applicable[SNAPAppearanceSettings::ELEMENT_COUNT][SNAPAppearanceSettings::FEATURE_COUNT] = {
@@ -38,7 +40,10 @@ SNAPAppearanceSettings
     { 1, 1, 1, 1, 0, 1, 1 },    // 3D Image Box
     { 1, 1, 1, 1, 0, 1, 1 },    // 3D ROI Box
     { 1, 1, 1, 1, 0, 1, 1 },    // Paintbrush outline
-    { 1, 0, 1, 0, 1, 1, 1 }     // Rulers
+    { 1, 0, 1, 0, 1, 1, 1 },    // Rulers
+    { 1, 0, 1, 1, 0, 0, 1 },    // POLY_DRAW_MAIN
+    { 1, 0, 1, 1, 0, 1, 1 },    // POLY_DRAW_CLOSE
+    { 1, 1, 1, 1, 0, 0, 1 }     // POLY_EDIT
     };
 
 SNAPAppearanceSettings::Element 
@@ -171,6 +176,29 @@ SNAPAppearanceSettings
   elt->FontSize = 12;
   elt->Visible = true;
   elt->AlphaBlending = true;
+
+  // Polygon outline (drawing)
+  elt = &m_DefaultElementSettings[POLY_DRAW_MAIN];
+  elt->NormalColor = Vector3d(1.0, 0.0, 0.5);
+  elt->LineThickness = 2.0;
+  elt->Visible = true;
+  elt->AlphaBlending = true;
+
+  // Polygon outline (drawing)
+  elt = &m_DefaultElementSettings[POLY_DRAW_CLOSE];
+  elt->NormalColor = Vector3d(1.0, 0.0, 0.5);
+  elt->LineThickness = 2.0;
+  elt->Visible = true;
+  elt->DashSpacing = 1.0;
+  elt->AlphaBlending = true;
+
+  // Polygon outline (editing)
+  elt = &m_DefaultElementSettings[POLY_EDIT];
+  elt->NormalColor = Vector3d(1.0, 0.0, 0.0);
+  elt->ActiveColor = Vector3d(0.0, 1.0, 0.0);
+  elt->LineThickness = 2.0;
+  elt->Visible = true;
+  elt->AlphaBlending = true;
 }
 
 const char *
@@ -178,7 +206,8 @@ SNAPAppearanceSettings
 ::m_ElementNames[SNAPAppearanceSettings::ELEMENT_COUNT] = 
   { "CROSSHAIRS", "MARKERS", "ROI_BOX", "BACKGROUND_2D", "BACKGROUND_3D", 
     "ZOOM_THUMBNAIL", "CROSSHAIRS_3D", "CROSSHAIRS_THUMB", "IMAGE_BOX_3D",
-    "ROI_BOX_3D", "RULER", "PAINTBRUSH_OUTLINE"};
+    "ROI_BOX_3D", "RULER", "PAINTBRUSH_OUTLINE", 
+    "POLY_DRAW_MAIN", "POLY_DRAW_CLOSE", "POLY_EDIT"};
 
 SNAPAppearanceSettings
 ::SNAPAppearanceSettings()
@@ -344,6 +373,7 @@ SNAPAppearanceSettings
       {
       glEnable(GL_BLEND);
       glEnable(GL_LINE_SMOOTH);
+      glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       }
     glLineWidth( elt.LineThickness );

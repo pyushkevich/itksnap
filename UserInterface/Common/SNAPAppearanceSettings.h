@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.h,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 00:59:47 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2010/10/09 04:20:08 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -70,7 +70,9 @@ public:
     CROSSHAIRS = 0, MARKERS, ROI_BOX,
     BACKGROUND_2D, BACKGROUND_3D,
     ZOOM_THUMBNAIL, CROSSHAIRS_3D, CROSSHAIRS_THUMB,
-    IMAGE_BOX_3D, ROI_BOX_3D, PAINTBRUSH_OUTLINE, RULER, ELEMENT_COUNT
+    IMAGE_BOX_3D, ROI_BOX_3D, PAINTBRUSH_OUTLINE, RULER, 
+    POLY_DRAW_MAIN, POLY_DRAW_CLOSE, POLY_EDIT,
+    ELEMENT_COUNT
     };
 
   /** An enumeration of the fields that an element may possess */

@@ -16,8 +16,8 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
         xywh {10 10 400 360} box PLASTIC_THIN_UP_BOX color 41 labelsize 12 align 0
       } {
         Fl_Group {} {
-          label General open selected
-          xywh {10 35 400 335} labelsize 12
+          label General open
+          xywh {10 35 400 335} labelsize 12 hide
         } {
           Fl_Check_Button m_ChkOptionsSliceThumbnailOn {
             label {Show thumbnail when the slice does not fit in the window}
@@ -258,7 +258,7 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
         }
         Fl_Group {} {
           label Appearance open
-          xywh {10 35 400 335} labelsize 12 hide
+          xywh {10 35 400 335} labelsize 12
         } {
           Fl_Choice m_InUIElement {
             label {Select a user interface element to edit:}
@@ -311,7 +311,19 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
             }
             MenuItem {} {
               label {Zoom thumbnail crosshairs}
-              xywh {70 70 100 20} labelsize 12
+              xywh {70 70 100 20} labelsize 12 divider
+            }
+            MenuItem {} {
+              label {Polygon outline (drawing mode)}
+              xywh {80 80 100 20} labelsize 12
+            }
+            MenuItem {} {
+              label {Polygon outline (edit mode)}
+              xywh {100 100 100 20} labelsize 12
+            }
+            MenuItem {} {
+              label {Polygon completion line}
+              xywh {90 90 100 20} labelsize 12
             }
           }
           Fl_Group {} {open
@@ -484,8 +496,18 @@ user interface elements} xywh {330 335 65 25} box PLASTIC_UP_BOX down_box PLASTI
       }
       Fl_Button {} {
         label Close
-        callback {this->OnCloseAction();}
-        xywh {155 380 110 25} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX color 180 labelsize 12
+        callback {this->OnCloseAction();} selected
+        xywh {105 380 65 25} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX color 180 labelsize 12
+      }
+      Fl_Button {} {
+        label {Export...}
+        callback {this->OnExportAction();}
+        tooltip {Save display options to a file, allowing you to load it later or to send it to another ITK-SNAP user.} xywh {180 380 65 25} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX color 180 labelsize 12
+      }
+      Fl_Button {} {
+        label {Import...}
+        callback {this->OnImportAction();}
+        tooltip {Load ITK-SNAP display options from a file.} xywh {255 380 65 25} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX color 180 labelsize 12
       }
     }
   }

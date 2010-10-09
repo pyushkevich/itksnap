@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/15 16:27:44 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2010/10/09 04:20:08 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -50,6 +50,7 @@
 #include "itkPointSet.h"
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
+#include "SNAPAppearanceSettings.h"
 
 using namespace std;
 
@@ -573,21 +574,30 @@ PolygonDrawing
   // Must be in active state
   if (m_State == INACTIVE_STATE) return;
 
+  // Get a pointer to the appearance settings
+  SNAPAppearanceSettings *app = m_Parent->GetParentUI()->GetAppearanceSettings();
+  SNAPAppearanceSettings::Element &aeDraw = app->GetUIElement(SNAPAppearanceSettings::POLY_DRAW_MAIN);
+  SNAPAppearanceSettings::Element &aeClose = app->GetUIElement(SNAPAppearanceSettings::POLY_DRAW_CLOSE);
+  SNAPAppearanceSettings::Element &aeEdit = app->GetUIElement(SNAPAppearanceSettings::POLY_EDIT);
+
   // Push the line state
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);  
 
   // set line and point drawing parameters
   glPointSize(4);
-  glLineWidth(2);
-  glEnable(GL_LINE_SMOOTH);
-  glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // glLineWidth(2);
+  // glEnable(GL_LINE_SMOOTH);
+  // glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
+  // glEnable(GL_BLEND);
+  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // Draw the line segments
   VertexIterator it, itNext;
   if (m_State == EDITING_STATE)
   {
+    glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);  
+    SNAPAppearanceSettings::ApplyUIElementLineSettings(aeEdit);
+
     glBegin(GL_LINES);
     for(it = m_Vertices.begin(); it!=m_Vertices.end();++it)
       {
@@ -598,21 +608,27 @@ PolygonDrawing
 
       // Set the color based on the mode
       if (it->selected && itNext->selected) 
-        glColor3fv(m_EditModeSelectedColor);
+        glColor3dv(aeEdit.ActiveColor.data_block());
       else 
-        glColor3fv(m_EditModeNormalColor);
+        glColor3dv(aeEdit.NormalColor.data_block());
   
       // Draw the line
       glVertex3f(it->x, it->y,0);
       glVertex3f(itNext->x, itNext->y, 0);
     }
     glEnd();
+
+    glPopAttrib();
   }
+  // Not editing state
   else 
   {
+    glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+    SNAPAppearanceSettings::ApplyUIElementLineSettings(aeDraw);
+
     // Draw the vertices
     glBegin(GL_LINE_STRIP);
-    glColor3fv(m_DrawingModeColor);
+    glColor3dv(aeDraw.NormalColor.data_block());
     for(it = m_Vertices.begin(); it!=m_Vertices.end();++it) 
       glVertex3f(it->x, it->y, 0);
     glEnd();
@@ -621,25 +637,25 @@ PolygonDrawing
     if(m_DragVertices.size())
       {
       glBegin(GL_LINE_STRIP);
-      glColor3fv(m_DrawingModeColor);
       for(it = m_DragVertices.begin(); it!=m_DragVertices.end();++it) 
         glVertex3f(it->x, it->y, 0);
       glEnd();
       }
 
+    glPopAttrib();
+
     // Draw stippled line from last point to end point
-    if(m_DragVertices.size() + m_Vertices.size() > 2)
+    if(m_DragVertices.size() + m_Vertices.size() > 2 && aeClose.Visible) 
       {
-      glPushAttrib(GL_LINE_BIT);
-      glEnable(GL_LINE_STIPPLE);
-      glLineStipple(1, 0x9999);
+      glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+      SNAPAppearanceSettings::ApplyUIElementLineSettings(aeClose);
+
       glBegin(GL_LINES);
-      glColor3fv(m_DrawingModeColor);
+      glColor3dv(aeClose.NormalColor.data_block());
       if(m_DragVertices.size())
         glVertex3f(m_DragVertices.back().x, m_DragVertices.back().y, 0);
       else
         glVertex3f(m_Vertices.back().x, m_Vertices.back().y, 0);
-      glColor3fv(m_DrawingModeColor);
       glVertex3f(m_Vertices.front().x, m_Vertices.front().y, 0);
       glEnd();
       glPopAttrib();
@@ -648,16 +664,17 @@ PolygonDrawing
     
   // draw the vertices
   glBegin(GL_POINTS);
+  glPushAttrib(GL_COLOR_BUFFER_BIT);
   for(it = m_Vertices.begin(); it!=m_Vertices.end();++it) 
   {
     if(it->control)
       {
       if (it->selected) 
-        glColor3fv(m_EditModeSelectedColor);
+        glColor3dv(aeEdit.ActiveColor.data_block());
       else if (m_State == DRAWING_STATE)
-        glColor3fv(m_DrawingModeColor);
+        glColor3dv(aeDraw.NormalColor.data_block());
       else
-        glColor3fv(m_EditModeNormalColor);
+        glColor3dv(aeEdit.NormalColor.data_block());
 
       glVertex3f(it->x,it->y,0.0f);
       }
@@ -667,28 +684,38 @@ PolygonDrawing
   if(m_DragVertices.size())
     {
     Vertex last = m_DragVertices.back();
-    glColor3f(1,1,0);
+    glColor3dv(aeEdit.ActiveColor.data_block());
     glVertex3f(last.x, last.y, 0.0f);
     }
 
   glEnd();
+  glPopAttrib();
 
   // draw edit or pick box
   if (m_DraggingPickBox) 
   {
+    glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+    
     glLineWidth(1);
-    glColor3fv(m_EditModeSelectedColor);
+    glColor3dv(aeEdit.ActiveColor.data_block()); 
     glBegin(GL_LINE_LOOP);
     glVertex3f(m_SelectionBox[0],m_SelectionBox[2],0.0);
     glVertex3f(m_SelectionBox[1],m_SelectionBox[2],0.0);
     glVertex3f(m_SelectionBox[1],m_SelectionBox[3],0.0);
     glVertex3f(m_SelectionBox[0],m_SelectionBox[3],0.0);
     glEnd();    
+
+    glPopAttrib();
   }
   else if (m_SelectedVertices) 
   {
-    float border_x = (float)4.0 * pixel_x;
-    float border_y = (float)4.0 * pixel_y;
+    glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+    
+    glLineWidth(1);
+    glColor3dv(aeEdit.ActiveColor.data_block()); 
+
+    float border_x = (float) 4.0 * pixel_x;
+    float border_y = (float) 4.0 * pixel_y;
     glLineWidth(1);
     glColor3fv(m_EditModeSelectedColor);
     glBegin(GL_LINE_LOOP);
@@ -697,6 +724,8 @@ PolygonDrawing
     glVertex3f(m_EditBox[1] + border_x,m_EditBox[3] + border_y,0.0);
     glVertex3f(m_EditBox[0] - border_x,m_EditBox[3] + border_y,0.0);
     glEnd();
+
+    glPopAttrib();
   }
 
   glPopAttrib();
@@ -1260,6 +1289,9 @@ PolygonDrawing
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.14  2010/10/09 04:20:08  pyushkevich
+ *Added customization to polygon drawing appearance;ability to export/import appearance settings
+ *
  *Revision 1.13  2010/06/15 16:27:44  pyushkevich
  *build errors fixed
  *
