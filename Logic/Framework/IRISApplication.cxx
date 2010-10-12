@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/07/01 21:40:24 $
-  Version:   $Revision: 1.33 $
+  Date:      $Date: 2010/10/12 19:53:14 $
+  Version:   $Revision: 1.34 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -61,6 +61,9 @@
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkImageFileWriter.h"
 #include "itkFlipImageFilter.h"
+#include "vtkAppendPolyData.h"
+#include "vtkUnsignedShortArray.h"
+#include "vtkPointData.h"
 
 #include "IRISSlicer.h"
 
@@ -331,6 +334,7 @@ IRISApplication
   m_IRISImageData->SetSegmentationImage(imgLabel); 
 
   // Check that the range is valid
+#if MAX_COLOR_LABELS < 0xffff
   if(m_IRISImageData->GetSegmentation()->GetImageMax() > MAX_COLOR_LABELS)
     {
     m_IRISImageData->GetSegmentation()->GetImage()->FillBuffer(0);
@@ -338,6 +342,7 @@ IRISApplication
       "Segmentation image has more labels than maximum allowed (%d)", 
       MAX_COLOR_LABELS);
     }
+#endif
 
   // Update the color labels, so that for every label in the image
   // there is a valid color label
@@ -813,6 +818,37 @@ IRISApplication
         io.SaveMesh(sets.GetMeshFileName().c_str(), rFormat, mesh);
         }
       }
+    }
+  else if(sets.GetFlagSingleScene())
+    {
+    // Create an append filter
+    vtkAppendPolyData *append = vtkAppendPolyData::New();
+    std::vector<vtkUnsignedShortArray *> scalarArray;
+
+    for(size_t i = 0; i < mob.GetNumberOfVTKMeshes(); i++)
+      {
+      // Get the VTK mesh for the label
+      vtkPolyData *mesh = mob.GetVTKMesh(i);
+      vtkUnsignedShortArray *scalar = vtkUnsignedShortArray::New();
+      scalar->SetNumberOfComponents(1);
+      scalar->Allocate(mesh->GetNumberOfPoints());
+      for(size_t j = 0; j < mesh->GetNumberOfPoints(); j++)
+        scalar->InsertNextTuple1(mob.GetVTKMeshLabel(i));
+      mesh->GetPointData()->SetScalars(scalar);
+      scalarArray.push_back(scalar);
+      append->AddInput(mesh);
+      }
+
+    append->Update();
+
+    // Export the mesh
+    GuidedMeshIO io;
+    Registry rFormat = sets.GetMeshFormat();
+    io.SaveMesh(sets.GetMeshFileName().c_str(), rFormat, append->GetOutput());
+
+    append->Delete();
+    for(size_t i = 0; i < scalarArray.size(); i++)
+      scalarArray[i]->Delete();
     }
 
   mob.DiscardVTKMeshes();

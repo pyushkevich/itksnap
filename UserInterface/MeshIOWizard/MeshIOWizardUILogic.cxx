@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MeshIOWizardUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/13 17:26:24 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2010/10/12 19:53:14 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -260,10 +260,26 @@ MeshIOWizardUILogic
   m_ExportSettings.SetMeshFormat(m_Registry);
 
   // Set the export properties
-  m_ExportSettings.SetFlagSingleLabel(true);
-  m_ExportSettings.SetFlagSingleScene(false);
-  m_ExportSettings.SetExportLabel(
-    m_ColorLabelMenuIndex[m_InMeshPageSelectedLabel->value()]);
+  if(m_BtnMeshPageSingleExport->value())
+    {
+    m_ExportSettings.SetFlagSingleLabel(true);
+    m_ExportSettings.SetFlagSingleScene(false);
+    m_ExportSettings.SetExportLabel(
+      m_ColorLabelMenuIndex[m_InMeshPageSelectedLabel->value()]);
+    }
+  else if(m_BtnMeshPageMultiExport->value())
+    {
+    m_ExportSettings.SetFlagSingleLabel(false);
+    m_ExportSettings.SetExportLabel(0);
+    if(m_BtnMeshPageSceneExport->value())
+      {
+      m_ExportSettings.SetFlagSingleScene(true);
+      }
+    else
+      {
+      m_ExportSettings.SetFlagSingleScene(false);
+      }
+    }
 
   // Hide the wizard
   m_WinWizard->hide();
@@ -321,7 +337,7 @@ MeshIOWizardUILogic
   else
     {
     m_InMeshPageSelectedLabel->deactivate();
-    m_BtnMeshPageIndexedExport->activate();
+    m_BtnMeshPageIndexedExport->deactivate();
     m_BtnMeshPageSceneExport->activate();
     }
 }

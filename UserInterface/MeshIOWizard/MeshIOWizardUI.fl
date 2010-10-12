@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0108 
+version 1.0110 
 header_name {.h} 
 code_name {.cxx}
 class MeshIOWizardUI {open : MeshIOWizardUIBase
@@ -18,7 +18,7 @@ class MeshIOWizardUI {open : MeshIOWizardUIBase
           label {Mesh Selection} open
           xywh {0 20 470 310} labelsize 12
         } {
-          Fl_Group {} {open
+          Fl_Group {} {open selected
             xywh {25 65 415 195} labeltype ENGRAVED_LABEL align 21
           } {
             Fl_Round_Button m_BtnMeshPageSingleExport {
@@ -29,7 +29,7 @@ class MeshIOWizardUI {open : MeshIOWizardUIBase
             Fl_Round_Button m_BtnMeshPageMultiExport {
               label {Export meshes for all the labels in the segmentation:}
               callback {this->OnMeshPageRadioChange();}
-              xywh {50 165 310 20} type Radio down_box ROUND_DOWN_BOX labelsize 12 deactivate
+              xywh {50 165 310 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
             }
             Fl_Choice m_InMeshPageSelectedLabel {
               label {Label to export:} open
@@ -41,12 +41,12 @@ class MeshIOWizardUI {open : MeshIOWizardUIBase
               Fl_Round_Button m_BtnMeshPageIndexedExport {
                 label {As individual mesh files (indexed by 001, 002, etc)}
                 callback {this->OnMeshPageRadioChange();}
-                xywh {70 190 310 20} type Radio down_box ROUND_DOWN_BOX value 1 labelsize 12 deactivate
+                xywh {70 190 310 20} type Radio down_box ROUND_DOWN_BOX labelsize 12 deactivate
               }
               Fl_Round_Button m_BtnMeshPageSceneExport {
                 label {As a single 3D scene (not supported by all file formats)}
                 callback {this->OnMeshPageRadioChange();}
-                xywh {70 210 310 20} type Radio down_box ROUND_DOWN_BOX labelsize 12 deactivate
+                xywh {70 210 310 20} type Radio down_box ROUND_DOWN_BOX value 1 labelsize 12 deactivate
               }
             }
           }
