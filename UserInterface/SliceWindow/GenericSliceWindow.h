@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 07:29:36 $
-  Version:   $Revision: 1.26 $
+  Date:      $Date: 2010/10/12 16:02:05 $
+  Version:   $Revision: 1.27 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -165,6 +165,7 @@ public:
 
   /** Set the offset from the center of the viewport to the cursor position */
   void SetViewPositionRelativeToCursor(Vector2f offset);
+
 
   /** Get the zoom factor (number of pixels on the screen per millimeter in
    * image space */

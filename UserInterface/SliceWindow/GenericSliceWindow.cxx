@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/28 18:45:08 $
-  Version:   $Revision: 1.33 $
+  Date:      $Date: 2010/10/12 16:02:05 $
+  Version:   $Revision: 1.34 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -114,6 +114,8 @@ GenericSliceWindow
   delete m_MainTexture;
   delete m_LabelRGBTexture;
 }
+
+
 
 void 
 GenericSliceWindow
@@ -449,7 +451,7 @@ GenericSliceWindow
   glPopAttrib();
 
   // Draw the little popup button
-  m_PopupButtonMode->OnDraw();
+  // m_PopupButtonMode->OnDraw();
 
   // Display!
   glFlush();
@@ -787,7 +789,7 @@ GenericSliceWindow
   PushInteractionMode(m_ThumbnailMode);
 
   // Push the popup mode
-  PushInteractionMode(m_PopupButtonMode);
+  // PushInteractionMode(m_PopupButtonMode);
 }
   
 void 

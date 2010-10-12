@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/07/01 21:40:24 $
-  Version:   $Revision: 1.112 $
+  Date:      $Date: 2010/10/12 16:02:05 $
+  Version:   $Revision: 1.113 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -598,6 +598,19 @@ UserInterfaceLogic
 ::OnMenuViewToggleFullscreen()
 {
   this->ToggleFullScreen();
+}
+
+void
+UserInterfaceLogic
+::OnMenuViewRestoreDefault()
+{
+  DisplayLayout dl = m_DisplayLayout;
+  dl.full_screen = false;
+  dl.show_main_ui = true;
+  dl.show_panel_ui = true;
+  dl.slice_config = FOUR_SLICE;
+  dl.size = FULL_SIZE;
+  SetDisplayLayout(dl);
 }
 
 void
@@ -1909,6 +1922,30 @@ UserInterfaceLogic
       }
     }
 
+  // This is a pretty bad hack, used as a workaround for FL_LEAVE events not being issued 
+  // when a GL window occupies the whole screen.
+  DisplayLayout dl = m_GlobalUI->GetDisplayLayout();
+  if(dl.show_panel_ui == false)
+    {
+    int x, y;
+    Fl::get_mouse(x,y);
+    Fl_Window *wm = m_GlobalUI->GetMainWindow();
+    Fl_Window *wp = m_GlobalUI->GetPopupToolbarWindow();
+    if(x >= wm->x() && y >= wm->y() && x < wm->x()+wm->w() && y < wm->y()+wm->h())
+      {
+      if(!wp->shown())
+        {
+        wp->show();
+        wm->show();
+        }
+      }
+    else
+      {
+      if(wp->shown())
+        wp->hide();
+      }
+    }
+
     Fl::repeat_timeout(0.03, &UserInterfaceLogic::GlobalIdleHandler);
 }
 
@@ -1918,6 +1955,8 @@ UserInterfaceLogic
 {
   return m_GlobalUI->OnGlobalEvent(ev);
 }
+
+#include "FL/Fl_Menu_Window.H"
 
 void
 UserInterfaceLogic
@@ -1932,14 +1971,24 @@ UserInterfaceLogic
   // Handle full-screen toggle
   if(m_DisplayLayout.full_screen && !dl.full_screen)
     {
-    m_WinMain->fullscreen_off(x,y,w,h);
+    if(m_DisplayLayout.size == FULL_SIZE)
+      {
+      m_WinMain->fullscreen_off(x,y,w,h);
+      }
+    else
+      {
+      m_WinMain->fullscreen_off(x,y,w / 2, h / 2);
+      }
     m_FullScreen = false;
     }
 
   else if(!m_DisplayLayout.full_screen && dl.full_screen)
     {
-    w = m_WinMain->w(); h = m_WinMain->h();
-    x = m_WinMain->x(); y = m_WinMain->y();
+    if(m_DisplayLayout.size == FULL_SIZE)
+      {
+      w = m_WinMain->w(); h = m_WinMain->h();
+      x = m_WinMain->x(); y = m_WinMain->y();
+      }
     m_WinMain->fullscreen();
     m_FullScreen = true;
     }
@@ -1947,11 +1996,15 @@ UserInterfaceLogic
   // Handle window size selection
   if(m_DisplayLayout.size == FULL_SIZE && dl.size == HALF_SIZE)
     {
-    m_WinMain->size(m_WinMain->w() / 2, m_WinMain->h() / 2);
+    w = m_WinMain->w(); h = m_WinMain->h();
+    x = m_WinMain->x(); y = m_WinMain->y();
+    m_WinMain->size(w / 2, h / 2);
     }
   else if(m_DisplayLayout.size == HALF_SIZE && dl.size == FULL_SIZE)
     {
-    m_WinMain->size(m_WinMain->w() * 2, m_WinMain->h() * 2);
+    // Restore the saved dimensions
+    m_WinMain->size(w,h);
+    m_WinMain->position(x,y);
     }
 
   // Handle the slice window selection (1 vs 4 slices)
@@ -1967,7 +2020,7 @@ UserInterfaceLogic
     m_WizSliceLayout[3]->resize(x, y + (h >> 1), w >> 1, h - (h >> 1));
     m_WizSliceLayout[2]->resize(x + (w >> 1), y + (h >> 1), w - (w >> 1), h - (h >> 1));
 
-    // Make the resizable is set to self
+    // Make sure the resizable is set to self
     m_GrpRightPane->resizable(m_GrpRightPane);
 
     // Show everything
@@ -1999,9 +2052,11 @@ UserInterfaceLogic
             m_GrpRightPane->x(),m_GrpRightPane->y(),
             m_GrpRightPane->w(),m_GrpRightPane->h());
           m_GrpRightPane->resizable(m_WizSliceLayout[j]);
+          m_SliceWindow[j]->take_focus();
           m_WizSliceLayout[j]->redraw();
           }
         }
+
       }
     }
   
@@ -2044,6 +2099,7 @@ UserInterfaceLogic
       if(m_WinMain->w() <= sw - 145 && m_WinMain->h() <= sh - 25)
         m_WinMain->size(m_WinMain->w()+145, m_WinMain->h()+25);
       }
+
     }
 
   // Do we need to hide the mini-panels
@@ -2091,9 +2147,71 @@ UserInterfaceLogic
       }
     }
 
+  if(dl.size == HALF_SIZE && !dl.show_panel_ui)
+    {
+    // Create a popup window so the user can close
+    m_WinTestPop->position(
+      m_WinMain->x() + m_WinMain->w() - (5 + m_WinTestPop->w()),
+      m_WinMain->y() + m_WinMain->h() - (5 + m_WinTestPop->h()));
+    // m_WinTestPop->show();
+    }
+  else
+    {
+    m_WinTestPop->hide();
+    }
+
   // Store the new display layout
   m_DisplayLayout = dl;
+}
 
+void
+UserInterfaceLogic
+::OnCollapsedViewPopupMenu()
+{
+  // Show popup menu at the button location
+
+  // Dynamically create menu, pop it up
+  Fl_Menu_Button menu(Fl::event_x_root() - m_WinMain->x(), Fl::event_y_root() - m_WinMain->y(), 80, 1);
+  Fl_Menu_Bar *bar = this->GetMainMenuBar();
+  menu.copy(bar->menu());
+
+  // Put the menu so that it's as deep in the widget hierarchy as the main menubar
+  Fl_Group g1(0, 0, 80, 1);
+  Fl_Group g2(0, 0, 80, 1);
+  m_WinMain->add(g1);
+  g1.add(g2);
+  g2.add(menu);
+
+  // Disable idle during popup
+  Fl::remove_timeout(UserInterfaceLogic::GlobalIdleHandler);
+
+  // Popup
+  menu.popup();
+  m_WinMain->remove(g1);
+  g1.remove(g2);
+  g2.remove(menu);
+
+  Fl::add_timeout(0.03, &UserInterfaceLogic::GlobalIdleHandler);
+}
+
+void
+SNAPMainWindow
+::resize(int x, int y, int w, int h)
+{
+  // Call parent class
+  Fl_Double_Window::resize(x,y,w,h);
+
+  // Move popup window (make more efficient)
+  if(m_ParentUI)
+    {
+    DisplayLayout dl = m_ParentUI->GetDisplayLayout();
+    if(!dl.show_panel_ui)
+      {
+      Fl_Window *m = m_ParentUI->GetMainWindow();
+      Fl_Window *p = m_ParentUI->GetPopupToolbarWindow();
+      p->position( m->x() + m->w() - (5 + p->w()), m->y() + m->h() - (5 + p->h()));
+      }
+    }
 }
 
 void
@@ -2700,6 +2818,8 @@ UserInterfaceLogic
   AEInstallEventHandler(kCoreEventClass, kAEOpenContents, handler, refcon, false);
 
 #endif 
+
+  m_WinMain->SetParentUI(this);
 
   DisplayTips();
 }
@@ -4312,6 +4432,7 @@ UserInterfaceLogic
 
     // Alert the user to the failure
     fl_alert("Error loading image:\n%s",exc.GetDescription());
+    this->RedrawWindows();
     }
 }
 
@@ -5874,6 +5995,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.113  2010/10/12 16:02:05  pyushkevich
+ *Improved handling of collapsed windows
+ *
  *Revision 1.112  2010/07/01 21:40:24  pyushkevich
  *Increased max number of labels to 65535
  *

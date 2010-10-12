@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PopupButtonInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/05/27 07:29:36 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2010/10/12 16:02:05 $
+  Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -82,9 +82,14 @@ PopupButtonInteractionMode
     // Popup
     menu.popup();
     m_ParentUI->GetMainWindow()->remove(g1);
+    g1.remove(g2);
+    g2.remove(menu);
+
+    // Eat up the event
+    return 1;
     }
 
-  return 1;
+  return 0;
 }
 
 void

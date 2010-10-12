@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2010/05/31 19:52:37 $
-  Version:   $Revision: 1.54 $
+  Date:      $Date: 2010/10/12 16:02:05 $
+  Version:   $Revision: 1.55 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -483,6 +483,7 @@ public:
 
   void OnMenuViewToggleUI();
   void OnMenuViewToggleFullscreen();
+  void OnMenuViewRestoreDefault();
   void OnMenuLaunchNewInstance();
   void OnMenuShowVolumes();
 
@@ -687,6 +688,9 @@ public:
 
   Fl_Menu_Bar* GetMainMenuBar() { return m_MenubarMain; }
   Fl_Window* GetMainWindow() { return m_WinMain; }
+  Fl_Window* GetPopupToolbarWindow() { return m_WinTestPop; }
+
+  void OnCollapsedViewPopupMenu();
 
 protected:
 
@@ -1036,6 +1040,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.55  2010/10/12 16:02:05  pyushkevich
+ *Improved handling of collapsed windows
+ *
  *Revision 1.54  2010/05/31 19:52:37  pyushkevich
  *Added volumes and statistics window
  *

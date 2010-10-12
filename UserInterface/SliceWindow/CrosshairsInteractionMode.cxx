@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/10/30 13:49:48 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2010/10/12 16:02:05 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -109,6 +109,7 @@ CrosshairsInteractionMode
     // motion
     float zoom = m_StartViewZoom 
       * pow(1.02f,(float)(event.XSpace(1) - dragEvent.XSpace(1)));
+
 
     // Clamp the zoom factor to reasonable limits
     zoom = m_ParentUI->GetSliceCoordinator()->ClampZoom(m_Parent->m_Id,zoom);

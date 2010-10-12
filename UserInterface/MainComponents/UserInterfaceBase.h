@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2010/05/31 19:52:37 $
-  Version:   $Revision: 1.42 $
+  Date:      $Date: 2010/10/12 16:02:05 $
+  Version:   $Revision: 1.43 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,6 +38,7 @@
 // This should all be gone
 #include "SNAPCommonUI.h"
 #include "GlobalState.h" 
+#include "FL/Fl_Double_Window.h"
 
 // Borland compiler stuff. Note to whoever went through the code and added all 
 // these borland things: you just can't add ITK headers to headers like this one
@@ -53,6 +54,7 @@ class SNAPAppearanceSettings;
 class SliceWindowCoordinator;
 class Fl_Window;
 class Fl_Menu_Bar;
+class UserInterfaceLogic;
 struct Fl_Menu_Item;
 
 namespace itk {
@@ -73,6 +75,25 @@ struct DisplayLayout
   int fs_restore[4];
 };
 
+class SNAPMainWindow : public Fl_Double_Window
+{
+public:
+  SNAPMainWindow(int w, int h, char *label=0)
+    : Fl_Double_Window(w,h,label) { m_ParentUI = NULL; }
+
+  SNAPMainWindow(int x, int y, int w, int h, char *label=0)
+    : Fl_Double_Window(x,y,w,h,label) { m_ParentUI = NULL; }
+
+  virtual ~SNAPMainWindow() {}
+
+  void resize(int x, int y, int w, int h);
+
+  irisSetMacro(ParentUI, UserInterfaceLogic *);
+  irisGetMacro(ParentUI, UserInterfaceLogic *);
+
+private:
+  UserInterfaceLogic *m_ParentUI;
+};
 
 /**
  * \class UserInterfaceBase
@@ -128,6 +149,7 @@ public:
   virtual void OnMenuResetAll() = 0;
   virtual void OnMenuViewToggleUI() = 0;
   virtual void OnMenuViewToggleFullscreen() = 0;
+  virtual void OnMenuViewRestoreDefault() = 0;
   virtual void OnMenuLaunchNewInstance() = 0;
 
   // IRIS: Slice selection actions
@@ -297,6 +319,9 @@ public:
 
   virtual Fl_Menu_Bar* GetMainMenuBar() = 0;
   virtual Fl_Window* GetMainWindow() = 0;
+  virtual Fl_Window* GetPopupToolbarWindow() = 0;
+  
+  virtual void OnCollapsedViewPopupMenu() = 0;
 
 protected:
     GlobalState *m_GlobalState;

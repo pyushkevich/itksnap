@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: FLTKCanvas.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/05/01 21:30:32 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2010/10/12 16:02:05 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -72,7 +72,7 @@ FLTKCanvas
   // Create an event object
   FLTKEvent event;
   event.Id = eventID;
-  
+
   // Note that the y coordinate is optionally reflected
   event.XCanvas[0] = Fl::event_x();
   event.XCanvas[1] = m_FlipYCoordinate ? h()-1-Fl::event_y() : Fl::event_y();

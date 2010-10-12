@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.h,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 16:00:56 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2010/10/12 16:02:05 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -73,7 +73,6 @@ public:
   int OnMouseDrag(const FLTKEvent &event, 
                   const FLTKEvent &irisNotUsed(pressEvent));
   int OnKeyDown(const FLTKEvent &event);
-
 
 private:
   void UpdateCrosshairs(const FLTKEvent &event);

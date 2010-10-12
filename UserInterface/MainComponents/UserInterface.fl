@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0109
+version 1.0110 
 use_FL_COMMAND 
 header_name {.h} 
 code_name {.cxx}
@@ -30,10 +30,11 @@ class UserInterface {open : {public UserInterfaceBase}
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
       callback {OnMainWindowCloseAction();} open
-      xywh {510 130 875 735} type Double align 0 resizable
-      code0 {\#include "UserInterfaceBase.h"} visible
+      xywh {559 135 875 735} type Double align 0 resizable
+      code0 {\#include "UserInterfaceBase.h"}
+      class SNAPMainWindow visible
     } {
-      Fl_Wizard m_WizMainLayout {open
+      Fl_Wizard m_WizMainLayout {
         xywh {0 0 875 735} box NO_BOX resizable
       } {
         Fl_Group m_GrpMainLayoutNormal {open
@@ -303,11 +304,11 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
             Submenu {} {
-              label {&Layout} open selected
+              label {&Layout} open
               xywh {0 0 62 20} labelsize 12
             } {
               MenuItem {} {
-                label {Hide User Interface Elements}
+                label {Toggle User Interface Elements}
                 callback {this->OnMenuViewToggleUI();}
                 xywh {15 15 30 20} shortcut 0xffc0 labelsize 12
               }
@@ -315,6 +316,11 @@ class UserInterface {open : {public UserInterfaceBase}
                 label {Toggle Full-Screen Mode}
                 callback {this->OnMenuViewToggleFullscreen();}
                 xywh {0 0 30 20} shortcut 0xffc1 labelsize 12
+              }
+              MenuItem {} {
+                label {Restore Default Layout}
+                callback {this->OnMenuViewRestoreDefault();}
+                xywh {10 10 30 20} shortcut 0x40ffc0 labelsize 12
               }
             }
             Submenu {} {
@@ -1790,7 +1796,7 @@ changes, or press 'go back' in order to save the changes first.} open
       }
     }
     Fl_Window m_WinStatistics {
-      label {ITK-SNAP Volumes and Statistics} open
+      label {ITK-SNAP Volumes and Statistics}
       xywh {459 480 680 322} type Double resizable visible
     } {
       Fl_Button m_BtnStatisticsUpdate {
@@ -1819,6 +1825,24 @@ changes, or press 'go back' in order to save the changes first.} open
         label {Copy to Clipboard}
         callback {OnStatisticsCopyAction();}
         xywh {215 285 120 25} box PLASTIC_UP_BOX shortcut 0x400063 color 180 labelsize 12
+      }
+    }
+    Fl_Window m_WinTestPop {
+      label Test open selected
+      xywh {1247 403 46 24} type Single align 2
+      class Fl_Menu_Window non_modal noborder visible
+    } {
+      Fl_Button m_BtnCollapsedViewRestore {
+        label {@\#+11<-}
+        callback {this->OnMenuViewRestoreDefault();}
+        tooltip {Collapse ITK-SNAP so only this view is shown} xywh {2 2 20 20} box PLASTIC_UP_BOX color 180 labelsize 9 labelcolor 139 align 18
+        code0 {\#include "FL/Fl_Menu_Window.H"}
+      }
+      Fl_Button m_BtnCollapsedViewMenu {
+        label {...}
+        callback {this->OnCollapsedViewPopupMenu();}
+        tooltip {Collapse ITK-SNAP so only this view is shown} xywh {24 2 20 20} box PLASTIC_UP_BOX color 180 labelsize 12 labelcolor 139 align 18
+        code0 {\#include "FL/Fl_Menu_Window.H"}
       }
     }
   }
