@@ -34,7 +34,7 @@ class UserInterface {open : {public UserInterfaceBase}
       code0 {\#include "UserInterfaceBase.h"}
       class SNAPMainWindow visible
     } {
-      Fl_Wizard m_WizMainLayout {
+      Fl_Wizard m_WizMainLayout {open
         xywh {0 0 875 735} box NO_BOX resizable
       } {
         Fl_Group m_GrpMainLayoutNormal {open
@@ -472,7 +472,7 @@ class UserInterface {open : {public UserInterfaceBase}
                     }
                     Fl_Group m_GrpToolOptionSNAP {
                       label 5 open
-                      xywh {5 165 135 165} labelsize 10
+                      xywh {5 165 135 165} labelsize 10 hide
                     } {
                       Fl_Group {} {
                         label {Snake ROI Tool} open
@@ -494,8 +494,8 @@ class UserInterface {open : {public UserInterfaceBase}
                       }
                     }
                     Fl_Group m_GrpToolOptionZoomPan {
-                      label 2
-                      xywh {5 165 135 165} labelsize 10 hide
+                      label 2 open
+                      xywh {5 165 135 165} labelsize 10
                     } {
                       Fl_Group {} {
                         label {Zoom / Pan Tool} open
@@ -526,7 +526,7 @@ class UserInterface {open : {public UserInterfaceBase}
                         xywh {100 265 30 20} labelsize 10 align 20 deactivate
                       } {}
                       Fl_Button {} {
-                        label {Fit all views}
+                        label {Reset all views}
                         callback {this->OnResetAllViews2DAction();}
                         xywh {25 295 95 25} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX shortcut 0x40066 color 180 selection_color 94 labelsize 11 align 128
                       }
@@ -1036,7 +1036,7 @@ this->OnSNAPLabelOpacityChange();}
                     xywh {150 30 333 320} resizable
                   } {
                     Fl_Box {m_SliceWindow[0]} {
-                      label {m_GrpIRISAxial(0)}
+                      label {m_GrpIRISAxial(0)} selected
                       xywh {150 30 333 320} box BORDER_BOX color 0 labelcolor 7
                       code0 {\#include "FLTKCanvas.h"}
                       class FLTKCanvas
@@ -1046,7 +1046,7 @@ this->OnSNAPLabelOpacityChange();}
                     xywh {145 350 365 30} color 48
                   } {
                     Fl_Button {m_BtnResetView[0]} {
-                      label {reset view}
+                      label {zoom to fit}
                       callback {this->OnResetView2DAction(0);}
                       tooltip {Restore the view to default zoom level} xywh {370 355 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
                     }
@@ -1173,7 +1173,7 @@ this->OnSNAPLabelOpacityChange();}
                     xywh {510 350 365 30}
                   } {
                     Fl_Button {m_BtnResetView[1]} {
-                      label {reset view}
+                      label {zoom to fit}
                       callback {this->OnResetView2DAction(1);}
                       tooltip {Restore the view to default zoom level} xywh {732 355 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
                     }
@@ -1300,7 +1300,7 @@ this->OnSNAPLabelOpacityChange();}
                     xywh {510 705 365 30}
                   } {
                     Fl_Button {m_BtnResetView[2]} {
-                      label {reset view}
+                      label {zoom to fit}
                       callback {this->OnResetView2DAction(2);}
                       tooltip {Restore the view to default zoom level} xywh {735 710 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
                     }
@@ -1828,7 +1828,7 @@ changes, or press 'go back' in order to save the changes first.} open
       }
     }
     Fl_Window m_WinTestPop {
-      label Test open selected
+      label Test open
       xywh {1247 403 46 24} type Single align 2
       class Fl_Menu_Window non_modal noborder visible
     } {

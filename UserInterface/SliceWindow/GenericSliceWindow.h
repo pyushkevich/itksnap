@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.h,v $
   Language:  C++
-  Date:      $Date: 2010/10/12 16:02:05 $
-  Version:   $Revision: 1.27 $
+  Date:      $Date: 2010/10/12 17:57:11 $
+  Version:   $Revision: 1.28 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -192,6 +192,9 @@ public:
   irisGetMacro(Id, int);
   irisGetMacro(ParentUI, UserInterfaceBase *); 
 
+  /** Compute the canvas size needed to display slice at current zoom factor */
+  Vector2i GetOptimalCanvasSize();
+  
   /**
    * A parent class from which all the Fl event handlers associated
    * with this class should be derived
@@ -325,7 +328,7 @@ protected:
 
   // Computes the zoom that gives the best fit for the window
   void ComputeOptimalZoom();
-  
+
   // This method is called in draw() to paint the Main image slice
   virtual void DrawMainTexture();
 

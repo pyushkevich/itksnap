@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SliceWindowCoordinator.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/05/04 20:15:57 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2010/10/12 17:57:11 $
+  Version:   $Revision: 1.5 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -137,10 +137,11 @@ SliceWindowCoordinator
   // Only if initialized
   assert(m_WindowsRegistered);
 
+  // Reset zoom to fit in the current window
+  m_Window[window]->ResetViewToFit();
+
   if(m_LinkedZoom)
-    ResetViewToFitInAllWindows();
-  else
-    m_Window[window]->ResetViewToFit();
+    SetZoomLevelAllWindows(m_Window[window]->GetViewZoom());
 }
 
 void

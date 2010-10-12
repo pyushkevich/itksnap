@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/12 16:02:05 $
-  Version:   $Revision: 1.113 $
+  Date:      $Date: 2010/10/12 17:57:11 $
+  Version:   $Revision: 1.114 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2153,7 +2153,7 @@ UserInterfaceLogic
     m_WinTestPop->position(
       m_WinMain->x() + m_WinMain->w() - (5 + m_WinTestPop->w()),
       m_WinMain->y() + m_WinMain->h() - (5 + m_WinTestPop->h()));
-    // m_WinTestPop->show();
+    m_WinTestPop->show();
     }
   else
     {
@@ -3728,6 +3728,14 @@ UserInterfaceLogic
   dl = m_DisplayLayout;
   dl.size = HALF_SIZE;
   SetDisplayLayout(dl);
+
+  // Lastly, get rid of unused space
+  Vector2i optsize = m_SliceCoordinator->GetWindow(iWindow)->GetOptimalCanvasSize();
+  int w = std::min(optsize[0], m_WinMain->w());
+  int h = std::min(optsize[1], m_WinMain->h());
+  int x = m_WinMain->x() + 0.5 * (m_WinMain->w() - w);
+  int y = m_WinMain->y() + 0.5 * (m_WinMain->h() - h);
+  m_WinMain->resize(x, y, w, h);
 }
 
 void
@@ -5995,6 +6003,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.114  2010/10/12 17:57:11  pyushkevich
+ *Collapsed windows auto-shrink; changed zoom to fit behavior
+ *
  *Revision 1.113  2010/10/12 16:02:05  pyushkevich
  *Improved handling of collapsed windows
  *

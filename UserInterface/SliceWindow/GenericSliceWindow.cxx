@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GenericSliceWindow.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/12 16:02:05 $
-  Version:   $Revision: 1.34 $
+  Date:      $Date: 2010/10/12 17:57:11 $
+  Version:   $Revision: 1.35 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -259,6 +259,18 @@ GenericSliceWindow
   // The zoom factor is the bigger of these ratios, the number of pixels 
   // on the screen per millimeter in world space
   m_OptimalZoom = ratios.min_value();
+}
+
+Vector2i 
+GenericSliceWindow
+::GetOptimalCanvasSize()
+{
+  // Compute slice size in spatial coordinates
+  Vector2i optSize(
+    ceil(m_SliceSize[0] * m_SliceSpacing[0] * m_ViewZoom + 2 * m_Margin),
+    ceil(m_SliceSize[1] * m_SliceSpacing[1] * m_ViewZoom + 2 * m_Margin));
+
+  return optSize;
 }
 
 void
