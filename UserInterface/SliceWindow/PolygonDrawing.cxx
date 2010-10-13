@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PolygonDrawing.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/09 04:20:08 $
-  Version:   $Revision: 1.14 $
+  Date:      $Date: 2010/10/13 17:01:08 $
+  Version:   $Revision: 1.15 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1020,7 +1020,7 @@ PolygonDrawing
       else if(button == FL_RIGHT_MOUSE)
         {
         // If nothing is selected, select what's under the cursor
-        if(~m_SelectedVertices)
+        if(!m_SelectedVertices)
           {
           // Check if clicked on a pixel
           if(CheckClickOnVertex(x,y,pixel_x,pixel_y,4))
@@ -1289,6 +1289,9 @@ PolygonDrawing
 
 /*
  *$Log: PolygonDrawing.cxx,v $
+ *Revision 1.15  2010/10/13 17:01:08  pyushkevich
+ *Fixing warnings
+ *
  *Revision 1.14  2010/10/09 04:20:08  pyushkevich
  *Added customization to polygon drawing appearance;ability to export/import appearance settings
  *

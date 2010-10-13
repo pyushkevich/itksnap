@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/13 15:03:00 $
-  Version:   $Revision: 1.35 $
+  Date:      $Date: 2010/10/13 16:59:25 $
+  Version:   $Revision: 1.36 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -833,7 +833,7 @@ IRISApplication
       vtkUnsignedShortArray *scalar = vtkUnsignedShortArray::New();
       scalar->SetNumberOfComponents(1);
       scalar->Allocate(mesh->GetNumberOfPoints());
-      for(size_t j = 0; j < mesh->GetNumberOfPoints(); j++)
+      for(int j = 0; j < mesh->GetNumberOfPoints(); j++)
         scalar->InsertNextTuple1(mob.GetVTKMeshLabel(i));
       mesh->GetPointData()->SetScalars(scalar);
       scalarArray.push_back(scalar);

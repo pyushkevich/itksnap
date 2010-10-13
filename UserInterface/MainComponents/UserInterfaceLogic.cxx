@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/13 16:52:04 $
-  Version:   $Revision: 1.115 $
+  Date:      $Date: 2010/10/13 16:59:25 $
+  Version:   $Revision: 1.116 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -3733,8 +3733,8 @@ UserInterfaceLogic
   Vector2i optsize = m_SliceCoordinator->GetWindow(iWindow)->GetOptimalCanvasSize();
   int w = std::min(optsize[0], m_WinMain->w());
   int h = std::min(optsize[1], m_WinMain->h());
-  int x = m_WinMain->x() + 0.5 * (m_WinMain->w() - w);
-  int y = m_WinMain->y() + 0.5 * (m_WinMain->h() - h);
+  int x = m_WinMain->x() + (m_WinMain->w() - w) / 2;
+  int y = m_WinMain->y() + (m_WinMain->h() - h) / 2;
   m_WinMain->resize(x, y, w, h);
 }
 
@@ -6013,6 +6013,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.116  2010/10/13 16:59:25  pyushkevich
+ *Fixing warnings
+ *
  *Revision 1.115  2010/10/13 16:52:04  pyushkevich
  *Improved the precision warning system
  *
