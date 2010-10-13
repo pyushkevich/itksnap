@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/12 19:53:14 $
-  Version:   $Revision: 1.34 $
+  Date:      $Date: 2010/10/13 15:03:00 $
+  Version:   $Revision: 1.35 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -61,6 +61,7 @@
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkImageFileWriter.h"
 #include "itkFlipImageFilter.h"
+#include <itksys/SystemTools.hxx>
 #include "vtkAppendPolyData.h"
 #include "vtkUnsignedShortArray.h"
 #include "vtkPointData.h"
@@ -849,6 +850,39 @@ IRISApplication
     append->Delete();
     for(size_t i = 0; i < scalarArray.size(); i++)
       scalarArray[i]->Delete();
+    }
+  else
+    {
+    // Take apart the filename
+    std::string full = itksys::SystemTools::CollapseFullPath(sets.GetMeshFileName().c_str());
+    std::string path = itksys::SystemTools::GetFilenamePath(full.c_str());
+    std::string file = itksys::SystemTools::GetFilenameWithoutExtension(full.c_str());
+    std::string extn = itksys::SystemTools::GetFilenameExtension(full.c_str());
+    std::string prefix = file;
+
+    // Are the last 5 characters of the filename numeric?
+    if(file.length() >= 5)
+      {
+      string suffix = file.substr(file.length()-5,5);
+      if(count_if(suffix.begin(), suffix.end(), isdigit) == 5)
+        prefix = file.substr(0, file.length()-5);
+      }
+
+    // Loop, saving each mesh into a filename
+    for(size_t i = 0; i < mob.GetNumberOfVTKMeshes(); i++)
+      {
+      // Get the VTK mesh for the label
+      vtkPolyData *mesh = mob.GetVTKMesh(i);
+
+      // Generate filename
+      char outfn[4096];
+      sprintf(outfn, "%s/%s%05d%s", path.c_str(), prefix.c_str(), mob.GetVTKMeshLabel(i), extn.c_str());
+
+      // Export the mesh
+      GuidedMeshIO io;
+      Registry rFormat = sets.GetMeshFormat();
+      io.SaveMesh(outfn, rFormat, mesh);
+      }
     }
 
   mob.DiscardVTKMeshes();

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MeshIOWizardUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/12 19:53:14 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2010/10/13 15:03:00 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -337,7 +337,7 @@ MeshIOWizardUILogic
   else
     {
     m_InMeshPageSelectedLabel->deactivate();
-    m_BtnMeshPageIndexedExport->deactivate();
+    m_BtnMeshPageIndexedExport->activate();
     m_BtnMeshPageSceneExport->activate();
     }
 }
