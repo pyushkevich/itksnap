@@ -30,7 +30,7 @@ class UserInterface {open : {public UserInterfaceBase}
     Fl_Window m_WinMain {
       label {ITK-SNAP Main Window}
       callback {OnMainWindowCloseAction();} open
-      xywh {559 135 875 735} type Double align 0 resizable
+      xywh {530 159 875 735} type Double align 0 resizable
       code0 {\#include "UserInterfaceBase.h"}
       class SNAPMainWindow visible
     } {
@@ -1036,7 +1036,7 @@ this->OnSNAPLabelOpacityChange();}
                     xywh {150 30 333 320} resizable
                   } {
                     Fl_Box {m_SliceWindow[0]} {
-                      label {m_GrpIRISAxial(0)} selected
+                      label {m_GrpIRISAxial(0)}
                       xywh {150 30 333 320} box BORDER_BOX color 0 labelcolor 7
                       code0 {\#include "FLTKCanvas.h"}
                       class FLTKCanvas
@@ -1843,6 +1843,35 @@ changes, or press 'go back' in order to save the changes first.} open
         callback {this->OnCollapsedViewPopupMenu();}
         tooltip {Collapse ITK-SNAP so only this view is shown} xywh {24 2 20 20} box PLASTIC_UP_BOX color 180 labelsize 12 labelcolor 139 align 18
         code0 {\#include "FL/Fl_Menu_Window.H"}
+      }
+    }
+    Fl_Window m_WinPrecisionWarning {
+      label {Insufficient Precision Warning} open
+      xywh {749 384 495 158} type Double box PLASTIC_DOWN_BOX modal visible
+    } {
+      Fl_Button {} {
+        label Ok
+        callback {m_WinPrecisionWarning->hide();} selected
+        xywh {380 115 100 30} box PLASTIC_UP_BOX shortcut 0xff0d color 180 labelfont 1 labelsize 12 hotspot
+      }
+      Fl_Group {} {
+        label {The numerical precision of the image you loaded is greater
+than the 16 bit precision used by ITK-SNAP. Intensity values
+reported by ITK-SNAP will be approximate.} open
+        xywh {85 20 400 65} align 21
+      } {}
+      Fl_Group {} {
+        label {!} open
+        xywh {15 20 55 55} box OFLAT_BOX color 224 selection_color 37 labelfont 9 labelsize 48 labelcolor 7 align 16
+      } {}
+      Fl_Check_Button m_ChkPrecisionWarningDisable {
+        label {Do not show this warning again}
+        xywh {285 85 195 20} down_box DOWN_BOX labelsize 12
+      }
+      Fl_Button {} {
+        label {Learn more...}
+        callback {fl_open_uri("http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.PrecisionWarning");}
+        xywh {270 115 100 30} box PLASTIC_UP_BOX color 180 labelsize 12
       }
     }
   }

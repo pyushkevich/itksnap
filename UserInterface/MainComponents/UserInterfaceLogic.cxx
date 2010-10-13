@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/12 17:57:11 $
-  Version:   $Revision: 1.114 $
+  Date:      $Date: 2010/10/13 16:52:04 $
+  Version:   $Revision: 1.115 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -4212,16 +4212,13 @@ UserInterfaceLogic
   // Warn if the image has been scaled
   GreyTypeToNativeFunctor native = 
     m_Driver->GetCurrentImageData()->GetGrey()->GetNativeMapping();
-  if(m_AppearanceSettings->GetFlagFloatingPointWarningByDefault() == 1 && (native.scale != 1.0 || native.shift != 0.0))
-    fl_alert(
-      "The image you just loaded has a data type with greater range\n"
-      "and precision than the 16-bit signed integer data type used \n"
-      "internally by ITK-SNAP. Approximate intensity values will be\n"
-      "reported by the program.\n\n"
-      "CAUTION: if you use ITK-SNAP to save the image to a file, \n"
-      "precision from the original image will be lost!\n\n"
-	 "You can turn off this warning by going to \"Options -> \n"
-	 "Display Options -> General\"\n\n");
+  if(m_AppearanceSettings->GetFlagFloatingPointWarningByDefault() == 1 
+    && (native.scale != 1.0 || native.shift != 0.0))
+    {
+    m_WinPrecisionWarning->show();
+    if(m_ChkPrecisionWarningDisable->value())
+      m_AppearanceSettings->SetFlagFloatingPointWarningByDefault(false);
+    }
 }
 
 void
@@ -5083,11 +5080,24 @@ UserInterfaceLogic
 void UserInterfaceLogic
 ::OnMenuExportSlice(unsigned int iSlice)
 {
+  // Generate a default filename for this slice
+  static const char *defpref[3] = {"axial", "sagittal", "coronal"};
+  char deffn[40];
+
+  // Figure out what slice it is
+  size_t iSliceImg = 
+    m_Driver->GetImageDirectionForAnatomicalDirection((AnatomicalDirection) iSlice);
+
+  sprintf(deffn,"%s_slice_%04d.png", defpref[iSlice], 
+    m_Driver->GetCursorPosition()[iSliceImg] + 1);
+
   // We need to get a filename for the export
   Fl_Native_File_Chooser chooser;
   chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
   chooser.title("Export Slice As");
   chooser.filter("Image Files\t*.{png,jpg,gif,tiff}");
+  chooser.preset_file(deffn);
+
   if (chooser.show() == 0)
     {
     const char *fName = chooser.filename();
@@ -6003,6 +6013,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.115  2010/10/13 16:52:04  pyushkevich
+ *Improved the precision warning system
+ *
  *Revision 1.114  2010/10/12 17:57:11  pyushkevich
  *Collapsed windows auto-shrink; changed zoom to fit behavior
  *
