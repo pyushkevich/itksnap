@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/28 18:45:08 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2010/10/13 15:31:27 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1084,6 +1084,7 @@ ImageIOWizardLogic
   Fl_Native_File_Chooser chooser;
   chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
   chooser.title("Save Image As");
+  chooser.options(Fl_Native_File_Chooser::NEW_FOLDER);
   chooser.preset_file(path);
   chooser.filter(pattern.c_str());
   if (chooser.show() == 0)

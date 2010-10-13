@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MeshIOWizardUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/13 15:03:00 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2010/10/13 15:31:27 $
+  Version:   $Revision: 1.9 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -37,6 +37,7 @@
 #include "GuidedMeshIO.h"
 #include "FL/Fl_Native_File_Chooser.H"
 #include "FL/filename.H"
+#include "FL/fl_ask.H"
 
 using namespace std;
 
@@ -63,10 +64,10 @@ MeshIOWizardUILogic
 {
   // String containing the whole patterns
   StringType pattern = "";
-  bool patternNeedsTab = false;
+  bool patternNeedsNewline = false;
 
   // String containing the "All Image Files" pattern
-  StringType allImageFiles = "All Mesh Files (*.{"; 
+  StringType allImageFiles = "All Mesh Files\t*.{"; 
   bool allImageFilesNeedsComma = false;
 
   // Go through all supported formats
@@ -82,20 +83,20 @@ MeshIOWizardUILogic
     allImageFiles += m_FileFormatPattern[i];
 
     // Add a tab to the pattern
-    if(patternNeedsTab)
-      pattern += "\t";
+    if(patternNeedsNewline)
+      pattern += "\n";
     else
-      patternNeedsTab = true;
+      patternNeedsNewline = true;
 
     // Construct the pattern
     pattern += m_FileFormatDescription[i];
-    pattern += " Files (*.{";
+    pattern += " Files\t*.{";
     pattern += m_FileFormatPattern[i];
-    pattern += "})";
+    pattern += "}";
     }
 
   // Finish the all image pattern
-  allImageFiles += "})\t";
+  allImageFiles += "}\n";
 
   // Compete the pattern
   pattern = allImageFiles + pattern;
@@ -126,14 +127,14 @@ MeshIOWizardUILogic
   Fl_Native_File_Chooser chooser;
   chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
   chooser.title("Select a mesh file");
+  chooser.options(Fl_Native_File_Chooser::NEW_FOLDER);
+  chooser.preset_file(path);
   chooser.filter(pattern.c_str());
-  chooser.directory(path);
-  if (chooser.show())
-    {
-    fName = chooser.filename();
-    }
+  if(chooser.show() == 0)
+    fName = chooser.filename(); 
+
   // Bring up th choice dialog
-  if (fName && !strlen(fName))
+  if (fName && strlen(fName) > 0)
     {
     // Set the new filename
     m_InFilePageBrowser->value(fName);
