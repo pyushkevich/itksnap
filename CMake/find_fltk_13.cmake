@@ -124,7 +124,7 @@ IF(UNIX)
 ENDIF(UNIX)
 
 IF(APPLE)
-  SET( FLTK_PLATFORM_DEPENDENT_LIBS  "-framework Cocoa -framework ApplicationServices -framework AudioToolbox -lz")
+  SET( FLTK_PLATFORM_DEPENDENT_LIBS  "-framework Carbon -framework Cocoa -framework ApplicationServices -framework AudioToolbox -lz")
 ENDIF(APPLE)
 
 IF(CYGWIN)
