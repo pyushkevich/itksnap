@@ -378,6 +378,15 @@ IF(UNIX)
   IF(SNAP_USE_XFT_LIBRARY)
     SET(SYSTEM_LIBS ${SYSTEM_LIBS} Xft)
   ENDIF(SNAP_USE_XFT_LIBRARY)
+
+  # Include the Xinerama libary for nice fonts
+  OPTION(SNAP_USE_XINERAMA_LIBRARY "Enable this option if you use FLTK 1.3 with --enable-xinerama" OFF)
+  MARK_AS_ADVANCED(SNAP_USE_XINERAMA_LIBRARY)
+  IF(SNAP_USE_XINERAMA_LIBRARY)
+    SET(SYSTEM_LIBS ${SYSTEM_LIBS} Xinerama)
+  ENDIF(SNAP_USE_XINERAMA_LIBRARY)
+
+
 ENDIF(UNIX)
 
 #############################################
