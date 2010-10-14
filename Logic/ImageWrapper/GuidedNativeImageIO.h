@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.h,v $
   Language:  C++
-  Date:      $Date: 2009/10/26 07:34:10 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2010/10/14 16:21:04 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -298,7 +298,7 @@ template<class TPixel, unsigned int VDim> class CastToArrayFunctor
 {
 public:
   template<class TNative> void operator()(TNative *src, TPixel *trg)
-    { for(size_t i = 0; i < VDim; i++) (*trg)[i] = (typename TPixel::ComponentType) src[i]; }
+    { for(unsigned int i = 0; i < VDim; i++) (*trg)[i] = (typename TPixel::ComponentType) src[i]; }
   size_t GetNumberOfDimensions() { return VDim; }
 };
 

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: RestrictedImageIOWizardLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/07/23 15:50:59 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2010/10/14 16:21:04 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -98,7 +98,7 @@ RestrictedImageIOWizardLogic
     // preclude the user from loading the image, but it will generate a 
     // warning, hopefully leading users to adopt more flexible file formats
     bool match_spacing = true, match_origin = true, match_direction = true;
-    for(size_t i = 0; i < 3; i++)
+    for(unsigned int i = 0; i < 3; i++)
       {
       if(m_MainImage->GetSpacing()[i] != native->GetSpacing()[i])
         match_spacing = false;

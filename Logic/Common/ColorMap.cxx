@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/09/21 21:54:21 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2010/10/14 16:21:04 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -201,7 +201,7 @@ ColorMap
   m_Interpolants.resize(n+1);
 
   // Loop over the component
-  for(size_t d = 0; d < 4; d++)
+  for(unsigned int d = 0; d < 4; d++)
     {
     // Set first and last interpolants
     m_Interpolants[0].slope[d] = 0.0f; 

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageWrapper.txx,v $
   Language:  C++
-  Date:      $Date: 2009/11/13 00:59:47 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2010/10/14 16:21:04 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -449,7 +449,7 @@ ImageWrapper<TPixel>
   m_Image->TransformIndexToPhysicalPoint(xIndex, xPoint);
 
   Vector3d xOut;
-  for(size_t q = 0; q < 3; q++) xOut[q] = xPoint[q];
+  for(unsigned int q = 0; q < 3; q++) xOut[q] = xPoint[q];
 
   return xOut;
 }

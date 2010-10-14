@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/03 19:25:32 $
-  Version:   $Revision: 1.25 $
+  Date:      $Date: 2010/10/14 16:21:04 $
+  Version:   $Revision: 1.26 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -282,7 +282,7 @@ LayerInspectorUILogic
     }
 
   // associate with image info: common
-  for (size_t d = 0; d < 3; ++d)
+  for (unsigned int d = 0; d < 3; ++d)
     {
     m_OutImageInfoDimensions[d]->value(m_SelectedWrapper->GetSize()[d]);
     m_OutImageInfoOrigin[d]->value(m_SelectedWrapper->GetImageBase()->GetOrigin()[d]);

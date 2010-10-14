@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ImageIOWizardLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/13 15:31:27 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2010/10/14 16:21:04 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -734,7 +734,7 @@ ImageIOWizardLogic
     m_OutSummaryFileName->value(m_GuidedIO.GetFileNameOfNativeImage().c_str());
 
     // Print file dimensions, spacing and origin
-    for(size_t i = 0; i < 3; i++)
+    for(unsigned int i = 0; i < 3; i++)
       {
       m_OutSummaryDimensions[i]->value(native->GetBufferedRegion().GetSize()[i]);
       m_OutSummarySpacing[i]->value(native->GetSpacing()[i]);

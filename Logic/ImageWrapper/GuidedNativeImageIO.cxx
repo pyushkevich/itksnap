@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: GuidedNativeImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/28 18:45:08 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2010/10/14 16:21:04 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -397,7 +397,7 @@ GuidedNativeImageIO
     size_t nd = m_IOBase->GetNumberOfDimensions(); 
     if(nd > 3) nd = 3;
     
-    for(size_t i = 0; i < nd; i++)
+    for(unsigned int i = 0; i < nd; i++)
       {
       spc[i] = m_IOBase->GetSpacing(i);
       org[i] = m_IOBase->GetOrigin(i);
