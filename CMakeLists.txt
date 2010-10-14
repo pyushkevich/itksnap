@@ -65,9 +65,6 @@ ELSE(DEFINED InsightApplications_SOURCE_DIR)
 	"Is SNAP being built separate from InsightApplications?")
 ENDIF(DEFINED InsightApplications_SOURCE_DIR)			
 
-# Temporary dual support for FLTK 1.1 and 1.3
-OPTION(USE_FLTK_1_3 "Select if you plan to build with FLTK 1.3" OFF)
-
 IF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
   INCLUDE(${SNAP_SOURCE_DIR}/CMake/standalone.cmake)
 ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
@@ -365,30 +362,6 @@ SET(APPLICATION_FLUIDS
   UserInterface/MainComponents/UserInterface.fl
 )
 
-
-#############################################
-# SYSTEM-SPECIFIC SETTINGS                  #
-#############################################
-SET(SYSTEM_LIBS)
-
-IF(UNIX)
-  # Include the XFT libary for nice fonts
-  OPTION(SNAP_USE_XFT_LIBRARY "Enable this option if you built FLTK with --enable-xft" OFF)
-  MARK_AS_ADVANCED(SNAP_USE_XFT_LIBRARY)
-  IF(SNAP_USE_XFT_LIBRARY)
-    SET(SYSTEM_LIBS ${SYSTEM_LIBS} Xft)
-  ENDIF(SNAP_USE_XFT_LIBRARY)
-
-  # Include the Xinerama libary for nice fonts
-  OPTION(SNAP_USE_XINERAMA_LIBRARY "Enable this option if you use FLTK 1.3 with --enable-xinerama" OFF)
-  MARK_AS_ADVANCED(SNAP_USE_XINERAMA_LIBRARY)
-  IF(SNAP_USE_XINERAMA_LIBRARY)
-    SET(SYSTEM_LIBS ${SYSTEM_LIBS} Xinerama)
-  ENDIF(SNAP_USE_XINERAMA_LIBRARY)
-
-
-ENDIF(UNIX)
-
 #############################################
 # LIBRARIES AND EXTERNAL CODE               #
 #############################################
@@ -488,30 +461,7 @@ ELSE(VTK_USE_PATENTED)
 ENDIF(VTK_USE_PATENTED)
 
 # FLTK Related libraries
-
-# The FLTK extensions (not needed after 1.3)
-IF(NOT USE_FLTK_1_3)
-  SUBDIRS(Utilities/FLTK/Fl_Native_File_Chooser)
-  SUBDIRS(Utilities/FLTK/Fl_Table)
-  INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Native_File_Chooser)
-  INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Table)
-ENDIF(NOT USE_FLTK_1_3)
-
-## Workaround for problem with FindFLTK.cmake when FLTK was built using Cmake.
-IF(NOT FLTK_LIBRARIES)
-  SET(FLTK_LIBRARIES  
-    ${FLTK_IMAGES_LIBRARY} 
-    ${FLTK_IMAGES_LIBS} 
-    ${FLTK_BASE_LIBRARY} 
-    ${FLTK_GL_LIBRARY} 
-    ${FLTK_FORMS_LIBRARY})
-ENDIF(NOT FLTK_LIBRARIES)
-
-IF(USE_FLTK_1_3)
-  SET(SNAP_FLTK_LIBS ${FLTK_LIBRARIES} ${FLTK_IMAGES_LIBS})
-ELSE(USE_FLTK_1_3)
-  SET(SNAP_FLTK_LIBS fltk_native_file_chooser fltk_table ${FLTK_LIBRARIES} ${FLTK_IMAGES_LIBS})
-ENDIF(USE_FLTK_1_3)
+SET(SNAP_FLTK_LIBS ${FLTK_LIBRARIES})
 
 # System libraries
 SET(SNAP_SYSTEM_LIBS
