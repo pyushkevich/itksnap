@@ -1,6 +1,6 @@
 ======================================
  InsightSNAP Release Notes
- Version 2.0
+ Version 2.1.x (pre-release of 2.2)
 ======================================
 
 
@@ -8,10 +8,79 @@
 1. New Features
 -----------------
 
-1.1. New in Version 2.0
+1.1. New in Version 2.1.4 
 ----------------------------------------------
 
+This is largely a maintenance release, with a few usability enhancements based
+on user feedback. The main change programmatically is 64 bit support on Linux,
+MacOS and Windows.
+
 1.1.1. New Features and UI Improvements
+
+ -  64 bit versions of the software are available for Linux, Windows and Mac.
+    These versions are now built nightly and will be distributed on
+    SourceForge.net. For this to work, we had to change to newer versions of
+    the supporting libraries: ITK 3.20, VTK 5.6.1, and FLTK 1.3.x-r7710. The
+    latter was necessary for 64 bit MacOS, which many users have requested.
+    Thanks to Michael Hanke for providing a patch for ITK 3.18 compatibility.
+
+ -  The maximum number of labels has been increased to 65535 to support
+    interoperability with tools like FreeSurfer, which generate segmentations
+    with large numbers of labels.
+
+ -  A new window for displaying volumes and statistics. Previously, users had
+    to export volumes to a text file in order to view them. Now they can be
+    viewed dynamically. This was possible by moving to FLTK 1.3, which
+    includes the Fl_Table widget.
+
+ -  A new tab on the layer inspector displaying image metadata, particularly
+    useful for DICOM files. 
+
+ -  Several changes to the polygon drawing interface. The buttons at the
+    bottom of the slice window are now shown dynamically, based on what the
+    user is doing. Right clicking brings up a popup menu, allowing to bypass
+    the edit mode if desired. An 'undo point' operation is provided.
+
+ -  Users can change the appearance of the polygon drawing UI elements. This
+    addresses the request to get rid of the dotted line closing the polygon.
+
+ -  Intensity window and level in the image contrast dialog are no longer
+    clamped by the minimum and maximum intensity in the image. This is useful
+    for displaying statistical maps, where a certain fixed output range is
+    desired.
+
+ -  Finally implemented all the options under Segmentation->Export as Mesh.
+    You can now export meshes for all labels either as separate mesh files or
+    as a single scene. The latter is recommended with the VTK mesh format,
+    where the label ids of the meshes are preserved.
+
+ -  Collapsable slice windows. The new 'collapse' button gets rid of the UI
+    and just shows the selected slice. This is useful when you have multiple
+    SNAP sessions open at once. SNAP can be opened in this mode using the new
+    command-line option '--compact <axis>', where <axis> is 'a' for axial, 's'
+    for sagittal or 'c' for coronal. You can restore default SNAP layout using
+    Ctrl-F3 (Command-F3 on the Mac) or using the toolbar button that pops up.
+
+ -  Also added command line options --zoom and --help 
+
+ -  The 'reset view' button under the slice windows has been renamed 'zoom to
+    fit' and it behaves more sensibly when zoom is linked across the slice
+    views. 
+
+ -  Improved integration with MacOS and Windows operating systems. On both
+    MacOS and Windows, you can drag and drop a file into an open SNAP window
+    and you will be prompted to open that file as a grey image, as a
+    segmentation, as an overlay, or as a grey image in another SNAP session.
+    Additionally, on the Mac, you can drag and drop files to the SNAP icon on
+    the Dock, even if an SNAP session is not running.
+
+ -  Added an option under File menu to open a new SNAP session.
+
+
+1.2. New in Version 2.0
+----------------------------------------------
+
+1.2.1. New Features and UI Improvements
 
  -  Support for multiple image layers. Users can now load gray and RGB images
     as overlays on top of the main image layer. For example, one can display a
@@ -69,11 +138,11 @@
     always work, but it should make a lot of frustrated users a little less frustrated.
 
  -  Reduced the memory footprint. There is still room for improvement, of course. Currently,
-	ITK-SNAP requires 6 bytes per voxel in manual segmentation mode. More memory is needed for
-	mesh rendering, and a lot more for automatic segmentation. When loading images in 32-bit
-	or 64-bit formats, more memory may be required at the time of image IO. That is because
-	ITK NIFTI reader (and maybe other readers) keeps a second copy of the image in memory 
-	during IO. This memory is immediately deallocated though.  
+    ITK-SNAP requires 6 bytes per voxel in manual segmentation mode. More memory is needed for
+    mesh rendering, and a lot more for automatic segmentation. When loading images in 32-bit
+    or 64-bit formats, more memory may be required at the time of image IO. That is because
+    ITK NIFTI reader (and maybe other readers) keeps a second copy of the image in memory 
+    during IO. This memory is immediately deallocated though.  
 	
  -  Unified navigation modes. The crosshair mode allows zoom and pan (RMB/MMB), and has an 
     auto-pan feature when you move the crosshair close to the edge of the slice window.
@@ -81,10 +150,8 @@
     In the zoom/pan mode, zoom is RMB, pan is LMB, crosshair motion is MMB. In all other
     modes, crosshair motion is accessible through MMB as well.
     
-    
- 
 
-1.1.2. Bug Fixes
+1.2.2. Bug Fixes
 
  -  Fixed an issue with SNAP reading certain types of image twice from disc. This should
     speed up the reading of floating point images, for example.
@@ -104,16 +171,16 @@
     
  -  Please see the bug tracker on itksnap.org for the full listing of bug fixes.
  
-1.1.3. Website Changes
+1.2.3. Website Changes
 
  -  The itksnap.org website has been Wikified. Content can now be edited on the fly. 
 
 
 
-1.2. New in Version 1.8
+1.3. New in Version 1.8
 ----------------------------------------------
 
-1.2.1. New Features and UI Improvements
+1.3.1. New Features and UI Improvements
  
  -  Support for reading floating point images of arbitrary range. SNAP still
     represents gray images internally as signed short, but now it can load a
@@ -241,7 +308,7 @@
  -  Documented existing keyboard shortcuts and added some new ones. Available
     shortcuts can be listed by selecting Help->Shortcuts.
 
-1.2.2. Programmatic/Distribution Changes
+1.3.2. Programmatic/Distribution Changes
 
  -  SNAP is now built against ITK 3.8, offering several improvements, especially
     in how image orientation is handled.
@@ -254,23 +321,23 @@
     Some people complained about the latter. We can also make .rpm and .deb
     packages although these won't be posted for public download yet.
 
-1.2.3. Bug Fixes
+1.3.3. Bug Fixes
 
  -  Level set fix for ITK 3.8 fixes automatic segmentation's weird behavior
 
-1.3. New in Version 1.6.0.1
+1.4. New in Version 1.6.0.1
 ---------------------------
 
-1.3.1. Bug Fixes
+1.4.1. Bug Fixes
 
  -  Major bug in release 1.6.0 involving disabled cursor movement in snake 
     segmentation mode has been resolved.
 
 
-1.4. New in Version 1.6.0
+1.5. New in Version 1.6.0
 -------------------------
 
-1.4.1. New Features and UI Improvements
+1.5.1. New Features and UI Improvements
 
  -  You can now save a sequence of all axial, coronal or sagittal slices with
     overlays as PNG files (File->Save->Screenshot Series). 
@@ -319,11 +386,11 @@
 
  -  Shortened/simplified some of the menu items
 
-1.4.2. Bug Fixes
+1.5.2. Bug Fixes
 
  -  Various bugs have been fixed :)
 
-1.4.3. Distribution Changes
+1.5.3. Distribution Changes
 
  -  SNAP website fully migrated to sourceforge.net
 
@@ -333,10 +400,10 @@
  -  Linux binaries will be available starting with 1.6.0
 
 
-1.5. New in Version 1.4.1
+1.6. New in Version 1.4.1
 -------------------------
 
-1.5.1. New Features and UI Improvements
+1.6.1. New Features and UI Improvements
 
  -  Added paintbrush tool to the main toolbar. Paintbrush can be used to quickly
     touch up segmentations. Left mouse button paints with selected label, right
@@ -355,7 +422,7 @@
     different segmentation from the same viewpoint. Press 's' in the 3D window
     to save the camera state and 'r' to restore it.
 
-1.5.2. Bug Fixes
+1.6.2. Bug Fixes
 
  -  MAJOR: fixed bug that was causing crashes on Win32 during polygon drawing 
     (thanks to Jeff Tsao for this bug fix!)
@@ -373,7 +440,7 @@
  -  Fixed crash when changing bubble radius and then going back to 
     preprocessing mode
 
-1.5.3. Distribution Changes 
+1.6.3. Distribution Changes 
 
  -  Interim SNAP releases are now hosted on SourceForge. ITK repository will only
     be used to host major releases (like 1.6). This allows us to check stuff in
@@ -385,10 +452,10 @@
     own and the download size is reduced
 
 
-1.6. New in Version 1.4
+1.7. New in Version 1.4
 -----------------------
 
-1.6.1. New Features and User Interface Improvements
+1.7.1. New Features and User Interface Improvements
 
  -  New and improved label editor. You can easily switch between labels while in
     the editor and the interface for adding new labels is more intuitive. You
@@ -427,7 +494,7 @@
 
  -  The tutorial has been updated to reflect the new features.
 
-1.6.2. Bug Fixes.
+1.7.2. Bug Fixes.
 
  -  SNAP should crash a lot less than before
 
@@ -443,20 +510,20 @@
 
  -  Lots of other small bugs have been fixed!
 
-1.6.3. Programmatic Enhancements
+1.7.3. Programmatic Enhancements
 
  -  SNAP and IRIS now share the sameset of OpenGL windows. This should prevent
     crashes on some platforms.
 
-1.6.4. Other
+1.7.4. Other
 
  -  SNAP available as a universal (Intel/PPC) binary for MacOS at itksnap.org
 
 
-1.7. New in Version 1.2
+1.8. New in Version 1.2
 -----------------------
 
-1.7.1. User Interface Improvements
+1.8.1. User Interface Improvements
 
  -  The ability to switch between 4-view mode and single view mode. Each of the 
     slice views and the 3D view can be expanded to occupy the entire SNAP window.
@@ -476,7 +543,7 @@
 
  -  SNAP remembers the last ROI used for each image.
 
-1.7.2. Programmatic Improvements
+1.8.2. Programmatic Improvements
 
  -  The level set segmentation pipeline has been rewritten, taking advantage of
     the stop and go functionality of ITK finite difference filters. This means
@@ -486,7 +553,7 @@
     machine automatically activates and deactivates UI widgets based on a set of
     flags. Rules such as Flag A => Flag B can be added to the state machine.
 
-1.7.3 Bug Fixes
+1.8.3 Bug Fixes
 
  -  Slice views update correctly when the SNAP window is resized
 
