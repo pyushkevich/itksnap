@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISException.cxx,v $
   Language:  C++
-  Date:      $Date: 2009/02/03 19:12:35 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2010/10/18 08:30:46 $
+  Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -34,6 +34,7 @@
 =========================================================================*/
 #include "IRISException.h"
 #include <cstdarg>
+#include <stdio.h>
 
 IRISException
 ::operator const char *() 
