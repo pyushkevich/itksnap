@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/18 09:16:33 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date: 2010/10/18 11:25:44 $
+  Version:   $Revision: 1.12 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -157,7 +157,7 @@ bool
 ColorMap
 ::operator==(const ColorMap& rhs) const
 {
-  // Compare two colormaps 
+  // Compare two colormaps for equality
   if (m_CMPoints.size() != rhs.m_CMPoints.size())
     return false;
   CMPointConstIterator it = m_CMPoints.begin();
