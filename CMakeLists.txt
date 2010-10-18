@@ -512,7 +512,7 @@ SET(SNAP_INTERNAL_LIBS itksnapui itksnaplogic)
 SET(SNAP_EXE InsightSNAP)
 
 # Disable FLTK warnings
-ITK_DISABLE_FLTK_GENERATED_WARNINGS("${APPLICATION_FLUIDS}")
+#ITK_DISABLE_FLTK_GENERATED_WARNINGS("${APPLICATION_FLUIDS}")
 
 # Define the main SNAP executable
 ADD_EXECUTABLE(${SNAP_EXE} WIN32 UserInterface/SNAPMain.cxx)
@@ -640,6 +640,42 @@ ELSE(WIN32 AND NOT UNIX)
 
 ENDIF(WIN32 AND NOT UNIX)
 
+# Figure out the extension of the binary
+MESSAGE(STATUS "Generator: ${CPACK_GENERATOR}")
+IF(CPACK_GENERATOR STREQUAL "NSIS")
+  SET(CPACK_EXTENSION "exe")
+ELSEIF(CPACK_GENERATOR STREQUAL "ZIP")
+  SET(CPACK_EXTENSION "zip")
+ELSEIF(CPACK_GENERATOR STREQUAL "TGZ")
+  SET(CPACK_EXTENSION "tar.gz")
+ENDIF(CPACK_GENERATOR STREQUAL "NSIS")
+
+# The filename of the installable package
+SET(CPACK_TARGET ${SNAP_BINARY_DIR}/${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION})
+
+# Call CPACK
 INCLUDE(CPack)
 INCLUDE(CTest)
+
+#########################################################
+# Automatic Uploading of Nightly Packages               #
+#########################################################
+FIND_PROGRAM(SCP_PROGRAM NAMES scp DOC "Location of the scp program (optional)")
+MARK_AS_ADVANCED(SCP_PROGRAM)
+
+SET(SCP_ARGUMENTS "-v" CACHE STRING "Optional arguments to the scp command for uploads to SourceForge")
+MARK_AS_ADVANCED(SCP_ARGUMENTS)
+
+SET(SCP_USERNAME "" CACHE STRING "SourceForge.net account id for uploads")
+MARK_AS_ADVANCED(SCP_USERNAME)
+
+SET(NIGHTLY_TARGET "itksnap-nightly-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
+
+SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/i/it/itk-snap/itk-snap")
+
+ADD_CUSTOM_TARGET(upload_nightly 
+  COMMAND ${SCP_PROGRAM} ${CPACK_TARGET} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Nightly/${NIGHTLY_TARGET}
+  DEPENDS ${CPACK_TARGET}
+  WORKING_DIRECTORY ${SNAP_BINARY_DIR}
+  COMMENT "Uploading package ${CPACK_TARGET} to SourceForge.net as ${NIGHTLY_TARGET}")
 
