@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersPreviewBox.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/28 18:45:08 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2010/10/19 19:15:14 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -116,7 +116,9 @@ SnakeParametersPreviewBox
     glBegin(GL_LINES);
     std::vector<Vector2d>::iterator it = points.begin();
     for(; it != points.end(); ++it)
+      {
       glVertex(*it);
+      }
     glEnd();
 
     glLineWidth(1.0);
@@ -308,10 +310,10 @@ SnakeParametersPreviewBox::Interactor
     {
     // Update the control point
     m_Owner->m_Pipeline->ChangeControlPoint(
-      m_ActiveControl, xClick, true);
+      m_ActiveControl, xClick, false);
 
     // Redraw the parent
-    m_Owner->redraw();
+    m_Owner->GetParentUI()->RedrawAllBoxes();
     }
 
   return true;

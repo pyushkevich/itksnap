@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/28 18:45:08 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2010/10/19 19:15:14 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -45,6 +45,7 @@
 #include "itkOrientedImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageRegionIterator.h"
+#include "itkShiftScaleImageFilter.h"
 #include "itkPNGImageIO.h"
 #include "itkRGBPixel.h"
 #include "GlobalState.h"
@@ -564,12 +565,16 @@ void SnakeParametersUILogic
   // Typedefs
   typedef itk::ImageFileReader<ExampleImageType> ReaderType;
   typedef itk::ImageRegionIterator<ExampleImageType> IteratorType;
+  typedef itk::ShiftScaleImageFilter<ExampleImageType, ExampleImageType> ScaleShiftType;
 
   // Initialize the pipeline
   m_PreviewPipeline = new SnakeParametersPreviewPipeline(
     m_ParentUI->GetDriver()->GetGlobalState());
 
   // Load each of these images
+  static const float scale_factor[] = { 1.0f / 255.0f, -2.0f / 255.0f };
+  static const float shift_factor[] = { 0.0f, -127.5f };
+
   for(unsigned int i = 0; i < 2; i++) 
     {
     try 
@@ -577,10 +582,16 @@ void SnakeParametersUILogic
       // Read the image in
       ReaderType::Pointer reader = ReaderType::New();
       reader->SetFileName(fnImage[i].c_str());
-      reader->Update();
+
+      ScaleShiftType::Pointer scaler = ScaleShiftType::New();
+      scaler->SetScale(scale_factor[i]);
+      scaler->SetShift(shift_factor[i]);
+      scaler->SetInput(reader->GetOutput());
+
+      scaler->Update();
 
       // Allocate the example image
-      m_ExampleImage[i] = reader->GetOutput();
+      m_ExampleImage[i] = scaler->GetOutput();
       }
     catch(itk::ExceptionObject &exc)
       {

@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParametersPreviewPipeline.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/28 18:45:08 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2010/10/19 19:15:14 $
+  Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -89,53 +89,12 @@ public:
     m_DemoLoopStep = 2;
     m_LevelSetImage = NULL;
 
-    // Initialize the VTK Importer
-    m_VTKExporter = itk::VTKImageExport<FloatImageType>::New();
-    m_VTKImporter = vtkImageImport::New();
-
-    // Pipe the importer into the exporter (that's a lot of code)
-    m_VTKImporter->SetUpdateInformationCallback(
-      m_VTKExporter->GetUpdateInformationCallback());
-    m_VTKImporter->SetPipelineModifiedCallback(
-      m_VTKExporter->GetPipelineModifiedCallback());
-    m_VTKImporter->SetWholeExtentCallback(
-      m_VTKExporter->GetWholeExtentCallback());
-    m_VTKImporter->SetSpacingCallback(
-      m_VTKExporter->GetSpacingCallback());
-    m_VTKImporter->SetOriginCallback(
-      m_VTKExporter->GetOriginCallback());
-    m_VTKImporter->SetScalarTypeCallback(
-      m_VTKExporter->GetScalarTypeCallback());
-    m_VTKImporter->SetNumberOfComponentsCallback(
-      m_VTKExporter->GetNumberOfComponentsCallback());
-    m_VTKImporter->SetPropagateUpdateExtentCallback(
-      m_VTKExporter->GetPropagateUpdateExtentCallback());
-    m_VTKImporter->SetUpdateDataCallback(
-      m_VTKExporter->GetUpdateDataCallback());
-    m_VTKImporter->SetDataExtentCallback(
-      m_VTKExporter->GetDataExtentCallback());
-    m_VTKImporter->SetBufferPointerCallback(
-      m_VTKExporter->GetBufferPointerCallback());  
-    m_VTKImporter->SetCallbackUserData(
-      m_VTKExporter->GetCallbackUserData());  
-
-    // Create and configure the contour filter
-    m_VTKContour = vtkContourFilter::New();
-    m_VTKContour->SetInput(m_VTKImporter->GetOutput());    
-    m_VTKContour->ReleaseDataFlagOn();
-    m_VTKContour->ComputeScalarsOff();
-    m_VTKContour->ComputeGradientsOff();
-    m_VTKContour->UseScalarTreeOn();
-    m_VTKContour->SetNumberOfContours(1);
-    m_VTKContour->SetValue(0, 0.0);
     }
 
   // Destructor
   ~LevelSetPreview2d()
     { 
     if(m_Driver) delete m_Driver; 
-    m_VTKContour->Delete();
-    m_VTKImporter->Delete();
     }
 
   // Timer callback, used to regenerate the current contour
@@ -216,6 +175,46 @@ public:
         m_DemoLoopTime += m_DemoLoopStep;
         }
 
+      // Initialize the VTK Importer
+      m_VTKExporter = itk::VTKImageExport<FloatImageType>::New();
+      m_VTKImporter = vtkImageImport::New();
+
+      // Pipe the importer into the exporter (that's a lot of code)
+      m_VTKImporter->SetUpdateInformationCallback(
+        m_VTKExporter->GetUpdateInformationCallback());
+      m_VTKImporter->SetPipelineModifiedCallback(
+        m_VTKExporter->GetPipelineModifiedCallback());
+      m_VTKImporter->SetWholeExtentCallback(
+        m_VTKExporter->GetWholeExtentCallback());
+      m_VTKImporter->SetSpacingCallback(
+        m_VTKExporter->GetSpacingCallback());
+      m_VTKImporter->SetOriginCallback(
+        m_VTKExporter->GetOriginCallback());
+      m_VTKImporter->SetScalarTypeCallback(
+        m_VTKExporter->GetScalarTypeCallback());
+      m_VTKImporter->SetNumberOfComponentsCallback(
+        m_VTKExporter->GetNumberOfComponentsCallback());
+      m_VTKImporter->SetPropagateUpdateExtentCallback(
+        m_VTKExporter->GetPropagateUpdateExtentCallback());
+      m_VTKImporter->SetUpdateDataCallback(
+        m_VTKExporter->GetUpdateDataCallback());
+      m_VTKImporter->SetDataExtentCallback(
+        m_VTKExporter->GetDataExtentCallback());
+      m_VTKImporter->SetBufferPointerCallback(
+        m_VTKExporter->GetBufferPointerCallback());  
+      m_VTKImporter->SetCallbackUserData(
+        m_VTKExporter->GetCallbackUserData());  
+
+      // Create and configure the contour filter
+      m_VTKContour = vtkContourFilter::New();
+      m_VTKContour->SetInput(m_VTKImporter->GetOutput());    
+      m_VTKContour->ReleaseDataFlagOn();
+      m_VTKContour->ComputeScalarsOff();
+      m_VTKContour->ComputeGradientsOff();
+      m_VTKContour->UseScalarTreeOn();
+      m_VTKContour->SetNumberOfContours(1);
+      m_VTKContour->SetValue(0, 0.0);
+
       // Generate a contour
       m_VTKExporter->SetInput(m_Driver->GetCurrentState());
       m_VTKContour->Update();
@@ -226,11 +225,14 @@ public:
       for(int i=0;i<pd->GetNumberOfCells();i++)
         {
         vtkFloatingPointType *pt1 = pd->GetPoint(pd->GetCell(i)->GetPointId(0));
-        vtkFloatingPointType *pt2 = pd->GetPoint(pd->GetCell(i)->GetPointId(1));
         m_CurrentCurve.push_back(Vector2d(pt1[0] + 0.5,pt1[1] + 0.5));
+        vtkFloatingPointType *pt2 = pd->GetPoint(pd->GetCell(i)->GetPointId(1));
         m_CurrentCurve.push_back(Vector2d(pt2[0] + 0.5,pt2[1] + 0.5));
         }
       }
+
+    m_VTKImporter->Delete();
+    m_VTKContour->Delete();
     }
 
   // Change the speed image passed as the input to the level set
