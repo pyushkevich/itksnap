@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: FLTKEvent.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:16 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2010/10/19 20:28:56 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -42,6 +42,17 @@
 
 class FLTKCanvas;
 
+extern void fl_gettime(long *sec, long *usec);
+
+struct FLTKEventTimeStamp
+{
+  long sec, usec;
+  FLTKEventTimeStamp()
+    { fl_gettime(&sec, &usec); }
+  long ElapsedUSecFrom(const FLTKEventTimeStamp &earlier)
+    { return 1000000 * (sec - earlier.sec) + (usec - earlier.usec); }
+};
+
 /**
  * \class FLTKEvent
  * \brief A wrapper around FLTK event info.
@@ -59,7 +70,7 @@ struct FLTKEvent {
     Vector3f XSpace;
 
     /** Time when the event was generated (value of the clock() function) */
-    long int TimeStamp;
+    FLTKEventTimeStamp TimeStamp;
     
     /** The button that generated this event */
     int Button;

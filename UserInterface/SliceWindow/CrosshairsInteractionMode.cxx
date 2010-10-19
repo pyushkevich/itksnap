@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: CrosshairsInteractionMode.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/12 16:02:05 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2010/10/19 20:28:56 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -224,7 +224,7 @@ CrosshairsInteractionMode
   if(cim->GetCanvas()->IsDragging())
     {
     FLTKEvent ev = cim->m_RepeatEvent;
-    ev.TimeStamp = clock();
+    ev.TimeStamp = FLTKEventTimeStamp();
     cim->UpdateCrosshairs(ev);
     }
 }
@@ -295,24 +295,31 @@ CrosshairsInteractionMode
   // Hotzone is disabled when whole slice is visible
   if(m_Parent->m_ViewZoom <= m_Parent->m_OptimalZoom)
     hotzone = false;
-  
+
+  // Check apperarance settings
+  if(!m_ParentUI->GetAppearanceSettings()->GetFlagAutoPan())
+    hotzone = false;
+
+  // Now we are ready to do something about the hotzome
   if(hotzone)
     {
-    // Only update the viewpoint at a fixed speed
-    if(event.TimeStamp - m_LastViewposUpdateTime > 0.1 * CLOCKS_PER_SEC)
+    // If we were in the hotzone less that 100 ms ago, forget it
+    static FLTKEventTimeStamp last_hotzone_action;
+    FLTKEventTimeStamp tsnow;
+    if(tsnow.ElapsedUSecFrom(last_hotzone_action) > 100000)
       {
       m_Parent->SetViewPosition(newViewPos);
       m_ParentUI->OnViewPositionsUpdate(true);
-      this->m_LastViewposUpdateTime = clock();
-      }        
+      last_hotzone_action = tsnow;
+      }
+  
+    // Even if we were too soon for a hotzone, schedule the check in a few ms
     Fl::add_timeout(0.02, CrosshairsInteractionMode::TimeoutCallback, this);
     }
   
   xClick = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
 
   UpdateCrosshairs(xClick);
-
-  
 }
 
 int 

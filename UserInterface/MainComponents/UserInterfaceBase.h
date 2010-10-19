@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2010/10/12 16:02:05 $
-  Version:   $Revision: 1.43 $
+  Date:      $Date: 2010/10/19 20:28:56 $
+  Version:   $Revision: 1.44 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -78,10 +78,10 @@ struct DisplayLayout
 class SNAPMainWindow : public Fl_Double_Window
 {
 public:
-  SNAPMainWindow(int w, int h, char *label=0)
+  SNAPMainWindow(int w, int h, const char *label=0)
     : Fl_Double_Window(w,h,label) { m_ParentUI = NULL; }
 
-  SNAPMainWindow(int x, int y, int w, int h, char *label=0)
+  SNAPMainWindow(int x, int y, int w, int h, const char *label=0)
     : Fl_Double_Window(x,y,w,h,label) { m_ParentUI = NULL; }
 
   virtual ~SNAPMainWindow() {}

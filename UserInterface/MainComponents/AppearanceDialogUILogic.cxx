@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: AppearanceDialogUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/09 04:20:08 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2010/10/19 20:28:56 $
+  Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -169,6 +169,9 @@ AppearanceDialogUILogic
   m_Appearance->SetFlagDisplayZoomThumbnail(
     m_ChkOptionsSliceThumbnailOn->value() != 0);
   
+  m_Appearance->SetFlagAutoPan(
+    m_ChkOptionsSliceAutoPan->value() != 0);
+  
   m_Appearance->SetFlagLinkedZoomByDefault(
     m_ChkOptionsSliceLinkedZoom->value() != 0);
   
@@ -225,6 +228,9 @@ AppearanceDialogUILogic
   
   m_Appearance->SetFlagEnableHiddenFeaturesByDefault(
     m_DefaultAppearance->GetFlagEnableHiddenFeaturesByDefault());
+  
+  m_Appearance->SetFlagAutoPan(
+    m_DefaultAppearance->GetFlagAutoPan());
   
   m_Appearance->SetZoomThumbnailSizeInPercent(
     m_DefaultAppearance->GetZoomThumbnailSizeInPercent());
@@ -642,6 +648,8 @@ AppearanceDialogUILogic
   // Propagate the settings to the controls 
   m_ChkOptionsSliceThumbnailOn->value(
     m_Appearance->GetFlagDisplayZoomThumbnail() ? 1 : 0);
+  m_ChkOptionsSliceAutoPan->value(
+    m_Appearance->GetFlagAutoPan() ? 1 : 0);
   m_ChkOptionsSliceLinkedZoom->value(
     m_Appearance->GetFlagLinkedZoomByDefault() ? 1 : 0);
   m_ChkOptionsSliceMultisessionZoom->value(

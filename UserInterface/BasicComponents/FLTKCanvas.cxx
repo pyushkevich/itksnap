@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: FLTKCanvas.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/12 16:02:05 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2010/10/19 20:28:56 $
+  Version:   $Revision: 1.8 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -77,7 +77,7 @@ FLTKCanvas
   event.XCanvas[0] = Fl::event_x();
   event.XCanvas[1] = m_FlipYCoordinate ? h()-1-Fl::event_y() : Fl::event_y();
   
-  event.TimeStamp = clock();
+  // Get the event timestamp
   event.Source = this;  
   event.Button = Fl::event_button();
   event.State = Fl::event_state();

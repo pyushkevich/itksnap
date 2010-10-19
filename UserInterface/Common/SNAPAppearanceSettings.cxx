@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPAppearanceSettings.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/09 04:20:08 $
-  Version:   $Revision: 1.12 $
+  Date:      $Date: 2010/10/19 20:28:56 $
+  Version:   $Revision: 1.13 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -230,6 +230,7 @@ SNAPAppearanceSettings
   m_SliceLayout = LAYOUT_ASC;
   m_FlagLayoutPatientAnteriorShownLeft = true;
   m_FlagLayoutPatientRightShownLeft = true;
+  m_FlagAutoPan = false;
 
   m_EnumMapInterpolationMode.AddPair(NEAREST,"NearestNeighbor");
   m_EnumMapInterpolationMode.AddPair(LINEAR,"Linear");
@@ -275,6 +276,9 @@ SNAPAppearanceSettings
 
   m_FlagEnableAutoCheckForUpdateByDefault =
     r["FlagEnableAutoCheckForUpdateByDefault"][m_FlagEnableAutoCheckForUpdateByDefault];
+
+  m_FlagAutoPan =
+    r["FlagAutoPan"][m_FlagAutoPan];
 
   m_ZoomThumbnailSizeInPercent = 
     r["ZoomThumbnailSizeInPercent"][m_ZoomThumbnailSizeInPercent];
@@ -327,6 +331,7 @@ SNAPAppearanceSettings
   r["FlagFloatingPointWarningByDefault"] << m_FlagFloatingPointWarningByDefault;
   r["FlagEnableHiddenFeaturesByDefault"] << m_FlagEnableHiddenFeaturesByDefault;
   r["FlagEnableAutoCheckForUpdateByDefault"] << m_FlagEnableAutoCheckForUpdateByDefault;
+  r["FlagAutoPan"] << m_FlagAutoPan;
   r["ZoomThumbnailSizeInPercent"] << m_ZoomThumbnailSizeInPercent;
   r["ZoomThumbnailMaximumSize"] << m_ZoomThumbnailMaximumSize;
   r["GreyImageInterpolationMode"].PutEnum(m_EnumMapInterpolationMode, m_GreyInterpolationMode);

@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0109 
+version 1.0300 
 header_name {.h} 
 code_name {.cxx}
 class AppearanceDialogUI {open : AppearanceDialogUIBase
@@ -17,7 +17,7 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
       } {
         Fl_Group {} {
           label General open
-          xywh {10 35 400 335} labelsize 12 hide
+          xywh {10 35 400 335} labelsize 12
         } {
           Fl_Check_Button m_ChkOptionsSliceThumbnailOn {
             label {Show thumbnail when the slice does not fit in the window}
@@ -37,23 +37,23 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
           }
           Fl_Check_Button m_ChkOptionsSliceLinkedZoom {
             label {By default, use the same zoom in all slice views (linked zoom)}
-            xywh {20 135 375 25} down_box DOWN_BOX labelsize 12
+            xywh {20 160 375 25} down_box DOWN_BOX labelsize 12
           }
           Fl_Check_Button m_ChkOptionsSliceMultisessionZoom {
-            label {By default, use the multi-session zoom}
-            xywh {20 155 375 25} down_box DOWN_BOX labelsize 12
+            label {By default, synchronize zoom with other ITK-SNAP sessions}
+            xywh {20 180 375 25} down_box DOWN_BOX labelsize 12
           }
           Fl_Check_Button m_ChkOptionsSliceMultisessionPan {
-            label {By default, use the multi-session pan}
-            xywh {20 175 375 25} down_box DOWN_BOX labelsize 12
+            label {By default, synchronize panning with other ITK-SNAP sessions}
+            xywh {20 200 375 25} down_box DOWN_BOX labelsize 12
           }
           Fl_Check_Button m_ChkOptionsFloatingPointWarning {
-            label {By default, issue warning when loading floating point images}
-            xywh {20 195 375 25} down_box DOWN_BOX labelsize 12
+            label {Issue warning when loading floating point images}
+            xywh {20 220 375 25} down_box DOWN_BOX labelsize 12
           }
           Fl_Check_Button m_ChkOptionsAutoCheckForUpdate {
-            label {By default, auto check if newer version available at launch}
-            xywh {20 215 375 25} down_box DOWN_BOX labelsize 12
+            label {Check if newer software version is available at startup}
+            xywh {20 240 375 25} down_box DOWN_BOX labelsize 12
           }
           Fl_Button {} {
             label {&Apply}
@@ -68,6 +68,10 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
           Fl_Check_Button m_ChkOptionsHiddenFeatures {
             label {Enable undocumented features (for developers only)}
             xywh {20 275 375 25} down_box DOWN_BOX labelsize 12
+          }
+          Fl_Check_Button m_ChkOptionsSliceAutoPan {
+            label {Pan automatically when cursor is moved near the border of a slice} selected
+            xywh {20 140 375 25} down_box DOWN_BOX labelsize 12
           }
         }
         Fl_Group {} {
@@ -258,7 +262,7 @@ class AppearanceDialogUI {open : AppearanceDialogUIBase
         }
         Fl_Group {} {
           label Appearance open
-          xywh {10 35 400 335} labelsize 12
+          xywh {10 35 400 335} labelsize 12 hide
         } {
           Fl_Choice m_InUIElement {
             label {Select a user interface element to edit:}
@@ -496,7 +500,7 @@ user interface elements} xywh {330 335 65 25} box PLASTIC_UP_BOX down_box PLASTI
       }
       Fl_Button {} {
         label Close
-        callback {this->OnCloseAction();} selected
+        callback {this->OnCloseAction();}
         xywh {105 380 65 25} box PLASTIC_UP_BOX down_box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Button {} {
