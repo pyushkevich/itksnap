@@ -44,7 +44,7 @@ class UserInterface {open : {public UserInterfaceBase}
             xywh {0 0 875 25} labelsize 12 textsize 12
           } {
             Submenu {} {
-              label {&File} open
+              label {&File}
               xywh {15 15 100 20} labelsize 12
             } {
               MenuItem m_MenuLoadGrey {
@@ -204,7 +204,7 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
             Submenu {} {
-              label {&Segmentation} open
+              label {&Segmentation}
               xywh {10 10 100 20} labelsize 12
             } {
               MenuItem m_MenuLoadSegmentation {
@@ -244,7 +244,7 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
             Submenu {} {
-              label {&Overlay} open
+              label {&Overlay}
               xywh {10 10 100 20} labelsize 12
             } {
               MenuItem m_MenuLoadGreyOverlay {
@@ -277,6 +277,66 @@ class UserInterface {open : {public UserInterfaceBase}
               label {&Tools} open
               xywh {10 10 100 20} labelsize 12
             } {
+              Submenu {} {
+                label {Active Main &Tool} open
+                xywh {0 0 62 20} labelsize 12
+              } {
+                MenuItem m_MenuCrosshairsMode {
+                  label {&Crosshair}
+                  callback {SetToolbarMode(CROSSHAIRS_MODE);}
+                  xywh {0 0 31 20} shortcut 0x31 value 1 labelsize 12
+                }
+                MenuItem m_MenuZoomPanMode {
+                  label {&Zoom / Pan}
+                  callback {SetToolbarMode(NAVIGATION_MODE);}
+                  xywh {10 10 31 20} shortcut 0x32 labelsize 12
+                }
+                MenuItem m_MenuPolygonMode {
+                  label {&Polygon}
+                  callback {SetToolbarMode(POLYGON_DRAWING_MODE);}
+                  xywh {20 20 31 20} shortcut 0x33 labelsize 12
+                }
+                MenuItem m_MenuSNAPMode {
+                  label {&Snake ROI}
+                  callback {SetToolbarMode(ROI_MODE);}
+                  xywh {30 30 31 20} shortcut 0x34 labelsize 12
+                }
+                MenuItem m_MenuPaintbrushMode {
+                  label {Paint&brush}
+                  callback {SetToolbarMode(PAINTBRUSH_MODE);}
+                  xywh {40 40 31 20} shortcut 0x35 labelsize 12
+                }
+                MenuItem m_MenuAnnotationMode {
+                  label {&Annotation}
+                  callback {SetToolbarMode(ANNOTATION_MODE);}
+                  xywh {50 50 31 20} shortcut 0x36 labelsize 12 hide
+                }
+              }
+              Submenu {} {
+                label {Active &3D Tool} open
+                xywh {15 15 62 20} labelsize 12 divider
+              } {
+                MenuItem m_MenuTrackballMode {
+                  label {&Trackball}
+                  callback {SetToolbarMode3D(TRACKBALL_MODE);}
+                  xywh {10 10 31 20} value 1 labelsize 12
+                }
+                MenuItem m_MenuCrosshair3DMode {
+                  label {&Crosshair}
+                  callback {SetToolbarMode3D(CROSSHAIRS_3D_MODE);}
+                  xywh {20 20 31 20} labelsize 12
+                }
+                MenuItem m_MenuScalpelMode {
+                  label {&Scalpel}
+                  callback {SetToolbarMode3D(SCALPEL_MODE);}
+                  xywh {30 30 31 20} labelsize 12
+                }
+                MenuItem m_MenuSpraypaintMode {
+                  label {Spray&paint}
+                  callback {SetToolbarMode3D(SPRAYPAINT_MODE);}
+                  xywh {40 40 31 20} labelsize 12
+                }
+              }
               MenuItem m_MenuIntensityCurve {
                 label {Image &Contrast...}
                 callback {this->OnMenuIntensityCurve();}
@@ -304,7 +364,7 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
             Submenu {} {
-              label {&Layout} open
+              label {&Layout}
               xywh {0 0 62 20} labelsize 12
             } {
               MenuItem {} {
@@ -324,7 +384,7 @@ class UserInterface {open : {public UserInterfaceBase}
               }
             }
             Submenu {} {
-              label {&Help} open
+              label {&Help}
               xywh {5 5 100 20} labelsize 12
             } {
               MenuItem {} {
@@ -361,7 +421,7 @@ class UserInterface {open : {public UserInterfaceBase}
               label {Control Pane} open
               xywh {0 25 145 700} box NO_BOX color 22 align 16
             } {
-              Fl_Group m_GrpToolbarPage {open
+              Fl_Group m_GrpToolbarPage {open selected
                 xywh {0 25 145 700} color 53 labelsize 12
               } {
                 Fl_Group m_GrpInteractionModes {
@@ -376,15 +436,15 @@ class UserInterface {open : {public UserInterfaceBase}
                     callback {SetToolbarMode(NAVIGATION_MODE);}
                     tooltip {Navigation tool: zoom and pan around the 2D slices} image {Artwork/zoom.gif} xywh {55 55 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16 when 1
                   }
-                  Fl_Button {} {
+                  Fl_Button m_BtnPolygonMode {
                     callback {SetToolbarMode(POLYGON_DRAWING_MODE);}
                     tooltip {Polygon tool: slice-by-slice manual segmentation} image {Artwork/poly.gif} xywh {95 55 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16 when 1
                   }
                   Fl_Button m_BtnSNAPMode {
                     callback {SetToolbarMode(ROI_MODE);}
-                    tooltip {SNAP tool: select a region of interest for automatic segmentation} image {Artwork/snake.gif} xywh {15 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 labelsize 10 align 144 when 1
+                    tooltip {Snake ROI tool: select a region of interest for automatic segmentation} image {Artwork/snake.gif} xywh {15 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 labelsize 10 align 144 when 1
                   }
-                  Fl_Button {} {
+                  Fl_Button m_BtnPaintbrushMode {
                     callback {SetToolbarMode(PAINTBRUSH_MODE);}
                     tooltip {Paintbrush tool} image {Artwork/paintbrush.gif} xywh {55 95 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 labelfont 1 labelsize 20 align 16 when 1
                   }
@@ -404,7 +464,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   } {
                     Fl_Group m_GrpToolOptionCrosshairs {
                       label 1
-                      xywh {5 165 135 165} labeltype NO_LABEL labelfont 1 labelsize 12 align 17 hide
+                      xywh {5 165 135 165} labeltype NO_LABEL labelfont 1 labelsize 12 align 17
                     } {
                       Fl_Output m_OutGreyProbe {
                         label {Intensity:}
@@ -494,8 +554,8 @@ class UserInterface {open : {public UserInterfaceBase}
                       }
                     }
                     Fl_Group m_GrpToolOptionZoomPan {
-                      label 2 open
-                      xywh {5 165 135 165} labelsize 10
+                      label 2
+                      xywh {5 165 135 165} labelsize 10 hide
                     } {
                       Fl_Group {} {
                         label {Zoom / Pan Tool} open
@@ -669,22 +729,22 @@ OnDrawOverLabelUpdate();} open
                   }
                 }
                 Fl_Group {} {
-                  label {3D Toolbox}
+                  label {3D Toolbox} open
                   xywh {5 590 135 95} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
                 } {
-                  Fl_Button {} {
+                  Fl_Button m_BtnCrosshair3DMode {
                     callback {SetToolbarMode3D(CROSSHAIRS_3D_MODE);}
                     tooltip {3D navigation tool: use the left mouse button to position the crosshairs at point on the segmentation surface} image {Artwork/crosshair3D.gif} xywh {55 600 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16
                   }
-                  Fl_Button {} {
+                  Fl_Button m_BtnTrackballMode {
                     callback {SetToolbarMode3D(TRACKBALL_MODE);}
                     tooltip {3D trackball tool: left mouse button rotates the 3D view, right mouse button zooms and the middle button pans.} image {Artwork/rotate3d.gif} xywh {15 600 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX value 1 color 180 selection_color 180 align 16
                   }
-                  Fl_Button {} {
+                  Fl_Button m_BtnScalpelMode {
                     callback {SetToolbarMode3D(SPRAYPAINT_MODE);}
                     tooltip {3D spraypaint tool. Click (and hold) the left mouse button to relabel voxels on the boundaries of segmented objects} image {Artwork/spray.gif} xywh {15 640 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16
                   }
-                  Fl_Button {} {
+                  Fl_Button m_BtnSpraypaintMode {
                     callback {SetToolbarMode3D(SCALPEL_MODE);}
                     tooltip {3D scalpel tool. Click at two locations in the 3D window to define a cutplane, then choose 'accept' to apply a paint operation on one side of the cutplane} image {Artwork/scalpel.gif} xywh {95 600 35 35} type Radio box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 180 align 16
                   }
@@ -718,7 +778,7 @@ itksnap.org} open
                   }
                 }
               }
-              Fl_Group m_GrpSNAPPage {
+              Fl_Group m_GrpSNAPPage {open
                 xywh {0 25 145 680} color 53 hide
               } {
                 Fl_Group {} {
@@ -1828,7 +1888,7 @@ changes, or press 'go back' in order to save the changes first.} open
       }
     }
     Fl_Window m_WinTestPop {
-      label Test open selected
+      label Test open
       xywh {1247 403 46 24} type Single align 2 non_modal noborder visible
     } {
       Fl_Button m_BtnCollapsedViewRestore {
@@ -1840,7 +1900,7 @@ changes, or press 'go back' in order to save the changes first.} open
       Fl_Button m_BtnCollapsedViewMenu {
         label {...}
         callback {this->OnCollapsedViewPopupMenu();}
-        tooltip {Collapse ITK-SNAP so only this view is shown} xywh {24 2 20 20} box PLASTIC_UP_BOX color 180 labelsize 12 labelcolor 139 align 18
+        tooltip {Display ITK-SNAP Main Menu} xywh {24 2 20 20} box PLASTIC_UP_BOX color 180 labelsize 12 labelcolor 139 align 18
         code0 {\#include "FL/Fl_Menu_Window.H"}
       }
     }

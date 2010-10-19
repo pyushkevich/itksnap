@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/19 19:16:30 $
-  Version:   $Revision: 1.117 $
+  Date:      $Date: 2010/10/19 21:31:05 $
+  Version:   $Revision: 1.118 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -336,6 +336,17 @@ void UserInterfaceLogic
     }
   m_Activation->AddMenuItem(m_MenuLayerInspector, UIF_BASEIMG_LOADED);
 
+  // Toolbar menu items
+  m_Activation->AddMenuItem(m_MenuCrosshairsMode, UIF_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuZoomPanMode, UIF_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuPolygonMode, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuSNAPMode, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuPaintbrushMode, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuAnnotationMode, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuTrackballMode, UIF_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuCrosshair3DMode, UIF_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuScalpelMode, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuSpraypaintMode, UIF_IRIS_WITH_BASEIMG_LOADED);
 }
 
 UserInterfaceLogic
@@ -1937,7 +1948,7 @@ UserInterfaceLogic
     Fl::get_mouse(x,y);
     Fl_Window *wm = m_GlobalUI->GetMainWindow();
     Fl_Window *wp = m_GlobalUI->GetPopupToolbarWindow();
-    if(x >= wm->x() && y >= wm->y() && x < wm->x()+wm->w() && y < wm->y()+wm->h())
+    if(x >= wm->x() && y >= wm->y() && x < wm->x()+wm->w() && y < wm->y()+wm->h()+10+wp->h())
       {
       if(!wp->shown())
         {
@@ -2158,7 +2169,7 @@ UserInterfaceLogic
     // Create a popup window so the user can close
     m_WinTestPop->position(
       m_WinMain->x() + m_WinMain->w() - (5 + m_WinTestPop->w()),
-      m_WinMain->y() + m_WinMain->h() + (5 + m_WinTestPop->h()));
+      m_WinMain->y() + m_WinMain->h() + 5);
     m_WinTestPop->show();
     }
   else
@@ -2215,7 +2226,7 @@ SNAPMainWindow
       {
       Fl_Window *m = m_ParentUI->GetMainWindow();
       Fl_Window *p = m_ParentUI->GetPopupToolbarWindow();
-      p->position( m->x() + m->w() - (5 + p->w()), m->y() + m->h() - (5 + p->h()));
+      p->position( m->x() + m->w() - (5 + p->w()), m->y() + m->h() + 5 );
       }
     }
 }
@@ -3909,32 +3920,40 @@ UserInterfaceLogic
       m_IRISWindowManager2D[i]->EnterCrosshairsMode();
       m_SNAPWindowManager2D[i]->EnterCrosshairsMode();
       m_TabsToolOptions->value(m_GrpToolOptionCrosshairs);
+      m_BtnCrosshairsMode->setonly();
+      m_BtnSNAPCrosshairs->setonly();
       break;
 
     case NAVIGATION_MODE:
       m_IRISWindowManager2D[i]->EnterZoomPanMode();
       m_SNAPWindowManager2D[i]->EnterZoomPanMode();
       m_TabsToolOptions->value(m_GrpToolOptionZoomPan);
+      m_BtnNavigationMode->setonly();
+      m_BtnSNAPNavigation->setonly();
       break;
 
     case POLYGON_DRAWING_MODE:
       m_IRISWindowManager2D[i]->EnterPolygonMode();
       m_TabsToolOptions->value(m_GrpToolOptionPolygon);
+      m_BtnPolygonMode->setonly();
       break;
 
     case PAINTBRUSH_MODE:
       m_IRISWindowManager2D[i]->EnterPaintbrushMode();
       m_TabsToolOptions->value(m_GrpToolOptionBrush);
+      m_BtnPaintbrushMode->setonly();
       break;
 
     case ANNOTATION_MODE:
       m_IRISWindowManager2D[i]->EnterAnnotationMode();
       m_TabsToolOptions->value(m_GrpToolOptionAnnotation);
+      m_BtnAnnotationMode->setonly();
       break;
 
     case ROI_MODE:
       m_IRISWindowManager2D[i]->EnterRegionMode();
       m_TabsToolOptions->value(m_GrpToolOptionSNAP);
+      m_BtnSNAPMode->setonly();
       break;
 
     default:
@@ -3962,19 +3981,25 @@ UserInterfaceLogic
     case TRACKBALL_MODE:
       m_IRISWindowManager3D->EnterTrackballMode();
       m_SNAPWindowManager3D->EnterTrackballMode();
+      m_BtnTrackballMode->setonly();
+      m_BtnSNAPTrackballMode3D->setonly();
       break;
 
     case CROSSHAIRS_3D_MODE:
       m_IRISWindowManager3D->EnterCrosshairsMode();
       m_SNAPWindowManager3D->EnterCrosshairsMode();
+      m_BtnCrosshair3DMode->setonly();
+      m_BtnSNAPCrosshairsMode3D->setonly();
       break;
 
     case SPRAYPAINT_MODE:
       m_IRISWindowManager3D->EnterSpraypaintMode();
+      m_BtnSpraypaintMode->setonly();
       break;
 
     case SCALPEL_MODE:
       m_IRISWindowManager3D->EnterScalpelMode();
+      m_BtnScalpelMode->setonly();
       break;
 
     default:
@@ -5940,9 +5965,15 @@ UserInterfaceLogic
 ::OnHiddenFeaturesToggleAction()
 {
   if(m_AppearanceSettings->GetFlagEnableHiddenFeaturesByDefault())
+    {
     m_BtnAnnotationMode->show();
+    m_MenuAnnotationMode->show();
+    }
   else
+    {
     m_BtnAnnotationMode->hide();
+    m_MenuAnnotationMode->hide();
+    }
 }
 
 const char *tip_link_cb(Fl_Widget *w, const char *uri)
@@ -6019,6 +6050,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.118  2010/10/19 21:31:05  pyushkevich
+ *Fixed the toolbar for collapse mode; Added menu items for the tools
+ *
  *Revision 1.117  2010/10/19 19:16:30  pyushkevich
  *Fixed slowdowns due to progress bars in preprocessing, mesh generation
  *
