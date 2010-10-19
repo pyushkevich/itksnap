@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SnakeParameters.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:15 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2010/10/19 19:17:00 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -57,7 +57,7 @@ SnakeParameters
   p.m_LaplacianWeight = 0.0f;
   p.m_LaplacianSpeedExponent = 0;
 
-  p.m_AdvectionWeight = 0;
+  p.m_AdvectionWeight = 0.5;
   p.m_AdvectionSpeedExponent = 0;       
 
   p.m_Solver = PARALLEL_SPARSE_FIELD_SOLVER;
