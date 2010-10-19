@@ -76,6 +76,20 @@ MacOS and Windows.
 
  -  Added an option under File menu to open a new SNAP session.
 
+1.1.2. Bug Fixes and Stability Improvements
+
+ -  Fixed a problem with certain operations being very slow because of the way
+    the progress bars were displayed. Preprocessing, mesh rendering and mesh
+    IO will now be much faster
+
+ -  Fixed problems with the snake parameter dialog. The images are now
+    properly displayed and animation works. 
+
+ -  Fixed problems with automatic panning in crosshairs mode. Also added a
+    button to enable this feature; it is disabled by default.
+
+ -  Changed defaults for edge-based snakes to have non-zero weight
+
 
 1.2. New in Version 2.0
 ----------------------------------------------
