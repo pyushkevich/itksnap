@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/13 16:59:25 $
-  Version:   $Revision: 1.116 $
+  Date:      $Date: 2010/10/19 19:16:30 $
+  Version:   $Revision: 1.117 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -1624,9 +1624,11 @@ void
 UserInterfaceLogic
 ::OnITKProgressEvent(itk::Object *source, const itk::EventObject &)
 {
+  static double last_progress = clock();
+  static const double delta = 0.25 * CLOCKS_PER_SEC;
+
   // Get the elapsed progress
-  itk::ProcessObject *po = reinterpret_cast<itk::ProcessObject *>(source);
-  float progress = po->GetProgress();
+  float progress = dynamic_cast<itk::ProcessObject *>(source)->GetProgress();
 
   // Update the progress bar and value
   m_OutProgressMeter->value(100 * progress);
@@ -1639,12 +1641,16 @@ UserInterfaceLogic
     m_WinProgress->show();
     }
   else if (progress == 1.0f && m_WinProgress->visible())
-    {
     m_WinProgress->hide();
-    }
 
-  // Update the screen
-  Fl::check();
+  // Only call Fl::check() if some time has passed
+  if(last_progress + delta < clock())
+    {
+    // Update the screen
+    Fl::check();
+
+    last_progress = clock();
+    }
 }
 
 void 
@@ -2152,7 +2158,7 @@ UserInterfaceLogic
     // Create a popup window so the user can close
     m_WinTestPop->position(
       m_WinMain->x() + m_WinMain->w() - (5 + m_WinTestPop->w()),
-      m_WinMain->y() + m_WinMain->h() - (5 + m_WinTestPop->h()));
+      m_WinMain->y() + m_WinMain->h() + (5 + m_WinTestPop->h()));
     m_WinTestPop->show();
     }
   else
@@ -6013,6 +6019,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.117  2010/10/19 19:16:30  pyushkevich
+ *Fixed slowdowns due to progress bars in preprocessing, mesh generation
+ *
  *Revision 1.116  2010/10/13 16:59:25  pyushkevich
  *Fixing warnings
  *

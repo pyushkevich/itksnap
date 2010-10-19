@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/28 18:45:08 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2010/10/19 19:16:30 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -294,12 +294,12 @@ SNAPImageData
     // compute the correct lower/upper index
     for(unsigned int i=0;i<3;i++)
       {
-	 if(idxLower[i] > idxUpper[i])
-	   {
-	   int tmp = idxLower[i];
-	   idxLower[i] = idxUpper[i];
-	   idxUpper[i] = tmp;
-	   }
+      if(idxLower[i] > idxUpper[i])
+        {
+        int tmp = idxLower[i];
+        idxLower[i] = idxUpper[i];
+        idxUpper[i] = tmp;
+        }
       }
     
     // Create a region

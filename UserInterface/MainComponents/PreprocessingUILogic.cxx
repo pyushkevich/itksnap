@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: PreprocessingUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/06/28 18:45:08 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2010/10/19 19:16:30 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
@@ -521,8 +521,10 @@ PreprocessingUILogic
   callback->SetCallbackFunction(this,&PreprocessingUILogic::OnEdgeProgress);
   
   // Use the SNAPImageData to perform preprocessing
+  m_OutEdgeProgress->value(0);
   m_Driver->GetSNAPImageData()->DoEdgePreprocessing(
     m_GlobalState->GetEdgePreprocessingSettings(),callback);
+  m_OutEdgeProgress->value(1);
 
   // The preprocessing image is valid
   m_GlobalState->SetSpeedValid(true);
@@ -722,31 +724,55 @@ PreprocessingUILogic
   m_BoxThresholdFunctionPlot->redraw();
 }
 
+#include <EdgePreprocessingImageFilter.h>
+
 void 
 PreprocessingUILogic
 ::OnEdgeProgress(itk::Object *object, const itk::EventObject &irisNotUsed(event))
 {
-  // Get the value of the progress
-  float progress = reinterpret_cast<itk::ProcessObject *>(object)->GetProgress();
-  
-  // Display the filter's progress
-  m_OutEdgeProgress->value(progress);
+  // Last progress value
+  static double last_refresh = clock();
+  static const double delta = CLOCKS_PER_SEC * 0.25;
 
-  // Let the UI refresh
-  Fl::check();
+  // Ignore event if nothing has happened
+  if(last_refresh + delta < clock())
+    {
+    // Get the value of the progress
+    float progress = dynamic_cast<itk::ProcessObject *>(object)->GetProgress();
+
+    // Display the filter's progress
+    m_OutEdgeProgress->value(progress);
+
+    // Let the UI refresh
+    Fl::check();
+
+    // Reset the refresh counter
+    last_refresh = clock();
+    }
 }
 
 void 
 PreprocessingUILogic
 ::OnThresholdProgress(itk::Object *object, const itk::EventObject &irisNotUsed(event))
 {
-  // Get the value of the progress
-  float progress = reinterpret_cast<itk::ProcessObject *>(object)->GetProgress();
-  
-  // Display the filter's progress
-  m_OutThresholdProgress->value(progress);
+  // Last progress value
+  static double last_refresh = clock();
+  static const double delta = CLOCKS_PER_SEC * 0.25;
 
-  // Let the UI refresh
-  Fl::check();
+  // Ignore event if nothing has happened
+  if(last_refresh + delta < clock())
+    {
+    // Get the value of the progress
+    float progress = dynamic_cast<itk::ProcessObject *>(object)->GetProgress();
+    
+    // Display the filter's progress
+    m_OutThresholdProgress->value(progress);
+
+    // Let the UI refresh
+    Fl::check();
+
+    // Reset the refresh counter
+    last_refresh = clock();
+    }
 }
 
