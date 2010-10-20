@@ -29,6 +29,9 @@
 # Paul Y.
 # *************************************************************
 
+echo "This script is out of date and no longer supported in ITK-SNAP 2.x"
+exit
+
 # Uncomment the line below to debug
 ### set -x -e
 
