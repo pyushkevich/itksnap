@@ -674,14 +674,14 @@ SET(NIGHTLY_TARGET "itksnap-nightly-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/i/it/itk-snap/itk-snap")
 
 ADD_CUSTOM_TARGET(upload_nightly 
-  COMMAND "${SCP_PROGRAM} ${SCP_ARGUMENTS}" ${CPACK_TARGET} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Nightly/${NIGHTLY_TARGET}
+  COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} ${CPACK_TARGET} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Nightly/${NIGHTLY_TARGET}
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
-  COMMENT "Uploading package ${CPACK_TARGET} to SourceForge.net as ${NIGHTLY_TARGET}")
+  COMMENT "Uploading package ${CPACK_TARGET} to SourceForge.net as ${NIGHTLY_TARGET}" VERBATIM)
 
 ADD_CUSTOM_TARGET(upload_experimental 
-  COMMAND "${SCP_PROGRAM} ${SCP_ARGUMENTS}" ${CPACK_TARGET} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental
+  COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} ${CPACK_TARGET} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
-  COMMENT "Uploading package ${CPACK_TARGET} to SourceForge.net to Experimental directory")
+  COMMENT "Uploading package ${CPACK_TARGET} to SourceForge.net to Experimental directory" VERBATIM)
 
