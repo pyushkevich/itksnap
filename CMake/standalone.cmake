@@ -22,6 +22,9 @@ IF(SNAP_USE_FLTK_1_1)
   SUBDIRS(Utilities/FLTK/Fl_Table)
   SUBDIRS(Utilities/FLTK/Fl_Native_File_Chooser)
   SET(FLTK_LIBRARIES ${FLTK_LIBRARIES} fltk_table fltk_native_file_chooser)
+  SET(FLTK_INCLUDE_PATH ${FLTK_INCLUDE_PATH} 
+    ${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Table
+    ${SNAP_SOURCE_DIR}/Utilities/FLTK/Fl_Native_File_Chooser)
 ENDIF(SNAP_USE_FLTK_1_1)
 
 # Look for OpenGL.
