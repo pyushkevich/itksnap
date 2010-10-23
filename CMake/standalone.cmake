@@ -15,6 +15,15 @@ INCLUDE (${VTK_USE_FILE})
 #############################################
 INCLUDE(${SNAP_SOURCE_DIR}/CMake/find_fltk_13.cmake)
 
+# Allow FLTK 1.1 for older systems. This is an optional flag
+OPTION(SNAP_USE_FLTK_1_1 OFF "Build with older FLTK 1.1")
+MARK_AS_ADVANCED(SNAP_USE_FLTK_1_1)
+IF(SNAP_USE_FLTK_1_1)
+  SUBDIRS(Utilities/FLTK/Fl_Table)
+  SUBDIRS(Utilities/FLTK/Fl_Native_File_Chooser)
+  SET(FLTK_LIBRARIES ${FLTK_LIBRARIES} fltk_table fltk_native_file_chooser)
+ENDIF(SNAP_USE_FLTK_1_1)
+
 # Look for OpenGL.
 FIND_PACKAGE(OpenGL REQUIRED)
 
