@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: ColorMap.h,v $
   Language:  C++
-  Date:      $Date: 2009/09/16 20:03:13 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2011/04/18 15:06:07 $
+  Version:   $Revision: 1.7 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -65,10 +65,12 @@ class ColorMap
 
     /** System presets */
     enum SystemPreset {
-      COLORMAP_GREY = 0, COLORMAP_RED, COLORMAP_GREEN, COLORMAP_BLUE, 
-      COLORMAP_HOT, COLORMAP_COOL, COLORMAP_SPRING, COLORMAP_SUMMER, 
+      COLORMAP_GREY = 0, 
+      COLORMAP_JET, COLORMAP_HOT, COLORMAP_COOL,
+      COLORMAP_RED, COLORMAP_GREEN, COLORMAP_BLUE, 
+      COLORMAP_SPRING, COLORMAP_SUMMER, 
       COLORMAP_AUTUMN, COLORMAP_WINTER, COLORMAP_COPPER, COLORMAP_HSV, 
-      COLORMAP_JET, COLORMAP_BWR, COLORMAP_RWB, COLORMAP_SIZE
+      COLORMAP_BWR, COLORMAP_RWB, COLORMAP_SIZE
     };
 
     /** CMPoint representation */

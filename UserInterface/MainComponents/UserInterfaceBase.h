@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceBase.h,v $
   Language:  C++
-  Date:      $Date: 2010/10/19 20:28:56 $
-  Version:   $Revision: 1.44 $
+  Date:      $Date: 2011/04/18 15:06:07 $
+  Version:   $Revision: 1.45 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,7 +38,7 @@
 // This should all be gone
 #include "SNAPCommonUI.h"
 #include "GlobalState.h" 
-#include "FL/Fl_Double_Window.h"
+#include "FL/Fl_Double_Window.H"
 
 // Borland compiler stuff. Note to whoever went through the code and added all 
 // these borland things: you just can't add ITK headers to headers like this one

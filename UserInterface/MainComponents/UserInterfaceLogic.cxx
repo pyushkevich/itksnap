@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/19 21:31:05 $
-  Version:   $Revision: 1.118 $
+  Date:      $Date: 2011/04/18 15:06:07 $
+  Version:   $Revision: 1.119 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -2472,6 +2472,13 @@ if(ev == FL_SHORTCUT)
       {
       if(m_BtnIRISRedo->active())
         this->OnRedoAction();
+      return 1;
+      }
+
+    // Cycle through available colormaps
+    else if(Fl::test_shortcut('k'))
+      {
+      m_LayerUI->SelectNextColorMap();
       return 1;
       }
     
@@ -6050,6 +6057,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.119  2011/04/18 15:06:07  pyushkevich
+ *Added keystroke for changing colormaps
+ *
  *Revision 1.118  2010/10/19 21:31:05  pyushkevich
  *Fixed the toolbar for collapse mode; Added menu items for the tools
  *

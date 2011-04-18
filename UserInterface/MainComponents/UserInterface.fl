@@ -345,7 +345,7 @@ class UserInterface {open : {public UserInterfaceBase}
               MenuItem m_MenuColorMap {
                 label {Image Color &Map...}
                 callback {this->OnMenuColorMap();}
-                xywh {20 20 100 20} labelsize 12 deactivate
+                xywh {20 20 100 20} shortcut 0x4006b labelsize 12 deactivate
               }
               MenuItem m_MenuImageInfo {
                 label {&Image Info...}

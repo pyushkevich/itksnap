@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: LayerInspectorUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/14 16:21:04 $
-  Version:   $Revision: 1.26 $
+  Date:      $Date: 2011/04/18 15:06:07 $
+  Version:   $Revision: 1.27 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -704,18 +704,18 @@ LayerInspectorUILogic
 LayerInspectorUILogic::PresetInfo
 LayerInspectorUILogic::m_PresetInfo[] = {
   {"Grayscale", 0x00ff0000},
+  {"Jet", 0x00000000},
+  {"Hot", 0x00000000},
+  {"Cool", 0x00000000},
   {"Black to red", 0x00ff0000},
   {"Black to green", 0xff000000},
   {"Black to blue", 0xff000000},
-  {"Hot", 0x00000000},
-  {"Cool", 0x00000000},
   {"Spring", 0x00000000},
   {"Summer", 0x00000000},
   {"Autumn", 0x00000000},
   {"Winter", 0x00000000},
   {"Copper", 0x00000000},
   {"HSV", 0x00000000},
-  {"Jet", 0x00000000},
   {"Blue, white and red", 0x00000000},
   {"Red, white and blue", 0x00000000}};
 
@@ -730,6 +730,21 @@ LayerInspectorUILogic
 
   // Redraw parent
   m_Parent->RedrawWindows();
+}
+
+void
+LayerInspectorUILogic
+::SelectNextColorMap()
+{
+  if(m_InColorMapPreset->size() <= 1)
+    return;
+
+  // Cycle through the available colormaps
+  int val = m_InColorMapPreset->value();
+  int newval = ( (val < 0 ? 0 : val) + 1) % (m_InColorMapPreset->size() - 1);
+  if(newval != val)
+    m_InColorMapPreset->value(newval);
+  this->OnColorMapPresetUpdate();
 }
 
 void 
