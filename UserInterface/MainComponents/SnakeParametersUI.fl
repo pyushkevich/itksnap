@@ -1,15 +1,15 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0108 
+version 1.0300 
 header_name {.h} 
 code_name {.cxx}
 class SnakeParametersUI {open : {private SnakeParametersUIBase}
 } {
-  Function {MakeWindow()} {open selected
+  Function {MakeWindow()} {open
   } {
     Fl_Window m_Window {
-      label {Snake Parameters} open
-      xywh {256 218 716 482} type Double box PLASTIC_DOWN_BOX hide
-      code0 {\#include "SnakeParametersUIBase.h"} non_modal
+      label {Snake Parameters} open selected
+      xywh {157 237 715 480} type Double box PLASTIC_DOWN_BOX
+      code0 {\#include "SnakeParametersUIBase.h"} non_modal visible
     } {
       Fl_Tabs m_TabsMode {open
         xywh {5 5 350 360} box PLASTIC_UP_BOX color 60 labelfont 2 labelsize 12 align 0
@@ -58,11 +58,11 @@ OnPropagationWeightChange(o);}
             Fl_Button m_BtnEasyHelpPropagation {
               label {More info...}
               callback {this->ShowHelp("TutorialSectionIntroductionToAutomatic.html\#Propagation");}
-              xywh {274 61 65 20} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
+              xywh {274 61 65 21} box PLASTIC_UP_BOX color 180 labelsize 11
             }
           }
           Fl_Group m_GrpCurvatureEasy {
-            label {Curvature force:}
+            label {Curvature force:} open
             xywh {15 155 330 70} box PLASTIC_DOWN_BOX color 22 labelsize 12 align 5
           } {
             Fl_Group {} {
@@ -105,11 +105,11 @@ OnCurvatureWeightChange(o);}
             Fl_Button m_BtnEasyHelpCurvature {
               label {More info...}
               callback {this->ShowHelp("TutorialSectionIntroductionToAutomatic.html\#Curvature");}
-              xywh {274 161 65 20} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
+              xywh {274 161 65 20} box PLASTIC_UP_BOX color 180 labelsize 11
             }
           }
           Fl_Group m_GrpAdvectionEasy {
-            label {Advection force:}
+            label {Advection force:} open
             xywh {15 255 330 70} box PLASTIC_DOWN_BOX color 22 labelsize 12 align 5
           } {
             Fl_Group {} {
@@ -157,12 +157,13 @@ causing the segmentation to converge.} open
             }
           }
           Fl_Group {} {
-            label {Pushes the boundary inwards or outwards, proportionally to the preprocessed image intensity.} open
+            label {Pushes the boundary inwards or outwards, propor-
+tionally to the preprocessed image intensity.} open
             xywh {20 60 260 25} labelsize 10 align 148
           } {}
         }
         Fl_Group m_GrpMath {
-          label {Mathematical Mode}
+          label {Mathematical Mode} open
           xywh {5 25 350 320} color 22 selection_color 102 labelfont 2 labelsize 11 align 2 hide
         } {
           Fl_Group {} {
@@ -172,7 +173,7 @@ causing the segmentation to converge.} open
             Fl_Check_Button m_BtnAdvancedEquation {
               label {Use experimental equation (advanced)}
               callback {OnAdvancedEquationAction();}
-              xywh {135 90 205 15} down_box DOWN_BOX color 109 selection_color 32 labelsize 11
+              xywh {110 90 235 15} down_box DOWN_BOX color 109 selection_color 32 labelsize 11
             }
             Fl_Wizard m_WizEquation {open
               xywh {20 55 325 30}
@@ -189,14 +190,9 @@ causing the segmentation to converge.} open
             }
           }
           Fl_Group m_GrpCurvatureMath {
-            label {Curvature term:}
+            label {Curvature term:} open
             xywh {20 210 325 40} box PLASTIC_DOWN_BOX color 22 labelsize 12 align 5
           } {
-            Fl_Value_Input m_InCurvatureWeightMathText {
-              label {b:}
-              callback {OnCurvatureWeightChange(o);}
-              xywh {45 220 45 20} labelfont 12 maximum 5 step 0.01 textsize 12
-            }
             Fl_Value_Input m_InCurvatureExponentMathText {
               callback {OnCurvatureExponentChange(o);}
               image {Artwork/rb.gif} xywh {235 220 30 20} labelsize 11 maximum 2 step 1 textsize 12 hide
@@ -204,11 +200,16 @@ causing the segmentation to converge.} open
             Fl_Slider m_InCurvatureWeightMathSlider {
               callback {o->take_focus();
 OnCurvatureWeightChange(o);}
-              xywh {95 220 110 20} type Horizontal step 0.01
+              xywh {145 220 110 20} type Horizontal step 0.01
             }
             Fl_Slider m_InCurvatureExponentMathSlider {
               callback {OnCurvatureExponentChange(o);}
               xywh {270 220 65 20} type Horizontal color 51 selection_color 60 maximum 3 step 1 hide
+            }
+            Fl_Value_Input m_InCurvatureWeightMathText {
+              label {beta:}
+              callback {OnCurvatureWeightChange(o);}
+              xywh {95 220 45 20} labelsize 12 maximum 5 step 0.01 textsize 12
             }
           }
           Fl_Group m_GrpAdvectionMath {
@@ -216,9 +217,9 @@ OnCurvatureWeightChange(o);}
             xywh {20 275 325 40} box PLASTIC_DOWN_BOX color 22 labelsize 12 align 5
           } {
             Fl_Value_Input m_InAdvectionWeightMathText {
-              label {g:}
+              label {gamma:}
               callback {OnAdvectionWeightChange(o);}
-              xywh {45 285 45 20} labelfont 12 maximum 5 step 0.01 textsize 12
+              xywh {95 285 45 20} labelsize 12 maximum 5 step 0.01 textsize 12
             }
             Fl_Value_Input m_InAdvectionExponentMathText {
               callback {OnAdvectionExponentChange(o);}
@@ -227,7 +228,7 @@ OnCurvatureWeightChange(o);}
             Fl_Slider m_InAdvectionWeightMathSlider {
               callback {o->take_focus();
 OnAdvectionWeightChange(o);}
-              xywh {95 285 110 20} type Horizontal maximum 5 step 0.01
+              xywh {145 285 110 20} type Horizontal maximum 5 step 0.01
             }
             Fl_Slider m_InAdvectionExponentMathSlider {
               callback {OnAdvectionExponentChange(o);}
@@ -239,14 +240,14 @@ OnAdvectionWeightChange(o);}
             xywh {20 145 325 40} box PLASTIC_DOWN_BOX color 22 selection_color 59 labelsize 12 align 5
           } {
             Fl_Value_Input m_InPropagationWeightMathText {
-              label {a:}
+              label {alpha:}
               callback {OnPropagationWeightChange(o);}
-              xywh {45 155 45 20} labelfont 12 minimum -5 maximum 5 step 0.01 value 1 textsize 12
+              xywh {95 155 45 20} labelsize 12 minimum -5 maximum 5 step 0.01 value 1 textsize 12
             }
             Fl_Slider m_InPropagationWeightMathSlider {
               callback {o->take_focus();
 OnPropagationWeightChange(o);}
-              xywh {95 155 110 20} type Horizontal minimum -1 step 0.1 value 1
+              xywh {145 155 110 20} type Horizontal minimum -1 step 0.1 value 1
             }
             Fl_Value_Input m_InPropagationExponentMathText {
               callback {OnPropagationExponentChange(o);}

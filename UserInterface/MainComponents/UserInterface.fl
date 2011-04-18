@@ -421,11 +421,11 @@ class UserInterface {open : {public UserInterfaceBase}
               label {Control Pane} open
               xywh {0 25 145 700} box NO_BOX color 22 align 16
             } {
-              Fl_Group m_GrpToolbarPage {
-                xywh {0 25 145 700} color 53 labelsize 12 hide
+              Fl_Group m_GrpToolbarPage {open
+                xywh {0 25 145 700} color 53 labelsize 12
               } {
                 Fl_Group m_GrpInteractionModes {
-                  label {Main Toolbox} open
+                  label {Main Toolbox}
                   xywh {5 45 135 95} box PLASTIC_UP_BOX color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
                 } {
                   Fl_Button m_BtnCrosshairsMode {
@@ -464,7 +464,7 @@ class UserInterface {open : {public UserInterfaceBase}
                   } {
                     Fl_Group m_GrpToolOptionCrosshairs {
                       label 1
-                      xywh {5 165 135 165} labeltype NO_LABEL labelfont 1 labelsize 12 align 17
+                      xywh {5 165 135 165} labeltype NO_LABEL labelfont 1 labelsize 12 align 17 hide
                     } {
                       Fl_Output m_OutGreyProbe {
                         label {Intensity:}
@@ -554,8 +554,8 @@ class UserInterface {open : {public UserInterfaceBase}
                       }
                     }
                     Fl_Group m_GrpToolOptionZoomPan {
-                      label 2
-                      xywh {5 165 135 165} labelsize 10 hide
+                      label 2 open
+                      xywh {5 165 135 165} labelsize 10
                     } {
                       Fl_Group {} {
                         label {Zoom / Pan Tool} open
@@ -564,17 +564,17 @@ class UserInterface {open : {public UserInterfaceBase}
                       Fl_Check_Button m_ChkLinkedZoom {
                         label { Zoom views together}
                         callback {OnLinkedZoomChange();}
-                        tooltip {Select this to have the same zoom level in all three orthogonal views} xywh {10 200 120 15} down_box DOWN_BOX labelsize 11
+                        tooltip {Select to use the same zoom factor in all three orthogonal projections of the image} xywh {10 200 120 15} down_box DOWN_BOX labelsize 10
                       }
                       Fl_Check_Button m_ChkMultisessionZoom {
                         label { Multi-session zoom}
                         callback {OnMultisessionZoomChange();}
-                        tooltip {Select this to have the same zoom level in all three orthogonal views} xywh {10 220 120 15} down_box DOWN_BOX labelsize 11 when 1 deactivate
+                        tooltip {Select to synchronize zooming across multiple ITK-SNAP sessions} xywh {10 220 120 15} down_box DOWN_BOX labelsize 10 when 1 deactivate
                       }
                       Fl_Check_Button m_ChkMultisessionPan {
                         label { Multi-session pan}
                         callback {OnMultisessionPanChange();}
-                        tooltip {Select this to have the same pan in all three orthogonal views} xywh {10 240 120 15} down_box DOWN_BOX labelsize 11 when 1 deactivate
+                        tooltip {Select to synchronize panning across multiple ITK-SNAP sessions} xywh {10 240 120 15} down_box DOWN_BOX labelsize 10 when 1 deactivate
                       }
                       Fl_Value_Input m_InZoomLevel {
                         label {Zoom:}
@@ -779,7 +779,7 @@ itksnap.org} open
                 }
               }
               Fl_Group m_GrpSNAPPage {open
-                xywh {0 25 145 680} color 53
+                xywh {0 25 145 680} color 53 hide
               } {
                 Fl_Group {} {
                   label {Image Interaction} open
@@ -1101,7 +1101,7 @@ this->OnSNAPLabelOpacityChange();}
                 Fl_Group {m_GrpSliceLayoutNormal[0]} {open
                   xywh {145 25 365 355}
                 } {
-                  Fl_Group {m_GrpSlicePlaceholder[0]} {open
+                  Fl_Group {m_GrpSlicePlaceholder[0]} {
                     xywh {150 30 333 320} resizable
                   } {
                     Fl_Box {m_SliceWindow[0]} {
@@ -1117,16 +1117,16 @@ this->OnSNAPLabelOpacityChange();}
                     Fl_Button {m_BtnResetView[0]} {
                       label {zoom to fit}
                       callback {this->OnResetView2DAction(0);}
-                      tooltip {Restore the view to default zoom level} xywh {370 355 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
+                      tooltip {Restore the view to default zoom level} xywh {365 355 65 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
                     }
                     Fl_Output {m_OutSliceIndex[0]} {
                       xywh {435 355 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
                     }
-                    Fl_Wizard {m_WizPolygon[0]} {open
+                    Fl_Wizard {m_WizPolygon[0]} {open selected
                       xywh {150 350 210 30} box NO_BOX hide
                     } {
                       Fl_Group {m_GrpPolygonInit[0]} {open
-                        xywh {150 350 210 30}
+                        xywh {150 350 210 30} hide
                       } {
                         Fl_Button {m_BtnPolygonPaste[0]} {
                           label {paste polygon}
@@ -1134,7 +1134,7 @@ this->OnSNAPLabelOpacityChange();}
                           tooltip {Paste the previously used polygon into the window} xywh {270 355 80 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 18
                         }
                       }
-                      Fl_Group {m_GrpPolygonDraw[0]} {
+                      Fl_Group {m_GrpPolygonDraw[0]} {open
                         xywh {150 350 210 30} hide
                       } {
                         Fl_Button {m_BtnPolygonClose[0]} {
@@ -1154,7 +1154,7 @@ this->OnSNAPLabelOpacityChange();}
                         }
                       }
                       Fl_Group {m_GrpPolygonEdit[0]} {open
-                        xywh {150 350 210 30} hide
+                        xywh {150 350 210 30}
                       } {
                         Fl_Button {m_BtnPolygonAccept[0]} {
                           label accept
@@ -1244,7 +1244,7 @@ this->OnSNAPLabelOpacityChange();}
                     Fl_Button {m_BtnResetView[1]} {
                       label {zoom to fit}
                       callback {this->OnResetView2DAction(1);}
-                      tooltip {Restore the view to default zoom level} xywh {732 355 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
+                      tooltip {Restore the view to default zoom level} xywh {730 355 62 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
                     }
                     Fl_Output {m_OutSliceIndex[1]} {
                       xywh {797 355 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
@@ -1371,7 +1371,7 @@ this->OnSNAPLabelOpacityChange();}
                     Fl_Button {m_BtnResetView[2]} {
                       label {zoom to fit}
                       callback {this->OnResetView2DAction(2);}
-                      tooltip {Restore the view to default zoom level} xywh {735 710 60 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
+                      tooltip {Restore the view to default zoom level} xywh {730 710 65 20} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 180 selection_color 94 labelsize 10 align 146
                     }
                     Fl_Output {m_OutSliceIndex[2]} {
                       xywh {800 710 70 20} box FLAT_BOX color 49 align 0 textsize 10 deactivate
@@ -1486,7 +1486,7 @@ this->OnSNAPLabelOpacityChange();}
                     xywh {150 385 355 320} resizable
                   } {
                     Fl_Box {m_SliceWindow[3]} {
-                      label 3D selected
+                      label 3D
                       xywh {150 385 355 320} box BORDER_BOX color 0 labelcolor 7
                       class FLTKCanvas
                     }
@@ -1742,8 +1742,8 @@ update}
     }
     Fl_Window m_WinAbout {
       label {About ITK-SNAP}
-      xywh {533 678 430 195} type Double hide
-      code0 {\#include "FL/filename.H"}
+      xywh {523 551 430 195} type Double
+      code0 {\#include "FL/filename.H"} visible
     } {
       Fl_Group {} {open
         image {Artwork/logo_new.gif} xywh {6 5 420 155} color 0 align 16
@@ -1765,8 +1765,8 @@ Build Date X.XX} open
     Fl_Window m_WinConfirmDiscard {
       label {Discard Unsaved Changes?}
       callback {m_ChkHiddenDiscardChanges->value(0);
-m_WinConfirmDiscard->hide();}
-      xywh {663 660 500 130} type Double box PLASTIC_DOWN_BOX modal visible
+m_WinConfirmDiscard->hide();} open
+      xywh {920 369 500 130} type Double box PLASTIC_DOWN_BOX modal visible
     } {
       Fl_Button {} {
         label {Go Back}
@@ -1781,10 +1781,8 @@ m_WinConfirmDiscard->hide();}
         xywh {350 90 125 30} box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Group {} {
-        label {The changes you have made to the segmentation will be lost 
-if you continue. Please confirm that you want to discard these 
-changes, or press 'go back' in order to save the changes first.} open
-        xywh {85 20 400 55} align 21
+        label {The changes you have made to the segmentation will be lost if you continue. Please confirm that you want to discard these changes, or press 'go back' in order to save the changes first.} open
+        xywh {85 15 400 70} align 149
       } {}
       Fl_Group {} {
         label {!} open
@@ -1797,7 +1795,7 @@ changes, or press 'go back' in order to save the changes first.} open
     }
     Fl_Window m_WinOpenDropped {
       label {ITK-SNAP: Open Document}
-      xywh {878 285 520 310} type Double modal visible
+      xywh {461 285 530 310} type Double hide modal
     } {
       Fl_Group {} {
         label {What should ITK-SNAP do with this image?} open
@@ -1805,7 +1803,7 @@ changes, or press 'go back' in order to save the changes first.} open
       } {}
       Fl_Group {} {
         label {A. Open it in the current window} open
-        xywh {15 90 490 50} box ENGRAVED_FRAME labelsize 12 align 5
+        xywh {15 90 500 50} box ENGRAVED_FRAME labelsize 12 align 5
       } {
         Fl_Button {} {
           label {Load as Main Image}
@@ -1815,17 +1813,17 @@ changes, or press 'go back' in order to save the changes first.} open
         Fl_Button {} {
           label {Load as Segmentation}
           callback {this->OnOpenDroppedAction(2);}
-          xywh {185 100 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
+          xywh {190 100 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
         }
         Fl_Button {} {
           label {Load as Overlay}
           callback {this->OnOpenDroppedAction(3);}
-          xywh {345 100 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
+          xywh {355 100 150 30} box PLASTIC_UP_BOX color 180 labelsize 12
         }
       }
       Fl_Group {} {
         label {B. Open it in a new ITK-SNAP window} open
-        xywh {15 168 490 82} box ENGRAVED_FRAME labelsize 12 align 5
+        xywh {15 168 500 82} box ENGRAVED_FRAME labelsize 12 align 5
       } {
         Fl_Button {} {
           label {Open in New ITK-SNAP}
@@ -1834,7 +1832,7 @@ changes, or press 'go back' in order to save the changes first.} open
         }
         Fl_Group {} {
           label {Initial layout of new window:} open
-          xywh {190 200 300 50} labelsize 12 align 5
+          xywh {190 200 305 50} labelsize 12 align 5
         } {
           Fl_Round_Button {m_InOpenDroppedViewMode[0]} {
             label {Default 4-pane layout}
@@ -1846,11 +1844,11 @@ changes, or press 'go back' in order to save the changes first.} open
           }
           Fl_Round_Button {m_InOpenDroppedViewMode[2]} {
             label {Compact layout, coronal}
-            xywh {340 205 150 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
+            xywh {345 205 150 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
           }
           Fl_Round_Button {m_InOpenDroppedViewMode[3]} {
             label {Compact layout, sagittal}
-            xywh {340 225 150 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
+            xywh {345 225 150 20} type Radio down_box ROUND_DOWN_BOX labelsize 12
           }
         }
       }
@@ -1866,7 +1864,7 @@ changes, or press 'go back' in order to save the changes first.} open
     }
     Fl_Window m_WinStatistics {
       label {ITK-SNAP Volumes and Statistics}
-      xywh {459 480 680 320} type Double resizable visible
+      xywh {458 232 680 320} type Double hide resizable
     } {
       Fl_Button m_BtnStatisticsUpdate {
         label Update
@@ -1915,7 +1913,7 @@ changes, or press 'go back' in order to save the changes first.} open
     }
     Fl_Window m_WinPrecisionWarning {
       label {Insufficient Precision Warning} open
-      xywh {749 384 495 155} type Double box PLASTIC_DOWN_BOX modal visible
+      xywh {344 409 495 155} type Double box PLASTIC_DOWN_BOX hide modal
     } {
       Fl_Button {} {
         label Ok
@@ -1923,10 +1921,8 @@ changes, or press 'go back' in order to save the changes first.} open
         xywh {380 115 100 30} box PLASTIC_UP_BOX shortcut 0xff0d color 180 labelfont 1 labelsize 12 hotspot
       }
       Fl_Group {} {
-        label {The numerical precision of the image you loaded is greater
-than the 16 bit precision used by ITK-SNAP. Intensity values
-reported by ITK-SNAP will be approximate.} open
-        xywh {85 20 400 65} align 21
+        label {The numerical precision of the image you loaded is greater than the 16 bit precision used by ITK-SNAP. Intensity values reported by ITK-SNAP will be approximate.} open
+        xywh {85 10 400 75} align 149
       } {}
       Fl_Group {} {
         label {!} open
@@ -1934,7 +1930,7 @@ reported by ITK-SNAP will be approximate.} open
       } {}
       Fl_Check_Button m_ChkPrecisionWarningDisable {
         label {Do not show this warning again}
-        xywh {285 85 195 20} down_box DOWN_BOX labelsize 12
+        xywh {275 85 210 20} down_box DOWN_BOX labelsize 12
       }
       Fl_Button {} {
         label {Learn more...}

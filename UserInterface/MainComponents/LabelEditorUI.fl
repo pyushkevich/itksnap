@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0108 
+version 1.0300 
 header_name {.h} 
 code_name {.cxx}
 class LabelEditorUI {open : {private LabelEditorUIBase}
@@ -25,7 +25,7 @@ class LabelEditorUI {open : {private LabelEditorUIBase}
         xywh {220 25 210 320} box PLASTIC_THIN_UP_BOX selection_color 53 labelfont 1 labelsize 12 align 5
       } {
         Fl_Group {} {
-          label Appearance open
+          label Appearance open selected
           xywh {220 50 210 295} labelsize 12
         } {
           Fl_Input m_InLabelName {
@@ -90,9 +90,8 @@ class LabelEditorUI {open : {private LabelEditorUIBase}
             }
           }
           Fl_Check_Button m_ChkPromptId {
-            label {Allow me to enter label ids when
-adding new labels}
-            xywh {225 205 195 20} down_box DOWN_BOX selection_color 180 labelsize 12 align 21
+            label {Allow me to enter label ids when adding new labels}
+            xywh {225 205 195 20} down_box DOWN_BOX selection_color 180 labelsize 12 align 149
           }
         }
       }
@@ -128,7 +127,7 @@ adding new labels}
     }
     Fl_Window m_WinTools {
       label {Label Tools - ITK-SNAP} open
-      xywh {826 696 296 270} type Double modal visible
+      xywh {826 625 295 270} type Double modal visible
     } {
       Fl_Button m_BtnToolsApply {
         label Apply
@@ -161,7 +160,7 @@ adding new labels}
       Fl_Wizard m_WizToolControls {open
         xywh {15 55 265 160} box PLASTIC_DOWN_BOX
       } {
-        Fl_Group {m_GrpToolPage[0]} {open selected
+        Fl_Group {m_GrpToolPage[0]} {open
           xywh {15 55 265 160} labelsize 11 align 21
         } {
           Fl_Choice {m_InToolPageLabel[0]} {
