@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MeshIOWizardUILogic.h,v $
   Language:  C++
-  Date:      $Date: 2007/12/30 04:05:27 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2011/04/18 17:35:30 $
+  Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -74,7 +74,7 @@ public:
   void MakeWindow();
 
   // Display the wizard and get the save settings
-  bool DisplayWizard(IRISApplication *driver);
+  bool DisplayWizard(IRISApplication *driver, bool snapmode);
 
   /** Set the history list of recently opened files */
   void SetHistory(const HistoryType &history);

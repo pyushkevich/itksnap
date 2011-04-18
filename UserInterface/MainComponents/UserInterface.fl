@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0109 
+version 1.0300 
 use_FL_COMMAND 
 header_name {.h} 
 code_name {.cxx}
@@ -40,7 +40,7 @@ class UserInterface {open : {public UserInterfaceBase}
         Fl_Group m_GrpMainLayoutNormal {open
           xywh {0 0 875 735} color 86 resizable
         } {
-          Fl_Menu_Bar m_MenubarMain {open
+          Fl_Menu_Bar m_MenubarMain {
             xywh {0 0 875 25} labelsize 12 textsize 12
           } {
             Submenu {} {
@@ -421,8 +421,8 @@ class UserInterface {open : {public UserInterfaceBase}
               label {Control Pane} open
               xywh {0 25 145 700} box NO_BOX color 22 align 16
             } {
-              Fl_Group m_GrpToolbarPage {open selected
-                xywh {0 25 145 700} color 53 labelsize 12
+              Fl_Group m_GrpToolbarPage {
+                xywh {0 25 145 700} color 53 labelsize 12 hide
               } {
                 Fl_Group m_GrpInteractionModes {
                   label {Main Toolbox} open
@@ -779,7 +779,7 @@ itksnap.org} open
                 }
               }
               Fl_Group m_GrpSNAPPage {open
-                xywh {0 25 145 680} color 53 hide
+                xywh {0 25 145 680} color 53
               } {
                 Fl_Group {} {
                   label {Image Interaction} open
@@ -819,25 +819,25 @@ itksnap.org} open
                     xywh {5 185 135 350} box NO_BOX color 23 labeltype NO_LABEL labelsize 12 labelcolor 4
                   } {
                     Fl_Group m_GrpSNAPStepPreprocess {
-                      label {Preprocess Image}
-                      xywh {10 190 125 340} color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
+                      label {Preprocess Image} open
+                      xywh {10 190 125 340} color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4 hide
                     } {
                       Fl_Button m_BtnPreprocess {
                         label {Preprocess Image}
                         callback {this->OnPreprocessAction();}
-                        tooltip {Use this button to preprocess the grayscale image to genereate the 'speed' image. The speed image affects how fast the active contour propagates at each point in the image.} xywh {15 385 115 25} box PLASTIC_UP_BOX color 180 labelsize 11 align 144
+                        tooltip {Use this button to preprocess the grayscale image to genereate the 'speed' image. The speed image affects how fast the active contour propagates at each point in the image.} xywh {15 400 115 25} box PLASTIC_UP_BOX color 180 labelsize 11 align 144
                       }
                       Fl_Group m_GrpSnakeChoiceRadio {
                         label {Snake mode:} open
-                        xywh {15 279 120 46} labeltype NO_LABEL labelsize 12 align 5
+                        xywh {10 279 125 60} labeltype NO_LABEL labelsize 12 align 5
                       } {
                         Fl_Round_Button m_RadSnakeInOut {
                           callback {OnInOutSnakeSelect();}
-                          tooltip {In the inside/outside segmentation mode, the speed image is close to +1 at voxels that are likely to be in the structure of interest and is close to -1 in the background. The snake is attracted to places where the speed function is close to 0.} xywh {15 280 120 25} down_box ROUND_DOWN_BOX value 1 color 205 align 148
+                          tooltip {In the inside/outside segmentation mode, the speed image is close to +1 at voxels that are likely to be in the structure of interest and is close to -1 in the background. The snake is attracted to places where the speed function is close to 0.} xywh {11 294 120 25} down_box ROUND_DOWN_BOX value 1 color 205 align 148
                         }
                         Fl_Round_Button m_RadSnakeEdge {
                           callback {OnEdgeSnakeSelect();}
-                          tooltip {In the edge-based segmentation mode, the speed image is close to 0 at 'edges' in the input image and is close to 1 in regions where the intensity is nearly constant. The snake is attracted to the edges in the image.} xywh {15 300 105 25} down_box ROUND_DOWN_BOX
+                          tooltip {In the edge-based segmentation mode, the speed image is close to 0 at 'edges' in the input image and is close to 1 in regions where the intensity is nearly constant. The snake is attracted to the edges in the image.} xywh {11 314 105 25} down_box ROUND_DOWN_BOX
                         }
                       }
                       Fl_Button m_BtnAcceptPreprocessing {
@@ -852,11 +852,11 @@ itksnap.org} open
                       Fl_Button m_BtnLoadPreprocessedImage {
                         label {Load from File}
                         callback {this->OnLoadPreprocessedImageAction();}
-                        tooltip {Load the 'speed' image from an external file.} xywh {15 430 115 25} box PLASTIC_UP_BOX color 180 labelsize 11 align 144
+                        tooltip {Load the 'speed' image from an external file.} xywh {15 445 115 25} box PLASTIC_UP_BOX color 180 labelsize 11 align 144
                       }
                       Fl_Group {} {
                         label or open
-                        xywh {10 410 125 20} labelsize 11 align 16
+                        xywh {10 425 125 20} labelsize 11 align 16
                       } {}
                       Fl_Group {} {
                         label Preprocessing open
@@ -868,12 +868,16 @@ itksnap.org} open
                         } {}
                       }
                       Fl_Group {} {
-                        label {A. Choose the kind of image information used to drive snake evolution:} open
-                        xywh {10 235 125 45} labelsize 11 align 149
+                        label {A. Choose what kinds
+of image features will
+drive active contour
+evolution:} open
+                        xywh {10 235 125 45} labelsize 11 align 21
                       } {}
                       Fl_Group {} {
-                        label {B. Use the buttons below to produce image regions or edges:} open
-                        xywh {10 336 125 45} labelsize 11 align 149
+                        label {B. Use buttons below
+to define image regions or edges:} open
+                        xywh {10 351 125 45} labelsize 11 align 149
                       } {}
                       Fl_Group {} {open
                         xywh {10 325 125 10} color 78 labelsize 12 align 18
@@ -882,17 +886,17 @@ itksnap.org} open
                         xywh {10 460 125 10} color 78 labelsize 12 align 18
                       } {}
                       Fl_Group {} {
-                        label {C. Press 'Next' to accept
-the preprocessed image.} open
-                        xywh {10 471 125 25} labelsize 11 align 21
-                      } {}
-                      Fl_Group {} {
                         label {Intensity regions} open
-                        xywh {32 280 100 25} labelsize 12 labelcolor 136 align 20
+                        xywh {28 294 100 25} labelsize 12 labelcolor 136 align 20
                       } {}
                       Fl_Group {} {
                         label {Image edges} open
-                        xywh {32 300 100 25} labelsize 12 labelcolor 136 align 148
+                        xywh {28 314 100 25} labelsize 12 labelcolor 136 align 148
+                      } {}
+                      Fl_Group {} {
+                        label {C. Press 'Next' to
+accept.} open
+                        xywh {10 476 125 25} labelsize 11 align 21
                       } {}
                     }
                     Fl_Group m_GrpSNAPStepInitialize {
@@ -902,23 +906,23 @@ the preprocessed image.} open
                       Fl_Button m_BtnAddBubble {
                         label {Add Bubble}
                         callback {OnAddBubbleAction()}
-                        tooltip {Add bubble at cursor position (shortcut: +)} xywh {15 280 55 35} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
+                        tooltip {Add bubble at cursor position (shortcut: +)} xywh {15 285 55 35} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
                       }
                       Fl_Button m_BtnRemoveBubble {
                         label {Remove Bubble}
                         callback {OnRemoveBubbleAction()}
-                        tooltip {Remove highlighted bubble from list (shortcut: -)} xywh {75 280 55 35} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
+                        tooltip {Remove highlighted bubble from list (shortcut: -)} xywh {75 285 55 35} box PLASTIC_UP_BOX color 180 labelsize 11 align 128
                       }
                       Fl_Value_Slider m_InBubbleRadius {
                         label {Radius:}
                         callback {o->take_focus();
 OnBubbleRadiusChange()}
-                        xywh {15 335 115 20} type Horizontal color 52 selection_color 197 labelsize 12 labelcolor 136 align 5 maximum 255 step 1 value 128
+                        xywh {15 340 115 20} type Horizontal color 52 selection_color 197 labelsize 12 labelcolor 136 align 5 maximum 255 step 1 value 128
                       }
                       Fl_Browser m_BrsActiveBubbles {
                         label {Active bubbles:}
                         callback {OnActiveBubblesChange()}
-                        tooltip {Click a bubble to modify radius or remove} xywh {15 375 115 75} type Hold color 52 labelsize 12 labelcolor 136 align 5 textsize 9
+                        tooltip {Click a bubble to modify radius or remove} xywh {15 380 115 75} type Hold color 52 labelsize 12 labelcolor 136 align 5 textsize 9
                       }
                       Fl_Button m_BtnAcceptInitialization {
                         label {  Next @-1>}
@@ -931,8 +935,10 @@ OnBubbleRadiusChange()}
                         tooltip {Accept initialization, begin running snake} xywh {15 505 55 25} box PLASTIC_UP_BOX color 180 labelsize 12 align 16
                       }
                       Fl_Group {} {
-                        label {A. Insert an initialization bubble and adjust its radius:} open
-                        xywh {10 235 125 45} labelsize 11 align 149
+                        label {A. Place bubbles in
+the image to initialize
+the active contour:} open
+                        xywh {10 235 125 45} labelsize 11 align 21
                       } {}
                       Fl_Group {} {
                         label {Snake Initialization} open
@@ -953,7 +959,7 @@ OnBubbleRadiusChange()}
                     }
                     Fl_Group m_GrpSNAPStepSegment {
                       label {Perform Segmentation} open
-                      xywh {5 185 135 350} color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4 hide
+                      xywh {5 185 135 350} color 22 labeltype EMBOSSED_LABEL labelsize 12 labelcolor 4
                     } {
                       Fl_Output m_OutCurrentIteration {
                         label {Iteration:}
@@ -962,7 +968,7 @@ OnBubbleRadiusChange()}
                       Fl_Button m_BtnSnakeParameters {
                         label {Set Parameters}
                         callback {OnSnakeParametersAction();}
-                        tooltip {Change active contour evolution parameters} xywh {15 280 115 25} box PLASTIC_UP_BOX color 180 labelsize 12
+                        tooltip {Change active contour evolution parameters} xywh {15 282 115 25} box PLASTIC_UP_BOX color 180 labelsize 12
                       }
                       Fl_Choice m_InStepSize {
                         label {Step size:}
@@ -1014,16 +1020,19 @@ OnBubbleRadiusChange()}
                         } {}
                       }
                       Fl_Group {} {
-                        label {A. Edit the parameters of the snake evolution equation:} open
-                        xywh {10 235 125 40} labelsize 11 align 149
+                        label {A. Edit the parameters
+of the snake evolution
+equation:} open
+                        xywh {10 235 125 40} labelsize 11 align 21
                       } {}
                       Fl_Group {} {
                         label {B. Use the buttons below to control snake evolution:} open
                         xywh {10 330 125 45} labelsize 11 align 149
                       } {}
                       Fl_Group {} {
-                        label {C. Press 'Finish' to edit the segmentation in IRIS} open
-                        xywh {10 471 125 30} labelsize 11 align 149
+                        label {C. Press 'Finish' to
+accept segmentation:} open
+                        xywh {10 471 125 30} labelsize 11 align 21
                       } {}
                       Fl_Group {} {open
                         xywh {10 315 125 10} box PLASTIC_DOWN_BOX color 93 labelsize 12 align 18
@@ -1477,7 +1486,7 @@ this->OnSNAPLabelOpacityChange();}
                     xywh {150 385 355 320} resizable
                   } {
                     Fl_Box {m_SliceWindow[3]} {
-                      label 3D
+                      label 3D selected
                       xywh {150 385 355 320} box BORDER_BOX color 0 labelcolor 7
                       class FLTKCanvas
                     }
@@ -1788,7 +1797,7 @@ changes, or press 'go back' in order to save the changes first.} open
     }
     Fl_Window m_WinOpenDropped {
       label {ITK-SNAP: Open Document}
-      xywh {878 285 520 311} type Double modal visible
+      xywh {878 285 520 310} type Double modal visible
     } {
       Fl_Group {} {
         label {What should ITK-SNAP do with this image?} open
@@ -1857,7 +1866,7 @@ changes, or press 'go back' in order to save the changes first.} open
     }
     Fl_Window m_WinStatistics {
       label {ITK-SNAP Volumes and Statistics}
-      xywh {459 480 680 322} type Double resizable visible
+      xywh {459 480 680 320} type Double resizable visible
     } {
       Fl_Button m_BtnStatisticsUpdate {
         label Update
@@ -1889,7 +1898,7 @@ changes, or press 'go back' in order to save the changes first.} open
     }
     Fl_Window m_WinTestPop {
       label Test open
-      xywh {1247 403 46 24} type Single align 2 non_modal noborder visible
+      xywh {1247 403 45 20} type Single align 2 non_modal noborder visible
     } {
       Fl_Button m_BtnCollapsedViewRestore {
         label {@\#+11<-}
@@ -1906,7 +1915,7 @@ changes, or press 'go back' in order to save the changes first.} open
     }
     Fl_Window m_WinPrecisionWarning {
       label {Insufficient Precision Warning} open
-      xywh {749 384 495 158} type Double box PLASTIC_DOWN_BOX modal visible
+      xywh {749 384 495 155} type Double box PLASTIC_DOWN_BOX modal visible
     } {
       Fl_Button {} {
         label Ok

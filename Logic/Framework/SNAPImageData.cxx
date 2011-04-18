@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPImageData.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/19 19:16:30 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2011/04/18 17:35:30 $
+  Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -279,29 +279,31 @@ SNAPImageData
     imgLevelSet->TransformIndexToPhysicalPoint(
       to_itkIndex(bubbles[iBubble].center),ptCenter);
 
-    // Compute the upper and lower bounds of the region that contains the bubble
-    for(unsigned int i=0;i<3;i++)
+    // Extents of the bounding box
+    FloatImageType::IndexType idxLower = to_itkIndex(bubbles[iBubble].center);
+    FloatImageType::IndexType idxUpper = to_itkIndex(bubbles[iBubble].center);
+
+    // Map all vertices in a cube of radius r around the physical center of
+    // the bubble into index space, and compute a bounding box
+    for(int jx=-1; jx<=1; jx+=2) for(int jy=-1; jy<=1; jy+=2) for(int jz=-1; jz<=1; jz+=2)
       {
-      ptLower[i] = ptCenter[i] - bubbles[iBubble].radius;
-      ptUpper[i] = ptCenter[i] + bubbles[iBubble].radius;
-      }
-    
-    // Index locations corresponding to the extents of the bubble
-    FloatImageType::IndexType idxLower, idxUpper;     
-    imgLevelSet->TransformPhysicalPointToIndex(ptLower,idxLower);
-    imgLevelSet->TransformPhysicalPointToIndex(ptUpper,idxUpper);
-    
-    // compute the correct lower/upper index
-    for(unsigned int i=0;i<3;i++)
-      {
-      if(idxLower[i] > idxUpper[i])
+      PointType ptTest;
+      ptTest[0] = ptCenter[0] + jx * bubbles[iBubble].radius;
+      ptTest[1] = ptCenter[1] + jy * bubbles[iBubble].radius;
+      ptTest[2] = ptCenter[2] + jz * bubbles[iBubble].radius;
+
+      FloatImageType::IndexType idxTest;
+      imgLevelSet->TransformPhysicalPointToIndex(ptTest,idxTest);
+
+      for(unsigned int k=0; k<3; k++)
         {
-        int tmp = idxLower[i];
-        idxLower[i] = idxUpper[i];
-        idxUpper[i] = tmp;
+        if(idxLower[k] > idxTest[k]) 
+          idxLower[k] = idxTest[k];
+        if(idxUpper[k] < idxTest[k]) 
+          idxUpper[k] = idxTest[k];
         }
       }
-    
+
     // Create a region
     FloatImageType::SizeType szBubble;
     szBubble[0] = 1 + idxUpper[0] - idxLower[0];

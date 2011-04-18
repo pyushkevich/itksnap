@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: MeshIOWizardUILogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/13 15:31:27 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2011/04/18 17:35:30 $
+  Version:   $Revision: 1.10 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -368,7 +368,7 @@ MeshIOWizardUILogic
 // Display the wizard and get the save settings
 bool 
 MeshIOWizardUILogic
-::DisplayWizard(IRISApplication *driver)
+::DisplayWizard(IRISApplication *driver, bool snapmode)
 {
   // Set the driver
   m_Driver = driver;
@@ -376,9 +376,18 @@ MeshIOWizardUILogic
   // The loaded flag is false
   m_MeshSelected = false;
 
-  // Point the wizard to the first page
-  m_GrpWizard->value(m_PageMesh);
-  
+  // Switch IRIS mode / SNAP mode
+  if(snapmode)
+    {
+    // Just go to the file page
+    m_GrpWizard->value(m_PageFile);
+    }
+  else
+    {
+    // Point the wizard to the first page
+    m_GrpWizard->value(m_PageMesh);
+    }
+    
   // Get the list of all currenly available labels
   ColorLabelTable *clt = m_Driver->GetColorLabelTable();
 

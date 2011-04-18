@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2011/04/18 15:06:07 $
-  Version:   $Revision: 1.119 $
+  Date:      $Date: 2011/04/18 17:35:30 $
+  Version:   $Revision: 1.120 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -314,7 +314,7 @@ void UserInterfaceLogic
   m_Activation->AddMenuItem(m_MenuNewSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveGreyROI, UIF_SNAP_ACTIVE);
   m_Activation->AddMenuItem(m_MenuSaveSegmentation, UIF_IRIS_WITH_BASEIMG_LOADED);
-  m_Activation->AddMenuItem(m_MenuSaveSegmentationMesh, UIF_IRIS_WITH_BASEIMG_LOADED);
+  m_Activation->AddMenuItem(m_MenuSaveSegmentationMesh, UIF_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveLabels, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuLoadLabels, UIF_IRIS_WITH_BASEIMG_LOADED);
   m_Activation->AddMenuItem(m_MenuSaveVoxelCounts, UIF_IRIS_WITH_BASEIMG_LOADED);
@@ -5349,14 +5349,15 @@ void UserInterfaceLogic
 ::OnMenuSaveSegmentationMesh() 
 {
   // Better have a segmentation image
-  assert(m_Driver->GetIRISImageData()->IsSegmentationLoaded());
+  assert(m_Driver->GetIRISImageData()->IsSegmentationLoaded() 
+    || m_Driver->GetSNAPImageData()->IsSnakeLoaded());
 
   // Send the history information to the wizard
   m_WizMeshExport->SetHistory(
     m_SystemInterface->GetHistory("SegmentationMesh"));
 
   // Display the segmentation wizard
-  if(m_WizMeshExport->DisplayWizard(m_Driver))
+  if(m_WizMeshExport->DisplayWizard(m_Driver, m_GlobalState->GetSNAPActive()))
     {
     // Get the save settings
     MeshExportSettings sets = m_WizMeshExport->GetExportSettings();
@@ -6057,6 +6058,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.120  2011/04/18 17:35:30  pyushkevich
+ *Fixed bug 3288963, problems with bubble initialization
+ *
  *Revision 1.119  2011/04/18 15:06:07  pyushkevich
  *Added keystroke for changing colormaps
  *

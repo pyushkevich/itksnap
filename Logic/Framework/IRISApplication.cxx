@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: IRISApplication.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/10/13 16:59:25 $
-  Version:   $Revision: 1.36 $
+  Date:      $Date: 2011/04/18 17:35:30 $
+  Version:   $Revision: 1.37 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -803,8 +803,20 @@ IRISApplication
   mob.Initialize(this);
   mob.GenerateVTKMeshes(progress);
 
+  // If in SNAP mode, just save the first mesh
+  if(m_SNAPImageData)
+    {
+    // Get the VTK mesh for the label
+    vtkPolyData *mesh = mob.GetVTKMesh(0);
+
+    // Export the mesh
+    GuidedMeshIO io;
+    Registry rFormat = sets.GetMeshFormat();
+    io.SaveMesh(sets.GetMeshFileName().c_str(), rFormat, mesh);
+    }
+
   // If only one mesh is to be exported, life is easy
-  if(sets.GetFlagSingleLabel())
+  else if(sets.GetFlagSingleLabel())
     {
     for(size_t i = 0; i < mob.GetNumberOfVTKMeshes(); i++)
       {
