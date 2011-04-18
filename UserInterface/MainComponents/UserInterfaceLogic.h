@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.h,v $
   Language:  C++
-  Date:      $Date: 2010/10/12 16:02:05 $
-  Version:   $Revision: 1.55 $
+  Date:      $Date: 2011/04/18 17:55:20 $
+  Version:   $Revision: 1.56 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -812,6 +812,7 @@ protected:
     UIF_UNDO_POSSIBLE,
     UIF_REDO_POSSIBLE,
     UIF_UNSAVED_CHANGES,
+    UIF_MESH_SAVEABLE,
 
     UIF_SNAP_ACTIVE,
     UIF_SNAP_PAGE_PREPROCESSING,
@@ -959,6 +960,7 @@ private:
 
   // Callbacks for state flags
   void OnUnsavedChangesStateChange(UIStateFlags flag, bool value);
+  void OnMeshAvailabilityStateChange(UIStateFlags flag, bool value);
 
   /** Initialization subroutine that sets up the activation manager */
   void InitializeActivationFlags();
@@ -1040,6 +1042,9 @@ private:
 
 /*
  *$Log: UserInterfaceLogic.h,v $
+ *Revision 1.56  2011/04/18 17:55:20  pyushkevich
+ *Fixed bug 3243462. We can now save the mesh in SNAP (level set) mode
+ *
  *Revision 1.55  2010/10/12 16:02:05  pyushkevich
  *Improved handling of collapsed windows
  *
