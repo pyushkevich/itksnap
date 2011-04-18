@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2011/04/18 17:55:20 $
-  Version:   $Revision: 1.121 $
+  Date:      $Date: 2011/04/18 17:57:08 $
+  Version:   $Revision: 1.122 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -5089,7 +5089,7 @@ UserInterfaceLogic
     default:
     case 0: fname += "axial0001.png";
 		  break;
-    case 1: fname += "saggital0001.png";
+    case 1: fname += "sagittal0001.png";
 		  break;
     case 2: fname += "coronal0001.png";
 		  break;
@@ -6078,6 +6078,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.122  2011/04/18 17:57:08  pyushkevich
+ *Fixed bug 3172058, a typo in 'sagittal'
+ *
  *Revision 1.121  2011/04/18 17:55:20  pyushkevich
  *Fixed bug 3243462. We can now save the mesh in SNAP (level set) mode
  *
