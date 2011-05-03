@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2011/04/18 17:57:08 $
-  Version:   $Revision: 1.122 $
+  Date:      $Date: 2011/05/03 20:11:12 $
+  Version:   $Revision: 1.123 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -40,6 +40,10 @@
 
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4996 )
+#endif
+
+#ifdef __APPLE__
+#include <ApplicationServices/ApplicationServices.h>
 #endif
 
 #include "FL/Fl_Native_File_Chooser.H"
@@ -6078,6 +6082,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.123  2011/05/03 20:11:12  pyushkevich
+ *version number changed to 2.2
+ *
  *Revision 1.122  2011/04/18 17:57:08  pyushkevich
  *Fixed bug 3172058, a typo in 'sagittal'
  *
