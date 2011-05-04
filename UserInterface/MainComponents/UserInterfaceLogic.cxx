@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: UserInterfaceLogic.cxx,v $
   Language:  C++
-  Date:      $Date: 2011/05/03 20:11:12 $
-  Version:   $Revision: 1.123 $
+  Date:      $Date: 2011/05/04 15:25:42 $
+  Version:   $Revision: 1.124 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -46,6 +46,7 @@
 #include <ApplicationServices/ApplicationServices.h>
 #endif
 
+#include "FL/Fl.H"
 #include "FL/Fl_Native_File_Chooser.H"
 #include "FL/filename.H"
 #include "FL/x.H"
@@ -6082,6 +6083,9 @@ UserInterfaceLogic
 
 /*
  *$Log: UserInterfaceLogic.cxx,v $
+ *Revision 1.124  2011/05/04 15:25:42  pyushkevich
+ *Fixes to build with fltk 1.3.0rc3
+ *
  *Revision 1.123  2011/05/03 20:11:12  pyushkevich
  *version number changed to 2.2
  *

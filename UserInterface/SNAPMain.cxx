@@ -3,8 +3,8 @@
   Program:   ITK-SNAP
   Module:    $RCSfile: SNAPMain.cxx,v $
   Language:  C++
-  Date:      $Date: 2010/04/16 04:02:35 $
-  Version:   $Revision: 1.22 $
+  Date:      $Date: 2011/05/04 15:25:42 $
+  Version:   $Revision: 1.23 $
   Copyright (c) 2007 Paul A. Yushkevich
   
   This file is part of ITK-SNAP 
@@ -38,6 +38,7 @@
 #include "SNAPBorlandDummyTypes.h"
 #endif
 
+#include "FL/Fl.H"
 #include "FL/Fl_Native_File_Chooser.H"
 #include <FL/Fl_File_Chooser.H>
 
@@ -587,6 +588,9 @@ int main(int argc, char **argv)
 
 /*
  *$Log: SNAPMain.cxx,v $
+ *Revision 1.23  2011/05/04 15:25:42  pyushkevich
+ *Fixes to build with fltk 1.3.0rc3
+ *
  *Revision 1.22  2010/04/16 04:02:35  pyushkevich
  *ENH: implemented drag and drop, OSX events, new command-line interface
  *
