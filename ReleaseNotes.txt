@@ -1,6 +1,6 @@
 ======================================
  InsightSNAP Release Notes
- Version 2.1.x (pre-release of 2.2)
+ Version 2.2.0
 ======================================
 
 
@@ -8,7 +8,7 @@
 1. New Features
 -----------------
 
-1.1. New in Version 2.1.4 
+1.1. New in Version 2.2.0
 ----------------------------------------------
 
 This is largely a maintenance release, with a few usability enhancements based
@@ -20,7 +20,7 @@ MacOS and Windows.
  -  64 bit versions of the software are available for Linux, Windows and Mac.
     These versions are now built nightly and will be distributed on
     SourceForge.net. For this to work, we had to change to newer versions of
-    the supporting libraries: ITK 3.20, VTK 5.6.1, and FLTK 1.3.x-r7710. The
+    the supporting libraries: ITK 3.20, VTK 5.6.1, and FLTK 1.3.0.rc3. The
     latter was necessary for 64 bit MacOS, which many users have requested.
     Thanks to Michael Hanke for providing a patch for ITK 3.18 compatibility.
 
@@ -76,6 +76,8 @@ MacOS and Windows.
 
  -  Added an option under File menu to open a new SNAP session.
 
+ -  Ability to save segmentation mesh in active contour mode
+
 1.1.2. Bug Fixes and Stability Improvements
 
  -  Fixed a problem with certain operations being very slow because of the way
@@ -90,6 +92,9 @@ MacOS and Windows.
 
  -  Changed defaults for edge-based snakes to have non-zero weight
 
+ -  Fixed display issues on newer MacBook Pro
+
+ -  Fixed problem with bubbles not being spherical for certain image orientations
 
 1.2. New in Version 2.0
 ----------------------------------------------
