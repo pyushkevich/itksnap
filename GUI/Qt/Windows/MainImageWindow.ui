@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainImageWindow</class>
+ <widget class="QMainWindow" name="MainImageWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>907</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="margin">
+     <number>2</number>
+    </property>
+    <property name="spacing">
+     <number>2</number>
+    </property>
+    <item row="0" column="0">
+     <widget class="SliceViewPanel" name="panel0" native="true"/>
+    </item>
+    <item row="0" column="1">
+     <widget class="SliceViewPanel" name="panel1" native="true"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QWidget" name="panel3D" native="true">
+      <property name="styleSheet">
+       <string notr="true">background-color:red;</string>
+      </property>
+      <widget class="QToolButton" name="toolButton">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>60</y>
+         <width>91</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QToolButton {
+     border-image: url(:/root/fltkbutton.png) repeat;
+     border-top-width: 9px;
+     border-bottom-width: 9px;
+     border-left-width: 3px;
+     border-right-width: 3px;
+     background-origin: content;
+     padding-top: -9px;
+     padding-bottom: -9px;
+     padding-left: -3px;
+     padding-right: -3px;
+     min-width: 80px;
+ }
+
+ QToolButton:pressed {
+     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                       stop: 0 #dadbde, stop: 1 #f6f7fa);
+ }
+
+ QPushButton:flat {
+     border: none; /* no border for a flat push button */
+ }
+
+ QPushButton:default {
+     border-color: navy; /* make the default button prominent */
+ }</string>
+       </property>
+       <property name="text">
+        <string>Hello World</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/root/Resources/crosshair.gif</normaloff>
+         <normalon>:/root/Resources/crosshair.gif</normalon>:/root/Resources/crosshair.gif</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>96</width>
+         <height>96</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextOnly</enum>
+       </property>
+      </widget>
+      <widget class="QToolButton" name="toolButton_2">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>130</y>
+         <width>31</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QToolButton {
+     border-image: url(:/root/fltkbutton.png) repeat;
+     border-top-width: 8px;
+     border-bottom-width: 8px;
+     border-left-width: 2px;
+     border-right-width: 2px;
+     background-origin: content;
+     padding-top: -8px;
+     padding-bottom: -8px;
+     padding-left: -2px;
+     padding-right: -2px;
+ }
+
+ QToolButton:pressed {
+     border-image: url(:/root/fltkbutton_pressed.png) repeat;
+ }
+
+ QPushButton:flat {
+     border: none; /* no border for a flat push button */
+ }
+
+ QPushButton:default {
+     border-color: navy; /* make the default button prominent */
+ }</string>
+       </property>
+       <property name="text">
+        <string>Hello World</string>
+       </property>
+       <property name="icon">
+        <iconset resource="SNAPResources.qrc">
+         <normaloff>:/root/Resources/crosshair3D.gif</normaloff>
+         <normalon>:/root/Resources/crosshair.gif</normalon>:/root/Resources/crosshair3D.gif</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>96</width>
+         <height>96</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonIconOnly</enum>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="SliceViewPanel" name="panel2" native="true"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>907</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen_Greyscale_Image"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <addaction name="menuFile"/>
+  </widget>
+  <action name="actionOpen_Greyscale_Image">
+   <property name="text">
+    <string>Open Greyscale Image ...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SliceViewPanel</class>
+   <extends>QWidget</extends>
+   <header>sliceviewpanel.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="SNAPResources.qrc"/>
+ </resources>
+ <connections/>
+ <designerdata>
+  <property name="gridDeltaX">
+   <number>10</number>
+  </property>
+  <property name="gridDeltaY">
+   <number>10</number>
+  </property>
+  <property name="gridSnapX">
+   <bool>true</bool>
+  </property>
+  <property name="gridSnapY">
+   <bool>true</bool>
+  </property>
+  <property name="gridVisible">
+   <bool>true</bool>
+  </property>
+ </designerdata>
+</ui>

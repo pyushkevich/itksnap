@@ -78,9 +78,9 @@ public:
   void SaveUserPreferences();
 
   /** Get the filename for the user preferences */
-  const char *GetUserPreferencesFileName() 
-  { 
-    return m_UserPreferenceFile.c_str(); 
+  const char *GetUserPreferencesFileName()
+  {
+    return m_UserPreferenceFile.c_str();
   }
 
   /** The name of the token file that sits at the root of the program data
@@ -211,6 +211,9 @@ private:
 
   // Filename encoder
   std::string EncodeFilename(const std::string &src);
+
+  // Get the directory where application data (pref files, etc) should go
+  std::string GetApplicationDataDirectory();
 
   // System-specific IPC related stuff
 #ifdef WIN32

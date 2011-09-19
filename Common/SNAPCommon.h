@@ -144,7 +144,16 @@ struct NativeToGreyTypeFunctor
 #define irisGetMacro(name,type) \
     virtual type Get##name () const { \
     return this->m_##name; \
-} 
+}
+
+/**
+ * Combo get/set macro
+ */
+#define irisGetSetMacro(name,type) \
+  virtual void Set##name (type _arg) \
+    { this->m_##name = _arg; } \
+  virtual type Get##name () const \
+    { return this->m_##name; }
 
 /**
  * Set macro for strings

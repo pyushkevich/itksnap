@@ -515,8 +515,14 @@ void
 IRISApplication
 ::SetCursorPosition(const Vector3ui cursor)
 {
-  m_GlobalState->SetCrosshairsPosition(cursor); 
-  this->GetCurrentImageData()->SetCrosshairs(cursor);
+  if(cursor != this->GetCursorPosition())
+    {
+    m_GlobalState->SetCrosshairsPosition(cursor);
+    this->GetCurrentImageData()->SetCrosshairs(cursor);
+
+    // Fire the appropriate event
+    InvokeEvent(CursorUpdateEvent());
+    }
 }
 
 Vector3ui
@@ -679,14 +685,22 @@ IRISApplication
 ::SetCurrentImageDataToIRIS() 
 {
   assert(m_IRISImageData);
-  m_CurrentImageData = m_IRISImageData;
+  if(m_CurrentImageData != m_IRISImageData)
+    {
+    m_CurrentImageData = m_IRISImageData;
+    InvokeEvent(CurrentImageDataDimensionsChangeEvent());
+    }
 }
 
 void IRISApplication
 ::SetCurrentImageDataToSNAP() 
 {
   assert(m_SNAPImageData);
-  m_CurrentImageData = m_SNAPImageData;
+  if(m_CurrentImageData != m_SNAPImageData)
+    {
+    m_CurrentImageData = m_SNAPImageData;
+    InvokeEvent(CurrentImageDataDimensionsChangeEvent());
+    }
 }
 
 size_t 
@@ -1226,6 +1240,9 @@ IRISApplication
     io->DeallocateNativeImage();
     }
   else throw itk::ExceptionObject("Unsupported main image type");
+
+  // Fire the dimensions change event
+  InvokeEvent(CurrentImageDataDimensionsChangeEvent());
 
   // Update the crosshairs position
   Vector3ui cursor = size;

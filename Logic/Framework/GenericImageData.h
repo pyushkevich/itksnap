@@ -72,7 +72,7 @@ public:
   typedef LabelImageWrapper::ImageType LabelImageType;
   typedef itk::ImageRegion<3> RegionType;
 
-  typedef std::list<ImageWrapperBase *> WrapperList;
+  typedef std::vector<ImageWrapperBase *> WrapperList;
   typedef WrapperList::iterator WrapperIterator;
   typedef WrapperList::const_iterator WrapperConstIterator;
 
@@ -89,7 +89,7 @@ public:
     return m_MainImageWrapper;
     }
 
-  bool IsMainLoaded()
+  bool IsMainLoaded() const
     {
     return m_MainImageWrapper->IsInitialized();
     }
@@ -116,6 +116,25 @@ public:
   WrapperList* GetOverlays() {
     return &m_OverlayWrappers;
   }
+
+  /**
+   * Get the total number of layers (counting main and overlays). If main
+   * has not been loaded, returns 0
+   */
+  virtual unsigned int GetNumberOfLayers() const;
+
+  /**
+   * Get layer as a gray image type. If the layer is not of gray type, NULL
+   * will be returned.
+   */
+  virtual GreyImageWrapper* GetLayerAsGray(unsigned int layer) const;
+
+  /**
+   * Get layer as an RGB image type. If the layer is not of RGB type, NULL
+   * will be returned.
+   */
+  virtual RGBImageWrapper* GetLayerAsRGB(unsigned int layer) const;
+
 
   /**
    * Access the segmentation image (read only access allowed 
@@ -227,8 +246,8 @@ protected:
   virtual void SetMainImageCommon(ImageWrapperBase *wrapper,
                           const ImageCoordinateGeometry &geometry);
   virtual void SetOverlayCommon(ImageWrapperBase *wrapper);
-  virtual void SetCrosshairs(WrapperList &list, const Vector3ui &crosshairs);
-  virtual void SetImageGeometry(WrapperList &list, const ImageCoordinateGeometry &geometry);
+  virtual void SetCrosshairs(ImageWrapperBase *wrapper, const Vector3ui &crosshairs);
+  virtual void SetImageGeometry(ImageWrapperBase *wrapper, const ImageCoordinateGeometry &geometry);
 
   // Wrapper around the grey-scale image
   GreyImageWrapper m_GreyWrapper;

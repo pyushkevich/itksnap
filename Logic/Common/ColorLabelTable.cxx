@@ -7,8 +7,32 @@
 
 using namespace std;
 
-extern int fl_parse_color(
-  const char* p, unsigned char& r, unsigned char& g, unsigned char& b);
+int parse_color(
+  const char* p, unsigned char& r, unsigned char& g, unsigned char& b)
+{
+  // Must be a seven-character string
+  if(strlen(p) != 7)
+    return -1;
+
+  int val[6];
+  for(int i = 0; i < 6; i++)
+    {
+    char c = p[i+1];
+    if(c >= 'A' && c <= 'F')
+      val[i] = 10 + (c - 'A');
+    else if(c >= 'a' && c <= 'f')
+      val[i] = 10 + (c - 'a');
+    else if(c >= '0' && c <= '9')
+      val[i] = c - '0';
+    else return -1;
+    }
+
+  r = 16 * val[0] + val[1];
+  g = 16 * val[2] + val[3];
+  b = 16 * val[4] + val[5];
+  return 0;
+}
+
 
 // Some randomly ordered colors
 const size_t ColorLabelTable::m_ColorListSize = 130;
@@ -54,7 +78,7 @@ ColorLabelTable
   for(size_t i = 1; i < MAX_COLOR_LABELS; i++)
     {
     unsigned char r,g,b;
-    fl_parse_color(m_ColorList[(i-1) % m_ColorListSize],r,g,b);
+    parse_color(m_ColorList[(i-1) % m_ColorListSize],r,g,b);
     
     m_DefaultLabel[i].SetRGB(r,g,b);
     m_DefaultLabel[i].SetAlpha(255);

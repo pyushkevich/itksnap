@@ -58,9 +58,9 @@ class GuidedNativeImageIO
 public:
 
   enum FileFormat {
-    FORMAT_MHA=0, FORMAT_GIPL, FORMAT_RAW, FORMAT_ANALYZE,
-    FORMAT_DICOM, FORMAT_GE4, FORMAT_GE5, FORMAT_NIFTI, FORMAT_SIEMENS, 
-    FORMAT_VTK, FORMAT_VOXBO_CUB, FORMAT_NRRD, FORMAT_COUNT};
+    FORMAT_ANALYZE=0, FORMAT_DICOM, FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
+    FORMAT_MHA, FORMAT_NIFTI, FORMAT_NRRD, FORMAT_RAW, FORMAT_SIEMENS,
+    FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_COUNT};
 
   enum RawPixelType {
     PIXELTYPE_UCHAR=0, PIXELTYPE_CHAR, PIXELTYPE_USHORT, PIXELTYPE_SHORT, 
@@ -79,6 +79,21 @@ public:
     bool can_store_orientation;
     bool can_store_float;
     bool can_store_short;
+
+    bool TestFilename(std::string fname);
+  };
+
+  /**
+   * This is an interface that users can implement in order to check if
+   * the image being loaded meets some criteria. This is more efficient
+   * than loading the image and then finding out that it does not meet
+   * the criteria. For example, you can restrict the dimensions of the
+   * image to match that of a reference image, etc.
+   */
+  class AbstractValidityCheckDelegate {
+  public:
+    /** This method should fire an IRISException if something is wrong */
+    virtual void ValidityCheck(itk::ImageIOBase *) = 0;
   };
 
   // Image type. This is only for 3D images.
@@ -91,6 +106,13 @@ public:
   GuidedNativeImageIO();
   virtual ~GuidedNativeImageIO()
     { DeallocateNativeImage(); }
+
+  /**
+    Set a delegate object for checking the validity of the header before
+    the image is loaded.
+    */
+  irisSetMacro(ValidityCheckDelegate, AbstractValidityCheckDelegate *)
+  irisGetMacro(ValidityCheckDelegate, AbstractValidityCheckDelegate *)
 
   /**
    * This method loads an image from the given filename. A registry can be 
@@ -173,6 +195,13 @@ public:
   static FileFormatDescriptor GetFileFormatDescriptor(FileFormat fmt)
     { return m_FileFormatDescrictorArray[fmt]; }
 
+  /**
+    Determine file format for a filename. This method can optionally try to
+    open the file and scan the magic number, for the formats that are known
+    */
+  static FileFormat GuessFormatForFileName(
+      const std::string &string, bool checkMagic);
+
   /** Parse registry to get pixel type of raw file */
   static RawPixelType GetPixelType(Registry &folder, RawPixelType dflt = PIXELTYPE_COUNT);
 
@@ -215,6 +244,9 @@ private:
 
   // The file format
   FileFormat m_FileFormat;
+
+  // A callback for checking validity
+  AbstractValidityCheckDelegate *m_ValidityCheckDelegate;
 
   // List of filenames for DICOM
   std::vector<std::string> m_DICOMFiles;

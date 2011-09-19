@@ -39,19 +39,7 @@
 #include "IRISVectorTypes.h"
 
 // Include OpenGL headers according to the platform
-#ifdef __APPLE__
-  #include <OpenGL/glu.h>
-  #include <FL/gl.h>
-#else
-  #include <FL/gl.h>
-  #include <GL/glu.h>
-#endif
-
-#ifndef _WIN32
-  #ifndef GLU_VERSION_1_2
-    #define GLU_VERSION_1_2
-  #endif
-#endif
+#include <QtOpenGL/QtOpenGL>
 
 // Inline functions for use with vector classes
 inline void glVertex( const Vector3f &x ) { glVertex3fv(x.data_block()); }

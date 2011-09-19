@@ -37,8 +37,6 @@
 #include "IRISException.h"
 #include "GlobalState.h"
 #include "SNAPRegistryIO.h"
-#include "FL/Fl_Preferences.H"
-#include "FL/filename.H"
 #include <itksys/Directory.hxx>
 #include <itksys/SystemTools.hxx>
 #include "itkVoxBoCUBImageIOFactory.h"
@@ -61,6 +59,46 @@
 using namespace std;
 using namespace itksys;
 
+#if defined(WIN32)
+#include <Shlobj.h>
+
+std::string
+SystemInterface::GetApplicationDataDirectory()
+{
+  // Get path to /User/[name]/AppData/Roaming or whatever
+  char buffer[MAX_PATH];
+  if(!SUCCEEDED(
+       SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, buffer)))
+    throw IRISException("Can not access APPDATA path on WIN32.");
+
+  // Append the full information
+  std::string path = std::string(buffer) + "/itksnap.org/ITK-SNAP";
+  itksys::SystemTools::ConvertToUnixSlashes(path);
+  return path;
+}
+
+#elif defined(__APPLE__)
+
+std::string
+SystemInterface::GetApplicationDataDirectory()
+{
+  std::string path("~/Library/Application Support/itksnap.org/ITK-SNAP");
+  itksys::SystemTools::ConvertToUnixSlashes(path);
+  return path;
+}
+
+#else
+
+std::string
+SystemInterface::GetApplicationDataDirectory()
+{
+  std::string path("~/.itksnap.org/ITK-SNAP");
+  itksys::SystemTools::ConvertToUnixSlashes(path);
+  return path;
+}
+
+#endif
+
 SystemInterface
 ::SystemInterface()
 {
@@ -71,15 +109,13 @@ SystemInterface
   itk::ObjectFactoryBase::RegisterFactory( 
     itk::VoxBoCUBImageIOFactory::New() );
 
-  // Create a preferences object
-  Fl_Preferences test(Fl_Preferences::USER,"itk.org","SNAP");
-  
-  // Use it to get a path for user data
-  char userDataPath[1024]; 
-  test.getUserdataPath(userDataPath,1024);
-  
-  // Construct a valid path
-  m_UserPreferenceFile = string(userDataPath) + "/" + "UserPreferences.txt";
+  // Make sure we have a preferences directory
+  std::string appdir = GetApplicationDataDirectory();
+  if(!itksys::SystemTools::MakeDirectory(appdir.c_str()))
+     throw IRISException("Unable to create application data directory %s", appdir.c_str());
+
+  // Set the preferences file
+  m_UserPreferenceFile = appdir + "/UserPreferences.txt";
 
   // Get the process ID
 #ifdef WIN32
@@ -299,11 +335,10 @@ SystemInterface
 ::FindRegistryAssociatedWithFile(const char *file, Registry &registry)
 {
   // Convert the file to an absolute path
-  char buffer[1024];
-  fl_filename_absolute(buffer,1024,file);
+  QFileInfo qfi(file);
+  string path = qfi.canonicalFilePath().toStdString();
 
   // Convert to unix slashes for consistency
-  string path(buffer);
   SystemTools::ConvertToUnixSlashes(path);
 
   // Convert the filename to a numeric string (to prevent clashes with the Registry class)
@@ -317,20 +352,19 @@ SystemInterface
   if(code.length() == 0) return false;
 
   // Create a preferences object for the associations subdirectory
-  Fl_Preferences test(Fl_Preferences::USER,"itk.org","SNAP/ImageAssociations");
+  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
+                "itksnap.org", "ITK-SNAP/ImageAssociations");
 
   // Use it to get a path for user data
-  char userDataPath[1024]; 
-  test.getUserdataPath(userDataPath,1024);
-
-  // Create a save filename
-  IRISOStringStream sfile;
-  sfile << userDataPath << "/" << "ImageAssociation." << code << ".txt";
+  QString sfile = QFileInfo(qsi.fileName()).canonicalPath()
+      + QDir::toNativeSeparators("/ImageAssociation.")
+      + QString(code.c_str())
+      + QString(".txt");
 
   // Try loading the registry
   try 
     {
-    registry.ReadFromFile(sfile.str().c_str());
+    registry.ReadFromFile(sfile.toAscii());
     return true;
     }
   catch(...)
@@ -395,20 +429,21 @@ SystemInterface
 ::GetSavedObjectNames(const char *category)
 {
   // Create a preferences object for the associations subdirectory
-  string subpath("SNAP/");
+  string subpath("ITK-SNAP/");
   subpath += category;
-  Fl_Preferences pref(Fl_Preferences::USER,"itk.org",subpath.c_str());
+
+  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
+                "itksnap.org", subpath.c_str());
 
   // Use it to get a path for user data
-  char userDataPath[1024]; 
-  pref.getUserdataPath(userDataPath,1024);
+  string userDataPath = QFileInfo(qsi.fileName()).canonicalPath().toStdString();
 
   // Get the names
   vector<string> names;
 
   // Get the listing of all files in there
   Directory dlist;
-  dlist.Load(userDataPath);
+  dlist.Load(userDataPath.c_str());
   for(size_t i = 0; i < dlist.GetNumberOfFiles(); i++)
     {
     string fname = dlist.GetFile(i);
@@ -437,13 +472,14 @@ SystemInterface
 ::ReadSavedObject(const char *category, const char *name)
 {
   // Create a preferences object for the associations subdirectory
-  string subpath("SNAP/");
+  string subpath("ITK-SNAP/");
   subpath += category;
-  Fl_Preferences pref(Fl_Preferences::USER,"itk.org",subpath.c_str());
+
+  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
+                "itksnap.org", subpath.c_str());
 
   // Use it to get a path for user data
-  char userDataPath[1024]; 
-  pref.getUserdataPath(userDataPath,1024);
+  string userDataPath = QFileInfo(qsi.fileName()).canonicalPath().toStdString();
 
   // Create a save filename
   IRISOStringStream sfile;
@@ -463,13 +499,14 @@ SystemInterface
 ::UpdateSavedObject(const char *category, const char *name, Registry &folder)
 {
   // Create a preferences object for the associations subdirectory
-  string subpath("SNAP/");
+  string subpath("ITK-SNAP/");
   subpath += category;
-  Fl_Preferences pref(Fl_Preferences::USER,"itk.org",subpath.c_str());
+
+  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
+                "itksnap.org", subpath.c_str());
 
   // Use it to get a path for user data
-  char userDataPath[1024]; 
-  pref.getUserdataPath(userDataPath,1024);
+  string userDataPath = QFileInfo(qsi.fileName()).canonicalPath().toStdString();
 
   // Create a save filename
   IRISOStringStream sfile;
@@ -485,13 +522,14 @@ SystemInterface
 ::DeleteSavedObject(const char *category, const char *name)
 {
   // Create a preferences object for the associations subdirectory
-  string subpath("SNAP/");
+  string subpath("ITK-SNAP/");
   subpath += category;
-  Fl_Preferences pref(Fl_Preferences::USER,"itk.org",subpath.c_str());
+
+  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
+                "itksnap.org", subpath.c_str());
 
   // Use it to get a path for user data
-  char userDataPath[1024]; 
-  pref.getUserdataPath(userDataPath,1024);
+  string userDataPath = QFileInfo(qsi.fileName()).canonicalPath().toStdString();
 
   // Create a save filename
   IRISOStringStream sfile;
@@ -521,11 +559,9 @@ SystemInterface
 ::AssociateRegistryWithFile(const char *file, Registry &registry)
 {
   // Convert the file to an absolute path
-  char buffer[1024];
-  fl_filename_absolute(buffer,1024,file);
+  string path = QFileInfo(file).canonicalFilePath().toStdString();
 
   // Convert to unix slashes for consistency
-  string path(buffer);
   SystemTools::ConvertToUnixSlashes(path);
   path = EncodeFilename(path);
 
@@ -544,21 +580,19 @@ SystemInterface
   // Put the key in the registry
   Entry(key) << code;
 
-  // Create a preferences object for the associations subdirectory
-  Fl_Preferences test(Fl_Preferences::USER,"itk.org","SNAP/ImageAssociations");
+  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
+                "itksnap.org", "ITK-SNAP/ImageAssociations");
 
   // Use it to get a path for user data
-  char userDataPath[1024]; 
-  test.getUserdataPath(userDataPath,1024);
-
-  // Create a save filename
-  IRISOStringStream sfile;
-  sfile << userDataPath << "/" << "ImageAssociation." << code << ".txt";
+  QString sfile = QFileInfo(qsi.fileName()).canonicalPath()
+      + QDir::toNativeSeparators("/ImageAssociation.")
+      + QString(code.c_str())
+      + QString(".txt");
 
   // Store the registry to that path
   try 
     {
-    registry.WriteToFile(sfile.str().c_str());
+    registry.WriteToFile(sfile.toAscii());
     return true;
     }
   catch(...)

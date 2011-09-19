@@ -1,0 +1,10 @@
+# VIM swap files
+.*.sw?
+
+# MACOS files
+.DS_Store?
+Thumbs.db
+
+# Backup files
+*.bak
+

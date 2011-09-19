@@ -40,6 +40,7 @@
 #include "itkCommand.h"
 #include "SystemInterface.h"
 #include "UndoDataManager.h"
+#include "SNAPEvents.h"
 
 // #include "itkImage.h"
 
@@ -70,7 +71,7 @@ namespace itk {
  * \sa IRISImageData
  * \sa SNAPImageData
  */
-class IRISApplication 
+class IRISApplication : public itk::Object
 {
 public:
   // Typedefs
@@ -85,6 +86,10 @@ public:
 
   // The main image can be of these types
   enum MainImageType { MAIN_SCALAR, MAIN_RGB, MAIN_ANY };
+
+  // Events
+  irisDeclareEventObserver(CursorUpdateEvent);
+  irisDeclareEventObserver(CurrentImageDataDimensionsChangeEvent);
 
   /**
    * Constructor for the IRIS/SNAP application

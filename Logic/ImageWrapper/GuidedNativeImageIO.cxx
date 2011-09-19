@@ -63,6 +63,8 @@
 #include "itkShiftScaleImageFilter.h"
 #include "itkNumericTraits.h"
 
+#include <zlib.h>
+
 
 using namespace std;
 
@@ -74,19 +76,36 @@ RegistryEnumMap<GuidedNativeImageIO::RawPixelType> GuidedNativeImageIO::m_EnumRa
 const GuidedNativeImageIO::FileFormatDescriptor 
 GuidedNativeImageIO
 ::m_FileFormatDescrictorArray[] = {
-  {"MetaImage", "mha,mhd",           true,  true,  true,  true},
-  {"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
-  {"Raw Binary", "raw",              false, false, true,  true},
   {"Analyze", "hdr,img,img.gz",      true,  false, true,  true},
   {"DICOM", "dcm",                   false, true,  true,  true},
   {"GE Version 4", "ge4",            false, false, true,  true},
   {"GE Version 5", "ge5",            false, false, true,  true},
-  {"NIFTI", "nii,nia,nii.gz,nia.gz", true,  true,  true,  true},
-  {"Siemens Vision", "ima",          false, false, true,  true},
-  {"VTK", "vtk",                     true,  false, true,  true},
-  {"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
+  {"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
+  {"MetaImage", "mha,mhd",           true,  true,  true,  true},
+  {"NiFTI", "nii,nia,nii.gz,nia.gz", true,  true,  true,  true},
   {"NRRD", "nrrd,nhdr",              true,  true,  true,  true},
+  {"Raw Binary", "raw",              false, false, true,  true},
+  {"Siemens Vision", "ima",          false, false, true,  true},
+  {"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
+  {"VTK Image", "vtk",               true,  false, true,  true},
   {"INVALID FORMAT", "",             false, false, false, false}};
+
+
+
+bool GuidedNativeImageIO::FileFormatDescriptor
+::TestFilename(std::string fname)
+{
+  // Check if the filename matches the pattern
+  for(size_t i = 0; i < pattern.length(); )
+    {
+    size_t j = pattern.find(',', i);
+    string ext = "." + pattern.substr(i, j-i);
+    i+=ext.length();
+    if(fname.rfind(ext) == fname.length()-ext.length())
+      return true;
+    }
+  return false;
+}
 
 GuidedNativeImageIO
 ::GuidedNativeImageIO()
@@ -117,6 +136,8 @@ GuidedNativeImageIO
   m_NativeFileName = "";
   m_NativeByteOrder = itk::ImageIOBase::OrderNotApplicable;
   m_NativeSizeInBytes = 0;
+
+  m_ValidityCheckDelegate = NULL;
 }
 
 GuidedNativeImageIO::FileFormat 
@@ -305,6 +326,10 @@ GuidedNativeImageIO
     m_IOBase->SetFileName(FileName);
     m_IOBase->ReadImageInformation();
     }
+
+  // Check the validity
+  if(m_ValidityCheckDelegate)
+     m_ValidityCheckDelegate->ValidityCheck(m_IOBase);
 
   // Based on the component type, read image in native mode
   switch(m_IOBase->GetComponentType()) 
@@ -775,6 +800,56 @@ CastNativeImageBase<TPixel,TCastFunctor>
     functor(bn, bo);
 }
 
+GuidedNativeImageIO::FileFormat
+GuidedNativeImageIO::GuessFormatForFileName(
+    const std::string &fname, bool checkMagic)
+{
+  if(checkMagic)
+    {
+    // Read the first few bytes from the file. We use zlib to automatically
+    // handle gz-compressed data.
+    const int buf_size=1024;
+    char buffer[buf_size];
+
+    gzFile gz = gzopen(fname.c_str(), "rb");
+    bool havebuff = (gz!=NULL) && (buf_size==gzread(gz,buffer,buf_size));
+    gzclose(gz);
+
+    // Now we will check known magic numbers, especially for formats that
+    // are primary formats supported by SNAP
+
+    // Check for DICOM
+    if(havebuff && !strncmp(buffer+128,"DICM",4))
+      return FORMAT_DICOM;
+
+    // Check for NIFTI. This is important because .hdr files can be either
+    // NIFTI or Analyze, so we have to know what we are dealing with.
+    if(havebuff && buffer[344]==0x6E && buffer[347]==0x00 &&
+       (buffer[345]==0x69 || buffer[345]==0x2B) &&
+       buffer[346] > 0x30 && buffer[346] <= 0x39)
+      return FORMAT_NIFTI;
+
+    // Potentially, we could check for other formats here too, but this is
+    // not as high priority. For one thing, unlike DICOM and NIFTI, the other
+    // formats are well defined by their extension.
+    }
+
+  // The rest of this method checks by extension
+  for(unsigned int i = 0; i < FORMAT_COUNT; i++)
+    {
+    // Get the format descriptor
+    FileFormat fmt = static_cast<FileFormat>(i);
+    FileFormatDescriptor fd = GetFileFormatDescriptor(fmt);
+
+    // Check if there is a filename match
+    if(fd.TestFilename(fname))
+      return fmt;
+    }
+
+  // Nothing matched
+  return FORMAT_COUNT;
+}
+
 /*
 
 template<typename TPixel>
@@ -860,4 +935,6 @@ template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Imag
 template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<LabelType,3> *);
 template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<float,3> *);
 template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<RGBType,3> *);
+
+
 

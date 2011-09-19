@@ -44,7 +44,6 @@ GlobalState
   m_CrosshairsPosition[0] = 0;
   m_CrosshairsPosition[1] = 0;
   m_CrosshairsPosition[2] = 0;
-  m_ToolbarMode = CROSSHAIRS_MODE;
   m_CoverageMode = PAINT_OVER_ALL;
   m_UpdateSliceFlag = 1;
   m_InterpolateGrey = false;
@@ -52,7 +51,7 @@ GlobalState
   m_PolygonInvert = false;
   m_LockHeld = 0;
   m_LockOwner = 0;
-  m_SegmentationAlpha = 0;
+  m_SegmentationAlpha = 128;
 
   // SNAP is off initially
   m_SNAPActive = false;

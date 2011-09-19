@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0109
+version 1.0300 
 use_FL_COMMAND 
 header_name {.h} 
 code_name {.cxx}
@@ -18,7 +18,7 @@ class LayerInspectorUI {open : LayerInspectorUIBase
       } {
         Fl_Group m_ImageContrastTab {
           label Contrast open
-          xywh {180 25 390 455} labelsize 12 hide
+          xywh {180 25 390 455} labelsize 12
         } {
           Fl_Group {} {
             label {Window and Level:} open
@@ -181,8 +181,8 @@ class LayerInspectorUI {open : LayerInspectorUIBase
           }
         }
         Fl_Group m_ImageInfoTab {
-          label Information open selected
-          xywh {180 25 390 455} labelsize 12
+          label Information open
+          xywh {180 25 390 455} labelsize 12 hide
         } {
           Fl_Group {} {
             label Dimensions open
@@ -377,7 +377,7 @@ coordinates} open
           } {}
         }
       }
-      Fl_Group {} {open
+      Fl_Group {} {open selected
         xywh {0 0 170 490} box FLAT_BOX labeltype ENGRAVED_LABEL labelsize 16 align 17 resizable
       } {
         Fl_Group {} {

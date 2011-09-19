@@ -52,15 +52,6 @@
 #include "SNAPSegmentationROISettings.h"
 #include "itkImageRegion.h"
 
-enum ToolbarModeType 
-{
-  POLYGON_DRAWING_MODE,
-  NAVIGATION_MODE,
-  CROSSHAIRS_MODE,
-  PAINTBRUSH_MODE,
-  ANNOTATION_MODE,
-  ROI_MODE
-};
 
 enum ToolbarMode3DType
 {
@@ -214,12 +205,6 @@ public:
 
   /** Set the transparency of the segmentation overlay */
   irisGetMacro(SegmentationAlpha,unsigned char );
-
-  /** Get the current toolbar mode */
-  irisSetMacro(ToolbarMode,ToolbarModeType );
-
-  /** Set the current toolbar mode */
-  irisGetMacro(ToolbarMode,ToolbarModeType );
 
   /** Get the current 3D toolbar mode */
   irisSetMacro(ToolbarMode3D,ToolbarMode3DType);
@@ -510,9 +495,6 @@ private:
 
   /** The current crosshairs position */
   Vector3ui m_CrosshairsPosition;
-
-  /** The current toolbar mode */
-  ToolbarModeType m_ToolbarMode;
 
   /** The current 3D toolbar mode */
   ToolbarMode3DType m_ToolbarMode3D;

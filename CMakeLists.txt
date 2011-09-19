@@ -95,10 +95,12 @@ SET(LOGIC_CXX
   Common/SystemInterface.cxx
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
+  Common/Trackball.cxx
   Logic/Common/ColorMap.cxx
   Logic/Common/ColorLabelTable.cxx
   Logic/Common/ImageCoordinateGeometry.cxx
   Logic/Common/ImageCoordinateTransform.cxx
+  Logic/Common/MetaDataAccess.cxx
   Logic/Common/SegmentationStatistics.cxx
   Logic/Common/SNAPRegistryIO.cxx
   Logic/Common/SNAPSegmentationROISettings.cxx
@@ -153,6 +155,7 @@ SET(LOGIC_HEADERS
   Common/SNAPCommon.h
   Common/SNAPOpenGL.h
   Common/SystemInterface.h
+  Common/Trackball.h
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
   Logic/Common/ColorMap.h
@@ -161,6 +164,7 @@ SET(LOGIC_HEADERS
   Logic/Common/SegmentationStatistics.h
   Logic/Common/ImageRayIntersectionFinder.h
   Logic/Common/ImageRayIntersectionFinder.txx
+  Logic/Common/MetaDataAccess.h
   Logic/Common/SNAPRegistryIO.h
   Logic/Common/SNAPSegmentationROISettings.h
   Logic/Framework/GenericImageData.h
@@ -217,120 +221,70 @@ SET(LOGIC_HEADERS
   Logic/Slicing/UnaryFunctorCache.txx  
 )
 
-# These files contain the user interface source code
-SET(UI_CXX
-  UserInterface/BasicComponents/ColorMapBox.cxx
-  UserInterface/BasicComponents/ColorMapWidget.cxx
-  UserInterface/BasicComponents/FLTKCanvas.cxx
-  UserInterface/BasicComponents/FunctionPlot2DBox.cxx
-  UserInterface/BasicComponents/FunctionPlot2D.cxx
-  UserInterface/BasicComponents/IntensityCurveBox.cxx
-  UserInterface/BasicComponents/InteractionModeClient.cxx
-  UserInterface/BasicComponents/MetaDataTable.cxx
-  UserInterface/BasicComponents/RecursiveInteractionMode.cxx
-  UserInterface/BasicComponents/SnakeParametersPreviewBox.cxx
-  UserInterface/BasicComponents/SnakeParametersPreviewPipeline.cxx
-  UserInterface/BasicComponents/StatisticsTable.cxx
-  UserInterface/Common/SNAPAppearanceSettings.cxx
-  UserInterface/ImageIOWizard/ImageIOWizardLogic.cxx
-  UserInterface/ImageIOWizard/RestrictedImageIOWizardLogic.cxx
-  UserInterface/MainComponents/AppearanceDialogUILogic.cxx
-  UserInterface/MainComponents/HelpViewerLogic.cxx
-  UserInterface/MainComponents/LabelEditorUILogic.cxx
-  UserInterface/MainComponents/LayerInspectorUILogic.cxx
-  UserInterface/MainComponents/PreprocessingUILogic.cxx
-  UserInterface/MainComponents/ReorientImageUILogic.cxx
-  UserInterface/MainComponents/ResizeRegionDialogLogic.cxx
-  UserInterface/MainComponents/RestoreSettingsDialogLogic.cxx
-  UserInterface/MainComponents/SimpleFileDialogLogic.cxx
-  UserInterface/MainComponents/SnakeParametersUILogic.cxx
-  UserInterface/MainComponents/UserInterfaceLogic.cxx
-  UserInterface/MeshIOWizard/MeshIOWizardUILogic.cxx
-  UserInterface/SliceWindow/AnnotationInteractionMode.cxx
-  UserInterface/SliceWindow/BubblesInteractionMode.cxx
-  UserInterface/SliceWindow/CrosshairsInteractionMode.cxx
-  UserInterface/SliceWindow/GenericSliceWindow.cxx
-  UserInterface/SliceWindow/IRISSliceWindow.cxx
-  UserInterface/SliceWindow/GLToPNG.cxx
-  UserInterface/SliceWindow/OpenGLSliceTexture.cxx  
-  UserInterface/SliceWindow/PaintbrushInteractionMode.cxx
-  UserInterface/SliceWindow/PolygonDrawing.cxx
-  UserInterface/SliceWindow/PolygonInteractionMode.cxx
-  UserInterface/SliceWindow/PolygonScanConvert.cxx
-  UserInterface/SliceWindow/PopupButtonInteractionMode.cxx
-  UserInterface/SliceWindow/RegionInteractionMode.cxx
-  UserInterface/SliceWindow/SNAPSliceWindow.cxx
-  UserInterface/SliceWindow/SliceWindowCoordinator.cxx
-  UserInterface/SliceWindow/ThumbnailInteractionMode.cxx
-  UserInterface/Window3D/Trackball.cxx
-  UserInterface/Window3D/Window3D.cxx
+# These files have the UI model code, which is GUI-TK independent
+SET(UI_GENERIC_CXX
+  GUI/Model/GenericSliceModel.cxx
+  GUI/Model/GlobalUIModel.cxx
+  GUI/Model/ImageIOWizardModel.cxx
+  GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
+  GUI/Model/SliceWindowCoordinator.cxx
+  GUI/Model/SNAPAppearanceSettings.cxx
+  GUI/Renderer/CrosshairsRenderer.cxx
+  GUI/Renderer/GenericSliceRenderer.cxx
+)
+
+# These files contain the Qt-specific user interface source code
+SET(UI_QT_CXX
+  GUI/Qt/View/CrosshairsInteractionMode.cxx
+  GUI/Qt/View/GenericSliceView.cxx
+  GUI/Qt/View/OpenGLSliceTexture.cxx
+  GUI/Qt/View/QtInteractionDelegateWidget.cxx
+  GUI/Qt/View/SNAPQGLWidget.cxx
+  GUI/Qt/View/InteractionMode.cxx
+  GUI/Qt/View/InteractionModeClient.cxx
+  GUI/Qt/View/ThumbnailInteractionMode.cxx
+  GUI/Qt/Components/CursorInspector.cxx
+  GUI/Qt/Components/QtDoubleSpinboxCoupling.cxx
+  GUI/Qt/Components/QtWidgetActivator.cxx
+  GUI/Qt/Components/SliceViewPanel.cxx
+  GUI/Qt/Components/VoxelIntensityQTableModel.cxx
+  GUI/Qt/Components/ZoomInspector.cxx
+  GUI/Qt/Windows/ImageIODialog.cxx
+  GUI/Qt/Windows/ImageIOWizard.cxx
+  GUI/Qt/Windows/MainImageWindow.cxx
+  GUI/Qt/Windows/IRISMainToolbox.cxx
+  GUI/Qt/Windows/QtStyles.cxx
 )
 
 # The header files for the UI project
-SET(UI_HEADERS
-  UserInterface/BasicComponents/ColorMapBox.h
-  UserInterface/BasicComponents/ColorMapWidget.h
-  UserInterface/BasicComponents/FLTKCanvas.h
-  UserInterface/BasicComponents/FLTKEvent.h
-  UserInterface/BasicComponents/FLTKWidgetActivationManager.h
-  UserInterface/BasicComponents/FunctionPlot2D.h
-  UserInterface/BasicComponents/FunctionPlot2DBox.h
-  UserInterface/BasicComponents/IntensityCurveBox.h
-  UserInterface/BasicComponents/InteractionMode.h
-  UserInterface/BasicComponents/InteractionModeClient.h
-  UserInterface/BasicComponents/MetaDataTable.h  
-  UserInterface/BasicComponents/RecursiveInteractionMode.h
-  UserInterface/BasicComponents/SnakeParametersPreviewBox.h
-  UserInterface/BasicComponents/SnakeParametersPreviewPipeline.h
-  UserInterface/BasicComponents/StatisticsTable.h
-  UserInterface/Common/SNAPAppearanceSettings.h
-  UserInterface/Common/SNAPCommonUI.h
-  UserInterface/ImageIOWizard/ImageIOWizardBase.h
-  UserInterface/ImageIOWizard/ImageIOWizardLogic.h
-  UserInterface/ImageIOWizard/RestrictedImageIOWizardLogic.h
-  UserInterface/MainComponents/AppearanceDialogUIBase.h
-  UserInterface/MainComponents/AppearanceDialogUILogic.h
-  UserInterface/MainComponents/HelpViewerBase.h
-  UserInterface/MainComponents/HelpViewerLogic.h
-  UserInterface/MainComponents/LabelEditorUIBase.h
-  UserInterface/MainComponents/LabelEditorUILogic.h
-  UserInterface/MainComponents/LayerInspectorUIBase.h
-  UserInterface/MainComponents/LayerInspectorUILogic.h
-  UserInterface/MainComponents/PreprocessingUIBase.h
-  UserInterface/MainComponents/PreprocessingUILogic.h
-  UserInterface/MainComponents/ReorientImageUIBase.h
-  UserInterface/MainComponents/ReorientImageUILogic.h
-  UserInterface/MainComponents/ResizeRegionDialogBase.h
-  UserInterface/MainComponents/ResizeRegionDialogLogic.h
-  UserInterface/MainComponents/RestoreSettingsDialogBase.h
-  UserInterface/MainComponents/RestoreSettingsDialogLogic.h
-  UserInterface/MainComponents/SimpleFileDialogBase.h
-  UserInterface/MainComponents/SimpleFileDialogLogic.h
-  UserInterface/MainComponents/SnakeParametersUIBase.h
-  UserInterface/MainComponents/SnakeParametersUILogic.h
-  UserInterface/MainComponents/UserInterfaceBase.h
-  UserInterface/MainComponents/UserInterfaceLogic.h
-  UserInterface/MeshIOWizard/MeshExportSettings.h
-  UserInterface/MeshIOWizard/MeshIOWizardUIBase.h
-  UserInterface/MeshIOWizard/MeshIOWizardUILogic.h
-  UserInterface/SliceWindow/AnnotationInteractionMode.h
-  UserInterface/SliceWindow/BubblesInteractionMode.h
-  UserInterface/SliceWindow/CrosshairsInteractionMode.h
-  UserInterface/SliceWindow/GLToPNG.h
-  UserInterface/SliceWindow/GenericSliceWindow.h
-  UserInterface/SliceWindow/IRISSliceWindow.h
-  UserInterface/SliceWindow/OpenGLSliceTexture.h
-  UserInterface/SliceWindow/PaintbrushInteractionMode.h
-  UserInterface/SliceWindow/PolygonDrawing.h
-  UserInterface/SliceWindow/PolygonInteractionMode.h
-  UserInterface/SliceWindow/PolygonScanConvert.h
-  UserInterface/SliceWindow/PopupButtonInteractionMode.h
-  UserInterface/SliceWindow/RegionInteractionMode.h
-  UserInterface/SliceWindow/SNAPSliceWindow.h
-  UserInterface/SliceWindow/SliceWindowCoordinator.h
-  UserInterface/SliceWindow/ThumbnailInteractionMode.h
-  UserInterface/Window3D/Trackball.h
-  UserInterface/Window3D/Window3D.h
+SET(UI_MOC_HEADERS
+  GUI/Qt/View/CrosshairsInteractionMode.h
+  GUI/Qt/View/GenericSliceView.h
+  GUI/Qt/View/QtInteractionDelegateWidget.h
+  GUI/Qt/View/SNAPQGLWidget.h
+  GUI/Qt/View/ThumbnailInteractionMode.h
+  GUI/Qt/Components/CursorInspector.h
+  GUI/Qt/Components/QtDoubleSpinboxCoupling.h
+  GUI/Qt/Components/QtWidgetActivator.h
+  GUI/Qt/Components/SliceViewPanel.h
+  GUI/Qt/Components/VoxelIntensityQTableModel.h
+  GUI/Qt/Components/ZoomInspector.h
+  GUI/Qt/Windows/ImageIODialog.h
+  GUI/Qt/Windows/ImageIOWizard.h
+  GUI/Qt/Windows/IRISMainToolbox.h
+  GUI/Qt/Windows/MainImageWindow.h
+)
+
+SET(UI_FORMS
+  GUI/Qt/Components/CursorInspector.ui
+  GUI/Qt/Components/SliceViewPanel.ui
+  GUI/Qt/Components/ZoomInspector.ui
+  GUI/Qt/Windows/ImageIODialog.ui
+  GUI/Qt/Windows/MainImageWindow.ui
+)
+
+SET(UI_RESOURCES
+  GUI/Qt/Resources/SNAPResources.qrc
 )
 
 # The source code for SNAP testing project
@@ -350,23 +304,6 @@ SET(TESTING_HEADERS
   Testing/TestBase.h
   Testing/TestCompareLevelSets.h
   Testing/TestImageWrapper.h
-)
-
-# The FL files for SNAP
-SET(APPLICATION_FLUIDS
-  UserInterface/ImageIOWizard/ImageIOWizard.fl
-  UserInterface/MeshIOWizard/MeshIOWizardUI.fl
-  UserInterface/MainComponents/AppearanceDialogUI.fl
-  UserInterface/MainComponents/HelpViewer.fl
-  UserInterface/MainComponents/LabelEditorUI.fl
-  UserInterface/MainComponents/LayerInspectorUI.fl
-  UserInterface/MainComponents/PreprocessingUI.fl
-  UserInterface/MainComponents/ReorientImageUI.fl
-  UserInterface/MainComponents/ResizeRegionDialog.fl
-  UserInterface/MainComponents/RestoreSettingsDialog.fl
-  UserInterface/MainComponents/SimpleFileDialog.fl
-  UserInterface/MainComponents/SnakeParametersUI.fl
-  UserInterface/MainComponents/UserInterface.fl
 )
 
 #############################################
@@ -398,9 +335,6 @@ IF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
   INCLUDE_DIRECTORIES(
     ${CONFIGURED_SOURCE_DIRECTORY}
     ${ITK_DIR}/Utilities/zlib
-    ${SNAP_BINARY_DIR}/UserInterface/ImageIOWizard
-    ${SNAP_BINARY_DIR}/UserInterface/MainComponents
-    ${FLTK_INCLUDE_PATH}
     ${OPENGL_INCLUDE_PATH}
   )
 
@@ -419,18 +353,14 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Mesh
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing
     ${SNAP_SOURCE_DIR}/Logic/Slicing
+    ${SNAP_SOURCE_DIR}/GUI
+    ${SNAP_SOURCE_DIR}/GUI/Components
+    ${SNAP_SOURCE_DIR}/GUI/Model
+    ${SNAP_SOURCE_DIR}/GUI/Renderer
+    ${SNAP_SOURCE_DIR}/GUI/View
+    ${SNAP_SOURCE_DIR}/GUI/Windows
     ${SNAP_SOURCE_DIR}/Testing
-    ${SNAP_SOURCE_DIR}/UserInterface/BasicComponents
-    ${SNAP_SOURCE_DIR}/UserInterface/Common
-    ${SNAP_SOURCE_DIR}/UserInterface/ImageIOWizard
-    ${SNAP_SOURCE_DIR}/UserInterface/MeshIOWizard
-    ${SNAP_SOURCE_DIR}/UserInterface/MainComponents
-    ${SNAP_SOURCE_DIR}/UserInterface/MainComponents/Artwork
-    ${SNAP_SOURCE_DIR}/UserInterface/SliceWindow
-    ${SNAP_SOURCE_DIR}/UserInterface/Window3D
-    ${SNAP_BINARY_DIR}/UserInterface/ImageIOWizard
-    ${SNAP_BINARY_DIR}/UserInterface/MainComponents
-    ${FLTK_INCLUDE_PATH}
+    ${SNAP_BINARY_DIR}
     ${OPENGL_INCLUDE_PATH}
   )
 
@@ -467,9 +397,6 @@ ELSE(VTK_USE_PATENTED)
   SET(SNAP_VTK_LIBS ${SNAP_VTK_CORE_LIBS})
 ENDIF(VTK_USE_PATENTED)
 
-# FLTK Related libraries
-SET(SNAP_FLTK_LIBS ${FLTK_LIBRARIES})
-
 # System libraries
 SET(SNAP_SYSTEM_LIBS
   ${OPENGL_LIBRARIES}
@@ -479,7 +406,6 @@ SET(SNAP_SYSTEM_LIBS
 
 # Designate the external libraries used by SNAP
 SET(SNAP_EXTERNAL_LIBS 
-  ${SNAP_FLTK_LIBS} 
   ${SNAP_ITK_LIBS} 
   ${SNAP_VTK_LIBS} 
   ${SNAP_SYSTEM_LIBS})
@@ -488,34 +414,39 @@ SET(SNAP_EXTERNAL_LIBS
 # SNAP Logic and UI Libraries
 # *****************************************************
 
-# Wrap the .fl files
-FLTK_WRAP_UI(itksnapui ${APPLICATION_FLUIDS})
+# Wrap the QT input files
+QT4_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
+QT4_WRAP_CPP(UI_HEADERS_MOC ${UI_MOC_HEADERS})
+QT4_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
 
 # The SNAP logic library
 ADD_LIBRARY(itksnaplogic ${LOGIC_CXX} ${LOGIC_HEADERS})
 
+# The UI model library
+ADD_LIBRARY(itksnapui_model ${UI_GENERIC_CXX})
+
 # The user interface code library
-ADD_LIBRARY(itksnapui ${UI_CXX} ${UI_HEADERS} ${itksnapui_FLTK_UI_SRCS})
+ADD_LIBRARY(itksnapui_qt
+  ${UI_QT_CXX} ${UI_HEADERS_MOC} ${UI_FORM_HEADERS} ${UI_RESOURCES_RCC})
 
 # This is experimental: it seems that shared libraries do not
 # build accurately (at least on MacOS) without the following
 # two lines
 TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS})
-TARGET_LINK_LIBRARIES(itksnapui itksnaplogic ${SNAP_EXTERNAL_LIBS})
+TARGET_LINK_LIBRARIES(itksnapui_model itksnaplogic ${SNAP_EXTERNAL_LIBS})
+TARGET_LINK_LIBRARIES(itksnapui_qt itksnapui_model itksnaplogic
+    ${QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
 
 # Designate the SNAP internal libraries
-SET(SNAP_INTERNAL_LIBS itksnapui itksnaplogic)
+SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
 
 # *****************************************************
 # Define SNAP Executables
 # *****************************************************
 SET(SNAP_EXE InsightSNAP)
 
-# Disable FLTK warnings
-#ITK_DISABLE_FLTK_GENERATED_WARNINGS("${APPLICATION_FLUIDS}")
-
 # Define the main SNAP executable
-ADD_EXECUTABLE(${SNAP_EXE} WIN32 UserInterface/SNAPMain.cxx)
+ADD_EXECUTABLE(${SNAP_EXE} WIN32 GUI/main.cxx)
 TARGET_LINK_LIBRARIES(${SNAP_EXE}
   ${SNAP_INTERNAL_LIBS}
   ${SNAP_EXTERNAL_LIBS}

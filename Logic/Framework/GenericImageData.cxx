@@ -165,8 +165,8 @@ GenericImageData
 {
   // Make the wrapper the main image
   m_MainImageWrapper = wrapper;
-  m_MainWrappers.pop_front();
-  m_MainWrappers.push_front(m_MainImageWrapper);
+  m_MainWrappers.clear();
+  m_MainWrappers.push_back(m_MainImageWrapper);
 
   // Initialize the segmentation data to zeros
   m_LabelWrapper.InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
@@ -315,21 +315,21 @@ void
 GenericImageData
 ::SetCrosshairs(const Vector3ui &crosshairs)
 {
-  SetCrosshairs(m_MainWrappers, crosshairs);
-  SetCrosshairs(m_OverlayWrappers, crosshairs);
+  SetCrosshairs(m_MainImageWrapper, crosshairs);
+  SetCrosshairs(&m_LabelWrapper, crosshairs);
+  for(WrapperIterator it = m_OverlayWrappers.begin();
+      it != m_OverlayWrappers.end(); ++it)
+    {
+    SetCrosshairs(*it, crosshairs);
+    }
 }
 
 void
 GenericImageData
-::SetCrosshairs(WrapperList &list, const Vector3ui &crosshairs)
+::SetCrosshairs(ImageWrapperBase *wrapper, const Vector3ui &crosshairs)
 {
-  WrapperIterator it = list.begin();
-  while (it != list.end())
-    {
-    ImageWrapperBase *wrapper = *it++;
-    if (wrapper->IsInitialized())
-      wrapper->SetSliceIndex(crosshairs);
-    }
+  if (wrapper->IsInitialized())
+    wrapper->SetSliceIndex(crosshairs);
 }
 
 GenericImageData::RegionType
@@ -344,35 +344,53 @@ void
 GenericImageData
 ::SetImageGeometry(const ImageCoordinateGeometry &geometry)
 {
-  SetImageGeometry(m_MainWrappers, geometry);
-  SetImageGeometry(m_OverlayWrappers, geometry);
+  m_ImageGeometry = geometry;
+  SetImageGeometry(m_MainImageWrapper, geometry);
+  SetImageGeometry(&m_LabelWrapper, geometry);
+  for(WrapperIterator it = m_OverlayWrappers.begin();
+      it != m_OverlayWrappers.end(); ++it)
+    {
+    SetImageGeometry(*it, geometry);
+    }
 }
 
 void
 GenericImageData
-::SetImageGeometry(WrapperList &list, const ImageCoordinateGeometry &geometry)
+::SetImageGeometry(ImageWrapperBase *wrapper, const ImageCoordinateGeometry &geometry)
 {
-  // Save the geometry
-  m_ImageGeometry = geometry;
-
-  // Propagate the geometry to the image wrappers
-  for(WrapperIterator it = list.begin();
-    it != list.end(); ++it)
+  if(wrapper->IsInitialized())
     {
-    ImageWrapperBase *wrapper = *it;
-    if(wrapper->IsInitialized())
-      {
-      // Set the direction matrix in the image
-      wrapper->GetImageBase()->SetDirection(
-        itk::Matrix<double,3,3>(geometry.GetImageDirectionCosineMatrix()));
+    // Set the direction matrix in the image
+    wrapper->GetImageBase()->SetDirection(
+      itk::Matrix<double,3,3>(geometry.GetImageDirectionCosineMatrix()));
 
-      // Update the geometry for each slice
-      for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
-        {
-        wrapper->SetImageToDisplayTransform(
-          iSlice,m_ImageGeometry.GetImageToDisplayTransform(iSlice));
-        }
+    // Update the geometry for each slice
+    for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
+      {
+      wrapper->SetImageToDisplayTransform(
+        iSlice,m_ImageGeometry.GetImageToDisplayTransform(iSlice));
       }
     }
 }
+
+unsigned int GenericImageData::GetNumberOfLayers() const
+{
+  return IsMainLoaded() ? 1 + m_OverlayWrappers.size() : 0;
+}
+
+GreyImageWrapper * GenericImageData::GetLayerAsGray(unsigned int layer) const
+{
+  ImageWrapperBase *base =
+      layer == 0 ? m_MainImageWrapper : m_OverlayWrappers[layer-1];
+  return dynamic_cast<GreyImageWrapper *>(base);
+}
+
+RGBImageWrapper * GenericImageData::GetLayerAsRGB(unsigned int layer) const
+{
+  ImageWrapperBase *base =
+      layer == 0 ? m_MainImageWrapper : m_OverlayWrappers[layer-1];
+  return dynamic_cast<RGBImageWrapper *>(base);
+}
+
+
 
