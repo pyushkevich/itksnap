@@ -28,7 +28,9 @@
 #define QTWIDGETACTIVATOR_H
 
 #include <QObject>
-#include <StateManagement.h>
+#include <SNAPCommon.h>
+
+class BooleanCondition;
 
 class QtWidgetActivator : public QObject
 {
@@ -42,11 +44,13 @@ public:
   explicit QtWidgetActivator(QWidget *parent, BooleanCondition *cond);
   ~QtWidgetActivator();
 
+public slots:
+
   void OnStateChange();
 
 private:
   QWidget *m_Target;
-  BooleanCondition *m_Condition;
+  SmartPtr<BooleanCondition> m_Condition;
 };
 
 #endif // QTWIDGETACTIVATOR_H

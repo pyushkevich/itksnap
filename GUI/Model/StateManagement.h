@@ -28,83 +28,103 @@
 #define STATEMANAGEMENT_H
 
 #include <itkObject.h>
+#include <SNAPCommon.h>
 #include <SNAPEvents.h>
-
-class StateChangeEvent : public IRISEvent {};
 
 /**
   An abstract condition that returns true or false. Used to create dynamic
-  boolean operators for widget activation and state management
+  boolean operators for widget activation and state management.
+
+  These conditions can be used in the following form
+
+  SmartPtr<BooleanCondition> p =
+    AndCondition::New(
+      MyCondition::New(BLAH), NotCondition::New(MyCondition::New(FOO)));
+
+  (*p)() // BLAH && (!FOO)
   */
 class BooleanCondition : public itk::Object
 {
 public:
+
+  FIRES(StateMachineChangeEvent)
+
   virtual bool operator () () const = 0;
 
-  virtual void OnStateChange()
-    {
-    this->InvokeEvent(StateChangeEvent());
-    }
+  virtual void OnStateChange();
+
+protected:
+  BooleanCondition() {}
+  virtual ~BooleanCondition() {}
+
 };
 
 class BinaryBooleanCondition : public BooleanCondition
 {
 public:
-  BinaryBooleanCondition(BooleanCondition *a, BooleanCondition *b)
-    {
-    m_A = a;
-    m_B = b;
-
-    // Make sure events propagate up
-    AddListener<BinaryBooleanCondition>(a, StateChangeEvent(),
-                this, &BinaryBooleanCondition::OnStateChange);
-
-    AddListener<BinaryBooleanCondition>(b, StateChangeEvent(),
-                this, &BinaryBooleanCondition::OnStateChange);
-    }
-
-  virtual ~BinaryBooleanCondition()
-    { delete m_A; delete m_B; }
 
 protected:
-   BooleanCondition *m_A, *m_B;
+  BinaryBooleanCondition(BooleanCondition *a, BooleanCondition *b);
+
+  SmartPtr<BooleanCondition> m_A, m_B;
 };
 
 class AndCondition : public BinaryBooleanCondition
-{
+{  
 public:
-  AndCondition(BooleanCondition *a, BooleanCondition *b)
-    : BinaryBooleanCondition(a, b) {}
+  typedef AndCondition Self;
+  typedef BinaryBooleanCondition Superclass;
 
-  bool operator() () const
-    { return (*m_A)() && (*m_B)(); }
+  itkTypeMacro(Self, Superclass)
+
+  static SmartPtr<Self> New(BooleanCondition *a, BooleanCondition *b);
+
+  bool operator() () const;
+
+protected:
+
+  AndCondition(BooleanCondition *a, BooleanCondition *b);
+  virtual ~AndCondition() {}
+
 };
 
 class OrCondition : public BinaryBooleanCondition
 {
 public:
-  OrCondition(BooleanCondition *a, BooleanCondition *b)
-    : BinaryBooleanCondition(a, b) {}
+  typedef OrCondition Self;
+  typedef BinaryBooleanCondition Superclass;
 
-  bool operator() () const
-    { return (*m_A)() || (*m_B)(); }
+  itkTypeMacro(Self, Superclass)
+
+  static SmartPtr<Self> New(BooleanCondition *a, BooleanCondition *b);
+
+  bool operator() () const;
+
+protected:
+
+  OrCondition(BooleanCondition *a, BooleanCondition *b);
+  virtual ~OrCondition() {}
+
 };
 
 class NotCondition : public BooleanCondition
 {
 public:
-  NotCondition(BooleanCondition *a)
-    {
-    m_A = a;
-    AddListener<NotCondition>(a, StateChangeEvent(),
-                this, &NotCondition::OnStateChange);
-    }
+  typedef NotCondition Self;
+  typedef BooleanCondition Superclass;
 
-  virtual ~NotCondition()
-    { delete m_A; }
+  itkTypeMacro(Self, Superclass)
 
-  bool operator () () const
-    { return ! (*m_A)(); }
+  static SmartPtr<Self> New(BooleanCondition *a);
+
+  bool operator () () const;
+
+protected:
+
+  NotCondition(BooleanCondition *a);
+
+  virtual ~NotCondition() {}
+
 
 private:
   BooleanCondition *m_A;

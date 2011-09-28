@@ -2,6 +2,8 @@
 #include <GlobalUIModel.h>
 #include <IRISApplication.h>
 #include <GenericImageData.h>
+#include "LatentITKEventNotifier.h"
+#include "SNAPEvents.h"
 
 VoxelIntensityQTableModel::VoxelIntensityQTableModel(QObject *parent) :
     QAbstractTableModel(parent)
@@ -11,6 +13,14 @@ VoxelIntensityQTableModel::VoxelIntensityQTableModel(QObject *parent) :
 void VoxelIntensityQTableModel::SetParentModel(GlobalUIModel *model)
 {
   m_Model = model;
+
+  // Listen to changes in the model
+  LatentITKEventNotifier::connect(m_Model, CursorUpdateEvent(),
+                                  this, SLOT(onModelUpdate(const EventBucket &)));
+
+  // Listen to changes in the model
+  LatentITKEventNotifier::connect(m_Model, LayerChangeEvent(),
+                                  this, SLOT(onModelUpdate(const EventBucket &)));
 }
 
 int VoxelIntensityQTableModel::rowCount(const QModelIndex &parent) const
@@ -64,6 +74,23 @@ QVariant VoxelIntensityQTableModel::headerData(int section, Qt::Orientation orie
       }
     }
   return QVariant();
+}
+
+void VoxelIntensityQTableModel::onModelUpdate(const EventBucket &b)
+{
+  if(b.HasEvent(LayerChangeEvent()))
+    {
+    this->beginResetModel();
+    this->endResetModel();
+    }
+  else
+    {
+    int nr = rowCount();
+    if(nr > 0)
+      {
+      this->dataChanged(index(0,1), index(nr-1, 1));
+      }
+    }
 }
 
 

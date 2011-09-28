@@ -3,10 +3,15 @@
 
 #include <string>
 
+#include "AbstractModel.h"
 #include "GuidedNativeImageIO.h"
 #include "Registry.h"
 
 class GlobalUIModel;
+
+namespace itk {
+  class GDCMSeriesFileNames;
+}
 
 /**
  This class provides a model for the ImageIO wizards. This allows the wizard
@@ -16,9 +21,12 @@ class GlobalUIModel;
  This class is subclassed by specific dialogs, to allow customization. For
  example, save/load dialog behavior is handled this way.
  */
-class ImageIOWizardModel : public itk::Object
+class ImageIOWizardModel : public AbstractModel
 {
 public:
+
+  irisITKObjectMacro(ImageIOWizardModel, AbstractModel)
+
   typedef GuidedNativeImageIO::FileFormat FileFormat;
   enum Mode { LOAD, SAVE };
 
@@ -27,11 +35,9 @@ public:
     SI_ENDIAN, SI_DATATYPE, SI_FILESIZE
   };
 
-  ImageIOWizardModel(GlobalUIModel *parent, Mode mode, const char *name);
+  void Initialize(GlobalUIModel *parent, Mode mode, const char *name);
 
   irisGetMacro(GuidedIO, GuidedNativeImageIO *)
-
-  virtual ~ImageIOWizardModel();
 
   // Does the model support loading
   bool IsLoadMode() const { return m_Mode == LOAD; }
@@ -76,7 +82,12 @@ public:
   /**
     Get the directory where to browse, given a currently entered file
     */
-  std::string GetBrowseDirectory(std::string &file);
+  std::string GetBrowseDirectory(const std::string &file);
+
+  /**
+    Get the size of the file in bytes
+    */
+  unsigned long GetFileSizeInBytes(const std::string &file);
 
   /**
     Get the history of filenames
@@ -94,18 +105,56 @@ public:
     */
   void SetSelectedFormat(FileFormat fmt);
 
+  FileFormat GetSelectedFormat();
+
   /**
     Load the image from filename
     */
   void LoadImage(std::string filename);
 
   /**
+    Whether an image was loaded
+    */
+  bool IsImageLoaded() const;
+
+  /**
     Get summary items to display for the user
     */
   std::string GetSummaryItem(SummaryItem item);
 
+  /**
+    Load relevant information from DICOM directory
+    */
+  void ProcessDicomDirectory(const std::string &filename);
+
+  /**
+    Get the DICOM directory contents
+    */
+  irisGetMacro(DicomContents, const GuidedNativeImageIO::RegistryArray &)
+
+  /**
+    Load n-th series from DICOM directory
+    */
+  void LoadDicomSeries(const std::string &filename, int series);
+
+
+  /**
+    Access the registry stored in the model and used for providing hints to
+    the image IO.
+    */
+  Registry &GetHints()
+    { return m_Registry; }
+
+  /**
+    Called just before exiting the wizard. Should update history, etc.
+    */
+  virtual void Finalize();
 
 protected:
+
+  // Standard ITK protected constructors
+  ImageIOWizardModel();
+  virtual ~ImageIOWizardModel();
 
   // State of the model
   Mode m_Mode;
@@ -115,13 +164,16 @@ protected:
 
   // Parent model
   GlobalUIModel *m_Parent;
-  GuidedNativeImageIO *m_GuidedIO;
+  GuidedNativeImageIO* m_GuidedIO;
 
   // Registry containing auxiliary info
   Registry m_Registry;
 
   // Filename picked by the user
   std::string m_Filename;
+
+  // DICOM support
+  GuidedNativeImageIO::RegistryArray m_DicomContents;
 };
 
 #endif // IMAGEIOWIZARDMODEL_H

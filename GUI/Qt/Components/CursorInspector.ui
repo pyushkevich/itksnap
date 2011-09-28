@@ -164,6 +164,9 @@ font-size: 11pt;
    </item>
    <item>
     <widget class="QTableView" name="tableView">
+     <property name="tabKeyNavigation">
+      <bool>false</bool>
+     </property>
      <attribute name="horizontalHeaderDefaultSectionSize">
       <number>75</number>
      </attribute>
@@ -273,6 +276,17 @@ font-size: 11pt;
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>inCursorX</tabstop>
+  <tabstop>inCursorY</tabstop>
+  <tabstop>inCursorZ</tabstop>
+  <tabstop>tableView</tabstop>
+  <tabstop>outLabelId</tabstop>
+  <tabstop>outLabelText</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
+ <slots>
+  <slot>onCursorEdit()</slot>
+ </slots>
 </ui>

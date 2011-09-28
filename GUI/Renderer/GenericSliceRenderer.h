@@ -28,11 +28,11 @@
 #define GENERICSLICERENDERER_H
 
 #include <GenericSliceModel.h>
+#include <ImageWrapper.h>
+#include <OpenGLSliceTexture.h>
 #include <SNAPOpenGL.h>
 #include <list>
 
-class ImageWrapperBase;
-class OpenGLSliceTexture;
 class GenericSliceRenderer;
 
 class SliceRendererDelegate
@@ -41,10 +41,13 @@ public:
   virtual void paintGL(GenericSliceRenderer *parent) = 0;
 };
 
-class GenericSliceRenderer
+class GenericSliceRenderer : public AbstractModel
 {
 public:
-  GenericSliceRenderer();
+
+  irisITKObjectMacro(GenericSliceRenderer, AbstractModel)
+
+  FIRES(ModelUpdateEvent)
 
   void SetModel(GenericSliceModel *model);
 
@@ -64,7 +67,15 @@ public:
   RendererDelegateList &GetOverlays()
     { return m_Overlays; }
 
+  // A callback for when the model is reinitialized
+  // void OnModelReinitialize();
+
 protected:
+
+  GenericSliceRenderer();
+  virtual ~GenericSliceRenderer() {}
+
+  void OnUpdate();
 
   void DrawMainTexture();
   void DrawSegmentationTexture();
@@ -78,7 +89,8 @@ protected:
   bool m_ThumbnailDrawing;
 
   // A dynamic association between various image layers and texture objects
-  typedef std::map<ImageWrapperBase *, OpenGLSliceTexture *> TextureMap;
+  typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;
+  typedef std::map<ImageWrapperBase *, Texture *> TextureMap;
   TextureMap m_Texture;
 
   // A list of overlays that the user can configure

@@ -1,0 +1,56 @@
+ITK-SNAP 3.0 GUI Design Notes
+=============================
+
+
+This document contains Paul's notes on designing the second-generation user
+interface for SNAP. The notes may not be complete or up-to-date, this is more
+or less a scaratch pad for my ideas.
+
+Isolating GUI Models from GUI Toolkit (Qt)
+------------------------------------------
+
+The first design principle is that we want to make it easy in the future to
+abandon Qt in favor of some other toolkit. We just don't know how long Qt is
+going to be around. Plus, maybe one day we want to build an iPad version of
+SNAP, and this would require a native iOS implementation. So the idea is to
+move as much as possible into the toolkit-agnostic GUI Model layer, leaving
+just a thin layer that is Qt-aware.
+
+Lightweight Events
+------------------
+
+The original SNAP interface did not use events much. Instead, every call that
+would make changes to the state of the system would tell other widgets to
+update themselves. This resulted in very highly coupled code, and in a huge
+UserInterfaceLogic class, where most of the connector code resided. It also
+made it difficult to make more than cosmetic changes to the code. 
+
+In the second generation, we will make much greater use of the Observer/Event
+pattern. Objects upstream of the GUI (IRISApplication, etc) will fire events
+when their state is modified, and downstream objects will subscribe to these
+events.
+
+However, the observer pattern is quite dangerous for large projects. When
+there are lots of events and lots of listeners, it becomes very hard to keep
+track of what object is calling what object when, and it is possible to have
+situations when a downstream object is called in the middle of an update to an
+upstream object, leaving the upstream object in an incomplete state. There is
+also no control over the order in which events are processed. For for example
+action A may result in events P and Q, where Q implies P (e.g., Q =
+ImageReloaded, P = CursorMoved). You would want the downstream object to
+respond to Q before it responds to P, not the other way around. 
+
+To alleviate this problem, we are placing some constraints on the event
+handling system. Namely, event handling code has to be extremely lightweight.
+All that objects are allowed to do in response to an event is to record that
+the event took place, and notify downstream objects of the event. The actual
+handling of the event must take place later, after the action that caused the
+upstream event has completed and returned control to the Qt main loop. 
+
+How can we make it work? The most downstream objects, when receiving event
+notifications, call `QWidget::update()`. This means asking Qt to paint the
+widget on the next opportunity. When the paintEvent() occurs, the object is
+responsible for refreshing its widgets by getting the data from the model. The
+object must make sure that the upstream model is up-to-date by calling the
+model's `Update()` function. This function, in turn, checks what events have
+been sent to the model, and updates the model accordingly. 

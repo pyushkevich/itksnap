@@ -27,7 +27,7 @@
 #ifndef ZOOMINSPECTOR_H
 #define ZOOMINSPECTOR_H
 
-#include <QWidget>
+#include <SNAPComponent.h>
 #include <SNAPCommon.h>
 
 class GlobalUIModel;
@@ -36,7 +36,7 @@ namespace Ui {
     class ZoomInspector;
 }
 
-class ZoomInspector : public QWidget
+class ZoomInspector : public SNAPComponent
 {
   Q_OBJECT
 
@@ -52,6 +52,10 @@ private slots:
 
   void on_chkLinkedZoom_stateChanged(int arg1);
   void on_btnResetViews_clicked();
+
+  void on_btnZoom1_pressed();
+  void on_btnZoom2_pressed();
+  void on_btnZoom4_pressed();
 
 private:
   Ui::ZoomInspector *ui;

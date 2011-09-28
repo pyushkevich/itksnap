@@ -27,6 +27,9 @@
 #ifndef SNAPEVENTS_H
 #define SNAPEVENTS_H
 
+// Define this if you want event to be debugged
+// #define SNAP_DEBUG_EVENTS 1
+
 #include "itkObject.h"
 #include "itkCommand.h"
 #include "itkEventObject.h"
@@ -35,9 +38,27 @@
 itkEventMacro(IRISEvent, itk::AnyEvent)
 
 // Events fired by IRISApplication
+
+/** 3D cursor update event */
 itkEventMacro(CursorUpdateEvent, IRISEvent)
-itkEventMacro(MainImageDimensionsChangeEvent, IRISEvent)
-itkEventMacro(CurrentImageDataDimensionsChangeEvent, IRISEvent)
+
+/** The set of layers loaded into SNAP has changed */
+itkEventMacro(LayerChangeEvent, IRISEvent)
+
+/** The size of the main image has changed. */
+itkEventMacro(MainImageDimensionsChangeEvent, LayerChangeEvent)
+
+/** Generic event representing that a model has changed */
+itkEventMacro(ModelUpdateEvent, IRISEvent)
+
+/** Change in the linked zoom state */
+itkEventMacro(LinkedZoomUpdateEvent, IRISEvent)
+
+/** A change to the UI state (see UIFlags.h)  */
+itkEventMacro(StateMachineChangeEvent, IRISEvent)
+
+/** The value of the common zoom has changed */
+itkEventMacro(ZoomLevelUpdateEvent, IRISEvent)
 
 // A setter method that fires events
 #define irisSetWithEventMacro(name,type,event) \
@@ -57,6 +78,9 @@ itkEventMacro(CurrentImageDataDimensionsChangeEvent, IRISEvent)
     virtual void AddObserver_##event (itk::Command *cmd) \
         { this->AddObserver( event() , cmd ); }
 
+#define FIRES(event) virtual bool Fires##event() const { return true; }
+
+
 template <class TObserver>
 void AddListener(itk::Object *sender,
                  const itk::EventObject &event,
@@ -64,6 +88,18 @@ void AddListener(itk::Object *sender,
                  void (TObserver::*memberFunction)())
 {
   typedef itk::SimpleMemberCommand<TObserver> Cmd;
+  typename Cmd::Pointer cmd = Cmd::New();
+  cmd->SetCallbackFunction(observer, memberFunction);
+  sender->AddObserver(event, cmd);
+}
+
+template <class TObserver>
+void AddListener(itk::Object *sender,
+                 const itk::EventObject &event,
+                 TObserver *observer,
+                 void (TObserver::*memberFunction)(itk::Object*, const itk::EventObject &))
+{
+  typedef itk::MemberCommand<TObserver> Cmd;
   typename Cmd::Pointer cmd = Cmd::New();
   cmd->SetCallbackFunction(observer, memberFunction);
   sender->AddObserver(event, cmd);

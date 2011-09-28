@@ -74,6 +74,9 @@ namespace itk {
 class IRISApplication : public itk::Object
 {
 public:
+
+  irisITKObjectMacro(IRISApplication, itk::Object)
+
   // Typedefs
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::Size<3> SizeType;
@@ -87,19 +90,11 @@ public:
   // The main image can be of these types
   enum MainImageType { MAIN_SCALAR, MAIN_RGB, MAIN_ANY };
 
-  // Events
-  irisDeclareEventObserver(CursorUpdateEvent);
-  irisDeclareEventObserver(CurrentImageDataDimensionsChangeEvent);
+  // Declare events fired by this object
+  FIRES(CursorUpdateEvent)
+  FIRES(MainImageDimensionsChangeEvent)
+  FIRES(LayerChangeEvent)
 
-  /**
-   * Constructor for the IRIS/SNAP application
-   */
-  IRISApplication();
-
-  /**
-   * Destructor for the application
-   */
-  virtual ~IRISApplication();
 
   /**
    * Get image data related to IRIS operations
@@ -323,7 +318,11 @@ public:
    */
   void ReorientImage(vnl_matrix_fixed<double, 3, 3> inDirection);
 
-private:
+protected:
+
+  IRISApplication();
+  virtual ~IRISApplication();
+
   // Image data objects
   GenericImageData *m_CurrentImageData;
   IRISImageData *m_IRISImageData;

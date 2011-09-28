@@ -125,6 +125,33 @@ struct NativeToGreyTypeFunctor
   NativeToGreyTypeFunctor(GreyTypeToNativeFunctor g2n) : scale(1.0/g2n.scale), shift(-g2n.shift/g2n.scale) {}
 };
 
+/**
+  A debugging function to get the system time in ms. Actual definition is
+  in SystemInterface.cxx
+  */
+long get_system_time_ms();
+
+
+/**
+  A child class around itk::SmartPointer. It's main purpose is to allow Qt
+  Creator's intellisense to work with smart pointers. The current version
+  (Qt 4.7.x) does not complete smart pointers because of typedefs used by
+  the -> operator. In the future when this goes away (or does not matter)
+  we can simply replace this class by "typedef itk::SmartPointer SmartPtr"
+  */
+template <class TObject> class SmartPtr : public itk::SmartPointer<TObject>
+{
+public:
+  typedef itk::SmartPointer<TObject> Superclass;
+
+  TObject* operator -> () const
+    { return Superclass::GetPointer(); }
+
+  SmartPtr(const Superclass &p) : Superclass(p) {}
+  SmartPtr(TObject *p) : Superclass(p) {}
+  SmartPtr() : Superclass() {}
+};
+
 /************************************************************************/
 /* PY: Some macros because I am tired of typing get/set                 */
 /************************************************************************/
@@ -179,6 +206,18 @@ struct NativeToGreyTypeFunctor
     virtual bool Is##name () const { \
     return this->m_##name; \
 } 
+
+/**
+  A macro combining the standard macros at the head of itk::Object classes
+  */
+#define irisITKObjectMacro(self,super) \
+  typedef self Self; \
+  typedef super Superclass; \
+  typedef SmartPtr<Self> Pointer; \
+  typedef SmartPtr<const Self> ConstPointer; \
+  itkTypeMacro(self, super) \
+  itkNewMacro(Self)
+
 
 /** 
  * A rip off from the ITK not used macro to eliminate 'parameter not used'

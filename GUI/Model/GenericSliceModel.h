@@ -31,12 +31,13 @@
 #include <ImageCoordinateTransform.h>
 #include <OpenGLSliceTexture.h>
 #include <SNAPEvents.h>
+#include "AbstractModel.h"
+#include "ImageWrapper.h"
 
 
 class GlobalUIModel;
 class IRISApplication;
 class GenericImageData;
-class ImageWrapperBase;
 class GenericSliceModel;
 
 // An event fired when the geometry of the slice view changes
@@ -59,17 +60,27 @@ itkEventMacro(SliceModelGeometryChangeEvent, IRISEvent)
   This class is meant to be used with arbitrary GUI environments. It is
   unaware of Qt, FLTK, etc.
 */
-class GenericSliceModel : public itk::Object
+class GenericSliceModel : public AbstractModel
 {
-
 public:
 
-  /**
-   * Constructor: takes global UI model and slice ID as input
-   */
-  GenericSliceModel(GlobalUIModel *, int);
+  irisITKObjectMacro(GenericSliceModel, AbstractModel)
 
-  ~GenericSliceModel();
+  FIRES(ModelUpdateEvent)
+  FIRES(SliceModelGeometryChangeEvent)
+
+  // irisDeclareEventObserver(ReinitializeEvent)
+
+  /**
+   * Initializer: takes global UI model and slice ID as input
+   */
+  void Initialize(GlobalUIModel *model, int index);
+
+
+  /**
+    Update if necessary
+    */
+  virtual void OnUpdate();
 
   /**
    * Initialize the slice view with image data
@@ -207,10 +218,10 @@ public:
   // Check whether the thumbnail should be drawn or not
   bool IsThumbnailOn();
 
-  /** Callback for the event that the source data has been updated */
-  void OnSourceDataUpdate();
-
 protected:
+
+  GenericSliceModel();
+  ~GenericSliceModel();
 
   // Parent (where the global UI state is stored)
   GlobalUIModel *m_ParentUI;
@@ -268,19 +279,6 @@ protected:
   // The default screen margin (area into which we do not paint) at
   // least in default zoom
   unsigned int m_Margin;
-
-  // A map between image layers and texture objects
-  typedef std::map<ImageWrapperBase *, OpenGLSliceTexture *> TextureMap;
-
-  // A dynamic association between various image layers and texture objects
-  TextureMap m_Texture;
-
-  // Internal method used by UpdateTextureMap()
-  void AssociateTexture(
-    ImageWrapperBase *iw, TextureMap &src, TextureMap &trg);
-
-  // Update the texture map to mirror the current images in the model
-  void UpdateTextureMap();
 
   // The position and size of the zoom thumbnail
   Vector2i m_ThumbnailPosition, m_ThumbnailSize;

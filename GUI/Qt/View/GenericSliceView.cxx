@@ -26,11 +26,13 @@
 
 #include "GenericSliceView.h"
 #include "CrosshairsInteractionMode.h"
+#include "LatentITKEventNotifier.h"
 
 GenericSliceView::GenericSliceView(QWidget *parent) :
   SNAPQGLWidget(parent)
 {
   m_Model = NULL;
+  m_Renderer = GenericSliceRenderer::New();
   m_NeedResizeOnNextRepaint = false;
 }
 
@@ -40,14 +42,25 @@ void GenericSliceView::SetModel(GenericSliceModel *model)
   this->m_Model = model;
 
   // Pass the model to the renderer
-  m_Renderer.SetModel(model);
+  m_Renderer->SetModel(model);
+
+  // Listen to the update events on the model. In response, simply repaint
+  LatentITKEventNotifier::connect(
+        m_Model, ModelUpdateEvent(),
+        this, SLOT(onModelUpdate(const EventBucket &)));
+
+  LatentITKEventNotifier::connect(
+        m_Model, SliceModelGeometryChangeEvent(),
+        this, SLOT(onModelUpdate(const EventBucket &)));
 
   // Add listeners to events supported by the model
+  /*
   AddListener(m_Model, SliceModelImageDimensionsChangeEvent(),
               this, &GenericSliceView::OnModelUpdate);
 
   AddListener(m_Model, SliceModelGeometryChangeEvent(),
               this, &GenericSliceView::OnModelUpdate);
+              */
 
   // Tell model about our current size
   m_Model->onViewResize(this->size().width(), this->size().height());
@@ -55,31 +68,32 @@ void GenericSliceView::SetModel(GenericSliceModel *model)
 
 void GenericSliceView::paintGL()
 {
-  assert(m_Model);
+  // Update the renderer. This will cause the renderer to update itself
+  // based on any events that it has received upstream.
+  m_Renderer->Update();
+
   if(m_NeedResizeOnNextRepaint)
     {
-    m_Renderer.resizeGL(this->size().width(), this->size().height());
+    m_Renderer->resizeGL(this->size().width(), this->size().height());
     m_NeedResizeOnNextRepaint = false;
     }
-  m_Renderer.paintGL();
+  m_Renderer->paintGL();
 }
 
 void GenericSliceView::resizeGL(int w, int h)
 {
-  assert(m_Model);
-  m_Renderer.resizeGL(w, h);
+  m_Renderer->Update();
+  m_Renderer->resizeGL(w, h);
 }
 
 void GenericSliceView::initializeGL()
 {
-  assert(m_Model);
-  m_Renderer.initializeGL();
+  m_Renderer->Update();
+  m_Renderer->initializeGL();
 }
 
 void GenericSliceView::resizeEvent(QResizeEvent *ev)
 {
-  assert(m_Model);
-
   // Notify the model of the repaint
   m_Model->onViewResize(ev->size().width(), ev->size().height());
 
@@ -93,18 +107,22 @@ void GenericSliceView::resizeEvent(QResizeEvent *ev)
     kids.at(i)->setGeometry(this->geometry());
 }
 
-void GenericSliceView::OnModelUpdate()
+void GenericSliceView::onModelUpdate(const EventBucket &b)
 {
-    this->update();
+  // Make sure the model is up to date
+  m_Model->Update();
+
+  // Ask this widget to repaint
+  this->update();
 }
 
 void GenericSliceView::enterEvent(QEvent *)
 {
-    this->setFocus();
+  this->setFocus();
 }
 
 void GenericSliceView::leaveEvent(QEvent *)
 {
-    this->clearFocus();
+  this->clearFocus();
 }
 

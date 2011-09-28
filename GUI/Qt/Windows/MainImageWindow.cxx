@@ -69,6 +69,8 @@ MainImageWindow::~MainImageWindow()
   delete ui;
 }
 
+
+
 SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 {
   if(i == 0)
@@ -83,10 +85,27 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 
 void MainImageWindow::on_actionOpen_Greyscale_Image_triggered()
 {
+  // TODO: Prompt for changes to segmentation to be saved
+
+  // Execute the IO wizard
   ImageIOWizard wiz(this);
-  ImageIOWizardModel model(m_Model, ImageIOWizardModel::LOAD, "GreyImage");
-  wiz.SetModel(&model);
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->Initialize(m_Model, ImageIOWizardModel::LOAD, "GreyImage");
+  wiz.SetModel(model);
   wiz.exec();
+
+  // Update the image in the application
+  if(model->IsImageLoaded())
+    {
+
+    // Unload the current main image (save history)
+
+    // Unload all images
+
+    // Update IRIS main image
+
+    m_Model->LoadGrayImage(model->GetGuidedIO());
+    }
 }
 
 void MainImageWindow::on_actionQuit_triggered()

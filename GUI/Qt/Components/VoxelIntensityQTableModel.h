@@ -4,6 +4,7 @@
 #include <QAbstractTableModel>
 
 class GlobalUIModel;
+class EventBucket;
 
 class VoxelIntensityQTableModel : public QAbstractTableModel
 {
@@ -22,6 +23,8 @@ public:
 signals:
 
 public slots:
+
+  void onModelUpdate(const EventBucket &);
 
 private:
 

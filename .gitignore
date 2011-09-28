@@ -2,7 +2,7 @@
 .*.sw?
 
 # MACOS files
-.DS_Store?
+.DS_Store*
 Thumbs.db
 
 # Backup files
@@ -10,3 +10,4 @@ Thumbs.db
 
 # Qt Creator stuff
 CMakeLists.txt.user*
+*.autosave

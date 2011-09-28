@@ -282,6 +282,9 @@ IRISApplication
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
   m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // Fire event
+  InvokeEvent(LayerChangeEvent());
 }
 
 void
@@ -294,6 +297,9 @@ IRISApplication
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
   m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // Fire event
+  InvokeEvent(LayerChangeEvent());
 }
 
 void
@@ -688,7 +694,7 @@ IRISApplication
   if(m_CurrentImageData != m_IRISImageData)
     {
     m_CurrentImageData = m_IRISImageData;
-    InvokeEvent(CurrentImageDataDimensionsChangeEvent());
+    InvokeEvent(MainImageDimensionsChangeEvent());
     }
 }
 
@@ -699,7 +705,7 @@ void IRISApplication
   if(m_CurrentImageData != m_SNAPImageData)
     {
     m_CurrentImageData = m_SNAPImageData;
-    InvokeEvent(CurrentImageDataDimensionsChangeEvent());
+    InvokeEvent(MainImageDimensionsChangeEvent());
     }
 }
 
@@ -1184,6 +1190,9 @@ IRISApplication
   // just force the IRISSlicer to update
   m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
 
+  // Fire event
+  InvokeEvent(LayerChangeEvent());
+
   // Return the type loaded as
   return type;
 }
@@ -1242,15 +1251,11 @@ IRISApplication
   else throw itk::ExceptionObject("Unsupported main image type");
 
   // Fire the dimensions change event
-  InvokeEvent(CurrentImageDataDimensionsChangeEvent());
+  InvokeEvent(MainImageDimensionsChangeEvent());
 
-  // Update the crosshairs position
-  Vector3ui cursor = size;
-  cursor /= 2;
-  m_IRISImageData->SetCrosshairs(cursor);
-
-  // TODO: Unify this!
-  m_GlobalState->SetCrosshairsPosition(cursor);
+  // Update the crosshairs position to the center of the image
+  Vector3ui cursor = size; cursor /= 2;
+  this->SetCursorPosition(cursor);
 
   // Reset the UNDO manager
   m_UndoManager.Clear();

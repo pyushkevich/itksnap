@@ -30,6 +30,7 @@
 #include <QObject>
 #include <EditableNumericValueModel.h>
 
+class EventBucket;
 class QDoubleSpinBox;
 
 class QtDoubleSpinboxCoupling : public QObject
@@ -45,6 +46,7 @@ public:
 
 public slots:
 
+  void onModelUpdate(const EventBucket &);
   void onWidgetValueChanged(double value);
 
 protected:
@@ -53,8 +55,6 @@ protected:
 
   QDoubleSpinBox *m_Widget;
   ModelType *m_Model;
-
-  bool m_SettingValue;
 };
 
 #endif // QTDOUBLESPINBOXCOUPLING_H

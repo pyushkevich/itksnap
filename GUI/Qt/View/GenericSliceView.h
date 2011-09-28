@@ -32,6 +32,7 @@
 #include <GenericSliceModel.h>
 #include <GenericSliceRenderer.h>
 #include <SNAPQGLWidget.h>
+#include <EventBucket.h>
 
 class CrosshairsInteractionMode;
 
@@ -44,16 +45,15 @@ public:
 
   irisGetMacro(Model, GenericSliceModel *)
 
-  GenericSliceRenderer &GetRenderer() { return m_Renderer; }
-  const GenericSliceRenderer &GetRenderer() const { return m_Renderer; }
+  GenericSliceRenderer *GetRenderer() { return m_Renderer; }
+  const GenericSliceRenderer *GetRenderer() const { return m_Renderer; }
 
   // Set the model (state) for this widget
   void SetModel(GenericSliceModel *model);
 
-  // Callback for geometry update events
-  void OnModelUpdate();
-
 public slots:
+
+  void onModelUpdate(const EventBucket &b);
 
 protected:
 
@@ -71,7 +71,7 @@ protected:
   GenericSliceModel *m_Model;
 
   // OpenGL renderer (owned by the view)
-  GenericSliceRenderer m_Renderer;
+  SmartPtr<GenericSliceRenderer> m_Renderer;
 
   // Whether next repaint requires a resize call (Qt bug?)
   bool m_NeedResizeOnNextRepaint;

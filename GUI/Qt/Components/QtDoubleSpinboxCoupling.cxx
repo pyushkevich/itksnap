@@ -27,6 +27,7 @@
 #include <QDoubleSpinBox>
 #include <SNAPEvents.h>
 #include "QtDoubleSpinboxCoupling.h"
+#include "LatentITKEventNotifier.h"
 
 QtDoubleSpinboxCoupling
 ::QtDoubleSpinboxCoupling(QDoubleSpinBox *widget, ModelType *model)
@@ -36,41 +37,40 @@ QtDoubleSpinboxCoupling
   updateWidgetFromModel();
 
   // Listen to value change events for this widget
-  connect(widget, SIGNAL(valueChanged(double)),
-          this, SLOT(onWidgetValueChanged(double)));
+  connect(widget, SIGNAL(valueChanged(double)), SLOT(onWidgetValueChanged(double)),
+          Qt::QueuedConnection);
 
   // Listen to value change events from the model
-  AddListener(model, ModelType::ValueChangedEvent(),
-              this, &QtDoubleSpinboxCoupling::updateWidgetFromModel);
+  LatentITKEventNotifier::connect(model, ModelType::ValueChangedEvent(),
+                                  this, SLOT(onModelUpdate(const EventBucket &)));
 
-  AddListener(model, ModelType::RangeChangedEvent(),
-              this, &QtDoubleSpinboxCoupling::updateWidgetFromModel);
+  LatentITKEventNotifier::connect(model, ModelType::RangeChangedEvent(),
+                                  this, SLOT(onModelUpdate(const EventBucket &)));
 }
 
 void
 QtDoubleSpinboxCoupling
 ::onWidgetValueChanged(double value)
 {
-  // This check disables the callback while the value of the widget is
-  // being set.
-  if(!m_SettingValue)
-    {
-    if(m_Model->GetValue() != value && !vnl_math_isnan(m_Model->GetValue()))
-      m_Model->SetValue(value);
-    }
+  if(m_Model->GetValue() != value && !vnl_math_isnan(m_Model->GetValue()))
+    m_Model->SetValue(value);
 }
 
 void
 QtDoubleSpinboxCoupling
 ::updateWidgetFromModel()
 {
-  m_SettingValue = true;
   NumericValueRange<double> range = m_Model->GetRange();
   m_Widget->setMinimum(range.Minimum);
   m_Widget->setMaximum(range.Maximum);
   m_Widget->setSingleStep(range.StepSize);
   m_Widget->setValue(m_Model->GetValue());
-  m_SettingValue = false;
+}
+
+void QtDoubleSpinboxCoupling
+::onModelUpdate(const EventBucket &)
+{
+  this->updateWidgetFromModel();
 }
 
 

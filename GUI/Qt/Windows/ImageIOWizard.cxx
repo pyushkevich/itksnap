@@ -14,6 +14,11 @@
 #include <QMenu>
 #include <QTreeWidget>
 #include <QMessageBox>
+#include <QTableWidget>
+#include <QApplication>
+#include <QHeaderView>
+#include <QGridLayout>
+#include <QSpinBox>
 
 #include "IRISException.h"
 #include "ImageIOWizardModel.h"
@@ -26,6 +31,35 @@ AbstractPage::AbstractPage(QWidget *parent)
 {
   this->m_Model = NULL;
 }
+
+bool
+AbstractPage::ErrorMessage(const char *subject, const char *detail)
+{
+  QMessageBox mbox(this);
+  mbox.setIcon(QMessageBox::Critical);
+  mbox.setText(subject);
+  if(detail)
+    mbox.setDetailedText(detail);
+  mbox.exec();
+  return false;
+}
+
+bool
+AbstractPage::ConditionalError(bool rc, const char *subject, const char *detail)
+{
+  if(!rc)
+    {
+    QMessageBox mbox(this);
+    mbox.setIcon(QMessageBox::Critical);
+    mbox.setText(subject);
+    if(detail)
+      mbox.setDetailedText(detail);
+    mbox.exec();
+    }
+  return rc;
+}
+
+
 
 
 SelectFilePage::SelectFilePage(QWidget *parent)
@@ -71,6 +105,7 @@ SelectFilePage::SelectFilePage(QWidget *parent)
   m_BtnHistory->setObjectName("btnHistory");
 
   m_HistoryMenu = new QMenu("History", m_BtnHistory);
+  m_HistoryMenu->setStyleSheet("font-size: 12pt;");
   m_BtnHistory->setMenu(m_HistoryMenu);
 
   lobtn->addWidget(m_OutFilenameError,1,Qt::AlignLeft);
@@ -109,10 +144,34 @@ SelectFilePage::SelectFilePage(QWidget *parent)
   QMetaObject::connectSlotsByName(this);
 }
 
+/*
+class QtRegistryTableModel : public QAbstractTableModel
+{
+  Q_OBJECT
+
+public:
+
+  typedef std::vector<Registry> RegistryArray;
+
+  explicit QtRegistryTableModel(QObject *parent, const RegistryArray &reg);
+
+  int rowCount(const QModelIndex &parent) const;
+  int columnCount(const QModelIndex &parent) const;
+  QVariant data(const QModelIndex &index, int role) const;
+
+protected:
+
+  RegistryArray &m_Array;
+};
+*/
+
 
 void SelectFilePage::initializePage()
 {
   assert(m_Model);
+
+  // Reset the model
+  m_Model->Reset();
 
   // Set title
   if(m_Model->IsLoadMode())
@@ -138,10 +197,11 @@ void SelectFilePage::initializePage()
     if(!m_Model->CanHandleFileFormat(fmt))
       item->setEnabled(false);
     m_FormatModel->appendRow(item);
-
-    // Add a menu option to the save menu, disabling it if it's unsupported
-    m_InFormat->addItem(text.c_str(), QVariant(fmt));
     }
+
+  // Initialize the combo box based on the current selection
+  m_InFormat->setCurrentIndex(
+        m_InFormat->findData(QVariant(m_Model->GetSelectedFormat())));
 
   // Populate the history button
   m_HistoryMenu->clear();
@@ -149,16 +209,35 @@ void SelectFilePage::initializePage()
   for(unsigned int i = 0; i < history.size(); i++)
     {
     m_HistoryMenu->addAction(
-          history[i].c_str(), this, SLOT(on_HistorySelection()));
+          history[i].c_str(), this, SLOT(onHistorySelection()));
     }
   m_BtnHistory->setEnabled(history.size() > 0);
 }
 
-void SelectFilePage::on_HistorySelection()
+void SelectFilePage::onHistorySelection()
 {
   QAction *action = static_cast<QAction *>(this->sender());
   m_InFilename->setText(action->text());
 }
+
+class CursorOverride
+{
+public:
+  CursorOverride(const QCursor &cursor)
+  {
+    QApplication::setOverrideCursor(cursor);
+  }
+
+  CursorOverride(Qt::CursorShape shape)
+  {
+    QApplication::setOverrideCursor(QCursor(shape));
+  }
+
+  ~CursorOverride()
+  {
+    QApplication::restoreOverrideCursor();
+  }
+};
 
 bool SelectFilePage::validatePage()
 {
@@ -170,16 +249,36 @@ bool SelectFilePage::validatePage()
 
   // If can't handle the format, return false
   if(!m_Model->CanHandleFileFormat(fmt))
-    return false;
+    {
+    return ErrorMessage("File format is not supported for this operation");
+    }
 
-  // If format is DICOM or RAW, continue to next page
-  if(fmt == GuidedNativeImageIO::FORMAT_RAW ||
-     fmt == GuidedNativeImageIO::FORMAT_DICOM)
+  // If format is RAW, continue to next page
+  if(fmt == GuidedNativeImageIO::FORMAT_RAW)
     return true;
+
+  // If format is DICOM, process the DICOM directory
+  if(fmt == GuidedNativeImageIO::FORMAT_DICOM)
+    {
+    // Change cursor until this object moves out of scope
+    CursorOverride curse(Qt::WaitCursor);
+    try
+      {
+      m_Model->ProcessDicomDirectory(m_InFilename->text().toStdString());
+      return true;
+      }
+    catch(std::exception &exc)
+      {
+      return ErrorMessage(
+              "Unable to recognize DICOM file series in the directory",
+              exc.what());
+      }
+    }
 
   // If load mode, tell the model to try loading the image
   if(m_Model->IsLoadMode())
     {
+    CursorOverride curse(Qt::WaitCursor);
     try
       {
       m_Model->SetSelectedFormat(fmt);
@@ -187,24 +286,24 @@ bool SelectFilePage::validatePage()
 
       // To do: something about the validity check
       }
-    catch(IRISException &exc)
+    catch(std::exception &exc)
       {
-      QMessageBox mbox(this);
-      mbox.setIcon(QMessageBox::Critical);
-      mbox.setText("Error Loading Image");
-      mbox.setDetailedText(exc.what());
-
+      return ErrorMessage("Error Loading Image", exc.what());
       }
     }
 
   return true;
 }
 
-
-int SelectFilePage::nextId()
+int SelectFilePage::nextId() const
 {
+  if(m_Model->IsSaveMode())
+    return -1;
+
+  if(m_InFormat->currentIndex() < 0)
+    return ImageIOWizard::Page_Summary;
+
   // Get the currently selected format
-  assert(m_InFormat->currentIndex() >= 0);
   ImageIOWizardModel::FileFormat fmt =
       static_cast<ImageIOWizardModel::FileFormat>(
         m_InFormat->itemData(m_InFormat->currentIndex()).toInt());
@@ -214,9 +313,8 @@ int SelectFilePage::nextId()
     return ImageIOWizard::Page_Raw;
   else if(fmt == GuidedNativeImageIO::FORMAT_DICOM)
     return ImageIOWizard::Page_DICOM;
-  else if(m_Model->IsLoadMode())
+  else
     return ImageIOWizard::Page_Summary;
-  else return -1;
 }
 
 void SelectFilePage::on_btnBrowse_pressed()
@@ -242,7 +340,7 @@ void SelectFilePage::on_btnBrowse_pressed()
     m_BrowseDialog->setDirectory(dir.c_str());
 
   // Get the file name
-  if(m_BrowseDialog->exec())
+  if(m_BrowseDialog->exec() && m_BrowseDialog->selectedFiles().size())
     m_InFilename->setText(m_BrowseDialog->selectedFiles().first());
 }
 
@@ -279,10 +377,6 @@ void SelectFilePage::on_inFilename_textChanged(const QString &text)
     m_OutFilenameError->setText(tr(""));
     }
 }
-
-
-
-
 
 
 SummaryPage::SummaryPage(QWidget *parent) :
@@ -356,6 +450,96 @@ void SummaryPage::initializePage()
     item->setText(0, mda.MapKeyToDICOM(mda.GetKey(i)).c_str());
     item->setText(1, mda.GetValueAsString(i).c_str());
     }
+
+  m_Tree->resizeColumnToContents(0);
+  m_Tree->resizeColumnToContents(1);
+}
+
+bool SummaryPage::validatePage()
+{
+  m_Model->Finalize();
+  return true;
+}
+
+
+DICOMPage::DICOMPage(QWidget *parent)
+  : AbstractPage(parent)
+{
+  // Set up a table widget
+  m_Table = new QTableWidget();
+  QVBoxLayout *lo = new QVBoxLayout(this);
+  lo->addWidget(m_Table);
+
+  m_Table->setSelectionBehavior(QAbstractItemView::SelectRows);
+  m_Table->setSelectionMode(QAbstractItemView::SingleSelection);
+  m_Table->setAlternatingRowColors(true);
+  m_Table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  m_Table->verticalHeader()->hide();
+}
+
+void DICOMPage::initializePage()
+{
+  // Set the title, subtitle
+  setTitle("Select DICOM series to open");
+
+  // Populate the DICOM page
+  const std::vector<Registry> &reg = m_Model->GetDicomContents();
+
+  m_Table->setRowCount(reg.size());
+  m_Table->setColumnCount(4);
+  m_Table->setHorizontalHeaderItem(0, new QTableWidgetItem("Series Number"));
+  m_Table->setHorizontalHeaderItem(1, new QTableWidgetItem("Description"));
+  m_Table->setHorizontalHeaderItem(2, new QTableWidgetItem("Dimensions"));
+  m_Table->setHorizontalHeaderItem(3, new QTableWidgetItem("Number of Images"));
+
+  for(size_t i = 0; i < reg.size(); i++)
+    {
+    Registry r = reg[i];
+    m_Table->setItem(i, 0, new QTableWidgetItem(r["SeriesNumber"][""]));
+    m_Table->setItem(i, 1, new QTableWidgetItem(r["SeriesDescription"][""]));
+    m_Table->setItem(i, 2, new QTableWidgetItem(r["Dimensions"][""]));
+    m_Table->setItem(i, 3, new QTableWidgetItem(r["NumberOfImages"][""]));
+    }
+
+  m_Table->resizeColumnsToContents();
+  m_Table->resizeRowsToContents();
+
+  // Choose the sequence previously loaded
+  // TODO:
+
+  /*
+  // See if one of the sequences in the registry matches
+  StringType last = m_Registry["DICOM.SequenceId"]["NULL"];
+  const Fl_Menu_Item *lastpos = m_InDICOMPageSequenceId->find_item(last.c_str());
+  if(lastpos)
+    m_InDICOMPageSequenceId->value(lastpos);
+  else
+    m_InDICOMPageSequenceId->value(0);
+  */
+}
+
+bool DICOMPage::validatePage()
+{
+  // Add registry entries for the selected DICOM series
+  int row = m_Table->selectionModel()->selectedRows().front().row();
+
+  try
+    {
+    CursorOverride curse(Qt::WaitCursor);
+    m_Model->LoadDicomSeries(
+          this->field("Filename").toString().toStdString(), row);
+    }
+  catch(std::exception &exc)
+    {
+    return ErrorMessage("Unable to load DICOM image", exc.what());
+    }
+
+  return true;
+}
+
+int DICOMPage::nextId() const
+{
+  return ImageIOWizard::Page_Summary;
 }
 
 
@@ -363,6 +547,198 @@ void SummaryPage::initializePage()
 
 
 
+RawPage::RawPage(QWidget *parent)
+  : AbstractPage(parent)
+{
+  // Create a new layout
+  QGridLayout *lo = new QGridLayout(this);
+
+  // Create the header input
+  m_HeaderSize = new QSpinBox();
+  lo->addWidget(new QLabel("Header size:"), 0, 0, 1, 2);
+  lo->addWidget(m_HeaderSize, 0, 2, 1, 1);
+  lo->addWidget(new QLabel("bytes"), 0, 3, 1, 4);
+
+  m_HeaderSize->setToolTip(
+        "Specify the number of bytes at the beginning of the image that "
+        "should be skipped before reading the image data.");
+
+  connect(m_HeaderSize, SIGNAL(valueChanged(int)), SLOT(onHeaderSizeChange()));
+
+  // Create the dimensions input
+  for(size_t i = 0; i < 3; i++)
+    {
+    m_Dims[i] = new QSpinBox();
+    connect(m_Dims[i], SIGNAL(valueChanged(int)), SLOT(onHeaderSizeChange()));
+    }
+
+  lo->addWidget(new QLabel("Image dimensions:"), 1, 0, 1, 1);
+  lo->addWidget(new QLabel("x:"), 1, 1, 1, 1);
+  lo->addWidget(m_Dims[0], 1, 2, 1, 1);
+  lo->addWidget(new QLabel("y:"), 1, 3, 1, 1);
+  lo->addWidget(m_Dims[1], 1, 4, 1, 1);
+  lo->addWidget(new QLabel("z:"), 1, 5, 1, 1);
+  lo->addWidget(m_Dims[2], 1, 6, 1, 1);
+
+  // Voxel representation
+  /*
+  PIXELTYPE_UCHAR=0, PIXELTYPE_CHAR, PIXELTYPE_USHORT, PIXELTYPE_SHORT,
+  PIXELTYPE_UINT, PIXELTYPE_INT, PIXELTYPE_FLOAT, PIXELTYPE_DOUBLE,
+  PIXELTYPE_COUNT};
+  */
+
+  m_InFormat = new QComboBox();
+  m_InFormat->addItem("8 bit unsigned integer (uchar)");
+  m_InFormat->addItem("8 bit signed integer (char)");
+  m_InFormat->addItem("16 bit unsigned integer (ushort)");
+  m_InFormat->addItem("16 bit signed integer (short)");
+  m_InFormat->addItem("32 bit unsigned integer (uint)");
+  m_InFormat->addItem("32 bit signed integer (int)");
+  m_InFormat->addItem("32 bit floating point (float)");
+  m_InFormat->addItem("64 bit floating point (double)");
+
+  connect(m_InFormat, SIGNAL(currentIndexChanged(int)), SLOT(onHeaderSizeChange()));
+
+  lo->addWidget(new QLabel("Voxel type:"), 2, 0, 1, 2);
+  lo->addWidget(m_InFormat, 2, 2, 1, 5);
+
+  // Endianness
+  m_InEndian = new QComboBox();
+  m_InEndian->addItem("Big Endian (PowerPC, SPARC)");
+  m_InEndian->addItem("Little Endian (x86, x86_64)");
+
+  lo->addWidget(new QLabel("Byte alignment:"), 3, 0, 1, 2);
+  lo->addWidget(m_InEndian, 3, 2, 1, 5);
+
+  // Add some space
+  lo->setRowMinimumHeight(4,16);
+
+  // File sizes
+  m_OutImpliedSize = new QSpinBox();
+  m_OutImpliedSize->setReadOnly(true);
+  m_OutImpliedSize->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  m_OutImpliedSize->setRange(0, 0x7fffffff);
+  lo->addWidget(new QLabel("Implied file size:"), 5, 0, 1, 2);
+  lo->addWidget(m_OutImpliedSize, 5, 2, 1, 1);
+
+  m_OutActualSize = new QSpinBox();
+  m_OutActualSize->setReadOnly(true);
+  m_OutActualSize->setButtonSymbols(QAbstractSpinBox::NoButtons);
+  m_OutActualSize->setRange(0, 0x7fffffff);
+  lo->addWidget(new QLabel("Actual file size:"), 6, 0, 1, 2);
+  lo->addWidget(m_OutActualSize, 6, 2, 1, 1);
+
+  QLabel *lbrace = new QLabel("}");
+  lbrace->setStyleSheet("font-size: 30pt");
+  lo->addWidget(lbrace, 5, 3, 2, 1);
+  lo->addWidget(new QLabel("should be equal"), 5, 4, 2, 2);
+
+  // The output label
+  lo->setColumnMinimumWidth(0, 140);
+
+  // Initialize this field
+  m_FileSize = 0;
+}
+
+void RawPage::onHeaderSizeChange()
+{
+  // Check the size of the file
+  const int nbytes[] = { 1, 1, 2, 2, 4, 4, 4 };
+  unsigned long myfs =
+      m_HeaderSize->value() +
+      m_Dims[0]->value() * m_Dims[1]->value() * m_Dims[2]->value() *
+      nbytes[m_InFormat->currentIndex()];
+
+  m_OutImpliedSize->setValue(myfs);
+
+  emit completeChanged();
+}
+
+bool RawPage::isComplete() const
+{
+  // Check if required fields are filled
+  if(!AbstractPage::isComplete())
+    return false;
+
+  // Check if the sizes match
+  return(m_OutImpliedSize->value() == m_OutActualSize->value());
+}
+
+void RawPage::initializePage()
+{
+  setTitle("Image Header Specification:");
+
+  // Get the hints (from previous experience with this file)
+  Registry hint = m_Model->GetHints();
+
+  // Get the size of the image in bytes
+  m_FileSize = m_Model->GetFileSizeInBytes(
+        field("Filename").toString().toStdString());
+  m_OutActualSize->setValue(m_FileSize);
+
+  // Assign to the widgets
+  m_HeaderSize->setValue(hint["Raw.HeaderSize"][0]);
+  m_HeaderSize->setRange(0, m_FileSize);
+
+  // Set the dimensions
+  Vector3i dims = hint["Raw.Dimensions"][Vector3i(0)];
+  for(size_t i = 0; i < 3; i++)
+    {
+    m_Dims[i]->setValue(dims[i]);
+    m_Dims[i]->setRange(1, m_FileSize);
+    }
+
+  // Set the data type (default to uchar)
+  int ipt = (int) (GuidedNativeImageIO::GetPixelType(
+        hint, GuidedNativeImageIO::PIXELTYPE_UCHAR) -
+                   GuidedNativeImageIO::PIXELTYPE_UCHAR);
+  m_InFormat->setCurrentIndex(ipt);
+
+  // Set the endian (default to LE)
+  int ien = hint["Raw.BigEndian"][false] ? 0 : 1;
+  m_InEndian->setCurrentIndex(ien);
+}
+
+int RawPage::nextId() const
+{
+  return ImageIOWizard::Page_Summary;
+}
+
+bool RawPage::validatePage()
+{
+  // Get the hints (from previous experience with this file)
+  Registry &hint = m_Model->GetHints();
+
+  // Set up the registry with the specified values
+  hint["Raw.HeaderSize"] << (unsigned int) m_HeaderSize->value();
+
+  // Set the dimensions
+  hint["Raw.Dimensions"] << Vector3i(
+    m_Dims[0]->value(), m_Dims[1]->value(), m_Dims[2]->value());
+
+  // Set the endianness
+  hint["Raw.BigEndian"] << ( m_InEndian->currentIndex() == 0 );
+
+  // Set the pixel type
+  int iPixType = m_InFormat->currentIndex();
+  GuidedNativeImageIO::RawPixelType pixtype = (iPixType < 0)
+    ? GuidedNativeImageIO::PIXELTYPE_COUNT
+    : (GuidedNativeImageIO::RawPixelType) iPixType;
+  GuidedNativeImageIO::SetPixelType(hint, pixtype);
+
+  // Try loading the image
+  CursorOverride curse(Qt::WaitCursor);
+  try
+    {
+    m_Model->SetSelectedFormat(GuidedNativeImageIO::FORMAT_RAW);
+    m_Model->LoadImage(field("Filename").toString().toStdString());
+    }
+  catch(std::exception &exc)
+    {
+    return ErrorMessage("Error Loading Image", exc.what());
+    }
+  return true;
+}
 
 
 } // namespace
@@ -375,7 +751,8 @@ ImageIOWizard::ImageIOWizard(QWidget *parent) :
   // Add pages to the wizard
   setPage(Page_File, new SelectFilePage(this));
   setPage(Page_Summary, new SummaryPage(this));
-
+  setPage(Page_DICOM, new DICOMPage(this));
+  setPage(Page_Raw, new RawPage(this));
 
 }
 

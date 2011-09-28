@@ -36,20 +36,21 @@
 #include <cstdarg>
 #include <stdio.h>
 
-IRISException
-::operator const char *() 
+using namespace std;
+
+IRISException::operator const char *() 
 {
-  return m_SimpleMessage.c_str();
+  return this->what();
 }
 
-IRISException
-::IRISException() 
+IRISException::IRISException() 
+  : exception()
 {
   m_SimpleMessage = "Unspecified IRIS exception";
 }
 
-IRISException
-::IRISException(const char *message, ...)
+IRISException::IRISException(const char *message, ...)
+  : exception()
 {
   char buffer[1024];
   va_list args;
@@ -58,9 +59,3 @@ IRISException
   va_end (args);
   m_SimpleMessage = buffer;
 }
-
-IRISException
-::~IRISException() 
-{
-}
-

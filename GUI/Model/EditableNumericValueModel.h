@@ -27,9 +27,9 @@
 #ifndef EDITABLENUMERICVALUEMODEL_H
 #define EDITABLENUMERICVALUEMODEL_H
 
-#include <itkObject.h>
 #include <SNAPCommon.h>
 #include <SNAPEvents.h>
+#include "AbstractModel.h"
 
 template<class TVal> struct NumericValueRange
 {
@@ -43,7 +43,7 @@ template<class TVal> struct NumericValueRange
 };
 
 template<class TVal>
-class AbstractEditableNumericValueModel : public itk::Object
+class AbstractEditableNumericValueModel : public AbstractModel
 {
 public:
 
@@ -60,9 +60,9 @@ class EditableNumericValueModel
     : public AbstractEditableNumericValueModel<TVal>
 {
 public:
-  typedef AbstractEditableNumericValueModel<TVal> Superclass;
 
-  EditableNumericValueModel();
+  irisITKObjectMacro(EditableNumericValueModel<TVal>,
+                     AbstractEditableNumericValueModel<TVal>)
 
   irisGetMacro(Value, TVal)
   irisSetWithEventMacro(Value, TVal, Superclass::ValueChangedEvent)
@@ -71,6 +71,9 @@ public:
   irisSetWithEventMacro(Range, NumericValueRange<TVal>, Superclass::RangeChangedEvent)
 
 protected:
+
+  EditableNumericValueModel();
+  virtual ~EditableNumericValueModel();
 
   TVal m_Value;
   NumericValueRange<TVal> m_Range;

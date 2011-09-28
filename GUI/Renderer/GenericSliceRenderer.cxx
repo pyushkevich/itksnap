@@ -43,6 +43,18 @@ void
 GenericSliceRenderer::SetModel(GenericSliceModel *model)
 {
   this->m_Model = model;
+
+  // Build the texture map
+  this->UpdateTextureMap();
+
+  // Record and rebroadcast changes in the model
+  Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
+}
+
+void GenericSliceRenderer::OnUpdate()
+{
+  m_Model->Update();
+  this->UpdateTextureMap();
 }
 
 void
@@ -64,9 +76,6 @@ GenericSliceRenderer
   // Slice should be initialized before display
   if (m_Model->IsSliceInitialized())
     {
-    // Make sure textures are associated with image wrappers
-    this->UpdateTextureMap();
-
     // Set up lighting attributes
     glPushAttrib(GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT |
                  GL_PIXEL_MODE_BIT | GL_TEXTURE_BIT );
@@ -157,7 +166,7 @@ void GenericSliceRenderer::DrawMainTexture()
       : Vector3d(1.0);
 
     // Get the texture
-    OpenGLSliceTexture *tex = m_Texture[id->GetMain()];
+    Texture *tex = m_Texture[id->GetMain()];
 
     // Paint the grey texture with color as background
     tex->SetInterpolation(interp);
@@ -171,7 +180,7 @@ void GenericSliceRenderer::DrawMainTexture()
         it != id->GetOverlays()->end(); it++)
       {
       // Get the texture
-      OpenGLSliceTexture *tex = m_Texture[*it];
+      Texture *tex = m_Texture[*it];
 
       // Paint the texture with alpha
       tex->SetInterpolation(interp);
@@ -268,15 +277,19 @@ void GenericSliceRenderer::AssociateTexture(
   if(iw->IsInitialized())
     {
     TextureMap::iterator it = src.find(iw);
-    OpenGLSliceTexture *texture;
+    Texture *texture;
+
     if (it != src.end())
       {
       texture = it->second;
+      itk::ImageBase<2> *b1 = iw->GetDisplaySlice(m_Model->GetId()).GetPointer();
+      const itk::ImageBase<2> *b2 = texture->GetImage();
+      std::cout << "TEX1 " << b1 << "   TEX2" << b2 << std::endl;
       src.erase(it);
       }
     else
       {
-      texture = new OpenGLSliceTexture(4, GL_RGBA);
+      texture = new Texture(4, GL_RGBA);
       texture->SetImage(iw->GetDisplaySlice(m_Model->GetId()).GetPointer());
       }
 
@@ -293,25 +306,27 @@ void GenericSliceRenderer::AssociateTexture(
 
 void GenericSliceRenderer::UpdateTextureMap()
 {
-  assert(m_Model->IsSliceInitialized());
-  GenericImageData *id = m_Model->GetImageData();
-
-  // Create a new texture map where the associations go
-  TextureMap m;
-  AssociateTexture(id->GetMain(), m_Texture, m);
-  AssociateTexture(id->GetSegmentation(), m_Texture, m);
-  for(GenericImageData::WrapperIterator it = id->GetOverlays()->begin();
-      it != id->GetOverlays()->end(); it++)
+  if(m_Model->IsSliceInitialized())
     {
-    AssociateTexture(*it, m_Texture, m);
+    GenericImageData *id = m_Model->GetImageData();
+
+    // Create a new texture map where the associations go
+    TextureMap m;
+    AssociateTexture(id->GetMain(), m_Texture, m);
+    AssociateTexture(id->GetSegmentation(), m_Texture, m);
+    for(GenericImageData::WrapperIterator it = id->GetOverlays()->begin();
+        it != id->GetOverlays()->end(); it++)
+      {
+      AssociateTexture(*it, m_Texture, m);
+      }
+
+    // Delete old textures that haven't been removed after association
+    for(TextureMap::iterator it = m_Texture.begin(); it != m_Texture.end(); it++)
+      delete (it->second);
+
+    // Copy the associations
+    m_Texture = m;
     }
-
-  // Delete old textures that haven't been removed after association
-  for(TextureMap::iterator it = m_Texture.begin(); it != m_Texture.end(); it++)
-    delete (it->second);
-
-  // Copy the associations
-  m_Texture = m;
 }
 
 void GenericSliceRenderer::initializeGL()
@@ -328,5 +343,12 @@ void GenericSliceRenderer::DrawOverlays()
     (*it)->paintGL(this);
     }
 }
+
+/*
+void GenericSliceRenderer::OnModelReinitialize()
+{
+  this->UpdateTextureMap();
+}
+*/
 
 #include "GenericImageData.h"

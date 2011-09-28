@@ -32,44 +32,40 @@ int main(int argc, char *argv[])
   */
 
   // Create the global UI
-  GlobalUIModel gui;
+  SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
+  IRISApplication *driver = gui->GetDriver();
 
   // Load the user preferences
-  gui.GetDriver()->GetSystemInterface()->LoadUserPreferences();
+  driver->GetSystemInterface()->LoadUserPreferences();
 
   // Create the main window
   MainImageWindow mainwin;
-  mainwin.SetModel(&gui);
+  mainwin.SetModel(gui);
 
   // Set up the dock widget
   QDockWidget *dock = new QDockWidget("IRIS Toolbox", &mainwin);
   IRISMainToolbox *tbx = new IRISMainToolbox(&mainwin);
-  tbx->SetModel(&gui);
+  tbx->SetModel(gui);
   dock->setWidget(tbx);
   mainwin.addDockWidget(Qt::LeftDockWidgetArea, dock);
 
   // Do some assembly here (yuck)
   for(int i = 0; i < 3; i++)
     {
-    mainwin.GetSlicePanel(i)->Initialize(&gui, i);
+    mainwin.GetSlicePanel(i)->Initialize(gui, i);
     }
 
   // Read an image
   if(argc > 1)
     {
-    gui.GetDriver()->LoadMainImage(argv[1],IRISApplication::MAIN_ANY);
+    driver->LoadMainImage(argv[1],IRISApplication::MAIN_ANY);
     if(argc > 2)
       {
       //gui.GetDriver()->LoadOverlayImage(argv[2], IRISApplication::MAIN_ANY);
       if(argc > 3)
         {
-        gui.GetDriver()->LoadLabelImageFile(argv[3]);
+        driver->LoadLabelImageFile(argv[3]);
         }
-      }
-    for(int i = 0; i < 3; i++)
-      {
-      // TODO: there is a connection/event missing here!
-      gui.GetSliceModel(i)->InitializeSlice(gui.GetDriver()->GetIRISImageData());
       }
     }
 
@@ -81,6 +77,6 @@ int main(int argc, char *argv[])
 
   // If everything cool, save the preferences
   if(!rc)
-    gui.GetDriver()->GetSystemInterface()->SaveUserPreferences();
+    driver->GetSystemInterface()->SaveUserPreferences();
 }
 

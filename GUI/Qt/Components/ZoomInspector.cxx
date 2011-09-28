@@ -35,10 +35,11 @@
 
 
 ZoomInspector::ZoomInspector(QWidget *parent) :
-    QWidget(parent),
+    SNAPComponent(parent),
     ui(new Ui::ZoomInspector)
 {
   ui->setupUi(this);
+
 }
 
 ZoomInspector::~ZoomInspector()
@@ -58,8 +59,13 @@ void ZoomInspector::SetModel(GlobalUIModel *model)
               this, &ZoomPanModeToolbox::OnZoomChangeInSliceView);
   */
 
-  new QtWidgetActivator(ui->inZoom,
-                        new SNAPUIFlag(model, UIF_LINKED_ZOOM));
+  // Conditional activation of widgets
+  activateOnFlag(ui->inZoom, model, UIF_LINKED_ZOOM);
+  activateOnFlag(ui->btnZoom1, model, UIF_LINKED_ZOOM);
+  activateOnFlag(ui->btnZoom2, model, UIF_LINKED_ZOOM);
+  activateOnFlag(ui->btnZoom4, model, UIF_LINKED_ZOOM);
+
+  activateOnFlag(this, model, UIF_BASEIMG_LOADED);
 
   // Couple zoom widget to the linked zoom level
   new QtDoubleSpinboxCoupling(
@@ -75,4 +81,19 @@ void ZoomInspector::on_chkLinkedZoom_stateChanged(int state)
 void ZoomInspector::on_btnResetViews_clicked()
 {
   m_Model->GetSliceCoordinator()->ResetViewToFitInAllWindows();
+}
+
+void ZoomInspector::on_btnZoom1_pressed()
+{
+  m_Model->GetSliceCoordinator()->SetZoomPercentageInAllWindows(1);
+}
+
+void ZoomInspector::on_btnZoom2_pressed()
+{
+  m_Model->GetSliceCoordinator()->SetZoomPercentageInAllWindows(2);
+}
+
+void ZoomInspector::on_btnZoom4_pressed()
+{
+  m_Model->GetSliceCoordinator()->SetZoomPercentageInAllWindows(4);
 }

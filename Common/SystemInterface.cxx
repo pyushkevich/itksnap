@@ -49,11 +49,13 @@
 #ifdef WIN32
   #include <iostream>
   #include <process.h>
+  #include <windows.h>
 #else
   #include <sys/types.h> 
   #include <sys/ipc.h> 
   #include <sys/shm.h> 
   #include <unistd.h>
+  #include <sys/time.h>
 #endif
 
 using namespace std;
@@ -1085,3 +1087,17 @@ SystemInterface
   return us;
 }
 
+long get_system_time_ms()
+{
+#ifdef WIN32
+  SYSTEMTIME time;
+  GetSystemTime(&time);
+  WORD millis = (time.wSeconds * 1000) + time.wMilliseconds;
+  return (long) millis;
+#else
+  timeval time;
+  gettimeofday(&time, NULL);
+  long millis = (time.tv_sec * 1000) + (time.tv_usec / 1000);
+  return millis;
+#endif
+}

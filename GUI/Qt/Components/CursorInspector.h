@@ -1,16 +1,16 @@
 #ifndef CURSORINSPECTOR_H
 #define CURSORINSPECTOR_H
 
-#include <QWidget>
+#include "SNAPComponent.h"
 
-class GlobalUIModel;
 class VoxelIntensityQTableModel;
+
 
 namespace Ui {
     class CursorInspector;
 }
 
-class CursorInspector : public QWidget
+class CursorInspector : public SNAPComponent
 {
   Q_OBJECT
 
@@ -20,6 +20,11 @@ public:
   void SetModel(GlobalUIModel *);
 
   ~CursorInspector();
+
+public slots:
+
+  void onCursorEdit();
+  void onModelUpdate(const EventBucket &);
 
 protected:
 

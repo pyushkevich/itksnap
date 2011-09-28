@@ -50,11 +50,24 @@ class CommonZoomFactorModel
     : public AbstractEditableNumericValueModel<double>
 {
 public:
-  CommonZoomFactorModel(SliceWindowCoordinator *parent);
+
+  irisITKObjectMacro(CommonZoomFactorModel,
+                     AbstractEditableNumericValueModel<double>)
+
+  FIRES(ZoomLevelUpdateEvent)
+
+  void SetParentModel(SliceWindowCoordinator *coord);
+
   double GetValue() const;
   NumericValueRange<double> GetRange() const;
+
   void SetValue(double value);
-private:
+
+protected:
+
+  CommonZoomFactorModel() {}
+  virtual ~CommonZoomFactorModel() {}
+
   SliceWindowCoordinator *m_Parent;
 };
 
@@ -78,14 +91,9 @@ class SliceWindowCoordinator : public itk::Object
 {
 public:
 
-  // Event fired when the linked zoom state changes
-  class LinkedZoomUpdateEvent : public IRISEvent {};
+  irisITKObjectMacro(SliceWindowCoordinator, itk::Object)
 
-  /** Constructor */
-  SliceWindowCoordinator();
-
-  /** Virtual destructor */
-  virtual ~SliceWindowCoordinator();
+  FIRES(LinkedZoomUpdateEvent)
 
   /** Assigns three windows for the coordinator to manage */
   void RegisterSliceModels(GenericSliceModel *windows[3]);
@@ -105,6 +113,15 @@ public:
 
   /** Set the zoom to an absolute value in all windows */
   void SetZoomLevelAllWindows(float level);
+
+  /**
+    This sets the zoom 'percentage'. For example, if x=1, the zoom is set
+    such that one screen pixel is matched to the smallest of voxel dims. If
+    x=2, two pixels match the smallest voxel dim, and so on. The idea is that
+    if your image is isotropic, by setting x=1,2,4, etc., you can avoid
+    aliasing the displayed image
+    */
+  void SetZoomPercentageInAllWindows(float x);
 
   /** Reset the zoom in all windows to an optimal value, ie, such a zoom
    * that the image fits into each of the windows.  Depending on whether 
@@ -135,7 +152,7 @@ public:
 
   /** Get the model representing the optimal zoom */
   CommonZoomFactorModel *GetCommonZoomFactorModel()
-    { return &m_CommonZoomModel; }
+    { return m_CommonZoomModel; }
 
   /** Constrain a zoom factor to reasonable limits */
   float ClampZoom(unsigned int window,float zoom);
@@ -149,6 +166,12 @@ public:
 
 
 protected:
+
+  /** Constructor */
+  SliceWindowCoordinator();
+
+  /** Virtual destructor */
+  virtual ~SliceWindowCoordinator();
 
   /** Pointer to the application driver for this UI object */
   //IRISApplication *m_Driver;
@@ -178,7 +201,7 @@ protected:
   double ComputeSmallestOptimalZoomLevel();
 
   /** The linked zoom property */
-  CommonZoomFactorModel m_CommonZoomModel;
+  SmartPtr<CommonZoomFactorModel> m_CommonZoomModel;
 };
 
 #endif // __SliceWindowCoordinator_h_

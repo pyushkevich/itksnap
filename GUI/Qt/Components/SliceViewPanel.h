@@ -1,17 +1,16 @@
 #ifndef SLICEVIEWPANEL_H
 #define SLICEVIEWPANEL_H
 
-#include <QWidget>
+#include <SNAPComponent.h>
 #include <GlobalState.h>
 
 class GenericSliceView;
-class GlobalUIModel;
 
 namespace Ui {
     class SliceViewPanel;
 }
 
-class SliceViewPanel : public QWidget
+class SliceViewPanel : public SNAPComponent
 {
   Q_OBJECT
 
@@ -37,6 +36,8 @@ private slots:
   void on_inSlicePosition_valueChanged(int value);
 
   void on_btnZoomToFit_clicked();
+
+  void onModelUpdate(const EventBucket &eb);
 
 private:
   Ui::SliceViewPanel *ui;

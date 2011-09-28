@@ -12,7 +12,7 @@
 #include <QStackedLayout>
 
 SliceViewPanel::SliceViewPanel(QWidget *parent) :
-    QWidget(parent),
+    SNAPComponent(parent),
     ui(new Ui::SliceViewPanel)
 {
   ui->setupUi(this);
@@ -62,24 +62,50 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   // Attach the overlays to the master renderer. Why are we doing it here?
   GenericSliceRenderer::RendererDelegateList &overlays =
-      ui->sliceView->GetRenderer().GetOverlays();
+      ui->sliceView->GetRenderer()->GetOverlays();
   overlays.push_back(&ui->imCrosshairs->GetRenderer());
 
+  // Add listener for changes to the model
+  connectITK(m_GlobalUI->GetSliceModel(index), ModelUpdateEvent());
+  connectITK(m_GlobalUI, CursorUpdateEvent());
+
+  // Activation
+  activateOnFlag(this, m_GlobalUI, UIF_BASEIMG_LOADED);
+
+  /*
+  AddListener(m_GlobalUI->GetSliceModel(index), GenericSliceModel::ModelUpdateEvent(),
+              this, &SliceViewPanel::OnModelUpdate); */
+
   // Listen to changes to the crosshairs (for the slider)
-  AddListener(m_GlobalUI->GetDriver(), CursorUpdateEvent(),
-              this, &SliceViewPanel::OnCursorUpdate);
+  // AddListener(m_GlobalUI->GetDriver(), CursorUpdateEvent(),
+  //            this, &SliceViewPanel::OnCursorUpdate);
 
   // Listen to changes to the model (to set slider min/max)
-  AddListener(m_GlobalUI->GetSliceModel(index), SliceModelImageDimensionsChangeEvent(),
-              this, &SliceViewPanel::OnImageDimensionsUpdate);
+  // AddListener(m_GlobalUI->GetSliceModel(index), SliceModelImageDimensionsChangeEvent(),
+  //            this, &SliceViewPanel::OnImageDimensionsUpdate);
 
   // Listen to changes to the toolbar mode (to change the interactor)
-  AddListener(m_GlobalUI, ToolbarModeChangeEvent(),
-              this, &SliceViewPanel::OnToolbarModeChange);
+  // AddListener(m_GlobalUI, ToolbarModeChangeEvent(),
+  //            this, &SliceViewPanel::OnToolbarModeChange);
+}
+
+void SliceViewPanel::onModelUpdate(const EventBucket &eb)
+{
+  if(eb.HasEvent(ModelUpdateEvent()))
+    {
+    UpdateSlicePositionWidgets();
+    }
+  if(eb.HasEvent(CursorUpdateEvent()))
+    {
+    ui->sliceView->update();
+    }
 }
 
 void SliceViewPanel::UpdateSlicePositionWidgets()
 {
+  // Be sure to update the model
+  this->GetSliceView()->GetModel()->Update();
+
   // Get the current slice index
   int pos = (int) GetSliceView()->GetModel()->GetSliceIndex();
 
@@ -124,12 +150,20 @@ void SliceViewPanel::OnToolbarModeChange()
 
   switch(m_GlobalUI->GetToolbarMode())
     {
-    case CROSSHAIRS_MODE:
-      layout->setCurrentWidget(ui->imCrosshairs);
-      break;
-    case NAVIGATION_MODE:
-      layout->setCurrentWidget(ui->imZoomPan);
-      break;
+  case POLYGON_DRAWING_MODE:
+    break;
+  case PAINTBRUSH_MODE:
+    break;
+  case ANNOTATION_MODE:
+    break;
+  case ROI_MODE:
+    break;
+  case CROSSHAIRS_MODE:
+    layout->setCurrentWidget(ui->imCrosshairs);
+    break;
+  case NAVIGATION_MODE:
+    layout->setCurrentWidget(ui->imZoomPan);
+    break;
     }
 }
 
@@ -138,3 +172,4 @@ void SliceViewPanel::on_btnZoomToFit_clicked()
   m_GlobalUI->GetSliceCoordinator()->ResetViewToFitInOneWindow(m_Index);
 
 }
+

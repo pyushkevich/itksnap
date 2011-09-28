@@ -29,14 +29,15 @@
 
 #include <SNAPCommon.h>
 #include <SNAPEvents.h>
-#include <StateManagement.h>
+#include <AbstractModel.h>
+#include <UIState.h>
 
 class IRISApplication;
 class SNAPAppearanceSettings;
 class GenericSliceModel;
 class OrthogonalSliceCursorNavigationModel;
 class SliceWindowCoordinator;
-class GlobalUIModel;
+class GuidedNativeImageIO;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -51,48 +52,24 @@ enum ToolbarModeType
   ROI_MODE
 };
 
-/** A list of states that the Global UI may be in. Whenever any of these
-  states changes, the UI issues a StateChangedEvent */
-enum UIState {
-  UIF_GRAY_LOADED,
-  UIF_RGB_LOADED,
-  UIF_BASEIMG_LOADED,  // i.e., Gray or RGB loaded
-  UIF_OVERLAY_LOADED,  // i.e., Baseimg loaded and at least one overlay
-  UIF_IRIS_ACTIVE,     // i.e., system in main interaction mode
-  UIF_MESH_DIRTY,
-  UIF_MESH_ACTION_PENDING,
-  UIF_ROI_VALID,
-  UIF_LINKED_ZOOM,
-  UIF_UNDO_POSSIBLE,
-  UIF_REDO_POSSIBLE,
-  UIF_UNSAVED_CHANGES,
-  UIF_MESH_SAVEABLE
-};
+
 
 /**
-  A BooleanCondition implementation that queries the GlobalUIModel
-  about different UI states.
+
+
   */
-class SNAPUIFlag : public BooleanCondition
-{
-public:
-
-  SNAPUIFlag(GlobalUIModel *model, UIState state);
-  bool operator() () const;
-
-private:
-  GlobalUIModel *m_Model;
-  UIState m_State;
-};
-
-
-class GlobalUIModel : public itk::Object
+class GlobalUIModel : public AbstractModel
 {
 
 public:
 
-  GlobalUIModel();
-  ~GlobalUIModel();
+  irisITKObjectMacro(GlobalUIModel, AbstractModel)
+
+  // Events fired by this object
+  FIRES(CursorUpdateEvent)
+  FIRES(LayerChangeEvent)
+  FIRES(LinkedZoomUpdateEvent)
+
 
   irisGetMacro(Driver, IRISApplication *)
 
@@ -113,6 +90,10 @@ public:
   GetCursorNavigationModel(unsigned int i) const
     { return m_CursorNavigationModel[i]; }
 
+  /** Load the main image */
+  void LoadGrayImage(GuidedNativeImageIO *io);
+
+
   /**
     Check the state of the system. This class will issue StateChangeEvent()
     when one of the flags has changed. This method can be used together with
@@ -120,24 +101,25 @@ public:
    */
   bool checkState(UIState state);
 
-  // Callback used to map various events into the state change event
-  void OnStateChange();
 
 protected:
 
-  IRISApplication *m_Driver;
+  GlobalUIModel();
+  ~GlobalUIModel();
+
+  SmartPtr<IRISApplication> m_Driver;
 
   SNAPAppearanceSettings *m_AppearanceSettings;
 
   // A set of three slice models, representing the UI state of each
   // of the 2D slice panels the user interacts with
-  GenericSliceModel *m_SliceModel[3];
+  SmartPtr<GenericSliceModel> m_SliceModel[3];
 
   // A set of models that support cursor navigation
-  OrthogonalSliceCursorNavigationModel *m_CursorNavigationModel[3];
+  SmartPtr<OrthogonalSliceCursorNavigationModel> m_CursorNavigationModel[3];
 
   // Window coordinator
-  SliceWindowCoordinator *m_SliceCoordinator;
+  SmartPtr<SliceWindowCoordinator> m_SliceCoordinator;
 
   // The current 2D toolbar mode
   ToolbarModeType m_ToolbarMode;

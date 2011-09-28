@@ -90,6 +90,7 @@ CONFIGURE_FILE(
 SET(LOGIC_CXX
   ${SNAP_BINARY_DIR}/SNAPCommon.cxx
   Common/CommandLineArgumentParser.cxx
+  Common/EventBucket.cxx
   Common/IRISException.cxx
   Common/Registry.cxx
   Common/SystemInterface.cxx
@@ -223,55 +224,77 @@ SET(LOGIC_HEADERS
 
 # These files have the UI model code, which is GUI-TK independent
 SET(UI_GENERIC_CXX
+  GUI/Model/AbstractModel.cxx
   GUI/Model/GenericSliceModel.cxx
   GUI/Model/GlobalUIModel.cxx
   GUI/Model/ImageIOWizardModel.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
   GUI/Model/SNAPAppearanceSettings.cxx
+  GUI/Model/SNAPUIFlag.cxx
+  GUI/Model/StateManagement.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
 )
 
+SET(UI_GENERIC_HEADERS
+  GUI/Model/AbstractModel.h
+  GUI/Model/GenericSliceModel.h
+  GUI/Model/GlobalUIModel.h
+  GUI/Model/ImageIOWizardModel.h
+  GUI/Model/OrthogonalSliceCursorNavigationModel.h
+  GUI/Model/SNAPAppearanceSettings.h
+  GUI/Model/SNAPUIFlag.h
+  GUI/Model/SliceWindowCoordinator.h
+  GUI/Model/StateManagement.h
+  GUI/Model/UIState.h
+  GUI/Renderer/CrosshairsRenderer.h
+  GUI/Renderer/GenericSliceRenderer.h
+)
+
 # These files contain the Qt-specific user interface source code
 SET(UI_QT_CXX
-  GUI/Qt/View/CrosshairsInteractionMode.cxx
-  GUI/Qt/View/GenericSliceView.cxx
-  GUI/Qt/View/OpenGLSliceTexture.cxx
-  GUI/Qt/View/QtInteractionDelegateWidget.cxx
-  GUI/Qt/View/SNAPQGLWidget.cxx
-  GUI/Qt/View/InteractionMode.cxx
-  GUI/Qt/View/InteractionModeClient.cxx
-  GUI/Qt/View/ThumbnailInteractionMode.cxx
   GUI/Qt/Components/CursorInspector.cxx
+  GUI/Qt/Components/LatentITKEventNotifier.cxx
   GUI/Qt/Components/QtDoubleSpinboxCoupling.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
+  GUI/Qt/Components/SNAPComponent.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
   GUI/Qt/Components/VoxelIntensityQTableModel.cxx
   GUI/Qt/Components/ZoomInspector.cxx
+  GUI/Qt/View/CrosshairsInteractionMode.cxx
+  GUI/Qt/View/GenericSliceView.cxx
+  GUI/Qt/View/InteractionMode.cxx
+  GUI/Qt/View/InteractionModeClient.cxx
+  GUI/Qt/View/OpenGLSliceTexture.cxx
+  GUI/Qt/View/QtInteractionDelegateWidget.cxx
+  GUI/Qt/View/SNAPQGLWidget.cxx
+  GUI/Qt/View/ThumbnailInteractionMode.cxx
+  GUI/Qt/Windows/IRISMainToolbox.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
-  GUI/Qt/Windows/IRISMainToolbox.cxx
   GUI/Qt/Windows/QtStyles.cxx
 )
 
 # The header files for the UI project
 SET(UI_MOC_HEADERS
+  GUI/Qt/Components/CursorInspector.h
+  GUI/Qt/Components/LatentITKEventNotifier.h
+  GUI/Qt/Components/QtDoubleSpinboxCoupling.h
+  GUI/Qt/Components/QtWidgetActivator.h
+  GUI/Qt/Components/SNAPComponent.h
+  GUI/Qt/Components/SliceViewPanel.h
+  GUI/Qt/Components/VoxelIntensityQTableModel.h
+  GUI/Qt/Components/ZoomInspector.h
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
   GUI/Qt/View/QtInteractionDelegateWidget.h
   GUI/Qt/View/SNAPQGLWidget.h
   GUI/Qt/View/ThumbnailInteractionMode.h
-  GUI/Qt/Components/CursorInspector.h
-  GUI/Qt/Components/QtDoubleSpinboxCoupling.h
-  GUI/Qt/Components/QtWidgetActivator.h
-  GUI/Qt/Components/SliceViewPanel.h
-  GUI/Qt/Components/VoxelIntensityQTableModel.h
-  GUI/Qt/Components/ZoomInspector.h
+  GUI/Qt/Windows/IRISMainToolbox.h
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
-  GUI/Qt/Windows/IRISMainToolbox.h
   GUI/Qt/Windows/MainImageWindow.h
 )
 
@@ -354,11 +377,12 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing
     ${SNAP_SOURCE_DIR}/Logic/Slicing
     ${SNAP_SOURCE_DIR}/GUI
-    ${SNAP_SOURCE_DIR}/GUI/Components
     ${SNAP_SOURCE_DIR}/GUI/Model
     ${SNAP_SOURCE_DIR}/GUI/Renderer
-    ${SNAP_SOURCE_DIR}/GUI/View
-    ${SNAP_SOURCE_DIR}/GUI/Windows
+    ${SNAP_SOURCE_DIR}/GUI/Qt
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Components
+    ${SNAP_SOURCE_DIR}/GUI/Qt/View
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Windows
     ${SNAP_SOURCE_DIR}/Testing
     ${SNAP_BINARY_DIR}
     ${OPENGL_INCLUDE_PATH}
@@ -423,7 +447,7 @@ QT4_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
 ADD_LIBRARY(itksnaplogic ${LOGIC_CXX} ${LOGIC_HEADERS})
 
 # The UI model library
-ADD_LIBRARY(itksnapui_model ${UI_GENERIC_CXX})
+ADD_LIBRARY(itksnapui_model ${UI_GENERIC_CXX} ${UI_GENERIC_HEADERS})
 
 # The user interface code library
 ADD_LIBRARY(itksnapui_qt

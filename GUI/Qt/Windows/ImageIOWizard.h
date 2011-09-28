@@ -14,6 +14,8 @@ class QStandardItemModel;
 class QMenu;
 class QTreeWidget;
 class QTreeWidgetItem;
+class QTableWidget;
+class QSpinBox;
 
 // Helper classes in their own namespace, so I can use simple class names
 namespace imageiowiz
@@ -31,6 +33,8 @@ public:
 
 protected:
 
+  bool ErrorMessage(const char *subject, const char *detail = NULL);
+  bool ConditionalError(bool rc, const char *subject, const char *detail);
   ImageIOWizardModel *m_Model;
 };
 
@@ -41,7 +45,7 @@ class SelectFilePage : public AbstractPage
 public:
   explicit SelectFilePage(QWidget *parent = 0);
 
-  int nextId();
+  int nextId() const;
   void initializePage();
   bool validatePage();
   // bool isComplete() const;
@@ -50,7 +54,7 @@ public slots:
 
   void on_btnBrowse_pressed();
   void on_inFilename_textChanged(const QString &text);
-  void on_HistorySelection();
+  void onHistorySelection();
 
 private:
   QLineEdit *m_InFilename;
@@ -72,6 +76,7 @@ public:
   int nextId() const { return -1; }
   void initializePage();
 
+  bool validatePage();
 private:
   // Helper for building the tree
   void AddItem(QTreeWidgetItem *parent, const char *key, ImageIOWizardModel::SummaryItem si);
@@ -80,7 +85,49 @@ private:
   QTreeWidget *m_Tree;
 };
 
+
+class DICOMPage : public AbstractPage
+{
+  Q_OBJECT
+
+public:
+
+  explicit DICOMPage(QWidget *parent = 0);
+  int nextId() const;
+  void initializePage();
+  bool validatePage();
+
+private:
+
+  QTableWidget *m_Table;
+};
+
+class RawPage : public AbstractPage
+{
+  Q_OBJECT
+
+public:
+
+  explicit RawPage(QWidget *parent = 0);
+  int nextId() const;
+  void initializePage();
+  bool validatePage();
+  virtual bool isComplete() const;
+
+public slots:
+  void onHeaderSizeChange();
+
+private:
+  QSpinBox *m_Dims[3], *m_HeaderSize;
+  QComboBox *m_InFormat, *m_InEndian;
+  QSpinBox *m_OutImpliedSize, *m_OutActualSize;
+  unsigned long m_FileSize;
+};
+
 } // end namespace
+
+
+
 
 class ImageIOWizard : public QWizard
 {

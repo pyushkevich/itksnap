@@ -25,7 +25,10 @@
 =========================================================================*/
 
 #include "QtWidgetActivator.h"
+#include "LatentITKEventNotifier.h"
 #include <QWidget>
+#include <StateManagement.h>
+#include "GlobalUIModel.h"
 
 QtWidgetActivator
 ::QtWidgetActivator(QWidget *parent, BooleanCondition *cond)
@@ -34,8 +37,10 @@ QtWidgetActivator
   // Register to listen to the state change events
   m_Target = parent;
   m_Condition = cond;
-  AddListener(cond, StateChangeEvent(),
-              this, &QtWidgetActivator::OnStateChange);
+
+  // React to events after control returns to the main UI loop
+  LatentITKEventNotifier::connect(
+        cond, StateMachineChangeEvent(), this, SLOT(OnStateChange()));
 
   // Update the state of the widget
   this->OnStateChange();
@@ -43,7 +48,6 @@ QtWidgetActivator
 
 QtWidgetActivator::~QtWidgetActivator()
 {
-  delete m_Condition;
 }
 
 void QtWidgetActivator::OnStateChange()

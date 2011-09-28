@@ -33,9 +33,11 @@
 
 =========================================================================*/
 #include "OpenGLSliceTexture.h"
+#include "ImageWrapper.h"
 
 
-OpenGLSliceTexture
+template<class TPixel>
+OpenGLSliceTexture<TPixel>
 ::OpenGLSliceTexture()
 {
   // Set to -1 to force a call to 'generate'
@@ -49,12 +51,10 @@ OpenGLSliceTexture
   m_GlFormat = GL_LUMINANCE;
   m_GlType = GL_UNSIGNED_BYTE;
   m_InterpolationMode = GL_NEAREST;
-
-  // Initialize the buffer pointer
-  m_Buffer = NULL;
 }
 
-OpenGLSliceTexture
+template<class TPixel>
+OpenGLSliceTexture<TPixel>
 ::OpenGLSliceTexture(GLuint components, GLenum format)
 {
   // Set to -1 to force a call to 'generate'
@@ -68,20 +68,19 @@ OpenGLSliceTexture
   m_GlFormat = format;
   m_GlType = GL_UNSIGNED_BYTE;
   m_InterpolationMode = GL_NEAREST;
-
-  // Initialize the buffer pointer
-  m_Buffer = NULL;
 }
 
-OpenGLSliceTexture
+template<class TPixel>
+OpenGLSliceTexture<TPixel>
 ::~OpenGLSliceTexture()
 {
   if(m_IsTextureInitalized)
     glDeleteTextures(1,&m_TextureIndex);
 }
 
+template<class TPixel>
 void
-OpenGLSliceTexture
+OpenGLSliceTexture<TPixel>
 ::SetInterpolation(GLenum interp)
 {
   assert(interp == GL_LINEAR || interp == GL_NEAREST);
@@ -93,8 +92,9 @@ OpenGLSliceTexture
 }
 
 
+template<class TPixel>
 void
-OpenGLSliceTexture
+OpenGLSliceTexture<TPixel>
 ::Update()
 {
   // Better have an image
@@ -144,15 +144,16 @@ OpenGLSliceTexture
 
   // Copy a subtexture of correct size into the image
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, szImage[0], szImage[1],
-    m_GlFormat, m_GlType, m_Buffer);
+                  m_GlFormat, m_GlType, m_Image->GetBufferPointer());
 
   // Remember the image's timestamp
   m_UpdateTime = m_Image->GetPipelineMTime();
 }
 
 
+template<class TPixel>
 void
-OpenGLSliceTexture
+OpenGLSliceTexture<TPixel>
 ::Draw(const Vector3d &clrBackground)
 {
   // Update the texture
@@ -200,8 +201,9 @@ OpenGLSliceTexture
 }
 
 
+template<class TPixel>
 void
-OpenGLSliceTexture
+OpenGLSliceTexture<TPixel>
 ::DrawTransparent(unsigned char alpha)
 {
   // Update the texture
@@ -244,3 +246,13 @@ OpenGLSliceTexture
   glPopAttrib();
 }
 
+template<class TPixel>
+void OpenGLSliceTexture<TPixel>::SetImage(ImageType *inImage)
+{
+  m_Image = inImage;
+  m_Image->GetSource()->UpdateLargestPossibleRegion();
+  m_UpdateTime = 0;
+}
+
+// Explicit instantiation of templates
+template class OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType>;

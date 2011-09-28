@@ -30,8 +30,26 @@
 #include <GenericImageData.h>
 #include <SNAPAppearanceSettings.h>
 
-GenericSliceModel::GenericSliceModel(
-  GlobalUIModel *model, int index)
+GenericSliceModel::GenericSliceModel()
+{
+  // Copy parent pointers
+  m_ParentUI = NULL;
+  m_Driver = NULL;
+
+  // Set the window ID
+  m_Id = -1;
+
+  // Initalize the margin
+  m_Margin = 2;
+
+  // Initialize the zoom management
+  m_ManagedZoom = false;
+
+  // The slice is not yet initialized
+  m_SliceInitialized = false;
+}
+
+void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
 {
   // Copy parent pointers
   m_ParentUI = model;
@@ -43,15 +61,19 @@ GenericSliceModel::GenericSliceModel(
   // The slice is not yet initialized
   m_SliceInitialized = false;
 
-  // Initalize the margin
-  m_Margin = 2;
+  // Listen to events that require action from this object
+  Rebroadcast(
+        m_Driver, MainImageDimensionsChangeEvent(),
+        ModelUpdateEvent());
+}
 
-  // Initialize the zoom management
-  m_ManagedZoom = false;
-
-  // Register to receive events from IRIS driver
-  AddListener(m_Driver, CurrentImageDataDimensionsChangeEvent(),
-              this, &GenericSliceModel::OnSourceDataUpdate);
+void GenericSliceModel::OnUpdate()
+{
+  // Has there been a change in the image dimensions?
+  if(m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
+    {
+    this->InitializeSlice(m_Driver->GetCurrentImageData());
+    }
 }
 
 void GenericSliceModel
@@ -158,7 +180,7 @@ GenericSliceModel
   m_SliceInitialized = true;
 
   // Notify listeners that image content has changed
-  InvokeEvent(SliceModelImageDimensionsChangeEvent());
+  // InvokeEvent(SliceModelImageDimensionsChangeEvent());
 
   // Compute the optimal zoom for this slice
   ComputeOptimalZoom();
@@ -418,10 +440,12 @@ unsigned int GenericSliceModel::GetNumberOfSlices() const
   return m_SliceSize[2];
 }
 
+/*
 void GenericSliceModel::OnSourceDataUpdate()
 {
   this->InitializeSlice(m_Driver->GetCurrentImageData());
 }
+*/
 
 void GenericSliceModel::SetViewPosition(Vector2f pos)
 {

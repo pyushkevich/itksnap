@@ -36,14 +36,16 @@
 #define __IRIS_Exceptions_h_
 
 #include "SNAPCommon.h"
+#include <exception>
 
 using std::string;
+using std::exception;
 
 /** 
  * \class IRISException
  * \brief Sets up a family of SNAP/IRIS exceptions
  */
-class IRISException {
+class IRISException : public exception {
 protected:
   string m_SimpleMessage;
 
@@ -51,9 +53,9 @@ public:
   IRISException();
   IRISException(const char *message, ...);
 
-  virtual ~IRISException();
+  virtual ~IRISException() throw() {};
 
-  const char * what() { return m_SimpleMessage.c_str(); }
+  virtual const char * what() const throw() { return m_SimpleMessage.c_str(); }
 
   operator const char *();
 };
@@ -66,7 +68,7 @@ class name : public parent { \
 public: \
         name() : parent() {} \
           name(const char *message) : parent(message) {} \
-          virtual ~name() {} \
+          virtual ~name() throw() {}  \
 };
 
 irisExceptionMacro(IRISExceptionIO,IRISException)

@@ -34,66 +34,53 @@
 #include <GenericImageData.h>
 
 
-SNAPUIFlag::SNAPUIFlag(GlobalUIModel *model, UIState state)
-{
-  m_Model = model;
-  m_State = state;
-  AddListener<SNAPUIFlag>(m_Model, StateChangeEvent(),
-              this, &SNAPUIFlag::OnStateChange);
-}
-
-bool SNAPUIFlag::operator() () const
-{
-  return m_Model->checkState(m_State);
-}
 
 
 
 GlobalUIModel::GlobalUIModel()
+  : AbstractModel()
 {
   // Create the appearance settings objects
   m_AppearanceSettings = new SNAPAppearanceSettings();
 
   // Create the IRIS application login
-  m_Driver = new IRISApplication();
+  m_Driver = IRISApplication::New();
 
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)
     {
-    m_SliceModel[i] = new GenericSliceModel(this, i);
+    m_SliceModel[i] = GenericSliceModel::New();
+    m_SliceModel[i]->Initialize(this, i);
     m_CursorNavigationModel[i] =
-        new OrthogonalSliceCursorNavigationModel(m_SliceModel[i]);
+        OrthogonalSliceCursorNavigationModel::New();
+    m_CursorNavigationModel[i]->SetParent(m_SliceModel[i]);
     }
 
   // Connect them together with the coordinator
-  m_SliceCoordinator = new SliceWindowCoordinator();
-  m_SliceCoordinator->RegisterSliceModels(m_SliceModel);
+  m_SliceCoordinator = SliceWindowCoordinator::New();
+  GenericSliceModel *ptr[3] =
+    { m_SliceModel[0], m_SliceModel[1], m_SliceModel[2] };
+  m_SliceCoordinator->RegisterSliceModels(ptr);
 
   // Listen to state changes from the slice coordinator
-  AddListener(m_SliceCoordinator,
-              SliceWindowCoordinator::LinkedZoomUpdateEvent(),
-              this, &GlobalUIModel::OnStateChange);
+  Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());
+  Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), StateMachineChangeEvent());
+
+  // Rebroadcast cursor change events
+  Rebroadcast(m_Driver, CursorUpdateEvent(), CursorUpdateEvent());
+
+  // Rebroadcast image layer change events
+  Rebroadcast(m_Driver, LayerChangeEvent(), LayerChangeEvent());
+  Rebroadcast(m_Driver, LayerChangeEvent(), StateMachineChangeEvent());
 
   // Set the defaults for properties
   m_ToolbarMode = CROSSHAIRS_MODE;
 }
 
-void GlobalUIModel::OnStateChange()
-{
-  InvokeEvent(StateChangeEvent());
-}
-
 GlobalUIModel::~GlobalUIModel()
 {
   delete m_AppearanceSettings;
-  delete m_Driver;
-  delete m_SliceCoordinator;
-  for (unsigned int i = 0; i < 3; i++)
-    {
-    delete m_SliceModel[i];
-    delete m_CursorNavigationModel[i];
-    }
-  }
+}
 
 bool GlobalUIModel::checkState(UIState state)
 {
@@ -129,4 +116,10 @@ bool GlobalUIModel::checkState(UIState state)
     }
 
   return false;
+}
+
+void GlobalUIModel::LoadGrayImage(GuidedNativeImageIO *io)
+{
+  m_Driver->UnloadOverlays();
+  m_Driver->UpdateIRISMainImage(io, IRISApplication::MAIN_SCALAR);
 }

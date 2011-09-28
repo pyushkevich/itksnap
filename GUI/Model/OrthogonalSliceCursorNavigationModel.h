@@ -29,16 +29,17 @@
 
 #include <itkObject.h>
 #include <SNAPCommon.h>
+#include "AbstractModel.h"
 
 class GenericSliceModel;
 
-class OrthogonalSliceCursorNavigationModel : public itk::Object
+class OrthogonalSliceCursorNavigationModel : public AbstractModel
 {
 public:
 
-  OrthogonalSliceCursorNavigationModel(GenericSliceModel *parent)
-    { this->m_Parent = parent; }
+  irisITKObjectMacro(OrthogonalSliceCursorNavigationModel, AbstractModel)
 
+  irisSetMacro(Parent, GenericSliceModel *)
   irisGetMacro(Parent, GenericSliceModel *)
 
   // Move 3D cursor to (x,y) point on the screen supplied by user
@@ -77,7 +78,10 @@ public:
 
 
 
-private:
+protected:
+
+  OrthogonalSliceCursorNavigationModel() {}
+  ~OrthogonalSliceCursorNavigationModel() {}
 
   // Zoom and pan factors at the beginning of interaction
   Vector2f m_StartViewPosition;

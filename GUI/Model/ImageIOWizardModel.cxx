@@ -5,9 +5,19 @@
 #include "SystemInterface.h"
 #include "ImageCoordinateGeometry.h"
 #include <itksys/SystemTools.hxx>
+
+#include "IRISException.h"
 #include <sstream>
 
-ImageIOWizardModel::ImageIOWizardModel(
+
+ImageIOWizardModel::ImageIOWizardModel()
+{
+  m_Parent = NULL;
+  m_GuidedIO = NULL;
+}
+
+
+void ImageIOWizardModel::Initialize(
     GlobalUIModel *parent, Mode mode, const char *name)
 {
   m_Parent = parent;
@@ -121,7 +131,7 @@ bool ImageIOWizardModel
 }
 
 std::string
-ImageIOWizardModel::GetBrowseDirectory(std::string &file)
+ImageIOWizardModel::GetBrowseDirectory(const std::string &file)
 {
   // If empty return empty
   if(file.length() == 0)
@@ -146,11 +156,6 @@ ImageIOWizardModel::HistoryType ImageIOWizardModel::GetHistory() const
 {
   return m_Parent->GetDriver()->GetSystemInterface()
       ->GetHistory(m_HistoryName.c_str());
-}
-
-void ImageIOWizardModel::SetSelectedFormat(ImageIOWizardModel::FileFormat fmt)
-{
-  GuidedNativeImageIO::SetFileFormat(m_Registry, fmt);
 }
 
 template<class T>
@@ -222,6 +227,18 @@ ImageIOWizardModel::GetSummaryItem(ImageIOWizardModel::SummaryItem item)
   return std::string("");
 }
 
+void ImageIOWizardModel::SetSelectedFormat(ImageIOWizardModel::FileFormat fmt)
+{
+  GuidedNativeImageIO::SetFileFormat(m_Registry, fmt);
+}
+
+
+ImageIOWizardModel::FileFormat ImageIOWizardModel::GetSelectedFormat()
+{
+  return GuidedNativeImageIO::GetFileFormat(m_Registry);
+}
+
+
 void ImageIOWizardModel::LoadImage(std::string filename)
 {
   m_GuidedIO->ReadNativeImage(filename.c_str(), m_Registry);
@@ -235,5 +252,57 @@ bool ImageIOWizardModel::CheckImageValidity()
 void ImageIOWizardModel::Reset()
 {
   m_Registry.Clear();
+}
+
+void ImageIOWizardModel::ProcessDicomDirectory(const std::string &filename)
+{
+  // Here is a request
+  GuidedNativeImageIO::DicomRequest req;
+  req.push_back(GuidedNativeImageIO::DicomRequestField(
+                  0x0020, 0x0011, "SeriesNumber"));
+
+  // Get the directory
+  std::string dir = GetBrowseDirectory(filename);
+
+  // Get the registry
+  GuidedNativeImageIO::ParseDicomDirectory(dir, m_DicomContents, req);
+}
+
+void ImageIOWizardModel
+::LoadDicomSeries(const std::string &filename, int series)
+{
+  // Set up the registry for DICOM IO
+  m_Registry["DICOM.SeriesId"] << m_DicomContents[series]["SeriesId"][""];
+  m_Registry.Folder("DICOM.SeriesFiles").PutArray(
+        m_DicomContents[series].Folder("SeriesFiles").GetArray(std::string()));
+
+  // Set the format to DICOM
+  SetSelectedFormat(GuidedNativeImageIO::FORMAT_DICOM);
+
+  // Get the directory
+  std::string dir = GetBrowseDirectory(filename);
+
+  // Load image
+  m_GuidedIO->ReadNativeImage(dir.c_str(), m_Registry);
+}
+
+unsigned long ImageIOWizardModel::GetFileSizeInBytes(const std::string &file)
+{
+  return itksys::SystemTools::FileLength(file.c_str());
+}
+
+bool ImageIOWizardModel::IsImageLoaded() const
+{
+  // TODO: this may have to change based on validity checks
+  return m_GuidedIO->IsNativeImageLoaded();
+}
+
+void ImageIOWizardModel::Finalize()
+{
+  if(IsImageLoaded())
+    {
+    m_Parent->GetDriver()->GetSystemInterface()->UpdateHistory(
+          m_HistoryName.c_str(), m_GuidedIO->GetFileNameOfNativeImage().c_str());
+    }
 }
 

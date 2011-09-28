@@ -57,6 +57,7 @@
 #include "itkImageSeriesReader.h"
 #include "itkImageIOFactory.h"
 #include "itkGDCMSeriesFileNames.h"
+#include "gdcmFile.h"
 #include "itkImageToVectorImageFilter.h"
 
 #include "itkMinimumMaximumImageCalculator.h"
@@ -114,7 +115,7 @@ GuidedNativeImageIO
     {
     for(int i = 0; i < FORMAT_COUNT; i++)
       m_EnumFileFormat.AddPair(
-        (FileFormat)(FORMAT_MHA + i), 
+        (FileFormat)(i),
         m_FileFormatDescrictorArray[i].name.c_str());
 
     m_EnumRawPixelType.AddPair(PIXELTYPE_CHAR, "CHAR");
@@ -257,7 +258,7 @@ GuidedNativeImageIO
         case PIXELTYPE_FLOAT:  CreateRawImageIO<float>(fldRaw);          break;
         case PIXELTYPE_DOUBLE: CreateRawImageIO<double>(fldRaw);         break;
         default:
-          throw itk::ExceptionObject("Unsupported Pixel Type when reading Raw File");
+          throw IRISException("Unsupported pixel type when reading raw file");
         }
       }
       break;
@@ -287,14 +288,14 @@ GuidedNativeImageIO
   // Create the header corresponding to the current image type
   CreateImageIO(FileName, folder, true);
   if(!m_IOBase)
-    throw itk::ExceptionObject("Unsupported image file type");
+    throw IRISException("Unsupported or missing image file format");
 
   // Read the information about the image
   if(m_FileFormat == FORMAT_DICOM)
     {
     // Check if the array of filenames has been provided for us
     m_DICOMFiles = 
-      folder.Folder("DICOM.SliceFiles").GetArray(std::string("NULL"));
+      folder.Folder("DICOM.SeriesFiles").GetArray(std::string("NULL"));
 
     // If no filenames were specified, read the first series in the directory
     if(m_DICOMFiles.size() == 0)
@@ -309,7 +310,7 @@ GuidedNativeImageIO
 
       // There must be at least of series
       if(sids.size() == 0)
-        throw itk::ExceptionObject("No DICOM series found in the DICOM directory");
+        throw IRISException("No DICOM series found in directory '%s'",FileName);
     
       // Read the first DICOM series in the directory
       m_DICOMFiles = nameGenerator->GetFileNames(sids.front().c_str());
@@ -317,12 +318,18 @@ GuidedNativeImageIO
 
     // Read the information from the first filename
     if(m_DICOMFiles.size() == 0)
-      throw itk::ExceptionObject("No DICOM files found in the DICOM directory");
+      throw IRISException("No DICOM files found in directory '%s'",FileName);
     m_IOBase->SetFileName(m_DICOMFiles[0]);
     m_IOBase->ReadImageInformation();
     }
   else
     {
+    // Check that the reader actually supports this format. We skip this for
+    // the RAW format, because it stupidly refuses to read files named other
+    // than with the .raw extension
+    if(m_FileFormat != FORMAT_RAW && !m_IOBase->CanReadFile(FileName))
+      throw IRISException(
+          "Image reader for the selected format can not read the selected file.");
     m_IOBase->SetFileName(FileName);
     m_IOBase->ReadImageInformation();
     }
@@ -345,7 +352,7 @@ GuidedNativeImageIO
     case itk::ImageIOBase::FLOAT:  DoReadNative<float>(FileName, folder);          break;
     case itk::ImageIOBase::DOUBLE: DoReadNative<double>(FileName, folder);         break;
     default: 
-      throw itk::ExceptionObject("Unknown Pixel Type when reading image");
+      throw IRISException("Unknown pixel type when reading image");
     }
 
   // Get rid of the IOBase, it may store useless data (in case of NIFTI)
@@ -566,7 +573,7 @@ RescaleNativeImageToScalar<TPixel>::operator()(GuidedNativeImageIO *nativeIO)
     case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
     case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
     default: 
-      throw itk::ExceptionObject("Unknown Pixel Type when reading image");
+      throw IRISException("Unknown pixel type when reading image");
     }
 
   // Return the output image
@@ -741,7 +748,7 @@ CastNativeImageBase<TPixel,TCastFunctor>
     case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
     case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
     default: 
-      throw itk::ExceptionObject("Unknown Pixel Type when reading image");
+      throw IRISException("Unknown pixel type when reading image");
     }
 
   // Return the output image
@@ -849,6 +856,104 @@ GuidedNativeImageIO::GuessFormatForFileName(
   // Nothing matched
   return FORMAT_COUNT;
 }
+
+
+
+void GuidedNativeImageIO::ParseDicomDirectory(
+    const std::string &dir,
+    GuidedNativeImageIO::RegistryArray &reg,
+    const GuidedNativeImageIO::DicomRequest &req)
+{
+  // Must have a directory
+  if(!itksys::SystemTools::FileIsDirectory(dir.c_str()))
+    throw IRISException(
+        "Trying to look for DICOM series in '%s', which is not a directory",
+        dir.c_str());
+
+  // Set up the DICOM helper
+  gdcm::SerieHelper sh;
+  sh.SetUseSeriesDetails(true);
+  sh.SetLoadMode(0);
+  sh.SetDirectory(dir, false);
+
+  // Clear output
+  reg.clear();
+
+  // Loop over all series
+  for(gdcm::FileList *flist = sh.GetFirstSingleSerieUIDFileSet();
+      flist != NULL; flist = sh.GetNextSingleSerieUIDFileSet())
+    {
+    if(flist->size())
+      {
+      // Order the series
+      sh.OrderFileList(flist);
+
+      // Get the file
+      gdcm::File *file = (*flist)[0];
+
+      // Loop over all filenames to collect filenames and see if the image
+      // dimensions are consistent.
+      std::vector<std::string> fnList;
+      int dims[3] = { file->GetXSize(), file->GetYSize(), file->GetZSize() };
+      bool same_dims = true;
+
+      for(size_t k = 0; k < flist->size(); k++)
+        {
+        gdcm::File *fk = (*flist)[k];
+        fnList.push_back(fk->GetFileName());
+        if(fk->GetXSize() != dims[0] ||
+           fk->GetYSize() != dims[1] ||
+           fk->GetZSize() != dims[2])
+          same_dims = false;
+        }
+
+      // Create a registry entry
+      Registry r;
+
+      // Create its unique series ID
+      r["SeriesId"] << sh.CreateUniqueSeriesIdentifier(file);
+
+      // Also store the files
+      r.Folder("SeriesFiles").PutArray(fnList);
+
+      // Get textual description
+      r["SeriesDescription"] << file->GetEntryValue(0x0008, 0x103e);
+
+      // Get dimensions
+      std::ostringstream oss;
+      if(same_dims)
+        {
+        oss << dims[0] << " x " << dims[1];
+        if(dims[2] != 1)
+          oss << " x " << dims[2];
+        }
+      else
+        {
+        oss << "Variable";
+        }
+      r["Dimensions"] << oss.str();
+
+      // Get the number of images
+      r["NumberOfImages"] << flist->size();
+
+      // Get all other fields that the user wants
+      for(DicomRequest::const_iterator it = req.begin();
+          it != req.end(); ++it)
+        {
+        r[it->code] << file->GetEntryValue(it->group, it->elem);
+        }
+
+      reg.push_back( r );
+      }
+    }
+
+  // Complain if no series have been found
+  if(reg.size() == 0)
+    throw IRISException("No DICOM series found in directory %s", dir.c_str());
+}
+
+
+
 
 /*
 
