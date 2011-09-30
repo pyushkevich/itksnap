@@ -53,6 +53,10 @@ void GenericSliceView::SetModel(GenericSliceModel *model)
         m_Model, SliceModelGeometryChangeEvent(),
         this, SLOT(onModelUpdate(const EventBucket &)));
 
+  LatentITKEventNotifier::connect(
+        m_Renderer, AppearanceUpdateEvent(),
+        this, SLOT(onModelUpdate(const EventBucket &)));
+
   // Add listeners to events supported by the model
   /*
   AddListener(m_Model, SliceModelImageDimensionsChangeEvent(),

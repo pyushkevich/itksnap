@@ -32,6 +32,7 @@
 #include <OrthogonalSliceCursorNavigationModel.h>
 #include <SliceWindowCoordinator.h>
 #include <GenericImageData.h>
+#include <GuidedNativeImageIO.h>
 
 
 
@@ -123,3 +124,49 @@ void GlobalUIModel::LoadGrayImage(GuidedNativeImageIO *io)
   m_Driver->UnloadOverlays();
   m_Driver->UpdateIRISMainImage(io, IRISApplication::MAIN_SCALAR);
 }
+
+#include "IOActions.h"
+
+void GlobalUIModel
+::LoadImageNonInteractive(const char *fname,
+                          AbstractLoadImageDelegate &del,
+                          IRISWarningList &wl)
+{
+  // Load the settings associated with this file
+  Registry reg;
+  m_Driver->GetSystemInterface()->FindRegistryAssociatedWithFile(fname, reg);
+
+  // Get the folder dealing with grey image properties
+  Registry &folder = reg.Folder("Files.Grey");
+
+  // Create a native image IO object
+  GuidedNativeImageIO io;
+
+  // Load the header of the image
+  io.ReadNativeImageHeader(fname, folder);
+
+  // Validate the header
+  del.ValidateHeader(&io, wl);
+
+  // Read the image body
+  io.ReadNativeImageData();
+
+  // Validate the image data
+  del.ValidateImage(&io, wl);
+
+  // Put the image in the right place
+  del.UpdateApplicationWithImage(&io);
+}
+
+
+SystemInterface * GlobalUIModel::GetSystemInterface() const
+{
+  return m_Driver->GetSystemInterface();
+}
+
+GlobalState * GlobalUIModel::GetGlobalState() const
+{
+  return m_Driver->GetGlobalState();
+}
+
+

@@ -51,7 +51,7 @@ SNAPRegistryIO
 {
   // Set up the enum objects
   m_EnumMapCoverage.AddPair(PAINT_OVER_ALL,"OverAll");
-  m_EnumMapCoverage.AddPair(PAINT_OVER_COLORS,"OverVisible");
+  m_EnumMapCoverage.AddPair(PAINT_OVER_VISIBLE,"OverVisible");
   m_EnumMapCoverage.AddPair(PAINT_OVER_ONE,"OverOne");
 
   m_EnumMapSolver.AddPair(SnakeParameters::DENSE_SOLVER,"Dense");

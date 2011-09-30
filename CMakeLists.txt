@@ -92,6 +92,8 @@ SET(LOGIC_CXX
   Common/CommandLineArgumentParser.cxx
   Common/EventBucket.cxx
   Common/IRISException.cxx
+  Common/IRISObserverPattern.cxx
+  Common/Property.cxx
   Common/Registry.cxx
   Common/SystemInterface.cxx
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
@@ -136,6 +138,7 @@ SET(LOGIC_HEADERS
   Common/CommandLineArgumentParser.h
   Common/Credits.h
   Common/IRISException.h
+  Common/IRISObserverPattern.h
   Common/IRISVectorTypes.h
   Common/IRISVectorTypes.txx
   Common/IRISVectorTypesToITKConversion.h
@@ -151,10 +154,12 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.txx
   Common/ITKExtras/itkVoxBoCUBImageIO.h
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
+  Common/Property.h
   Common/Registry.h
   Common/SNAPBorlandDummyTypes.h
   Common/SNAPCommon.h
   Common/SNAPOpenGL.h
+  Common/SNAPEvents.h
   Common/SystemInterface.h
   Common/Trackball.h
   Logic/Common/ColorLabel.h
@@ -228,11 +233,13 @@ SET(UI_GENERIC_CXX
   GUI/Model/GenericSliceModel.cxx
   GUI/Model/GlobalUIModel.cxx
   GUI/Model/ImageIOWizardModel.cxx
+  GUI/Model/IOActions.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
   GUI/Model/SNAPAppearanceSettings.cxx
   GUI/Model/SNAPUIFlag.cxx
   GUI/Model/StateManagement.cxx
+  GUI/Model/UIAction.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
 )
@@ -242,11 +249,13 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/GenericSliceModel.h
   GUI/Model/GlobalUIModel.h
   GUI/Model/ImageIOWizardModel.h
+  GUI/Model/IOActions.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
   GUI/Model/SNAPAppearanceSettings.h
   GUI/Model/SNAPUIFlag.h
   GUI/Model/SliceWindowCoordinator.h
   GUI/Model/StateManagement.h
+  GUI/Model/UIAction.h
   GUI/Model/UIState.h
   GUI/Renderer/CrosshairsRenderer.h
   GUI/Renderer/GenericSliceRenderer.h
@@ -255,6 +264,7 @@ SET(UI_GENERIC_HEADERS
 # These files contain the Qt-specific user interface source code
 SET(UI_QT_CXX
   GUI/Qt/Components/CursorInspector.cxx
+  GUI/Qt/Components/LabelInspector.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
   GUI/Qt/Components/QtDoubleSpinboxCoupling.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
@@ -280,6 +290,7 @@ SET(UI_QT_CXX
 # The header files for the UI project
 SET(UI_MOC_HEADERS
   GUI/Qt/Components/CursorInspector.h
+  GUI/Qt/Components/LabelInspector.h
   GUI/Qt/Components/LatentITKEventNotifier.h
   GUI/Qt/Components/QtDoubleSpinboxCoupling.h
   GUI/Qt/Components/QtWidgetActivator.h
@@ -300,6 +311,7 @@ SET(UI_MOC_HEADERS
 
 SET(UI_FORMS
   GUI/Qt/Components/CursorInspector.ui
+  GUI/Qt/Components/LabelInspector.ui
   GUI/Qt/Components/SliceViewPanel.ui
   GUI/Qt/Components/ZoomInspector.ui
   GUI/Qt/Windows/ImageIODialog.ui

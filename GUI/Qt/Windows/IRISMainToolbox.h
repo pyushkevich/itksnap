@@ -38,6 +38,7 @@ class ZoomInspector;
 class QStackedWidget;
 class CursorInspector;
 class QGroupBox;
+class LabelInspector;
 
 class IRISMainToolbox : public QWidget
 {
@@ -71,6 +72,7 @@ private:
   // Toolbox for zoom/pan actions
   ZoomInspector *m_ZoomInspector;
   CursorInspector *m_CursorInspector;
+  LabelInspector *m_LabelInspector;
 };
 
 #endif // IRISMAINTOOLBOX_H

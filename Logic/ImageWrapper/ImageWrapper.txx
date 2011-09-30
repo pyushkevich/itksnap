@@ -56,6 +56,8 @@
 #include <vnl/vnl_inverse.h>
 #include <iostream>
 
+#include <itksys/SystemTools.hxx>
+
 template <class TPixel> 
 ImageWrapper<TPixel>
 ::ImageWrapper() 

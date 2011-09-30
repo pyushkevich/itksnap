@@ -1,5 +1,6 @@
 #include "AbstractModel.h"
 #include "EventBucket.h"
+#include "Property.h"
 
 AbstractModel::AbstractModel()
   : itk::Object()
@@ -64,5 +65,13 @@ void AbstractModel::Rebroadcast(
 {
   Rebroadcaster *reb = new Rebroadcaster(this, trgEvent);
   AddListener(src, srcEvent, reb, &Rebroadcaster::Broadcast);
+  m_Rebroadcast.push_back(reb);
+}
+
+void AbstractModel::Rebroadcast(
+    IRISObservable &src, const itk::EventObject &srcEvent, const itk::EventObject &trgEvent)
+{
+  Rebroadcaster *reb = new Rebroadcaster(this, trgEvent);
+  AddListener(&src, srcEvent, reb, &Rebroadcaster::Broadcast);
   m_Rebroadcast.push_back(reb);
 }

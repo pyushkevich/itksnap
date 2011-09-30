@@ -382,3 +382,12 @@ ColorLabelTable
   return n;
 }
 
+ColorLabelTable::LabelMap ColorLabelTable::GetValidLabels() const
+{
+  LabelMap lm;
+  for(size_t i = 0; i < MAX_COLOR_LABELS; i++)
+    if(m_Label[i].IsValid())
+      lm[i] = m_Label[i];
+  return lm;
+}
+

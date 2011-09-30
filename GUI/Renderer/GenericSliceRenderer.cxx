@@ -49,6 +49,10 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 
   // Record and rebroadcast changes in the model
   Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
+
+  // Also listen to events on opacity
+  Rebroadcast(m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlpha(),
+              PropertyChangeEvent(), AppearanceUpdateEvent());
 }
 
 void GenericSliceRenderer::OnUpdate()

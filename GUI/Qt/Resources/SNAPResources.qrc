@@ -29,5 +29,7 @@
         <file alias="fltkpanel.png">fltkpanel.png</file>
         <file alias="icontabwidget.css">icontabwidget.css</file>
         <file alias="itksnap.css">itksnap.css</file>
+        <file>combo_all_labels.png</file>
+        <file>combo_visible_labels.png</file>
     </qresource>
 </RCC>

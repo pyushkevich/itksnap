@@ -137,8 +137,6 @@ GuidedNativeImageIO
   m_NativeFileName = "";
   m_NativeByteOrder = itk::ImageIOBase::OrderNotApplicable;
   m_NativeSizeInBytes = 0;
-
-  m_ValidityCheckDelegate = NULL;
 }
 
 GuidedNativeImageIO::FileFormat 
@@ -273,20 +271,15 @@ GuidedNativeImageIO
 }
 
 
-   
-
-
-
-
-
-
-
 void
 GuidedNativeImageIO
-::ReadNativeImage(const char *FileName, Registry &folder)
+::ReadNativeImageHeader(const char *FileName, Registry &folder)
 {
+  // Save the hints
+  m_Hints = folder;
+
   // Create the header corresponding to the current image type
-  CreateImageIO(FileName, folder, true);
+  CreateImageIO(FileName, m_Hints, true);
   if(!m_IOBase)
     throw IRISException("Unsupported or missing image file format");
 
@@ -294,13 +287,13 @@ GuidedNativeImageIO
   if(m_FileFormat == FORMAT_DICOM)
     {
     // Check if the array of filenames has been provided for us
-    m_DICOMFiles = 
-      folder.Folder("DICOM.SeriesFiles").GetArray(std::string("NULL"));
+    m_DICOMFiles =
+      m_Hints.Folder("DICOM.SeriesFiles").GetArray(std::string("NULL"));
 
     // If no filenames were specified, read the first series in the directory
     if(m_DICOMFiles.size() == 0)
       {
-      // Create a names generator. The input must be a directory 
+      // Create a names generator. The input must be a directory
       typedef itk::GDCMSeriesFileNames NamesGeneratorType;
       NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
       nameGenerator->SetDirectory(FileName);
@@ -311,7 +304,7 @@ GuidedNativeImageIO
       // There must be at least of series
       if(sids.size() == 0)
         throw IRISException("No DICOM series found in directory '%s'",FileName);
-    
+
       // Read the first DICOM series in the directory
       m_DICOMFiles = nameGenerator->GetFileNames(sids.front().c_str());
       }
@@ -334,35 +327,58 @@ GuidedNativeImageIO
     m_IOBase->ReadImageInformation();
     }
 
-  // Check the validity
-  if(m_ValidityCheckDelegate)
-     m_ValidityCheckDelegate->ValidityCheck(m_IOBase);
-
-  // Based on the component type, read image in native mode
-  switch(m_IOBase->GetComponentType()) 
+  // Set the dimensions (if 2D image, we set last dim to 1)
+  m_NativeDimensions.fill(1);
+  for(size_t i = 0; i < m_IOBase->GetNumberOfDimensions() && i < 3; i++)
     {
-    case itk::ImageIOBase::UCHAR:  DoReadNative<unsigned char>(FileName, folder);  break;
-    case itk::ImageIOBase::CHAR:   DoReadNative<signed char>(FileName, folder);    break;
-    case itk::ImageIOBase::USHORT: DoReadNative<unsigned short>(FileName, folder); break;
-    case itk::ImageIOBase::SHORT:  DoReadNative<signed short>(FileName, folder);   break;
-    case itk::ImageIOBase::UINT:   DoReadNative<unsigned int>(FileName, folder);   break;
-    case itk::ImageIOBase::INT:    DoReadNative<signed int>(FileName, folder);     break;
-    case itk::ImageIOBase::ULONG:  DoReadNative<unsigned long>(FileName, folder);  break;
-    case itk::ImageIOBase::LONG:   DoReadNative<signed long>(FileName, folder);    break;
-    case itk::ImageIOBase::FLOAT:  DoReadNative<float>(FileName, folder);          break;
-    case itk::ImageIOBase::DOUBLE: DoReadNative<double>(FileName, folder);         break;
-    default: 
-      throw IRISException("Unknown pixel type when reading image");
+    m_NativeDimensions[i] = m_IOBase->GetDimensions(i);
     }
 
-  // Get rid of the IOBase, it may store useless data (in case of NIFTI)
+  // Extract properties from IO base
   m_NativeType = m_IOBase->GetComponentType();
   m_NativeComponents = m_IOBase->GetNumberOfComponents();
   m_NativeTypeString = m_IOBase->GetComponentTypeAsString(m_NativeType);
   m_NativeFileName = m_IOBase->GetFileName();
   m_NativeByteOrder = m_IOBase->GetByteOrder();
   m_NativeSizeInBytes = m_IOBase->GetImageSizeInBytes();
+
+  // Also pull out a nickname for this file, if it's in the folder
+  m_NativeNickname = m_Hints["Nickname"][""];
+}
+
+void
+GuidedNativeImageIO
+::ReadNativeImageData()
+{
+  const char *fname = m_NativeFileName.c_str();
+
+  // Based on the component type, read image in native mode
+  switch(m_IOBase->GetComponentType())
+    {
+    case itk::ImageIOBase::UCHAR:  DoReadNative<unsigned char>(fname, m_Hints);  break;
+    case itk::ImageIOBase::CHAR:   DoReadNative<signed char>(fname, m_Hints);    break;
+    case itk::ImageIOBase::USHORT: DoReadNative<unsigned short>(fname, m_Hints); break;
+    case itk::ImageIOBase::SHORT:  DoReadNative<signed short>(fname, m_Hints);   break;
+    case itk::ImageIOBase::UINT:   DoReadNative<unsigned int>(fname, m_Hints);   break;
+    case itk::ImageIOBase::INT:    DoReadNative<signed int>(fname, m_Hints);     break;
+    case itk::ImageIOBase::ULONG:  DoReadNative<unsigned long>(fname, m_Hints);  break;
+    case itk::ImageIOBase::LONG:   DoReadNative<signed long>(fname, m_Hints);    break;
+    case itk::ImageIOBase::FLOAT:  DoReadNative<float>(fname, m_Hints);          break;
+    case itk::ImageIOBase::DOUBLE: DoReadNative<double>(fname, m_Hints);         break;
+    default:
+      throw IRISException("Unknown pixel type when reading image");
+    }
+
+  // Get rid of the IOBase, it may store useless data (in case of NIFTI)
   m_IOBase = NULL;
+}
+
+void
+GuidedNativeImageIO
+::ReadNativeImage(const char *FileName, Registry &folder)
+{
+  this->ReadNativeImageHeader(FileName, folder);
+  this->ReadNativeImageData();
 }
 
 template<class TScalar>

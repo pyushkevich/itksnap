@@ -83,18 +83,6 @@ public:
     bool TestFilename(std::string fname);
   };
 
-  /**
-   * This is an interface that users can implement in order to check if
-   * the image being loaded meets some criteria. This is more efficient
-   * than loading the image and then finding out that it does not meet
-   * the criteria. For example, you can restrict the dimensions of the
-   * image to match that of a reference image, etc.
-   */
-  class AbstractValidityCheckDelegate {
-  public:
-    /** This method should fire an IRISException if something is wrong */
-    virtual void ValidityCheck(itk::ImageIOBase *) = 0;
-  };
 
   // Image type. This is only for 3D images.
   typedef itk::ImageIOBase IOBase;
@@ -108,13 +96,6 @@ public:
     { DeallocateNativeImage(); }
 
   /**
-    Set a delegate object for checking the validity of the header before
-    the image is loaded.
-    */
-  irisSetMacro(ValidityCheckDelegate, AbstractValidityCheckDelegate *)
-  irisGetMacro(ValidityCheckDelegate, AbstractValidityCheckDelegate *)
-
-  /**
    * This method loads an image from the given filename. A registry can be 
    * supplied to assist the loading. The registry specifies the desired IO
    * type, and for special types, such as Raw it can provide the parameters
@@ -125,10 +106,23 @@ public:
    */
   void ReadNativeImage(const char *FileName, Registry &folder);
 
+  void ReadNativeImageHeader(const char *FileName, Registry &folder);
+
+  void ReadNativeImageData();
+
   /**
    * Get the number of components in the native image read by ReadNativeImage.
    */
   size_t GetNumberOfComponentsInNativeImage() const;
+
+  /**
+    Access the IO header stored in the IO object. This is only temporarily
+    available between calls to ReadNativeImageHeader() and ReadNativeImageData().
+    The purpose is to allow users to check the validity of the header before
+    actually loading the data completely.
+    */
+  const itk::ImageIOBase *GetIOBase()
+    { return m_IOBase; }
 
   /**
    * Get the component type in the native image
@@ -148,7 +142,11 @@ public:
   unsigned long GetFileSizeOfNativeImage() const
     { return m_NativeSizeInBytes; }
 
+  std::string GetNicknameOfNativeImage() const
+    { return m_NativeNickname; }
 
+  Vector3ui GetDimensionsOfNativeImage() const
+    { return m_NativeDimensions; }
 
   /**
    * This method returns the image internally stored in this object. This is
@@ -275,13 +273,15 @@ private:
   size_t m_NativeComponents;
   unsigned long m_NativeSizeInBytes;
   std::string m_NativeTypeString, m_NativeFileName;
+  std::string m_NativeNickname;
   IOBase::ByteOrder m_NativeByteOrder;
+  Vector3ui m_NativeDimensions;
+
+  // Copy of the registry passed in when reading header
+  Registry m_Hints;
 
   // The file format
   FileFormat m_FileFormat;
-
-  // A callback for checking validity
-  AbstractValidityCheckDelegate *m_ValidityCheckDelegate;
 
   // List of filenames for DICOM
   std::vector<std::string> m_DICOMFiles;

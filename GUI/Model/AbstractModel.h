@@ -8,6 +8,8 @@
 #include <set>
 #include <string>
 
+class IRISObservable;
+
 
 /**
   \class AbstractModel
@@ -76,6 +78,12 @@ protected:
   void Rebroadcast(
       itk::Object *src, const itk::EventObject &srcEvent,
       const itk::EventObject &trgEvent);
+
+  /**
+    Rebroadcast is also defined for Property objects.
+    */
+  void Rebroadcast(IRISObservable &property, const itk::EventObject &srcEvent,
+                   const itk::EventObject &trgEvent);
 
 
   /**

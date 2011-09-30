@@ -1,5 +1,6 @@
 #include "LatentITKEventNotifier.h"
 #include <QApplication>
+#include "IRISObserverPattern.h"
 
 namespace latent_itk_event_notifier
 {
@@ -80,6 +81,28 @@ void LatentITKEventNotifier
 ::connect(itk::Object *source, const itk::EventObject &evt,
           QObject *target, const char *slot)
 {
+  // Call common implementation
+  Helper *c = doConnect(evt, target, slot);
+
+  // Listen to events from the source
+  AddListener(source, evt, c, &Helper::Callback);
+}
+
+void LatentITKEventNotifier
+::connect(IRISObservable *source, const itk::EventObject &evt,
+          QObject *target, const char *slot)
+{
+  // Call common implementation
+  Helper *c = doConnect(evt, target, slot);
+
+  // Listen to events from the source
+  AddListener(source, evt, c, &Helper::Callback);
+}
+
+LatentITKEventNotifier::Helper*
+LatentITKEventNotifier
+::doConnect(const itk::EventObject &evt, QObject *target, const char *slot)
+{
   // Try to find the helper object
   Helper *c;
   if(m_HelperMap.find(target) == m_HelperMap.end())
@@ -95,8 +118,7 @@ void LatentITKEventNotifier
   // Connect to the target qobject
   QObject::connect(c, SIGNAL(dispatchEvent(const EventBucket &)), target, slot);
 
-  // Listen to events from the source
-  AddListener(source, evt, c, &Helper::Callback);
+  return c;
 }
 
 

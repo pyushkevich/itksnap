@@ -21,9 +21,11 @@ class Object;
   */
 class SNAPComponent : public QWidget
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    explicit SNAPComponent(QWidget *parent = 0);
+  explicit SNAPComponent(QWidget *parent = 0);
+
+
 
 public slots:
 

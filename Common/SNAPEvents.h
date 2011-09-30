@@ -28,7 +28,7 @@
 #define SNAPEVENTS_H
 
 // Define this if you want event to be debugged
-// #define SNAP_DEBUG_EVENTS 1
+#define SNAP_DEBUG_EVENTS 1
 
 #include "itkObject.h"
 #include "itkCommand.h"
@@ -59,6 +59,12 @@ itkEventMacro(StateMachineChangeEvent, IRISEvent)
 
 /** The value of the common zoom has changed */
 itkEventMacro(ZoomLevelUpdateEvent, IRISEvent)
+
+/** A generic property change (see Property) */
+itkEventMacro(PropertyChangeEvent, IRISEvent)
+
+/** A change to appearance of a renderer, etc */
+itkEventMacro(AppearanceUpdateEvent, IRISEvent)
 
 // A setter method that fires events
 #define irisSetWithEventMacro(name,type,event) \

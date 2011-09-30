@@ -35,6 +35,7 @@
 
 #include <ZoomInspector.h>
 #include <CursorInspector.h>
+#include <LabelInspector.h>
 
 #include <GlobalUIModel.h>
 
@@ -141,9 +142,10 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
 
   m_ZoomInspector = new ZoomInspector();
   m_CursorInspector = new CursorInspector();
+  m_LabelInspector = new LabelInspector();
 
   QWidget *tabContent[] = {
-    m_CursorInspector, m_ZoomInspector,
+    m_CursorInspector, m_ZoomInspector, m_LabelInspector,
     new QWidget(),
     new QWidget(), new QWidget()
   };
@@ -189,6 +191,7 @@ void IRISMainToolbox::SetModel(GlobalUIModel *model)
   m_Model = model;
   m_ZoomInspector->SetModel(model);
   m_CursorInspector->SetModel(model);
+  m_LabelInspector->SetModel(model);
 }
 
 void IRISMainToolbox::on_BtnCrosshairMode_toggled(bool checked)

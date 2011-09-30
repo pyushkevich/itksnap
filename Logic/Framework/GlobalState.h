@@ -51,6 +51,7 @@
 #include "ThresholdSettings.h"
 #include "SNAPSegmentationROISettings.h"
 #include "itkImageRegion.h"
+#include "Property.h"
 
 
 enum ToolbarMode3DType
@@ -63,9 +64,9 @@ enum ToolbarMode3DType
 
 enum CoverageModeType 
 {
-  PAINT_OVER_ALL,
-  PAINT_OVER_ONE,
-  PAINT_OVER_COLORS
+  PAINT_OVER_ALL = 0,
+  PAINT_OVER_VISIBLE,
+  PAINT_OVER_ONE
 };
 
 enum MeshFilterType
@@ -201,10 +202,10 @@ public:
   irisGetMacro(PolygonInvert,bool );
 
   /** Get the transparency of the segmentation overlay */
-  irisSetMacro(SegmentationAlpha,unsigned char );
+  irisSetPropertyMacro(SegmentationAlpha, unsigned char)
 
   /** Set the transparency of the segmentation overlay */
-  irisGetMacro(SegmentationAlpha,unsigned char );
+  irisGetPropertyMacro(SegmentationAlpha, unsigned char)
 
   /** Get the current 3D toolbar mode */
   irisSetMacro(ToolbarMode3D,ToolbarMode3DType);
@@ -371,48 +372,6 @@ public:
   int ReleaseDrawingLock( short );
 #endif /* DRAWING_LOCK */
 
-  /** Set the extension of the grey image */
-  void SetGreyExtension(const char * fname);
-  
-  /** Get the extension of the grey image */
-  void GetGreyExtension(char *& ext);
-
-  /** Set the grey image file name */
-  irisSetStringMacro(GreyFileName);
-
-  /** Get the grey image file name */
-  irisGetStringMacro(GreyFileName);
-
-  /** Set the grey overlay image file name */
-  irisSetStringMacro(GreyOverlayFileName);
-
-  /** Get the grey overlay image file name */
-  irisGetStringMacro(GreyOverlayFileName);
-
-  /** Set the RGB image file name */
-  irisSetStringMacro(RGBFileName);
-
-  /** Get the RGB image file name */
-  irisGetStringMacro(RGBFileName);
-
-  /** Set the RGB overlay image file name */
-  irisSetStringMacro(RGBOverlayFileName);
-
-  /** Get the RGB overlay image file name */
-  irisGetStringMacro(RGBOverlayFileName);
-
-  /** Set the segmentation image file name */
-  irisSetStringMacro(SegmentationFileName);
-
-  /** Get the segmentation image file name */
-  irisGetStringMacro(SegmentationFileName);
-
-  /** Set the preprocessing image file name */
-  irisSetStringMacro(PreprocessingFileName);
-
-  /** Get the preprocessing image file name */
-  irisGetStringMacro(PreprocessingFileName);
-
   /** Set the segmentation image file name */
   irisSetStringMacro(LastAssociatedSegmentationFileName);
 
@@ -424,20 +383,6 @@ public:
 
   /** Get the preprocessing image file name */
   irisGetStringMacro(LastAssociatedPreprocessingFileName);
-
-  /** Set the preprocessing image file name */
-  irisSetStringMacro(LevelSetFileName);
-
-  /** Get the preprocessing image file name */
-  irisGetStringMacro(LevelSetFileName);
-
-  /** Set the advection file name */
-  void SetAdvectionFileName(unsigned int i, const char *name)
-    { m_AdvectionFileName[i] = name; }
-
-  /** Get the advection file name */
-  const char *GetAdvectionFileName(unsigned int i)
-    { return m_AdvectionFileName[i].c_str(); }
 
   /** Get the array of bubbles */
   irisGetMacro(BubbleArray, BubbleArray);
@@ -491,7 +436,7 @@ private:
   bool m_PolygonInvert;
 
   /** The transparency of the segmentation overlay */
-  unsigned char m_SegmentationAlpha;
+  irisPropertyDeclMacro(SegmentationAlpha, unsigned char)
 
   /** The current crosshairs position */
   Vector3ui m_CrosshairsPosition;
@@ -567,30 +512,10 @@ private:
   SnakeParameters m_SnakeParameters;
 
   // File name of the current grey file
-  std::string m_GreyFileName;
-
-  // File name of the current grey overlay file
-  std::string m_GreyOverlayFileName;
-
-  // File name of the current RGB file
-  std::string m_RGBFileName;
-
-  // File name of the current RGB overlay file
-  std::string m_RGBOverlayFileName;
-
-  // File name of the current grey file
-  std::string m_SegmentationFileName;
   std::string m_LastAssociatedSegmentationFileName;
 
   // File name of the current preprocessing file
-  std::string m_PreprocessingFileName;
   std::string m_LastAssociatedPreprocessingFileName;
-
-  // File name of level set image file
-  std::string m_LevelSetFileName;
-
-  // File names for advection images
-  std::string m_AdvectionFileName[3];
 
   // Array of bubbles
   BubbleArray m_BubbleArray;

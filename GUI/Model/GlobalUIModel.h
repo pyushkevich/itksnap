@@ -31,6 +31,7 @@
 #include <SNAPEvents.h>
 #include <AbstractModel.h>
 #include <UIState.h>
+#include "Property.h"
 
 class IRISApplication;
 class SNAPAppearanceSettings;
@@ -38,6 +39,10 @@ class GenericSliceModel;
 class OrthogonalSliceCursorNavigationModel;
 class SliceWindowCoordinator;
 class GuidedNativeImageIO;
+class SystemInterface;
+class GlobalState;
+class AbstractLoadImageDelegate;
+class IRISWarningList;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -77,6 +82,12 @@ public:
 
   irisGetMacro(SliceCoordinator, SliceWindowCoordinator *)
 
+  // Convenience access to the SystemInfterface
+  SystemInterface *GetSystemInterface() const;
+
+  // I don't know why this is in a separate class
+  GlobalState *GetGlobalState() const;
+
   /** Get the current toolbar mode */
   irisSetWithEventMacro(ToolbarMode, ToolbarModeType, ToolbarModeChangeEvent)
 
@@ -93,6 +104,10 @@ public:
   /** Load the main image */
   void LoadGrayImage(GuidedNativeImageIO *io);
 
+  /** Load an image non-interactively through a delegate */
+  void LoadImageNonInteractive(const char *fname,
+                               AbstractLoadImageDelegate &delegate,
+                               IRISWarningList &wl);
 
   /**
     Check the state of the system. This class will issue StateChangeEvent()
@@ -100,7 +115,6 @@ public:
     the SNAPUIFlag object to construct listeners to complex state changes.
    */
   bool checkState(UIState state);
-
 
 protected:
 

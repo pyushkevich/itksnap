@@ -5,6 +5,8 @@
 #include "EventBucket.h"
 #include <map>
 
+class IRISObservable;
+
 namespace latent_itk_event_notifier
 {
 
@@ -50,9 +52,16 @@ public:
   static void connect(itk::Object *source, const itk::EventObject &evt,
                       QObject *target, const char *slot);
 
+  static void connect(IRISObservable *source, const itk::EventObject &evt,
+                      QObject *target, const char *slot);
+
 private:
 
   typedef latent_itk_event_notifier::Helper Helper;
+
+  static Helper *doConnect(const itk::EventObject &evt,
+                 QObject *target, const char *slot);
+
   static std::map<QObject *, Helper *> m_HelperMap;
 
 };

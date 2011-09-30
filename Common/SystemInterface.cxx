@@ -651,10 +651,10 @@ SystemInterface
 /** Update a filename history list with another filename */
 void
 SystemInterface
-::UpdateHistory(const char *key, const char *filename)
+::UpdateHistory(const char *key, const std::string &filename)
 {
   // Create a string for the new file
-  string file(filename);
+  std::string file = itksys::SystemTools::CollapseFullPath(filename.c_str());
 
   // Get the current history registry
   HistoryListType array = GetHistory(key);

@@ -32,6 +32,10 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
+
+#ifndef __IRISApplication_h_
+#define __IRISApplication_h_
+
 #include "ImageCoordinateTransform.h"
 #include "itkImageRegion.h"
 #include "itkExceptionObject.h"
@@ -146,6 +150,7 @@ public:
    */
   void UnloadOverlays();
   void UnloadOverlayLast();
+  void UnloadMainImage();
 
   /** 
    * Update the IRIS image data with an external segmentation image (e.g., 
@@ -287,6 +292,11 @@ public:
   void LoadLabelImageFile(const char *filename);
 
   /**
+    Load label descriptions from file
+    */
+  void LoadLabelDescriptions(const char *filename);
+
+  /**
    * Store the current state as an undo point, allowing the user to revert
    * to this state at a later point. The state in this context is just the
    * segmentation image in IRIS.
@@ -317,6 +327,7 @@ public:
    * Reorient the main image (and all overlays) 
    */
   void ReorientImage(vnl_matrix_fixed<double, 3, 3> inDirection);
+
 
 protected:
 
@@ -350,3 +361,4 @@ protected:
   UndoManagerType m_UndoManager;
 };
 
+#endif // __IRISApplication_h_

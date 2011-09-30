@@ -88,6 +88,19 @@ public:
 
   // Delete internal data structures
   virtual void Reset() = 0;
+
+  // Access the filename
+  irisSetStringMacro(FileName)
+  irisGetStringMacro(FileName)
+
+  // Access the nickname
+  irisSetStringMacro(Nickname)
+  irisGetStringMacro(Nickname)
+
+protected:
+  // Each layer has a filename and a nickname
+  std::string m_FileName, m_Nickname;
+
 };
 
 /**

@@ -42,6 +42,8 @@
 /**
  * \class ColorLabelTable
  * \brief A table for managing color labels
+ * TODO: rewrite this class using std::map, current implementation is
+ * horribly inefficient
  */
 class ColorLabelTable
 {
@@ -95,6 +97,15 @@ public:
 
   /** Return the first valid color label, or zero if there aren't any */
   size_t GetFirstValidLabel() const;
+
+  typedef std::map<size_t, ColorLabel> LabelMap;
+  typedef LabelMap::const_iterator LabelMapConstIterator;
+  typedef LabelMap::iterator LabelMapIterator;
+
+  /** Get a list of valid color labels. TODO: make this the internal rep
+    and return a const reference */
+  LabelMap GetValidLabels() const;
+
 
 private:
   // A flat array of color labels

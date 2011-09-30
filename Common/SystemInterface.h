@@ -97,7 +97,7 @@ public:
   HistoryListType GetHistory(const char *key);
 
   /** Update a filename history list with another filename */
-  void UpdateHistory(const char *key, const char *file);
+  void UpdateHistory(const char *key, const std::string &file);
 
   /** Find and load a registry file associated with a filename in the system.*/
   bool FindRegistryAssociatedWithFile(const char *file, 

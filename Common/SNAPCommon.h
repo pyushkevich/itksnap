@@ -186,7 +186,7 @@ public:
  * Set macro for strings
  */
 #define irisSetStringMacro(name) \
-    virtual void Set##name (const char *_arg) \
+    virtual void Set##name (const std::string &_arg) \
 { \
     this->m_##name = _arg; \
 } 

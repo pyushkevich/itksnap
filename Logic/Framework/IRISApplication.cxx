@@ -213,7 +213,7 @@ IRISApplication
   m_DisplayToAnatomyRAI[1] = rai1;
   m_DisplayToAnatomyRAI[2] = rai2;
 
-  if(!m_IRISImageData->IsMainLoaded()) 
+  if(!m_IRISImageData->IsMainLoaded())
     return;
   
   // Create the appropriate transform and pass it to the IRIS data
@@ -340,6 +340,10 @@ IRISApplication
   // Update the iris data
   m_IRISImageData->SetSegmentationImage(imgLabel); 
 
+  // Update filenames
+  m_IRISImageData->GetSegmentation()->SetFileName(io->GetFileNameOfNativeImage());
+  m_IRISImageData->GetSegmentation()->SetNickname(io->GetNicknameOfNativeImage());
+
   // Check that the range is valid
 #if MAX_COLOR_LABELS < 0xffff
   if(m_IRISImageData->GetSegmentation()->GetImageMax() > MAX_COLOR_LABELS)
@@ -378,7 +382,7 @@ IRISApplication
   // If mode is paint over all, the victim is overridden
   return
      ((iMode == PAINT_OVER_ALL) ||
-      (iMode == PAINT_OVER_COLORS && visible) ||
+      (iMode == PAINT_OVER_VISIBLE && visible) ||
       (iMode == PAINT_OVER_ONE && iDrawOver == iTarget)) ? iDrawing : iTarget;
 }
 
@@ -1200,7 +1204,7 @@ IRISApplication
 IRISApplication::MainImageType
 IRISApplication
 ::UpdateIRISMainImage(GuidedNativeImageIO *io, MainImageType force_type)
-  {
+{
   // This has to happen in 'pure' IRIS mode
   assert(m_SNAPImageData == NULL);
 
@@ -1229,7 +1233,10 @@ IRISApplication
     io->DeallocateNativeImage();
 
     // Set the image as the current grayscale image
-    m_IRISImageData->SetGreyImage(imgGrey, icg, mapper); 
+    m_IRISImageData->SetGreyImage(imgGrey, icg, mapper);
+
+    // Update the history
+    m_SystemInterface->UpdateHistory("GreyImage", io->GetFileNameOfNativeImage());
 
     // Update the preprocessing settings in the global state
     m_GlobalState->SetEdgePreprocessingSettings(
@@ -1245,10 +1252,20 @@ IRISApplication
     RGBImageType::Pointer imgRGB = caster(io);
     m_IRISImageData->SetRGBImage(imgRGB,icg);
 
+    // Update the history
+    m_SystemInterface->UpdateHistory("RGBImage", io->GetFileNameOfNativeImage());
+
     // At this point, deallocate the native image, so that we don't use more memory
     io->DeallocateNativeImage();
     }
   else throw itk::ExceptionObject("Unsupported main image type");
+
+  // Set the filename and nickname of the image wrapper
+  m_IRISImageData->GetMain()->SetFileName(io->GetFileNameOfNativeImage());
+  m_IRISImageData->GetMain()->SetNickname(io->GetNicknameOfNativeImage());
+
+  // Update the system's history list
+  m_SystemInterface->UpdateHistory("MainImage", io->GetFileNameOfNativeImage());
 
   // Fire the dimensions change event
   InvokeEvent(MainImageDimensionsChangeEvent());
@@ -1278,20 +1295,24 @@ IRISApplication
   GuidedNativeImageIO io;
   io.ReadNativeImage(filename, folder);
 
-  // Detemine the type
-  MainImageType type = UpdateIRISMainImage(&io, force_type);
-  if(type == MAIN_SCALAR)
-    {
-    // Save the filename for the UI
-    m_GlobalState->SetGreyFileName(filename);  
-    }
-  else if(type == MAIN_RGB)
-    {
-    m_GlobalState->SetRGBFileName(filename);  
-    }
-  else throw itk::ExceptionObject("Unsupported main image type");
+  // Do the work
+  return UpdateIRISMainImage(&io, force_type);
+}
 
-  return type;
+void
+IRISApplication
+::UnloadMainImage()
+{
+  // Save the settings for this image
+  if(m_CurrentImageData->IsMainLoaded())
+    {
+    std::string fnMain = m_CurrentImageData->GetMain()->GetFileName();
+    m_SystemInterface->AssociateCurrentSettingsWithCurrentImageFile(
+          fnMain.c_str(), this);
+    }
+
+  // Unload the main image
+  m_CurrentImageData->UnloadMainImage();
 }
 
 IRISApplication::MainImageType 
@@ -1369,10 +1390,6 @@ IRISApplication
 
   // Set the image as the current grayscale image
   UpdateIRISSegmentationImage(&io);
-
-  // Save the filename for the UI
-  m_GlobalState->SetSegmentationFileName(filename);
-  m_GlobalState->SetLastAssociatedPreprocessingFileName(filename);
 }
 
 void 
@@ -1392,5 +1409,18 @@ IRISApplication
 
   // Send this coordinate transform to the image data
   m_CurrentImageData->SetImageGeometry(icg);
+}
+
+void IRISApplication::LoadLabelDescriptions(const char *file)
+{
+  // Read the labels from file
+  this->m_ColorLabelTable->LoadFromFile(file);
+
+  // Reset the current drawing and overlay labels
+  m_GlobalState->SetDrawingColorLabel(m_ColorLabelTable->GetFirstValidLabel());
+  m_GlobalState->SetOverWriteColorLabel(0);
+
+  // Update the history
+  m_SystemInterface->UpdateHistory("LabelDescriptions", file);
 }
 
