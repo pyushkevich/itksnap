@@ -244,6 +244,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/UIAction.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
+  GUI/Renderer/OpenGLSliceTexture.cxx
 )
 
 SET(UI_GENERIC_HEADERS
@@ -278,7 +279,6 @@ SET(UI_QT_CXX
   GUI/Qt/View/GenericSliceView.cxx
   GUI/Qt/View/InteractionMode.cxx
   GUI/Qt/View/InteractionModeClient.cxx
-  GUI/Qt/View/OpenGLSliceTexture.cxx
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
   GUI/Qt/View/SNAPQGLWidget.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx

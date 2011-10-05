@@ -37,6 +37,7 @@ class CrosshairsRenderer : public SliceRendererDelegate
 {
 public:
   CrosshairsRenderer();
+  virtual ~CrosshairsRenderer() {}
 
   void paintGL(GenericSliceRenderer *parentRenderer);
 

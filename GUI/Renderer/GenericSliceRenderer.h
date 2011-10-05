@@ -38,6 +38,7 @@ class GenericSliceRenderer;
 class SliceRendererDelegate
 {
 public:
+  virtual ~SliceRendererDelegate() {}
   virtual void paintGL(GenericSliceRenderer *parent) = 0;
 };
 

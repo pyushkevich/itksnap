@@ -9,6 +9,8 @@ template <class TAtomic> class ConstProperty : public IRISObservable
 public:
   FIRES(ProperyChangeEvent)
 
+  ConstProperty() {}
+  virtual ~ConstProperty() {}
 
   operator TAtomic() { return m_Value; }
   operator const TAtomic() const { return m_Value; }
@@ -21,6 +23,9 @@ protected:
 template <class TAtomic> class Property : public ConstProperty<TAtomic>
 {
 public:
+
+  Property() {}
+  virtual ~Property() {}
 
   // Standard operators
   virtual Property<TAtomic> & operator = (const TAtomic &a)
@@ -40,6 +45,10 @@ template <class TAtomic, class NameTraits> class NamedProperty
     : public Property<TAtomic>
 {
 public:
+
+  NamedProperty() {}
+  virtual ~NamedProperty() {}
+
   static const char *GetName() { return NameTraits::Name(); }
 
   virtual NamedProperty<TAtomic, NameTraits> & operator = (const TAtomic &a)

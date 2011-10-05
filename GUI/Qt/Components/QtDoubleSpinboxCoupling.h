@@ -64,6 +64,7 @@ class QSpinBox;
 class AbstractWidgetDataMapping
 {
 public:
+  virtual ~AbstractWidgetDataMapping() {}
   virtual void CopyFromWidgetToTarget() = 0;
   virtual void CopyFromTargetToWidget() = 0;
 };

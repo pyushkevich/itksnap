@@ -79,6 +79,8 @@ public:
   AbstractLoadImageDelegate(GlobalUIModel *model)
     { m_Model = model; }
 
+  virtual ~AbstractLoadImageDelegate() {}
+
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void UnloadCurrentImage() = 0;

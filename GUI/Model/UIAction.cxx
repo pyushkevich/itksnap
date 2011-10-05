@@ -1,4 +1,5 @@
 #include "UIAction.h"
+#include <cstdarg>
 
 
 void UIAbstractAction::Initialize(GlobalUIModel *model)

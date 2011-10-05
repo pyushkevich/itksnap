@@ -36,6 +36,7 @@ class QEvent;
 class InteractionMode
 {
 public:
+  virtual ~InteractionMode() {}
   virtual void mousePressEvent(QMouseEvent *);
   virtual void mouseReleaseEvent(QMouseEvent *);
   virtual void mouseDoubleClickEvent(QMouseEvent *);
