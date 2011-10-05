@@ -74,6 +74,36 @@ LoadMainImageDelegate
   m_Model->GetDriver()->UpdateIRISMainImage(io, m_ImageType);
 }
 
+void
+LoadMainImageDelegate
+::ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl)
+{
+  typedef itk::ImageIOBase IOB;
+
+  if(m_ImageType == IRISApplication::MAIN_SCALAR ||
+     io->GetNumberOfComponentsInNativeImage() != 3)
+    {
+    IOB::IOComponentType ct = io->GetComponentTypeInNativeImage();
+    if(ct > IOB::SHORT)
+      {
+      wl.push_back(
+            IRISWarning(
+              "Warning: Loss of Precision."
+              "You are opening an image with 32-bit or greater precision, "
+              "but ITK-SNAP only provides 16-bit precision. "
+              "Intensity values reported in ITK-SNAP may differ slightly from the "
+              "actual values in the image."
+              ));
+      }
+    }
+}
+
+void
+LoadMainImageDelegate
+::ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl)
+{
+
+}
 
 
 /* =============================
@@ -128,15 +158,20 @@ LoadSegmentationImageDelegate
   Vector3ui szMain = id->GetMain()->GetSize();
   if(szSeg != szMain)
     {
-    throw IRISException("The size of the segmentation image (%d x %d x %d) "
-                        "does not match the dimensions of the main image.",
-                        szSeg[0], szSeg[1], szSeg[2]);
+    throw IRISException("Error: Mismatched Dimensions. "
+                        "The size of the segmentation image (%d x %d x %d) "
+                        "does not match the size of the main image "
+                        "(%d x %d x %d). Images must have the same dimensions.",
+                        szSeg[0], szSeg[1], szSeg[2],
+                        szMain[0], szMain[1], szMain[2]);
     }
 
   // Check the number of components
   if(io->GetNumberOfComponentsInNativeImage() != 1)
     {
-    throw IRISException("The segmentation image has multiple (%d) components",
+    throw IRISException("Error: Multicomponent Image. "
+                        "The segmentation image has multiple (%d) components, "
+                        "but only one component is supported by ITK-SNAP.",
                         io->GetNumberOfComponentsInNativeImage());
     }
 }
@@ -193,11 +228,12 @@ LoadSegmentationImageDelegate
 
     // Create an alert box
     wl.push_back(IRISWarning(
-          "There is a mismatch between the header of the image that you are "
-          "loading and the header of the main image currently open in SNAP. "
-          "The images have different %s. "
-          "SNAP will ignore the header information in the image you are loading",
-          object.c_str()));
+                   "Warning: Header Mismatch."
+                   "There is a mismatch between the header of the image that you are "
+                   "loading and the header of the main image currently open in ITK-SNAP. "
+                   "The images have different %s. "
+                   "ITK-SNAP will ignore the header in the image you are loading.",
+                   object.c_str()));
     }
 }
 

@@ -143,6 +143,7 @@ long get_system_time_ms();
 template <class TObject> class SmartPtr : public itk::SmartPointer<TObject>
 {
 public:
+  typedef SmartPtr<TObject> Self;
   typedef itk::SmartPointer<TObject> Superclass;
 
   TObject* operator -> () const
@@ -151,6 +152,12 @@ public:
   SmartPtr(const Superclass &p) : Superclass(p) {}
   SmartPtr(TObject *p) : Superclass(p) {}
   SmartPtr() : Superclass() {}
+
+  Self &operator =(const Self &p)
+  {
+    Superclass::operator =(p);
+    return *this;
+  }
 };
 
 /************************************************************************/

@@ -259,8 +259,11 @@ private:
   template <typename TScalar> void DoReadNative(const char *fname, Registry &folder);
 
   /** 
-   * This is a vector image in native format. It stores the data read from the
-   * image file. The user must cast it to a desired type to use it.
+   This is a vector image in native format. It stores the data read from the
+   image file. The user must cast it to a desired type to use it. Once it has
+   been cast, the native image becomes unusable because casting is done inplace
+   so the buffer initially allocated for the native image may be resized and
+   overridden.
    */
   ImageBasePointer m_NativeImage;
 

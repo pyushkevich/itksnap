@@ -23,24 +23,67 @@
 #include "IRISException.h"
 #include "ImageIOWizardModel.h"
 #include "MetaDataAccess.h"
+#include "IOActions.h"
 
 namespace imageiowiz {
+
+const QString AbstractPage::m_HtmlTemplate =
+    "<tr><td width=40><img src=\":/root/%1.png\" /></td>"
+    "<td><p>%2</p></td></tr>";
 
 AbstractPage::AbstractPage(QWidget *parent)
   : QWizardPage(parent)
 {
   this->m_Model = NULL;
+
+  m_OutMessage = new QLabel(this);
+  m_OutMessage->setWordWrap(true);
+}
+
+bool
+AbstractPage::ErrorMessage(const IRISException &exc)
+{
+  QString text(exc.what());
+  QString head = text.section(".",0,0);
+  QString tail = text.section(".", 1);
+
+  QString html = QString("<table>%1</table>").arg(
+        QString(m_HtmlTemplate).arg(
+          "dlg_error_32", QString("<b>%1.</b> %2").arg(head, tail)));
+
+  m_OutMessage->setText(html);
+  return false;
+}
+
+void
+AbstractPage::WarningMessage(const IRISWarningList &wl)
+{
+  if(wl.size())
+    {
+    QString html;
+    for(size_t i = 0; i < wl.size(); i++)
+      {
+      QString text = wl[i].what();
+      QString head = text.section(".",0,0);
+      QString tail = text.section(".", 1);
+      html += QString(m_HtmlTemplate).arg(
+            "dlg_warning_32", QString("<b>%1.</b> %2").arg(head, tail));
+      }
+    html = QString("<table>%1</table>").arg(html);
+    m_OutMessage->setText(html);
+    }
 }
 
 bool
 AbstractPage::ErrorMessage(const char *subject, const char *detail)
 {
-  QMessageBox mbox(this);
-  mbox.setIcon(QMessageBox::Critical);
-  mbox.setText(subject);
-  if(detail)
-    mbox.setDetailedText(detail);
-  mbox.exec();
+  QString html = QString(
+        "<html><body><ul>"
+        "<li><b>%1</b>%2</li>"
+        "</ul></body></html>").arg(subject, detail);
+
+  m_OutMessage->setText(html);
+
   return false;
 }
 
@@ -49,16 +92,10 @@ AbstractPage::ConditionalError(bool rc, const char *subject, const char *detail)
 {
   if(!rc)
     {
-    QMessageBox mbox(this);
-    mbox.setIcon(QMessageBox::Critical);
-    mbox.setText(subject);
-    if(detail)
-      mbox.setDetailedText(detail);
-    mbox.exec();
+    return ErrorMessage(subject, detail);
     }
-  return rc;
+  return true;
 }
-
 
 
 
@@ -127,7 +164,7 @@ SelectFilePage::SelectFilePage(QWidget *parent)
   lo->addWidget(label2);
   lo->addWidget(m_InFormat);
   lo->addStretch(1);
-
+  lo->addWidget(m_OutMessage);
 
   // Initialize the format model
   m_FormatModel = new QStandardItemModel(m_InFormat);
@@ -241,6 +278,9 @@ public:
 
 bool SelectFilePage::validatePage()
 {
+  // Clear error state
+  m_OutMessage->clear();
+
   // This is where the work of the page gets done
   assert(m_InFormat->currentIndex() >= 0);
   ImageIOWizardModel::FileFormat fmt =
@@ -267,11 +307,9 @@ bool SelectFilePage::validatePage()
       m_Model->ProcessDicomDirectory(m_InFilename->text().toStdString());
       return true;
       }
-    catch(std::exception &exc)
+    catch(IRISException &exc)
       {
-      return ErrorMessage(
-              "Unable to recognize DICOM file series in the directory",
-              exc.what());
+      return ErrorMessage(exc);
       }
     }
 
@@ -283,12 +321,10 @@ bool SelectFilePage::validatePage()
       {
       m_Model->SetSelectedFormat(fmt);
       m_Model->LoadImage(m_InFilename->text().toStdString());
-
-      // To do: something about the validity check
       }
-    catch(std::exception &exc)
+    catch(IRISException &exc)
       {
-      return ErrorMessage("Error Loading Image", exc.what());
+      return ErrorMessage(exc);
       }
     }
 
@@ -394,7 +430,11 @@ SummaryPage::SummaryPage(QWidget *parent) :
 
   QVBoxLayout *lo = new QVBoxLayout(this);
   lo->addWidget(m_Tree);
+
+  // Set up the warnings
+  lo->addWidget(m_OutMessage);
 }
+
 
 
 void SummaryPage::AddItem(
@@ -453,6 +493,9 @@ void SummaryPage::initializePage()
 
   m_Tree->resizeColumnToContents(0);
   m_Tree->resizeColumnToContents(1);
+
+  // Show the warning messages generated so far
+  WarningMessage(m_Model->GetWarnings());
 }
 
 bool SummaryPage::validatePage()
@@ -469,6 +512,7 @@ DICOMPage::DICOMPage(QWidget *parent)
   m_Table = new QTableWidget();
   QVBoxLayout *lo = new QVBoxLayout(this);
   lo->addWidget(m_Table);
+  lo->addWidget(m_OutMessage);
 
   m_Table->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_Table->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -520,6 +564,9 @@ void DICOMPage::initializePage()
 
 bool DICOMPage::validatePage()
 {
+  // Clear error state
+  m_OutMessage->clear();
+
   // Add registry entries for the selected DICOM series
   int row = m_Table->selectionModel()->selectedRows().front().row();
 
@@ -529,9 +576,9 @@ bool DICOMPage::validatePage()
     m_Model->LoadDicomSeries(
           this->field("Filename").toString().toStdString(), row);
     }
-  catch(std::exception &exc)
+  catch(IRISException &exc)
     {
-    return ErrorMessage("Unable to load DICOM image", exc.what());
+    return ErrorMessage(exc);
     }
 
   return true;
@@ -633,6 +680,8 @@ RawPage::RawPage(QWidget *parent)
   lo->addWidget(lbrace, 5, 3, 2, 1);
   lo->addWidget(new QLabel("should be equal"), 5, 4, 2, 2);
 
+  lo->addWidget(m_OutMessage, 7, 0, 1, 7);
+
   // The output label
   lo->setColumnMinimumWidth(0, 140);
 
@@ -706,6 +755,9 @@ int RawPage::nextId() const
 
 bool RawPage::validatePage()
 {
+  // Clear error state
+  m_OutMessage->clear();
+
   // Get the hints (from previous experience with this file)
   Registry &hint = m_Model->GetHints();
 
@@ -733,9 +785,9 @@ bool RawPage::validatePage()
     m_Model->SetSelectedFormat(GuidedNativeImageIO::FORMAT_RAW);
     m_Model->LoadImage(field("Filename").toString().toStdString());
     }
-  catch(std::exception &exc)
+  catch(IRISException &exc)
     {
-    return ErrorMessage("Error Loading Image", exc.what());
+    return ErrorMessage(exc);
     }
   return true;
 }

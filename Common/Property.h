@@ -28,15 +28,15 @@ public:
   virtual ~Property() {}
 
   // Standard operators
-  virtual Property<TAtomic> & operator = (const TAtomic &a)
-    {
+  Property<TAtomic> & operator = (const TAtomic &a)
+  {
     if(this->m_Value != a)
       {
       this->m_Value = a;
       this->InvokeEvent(PropertyChangeEvent());
       }
     return *this;
-    }
+  }
 
 protected:
 };
@@ -52,7 +52,11 @@ public:
   static const char *GetName() { return NameTraits::Name(); }
 
   virtual NamedProperty<TAtomic, NameTraits> & operator = (const TAtomic &a)
-    { this->m_Value = a; return *this; }
+  {
+    Property<TAtomic>::operator =(a);
+    return *this;
+  }
+
 };
 
 /**

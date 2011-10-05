@@ -35,7 +35,15 @@ protected:
 
   bool ErrorMessage(const char *subject, const char *detail = NULL);
   bool ConditionalError(bool rc, const char *subject, const char *detail);
+  bool ErrorMessage(const IRISException &exc);
+  void WarningMessage(const IRISWarningList &wl);
   ImageIOWizardModel *m_Model;
+
+  // A qlabel for displaying error/warning messages. The children are
+  // responsible for placing this control on their layouts
+  QLabel *m_OutMessage;
+
+  static const QString m_HtmlTemplate;
 };
 
 class SelectFilePage : public AbstractPage
@@ -77,12 +85,15 @@ public:
   void initializePage();
 
   bool validatePage();
+
+
 private:
   // Helper for building the tree
   void AddItem(QTreeWidgetItem *parent, const char *key, ImageIOWizardModel::SummaryItem si);
   void AddItem(QTreeWidget *parent, const char *key, ImageIOWizardModel::SummaryItem si);
 
   QTreeWidget *m_Tree;
+  QLabel *m_Warnings;
 };
 
 

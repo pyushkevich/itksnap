@@ -62,8 +62,11 @@ public:
   typedef iris_vector_fixed<float,VSize> FloatVectorType;
   typedef iris_vector_fixed<double,VSize> DoubleVectorType;
 
-  // Construct an uninitialized n-vector
-  iris_vector_fixed() : Parent() {}
+  // Initialize the n-vector to zeros
+  iris_vector_fixed() : Parent()
+  {
+    this->fill(0);
+  }
 
   // Copy constructor
   iris_vector_fixed(const Parent& rhs ) : Parent(rhs) {}

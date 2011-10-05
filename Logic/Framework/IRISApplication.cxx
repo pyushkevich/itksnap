@@ -1142,9 +1142,6 @@ IRISApplication
     GreyImageType::Pointer imgGrey = rescaler(io);
     InternalToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
 
-    // At this point, deallocate the native image, so that we don't use more memory
-    io->DeallocateNativeImage();
-
     // Add the image as the current grayscale overlay
     m_IRISImageData->AddGreyOverlay(imgGrey, mapper);
     }
@@ -1153,9 +1150,6 @@ IRISApplication
     // Cast image to RGB
     CastNativeImageToRGB<RGBType> caster;
     RGBImageType::Pointer imgRGB = caster(io);
-
-    // At this point, deallocate the native image, so that we don't use more memory
-    io->DeallocateNativeImage();
 
     // Add the image as the current RGB overlay
     m_IRISImageData->AddRGBOverlay(imgRGB);
@@ -1201,9 +1195,6 @@ IRISApplication
     GreyImageType::Pointer imgGrey = rescaler(io);
     InternalToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
 
-    // At this point, deallocate the native image, so that we don't use more memory
-    io->DeallocateNativeImage();
-
     // Set the image as the current grayscale image
     m_IRISImageData->SetGreyImage(imgGrey, icg, mapper);
 
@@ -1226,9 +1217,6 @@ IRISApplication
 
     // Update the history
     m_SystemInterface->UpdateHistory("RGBImage", io->GetFileNameOfNativeImage());
-
-    // At this point, deallocate the native image, so that we don't use more memory
-    io->DeallocateNativeImage();
     }
   else throw itk::ExceptionObject("Unsupported main image type");
 

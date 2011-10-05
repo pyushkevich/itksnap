@@ -98,6 +98,8 @@ public:
                         IRISApplication::MainImageType type);
 
   void UnloadCurrentImage();
+  void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl);
+  void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
   void UpdateApplicationWithImage(GuidedNativeImageIO *io);
 
 protected:

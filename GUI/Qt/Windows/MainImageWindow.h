@@ -58,6 +58,8 @@ private slots:
 
   void on_actionQuit_triggered();
 
+  void on_actionLoad_from_Image_triggered();
+
 private:
     Ui::MainImageWindow *ui;
 

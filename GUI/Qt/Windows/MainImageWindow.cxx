@@ -30,6 +30,7 @@
 #include "ImageIOWizard.h"
 #include "ImageIOWizardModel.h"
 #include "GlobalUIModel.h"
+#include "IOActions.h"
 
 MainImageWindow::MainImageWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -87,25 +88,15 @@ void MainImageWindow::on_actionOpen_Greyscale_Image_triggered()
 {
   // TODO: Prompt for changes to segmentation to be saved
 
+  // Create a model for IO
+  LoadMainImageDelegate delegate(m_Model, IRISApplication::MAIN_SCALAR);
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model, &delegate, "GreyImage");
+
   // Execute the IO wizard
   ImageIOWizard wiz(this);
-  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->Initialize(m_Model, ImageIOWizardModel::LOAD, "GreyImage");
   wiz.SetModel(model);
   wiz.exec();
-
-  // Update the image in the application
-  if(model->IsImageLoaded())
-    {
-
-    // Unload the current main image (save history)
-
-    // Unload all images
-
-    // Update IRIS main image
-
-    m_Model->LoadGrayImage(model->GetGuidedIO());
-    }
 }
 
 void MainImageWindow::on_actionQuit_triggered()
@@ -114,4 +105,19 @@ void MainImageWindow::on_actionQuit_triggered()
 
   // Exit the application
   QCoreApplication::exit();
+}
+
+void MainImageWindow::on_actionLoad_from_Image_triggered()
+{
+  // TODO: Prompt for changes to segmentation to be saved
+
+  // Create a model for IO
+  LoadSegmentationImageDelegate delegate(m_Model);
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model, &delegate, "LabelImage");
+
+  // Execute the IO wizard
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
 }
