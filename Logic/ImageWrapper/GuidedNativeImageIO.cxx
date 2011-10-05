@@ -256,7 +256,9 @@ GuidedNativeImageIO
         case PIXELTYPE_FLOAT:  CreateRawImageIO<float>(fldRaw);          break;
         case PIXELTYPE_DOUBLE: CreateRawImageIO<double>(fldRaw);         break;
         default:
-          throw IRISException("Unsupported pixel type when reading raw file");
+          throw IRISException("Error: Unsupported voxel type."
+                              "Unsupported voxel type ('%s') when reading raw file.",
+                              folder["Raw.PixelType"][""]);
         }
       }
       break;
@@ -281,7 +283,10 @@ GuidedNativeImageIO
   // Create the header corresponding to the current image type
   CreateImageIO(FileName, m_Hints, true);
   if(!m_IOBase)
-    throw IRISException("Unsupported or missing image file format");
+    throw IRISException("Error: Unsupported or missing image file format. "
+                        "ITK-SNAP failed to create an ImageIO object for the "
+                        "image '%s' using format '%s'.",
+                        FileName, m_Hints["Format"][""]);
 
   // Read the information about the image
   if(m_FileFormat == FORMAT_DICOM)
@@ -303,7 +308,9 @@ GuidedNativeImageIO
 
       // There must be at least of series
       if(sids.size() == 0)
-        throw IRISException("No DICOM series found in directory '%s'",FileName);
+        throw IRISException("Error: DICOM series not found. "
+                            "Directory '%s' does not appear to contain a "
+                            "series of DICOM images.",FileName);
 
       // Read the first DICOM series in the directory
       m_DICOMFiles = nameGenerator->GetFileNames(sids.front().c_str());
@@ -311,7 +318,9 @@ GuidedNativeImageIO
 
     // Read the information from the first filename
     if(m_DICOMFiles.size() == 0)
-      throw IRISException("No DICOM files found in directory '%s'",FileName);
+      throw IRISException("Error: DICOM series not found. "
+                          "Directory '%s' does not appear to contain a "
+                          "series of DICOM images.",FileName);
     m_IOBase->SetFileName(m_DICOMFiles[0]);
     m_IOBase->ReadImageInformation();
     }
@@ -322,7 +331,9 @@ GuidedNativeImageIO
     // than with the .raw extension
     if(m_FileFormat != FORMAT_RAW && !m_IOBase->CanReadFile(FileName))
       throw IRISException(
-          "Image reader for the selected format can not read the selected file.");
+          "Error: Wrong Format. "
+          "The IO library for the format '%s' can not read the image file.",
+          m_Hints["Format"][""]);
     m_IOBase->SetFileName(FileName);
     m_IOBase->ReadImageInformation();
     }
@@ -366,7 +377,10 @@ GuidedNativeImageIO
     case itk::ImageIOBase::FLOAT:  DoReadNative<float>(fname, m_Hints);          break;
     case itk::ImageIOBase::DOUBLE: DoReadNative<double>(fname, m_Hints);         break;
     default:
-      throw IRISException("Unknown pixel type when reading image");
+      throw IRISException("Error: Unsupported voxel type."
+                          "Unsupported voxel type ('%s') when reading raw file.",
+                          m_IOBase->GetComponentTypeAsString(
+                            m_IOBase->GetComponentType()).c_str());
     }
 
   // Get rid of the IOBase, it may store useless data (in case of NIFTI)
@@ -811,7 +825,10 @@ CastNativeImageBase<TPixel,TCastFunctor>
     case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
     case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
     default: 
-      throw IRISException("Unknown pixel type when reading image");
+      throw IRISException("Error: Unknown pixel type when reading image."
+                          "The voxels in the image you are loading have format '%s', "
+                          "which is not supported.",
+                          nativeIO->GetComponentTypeAsStringInNativeImage().c_str());
     }
 
   // Return the output image
@@ -836,11 +853,12 @@ CastNativeImageBase<TPixel,TCastFunctor>
   // If the native image does not have three components, we crash
   if(input->GetNumberOfComponentsPerPixel() != functor.GetNumberOfDimensions())
     throw IRISException(
-      "Can not convert image to target format (%s).\n"
-      "Image has %d components per pixel, but it should have %d components.",
-      typeid(TPixel).name(), 
-      input->GetNumberOfComponentsPerPixel(), 
-      functor.GetNumberOfDimensions() );
+        "Error: Wrong number of components. "
+        "Can not convert image to target format ('%s'). "
+        "Image has %d components per pixel, but ITK-SNAP expects %d components. ",
+        typeid(TPixel).name(),
+        input->GetNumberOfComponentsPerPixel(),
+        functor.GetNumberOfDimensions() );
 
   // Allocate the output image
   m_Output = OutputImageType::New();
@@ -930,6 +948,7 @@ void GuidedNativeImageIO::ParseDicomDirectory(
   // Must have a directory
   if(!itksys::SystemTools::FileIsDirectory(dir.c_str()))
     throw IRISException(
+        "Error: Not a directory. "
         "Trying to look for DICOM series in '%s', which is not a directory",
         dir.c_str());
 
@@ -1012,7 +1031,9 @@ void GuidedNativeImageIO::ParseDicomDirectory(
 
   // Complain if no series have been found
   if(reg.size() == 0)
-    throw IRISException("No DICOM series found in directory %s", dir.c_str());
+    throw IRISException(
+        "Error: DICOM series not found. "
+        "Directory '%s' does not appear to contain a DICOM series.", dir.c_str());
 }
 
 

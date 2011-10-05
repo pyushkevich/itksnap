@@ -28,7 +28,7 @@ public:
 
 };
 
-class IRISWarningList : public std::list<IRISWarning> {};
+class IRISWarningList : public std::vector<IRISWarning> {};
 
 
 /**

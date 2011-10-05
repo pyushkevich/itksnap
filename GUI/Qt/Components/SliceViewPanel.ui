@@ -68,6 +68,9 @@
            <family>Helvetica</family>
           </font>
          </property>
+         <property name="toolTip">
+          <string/>
+         </property>
          <property name="text">
           <string>zoom to fit</string>
          </property>
@@ -127,7 +130,6 @@
         <height>293</height>
        </rect>
       </property>
-      <zorder>imZoomPan</zorder>
      </widget>
      <widget class="CrosshairsInteractionMode" name="imZoomPan" native="true">
       <property name="geometry">

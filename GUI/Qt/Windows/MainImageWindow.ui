@@ -126,7 +126,7 @@
         <string>Hello World</string>
        </property>
        <property name="icon">
-        <iconset resource="SNAPResources.qrc">
+        <iconset>
          <normaloff>:/root/Resources/crosshair3D.gif</normaloff>
          <normalon>:/root/Resources/crosshair.gif</normalon>:/root/Resources/crosshair3D.gif</iconset>
        </property>
@@ -161,9 +161,18 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen_Greyscale_Image"/>
+    <addaction name="actionOpen_RGB_Image"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
+   <widget class="QMenu" name="menuSegmentation">
+    <property name="title">
+     <string>Segmentation</string>
+    </property>
+    <addaction name="actionLoad_from_Image"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuSegmentation"/>
   </widget>
   <action name="actionOpen_Greyscale_Image">
    <property name="text">
@@ -177,6 +186,22 @@
    <property name="text">
     <string>Quit</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionLoad_from_Image">
+   <property name="text">
+    <string>Load from Image...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionOpen_RGB_Image">
+   <property name="text">
+    <string>Open RGB Image...</string>
+   </property>
   </action>
  </widget>
  <customwidgets>
@@ -187,9 +212,7 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="SNAPResources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
  <designerdata>
   <property name="gridDeltaX">

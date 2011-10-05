@@ -31,5 +31,7 @@
         <file alias="itksnap.css">itksnap.css</file>
         <file>combo_all_labels.png</file>
         <file>combo_visible_labels.png</file>
+        <file>dlg_error_32.png</file>
+        <file>dlg_warning_32.png</file>
     </qresource>
 </RCC>

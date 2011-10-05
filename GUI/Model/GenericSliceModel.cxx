@@ -47,6 +47,9 @@ GenericSliceModel::GenericSliceModel()
 
   // The slice is not yet initialized
   m_SliceInitialized = false;
+
+  // Initialize the vectors
+  m_Size.fill(0);
 }
 
 void GenericSliceModel::Initialize(GlobalUIModel *model, int index)

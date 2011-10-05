@@ -9,21 +9,38 @@
 #include "IRISException.h"
 #include <sstream>
 
+#include "IOActions.h"
 
 ImageIOWizardModel::ImageIOWizardModel()
 {
   m_Parent = NULL;
   m_GuidedIO = NULL;
+  m_LoadDelegate = NULL;
 }
 
 
-void ImageIOWizardModel::Initialize(
-    GlobalUIModel *parent, Mode mode, const char *name)
+void
+ImageIOWizardModel
+::InitializeForSave(GlobalUIModel *parent, const char *name)
 {
   m_Parent = parent;
-  m_Mode = mode;
+  m_Mode = SAVE;
   m_HistoryName = name;
   m_GuidedIO = new GuidedNativeImageIO();
+  m_LoadDelegate = NULL;
+}
+
+void
+ImageIOWizardModel
+::InitializeForLoad(GlobalUIModel *parent,
+                    AbstractLoadImageDelegate *delegate,
+                    const char *name)
+{
+  m_Parent = parent;
+  m_Mode = LOAD;
+  m_HistoryName = name;
+  m_GuidedIO = new GuidedNativeImageIO();
+  m_LoadDelegate = delegate;
 }
 
 ImageIOWizardModel::~ImageIOWizardModel()
@@ -241,11 +258,45 @@ ImageIOWizardModel::FileFormat ImageIOWizardModel::GetSelectedFormat()
 
 void ImageIOWizardModel::LoadImage(std::string filename)
 {
-  m_GuidedIO->ReadNativeImage(filename.c_str(), m_Registry);
+  try
+  {
+    // Clear the warnings
+    m_Warnings.clear();
+
+    // Load the header
+    m_GuidedIO->ReadNativeImageHeader(filename.c_str(), m_Registry);
+
+    // Check if the header is valid
+    m_LoadDelegate->ValidateHeader(m_GuidedIO, m_Warnings);
+
+    // Remove current data
+    m_LoadDelegate->UnloadCurrentImage();
+
+    // Load the data from the image
+    m_GuidedIO->ReadNativeImageData();
+
+    // Validate the image data
+    m_LoadDelegate->ValidateImage(m_GuidedIO, m_Warnings);
+
+    // Update the application
+    m_LoadDelegate->UpdateApplicationWithImage(m_GuidedIO);
+  }
+  catch(IRISException &excIRIS)
+  {
+    throw excIRIS;
+  }
+  catch(std::exception &exc)
+  {
+    throw IRISException("Error: exception occured during image IO. "
+                        "Exception: %s", exc.what());
+  }
 }
 
 bool ImageIOWizardModel::CheckImageValidity()
 {
+  IRISWarningList warn;
+  m_LoadDelegate->ValidateHeader(m_GuidedIO, warn);
+
   return true;
 }
 
@@ -265,25 +316,49 @@ void ImageIOWizardModel::ProcessDicomDirectory(const std::string &filename)
   std::string dir = GetBrowseDirectory(filename);
 
   // Get the registry
-  GuidedNativeImageIO::ParseDicomDirectory(dir, m_DicomContents, req);
+  try
+  {
+    GuidedNativeImageIO::ParseDicomDirectory(dir, m_DicomContents, req);
+  }
+  catch (IRISException &ei)
+  {
+    throw ei;
+  }
+  catch (std::exception &e)
+  {
+    throw IRISException("Error: exception occured when parsing DICOM directory. "
+                        "Exception: %s", e.what());
+  }
 }
 
 void ImageIOWizardModel
 ::LoadDicomSeries(const std::string &filename, int series)
 {
-  // Set up the registry for DICOM IO
-  m_Registry["DICOM.SeriesId"] << m_DicomContents[series]["SeriesId"][""];
-  m_Registry.Folder("DICOM.SeriesFiles").PutArray(
-        m_DicomContents[series].Folder("SeriesFiles").GetArray(std::string()));
+  try
+  {
+    // Set up the registry for DICOM IO
+    m_Registry["DICOM.SeriesId"] << m_DicomContents[series]["SeriesId"][""];
+    m_Registry.Folder("DICOM.SeriesFiles").PutArray(
+          m_DicomContents[series].Folder("SeriesFiles").GetArray(std::string()));
 
-  // Set the format to DICOM
-  SetSelectedFormat(GuidedNativeImageIO::FORMAT_DICOM);
+    // Set the format to DICOM
+    SetSelectedFormat(GuidedNativeImageIO::FORMAT_DICOM);
 
-  // Get the directory
-  std::string dir = GetBrowseDirectory(filename);
+    // Get the directory
+    std::string dir = GetBrowseDirectory(filename);
 
-  // Load image
-  m_GuidedIO->ReadNativeImage(dir.c_str(), m_Registry);
+    // Load image
+    m_GuidedIO->ReadNativeImage(dir.c_str(), m_Registry);
+  }
+  catch (IRISException &ei)
+  {
+    throw ei;
+  }
+  catch (std::exception &e)
+  {
+    throw IRISException("Error: exception occured when reading DICOM series. "
+                        "Exception: %s", e.what());
+  }
 }
 
 unsigned long ImageIOWizardModel::GetFileSizeInBytes(const std::string &file)
@@ -305,4 +380,6 @@ void ImageIOWizardModel::Finalize()
           m_HistoryName.c_str(), m_GuidedIO->GetFileNameOfNativeImage().c_str());
     }
 }
+
+
 
