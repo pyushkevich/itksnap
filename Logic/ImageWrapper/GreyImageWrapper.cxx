@@ -134,8 +134,8 @@ GreyImageWrapper<TPixel>
   if(m_FlagUseReferenceIntensityRange)
     {
     m_IntensityFunctor.SetInputRange(
-      m_ReferenceIntensityMin,
-      m_ReferenceIntensityMax);
+      (TPixel) m_ReferenceIntensityMin,
+      (TPixel) m_ReferenceIntensityMax);
     }
   else
     {
