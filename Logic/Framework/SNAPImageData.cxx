@@ -55,6 +55,7 @@
 #include "SignedDistanceFilter.h"
 #include "SmoothBinaryThresholdImageFilter.h"
 #include "SpeedImageWrapper.h"
+#include "IRISApplication.h"
 
 
 #include "SNAPImageData.h"
@@ -89,10 +90,10 @@ SNAPImageData
 ::InitializeSpeed()
 {
   // The Grey image wrapper should be present
-  assert(m_GreyWrapper.IsInitialized());
+  assert(m_GreyImageWrapper->IsInitialized());
 
   // Intialize the speed based on the current grey image
-  m_SpeedWrapper.InitializeToWrapper(&m_GreyWrapper, 0.0f);
+  m_SpeedWrapper.InitializeToWrapper(m_GreyImageWrapper, 0.0f);
 }
 
 void 
@@ -101,8 +102,7 @@ SNAPImageData
                       itk::Command *progressCallback)
 { 
   // Define an edge filter to use for preprocessing
-  typedef EdgePreprocessingImageFilter<
-    GreyImageWrapper::ImageType,SpeedImageWrapper::ImageType> FilterType;
+  typedef EdgePreprocessingImageFilter<GreyImageType, FloatImageType> FilterType;
   
   // Configure the edge filter
   FilterType::Pointer filter = FilterType::New();
@@ -111,11 +111,11 @@ SNAPImageData
   filter->SetEdgePreprocessingSettings(settings);
 
   // Set the filter's input
-  filter->SetInput(m_GreyWrapper.GetImage());
+  filter->SetInput(m_GreyImageWrapper->GetImage());
 
   // Provide a progress callback (if one is provided)
   if(progressCallback)
-    filter->AddObserver(itk::ProgressEvent(),progressCallback);
+    filter->AddObserver(itk::ProgressEvent(), progressCallback);
 
   // Run the filter on the whole image
   filter->UpdateLargestPossibleRegion();
@@ -134,7 +134,7 @@ SNAPImageData
 {
   // Define an edge filter to use for preprocessing
   typedef SmoothBinaryThresholdImageFilter<
-    GreyImageWrapper::ImageType,SpeedImageWrapper::ImageType> FilterType;
+      GreyImageType, FloatImageType> FilterType;
   
   // Create an edge filter for whole-image preprocessing
   FilterType::Pointer filter = FilterType::New();
@@ -143,7 +143,7 @@ SNAPImageData
   filter->SetThresholdSettings(settings);
 
   // Set the filter's input
-  filter->SetInput(m_GreyWrapper.GetImage());
+  filter->SetInput(m_GreyImageWrapper->GetImage());
 
   // Provide a progress callback (if one is provided)
   if(progressCallback)
@@ -223,11 +223,11 @@ SNAPImageData
   typedef itk::OrientedImage<float,3> FloatImageType;
 
   // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
-  m_SnakeInitializationWrapper.InitializeToWrapper(&m_GreyWrapper, OUTSIDE_VALUE);
+  m_SnakeInitializationWrapper.InitializeToWrapper(m_GreyImageWrapper, OUTSIDE_VALUE);
 
   // Create the initial level set image by merging the segmentation data from
   // IRIS region with the bubbles
-  LabelImageType::Pointer imgInput = m_LabelWrapper.GetImage();
+  LabelImageType::Pointer imgInput = m_LabelWrapper->GetImage();
   FloatImageType::Pointer imgLevelSet = m_SnakeInitializationWrapper.GetImage();
 
   // Get the target region. This really should be a region relative to the IRIS image
@@ -367,9 +367,9 @@ SNAPImageData
     m_SpeedWrapper.GetImage()->GetBufferedRegion());
   m_ExternalAdvectionField->Allocate();
   m_ExternalAdvectionField->SetSpacing(
-    m_GreyWrapper.GetImage()->GetSpacing());
+    m_GreyImageWrapper->GetImage()->GetSpacing());
   m_ExternalAdvectionField->SetOrigin(
-    m_GreyWrapper.GetImage()->GetOrigin());
+    m_GreyImageWrapper->GetImage()->GetOrigin());
 
   typedef itk::ImageRegionConstIterator<FloatImageType> Iterator;
   Iterator itX(imgX,imgX->GetBufferedRegion());
@@ -433,9 +433,11 @@ SNAPImageData
   // Initialize the level set wrapper with the image from the level set 
   // driver and other settings from the other wrappers
   m_SnakeWrapper.InitializeToWrapper(
-    &m_GreyWrapper,m_LevelSetDriver->GetCurrentState());
-  m_SnakeWrapper.GetImage()->SetOrigin( m_GreyWrapper.GetImage()->GetOrigin() );
-  m_SnakeWrapper.GetImage()->SetSpacing( m_GreyWrapper.GetImage()->GetSpacing() );
+    m_GreyImageWrapper,m_LevelSetDriver->GetCurrentState());
+  m_SnakeWrapper.GetImage()->SetOrigin(
+        m_GreyImageWrapper->GetImage()->GetOrigin() );
+  m_SnakeWrapper.GetImage()->SetSpacing(
+        m_GreyImageWrapper->GetImage()->GetSpacing() );
   
   // Make sure that the correct color label is being used
   m_SnakeWrapper.SetColorLabel(m_ColorLabel);
@@ -508,5 +510,47 @@ SNAPImageData
 ::GetLevelSetFunction()
 {
   return m_LevelSetDriver->GetLevelSetFunction();
+}
+
+void
+SNAPImageData
+::InitializeToROI(GenericImageData *source,
+                  const SNAPSegmentationROISettings &roi,
+                  itk::Command *progressCommand)
+{
+  // Get the source grey wrapper
+  GreyImageWrapper<GreyType> *srcWrapper = source->m_GreyImageWrapper;
+
+  // Get the roi chunk from the grey image
+  SmartPtr<GreyImageType> imgNewGrey =
+      srcWrapper->DeepCopyRegion(roi, progressCommand);
+
+  // Get the size of the region
+  Vector3ui size = to_unsigned_int(
+    Vector3ul(imgNewGrey->GetLargestPossibleRegion().GetSize().GetSize()));
+
+  // Compute an image coordinate geometry for the region of interest
+  std::string rai[] = {
+    this->m_Parent->GetDisplayToAnatomyRAI(0),
+    this->m_Parent->GetDisplayToAnatomyRAI(1),
+    this->m_Parent->GetDisplayToAnatomyRAI(2) };
+  ImageCoordinateGeometry icg(
+        source->GetImageGeometry().GetImageDirectionCosineMatrix(),
+        rai, size);
+
+  // Assign the new wrapper to the target
+  this->SetGreyImage(imgNewGrey, icg,
+                     source->GetGrey()->GetNativeMapping());
+
+  // Assign the intensity mapping function to the Snap data
+  m_GreyImageWrapper->SetReferenceIntensityRange(
+    srcWrapper->GetImageMinAsDouble(),
+    srcWrapper->GetImageMaxAsDouble());
+  m_GreyImageWrapper->CopyIntensityMap(*srcWrapper);
+  m_GreyImageWrapper->UpdateIntensityMapFunction();
+
+  // Copy the colormap too
+  m_GreyImageWrapper->SetColorMap(srcWrapper->GetColorMap());
+
 }
 

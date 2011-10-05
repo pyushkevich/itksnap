@@ -36,7 +36,7 @@
 #define __ImageWrapper_h_
 
 // Smart pointers have to be included from ITK, can't forward reference them
-#include "SNAPCommon.h"
+#include "ImageWrapperBase.h"
 #include "ImageCoordinateTransform.h"
 #include <itkImageRegionIterator.h>
 #include <itkOrientedImage.h>
@@ -52,56 +52,6 @@ namespace itk {
 
 
 
-/**
- * \class ImageWrapper
- * \brief Abstract parent class for all image wrappers
- * \see ImageWrapper
- */
-class ImageWrapperBase
-{
-public:
-
-  // Definition for the display slice type
-  typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
-  typedef itk::Image<DisplayPixelType,2> DisplaySliceType;
-  typedef itk::SmartPointer<DisplaySliceType> DisplaySlicePointer;
-
-  virtual ~ImageWrapperBase() { /*To avoid compiler warning.*/ }
-  virtual const ImageCoordinateTransform &GetImageToDisplayTransform(
-    unsigned int) const = 0;
-  virtual void SetImageToDisplayTransform(
-    unsigned int, const ImageCoordinateTransform &) = 0;
-  virtual Vector3ui GetSliceIndex() const = 0;
-  virtual void SetSliceIndex(const Vector3ui &) = 0;
-  virtual itk::ImageBase<3> *GetImageBase() const = 0;
-  virtual bool IsInitialized() const = 0;
-  virtual Vector3ui GetSize() const = 0;
-  virtual unsigned char GetAlpha() const = 0;
-  virtual void SetAlpha(unsigned char) = 0;
-  virtual void ToggleVisibility() = 0;
-  virtual itk::ImageRegion<3> GetBufferedRegion() const = 0;
-  virtual Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const = 0;
-  virtual Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const = 0;
-  virtual Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const = 0;
-  virtual vnl_matrix_fixed<double, 4, 4> GetNiftiSform() const = 0;
-  virtual DisplaySlicePointer GetDisplaySlice(unsigned int dim) const = 0;
-
-  // Delete internal data structures
-  virtual void Reset() = 0;
-
-  // Access the filename
-  irisSetStringMacro(FileName)
-  irisGetStringMacro(FileName)
-
-  // Access the nickname
-  irisSetStringMacro(Nickname)
-  irisGetStringMacro(Nickname)
-
-protected:
-  // Each layer has a filename and a nickname
-  std::string m_FileName, m_Nickname;
-
-};
 
 /**
  * \class ImageWrapper
@@ -111,21 +61,22 @@ protected:
  * is used to unify the treatment of different kinds of images in
  * SNaP.  
  */
-template<class TPixel> class ImageWrapper : public ImageWrapperBase
+template<class TPixel> class ImageWrapper
+    : public virtual ImageWrapperBase
 {
 public:
 
   // Basic type definitions
   typedef itk::OrientedImage<TPixel,3> ImageType;
-  typedef typename itk::SmartPointer<ImageType> ImagePointer;
+  typedef SmartPtr<ImageType> ImagePointer;
 
   // Slice image type
   typedef itk::Image<TPixel,2> SliceType;
-  typedef typename itk::SmartPointer<SliceType> SlicePointer;
+  typedef SmartPtr<SliceType> SlicePointer;
 
   // Slicer type
   typedef IRISSlicer<TPixel> SlicerType;
-  typedef typename itk::SmartPointer<SlicerType> SlicerPointer;
+  typedef SmartPtr<SlicerType> SlicerPointer;
 
   // Iterator types
   typedef typename itk::ImageRegionIterator<ImageType> Iterator;
@@ -164,39 +115,84 @@ public:
   /**
    * Initialize the internal image to a blank image of size x,y,z.
    */
-  // virtual void InitializeToSize(unsigned int x, unsigned int y,unsigned int z);
 
   /**
    * Clear the data associated with storing an image
    */
   virtual void Reset();
 
+  /** Get the coordinate transform for each display slice */
+  virtual const ImageCoordinateTransform &GetImageToDisplayTransform(
+    unsigned int) const;
+
+  /**
+   * Use a default image-slice transformation, the first slice is along z,
+   * the second along y, the third, along x, all directions of traversal are
+   * positive.
+   */
+  virtual void SetImageToDisplayTransformsToDefault();
+
+  /** Get the current slice index */
+  irisGetMacro(SliceIndex, Vector3ui)
+
+  /** Return some image info independently of pixel type */
+  ImageBaseType* GetImageBase() const { return m_Image; }
+
   /**
    * Is the image initialized?
    */
-  virtual bool IsInitialized() const;
+  irisIsMacro(Initialized)
+
+  /**
+   * Get the size of the image
+   */
+  Vector3ui GetSize() const;
+
+  /** Get layer transparency */
+  irisSetMacro(Alpha, unsigned char)
+
+  /** Set layer transparency */
+  irisGetMacro(Alpha, unsigned char)
+
+  /** Switch on/off visibility */
+  virtual void ToggleVisibility();
+
+  /** Get the buffered region of the image */
+  virtual itk::ImageRegion<3> GetBufferedRegion() const;
+
+  /** Transform a voxel index into a spatial position */
+  virtual Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const;
+
+  /** Transform a voxel index into NIFTI coordinates (RAS) */
+  virtual Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const;
+
+  /** Transform NIFTI coordinates to a continuous voxel index */
+  virtual Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const;
+
+  /** Get the NIFTI s-form matrix for this image */
+  irisGetMacro(NiftiSform, TransformType)
 
   /**
    * Get reference to a voxel at a given position.
    */
-  virtual TPixel &GetVoxelForUpdate(unsigned int x, 
+  TPixel &GetVoxelForUpdate(unsigned int x,
                                     unsigned int y, 
                                     unsigned int z);
   
-  virtual TPixel &GetVoxelForUpdate(const Vector3ui &index);
+  TPixel &GetVoxelForUpdate(const Vector3ui &index);
   
+  TPixel &GetVoxelForUpdate(const itk::Index<3> &index);
+
   /**
    * Get a constant reference to a voxel at a given position.
    */
-  virtual const TPixel &GetVoxel(unsigned int x, 
+  const TPixel &GetVoxel(unsigned int x,
                                  unsigned int y, 
                                  unsigned int z) const;
 
-  virtual const TPixel &GetVoxel(const Vector3ui &index) const;
+  const TPixel &GetVoxel(const Vector3ui &index) const;
 
-  /** Return some image info independently of pixel type */
-  virtual itk::ImageBase<3> *GetImageBase() const
-    { return m_Image.GetPointer(); }
+  const TPixel &GetVoxel(const itk::Index<3> &index) const;
 
   /** 
    * Return the pointed to the ITK image encapsulated by this wrapper.
@@ -209,20 +205,6 @@ public:
    */
   virtual SlicerType *GetSlicer(unsigned int iDirection) const
     { return m_Slicer[iDirection]; }
-
-  /**
-   * Get the size of the image
-   */
-  virtual Vector3ui GetSize() const;
-
-  /**
-   * Get the buffered region of the image
-   */
-  virtual itk::ImageRegion<3> GetBufferedRegion() const
-    { return m_Image->GetBufferedRegion(); }
-
-  /** Get the current slice index */
-  virtual Vector3ui GetSliceIndex() const;
 
   /**
    * Set the current slice index in all three dimensions.  The index should
@@ -238,16 +220,6 @@ public:
   virtual void SetImageToDisplayTransform(
     unsigned int iSlice,const ImageCoordinateTransform &transform);
 
-  /** Get the coordinate transform for each display slice */
-  virtual const ImageCoordinateTransform &GetImageToDisplayTransform(
-    unsigned int iSlice) const;
-
-  /**
-   * Use a default image-slice transformation, the first slice is along z,
-   * the second along y, the third, along x, all directions of traversal are 
-   * positive.
-   */
-  virtual void SetImageToDisplayTransformsToDefault();
 
   /**
    * Get a slice of the image in a given direction
@@ -259,11 +231,9 @@ public:
    */
   virtual TPixel *GetVoxelPointer() const;
 
-  /**
-   * Get the number of voxels
-   */
-  size_t GetNumberOfVoxels() const;
-    
+  /** Number of voxels */
+  virtual size_t GetNumberOfVoxels() const;
+
   /**
    * Pring debugging info
    * TODO: Delete this or make is worthwhile
@@ -283,6 +253,7 @@ public:
   virtual ImagePointer DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                               itk::Command *progressCommand = NULL) const = 0;
 
+
   /**
    * Get an iterator for traversing the image.  The iterator is initialized
    * to point to the beginning of the image
@@ -292,15 +263,6 @@ public:
 
   /** For each slicer, find out which image dimension does is slice along */
   unsigned int GetDisplaySliceImageAxis(unsigned int slice);
-
-  /** Transform a voxel index into a spatial position */
-  Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const;
-
-  /** Transform a voxel index into NIFTI coordinates (RAS) */
-  Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const;
-
-  /** Transform NIFTI coordinates to a continuous voxel index */
-  Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const;
 
   /** 
    * Replace all voxels with intensity values iOld with values iNew. 
@@ -314,67 +276,18 @@ public:
    */
   virtual unsigned int SwapIntensities(TPixel iFirst, TPixel iSecond);
 
-  /** Get the NIFTI s-form matrix for this image */
-  virtual vnl_matrix_fixed<double, 4, 4> GetNiftiSform() const
-    { return m_NiftiSform; }
 
-  /** 
-   * This static function constructs a NIFTI matrix from the ITK direction
-   * cosines matrix and Spacing and Origin vectors
-   */
-  static vnl_matrix_fixed<double,4,4> ConstructNiftiSform(
-    vnl_matrix<double> m_dir, 
-    vnl_vector<double> v_origin,
-    vnl_vector<double> v_spacing)
-  {
-    // Set the NIFTI/RAS transform
-    vnl_matrix<double> m_ras_matrix;
-    vnl_diag_matrix<double> m_scale, m_lps_to_ras;
-    vnl_vector<double> v_ras_offset;
+  virtual void* GetVoxelVoidPointer() const;
 
-    // Compute the matrix
-    m_scale.set(v_spacing);
-    m_lps_to_ras.set(vnl_vector<double>(3, 1.0));
-    m_lps_to_ras[0] = -1;
-    m_lps_to_ras[1] = -1;
-    m_ras_matrix = m_lps_to_ras * m_dir * m_scale;
+  // Access the filename
+  irisSetStringMacro(FileName)
+  irisGetStringMacro(FileName)
 
-    // Compute the vector
-    v_ras_offset = m_lps_to_ras * v_origin;
+  // Access the nickname
+  irisSetStringMacro(Nickname)
+  irisGetStringMacro(Nickname)
 
-    // Create the larger matrix
-    vnl_vector<double> vcol(4, 1.0);
-    vcol.update(v_ras_offset);
-    
-    vnl_matrix_fixed<double,4,4> m_sform;
-    m_sform.set_identity();
-    m_sform.update(m_ras_matrix);
-    m_sform.set_column(3, vcol);
-    return m_sform;
-  }
 
-  static vnl_matrix_fixed<double,4,4> ConstructVTKtoNiftiTransform(
-    vnl_matrix<double> m_dir, 
-    vnl_vector<double> v_origin,
-    vnl_vector<double> v_spacing)
-    {
-    vnl_matrix_fixed<double,4,4> vox2nii = ConstructNiftiSform(m_dir, v_origin, v_spacing);
-    vnl_matrix_fixed<double,4,4> vtk2vox; 
-    vtk2vox.set_identity();
-    for(size_t i = 0; i < 3; i++)
-      {
-      vtk2vox(i,i) = 1.0 / v_spacing[i];
-      vtk2vox(i,3) = - v_origin[i] / v_spacing[i];
-      }
-    return vox2nii * vtk2vox;
-    }
-
-  /**
-   * Get/Set the alpha
-   */
-  irisSetMacro(Alpha, unsigned char);
-  irisGetMacro(Alpha, unsigned char);
-  virtual void ToggleVisibility();
 
 protected:
 
@@ -384,18 +297,21 @@ protected:
   /** The associated slicer filters */
   SlicerPointer m_Slicer[3];
 
+  /** The wrapped image */
+  SmartPtr<ImageBaseType> m_ImageBase;
+
   /** The current cursor position (slice index) in image dimensions */
   Vector3ui m_SliceIndex;
 
   /**
-   * Is the image wrapper initialized? That is a prerequisite for all 
+   * Is the image wrapper initialized? That is a prerequisite for all
    * operations.
    */
   bool m_Initialized;
 
   /** Transparency */
   unsigned char m_Alpha;
-  
+
   /** A 'saved' value of alpha for when visibility is toggled */
   unsigned char m_ToggleAlpha;
 
@@ -406,7 +322,10 @@ protected:
   ImageCoordinateTransform m_DisplayToImageTransform[3];
 
   // Transform from image index to NIFTI world coordinates
-  vnl_matrix_fixed<double, 4, 4> m_NiftiSform, m_NiftiInvSform;
+  TransformType m_NiftiSform, m_NiftiInvSform;
+
+  // Each layer has a filename and a nickname
+  std::string m_FileName, m_Nickname;
 
   /**
    * Handle a change in the image pointer (i.e., a load operation on the image or 

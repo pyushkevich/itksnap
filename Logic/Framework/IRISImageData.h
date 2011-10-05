@@ -45,18 +45,21 @@
 class IRISImageData : public GenericImageData
 {
 public:
+  typedef GenericImageData Superclass;
+  typedef Superclass::ImageBaseType ImageBaseType;
+  typedef Superclass::GreyImageType GreyImageType;
+  typedef Superclass::RGBImageType RGBImageType;
 
-  IRISImageData(IRISApplication *parent)
-    : GenericImageData(parent) {}
-  virtual ~IRISImageData() {};
+  IRISImageData(IRISApplication *parent);
+  virtual ~IRISImageData();
 
   /**
    * Access the segmentation image (read only access allowed 
    * to preserve state)
    */
   LabelImageWrapper* GetUndoImage() {
-    assert(m_MainImageWrapper->IsInitialized() && m_UndoWrapper.IsInitialized());
-    return &m_UndoWrapper;
+    assert(m_MainImageWrapper->IsInitialized() && m_UndoWrapper->IsInitialized());
+    return m_UndoWrapper;
   }
 
   /**
@@ -65,10 +68,9 @@ public:
    */
   void SetSegmentationImage(LabelImageType *newLabelImage);
 
-  void SetGreyImage(
-    GreyImageType *newGreyImage,
-    const ImageCoordinateGeometry &newGeometry,
-    const GreyTypeToNativeFunctor &native);
+  void SetGreyImage(GreyImageType *newGreyImage,
+                    const ImageCoordinateGeometry &newGeometry,
+                    const InternalToNativeFunctor &native);
 
   void SetRGBImage(RGBImageType *newRGBImage,
                    const ImageCoordinateGeometry &newGeometry);
@@ -86,7 +88,7 @@ protected:
   // (and it would be difficult for the user too). So this UndoWrapper stores the
   // segmentation image _at the last undo point_. See IRISApplication::StoreUndoPoint
   // for details.
-  LabelImageWrapper m_UndoWrapper;
+  LabelImageWrapper *m_UndoWrapper;
 
 };
 

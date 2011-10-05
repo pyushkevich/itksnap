@@ -58,7 +58,9 @@ template <class TInput, class TOutput, class TFunctor>
  * Adds ability to remap intensity from short to byte using an
  * arbitrary function when outputing slices.
  */
-class GreyImageWrapper : public ScalarImageWrapper<GreyType>
+template <class TPixel>
+class GreyImageWrapper
+    : public ScalarImageWrapper<TPixel>, public GreyImageWrapperBase
 {
 public:
 
@@ -72,12 +74,12 @@ public:
    * correspond to a different intensity range. That can be specified
    * using the SetReferenceIntensityRange() function
    */
-  IntensityCurveInterface* GetIntensityMapFunction();
+  IntensityCurveInterface* GetIntensityMapFunction() const;
 
   /**
    * Copy the intensity curve information from another grey image wrapper
    */
-  void CopyIntensityMap(const GreyImageWrapper &source);
+  void CopyIntensityMap(const GreyImageWrapperBase &source);
 
   void UpdateIntensityMapFunction();
 
@@ -86,29 +88,8 @@ public:
    * is mapped to the domain of the intensity curve
    * @see GetIntensityMapFunction
    */
-  void SetReferenceIntensityRange(GreyType refMin, GreyType refMax);
+  void SetReferenceIntensityRange(double refMin, double refMax);
   void ClearReferenceIntensityRange();
-
-  /**
-   * Set the transformation to native intensity space
-   */
-  irisSetMacro(NativeMapping, GreyTypeToNativeFunctor);
-  irisGetMacro(NativeMapping, GreyTypeToNativeFunctor);
-
-
-  /**
-   * Get voxel intensity in native space
-   */
-  double GetVoxelMappedToNative(const Vector3ui &vec)
-    { return m_NativeMapping(this->GetVoxel(vec)); }
-
-  /**
-   * Get min/max voxel intensity in native space
-   */
-  double GetImageMinNative()
-    { return m_NativeMapping(this->GetImageMin()); }
-  double GetImageMaxNative()
-    { return m_NativeMapping(this->GetImageMax()); }
 
   /**
    * Get the display slice in a given direction.  To change the
@@ -139,13 +120,13 @@ private:
   public:
 
     /** Map a grey value */
-    DisplayPixelType operator()(const GreyType &value) const;
+    DisplayPixelType operator()(const TPixel &value) const;
 
     // The storage for the float->float intensity map
     IntensityCurveInterface *m_IntensityMap;
 
     // Intensity mapping factors
-    GreyType m_IntensityMin;
+    double m_IntensityMin;
     float m_IntensityFactor;
  
     // Color map
@@ -167,18 +148,18 @@ private:
     /**
      * Set the range over which the input data is mapped to output data
      */
-    void SetInputRange(GreyType intensityMin,GreyType intensityMax);
+    void SetInputRange(TPixel intensityMin,TPixel intensityMax);
   };
 
   // Type of intensity function used to map 3D volume intensity into
   // 2D slice intensities
-  typedef UnaryFunctorCache<GreyType,DisplayPixelType,IntensityFunctor> CacheType;
+  typedef UnaryFunctorCache<TPixel,DisplayPixelType,IntensityFunctor> CacheType;
   typedef itk::SmartPointer<CacheType> CachePointer;  
-  typedef CachingUnaryFunctor<GreyType,DisplayPixelType,IntensityFunctor>
+  typedef CachingUnaryFunctor<TPixel,DisplayPixelType,IntensityFunctor>
      CacheFunctor;
 
   // Filters applied to slices
-  typedef itk::Image<GreyType,2> GreySliceType;
+  typedef itk::Image<TPixel,2> GreySliceType;
   typedef itk::UnaryFunctorImageFilter<
     GreySliceType,DisplaySliceType,CacheFunctor> IntensityFilterType;
   typedef itk::SmartPointer<IntensityFilterType> IntensityFilterPointer;
@@ -189,7 +170,7 @@ private:
    * intensity curve needs to be applied to the intensity range of the larger 
    * image, not that of the region.
    */
-  GreyType m_ReferenceIntensityMin, m_ReferenceIntensityMax;
+  double m_ReferenceIntensityMin, m_ReferenceIntensityMax;
   bool m_FlagUseReferenceIntensityRange;
 
   /**
@@ -215,12 +196,6 @@ private:
    */
   IntensityFilterPointer m_IntensityFilter[3];
 
-  /** 
-   * The grey image is an image of shorts. But the real image on disk may
-   * be an image of floats or doubles. So we store a transformation from
-   * internal intensity values to 'native' intensity values
-   */
-  GreyTypeToNativeFunctor m_NativeMapping;
 };
 
 #endif // __GreyImageWrapper_h_

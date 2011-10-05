@@ -48,14 +48,17 @@
 #include "SpeedImageWrapper.h"
 #include "LevelSetImageWrapper.h"
 
-
 #include "EdgePreprocessingSettings.h"
 #include "ThresholdSettings.h"
 
 #include <vector>
 
 #include "SNAPLevelSetFunction.h"
+
+namespace itk { class Command; }
 template <unsigned int VDimension> class SNAPLevelSetDriver;
+class SNAPSegmentationROISettings;
+
 
 /**
  * \class SNAPImageData
@@ -68,13 +71,21 @@ template <unsigned int VDimension> class SNAPLevelSetDriver;
 class SNAPImageData : public GenericImageData 
 {
 public:
+  typedef GenericImageData Superclass;
 
   // The type of the internal level set image
   typedef itk::OrientedImage<float,3> FloatImageType;
   typedef FloatImageType LevelSetImageType;
+  typedef Superclass::GreyImageType GreyImageType;
+  typedef Superclass::RGBImageType RGBImageType;
 
   SNAPImageData(IRISApplication *m_Parent);
   ~SNAPImageData();
+
+  /** Initialize to an ROI from another image data object */
+  void InitializeToROI(GenericImageData *source,
+                       const SNAPSegmentationROISettings &roi,
+                       itk::Command *progressCommand);
 
   /** 
    * Get the preprocessed (speed) image wrapper

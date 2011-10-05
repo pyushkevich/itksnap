@@ -50,13 +50,14 @@ QVariant VoxelIntensityQTableModel::data(const QModelIndex &index, int role) con
     else
       {
       Vector3ui cursor = app->GetCursorPosition();
-      if(GreyImageWrapper *giw = gid->GetLayerAsGray(index.row()))
+      if(GreyImageWrapperBase *giw = gid->GetLayerAsGray(index.row()))
         {
         return giw->GetVoxelMappedToNative(cursor);
         }
-      else if(RGBImageWrapper *rgbiw = gid->GetLayerAsRGB(index.row()))
+      else if(RGBImageWrapperBase *rgbiw = gid->GetLayerAsRGB(index.row()))
         {
-        RGBType rgb = rgbiw->GetVoxel(cursor);
+        double rgb[3];
+        rgbiw->GetVoxelAsDouble(cursor, rgb);
         return QString("%1,%2,%3").arg(rgb[0]).arg(rgb[1]).arg(rgb[2]);
         }
       }

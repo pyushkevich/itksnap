@@ -57,7 +57,7 @@ SNAPTestDriver::TemplatedTestCreator<TPixel>
   if(strName == "ImageWrapper")
     {
     if(typeid(TPixel) == typeid(GreyType))
-      m_Test = new TestImageWrapper<GreyType, GreyImageWrapper>();
+      m_Test = new TestImageWrapper<GreyType, GreyImageWrapper<GreyType> >();
     else if(typeid(TPixel) == typeid(LabelType))
       m_Test = new TestImageWrapper<LabelType, LabelImageWrapper>();
     else if(typeid(TPixel) == typeid(float))

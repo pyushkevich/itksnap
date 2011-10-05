@@ -35,13 +35,20 @@ namespace itk {
  *
  * \sa ImageWrapper
  */
-class RGBImageWrapper : public VectorImageWrapper<RGBType>
+template <class TComponent>
+class RGBImageWrapper :
+    public VectorImageWrapper< itk::RGBPixel<TComponent> >,
+    public RGBImageWrapperBase
 {
 public:
   // Basics
-  typedef RGBImageWrapper Self;
-  typedef VectorImageWrapper<RGBType> Superclass;
-  typedef Superclass::ImageType ImageType;
+  typedef itk::RGBPixel<TComponent> PixelType;
+  typedef RGBImageWrapper<TComponent> Self;
+  typedef VectorImageWrapper<PixelType> Superclass;
+  typedef typename Superclass::ImageType ImageType;
+  typedef typename Superclass::DisplaySliceType DisplaySliceType;
+  typedef typename Superclass::DisplaySlicePointer DisplaySlicePointer;
+  typedef typename Superclass::DisplayPixelType DisplayPixelType;
 
   /**
    * Get the display slice in a given direction.  To change the
@@ -60,7 +67,7 @@ private:
   class IntensityFunctor {
   public:
     /** The operator that maps label to color */
-    DisplayPixelType operator()(const RGBType &x) const;
+    DisplayPixelType operator()(const PixelType &x) const;
 
     // Equality operators required, if variables defined!!!
     bool operator == (const IntensityFunctor &z) const
@@ -75,7 +82,7 @@ private:
 
   // Type of the display intensity mapping filter used when the 
   // input is a in-out image
-  typedef itk::Image<RGBType,2> RGBSliceType;
+  typedef itk::Image<PixelType,2> RGBSliceType;
   typedef itk::UnaryFunctorImageFilter<
     RGBSliceType,DisplaySliceType,IntensityFunctor> 
     IntensityFilterType;

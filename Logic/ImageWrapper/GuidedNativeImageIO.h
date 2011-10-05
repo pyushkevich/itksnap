@@ -315,10 +315,10 @@ public:
   OutputImageType *operator()(GuidedNativeImageIO *nativeIO);
 
   // Get the scale factor to map from scalar to native
-  irisGetMacro(NativeScale, double);
+  irisGetMacro(NativeScale, double)
 
   // Get the shift to map from scalar to native
-  irisGetMacro(NativeShift, double);
+  irisGetMacro(NativeShift, double)
 
 private:
   typename OutputImageType::Pointer m_Output;

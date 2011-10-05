@@ -37,9 +37,6 @@
 
 #include "SNAPCommon.h"
 
-// Forward references
-class GreyImageWrapper;
-
 /**
  * This class encapsulates the thresholding settings used by the program.
  * for In/Out snake initialization

@@ -12,8 +12,6 @@
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
      PURPOSE.  See the above copyright notices for more information.
 =========================================================================*/
-#ifndef __ScalarImageWrapper_txx_
-#define __ScalarImageWrapper_txx_
 
 #include "ScalarImageWrapper.h"
 #include "itkImageRegionIterator.h"
@@ -68,6 +66,7 @@ ScalarImageWrapper<TPixel>
 
   ImageWrapper<TPixel>::UpdateImagePointer(newImage);
 }
+
 
 template <class TPixel>
 typename ScalarImageWrapper<TPixel>::ImagePointer
@@ -182,6 +181,7 @@ ScalarImageWrapper<TPixel>
   return fltChop->GetOutput();
 }
 
+
 template <class TPixel> 
 void 
 ScalarImageWrapper<TPixel>
@@ -239,7 +239,7 @@ ScalarImageWrapper<TPixel>
 template <class TPixel>    
 void 
 ScalarImageWrapper<TPixel>
-::RemapIntensityToRange(TPixel min, TPixel max)
+::RemapIntensityToRange(double min, double max)
 {
   typedef itk::RescaleIntensityImageFilter<ImageType> FilterType;
   typedef typename FilterType::Pointer FilterPointer;
@@ -247,8 +247,8 @@ ScalarImageWrapper<TPixel>
   // Create a filter to remap the intensities
   FilterPointer filter = FilterType::New();
   filter->SetInput(this->m_Image);
-  filter->SetOutputMinimum(min);
-  filter->SetOutputMaximum(max);
+  filter->SetOutputMinimum((TPixel) min);
+  filter->SetOutputMaximum((TPixel) max);
 
   // Run the filter
   filter->Update();
@@ -262,8 +262,23 @@ void
 ScalarImageWrapper<TPixel>
 ::RemapIntensityToMaximumRange()
 {
-  RemapIntensityToRange(itk::NumericTraits<TPixel>::min(),
-                        itk::NumericTraits<TPixel>::max());
+  typedef itk::RescaleIntensityImageFilter<ImageType> FilterType;
+  typedef typename FilterType::Pointer FilterPointer;
+
+  // Create a filter to remap the intensities
+  FilterPointer filter = FilterType::New();
+  filter->SetInput(this->m_Image);
+  filter->SetOutputMinimum(itk::NumericTraits<TPixel>::min());
+  filter->SetOutputMaximum(itk::NumericTraits<TPixel>::max());
+
+  // Run the filter
+  filter->Update();
+
+  // Store the output and point everything to it
+  UpdateImagePointer(filter->GetOutput());
 }
 
-#endif // __ScalarImageWrapper_txx_
+template class ScalarImageWrapper<float>;
+template class ScalarImageWrapper<GreyType>;
+template class ScalarImageWrapper<LabelType>;
+

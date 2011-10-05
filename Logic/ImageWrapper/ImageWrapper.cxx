@@ -40,8 +40,6 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-#ifndef __ImageWrapper_txx_
-#define __ImageWrapper_txx_
 
 #include "ImageWrapper.h"
 #include "itkImageRegionIterator.h"
@@ -114,6 +112,130 @@ ImageWrapper<TPixel>
     }
 }
 
+template <class TPixel>
+const ImageCoordinateTransform &
+ImageWrapper<TPixel>
+::GetImageToDisplayTransform(unsigned int iSlice) const
+{
+  return m_ImageToDisplayTransform[iSlice];
+}
+
+template <class TPixel>
+void
+ImageWrapper<TPixel>
+::SetImageToDisplayTransformsToDefault()
+{
+  ImageCoordinateTransform id[3];
+  id[0].SetTransform(Vector3i(1,2,3),Vector3ui(0,0,0));
+  id[1].SetTransform(Vector3i(1,3,2),Vector3ui(0,0,0));
+  id[2].SetTransform(Vector3i(2,3,1),Vector3ui(0,0,0));
+  SetImageToDisplayTransform(0,id[0]);
+  SetImageToDisplayTransform(1,id[1]);
+  SetImageToDisplayTransform(2,id[2]);
+}
+
+template <class TPixel>
+Vector3ui
+ImageWrapper<TPixel>
+::GetSize() const
+{
+  // Cast the size to our vector format
+  itk::Size<3> size = m_Image->GetLargestPossibleRegion().GetSize();
+  return Vector3ui(
+    (unsigned int) size[0],
+    (unsigned int) size[1],
+        (unsigned int) size[2]);
+}
+
+template <class TPixel>
+void
+ImageWrapper<TPixel>
+::ToggleVisibility()
+{
+  // If visible (alpha > 0), make invisible
+  if(m_Alpha > 0)
+    {
+    m_ToggleAlpha = m_Alpha;
+    m_Alpha = 0;
+    }
+  // If invisible, return to saved alpha value
+  else
+    {
+    m_Alpha = m_ToggleAlpha;
+    }
+}
+
+template <class TPixel>
+itk::ImageRegion<3>
+ImageWrapper<TPixel>
+::GetBufferedRegion() const
+{
+  return m_ImageBase->GetBufferedRegion();
+}
+
+template <class TPixel>
+size_t
+ImageWrapper<TPixel>
+::GetNumberOfVoxels() const
+{
+  return m_ImageBase->GetBufferedRegion().GetNumberOfPixels();
+}
+
+template <class TPixel>
+Vector3d
+ImageWrapper<TPixel>
+::TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const
+{
+  // Use the ITK method to do this
+  typename ImageBaseType::IndexType xIndex;
+  for(size_t d = 0; d < 3; d++) xIndex[d] = iVoxel[d];
+
+  itk::Point<double, 3> xPoint;
+  m_ImageBase->TransformIndexToPhysicalPoint(xIndex, xPoint);
+
+  Vector3d xOut;
+  for(unsigned int q = 0; q < 3; q++) xOut[q] = xPoint[q];
+
+  return xOut;
+}
+
+template <class TPixel>
+Vector3d
+ImageWrapper<TPixel>
+::TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const
+{
+  // Create homogeneous vector
+  vnl_vector_fixed<double, 4> x;
+  for(size_t d = 0; d < 3; d++)
+    x[d] = (double) iVoxel[d];
+  x[3] = 1.0;
+
+  // Transform to NIFTI coords
+  vnl_vector_fixed<double, 4> p = m_NiftiSform * x;
+
+  // Return the component
+  return Vector3d(p.data_block());
+}
+
+template <class TPixel>
+Vector3d
+ImageWrapper<TPixel>
+::TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const
+{
+  // Create homogeneous vector
+  vnl_vector_fixed<double, 4> x;
+  for(size_t d = 0; d < 3; d++)
+    x[d] = (double) vNifti[d];
+  x[3] = 1.0;
+
+  // Transform to NIFTI coords
+  vnl_vector_fixed<double, 4> p = m_NiftiInvSform * x;
+
+  // Return the component
+  return Vector3d(p.data_block());
+}
+
+
 template <class TPixel> 
 void 
 ImageWrapper<TPixel>
@@ -153,6 +275,7 @@ ImageWrapper<TPixel>
     }
   
   // Update the image
+  this->m_ImageBase = newImage;
   m_Image = newImage;
 
   // Mark the image as Modified to enforce correct sequence of 
@@ -236,13 +359,6 @@ ImageWrapper<TPixel>
   m_ToggleAlpha = 128;
 }
 
-template <class TPixel>
-bool 
-ImageWrapper<TPixel>
-::IsInitialized() const 
-{
-  return m_Initialized;
-}
 
 template <class TPixel>
 inline const TPixel& 
@@ -270,6 +386,14 @@ ImageWrapper<TPixel>
   index[1] = y;
   index[2] = z;
 
+  return GetVoxelForUpdate(index);
+}
+
+template <class TPixel>
+inline TPixel &
+ImageWrapper<TPixel>
+::GetVoxelForUpdate(const itk::Index<3> &index)
+{
   // Verify that the pixel is contained by the image at debug time
   assert(m_Image && m_Image->GetLargestPossibleRegion().IsInside(index));
 
@@ -287,6 +411,14 @@ ImageWrapper<TPixel>
   index[1] = y;
   index[2] = z;
 
+  return GetVoxel(index);
+}
+
+template <class TPixel>
+inline const TPixel&
+ImageWrapper<TPixel>
+::GetVoxel(const itk::Index<3> &index) const
+{
   // Verify that the pixel is contained by the image at debug time
   assert(m_Image && m_Image->GetLargestPossibleRegion().IsInside(index));
 
@@ -315,14 +447,6 @@ ImageWrapper<TPixel>
 }
 
 template <class TPixel>    
-Vector3ui
-ImageWrapper<TPixel>
-::GetSliceIndex() const
-{
-  return m_SliceIndex;
-}
-
-template <class TPixel>    
 void 
 ImageWrapper<TPixel>
 ::SetSliceIndex(const Vector3ui &cursor)
@@ -341,27 +465,6 @@ ImageWrapper<TPixel>
   }
 }
 
-template <class TPixel>    
-void 
-ImageWrapper<TPixel>
-::SetImageToDisplayTransformsToDefault()
-{
-  ImageCoordinateTransform id[3];
-  id[0].SetTransform(Vector3i(1,2,3),Vector3ui(0,0,0));
-  id[1].SetTransform(Vector3i(1,3,2),Vector3ui(0,0,0));
-  id[2].SetTransform(Vector3i(2,3,1),Vector3ui(0,0,0));
-  SetImageToDisplayTransform(0,id[0]);
-  SetImageToDisplayTransform(1,id[1]);
-  SetImageToDisplayTransform(2,id[2]);
-}
-
-template <class TPixel>    
-const ImageCoordinateTransform&
-ImageWrapper<TPixel>
-::GetImageToDisplayTransform(unsigned int iSlice) const 
-{
-  return m_ImageToDisplayTransform[iSlice];
-}
 
 template <class TPixel>    
 void 
@@ -417,80 +520,7 @@ ImageWrapper<TPixel>
   return m_Image->GetBufferPointer();
 }
 
-template <class TPixel>
-size_t
-ImageWrapper<TPixel>
-::GetNumberOfVoxels() const
-{
-  return m_Image->GetBufferedRegion().GetNumberOfPixels();
-}
 
-template <class TPixel>
-Vector3ui
-ImageWrapper<TPixel>
-::GetSize() const
-{
-  // Cast the size to our vector format
-  itk::Size<3> size = m_Image->GetLargestPossibleRegion().GetSize();      
-  return Vector3ui(
-    (unsigned int) size[0],
-    (unsigned int) size[1],
-    (unsigned int) size[2]);
-}
-
-template<class TPixel>
-Vector3d
-ImageWrapper<TPixel>
-::TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const
-{
-  // Use the ITK method to do this
-  typename ImageType::IndexType xIndex;
-  for(size_t d = 0; d < 3; d++) xIndex[d] = iVoxel[d];
-  
-  itk::Point<double, 3> xPoint;
-  m_Image->TransformIndexToPhysicalPoint(xIndex, xPoint);
-
-  Vector3d xOut;
-  for(unsigned int q = 0; q < 3; q++) xOut[q] = xPoint[q];
-
-  return xOut;
-}
-
-template<class TPixel>
-Vector3d
-ImageWrapper<TPixel>
-::TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const
-{
-  // Create homogeneous vector
-  vnl_vector_fixed<double, 4> x;
-  for(size_t d = 0; d < 3; d++)
-    x[d] = (double) iVoxel[d];
-  x[3] = 1.0;
-
-  // Transform to NIFTI coords
-  vnl_vector_fixed<double, 4> p = m_NiftiSform * x;  
-
-  // Return the component
-  return Vector3d(p.data_block());
-}
-
-template<class TPixel>
-Vector3d
-ImageWrapper<TPixel>
-::TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const
-{
-  // Create homogeneous vector
-  vnl_vector_fixed<double, 4> x;
-  for(size_t d = 0; d < 3; d++)
-    x[d] = (double) vNifti[d];
-  x[3] = 1.0;
-
-  // Transform to NIFTI coords
-  vnl_vector_fixed<double, 4> p = m_NiftiInvSform * x;  
-
-  // Return the component
-  return Vector3d(p.data_block());  
-}
 
 template <class TPixel>
 unsigned int 
@@ -546,22 +576,15 @@ ImageWrapper<TPixel>
 }
 
 template <class TPixel>
-void
+void *
 ImageWrapper<TPixel>
-::ToggleVisibility()
+::GetVoxelVoidPointer() const
 {
-  // If visible (alpha > 0), make invisible
-  if(m_Alpha > 0)
-    {
-    m_ToggleAlpha = m_Alpha;
-    m_Alpha = 0;
-    }
-  // If invisible, return to saved alpha value
-  else
-    {
-    m_Alpha = m_ToggleAlpha;
-    }
+  return (void *) m_Image->GetBufferPointer();
 }
 
-
-#endif // __ImageWrapper_txx_
+// Allowed types of image wrappers
+template class ImageWrapper<GreyType>;
+template class ImageWrapper<float>;
+template class ImageWrapper<LabelType>;
+template class ImageWrapper<RGBType>;

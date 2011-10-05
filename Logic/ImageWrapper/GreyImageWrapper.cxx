@@ -34,20 +34,16 @@
 =========================================================================*/
 #include "GreyImageWrapper.h"
 #include "UnaryFunctorCache.h"
-#include "ImageWrapper.txx"
-#include "ScalarImageWrapper.txx"
+#include "IRISSlicer.h"
 
 #include "itkFunctionBase.h"
 #include "itkUnaryFunctorImageFilter.h"
 
 
-// Create an instance of ImageWrapper of appropriate type
-template class ImageWrapper<GreyType>;
-template class ScalarImageWrapper<GreyType>;
-
-GreyImageWrapper
+template<class TPixel>
+GreyImageWrapper<TPixel>
 ::GreyImageWrapper()
-: ScalarImageWrapper<GreyType> ()
+: ScalarImageWrapper<TPixel> ()
 {
   // Initialize the intensity curve
   m_IntensityCurveVTK = IntensityCurveVTK::New();
@@ -67,14 +63,15 @@ GreyImageWrapper
   {
     m_IntensityFilter[i] = IntensityFilterType::New();
     m_IntensityFilter[i]->SetFunctor(m_IntensityMapCache->GetCachingFunctor());
-    m_IntensityFilter[i]->SetInput(m_Slicer[i]->GetOutput());
+    m_IntensityFilter[i]->SetInput(this->m_Slicer[i]->GetOutput());
   }
 
   // By default, reference range is not used
   m_FlagUseReferenceIntensityRange = false;
 }
 
-GreyImageWrapper
+template<class TPixel>
+GreyImageWrapper<TPixel>
 ::~GreyImageWrapper()
 {
   for (size_t i = 0; i < 3; ++i)
@@ -85,47 +82,53 @@ GreyImageWrapper
   m_IntensityCurveVTK = NULL;
 }
 
-void GreyImageWrapper
-::SetReferenceIntensityRange(GreyType refMin, GreyType refMax)
+template<class TPixel>
+void GreyImageWrapper<TPixel>
+::SetReferenceIntensityRange(double refMin, double refMax)
 {
   m_FlagUseReferenceIntensityRange = true;
   m_ReferenceIntensityMin = refMin;
   m_ReferenceIntensityMax = refMax;  
 }
 
-void GreyImageWrapper
+template<class TPixel>
+void GreyImageWrapper<TPixel>
 ::ClearReferenceIntensityRange()
 {
   m_FlagUseReferenceIntensityRange = false;
 }
 
+template<class TPixel>
 IntensityCurveInterface*
-GreyImageWrapper
-::GetIntensityMapFunction()
+GreyImageWrapper<TPixel>
+::GetIntensityMapFunction() const
 {
   return m_IntensityCurveVTK;
 }
 
-void 
-GreyImageWrapper
-::CopyIntensityMap(const GreyImageWrapper &s)
+template<class TPixel>
+void
+GreyImageWrapper<TPixel>
+::CopyIntensityMap(const GreyImageWrapperBase &s)
 {
-  m_IntensityCurveVTK->Initialize(
-    s.m_IntensityCurveVTK->GetControlPointCount());
+  const IntensityCurveInterface *ici = s.GetIntensityMapFunction();
+  m_IntensityCurveVTK->Initialize(ici->GetControlPointCount());
   for(size_t i = 0; i < m_IntensityCurveVTK->GetControlPointCount(); i++)
     {
     float t, x;
-    s.m_IntensityCurveVTK->GetControlPoint(i, t, x);
+    ici->GetControlPoint(i, t, x);
     m_IntensityCurveVTK->UpdateControlPoint(i, t, x);
     }
 }
 
-void GreyImageWrapper
+template<class TPixel>
+void
+GreyImageWrapper<TPixel>
 ::UpdateIntensityMapFunction()
 {
   // Get the range of the image
-  GreyType iMin = GetImageMin();
-  GreyType iMax = GetImageMax();
+  TPixel iMin = this->GetImageMin();
+  TPixel iMax = this->GetImageMax();
 
   // Set the input range of the functor
   if(m_FlagUseReferenceIntensityRange)
@@ -147,29 +150,33 @@ void GreyImageWrapper
     m_IntensityFilter[i]->Modified();
 }
 
-GreyImageWrapper::DisplaySlicePointer
-GreyImageWrapper
+template<class TPixel>
+typename GreyImageWrapper<TPixel>::DisplaySlicePointer
+GreyImageWrapper<TPixel>
 ::GetDisplaySlice(unsigned int dim) const
 {
   return m_IntensityFilter[dim]->GetOutput();
 }
 
+template<class TPixel>
 ColorMap
-GreyImageWrapper
+GreyImageWrapper<TPixel>
 ::GetColorMap() const
 {
   return m_IntensityFunctor.m_Colormap;
 }
 
+template<class TPixel>
 void
-GreyImageWrapper
+GreyImageWrapper<TPixel>
 ::SetColorMap(const ColorMap& colormap)
 {
   m_IntensityFunctor.m_Colormap = colormap;
 }
 
+template<class TPixel>
 void
-GreyImageWrapper
+GreyImageWrapper<TPixel>
 ::Update()
 {
   // Dirty the intensity filters
@@ -177,17 +184,19 @@ GreyImageWrapper
     m_IntensityFilter[i]->Modified();
 }
 
-void 
-GreyImageWrapper::IntensityFunctor
-::SetInputRange(GreyType intensityMin, GreyType intensityMax) 
+template<class TPixel>
+void
+GreyImageWrapper<TPixel>::IntensityFunctor
+::SetInputRange(TPixel intensityMin, TPixel intensityMax)
 {
   m_IntensityMin = intensityMin;
   m_IntensityFactor = 1.0f / (intensityMax-intensityMin);
 }
 
-GreyImageWrapper::DisplayPixelType
-GreyImageWrapper::IntensityFunctor
-::operator()(const GreyType &in) const 
+template<class TPixel>
+typename GreyImageWrapper<TPixel>::DisplayPixelType
+GreyImageWrapper<TPixel>::IntensityFunctor
+::operator()(const TPixel &in) const
 {
   // Map the input value to range of 0 to 1
   double inZeroOne = (in - m_IntensityMin) * m_IntensityFactor;
@@ -199,4 +208,4 @@ GreyImageWrapper::IntensityFunctor
   return m_Colormap.MapIndexToRGBA(outZeroOne);
 }
 
-
+template class GreyImageWrapper<short>;

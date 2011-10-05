@@ -35,6 +35,18 @@
 // ITK Includes
 #include "IRISImageData.h"
 
+IRISImageData
+::IRISImageData(IRISApplication *parent)
+  : GenericImageData(parent)
+{
+  m_UndoWrapper = NULL;
+}
+
+IRISImageData::~IRISImageData()
+{
+  delete m_UndoWrapper;
+}
+
 void
 IRISImageData
 ::SetSegmentationImage(LabelImageType *newLabelImage)
@@ -43,8 +55,8 @@ IRISImageData
   GenericImageData::SetSegmentationImage(newLabelImage);
   
   // Update the undo wrapper to match
-  LabelImageWrapper::Iterator itUndo = m_UndoWrapper.GetImageIterator();
-  LabelImageWrapper::ConstIterator itSeg = m_LabelWrapper.GetImageConstIterator();
+  LabelImageWrapper::Iterator itUndo = m_UndoWrapper->GetImageIterator();
+  LabelImageWrapper::ConstIterator itSeg = m_LabelWrapper->GetImageConstIterator();
 
   while(!itUndo.IsAtEnd())
     {
@@ -58,11 +70,13 @@ void
 IRISImageData
 ::SetGreyImage(GreyImageType *newGreyImage,
                 const ImageCoordinateGeometry &newGeometry,
-                const GreyTypeToNativeFunctor &native)
+                const InternalToNativeFunctor &native)
 {
-  GenericImageData::SetGreyImage(
-    newGreyImage, newGeometry, native);
-  m_UndoWrapper.InitializeToWrapper(&m_LabelWrapper, (LabelType) 0);
+  GenericImageData::SetGreyImage(newGreyImage, newGeometry, native);
+
+  delete m_UndoWrapper;
+  m_UndoWrapper = new LabelImageWrapper();
+  m_UndoWrapper->InitializeToWrapper(m_LabelWrapper, (LabelType) 0);
 }
 
 void
@@ -71,14 +85,19 @@ IRISImageData
               const ImageCoordinateGeometry &newGeometry)
 {
   GenericImageData::SetRGBImage(newRGBImage, newGeometry);
-  m_UndoWrapper.InitializeToWrapper(&m_LabelWrapper, (LabelType) 0);
+
+  delete m_UndoWrapper;
+  m_UndoWrapper = new LabelImageWrapper();
+  m_UndoWrapper->InitializeToWrapper(m_LabelWrapper, (LabelType) 0);
 }
 
 void
 IRISImageData
 ::UnloadMainImage()
 {
-  m_UndoWrapper.Reset();
   GenericImageData::UnloadMainImage();
+
+  delete m_UndoWrapper;
+  m_UndoWrapper = NULL;
 }
 

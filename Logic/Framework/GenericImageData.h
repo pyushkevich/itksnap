@@ -45,11 +45,15 @@
 
 #include "SNAPCommon.h"
 #include "IRISException.h"
-#include "LabelImageWrapper.h"
 #include "GreyImageWrapper.h"
+#include "LabelImageWrapper.h"
 #include "RGBImageWrapper.h"
 #include "GlobalState.h"
 #include "ImageCoordinateGeometry.h"
+
+template <class TPixel> class GreyImageWrapper;
+template <class TPixel> class RGBImageWrapper;
+class LabelImageWrapper;
 
 class IRISApplication;
 
@@ -67,47 +71,52 @@ class GenericImageData
 {
 public:
   // Image type definitions
-  typedef GreyImageWrapper::ImageType GreyImageType;
-  typedef RGBImageWrapper::ImageType RGBImageType;
-  typedef LabelImageWrapper::ImageType LabelImageType;
   typedef itk::ImageRegion<3> RegionType;
+  typedef itk::ImageBase<3> ImageBaseType;
+
+  typedef itk::OrientedImage<GreyType, 3> GreyImageType;
+  typedef itk::OrientedImage<RGBType, 3> RGBImageType;
+  typedef itk::OrientedImage<LabelType, 3> LabelImageType;
 
   typedef std::vector<ImageWrapperBase *> WrapperList;
   typedef WrapperList::iterator WrapperIterator;
   typedef WrapperList::const_iterator WrapperConstIterator;
 
   GenericImageData(IRISApplication *parent);
-  virtual ~GenericImageData() {};
+  virtual ~GenericImageData();
 
   /** 
-   * Access the 'main' image, either grey or RGB. The main image is the
-   * one that all other images must mimic
+   Access the 'main' image, either grey or RGB. The main image is the
+   one that all other images must mimic. This object will be destroyed
+   when a new image is loaded. This means that downstream objects should
+   not make copies of this pointer.
    */
   ImageWrapperBase* GetMain()
-    {
+  {
     assert(m_MainImageWrapper->IsInitialized());
     return m_MainImageWrapper;
-    }
+  }
 
   bool IsMainLoaded() const
-    {
-    return m_MainImageWrapper->IsInitialized();
-    }
+  {
+    return m_MainImageWrapper && m_MainImageWrapper->IsInitialized();
+  }
 
   /**
-   * Access the greyscale image (read only access is allowed)
+    Access the main image as a scalar image.
    */
-  GreyImageWrapper* GetGrey() {
-    assert(m_GreyWrapper.IsInitialized());
-    return &m_GreyWrapper;
+  GreyImageWrapperBase* GetGrey()
+  {
+    assert(m_GreyImageWrapper && m_GreyImageWrapper->IsInitialized());
+    return m_GreyImageWrapper;
   }
 
   /**
    * Access the RGB image (read only access is allowed)
    */
-  RGBImageWrapper* GetRGB() {
-    assert(m_RGBWrapper.IsInitialized());
-    return &m_RGBWrapper;
+  VectorImageWrapperBase* GetRGB() {
+    assert(m_RGBImageWrapper && m_RGBImageWrapper->IsInitialized());
+    return m_RGBImageWrapper;
   }
 
   /**
@@ -127,22 +136,21 @@ public:
    * Get layer as a gray image type. If the layer is not of gray type, NULL
    * will be returned.
    */
-  virtual GreyImageWrapper* GetLayerAsGray(unsigned int layer) const;
+  virtual GreyImageWrapperBase* GetLayerAsGray(unsigned int layer) const;
 
   /**
    * Get layer as an RGB image type. If the layer is not of RGB type, NULL
    * will be returned.
    */
-  virtual RGBImageWrapper* GetLayerAsRGB(unsigned int layer) const;
-
+  virtual RGBImageWrapperBase* GetLayerAsRGB(unsigned int layer) const;
 
   /**
    * Access the segmentation image (read only access allowed 
    * to preserve state)
    */
   LabelImageWrapper* GetSegmentation() {
-    assert(m_MainImageWrapper->IsInitialized() && m_LabelWrapper.IsInitialized());
-    return &m_LabelWrapper;
+    assert(m_MainImageWrapper->IsInitialized() && m_LabelWrapper->IsInitialized());
+    return m_LabelWrapper;
   }
 
   /** 
@@ -179,21 +187,19 @@ public:
    * The second parameter to this method is the new geometry object, which depends
    * on the size of the grey image and will be updated.
    */
-  virtual void SetGreyImage(
-    GreyImageType *newGreyImage,
-    const ImageCoordinateGeometry &newGeometry,
-    const GreyTypeToNativeFunctor &native);
+  virtual void SetGreyImage(GreyImageType *image,
+                            const ImageCoordinateGeometry &newGeometry,
+                            const InternalToNativeFunctor &native);
 
-  virtual void SetRGBImage(RGBImageType *newRGBImage,
-                    const ImageCoordinateGeometry &newGeometry);
+  virtual void SetRGBImage(RGBImageType *image,
+                           const ImageCoordinateGeometry &newGeometry);
 
   virtual void UnloadMainImage();
 
-  virtual void SetGreyOverlay(
-    GreyImageType *newGreyImage,
-    const GreyTypeToNativeFunctor &native);
+  virtual void AddGreyOverlay(GreyImageType *image,
+                              const InternalToNativeFunctor &native);
 
-  virtual void SetRGBOverlay(RGBImageType *newRGBImage);
+  virtual void AddRGBOverlay(RGBImageType *image);
 
   virtual void UnloadOverlays();
   virtual void UnloadOverlayLast();
@@ -240,28 +246,28 @@ public:
   virtual void SetImageGeometry(const ImageCoordinateGeometry &geometry);
 
   /** Get the image coordinate geometry */
-  irisGetMacro(ImageGeometry,ImageCoordinateGeometry);
+  irisGetMacro(ImageGeometry,ImageCoordinateGeometry)
 
 protected:
-  virtual void SetMainImageCommon(ImageWrapperBase *wrapper,
-                          const ImageCoordinateGeometry &geometry);
-  virtual void SetOverlayCommon(ImageWrapperBase *wrapper);
+  virtual void SetMainImageCommon(const ImageCoordinateGeometry &geometry);
+  virtual void AddOverlayCommon(ImageWrapperBase *wrapper);
   virtual void SetCrosshairs(ImageWrapperBase *wrapper, const Vector3ui &crosshairs);
   virtual void SetImageGeometry(ImageWrapperBase *wrapper, const ImageCoordinateGeometry &geometry);
-
-  // Wrapper around the grey-scale image
-  GreyImageWrapper m_GreyWrapper;
-
-  // Wrapper around the RGB image
-  RGBImageWrapper m_RGBWrapper;
 
   // A pointer to the 'main' image, i.e., the image that is treated as the
   // reference for all other images. It is typically the grey image, but
   // since we now allow for RGB images, it can point to the RGB image too
   ImageWrapperBase *m_MainImageWrapper;
 
+  // This pointer is NULL if the main image is of RGB type, and equal to
+  // m_MainImageWrapper otherwise.
+  GreyImageWrapper<GreyType> *m_GreyImageWrapper;
+
+  // Vice versa
+  RGBImageWrapper<unsigned char> *m_RGBImageWrapper;
+
   // Wrapper around the segmentatoin image
-  LabelImageWrapper m_LabelWrapper;
+  LabelImageWrapper *m_LabelWrapper;
 
   // A list of linked wrappers, whose cursor position and image geometry
   // are updated concurrently
@@ -275,6 +281,7 @@ protected:
   // on image size)
   ImageCoordinateGeometry m_ImageGeometry;
 
+  friend class SNAPImageData;
 };
 
 #endif

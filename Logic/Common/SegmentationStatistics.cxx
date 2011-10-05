@@ -39,9 +39,8 @@ using namespace std;
 
 struct SegmentationStatisticsSource {
   string name;
-  GreyImageWrapper *image;
-  GreyImageWrapper::ConstIterator it; 
-  GreyTypeToNativeFunctor funk;
+  ScalarImageWrapperBase *image;
+  InternalToNativeFunctor funk;
 };
 
 void
@@ -52,12 +51,11 @@ SegmentationStatistics
   vector<SegmentationStatisticsSource> isrc;
 
   // Populate image sources
-  if(id->IsGreyLoaded())
+  if(id->IsMainLoaded() && id->GetMain()->IsScalar())
     {
     SegmentationStatisticsSource src;
     src.name = "image";
-    src.image = id->GetGrey();
-    src.it = src.image->GetImageConstIterator();
+    src.image = dynamic_cast<ScalarImageWrapperBase *>(id->GetMain());
     src.funk = src.image->GetNativeMapping();
     isrc.push_back(src);
     }
@@ -68,14 +66,13 @@ SegmentationStatistics
   for(; it != id->GetOverlays()->end(); it++, k++)
     {
     // Is it a grey wrapper?
-    GreyImageWrapper *wrapper = dynamic_cast<GreyImageWrapper *>(*it);
+    ScalarImageWrapperBase *wrapper = dynamic_cast<ScalarImageWrapperBase *>(*it);
     if (wrapper)
       {
       SegmentationStatisticsSource src;
       ostringstream oss; oss << "ovl " << k;
       src.name = oss.str();
       src.image = wrapper;
-      src.it = src.image->GetImageConstIterator();
       src.funk = src.image->GetNativeMapping();
       isrc.push_back(src);
       }
@@ -104,6 +101,7 @@ SegmentationStatistics
     // Get the label and the corresponding entry
     LabelType label = itLabel.Value();
     Entry &entry = m_Stats[label];
+    itk::Index<3> idx = itLabel.GetIndex();
 
     // Increment number of voxels for this label
     entry.count++;
@@ -111,8 +109,8 @@ SegmentationStatistics
     // Update the gray statistics
     for(size_t j = 0; j < ngray; j++)
       {
-      double v = isrc[j].funk( isrc[j].it.Value() );
-      ++isrc[j].it;
+      double vint = isrc[j].image->GetVoxelAsDouble(idx);
+      double v = isrc[j].funk(vint);
       entry.gray[j].sum += v;
       entry.gray[j].sumsq += v * v;
       }

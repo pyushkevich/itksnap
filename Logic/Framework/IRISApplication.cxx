@@ -132,31 +132,15 @@ IRISApplication
 void 
 IRISApplication
 ::InitializeSNAPImageData(const SNAPSegmentationROISettings &roi,
-                          CommandType *progressCommand) 
+                          CommandType *progressCommand)
 {
   assert(m_SNAPImageData == NULL);
   assert(m_IRISImageData->IsMainLoaded());
 
   // Create the SNAP image data object
   m_SNAPImageData = new SNAPImageData(this);
+  m_SNAPImageData->InitializeToROI(m_IRISImageData, roi, progressCommand);
 
-  // Get the roi chunk from the grey image
-  GreyImageType::Pointer imgNewGrey = 
-    m_IRISImageData->GetGrey()->DeepCopyRegion(roi,progressCommand);
-
-  // Get the size of the region
-  Vector3ui size = to_unsigned_int(
-    Vector3ul(imgNewGrey->GetLargestPossibleRegion().GetSize().GetSize()));
-
-  // Compute an image coordinate geometry for the region of interest  
-  ImageCoordinateGeometry icg(
-    m_IRISImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
-    m_DisplayToAnatomyRAI, size);
-
-  // Assign the new wrapper to the target
-  m_SNAPImageData->SetGreyImage(
-    imgNewGrey, icg,
-    m_IRISImageData->GetGrey()->GetNativeMapping());
   
   // Override the interpolator in ROI for label interpolation, or we will get
   // nonsense
@@ -187,15 +171,6 @@ IRISApplication
   m_SNAPImageData->SetColorLabel(
     m_ColorLabelTable->GetColorLabel(passThroughLabel));
 
-  // Assign the intensity mapping function to the Snap data
-  m_SNAPImageData->GetGrey()->SetReferenceIntensityRange(
-    m_IRISImageData->GetGrey()->GetImageMin(),
-    m_IRISImageData->GetGrey()->GetImageMax());
-  m_SNAPImageData->GetGrey()->CopyIntensityMap(*m_IRISImageData->GetGrey());
-  m_SNAPImageData->GetGrey()->UpdateIntensityMapFunction();
-
-  // Copy the colormap too
-  m_SNAPImageData->GetGrey()->SetColorMap(m_IRISImageData->GetGrey()->GetColorMap());
 
   // Initialize the speed image of the SNAP image data
   m_SNAPImageData->InitializeSpeed();
@@ -245,7 +220,7 @@ IRISApplication
   assert(m_SNAPImageData);
 
   // Make sure the dimensions of the speed image are appropriate
-  assert(m_SNAPImageData->GetGrey()->GetImage()->GetBufferedRegion().GetSize()
+  assert(to_itkSize(m_SNAPImageData->GetGrey()->GetSize())
     == newSpeedImage->GetBufferedRegion().GetSize());
 
   // Initialize the speed wrapper
@@ -278,10 +253,6 @@ IRISApplication
 {
   // unload all the overlays
   m_IRISImageData->UnloadOverlays();
-
-  // for overlay, we don't want to change the cursor location
-  // just force the IRISSlicer to update
-  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
@@ -757,10 +728,11 @@ IRISApplication
     GetImageDirectionForAnatomicalDirection(iSliceAnat);
 
   // Find the slicer that slices along that direction
-  GreyImageWrapper::DisplaySlicePointer imgGrey = NULL;
+  typedef GreyImageWrapperBase::DisplaySliceType SliceType;
+  SmartPtr<SliceType> imgGrey = NULL;
   for(size_t i = 0; i < 3; i++)
     {
-    if(iSliceImg == m_CurrentImageData->GetGrey()->GetSlicer(i)->GetSliceDirectionImageAxis())
+    if(iSliceImg == m_CurrentImageData->GetGrey()->GetDisplaySliceImageAxis(i))
       {
       imgGrey = m_CurrentImageData->GetGrey()->GetDisplaySlice(i);
       break;
@@ -769,7 +741,7 @@ IRISApplication
   assert(imgGrey);
 
   // Flip the image in the Y direction
-  typedef itk::FlipImageFilter<GreyImageWrapper::DisplaySliceType> FlipFilter;
+  typedef itk::FlipImageFilter<SliceType> FlipFilter;
   FlipFilter::Pointer fltFlip = FlipFilter::New();
   fltFlip->SetInput(imgGrey);
   
@@ -778,7 +750,7 @@ IRISApplication
   fltFlip->SetFlipAxes(arrFlips);
 
   // Create a writer for saving the image
-  typedef itk::ImageFileWriter<GreyImageWrapper::DisplaySliceType> WriterType;
+  typedef itk::ImageFileWriter<SliceType> WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput(fltFlip->GetOutput());
   writer->SetFileName(file);
@@ -1168,13 +1140,13 @@ IRISApplication
     // Rescale the image to grey
     RescaleNativeImageToScalar<GreyType> rescaler;
     GreyImageType::Pointer imgGrey = rescaler(io);
-    GreyTypeToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
+    InternalToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
 
     // At this point, deallocate the native image, so that we don't use more memory
     io->DeallocateNativeImage();
 
     // Add the image as the current grayscale overlay
-    m_IRISImageData->SetGreyOverlay(imgGrey, mapper);
+    m_IRISImageData->AddGreyOverlay(imgGrey, mapper);
     }
   else if(type == MAIN_RGB)
     {
@@ -1186,7 +1158,7 @@ IRISApplication
     io->DeallocateNativeImage();
 
     // Add the image as the current RGB overlay
-    m_IRISImageData->SetRGBOverlay(imgRGB);
+    m_IRISImageData->AddRGBOverlay(imgRGB);
     }
   else throw itk::ExceptionObject("Unsupported overlay image type");
 
@@ -1227,7 +1199,7 @@ IRISApplication
     // Rescale the image to grey
     RescaleNativeImageToScalar<GreyType> rescaler;
     GreyImageType::Pointer imgGrey = rescaler(io);
-    GreyTypeToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
+    InternalToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
 
     // At this point, deallocate the native image, so that we don't use more memory
     io->DeallocateNativeImage();

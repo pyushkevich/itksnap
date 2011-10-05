@@ -605,15 +605,19 @@ RescaleNativeImageToScalar<TPixel>
   // Get the native image
   typedef itk::VectorImage<TNative, 3> InputImageType;
   typedef itk::ImageRegionConstIterator<InputImageType> InputIterator;
-  typename InputImageType::Pointer input = 
-    dynamic_cast<InputImageType *>(native);
+  SmartPtr<InputImageType> input = dynamic_cast<InputImageType *>(native);
   assert(input);
+
+  typedef typename InputImageType::PixelContainer InPixCon;
+  typedef typename OutputImageType::PixelContainer OutPixCon;
+
+  InPixCon *ipc = input->GetPixelContainer();
 
   // Special case: native image is the same as target image
   if(typeid(TPixel) == typeid(TNative))
     {
-    typename OutputImageType::PixelContainer *inbuff = 
-      dynamic_cast<typename OutputImageType::PixelContainer *>(input->GetPixelContainer());
+    // Just copy the pixel container
+    OutPixCon *inbuff = dynamic_cast<OutPixCon *>(ipc);
     assert(inbuff);
     m_Output->SetPixelContainer(inbuff);
     m_NativeScale = 1.0;
@@ -621,12 +625,39 @@ RescaleNativeImageToScalar<TPixel>
     return;
     }
 
-  // Otherwise, allocate the buffer in the output image
-  m_Output->Allocate();
-
-  // We must compute the range of the input data
+  // We are going to map data from native to target format in place in order
+  // to save memory. This way, SNAP will never use extra memory when loading
+  // an image. Some trickery is needed though.
   size_t nvoxels = input->GetBufferedRegion().GetNumberOfPixels();
   size_t ncomp = input->GetNumberOfComponentsPerPixel();
+  size_t szNative = sizeof(TNative) * ncomp;
+  size_t szTarget = sizeof(TPixel);
+
+  // Bytes allocated in the current pixel container
+  size_t nbNative = input->GetPixelContainer()->Capacity() * szNative;
+
+  // Bytes needed to store the data in target format
+  size_t nbTarget = input->GetPixelContainer()->Size() * szTarget;
+
+  // This memory is no longer owned by the input
+  ipc->SetContainerManageMemory(false);
+
+  // Pointer to the input buffer
+  TNative *ib = ipc->GetImportPointer();
+
+  // If target is larger than native, expand the pixel container
+  if(nbNative < nbTarget)
+    {
+    // We should probably avoid this possibility by forcing at least a short
+    // type when loading char data. But if this does happen, all we need to
+    // do is increase the capacity of the native data
+    ib = reinterpret_cast<TNative *>(realloc(ib, nbTarget));
+    }
+
+  // Get a pointer to the output buffer (same as input buffer)
+  TPixel *ob = reinterpret_cast<TPixel *>(ib);
+
+  // We must compute the range of the input data
   double imin = itk::NumericTraits<double>::max();
   double imax = -itk::NumericTraits<double>::max();
   TPixel omax = itk::NumericTraits<TPixel>::max();
@@ -648,7 +679,7 @@ RescaleNativeImageToScalar<TPixel>
     for(size_t i = 0; i < nvoxels; i++)
       {
       // Have to cast to double here
-      double val = input->GetBufferPointer()[i]; 
+      double val = ib[i];
       if(val < imin) imin = val;
       if(val > imax) imax = val;
       }
@@ -669,7 +700,7 @@ RescaleNativeImageToScalar<TPixel>
       isint = true;
       for(size_t i = 0; i < nvoxels; i++)
         {
-        TNative vin = input->GetBufferPointer()[i];
+        TNative vin = ib[i];
         TNative vcmp = static_cast<TNative>(static_cast<TPixel>(vin + 0.5));
         if(vin != vcmp)
           { isint = false; break; }
@@ -710,29 +741,45 @@ RescaleNativeImageToScalar<TPixel>
       }
     }
 
-  // Map the values from input vector image to output image. Not using
-  // iterators to increase speed and avoid unnecessary constructors
-  TNative *bn = input->GetBufferPointer();
-  TPixel *bo = m_Output->GetBufferPointer();
-  if(ncomp == 1)
+  // Finally, we get to the code where we map from input format to the output
+  // format. Here again we have to be careful. If the native image is larger or
+  // same than the target image, we want to proceed in ascending order, since each
+  // input element will be replaced by one or more output elements. But if the
+  // native image is smaller, we want to proceed from the end of the memory
+  // block in a descending order, so that the native data is not overridden
+  if(szTarget > szNative)
     {
-    for(size_t i = 0; i < nvoxels; i++, bn++)
+    TNative *pn = ib + (nvoxels - 1) * ncomp;
+    TPixel *pt = ob + nvoxels - 1;
+    for(; pt >= ob; pt--, pn-=ncomp)
       {
-      bo[i] = (TPixel) ((*bn + shift)*scale + 0.5);
+      *pt = (TPixel) ((*pn + shift) * scale + 0.5);
       }
     }
   else
     {
-    for(size_t i = 0; i < nvoxels; i++)
+    TNative *pn = ib;
+    TPixel *pt = ob;
+    for(; pt < ob + nvoxels; pt++, pn+=ncomp)
       {
-      double val = 0.0;
-      for(size_t k = 0; k < ncomp; k++, bn++)
-        val += (*bn) * (*bn);
-      bo[1] = (TPixel) ((sqrt(val) + shift)*scale + 0.5);
+      *pt = (TPixel) ((*pn + shift) * scale + 0.5);
       }
     }
 
-  // Store the shift and the scale needed to take the TPixel values 
+  // If needed, squeeze the memory
+  if(nbTarget < nbNative)
+    ob = reinterpret_cast<TPixel *>(realloc(ob, nbTarget));
+
+  // Create a new container wrapped around the same chunk of memory as the
+  // native image. The size we pass in here is the number of elements that
+  // have been already allocated. We will shrink that memory later
+  SmartPtr<OutPixCon> pc = OutPixCon::New();
+  pc->SetImportPointer(ob, nvoxels, true);
+
+  // Otherwise, allocate the buffer in the output image
+  m_Output->SetPixelContainer(pc);
+
+  // Store the shift and the scale needed to take the TPixel values
   // to the TNative values
   m_NativeScale = 1.0 / scale;
   m_NativeShift = - shift;

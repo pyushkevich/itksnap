@@ -33,9 +33,8 @@
 
 =========================================================================*/
 #include "SpeedImageWrapper.h"
-#include "ImageWrapper.txx"
-#include "ScalarImageWrapper.txx"
-
+#include "itkUnaryFunctorImageFilter.h"
+#include "IRISSlicer.h"
 
 SpeedImageWrapper
 ::SpeedImageWrapper()

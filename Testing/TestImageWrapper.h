@@ -17,7 +17,6 @@
 
 #include "TestBase.h"
 #include "ScalarImageWrapper.h"
-#include "ScalarImageWrapper.txx"
 #include "GreyImageWrapper.h"
 #include "LabelImageWrapper.h"
 
@@ -79,9 +78,6 @@ void TestImageWrapper<TPixel, TWrapper>
   ImageCoordinateTransform ict;
   ict.SetTransform(Vector3i(-2,1,-3),wrapper->GetSize());
   
-  // Get a slice in the z-direction in the image
-  typename WrapperType::SlicePointer slice = wrapper->GetSlice(0);
-
   // Report min/max intensities
   std::cout << "Max intensity: " << wrapper->GetImageMax() << std::endl;
   std::cout << "Min intensity: " << wrapper->GetImageMin() << std::endl;

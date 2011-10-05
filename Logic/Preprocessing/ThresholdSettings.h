@@ -38,7 +38,7 @@
 #include "SNAPCommon.h"
 
 // Forward references
-class GreyImageWrapper;
+class ScalarImageWrapperBase;
 
 /**
  * This class encapsulates the thresholding settings used by the program.
@@ -72,7 +72,7 @@ public:
   /**
    * Create a default instance of the settings based on an image wrapper
    */
-  static ThresholdSettings MakeDefaultSettings(GreyImageWrapper *wrapper);
+  static ThresholdSettings MakeDefaultSettings(ScalarImageWrapperBase *wrapper);
 
   /** This will create a slightly less useful settings object with thresholds
    * at 40 and 100.  Before using them, make sure that the image is in range

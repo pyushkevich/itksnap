@@ -96,33 +96,34 @@ typedef itk::RGBPixel<unsigned char> RGBType;
 
 #define MAX_COLOR_LABELS 0xffff
 
-/** 
+/**
  A structure used to map intensity from gray to 'native' intensity for
  images that are not of short datatype
  */
-struct GreyTypeToNativeFunctor
+struct InternalToNativeFunctor
 {
   double scale;
   double shift;
-  double operator() (GreyType g) const
+  double operator() (double g) const
     { return g * scale + shift; }
-  GreyTypeToNativeFunctor() : scale(1.0), shift(0.0) {}
-  GreyTypeToNativeFunctor(double a, double b) : scale(a), shift(b) {}
+  InternalToNativeFunctor() : scale(1.0), shift(0.0) {}
+  InternalToNativeFunctor(double a, double b) : scale(a), shift(b) {}
 };
 
 /** 
  A structure used to map 'native' intensity to gray intensity for
  images that are not of short datatype
  */
-struct NativeToGreyTypeFunctor
+struct NativeToInternalFunctor
 {
   double scale;
   double shift;
-  GreyType operator() (double g) const
-    { return GreyType(g * scale + shift); }
-  NativeToGreyTypeFunctor() : scale(1.0), shift(0.0) {}
-  NativeToGreyTypeFunctor(double a, double b) : scale(a), shift(b) {}
-  NativeToGreyTypeFunctor(GreyTypeToNativeFunctor g2n) : scale(1.0/g2n.scale), shift(-g2n.shift/g2n.scale) {}
+  double operator() (double g) const
+    { return g * scale + shift; }
+  NativeToInternalFunctor() : scale(1.0), shift(0.0) {}
+  NativeToInternalFunctor(double a, double b) : scale(a), shift(b) {}
+  NativeToInternalFunctor(InternalToNativeFunctor g2n)
+    : scale(1.0/g2n.scale), shift(-g2n.shift/g2n.scale) {}
 };
 
 /**
@@ -174,6 +175,18 @@ public:
 }
 
 /**
+ * Set macro borrowed from VTK and modified.  Assumes m_ for private vars
+ */
+#define irisVirtualSetMacro(name,type) \
+    virtual void Set##name (type _arg) = 0;
+
+/**
+ * Get macro borrowed from VTK and modified.  Assumes m_ for private vars
+ */
+#define irisVirtualGetMacro(name,type) \
+    virtual type Get##name () const = 0;
+
+/**
  * Combo get/set macro
  */
 #define irisGetSetMacro(name,type) \
@@ -200,12 +213,31 @@ public:
 } 
 
 /**
+ * Set macro for strings
+ */
+#define irisVirtualSetStringMacro(name) \
+    virtual void Set##name (const std::string &_arg)  = 0;
+
+/**
+ * Get macro borrowed from VTK and modified.  Assumes m_ for private vars
+ */
+#define irisVirtualGetStringMacro(name) \
+    virtual const char *Get##name () const = 0;
+
+
+/**
  * A get macro for boolean variables, IsXXX instead of GetXXX
  */
 #define irisIsMacro(name) \
     virtual bool Is##name () const { \
     return this->m_##name; \
 } 
+
+/**
+ * A get macro for boolean variables, IsXXX instead of GetXXX
+ */
+#define irisVirtualIsMacro(name) \
+    virtual bool Is##name () const  = 0;
 
 /**
   A macro combining the standard macros at the head of itk::Object classes

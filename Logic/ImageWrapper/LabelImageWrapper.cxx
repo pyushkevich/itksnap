@@ -32,15 +32,10 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-#include "ImageWrapper.txx"
-#include "ScalarImageWrapper.txx"
 #include "LabelImageWrapper.h"
 #include "ColorLabel.h"
 #include "ColorLabelTable.h"
-
-// Create an instance of ImageWrapper of appropriate type
-template class ImageWrapper<LabelType>;
-template class ScalarImageWrapper<LabelType>;
+#include "IRISSlicer.h"
 
 LabelImageWrapper
 ::LabelImageWrapper()

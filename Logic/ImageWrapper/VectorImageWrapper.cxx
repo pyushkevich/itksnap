@@ -12,8 +12,6 @@
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
      PURPOSE.  See the above copyright notices for more information.
 =========================================================================*/
-#ifndef __VectorImageWrapper_txx_
-#define __VectorImageWrapper_txx_
 
 #include "VectorImageWrapper.h"
 #include "itkImageRegionIterator.h"
@@ -36,7 +34,25 @@ VectorImageWrapper<TPixel>
 {
    std::cout << "VectorImageWrapper::DeepCopyRegion" << std::endl;
    std::cout << std::flush;
-  return NULL;
+   return NULL;
 }
 
-#endif // __VectorImageWrapper_txx_
+template<class TPixel>
+inline double
+VectorImageWrapper<TPixel>
+::GetVoxelAsDouble(const itk::Index<3> &idx) const
+{
+  // By default, return the first component
+  return (double) this->GetVoxel(idx)[0];
+}
+
+template<class TPixel>
+inline double
+VectorImageWrapper<TPixel>
+::GetVoxelAsDouble(const Vector3ui &x) const
+{
+  // By default, return the first component
+  return (double) this->GetVoxel(x)[0];
+}
+
+template class VectorImageWrapper<RGBType>;

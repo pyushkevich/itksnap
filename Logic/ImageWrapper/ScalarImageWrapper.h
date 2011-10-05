@@ -47,36 +47,39 @@
  * is used to unify the treatment of different kinds of scalar images in
  * SNaP.  
  */
-template<class TPixel> class ScalarImageWrapper : public ImageWrapper<TPixel>
+template<class TPixel> class ScalarImageWrapper
+    : public virtual ImageWrapper<TPixel>, public virtual ScalarImageWrapperBase
 {
 public:
 
   // Basic type definitions
-  typedef itk::OrientedImage<TPixel,3> ImageType;
-  typedef typename itk::SmartPointer<ImageType> ImagePointer;
+  typedef ImageWrapper<TPixel> Superclass;
+
+  // Image Types
+  typedef typename Superclass::ImageType ImageType;
+  typedef typename Superclass::ImagePointer ImagePointer;
 
   // Slice image type
-  typedef itk::Image<TPixel,2> SliceType;
-  typedef typename itk::SmartPointer<SliceType> SlicePointer;
+  typedef typename Superclass::SliceType SliceType;
+  typedef typename Superclass::SlicerPointer SlicePointer;
 
   // Slicer type
-  typedef IRISSlicer<TPixel> SlicerType;
-  typedef typename itk::SmartPointer<SlicerType> SlicerPointer;
+  typedef typename Superclass::SlicerType SlicerType;
+  typedef typename Superclass::SlicerPointer SlicerPointer;
 
   // MinMax calculator type
   typedef itk::MinimumMaximumImageCalculator<ImageType> MinMaxCalculatorType;
-  typedef typename itk::SmartPointer<MinMaxCalculatorType> 
-    MinMaxCalculatorPointer;
+  typedef SmartPtr<MinMaxCalculatorType> MinMaxCalculatorPointer;
 
   // Iterator types
-  typedef typename itk::ImageRegionIterator<ImageType> Iterator;
-  typedef typename itk::ImageRegionConstIterator<ImageType> ConstIterator;
+  typedef typename Superclass::Iterator Iterator;
+  typedef typename Superclass::ConstIterator ConstIterator;
 
   /** 
    * Default constructor.  Creates an image wrapper with a blank internal 
    * image 
    */
-  ScalarImageWrapper() {};
+  ScalarImageWrapper() {}
 
   /** 
    * Copy constructor.  Copies the contents of the passed-in image wrapper. 
@@ -84,7 +87,9 @@ public:
   ScalarImageWrapper(const ScalarImageWrapper<TPixel> &copy);
   
   /** Destructor */
-  virtual ~ScalarImageWrapper() {};
+  virtual ~ScalarImageWrapper() {}
+
+  virtual bool IsScalar() const { return true; }
 
   /**
    * Get the minimum intensity value.  Call ComputeImageIntensityRange() 
@@ -107,7 +112,7 @@ public:
   /**
    * Remap the intensity range of the image to a given range
    */
-  virtual void RemapIntensityToRange(TPixel min, TPixel max);
+  virtual void RemapIntensityToRange(double min, double max);
 
   /**
    * Remap the intensity range to max possible range
@@ -122,6 +127,72 @@ public:
   ImagePointer DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                               itk::Command *progressCommand = NULL) const;
 
+  typedef typename ImageWrapperBase::ShortImageType ShortImageType;
+
+  /** This image type has only one component */
+  virtual size_t GetNumberOfComponents() const { return 1; }
+
+  /** Voxel access */
+  virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const
+  {
+    return (double) this->GetVoxel(idx);
+  }
+
+  /** Voxel access */
+  virtual double GetVoxelAsDouble(const Vector3ui &v) const
+  {
+    return (double) this->GetVoxel(v);
+  }
+
+  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const
+  {
+    out[0] = this->GetVoxel(x);
+  }
+
+  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const
+  {
+    out[0] = this->GetVoxel(idx);
+  }
+
+  /**
+    Get the maximum intensity
+    */
+  virtual double GetImageMaxAsDouble()
+  {
+    return (double) this->GetImageMax();
+  }
+
+  /**
+    Get the minimum intensity
+    */
+  virtual double GetImageMinAsDouble()
+  {
+    return (double) this->GetImageMax();
+  }
+
+  /**
+   * Get voxel intensity in native space
+   */
+  double GetVoxelMappedToNative(const Vector3ui &vec) const
+    { return m_NativeMapping(this->GetVoxel(vec)); }
+
+  /**
+   * Get min/max voxel intensity in native space
+   */
+  double GetImageMinNative()
+    { return m_NativeMapping(this->GetImageMin()); }
+  double GetImageMaxNative()
+    { return m_NativeMapping(this->GetImageMax()); }
+
+  /**
+    There may be a linear mapping between internal values stored in the
+    image and the values stored in the native image format.
+    */
+  irisGetMacro(NativeMapping, InternalToNativeFunctor)
+  irisSetMacro(NativeMapping, InternalToNativeFunctor)
+
+
+
 protected:
 
   /** 
@@ -129,6 +200,9 @@ protected:
    * replaced by a filter, when the latter is more efficient
    */
   MinMaxCalculatorPointer m_MinMaxCalc;
+
+  // Mapping from native to internal format (get rid of in the future?)
+  InternalToNativeFunctor m_NativeMapping;
 
   /** The intensity scaling factor */
   double m_ImageScaleFactor;

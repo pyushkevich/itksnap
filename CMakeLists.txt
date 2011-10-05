@@ -113,13 +113,17 @@ SET(LOGIC_CXX
   Logic/Framework/IRISImageData.cxx
   Logic/Framework/SNAPImageData.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
+  Logic/ImageWrapper/ImageWrapperBase.cxx
+  Logic/ImageWrapper/ImageWrapper.cxx
   Logic/ImageWrapper/GreyImageWrapper.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/LevelSetImageWrapper.cxx
   Logic/ImageWrapper/RGBImageWrapper.cxx
+  Logic/ImageWrapper/ScalarImageWrapper.cxx
   Logic/ImageWrapper/SpeedColorMap.cxx
   Logic/ImageWrapper/SpeedImageWrapper.cxx
+  Logic/ImageWrapper/VectorImageWrapper.cxx
   Logic/LevelSet/SnakeParameters.cxx
   Logic/Mesh/AllPurposeProgressAccumulator.cxx
   Logic/Mesh/GuidedMeshIO.cxx
@@ -183,17 +187,15 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/GreyImageWrapper.h
   Logic/ImageWrapper/ImageIORoutines.h
   Logic/ImageWrapper/ImageWrapper.h
-  Logic/ImageWrapper/ImageWrapper.txx
+  Logic/ImageWrapper/ImageWrapperBase.h
   Logic/ImageWrapper/LabelImageWrapper.h
   Logic/ImageWrapper/LabelToRGBAFilter.h
   Logic/ImageWrapper/LevelSetImageWrapper.h
   Logic/ImageWrapper/RGBImageWrapper.h
   Logic/ImageWrapper/ScalarImageWrapper.h
-  Logic/ImageWrapper/ScalarImageWrapper.txx
   Logic/ImageWrapper/SpeedColorMap.h
   Logic/ImageWrapper/SpeedImageWrapper.h
   Logic/ImageWrapper/VectorImageWrapper.h
-  Logic/ImageWrapper/VectorImageWrapper.txx
   Logic/LevelSet/LevelSetExtensionFilter.h
   Logic/LevelSet/SNAPAdvectionFieldImageFilter.h
   Logic/LevelSet/SNAPAdvectionFieldImageFilter.txx

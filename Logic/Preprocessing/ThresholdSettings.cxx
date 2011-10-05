@@ -33,7 +33,7 @@
 
 =========================================================================*/
 #include "ThresholdSettings.h"
-#include "GreyImageWrapper.h"
+#include "ImageWrapperBase.h"
 
 bool 
 ThresholdSettings
@@ -44,11 +44,11 @@ ThresholdSettings
 
 ThresholdSettings
 ThresholdSettings
-::MakeDefaultSettings(GreyImageWrapper *wrapper)
+::MakeDefaultSettings(ScalarImageWrapperBase *wrapper)
 {
   // Use the min and the max of the wrapper
-  int iMin = wrapper->GetImageMin();
-  int iMax = wrapper->GetImageMax();
+  double iMin = wrapper->GetImageMinAsDouble();
+  double iMax = wrapper->GetImageMaxAsDouble();
 
   // If the image is constant, return default settings
   if(iMin == iMax) return MakeDefaultSettingsWithoutImage();

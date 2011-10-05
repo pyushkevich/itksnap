@@ -33,14 +33,8 @@
 
 =========================================================================*/
 #include "LevelSetImageWrapper.h"
-#include "ImageWrapper.txx"
-#include "ScalarImageWrapper.txx"
 #include "ColorLabel.h"
-
-// Create an instance of ImageWrapper of appropriate type
-template class ImageWrapper<float>;
-template class ScalarImageWrapper<float>;
-
+#include "itkUnaryFunctorImageFilter.h"
 
 LevelSetImageWrapper::DisplayPixelType
 LevelSetImageWrapper::MappingFunctor

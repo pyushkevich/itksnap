@@ -26,39 +26,46 @@
  * is used to unify the treatment of different kinds of vector images in
  * SNaP.  
  */
-template<class TPixel> class VectorImageWrapper : public ImageWrapper<TPixel>
+template<class TPixel> class VectorImageWrapper
+    : public virtual ImageWrapper<TPixel>, public virtual VectorImageWrapperBase
 {
 public:
 
   // Basic type definitions
-  typedef itk::OrientedImage<TPixel,3> ImageType;
-  typedef typename itk::SmartPointer<ImageType> ImagePointer;
+  typedef ImageWrapper<TPixel> Superclass;
+
+  // Image Types
+  typedef typename Superclass::ImageType ImageType;
+  typedef typename Superclass::ImagePointer ImagePointer;
 
   // Slice image type
-  typedef itk::Image<TPixel,2> SliceType;
-  typedef typename itk::SmartPointer<SliceType> SlicePointer;
+  typedef typename Superclass::SliceType SliceType;
+  typedef typename Superclass::SlicerPointer SlicePointer;
 
   // Slicer type
-  typedef IRISSlicer<TPixel> SlicerType;
-  typedef typename itk::SmartPointer<SlicerType> SlicerPointer;
+  typedef typename Superclass::SlicerType SlicerType;
+  typedef typename Superclass::SlicerPointer SlicerPointer;
 
   // Iterator types
-  typedef typename itk::ImageRegionIterator<ImageType> Iterator;
-  typedef typename itk::ImageRegionConstIterator<ImageType> ConstIterator;
+  typedef typename Superclass::Iterator Iterator;
+  typedef typename Superclass::ConstIterator ConstIterator;
 
   /** 
    * Default constructor.  Creates an image wrapper with a blank internal 
    * image 
    */
-  VectorImageWrapper() : ImageWrapper<TPixel>() {};
+  VectorImageWrapper() : ImageWrapper<TPixel>() {}
 
   /** 
    * Copy constructor.  Copies the contents of the passed-in image wrapper. 
    */
-  VectorImageWrapper(const VectorImageWrapper<TPixel> &copy) : ImageWrapper<TPixel>(copy) {};
+  VectorImageWrapper(const VectorImageWrapper<TPixel> &copy)
+    : ImageWrapper<TPixel>(copy) {}
   
   /** Destructor */
-  virtual ~VectorImageWrapper() {};
+  virtual ~VectorImageWrapper() {}
+
+  virtual bool IsScalar() const { return false; }
 
   /**
    * This method is used to perform a deep copy of a region of this image 
@@ -67,6 +74,33 @@ public:
    */
   ImagePointer DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                               itk::Command *progressCommand = NULL) const;
+
+
+  /** This image type has only one component */
+  virtual size_t GetNumberOfComponents() const
+  {
+    return TPixel::Dimension;
+  }
+
+  /** Voxel access */
+  virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const;
+
+  /** Voxel access */
+  virtual double GetVoxelAsDouble(const Vector3ui &v) const;
+
+  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const
+  {
+    const TPixel &p = this->GetVoxel(x);
+    for(size_t i = 0; i < this->GetNumberOfComponents(); i++)
+      out[i] = p[i];
+  }
+
+  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const
+  {
+    const TPixel &p = this->GetVoxel(idx);
+    for(size_t i = 0; i < this->GetNumberOfComponents(); i++)
+      out[i] = p[i];
+  }
 
 protected:
 

@@ -45,6 +45,7 @@
 #include "IRISSlicer.h"
 #include "IRISApplication.h"
 #include <list>
+#include "ImageWrapperFactory.h"
 
 /** Borland compiler is very lazy so we need to instantiate the template
  *  by hand */
@@ -91,13 +92,13 @@ GenericImageData
 ::SetSegmentationVoxel(const Vector3ui &index, LabelType value)
 {
   // Make sure that the main image data and the segmentation data exist
-  assert(m_MainImageWrapper->IsInitialized() && m_LabelWrapper.IsInitialized());
+  assert(IsSegmentationLoaded());
 
   // Store the voxel
-  m_LabelWrapper.GetVoxelForUpdate(index) = value;
+  m_LabelWrapper->GetVoxelForUpdate(index) = value;
 
   // Mark the image as modified
-  m_LabelWrapper.GetImage()->Modified();
+  m_LabelWrapper->GetImage()->Modified();
 }
 
 GenericImageData
@@ -107,14 +108,22 @@ GenericImageData
   m_Parent = parent;
 
   // Make main image wrapper point to grey wrapper initially
-  m_MainImageWrapper = &m_GreyWrapper;
+  m_MainImageWrapper = NULL;
+  m_GreyImageWrapper = NULL;
+  m_RGBImageWrapper = NULL;
 
   // Pass the label table from the parent to the label wrapper
-  m_LabelWrapper.SetLabelColorTable(m_Parent->GetColorLabelTable());
+  m_LabelWrapper = NULL;
   
   // Add to the primary wrapper list
   m_MainWrappers.push_back(m_MainImageWrapper);
-  m_MainWrappers.push_back(&m_LabelWrapper);
+  m_MainWrappers.push_back(m_LabelWrapper);
+}
+
+GenericImageData
+::~GenericImageData()
+{
+  UnloadMainImage();
 }
 
 Vector3d 
@@ -135,41 +144,62 @@ GenericImageData
 
 void 
 GenericImageData
-::SetGreyImage(GreyImageType *newGreyImage,
+::SetGreyImage(GreyImageType *image,
                const ImageCoordinateGeometry &newGeometry,
-               const GreyTypeToNativeFunctor &native) 
+               const InternalToNativeFunctor &native)
 {
-  m_GreyWrapper.SetImage(newGreyImage);
-  m_GreyWrapper.SetNativeMapping(native);
-  m_GreyWrapper.SetAlpha(255);
-  m_GreyWrapper.UpdateIntensityMapFunction();
+  // Clean up wrappers
+  delete m_MainImageWrapper;
 
-  SetMainImageCommon(&m_GreyWrapper, newGeometry);
+  // No RGB
+  m_RGBImageWrapper = NULL;
+
+  // Create a main wrapper of fixed type.
+  m_MainImageWrapper = m_GreyImageWrapper = new GreyImageWrapper<GreyType>();
+
+  // Set properties
+  m_GreyImageWrapper->SetImage(image);
+  m_GreyImageWrapper->SetNativeMapping(native);
+  m_GreyImageWrapper->UpdateIntensityMapFunction();
+
+  // Is this redundant?
+  SetMainImageCommon(newGeometry);
 }
 
 void
 GenericImageData
-::SetRGBImage(RGBImageType *newRGBImage,
+::SetRGBImage(RGBImageType *image,
               const ImageCoordinateGeometry &newGeometry) 
 {
-  m_RGBWrapper.SetImage(newRGBImage);
-  m_RGBWrapper.SetAlpha(255);
+  // Clean up wrappers
+  delete m_MainImageWrapper;
 
-  SetMainImageCommon(&m_RGBWrapper, newGeometry);
+  // No RGB
+  m_GreyImageWrapper = NULL;
+
+  // Create a main wrapper through factory
+  m_MainImageWrapper = m_RGBImageWrapper = new RGBImageWrapper<unsigned char>();
+  m_RGBImageWrapper->SetImage(image);
+
+  SetMainImageCommon(newGeometry);
 }
 
 void
 GenericImageData
-::SetMainImageCommon(ImageWrapperBase *wrapper,
-                      const ImageCoordinateGeometry &newGeometry)
+::SetMainImageCommon(const ImageCoordinateGeometry &newGeometry)
 {
   // Make the wrapper the main image
-  m_MainImageWrapper = wrapper;
   m_MainWrappers.clear();
   m_MainWrappers.push_back(m_MainImageWrapper);
 
   // Initialize the segmentation data to zeros
-  m_LabelWrapper.InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
+  delete m_LabelWrapper;
+  m_LabelWrapper = new LabelImageWrapper();
+  m_LabelWrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
+  m_LabelWrapper->SetLabelColorTable(m_Parent->GetColorLabelTable());
+
+  // Set opaque
+  m_MainImageWrapper->SetAlpha(255);
 
   // Pass the coordinate transform to the wrappers
   SetImageGeometry(newGeometry);
@@ -183,58 +213,73 @@ GenericImageData
   UnloadOverlays();
 
   // Clear the main image wrappers
-  m_LabelWrapper.Reset();
-  m_MainImageWrapper->Reset();
+  delete m_MainImageWrapper;
+  m_MainImageWrapper = NULL;
+  m_GreyImageWrapper = NULL;
+  m_RGBImageWrapper = NULL;
+
+  // Reset the label wrapper
+  delete m_LabelWrapper;
+  m_LabelWrapper = NULL;
 }
 
 void
 GenericImageData
-::SetGreyOverlay(GreyImageType *newGreyImage,
-                 const GreyTypeToNativeFunctor &native)
+::AddGreyOverlay(GreyImageType *image,
+                 const InternalToNativeFunctor &native)
 {
   // Check that the image matches the size of the main image
   assert(m_MainImageWrapper->GetBufferedRegion() ==
-         newGreyImage->GetBufferedRegion());
+         image->GetBufferedRegion());
 
   // Pass the image to a Grey image wrapper
-  GreyImageWrapper *newGreyOverlayWrapper = new GreyImageWrapper;
-  newGreyOverlayWrapper->SetImage(newGreyImage);
-  newGreyOverlayWrapper->SetNativeMapping(native);
-  newGreyOverlayWrapper->SetAlpha(128);
-  newGreyOverlayWrapper->UpdateIntensityMapFunction();
+  GreyImageWrapper<GreyType> *wrapper = new GreyImageWrapper<GreyType>();
+  wrapper->SetImage(image);
+  wrapper->SetNativeMapping(native);
+  wrapper->UpdateIntensityMapFunction();
+  wrapper->SetAlpha(128);
 
-  SetOverlayCommon(newGreyOverlayWrapper);
+  AddOverlayCommon(wrapper);
 }
 
 void
 GenericImageData
-::SetRGBOverlay(RGBImageType *newRGBImage)
+::AddRGBOverlay(RGBImageType  *image)
 {
   // Check that the image matches the size of the main image
   assert(m_MainImageWrapper->GetBufferedRegion() ==
-         newRGBImage->GetBufferedRegion());
+         image->GetBufferedRegion());
 
   // Pass the image to a RGB image wrapper
-  RGBImageWrapper *newRGBOverlayWrapper = new RGBImageWrapper;
-  newRGBOverlayWrapper->SetImage(newRGBImage);
-  newRGBOverlayWrapper->SetAlpha(128);
+  RGBImageWrapper<unsigned char> *wrapper
+      = new RGBImageWrapper<unsigned char>();
+  wrapper->SetImage(image);
 
-  SetOverlayCommon(newRGBOverlayWrapper);
+  AddOverlayCommon(wrapper);
 }
 
 void
 GenericImageData
-::SetOverlayCommon(ImageWrapperBase *overlay)
+::AddOverlayCommon(ImageWrapperBase *overlay)
 {
+  // Set up the alpha
+  overlay->SetAlpha(128);
+
   // Sync up spacing between the main and overlay image
-  overlay->GetImageBase()->SetSpacing(m_MainImageWrapper->GetImageBase()->GetSpacing());
-  overlay->GetImageBase()->SetOrigin(m_MainImageWrapper->GetImageBase()->GetOrigin());
+  overlay->GetImageBase()->SetSpacing(
+        m_MainImageWrapper->GetImageBase()->GetSpacing());
+
+  overlay->GetImageBase()->SetOrigin(
+        m_MainImageWrapper->GetImageBase()->GetOrigin());
+
+  overlay->GetImageBase()->SetDirection(
+        m_MainImageWrapper->GetImageBase()->GetDirection());
 
   // Propagate the geometry information to this wrapper
-  for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
+  for(unsigned int iSlice = 0; iSlice < 3; iSlice ++)
     {
     overlay->SetImageToDisplayTransform(
-      iSlice,m_ImageGeometry.GetImageToDisplayTransform(iSlice));
+      iSlice, m_ImageGeometry.GetImageToDisplayTransform(iSlice));
     }
 
   // Add to the overlay wrapper list
@@ -275,8 +320,10 @@ GenericImageData
     m_MainImageWrapper->GetBufferedRegion() == 
          newLabelImage->GetBufferedRegion());
 
-  // Pass the image to the segmentation wrapper
-  m_LabelWrapper.SetImage(newLabelImage);
+  // Pass the image to the segmentation wrapper (why this and not create a
+  // new label wrapper? Why should a wrapper have longer lifetime than an
+  // image that it wraps around
+  m_LabelWrapper->SetImage(newLabelImage);
 
   // Sync up spacing between the main and label image
   newLabelImage->SetSpacing(m_MainImageWrapper->GetImageBase()->GetSpacing());
@@ -287,7 +334,7 @@ bool
 GenericImageData
 ::IsGreyLoaded()
 {
-  return m_GreyWrapper.IsInitialized();
+  return m_GreyImageWrapper != NULL;
 }
 
 bool
@@ -301,14 +348,14 @@ bool
 GenericImageData
 ::IsRGBLoaded()
 {
-  return m_RGBWrapper.IsInitialized();
+  return m_RGBImageWrapper != NULL;
 }
 
 bool
 GenericImageData
 ::IsSegmentationLoaded()
 {
-  return m_LabelWrapper.IsInitialized();
+  return m_LabelWrapper && m_LabelWrapper->IsInitialized();
 }
 
 void
@@ -316,7 +363,7 @@ GenericImageData
 ::SetCrosshairs(const Vector3ui &crosshairs)
 {
   SetCrosshairs(m_MainImageWrapper, crosshairs);
-  SetCrosshairs(&m_LabelWrapper, crosshairs);
+  SetCrosshairs(m_LabelWrapper, crosshairs);
   for(WrapperIterator it = m_OverlayWrappers.begin();
       it != m_OverlayWrappers.end(); ++it)
     {
@@ -346,7 +393,7 @@ GenericImageData
 {
   m_ImageGeometry = geometry;
   SetImageGeometry(m_MainImageWrapper, geometry);
-  SetImageGeometry(&m_LabelWrapper, geometry);
+  SetImageGeometry(m_LabelWrapper, geometry);
   for(WrapperIterator it = m_OverlayWrappers.begin();
       it != m_OverlayWrappers.end(); ++it)
     {
@@ -378,18 +425,22 @@ unsigned int GenericImageData::GetNumberOfLayers() const
   return IsMainLoaded() ? 1 + m_OverlayWrappers.size() : 0;
 }
 
-GreyImageWrapper * GenericImageData::GetLayerAsGray(unsigned int layer) const
+GreyImageWrapperBase *
+GenericImageData
+::GetLayerAsGray(unsigned int layer) const
 {
   ImageWrapperBase *base =
       layer == 0 ? m_MainImageWrapper : m_OverlayWrappers[layer-1];
-  return dynamic_cast<GreyImageWrapper *>(base);
+  return dynamic_cast<GreyImageWrapperBase *>(base);
 }
 
-RGBImageWrapper * GenericImageData::GetLayerAsRGB(unsigned int layer) const
+RGBImageWrapperBase *
+GenericImageData
+::GetLayerAsRGB(unsigned int layer) const
 {
   ImageWrapperBase *base =
       layer == 0 ? m_MainImageWrapper : m_OverlayWrappers[layer-1];
-  return dynamic_cast<RGBImageWrapper *>(base);
+  return dynamic_cast<RGBImageWrapperBase *>(base);
 }
 
 
