@@ -2,22 +2,28 @@
 #include <QApplication>
 #include "IRISObserverPattern.h"
 
-namespace latent_itk_event_notifier
-{
 
 
-Helper::Helper(QObject *parent)
+LatentITKEventNotifierHelper
+::LatentITKEventNotifierHelper(QObject *parent)
   : QObject(parent)
 {
   // Emitting itkEvent will result in onQueuedEvent being called when
   // control returns to the main Qt loop
-  /* connect(this, SIGNAL(itkEvent()),
-          SLOT(onQueuedEvent()), Qt::QueuedConnection); */
+  QObject::connect(this, SIGNAL(itkEvent()),
+                   this, SLOT(onQueuedEvent()),
+                   Qt::QueuedConnection);
+
+  /*
+  connect(this, SIGNAL(itkEvent()),
+          SLOT(onQueuedEvent()), Qt::QueuedConnection);
+          */
 }
 
 
 void
-Helper::Callback(itk::Object *object, const itk::EventObject &evt)
+LatentITKEventNotifierHelper
+::Callback(itk::Object *object, const itk::EventObject &evt)
 {
 #ifdef SNAP_DEBUG_EVENTS
   std::cout << "QUEUE " << typeid(*object).name() << ":"
@@ -29,13 +35,15 @@ Helper::Callback(itk::Object *object, const itk::EventObject &evt)
   m_Bucket.PutEvent(evt);
 
   // Emit signal
-  // emit itkEvent();
+  emit itkEvent();
 
   // Call parent's update
-  QApplication::postEvent(this, new QEvent(QEvent::User), 1000);
+  // QApplication::postEvent(this, new QEvent(QEvent::User), 1000);
 }
 
-void Helper::onQueuedEvent()
+void
+LatentITKEventNotifierHelper
+::onQueuedEvent()
 {
   if(!m_Bucket.IsEmpty())
     {
@@ -52,9 +60,10 @@ void Helper::onQueuedEvent()
     }
 }
 
-
+/*
 bool
-Helper::event(QEvent *event)
+LatentITKEventNotifierHelper
+::event(QEvent *event)
 {
   if(event->type() == QEvent::User)
     {
@@ -70,10 +79,9 @@ Helper::event(QEvent *event)
     }
   else return false;
 }
+*/
 
-} // namespace
-
-std::map<QObject *, LatentITKEventNotifier::Helper *>
+std::map<QObject *, LatentITKEventNotifierHelper *>
 LatentITKEventNotifier::m_HelperMap;
 
 
@@ -82,10 +90,10 @@ void LatentITKEventNotifier
           QObject *target, const char *slot)
 {
   // Call common implementation
-  Helper *c = doConnect(evt, target, slot);
+  LatentITKEventNotifierHelper *c = doConnect(evt, target, slot);
 
   // Listen to events from the source
-  AddListener(source, evt, c, &Helper::Callback);
+  AddListener(source, evt, c, &LatentITKEventNotifierHelper::Callback);
 }
 
 void LatentITKEventNotifier
@@ -93,21 +101,21 @@ void LatentITKEventNotifier
           QObject *target, const char *slot)
 {
   // Call common implementation
-  Helper *c = doConnect(evt, target, slot);
+  LatentITKEventNotifierHelper *c = doConnect(evt, target, slot);
 
   // Listen to events from the source
-  AddListener(source, evt, c, &Helper::Callback);
+  AddListener(source, evt, c, &LatentITKEventNotifierHelper::Callback);
 }
 
-LatentITKEventNotifier::Helper*
+LatentITKEventNotifierHelper*
 LatentITKEventNotifier
 ::doConnect(const itk::EventObject &evt, QObject *target, const char *slot)
 {
   // Try to find the helper object
-  Helper *c;
+  LatentITKEventNotifierHelper *c;
   if(m_HelperMap.find(target) == m_HelperMap.end())
     {
-    c = new Helper(target);
+    c = new LatentITKEventNotifierHelper(target);
     m_HelperMap[target] = c;
     }
   else

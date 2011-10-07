@@ -65,9 +65,7 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
   m_SliceInitialized = false;
 
   // Listen to events that require action from this object
-  Rebroadcast(
-        m_Driver, MainImageDimensionsChangeEvent(),
-        ModelUpdateEvent());
+  Rebroadcast(m_Driver, LayerChangeEvent(), ModelUpdateEvent());
 }
 
 void GenericSliceModel::OnUpdate()

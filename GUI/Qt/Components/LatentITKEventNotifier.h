@@ -7,18 +7,15 @@
 
 class IRISObservable;
 
-namespace latent_itk_event_notifier
-{
-
-class Helper : public QObject
+class LatentITKEventNotifierHelper : public QObject
 {
   Q_OBJECT
 
 public:
-  explicit Helper(QObject *parent = 0);
+  explicit LatentITKEventNotifierHelper(QObject *parent = 0);
 
   void Callback(itk::Object *object, const itk::EventObject &evt);
-  bool event(QEvent *event);
+  // bool event(QEvent *event);
 
 public slots:
   void onQueuedEvent();
@@ -30,8 +27,6 @@ signals:
 protected:
   EventBucket m_Bucket;
 };
-
-} // namespace
 
 
 /**
@@ -57,12 +52,10 @@ public:
 
 private:
 
-  typedef latent_itk_event_notifier::Helper Helper;
+  static LatentITKEventNotifierHelper *doConnect(
+      const itk::EventObject &evt, QObject *target, const char *slot);
 
-  static Helper *doConnect(const itk::EventObject &evt,
-                 QObject *target, const char *slot);
-
-  static std::map<QObject *, Helper *> m_HelperMap;
+  static std::map<QObject *, LatentITKEventNotifierHelper *> m_HelperMap;
 
 };
 

@@ -51,31 +51,11 @@ LoadSegmentationAction
 #include "GuidedNativeImageIO.h"
 
 /* =============================
-   MAIN Image
+   Abstract Classes
    ============================= */
-LoadMainImageDelegate
-::LoadMainImageDelegate(GlobalUIModel *model, IRISApplication::MainImageType type)
-  : AbstractLoadImageDelegate(model)
-{
-  m_ImageType = type;
-}
 
-void
-LoadMainImageDelegate
-::UnloadCurrentImage()
-{
-  m_Model->GetDriver()->UnloadMainImage();
-}
 
-void
-LoadMainImageDelegate
-::UpdateApplicationWithImage(GuidedNativeImageIO *io)
-{
-  m_Model->GetDriver()->UpdateIRISMainImage(io, m_ImageType);
-}
-
-void
-LoadMainImageDelegate
+void LoadAnatomicImageDelegate
 ::ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl)
 {
   typedef itk::ImageIOBase IOB;
@@ -98,11 +78,29 @@ LoadMainImageDelegate
     }
 }
 
+
+/* =============================
+   MAIN Image
+   ============================= */
+LoadMainImageDelegate
+::LoadMainImageDelegate(GlobalUIModel *model,
+                        IRISApplication::MainImageType type)
+  : LoadAnatomicImageDelegate(model, type)
+{
+}
+
 void
 LoadMainImageDelegate
-::ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl)
+::UnloadCurrentImage()
 {
+  m_Model->GetDriver()->UnloadMainImage();
+}
 
+void
+LoadMainImageDelegate
+::UpdateApplicationWithImage(GuidedNativeImageIO *io)
+{
+  m_Model->GetDriver()->UpdateIRISMainImage(io, m_ImageType);
 }
 
 
@@ -111,10 +109,10 @@ LoadMainImageDelegate
    ============================= */
 
 LoadOverlayImageDelegate
-::LoadOverlayImageDelegate(GlobalUIModel *model, IRISApplication::MainImageType type)
-  : AbstractLoadImageDelegate(model)
+::LoadOverlayImageDelegate(GlobalUIModel *model,
+                           IRISApplication::MainImageType type)
+  : LoadAnatomicImageDelegate(model, type)
 {
-  m_ImageType = type;
 }
 
 void
@@ -133,8 +131,29 @@ LoadOverlayImageDelegate
 }
 
 
+void
+LoadOverlayImageDelegate
+::ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl)
+{
+  // Do the parent's check
+  LoadAnatomicImageDelegate::ValidateHeader(io, wl);
 
+  // Now check for dimensions mismatch
+  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
 
+  // Check the dimensions, throw exception
+  Vector3ui szSeg = io->GetDimensionsOfNativeImage();
+  Vector3ui szMain = id->GetMain()->GetSize();
+  if(szSeg != szMain)
+    {
+    throw IRISException("Error: Mismatched Dimensions. "
+                        "The size of the overlay image (%d x %d x %d) "
+                        "does not match the size of the main image "
+                        "(%d x %d x %d). Images must have the same dimensions.",
+                        szSeg[0], szSeg[1], szSeg[2],
+                        szMain[0], szMain[1], szMain[2]);
+    }
+}
 
 
 /* =============================
@@ -250,3 +269,4 @@ LoadSegmentationImageDelegate
 {
   m_Model->GetDriver()->ClearIRISSegmentationImage();
 }
+

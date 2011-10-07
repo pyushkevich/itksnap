@@ -90,7 +90,22 @@ protected:
   GlobalUIModel *m_Model;
 };
 
-class LoadMainImageDelegate : public AbstractLoadImageDelegate
+class LoadAnatomicImageDelegate : public AbstractLoadImageDelegate
+{
+public:
+
+  LoadAnatomicImageDelegate(GlobalUIModel *model,
+                            IRISApplication::MainImageType type)
+    : AbstractLoadImageDelegate(model), m_ImageType(type) {}
+
+  virtual ~LoadAnatomicImageDelegate() {}
+  virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
+
+protected:
+  IRISApplication::MainImageType m_ImageType;
+};
+
+class LoadMainImageDelegate : public LoadAnatomicImageDelegate
 {
 public:
 
@@ -98,26 +113,22 @@ public:
                         IRISApplication::MainImageType type);
 
   void UnloadCurrentImage();
-  void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl);
-  void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
   void UpdateApplicationWithImage(GuidedNativeImageIO *io);
 
 protected:
-  IRISApplication::MainImageType m_ImageType;
+
 };
 
-class LoadOverlayImageDelegate : public AbstractLoadImageDelegate
+class LoadOverlayImageDelegate : public LoadAnatomicImageDelegate
 {
 public:
 
   LoadOverlayImageDelegate(GlobalUIModel *model,
-                        IRISApplication::MainImageType type);
+                           IRISApplication::MainImageType type);
 
   void UnloadCurrentImage();
   void UpdateApplicationWithImage(GuidedNativeImageIO *io);
-
-protected:
-  IRISApplication::MainImageType m_ImageType;
+  void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
 };
 
 class LoadSegmentationImageDelegate : public AbstractLoadImageDelegate

@@ -160,9 +160,50 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuRecent_Images">
+     <property name="title">
+      <string>Recent Images</string>
+     </property>
+     <addaction name="actionRecent_1"/>
+     <addaction name="actionRecent_2"/>
+     <addaction name="actionRecent_3"/>
+     <addaction name="actionRecent_4"/>
+     <addaction name="actionRecent_5"/>
+    </widget>
+    <widget class="QMenu" name="menuSave_Image">
+     <property name="title">
+      <string>Save Image</string>
+     </property>
+     <addaction name="actionGreyscale_Image"/>
+     <addaction name="separator"/>
+     <addaction name="actionPreprocessed_Image"/>
+     <addaction name="actionLevel_Set_Image"/>
+     <addaction name="actionGreyscale_Image_Region"/>
+    </widget>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>Export</string>
+     </property>
+     <widget class="QMenu" name="menuImage_Slice">
+      <property name="title">
+       <string>Image Slice</string>
+      </property>
+      <addaction name="actionAxial"/>
+      <addaction name="actionCoronal"/>
+      <addaction name="actionSagittal"/>
+     </widget>
+     <addaction name="menuImage_Slice"/>
+     <addaction name="actionScreenshot"/>
+     <addaction name="actionScreenshot_Series"/>
+    </widget>
     <addaction name="actionOpen_Greyscale_Image"/>
     <addaction name="actionOpen_RGB_Image"/>
+    <addaction name="menuRecent_Images"/>
     <addaction name="separator"/>
+    <addaction name="menuSave_Image"/>
+    <addaction name="menuExport"/>
+    <addaction name="separator"/>
+    <addaction name="actionUnload_All"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuSegmentation">
@@ -170,9 +211,18 @@
      <string>Segmentation</string>
     </property>
     <addaction name="actionLoad_from_Image"/>
+    <addaction name="actionClear"/>
+   </widget>
+   <widget class="QMenu" name="menuOverlay">
+    <property name="title">
+     <string>Overlay</string>
+    </property>
+    <addaction name="actionAdd_Greyscale_Overlay"/>
+    <addaction name="actionAdd_RGB_Overlay"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSegmentation"/>
+   <addaction name="menuOverlay"/>
   </widget>
   <action name="actionOpen_Greyscale_Image">
    <property name="text">
@@ -195,12 +245,114 @@
     <string>Load from Image...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+D</string>
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionOpen_RGB_Image">
    <property name="text">
     <string>Open RGB Image...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionGreyscale_Image">
+   <property name="text">
+    <string>Greyscale Image ...</string>
+   </property>
+  </action>
+  <action name="actionPreprocessed_Image">
+   <property name="text">
+    <string>Preprocessed Image ...</string>
+   </property>
+  </action>
+  <action name="actionLevel_Set_Image">
+   <property name="text">
+    <string>Level Set Image ...</string>
+   </property>
+  </action>
+  <action name="actionGreyscale_Image_Region">
+   <property name="text">
+    <string>Greyscale Image Region ...</string>
+   </property>
+  </action>
+  <action name="actionRecent_1">
+   <property name="text">
+    <string>Recent 1</string>
+   </property>
+  </action>
+  <action name="actionRecent_2">
+   <property name="text">
+    <string>Recent 2</string>
+   </property>
+  </action>
+  <action name="actionRecent_3">
+   <property name="text">
+    <string>Recent 3</string>
+   </property>
+  </action>
+  <action name="actionRecent_4">
+   <property name="text">
+    <string>Recent 4</string>
+   </property>
+  </action>
+  <action name="actionRecent_5">
+   <property name="text">
+    <string>Recent 5</string>
+   </property>
+  </action>
+  <action name="actionScreenshot">
+   <property name="text">
+    <string>Screenshot</string>
+   </property>
+  </action>
+  <action name="actionScreenshot_Series">
+   <property name="text">
+    <string>Screenshot Series</string>
+   </property>
+  </action>
+  <action name="actionAxial">
+   <property name="text">
+    <string>Axial</string>
+   </property>
+  </action>
+  <action name="actionCoronal">
+   <property name="text">
+    <string>Coronal</string>
+   </property>
+  </action>
+  <action name="actionSagittal">
+   <property name="text">
+    <string>Sagittal</string>
+   </property>
+  </action>
+  <action name="actionUnload_All">
+   <property name="text">
+    <string>Unload All Images</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionAdd_Greyscale_Overlay">
+   <property name="text">
+    <string>Add Greyscale Overlay ...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+G</string>
+   </property>
+  </action>
+  <action name="actionAdd_RGB_Overlay">
+   <property name="text">
+    <string>Add RGB Overlay ...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+R</string>
    </property>
   </action>
  </widget>
@@ -208,7 +360,7 @@
   <customwidget>
    <class>SliceViewPanel</class>
    <extends>QWidget</extends>
-   <header>SliceViewPanel.h</header>
+   <header>sliceviewpanel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -121,3 +121,15 @@ void MainImageWindow::on_actionLoad_from_Image_triggered()
   wiz.SetModel(model);
   wiz.exec();
 }
+
+void MainImageWindow::on_actionAdd_Greyscale_Overlay_triggered()
+{
+  LoadOverlayImageDelegate delegate(m_Model, IRISApplication::MAIN_SCALAR);
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model, &delegate, "GreyOverlay");
+
+  // Execute the IO wizard
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
+}

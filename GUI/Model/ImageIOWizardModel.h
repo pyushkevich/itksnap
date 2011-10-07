@@ -34,7 +34,7 @@ public:
 
   enum SummaryItem {
     SI_FILENAME, SI_DIMS, SI_SPACING, SI_ORIGIN, SI_ORIENT,
-    SI_ENDIAN, SI_DATATYPE, SI_FILESIZE
+    SI_ENDIAN, SI_COMPONENTS, SI_DATATYPE, SI_FILESIZE
   };
 
   void InitializeForLoad(GlobalUIModel *parent,

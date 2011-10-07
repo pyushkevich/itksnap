@@ -243,10 +243,11 @@ void SelectFilePage::initializePage()
   // Populate the history button
   m_HistoryMenu->clear();
   ImageIOWizardModel::HistoryType history = m_Model->GetHistory();
-  for(unsigned int i = 0; i < history.size(); i++)
+  for(ImageIOWizardModel::HistoryType::reverse_iterator rit = history.rbegin();
+      rit != history.rend(); rit++)
     {
     m_HistoryMenu->addAction(
-          history[i].c_str(), this, SLOT(onHistorySelection()));
+          rit->c_str(), this, SLOT(onHistorySelection()));
     }
   m_BtnHistory->setEnabled(history.size() > 0);
 }
@@ -475,6 +476,7 @@ void SummaryPage::initializePage()
   AddItem(m_Tree, "Origin", ImageIOWizardModel::SI_ORIGIN);
   AddItem(m_Tree, "Orientation", ImageIOWizardModel::SI_ORIENT);
   AddItem(m_Tree, "Byte order", ImageIOWizardModel::SI_ENDIAN);
+  AddItem(m_Tree, "Components/Voxel", ImageIOWizardModel::SI_COMPONENTS);
   AddItem(m_Tree, "Data type", ImageIOWizardModel::SI_DATATYPE);
   AddItem(m_Tree, "File size", ImageIOWizardModel::SI_FILESIZE);
 
@@ -519,6 +521,10 @@ DICOMPage::DICOMPage(QWidget *parent)
   m_Table->setAlternatingRowColors(true);
   m_Table->setEditTriggers(QAbstractItemView::NoEditTriggers);
   m_Table->verticalHeader()->hide();
+
+  connect(m_Table->selectionModel(),
+          SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+          SIGNAL(completeChanged()));
 }
 
 void DICOMPage::initializePage()
@@ -547,6 +553,12 @@ void DICOMPage::initializePage()
 
   m_Table->resizeColumnsToContents();
   m_Table->resizeRowsToContents();
+
+  // If only one sequence selected, pick it
+  if(reg.size() == 1)
+    {
+    m_Table->selectRow(0);
+    }
 
   // Choose the sequence previously loaded
   // TODO:
@@ -589,9 +601,10 @@ int DICOMPage::nextId() const
   return ImageIOWizard::Page_Summary;
 }
 
-
-
-
+bool DICOMPage::isComplete() const
+{
+  return m_Table->selectionModel()->selectedRows().size() == 1;
+}
 
 
 RawPage::RawPage(QWidget *parent)

@@ -236,6 +236,10 @@ ImageIOWizardModel::GetSummaryItem(ImageIOWizardModel::SummaryItem item)
       return "Unknown";
       }
 
+  case ImageIOWizardModel::SI_COMPONENTS:
+    sout << m_GuidedIO->GetNumberOfComponentsInNativeImage();
+    return sout.str();
+
   case ImageIOWizardModel::SI_FILESIZE:
     sout << (m_GuidedIO->GetFileSizeOfNativeImage() / 1024.0) << " Kb";
     return sout.str();
@@ -334,31 +338,19 @@ void ImageIOWizardModel::ProcessDicomDirectory(const std::string &filename)
 void ImageIOWizardModel
 ::LoadDicomSeries(const std::string &filename, int series)
 {
-  try
-  {
-    // Set up the registry for DICOM IO
-    m_Registry["DICOM.SeriesId"] << m_DicomContents[series]["SeriesId"][""];
-    m_Registry.Folder("DICOM.SeriesFiles").PutArray(
-          m_DicomContents[series].Folder("SeriesFiles").GetArray(std::string()));
+  // Set up the registry for DICOM IO
+  m_Registry["DICOM.SeriesId"] << m_DicomContents[series]["SeriesId"][""];
+  m_Registry.Folder("DICOM.SeriesFiles").PutArray(
+        m_DicomContents[series].Folder("SeriesFiles").GetArray(std::string()));
 
-    // Set the format to DICOM
-    SetSelectedFormat(GuidedNativeImageIO::FORMAT_DICOM);
+  // Set the format to DICOM
+  SetSelectedFormat(GuidedNativeImageIO::FORMAT_DICOM);
 
-    // Get the directory
-    std::string dir = GetBrowseDirectory(filename);
+  // Get the directory
+  std::string dir = GetBrowseDirectory(filename);
 
-    // Load image
-    m_GuidedIO->ReadNativeImage(dir.c_str(), m_Registry);
-  }
-  catch (IRISException &ei)
-  {
-    throw ei;
-  }
-  catch (std::exception &e)
-  {
-    throw IRISException("Error: exception occured when reading DICOM series. "
-                        "Exception: %s", e.what());
-  }
+  // Call the main load method
+  this->LoadImage(dir);
 }
 
 unsigned long ImageIOWizardModel::GetFileSizeInBytes(const std::string &file)

@@ -60,6 +60,8 @@ private slots:
 
   void on_actionLoad_from_Image_triggered();
 
+  void on_actionAdd_Greyscale_Overlay_triggered();
+
 private:
     Ui::MainImageWindow *ui;
 

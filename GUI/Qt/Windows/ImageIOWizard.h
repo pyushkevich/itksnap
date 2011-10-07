@@ -108,6 +108,7 @@ public:
   void initializePage();
   bool validatePage();
 
+  bool isComplete() const;
 private:
 
   QTableWidget *m_Table;
