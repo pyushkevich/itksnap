@@ -234,6 +234,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/AbstractModel.cxx
   GUI/Model/GenericSliceModel.cxx
   GUI/Model/GlobalUIModel.cxx
+  GUI/Model/ImageIODelegates.cxx
   GUI/Model/ImageIOWizardModel.cxx
   GUI/Model/IOActions.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
@@ -251,6 +252,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/AbstractModel.h
   GUI/Model/GenericSliceModel.h
   GUI/Model/GlobalUIModel.h
+  GUI/Model/ImageIODelegates.h
   GUI/Model/ImageIOWizardModel.h
   GUI/Model/IOActions.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h

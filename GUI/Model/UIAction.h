@@ -8,27 +8,6 @@
 class GlobalUIModel;
 class IRISException;
 
-/**
-  Actions can generate warnings. These warnings are simply instances of
-  IRISException that are not fired, but rather stored. Warnings do not
-  keep the action from executing, they are just messages that are sent to
-  the user. Optimally, there should be an option to react to the message.
-
-  Actions can also generate errors, but these are achieved by throwing an
-  exception.
-  */
-class IRISWarning : public IRISException
-{
-public:
-  IRISWarning(const char *fmt, ...);
-  IRISWarning();
-
-  virtual ~IRISWarning() throw() {}
-
-
-};
-
-class IRISWarningList : public std::vector<IRISWarning> {};
 
 
 /**

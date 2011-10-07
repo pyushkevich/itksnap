@@ -37,6 +37,7 @@
 
 #include "SNAPCommon.h"
 #include <exception>
+#include <vector>
 
 using std::string;
 using std::exception;
@@ -58,6 +59,27 @@ public:
   virtual const char * what() const throw() { return m_SimpleMessage.c_str(); }
 
   operator const char *();
+};
+
+
+/**
+  Actions can generate warnings. These warnings are simply instances of
+  IRISException that are not fired, but rather stored. Warnings do not
+  keep the action from executing, they are just messages that are sent to
+  the user. Optimally, there should be an option to react to the message.
+
+  Actions can also generate errors, but these are achieved by throwing an
+  exception.
+  */
+class IRISWarning : public IRISException
+{
+public:
+  IRISWarning(const char *fmt, ...);
+  IRISWarning();
+
+  virtual ~IRISWarning() throw() {}
+
+
 };
 
 /**

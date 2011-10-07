@@ -20,7 +20,7 @@
 
 #include "IRISMainToolbox.h"
 
-#include "IOActions.h"
+#include "ImageIODelegates.h"
 
 // Setup printing of stack trace on segmentation faults. This only
 // works on select GNU systems

@@ -9,7 +9,7 @@
 #include "IRISException.h"
 #include <sstream>
 
-#include "IOActions.h"
+#include "ImageIODelegates.h"
 
 ImageIOWizardModel::ImageIOWizardModel()
 {

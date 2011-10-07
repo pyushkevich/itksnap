@@ -33,6 +33,7 @@
 #include <SliceWindowCoordinator.h>
 #include <GenericImageData.h>
 #include <GuidedNativeImageIO.h>
+#include <ImageIODelegates.h>
 
 
 
@@ -124,8 +125,6 @@ void GlobalUIModel::LoadGrayImage(GuidedNativeImageIO *io)
   m_Driver->UnloadOverlays();
   m_Driver->UpdateIRISMainImage(io, IRISApplication::MAIN_SCALAR);
 }
-
-#include "IOActions.h"
 
 void GlobalUIModel
 ::LoadImageNonInteractive(const char *fname,

@@ -30,7 +30,7 @@
 #include "ImageIOWizard.h"
 #include "ImageIOWizardModel.h"
 #include "GlobalUIModel.h"
-#include "IOActions.h"
+#include "ImageIODelegates.h"
 
 MainImageWindow::MainImageWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -126,7 +126,34 @@ void MainImageWindow::on_actionAdd_Greyscale_Overlay_triggered()
 {
   LoadOverlayImageDelegate delegate(m_Model, IRISApplication::MAIN_SCALAR);
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, &delegate, "GreyOverlay");
+  model->InitializeForLoad(m_Model, &delegate, "GreyImage");
+
+  // Execute the IO wizard
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
+}
+
+void MainImageWindow::on_actionOpen_RGB_Image_triggered()
+{
+  // TODO: Prompt for changes to segmentation to be saved
+
+  // Create a model for IO
+  LoadMainImageDelegate delegate(m_Model, IRISApplication::MAIN_RGB);
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model, &delegate, "RGBImage");
+
+  // Execute the IO wizard
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
+}
+
+void MainImageWindow::on_actionAdd_RGB_Overlay_triggered()
+{
+  LoadOverlayImageDelegate delegate(m_Model, IRISApplication::MAIN_RGB);
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model, &delegate, "RGBImage");
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);

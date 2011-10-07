@@ -6,9 +6,8 @@
 #include "AbstractModel.h"
 #include "GuidedNativeImageIO.h"
 #include "Registry.h"
-#include "IOActions.h"
+#include "ImageIODelegates.h"
 
-class AbstractLoadImageDelegate;
 class GlobalUIModel;
 
 namespace itk {
