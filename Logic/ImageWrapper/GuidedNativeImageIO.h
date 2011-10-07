@@ -347,11 +347,17 @@ public:
   // Constructor, takes pointer to native image
   OutputImageType *operator()(GuidedNativeImageIO *nativeIO);
 
+  // Set the functor
+  irisSetMacro(Functor, TCastFunctor)
+
 private:
   typename OutputImageType::Pointer m_Output;
+  TCastFunctor m_Functor;
 
   // Method that does the casting
   template<typename TNative> void DoCast(itk::ImageBase<3> *native);
+
+  friend class RescaleNativeImageToScalar<TPixel>;
 };
 
 // Functor used for scalar to scalar casting

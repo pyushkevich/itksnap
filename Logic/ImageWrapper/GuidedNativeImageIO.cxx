@@ -424,14 +424,25 @@ GuidedNativeImageIO
     
     // Update
     reader->Update();
+    typename GreyImageType::Pointer scalar = reader->GetOutput();
 
-    // Convert the image into VectorImage format
-    typedef itk::ImageToVectorImageFilter<GreyImageType> FilterType;
-    typename FilterType::Pointer flt = FilterType::New();
-    flt->SetInput(0, reader->GetOutput());
-    flt->Update();
-    m_NativeImage = flt->GetOutput();
-    m_NativeImage->SetDirection(flt->GetOutput()->GetDirection());
+    // Convert the image into VectorImage format. Do this in-place to avoid
+    // allocating memory pointlessly
+    typename NativeImageType::Pointer vector = NativeImageType::New();
+    m_NativeImage = vector;
+
+    vector->CopyInformation(scalar);
+    vector->SetRegions(scalar->GetBufferedRegion());
+
+    typedef typename NativeImageType::PixelContainer PixConType;
+    typename PixConType::Pointer pc = PixConType::New();
+    pc->SetImportPointer(
+          reinterpret_cast<TScalar *>(scalar->GetBufferPointer()),
+          scalar->GetBufferedRegion().GetNumberOfPixels(), true);
+    vector->SetPixelContainer(pc);
+
+    // Prevent the container from being deleted
+    scalar->GetPixelContainer()->SetContainerManageMemory(false);
 
     // Copy the metadata from the first scan in the series
     const typename ReaderType::DictionaryArrayType *darr = 
@@ -610,6 +621,59 @@ RescaleNativeImageToScalar<TPixel>::operator()(GuidedNativeImageIO *nativeIO)
   return m_Output;
 }
 
+template<typename TPixel, typename TNative>
+class RescaleScalarNativeImageToScalarFunctor
+{
+public:
+
+  RescaleScalarNativeImageToScalarFunctor(double shift, double scale)
+    : m_Shift(shift), m_Scale(scale) {}
+
+  RescaleScalarNativeImageToScalarFunctor()
+    : m_Shift(0), m_Scale(1) {}
+
+  void operator()(TNative *src, TPixel *trg)
+  {
+    *trg = (TPixel) ((*src + m_Shift) * m_Scale + 0.5);
+  }
+
+  size_t GetNumberOfDimensions() { return 1; }
+
+protected:
+
+  double m_Shift, m_Scale;
+
+};
+
+
+template<typename TPixel, typename TNative>
+class RescaleVectorNativeImageToScalarFunctor
+{
+public:
+
+  RescaleVectorNativeImageToScalarFunctor(double shift, double scale, size_t ncomp)
+    : m_Shift(shift), m_Scale(scale), m_Components(ncomp) {}
+
+  RescaleVectorNativeImageToScalarFunctor()
+    : m_Shift(0), m_Scale(1), m_Components(0) {}
+
+  void operator()(TNative *src, TPixel *trg)
+  {
+    double x = 0;
+    for(size_t i = 0; i < m_Components; i++)
+      x += src[i] * src[i];
+    *trg = (TPixel) ((sqrt(x) + m_Shift) * m_Scale + 0.5);
+  }
+
+  size_t GetNumberOfDimensions() { return m_Components; }
+
+protected:
+
+  double m_Shift, m_Scale;
+  size_t m_Components;
+
+};
+
 template<typename TPixel>
 template<typename TNative>
 void
@@ -622,185 +686,126 @@ RescaleNativeImageToScalar<TPixel>
   SmartPtr<InputImageType> input = dynamic_cast<InputImageType *>(native);
   assert(input);
 
-  typedef typename InputImageType::PixelContainer InPixCon;
-  typedef typename OutputImageType::PixelContainer OutPixCon;
-
-  InPixCon *ipc = input->GetPixelContainer();
-
-  // Special case: native image is the same as target image
-  if(typeid(TPixel) == typeid(TNative))
-    {
-    // Just copy the pixel container
-    OutPixCon *inbuff = dynamic_cast<OutPixCon *>(ipc);
-    assert(inbuff);
-    m_Output->SetPixelContainer(inbuff);
-    m_NativeScale = 1.0;
-    m_NativeShift = 0.0;
-    return;
-    }
-
-  // We are going to map data from native to target format in place in order
-  // to save memory. This way, SNAP will never use extra memory when loading
-  // an image. Some trickery is needed though.
   size_t nvoxels = input->GetBufferedRegion().GetNumberOfPixels();
   size_t ncomp = input->GetNumberOfComponentsPerPixel();
-  size_t szNative = sizeof(TNative) * ncomp;
-  size_t szTarget = sizeof(TPixel);
-
-  // Bytes allocated in the current pixel container
-  size_t nbNative = input->GetPixelContainer()->Capacity() * szNative;
-
-  // Bytes needed to store the data in target format
-  size_t nbTarget = input->GetPixelContainer()->Size() * szTarget;
-
-  // This memory is no longer owned by the input
-  ipc->SetContainerManageMemory(false);
-
-  // Pointer to the input buffer
-  TNative *ib = ipc->GetImportPointer();
-
-  // If target is larger than native, expand the pixel container
-  if(nbNative < nbTarget)
-    {
-    // We should probably avoid this possibility by forcing at least a short
-    // type when loading char data. But if this does happen, all we need to
-    // do is increase the capacity of the native data
-    ib = reinterpret_cast<TNative *>(realloc(ib, nbTarget));
-    }
-
-  // Get a pointer to the output buffer (same as input buffer)
-  TPixel *ob = reinterpret_cast<TPixel *>(ib);
-
-  // We must compute the range of the input data
-  double imin = itk::NumericTraits<double>::max();
-  double imax = -itk::NumericTraits<double>::max();
-  TPixel omax = itk::NumericTraits<TPixel>::max();
-  TPixel omin = itk::NumericTraits<TPixel>::min();
-
-  if(ncomp > 1)
-    {
-    for(InputIterator it(input, input->GetBufferedRegion()); !it.IsAtEnd(); ++it)
-      {
-      double mag = it.Get().GetSquaredNorm();
-      if(mag < imin) imin = mag;
-      if(mag > imax) imax = mag;
-      }
-    imin = sqrt(imin);
-    imax = sqrt(imax);
-    }
-  else
-    {
-    for(size_t i = 0; i < nvoxels; i++)
-      {
-      // Have to cast to double here
-      double val = ib[i];
-      if(val < imin) imin = val;
-      if(val > imax) imax = val;
-      }
-    }
 
   // We must compute a scale and shift factor
   double scale = 1.0, shift = 0.0;
 
-  // Now we have to be careful, depending on the type of the input voxel
-  // For float and double, we map the input range into the output range
-  if(!itk::NumericTraits<TNative>::is_integer || ncomp > 1)
+  // Only bother with computing the scale and shift if the types are different
+  if(typeid(TPixel) != typeid(TNative))
     {
-    // Test whether the input image is actually an integer image cast to 
-    // floating point. In that case, there is no need for conversion
-    bool isint = false;
-    if(1.0 * omin <= imin && 1.0 * omax >= imax && ncomp == 1)
+    TNative *ib = input->GetBufferPointer();
+
+    // We must compute the range of the input data
+    double imin = itk::NumericTraits<double>::max();
+    double imax = -itk::NumericTraits<double>::max();
+    TPixel omax = itk::NumericTraits<TPixel>::max();
+    TPixel omin = itk::NumericTraits<TPixel>::min();
+
+    if(ncomp > 1)
       {
-      isint = true;
+      for(InputIterator it(input, input->GetBufferedRegion()); !it.IsAtEnd(); ++it)
+        {
+        double mag = it.Get().GetSquaredNorm();
+        if(mag < imin) imin = mag;
+        if(mag > imax) imax = mag;
+        }
+      imin = sqrt(imin);
+      imax = sqrt(imax);
+      }
+    else
+      {
       for(size_t i = 0; i < nvoxels; i++)
         {
-        TNative vin = ib[i];
-        TNative vcmp = static_cast<TNative>(static_cast<TPixel>(vin + 0.5));
-        if(vin != vcmp)
-          { isint = false; break; }
+        // Have to cast to double here
+        double val = ib[i];
+        if(val < imin) imin = val;
+        if(val > imax) imax = val;
         }
       }
 
-    // If underlying data is really integer, no scale or shift is necessary
-    // except that to round (so floating values like 0.9999999 get mapped to 
-    // 1 not to 0
-    if(isint)
+
+    // Now we have to be careful, depending on the type of the input voxel
+    // For float and double, we map the input range into the output range
+    if(!itk::NumericTraits<TNative>::is_integer || ncomp > 1)
       {
-      scale = 1.0; shift = 0.0;
+      // Test whether the input image is actually an integer image cast to
+      // floating point. In that case, there is no need for conversion
+      bool isint = false;
+      if(1.0 * omin <= imin && 1.0 * omax >= imax && ncomp == 1)
+        {
+        isint = true;
+        for(size_t i = 0; i < nvoxels; i++)
+          {
+          TNative vin = ib[i];
+          TNative vcmp = static_cast<TNative>(static_cast<TPixel>(vin + 0.5));
+          if(vin != vcmp)
+            { isint = false; break; }
+          }
+        }
+
+      // If underlying data is really integer, no scale or shift is necessary
+      // except that to round (so floating values like 0.9999999 get mapped to
+      // 1 not to 0
+      if(isint)
+        {
+        scale = 1.0; shift = 0.0;
+        }
+
+      // If the min and max are the same, we map that value to zero
+      else if(imin == imax)
+        {
+        scale = 1.0; shift = -imax;
+        }
+      else
+        {
+        // Compute the scaling factor to map image into output range
+        scale = (1.0 * omax - 1.0 * omin) / (imax - imin);
+        shift = omin / scale - imin;
+        }
       }
 
-    // If the min and max are the same, we map that value to zero
-    else if(imin == imax)
+    // For integer types we only need to take action if the range is outside
+    // of the supported range. We cast to double to make sure the comparison
+    // is valid
+    else if(1.0 * imin < 1.0 * omin || 1.0 * imax > omax)
       {
-      scale = 1.0; shift = -imax;
-      }
-    else
-      {  
-      // Compute the scaling factor to map image into output range
-      scale = (1.0 * omax - 1.0 * omin) / (imax - imin);
-      shift = omin / scale - imin;
+      // Can we solve the problem by a shift only?
+      if(1.0 * imax - 1.0 * imin <= 1.0 * omax - 1.0 * omin)
+        {
+        scale = 1.0;
+        shift = 1.0 * omin - 1.0 * imin;
+        }
       }
     }
 
-  // For integer types we only need to take action if the range is outside
-  // of the supported range. We cast to double to make sure the comparison 
-  // is valid
-  else if(1.0 * imin < 1.0 * omin || 1.0 * imax > omax)
-    {
-    // Can we solve the problem by a shift only?
-    if(1.0 * imax - 1.0 * imin <= 1.0 * omax - 1.0 * omin)
-      {
-      scale = 1.0;
-      shift = 1.0 * omin - 1.0 * imin;
-      }
-    }
-
-  // Finally, we get to the code where we map from input format to the output
-  // format. Here again we have to be careful. If the native image is larger or
-  // same than the target image, we want to proceed in ascending order, since each
-  // input element will be replaced by one or more output elements. But if the
-  // native image is smaller, we want to proceed from the end of the memory
-  // block in a descending order, so that the native data is not overridden
-  if(szTarget > szNative)
-    {
-    TNative *pn = ib + (nvoxels - 1) * ncomp;
-    TPixel *pt = ob + nvoxels - 1;
-    for(; pt >= ob; pt--, pn-=ncomp)
-      {
-      *pt = (TPixel) ((*pn + shift) * scale + 0.5);
-      }
-    }
-  else
-    {
-    TNative *pn = ib;
-    TPixel *pt = ob;
-    for(; pt < ob + nvoxels; pt++, pn+=ncomp)
-      {
-      *pt = (TPixel) ((*pn + shift) * scale + 0.5);
-      }
-    }
-
-  // If needed, squeeze the memory
-  if(nbTarget < nbNative)
-    ob = reinterpret_cast<TPixel *>(realloc(ob, nbTarget));
-
-  // Create a new container wrapped around the same chunk of memory as the
-  // native image. The size we pass in here is the number of elements that
-  // have been already allocated. We will shrink that memory later
-  SmartPtr<OutPixCon> pc = OutPixCon::New();
-  pc->SetImportPointer(ob, nvoxels, true);
-
-  // Otherwise, allocate the buffer in the output image
-  m_Output->SetPixelContainer(pc);
 
   // Store the shift and the scale needed to take the TPixel values
   // to the TNative values
   m_NativeScale = 1.0 / scale;
   m_NativeShift = - shift;
+
+  // Create a cast functor. Note that if TPixel == TNative, the functor will
+  // not be used because the CastNativeImageBase::DoCast will just assign the
+  // input pixel container to the output image
+  if(ncomp == 1)
+    {
+    typedef RescaleScalarNativeImageToScalarFunctor<TPixel, TNative> Functor;
+    CastNativeImageBase<TPixel, Functor> caster;
+    caster.SetFunctor(Functor(shift, scale));
+    caster.DoCast<TNative>(native);
+    m_Output = caster.m_Output;
+    }
+  else
+    {
+    typedef RescaleVectorNativeImageToScalarFunctor<TPixel, TNative> Functor;
+    CastNativeImageBase<TPixel, Functor> caster;
+    caster.SetFunctor(Functor(shift, scale, ncomp));
+    caster.DoCast<TNative>(native);
+    m_Output = caster.m_Output;
+    }
 }
-
-
-
 
 template<class TPixel, class TCastFunctor>
 typename CastNativeImageBase<TPixel,TCastFunctor>::OutputImageType *
@@ -852,18 +857,15 @@ CastNativeImageBase<TPixel,TCastFunctor>
 
   InPixCon *ipc = input->GetPixelContainer();
 
-  // Make sure the number of components matches
-  TCastFunctor functor;
-  
   // If the native image does not have three components, we crash
-  if(input->GetNumberOfComponentsPerPixel() != functor.GetNumberOfDimensions())
+  if(input->GetNumberOfComponentsPerPixel() != m_Functor.GetNumberOfDimensions())
     throw IRISException(
         "Error: Wrong number of components. "
         "Can not convert image to target format ('%s'). "
         "Image has %d components per pixel, but ITK-SNAP expects %d components. ",
         typeid(TPixel).name(),
         input->GetNumberOfComponentsPerPixel(),
-        functor.GetNumberOfDimensions() );
+        m_Functor.GetNumberOfDimensions() );
 
   // Allocate the output image
   m_Output = OutputImageType::New();
@@ -923,14 +925,14 @@ CastNativeImageBase<TPixel,TCastFunctor>
     TNative *pn = ib + (nvoxels - 1) * ncomp;
     TPixel *pt = ob + nvoxels - 1;
     for(; pt >= ob; pt--, pn-=ncomp)
-      functor(pn, pt);
+      m_Functor(pn, pt);
     }
   else
     {
     TNative *pn = ib;
     TPixel *pt = ob;
     for(; pt < ob + nvoxels; pt++, pn+=ncomp)
-      functor(pn, pt);
+      m_Functor(pn, pt);
     }
 
   // If needed, squeeze the memory
