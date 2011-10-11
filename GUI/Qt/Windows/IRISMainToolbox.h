@@ -56,6 +56,7 @@ public slots:
 
   void on_BtnCrosshairMode_toggled(bool);
   void on_BtnZoomPanMode_toggled(bool);
+  void on_BtnPolygonMode_toggled(bool);
   void on_TabInspector_currentChanged(int index);
 
 private:

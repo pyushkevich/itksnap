@@ -30,6 +30,9 @@
 #include <GenericImageData.h>
 #include <SNAPAppearanceSettings.h>
 
+#include <itkImage.h>
+#include <itkImageRegionIteratorWithIndex.h>
+
 GenericSliceModel::GenericSliceModel()
 {
   // Copy parent pointers
@@ -434,7 +437,7 @@ void GenericSliceModel::ComputeThumbnailProperties()
       (int)(m_SliceSize[0] * m_SliceSpacing[0] * m_ThumbnailZoom);
   m_ThumbnailSize[1] =
       (int)(m_SliceSize[1] * m_SliceSpacing[1] * m_ThumbnailZoom);
-  }
+}
 
 unsigned int GenericSliceModel::GetNumberOfSlices() const
 {
@@ -494,3 +497,15 @@ GenericSliceWindow::OnDragAndDrop(const FLTKEvent &event)
     return 1;
 }
 */
+
+
+unsigned int
+GenericSliceModel
+::MergeSliceSegmentation(itk::OrientedImage<unsigned char, 2> *drawing)
+{
+  // Z position of slice
+  float zpos = this->GetCursorPositionInSliceCoordinates()[2];
+  return m_Driver->UpdateSegmentationWithSliceDrawing(
+        drawing, m_DisplayToImageTransform, zpos, "Polygon Drawing");
+}
+

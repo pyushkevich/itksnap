@@ -7,9 +7,13 @@
 #include "GenericImageData.h"
 #include "itkCommand.h"
 #include "CrosshairsRenderer.h"
+#include "PolygonDrawingRenderer.h"
 #include "SliceWindowCoordinator.h"
+#include "PolygonDrawingModel.h"
+#include "QtWidgetActivator.h"
 
 #include <QStackedLayout>
+#include <QMenu>
 
 SliceViewPanel::SliceViewPanel(QWidget *parent) :
     SNAPComponent(parent),
@@ -17,20 +21,75 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
 {
   ui->setupUi(this);
 
-  // Set the layouts
-  QStackedLayout *layout = new QStackedLayout();
-  layout->addWidget(ui->imCrosshairs);
-  layout->addWidget(ui->imZoomPan);
-  layout->addWidget(ui->imThumbnail);
-  ui->sliceView->setLayout(layout);
+  QString menuStyle = "font-size: 12pt;";
+
+  // Create the popup menus for the polygon mode
+  m_MenuPolyInactive = new QMenu(ui->imPolygon);
+  m_MenuPolyInactive->setStyleSheet(menuStyle);
+  m_MenuPolyInactive->addAction(ui->actionPaste);
+
+  m_MenuPolyDrawing = new QMenu(ui->imPolygon);
+  m_MenuPolyDrawing->setStyleSheet(menuStyle);
+  m_MenuPolyDrawing->addAction(ui->actionComplete);
+  m_MenuPolyDrawing->addAction(ui->actionCompleteAndAccept);
+  m_MenuPolyDrawing->addAction(ui->actionUndo);
+  m_MenuPolyDrawing->addAction(ui->actionClearDrawing);
+
+  m_MenuPolyEditing = new QMenu(ui->imPolygon);
+  m_MenuPolyEditing->setStyleSheet(menuStyle);
+  m_MenuPolyEditing->addAction(ui->actionAccept);
+  m_MenuPolyEditing->addAction(ui->actionDeleteSelected);
+  m_MenuPolyEditing->addAction(ui->actionSplitSelected);
+  m_MenuPolyEditing->addAction(ui->actionClearPolygon);
+
+  // Connect the actions to the toolbar buttons (sucks to do this by hand)
+  ui->btnAcceptPolygon->setDefaultAction(ui->actionAccept);
+  ui->btnPastePolygon->setDefaultAction(ui->actionPaste);
+  ui->btnClearDrawing->setDefaultAction(ui->actionClearDrawing);
+  ui->btnCloseLoop->setDefaultAction(ui->actionComplete);
+  ui->btnDeleteNodes->setDefaultAction(ui->actionDeleteSelected);
+  ui->btnDeletePolygon->setDefaultAction(ui->actionClearPolygon);
+  ui->btnSplitNodes->setDefaultAction(ui->actionSplitSelected);
+  ui->btnUndoLast->setDefaultAction(ui->actionUndo);
+
+  // Connect the context menu signal from polygon mode to this widget
+  connect(ui->imPolygon, SIGNAL(contextMenuRequested()), SLOT(onContextMenu()));
+
+  // Arrange the interaction modes into a tree structure. The first child of
+  // every interaction mode is an empty QWidget. The tree is used to allow
+  // events to fall through from one interaction mode to another
+  QStackedLayout *loMain = new QStackedLayout();
+  loMain->addWidget(ui->imCrosshairs);
+  loMain->addWidget(ui->imZoomPan);
+  loMain->addWidget(ui->imThumbnail);
+  delete ui->sliceView->layout();
+  ui->sliceView->setLayout(loMain);
+
+  QStackedLayout *loCrosshair = new QStackedLayout();
+  loCrosshair->addWidget(new QWidget());
+  loCrosshair->addWidget(ui->imPolygon);
+  delete ui->imCrosshairs->layout();
+  ui->imCrosshairs->setLayout(loCrosshair);
+
+  // Also lay out the pages
+  QStackedLayout *loPages = new QStackedLayout();
+  loPages->addWidget(ui->pageDefault);
+  loPages->addWidget(ui->pagePolygonDraw);
+  loPages->addWidget(ui->pagePolygonEdit);
+  loPages->addWidget(ui->pagePolygonInactive);
+  delete ui->toolbar->layout();
+  ui->toolbar->setLayout(loPages);
 
   // Let the thumbnail code filter all the events from other modes
   ui->imCrosshairs->installEventFilter(ui->imThumbnail);
   ui->imZoomPan->installEventFilter(ui->imThumbnail);
+  ui->imPolygon->installEventFilter(ui->imThumbnail);
+
+  // Events not picked up by the polygon mode should filter through to
+  // the crosshairs mode
 
   // Send wheel events from Crosshairs mode to the slider
   ui->imCrosshairs->SetWheelEventTargetWidget(ui->inSlicePosition);
-
 }
 
 SliceViewPanel::~SliceViewPanel()
@@ -60,17 +119,41 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   ui->imThumbnail->SetModel(m_GlobalUI->GetCursorNavigationModel(index));
 
+  ui->imPolygon->SetModel(m_GlobalUI->GetPolygonDrawingModel(index));
+
   // Attach the overlays to the master renderer. Why are we doing it here?
   GenericSliceRenderer::RendererDelegateList &overlays =
       ui->sliceView->GetRenderer()->GetOverlays();
-  overlays.push_back(&ui->imCrosshairs->GetRenderer());
+  overlays.push_back(ui->imCrosshairs->GetRenderer());
+  overlays.push_back(ui->imPolygon->GetRenderer());
 
   // Add listener for changes to the model
   connectITK(m_GlobalUI->GetSliceModel(index), ModelUpdateEvent());
   connectITK(m_GlobalUI, CursorUpdateEvent());
 
+  // Listen to toolbar change events
+  connectITK(m_GlobalUI, ToolbarModeChangeEvent());
+
+  // Listen to polygon state change events
+  connectITK(m_GlobalUI->GetPolygonDrawingModel(index),
+             StateMachineChangeEvent());
+
   // Activation
   activateOnFlag(this, m_GlobalUI, UIF_BASEIMG_LOADED);
+
+  // Set up activation for polygon buttons
+  PolygonDrawingModel *pm = m_GlobalUI->GetPolygonDrawingModel(index);
+
+  activateOnAllFlags(ui->actionAccept, pm, UIF_EDITING, UIF_HAVEPOLYGON);
+  activateOnAllFlags(ui->actionPaste, pm, UIF_INACTIVE, UIF_HAVECACHED);
+  activateOnAllFlags(ui->actionClearDrawing, pm, UIF_DRAWING, UIF_HAVEPOLYGON);
+  activateOnAllFlags(ui->actionComplete, pm, UIF_DRAWING, UIF_HAVEPOLYGON);
+  activateOnAllFlags(ui->actionCompleteAndAccept, pm, UIF_DRAWING, UIF_HAVEPOLYGON);
+  activateOnAllFlags(ui->actionDeleteSelected, pm, UIF_EDITING, UIF_HAVE_VERTEX_SELECTION);
+  activateOnAllFlags(ui->actionSplitSelected, pm, UIF_EDITING, UIF_HAVE_EDGE_SELECTION);
+  activateOnAllFlags(ui->actionUndo, pm, UIF_DRAWING, UIF_HAVEPOLYGON);
+  activateOnAllFlags(ui->actionClearPolygon, pm, UIF_EDITING, UIF_HAVEPOLYGON);
+
 
   /*
   AddListener(m_GlobalUI->GetSliceModel(index), GenericSliceModel::ModelUpdateEvent(),
@@ -91,14 +174,16 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
 void SliceViewPanel::onModelUpdate(const EventBucket &eb)
 {
-  if(eb.HasEvent(ModelUpdateEvent()))
+  if(eb.HasEvent(ModelUpdateEvent()) || eb.HasEvent(CursorUpdateEvent()))
     {
     UpdateSlicePositionWidgets();
     }
-  if(eb.HasEvent(CursorUpdateEvent()))
+  if(eb.HasEvent(ToolbarModeChangeEvent()) ||
+     eb.HasEvent(StateMachineChangeEvent()))
     {
-    ui->sliceView->update();
+    OnToolbarModeChange();
     }
+  ui->sliceView->update();
 }
 
 void SliceViewPanel::UpdateSlicePositionWidgets()
@@ -116,7 +201,7 @@ void SliceViewPanel::UpdateSlicePositionWidgets()
   ui->inSlicePosition->setValue(pos);
   ui->inSlicePosition->setMaximum(dim - 1);
   ui->inSlicePosition->setSingleStep(1);
-  ui->inSlicePosition->setPageStep(1);
+  ui->inSlicePosition->setPageStep(5);
 
   // Update the text display
   ui->lblSliceInfo->setText(QString("%1 of %2").arg(pos+1).arg(dim));
@@ -143,14 +228,38 @@ void SliceViewPanel::on_inSlicePosition_valueChanged(int value)
     this->GetSliceView()->GetModel()->UpdateSliceIndex(value);
 }
 
+void SliceViewPanel::SetActiveMode(QWidget *mode, bool clearChildren)
+{
+  // If the widget does not have a stacked layout, do nothing, we've reached
+  // the end of the recursion
+  QStackedLayout *loParent =
+      dynamic_cast<QStackedLayout *>(mode->parentWidget()->layout());
+
+  if(loParent)
+    {
+    // Set the mode as the current widget
+    loParent->setCurrentWidget(mode);
+
+    // Make sure the parent widget is also the current widget
+    SetActiveMode(mode->parentWidget(), false);
+
+    // Make sure no children are selected
+    if(clearChildren)
+      {
+      // If the selected mode has child modes, make sure none is selected
+      QStackedLayout *lo = dynamic_cast<QStackedLayout *>(mode->layout());
+      if(lo)
+        lo->setCurrentIndex(0);
+      }
+    }
+}
+
 void SliceViewPanel::OnToolbarModeChange()
 {
-  QStackedLayout *layout =
-      static_cast<QStackedLayout *>(ui->sliceView->layout());
-
-  switch(m_GlobalUI->GetToolbarMode())
+  switch((ToolbarModeType)m_GlobalUI->GetToolbarMode())
     {
   case POLYGON_DRAWING_MODE:
+    SetActiveMode(ui->imPolygon);
     break;
   case PAINTBRUSH_MODE:
     break;
@@ -159,12 +268,30 @@ void SliceViewPanel::OnToolbarModeChange()
   case ROI_MODE:
     break;
   case CROSSHAIRS_MODE:
-    layout->setCurrentWidget(ui->imCrosshairs);
+    SetActiveMode(ui->imCrosshairs);
     break;
   case NAVIGATION_MODE:
-    layout->setCurrentWidget(ui->imZoomPan);
+    SetActiveMode(ui->imZoomPan);
     break;
     }
+
+  // Need to do change to the appropriate page
+  QStackedLayout *loPages =
+      static_cast<QStackedLayout *>(ui->toolbar->layout());
+  if(m_GlobalUI->GetToolbarMode() == POLYGON_DRAWING_MODE)
+    {
+    switch(m_GlobalUI->GetPolygonDrawingModel(m_Index)->GetState())
+      {
+      case PolygonDrawingModel::DRAWING_STATE:
+        loPages->setCurrentWidget(ui->pagePolygonDraw); break;
+      case PolygonDrawingModel::EDITING_STATE:
+        loPages->setCurrentWidget(ui->pagePolygonEdit); break;
+      case PolygonDrawingModel::INACTIVE_STATE:
+        loPages->setCurrentWidget(ui->pagePolygonInactive); break;
+      }
+    }
+  else
+    loPages->setCurrentWidget(ui->pageDefault);
 }
 
 void SliceViewPanel::on_btnZoomToFit_clicked()
@@ -173,3 +300,24 @@ void SliceViewPanel::on_btnZoomToFit_clicked()
 
 }
 
+void SliceViewPanel::onContextMenu()
+{
+  if(m_GlobalUI->GetToolbarMode() == POLYGON_DRAWING_MODE)
+    {
+    QMenu *menu = NULL;
+    switch(m_GlobalUI->GetPolygonDrawingModel(m_Index)->GetState())
+      {
+      case PolygonDrawingModel::DRAWING_STATE:
+        menu = m_MenuPolyDrawing; break;
+      case PolygonDrawingModel::EDITING_STATE:
+        menu = m_MenuPolyEditing; break;
+      case PolygonDrawingModel::INACTIVE_STATE:
+        menu = m_MenuPolyInactive; break;
+      }
+
+    if(menu)
+      {
+      menu->popup(QCursor::pos());
+      }
+    }
+}

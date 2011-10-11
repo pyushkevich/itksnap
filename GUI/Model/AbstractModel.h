@@ -82,8 +82,7 @@ protected:
   /**
     Rebroadcast is also defined for Property objects.
     */
-  void Rebroadcast(IRISObservable &property, const itk::EventObject &srcEvent,
-                   const itk::EventObject &trgEvent);
+  void Rebroadcast(IRISObservable &property, const itk::EventObject &trgEvent);
 
 
   /**

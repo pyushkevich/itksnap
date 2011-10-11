@@ -69,9 +69,9 @@ void AbstractModel::Rebroadcast(
 }
 
 void AbstractModel::Rebroadcast(
-    IRISObservable &src, const itk::EventObject &srcEvent, const itk::EventObject &trgEvent)
+    IRISObservable &src, const itk::EventObject &trgEvent)
 {
   Rebroadcaster *reb = new Rebroadcaster(this, trgEvent);
-  AddListener(&src, srcEvent, reb, &Rebroadcaster::Broadcast);
+  AddListener(&src, PropertyChangeEvent(), reb, &Rebroadcaster::Broadcast);
   m_Rebroadcast.push_back(reb);
 }

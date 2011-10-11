@@ -36,15 +36,18 @@ class GenericSliceRenderer;
 class CrosshairsRenderer : public SliceRendererDelegate
 {
 public:
-  CrosshairsRenderer();
-  virtual ~CrosshairsRenderer() {}
 
-  void paintGL(GenericSliceRenderer *parentRenderer);
+  irisITKObjectMacro(CrosshairsRenderer, SliceRendererDelegate)
 
   irisSetMacro(Model, OrthogonalSliceCursorNavigationModel *)
   irisGetMacro(Model, OrthogonalSliceCursorNavigationModel *)
 
+  void paintGL(GenericSliceRenderer *parentRenderer);
+
 protected:
+
+  CrosshairsRenderer();
+  virtual ~CrosshairsRenderer() {}
 
   OrthogonalSliceCursorNavigationModel *m_Model;
 };

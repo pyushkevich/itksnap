@@ -29,8 +29,10 @@
 
 #include <QObject>
 #include <SNAPCommon.h>
+#include <SNAPUIFlag.h>
 
 class BooleanCondition;
+class QAction;
 
 class QtWidgetActivator : public QObject
 {
@@ -40,8 +42,10 @@ public:
     Creates an activator with widget parent and boolean condition. The
     condition will be deleted when this object is destroyed. The parent
     widget enabled property will mirror the BoolenaCondition
+
+    The widget can be a QWidget or a QAction. Otherwise, this will do nothing
    */
-  explicit QtWidgetActivator(QWidget *parent, BooleanCondition *cond);
+  explicit QtWidgetActivator(QObject *parent, BooleanCondition *cond);
   ~QtWidgetActivator();
 
 public slots:
@@ -49,8 +53,40 @@ public slots:
   void OnStateChange();
 
 private:
-  QWidget *m_Target;
+  QWidget *m_TargetWidget;
+  QAction *m_TargetAction;
   SmartPtr<BooleanCondition> m_Condition;
 };
+
+template<class TModel, class TStateEnum>
+void activateOnFlag(QObject *w, TModel *m, TStateEnum flag)
+{
+  typedef SNAPUIFlag<TModel, TStateEnum> FlagType;
+  SmartPtr<FlagType> f = FlagType::New(m, flag);
+  new QtWidgetActivator(w, f);
+}
+
+template<class TModel, class TStateEnum>
+void activateOnAllFlags(QObject *w, TModel *m,
+                        TStateEnum flag1, TStateEnum flag2)
+{
+  typedef SNAPUIFlag<TModel, TStateEnum> FlagType;
+  SmartPtr<FlagType> f1 = FlagType::New(m, flag1);
+  SmartPtr<FlagType> f2 = FlagType::New(m, flag2);
+  SmartPtr<AndCondition> f = AndCondition::New(f1, f2);
+  new QtWidgetActivator(w, f);
+}
+
+template<class TModel, class TStateEnum>
+void activateOnAnyFlags(QObject *w, TModel *m,
+                        TStateEnum flag1, TStateEnum flag2)
+{
+  typedef SNAPUIFlag<TModel, TStateEnum> FlagType;
+  SmartPtr<FlagType> f1 = FlagType::New(m, flag1);
+  SmartPtr<FlagType> f2 = FlagType::New(m, flag2);
+  SmartPtr<OrCondition> f = OrCondition::New(f1, f2);
+  new QtWidgetActivator(w, f);
+}
+
 
 #endif // QTWIDGETACTIVATOR_H

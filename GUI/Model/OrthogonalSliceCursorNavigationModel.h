@@ -27,7 +27,6 @@
 #ifndef ORTHOGONALSLICECURSORNAVIGATIONMODEL_H
 #define ORTHOGONALSLICECURSORNAVIGATIONMODEL_H
 
-#include <itkObject.h>
 #include <SNAPCommon.h>
 #include "AbstractModel.h"
 

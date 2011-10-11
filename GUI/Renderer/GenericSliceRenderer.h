@@ -35,7 +35,7 @@
 
 class GenericSliceRenderer;
 
-class SliceRendererDelegate
+class SliceRendererDelegate : public AbstractModel
 {
 public:
   virtual ~SliceRendererDelegate() {}

@@ -218,6 +218,15 @@ public:
   // Check whether the thumbnail should be drawn or not
   bool IsThumbnailOn();
 
+  /**
+    Merges a binary segmentation drawn on a slice into the main
+    segmentation in SNAP. Returns the number of voxels changed.
+
+    This method might be better placed in IRISApplication
+   */
+  unsigned int MergeSliceSegmentation(
+        itk::OrientedImage<unsigned char, 2> *drawing);
+
 protected:
 
   GenericSliceModel();

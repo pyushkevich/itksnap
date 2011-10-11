@@ -15,11 +15,3 @@ SNAPComponent
 {
   LatentITKEventNotifier::connect(src, ev, this, slot);
 }
-
-void
-SNAPComponent
-::activateOnFlag(QWidget *w, GlobalUIModel *model, UIState state)
-{
-  SmartPtr<SNAPUIFlag> p = SNAPUIFlag::New(model, state);
-  new QtWidgetActivator(w, p);
-}

@@ -61,7 +61,7 @@ public:
 
   // Slice image type
   typedef typename Superclass::SliceType SliceType;
-  typedef typename Superclass::SlicerPointer SlicePointer;
+  typedef typename Superclass::SlicePointer SlicePointer;
 
   // Slicer type
   typedef typename Superclass::SlicerType SlicerType;

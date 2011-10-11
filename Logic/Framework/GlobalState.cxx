@@ -96,6 +96,7 @@ GlobalState
   // Set annotation defaults
   m_AnnotationSettings.shownOnAllSlices = false;
 
+  m_PolygonDrawingContextMenu = false;
 }
 
 GlobalState

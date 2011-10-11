@@ -52,7 +52,7 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 
   // Also listen to events on opacity
   Rebroadcast(m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlpha(),
-              PropertyChangeEvent(), AppearanceUpdateEvent());
+              AppearanceUpdateEvent());
 }
 
 void GenericSliceRenderer::OnUpdate()

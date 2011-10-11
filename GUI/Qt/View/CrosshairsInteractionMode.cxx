@@ -32,9 +32,17 @@
 CrosshairsInteractionMode::CrosshairsInteractionMode(QWidget *parent) :
     QtInteractionDelegateWidget(parent)
 {
+  m_Renderer = CrosshairsRenderer::New();
+  m_WheelEventTarget = NULL;
+  m_Model = NULL;
+
   SetMouseButtonBehaviorToCrosshairsMode();
   setAttribute(Qt::WA_AcceptTouchEvents, true);
-  m_WheelEventTarget = NULL;
+}
+
+CrosshairsInteractionMode::~CrosshairsInteractionMode()
+{
+
 }
 
 void CrosshairsInteractionMode
@@ -57,7 +65,8 @@ void CrosshairsInteractionMode
 ::SetModel(OrthogonalSliceCursorNavigationModel *model)
 {
   m_Model = model;
-  m_Renderer.SetModel(model);
+  m_Renderer->SetModel(model);
+  SetParentModel(model->GetParent());
 }
 
 void CrosshairsInteractionMode::mousePressEvent(QMouseEvent *ev)
@@ -199,13 +208,17 @@ void CrosshairsInteractionMode::leaveEvent(QEvent *)
 
 void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
 {
+  // We want to scroll 1 line at a time!
+  int scrollLines = QApplication::wheelScrollLines();
+  QApplication::setWheelScrollLines(1);
+
   if(m_WheelEventTarget)
     {
-    QWheelEvent *evnew = new QWheelEvent(
+    QWheelEvent evnew(
           event->pos(), event->globalPos(), event->delta(),
           event->buttons(), event->modifiers(),
           event->orientation());
-    QCoreApplication::postEvent(m_WheelEventTarget, evnew);
+    QCoreApplication::sendEvent(m_WheelEventTarget, &evnew);
     event->accept();
     }
     /*
@@ -216,6 +229,8 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
   // Scroll
   m_Model->ProcessScrollGesture(numSteps);
   */
+
+  QApplication::setWheelScrollLines(scrollLines);
 }
 
 bool CrosshairsInteractionMode::event(QEvent *ev)

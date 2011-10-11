@@ -30,17 +30,20 @@
 #include <QWidget>
 #include <SNAPCommon.h>
 #include <QMouseEvent>
+#include <SNAPComponent.h>
 
 class SNAPQGLWidget;
 class QGestureEvent;
+class GenericSliceModel;
 
-
-class QtInteractionDelegateWidget : public QWidget
+class QtInteractionDelegateWidget : public SNAPComponent
 {
   Q_OBJECT
 
 public:
   explicit QtInteractionDelegateWidget(QWidget *parent = 0);
+
+  irisSetMacro(ParentModel, GenericSliceModel *)
 
 signals:
 
@@ -67,7 +70,13 @@ protected:
 
   // Spatial coordinates of the last press event, current event
   Vector3d m_LastPressXSpace, m_XSpace;
+  Vector3d m_LastPressXSlice, m_XSlice;
 
+  // Whether we are between a press and a release for a particular button
+  bool m_LeftDown, m_RightDown, m_MiddleDown;
+
+  // Parent model
+  GenericSliceModel *m_ParentModel;
 };
 
 #endif // QTINTERACTIONDELEGATEWIDGET_H

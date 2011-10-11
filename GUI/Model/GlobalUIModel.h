@@ -37,6 +37,7 @@ class IRISApplication;
 class SNAPAppearanceSettings;
 class GenericSliceModel;
 class OrthogonalSliceCursorNavigationModel;
+class PolygonDrawingModel;
 class SliceWindowCoordinator;
 class GuidedNativeImageIO;
 class SystemInterface;
@@ -89,17 +90,25 @@ public:
   GlobalState *GetGlobalState() const;
 
   /** Get the current toolbar mode */
-  irisSetWithEventMacro(ToolbarMode, ToolbarModeType, ToolbarModeChangeEvent)
+  irisSetPropertyMacro(ToolbarMode,ToolbarModeType)
 
   /** Get the current toolbar mode */
-  irisGetMacro(ToolbarMode,ToolbarModeType)
+  irisGetPropertyMacro(ToolbarMode,ToolbarModeType)
 
   GenericSliceModel *GetSliceModel(unsigned int i) const
     { return m_SliceModel[i]; }
 
+  /** Get the slice navigation model for each slice */
   OrthogonalSliceCursorNavigationModel *
   GetCursorNavigationModel(unsigned int i) const
     { return m_CursorNavigationModel[i]; }
+
+  /** Get the polygon drawing model for each slice */
+  PolygonDrawingModel *GetPolygonDrawingModel(unsigned int i) const
+  {
+    return m_PolygonDrawingModel[i];
+  }
+
 
   /** Load the main image */
   void LoadGrayImage(GuidedNativeImageIO *io);
@@ -114,7 +123,7 @@ public:
     when one of the flags has changed. This method can be used together with
     the SNAPUIFlag object to construct listeners to complex state changes.
    */
-  bool checkState(UIState state);
+  bool CheckState(UIState state);
 
 protected:
 
@@ -132,12 +141,14 @@ protected:
   // A set of models that support cursor navigation
   SmartPtr<OrthogonalSliceCursorNavigationModel> m_CursorNavigationModel[3];
 
+  // Models for polygon drawing
+  SmartPtr<PolygonDrawingModel> m_PolygonDrawingModel[3];
+
   // Window coordinator
   SmartPtr<SliceWindowCoordinator> m_SliceCoordinator;
 
   // The current 2D toolbar mode
-  ToolbarModeType m_ToolbarMode;
-
+  irisPropertyDeclMacro(ToolbarMode, ToolbarModeType)
 };
 
 #endif // GLOBALUIMODEL_H

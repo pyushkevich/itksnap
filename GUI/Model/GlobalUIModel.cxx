@@ -30,13 +30,17 @@
 #include <SNAPAppearanceSettings.h>
 #include <GenericSliceModel.h>
 #include <OrthogonalSliceCursorNavigationModel.h>
+#include <PolygonDrawingModel.h>
 #include <SliceWindowCoordinator.h>
 #include <GenericImageData.h>
 #include <GuidedNativeImageIO.h>
 #include <ImageIODelegates.h>
 
+#include <SNAPUIFlag.h>
+#include <SNAPUIFlag.txx>
 
-
+// Enable this model to be used with the flag engine
+template class SNAPUIFlag<GlobalUIModel, UIState>;
 
 
 GlobalUIModel::GlobalUIModel()
@@ -56,6 +60,9 @@ GlobalUIModel::GlobalUIModel()
     m_CursorNavigationModel[i] =
         OrthogonalSliceCursorNavigationModel::New();
     m_CursorNavigationModel[i]->SetParent(m_SliceModel[i]);
+
+    m_PolygonDrawingModel[i] = PolygonDrawingModel::New();
+    m_PolygonDrawingModel[i]->SetParent(m_SliceModel[i]);
     }
 
   // Connect them together with the coordinator
@@ -75,6 +82,8 @@ GlobalUIModel::GlobalUIModel()
   Rebroadcast(m_Driver, LayerChangeEvent(), LayerChangeEvent());
   Rebroadcast(m_Driver, LayerChangeEvent(), StateMachineChangeEvent());
 
+  Rebroadcast(m_ToolbarMode, ToolbarModeChangeEvent());
+
   // Set the defaults for properties
   m_ToolbarMode = CROSSHAIRS_MODE;
 }
@@ -84,7 +93,7 @@ GlobalUIModel::~GlobalUIModel()
   delete m_AppearanceSettings;
 }
 
-bool GlobalUIModel::checkState(UIState state)
+bool GlobalUIModel::CheckState(UIState state)
 {
   // TODO: implement all the other cases
   switch(state)

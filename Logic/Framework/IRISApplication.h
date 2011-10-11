@@ -91,6 +91,9 @@ public:
   typedef itk::Command CommandType;
   typedef UndoDataManager<LabelType> UndoManagerType;
 
+  // A drawing performed on a slice
+  typedef itk::OrientedImage<unsigned char, 2> SliceBinaryImageType;
+
   // The main image can be of these types
   enum MainImageType { MAIN_SCALAR, MAIN_RGB, MAIN_ANY };
 
@@ -328,6 +331,17 @@ public:
    */
   void ReorientImage(vnl_matrix_fixed<double, 3, 3> inDirection);
 
+
+
+  /**
+    Apply a binary drawing performed on an orthogonal slice to the
+    main segmentation.
+    */
+  unsigned int UpdateSegmentationWithSliceDrawing(
+      SliceBinaryImageType *drawing,
+      const ImageCoordinateTransform &xfmSliceToImage,
+      double zSlice,
+      const std::string &undoTitle);
 
 protected:
 

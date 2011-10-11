@@ -57,7 +57,7 @@
 #include <QGraphicsDropShadowEffect>
 
 const char *IRISMainToolbox::m_InspectorPageNames[] = {
-    "Zoom Inspector", "Cursor Inspector", "Paint Inspector",
+    "Cursor Inspector", "Zoom Inspector", "Paint Inspector",
     "","",""
 };
 
@@ -209,6 +209,14 @@ void IRISMainToolbox::on_BtnZoomPanMode_toggled(bool checked)
     {
     // Enter crosshair mode
     m_Model->SetToolbarMode(NAVIGATION_MODE);
+    }
+}
+
+void IRISMainToolbox::on_BtnPolygonMode_toggled(bool checked)
+{
+  if(checked)
+    {
+    m_Model->SetToolbarMode(POLYGON_DRAWING_MODE);
     }
 }
 

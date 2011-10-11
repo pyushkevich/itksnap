@@ -29,7 +29,6 @@
 
 #include <QtInteractionDelegateWidget.h>
 #include <SNAPCommon.h>
-#include <CrosshairsRenderer.h>
 
 class GenericSliceModel;
 class OrthogonalSliceCursorNavigationModel;
@@ -42,10 +41,11 @@ class CrosshairsInteractionMode : public QtInteractionDelegateWidget
 
 public:
   explicit CrosshairsInteractionMode(QWidget *parent = NULL);
+  ~ CrosshairsInteractionMode();
 
 
-  CrosshairsRenderer &GetRenderer() { return m_Renderer; }
-  const CrosshairsRenderer &GetRenderer() const { return m_Renderer; }
+  irisGetMacro(Renderer, CrosshairsRenderer *)
+
   void SetModel(OrthogonalSliceCursorNavigationModel *model);
 
   void mousePressEvent(QMouseEvent *ev);
@@ -72,7 +72,7 @@ public slots:
 
 protected:
   OrthogonalSliceCursorNavigationModel *m_Model;
-  CrosshairsRenderer m_Renderer;
+  SmartPtr<CrosshairsRenderer> m_Renderer;
 
   // The behavior of buttons when envoking zoom/pan/cursor actions
   Qt::MouseButton m_BtnCursor, m_BtnZoom, m_BtnPan;

@@ -27,15 +27,18 @@
 #include "QtWidgetActivator.h"
 #include "LatentITKEventNotifier.h"
 #include <QWidget>
+#include <QAction>
 #include <StateManagement.h>
 #include "GlobalUIModel.h"
+#include "SNAPUIFlag.h"
 
 QtWidgetActivator
-::QtWidgetActivator(QWidget *parent, BooleanCondition *cond)
+::QtWidgetActivator(QObject *parent, BooleanCondition *cond)
   : QObject(parent)
 {
   // Register to listen to the state change events
-  m_Target = parent;
+  m_TargetWidget = dynamic_cast<QWidget *>(parent);
+  m_TargetAction = dynamic_cast<QAction *>(parent);
   m_Condition = cond;
 
   // React to events after control returns to the main UI loop
@@ -54,6 +57,16 @@ void QtWidgetActivator::OnStateChange()
 {
   // Update the state of the widget based on the condition
   bool active = (*m_Condition)();
-  if(m_Target->isEnabled() != active)
-    m_Target->setEnabled(active);
+  if(m_TargetWidget)
+    {
+    bool status = m_TargetWidget->isEnabledTo(m_TargetWidget->parentWidget());
+    if(status != active)
+      m_TargetWidget->setEnabled(active);
+    }
+  else if(m_TargetAction)
+    {
+    bool status = m_TargetAction->isEnabled();
+    if(status != active)
+      m_TargetAction->setEnabled(active);
+    }
 }

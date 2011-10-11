@@ -39,9 +39,6 @@ protected:
   void connectITK(itk::Object *src, const itk::EventObject &ev,
                   const char *slot = SLOT(onModelUpdate(const EventBucket &)));
 
-  /** Link widget to flags */
-  void activateOnFlag(QWidget *w, GlobalUIModel *model, UIState state);
-
 };
 
 #endif // SNAPCOMPONENT_H

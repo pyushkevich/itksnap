@@ -5,6 +5,8 @@
 #include <GlobalState.h>
 
 class GenericSliceView;
+class QMenu;
+class QtInteractionDelegateWidget;
 
 namespace Ui {
     class SliceViewPanel;
@@ -30,7 +32,8 @@ public:
   void UpdateSlicePositionWidgets();
 
   // Callback for when the toolbar changes
-  void OnToolbarModeChange();
+
+
 
 private slots:
   void on_inSlicePosition_valueChanged(int value);
@@ -39,14 +42,23 @@ private slots:
 
   void onModelUpdate(const EventBucket &eb);
 
+  void OnToolbarModeChange();
+
+  void onContextMenu();
+
 private:
   Ui::SliceViewPanel *ui;
+
+  // Popup menus used for polygon operations
+  QMenu *m_MenuPolyInactive, *m_MenuPolyEditing, *m_MenuPolyDrawing;
 
   // Global UI pointer
   GlobalUIModel *m_GlobalUI;
 
   // Index of the panel
   unsigned int m_Index;
+
+  void SetActiveMode(QWidget *mode, bool clearChildren = true);
 };
 
 #endif // SLICEVIEWPANEL_H

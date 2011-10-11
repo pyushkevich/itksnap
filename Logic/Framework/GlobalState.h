@@ -410,6 +410,9 @@ public:
   void UnsetActiveBubble()
     { m_ActiveBubble = -1; }
 
+  irisGetPropertyMacro(PolygonDrawingContextMenu, bool)
+  irisSetPropertyMacro(PolygonDrawingContextMenu, bool)
+
 private:
 
   /** Get the current crosshairs position */
@@ -488,6 +491,11 @@ private:
 
   /** The region of interest for the segmentation (drawn by the user) */
   SNAPSegmentationROISettings m_SegmentationROISettings;
+
+  /** Whether the context menu is enabled for polygon drawing. I don't think
+    this is the right place to put this, because it's quite GUI specific, but
+    for the time being, I stick it here */
+  irisPropertyDeclMacro(PolygonDrawingContextMenu, bool)
   
   int m_LockHeld; 
   int m_LockOwner;
@@ -528,6 +536,7 @@ private:
 
   // Annotation settings
   AnnotationSettings m_AnnotationSettings;
+
 
 };
 

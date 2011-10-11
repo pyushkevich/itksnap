@@ -28,7 +28,7 @@
 #define SNAPEVENTS_H
 
 // Define this if you want event to be debugged
-#define SNAP_DEBUG_EVENTS 1
+// #define SNAP_DEBUG_EVENTS 1
 
 #include "itkObject.h"
 #include "itkCommand.h"
@@ -47,6 +47,9 @@ itkEventMacro(LayerChangeEvent, IRISEvent)
 
 /** The size of the main image has changed. */
 itkEventMacro(MainImageDimensionsChangeEvent, LayerChangeEvent)
+
+/** The segmentation has changed */
+itkEventMacro(SegmentationChangeEvent, LayerChangeEvent)
 
 /** Generic event representing that a model has changed */
 itkEventMacro(ModelUpdateEvent, IRISEvent)

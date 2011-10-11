@@ -27,10 +27,14 @@
 #include "QtInteractionDelegateWidget.h"
 #include <SNAPQGLWidget.h>
 #include <QMouseEvent>
+#include "GenericSliceModel.h"
 
 QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
-  QWidget(parent)
+  SNAPComponent(parent)
 {
+  m_LeftDown = false;
+  m_MiddleDown = false;
+  m_RightDown = false;
 }
 
 bool QtInteractionDelegateWidget::event(QEvent *ev)
@@ -44,6 +48,8 @@ bool QtInteractionDelegateWidget::event(QEvent *ev)
     // Compute the spatial location of the event
     QMouseEvent *emouse = static_cast<QMouseEvent *>(ev);
     m_XSpace = GetParentGLWidget()->GetEventWorldCoordinates(emouse, true);
+    m_XSlice = to_double(m_ParentModel->MapWindowToSlice(
+                           to_float(Vector2d(m_XSpace.extract(2)))));
 
     // If a mouse press, back up this info for drag tracking
     if(ev->type() == QEvent::MouseButtonPress)
@@ -52,6 +58,25 @@ bool QtInteractionDelegateWidget::event(QEvent *ev)
       m_LastPressGlobalPos = emouse->globalPos();
       m_LastPressButton = emouse->button();
       m_LastPressXSpace = m_XSpace;
+      m_LastPressXSlice = m_XSlice;
+
+      // Store what buttons are up or down
+      if(emouse->button() == Qt::LeftButton)
+        m_LeftDown = true;
+      if(emouse->button() == Qt::RightButton)
+        m_RightDown = true;
+      if(emouse->button() == Qt::MiddleButton)
+        m_MiddleDown = true;
+      }
+    else if(ev->type() == QEvent::MouseButtonRelease)
+      {
+      // Store what buttons are up or down
+      if(emouse->button() == Qt::LeftButton)
+        m_LeftDown = false;
+      if(emouse->button() == Qt::RightButton)
+        m_RightDown = false;
+      if(emouse->button() == Qt::MiddleButton)
+        m_MiddleDown = false;
       }
     }
 
@@ -63,17 +88,19 @@ bool QtInteractionDelegateWidget::event(QEvent *ev)
 
   // Call parent's event method
   return QWidget::event(ev);
-  }
+}
 
 SNAPQGLWidget * QtInteractionDelegateWidget::GetParentGLWidget() const
 {
-  if(!this->parent())
-    return NULL;
+  // Search up until a parent widget is found
+  for(QObject *p = parent(); p != NULL; p = p->parent())
+    {
+    SNAPQGLWidget *pgl = dynamic_cast<SNAPQGLWidget *>(p);
+    if(pgl)
+      return pgl;
+    }
 
-  SNAPQGLWidget *p = dynamic_cast<SNAPQGLWidget *>(this->parent());
-  assert(p);
-
-  return p;
+  return NULL;
 }
 
 bool QtInteractionDelegateWidget::eventFilter(QObject *obj, QEvent *ev)

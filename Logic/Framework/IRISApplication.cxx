@@ -338,6 +338,7 @@ IRISApplication
   m_UndoManager.Clear();
 }
 
+inline
 LabelType
 IRISApplication
 ::DrawOverLabel(LabelType iTarget)
@@ -355,6 +356,74 @@ IRISApplication
      ((iMode == PAINT_OVER_ALL) ||
       (iMode == PAINT_OVER_VISIBLE && visible) ||
       (iMode == PAINT_OVER_ONE && iDrawOver == iTarget)) ? iDrawing : iTarget;
+}
+
+unsigned int
+IRISApplication
+::UpdateSegmentationWithSliceDrawing(
+    IRISApplication::SliceBinaryImageType *drawing,
+    const ImageCoordinateTransform &xfmSliceToImage,
+    double zSlice,
+    const std::string &undoTitle)
+{
+  // Only in IRIS mode
+  assert(m_SNAPImageData == NULL);
+
+  // Get the segmentation image
+  LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
+
+  // Drawing parameters
+  CoverageModeType iMode = m_GlobalState->GetCoverageMode();
+  LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
+  LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
+  bool invert = m_GlobalState->GetPolygonInvert();
+
+  // Keep track of the number of pixels changed
+  unsigned int nUpdates = 0;
+
+  // Iterate through the drawing
+  for (itk::ImageRegionIteratorWithIndex<SliceBinaryImageType>
+       it(drawing, drawing->GetBufferedRegion()); !it.IsAtEnd(); ++it)
+    {
+    // Get the current polygon pixel
+    SliceBinaryImageType::PixelType px = it.Get();
+
+    // Check for non-zero alpha of the pixel
+    if((px != 0) ^ invert)
+      {
+      // Figure out the coordinate of the target image
+      itk::Index<2> idx = it.GetIndex();
+      Vector3f idxImageFloat = xfmSliceToImage.TransformPoint(
+            Vector3f(idx[0] + 0.5, idx[1] + 0.5, zSlice));
+      itk::Index<3> iseg = to_itkIndex(to_unsigned_int(idxImageFloat));
+
+      // Access the voxel in the segmentation
+      LabelType &voxel = seg->GetPixel(iseg);
+
+      // Apply the label to the voxel
+      if(iMode == PAINT_OVER_ALL ||
+         (iMode == PAINT_OVER_ONE && voxel == iDrawOver) ||
+         (iMode == PAINT_OVER_VISIBLE &&
+          m_ColorLabelTable->GetColorLabel(voxel).IsVisible()))
+        {
+        if(voxel != iDrawing)
+          {
+          voxel = iDrawing;
+          nUpdates++;
+          }
+        }
+      }
+    }
+
+  // Has anything been changed?
+  if(nUpdates > 0)
+    {
+    seg->Modified();
+    StoreUndoPoint(undoTitle.c_str());
+    InvokeEvent(SegmentationChangeEvent());
+    }
+
+  return nUpdates;
 }
 
 void 

@@ -5,6 +5,7 @@
 #include <GenericImageData.h>
 #include <IRISApplication.h>
 #include <GlobalUIModel.h>
+#include <QtWidgetActivator.h>
 
 CursorInspector::CursorInspector(QWidget *parent) :
     SNAPComponent(parent),

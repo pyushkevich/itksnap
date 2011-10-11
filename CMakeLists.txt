@@ -238,14 +238,16 @@ SET(UI_GENERIC_CXX
   GUI/Model/ImageIOWizardModel.cxx
   GUI/Model/IOActions.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
+  GUI/Model/PolygonDrawingModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
   GUI/Model/SNAPAppearanceSettings.cxx
-  GUI/Model/SNAPUIFlag.cxx
   GUI/Model/StateManagement.cxx
   GUI/Model/UIAction.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
   GUI/Renderer/OpenGLSliceTexture.cxx
+  GUI/Renderer/PolygonDrawingRenderer.cxx
+  GUI/Renderer/PolygonScanConvert.cxx
 )
 
 SET(UI_GENERIC_HEADERS
@@ -256,14 +258,18 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ImageIOWizardModel.h
   GUI/Model/IOActions.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
+  GUI/Model/PolygonDrawingModel.h
   GUI/Model/SNAPAppearanceSettings.h
   GUI/Model/SNAPUIFlag.h
+  GUI/Model/SNAPUIFlag.txx
   GUI/Model/SliceWindowCoordinator.h
   GUI/Model/StateManagement.h
   GUI/Model/UIAction.h
   GUI/Model/UIState.h
   GUI/Renderer/CrosshairsRenderer.h
   GUI/Renderer/GenericSliceRenderer.h
+  GUI/Renderer/PolygonDrawingRenderer.h
+  GUI/Renderer/PolygonScanConvert.h
 )
 
 # These files contain the Qt-specific user interface source code
@@ -272,6 +278,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/LabelInspector.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
   GUI/Qt/Components/QtDoubleSpinboxCoupling.cxx
+  GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
   GUI/Qt/Components/SNAPComponent.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
@@ -282,6 +289,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/InteractionMode.cxx
   GUI/Qt/View/InteractionModeClient.cxx
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
+  GUI/Qt/View/PolygonDrawingInteractionMode.cxx
   GUI/Qt/View/SNAPQGLWidget.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx
   GUI/Qt/Windows/IRISMainToolbox.cxx
@@ -297,6 +305,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/LabelInspector.h
   GUI/Qt/Components/LatentITKEventNotifier.h
   GUI/Qt/Components/QtDoubleSpinboxCoupling.h
+  GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
   GUI/Qt/Components/SNAPComponent.h
   GUI/Qt/Components/SliceViewPanel.h
@@ -305,6 +314,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
   GUI/Qt/View/QtInteractionDelegateWidget.h
+  GUI/Qt/View/PolygonDrawingInteractionMode.h
   GUI/Qt/View/SNAPQGLWidget.h
   GUI/Qt/View/ThumbnailInteractionMode.h
   GUI/Qt/Windows/IRISMainToolbox.h
@@ -316,6 +326,7 @@ SET(UI_MOC_HEADERS
 SET(UI_FORMS
   GUI/Qt/Components/CursorInspector.ui
   GUI/Qt/Components/LabelInspector.ui
+  GUI/Qt/Components/QtWarningDialog.ui
   GUI/Qt/Components/SliceViewPanel.ui
   GUI/Qt/Components/ZoomInspector.ui
   GUI/Qt/Windows/ImageIODialog.ui

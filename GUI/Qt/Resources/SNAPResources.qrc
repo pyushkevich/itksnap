@@ -33,5 +33,12 @@
         <file>combo_visible_labels.png</file>
         <file>dlg_error_32.png</file>
         <file>dlg_warning_32.png</file>
+        <file>popup_edit_16.png</file>
+        <file>popup_ok_16.png</file>
+        <file>popup_paste_16.png</file>
+        <file>popup_clear_16.png</file>
+        <file>popup_delete_16.png</file>
+        <file>popup_split_16.png</file>
+        <file>popup_undo_16.png</file>
     </qresource>
 </RCC>

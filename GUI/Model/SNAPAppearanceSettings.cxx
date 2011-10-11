@@ -181,6 +181,7 @@ SNAPAppearanceSettings
   // Polygon outline (drawing)
   elt = &m_DefaultElementSettings[POLY_DRAW_MAIN];
   elt->NormalColor = Vector3d(1.0, 0.0, 0.5);
+  elt->ActiveColor = Vector3d(1.0, 0.8, 0.9);
   elt->LineThickness = 2.0;
   elt->Visible = true;
   elt->AlphaBlending = true;
@@ -188,8 +189,9 @@ SNAPAppearanceSettings
   // Polygon outline (drawing)
   elt = &m_DefaultElementSettings[POLY_DRAW_CLOSE];
   elt->NormalColor = Vector3d(1.0, 0.0, 0.5);
+  elt->ActiveColor = Vector3d(1.0, 0.8, 0.9);
   elt->LineThickness = 2.0;
-  elt->Visible = true;
+  elt->Visible = false;
   elt->DashSpacing = 1.0;
   elt->AlphaBlending = true;
 

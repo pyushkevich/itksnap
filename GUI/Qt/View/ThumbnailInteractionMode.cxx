@@ -39,6 +39,7 @@ void ThumbnailInteractionMode
 {
   m_Model = model;
   m_PanFlag = false;
+  this->SetParentModel(model->GetParent());
 }
 
 
