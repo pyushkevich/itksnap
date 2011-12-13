@@ -29,7 +29,16 @@
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
 
+#include "ScalarImageHistogram.h"
+
 #include <iostream>
+
+template <class TPixel>
+ScalarImageWrapper<TPixel>
+::ScalarImageWrapper()
+{
+  m_Histogram = ScalarImageHistogram::New();
+}
 
 template <class TPixel>
 ScalarImageWrapper<TPixel>
@@ -56,6 +65,14 @@ ScalarImageWrapper<TPixel>
 }
 
 template <class TPixel>
+ScalarImageWrapper<TPixel>
+::~ScalarImageWrapper()
+{
+
+}
+
+
+template <class TPixel>
 void 
 ScalarImageWrapper<TPixel>
 ::UpdateImagePointer(ImageType *newImage) 
@@ -64,9 +81,9 @@ ScalarImageWrapper<TPixel>
   m_MinMaxCalc = MinMaxCalculatorType::New();
   m_MinMaxCalc->SetImage(newImage);
 
+  // Call the parent
   ImageWrapper<TPixel>::UpdateImagePointer(newImage);
 }
-
 
 template <class TPixel>
 typename ScalarImageWrapper<TPixel>::ImagePointer
@@ -277,6 +294,43 @@ ScalarImageWrapper<TPixel>
   // Store the output and point everything to it
   UpdateImagePointer(filter->GetOutput());
 }
+
+#include "itkListSampleToHistogramGenerator.h"
+#include "itkImageToListAdaptor.h"
+
+template <class TPixel>
+const ScalarImageHistogram *
+ScalarImageWrapper<TPixel>
+::GetHistogram(size_t nBins)
+{
+  // Zero parameter means we want to reuse the current histogram size
+  if(nBins == 0)
+    nBins = m_Histogram->GetSize();
+  if(nBins == 0)
+    nBins = 128;
+
+  // First check if an update is needed
+  if(m_Histogram->GetMTime() < this->m_Image->GetMTime() ||
+     m_Histogram->GetSize() != nBins)
+    {
+    // Create the histogram
+    m_Histogram->Initialize(this->GetImageMinNative(),
+                            this->GetImageMaxNative(),
+                            nBins);
+
+    // Add all points as samples
+    for(ConstIterator it = this->GetImageConstIterator(); !it.IsAtEnd(); ++it)
+      {
+      m_Histogram->AddSample(m_NativeMapping(it.Get()));
+      }
+
+    // Set the m-time
+    m_Histogram->Modified();
+    }
+
+  return m_Histogram;
+}
+
 
 template class ScalarImageWrapper<float>;
 template class ScalarImageWrapper<GreyType>;

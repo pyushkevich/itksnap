@@ -75,14 +75,14 @@ protected:
     to call the Update() function on the model. This function checks what
     events are in the event bucket, and processes them in an orderly fashion.
     */
-  void Rebroadcast(
+  unsigned long Rebroadcast(
       itk::Object *src, const itk::EventObject &srcEvent,
       const itk::EventObject &trgEvent);
 
   /**
     Rebroadcast is also defined for Property objects.
     */
-  void Rebroadcast(IRISObservable &property, const itk::EventObject &trgEvent);
+  unsigned long Rebroadcast(IRISObservable &property, const itk::EventObject &trgEvent);
 
 
   /**

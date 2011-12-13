@@ -4,6 +4,7 @@
 #include "SNAPComponent.h"
 
 class VoxelIntensityQTableModel;
+class QMenu;
 
 
 namespace Ui {
@@ -26,14 +27,20 @@ public slots:
   void onCursorEdit();
   void onModelUpdate(const EventBucket &);
 
+  void onContextMenuRequested(QPoint pos);
+
 protected:
 
   void UpdateUIFromModel();
+
+private slots:
+  void on_actionAutoContrast_triggered();
 
 private:
   Ui::CursorInspector *ui;
   VoxelIntensityQTableModel *m_TableModel;
   GlobalUIModel *m_Model;
+  QMenu *m_ContextMenu;
 };
 
 #endif // CURSORINSPECTOR_H

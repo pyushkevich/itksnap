@@ -67,7 +67,7 @@ RGBImageWrapper<TComponent>
 template<class TComponent>
 typename RGBImageWrapper<TComponent>::DisplaySlicePointer
 RGBImageWrapper<TComponent>
-::GetDisplaySlice(unsigned int iSlice) const
+::GetDisplaySlice(unsigned int iSlice)
 {
   // Depending on the current mode, return the display slice or the 
   // original slice from the parent

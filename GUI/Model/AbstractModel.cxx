@@ -60,18 +60,20 @@ AbstractModel::Rebroadcaster
   m_Model->InvokeEvent(*m_Event);
 }
 
-void AbstractModel::Rebroadcast(
+unsigned long
+AbstractModel::Rebroadcast(
     itk::Object *src, const itk::EventObject &srcEvent, const itk::EventObject &trgEvent)
 {
   Rebroadcaster *reb = new Rebroadcaster(this, trgEvent);
-  AddListener(src, srcEvent, reb, &Rebroadcaster::Broadcast);
   m_Rebroadcast.push_back(reb);
+  return AddListener(src, srcEvent, reb, &Rebroadcaster::Broadcast);
 }
 
-void AbstractModel::Rebroadcast(
+unsigned long
+AbstractModel::Rebroadcast(
     IRISObservable &src, const itk::EventObject &trgEvent)
 {
   Rebroadcaster *reb = new Rebroadcaster(this, trgEvent);
-  AddListener(&src, PropertyChangeEvent(), reb, &Rebroadcaster::Broadcast);
   m_Rebroadcast.push_back(reb);
+  return AddListener(&src, PropertyChangeEvent(), reb, &Rebroadcaster::Broadcast);
 }

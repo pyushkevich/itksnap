@@ -9,11 +9,17 @@ namespace itk {
   template <unsigned int VDim> class ImageBase;
   template <class TPixel, unsigned int VDim> class Image;
   template <class TPixel> class RGBAPixel;
+
+  namespace Statistics {
+    class DenseFrequencyContainer;
+    template <class TReal, unsigned int VDim, class TContainer> class Histogram;
+  }
 }
 
 class ScalarImageWrapperBase;
 class VectorImageWrapperBase;
 class IntensityCurveInterface;
+class ScalarImageHistogram;
 
 /**
  \class ImageWrapper
@@ -117,7 +123,7 @@ public:
   irisVirtualGetMacro(NiftiSform, TransformType)
 
   /** Get a display slice correpsponding to the current index */
-  virtual DisplaySlicePointer GetDisplaySlice(unsigned int dim) const = 0;
+  virtual DisplaySlicePointer GetDisplaySlice(unsigned int dim) = 0;
 
   /** For each slicer, find out which image dimension does is slice along */
   virtual unsigned int GetDisplaySliceImageAxis(unsigned int slice) = 0;
@@ -207,6 +213,12 @@ public:
     */
   irisVirtualGetMacro(NativeMapping, InternalToNativeFunctor)
   irisVirtualSetMacro(NativeMapping, InternalToNativeFunctor)
+
+  /**
+    Compute the histogram of the image and store it in the ITK
+    histogram object.
+    */
+  virtual const ScalarImageHistogram *GetHistogram(size_t nBins) = 0;
 
 };
 

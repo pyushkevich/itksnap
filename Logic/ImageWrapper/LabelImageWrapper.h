@@ -83,7 +83,7 @@ public:
   /**
    * Get a color slice for display purposes
    */
-  DisplaySlicePointer GetDisplaySlice(unsigned int dim) const;
+  DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
   /** Constructor initializes mapper */
   LabelImageWrapper();

@@ -120,6 +120,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/LevelSetImageWrapper.cxx
   Logic/ImageWrapper/RGBImageWrapper.cxx
+  Logic/ImageWrapper/ScalarImageHistogram.cxx
   Logic/ImageWrapper/ScalarImageWrapper.cxx
   Logic/ImageWrapper/SpeedColorMap.cxx
   Logic/ImageWrapper/SpeedImageWrapper.cxx
@@ -192,6 +193,7 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/LabelToRGBAFilter.h
   Logic/ImageWrapper/LevelSetImageWrapper.h
   Logic/ImageWrapper/RGBImageWrapper.h
+  Logic/ImageWrapper/ScalarImageHistogram.h
   Logic/ImageWrapper/ScalarImageWrapper.h
   Logic/ImageWrapper/SpeedColorMap.h
   Logic/ImageWrapper/SpeedImageWrapper.h
@@ -236,6 +238,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/GlobalUIModel.cxx
   GUI/Model/ImageIODelegates.cxx
   GUI/Model/ImageIOWizardModel.cxx
+  GUI/Model/IntensityCurveModel.cxx
   GUI/Model/IOActions.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
   GUI/Model/PolygonDrawingModel.cxx
@@ -245,6 +248,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/UIAction.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
+  GUI/Renderer/IntensityCurveRenderer.cxx
   GUI/Renderer/OpenGLSliceTexture.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
   GUI/Renderer/PolygonScanConvert.cxx
@@ -256,6 +260,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/GlobalUIModel.h
   GUI/Model/ImageIODelegates.h
   GUI/Model/ImageIOWizardModel.h
+  GUI/Model/IntensityCurveModel.h
   GUI/Model/IOActions.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
   GUI/Model/PolygonDrawingModel.h
@@ -265,19 +270,23 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/SliceWindowCoordinator.h
   GUI/Model/StateManagement.h
   GUI/Model/UIAction.h
+  GUI/Model/UIReporterDelegates.h
   GUI/Model/UIState.h
   GUI/Renderer/CrosshairsRenderer.h
   GUI/Renderer/GenericSliceRenderer.h
+  GUI/Renderer/IntensityCurveRenderer.h
   GUI/Renderer/PolygonDrawingRenderer.h
   GUI/Renderer/PolygonScanConvert.h
 )
 
 # These files contain the Qt-specific user interface source code
 SET(UI_QT_CXX
+  GUI/Qt/Components/ContrastInspector.cxx
   GUI/Qt/Components/CursorInspector.cxx
   GUI/Qt/Components/LabelInspector.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
   GUI/Qt/Components/QtDoubleSpinboxCoupling.cxx
+  GUI/Qt/Components/QtReporterDelegates.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
   GUI/Qt/Components/SNAPComponent.cxx
@@ -286,25 +295,30 @@ SET(UI_QT_CXX
   GUI/Qt/Components/ZoomInspector.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
   GUI/Qt/View/GenericSliceView.cxx
+  GUI/Qt/View/IntensityCurveBox.cxx
   GUI/Qt/View/InteractionMode.cxx
   GUI/Qt/View/InteractionModeClient.cxx
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
   GUI/Qt/View/PolygonDrawingInteractionMode.cxx
+  GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
   GUI/Qt/View/SNAPQGLWidget.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx
   GUI/Qt/Windows/IRISMainToolbox.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
+  GUI/Qt/Windows/LayerInspectorDialog.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
   GUI/Qt/Windows/QtStyles.cxx
 )
 
 # The header files for the UI project
 SET(UI_MOC_HEADERS
+  GUI/Qt/Components/ContrastInspector.h
   GUI/Qt/Components/CursorInspector.h
   GUI/Qt/Components/LabelInspector.h
   GUI/Qt/Components/LatentITKEventNotifier.h
   GUI/Qt/Components/QtDoubleSpinboxCoupling.h
+  GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
   GUI/Qt/Components/SNAPComponent.h
@@ -313,23 +327,28 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/ZoomInspector.h
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
+  GUI/Qt/View/IntensityCurveBox.h
   GUI/Qt/View/QtInteractionDelegateWidget.h
   GUI/Qt/View/PolygonDrawingInteractionMode.h
+  GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SNAPQGLWidget.h
   GUI/Qt/View/ThumbnailInteractionMode.h
   GUI/Qt/Windows/IRISMainToolbox.h
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
+  GUI/Qt/Windows/LayerInspectorDialog.h
   GUI/Qt/Windows/MainImageWindow.h
 )
 
 SET(UI_FORMS
+  GUI/Qt/Components/ContrastInspector.ui
   GUI/Qt/Components/CursorInspector.ui
   GUI/Qt/Components/LabelInspector.ui
   GUI/Qt/Components/QtWarningDialog.ui
   GUI/Qt/Components/SliceViewPanel.ui
   GUI/Qt/Components/ZoomInspector.ui
   GUI/Qt/Windows/ImageIODialog.ui
+  GUI/Qt/Windows/LayerInspectorDialog.ui
   GUI/Qt/Windows/MainImageWindow.ui
 )
 

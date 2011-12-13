@@ -35,6 +35,7 @@
 #include "SpeedImageWrapper.h"
 #include "itkUnaryFunctorImageFilter.h"
 #include "IRISSlicer.h"
+#include "ScalarImageHistogram.h"
 
 SpeedImageWrapper
 ::SpeedImageWrapper()
@@ -70,7 +71,7 @@ SpeedImageWrapper
 
 SpeedImageWrapper::DisplaySlicePointer
 SpeedImageWrapper
-::GetDisplaySlice(unsigned int iSlice) const
+::GetDisplaySlice(unsigned int iSlice)
 {
   // Depending on the current mode, return the display slice or the 
   // original slice from the parent

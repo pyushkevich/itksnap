@@ -58,8 +58,9 @@ public:
 
   void SetParentModel(SliceWindowCoordinator *coord);
 
-  double GetValue() const;
-  NumericValueRange<double> GetRange() const;
+  double GetValue();
+  NumericValueRange<double> GetRange();
+  bool IsValueNull();
 
   void SetValue(double value);
 

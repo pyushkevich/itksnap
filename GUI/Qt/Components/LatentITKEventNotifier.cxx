@@ -85,7 +85,7 @@ std::map<QObject *, LatentITKEventNotifierHelper *>
 LatentITKEventNotifier::m_HelperMap;
 
 
-void LatentITKEventNotifier
+unsigned long LatentITKEventNotifier
 ::connect(itk::Object *source, const itk::EventObject &evt,
           QObject *target, const char *slot)
 {
@@ -93,10 +93,10 @@ void LatentITKEventNotifier
   LatentITKEventNotifierHelper *c = doConnect(evt, target, slot);
 
   // Listen to events from the source
-  AddListener(source, evt, c, &LatentITKEventNotifierHelper::Callback);
+  return AddListener(source, evt, c, &LatentITKEventNotifierHelper::Callback);
 }
 
-void LatentITKEventNotifier
+unsigned long LatentITKEventNotifier
 ::connect(IRISObservable *source, const itk::EventObject &evt,
           QObject *target, const char *slot)
 {
@@ -104,7 +104,7 @@ void LatentITKEventNotifier
   LatentITKEventNotifierHelper *c = doConnect(evt, target, slot);
 
   // Listen to events from the source
-  AddListener(source, evt, c, &LatentITKEventNotifierHelper::Callback);
+  return AddListener(source, evt, c, &LatentITKEventNotifierHelper::Callback);
 }
 
 LatentITKEventNotifierHelper*

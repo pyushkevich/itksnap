@@ -57,6 +57,54 @@ class LabelImageWrapper;
 
 class IRISApplication;
 
+class GenericImageData;
+
+class LayerIterator
+{
+public:
+  enum LayerRole
+  {
+    MAIN_ROLE = 0x0001,
+    OVERLAY_ROLE = 0x0002,
+    LABEL_ROLE = 0x0004,
+    SNAP_ROLE = 0x0008,
+    NO_ROLE = 0x0010
+  };
+
+  LayerIterator(GenericImageData *data, int role_filter = 0x11111111);
+
+  bool IsAtEnd();
+
+  LayerIterator & operator++();
+
+  /** Get the layer being pointed to */
+  ImageWrapperBase *GetLayer();
+
+  /** Get the layer being pointed to, cast as Gray (or NULL) */
+  GreyImageWrapperBase *GetLayerAsGray();
+
+  /** Get the layer being pointed to, cast as RGB (or NULL) */
+  RGBImageWrapperBase *GetLayerAsRGB();
+
+  /** Get the role of the current layer */
+  LayerRole GetRole();
+
+private:
+
+  void FindNextUsableRole();
+
+  typedef std::map<LayerRole, std::vector<ImageWrapperBase*> > WrapperStorage;
+
+  GenericImageData *m_ImageData;
+  WrapperStorage *m_Wrappers;
+  int m_RoleFilter;
+
+  // The iterator bit
+  LayerRole m_IterRole;
+  std::vector<ImageWrapperBase *>::iterator m_Iter;
+};
+
+
 /**
  * \class GenericImageData
  * \brief This class encapsulates the image data used by 
@@ -114,7 +162,7 @@ public:
   /**
    * Access the RGB image (read only access is allowed)
    */
-  VectorImageWrapperBase* GetRGB() {
+  RGBImageWrapperBase* GetRGB() {
     assert(m_RGBImageWrapper && m_RGBImageWrapper->IsInitialized());
     return m_RGBImageWrapper;
   }
@@ -122,27 +170,42 @@ public:
   /**
    * Access the overlay images (read only access is allowed)
    */
+  /*
   WrapperList* GetOverlays() {
     return &m_OverlayWrappers;
   }
+  */
 
   /**
    * Get the total number of layers (counting main and overlays). If main
    * has not been loaded, returns 0
    */
-  virtual unsigned int GetNumberOfLayers() const;
+  // virtual unsigned int GetNumberOfLayers() const;
+
+
+  /**
+    Get the number of layers in certain role(s). This is not as fast
+    as calling GetLayers(role).size(), but you can query for combinations
+    of roles, i.e., MAIN_ROLE | OVERLAY_ROLE
+    */
+  virtual unsigned int GetNumberOfLayers(int role_filter = 0x11111111);
+
+  /**
+    Get one of the layers (counting main and overlays)
+    */
+  // virtual ImageWrapperBase* GetLayer(unsigned int layer) const;
 
   /**
    * Get layer as a gray image type. If the layer is not of gray type, NULL
    * will be returned.
    */
-  virtual GreyImageWrapperBase* GetLayerAsGray(unsigned int layer) const;
+  // virtual GreyImageWrapperBase* GetLayerAsGray(unsigned int layer) const;
 
   /**
    * Get layer as an RGB image type. If the layer is not of RGB type, NULL
    * will be returned.
    */
-  virtual RGBImageWrapperBase* GetLayerAsRGB(unsigned int layer) const;
+  // virtual RGBImageWrapperBase* GetLayerAsRGB(unsigned int layer) const;
 
   /**
    * Access the segmentation image (read only access allowed 
@@ -254,9 +317,26 @@ protected:
   virtual void SetCrosshairs(ImageWrapperBase *wrapper, const Vector3ui &crosshairs);
   virtual void SetImageGeometry(ImageWrapperBase *wrapper, const ImageCoordinateGeometry &geometry);
 
+  /*
+  virtual ImageWrapperBase* GetNextLayer(
+      int iLayer, LayerIterator::LayerRole role);
+      */
+
+  typedef LayerIterator::LayerRole LayerRole;
+
+  // The base storage for the layers in the image data. For each role, there
+  // is a list of wrappers serving in that role. For many roles, there will
+  // be only one wrapper serving in that role.
+  typedef std::map<LayerRole, WrapperList> WrapperStorage;
+
+  // This is where the all the wrappers are maintained. Child classes should
+  // aslo add their own wrappers to this list of wrappers.
+  WrapperStorage m_Wrappers;
+
   // A pointer to the 'main' image, i.e., the image that is treated as the
   // reference for all other images. It is typically the grey image, but
   // since we now allow for RGB images, it can point to the RGB image too
+  // Equal to m_Wrappers[MAIN].first()
   ImageWrapperBase *m_MainImageWrapper;
 
   // This pointer is NULL if the main image is of RGB type, and equal to
@@ -266,13 +346,14 @@ protected:
   // Vice versa
   RGBImageWrapper<unsigned char> *m_RGBImageWrapper;
 
-  // Wrapper around the segmentatoin image
+  // Wrapper around the segmentatoin image.
+  // Equal to m_Wrappers[SEGMENTATION].first()
   LabelImageWrapper *m_LabelWrapper;
 
   // A list of linked wrappers, whose cursor position and image geometry
   // are updated concurrently
-  WrapperList m_MainWrappers;
-  WrapperList m_OverlayWrappers;
+  // WrapperList m_MainWrappers;
+  // WrapperList m_OverlayWrappers;
 
   // Parent object
   IRISApplication *m_Parent;
@@ -282,6 +363,7 @@ protected:
   ImageCoordinateGeometry m_ImageGeometry;
 
   friend class SNAPImageData;
+  friend class LayerIterator;
 };
 
 #endif

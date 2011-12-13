@@ -35,6 +35,7 @@
 #include "LevelSetImageWrapper.h"
 #include "ColorLabel.h"
 #include "itkUnaryFunctorImageFilter.h"
+#include "ScalarImageHistogram.h"
 
 LevelSetImageWrapper::DisplayPixelType
 LevelSetImageWrapper::MappingFunctor
@@ -106,7 +107,7 @@ LevelSetImageWrapper
 
 LevelSetImageWrapper::DisplaySlicePointer 
 LevelSetImageWrapper
-::GetDisplaySlice(unsigned int iSlice) const
+::GetDisplaySlice(unsigned int iSlice)
 {
   // Depending on the current mode, return the display slice or the 
   // original slice from the parent

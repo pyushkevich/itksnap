@@ -38,33 +38,50 @@ QtDoubleSpinboxCoupling
 
   // Listen to value change events for this widget
   connect(widget, SIGNAL(valueChanged(double)), SLOT(onWidgetValueChanged(double)),
-          Qt::QueuedConnection);
+          Qt::DirectConnection);
 
   // Listen to value change events from the model
-  LatentITKEventNotifier::connect(model, ModelType::ValueChangedEvent(),
+  LatentITKEventNotifier::connect(model, ValueChangedEvent(),
                                   this, SLOT(onModelUpdate(const EventBucket &)));
 
-  LatentITKEventNotifier::connect(model, ModelType::RangeChangedEvent(),
+  LatentITKEventNotifier::connect(model, RangeChangedEvent(),
                                   this, SLOT(onModelUpdate(const EventBucket &)));
+
+  m_Updating = false;
 }
 
 void
 QtDoubleSpinboxCoupling
 ::onWidgetValueChanged(double value)
 {
-  if(m_Model->GetValue() != value && !vnl_math_isnan(m_Model->GetValue()))
-    m_Model->SetValue(value);
+  if(!m_Updating)
+    {
+    double modelVal = m_Model->GetValue();
+    if(modelVal != value && !vnl_math_isnan(modelVal))
+      m_Model->SetValue(value);
+    }
 }
 
 void
 QtDoubleSpinboxCoupling
 ::updateWidgetFromModel()
 {
-  NumericValueRange<double> range = m_Model->GetRange();
-  m_Widget->setMinimum(range.Minimum);
-  m_Widget->setMaximum(range.Maximum);
-  m_Widget->setSingleStep(range.StepSize);
-  m_Widget->setValue(m_Model->GetValue());
+  m_Updating = true;
+  if(!m_Model->IsValueNull())
+    {
+    NumericValueRange<double> range = m_Model->GetRange();
+    m_Widget->setMinimum(range.Minimum);
+    m_Widget->setMaximum(range.Maximum);
+    m_Widget->setSingleStep(range.StepSize);
+    m_Widget->setValue(m_Model->GetValue());
+    m_Widget->setSpecialValueText("");
+    }
+  else
+    {
+    m_Widget->setValue(m_Widget->minimum());
+    m_Widget->setSpecialValueText(" ");
+    }
+  m_Updating = false;
 }
 
 void QtDoubleSpinboxCoupling

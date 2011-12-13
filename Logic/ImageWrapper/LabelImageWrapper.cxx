@@ -36,6 +36,7 @@
 #include "ColorLabel.h"
 #include "ColorLabelTable.h"
 #include "IRISSlicer.h"
+#include "ScalarImageHistogram.h"
 
 LabelImageWrapper
 ::LabelImageWrapper()
@@ -104,7 +105,7 @@ LabelImageWrapper
 
 LabelImageWrapper::DisplaySlicePointer
 LabelImageWrapper
-::GetDisplaySlice(unsigned int dim) const
+::GetDisplaySlice(unsigned int dim)
 {
   return m_RGBAFilter[dim]->GetOutput();
 }

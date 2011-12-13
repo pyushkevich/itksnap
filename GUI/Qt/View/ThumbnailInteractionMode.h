@@ -27,11 +27,11 @@
 #ifndef THUMBNAILINTERACTIONMODE_H
 #define THUMBNAILINTERACTIONMODE_H
 
-#include <QtInteractionDelegateWidget.h>
+#include <SliceWindowInteractionDelegateWidget.h>
 
 class OrthogonalSliceCursorNavigationModel;
 
-class ThumbnailInteractionMode : public QtInteractionDelegateWidget
+class ThumbnailInteractionMode : public SliceWindowInteractionDelegateWidget
 {
   Q_OBJECT
 

@@ -44,6 +44,7 @@ class SystemInterface;
 class GlobalState;
 class AbstractLoadImageDelegate;
 class IRISWarningList;
+class IntensityCurveModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -109,6 +110,8 @@ public:
     return m_PolygonDrawingModel[i];
   }
 
+  /** Get the model for intensity curve navigation */
+  irisGetMacro(IntensityCurveModel, IntensityCurveModel *)
 
   /** Load the main image */
   void LoadGrayImage(GuidedNativeImageIO *io);
@@ -146,6 +149,9 @@ protected:
 
   // Window coordinator
   SmartPtr<SliceWindowCoordinator> m_SliceCoordinator;
+
+  // Model for intensity curve manipulation
+  SmartPtr<IntensityCurveModel> m_IntensityCurveModel;
 
   // The current 2D toolbar mode
   irisPropertyDeclMacro(ToolbarMode, ToolbarModeType)

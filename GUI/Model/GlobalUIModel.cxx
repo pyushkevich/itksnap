@@ -35,6 +35,7 @@
 #include <GenericImageData.h>
 #include <GuidedNativeImageIO.h>
 #include <ImageIODelegates.h>
+#include <IntensityCurveModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -70,6 +71,10 @@ GlobalUIModel::GlobalUIModel()
   GenericSliceModel *ptr[3] =
     { m_SliceModel[0], m_SliceModel[1], m_SliceModel[2] };
   m_SliceCoordinator->RegisterSliceModels(ptr);
+
+  // Intensity curve model
+  m_IntensityCurveModel = IntensityCurveModel::New();
+  m_IntensityCurveModel->SetParentModel(this);
 
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());

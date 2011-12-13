@@ -27,7 +27,7 @@
 #ifndef CROSSHAIRSINTERACTIONMODE_H
 #define CROSSHAIRSINTERACTIONMODE_H
 
-#include <QtInteractionDelegateWidget.h>
+#include <SliceWindowInteractionDelegateWidget.h>
 #include <SNAPCommon.h>
 
 class GenericSliceModel;
@@ -35,7 +35,7 @@ class OrthogonalSliceCursorNavigationModel;
 class GenericSliceView;
 class CrosshairsRenderer;
 
-class CrosshairsInteractionMode : public QtInteractionDelegateWidget
+class CrosshairsInteractionMode : public SliceWindowInteractionDelegateWidget
 {
   Q_OBJECT
 
@@ -57,8 +57,6 @@ public:
   void leaveEvent(QEvent *);
 
   bool gestureEvent(QGestureEvent *);
-
-  virtual bool event(QEvent *);
 
   void SetMouseButtonBehaviorToCrosshairsMode();
   void SetMouseButtonBehaviorToZoomPanMode();

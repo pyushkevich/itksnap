@@ -300,7 +300,7 @@ SliceWindowCoordinator
   return zoom;
 }
 
-double CommonZoomFactorModel::GetValue() const
+double CommonZoomFactorModel::GetValue()
 {
   return (double) m_Parent->GetCommonZoomLevel();
 }
@@ -308,6 +308,11 @@ double CommonZoomFactorModel::GetValue() const
 void CommonZoomFactorModel::SetValue(double value)
 {
   m_Parent->SetZoomLevelAllWindows((float) value);
+}
+
+bool CommonZoomFactorModel::IsValueNull()
+{
+  return !m_Parent->GetLinkedZoom();
 }
 
 /**
@@ -322,7 +327,7 @@ double round_step_size(double a, double b, double nsteps)
 }
 
 NumericValueRange<double>
-CommonZoomFactorModel::GetRange() const
+CommonZoomFactorModel::GetRange()
 {
   float fmin, fmax;
   m_Parent->GetZoomRange(0, fmin, fmax);

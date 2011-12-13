@@ -32,7 +32,7 @@ QAction *setupAction(PolygonDrawingInteractionMode *w, QMenu *menu,
 
 
 PolygonDrawingInteractionMode::PolygonDrawingInteractionMode(QWidget *parent) :
-    QtInteractionDelegateWidget(parent)
+    SliceWindowInteractionDelegateWidget(parent)
 {
   m_Renderer = PolygonDrawingRenderer::New();
   m_Model = NULL;

@@ -43,7 +43,6 @@ class QtInteractionDelegateWidget : public SNAPComponent
 public:
   explicit QtInteractionDelegateWidget(QWidget *parent = 0);
 
-  irisSetMacro(ParentModel, GenericSliceModel *)
 
 signals:
 
@@ -56,6 +55,10 @@ protected:
 
   // Handler for event filtering
   virtual bool eventFilter(QObject *, QEvent *ev);
+
+  // Children may override this method to provide additional event processing,
+  // but should call QtInteractionDelegateWidget::preprocessEvent in there.
+  virtual void preprocessEvent(QEvent *);
 
   // Gesture event handler
   virtual bool gestureEvent(QGestureEvent *ev)
@@ -70,13 +73,11 @@ protected:
 
   // Spatial coordinates of the last press event, current event
   Vector3d m_LastPressXSpace, m_XSpace;
-  Vector3d m_LastPressXSlice, m_XSlice;
 
   // Whether we are between a press and a release for a particular button
   bool m_LeftDown, m_RightDown, m_MiddleDown;
 
-  // Parent model
-  GenericSliceModel *m_ParentModel;
+
 };
 
 #endif // QTINTERACTIONDELEGATEWIDGET_H

@@ -39,6 +39,7 @@
 #include "itkFunctionBase.h"
 #include "itkUnaryFunctorImageFilter.h"
 
+#include "ScalarImageHistogram.h"
 
 template<class TPixel>
 GreyImageWrapper<TPixel>
@@ -153,8 +154,10 @@ GreyImageWrapper<TPixel>
 template<class TPixel>
 typename GreyImageWrapper<TPixel>::DisplaySlicePointer
 GreyImageWrapper<TPixel>
-::GetDisplaySlice(unsigned int dim) const
+::GetDisplaySlice(unsigned int dim)
 {
+  if(m_IntensityCurveVTK->GetMTime() > m_IntensityFilter[dim]->GetMTime())
+    UpdateIntensityMapFunction();
   return m_IntensityFilter[dim]->GetOutput();
 }
 

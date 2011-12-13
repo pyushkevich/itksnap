@@ -50,30 +50,26 @@ SegmentationStatistics
   // A list of image sources
   vector<SegmentationStatisticsSource> isrc;
 
-  // Populate image sources
-  if(id->IsMainLoaded() && id->GetMain()->IsScalar())
+  // Use the iterator to collect layers for statistics
+  unsigned int iOvl = 0;
+  for(LayerIterator it(id, LayerIterator::MAIN_ROLE |
+                           LayerIterator::OVERLAY_ROLE);
+      !it.IsAtEnd(); ++it)
     {
-    SegmentationStatisticsSource src;
-    src.name = "image";
-    src.image = dynamic_cast<ScalarImageWrapperBase *>(id->GetMain());
-    src.funk = src.image->GetNativeMapping();
-    isrc.push_back(src);
-    }
-
-  // Add all grey overlays
-  size_t k = 1;
-  GenericImageData::WrapperIterator it = id->GetOverlays()->begin();
-  for(; it != id->GetOverlays()->end(); it++, k++)
-    {
-    // Is it a grey wrapper?
-    ScalarImageWrapperBase *wrapper = dynamic_cast<ScalarImageWrapperBase *>(*it);
-    if (wrapper)
+    GreyImageWrapperBase *ib = it.GetLayerAsGray();
+    if(ib)
       {
       SegmentationStatisticsSource src;
-      ostringstream oss; oss << "ovl " << k;
-      src.name = oss.str();
-      src.image = wrapper;
-      src.funk = src.image->GetNativeMapping();
+      if(it.GetRole() == LayerIterator::MAIN_ROLE)
+        src.name = "image";
+      else
+        {
+        ostringstream oss; oss << "ovl " << ++iOvl;
+        src.name = oss.str();
+        }
+
+      src.image = ib;
+      src.funk = ib->GetNativeMapping();
       isrc.push_back(src);
       }
     }

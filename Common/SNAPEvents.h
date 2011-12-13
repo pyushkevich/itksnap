@@ -28,7 +28,7 @@
 #define SNAPEVENTS_H
 
 // Define this if you want event to be debugged
-// #define SNAP_DEBUG_EVENTS 1
+#define SNAP_DEBUG_EVENTS 1
 
 #include "itkObject.h"
 #include "itkCommand.h"
@@ -66,8 +66,17 @@ itkEventMacro(ZoomLevelUpdateEvent, IRISEvent)
 /** A generic property change (see Property) */
 itkEventMacro(PropertyChangeEvent, IRISEvent)
 
+/** Events used by numeric value models */
+itkEventMacro(ValueChangedEvent, IRISEvent)
+
+/** Events used by numeric value models */
+itkEventMacro(RangeChangedEvent, IRISEvent)
+
 /** A change to appearance of a renderer, etc */
 itkEventMacro(AppearanceUpdateEvent, IRISEvent)
+
+/** A change to the intensity curve */
+itkEventMacro(IntensityCurveChangeEvent, IRISEvent)
 
 // A setter method that fires events
 #define irisSetWithEventMacro(name,type,event) \
@@ -91,7 +100,7 @@ itkEventMacro(AppearanceUpdateEvent, IRISEvent)
 
 
 template <class TObserver>
-void AddListener(itk::Object *sender,
+unsigned long AddListener(itk::Object *sender,
                  const itk::EventObject &event,
                  TObserver *observer,
                  void (TObserver::*memberFunction)())
@@ -99,11 +108,11 @@ void AddListener(itk::Object *sender,
   typedef itk::SimpleMemberCommand<TObserver> Cmd;
   typename Cmd::Pointer cmd = Cmd::New();
   cmd->SetCallbackFunction(observer, memberFunction);
-  sender->AddObserver(event, cmd);
+  return sender->AddObserver(event, cmd);
 }
 
 template <class TObserver>
-void AddListener(itk::Object *sender,
+unsigned long AddListener(itk::Object *sender,
                  const itk::EventObject &event,
                  TObserver *observer,
                  void (TObserver::*memberFunction)(itk::Object*, const itk::EventObject &))
@@ -111,7 +120,7 @@ void AddListener(itk::Object *sender,
   typedef itk::MemberCommand<TObserver> Cmd;
   typename Cmd::Pointer cmd = Cmd::New();
   cmd->SetCallbackFunction(observer, memberFunction);
-  sender->AddObserver(event, cmd);
+  return sender->AddObserver(event, cmd);
 }
 
 #endif // SNAPEVENTS_H

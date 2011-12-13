@@ -29,7 +29,7 @@
 #include <QMouseEvent>
 
 ThumbnailInteractionMode::ThumbnailInteractionMode(QWidget *parent) :
-    QtInteractionDelegateWidget(parent)
+    SliceWindowInteractionDelegateWidget(parent)
 {
 
 }

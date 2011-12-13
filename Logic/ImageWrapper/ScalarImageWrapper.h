@@ -79,7 +79,7 @@ public:
    * Default constructor.  Creates an image wrapper with a blank internal 
    * image 
    */
-  ScalarImageWrapper() {}
+  ScalarImageWrapper();
 
   /** 
    * Copy constructor.  Copies the contents of the passed-in image wrapper. 
@@ -87,7 +87,7 @@ public:
   ScalarImageWrapper(const ScalarImageWrapper<TPixel> &copy);
   
   /** Destructor */
-  virtual ~ScalarImageWrapper() {}
+  virtual ~ScalarImageWrapper();
 
   virtual bool IsScalar() const { return true; }
 
@@ -192,6 +192,17 @@ public:
   irisSetMacro(NativeMapping, InternalToNativeFunctor)
 
 
+  /**
+    Compute the image histogram. The histogram is cached inside of the
+    object, so repeated calls to this function with the same nBins parameter
+    will not require additional computation.
+
+    Calling with default parameter (0) will use the same number of bins that
+    is currently in the histogram (i.e., return/recompute current histogram).
+    If there is no current histogram, a default histogram with 128 entries
+    will be generated.
+    */
+  const ScalarImageHistogram *GetHistogram(size_t nBins = 0);
 
 protected:
 
@@ -219,6 +230,8 @@ protected:
    */
   virtual void UpdateImagePointer(ImageType *);
 
+  // The histogram for this scalar wrapper. It is computed only when asked for
+  SmartPtr<ScalarImageHistogram> m_Histogram;
 };
 
 #endif // __ScalarImageWrapper_h_

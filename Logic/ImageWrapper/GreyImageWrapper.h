@@ -95,7 +95,7 @@ public:
    * Get the display slice in a given direction.  To change the
    * display slice, call parent's MoveToSlice() method
    */
-  DisplaySlicePointer GetDisplaySlice(unsigned int dim) const;
+  DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
   /**
    * Get/Set the colormap

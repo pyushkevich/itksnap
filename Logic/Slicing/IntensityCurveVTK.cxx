@@ -76,6 +76,8 @@ IntensityCurveVTK
     }
 
   m_Spline->Compute();
+  this->Modified();
+  this->InvokeEvent(IntensityCurveChangeEvent());
 }
 
 void 
@@ -105,6 +107,8 @@ IntensityCurveVTK
     }
 
   m_Spline->Compute();
+  this->Modified();
+  this->InvokeEvent(IntensityCurveChangeEvent());
 }
 
 bool 
@@ -155,6 +159,8 @@ IntensityCurveVTK
     }
 
   m_Spline->Compute();
+  this->Modified();
+  this->InvokeEvent(IntensityCurveChangeEvent());
 }
 
 void

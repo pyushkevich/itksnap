@@ -44,11 +44,11 @@ public:
     main loop, and until then, events fired by the source object are
     pooled into a bucket. This bucket will be passed to the slot
     */
-  static void connect(itk::Object *source, const itk::EventObject &evt,
-                      QObject *target, const char *slot);
+  static unsigned long connect(itk::Object *source, const itk::EventObject &evt,
+                               QObject *target, const char *slot);
 
-  static void connect(IRISObservable *source, const itk::EventObject &evt,
-                      QObject *target, const char *slot);
+  static unsigned long  connect(IRISObservable *source, const itk::EventObject &evt,
+                                QObject *target, const char *slot);
 
 private:
 

@@ -29,12 +29,13 @@
 
 #include <QGLWidget>
 #include <SNAPCommon.h>
-#include "InteractionModeClient.h"
+#include <SNAPEvents.h>
 
 class QMouseEvent;
+class EventBucket;
+class QtInteractionDelegateWidget;
 
-
-class SNAPQGLWidget : public QGLWidget, public InteractionModeClient
+class SNAPQGLWidget : public QGLWidget
 {
   Q_OBJECT
 
@@ -50,7 +51,23 @@ public:
     */
   Vector3d GetEventWorldCoordinates(QMouseEvent *ev, bool flipY);
 
+  /**
+    Use this function when the GL widget is only associated with a single
+    interaction mode.
+    */
+  void AttachSingleDelegate(QtInteractionDelegateWidget *delegate);
+
+public slots:
+
+  // Default slot for model updates
+  virtual void onModelUpdate(const EventBucket &bucket) {}
+
 protected:
+
+  /** Register to receive ITK events from object src. Events will be cached in
+    an event bucket and delivered once execution returns to the UI loop */
+  void connectITK(itk::Object *src, const itk::EventObject &ev,
+                  const char *slot = SLOT(onModelUpdate(const EventBucket &)));
 
   // Whether the user is dragging the mouse currently. More specifically
   // this is on between mouse press and mouse release events

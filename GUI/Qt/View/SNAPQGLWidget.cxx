@@ -26,6 +26,9 @@
 
 #include "SNAPQGLWidget.h"
 #include <QMouseEvent>
+#include <QStackedLayout>
+#include <QtInteractionDelegateWidget.h>
+#include "LatentITKEventNotifier.h"
 
 SNAPQGLWidget::SNAPQGLWidget(QWidget *parent) :
     QGLWidget(parent)
@@ -72,3 +75,19 @@ bool SNAPQGLWidget::event(QEvent *ev)
 
   return QGLWidget::event(ev);
 }
+
+void SNAPQGLWidget::AttachSingleDelegate(QtInteractionDelegateWidget *delegate)
+{
+  QStackedLayout *l = new QStackedLayout();
+  l->addWidget(delegate);
+  this->setLayout(l);
+}
+
+
+void
+SNAPQGLWidget
+::connectITK(itk::Object *src, const itk::EventObject &ev, const char *slot)
+{
+  LatentITKEventNotifier::connect(src, ev, this, slot);
+}
+

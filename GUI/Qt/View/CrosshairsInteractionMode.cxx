@@ -30,7 +30,7 @@
 #include "CrosshairsRenderer.h"
 
 CrosshairsInteractionMode::CrosshairsInteractionMode(QWidget *parent) :
-    QtInteractionDelegateWidget(parent)
+    SliceWindowInteractionDelegateWidget(parent)
 {
   m_Renderer = CrosshairsRenderer::New();
   m_WheelEventTarget = NULL;
@@ -231,11 +231,6 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
   */
 
   QApplication::setWheelScrollLines(scrollLines);
-}
-
-bool CrosshairsInteractionMode::event(QEvent *ev)
-{
-  return QtInteractionDelegateWidget::event(ev);
 }
 
 void CrosshairsInteractionMode::SetWheelEventTargetWidget(QWidget *w)

@@ -32,6 +32,7 @@
 #include <OpenGLSliceTexture.h>
 #include <SNAPOpenGL.h>
 #include <list>
+#include <LayerAssociation.h>
 
 class GenericSliceRenderer;
 
@@ -40,6 +41,13 @@ class SliceRendererDelegate : public AbstractModel
 public:
   virtual ~SliceRendererDelegate() {}
   virtual void paintGL(GenericSliceRenderer *parent) = 0;
+};
+
+struct OpenGLTextureAssociationFactory
+{
+  typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;
+  Texture *New(ImageWrapperBase *layer);
+  GenericSliceRenderer *m_Renderer;
 };
 
 class GenericSliceRenderer : public AbstractModel
@@ -91,18 +99,27 @@ protected:
 
   // A dynamic association between various image layers and texture objects
   typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;
-  typedef std::map<ImageWrapperBase *, Texture *> TextureMap;
+  typedef LayerAssociation<Texture, ImageWrapperBase,
+                           OpenGLTextureAssociationFactory> TextureMap;
+
   TextureMap m_Texture;
 
   // A list of overlays that the user can configure
   RendererDelegateList m_Overlays;
 
   // Internal method used by UpdateTextureMap()
-  void AssociateTexture(ImageWrapperBase *iw, TextureMap &src, TextureMap &trg);
+  // void AssociateTexture(ImageWrapperBase *iw, TextureMap &src, TextureMap &trg);
+
+  // Texture factory method
+  Texture *CreateTexture(ImageWrapperBase *iw);
+
 
   // Update the texture map to mirror the current images in the model
   void UpdateTextureMap();
 
+  friend class OpenGLTextureAssociationFactory;
 };
+
+
 
 #endif // GENERICSLICERENDERER_H

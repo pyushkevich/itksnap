@@ -37,12 +37,14 @@
 
 #include <itkFunctionBase.h>
 #include <Registry.h>
+#include <SNAPEvents.h>
 
 /**
  * \class IntensityCurveInterface
  * \brief The base class for intensity mapping splines
  */
-class ITK_EXPORT IntensityCurveInterface : public itk::FunctionBase<float,float> {
+class ITK_EXPORT IntensityCurveInterface : public itk::FunctionBase<float,float>
+{
 public:
 
   /** Standard class typedefs. */
@@ -52,7 +54,10 @@ public:
   typedef itk::SmartPointer<const Self> ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(IntensityCurveInterface,itk::FunctionBase);
+  itkTypeMacro(IntensityCurveInterface,itk::FunctionBase)
+
+  /** Fires an event when the curve is modified */
+  FIRES(IntensityCurveChangeEvent)
 
   /**
    * Initialize the spline with initial number of control points.

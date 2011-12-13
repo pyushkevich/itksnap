@@ -32,6 +32,8 @@
 #include "GenericImageData.h"
 #include "ImageWrapper.h"
 #include "IRISApplication.h"
+#include "IntensityCurveModel.h"
+#include "LayerAssociation.txx"
 
 GenericSliceRenderer
 ::GenericSliceRenderer()
@@ -45,6 +47,9 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   this->m_Model = model;
 
   // Build the texture map
+  OpenGLTextureAssociationFactory texFactoryDelegate = { this };
+  m_Texture.SetDelegate(texFactoryDelegate);
+  m_Texture.SetImageData(model->GetDriver()->GetCurrentImageData());
   this->UpdateTextureMap();
 
   // Record and rebroadcast changes in the model
@@ -53,6 +58,10 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   // Also listen to events on opacity
   Rebroadcast(m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlpha(),
               AppearanceUpdateEvent());
+
+  // Also listen to events on intensity curves
+  Rebroadcast(m_Model->GetParentUI()->GetIntensityCurveModel(),
+              ModelUpdateEvent(), AppearanceUpdateEvent());
 }
 
 void GenericSliceRenderer::OnUpdate()
@@ -199,7 +208,8 @@ void GenericSliceRenderer::DrawSegmentationTexture()
 
   if (id->IsSegmentationLoaded())
     {
-    m_Texture[id->GetSegmentation()]->DrawTransparent(
+    Texture *texture = m_Texture[id->GetSegmentation()];
+    texture->DrawTransparent(
           m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSegmentationAlpha());
     }
   }
@@ -275,6 +285,24 @@ void GenericSliceRenderer::DrawThumbnail()
   m_ThumbnailDrawing = false;
   }
 
+GenericSliceRenderer::Texture *
+GenericSliceRenderer::CreateTexture(ImageWrapperBase *iw)
+{
+  if(iw->IsInitialized())
+    {
+    Texture *texture = new Texture(4, GL_RGBA);
+    texture->SetImage(iw->GetDisplaySlice(m_Model->GetId()).GetPointer());
+
+    SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
+    GLint imode = as->GetGreyInterpolationMode() == SNAPAppearanceSettings::LINEAR
+        ? GL_LINEAR : GL_NEAREST;
+    texture->SetInterpolation(imode);
+    return texture;
+    }
+  else return NULL;
+}
+
+/*
 void GenericSliceRenderer::AssociateTexture(
   ImageWrapperBase *iw, TextureMap &src, TextureMap &trg)
 {
@@ -308,10 +336,14 @@ void GenericSliceRenderer::AssociateTexture(
     }
 }
 
+*/
+
 void GenericSliceRenderer::UpdateTextureMap()
 {
   if(m_Model->IsSliceInitialized())
     {
+    m_Texture.Update();
+/*
     GenericImageData *id = m_Model->GetImageData();
 
     // Create a new texture map where the associations go
@@ -331,6 +363,8 @@ void GenericSliceRenderer::UpdateTextureMap()
     // Copy the associations
     m_Texture = m;
     }
+    */
+    }
 }
 
 void GenericSliceRenderer::initializeGL()
@@ -348,11 +382,14 @@ void GenericSliceRenderer::DrawOverlays()
     }
 }
 
-/*
-void GenericSliceRenderer::OnModelReinitialize()
+OpenGLTextureAssociationFactory::Texture *
+OpenGLTextureAssociationFactory
+::New(ImageWrapperBase *layer)
 {
-  this->UpdateTextureMap();
+  return m_Renderer->CreateTexture(layer);
 }
-*/
 
-#include "GenericImageData.h"
+
+template class LayerAssociation<GenericSliceRenderer::Texture,
+                                ImageWrapperBase,
+                                OpenGLTextureAssociationFactory>;

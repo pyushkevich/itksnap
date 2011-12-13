@@ -115,9 +115,9 @@ GenericImageData
   // Pass the label table from the parent to the label wrapper
   m_LabelWrapper = NULL;
   
-  // Add to the primary wrapper list
-  m_MainWrappers.push_back(m_MainImageWrapper);
-  m_MainWrappers.push_back(m_LabelWrapper);
+  // Add to the relevant lists
+  m_Wrappers[LayerIterator::MAIN_ROLE].push_back(m_MainImageWrapper);
+  m_Wrappers[LayerIterator::LABEL_ROLE].push_back(m_MainImageWrapper);
 }
 
 GenericImageData
@@ -189,14 +189,15 @@ GenericImageData
 ::SetMainImageCommon(const ImageCoordinateGeometry &newGeometry)
 {
   // Make the wrapper the main image
-  m_MainWrappers.clear();
-  m_MainWrappers.push_back(m_MainImageWrapper);
+  m_Wrappers[LayerIterator::MAIN_ROLE][0] = m_MainImageWrapper;
 
   // Initialize the segmentation data to zeros
   delete m_LabelWrapper;
   m_LabelWrapper = new LabelImageWrapper();
   m_LabelWrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
   m_LabelWrapper->SetLabelColorTable(m_Parent->GetColorLabelTable());
+
+  m_Wrappers[LayerIterator::LABEL_ROLE][0] = m_LabelWrapper;
 
   // Set opaque
   m_MainImageWrapper->SetAlpha(255);
@@ -221,6 +222,9 @@ GenericImageData
   // Reset the label wrapper
   delete m_LabelWrapper;
   m_LabelWrapper = NULL;
+
+  m_Wrappers[LayerIterator::MAIN_ROLE][0] = NULL;
+  m_Wrappers[LayerIterator::LABEL_ROLE][0] = NULL;
 }
 
 void
@@ -283,14 +287,14 @@ GenericImageData
     }
 
   // Add to the overlay wrapper list
-  m_OverlayWrappers.push_back(overlay);
+  m_Wrappers[LayerIterator::OVERLAY_ROLE].push_back(overlay);
 }
 
 void
 GenericImageData
 ::UnloadOverlays()
 {
-  while (m_OverlayWrappers.size() > 0)
+  while (m_Wrappers[LayerIterator::OVERLAY_ROLE].size() > 0)
     UnloadOverlayLast();
 }
 
@@ -303,12 +307,12 @@ GenericImageData
     return;
 
   // Release the data associated with the last overlay
-  ImageWrapperBase *wrapper = m_OverlayWrappers.back();
+  ImageWrapperBase *wrapper = m_Wrappers[LayerIterator::OVERLAY_ROLE].back();
   delete wrapper;
   wrapper = NULL;
 
   // Clear it off the wrapper lists
-  m_OverlayWrappers.pop_back();
+  m_Wrappers[LayerIterator::OVERLAY_ROLE].pop_back();
 }
 
 void
@@ -341,7 +345,7 @@ bool
 GenericImageData
 ::IsOverlayLoaded()
 {
-  return (m_OverlayWrappers.size() > 0);
+  return (m_Wrappers[LayerIterator::OVERLAY_ROLE].size() > 0);
 }
 
 bool
@@ -362,21 +366,10 @@ void
 GenericImageData
 ::SetCrosshairs(const Vector3ui &crosshairs)
 {
-  SetCrosshairs(m_MainImageWrapper, crosshairs);
-  SetCrosshairs(m_LabelWrapper, crosshairs);
-  for(WrapperIterator it = m_OverlayWrappers.begin();
-      it != m_OverlayWrappers.end(); ++it)
-    {
-    SetCrosshairs(*it, crosshairs);
-    }
-}
-
-void
-GenericImageData
-::SetCrosshairs(ImageWrapperBase *wrapper, const Vector3ui &crosshairs)
-{
-  if (wrapper->IsInitialized())
-    wrapper->SetSliceIndex(crosshairs);
+  // Set crosshairs in all wrappers
+  for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
+    if(lit.GetLayer() && lit.GetLayer()->IsInitialized())
+      lit.GetLayer()->SetSliceIndex(crosshairs);
 }
 
 GenericImageData::RegionType
@@ -392,56 +385,141 @@ GenericImageData
 ::SetImageGeometry(const ImageCoordinateGeometry &geometry)
 {
   m_ImageGeometry = geometry;
-  SetImageGeometry(m_MainImageWrapper, geometry);
-  SetImageGeometry(m_LabelWrapper, geometry);
-  for(WrapperIterator it = m_OverlayWrappers.begin();
-      it != m_OverlayWrappers.end(); ++it)
-    {
-    SetImageGeometry(*it, geometry);
-    }
+  for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
+    if(lit.GetLayer() && lit.GetLayer()->IsInitialized())
+      {
+      // Set the direction matrix in the image
+      lit.GetLayer()->GetImageBase()->SetDirection(
+        itk::Matrix<double,3,3>(geometry.GetImageDirectionCosineMatrix()));
+
+      // Update the geometry for each slice
+      for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
+        {
+        lit.GetLayer()->SetImageToDisplayTransform(
+          iSlice,m_ImageGeometry.GetImageToDisplayTransform(iSlice));
+        }
+      }
 }
 
-void
-GenericImageData
-::SetImageGeometry(ImageWrapperBase *wrapper, const ImageCoordinateGeometry &geometry)
+unsigned int GenericImageData::GetNumberOfLayers(int role_filter)
 {
-  if(wrapper->IsInitialized())
+  unsigned int n = 0;
+  for(int role = LayerIterator::MAIN_ROLE;
+      role != LayerIterator::NO_ROLE; role = role << 1)
     {
-    // Set the direction matrix in the image
-    wrapper->GetImageBase()->SetDirection(
-      itk::Matrix<double,3,3>(geometry.GetImageDirectionCosineMatrix()));
-
-    // Update the geometry for each slice
-    for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
+    if(role_filter | role)
       {
-      wrapper->SetImageToDisplayTransform(
-        iSlice,m_ImageGeometry.GetImageToDisplayTransform(iSlice));
+      WrapperStorage::iterator it = m_Wrappers.find((LayerRole) role);
+      if(it != m_Wrappers.end())
+        n += it->second.size();
       }
     }
+
+  return n;
 }
 
-unsigned int GenericImageData::GetNumberOfLayers() const
+/*
+inline
+ImageWrapperBase *
+GenericImageData
+::GetLayer(unsigned int layer) const
 {
-  return IsMainLoaded() ? 1 + m_OverlayWrappers.size() : 0;
+  return layer == 0 ? m_MainImageWrapper : m_OverlayWrappers[layer-1];
 }
 
+inline
 GreyImageWrapperBase *
 GenericImageData
 ::GetLayerAsGray(unsigned int layer) const
 {
-  ImageWrapperBase *base =
-      layer == 0 ? m_MainImageWrapper : m_OverlayWrappers[layer-1];
-  return dynamic_cast<GreyImageWrapperBase *>(base);
+  return dynamic_cast<GreyImageWrapperBase *>(GetLayer(layer));
 }
 
+inline
 RGBImageWrapperBase *
 GenericImageData
 ::GetLayerAsRGB(unsigned int layer) const
 {
-  ImageWrapperBase *base =
-      layer == 0 ? m_MainImageWrapper : m_OverlayWrappers[layer-1];
-  return dynamic_cast<RGBImageWrapperBase *>(base);
+  return dynamic_cast<RGBImageWrapperBase *>(GetLayer(layer));
 }
+
+*/
+
+
+
+LayerIterator
+::LayerIterator(
+    GenericImageData *data, int role_filter)
+{
+  m_ImageData = data;
+  m_Wrappers = &data->m_Wrappers;
+  m_RoleFilter = role_filter;
+
+  // Find the first role that fits the filter and is not empty
+  m_IterRole = MAIN_ROLE;
+  FindNextUsableRole();
+}
+
+void LayerIterator::FindNextUsableRole()
+{
+  for(; m_IterRole != NO_ROLE; m_IterRole = (LayerRole) (m_IterRole << 1))
+    {
+    if(m_RoleFilter | m_IterRole)
+      {
+      WrapperStorage::iterator it = m_Wrappers->find(m_IterRole);
+      if(it != m_Wrappers->end() && it->second.size())
+        {
+        m_Iter = it->second.begin();
+        break;
+        }
+      }
+    }
+}
+
+bool LayerIterator
+::IsAtEnd()
+{
+  // We are at end when there are no roles left
+  return (m_IterRole == NO_ROLE);
+}
+
+LayerIterator &
+LayerIterator::operator ++()
+{
+  // We should never be pointing to the end
+  m_Iter++;
+  if(m_Iter == (*m_Wrappers)[m_IterRole].end())
+    {
+    m_IterRole = (LayerRole)(m_IterRole << 1);
+    FindNextUsableRole();
+    }
+  return *this;
+}
+
+ImageWrapperBase * LayerIterator::GetLayer()
+{
+  assert(m_IterRole < NO_ROLE);
+  assert(m_Wrappers->find(m_IterRole) != m_Wrappers->end());
+  assert(m_Iter != (*m_Wrappers)[m_IterRole].end());
+  return *m_Iter;
+}
+
+GreyImageWrapperBase * LayerIterator::GetLayerAsGray()
+{
+  return dynamic_cast<GreyImageWrapperBase *>(this->GetLayer());
+}
+
+RGBImageWrapperBase * LayerIterator::GetLayerAsRGB()
+{
+  return dynamic_cast<RGBImageWrapperBase *>(this->GetLayer());
+}
+
+LayerIterator::LayerRole
+LayerIterator::GetRole()
+{
+  return m_IterRole;
+}
+
 
 
 

@@ -1,7 +1,7 @@
 #ifndef POLYGONDRAWINGINTERACTIONMODE_H
 #define POLYGONDRAWINGINTERACTIONMODE_H
 
-#include <QtInteractionDelegateWidget.h>
+#include <SliceWindowInteractionDelegateWidget.h>
 #include <SNAPCommon.h>
 
 class GenericSliceModel;
@@ -12,7 +12,7 @@ class PolygonDrawingRenderer;
 class QMenu;
 class QAction;
 
-class PolygonDrawingInteractionMode : public QtInteractionDelegateWidget
+class PolygonDrawingInteractionMode : public SliceWindowInteractionDelegateWidget
 {
   Q_OBJECT
 

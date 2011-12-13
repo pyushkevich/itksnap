@@ -6,6 +6,8 @@
 #include <IRISApplication.h>
 #include <GlobalUIModel.h>
 #include <QtWidgetActivator.h>
+#include <QMenu>
+#include "ContrastInspector.h"
 
 CursorInspector::CursorInspector(QWidget *parent) :
     SNAPComponent(parent),
@@ -22,6 +24,12 @@ CursorInspector::CursorInspector(QWidget *parent) :
             Qt::QueuedConnection);
     sp[i]->setKeyboardTracking(false);
     }
+
+  connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)),
+          SLOT(onContextMenuRequested(QPoint)));
+
+  m_ContextMenu = new QMenu(ui->tableView);
+  m_ContextMenu->addAction(ui->actionAutoContrast);
 }
 
 CursorInspector::~CursorInspector()
@@ -81,8 +89,6 @@ void CursorInspector::UpdateUIFromModel()
       ui->outLabelText->setText(app->GetColorLabelTable()->GetColorLabel(label).GetLabel());
       }
     }
-
-  ui->tableView->update();
 }
 
 void CursorInspector::onCursorEdit()
@@ -91,4 +97,37 @@ void CursorInspector::onCursorEdit()
   m_Model->GetDriver()->SetCursorPosition(Vector3ui(ui->inCursorX->value(),
                                                     ui->inCursorY->value(),
                                                     ui->inCursorZ->value()));
+}
+
+void CursorInspector::onContextMenuRequested(QPoint pos)
+{
+  int row = ui->tableView->rowAt(pos.y());
+  if(row >= 0)
+    m_ContextMenu->popup(QCursor::pos());
+}
+
+#include "LayerInspectorDialog.h"
+#include "IntensityCurveBox.h"
+#include "IntensityCurveModel.h"
+#include "QtReporterDelegates.h"
+
+void CursorInspector::on_actionAutoContrast_triggered()
+{
+  LayerInspectorDialog *lid = new LayerInspectorDialog();
+
+  SmartPtr<IntensityCurveModel> model = m_Model->GetIntensityCurveModel();
+  model->SetViewportReporter(
+        new QtViewportReporter(lid->GetContrastInspector()->GetCurveBox()));
+  model->SetLayer(m_Model->GetDriver()->GetCurrentImageData()->GetGrey());
+
+  lid->GetContrastInspector()->SetModel(model);
+
+  lid->exec();
+
+  delete lid;
+
+  qDebug("Done");
+
+
+
 }

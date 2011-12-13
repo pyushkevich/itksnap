@@ -56,7 +56,10 @@ protected:
 
   QDoubleSpinBox *m_Widget;
   ModelType *m_Model;
+  bool m_Updating;
 };
+
+
 
 class QSpinBox;
 #include <Property.h>

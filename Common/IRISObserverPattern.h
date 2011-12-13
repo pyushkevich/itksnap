@@ -27,7 +27,7 @@ protected:
 
 
 template <class TObserver>
-void AddListener(IRISObservable *sender,
+unsigned long AddListener(IRISObservable *sender,
                  const itk::EventObject &event,
                  TObserver *observer,
                  void (TObserver::*memberFunction)())
@@ -35,12 +35,12 @@ void AddListener(IRISObservable *sender,
   typedef itk::SimpleMemberCommand<TObserver> Cmd;
   typename Cmd::Pointer cmd = Cmd::New();
   cmd->SetCallbackFunction(observer, memberFunction);
-  sender->AddObserver(event, cmd);
+  return sender->AddObserver(event, cmd);
 }
 
 
 template <class TObserver>
-void AddListener(IRISObservable *sender,
+unsigned long AddListener(IRISObservable *sender,
                  const itk::EventObject &event,
                  TObserver *observer,
                  void (TObserver::*memberFunction)(itk::Object*, const itk::EventObject &))
@@ -48,7 +48,7 @@ void AddListener(IRISObservable *sender,
   typedef itk::MemberCommand<TObserver> Cmd;
   typename Cmd::Pointer cmd = Cmd::New();
   cmd->SetCallbackFunction(observer, memberFunction);
-  sender->AddObserver(event, cmd);
+  return sender->AddObserver(event, cmd);
 }
 
 

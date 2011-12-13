@@ -90,6 +90,7 @@ void GenericSliceModel
   m_Size = Vector2ui(w, h);
 
   // Compute the optimal zoom
+  /*
   if(IsSliceInitialized())
     {
     // If the zoom is set to fit, maintain the fit, otherwise, maintain the
@@ -104,6 +105,7 @@ void GenericSliceModel
       ComputeOptimalZoom();
       }
     }
+    */
 }
 
 void GenericSliceModel::ComputeOptimalZoom()

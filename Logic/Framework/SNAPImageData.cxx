@@ -66,9 +66,9 @@ SNAPImageData
 : GenericImageData(parent)
 {
   // Update the list of linked wrappers
-  m_MainWrappers.push_back(&m_SpeedWrapper);
-  m_MainWrappers.push_back(&m_SnakeInitializationWrapper);
-  m_MainWrappers.push_back(&m_SnakeWrapper);
+  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SpeedWrapper);
+  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SnakeInitializationWrapper);
+  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SnakeWrapper);
 
   // Initialize the level set driver to NULL
   m_LevelSetDriver = NULL;
