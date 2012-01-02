@@ -190,6 +190,12 @@ public:
     */
   virtual unsigned int GetNumberOfLayers(int role_filter = 0x11111111);
 
+
+  LayerIterator GetLayers(int role_filter = 0x11111111)
+  {
+    return LayerIterator(this, role_filter);
+  }
+
   /**
     Get one of the layers (counting main and overlays)
     */
@@ -314,8 +320,8 @@ public:
 protected:
   virtual void SetMainImageCommon(const ImageCoordinateGeometry &geometry);
   virtual void AddOverlayCommon(ImageWrapperBase *wrapper);
-  virtual void SetCrosshairs(ImageWrapperBase *wrapper, const Vector3ui &crosshairs);
-  virtual void SetImageGeometry(ImageWrapperBase *wrapper, const ImageCoordinateGeometry &geometry);
+  // virtual void SetCrosshairs(ImageWrapperBase *wrapper, const Vector3ui &crosshairs);
+  // virtual void SetImageGeometry(ImageWrapperBase *wrapper, const ImageCoordinateGeometry &geometry);
 
   /*
   virtual ImageWrapperBase* GetNextLayer(

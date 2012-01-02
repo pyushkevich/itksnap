@@ -91,3 +91,4 @@ SNAPQGLWidget
   LatentITKEventNotifier::connect(src, ev, this, slot);
 }
 
+

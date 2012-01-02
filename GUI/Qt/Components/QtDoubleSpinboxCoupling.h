@@ -45,6 +45,8 @@ public:
 
   explicit QtDoubleSpinboxCoupling(QDoubleSpinBox *widget, ModelType *model);
 
+  virtual ~QtDoubleSpinboxCoupling();
+
 public slots:
 
   void onModelUpdate(const EventBucket &);
@@ -57,6 +59,8 @@ protected:
   QDoubleSpinBox *m_Widget;
   ModelType *m_Model;
   bool m_Updating;
+
+  int m_DefaultDecimals;
 };
 
 

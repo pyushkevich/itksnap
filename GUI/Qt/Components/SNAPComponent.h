@@ -39,6 +39,8 @@ protected:
   void connectITK(itk::Object *src, const itk::EventObject &ev,
                   const char *slot = SLOT(onModelUpdate(const EventBucket &)));
 
+  void disconnectITK(itk::Object *src, unsigned long tag);
+
 };
 
 #endif // SNAPCOMPONENT_H

@@ -26,7 +26,7 @@ void VoxelIntensityQTableModel::SetParentModel(GlobalUIModel *model)
 int VoxelIntensityQTableModel::rowCount(const QModelIndex &parent) const
 {
   GenericImageData *gid = m_Model->GetDriver()->GetCurrentImageData();
-  return gid->GetNumberOfLayers();
+  return gid->GetNumberOfLayers(LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
 }
 
 int VoxelIntensityQTableModel::columnCount(const QModelIndex &parent) const
@@ -49,12 +49,16 @@ QVariant VoxelIntensityQTableModel::data(const QModelIndex &index, int role) con
       }
     else
       {
+      LayerIterator it(gid, LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+      for(int i = 1; i < index.row(); i++)
+        ++it;
+
       Vector3ui cursor = app->GetCursorPosition();
-      if(GreyImageWrapperBase *giw = gid->GetLayerAsGray(index.row()))
+      if(GreyImageWrapperBase *giw = it.GetLayerAsGray())
         {
         return giw->GetVoxelMappedToNative(cursor);
         }
-      else if(RGBImageWrapperBase *rgbiw = gid->GetLayerAsRGB(index.row()))
+      else if(RGBImageWrapperBase *rgbiw = it.GetLayerAsRGB())
         {
         double rgb[3];
         rgbiw->GetVoxelAsDouble(cursor, rgb);

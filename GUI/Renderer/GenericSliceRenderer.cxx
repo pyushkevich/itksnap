@@ -189,15 +189,14 @@ void GenericSliceRenderer::DrawMainTexture()
   // Draw each of the overlays
   if (!m_ThumbnailDrawing)
     {
-    for(GenericImageData::WrapperIterator it = id->GetOverlays()->begin();
-        it != id->GetOverlays()->end(); it++)
+    for(LayerIterator it(id, LayerIterator::OVERLAY_ROLE); !it.IsAtEnd(); ++it)
       {
       // Get the texture
-      Texture *tex = m_Texture[*it];
+      Texture *tex = m_Texture[it.GetLayer()];
 
       // Paint the texture with alpha
       tex->SetInterpolation(interp);
-      tex->DrawTransparent((*it)->GetAlpha());
+      tex->DrawTransparent(it.GetLayer()->GetAlpha());
       }
     }
 }

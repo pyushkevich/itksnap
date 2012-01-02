@@ -110,24 +110,42 @@ public:
   bool ProcessMouseDragEvent(const Vector3d &x);
   bool ProcessMouseReleaseEvent(const Vector3d &x);
 
+  /** Reduce number of control points */
+  void OnControlPointNumberDecreaseAction();
+
+  /** Increase number of control points */
+  void OnControlPointNumberIncreaseAction();
+
+  /** Reset the curve */
+  void OnResetCurveAction();
+
   /**
     Create a new property object for a new layer
     */
   IntensityCurveLayerProperties *CreateProperty(GreyImageWrapperBase *w);
 
-  /** Moving control point access */
+  /** Moving control point access. The following four functions are called
+      by the numeric value model class, and don't need to be called directly */
   bool IsMovingControlPointAvailable();
-
   Vector2d GetMovingControlPointPosition();
   void SetMovingControlPointPosition(Vector2d p);
   NumericValueRange<Vector2d> GetMovingControlPointRange();
 
+  /** Window and level access */
+  bool IsLevelAndWindowAvailable();
+  Vector2d GetLevelAndWindow();
+  void SetLevelAndWindow(Vector2d p);
+  NumericValueRange<Vector2d> GetLevelAndWindowRange();
 
+  /** Update the model in response to upstream events */
+  virtual void OnUpdate();
 
   typedef AbstractEditableNumericValueModel<double> NumericValueModel;
 
   irisGetMacro(MovingControlXModel, NumericValueModel *)
   irisGetMacro(MovingControlYModel, NumericValueModel *)
+  irisGetMacro(LevelModel, NumericValueModel *)
+  irisGetMacro(WindowModel, NumericValueModel *)
 
 protected:
 
@@ -148,6 +166,9 @@ protected:
   // The child models for control point X and Y coordinates
   SmartPtr<NumericValueModel> m_MovingControlXModel, m_MovingControlYModel;
 
+  // Child models for window and level
+  SmartPtr<NumericValueModel> m_LevelModel, m_WindowModel;
+
   // Whether the control point is being dragged
   bool m_FlagDraggedControlPoint;
 
@@ -158,6 +179,12 @@ protected:
   Vector3d GetEventCurveCoordiantes(const Vector3d &x);
   bool UpdateControlPoint(size_t i, float t, float x);
   int GetControlPointInVicinity(float x, float y, int pixelRadius);
+
+  // Get all window and level properties at once
+  void GetLevelAndWindowProperties(double &level, double &level_min,
+                                   double &level_max, double &level_step,
+                                   double &window, double &window_min,
+                                   double &window_max, double &window_step);
 
   friend class IntensityCurvePropertyAssociationFactory;
 };

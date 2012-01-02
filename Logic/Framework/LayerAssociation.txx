@@ -30,9 +30,9 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
   // Iterate over all the objects in the image data
   if(m_ImageData)
     {
-    for(size_t i = 0; i < m_ImageData->GetNumberOfLayers(); i++)
+    for(LayerIterator lit = m_ImageData->GetLayers(); !lit.IsAtEnd(); ++lit)
       {
-      ImageWrapperBase *wb = m_ImageData->GetLayer(i);
+      ImageWrapperBase *wb = lit.GetLayer();
       TFilter *wf = dynamic_cast<TFilter *>(wb);
       if(wf)
         {

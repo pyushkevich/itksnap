@@ -40,14 +40,24 @@ QtDoubleSpinboxCoupling
   connect(widget, SIGNAL(valueChanged(double)), SLOT(onWidgetValueChanged(double)),
           Qt::DirectConnection);
 
-  // Listen to value change events from the model
-  LatentITKEventNotifier::connect(model, ValueChangedEvent(),
-                                  this, SLOT(onModelUpdate(const EventBucket &)));
+  // Get the default number of decimals
+  m_DefaultDecimals = widget->decimals();
 
-  LatentITKEventNotifier::connect(model, RangeChangedEvent(),
-                                  this, SLOT(onModelUpdate(const EventBucket &)));
+  // Listen to value change events from the model
+  LatentITKEventNotifier::connect(
+        model, ValueChangedEvent(),
+        this, SLOT(onModelUpdate(const EventBucket &)));
+
+  LatentITKEventNotifier::connect(
+        model, RangeChangedEvent(),
+        this, SLOT(onModelUpdate(const EventBucket &)));
 
   m_Updating = false;
+}
+
+QtDoubleSpinboxCoupling
+::~QtDoubleSpinboxCoupling()
+{
 }
 
 void
@@ -75,6 +85,18 @@ QtDoubleSpinboxCoupling
     m_Widget->setSingleStep(range.StepSize);
     m_Widget->setValue(m_Model->GetValue());
     m_Widget->setSpecialValueText("");
+
+    // Make sure the precision is smaller than the step size. This is a
+    // temporary fix. A better solution is to have the model provide the
+    // precision for the widget.
+    if(range.StepSize > 0)
+      {
+      double logstep = log10(range.StepSize);
+      int prec = std::max((int) (1 - floor(logstep)), m_DefaultDecimals);
+      m_Widget->setDecimals(prec);
+      }
+    else
+      m_Widget->setDecimals(m_DefaultDecimals);
     }
   else
     {

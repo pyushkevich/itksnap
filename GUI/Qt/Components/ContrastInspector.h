@@ -1,7 +1,7 @@
 #ifndef CONTRASTINSPECTOR_H
 #define CONTRASTINSPECTOR_H
 
-#include <QWidget>
+#include "SNAPComponent.h"
 
 class IntensityCurveBox;
 class IntensityCurveModel;
@@ -10,7 +10,7 @@ namespace Ui {
     class ContrastInspector;
 }
 
-class ContrastInspector : public QWidget
+class ContrastInspector : public SNAPComponent
 {
     Q_OBJECT
 
@@ -23,11 +23,20 @@ public:
   void SetModel(IntensityCurveModel *model);
 
 
+private slots:
+  void on_btnRemoveControl_clicked();
+
+  void on_btnAddControl_clicked();
+
+  void on_btnReset_clicked();
+
+  void onModelUpdate(const EventBucket &b);
+
 private:
 
   IntensityCurveModel *m_Model;
 
-    Ui::ContrastInspector *ui;
+  Ui::ContrastInspector *ui;
 };
 
 #endif // CONTRASTINSPECTOR_H

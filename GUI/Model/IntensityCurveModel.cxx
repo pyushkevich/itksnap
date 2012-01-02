@@ -49,6 +49,20 @@ IntensityCurveModel::IntensityCurveModel()
   m_MovingControlYModel = static_cast<NumericValueModel *>(
       ComponentEditableNumericValueModel<double, 2>::New(modelControl, 1));
 
+  // Window/level model
+  SmartPtr<VectorWrapperModel> modelLW = VectorWrapperModel::New();
+  modelLW->Initialize(this,
+                      &IntensityCurveModel::GetLevelAndWindow,
+                      &IntensityCurveModel::SetLevelAndWindow,
+                      &IntensityCurveModel::GetLevelAndWindowRange,
+                      &IntensityCurveModel::IsLevelAndWindowAvailable);
+  modelLW->SetEvents(ModelUpdateEvent(), ModelUpdateEvent());
+
+  // Individual models for window and level
+  m_LevelModel = static_cast<NumericValueModel *>(
+      ComponentEditableNumericValueModel<double, 2>::New(modelLW, 0));
+  m_WindowModel = static_cast<NumericValueModel *>(
+      ComponentEditableNumericValueModel<double, 2>::New(modelLW, 1));
 }
 
 IntensityCurveModel::~IntensityCurveModel()
@@ -341,6 +355,127 @@ bool IntensityCurveModel::ProcessMouseReleaseEvent(const Vector3d &x)
   return false;
 }
 
+bool
+IntensityCurveModel
+::IsLevelAndWindowAvailable()
+{
+  return (m_Layer != NULL);
+}
+
+void
+IntensityCurveModel
+::GetLevelAndWindowProperties(
+    double &level, double &level_min, double &level_max, double &level_step,
+    double &window, double &window_min, double &window_max, double &window_step)
+{
+  IntensityCurveInterface *curve = this->GetCurve();
+
+  // Get the absolute range
+  double iAbsMin = m_Layer->GetImageMinNative();
+  double iAbsMax = m_Layer->GetImageMaxNative();
+  double iAbsSpan = iAbsMax - iAbsMin;
+
+  // Get the starting and ending control points
+  float t0, x0, t1, x1;
+  curve->GetControlPoint(0,t0,x0);
+  curve->GetControlPoint(curve->GetControlPointCount()-1,t1,x1);
+
+  // The the curve intensity range
+  double iMin = iAbsMin + iAbsSpan * t0;
+  double iMax = iAbsMin + iAbsSpan * t1;
+
+  // Step size
+  double step = pow(10, floor(0.5 + log10(iAbsSpan) - 3));
+
+  // Level and window
+  level = iMin;
+  window = iMax - iMin;
+
+  // The range for the window and level are basically unlimited. To be safe, we
+  // set it to be two orders of magnitude greater than the largest absolute
+  // value in the image.
+  double order = log10(std::max(fabs(iAbsMin), fabs(iAbsMax)));
+  double maxabsval = pow(10, ceil(order)+2);
+
+  level_min = -maxabsval;
+  level_max = maxabsval;
+  level_step = step;
+
+  window_min = step;
+  window_max = maxabsval;
+  window_step = step;
+
+  // OLD Level range
+  // level_min = iAbsMin;
+  // level_max = iAbsMax - window;
+
+  // OLD Window range
+  // window_min = step;
+  // window_max = iAbsMax - level;
+}
+
+
+Vector2d
+IntensityCurveModel
+::GetLevelAndWindow()
+{
+  double level, level_min, level_max, level_step;
+  double window, window_min, window_max, window_step;
+
+  this->GetLevelAndWindowProperties(level, level_min, level_max, level_step,
+                                    window, window_min, window_max, window_step);
+
+  // Compute the level and window in intensity units
+  return Vector2d(level, window);
+}
+
+NumericValueRange<Vector2d>
+IntensityCurveModel
+::GetLevelAndWindowRange()
+{
+  double level, level_min, level_max, level_step;
+  double window, window_min, window_max, window_step;
+
+  this->GetLevelAndWindowProperties(level, level_min, level_max, level_step,
+                                    window, window_min, window_max, window_step);
+
+  return NumericValueRange<Vector2d>(Vector2d(level_min, window_min),
+                                     Vector2d(level_max, window_max),
+                                     Vector2d(level_step, window_step));
+}
+
+void
+IntensityCurveModel
+::SetLevelAndWindow(Vector2d p)
+{
+  IntensityCurveInterface *curve = this->GetCurve();
+
+  // Assure that input and output outside of the image range
+  // is handled gracefully
+  // m_InLevel->value(m_InLevel->clamp(m_InLevel->value()));
+  // m_InWindow->value(m_InWindow->clamp(m_InWindow->value()));
+
+  // Get the absolute range
+  double iAbsMin = m_Layer->GetImageMinNative();
+  double iAbsMax = m_Layer->GetImageMaxNative();
+
+  // Get the new values of min and max
+  double iMin = p(0);
+  double iMax = iMin + p(1);
+
+  // Min better be less than max
+  assert(iMin < iMax);
+
+  // Compute the unit coordinate values that correspond to min and max
+  double factor = 1.0 / (iAbsMax - iAbsMin);
+  double t0 = factor * (iMin - iAbsMin);
+  double t1 = factor * (iMax - iAbsMin);
+
+  // Update the curve boundary
+  curve->ScaleControlPointsToWindow((float) t0, (float) t1);
+}
+
+
 bool IntensityCurveModel::IsMovingControlPointAvailable()
 {
   return (m_Layer && (GetProperties().GetMovingControlPoint() >= 0));
@@ -383,11 +518,15 @@ NumericValueRange<Vector2d> IntensityCurveModel::GetMovingControlPointRange()
 
   double xStep = pow(10, floor(0.5 + log10(iAbsSpan) - 3));
 
+  double order = log10(std::max(fabs(iAbsMin), fabs(iAbsMax)));
+  double maxabsval = pow(10, ceil(order)+2);
+
+
   Vector2d rmin, rmax, step;
 
   if(cp == 0)
     {
-    rmin[0] = iAbsMin;
+    rmin[0] = -maxabsval;
     }
   else
     {
@@ -397,7 +536,7 @@ NumericValueRange<Vector2d> IntensityCurveModel::GetMovingControlPointRange()
 
   if(cp == (int)(curve->GetControlPointCount() - 1))
     {
-    rmax[0] = iAbsMax;
+    rmax[0] = maxabsval;
     }
   else
     {
@@ -425,7 +564,47 @@ NumericValueRange<Vector2d> IntensityCurveModel::GetMovingControlPointRange()
   return NumericValueRange<Vector2d>(rmin, rmax, step);
 }
 
+void
+IntensityCurveModel
+::OnControlPointNumberDecreaseAction()
+{
+  IntensityCurveInterface *curve = this->GetCurve();
 
+  if (curve->GetControlPointCount() > 3)
+    {
+    curve->Initialize(curve->GetControlPointCount() - 1);
+    GetProperties().SetMovingControlPoint(0);
+
+    // m_BoxCurve->GetInteractor()->SetMovingControlPoint(0);
+    // OnWindowLevelChange();
+    InvokeEvent(ModelUpdateEvent());
+    }
+
+  // if (m_Curve->GetControlPointCount() == 3)
+  //  m_BtnCurveLessControlPoint->deactivate();
+}
+
+void
+IntensityCurveModel
+::OnControlPointNumberIncreaseAction()
+{
+  this->GetCurve()->Initialize(this->GetCurve()->GetControlPointCount() + 1);
+  InvokeEvent(ModelUpdateEvent());
+}
+
+void IntensityCurveModel::OnResetCurveAction()
+{
+  this->GetCurve()->Initialize(this->GetCurve()->GetControlPointCount());
+  InvokeEvent(ModelUpdateEvent());
+}
+
+void IntensityCurveModel::OnUpdate()
+{
+  if(m_EventBucket->HasEvent(IntensityCurveChangeEvent()))
+    {
+    this->GetLayer()->UpdateIntensityMapFunction();
+    }
+}
 
 
 

@@ -123,4 +123,16 @@ unsigned long AddListener(itk::Object *sender,
   return sender->AddObserver(event, cmd);
 }
 
+template <class TObserver>
+unsigned long AddListenerConst(itk::Object *sender,
+                 const itk::EventObject &event,
+                 TObserver *observer,
+                 void (TObserver::*memberFunction)(const itk::Object*, const itk::EventObject &))
+{
+  typedef itk::MemberCommand<TObserver> Cmd;
+  typename Cmd::Pointer cmd = Cmd::New();
+  cmd->SetCallbackFunction(observer, memberFunction);
+  return sender->AddObserver(event, cmd);
+}
+
 #endif // SNAPEVENTS_H

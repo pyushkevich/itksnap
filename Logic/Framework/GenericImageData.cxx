@@ -407,7 +407,7 @@ unsigned int GenericImageData::GetNumberOfLayers(int role_filter)
   for(int role = LayerIterator::MAIN_ROLE;
       role != LayerIterator::NO_ROLE; role = role << 1)
     {
-    if(role_filter | role)
+    if(role_filter & role)
       {
       WrapperStorage::iterator it = m_Wrappers.find((LayerRole) role);
       if(it != m_Wrappers.end())

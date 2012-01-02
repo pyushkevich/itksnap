@@ -3,6 +3,50 @@
 #include "IRISObserverPattern.h"
 
 
+LatentITKEventNotifierCleanup
+::LatentITKEventNotifierCleanup(QObject *parent)
+  : QObject(parent)
+{
+  m_Source = NULL;
+}
+
+LatentITKEventNotifierCleanup
+::~LatentITKEventNotifierCleanup()
+{
+  if(m_Source)
+    {
+    m_Source->RemoveObserver(m_Tag);
+    m_Source->RemoveObserver(m_DeleteTag);
+    }
+}
+
+void
+LatentITKEventNotifierCleanup
+::SetSource(itk::Object *source, unsigned long tag)
+{
+  // Store the source
+  m_Source = source;
+  m_Tag = tag;
+
+  // Listen for delete events on the source
+  m_DeleteTag = AddListenerConst(
+        source, itk::DeleteEvent(),
+        this, &LatentITKEventNotifierCleanup::DeleteCallback);
+}
+
+void
+LatentITKEventNotifierCleanup
+::DeleteCallback(const itk::Object *object, const itk::EventObject &evt)
+{
+
+  std::cout << "Delete Callback from " << object << " [ " << typeid(*object).name()
+            << " ]  event " << evt.GetEventName() << std::endl;
+  // Forget the source.
+  m_Source = NULL;
+}
+
+
+
 
 LatentITKEventNotifierHelper
 ::LatentITKEventNotifierHelper(QObject *parent)
@@ -13,13 +57,7 @@ LatentITKEventNotifierHelper
   QObject::connect(this, SIGNAL(itkEvent()),
                    this, SLOT(onQueuedEvent()),
                    Qt::QueuedConnection);
-
-  /*
-  connect(this, SIGNAL(itkEvent()),
-          SLOT(onQueuedEvent()), Qt::QueuedConnection);
-          */
 }
-
 
 void
 LatentITKEventNotifierHelper
@@ -85,7 +123,7 @@ std::map<QObject *, LatentITKEventNotifierHelper *>
 LatentITKEventNotifier::m_HelperMap;
 
 
-unsigned long LatentITKEventNotifier
+void LatentITKEventNotifier
 ::connect(itk::Object *source, const itk::EventObject &evt,
           QObject *target, const char *slot)
 {
@@ -93,7 +131,17 @@ unsigned long LatentITKEventNotifier
   LatentITKEventNotifierHelper *c = doConnect(evt, target, slot);
 
   // Listen to events from the source
-  return AddListener(source, evt, c, &LatentITKEventNotifierHelper::Callback);
+  unsigned long tag = AddListener(source, evt, c,
+                                  &LatentITKEventNotifierHelper::Callback);
+
+  std::cout << "CONNECTING: "
+            << typeid(*source).name() << " [ " << source << "] "
+            << evt.GetEventName() << " TO: "
+            << target->objectName().toStdString() << std::endl;
+
+  // Create an cleaner as a child of the helper
+  LatentITKEventNotifierCleanup *clean = new LatentITKEventNotifierCleanup(c);
+  clean->SetSource(source, tag);
 }
 
 unsigned long LatentITKEventNotifier
@@ -127,6 +175,18 @@ LatentITKEventNotifier
   QObject::connect(c, SIGNAL(dispatchEvent(const EventBucket &)), target, slot);
 
   return c;
+}
+
+void LatentITKEventNotifier
+::disconnect(itk::Object *source, unsigned long tag)
+{
+  source->RemoveObserver(tag);
+}
+
+void LatentITKEventNotifier
+::disconnect(IRISObservable *source, unsigned long tag)
+{
+  source->RemoveOvserver(tag);
 }
 
 

@@ -69,6 +69,7 @@ protected:
   void connectITK(itk::Object *src, const itk::EventObject &ev,
                   const char *slot = SLOT(onModelUpdate(const EventBucket &)));
 
+
   // Whether the user is dragging the mouse currently. More specifically
   // this is on between mouse press and mouse release events
   bool m_Dragging;

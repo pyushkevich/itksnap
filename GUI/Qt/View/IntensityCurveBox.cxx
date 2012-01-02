@@ -18,7 +18,6 @@ IntensityCurveBox::IntensityCurveBox(QWidget *parent)
 
 IntensityCurveBox::~IntensityCurveBox()
 {
-
 }
 
 void IntensityCurveBox::SetModel(IntensityCurveModel *model)
