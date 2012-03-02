@@ -220,9 +220,16 @@
     <addaction name="actionAdd_Greyscale_Overlay"/>
     <addaction name="actionAdd_RGB_Overlay"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionImage_Contrast"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSegmentation"/>
    <addaction name="menuOverlay"/>
+   <addaction name="menuTools"/>
   </widget>
   <action name="actionOpen_Greyscale_Image">
    <property name="text">
@@ -353,6 +360,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+R</string>
+   </property>
+  </action>
+  <action name="actionImage_Contrast">
+   <property name="text">
+    <string>Image Contrast ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Adjust image contrast</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
  </widget>

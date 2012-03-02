@@ -29,41 +29,58 @@ IntensityCurveModel::IntensityCurveModel()
   m_ParentModel = NULL;
   m_Layer = NULL;
 
-  // Initialize the child models
-  typedef FunctionWrapperNumericValueModel<
-      Vector2d, IntensityCurveModel> VectorWrapperModel;
+  // Create the child model for the moving control point id
+  m_MovingControlIdModel = makeChildNumericValueModel<Self,int>(
+        this,
+        &Self::GetMovingControlPointIdValueAndRange,
+        &Self::SetMovingControlPointId);
 
-  // Control point coordinate models
-  SmartPtr<VectorWrapperModel> modelControl = VectorWrapperModel::New();
-  modelControl->Initialize(this,
-                           &IntensityCurveModel::GetMovingControlPointPosition,
-                           &IntensityCurveModel::SetMovingControlPointPosition,
-                           &IntensityCurveModel::GetMovingControlPointRange,
-                           &IntensityCurveModel::IsMovingControlPointAvailable);
-  modelControl->SetEvents(ModelUpdateEvent(), ModelUpdateEvent());
+  typedef AbstractEditableNumericValueModel<Vector2d> VectorNumericModel;
+
+  // Create the child model for the control point coordinates
+  SmartPtr<VectorNumericModel> modelControl =
+      makeChildNumericValueModel(this,
+                                 &Self::GetMovingControlPointPositionAndRange,
+                                 &Self::SetMovingControlPointPosition);
 
   // Create component models for X and Y
-  m_MovingControlXModel = static_cast<NumericValueModel *>(
+  m_MovingControlXModel = static_cast<RealValueModel *>(
       ComponentEditableNumericValueModel<double, 2>::New(modelControl, 0));
 
-  m_MovingControlYModel = static_cast<NumericValueModel *>(
+  m_MovingControlYModel = static_cast<RealValueModel *>(
       ComponentEditableNumericValueModel<double, 2>::New(modelControl, 1));
 
   // Window/level model
-  SmartPtr<VectorWrapperModel> modelLW = VectorWrapperModel::New();
-  modelLW->Initialize(this,
-                      &IntensityCurveModel::GetLevelAndWindow,
-                      &IntensityCurveModel::SetLevelAndWindow,
-                      &IntensityCurveModel::GetLevelAndWindowRange,
-                      &IntensityCurveModel::IsLevelAndWindowAvailable);
-  modelLW->SetEvents(ModelUpdateEvent(), ModelUpdateEvent());
+  SmartPtr<VectorNumericModel> modelLW =
+      makeChildNumericValueModel(this,
+                                 &Self::GetLevelAndWindowValueAndRange,
+                                 &Self::SetLevelAndWindow);
 
   // Individual models for window and level
-  m_LevelModel = static_cast<NumericValueModel *>(
+  m_LevelModel = static_cast<RealValueModel *>(
       ComponentEditableNumericValueModel<double, 2>::New(modelLW, 0));
-  m_WindowModel = static_cast<NumericValueModel *>(
+
+  m_WindowModel = static_cast<RealValueModel *>(
       ComponentEditableNumericValueModel<double, 2>::New(modelLW, 1));
+
+  // Histogram bin size and other controls
+  m_HistogramBinSizeModel = makeChildNumericValueModel(
+        this,
+        &Self::GetHistogramBinSizeValueAndRange,
+        &Self::SetHistogramBinSize);
+
+  m_HistogramCutoffModel = makeChildNumericValueModel(
+        this,
+        &Self::GetHistogramCutoffValueAndRange,
+        &Self::SetHistogramCutoff);
+
+  m_HistogramScaleModel = makeChildNumericValueModel(
+        this,
+        &Self::GetHistogramScaleValueAndRange,
+        &Self::SetHistogramScale);
 }
+
+
 
 IntensityCurveModel::~IntensityCurveModel()
 {
@@ -121,6 +138,9 @@ IntensityCurveModel
     // Set a flag so we don't register a listener again
     GetProperties().SetObserverTag(tag);
     }
+
+  // Fire an event to indicate the change
+  InvokeEvent(ModelUpdateEvent());
 }
 
 const ScalarImageHistogram *
@@ -150,7 +170,7 @@ IntensityCurveLayerProperties::IntensityCurveLayerProperties()
   m_ObserverTag = 0;
   m_HistogramLog = false;
   m_MovingControlPoint = false;
-  m_HistogramBinSize = 1;
+  m_HistogramBinSize = 4;
   m_HistogramCutoff = 1;
 }
 
@@ -170,16 +190,7 @@ IntensityCurveModel
 ::CreateProperty(GreyImageWrapperBase *w)
 {
   // Create the property
-  IntensityCurveLayerProperties *p = new IntensityCurveLayerProperties();
-
-  // Set the default bin size ...
-  if(m_ViewportReporter && m_ViewportReporter->CanReportSize())
-    {
-    unsigned int width = m_ViewportReporter->GetViewportSize()[0];
-    p->SetHistogramBinSize(std::max(width / 64, 1u));
-    }
-
-  return p;
+  return new IntensityCurveLayerProperties();
 }
 
 IntensityCurveInterface * IntensityCurveModel::GetCurve()
@@ -355,19 +366,39 @@ bool IntensityCurveModel::ProcessMouseReleaseEvent(const Vector3d &x)
   return false;
 }
 
+
+
 bool
 IntensityCurveModel
-::IsLevelAndWindowAvailable()
+::GetMovingControlPointIdValueAndRange(int &value,
+                                       NumericValueRange<int> *range)
 {
-  return (m_Layer != NULL);
+  if(range)
+    {
+    range->Minimum = 1;
+    range->Maximum = GetCurve()->GetControlPointCount();
+    range->StepSize = 1;
+    }
+  value = GetProperties().GetMovingControlPoint() + 1;
+  return value >= 1;
 }
 
 void
 IntensityCurveModel
-::GetLevelAndWindowProperties(
-    double &level, double &level_min, double &level_max, double &level_step,
-    double &window, double &window_min, double &window_max, double &window_step)
+::SetMovingControlPointId(int value)
 {
+  GetProperties().SetMovingControlPoint(value - 1);
+  InvokeEvent(ModelUpdateEvent());
+}
+
+bool
+IntensityCurveModel
+::GetLevelAndWindowValueAndRange(Vector2d &lw,
+                                 NumericValueRange<Vector2d> *range)
+{
+  if(!m_Layer)
+    return false;
+
   IntensityCurveInterface *curve = this->GetCurve();
 
   // Get the absolute range
@@ -384,65 +415,28 @@ IntensityCurveModel
   double iMin = iAbsMin + iAbsSpan * t0;
   double iMax = iAbsMin + iAbsSpan * t1;
 
-  // Step size
-  double step = pow(10, floor(0.5 + log10(iAbsSpan) - 3));
-
   // Level and window
-  level = iMin;
-  window = iMax - iMin;
+  lw = Vector2d(iMin, iMax - iMin);
 
-  // The range for the window and level are basically unlimited. To be safe, we
-  // set it to be two orders of magnitude greater than the largest absolute
-  // value in the image.
-  double order = log10(std::max(fabs(iAbsMin), fabs(iAbsMax)));
-  double maxabsval = pow(10, ceil(order)+2);
+  // Compute range and step if needed
+  if(range)
+    {
+    // The range for the window and level are basically unlimited. To be safe, we
+    // set it to be two orders of magnitude greater than the largest absolute
+    // value in the image.
+    double step = pow(10, floor(0.5 + log10(iAbsSpan) - 3));
+    double order = log10(std::max(fabs(iAbsMin), fabs(iAbsMax)));
+    double maxabsval = pow(10, ceil(order)+2);
 
-  level_min = -maxabsval;
-  level_max = maxabsval;
-  level_step = step;
+    range->Minimum = Vector2d(-maxabsval, step);
+    range->Maximum = Vector2d(maxabsval, maxabsval);
+    range->StepSize = Vector2d(step, step);
+    }
 
-  window_min = step;
-  window_max = maxabsval;
-  window_step = step;
-
-  // OLD Level range
-  // level_min = iAbsMin;
-  // level_max = iAbsMax - window;
-
-  // OLD Window range
-  // window_min = step;
-  // window_max = iAbsMax - level;
+  // Value is valid
+  return true;
 }
 
-
-Vector2d
-IntensityCurveModel
-::GetLevelAndWindow()
-{
-  double level, level_min, level_max, level_step;
-  double window, window_min, window_max, window_step;
-
-  this->GetLevelAndWindowProperties(level, level_min, level_max, level_step,
-                                    window, window_min, window_max, window_step);
-
-  // Compute the level and window in intensity units
-  return Vector2d(level, window);
-}
-
-NumericValueRange<Vector2d>
-IntensityCurveModel
-::GetLevelAndWindowRange()
-{
-  double level, level_min, level_max, level_step;
-  double window, window_min, window_max, window_step;
-
-  this->GetLevelAndWindowProperties(level, level_min, level_max, level_step,
-                                    window, window_min, window_max, window_step);
-
-  return NumericValueRange<Vector2d>(Vector2d(level_min, window_min),
-                                     Vector2d(level_max, window_max),
-                                     Vector2d(level_step, window_step));
-}
 
 void
 IntensityCurveModel
@@ -475,27 +469,85 @@ IntensityCurveModel
   curve->ScaleControlPointsToWindow((float) t0, (float) t1);
 }
 
-
-bool IntensityCurveModel::IsMovingControlPointAvailable()
+bool
+IntensityCurveModel
+::GetMovingControlPointPositionAndRange(
+    Vector2d &pos,
+    NumericValueRange<Vector2d> *range)
 {
-  return (m_Layer && (GetProperties().GetMovingControlPoint() >= 0));
-}
+  // If no control point selected, the value is invalid
+  if(!m_Layer || GetProperties().GetMovingControlPoint() < 0)
+    return false;
 
-Vector2d IntensityCurveModel::GetMovingControlPointPosition()
-{
-  assert(IsMovingControlPointAvailable());
   IntensityCurveInterface *curve = this->GetCurve();
+  int cp = GetProperties().GetMovingControlPoint();
+
+  // Compute the position
   float x, t;
-  curve->GetControlPoint(GetProperties().GetMovingControlPoint(), t, x);
+  curve->GetControlPoint(cp, t, x);
   double intensity =
       m_Layer->GetImageMinNative() * (1-t) +
       m_Layer->GetImageMaxNative() * t;
-  return Vector2d(intensity,x);
+
+  pos = Vector2d(intensity,x);
+
+  // Compute the range
+  if(range)
+    {
+    float t0, x0, t1, x1;
+
+    double iAbsMin = m_Layer->GetImageMinNative();
+    double iAbsMax = m_Layer->GetImageMaxNative();
+    double iAbsSpan = iAbsMax - iAbsMin;
+
+    double xStep = pow(10, floor(0.5 + log10(iAbsSpan) - 3));
+    double order = log10(std::max(fabs(iAbsMin), fabs(iAbsMax)));
+    double maxabsval = pow(10, ceil(order)+2);
+
+    if(cp == 0)
+      {
+      range->Minimum[0] = -maxabsval;
+      }
+    else
+      {
+      curve->GetControlPoint(cp - 1, t0, x0);
+      range->Minimum[0] = iAbsMin + iAbsSpan * t0 + xStep;
+      }
+
+    if(cp == (int)(curve->GetControlPointCount() - 1))
+      {
+      range->Maximum[0] = maxabsval;
+      }
+    else
+      {
+      curve->GetControlPoint(cp + 1, t1, x1);
+      range->Maximum[0] = iAbsMin + iAbsSpan * t1 - xStep;
+      }
+
+    if(cp == 0)
+      {
+      range->Minimum[1] = range->Maximum[1] = 0;
+      }
+    else if(cp == (int)(curve->GetControlPointCount() - 1))
+      {
+      range->Minimum[1] = range->Maximum[1] = 1;
+      }
+    else
+      {
+      range->Minimum[1] = x0 + 0.01;
+      range->Maximum[1] = x1 - 0.01;
+      }
+
+    range->StepSize[0] = xStep;
+    range->StepSize[1] = 0.01;
+    }
+
+  return true;
 }
 
 void IntensityCurveModel::SetMovingControlPointPosition(Vector2d p)
 {
-  assert(IsMovingControlPointAvailable());
+  assert(m_Layer);
   IntensityCurveInterface *curve = this->GetCurve();
 
   double t = (p[0] - m_Layer->GetImageMinNative()) /
@@ -504,65 +556,6 @@ void IntensityCurveModel::SetMovingControlPointPosition(Vector2d p)
                             t, p[1]);
 }
 
-NumericValueRange<Vector2d> IntensityCurveModel::GetMovingControlPointRange()
-{
-  assert(IsMovingControlPointAvailable());
-
-  float t0, x0, t1, x1;
-  int cp = GetProperties().GetMovingControlPoint();
-  IntensityCurveInterface *curve = this->GetCurve();
-
-  double iAbsMin = m_Layer->GetImageMinNative();
-  double iAbsMax = m_Layer->GetImageMaxNative();
-  double iAbsSpan = iAbsMax - iAbsMin;
-
-  double xStep = pow(10, floor(0.5 + log10(iAbsSpan) - 3));
-
-  double order = log10(std::max(fabs(iAbsMin), fabs(iAbsMax)));
-  double maxabsval = pow(10, ceil(order)+2);
-
-
-  Vector2d rmin, rmax, step;
-
-  if(cp == 0)
-    {
-    rmin[0] = -maxabsval;
-    }
-  else
-    {
-    curve->GetControlPoint(cp - 1, t0, x0);
-    rmin[0] = iAbsMin + iAbsSpan * t0 + xStep;
-    }
-
-  if(cp == (int)(curve->GetControlPointCount() - 1))
-    {
-    rmax[0] = maxabsval;
-    }
-  else
-    {
-    curve->GetControlPoint(cp + 1, t1, x1);
-    rmax[0] = iAbsMin + iAbsSpan * t1 - xStep;
-    }
-
-  if(cp == 0)
-    {
-    rmin[1] = rmax[1] = 0;
-    }
-  else if(cp == (int)(curve->GetControlPointCount() - 1))
-    {
-    rmin[1] = rmax[1] = 1;
-    }
-  else
-    {
-    rmin[1] = x0 + 0.01;
-    rmax[1] = x1 - 0.01;
-    }
-
-  step[0] = xStep;
-  step[1] = 0.01;
-
-  return NumericValueRange<Vector2d>(rmin, rmax, step);
-}
 
 void
 IntensityCurveModel
@@ -606,5 +599,87 @@ void IntensityCurveModel::OnUpdate()
     }
 }
 
+void IntensityCurveModel::OnAutoFitWindow()
+{
+  // There must be a layer
+  assert(m_Layer);
+
+  // Get the histogram
+  m_Layer->AutoFitContrast();
+}
+
+bool
+IntensityCurveModel
+::GetHistogramBinSizeValueAndRange(
+    int &value, NumericValueRange<int> *range)
+{
+  if(m_Layer)
+    {
+    value = (int) GetProperties().GetHistogramBinSize();
+    if(range)
+      {
+      range->Minimum = 1;
+      range->Maximum = m_Layer->GetNumberOfVoxels() / 10;
+      range->StepSize = 1;
+      }
+    return true;
+    }
+  return false;
+}
+
+void
+IntensityCurveModel
+::SetHistogramBinSize(int value)
+{
+  assert(m_Layer);
+  GetProperties().SetHistogramBinSize((unsigned int) value);
+  InvokeEvent(ModelUpdateEvent());
+}
+
+bool
+IntensityCurveModel
+::GetHistogramCutoffValueAndRange(
+    double &value, NumericValueRange<double> *range)
+{
+  if(m_Layer)
+    {
+    value = GetProperties().GetHistogramCutoff() * 100.0;
+    if(range)
+      *range = NumericValueRange<double>(0.1, 100, 1);
+    return true;
+    }
+  return false;
+}
+
+void
+IntensityCurveModel
+::SetHistogramCutoff(double value)
+{
+  assert(m_Layer);
+  GetProperties().SetHistogramCutoff(value / 100.0);
+  InvokeEvent(ModelUpdateEvent());
+}
+
+bool
+IntensityCurveModel
+::GetHistogramScaleValueAndRange(
+    bool &value, NumericValueRange<bool> *range)
+{
+  if(m_Layer)
+    {
+    value = GetProperties().IsHistogramLog();
+    return true;
+    }
+  return false;
+}
+
+void
+IntensityCurveModel
+::SetHistogramScale(bool value)
+{
+  assert(m_Layer);
+  GetProperties().SetHistogramLog(value);
+  InvokeEvent(ModelUpdateEvent());
+}
 
 

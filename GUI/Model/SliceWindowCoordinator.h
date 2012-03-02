@@ -42,36 +42,6 @@
 
 class SliceWindowCoordinator;
 
-/**
- * Wrapper around the common zoom factor property. This property is derived
- * rather than stored, so it requires a custom implementation
- */
-class CommonZoomFactorModel
-    : public AbstractEditableNumericValueModel<double>
-{
-public:
-
-  irisITKObjectMacro(CommonZoomFactorModel,
-                     AbstractEditableNumericValueModel<double>)
-
-  FIRES(ZoomLevelUpdateEvent)
-
-  void SetParentModel(SliceWindowCoordinator *coord);
-
-  double GetValue();
-  NumericValueRange<double> GetRange();
-  bool IsValueNull();
-
-  void SetValue(double value);
-
-protected:
-
-  CommonZoomFactorModel() {}
-  virtual ~CommonZoomFactorModel() {}
-
-  SliceWindowCoordinator *m_Parent;
-};
-
 /*
   Who fires the events? Widgets interacting with the Zoom Factor model expect
   events from the model. We don't want the parent object to fire events
@@ -88,13 +58,15 @@ protected:
  * Helps manage linked zoom (the concept that 1 mm in image space is always the
  * same number of pixels in each slice view).
  */
-class SliceWindowCoordinator : public itk::Object
+class SliceWindowCoordinator : public AbstractModel
 {
 public:
 
   irisITKObjectMacro(SliceWindowCoordinator, itk::Object)
 
   FIRES(LinkedZoomUpdateEvent)
+
+  typedef AbstractEditableNumericValueModel<double> CommonZoomFactorModel;
 
   /** Assigns three windows for the coordinator to manage */
   void RegisterSliceModels(GenericSliceModel *windows[3]);
@@ -152,8 +124,7 @@ public:
   float GetCommonOptimalFitZoomLevel();
 
   /** Get the model representing the optimal zoom */
-  CommonZoomFactorModel *GetCommonZoomFactorModel()
-    { return m_CommonZoomModel; }
+  irisGetMacro(CommonZoomFactorModel, CommonZoomFactorModel*)
 
   /** Constrain a zoom factor to reasonable limits */
   float ClampZoom(unsigned int window,float zoom);
@@ -201,8 +172,13 @@ protected:
   /** Compute the smallest of the optimal zoom levels of the slice views */
   double ComputeSmallestOptimalZoomLevel();
 
-  /** The linked zoom property */
-  SmartPtr<CommonZoomFactorModel> m_CommonZoomModel;
+  // Chold model governing linked zoom properties
+  SmartPtr<CommonZoomFactorModel> m_CommonZoomFactorModel;
+
+  // Access method for getting common zoom value and range
+  bool GetCommonZoomValueAndRange(double &zoom,
+                                  NumericValueRange<double> *range);
+  void SetCommonZoomValue(double zoom);
 };
 
 #endif // __SliceWindowCoordinator_h_

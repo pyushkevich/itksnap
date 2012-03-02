@@ -30,7 +30,7 @@
 #include "GlobalUIModel.h"
 #include "SliceWindowCoordinator.h"
 #include "QtWidgetActivator.h"
-#include "QtDoubleSpinboxCoupling.h"
+#include "QtWidgetCoupling.h"
 #include <vnl/vnl_math.h>
 
 
@@ -68,9 +68,8 @@ void ZoomInspector::SetModel(GlobalUIModel *model)
   activateOnFlag(this, model, UIF_BASEIMG_LOADED);
 
   // Couple zoom widget to the linked zoom level
-  new QtDoubleSpinboxCoupling(
-        ui->inZoom,
-        model->GetSliceCoordinator()->GetCommonZoomFactorModel());
+  makeCoupling(ui->inZoom,
+               model->GetSliceCoordinator()->GetCommonZoomFactorModel());
 }
 
 void ZoomInspector::on_chkLinkedZoom_stateChanged(int state)

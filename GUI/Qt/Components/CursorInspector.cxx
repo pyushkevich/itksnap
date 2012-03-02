@@ -7,7 +7,8 @@
 #include <GlobalUIModel.h>
 #include <QtWidgetActivator.h>
 #include <QMenu>
-#include "ContrastInspector.h"
+#include <IntensityCurveModel.h>
+
 
 CursorInspector::CursorInspector(QWidget *parent) :
     SNAPComponent(parent),
@@ -106,28 +107,10 @@ void CursorInspector::onContextMenuRequested(QPoint pos)
     m_ContextMenu->popup(QCursor::pos());
 }
 
-#include "LayerInspectorDialog.h"
-#include "IntensityCurveBox.h"
-#include "IntensityCurveModel.h"
-#include "QtReporterDelegates.h"
 
 void CursorInspector::on_actionAutoContrast_triggered()
 {
-  LayerInspectorDialog *lid = new LayerInspectorDialog();
-
-  SmartPtr<IntensityCurveModel> model = m_Model->GetIntensityCurveModel();
-  model->SetViewportReporter(
-        new QtViewportReporter(lid->GetContrastInspector()->GetCurveBox()));
-  model->SetLayer(m_Model->GetDriver()->GetCurrentImageData()->GetGrey());
-
-  lid->GetContrastInspector()->SetModel(model);
-
-  lid->exec();
-
-  delete lid;
-
-  qDebug("Done");
-
+  m_Model->GetIntensityCurveModel()->OnAutoFitWindow();
 
 
 }

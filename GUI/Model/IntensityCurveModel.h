@@ -65,6 +65,10 @@ struct IntensityCurvePropertyAssociationFactory
   model and the view, and a one-to-many relationship between the model and
   the image layers. For each layer, the model maintains a properties object
   of type IntensityCurveLayerProperties.
+
+  To change the layer with which the model is associated, call SetLayer. The
+  model will fire an event, to which the UI should listen, refreshing the UI
+  in response.
   */
 class IntensityCurveModel : public AbstractModel
 {
@@ -72,6 +76,12 @@ public:
 
   irisITKObjectMacro(IntensityCurveModel, AbstractModel)
 
+  /**
+    This model will fire the ModelUpdateEvent when the data in the model
+    has changed. In particular, this event is fired when the layer to which
+    this model is bound changes.
+    */
+  FIRES(ModelUpdateEvent)
 
   irisGetMacro(ParentModel, GlobalUIModel *)
   void SetParentModel(GlobalUIModel *parent);
@@ -81,8 +91,10 @@ public:
 
   /**
     Set the layer with which the model is associated. This can be NULL,
-    in which case, the model will be dissasociated from all layers.
+    in which case, the model will be dissasociated from all layers. This
+    will fire the
     */
+
   void SetLayer(GreyImageWrapperBase *layer);
 
   /** Get the layer associated with the model, or NULL if there is none */
@@ -124,29 +136,30 @@ public:
     */
   IntensityCurveLayerProperties *CreateProperty(GreyImageWrapperBase *w);
 
-  /** Moving control point access. The following four functions are called
-      by the numeric value model class, and don't need to be called directly */
-  bool IsMovingControlPointAvailable();
-  Vector2d GetMovingControlPointPosition();
-  void SetMovingControlPointPosition(Vector2d p);
-  NumericValueRange<Vector2d> GetMovingControlPointRange();
 
-  /** Window and level access */
-  bool IsLevelAndWindowAvailable();
-  Vector2d GetLevelAndWindow();
-  void SetLevelAndWindow(Vector2d p);
-  NumericValueRange<Vector2d> GetLevelAndWindowRange();
 
   /** Update the model in response to upstream events */
   virtual void OnUpdate();
 
-  typedef AbstractEditableNumericValueModel<double> NumericValueModel;
+  typedef AbstractEditableNumericValueModel<double> RealValueModel;
+  typedef AbstractEditableNumericValueModel<int> IntegerValueModel;
+  typedef AbstractEditableNumericValueModel<bool> BooleanValueModel;
 
-  irisGetMacro(MovingControlXModel, NumericValueModel *)
-  irisGetMacro(MovingControlYModel, NumericValueModel *)
-  irisGetMacro(LevelModel, NumericValueModel *)
-  irisGetMacro(WindowModel, NumericValueModel *)
+  irisGetMacro(MovingControlXModel, RealValueModel *)
+  irisGetMacro(MovingControlYModel, RealValueModel *)
+  irisGetMacro(LevelModel, RealValueModel *)
+  irisGetMacro(WindowModel, RealValueModel *)
 
+  irisGetMacro(MovingControlIdModel, IntegerValueModel *)
+
+  irisGetMacro(HistogramBinSizeModel, IntegerValueModel *)
+
+  irisGetMacro(HistogramCutoffModel, RealValueModel *)
+
+  irisGetMacro(HistogramScaleModel, BooleanValueModel *)
+
+
+  void OnAutoFitWindow();
 protected:
 
   // A layer association
@@ -163,12 +176,6 @@ protected:
   GlobalUIModel *m_ParentModel;
   GreyImageWrapperBase *m_Layer;
 
-  // The child models for control point X and Y coordinates
-  SmartPtr<NumericValueModel> m_MovingControlXModel, m_MovingControlYModel;
-
-  // Child models for window and level
-  SmartPtr<NumericValueModel> m_LevelModel, m_WindowModel;
-
   // Whether the control point is being dragged
   bool m_FlagDraggedControlPoint;
 
@@ -180,11 +187,53 @@ protected:
   bool UpdateControlPoint(size_t i, float t, float x);
   int GetControlPointInVicinity(float x, float y, int pixelRadius);
 
-  // Get all window and level properties at once
-  void GetLevelAndWindowProperties(double &level, double &level_min,
-                                   double &level_max, double &level_step,
-                                   double &window, double &window_min,
-                                   double &window_max, double &window_step);
+  // Model for the control point index
+  SmartPtr<IntegerValueModel> m_MovingControlIdModel;
+
+  // Moving control point Id access methods
+  bool GetMovingControlPointIdValueAndRange(int &value,
+                                            NumericValueRange<int> *range);
+  void SetMovingControlPointId(int value);
+
+  // The child models for control point X and Y coordinates
+  SmartPtr<RealValueModel> m_MovingControlXModel, m_MovingControlYModel;
+
+  // Moving control point position access methods
+  bool GetMovingControlPointPositionAndRange(Vector2d &lw,
+                                             NumericValueRange<Vector2d> *range);
+  void SetMovingControlPointPosition(Vector2d p);
+
+  // Child models for window and level
+  SmartPtr<RealValueModel> m_LevelModel, m_WindowModel;
+
+  // Window and level access methods
+  bool GetLevelAndWindowValueAndRange(Vector2d &lw,
+                                      NumericValueRange<Vector2d> *range);
+  void SetLevelAndWindow(Vector2d p);
+
+  // Child model for histogram bin size
+  SmartPtr<IntegerValueModel> m_HistogramBinSizeModel;
+
+  // Histogram bin size access methods
+  bool GetHistogramBinSizeValueAndRange(int &value,
+                                        NumericValueRange<int> *range);
+  void SetHistogramBinSize(int value);
+
+  // Child model for histogram cutoff
+  SmartPtr<RealValueModel> m_HistogramCutoffModel;
+
+  // Histogram bin size access methods
+  bool GetHistogramCutoffValueAndRange(double &value,
+                                       NumericValueRange<double> *range);
+  void SetHistogramCutoff(double value);
+
+  // Child model for histogram scale
+  SmartPtr<BooleanValueModel> m_HistogramScaleModel;
+
+  // Histogram bin size access methods
+  bool GetHistogramScaleValueAndRange(bool &value,
+                                      NumericValueRange<bool> *range);
+  void SetHistogramScale(bool value);
 
   friend class IntensityCurvePropertyAssociationFactory;
 };

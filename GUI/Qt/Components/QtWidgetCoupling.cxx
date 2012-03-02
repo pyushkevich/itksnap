@@ -1,0 +1,2 @@
+#include "QtWidgetCoupling.h"
+

@@ -45,6 +45,7 @@ class GlobalState;
 class AbstractLoadImageDelegate;
 class IRISWarningList;
 class IntensityCurveModel;
+class LayerSelectionModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -113,6 +114,9 @@ public:
   /** Get the model for intensity curve navigation */
   irisGetMacro(IntensityCurveModel, IntensityCurveModel *)
 
+  /** Get the model encapsulating the main images and all overlays */
+  irisGetMacro(LoadedLayersSelectionModel, LayerSelectionModel *)
+
   /** Load the main image */
   void LoadGrayImage(GuidedNativeImageIO *io);
 
@@ -152,6 +156,9 @@ protected:
 
   // Model for intensity curve manipulation
   SmartPtr<IntensityCurveModel> m_IntensityCurveModel;
+
+  // Layer selection model encapsulating the main image and overlays
+  SmartPtr<LayerSelectionModel> m_LoadedLayersSelectionModel;
 
   // The current 2D toolbar mode
   irisPropertyDeclMacro(ToolbarMode, ToolbarModeType)

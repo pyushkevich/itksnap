@@ -23,51 +23,21 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 =========================================================================*/
-
-#ifndef QTDOUBLESPINBOXCOUPLING_H
-#define QTDOUBLESPINBOXCOUPLING_H
+#ifndef QTWIDGETCOUPLING_H
+#define QTWIDGETCOUPLING_H
 
 #include <QObject>
+#include <QSlider>
+#include <QSpinBox>
+#include <QDoubleSpinBox>
 #include <EditableNumericValueModel.h>
-#include "SNAPCommon.h"
-
-class EventBucket;
-class QDoubleSpinBox;
-
-class QtDoubleSpinboxCoupling : public QObject
-{
-  Q_OBJECT
-
-public:
-
-  // The model that couples with this object
-  typedef AbstractEditableNumericValueModel<double> ModelType;
-
-  explicit QtDoubleSpinboxCoupling(QDoubleSpinBox *widget, ModelType *model);
-
-  virtual ~QtDoubleSpinboxCoupling();
-
-public slots:
-
-  void onModelUpdate(const EventBucket &);
-  void onWidgetValueChanged(double value);
-
-protected:
-
-  void updateWidgetFromModel();
-
-  QDoubleSpinBox *m_Widget;
-  ModelType *m_Model;
-  bool m_Updating;
-
-  int m_DefaultDecimals;
-};
-
-
-
-class QSpinBox;
+#include <SNAPCommon.h>
 #include <Property.h>
+#include <LatentITKEventNotifier.h>
 
+/**
+  Abstract class for hierarchy of data mappings between widgets and models
+  */
 class AbstractWidgetDataMapping
 {
 public:
@@ -76,6 +46,11 @@ public:
   virtual void CopyFromTargetToWidget() = 0;
 };
 
+
+/**
+  Data mapping between a numeric model and an input widget TWidget.
+  The mapping handles the value of the widget, and its range.
+  */
 template <class TAtomic, class TWidget, class WidgetTraits>
 class NumericModelWidgetDataMapping : public AbstractWidgetDataMapping
 {
@@ -92,11 +67,16 @@ public:
   {
     m_Updating = true;
 
-    if(!m_Model->IsValueNull())
+    // Prepopulate the range with current values in case the model does
+    // not actually compute ranges
+    NumericValueRange<TAtomic> range = WidgetTraits::GetRange(m_Widget);
+    TAtomic value;
+
+    // Obtain the value from the model
+    if(m_Model->GetValueAndRange(value, &range))
       {
-      NumericValueRange<TAtomic> range = m_Model->GetRange();
       WidgetTraits::SetRange(m_Widget, range);
-      WidgetTraits::SetValue(m_Widget, m_Model->GetValue());
+      WidgetTraits::SetValue(m_Widget, value);
       }
     else
       {
@@ -111,9 +91,16 @@ public:
   {
     if(!m_Updating)
       {
-      TAtomic value = WidgetTraits::GetValue(m_Widget);
-      if(value != m_Model->GetValue())
-        m_Model->SetValue(value);
+      TAtomic user_value = WidgetTraits::GetValue(m_Widget), model_value;
+
+      // Note: if the model reports that the value is invalid, we are not
+      // allowing the user to mess with the value. This may have some odd
+      // consequences. We need to investigate.
+      if(m_Model->GetValueAndRange(model_value, NULL) &&
+         model_value != user_value)
+        {
+        m_Model->SetValue(user_value);
+        }
       }
   }
 
@@ -125,16 +112,18 @@ private:
 };
 
 
-
-
+/**
+  Data mapping between a property and an input widget TWidget.
+  The mapping handles the value of the widget only.
+  */
 template <class TAtomic, class TWidget, class TPropertyContainer,
           class WidgetTraits>
-class BasicWidgetDataMapping : public AbstractWidgetDataMapping
+class BasicPropertyToWidgetDataMapping : public AbstractWidgetDataMapping
 {
 public:
   typedef void (TPropertyContainer::*SetterFunction)(TAtomic);
 
-  BasicWidgetDataMapping(
+  BasicPropertyToWidgetDataMapping(
       TWidget *w, ConstProperty<TAtomic> &p,
       SetterFunction setter, TPropertyContainer *c)
     : m_Widget(w), m_Property(p), m_Setter(setter), m_Container(c) {}
@@ -161,7 +150,9 @@ protected:
 };
 
 
-
+/**
+  Empty template for default traits. Specialize for different Qt widgets
+  */
 template <class TAtomic, class TWidget>
 struct DefaultWidgetTraits
 {
@@ -172,10 +163,9 @@ struct DefaultWidgetTraits
   */
 };
 
-
-#include <QSpinBox>
-#include <QSlider>
-
+/**
+  Default traits for the Qt Spin Box
+  */
 template <class TAtomic>
 struct DefaultWidgetTraits<TAtomic, QSpinBox>
 {
@@ -206,8 +196,19 @@ struct DefaultWidgetTraits<TAtomic, QSpinBox>
     w->setValue(w->minimum());
     w->setSpecialValueText(" ");
   }
+
+  static NumericValueRange<TAtomic> GetRange(QSpinBox *w)
+  {
+    return NumericValueRange<TAtomic>(
+          static_cast<TAtomic>(w->minimum()),
+          static_cast<TAtomic>(w->maximum()),
+          static_cast<TAtomic>(w->singleStep()));
+  }
 };
 
+/**
+  Default traits for the Qt Double Spin Box
+  */
 template <class TAtomic>
 struct DefaultWidgetTraits<TAtomic, QDoubleSpinBox>
 {
@@ -246,6 +247,14 @@ struct DefaultWidgetTraits<TAtomic, QDoubleSpinBox>
       w->setDecimals(0);
   }
 
+  static NumericValueRange<TAtomic> GetRange(QDoubleSpinBox *w)
+  {
+    return NumericValueRange<TAtomic>(
+          static_cast<TAtomic>(w->minimum()),
+          static_cast<TAtomic>(w->maximum()),
+          static_cast<TAtomic>(w->singleStep()));
+  }
+
   static void SetValueToNull(QDoubleSpinBox *w)
   {
     w->setValue(w->minimum());
@@ -272,7 +281,41 @@ struct DefaultWidgetTraits<TAtomic, QSlider>
   }
 };
 
-#include "LatentITKEventNotifier.h"
+#include <QCheckBox>
+template <class TAtomic>
+struct DefaultWidgetTraits<TAtomic, QCheckBox>
+{
+  static const char *GetSignal()
+  {
+    return SIGNAL(stateChanged(int));
+  }
+
+  static TAtomic GetValue(QCheckBox *w)
+  {
+    return static_cast<TAtomic>(w->isChecked());
+  }
+
+  static void SetValue(QCheckBox *w, const TAtomic &value)
+  {
+    w->setChecked(static_cast<bool>(value));
+  }
+
+  static void SetRange(QCheckBox *w, NumericValueRange<TAtomic> &range)
+  {
+  }
+
+  static NumericValueRange<TAtomic> GetRange(QCheckBox *w)
+  {
+    return NumericValueRange<TAtomic>();
+  }
+
+  static void SetValueToNull(QCheckBox *w)
+  {
+    w->setChecked(false);
+  }
+};
+
+
 
 class QtCouplingHelper : public QObject
 {
@@ -310,8 +353,8 @@ void makeCoupling(TWidget *w, TContainer *c,
   // Retrieve the property
   ConstProperty<TAtomic> &p = ((*c).*(getter))();
 
-  typedef BasicWidgetDataMapping<TAtomic, TWidget, TContainer, WidgetTraits>
-      MappingType;
+  typedef BasicPropertyToWidgetDataMapping<
+      TAtomic, TWidget, TContainer, WidgetTraits> MappingType;
 
   MappingType *mapping = new MappingType(w, p, setter, c);
 
@@ -335,10 +378,10 @@ void makeCoupling(TWidget *w, TContainer *c,
   makeCoupling<TAtomic, TWidget, TContainer, WidgetTraits>(w,c,setter,getter);
 }
 
+
 template <class TAtomic, class TWidget, class WidgetTraits>
-void makeCouplingToNumericModel(
-    TWidget *w,
-    AbstractEditableNumericValueModel<TAtomic> *model)
+void makeCoupling(TWidget *w,
+                  AbstractEditableNumericValueModel<TAtomic> *model)
 {
   typedef NumericModelWidgetDataMapping<TAtomic, TWidget, WidgetTraits> MappingType;
   MappingType *mapping = new MappingType(w, model);
@@ -360,14 +403,24 @@ void makeCouplingToNumericModel(
   h->connect(w, WidgetTraits::GetSignal(), SLOT(onUserModification()));
 }
 
+
+/** Create a coupling between a numeric model and a Qt widget. The widget
+  will listen to the events from the model and update its value and range
+  accordingly. When the user interacts with the widget, the model will be
+  updated. The coupling fully automates mapping of data between Qt input
+  widgets and SNAP numeric models.
+
+  This version of the method uses default traits. There is also a version
+  that allows you to provide your own traits.
+*/
 template <class TAtomic, class TWidget>
-void makeCouplingToNumericModel(
-    TWidget *w,
-    AbstractEditableNumericValueModel<TAtomic> *model)
+void makeCoupling(TWidget *w,
+                  AbstractEditableNumericValueModel<TAtomic> *model)
 {
   typedef DefaultWidgetTraits<TAtomic, TWidget> WidgetTraits;
-  makeCouplingToNumericModel<TAtomic, TWidget, WidgetTraits>(w, model);
+  makeCoupling<TAtomic, TWidget, WidgetTraits>(w, model);
 }
 
 
-#endif // QTDOUBLESPINBOXCOUPLING_H
+
+#endif // QTWIDGETCOUPLING_H

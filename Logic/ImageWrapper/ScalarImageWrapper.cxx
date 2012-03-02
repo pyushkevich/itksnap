@@ -332,6 +332,7 @@ ScalarImageWrapper<TPixel>
 }
 
 
+
 template class ScalarImageWrapper<float>;
 template class ScalarImageWrapper<GreyType>;
 template class ScalarImageWrapper<LabelType>;

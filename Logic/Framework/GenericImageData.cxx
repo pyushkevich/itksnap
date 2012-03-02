@@ -496,6 +496,14 @@ LayerIterator::operator ++()
   return *this;
 }
 
+LayerIterator &
+LayerIterator::operator +=(int k)
+{
+  for(int i = 0; i < k; i++)
+    ++(*this);
+  return *this;
+}
+
 ImageWrapperBase * LayerIterator::GetLayer()
 {
   assert(m_IterRole < NO_ROLE);

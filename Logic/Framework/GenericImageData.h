@@ -77,6 +77,8 @@ public:
 
   LayerIterator & operator++();
 
+  LayerIterator & operator+=(int k);
+
   /** Get the layer being pointed to */
   ImageWrapperBase *GetLayer();
 
@@ -88,6 +90,7 @@ public:
 
   /** Get the role of the current layer */
   LayerRole GetRole();
+
 
 private:
 
@@ -176,12 +179,6 @@ public:
   }
   */
 
-  /**
-   * Get the total number of layers (counting main and overlays). If main
-   * has not been loaded, returns 0
-   */
-  // virtual unsigned int GetNumberOfLayers() const;
-
 
   /**
     Get the number of layers in certain role(s). This is not as fast
@@ -191,14 +188,30 @@ public:
   virtual unsigned int GetNumberOfLayers(int role_filter = 0x11111111);
 
 
+  /**
+    Get an iterator that iterates throught the layers in certain roles
+    */
   LayerIterator GetLayers(int role_filter = 0x11111111)
   {
     return LayerIterator(this, role_filter);
   }
 
   /**
-    Get one of the layers (counting main and overlays)
+    Get one of the layers (counting main and overlays). This is the same as
+    calling GetLayers(role_filter) and then iterating n-times. Throws an
+    exception if n exceeds the number of layers.
     */
+  ImageWrapperBase *GetNthLayer(int n, int role_filter = 0x11111111)
+  {
+    LayerIterator it(this, role_filter);
+    for(int i = 0; i < n && !it.IsAtEnd(); i++)
+      ++it;
+    if(it.IsAtEnd())
+      throw IRISException("Illegal layer (%d of %d) requested",
+                          n, GetNumberOfLayers());
+    return it.GetLayer();
+  }
+
   // virtual ImageWrapperBase* GetLayer(unsigned int layer) const;
 
   /**

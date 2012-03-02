@@ -52,13 +52,18 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
       }
     }
 
-  // Delete the objects that have not been visited
-  for(iterator it = this->begin(); it != this->end(); ++it)
+  // Safely delete the objects that have not been visited
+  iterator it = this->begin();
+  while(it != this->end())
+    {
     if(it->second.m_Visit != m_VisitCounter)
       {
       delete (TObject *) it->second;
-      erase(it);
+      erase(it++);
       }
+    else
+      it++;
+    }
 }
 
 template<class TObject, class TFilter, class TFactoryDelegate>

@@ -33,15 +33,15 @@ QtDoubleSpinboxCoupling
 ::QtDoubleSpinboxCoupling(QDoubleSpinBox *widget, ModelType *model)
   : QObject(widget), m_Widget(widget), m_Model(model)
 {
+  // Get the default number of decimals
+  m_DefaultDecimals = widget->decimals();
+
   // Update the values from the model
   updateWidgetFromModel();
 
   // Listen to value change events for this widget
   connect(widget, SIGNAL(valueChanged(double)), SLOT(onWidgetValueChanged(double)),
           Qt::DirectConnection);
-
-  // Get the default number of decimals
-  m_DefaultDecimals = widget->decimals();
 
   // Listen to value change events from the model
   LatentITKEventNotifier::connect(

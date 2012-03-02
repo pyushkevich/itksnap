@@ -32,6 +32,9 @@ private slots:
 
   void onModelUpdate(const EventBucket &b);
 
+
+  void on_btnAuto_clicked();
+
 private:
 
   IntensityCurveModel *m_Model;

@@ -91,6 +91,10 @@ void IntensityCurveRenderer::paintGL(int *bkgColor)
     double xspan = histogram->GetBinMax(nBins - 1) - histogram->GetBinMin(0);
     double yspan = histogram->GetMaxFrequency() *
         m_Model->GetProperties().GetHistogramCutoff();
+
+    if(m_Model->GetProperties().IsHistogramLog() && yspan > 0)
+      yspan = log10(yspan);
+
     glScaled(1.0 / xspan, 1.0 / yspan, 1.0);
     glTranslated(-histogram->GetBinMin(0), 0, 0);
 
@@ -112,6 +116,8 @@ void IntensityCurveRenderer::paintGL(int *bkgColor)
       double x0 = histogram->GetBinMin(i);
       double x1 = histogram->GetBinMax(i);
       double y = histogram->GetFrequency(i);
+      if(m_Model->GetProperties().IsHistogramLog() && y > 0)
+        y = log10(y);
 
       // Paint the bar
       glVertex2f(x0,0);
@@ -133,6 +139,8 @@ void IntensityCurveRenderer::paintGL(int *bkgColor)
         double x0 = histogram->GetBinMin(i);
         double x1 = histogram->GetBinMax(i);
         double y = histogram->GetFrequency(i);
+        if(m_Model->GetProperties().IsHistogramLog() && y > 0)
+          y = log10(y);
 
         // Paint the bar
         glVertex2f(x0,0);

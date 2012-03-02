@@ -240,6 +240,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ImageIOWizardModel.cxx
   GUI/Model/IntensityCurveModel.cxx
   GUI/Model/IOActions.cxx
+  GUI/Model/LayerSelectionModel.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
   GUI/Model/PolygonDrawingModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
@@ -262,6 +263,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ImageIOWizardModel.h
   GUI/Model/IntensityCurveModel.h
   GUI/Model/IOActions.h
+  GUI/Model/LayerSelectionModel.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
   GUI/Model/PolygonDrawingModel.h
   GUI/Model/SNAPAppearanceSettings.h
@@ -285,9 +287,9 @@ SET(UI_QT_CXX
   GUI/Qt/Components/CursorInspector.cxx
   GUI/Qt/Components/LabelInspector.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
-  GUI/Qt/Components/QtDoubleSpinboxCoupling.cxx
   GUI/Qt/Components/QtReporterDelegates.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
+  GUI/Qt/Components/QtWidgetCoupling.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
   GUI/Qt/Components/SNAPComponent.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
@@ -317,10 +319,10 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/CursorInspector.h
   GUI/Qt/Components/LabelInspector.h
   GUI/Qt/Components/LatentITKEventNotifier.h
-  GUI/Qt/Components/QtDoubleSpinboxCoupling.h
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
+  GUI/Qt/Components/QtWidgetCoupling.h
   GUI/Qt/Components/SNAPComponent.h
   GUI/Qt/Components/SliceViewPanel.h
   GUI/Qt/Components/VoxelIntensityQTableModel.h

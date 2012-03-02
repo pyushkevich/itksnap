@@ -2,13 +2,19 @@
 #define LAYERINSPECTORDIALOG_H
 
 #include <QDialog>
+#include <QAbstractListModel>
 
 class IntensityCurveBox;
 class ContrastInspector;
+class GlobalUIModel;
+class LayerListQtModel;
 
 namespace Ui {
     class LayerInspectorDialog;
 }
+
+
+
 
 class LayerInspectorDialog : public QDialog
 {
@@ -20,8 +26,17 @@ public:
 
   ContrastInspector *GetContrastInspector();
 
+  void SetModel(GlobalUIModel *model);
+
+public slots:
+
+  void onLayerSelection();
+
+
 private:
     Ui::LayerInspectorDialog *ui;
+    GlobalUIModel *m_Model;
+    LayerListQtModel *m_LayerListModel;
 };
 
 #endif // LAYERINSPECTORDIALOG_H

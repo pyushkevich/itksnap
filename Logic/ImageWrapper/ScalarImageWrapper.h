@@ -167,7 +167,7 @@ public:
     */
   virtual double GetImageMinAsDouble()
   {
-    return (double) this->GetImageMax();
+    return (double) this->GetImageMin();
   }
 
   /**

@@ -103,6 +103,12 @@ public:
   ColorMap GetColorMap () const;
   void SetColorMap (const ColorMap& colormap);
 
+  /**
+    Automatically rescale the intensity range based on image histogram
+    quantiles.
+    */
+  void AutoFitContrast();
+
   void Update();
 
   /** Constructor initializes mappers */

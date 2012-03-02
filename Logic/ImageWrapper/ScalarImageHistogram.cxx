@@ -31,6 +31,7 @@ ScalarImageHistogram
   m_Scale = 1.0 / m_BinWidth;
 
   // Allocate the histogram
+  m_Bins.clear();
   m_Bins.resize(nBins, 0);
 
   m_MaxFrequency = 0;

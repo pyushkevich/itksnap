@@ -196,6 +196,61 @@ GreyImageWrapper<TPixel>::IntensityFunctor
   m_IntensityFactor = 1.0f / (intensityMax-intensityMin);
 }
 
+template <class TPixel>
+void
+GreyImageWrapper<TPixel>
+::AutoFitContrast()
+{
+  // Get the histogram
+  const ScalarImageHistogram *hist = this->GetHistogram();
+
+  // Integrate the histogram until reaching 0.1%
+  GreyType imin = hist->GetBinMin(0);
+  GreyType ilow = imin;
+  size_t accum = 0;
+  size_t accum_goal = this->GetNumberOfVoxels() / 1000;
+  for(size_t i = 0; i < hist->GetSize(); i++)
+    {
+    if(accum + hist->GetFrequency(i) < accum_goal)
+      {
+      accum += hist->GetFrequency(i);
+      ilow = hist->GetBinMax(i);
+      }
+    else break;
+    }
+
+  // Same, but from above
+  GreyType imax = hist->GetBinMax(hist->GetSize() - 1);
+  GreyType ihigh = imax;
+  accum = 0;
+  for(size_t i = hist->GetSize() - 1; i >= 0; i--)
+    {
+    if(accum + hist->GetFrequency(i) < accum_goal)
+      {
+      accum += hist->GetFrequency(i);
+      ihigh = hist->GetBinMin(i);
+      }
+    else break;
+    }
+
+  // If for some reason the window is off, we set everything to max/min
+  if(ilow >= ihigh)
+    { ilow = imin; ihigh = imax; }
+
+  // Compute the unit coordinate values that correspond to min and max
+  double iAbsMax = this->GetImageMaxAsDouble();
+  double iAbsMin = this->GetImageMinAsDouble();
+  double factor = 1.0 / (iAbsMax - iAbsMin);
+  double t0 = factor * (ilow - iAbsMin);
+  double t1 = factor * (ihigh - iAbsMin);
+
+  // Set the window and level
+  m_IntensityCurveVTK->ScaleControlPointsToWindow(
+        (float) t0, (float) t1);
+}
+
+
+
 template<class TPixel>
 typename GreyImageWrapper<TPixel>::DisplayPixelType
 GreyImageWrapper<TPixel>::IntensityFunctor
@@ -210,5 +265,6 @@ GreyImageWrapper<TPixel>::IntensityFunctor
   // Map the output to a RGBA pixel
   return m_Colormap.MapIndexToRGBA(outZeroOne);
 }
+
 
 template class GreyImageWrapper<short>;

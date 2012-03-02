@@ -31,6 +31,11 @@
 #include "ImageIOWizardModel.h"
 #include "GlobalUIModel.h"
 #include "ImageIODelegates.h"
+#include "LayerInspectorDialog.h"
+#include "IntensityCurveBox.h"
+#include "IntensityCurveModel.h"
+#include "QtReporterDelegates.h"
+#include "ContrastInspector.h"
 
 MainImageWindow::MainImageWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -159,4 +164,21 @@ void MainImageWindow::on_actionAdd_RGB_Overlay_triggered()
   ImageIOWizard wiz(this);
   wiz.SetModel(model);
   wiz.exec();
+}
+
+void MainImageWindow::on_actionImage_Contrast_triggered()
+{
+  LayerInspectorDialog *lid = new LayerInspectorDialog();
+  lid->SetModel(m_Model);
+
+  SmartPtr<IntensityCurveModel> model = m_Model->GetIntensityCurveModel();
+  model->SetViewportReporter(
+        new QtViewportReporter(lid->GetContrastInspector()->GetCurveBox()));
+  model->SetLayer(m_Model->GetDriver()->GetCurrentImageData()->GetGrey());
+
+  lid->GetContrastInspector()->SetModel(model);
+
+  lid->exec();
+
+  delete lid;
 }

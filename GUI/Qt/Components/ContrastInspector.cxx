@@ -2,7 +2,7 @@
 #include "ui_ContrastInspector.h"
 #include "QtStyles.h"
 #include "IntensityCurveModel.h"
-#include "QtDoubleSpinboxCoupling.h"
+#include "QtWidgetCoupling.h"
 
 ContrastInspector::ContrastInspector(QWidget *parent) :
     SNAPComponent(parent),
@@ -34,12 +34,20 @@ void ContrastInspector::SetModel(IntensityCurveModel *model)
   // Set up the couplings. This is all we have to do to make the spin box
   // play with the model! There are no callbacks to write, no event handlers
   // to worry about! Yay!!!
-  new QtDoubleSpinboxCoupling(ui->inControlX, m_Model->GetMovingControlXModel());
-  new QtDoubleSpinboxCoupling(ui->inControlY, m_Model->GetMovingControlYModel());
+  makeCoupling(ui->inControlX, m_Model->GetMovingControlXModel());
+  makeCoupling(ui->inControlY, m_Model->GetMovingControlYModel());
 
   // Set up couplings for window and level
-  new QtDoubleSpinboxCoupling(ui->inLevel, m_Model->GetLevelModel());
-  new QtDoubleSpinboxCoupling(ui->inWindow, m_Model->GetWindowModel());
+  makeCoupling(ui->inLevel, m_Model->GetLevelModel());
+  makeCoupling(ui->inWindow, m_Model->GetWindowModel());
+
+  // Make coupling for the control point id
+  makeCoupling(ui->inControlId, m_Model->GetMovingControlIdModel());
+
+  // Histogram bin controls
+  makeCoupling(ui->inBinSize, m_Model->GetHistogramBinSizeModel());
+  makeCoupling(ui->inCutoff, m_Model->GetHistogramCutoffModel());
+  makeCoupling(ui->inLogScale, m_Model->GetHistogramScaleModel());
 }
 
 void ContrastInspector::on_btnRemoveControl_clicked()
@@ -60,4 +68,10 @@ void ContrastInspector::on_btnReset_clicked()
 void ContrastInspector::onModelUpdate(const EventBucket &b)
 {
   m_Model->Update();
+}
+
+
+void ContrastInspector::on_btnAuto_clicked()
+{
+  m_Model->OnAutoFitWindow();
 }

@@ -66,6 +66,8 @@ private slots:
 
   void on_actionAdd_RGB_Overlay_triggered();
 
+  void on_actionImage_Contrast_triggered();
+
 private:
     Ui::MainImageWindow *ui;
 

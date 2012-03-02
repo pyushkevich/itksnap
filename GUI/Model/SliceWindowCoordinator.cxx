@@ -42,8 +42,11 @@ SliceWindowCoordinator
 ::SliceWindowCoordinator()
 {
   // Set up the zoom model
-  m_CommonZoomModel = CommonZoomFactorModel::New();
-  m_CommonZoomModel->SetParentModel(this);
+  m_CommonZoomFactorModel = makeChildNumericValueModel(
+        this,
+        &Self::GetCommonZoomValueAndRange,
+        &Self::SetCommonZoomValue,
+        ZoomLevelUpdateEvent(), ZoomLevelUpdateEvent());
 
   // Initialize to defaults
   m_SliceModel[0] = m_SliceModel[1] = m_SliceModel[2] = NULL;
@@ -300,20 +303,6 @@ SliceWindowCoordinator
   return zoom;
 }
 
-double CommonZoomFactorModel::GetValue()
-{
-  return (double) m_Parent->GetCommonZoomLevel();
-}
-
-void CommonZoomFactorModel::SetValue(double value)
-{
-  m_Parent->SetZoomLevelAllWindows((float) value);
-}
-
-bool CommonZoomFactorModel::IsValueNull()
-{
-  return !m_Parent->GetLinkedZoom();
-}
 
 /**
   Compute a round step size so that there are approximately
@@ -321,25 +310,38 @@ bool CommonZoomFactorModel::IsValueNull()
   */
 double round_step_size(double a, double b, double nsteps)
 {
-  double k = pow(10, floor(log((b-a) / nsteps) / log(10.0)));
-  double s = round((b-a) / (nsteps * k)) * k;
+  double delta = fabs(b-a);
+  double k = pow(10, floor(log((delta) / nsteps) / log(10.0)));
+  double s = round(delta / (nsteps * k)) * k;
   return s;
 }
 
-NumericValueRange<double>
-CommonZoomFactorModel::GetRange()
+bool SliceWindowCoordinator::GetCommonZoomValueAndRange(
+    double &zoom, NumericValueRange<double> *range)
 {
-  float fmin, fmax;
-  m_Parent->GetZoomRange(0, fmin, fmax);
+  // Linked zoom required
+  if(!GetLinkedZoom())
+    return false;
 
-  // Compute a reasonable step value
-  return NumericValueRange<double>((double) fmin, (double) fmax,
-                                   round_step_size(fmax, fmin, 100.0));
+  // Get the zoom
+  zoom = (double) GetCommonZoomLevel();
+
+  // Get the range
+  if(range)
+    {
+    float fmin, fmax;
+    GetZoomRange(0, fmin, fmax);
+
+    // Compute a reasonable step value
+    range->Minimum = fmin;
+    range->Maximum = fmax;
+    range->StepSize = round_step_size(fmax, fmin, 100.0);
+    }
+
+  return true;
 }
 
-void CommonZoomFactorModel
-::SetParentModel(SliceWindowCoordinator *coord)
+void SliceWindowCoordinator::SetCommonZoomValue(double zoom)
 {
-  m_Parent = coord;
-  Rebroadcast(m_Parent, ZoomLevelUpdateEvent(), ValueChangedEvent());
+  this->SetZoomLevelAllWindows((float) zoom);
 }

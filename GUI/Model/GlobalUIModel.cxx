@@ -36,6 +36,7 @@
 #include <GuidedNativeImageIO.h>
 #include <ImageIODelegates.h>
 #include <IntensityCurveModel.h>
+#include <LayerSelectionModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -75,6 +76,12 @@ GlobalUIModel::GlobalUIModel()
   // Intensity curve model
   m_IntensityCurveModel = IntensityCurveModel::New();
   m_IntensityCurveModel->SetParentModel(this);
+
+  // Layer selections
+  m_LoadedLayersSelectionModel = LayerSelectionModel::New();
+  m_LoadedLayersSelectionModel->SetParentModel(this);
+  m_LoadedLayersSelectionModel->SetRoleFilter(
+        LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
 
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());

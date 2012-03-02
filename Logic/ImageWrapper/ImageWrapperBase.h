@@ -250,6 +250,12 @@ public:
   virtual void UpdateIntensityMapFunction() = 0;
 
   /**
+    Automatically rescale the intensity range based on image histogram
+    quantiles.
+    */
+  virtual void AutoFitContrast() = 0;
+
+  /**
    * Set the reference intensity range - a range of intensity that
    * is mapped to the domain of the intensity curve
    * @see GetIntensityMapFunction

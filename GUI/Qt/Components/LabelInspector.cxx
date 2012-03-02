@@ -6,7 +6,7 @@
 
 #include "IRISApplication.h"
 #include "ColorLabelTable.h"
-#include "QtDoubleSpinboxCoupling.h"
+#include "QtWidgetCoupling.h"
 
 LabelInspector::LabelInspector(QWidget *parent) :
   SNAPComponent(parent),

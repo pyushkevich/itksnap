@@ -21,7 +21,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QListWidget" name="listWidget">
+       <widget class="QListView" name="inLayer">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -34,11 +34,6 @@
           <height>16777215</height>
          </size>
         </property>
-        <item>
-         <property name="text">
-          <string>Main Image</string>
-         </property>
-        </item>
        </widget>
       </item>
       <item>
