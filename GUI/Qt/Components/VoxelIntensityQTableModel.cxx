@@ -5,6 +5,8 @@
 #include "LatentITKEventNotifier.h"
 #include "SNAPEvents.h"
 
+#include "LayerSelectionModel.h"
+
 VoxelIntensityQTableModel::VoxelIntensityQTableModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
@@ -25,8 +27,7 @@ void VoxelIntensityQTableModel::SetParentModel(GlobalUIModel *model)
 
 int VoxelIntensityQTableModel::rowCount(const QModelIndex &parent) const
 {
-  GenericImageData *gid = m_Model->GetDriver()->GetCurrentImageData();
-  return gid->GetNumberOfLayers(LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+  return m_Model->GetLoadedLayersSelectionModel()->GetNumberOfLayers();
 }
 
 int VoxelIntensityQTableModel::columnCount(const QModelIndex &parent) const
@@ -36,24 +37,22 @@ int VoxelIntensityQTableModel::columnCount(const QModelIndex &parent) const
 
 QVariant VoxelIntensityQTableModel::data(const QModelIndex &index, int role) const
 {
-  IRISApplication *app = m_Model->GetDriver();
-  GenericImageData *gid = app->GetCurrentImageData();
   if (role == Qt::DisplayRole)
     {
+    // Get the corresponding layer
+    LayerIterator it =
+        m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(index.row());
+
     if(index.column() == 0)
       {
-      if(index.row() == 0)
-        return "Main image";
-      else
-        return QString("Overlay %1").arg(index.row());
+      return QString(it.GetDynamicNickname().c_str());
       }
     else
       {
-      LayerIterator it(gid, LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
-      for(int i = 1; i < index.row(); i++)
-        ++it;
+      // Get the cursor position
+      Vector3ui cursor = m_Model->GetDriver()->GetCursorPosition();
 
-      Vector3ui cursor = app->GetCursorPosition();
+      // See if this layer is grey
       if(GreyImageWrapperBase *giw = it.GetLayerAsGray())
         {
         return giw->GetVoxelMappedToNative(cursor);

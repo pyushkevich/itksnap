@@ -7,9 +7,14 @@
 #include "ImageWrapper.h"
 #include "LayerSelectionModel.h"
 #include "GenericImageData.h"
+#include "IntensityCurveModel.h"
+
+
 
 /**
-  Model that handles interaction with the list of layers GUI
+  Model that handles interaction with the list of layers GUI. For the time
+  being, this only handles the nickname of the layers, but it could also
+  provide support for overall visibility, other aspects.
   */
 class LayerListQtModel : public QAbstractListModel
 {
@@ -35,13 +40,31 @@ public:
       return QVariant();
 
     // Get the name of the layer
-    LayerIterator::LayerRole role = m_Model->GetRoleOfNthLayer(index.row());
+    LayerIterator it = m_Model->GetNthLayer(index.row());
+    return QString(it.GetDynamicNickname().c_str());
+  }
 
-    if(role == LayerIterator::MAIN_ROLE)
-      return QVariant("Main Image");
-    else if(role == LayerIterator::OVERLAY_ROLE)
-      return QVariant("Overlay");
-    else return QVariant();
+  bool setData(const QModelIndex &index, const QVariant &value, int qtrole)
+  {
+    // Ignore bad requests
+    if(!index.isValid() || qtrole != Qt::EditRole)
+      return false;
+
+    // Get the layer iter
+    LayerIterator it = m_Model->GetNthLayer(index.row());
+    QString nick(it.GetDynamicNickname().c_str());
+    if(nick != value.toString())
+      {
+      it.GetLayer()->SetNickname(value.toString().toStdString());
+      emit dataChanged(index, index);
+      return true;
+      }
+    return false;
+  }
+
+  Qt::ItemFlags flags(const QModelIndex &index) const
+  {
+    return QAbstractListModel::flags(index) | Qt::ItemIsEditable;
   }
 
 private:
@@ -57,6 +80,7 @@ LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   m_LayerListModel = new LayerListQtModel(this);
+  // ui->inLayer->setItemDelegate(new LayerListEditNameDelegate(this));
 }
 
 LayerInspectorDialog::~LayerInspectorDialog()
@@ -83,13 +107,11 @@ ContrastInspector * LayerInspectorDialog::GetContrastInspector()
   return ui->cmpInspector;
 }
 
-#include "IntensityCurveModel.h"
-
 void LayerInspectorDialog::onLayerSelection()
 {
   // Update the current layer selection
   QModelIndex idx = ui->inLayer->selectionModel()->currentIndex();
   GreyImageWrapperBase *layer =
-      m_Model->GetLoadedLayersSelectionModel()->GetNthLayerAsGrey(idx.row());
+      m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(idx.row()).GetLayerAsGray();
   m_Model->GetIntensityCurveModel()->SetLayer(layer);
 }

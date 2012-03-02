@@ -34,6 +34,9 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
        </widget>
       </item>
       <item>

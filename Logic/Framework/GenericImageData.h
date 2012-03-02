@@ -50,6 +50,7 @@
 #include "RGBImageWrapper.h"
 #include "GlobalState.h"
 #include "ImageCoordinateGeometry.h"
+#include <string>
 
 template <class TPixel> class GreyImageWrapper;
 template <class TPixel> class RGBImageWrapper;
@@ -91,6 +92,11 @@ public:
   /** Get the role of the current layer */
   LayerRole GetRole();
 
+  /** Get a dynamic name for the current layer. If the layer has a nickname,
+    it will be returned. Otherwise, a generic name will be returned based on
+    the index of the layer in its role */
+  std::string GetDynamicNickname();
+
 
 private:
 
@@ -104,7 +110,9 @@ private:
 
   // The iterator bit
   LayerRole m_IterRole;
-  std::vector<ImageWrapperBase *>::iterator m_Iter;
+  unsigned int m_IndexInRole;
+
+  static std::map<LayerRole, std::string> m_RoleDefaultNames;
 };
 
 

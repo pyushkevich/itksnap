@@ -44,7 +44,10 @@
 #include "itkRGBAPixel.h"
 #include "IRISSlicer.h"
 #include "IRISApplication.h"
+#include <algorithm>
 #include <list>
+#include <map>
+#include <iostream>
 #include "ImageWrapperFactory.h"
 
 /** Borland compiler is very lazy so we need to instantiate the template
@@ -455,6 +458,15 @@ LayerIterator
   m_Wrappers = &data->m_Wrappers;
   m_RoleFilter = role_filter;
 
+  // Populate role names
+  if(m_RoleDefaultNames.size() == 0)
+    {
+    m_RoleDefaultNames.insert(std::make_pair(MAIN_ROLE, "Main Image"));
+    m_RoleDefaultNames.insert(std::make_pair(OVERLAY_ROLE, "Overlay"));
+    m_RoleDefaultNames.insert(std::make_pair(LABEL_ROLE, "Segmentation"));
+    m_RoleDefaultNames.insert(std::make_pair(SNAP_ROLE, "SNAP Image"));
+    }
+
   // Find the first role that fits the filter and is not empty
   m_IterRole = MAIN_ROLE;
   FindNextUsableRole();
@@ -469,7 +481,7 @@ void LayerIterator::FindNextUsableRole()
       WrapperStorage::iterator it = m_Wrappers->find(m_IterRole);
       if(it != m_Wrappers->end() && it->second.size())
         {
-        m_Iter = it->second.begin();
+        m_IndexInRole = 0;
         break;
         }
       }
@@ -487,8 +499,8 @@ LayerIterator &
 LayerIterator::operator ++()
 {
   // We should never be pointing to the end
-  m_Iter++;
-  if(m_Iter == (*m_Wrappers)[m_IterRole].end())
+  m_IndexInRole++;
+  if(m_IndexInRole >= (*m_Wrappers)[m_IterRole].size())
     {
     m_IterRole = (LayerRole)(m_IterRole << 1);
     FindNextUsableRole();
@@ -508,8 +520,8 @@ ImageWrapperBase * LayerIterator::GetLayer()
 {
   assert(m_IterRole < NO_ROLE);
   assert(m_Wrappers->find(m_IterRole) != m_Wrappers->end());
-  assert(m_Iter != (*m_Wrappers)[m_IterRole].end());
-  return *m_Iter;
+  assert(m_IndexInRole < (*m_Wrappers)[m_IterRole].size());
+  return (*m_Wrappers)[m_IterRole][m_IndexInRole];
 }
 
 GreyImageWrapperBase * LayerIterator::GetLayerAsGray()
@@ -526,6 +538,30 @@ LayerIterator::LayerRole
 LayerIterator::GetRole()
 {
   return m_IterRole;
+}
+
+std::map<LayerIterator::LayerRole, std::string> LayerIterator::m_RoleDefaultNames;
+
+std::string
+LayerIterator::GetDynamicNickname()
+{
+  // If there is a nickname, return it
+  const char *nick = this->GetLayer()->GetNickname();
+  if(nick && strlen(nick))
+    return std::string(nick);
+
+  // Otherwise assign a name
+  std::string roleName = m_RoleDefaultNames[m_IterRole];
+
+  // If more than one in that role, augment by a number
+  if((*m_Wrappers)[m_IterRole].size() > 1)
+    {
+    std::ostringstream oss;
+    oss << roleName << " " << (1+m_IndexInRole);
+    roleName = oss.str();
+    }
+
+  return roleName;
 }
 
 

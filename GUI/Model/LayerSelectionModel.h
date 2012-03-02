@@ -35,16 +35,9 @@ public:
   int GetNumberOfLayers();
 
   /**
-    Get the n-th layer. Again, this is updated dynamically updated.
+    Get an iterator object pointing to the N-th layer
     */
-  ImageWrapperBase *GetNthLayer(int n);
-  GreyImageWrapperBase *GetNthLayerAsGrey(int n);
-  RGBImageWrapperBase *GetNthLayerAsRGB(int n);
-
-  /**
-    Get the role of the n-th layer
-    */
-  LayerIterator::LayerRole GetRoleOfNthLayer(int n);
+  LayerIterator GetNthLayer(int n);
 
 protected:
 
