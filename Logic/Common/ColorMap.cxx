@@ -135,11 +135,11 @@ ColorMap
 }
 
 ColorMap
-::ColorMap(SystemPreset preset)
+::~ColorMap()
 {
-  SetToSystemPreset(preset);
 }
 
+/*
 ColorMap
 ::ColorMap(const ColorMap& rhs)
 {
@@ -152,6 +152,7 @@ ColorMap
     }
   this->UpdateInterpolants(); 
 }
+*/
 
 bool
 ColorMap
@@ -229,6 +230,9 @@ ColorMap
         }
       }
     }
+
+  // Fire a change event
+  this->InvokeEvent(ColorMapChangeEvent());
 }
 
 ColorMap::RGBAType
@@ -475,4 +479,11 @@ void ColorMap
   // Got this far? store the new map
   m_CMPoints = newpts;
   this->UpdateInterpolants();
-}
+ }
+
+ void ColorMap::CopyInformation(const ColorMap *source)
+ {
+   m_CMPoints = source->m_CMPoints;
+   m_Interpolants = source->m_Interpolants;
+   this->InvokeEvent(ColorMapChangeEvent());
+ }

@@ -80,7 +80,6 @@ LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   m_LayerListModel = new LayerListQtModel(this);
-  // ui->inLayer->setItemDelegate(new LayerListEditNameDelegate(this));
 }
 
 LayerInspectorDialog::~LayerInspectorDialog()
@@ -99,12 +98,9 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
           SIGNAL(currentChanged(QModelIndex,QModelIndex)),
           this, SLOT(onLayerSelection()));
 
-
-}
-
-ContrastInspector * LayerInspectorDialog::GetContrastInspector()
-{
-  return ui->cmpInspector;
+  // Hook up the model to the component inspectors
+  ui->cmpContrast->SetModel(model->GetIntensityCurveModel());
+  ui->cmpColorMap->SetModel(model->GetColorMapModel());
 }
 
 void LayerInspectorDialog::onLayerSelection()

@@ -95,6 +95,7 @@ SET(LOGIC_CXX
   Common/IRISObserverPattern.cxx
   Common/Property.cxx
   Common/Registry.cxx
+  Common/SNAPOpenGL.cxx
   Common/SystemInterface.cxx
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
@@ -233,7 +234,9 @@ SET(LOGIC_HEADERS
 
 # These files have the UI model code, which is GUI-TK independent
 SET(UI_GENERIC_CXX
+  GUI/Model/AbstractLayerAssociatedModel.cxx
   GUI/Model/AbstractModel.cxx
+  GUI/Model/ColorMapModel.cxx
   GUI/Model/GenericSliceModel.cxx
   GUI/Model/GlobalUIModel.cxx
   GUI/Model/ImageIODelegates.cxx
@@ -247,6 +250,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/SNAPAppearanceSettings.cxx
   GUI/Model/StateManagement.cxx
   GUI/Model/UIAction.cxx
+  GUI/Renderer/ColorMapRenderer.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
   GUI/Renderer/IntensityCurveRenderer.cxx
@@ -256,7 +260,9 @@ SET(UI_GENERIC_CXX
 )
 
 SET(UI_GENERIC_HEADERS
+  GUI/Model/AbstractLayerAssociatedModel.h
   GUI/Model/AbstractModel.h
+  GUI/Model/ColorMapModel.h
   GUI/Model/GenericSliceModel.h
   GUI/Model/GlobalUIModel.h
   GUI/Model/ImageIODelegates.h
@@ -274,6 +280,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/UIAction.h
   GUI/Model/UIReporterDelegates.h
   GUI/Model/UIState.h
+  GUI/Renderer/ColorMapRenderer.h
   GUI/Renderer/CrosshairsRenderer.h
   GUI/Renderer/GenericSliceRenderer.h
   GUI/Renderer/IntensityCurveRenderer.h
@@ -284,6 +291,7 @@ SET(UI_GENERIC_HEADERS
 # These files contain the Qt-specific user interface source code
 SET(UI_QT_CXX
   GUI/Qt/Components/ContrastInspector.cxx
+  GUI/Qt/Components/ColorMapInspector.cxx
   GUI/Qt/Components/CursorInspector.cxx
   GUI/Qt/Components/LabelInspector.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
@@ -295,6 +303,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SliceViewPanel.cxx
   GUI/Qt/Components/VoxelIntensityQTableModel.cxx
   GUI/Qt/Components/ZoomInspector.cxx
+  GUI/Qt/View/ColorMapBox.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
   GUI/Qt/View/GenericSliceView.cxx
   GUI/Qt/View/IntensityCurveBox.cxx
@@ -316,6 +325,7 @@ SET(UI_QT_CXX
 # The header files for the UI project
 SET(UI_MOC_HEADERS
   GUI/Qt/Components/ContrastInspector.h
+  GUI/Qt/Components/ColorMapInspector.h
   GUI/Qt/Components/CursorInspector.h
   GUI/Qt/Components/LabelInspector.h
   GUI/Qt/Components/LatentITKEventNotifier.h
@@ -327,6 +337,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SliceViewPanel.h
   GUI/Qt/Components/VoxelIntensityQTableModel.h
   GUI/Qt/Components/ZoomInspector.h
+  GUI/Qt/View/ColorMapBox.h
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
   GUI/Qt/View/IntensityCurveBox.h
@@ -343,6 +354,7 @@ SET(UI_MOC_HEADERS
 )
 
 SET(UI_FORMS
+  GUI/Qt/Components/ColorMapInspector.ui
   GUI/Qt/Components/ContrastInspector.ui
   GUI/Qt/Components/CursorInspector.ui
   GUI/Qt/Components/LabelInspector.ui

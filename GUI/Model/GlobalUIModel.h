@@ -46,6 +46,7 @@ class AbstractLoadImageDelegate;
 class IRISWarningList;
 class IntensityCurveModel;
 class LayerSelectionModel;
+class ColorMapModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -114,6 +115,9 @@ public:
   /** Get the model for intensity curve navigation */
   irisGetMacro(IntensityCurveModel, IntensityCurveModel *)
 
+  /** Get the model for color map interation */
+  irisGetMacro(ColorMapModel, ColorMapModel *)
+
   /** Get the model encapsulating the main images and all overlays */
   irisGetMacro(LoadedLayersSelectionModel, LayerSelectionModel *)
 
@@ -156,6 +160,9 @@ protected:
 
   // Model for intensity curve manipulation
   SmartPtr<IntensityCurveModel> m_IntensityCurveModel;
+
+  // Model for color map manipulation
+  SmartPtr<ColorMapModel> m_ColorMapModel;
 
   // Layer selection model encapsulating the main image and overlays
   SmartPtr<LayerSelectionModel> m_LoadedLayersSelectionModel;

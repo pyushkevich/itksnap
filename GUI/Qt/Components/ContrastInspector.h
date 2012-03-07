@@ -3,22 +3,20 @@
 
 #include "SNAPComponent.h"
 
-class IntensityCurveBox;
 class IntensityCurveModel;
+class QtViewportReporter;
 
 namespace Ui {
-    class ContrastInspector;
+  class ContrastInspector;
 }
 
 class ContrastInspector : public SNAPComponent
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit ContrastInspector(QWidget *parent = 0);
-    ~ContrastInspector();
-
-  IntensityCurveBox *GetCurveBox();
+  explicit ContrastInspector(QWidget *parent = 0);
+  ~ContrastInspector();
 
   void SetModel(IntensityCurveModel *model);
 
@@ -30,6 +28,7 @@ private slots:
 
   void on_btnReset_clicked();
 
+  // Slot for model updates
   void onModelUpdate(const EventBucket &b);
 
 
@@ -40,6 +39,9 @@ private:
   IntensityCurveModel *m_Model;
 
   Ui::ContrastInspector *ui;
+
+  // Viewport reporter for the curve box
+  QtViewportReporter *m_CurveBoxViewportReporter;
 };
 
 #endif // CONTRASTINSPECTOR_H

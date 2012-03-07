@@ -98,10 +98,10 @@ public:
   DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
   /**
-   * Get/Set the colormap
-   */
-  ColorMap GetColorMap () const;
-  void SetColorMap (const ColorMap& colormap);
+    Get a reference to the colormap
+    */
+  ColorMap *GetColorMap () const;
+
 
   /**
     Automatically rescale the intensity range based on image histogram
@@ -128,28 +128,27 @@ private:
     /** Map a grey value */
     DisplayPixelType operator()(const TPixel &value) const;
 
-    // The storage for the float->float intensity map
-    IntensityCurveInterface *m_IntensityMap;
+    // Parent object
+    GreyImageWrapper<TPixel> *m_Parent;
 
     // Intensity mapping factors
     double m_IntensityMin;
     float m_IntensityFactor;
  
-    // Color map
-    ColorMap m_Colormap;
-
     // Equality operators required, if variables defined!!!
+    /*
     bool operator == (const IntensityFunctor &z) const 
       { 
       return 
-        m_IntensityMap == z.m_IntensityMap &&
+        m_Parent->m_IntensityCurveVTK == z.m_Parent->m_IntensityCurveVTK &&
         m_IntensityFactor == z.m_IntensityFactor &&
         m_IntensityMin == z.m_IntensityMin &&
-        m_Colormap == z.m_Colormap;
+        *(m_Parent->m_ColorMap) == *(z.m_Parent->m_ColorMap);
       }
 
     bool operator != (const IntensityFunctor &z) const 
       { return !(*this == z); }
+    */
 
     /**
      * Set the range over which the input data is mapped to output data
@@ -192,9 +191,17 @@ private:
   CachePointer m_IntensityMapCache;
 
   /**
-   *
+   * Implementation of the intensity curve funcitonality. The intensity map
+   * transforms input intensity values into the range [0 1], which serves as
+   * the input into the color map transform.
    */
-  IntensityCurveVTK::Pointer m_IntensityCurveVTK;
+  SmartPtr<IntensityCurveVTK> m_IntensityCurveVTK;
+
+  /**
+    * Color map, which maps intensity values normalized to the range [0 1]
+    * to output RGB values
+    */
+  SmartPtr<ColorMap> m_ColorMap;
 
   /**
    * Filters used to remap the intensity of the slices in this image

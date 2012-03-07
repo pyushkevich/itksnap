@@ -24,8 +24,6 @@ public:
     explicit LayerInspectorDialog(QWidget *parent = 0);
     ~LayerInspectorDialog();
 
-  ContrastInspector *GetContrastInspector();
-
   void SetModel(GlobalUIModel *model);
 
 public slots:

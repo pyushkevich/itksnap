@@ -112,6 +112,16 @@ private:
 };
 
 
+
+
+
+
+
+
+
+
+
+
 /**
   Data mapping between a property and an input widget TWidget.
   The mapping handles the value of the widget only.
@@ -315,6 +325,104 @@ struct DefaultWidgetTraits<TAtomic, QCheckBox>
   }
 };
 
+#include <QRadioButton>
+
+template <class TAtomic>
+struct DefaultWidgetTraits<TAtomic, QRadioButton>
+{
+  static const char *GetSignal()
+  {
+    return SIGNAL(toggled(bool));
+  }
+
+  static TAtomic GetValue(QRadioButton *w)
+  {
+    return static_cast<TAtomic>(w->isChecked());
+  }
+
+  static void SetValue(QRadioButton *w, const TAtomic &value)
+  {
+    w->setChecked(static_cast<bool>(value));
+  }
+
+  static void SetRange(QRadioButton *w, NumericValueRange<TAtomic> &range)
+  {
+  }
+
+  static NumericValueRange<TAtomic> GetRange(QRadioButton *w)
+  {
+    return NumericValueRange<TAtomic>();
+  }
+
+  static void SetValueToNull(QRadioButton *w)
+  {
+    w->setChecked(false);
+  }
+};
+
+template <class TAtomic>
+struct RadioButtonGroupTraits :
+    public DefaultWidgetTraits<TAtomic, QWidget>
+{
+  static TAtomic GetValue(QWidget *w)
+  {
+    // Figure out which button is checked
+    int ifound = 0;
+    for(QObjectList::const_iterator it = w->children().begin();
+        it != w->children().end(); ++it)
+      {
+      if((*it)->inherits("QAbstractButton"))
+        {
+        QAbstractButton *qab = static_cast<QAbstractButton *>(*it);
+        if(qab->isChecked())
+          break;
+        ++ifound;
+        }
+      }
+    return static_cast<TAtomic>(ifound);
+  }
+
+  static void SetValue(QWidget *w, const TAtomic &value)
+  {
+    // Figure out which button is checked
+    int ifound = (int) value;
+
+    // Set all the radios
+    for(QObjectList::const_iterator it = w->children().begin();
+        it != w->children().end(); ++it)
+      {
+      if((*it)->inherits("QAbstractButton"))
+        {
+        QAbstractButton *qab = static_cast<QAbstractButton *>(*it);
+        qab->setChecked(ifound-- == 0);
+        }
+      }
+  }
+
+  static void SetRange(QWidget *w, NumericValueRange<TAtomic> &range)
+  {
+  }
+
+  static NumericValueRange<TAtomic> GetRange(QWidget *w)
+  {
+    return NumericValueRange<TAtomic>();
+  }
+
+  static void SetValueToNull(QWidget *w)
+  {
+    // Set all the radios
+    for(QObjectList::const_iterator it = w->children().begin();
+        it != w->children().end(); ++it)
+      {
+      if((*it)->inherits("QAbstractButton"))
+        {
+        QAbstractButton *qab = static_cast<QAbstractButton *>(*it);
+        qab->setChecked(false);
+        }
+      }
+  }
+
+};
 
 
 class QtCouplingHelper : public QObject
@@ -421,6 +529,44 @@ void makeCoupling(TWidget *w,
   makeCoupling<TAtomic, TWidget, WidgetTraits>(w, model);
 }
 
+
+/**
+  Create a coupling between a widget containing a set of radio buttons
+  and an enum. The values of the enum must be 0,1,2,... The buttons must
+  be in the same order as the enum entries.
+  */
+template <class TAtomic, class TWidget>
+void makeRadioGroupCoupling(
+    TWidget *w, AbstractEditableNumericValueModel<TAtomic> *model)
+{
+  typedef RadioButtonGroupTraits<TAtomic> WidgetTraits;
+  typedef NumericModelWidgetDataMapping<TAtomic, TWidget, WidgetTraits> MappingType;
+  MappingType *mapping = new MappingType(w, model);
+  QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
+
+  // Populate the widget
+  mapping->CopyFromTargetToWidget();
+
+  // Listen to value change events from the model
+  LatentITKEventNotifier::connect(
+        model, ValueChangedEvent(),
+        h, SLOT(onPropertyModification()));
+
+  LatentITKEventNotifier::connect(
+        model, RangeChangedEvent(),
+        h, SLOT(onPropertyModification()));
+
+  // Listen to value change events for every child widget
+  const QObjectList &kids = w->children();
+  for(QObjectList::const_iterator it = kids.begin(); it != kids.end(); ++it)
+    {
+    if((*it)->inherits("QAbstractButton"))
+      {
+      QAbstractButton *qab = static_cast<QAbstractButton *>(*it);
+      h->connect(qab, SIGNAL(toggled(bool)), SLOT(onUserModification()));
+      }
+    }
+}
 
 
 #endif // QTWIDGETCOUPLING_H

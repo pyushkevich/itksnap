@@ -96,8 +96,8 @@ ScalarImageWrapper<TPixel>
   typename ChopFilterType::Pointer fltChop = ChopFilterType::New();
 
   // Check if there is a difference in voxel size, i.e., user wants resampling
-  Vector3ul vOldSize(this->m_Image->GetLargestPossibleRegion().GetSize().GetSize());
-  Vector3d vOldSpacing(this->m_Image->GetSpacing().GetDataPointer());
+  Vector3ul vOldSize = this->m_Image->GetLargestPossibleRegion().GetSize();
+  Vector3d vOldSpacing = this->m_Image->GetSpacing();
   
   if(roi.GetResampleFlag())
     {

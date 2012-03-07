@@ -1,7 +1,7 @@
 #ifndef INTENSITYCURVEMODEL_H
 #define INTENSITYCURVEMODEL_H
 
-#include <AbstractModel.h>
+#include <AbstractLayerAssociatedModel.h>
 #include <ImageWrapperBase.h>
 #include <UIReporterDelegates.h>
 
@@ -51,12 +51,9 @@ protected:
   unsigned long m_ObserverTag;
 };
 
-struct IntensityCurvePropertyAssociationFactory
-{
-  IntensityCurveLayerProperties *New(GreyImageWrapperBase *layer);
-  IntensityCurveModel *m_Model;
-};
-
+typedef AbstractLayerAssociatedModel<
+    IntensityCurveLayerProperties,
+    GreyImageWrapperBase> IntensityCurveModelBase;
 
 /**
   The intensity curve model is used to interact with the intensity curve in
@@ -70,35 +67,18 @@ struct IntensityCurvePropertyAssociationFactory
   model will fire an event, to which the UI should listen, refreshing the UI
   in response.
   */
-class IntensityCurveModel : public AbstractModel
+class IntensityCurveModel : public IntensityCurveModelBase
 {
 public:
 
-  irisITKObjectMacro(IntensityCurveModel, AbstractModel)
-
-  /**
-    This model will fire the ModelUpdateEvent when the data in the model
-    has changed. In particular, this event is fired when the layer to which
-    this model is bound changes.
-    */
-  FIRES(ModelUpdateEvent)
-
-  irisGetMacro(ParentModel, GlobalUIModel *)
-  void SetParentModel(GlobalUIModel *parent);
+  irisITKObjectMacro(IntensityCurveModel, IntensityCurveModelBase)
 
   /** Before using the model, it must be coupled with a size reporter */
   irisGetSetMacro(ViewportReporter, ViewportSizeReporter *)
 
-  /**
-    Set the layer with which the model is associated. This can be NULL,
-    in which case, the model will be dissasociated from all layers. This
-    will fire the
-    */
-
-  void SetLayer(GreyImageWrapperBase *layer);
-
-  /** Get the layer associated with the model, or NULL if there is none */
-  irisGetMacro(Layer, GreyImageWrapperBase *)
+  // Implementation of virtual functions from parent class
+  void RegisterWithLayer(GreyImageWrapperBase *layer);
+  void UnRegisterFromLayer(GreyImageWrapperBase *layer);
 
   /**
     Get the curve stored in the current layer
@@ -109,11 +89,6 @@ public:
     Get the histogram of the current layer
     */
   const ScalarImageHistogram *GetHistogram();
-
-  /**
-    Get the properties for the current layer
-    */
-  IntensityCurveLayerProperties &GetProperties();
 
   /**
     Process curve interaction event
@@ -162,26 +137,14 @@ public:
   void OnAutoFitWindow();
 protected:
 
-  // A layer association
-  typedef LayerAssociation<
-    IntensityCurveLayerProperties,GreyImageWrapperBase,
-    IntensityCurvePropertyAssociationFactory> LayerMapType;
+  IntensityCurveModel();
+  virtual ~IntensityCurveModel();
 
   // A size reporter delegate
   ViewportSizeReporter *m_ViewportReporter;
 
-  // A set of properties associated with each layer
-  LayerMapType m_LayerProperties;
-
-  GlobalUIModel *m_ParentModel;
-  GreyImageWrapperBase *m_Layer;
-
   // Whether the control point is being dragged
   bool m_FlagDraggedControlPoint;
-
-  IntensityCurveModel();
-  virtual ~IntensityCurveModel();
-
 
   Vector3d GetEventCurveCoordiantes(const Vector3d &x);
   bool UpdateControlPoint(size_t i, float t, float x);
@@ -235,7 +198,6 @@ protected:
                                       NumericValueRange<bool> *range);
   void SetHistogramScale(bool value);
 
-  friend class IntensityCurvePropertyAssociationFactory;
 };
 
 #endif // INTENSITYCURVEMODEL_H

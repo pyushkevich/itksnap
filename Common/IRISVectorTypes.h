@@ -46,6 +46,8 @@
 // For the little vector operations
 #include <vnl/vnl_vector_fixed.h>
 #include <vnl/vnl_matrix_fixed.h>
+#include <itkSize.h>
+#include <itkIndex.h>
 
 /**
  * \class iris_vector_fixed
@@ -61,6 +63,10 @@ public:
   typedef iris_vector_fixed<int,VSize> IntegerVectorType;
   typedef iris_vector_fixed<float,VSize> FloatVectorType;
   typedef iris_vector_fixed<double,VSize> DoubleVectorType;
+
+  typedef itk::Size<VSize> ITKSizeType;
+  typedef itk::Index<VSize> ITKIndexType;
+  typedef itk::FixedArray<T, VSize> ITKFixedArray;
 
   // Initialize the n-vector to zeros
   iris_vector_fixed() : Parent()
@@ -79,13 +85,37 @@ public:
 
   // Construct an fixed-n-vector initialized from \a datablck
   //  The data *must* have enough data. No checks performed.
-  explicit iris_vector_fixed(const T* data) : Parent(data) {}
+  // explicit iris_vector_fixed(const T* data) : Parent(data) {}
 
   // Convenience constructor for 2-D vectors
   iris_vector_fixed(const T& x0,const T& x1) : Parent(x0,x1) {}
 
   // Convenience constructor for 3-D vectors
   iris_vector_fixed(const T& x0,const T& x1,const T& x2) : Parent(x0,x1,x2) {}
+
+  // Initialize with an itk::Size
+  iris_vector_fixed(const ITKSizeType &size)
+  {
+    for(int i = 0; i < VSize; i++)
+      (*this)[i] = static_cast<T>(size[i]);
+  }
+
+  // Initialize with an itk::Index
+  iris_vector_fixed(const ITKIndexType &idx)
+  {
+    for(int i = 0; i < VSize; i++)
+      (*this)[i] = static_cast<T>(idx[i]);
+  }
+
+  // Initialize with an itk::FixedArray
+  iris_vector_fixed(const ITKFixedArray &arr)
+  {
+    this->copy_in(arr.GetDataPointer());
+  }
+
+  // Assignment operator that takes an int
+  Self &operator = (int value)
+  { this->fill((T) value); return *this; }
 
   /**
    * Clamp the vector between a pair of vectors (the elements of this vector

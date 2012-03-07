@@ -50,8 +50,11 @@ GreyImageWrapper<TPixel>
   m_IntensityCurveVTK = IntensityCurveVTK::New();
   m_IntensityCurveVTK->Initialize();
 
+  // Initialize the colormap
+  m_ColorMap = ColorMap::New();
+
   // Initialize the intensity functor
-  m_IntensityFunctor.m_IntensityMap = m_IntensityCurveVTK;
+  m_IntensityFunctor.m_Parent = this;
 
   // Instantiate the cache
   m_IntensityMapCache = CacheType::New();
@@ -162,20 +165,13 @@ GreyImageWrapper<TPixel>
 }
 
 template<class TPixel>
-ColorMap
+ColorMap *
 GreyImageWrapper<TPixel>
 ::GetColorMap() const
 {
-  return m_IntensityFunctor.m_Colormap;
+  return m_ColorMap;
 }
 
-template<class TPixel>
-void
-GreyImageWrapper<TPixel>
-::SetColorMap(const ColorMap& colormap)
-{
-  m_IntensityFunctor.m_Colormap = colormap;
-}
 
 template<class TPixel>
 void
@@ -260,10 +256,10 @@ GreyImageWrapper<TPixel>::IntensityFunctor
   double inZeroOne = (in - m_IntensityMin) * m_IntensityFactor;
   
   // Compute the intensity mapping
-  double outZeroOne = m_IntensityMap->Evaluate(inZeroOne);
+  double outZeroOne = m_Parent->m_IntensityCurveVTK->Evaluate(inZeroOne);
 
   // Map the output to a RGBA pixel
-  return m_Colormap.MapIndexToRGBA(outZeroOne);
+  return m_Parent->m_ColorMap->MapIndexToRGBA(outZeroOne);
 }
 
 

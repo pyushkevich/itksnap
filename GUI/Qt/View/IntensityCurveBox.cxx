@@ -53,19 +53,16 @@ void IntensityCurveBox::onModelUpdate(const EventBucket &bucket)
 
 void IntensityCurveInteractionDelegate::mousePressEvent(QMouseEvent *ev)
 {
-  qDebug("Press");
   m_Model->ProcessMousePressEvent(m_XSpace);
 }
 
 void IntensityCurveInteractionDelegate::mouseReleaseEvent(QMouseEvent *)
 {
-  qDebug("Drag");
   m_Model->ProcessMouseDragEvent(m_XSpace);
 }
 
 void IntensityCurveInteractionDelegate::mouseMoveEvent(QMouseEvent *)
 {
-  qDebug("Release");
   m_Model->ProcessMouseReleaseEvent(m_XSpace);
 }
 

@@ -32,10 +32,8 @@
 #include "GlobalUIModel.h"
 #include "ImageIODelegates.h"
 #include "LayerInspectorDialog.h"
-#include "IntensityCurveBox.h"
 #include "IntensityCurveModel.h"
-#include "QtReporterDelegates.h"
-#include "ContrastInspector.h"
+#include "ColorMapModel.h"
 
 MainImageWindow::MainImageWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -168,17 +166,22 @@ void MainImageWindow::on_actionAdd_RGB_Overlay_triggered()
 
 void MainImageWindow::on_actionImage_Contrast_triggered()
 {
+  // Make the main image layer active in the models.
+  // TODO: This should happen automatically somehow!
+  GreyImageWrapperBase *giw =
+      m_Model->GetDriver()->GetCurrentImageData()->GetGrey();
+  m_Model->GetIntensityCurveModel()->SetLayer(giw);
+  m_Model->GetColorMapModel()->SetLayer(giw);
+
+  // Create a new dialog to display
   LayerInspectorDialog *lid = new LayerInspectorDialog();
+
+  // Pass the model to the dialog
   lid->SetModel(m_Model);
 
-  SmartPtr<IntensityCurveModel> model = m_Model->GetIntensityCurveModel();
-  model->SetViewportReporter(
-        new QtViewportReporter(lid->GetContrastInspector()->GetCurveBox()));
-  model->SetLayer(m_Model->GetDriver()->GetCurrentImageData()->GetGrey());
-
-  lid->GetContrastInspector()->SetModel(model);
-
+  // Show the dialog
   lid->exec();
 
+  // Destroy the dialog
   delete lid;
 }

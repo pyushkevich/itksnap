@@ -24,13 +24,29 @@ public:
   typedef BooleanCondition Superclass;
   itkTypeMacro(Self, Superclass)
 
-  static SmartPtr<Self> New(TModel *model, TStateEnum state);
+  static SmartPtr<Self> New(TModel *model, TStateEnum state)
+  {
+    SmartPtr<Self> p = new Self(model, state);
+    p->UnRegister();
+    return p;
+  }
 
-  bool operator() () const;
+  bool operator() () const
+  {
+    return m_Model->CheckState(m_State);
+  }
 
 protected:
 
-  SNAPUIFlag(TModel *model, TStateEnum state);
+  SNAPUIFlag(TModel *model, TStateEnum state)
+  {
+    m_Model = model;
+    m_State = state;
+    AddListener<Self>(
+          m_Model, StateMachineChangeEvent(),
+          this, &Self::OnStateChange);
+  }
+
   virtual ~SNAPUIFlag() {}
 
 private:

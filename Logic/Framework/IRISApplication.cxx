@@ -1249,8 +1249,7 @@ IRISApplication
     : force_type;
 
   // Get the size of the image as a vector of uint
-  Vector3ui size = to_unsigned_int(Vector3ul(
-    io->GetNativeImage()->GetBufferedRegion().GetSize().GetSize()));
+  Vector3ui size = io->GetNativeImage()->GetBufferedRegion().GetSize();
 
   // Compute the new image geometry for the IRIS data
   ImageCoordinateGeometry icg(

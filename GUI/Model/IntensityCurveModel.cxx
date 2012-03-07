@@ -9,26 +9,12 @@
 
 template class LayerAssociation<IntensityCurveLayerProperties,
                                 GreyImageWrapperBase,
-                                IntensityCurvePropertyAssociationFactory>;
-
-
-
-
-
-
-
+                                IntensityCurveModelBase::PropertiesFactory>;
 
 
 IntensityCurveModel::IntensityCurveModel()
+  : IntensityCurveModelBase()
 {
-  // Set up the factory
-  IntensityCurvePropertyAssociationFactory factory;
-  factory.m_Model = this;
-  m_LayerProperties.SetDelegate(factory);
-
-  m_ParentModel = NULL;
-  m_Layer = NULL;
-
   // Create the child model for the moving control point id
   m_MovingControlIdModel = makeChildNumericValueModel<Self,int>(
         this,
@@ -89,59 +75,29 @@ IntensityCurveModel::~IntensityCurveModel()
 
 void
 IntensityCurveModel
-::SetParentModel(GlobalUIModel *parent)
+::RegisterWithLayer(GreyImageWrapperBase *layer)
 {
-  // Store the parent model
-  m_ParentModel = parent;
+  // Listen to events on the layer's curve
+  unsigned long tag =
+      Rebroadcast(layer->GetIntensityMapFunction(),
+                  IntensityCurveChangeEvent(), ModelUpdateEvent());
 
-  // Associate the layers with properties.
-  m_LayerProperties.SetImageData(
-        m_ParentModel->GetDriver()->GetCurrentImageData());
-
-  // Set active layer to NULL
-  SetLayer(NULL);
+  // Set a flag so we don't register a listener again
+  GetProperties().SetObserverTag(tag);
 }
 
 void
 IntensityCurveModel
-::SetLayer(GreyImageWrapperBase *layer)
+::UnRegisterFromLayer(GreyImageWrapperBase *layer)
 {
-
-  // Make sure the layer-specific stuff is up to date
-  m_LayerProperties.Update();
-
-  // Unregister from the current layer
-  if(m_LayerProperties.find(m_Layer) != m_LayerProperties.end())
+  // It's safe to call GetProperties()
+  unsigned long tag = GetProperties().GetObserverTag();
+  if(tag)
     {
-    // It's safe to call GetProperties()
-    unsigned long tag = GetProperties().GetObserverTag();
-    if(tag)
-      {
-      layer->GetIntensityMapFunction()->RemoveObserver(tag);
-      }
+    layer->GetIntensityMapFunction()->RemoveObserver(tag);
     }
-
-  // Set the layer
-  m_Layer = layer;
-
-  // Handle events. Need to be careful here, because layers are dynamically
-  // changing, and we don't want to add more than one observer to any layer.
-  // Note that we don't remove the observer from the old layer because when
-  // this method is called, the old layer may have already been destroyed!
-  if(m_Layer)
-    {
-    // Listen to events on the layer's curve
-    unsigned long tag =
-        Rebroadcast(m_Layer->GetIntensityMapFunction(),
-                    IntensityCurveChangeEvent(), ModelUpdateEvent());
-
-    // Set a flag so we don't register a listener again
-    GetProperties().SetObserverTag(tag);
-    }
-
-  // Fire an event to indicate the change
-  InvokeEvent(ModelUpdateEvent());
 }
+
 
 const ScalarImageHistogram *
 IntensityCurveModel
@@ -178,31 +134,10 @@ IntensityCurveLayerProperties::~IntensityCurveLayerProperties()
 {
 }
 
-IntensityCurveLayerProperties *
-IntensityCurvePropertyAssociationFactory
-::New(GreyImageWrapperBase *layer)
-{
-  return m_Model->CreateProperty(layer);
-}
-
-IntensityCurveLayerProperties *
-IntensityCurveModel
-::CreateProperty(GreyImageWrapperBase *w)
-{
-  // Create the property
-  return new IntensityCurveLayerProperties();
-}
-
 IntensityCurveInterface * IntensityCurveModel::GetCurve()
 {
   assert(m_Layer);
   return m_Layer->GetIntensityMapFunction();
-}
-
-IntensityCurveLayerProperties & IntensityCurveModel::GetProperties()
-{
-  assert(m_Layer);
-  return *m_LayerProperties[m_Layer];
 }
 
 bool

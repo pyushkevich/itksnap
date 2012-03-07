@@ -67,6 +67,16 @@ void activateOnFlag(QObject *w, TModel *m, TStateEnum flag)
 }
 
 template<class TModel, class TStateEnum>
+void activateOnNotFlag(QObject *w, TModel *m, TStateEnum flag)
+{
+  typedef SNAPUIFlag<TModel, TStateEnum> FlagType;
+  SmartPtr<FlagType> f = FlagType::New(m, flag);
+  SmartPtr<NotCondition> nf = NotCondition::New(f);
+  new QtWidgetActivator(w, nf);
+}
+
+
+template<class TModel, class TStateEnum>
 void activateOnAllFlags(QObject *w, TModel *m,
                         TStateEnum flag1, TStateEnum flag2)
 {

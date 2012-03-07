@@ -3,6 +3,7 @@
 #include "QtStyles.h"
 #include "IntensityCurveModel.h"
 #include "QtWidgetCoupling.h"
+#include "QtReporterDelegates.h"
 
 ContrastInspector::ContrastInspector(QWidget *parent) :
     SNAPComponent(parent),
@@ -10,6 +11,9 @@ ContrastInspector::ContrastInspector(QWidget *parent) :
 {
   ui->setupUi(this);
   ApplyCSS(this, ":/root/itksnap.css");
+
+  // Create the viewport reporter
+  m_CurveBoxViewportReporter = new QtViewportReporter(ui->box);
 }
 
 ContrastInspector::~ContrastInspector()
@@ -17,16 +21,14 @@ ContrastInspector::~ContrastInspector()
   delete ui;
 }
 
-IntensityCurveBox * ContrastInspector::GetCurveBox()
-{
-  return ui->box;
-}
-
 void ContrastInspector::SetModel(IntensityCurveModel *model)
 {
   // Set the model
   m_Model = model;
   ui->box->SetModel(model);
+
+  // Connect the viewport reporter to the model
+  model->SetViewportReporter(m_CurveBoxViewportReporter);
 
   // Listen to model update events
   connectITK(m_Model, ModelUpdateEvent());

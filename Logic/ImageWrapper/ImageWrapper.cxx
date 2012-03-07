@@ -214,7 +214,7 @@ ImageWrapper<TPixel>
   vnl_vector_fixed<double, 4> p = m_NiftiSform * x;
 
   // Return the component
-  return Vector3d(p.data_block());
+  return Vector3d(p[0], p[1], p[2]);
 }
 
 template <class TPixel>
@@ -232,7 +232,7 @@ ImageWrapper<TPixel>
   vnl_vector_fixed<double, 4> p = m_NiftiInvSform * x;
 
   // Return the component
-  return Vector3d(p.data_block());
+  return Vector3d(p[0], p[1], p[2]);
 }
 
 

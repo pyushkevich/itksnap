@@ -241,8 +241,8 @@ SNAPImageData
   TargetIterator itTarget(imgLevelSet,region);
 
   // During the copy loop, compute the extents of the initialization
-  Vector3l bbLower(reinterpret_cast<const long *>(region.GetSize().GetSize()));
-  Vector3l bbUpper(reinterpret_cast<const long *>(region.GetIndex().GetIndex()));
+  Vector3l bbLower = region.GetSize();
+  Vector3l bbUpper = region.GetIndex();
 
   unsigned long nInitVoxels = 0;
 
@@ -253,7 +253,7 @@ SNAPImageData
     if(itSource.Value() == m_SnakeColorLabel)
       {
       // Expand the bounding box accordingly
-      Vector3l point(itTarget.GetIndex().GetIndex());
+      Vector3l point = itTarget.GetIndex();
       bbLower = vector_min(bbLower,point);
       bbUpper = vector_max(bbUpper,point);
       
@@ -313,8 +313,8 @@ SNAPImageData
     regBubble.Crop(region);
 
     // Stretch the overall bounding box if necessary
-    bbLower = vector_min(bbLower,Vector3l(idxLower.GetIndex()));
-    bbUpper = vector_max(bbUpper,Vector3l(idxUpper.GetIndex()));
+    bbLower = vector_min(bbLower,Vector3l(idxLower));
+    bbUpper = vector_max(bbUpper,Vector3l(idxUpper));
 
     // Create an iterator with an index to fill out the bubble
     TargetIterator itThisBubble(imgLevelSet, regBubble);
@@ -526,8 +526,7 @@ SNAPImageData
       srcWrapper->DeepCopyRegion(roi, progressCommand);
 
   // Get the size of the region
-  Vector3ui size = to_unsigned_int(
-    Vector3ul(imgNewGrey->GetLargestPossibleRegion().GetSize().GetSize()));
+  Vector3ui size = imgNewGrey->GetLargestPossibleRegion().GetSize();
 
   // Compute an image coordinate geometry for the region of interest
   std::string rai[] = {
@@ -550,7 +549,6 @@ SNAPImageData
   m_GreyImageWrapper->UpdateIntensityMapFunction();
 
   // Copy the colormap too
-  m_GreyImageWrapper->SetColorMap(srcWrapper->GetColorMap());
-
+  m_GreyImageWrapper->GetColorMap()->CopyInformation(srcWrapper->GetColorMap());
 }
 

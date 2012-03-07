@@ -77,5 +77,9 @@ inline void glTranslate( const Vector3d &x ) { glTranslated(x[0],x[1],x[2]); }
 inline void glScale( const Vector3f &x ) { glScalef(x[0],x[1],x[2]); }
 inline void glScale( const Vector3d &x ) { glScaled(x[0],x[1],x[2]); }
 
+void
+gl_draw_circle_with_border(double x, double y, double r,
+                           int vp_width, int vp_height,
+                           Vector3ui color);
 
 #endif // __SNAPOpenGL_h_

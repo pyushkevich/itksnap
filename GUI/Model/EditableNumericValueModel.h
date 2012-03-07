@@ -44,10 +44,20 @@ template<class TVal> struct NumericValueRange
     Minimum(min), Maximum(max), StepSize(step) {}
 
   NumericValueRange(TVal min, TVal max) :
-    Minimum(min), Maximum(max), StepSize(0.0) {}
+    Minimum(min), Maximum(max)
+  {
+    StepSize = (TVal) 0;
+  }
 
-  NumericValueRange() :
-    Minimum(0.0), Maximum(0.0), StepSize(0.0) {}
+  NumericValueRange()
+  {
+    Minimum = static_cast<TVal>(0);
+    Maximum = (TVal) 0;
+    StepSize = (TVal) 0;
+  }
+
+  void Set(TVal min, TVal max, TVal step)
+    { Minimum = min; Maximum = max; StepSize = step; }
 };
 
 /**
@@ -90,6 +100,18 @@ public:
   // virtual TVal GetValue() = 0;
   // virtual NumericValueRange<TVal> GetRange() = 0;
   // virtual bool IsValueNull() = 0;
+};
+
+/**
+  A simpler model that does not provide range information, only value
+  value information.
+  */
+template<class TVal>
+class AbstractFixedRangeEditableValueModel : public AbstractModel
+{
+public:
+  virtual bool GetValue(TVal &value) = 0;
+  virtual void SetValue(TVal value) = 0;
 };
 
 /**

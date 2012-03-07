@@ -257,6 +257,16 @@ public:
   itkTypeMacro(self, super) \
   itkNewMacro(Self)
 
+/**
+  A macro combining the standard macros at the head of itk::Object classes,
+  excluding the New construct
+  */
+#define irisITKAbstractObjectMacro(self,super) \
+  typedef self Self; \
+  typedef super Superclass; \
+  typedef SmartPtr<Self> Pointer; \
+  typedef SmartPtr<const Self> ConstPointer; \
+  itkTypeMacro(self, super)
 
 /** 
  * A rip off from the ITK not used macro to eliminate 'parameter not used'

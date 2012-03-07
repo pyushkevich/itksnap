@@ -2,9 +2,9 @@
 #define ABSTRACTLAYERASSOCIATEDMODEL_H
 
 #include "AbstractModel.h"
-
-class GlobalUIModel;
-class ImageWrapperBase;
+#include "LayerAssociation.h"
+#include "GlobalUIModel.h"
+#include "IRISApplication.h"
 
 /**
   This is an abstract class for a special type of UI model that can be
@@ -29,25 +29,70 @@ template <class TProperties, class TWrapper = ImageWrapperBase>
 class AbstractLayerAssociatedModel : public AbstractModel
 {
 public:
-  irisITKObjectMacro(AbstractLayerAssociatedModel, AbstractModel)
+
+  typedef AbstractLayerAssociatedModel<TProperties,TWrapper> Self;
+  typedef AbstractModel Superclass;
+  typedef SmartPtr<Self> Pointer;
+  typedef SmartPtr<const Self> ConstPointer;
+  itkTypeMacro(AbstractLayerAssociatedModel, AbstractModel)
+
 
   FIRES(ModelUpdateEvent)
 
   irisGetMacro(ParentModel, GlobalUIModel *)
-  void SetParentModel(GlobalUIModel *parent);
+  void SetParentModel(GlobalUIModel *parent)
+  {
+    // Store the parent model
+    m_ParentModel = parent;
+
+    // Associate the layers with properties.
+    m_LayerProperties.SetImageData(
+          m_ParentModel->GetDriver()->GetCurrentImageData());
+
+    // Set active layer to NULL
+    this->SetLayer(NULL);
+  }
+
 
 
   /**
     Set the layer with which the model is associated. This can be NULL,
     in which case, the model will be dissasociated from all layers.
     */
-  void SetLayer(TWrapper *layer);
+  void SetLayer(TWrapper *layer)
+  {
+    // Make sure the layer-specific stuff is up to date
+    m_LayerProperties.Update();
+
+    // Unregister from the current layer
+    if(m_LayerProperties.find(m_Layer) != m_LayerProperties.end())
+      this->UnRegisterFromLayer(m_Layer);
+
+    // Set the layer
+    m_Layer = layer;
+
+    // Handle events. Need to be careful here, because layers are dynamically
+    // changing, and we don't want to add more than one observer to any layer.
+    // Note that we don't remove the observer from the old layer because when
+    // this method is called, the old layer may have already been destroyed!
+    if(m_Layer)
+      this->RegisterWithLayer(m_Layer);
+
+    // Fire an event to indicate the change
+    InvokeEvent(ModelUpdateEvent());
+  }
+
 
   /** Get the layer associated with the model, or NULL if there is none */
   irisGetMacro(Layer, TWrapper *)
 
   /** Get the properties associated with the current layer */
-  TProperties &GetProperties();
+  TProperties &GetProperties()
+  {
+    assert(m_Layer);
+    return *m_LayerProperties[m_Layer];
+  }
+
 
   /**
     This method should be implemented by the child class. It registers
@@ -71,23 +116,36 @@ public:
 
 
 protected:
-  AbstractLayerAssociatedModel() : AbstractModel() {}
+  AbstractLayerAssociatedModel()
+  {
+    // Set up the factory
+    PropertiesFactory factory;
+    factory.m_Model = this;
+    m_LayerProperties.SetDelegate(factory);
+
+    m_ParentModel = NULL;
+    m_Layer = NULL;
+  }
+
   virtual ~AbstractLayerAssociatedModel() {}
 
   /** Create a new property object for a new layer */
-  TProperties *CreateProperty(TWrapper *w);
+  TProperties *CreateProperty(TWrapper *w)
+  {
+    return new TProperties();
+  }
 
   // Parent model
   GlobalUIModel *m_ParentModel;
 
   // Currently associated layer
-  ImageWrapperBase *m_Layer;
+  TWrapper *m_Layer;
 
   // A factory class for creating properties
   class PropertiesFactory
   {
   public:
-    TProperties *New(TWrapper *f)
+    TProperties *New(TWrapper *w)
       { return m_Model->CreateProperty(w); }
     Self *m_Model;
   };
@@ -96,7 +154,7 @@ protected:
   typedef LayerAssociation<
     TProperties,TWrapper,PropertiesFactory> LayerMapType;
 
-  LayerMapType *m_LayerProperties;
+  LayerMapType m_LayerProperties;
 
 };
 

@@ -108,7 +108,7 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="ContrastInspector" name="cmpInspector">
+     <widget class="ContrastInspector" name="cmpContrast">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>1</horstretch>
@@ -119,7 +119,7 @@
        <string>Contrast</string>
       </attribute>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="ColorMapInspector" name="cmpColorMap">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>1</horstretch>
@@ -141,6 +141,12 @@
    <header>ContrastInspector.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>ColorMapInspector</class>
+   <extends>QWidget</extends>
+   <header>ColorMapInspector.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <resources/>
  <connections>
@@ -151,8 +157,8 @@
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>80</x>
-     <y>402</y>
+     <x>120</x>
+     <y>462</y>
     </hint>
     <hint type="destinationlabel">
      <x>161</x>

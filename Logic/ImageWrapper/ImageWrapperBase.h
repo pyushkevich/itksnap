@@ -4,6 +4,7 @@
 #include "SNAPCommon.h"
 #include "ImageCoordinateTransform.h"
 #include "itkImageRegion.h"
+#include "itkObject.h"
 
 namespace itk {
   template <unsigned int VDim> class ImageBase;
@@ -20,6 +21,7 @@ class ScalarImageWrapperBase;
 class VectorImageWrapperBase;
 class IntensityCurveInterface;
 class ScalarImageHistogram;
+class ColorMap;
 
 /**
  \class ImageWrapper
@@ -34,7 +36,7 @@ class ScalarImageHistogram;
  hierarchy is invisible to most of the SNAP classes, and accessed on special
  occasions, where the raw data of the image is needed.
  */
-class ImageWrapperBase
+class ImageWrapperBase : public itk::Object
 {
 public:
 
@@ -262,6 +264,9 @@ public:
    */
   virtual void SetReferenceIntensityRange(double refMin, double refMax) = 0;
   virtual void ClearReferenceIntensityRange() = 0;
+
+  /** Set the reference to the color map object */
+  virtual ColorMap* GetColorMap() const = 0;
 
 };
 

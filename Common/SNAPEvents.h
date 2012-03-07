@@ -78,6 +78,9 @@ itkEventMacro(AppearanceUpdateEvent, IRISEvent)
 /** A change to the intensity curve */
 itkEventMacro(IntensityCurveChangeEvent, IRISEvent)
 
+/** A change to the color map */
+itkEventMacro(ColorMapChangeEvent, IRISEvent)
+
 // A setter method that fires events
 #define irisSetWithEventMacro(name,type,event) \
     virtual void Set##name (type _arg) \

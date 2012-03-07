@@ -1,5 +1,437 @@
 #include "ColorMapModel.h"
+#include "LayerAssociation.txx"
+
+// This compiles the LayerAssociation for the color map
+template class LayerAssociation<ColorMapLayerProperties,
+                                GreyImageWrapperBase,
+                                ColorMapModelBase::PropertiesFactory>;
 
 ColorMapModel::ColorMapModel()
 {
+  // Set up the models
+  m_MovingControlPositionModel = makeChildNumericValueModel(
+        this,
+        &Self::GetMovingControlPositionValueAndRange,
+        &Self::SetMovingControlPosition);
+
+  // Create the RGB and opacity model
+  typedef AbstractEditableNumericValueModel<Vec4d> VectorNumericModel;
+  SmartPtr<VectorNumericModel> modelRGBA = makeChildNumericValueModel(
+        this,
+        &Self::GetMovingControlRGBAValueAndRange,
+        &Self::SetMovingControlRGBA);
+
+  // Get the component model for opacity
+  m_MovingControlOpacityModel = static_cast<RealValueModel *>(
+        ComponentEditableNumericValueModel<double, 4>::New(modelRGBA, 3));
+
+  m_MovingControlSideModel = makeChildNumericValueModel(
+        this,
+        &Self::GetMovingControlSideValueAndRange,
+        &Self::SetMovingControlSide);
+
+  m_MovingControlContinuityModel = makeChildNumericValueModel(
+        this,
+        &Self::GetMovingControlTypeValueAndRange,
+        &Self::SetMovingControlType);
+
+  // The model update events should also be rebroadcast as state changes
+  Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
+
 }
+
+ColorMap* ColorMapModel::GetColorMap()
+{
+  return this->GetLayer()->GetColorMap();
+}
+
+bool
+ColorMapModel
+::IsControlSelected(int cp, Side side)
+{
+  ColorMap *cm = this->GetColorMap();
+  ColorMapLayerProperties &p = this->GetProperties();
+
+  if(p.GetSelectedControlIndex() == cp)
+    {
+    if(cm->GetCMPoint(cp).m_Type == ColorMap::CONTINUOUS)
+      return true;
+    else return p.GetSelectedControlSide() == side;
+    }
+  else return false;
+}
+
+bool
+ColorMapModel
+::SetSelection(int cp, Side side)
+{
+  ColorMap *cm = this->GetColorMap();
+  ColorMapLayerProperties &p = this->GetProperties();
+  int cp_current = p.GetSelectedControlIndex();
+  Side side_current = p.GetSelectedControlSide();
+
+  // Check if the control point has changed
+  bool changed = (cp != cp_current || side != side_current);
+
+  // Check the validity of the new selection
+  if(cp >= 0)
+    {
+    bool disc = cm->GetCMPoint(cp).m_Type == ColorMap::DISCONTINUOUS;
+    assert((disc && side != ColorMapLayerProperties::NA) ||
+           (!disc && side == ColorMapLayerProperties::NA));
+    }
+  else
+    {
+    assert(side == ColorMapLayerProperties::NA);
+    }
+
+  // Set the new selection
+  if(changed)
+    {
+    p.SetSelectedControlIndex(cp);
+    p.SetSelectedControlSide(side);
+    InvokeEvent(ModelUpdateEvent());
+    }
+
+  return changed;
+}
+
+
+void ColorMapModel::RegisterWithLayer(GreyImageWrapperBase *layer)
+{
+  unsigned long tag =
+      Rebroadcast(this->GetColorMap(),
+                  ColorMapChangeEvent(), ModelUpdateEvent());
+  GetProperties().SetObserverTag(tag);
+}
+
+void ColorMapModel::UnRegisterFromLayer(GreyImageWrapperBase *layer)
+{
+  unsigned long tag = GetProperties().GetObserverTag();
+  if(tag)
+    {
+    layer->GetColorMap()->RemoveObserver(tag);
+    }
+}
+
+bool ColorMapModel::ProcessMousePressEvent(const Vector3d &x)
+{
+  assert(m_ViewportReporter && m_ViewportReporter->CanReportSize());
+  Vector2ui vp = m_ViewportReporter->GetViewportSize();
+
+  // Reference to the color map
+  ColorMap *cm = this->GetColorMap();
+
+  // Check if the press occurs near a control point
+  for(size_t i = 0; i < cm->GetNumberOfCMPoints(); i++)
+    {
+    ColorMap::CMPoint p = cm->GetCMPoint(i);
+    double dx = fabs(x[0] - p.m_Index);
+    double dy0 = fabs(x[1] - p.m_RGBA[0][3] / 255.0);
+    double dy1 = fabs(x[1] - p.m_RGBA[1][3] / 255.0);
+
+    if(dx / 1.2 < 5.0 / vp[0])
+      {
+      if(dy0 / 1.2 < 5.0 / vp[1])
+        {
+        // We return 0 when the selected point changes to avoid dragging
+        if(p.m_Type == ColorMap::CONTINUOUS)
+          this->SetSelection(i, ColorMapLayerProperties::NA);
+        else
+          this->SetSelection(i, ColorMapLayerProperties::LEFT);
+        return 1;
+        }
+      else if (dy1 / 1.2 < 5.0 / vp[1])
+        {
+        this->SetSelection(i, ColorMapLayerProperties::RIGHT);
+        return true;
+        }
+      }
+    }
+
+  // No selection has been made, so we insert a new point
+  if(x[0] > 0.0 && x[0] < 1.0)
+    {
+    size_t sel = cm->InsertInterpolatedCMPoint(x[0]);
+    this->SetSelection(sel, ColorMapLayerProperties::NA);
+    return true;
+    }
+
+  return false;
+}
+
+bool ColorMapModel::ProcessMouseDragEvent(const Vector3d &x)
+{
+  // Reference to the color map
+  ColorMap *cm = this->GetColorMap();
+  ColorMapLayerProperties &p  = this->GetProperties();
+  int isel = p.GetSelectedControlIndex();
+  Side side = p.GetSelectedControlSide();
+
+  // Nothing happens if zero is selected
+  if(isel < 0) return false;
+
+  // Get the selected point
+  ColorMap::CMPoint psel = cm->GetCMPoint(isel);
+
+  // Get the new alpha and index
+  double j = x[0];
+  double a = x[1] * 255;
+
+  // Clip the new index
+  if(isel == 0 || isel == (int)cm->GetNumberOfCMPoints()-1)
+    {
+    // The first and last point can not be moved left or right
+    j = psel.m_Index;
+    }
+  else
+    {
+    // Other points are constrained by neighbors
+    ColorMap::CMPoint p0 = cm->GetCMPoint(isel-1);
+    ColorMap::CMPoint p1 = cm->GetCMPoint(isel+1);
+    if(j < p0.m_Index) j = p0.m_Index;
+    if(j > p1.m_Index) j = p1.m_Index;
+    }
+
+  // Update the index of the point
+  psel.m_Index = j;
+
+  // Clip the new alpha
+  if(a < 0) a = 0;
+  if(a > 255) a = 255;
+
+  // Assign the alpha
+  if(side != ColorMapLayerProperties::RIGHT)
+    psel.m_RGBA[0][3] = (unsigned char) a;
+  if(side != ColorMapLayerProperties::LEFT)
+    psel.m_RGBA[1][3] = (unsigned char) a;
+
+  // Redraw
+  cm->UpdateCMPoint(isel, psel);
+
+  return true;
+}
+
+bool ColorMapModel::ProcessMouseReleaseEvent(const Vector3d &x)
+{
+  return true;
+}
+
+void ColorMapModel::OnUpdate()
+{
+
+}
+
+bool
+ColorMapModel
+::GetMovingControlPositionValueAndRange(
+    double &value, NumericValueRange<double> *range)
+{
+  ColorMapLayerProperties &p = this->GetProperties();
+  ColorMap *cmap = this->GetColorMap();
+  int idx = p.GetSelectedControlIndex();
+  if(idx >= 0)
+    {
+    value = cmap->GetCMPoint(idx).m_Index;
+    if(range)
+      {
+      range->StepSize = 0.001;
+      if(idx == 0)
+        {
+        range->Minimum = 0.0;
+        range->Maximum = 0.0;
+        }
+      else if (idx == (int) cmap->GetNumberOfCMPoints()-1)
+        {
+        range->Minimum = 1.0;
+        range->Maximum = 1.0;
+        }
+      else
+        {
+        range->Minimum = cmap->GetCMPoint(idx - 1).m_Index;
+        range->Maximum = cmap->GetCMPoint(idx + 1).m_Index;
+        }
+      }
+    return true;
+    }
+  else return false;
+}
+
+void
+ColorMapModel
+::SetMovingControlPosition(double value)
+{
+  ColorMapLayerProperties &p = this->GetProperties();
+  ColorMap *cmap = this->GetColorMap();
+  int idx = p.GetSelectedControlIndex();
+  assert(idx >= 0);
+
+  ColorMap::CMPoint pt = cmap->GetCMPoint(idx);
+  pt.m_Index = value;
+  cmap->UpdateCMPoint(idx, pt);
+}
+
+bool
+ColorMapModel
+::GetMovingControlRGBAValueAndRange(
+    Vec4d &value, NumericValueRange<Vec4d> *range)
+{
+  ColorMapLayerProperties &p = this->GetProperties();
+  ColorMap *cmap = this->GetColorMap();
+  int idx = p.GetSelectedControlIndex();
+  if(idx >= 0)
+    {
+    ColorMap::CMPoint pt = cmap->GetCMPoint(idx);
+    int iside = 0;
+    if(pt.m_Type == ColorMap::DISCONTINUOUS)
+      {
+      iside = (p.GetSelectedControlSide() == ColorMapLayerProperties::LEFT)
+          ? 0 : 1;
+      }
+    for(int i = 0; i < 4; i++)
+      {
+      value[i] = pt.m_RGBA[iside][i] / 255.0;
+      if(range)
+        {
+        range->Maximum[i] = 1.0;
+        range->Minimum[i] = 0.0;
+        range->StepSize[i] = 0.01;
+        }
+      }
+    return true;
+    }
+  else return false;
+}
+
+void
+ColorMapModel
+::SetMovingControlRGBA(Vec4d value)
+{
+  ColorMapLayerProperties &p = this->GetProperties();
+  ColorMap *cmap = this->GetColorMap();
+  int idx = p.GetSelectedControlIndex();
+  Side side = p.GetSelectedControlSide();
+  assert(idx >= 0);
+
+  // Convert value to RGBA type
+  ColorMap::RGBAType rgba;
+  for(int i = 0; i < 4; i++)
+    rgba[i] = (unsigned char)(255.0 * value[i]);
+
+  // Assign to left, right, or both sides
+  ColorMap::CMPoint pt = cmap->GetCMPoint(idx);
+  if(pt.m_Type == ColorMap::CONTINUOUS || side == ColorMapLayerProperties::LEFT)
+    pt.m_RGBA[0] = rgba;
+  if(pt.m_Type == ColorMap::CONTINUOUS || side == ColorMapLayerProperties::RIGHT)
+    pt.m_RGBA[1] = rgba;
+
+  cmap->UpdateCMPoint(idx, pt);
+}
+
+
+bool
+ColorMapModel
+::CheckState(ColorMapModel::UIState state)
+{
+  // All flags are false if no layer is loaded
+  if(this->GetLayer() == NULL)
+    return false;
+
+  // Otherwise get the properties
+  ColorMapLayerProperties &p = this->GetProperties();
+  int idx = p.GetSelectedControlIndex();
+  int npts = (int) this->GetColorMap()->GetNumberOfCMPoints();
+
+  switch(state)
+    {
+    case UIF_LAYER_ACTIVE:
+      return true;
+    case UIF_CONTROL_SELECTED:
+      return idx >= 0;
+    case UIF_CONTROL_SELECTED_IS_NOT_ENDPOINT:
+      return idx > 0 && idx < npts - 1;
+    case UIF_CONTROL_SELECTED_IS_DISCONTINUOUS:
+      return idx >= 0 && this->GetColorMap()->GetCMPoint(idx).m_Type ==
+          ColorMap::DISCONTINUOUS;
+    }
+  return false;
+}
+
+bool ColorMapModel
+::GetMovingControlSideValueAndRange(
+    Side &value, NumericValueRange<Side> *range)
+{
+  ColorMapLayerProperties &p = this->GetProperties();
+  int idx = p.GetSelectedControlIndex();
+
+  if(idx >= 0)
+    {
+    value = p.GetSelectedControlSide();
+    return true;
+    }
+  return false;
+}
+
+void
+ColorMapModel
+::SetMovingControlSide(Side value)
+{
+  ColorMapLayerProperties &p = this->GetProperties();
+  ColorMap *cmap = this->GetColorMap();
+  int idx = p.GetSelectedControlIndex();
+  assert(idx >= 0);
+  ColorMap::CMPoint pt = cmap->GetCMPoint(idx);
+  assert(pt.m_Type == ColorMap::DISCONTINUOUS);
+  p.SetSelectedControlSide(value);
+  InvokeEvent(ModelUpdateEvent());
+}
+
+bool ColorMapModel::GetMovingControlTypeValueAndRange(
+    Continuity &value, NumericValueRange<Continuity> *range)
+{
+  ColorMapLayerProperties &p = this->GetProperties();
+  ColorMap *cmap = this->GetColorMap();
+  int idx = p.GetSelectedControlIndex();
+
+  if(idx >= 0)
+    {
+    value = cmap->GetCMPoint(idx).m_Type;
+    return true;
+    }
+  else return false;
+}
+
+void ColorMapModel::SetMovingControlType(Continuity value)
+{
+  ColorMapLayerProperties &p = this->GetProperties();
+  ColorMap *cmap = this->GetColorMap();
+  int idx = p.GetSelectedControlIndex();
+  Side side = p.GetSelectedControlSide();
+  assert(idx >= 0);
+  ColorMap::CMPoint pt = cmap->GetCMPoint(idx);
+
+  if(value != pt.m_Type)
+    {
+    pt.m_Type = value;
+    if(value)
+      {
+      p.SetSelectedControlSide(ColorMapLayerProperties::NA);
+      if(side == ColorMapLayerProperties::LEFT)
+        pt.m_RGBA[1] = pt.m_RGBA[0];
+      else
+        pt.m_RGBA[0] = pt.m_RGBA[1];
+      }
+    else
+      {
+      p.SetSelectedControlSide(ColorMapLayerProperties::LEFT);
+      }
+
+    cmap->UpdateCMPoint(idx, pt);
+    }
+}
+
+
+
+
+
+
