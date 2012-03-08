@@ -42,16 +42,20 @@ protected:
   {
     m_Model = model;
     m_State = state;
-    AddListener<Self>(
+    m_Tag = AddListener<Self>(
           m_Model, StateMachineChangeEvent(),
           this, &Self::OnStateChange);
   }
 
-  virtual ~SNAPUIFlag() {}
+  virtual ~SNAPUIFlag()
+  {
+    m_Model->RemoveObserver(m_Tag);
+  }
 
 private:
   TModel *m_Model;
   TStateEnum m_State;
+  unsigned long m_Tag;
 };
 
 #endif // SNAPUIFLAG_H

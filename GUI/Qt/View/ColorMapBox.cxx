@@ -1,6 +1,7 @@
 #include "ColorMapBox.h"
 #include "ColorMapRenderer.h"
 #include "ColorMapModel.h"
+#include "ColorMapInspector.h"
 #include <QPalette>
 #include <QWidget>
 
@@ -59,6 +60,11 @@ void ColorMapInteractionDelegate::mouseReleaseEvent(QMouseEvent *)
 void ColorMapInteractionDelegate::mouseMoveEvent(QMouseEvent *)
 {
   m_Model->ProcessMouseDragEvent(m_XSpace);
+}
+
+void ColorMapInteractionDelegate::mouseDoubleClickEvent(QMouseEvent *)
+{
+  m_InspectorWidget->PromptUserForColor();
 }
 
 ColorMapInteractionDelegate::ColorMapInteractionDelegate(QWidget *parent)

@@ -127,7 +127,7 @@ protected:
 
 
 private:
-  BooleanCondition *m_A;
+  SmartPtr<BooleanCondition> m_A;
 
 };
 

@@ -8,6 +8,7 @@
 #include "LayerSelectionModel.h"
 #include "GenericImageData.h"
 #include "IntensityCurveModel.h"
+#include "ColorMapModel.h"
 
 
 
@@ -110,4 +111,5 @@ void LayerInspectorDialog::onLayerSelection()
   GreyImageWrapperBase *layer =
       m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(idx.row()).GetLayerAsGray();
   m_Model->GetIntensityCurveModel()->SetLayer(layer);
+  m_Model->GetColorMapModel()->SetLayer(layer);
 }

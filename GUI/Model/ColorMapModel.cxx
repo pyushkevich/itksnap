@@ -37,7 +37,6 @@ ColorMapModel::ColorMapModel()
 
   // The model update events should also be rebroadcast as state changes
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
-
 }
 
 ColorMap* ColorMapModel::GetColorMap()
@@ -219,7 +218,10 @@ bool ColorMapModel::ProcessMouseReleaseEvent(const Vector3d &x)
 
 void ColorMapModel::OnUpdate()
 {
-
+  if(m_EventBucket->HasEvent(ColorMapChangeEvent()))
+    {
+    this->GetLayer()->UpdateIntensityMapFunction();
+    }
 }
 
 bool
@@ -353,6 +355,9 @@ ColorMapModel
     case UIF_CONTROL_SELECTED_IS_DISCONTINUOUS:
       return idx >= 0 && this->GetColorMap()->GetCMPoint(idx).m_Type ==
           ColorMap::DISCONTINUOUS;
+    case UIF_USER_PRESET_SELECTED:
+      return find(m_PresetUser.begin(), m_PresetUser.end(),
+                  this->GetProperties().GetSelectedPreset()) < m_PresetUser.end();
     }
   return false;
 }
@@ -413,7 +418,7 @@ void ColorMapModel::SetMovingControlType(Continuity value)
   if(value != pt.m_Type)
     {
     pt.m_Type = value;
-    if(value)
+    if(value == ColorMap::CONTINUOUS)
       {
       p.SetSelectedControlSide(ColorMapLayerProperties::NA);
       if(side == ColorMapLayerProperties::LEFT)
@@ -427,7 +432,142 @@ void ColorMapModel::SetMovingControlType(Continuity value)
       }
 
     cmap->UpdateCMPoint(idx, pt);
+    InvokeEvent(ModelUpdateEvent());
     }
+}
+
+Vector3d ColorMapModel::GetSelectedColor()
+{
+  Vec4d rgba;
+  if(this->GetMovingControlRGBAValueAndRange(rgba,NULL))
+    {
+    return Vector3d(rgba[0], rgba[1], rgba[2]);
+    }
+  else
+    {
+    return Vector3d(0,0,0);
+    }
+}
+
+void ColorMapModel::SetSelectedColor(Vector3d rgb)
+{
+  Vec4d rgba;
+  this->GetMovingControlRGBAValueAndRange(rgba,NULL);
+  rgba[0] = rgb[0];
+  rgba[1] = rgb[1];
+  rgba[2] = rgb[2];
+  this->SetMovingControlRGBA(rgba);
+
+}
+
+void ColorMapModel::GetPresets(
+    ColorMapModel::PresetList &system, ColorMapModel::PresetList &user)
+{
+  system = m_PresetSystem;
+  user = m_PresetUser;
+}
+
+void ColorMapModel::SelectPreset(const char *preset)
+{
+  // Is this a system preset?
+  if(preset && strlen(preset))
+    {
+    // Is it a system preset?
+    PresetList::iterator itSys =
+        find(m_PresetSystem.begin(), m_PresetSystem.end(), string(preset));
+    if(itSys != m_PresetSystem.end())
+      {
+      this->GetColorMap()->SetToSystemPreset(
+            static_cast<ColorMap::SystemPreset>(itSys - m_PresetSystem.begin()));
+      }
+    else
+      {
+      try
+        {
+        Registry reg = m_System->ReadSavedObject("ColorMaps", preset);
+        this->GetColorMap()->LoadFromRegistry(reg);
+        }
+      catch(IRISException &exc)
+        {
+        throw IRISException("Unable to read preset from disk. Exception: %s",
+                            exc.what());
+        }
+      }
+    }
+
+  // Store the selected preset
+  this->GetProperties().SetSelectedPreset(preset);
+
+  // Clear the selection
+  this->GetProperties().SetSelectedControlIndex(-1);
+  this->GetProperties().SetSelectedControlSide(ColorMapLayerProperties::NA);
+  this->InvokeEvent(ModelUpdateEvent());
+}
+
+void ColorMapModel::SetParentModel(GlobalUIModel *parent)
+{
+  Superclass::SetParentModel(parent);
+
+  // Get the pointer to the system interface
+  m_System = m_ParentModel->GetDriver()->GetSystemInterface();
+
+  // Get the list of system presets
+  for(int i = 0; i < ColorMap::COLORMAP_SIZE; i++)
+    {
+    m_PresetSystem.push_back(
+          ColorMap::GetPresetName(static_cast<ColorMap::SystemPreset>(i)));
+    }
+
+  // Get the current list of user presets. I am assuming that this will not
+  // change other than through the model
+  m_PresetUser = m_System->GetSavedObjectNames("ColorMaps");
+}
+
+#include <algorithm>
+
+void ColorMapModel::SaveAsPreset(std::string name)
+{
+  // Put the colormap in a registry
+  Registry reg;
+  this->GetColorMap()->SaveToRegistry(reg);
+
+  // Write to file
+  m_System->UpdateSavedObject("ColorMaps", name.c_str(), reg);
+
+  // Refresh the list of user presets
+  m_PresetUser = m_System->GetSavedObjectNames("ColorMaps");
+
+  // Find the new preset in the list
+  PresetList::iterator it =
+      find(m_PresetUser.begin(), m_PresetUser.end(), name);
+
+  if(it != m_PresetUser.end())
+    {
+    this->GetProperties().SetSelectedPreset(name);
+    }
+  else
+    {
+    this->GetProperties().SetSelectedPreset("");
+    }
+
+  // Invoke an update event
+  InvokeEvent(PresetUpdateEvent());
+}
+
+void ColorMapModel::DeletePreset(std::string name)
+{
+  // Delete the preset
+  m_System->DeleteSavedObject("ColorMaps",name.c_str());
+
+  // Clear the selected preset
+  GetProperties().SetSelectedPreset("");
+
+  // Update the user preset list
+  m_PresetUser = m_System->GetSavedObjectNames("ColorMaps");
+
+
+  // Fire an event
+  InvokeEvent(PresetUpdateEvent());
 }
 
 

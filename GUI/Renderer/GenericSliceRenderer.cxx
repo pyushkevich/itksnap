@@ -33,6 +33,7 @@
 #include "ImageWrapper.h"
 #include "IRISApplication.h"
 #include "IntensityCurveModel.h"
+#include "ColorMapModel.h"
 #include "LayerAssociation.txx"
 
 GenericSliceRenderer
@@ -61,6 +62,10 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 
   // Also listen to events on intensity curves
   Rebroadcast(m_Model->GetParentUI()->GetIntensityCurveModel(),
+              ModelUpdateEvent(), AppearanceUpdateEvent());
+
+  // Also listen to events on the color map
+  Rebroadcast(m_Model->GetParentUI()->GetColorMapModel(),
               ModelUpdateEvent(), AppearanceUpdateEvent());
 }
 

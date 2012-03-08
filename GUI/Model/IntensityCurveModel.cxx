@@ -530,6 +530,7 @@ void IntensityCurveModel::OnUpdate()
 {
   if(m_EventBucket->HasEvent(IntensityCurveChangeEvent()))
     {
+    // Inform the layer that it needs to recompute its intensity map function
     this->GetLayer()->UpdateIntensityMapFunction();
     }
 }

@@ -8,6 +8,7 @@
 class ColorMapModel;
 class ColorMapRenderer;
 class ColorMapInteractionDelegate;
+class ColorMapInspector;
 
 class ColorMapBox : public SNAPQGLWidget
 {
@@ -24,6 +25,9 @@ public:
 
   // Get the renderer for this widget
   irisGetMacro(Renderer, ColorMapRenderer *)
+
+  // Get the interaction delegate for this widget
+  irisGetMacro(Delegate, ColorMapInteractionDelegate *)
 
   // Set the model (state) for this widget
   void SetModel(ColorMapModel *model);
@@ -53,13 +57,18 @@ public:
   void mousePressEvent(QMouseEvent *);
   void mouseReleaseEvent(QMouseEvent *);
   void mouseMoveEvent(QMouseEvent *);
+  void mouseDoubleClickEvent(QMouseEvent *);
 
   // Set the model (state) for this widget
   irisGetSetMacro(Model, ColorMapModel *)
 
+  // Set the inspector widget
+  irisGetSetMacro(InspectorWidget, ColorMapInspector *)
+
 private:
 
   ColorMapModel *m_Model;
+  ColorMapInspector *m_InspectorWidget;
 };
 
 

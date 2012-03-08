@@ -430,29 +430,25 @@ vector<string>
 SystemInterface
 ::GetSavedObjectNames(const char *category)
 {
-  // Create a preferences object for the associations subdirectory
-  string subpath("ITK-SNAP/");
-  subpath += category;
-
-  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
-                "itksnap.org", subpath.c_str());
-
-  // Use it to get a path for user data
-  string userDataPath = QFileInfo(qsi.fileName()).canonicalPath().toStdString();
+  // Make sure we have a directory for this category
+  std::string appdir = GetApplicationDataDirectory();
+  std::string catdir = appdir + std::string("/") + std::string(category);
+  if(!itksys::SystemTools::MakeDirectory(catdir.c_str()))
+     throw IRISException("Unable to create data directory %s", catdir.c_str());
 
   // Get the names
   vector<string> names;
 
   // Get the listing of all files in there
   Directory dlist;
-  dlist.Load(userDataPath.c_str());
+  dlist.Load(catdir.c_str());
   for(size_t i = 0; i < dlist.GetNumberOfFiles(); i++)
     {
     string fname = dlist.GetFile(i);
 
     // Check regular file
     ostringstream ffull; 
-    ffull << userDataPath << "/" << fname;
+    ffull << catdir << "/" << fname;
     if(SystemTools::FileExists(ffull.str().c_str(), true))
       {
       // Check extension
@@ -473,19 +469,15 @@ Registry
 SystemInterface
 ::ReadSavedObject(const char *category, const char *name)
 {
-  // Create a preferences object for the associations subdirectory
-  string subpath("ITK-SNAP/");
-  subpath += category;
-
-  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
-                "itksnap.org", subpath.c_str());
-
-  // Use it to get a path for user data
-  string userDataPath = QFileInfo(qsi.fileName()).canonicalPath().toStdString();
+  // Make sure we have a directory for this category
+  std::string appdir = GetApplicationDataDirectory();
+  std::string catdir = appdir + std::string("/") + std::string(category);
+  if(!itksys::SystemTools::MakeDirectory(catdir.c_str()))
+     throw IRISException("Unable to create data directory %s", catdir.c_str());
 
   // Create a save filename
   IRISOStringStream sfile;
-  sfile << userDataPath << "/" << EncodeObjectName(name) << ".txt";
+  sfile << catdir << "/" << EncodeObjectName(name) << ".txt";
   string fname = sfile.str();
 
   // Check the filename
@@ -500,19 +492,15 @@ void
 SystemInterface
 ::UpdateSavedObject(const char *category, const char *name, Registry &folder)
 {
-  // Create a preferences object for the associations subdirectory
-  string subpath("ITK-SNAP/");
-  subpath += category;
-
-  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
-                "itksnap.org", subpath.c_str());
-
-  // Use it to get a path for user data
-  string userDataPath = QFileInfo(qsi.fileName()).canonicalPath().toStdString();
+  // Make sure we have a directory for this category
+  std::string appdir = GetApplicationDataDirectory();
+  std::string catdir = appdir + std::string("/") + std::string(category);
+  if(!itksys::SystemTools::MakeDirectory(catdir.c_str()))
+     throw IRISException("Unable to create data directory %s", catdir.c_str());
 
   // Create a save filename
   IRISOStringStream sfile;
-  sfile << userDataPath << "/" << EncodeObjectName(name) << ".txt";
+  sfile << catdir << "/" << EncodeObjectName(name) << ".txt";
   string fname = sfile.str();
 
   // Save the data
@@ -523,19 +511,15 @@ void
 SystemInterface
 ::DeleteSavedObject(const char *category, const char *name)
 {
-  // Create a preferences object for the associations subdirectory
-  string subpath("ITK-SNAP/");
-  subpath += category;
-
-  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
-                "itksnap.org", subpath.c_str());
-
-  // Use it to get a path for user data
-  string userDataPath = QFileInfo(qsi.fileName()).canonicalPath().toStdString();
+  // Make sure we have a directory for this category
+  std::string appdir = GetApplicationDataDirectory();
+  std::string catdir = appdir + std::string("/") + std::string(category);
+  if(!itksys::SystemTools::MakeDirectory(catdir.c_str()))
+     throw IRISException("Unable to create data directory %s", catdir.c_str());
 
   // Create a save filename
   IRISOStringStream sfile;
-  sfile << userDataPath << "/" << EncodeObjectName(name) << ".txt";
+  sfile << catdir << "/" << EncodeObjectName(name) << ".txt";
 
   // Save the data
   SystemTools::RemoveFile(sfile.str().c_str());

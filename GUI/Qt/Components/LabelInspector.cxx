@@ -2,6 +2,7 @@
 #include "ui_LabelInspector.h"
 #include <QPainter>
 #include <QPixmap>
+#include <SNAPQtCommon.h>
 #include "GlobalUIModel.h"
 
 #include "IRISApplication.h"
@@ -96,13 +97,9 @@ void LabelInspector::FillCombos()
     ColorLabel cl = it->second;
 
     // Create a pixmap
-    QPixmap pix(ICON_SIZE, ICON_SIZE);
-    pix.fill(QColor(0,0,0,0));
-    QPainter paint(&pix);
-    paint.setPen(Qt::black);
-    paint.fillRect(r,QColor(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2)));
-    paint.drawRect(r);
-    QIcon ic(pix);
+    QIcon ic = CreateColorBoxIcon(
+          ICON_SIZE, ICON_SIZE,
+          Vector3ui(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2)));
 
     int id = (int) it->first;
     ui->inBackLabel->addItem(ic, cl.GetLabel(), QVariant(PAINT_OVER_ONE + id));

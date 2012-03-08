@@ -159,8 +159,13 @@ typename GreyImageWrapper<TPixel>::DisplaySlicePointer
 GreyImageWrapper<TPixel>
 ::GetDisplaySlice(unsigned int dim)
 {
-  if(m_IntensityCurveVTK->GetMTime() > m_IntensityFilter[dim]->GetMTime())
+  unsigned long t_filter = m_IntensityFilter[dim]->GetMTime();
+  unsigned long t_curve = m_IntensityCurveVTK->GetMTime();
+  unsigned long t_colormap = m_ColorMap->GetMTime();
+
+  if(t_curve >= t_filter || t_colormap >= t_filter)
     UpdateIntensityMapFunction();
+
   return m_IntensityFilter[dim]->GetOutput();
 }
 

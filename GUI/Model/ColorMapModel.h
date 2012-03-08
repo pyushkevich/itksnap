@@ -8,6 +8,7 @@
 
 
 class ColorMap;
+class SystemInterface;
 
 class ColorMapLayerProperties
 {
@@ -26,6 +27,7 @@ public:
 
   irisGetSetMacro(SelectedControlIndex, int)
   irisGetSetMacro(SelectedControlSide, Side)
+  irisGetSetMacro(SelectedPreset, std::string)
 
 protected:
 
@@ -34,6 +36,9 @@ protected:
 
   // Side of the control point, if discontinuous
   Side m_SelectedControlSide;
+
+  // The index of the current preset
+  std::string m_SelectedPreset;
 
   // Whether or not we are already listening to events from this layer
   unsigned long m_ObserverTag;
@@ -54,6 +59,13 @@ public:
 
   typedef ColorMapLayerProperties::Side Side;
   typedef ColorMap::CMPointType Continuity;
+  typedef std::vector<std::string> PresetList;
+
+  // This event only affects this model
+  itkEventMacro(PresetUpdateEvent, IRISEvent)
+
+  // This event is fired when the presets are changed
+  FIRES(PresetUpdateEvent)
 
   /**
     States in which the model can be, which allow the activation and
@@ -63,8 +75,11 @@ public:
     UIF_LAYER_ACTIVE,
     UIF_CONTROL_SELECTED,
     UIF_CONTROL_SELECTED_IS_NOT_ENDPOINT,
-    UIF_CONTROL_SELECTED_IS_DISCONTINUOUS
+    UIF_CONTROL_SELECTED_IS_DISCONTINUOUS,
+    UIF_USER_PRESET_SELECTED
     };
+
+  void SetParentModel(GlobalUIModel *parent);
 
   /**
     Check the state flags above
@@ -116,6 +131,25 @@ public:
       changed as the result */
   bool SetSelection(int cp, Side side = ColorMapLayerProperties::NA);
 
+  /** Get the color of the selected point */
+  Vector3d GetSelectedColor();
+
+  /** Set the color of the selected point */
+  void SetSelectedColor(Vector3d rgb);
+
+  /** Get the list of color map presets */
+  void GetPresets(PresetList &system, PresetList &user);
+
+  /** Select one of the presets. The index is into the combined list
+    of system and user presets */
+  void SelectPreset(const char *preset);
+
+  /** Save the current state as a preset */
+  void SaveAsPreset(std::string name);
+
+  /** Delete a selected preset */
+  void DeletePreset(std::string name);
+
 protected:
 
   ColorMapModel();
@@ -125,9 +159,15 @@ protected:
   SmartPtr<SideValueModel> m_MovingControlSideModel;
   SmartPtr<ContinuityValueModel> m_MovingControlContinuityModel;
 
+  // A pointer to the system interface object
+  SystemInterface *m_System;
+
   // A size reporter delegate (notifies the model when the size of the
   // corresponding widget changes).
   ViewportSizeReporter *m_ViewportReporter;
+
+  // Colormap presets
+  PresetList m_PresetSystem, m_PresetUser;
 
   // Control point position
   bool GetMovingControlPositionValueAndRange(

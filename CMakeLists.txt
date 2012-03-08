@@ -300,6 +300,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QtWidgetCoupling.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
   GUI/Qt/Components/SNAPComponent.cxx
+  GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
   GUI/Qt/Components/VoxelIntensityQTableModel.cxx
   GUI/Qt/Components/ZoomInspector.cxx
@@ -334,6 +335,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QtWidgetActivator.h
   GUI/Qt/Components/QtWidgetCoupling.h
   GUI/Qt/Components/SNAPComponent.h
+  GUI/Qt/Components/SNAPQtCommon.h
   GUI/Qt/Components/SliceViewPanel.h
   GUI/Qt/Components/VoxelIntensityQTableModel.h
   GUI/Qt/Components/ZoomInspector.h

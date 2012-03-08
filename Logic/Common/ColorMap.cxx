@@ -231,6 +231,9 @@ ColorMap
       }
     }
 
+  // Update state
+  this->Modified();
+
   // Fire a change event
   this->InvokeEvent(ColorMapChangeEvent());
 }
@@ -485,5 +488,28 @@ void ColorMap
  {
    m_CMPoints = source->m_CMPoints;
    m_Interpolants = source->m_Interpolants;
+   this->Modified();
    this->InvokeEvent(ColorMapChangeEvent());
+ }
+
+ const char * ColorMap::GetPresetName(ColorMap::SystemPreset preset)
+ {
+   static const char *preset_names[] = {
+     "Grayscale",
+     "Jet",
+     "Hot",
+     "Cool",
+     "Black to red",
+     "Black to green",
+     "Black to blue",
+     "Spring",
+     "Summer",
+     "Autumn",
+     "Winter",
+     "Copper",
+     "HSV",
+     "Blue, white and red",
+     "Red, white and blue"};
+
+   return preset_names[preset];
  }

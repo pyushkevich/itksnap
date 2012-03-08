@@ -20,12 +20,25 @@ public:
 
   void SetModel(ColorMapModel *model);
 
+  void PromptUserForColor();
+
 private slots:
 
   // Slot for model updates
   void onModelUpdate(const EventBucket &b);
 
+  void on_btnControlColor_clicked();
+
+  void on_inPreset_currentIndexChanged(int index);
+
+  void on_btnAddPreset_clicked();
+
+  void on_btnDelPreset_clicked();
+
 private:
+
+  void PopulatePresets();
+
   Ui::ColorMapInspector *ui;
 
   // Model object
@@ -33,6 +46,9 @@ private:
 
   // Viewport reporter for the curve box
   QtViewportReporter *m_ColorMapBoxViewportReporter;
+
+  // Whether an update is being done to the presets
+  bool m_PresetsUpdating;
 };
 
 #endif // COLORMAPINSPECTOR_H

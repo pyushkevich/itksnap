@@ -27,7 +27,7 @@ gl_draw_circle_with_border(double x, double y, double r,
   glVertex2d(r, 0);
   glEnd();
 
-  glColor3ui(color(0), color(1), color(2));
+  glColor3ub(color(0), color(1), color(2));
 
   glBegin(GL_LINE_LOOP);
   for(size_t i = 0; i < cx.size(); i++)

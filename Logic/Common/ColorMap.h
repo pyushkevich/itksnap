@@ -67,7 +67,7 @@ public:
   typedef itk::RGBAPixel<EltType> RGBAType;
 
   /** Type of point */
-  enum CMPointType { DISCONTINUOUS=0, CONTINUOUS };
+  enum CMPointType { CONTINUOUS=0, DISCONTINUOUS };
 
   /** System presets */
   enum SystemPreset {
@@ -138,6 +138,9 @@ public:
 
   SystemPreset GetSystemPreset() const
   { return m_CMPreset; }
+
+  /** Get the name of the system preset */
+  static const char *GetPresetName(SystemPreset preset);
 
 
   void PrintSelf();

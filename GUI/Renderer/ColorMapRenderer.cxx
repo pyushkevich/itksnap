@@ -167,7 +167,6 @@ void ColorMapRenderer::paintGL()
     ColorMap::CMPoint p = cmap->GetCMPoint(i);
 
 
-
     glColor3ub(p.m_RGBA[0][0],p.m_RGBA[0][1],p.m_RGBA[0][2]);
     bool select = m_Model->IsControlSelected(i, ColorMapLayerProperties::LEFT);
     gl_draw_circle_with_border(p.m_Index, p.m_RGBA[0][3] / 255.0, 5.0,
