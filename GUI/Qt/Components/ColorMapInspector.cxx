@@ -46,6 +46,7 @@ void ColorMapInspector::SetModel(ColorMapModel *model)
   // Connect widgets to the corresponding sub-models
   makeCoupling(ui->inControlX, m_Model->GetMovingControlPositionModel());
   makeCoupling(ui->inControlOpacity, m_Model->GetMovingControlOpacityModel());
+  makeCoupling(ui->inControlIndex, m_Model->GetMovingControlIndexModel());
 
   // Connect radio button groups to corresponding enums
   makeRadioGroupCoupling(ui->grpRadioCont,
@@ -56,6 +57,12 @@ void ColorMapInspector::SetModel(ColorMapModel *model)
 
   // Set up activations
   activateOnFlag(ui->inControlX, m_Model,
+                 ColorMapModel::UIF_CONTROL_SELECTED_IS_NOT_ENDPOINT);
+  activateOnFlag(ui->inControlIndex, m_Model,
+                 ColorMapModel::UIF_CONTROL_SELECTED);
+  activateOnFlag(ui->btnControlColor, m_Model,
+                 ColorMapModel::UIF_CONTROL_SELECTED);
+  activateOnFlag(ui->btnDeleteControl, m_Model,
                  ColorMapModel::UIF_CONTROL_SELECTED_IS_NOT_ENDPOINT);
   activateOnFlag(ui->inControlOpacity, m_Model,
                  ColorMapModel::UIF_CONTROL_SELECTED);
@@ -177,3 +184,8 @@ void ColorMapInspector::on_btnDelPreset_clicked()
   m_Model->DeletePreset(seltext.toStdString());
 }
 
+
+void ColorMapInspector::on_btnDeleteControl_clicked()
+{
+  m_Model->DeleteSelectedControl();
+}

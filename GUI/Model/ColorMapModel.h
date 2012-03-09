@@ -121,6 +121,9 @@ public:
   /** The model for setting moving control point side */
   irisGetMacro(MovingControlSideModel, SideValueModel *)
 
+  /** The index of the moving control point */
+  irisGetMacro(MovingControlIndexModel, IntegerValueModel *)
+
   /** Get the color map in associated layer */
   ColorMap *GetColorMap();
 
@@ -130,6 +133,9 @@ public:
   /** Set the selected control point, return true if selection
       changed as the result */
   bool SetSelection(int cp, Side side = ColorMapLayerProperties::NA);
+
+  /** Delete the selected control */
+  void DeleteSelectedControl();
 
   /** Get the color of the selected point */
   Vector3d GetSelectedColor();
@@ -158,6 +164,7 @@ protected:
   SmartPtr<RealValueModel> m_MovingControlOpacityModel;
   SmartPtr<SideValueModel> m_MovingControlSideModel;
   SmartPtr<ContinuityValueModel> m_MovingControlContinuityModel;
+  SmartPtr<IntegerValueModel> m_MovingControlIndexModel;
 
   // A pointer to the system interface object
   SystemInterface *m_System;
@@ -190,6 +197,11 @@ protected:
   bool GetMovingControlSideValueAndRange(
       Side &value, NumericValueRange<Side> *range);
   void SetMovingControlSide(Side value);
+
+  // Selected control point index
+  bool GetMovingControlIndexValueAndRange(
+      int &value, NumericValueRange<int> *range);
+  void SetMovingControlIndex(int value);
 };
 
 #endif // COLORMAPMODEL_H

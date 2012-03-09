@@ -35,6 +35,11 @@ ColorMapModel::ColorMapModel()
         &Self::GetMovingControlTypeValueAndRange,
         &Self::SetMovingControlType);
 
+  m_MovingControlIndexModel = makeChildNumericValueModel(
+        this,
+        &Self::GetMovingControlIndexValueAndRange,
+        &Self::SetMovingControlIndex);
+
   // The model update events should also be rebroadcast as state changes
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
 }
@@ -568,6 +573,57 @@ void ColorMapModel::DeletePreset(std::string name)
 
   // Fire an event
   InvokeEvent(PresetUpdateEvent());
+}
+
+bool ColorMapModel::GetMovingControlIndexValueAndRange(
+    int &value, NumericValueRange<int> *range)
+{
+  ColorMapLayerProperties &p = this->GetProperties();
+  ColorMap *cmap = this->GetColorMap();
+  int idx = p.GetSelectedControlIndex();
+  if(idx >= 0)
+    {
+    value = idx + 1;
+    if(range)
+      range->Set(1, cmap->GetNumberOfCMPoints(), 1);
+    return true;
+    }
+  return false;
+}
+
+void ColorMapModel::SetMovingControlIndex(int value)
+{
+  ColorMapLayerProperties &p = this->GetProperties();
+  ColorMap *cmap = this->GetColorMap();
+  ColorMap::CMPoint pt = cmap->GetCMPoint(value - 1);
+
+  Side newside = ColorMapLayerProperties::NA;
+  if(pt.m_Type == ColorMap::DISCONTINUOUS)
+    {
+    // Pick the side that is closest to the current selection
+    if(value < p.GetSelectedControlIndex())
+      newside = ColorMapLayerProperties::RIGHT;
+    else
+      newside = ColorMapLayerProperties::LEFT;
+    }
+
+  this->SetSelection(value - 1, newside);
+}
+
+void ColorMapModel::DeleteSelectedControl()
+{
+  ColorMapLayerProperties &p = this->GetProperties();
+  int sel = p.GetSelectedControlIndex();
+  ColorMap *cmap = this->GetColorMap();
+
+  if(sel > 0 && sel < (int)(cmap->GetNumberOfCMPoints() - 1))
+    {
+    // Delete the point
+    cmap->DeleteCMPoint(sel);
+
+    // Update the selection
+    this->SetMovingControlIndex(sel);
+    }
 }
 
 

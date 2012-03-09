@@ -35,6 +35,8 @@ private slots:
 
   void on_btnDelPreset_clicked();
 
+  void on_btnDeleteControl_clicked();
+
 private:
 
   void PopulatePresets();

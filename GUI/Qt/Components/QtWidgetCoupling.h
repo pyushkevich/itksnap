@@ -191,6 +191,7 @@ struct DefaultWidgetTraits<TAtomic, QSpinBox>
 
   static void SetValue(QSpinBox *w, const TAtomic &value)
   {
+    w->setSpecialValueText("");
     w->setValue(static_cast<int>(value));
   }
 
