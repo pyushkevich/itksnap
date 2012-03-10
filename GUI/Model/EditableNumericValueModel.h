@@ -154,20 +154,29 @@ protected:
   a pair of functions in the object. This makes it easier to construct
   these editable models without having to write a new class. The parent
   model must be an instance of AbstractModel and have a getter for the
-  value that matches the signature of GetValueAndRange.
+  value that matches the signature of GetValueAndRange or that matches
+  the signature of GetValue
 
-  TVal GetValueAndRange(bool &isValid, NumericValueRange<TVal> *range)
+  bool GetValueAndRange(TVal &value, NumericValueRange<TVal> *range)
   {
     // range is NULL if not requested
     if(range) { ... } // fill range values
 
     // isValid automatically set to true, so only change if needed
-    if(not valid) isValid = false;
+    if(not valid) return false;
 
+    value = ...
+    return true;
+  }
+
+  TVal GetValue()
+  {
     return value;
   }
 
   An optional setter can also be supplied.
+
+
   */
 template<class TVal, class TModel>
 class FunctionWrapperNumericValueModel
@@ -193,7 +202,10 @@ public:
   typedef bool (TModel::*GetValueAndRangeFunctionPointer)(
       TVal &value, NumericValueRange<TVal> *range);
 
-  // The setup function
+  // Simple getter function pointer
+  typedef TVal (TModel::*GetValueFunctionPointer)();
+
+  // The setup function using the range getter
   void Initialize(TModel *model,
                   GetValueAndRangeFunctionPointer getValueAndRange,
                   SetValueFunctionPointer setValue = NULL)
@@ -201,6 +213,18 @@ public:
     m_Model = model;
     m_GetValueAndRangeFunctionPointer = getValueAndRange;
     m_SetValueFunctionPointer = setValue;
+    m_GetValueFunctionPointer = NULL;
+  }
+
+  // The setup function using the simple getter
+  void Initialize(TModel *model,
+                  GetValueFunctionPointer getValue,
+                  SetValueFunctionPointer setValue = NULL)
+  {
+    m_Model = model;
+    m_GetValueFunctionPointer = getValue;
+    m_SetValueFunctionPointer = setValue;
+    m_GetValueAndRangeFunctionPointer = NULL;
   }
 
   /**
@@ -216,7 +240,15 @@ public:
 
   bool GetValueAndRange(TVal &value, RangeType *range)
   {
-    return ((*m_Model).*(m_GetValueAndRangeFunctionPointer))(value, range);
+    if(m_GetValueAndRangeFunctionPointer)
+      {
+      return ((*m_Model).*(m_GetValueAndRangeFunctionPointer))(value, range);
+      }
+    else
+      {
+      value = ((*m_Model).*(m_GetValueFunctionPointer))();
+      return true;
+      }
   }
 
   void SetValue(TVal value)
@@ -233,11 +265,13 @@ protected:
   TModel *m_Model;
   SetValueFunctionPointer m_SetValueFunctionPointer;
   GetValueAndRangeFunctionPointer m_GetValueAndRangeFunctionPointer;
+  GetValueFunctionPointer m_GetValueFunctionPointer;
 
   FunctionWrapperNumericValueModel()
   {
     m_SetValueFunctionPointer = NULL;
     m_GetValueAndRangeFunctionPointer = NULL;
+    m_GetValueFunctionPointer = NULL;
   }
 
   ~FunctionWrapperNumericValueModel() {}
@@ -357,13 +391,39 @@ SmartPtr<AbstractEditableNumericValueModel<TVal> >
 makeChildNumericValueModel(
     TModel *model,
     bool (TModel::*getValueAndRange)(TVal &, NumericValueRange<TVal> *),
-    void (TModel::*setValue)(TVal),
+    void (TModel::*setValue)(TVal) = NULL,
     const itk::EventObject &valueEvent = ModelUpdateEvent(),
     const itk::EventObject &rangeEvent = ModelUpdateEvent())
 {
   typedef FunctionWrapperNumericValueModel<TVal, TModel> WrapperType;
   SmartPtr<WrapperType> p = WrapperType::New();
   p->Initialize(model, getValueAndRange, setValue);
+  p->SetEvents(valueEvent, rangeEvent);
+  // p->UnRegister();
+
+  SmartPtr<AbstractEditableNumericValueModel<TVal> > pout(p);
+  return pout;
+}
+
+/**
+  A shorthand method for creating models that wrap around functions in a
+  parent model. This is intended to reduce the amount of setup code in
+  the parent models. This version uses the simple getter method, i.e., it
+  is assumed that the value is always valid and that the domain is managed
+  by the GUI, not the model.
+  */
+template<class TModel, class TVal>
+SmartPtr<AbstractEditableNumericValueModel<TVal> >
+makeChildNumericValueModel(
+    TModel *model,
+    TVal (TModel::*getValue)(),
+    void (TModel::*setValue)(TVal) = NULL,
+    const itk::EventObject &valueEvent = ModelUpdateEvent(),
+    const itk::EventObject &rangeEvent = ModelUpdateEvent())
+{
+  typedef FunctionWrapperNumericValueModel<TVal, TModel> WrapperType;
+  SmartPtr<WrapperType> p = WrapperType::New();
+  p->Initialize(model, getValue, setValue);
   p->SetEvents(valueEvent, rangeEvent);
   // p->UnRegister();
 

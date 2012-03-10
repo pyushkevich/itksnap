@@ -241,6 +241,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/GlobalUIModel.cxx
   GUI/Model/ImageIODelegates.cxx
   GUI/Model/ImageIOWizardModel.cxx
+  GUI/Model/ImageInfoModel.cxx
   GUI/Model/IntensityCurveModel.cxx
   GUI/Model/IOActions.cxx
   GUI/Model/LayerSelectionModel.cxx
@@ -265,6 +266,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ColorMapModel.h
   GUI/Model/GenericSliceModel.h
   GUI/Model/GlobalUIModel.h
+  GUI/Model/ImageInfoModel.h
   GUI/Model/ImageIODelegates.h
   GUI/Model/ImageIOWizardModel.h
   GUI/Model/IntensityCurveModel.h
@@ -293,6 +295,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/ContrastInspector.cxx
   GUI/Qt/Components/ColorMapInspector.cxx
   GUI/Qt/Components/CursorInspector.cxx
+  GUI/Qt/Components/ImageInfoInspector.cxx
   GUI/Qt/Components/LabelInspector.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
   GUI/Qt/Components/QtReporterDelegates.cxx
@@ -328,6 +331,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/ContrastInspector.h
   GUI/Qt/Components/ColorMapInspector.h
   GUI/Qt/Components/CursorInspector.h
+  GUI/Qt/Components/ImageInfoInspector.h
   GUI/Qt/Components/LabelInspector.h
   GUI/Qt/Components/LatentITKEventNotifier.h
   GUI/Qt/Components/QtReporterDelegates.h
@@ -359,6 +363,7 @@ SET(UI_FORMS
   GUI/Qt/Components/ColorMapInspector.ui
   GUI/Qt/Components/ContrastInspector.ui
   GUI/Qt/Components/CursorInspector.ui
+  GUI/Qt/Components/ImageInfoInspector.ui
   GUI/Qt/Components/LabelInspector.ui
   GUI/Qt/Components/QtWarningDialog.ui
   GUI/Qt/Components/SliceViewPanel.ui

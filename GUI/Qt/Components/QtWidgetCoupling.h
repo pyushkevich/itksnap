@@ -51,7 +51,7 @@ public:
   Data mapping between a numeric model and an input widget TWidget.
   The mapping handles the value of the widget, and its range.
   */
-template <class TAtomic, class TWidget, class WidgetTraits>
+template <class TAtomic, class TWidgetPtr, class WidgetTraits>
 class NumericModelWidgetDataMapping : public AbstractWidgetDataMapping
 {
 public:
@@ -59,7 +59,7 @@ public:
   typedef AbstractEditableNumericValueModel<TAtomic> ModelType;
 
   // Constructor
-  NumericModelWidgetDataMapping(TWidget *w, ModelType *model)
+  NumericModelWidgetDataMapping(TWidgetPtr w, ModelType *model)
     : m_Widget(w), m_Model(model), m_Updating(false) {}
 
   // Populate widget
@@ -106,7 +106,7 @@ public:
 
 private:
 
-  TWidget *m_Widget;
+  TWidgetPtr m_Widget;
   ModelType *m_Model;
   bool m_Updating;
 };
@@ -292,6 +292,44 @@ struct DefaultWidgetTraits<TAtomic, QSlider>
   }
 };
 
+#include <QLineEdit>
+
+template <>
+struct DefaultWidgetTraits<double, QLineEdit>
+{
+  static const char *GetSignal()
+  {
+    return SIGNAL(textEdited(const QString &));
+  }
+
+  static double GetValue(QLineEdit *w)
+  {
+    return atof(w->text().toAscii());
+  }
+
+  static void SetValue(QLineEdit *w, const double &value)
+  {
+    char buffer[32];
+    sprintf(buffer, "%.4g", value);
+    w->setText(buffer);
+  }
+
+  static void SetValueToNull(QLineEdit *w)
+  {
+    w->setText("");
+  }
+
+  static NumericValueRange<double> GetRange(QLineEdit *w)
+  {
+    return NumericValueRange<double>();
+  }
+
+  static void SetRange(QLineEdit *w, const NumericValueRange<double> &range)
+  {
+  }
+};
+
+
 #include <QCheckBox>
 template <class TAtomic>
 struct DefaultWidgetTraits<TAtomic, QCheckBox>
@@ -426,6 +464,68 @@ struct RadioButtonGroupTraits :
 };
 
 
+/**
+  This class allows widget traits to be extended to an array of widgets. It
+  uses a child traits object to map between an iris_vector_fixed and an array
+  of widgets.
+  */
+template <class TAtomic, unsigned int VDim, class TWidget, class WidgetTraits>
+class WidgetArrayTraits
+{
+public:
+  typedef iris_vector_fixed<TAtomic, VDim> ValueType;
+  typedef std::vector<TWidget *> WidgetArrayType;
+
+  static ValueType GetValue(WidgetArrayType wa)
+  {
+    ValueType value;
+    for(unsigned int i = 0; i < VDim; i++)
+      value(i) = WidgetTraits::GetValue(wa[i]);
+    return value;
+  }
+
+  static void SetValue(WidgetArrayType wa, const ValueType &value)
+  {
+    for(unsigned int i = 0; i < VDim; i++)
+      WidgetTraits::SetValue(wa[i], value(i));
+  }
+
+  static void SetRange(WidgetArrayType wa, NumericValueRange<ValueType> &range)
+  {
+    for(unsigned int i = 0; i < VDim; i++)
+      {
+      NumericValueRange<TAtomic> ri(
+            range.Minimum(i), range.Maximum(i), range.StepSize(i));
+      WidgetTraits::SetRange(wa[i], ri);
+      }
+  }
+
+  static NumericValueRange<ValueType> GetRange(WidgetArrayType wa)
+  {
+    NumericValueRange<ValueType> range;
+    for(unsigned int i = 0; i < VDim; i++)
+      {
+      NumericValueRange<TAtomic> ri = WidgetTraits::GetRange(wa[i]);
+      range.Minimum(i) = ri.Minimum;
+      range.Maximum(i) = ri.Maximum;
+      range.StepSize(i) = ri.StepSize;
+      }
+    return range;
+  }
+
+  static void SetValueToNull(WidgetArrayType wa)
+  {
+    for(unsigned int i = 0; i < VDim; i++)
+      WidgetTraits::SetValueToNull(wa[i]);
+  }
+
+  static const char *GetSignal()
+  {
+    return WidgetTraits::GetSignal();
+  }
+};
+
+
 class QtCouplingHelper : public QObject
 {
   Q_OBJECT
@@ -492,7 +592,8 @@ template <class TAtomic, class TWidget, class WidgetTraits>
 void makeCoupling(TWidget *w,
                   AbstractEditableNumericValueModel<TAtomic> *model)
 {
-  typedef NumericModelWidgetDataMapping<TAtomic, TWidget, WidgetTraits> MappingType;
+  typedef NumericModelWidgetDataMapping<
+      TAtomic, TWidget *, WidgetTraits> MappingType;
   MappingType *mapping = new MappingType(w, model);
   QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
 
@@ -511,7 +612,6 @@ void makeCoupling(TWidget *w,
   // Listen to value change events for this widget
   h->connect(w, WidgetTraits::GetSignal(), SLOT(onUserModification()));
 }
-
 
 /** Create a coupling between a numeric model and a Qt widget. The widget
   will listen to the events from the model and update its value and range
@@ -532,6 +632,69 @@ void makeCoupling(TWidget *w,
 
 
 /**
+  Create a coupling between an model whose value is of a vector type and
+  an array of widgets of the same type. For example, this function allows
+  you to hook up a model wrapped around a Vector3d to a triple of spin boxes.
+  This is very convenient for dealing with input and output of vector data.
+  */
+template <unsigned int VDim, class TAtomic, class TWidget, class WidgetTraits>
+void makeArrayCoupling(std::vector<TWidget *> wa,
+                       AbstractEditableNumericValueModel<
+                           iris_vector_fixed<TAtomic, VDim> > *model)
+{
+  typedef std::vector<TWidget *> WidgetArray;
+  typedef WidgetArrayTraits<TAtomic, VDim, TWidget, WidgetTraits> ArrayTraits;
+  typedef iris_vector_fixed<TAtomic, VDim> ValueType;
+  typedef NumericModelWidgetDataMapping<
+      ValueType, WidgetArray, ArrayTraits> MappingType;
+
+  // Create the mapping
+  MappingType *mapping = new MappingType(wa, model);
+
+  // Create the coupling helper (event handler). It's attached to the first
+  // widget, just for the purpose of this object being deleted later.
+  QtCouplingHelper *h = new QtCouplingHelper(wa.front(), mapping);
+
+  // Listen to value change events from the model
+  LatentITKEventNotifier::connect(
+        model, ValueChangedEvent(),
+        h, SLOT(onPropertyModification()));
+
+  LatentITKEventNotifier::connect(
+        model, RangeChangedEvent(),
+        h, SLOT(onPropertyModification()));
+
+  // Listen to value change events for this widget
+  for(unsigned int i = 0; i < VDim; i++)
+    h->connect(wa[i], WidgetTraits::GetSignal(), SLOT(onUserModification()));
+}
+
+template <class TAtomic, class TWidget, class WidgetTraits>
+void makeArrayCoupling(TWidget *w1, TWidget *w2, TWidget *w3,
+                       AbstractEditableNumericValueModel<
+                           iris_vector_fixed<TAtomic, 3> > *model)
+{
+  // Create the array of widgets
+  std::vector<TWidget *> wa(3);
+  wa[0] = w1; wa[1] = w2; wa[2] = w3;
+
+  // Call the main method
+  makeArrayCoupling<3, TAtomic, TWidget, WidgetTraits>(wa, model);
+}
+
+template <class TAtomic, class TWidget>
+void makeArrayCoupling(TWidget *w1, TWidget *w2, TWidget *w3,
+                       AbstractEditableNumericValueModel<
+                           iris_vector_fixed<TAtomic, 3> > *model)
+{
+  // Call the main method
+  typedef DefaultWidgetTraits<TAtomic, TWidget> WidgetTraits;
+  makeArrayCoupling<TAtomic, TWidget, WidgetTraits>(w1, w2, w3, model);
+}
+
+
+
+/**
   Create a coupling between a widget containing a set of radio buttons
   and an enum. The values of the enum must be 0,1,2,... The buttons must
   be in the same order as the enum entries.
@@ -541,7 +704,8 @@ void makeRadioGroupCoupling(
     TWidget *w, AbstractEditableNumericValueModel<TAtomic> *model)
 {
   typedef RadioButtonGroupTraits<TAtomic> WidgetTraits;
-  typedef NumericModelWidgetDataMapping<TAtomic, TWidget, WidgetTraits> MappingType;
+  typedef NumericModelWidgetDataMapping<
+      TAtomic, TWidget *, WidgetTraits> MappingType;
   MappingType *mapping = new MappingType(w, model);
   QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
 

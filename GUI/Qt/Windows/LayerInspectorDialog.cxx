@@ -9,6 +9,7 @@
 #include "GenericImageData.h"
 #include "IntensityCurveModel.h"
 #include "ColorMapModel.h"
+#include "ImageInfoModel.h"
 
 
 
@@ -102,6 +103,7 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
   // Hook up the model to the component inspectors
   ui->cmpContrast->SetModel(model->GetIntensityCurveModel());
   ui->cmpColorMap->SetModel(model->GetColorMapModel());
+  ui->cmpInfo->SetModel(model->GetImageInfoModel());
 }
 
 void LayerInspectorDialog::onLayerSelection()
@@ -112,4 +114,5 @@ void LayerInspectorDialog::onLayerSelection()
       m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(idx.row()).GetLayerAsGray();
   m_Model->GetIntensityCurveModel()->SetLayer(layer);
   m_Model->GetColorMapModel()->SetLayer(layer);
+  m_Model->GetImageInfoModel()->SetLayer(layer);
 }

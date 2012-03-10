@@ -104,7 +104,7 @@ ColorMapModel
 void ColorMapModel::RegisterWithLayer(GreyImageWrapperBase *layer)
 {
   unsigned long tag =
-      Rebroadcast(this->GetColorMap(),
+      Rebroadcast(layer->GetColorMap(),
                   ColorMapChangeEvent(), ModelUpdateEvent());
   GetProperties().SetObserverTag(tag);
 }

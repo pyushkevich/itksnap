@@ -38,6 +38,7 @@
 #include <IntensityCurveModel.h>
 #include <LayerSelectionModel.h>
 #include <ColorMapModel.h>
+#include <ImageInfoModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -81,6 +82,10 @@ GlobalUIModel::GlobalUIModel()
   // Color map model
   m_ColorMapModel = ColorMapModel::New();
   m_ColorMapModel->SetParentModel(this);
+
+  // Image info model
+  m_ImageInfoModel = ImageInfoModel::New();
+  m_ImageInfoModel->SetParentModel(this);
 
   // Layer selections
   m_LoadedLayersSelectionModel = LayerSelectionModel::New();
