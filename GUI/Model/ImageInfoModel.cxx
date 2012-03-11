@@ -27,6 +27,12 @@ ImageInfoModel::ImageInfoModel()
         this,
         &Self::GetImageVoxelCoordinatesValueAndRange,
         &Self::SetImageVoxelCoordinates);
+
+  m_ImageMinMaxModel = makeChildNumericValueModel(
+        this, &Self::GetImageMinMaxValueAndRange);
+
+  m_ImageOrientationModel = makeChildNumericValueModel(
+        this, &Self::GetImageOrientationValueAndRange);
 }
 
 void ImageInfoModel::SetParentModel(GlobalUIModel *parent)
@@ -107,6 +113,35 @@ bool ImageInfoModel
 void ImageInfoModel::SetImageVoxelCoordinates(Vector3ui value)
 {
   m_ParentModel->GetDriver()->SetCursorPosition(value);
+}
+
+bool ImageInfoModel
+::GetImageMinMaxValueAndRange(
+    Vector2d &value, NumericValueRange<Vector2d> *range)
+{
+  value = Vector2d(GetLayer()->GetImageMinNative(),
+                   GetLayer()->GetImageMaxNative());
+  return true;
+}
+
+bool ImageInfoModel
+::GetImageOrientationValueAndRange(
+    std::string &value, NumericValueRange<std::string> *range)
+{
+  const ImageCoordinateGeometry &geo =
+      m_ParentModel->GetDriver()->GetCurrentImageData()->GetImageGeometry();
+  ImageCoordinateGeometry::DirectionMatrix dmat =
+      geo.GetImageDirectionCosineMatrix();
+
+  std::string raicode =
+    ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(dmat);
+
+  if (ImageCoordinateGeometry::IsDirectionMatrixOblique(dmat))
+    value = std::string("Oblique (closest to ") + raicode + string(")");
+  else
+    value = raicode;
+
+  return true;
 }
 
 

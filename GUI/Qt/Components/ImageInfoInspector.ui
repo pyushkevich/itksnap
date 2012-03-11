@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>451</width>
+    <width>450</width>
     <height>523</height>
    </rect>
   </property>
@@ -97,21 +97,15 @@ QDoubleSpinBox:read-only {
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="outDimX">
-        <property name="minimumSize">
+       <widget class="QLineEdit" name="outDimX">
+        <property name="maximumSize">
          <size>
-          <width>64</width>
-          <height>0</height>
+          <width>80</width>
+          <height>16777215</height>
          </size>
         </property>
         <property name="readOnly">
          <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <number>999999</number>
         </property>
        </widget>
       </item>
@@ -132,21 +126,15 @@ QDoubleSpinBox:read-only {
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="outDimY">
-        <property name="minimumSize">
+       <widget class="QLineEdit" name="outDimY">
+        <property name="maximumSize">
          <size>
-          <width>64</width>
-          <height>0</height>
+          <width>80</width>
+          <height>16777215</height>
          </size>
         </property>
         <property name="readOnly">
          <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <number>999999</number>
         </property>
        </widget>
       </item>
@@ -167,21 +155,15 @@ QDoubleSpinBox:read-only {
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="outDimZ">
-        <property name="minimumSize">
+       <widget class="QLineEdit" name="outDimZ">
+        <property name="maximumSize">
          <size>
-          <width>64</width>
-          <height>0</height>
+          <width>80</width>
+          <height>16777215</height>
          </size>
         </property>
         <property name="readOnly">
          <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <number>999999</number>
         </property>
        </widget>
       </item>
@@ -230,21 +212,15 @@ QDoubleSpinBox:read-only {
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="outSpacingX">
-        <property name="minimumSize">
+       <widget class="QLineEdit" name="outSpacingX">
+        <property name="maximumSize">
          <size>
-          <width>64</width>
-          <height>0</height>
+          <width>80</width>
+          <height>16777215</height>
          </size>
         </property>
         <property name="readOnly">
          <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <double>999.990000000000009</double>
         </property>
        </widget>
       </item>
@@ -265,21 +241,15 @@ QDoubleSpinBox:read-only {
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="outSpacingY">
-        <property name="minimumSize">
+       <widget class="QLineEdit" name="outSpacingY">
+        <property name="maximumSize">
          <size>
-          <width>64</width>
-          <height>0</height>
+          <width>80</width>
+          <height>16777215</height>
          </size>
         </property>
         <property name="readOnly">
          <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <double>999.990000000000009</double>
         </property>
        </widget>
       </item>
@@ -300,21 +270,15 @@ QDoubleSpinBox:read-only {
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="outSpacingZ">
-        <property name="minimumSize">
+       <widget class="QLineEdit" name="outSpacingZ">
+        <property name="maximumSize">
          <size>
-          <width>64</width>
-          <height>0</height>
+          <width>80</width>
+          <height>16777215</height>
          </size>
         </property>
         <property name="readOnly">
          <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <double>999.990000000000009</double>
         </property>
        </widget>
       </item>
@@ -362,25 +326,6 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QDoubleSpinBox" name="outOriginX">
-        <property name="minimumSize">
-         <size>
-          <width>64</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <double>999.990000000000009</double>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="3">
        <widget class="QLabel" name="label_8">
         <property name="minimumSize">
@@ -394,25 +339,6 @@ QDoubleSpinBox:read-only {
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4">
-       <widget class="QDoubleSpinBox" name="outOriginY">
-        <property name="minimumSize">
-         <size>
-          <width>64</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <double>999.990000000000009</double>
         </property>
        </widget>
       </item>
@@ -432,33 +358,20 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="0" column="6">
-       <widget class="QDoubleSpinBox" name="outOriginZ">
-        <property name="minimumSize">
+      <item row="1" column="4">
+       <widget class="QLineEdit" name="outRAI">
+        <property name="maximumSize">
          <size>
-          <width>64</width>
-          <height>0</height>
+          <width>80</width>
+          <height>16777215</height>
          </size>
         </property>
         <property name="readOnly">
          <bool>true</bool>
         </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <double>999.990000000000009</double>
-        </property>
        </widget>
       </item>
-      <item row="1" column="4" colspan="3">
-       <widget class="QLineEdit" name="outRAI">
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2" colspan="2">
+      <item row="1" column="0" colspan="4">
        <widget class="QLabel" name="label_10">
         <property name="minimumSize">
          <size>
@@ -467,10 +380,56 @@ QDoubleSpinBox:read-only {
          </size>
         </property>
         <property name="text">
-         <string>RAI code:</string>
+         <string>Orientation (RAI) code:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLineEdit" name="outOriginX">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QLineEdit" name="outOriginY">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="6">
+       <widget class="QLineEdit" name="outOriginZ">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5" colspan="2">
+       <widget class="QToolButton" name="toolButton">
+        <property name="text">
+         <string>Reorient...</string>
         </property>
        </widget>
       </item>
@@ -489,20 +448,7 @@ QDoubleSpinBox:read-only {
       <property name="margin">
        <number>6</number>
       </property>
-      <item row="0" column="0">
-       <spacer name="horizontalSpacer_4">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="0" column="2">
+      <item row="0" column="1">
        <widget class="QLabel" name="label_11">
         <property name="minimumSize">
          <size>
@@ -518,7 +464,7 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="0" column="4">
+      <item row="0" column="3">
        <widget class="QLabel" name="label_12">
         <property name="minimumSize">
          <size>
@@ -534,7 +480,7 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="0" column="6">
+      <item row="0" column="5">
        <widget class="QLabel" name="label_13">
         <property name="minimumSize">
          <size>
@@ -550,25 +496,7 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label_14">
-        <property name="font">
-         <font>
-          <pointsize>10</pointsize>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">color:gray;</string>
-        </property>
-        <property name="text">
-         <string>Voxel      coordinates</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="6">
+      <item row="1" column="5">
        <widget class="QLabel" name="label_15">
         <property name="minimumSize">
          <size>
@@ -584,7 +512,7 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="1" column="4">
+      <item row="1" column="3">
        <widget class="QLabel" name="label_16">
         <property name="minimumSize">
          <size>
@@ -600,7 +528,7 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="1" column="2">
+      <item row="1" column="1">
        <widget class="QLabel" name="label_17">
         <property name="minimumSize">
          <size>
@@ -616,41 +544,7 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="label_18">
-        <property name="font">
-         <font>
-          <pointsize>10</pointsize>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">color:gray;</string>
-        </property>
-        <property name="text">
-         <string>World (ITK) Coordinates</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="7">
-       <widget class="QDoubleSpinBox" name="outNiftiZ">
-        <property name="minimumSize">
-         <size>
-          <width>64</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="6">
+      <item row="2" column="5">
        <widget class="QLabel" name="label_19">
         <property name="minimumSize">
          <size>
@@ -666,23 +560,7 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="2" column="5">
-       <widget class="QDoubleSpinBox" name="outNiftiY">
-        <property name="minimumSize">
-         <size>
-          <width>64</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="4">
+      <item row="2" column="3">
        <widget class="QLabel" name="label_20">
         <property name="minimumSize">
          <size>
@@ -698,23 +576,7 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="2" column="3">
-       <widget class="QDoubleSpinBox" name="outNiftiX">
-        <property name="minimumSize">
-         <size>
-          <width>64</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
+      <item row="2" column="1">
        <widget class="QLabel" name="label_21">
         <property name="minimumSize">
          <size>
@@ -730,25 +592,7 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="label_22">
-        <property name="font">
-         <font>
-          <pointsize>10</pointsize>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">color:gray;</string>
-        </property>
-        <property name="text">
-         <string>World (NIFTI) Coordinates</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
+      <item row="0" column="2">
        <widget class="QSpinBox" name="inVoxX">
         <property name="minimumSize">
          <size>
@@ -764,7 +608,7 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="0" column="5">
+      <item row="0" column="4">
        <widget class="QSpinBox" name="inVoxY">
         <property name="minimumSize">
          <size>
@@ -780,7 +624,7 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="0" column="7">
+      <item row="0" column="6">
        <widget class="QSpinBox" name="inVoxZ">
         <property name="minimumSize">
          <size>
@@ -796,11 +640,23 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="1" column="3">
+      <item row="1" column="2">
        <widget class="QLineEdit" name="outItkX">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>80</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
-          <width>64</width>
+          <width>80</width>
           <height>16777215</height>
          </size>
         </property>
@@ -809,11 +665,23 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="1" column="5">
+      <item row="1" column="4">
        <widget class="QLineEdit" name="outItkY">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>80</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
-          <width>64</width>
+          <width>80</width>
           <height>16777215</height>
          </size>
         </property>
@@ -822,8 +690,59 @@ QDoubleSpinBox:read-only {
         </property>
        </widget>
       </item>
-      <item row="1" column="7">
+      <item row="1" column="6">
        <widget class="QLineEdit" name="outItkZ">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>80</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLineEdit" name="outNiftiX">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="4">
+       <widget class="QLineEdit" name="outNiftiY">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="6">
+       <widget class="QLineEdit" name="outNiftiZ">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -838,11 +757,77 @@ QDoubleSpinBox:read-only {
         </property>
         <property name="maximumSize">
          <size>
-          <width>64</width>
+          <width>80</width>
           <height>16777215</height>
          </size>
         </property>
         <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_18">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Voxel coordinates</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_14">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>World (ITK) coordinates</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_22">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>World (NIFTI) coordinates</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="wordWrap">
          <bool>true</bool>
         </property>
        </widget>
@@ -892,18 +877,27 @@ QDoubleSpinBox:read-only {
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="outIntensityMin">
+       <widget class="QLineEdit" name="outMin">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
           <width>96</width>
           <height>0</height>
          </size>
         </property>
+        <property name="maximumSize">
+         <size>
+          <width>64</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
        </widget>
       </item>
@@ -924,18 +918,27 @@ QDoubleSpinBox:read-only {
        </widget>
       </item>
       <item>
-       <widget class="QDoubleSpinBox" name="outIntensityMax">
+       <widget class="QLineEdit" name="outMax">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
           <width>96</width>
           <height>0</height>
          </size>
         </property>
+        <property name="maximumSize">
+         <size>
+          <width>64</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
        </widget>
       </item>

@@ -59,8 +59,9 @@ public:
   typedef AbstractEditableNumericValueModel<TAtomic> ModelType;
 
   // Constructor
-  NumericModelWidgetDataMapping(TWidgetPtr w, ModelType *model)
-    : m_Widget(w), m_Model(model), m_Updating(false) {}
+  NumericModelWidgetDataMapping(TWidgetPtr w, ModelType *model,
+                                WidgetTraits traits)
+    : m_Widget(w), m_Model(model), m_Updating(false), m_Traits(traits) {}
 
   // Populate widget
   void CopyFromTargetToWidget()
@@ -69,18 +70,18 @@ public:
 
     // Prepopulate the range with current values in case the model does
     // not actually compute ranges
-    NumericValueRange<TAtomic> range = WidgetTraits::GetRange(m_Widget);
+    NumericValueRange<TAtomic> range = m_Traits.GetRange(m_Widget);
     TAtomic value;
 
     // Obtain the value from the model
     if(m_Model->GetValueAndRange(value, &range))
       {
-      WidgetTraits::SetRange(m_Widget, range);
-      WidgetTraits::SetValue(m_Widget, value);
+      m_Traits.SetRange(m_Widget, range);
+      m_Traits.SetValue(m_Widget, value);
       }
     else
       {
-      WidgetTraits::SetValueToNull(m_Widget);
+      m_Traits.SetValueToNull(m_Widget);
       }
 
     m_Updating = false;
@@ -91,7 +92,8 @@ public:
   {
     if(!m_Updating)
       {
-      TAtomic user_value = WidgetTraits::GetValue(m_Widget), model_value;
+      TAtomic user_value = m_Traits.GetValue(m_Widget);
+      TAtomic model_value;
 
       // Note: if the model reports that the value is invalid, we are not
       // allowing the user to mess with the value. This may have some odd
@@ -109,6 +111,7 @@ private:
   TWidgetPtr m_Widget;
   ModelType *m_Model;
   bool m_Updating;
+  WidgetTraits m_Traits;
 };
 
 
@@ -135,12 +138,14 @@ public:
 
   BasicPropertyToWidgetDataMapping(
       TWidget *w, ConstProperty<TAtomic> &p,
-      SetterFunction setter, TPropertyContainer *c)
-    : m_Widget(w), m_Property(p), m_Setter(setter), m_Container(c) {}
+      SetterFunction setter, TPropertyContainer *c,
+      WidgetTraits traits)
+    : m_Widget(w), m_Property(p), m_Setter(setter),
+      m_Container(c), m_Traits(traits) {}
 
   void CopyFromWidgetToTarget()
   {
-    TAtomic x = WidgetTraits::GetValue(m_Widget);
+    TAtomic x = m_Traits.GetValue(m_Widget);
     if(x != m_Property)
       ((*m_Container).*(m_Setter))(x);
   }
@@ -148,8 +153,8 @@ public:
   void CopyFromTargetToWidget()
   {
     TAtomic x = m_Property;
-    if(x != WidgetTraits::GetValue(m_Widget))
-      WidgetTraits::SetValue(m_Widget, x);
+    if(x != m_Traits.GetValue(m_Widget))
+      m_Traits.SetValue(m_Widget, x);
   }
 
 protected:
@@ -157,58 +162,86 @@ protected:
   ConstProperty<TAtomic> &m_Property;
   SetterFunction m_Setter;
   TPropertyContainer *m_Container;
+  WidgetTraits m_Traits;
 };
 
 
 /**
+  Base class for widget traits
+  */
+template <class TAtomic, class TWidgetPtr>
+class WidgetTraitsBase
+{
+public:
+  // Get the Qt signal that the widget fires when its value has changed
+  virtual const char *GetSignal() { return NULL; }
+
+  // Get the value from the widget
+  virtual TAtomic GetValue(TWidgetPtr) = 0;
+
+  // Set the value of the widget
+  virtual void SetValue(TWidgetPtr, const TAtomic &) = 0;
+
+  // The default behavior is to ignore the range. Child classes where the
+  // range is of relevance should override these functions
+  virtual void SetRange(TWidgetPtr w, NumericValueRange<TAtomic> &range) {}
+  virtual NumericValueRange<TAtomic> GetRange(TWidgetPtr w)
+    { return NumericValueRange<TAtomic> (); }
+
+  // The default behavior for setting the widget to null is to do nothing.
+  // This should be overridden by child traits classes
+  virtual void SetValueToNull(TWidgetPtr) {};
+};
+
+/**
   Empty template for default traits. Specialize for different Qt widgets
   */
+
 template <class TAtomic, class TWidget>
-struct DefaultWidgetTraits
+class DefaultWidgetTraits
 {
-  /*
-  static const char *GetSignal() { throw std::exception(); }
-  static TAtomic GetValue(TWidget *) { return 0; }
-  static void SetValue(TWidget *, const TAtomic &value) {}
-  */
+
 };
+
 
 /**
   Default traits for the Qt Spin Box
   */
 template <class TAtomic>
-struct DefaultWidgetTraits<TAtomic, QSpinBox>
+class DefaultWidgetTraits<TAtomic, QSpinBox>
+    : public WidgetTraitsBase<TAtomic, QSpinBox *>
 {
-  static const char *GetSignal()
+public:
+  const char *GetSignal()
   {
     return SIGNAL(valueChanged(int));
   }
 
-  static TAtomic GetValue(QSpinBox *w)
+  TAtomic GetValue(QSpinBox *w)
   {
     return static_cast<TAtomic>(w->value());
   }
 
-  static void SetValue(QSpinBox *w, const TAtomic &value)
+  void SetValue(QSpinBox *w, const TAtomic &value)
   {
     w->setSpecialValueText("");
     w->setValue(static_cast<int>(value));
   }
 
-  static void SetRange(QSpinBox *w, NumericValueRange<TAtomic> &range)
+  void SetRange(QSpinBox *w, NumericValueRange<TAtomic> &range)
   {
     w->setMinimum(range.Minimum);
     w->setMaximum(range.Maximum);
     w->setSingleStep(range.StepSize);
   }
 
-  static void SetValueToNull(QSpinBox *w)
+  void SetValueToNull(QSpinBox *w)
   {
     w->setValue(w->minimum());
     w->setSpecialValueText(" ");
   }
 
-  static NumericValueRange<TAtomic> GetRange(QSpinBox *w)
+  NumericValueRange<TAtomic> GetRange(QSpinBox *w)
   {
     return NumericValueRange<TAtomic>(
           static_cast<TAtomic>(w->minimum()),
@@ -221,25 +254,27 @@ struct DefaultWidgetTraits<TAtomic, QSpinBox>
   Default traits for the Qt Double Spin Box
   */
 template <class TAtomic>
-struct DefaultWidgetTraits<TAtomic, QDoubleSpinBox>
+class DefaultWidgetTraits<TAtomic, QDoubleSpinBox>
+    : public WidgetTraitsBase<TAtomic, QDoubleSpinBox *>
 {
-  static const char *GetSignal()
+public:
+  const char *GetSignal()
   {
     return SIGNAL(valueChanged(double));
   }
 
-  static TAtomic GetValue(QDoubleSpinBox *w)
+  TAtomic GetValue(QDoubleSpinBox *w)
   {
     return static_cast<TAtomic>(w->value());
   }
 
-  static void SetValue(QDoubleSpinBox *w, const TAtomic &value)
+  void SetValue(QDoubleSpinBox *w, const TAtomic &value)
   {
-    w->setValue(static_cast<double>(value));
     w->setSpecialValueText("");
+    w->setValue(static_cast<double>(value));
   }
 
-  static void SetRange(QDoubleSpinBox *w, NumericValueRange<TAtomic> &range)
+  void SetRange(QDoubleSpinBox *w, NumericValueRange<TAtomic> &range)
   {
     w->setMinimum(range.Minimum);
     w->setMaximum(range.Maximum);
@@ -258,7 +293,7 @@ struct DefaultWidgetTraits<TAtomic, QDoubleSpinBox>
       w->setDecimals(0);
   }
 
-  static NumericValueRange<TAtomic> GetRange(QDoubleSpinBox *w)
+  NumericValueRange<TAtomic> GetRange(QDoubleSpinBox *w)
   {
     return NumericValueRange<TAtomic>(
           static_cast<TAtomic>(w->minimum()),
@@ -266,7 +301,7 @@ struct DefaultWidgetTraits<TAtomic, QDoubleSpinBox>
           static_cast<TAtomic>(w->singleStep()));
   }
 
-  static void SetValueToNull(QDoubleSpinBox *w)
+  void SetValueToNull(QDoubleSpinBox *w)
   {
     w->setValue(w->minimum());
     w->setSpecialValueText(" ");
@@ -274,91 +309,112 @@ struct DefaultWidgetTraits<TAtomic, QDoubleSpinBox>
 };
 
 template <class TAtomic>
-struct DefaultWidgetTraits<TAtomic, QSlider>
+class DefaultWidgetTraits<TAtomic, QSlider>
+    : public WidgetTraitsBase<TAtomic, QSlider *>
 {
-  static const char *GetSignal()
+public:
+  const char *GetSignal()
   {
     return SIGNAL(valueChanged(int));
   }
 
-  static TAtomic GetValue(QAbstractSlider *w)
+  TAtomic GetValue(QSlider *w)
   {
     return static_cast<TAtomic>(w->value());
   }
 
-  static void SetValue(QAbstractSlider *w, const TAtomic &value)
+  void SetValue(QSlider *w, const TAtomic &value)
   {
     w->setValue(static_cast<int>(value));
   }
 };
 
 #include <QLineEdit>
+#include <iostream>
+#include <iomanip>
 
-template <>
-struct DefaultWidgetTraits<double, QLineEdit>
+
+template <class TAtomic>
+class DefaultWidgetTraits<TAtomic, QLineEdit>
+    : public WidgetTraitsBase<TAtomic, QLineEdit *>
 {
-  static const char *GetSignal()
+public:
+
+  virtual TAtomic GetValue(QLineEdit *w)
   {
-    return SIGNAL(textEdited(const QString &));
+    std::istringstream iss(w->text().toStdString());
+    TAtomic value;
+    iss >> value;
+    return value;
   }
 
-  static double GetValue(QLineEdit *w)
+  virtual void SetValue(QLineEdit *w, const TAtomic &value)
   {
-    return atof(w->text().toAscii());
+    std::ostringstream oss;
+    oss << value;
+    w->setText(oss.str().c_str());
   }
 
-  static void SetValue(QLineEdit *w, const double &value)
-  {
-    char buffer[32];
-    sprintf(buffer, "%.4g", value);
-    w->setText(buffer);
-  }
-
-  static void SetValueToNull(QLineEdit *w)
+  virtual void SetValueToNull(QLineEdit *w)
   {
     w->setText("");
   }
 
-  static NumericValueRange<double> GetRange(QLineEdit *w)
+  virtual const char *GetSignal()
   {
-    return NumericValueRange<double>();
+    return SIGNAL(textEdited(const QString &));
+  }
+};
+
+
+
+/** Base class for traits that map between a numeric value and a text editor */
+template <class TAtomic, class QLineEdit>
+class FixedPrecisionRealToTextFieldWidgetTraits
+    : public DefaultWidgetTraits<TAtomic, QLineEdit>
+{
+public:
+
+  FixedPrecisionRealToTextFieldWidgetTraits(int precision)
+    : m_Precision(precision) {}
+
+  irisGetSetMacro(Precision, int)
+
+  virtual void SetValue(QLineEdit *w, const TAtomic &value)
+  {
+    std::ostringstream oss;
+    oss << std::setprecision(m_Precision) << value;
+    w->setText(oss.str().c_str());
   }
 
-  static void SetRange(QLineEdit *w, const NumericValueRange<double> &range)
-  {
-  }
+protected:
+
+  int m_Precision;
 };
 
 
 #include <QCheckBox>
 template <class TAtomic>
 struct DefaultWidgetTraits<TAtomic, QCheckBox>
+    : public WidgetTraitsBase<TAtomic, QCheckBox *>
 {
-  static const char *GetSignal()
+public:
+  const char *GetSignal()
   {
     return SIGNAL(stateChanged(int));
   }
 
-  static TAtomic GetValue(QCheckBox *w)
+  TAtomic GetValue(QCheckBox *w)
   {
     return static_cast<TAtomic>(w->isChecked());
   }
 
-  static void SetValue(QCheckBox *w, const TAtomic &value)
+  void SetValue(QCheckBox *w, const TAtomic &value)
   {
     w->setChecked(static_cast<bool>(value));
   }
 
-  static void SetRange(QCheckBox *w, NumericValueRange<TAtomic> &range)
-  {
-  }
-
-  static NumericValueRange<TAtomic> GetRange(QCheckBox *w)
-  {
-    return NumericValueRange<TAtomic>();
-  }
-
-  static void SetValueToNull(QCheckBox *w)
+  void SetValueToNull(QCheckBox *w)
   {
     w->setChecked(false);
   }
@@ -369,6 +425,7 @@ struct DefaultWidgetTraits<TAtomic, QCheckBox>
 template <class TAtomic>
 struct DefaultWidgetTraits<TAtomic, QRadioButton>
 {
+public:
   static const char *GetSignal()
   {
     return SIGNAL(toggled(bool));
@@ -384,15 +441,6 @@ struct DefaultWidgetTraits<TAtomic, QRadioButton>
     w->setChecked(static_cast<bool>(value));
   }
 
-  static void SetRange(QRadioButton *w, NumericValueRange<TAtomic> &range)
-  {
-  }
-
-  static NumericValueRange<TAtomic> GetRange(QRadioButton *w)
-  {
-    return NumericValueRange<TAtomic>();
-  }
-
   static void SetValueToNull(QRadioButton *w)
   {
     w->setChecked(false);
@@ -401,9 +449,10 @@ struct DefaultWidgetTraits<TAtomic, QRadioButton>
 
 template <class TAtomic>
 struct RadioButtonGroupTraits :
-    public DefaultWidgetTraits<TAtomic, QWidget>
+    public WidgetTraitsBase<TAtomic, QWidget *>
 {
-  static TAtomic GetValue(QWidget *w)
+public:
+  TAtomic GetValue(QWidget *w)
   {
     // Figure out which button is checked
     int ifound = 0;
@@ -421,7 +470,7 @@ struct RadioButtonGroupTraits :
     return static_cast<TAtomic>(ifound);
   }
 
-  static void SetValue(QWidget *w, const TAtomic &value)
+  void SetValue(QWidget *w, const TAtomic &value)
   {
     // Figure out which button is checked
     int ifound = (int) value;
@@ -438,16 +487,7 @@ struct RadioButtonGroupTraits :
       }
   }
 
-  static void SetRange(QWidget *w, NumericValueRange<TAtomic> &range)
-  {
-  }
-
-  static NumericValueRange<TAtomic> GetRange(QWidget *w)
-  {
-    return NumericValueRange<TAtomic>();
-  }
-
-  static void SetValueToNull(QWidget *w)
+  void SetValueToNull(QWidget *w)
   {
     // Set all the radios
     for(QObjectList::const_iterator it = w->children().begin();
@@ -460,7 +500,6 @@ struct RadioButtonGroupTraits :
         }
       }
   }
-
 };
 
 
@@ -470,42 +509,51 @@ struct RadioButtonGroupTraits :
   of widgets.
   */
 template <class TAtomic, unsigned int VDim, class TWidget, class WidgetTraits>
-class WidgetArrayTraits
+class WidgetArrayTraits :
+    public WidgetTraitsBase< iris_vector_fixed<TAtomic, VDim>,
+                             std::vector<TWidget *> >
 {
 public:
   typedef iris_vector_fixed<TAtomic, VDim> ValueType;
   typedef std::vector<TWidget *> WidgetArrayType;
 
-  static ValueType GetValue(WidgetArrayType wa)
+  /**
+    Constructor, takes the "child" traits object, i.e., the traits for the
+    individual widgets in the array
+    */
+  WidgetArrayTraits(WidgetTraits childTraits)
+    : m_ChildTraits(childTraits) {}
+
+  ValueType GetValue(WidgetArrayType wa)
   {
     ValueType value;
     for(unsigned int i = 0; i < VDim; i++)
-      value(i) = WidgetTraits::GetValue(wa[i]);
+      value(i) = m_ChildTraits.GetValue(wa[i]);
     return value;
   }
 
-  static void SetValue(WidgetArrayType wa, const ValueType &value)
+  void SetValue(WidgetArrayType wa, const ValueType &value)
   {
     for(unsigned int i = 0; i < VDim; i++)
-      WidgetTraits::SetValue(wa[i], value(i));
+      m_ChildTraits.SetValue(wa[i], value(i));
   }
 
-  static void SetRange(WidgetArrayType wa, NumericValueRange<ValueType> &range)
+  void SetRange(WidgetArrayType wa, NumericValueRange<ValueType> &range)
   {
     for(unsigned int i = 0; i < VDim; i++)
       {
       NumericValueRange<TAtomic> ri(
             range.Minimum(i), range.Maximum(i), range.StepSize(i));
-      WidgetTraits::SetRange(wa[i], ri);
+      m_ChildTraits.SetRange(wa[i], ri);
       }
   }
 
-  static NumericValueRange<ValueType> GetRange(WidgetArrayType wa)
+  NumericValueRange<ValueType> GetRange(WidgetArrayType wa)
   {
     NumericValueRange<ValueType> range;
     for(unsigned int i = 0; i < VDim; i++)
       {
-      NumericValueRange<TAtomic> ri = WidgetTraits::GetRange(wa[i]);
+      NumericValueRange<TAtomic> ri = m_ChildTraits.GetRange(wa[i]);
       range.Minimum(i) = ri.Minimum;
       range.Maximum(i) = ri.Maximum;
       range.StepSize(i) = ri.StepSize;
@@ -513,16 +561,19 @@ public:
     return range;
   }
 
-  static void SetValueToNull(WidgetArrayType wa)
+  void SetValueToNull(WidgetArrayType wa)
   {
     for(unsigned int i = 0; i < VDim; i++)
-      WidgetTraits::SetValueToNull(wa[i]);
+      m_ChildTraits.SetValueToNull(wa[i]);
   }
 
-  static const char *GetSignal()
+  const char *GetSignal()
   {
-    return WidgetTraits::GetSignal();
+    return m_ChildTraits.GetSignal();
   }
+
+protected:
+  WidgetTraits m_ChildTraits;
 };
 
 
@@ -557,7 +608,8 @@ protected:
 template <class TAtomic, class TWidget, class TContainer, class WidgetTraits>
 void makeCoupling(TWidget *w, TContainer *c,
                   void (TContainer::*setter)(TAtomic),
-                  ConstProperty<TAtomic> & (TContainer::*getter)())
+                  ConstProperty<TAtomic> & (TContainer::*getter)(),
+                  WidgetTraits traits)
 {
   // Retrieve the property
   ConstProperty<TAtomic> &p = ((*c).*(getter))();
@@ -565,7 +617,7 @@ void makeCoupling(TWidget *w, TContainer *c,
   typedef BasicPropertyToWidgetDataMapping<
       TAtomic, TWidget, TContainer, WidgetTraits> MappingType;
 
-  MappingType *mapping = new MappingType(w, p, setter, c);
+  MappingType *mapping = new MappingType(w, p, setter, c, traits);
 
   QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
 
@@ -575,7 +627,7 @@ void makeCoupling(TWidget *w, TContainer *c,
         h, SLOT(onPropertyModification()));
 
   // Coupling helper listens to events from widget
-  h->connect(w, WidgetTraits::GetSignal(), SLOT(onUserModification()));
+  h->connect(w, traits.GetSignal(), SLOT(onUserModification()));
 }
 
 template <class TAtomic, class TWidget, class TContainer>
@@ -584,17 +636,21 @@ void makeCoupling(TWidget *w, TContainer *c,
                   ConstProperty<TAtomic> & (TContainer::*getter)())
 {
   typedef DefaultWidgetTraits<TAtomic, TWidget> WidgetTraits;
-  makeCoupling<TAtomic, TWidget, TContainer, WidgetTraits>(w,c,setter,getter);
+  WidgetTraits traits;
+  makeCoupling<TAtomic, TWidget, TContainer, WidgetTraits>(
+        w,c,setter,getter, traits);
 }
 
 
 template <class TAtomic, class TWidget, class WidgetTraits>
-void makeCoupling(TWidget *w,
-                  AbstractEditableNumericValueModel<TAtomic> *model)
+void makeCoupling(
+    TWidget *w,
+    AbstractEditableNumericValueModel<TAtomic> *model,
+    WidgetTraits traits = DefaultWidgetTraits<TAtomic, TWidget>())
 {
   typedef NumericModelWidgetDataMapping<
       TAtomic, TWidget *, WidgetTraits> MappingType;
-  MappingType *mapping = new MappingType(w, model);
+  MappingType *mapping = new MappingType(w, model, traits);
   QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
 
   // Populate the widget
@@ -610,7 +666,7 @@ void makeCoupling(TWidget *w,
         h, SLOT(onPropertyModification()));
 
   // Listen to value change events for this widget
-  h->connect(w, WidgetTraits::GetSignal(), SLOT(onUserModification()));
+  h->connect(w, traits.GetSignal(), SLOT(onUserModification()));
 }
 
 /** Create a coupling between a numeric model and a Qt widget. The widget
@@ -638,9 +694,10 @@ void makeCoupling(TWidget *w,
   This is very convenient for dealing with input and output of vector data.
   */
 template <unsigned int VDim, class TAtomic, class TWidget, class WidgetTraits>
-void makeArrayCoupling(std::vector<TWidget *> wa,
-                       AbstractEditableNumericValueModel<
-                           iris_vector_fixed<TAtomic, VDim> > *model)
+void makeArrayCoupling(
+    std::vector<TWidget *> wa,
+    AbstractEditableNumericValueModel< iris_vector_fixed<TAtomic, VDim> > *model,
+    WidgetTraits traits)
 {
   typedef std::vector<TWidget *> WidgetArray;
   typedef WidgetArrayTraits<TAtomic, VDim, TWidget, WidgetTraits> ArrayTraits;
@@ -649,7 +706,7 @@ void makeArrayCoupling(std::vector<TWidget *> wa,
       ValueType, WidgetArray, ArrayTraits> MappingType;
 
   // Create the mapping
-  MappingType *mapping = new MappingType(wa, model);
+  MappingType *mapping = new MappingType(wa, model, ArrayTraits(traits));
 
   // Create the coupling helper (event handler). It's attached to the first
   // widget, just for the purpose of this object being deleted later.
@@ -666,30 +723,61 @@ void makeArrayCoupling(std::vector<TWidget *> wa,
 
   // Listen to value change events for this widget
   for(unsigned int i = 0; i < VDim; i++)
-    h->connect(wa[i], WidgetTraits::GetSignal(), SLOT(onUserModification()));
+    h->connect(wa[i], traits.GetSignal(), SLOT(onUserModification()));
 }
 
 template <class TAtomic, class TWidget, class WidgetTraits>
-void makeArrayCoupling(TWidget *w1, TWidget *w2, TWidget *w3,
-                       AbstractEditableNumericValueModel<
-                           iris_vector_fixed<TAtomic, 3> > *model)
+void makeArrayCoupling(
+    TWidget *w1, TWidget *w2, TWidget *w3,
+    AbstractEditableNumericValueModel<iris_vector_fixed<TAtomic, 3> > *model,
+    WidgetTraits traits)
 {
   // Create the array of widgets
   std::vector<TWidget *> wa(3);
   wa[0] = w1; wa[1] = w2; wa[2] = w3;
 
   // Call the main method
-  makeArrayCoupling<3, TAtomic, TWidget, WidgetTraits>(wa, model);
+  makeArrayCoupling<3, TAtomic, TWidget, WidgetTraits>(wa, model, traits);
 }
 
 template <class TAtomic, class TWidget>
-void makeArrayCoupling(TWidget *w1, TWidget *w2, TWidget *w3,
-                       AbstractEditableNumericValueModel<
-                           iris_vector_fixed<TAtomic, 3> > *model)
+void makeArrayCoupling(
+    TWidget *w1, TWidget *w2, TWidget *w3,
+    AbstractEditableNumericValueModel<iris_vector_fixed<TAtomic, 3> > *model)
 {
+  // Create the default traits
+  DefaultWidgetTraits<TAtomic, TWidget> traits;
+
   // Call the main method
-  typedef DefaultWidgetTraits<TAtomic, TWidget> WidgetTraits;
-  makeArrayCoupling<TAtomic, TWidget, WidgetTraits>(w1, w2, w3, model);
+  makeArrayCoupling(w1, w2, w3, model, traits);
+}
+
+
+template <class TAtomic, class TWidget, class WidgetTraits>
+void makeArrayCoupling(
+    TWidget *w1, TWidget *w2,
+    AbstractEditableNumericValueModel<iris_vector_fixed<TAtomic, 2> > *model,
+    WidgetTraits traits)
+{
+  // Create the array of widgets
+  std::vector<TWidget *> wa(2);
+  wa[0] = w1; wa[1] = w2;
+
+  // Call the main method
+  makeArrayCoupling<2, TAtomic, TWidget, WidgetTraits>(wa, model, traits);
+}
+
+
+template <class TAtomic, class TWidget>
+void makeArrayCoupling(
+    TWidget *w1, TWidget *w2,
+    AbstractEditableNumericValueModel<iris_vector_fixed<TAtomic, 2> > *model)
+{
+  // Create the default traits
+  DefaultWidgetTraits<TAtomic, TWidget> traits;
+
+  // Call the main method
+  makeArrayCoupling(w1, w2, model, traits);
 }
 
 
@@ -706,7 +794,8 @@ void makeRadioGroupCoupling(
   typedef RadioButtonGroupTraits<TAtomic> WidgetTraits;
   typedef NumericModelWidgetDataMapping<
       TAtomic, TWidget *, WidgetTraits> MappingType;
-  MappingType *mapping = new MappingType(w, model);
+  WidgetTraits traits;
+  MappingType *mapping = new MappingType(w, model, traits);
   QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
 
   // Populate the widget

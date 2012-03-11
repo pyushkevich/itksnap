@@ -35,6 +35,8 @@ public:
   // Some model types
   typedef AbstractEditableNumericValueModel<Vector3d> RealVectorValueModel;
   typedef AbstractEditableNumericValueModel<Vector3ui> UIntVectorValueModel;
+  typedef AbstractEditableNumericValueModel<Vector2d> MinMaxIntensityModel;
+  typedef AbstractEditableNumericValueModel<std::string> StringValueModel;
 
   // Access the individual models
   irisGetMacro(ImageDimensionsModel, UIntVectorValueModel *)
@@ -43,6 +45,8 @@ public:
   irisGetMacro(ImageItkCoordinatesModel, RealVectorValueModel *)
   irisGetMacro(ImageNiftiCoordinatesModel, RealVectorValueModel *)
   irisGetMacro(ImageVoxelCoordinatesModel, UIntVectorValueModel *)
+  irisGetMacro(ImageMinMaxModel, MinMaxIntensityModel *)
+  irisGetMacro(ImageOrientationModel, StringValueModel *)
 
 protected:
 
@@ -52,6 +56,8 @@ protected:
   SmartPtr<RealVectorValueModel> m_ImageNiftiCoordinatesModel;
   SmartPtr<UIntVectorValueModel> m_ImageDimensionsModel;
   SmartPtr<UIntVectorValueModel> m_ImageVoxelCoordinatesModel;
+  SmartPtr<MinMaxIntensityModel> m_ImageMinMaxModel;
+  SmartPtr<StringValueModel> m_ImageOrientationModel;
 
   bool GetImageDimensionsValueAndRange(
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
@@ -73,7 +79,11 @@ protected:
 
   void SetImageVoxelCoordinates(Vector3ui value);
 
+  bool GetImageMinMaxValueAndRange(
+      Vector2d &value, NumericValueRange<Vector2d> *range);
 
+  bool GetImageOrientationValueAndRange(
+      std::string &value, NumericValueRange<std::string> *range);
 
   ImageInfoModel();
   virtual ~ImageInfoModel() {}
