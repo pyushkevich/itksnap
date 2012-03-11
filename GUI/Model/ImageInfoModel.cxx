@@ -8,31 +8,31 @@ template class LayerAssociation<ImageInfoLayerProperties,
 
 ImageInfoModel::ImageInfoModel()
 {
-  m_ImageDimensionsModel = makeChildNumericValueModel(
-        this, &Self::GetImageDimensionsValueAndRange);
+  m_ImageDimensionsModel = makeChildPropertyModel(
+        this, &Self::GetImageDimensions);
 
-  m_ImageSpacingModel = makeChildNumericValueModel(
-        this, &Self::GetImageSpacingValueAndRange);
+  m_ImageSpacingModel = makeChildPropertyModel(
+        this, &Self::GetImageSpacing);
 
-  m_ImageOriginModel = makeChildNumericValueModel(
-        this, &Self::GetImageOriginValueAndRange);
+  m_ImageOriginModel = makeChildPropertyModel(
+        this, &Self::GetImageOrigin);
 
-  m_ImageItkCoordinatesModel = makeChildNumericValueModel(
-        this, &Self::GetImageItkCoordinatesValueAndRange);
+  m_ImageItkCoordinatesModel = makeChildPropertyModel(
+        this, &Self::GetImageItkCoordinates);
 
-  m_ImageNiftiCoordinatesModel = makeChildNumericValueModel(
-        this, &Self::GetImageNiftiCoordinatesValueAndRange);
+  m_ImageNiftiCoordinatesModel = makeChildPropertyModel(
+        this, &Self::GetImageNiftiCoordinates);
 
-  m_ImageVoxelCoordinatesModel = makeChildNumericValueModel(
+  m_ImageVoxelCoordinatesModel = makeChildPropertyModel(
         this,
         &Self::GetImageVoxelCoordinatesValueAndRange,
         &Self::SetImageVoxelCoordinates);
 
-  m_ImageMinMaxModel = makeChildNumericValueModel(
-        this, &Self::GetImageMinMaxValueAndRange);
+  m_ImageMinMaxModel = makeChildPropertyModel(
+        this, &Self::GetImageMinMax);
 
-  m_ImageOrientationModel = makeChildNumericValueModel(
-        this, &Self::GetImageOrientationValueAndRange);
+  m_ImageOrientationModel = makeChildPropertyModel(
+        this, &Self::GetImageOrientation);
 }
 
 void ImageInfoModel::SetParentModel(GlobalUIModel *parent)
@@ -57,32 +57,28 @@ void ImageInfoModel::UnRegisterFromLayer(GreyImageWrapperBase *layer)
 }
 
 bool ImageInfoModel
-::GetImageDimensionsValueAndRange(
-    Vector3ui &value, NumericValueRange<Vector3ui> *range)
+::GetImageDimensions(Vector3ui &value)
 {
   value = GetLayer()->GetSize();
   return true;
 }
 
 bool ImageInfoModel
-::GetImageOriginValueAndRange(
-    Vector3d &value, NumericValueRange<Vector3d> *range)
+::GetImageOrigin(Vector3d &value)
 {
   value = GetLayer()->GetImageBase()->GetOrigin();
   return true;
 }
 
 bool ImageInfoModel
-::GetImageSpacingValueAndRange(
-    Vector3d &value, NumericValueRange<Vector3d> *range)
+::GetImageSpacing(Vector3d &value)
 {
   value = GetLayer()->GetImageBase()->GetSpacing();
   return true;
 }
 
 bool ImageInfoModel
-::GetImageItkCoordinatesValueAndRange(
-    Vector3d &value, NumericValueRange<Vector3d> *range)
+::GetImageItkCoordinates(Vector3d &value)
 {
   Vector3ui cursor = m_ParentModel->GetDriver()->GetCursorPosition();
   value = GetLayer()->TransformVoxelIndexToPosition(cursor);
@@ -90,8 +86,7 @@ bool ImageInfoModel
 }
 
 bool ImageInfoModel
-::GetImageNiftiCoordinatesValueAndRange(
-    Vector3d &value, NumericValueRange<Vector3d> *range)
+::GetImageNiftiCoordinates(Vector3d &value)
 {
   Vector3ui cursor = m_ParentModel->GetDriver()->GetCursorPosition();
   value = GetLayer()->TransformVoxelIndexToNIFTICoordinates(to_double(cursor));
@@ -116,8 +111,7 @@ void ImageInfoModel::SetImageVoxelCoordinates(Vector3ui value)
 }
 
 bool ImageInfoModel
-::GetImageMinMaxValueAndRange(
-    Vector2d &value, NumericValueRange<Vector2d> *range)
+::GetImageMinMax(Vector2d &value)
 {
   value = Vector2d(GetLayer()->GetImageMinNative(),
                    GetLayer()->GetImageMaxNative());
@@ -125,8 +119,7 @@ bool ImageInfoModel
 }
 
 bool ImageInfoModel
-::GetImageOrientationValueAndRange(
-    std::string &value, NumericValueRange<std::string> *range)
+::GetImageOrientation(std::string &value)
 {
   const ImageCoordinateGeometry &geo =
       m_ParentModel->GetDriver()->GetCurrentImageData()->GetImageGeometry();

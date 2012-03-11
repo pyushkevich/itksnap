@@ -16,7 +16,7 @@ IntensityCurveModel::IntensityCurveModel()
   : IntensityCurveModelBase()
 {
   // Create the child model for the moving control point id
-  m_MovingControlIdModel = makeChildNumericValueModel<Self,int>(
+  m_MovingControlIdModel = makeChildPropertyModel(
         this,
         &Self::GetMovingControlPointIdValueAndRange,
         &Self::SetMovingControlPointId);
@@ -24,45 +24,31 @@ IntensityCurveModel::IntensityCurveModel()
   typedef AbstractEditableNumericValueModel<Vector2d> VectorNumericModel;
 
   // Create the child model for the control point coordinates
-  SmartPtr<VectorNumericModel> modelControl =
-      makeChildNumericValueModel(this,
-                                 &Self::GetMovingControlPointPositionAndRange,
-                                 &Self::SetMovingControlPointPosition);
-
-  // Create component models for X and Y
-  m_MovingControlXModel = static_cast<RealValueModel *>(
-      ComponentEditableNumericValueModel<double, 2>::New(modelControl, 0));
-
-  m_MovingControlYModel = static_cast<RealValueModel *>(
-      ComponentEditableNumericValueModel<double, 2>::New(modelControl, 1));
+  m_MovingControlXYModel = makeChildPropertyModel(
+        this,
+        &Self::GetMovingControlPointPositionAndRange,
+        &Self::SetMovingControlPointPosition);
 
   // Window/level model
-  SmartPtr<VectorNumericModel> modelLW =
-      makeChildNumericValueModel(this,
-                                 &Self::GetLevelAndWindowValueAndRange,
-                                 &Self::SetLevelAndWindow);
-
-  // Individual models for window and level
-  m_LevelModel = static_cast<RealValueModel *>(
-      ComponentEditableNumericValueModel<double, 2>::New(modelLW, 0));
-
-  m_WindowModel = static_cast<RealValueModel *>(
-      ComponentEditableNumericValueModel<double, 2>::New(modelLW, 1));
+  m_LevelWindowModel = makeChildPropertyModel(
+        this,
+        &Self::GetLevelAndWindowValueAndRange,
+        &Self::SetLevelAndWindow);
 
   // Histogram bin size and other controls
-  m_HistogramBinSizeModel = makeChildNumericValueModel(
+  m_HistogramBinSizeModel = makeChildPropertyModel(
         this,
         &Self::GetHistogramBinSizeValueAndRange,
         &Self::SetHistogramBinSize);
 
-  m_HistogramCutoffModel = makeChildNumericValueModel(
+  m_HistogramCutoffModel = makeChildPropertyModel(
         this,
         &Self::GetHistogramCutoffValueAndRange,
         &Self::SetHistogramCutoff);
 
-  m_HistogramScaleModel = makeChildNumericValueModel(
+  m_HistogramScaleModel = makeChildPropertyModel(
         this,
-        &Self::GetHistogramScaleValueAndRange,
+        &Self::GetHistogramScale,
         &Self::SetHistogramScale);
 }
 
@@ -598,8 +584,7 @@ IntensityCurveModel
 
 bool
 IntensityCurveModel
-::GetHistogramScaleValueAndRange(
-    bool &value, NumericValueRange<bool> *range)
+::GetHistogramScale(bool &value)
 {
   if(m_Layer)
     {

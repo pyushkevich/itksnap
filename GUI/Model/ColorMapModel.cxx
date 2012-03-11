@@ -9,33 +9,28 @@ template class LayerAssociation<ColorMapLayerProperties,
 ColorMapModel::ColorMapModel()
 {
   // Set up the models
-  m_MovingControlPositionModel = makeChildNumericValueModel(
+  m_MovingControlPositionModel = makeChildPropertyModel(
         this,
         &Self::GetMovingControlPositionValueAndRange,
         &Self::SetMovingControlPosition);
 
-  // Create the RGB and opacity model
-  typedef AbstractEditableNumericValueModel<Vec4d> VectorNumericModel;
-  SmartPtr<VectorNumericModel> modelRGBA = makeChildNumericValueModel(
-        this,
-        &Self::GetMovingControlRGBAValueAndRange,
-        &Self::SetMovingControlRGBA);
-
   // Get the component model for opacity
-  m_MovingControlOpacityModel = static_cast<RealValueModel *>(
-        ComponentEditableNumericValueModel<double, 4>::New(modelRGBA, 3));
-
-  m_MovingControlSideModel = makeChildNumericValueModel(
+  m_MovingControlOpacityModel = makeChildPropertyModel(
         this,
-        &Self::GetMovingControlSideValueAndRange,
+        &Self::GetMovingControlOpacityValueAndRange,
+        &Self::SetMovingControlOpacity);
+
+  m_MovingControlSideModel = makeChildPropertyModel(
+        this,
+        &Self::GetMovingControlSide,
         &Self::SetMovingControlSide);
 
-  m_MovingControlContinuityModel = makeChildNumericValueModel(
+  m_MovingControlContinuityModel = makeChildPropertyModel(
         this,
-        &Self::GetMovingControlTypeValueAndRange,
+        &Self::GetMovingControlType,
         &Self::SetMovingControlType);
 
-  m_MovingControlIndexModel = makeChildNumericValueModel(
+  m_MovingControlIndexModel = makeChildPropertyModel(
         this,
         &Self::GetMovingControlIndexValueAndRange,
         &Self::SetMovingControlIndex);
@@ -278,52 +273,33 @@ ColorMapModel
   cmap->UpdateCMPoint(idx, pt);
 }
 
-bool
-ColorMapModel
-::GetMovingControlRGBAValueAndRange(
-    Vec4d &value, NumericValueRange<Vec4d> *range)
+
+
+bool ColorMapModel::GetSelectedRGBA(ColorMap::RGBAType &rgba)
 {
   ColorMapLayerProperties &p = this->GetProperties();
   ColorMap *cmap = this->GetColorMap();
   int idx = p.GetSelectedControlIndex();
+  Side side = p.GetSelectedControlSide();
+
   if(idx >= 0)
     {
     ColorMap::CMPoint pt = cmap->GetCMPoint(idx);
-    int iside = 0;
-    if(pt.m_Type == ColorMap::DISCONTINUOUS)
-      {
-      iside = (p.GetSelectedControlSide() == ColorMapLayerProperties::LEFT)
-          ? 0 : 1;
-      }
-    for(int i = 0; i < 4; i++)
-      {
-      value[i] = pt.m_RGBA[iside][i] / 255.0;
-      if(range)
-        {
-        range->Maximum[i] = 1.0;
-        range->Minimum[i] = 0.0;
-        range->StepSize[i] = 0.01;
-        }
-      }
+    int iside = (pt.m_Type == ColorMap::DISCONTINUOUS &&
+                 side == ColorMapLayerProperties::RIGHT) ? 1 : 0;
+    rgba = pt.m_RGBA[iside];
     return true;
     }
   else return false;
 }
 
-void
-ColorMapModel
-::SetMovingControlRGBA(Vec4d value)
+void ColorMapModel::SetSelectedRGBA(ColorMap::RGBAType rgba)
 {
   ColorMapLayerProperties &p = this->GetProperties();
   ColorMap *cmap = this->GetColorMap();
   int idx = p.GetSelectedControlIndex();
   Side side = p.GetSelectedControlSide();
   assert(idx >= 0);
-
-  // Convert value to RGBA type
-  ColorMap::RGBAType rgba;
-  for(int i = 0; i < 4; i++)
-    rgba[i] = (unsigned char)(255.0 * value[i]);
 
   // Assign to left, right, or both sides
   ColorMap::CMPoint pt = cmap->GetCMPoint(idx);
@@ -333,6 +309,59 @@ ColorMapModel
     pt.m_RGBA[1] = rgba;
 
   cmap->UpdateCMPoint(idx, pt);
+}
+
+Vector3d ColorMapModel::GetSelectedColor()
+{
+  ColorMap::RGBAType rgba;
+  if(this->GetSelectedRGBA(rgba))
+    return Vector3d(rgba[0] / 255., rgba[1] / 255., rgba[2] / 255.);
+  else
+    return Vector3d(0,0,0);
+}
+
+
+void ColorMapModel::SetSelectedColor(Vector3d rgb)
+{
+  ColorMap::RGBAType rgba;
+  if(this->GetSelectedRGBA(rgba))
+    {
+    rgba[0] = (unsigned char)(255.0 * rgb[0]);
+    rgba[1] = (unsigned char)(255.0 * rgb[1]);
+    rgba[2] = (unsigned char)(255.0 * rgb[2]);
+    this->SetSelectedRGBA(rgba);
+    }
+}
+
+
+bool
+ColorMapModel
+::GetMovingControlOpacityValueAndRange(
+    double &value, NumericValueRange<double> *range)
+{
+  ColorMap::RGBAType rgba;
+  if(this->GetSelectedRGBA(rgba))
+    {
+    value = rgba[3] / 255.0;
+    if(range)
+      {
+      range->Set(0.0, 1.0, 0.01);
+      }
+    return true;
+    }
+  else return false;
+}
+
+void
+ColorMapModel
+::SetMovingControlOpacity(double value)
+{
+  ColorMap::RGBAType rgba;
+  if(this->GetSelectedRGBA(rgba))
+    {
+    rgba[3] = (unsigned char)(255.0 * value);
+    this->SetSelectedRGBA(rgba);
+    }
 }
 
 
@@ -368,8 +397,7 @@ ColorMapModel
 }
 
 bool ColorMapModel
-::GetMovingControlSideValueAndRange(
-    Side &value, NumericValueRange<Side> *range)
+::GetMovingControlSide(Side &value)
 {
   ColorMapLayerProperties &p = this->GetProperties();
   int idx = p.GetSelectedControlIndex();
@@ -396,8 +424,7 @@ ColorMapModel
   InvokeEvent(ModelUpdateEvent());
 }
 
-bool ColorMapModel::GetMovingControlTypeValueAndRange(
-    Continuity &value, NumericValueRange<Continuity> *range)
+bool ColorMapModel::GetMovingControlType(Continuity &value)
 {
   ColorMapLayerProperties &p = this->GetProperties();
   ColorMap *cmap = this->GetColorMap();
@@ -441,29 +468,6 @@ void ColorMapModel::SetMovingControlType(Continuity value)
     }
 }
 
-Vector3d ColorMapModel::GetSelectedColor()
-{
-  Vec4d rgba;
-  if(this->GetMovingControlRGBAValueAndRange(rgba,NULL))
-    {
-    return Vector3d(rgba[0], rgba[1], rgba[2]);
-    }
-  else
-    {
-    return Vector3d(0,0,0);
-    }
-}
-
-void ColorMapModel::SetSelectedColor(Vector3d rgb)
-{
-  Vec4d rgba;
-  this->GetMovingControlRGBAValueAndRange(rgba,NULL);
-  rgba[0] = rgb[0];
-  rgba[1] = rgb[1];
-  rgba[2] = rgb[2];
-  this->SetMovingControlRGBA(rgba);
-
-}
 
 void ColorMapModel::GetPresets(
     ColorMapModel::PresetList &system, ColorMapModel::PresetList &user)

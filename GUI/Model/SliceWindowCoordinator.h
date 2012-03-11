@@ -66,7 +66,7 @@ public:
 
   FIRES(LinkedZoomUpdateEvent)
 
-  typedef AbstractEditableNumericValueModel<double> CommonZoomFactorModel;
+  typedef AbstractRangedPropertyModel<double>::Type CommonZoomFactorModel;
 
   /** Assigns three windows for the coordinator to manage */
   void RegisterSliceModels(GenericSliceModel *windows[3]);

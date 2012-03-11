@@ -116,14 +116,13 @@ public:
   /** Update the model in response to upstream events */
   virtual void OnUpdate();
 
-  typedef AbstractEditableNumericValueModel<double> RealValueModel;
-  typedef AbstractEditableNumericValueModel<int> IntegerValueModel;
-  typedef AbstractEditableNumericValueModel<bool> BooleanValueModel;
+  typedef AbstractRangedPropertyModel<Vector2d>::Type RealPairValueModel;
+  typedef AbstractRangedPropertyModel<double>::Type RealValueModel;
+  typedef AbstractRangedPropertyModel<int>::Type IntegerValueModel;
+  typedef AbstractPropertyModel<bool> BooleanValueModel;
 
-  irisGetMacro(MovingControlXModel, RealValueModel *)
-  irisGetMacro(MovingControlYModel, RealValueModel *)
-  irisGetMacro(LevelModel, RealValueModel *)
-  irisGetMacro(WindowModel, RealValueModel *)
+  irisGetMacro(MovingControlXYModel, RealPairValueModel *)
+  irisGetMacro(LevelWindowModel, RealPairValueModel *)
 
   irisGetMacro(MovingControlIdModel, IntegerValueModel *)
 
@@ -159,7 +158,7 @@ protected:
   void SetMovingControlPointId(int value);
 
   // The child models for control point X and Y coordinates
-  SmartPtr<RealValueModel> m_MovingControlXModel, m_MovingControlYModel;
+  SmartPtr<RealPairValueModel> m_MovingControlXYModel;
 
   // Moving control point position access methods
   bool GetMovingControlPointPositionAndRange(Vector2d &lw,
@@ -167,7 +166,7 @@ protected:
   void SetMovingControlPointPosition(Vector2d p);
 
   // Child models for window and level
-  SmartPtr<RealValueModel> m_LevelModel, m_WindowModel;
+  SmartPtr<RealPairValueModel> m_LevelWindowModel;
 
   // Window and level access methods
   bool GetLevelAndWindowValueAndRange(Vector2d &lw,
@@ -194,8 +193,7 @@ protected:
   SmartPtr<BooleanValueModel> m_HistogramScaleModel;
 
   // Histogram bin size access methods
-  bool GetHistogramScaleValueAndRange(bool &value,
-                                      NumericValueRange<bool> *range);
+  bool GetHistogramScale(bool &value);
   void SetHistogramScale(bool value);
 
 };

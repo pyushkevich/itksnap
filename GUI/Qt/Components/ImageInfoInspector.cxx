@@ -25,7 +25,6 @@ void ImageInfoInspector::SetModel(ImageInfoModel *model)
   // specify the precision used to display these values
   FixedPrecisionRealToTextFieldWidgetTraits<double, QLineEdit> tr_real(4);
 
-  // Hook up the couplings
   makeArrayCoupling(ui->outDimX, ui->outDimY, ui->outDimZ,
                     m_Model->GetImageDimensionsModel());
 

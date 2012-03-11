@@ -33,57 +33,46 @@ public:
   virtual void SetParentModel(GlobalUIModel *parent);
 
   // Some model types
-  typedef AbstractEditableNumericValueModel<Vector3d> RealVectorValueModel;
-  typedef AbstractEditableNumericValueModel<Vector3ui> UIntVectorValueModel;
-  typedef AbstractEditableNumericValueModel<Vector2d> MinMaxIntensityModel;
-  typedef AbstractEditableNumericValueModel<std::string> StringValueModel;
+  typedef AbstractPropertyModel<Vector3d> RealVectorSimpleModel;
+  typedef AbstractPropertyModel<Vector3ui> UIntVectorSimpleModel;
+  typedef AbstractRangedPropertyModel<Vector3ui>::Type UIntVectorRangedModel;
+  typedef AbstractPropertyModel<Vector2d> MinMaxIntensityModel;
+
+  typedef AbstractPropertyModel<std::string> StringValueModel;
 
   // Access the individual models
-  irisGetMacro(ImageDimensionsModel, UIntVectorValueModel *)
-  irisGetMacro(ImageSpacingModel, RealVectorValueModel *)
-  irisGetMacro(ImageOriginModel, RealVectorValueModel *)
-  irisGetMacro(ImageItkCoordinatesModel, RealVectorValueModel *)
-  irisGetMacro(ImageNiftiCoordinatesModel, RealVectorValueModel *)
-  irisGetMacro(ImageVoxelCoordinatesModel, UIntVectorValueModel *)
+  irisGetMacro(ImageDimensionsModel, UIntVectorSimpleModel *)
+  irisGetMacro(ImageSpacingModel, RealVectorSimpleModel *)
+  irisGetMacro(ImageOriginModel, RealVectorSimpleModel *)
+  irisGetMacro(ImageItkCoordinatesModel, RealVectorSimpleModel *)
+  irisGetMacro(ImageNiftiCoordinatesModel, RealVectorSimpleModel *)
+  irisGetMacro(ImageVoxelCoordinatesModel, UIntVectorRangedModel *)
   irisGetMacro(ImageMinMaxModel, MinMaxIntensityModel *)
   irisGetMacro(ImageOrientationModel, StringValueModel *)
 
 protected:
 
-  SmartPtr<RealVectorValueModel> m_ImageSpacingModel;
-  SmartPtr<RealVectorValueModel> m_ImageOriginModel;
-  SmartPtr<RealVectorValueModel> m_ImageItkCoordinatesModel;
-  SmartPtr<RealVectorValueModel> m_ImageNiftiCoordinatesModel;
-  SmartPtr<UIntVectorValueModel> m_ImageDimensionsModel;
-  SmartPtr<UIntVectorValueModel> m_ImageVoxelCoordinatesModel;
+  SmartPtr<RealVectorSimpleModel> m_ImageSpacingModel;
+  SmartPtr<RealVectorSimpleModel> m_ImageOriginModel;
+  SmartPtr<RealVectorSimpleModel> m_ImageItkCoordinatesModel;
+  SmartPtr<RealVectorSimpleModel> m_ImageNiftiCoordinatesModel;
+  SmartPtr<UIntVectorSimpleModel> m_ImageDimensionsModel;
+  SmartPtr<UIntVectorRangedModel> m_ImageVoxelCoordinatesModel;
   SmartPtr<MinMaxIntensityModel> m_ImageMinMaxModel;
   SmartPtr<StringValueModel> m_ImageOrientationModel;
 
-  bool GetImageDimensionsValueAndRange(
-      Vector3ui &value, NumericValueRange<Vector3ui> *range);
-
-  bool GetImageOriginValueAndRange(
-      Vector3d &value, NumericValueRange<Vector3d> *range);
-
-  bool GetImageSpacingValueAndRange(
-      Vector3d &value, NumericValueRange<Vector3d> *range);
-
-  bool GetImageItkCoordinatesValueAndRange(
-      Vector3d &value, NumericValueRange<Vector3d> *range);
-
-  bool GetImageNiftiCoordinatesValueAndRange(
-      Vector3d &value, NumericValueRange<Vector3d> *range);
+  bool GetImageDimensions(Vector3ui &value);
+  bool GetImageOrigin(Vector3d &value);
+  bool GetImageSpacing(Vector3d &value);
+  bool GetImageItkCoordinates(Vector3d &value);
+  bool GetImageNiftiCoordinates(Vector3d &value);
+  bool GetImageMinMax(Vector2d &value);
+  bool GetImageOrientation(std::string &value);
 
   bool GetImageVoxelCoordinatesValueAndRange(
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
 
   void SetImageVoxelCoordinates(Vector3ui value);
-
-  bool GetImageMinMaxValueAndRange(
-      Vector2d &value, NumericValueRange<Vector2d> *range);
-
-  bool GetImageOrientationValueAndRange(
-      std::string &value, NumericValueRange<std::string> *range);
 
   ImageInfoModel();
   virtual ~ImageInfoModel() {}

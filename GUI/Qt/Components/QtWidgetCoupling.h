@@ -51,17 +51,20 @@ public:
   Data mapping between a numeric model and an input widget TWidget.
   The mapping handles the value of the widget, and its range.
   */
-template <class TAtomic, class TWidgetPtr, class WidgetTraits>
-class NumericModelWidgetDataMapping : public AbstractWidgetDataMapping
+template <class TAtomic, class TDomain, class TWidgetPtr,
+          class WidgetValueTraits, class WidgetDomainTraits>
+class PropertyModelToWidgetDataMapping : public AbstractWidgetDataMapping
 {
 public:
   // The model that provides the data
-  typedef AbstractEditableNumericValueModel<TAtomic> ModelType;
+  typedef AbstractPropertyModel<TAtomic, TDomain> ModelType;
 
   // Constructor
-  NumericModelWidgetDataMapping(TWidgetPtr w, ModelType *model,
-                                WidgetTraits traits)
-    : m_Widget(w), m_Model(model), m_Updating(false), m_Traits(traits) {}
+  PropertyModelToWidgetDataMapping(
+      TWidgetPtr w, ModelType *model,
+      WidgetValueTraits valueTraits, WidgetDomainTraits domainTraits)
+    : m_Widget(w), m_Model(model), m_Updating(false),
+      m_ValueTraits(valueTraits), m_DomainTraits(domainTraits) {}
 
   // Populate widget
   void CopyFromTargetToWidget()
@@ -70,18 +73,18 @@ public:
 
     // Prepopulate the range with current values in case the model does
     // not actually compute ranges
-    NumericValueRange<TAtomic> range = m_Traits.GetRange(m_Widget);
+    TDomain domain = m_DomainTraits.GetDomain(m_Widget);
     TAtomic value;
 
     // Obtain the value from the model
-    if(m_Model->GetValueAndRange(value, &range))
+    if(m_Model->GetValueAndDomain(value, &domain))
       {
-      m_Traits.SetRange(m_Widget, range);
-      m_Traits.SetValue(m_Widget, value);
+      m_DomainTraits.SetDomain(m_Widget, domain);
+      m_ValueTraits.SetValue(m_Widget, value);
       }
     else
       {
-      m_Traits.SetValueToNull(m_Widget);
+      m_ValueTraits.SetValueToNull(m_Widget);
       }
 
     m_Updating = false;
@@ -92,13 +95,13 @@ public:
   {
     if(!m_Updating)
       {
-      TAtomic user_value = m_Traits.GetValue(m_Widget);
+      TAtomic user_value = m_ValueTraits.GetValue(m_Widget);
       TAtomic model_value;
 
       // Note: if the model reports that the value is invalid, we are not
       // allowing the user to mess with the value. This may have some odd
       // consequences. We need to investigate.
-      if(m_Model->GetValueAndRange(model_value, NULL) &&
+      if(m_Model->GetValueAndDomain(model_value, NULL) &&
          model_value != user_value)
         {
         m_Model->SetValue(user_value);
@@ -111,18 +114,9 @@ private:
   TWidgetPtr m_Widget;
   ModelType *m_Model;
   bool m_Updating;
-  WidgetTraits m_Traits;
+  WidgetValueTraits m_ValueTraits;
+  WidgetDomainTraits m_DomainTraits;
 };
-
-
-
-
-
-
-
-
-
-
 
 
 /**
@@ -130,7 +124,7 @@ private:
   The mapping handles the value of the widget only.
   */
 template <class TAtomic, class TWidget, class TPropertyContainer,
-          class WidgetTraits>
+          class WidgetValueTraits>
 class BasicPropertyToWidgetDataMapping : public AbstractWidgetDataMapping
 {
 public:
@@ -139,7 +133,7 @@ public:
   BasicPropertyToWidgetDataMapping(
       TWidget *w, ConstProperty<TAtomic> &p,
       SetterFunction setter, TPropertyContainer *c,
-      WidgetTraits traits)
+      WidgetValueTraits traits)
     : m_Widget(w), m_Property(p), m_Setter(setter),
       m_Container(c), m_Traits(traits) {}
 
@@ -162,15 +156,15 @@ protected:
   ConstProperty<TAtomic> &m_Property;
   SetterFunction m_Setter;
   TPropertyContainer *m_Container;
-  WidgetTraits m_Traits;
+  WidgetValueTraits m_Traits;
 };
 
 
 /**
-  Base class for widget traits
+  Base class for widget value traits
   */
 template <class TAtomic, class TWidgetPtr>
-class WidgetTraitsBase
+class WidgetValueTraitsBase
 {
 public:
   // Get the Qt signal that the widget fires when its value has changed
@@ -182,34 +176,55 @@ public:
   // Set the value of the widget
   virtual void SetValue(TWidgetPtr, const TAtomic &) = 0;
 
-  // The default behavior is to ignore the range. Child classes where the
-  // range is of relevance should override these functions
-  virtual void SetRange(TWidgetPtr w, NumericValueRange<TAtomic> &range) {}
-  virtual NumericValueRange<TAtomic> GetRange(TWidgetPtr w)
-    { return NumericValueRange<TAtomic> (); }
-
   // The default behavior for setting the widget to null is to do nothing.
   // This should be overridden by child traits classes
-  virtual void SetValueToNull(TWidgetPtr) {};
+  virtual void SetValueToNull(TWidgetPtr) {}
 };
+
+/**
+  Base class for widget domain traits
+  */
+template <class TDomain, class TWidgetPtr>
+class WidgetDomainTraitsBase
+{
+public:
+  virtual void SetDomain(TWidgetPtr w, const TDomain &domain) = 0;
+  virtual TDomain GetDomain(TWidgetPtr w) = 0;
+};
+
 
 /**
   Empty template for default traits. Specialize for different Qt widgets
   */
-
 template <class TAtomic, class TWidget>
-class DefaultWidgetTraits
+class DefaultWidgetValueTraits
 {
+};
 
+template <class TDomain, class TWidget>
+class DefaultWidgetDomainTraits
+{
+};
+
+template <class TWidget>
+class DefaultWidgetDomainTraits<TrivialDomain, TWidget>
+    : public WidgetDomainTraitsBase<TrivialDomain, TWidget *>
+{
+public:
+  // With a trivial domain, do nothing!
+  virtual void SetDomain(TWidget *w, const TrivialDomain &) {}
+
+  virtual TrivialDomain GetDomain(TWidget *w)
+  { return TrivialDomain(); }
 };
 
 
 /**
-  Default traits for the Qt Spin Box
+  Default traits for the Qt Spin Box, coupled with a numeric value range
   */
 template <class TAtomic>
-class DefaultWidgetTraits<TAtomic, QSpinBox>
-    : public WidgetTraitsBase<TAtomic, QSpinBox *>
+class DefaultWidgetValueTraits<TAtomic, QSpinBox>
+    : public WidgetValueTraitsBase<TAtomic, QSpinBox *>
 {
 public:
   const char *GetSignal()
@@ -228,12 +243,6 @@ public:
     w->setValue(static_cast<int>(value));
   }
 
-  void SetRange(QSpinBox *w, NumericValueRange<TAtomic> &range)
-  {
-    w->setMinimum(range.Minimum);
-    w->setMaximum(range.Maximum);
-    w->setSingleStep(range.StepSize);
-  }
 
   void SetValueToNull(QSpinBox *w)
   {
@@ -241,7 +250,22 @@ public:
     w->setSpecialValueText(" ");
   }
 
-  NumericValueRange<TAtomic> GetRange(QSpinBox *w)
+};
+
+template <class TAtomic>
+class DefaultWidgetDomainTraits<NumericValueRange<TAtomic>, QSpinBox>
+    : public WidgetDomainTraitsBase<NumericValueRange<TAtomic>, QSpinBox *>
+{
+public:
+
+  void SetDomain(QSpinBox *w, const NumericValueRange<TAtomic> &range)
+  {
+    w->setMinimum(range.Minimum);
+    w->setMaximum(range.Maximum);
+    w->setSingleStep(range.StepSize);
+  }
+
+  NumericValueRange<TAtomic> GetDomain(QSpinBox *w)
   {
     return NumericValueRange<TAtomic>(
           static_cast<TAtomic>(w->minimum()),
@@ -250,12 +274,13 @@ public:
   }
 };
 
+
 /**
   Default traits for the Qt Double Spin Box
   */
 template <class TAtomic>
-class DefaultWidgetTraits<TAtomic, QDoubleSpinBox>
-    : public WidgetTraitsBase<TAtomic, QDoubleSpinBox *>
+class DefaultWidgetValueTraits<TAtomic, QDoubleSpinBox>
+    : public WidgetValueTraitsBase<TAtomic, QDoubleSpinBox *>
 {
 public:
   const char *GetSignal()
@@ -274,7 +299,20 @@ public:
     w->setValue(static_cast<double>(value));
   }
 
-  void SetRange(QDoubleSpinBox *w, NumericValueRange<TAtomic> &range)
+
+  void SetValueToNull(QDoubleSpinBox *w)
+  {
+    w->setValue(w->minimum());
+    w->setSpecialValueText(" ");
+  }
+};
+
+template <class TAtomic>
+class DefaultWidgetDomainTraits<NumericValueRange<TAtomic>, QDoubleSpinBox>
+    : public WidgetDomainTraitsBase<NumericValueRange<TAtomic>, QDoubleSpinBox *>
+{
+public:
+  void SetDomain(QDoubleSpinBox *w, const NumericValueRange<TAtomic> &range)
   {
     w->setMinimum(range.Minimum);
     w->setMaximum(range.Maximum);
@@ -293,24 +331,19 @@ public:
       w->setDecimals(0);
   }
 
-  NumericValueRange<TAtomic> GetRange(QDoubleSpinBox *w)
+  NumericValueRange<TAtomic> GetDomain(QDoubleSpinBox *w)
   {
     return NumericValueRange<TAtomic>(
           static_cast<TAtomic>(w->minimum()),
           static_cast<TAtomic>(w->maximum()),
           static_cast<TAtomic>(w->singleStep()));
   }
-
-  void SetValueToNull(QDoubleSpinBox *w)
-  {
-    w->setValue(w->minimum());
-    w->setSpecialValueText(" ");
-  }
 };
 
+
 template <class TAtomic>
-class DefaultWidgetTraits<TAtomic, QSlider>
-    : public WidgetTraitsBase<TAtomic, QSlider *>
+class DefaultWidgetValueTraits<TAtomic, QSlider>
+    : public WidgetValueTraitsBase<TAtomic, QSlider *>
 {
 public:
   const char *GetSignal()
@@ -335,8 +368,8 @@ public:
 
 
 template <class TAtomic>
-class DefaultWidgetTraits<TAtomic, QLineEdit>
-    : public WidgetTraitsBase<TAtomic, QLineEdit *>
+class DefaultWidgetValueTraits<TAtomic, QLineEdit>
+    : public WidgetValueTraitsBase<TAtomic, QLineEdit *>
 {
 public:
 
@@ -371,7 +404,7 @@ public:
 /** Base class for traits that map between a numeric value and a text editor */
 template <class TAtomic, class QLineEdit>
 class FixedPrecisionRealToTextFieldWidgetTraits
-    : public DefaultWidgetTraits<TAtomic, QLineEdit>
+    : public DefaultWidgetValueTraits<TAtomic, QLineEdit>
 {
 public:
 
@@ -395,8 +428,8 @@ protected:
 
 #include <QCheckBox>
 template <class TAtomic>
-struct DefaultWidgetTraits<TAtomic, QCheckBox>
-    : public WidgetTraitsBase<TAtomic, QCheckBox *>
+struct DefaultWidgetValueTraits<TAtomic, QCheckBox>
+    : public WidgetValueTraitsBase<TAtomic, QCheckBox *>
 {
 public:
   const char *GetSignal()
@@ -421,9 +454,11 @@ public:
 };
 
 #include <QRadioButton>
-
+/*
 template <class TAtomic>
-struct DefaultWidgetTraits<TAtomic, QRadioButton>
+struct DefaultWidgetValueTraits<TAtomic, QRadioButton>
+    : public WidgetValueTraitsBase<TAtomic, QRadioButton *>
+
 {
 public:
   static const char *GetSignal()
@@ -446,10 +481,11 @@ public:
     w->setChecked(false);
   }
 };
+*/
 
 template <class TAtomic>
 struct RadioButtonGroupTraits :
-    public WidgetTraitsBase<TAtomic, QWidget *>
+    public WidgetValueTraitsBase<TAtomic, QWidget *>
 {
 public:
   TAtomic GetValue(QWidget *w)
@@ -508,10 +544,10 @@ public:
   uses a child traits object to map between an iris_vector_fixed and an array
   of widgets.
   */
-template <class TAtomic, unsigned int VDim, class TWidget, class WidgetTraits>
-class WidgetArrayTraits :
-    public WidgetTraitsBase< iris_vector_fixed<TAtomic, VDim>,
-                             std::vector<TWidget *> >
+template <class TAtomic, unsigned int VDim, class TWidget, class ChildTraits>
+class WidgetArrayValueTraits :
+    public WidgetValueTraitsBase< iris_vector_fixed<TAtomic, VDim>,
+                                  std::vector<TWidget *> >
 {
 public:
   typedef iris_vector_fixed<TAtomic, VDim> ValueType;
@@ -521,7 +557,7 @@ public:
     Constructor, takes the "child" traits object, i.e., the traits for the
     individual widgets in the array
     */
-  WidgetArrayTraits(WidgetTraits childTraits)
+  WidgetArrayValueTraits(ChildTraits childTraits)
     : m_ChildTraits(childTraits) {}
 
   ValueType GetValue(WidgetArrayType wa)
@@ -538,29 +574,6 @@ public:
       m_ChildTraits.SetValue(wa[i], value(i));
   }
 
-  void SetRange(WidgetArrayType wa, NumericValueRange<ValueType> &range)
-  {
-    for(unsigned int i = 0; i < VDim; i++)
-      {
-      NumericValueRange<TAtomic> ri(
-            range.Minimum(i), range.Maximum(i), range.StepSize(i));
-      m_ChildTraits.SetRange(wa[i], ri);
-      }
-  }
-
-  NumericValueRange<ValueType> GetRange(WidgetArrayType wa)
-  {
-    NumericValueRange<ValueType> range;
-    for(unsigned int i = 0; i < VDim; i++)
-      {
-      NumericValueRange<TAtomic> ri = m_ChildTraits.GetRange(wa[i]);
-      range.Minimum(i) = ri.Minimum;
-      range.Maximum(i) = ri.Maximum;
-      range.StepSize(i) = ri.StepSize;
-      }
-    return range;
-  }
-
   void SetValueToNull(WidgetArrayType wa)
   {
     for(unsigned int i = 0; i < VDim; i++)
@@ -573,8 +586,152 @@ public:
   }
 
 protected:
-  WidgetTraits m_ChildTraits;
+  ChildTraits m_ChildTraits;
 };
+
+/**
+  Before defining a vectorized domain traits object, we need to define some
+  traits that describe how different kinds of domains map between atomic
+  and vectorized versions.
+  */
+template <class TDomain, unsigned int VDim>
+class DomainVectorExpansion
+{
+
+};
+
+template <class TAtomic, unsigned int VDim>
+class DomainVectorExpansion<NumericValueRange<TAtomic>, VDim>
+{
+public:
+  typedef iris_vector_fixed<TAtomic, VDim> VectorType;
+  typedef NumericValueRange<VectorType> VectorDomainType;
+  typedef NumericValueRange<TAtomic> AtomicDomainType;
+
+  static AtomicDomainType GetNthElement(
+      const VectorDomainType &dvec, unsigned int n)
+  {
+    return AtomicDomainType(
+          dvec.Minimum(n), dvec.Maximum(n), dvec.StepSize(n));
+  }
+
+  static void UpdateNthElement(
+      VectorDomainType &dvec, unsigned int n, const AtomicDomainType &dat)
+  {
+    dvec.Minimum(n) = dat.Minimum;
+    dvec.Maximum(n) = dat.Maximum;
+    dvec.StepSize(n) = dat.StepSize;
+  }
+};
+
+template <unsigned int VDim>
+class DomainVectorExpansion<TrivialDomain, VDim>
+{
+public:
+  typedef TrivialDomain VectorDomainType;
+  typedef TrivialDomain AtomicDomainType;
+
+  static AtomicDomainType GetNthElement(
+      const VectorDomainType &dvec, unsigned int n)
+  {
+    return AtomicDomainType();
+  }
+
+  static void UpdateNthElement(
+      VectorDomainType &dvec, unsigned int n, const AtomicDomainType &dat) {}
+};
+
+
+template <class TVectorDomain, int VDim>
+class ComponentDomainTraits
+{
+};
+
+template <class TAtomic, int VDim>
+class ComponentDomainTraits<
+    NumericValueRange<iris_vector_fixed<TAtomic, VDim> >, VDim>
+{
+public:
+  typedef iris_vector_fixed<TAtomic, VDim> VectorType;
+  typedef NumericValueRange<TAtomic> AtomicDomainType;
+  typedef NumericValueRange<VectorType> VectorDomainType;
+
+  static AtomicDomainType GetNthElement(
+      const VectorDomainType &dvec, unsigned int n)
+  {
+    return AtomicDomainType(
+          dvec.Minimum(n), dvec.Maximum(n), dvec.StepSize(n));
+  }
+
+  static void UpdateNthElement(
+      VectorDomainType &dvec, unsigned int n, const AtomicDomainType &dat)
+  {
+    dvec.Minimum(n) = dat.Minimum;
+    dvec.Maximum(n) = dat.Maximum;
+    dvec.StepSize(n) = dat.StepSize;
+  }
+};
+
+template <int VDim>
+class ComponentDomainTraits<TrivialDomain, VDim>
+{
+public:
+  typedef TrivialDomain AtomicDomainType;
+  typedef TrivialDomain VectorDomainType;
+
+  static AtomicDomainType GetNthElement(
+      const VectorDomainType &dvec, unsigned int n)
+  {
+    return AtomicDomainType();
+  }
+
+  static void UpdateNthElement(
+      VectorDomainType &dvec, unsigned int n, const AtomicDomainType &dat) {}
+};
+
+
+template <class TVectorDomain, unsigned int VDim,
+          class TWidget, class ChildTraits>
+class WidgetArrayDomainTraits :
+    public WidgetDomainTraitsBase<TVectorDomain, std::vector<TWidget *> >
+{
+public:
+  typedef ComponentDomainTraits<TVectorDomain, VDim> ComponentTraitsType;
+  typedef TVectorDomain VectorDomainType;
+  typedef typename ComponentTraitsType::AtomicDomainType AtomicDomainType;
+  typedef std::vector<TWidget *> WidgetArrayType;
+
+  /**
+    Constructor, takes the "child" traits object, i.e., the traits for the
+    individual widgets in the array
+    */
+  WidgetArrayDomainTraits(ChildTraits childTraits)
+    : m_ChildTraits(childTraits) {}
+
+  void SetDomain(WidgetArrayType wa, const VectorDomainType &range)
+  {
+    for(unsigned int i = 0; i < VDim; i++)
+      {
+      AtomicDomainType di = ComponentTraitsType::GetNthElement(range, i);
+      m_ChildTraits.SetDomain(wa[i], di);
+      }
+  }
+
+  VectorDomainType GetDomain(WidgetArrayType wa)
+  {
+    VectorDomainType range;
+    for(unsigned int i = 0; i < VDim; i++)
+      {
+      AtomicDomainType ri = m_ChildTraits.GetDomain(wa[i]);
+      ComponentTraitsType::UpdateNthElement(range, i, ri);
+      }
+    return range;
+  }
+
+protected:
+  ChildTraits m_ChildTraits;
+};
+
 
 
 class QtCouplingHelper : public QObject
@@ -605,19 +762,20 @@ protected:
   AbstractWidgetDataMapping *m_DataMapping;
 };
 
-template <class TAtomic, class TWidget, class TContainer, class WidgetTraits>
+template <class TAtomic, class TWidget, class TContainer,
+          class WidgetValueTraits>
 void makeCoupling(TWidget *w, TContainer *c,
                   void (TContainer::*setter)(TAtomic),
                   ConstProperty<TAtomic> & (TContainer::*getter)(),
-                  WidgetTraits traits)
+                  WidgetValueTraits valueTraits)
 {
   // Retrieve the property
   ConstProperty<TAtomic> &p = ((*c).*(getter))();
 
   typedef BasicPropertyToWidgetDataMapping<
-      TAtomic, TWidget, TContainer, WidgetTraits> MappingType;
+      TAtomic, TWidget, TContainer, WidgetValueTraits> MappingType;
 
-  MappingType *mapping = new MappingType(w, p, setter, c, traits);
+  MappingType *mapping = new MappingType(w, p, setter, c, valueTraits);
 
   QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
 
@@ -627,7 +785,7 @@ void makeCoupling(TWidget *w, TContainer *c,
         h, SLOT(onPropertyModification()));
 
   // Coupling helper listens to events from widget
-  h->connect(w, traits.GetSignal(), SLOT(onUserModification()));
+  h->connect(w, valueTraits.GetSignal(), SLOT(onUserModification()));
 }
 
 template <class TAtomic, class TWidget, class TContainer>
@@ -635,22 +793,30 @@ void makeCoupling(TWidget *w, TContainer *c,
                   void (TContainer::*setter)(TAtomic),
                   ConstProperty<TAtomic> & (TContainer::*getter)())
 {
-  typedef DefaultWidgetTraits<TAtomic, TWidget> WidgetTraits;
-  WidgetTraits traits;
-  makeCoupling<TAtomic, TWidget, TContainer, WidgetTraits>(
-        w,c,setter,getter, traits);
+  typedef DefaultWidgetValueTraits<TAtomic, TWidget> WidgetValueTraits;
+  WidgetValueTraits valueTraits;
+  makeCoupling<TAtomic, TWidget, TContainer, WidgetValueTraits>(
+        w,c,setter,getter, valueTraits);
 }
 
 
-template <class TAtomic, class TWidget, class WidgetTraits>
+template <class TModel, class TWidget,
+          class WidgetValueTraits, class WidgetDomainTraits>
 void makeCoupling(
     TWidget *w,
-    AbstractEditableNumericValueModel<TAtomic> *model,
-    WidgetTraits traits = DefaultWidgetTraits<TAtomic, TWidget>())
+    TModel *model,
+    WidgetValueTraits valueTraits,
+    WidgetDomainTraits domainTraits)
 {
-  typedef NumericModelWidgetDataMapping<
-      TAtomic, TWidget *, WidgetTraits> MappingType;
-  MappingType *mapping = new MappingType(w, model, traits);
+  typedef typename TModel::ValueType ValueType;
+  typedef typename TModel::DomainType DomainType;
+
+  typedef PropertyModelToWidgetDataMapping<
+      ValueType, DomainType, TWidget *,
+      WidgetValueTraits, WidgetDomainTraits> MappingType;
+
+  MappingType *mapping = new MappingType(w, model, valueTraits, domainTraits);
+
   QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
 
   // Populate the widget
@@ -666,10 +832,24 @@ void makeCoupling(
         h, SLOT(onPropertyModification()));
 
   // Listen to value change events for this widget
-  h->connect(w, traits.GetSignal(), SLOT(onUserModification()));
+  h->connect(w, valueTraits.GetSignal(), SLOT(onUserModification()));
 }
 
-/** Create a coupling between a numeric model and a Qt widget. The widget
+template <class TModel, class TWidget, class WidgetValueTraits>
+void makeCoupling(TWidget *w,
+                  TModel *model,
+                  WidgetValueTraits trValue)
+{
+  typedef typename TModel::DomainType DomainType;
+  typedef DefaultWidgetDomainTraits<DomainType, TWidget> WidgetDomainTraits;
+  makeCoupling<TModel, TWidget,
+      WidgetValueTraits, WidgetDomainTraits>(
+        w, model, trValue, WidgetDomainTraits());
+}
+
+
+/**
+  Create a coupling between a numeric model and a Qt widget. The widget
   will listen to the events from the model and update its value and range
   accordingly. When the user interacts with the widget, the model will be
   updated. The coupling fully automates mapping of data between Qt input
@@ -678,13 +858,16 @@ void makeCoupling(
   This version of the method uses default traits. There is also a version
   that allows you to provide your own traits.
 */
-template <class TAtomic, class TWidget>
+template <class TModel, class TWidget>
 void makeCoupling(TWidget *w,
-                  AbstractEditableNumericValueModel<TAtomic> *model)
+                  TModel *model)
 {
-  typedef DefaultWidgetTraits<TAtomic, TWidget> WidgetTraits;
-  makeCoupling<TAtomic, TWidget, WidgetTraits>(w, model);
+  typedef typename TModel::ValueType ValueType;
+  typedef DefaultWidgetValueTraits<ValueType, TWidget> WidgetValueTraits;
+  makeCoupling<TModel, TWidget,WidgetValueTraits>(
+        w, model, WidgetValueTraits());
 }
+
 
 
 /**
@@ -693,20 +876,59 @@ void makeCoupling(TWidget *w,
   you to hook up a model wrapped around a Vector3d to a triple of spin boxes.
   This is very convenient for dealing with input and output of vector data.
   */
-template <unsigned int VDim, class TAtomic, class TWidget, class WidgetTraits>
-void makeArrayCoupling(
+
+template <class TModel, class TWidget>
+class DefaultComponentValueTraits : public DefaultWidgetValueTraits<
+  typename TModel::ValueType::element_type, TWidget>
+{
+};
+
+template <class TModel, class TWidget>
+class DefaultComponentDomainTraits : public DefaultWidgetDomainTraits<
+    typename ComponentDomainTraits<typename TModel::DomainType,
+                          TModel::ValueType::SIZE>::AtomicDomainType,
+    TWidget>
+{
+};
+
+
+/**
+  Create a coupling between a model and an array of widgets. See the more
+  convenient versions of this method below
+  */
+template <class TWidget,
+          class TModel,
+          class WidgetValueTraits,
+          class WidgetDomainTraits>
+void makeWidgetArrayCoupling(
     std::vector<TWidget *> wa,
-    AbstractEditableNumericValueModel< iris_vector_fixed<TAtomic, VDim> > *model,
-    WidgetTraits traits)
+    TModel *model,
+    WidgetValueTraits trValue,
+    WidgetDomainTraits trDomain)
 {
   typedef std::vector<TWidget *> WidgetArray;
-  typedef WidgetArrayTraits<TAtomic, VDim, TWidget, WidgetTraits> ArrayTraits;
-  typedef iris_vector_fixed<TAtomic, VDim> ValueType;
-  typedef NumericModelWidgetDataMapping<
-      ValueType, WidgetArray, ArrayTraits> MappingType;
+  typedef typename TModel::ValueType VectorType;
+  typedef typename TModel::DomainType VectorDomainType;
+  typedef typename VectorType::element_type ElementType;
+  const int VDim = VectorType::SIZE;
+
+  // Define the array traits
+  typedef WidgetArrayValueTraits<
+      ElementType, VDim, TWidget, WidgetValueTraits> ArrayValueTraits;
+
+  typedef WidgetArrayDomainTraits<
+      VectorDomainType, VDim, TWidget, WidgetDomainTraits> ArrayDomainTraits;
+
+  // The class of the mapping
+  typedef PropertyModelToWidgetDataMapping<
+      VectorType, VectorDomainType, WidgetArray,
+      ArrayValueTraits, ArrayDomainTraits> MappingType;
 
   // Create the mapping
-  MappingType *mapping = new MappingType(wa, model, ArrayTraits(traits));
+  MappingType *mapping = new MappingType(
+        wa, model,
+        ArrayValueTraits(trValue),
+        ArrayDomainTraits(trDomain));
 
   // Create the coupling helper (event handler). It's attached to the first
   // widget, just for the purpose of this object being deleted later.
@@ -722,62 +944,105 @@ void makeArrayCoupling(
         h, SLOT(onPropertyModification()));
 
   // Listen to value change events for this widget
-  for(unsigned int i = 0; i < VDim; i++)
-    h->connect(wa[i], traits.GetSignal(), SLOT(onUserModification()));
+  for(int i = 0; i < VDim; i++)
+    h->connect(wa[i], trValue.GetSignal(), SLOT(onUserModification()));
 }
 
-template <class TAtomic, class TWidget, class WidgetTraits>
+/**
+  Create a coupling between a model and a triplet of widgets. The model must
+  be an AbstractPropertyModel templated over iris_vector_fixed<T,3> and some
+  compatible Domain object, i.e., NumericValueRange or TrivialDomain. The
+  caller can optionally pass traits objects for overriding the default behavior
+  of model-to-widget copying of values and domain information.
+  */
+template <class TModel, class TWidget,
+          class WidgetValueTraits, class WidgetDomainTraits>
 void makeArrayCoupling(
     TWidget *w1, TWidget *w2, TWidget *w3,
-    AbstractEditableNumericValueModel<iris_vector_fixed<TAtomic, 3> > *model,
-    WidgetTraits traits)
+    TModel *model,
+    WidgetValueTraits trValue,
+    WidgetDomainTraits trDomain)
 {
   // Create the array of widgets
-  std::vector<TWidget *> wa(3);
+  typedef std::vector<TWidget *> WidgetArray;
+  WidgetArray wa(3);
   wa[0] = w1; wa[1] = w2; wa[2] = w3;
 
-  // Call the main method
-  makeArrayCoupling<3, TAtomic, TWidget, WidgetTraits>(wa, model, traits);
+  // Call the parent method
+  makeWidgetArrayCoupling<
+      TWidget,TModel,WidgetValueTraits,WidgetDomainTraits>(
+        wa, model, trValue, trDomain);
 }
 
-template <class TAtomic, class TWidget>
+template <class TModel, class TWidget,
+          class WidgetValueTraits>
 void makeArrayCoupling(
     TWidget *w1, TWidget *w2, TWidget *w3,
-    AbstractEditableNumericValueModel<iris_vector_fixed<TAtomic, 3> > *model)
+    TModel *model,
+    WidgetValueTraits trValue)
 {
-  // Create the default traits
-  DefaultWidgetTraits<TAtomic, TWidget> traits;
+  typedef DefaultComponentDomainTraits<TModel,TWidget> WidgetDomainTraits;
+  makeArrayCoupling<TModel, TWidget, WidgetValueTraits, WidgetDomainTraits>
+      (w1,w2,w3,model,trValue,WidgetDomainTraits());
+}
 
-  // Call the main method
-  makeArrayCoupling(w1, w2, w3, model, traits);
+template <class TModel, class TWidget>
+void makeArrayCoupling(
+    TWidget *w1, TWidget *w2, TWidget *w3,
+    TModel *model)
+{
+  typedef DefaultComponentValueTraits<TModel,TWidget> WidgetValueTraits;
+  makeArrayCoupling<TModel, TWidget, WidgetValueTraits>
+      (w1,w2,w3,model,WidgetValueTraits());
 }
 
 
-template <class TAtomic, class TWidget, class WidgetTraits>
+/**
+  Create a coupling between a model and a pair of widgets. The model must
+  be an AbstractPropertyModel templated over iris_vector_fixed<T,2> and some
+  compatible Domain object, i.e., NumericValueRange or TrivialDomain. The
+  caller can optionally pass traits objects for overriding the default behavior
+  of model-to-widget copying of values and domain information.
+  */
+template <class TModel, class TWidget,
+          class WidgetValueTraits, class WidgetDomainTraits>
 void makeArrayCoupling(
     TWidget *w1, TWidget *w2,
-    AbstractEditableNumericValueModel<iris_vector_fixed<TAtomic, 2> > *model,
-    WidgetTraits traits)
+    TModel *model,
+    WidgetValueTraits trValue,
+    WidgetDomainTraits trDomain)
 {
   // Create the array of widgets
-  std::vector<TWidget *> wa(2);
+  typedef std::vector<TWidget *> WidgetArray;
+  WidgetArray wa(2);
   wa[0] = w1; wa[1] = w2;
 
-  // Call the main method
-  makeArrayCoupling<2, TAtomic, TWidget, WidgetTraits>(wa, model, traits);
+  // Call the parent method
+  makeWidgetArrayCoupling<
+      TWidget,TModel,WidgetValueTraits,WidgetDomainTraits>(
+        wa, model, trValue, trDomain);
 }
 
-
-template <class TAtomic, class TWidget>
+template <class TModel, class TWidget,
+          class WidgetValueTraits>
 void makeArrayCoupling(
     TWidget *w1, TWidget *w2,
-    AbstractEditableNumericValueModel<iris_vector_fixed<TAtomic, 2> > *model)
+    TModel *model,
+    WidgetValueTraits trValue)
 {
-  // Create the default traits
-  DefaultWidgetTraits<TAtomic, TWidget> traits;
+  typedef DefaultComponentDomainTraits<TModel,TWidget> WidgetDomainTraits;
+  makeArrayCoupling<TModel, TWidget, WidgetValueTraits, WidgetDomainTraits>
+      (w1,w2,model,trValue,WidgetDomainTraits());
+}
 
-  // Call the main method
-  makeArrayCoupling(w1, w2, model, traits);
+template <class TModel, class TWidget>
+void makeArrayCoupling(
+    TWidget *w1, TWidget *w2,
+    TModel *model)
+{
+  typedef DefaultComponentValueTraits<TModel,TWidget> WidgetValueTraits;
+  makeArrayCoupling<TModel, TWidget, WidgetValueTraits>
+      (w1,w2,model,WidgetValueTraits());
 }
 
 
@@ -789,13 +1054,18 @@ void makeArrayCoupling(
   */
 template <class TAtomic, class TWidget>
 void makeRadioGroupCoupling(
-    TWidget *w, AbstractEditableNumericValueModel<TAtomic> *model)
+    TWidget *w, AbstractPropertyModel<TAtomic> *model)
 {
-  typedef RadioButtonGroupTraits<TAtomic> WidgetTraits;
-  typedef NumericModelWidgetDataMapping<
-      TAtomic, TWidget *, WidgetTraits> MappingType;
-  WidgetTraits traits;
-  MappingType *mapping = new MappingType(w, model, traits);
+  typedef RadioButtonGroupTraits<TAtomic> WidgetValueTraits;
+  typedef DefaultWidgetDomainTraits<TrivialDomain, TWidget> WidgetDomainTraits;
+
+  typedef PropertyModelToWidgetDataMapping<
+      TAtomic, TrivialDomain, TWidget *,
+      WidgetValueTraits, WidgetDomainTraits> MappingType;
+
+  WidgetValueTraits valueTraits;
+  WidgetDomainTraits domainTraits;
+  MappingType *mapping = new MappingType(w, model, valueTraits, domainTraits);
   QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
 
   // Populate the widget

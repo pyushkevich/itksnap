@@ -36,12 +36,12 @@ void ContrastInspector::SetModel(IntensityCurveModel *model)
   // Set up the couplings. This is all we have to do to make the spin box
   // play with the model! There are no callbacks to write, no event handlers
   // to worry about! Yay!!!
-  makeCoupling(ui->inControlX, m_Model->GetMovingControlXModel());
-  makeCoupling(ui->inControlY, m_Model->GetMovingControlYModel());
+  makeArrayCoupling(ui->inControlX, ui->inControlY,
+                    m_Model->GetMovingControlXYModel());
 
   // Set up couplings for window and level
-  makeCoupling(ui->inLevel, m_Model->GetLevelModel());
-  makeCoupling(ui->inWindow, m_Model->GetWindowModel());
+  makeArrayCoupling(ui->inLevel, ui->inWindow,
+                    m_Model->GetLevelWindowModel());
 
   // Make coupling for the control point id
   makeCoupling(ui->inControlId, m_Model->GetMovingControlIdModel());

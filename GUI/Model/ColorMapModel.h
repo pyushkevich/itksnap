@@ -103,11 +103,11 @@ public:
   /** Update the model in response to upstream events */
   virtual void OnUpdate();
 
-  typedef AbstractEditableNumericValueModel<double> RealValueModel;
-  typedef AbstractEditableNumericValueModel<int> IntegerValueModel;
-  typedef AbstractEditableNumericValueModel<bool> BooleanValueModel;
-  typedef AbstractEditableNumericValueModel<Continuity> ContinuityValueModel;
-  typedef AbstractEditableNumericValueModel<Side> SideValueModel;
+  typedef AbstractRangedPropertyModel<double>::Type RealValueModel;
+  typedef AbstractRangedPropertyModel<int>::Type IntegerValueModel;
+  typedef AbstractRangedPropertyModel<bool>::Type BooleanValueModel;
+  typedef AbstractPropertyModel<Continuity> ContinuityValueModel;
+  typedef AbstractPropertyModel<Side> SideValueModel;
 
   /** The model for setting moving control point position */
   irisGetMacro(MovingControlPositionModel, RealValueModel *)
@@ -176,26 +176,26 @@ protected:
   // Colormap presets
   PresetList m_PresetSystem, m_PresetUser;
 
+  // Get the RGBA for selected point
+  bool GetSelectedRGBA(ColorMap::RGBAType &rgba);
+  void SetSelectedRGBA(ColorMap::RGBAType rgba);
+
   // Control point position
   bool GetMovingControlPositionValueAndRange(
       double &value, NumericValueRange<double> *range);
   void SetMovingControlPosition(double value);
 
   // Control point opacity
-  typedef iris_vector_fixed<double, 4> Vec4d;
-
-  bool GetMovingControlRGBAValueAndRange(
-      Vec4d &value, NumericValueRange< Vec4d > *range);
-  void SetMovingControlRGBA(Vec4d value);
+  bool GetMovingControlOpacityValueAndRange(
+      double &value, NumericValueRange<double> *range);
+  void SetMovingControlOpacity(double value);
 
   // Control point style
-  bool GetMovingControlTypeValueAndRange(
-      Continuity &value, NumericValueRange<Continuity> *range);
+  bool GetMovingControlType(Continuity &value);
   void SetMovingControlType(Continuity value);
 
   // Control point style
-  bool GetMovingControlSideValueAndRange(
-      Side &value, NumericValueRange<Side> *range);
+  bool GetMovingControlSide(Side &value);
   void SetMovingControlSide(Side value);
 
   // Selected control point index
