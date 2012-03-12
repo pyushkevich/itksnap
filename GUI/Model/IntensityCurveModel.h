@@ -8,7 +8,7 @@
 #include "GenericImageData.h"
 #include <LayerAssociation.h>
 
-#include "EditableNumericValueModel.h"
+#include "PropertyModel.h"
 
 class GlobalUIModel;
 class IntensityCurveModel;

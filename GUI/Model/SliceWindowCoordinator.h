@@ -38,7 +38,7 @@
 #include "GenericSliceModel.h"
 #include <itkObject.h>
 #include <SNAPEvents.h>
-#include "EditableNumericValueModel.h"
+#include "PropertyModel.h"
 
 class SliceWindowCoordinator;
 

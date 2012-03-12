@@ -30,7 +30,7 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
-#include <EditableNumericValueModel.h>
+#include <PropertyModel.h>
 #include <SNAPCommon.h>
 #include <Property.h>
 #include <LatentITKEventNotifier.h>

@@ -21,8 +21,6 @@ IntensityCurveModel::IntensityCurveModel()
         &Self::GetMovingControlPointIdValueAndRange,
         &Self::SetMovingControlPointId);
 
-  typedef AbstractEditableNumericValueModel<Vector2d> VectorNumericModel;
-
   // Create the child model for the control point coordinates
   m_MovingControlXYModel = makeChildPropertyModel(
         this,

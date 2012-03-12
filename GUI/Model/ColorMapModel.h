@@ -2,7 +2,7 @@
 #define COLORMAPMODEL_H
 
 #include "AbstractLayerAssociatedModel.h"
-#include "EditableNumericValueModel.h"
+#include "PropertyModel.h"
 #include "GreyImageWrapper.h"
 #include <UIReporterDelegates.h>
 

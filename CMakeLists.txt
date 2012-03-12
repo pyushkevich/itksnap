@@ -274,6 +274,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/LayerSelectionModel.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
   GUI/Model/PolygonDrawingModel.h
+  GUI/Model/PropertyModel.h
   GUI/Model/SNAPAppearanceSettings.h
   GUI/Model/SNAPUIFlag.h
   GUI/Model/SNAPUIFlag.txx

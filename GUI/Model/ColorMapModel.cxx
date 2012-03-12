@@ -237,7 +237,7 @@ ColorMapModel
     value = cmap->GetCMPoint(idx).m_Index;
     if(range)
       {
-      range->StepSize = 0.001;
+      range->StepSize = 0.01;
       if(idx == 0)
         {
         range->Minimum = 0.0;
