@@ -870,6 +870,7 @@ CastNativeImageBase<TPixel,TCastFunctor>
   // Allocate the output image
   m_Output = OutputImageType::New();
   m_Output->CopyInformation(native);
+  m_Output->SetMetaDataDictionary(native->GetMetaDataDictionary());
   m_Output->SetRegions(native->GetBufferedRegion());
 
   // Special case: native image is the same as target image

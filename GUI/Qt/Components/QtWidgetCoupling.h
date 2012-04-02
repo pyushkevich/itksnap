@@ -33,6 +33,12 @@
 #include <PropertyModel.h>
 #include <SNAPCommon.h>
 #include <Property.h>
+#include <QLineEdit>
+#include <QCheckBox>
+#include <QRadioButton>
+#include <iostream>
+#include <iomanip>
+
 #include <LatentITKEventNotifier.h>
 
 /**
@@ -51,13 +57,15 @@ public:
   Data mapping between a numeric model and an input widget TWidget.
   The mapping handles the value of the widget, and its range.
   */
-template <class TAtomic, class TDomain, class TWidgetPtr,
+template <class TModel, class TWidgetPtr,
           class WidgetValueTraits, class WidgetDomainTraits>
 class PropertyModelToWidgetDataMapping : public AbstractWidgetDataMapping
 {
 public:
-  // The model that provides the data
-  typedef AbstractPropertyModel<TAtomic, TDomain> ModelType;
+
+  typedef TModel ModelType;
+  typedef typename ModelType::ValueType AtomicType;
+  typedef typename ModelType::DomainType DomainType;
 
   // Constructor
   PropertyModelToWidgetDataMapping(
@@ -73,8 +81,8 @@ public:
 
     // Prepopulate the range with current values in case the model does
     // not actually compute ranges
-    TDomain domain = m_DomainTraits.GetDomain(m_Widget);
-    TAtomic value;
+    DomainType domain = m_DomainTraits.GetDomain(m_Widget);
+    AtomicType value;
 
     // Obtain the value from the model
     if(m_Model->GetValueAndDomain(value, &domain))
@@ -95,8 +103,8 @@ public:
   {
     if(!m_Updating)
       {
-      TAtomic user_value = m_ValueTraits.GetValue(m_Widget);
-      TAtomic model_value;
+      AtomicType user_value = m_ValueTraits.GetValue(m_Widget);
+      AtomicType model_value;
 
       // Note: if the model reports that the value is invalid, we are not
       // allowing the user to mess with the value. This may have some odd
@@ -362,9 +370,6 @@ public:
   }
 };
 
-#include <QLineEdit>
-#include <iostream>
-#include <iomanip>
 
 
 template <class TAtomic>
@@ -426,7 +431,6 @@ protected:
 };
 
 
-#include <QCheckBox>
 template <class TAtomic>
 struct DefaultWidgetValueTraits<TAtomic, QCheckBox>
     : public WidgetValueTraitsBase<TAtomic, QCheckBox *>
@@ -453,35 +457,6 @@ public:
   }
 };
 
-#include <QRadioButton>
-/*
-template <class TAtomic>
-struct DefaultWidgetValueTraits<TAtomic, QRadioButton>
-    : public WidgetValueTraitsBase<TAtomic, QRadioButton *>
-
-{
-public:
-  static const char *GetSignal()
-  {
-    return SIGNAL(toggled(bool));
-  }
-
-  static TAtomic GetValue(QRadioButton *w)
-  {
-    return static_cast<TAtomic>(w->isChecked());
-  }
-
-  static void SetValue(QRadioButton *w, const TAtomic &value)
-  {
-    w->setChecked(static_cast<bool>(value));
-  }
-
-  static void SetValueToNull(QRadioButton *w)
-  {
-    w->setChecked(false);
-  }
-};
-*/
 
 template <class TAtomic>
 struct RadioButtonGroupTraits :
@@ -812,7 +787,7 @@ void makeCoupling(
   typedef typename TModel::DomainType DomainType;
 
   typedef PropertyModelToWidgetDataMapping<
-      ValueType, DomainType, TWidget *,
+      TModel, TWidget *,
       WidgetValueTraits, WidgetDomainTraits> MappingType;
 
   MappingType *mapping = new MappingType(w, model, valueTraits, domainTraits);
@@ -921,7 +896,7 @@ void makeWidgetArrayCoupling(
 
   // The class of the mapping
   typedef PropertyModelToWidgetDataMapping<
-      VectorType, VectorDomainType, WidgetArray,
+      TModel, WidgetArray,
       ArrayValueTraits, ArrayDomainTraits> MappingType;
 
   // Create the mapping
@@ -1056,11 +1031,12 @@ template <class TAtomic, class TWidget>
 void makeRadioGroupCoupling(
     TWidget *w, AbstractPropertyModel<TAtomic> *model)
 {
+  typedef AbstractPropertyModel<TAtomic> ModelType;
   typedef RadioButtonGroupTraits<TAtomic> WidgetValueTraits;
   typedef DefaultWidgetDomainTraits<TrivialDomain, TWidget> WidgetDomainTraits;
 
   typedef PropertyModelToWidgetDataMapping<
-      TAtomic, TrivialDomain, TWidget *,
+      ModelType, TWidget *,
       WidgetValueTraits, WidgetDomainTraits> MappingType;
 
   WidgetValueTraits valueTraits;

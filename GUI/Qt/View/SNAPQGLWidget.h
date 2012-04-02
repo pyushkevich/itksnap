@@ -34,6 +34,7 @@
 class QMouseEvent;
 class EventBucket;
 class QtInteractionDelegateWidget;
+class AbstractRenderer;
 
 class SNAPQGLWidget : public QGLWidget
 {
@@ -41,6 +42,9 @@ class SNAPQGLWidget : public QGLWidget
 
 public:
   explicit SNAPQGLWidget(QWidget *parent = 0);
+
+  // Whether to grab keyboard focus when the mouse enters this widget
+  irisGetSetMacro(GrabFocusOnEntry, bool)
 
   // Mouse events
   virtual bool event(QEvent *);
@@ -57,6 +61,12 @@ public:
     */
   void AttachSingleDelegate(QtInteractionDelegateWidget *delegate);
 
+  /**
+    The child class must override this method to return its pointer to the
+    renderer object. Every instance of this object must have a renderer.
+    */
+  virtual AbstractRenderer* GetRenderer() const = 0;
+
 public slots:
 
   // Default slot for model updates
@@ -69,10 +79,28 @@ protected:
   void connectITK(itk::Object *src, const itk::EventObject &ev,
                   const char *slot = SLOT(onModelUpdate(const EventBucket &)));
 
+  // OpenGL painter methods
+  virtual void paintGL();
+  virtual void resizeGL(int w, int h);
+  virtual void initializeGL();
+
+  // Resize event
+  virtual void resizeEvent(QResizeEvent *);
+  virtual void enterEvent(QEvent *);
+  virtual void leaveEvent(QEvent *);
+
+
+
 
   // Whether the user is dragging the mouse currently. More specifically
   // this is on between mouse press and mouse release events
   bool m_Dragging;
+
+  // Whether we need to call GL resize next time a paint command occurs
+  bool m_NeedResizeOnNextRepaint;
+
+  // Whether this widget grabs keyboard focus when the mouse enters it
+  bool m_GrabFocusOnEntry;
 
   // The cursor location where the dragging started. This is the coordinate
   // of the last mouse press event.

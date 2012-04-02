@@ -27,6 +27,7 @@
 #ifndef GENERICSLICERENDERER_H
 #define GENERICSLICERENDERER_H
 
+#include <AbstractRenderer.h>
 #include <GenericSliceModel.h>
 #include <ImageWrapper.h>
 #include <OpenGLSliceTexture.h>
@@ -36,11 +37,15 @@
 
 class GenericSliceRenderer;
 
-class SliceRendererDelegate : public AbstractModel
+class SliceRendererDelegate : public AbstractRenderer
 {
 public:
   virtual ~SliceRendererDelegate() {}
-  virtual void paintGL(GenericSliceRenderer *parent) = 0;
+
+  irisGetSetMacro(ParentRenderer, GenericSliceRenderer *)
+
+protected:
+  GenericSliceRenderer *m_ParentRenderer;
 };
 
 struct OpenGLTextureAssociationFactory
@@ -50,7 +55,7 @@ struct OpenGLTextureAssociationFactory
   GenericSliceRenderer *m_Renderer;
 };
 
-class GenericSliceRenderer : public AbstractModel
+class GenericSliceRenderer : public AbstractRenderer
 {
 public:
 

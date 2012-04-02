@@ -4,6 +4,7 @@
 #include <SNAPQGLWidget.h>
 #include <QtInteractionDelegateWidget.h>
 #include <SNAPEvents.h>
+#include <IntensityCurveRenderer.h>
 
 class IntensityCurveModel;
 class IntensityCurveRenderer;
@@ -22,14 +23,11 @@ public:
   // Get the model in this widget
   irisGetMacro(Model, IntensityCurveModel *)
 
-  // Get the renderer for this widget
-  irisGetMacro(Renderer, IntensityCurveRenderer *)
-
   // Set the model (state) for this widget
   void SetModel(IntensityCurveModel *model);
 
-  void paintGL();
-  void resizeGL(int w, int h);
+  // Get the renderer
+  irisGetMacro(Renderer, AbstractRenderer *)
 
 public slots:
 

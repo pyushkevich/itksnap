@@ -14,19 +14,10 @@ MetaDataAccess::MetaDataAccess(itk::ImageBase<3> *image)
   m_Image = image;
 }
 
-size_t MetaDataAccess::GetNumberOfKeys() const
-{
-  return m_Image->GetMetaDataDictionary().GetKeys().size();
-}
 
-std::string MetaDataAccess::GetKey(size_t i)
+std::vector<std::string> MetaDataAccess::GetKeysAsArray()
 {
-  return m_Image->GetMetaDataDictionary().GetKeys().at(i);
-}
-
-std::string MetaDataAccess::GetValueAsString(size_t i)
-{
-  return this->GetValueAsString(this->GetKey(i));
+  return m_Image->GetMetaDataDictionary().GetKeys();
 }
 
 template<class AnyType>
@@ -44,7 +35,6 @@ try_get_metadata(itk::MetaDataDictionary &mdd,
     }
   else return false;
 }
-
 
 std::string MetaDataAccess::GetValueAsString(const std::string &key)
 {
@@ -163,7 +153,7 @@ std::string MetaDataAccess::GetRAICode(
   cmap[itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_AIL] = "AIL";
   cmap[itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_ASL] = "ASL";
   return cmap[code];
-  }
+}
 
 
 

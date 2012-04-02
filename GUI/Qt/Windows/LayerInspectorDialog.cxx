@@ -104,6 +104,7 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
   ui->cmpContrast->SetModel(model->GetIntensityCurveModel());
   ui->cmpColorMap->SetModel(model->GetColorMapModel());
   ui->cmpInfo->SetModel(model->GetImageInfoModel());
+  ui->cmpMetadata->SetModel(model->GetImageInfoModel());
 }
 
 void LayerInspectorDialog::onLayerSelection()

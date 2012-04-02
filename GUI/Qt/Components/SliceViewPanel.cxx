@@ -123,7 +123,7 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   // Attach the overlays to the master renderer. Why are we doing it here?
   GenericSliceRenderer::RendererDelegateList &overlays =
-      ui->sliceView->GetRenderer()->GetOverlays();
+      ui->sliceView->GetRendererOverlays();
   overlays.push_back(ui->imCrosshairs->GetRenderer());
   overlays.push_back(ui->imPolygon->GetRenderer());
 

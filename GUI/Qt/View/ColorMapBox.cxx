@@ -29,16 +29,6 @@ void ColorMapBox::SetModel(ColorMapModel *model)
   connectITK(m_Model, ModelUpdateEvent());
 }
 
-void ColorMapBox::paintGL()
-{
-  m_Renderer->paintGL();
-}
-
-void ColorMapBox::resizeGL(int w, int h)
-{
-  m_Renderer->resizeGL(w, h);
-}
-
 void ColorMapBox::onModelUpdate(const EventBucket &bucket)
 {
   this->update();

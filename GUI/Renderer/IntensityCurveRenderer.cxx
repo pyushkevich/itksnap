@@ -19,7 +19,7 @@ IntensityCurveRenderer::~IntensityCurveRenderer()
 }
 
 
-void IntensityCurveRenderer::paintGL(int *bkgColor)
+void IntensityCurveRenderer::paintGL()
 {
   // The curve should have been initialized
   IntensityCurveInterface *curve = m_Model->GetCurve();
@@ -33,7 +33,8 @@ void IntensityCurveRenderer::paintGL(int *bkgColor)
   int w = viewport[2]; int h = viewport[3];
 
   // Clear the viewport
-  glClearColor(bkgColor[0] / 255., bkgColor[1] / 255., bkgColor[2] / 255., 1.0);
+  glClearColor(m_Background[0] / 255., m_Background[1] / 255.,
+               m_Background[2] / 255., 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Push the related attributes

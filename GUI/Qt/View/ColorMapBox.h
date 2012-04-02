@@ -4,9 +4,9 @@
 #include <SNAPQGLWidget.h>
 #include <QtInteractionDelegateWidget.h>
 #include <SNAPEvents.h>
+#include <ColorMapRenderer.h>
 
 class ColorMapModel;
-class ColorMapRenderer;
 class ColorMapInteractionDelegate;
 class ColorMapInspector;
 
@@ -24,16 +24,13 @@ public:
   irisGetMacro(Model, ColorMapModel *)
 
   // Get the renderer for this widget
-  irisGetMacro(Renderer, ColorMapRenderer *)
+  irisGetMacro(Renderer, AbstractRenderer *)
 
   // Get the interaction delegate for this widget
   irisGetMacro(Delegate, ColorMapInteractionDelegate *)
 
   // Set the model (state) for this widget
   void SetModel(ColorMapModel *model);
-
-  void paintGL();
-  void resizeGL(int w, int h);
 
 public slots:
 

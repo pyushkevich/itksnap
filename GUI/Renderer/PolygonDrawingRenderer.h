@@ -12,7 +12,7 @@ public:
 
   irisITKObjectMacro(PolygonDrawingRenderer, SliceRendererDelegate)
 
-  void paintGL(GenericSliceRenderer *parentRenderer);
+  void paintGL();
 
   irisGetMacro(Model, PolygonDrawingModel *)
   irisSetMacro(Model, PolygonDrawingModel *)

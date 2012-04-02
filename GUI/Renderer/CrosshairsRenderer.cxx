@@ -37,17 +37,17 @@ CrosshairsRenderer::CrosshairsRenderer()
   m_Model = NULL;
 }
 
-void CrosshairsRenderer::paintGL(GenericSliceRenderer *parentRenderer)
+void CrosshairsRenderer::paintGL()
 {
   assert(m_Model);
 
-  GenericSliceModel *parentModel = parentRenderer->GetModel();
+  GenericSliceModel *parentModel = this->GetParentRenderer()->GetModel();
   SNAPAppearanceSettings *as =
       parentModel->GetParentUI()->GetAppearanceSettings();
 
   // Get the line color, thickness and dash spacing for the crosshairs
   SNAPAppearanceSettings::Element elt =
-    parentRenderer->IsThumbnailDrawing()
+    this->GetParentRenderer()->IsThumbnailDrawing()
     ? as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_THUMB)
     : as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
 

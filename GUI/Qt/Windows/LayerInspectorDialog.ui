@@ -112,7 +112,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="ContrastInspector" name="cmpContrast">
       <property name="sizePolicy">
@@ -141,6 +141,11 @@
        <string>Information</string>
       </attribute>
      </widget>
+     <widget class="MetadataInspector" name="cmpMetadata">
+      <attribute name="title">
+       <string>Metadata</string>
+      </attribute>
+     </widget>
     </widget>
    </item>
   </layout>
@@ -162,6 +167,12 @@
    <class>ImageInfoInspector</class>
    <extends>QWidget</extends>
    <header>ImageInfoInspector.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MetadataInspector</class>
+   <extends>QWidget</extends>
+   <header location="global">MetadataInspector.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

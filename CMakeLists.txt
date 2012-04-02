@@ -251,6 +251,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/SNAPAppearanceSettings.cxx
   GUI/Model/StateManagement.cxx
   GUI/Model/UIAction.cxx
+  GUI/Renderer/AbstractRenderer.cxx
   GUI/Renderer/ColorMapRenderer.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
@@ -283,6 +284,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/UIAction.h
   GUI/Model/UIReporterDelegates.h
   GUI/Model/UIState.h
+  GUI/Renderer/AbstractRenderer.h
   GUI/Renderer/ColorMapRenderer.h
   GUI/Renderer/CrosshairsRenderer.h
   GUI/Renderer/GenericSliceRenderer.h
@@ -299,6 +301,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/ImageInfoInspector.cxx
   GUI/Qt/Components/LabelInspector.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
+  GUI/Qt/Components/MetadataInspector.cxx
   GUI/Qt/Components/QtReporterDelegates.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetCoupling.cxx
@@ -335,6 +338,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/ImageInfoInspector.h
   GUI/Qt/Components/LabelInspector.h
   GUI/Qt/Components/LatentITKEventNotifier.h
+  GUI/Qt/Components/MetadataInspector.h
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
@@ -366,6 +370,7 @@ SET(UI_FORMS
   GUI/Qt/Components/CursorInspector.ui
   GUI/Qt/Components/ImageInfoInspector.ui
   GUI/Qt/Components/LabelInspector.ui
+  GUI/Qt/Components/MetadataInspector.ui
   GUI/Qt/Components/QtWarningDialog.ui
   GUI/Qt/Components/SliceViewPanel.ui
   GUI/Qt/Components/ZoomInspector.ui

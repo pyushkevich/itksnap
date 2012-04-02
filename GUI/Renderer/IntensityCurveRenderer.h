@@ -1,13 +1,13 @@
 #ifndef INTENSITYCURVERENDERER_H
 #define INTENSITYCURVERENDERER_H
 
-#include <AbstractModel.h>
+#include <AbstractRenderer.h>
 class IntensityCurveModel;
 
-class IntensityCurveRenderer : public AbstractModel
+class IntensityCurveRenderer : public AbstractRenderer
 {
 public:
-  irisITKObjectMacro(IntensityCurveRenderer, AbstractModel)
+  irisITKObjectMacro(IntensityCurveRenderer, AbstractRenderer)
 
 
   void SetModel(IntensityCurveModel *model);
@@ -16,7 +16,10 @@ public:
   void resizeGL(int w, int h);
 
   /** Paint the widget. The caller needs to supply the background color */
-  void paintGL(int *bkgColor);
+  void paintGL();
+
+  // Set the background color to paint with
+  irisGetSetMacro(Background, Vector3ui)
 
 protected:
 
@@ -27,6 +30,7 @@ protected:
 
   static const unsigned int CURVE_RESOLUTION;
 
+  Vector3ui m_Background;
 
   void DrawCircleWithBorder(double x, double y, double r, double bw,
                             bool select, int w, int h);

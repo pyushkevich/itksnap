@@ -4,6 +4,7 @@
 #include <SNAPCommon.h>
 #include <itkSpatialOrientation.h>
 #include <string>
+#include <vector>
 
 namespace itk
 {
@@ -15,11 +16,8 @@ class MetaDataAccess
 public:
   MetaDataAccess(itk::ImageBase<3> *image);
 
-  size_t GetNumberOfKeys() const;
-
-  std::string GetKey(size_t i);
+  std::vector<std::string> GetKeysAsArray();
   std::string GetValueAsString(const std::string &key);
-  std::string GetValueAsString(size_t i);
 
   // Useful routine for mapping orientation strings to text
   static std::string GetRAICode(

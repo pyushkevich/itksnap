@@ -40,7 +40,7 @@ class CrosshairsInteractionMode : public SliceWindowInteractionDelegateWidget
   Q_OBJECT
 
 public:
-  explicit CrosshairsInteractionMode(QWidget *parent = NULL);
+  explicit CrosshairsInteractionMode(GenericSliceView *parent = NULL);
   ~ CrosshairsInteractionMode();
 
 

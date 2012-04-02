@@ -6,6 +6,7 @@
 #include "QtWidgetActivator.h"
 #include "IRISApplication.h"
 #include "GlobalState.h"
+#include "GenericSliceView.h"
 
 #include <QMenu>
 
@@ -31,10 +32,13 @@ QAction *setupAction(PolygonDrawingInteractionMode *w, QMenu *menu,
 }
 
 
-PolygonDrawingInteractionMode::PolygonDrawingInteractionMode(QWidget *parent) :
-    SliceWindowInteractionDelegateWidget(parent)
+PolygonDrawingInteractionMode
+::PolygonDrawingInteractionMode(GenericSliceView *parent) :
+    SliceWindowInteractionDelegateWidget(static_cast<QWidget *>(parent))
 {
   m_Renderer = PolygonDrawingRenderer::New();
+  m_Renderer->SetParentRenderer(
+        static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
   m_Model = NULL;
 }
 

@@ -12,6 +12,10 @@ IntensityCurveBox::IntensityCurveBox(QWidget *parent)
   m_Renderer = IntensityCurveRenderer::New();
   m_Delegate = new IntensityCurveInteractionDelegate();
 
+  // Set the background color in the renderer
+  QColor bkg = parent->palette().color(parent->backgroundRole());
+  m_Renderer->SetBackground(Vector3ui(bkg.red(), bkg.green(), bkg.blue()));
+
   // attach delegate
   AttachSingleDelegate(m_Delegate);
 }
@@ -29,27 +33,10 @@ void IntensityCurveBox::SetModel(IntensityCurveModel *model)
   connectITK(m_Model, ModelUpdateEvent());
 }
 
-void IntensityCurveBox::paintGL()
-{
-  QWidget *p = parentWidget();
-  QColor bkg = p->palette().color(p->backgroundRole());
-  int rgb[] = {bkg.red(), bkg.green(), bkg.blue()};
-
-  m_Renderer->paintGL(rgb);
-}
-
-void IntensityCurveBox::resizeGL(int w, int h)
-{
-  m_Renderer->resizeGL(w, h);
-}
-
 void IntensityCurveBox::onModelUpdate(const EventBucket &bucket)
 {
   this->update();
 }
-
-
-
 
 void IntensityCurveInteractionDelegate::mousePressEvent(QMouseEvent *ev)
 {

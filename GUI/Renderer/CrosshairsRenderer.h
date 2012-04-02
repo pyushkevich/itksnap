@@ -42,7 +42,7 @@ public:
   irisSetMacro(Model, OrthogonalSliceCursorNavigationModel *)
   irisGetMacro(Model, OrthogonalSliceCursorNavigationModel *)
 
-  void paintGL(GenericSliceRenderer *parentRenderer);
+  void paintGL();
 
 protected:
 

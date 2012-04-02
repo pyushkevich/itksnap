@@ -36,8 +36,10 @@ public:
   typedef SmartPtr<const Self> ConstPointer;
   itkTypeMacro(AbstractLayerAssociatedModel, AbstractModel)
 
+  // An event fired when the selected layer changes
+  itkEventMacro(ActiveLayerChangedEvent, IRISEvent)
 
-  FIRES(ModelUpdateEvent)
+  FIRES(ActiveLayerChangedEvent)
 
   irisGetMacro(ParentModel, GlobalUIModel *)
   void SetParentModel(GlobalUIModel *parent)
@@ -79,7 +81,7 @@ public:
       this->RegisterWithLayer(m_Layer);
 
     // Fire an event to indicate the change
-    InvokeEvent(ModelUpdateEvent());
+    InvokeEvent(ActiveLayerChangedEvent());
   }
 
 

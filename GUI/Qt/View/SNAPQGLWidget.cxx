@@ -29,12 +29,14 @@
 #include <QStackedLayout>
 #include <QtInteractionDelegateWidget.h>
 #include "LatentITKEventNotifier.h"
+#include <AbstractRenderer.h>
 
 SNAPQGLWidget::SNAPQGLWidget(QWidget *parent) :
     QGLWidget(parent)
 {
   m_Dragging = false;
-
+  m_NeedResizeOnNextRepaint = false;
+  m_GrabFocusOnEntry = false;
 }
 
 Vector3d SNAPQGLWidget::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
@@ -90,5 +92,63 @@ SNAPQGLWidget
 {
   LatentITKEventNotifier::connect(src, ev, this, slot);
 }
+
+void SNAPQGLWidget::paintGL()
+{
+  // Update the renderer. This will cause the renderer to update itself
+  // based on any events that it has received upstream.
+  GetRenderer()->Update();
+
+  // Qt bug workaround
+  if(m_NeedResizeOnNextRepaint)
+    {
+    GetRenderer()->resizeGL(this->size().width(), this->size().height());
+    m_NeedResizeOnNextRepaint = false;
+    }
+
+  // Do the actual painting
+  GetRenderer()->paintGL();
+}
+
+void SNAPQGLWidget::resizeGL(int w, int h)
+{
+  GetRenderer()->Update();
+  GetRenderer()->resizeGL(w, h);
+}
+
+void SNAPQGLWidget::initializeGL()
+{
+  GetRenderer()->Update();
+  GetRenderer()->initializeGL();
+}
+
+void SNAPQGLWidget::resizeEvent(QResizeEvent *)
+{
+  // This is a workaround for a Qt bug. It didn't take long to find bugs
+  // in Qt. How sad.
+  m_NeedResizeOnNextRepaint = true;
+
+  // Set geometry of all child widgets (which are interactors)
+  QList<QWidget *> kids = this->findChildren<QWidget *>();
+  for(int i = 0; i < kids.size(); i++)
+    kids.at(i)->setGeometry(this->geometry());
+}
+
+
+void SNAPQGLWidget::enterEvent(QEvent *)
+{
+  if(m_GrabFocusOnEntry)
+    this->setFocus();
+}
+
+void SNAPQGLWidget::leaveEvent(QEvent *)
+{
+  if(m_GrabFocusOnEntry)
+    this->clearFocus();
+}
+
+
+
+
 
 

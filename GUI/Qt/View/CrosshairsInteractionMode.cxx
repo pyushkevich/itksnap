@@ -29,10 +29,15 @@
 #include "OrthogonalSliceCursorNavigationModel.h"
 #include "CrosshairsRenderer.h"
 
-CrosshairsInteractionMode::CrosshairsInteractionMode(QWidget *parent) :
+CrosshairsInteractionMode::CrosshairsInteractionMode(GenericSliceView *parent) :
     SliceWindowInteractionDelegateWidget(parent)
 {
+  // Create the renderer
   m_Renderer = CrosshairsRenderer::New();
+  m_Renderer->SetParentRenderer(
+        static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
+
+
   m_WheelEventTarget = NULL;
   m_Model = NULL;
 

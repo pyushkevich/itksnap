@@ -1,19 +1,18 @@
 #ifndef COLORMAPRENDERER_H
 #define COLORMAPRENDERER_H
 
-#include "AbstractModel.h"
+#include "AbstractRenderer.h"
 
 class ColorMapModel;
 
-class ColorMapRenderer : public AbstractModel
+class ColorMapRenderer : public AbstractRenderer
 {
 public:
-  irisITKObjectMacro(ColorMapRenderer, AbstractModel)
+  irisITKObjectMacro(ColorMapRenderer, AbstractRenderer)
 
 
   void SetModel(ColorMapModel *model);
 
-  void initializeGL();
   void resizeGL(int w, int h);
   void paintGL();
 

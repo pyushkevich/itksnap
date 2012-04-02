@@ -382,7 +382,7 @@ void GenericSliceRenderer::DrawOverlays()
   for(RendererDelegateList::iterator it = m_Overlays.begin();
       it != m_Overlays.end(); it++)
     {
-    (*it)->paintGL(this);
+    (*it)->paintGL();
     }
 }
 

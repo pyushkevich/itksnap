@@ -35,6 +35,7 @@
 #include <EventBucket.h>
 
 class CrosshairsInteractionMode;
+class QtViewportReporter;
 
 class GenericSliceView : public SNAPQGLWidget
 {
@@ -45,11 +46,14 @@ public:
 
   irisGetMacro(Model, GenericSliceModel *)
 
-  GenericSliceRenderer *GetRenderer() { return m_Renderer; }
-  const GenericSliceRenderer *GetRenderer() const { return m_Renderer; }
-
   // Set the model (state) for this widget
   void SetModel(GenericSliceModel *model);
+
+  // Return the renderer
+  irisGetMacro(Renderer, AbstractRenderer *)
+
+  // Get the renderer overlays
+  GenericSliceRenderer::RendererDelegateList &GetRendererOverlays();
 
 public slots:
 
@@ -57,18 +61,11 @@ public slots:
 
 protected:
 
-  // OpenGL painter methods
-  void paintGL();
-  void resizeGL(int w, int h);
-  void initializeGL();
-
-  void enterEvent(QEvent *);
-  void leaveEvent(QEvent *);
-
-  void resizeEvent(QResizeEvent *);
-
   // Pointer to the model object for this class
   GenericSliceModel *m_Model;
+
+  // A viewport reporter
+  QtViewportReporter *m_ViewportReporter;
 
   // OpenGL renderer (owned by the view)
   SmartPtr<GenericSliceRenderer> m_Renderer;

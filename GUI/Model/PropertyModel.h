@@ -65,7 +65,13 @@ template<class TVal> struct NumericValueRange
   can be used with the class AbstractPropertyModel when there is no need to
   communicate domain information to the widget
   */
-class TrivialDomain {};
+class TrivialDomain
+{
+public:
+  bool operator == (const TrivialDomain &cmp) { return true; }
+  bool operator != (const TrivialDomain &cmp) { return false; }
+
+};
 
 /**
   A parent class for a family of models that encapsulate a single value of
@@ -119,6 +125,16 @@ public:
   */
   virtual bool GetValueAndDomain(TVal &value, TDomain *domain) = 0;
 
+  /**
+    A getter with a simple signature. Not meant to be overridden by the
+    child class.
+    */
+  TVal GetValue()
+  {
+    TVal value;
+    GetValueAndDomain(value, NULL);
+    return value;
+  }
 };
 
 
@@ -128,7 +144,7 @@ public:
   is initialized to true. The parent model is responsible for setting the
   value, domain, and validity flag inside of this concrete model.
   */
-template <class TVal, class TDomain>
+template <class TVal, class TDomain = TrivialDomain>
 class ConcretePropertyModel : public AbstractPropertyModel<TVal, TDomain>
 {
 public:
@@ -148,9 +164,9 @@ public:
     return m_IsValid;
   }
 
-  irisSetWithEventMacro(Value, TVal, Superclass::ValueChangedEvent)
-  irisSetWithEventMacro(Range, TDomain, Superclass::RangeChangedEvent)
-  irisSetWithEventMacro(IsValid, bool, Superclass::ValueChangedevent)
+  irisSetWithEventMacro(Value, TVal, ValueChangedEvent)
+  irisSetWithEventMacro(Domain, TDomain, RangeChangedEvent)
+  irisSetWithEventMacro(IsValid, bool, ValueChangedEvent)
 
 protected:
 
@@ -159,7 +175,7 @@ protected:
     m_IsValid = true;
   }
 
-  virtual ~ConcretePropertyModel();
+  virtual ~ConcretePropertyModel() {}
 
   TVal m_Value;
   TDomain m_Domain;

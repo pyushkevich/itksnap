@@ -17,7 +17,7 @@ class PolygonDrawingInteractionMode : public SliceWindowInteractionDelegateWidge
   Q_OBJECT
 
 public:
-  explicit PolygonDrawingInteractionMode(QWidget *parent = 0);
+  explicit PolygonDrawingInteractionMode(GenericSliceView *parent = 0);
   ~PolygonDrawingInteractionMode();
 
   irisGetMacro(Model, PolygonDrawingModel *)

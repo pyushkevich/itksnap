@@ -33,6 +33,7 @@
 #include <SNAPEvents.h>
 #include "AbstractModel.h"
 #include "ImageWrapper.h"
+#include "UIReporterDelegates.h"
 
 
 class GlobalUIModel;
@@ -75,6 +76,11 @@ public:
    * Initializer: takes global UI model and slice ID as input
    */
   void Initialize(GlobalUIModel *model, int index);
+
+  /**
+    Get and set viewport reporter
+    */
+  irisGetSetMacro(SizeReporter, ViewportSizeReporter *)
 
 
   /**
@@ -192,7 +198,7 @@ public:
   irisGetMacro(Id, int)
 
   /** Get the physical size of the window (updated from widget via events) */
-  irisGetMacro(Size, Vector2ui)
+  Vector2ui GetSize();
 
   /** Has the slice model been initialized with image data? */
   irisIsMacro(SliceInitialized)
@@ -208,9 +214,6 @@ public:
 
   /** Compute the canvas size needed to display slice at current zoom factor */
   Vector2i GetOptimalCanvasSize();
-
-  /** This is a callback that the view must call whenever its size changes */
-  void onViewResize(int w, int h);
 
   /** This method computes the thumbnail properties (size, zoom) */
   void ComputeThumbnailProperties();
@@ -240,6 +243,9 @@ protected:
 
   // Pointer to the image data
   GenericImageData *m_ImageData;
+
+  // Viewport size reporter
+  ViewportSizeReporter *m_SizeReporter;
 
   // Window id, equal to the direction in display space along which the
   // window shows slices
@@ -271,9 +277,6 @@ protected:
 
   // The view position where the slice wants to be
   Vector2f m_OptimalViewPosition;
-
-  // Size of the current view widget (updated through signals)
-  Vector2ui m_Size;
 
   // The number of screen pixels per mm of image
   float m_ViewZoom;

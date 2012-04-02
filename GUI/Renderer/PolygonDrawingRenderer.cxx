@@ -29,16 +29,16 @@ PolygonDrawingRenderer
 
 void
 PolygonDrawingRenderer
-::paintGL(GenericSliceRenderer *parentRenderer)
+::paintGL()
 {
   assert(m_Model);
-  if(parentRenderer->IsThumbnailDrawing())
+  if(m_ParentRenderer->IsThumbnailDrawing())
     return;
 
   PolygonDrawingModel::PolygonState state = m_Model->GetState();
 
   // Get appearance settings, etc
-  GenericSliceModel *parentModel = parentRenderer->GetModel();
+  GenericSliceModel *parentModel = m_ParentRenderer->GetModel();
   SNAPAppearanceSettings *as =
       parentModel->GetParentUI()->GetAppearanceSettings();
 

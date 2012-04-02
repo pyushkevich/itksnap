@@ -486,11 +486,12 @@ void SummaryPage::initializePage()
 
   // Add all metadata items
   MetaDataAccess mda(m_Model->GetGuidedIO()->GetNativeImage());
-  for(size_t i = 0; i < mda.GetNumberOfKeys(); i++)
+  std::vector<std::string> keys = mda.GetKeysAsArray();
+  for(size_t i = 0; i < keys.size(); i++)
     {
     QTreeWidgetItem *item = new QTreeWidgetItem(meta);
-    item->setText(0, mda.MapKeyToDICOM(mda.GetKey(i)).c_str());
-    item->setText(1, mda.GetValueAsString(i).c_str());
+    item->setText(0, mda.MapKeyToDICOM(keys[i]).c_str());
+    item->setText(1, mda.GetValueAsString(keys[i]).c_str());
     }
 
   m_Tree->resizeColumnToContents(0);

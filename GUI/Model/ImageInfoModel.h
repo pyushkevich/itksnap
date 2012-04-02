@@ -25,12 +25,19 @@ class ImageInfoModel : public ImageInfoModelBase
 public:
   irisITKObjectMacro(ImageInfoModel, ImageInfoModelBase)
 
+  // An event fired when some aspect of the metadata has changed
+  itkEventMacro(MetadataChangeEvent, IRISEvent)
+  FIRES(MetadataChangeEvent)
+
   // Implementation of virtual functions from parent class
   void RegisterWithLayer(GreyImageWrapperBase *layer);
   void UnRegisterFromLayer(GreyImageWrapperBase *layer);
 
   // PArent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);
+
+  // Function called in response to events
+  virtual void OnUpdate();
 
   // Some model types
   typedef AbstractPropertyModel<Vector3d> RealVectorSimpleModel;
@@ -39,6 +46,9 @@ public:
   typedef AbstractPropertyModel<Vector2d> MinMaxIntensityModel;
 
   typedef AbstractPropertyModel<std::string> StringValueModel;
+
+  // A model that contains the filter for metadata searches
+  typedef ConcretePropertyModel<std::string> FilterModel;
 
   // Access the individual models
   irisGetMacro(ImageDimensionsModel, UIntVectorSimpleModel *)
@@ -49,6 +59,13 @@ public:
   irisGetMacro(ImageVoxelCoordinatesModel, UIntVectorRangedModel *)
   irisGetMacro(ImageMinMaxModel, MinMaxIntensityModel *)
   irisGetMacro(ImageOrientationModel, StringValueModel *)
+  irisGetMacro(MetadataFilterModel, FilterModel *)
+
+  /** Number of rows in the metadata table */
+  int GetMetadataRows();
+
+  /** Get and entry in the metadata table */
+  std::string GetMetadataCell(int row, int col);
 
 protected:
 
@@ -60,6 +77,7 @@ protected:
   SmartPtr<UIntVectorRangedModel> m_ImageVoxelCoordinatesModel;
   SmartPtr<MinMaxIntensityModel> m_ImageMinMaxModel;
   SmartPtr<StringValueModel> m_ImageOrientationModel;
+  SmartPtr<FilterModel> m_MetadataFilterModel;
 
   bool GetImageDimensions(Vector3ui &value);
   bool GetImageOrigin(Vector3d &value);
@@ -73,6 +91,12 @@ protected:
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
 
   void SetImageVoxelCoordinates(Vector3ui value);
+
+  // Update the list of keys managed by the metadata
+  void UpdateMetadataIndex();
+
+  // A list of metadata keys obeying the current filter
+  std::vector<std::string> m_MetadataKeys;
 
   ImageInfoModel();
   virtual ~ImageInfoModel() {}

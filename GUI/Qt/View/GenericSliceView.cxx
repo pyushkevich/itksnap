@@ -27,6 +27,7 @@
 #include "GenericSliceView.h"
 #include "CrosshairsInteractionMode.h"
 #include "LatentITKEventNotifier.h"
+#include "QtReporterDelegates.h"
 
 GenericSliceView::GenericSliceView(QWidget *parent) :
   SNAPQGLWidget(parent)
@@ -34,82 +35,30 @@ GenericSliceView::GenericSliceView(QWidget *parent) :
   m_Model = NULL;
   m_Renderer = GenericSliceRenderer::New();
   m_NeedResizeOnNextRepaint = false;
+
+  m_ViewportReporter = new QtViewportReporter(this);
+
+  // We need to grab keyboard focus
+  this->SetGrabFocusOnEntry(true);
 }
 
 void GenericSliceView::SetModel(GenericSliceModel *model)
 {
   // Set the model
-  this->m_Model = model;
+  m_Model = model;
+
+  // Pass the viewport reporter to the model
+  m_Model->SetSizeReporter(m_ViewportReporter);
 
   // Pass the model to the renderer
-  m_Renderer->SetModel(model);
+  m_Renderer->SetModel(m_Model);
 
   // Listen to the update events on the model. In response, simply repaint
-  LatentITKEventNotifier::connect(
-        m_Model, ModelUpdateEvent(),
-        this, SLOT(onModelUpdate(const EventBucket &)));
-
-  LatentITKEventNotifier::connect(
-        m_Model, SliceModelGeometryChangeEvent(),
-        this, SLOT(onModelUpdate(const EventBucket &)));
-
-  LatentITKEventNotifier::connect(
-        m_Renderer, AppearanceUpdateEvent(),
-        this, SLOT(onModelUpdate(const EventBucket &)));
-
-  // Add listeners to events supported by the model
-  /*
-  AddListener(m_Model, SliceModelImageDimensionsChangeEvent(),
-              this, &GenericSliceView::OnModelUpdate);
-
-  AddListener(m_Model, SliceModelGeometryChangeEvent(),
-              this, &GenericSliceView::OnModelUpdate);
-              */
-
-  // Tell model about our current size
-  m_Model->onViewResize(this->size().width(), this->size().height());
+  connectITK(m_Model, ModelUpdateEvent());
+  connectITK(m_Model, SliceModelGeometryChangeEvent());
+  connectITK(m_Model, AppearanceUpdateEvent());
 }
 
-void GenericSliceView::paintGL()
-{
-  // Update the renderer. This will cause the renderer to update itself
-  // based on any events that it has received upstream.
-  m_Renderer->Update();
-
-  if(m_NeedResizeOnNextRepaint)
-    {
-    m_Renderer->resizeGL(this->size().width(), this->size().height());
-    m_NeedResizeOnNextRepaint = false;
-    }
-  m_Renderer->paintGL();
-}
-
-void GenericSliceView::resizeGL(int w, int h)
-{
-  m_Renderer->Update();
-  m_Renderer->resizeGL(w, h);
-}
-
-void GenericSliceView::initializeGL()
-{
-  m_Renderer->Update();
-  m_Renderer->initializeGL();
-}
-
-void GenericSliceView::resizeEvent(QResizeEvent *ev)
-{
-  // Notify the model of the repaint
-  m_Model->onViewResize(ev->size().width(), ev->size().height());
-
-  // This is a workaround for a Qt bug. It didn't take long to find bugs
-  // in Qt. How sad.
-  m_NeedResizeOnNextRepaint = true;
-
-  // Set geometry of all child widgets (which are interactors)
-  QList<QWidget *> kids = this->findChildren<QWidget *>();
-  for(int i = 0; i < kids.size(); i++)
-    kids.at(i)->setGeometry(this->geometry());
-}
 
 void GenericSliceView::onModelUpdate(const EventBucket &b)
 {
@@ -120,13 +69,9 @@ void GenericSliceView::onModelUpdate(const EventBucket &b)
   this->update();
 }
 
-void GenericSliceView::enterEvent(QEvent *)
+GenericSliceRenderer::RendererDelegateList &
+GenericSliceView::GetRendererOverlays()
 {
-  this->setFocus();
-}
-
-void GenericSliceView::leaveEvent(QEvent *)
-{
-  this->clearFocus();
+  return m_Renderer->GetOverlays();
 }
 
