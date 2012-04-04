@@ -71,8 +71,6 @@ protected:
   SmartPtr<GenericSliceRenderer> m_Renderer;
 
   // Whether next repaint requires a resize call (Qt bug?)
-  bool m_NeedResizeOnNextRepaint;
-
   CrosshairsInteractionMode *m_Crosshairs;
 };
 

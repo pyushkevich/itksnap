@@ -48,6 +48,9 @@ IntensityCurveModel::IntensityCurveModel()
         this,
         &Self::GetHistogramScale,
         &Self::SetHistogramScale);
+
+  // Layer change events rebroadcast as ModelUpdateEvents
+  Rebroadcast(this, ActiveLayerChangedEvent(), ModelUpdateEvent());
 }
 
 

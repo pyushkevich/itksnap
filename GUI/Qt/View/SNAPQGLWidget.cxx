@@ -34,7 +34,6 @@
 SNAPQGLWidget::SNAPQGLWidget(QWidget *parent) :
     QGLWidget(parent)
 {
-  m_Dragging = false;
   m_NeedResizeOnNextRepaint = false;
   m_GrabFocusOnEntry = false;
 }
@@ -62,27 +61,15 @@ Vector3d SNAPQGLWidget::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
   return xProjection;
 }
 
-bool SNAPQGLWidget::event(QEvent *ev)
-{
-  // Before dealing with interactors, take care of the dragging stuff
-  if(ev->type() == QEvent::MouseButtonPress)
-    {
-    m_Dragging = true;
-    m_DragStart = static_cast<QMouseEvent *>(ev)->pos();
-    }
-  else if(ev->type() == QEvent::MouseButtonRelease)
-    {
-    m_Dragging = false;
-    }
-
-  return QGLWidget::event(ev);
-}
-
 void SNAPQGLWidget::AttachSingleDelegate(QtInteractionDelegateWidget *delegate)
 {
-  QStackedLayout *l = new QStackedLayout();
-  l->addWidget(delegate);
-  this->setLayout(l);
+  // Install the delegate
+  // QStackedLayout *l = new QStackedLayout();
+  // l->addWidget(delegate);
+  // this->setLayout(l);
+
+  // Delegate handles all of our events
+  this->installEventFilter(delegate);
 }
 
 

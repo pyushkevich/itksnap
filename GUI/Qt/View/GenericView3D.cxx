@@ -9,6 +9,42 @@
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkCommand.h>
+#include <QtVTKInteractionDelegateWidget.h>
+#include <vtkWorldPointPicker.h>
+#include <vtkRendererCollection.h>
+#include <vtkObjectFactory.h>
+
+
+class CursorPlacementInteractorStyle : public vtkInteractorStyleTrackballCamera
+{
+public:
+  static CursorPlacementInteractorStyle* New();
+  vtkTypeRevisionMacro(CursorPlacementInteractorStyle, vtkInteractorStyleTrackballCamera)
+
+  irisGetSetMacro(Model, Generic3DModel *);
+
+  virtual void OnLeftButtonDown()
+  {
+    this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0],
+                                        this->Interactor->GetEventPosition()[1],
+                                        0,  // always zero.
+                                        this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+    Vector3d picked;
+    this->Interactor->GetPicker()->GetPickPosition(picked.data_block());
+
+    std::cout << "Picked value: " << picked[0] << " " << picked[1] << " " << picked[2] << std::endl;
+    m_Model->SetCursorFromPickResult(picked);
+
+    // Forward events
+    vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+  }
+
+private:
+  Generic3DModel *m_Model;
+};
+
+vtkCxxRevisionMacro(CursorPlacementInteractorStyle, "$Revision: 1.1 $")
+vtkStandardNewMacro(CursorPlacementInteractorStyle)
 
 GenericView3D::GenericView3D(QWidget *parent) :
     SNAPQGLWidget(parent)
@@ -33,10 +69,22 @@ GenericView3D::GenericView3D(QWidget *parent) :
 
   vtkSmartPointer<vtkInteractorStyleTrackballCamera> inter =
       vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-  iren->SetInteractorStyle(inter);
+
+  m_CursorPlacementStyle = vtkSmartPointer<CursorPlacementInteractorStyle>::New();
+
+  vtkSmartPointer<vtkWorldPointPicker> worldPointPicker =
+    vtkSmartPointer<vtkWorldPointPicker>::New();
+  iren->SetPicker(worldPointPicker);
+
+
+  iren->SetInteractorStyle(m_CursorPlacementStyle);
   iren->Initialize();
 
-  m_Dragging = false;
+  // Create interaction delegate widget to handle this interaction
+  QtVTKInteractionDelegateWidget *delegate =
+      new QtVTKInteractionDelegateWidget(this);
+  delegate->SetVTKInteractor(iren);
+  this->AttachSingleDelegate(delegate);
 }
 
 GenericView3D::~GenericView3D()
@@ -64,6 +112,9 @@ void GenericView3D::SetModel(Generic3DModel *model)
   m_Model = model;
   m_Renderer->SetModel(model);
 
+  // Pass the model to the placement style, which handles picking
+  m_CursorPlacementStyle->SetModel(model);
+
   // Listen to updates on the model
   connectITK(m_Model, ModelUpdateEvent());
 }
@@ -78,54 +129,6 @@ void GenericView3D::onModelUpdate(const EventBucket &bucket)
   m_Model->Update();
   m_Renderer->Update();
   this->repaint();
-}
-
-bool GenericView3D::event(QEvent *ev)
-{
-  QMouseEvent *emouse = dynamic_cast<QMouseEvent *>(ev);
-  if(emouse)
-    {
-    iren->SetEventInformationFlipY(emouse->posF().x(), emouse->posF().y());
-    if(ev->type() == QEvent::MouseButtonPress)
-      {
-      m_Dragging = true;
-      m_DragButton = emouse->button();
-      switch(emouse->button())
-        {
-        case Qt::LeftButton:
-          iren->LeftButtonPressEvent();
-          this->repaint();
-          return true;
-        case Qt::RightButton:
-          iren->RightButtonPressEvent();
-          this->repaint();
-          return true;
-        }
-      }
-    else if(ev->type() == QEvent::MouseButtonRelease)
-      {
-      m_Dragging = false;
-      switch(emouse->button())
-        {
-        case Qt::LeftButton:
-          iren->LeftButtonReleaseEvent();
-          this->repaint();
-          return true;
-        case Qt::RightButton:
-          iren->RightButtonReleaseEvent();
-          this->repaint();
-          return true;
-        }
-      }
-    else if(ev->type() == QEvent::MouseMove && m_Dragging)
-      {
-      iren->MouseMoveEvent();
-      this->repaint();
-      return true;
-      }
-    }
-
-  return SNAPQGLWidget::event(ev);
 }
 
 void GenericView3D::resizeGL(int w, int h)

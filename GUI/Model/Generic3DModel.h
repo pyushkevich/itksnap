@@ -30,6 +30,9 @@ public:
   // Tell the model to update the segmentation mesh
   void UpdateSegmentationMesh(itk::Command *callback);
 
+  // Position the cursor at the click position (based on vtk Pick)
+  void SetCursorFromPickResult(const Vector3d &p);
+
   // Get the parent model
   irisGetMacro(ParentUI, GlobalUIModel *)
 

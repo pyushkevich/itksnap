@@ -12,6 +12,8 @@
 #include "vtkRenderer.h"
 #include "vtkProperty.h"
 
+#include <vnl/vnl_inverse.h>
+
 Generic3DModel::Generic3DModel()
 {
   // Create the mesh object
@@ -90,5 +92,19 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
   {
     throw IRISException("Out of memory during mesh computation");
   }
+}
+
+void Generic3DModel::SetCursorFromPickResult(const Vector3d &p)
+{
+  // Compute the cursor coordinates in voxel space
+  Mat4d wi = vnl_inverse(m_WorldMatrix);
+  Vector3d x = affine_transform_point(wi, p);
+  Vector3ui cpos = to_unsigned_int(x);
+
+  // Check bounds
+  if(m_Driver->GetCurrentImageData()->GetImageRegion().IsInside(to_itkIndex(cpos)))
+    {
+    m_Driver->SetCursorPosition(cpos);
+    }
 }
 

@@ -4,10 +4,13 @@
 #include <SNAPQGLWidget.h>
 #include <SNAPCommon.h>
 
+#include <vtkSmartPointer.h>
+
 class Generic3DModel;
 class Generic3DRenderer;
 class vtkGenericRenderWindowInteractor;
 class vtkObject;
+class CursorPlacementInteractorStyle;
 
 
 class GenericView3D : public SNAPQGLWidget
@@ -21,8 +24,6 @@ public:
   void SetModel(Generic3DModel *model);
 
   AbstractRenderer *GetRenderer() const;
-
-  bool event(QEvent *);
 
   void resizeGL(int w, int h);
 
@@ -41,10 +42,9 @@ protected:
   // The renderer (we own it)
   SmartPtr<Generic3DRenderer> m_Renderer;
 
-  bool m_Dragging;
-  Qt::MouseButton m_DragButton;
-
   vtkGenericRenderWindowInteractor *iren;
+
+  vtkSmartPointer<CursorPlacementInteractorStyle> m_CursorPlacementStyle;
 };
 
 #endif // GENERICVIEW3D_H

@@ -34,7 +34,6 @@ GenericSliceView::GenericSliceView(QWidget *parent) :
 {
   m_Model = NULL;
   m_Renderer = GenericSliceRenderer::New();
-  m_NeedResizeOnNextRepaint = false;
 
   m_ViewportReporter = new QtViewportReporter(this);
 

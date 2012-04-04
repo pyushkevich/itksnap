@@ -10,7 +10,7 @@ IntensityCurveBox::IntensityCurveBox(QWidget *parent)
 {
   m_Model = NULL;
   m_Renderer = IntensityCurveRenderer::New();
-  m_Delegate = new IntensityCurveInteractionDelegate();
+  m_Delegate = new IntensityCurveInteractionDelegate(this);
 
   // Set the background color in the renderer
   QColor bkg = parent->palette().color(parent->backgroundRole());

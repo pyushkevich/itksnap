@@ -46,9 +46,6 @@ public:
   // Whether to grab keyboard focus when the mouse enters this widget
   irisGetSetMacro(GrabFocusOnEntry, bool)
 
-  // Mouse events
-  virtual bool event(QEvent *);
-
   /** Map the coordinates of a mouse event into 3d spatial coordinates
     * based on the current GL transform. The Y coordinate can be optionally
     * flipped
@@ -89,22 +86,11 @@ protected:
   virtual void enterEvent(QEvent *);
   virtual void leaveEvent(QEvent *);
 
-
-
-
-  // Whether the user is dragging the mouse currently. More specifically
-  // this is on between mouse press and mouse release events
-  bool m_Dragging;
-
   // Whether we need to call GL resize next time a paint command occurs
   bool m_NeedResizeOnNextRepaint;
 
   // Whether this widget grabs keyboard focus when the mouse enters it
   bool m_GrabFocusOnEntry;
-
-  // The cursor location where the dragging started. This is the coordinate
-  // of the last mouse press event.
-  QPoint m_DragStart;
 
 signals:
 

@@ -37,6 +37,9 @@ ColorMapModel::ColorMapModel()
 
   // The model update events should also be rebroadcast as state changes
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
+
+  // Layer change events rebroadcast as ModelUpdateEvents
+  Rebroadcast(this, ActiveLayerChangedEvent(), ModelUpdateEvent());
 }
 
 ColorMap* ColorMapModel::GetColorMap()

@@ -10,7 +10,7 @@ ColorMapBox::ColorMapBox(QWidget *parent)
 {
   m_Model = NULL;
   m_Renderer = ColorMapRenderer::New();
-  m_Delegate = new ColorMapInteractionDelegate();
+  m_Delegate = new ColorMapInteractionDelegate(this);
 
   // attach delegate
   AttachSingleDelegate(m_Delegate);

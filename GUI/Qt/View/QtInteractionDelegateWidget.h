@@ -64,6 +64,9 @@ protected:
   virtual bool gestureEvent(QGestureEvent *ev)
     { return false; }
 
+  virtual bool isDragging()
+    { return m_LeftDown || m_RightDown || m_MiddleDown; }
+
   // Get a pointer to the parent GL widget
   SNAPQGLWidget *GetParentGLWidget() const;
 

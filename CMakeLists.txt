@@ -324,6 +324,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/InteractionMode.cxx
   GUI/Qt/View/InteractionModeClient.cxx
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
+  GUI/Qt/View/QtVTKInteractionDelegateWidget.cxx
   GUI/Qt/View/PolygonDrawingInteractionMode.cxx
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
   GUI/Qt/View/SNAPQGLWidget.cxx
@@ -361,6 +362,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/GenericView3D.h
   GUI/Qt/View/IntensityCurveBox.h
   GUI/Qt/View/QtInteractionDelegateWidget.h
+  GUI/Qt/View/QtVTKInteractionDelegateWidget.h
   GUI/Qt/View/PolygonDrawingInteractionMode.h
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SNAPQGLWidget.h
