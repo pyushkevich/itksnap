@@ -48,6 +48,7 @@ class IntensityCurveModel;
 class LayerSelectionModel;
 class ColorMapModel;
 class ImageInfoModel;
+class Generic3DModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -125,6 +126,9 @@ public:
   /** Get the model encapsulating the main images and all overlays */
   irisGetMacro(LoadedLayersSelectionModel, LayerSelectionModel *)
 
+  /** Get the model for 3D window interaction */
+  irisGetMacro(Model3D, Generic3DModel *)
+
   /** Load the main image */
   void LoadGrayImage(GuidedNativeImageIO *io);
 
@@ -173,6 +177,9 @@ protected:
 
   // Layer selection model encapsulating the main image and overlays
   SmartPtr<LayerSelectionModel> m_LoadedLayersSelectionModel;
+
+  // 3D Model
+  SmartPtr<Generic3DModel> m_Model3D;
 
   // The current 2D toolbar mode
   irisPropertyDeclMacro(ToolbarMode, ToolbarModeType)

@@ -1,13 +1,13 @@
 #############################################
 # REQUIRE ITK 3.20 OR LATER                 #
 #############################################
-FIND_PACKAGE(ITK 3.20 REQUIRED)
+FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
 
 #############################################
 # REQUIRE VTK                               #
 #############################################
-FIND_PACKAGE(VTK 5.6 REQUIRED)
+FIND_PACKAGE(VTK REQUIRED)
 INCLUDE (${VTK_USE_FILE})
 
 #############################################

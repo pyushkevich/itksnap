@@ -101,6 +101,7 @@ public:
   FIRES(CursorUpdateEvent)
   FIRES(MainImageDimensionsChangeEvent)
   FIRES(LayerChangeEvent)
+  FIRES(SegmentationChangeEvent)
 
 
   /**

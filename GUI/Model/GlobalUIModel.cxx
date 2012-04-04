@@ -39,6 +39,7 @@
 #include <LayerSelectionModel.h>
 #include <ColorMapModel.h>
 #include <ImageInfoModel.h>
+#include <Generic3DModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -92,6 +93,10 @@ GlobalUIModel::GlobalUIModel()
   m_LoadedLayersSelectionModel->SetParentModel(this);
   m_LoadedLayersSelectionModel->SetRoleFilter(
         LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+
+  // 3D model
+  m_Model3D = Generic3DModel::New();
+  m_Model3D->Initialize(this);
 
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());

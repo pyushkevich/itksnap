@@ -864,15 +864,15 @@ IRISApplication
   throw(itk::ExceptionObject)
 {
   // Based on the export settings, we will export one of the labels or all labels
-  MeshObject mob;
-  mob.Initialize(this);
-  mob.GenerateVTKMeshes(progress);
+  SmartPtr<MeshObject> mob = MeshObject::New();
+  mob->Initialize(this);
+  mob->GenerateVTKMeshes(progress);
 
   // If in SNAP mode, just save the first mesh
   if(m_SNAPImageData)
     {
     // Get the VTK mesh for the label
-    vtkPolyData *mesh = mob.GetVTKMesh(0);
+    vtkPolyData *mesh = mob->GetVTKMesh(0);
 
     // Export the mesh
     GuidedMeshIO io;
@@ -883,12 +883,12 @@ IRISApplication
   // If only one mesh is to be exported, life is easy
   else if(sets.GetFlagSingleLabel())
     {
-    for(size_t i = 0; i < mob.GetNumberOfVTKMeshes(); i++)
+    for(size_t i = 0; i < mob->GetNumberOfVTKMeshes(); i++)
       {
-      if(mob.GetVTKMeshLabel(i) == sets.GetExportLabel())
+      if(mob->GetVTKMeshLabel(i) == sets.GetExportLabel())
         {
         // Get the VTK mesh for the label
-        vtkPolyData *mesh = mob.GetVTKMesh(i);
+        vtkPolyData *mesh = mob->GetVTKMesh(i);
 
         // Export the mesh
         GuidedMeshIO io;
@@ -903,15 +903,15 @@ IRISApplication
     vtkAppendPolyData *append = vtkAppendPolyData::New();
     std::vector<vtkUnsignedShortArray *> scalarArray;
 
-    for(size_t i = 0; i < mob.GetNumberOfVTKMeshes(); i++)
+    for(size_t i = 0; i < mob->GetNumberOfVTKMeshes(); i++)
       {
       // Get the VTK mesh for the label
-      vtkPolyData *mesh = mob.GetVTKMesh(i);
+      vtkPolyData *mesh = mob->GetVTKMesh(i);
       vtkUnsignedShortArray *scalar = vtkUnsignedShortArray::New();
       scalar->SetNumberOfComponents(1);
       scalar->Allocate(mesh->GetNumberOfPoints());
       for(int j = 0; j < mesh->GetNumberOfPoints(); j++)
-        scalar->InsertNextTuple1(mob.GetVTKMeshLabel(i));
+        scalar->InsertNextTuple1(mob->GetVTKMeshLabel(i));
       mesh->GetPointData()->SetScalars(scalar);
       scalarArray.push_back(scalar);
       append->AddInput(mesh);
@@ -946,14 +946,14 @@ IRISApplication
       }
 
     // Loop, saving each mesh into a filename
-    for(size_t i = 0; i < mob.GetNumberOfVTKMeshes(); i++)
+    for(size_t i = 0; i < mob->GetNumberOfVTKMeshes(); i++)
       {
       // Get the VTK mesh for the label
-      vtkPolyData *mesh = mob.GetVTKMesh(i);
+      vtkPolyData *mesh = mob->GetVTKMesh(i);
 
       // Generate filename
       char outfn[4096];
-      sprintf(outfn, "%s/%s%05d%s", path.c_str(), prefix.c_str(), mob.GetVTKMeshLabel(i), extn.c_str());
+      sprintf(outfn, "%s/%s%05d%s", path.c_str(), prefix.c_str(), mob->GetVTKMeshLabel(i), extn.c_str());
 
       // Export the mesh
       GuidedMeshIO io;
@@ -962,7 +962,7 @@ IRISApplication
       }
     }
 
-  mob.DiscardVTKMeshes();
+  mob->DiscardVTKMeshes();
 }
 
 size_t

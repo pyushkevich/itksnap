@@ -48,9 +48,11 @@ public:
 
   SliceViewPanel *GetSlicePanel(unsigned int i);
 
-  // Set model
+  // Initialize with a model
+  void Initialize(GlobalUIModel *model);
+
+  // Get model
   irisGetMacro(Model, GlobalUIModel *)
-  irisSetMacro(Model, GlobalUIModel *)
 
 
 private slots:

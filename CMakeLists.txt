@@ -237,6 +237,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/AbstractLayerAssociatedModel.cxx
   GUI/Model/AbstractModel.cxx
   GUI/Model/ColorMapModel.cxx
+  GUI/Model/Generic3DModel.cxx
   GUI/Model/GenericSliceModel.cxx
   GUI/Model/GlobalUIModel.cxx
   GUI/Model/ImageIODelegates.cxx
@@ -255,6 +256,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/ColorMapRenderer.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
+  GUI/Renderer/Generic3DRenderer.cxx
   GUI/Renderer/IntensityCurveRenderer.cxx
   GUI/Renderer/OpenGLSliceTexture.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
@@ -265,6 +267,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/AbstractLayerAssociatedModel.h
   GUI/Model/AbstractModel.h
   GUI/Model/ColorMapModel.h
+  GUI/Model/Generic3DModel.h
   GUI/Model/GenericSliceModel.h
   GUI/Model/GlobalUIModel.h
   GUI/Model/ImageInfoModel.h
@@ -287,6 +290,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/AbstractRenderer.h
   GUI/Renderer/ColorMapRenderer.h
   GUI/Renderer/CrosshairsRenderer.h
+  GUI/Renderer/Generic3DRenderer.h
   GUI/Renderer/GenericSliceRenderer.h
   GUI/Renderer/IntensityCurveRenderer.h
   GUI/Renderer/PolygonDrawingRenderer.h
@@ -309,11 +313,13 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SNAPComponent.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
+  GUI/Qt/Components/ViewPanel3D.cxx
   GUI/Qt/Components/VoxelIntensityQTableModel.cxx
   GUI/Qt/Components/ZoomInspector.cxx
   GUI/Qt/View/ColorMapBox.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
   GUI/Qt/View/GenericSliceView.cxx
+  GUI/Qt/View/GenericView3D.cxx
   GUI/Qt/View/IntensityCurveBox.cxx
   GUI/Qt/View/InteractionMode.cxx
   GUI/Qt/View/InteractionModeClient.cxx
@@ -346,11 +352,13 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SNAPComponent.h
   GUI/Qt/Components/SNAPQtCommon.h
   GUI/Qt/Components/SliceViewPanel.h
+  GUI/Qt/Components/ViewPanel3D.h
   GUI/Qt/Components/VoxelIntensityQTableModel.h
   GUI/Qt/Components/ZoomInspector.h
   GUI/Qt/View/ColorMapBox.h
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
+  GUI/Qt/View/GenericView3D.h
   GUI/Qt/View/IntensityCurveBox.h
   GUI/Qt/View/QtInteractionDelegateWidget.h
   GUI/Qt/View/PolygonDrawingInteractionMode.h
@@ -373,6 +381,7 @@ SET(UI_FORMS
   GUI/Qt/Components/MetadataInspector.ui
   GUI/Qt/Components/QtWarningDialog.ui
   GUI/Qt/Components/SliceViewPanel.ui
+  GUI/Qt/Components/ViewPanel3D.ui
   GUI/Qt/Components/ZoomInspector.ui
   GUI/Qt/Windows/ImageIODialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui

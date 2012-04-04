@@ -190,14 +190,6 @@ OpenGLSliceTexture<TPixel>
   glEnd();
 
   glPopAttrib();
-
-  glColor3f(1,0,0);
-  glBegin(GL_LINE_LOOP);
-  glVertex2d(0,0);
-  glVertex2d(0,h);
-  glVertex2d(w,h);
-  glVertex2d(w,0);
-  glEnd();
 }
 
 

@@ -34,6 +34,7 @@
 #include "LayerInspectorDialog.h"
 #include "IntensityCurveModel.h"
 #include "ColorMapModel.h"
+#include "ViewPanel3D.h"
 
 MainImageWindow::MainImageWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -71,6 +72,17 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 MainImageWindow::~MainImageWindow()
 {
   delete ui;
+}
+
+void MainImageWindow::Initialize(GlobalUIModel *model)
+{
+  m_Model = model;
+
+  // Initialize all the child panels
+  ui->panel0->Initialize(model,0);
+  ui->panel1->Initialize(model,1);
+  ui->panel2->Initialize(model,2);
+  ui->panel3D->Initialize(model);
 }
 
 
@@ -185,3 +197,4 @@ void MainImageWindow::on_actionImage_Contrast_triggered()
   // Destroy the dialog
   delete lid;
 }
+

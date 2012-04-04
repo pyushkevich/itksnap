@@ -141,20 +141,14 @@ int main(int argc, char *argv[])
 
   // Create the main window
   MainImageWindow mainwin;
-  mainwin.SetModel(gui);
+  mainwin.Initialize(gui);
 
   // Set up the dock widget
   QDockWidget *dock = new QDockWidget("IRIS Toolbox", &mainwin);
   IRISMainToolbox *tbx = new IRISMainToolbox(&mainwin);
   tbx->SetModel(gui);
   dock->setWidget(tbx);
-  mainwin.addDockWidget(Qt::LeftDockWidgetArea, dock);
-
-  // Do some assembly here (yuck)
-  for(int i = 0; i < 3; i++)
-    {
-    mainwin.GetSlicePanel(i)->Initialize(gui, i);
-    }
+  mainwin.addDockWidget(Qt::LeftDockWidgetArea, dock);  
 
 
   /* ==========================
