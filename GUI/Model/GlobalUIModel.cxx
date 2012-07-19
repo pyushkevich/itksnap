@@ -40,6 +40,7 @@
 #include <ColorMapModel.h>
 #include <ImageInfoModel.h>
 #include <Generic3DModel.h>
+#include <LabelEditorModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -98,6 +99,13 @@ GlobalUIModel::GlobalUIModel()
   m_Model3D = Generic3DModel::New();
   m_Model3D->Initialize(this);
 
+  // Label editor model
+  m_LabelEditorModel = LabelEditorModel::New();
+  m_LabelEditorModel->SetParentModel(this);
+
+  // Initialize the properties
+  m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
+
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), StateMachineChangeEvent());
@@ -109,10 +117,8 @@ GlobalUIModel::GlobalUIModel()
   Rebroadcast(m_Driver, LayerChangeEvent(), LayerChangeEvent());
   Rebroadcast(m_Driver, LayerChangeEvent(), StateMachineChangeEvent());
 
-  Rebroadcast(m_ToolbarMode, ToolbarModeChangeEvent());
-
-  // Set the defaults for properties
-  m_ToolbarMode = CROSSHAIRS_MODE;
+  // Rebroadcast toolbar model change events (TODO: needed?)
+  Rebroadcast(m_ToolbarModeModel, ValueChangedEvent(), ToolbarModeChangeEvent());
 }
 
 GlobalUIModel::~GlobalUIModel()

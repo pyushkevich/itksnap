@@ -150,10 +150,12 @@ SegmentationStatistics
   fout << "#    SD            Standard deviation of those voxels " << std::endl;
   fout << "##########################################################" << std::endl;
 
-  for (size_t i=1; i<MAX_COLOR_LABELS; i++) 
+  for (ColorLabelTable::ValidLabelConstIterator it = clt.begin();
+       it != clt.end(); it++)
     {
-    const ColorLabel &cl = clt.GetColorLabel(i);
-    if(cl.IsValid() && m_Stats[i].count > 0)
+    LabelType i = it->first;
+    ColorLabel cl = clt.GetColorLabel(i);
+    if(m_Stats[i].count > 0)
       {
       fout << std::left << std::setw(40) << cl.GetLabel() << ": ";
       fout << std::right << std::setw(4) << i << " / ";

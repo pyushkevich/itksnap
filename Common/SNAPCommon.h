@@ -95,6 +95,7 @@ extern const GreyType MINGREYVAL;
 typedef itk::RGBPixel<unsigned char> RGBType;
 
 #define MAX_COLOR_LABELS 0xffff
+#define NUM_INITIAL_COLOR_LABELS 6
 
 /**
  A structure used to map intensity from gray to 'native' intensity for

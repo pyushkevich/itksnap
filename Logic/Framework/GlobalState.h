@@ -51,7 +51,7 @@
 #include "ThresholdSettings.h"
 #include "SNAPSegmentationROISettings.h"
 #include "itkImageRegion.h"
-#include "Property.h"
+#include "PropertyModel.h"
 
 
 enum ToolbarMode3DType
@@ -201,11 +201,8 @@ public:
   /** Set whether polygons drawn are inverted or not */
   irisGetMacro(PolygonInvert,bool );
 
-  /** Get the transparency of the segmentation overlay */
-  irisSetPropertyMacro(SegmentationAlpha, unsigned char)
-
-  /** Set the transparency of the segmentation overlay */
-  irisGetPropertyMacro(SegmentationAlpha, unsigned char)
+  /** Get/Set the transparency of the segmentation overlay */
+  irisRangedPropertyAccessMacro(SegmentationAlpha, unsigned char)
 
   /** Get the current 3D toolbar mode */
   irisSetMacro(ToolbarMode3D,ToolbarMode3DType);
@@ -410,8 +407,7 @@ public:
   void UnsetActiveBubble()
     { m_ActiveBubble = -1; }
 
-  irisGetPropertyMacro(PolygonDrawingContextMenu, bool)
-  irisSetPropertyMacro(PolygonDrawingContextMenu, bool)
+  irisSimplePropertyAccessMacro(PolygonDrawingContextMenu, bool)
 
 private:
 
@@ -439,7 +435,7 @@ private:
   bool m_PolygonInvert;
 
   /** The transparency of the segmentation overlay */
-  irisPropertyDeclMacro(SegmentationAlpha, unsigned char)
+  SmartPtr<RangedUCharPropertyModel> m_SegmentationAlphaModel;
 
   /** The current crosshairs position */
   Vector3ui m_CrosshairsPosition;
@@ -495,7 +491,7 @@ private:
   /** Whether the context menu is enabled for polygon drawing. I don't think
     this is the right place to put this, because it's quite GUI specific, but
     for the time being, I stick it here */
-  irisPropertyDeclMacro(PolygonDrawingContextMenu, bool)
+  SmartPtr<BoolPropertyModel> m_PolygonDrawingContextMenuModel;
   
   int m_LockHeld; 
   int m_LockOwner;

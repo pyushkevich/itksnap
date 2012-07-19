@@ -31,7 +31,7 @@
 #include <SNAPEvents.h>
 #include <AbstractModel.h>
 #include <UIState.h>
-#include "Property.h"
+#include <PropertyModel.h>
 
 class IRISApplication;
 class SNAPAppearanceSettings;
@@ -49,6 +49,7 @@ class LayerSelectionModel;
 class ColorMapModel;
 class ImageInfoModel;
 class Generic3DModel;
+class LabelEditorModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -94,11 +95,8 @@ public:
   // I don't know why this is in a separate class
   GlobalState *GetGlobalState() const;
 
-  /** Get the current toolbar mode */
-  irisSetPropertyMacro(ToolbarMode,ToolbarModeType)
-
-  /** Get the current toolbar mode */
-  irisGetPropertyMacro(ToolbarMode,ToolbarModeType)
+  /** Get/Set the current toolbar mode */
+  irisSimplePropertyAccessMacro(ToolbarMode,ToolbarModeType)
 
   GenericSliceModel *GetSliceModel(unsigned int i) const
     { return m_SliceModel[i]; }
@@ -128,6 +126,9 @@ public:
 
   /** Get the model for 3D window interaction */
   irisGetMacro(Model3D, Generic3DModel *)
+
+  /** Get the model for the label editor */
+  irisGetMacro(LabelEditorModel, LabelEditorModel *)
 
   /** Load the main image */
   void LoadGrayImage(GuidedNativeImageIO *io);
@@ -178,11 +179,14 @@ protected:
   // Layer selection model encapsulating the main image and overlays
   SmartPtr<LayerSelectionModel> m_LoadedLayersSelectionModel;
 
+  // Label editor model
+  SmartPtr<LabelEditorModel> m_LabelEditorModel;
+
   // 3D Model
   SmartPtr<Generic3DModel> m_Model3D;
 
   // The current 2D toolbar mode
-  irisPropertyDeclMacro(ToolbarMode, ToolbarModeType)
+  SmartPtr<ConcretePropertyModel<ToolbarModeType> > m_ToolbarModeModel;
 };
 
 #endif // GLOBALUIMODEL_H

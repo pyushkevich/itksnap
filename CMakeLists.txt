@@ -92,8 +92,6 @@ SET(LOGIC_CXX
   Common/CommandLineArgumentParser.cxx
   Common/EventBucket.cxx
   Common/IRISException.cxx
-  Common/IRISObserverPattern.cxx
-  Common/Property.cxx
   Common/Registry.cxx
   Common/SNAPOpenGL.cxx
   Common/SystemInterface.cxx
@@ -144,7 +142,6 @@ SET(LOGIC_HEADERS
   Common/CommandLineArgumentParser.h
   Common/Credits.h
   Common/IRISException.h
-  Common/IRISObserverPattern.h
   Common/IRISVectorTypes.h
   Common/IRISVectorTypes.txx
   Common/IRISVectorTypesToITKConversion.h
@@ -160,7 +157,6 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.txx
   Common/ITKExtras/itkVoxBoCUBImageIO.h
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
-  Common/Property.h
   Common/Registry.h
   Common/SNAPBorlandDummyTypes.h
   Common/SNAPCommon.h
@@ -245,6 +241,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ImageInfoModel.cxx
   GUI/Model/IntensityCurveModel.cxx
   GUI/Model/IOActions.cxx
+  GUI/Model/LabelEditorModel.cxx
   GUI/Model/LayerSelectionModel.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
   GUI/Model/PolygonDrawingModel.cxx
@@ -275,6 +272,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ImageIOWizardModel.h
   GUI/Model/IntensityCurveModel.h
   GUI/Model/IOActions.h
+  GUI/Model/LabelEditorModel.h
   GUI/Model/LayerSelectionModel.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
   GUI/Model/PolygonDrawingModel.h
@@ -332,6 +330,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/IRISMainToolbox.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
+  GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
   GUI/Qt/Windows/QtStyles.cxx
@@ -370,6 +369,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/IRISMainToolbox.h
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
+  GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
   GUI/Qt/Windows/MainImageWindow.h
 )
@@ -386,6 +386,7 @@ SET(UI_FORMS
   GUI/Qt/Components/ViewPanel3D.ui
   GUI/Qt/Components/ZoomInspector.ui
   GUI/Qt/Windows/ImageIODialog.ui
+  GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui
   GUI/Qt/Windows/MainImageWindow.ui
 )

@@ -30,6 +30,7 @@
 #include <SNAPCommon.h>
 #include <SNAPEvents.h>
 #include "AbstractModel.h"
+#include <map>
 
 /**
   This class represents the range information associated with a numeric
@@ -38,6 +39,9 @@
   */
 template<class TVal> struct NumericValueRange
 {
+  typedef NumericValueRange<TVal> Self;
+
+  // These values define a numeric value range
   TVal Minimum, Maximum, StepSize;
 
   NumericValueRange(TVal min, TVal max, TVal step) :
@@ -58,6 +62,16 @@ template<class TVal> struct NumericValueRange
 
   void Set(TVal min, TVal max, TVal step)
     { Minimum = min; Maximum = max; StepSize = step; }
+
+  bool operator == (const Self &comp)
+  {
+    return (Minimum == comp.Minimum) && (Maximum == comp.Maximum) && (StepSize == comp.StepSize);
+  }
+
+  bool operator != (const Self &comp)
+  {
+    return (Minimum != comp.Minimum) || (Maximum != comp.Maximum) || (StepSize != comp.StepSize);
+  }
 };
 
 /**
@@ -72,6 +86,77 @@ public:
   bool operator != (const TrivialDomain &cmp) { return false; }
 
 };
+
+/**
+  Another type of a domain is a set of items/options from which the user is
+  able to choose. Examples can be lists of strings, lists of color labels, and
+  so on. The value is of type TVal, but this is not necessarily the information
+  that it presented to the user. For example, in a color label chooser, the
+  value held by a property is the ID of the label, but the user is shown the
+  color and the description of the label.
+
+  The signature for this type of domain consists of a const_iterator typedef,
+  begin() and end() methods that return a const_iterator(), the method
+  GetValue(it) which returns the numeric value associated with an iterator
+  and the method GetDescription(it), which returns the information used by
+  the GUI to present the choice to the user.
+
+  The actual implementations of this domain are normally wrappers around STL
+  structures.
+*/
+template <class TVal, class TDesc, class TIterator>
+class AbstractItemSetDomain
+{
+public:
+  typedef TIterator const_iterator;
+  typedef TVal ValueType;
+  typedef TDesc DescriptorType;
+
+  virtual const_iterator begin() const = 0;
+  virtual const_iterator end() const  = 0;
+  virtual TVal GetValue(const const_iterator &it) const  = 0;
+  virtual TDesc GetDescription(const const_iterator &it) const  = 0;
+};
+
+/**
+  This is an implementation of the domain that wraps around an stl::map from
+  values to descriptors. The map is not stored in the domain, but referenced
+  from another object to avoid duplicating data.
+  */
+template <class TVal, class TDesc>
+class STLMapItemSetDomain :
+    public AbstractItemSetDomain<TVal, TDesc,
+                                 typename std::map<TVal,TDesc>::const_iterator>
+{
+public:
+  typedef STLMapItemSetDomain<TVal, TDesc> Self;
+  typedef typename std::map<TVal, TDesc> MapType;
+  typedef typename MapType::const_iterator const_iterator;
+
+  STLMapItemSetDomain() { m_SourceMap = NULL; }
+  STLMapItemSetDomain(const MapType *refmap) { m_SourceMap = refmap; }
+
+  const_iterator begin() const
+    { assert(m_SourceMap); return m_SourceMap->begin(); }
+  const_iterator end() const
+    { assert(m_SourceMap); return m_SourceMap->end(); }
+  TVal GetValue(const const_iterator &it) const
+    { return it->first; }
+  TDesc GetDescription(const const_iterator &it) const
+    { return it->second; }
+
+  bool operator == (const Self &cmp) const
+    { return m_SourceMap == cmp.m_SourceMap; }
+
+  bool operator != (const Self &cmp) const
+    { return m_SourceMap != cmp.m_SourceMap; }
+
+
+
+private:
+  const MapType *m_SourceMap;
+};
+
 
 /**
   A parent class for a family of models that encapsulate a single value of
@@ -181,6 +266,61 @@ protected:
   TDomain m_Domain;
   bool m_IsValid;
 };
+
+// Definitions of common concrete property models with numeric ranges
+typedef ConcretePropertyModel<double, NumericValueRange<double> > RangedDoublePropertyModel;
+typedef ConcretePropertyModel<float, NumericValueRange<float> > RangedFloatPropertyModel;
+typedef ConcretePropertyModel<int, NumericValueRange<int> > RangedIntPropertyModel;
+typedef ConcretePropertyModel<unsigned int, NumericValueRange<unsigned int> > RangedUIntPropertyModel;
+typedef ConcretePropertyModel<short, NumericValueRange<short> > RangedShortPropertyModel;
+typedef ConcretePropertyModel<unsigned short, NumericValueRange<unsigned short> > RangedUShortPropertyModel;
+typedef ConcretePropertyModel<char, NumericValueRange<int> > RangedCharPropertyModel;
+typedef ConcretePropertyModel<unsigned char, NumericValueRange<unsigned char> > RangedUCharPropertyModel;
+
+// Definitions of common concrete property models without numeric ranges
+typedef ConcretePropertyModel<bool> BoolPropertyModel;
+
+// A macro to generate functions GetXXX(), SetXXX() and GetXXXModel() in a class
+// that contains a ConcretePropertyModel of a certain type named m_XXXModel
+#define irisRangedPropertyAccessMacro(name,type) \
+  virtual void Set##name (type _arg) \
+    { this->m_##name##Model->SetValue(_arg); } \
+  virtual type Get##name () const \
+    { return this->m_##name##Model->GetValue(); } \
+  virtual AbstractPropertyModel<type, NumericValueRange<type> > * Get##name##Model () const \
+    { return this->m_##name##Model; }
+
+#define irisSimplePropertyAccessMacro(name,type) \
+  virtual void Set##name (type _arg) \
+    { this->m_##name##Model->SetValue(_arg); } \
+  virtual type Get##name () const \
+    { return this->m_##name##Model->GetValue(); } \
+  virtual AbstractPropertyModel<type, TrivialDomain > * Get##name##Model () const \
+    { return this->m_##name##Model; }
+
+// A factory function to initialize properties - again, for shorter code
+template <class TVal>
+SmartPtr< ConcretePropertyModel<TVal, NumericValueRange<TVal> > >
+NewRangedConcreteProperty(TVal val, TVal rmin, TVal rmax, TVal rstep)
+{
+  typedef ConcretePropertyModel<TVal, NumericValueRange<TVal> > Prop;
+  SmartPtr<Prop> p = Prop::New();
+  p->SetValue(val);
+  p->SetDomain(NumericValueRange<TVal>(rmin, rmax, rstep));
+  return p;
+}
+
+template <class TVal>
+SmartPtr< ConcretePropertyModel<TVal, TrivialDomain > >
+NewSimpleConcreteProperty(TVal val)
+{
+  typedef ConcretePropertyModel<TVal, TrivialDomain > Prop;
+  SmartPtr<Prop> p = Prop::New();
+  p->SetValue(val);
+  return p;
+}
+
+
 
 /**
   This class is only used to define some typedefs. It allows us to write

@@ -41,6 +41,8 @@ private:
   VoxelIntensityQTableModel *m_TableModel;
   GlobalUIModel *m_Model;
   QMenu *m_ContextMenu;
+
+  int m_PopupRow;
 };
 
 #endif // CURSORINSPECTOR_H

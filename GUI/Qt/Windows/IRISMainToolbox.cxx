@@ -57,8 +57,8 @@
 #include <QGraphicsDropShadowEffect>
 
 const char *IRISMainToolbox::m_InspectorPageNames[] = {
-    "Cursor Inspector", "Zoom Inspector", "Paint Inspector",
-    "","",""
+    "Cursor Inspector", "Zoom Inspector", "Label Inspector",
+    "Tool Inspector"
 };
 
 IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
@@ -132,13 +132,12 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
   lMain->addWidget(m_GroupInspector);
 
   // Add a tab bar for the inspector
-  QTabWidget *tabInspector = new QTabWidget();
-  tabInspector->setObjectName("TabInspector");
-  lInspect->addWidget(tabInspector);
+  m_TabInspector = new QTabWidget();
+  m_TabInspector->setObjectName("TabInspector");
+  lInspect->addWidget(m_TabInspector);
 
   const char *tabIcons[] = {
-    "crosshair", "zoom", "paintbrush",
-    "snake", "paintbrush", ""};
+    "crosshair.gif", "zoom.gif", "paintbrush.gif", "tools.png" };
 
   m_ZoomInspector = new ZoomInspector();
   m_CursorInspector = new CursorInspector();
@@ -151,13 +150,13 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
   };
 
   // Add five tabs to the tab bar
-  for(int i = 0; i < 5; i++)
+  for(int i = 0; i < 4; i++)
     {
     QWidget *w = new QWidget();
     QVBoxLayout *layout = new QVBoxLayout(w);
     layout->setContentsMargins(0,10,0,0);
-    tabInspector->addTab(w,
-                         QIcon(QString(":/root/%1.gif").arg(tabIcons[i])),"");
+    m_TabInspector->addTab(w,
+                         QIcon(QString(":/root/%1").arg(tabIcons[i])),"");
 
     // QLabel *l = new QLabel(tabNames[i]);
     // layout->addWidget(l);
@@ -174,7 +173,7 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
   QFile qss(":/root/icontabwidget.css");
   qss.open(QFile::ReadOnly);
   QString ss = qss.readAll();
-  tabInspector->setStyleSheet(ss);
+  m_TabInspector->setStyleSheet(ss);
 
   // Create place for 3D buttons
   QGroupBox *tbx3D = new QGroupBox("3D Toolbox");
@@ -200,6 +199,9 @@ void IRISMainToolbox::on_BtnCrosshairMode_toggled(bool checked)
     {
     // Enter crosshair mode
     m_Model->SetToolbarMode(CROSSHAIRS_MODE);
+
+    // Also tab over to the cursor inspector
+    m_TabInspector->setCurrentWidget(m_CursorInspector);
     }
 }
 
@@ -209,6 +211,9 @@ void IRISMainToolbox::on_BtnZoomPanMode_toggled(bool checked)
     {
     // Enter crosshair mode
     m_Model->SetToolbarMode(NAVIGATION_MODE);
+
+    // Also tab over to the cursor inspector
+    m_TabInspector->setCurrentWidget(m_LabelInspector);
     }
 }
 
@@ -217,6 +222,9 @@ void IRISMainToolbox::on_BtnPolygonMode_toggled(bool checked)
   if(checked)
     {
     m_Model->SetToolbarMode(POLYGON_DRAWING_MODE);
+
+    // Also tab over to the cursor inspector
+    m_TabInspector->setCurrentWidget(m_CursorInspector);
     }
 }
 

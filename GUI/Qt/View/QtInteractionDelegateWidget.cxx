@@ -85,8 +85,6 @@ void QtInteractionDelegateWidget::preprocessEvent(QEvent *ev)
     QMouseEvent *emouse = static_cast<QMouseEvent *>(ev);
     m_XSpace = GetParentGLWidget()->GetEventWorldCoordinates(emouse, true);
 
-    qWarning("MOUSE (%d, %d)", emouse->pos().x(), emouse->pos().y());
-
     // If a mouse press, back up this info for drag tracking
     if(ev->type() == QEvent::MouseButtonPress)
       {

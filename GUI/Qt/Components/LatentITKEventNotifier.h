@@ -5,8 +5,6 @@
 #include "EventBucket.h"
 #include <map>
 
-class IRISObservable;
-
 class LatentITKEventNotifierHelper : public QObject
 {
   Q_OBJECT
@@ -77,11 +75,7 @@ public:
                       QObject *target,
                       const char *slot);
 
-  static unsigned long  connect(IRISObservable *source, const itk::EventObject &evt,
-                                QObject *target, const char *slot);
-
   static void disconnect(itk::Object *source, unsigned long tag);
-  static void disconnect(IRISObservable *source, unsigned long tag);
 
 private:
 

@@ -32,7 +32,6 @@ private slots:
 
   void on_btnEdit_clicked();
 
-  void on_cbInvert_stateChanged(int arg1);
 
 private:
 
@@ -45,6 +44,9 @@ private:
   Ui::LabelInspector *ui;
 
   GlobalUIModel *m_Model;
+
+  // Whether or not we are currently filling the combos and should ignore events
+  bool m_IsFillingCombos;
 };
 
 #endif // LABELINSPECTOR_H

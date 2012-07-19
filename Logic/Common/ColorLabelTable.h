@@ -67,49 +67,45 @@ public:
   /** Get the number of valid color labels */
   size_t GetNumberOfValidLabels();
 
-  /** Get the i'th label, i between 0 and 255 */
-  const ColorLabel &GetColorLabel(size_t id) const
-    {
-    assert(id < MAX_COLOR_LABELS);
-    return m_Label[id];
-    } 
+  /** Get the first valid non-zero color label (or zero if there are none)  */
+  LabelType GetFirstValidLabel() const;
+
+  /**
+    Get the color label corresponding to the given value. If the requested
+    label is not valid, a default value is returned
+  */
+  const ColorLabel GetColorLabel(size_t id) const;
 
   /** Set the i'th color label, i between 0 and 255 */
-  void SetColorLabel(size_t id, const ColorLabel &label)
-    { 
-    assert(id < MAX_COLOR_LABELS);
-    m_Label[id] = label; 
-    }
+  void SetColorLabel(size_t id, const ColorLabel &label);
 
   /** Generate a default color label at index i */
-  ColorLabel GetDefaultColorLabel(size_t id)
-    { 
-    assert(id < MAX_COLOR_LABELS);
-    return m_DefaultLabel[id]; 
-    }
+  ColorLabel GetDefaultColorLabel(LabelType id) const;
 
-  bool IsColorLabelValid(size_t id) const
-    { return GetColorLabel(id).IsValid(); }
+  bool IsColorLabelValid(LabelType id) const;
 
   /** Sets the color label valid or invalid. During invalidation, the label
    * reverts to default values */
-  void SetColorLabelValid(size_t id, bool flag);
+  void SetColorLabelValid(LabelType id, bool flag);
 
-  /** Return the first valid color label, or zero if there aren't any */
-  size_t GetFirstValidLabel() const;
+  // Map between valid label IDS and label descriptors
+  typedef std::map<LabelType, ColorLabel> ValidLabelMap;
+  typedef ValidLabelMap::const_iterator ValidLabelConstIterator;
 
-  typedef std::map<size_t, ColorLabel> LabelMap;
-  typedef LabelMap::const_iterator LabelMapConstIterator;
-  typedef LabelMap::iterator LabelMapIterator;
+  /** Get the iterator over the valid labels */
+  ValidLabelConstIterator begin() const { return m_LabelMap.begin(); }
+  ValidLabelConstIterator end() const { return m_LabelMap.end(); }
 
-  /** Get a list of valid color labels. TODO: make this the internal rep
-    and return a const reference */
-  LabelMap GetValidLabels() const;
-
+  /** Get the collection of defined/valid labels */
+  const ValidLabelMap &GetValidLabels() const { return m_LabelMap; }
 
 private:
+
+  // The main data array
+  ValidLabelMap m_LabelMap;
+
   // A flat array of color labels
-  ColorLabel m_Label[MAX_COLOR_LABELS], m_DefaultLabel[MAX_COLOR_LABELS];
+  // ColorLabel m_Label[MAX_COLOR_LABELS], m_DefaultLabel[MAX_COLOR_LABELS];
 
   static const char *m_ColorList[];
   static const size_t m_ColorListSize;

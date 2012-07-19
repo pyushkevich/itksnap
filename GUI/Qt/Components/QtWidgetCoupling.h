@@ -32,7 +32,6 @@
 #include <QDoubleSpinBox>
 #include <PropertyModel.h>
 #include <SNAPCommon.h>
-#include <Property.h>
 #include <QLineEdit>
 #include <QCheckBox>
 #include <QRadioButton>
@@ -48,8 +47,17 @@ class AbstractWidgetDataMapping
 {
 public:
   virtual ~AbstractWidgetDataMapping() {}
-  virtual void CopyFromWidgetToTarget() = 0;
-  virtual void CopyFromTargetToWidget() = 0;
+
+  // Called the first time the widget is coupled to the model
+  virtual void InitializeWidgetFromModel() = 0;
+
+  // Called when the widget is changed
+  virtual void UpdateModelFromWidget() = 0;
+
+  // Called when the model is changed (event bucket contains the events that
+  // have occured to the model, so we know what aspects of the widget need to
+  // be updated)
+  virtual void UpdateWidgetFromModel(const EventBucket &bucket) = 0;
 };
 
 
@@ -74,32 +82,24 @@ public:
     : m_Widget(w), m_Model(model), m_Updating(false),
       m_ValueTraits(valueTraits), m_DomainTraits(domainTraits) {}
 
-  // Populate widget
-  void CopyFromTargetToWidget()
+
+  // Called the first time the widget is coupled to the model
+  void InitializeWidgetFromModel()
   {
-    m_Updating = true;
+    // Update, including the domain
+    this->DoUpdateWidgetFromModel(true);
+  }
 
-    // Prepopulate the range with current values in case the model does
-    // not actually compute ranges
-    DomainType domain = m_DomainTraits.GetDomain(m_Widget);
-    AtomicType value;
-
-    // Obtain the value from the model
-    if(m_Model->GetValueAndDomain(value, &domain))
-      {
-      m_DomainTraits.SetDomain(m_Widget, domain);
-      m_ValueTraits.SetValue(m_Widget, value);
-      }
-    else
-      {
-      m_ValueTraits.SetValueToNull(m_Widget);
-      }
-
-    m_Updating = false;
+  // Called when the model is changed (event bucket contains the events that
+  // have occured to the model, so we know what aspects of the widget need to
+  // be updated)
+  void UpdateWidgetFromModel(const EventBucket &bucket)
+  {
+    this->DoUpdateWidgetFromModel(bucket.HasEvent(RangeChangedEvent()));
   }
 
   // Get value from widget
-  void CopyFromWidgetToTarget()
+  void UpdateModelFromWidget()
   {
     if(!m_Updating)
       {
@@ -117,6 +117,52 @@ public:
       }
   }
 
+protected:
+
+  void DoUpdateWidgetFromModel(bool flagUpdateRange)
+  {
+    m_Updating = true;
+
+    // The value is always needed
+    AtomicType value;
+
+    // The domain should only be updated in the bucket contains the range
+    // event (the target range has been modified)
+    if(flagUpdateRange)
+      {
+      // Prepopulate the range with current values in case the model does
+      // not actually compute ranges
+      DomainType domain = m_DomainTraits.GetDomain(m_Widget);
+
+      // Obtain the value from the model
+      if(m_Model->GetValueAndDomain(value, &domain))
+        {
+        m_DomainTraits.SetDomain(m_Widget, domain);
+        m_ValueTraits.SetValue(m_Widget, value);
+        }
+      else
+        {
+        m_ValueTraits.SetValueToNull(m_Widget);
+        }
+      }
+
+    else
+      {
+      // Domain has not changed, so we don't need to change it
+      if(m_Model->GetValueAndDomain(value, NULL))
+        {
+        m_ValueTraits.SetValue(m_Widget, value);
+        }
+      else
+        {
+        m_ValueTraits.SetValueToNull(m_Widget);
+        }
+      }
+
+    m_Updating = false;
+
+  }
+
 private:
 
   TWidgetPtr m_Widget;
@@ -127,45 +173,6 @@ private:
 };
 
 
-/**
-  Data mapping between a property and an input widget TWidget.
-  The mapping handles the value of the widget only.
-  */
-template <class TAtomic, class TWidget, class TPropertyContainer,
-          class WidgetValueTraits>
-class BasicPropertyToWidgetDataMapping : public AbstractWidgetDataMapping
-{
-public:
-  typedef void (TPropertyContainer::*SetterFunction)(TAtomic);
-
-  BasicPropertyToWidgetDataMapping(
-      TWidget *w, ConstProperty<TAtomic> &p,
-      SetterFunction setter, TPropertyContainer *c,
-      WidgetValueTraits traits)
-    : m_Widget(w), m_Property(p), m_Setter(setter),
-      m_Container(c), m_Traits(traits) {}
-
-  void CopyFromWidgetToTarget()
-  {
-    TAtomic x = m_Traits.GetValue(m_Widget);
-    if(x != m_Property)
-      ((*m_Container).*(m_Setter))(x);
-  }
-
-  void CopyFromTargetToWidget()
-  {
-    TAtomic x = m_Property;
-    if(x != m_Traits.GetValue(m_Widget))
-      m_Traits.SetValue(m_Widget, x);
-  }
-
-protected:
-  TWidget *m_Widget;
-  ConstProperty<TAtomic> &m_Property;
-  SetterFunction m_Setter;
-  TPropertyContainer *m_Container;
-  WidgetValueTraits m_Traits;
-};
 
 
 /**
@@ -196,7 +203,14 @@ template <class TDomain, class TWidgetPtr>
 class WidgetDomainTraitsBase
 {
 public:
+  // Set the domain from the values in the model
   virtual void SetDomain(TWidgetPtr w, const TDomain &domain) = 0;
+
+  // Get the current value of the domain from the model. This is only
+  // needed in cases that the model does not provide full domain information
+  // (some information is coded in the widget by the developer). For widgets
+  // where the model fully specifies the domain, it's safe to just return
+  // a trivially initialized domain object.
   virtual TDomain GetDomain(TWidgetPtr w) = 0;
 };
 
@@ -370,6 +384,26 @@ public:
   }
 };
 
+template <class TAtomic>
+class DefaultWidgetDomainTraits<NumericValueRange<TAtomic>, QSlider>
+    : public WidgetDomainTraitsBase<NumericValueRange<TAtomic>, QSlider *>
+{
+public:
+  void SetDomain(QSlider *w, const NumericValueRange<TAtomic> &range)
+  {
+    w->setMinimum(range.Minimum);
+    w->setMaximum(range.Maximum);
+    w->setSingleStep(range.StepSize);
+  }
+
+  NumericValueRange<TAtomic> GetDomain(QSlider *w)
+  {
+    return NumericValueRange<TAtomic>(
+          static_cast<TAtomic>(w->minimum()),
+          static_cast<TAtomic>(w->maximum()),
+          static_cast<TAtomic>(w->singleStep()));
+  }
+};
 
 
 template <class TAtomic>
@@ -724,55 +758,18 @@ public:
 public slots:
   void onUserModification()
   {
-    m_DataMapping->CopyFromWidgetToTarget();
+    m_DataMapping->UpdateModelFromWidget();
   }
 
-  void onPropertyModification()
+  void onPropertyModification(const EventBucket &bucket)
   {
-    m_DataMapping->CopyFromTargetToWidget();
+    m_DataMapping->UpdateWidgetFromModel(bucket);
   }
 
 
 protected:
   AbstractWidgetDataMapping *m_DataMapping;
 };
-
-template <class TAtomic, class TWidget, class TContainer,
-          class WidgetValueTraits>
-void makeCoupling(TWidget *w, TContainer *c,
-                  void (TContainer::*setter)(TAtomic),
-                  ConstProperty<TAtomic> & (TContainer::*getter)(),
-                  WidgetValueTraits valueTraits)
-{
-  // Retrieve the property
-  ConstProperty<TAtomic> &p = ((*c).*(getter))();
-
-  typedef BasicPropertyToWidgetDataMapping<
-      TAtomic, TWidget, TContainer, WidgetValueTraits> MappingType;
-
-  MappingType *mapping = new MappingType(w, p, setter, c, valueTraits);
-
-  QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
-
-  // The property should notify the widget of changes
-  LatentITKEventNotifier::connect(
-        &p, PropertyChangeEvent(),
-        h, SLOT(onPropertyModification()));
-
-  // Coupling helper listens to events from widget
-  h->connect(w, valueTraits.GetSignal(), SLOT(onUserModification()));
-}
-
-template <class TAtomic, class TWidget, class TContainer>
-void makeCoupling(TWidget *w, TContainer *c,
-                  void (TContainer::*setter)(TAtomic),
-                  ConstProperty<TAtomic> & (TContainer::*getter)())
-{
-  typedef DefaultWidgetValueTraits<TAtomic, TWidget> WidgetValueTraits;
-  WidgetValueTraits valueTraits;
-  makeCoupling<TAtomic, TWidget, TContainer, WidgetValueTraits>(
-        w,c,setter,getter, valueTraits);
-}
 
 
 template <class TModel, class TWidget,
@@ -794,17 +791,17 @@ void makeCoupling(
 
   QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
 
-  // Populate the widget
-  mapping->CopyFromTargetToWidget();
+  // Populate the widget (force the domain and value to be copied)
+  mapping->InitializeWidgetFromModel();
 
   // Listen to value change events from the model
   LatentITKEventNotifier::connect(
         model, ValueChangedEvent(),
-        h, SLOT(onPropertyModification()));
+        h, SLOT(onPropertyModification(const EventBucket &)));
 
   LatentITKEventNotifier::connect(
         model, RangeChangedEvent(),
-        h, SLOT(onPropertyModification()));
+        h, SLOT(onPropertyModification(const EventBucket &)));
 
   // Listen to value change events for this widget
   h->connect(w, valueTraits.GetSignal(), SLOT(onUserModification()));
@@ -1045,7 +1042,7 @@ void makeRadioGroupCoupling(
   QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
 
   // Populate the widget
-  mapping->CopyFromTargetToWidget();
+  mapping->InitializeWidgetFromModel();
 
   // Listen to value change events from the model
   LatentITKEventNotifier::connect(

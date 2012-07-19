@@ -57,8 +57,8 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
 
   // Also listen to events on opacity
-  Rebroadcast(m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlpha(),
-              AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlphaModel(),
+              ValueChangedEvent(), AppearanceUpdateEvent());
 
   // Also listen to events on intensity curves
   Rebroadcast(m_Model->GetParentUI()->GetIntensityCurveModel(),

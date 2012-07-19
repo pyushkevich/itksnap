@@ -51,7 +51,9 @@ GlobalState
   m_PolygonInvert = false;
   m_LockHeld = 0;
   m_LockOwner = 0;
-  m_SegmentationAlpha = 128;
+
+  // Segmentation alpha
+  m_SegmentationAlphaModel = NewRangedConcreteProperty<unsigned char>(128, 0, 255, 1);
 
   // SNAP is off initially
   m_SNAPActive = false;
@@ -96,7 +98,7 @@ GlobalState
   // Set annotation defaults
   m_AnnotationSettings.shownOnAllSlices = false;
 
-  m_PolygonDrawingContextMenu = false;
+  m_PolygonDrawingContextMenuModel = NewSimpleConcreteProperty(false);
 }
 
 GlobalState

@@ -8,7 +8,6 @@
 #include <set>
 #include <string>
 
-class IRISObservable;
 
 
 /**
@@ -78,12 +77,6 @@ protected:
   unsigned long Rebroadcast(
       itk::Object *src, const itk::EventObject &srcEvent,
       const itk::EventObject &trgEvent);
-
-  /**
-    Rebroadcast is also defined for Property objects.
-    */
-  unsigned long Rebroadcast(IRISObservable &property, const itk::EventObject &trgEvent);
-
 
   /**
     This is the method called by Update() if there are events in the

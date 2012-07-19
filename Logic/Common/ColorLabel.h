@@ -61,10 +61,10 @@ public:
   irisSetMacro(Visible,bool);
 
   // Read the Valid attribute
-  irisIsMacro(Valid);
+  // irisIsMacro(Valid);
 
   // Set the Valid attribute
-  irisSetMacro(Valid,bool);
+  // irisSetMacro(Valid,bool);
 
   // Read the DoMesh attribute
   irisIsMacro(VisibleIn3D);
@@ -178,7 +178,7 @@ private:
   unsigned long m_UpdateTime;
 
   // Whether the label is valid (has been added)
-  bool m_Valid;
+  // bool m_Valid;
 
   // The transparency level of the label
   unsigned char m_Alpha;

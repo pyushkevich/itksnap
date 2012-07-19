@@ -1114,14 +1114,17 @@ IRISApplication
     lIndex[2] = (int)pz;
 
     LabelType hitlabel = m_CurrentImageData->GetSegmentation()->GetVoxel(lIndex);
-    const ColorLabel &cl = m_ColorLabelTable->GetColorLabel(hitlabel);
 
-    if (cl.IsValid() && cl.IsVisible())
+    if (m_ColorLabelTable->IsColorLabelValid(hitlabel))
       {
-      hit[0] = lIndex[0];
-      hit[1] = lIndex[1];
-      hit[2] = lIndex[2];
-      return 1;
+      ColorLabel cl = m_ColorLabelTable->GetColorLabel(hitlabel);
+      if(cl.IsVisible())
+        {
+        hit[0] = lIndex[0];
+        hit[1] = lIndex[1];
+        hit[2] = lIndex[2];
+        return 1;
+        }
       }
 
     // BEGIN : walk along ray to border of next voxel touched by ray

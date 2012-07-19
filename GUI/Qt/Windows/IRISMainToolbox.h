@@ -39,6 +39,7 @@ class QStackedWidget;
 class CursorInspector;
 class QGroupBox;
 class LabelInspector;
+class QTabWidget;
 
 class IRISMainToolbox : public QWidget
 {
@@ -69,6 +70,9 @@ private:
 
   // Names of the inspector pages
   static const char *m_InspectorPageNames[];
+
+  // Tab where inspetors are shown
+  QTabWidget *m_TabInspector;
 
   // Toolbox for zoom/pan actions
   ZoomInspector *m_ZoomInspector;

@@ -8,6 +8,7 @@
 #include <QtWidgetActivator.h>
 #include <QMenu>
 #include <IntensityCurveModel.h>
+#include <LayerSelectionModel.h>
 
 
 CursorInspector::CursorInspector(QWidget *parent) :
@@ -102,15 +103,23 @@ void CursorInspector::onCursorEdit()
 
 void CursorInspector::onContextMenuRequested(QPoint pos)
 {
-  int row = ui->tableView->rowAt(pos.y());
-  if(row >= 0)
+  m_PopupRow = ui->tableView->rowAt(pos.y());
+  if(m_PopupRow >= 0)
     m_ContextMenu->popup(QCursor::pos());
 }
 
 
 void CursorInspector::on_actionAutoContrast_triggered()
 {
-  m_Model->GetIntensityCurveModel()->OnAutoFitWindow();
+  LayerIterator it =
+      m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(m_PopupRow);
 
+  if(it.GetLayerAsGray())
+    {
+    // Select the currently highlighted layer
+    m_Model->GetIntensityCurveModel()->SetLayer(it.GetLayerAsGray());
 
+    // Auto-adjust intensity in the selected layer
+    m_Model->GetIntensityCurveModel()->OnAutoFitWindow();
+    }
 }

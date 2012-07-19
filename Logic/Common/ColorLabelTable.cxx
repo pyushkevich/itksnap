@@ -63,34 +63,6 @@ const char *ColorLabelTable::m_ColorList[ColorLabelTable::m_ColorListSize] = {
 ColorLabelTable
 ::ColorLabelTable()
 {
-  // Initialize the default labels
-  const unsigned int INIT_VALID_LABELS = 7;
-
-  // Set up the clear color
-  m_DefaultLabel[0].SetRGB(0,0,0);
-  m_DefaultLabel[0].SetAlpha(0);
-  m_DefaultLabel[0].SetValid(true);
-  m_DefaultLabel[0].SetVisible(false);
-  m_DefaultLabel[0].SetVisibleIn3D(false);
-  m_DefaultLabel[0].SetLabel("Clear Label");
-
-  // Set the colors from the table
-  for(size_t i = 1; i < MAX_COLOR_LABELS; i++)
-    {
-    unsigned char r,g,b;
-    parse_color(m_ColorList[(i-1) % m_ColorListSize],r,g,b);
-    
-    m_DefaultLabel[i].SetRGB(r,g,b);
-    m_DefaultLabel[i].SetAlpha(255);
-    m_DefaultLabel[i].SetValid(i < INIT_VALID_LABELS);
-    m_DefaultLabel[i].SetVisible(true);
-    m_DefaultLabel[i].SetVisibleIn3D(true);
-
-    IRISOStringStream sout;
-    sout << "Label " << i;
-    m_DefaultLabel[i].SetLabel(sout.str().c_str());
-    }
-
   // Copy default labels to active labels
   InitializeToDefaults();
 }
@@ -104,9 +76,12 @@ ColorLabelTable
   ifstream fin(file);
   string line;
 
-  // Create a temporary array of color labels
-  vector<ColorLabel> xTempLabels;
-  vector<size_t> xTempLabelIds;
+  // Create a temporary map of labels (to discard in case there is a problem
+  // reading the file later)
+  ValidLabelMap inputMap;
+
+  // Set the clear label in the input map
+  inputMap[0] = this->GetDefaultColorLabel(0);
 
   // Check that the file is readable
   if(!fin.good())
@@ -132,7 +107,8 @@ ColorLabelTable
     try 
       {
       // Read in the elements of the file
-      int idx, red, green, blue, visible, mesh;
+      LabelType idx;
+      int red, green, blue, visible, mesh;
       float alpha;
       iss >> idx;
       iss >> red;
@@ -155,7 +131,7 @@ ColorLabelTable
       ColorLabel cl;
 
       // Store the results
-      cl.SetValid(true);
+      // cl.SetValid(true);
       cl.SetRGB(0,(unsigned char) red);
       cl.SetRGB(1,(unsigned char) green);
       cl.SetRGB(2,(unsigned char) blue);
@@ -164,12 +140,13 @@ ColorLabelTable
       cl.SetVisibleIn3D(mesh != 0);
       cl.SetLabel(label);
 
-      // Add the color label to the list
-      xTempLabels.push_back(cl);
-      xTempLabelIds.push_back(idx);
+      // Add the color label to the list, but not zero, because we can't allow
+      // the clear label to be modified.
+      if(idx > 0)
+        inputMap[idx] = cl;
 
       // Clean up the label
-      delete label;      
+      delete label;
       }
     catch( std::exception )
       {
@@ -188,16 +165,9 @@ ColorLabelTable
 
   fin.close();
 
-  // Ok, we should have a list of color labels. Now initalize the color label array
-  // the blank state
-  RemoveAllLabels();
-
-  // Now, add all the labels
-  for(size_t iLabel = 0; iLabel < xTempLabels.size(); iLabel++)
-    if(xTempLabelIds[iLabel] > 0)
-      SetColorLabel(xTempLabelIds[iLabel], xTempLabels[iLabel]);
+  // Use the labels that we have loaded
+  m_LabelMap = inputMap;
 }
-
 
 void
 ColorLabelTable
@@ -231,21 +201,20 @@ ColorLabelTable
   fout << "################################################"<< endl;
 
   // Print out the labels
-  for(unsigned int i=0;i<MAX_COLOR_LABELS;i++)
+  for(ValidLabelMap::const_iterator it = m_LabelMap.begin();
+      it != m_LabelMap.end(); it++)
     {
-    const ColorLabel &cl = GetColorLabel(i);
-    if(cl.IsValid())
-      {
-      fout << "  "  << right << setw(3) << i;
-      fout << "   " << right << setw(3) << (int) cl.GetRGB(0);
-      fout << "  "  << right << setw(3) << (int) cl.GetRGB(1);
-      fout << "  "  << right << setw(3) << (int) cl.GetRGB(2);
-      fout << "  "  << right << setw(7) 
-        << setprecision(2) << (cl.GetAlpha() / 255.0f);
-      fout << "  "  << right << setw(1) << (cl.IsVisible() ? 1 : 0);
-      fout << "  "  << right << setw(1) << (cl.IsVisibleIn3D() ? 1 : 0);
-      fout << "    \"" << cl.GetLabel() << "\"" << endl;
-      }
+    LabelType index = it->first;
+    const ColorLabel &cl = it->second;
+    fout << "  "  << right << setw(3) << index;
+    fout << "   " << right << setw(3) << (int) cl.GetRGB(0);
+    fout << "  "  << right << setw(3) << (int) cl.GetRGB(1);
+    fout << "  "  << right << setw(3) << (int) cl.GetRGB(2);
+    fout << "  "  << right << setw(7)
+      << setprecision(2) << (cl.GetAlpha() / 255.0f);
+    fout << "  "  << right << setw(1) << (cl.IsVisible() ? 1 : 0);
+    fout << "  "  << right << setw(1) << (cl.IsVisibleIn3D() ? 1 : 0);
+    fout << "    \"" << cl.GetLabel() << "\"" << endl;
     }
 
   fout.close();
@@ -255,8 +224,8 @@ void
 ColorLabelTable
 ::LoadFromRegistry(Registry &registry)
 {
-  // Clear the table of labels
-  RemoveAllLabels();
+  // Clear the table of labels, except the clear label
+  this->RemoveAllLabels();
 
   // Read the number of color labels
   unsigned int nColorLabels = 
@@ -269,21 +238,21 @@ ColorLabelTable
     Registry &folder = registry.Folder(registry.Key("Element[%d]",i));
 
     // Get the index
-    int index = folder["Index"][0];
+    LabelType index = (LabelType) folder["Index"][0];
 
     // If index is valid, proceed to load the label
     if(index > 0 && index < MAX_COLOR_LABELS) 
       {
       // Get current color label 
-      ColorLabel &cl = m_Label[index];
+      ColorLabel cl, def = this->GetDefaultColorLabel(index);
 
       // Read the color label properties
-      cl.SetAlpha(folder["Alpha"][(int) cl.GetAlpha()]);
-      cl.SetLabel(folder["Label"][cl.GetLabel()]);
-      
+      cl.SetAlpha(folder["Alpha"][(int) def.GetAlpha()]);
+      cl.SetLabel(folder["Label"][def.GetLabel()]);
+
       // Read the color property
       Vector3i color = 
-        folder["Color"][Vector3i(cl.GetRGB(0),cl.GetRGB(1),cl.GetRGB(2))];
+        folder["Color"][Vector3i(def.GetRGB(0),def.GetRGB(1),def.GetRGB(2))];
       cl.SetRGB((unsigned char)color[0],(unsigned char)color[1],
                 (unsigned char)color[2]);
       
@@ -291,7 +260,10 @@ ColorLabelTable
       Vector2i flags = folder["Flags"][Vector2i(0,0)];
       cl.SetVisibleIn3D(flags[0] > 0);
       cl.SetVisible(flags[1] > 0);
-      cl.SetValid(true);
+      // cl.SetValid(true);
+
+      // Store
+      m_LabelMap[index] = cl;
       }
     }
 }
@@ -302,26 +274,29 @@ ColorLabelTable
 {
   // Write the labels themselves
   unsigned int validLabels = 0;
-  for(unsigned int i=1;i < MAX_COLOR_LABELS; i++)
+
+  for(ValidLabelMap::const_iterator it = m_LabelMap.begin();
+      it != m_LabelMap.end(); it++)
     {
     // Get the i-th color label
-    const ColorLabel &cl = m_Label[i];
-    
-    // Only write valid color labels (otherwise, what's the point?)
-    if(!cl.IsValid()) continue;
-    
-    // Create a folder for the color label
-    Registry &folder = 
-      registry.Folder(registry.Key("Element[%d]",validLabels));    
-    
-    folder["Index"] << i;
-    folder["Alpha"] << (int) cl.GetAlpha();
-    folder["Label"] << cl.GetLabel();
-    folder["Color"] << Vector3i(cl.GetRGB(0),cl.GetRGB(1),cl.GetRGB(2));
-    folder["Flags"] << Vector2i(cl.IsVisibleIn3D(),cl.IsVisible());
+    LabelType id = it->first;
+    if(id > 0)
+      {
+      const ColorLabel &cl = it->second;
 
-    // Increment the valid label counter
-    validLabels++;
+      // Create a folder for the color label
+      Registry &folder =
+        registry.Folder(registry.Key("Element[%d]",validLabels));
+
+      folder["Index"] << (int) id;
+      folder["Alpha"] << (int) cl.GetAlpha();
+      folder["Label"] << cl.GetLabel();
+      folder["Color"] << Vector3i(cl.GetRGB(0),cl.GetRGB(1),cl.GetRGB(2));
+      folder["Flags"] << Vector2i(cl.IsVisibleIn3D(),cl.IsVisible());
+
+      // Increment the valid label counter
+      validLabels++;
+      }
     }
 
   registry["NumberOfElements"] << validLabels;
@@ -332,62 +307,119 @@ ColorLabelTable
 ::RemoveAllLabels()
 {
   // Invalidate all the labels
-  for(size_t iLabel = 1; iLabel < MAX_COLOR_LABELS; iLabel++)
-    { m_Label[iLabel].SetValid(false); }
-}
-
-size_t
-ColorLabelTable
-::GetFirstValidLabel() const
-{
-  for(size_t iLabel = 1; iLabel < MAX_COLOR_LABELS; iLabel++)
-    if(m_Label[iLabel].IsValid())
-      return iLabel;
-  return 0;
+  m_LabelMap.clear();
+  m_LabelMap[0] = this->GetDefaultColorLabel(0);
 }
 
 void
 ColorLabelTable
 ::InitializeToDefaults()
 {
-  // Set the properties of all non-clear labels
-  for (size_t i=0; i<MAX_COLOR_LABELS; i++)
-    m_Label[i] = m_DefaultLabel[i];
+  // Remove all the labels
+  m_LabelMap.clear();
+
+  // Add the first six default labels
+  for(LabelType l = 0; l <= NUM_INITIAL_COLOR_LABELS; l++)
+    {
+    m_LabelMap[l] = this->GetDefaultColorLabel(l);
+    }
 }
 
 
 void 
 ColorLabelTable
-::SetColorLabelValid(size_t id, bool flag)
-  {
+::SetColorLabelValid(LabelType id, bool flag)
+{
   assert(id < MAX_COLOR_LABELS);
   
-  // Labels that are invalidated are reset to defaults
-  if(!flag && m_Label[id].IsValid())
-    m_Label[id] = m_DefaultLabel[id];
+  if(flag)
+    {
+    // Label is being validated. If it does not exist, insert the default
+    if(m_LabelMap.find(id) == m_LabelMap.end())
+      m_LabelMap[id] = this->GetDefaultColorLabel(id);
+    }
+  else
+    {
+    // The label is being invalidated - just delete it
+    m_LabelMap.erase(id);
+    }
+}
 
-  // Set the flag
-  m_Label[id].SetValid(flag); 
-  }
+bool
+ColorLabelTable
+::IsColorLabelValid(LabelType id) const
+{
+  assert(id < MAX_COLOR_LABELS);
+  return (m_LabelMap.find(id) != m_LabelMap.end());
+}
 
 
 size_t 
 ColorLabelTable
 ::GetNumberOfValidLabels()
 {
-  size_t n = 0;
-  for(size_t i = 0; i < MAX_COLOR_LABELS; i++)
-    if(m_Label[i].IsValid())
-      ++n;
-  return n;
+  return m_LabelMap.size();
 }
 
-ColorLabelTable::LabelMap ColorLabelTable::GetValidLabels() const
+ColorLabel ColorLabelTable::GetDefaultColorLabel(LabelType id) const
 {
-  LabelMap lm;
-  for(size_t i = 0; i < MAX_COLOR_LABELS; i++)
-    if(m_Label[i].IsValid())
-      lm[i] = m_Label[i];
-  return lm;
+  assert(id < MAX_COLOR_LABELS);
+
+  ColorLabel deflab;
+
+  // Special case of the clear label
+  if(id == 0)
+    {
+    // Set up the clear color
+    deflab.SetRGB(0,0,0);
+    deflab.SetAlpha(0);
+    // deflab.SetValid(true);
+    deflab.SetVisible(false);
+    deflab.SetVisibleIn3D(false);
+    deflab.SetLabel("Clear Label");
+    }
+  else
+    {
+    unsigned char r,g,b;
+    parse_color(m_ColorList[(id-1) % m_ColorListSize],r,g,b);
+
+    deflab.SetRGB(r,g,b);
+    deflab.SetAlpha(255);
+    // deflab.SetValid(true);
+    deflab.SetVisible(true);
+    deflab.SetVisibleIn3D(true);
+
+    IRISOStringStream sout;
+    sout << "Label " << id;
+    deflab.SetLabel(sout.str().c_str());
+    }
+
+  return deflab;
+}
+
+void ColorLabelTable::SetColorLabel(size_t id, const ColorLabel &label)
+{
+  m_LabelMap[id] = label;
+}
+
+const ColorLabel ColorLabelTable::GetColorLabel(size_t id) const
+{
+  // If the label exists, return it
+  ValidLabelConstIterator it = m_LabelMap.find(id);
+  if(it == m_LabelMap.end())
+    return this->GetDefaultColorLabel(id);
+  else
+    return it->second;
+}
+
+LabelType ColorLabelTable::GetFirstValidLabel() const
+{
+  if(m_LabelMap.size() > 1)
+    {
+    ValidLabelConstIterator it = m_LabelMap.begin();
+    it++;
+    return it->first;
+    }
+  else return 0;
 }
 

@@ -1,7 +1,5 @@
 #include "LatentITKEventNotifier.h"
 #include <QApplication>
-#include "IRISObserverPattern.h"
-
 
 LatentITKEventNotifierCleanup
 ::LatentITKEventNotifierCleanup(QObject *parent)
@@ -144,17 +142,6 @@ void LatentITKEventNotifier
   clean->SetSource(source, tag);
 }
 
-unsigned long LatentITKEventNotifier
-::connect(IRISObservable *source, const itk::EventObject &evt,
-          QObject *target, const char *slot)
-{
-  // Call common implementation
-  LatentITKEventNotifierHelper *c = doConnect(evt, target, slot);
-
-  // Listen to events from the source
-  return AddListener(source, evt, c, &LatentITKEventNotifierHelper::Callback);
-}
-
 LatentITKEventNotifierHelper*
 LatentITKEventNotifier
 ::doConnect(const itk::EventObject &evt, QObject *target, const char *slot)
@@ -181,12 +168,6 @@ void LatentITKEventNotifier
 ::disconnect(itk::Object *source, unsigned long tag)
 {
   source->RemoveObserver(tag);
-}
-
-void LatentITKEventNotifier
-::disconnect(IRISObservable *source, unsigned long tag)
-{
-  source->RemoveOvserver(tag);
 }
 
 

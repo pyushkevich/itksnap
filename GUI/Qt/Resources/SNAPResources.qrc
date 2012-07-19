@@ -41,5 +41,6 @@
         <file>popup_split_16.png</file>
         <file>popup_undo_16.png</file>
         <file>delete_22.png</file>
+        <file alias="tools.png">tools.png</file>
     </qresource>
 </RCC>

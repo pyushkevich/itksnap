@@ -17,6 +17,8 @@ LabelInspector::LabelInspector(QWidget *parent) :
 
   ui->inForeLabel->setIconSize(QSize(ICON_SIZE,ICON_SIZE));
   ui->inBackLabel->setIconSize(QSize(ICON_SIZE,ICON_SIZE));
+
+  m_IsFillingCombos = false;
 }
 
 LabelInspector::~LabelInspector()
@@ -37,9 +39,8 @@ void LabelInspector
   m_Model = model;
 
   // Use couplings where we can
-  makeCoupling(ui->inOpacity, m_Model->GetDriver()->GetGlobalState(),
-               &GlobalState::SetSegmentationAlpha,
-               &GlobalState::GetSegmentationAlpha);
+  makeCoupling(ui->inOpacity,
+               m_Model->GetDriver()->GetGlobalState()->GetSegmentationAlphaModel());
 
   FillCombos();
   UpdateValuesFromModel();
@@ -72,6 +73,8 @@ void LabelInspector::UpdateValuesFromModel()
 
 void LabelInspector::FillCombos()
 {
+  m_IsFillingCombos = true;
+
   ui->inForeLabel->clear();
   ui->inBackLabel->clear();
 
@@ -85,14 +88,11 @@ void LabelInspector::FillCombos()
   ui->inBackLabel->addItem(QIcon(pix),"Non-hidden labels",
                            QVariant((int) PAINT_OVER_VISIBLE));
 
-  // Create items for all labels
-  ColorLabelTable::LabelMap lm =
-      m_Model->GetDriver()->GetColorLabelTable()->GetValidLabels();
+  // Get the color label table
+  ColorLabelTable *clt = m_Model->GetDriver()->GetColorLabelTable();
 
-  QRect r(2,2,ICON_SIZE-5,ICON_SIZE-5);
-
-  for(ColorLabelTable::LabelMapConstIterator it = lm.begin();
-      it != lm.end(); ++it)
+    for(ColorLabelTable::ValidLabelConstIterator it = clt->begin();
+      it != clt->end(); ++it)
     {
     ColorLabel cl = it->second;
 
@@ -105,23 +105,51 @@ void LabelInspector::FillCombos()
     ui->inBackLabel->addItem(ic, cl.GetLabel(), QVariant(PAINT_OVER_ONE + id));
     ui->inForeLabel->addItem(ic, cl.GetLabel(), QVariant(id));
     }
+
+  m_IsFillingCombos = false;
 }
 
 const int LabelInspector::ICON_SIZE = 16;
 
 void LabelInspector::on_inForeLabel_currentIndexChanged(int index)
 {
-  GlobalState *gs = m_Model->GetDriver()->GetGlobalState();
+  if(!m_IsFillingCombos)
+    {
+    GlobalState *gs = m_Model->GetDriver()->GetGlobalState();
 
-  // Get the current index
-  int label = ui->inForeLabel->itemData(index).toInt();
-  if(label != gs->GetDrawingColorLabel())
-    gs->SetDrawingColorLabel((LabelType) label);
+    // Get the current index
+    int label = ui->inForeLabel->itemData(index).toInt();
+    if(label != gs->GetDrawingColorLabel())
+      gs->SetDrawingColorLabel((LabelType) label);
+    }
 }
 
 void LabelInspector::on_inBackLabel_currentIndexChanged(int index)
 {
+  if(!m_IsFillingCombos)
+    {
+    GlobalState *gs = m_Model->GetDriver()->GetGlobalState();
 
+    // Get the current index
+    int label = ui->inBackLabel->itemData(index).toInt();
+
+    // Handle the special cases
+    if(label == 0)
+      {
+      gs->SetCoverageMode(PAINT_OVER_ALL);
+      gs->SetOverWriteColorLabel(0);
+      }
+    else if(label == 1)
+      {
+      gs->SetCoverageMode(PAINT_OVER_VISIBLE);
+      gs->SetOverWriteColorLabel(0);
+      }
+    else
+      {
+      gs->SetCoverageMode(PAINT_OVER_ONE);
+      gs->SetOverWriteColorLabel(label - 2);
+      }
+    }
 }
 
 void LabelInspector::on_inOpacity_valueChanged(int value)
@@ -129,12 +157,13 @@ void LabelInspector::on_inOpacity_valueChanged(int value)
 
 }
 
+#include <LabelEditorDialog.h>
+
 void LabelInspector::on_btnEdit_clicked()
 {
-
+  LabelEditorDialog *led = new LabelEditorDialog(this);
+  led->SetModel(this->m_Model->GetLabelEditorModel());
+  led->exec();
 }
 
-void LabelInspector::on_cbInvert_stateChanged(int arg1)
-{
 
-}
