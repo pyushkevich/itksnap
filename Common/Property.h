@@ -4,6 +4,8 @@
 #include "IRISObserverPattern.h"
 #include "SNAPEvents.h"
 
+/*
+
 template <class TAtomic> class ConstProperty : public IRISObservable
 {
 public:
@@ -59,6 +61,8 @@ public:
 
 };
 
+*/
+
 /**
   Declare a property, usually in the private or protected section of the
   code. For example
@@ -67,17 +71,17 @@ public:
 
   creates property m_Cheese that subclasses from Property<int>
   */
-#define irisPropertyDeclMacro(name, type) \
-  struct _PropertyTraits##name  { static const char* Name() { return #name; } }; \
-  NamedProperty<type, _PropertyTraits##name> m_##name;
+//#define irisPropertyDeclMacro(name, type) \
+//  struct _PropertyTraits##name  { static const char* Name() { return #name; } }; \
+//  NamedProperty<type, _PropertyTraits##name> m_##name;
 
 /**
   Accessor for a property. Exposes the property, but usage is the same as
   irisGetMacro for accessing the value of the property.
   */
-#define irisGetPropertyMacro(name, type) \
-  ConstProperty<type> &Get##name() { return m_##name; }
+//#define irisGetPropertyMacro(name, type) \
+//  ConstProperty<type> &Get##name() { return m_##name; }
 
-#define irisSetPropertyMacro(name, type) irisSetMacro(name, type)
+//#define irisSetPropertyMacro(name, type) irisSetMacro(name, type)
 
 #endif // PROPERTY_H
