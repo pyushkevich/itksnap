@@ -14,5 +14,7 @@ void LabelEditorModel::SetParentModel(GlobalUIModel *parent)
 
   // Stick the color label information into the domain object
   m_CurrentLabelModel->Initialize(parent->GetDriver()->GetColorLabelTable());
+  m_CurrentLabelModel->SetValue(
+        parent->GetDriver()->GetGlobalState()->GetDrawingColorLabel());
 
 }

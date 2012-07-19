@@ -1,6 +1,8 @@
 #include "LabelEditorDialog.h"
 #include "ui_LabelEditorDialog.h"
 #include <LabelEditorModel.h>
+
+#include <QtComboBoxCoupling.h>
 #include <QtListWidgetCoupling.h>
 
 LabelEditorDialog::LabelEditorDialog(QWidget *parent) :

@@ -2,7 +2,9 @@
 #include "ui_ColorMapInspector.h"
 #include "ColorMapModel.h"
 #include "QtReporterDelegates.h"
-#include "QtWidgetCoupling.h"
+#include "QtDoubleSpinBoxCoupling.h"
+#include "QtSpinBoxCoupling.h"
+#include "QtRadioButtonCoupling.h"
 #include "QtWidgetActivator.h"
 #include <QColorDialog>
 #include <QInputDialog>

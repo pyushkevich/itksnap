@@ -1,7 +1,7 @@
 #include "MetadataInspector.h"
 #include "ui_MetadataInspector.h"
 #include <QAbstractTableModel>
-#include <QtWidgetCoupling.h>
+#include <QtLineEditCoupling.h>
 #include "ImageInfoModel.h"
 
 void MetadataTableQtModel::SetParentModel(ImageInfoModel *model)

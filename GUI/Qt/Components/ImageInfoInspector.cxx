@@ -2,7 +2,9 @@
 #include "ui_ImageInfoInspector.h"
 
 #include "ImageInfoModel.h"
-#include "QtWidgetCoupling.h"
+#include "QtWidgetArrayCoupling.h"
+#include "QtLineEditCoupling.h"
+#include "QtSpinBoxCoupling.h"
 
 ImageInfoInspector::ImageInfoInspector(QWidget *parent) :
   SNAPComponent(parent),

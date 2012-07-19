@@ -2,7 +2,10 @@
 #include "ui_ContrastInspector.h"
 #include "QtStyles.h"
 #include "IntensityCurveModel.h"
-#include "QtWidgetCoupling.h"
+#include "QtCheckBoxCoupling.h"
+#include "QtSpinBoxCoupling.h"
+#include "QtDoubleSpinBoxCoupling.h"
+#include "QtWidgetArrayCoupling.h"
 #include "QtReporterDelegates.h"
 
 ContrastInspector::ContrastInspector(QWidget *parent) :

@@ -30,7 +30,7 @@
 #include "GlobalUIModel.h"
 #include "SliceWindowCoordinator.h"
 #include "QtWidgetActivator.h"
-#include "QtWidgetCoupling.h"
+#include "QtDoubleSpinBoxCoupling.h"
 #include <vnl/vnl_math.h>
 
 

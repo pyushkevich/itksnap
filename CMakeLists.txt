@@ -306,7 +306,6 @@ SET(UI_QT_CXX
   GUI/Qt/Components/MetadataInspector.cxx
   GUI/Qt/Components/QtReporterDelegates.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
-  GUI/Qt/Components/QtWidgetCoupling.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
   GUI/Qt/Components/SNAPComponent.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
@@ -348,13 +347,13 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
-  GUI/Qt/Components/QtWidgetCoupling.h
   GUI/Qt/Components/SNAPComponent.h
   GUI/Qt/Components/SNAPQtCommon.h
   GUI/Qt/Components/SliceViewPanel.h
   GUI/Qt/Components/ViewPanel3D.h
   GUI/Qt/Components/VoxelIntensityQTableModel.h
   GUI/Qt/Components/ZoomInspector.h
+  GUI/Qt/Coupling/QtWidgetCoupling.h
   GUI/Qt/View/ColorMapBox.h
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
@@ -372,6 +371,19 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
   GUI/Qt/Windows/MainImageWindow.h
+)
+
+# These UI headers don't need to be MOC'd
+SET(UI_NONMOC_HEADERS
+  GUI/Qt/Coupling/QtCheckBoxCoupling.h
+  GUI/Qt/Coupling/QtComboBoxCoupling.h
+  GUI/Qt/Coupling/QtDoubleSpinboxCoupling.h
+  GUI/Qt/Coupling/QtLineEditCoupling.h
+  GUI/Qt/Coupling/QtListWidgetCoupling.h
+  GUI/Qt/Coupling/QtRadioButtonCoupling.h
+  GUI/Qt/Coupling/QtSliderCoupling.h
+  GUI/Qt/Coupling/QtSpinBoxCoupling.h
+  GUI/Qt/Coupling/QtWidgetArrayCoupling.h
 )
 
 SET(UI_FORMS
@@ -466,6 +478,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Renderer
     ${SNAP_SOURCE_DIR}/GUI/Qt
     ${SNAP_SOURCE_DIR}/GUI/Qt/Components
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Coupling
     ${SNAP_SOURCE_DIR}/GUI/Qt/View
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows
     ${SNAP_SOURCE_DIR}/Testing
@@ -536,7 +549,7 @@ ADD_LIBRARY(itksnapui_model ${UI_GENERIC_CXX} ${UI_GENERIC_HEADERS})
 
 # The user interface code library
 ADD_LIBRARY(itksnapui_qt
-  ${UI_QT_CXX} ${UI_HEADERS_MOC} ${UI_FORM_HEADERS} ${UI_RESOURCES_RCC})
+  ${UI_QT_CXX} ${UI_HEADERS_MOC} ${UI_MOC_HEADERS} ${UI_NONMOC_HEADERS} ${UI_FORM_HEADERS} ${UI_RESOURCES_RCC})
 
 # This is experimental: it seems that shared libraries do not
 # build accurately (at least on MacOS) without the following

@@ -55,7 +55,7 @@ void GenericSliceView::SetModel(GenericSliceModel *model)
   // Listen to the update events on the model. In response, simply repaint
   connectITK(m_Model, ModelUpdateEvent());
   connectITK(m_Model, SliceModelGeometryChangeEvent());
-  connectITK(m_Model, AppearanceUpdateEvent());
+  connectITK(m_Renderer, AppearanceUpdateEvent());
 }
 
 
