@@ -36,9 +36,11 @@ void
 LatentITKEventNotifierCleanup
 ::DeleteCallback(const itk::Object *object, const itk::EventObject &evt)
 {
-
-  std::cout << "Delete Callback from " << object << " [ " << typeid(*object).name()
-            << " ]  event " << evt.GetEventName() << std::endl;
+#ifdef SNAP_DEBUG_EVENTS
+  std::cout << "DELETE CALLBACK from " << object->GetNameOfClass()
+            << " [" << typeid(*object).name() << "]"
+            << " event " << evt.GetEventName() << std::endl;
+#endif
   // Forget the source.
   m_Source = NULL;
 }
@@ -62,9 +64,12 @@ LatentITKEventNotifierHelper
 ::Callback(itk::Object *object, const itk::EventObject &evt)
 {
 #ifdef SNAP_DEBUG_EVENTS
-  std::cout << "QUEUE " << typeid(*object).name() << ":"
-            << evt.GetEventName() << " for "
-            << typeid(*parent()).name() << std::endl;
+  std::cout << "QUEUE Event " << evt.GetEventName()
+            << " from " << object->GetNameOfClass()
+            << " [" << object << "] "
+            << " for " << parent()->metaObject()->className()
+            << " named '" << qPrintable(parent()->objectName())
+            << "'" << std::endl;
 #endif
 
   // Register this event
@@ -84,8 +89,10 @@ LatentITKEventNotifierHelper
   if(!m_Bucket.IsEmpty())
     {
 #ifdef SNAP_DEBUG_EVENTS
-    std::cout << "SEND BUCKET " << m_Bucket
-              << " to " << typeid(*parent()).name() << std::endl;
+    std::cout << "SEND " << m_Bucket
+              << " to " << parent()->metaObject()->className()
+              << " named '" << qPrintable(parent()->objectName())
+              << "'" << std::endl;
 #endif
 
     // Send the event to the target object - immediate
@@ -131,11 +138,6 @@ void LatentITKEventNotifier
   // Listen to events from the source
   unsigned long tag = AddListener(source, evt, c,
                                   &LatentITKEventNotifierHelper::Callback);
-
-  std::cout << "CONNECTING: "
-            << typeid(*source).name() << " [ " << source << "] "
-            << evt.GetEventName() << " TO: "
-            << target->objectName().toStdString() << std::endl;
 
   // Create an cleaner as a child of the helper
   LatentITKEventNotifierCleanup *clean = new LatentITKEventNotifierCleanup(c);

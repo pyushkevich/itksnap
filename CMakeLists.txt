@@ -304,6 +304,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/LabelInspector.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
   GUI/Qt/Components/MetadataInspector.cxx
+  GUI/Qt/Components/QDoubleSlider.cxx
   GUI/Qt/Components/QtReporterDelegates.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
@@ -344,6 +345,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/LabelInspector.h
   GUI/Qt/Components/LatentITKEventNotifier.h
   GUI/Qt/Components/MetadataInspector.h
+  GUI/Qt/Components/QDoubleSlider.h
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h

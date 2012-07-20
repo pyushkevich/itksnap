@@ -185,6 +185,12 @@ QGroupBox::title {
              <height>0</height>
             </size>
            </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="buttonSymbols">
+            <enum>QAbstractSpinBox::NoButtons</enum>
+           </property>
           </widget>
          </item>
         </layout>
@@ -278,14 +284,20 @@ QGroupBox::title {
           <number>0</number>
          </property>
          <item>
-          <widget class="QDoubleSpinBox" name="inLabelOpacitySpinner">
+          <widget class="QSpinBox" name="inLabelOpacitySpinner">
            <property name="buttonSymbols">
             <enum>QAbstractSpinBox::NoButtons</enum>
+           </property>
+           <property name="maximum">
+            <number>255</number>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QSlider" name="inLabelOpacitySlider">
+           <property name="maximum">
+            <number>255</number>
+           </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>

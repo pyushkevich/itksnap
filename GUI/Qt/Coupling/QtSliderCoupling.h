@@ -29,6 +29,7 @@
 
 #include <QtWidgetCoupling.h>
 #include <QSlider>
+#include <QDoubleSlider.h>
 
 template <class TAtomic>
 class DefaultWidgetValueTraits<TAtomic, QSlider>
@@ -71,5 +72,49 @@ public:
           static_cast<TAtomic>(w->singleStep()));
   }
 };
+
+
+template <class TAtomic>
+class DefaultWidgetValueTraits<TAtomic, QDoubleSlider>
+    : public WidgetValueTraitsBase<TAtomic, QDoubleSlider *>
+{
+public:
+  const char *GetSignal()
+  {
+    return SIGNAL(valueChanged(int));
+  }
+
+  TAtomic GetValue(QDoubleSlider *w)
+  {
+    return static_cast<TAtomic>(w->value());
+  }
+
+  void SetValue(QDoubleSlider *w, const TAtomic &value)
+  {
+    w->setValue(static_cast<double>(value));
+  }
+};
+
+template <class TAtomic>
+class DefaultWidgetDomainTraits<NumericValueRange<TAtomic>, QDoubleSlider>
+    : public WidgetDomainTraitsBase<NumericValueRange<TAtomic>, QDoubleSlider *>
+{
+public:
+  void SetDomain(QDoubleSlider *w, const NumericValueRange<TAtomic> &range)
+  {
+    w->setMinimum(range.Minimum);
+    w->setMaximum(range.Maximum);
+    w->setSingleStep(range.StepSize);
+  }
+
+  NumericValueRange<TAtomic> GetDomain(QDoubleSlider *w)
+  {
+    return NumericValueRange<TAtomic>(
+          static_cast<TAtomic>(w->minimum()),
+          static_cast<TAtomic>(w->maximum()),
+          static_cast<TAtomic>(w->singleStep()));
+  }
+};
+
 
 #endif // QTSLIDERCOUPLING_H

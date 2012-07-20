@@ -85,7 +85,7 @@ IRISApplication
   m_SystemInterface = new SystemInterface();
 
   // Initialize the color table
-  m_ColorLabelTable = new ColorLabelTable();
+  m_ColorLabelTable = ColorLabelTable::New();
 
   // Contruct the IRIS and SNAP data objects
   m_IRISImageData = new IRISImageData(this);
@@ -125,7 +125,6 @@ IRISApplication
   if(m_SNAPImageData)
     delete m_SNAPImageData;
   delete m_GlobalState;
-  delete m_ColorLabelTable;
   delete m_SystemInterface;
 }
 

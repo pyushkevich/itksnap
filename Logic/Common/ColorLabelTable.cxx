@@ -167,11 +167,14 @@ ColorLabelTable
 
   // Use the labels that we have loaded
   m_LabelMap = inputMap;
+
+  // Fire the event
+  InvokeEvent(SegmentationLabelChangeEvent());
 }
 
 void
 ColorLabelTable
-::SaveToFile(const char *file)
+::SaveToFile(const char *file) const
   throw(itk::ExceptionObject)
 {
   // Open the file for writing
@@ -266,11 +269,14 @@ ColorLabelTable
       m_LabelMap[index] = cl;
       }
     }
+
+  // Fire the event
+  InvokeEvent(SegmentationLabelChangeEvent());
 }
 
 void
 ColorLabelTable
-::SaveToRegistry(Registry &registry)
+::SaveToRegistry(Registry &registry) const
 {
   // Write the labels themselves
   unsigned int validLabels = 0;
@@ -309,6 +315,9 @@ ColorLabelTable
   // Invalidate all the labels
   m_LabelMap.clear();
   m_LabelMap[0] = this->GetDefaultColorLabel(0);
+
+  // Fire the event
+  InvokeEvent(SegmentationLabelChangeEvent());
 }
 
 void
@@ -323,6 +332,9 @@ ColorLabelTable
     {
     m_LabelMap[l] = this->GetDefaultColorLabel(l);
     }
+
+  // Fire the event
+  InvokeEvent(SegmentationLabelChangeEvent());
 }
 
 
@@ -343,6 +355,9 @@ ColorLabelTable
     // The label is being invalidated - just delete it
     m_LabelMap.erase(id);
     }
+
+  // Fire the event
+  InvokeEvent(SegmentationLabelChangeEvent());
 }
 
 bool
@@ -356,7 +371,7 @@ ColorLabelTable
 
 size_t 
 ColorLabelTable
-::GetNumberOfValidLabels()
+::GetNumberOfValidLabels() const
 {
   return m_LabelMap.size();
 }
@@ -400,6 +415,9 @@ ColorLabel ColorLabelTable::GetDefaultColorLabel(LabelType id) const
 void ColorLabelTable::SetColorLabel(size_t id, const ColorLabel &label)
 {
   m_LabelMap[id] = label;
+
+  // Fire the event
+  InvokeEvent(SegmentationLabelChangeEvent());
 }
 
 const ColorLabel ColorLabelTable::GetColorLabel(size_t id) const

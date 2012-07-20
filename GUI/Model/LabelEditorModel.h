@@ -37,7 +37,7 @@ public:
 
     // We should also listen to events from the label table, and rebroadcast
     // as changes to the domain
-    // TODO: this->Rebroadcast(clt, ???, RangeChangedEvent());
+    this->Rebroadcast(clt, SegmentationLabelChangeEvent(), RangeChangedEvent());
   }
 };
 
@@ -46,6 +46,12 @@ public:
 class LabelEditorModel : public AbstractModel
 {
 public:
+  typedef AbstractRangedPropertyModel<double>::Type DoubleValueModel;
+  typedef AbstractRangedPropertyModel<int>::Type IntegerValueModel;
+  typedef AbstractRangedPropertyModel<bool>::Type BooleanValueModel;
+  typedef AbstractPropertyModel<std::string> StringValueModel;
+
+
   // Standard ITK stuff
   irisITKObjectMacro(LabelEditorModel, AbstractModel)
 
@@ -55,17 +61,47 @@ public:
   /** Get the model describing the current selected label (and its domain) */
   irisGetMacro(CurrentLabelModel, ConcreteColorLabelPropertyModel *)
 
-protected:
+  /** Get the model for the current label description */
+  irisGetMacro(CurrentLabelDescriptionModel, StringValueModel *)
+
+  /** Get the model for the current label id */
+  irisGetMacro(CurrentLabelIdModel, IntegerValueModel *)
+
+  /** Get the model for the current label id */
+  irisGetMacro(CurrentLabelOpacityModel, IntegerValueModel *)
+
+  protected:
 
   // Hidden constructor/destructor
   LabelEditorModel();
   virtual ~LabelEditorModel() {}
 
+  // Id of the current label
+  SmartPtr<IntegerValueModel> m_CurrentLabelIdModel;
+  bool GetCurrentLabelIdValueAndRange(
+      int &value, NumericValueRange<int> *domain);
+  void SetCurrentLabelId(int value);
+
+  // Opacity of the current label
+  SmartPtr<IntegerValueModel> m_CurrentLabelOpacityModel;
+  bool GetCurrentLabelOpacityValueAndRange(
+      int &value, NumericValueRange<int> *domain);
+  void SetCurrentLabelOpacity(int value);
+
+  // Description of the current label
+  SmartPtr<StringValueModel> m_CurrentLabelDescriptionModel;
+  bool GetCurrentLabelDescription(std::string &value);
+  void SetCurrentLabelDescription(std::string value);
+
   // The parent model
   GlobalUIModel *m_Parent;
 
+  // A pointer to the color label table
+  ColorLabelTable *m_LabelTable;
+
   // The label that is currently selected
   SmartPtr<ConcreteColorLabelPropertyModel> m_CurrentLabelModel;
+
 
 };
 

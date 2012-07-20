@@ -38,25 +38,29 @@
 #include "Registry.h"
 #include "ColorLabel.h"
 #include "itkExceptionObject.h"
+#include "itkObject.h"
+#include "SNAPEvents.h"
 
 /**
  * \class ColorLabelTable
  * \brief A table for managing color labels
- * TODO: rewrite this class using std::map, current implementation is
- * horribly inefficient
  */
-class ColorLabelTable
+class ColorLabelTable : public itk::Object
 {
 public:
-  ColorLabelTable();
+  // Standard ITK macros
+  irisITKObjectMacro(ColorLabelTable, Object)
+
+  // Events that we fire
+  FIRES(SegmentationLabelChangeEvent)
 
   // Flat file IO
   void LoadFromFile(const char *file) throw(itk::ExceptionObject);
-  void SaveToFile(const char *file) throw(itk::ExceptionObject);
+  void SaveToFile(const char *file) const throw(itk::ExceptionObject);
 
   // Registry IO
   void LoadFromRegistry(Registry &registry);
-  void SaveToRegistry(Registry &registry);
+  void SaveToRegistry(Registry &registry) const;
 
   /** Initialize the labels to a default state */
   void InitializeToDefaults();
@@ -65,7 +69,7 @@ public:
   void RemoveAllLabels();
 
   /** Get the number of valid color labels */
-  size_t GetNumberOfValidLabels();
+  size_t GetNumberOfValidLabels() const;
 
   /** Get the first valid non-zero color label (or zero if there are none)  */
   LabelType GetFirstValidLabel() const;
@@ -99,7 +103,10 @@ public:
   /** Get the collection of defined/valid labels */
   const ValidLabelMap &GetValidLabels() const { return m_LabelMap; }
 
-private:
+protected:
+
+  ColorLabelTable();
+  virtual ~ColorLabelTable() {}
 
   // The main data array
   ValidLabelMap m_LabelMap;

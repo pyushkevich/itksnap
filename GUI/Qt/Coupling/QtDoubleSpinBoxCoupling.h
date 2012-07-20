@@ -30,6 +30,7 @@
 #include <QtWidgetCoupling.h>
 #include <QDoubleSpinBox>
 
+extern void snapDebugCallback();
 
 /**
   Default traits for the Qt Double Spin Box
@@ -46,11 +47,14 @@ public:
 
   TAtomic GetValue(QDoubleSpinBox *w)
   {
+    std::cout << "QDoubleSpinBox " << w->objectName().toStdString() << " reading value " << w->value() << std::endl;
     return static_cast<TAtomic>(w->value());
   }
 
   void SetValue(QDoubleSpinBox *w, const TAtomic &value)
   {
+    std::cout << "QDoubleSpinBox " << w->objectName().toStdString() << " setting to " << value << std::endl;
+    snapDebugCallback();
     w->setSpecialValueText("");
     w->setValue(static_cast<double>(value));
   }

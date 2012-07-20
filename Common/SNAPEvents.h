@@ -63,9 +63,6 @@ itkEventMacro(StateMachineChangeEvent, IRISEvent)
 /** The value of the common zoom has changed */
 itkEventMacro(ZoomLevelUpdateEvent, IRISEvent)
 
-/** A generic property change (see Property) */
-itkEventMacro(PropertyChangeEvent, IRISEvent)
-
 /** Events used by numeric value models */
 itkEventMacro(ValueChangedEvent, IRISEvent)
 
@@ -80,6 +77,9 @@ itkEventMacro(IntensityCurveChangeEvent, IRISEvent)
 
 /** A change to the color map */
 itkEventMacro(ColorMapChangeEvent, IRISEvent)
+
+/** A change to the color label table */
+itkEventMacro(SegmentationLabelChangeEvent, IRISEvent)
 
 // A setter method that fires events
 #define irisSetWithEventMacro(name,type,event) \

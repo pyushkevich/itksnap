@@ -302,6 +302,7 @@ public:
     : QObject(widget)
   {
     m_DataMapping = dm;
+    setObjectName(QString("CouplingHelper:%1").arg(widget->objectName()));
   }
 
 public slots:
@@ -325,6 +326,10 @@ protected:
  * All versions take a model and a widget as parameters. They differ in whether the
  * user explicitly specifies the traits objects for the values and domains, or whether
  * the default trait objects are used. 
+ *
+ * The last optional parameter allows the user to override the signal specified
+ * in the default value traits for the widget. This is the signal in response to
+ * which the model is updated from the widget
  */ 
 template <class TModel, class TWidget,
           class WidgetValueTraits, class WidgetDomainTraits>
@@ -332,7 +337,8 @@ void makeCoupling(
     TWidget *w,
     TModel *model,
     WidgetValueTraits valueTraits,
-    WidgetDomainTraits domainTraits)
+    WidgetDomainTraits domainTraits,
+    const char *signal = NULL)
 {
   typedef typename TModel::ValueType ValueType;
   typedef typename TModel::DomainType DomainType;
@@ -358,19 +364,21 @@ void makeCoupling(
         h, SLOT(onPropertyModification(const EventBucket &)));
 
   // Listen to value change events for this widget
-  h->connect(w, valueTraits.GetSignal(), SLOT(onUserModification()));
+  const char *mysignal = (signal) ? signal : valueTraits.GetSignal();
+  h->connect(w, mysignal, SLOT(onUserModification()));
 }
 
 template <class TModel, class TWidget, class WidgetValueTraits>
 void makeCoupling(TWidget *w,
                   TModel *model,
-                  WidgetValueTraits trValue)
+                  WidgetValueTraits trValue,
+                  const char *signal = NULL)
 {
   typedef typename TModel::DomainType DomainType;
   typedef DefaultWidgetDomainTraits<DomainType, TWidget> WidgetDomainTraits;
   makeCoupling<TModel, TWidget,
       WidgetValueTraits, WidgetDomainTraits>(
-        w, model, trValue, WidgetDomainTraits());
+        w, model, trValue, WidgetDomainTraits(), signal);
 }
 
 
@@ -386,12 +394,13 @@ void makeCoupling(TWidget *w,
 */
 template <class TModel, class TWidget>
 void makeCoupling(TWidget *w,
-                  TModel *model)
+                  TModel *model,
+                  const char *signal = NULL)
 {
   typedef typename TModel::ValueType ValueType;
   typedef DefaultWidgetValueTraits<ValueType, TWidget> WidgetValueTraits;
   makeCoupling<TModel, TWidget,WidgetValueTraits>(
-        w, model, WidgetValueTraits());
+        w, model, WidgetValueTraits(), signal);
 }
 
 

@@ -64,6 +64,36 @@ public:
   }
 };
 
+
+template<>
+class DefaultWidgetValueTraits<std::string, QLineEdit>
+    : public WidgetValueTraitsBase<std::string, QLineEdit *>
+{
+public:
+
+  virtual std::string GetValue(QLineEdit *w)
+  {
+    return w->text().toStdString();
+  }
+
+  virtual void SetValue(QLineEdit *w, const std::string &value)
+  {
+    w->setText(value.c_str());
+  }
+
+  virtual void SetValueToNull(QLineEdit *w)
+  {
+    w->setText("");
+  }
+
+  virtual const char *GetSignal()
+  {
+    return SIGNAL(textEdited(const QString &));
+  }
+};
+
+
+
 /** Base class for traits that map between a numeric value and a text editor */
 template <class TAtomic, class QLineEdit>
 class FixedPrecisionRealToTextFieldWidgetTraits

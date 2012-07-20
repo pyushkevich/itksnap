@@ -355,7 +355,7 @@ protected:
   SNAPImageData *m_SNAPImageData;
 
   // Color label data
-  ColorLabelTable *m_ColorLabelTable;
+  SmartPtr<ColorLabelTable> m_ColorLabelTable;
 
   // Global state object
   // TODO: Incorporate GlobalState into IRISApplication more nicely

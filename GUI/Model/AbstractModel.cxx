@@ -23,8 +23,9 @@ void AbstractModel::Update()
   if(!m_EventBucket->IsEmpty())
     {
 #ifdef SNAP_DEBUG_EVENTS
-    std::cout << "UPDATE in " << typeid(*this).name()
-              << " BUCKET " << *m_EventBucket << std::endl;
+    std::cout << "UPDATE called in model " << this->GetNameOfClass()
+              << " [" << this << "] "
+              << " with " << *m_EventBucket << std::endl;
 #endif
     this->OnUpdate();
     m_EventBucket->Clear();
@@ -50,9 +51,12 @@ AbstractModel::Rebroadcaster
 ::Broadcast(itk::Object *source, const itk::EventObject &evt)
 {
 #ifdef SNAP_DEBUG_EVENTS
-  std::cout << "REBROADCAST " << typeid(*source).name() << ":"
-            << evt.GetEventName() << " as "
-            << typeid(*m_Model).name() << ":" << m_Event->GetEventName()
+  std::cout << "REBROADCAST event " <<  evt.GetEventName()
+            << " from " << source->GetNameOfClass()
+            << " [" << source << "] "
+            << " as " << m_Event->GetEventName()
+            << " from " << m_Model->GetNameOfClass()
+            << " [" << m_Model << "] "
             << std::endl;
 #endif // SNAP_DEBUG_EVENTS
   m_Model->m_EventBucket->PutEvent(evt);

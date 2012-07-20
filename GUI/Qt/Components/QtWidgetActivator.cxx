@@ -41,6 +41,9 @@ QtWidgetActivator
   m_TargetAction = dynamic_cast<QAction *>(parent);
   m_Condition = cond;
 
+  // Give it a name
+  setObjectName(QString("Activator:%1").arg(parent->objectName()));
+
   // React to events after control returns to the main UI loop
   LatentITKEventNotifier::connect(
         cond, StateMachineChangeEvent(), this, SLOT(OnStateChange()));
