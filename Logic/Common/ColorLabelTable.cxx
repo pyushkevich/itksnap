@@ -169,7 +169,7 @@ ColorLabelTable
   m_LabelMap = inputMap;
 
   // Fire the event
-  InvokeEvent(SegmentationLabelChangeEvent());
+  InvokeEvent(SegmentationLabelConfigurationChangeEvent());
 }
 
 void
@@ -271,7 +271,7 @@ ColorLabelTable
     }
 
   // Fire the event
-  InvokeEvent(SegmentationLabelChangeEvent());
+  InvokeEvent(SegmentationLabelConfigurationChangeEvent());
 }
 
 void
@@ -317,7 +317,7 @@ ColorLabelTable
   m_LabelMap[0] = this->GetDefaultColorLabel(0);
 
   // Fire the event
-  InvokeEvent(SegmentationLabelChangeEvent());
+  InvokeEvent(SegmentationLabelConfigurationChangeEvent());
 }
 
 void
@@ -334,7 +334,7 @@ ColorLabelTable
     }
 
   // Fire the event
-  InvokeEvent(SegmentationLabelChangeEvent());
+  InvokeEvent(SegmentationLabelConfigurationChangeEvent());
 }
 
 
@@ -343,21 +343,21 @@ ColorLabelTable
 ::SetColorLabelValid(LabelType id, bool flag)
 {
   assert(id < MAX_COLOR_LABELS);
+
+  ValidLabelMap::iterator it = m_LabelMap.find(id);
   
-  if(flag)
+  if(flag && it == m_LabelMap.end())
     {
     // Label is being validated. If it does not exist, insert the default
-    if(m_LabelMap.find(id) == m_LabelMap.end())
-      m_LabelMap[id] = this->GetDefaultColorLabel(id);
+    m_LabelMap[id] = this->GetDefaultColorLabel(id);
+    InvokeEvent(SegmentationLabelConfigurationChangeEvent());
     }
-  else
+  else if (!flag && it != m_LabelMap.end())
     {
     // The label is being invalidated - just delete it
-    m_LabelMap.erase(id);
+    m_LabelMap.erase(it);
+    InvokeEvent(SegmentationLabelConfigurationChangeEvent());
     }
-
-  // Fire the event
-  InvokeEvent(SegmentationLabelChangeEvent());
 }
 
 bool
@@ -414,11 +414,22 @@ ColorLabel ColorLabelTable::GetDefaultColorLabel(LabelType id) const
 
 void ColorLabelTable::SetColorLabel(size_t id, const ColorLabel &label)
 {
-  m_LabelMap[id] = label;
+  // Find the label
+  ValidLabelMap::iterator it = m_LabelMap.find(id);
 
-  // Fire the event
-  InvokeEvent(SegmentationLabelChangeEvent());
-}
+  // The current behavior is to make the label valid without the user explicitly
+  // calling the SetValid method
+  if(it == m_LabelMap.end())
+    {
+    m_LabelMap[id] = label;
+    InvokeEvent(SegmentationLabelConfigurationChangeEvent());
+    }
+  else
+    {
+    it->second = label;
+    InvokeEvent(SegmentationLabelPropertyChangeEvent());
+    }
+ }
 
 const ColorLabel ColorLabelTable::GetColorLabel(size_t id) const
 {

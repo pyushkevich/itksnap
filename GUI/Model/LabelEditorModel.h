@@ -36,8 +36,11 @@ public:
     this->SetDomain(dom);
 
     // We should also listen to events from the label table, and rebroadcast
-    // as changes to the domain
-    this->Rebroadcast(clt, SegmentationLabelChangeEvent(), RangeChangedEvent());
+    // as changes to the domain. Note that there are two types of changes to the
+    // label table, one that is a reconfiguration and another that is a property
+    // change. These map to different kinds of domain change events.
+    Rebroadcast(clt, SegmentationLabelConfigurationChangeEvent(), DomainChangedEvent());
+    Rebroadcast(clt, SegmentationLabelPropertyChangeEvent(), DomainDescriptionChangedEvent());
   }
 };
 
@@ -50,7 +53,8 @@ public:
   typedef AbstractRangedPropertyModel<int>::Type IntegerValueModel;
   typedef AbstractRangedPropertyModel<bool>::Type BooleanValueModel;
   typedef AbstractPropertyModel<std::string> StringValueModel;
-
+  typedef AbstractPropertyModel<iris_vector_fixed<bool, 2> > BooleanPairValueModel;
+  typedef AbstractPropertyModel<Vector3ui> RGBColorValueModel;
 
   // Standard ITK stuff
   irisITKObjectMacro(LabelEditorModel, AbstractModel)
@@ -70,11 +74,20 @@ public:
   /** Get the model for the current label id */
   irisGetMacro(CurrentLabelOpacityModel, IntegerValueModel *)
 
+  /** Get the model for the current label id */
+  irisGetMacro(CurrentLabelHiddenStateModel, BooleanPairValueModel *)
+
+  /** Get the model for the current label id */
+  irisGetMacro(CurrentLabelColorModel, RGBColorValueModel *)
+
   protected:
 
   // Hidden constructor/destructor
   LabelEditorModel();
   virtual ~LabelEditorModel() {}
+
+  // Helper method to retrieve current color label from the table
+  bool GetAndStoreCurrentLabel();
 
   // Id of the current label
   SmartPtr<IntegerValueModel> m_CurrentLabelIdModel;
@@ -93,6 +106,16 @@ public:
   bool GetCurrentLabelDescription(std::string &value);
   void SetCurrentLabelDescription(std::string value);
 
+  // Visibility of the current label
+  SmartPtr<BooleanPairValueModel> m_CurrentLabelHiddenStateModel;
+  bool GetCurrentLabelHiddenState(iris_vector_fixed<bool, 2> &value);
+  void SetCurrentLabelHiddenState(iris_vector_fixed<bool, 2> value);
+
+  // Color of the current label
+  SmartPtr<RGBColorValueModel> m_CurrentLabelColorModel;
+  bool GetCurrentLabelColor(Vector3ui &value);
+  void SetCurrentLabelColor(Vector3ui value);
+
   // The parent model
   GlobalUIModel *m_Parent;
 
@@ -102,7 +125,9 @@ public:
   // The label that is currently selected
   SmartPtr<ConcreteColorLabelPropertyModel> m_CurrentLabelModel;
 
-
+  // The information about the current label (temporarily valid)
+  ColorLabel m_SelectedColorLabel;
+  LabelType m_SelectedId;
 };
 
 #endif // LABELEDITORMODEL_H

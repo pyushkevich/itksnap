@@ -64,7 +64,6 @@ public:
   }
 };
 
-
 template<>
 class DefaultWidgetValueTraits<std::string, QLineEdit>
     : public WidgetValueTraitsBase<std::string, QLineEdit *>

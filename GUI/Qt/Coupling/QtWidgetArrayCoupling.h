@@ -292,7 +292,11 @@ void makeWidgetArrayCoupling(
         h, SLOT(onPropertyModification(const EventBucket &)));
 
   LatentITKEventNotifier::connect(
-        model, RangeChangedEvent(),
+        model, DomainChangedEvent(),
+        h, SLOT(onPropertyModification(const EventBucket &)));
+
+  LatentITKEventNotifier::connect(
+        model, DomainDescriptionChangedEvent(),
         h, SLOT(onPropertyModification(const EventBucket &)));
 
   // Listen to value change events for this widget

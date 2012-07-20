@@ -56,22 +56,74 @@ public:
 };
 
 
+template <class TAtomic>
+class ListWidgetRowTraitsBase
+{
+public:
+  static void removeAll(QListWidget *w)
+  {
+    w->clear();
+  }
+
+  static int getNumberOfRows(QListWidget *w)
+  {
+    return w->count();
+  }
+
+  static TAtomic getValueInRow(QListWidget *w, int i)
+  {
+    return w->item(i)->data(Qt::UserRole).value<TAtomic>();
+  }
+};
+
 /**
   Row traits for mapping a color label into a list widget entry
   */
 class ColorLabelToListWidgetTraits
+    : public ListWidgetRowTraitsBase<LabelType>
 {
 public:
 
-  static void removeAll(QListWidget *w) { w->clear(); }
-
-  static void appendRow(QListWidget *w, LabelType label, ColorLabel &cl)
+  static void appendRow(QListWidget *w, LabelType label, const ColorLabel &cl)
   {
+    // The description
     QString text(cl.GetLabel());
-    QIcon ic = CreateColorBoxIcon(16, 16,
-          Vector3ui(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2)));
+
+    // The color
+    QColor fill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
+
+    // Icon based on the color
+    QIcon ic = CreateColorBoxIcon(16, 16, fill);
+
+    // Create item and set its properties
     QListWidgetItem *item = new QListWidgetItem(ic, text, w);
     item->setData(Qt::UserRole, label);
+    item->setData(Qt::UserRole + 1, fill);
+  }
+
+  static void updateRowDescription(QListWidget *w, int index, const ColorLabel &cl)
+  {
+    // Get the current item
+    QListWidgetItem *item = w->item(index);
+
+    // Get the properies and compare them to the color label
+    QColor currentFill = item->data(Qt::UserRole+1).value<QColor>();
+    QColor newFill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
+
+    if(currentFill != newFill)
+      {
+      QIcon ic = CreateColorBoxIcon(16, 16, newFill);
+      item->setIcon(ic);
+      item->setData(Qt::UserRole + 1, newFill);
+      }
+
+    QString currentText = item->text();
+    QString newText(cl.GetLabel());
+
+    if(currentText != newText)
+      {
+      item->setText(newText);
+      }
   }
 };
 

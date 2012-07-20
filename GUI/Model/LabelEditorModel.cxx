@@ -25,6 +25,17 @@ LabelEditorModel::LabelEditorModel()
         this,
         &Self::GetCurrentLabelOpacityValueAndRange,
         &Self::SetCurrentLabelOpacity);
+
+  m_CurrentLabelHiddenStateModel = makeChildPropertyModel(
+        this,
+        &Self::GetCurrentLabelHiddenState,
+        &Self::SetCurrentLabelHiddenState);
+
+  m_CurrentLabelColorModel = makeChildPropertyModel(
+        this,
+        &Self::GetCurrentLabelColor,
+        &Self::SetCurrentLabelColor);
+
 }
 
 void LabelEditorModel::SetParentModel(GlobalUIModel *parent)
@@ -44,10 +55,9 @@ void LabelEditorModel::SetParentModel(GlobalUIModel *parent)
 
 bool LabelEditorModel::GetCurrentLabelDescription(std::string &value)
 {
-  LabelType sel = m_CurrentLabelModel->GetValue();
-  if(m_LabelTable->IsColorLabelValid(sel))
+  if(GetAndStoreCurrentLabel())
     {
-    value = m_LabelTable->GetColorLabel(sel).GetLabel();
+    value = m_SelectedColorLabel.GetLabel();
     return true;
     }
   return false;
@@ -55,12 +65,10 @@ bool LabelEditorModel::GetCurrentLabelDescription(std::string &value)
 
 void LabelEditorModel::SetCurrentLabelDescription(std::string value)
 {
-  LabelType sel = m_CurrentLabelModel->GetValue();
-  if(m_LabelTable->IsColorLabelValid(sel))
+  if(GetAndStoreCurrentLabel())
     {
-    ColorLabel lab = m_LabelTable->GetColorLabel(sel);
-    lab.SetLabel(value.c_str());
-    m_LabelTable->SetColorLabel(sel, lab);
+    m_SelectedColorLabel.SetLabel(value.c_str());
+    m_LabelTable->SetColorLabel(m_SelectedId, m_SelectedColorLabel);
     }
 }
 
@@ -68,10 +76,9 @@ bool LabelEditorModel::GetCurrentLabelIdValueAndRange(
     int &value, NumericValueRange<int> *domain)
 {
   // Get the numeric ID of the current label
-  LabelType sel = m_CurrentLabelModel->GetValue();
-  if(m_LabelTable->IsColorLabelValid(sel))
+  if(GetAndStoreCurrentLabel())
     {
-    value = sel;
+    value = m_SelectedId;
     if(domain)
       domain->Set(1, MAX_COLOR_LABELS, 1);
     return true;
@@ -87,10 +94,9 @@ void LabelEditorModel::SetCurrentLabelId(int value)
 bool LabelEditorModel::GetCurrentLabelOpacityValueAndRange(
     int &value, NumericValueRange<int> *domain)
 {
-  LabelType sel = m_CurrentLabelModel->GetValue();
-  if(m_LabelTable->IsColorLabelValid(sel))
+  if(GetAndStoreCurrentLabel())
     {
-    value = m_LabelTable->GetColorLabel(sel).GetAlpha();
+    value = m_SelectedColorLabel.GetAlpha();
     if(domain)
       domain->Set(0, 255, 1);
     return true;
@@ -100,13 +106,66 @@ bool LabelEditorModel::GetCurrentLabelOpacityValueAndRange(
 
 void LabelEditorModel::SetCurrentLabelOpacity(int value)
 {
-  LabelType sel = m_CurrentLabelModel->GetValue();
-  if(m_LabelTable->IsColorLabelValid(sel))
+  if(GetAndStoreCurrentLabel())
     {
-    ColorLabel lab = m_LabelTable->GetColorLabel(sel);
-    lab.SetAlpha((unsigned char)(value));
-    m_LabelTable->SetColorLabel(sel, lab);
+    m_SelectedColorLabel.SetAlpha((unsigned char)(value));
+    m_LabelTable->SetColorLabel(m_SelectedId, m_SelectedColorLabel);
     }
+}
+
+bool LabelEditorModel::GetCurrentLabelHiddenState(iris_vector_fixed<bool, 2> &value)
+{
+  if(GetAndStoreCurrentLabel())
+    {
+    value[0] = !m_SelectedColorLabel.IsVisible();
+    value[1] = !m_SelectedColorLabel.IsVisibleIn3D();
+    return true;
+    }
+  return false;
+}
+
+void LabelEditorModel::SetCurrentLabelHiddenState(iris_vector_fixed<bool, 2> value)
+{
+  if(GetAndStoreCurrentLabel())
+    {
+    m_SelectedColorLabel.SetVisible(!value[0]);
+    m_SelectedColorLabel.SetVisibleIn3D(!value[1]);
+    m_LabelTable->SetColorLabel(m_SelectedId, m_SelectedColorLabel);
+    }
+}
+
+bool LabelEditorModel::GetCurrentLabelColor(Vector3ui &value)
+{
+  if(GetAndStoreCurrentLabel())
+    {
+    value[0] = m_SelectedColorLabel.GetRGB(0);
+    value[1] = m_SelectedColorLabel.GetRGB(1);
+    value[2] = m_SelectedColorLabel.GetRGB(2);
+    return true;
+    }
+  return false;
+}
+
+void LabelEditorModel::SetCurrentLabelColor(Vector3ui value)
+{
+  if(GetAndStoreCurrentLabel())
+    {
+    m_SelectedColorLabel.SetRGB((unsigned char) value[0],
+                                (unsigned char) value[1],
+                                (unsigned char) value[2]);
+    m_LabelTable->SetColorLabel(m_SelectedId, m_SelectedColorLabel);
+    }
+}
+
+bool LabelEditorModel::GetAndStoreCurrentLabel()
+{
+  m_SelectedId = m_CurrentLabelModel->GetValue();
+  if(m_LabelTable->IsColorLabelValid(m_SelectedId))
+    {
+    m_SelectedColorLabel = m_LabelTable->GetColorLabel(m_SelectedId);
+    return true;
+    }
+  return false;
 }
 
 

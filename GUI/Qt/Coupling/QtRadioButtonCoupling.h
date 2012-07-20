@@ -116,7 +116,7 @@ void makeRadioGroupCoupling(
         h, SLOT(onPropertyModification(const EventBucket &)));
 
   LatentITKEventNotifier::connect(
-        model, RangeChangedEvent(),
+        model, DomainChangedEvent(),
         h, SLOT(onPropertyModification(const EventBucket &)));
 
   // Listen to value change events for every child widget

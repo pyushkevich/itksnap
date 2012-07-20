@@ -8,6 +8,9 @@
 #include <QtSliderCoupling.h>
 #include <QtSpinBoxCoupling.h>
 #include <QtDoubleSpinBoxCoupling.h>
+#include <QtWidgetArrayCoupling.h>
+#include <QtCheckBoxCoupling.h>
+#include <QtPushButtonCoupling.h>
 
 LabelEditorDialog::LabelEditorDialog(QWidget *parent) :
   QDialog(parent),
@@ -49,8 +52,7 @@ void LabelEditorDialog::SetModel(LabelEditorModel *model)
   // Coupling for the description of the current label. Override the default
   // signal for this widget.
   makeCoupling(ui->inLabelDescription,
-               m_Model->GetCurrentLabelDescriptionModel(),
-               SIGNAL(editingFinished()));
+               m_Model->GetCurrentLabelDescriptionModel());
 
   // Coupling for the ID of the current label
   makeCoupling(ui->inLabelId, m_Model->GetCurrentLabelIdModel());
@@ -60,8 +62,13 @@ void LabelEditorDialog::SetModel(LabelEditorModel *model)
                m_Model->GetCurrentLabelOpacityModel());
 
   makeCoupling(ui->inLabelOpacitySpinner,
-               m_Model->GetCurrentLabelOpacityModel(),
-               SIGNAL(editingFinished()));
+               m_Model->GetCurrentLabelOpacityModel());
 
+  // Visibility checkboxes
+  makeArrayCoupling(ui->inVisibleAll, ui->inVisible3D,
+                    m_Model->GetCurrentLabelHiddenStateModel());
 
+  // Color button
+  makeCoupling(ui->btnLabelColor,
+               m_Model->GetCurrentLabelColorModel());
 }

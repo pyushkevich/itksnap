@@ -114,6 +114,7 @@ public:
 
   virtual const_iterator begin() const = 0;
   virtual const_iterator end() const  = 0;
+  virtual const_iterator find(const TVal &value) const = 0;
   virtual TVal GetValue(const const_iterator &it) const  = 0;
   virtual TDesc GetDescription(const const_iterator &it) const  = 0;
 };
@@ -138,10 +139,16 @@ public:
 
   const_iterator begin() const
     { assert(m_SourceMap); return m_SourceMap->begin(); }
+
   const_iterator end() const
     { assert(m_SourceMap); return m_SourceMap->end(); }
+
+  const_iterator find(const TVal &value) const
+    { assert(m_SourceMap); return m_SourceMap->find(value); }
+
   TVal GetValue(const const_iterator &it) const
     { return it->first; }
+
   TDesc GetDescription(const const_iterator &it) const
     { return it->second; }
 
@@ -150,8 +157,6 @@ public:
 
   bool operator != (const Self &cmp) const
     { return m_SourceMap != cmp.m_SourceMap; }
-
-
 
 private:
   const MapType *m_SourceMap;
@@ -250,7 +255,7 @@ public:
   }
 
   irisSetWithEventMacro(Value, TVal, ValueChangedEvent)
-  irisSetWithEventMacro(Domain, TDomain, RangeChangedEvent)
+  irisSetWithEventMacro(Domain, TDomain, DomainChangedEvent)
   irisSetWithEventMacro(IsValid, bool, ValueChangedEvent)
 
 protected:
@@ -403,13 +408,13 @@ public:
 
   /**
     Set up the events fired by the parent model that this model should
-    listen to and rebroadcast as ValueChangedEvent and RangeChangedEvent.
+    listen to and rebroadcast as ValueChangedEvent and DomainChangedEvent.
     */
   void SetEvents(const itk::EventObject &valueEvent,
                  const itk::EventObject &rangeEvent)
   {
     Rebroadcast(m_Model, valueEvent, ValueChangedEvent());
-    Rebroadcast(m_Model, rangeEvent, RangeChangedEvent());
+    Rebroadcast(m_Model, rangeEvent, DomainChangedEvent());
   }
 
 

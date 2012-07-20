@@ -64,10 +64,20 @@ itkEventMacro(StateMachineChangeEvent, IRISEvent)
 itkEventMacro(ZoomLevelUpdateEvent, IRISEvent)
 
 /** Events used by numeric value models */
+
+// The value of the numeric model changed
 itkEventMacro(ValueChangedEvent, IRISEvent)
 
-/** Events used by numeric value models */
-itkEventMacro(RangeChangedEvent, IRISEvent)
+// The domain of the numeric model changed
+itkEventMacro(DomainChangedEvent, IRISEvent)
+
+// A special event where the domain description has changed, rather than
+// the whole domain. This never occurs for NumericRange domains, but does
+// occur for domains that are lists/sets of items. In that case, this event
+// represents the situation where the set of items remains the same, but the
+// description of some of the items has changed. The GUI needs to update how
+// the items are displayed, but does not need to rebuild the list of items.
+itkEventMacro(DomainDescriptionChangedEvent, IRISEvent)
 
 /** A change to appearance of a renderer, etc */
 itkEventMacro(AppearanceUpdateEvent, IRISEvent)
@@ -78,8 +88,10 @@ itkEventMacro(IntensityCurveChangeEvent, IRISEvent)
 /** A change to the color map */
 itkEventMacro(ColorMapChangeEvent, IRISEvent)
 
-/** A change to the color label table */
+/** Changes to the color label table */
 itkEventMacro(SegmentationLabelChangeEvent, IRISEvent)
+itkEventMacro(SegmentationLabelConfigurationChangeEvent, SegmentationLabelChangeEvent)
+itkEventMacro(SegmentationLabelPropertyChangeEvent, SegmentationLabelChangeEvent)
 
 // A setter method that fires events
 #define irisSetWithEventMacro(name,type,event) \

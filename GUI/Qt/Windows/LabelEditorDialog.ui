@@ -239,17 +239,7 @@ QGroupBox::title {
           </spacer>
          </item>
          <item>
-          <widget class="QToolButton" name="btnLabelColor">
-           <property name="minimumSize">
-            <size>
-             <width>96</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Choose...</string>
-           </property>
-          </widget>
+          <widget class="QColorButtonWidget" name="btnLabelColor" native="true"/>
          </item>
         </layout>
        </widget>
@@ -403,6 +393,14 @@ QGroupBox::title {
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QColorButtonWidget</class>
+   <extends>QWidget</extends>
+   <header>QColorButtonWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

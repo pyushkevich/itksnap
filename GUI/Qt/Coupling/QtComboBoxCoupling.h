@@ -67,21 +67,69 @@ public:
   }
 };
 
+template <class TAtomic>
+class ComboBoxRowTraitsBase
+{
+public:
+  static void removeAll(QComboBox *w)
+  {
+    w->clear();
+  }
+
+  static int getNumberOfRows(QComboBox *w)
+  {
+    return w->count();
+  }
+
+  static TAtomic getValueInRow(QComboBox *w, int i)
+  {
+    return w->itemData(i).value<TAtomic>();
+  }
+};
+
 /**
   Row traits for mapping the description of a color label into a row in a combo box
   */
-class ColorLabelToComboBoxWidgetTraits
+class ColorLabelToComboBoxWidgetTraits : public ComboBoxRowTraitsBase<LabelType>
 {
 public:
 
-  static void removeAll(QComboBox *w) { w->clear(); }
-
-  static void appendRow(QComboBox *w, LabelType label, ColorLabel &cl)
+  static void appendRow(QComboBox *w, LabelType label, const ColorLabel &cl)
   {
+    // The description
     QString text(cl.GetLabel());
-    QIcon ic = CreateColorBoxIcon(16, 16,
-          Vector3ui(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2)));
+
+    // The color
+    QColor fill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
+
+    // Icon based on the color
+    QIcon ic = CreateColorBoxIcon(16, 16, fill);
+
+    // Store all of these properties
     w->addItem(ic, text, QVariant(label));
+    w->setItemData(w->count()-1, fill, Qt::UserRole + 1);
+  }
+
+  static void updateRowDescription(QComboBox *w, int index, const ColorLabel &cl)
+  {
+    // Get the properies and compare them to the color label
+    QColor currentFill = w->itemData(index, Qt::UserRole + 1).value<QColor>();
+    QColor newFill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
+
+    if(currentFill != newFill)
+      {
+      QIcon ic = CreateColorBoxIcon(16, 16, newFill);
+      w->setItemIcon(index, ic);
+      w->setItemData(index, newFill, Qt::UserRole + 1);
+      }
+
+    QString currentText = w->itemText(index);
+    QString newText(cl.GetLabel());
+
+    if(currentText != newText)
+      {
+      w->setItemText(index, newText);
+      }
   }
 };
 

@@ -90,7 +90,7 @@ public:
   void InitializeWidgetFromModel()
   {
     // Call the update method, including updating the domain
-    this->DoUpdateWidgetFromModel(true);
+    this->DoUpdateWidgetFromModel(true, false);
   }
 
   /** 
@@ -99,7 +99,9 @@ public:
   void UpdateWidgetFromModel(const EventBucket &bucket)
   {
     // The bucket parameter tells us whether the domain changed or not
-    this->DoUpdateWidgetFromModel(bucket.HasEvent(RangeChangedEvent()));
+    this->DoUpdateWidgetFromModel(
+          bucket.HasEvent(DomainChangedEvent()),
+          bucket.HasEvent(DomainDescriptionChangedEvent()));
   }
 
   /**
@@ -125,7 +127,7 @@ public:
 
 protected:
 
-  void DoUpdateWidgetFromModel(bool flagUpdateRange)
+  void DoUpdateWidgetFromModel(bool flagDomainChange, bool flagDomainDescriptionChange)
   {
     m_Updating = true;
 
@@ -134,7 +136,7 @@ protected:
 
     // The domain should only be updated in the bucket contains the range
     // event (the target range has been modified)
-    if(flagUpdateRange)
+    if(flagDomainChange || flagDomainDescriptionChange)
       {
       // Prepopulate the range with current values in case the model does
       // not actually compute ranges
@@ -143,7 +145,15 @@ protected:
       // Obtain the value from the model
       if(m_Model->GetValueAndDomain(value, &domain))
         {
-        m_DomainTraits.SetDomain(m_Widget, domain);
+        if(flagDomainChange)
+          {
+          m_DomainTraits.SetDomain(m_Widget, domain);
+          }
+        else
+          {
+          m_DomainTraits.UpdateDomainDescription(m_Widget, domain);
+          }
+
         m_ValueTraits.SetValue(m_Widget, value);
         }
       else
@@ -209,14 +219,27 @@ template <class TDomain, class TWidgetPtr>
 class WidgetDomainTraitsBase
 {
 public:
-  // Set the domain from the values in the model
+  /**
+    Set the domain from the values in the model
+   */
   virtual void SetDomain(TWidgetPtr w, const TDomain &domain) = 0;
 
-  // Get the current value of the domain from the model. This is only
-  // needed in cases that the model does not provide full domain information
-  // (some information is coded in the widget by the developer). For widgets
-  // where the model fully specifies the domain, it's safe to just return
-  // a trivially initialized domain object.
+  /**
+    Update the description of the domain from the values in the model, without
+    changing the configuration of the domain. This is only relevant for some
+    kinds of domains, such as lists of items. In this case, we need to change
+    the presentation of the items to the user, while keeping the list of items
+    intact. By default, this does nothing.
+    */
+  virtual void UpdateDomainDescription(TWidgetPtr w, const TDomain &domain) {}
+
+  /**
+    Get the current value of the domain from the model. This is only
+    needed in cases that the model does not provide full domain information
+    (some information is coded in the widget by the developer). For widgets
+    where the model fully specifies the domain, it's safe to just return
+    a trivially initialized domain object.
+    */
   virtual TDomain GetDomain(TWidgetPtr w) = 0;
 };
 
@@ -274,12 +297,37 @@ public:
       {
       // Get the key/value pair
       AtomicType value = domain.GetValue(it);
-      DescriptorType row = domain.GetDescription(it);
+      const DescriptorType &row = domain.GetDescription(it);
 
       // Use the row traits to map information to the widget
       TRowTraits::appendRow(w, value, row);
       }
   }
+
+  void UpdateDomainDescription(TWidget *w, const DomainType &domain)
+  {
+    // This is not the most efficient way of doing things, because we
+    // are still linearly parsing through the widget and updating rows.
+    // But at least the actual modifications to the widget are limited
+    // to the rows that have been modified.
+    //
+    // What would be more efficient is to have a list of ids which have
+    // been modified and update only those. Or even better, implement all
+    // of this using an AbstractItemModel
+    int nrows = TRowTraits::getNumberOfRows(w);
+    for(int i = 0; i < nrows; i++)
+      {
+      AtomicType id = TRowTraits::getValueInRow(w, i);
+      typename DomainType::const_iterator it = domain.find(id);
+      if(it != domain.end())
+        {
+        const DescriptorType &row = domain.GetDescription(it);
+        TRowTraits::updateRowDescription(w, i, row);
+        }
+      }
+  }
+
+
 
   TItemDomain GetDomain(TWidget *w)
   {
@@ -360,7 +408,11 @@ void makeCoupling(
         h, SLOT(onPropertyModification(const EventBucket &)));
 
   LatentITKEventNotifier::connect(
-        model, RangeChangedEvent(),
+        model, DomainChangedEvent(),
+        h, SLOT(onPropertyModification(const EventBucket &)));
+
+  LatentITKEventNotifier::connect(
+        model, DomainDescriptionChangedEvent(),
         h, SLOT(onPropertyModification(const EventBucket &)));
 
   // Listen to value change events for this widget
