@@ -36,12 +36,17 @@
 #include "ColorMapModel.h"
 #include "ViewPanel3D.h"
 
+#include <LabelEditorDialog.h>
+
 MainImageWindow::MainImageWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainImageWindow)
 {
-
   ui->setupUi(this);
+
+  // Initialize the dialogs
+  m_LabelEditor = new LabelEditorDialog(this);
+
 /*
   // Some manual stuff
   QDockWidget *dock = new QDockWidget("Tool Dock", this);
@@ -83,9 +88,10 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   ui->panel1->Initialize(model,1);
   ui->panel2->Initialize(model,2);
   ui->panel3D->Initialize(model);
+
+  // Initialize the dialogs
+  m_LabelEditor->SetModel(model->GetLabelEditorModel());
 }
-
-
 
 SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 {
@@ -198,3 +204,9 @@ void MainImageWindow::on_actionImage_Contrast_triggered()
   delete lid;
 }
 
+
+void MainImageWindow::on_actionLabel_Editor_triggered()
+{
+  // Execute the label editor
+  m_LabelEditor->exec();
+}

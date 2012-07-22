@@ -106,6 +106,32 @@ GlobalUIModel::GlobalUIModel()
   // Initialize the properties
   m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
 
+  // Set up the cursor position model
+  m_CursorPositionModel = makeChildPropertyModel(
+        this,
+        &Self::GetCursorPositionValueAndRange,
+        &Self::SetCursorPosition);
+
+  // The model needs to rebroadcast cusror change events as value changes
+  m_CursorPositionModel->Rebroadcast(
+        this, CursorUpdateEvent(), ValueChangedEvent());
+
+  // Create label information models. TODO: should we move this into a
+  // separate model object?
+  m_LabelUnderTheCursorIdModel = makeChildPropertyModel(
+        this, &GlobalUIModel::GetLabelUnderTheCursorIdValue);
+
+  // The models are hooked up to changes in label under the cursor
+  m_LabelUnderTheCursorIdModel->Rebroadcast(
+        this, LabelUnderCursorChangedEvent(), ValueChangedEvent());
+
+  m_LabelUnderTheCursorTitleModel = makeChildPropertyModel(
+        this, &GlobalUIModel::GetLabelUnderTheCursorTitleValue);
+
+  // The models are hooked up to changes in label under the cursor
+  m_LabelUnderTheCursorTitleModel->Rebroadcast(
+        this, LabelUnderCursorChangedEvent(), ValueChangedEvent());
+
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), StateMachineChangeEvent());
@@ -119,6 +145,12 @@ GlobalUIModel::GlobalUIModel()
 
   // Rebroadcast toolbar model change events (TODO: needed?)
   Rebroadcast(m_ToolbarModeModel, ValueChangedEvent(), ToolbarModeChangeEvent());
+
+  // All the events that result in the voxel under the cursor changing
+  Rebroadcast(this, CursorUpdateEvent(), LabelUnderCursorChangedEvent());
+  Rebroadcast(m_Driver->GetColorLabelTable(), SegmentationLabelChangeEvent(),
+              LabelUnderCursorChangedEvent());
+  Rebroadcast(m_Driver, SegmentationChangeEvent(), LabelUnderCursorChangedEvent());
 }
 
 GlobalUIModel::~GlobalUIModel()
@@ -208,6 +240,52 @@ SystemInterface * GlobalUIModel::GetSystemInterface() const
 GlobalState * GlobalUIModel::GetGlobalState() const
 {
   return m_Driver->GetGlobalState();
+}
+
+bool GlobalUIModel::GetLabelUnderTheCursorIdValue(LabelType &value)
+{
+  if(m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
+    {
+    value = m_Driver->GetCurrentImageData()->GetSegmentation()
+        ->GetVoxel(m_Driver->GetCursorPosition());
+    return true;
+    }
+  return false;
+}
+
+bool GlobalUIModel::GetLabelUnderTheCursorTitleValue(std::string &value)
+{
+  if(m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
+    {
+    LabelType label = m_Driver->GetCurrentImageData()->GetSegmentation()
+        ->GetVoxel(m_Driver->GetCursorPosition());
+    value = m_Driver->GetColorLabelTable()->GetColorLabel(label).GetLabel();
+    return true;
+    }
+  return false;
+}
+
+bool GlobalUIModel::GetCursorPositionValueAndRange(
+    Vector3ui &value, NumericValueRange<Vector3ui> *range)
+{
+  if(m_Driver->GetCurrentImageData()->IsMainLoaded())
+    {
+    value = m_Driver->GetCursorPosition();
+    if(range)
+      {
+      range->Set(Vector3ui(0),
+                 m_Driver->GetCurrentImageData()->GetMain()->GetSize() - 1u,
+                 Vector3ui(1));
+      }
+    return true;
+    }
+
+  return false;
+}
+
+void GlobalUIModel::SetCursorPosition(Vector3ui value)
+{
+  m_Driver->SetCursorPosition(value);
 }
 
 

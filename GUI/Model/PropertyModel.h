@@ -303,6 +303,14 @@ typedef ConcretePropertyModel<bool> BoolPropertyModel;
   virtual AbstractPropertyModel<type, TrivialDomain > * Get##name##Model () const \
     { return this->m_##name##Model; }
 
+#define irisGenericPropertyAccessMacro(name,type,modeltype) \
+  virtual void Set##name (type _arg) \
+    { this->m_##name##Model->SetValue(_arg); } \
+  virtual type Get##name () const \
+    { return this->m_##name##Model->GetValue(); } \
+  virtual modeltype * Get##name##Model () const \
+    { return this->m_##name##Model; }
+
 // A factory function to initialize properties - again, for shorter code
 template <class TVal>
 SmartPtr< ConcretePropertyModel<TVal, NumericValueRange<TVal> > >

@@ -65,6 +65,7 @@ void GenericSliceView::onModelUpdate(const EventBucket &b)
   m_Model->Update();
 
   // Ask this widget to repaint
+  std::cout << "GENERIC SLICE VIEW UPDATE" << std::endl;
   this->update();
 }
 

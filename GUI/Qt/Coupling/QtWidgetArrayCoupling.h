@@ -286,6 +286,9 @@ void makeWidgetArrayCoupling(
   // widget, just for the purpose of this object being deleted later.
   QtCouplingHelper *h = new QtCouplingHelper(wa.front(), mapping);
 
+  // Populate the widget (force the domain and value to be copied)
+  mapping->InitializeWidgetFromModel();
+
   // Listen to value change events from the model
   LatentITKEventNotifier::connect(
         model, ValueChangedEvent(),

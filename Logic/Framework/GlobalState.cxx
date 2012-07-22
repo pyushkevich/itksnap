@@ -33,22 +33,18 @@
 
 =========================================================================*/
 #include "GlobalState.h"
-
+#include "IRISApplication.h"
 
 GlobalState
-::GlobalState() 
+::GlobalState(IRISApplication *parent)
 {
   m_GreyFileExtension = NULL;
-  m_DrawingColorLabel = 1;
-  m_OverWriteColorLabel = 0;
   m_CrosshairsPosition[0] = 0;
   m_CrosshairsPosition[1] = 0;
   m_CrosshairsPosition[2] = 0;
-  m_CoverageMode = PAINT_OVER_ALL;
   m_UpdateSliceFlag = 1;
   m_InterpolateGrey = false;
   m_InterpolateSegmentation = false;
-  m_PolygonInvert = false;
   m_LockHeld = 0;
   m_LockOwner = 0;
 
@@ -99,6 +95,21 @@ GlobalState
   m_AnnotationSettings.shownOnAllSlices = false;
 
   m_PolygonDrawingContextMenuModel = NewSimpleConcreteProperty(false);
+
+  // Create the drawing label model
+  m_DrawingColorLabelModel = ConcreteColorLabelPropertyModel::New();
+  m_DrawingColorLabelModel->Initialize(parent->GetColorLabelTable());
+  m_DrawingColorLabelModel->SetValue(
+        parent->GetColorLabelTable()->FindNextValidLabel(0,false));
+
+  // Create the draw-over label model
+  m_DrawOverFilterModel = ConcreteDrawOverFilterPropertyModel::New();
+  m_DrawOverFilterModel->Initialize(parent->GetColorLabelTable());
+  m_DrawOverFilterModel->SetValue(DrawOverFilter(PAINT_OVER_ALL, 0));
+
+  // Polygon inversion - create and initialize
+  m_PolygonInvertModel = NewSimpleConcreteProperty(false);
+
 }
 
 GlobalState
@@ -159,6 +170,18 @@ GlobalState
 ::GetSpeedColorMap()
 {
   return (m_SnakeMode == EDGE_SNAKE) ?
-    GetSpeedColorMapInEdgeMode() : GetSpeedColorMapInRegionMode();
+        GetSpeedColorMapInEdgeMode() : GetSpeedColorMapInRegionMode();
+}
+
+void GlobalState::SetCoverageMode(CoverageModeType coverage)
+{
+  DrawOverFilter f = this->GetDrawOverFilter();
+  f.CoverageMode = coverage;
+  this->SetDrawOverFilter(f);
+}
+
+CoverageModeType GlobalState::GetCoverageMode() const
+{
+  return this->GetDrawOverFilter().CoverageMode;
 }
 

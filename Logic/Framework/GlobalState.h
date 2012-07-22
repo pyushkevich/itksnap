@@ -52,7 +52,9 @@
 #include "SNAPSegmentationROISettings.h"
 #include "itkImageRegion.h"
 #include "PropertyModel.h"
+#include "ColorLabelPropertyModel.h"
 
+class IRISApplication;
 
 enum ToolbarMode3DType
 {
@@ -60,13 +62,6 @@ enum ToolbarMode3DType
   CROSSHAIRS_3D_MODE,
   SPRAYPAINT_MODE,
   SCALPEL_MODE
-};
-
-enum CoverageModeType 
-{
-  PAINT_OVER_ALL = 0,
-  PAINT_OVER_VISIBLE,
-  PAINT_OVER_ONE
 };
 
 enum MeshFilterType
@@ -168,20 +163,8 @@ public:
   // Define the bubble array
   typedef std::vector<Bubble> BubbleArray;
 
-  GlobalState();
+  GlobalState(IRISApplication *parent);
   virtual ~GlobalState();
-  
-  /** Get color label used to draw polygons */
-  irisSetMacro(DrawingColorLabel,LabelType);
-
-  /** Set color label used to draw polygons */
-  irisGetMacro(DrawingColorLabel,LabelType);
-  
-  /** Get color label over which we can draw */
-  irisSetMacro(OverWriteColorLabel,LabelType);
-
-  /** Set color label over which we can draw */
-  irisGetMacro(OverWriteColorLabel,LabelType);
   
   /** Get whether the grey image display uses linear interpolation */
   irisSetMacro(InterpolateGrey,bool );
@@ -194,12 +177,6 @@ public:
 
   /** Set whether the segmentation image uses linear interpolation */
   irisGetMacro(InterpolateSegmentation,bool );
-
-  /** Get whether polygons drawn are inverted or not */
-  irisSetMacro(PolygonInvert,bool );
-
-  /** Set whether polygons drawn are inverted or not */
-  irisGetMacro(PolygonInvert,bool );
 
   /** Get/Set the transparency of the segmentation overlay */
   irisRangedPropertyAccessMacro(SegmentationAlpha, unsigned char)
@@ -217,10 +194,10 @@ public:
   irisGetMacro(UpdateSliceFlag,int );
 
   /** Get current mode of polygon/snake painting (over all, over label) */
-  irisSetMacro(CoverageMode,CoverageModeType );
+  void SetCoverageMode(CoverageModeType coverage);
 
   /** Set current mode of polygon/snake painting (over all, over label) */
-  irisGetMacro(CoverageMode,CoverageModeType );
+  CoverageModeType GetCoverageMode() const;
 
   /** Get whether the region of interest is valid */
   irisSetMacro(IsValidROI,bool );
@@ -407,7 +384,19 @@ public:
   void UnsetActiveBubble()
     { m_ActiveBubble = -1; }
 
+  /** Get the polygon access menu flag */
   irisSimplePropertyAccessMacro(PolygonDrawingContextMenu, bool)
+
+  /** Get the drawing label */
+  irisGenericPropertyAccessMacro(DrawingColorLabel, LabelType,
+                                 ConcreteColorLabelPropertyModel)
+
+  /** Get the draw over label */
+  irisGenericPropertyAccessMacro(DrawOverFilter, DrawOverFilter,
+                                 ConcreteDrawOverFilterPropertyModel)
+
+  /** Whether drawing operations are inverted */
+  irisSimplePropertyAccessMacro(PolygonInvert, bool)
 
 private:
 
@@ -420,19 +409,16 @@ private:
   friend class IRISApplication;
 
   /** Color label used to draw polygons */
-  LabelType m_DrawingColorLabel;
+  SmartPtr<ConcreteColorLabelPropertyModel> m_DrawingColorLabelModel;
 
   /** Color label over which we can draw */
-  LabelType m_OverWriteColorLabel;
+  SmartPtr<ConcreteDrawOverFilterPropertyModel> m_DrawOverFilterModel;
 
   /** Whether the grey image display uses linear interpolation */
   bool m_InterpolateGrey;
 
   /** Whether the segmentation image uses linear interpolation */
   bool m_InterpolateSegmentation;
-
-  /** Whether polygons drawn are inverted or not */
-  bool m_PolygonInvert;
 
   /** The transparency of the segmentation overlay */
   SmartPtr<RangedUCharPropertyModel> m_SegmentationAlphaModel;
@@ -445,9 +431,6 @@ private:
 
   /** Whether the slice requires an update or not (TODO: obsolete?) */
   int m_UpdateSliceFlag;
-
-  /** Current mode of polygon/snake painting (over all, over label) */
-  CoverageModeType m_CoverageMode;
 
   /** Whether the region of interest is valid */
   bool m_IsValidROI;
@@ -492,6 +475,9 @@ private:
     this is the right place to put this, because it's quite GUI specific, but
     for the time being, I stick it here */
   SmartPtr<BoolPropertyModel> m_PolygonDrawingContextMenuModel;
+
+  /** Whether drawing operations are inverted */
+  SmartPtr<BoolPropertyModel> m_PolygonInvertModel;
   
   int m_LockHeld; 
   int m_LockOwner;

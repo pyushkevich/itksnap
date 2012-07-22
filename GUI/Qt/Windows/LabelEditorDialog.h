@@ -4,6 +4,7 @@
 #include <QDialog>
 
 class LabelEditorModel;
+class QListWidgetItem;
 
 namespace Ui {
     class LabelEditorDialog;
@@ -18,6 +19,17 @@ public:
   ~LabelEditorDialog();
 
   void SetModel(LabelEditorModel *model);
+
+private slots:
+  void on_btnClose_clicked();
+
+  void on_btnNew_clicked();
+
+  void on_btnDuplicate_clicked();
+
+  void on_btnDelete_clicked();
+
+  void on_inLabelId_editingFinished();
 
 private:
   Ui::LabelEditorDialog *ui;

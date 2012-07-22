@@ -91,18 +91,6 @@ LabelImageWrapper
     m_RGBAFilter[i]->SetColorTable(table);
 }
 
-void 
-LabelImageWrapper
-::UpdateColorMappingCache() 
-{
-  // Better have a color table
-  assert(GetLabelColorTable());
-
-  // Dirty the intensity filters
-  for(unsigned int i=0;i<3;i++)
-    m_RGBAFilter[i]->Modified();  
-}
-
 LabelImageWrapper::DisplaySlicePointer
 LabelImageWrapper
 ::GetDisplaySlice(unsigned int dim)

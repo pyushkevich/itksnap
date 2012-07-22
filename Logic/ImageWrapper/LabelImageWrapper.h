@@ -75,12 +75,6 @@ public:
   ColorLabelTable *GetLabelColorTable() const;
 
   /**
-   * Tell the object to update it's color mapping cache
-   * TODO: Implement this with ModifiedTime stuff
-   */
-  void UpdateColorMappingCache();
-
-  /**
    * Get a color slice for display purposes
    */
   DisplaySlicePointer GetDisplaySlice(unsigned int dim);

@@ -39,6 +39,9 @@ itkEventMacro(IRISEvent, itk::AnyEvent)
 
 // Events fired by IRISApplication
 
+/** Event that never gets invoked */
+itkEventMacro(NullEvent, IRISEvent)
+
 /** 3D cursor update event */
 itkEventMacro(CursorUpdateEvent, IRISEvent)
 
@@ -92,6 +95,9 @@ itkEventMacro(ColorMapChangeEvent, IRISEvent)
 itkEventMacro(SegmentationLabelChangeEvent, IRISEvent)
 itkEventMacro(SegmentationLabelConfigurationChangeEvent, SegmentationLabelChangeEvent)
 itkEventMacro(SegmentationLabelPropertyChangeEvent, SegmentationLabelChangeEvent)
+
+/** Label under cursor changed */
+itkEventMacro(LabelUnderCursorChangedEvent, IRISEvent)
 
 // A setter method that fires events
 #define irisSetWithEventMacro(name,type,event) \

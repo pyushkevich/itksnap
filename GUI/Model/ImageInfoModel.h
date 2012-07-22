@@ -56,10 +56,16 @@ public:
   irisGetMacro(ImageOriginModel, RealVectorSimpleModel *)
   irisGetMacro(ImageItkCoordinatesModel, RealVectorSimpleModel *)
   irisGetMacro(ImageNiftiCoordinatesModel, RealVectorSimpleModel *)
-  irisGetMacro(ImageVoxelCoordinatesModel, UIntVectorRangedModel *)
   irisGetMacro(ImageMinMaxModel, MinMaxIntensityModel *)
   irisGetMacro(ImageOrientationModel, StringValueModel *)
   irisGetMacro(MetadataFilterModel, FilterModel *)
+
+  // The voxel coordinate model just refers to the parent mode
+  UIntVectorRangedModel *GetImageVoxelCoordinatesModel() const
+  {
+    return m_ParentModel->GetCursorPositionModel();
+  }
+
 
   /** Number of rows in the metadata table */
   int GetMetadataRows();
@@ -74,7 +80,6 @@ protected:
   SmartPtr<RealVectorSimpleModel> m_ImageItkCoordinatesModel;
   SmartPtr<RealVectorSimpleModel> m_ImageNiftiCoordinatesModel;
   SmartPtr<UIntVectorSimpleModel> m_ImageDimensionsModel;
-  SmartPtr<UIntVectorRangedModel> m_ImageVoxelCoordinatesModel;
   SmartPtr<MinMaxIntensityModel> m_ImageMinMaxModel;
   SmartPtr<StringValueModel> m_ImageOrientationModel;
   SmartPtr<FilterModel> m_MetadataFilterModel;
@@ -86,11 +91,6 @@ protected:
   bool GetImageNiftiCoordinates(Vector3d &value);
   bool GetImageMinMax(Vector2d &value);
   bool GetImageOrientation(std::string &value);
-
-  bool GetImageVoxelCoordinatesValueAndRange(
-      Vector3ui &value, NumericValueRange<Vector3ui> *range);
-
-  void SetImageVoxelCoordinates(Vector3ui value);
 
   // Update the list of keys managed by the metadata
   void UpdateMetadataIndex();

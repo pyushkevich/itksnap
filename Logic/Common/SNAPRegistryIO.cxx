@@ -402,9 +402,9 @@ SNAPRegistryIO
   registry["IRIS.LabelState.DrawingLabel"] << 
     (int) gs->GetDrawingColorLabel();
   registry["IRIS.LabelState.OverwriteLabel"] << 
-    (int) gs->GetOverWriteColorLabel();
+    (int) gs->GetDrawOverFilter().DrawOverLabel;
   registry["IRIS.LabelState.CoverageMode"].PutEnum(
-    m_EnumMapCoverage,gs->GetCoverageMode());
+    m_EnumMapCoverage,gs->GetDrawOverFilter().CoverageMode);
   registry["IRIS.LabelState.PolygonInvert"] << gs->GetPolygonInvert();
   registry["IRIS.LabelState.OverallAlpha"] << 
     (int) gs->GetSegmentationAlpha();
@@ -499,14 +499,12 @@ SNAPRegistryIO
       (LabelType)registry["IRIS.LabelState.DrawingLabel"][1]);
 
     // Read the override color label
-    gs->SetOverWriteColorLabel(
-      (LabelType)registry["IRIS.LabelState.OverwriteLabel"][0]);
+    gs->SetDrawOverFilter(
+          DrawOverFilter(
+            registry["IRIS.LabelState.CoverageMode"].GetEnum(
+              m_EnumMapCoverage,gs->GetCoverageMode()),
+            (LabelType)registry["IRIS.LabelState.OverwriteLabel"][0]));
     
-    // Read the coverage mode
-    gs->SetCoverageMode(
-      registry["IRIS.LabelState.CoverageMode"].GetEnum(
-        m_EnumMapCoverage,gs->GetCoverageMode()));      
-
     // Read the polygon inversion state
     gs->SetPolygonInvert(
       registry["IRIS.LabelState.PolygonInvert"][gs->GetPolygonInvert()]);

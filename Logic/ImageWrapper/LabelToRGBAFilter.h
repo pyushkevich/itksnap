@@ -55,10 +55,17 @@ public:
                       InputImageType::ImageDimension);
 
   /** Set color table macro */
-  irisSetMacro(ColorTable, ColorLabelTable *);
+  void SetColorTable(ColorLabelTable *table)
+  {
+    m_ColorTable = table;
+    this->SetNthInput(1, table);
+  }
   
   /** Get color table */
-  irisGetMacro(ColorTable, ColorLabelTable *);
+  ColorLabelTable *GetColorTable()
+  {
+    return m_ColorTable;
+  }
 
 protected:
 

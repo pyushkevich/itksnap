@@ -32,6 +32,7 @@
 #include <AbstractModel.h>
 #include <UIState.h>
 #include <PropertyModel.h>
+#include <ColorLabelPropertyModel.h>
 
 class IRISApplication;
 class SNAPAppearanceSettings;
@@ -50,6 +51,7 @@ class ColorMapModel;
 class ImageInfoModel;
 class Generic3DModel;
 class LabelEditorModel;
+class ConcreteColorLabelPropertyModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -81,6 +83,7 @@ public:
   FIRES(CursorUpdateEvent)
   FIRES(LayerChangeEvent)
   FIRES(LinkedZoomUpdateEvent)
+  FIRES(LabelUnderCursorChangedEvent)
 
 
   irisGetMacro(Driver, IRISApplication *)
@@ -145,6 +148,19 @@ public:
    */
   bool CheckState(UIState state);
 
+  typedef AbstractPropertyModel<LabelType> LabelTypePropertyModel;
+  typedef AbstractPropertyModel<std::string> StringPropertyModel;
+  typedef AbstractRangedPropertyModel<Vector3ui>::Type UIntVectorRangedModel;
+
+  /** Get the model for the label under the cursor */
+  irisGetMacro(LabelUnderTheCursorIdModel, LabelTypePropertyModel*)
+
+  /** Get the model for the label description under the cursor */
+  irisGetMacro(LabelUnderTheCursorTitleModel, StringPropertyModel*)
+
+  /** Get the model for the cursor coordinates */
+  irisGetMacro(CursorPositionModel, UIntVectorRangedModel *)
+
 protected:
 
   GlobalUIModel();
@@ -187,6 +203,21 @@ protected:
 
   // The current 2D toolbar mode
   SmartPtr<ConcretePropertyModel<ToolbarModeType> > m_ToolbarModeModel;
+
+  // Current coordinates of the cursor
+  SmartPtr<UIntVectorRangedModel> m_CursorPositionModel;
+  bool GetCursorPositionValueAndRange(
+      Vector3ui &value, NumericValueRange<Vector3ui> *range);
+  void SetCursorPosition(Vector3ui value);
+
+  // Label under the cursor
+  SmartPtr<LabelTypePropertyModel> m_LabelUnderTheCursorIdModel;
+  bool GetLabelUnderTheCursorIdValue(LabelType &value);
+
+  SmartPtr<StringPropertyModel> m_LabelUnderTheCursorTitleModel;
+  bool GetLabelUnderTheCursorTitleValue(std::string &value);
+
+
 };
 
 #endif // GLOBALUIMODEL_H

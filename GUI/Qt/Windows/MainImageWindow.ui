@@ -117,6 +117,7 @@
      <string>Tools</string>
     </property>
     <addaction name="actionImage_Contrast"/>
+    <addaction name="actionLabel_Editor"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSegmentation"/>
@@ -263,6 +264,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionLabel_Editor">
+   <property name="text">
+    <string>Label Editor ...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
  </widget>

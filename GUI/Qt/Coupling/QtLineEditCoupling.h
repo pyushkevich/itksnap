@@ -60,7 +60,7 @@ public:
 
   virtual const char *GetSignal()
   {
-    return SIGNAL(textEdited(const QString &));
+    return SIGNAL(textChanged(const QString &));
   }
 };
 
@@ -87,7 +87,7 @@ public:
 
   virtual const char *GetSignal()
   {
-    return SIGNAL(textEdited(const QString &));
+    return SIGNAL(textChanged(const QString &));
   }
 };
 

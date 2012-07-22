@@ -38,14 +38,14 @@
 #include "Registry.h"
 #include "ColorLabel.h"
 #include "itkExceptionObject.h"
-#include "itkObject.h"
+#include "itkDataObject.h"
 #include "SNAPEvents.h"
 
 /**
  * \class ColorLabelTable
  * \brief A table for managing color labels
  */
-class ColorLabelTable : public itk::Object
+class ColorLabelTable : public itk::DataObject
 {
 public:
   // Standard ITK macros
@@ -73,6 +73,19 @@ public:
 
   /** Get the first valid non-zero color label (or zero if there are none)  */
   LabelType GetFirstValidLabel() const;
+
+  /**
+    Get the first insertion spot after the specified color label. Return of
+    0 signifies no room left for insertion. The method wraps around the list
+    of labels.
+   */
+  LabelType GetInsertionSpot(LabelType pos);
+
+  /**
+    Find the next valid label, given the selected label. If all else fails,
+    this will return label 0. The method wraps around.
+    */
+  LabelType FindNextValidLabel(LabelType pos, bool includeClearInSearch);
 
   /**
     Get the color label corresponding to the given value. If the requested

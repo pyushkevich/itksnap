@@ -25,11 +25,6 @@ ImageInfoModel::ImageInfoModel()
   m_ImageNiftiCoordinatesModel = makeChildPropertyModel(
         this, &Self::GetImageNiftiCoordinates);
 
-  m_ImageVoxelCoordinatesModel = makeChildPropertyModel(
-        this,
-        &Self::GetImageVoxelCoordinatesValueAndRange,
-        &Self::SetImageVoxelCoordinates);
-
   m_ImageMinMaxModel = makeChildPropertyModel(
         this, &Self::GetImageMinMax);
 
@@ -72,6 +67,7 @@ void ImageInfoModel::UnRegisterFromLayer(GreyImageWrapperBase *layer)
 bool ImageInfoModel
 ::GetImageDimensions(Vector3ui &value)
 {
+  if(!this->GetLayer()) return false;
   value = GetLayer()->GetSize();
   return true;
 }
@@ -79,6 +75,7 @@ bool ImageInfoModel
 bool ImageInfoModel
 ::GetImageOrigin(Vector3d &value)
 {
+  if(!this->GetLayer()) return false;
   value = GetLayer()->GetImageBase()->GetOrigin();
   return true;
 }
@@ -86,6 +83,7 @@ bool ImageInfoModel
 bool ImageInfoModel
 ::GetImageSpacing(Vector3d &value)
 {
+  if(!this->GetLayer()) return false;
   value = GetLayer()->GetImageBase()->GetSpacing();
   return true;
 }
@@ -93,6 +91,7 @@ bool ImageInfoModel
 bool ImageInfoModel
 ::GetImageItkCoordinates(Vector3d &value)
 {
+  if(!this->GetLayer()) return false;
   Vector3ui cursor = m_ParentModel->GetDriver()->GetCursorPosition();
   value = GetLayer()->TransformVoxelIndexToPosition(cursor);
   return true;
@@ -101,31 +100,16 @@ bool ImageInfoModel
 bool ImageInfoModel
 ::GetImageNiftiCoordinates(Vector3d &value)
 {
+  if(!this->GetLayer()) return false;
   Vector3ui cursor = m_ParentModel->GetDriver()->GetCursorPosition();
   value = GetLayer()->TransformVoxelIndexToNIFTICoordinates(to_double(cursor));
   return true;
 }
 
 bool ImageInfoModel
-::GetImageVoxelCoordinatesValueAndRange(
-    Vector3ui &value, NumericValueRange<Vector3ui> *range)
-{
-  value = m_ParentModel->GetDriver()->GetCursorPosition();
-  if(range)
-    {
-    range->Set(Vector3ui(0), GetLayer()->GetSize() - (unsigned int) 1, Vector3ui(1));
-    }
-  return true;
-}
-
-void ImageInfoModel::SetImageVoxelCoordinates(Vector3ui value)
-{
-  m_ParentModel->GetDriver()->SetCursorPosition(value);
-}
-
-bool ImageInfoModel
 ::GetImageMinMax(Vector2d &value)
 {
+  if(!this->GetLayer()) return false;
   value = Vector2d(GetLayer()->GetImageMinNative(),
                    GetLayer()->GetImageMaxNative());
   return true;
@@ -134,6 +118,8 @@ bool ImageInfoModel
 bool ImageInfoModel
 ::GetImageOrientation(std::string &value)
 {
+  if(!this->GetLayer()) return false;
+
   const ImageCoordinateGeometry &geo =
       m_ParentModel->GetDriver()->GetCurrentImageData()->GetImageGeometry();
   ImageCoordinateGeometry::DirectionMatrix dmat =

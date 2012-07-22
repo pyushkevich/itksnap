@@ -6,45 +6,7 @@
 #include <ColorLabel.h>
 #include <ColorLabelTable.h>
 #include <GlobalUIModel.h>
-
-typedef ConcretePropertyModel<
-  LabelType, STLMapItemSetDomain<LabelType, ColorLabel> > ConcreteColorLabelPropertyModelBase;
-
-
-/**
-  This is an ITK-SNAP model that internally stores a color label and provides
-  a set of options, correponding to currently available color labels
-  */
-class ConcreteColorLabelPropertyModel : public ConcreteColorLabelPropertyModelBase
-{
-public:
-  // Standard ITK stuff
-  typedef STLMapItemSetDomain<LabelType, ColorLabel> DomainType;
-  typedef ConcreteColorLabelPropertyModel Self;
-  typedef ConcretePropertyModel<LabelType, DomainType> Superclass;
-  typedef SmartPtr<Self> Pointer;
-  typedef SmartPtr<const Self> ConstPointer;
-  itkTypeMacro(ConcreteColorLabelPropertyModel, ConcretePropertyModel)
-  itkNewMacro(Self)
-
-  /** Set the color label table, from which this model constructs its domain
-    representation */
-  void Initialize(ColorLabelTable *clt)
-  {
-    // Ititialize the domain representation
-    DomainType dom(&clt->GetValidLabels());
-    this->SetDomain(dom);
-
-    // We should also listen to events from the label table, and rebroadcast
-    // as changes to the domain. Note that there are two types of changes to the
-    // label table, one that is a reconfiguration and another that is a property
-    // change. These map to different kinds of domain change events.
-    Rebroadcast(clt, SegmentationLabelConfigurationChangeEvent(), DomainChangedEvent());
-    Rebroadcast(clt, SegmentationLabelPropertyChangeEvent(), DomainDescriptionChangedEvent());
-  }
-};
-
-
+#include <ColorLabelPropertyModel.h>
 
 class LabelEditorModel : public AbstractModel
 {
@@ -80,7 +42,32 @@ public:
   /** Get the model for the current label id */
   irisGetMacro(CurrentLabelColorModel, RGBColorValueModel *)
 
-  protected:
+  /** Change the label id of the selected label */
+  bool ReassignLabelId(LabelType newid);
+
+  /**
+    States in which the model can be, which allow the activation and
+    deactivation of various widgets in the interface
+    */
+  enum UIState {
+    UIF_EDITABLE_LABEL_SELECTED
+  };
+
+  /**
+    Check the state flags above
+    */
+  bool CheckState(UIState state);
+
+  /** Create a new label */
+  bool MakeNewLabel(bool copyCurrent);
+
+  /** Will deleting the current label affect the segmentation? */
+  bool IsLabelDeletionDestructive();
+
+  /** Delete the selected label */
+  void DeleteCurrentLabel();
+
+protected:
 
   // Hidden constructor/destructor
   LabelEditorModel();

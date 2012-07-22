@@ -232,6 +232,7 @@ SET(LOGIC_HEADERS
 SET(UI_GENERIC_CXX
   GUI/Model/AbstractLayerAssociatedModel.cxx
   GUI/Model/AbstractModel.cxx
+  GUI/Model/ColorLabelPropertyModel.cxx
   GUI/Model/ColorMapModel.cxx
   GUI/Model/Generic3DModel.cxx
   GUI/Model/GenericSliceModel.cxx
@@ -264,6 +265,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/AbstractLayerAssociatedModel.h
   GUI/Model/AbstractModel.h
   GUI/Model/ColorMapModel.h
+  GUI/Model/ColorLabelPropertyModel.h
   GUI/Model/Generic3DModel.h
   GUI/Model/GenericSliceModel.h
   GUI/Model/GlobalUIModel.h

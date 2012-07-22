@@ -67,6 +67,12 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   // Also listen to events on the color map
   Rebroadcast(m_Model->GetParentUI()->GetColorMapModel(),
               ModelUpdateEvent(), AppearanceUpdateEvent());
+
+  // The color label table is yet another source of appearance changes
+  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetColorLabelTable(),
+              SegmentationLabelPropertyChangeEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetColorLabelTable(),
+              SegmentationLabelConfigurationChangeEvent(), AppearanceUpdateEvent());
 }
 
 void GenericSliceRenderer::OnUpdate()

@@ -94,6 +94,40 @@ extern const GreyType MAXGREYVAL;
 extern const GreyType MINGREYVAL;
 typedef itk::RGBPixel<unsigned char> RGBType;
 
+// Coverage mode for draw-over operations
+enum CoverageModeType
+{
+  PAINT_OVER_ALL = 0,
+  PAINT_OVER_VISIBLE,
+  PAINT_OVER_ONE
+};
+
+// An atomic data type to represent draw-over state
+struct DrawOverFilter
+{
+  CoverageModeType CoverageMode;
+  LabelType DrawOverLabel;
+
+  bool operator == (const DrawOverFilter &cmp) const
+  {
+    return CoverageMode == cmp.CoverageMode
+        && DrawOverLabel == cmp.DrawOverLabel;
+  }
+
+  bool operator != (const DrawOverFilter &cmp) const
+  {
+    return CoverageMode != cmp.CoverageMode
+        || DrawOverLabel != cmp.DrawOverLabel;
+  }
+
+  DrawOverFilter()
+    : CoverageMode(PAINT_OVER_ALL), DrawOverLabel(0) {}
+  DrawOverFilter(CoverageModeType cm, LabelType label)
+    : CoverageMode(cm), DrawOverLabel(label) {}
+  DrawOverFilter(const DrawOverFilter &ref)
+    : CoverageMode(ref.CoverageMode), DrawOverLabel(ref.DrawOverLabel) {}
+};
+
 #define MAX_COLOR_LABELS 0xffff
 #define NUM_INITIAL_COLOR_LABELS 6
 

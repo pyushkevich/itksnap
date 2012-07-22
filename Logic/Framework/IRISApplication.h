@@ -261,6 +261,11 @@ public:
    */
   size_t ReplaceLabel(LabelType drawing, LabelType drawover);
 
+  /**
+    Number of voxels of a given label in the segmentation.
+    */
+  size_t GetNumberOfVoxelsWithLabel(LabelType label);
+
   /*
    * Cut the segmentation using a plane and relabed the segmentation
    * on the side of that plane

@@ -10,6 +10,10 @@
 #include <IntensityCurveModel.h>
 #include <LayerSelectionModel.h>
 
+#include <QtSpinBoxCoupling.h>
+#include <QtLineEditCoupling.h>
+#include <QtWidgetArrayCoupling.h>
+
 
 CursorInspector::CursorInspector(QWidget *parent) :
     SNAPComponent(parent),
@@ -56,6 +60,13 @@ void CursorInspector::SetModel(GlobalUIModel *model)
 
   // Listen to cursor changes
   connectITK(m_Model, CursorUpdateEvent());
+
+  // Couple to the model
+  makeCoupling(ui->outLabelId, m_Model->GetLabelUnderTheCursorIdModel());
+  makeCoupling(ui->outLabelText, m_Model->GetLabelUnderTheCursorTitleModel());
+
+  makeArrayCoupling(ui->inCursorX, ui->inCursorY, ui->inCursorZ,
+                    m_Model->GetCursorPositionModel());
 }
 
 void CursorInspector::onModelUpdate(const EventBucket &)
@@ -81,14 +92,6 @@ void CursorInspector::UpdateUIFromModel()
       sp[i]->setMaximum(gid->GetMain()->GetSize()[i]-1);
       sp[i]->setValue(app->GetCursorPosition()[i]);
       sp[i]->setSingleStep(1);
-      }
-
-    // Update the label display
-    if(gid->IsSegmentationLoaded())
-      {
-      LabelType label = gid->GetSegmentation()->GetVoxel(app->GetCursorPosition());
-      ui->outLabelId->setValue(label);
-      ui->outLabelText->setText(app->GetColorLabelTable()->GetColorLabel(label).GetLabel());
       }
     }
 }

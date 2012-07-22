@@ -78,9 +78,6 @@ IRISApplication
 ::IRISApplication() 
 : m_UndoManager(4,200000)
 {
-  // Construct new global state object
-  m_GlobalState = new GlobalState;
-
   // Create a new system interface
   m_SystemInterface = new SystemInterface();
 
@@ -93,6 +90,9 @@ IRISApplication
 
   // Set the current IRIS pointer
   m_CurrentImageData = m_IRISImageData;
+
+  // Construct new global state object
+  m_GlobalState = new GlobalState(this);
 
   // Initialize the display-anatomy transformation with RPI code
   m_DisplayToAnatomyRAI[0] = "RPS";
@@ -343,18 +343,18 @@ IRISApplication
 ::DrawOverLabel(LabelType iTarget)
 {
   // Get the current merge settings
-  CoverageModeType iMode = m_GlobalState->GetCoverageMode();
+  DrawOverFilter filter = m_GlobalState->GetDrawOverFilter();
   LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
-  LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();  
 
   // Assign the output intensity based on the current drawing mode    
   bool visible = m_ColorLabelTable->GetColorLabel(iTarget).IsVisible();
 
   // If mode is paint over all, the victim is overridden
   return
-     ((iMode == PAINT_OVER_ALL) ||
-      (iMode == PAINT_OVER_VISIBLE && visible) ||
-      (iMode == PAINT_OVER_ONE && iDrawOver == iTarget)) ? iDrawing : iTarget;
+      ((filter.CoverageMode == PAINT_OVER_ALL) ||
+       (filter.CoverageMode == PAINT_OVER_VISIBLE && visible) ||
+       (filter.CoverageMode == PAINT_OVER_ONE && filter.DrawOverLabel == iTarget))
+      ? iDrawing : iTarget;
 }
 
 unsigned int
@@ -372,9 +372,9 @@ IRISApplication
   LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
 
   // Drawing parameters
-  CoverageModeType iMode = m_GlobalState->GetCoverageMode();
+  CoverageModeType iMode = m_GlobalState->GetDrawOverFilter().CoverageMode;
   LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
-  LabelType iDrawOver = m_GlobalState->GetOverWriteColorLabel();
+  LabelType iDrawOver = m_GlobalState->GetDrawOverFilter().DrawOverLabel;
   bool invert = m_GlobalState->GetPolygonInvert();
 
   // Keep track of the number of pixels changed
@@ -995,6 +995,28 @@ IRISApplication
   return nvoxels;
 }
 
+// TODO: This information should be cached at the segmentation layer level
+// by keeping track of label counts after every update operation.
+size_t
+IRISApplication
+::GetNumberOfVoxelsWithLabel(LabelType label)
+{
+  // Get the label image
+  assert(m_CurrentImageData->IsSegmentationLoaded());
+  LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
+
+  // Get the number of voxels
+  size_t nvoxels = 0;
+  for(LabelImageWrapper::ConstIterator it(seg, seg->GetBufferedRegion());
+      !it.IsAtEnd(); ++it)
+    {
+    if(it.Get() == label)
+      ++nvoxels;
+    }
+
+  return nvoxels;
+}
+
 
 void 
 IRISApplication
@@ -1448,7 +1470,7 @@ void IRISApplication::LoadLabelDescriptions(const char *file)
 
   // Reset the current drawing and overlay labels
   m_GlobalState->SetDrawingColorLabel(m_ColorLabelTable->GetFirstValidLabel());
-  m_GlobalState->SetOverWriteColorLabel(0);
+  m_GlobalState->SetDrawOverFilter(DrawOverFilter());
 
   // Update the history
   m_SystemInterface->UpdateHistory("LabelDescriptions", file);

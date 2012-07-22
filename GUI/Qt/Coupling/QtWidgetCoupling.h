@@ -80,8 +80,8 @@ public:
       TWidgetPtr w, ModelType *model,
       WidgetValueTraits valueTraits, WidgetDomainTraits domainTraits)
     : m_Widget(w), m_Model(model), m_Updating(false),
-      m_ValueTraits(valueTraits), m_DomainTraits(domainTraits) {}
-
+      m_ValueTraits(valueTraits), m_DomainTraits(domainTraits),
+      m_CachedValueAvailable(false) {}
 
   /** 
    * Called the first time the widget is coupled to the model in order to
@@ -121,6 +121,8 @@ public:
          model_value != user_value)
         {
         m_Model->SetValue(user_value);
+        m_CachedWidgetValue = user_value;
+        m_CachedValueAvailable = true;
         }
       }
   }
@@ -136,47 +138,47 @@ protected:
 
     // The domain should only be updated in the bucket contains the range
     // event (the target range has been modified)
+    DomainType *domptr = NULL;
     if(flagDomainChange || flagDomainDescriptionChange)
       {
-      // Prepopulate the range with current values in case the model does
-      // not actually compute ranges
-      DomainType domain = m_DomainTraits.GetDomain(m_Widget);
-
-      // Obtain the value from the model
-      if(m_Model->GetValueAndDomain(value, &domain))
-        {
-        if(flagDomainChange)
-          {
-          m_DomainTraits.SetDomain(m_Widget, domain);
-          }
-        else
-          {
-          m_DomainTraits.UpdateDomainDescription(m_Widget, domain);
-          }
-
-        m_ValueTraits.SetValue(m_Widget, value);
-        }
-      else
-        {
-        m_ValueTraits.SetValueToNull(m_Widget);
-        }
+      m_DomainTemp = m_DomainTraits.GetDomain(m_Widget);
+      domptr = &m_DomainTemp;
       }
 
-    else
+    // Obtain the value from the model
+    if(m_Model->GetValueAndDomain(value, domptr))
       {
-      // Domain has not changed, so we don't need to change it
-      if(m_Model->GetValueAndDomain(value, NULL))
+      // Update the domain if necessary. The updates to the domain never come
+      // in response to the user interaction with m_Widget, so it's safe to
+      // just call SetDomain without first checking if the change is 'real'.
+      if(flagDomainChange)
+        {
+        m_DomainTraits.SetDomain(m_Widget, m_DomainTemp);
+
+        // Once the domain changes, the current cached value can no longer be
+        // trusted because the widget may have reconfigured.
+        m_CachedValueAvailable = false;
+        }
+      else if(flagDomainDescriptionChange)
+        {
+        m_DomainTraits.UpdateDomainDescription(m_Widget, m_DomainTemp);
+        }
+
+      // Before setting the value, we should check it against the cached value
+      if(!m_CachedValueAvailable || m_CachedWidgetValue != value)
         {
         m_ValueTraits.SetValue(m_Widget, value);
+        m_CachedWidgetValue = value;
+        m_CachedValueAvailable = true;
         }
-      else
-        {
-        m_ValueTraits.SetValueToNull(m_Widget);
-        }
+      }
+    else
+      {
+      m_ValueTraits.SetValueToNull(m_Widget);
+      m_CachedValueAvailable = false;
       }
 
     m_Updating = false;
-
   }
 
 private:
@@ -186,6 +188,17 @@ private:
   bool m_Updating;
   WidgetValueTraits m_ValueTraits;
   WidgetDomainTraits m_DomainTraits;
+
+  // A temporary copy of the domain
+  DomainType m_DomainTemp;
+
+  // We cache the last known value in the widget to avoid unnecessary updates
+  // of the widget in response to events generated from the model after the
+  // model has been updated in response to the widget.
+  AtomicType m_CachedWidgetValue;
+
+  // Whether or not the cached value can be used
+  bool m_CachedValueAvailable;
 };
 
 
@@ -293,7 +306,7 @@ public:
 
     // This is where we actually populate the widget
     for(typename DomainType::const_iterator it = domain.begin();
-        it != domain.end(); it++)
+        it != domain.end(); ++it)
       {
       // Get the key/value pair
       AtomicType value = domain.GetValue(it);
@@ -369,6 +382,42 @@ protected:
 };
 
 /**
+  This class simplifies passing parameters to the makeCoupling functions.
+  */
+struct QtCouplingOptions
+{
+  /**
+    This value allow the default signal associated with a widget coupling
+    to be overriden. For each Qt widget, there is a default signal that we
+    have picked, but in some cases there may be a reason to choose a different
+    signal. The model is updated in response to this signal. When set to NULL
+    this means that the default signal will be used.
+    */
+  const char *SignalOverride;
+
+  /**
+    This flag disconnects the Widget -> Model direction of the coupling. The
+    coupling will update the widget value and domain in response to changes
+    in the model, but it will not update the model from changes in the widget.
+    This is useful when we want to explicitly handle changes in the
+    widget. For example, if we need to check the validity of the value and/or
+    present a dialog box, we would use this option, and then set up an explicit
+    slot to handle changes from the widget and update the model.
+    */
+  bool Unidirectional;
+
+  QtCouplingOptions()
+    : SignalOverride(NULL), Unidirectional(false) {}
+
+  QtCouplingOptions(const char *signal, bool unidir)
+    : SignalOverride(signal), Unidirectional(unidir) {}
+
+  QtCouplingOptions(const QtCouplingOptions &ref)
+    : SignalOverride(ref.SignalOverride),
+      Unidirectional(ref.Unidirectional) {}
+};
+
+/**
  * This function is the entry point into the coupling system between property models
  * (values with a domain) and Qt widgets. There are three versions of this method. 
  * All versions take a model and a widget as parameters. They differ in whether the
@@ -386,7 +435,7 @@ void makeCoupling(
     TModel *model,
     WidgetValueTraits valueTraits,
     WidgetDomainTraits domainTraits,
-    const char *signal = NULL)
+    QtCouplingOptions opts = QtCouplingOptions())
 {
   typedef typename TModel::ValueType ValueType;
   typedef typename TModel::DomainType DomainType;
@@ -415,22 +464,26 @@ void makeCoupling(
         model, DomainDescriptionChangedEvent(),
         h, SLOT(onPropertyModification(const EventBucket &)));
 
-  // Listen to value change events for this widget
-  const char *mysignal = (signal) ? signal : valueTraits.GetSignal();
-  h->connect(w, mysignal, SLOT(onUserModification()));
+  // Listen to change events on this widget, unless asked not to
+  if(!opts.Unidirectional)
+    {
+    const char *mysignal = (opts.SignalOverride)
+        ? opts.SignalOverride : valueTraits.GetSignal();
+    h->connect(w, mysignal, SLOT(onUserModification()));
+    }
 }
 
 template <class TModel, class TWidget, class WidgetValueTraits>
 void makeCoupling(TWidget *w,
                   TModel *model,
                   WidgetValueTraits trValue,
-                  const char *signal = NULL)
+                  QtCouplingOptions opts = QtCouplingOptions())
 {
   typedef typename TModel::DomainType DomainType;
   typedef DefaultWidgetDomainTraits<DomainType, TWidget> WidgetDomainTraits;
   makeCoupling<TModel, TWidget,
       WidgetValueTraits, WidgetDomainTraits>(
-        w, model, trValue, WidgetDomainTraits(), signal);
+        w, model, trValue, WidgetDomainTraits(), opts);
 }
 
 
@@ -447,12 +500,12 @@ void makeCoupling(TWidget *w,
 template <class TModel, class TWidget>
 void makeCoupling(TWidget *w,
                   TModel *model,
-                  const char *signal = NULL)
+                  QtCouplingOptions opts = QtCouplingOptions())
 {
   typedef typename TModel::ValueType ValueType;
   typedef DefaultWidgetValueTraits<ValueType, TWidget> WidgetValueTraits;
   makeCoupling<TModel, TWidget,WidgetValueTraits>(
-        w, model, WidgetValueTraits(), signal);
+        w, model, WidgetValueTraits(), opts);
 }
 
 

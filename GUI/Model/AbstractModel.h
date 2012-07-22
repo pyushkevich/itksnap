@@ -43,6 +43,22 @@ public:
     */
   void Update();
 
+
+  /**
+    Listen to events of type srcEvent on the object src, and rebroadcast
+    them as event trgEvent. In the process, record the srcEvent in the
+    event bucket. This is the main mechanism for model updates. The model
+    listens to events occurring upstream. When an event occurs, the model
+    only records the event and invokes its own event, to which the view
+    objects downstream are listening. It is then the view's responsibility
+    to call the Update() function on the model. This function checks what
+    events are in the event bucket, and processes them in an orderly fashion.
+    */
+  unsigned long Rebroadcast(
+      itk::Object *src, const itk::EventObject &srcEvent,
+      const itk::EventObject &trgEvent);
+
+
 protected:
 
   AbstractModel();
@@ -63,20 +79,6 @@ protected:
     AbstractModel *m_Model;
     itk::EventObject *m_Event;
   };
-
-  /**
-    Listen to events of type srcEvent on the object src, and rebroadcast
-    them as event trgEvent. In the process, record the srcEvent in the
-    event bucket. This is the main mechanism for model updates. The model
-    listens to events occurring upstream. When an event occurs, the model
-    only records the event and invokes its own event, to which the view
-    objects downstream are listening. It is then the view's responsibility
-    to call the Update() function on the model. This function checks what
-    events are in the event bucket, and processes them in an orderly fashion.
-    */
-  unsigned long Rebroadcast(
-      itk::Object *src, const itk::EventObject &srcEvent,
-      const itk::EventObject &trgEvent);
 
   /**
     This is the method called by Update() if there are events in the

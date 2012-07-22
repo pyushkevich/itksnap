@@ -34,17 +34,19 @@ class GenericSliceView;
 class SliceViewPanel;
 class GlobalUIModel;
 
+class LabelEditorDialog;
+
 namespace Ui {
-    class MainImageWindow;
+class MainImageWindow;
 }
 
 class MainImageWindow : public QMainWindow
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit MainImageWindow(QWidget *parent = 0);
-    ~MainImageWindow();
+  explicit MainImageWindow(QWidget *parent = 0);
+  ~MainImageWindow();
 
   SliceViewPanel *GetSlicePanel(unsigned int i);
 
@@ -53,7 +55,6 @@ public:
 
   // Get model
   irisGetMacro(Model, GlobalUIModel *)
-
 
 private slots:
   void on_actionOpen_Greyscale_Image_triggered();
@@ -70,10 +71,14 @@ private slots:
 
   void on_actionImage_Contrast_triggered();
 
-private:
-    Ui::MainImageWindow *ui;
+  void on_actionLabel_Editor_triggered();
 
-    GlobalUIModel *m_Model;
+private:
+  Ui::MainImageWindow *ui;
+
+  GlobalUIModel *m_Model;
+
+  LabelEditorDialog *m_LabelEditor;
 };
 
 #endif // MAINIMAGEWINDOW_H

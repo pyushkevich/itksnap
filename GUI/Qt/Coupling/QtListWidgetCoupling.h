@@ -99,6 +99,8 @@ public:
     QListWidgetItem *item = new QListWidgetItem(ic, text, w);
     item->setData(Qt::UserRole, label);
     item->setData(Qt::UserRole + 1, fill);
+    item->setData(Qt::EditRole, text);
+    // item->setFlags(item->flags() | Qt::ItemIsEditable);
   }
 
   static void updateRowDescription(QListWidget *w, int index, const ColorLabel &cl)
@@ -123,8 +125,17 @@ public:
     if(currentText != newText)
       {
       item->setText(newText);
+      item->setData(Qt::EditRole, newText);
       }
   }
 };
+
+// Define the defaults
+template <class TDomain>
+class DefaultWidgetDomainTraits<TDomain, QListWidget>
+    : public ItemSetWidgetDomainTraits<TDomain, QListWidget, ColorLabelToListWidgetTraits>
+{
+};
+
 
 #endif // QTLISTWIDGETCOUPLING_H

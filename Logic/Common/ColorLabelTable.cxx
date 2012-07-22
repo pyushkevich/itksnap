@@ -317,6 +317,7 @@ ColorLabelTable
   m_LabelMap[0] = this->GetDefaultColorLabel(0);
 
   // Fire the event
+  this->Modified();
   InvokeEvent(SegmentationLabelConfigurationChangeEvent());
 }
 
@@ -334,6 +335,7 @@ ColorLabelTable
     }
 
   // Fire the event
+  this->Modified();
   InvokeEvent(SegmentationLabelConfigurationChangeEvent());
 }
 
@@ -358,6 +360,8 @@ ColorLabelTable
     m_LabelMap.erase(it);
     InvokeEvent(SegmentationLabelConfigurationChangeEvent());
     }
+
+  this->Modified();
 }
 
 bool
@@ -429,6 +433,8 @@ void ColorLabelTable::SetColorLabel(size_t id, const ColorLabel &label)
     it->second = label;
     InvokeEvent(SegmentationLabelPropertyChangeEvent());
     }
+
+  this->Modified();
  }
 
 const ColorLabel ColorLabelTable::GetColorLabel(size_t id) const
@@ -450,5 +456,35 @@ LabelType ColorLabelTable::GetFirstValidLabel() const
     return it->first;
     }
   else return 0;
+}
+
+LabelType ColorLabelTable::GetInsertionSpot(LabelType pos)
+{
+  // Search for an available position
+  for(int i = 0; i < MAX_COLOR_LABELS; i++)
+    {
+    LabelType testpos = (pos + i) % MAX_COLOR_LABELS;
+    if(!this->IsColorLabelValid(testpos))
+      return testpos;
+    }
+
+  // Nothing found - return 0
+  return 0;
+}
+
+LabelType ColorLabelTable::FindNextValidLabel(
+    LabelType pos, bool includeClearInSearch)
+{
+  // Search for an available position. This may be a little inefficient
+  // but this is a rarely used operation.
+  for(int i = 1; i < MAX_COLOR_LABELS; i++)
+    {
+    LabelType testpos = (pos + i) % MAX_COLOR_LABELS;
+    if(IsColorLabelValid(testpos) && (testpos > 0 || includeClearInSearch))
+      return testpos;
+    }
+
+  // Nothing found - return 0
+  return 0;
 }
 

@@ -1,14 +1,18 @@
 #include "LabelEditorModel.h"
 #include "IRISApplication.h"
+#include "IRISException.h"
 
 LabelEditorModel::LabelEditorModel()
 {
-  // Initialize the models
+  // Create a new instance of the model
   m_CurrentLabelModel = ConcreteColorLabelPropertyModel::New();
 
   // When the value in the model changes, we need to rebroadcast this
   // as a change in the model, so the GUI can update itself
   Rebroadcast(m_CurrentLabelModel, ValueChangedEvent(), ModelUpdateEvent());
+
+  // The model update events should also be rebroadcast as state changes
+  Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
 
   // Initialize the wrapper models
   m_CurrentLabelDescriptionModel = makeChildPropertyModel(
@@ -168,4 +172,138 @@ bool LabelEditorModel::GetAndStoreCurrentLabel()
   return false;
 }
 
+bool LabelEditorModel::CheckState(LabelEditorModel::UIState state)
+{
+  bool valid = GetAndStoreCurrentLabel();
+  switch(state)
+    {
+    case UIF_EDITABLE_LABEL_SELECTED:
+      return valid && m_SelectedId > 0;
+    }
+  return true;
+}
 
+bool LabelEditorModel::MakeNewLabel(bool copyCurrent)
+{
+  bool valid = GetAndStoreCurrentLabel();
+  if(valid)
+    {
+    // Find the next insertion spot after the current selection
+    LabelType insertpos = m_LabelTable->GetInsertionSpot(m_SelectedId);
+
+    // If the insertion spot returned is zero, throw an exception (no room)
+    if(insertpos == 0)
+      return false;
+
+    // Create a new label at this position and set the selection to it
+    m_LabelTable->SetColorLabelValid(insertpos, true);
+
+    // Duplicate current label if needed
+    if(copyCurrent)
+      {
+      // Append ' copy' to the text of the color label
+      std::string title = m_SelectedColorLabel.GetLabel();
+      if(title.substr(title.size() - 5) != " copy")
+        title += " copy";
+      m_SelectedColorLabel.SetLabel(title.c_str());
+      m_LabelTable->SetColorLabel(insertpos, m_SelectedColorLabel);
+      }
+
+    // Select the new label
+    m_CurrentLabelModel->SetValue(insertpos);
+
+    return true;
+    }
+  return false;
+}
+
+bool LabelEditorModel::IsLabelDeletionDestructive()
+{
+  if(GetAndStoreCurrentLabel())
+    return m_Parent->GetDriver()->GetNumberOfVoxelsWithLabel(m_SelectedId) > 0;
+  else
+    return false;
+}
+
+void LabelEditorModel::DeleteCurrentLabel()
+{
+  if(GetAndStoreCurrentLabel() && m_SelectedId > 0)
+    {
+    // Get the global state
+    GlobalState *gs = m_Parent->GetGlobalState();
+
+    // Compute the next available id that will be selected
+    LabelType lnext = m_LabelTable->FindNextValidLabel(m_SelectedId, false);
+
+    // Check if the drawing labe is pointing to the current id
+    if(gs->GetDrawingColorLabel() == m_SelectedId)
+      gs->SetDrawingColorLabel(lnext);
+
+    // Check for the draw over label as well. Here we use 0 as the replacement
+    DrawOverFilter dof = gs->GetDrawOverFilter();
+    if(dof.DrawOverLabel == m_SelectedId)
+      gs->SetDrawOverFilter(DrawOverFilter(dof.CoverageMode, 0));
+
+    // Replace all the voxels with the current label by zero
+    size_t nUpdated = m_Parent->GetDriver()->ReplaceLabel(0, m_SelectedId);
+
+    // If some voxels were removed, reset the undo state, because
+    // changes to the label metadata are not undoable operations (not yet)
+    if(nUpdated > 0)
+      {
+      // This operation can not be undone!
+      m_Parent->GetDriver()->ClearUndoPoints();
+      }
+
+    // Change the current selection
+    m_CurrentLabelModel->SetValue(lnext);
+
+    // Invalidate the current label
+    m_LabelTable->SetColorLabelValid(m_SelectedId, false);
+    }
+}
+
+bool LabelEditorModel::ReassignLabelId(LabelType newid)
+{
+  // Check if the ID is taken
+  if(m_LabelTable->IsColorLabelValid(newid))
+    return false;
+
+  // Do the relabeling
+  if(GetAndStoreCurrentLabel() && m_SelectedId > 0)
+    {
+    // Get the global state
+    GlobalState *gs = m_Parent->GetGlobalState();
+
+    // Create a new valid label and copy current label
+    m_LabelTable->SetColorLabelValid(newid, true);
+    m_LabelTable->SetColorLabel(newid, m_SelectedColorLabel);
+
+    // Check if the drawing label is pointing to the current id
+    if(gs->GetDrawingColorLabel() == m_SelectedId)
+      gs->SetDrawingColorLabel(newid);
+
+    // Check for the draw over label as well. Here we use 0 as the replacement
+    DrawOverFilter dof = gs->GetDrawOverFilter();
+    if(dof.DrawOverLabel == m_SelectedId)
+      gs->SetDrawOverFilter(DrawOverFilter(dof.CoverageMode, newid));
+
+    // Reassign the ID
+    size_t nUpdated = m_Parent->GetDriver()->ReplaceLabel(newid, m_SelectedId);
+
+    // There is no undo for this
+    if(nUpdated > 0)
+      {
+      // This operation can not be undone!
+      m_Parent->GetDriver()->ClearUndoPoints();
+      }
+
+    // Delete the old label
+    m_LabelTable->SetColorLabelValid(m_SelectedId, false);
+
+    // Select the new label
+    m_CurrentLabelModel->SetValue(newid);
+    }
+
+  return true;
+}

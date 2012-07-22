@@ -32,6 +32,9 @@
 #include <ColorLabel.h>
 #include <QComboBox>
 
+// This is to allow the code below to work with DrawOverFilter
+Q_DECLARE_METATYPE(DrawOverFilter)
+
 /**
   Default traits for mapping a numeric value (or any sort of key, actually)
   to a row in a combo box
@@ -57,8 +60,18 @@ public:
 
   void SetValue(QComboBox *w, const TAtomic &value)
   {
-    // We have to actually find the item
-    w->setCurrentIndex(w->findData(QVariant(value)));
+    // We have to actually find the item. I looked up the Qt findItem
+    // method and it seems quite involved and also quite long. So we
+    // just do our own loop
+    for(int i = 0; i < w->count(); i++)
+      {
+      if(value == w->itemData(i).value<TAtomic>())
+        {
+        w->setCurrentIndex(i);
+        return;
+        }
+      }
+    w->setCurrentIndex(-1);
   }
 
   void SetValueToNull(QComboBox *w)
@@ -67,8 +80,14 @@ public:
   }
 };
 
-template <class TAtomic>
-class ComboBoxRowTraitsBase
+/**
+  These are the row traits for adding and updating rows in combo boxes. This
+  class is further parameterized by the class TItemDesriptionTraits, which is
+  used to obtain the text and icon information from the value/description pairs
+  provided by the model.
+  */
+template <class TAtomic, class TItemDesriptionTraits>
+class TextAndIconComboBoxRowTraits
 {
 public:
   static void removeAll(QComboBox *w)
@@ -85,52 +104,131 @@ public:
   {
     return w->itemData(i).value<TAtomic>();
   }
-};
 
-/**
-  Row traits for mapping the description of a color label into a row in a combo box
-  */
-class ColorLabelToComboBoxWidgetTraits : public ComboBoxRowTraitsBase<LabelType>
-{
-public:
-
-  static void appendRow(QComboBox *w, LabelType label, const ColorLabel &cl)
+  static void appendRow(QComboBox *w, TAtomic label, const ColorLabel &cl)
   {
     // The description
-    QString text(cl.GetLabel());
+    QString text = TItemDesriptionTraits::GetText(label, cl); // QString text(cl.GetLabel());
 
-    // The color
-    QColor fill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
+    // The icon
+    QIcon icon = TItemDesriptionTraits::GetIcon(label, cl);
+
+    // The icon signature - a value that can be used to check if the icon has changed
+    QVariant iconSig = TItemDesriptionTraits::GetIconSignature(label, cl);
 
     // Icon based on the color
-    QIcon ic = CreateColorBoxIcon(16, 16, fill);
-
-    // Store all of these properties
-    w->addItem(ic, text, QVariant(label));
-    w->setItemData(w->count()-1, fill, Qt::UserRole + 1);
+    w->addItem(icon, text, QVariant::fromValue(label));
+    w->setItemData(w->count()-1, iconSig, Qt::UserRole + 1);
   }
 
   static void updateRowDescription(QComboBox *w, int index, const ColorLabel &cl)
   {
-    // Get the properies and compare them to the color label
-    QColor currentFill = w->itemData(index, Qt::UserRole + 1).value<QColor>();
-    QColor newFill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
+    // The current value
+    TAtomic label = w->itemData(index).value<TAtomic>();
 
-    if(currentFill != newFill)
+    // Get the properies and compare them to the color label
+    QVariant currentIconSig = w->itemData(index, Qt::UserRole + 1);
+    QVariant newIconSig = TItemDesriptionTraits::GetIconSignature(label, cl);
+
+    if(currentIconSig != newIconSig)
       {
-      QIcon ic = CreateColorBoxIcon(16, 16, newFill);
+      QIcon ic = TItemDesriptionTraits::GetIcon(label, cl);
       w->setItemIcon(index, ic);
-      w->setItemData(index, newFill, Qt::UserRole + 1);
+      w->setItemData(index, newIconSig, Qt::UserRole + 1);
       }
 
     QString currentText = w->itemText(index);
-    QString newText(cl.GetLabel());
+    QString newText = TItemDesriptionTraits::GetText(label, cl);
 
     if(currentText != newText)
       {
       w->setItemText(index, newText);
       }
   }
+};
+
+// Specific traits for filling drawing color label combos
+class DrawingColorRowDescriptionTraits
+{
+public:
+
+  static QString GetText(LabelType label, const ColorLabel &cl)
+  {
+    return QString(cl.GetLabel());
+  }
+
+  static QIcon GetIcon(LabelType label, const ColorLabel &cl)
+  {
+    return CreateColorBoxIcon(16, 16, QColor(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2)));
+  }
+
+  static QVariant GetIconSignature(LabelType label, const ColorLabel &cl)
+  {
+    return QColor(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
+  }
+};
+
+// Specific traits for filling draw-over color label combos
+class DrawOverFilterRowDescriptionTraits
+{
+public:
+
+  static QString GetText(DrawOverFilter filter, const ColorLabel &cl)
+  {
+    if(filter.CoverageMode == PAINT_OVER_ALL)
+      return QString("All labels");
+    else if(filter.CoverageMode == PAINT_OVER_VISIBLE)
+      return QString("All visible labels");
+    else
+      return DrawingColorRowDescriptionTraits::GetText(filter.DrawOverLabel, cl);
+  }
+
+  static QIcon GetIcon(DrawOverFilter filter, const ColorLabel &cl)
+  {
+    if(filter.CoverageMode == PAINT_OVER_ONE)
+      return DrawingColorRowDescriptionTraits::GetIcon(filter.DrawOverLabel, cl);
+    else
+      return CreateInvisibleIcon(16,16);
+  }
+
+  static QVariant GetIconSignature(DrawOverFilter filter, const ColorLabel &cl)
+  {
+    if(filter.CoverageMode == PAINT_OVER_ONE)
+      return DrawingColorRowDescriptionTraits::GetIconSignature(filter.DrawOverLabel, cl);
+    else
+      return QVariant(0i);
+  }
+};
+
+/**
+  Use template specialization to generate default traits based on the model
+  */
+template <class TAtomic, class TDesc>
+class DefaultComboBoxRowTraits
+{
+};
+
+template <>
+class DefaultComboBoxRowTraits<LabelType, ColorLabel>
+    : public TextAndIconComboBoxRowTraits<LabelType, DrawingColorRowDescriptionTraits>
+{
+};
+
+template <>
+class DefaultComboBoxRowTraits<DrawOverFilter, ColorLabel>
+    : public TextAndIconComboBoxRowTraits<DrawOverFilter, DrawOverFilterRowDescriptionTraits>
+{
+};
+
+
+// Define the defaults
+template <class TDomain>
+class DefaultWidgetDomainTraits<TDomain, QComboBox>
+    : public ItemSetWidgetDomainTraits<
+        TDomain, QComboBox,
+        DefaultComboBoxRowTraits<typename TDomain::ValueType,
+                                 typename TDomain::DescriptorType> >
+{
 };
 
 #endif // QTCOMBOBOXCOUPLING_H
