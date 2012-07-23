@@ -4,6 +4,7 @@
 #include <QSpinBox>
 #include <GenericImageData.h>
 #include <IRISApplication.h>
+#include <CursorInspectionModel.h>
 #include <GlobalUIModel.h>
 #include <QtWidgetActivator.h>
 #include <QMenu>
@@ -15,21 +16,13 @@
 #include <QtWidgetArrayCoupling.h>
 
 
+
 CursorInspector::CursorInspector(QWidget *parent) :
     SNAPComponent(parent),
     ui(new Ui::CursorInspector)
 {
   ui->setupUi(this);
   m_TableModel = new VoxelIntensityQTableModel(ui->tableView);
-
-  // Connect widgets (delayed)
-  QSpinBox *sp[] = {ui->inCursorX, ui->inCursorY, ui->inCursorZ};
-  for(unsigned int i = 0; i < 3; i++)
-    {
-    connect(sp[i], SIGNAL(valueChanged(int)), SLOT(onCursorEdit()),
-            Qt::QueuedConnection);
-    sp[i]->setKeyboardTracking(false);
-    }
 
   connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)),
           SLOT(onContextMenuRequested(QPoint)));
@@ -43,10 +36,10 @@ CursorInspector::~CursorInspector()
   delete ui;
 }
 
-void CursorInspector::SetModel(GlobalUIModel *model)
+void CursorInspector::SetModel(CursorInspectionModel *model)
 {
   m_Model = model;
-  m_TableModel->SetParentModel(model);
+  m_TableModel->SetParentModel(model->GetParent());
   ui->tableView->setModel(m_TableModel);
   ui->tableView->setAlternatingRowColors(true);
   ui->tableView->setFixedWidth(160);
@@ -56,10 +49,7 @@ void CursorInspector::SetModel(GlobalUIModel *model)
   UpdateUIFromModel();
 
   // Activators
-  activateOnFlag(this, m_Model, UIF_BASEIMG_LOADED);
-
-  // Listen to cursor changes
-  connectITK(m_Model, CursorUpdateEvent());
+  activateOnFlag(this, m_Model->GetParent(), UIF_BASEIMG_LOADED);
 
   // Couple to the model
   makeCoupling(ui->outLabelId, m_Model->GetLabelUnderTheCursorIdModel());
@@ -77,31 +67,6 @@ void CursorInspector::onModelUpdate(const EventBucket &)
 void CursorInspector::UpdateUIFromModel()
 {
   m_Model->Update();
-
-  // Get current data
-  IRISApplication *app = m_Model->GetDriver();
-  GenericImageData *gid = app->GetCurrentImageData();
-
-  if(gid->IsMainLoaded())
-    {
-    // Update the cursor display
-    QSpinBox *sp[] = {ui->inCursorX, ui->inCursorY, ui->inCursorZ};
-    for (unsigned int i = 0; i < 3; i++)
-      {
-      sp[i]->setMinimum(0);
-      sp[i]->setMaximum(gid->GetMain()->GetSize()[i]-1);
-      sp[i]->setValue(app->GetCursorPosition()[i]);
-      sp[i]->setSingleStep(1);
-      }
-    }
-}
-
-void CursorInspector::onCursorEdit()
-{
-  // Set the cursor from the current edits
-  m_Model->GetDriver()->SetCursorPosition(Vector3ui(ui->inCursorX->value(),
-                                                    ui->inCursorY->value(),
-                                                    ui->inCursorZ->value()));
 }
 
 void CursorInspector::onContextMenuRequested(QPoint pos)
@@ -111,18 +76,17 @@ void CursorInspector::onContextMenuRequested(QPoint pos)
     m_ContextMenu->popup(QCursor::pos());
 }
 
-
 void CursorInspector::on_actionAutoContrast_triggered()
 {
   LayerIterator it =
-      m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(m_PopupRow);
+      m_Model->GetParent()->GetLoadedLayersSelectionModel()->GetNthLayer(m_PopupRow);
 
   if(it.GetLayerAsGray())
     {
     // Select the currently highlighted layer
-    m_Model->GetIntensityCurveModel()->SetLayer(it.GetLayerAsGray());
+    m_Model->GetParent()->GetIntensityCurveModel()->SetLayer(it.GetLayerAsGray());
 
     // Auto-adjust intensity in the selected layer
-    m_Model->GetIntensityCurveModel()->OnAutoFitWindow();
+    m_Model->GetParent()->GetIntensityCurveModel()->OnAutoFitWindow();
     }
 }

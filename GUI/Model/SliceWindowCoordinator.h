@@ -66,8 +66,6 @@ public:
 
   FIRES(LinkedZoomUpdateEvent)
 
-  typedef AbstractRangedPropertyModel<double>::Type CommonZoomFactorModel;
-
   /** Assigns three windows for the coordinator to manage */
   void RegisterSliceModels(GenericSliceModel *windows[3]);
 
@@ -124,7 +122,7 @@ public:
   float GetCommonOptimalFitZoomLevel();
 
   /** Get the model representing the optimal zoom */
-  irisGetMacro(CommonZoomFactorModel, CommonZoomFactorModel*)
+  irisGetMacro(CommonZoomFactorModel, AbstractRangedDoubleProperty*)
 
   /** Constrain a zoom factor to reasonable limits */
   float ClampZoom(unsigned int window,float zoom);
@@ -173,7 +171,7 @@ protected:
   double ComputeSmallestOptimalZoomLevel();
 
   // Chold model governing linked zoom properties
-  SmartPtr<CommonZoomFactorModel> m_CommonZoomFactorModel;
+  SmartPtr<AbstractRangedDoubleProperty> m_CommonZoomFactorModel;
 
   // Access method for getting common zoom value and range
   bool GetCommonZoomValueAndRange(double &zoom,

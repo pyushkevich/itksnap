@@ -352,8 +352,61 @@ public:
   typedef AbstractPropertyModel<TVal, DomainType> Type;
 };
 
-typedef AbstractRangedPropertyModel<double>::Type AbstractDoubleRangedPropertyModel;
-typedef AbstractRangedPropertyModel<int>::Type AbstractIntRangedPropertyModel;
+template <class TVal>
+class ConcreteRangedPropertyModel
+{
+public:
+  typedef NumericValueRange<TVal> DomainType;
+  typedef ConcretePropertyModel<TVal, DomainType> Type;
+};
+
+/*
+Make some typedefs. The macros below define types
+
+  AbstractSimpleXXXProperty
+  AbstractRangedXXXProperty
+  ConcreteSimpleXXXProperty
+  ConcreteRangedXXXProperty
+*/
+
+#define MAKE_TYPEDEF_PM_RANGED(type,name) \
+  typedef AbstractPropertyModel< type > AbstractSimple##name##Property; \
+  typedef AbstractRangedPropertyModel< type >::Type AbstractRanged##name##Property; \
+  typedef ConcretePropertyModel< type > ConcreteSimple##name##Property; \
+  typedef ConcreteRangedPropertyModel< type >::Type ConcreteRanged##name##Property;
+
+#define MAKE_TYPEDEF_PM_NONRNG(type,name) \
+  typedef AbstractPropertyModel< type > AbstractSimple##name##Property; \
+  typedef ConcretePropertyModel< type > ConcreteSimple##name##Property;
+
+// Macros for standard types that support ranges
+MAKE_TYPEDEF_PM_RANGED(double,          Double)
+MAKE_TYPEDEF_PM_RANGED(float,           Float)
+MAKE_TYPEDEF_PM_RANGED(int,             Int)
+MAKE_TYPEDEF_PM_RANGED(unsigned int,    UInt)
+MAKE_TYPEDEF_PM_RANGED(short,           Short)
+MAKE_TYPEDEF_PM_RANGED(unsigned short,  UShort)
+MAKE_TYPEDEF_PM_RANGED(char,            Char)
+MAKE_TYPEDEF_PM_RANGED(unsigned char,   UChar)
+MAKE_TYPEDEF_PM_RANGED(bool,            Boolean)
+
+// Common SNAP typedefs
+MAKE_TYPEDEF_PM_RANGED(LabelType,       LabelType)
+
+// Common vector types
+MAKE_TYPEDEF_PM_RANGED(Vector2d,        DoubleVec2)
+MAKE_TYPEDEF_PM_RANGED(Vector3d,        DoubleVec3)
+MAKE_TYPEDEF_PM_RANGED(Vector2i,        IntVec2)
+MAKE_TYPEDEF_PM_RANGED(Vector3i,        IntVec3)
+MAKE_TYPEDEF_PM_RANGED(Vector2ui,       UIntVec2)
+MAKE_TYPEDEF_PM_RANGED(Vector3ui,       UIntVec3)
+MAKE_TYPEDEF_PM_RANGED(Vector2b,        BooleanVec2)
+MAKE_TYPEDEF_PM_RANGED(Vector3b,        BooleanVec3)
+
+// Macros for non-ranged types
+MAKE_TYPEDEF_PM_NONRNG(std::string,     String)
+
+
 
 
 /**

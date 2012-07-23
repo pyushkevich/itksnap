@@ -41,6 +41,7 @@
 #include <ImageInfoModel.h>
 #include <Generic3DModel.h>
 #include <LabelEditorModel.h>
+#include <CursorInspectionModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -103,6 +104,10 @@ GlobalUIModel::GlobalUIModel()
   m_LabelEditorModel = LabelEditorModel::New();
   m_LabelEditorModel->SetParentModel(this);
 
+  // Cursor inspection
+  m_CursorInspectionModel = CursorInspectionModel::New();
+  m_CursorInspectionModel->SetParentModel(this);
+
   // Initialize the properties
   m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
 
@@ -115,22 +120,6 @@ GlobalUIModel::GlobalUIModel()
   // The model needs to rebroadcast cusror change events as value changes
   m_CursorPositionModel->Rebroadcast(
         this, CursorUpdateEvent(), ValueChangedEvent());
-
-  // Create label information models. TODO: should we move this into a
-  // separate model object?
-  m_LabelUnderTheCursorIdModel = makeChildPropertyModel(
-        this, &GlobalUIModel::GetLabelUnderTheCursorIdValue);
-
-  // The models are hooked up to changes in label under the cursor
-  m_LabelUnderTheCursorIdModel->Rebroadcast(
-        this, LabelUnderCursorChangedEvent(), ValueChangedEvent());
-
-  m_LabelUnderTheCursorTitleModel = makeChildPropertyModel(
-        this, &GlobalUIModel::GetLabelUnderTheCursorTitleValue);
-
-  // The models are hooked up to changes in label under the cursor
-  m_LabelUnderTheCursorTitleModel->Rebroadcast(
-        this, LabelUnderCursorChangedEvent(), ValueChangedEvent());
 
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());
@@ -242,28 +231,7 @@ GlobalState * GlobalUIModel::GetGlobalState() const
   return m_Driver->GetGlobalState();
 }
 
-bool GlobalUIModel::GetLabelUnderTheCursorIdValue(LabelType &value)
-{
-  if(m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
-    {
-    value = m_Driver->GetCurrentImageData()->GetSegmentation()
-        ->GetVoxel(m_Driver->GetCursorPosition());
-    return true;
-    }
-  return false;
-}
 
-bool GlobalUIModel::GetLabelUnderTheCursorTitleValue(std::string &value)
-{
-  if(m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
-    {
-    LabelType label = m_Driver->GetCurrentImageData()->GetSegmentation()
-        ->GetVoxel(m_Driver->GetCursorPosition());
-    value = m_Driver->GetColorLabelTable()->GetColorLabel(label).GetLabel();
-    return true;
-    }
-  return false;
-}
 
 bool GlobalUIModel::GetCursorPositionValueAndRange(
     Vector3ui &value, NumericValueRange<Vector3ui> *range)

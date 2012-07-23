@@ -39,7 +39,6 @@ LabelEditorModel::LabelEditorModel()
         this,
         &Self::GetCurrentLabelColor,
         &Self::SetCurrentLabelColor);
-
 }
 
 void LabelEditorModel::SetParentModel(GlobalUIModel *parent)

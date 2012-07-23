@@ -11,12 +11,6 @@
 class LabelEditorModel : public AbstractModel
 {
 public:
-  typedef AbstractRangedPropertyModel<double>::Type DoubleValueModel;
-  typedef AbstractRangedPropertyModel<int>::Type IntegerValueModel;
-  typedef AbstractRangedPropertyModel<bool>::Type BooleanValueModel;
-  typedef AbstractPropertyModel<std::string> StringValueModel;
-  typedef AbstractPropertyModel<iris_vector_fixed<bool, 2> > BooleanPairValueModel;
-  typedef AbstractPropertyModel<Vector3ui> RGBColorValueModel;
 
   // Standard ITK stuff
   irisITKObjectMacro(LabelEditorModel, AbstractModel)
@@ -28,19 +22,19 @@ public:
   irisGetMacro(CurrentLabelModel, ConcreteColorLabelPropertyModel *)
 
   /** Get the model for the current label description */
-  irisGetMacro(CurrentLabelDescriptionModel, StringValueModel *)
+  irisGetMacro(CurrentLabelDescriptionModel, AbstractSimpleStringProperty *)
 
   /** Get the model for the current label id */
-  irisGetMacro(CurrentLabelIdModel, IntegerValueModel *)
+  irisGetMacro(CurrentLabelIdModel, AbstractRangedIntProperty *)
 
   /** Get the model for the current label id */
-  irisGetMacro(CurrentLabelOpacityModel, IntegerValueModel *)
+  irisGetMacro(CurrentLabelOpacityModel, AbstractRangedIntProperty *)
 
   /** Get the model for the current label id */
-  irisGetMacro(CurrentLabelHiddenStateModel, BooleanPairValueModel *)
+  irisGetMacro(CurrentLabelHiddenStateModel, AbstractSimpleBooleanVec2Property *)
 
   /** Get the model for the current label id */
-  irisGetMacro(CurrentLabelColorModel, RGBColorValueModel *)
+  irisGetMacro(CurrentLabelColorModel, AbstractSimpleUIntVec3Property *)
 
   /** Change the label id of the selected label */
   bool ReassignLabelId(LabelType newid);
@@ -77,29 +71,29 @@ protected:
   bool GetAndStoreCurrentLabel();
 
   // Id of the current label
-  SmartPtr<IntegerValueModel> m_CurrentLabelIdModel;
+  SmartPtr<AbstractRangedIntProperty> m_CurrentLabelIdModel;
   bool GetCurrentLabelIdValueAndRange(
       int &value, NumericValueRange<int> *domain);
   void SetCurrentLabelId(int value);
 
   // Opacity of the current label
-  SmartPtr<IntegerValueModel> m_CurrentLabelOpacityModel;
+  SmartPtr<AbstractRangedIntProperty> m_CurrentLabelOpacityModel;
   bool GetCurrentLabelOpacityValueAndRange(
       int &value, NumericValueRange<int> *domain);
   void SetCurrentLabelOpacity(int value);
 
   // Description of the current label
-  SmartPtr<StringValueModel> m_CurrentLabelDescriptionModel;
+  SmartPtr<AbstractSimpleStringProperty> m_CurrentLabelDescriptionModel;
   bool GetCurrentLabelDescription(std::string &value);
   void SetCurrentLabelDescription(std::string value);
 
   // Visibility of the current label
-  SmartPtr<BooleanPairValueModel> m_CurrentLabelHiddenStateModel;
+  SmartPtr<AbstractSimpleBooleanVec2Property> m_CurrentLabelHiddenStateModel;
   bool GetCurrentLabelHiddenState(iris_vector_fixed<bool, 2> &value);
   void SetCurrentLabelHiddenState(iris_vector_fixed<bool, 2> value);
 
   // Color of the current label
-  SmartPtr<RGBColorValueModel> m_CurrentLabelColorModel;
+  SmartPtr<AbstractSimpleUIntVec3Property> m_CurrentLabelColorModel;
   bool GetCurrentLabelColor(Vector3ui &value);
   void SetCurrentLabelColor(Vector3ui value);
 

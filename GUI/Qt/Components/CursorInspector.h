@@ -3,8 +3,10 @@
 
 #include "SNAPComponent.h"
 
+
 class VoxelIntensityQTableModel;
 class QMenu;
+class CursorInspectionModel;
 
 
 namespace Ui {
@@ -18,13 +20,12 @@ class CursorInspector : public SNAPComponent
 public:
   explicit CursorInspector(QWidget *parent = 0);
 
-  void SetModel(GlobalUIModel *);
+  void SetModel(CursorInspectionModel *);
 
   ~CursorInspector();
 
 public slots:
 
-  void onCursorEdit();
   void onModelUpdate(const EventBucket &);
 
   void onContextMenuRequested(QPoint pos);
@@ -39,7 +40,7 @@ private slots:
 private:
   Ui::CursorInspector *ui;
   VoxelIntensityQTableModel *m_TableModel;
-  GlobalUIModel *m_Model;
+  CursorInspectionModel *m_Model;
   QMenu *m_ContextMenu;
 
   int m_PopupRow;

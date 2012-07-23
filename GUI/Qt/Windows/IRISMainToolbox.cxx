@@ -189,7 +189,7 @@ void IRISMainToolbox::SetModel(GlobalUIModel *model)
 {
   m_Model = model;
   m_ZoomInspector->SetModel(model);
-  m_CursorInspector->SetModel(model);
+  m_CursorInspector->SetModel(model->GetCursorInspectionModel());
   m_LabelInspector->SetModel(model);
 }
 

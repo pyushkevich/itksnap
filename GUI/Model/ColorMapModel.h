@@ -103,17 +103,14 @@ public:
   /** Update the model in response to upstream events */
   virtual void OnUpdate();
 
-  typedef AbstractRangedPropertyModel<double>::Type RealValueModel;
-  typedef AbstractRangedPropertyModel<int>::Type IntegerValueModel;
-  typedef AbstractRangedPropertyModel<bool>::Type BooleanValueModel;
   typedef AbstractPropertyModel<Continuity> ContinuityValueModel;
   typedef AbstractPropertyModel<Side> SideValueModel;
 
   /** The model for setting moving control point position */
-  irisGetMacro(MovingControlPositionModel, RealValueModel *)
+  irisGetMacro(MovingControlPositionModel, AbstractRangedDoubleProperty *)
 
   /** The model for setting moving control point opacity */
-  irisGetMacro(MovingControlOpacityModel, RealValueModel *)
+  irisGetMacro(MovingControlOpacityModel, AbstractRangedDoubleProperty *)
 
   /** The model for setting moving control point continuity */
   irisGetMacro(MovingControlContinuityModel, ContinuityValueModel *)
@@ -122,7 +119,7 @@ public:
   irisGetMacro(MovingControlSideModel, SideValueModel *)
 
   /** The index of the moving control point */
-  irisGetMacro(MovingControlIndexModel, IntegerValueModel *)
+  irisGetMacro(MovingControlIndexModel, AbstractRangedIntProperty *)
 
   /** Get the color map in associated layer */
   ColorMap *GetColorMap();
@@ -160,11 +157,11 @@ protected:
 
   ColorMapModel();
 
-  SmartPtr<RealValueModel> m_MovingControlPositionModel;
-  SmartPtr<RealValueModel> m_MovingControlOpacityModel;
+  SmartPtr<AbstractRangedDoubleProperty> m_MovingControlPositionModel;
+  SmartPtr<AbstractRangedDoubleProperty> m_MovingControlOpacityModel;
   SmartPtr<SideValueModel> m_MovingControlSideModel;
   SmartPtr<ContinuityValueModel> m_MovingControlContinuityModel;
-  SmartPtr<IntegerValueModel> m_MovingControlIndexModel;
+  SmartPtr<AbstractRangedIntProperty> m_MovingControlIndexModel;
 
   // A pointer to the system interface object
   SystemInterface *m_System;

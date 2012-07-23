@@ -52,6 +52,7 @@ class ImageInfoModel;
 class Generic3DModel;
 class LabelEditorModel;
 class ConcreteColorLabelPropertyModel;
+class CursorInspectionModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -133,6 +134,9 @@ public:
   /** Get the model for the label editor */
   irisGetMacro(LabelEditorModel, LabelEditorModel *)
 
+  /** Get the model that handles UI for the cursor inspector */
+  irisGetMacro(CursorInspectionModel, CursorInspectionModel *)
+
   /** Load the main image */
   void LoadGrayImage(GuidedNativeImageIO *io);
 
@@ -148,18 +152,8 @@ public:
    */
   bool CheckState(UIState state);
 
-  typedef AbstractPropertyModel<LabelType> LabelTypePropertyModel;
-  typedef AbstractPropertyModel<std::string> StringPropertyModel;
-  typedef AbstractRangedPropertyModel<Vector3ui>::Type UIntVectorRangedModel;
-
-  /** Get the model for the label under the cursor */
-  irisGetMacro(LabelUnderTheCursorIdModel, LabelTypePropertyModel*)
-
-  /** Get the model for the label description under the cursor */
-  irisGetMacro(LabelUnderTheCursorTitleModel, StringPropertyModel*)
-
   /** Get the model for the cursor coordinates */
-  irisGetMacro(CursorPositionModel, UIntVectorRangedModel *)
+  irisGetMacro(CursorPositionModel, AbstractRangedUIntVec3Property *)
 
 protected:
 
@@ -198,6 +192,9 @@ protected:
   // Label editor model
   SmartPtr<LabelEditorModel> m_LabelEditorModel;
 
+  // Cursor interaction model
+  SmartPtr<CursorInspectionModel> m_CursorInspectionModel;
+
   // 3D Model
   SmartPtr<Generic3DModel> m_Model3D;
 
@@ -205,17 +202,11 @@ protected:
   SmartPtr<ConcretePropertyModel<ToolbarModeType> > m_ToolbarModeModel;
 
   // Current coordinates of the cursor
-  SmartPtr<UIntVectorRangedModel> m_CursorPositionModel;
+  SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;
   bool GetCursorPositionValueAndRange(
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
   void SetCursorPosition(Vector3ui value);
 
-  // Label under the cursor
-  SmartPtr<LabelTypePropertyModel> m_LabelUnderTheCursorIdModel;
-  bool GetLabelUnderTheCursorIdValue(LabelType &value);
-
-  SmartPtr<StringPropertyModel> m_LabelUnderTheCursorTitleModel;
-  bool GetLabelUnderTheCursorTitleValue(std::string &value);
 
 
 };

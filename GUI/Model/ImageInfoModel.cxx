@@ -32,7 +32,7 @@ ImageInfoModel::ImageInfoModel()
         this, &Self::GetImageOrientation);
 
   // Create the property model for the filter
-  m_MetadataFilterModel = FilterModel::New();
+  m_MetadataFilterModel = ConcreteSimpleStringProperty::New();
 
   // Listen to events on the filter, so we can update the metadata
   Rebroadcast(m_MetadataFilterModel, ValueChangedEvent(), MetadataChangeEvent());

@@ -116,21 +116,13 @@ public:
   /** Update the model in response to upstream events */
   virtual void OnUpdate();
 
-  typedef AbstractRangedPropertyModel<Vector2d>::Type RealPairValueModel;
-  typedef AbstractRangedPropertyModel<double>::Type RealValueModel;
-  typedef AbstractRangedPropertyModel<int>::Type IntegerValueModel;
-  typedef AbstractPropertyModel<bool> BooleanValueModel;
-
-  irisGetMacro(MovingControlXYModel, RealPairValueModel *)
-  irisGetMacro(LevelWindowModel, RealPairValueModel *)
-
-  irisGetMacro(MovingControlIdModel, IntegerValueModel *)
-
-  irisGetMacro(HistogramBinSizeModel, IntegerValueModel *)
-
-  irisGetMacro(HistogramCutoffModel, RealValueModel *)
-
-  irisGetMacro(HistogramScaleModel, BooleanValueModel *)
+  // Access the models
+  irisGetMacro(MovingControlXYModel, AbstractRangedDoubleVec2Property *)
+  irisGetMacro(LevelWindowModel, AbstractRangedDoubleVec2Property *)
+  irisGetMacro(MovingControlIdModel, AbstractRangedIntProperty *)
+  irisGetMacro(HistogramBinSizeModel, AbstractRangedIntProperty *)
+  irisGetMacro(HistogramCutoffModel, AbstractRangedDoubleProperty *)
+  irisGetMacro(HistogramScaleModel, AbstractSimpleBooleanProperty *)
 
 
   void OnAutoFitWindow();
@@ -150,7 +142,7 @@ protected:
   int GetControlPointInVicinity(float x, float y, int pixelRadius);
 
   // Model for the control point index
-  SmartPtr<IntegerValueModel> m_MovingControlIdModel;
+  SmartPtr<AbstractRangedIntProperty> m_MovingControlIdModel;
 
   // Moving control point Id access methods
   bool GetMovingControlPointIdValueAndRange(int &value,
@@ -158,7 +150,7 @@ protected:
   void SetMovingControlPointId(int value);
 
   // The child models for control point X and Y coordinates
-  SmartPtr<RealPairValueModel> m_MovingControlXYModel;
+  SmartPtr<AbstractRangedDoubleVec2Property> m_MovingControlXYModel;
 
   // Moving control point position access methods
   bool GetMovingControlPointPositionAndRange(Vector2d &lw,
@@ -166,7 +158,7 @@ protected:
   void SetMovingControlPointPosition(Vector2d p);
 
   // Child models for window and level
-  SmartPtr<RealPairValueModel> m_LevelWindowModel;
+  SmartPtr<AbstractRangedDoubleVec2Property> m_LevelWindowModel;
 
   // Window and level access methods
   bool GetLevelAndWindowValueAndRange(Vector2d &lw,
@@ -174,7 +166,7 @@ protected:
   void SetLevelAndWindow(Vector2d p);
 
   // Child model for histogram bin size
-  SmartPtr<IntegerValueModel> m_HistogramBinSizeModel;
+  SmartPtr<AbstractRangedIntProperty> m_HistogramBinSizeModel;
 
   // Histogram bin size access methods
   bool GetHistogramBinSizeValueAndRange(int &value,
@@ -182,7 +174,7 @@ protected:
   void SetHistogramBinSize(int value);
 
   // Child model for histogram cutoff
-  SmartPtr<RealValueModel> m_HistogramCutoffModel;
+  SmartPtr<AbstractRangedDoubleProperty> m_HistogramCutoffModel;
 
   // Histogram bin size access methods
   bool GetHistogramCutoffValueAndRange(double &value,
@@ -190,7 +182,7 @@ protected:
   void SetHistogramCutoff(double value);
 
   // Child model for histogram scale
-  SmartPtr<BooleanValueModel> m_HistogramScaleModel;
+  SmartPtr<AbstractSimpleBooleanProperty> m_HistogramScaleModel;
 
   // Histogram bin size access methods
   bool GetHistogramScale(bool &value);

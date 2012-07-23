@@ -39,29 +39,20 @@ public:
   // Function called in response to events
   virtual void OnUpdate();
 
-  // Some model types
-  typedef AbstractPropertyModel<Vector3d> RealVectorSimpleModel;
-  typedef AbstractPropertyModel<Vector3ui> UIntVectorSimpleModel;
-  typedef AbstractRangedPropertyModel<Vector3ui>::Type UIntVectorRangedModel;
-  typedef AbstractPropertyModel<Vector2d> MinMaxIntensityModel;
-
-  typedef AbstractPropertyModel<std::string> StringValueModel;
-
-  // A model that contains the filter for metadata searches
-  typedef ConcretePropertyModel<std::string> FilterModel;
-
   // Access the individual models
-  irisGetMacro(ImageDimensionsModel, UIntVectorSimpleModel *)
-  irisGetMacro(ImageSpacingModel, RealVectorSimpleModel *)
-  irisGetMacro(ImageOriginModel, RealVectorSimpleModel *)
-  irisGetMacro(ImageItkCoordinatesModel, RealVectorSimpleModel *)
-  irisGetMacro(ImageNiftiCoordinatesModel, RealVectorSimpleModel *)
-  irisGetMacro(ImageMinMaxModel, MinMaxIntensityModel *)
-  irisGetMacro(ImageOrientationModel, StringValueModel *)
-  irisGetMacro(MetadataFilterModel, FilterModel *)
+  irisGetMacro(ImageDimensionsModel, AbstractSimpleUIntVec3Property *)
+  irisGetMacro(ImageSpacingModel, AbstractSimpleDoubleVec3Property *)
+  irisGetMacro(ImageOriginModel, AbstractSimpleDoubleVec3Property *)
+  irisGetMacro(ImageItkCoordinatesModel, AbstractSimpleDoubleVec3Property *)
+  irisGetMacro(ImageNiftiCoordinatesModel, AbstractSimpleDoubleVec3Property *)
+  irisGetMacro(ImageMinMaxModel, AbstractSimpleDoubleVec2Property *)
+  irisGetMacro(ImageOrientationModel, AbstractSimpleStringProperty *)
+
+  // Access the internally stored filter
+  irisSimplePropertyAccessMacro(MetadataFilter, std::string)
 
   // The voxel coordinate model just refers to the parent mode
-  UIntVectorRangedModel *GetImageVoxelCoordinatesModel() const
+  AbstractRangedUIntVec3Property *GetImageVoxelCoordinatesModel() const
   {
     return m_ParentModel->GetCursorPositionModel();
   }
@@ -75,14 +66,14 @@ public:
 
 protected:
 
-  SmartPtr<RealVectorSimpleModel> m_ImageSpacingModel;
-  SmartPtr<RealVectorSimpleModel> m_ImageOriginModel;
-  SmartPtr<RealVectorSimpleModel> m_ImageItkCoordinatesModel;
-  SmartPtr<RealVectorSimpleModel> m_ImageNiftiCoordinatesModel;
-  SmartPtr<UIntVectorSimpleModel> m_ImageDimensionsModel;
-  SmartPtr<MinMaxIntensityModel> m_ImageMinMaxModel;
-  SmartPtr<StringValueModel> m_ImageOrientationModel;
-  SmartPtr<FilterModel> m_MetadataFilterModel;
+  SmartPtr<AbstractSimpleDoubleVec3Property> m_ImageSpacingModel;
+  SmartPtr<AbstractSimpleDoubleVec3Property> m_ImageOriginModel;
+  SmartPtr<AbstractSimpleDoubleVec3Property> m_ImageItkCoordinatesModel;
+  SmartPtr<AbstractSimpleDoubleVec3Property> m_ImageNiftiCoordinatesModel;
+  SmartPtr<AbstractSimpleUIntVec3Property> m_ImageDimensionsModel;
+  SmartPtr<AbstractSimpleDoubleVec2Property> m_ImageMinMaxModel;
+  SmartPtr<AbstractSimpleStringProperty> m_ImageOrientationModel;
+  SmartPtr<ConcreteSimpleStringProperty> m_MetadataFilterModel;
 
   bool GetImageDimensions(Vector3ui &value);
   bool GetImageOrigin(Vector3d &value);
