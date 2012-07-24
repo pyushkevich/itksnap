@@ -264,6 +264,7 @@ SET(UI_GENERIC_CXX
 
 SET(UI_GENERIC_HEADERS
   GUI/Model/AbstractLayerAssociatedModel.h
+  GUI/Model/AbstractLayerInfoItemSetDomain
   GUI/Model/AbstractModel.h
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelPropertyModel.h
@@ -391,6 +392,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Coupling/QtRadioButtonCoupling.h
   GUI/Qt/Coupling/QtSliderCoupling.h
   GUI/Qt/Coupling/QtSpinBoxCoupling.h
+  GUI/Qt/Coupling/QtTableWidgetCoupling.h
   GUI/Qt/Coupling/QtWidgetArrayCoupling.h
 )
 

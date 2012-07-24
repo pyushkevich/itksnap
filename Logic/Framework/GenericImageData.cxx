@@ -454,8 +454,8 @@ LayerIterator
 ::LayerIterator(
     GenericImageData *data, int role_filter)
 {
+  // Store the source information
   m_ImageData = data;
-  m_Wrappers = &data->m_Wrappers;
   m_RoleFilter = role_filter;
 
   // Populate role names
@@ -467,44 +467,108 @@ LayerIterator
     m_RoleDefaultNames.insert(std::make_pair(SNAP_ROLE, "SNAP Image"));
     }
 
-  // Find the first role that fits the filter and is not empty
-  m_IterRole = MAIN_ROLE;
-  FindNextUsableRole();
+  // Move to the beginning
+  MoveToBegin();
 }
 
-void LayerIterator::FindNextUsableRole()
+LayerIterator& LayerIterator
+::MoveToBegin()
 {
-  for(; m_IterRole != NO_ROLE; m_IterRole = (LayerRole) (m_IterRole << 1))
+  // Initialize to point to the first wrapper in the first role, even if
+  // this is an invalid configuration
+  m_RoleIter = m_ImageData->m_Wrappers.begin();
+  if(m_RoleIter != m_ImageData->m_Wrappers.end())
+    m_WrapperInRoleIter = m_RoleIter->second.begin();
+
+  // Move up until we find a valid role or end
+  while(!IsAtEnd() && !IsPointingToListableLayer())
     {
-    if(m_RoleFilter | m_IterRole)
-      {
-      WrapperStorage::iterator it = m_Wrappers->find(m_IterRole);
-      if(it != m_Wrappers->end() && it->second.size())
-        {
-        m_IndexInRole = 0;
-        break;
-        }
-      }
+    MoveToNextTrialPosition();
     }
+
+  return *this;
 }
 
 bool LayerIterator
-::IsAtEnd()
+::IsAtEnd() const
 {
   // We are at end when there are no roles left
-  return (m_IterRole == NO_ROLE);
+  return m_RoleIter == m_ImageData->m_Wrappers.end();
+}
+
+
+LayerIterator& LayerIterator
+::MoveToEnd()
+{
+  m_RoleIter = m_ImageData->m_Wrappers.end();
+  return *this;
+}
+
+LayerIterator& LayerIterator
+::Find(ImageWrapperBase *value)
+{
+  // Just a linear search - we won't have so many wrappers!
+  MoveToBegin();
+  while(!this->IsAtEnd() && this->GetLayer() != value)
+    ++(*this);
+  return *this;
+}
+
+void LayerIterator::MoveToNextTrialPosition()
+{
+  // If we are at the end of storage, that's it
+  if(m_RoleIter == m_ImageData->m_Wrappers.end())
+    return;
+
+  // If we are at the end of a chain of wrappers, or if the current role
+  // is not a valid role, go to the start of the next role
+  else if(m_WrapperInRoleIter == m_RoleIter->second.end() ||
+     !(m_RoleFilter & m_RoleIter->first))
+    {
+    ++m_RoleIter;
+    if(m_RoleIter != m_ImageData->m_Wrappers.end())
+      m_WrapperInRoleIter = m_RoleIter->second.begin();
+
+    }
+
+  // Otherwise, advance the iterator in the wrapper chain
+  else
+    ++m_WrapperInRoleIter;
+}
+
+bool LayerIterator::IsPointingToListableLayer() const
+{
+  // I split this up for debugging
+
+  // Are we at end of roles?
+  if(m_RoleIter == m_ImageData->m_Wrappers.end())
+    return false;
+
+  // Are we in a valid role?
+  GenericImageData::LayerRole lr = m_RoleIter->first;
+  if((m_RoleFilter & lr) == 0)
+    return false;
+
+  // In our role, are we at the end?
+  if(m_WrapperInRoleIter == m_RoleIter->second.end())
+    return false;
+
+  // Is the layer null?
+  if(*m_WrapperInRoleIter == NULL)
+    return false;
+
+  return true;
 }
 
 LayerIterator &
 LayerIterator::operator ++()
 {
-  // We should never be pointing to the end
-  m_IndexInRole++;
-  if(m_IndexInRole >= (*m_Wrappers)[m_IterRole].size())
+  do
     {
-    m_IterRole = (LayerRole)(m_IterRole << 1);
-    FindNextUsableRole();
+    MoveToNextTrialPosition();
     }
+  while(!IsAtEnd() && !IsPointingToListableLayer());
+
   return *this;
 }
 
@@ -516,34 +580,50 @@ LayerIterator::operator +=(int k)
   return *this;
 }
 
-ImageWrapperBase * LayerIterator::GetLayer()
+ImageWrapperBase * LayerIterator::GetLayer() const
 {
-  assert(m_IterRole < NO_ROLE);
-  assert(m_Wrappers->find(m_IterRole) != m_Wrappers->end());
-  assert(m_IndexInRole < (*m_Wrappers)[m_IterRole].size());
-  return (*m_Wrappers)[m_IterRole][m_IndexInRole];
+  assert(IsPointingToListableLayer());
+  return (*m_WrapperInRoleIter);
 }
 
-GreyImageWrapperBase * LayerIterator::GetLayerAsGray()
+GreyImageWrapperBase * LayerIterator::GetLayerAsGray() const
 {
   return dynamic_cast<GreyImageWrapperBase *>(this->GetLayer());
 }
 
-RGBImageWrapperBase * LayerIterator::GetLayerAsRGB()
+RGBImageWrapperBase * LayerIterator::GetLayerAsRGB() const
 {
   return dynamic_cast<RGBImageWrapperBase *>(this->GetLayer());
 }
 
 LayerIterator::LayerRole
-LayerIterator::GetRole()
+LayerIterator::GetRole() const
 {
-  return m_IterRole;
+  assert(IsPointingToListableLayer());
+  return m_RoleIter->first;
+}
+
+bool LayerIterator::operator ==(const LayerIterator &it)
+{
+  // Two iterators are equal if they both point to the same location
+  // or both are at the end.
+  if(this->IsAtEnd())
+    return it.IsAtEnd();
+  else if(it.IsAtEnd())
+    return false;
+  else
+    return this->GetLayer() == it.GetLayer();
+}
+
+bool LayerIterator::operator !=(const LayerIterator &it)
+{
+  return !((*this) == it);
 }
 
 std::map<LayerIterator::LayerRole, std::string> LayerIterator::m_RoleDefaultNames;
 
 std::string
-LayerIterator::GetDynamicNickname()
+LayerIterator::GetDynamicNickname() const
 {
   // If there is a nickname, return it
   const char *nick = this->GetLayer()->GetNickname();
@@ -551,17 +631,37 @@ LayerIterator::GetDynamicNickname()
     return std::string(nick);
 
   // Otherwise assign a name
-  std::string roleName = m_RoleDefaultNames[m_IterRole];
+  std::string roleName = m_RoleDefaultNames[this->GetRole()];
 
   // If more than one in that role, augment by a number
-  if((*m_Wrappers)[m_IterRole].size() > 1)
+  if(m_RoleIter->second.size() > 1)
     {
     std::ostringstream oss;
-    oss << roleName << " " << (1+m_IndexInRole);
+    int pos = (int)(m_WrapperInRoleIter - m_RoleIter->second.begin());
+    oss << roleName << " " << (1+pos);
     roleName = oss.str();
     }
 
   return roleName;
+}
+
+void LayerIterator::Print(const char *what) const
+{
+  std::cout << "LI with filter " << m_RoleFilter << " operation " << what << std::endl;
+  if(m_RoleFilter > 3)
+    std::cout << "  WTF?" << std::endl;
+  if(this->IsAtEnd())
+    {
+    std::cout << "  AT END" << std::endl;
+    }
+  else
+    {
+    std::cout << "  Role:         " << m_RoleDefaultNames[this->GetRole()] << std::endl;
+    std::cout << "  Pos. in Role: "
+              << (int)(m_WrapperInRoleIter - m_RoleIter->second.begin()) << " of "
+              << (int) m_RoleIter->second.size() << std::endl;
+    std::cout << "  Valid:        " << this->IsPointingToListableLayer() << std::endl;
+    }
 }
 
 

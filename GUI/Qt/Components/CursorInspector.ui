@@ -163,18 +163,27 @@ font-size: 11pt;
     </widget>
    </item>
    <item>
-    <widget class="QTableView" name="tableView">
+    <widget class="QTableWidget" name="tableVoxelUnderCursor">
+     <property name="maximumSize">
+      <size>
+       <width>179</width>
+       <height>120</height>
+      </size>
+     </property>
      <property name="contextMenuPolicy">
       <enum>Qt::CustomContextMenu</enum>
      </property>
      <property name="tabKeyNavigation">
       <bool>false</bool>
      </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
      <attribute name="horizontalHeaderDefaultSectionSize">
       <number>75</number>
-     </attribute>
-     <attribute name="horizontalHeaderStretchLastSection">
-      <bool>true</bool>
      </attribute>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -182,9 +191,16 @@ font-size: 11pt;
      <attribute name="verticalHeaderDefaultSectionSize">
       <number>16</number>
      </attribute>
-     <attribute name="verticalHeaderStretchLastSection">
-      <bool>false</bool>
-     </attribute>
+     <column>
+      <property name="text">
+       <string>Layer</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Intensity</string>
+      </property>
+     </column>
     </widget>
    </item>
    <item>
@@ -291,7 +307,6 @@ font-size: 11pt;
   <tabstop>inCursorX</tabstop>
   <tabstop>inCursorY</tabstop>
   <tabstop>inCursorZ</tabstop>
-  <tabstop>tableView</tabstop>
   <tabstop>outLabelId</tabstop>
   <tabstop>outLabelText</tabstop>
  </tabstops>

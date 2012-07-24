@@ -3,8 +3,47 @@
 
 #include <AbstractModel.h>
 #include <PropertyModel.h>
+#include <GenericImageData.h>
+#include <AbstractLayerInfoItemSetDomain.h>
 
 class GlobalUIModel;
+class IRISApplication;
+
+/**
+  This structure describes the intensity information at a cursor location
+  in a particular layer - which is displayed in the table
+  */
+struct LayerCurrentVoxelInfo
+{
+  std::string LayerName;
+  std::string IntensityValue;
+};
+
+/**
+  A definition of the item set domain for the table that shows current
+  under the cursor intensity values
+  */
+class CurrentVoxelInfoItemSetDomain :
+  public AbstractLayerInfoItemSetDomain<LayerCurrentVoxelInfo>
+{
+public:
+
+  typedef AbstractLayerInfoItemSetDomain<LayerCurrentVoxelInfo> Superclass;
+
+  // Define the domain with the specificed filter
+  CurrentVoxelInfoItemSetDomain(
+      IRISApplication *app = NULL, int role_filter = 0xffffffff);
+
+  // Define the description method
+  LayerCurrentVoxelInfo GetDescription(const LayerIterator &it) const;
+
+protected:
+  IRISApplication *m_Driver;
+};
+
+// A concrete model encapsulating the above domain
+typedef ConcretePropertyModel<size_t, CurrentVoxelInfoItemSetDomain>
+  ConcreteLayerVoxelAtCursorModel;
 
 /**
   This little model handles the logic for the cursor inspection page
@@ -28,10 +67,12 @@ public:
   /** Get the model for the cursor location */
   AbstractRangedUIntVec3Property *GetCursorPositionModel() const;
 
+  // The model for a table of intensity values at cursor
+  irisGetMacro(VoxelAtCursorModel, ConcreteLayerVoxelAtCursorModel *)
+
 protected:
 
   CursorInspectionModel();
-
 
 private:
 
@@ -45,6 +86,9 @@ private:
 
   // A pointer to the parent's cusror model
   AbstractRangedUIntVec3Property *m_CursorPositionModel;
+
+  // The model for the intensity table
+  SmartPtr<ConcreteLayerVoxelAtCursorModel> m_VoxelAtCursorModel;
 
   // Parent
   GlobalUIModel *m_Parent;

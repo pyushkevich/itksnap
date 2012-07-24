@@ -72,46 +72,73 @@ public:
     NO_ROLE = 0x0010
   };
 
-  LayerIterator(GenericImageData *data, int role_filter = 0x11111111);
+  LayerIterator(GenericImageData *data, int role_filter = 0xffffffff);
 
-  bool IsAtEnd();
+  bool IsAtEnd() const;
+
+  // Move to the end
+  LayerIterator &MoveToBegin();
+
+  // Move to the end
+  LayerIterator &MoveToEnd();
+
+  // Move to a specific layer, or end if the layer is not found
+  LayerIterator &Find(ImageWrapperBase *value);
 
   LayerIterator & operator++();
 
   LayerIterator & operator+=(int k);
 
   /** Get the layer being pointed to */
-  ImageWrapperBase *GetLayer();
+  ImageWrapperBase *GetLayer() const;
 
   /** Get the layer being pointed to, cast as Gray (or NULL) */
-  GreyImageWrapperBase *GetLayerAsGray();
+  GreyImageWrapperBase *GetLayerAsGray() const;
 
   /** Get the layer being pointed to, cast as RGB (or NULL) */
-  RGBImageWrapperBase *GetLayerAsRGB();
+  RGBImageWrapperBase *GetLayerAsRGB() const;
 
   /** Get the role of the current layer */
-  LayerRole GetRole();
+  LayerRole GetRole() const;
 
   /** Get a dynamic name for the current layer. If the layer has a nickname,
     it will be returned. Otherwise, a generic name will be returned based on
     the index of the layer in its role */
-  std::string GetDynamicNickname();
+  std::string GetDynamicNickname() const;
 
+  void Print(const char *) const;
+
+  /** Compare two iterators */
+  bool operator == (const LayerIterator &it);
+  bool operator != (const LayerIterator &it);
 
 private:
 
-  void FindNextUsableRole();
+  typedef std::vector<ImageWrapperBase *> WrapperList;
+  typedef WrapperList::const_iterator WrapperListIterator;
 
-  typedef std::map<LayerRole, std::vector<ImageWrapperBase*> > WrapperStorage;
+  typedef std::map<LayerRole, WrapperList> WrapperRoleMap;
+  typedef WrapperRoleMap::iterator WrapperRoleIterator;
 
+  // Pointer to the parent data
   GenericImageData *m_ImageData;
-  WrapperStorage *m_Wrappers;
+
+  // The filter defining which roles to iterate
   int m_RoleFilter;
 
-  // The iterator bit
-  LayerRole m_IterRole;
-  unsigned int m_IndexInRole;
+  // A pair of iterators that define the state of this iterator
+  WrapperRoleIterator m_RoleIter;
+  WrapperListIterator m_WrapperInRoleIter;
 
+  // Internal method that advances the internal iterators by one step,
+  // regardless of whether that makes the iterator point to a valid layer
+  // or not
+  void MoveToNextTrialPosition();
+
+  // Check if the iterator is pointing to a valid layer
+  bool IsPointingToListableLayer() const;
+
+  // Default names for wrappers
   static std::map<LayerRole, std::string> m_RoleDefaultNames;
 };
 
@@ -193,13 +220,13 @@ public:
     as calling GetLayers(role).size(), but you can query for combinations
     of roles, i.e., MAIN_ROLE | OVERLAY_ROLE
     */
-  virtual unsigned int GetNumberOfLayers(int role_filter = 0x11111111);
+  virtual unsigned int GetNumberOfLayers(int role_filter = 0xffffffff);
 
 
   /**
     Get an iterator that iterates throught the layers in certain roles
     */
-  LayerIterator GetLayers(int role_filter = 0x11111111)
+  LayerIterator GetLayers(int role_filter = 0xffffffff)
   {
     return LayerIterator(this, role_filter);
   }
@@ -209,7 +236,7 @@ public:
     calling GetLayers(role_filter) and then iterating n-times. Throws an
     exception if n exceeds the number of layers.
     */
-  ImageWrapperBase *GetNthLayer(int n, int role_filter = 0x11111111)
+  ImageWrapperBase *GetNthLayer(int n, int role_filter = 0xffffffff)
   {
     LayerIterator it(this, role_filter);
     for(int i = 0; i < n && !it.IsAtEnd(); i++)

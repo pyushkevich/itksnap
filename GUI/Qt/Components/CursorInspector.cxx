@@ -13,7 +13,53 @@
 
 #include <QtSpinBoxCoupling.h>
 #include <QtLineEditCoupling.h>
+#include <QtTableWidgetCoupling.h>.h>
 #include <QtWidgetArrayCoupling.h>
+
+/**
+  This class provide the coupling properties for coupling the table of
+  voxel intensities to QTableWidget
+  */
+class LayerCurrentVoxelInfoRowDescriptionTraits
+{
+public:
+  typedef CurrentVoxelInfoItemSetDomain::ValueType ValueType;
+
+  static QString GetText(ValueType value,
+                         const LayerCurrentVoxelInfo &desc, int col)
+  {
+    if(col == 0)
+      return QString::fromStdString(desc.LayerName);
+    else
+      return QString::fromStdString(desc.IntensityValue);
+  }
+
+  static QIcon GetIcon(ValueType value,
+                       const LayerCurrentVoxelInfo &desc, int col)
+  {
+    return QIcon();
+  }
+
+
+  static QVariant GetIconSignature(ValueType value,
+                                   const LayerCurrentVoxelInfo &desc, int col)
+  {
+    return QVariant(0);
+  }
+};
+
+typedef TextAndIconTableWidgetRowTraits<
+  size_t, LayerCurrentVoxelInfo,
+  LayerCurrentVoxelInfoRowDescriptionTraits> LayerCurrentVoxelInfoTableWidgetRowTraits;
+
+typedef ItemSetWidgetDomainTraits<
+  CurrentVoxelInfoItemSetDomain,
+  QTableWidget,
+  LayerCurrentVoxelInfoTableWidgetRowTraits> LayerCurrentVoxelInfoDomainTraits;
+
+
+
+
 
 
 
@@ -22,13 +68,19 @@ CursorInspector::CursorInspector(QWidget *parent) :
     ui(new Ui::CursorInspector)
 {
   ui->setupUi(this);
-  m_TableModel = new VoxelIntensityQTableModel(ui->tableView);
 
-  connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)),
+  ui->tableVoxelUnderCursor->setAlternatingRowColors(true);
+  ui->tableVoxelUnderCursor->setFixedWidth(160);
+  ui->tableVoxelUnderCursor->setFixedHeight(120);
+  ui->tableVoxelUnderCursor->setContextMenuPolicy(Qt::CustomContextMenu);
+
+  m_ContextMenu = new QMenu(ui->tableVoxelUnderCursor);
+  m_ContextMenu->addAction(ui->actionAutoContrast);
+
+  // Hook up the context menu
+  connect(ui->tableVoxelUnderCursor, SIGNAL(customContextMenuRequested(QPoint)),
           SLOT(onContextMenuRequested(QPoint)));
 
-  m_ContextMenu = new QMenu(ui->tableView);
-  m_ContextMenu->addAction(ui->actionAutoContrast);
 }
 
 CursorInspector::~CursorInspector()
@@ -39,14 +91,6 @@ CursorInspector::~CursorInspector()
 void CursorInspector::SetModel(CursorInspectionModel *model)
 {
   m_Model = model;
-  m_TableModel->SetParentModel(model->GetParent());
-  ui->tableView->setModel(m_TableModel);
-  ui->tableView->setAlternatingRowColors(true);
-  ui->tableView->setFixedWidth(160);
-  ui->tableView->setFixedHeight(120);
-
-  // Update UI from model
-  UpdateUIFromModel();
 
   // Activators
   activateOnFlag(this, m_Model->GetParent(), UIF_BASEIMG_LOADED);
@@ -57,21 +101,16 @@ void CursorInspector::SetModel(CursorInspectionModel *model)
 
   makeArrayCoupling(ui->inCursorX, ui->inCursorY, ui->inCursorZ,
                     m_Model->GetCursorPositionModel());
-}
 
-void CursorInspector::onModelUpdate(const EventBucket &)
-{
-  UpdateUIFromModel();
-}
-
-void CursorInspector::UpdateUIFromModel()
-{
-  m_Model->Update();
+  makeCoupling(ui->tableVoxelUnderCursor,
+               m_Model->GetVoxelAtCursorModel(),
+               DefaultWidgetValueTraits<size_t , QTableWidget>(),
+               LayerCurrentVoxelInfoDomainTraits());
 }
 
 void CursorInspector::onContextMenuRequested(QPoint pos)
 {
-  m_PopupRow = ui->tableView->rowAt(pos.y());
+  m_PopupRow = ui->tableVoxelUnderCursor->rowAt(pos.y());
   if(m_PopupRow >= 0)
     m_ContextMenu->popup(QCursor::pos());
 }

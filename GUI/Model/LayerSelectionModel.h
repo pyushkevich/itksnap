@@ -42,7 +42,7 @@ public:
 protected:
 
   LayerSelectionModel()
-    : AbstractModel(), m_Parent(NULL), m_RoleFilter(0x11111111) {}
+    : AbstractModel(), m_Parent(NULL), m_RoleFilter(0xffffffff) {}
 
   virtual ~LayerSelectionModel() {}
 
