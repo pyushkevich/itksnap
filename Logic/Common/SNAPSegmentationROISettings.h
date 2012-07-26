@@ -51,7 +51,7 @@ public:
     NEAREST_NEIGHBOR, TRILINEAR, TRICUBIC, SINC_WINDOW_05
   };
 
-  SNAPSegmentationROISettings() 
+  SNAPSegmentationROISettings()
     {
     m_ResampleFlag = false;
     m_VoxelScale.fill(1.0);
@@ -90,6 +90,10 @@ public:
 
   // Map ROI voxel into an image voxel. The result will be inside the image
   void TransformROIVoxelToImageVoxel(const Vector3ui &vROI, Vector3ui &vImage);
+
+  bool operator == (const SNAPSegmentationROISettings &other) const;
+  bool operator != (const SNAPSegmentationROISettings &other) const;
+
 
 private:
   // The region of interest, in the main IRIS image

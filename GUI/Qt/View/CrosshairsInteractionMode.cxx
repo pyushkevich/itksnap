@@ -95,24 +95,31 @@ void CrosshairsInteractionMode::mousePressEvent(QMouseEvent *ev)
 
 void CrosshairsInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
-  Vector3d dx = m_XSpace - m_LastPressXSpace;
-
-  if(m_LastPressButton == m_BtnCursor)
+  if(isDragging())
     {
-    m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
-    }
-  else if(m_LastPressButton == m_BtnZoom)
-    {    
-    double scaleFactor = pow(1.02f, dx(1));
-    m_Model->ProcessZoomGesture(scaleFactor);
-    }
-  else if(m_LastPressButton == m_BtnPan)
-    {
-    m_Model->ProcessPanGesture(Vector2f(dx(0), dx(1)));
-    }
+    Vector3d dx = m_XSpace - m_LastPressXSpace;
 
-  // Eat this event
-  ev->accept();
+    if(m_LastPressButton == m_BtnCursor)
+      {
+      m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
+      }
+    else if(m_LastPressButton == m_BtnZoom)
+      {
+      double scaleFactor = pow(1.02f, dx(1));
+      m_Model->ProcessZoomGesture(scaleFactor);
+      }
+    else if(m_LastPressButton == m_BtnPan)
+      {
+      m_Model->ProcessPanGesture(Vector2f(dx(0), dx(1)));
+      }
+
+    // Eat this event
+    ev->accept();
+    }
+  else
+    {
+    ev->ignore();
+    }
 }
 
 

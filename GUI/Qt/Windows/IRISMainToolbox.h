@@ -40,6 +40,7 @@ class CursorInspector;
 class QGroupBox;
 class LabelInspector;
 class QTabWidget;
+class SnakeToolROIPanel;
 
 class IRISMainToolbox : public QWidget
 {
@@ -59,6 +60,7 @@ public slots:
   void on_BtnZoomPanMode_toggled(bool);
   void on_BtnPolygonMode_toggled(bool);
   void on_TabInspector_currentChanged(int index);
+  void on_BtnSnakeMode_toggled(bool);
 
 private:
 
@@ -78,6 +80,9 @@ private:
   ZoomInspector *m_ZoomInspector;
   CursorInspector *m_CursorInspector;
   LabelInspector *m_LabelInspector;
+  QStackedWidget *m_ToolInspector;
+
+  SnakeToolROIPanel *m_SnakeToolROIPanel;
 };
 
 #endif // IRISMAINTOOLBOX_H

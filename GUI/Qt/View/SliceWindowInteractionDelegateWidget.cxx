@@ -1,11 +1,13 @@
 #include "SliceWindowInteractionDelegateWidget.h"
 #include "GenericSliceModel.h"
+#include "GenericSliceView.h"
 
 SliceWindowInteractionDelegateWidget
-::SliceWindowInteractionDelegateWidget(QWidget *parent)
+::SliceWindowInteractionDelegateWidget(GenericSliceView *parent)
   : QtInteractionDelegateWidget(parent)
 {
   m_ParentModel = NULL;
+  m_ParentView = parent;
 }
 
 void SliceWindowInteractionDelegateWidget::preprocessEvent(QEvent *ev)

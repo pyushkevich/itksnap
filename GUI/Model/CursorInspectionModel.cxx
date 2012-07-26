@@ -3,6 +3,8 @@
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "ColorLabelTable.h"
+#include "IntensityCurveModel.h"
+#include "ColorMapModel.h"
 
 #include <QtTableWidgetCoupling.h>
 
@@ -38,6 +40,7 @@ CurrentVoxelInfoItemSetDomain
   // See if this layer is grey
   if(GreyImageWrapperBase *giw = it.GetLayerAsGray())
     {
+    // Get the text value
     oss << std::setprecision(4);
     oss << giw->GetVoxelMappedToNative(cursor);
     }
@@ -50,6 +53,12 @@ CurrentVoxelInfoItemSetDomain
 
   vox.IntensityValue = oss.str();
 
+  // Get the displayed color
+  ImageWrapperBase::DisplayPixelType disprgb;
+  it.GetLayer()->GetVoxelDisplayAppearance(cursor, disprgb);
+  vox.Color = Vector3ui(disprgb[0], disprgb[1], disprgb[2]);
+
+  // Return the description
   return vox;
 }
 
@@ -84,6 +93,10 @@ void CursorInspectionModel::SetParentModel(GlobalUIModel *parent)
         app, LayerChangeEvent(), DomainChangedEvent());
   m_VoxelAtCursorModel->Rebroadcast(
         this, ModelUpdateEvent(), DomainDescriptionChangedEvent());
+  m_VoxelAtCursorModel->Rebroadcast(parent->GetIntensityCurveModel(),
+              ModelUpdateEvent(), DomainDescriptionChangedEvent());
+  m_VoxelAtCursorModel->Rebroadcast(parent->GetColorMapModel(),
+              ModelUpdateEvent(), DomainDescriptionChangedEvent());
 
   // Rebroadcast events from the parent as model update events. This could
   // have a little more granularity, but for the moment, mapping all these
@@ -93,6 +106,8 @@ void CursorInspectionModel::SetParentModel(GlobalUIModel *parent)
   Rebroadcast(app->GetColorLabelTable(),
               SegmentationLabelChangeEvent(), ModelUpdateEvent());
   Rebroadcast(app, SegmentationChangeEvent(), ModelUpdateEvent());
+
+
 }
 
 bool CursorInspectionModel::GetLabelUnderTheCursorIdValue(LabelType &value)

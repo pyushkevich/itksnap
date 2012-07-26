@@ -103,6 +103,10 @@ public:
   ColorMap *GetColorMap () const;
 
 
+  /** Get voxel at the position as an RGBA object. This returns the appearance
+    of the voxel for display (applying all intensity transformations) */
+  void GetVoxelDisplayAppearance(const Vector3ui &x, DisplayPixelType &out);
+
   /**
     Automatically rescale the intensity range based on image histogram
     quantiles.

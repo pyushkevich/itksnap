@@ -28,7 +28,7 @@
 #include "ThumbnailInteractionMode.h"
 #include <QMouseEvent>
 
-ThumbnailInteractionMode::ThumbnailInteractionMode(QWidget *parent) :
+ThumbnailInteractionMode::ThumbnailInteractionMode(GenericSliceView *parent) :
     SliceWindowInteractionDelegateWidget(parent)
 {
 
@@ -59,11 +59,22 @@ void ThumbnailInteractionMode::mousePressEvent(QMouseEvent *ev)
 
 void ThumbnailInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
+  // Press position in screen pixels
+  Vector2i x(ev->pos().x(), this->height() - ev->pos().y());
+
+  ev->ignore();
   if(m_PanFlag)
     {
     Vector2i dx(ev->pos().x() - m_LastPressPos.x(),
                 - (ev->pos().y() - m_LastPressPos.y()));
     m_Model->ProcessThumbnailPanGesture(-dx);
+    ev->accept();
+    }
+  else if(!isDragging() && m_Model->CheckThumbnail(x))
+    {
+    // When the view is responding to hover events, we want to consume
+    // mouse hovering that occurs over the thumbnail. Otherwise the user
+    // would not see the effect of the hovering
     ev->accept();
     }
 }

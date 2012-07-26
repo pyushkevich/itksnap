@@ -200,16 +200,6 @@ void GenericSliceRenderer::DrawMainTexture()
   // Draw each of the overlays
   if (!m_ThumbnailDrawing)
     {
-    LayerIterator ittest(id);
-    ++ittest;
-    ++ittest;
-    ++ittest;
-
-    LayerIterator ittest1(id, LayerIterator::OVERLAY_ROLE);
-    ++ittest1;
-    ++ittest1;
-    ++ittest1;
-
     for(LayerIterator it(id, LayerIterator::OVERLAY_ROLE); !it.IsAtEnd(); ++it)
       {
       // Get the texture

@@ -37,14 +37,18 @@ public:
   static QIcon GetIcon(ValueType value,
                        const LayerCurrentVoxelInfo &desc, int col)
   {
-    return QIcon();
+    return (col == 0)
+        ? QIcon()
+        : CreateColorBoxIcon(16, 16, desc.Color);
   }
-
 
   static QVariant GetIconSignature(ValueType value,
                                    const LayerCurrentVoxelInfo &desc, int col)
   {
-    return QVariant(0);
+    // Get the RGB color
+    return (col == 0)
+        ? QVariant(0)
+        : QVariant(QColor(desc.Color[0], desc.Color[1], desc.Color[2]));
   }
 };
 

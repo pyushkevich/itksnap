@@ -142,6 +142,10 @@ public:
   /** Get voxel at index as an array of double components */
   virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const = 0;
 
+  /** Get voxel at the position as an RGBA object. This returns the appearance
+    of the voxel for display (applying all intensity transformations) */
+  virtual void GetVoxelDisplayAppearance(const Vector3ui &x, DisplayPixelType &out) = 0;
+
   /** Get the voxel array, as void pointer */
   virtual void *GetVoxelVoidPointer() const = 0;
 

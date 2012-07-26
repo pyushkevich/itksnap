@@ -159,6 +159,9 @@ typename GreyImageWrapper<TPixel>::DisplaySlicePointer
 GreyImageWrapper<TPixel>
 ::GetDisplaySlice(unsigned int dim)
 {
+  // TODO: this should be handled through ITK DataObject mechanisms, i.e.,
+  // the filter and curve should be itk::DataObjects and passed in as input
+  // the the m_IntensityFilter
   unsigned long t_filter = m_IntensityFilter[dim]->GetMTime();
   unsigned long t_curve = m_IntensityCurveVTK->GetMTime();
   unsigned long t_colormap = m_ColorMap->GetMTime();
@@ -187,6 +190,20 @@ GreyImageWrapper<TPixel>
   for(unsigned int i=0;i<3;i++)
     m_IntensityFilter[i]->Modified();
 }
+
+template<class TPixel>
+void
+GreyImageWrapper<TPixel>
+::GetVoxelDisplayAppearance(const Vector3ui &x, DisplayPixelType &out)
+{
+  // TODO: this should not be needed, see the note for GetDisplaySlice
+  //  -- make sure the display mapping is updated
+  GetDisplaySlice(0);
+
+  // Apply the filter
+  out = m_IntensityFunctor(this->GetVoxel(x));
+}
+
 
 template<class TPixel>
 void
@@ -269,3 +286,4 @@ GreyImageWrapper<TPixel>::IntensityFunctor
 
 
 template class GreyImageWrapper<short>;
+

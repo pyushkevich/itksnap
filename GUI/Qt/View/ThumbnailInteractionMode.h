@@ -36,7 +36,7 @@ class ThumbnailInteractionMode : public SliceWindowInteractionDelegateWidget
   Q_OBJECT
 
 public:
-  explicit ThumbnailInteractionMode(QWidget *parent = 0);
+  explicit ThumbnailInteractionMode(GenericSliceView *parent = 0);
 
   void SetModel(OrthogonalSliceCursorNavigationModel *model);
 

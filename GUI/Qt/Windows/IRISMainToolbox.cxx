@@ -36,6 +36,7 @@
 #include <ZoomInspector.h>
 #include <CursorInspector.h>
 #include <LabelInspector.h>
+#include <SnakeToolROIPanel.h>
 
 #include <GlobalUIModel.h>
 
@@ -61,6 +62,10 @@ const char *IRISMainToolbox::m_InspectorPageNames[] = {
     "Tool Inspector"
 };
 
+
+// TODO: This is inconsistent with the rest of the GUI because the widgets
+// are constructed in C++ code, not in the UI designer. We should redo this
+// using the designer.
 IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
     QWidget(parent)
 {
@@ -143,13 +148,19 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
   m_CursorInspector = new CursorInspector();
   m_LabelInspector = new LabelInspector();
 
+  // The tools page is just a widget with a stack layout
+  m_ToolInspector = new QStackedWidget();
+
+  // Add the various tool panels
+  m_SnakeToolROIPanel = new SnakeToolROIPanel();
+  m_ToolInspector->addWidget(m_SnakeToolROIPanel);
+
   QWidget *tabContent[] = {
     m_CursorInspector, m_ZoomInspector, m_LabelInspector,
-    new QWidget(),
-    new QWidget(), new QWidget()
+    m_ToolInspector
   };
 
-  // Add five tabs to the tab bar
+  // Add the four tabs to the tab bar
   for(int i = 0; i < 4; i++)
     {
     QWidget *w = new QWidget();
@@ -181,7 +192,6 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
   lTbx3D->setContentsMargins(5,5,5,5);
   lMain->addWidget(tbx3D);
 
-
   QMetaObject::connectSlotsByName(this);
 }
 
@@ -191,6 +201,7 @@ void IRISMainToolbox::SetModel(GlobalUIModel *model)
   m_ZoomInspector->SetModel(model);
   m_CursorInspector->SetModel(model->GetCursorInspectionModel());
   m_LabelInspector->SetModel(model);
+  m_SnakeToolROIPanel->SetModel(model);
 }
 
 void IRISMainToolbox::on_BtnCrosshairMode_toggled(bool checked)
@@ -224,7 +235,19 @@ void IRISMainToolbox::on_BtnPolygonMode_toggled(bool checked)
     m_Model->SetToolbarMode(POLYGON_DRAWING_MODE);
 
     // Also tab over to the cursor inspector
-    m_TabInspector->setCurrentWidget(m_CursorInspector);
+    m_TabInspector->setCurrentWidget(m_LabelInspector);
+    }
+}
+
+void IRISMainToolbox::on_BtnSnakeMode_toggled(bool checked)
+{
+  if(checked)
+    {
+    m_Model->SetToolbarMode(ROI_MODE);
+
+    // Also tab over to the cursor inspector
+    m_TabInspector->setCurrentWidget(m_ToolInspector);
+    m_ToolInspector->setCurrentWidget(m_SnakeToolROIPanel);
     }
 }
 

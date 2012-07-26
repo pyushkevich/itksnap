@@ -249,6 +249,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/PolygonDrawingModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
   GUI/Model/SNAPAppearanceSettings.cxx
+  GUI/Model/SnakeROIModel.cxx
   GUI/Model/StateManagement.cxx
   GUI/Model/UIAction.cxx
   GUI/Renderer/AbstractRenderer.cxx
@@ -260,6 +261,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/OpenGLSliceTexture.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
   GUI/Renderer/PolygonScanConvert.cxx
+  GUI/Renderer/SnakeROIRenderer.cxx
 )
 
 SET(UI_GENERIC_HEADERS
@@ -286,6 +288,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/SNAPUIFlag.h
   GUI/Model/SNAPUIFlag.txx
   GUI/Model/SliceWindowCoordinator.h
+  GUI/Model/SnakeROIModel.h
   GUI/Model/StateManagement.h
   GUI/Model/UIAction.h
   GUI/Model/UIReporterDelegates.h
@@ -298,6 +301,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/IntensityCurveRenderer.h
   GUI/Renderer/PolygonDrawingRenderer.h
   GUI/Renderer/PolygonScanConvert.h
+  GUI/Renderer/SnakeROIRenderer.h
 )
 
 # These files contain the Qt-specific user interface source code
@@ -314,6 +318,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QtReporterDelegates.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
+  GUI/Qt/Components/SnakeToolROIPanel.cxx
   GUI/Qt/Components/SNAPComponent.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
@@ -331,6 +336,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/QtVTKInteractionDelegateWidget.cxx
   GUI/Qt/View/PolygonDrawingInteractionMode.cxx
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
+  GUI/Qt/View/SnakeROIInteractionMode.cxx
   GUI/Qt/View/SNAPQGLWidget.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx
   GUI/Qt/Windows/IRISMainToolbox.cxx
@@ -356,6 +362,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
+  GUI/Qt/Components/SnakeToolROIPanel.h
   GUI/Qt/Components/SNAPComponent.h
   GUI/Qt/Components/SNAPQtCommon.h
   GUI/Qt/Components/SliceViewPanel.h
@@ -372,6 +379,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/QtVTKInteractionDelegateWidget.h
   GUI/Qt/View/PolygonDrawingInteractionMode.h
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
+  GUI/Qt/View/SnakeROIInteractionMode.h
   GUI/Qt/View/SNAPQGLWidget.h
   GUI/Qt/View/ThumbnailInteractionMode.h
   GUI/Qt/Windows/IRISMainToolbox.h
@@ -405,6 +413,7 @@ SET(UI_FORMS
   GUI/Qt/Components/MetadataInspector.ui
   GUI/Qt/Components/QtWarningDialog.ui
   GUI/Qt/Components/SliceViewPanel.ui
+  GUI/Qt/Components/SnakeToolROIPanel.ui
   GUI/Qt/Components/ViewPanel3D.ui
   GUI/Qt/Components/ZoomInspector.ui
   GUI/Qt/Windows/ImageIODialog.ui

@@ -39,9 +39,6 @@ QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
 
 bool QtInteractionDelegateWidget::event(QEvent *ev)
 {
-  if(ev->type() == QEvent::MouseButtonPress)
-    std::cout << "QtInteractionDelegateWidget::event" << std::endl;
-
   // Generate data from this event
   preprocessEvent(ev);
 

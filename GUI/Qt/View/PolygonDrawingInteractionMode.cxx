@@ -34,7 +34,7 @@ QAction *setupAction(PolygonDrawingInteractionMode *w, QMenu *menu,
 
 PolygonDrawingInteractionMode
 ::PolygonDrawingInteractionMode(GenericSliceView *parent) :
-    SliceWindowInteractionDelegateWidget(static_cast<QWidget *>(parent))
+    SliceWindowInteractionDelegateWidget(parent)
 {
   m_Renderer = PolygonDrawingRenderer::New();
   m_Renderer->SetParentRenderer(
@@ -80,6 +80,7 @@ void PolygonDrawingInteractionMode::mousePressEvent(QMouseEvent *ev)
 
 void PolygonDrawingInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
+  ev->ignore();
   if(m_LeftDown)
     {
     if(m_Model->ProcessDragEvent(m_XSlice(0), m_XSlice(1)))
@@ -87,12 +88,12 @@ void PolygonDrawingInteractionMode::mouseMoveEvent(QMouseEvent *ev)
       ev->accept();
       }
     }
-  else
+  else if (!isDragging())
     {
     if(m_Model->ProcessMouseMoveEvent(m_XSlice(0), m_XSlice(1)))
       {
       ev->accept();
-      this->update();
+      m_ParentView->update();
       }
     }
 }
@@ -192,14 +193,19 @@ void PolygonDrawingInteractionMode::onCancelDrawing()
   m_Model->Reset();
 }
 
+#include <SliceViewPanel.h>
+
 void PolygonDrawingInteractionMode::enterEvent(QEvent *)
 {
-  this->setMouseTracking(true);
+  // TODO: this is hideous!
+  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  panel->SetMouseMotionTracking(true);
 }
 
 void PolygonDrawingInteractionMode::leaveEvent(QEvent *)
 {
-  this->setMouseTracking(false);
+  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  panel->SetMouseMotionTracking(false);
 }
 
 

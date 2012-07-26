@@ -331,6 +331,14 @@ ScalarImageWrapper<TPixel>
   return m_Histogram;
 }
 
+template<class TPixel>
+void ScalarImageWrapper<TPixel>
+::GetVoxelDisplayAppearance(
+    const Vector3ui &x, ImageWrapperBase::DisplayPixelType &out)
+{
+  // This default implementation does nothing
+  out.Fill(0);
+}
 
 
 template class ScalarImageWrapper<float>;

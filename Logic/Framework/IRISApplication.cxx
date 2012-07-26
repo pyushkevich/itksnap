@@ -1319,6 +1319,9 @@ IRISApplication
   // Update the system's history list
   m_SystemInterface->UpdateHistory("MainImage", io->GetFileNameOfNativeImage());
 
+  // Reset the segmentation ROI
+  m_GlobalState->SetSegmentationROI(io->GetNativeImage()->GetBufferedRegion());
+
   // Fire the dimensions change event
   InvokeEvent(MainImageDimensionsChangeEvent());
 
@@ -1362,6 +1365,9 @@ IRISApplication
     m_SystemInterface->AssociateCurrentSettingsWithCurrentImageFile(
           fnMain.c_str(), this);
     }
+
+  // Reset the automatic segmentation ROI
+  m_GlobalState->SetSegmentationROI(GlobalState::RegionType());
 
   // Unload the main image
   m_CurrentImageData->UnloadMainImage();

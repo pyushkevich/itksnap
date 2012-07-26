@@ -99,6 +99,9 @@ itkEventMacro(SegmentationLabelPropertyChangeEvent, SegmentationLabelChangeEvent
 /** Label under cursor changed */
 itkEventMacro(LabelUnderCursorChangedEvent, IRISEvent)
 
+/** Segmentation ROI changed */
+itkEventMacro(SegmentationROIChangedEvent, IRISEvent)
+
 // A setter method that fires events
 #define irisSetWithEventMacro(name,type,event) \
     virtual void Set##name (type _arg) \

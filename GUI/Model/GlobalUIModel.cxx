@@ -31,6 +31,7 @@
 #include <GenericSliceModel.h>
 #include <OrthogonalSliceCursorNavigationModel.h>
 #include <PolygonDrawingModel.h>
+#include <SnakeROIModel.h>
 #include <SliceWindowCoordinator.h>
 #include <GenericImageData.h>
 #include <GuidedNativeImageIO.h>
@@ -70,6 +71,9 @@ GlobalUIModel::GlobalUIModel()
 
     m_PolygonDrawingModel[i] = PolygonDrawingModel::New();
     m_PolygonDrawingModel[i]->SetParent(m_SliceModel[i]);
+
+    m_SnakeROIModel[i] = SnakeROIModel::New();
+    m_SnakeROIModel[i]->SetParent(m_SliceModel[i]);
     }
 
   // Connect them together with the coordinator
@@ -117,9 +121,13 @@ GlobalUIModel::GlobalUIModel()
         &Self::GetCursorPositionValueAndRange,
         &Self::SetCursorPosition);
 
-  // The model needs to rebroadcast cusror change events as value changes
+  // The model needs to rebroadcast cusror change events as value changes. This
+  // is because unlike other more specific models, GlobalUIModel does not fire
+  // ModelUpdateEvent objects.
   m_CursorPositionModel->Rebroadcast(
         this, CursorUpdateEvent(), ValueChangedEvent());
+  m_CursorPositionModel->Rebroadcast(
+        m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
 
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());
@@ -140,6 +148,10 @@ GlobalUIModel::GlobalUIModel()
   Rebroadcast(m_Driver->GetColorLabelTable(), SegmentationLabelChangeEvent(),
               LabelUnderCursorChangedEvent());
   Rebroadcast(m_Driver, SegmentationChangeEvent(), LabelUnderCursorChangedEvent());
+
+  // Segmentation ROI event
+  Rebroadcast(m_Driver->GetGlobalState()->GetSegmentationROISettingsModel(),
+              ValueChangedEvent(), SegmentationROIChangedEvent());
 }
 
 GlobalUIModel::~GlobalUIModel()
@@ -238,12 +250,12 @@ bool GlobalUIModel::GetCursorPositionValueAndRange(
 {
   if(m_Driver->GetCurrentImageData()->IsMainLoaded())
     {
-    value = m_Driver->GetCursorPosition();
+    value = m_Driver->GetCursorPosition() + 1u;
     if(range)
       {
-      range->Set(Vector3ui(0),
-                 m_Driver->GetCurrentImageData()->GetMain()->GetSize() - 1u,
-                 Vector3ui(1));
+      range->Set(Vector3ui(1u),
+                 m_Driver->GetCurrentImageData()->GetMain()->GetSize(),
+                 Vector3ui(1u));
       }
     return true;
     }
@@ -253,7 +265,7 @@ bool GlobalUIModel::GetCursorPositionValueAndRange(
 
 void GlobalUIModel::SetCursorPosition(Vector3ui value)
 {
-  m_Driver->SetCursorPosition(value);
+  m_Driver->SetCursorPosition(value - 1u);
 }
 
 

@@ -17,6 +17,7 @@ struct LayerCurrentVoxelInfo
 {
   std::string LayerName;
   std::string IntensityValue;
+  Vector3ui Color;
 };
 
 /**

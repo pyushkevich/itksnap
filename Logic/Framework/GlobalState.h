@@ -199,11 +199,8 @@ public:
   /** Set current mode of polygon/snake painting (over all, over label) */
   CoverageModeType GetCoverageMode() const;
 
-  /** Get whether the region of interest is valid */
-  irisSetMacro(IsValidROI,bool );
-
   /** Set whether the region of interest is valid */
-  irisGetMacro(IsValidROI,bool );
+  bool isSegmentationROIValid();
 
   /** Get whether the region of interest is visible */
   irisSetMacro(ShowROI,bool );
@@ -313,21 +310,14 @@ public:
   /** Set the current mesh rendering options */
   irisSetMacro(MeshOptions,MeshOptions);
 
-  /** Set the settings associated with the region of interest extracted for
-   segmentation */
-  irisSetMacro(SegmentationROISettings,const SNAPSegmentationROISettings &);
-
-  /** Set the settings associated with the region of interest extracted for
-   segmentation */
-  irisGetMacro(SegmentationROISettings,const SNAPSegmentationROISettings &);
+  /** Settings associated with the segmentation ROI */
+  irisSimplePropertyAccessMacro(SegmentationROISettings, SNAPSegmentationROISettings)
 
   /** Shortcut ot set the actual bounding box in the ROI from the settings */
-  void SetSegmentationROI(const RegionType &roi)
-    { m_SegmentationROISettings.SetROI(roi); }
+  void SetSegmentationROI(const RegionType &roi);
 
   /** Shortcut ot get the actual bounding box in the ROI from the settings */
-  RegionType GetSegmentationROI()
-    { return m_SegmentationROISettings.GetROI(); }
+  RegionType GetSegmentationROI();
 
   /** Get the current paintbrush settings */
   irisGetMacro(PaintbrushSettings, const PaintbrushSettings &);
@@ -432,9 +422,6 @@ private:
   /** Whether the slice requires an update or not (TODO: obsolete?) */
   int m_UpdateSliceFlag;
 
-  /** Whether the region of interest is valid */
-  bool m_IsValidROI;
-
   /** Whether the region of interest is visible */
   bool m_ShowROI;
 
@@ -469,7 +456,7 @@ private:
   char * m_GreyFileExtension; 
 
   /** The region of interest for the segmentation (drawn by the user) */
-  SNAPSegmentationROISettings m_SegmentationROISettings;
+  SmartPtr<ConcretePropertyModel<SNAPSegmentationROISettings> > m_SegmentationROISettingsModel;
 
   /** Whether the context menu is enabled for polygon drawing. I don't think
     this is the right place to put this, because it's quite GUI specific, but

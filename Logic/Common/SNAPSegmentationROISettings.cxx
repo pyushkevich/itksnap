@@ -59,5 +59,23 @@ SNAPSegmentationROISettings
   {
     unsigned int p = (unsigned int) (vROI[i] * m_VoxelScale[i]);
     vImage[i] = p + m_ROI.GetIndex()[i];
-  }
+    }
+}
+
+bool SNAPSegmentationROISettings
+::operator ==(
+    const SNAPSegmentationROISettings &other) const
+{
+  return
+      m_ROI == other.m_ROI &&
+      m_ResampleFlag == other.m_ResampleFlag &&
+      m_VoxelScale == other.m_VoxelScale &&
+      m_InterpolationMethod == other.m_InterpolationMethod;
+}
+
+bool SNAPSegmentationROISettings
+::operator !=(
+    const SNAPSegmentationROISettings &other) const
+{
+  return !(*this == other);
 }

@@ -8,6 +8,8 @@
 #include "itkCommand.h"
 #include "CrosshairsRenderer.h"
 #include "PolygonDrawingRenderer.h"
+#include "SnakeROIRenderer.h"
+#include "SnakeROIModel.h"
 #include "SliceWindowCoordinator.h"
 #include "PolygonDrawingModel.h"
 #include "QtWidgetActivator.h"
@@ -20,6 +22,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
     ui(new Ui::SliceViewPanel)
 {
   ui->setupUi(this);
+
 
   QString menuStyle = "font-size: 12pt;";
 
@@ -58,18 +61,29 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   // Arrange the interaction modes into a tree structure. The first child of
   // every interaction mode is an empty QWidget. The tree is used to allow
   // events to fall through from one interaction mode to another
+
+  // TODO: can we think of a more dynamic system for doing this? Essentially,
+  // there is a pipeline through which events pass through, which is
+  // reconfigured when the mode changes.
+
+
+  // Add all the individual interactors to the main panel using a stacked
+  // layout. This assures that all of the interactors have the same size as
+  // the sliceView. The actual propagation of events is handled by the
+  // event filter logic.
   QStackedLayout *loMain = new QStackedLayout();
+  loMain->setContentsMargins(0,0,0,0);
   loMain->addWidget(ui->imCrosshairs);
   loMain->addWidget(ui->imZoomPan);
   loMain->addWidget(ui->imThumbnail);
+  loMain->addWidget(ui->imPolygon);
+  loMain->addWidget(ui->imSnakeROI);
   delete ui->sliceView->layout();
   ui->sliceView->setLayout(loMain);
 
-  QStackedLayout *loCrosshair = new QStackedLayout();
-  loCrosshair->addWidget(new QWidget());
-  loCrosshair->addWidget(ui->imPolygon);
-  delete ui->imCrosshairs->layout();
-  ui->imCrosshairs->setLayout(loCrosshair);
+  // Configure the initial event chain
+  m_CurrentEventFilter = NULL;
+  ConfigureEventChain(ui->imCrosshairs);
 
   // Also lay out the pages
   QStackedLayout *loPages = new QStackedLayout();
@@ -79,14 +93,6 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   loPages->addWidget(ui->pagePolygonInactive);
   delete ui->toolbar->layout();
   ui->toolbar->setLayout(loPages);
-
-  // Let the thumbnail code filter all the events from other modes
-  ui->imCrosshairs->installEventFilter(ui->imThumbnail);
-  ui->imZoomPan->installEventFilter(ui->imThumbnail);
-  ui->imPolygon->installEventFilter(ui->imThumbnail);
-
-  // Events not picked up by the polygon mode should filter through to
-  // the crosshairs mode
 
   // Send wheel events from Crosshairs mode to the slider
   ui->imCrosshairs->SetWheelEventTargetWidget(ui->inSlicePosition);
@@ -113,13 +119,11 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   // Initialize the interaction modes
   ui->imCrosshairs->SetModel(m_GlobalUI->GetCursorNavigationModel(index));
-
   ui->imZoomPan->SetModel(m_GlobalUI->GetCursorNavigationModel(index));
   ui->imZoomPan->SetMouseButtonBehaviorToZoomPanMode();
-
   ui->imThumbnail->SetModel(m_GlobalUI->GetCursorNavigationModel(index));
-
   ui->imPolygon->SetModel(m_GlobalUI->GetPolygonDrawingModel(index));
+  ui->imSnakeROI->SetModel(m_GlobalUI->GetSnakeROIModel(index));
 
   // Attach the overlays to the master renderer. Why are we doing it here?
   GenericSliceRenderer::RendererDelegateList &overlays =
@@ -138,6 +142,10 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   connectITK(m_GlobalUI->GetPolygonDrawingModel(index),
              StateMachineChangeEvent());
 
+  // Listen to the Snake ROI model too
+  connectITK(m_GlobalUI->GetSnakeROIModel(index),
+             ModelUpdateEvent());
+
   // Activation
   activateOnFlag(this, m_GlobalUI, UIF_BASEIMG_LOADED);
 
@@ -153,23 +161,6 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   activateOnAllFlags(ui->actionSplitSelected, pm, UIF_EDITING, UIF_HAVE_EDGE_SELECTION);
   activateOnAllFlags(ui->actionUndo, pm, UIF_DRAWING, UIF_HAVEPOLYGON);
   activateOnAllFlags(ui->actionClearPolygon, pm, UIF_EDITING, UIF_HAVEPOLYGON);
-
-
-  /*
-  AddListener(m_GlobalUI->GetSliceModel(index), GenericSliceModel::ModelUpdateEvent(),
-              this, &SliceViewPanel::OnModelUpdate); */
-
-  // Listen to changes to the crosshairs (for the slider)
-  // AddListener(m_GlobalUI->GetDriver(), CursorUpdateEvent(),
-  //            this, &SliceViewPanel::OnCursorUpdate);
-
-  // Listen to changes to the model (to set slider min/max)
-  // AddListener(m_GlobalUI->GetSliceModel(index), SliceModelImageDimensionsChangeEvent(),
-  //            this, &SliceViewPanel::OnImageDimensionsUpdate);
-
-  // Listen to changes to the toolbar mode (to change the interactor)
-  // AddListener(m_GlobalUI, ToolbarModeChangeEvent(),
-  //            this, &SliceViewPanel::OnToolbarModeChange);
 }
 
 void SliceViewPanel::onModelUpdate(const EventBucket &eb)
@@ -223,9 +214,28 @@ void SliceViewPanel::OnImageDimensionsUpdate()
 
 void SliceViewPanel::on_inSlicePosition_valueChanged(int value)
 {
+  // TODO: this can be handled using a coupling instead
+
   // Update the cursor position in the model
   if(value != (int) GetSliceView()->GetModel()->GetSliceIndex())
     this->GetSliceView()->GetModel()->UpdateSliceIndex(value);
+}
+
+void SliceViewPanel::ConfigureEventChain(QWidget *w)
+{
+  // Remove all filters from the crosshair widget
+  QObjectList kids = ui->sliceView->children();
+  for(QObjectList::Iterator it = kids.begin(); it!=kids.end(); ++it)
+    ui->imCrosshairs->removeEventFilter(*it);
+
+  // If the current mode is not crosshairs mode, add it as the filter
+  if(w != ui->imCrosshairs)
+    {
+    ui->imCrosshairs->installEventFilter(w);
+    }
+
+  // The last guy in the chain is the thumbnail interactor
+  ui->imCrosshairs->installEventFilter(ui->imThumbnail);
 }
 
 void SliceViewPanel::SetActiveMode(QWidget *mode, bool clearChildren)
@@ -237,7 +247,7 @@ void SliceViewPanel::SetActiveMode(QWidget *mode, bool clearChildren)
 
   if(loParent)
     {
-    // Set the mode as the current widget
+    // Set the mode as the current widget in the parent
     loParent->setCurrentWidget(mode);
 
     // Make sure the parent widget is also the current widget
@@ -256,26 +266,35 @@ void SliceViewPanel::SetActiveMode(QWidget *mode, bool clearChildren)
 
 void SliceViewPanel::OnToolbarModeChange()
 {
+  // Configure the renderers
+  GenericSliceRenderer::RendererDelegateList &overlays =
+      ui->sliceView->GetRendererOverlays();
+  overlays.clear();
+  overlays.push_back(ui->imCrosshairs->GetRenderer());
+  overlays.push_back(ui->imPolygon->GetRenderer());
+
   switch((ToolbarModeType)m_GlobalUI->GetToolbarMode())
     {
   case POLYGON_DRAWING_MODE:
-    SetActiveMode(ui->imPolygon);
+    ConfigureEventChain(ui->imPolygon);
     break;
   case PAINTBRUSH_MODE:
     break;
   case ANNOTATION_MODE:
     break;
   case ROI_MODE:
+    ConfigureEventChain(ui->imSnakeROI);
+    overlays.push_back(ui->imSnakeROI->GetRenderer());
     break;
   case CROSSHAIRS_MODE:
-    SetActiveMode(ui->imCrosshairs);
+    ConfigureEventChain(ui->imCrosshairs);
     break;
   case NAVIGATION_MODE:
-    SetActiveMode(ui->imZoomPan);
+    ConfigureEventChain(ui->imZoomPan);
     break;
     }
 
-  // Need to do change to the appropriate page
+  // Need to change to the appropriate page
   QStackedLayout *loPages =
       static_cast<QStackedLayout *>(ui->toolbar->layout());
   if(m_GlobalUI->GetToolbarMode() == POLYGON_DRAWING_MODE)
@@ -320,4 +339,11 @@ void SliceViewPanel::onContextMenu()
       menu->popup(QCursor::pos());
       }
     }
+}
+
+void SliceViewPanel::SetMouseMotionTracking(bool enable)
+{
+  // ui->sliceView->setMouseTracking(enable);
+  ui->imCrosshairs->setMouseTracking(enable);
+  // m_CurrentEventFilter->setMouseTracking(enable);
 }

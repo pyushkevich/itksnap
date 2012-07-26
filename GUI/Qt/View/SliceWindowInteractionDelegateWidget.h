@@ -3,14 +3,16 @@
 
 #include <QtInteractionDelegateWidget.h>
 
+class GenericSliceView;
+
 class SliceWindowInteractionDelegateWidget : public QtInteractionDelegateWidget
 {
   Q_OBJECT
 
 public:
-  explicit SliceWindowInteractionDelegateWidget(QWidget *parent = 0);
+  explicit SliceWindowInteractionDelegateWidget(GenericSliceView *parent = 0);
 
-  irisSetMacro(ParentModel, GenericSliceModel *);
+  irisSetMacro(ParentModel, GenericSliceModel *)
 
 protected:
 
@@ -20,7 +22,11 @@ protected:
   // Parent model
   GenericSliceModel *m_ParentModel;
 
+  // Parent widget
+  GenericSliceView *m_ParentView;
+
   void preprocessEvent(QEvent *ev);
+
 };
 
 #endif // SLICEWINDOWINTERACTIONDELEGATEWIDGET_H

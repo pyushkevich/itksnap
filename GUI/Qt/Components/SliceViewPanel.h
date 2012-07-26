@@ -32,7 +32,7 @@ public:
   void UpdateSlicePositionWidgets();
 
   // Callback for when the toolbar changes
-
+  void SetMouseMotionTracking(bool enable);
 
 
 private slots:
@@ -52,6 +52,9 @@ private:
   // Popup menus used for polygon operations
   QMenu *m_MenuPolyInactive, *m_MenuPolyEditing, *m_MenuPolyDrawing;
 
+  // Current event filter on the crosshair widget
+  QWidget *m_CurrentEventFilter;
+
   // Global UI pointer
   GlobalUIModel *m_GlobalUI;
 
@@ -59,6 +62,15 @@ private:
   unsigned int m_Index;
 
   void SetActiveMode(QWidget *mode, bool clearChildren = true);
+
+  /**
+  The common setup is to have an event filter chain
+    widget -- crosshair -- active_mode -- thumbnail
+  In other words, all events first go to the thumbnail,
+  then to the active mode, then to the crosshair mode
+  */
+  void ConfigureEventChain(QWidget *w);
+
 };
 
 #endif // SLICEVIEWPANEL_H

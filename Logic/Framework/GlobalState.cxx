@@ -61,11 +61,14 @@ GlobalState
   // Snake stuff:
   m_SpeedValid = false;
   m_ShowSpeed = false;
-  m_IsValidROI = false;
   m_ShowROI = false;
   m_DraggingROI = false;
   m_SnakeMode = EDGE_SNAKE;
   m_SnakeActive = false;
+
+  // Initialize the property model for the ROI settings
+  m_SegmentationROISettingsModel
+      = NewSimpleConcreteProperty(SNAPSegmentationROISettings());
 
   m_SpeedViewZero = false;
   m_SnakeParameters = SnakeParameters::GetDefaultEdgeParameters();
@@ -183,5 +186,22 @@ void GlobalState::SetCoverageMode(CoverageModeType coverage)
 CoverageModeType GlobalState::GetCoverageMode() const
 {
   return this->GetDrawOverFilter().CoverageMode;
+}
+
+bool GlobalState::isSegmentationROIValid()
+{
+  return this->GetSegmentationROI().GetNumberOfPixels() > 0;
+}
+
+void GlobalState::SetSegmentationROI(const GlobalState::RegionType &roi)
+{
+  SNAPSegmentationROISettings s = this->GetSegmentationROISettings();
+  s.SetROI(roi);
+  this->SetSegmentationROISettings(s);
+}
+
+GlobalState::RegionType GlobalState::GetSegmentationROI()
+{
+  return this->GetSegmentationROISettings().GetROI();
 }
 

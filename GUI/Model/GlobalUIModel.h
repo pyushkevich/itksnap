@@ -53,6 +53,7 @@ class Generic3DModel;
 class LabelEditorModel;
 class ConcreteColorLabelPropertyModel;
 class CursorInspectionModel;
+class SnakeROIModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -87,6 +88,7 @@ public:
   FIRES(LabelUnderCursorChangedEvent)
 
 
+
   irisGetMacro(Driver, IRISApplication *)
 
   irisGetMacro(AppearanceSettings, SNAPAppearanceSettings *)
@@ -114,6 +116,12 @@ public:
   PolygonDrawingModel *GetPolygonDrawingModel(unsigned int i) const
   {
     return m_PolygonDrawingModel[i];
+  }
+
+  /** Get the polygon drawing model for each slice */
+  SnakeROIModel *GetSnakeROIModel(unsigned int i) const
+  {
+    return m_SnakeROIModel[i];
   }
 
   /** Get the model for intensity curve navigation */
@@ -173,6 +181,9 @@ protected:
 
   // Models for polygon drawing
   SmartPtr<PolygonDrawingModel> m_PolygonDrawingModel[3];
+
+  // Models for snake ROI drawing
+  SmartPtr<SnakeROIModel> m_SnakeROIModel[3];
 
   // Window coordinator
   SmartPtr<SliceWindowCoordinator> m_SliceCoordinator;

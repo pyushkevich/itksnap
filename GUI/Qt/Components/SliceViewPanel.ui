@@ -47,6 +47,9 @@
       <item>
        <widget class="PolygonDrawingInteractionMode" name="imPolygon" native="true"/>
       </item>
+      <item>
+       <widget class="SnakeROIInteractionMode" name="imSnakeROI" native="true"/>
+      </item>
      </layout>
     </widget>
    </item>
@@ -630,6 +633,12 @@ p, li { white-space: pre-wrap; }
     <slot>onCancelDrawing()</slot>
     <slot>onCloseLoopAndAccept()</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>SnakeROIInteractionMode</class>
+   <extends>QWidget</extends>
+   <header>SnakeROIInteractionMode.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
