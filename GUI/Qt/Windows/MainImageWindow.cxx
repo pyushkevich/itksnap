@@ -35,6 +35,8 @@
 #include "IntensityCurveModel.h"
 #include "ColorMapModel.h"
 #include "ViewPanel3D.h"
+#include "IRISMainToolbox.h"
+#include "SnakeWizardPanel.h"
 
 #include <LabelEditorDialog.h>
 
@@ -46,32 +48,24 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Initialize the dialogs
   m_LabelEditor = new LabelEditorDialog(this);
+  m_LabelEditor->setModal(false);
 
-/*
-  // Some manual stuff
-  QDockWidget *dock = new QDockWidget("Tool Dock", this);
+  m_LayerInspector = new LayerInspectorDialog(this);
+  m_LayerInspector->setModal(false);
 
-  // A widget to hold the tools
-  QFrame *frame = new QFrame(this);
+  // Initialize the docked panels
+  m_DockLeft = new QDockWidget("ITK-SNAP Toolbox", this);
+  m_Toolbox = new IRISMainToolbox(this);
+  m_DockLeft->setWidget(m_Toolbox);
+  this->addDockWidget(Qt::LeftDockWidgetArea, m_DockLeft);
 
-  // Add a horizontal layout to the frame
-  frame->setLayout(new QVBoxLayout());
+  m_DockRight = new QDockWidget("Segment 3D", this);
+  m_SnakeWizard = new SnakeWizardPanel(this);
+  m_DockRight->setWidget(m_SnakeWizard);
+  this->addDockWidget(Qt::RightDockWidgetArea, m_DockRight);
 
-  // Add some children to the frame
-  QFrame *toolbar = new QFrame(frame);
-  toolbar->setLayout(new QGridLayout());
-  frame->layout()->addWidget(toolbar);
-
-  QToolButton *tool1 = new QToolButton();
-  QToolButton *tool2 = new QToolButton();
-  toolbar->layout()->addWidget(tool1);
-  toolbar->layout()->addWidget(tool2);
-
-  QToolBox *qt = new QToolBox(frame);
-  qt->layout()->addWidget(qt);
-
-  dock->setWidget(frame);
-  */
+  // Hide the right dock for now
+  m_DockRight->setVisible(false);
 }
 
 MainImageWindow::~MainImageWindow()
@@ -91,6 +85,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Initialize the dialogs
   m_LabelEditor->SetModel(model->GetLabelEditorModel());
+  m_LayerInspector->SetModel(model);
+
+  // Initialize the docked panels
+  m_Toolbox->SetModel(model);
+  // m_SnakeWizard->SetModel(model);
 }
 
 SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
@@ -186,27 +185,25 @@ void MainImageWindow::on_actionImage_Contrast_triggered()
 {
   // Make the main image layer active in the models.
   // TODO: This should happen automatically somehow!
+  /*
   GreyImageWrapperBase *giw =
       m_Model->GetDriver()->GetCurrentImageData()->GetGrey();
   m_Model->GetIntensityCurveModel()->SetLayer(giw);
   m_Model->GetColorMapModel()->SetLayer(giw);
-
-  // Create a new dialog to display
-  LayerInspectorDialog *lid = new LayerInspectorDialog();
-
-  // Pass the model to the dialog
-  lid->SetModel(m_Model);
+  */
 
   // Show the dialog
-  lid->exec();
-
-  // Destroy the dialog
-  delete lid;
+  m_LayerInspector->show();
 }
 
 
 void MainImageWindow::on_actionLabel_Editor_triggered()
 {
   // Execute the label editor
-  m_LabelEditor->exec();
+  m_LabelEditor->show();
+}
+
+void MainImageWindow::SetSnakeWizardVisible(bool onoff)
+{
+  m_DockRight->setVisible(onoff);
 }

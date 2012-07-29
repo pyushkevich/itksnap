@@ -49,8 +49,8 @@ IntensityCurveModel::IntensityCurveModel()
         &Self::GetHistogramScale,
         &Self::SetHistogramScale);
 
-  // Layer change events rebroadcast as ModelUpdateEvents
-  Rebroadcast(this, ActiveLayerChangedEvent(), ModelUpdateEvent());
+  // Model events are also state changes for GUI activation
+  Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
 }
 
 
@@ -295,6 +295,9 @@ IntensityCurveModel
 ::GetMovingControlPointIdValueAndRange(int &value,
                                        NumericValueRange<int> *range)
 {
+  if(!m_Layer)
+    return false;
+
   if(range)
     {
     range->Minimum = 1;
@@ -515,6 +518,8 @@ void IntensityCurveModel::OnResetCurveAction()
 
 void IntensityCurveModel::OnUpdate()
 {
+  Superclass::OnUpdate();
+
   if(m_EventBucket->HasEvent(IntensityCurveChangeEvent()))
     {
     // Inform the layer that it needs to recompute its intensity map function
@@ -603,5 +608,26 @@ IntensityCurveModel
   GetProperties().SetHistogramLog(value);
   InvokeEvent(ModelUpdateEvent());
 }
+
+bool IntensityCurveModel::CheckState(IntensityCurveModel::UIState state)
+{
+  // All flags are false if no layer is loaded
+  if(this->GetLayer() == NULL)
+    return false;
+
+  // Otherwise get the properties
+  IntensityCurveLayerProperties &p = this->GetProperties();
+  int cp = p.GetMovingControlPoint();
+
+  switch(state)
+    {
+    case UIF_LAYER_ACTIVE:
+      return true;
+    case UIF_CONTROL_SELECTED:
+      return cp >= 0;
+    }
+  return false;
+}
+
 
 

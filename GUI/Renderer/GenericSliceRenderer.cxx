@@ -352,6 +352,9 @@ void GenericSliceRenderer::UpdateTextureMap()
 {
   if(m_Model->IsSliceInitialized())
     {
+    // TODO: should LayerAssociation attach to IRISApplication instead of
+    // ImageData, so we don't have to make this pointless call here?
+    m_Texture.SetImageData(m_Model->GetDriver()->GetCurrentImageData());
     m_Texture.Update();
 /*
     GenericImageData *id = m_Model->GetImageData();

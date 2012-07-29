@@ -54,6 +54,9 @@ public:
 
   void SetModel(GlobalUIModel *model);
 
+  void EnterSnakeMode();
+  void ExitSnakeMode();
+
 public slots:
 
   void on_BtnCrosshairMode_toggled(bool);

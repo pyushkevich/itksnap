@@ -319,6 +319,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
   GUI/Qt/Components/SnakeToolROIPanel.cxx
+  GUI/Qt/Components/SnakeWizardPanel.cxx
   GUI/Qt/Components/SNAPComponent.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
@@ -363,6 +364,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
   GUI/Qt/Components/SnakeToolROIPanel.h
+  GUI/Qt/Components/SnakeWizardPanel.h
   GUI/Qt/Components/SNAPComponent.h
   GUI/Qt/Components/SNAPQtCommon.h
   GUI/Qt/Components/SliceViewPanel.h
@@ -414,6 +416,7 @@ SET(UI_FORMS
   GUI/Qt/Components/QtWarningDialog.ui
   GUI/Qt/Components/SliceViewPanel.ui
   GUI/Qt/Components/SnakeToolROIPanel.ui
+  GUI/Qt/Components/SnakeWizardPanel.ui
   GUI/Qt/Components/ViewPanel3D.ui
   GUI/Qt/Components/ZoomInspector.ui
   GUI/Qt/Windows/ImageIODialog.ui

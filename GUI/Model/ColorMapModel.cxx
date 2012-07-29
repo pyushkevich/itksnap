@@ -37,9 +37,6 @@ ColorMapModel::ColorMapModel()
 
   // The model update events should also be rebroadcast as state changes
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
-
-  // Layer change events rebroadcast as ModelUpdateEvents
-  Rebroadcast(this, ActiveLayerChangedEvent(), ModelUpdateEvent());
 }
 
 ColorMap* ColorMapModel::GetColorMap()
@@ -221,6 +218,7 @@ bool ColorMapModel::ProcessMouseReleaseEvent(const Vector3d &x)
 
 void ColorMapModel::OnUpdate()
 {
+  Superclass::OnUpdate();
   if(m_EventBucket->HasEvent(ColorMapChangeEvent()))
     {
     this->GetLayer()->UpdateIntensityMapFunction();
@@ -232,6 +230,9 @@ ColorMapModel
 ::GetMovingControlPositionValueAndRange(
     double &value, NumericValueRange<double> *range)
 {
+  // When no layer is set, the value is invalid
+  if(!m_Layer) return false;
+
   ColorMapLayerProperties &p = this->GetProperties();
   ColorMap *cmap = this->GetColorMap();
   int idx = p.GetSelectedControlIndex();
@@ -280,6 +281,9 @@ ColorMapModel
 
 bool ColorMapModel::GetSelectedRGBA(ColorMap::RGBAType &rgba)
 {
+  // When no layer is set, the value is invalid
+  if(!m_Layer) return false;
+
   ColorMapLayerProperties &p = this->GetProperties();
   ColorMap *cmap = this->GetColorMap();
   int idx = p.GetSelectedControlIndex();
@@ -342,6 +346,9 @@ ColorMapModel
 ::GetMovingControlOpacityValueAndRange(
     double &value, NumericValueRange<double> *range)
 {
+  // When no layer is set, the value is invalid
+  if(!m_Layer) return false;
+
   ColorMap::RGBAType rgba;
   if(this->GetSelectedRGBA(rgba))
     {
@@ -402,6 +409,9 @@ ColorMapModel
 bool ColorMapModel
 ::GetMovingControlSide(Side &value)
 {
+  // When no layer is set, the value is invalid
+  if(!m_Layer) return false;
+
   ColorMapLayerProperties &p = this->GetProperties();
   int idx = p.GetSelectedControlIndex();
 
@@ -429,6 +439,9 @@ ColorMapModel
 
 bool ColorMapModel::GetMovingControlType(Continuity &value)
 {
+  // When no layer is set, the value is invalid
+  if(!m_Layer) return false;
+
   ColorMapLayerProperties &p = this->GetProperties();
   ColorMap *cmap = this->GetColorMap();
   int idx = p.GetSelectedControlIndex();
@@ -585,6 +598,9 @@ void ColorMapModel::DeletePreset(std::string name)
 bool ColorMapModel::GetMovingControlIndexValueAndRange(
     int &value, NumericValueRange<int> *range)
 {
+  // When no layer is set, the value is invalid
+  if(!m_Layer) return false;
+
   ColorMapLayerProperties &p = this->GetProperties();
   ColorMap *cmap = this->GetColorMap();
   int idx = p.GetSelectedControlIndex();

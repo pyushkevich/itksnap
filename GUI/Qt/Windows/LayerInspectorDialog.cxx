@@ -10,6 +10,8 @@
 #include "IntensityCurveModel.h"
 #include "ColorMapModel.h"
 #include "ImageInfoModel.h"
+#include "LatentITKEventNotifier.h"
+
 
 
 
@@ -32,7 +34,8 @@ public:
 
   int rowCount(const QModelIndex &parent) const
   {
-    return m_Model->GetNumberOfLayers();
+    int rc = m_Model->GetNumberOfLayers();
+    return rc;
   }
 
   QVariant data(const QModelIndex &index, int qtrole) const
@@ -67,6 +70,11 @@ public:
   Qt::ItemFlags flags(const QModelIndex &index) const
   {
     return QAbstractListModel::flags(index) | Qt::ItemIsEditable;
+  }
+
+  void onLayerListUpdate()
+  {
+    emit layoutChanged();
   }
 
 private:
@@ -105,6 +113,11 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
   ui->cmpColorMap->SetModel(model->GetColorMapModel());
   ui->cmpInfo->SetModel(model->GetImageInfoModel());
   ui->cmpMetadata->SetModel(model->GetImageInfoModel());
+
+  // We need to listen to layer changes in the model
+  LatentITKEventNotifier::connect(
+        model, LayerChangeEvent(),
+        this, SLOT(onModelUpdate(const EventBucket &)));
 }
 
 void LayerInspectorDialog::onLayerSelection()
@@ -116,4 +129,31 @@ void LayerInspectorDialog::onLayerSelection()
   m_Model->GetIntensityCurveModel()->SetLayer(layer);
   m_Model->GetColorMapModel()->SetLayer(layer);
   m_Model->GetImageInfoModel()->SetLayer(layer);
+}
+
+void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
+{
+  if(bucket.HasEvent(LayerChangeEvent()))
+    {
+    // If the layers have changed, the qt model needs to be refreshed
+    m_LayerListModel->onLayerListUpdate();
+
+    // TODO: this is the wrong place for this!!!
+    m_Model->GetImageInfoModel()->Update();
+    m_Model->GetColorMapModel()->Update();
+    m_Model->GetIntensityCurveModel()->Update();
+
+    // If the currently selected layer has been lost, move to the first
+    // available layer
+    if(m_Model->GetIntensityCurveModel()->GetLayer() == NULL)
+      {
+      if(m_Model->GetLoadedLayersSelectionModel()->GetNumberOfLayers() > 0)
+        {
+        ui->inLayer->selectionModel()->setCurrentIndex(
+              m_LayerListModel->index(0),
+              QItemSelectionModel::SelectCurrent);
+        onLayerSelection();
+        }
+      }
+    }
 }

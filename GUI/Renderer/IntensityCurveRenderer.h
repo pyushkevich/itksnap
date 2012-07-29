@@ -18,6 +18,8 @@ public:
   /** Paint the widget. The caller needs to supply the background color */
   void paintGL();
 
+  void OnUpdate();
+
   // Set the background color to paint with
   irisGetSetMacro(Background, Vector3ui)
 

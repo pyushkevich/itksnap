@@ -33,8 +33,12 @@
 class GenericSliceView;
 class SliceViewPanel;
 class GlobalUIModel;
+class QDockWidget;
+class SnakeWizardPanel;
+class IRISMainToolbox;
 
 class LabelEditorDialog;
+class LayerInspectorDialog;
 
 namespace Ui {
 class MainImageWindow;
@@ -56,6 +60,9 @@ public:
   // Get model
   irisGetMacro(Model, GlobalUIModel *)
 
+  // Show or hide the snake wizard
+  void SetSnakeWizardVisible(bool onoff);
+
 private slots:
   void on_actionOpen_Greyscale_Image_triggered();
 
@@ -74,11 +81,23 @@ private slots:
   void on_actionLabel_Editor_triggered();
 
 private:
+
+  // Left and right docks
+  QDockWidget *m_DockLeft, *m_DockRight;
+
+  // IRIS main toolbox (in left dock)
+  IRISMainToolbox *m_Toolbox;
+
+  // SNAP wizard panel (in right dock)
+  SnakeWizardPanel *m_SnakeWizard;
+
   Ui::MainImageWindow *ui;
 
   GlobalUIModel *m_Model;
 
   LabelEditorDialog *m_LabelEditor;
+
+  LayerInspectorDialog *m_LayerInspector;
 };
 
 #endif // MAINIMAGEWINDOW_H

@@ -58,6 +58,9 @@ void ColorMapInspector::SetModel(ColorMapModel *model)
                          m_Model->GetMovingControlSideModel());
 
   // Set up activations
+  activateOnFlag(this, m_Model,
+                 ColorMapModel::UIF_LAYER_ACTIVE);
+
   activateOnFlag(ui->inControlX, m_Model,
                  ColorMapModel::UIF_CONTROL_SELECTED_IS_NOT_ENDPOINT);
   activateOnFlag(ui->inControlIndex, m_Model,

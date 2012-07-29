@@ -71,8 +71,11 @@ void
 LayerAssociation<TObject, TFilter, TFactoryDelegate>
 ::SetImageData(GenericImageData *data)
 {
-  m_ImageData = data;
-  this->Update();
+  if(data != m_ImageData)
+    {
+    m_ImageData = data;
+    this->Update();
+    }
 }
 
 #endif // __Layer_Association_txx__

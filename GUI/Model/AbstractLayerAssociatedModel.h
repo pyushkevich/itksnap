@@ -37,8 +37,10 @@ public:
   itkTypeMacro(AbstractLayerAssociatedModel, AbstractModel)
 
   // An event fired when the selected layer changes
-  itkEventMacro(ActiveLayerChangedEvent, IRISEvent)
+  itkEventMacro(ActiveLayerChangedEvent, ModelUpdateEvent)
+  itkEventMacro(LayerStructureChangedEvent, ModelUpdateEvent)
 
+  FIRES(LayerStructureChangedEvent)
   FIRES(ActiveLayerChangedEvent)
 
   irisGetMacro(ParentModel, GlobalUIModel *)
@@ -50,6 +52,9 @@ public:
     // Associate the layers with properties.
     m_LayerProperties.SetImageData(
           m_ParentModel->GetDriver()->GetCurrentImageData());
+
+    // Layer changes in the parent are rebroadcast as model updates
+    Rebroadcast(m_ParentModel, LayerChangeEvent(), LayerStructureChangedEvent());
 
     // Set active layer to NULL
     this->SetLayer(NULL);
@@ -92,7 +97,8 @@ public:
   TProperties &GetProperties()
   {
     assert(m_Layer);
-    return *m_LayerProperties[m_Layer];
+    TProperties *p = m_LayerProperties[m_Layer];
+    return *p;
   }
 
 
@@ -114,6 +120,33 @@ public:
 . */
   virtual void UnRegisterFromLayer(TWrapper *layer) = 0;
 
+  /**
+    The model has its own OnUpdate implementation, which handles changes
+    in the layer structure. If the event bucket has a LayerChangeEvent,
+    the model will automatically rebuild it's layer associations, and
+    may reset the current layer to NULL if the current layer has been
+    removed.
+
+    If child models reimplement OnUpdate(), they must call
+    AbstractLayerAssociatedModel::OnUpdate() within the reimplemented method.
+    */
+  virtual void OnUpdate()
+  {
+    if(m_EventBucket->HasEvent(LayerChangeEvent()))
+      {
+      // If the layers have changed, we need to update the layer properties
+      // object. Then we need to see if the current layer has actually been
+      // destroyed
+      m_LayerProperties.SetImageData(m_ParentModel->GetDriver()->GetCurrentImageData());
+      m_LayerProperties.Update();
+
+      // Was the current layer removed?
+      if(m_LayerProperties.find(m_Layer) == m_LayerProperties.end())
+        this->SetLayer(NULL);
+      }
+  }
+
+
 
 
 
@@ -131,7 +164,7 @@ protected:
 
   virtual ~AbstractLayerAssociatedModel() {}
 
-  /** Create a new property object for a new layer */
+  /** Create a  property object for a new layer */
   TProperties *CreateProperty(TWrapper *w)
   {
     return new TProperties();

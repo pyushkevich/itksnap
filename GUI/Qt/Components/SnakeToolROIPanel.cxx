@@ -1,10 +1,12 @@
 #include "SnakeToolROIPanel.h"
 #include "ui_SnakeToolROIPanel.h"
 
+#include <SNAPQtCommon.h>
 #include <QtSpinBoxCoupling.h>
 #include <QtWidgetArrayCoupling.h>
 #include <GlobalUIModel.h>
 #include <SnakeROIModel.h>
+#include <MainImageWindow.h>
 
 SnakeToolROIPanel::SnakeToolROIPanel(QWidget *parent) :
   SNAPComponent(parent),
@@ -43,5 +45,14 @@ void SnakeToolROIPanel::on_btnResetROI_clicked()
 
 void SnakeToolROIPanel::on_btnAuto_clicked()
 {
+  // TODO: Check that the label configuration is valid
 
+  // Switch to crosshairs mode
+
+  // Show the snake panel
+  MainImageWindow *main = findParentWidget<MainImageWindow>(this);
+  main->SetSnakeWizardVisible(true);
+
+  // Put SNAP into snake mode
+  m_Model->EnterActiveContourMode();
 }

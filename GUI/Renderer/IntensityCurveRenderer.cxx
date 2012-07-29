@@ -21,12 +21,6 @@ IntensityCurveRenderer::~IntensityCurveRenderer()
 
 void IntensityCurveRenderer::paintGL()
 {
-  // The curve should have been initialized
-  IntensityCurveInterface *curve = m_Model->GetCurve();
-
-  // Get the histogram too
-  const ScalarImageHistogram *histogram = m_Model->GetHistogram();
-
   // Get the viewport dimensions
   GLint viewport[4];
   glGetIntegerv(GL_VIEWPORT, viewport);
@@ -43,97 +37,83 @@ void IntensityCurveRenderer::paintGL()
   // Disable lighting
   glDisable(GL_LIGHTING);
 
-  // Draw the plot area. The intensities outside of the window and level
-  // are going to be drawn in darker shade of gray
-  float t0, t1, xDummy;
-  curve->GetControlPoint(0, t0, xDummy);
-  curve->GetControlPoint(curve->GetControlPointCount() - 1, t1, xDummy);
-
-  // Scale the display so that leftmost point to plot maps to 0, rightmost to 1
-  float z0 = std::min(t0, 0.0f);
-  float z1 = std::max(t1, 1.0f);
-  glPushMatrix();
-  glTranslated(-z0 / (z1-z0), 0, 0);
-  glScaled(1.0 / (z1-z0), 1, 1);
-
-  // Draw the quads
-  glBegin(GL_QUADS);
-
-  // Outer quad
-  glColor3d(0.9, 0.9, 0.9);
-  glVertex2d(z0,0);
-  glVertex2d(z0,1);
-  glVertex2d(z1,1);
-  glVertex2d(z1,0);
-
-  float q0 = std::max(t0, 0.0f);
-  float q1 = std::min(t1, 1.0f);
-  if(q1 > q0)
+  if(m_Model->GetLayer())
     {
-    // Inner quad
-    glColor3d(1.0, 1.0, 1.0);
-    glVertex2d(q0, 0.0);
-    glVertex2d(q0, 1.0);
-    glVertex2d(q1, 1.0);
-    glVertex2d(q1, 0.0);
-    }
 
-  glEnd();
+    // The curve should have been initialized
+    IntensityCurveInterface *curve = m_Model->GetCurve();
 
-  // Draw a histogram if it exists
-  unsigned int nBins = histogram->GetSize();
+    // Get the histogram too
+    const ScalarImageHistogram *histogram = m_Model->GetHistogram();
 
-  if(nBins)
-    {
+    // Draw the plot area. The intensities outside of the window and level
+    // are going to be drawn in darker shade of gray
+    float t0, t1, xDummy;
+    curve->GetControlPoint(0, t0, xDummy);
+    curve->GetControlPoint(curve->GetControlPointCount() - 1, t1, xDummy);
+
+    // Scale the display so that leftmost point to plot maps to 0, rightmost to 1
+    float z0 = std::min(t0, 0.0f);
+    float z1 = std::max(t1, 1.0f);
     glPushMatrix();
+    glTranslated(-z0 / (z1-z0), 0, 0);
+    glScaled(1.0 / (z1-z0), 1, 1);
 
-    // Set up a transform, such that the histogram plot area fits into
-    // the unit square
-    double xspan = histogram->GetBinMax(nBins - 1) - histogram->GetBinMin(0);
-    double yspan = histogram->GetMaxFrequency() *
-        m_Model->GetProperties().GetHistogramCutoff();
-
-    if(m_Model->GetProperties().IsHistogramLog() && yspan > 0)
-      yspan = log10(yspan);
-
-    glScaled(1.0 / xspan, 1.0 / yspan, 1.0);
-    glTranslated(-histogram->GetBinMin(0), 0, 0);
-
-    // Figure out how many pixels are actually inside each histogram bin
-
-
-    // Paint the filled-in histogram bars. We fill in with black color if the
-    // histogram width is less than 4 pixels
-    if(m_Model->GetProperties().GetHistogramBinSize() < 4)
-      glColor3f(0.0f, 0.0f, 0.0f);
-    else
-      glColor3f(0.8f, 0.8f, 1.0f);
-
-    // Paint the bars as quads
+    // Draw the quads
     glBegin(GL_QUADS);
-    for(unsigned int i = 0; i < nBins; i++)
-      {
-      // Compute the physical height of the bin
-      double x0 = histogram->GetBinMin(i);
-      double x1 = histogram->GetBinMax(i);
-      double y = histogram->GetFrequency(i);
-      if(m_Model->GetProperties().IsHistogramLog() && y > 0)
-        y = log10(y);
 
-      // Paint the bar
-      glVertex2f(x0,0);
-      glVertex2f(x0,y);
-      glVertex2f(x1,y);
-      glVertex2f(x1,0);
+    // Outer quad
+    glColor3d(0.9, 0.9, 0.9);
+    glVertex2d(z0,0);
+    glVertex2d(z0,1);
+    glVertex2d(z1,1);
+    glVertex2d(z1,0);
+
+    float q0 = std::max(t0, 0.0f);
+    float q1 = std::min(t1, 1.0f);
+    if(q1 > q0)
+      {
+      // Inner quad
+      glColor3d(1.0, 1.0, 1.0);
+      glVertex2d(q0, 0.0);
+      glVertex2d(q0, 1.0);
+      glVertex2d(q1, 1.0);
+      glVertex2d(q1, 0.0);
       }
+
     glEnd();
 
-    // Draw lines around the quads, but only if the bins are thick
-    if(m_Model->GetProperties().GetHistogramBinSize() >= 4)
+    // Draw a histogram if it exists
+    unsigned int nBins = histogram->GetSize();
+
+    if(nBins)
       {
-      // Draw the vertical lines between the histogram bars
-      glBegin(GL_LINE_STRIP);
-      glColor3d(0.0, 0.0, 0.0);
+      glPushMatrix();
+
+      // Set up a transform, such that the histogram plot area fits into
+      // the unit square
+      double xspan = histogram->GetBinMax(nBins - 1) - histogram->GetBinMin(0);
+      double yspan = histogram->GetMaxFrequency() *
+          m_Model->GetProperties().GetHistogramCutoff();
+
+      if(m_Model->GetProperties().IsHistogramLog() && yspan > 0)
+        yspan = log10(yspan);
+
+      glScaled(1.0 / xspan, 1.0 / yspan, 1.0);
+      glTranslated(-histogram->GetBinMin(0), 0, 0);
+
+      // Figure out how many pixels are actually inside each histogram bin
+
+
+      // Paint the filled-in histogram bars. We fill in with black color if the
+      // histogram width is less than 4 pixels
+      if(m_Model->GetProperties().GetHistogramBinSize() < 4)
+        glColor3f(0.0f, 0.0f, 0.0f);
+      else
+        glColor3f(0.8f, 0.8f, 1.0f);
+
+      // Paint the bars as quads
+      glBegin(GL_QUADS);
       for(unsigned int i = 0; i < nBins; i++)
         {
         // Compute the physical height of the bin
@@ -150,62 +130,87 @@ void IntensityCurveRenderer::paintGL()
         glVertex2f(x1,0);
         }
       glEnd();
+
+      // Draw lines around the quads, but only if the bins are thick
+      if(m_Model->GetProperties().GetHistogramBinSize() >= 4)
+        {
+        // Draw the vertical lines between the histogram bars
+        glBegin(GL_LINE_STRIP);
+        glColor3d(0.0, 0.0, 0.0);
+        for(unsigned int i = 0; i < nBins; i++)
+          {
+          // Compute the physical height of the bin
+          double x0 = histogram->GetBinMin(i);
+          double x1 = histogram->GetBinMax(i);
+          double y = histogram->GetFrequency(i);
+          if(m_Model->GetProperties().IsHistogramLog() && y > 0)
+            y = log10(y);
+
+          // Paint the bar
+          glVertex2f(x0,0);
+          glVertex2f(x0,y);
+          glVertex2f(x1,y);
+          glVertex2f(x1,0);
+          }
+        glEnd();
+        }
+
+      glPopMatrix();
+      }
+
+
+    // Draw the box around the plot area
+    glColor3d(0,0,0);
+    glBegin(GL_LINE_LOOP);
+    glVertex2d(z0,0);
+    glVertex2d(z0,1);
+    glVertex2d(z1,1);
+    glVertex2d(z1,0);
+    glEnd();
+
+    // Set up the smooth line drawing style
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glLineWidth(2.0);
+
+    // Draw the curve using linear segments
+    glColor3d(1.0,0.0,0.0);
+    glBegin(GL_LINE_STRIP);
+
+    float t = z0;
+    float tStep = (z1-z0) / (CURVE_RESOLUTION);
+    for (unsigned int i=0;i<=CURVE_RESOLUTION;i++)
+      {
+      glVertex2f(t,curve->Evaluate(t));
+      t+=tStep;
+      }
+
+    glEnd();
+
+    // Draw the handles
+    glLineWidth(1.0);
+    for (unsigned int c=0;c<curve->GetControlPointCount();c++)
+      {
+      // Get the next control point
+      float t,x;
+      curve->GetControlPoint(c,t,x);
+
+      // Draw a quad around the control point
+      if(c == (unsigned int) m_Model->GetProperties().GetMovingControlPoint())
+        {
+        glColor3d(1,1,0);
+        DrawCircleWithBorder(t, x, 5.0, z1-z0, false, w, h);
+        }
+      else
+        {
+        glColor3d(1,0,0);
+        DrawCircleWithBorder(t, x, 4.0, z1-z0, false, w, h);
+        }
       }
 
     glPopMatrix();
     }
-
-  // Draw the box around the plot area
-  glColor3d(0,0,0);
-  glBegin(GL_LINE_LOOP);
-  glVertex2d(z0,0);
-  glVertex2d(z0,1);
-  glVertex2d(z1,1);
-  glVertex2d(z1,0);
-  glEnd();
-
-  // Set up the smooth line drawing style
-  glEnable(GL_LINE_SMOOTH);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glLineWidth(2.0);
-
-  // Draw the curve using linear segments
-  glColor3d(1.0,0.0,0.0);
-  glBegin(GL_LINE_STRIP);
-
-  float t = z0;
-  float tStep = (z1-z0) / (CURVE_RESOLUTION);
-  for (unsigned int i=0;i<=CURVE_RESOLUTION;i++)
-    {
-    glVertex2f(t,curve->Evaluate(t));
-    t+=tStep;
-    }
-
-  glEnd();
-
-  // Draw the handles
-  glLineWidth(1.0);
-  for (unsigned int c=0;c<curve->GetControlPointCount();c++)
-    {
-    // Get the next control point
-    float t,x;
-    curve->GetControlPoint(c,t,x);
-
-    // Draw a quad around the control point
-    if(c == (unsigned int) m_Model->GetProperties().GetMovingControlPoint())
-      {
-      glColor3d(1,1,0);
-      DrawCircleWithBorder(t, x, 5.0, z1-z0, false, w, h);
-      }
-    else
-      {
-      glColor3d(1,0,0);
-      DrawCircleWithBorder(t, x, 4.0, z1-z0, false, w, h);
-      }
-    }
-
-  glPopMatrix();
 
   // Pop the attributes
   glPopAttrib();
@@ -275,4 +280,9 @@ void IntensityCurveRenderer::initializeGL()
 void IntensityCurveRenderer::SetModel(IntensityCurveModel *model)
 {
   m_Model = model;
+}
+
+void IntensityCurveRenderer::OnUpdate()
+{
+  m_Model->Update();
 }

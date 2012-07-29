@@ -8,6 +8,7 @@ class IntensityCurveBox;
 class ContrastInspector;
 class GlobalUIModel;
 class LayerListQtModel;
+class EventBucket;
 
 namespace Ui {
     class LayerInspectorDialog;
@@ -29,6 +30,8 @@ public:
 public slots:
 
   void onLayerSelection();
+
+  virtual void onModelUpdate(const EventBucket &bucket);
 
 
 private:

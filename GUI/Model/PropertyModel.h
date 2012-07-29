@@ -481,6 +481,13 @@ public:
 
   bool GetValueAndDomain(TVal &value, TDomain *domain)
   {
+    // This is important! Before calling the getter function, we should allow
+    // the model to respond to whatever events it may have received that led
+    // to this data request. Otherwise, we would have to make an Update()
+    // call in each of the Getter functions we write.
+    m_Model->Update();
+
+    // Call the getter function with the help of the traits object
     return GetterTraits::GetValueAndDomain(m_Model, m_Getter, value, domain);
   }
 

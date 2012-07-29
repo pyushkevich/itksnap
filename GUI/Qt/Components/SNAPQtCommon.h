@@ -2,6 +2,7 @@
 #define SNAPQTCOMMON_H
 
 #include <QIcon>
+#include <QObject>
 #include <SNAPCommon.h>
 
 class QWidget;
@@ -15,5 +16,22 @@ QIcon CreateInvisibleIcon(int w, int h);
 // if the upstream action was found, false otherwise
 bool TriggerUpstreamAction(QWidget *w, const QString &targetActionName);
 
+// Find a parent window of appropriate class
+template <class TWidget>
+TWidget *findParentWidget(QObject *w)
+{
+  do
+    {
+    w = w->parent();
+    if(w)
+      {
+      TWidget *tw = dynamic_cast<TWidget *>(w);
+      if(tw)
+        return tw;
+      }
+    }
+  while(w);
+  return NULL;
+}
 
 #endif // SNAPQTCOMMON_H

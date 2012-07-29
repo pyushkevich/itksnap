@@ -129,6 +129,11 @@ public:
    */
   void SetCurrentImageDataToSNAP();
 
+  /**
+    Whether we are currently in active contour mode or not
+    */
+  bool IsSnakeModeActive() const;
+
   /** 
    * Set a new main image for IRIS. This method is called to load either grey or
    * RGB image data into IRISImageData. The parameter is the GuidedNativeImageIO,

@@ -81,108 +81,111 @@ void ColorMapRenderer::paintGL()
   glDisable(GL_LIGHTING);
   glDisable(GL_TEXTURE_2D);
 
-  // Turn on alpha blending
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
-  // Get the starting and ending color values
-  ColorMap *cmap = m_Model->GetColorMap();
-  ColorMap::RGBAType v0 = cmap->MapIndexToRGBA(-0.1);
-  ColorMap::RGBAType v1 = cmap->MapIndexToRGBA(1.1);
-
-  // Draw the actual texture
-  glBegin(GL_QUADS);
-
-  // Draw the color before 0.0
-  glColor4ub(v0[0], v0[1], v0[2], 0x00); glVertex2d(-0.1,0.0);
-  glColor4ub(v0[0], v0[1], v0[2], 0xff); glVertex2d(-0.1,1.0);
-
-  // Render the colormap
-  for(size_t i = 0; i < 512; i++)
+  if(m_Model->GetLayer() != NULL)
     {
-    double t = i / 511.0;
-    ColorMap::RGBAType rgba = cmap->MapIndexToRGBA(t);
+    // Turn on alpha blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
-    glColor4ub(rgba[0], rgba[1], rgba[2], 0xff);
-    glVertex2d(t, 1.0);
-    glColor4ub(rgba[0], rgba[1], rgba[2], 0x00);
-    glVertex2d(t, 0.0);
-    glColor4ub(rgba[0], rgba[1], rgba[2], 0x00);
-    glVertex2d(t, 0.0);
-    glColor4ub(rgba[0], rgba[1], rgba[2], 0xff);
-    glVertex2d(t, 1.0);
-    }
+    // Get the starting and ending color values
+    ColorMap *cmap = m_Model->GetColorMap();
+    ColorMap::RGBAType v0 = cmap->MapIndexToRGBA(-0.1);
+    ColorMap::RGBAType v1 = cmap->MapIndexToRGBA(1.1);
 
-  // Draw the color after 1.0
-  glColor4ub(v1[0], v1[1], v1[2], 0xff); glVertex2d(1.1,1.0);
-  glColor4ub(v1[0], v1[1], v1[2], 0x00); glVertex2d(1.1,0.0);
+    // Draw the actual texture
+    glBegin(GL_QUADS);
 
-  // Done drawing
-  glEnd();
+    // Draw the color before 0.0
+    glColor4ub(v0[0], v0[1], v0[2], 0x00); glVertex2d(-0.1,0.0);
+    glColor4ub(v0[0], v0[1], v0[2], 0xff); glVertex2d(-0.1,1.0);
 
-  // Draw the gridlines
-  glBegin(GL_LINES);
-  glColor4ub(0x80, 0x80, 0x80, 0xff);
-
-  // Horizontal gridlines
-  glVertex2d(-0.1, 0.0); glVertex2d( 1.1, 0.0);
-  glVertex2d(-0.1, 0.5); glVertex2d( 1.1, 0.5);
-  glVertex2d(-0.1, 1.0); glVertex2d( 1.1, 1.0);
-
-  // Vertical gridlines
-  glVertex2d(0.0, -0.1); glVertex2d(0.0, 1.1);
-  glVertex2d(0.25, -0.1); glVertex2d(0.25, 1.1);
-  glVertex2d(0.5, -0.1); glVertex2d(0.5, 1.1);
-  glVertex2d(0.75, -0.1); glVertex2d(0.75, 1.1);
-  glVertex2d(1.0, -0.1); glVertex2d(1.0, 1.1);
-
-  glEnd();
-
-  // Draw the Alpha curve
-  glEnable(GL_LINE_SMOOTH);
-  glLineWidth(3.0);
-
-  glBegin(GL_LINE_STRIP);
-  glColor4ub(0x00,0x00,0x00,0xff);
-  glVertex2d(-0.1, v0[3] / 255.0);
-  for(size_t i = 0; i < cmap->GetNumberOfCMPoints(); i++)
-    {
-    ColorMap::CMPoint p = cmap->GetCMPoint(i);
-    glVertex2d(p.m_Index, p.m_RGBA[0][3] / 255.0);
-    glVertex2d(p.m_Index, p.m_RGBA[1][3] / 255.0);
-    }
-  glVertex2d(1.1, v1[3] / 255.0);
-  glEnd();
-
-  // Define select and non-select colors
-  Vector3ui clrBorderSelect(0xff, 0x00, 0xff);
-  Vector3ui clrBorderPlain(0x00, 0x00, 0x00);
-
-  // Draw circles around the points
-  glDisable(GL_LIGHTING);
-
-  glLineWidth(1.0);
-  for(size_t i = 0; i < cmap->GetNumberOfCMPoints(); i++)
-    {
-    ColorMap::CMPoint p = cmap->GetCMPoint(i);
-
-
-    glColor3ub(p.m_RGBA[0][0],p.m_RGBA[0][1],p.m_RGBA[0][2]);
-    bool select = m_Model->IsControlSelected(i, ColorMapLayerProperties::LEFT);
-    gl_draw_circle_with_border(p.m_Index, p.m_RGBA[0][3] / 255.0, 5.0,
-                               m_Width, m_Height,
-                               select ? clrBorderSelect : clrBorderPlain);
-
-    if(p.m_RGBA[0][3] != p.m_RGBA[1][3])
+    // Render the colormap
+    for(size_t i = 0; i < 512; i++)
       {
-      glColor3ub(p.m_RGBA[1][0],p.m_RGBA[1][1],p.m_RGBA[1][2]);
-      bool select = m_Model->IsControlSelected(i, ColorMapLayerProperties::RIGHT);
-      gl_draw_circle_with_border(p.m_Index, p.m_RGBA[1][3] / 255.0, 5.0,
+      double t = i / 511.0;
+      ColorMap::RGBAType rgba = cmap->MapIndexToRGBA(t);
+
+      glColor4ub(rgba[0], rgba[1], rgba[2], 0xff);
+      glVertex2d(t, 1.0);
+      glColor4ub(rgba[0], rgba[1], rgba[2], 0x00);
+      glVertex2d(t, 0.0);
+      glColor4ub(rgba[0], rgba[1], rgba[2], 0x00);
+      glVertex2d(t, 0.0);
+      glColor4ub(rgba[0], rgba[1], rgba[2], 0xff);
+      glVertex2d(t, 1.0);
+      }
+
+    // Draw the color after 1.0
+    glColor4ub(v1[0], v1[1], v1[2], 0xff); glVertex2d(1.1,1.0);
+    glColor4ub(v1[0], v1[1], v1[2], 0x00); glVertex2d(1.1,0.0);
+
+    // Done drawing
+    glEnd();
+
+    // Draw the gridlines
+    glBegin(GL_LINES);
+    glColor4ub(0x80, 0x80, 0x80, 0xff);
+
+    // Horizontal gridlines
+    glVertex2d(-0.1, 0.0); glVertex2d( 1.1, 0.0);
+    glVertex2d(-0.1, 0.5); glVertex2d( 1.1, 0.5);
+    glVertex2d(-0.1, 1.0); glVertex2d( 1.1, 1.0);
+
+    // Vertical gridlines
+    glVertex2d(0.0, -0.1); glVertex2d(0.0, 1.1);
+    glVertex2d(0.25, -0.1); glVertex2d(0.25, 1.1);
+    glVertex2d(0.5, -0.1); glVertex2d(0.5, 1.1);
+    glVertex2d(0.75, -0.1); glVertex2d(0.75, 1.1);
+    glVertex2d(1.0, -0.1); glVertex2d(1.0, 1.1);
+
+    glEnd();
+
+    // Draw the Alpha curve
+    glEnable(GL_LINE_SMOOTH);
+    glLineWidth(3.0);
+
+    glBegin(GL_LINE_STRIP);
+    glColor4ub(0x00,0x00,0x00,0xff);
+    glVertex2d(-0.1, v0[3] / 255.0);
+    for(size_t i = 0; i < cmap->GetNumberOfCMPoints(); i++)
+      {
+      ColorMap::CMPoint p = cmap->GetCMPoint(i);
+      glVertex2d(p.m_Index, p.m_RGBA[0][3] / 255.0);
+      glVertex2d(p.m_Index, p.m_RGBA[1][3] / 255.0);
+      }
+    glVertex2d(1.1, v1[3] / 255.0);
+    glEnd();
+
+    // Define select and non-select colors
+    Vector3ui clrBorderSelect(0xff, 0x00, 0xff);
+    Vector3ui clrBorderPlain(0x00, 0x00, 0x00);
+
+    // Draw circles around the points
+    glDisable(GL_LIGHTING);
+
+    glLineWidth(1.0);
+    for(size_t i = 0; i < cmap->GetNumberOfCMPoints(); i++)
+      {
+      ColorMap::CMPoint p = cmap->GetCMPoint(i);
+
+
+      glColor3ub(p.m_RGBA[0][0],p.m_RGBA[0][1],p.m_RGBA[0][2]);
+      bool select = m_Model->IsControlSelected(i, ColorMapLayerProperties::LEFT);
+      gl_draw_circle_with_border(p.m_Index, p.m_RGBA[0][3] / 255.0, 5.0,
                                  m_Width, m_Height,
                                  select ? clrBorderSelect : clrBorderPlain);
+
+      if(p.m_RGBA[0][3] != p.m_RGBA[1][3])
+        {
+        glColor3ub(p.m_RGBA[1][0],p.m_RGBA[1][1],p.m_RGBA[1][2]);
+        bool select = m_Model->IsControlSelected(i, ColorMapLayerProperties::RIGHT);
+        gl_draw_circle_with_border(p.m_Index, p.m_RGBA[1][3] / 255.0, 5.0,
+                                   m_Width, m_Height,
+                                   select ? clrBorderSelect : clrBorderPlain);
+        }
       }
     }
-
 
   // Pop the attributes
   glPopAttrib();

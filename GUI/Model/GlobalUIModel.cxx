@@ -190,6 +190,8 @@ bool GlobalUIModel::CheckState(UIState state)
       return m_Driver->GetCurrentImageData()->IsMainLoaded();
     case UIF_OVERLAY_LOADED:
       return m_Driver->GetCurrentImageData()->IsOverlayLoaded();
+    case UIF_SNAKE_MODE:
+      return m_Driver->IsSnakeModeActive();
     }
 
   return false;
@@ -266,6 +268,20 @@ bool GlobalUIModel::GetCursorPositionValueAndRange(
 void GlobalUIModel::SetCursorPosition(Vector3ui value)
 {
   m_Driver->SetCursorPosition(value - 1u);
+}
+
+void GlobalUIModel::EnterActiveContourMode()
+{
+  // Initialize the image data
+  // TODO: how to deal with the progress dialog?
+  m_Driver->InitializeSNAPImageData(
+        m_Driver->GetGlobalState()->GetSegmentationROISettings());
+
+  m_Driver->SetCurrentImageDataToSNAP();
+
+  // Set the current mode to navigation
+  this->SetToolbarMode(NAVIGATION_MODE);
+
 }
 
 

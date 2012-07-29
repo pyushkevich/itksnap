@@ -40,7 +40,6 @@ ImageInfoModel::ImageInfoModel()
   // Also rebroadcast active layer change events as both ModelChange and Metadata
   // change events
   Rebroadcast(this, ActiveLayerChangedEvent(), MetadataChangeEvent());
-  Rebroadcast(this, ActiveLayerChangedEvent(), ModelUpdateEvent());
 }
 
 void ImageInfoModel::SetParentModel(GlobalUIModel *parent)
@@ -138,6 +137,8 @@ bool ImageInfoModel
 
 void ImageInfoModel::OnUpdate()
 {
+  Superclass::OnUpdate();
+
   // Is there a change to the metadata?
   if(this->m_EventBucket->HasEvent(ActiveLayerChangedEvent()) ||
      this->m_EventBucket->HasEvent(ValueChangedEvent()))

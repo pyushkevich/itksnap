@@ -6,6 +6,7 @@
 #include "SNAPAppearanceSettings.h"
 #include "CommandLineArgumentParser.h"
 #include "SliceWindowCoordinator.h"
+#include "SnakeWizardPanel.h"
 
 #include "GenericSliceView.h"
 #include "GenericSliceModel.h"
@@ -142,14 +143,6 @@ int main(int argc, char *argv[])
   // Create the main window
   MainImageWindow mainwin;
   mainwin.Initialize(gui);
-
-  // Set up the dock widget
-  QDockWidget *dock = new QDockWidget("IRIS Toolbox", &mainwin);
-  IRISMainToolbox *tbx = new IRISMainToolbox(&mainwin);
-  tbx->SetModel(gui);
-  dock->setWidget(tbx);
-  mainwin.addDockWidget(Qt::LeftDockWidgetArea, dock);  
-
 
   /* ==========================
      PARSE COMMAND LINE OPTIONS

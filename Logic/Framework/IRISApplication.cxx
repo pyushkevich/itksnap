@@ -745,9 +745,41 @@ void IRISApplication
 ::SetCurrentImageDataToSNAP() 
 {
   assert(m_SNAPImageData);
+  std::cout << "*** SWITCHING TO SNAKE MODE ***" << std::endl;
   if(m_CurrentImageData != m_SNAPImageData)
     {
+    // The cursor needs to be modified to point to the same location
+    // as before, or to the center of the image
+    Vector3d cursorIRIS = to_double(this->GetCursorPosition());
+
+    Vector3d xIRIS =
+        m_IRISImageData->GetMain()->TransformVoxelIndexToNIFTICoordinates(cursorIRIS);
+
+    Vector3d indexSNAP =
+        m_SNAPImageData->GetMain()->TransformNIFTICoordinatesToVoxelIndex(xIRIS);
+
+    itk::Index<3> idxSNAP = to_itkIndex(indexSNAP);
+
+    Vector3ui newCursor;
+
+    if(m_SNAPImageData->GetMain()->GetBufferedRegion().IsInside(idxSNAP))
+      {
+      // Set the cursor at the current physical position
+      newCursor = Vector3ui(idxSNAP);
+      }
+    else
+      {
+      // Set the cursor at the center
+      newCursor = m_SNAPImageData->GetMain()->GetSize() / 2u;
+      }
+
+    // Set the image data
     m_CurrentImageData = m_SNAPImageData;
+
+    // Set the calculated cursor position
+    this->SetCursorPosition(newCursor);
+
+    // Fire the event
     InvokeEvent(MainImageDimensionsChangeEvent());
     }
 }
@@ -1480,5 +1512,10 @@ void IRISApplication::LoadLabelDescriptions(const char *file)
 
   // Update the history
   m_SystemInterface->UpdateHistory("LabelDescriptions", file);
+}
+
+bool IRISApplication::IsSnakeModeActive() const
+{
+  return (m_CurrentImageData == m_SNAPImageData);
 }
 

@@ -7,6 +7,7 @@
 #include "QtDoubleSpinBoxCoupling.h"
 #include "QtWidgetArrayCoupling.h"
 #include "QtReporterDelegates.h"
+#include "QtWidgetActivator.h"
 
 ContrastInspector::ContrastInspector(QWidget *parent) :
     SNAPComponent(parent),
@@ -53,6 +54,10 @@ void ContrastInspector::SetModel(IntensityCurveModel *model)
   makeCoupling(ui->inBinSize, m_Model->GetHistogramBinSizeModel());
   makeCoupling(ui->inCutoff, m_Model->GetHistogramCutoffModel());
   makeCoupling(ui->inLogScale, m_Model->GetHistogramScaleModel());
+
+  // Handle activations
+  activateOnFlag(this, m_Model,
+                 IntensityCurveModel::UIF_LAYER_ACTIVE);
 }
 
 void ContrastInspector::on_btnRemoveControl_clicked()

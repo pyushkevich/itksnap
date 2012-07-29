@@ -407,15 +407,11 @@ GenericImageData
 unsigned int GenericImageData::GetNumberOfLayers(int role_filter)
 {
   unsigned int n = 0;
-  for(int role = LayerIterator::MAIN_ROLE;
-      role != LayerIterator::NO_ROLE; role = role << 1)
+
+  LayerIterator it = this->GetLayers(role_filter);
+  while(!it.IsAtEnd())
     {
-    if(role_filter & role)
-      {
-      WrapperStorage::iterator it = m_Wrappers.find((LayerRole) role);
-      if(it != m_Wrappers.end())
-        n += it->second.size();
-      }
+    n++; ++it;
     }
 
   return n;

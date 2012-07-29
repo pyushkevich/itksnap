@@ -73,6 +73,7 @@ public:
 
   irisITKObjectMacro(IntensityCurveModel, IntensityCurveModelBase)
 
+
   /** Before using the model, it must be coupled with a size reporter */
   irisGetSetMacro(ViewportReporter, ViewportSizeReporter *)
 
@@ -80,10 +81,26 @@ public:
   void RegisterWithLayer(GreyImageWrapperBase *layer);
   void UnRegisterFromLayer(GreyImageWrapperBase *layer);
 
+
+  /**
+    States in which the model can be, which allow the activation and
+    deactivation of various widgets in the interface
+    */
+  enum UIState {
+    UIF_LAYER_ACTIVE,
+    UIF_CONTROL_SELECTED
+    };
+
+
   /**
     Get the curve stored in the current layer
     */
   IntensityCurveInterface *GetCurve();
+
+  /**
+    Check the state flags above
+    */
+  bool CheckState(UIState state);
 
   /**
     Get the histogram of the current layer

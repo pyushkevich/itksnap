@@ -163,6 +163,12 @@ public:
   /** Get the model for the cursor coordinates */
   irisGetMacro(CursorPositionModel, AbstractRangedUIntVec3Property *)
 
+  /**
+    Enter automatic segmentation mode. This configures the ITK-SNAP logic
+    for the automatic mode and invokes the appropriate events.
+    */
+  void EnterActiveContourMode();
+
 protected:
 
   GlobalUIModel();

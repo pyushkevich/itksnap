@@ -38,6 +38,8 @@
 #include <LabelInspector.h>
 #include <SnakeToolROIPanel.h>
 
+#include <SnakeWizardPanel.h>
+
 #include <GlobalUIModel.h>
 
 #include <QtStyles.h>
@@ -56,6 +58,7 @@
 #include <QFile>
 
 #include <QGraphicsDropShadowEffect>
+#include "QtWidgetActivator.h"
 
 const char *IRISMainToolbox::m_InspectorPageNames[] = {
     "Cursor Inspector", "Zoom Inspector", "Label Inspector",
@@ -153,6 +156,7 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
 
   // Add the various tool panels
   m_SnakeToolROIPanel = new SnakeToolROIPanel();
+  m_ToolInspector->addWidget(new QWidget(this));
   m_ToolInspector->addWidget(m_SnakeToolROIPanel);
 
   QWidget *tabContent[] = {
@@ -197,11 +201,18 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
 
 void IRISMainToolbox::SetModel(GlobalUIModel *model)
 {
+  // Set the models
   m_Model = model;
   m_ZoomInspector->SetModel(model);
   m_CursorInspector->SetModel(model->GetCursorInspectionModel());
   m_LabelInspector->SetModel(model);
   m_SnakeToolROIPanel->SetModel(model);
+
+  // Set up state machine
+  activateOnNotFlag(
+        this->findChild<QWidget *>("BtnPolygonMode"), model, UIF_SNAKE_MODE);
+  activateOnNotFlag(
+        this->findChild<QWidget *>("BtnSnakeMode"), model, UIF_SNAKE_MODE);
 }
 
 void IRISMainToolbox::on_BtnCrosshairMode_toggled(bool checked)
@@ -212,7 +223,8 @@ void IRISMainToolbox::on_BtnCrosshairMode_toggled(bool checked)
     m_Model->SetToolbarMode(CROSSHAIRS_MODE);
 
     // Also tab over to the cursor inspector
-    m_TabInspector->setCurrentWidget(m_CursorInspector);
+    m_TabInspector->setCurrentIndex(0);
+    m_ToolInspector->setCurrentIndex(0);
     }
 }
 
@@ -224,7 +236,8 @@ void IRISMainToolbox::on_BtnZoomPanMode_toggled(bool checked)
     m_Model->SetToolbarMode(NAVIGATION_MODE);
 
     // Also tab over to the cursor inspector
-    m_TabInspector->setCurrentWidget(m_LabelInspector);
+    m_TabInspector->setCurrentIndex(1);
+    m_ToolInspector->setCurrentIndex(0);
     }
 }
 
@@ -235,7 +248,8 @@ void IRISMainToolbox::on_BtnPolygonMode_toggled(bool checked)
     m_Model->SetToolbarMode(POLYGON_DRAWING_MODE);
 
     // Also tab over to the cursor inspector
-    m_TabInspector->setCurrentWidget(m_LabelInspector);
+    m_TabInspector->setCurrentIndex(2);
+    m_ToolInspector->setCurrentIndex(0);
     }
 }
 
@@ -246,8 +260,9 @@ void IRISMainToolbox::on_BtnSnakeMode_toggled(bool checked)
     m_Model->SetToolbarMode(ROI_MODE);
 
     // Also tab over to the cursor inspector
-    m_TabInspector->setCurrentWidget(m_ToolInspector);
-    m_ToolInspector->setCurrentWidget(m_SnakeToolROIPanel);
+    // m_TabInspector->setCurrentWidget(m_ToolInspector);
+    m_ToolInspector->setCurrentIndex(1);
+    m_TabInspector->setCurrentIndex(3);
     }
 }
 
