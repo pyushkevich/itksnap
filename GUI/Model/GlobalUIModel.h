@@ -54,6 +54,7 @@ class LabelEditorModel;
 class ConcreteColorLabelPropertyModel;
 class CursorInspectionModel;
 class SnakeROIModel;
+class SnakeWizardModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -145,6 +146,9 @@ public:
   /** Get the model that handles UI for the cursor inspector */
   irisGetMacro(CursorInspectionModel, CursorInspectionModel *)
 
+  /** The model that handles snake wizard interaction */
+  irisGetMacro(SnakeWizardModel, SnakeWizardModel *)
+
   /** Load the main image */
   void LoadGrayImage(GuidedNativeImageIO *io);
 
@@ -217,6 +221,9 @@ protected:
 
   // The current 2D toolbar mode
   SmartPtr<ConcretePropertyModel<ToolbarModeType> > m_ToolbarModeModel;
+
+  // The snake wizard model
+  SmartPtr<SnakeWizardModel> m_SnakeWizardModel;
 
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;

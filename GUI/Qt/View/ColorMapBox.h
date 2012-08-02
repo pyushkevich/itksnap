@@ -1,7 +1,7 @@
 #ifndef COLORMAPBOX_H
 #define COLORMAPBOX_H
 
-#include <SNAPQGLWidget.h>
+#include <QtAbstractOpenGLBox.h>
 #include <QtInteractionDelegateWidget.h>
 #include <SNAPEvents.h>
 #include <ColorMapRenderer.h>
@@ -10,7 +10,7 @@ class ColorMapModel;
 class ColorMapInteractionDelegate;
 class ColorMapInspector;
 
-class ColorMapBox : public SNAPQGLWidget
+class ColorMapBox : public QtAbstractOpenGLBox
 {
   Q_OBJECT
 

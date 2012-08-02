@@ -1,7 +1,7 @@
 #ifndef INTENSITYCURVEBOX_H
 #define INTENSITYCURVEBOX_H
 
-#include <SNAPQGLWidget.h>
+#include <QtAbstractOpenGLBox.h>
 #include <QtInteractionDelegateWidget.h>
 #include <SNAPEvents.h>
 #include <IntensityCurveRenderer.h>
@@ -10,7 +10,7 @@ class IntensityCurveModel;
 class IntensityCurveRenderer;
 class IntensityCurveInteractionDelegate;
 
-class IntensityCurveBox : public SNAPQGLWidget
+class IntensityCurveBox : public QtAbstractOpenGLBox
 {
   Q_OBJECT
 

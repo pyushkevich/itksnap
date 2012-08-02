@@ -47,24 +47,29 @@ class ScalarImageWrapperBase;
 class ThresholdSettings
 {
 public:
-    virtual ~ThresholdSettings() { /*To avoid compiler warning.*/ }
-  irisGetMacro(LowerThreshold, float);
-  irisSetMacro(LowerThreshold, float);
+  virtual ~ThresholdSettings() { /*To avoid compiler warning.*/ }
 
-  irisGetMacro(UpperThreshold, float);
-  irisSetMacro(UpperThreshold, float);
+  /** The mode for setting the threshold */
+  enum ThresholdMode { TWO_SIDED=0, UPPER, LOWER };
 
-  irisGetMacro(Smoothness,float);
-  irisSetMacro(Smoothness,float);
+  irisGetSetMacro(LowerThreshold, float)
+  irisGetSetMacro(UpperThreshold, float)
+  irisGetSetMacro(Smoothness, float)
+  irisGetSetMacro(ThresholdMode, ThresholdMode)
 
-  irisIsMacro(LowerThresholdEnabled);
-  irisSetMacro(LowerThresholdEnabled,bool);
+  bool IsLowerThresholdEnabled() const
+  {
+    return m_ThresholdMode != UPPER;
+  }
 
-  irisIsMacro(UpperThresholdEnabled);
-  irisSetMacro(UpperThresholdEnabled,bool);
+  bool IsUpperThresholdEnabled() const
+  {
+    return m_ThresholdMode != LOWER;
+  }
 
   /** Compare two sets of settings */
   bool operator == (const ThresholdSettings &other) const;
+  bool operator != (const ThresholdSettings &other) const;
 
   /** Check if the settings are valid */
   bool IsValid() const;
@@ -87,8 +92,7 @@ private:
   float m_UpperThreshold;
   float m_Smoothness;
   
-  bool m_UpperThresholdEnabled;
-  bool m_LowerThresholdEnabled;
+  ThresholdMode m_ThresholdMode;
 };
 
 #endif // __ThresholdSettings_h_

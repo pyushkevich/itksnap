@@ -43,6 +43,7 @@
 #include <Generic3DModel.h>
 #include <LabelEditorModel.h>
 #include <CursorInspectionModel.h>
+#include <SnakeWizardModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -111,6 +112,10 @@ GlobalUIModel::GlobalUIModel()
   // Cursor inspection
   m_CursorInspectionModel = CursorInspectionModel::New();
   m_CursorInspectionModel->SetParentModel(this);
+
+  // Snake model
+  m_SnakeWizardModel = SnakeWizardModel::New();
+  m_SnakeWizardModel->SetParentModel(this);
 
   // Initialize the properties
   m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);

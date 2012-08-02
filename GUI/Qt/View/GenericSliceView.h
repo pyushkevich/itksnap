@@ -31,13 +31,13 @@
 #include <SNAPCommon.h>
 #include <GenericSliceModel.h>
 #include <GenericSliceRenderer.h>
-#include <SNAPQGLWidget.h>
+#include <QtAbstractOpenGLBox.h>
 #include <EventBucket.h>
 
 class CrosshairsInteractionMode;
 class QtViewportReporter;
 
-class GenericSliceView : public SNAPQGLWidget
+class GenericSliceView : public QtAbstractOpenGLBox
 {
   Q_OBJECT
 

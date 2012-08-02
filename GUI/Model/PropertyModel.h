@@ -75,6 +75,17 @@ template<class TVal> struct NumericValueRange
 };
 
 /**
+  This computes a step size that is a power of 10
+  */
+inline double CalculatePowerOfTenStepSize(double min, double max, size_t minNumSteps)
+{
+  double stepUB = (max - min) / minNumSteps;
+  return pow(10, floor(log10(stepUB)));
+}
+
+
+
+/**
   This class represents a domain that allows all values in a data type. It
   can be used with the class AbstractPropertyModel when there is no need to
   communicate domain information to the widget
@@ -199,6 +210,12 @@ public:
   /** The type of the domain */
   typedef TDomain DomainType;
 
+  /** The model fires two types of events: ValueChangedEvent and
+    DomainChangedEvent, in response to either the value or the domain
+    having changed. */
+  FIRES(ValueChangedEvent)
+  FIRES(DomainChangedEvent)
+
   /** A setter method */
   virtual void SetValue(TVal value) = 0;
 
@@ -224,6 +241,20 @@ public:
     TVal value;
     GetValueAndDomain(value, NULL);
     return value;
+  }
+
+  /**
+    Sometimes it is useful to have the model rebroadcast value and domain
+    change events from another model. An example may be a model that wraps
+    around another model, e.g., if model A is of a compound type T and
+    model B is used to access an attribute T.x in T, then we want the value
+    change events in A to be rebroadcast as value change events in B. This
+    function simplifies making this connection
+    */
+  void RebroadcastFromSourceProperty(AbstractModel *source)
+  {
+    Rebroadcast(source, ValueChangedEvent(), ValueChangedEvent());
+    Rebroadcast(source, DomainChangedEvent(), DomainChangedEvent());
   }
 };
 

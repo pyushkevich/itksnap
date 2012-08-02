@@ -57,15 +57,36 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_DockLeft = new QDockWidget("ITK-SNAP Toolbox", this);
   m_Toolbox = new IRISMainToolbox(this);
   m_DockLeft->setWidget(m_Toolbox);
+  m_DockLeft->setAllowedAreas(Qt::LeftDockWidgetArea);
   this->addDockWidget(Qt::LeftDockWidgetArea, m_DockLeft);
 
   m_DockRight = new QDockWidget("Segment 3D", this);
   m_SnakeWizard = new SnakeWizardPanel(this);
   m_DockRight->setWidget(m_SnakeWizard);
+  m_DockRight->setAllowedAreas(Qt::LeftDockWidgetArea);
   this->addDockWidget(Qt::RightDockWidgetArea, m_DockRight);
 
   // Hide the right dock for now
   m_DockRight->setVisible(false);
+
+  // Make the margins adjust when the docks are attached
+  connect(m_DockLeft, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)),
+          this, SLOT(AdjustMarginsForDocks()));
+
+  connect(m_DockLeft, SIGNAL(topLevelChanged(bool)),
+          this, SLOT(AdjustMarginsForDocks()));
+
+  connect(m_DockLeft, SIGNAL(visibilityChanged(bool)),
+          this, SLOT(AdjustMarginsForDocks()));
+
+  connect(m_DockRight, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)),
+          this, SLOT(AdjustMarginsForDocks()));
+
+  connect(m_DockRight, SIGNAL(topLevelChanged(bool)),
+          this, SLOT(AdjustMarginsForDocks()));
+
+  connect(m_DockRight, SIGNAL(visibilityChanged(bool)),
+          this, SLOT(AdjustMarginsForDocks()));
 }
 
 MainImageWindow::~MainImageWindow()
@@ -86,6 +107,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Initialize the dialogs
   m_LabelEditor->SetModel(model->GetLabelEditorModel());
   m_LayerInspector->SetModel(model);
+  m_SnakeWizard->SetModel(model);
 
   // Initialize the docked panels
   m_Toolbox->SetModel(model);
@@ -183,15 +205,6 @@ void MainImageWindow::on_actionAdd_RGB_Overlay_triggered()
 
 void MainImageWindow::on_actionImage_Contrast_triggered()
 {
-  // Make the main image layer active in the models.
-  // TODO: This should happen automatically somehow!
-  /*
-  GreyImageWrapperBase *giw =
-      m_Model->GetDriver()->GetCurrentImageData()->GetGrey();
-  m_Model->GetIntensityCurveModel()->SetLayer(giw);
-  m_Model->GetColorMapModel()->SetLayer(giw);
-  */
-
   // Show the dialog
   m_LayerInspector->show();
 }
@@ -207,3 +220,35 @@ void MainImageWindow::SetSnakeWizardVisible(bool onoff)
 {
   m_DockRight->setVisible(onoff);
 }
+
+void MainImageWindow::AdjustMarginsForDocks()
+{
+  // Get the current margins
+  QMargins margin = ui->centralwidget->layout()->contentsMargins();
+  QMargins mld = m_DockLeft->widget()->layout()->contentsMargins();
+  QMargins mrd = m_DockRight->widget()->layout()->contentsMargins();
+
+  // Whether each of the docks is attached
+  bool leftDockAtLeft =
+      (dockWidgetArea(m_DockLeft) == Qt::LeftDockWidgetArea &&
+       !m_DockLeft->isWindow() &&
+       m_DockLeft->isVisible());
+
+  bool rightDockAtRight =
+      (dockWidgetArea(m_DockRight) == Qt::RightDockWidgetArea &&
+       !m_DockRight->isWindow() &&
+       m_DockRight->isVisible());
+
+  margin.setLeft(leftDockAtLeft ? 0 : 4);
+  margin.setRight(rightDockAtRight ? 0 : 4);
+  ui->centralwidget->layout()->setContentsMargins(margin);
+
+  mld.setRight(leftDockAtLeft ? 0 : 5);
+  m_DockLeft->widget()->layout()->setContentsMargins(mld);
+
+  mrd.setLeft(rightDockAtRight ? 0 : 5);
+  m_DockRight->widget()->layout()->setContentsMargins(mrd);
+
+}
+
+

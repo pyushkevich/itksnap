@@ -63,6 +63,10 @@ public:
   // Show or hide the snake wizard
   void SetSnakeWizardVisible(bool onoff);
 
+public slots:
+
+  void AdjustMarginsForDocks();
+
 private slots:
   void on_actionOpen_Greyscale_Image_triggered();
 

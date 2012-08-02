@@ -1,7 +1,7 @@
 #include "PolygonDrawingInteractionMode.h"
 #include "PolygonDrawingRenderer.h"
 #include "PolygonDrawingModel.h"
-#include "SNAPQGLWidget.h"
+#include "QtAbstractOpenGLBox.h"
 #include "QtWarningDialog.h"
 #include "QtWidgetActivator.h"
 #include "IRISApplication.h"

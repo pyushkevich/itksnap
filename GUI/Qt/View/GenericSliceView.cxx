@@ -30,7 +30,7 @@
 #include "QtReporterDelegates.h"
 
 GenericSliceView::GenericSliceView(QWidget *parent) :
-  SNAPQGLWidget(parent)
+  QtAbstractOpenGLBox(parent)
 {
   m_Model = NULL;
   m_Renderer = GenericSliceRenderer::New();

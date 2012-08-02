@@ -47,7 +47,7 @@ vtkCxxRevisionMacro(CursorPlacementInteractorStyle, "$Revision: 1.1 $")
 vtkStandardNewMacro(CursorPlacementInteractorStyle)
 
 GenericView3D::GenericView3D(QWidget *parent) :
-    SNAPQGLWidget(parent)
+    QtAbstractOpenGLBox(parent)
 {
   // Create the renderer
   m_Renderer = Generic3DRenderer::New();
@@ -133,6 +133,6 @@ void GenericView3D::onModelUpdate(const EventBucket &bucket)
 
 void GenericView3D::resizeGL(int w, int h)
 {
-  SNAPQGLWidget::resizeGL(w,h);
+  QtAbstractOpenGLBox::resizeGL(w,h);
   iren->SetSize(w, h);
 }

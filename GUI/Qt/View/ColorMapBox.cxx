@@ -6,7 +6,7 @@
 #include <QWidget>
 
 ColorMapBox::ColorMapBox(QWidget *parent)
-  : SNAPQGLWidget(parent)
+  : QtAbstractOpenGLBox(parent)
 {
   m_Model = NULL;
   m_Renderer = ColorMapRenderer::New();

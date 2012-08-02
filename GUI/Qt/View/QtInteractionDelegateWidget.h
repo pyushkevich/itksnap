@@ -32,7 +32,7 @@
 #include <QMouseEvent>
 #include <SNAPComponent.h>
 
-class SNAPQGLWidget;
+class QtAbstractOpenGLBox;
 class QGestureEvent;
 class GenericSliceModel;
 
@@ -68,7 +68,7 @@ protected:
     { return m_LeftDown || m_RightDown || m_MiddleDown; }
 
   // Get a pointer to the parent GL widget
-  SNAPQGLWidget *GetParentGLWidget() const;
+  QtAbstractOpenGLBox *GetParentGLWidget() const;
 
   // Information about the mouse press event
   QPoint m_LastPressPos, m_LastPressGlobalPos;

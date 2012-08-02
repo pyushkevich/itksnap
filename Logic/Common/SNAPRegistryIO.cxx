@@ -289,11 +289,20 @@ SNAPRegistryIO
   out.SetSmoothness(
     registry["Smoothness"][defaultSet.GetSmoothness()]);
 
-  out.SetLowerThresholdEnabled(
-    registry["LowerThresholdEnabled"][defaultSet.IsLowerThresholdEnabled()]);
+  /**
+    For backward compatibility (and out of laziness to set up an enum mapping)
+    we store the threshold limits as a pair of bools, rather than as the enum
+    */
+  bool lower_on =
+      registry["LowerThresholdEnabled"][defaultSet.IsLowerThresholdEnabled()];
 
-  out.SetUpperThresholdEnabled(
-    registry["UpperThresholdEnabled"][defaultSet.IsUpperThresholdEnabled()]);
+  bool upper_on =
+      registry["UpperThresholdEnabled"][defaultSet.IsLowerThresholdEnabled()];
+
+  out.SetThresholdMode(
+        upper_on ?
+          (lower_on ? ThresholdSettings::TWO_SIDED : ThresholdSettings::UPPER) :
+          (lower_on ? ThresholdSettings::LOWER : ThresholdSettings::TWO_SIDED));
 
   // Check that what we've read is valid
   if(!out.IsValid())

@@ -287,10 +287,7 @@ public:
   irisGetMacro(ShowPreprocessedInOutPreview,bool);
 
   /** Get the current settings for in/out snake processing */
-  irisGetMacro(ThresholdSettings,ThresholdSettings);
-
-  /** Set the current settings for in/out snake processing */
-  irisSetMacro(ThresholdSettings,ThresholdSettings);  
+  irisSimplePropertyAccessMacro(ThresholdSettings, ThresholdSettings)
 
   /** Set the current settings for edge snake processing */
   irisSetMacro(EdgePreprocessingSettings,EdgePreprocessingSettings);  
@@ -470,7 +467,7 @@ private:
   int m_LockOwner;
 
   // Current settings for threshold preprocessing
-  ThresholdSettings m_ThresholdSettings;
+  SmartPtr< ConcretePropertyModel<ThresholdSettings> > m_ThresholdSettingsModel;
 
   // Current settings for threshold preprocessing
   EdgePreprocessingSettings m_EdgePreprocessingSettings;

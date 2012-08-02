@@ -1,7 +1,7 @@
 #ifndef GENERICVIEW3D_H
 #define GENERICVIEW3D_H
 
-#include <SNAPQGLWidget.h>
+#include <QtAbstractOpenGLBox.h>
 #include <SNAPCommon.h>
 
 #include <vtkSmartPointer.h>
@@ -13,7 +13,7 @@ class vtkObject;
 class CursorPlacementInteractorStyle;
 
 
-class GenericView3D : public SNAPQGLWidget
+class GenericView3D : public QtAbstractOpenGLBox
 {
   Q_OBJECT
 

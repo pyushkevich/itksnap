@@ -25,7 +25,7 @@
 =========================================================================*/
 
 #include "QtInteractionDelegateWidget.h"
-#include <SNAPQGLWidget.h>
+#include <QtAbstractOpenGLBox.h>
 #include <QMouseEvent>
 #include "GenericSliceModel.h"
 
@@ -48,12 +48,12 @@ bool QtInteractionDelegateWidget::event(QEvent *ev)
   else return QWidget::event(ev);
 }
 
-SNAPQGLWidget * QtInteractionDelegateWidget::GetParentGLWidget() const
+QtAbstractOpenGLBox * QtInteractionDelegateWidget::GetParentGLWidget() const
 {
   // Search up until a parent widget is found
   for(QObject *p = parent(); p != NULL; p = p->parent())
     {
-    SNAPQGLWidget *pgl = dynamic_cast<SNAPQGLWidget *>(p);
+    QtAbstractOpenGLBox *pgl = dynamic_cast<QtAbstractOpenGLBox *>(p);
     if(pgl)
       return pgl;
     }

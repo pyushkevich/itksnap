@@ -250,9 +250,11 @@ SET(UI_GENERIC_CXX
   GUI/Model/SliceWindowCoordinator.cxx
   GUI/Model/SNAPAppearanceSettings.cxx
   GUI/Model/SnakeROIModel.cxx
+  GUI/Model/SnakeWizardModel.cxx
   GUI/Model/StateManagement.cxx
   GUI/Model/UIAction.cxx
   GUI/Renderer/AbstractRenderer.cxx
+  GUI/Renderer/AbstractVTKSceneRenderer.cxx
   GUI/Renderer/ColorMapRenderer.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
@@ -262,11 +264,12 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/PolygonDrawingRenderer.cxx
   GUI/Renderer/PolygonScanConvert.cxx
   GUI/Renderer/SnakeROIRenderer.cxx
+  GUI/Renderer/ThresholdSettingsRenderer.cxx
 )
 
 SET(UI_GENERIC_HEADERS
   GUI/Model/AbstractLayerAssociatedModel.h
-  GUI/Model/AbstractLayerInfoItemSetDomain
+  GUI/Model/AbstractLayerInfoItemSetDomain.h
   GUI/Model/AbstractModel.h
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelPropertyModel.h
@@ -289,11 +292,13 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/SNAPUIFlag.txx
   GUI/Model/SliceWindowCoordinator.h
   GUI/Model/SnakeROIModel.h
+  GUI/Model/SnakeWizardModel.h
   GUI/Model/StateManagement.h
   GUI/Model/UIAction.h
   GUI/Model/UIReporterDelegates.h
   GUI/Model/UIState.h
   GUI/Renderer/AbstractRenderer.h
+  GUI/Renderer/AbstractVTKSceneRenderer.h
   GUI/Renderer/ColorMapRenderer.h
   GUI/Renderer/CrosshairsRenderer.h
   GUI/Renderer/Generic3DRenderer.h
@@ -302,6 +307,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/PolygonDrawingRenderer.h
   GUI/Renderer/PolygonScanConvert.h
   GUI/Renderer/SnakeROIRenderer.h
+  GUI/Renderer/ThresholdSettingsRenderer.h
 )
 
 # These files contain the Qt-specific user interface source code
@@ -315,6 +321,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/MetadataInspector.cxx
   GUI/Qt/Components/QColorButtonWidget.cxx
   GUI/Qt/Components/QDoubleSlider.cxx
+  GUI/Qt/Components/QDoubleSliderWithEditor.cxx
   GUI/Qt/Components/QtReporterDelegates.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
@@ -333,12 +340,13 @@ SET(UI_QT_CXX
   GUI/Qt/View/IntensityCurveBox.cxx
   GUI/Qt/View/InteractionMode.cxx
   GUI/Qt/View/InteractionModeClient.cxx
+  GUI/Qt/View/QtAbstractOpenGLBox.cxx
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
+  GUI/Qt/View/QtSimpleOpenGLBox.cxx
   GUI/Qt/View/QtVTKInteractionDelegateWidget.cxx
   GUI/Qt/View/PolygonDrawingInteractionMode.cxx
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
   GUI/Qt/View/SnakeROIInteractionMode.cxx
-  GUI/Qt/View/SNAPQGLWidget.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx
   GUI/Qt/Windows/IRISMainToolbox.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
@@ -347,6 +355,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/LayerInspectorDialog.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
   GUI/Qt/Windows/QtStyles.cxx
+  GUI/Qt/Windows/SpeedImageDialog.cxx
 )
 
 # The header files for the UI project
@@ -360,6 +369,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/MetadataInspector.h
   GUI/Qt/Components/QColorButtonWidget.h
   GUI/Qt/Components/QDoubleSlider.h
+  GUI/Qt/Components/QDoubleSliderWithEditor.h
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
@@ -377,12 +387,13 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/GenericSliceView.h
   GUI/Qt/View/GenericView3D.h
   GUI/Qt/View/IntensityCurveBox.h
+  GUI/Qt/View/QtAbstractOpenGLBox.h
   GUI/Qt/View/QtInteractionDelegateWidget.h
+  GUI/Qt/View/QtSimpleOpenGLBox.h
   GUI/Qt/View/QtVTKInteractionDelegateWidget.h
   GUI/Qt/View/PolygonDrawingInteractionMode.h
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SnakeROIInteractionMode.h
-  GUI/Qt/View/SNAPQGLWidget.h
   GUI/Qt/View/ThumbnailInteractionMode.h
   GUI/Qt/Windows/IRISMainToolbox.h
   GUI/Qt/Windows/ImageIODialog.h
@@ -390,6 +401,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
   GUI/Qt/Windows/MainImageWindow.h
+  GUI/Qt/Windows/SpeedImageDialog.h
 )
 
 # These UI headers don't need to be MOC'd
@@ -397,6 +409,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Coupling/QtCheckBoxCoupling.h
   GUI/Qt/Coupling/QtComboBoxCoupling.h
   GUI/Qt/Coupling/QtDoubleSpinboxCoupling.h
+  GUI/Qt/Coupling/QtDoubleSliderWithEditorCoupling.h
   GUI/Qt/Coupling/QtLineEditCoupling.h
   GUI/Qt/Coupling/QtListWidgetCoupling.h
   GUI/Qt/Coupling/QtRadioButtonCoupling.h
@@ -413,6 +426,7 @@ SET(UI_FORMS
   GUI/Qt/Components/ImageInfoInspector.ui
   GUI/Qt/Components/LabelInspector.ui
   GUI/Qt/Components/MetadataInspector.ui
+  GUI/Qt/Components/QDoubleSliderWithEditor.ui
   GUI/Qt/Components/QtWarningDialog.ui
   GUI/Qt/Components/SliceViewPanel.ui
   GUI/Qt/Components/SnakeToolROIPanel.ui
@@ -423,6 +437,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui
   GUI/Qt/Windows/MainImageWindow.ui
+  GUI/Qt/Windows/SpeedImageDialog.ui
 )
 
 SET(UI_RESOURCES
@@ -526,11 +541,13 @@ SET(SNAP_ITK_LIBS
 
 # Core VTK libraries
 SET(SNAP_VTK_CORE_LIBS
+  vtkCharts
   vtkCommon
   vtkRendering
   vtkFiltering
   vtkGraphics
   vtkImaging
+  vtkViews
   vtkIO
 )
 

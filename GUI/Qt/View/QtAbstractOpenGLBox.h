@@ -24,8 +24,8 @@
 
 =========================================================================*/
 
-#ifndef SNAPQGLWIDGET_H
-#define SNAPQGLWIDGET_H
+#ifndef QTABSTRACTOPENGLBOX_H
+#define QTABSTRACTOPENGLBOX_H
 
 #include <QGLWidget>
 #include <SNAPCommon.h>
@@ -36,12 +36,12 @@ class EventBucket;
 class QtInteractionDelegateWidget;
 class AbstractRenderer;
 
-class SNAPQGLWidget : public QGLWidget
+class QtAbstractOpenGLBox : public QGLWidget
 {
   Q_OBJECT
 
 public:
-  explicit SNAPQGLWidget(QWidget *parent = 0);
+  explicit QtAbstractOpenGLBox(QWidget *parent = 0);
 
   // Whether to grab keyboard focus when the mouse enters this widget
   irisGetSetMacro(GrabFocusOnEntry, bool)
@@ -98,4 +98,6 @@ public slots:
 
 };
 
-#endif // SNAPQGLWIDGET_H
+
+
+#endif // QTABSTRACTOPENGLBOX_H

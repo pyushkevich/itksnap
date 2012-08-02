@@ -6,7 +6,7 @@
 
 
 IntensityCurveBox::IntensityCurveBox(QWidget *parent)
-  : SNAPQGLWidget(parent)
+  : QtAbstractOpenGLBox(parent)
 {
   m_Model = NULL;
   m_Renderer = IntensityCurveRenderer::New();

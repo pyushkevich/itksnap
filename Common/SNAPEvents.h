@@ -28,7 +28,9 @@
 #define SNAPEVENTS_H
 
 // Define this if you want event to be debugged
+#ifndef NDEBUG
 #define SNAP_DEBUG_EVENTS 1
+#endif
 
 #include "itkObject.h"
 #include "itkCommand.h"

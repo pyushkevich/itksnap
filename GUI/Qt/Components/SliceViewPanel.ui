@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="margin">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="spacing">
     <number>2</number>
@@ -419,7 +419,7 @@ p, li { white-space: pre-wrap; }
        <widget class="QLabel" name="lblSliceInfo">
         <property name="minimumSize">
          <size>
-          <width>50</width>
+          <width>56</width>
           <height>0</height>
          </size>
         </property>

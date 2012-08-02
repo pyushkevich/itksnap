@@ -24,21 +24,21 @@
 
 =========================================================================*/
 
-#include "SNAPQGLWidget.h"
+#include "QtAbstractOpenGLBox.h"
 #include <QMouseEvent>
 #include <QStackedLayout>
 #include <QtInteractionDelegateWidget.h>
 #include "LatentITKEventNotifier.h"
 #include <AbstractRenderer.h>
 
-SNAPQGLWidget::SNAPQGLWidget(QWidget *parent) :
+QtAbstractOpenGLBox::QtAbstractOpenGLBox(QWidget *parent) :
     QGLWidget(parent)
 {
   m_NeedResizeOnNextRepaint = false;
   m_GrabFocusOnEntry = false;
 }
 
-Vector3d SNAPQGLWidget::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
+Vector3d QtAbstractOpenGLBox::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
 {
   // Make this window the current context
   this->makeCurrent();
@@ -61,7 +61,7 @@ Vector3d SNAPQGLWidget::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
   return xProjection;
 }
 
-void SNAPQGLWidget::AttachSingleDelegate(QtInteractionDelegateWidget *delegate)
+void QtAbstractOpenGLBox::AttachSingleDelegate(QtInteractionDelegateWidget *delegate)
 {
   // Install the delegate
   // QStackedLayout *l = new QStackedLayout();
@@ -74,13 +74,13 @@ void SNAPQGLWidget::AttachSingleDelegate(QtInteractionDelegateWidget *delegate)
 
 
 void
-SNAPQGLWidget
+QtAbstractOpenGLBox
 ::connectITK(itk::Object *src, const itk::EventObject &ev, const char *slot)
 {
   LatentITKEventNotifier::connect(src, ev, this, slot);
 }
 
-void SNAPQGLWidget::paintGL()
+void QtAbstractOpenGLBox::paintGL()
 {
   // Update the renderer. This will cause the renderer to update itself
   // based on any events that it has received upstream.
@@ -97,19 +97,19 @@ void SNAPQGLWidget::paintGL()
   GetRenderer()->paintGL();
 }
 
-void SNAPQGLWidget::resizeGL(int w, int h)
+void QtAbstractOpenGLBox::resizeGL(int w, int h)
 {
   GetRenderer()->Update();
   GetRenderer()->resizeGL(w, h);
 }
 
-void SNAPQGLWidget::initializeGL()
+void QtAbstractOpenGLBox::initializeGL()
 {
   GetRenderer()->Update();
   GetRenderer()->initializeGL();
 }
 
-void SNAPQGLWidget::resizeEvent(QResizeEvent *)
+void QtAbstractOpenGLBox::resizeEvent(QResizeEvent *)
 {
   // This is a workaround for a Qt bug. It didn't take long to find bugs
   // in Qt. How sad.
@@ -122,17 +122,20 @@ void SNAPQGLWidget::resizeEvent(QResizeEvent *)
 }
 
 
-void SNAPQGLWidget::enterEvent(QEvent *)
+void QtAbstractOpenGLBox::enterEvent(QEvent *)
 {
   if(m_GrabFocusOnEntry)
     this->setFocus();
 }
 
-void SNAPQGLWidget::leaveEvent(QEvent *)
+void QtAbstractOpenGLBox::leaveEvent(QEvent *)
 {
   if(m_GrabFocusOnEntry)
     this->clearFocus();
 }
+
+
+
 
 
 
