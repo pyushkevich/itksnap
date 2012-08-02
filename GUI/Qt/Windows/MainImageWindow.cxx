@@ -86,7 +86,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
           this, SLOT(AdjustMarginsForDocks()));
 
   connect(m_DockRight, SIGNAL(visibilityChanged(bool)),
-          this, SLOT(AdjustMarginsForDocks()));
+          this, SLOT(AdjustMarginsForDocks()));  
 }
 
 MainImageWindow::~MainImageWindow()
@@ -142,8 +142,12 @@ void MainImageWindow::on_actionOpen_Greyscale_Image_triggered()
 }
 
 void MainImageWindow::on_actionQuit_triggered()
-{
+{ 
   // TODO: check for unsaved changes
+
+  // Unload all images (this causes the associations to be saved)
+  m_Model->GetDriver()->UnloadOverlays();
+  m_Model->GetDriver()->UnloadMainImage();
 
   // Exit the application
   QCoreApplication::exit();

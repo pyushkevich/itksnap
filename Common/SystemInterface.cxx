@@ -336,14 +336,13 @@ bool
 SystemInterface
 ::FindRegistryAssociatedWithFile(const char *file, Registry &registry)
 {
-  // Convert the file to an absolute path
-  QFileInfo qfi(file);
-  string path = qfi.canonicalFilePath().toStdString();
+  // Convert the filename to absolute path
+  string path = SystemTools::CollapseFullPath(file);
 
   // Convert to unix slashes for consistency
   SystemTools::ConvertToUnixSlashes(path);
 
-  // Convert the filename to a numeric string (to prevent clashes with the Registry class)
+  // Encode the filename as ASCII
   path = EncodeFilename(path);
 
   // Get the key associated with this filename
@@ -353,20 +352,14 @@ SystemInterface
   // If the code does not exist, return w/o success
   if(code.length() == 0) return false;
 
-  // Create a preferences object for the associations subdirectory
-  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
-                "itksnap.org", "ITK-SNAP/ImageAssociations");
-
-  // Use it to get a path for user data
-  QString sfile = QFileInfo(qsi.fileName()).canonicalPath()
-      + QDir::toNativeSeparators("/ImageAssociation.")
-      + QString(code.c_str())
-      + QString(".txt");
+  // Generate the association filename
+  string appdir = GetApplicationDataDirectory();
+  string assfil = appdir + "/ImageAssociations/" + code + ".txt";
 
   // Try loading the registry
   try 
     {
-    registry.ReadFromFile(sfile.toAscii());
+    registry.ReadFromFile(assfil.c_str());
     return true;
     }
   catch(...)
@@ -544,11 +537,13 @@ bool
 SystemInterface
 ::AssociateRegistryWithFile(const char *file, Registry &registry)
 {
-  // Convert the file to an absolute path
-  string path = QFileInfo(file).canonicalFilePath().toStdString();
+  // Convert the filename to absolute path
+  string path = SystemTools::CollapseFullPath(file);
 
   // Convert to unix slashes for consistency
   SystemTools::ConvertToUnixSlashes(path);
+
+  // Encode the filename as ASCII
   path = EncodeFilename(path);
 
   // Compute a timestamp from the start of computer time
@@ -566,19 +561,20 @@ SystemInterface
   // Put the key in the registry
   Entry(key) << code;
 
-  QSettings qsi(QSettings::IniFormat, QSettings::UserScope,
-                "itksnap.org", "ITK-SNAP/ImageAssociations");
+  // Create an association file in the settings directory
+  string appdir = this->GetApplicationDataDirectory();
+  string assdir = appdir + "/ImageAssociations";
+  if(!SystemTools::MakeDirectory(assdir.c_str()))
+    throw IRISException("Unable to create image associations directory %s",
+                        assdir.c_str());
 
-  // Use it to get a path for user data
-  QString sfile = QFileInfo(qsi.fileName()).canonicalPath()
-      + QDir::toNativeSeparators("/ImageAssociation.")
-      + QString(code.c_str())
-      + QString(".txt");
+  // Create the association filename
+  string assfil = assdir + "/" + code + ".txt";
 
   // Store the registry to that path
   try 
     {
-    registry.WriteToFile(sfile.toAscii());
+    registry.WriteToFile(assfil.c_str());
     return true;
     }
   catch(...)

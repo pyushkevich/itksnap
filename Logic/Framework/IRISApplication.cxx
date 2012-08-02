@@ -65,6 +65,7 @@
 #include "vtkAppendPolyData.h"
 #include "vtkUnsignedShortArray.h"
 #include "vtkPointData.h"
+#include "SNAPRegistryIO.h"
 
 #include "IRISSlicer.h"
 
@@ -1353,6 +1354,16 @@ IRISApplication
 
   // Reset the segmentation ROI
   m_GlobalState->SetSegmentationROI(io->GetNativeImage()->GetBufferedRegion());
+
+  // Try to load the settings associated with this main image
+  Registry associated;
+  if(m_SystemInterface->FindRegistryAssociatedWithFile(
+       io->GetFileNameOfNativeImage().c_str(), associated))
+    {
+    // Load the settings using RegistryIO
+    SNAPRegistryIO rio;
+    rio.ReadImageAssociatedSettings(associated, this, true, true, true, true);
+    }
 
   // Fire the dimensions change event
   InvokeEvent(MainImageDimensionsChangeEvent());
