@@ -27,14 +27,22 @@
 #ifndef SNAPEVENTS_H
 #define SNAPEVENTS_H
 
-// Define this if you want event to be debugged
-#ifndef NDEBUG
-#define SNAP_DEBUG_EVENTS 1
-#endif
-
 #include "itkObject.h"
 #include "itkCommand.h"
 #include "itkEventObject.h"
+#include <ostream>
+
+/**
+  To enable event debugging, ITK-SNAP must be compiled with the
+  flag SNAP_DEBUG_EVENTS set. Also, the SNAP executable must be
+  launched with the --debug-events option
+  */
+#define SNAP_DEBUG_EVENTS 1
+
+// This defines the stream for event debugging
+#ifdef SNAP_DEBUG_EVENTS
+extern bool flag_snap_debug_events;
+#endif
 
 // Common events for the whole application
 itkEventMacro(IRISEvent, itk::AnyEvent)

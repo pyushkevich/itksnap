@@ -40,3 +40,9 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   activateOnFlag(ui->inLowerThreshold, model, SnakeWizardModel::UIF_LOWER_THRESHOLD_ENABLED);
   activateOnFlag(ui->inUpperThreshold, model, SnakeWizardModel::UIF_UPPER_THRESHOLD_ENABLED);
 }
+
+void SpeedImageDialog::on_btnApply_clicked()
+{
+  // TODO: this should differ based on the selected page
+  m_Model->ApplyThresholdPreprocessing();
+}

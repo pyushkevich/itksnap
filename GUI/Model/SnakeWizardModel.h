@@ -5,9 +5,9 @@
 #include "AbstractModel.h"
 #include "PropertyModel.h"
 #include "ThresholdSettings.h"
+#include "GlobalState.h"
 
 class GlobalUIModel;
-class GlobalState;
 class IRISApplication;
 
 class SnakeWizardModel : public AbstractModel
@@ -23,6 +23,7 @@ public:
   FIRES(ThresholdSettingsUpdateEvent)
 
   void SetParentModel(GlobalUIModel *model);
+  irisGetMacro(Parent, GlobalUIModel *)
 
   virtual void OnUpdate();
 
@@ -37,17 +38,26 @@ public:
   typedef AbstractPropertyModel<ThresholdSettings::ThresholdMode>
     AbstractThresholdModeModel;
 
+  // Model for the snake mode
+  typedef AbstractPropertyModel<SnakeType, GlobalState::SnakeTypeDomain> AbstractSnakeTypeModel;
+
   // Models for the threshold-based preprocessing
   irisGetMacro(ThresholdLowerModel, AbstractRangedDoubleProperty *)
   irisGetMacro(ThresholdUpperModel, AbstractRangedDoubleProperty *)
   irisGetMacro(ThresholdSmoothnessModel, AbstractRangedDoubleProperty *)
   irisGetMacro(ThresholdModeModel, AbstractThresholdModeModel *)
 
+  // Get the model for the snake type
+  AbstractSnakeTypeModel *GetSnakeTypeModel() const;
+
   /** Check the state flags above */
   bool CheckState(UIState state);
 
   /** Evaluate the threshold function so it can be plotted for the user */
   void EvaluateThresholdFunction(double t, double &x, double &y);
+
+  /** Perform the preprocessing based on thresholds */
+  void ApplyThresholdPreprocessing();
 
 
 protected:

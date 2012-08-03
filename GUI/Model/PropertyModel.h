@@ -136,17 +136,17 @@ public:
   from another object to avoid duplicating data.
   */
 template <class TVal, class TDesc>
-class STLMapItemSetDomain :
+class STLMapWrapperItemSetDomain :
     public AbstractItemSetDomain<TVal, TDesc,
                                  typename std::map<TVal,TDesc>::const_iterator>
 {
 public:
-  typedef STLMapItemSetDomain<TVal, TDesc> Self;
+  typedef STLMapWrapperItemSetDomain<TVal, TDesc> Self;
   typedef typename std::map<TVal, TDesc> MapType;
   typedef typename MapType::const_iterator const_iterator;
 
-  STLMapItemSetDomain() { m_SourceMap = NULL; }
-  STLMapItemSetDomain(const MapType *refmap) { m_SourceMap = refmap; }
+  STLMapWrapperItemSetDomain() { m_SourceMap = NULL; }
+  STLMapWrapperItemSetDomain(const MapType *refmap) { m_SourceMap = refmap; }
 
   const_iterator begin() const
     { assert(m_SourceMap); return m_SourceMap->begin(); }
@@ -163,14 +163,62 @@ public:
   TDesc GetDescription(const const_iterator &it) const
     { return it->second; }
 
-  bool operator == (const Self &cmp) const
+  virtual bool operator == (const Self &cmp) const
     { return m_SourceMap == cmp.m_SourceMap; }
 
-  bool operator != (const Self &cmp) const
+  virtual bool operator != (const Self &cmp) const
     { return m_SourceMap != cmp.m_SourceMap; }
 
-private:
+protected:
   const MapType *m_SourceMap;
+};
+
+/**
+  This is an item domain implementation that is just an stl::map, i.e., it
+  owns the data, as opposed to STLMapWrapperItemSetDomain, which references
+  the data from another map. This implementation is useful for small domains
+  where there is no cost in passing the domain by value.
+  */
+template<class TVal, class TDesc>
+class SimpleItemSetDomain : public
+    AbstractItemSetDomain<TVal, TDesc, typename std::map<TVal,TDesc>::const_iterator>
+{
+public:
+  typedef std::map<TVal, TDesc> MapType;
+  typedef typename MapType::const_iterator const_iterator;
+  typedef SimpleItemSetDomain<TVal, TDesc> Self;
+  typedef AbstractItemSetDomain<TVal, TDesc, const_iterator> Superclass;
+
+  SimpleItemSetDomain() : Superclass() { }
+
+  const_iterator begin() const
+    { return m_Map.begin(); }
+
+  const_iterator end() const
+    { return m_Map.end(); }
+
+  const_iterator find(const TVal &value) const
+    { return m_Map.find(value); }
+
+  TVal GetValue(const const_iterator &it) const
+    { return it->first; }
+
+  TDesc GetDescription(const const_iterator &it) const
+    { return it->second; }
+
+  // Standard stl::map operator
+  TDesc & operator [] (const TVal &key) { return m_Map[key]; }
+
+  const TDesc & operator [] (const TVal &key) const { return m_Map[key]; }
+
+  virtual bool operator == (const Self &cmp) const
+    { return m_Map == cmp.m_Map; }
+
+  virtual bool operator != (const Self &cmp) const
+    { return m_Map != cmp.m_Map; }
+
+protected:
+  MapType m_Map;
 };
 
 
@@ -334,12 +382,12 @@ typedef ConcretePropertyModel<bool> BoolPropertyModel;
   virtual AbstractPropertyModel<type, TrivialDomain > * Get##name##Model () const \
     { return this->m_##name##Model; }
 
-#define irisGenericPropertyAccessMacro(name,type,modeltype) \
+#define irisGenericPropertyAccessMacro(name,type,domaintype) \
   virtual void Set##name (type _arg) \
     { this->m_##name##Model->SetValue(_arg); } \
   virtual type Get##name () const \
     { return this->m_##name##Model->GetValue(); } \
-  virtual modeltype * Get##name##Model () const \
+  virtual AbstractPropertyModel<type, domaintype> * Get##name##Model () const \
     { return this->m_##name##Model; }
 
 // A factory function to initialize properties - again, for shorter code

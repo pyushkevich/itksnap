@@ -70,6 +70,11 @@ SNAPImageData
   m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SnakeInitializationWrapper);
   m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SnakeWrapper);
 
+  // Set the names of the wrapeprs
+  m_SpeedWrapper.SetNickname("Speed Image");
+  m_SnakeInitializationWrapper.SetNickname("Initial Contour");
+  m_SnakeWrapper.SetNickname("Evolving Contour");
+
   // Initialize the level set driver to NULL
   m_LevelSetDriver = NULL;
 

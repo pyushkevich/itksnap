@@ -81,6 +81,9 @@ public:
   RendererDelegateList &GetOverlays()
     { return m_Overlays; }
 
+  // This method can be used by the renderer delegates to draw a texture
+  void DrawTextureForLayer(ImageWrapperBase *layer, bool use_transparency);
+
   // A callback for when the model is reinitialized
   // void OnModelReinitialize();
 

@@ -3,6 +3,7 @@
 #include "IRISApplication.h"
 #include "GlobalState.h"
 #include "GenericImageData.h"
+#include "SNAPImageData.h"
 #include "SmoothBinaryThresholdImageFilter.h"
 
 SnakeWizardModel::SnakeWizardModel()
@@ -35,6 +36,7 @@ SnakeWizardModel::SnakeWizardModel()
         &Self::SetThresholdModeValue,
         ThresholdSettingsUpdateEvent(),
         ThresholdSettingsUpdateEvent());
+
 }
 
 void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
@@ -183,7 +185,7 @@ void SnakeWizardModel::SetThresholdModeValue(ThresholdSettings::ThresholdMode x)
 
 void SnakeWizardModel::EvaluateThresholdFunction(double t, double &x, double &y)
 {
-  assert(m_Driver->GetCurrentImageData()->IsGreyLoaded());
+  assert(m_Driver->IsSnakeModeActive());
   ThresholdSettings ts = m_GlobalState->GetThresholdSettings();
   double imin = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
   double imax = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative();
@@ -194,4 +196,25 @@ void SnakeWizardModel::EvaluateThresholdFunction(double t, double &x, double &y)
   x = t * (imax - imin) + imin;
   y = functor(x);
 }
+
+void SnakeWizardModel::ApplyThresholdPreprocessing()
+{
+  // Compute the speed image
+  m_Driver->ComputeSNAPSpeedImage();
+
+  // Set the color map for the speed image
+  // TODO: make speed images use normal colormaps
+  m_Driver->GetSNAPImageData()->GetSpeed()->SetColorMap(
+        SpeedColorMap::GetPresetColorMap(COLORMAP_BLUE_BLACK_WHITE));
+
+  // The speed image should be shown
+  m_GlobalState->SetShowSpeed(true);
+}
+
+SnakeWizardModel::AbstractSnakeTypeModel *SnakeWizardModel::GetSnakeTypeModel() const
+{
+  return m_GlobalState->GetSnakeTypeModel();
+}
+
+
 

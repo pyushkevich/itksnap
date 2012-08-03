@@ -18,7 +18,7 @@ protected:
 
 typedef AbstractLayerAssociatedModel<
     ImageInfoLayerProperties,
-    GreyImageWrapperBase> ImageInfoModelBase;
+    ScalarImageWrapperBase> ImageInfoModelBase;
 
 class ImageInfoModel : public ImageInfoModelBase
 {
@@ -30,8 +30,8 @@ public:
   FIRES(MetadataChangeEvent)
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(GreyImageWrapperBase *layer);
-  void UnRegisterFromLayer(GreyImageWrapperBase *layer);
+  void RegisterWithLayer(ScalarImageWrapperBase *layer);
+  void UnRegisterFromLayer(ScalarImageWrapperBase *layer);
 
   // PArent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);

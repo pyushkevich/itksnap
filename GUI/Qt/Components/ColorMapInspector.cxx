@@ -156,7 +156,6 @@ void ColorMapInspector::PopulatePresets()
 void ColorMapInspector::on_inPreset_currentIndexChanged(int index)
 {
   // Set the preset
-  std::cout << "INDEX = " << index << std::endl;
   if(!m_PresetsUpdating)
     m_Model->SelectPreset(ui->inPreset->itemText(index).toAscii());
 }

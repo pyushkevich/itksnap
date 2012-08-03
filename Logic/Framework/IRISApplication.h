@@ -186,6 +186,11 @@ public:
                                CommandType *progressCommand = NULL);
 
   /**
+    Compute the SNAP speed image using the current pre-processing settings
+    */
+  void ComputeSNAPSpeedImage(CommandType *progressCommand = NULL);
+
+  /**
    * Update IRIS image data with the segmentation contained in the SNAP image
    * data.
    */

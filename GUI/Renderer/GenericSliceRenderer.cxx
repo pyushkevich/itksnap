@@ -169,6 +169,24 @@ GenericSliceRenderer
 
 void GenericSliceRenderer::DrawMainTexture()
 {
+  // Get the image data
+  GenericImageData *id = m_Model->GetImageData();
+
+  // Draw the main texture
+  if (id->IsMainLoaded())
+    DrawTextureForLayer(id->GetMain(), false);
+
+  // Draw each of the overlays
+  if (!m_ThumbnailDrawing)
+    {
+    for(LayerIterator it(id, LayerIterator::OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+      DrawTextureForLayer(it.GetLayer(), true);
+    }
+}
+
+void GenericSliceRenderer::DrawTextureForLayer(
+    ImageWrapperBase *layer, bool use_transparency)
+{
   // Get the appearance settings pointer since we use it a lot
   SNAPAppearanceSettings *as =
       m_Model->GetParentUI()->GetAppearanceSettings();
@@ -178,39 +196,27 @@ void GenericSliceRenderer::DrawMainTexture()
       as->GetGreyInterpolationMode() == SNAPAppearanceSettings::LINEAR
       ? GL_LINEAR : GL_NEAREST;
 
-  // Get the image data
-  GenericImageData *id = m_Model->GetImageData();
+  // Get the texture
+  Texture *tex = m_Texture[layer];
 
-  // Draw the main texture
-  if (id->IsMainLoaded())
+  // Paint the texture with alpha
+  if(tex)
     {
-    // Get the color to use for background
-    Vector3d clrBackground = m_ThumbnailDrawing
-      ? as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
-      : Vector3d(1.0);
-
-    // Get the texture
-    Texture *tex = m_Texture[id->GetMain()];
-
-    // Paint the grey texture with color as background
     tex->SetInterpolation(interp);
-    tex->Draw(clrBackground);
-    }
-
-  // Draw each of the overlays
-  if (!m_ThumbnailDrawing)
-    {
-    for(LayerIterator it(id, LayerIterator::OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+    if(use_transparency)
       {
-      // Get the texture
-      Texture *tex = m_Texture[it.GetLayer()];
-
-      // Paint the texture with alpha
-      tex->SetInterpolation(interp);
-      tex->DrawTransparent(it.GetLayer()->GetAlpha());
+      tex->DrawTransparent(layer->GetAlpha());
+      }
+    else
+      {
+      Vector3d clrBackground = m_ThumbnailDrawing
+        ? as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
+        : Vector3d(1.0);
+      tex->Draw(clrBackground);
       }
     }
 }
+
 
 void GenericSliceRenderer::DrawSegmentationTexture()
   {
@@ -406,3 +412,4 @@ OpenGLTextureAssociationFactory
 template class LayerAssociation<GenericSliceRenderer::Texture,
                                 ImageWrapperBase,
                                 OpenGLTextureAssociationFactory>;
+

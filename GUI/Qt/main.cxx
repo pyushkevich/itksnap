@@ -57,6 +57,10 @@ void SetupSignalHandlers()
 #endif
 
 
+#ifdef SNAP_DEBUG_EVENTS
+bool flag_snap_debug_events = false;
+#endif
+
 void usage()
 {
   // Print usage info and exit
@@ -72,6 +76,10 @@ void usage()
   cout << "   -c <a|c|s>          : Launch in compact single-slice mode " << endl;
   cout << "                         (axial, coronal, sagittal)" << endl;
   cout << "   -z FACTOR           : Specify initial zoom in screen pixels/mm" << endl;
+  cout << "Debugging Options" << endl;
+#ifdef SNAP_DEBUG_EVENTS
+  cout << "   --debug-events      : Dump information regarding UI events" << endl;
+#endif<
 }
 
 void setupParser(CommandLineArgumentParser &parser)
@@ -104,16 +112,14 @@ void setupParser(CommandLineArgumentParser &parser)
 
   parser.AddOption("--help", 0);
   parser.AddSynonim("--help", "-h");
+
+  parser.AddOption("--debug-events", 0);
 }
 
 int main(int argc, char *argv[])
 {
   // Setup crash signal handlers
   SetupSignalHandlers();
-
-
-
-
 
 
 
@@ -164,6 +170,16 @@ int main(int argc, char *argv[])
     {
     usage();
     return 0;
+    }
+
+  if(parseResult.IsOptionPresent("--debug-events"))
+    {
+#ifdef SNAP_DEBUG_EVENTS
+    flag_snap_debug_events = true;
+#else
+    cerr << "Option --debug-events ignored because ITK-SNAP was compiled "
+            "without the SNAP_DEBUG_EVENTS option. Please recompile." << endl;
+#endif
     }
 
   // The following situations are possible for main image

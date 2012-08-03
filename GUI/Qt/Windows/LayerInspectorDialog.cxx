@@ -124,11 +124,12 @@ void LayerInspectorDialog::onLayerSelection()
 {
   // Update the current layer selection
   QModelIndex idx = ui->inLayer->selectionModel()->currentIndex();
-  GreyImageWrapperBase *layer =
-      m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(idx.row()).GetLayerAsGray();
-  m_Model->GetIntensityCurveModel()->SetLayer(layer);
-  m_Model->GetColorMapModel()->SetLayer(layer);
-  m_Model->GetImageInfoModel()->SetLayer(layer);
+  LayerIterator it = m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(idx.row());
+  ScalarImageWrapperBase *layer_as_scalar = dynamic_cast<ScalarImageWrapperBase *>(it.GetLayer());
+  GreyImageWrapperBase *layer_as_gray = it.GetLayerAsGray();
+  m_Model->GetIntensityCurveModel()->SetLayer(layer_as_gray);
+  m_Model->GetColorMapModel()->SetLayer(layer_as_gray);
+  m_Model->GetImageInfoModel()->SetLayer(layer_as_scalar);
 }
 
 void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)

@@ -86,7 +86,7 @@ public:
   used to obtain the text and icon information from the value/description pairs
   provided by the model.
   */
-template <class TAtomic, class TItemDesriptionTraits>
+template <class TAtomic, class TDesc, class TItemDesriptionTraits>
 class TextAndIconComboBoxRowTraits
 {
 public:
@@ -105,45 +105,65 @@ public:
     return w->itemData(i).value<TAtomic>();
   }
 
-  static void appendRow(QComboBox *w, TAtomic label, const ColorLabel &cl)
+  static void appendRow(QComboBox *w, TAtomic label, const TDesc &desc)
   {
     // The description
-    QString text = TItemDesriptionTraits::GetText(label, cl); // QString text(cl.GetLabel());
+    QString text = TItemDesriptionTraits::GetText(label, desc); // QString text(cl.GetLabel());
 
     // The icon
-    QIcon icon = TItemDesriptionTraits::GetIcon(label, cl);
+    QIcon icon = TItemDesriptionTraits::GetIcon(label, desc);
 
     // The icon signature - a value that can be used to check if the icon has changed
-    QVariant iconSig = TItemDesriptionTraits::GetIconSignature(label, cl);
+    QVariant iconSig = TItemDesriptionTraits::GetIconSignature(label, desc);
 
     // Icon based on the color
     w->addItem(icon, text, QVariant::fromValue(label));
     w->setItemData(w->count()-1, iconSig, Qt::UserRole + 1);
   }
 
-  static void updateRowDescription(QComboBox *w, int index, const ColorLabel &cl)
+  static void updateRowDescription(QComboBox *w, int index, const TDesc &desc)
   {
     // The current value
     TAtomic label = w->itemData(index).value<TAtomic>();
 
     // Get the properies and compare them to the color label
     QVariant currentIconSig = w->itemData(index, Qt::UserRole + 1);
-    QVariant newIconSig = TItemDesriptionTraits::GetIconSignature(label, cl);
+    QVariant newIconSig = TItemDesriptionTraits::GetIconSignature(label, desc);
 
     if(currentIconSig != newIconSig)
       {
-      QIcon ic = TItemDesriptionTraits::GetIcon(label, cl);
+      QIcon ic = TItemDesriptionTraits::GetIcon(label, desc);
       w->setItemIcon(index, ic);
       w->setItemData(index, newIconSig, Qt::UserRole + 1);
       }
 
     QString currentText = w->itemText(index);
-    QString newText = TItemDesriptionTraits::GetText(label, cl);
+    QString newText = TItemDesriptionTraits::GetText(label, desc);
 
     if(currentText != newText)
       {
       w->setItemText(index, newText);
       }
+  }
+};
+
+template<class TAtomic>
+class StringRowDescriptionTraits
+{
+public:
+  static QString GetText(TAtomic label, const std::string &text)
+  {
+    return QString(text.c_str());
+  }
+
+  static QIcon GetIcon(TAtomic label, const std::string &text)
+  {
+    return QIcon();
+  }
+
+  static QVariant GetIconSignature(TAtomic label, const std::string &text)
+  {
+    return QVariant(0);
   }
 };
 
@@ -210,13 +230,19 @@ class DefaultComboBoxRowTraits
 
 template <>
 class DefaultComboBoxRowTraits<LabelType, ColorLabel>
-    : public TextAndIconComboBoxRowTraits<LabelType, DrawingColorRowDescriptionTraits>
+    : public TextAndIconComboBoxRowTraits<LabelType, ColorLabel, DrawingColorRowDescriptionTraits>
 {
 };
 
 template <>
 class DefaultComboBoxRowTraits<DrawOverFilter, ColorLabel>
-    : public TextAndIconComboBoxRowTraits<DrawOverFilter, DrawOverFilterRowDescriptionTraits>
+    : public TextAndIconComboBoxRowTraits<DrawOverFilter, ColorLabel, DrawOverFilterRowDescriptionTraits>
+{
+};
+
+template<class TAtomic>
+class DefaultComboBoxRowTraits<TAtomic, std::string>
+    : public TextAndIconComboBoxRowTraits<TAtomic, std::string, StringRowDescriptionTraits<TAtomic> >
 {
 };
 

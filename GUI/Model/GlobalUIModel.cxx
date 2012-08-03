@@ -99,7 +99,8 @@ GlobalUIModel::GlobalUIModel()
   m_LoadedLayersSelectionModel = LayerSelectionModel::New();
   m_LoadedLayersSelectionModel->SetParentModel(this);
   m_LoadedLayersSelectionModel->SetRoleFilter(
-        LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+        LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE |
+        LayerIterator::SNAP_ROLE);
 
   // 3D model
   m_Model3D = Generic3DModel::New();
@@ -284,9 +285,11 @@ void GlobalUIModel::EnterActiveContourMode()
 
   m_Driver->SetCurrentImageDataToSNAP();
 
-  // Set the current mode to navigation
-  this->SetToolbarMode(NAVIGATION_MODE);
+  // The speed should not be showing currently
+  m_Driver->GetGlobalState()->SetShowSpeed(false);
 
+  // Set the current mode to navigation
+  this->SetToolbarMode(CROSSHAIRS_MODE);
 }
 
 

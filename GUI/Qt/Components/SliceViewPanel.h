@@ -7,6 +7,7 @@
 class GenericSliceView;
 class QMenu;
 class QtInteractionDelegateWidget;
+class SnakeModeRenderer;
 
 namespace Ui {
     class SliceViewPanel;
@@ -57,6 +58,11 @@ private:
 
   // Global UI pointer
   GlobalUIModel *m_GlobalUI;
+
+  // Some renderers don't require a separate widget (no user interaction)
+  // and so they are owned by this panel.
+  SmartPtr<SnakeModeRenderer> m_SnakeModeRenderer;
+
 
   // Index of the panel
   unsigned int m_Index;

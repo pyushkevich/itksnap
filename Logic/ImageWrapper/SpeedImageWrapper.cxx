@@ -131,7 +131,7 @@ SpeedImageWrapper
 ::UpdateImagePointer(ImageType *newImage)
 {
   // Call the parent's method
-  ImageWrapper<float>::UpdateImagePointer(newImage);
+  Superclass::UpdateImagePointer(newImage);
 
   // Update the sources
   for(unsigned int i=0;i<3;i++)

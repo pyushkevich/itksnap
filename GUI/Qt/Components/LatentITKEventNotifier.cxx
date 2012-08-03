@@ -37,9 +37,12 @@ LatentITKEventNotifierCleanup
 ::DeleteCallback(const itk::Object *object, const itk::EventObject &evt)
 {
 #ifdef SNAP_DEBUG_EVENTS
-  std::cout << "DELETE CALLBACK from " << object->GetNameOfClass()
-            << " [" << typeid(*object).name() << "]"
-            << " event " << evt.GetEventName() << std::endl;
+  if(flag_snap_debug_events)
+    {
+    std::cout << "DELETE CALLBACK from " << object->GetNameOfClass()
+              << " [" << typeid(*object).name() << "]"
+              << " event " << evt.GetEventName() << std::endl;
+    }
 #endif
   // Forget the source.
   m_Source = NULL;
@@ -64,12 +67,15 @@ LatentITKEventNotifierHelper
 ::Callback(itk::Object *object, const itk::EventObject &evt)
 {
 #ifdef SNAP_DEBUG_EVENTS
-  std::cout << "QUEUE Event " << evt.GetEventName()
-            << " from " << object->GetNameOfClass()
-            << " [" << object << "] "
-            << " for " << parent()->metaObject()->className()
-            << " named '" << qPrintable(parent()->objectName())
-            << "'" << std::endl;
+  if(flag_snap_debug_events)
+    {
+    std::cout << "QUEUE Event " << evt.GetEventName()
+              << " from " << object->GetNameOfClass()
+              << " [" << object << "] "
+              << " for " << parent()->metaObject()->className()
+              << " named '" << qPrintable(parent()->objectName())
+              << "'" << std::endl;
+    }
 #endif
 
   // Register this event
@@ -89,10 +95,13 @@ LatentITKEventNotifierHelper
   if(!m_Bucket.IsEmpty())
     {
 #ifdef SNAP_DEBUG_EVENTS
-    std::cout << "SEND " << m_Bucket
-              << " to " << parent()->metaObject()->className()
-              << " named '" << qPrintable(parent()->objectName())
-              << "'" << std::endl;
+    if(flag_snap_debug_events)
+      {
+      std::cout << "SEND " << m_Bucket
+                << " to " << parent()->metaObject()->className()
+                << " named '" << qPrintable(parent()->objectName())
+                << "'" << std::endl;
+      }
 #endif
 
     // Send the event to the target object - immediate

@@ -45,13 +45,11 @@ public:
 
   TAtomic GetValue(QDoubleSpinBox *w)
   {
-    std::cout << "QDoubleSpinBox " << w->objectName().toStdString() << " reading value " << w->value() << std::endl;
     return static_cast<TAtomic>(w->value());
   }
 
   void SetValue(QDoubleSpinBox *w, const TAtomic &value)
   {
-    std::cout << "QDoubleSpinBox " << w->objectName().toStdString() << " setting to " << value << std::endl;
     w->setSpecialValueText("");
     w->setValue(static_cast<double>(value));
   }

@@ -21,6 +21,9 @@ public:
 
   void SetModel(SnakeWizardModel *model);
 
+private slots:
+  void on_btnApply_clicked();
+
 private:
   Ui::SpeedImageDialog *ui;
 

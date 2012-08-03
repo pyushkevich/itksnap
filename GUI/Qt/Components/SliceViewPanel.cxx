@@ -13,6 +13,7 @@
 #include "SliceWindowCoordinator.h"
 #include "PolygonDrawingModel.h"
 #include "QtWidgetActivator.h"
+#include "SnakeModeRenderer.h"
 
 #include <QStackedLayout>
 #include <QMenu>
@@ -23,6 +24,8 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
 {
   ui->setupUi(this);
 
+  // Create my own renderers
+  m_SnakeModeRenderer = SnakeModeRenderer::New();
 
   QString menuStyle = "font-size: 12pt;";
 
@@ -96,6 +99,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
 
   // Send wheel events from Crosshairs mode to the slider
   ui->imCrosshairs->SetWheelEventTargetWidget(ui->inSlicePosition);
+
 }
 
 SliceViewPanel::~SliceViewPanel()
@@ -125,11 +129,10 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   ui->imPolygon->SetModel(m_GlobalUI->GetPolygonDrawingModel(index));
   ui->imSnakeROI->SetModel(m_GlobalUI->GetSnakeROIModel(index));
 
-  // Attach the overlays to the master renderer. Why are we doing it here?
-  GenericSliceRenderer::RendererDelegateList &overlays =
-      ui->sliceView->GetRendererOverlays();
-  overlays.push_back(ui->imCrosshairs->GetRenderer());
-  overlays.push_back(ui->imPolygon->GetRenderer());
+  // Initialize the 'orphan' renderers (without a custom widget)
+  m_SnakeModeRenderer->SetParentRenderer(
+        static_cast<GenericSliceRenderer *>(ui->sliceView->GetRenderer()));
+  m_SnakeModeRenderer->SetModel(m_GlobalUI->GetSnakeWizardModel());
 
   // Add listener for changes to the model
   connectITK(m_GlobalUI->GetSliceModel(index), ModelUpdateEvent());
@@ -161,6 +164,9 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   activateOnAllFlags(ui->actionSplitSelected, pm, UIF_EDITING, UIF_HAVE_EDGE_SELECTION);
   activateOnAllFlags(ui->actionUndo, pm, UIF_DRAWING, UIF_HAVEPOLYGON);
   activateOnAllFlags(ui->actionClearPolygon, pm, UIF_EDITING, UIF_HAVEPOLYGON);
+
+  // Arrange the rendering overlays and widgets based on current mode
+  this->OnToolbarModeChange();
 }
 
 void SliceViewPanel::onModelUpdate(const EventBucket &eb)
@@ -270,6 +276,7 @@ void SliceViewPanel::OnToolbarModeChange()
   GenericSliceRenderer::RendererDelegateList &overlays =
       ui->sliceView->GetRendererOverlays();
   overlays.clear();
+  overlays.push_back(m_SnakeModeRenderer);
   overlays.push_back(ui->imCrosshairs->GetRenderer());
   overlays.push_back(ui->imPolygon->GetRenderer());
 

@@ -165,7 +165,7 @@ public:
 
   GlobalState(IRISApplication *parent);
   virtual ~GlobalState();
-  
+
   /** Get whether the grey image display uses linear interpolation */
   irisSetMacro(InterpolateGrey,bool );
 
@@ -256,11 +256,10 @@ public:
   /** Get the colormap in current preprocessing mode*/
   ColorMapPreset GetSpeedColorMap();
 
-  /** Get the type of the snake being used */
-  irisSetMacro(SnakeMode,SnakeType );
+  typedef SimpleItemSetDomain<SnakeType, std::string> SnakeTypeDomain;
 
-  /** Set the type of the snake being used */
-  irisGetMacro(SnakeMode,SnakeType );
+  /** Get the type of the snake being used */
+  irisGenericPropertyAccessMacro(SnakeType, SnakeType, SnakeTypeDomain)
 
   /** Get whether the snake is currently active */
   irisSetMacro(SnakeActive,bool );
@@ -376,11 +375,11 @@ public:
 
   /** Get the drawing label */
   irisGenericPropertyAccessMacro(DrawingColorLabel, LabelType,
-                                 ConcreteColorLabelPropertyModel)
+                                 ColorLabelItemSetDomain)
 
   /** Get the draw over label */
   irisGenericPropertyAccessMacro(DrawOverFilter, DrawOverFilter,
-                                 ConcreteDrawOverFilterPropertyModel)
+                                 DrawOverLabelItemSetDomain)
 
   /** Whether drawing operations are inverted */
   irisSimplePropertyAccessMacro(PolygonInvert, bool)
@@ -444,7 +443,8 @@ private:
   ColorMapPreset m_SpeedColorMapInRegionMode;
 
   /** The type of the snake being used */
-  SnakeType m_SnakeMode;
+  typedef ConcretePropertyModel<SnakeType, SnakeTypeDomain> SnakeTypeModel;
+  SmartPtr<SnakeTypeModel> m_SnakeTypeModel;
 
   /** Whether the snake is currently active */
   bool m_SnakeActive;

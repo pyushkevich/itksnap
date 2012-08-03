@@ -51,13 +51,13 @@ void ImageInfoModel::SetParentModel(GlobalUIModel *parent)
 }
 
 
-void ImageInfoModel::RegisterWithLayer(GreyImageWrapperBase *layer)
+void ImageInfoModel::RegisterWithLayer(ScalarImageWrapperBase *layer)
 {
   // We don't need to listen to the events on the layer because they
   // are not going to change anything managed by this model.
 }
 
-void ImageInfoModel::UnRegisterFromLayer(GreyImageWrapperBase *layer)
+void ImageInfoModel::UnRegisterFromLayer(ScalarImageWrapperBase *layer)
 {
   // We don't need to listen to the events on the layer because they
   // are not going to change anything managed by this model.

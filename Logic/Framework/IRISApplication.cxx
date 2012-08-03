@@ -231,7 +231,7 @@ IRISApplication
   m_SNAPImageData->GetSpeed()->SetImage(newSpeedImage);
 
   // Save the snake mode 
-  m_GlobalState->SetSnakeMode(snakeMode);
+  m_GlobalState->SetSnakeType(snakeMode);
 
   // Set the speed as valid
   m_GlobalState->SetSpeedValid(true);
@@ -1528,5 +1528,20 @@ void IRISApplication::LoadLabelDescriptions(const char *file)
 bool IRISApplication::IsSnakeModeActive() const
 {
   return (m_CurrentImageData == m_SNAPImageData);
+}
+
+void IRISApplication::ComputeSNAPSpeedImage(CommandType *progressCB)
+{
+  assert(IsSnakeModeActive());
+  if(m_GlobalState->GetSnakeType() == EDGE_SNAKE)
+    {
+    m_SNAPImageData->DoEdgePreprocessing(
+          m_GlobalState->GetEdgePreprocessingSettings(), progressCB);
+    }
+  else if(m_GlobalState->GetSnakeType() == IN_OUT_SNAKE)
+    {
+    m_SNAPImageData->DoInOutPreprocessing(
+          m_GlobalState->GetThresholdSettings(), progressCB);
+    }
 }
 

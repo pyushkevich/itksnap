@@ -264,6 +264,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/PolygonDrawingRenderer.cxx
   GUI/Renderer/PolygonScanConvert.cxx
   GUI/Renderer/SnakeROIRenderer.cxx
+  GUI/Renderer/SnakeModeRenderer.cxx
   GUI/Renderer/ThresholdSettingsRenderer.cxx
 )
 
@@ -307,6 +308,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/PolygonDrawingRenderer.h
   GUI/Renderer/PolygonScanConvert.h
   GUI/Renderer/SnakeROIRenderer.h
+  GUI/Renderer/SnakeModeRenderer.h
   GUI/Renderer/ThresholdSettingsRenderer.h
 )
 

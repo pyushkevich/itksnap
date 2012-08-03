@@ -63,8 +63,15 @@ GlobalState
   m_ShowSpeed = false;
   m_ShowROI = false;
   m_DraggingROI = false;
-  m_SnakeMode = EDGE_SNAKE;
   m_SnakeActive = false;
+
+  // Snake type model initialization
+  m_SnakeTypeModel = ConcretePropertyModel<SnakeType, SnakeTypeDomain>::New();
+  m_SnakeTypeModel->SetValue(IN_OUT_SNAKE);
+  SnakeTypeDomain snakedomain;
+  snakedomain[IN_OUT_SNAKE] = "Region Competition";
+  snakedomain[EDGE_SNAKE] = "Edge Attraction";
+  m_SnakeTypeModel->SetDomain(snakedomain);
 
   // Initialize the property model for the ROI settings
   m_SegmentationROISettingsModel
@@ -162,7 +169,7 @@ void
 GlobalState
 ::SetSpeedColorMap(ColorMapPreset xPreset)
 {
-  if(m_SnakeMode == EDGE_SNAKE)
+  if(this->GetSnakeType() == EDGE_SNAKE)
     SetSpeedColorMapInEdgeMode(xPreset);
   else
     SetSpeedColorMapInRegionMode(xPreset);
@@ -173,7 +180,7 @@ ColorMapPreset
 GlobalState
 ::GetSpeedColorMap()
 {
-  return (m_SnakeMode == EDGE_SNAKE) ?
+  return (GetSnakeType() == EDGE_SNAKE) ?
         GetSpeedColorMapInEdgeMode() : GetSpeedColorMapInRegionMode();
 }
 

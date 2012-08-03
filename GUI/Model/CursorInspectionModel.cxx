@@ -84,7 +84,11 @@ void CursorInspectionModel::SetParentModel(GlobalUIModel *parent)
   IRISApplication *app = parent->GetDriver();
 
   // Initialize the layer voxel list model
-  int role = LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE;
+  int role =
+      LayerIterator::MAIN_ROLE |
+      LayerIterator::OVERLAY_ROLE |
+      LayerIterator::SNAP_ROLE;
+
   CurrentVoxelInfoItemSetDomain dom(app, role);
   m_VoxelAtCursorModel->SetDomain(dom);
 

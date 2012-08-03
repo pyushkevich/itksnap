@@ -11,7 +11,7 @@
   */
 
 // Define the domain that wraps around a std::map of color labels
-typedef STLMapItemSetDomain<LabelType, ColorLabel> ColorLabelItemSetDomain;
+typedef STLMapWrapperItemSetDomain<LabelType, ColorLabel> ColorLabelItemSetDomain;
 
 // Base class typedef for the concrete implementation below
 typedef ConcretePropertyModel<LabelType, ColorLabelItemSetDomain>
