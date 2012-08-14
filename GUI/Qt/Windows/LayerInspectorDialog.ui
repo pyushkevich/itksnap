@@ -23,6 +23,9 @@
    <item>
     <widget class="QWidget" name="widget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="spacing">
+       <number>4</number>
+      </property>
       <property name="margin">
        <number>0</number>
       </property>
@@ -42,6 +45,36 @@
         </property>
         <property name="selectionBehavior">
          <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>10</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Layer opacity:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSliderWithEditor" name="inLayerOpacity">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>
@@ -151,6 +184,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>QDoubleSliderWithEditor</class>
+   <extends>QSlider</extends>
+   <header>QDoubleSliderWithEditor.h</header>
+  </customwidget>
   <customwidget>
    <class>ContrastInspector</class>
    <extends>QWidget</extends>

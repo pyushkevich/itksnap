@@ -45,11 +45,11 @@
  * A functor used for the smooth threshold operation on images.  
  * Used in conjuction with itk::UnaryFunctorImageFilter.
  */
-template<class TInput, class TOutput>
+template<class TInput>
 class SmoothBinaryThresholdFunctor 
 {
 public:
-  typedef SmoothBinaryThresholdFunctor<TInput, TOutput> Self;
+  typedef SmoothBinaryThresholdFunctor<TInput> Self;
 
   /**
    * Initialize the function
@@ -92,7 +92,7 @@ public:
   /**
    * Apply the function to image intensity
    */
-  TOutput operator()(const TInput &x)
+  short operator()(const TInput &x)
   {
     // Cast the input to float
     float z = static_cast<float>(x);
@@ -103,8 +103,11 @@ public:
     // Compute the right component
     float yUpper = m_FactorUpper * tanh((m_UpperThreshold-z) * m_ScalingFactor);
 
+    // Map to the range -1 ro 1
+    float t = (yLower + yUpper + m_Shift);
+
     // Return the result (TODO: hack)
-    return static_cast<TOutput>(yLower + yUpper + m_Shift);
+    return static_cast<short>(t * 0x7fff);
   }
 
   bool operator ==(const Self &z)
@@ -153,13 +156,13 @@ class SmoothBinaryThresholdImageFilter:
   public itk::ImageToImageFilter<TInputImage,TOutputImage>
 {
 public:
-  
+
   /** Standard class typedefs. */
   typedef SmoothBinaryThresholdImageFilter                         Self;
   typedef itk::ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
   typedef itk::SmartPointer<Self>                               Pointer;
   typedef itk::SmartPointer<const Self>                    ConstPointer;  
-  
+
   /** Pixel Type of the input image */
   typedef TInputImage                                    InputImageType;
   typedef typename InputImageType::PixelType             InputPixelType;
@@ -169,12 +172,11 @@ public:
   typedef typename OutputImageType::PixelType           OutputPixelType;
 
   /** Functor type used for thresholding */
-  typedef SmoothBinaryThresholdFunctor<
-    InputPixelType,OutputPixelType>                          FunctorType;
+  typedef SmoothBinaryThresholdFunctor<InputPixelType>      FunctorType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self)
-    
+
   /** Image dimension. */
   itkStaticConstMacro(ImageDimension, unsigned int,
                       TInputImage::ImageDimension);

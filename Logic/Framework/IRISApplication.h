@@ -87,7 +87,7 @@ public:
   typedef itk::OrientedImage<GreyType,3> GreyImageType;
   typedef itk::OrientedImage<RGBType,3> RGBImageType;
   typedef itk::OrientedImage<LabelType,3> LabelImageType;
-  typedef itk::OrientedImage<float,3> SpeedImageType;
+  typedef itk::OrientedImage<short ,3> SpeedImageType;
   typedef itk::Command CommandType;
   typedef UndoDataManager<LabelType> UndoManagerType;
 

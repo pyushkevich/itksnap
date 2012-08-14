@@ -67,7 +67,7 @@ GreyImageWrapper<TPixel>
   {
     m_IntensityFilter[i] = IntensityFilterType::New();
     m_IntensityFilter[i]->SetFunctor(m_IntensityMapCache->GetCachingFunctor());
-    m_IntensityFilter[i]->SetInput(this->m_Slicer[i]->GetOutput());
+    m_IntensityFilter[i]->SetInput(this->GetSlice(i));
   }
 
   // By default, reference range is not used
@@ -286,4 +286,3 @@ GreyImageWrapper<TPixel>::IntensityFunctor
 
 
 template class GreyImageWrapper<short>;
-

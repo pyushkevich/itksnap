@@ -112,6 +112,7 @@ SET(LOGIC_CXX
   Logic/Framework/IRISImageData.cxx
   Logic/Framework/SNAPImageData.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
+  Logic/ImageWrapper/ContinuousScalarImageWrapper.cxx
   Logic/ImageWrapper/ImageWrapperBase.cxx
   Logic/ImageWrapper/ImageWrapper.cxx
   Logic/ImageWrapper/GreyImageWrapper.cxx
@@ -182,6 +183,7 @@ SET(LOGIC_HEADERS
   Logic/Framework/SNAPImageData.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
+  Logic/ImageWrapper/ContinuousScalarImageWrapper.h
   Logic/ImageWrapper/GreyImageWrapper.h
   Logic/ImageWrapper/ImageIORoutines.h
   Logic/ImageWrapper/ImageWrapper.h

@@ -51,6 +51,27 @@ namespace itk {
   class Command;
 };
 
+/** Accessor class to cast speed image to float or double */
+/*
+template <class TExternalType>
+class SpeedImageToFloatAccessor
+{
+public:
+  typedef short InternalType;
+  typedef TExternalType ExternalType;
+
+  static inline void Set(InternalType &output, const ExternalType &input)
+  {
+    output = static_cast<InternalType>(input * 0x7fff);
+  }
+
+  static inline ExternalType Get(const InternalType &input)
+  {
+    return static_cast<ExternalType>(input * (1.0 / 0x7fff));
+  }
+};
+*/
+
 /** 
  * \class SNAPLevelSetDriverBase
  * \brief An abstract interface that allows code to be written independently of
@@ -89,20 +110,24 @@ class SNAPLevelSetDriver : public SNAPLevelSetDriverBase
 {
 public:
 
-  typedef SNAPLevelSetDriver Self;
+  typedef SNAPLevelSetDriver                                           Self;
 
   // A callback type
-  typedef itk::SmartPointer<itk::Command> CommandPointer;
-  typedef itk::SimpleMemberCommand<Self> SelfCommandType;
-  typedef itk::SmartPointer<SelfCommandType> SelfCommandPointer;
+  typedef itk::SmartPointer<itk::Command>                    CommandPointer;
+  typedef itk::SimpleMemberCommand<Self>                    SelfCommandType;
+  typedef itk::SmartPointer<SelfCommandType>             SelfCommandPointer;
+
+  /** Speed image type: short, to conserve memory */
+  typedef itk::OrientedImage<short, VDimension>              ShortImageType;
 
   /** Floating point image type used internally */
-  typedef itk::OrientedImage<float, VDimension> FloatImageType;
-  typedef typename itk::SmartPointer<FloatImageType> FloatImagePointer;
+  typedef itk::OrientedImage<float, VDimension>              FloatImageType;
+  typedef typename itk::SmartPointer<FloatImageType>      FloatImagePointer;
 
   /** Type definition for the level set function */
-  typedef SNAPLevelSetFunction<FloatImageType> LevelSetFunctionType;
-  typedef typename LevelSetFunctionType::VectorImageType VectorImageType;
+  typedef SNAPLevelSetFunction<ShortImageType, FloatImageType>
+                                                       LevelSetFunctionType;
+  typedef typename LevelSetFunctionType::VectorImageType    VectorImageType;
 
   /** Initialize the level set driver.  Note that the type of snake (in/out
    * or edge) is determined entirely by the speed image and by the values
@@ -111,7 +136,7 @@ public:
    * advection field, that can be used instead of the default advection
    * field that is based on the image gradient */
   SNAPLevelSetDriver(FloatImageType *initialLevelSet,
-                     FloatImageType *speed,
+                     ShortImageType *speed,
                      const SnakeParameters &parms,
                      VectorImageType *externalAdvection = NULL);
 
@@ -158,6 +183,9 @@ private:
 
   /** An initialization image */
   FloatImagePointer m_InitializationImage;
+
+  /** Speed image adaptor */
+  typename ShortImageType::Pointer m_SpeedAdaptor;
 
   /** Last accepted snake parameters */
   SnakeParameters m_Parameters;

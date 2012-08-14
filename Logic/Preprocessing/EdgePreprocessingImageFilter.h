@@ -51,11 +51,11 @@
  * The g() function that remaps the gradient magnitude image to the 
  * range 0 to 1.  
  */
-template<class TInput, class TOutput>
+template<class TInput>
 class EdgeRemappingFunctor
   {
 public:
-  typedef EdgeRemappingFunctor<TInput, TOutput> Self;
+  typedef EdgeRemappingFunctor<TInput> Self;
 
   void SetParameters(float intensityMin, float intensityMax,
                      float exponent, float kappa)
@@ -66,11 +66,12 @@ public:
     m_IntensityScale = 1.0f / (intensityMax - intensityMin);
   }
 
-  inline TOutput operator()(const TInput &x)
+  // This operator maps the input value into the range of short integers
+  inline short operator()(const TInput &x)
   {
     float xNorm = (static_cast<float>(x)-m_IntensityBase)*m_IntensityScale;
     float y = 1.0 / (1.0 + pow(xNorm * m_KappaFactor,m_Exponent));
-    return static_cast<TOutput> (y);
+    return static_cast<short> (y * 0x7fff);
   }
 
   bool operator ==(const Self &z)
@@ -100,7 +101,7 @@ private:
  * This functor implements a Gaussian blur, followed by a gradient magnitude
  * operator, followed by a 'contrast enhancement' intensity remapping filter.
  */
-template <typename TInputImage,typename TOutputImage = TInputImage>
+template <typename TInputImage,typename TOutputImage>
 class EdgePreprocessingImageFilter: 
   public itk::ImageToImageFilter<TInputImage,TOutputImage>
 {
@@ -119,7 +120,6 @@ public:
 
   /** Pixel Type of the output image */
   typedef TOutputImage                                  OutputImageType;
-  typedef typename OutputImageType::PixelType           OutputPixelType;
   typedef itk::SmartPointer<OutputImageType>         OutputImagePointer;
 
   /** Type used for internal calculations */
@@ -128,7 +128,7 @@ public:
   typedef itk::SmartPointer<InternalImageType>     InternalImagePointer;
 
   /** Functor type used for thresholding */
-  typedef EdgeRemappingFunctor<RealType,OutputPixelType>    FunctorType;
+  typedef EdgeRemappingFunctor<RealType>    FunctorType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self)

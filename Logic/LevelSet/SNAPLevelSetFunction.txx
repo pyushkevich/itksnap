@@ -37,11 +37,12 @@
 #include "itkMultiplyImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkNumericTraits.h"
+#include "itkSimpleFastMutexLock.h"
 
 #include <map>
 
-template<class TImageType>
-SNAPLevelSetFunction<TImageType>
+template <class TSpeedImageType, class TImageType>
+SNAPLevelSetFunction<TSpeedImageType,TImageType>
 ::SNAPLevelSetFunction()
 : Superclass()
 {
@@ -52,131 +53,36 @@ SNAPLevelSetFunction<TImageType>
   m_PropagationSpeedExponent = 0;
   m_LaplacianSmoothingSpeedExponent = 0;
   m_UseExternalAdvectionField = false;
+  m_SpeedScaleFactor = 1.0;
 
-  m_PropagationSpeedInterpolator = ImageInterpolatorType::New();
-  m_CurvatureSpeedInterpolator = ImageInterpolatorType::New();
-  m_LaplacianSmoothingSpeedInterpolator = ImageInterpolatorType::New();
+  m_SpeedInterpolator = SpeedImageInterpolatorType::New();
   m_AdvectionFieldInterpolator = VectorInterpolatorType::New();
   
   m_AdvectionFilter = AdvectionFilterType::New();
 }
 
-template<class TImageType>
-SNAPLevelSetFunction<TImageType>
+template <class TSpeedImageType, class TImageType>
+SNAPLevelSetFunction<TSpeedImageType,TImageType>
 ::~SNAPLevelSetFunction()
 {
 
 }
 
-template<class TImageType>
+template <class TSpeedImageType, class TImageType>
 void 
-SNAPLevelSetFunction<TImageType>
-::SetSpeedImage(ImageType *pointer)
+SNAPLevelSetFunction<TSpeedImageType,TImageType>
+::SetSpeedImage(SpeedImageType *pointer)
 {
   m_SpeedImage = pointer;
+  m_SpeedInterpolator->SetInputImage(m_SpeedImage);
   m_AdvectionFilter->SetInput(m_SpeedImage);
 }
-/*
-template<class TImageType>
-void
-SNAPLevelSetFunction<TImageType>
-::SetAdvectionField(VectorImageType *pointer)
-{
-  m_UseExternalAdvectionField = true;
-  m_AdvectionField = pointer;
-}
-*/
 
-
-template<class TImageType>
+template <class TSpeedImageType, class TImageType>
 void
-SNAPLevelSetFunction<TImageType>
+SNAPLevelSetFunction<TSpeedImageType,TImageType>
 ::CalculateInternalImages()
 {
-  // Create a map of integers to image pointers.  This map will cache the 
-  // different powers of g() that must be computed (hopefully none!)
-  typedef std::map<int,ImagePointer> PowerMapType;
-  PowerMapType powerMap;
-
-  // Initialize the map for the default powers
-  powerMap[0] = NULL;
-  powerMap[1] = m_SpeedImage;
-
-  // Create a list of the required powers
-  int powers[4] = {
-    this->GetPropagationSpeedExponent(),
-    this->GetAdvectionSpeedExponent(),
-    this->GetCurvatureSpeedExponent(),
-    this->GetLaplacianSmoothingSpeedExponent()
-  };
-
-  // What equation are we solving?
-  // std::cout << "Solving Equation :  = " << std::endl;
-  // std::cout << "  P-W = " << this->GetPropagationWeight() << std::endl;
-  // std::cout << "  P-E = " << this->GetPropagationSpeedExponent() << std::endl;
-  // std::cout << "  C-W = " << this->GetCurvatureWeight() << std::endl;
-  // std::cout << "  C-E = " << this->GetCurvatureSpeedExponent() << std::endl;
-  // std::cout << "  A-W = " << this->GetAdvectionWeight() << std::endl;
-  // std::cout << "  A-E = " << this->GetAdvectionSpeedExponent() << std::endl;
-  // std::cout << "  L-W = " << this->GetLaplacianSmoothingWeight() << std::endl;
-  // std::cout << "  L-E = " << this->GetLaplacianSmoothingSpeedExponent() << std::endl;
-
-  // Create an image for each of these powers, if needed
-  for(unsigned int iPower=0; iPower < 4; iPower++)
-    {
-    // For powers of 0 and 1, which are by far the most common, there is
-    // nothing to compute
-    if(powers[iPower] == 0 || powers[iPower] == 1) 
-      {
-      continue;
-      }
-    
-    // For power 2, we square the speed image.  Since pow() is a dog, 
-    // let's handle this case explicitly
-    else if(powers[iPower] == 2)
-      {
-      // Create a filter that will square the image
-      typedef itk::UnaryFunctorImageFilter<ImageType,ImageType,SquareFunctor>
-        ExponentFilterType;
-
-      // Run the filter
-      typename ExponentFilterType::Pointer filter = 
-        ExponentFilterType::New();
-      filter->SetInput(m_SpeedImage);
-      filter->Update();
-      
-      // Stick the filter's output into the map
-      powerMap[2] = filter->GetOutput();
-      }
-
-    // For powers other than 3, let the user suffer through the pow()!
-    else
-      {
-      // Create a filter that will square the image
-      typedef itk::UnaryFunctorImageFilter<ImageType,ImageType,PowFunctor>
-        ExponentFilterType;
-
-      typename ExponentFilterType::Pointer filter = 
-        ExponentFilterType::New();
-      filter->SetInput(m_SpeedImage);
-      
-      // Create a functor with specified power
-      PowFunctor functor;
-      functor.power = powers[iPower];
-      filter->SetFunctor(functor);
-
-      // Run the filter
-      filter->Update();
-      
-      // Stick the filter's output into the map
-      powerMap[powers[iPower]] = filter->GetOutput();
-      }
-    } // For all powers
-
-  // Now that we have the powers, we can assign the speed images
-  m_PropagationSpeedImage = powerMap[m_PropagationSpeedExponent];
-  m_CurvatureSpeedImage = powerMap[m_CurvatureSpeedExponent];
-  m_LaplacianSmoothingSpeedImage = powerMap[m_LaplacianSmoothingSpeedExponent];
   
   // There is still the business of the advection image to attend to
   // Compute \f$ \nabla g() \f$ (will be cached from run to run)
@@ -190,103 +96,14 @@ SNAPLevelSetFunction<TImageType>
         m_AdvectionFilter->GetOutput());
     }
 
-  // Set up the image interpolators to point to the generated images
-  if(m_PropagationSpeedExponent != 0)
-    m_PropagationSpeedInterpolator->SetInputImage(m_PropagationSpeedImage);
-  if(m_CurvatureSpeedExponent != 0)
-    m_CurvatureSpeedInterpolator->SetInputImage(m_CurvatureSpeedImage);
-  if(m_LaplacianSmoothingSpeedExponent != 0)
-    m_LaplacianSmoothingSpeedInterpolator->SetInputImage(
-      m_LaplacianSmoothingSpeedImage);
-
   // Set up the advection interpolator
   // if(m_AdvectionSpeedExponent != 0)
   m_AdvectionFieldInterpolator->SetInputImage(m_AdvectionField);
 }
 
-
-template<class TImageType>
-typename SNAPLevelSetFunction<TImageType>::ScalarValueType
-SNAPLevelSetFunction<TImageType>
-::CurvatureSpeed(const NeighborhoodType &neighborhood, 
-                 const FloatOffsetType &offset,
-                 GlobalDataStruct *) const 
-{
-  // If the exponent is zero, there is nothing to return
-  if(m_CurvatureSpeedExponent == 0)
-    return itk::NumericTraits<ScalarValueType>::One; 
-  
-  // Otherwise, perform interpolation on the image
-  IndexType idx = neighborhood.GetIndex();
-  ContinuousIndexType cdx;
-  for (unsigned i = 0; i < ImageDimension; ++i)
-    {
-    cdx[i] = static_cast<double>(idx[i]) - offset[i];
-    }
-  if ( m_CurvatureSpeedInterpolator->IsInsideBuffer(cdx) )
-    {
-    return (static_cast<ScalarValueType>(
-        m_CurvatureSpeedInterpolator->EvaluateAtContinuousIndex(cdx)));
-    }
-  else return ( static_cast<ScalarValueType>(m_CurvatureSpeedImage->GetPixel(idx)) );
-}
-
-template<class TImageType>
-typename SNAPLevelSetFunction<TImageType>::ScalarValueType
-SNAPLevelSetFunction<TImageType>
-::PropagationSpeed(const NeighborhoodType &neighborhood, 
-                   const FloatOffsetType &offset,
-                   GlobalDataStruct *) const 
-{
-  // If the exponent is zero, there is nothing to return
-  if(m_PropagationSpeedExponent == 0)
-    return itk::NumericTraits<ScalarValueType>::One; 
-
-  
-  // Otherwise, perform interpolation on the image
-  IndexType idx = neighborhood.GetIndex();
-  ContinuousIndexType cdx;
-  for (unsigned i = 0; i < ImageDimension; ++i)
-    {
-    cdx[i] = static_cast<double>(idx[i]) - offset[i];
-    }
-  if ( m_PropagationSpeedInterpolator->IsInsideBuffer(cdx) )
-    {
-    return (static_cast<ScalarValueType>(
-        m_PropagationSpeedInterpolator->EvaluateAtContinuousIndex(cdx)));
-    }
-  else return ( static_cast<ScalarValueType>(m_PropagationSpeedImage->GetPixel(idx)) );
-}
-
-template<class TImageType>
-typename SNAPLevelSetFunction<TImageType>::ScalarValueType
-SNAPLevelSetFunction<TImageType>
-::LaplacianSmoothingSpeed(const NeighborhoodType &neighborhood, 
-                          const FloatOffsetType &offset,
-                          GlobalDataStruct *) const 
-{
-  // If the exponent is zero, there is nothing to return
-  if(m_LaplacianSmoothingSpeedExponent == 0)
-    return itk::NumericTraits<ScalarValueType>::One; 
-  
-  // Otherwise, perform interpolation on the image
-  IndexType idx = neighborhood.GetIndex();
-  ContinuousIndexType cdx;
-  for (unsigned i = 0; i < ImageDimension; ++i)
-    {
-    cdx[i] = static_cast<double>(idx[i]) - offset[i];
-    }
-  if ( m_LaplacianSmoothingSpeedInterpolator->IsInsideBuffer(cdx) )
-    {
-    return (static_cast<ScalarValueType>(
-        m_LaplacianSmoothingSpeedInterpolator->EvaluateAtContinuousIndex(cdx)));
-    }
-  else return ( static_cast<ScalarValueType>(m_LaplacianSmoothingSpeedImage->GetPixel(idx)) );
-}
-
-template <class TImageType>
-typename SNAPLevelSetFunction<TImageType>::VectorType
-SNAPLevelSetFunction<TImageType>
+template <class TSpeedImageType, class TImageType>
+typename SNAPLevelSetFunction<TSpeedImageType,TImageType>::VectorType
+SNAPLevelSetFunction<TSpeedImageType,TImageType>
 ::AdvectionField(const NeighborhoodType &neighborhood,
                  const FloatOffsetType &offset,
                  GlobalDataStruct *) const
@@ -300,18 +117,77 @@ SNAPLevelSetFunction<TImageType>
     }
   if ( m_AdvectionFieldInterpolator->IsInsideBuffer(cdx) )
     {
-    return ( 
+    return (
       m_VectorCast(
        m_AdvectionFieldInterpolator->EvaluateAtContinuousIndex(cdx)));
     }
   else return ( m_AdvectionField->GetPixel(idx) );
 }
 
-template <class TImageType>
+template <class TSpeedImageType, class TImageType>
 void
-SNAPLevelSetFunction<TImageType>
+SNAPLevelSetFunction<TSpeedImageType, TImageType>
 ::PrintSelf(std::ostream &os, itk::Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
+}
+
+template <class TSpeedImageType, class TImageType>
+typename SNAPLevelSetFunction<TSpeedImageType, TImageType>::PixelType
+SNAPLevelSetFunction<TSpeedImageType, TImageType>
+::ComputeUpdate(
+    const NeighborhoodType &neighborhood,
+    void *globalData, const FloatOffsetType &offset)
+{
+  // Create a mutex lock so that this whole section of code is executed
+  // in a single thread. Otherwise our stored speed is not going to be
+  // useful
+  itk::SimpleFastMutexLock mx;
+  mx.Lock();
+
+  // Interpolate the speed value at this location. This way, we don't need to
+  // perform interpolation each time the GetXXXSpeed() function is called.
+  IndexType idx = neighborhood.GetIndex();
+  ContinuousIndexType cdx;
+  for (unsigned i = 0; i < ImageDimension; ++i)
+    {
+    cdx[i] = static_cast<double>(idx[i]) - offset[i];
+    }
+  if ( m_SpeedInterpolator->IsInsideBuffer(cdx) )
+    {
+    m_SpeedValue = static_cast<ScalarValueType>(
+        m_SpeedInterpolator->EvaluateAtContinuousIndex(cdx));
+    }
+  else
+    {
+    m_SpeedValue = static_cast<ScalarValueType>(m_SpeedImage->GetPixel(idx));
+    }
+
+  // Scale the speed value
+  m_SpeedValue *= m_SpeedScaleFactor;
+
+  // Call the parent method
+  PixelType rv = Superclass::ComputeUpdate(neighborhood, globalData, offset);
+
+  // Remove the thread lock
+  mx.Unlock();
+
+  // Return the RV
+  return rv;
+}
+
+template <class TSpeedImageType, class TImageType>
+typename SNAPLevelSetFunction<TSpeedImageType, TImageType>::ScalarValueType
+SNAPLevelSetFunction<TSpeedImageType, TImageType>
+::GetSpeedWithExponent(int exponent) const
+{
+  switch(exponent)
+    {
+    case 0 : return itk::NumericTraits<ScalarValueType>::One;
+    case 1 : return m_SpeedValue;
+    case 2 : return m_SpeedValue * m_SpeedValue;
+    case 3 : return m_SpeedValue * m_SpeedValue * m_SpeedValue;
+    default : return pow(m_SpeedValue, exponent);
+    }
 }
 

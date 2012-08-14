@@ -35,9 +35,9 @@
 #ifndef __SpeedImageWrapper_h_
 #define __SpeedImageWrapper_h_
 
-#include "ScalarImageWrapper.h"
-#include "SpeedImageWrapper.h"
-#include "SpeedColorMap.h"
+#include "GreyImageWrapper.h"
+
+// #include "SpeedColorMap.h"
 
 // Forward references to ITK
 namespace itk {
@@ -61,19 +61,13 @@ namespace itk {
  *
  * \sa ImageWrapper
  */
-class SpeedImageWrapper : public ScalarImageWrapper<float>
+class SpeedImageWrapper : public GreyImageWrapper<short>
 {
 public:
   // Basics
   typedef SpeedImageWrapper Self;
-  typedef ScalarImageWrapper<float> Superclass;
+  typedef ScalarImageWrapper<short> Superclass;
   typedef Superclass::ImageType ImageType;
-
-  // The type definition for the image used to display overlays based on
-  // speed images
-  typedef itk::RGBAPixel<unsigned char> OverlayPixelType;
-  typedef itk::Image<OverlayPixelType,2> OverlaySliceType;
-  typedef itk::SmartPointer<OverlaySliceType> OverlaySlicePointer;
 
   /**
    * Set the preview source for the slices.  This means that the slices
@@ -127,39 +121,9 @@ public:
     {
     return !m_IsModeInsideOutside;
     }
-  
-  /**
-   * Get the display slice in a given direction.  To change the
-   * display slice, call parent's MoveToSlice() method
-   */
-  DisplaySlicePointer GetDisplaySlice(unsigned int dim);
-
-  /**
-   * Get an overlay mask slice for displaying on top of the greylevel
-   * segmentation image.  Such slices are used for example to overlay
-   * the thresholding result over the grey slice to give users feedback 
-   * of the segmentation
-   */
-  OverlaySliceType *GetOverlaySlice(unsigned int dim);
-
-  /**
-   * Set the overlay cutoff range.  The intensities above the cutoff will
-   * be included in the overlay
-   */
-  void SetOverlayCutoff(float cutoff);  
-  float GetOverlayCutoff() const;
 
   typedef itk::ImageSource<ImageType> PreviewFilterType;
   typedef itk::SmartPointer<PreviewFilterType> PreviewFilterPointer;
-  
-  /**
-   * Set the color for overlay drawing
-   */
-  void SetOverlayColor(const OverlayPixelType &color);
-  OverlayPixelType GetOverlayColor() const;
-
-  /** Set the color map to use for generating color output */
-  void SetColorMap(const SpeedColorMap &xColorMap);
   
   /** Constructor initializes mappers */
   SpeedImageWrapper();
@@ -172,67 +136,8 @@ protected:
    * when the image gets changed */
   void UpdateImagePointer(ImageType *newImage);
 
-private:
-  
-  /**
-   * A functor used for overlay mapping
-   */
-  class OverlayFunctor 
-  {
-  public:
-    /** Operator used to map pixels to color */
-    OverlayPixelType operator()(float in);
-
-    bool operator == (const OverlayFunctor &z) const
-      {
-      return
-        m_Cutoff == z.m_Cutoff &&
-        m_Color == z.m_Color;
-      }
-
-    bool operator != (const OverlayFunctor &z) const
-      { return !(*this == z); }
-
-    /** Overlay cutoff */
-    float m_Cutoff;
-
-    /** Overlay color */
-    OverlayPixelType m_Color;
-  };  
-  
-  // Type of the display intensity mapping filter used when the 
-  // input is a in-out image
-  typedef itk::UnaryFunctorImageFilter<
-    ImageWrapper<float>::SliceType,DisplaySliceType,SpeedColorMap> 
-    IntensityFilterType;
-  typedef itk::SmartPointer<IntensityFilterType> IntensityFilterPointer;
-
-  // A mapping filter used to construct overlay images.  This filter assigns
-  // an opaque color to pixels over the cutoff threshold
-  typedef itk::UnaryFunctorImageFilter<
-    ImageWrapper<float>::SliceType,OverlaySliceType,OverlayFunctor> 
-    OverlayFilterType;
-  typedef itk::SmartPointer<OverlayFilterType> OverlayFilterPointer;
-    
   /** Whether or not the image is in edge or in-out mode */
   bool m_IsModeInsideOutside;
-
-  /** 
-   * The filters used to remap internal speed image that can be 
-   * in range of -1 to 1 to a display image in range 0 to 1
-   */
-  IntensityFilterPointer m_DisplayFilter[3];
-
-  /**
-   * The filters used to create overlay slices
-   */
-  OverlayFilterPointer m_OverlayFilter[3];
-
-  /** The currently used overlay functor */
-  OverlayFunctor m_OverlayFunctor;
-
-  /** The currently used color map */
-  SpeedColorMap m_ColorMap;
 
   /** Preview sources */
   ImagePointer m_PreviewSource[3];

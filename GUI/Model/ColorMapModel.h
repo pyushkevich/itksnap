@@ -14,13 +14,15 @@ class ColorMapLayerProperties
 {
 public:
 
-  irisGetSetMacro(ObserverTag, unsigned long)
+  irisGetSetMacro(LayerObserverTag, unsigned long)
+  irisGetSetMacro(ColorMapObserverTag, unsigned long)
 
   ColorMapLayerProperties()
   {
     m_SelectedControlIndex = -1;
     m_SelectedControlSide = NA;
-    m_ObserverTag = 0;
+    m_LayerObserverTag = 0;
+    m_ColorMapObserverTag = 0;
   }
 
   enum Side {LEFT = 0, RIGHT, NA};
@@ -41,7 +43,7 @@ protected:
   std::string m_SelectedPreset;
 
   // Whether or not we are already listening to events from this layer
-  unsigned long m_ObserverTag;
+  unsigned long m_ColorMapObserverTag, m_LayerObserverTag;
 };
 
 typedef AbstractLayerAssociatedModel<
@@ -121,6 +123,9 @@ public:
   /** The index of the moving control point */
   irisGetMacro(MovingControlIndexModel, AbstractRangedIntProperty *)
 
+  /** The overall opacity of the selected layer */
+  irisGetMacro(LayerOpacityModel, AbstractRangedDoubleProperty *)
+
   /** Get the color map in associated layer */
   ColorMap *GetColorMap();
 
@@ -162,6 +167,7 @@ protected:
   SmartPtr<SideValueModel> m_MovingControlSideModel;
   SmartPtr<ContinuityValueModel> m_MovingControlContinuityModel;
   SmartPtr<AbstractRangedIntProperty> m_MovingControlIndexModel;
+  SmartPtr<AbstractRangedDoubleProperty> m_LayerOpacityModel;
 
   // A pointer to the system interface object
   SystemInterface *m_System;
@@ -199,6 +205,11 @@ protected:
   bool GetMovingControlIndexValueAndRange(
       int &value, NumericValueRange<int> *range);
   void SetMovingControlIndex(int value);
+
+  // Opacity of the selected layer
+  bool GetLayerOpacityValueAndRange(
+      double &value, NumericValueRange<double> *range);
+  void SetLayerOpacity(double value);
 };
 
 #endif // COLORMAPMODEL_H

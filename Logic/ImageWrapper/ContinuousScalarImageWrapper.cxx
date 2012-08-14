@@ -1,0 +1,2 @@
+#include "ContinuousScalarImageWrapper.h"
+

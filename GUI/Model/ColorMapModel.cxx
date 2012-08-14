@@ -35,6 +35,11 @@ ColorMapModel::ColorMapModel()
         &Self::GetMovingControlIndexValueAndRange,
         &Self::SetMovingControlIndex);
 
+  m_LayerOpacityModel = makeChildPropertyModel(
+        this,
+        &Self::GetLayerOpacityValueAndRange,
+        &Self::SetLayerOpacity);
+
   // The model update events should also be rebroadcast as state changes
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
 }
@@ -98,18 +103,26 @@ ColorMapModel
 
 void ColorMapModel::RegisterWithLayer(GreyImageWrapperBase *layer)
 {
-  unsigned long tag =
-      Rebroadcast(layer->GetColorMap(),
-                  ColorMapChangeEvent(), ModelUpdateEvent());
-  GetProperties().SetObserverTag(tag);
+  ColorMapLayerProperties &p = GetProperties();
+  p.SetColorMapObserverTag(
+        Rebroadcast(layer->GetColorMap(),
+                    ColorMapChangeEvent(), ModelUpdateEvent()));
+  p.SetLayerObserverTag(
+        Rebroadcast(layer,
+                    AppearanceUpdateEvent(), ModelUpdateEvent()));
 }
 
 void ColorMapModel::UnRegisterFromLayer(GreyImageWrapperBase *layer)
 {
-  unsigned long tag = GetProperties().GetObserverTag();
-  if(tag)
+  unsigned long tag;
+  ColorMapLayerProperties &p = GetProperties();
+  if((tag = p.GetLayerObserverTag()))
     {
     layer->GetColorMap()->RemoveObserver(tag);
+    }
+  if((tag = p.GetColorMapObserverTag()))
+    {
+    layer->RemoveObserver(tag);
     }
 }
 
@@ -647,6 +660,28 @@ void ColorMapModel::DeleteSelectedControl()
     // Update the selection
     this->SetMovingControlIndex(sel);
     }
+}
+
+bool ColorMapModel
+::GetLayerOpacityValueAndRange(
+    double &value, NumericValueRange<double> *range)
+{
+  if(!m_Layer)
+    return false;
+
+  value = (double) m_Layer->GetAlpha();
+  if(range)
+    {
+    range->Set(0, 255, 1);
+    }
+
+  return true;
+}
+
+void ColorMapModel::SetLayerOpacity(double value)
+{
+  assert(m_Layer);
+  m_Layer->SetAlpha((unsigned char) value);
 }
 
 

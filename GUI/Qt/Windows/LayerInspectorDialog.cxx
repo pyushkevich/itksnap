@@ -11,6 +11,7 @@
 #include "ColorMapModel.h"
 #include "ImageInfoModel.h"
 #include "LatentITKEventNotifier.h"
+#include "QtDoubleSliderWithEditorCoupling.h"
 
 
 
@@ -118,6 +119,11 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
   LatentITKEventNotifier::connect(
         model, LayerChangeEvent(),
         this, SLOT(onModelUpdate(const EventBucket &)));
+
+  // Connect the layer opacity model
+  makeCoupling(
+        ui->inLayerOpacity,
+        model->GetColorMapModel()->GetLayerOpacityModel());
 }
 
 void LayerInspectorDialog::onLayerSelection()

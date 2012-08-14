@@ -149,7 +149,7 @@ public:
   Vector3ui GetSize() const;
 
   /** Get layer transparency */
-  irisSetMacro(Alpha, unsigned char)
+  irisSetWithEventMacro(Alpha, unsigned char, AppearanceUpdateEvent)
 
   /** Set layer transparency */
   irisGetMacro(Alpha, unsigned char)

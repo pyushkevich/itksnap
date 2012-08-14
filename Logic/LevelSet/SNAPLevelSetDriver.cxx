@@ -20,6 +20,7 @@
 #include "itkParallelSparseFieldLevelSetImageFilter.h"
 #include "itkDenseFiniteDifferenceImageFilter.h"
 #include "LevelSetExtensionFilter.h"
+#include "itkImageAdaptor.h"
 
 // Disable some windows debug length messages
 #if defined(_MSC_VER)
@@ -30,7 +31,7 @@
 
 template<unsigned int VDimension>
 SNAPLevelSetDriver<VDimension>
-::SNAPLevelSetDriver(FloatImageType *init, FloatImageType *speed,
+::SNAPLevelSetDriver(FloatImageType *init, ShortImageType *speed,
                      const SnakeParameters &sparms,
                      VectorImageType *externalAdvection)
 {
@@ -38,8 +39,12 @@ SNAPLevelSetDriver<VDimension>
   m_LevelSetFunction = LevelSetFunctionType::New();
   // m_LevelSetFunction = FastSNAPLevelSetFunction::New();
 
+  // Create the speed adaptor
+  m_SpeedAdaptor = SpeedAdaptorType::New();
+  m_SpeedAdaptor->SetImage(speed);
+
   // Pass the speed image to the function
-  m_LevelSetFunction->SetSpeedImage(speed);  
+  m_LevelSetFunction->SetSpeedImage(m_SpeedAdaptor);
 
   // Set the external advection if any
   if(externalAdvection)

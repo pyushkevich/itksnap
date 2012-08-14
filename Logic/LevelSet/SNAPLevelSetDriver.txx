@@ -72,7 +72,7 @@ public:
 
 template<unsigned int VDimension>
 SNAPLevelSetDriver<VDimension>
-::SNAPLevelSetDriver(FloatImageType *init, FloatImageType *speed,
+::SNAPLevelSetDriver(FloatImageType *init, ShortImageType *speed,
                      const SnakeParameters &sparms,
                      VectorImageType *externalAdvection)
 {
@@ -80,7 +80,10 @@ SNAPLevelSetDriver<VDimension>
   m_LevelSetFunction = LevelSetFunctionType::New();
 
   // Pass the speed image to the function
-  m_LevelSetFunction->SetSpeedImage(speed);  
+  m_LevelSetFunction->SetSpeedImage(speed);
+
+  // Scale the speed function to range -1 to 1
+  m_LevelSetFunction->SetSpeedScaleFactor(1.0 / 0x7fff);
 
   // Set the external advection if any
   if(externalAdvection)
@@ -165,12 +168,12 @@ SNAPLevelSetDriver<VDimension>
     filter->SetIsoSurfaceValue(0.0f);
     filter->SetDifferenceFunction(m_LevelSetFunction);
     }
-
+/*
   else if(m_Parameters.GetSolver() == SnakeParameters::NARROW_BAND_SOLVER)
     {
     // Define an extension to the appropriate filter class
     typedef itk::NarrowBandLevelSetImageFilter<
-      FloatImageType,FloatImageType,float,FloatImageType> LevelSetFilterType;
+      FloatImageType,SpeedAdaptorType,float,FloatImageType> LevelSetFilterType;
     typedef LevelSetExtensionFilter<LevelSetFilterType> ExtensionFilter;
     typename ExtensionFilter::Pointer filter = ExtensionFilter::New();
 
@@ -185,7 +188,7 @@ SNAPLevelSetDriver<VDimension>
     filter->SetNarrowBandInnerRadius(3);
     filter->SetFeatureImage(m_LevelSetFunction->GetSpeedImage());  
     }
-
+*/
   else if(m_Parameters.GetSolver() == SnakeParameters::DENSE_SOLVER)
     {
     // Define an extension to the appropriate filter class

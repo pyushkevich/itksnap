@@ -378,6 +378,12 @@ ColorMap
       m_CMPoints.push_back( CMPoint(1.0,    0x00, 0x00, 0xff, 0xff, 0x00) );
       break;
 
+    case COLORMAP_SPEED:
+      m_CMPoints.push_back( CMPoint(0.0,    0x00, 0x00, 0xff, 0xff) );
+      m_CMPoints.push_back( CMPoint(0.5,    0x00, 0x00, 0x00, 0xff) );
+      m_CMPoints.push_back( CMPoint(1.0,    0xff, 0xff, 0xff, 0xff) );
+      break;
+
     case COLORMAP_SIZE:
       // to suppress compiler warning
       std::cerr << "COLORMAP_SIZE: should never get there ..." << std::endl;
@@ -508,8 +514,10 @@ void ColorMap
      "Winter",
      "Copper",
      "HSV",
-     "Blue, white and red",
-     "Red, white and blue"};
+     "Blue to white to red",
+     "Red to white to blue",
+     "Blue to black to white"
+   };
 
    return preset_names[preset];
  }

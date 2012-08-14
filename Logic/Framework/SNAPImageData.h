@@ -48,15 +48,17 @@
 #include "SpeedImageWrapper.h"
 #include "LevelSetImageWrapper.h"
 
+#include "SNAPLevelSetDriver.h"
+
 #include "EdgePreprocessingSettings.h"
 #include "ThresholdSettings.h"
 
 #include <vector>
 
 #include "SNAPLevelSetFunction.h"
+#include "itkImageAdaptor.h"
 
 namespace itk { class Command; }
-template <unsigned int VDimension> class SNAPLevelSetDriver;
 class SNAPSegmentationROISettings;
 
 
@@ -77,6 +79,7 @@ public:
   typedef itk::OrientedImage<float,3> FloatImageType;
   typedef FloatImageType LevelSetImageType;
   typedef Superclass::GreyImageType GreyImageType;
+  typedef Superclass::GreyImageType SpeedImageType;
   typedef Superclass::RGBImageType RGBImageType;
 
   SNAPImageData(IRISApplication *m_Parent);
@@ -202,7 +205,7 @@ public:
 
   /** This method is public for testing purposes.  It will give a pointer to 
    * the level set function used internally for segmentation */
-  SNAPLevelSetFunction<SpeedImageWrapper::ImageType> *GetLevelSetFunction();
+  SNAPLevelSetDriver<3>::LevelSetFunctionType *GetLevelSetFunction();
   
 private:
 

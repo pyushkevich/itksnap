@@ -5,6 +5,7 @@
 #include "ImageCoordinateTransform.h"
 #include "itkImageRegion.h"
 #include "itkObject.h"
+#include "SNAPEvents.h"
 
 namespace itk {
   template <unsigned int VDim> class ImageBase;
@@ -50,6 +51,9 @@ public:
 
   // Transform matrices
   typedef vnl_matrix_fixed<double, 4, 4> TransformType;
+
+  // Image wrappers can fire certain events
+  FIRES(AppearanceUpdateEvent)
 
   virtual ~ImageWrapperBase() { }
 
@@ -178,7 +182,6 @@ public:
 
 protected:
 
-
 };
 
 class ScalarImageWrapperBase : public virtual ImageWrapperBase
@@ -228,7 +231,22 @@ public:
 
 };
 
-class GreyImageWrapperBase : public virtual ScalarImageWrapperBase
+/**
+  This type of image wrapper is meant to represent a continuous range of values
+  as opposed to a discrete set of labels. The wrapper contains a color map
+  which is used to map from intensity ranges to display pixels
+  */
+class ContinuousScalarImageWrapperBase : public virtual ScalarImageWrapperBase
+{
+public:
+
+  /** Set the reference to the color map object */
+  virtual ColorMap* GetColorMap() const = 0;
+
+
+};
+
+class GreyImageWrapperBase : public virtual ContinuousScalarImageWrapperBase
 {
 public:
 
@@ -268,9 +286,6 @@ public:
    */
   virtual void SetReferenceIntensityRange(double refMin, double refMax) = 0;
   virtual void ClearReferenceIntensityRange() = 0;
-
-  /** Set the reference to the color map object */
-  virtual ColorMap* GetColorMap() const = 0;
 
 };
 

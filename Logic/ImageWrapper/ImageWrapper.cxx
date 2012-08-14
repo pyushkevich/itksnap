@@ -156,12 +156,12 @@ ImageWrapper<TPixel>
   if(m_Alpha > 0)
     {
     m_ToggleAlpha = m_Alpha;
-    m_Alpha = 0;
+    SetAlpha(0);
     }
   // If invisible, return to saved alpha value
   else
     {
-    m_Alpha = m_ToggleAlpha;
+    SetAlpha(m_ToggleAlpha);
     }
 }
 

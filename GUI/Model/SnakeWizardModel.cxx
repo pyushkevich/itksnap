@@ -190,11 +190,11 @@ void SnakeWizardModel::EvaluateThresholdFunction(double t, double &x, double &y)
   double imin = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
   double imax = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative();
 
-  SmoothBinaryThresholdFunctor<float,float> functor;
+  SmoothBinaryThresholdFunctor<float> functor;
   functor.SetParameters(imin, imax, ts);
 
   x = t * (imax - imin) + imin;
-  y = functor(x);
+  y = functor(x) * 1.0 / 0x7fff;
 }
 
 void SnakeWizardModel::ApplyThresholdPreprocessing()
@@ -204,8 +204,8 @@ void SnakeWizardModel::ApplyThresholdPreprocessing()
 
   // Set the color map for the speed image
   // TODO: make speed images use normal colormaps
-  m_Driver->GetSNAPImageData()->GetSpeed()->SetColorMap(
-        SpeedColorMap::GetPresetColorMap(COLORMAP_BLUE_BLACK_WHITE));
+  ColorMap *cm = m_Driver->GetSNAPImageData()->GetSpeed()->GetColorMap();
+  cm->SetToSystemPreset(ColorMap::COLORMAP_SPEED);
 
   // The speed image should be shown
   m_GlobalState->SetShowSpeed(true);

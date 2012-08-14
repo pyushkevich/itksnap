@@ -40,7 +40,6 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkVectorCastImageFilter.h"
-// #include "itkGradientImageFilter.h"
 
 #include "SNAPAdvectionFieldImageFilter.h"
 
@@ -84,51 +83,55 @@
   using SetSpeedImage() and then compute the internal images by 
   calling CalculateInternalImages().  
  */
-template <class TImageType>
+template <class TSpeedImageType, class TImageType>
 class ITK_EXPORT SNAPLevelSetFunction
-  : public itk::SegmentationLevelSetFunction<TImageType>
+  : public itk::LevelSetFunction<TImageType>
 {
 public:
   /** Standard class typedefs. */
   typedef SNAPLevelSetFunction Self;
-  typedef itk::SegmentationLevelSetFunction<TImageType> Superclass;
+  typedef itk::LevelSetFunction<TImageType> Superclass;
   typedef itk::SmartPointer<Self> Pointer;
   typedef itk::SmartPointer<const Self> ConstPointer;
                                                                                 
   /** Method for creation through the object factory. */
-  itkNewMacro(Self);
+  itkNewMacro(Self)
                                                                                 
   /** Run-time type information (and related methods) */
-  itkTypeMacro( SNAPLevelSetFunction, itk::LevelSetFunction );
-                                                                                
-                                                                                
+  itkTypeMacro( SNAPLevelSetFunction, itk::LevelSetFunction )
+
   /** Extract some parameters from the superclass. */
   itkStaticConstMacro(ImageDimension, unsigned int,
                       Superclass::ImageDimension);
 
   /** Extract some parameters from the superclass. */
-  typedef typename Superclass::ImageType ImageType;
-  typedef typename ImageType::Pointer ImagePointer;
-  typedef typename Superclass::NeighborhoodType NeighborhoodType;
-  typedef typename Superclass::ScalarValueType ScalarValueType;
-  typedef typename Superclass::RadiusType RadiusType;
-  typedef typename Superclass::FloatOffsetType FloatOffsetType;
-  
-  typedef typename Superclass::VectorType VectorType;
-  typedef itk::Image<VectorType, ImageDimension> VectorImageType;
-  typedef typename VectorImageType::Pointer VectorImagePointer;
+  typedef typename Superclass::ImageType                       ImageType;
+  typedef typename ImageType::Pointer                       ImagePointer;
 
-  typedef typename Superclass::TimeStepType TimeStepType;
-  typedef typename Superclass::GlobalDataStruct GlobalDataStruct;
+  typedef TSpeedImageType SpeedImageType;
+  typedef typename SpeedImageType::Pointer             SpeedImagePointer;
+
+  typedef typename Superclass::NeighborhoodType         NeighborhoodType;
+  typedef typename Superclass::ScalarValueType           ScalarValueType;
+  typedef typename Superclass::RadiusType                     RadiusType;
+  typedef typename Superclass::FloatOffsetType           FloatOffsetType;
+  
+  typedef typename Superclass::PixelType                       PixelType;
+  typedef typename Superclass::VectorType                     VectorType;
+  typedef itk::Image<VectorType, ImageDimension>         VectorImageType;
+  typedef typename VectorImageType::Pointer           VectorImagePointer;
+
+  typedef typename Superclass::TimeStepType                 TimeStepType;
+  typedef typename Superclass::GlobalDataStruct         GlobalDataStruct;
 
   /** Interpolators used to access the speed images */
   typedef itk::LinearInterpolateImageFunction<
-    ImageType> ImageInterpolatorType;
+    SpeedImageType>                           SpeedImageInterpolatorType;
   typedef itk::VectorLinearInterpolateImageFunction<
-    VectorImageType,float> VectorInterpolatorType;
+    VectorImageType,float>                        VectorInterpolatorType;
 
   typedef typename ImageType::IndexType IndexType;
-  typedef typename ImageInterpolatorType::ContinuousIndexType 
+  typedef typename SpeedImageInterpolatorType::ContinuousIndexType
     ContinuousIndexType;
 
   
@@ -136,13 +139,20 @@ public:
       computation of the variuous internal speed images is
       based.  The function g() should be near zero at edges
       of structures in the image and near one at flat regions */
-  virtual void SetSpeedImage(ImageType *pointer);
+  virtual void SetSpeedImage(SpeedImageType *pointer);
       
   /** Get the speed image g() */
-  virtual ImageType *GetSpeedImage()
-    {
-    return m_SpeedImage;
-    }
+  virtual SpeedImageType *GetSpeedImage() const
+    { return m_SpeedImage; }
+
+  /** Set the scaling for the speed image. In ITK-SNAP 3.0, speed images
+    are of short type, with the range between -0x7fff and 0x7fff. So we
+    need to scale them to the range -1 to 1. */
+  void SetSpeedScaleFactor(ScalarValueType value)
+    { m_SpeedScaleFactor = value; }
+
+  ScalarValueType GetSpeedScaleFactor() const
+    { return m_SpeedScaleFactor; }
 
   /** Set the external advection image (optional). This is only 
    * needed if your advection image is not the gradient of the
@@ -155,24 +165,46 @@ public:
 
   /** Compute speed and advection images from feature image. */
   virtual void CalculateInternalImages();
-                                                                                
+
+  /**
+    My implementation of ComputeUpdate. This will calculate the speed
+    image value just once, instead of having to interpolate it for
+    every type of calculation
+    */
+  virtual PixelType ComputeUpdate(const NeighborhoodType &neighborhood,
+                                  void *globalData,
+                                  const FloatOffsetType &);
+
+  // Inline function shared by the three XXXSpeed() functions
+  inline ScalarValueType GetSpeedWithExponent(int exponent) const;
+
   /** Local multiplier for the curvature term */
   virtual ScalarValueType CurvatureSpeed(
     const NeighborhoodType &neighbourhood,
     const FloatOffsetType &offset, 
-    GlobalDataStruct * = 0 ) const;
+    GlobalDataStruct * = 0 ) const
+  {
+    return GetSpeedWithExponent(m_CurvatureSpeedExponent);
+  }
 
   /** Local multiplier for the laplacian smoothing term */
   virtual ScalarValueType LaplacianSmoothingSpeed(
     const NeighborhoodType &neighbourhood,
     const FloatOffsetType &offset, 
-    GlobalDataStruct * = 0 ) const;
+    GlobalDataStruct * = 0 ) const
+  {
+    return GetSpeedWithExponent(m_LaplacianSmoothingSpeedExponent);
+  }
 
   /** Local multiplier for the propagation term */
   virtual ScalarValueType PropagationSpeed(
     const NeighborhoodType &neighbourhood,
     const FloatOffsetType &offset, 
-    GlobalDataStruct * = 0 ) const;
+    GlobalDataStruct * = 0 ) const
+  {
+    return GetSpeedWithExponent(m_PropagationSpeedExponent);
+  }
+
 
   /** Local multiplier for the advection term */
   virtual VectorType AdvectionField(
@@ -182,65 +214,50 @@ public:
 
   /** Set the exponent to which the speed image g() is taken
       when converted to the curvature speed */
-  void SetCurvatureSpeedExponent(int exponent) 
-    {
-    m_CurvatureSpeedExponent = exponent;
-    }
+  void SetCurvatureSpeedExponent(const int value)
+    { m_CurvatureSpeedExponent = value; }
  
   /** Get the exponent to which the speed image g() is taken
       when converted to the curvature speed */
-  int GetCurvatureSpeedExponent() const 
-    {
-    return m_CurvatureSpeedExponent;
-    }
+  int GetCurvatureSpeedExponent() const
+    { return m_CurvatureSpeedExponent; }
   
   /** Set the exponent to which the speed image g() is taken
       when computing the advection field */
-  void SetAdvectionSpeedExponent(int exponent) 
-    {
-    m_AdvectionSpeedExponent = exponent;
-    }
+  void SetAdvectionSpeedExponent(const int value)
+    { m_AdvectionSpeedExponent = value; }
  
   /** Get the exponent to which the speed image g() is taken
       when computing the advection field */
-  int GetAdvectionSpeedExponent() const 
-    {
-    return m_AdvectionSpeedExponent;
-    }
-  
+  int GetAdvectionSpeedExponent() const
+    { return m_AdvectionSpeedExponent; }
+
   /** Set the exponent to which the speed image g() is taken
       when converted to the propagation speed */
-  void SetPropagationSpeedExponent(int exponent) 
-    {
-    m_PropagationSpeedExponent = exponent;
-    }
- 
+  void SetPropagationSpeedExponent(const int value)
+    { m_PropagationSpeedExponent = value; }
+
   /** Get the exponent to which the speed image g() is taken
       when converted to the propagation speed */
-  int GetPropagationSpeedExponent() const 
-    {
-    return m_PropagationSpeedExponent;
-    }
-  
+  int GetPropagationSpeedExponent() const
+    { return m_PropagationSpeedExponent; }
+
   /** Set the exponent to which the speed image g() is taken
       when converted to the laplacian smoothing speed */
-  void SetLaplacianSmoothingSpeedExponent(int exponent) 
-    {
-    m_LaplacianSmoothingSpeedExponent = exponent;
-    }
- 
+  void SetLaplacianSmoothingSpeedExponent(const int value)
+    { m_LaplacianSmoothingSpeedExponent = value; }
+
   /** Get the exponent to which the speed image g() is taken
       when converted to the laplacian smoothing speed */
-  int GetLaplacianSmoothingSpeedExponent() const 
-    {
-    return m_LaplacianSmoothingSpeedExponent;
-    }
-  
+  int GetLaplacianSmoothingSpeedExponent() const
+    { return m_LaplacianSmoothingSpeedExponent; }
+
   /** Set/Get the time step. For this filter the time-step is supplied 
       by the user and remains fixed for all updates. */
-  void SetTimeStepFactor(const TimeStepType &t)
-    { m_TimeStepFactor = t; }
-  const TimeStepType &GetTimeStepFactor() const
+  void SetTimeStepFactor(TimeStepType value)
+    { m_TimeStepFactor = value; }
+
+  TimeStepType GetTimeStepFactor() const
     { return m_TimeStepFactor; }
 
   /** Returns the time step supplied by the user.  If the time step value
@@ -277,18 +294,11 @@ private:
   /** The exponent to which speed image g() is taken to compute the 
       Laplacian smoothing speed */
   int m_LaplacianSmoothingSpeedExponent;
+
+  ScalarValueType m_SpeedScaleFactor;
   
   /** The speed image g() computed externally with user interaction */
-  ImagePointer m_SpeedImage;
-
-  /** The curvature image derived from the speed image g() */
-  ImagePointer m_CurvatureSpeedImage;
-
-  /** The propagation speed derived from the speed image g() */
-  ImagePointer m_PropagationSpeedImage;
-
-  /** The smoothing speed derived from the speed image g() */
-  ImagePointer m_LaplacianSmoothingSpeedImage;
+  SpeedImagePointer m_SpeedImage;
 
   /** The advection field (possibly scaled by speed image g() */
   VectorImagePointer m_AdvectionField;
@@ -297,51 +307,23 @@ private:
   bool m_UseExternalAdvectionField;
 
   /** Gradient filter used to produce the advection field */
-  typedef SNAPAdvectionFieldImageFilter<TImageType,float> AdvectionFilterType;
+  typedef SNAPAdvectionFieldImageFilter<SpeedImageType,float> AdvectionFilterType;
   typename AdvectionFilterType::Pointer m_AdvectionFilter;
 
   /** Instances of the interpolators */
-  typename ImageInterpolatorType::Pointer m_PropagationSpeedInterpolator;
-  typename ImageInterpolatorType::Pointer m_CurvatureSpeedInterpolator;
-  typename ImageInterpolatorType::Pointer m_LaplacianSmoothingSpeedInterpolator;
+  typename SpeedImageInterpolatorType::Pointer m_SpeedInterpolator;
   typename VectorInterpolatorType::Pointer m_AdvectionFieldInterpolator;
 
   /** The constant time step */
   TimeStepType m_TimeStepFactor;
-  
-  /** A trivial functor to square the g() image */
-  class SquareFunctor
-    {
-    public:
-      inline ScalarValueType operator()(ScalarValueType x) 
-        { return x * x; }
-    
-      // Dummy equality operators, since there is no data here
-      bool operator == (const SquareFunctor &) const { return true; }
-      bool operator != (const SquareFunctor &) const { return false; }
-    };
-  
-  /** A trivial functor to take the g() image to any power */
-  class PowFunctor
-    {
-    public: 
-      inline ScalarValueType operator()(ScalarValueType x) 
-        { return vcl_pow(x,power); }
-
-      // Dummy equality operators, since there is no data here
-      bool operator == (const PowFunctor &z) const 
-        { return power == z.power; }
-      
-      bool operator != (const PowFunctor &z) const 
-        { return !(*this == z); }
-
-      int power;
-    };
 
   /** A casting functor to convert between vector types.  */
   itk::Functor::VectorCast< 
     ITK_TYPENAME VectorInterpolatorType::OutputType,
     VectorType > m_VectorCast;
+
+  /** The current value of the speed function */
+  ScalarValueType m_SpeedValue;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

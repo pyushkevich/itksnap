@@ -18,7 +18,7 @@ void SnakeModeRenderer::paintGL()
   IRISApplication *app = m_Model->GetParent()->GetDriver();
   GlobalState *gs = app->GetGlobalState();
 
-  if(app->IsSnakeModeActive())
+  if(app->IsSnakeModeActive() && !this->GetParentRenderer()->IsThumbnailDrawing())
     {
     // Get the image data
     SNAPImageData *sid = app->GetSNAPImageData();
@@ -27,14 +27,7 @@ void SnakeModeRenderer::paintGL()
     if(gs->GetShowSpeed())
       {
       GenericSliceRenderer *parent = this->GetParentRenderer();
-      std::cout << "Drawing SPEED!!!" << std::endl;
-      parent->DrawTextureForLayer(sid->GetSpeed(), false);
-      SpeedImageWrapper::DisplayPixelType *p =
-          sid->GetSpeed()->GetDisplaySlice(parent->GetModel()->GetSliceDirectionInImageSpace())->GetBufferPointer();
-      std::cout << "  p[300] = "
-                << p[300].GetRed() << ", "
-                << p[300].GetGreen() << ", "
-                << p[300].GetBlue() << std::endl;
+      parent->DrawTextureForLayer(sid->GetSpeed(), true);
       }
     }
 }

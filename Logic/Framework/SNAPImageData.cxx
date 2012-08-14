@@ -99,6 +99,12 @@ SNAPImageData
 
   // Intialize the speed based on the current grey image
   m_SpeedWrapper.InitializeToWrapper(m_GreyImageWrapper, 0.0f);
+
+  // TODO: Speed images should not just be an implementation of grey images
+  m_SpeedWrapper.UpdateIntensityMapFunction();
+
+  // Here or after it's computed?
+  m_SpeedWrapper.SetAlpha(255);
 }
 
 void 
@@ -107,7 +113,7 @@ SNAPImageData
                       itk::Command *progressCallback)
 { 
   // Define an edge filter to use for preprocessing
-  typedef EdgePreprocessingImageFilter<GreyImageType, FloatImageType> FilterType;
+  typedef EdgePreprocessingImageFilter<GreyImageType, SpeedImageType> FilterType;
   
   // Configure the edge filter
   FilterType::Pointer filter = FilterType::New();
@@ -130,6 +136,12 @@ SNAPImageData
   
   // Dismantle this pipeline
   m_SpeedWrapper.GetImage()->DisconnectPipeline();
+
+  // TODO: Speed images should not just be an implementation of grey images
+  m_SpeedWrapper.UpdateIntensityMapFunction();
+
+  // Here or after it's computed?
+  m_SpeedWrapper.SetAlpha(255);
 }
 
 void 
@@ -139,7 +151,7 @@ SNAPImageData
 {
   // Define an edge filter to use for preprocessing
   typedef SmoothBinaryThresholdImageFilter<
-      GreyImageType, FloatImageType> FilterType;
+      GreyImageType, SpeedImageType> FilterType;
   
   // Create an edge filter for whole-image preprocessing
   FilterType::Pointer filter = FilterType::New();
@@ -162,6 +174,9 @@ SNAPImageData
   
   // Dismantle this pipeline
   m_SpeedWrapper.GetImage()->DisconnectPipeline();
+
+  // TODO: Speed images should not just be an implementation of grey images
+  m_SpeedWrapper.UpdateIntensityMapFunction();
 }
 
 SpeedImageWrapper* 
@@ -510,7 +525,7 @@ SNAPImageData
   return m_LevelSetDriver->GetCurrentState();
 }
 
-SNAPLevelSetFunction<SpeedImageWrapper::ImageType> *
+SNAPLevelSetDriver<3>::LevelSetFunctionType *
 SNAPImageData
 ::GetLevelSetFunction()
 {
