@@ -36,26 +36,43 @@
 #define __ThresholdSettings_h_
 
 #include "SNAPCommon.h"
+#include "itkDataObject.h"
+#include "itkObjectFactory.h"
 
 // Forward references
 class ScalarImageWrapperBase;
+class Registry;
 
 /**
- * This class encapsulates the thresholding settings used by the program.
- * for In/Out snake initialization
- */
-class ThresholdSettings
+  This class encapsulates the thresholding settings used by the smooth 2-sided
+  threshold preprocessing option. This settings object inherits from the
+  itk::DataObject class. This makes it possible to pass the settings as an
+  input to the data processing filter, which makes sure that the filter
+  automatically recomputes in response to changes to the parameters.
+
+  The settings are meant to be passed by reference, with a single object in
+  the program owning the settings.
+*/
+class ThresholdSettings : public itk::DataObject
 {
 public:
-  virtual ~ThresholdSettings() { /*To avoid compiler warning.*/ }
+
+  irisITKObjectMacro(ThresholdSettings, itk::DataObject)
 
   /** The mode for setting the threshold */
   enum ThresholdMode { TWO_SIDED=0, UPPER, LOWER };
 
-  irisGetSetMacro(LowerThreshold, float)
-  irisGetSetMacro(UpperThreshold, float)
-  irisGetSetMacro(Smoothness, float)
-  irisGetSetMacro(ThresholdMode, ThresholdMode)
+  itkSetMacro(LowerThreshold, float)
+  itkGetConstMacro(LowerThreshold, float)
+
+  itkSetMacro(UpperThreshold, float)
+  itkGetConstMacro(UpperThreshold, float)
+
+  itkSetMacro(Smoothness, float)
+  itkGetConstMacro(Smoothness, float)
+
+  itkSetMacro(ThresholdMode, ThresholdMode)
+  itkGetConstMacro(ThresholdMode, ThresholdMode)
 
   bool IsLowerThresholdEnabled() const
   {
@@ -74,18 +91,32 @@ public:
   /** Check if the settings are valid */
   bool IsValid() const;
 
+  /** Check validity relative to a loaded image */
+  bool IsValidForImage(ScalarImageWrapperBase *wrapper);
+
   /**
    * Create a default instance of the settings based on an image wrapper
    */
-  static ThresholdSettings MakeDefaultSettings(ScalarImageWrapperBase *wrapper);
+  void InitializeToDefaultForImage(ScalarImageWrapperBase *wrapper);
 
   /** This will create a slightly less useful settings object with thresholds
    * at 40 and 100.  Before using them, make sure that the image is in range
    * of 40 and 100 */
-  static ThresholdSettings MakeDefaultSettingsWithoutImage();
+  void InitializeToDefaultWithoutImage();
 
-  // Constructor: creates dummy settings
+  /**
+    Read the settings from a registry, given the current grey image. This will
+    check if the settings are valid and abort if they are not
+    */
+  void ReadFromRegistry(Registry &reg, ScalarImageWrapperBase *wrapper);
+
+  /** Write the settings to a registry */
+  void WriteToRegistry(Registry &registry);
+
+protected:
+
   ThresholdSettings();
+  virtual ~ThresholdSettings() { /*To avoid compiler warning.*/ }
 
 private:
   float m_LowerThreshold;

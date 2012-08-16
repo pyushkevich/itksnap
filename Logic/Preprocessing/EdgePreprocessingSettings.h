@@ -36,22 +36,29 @@
 #define __EdgePreprocessingSettings_h_
 
 #include "SNAPCommon.h"
+#include "itkDataObject.h"
+#include "itkObjectFactory.h"
+
+class Registry;
 
 /**
  * This class encapsulates the thresholding settings used by the program.
  * for In/Out snake initialization
  */
-class EdgePreprocessingSettings
+class EdgePreprocessingSettings : public itk::DataObject
 {
 public:
-  irisGetMacro(GaussianBlurScale,float);
-  irisSetMacro(GaussianBlurScale,float);
 
-  irisGetMacro(RemappingSteepness,float);
-  irisSetMacro(RemappingSteepness,float);
+  irisITKObjectMacro(EdgePreprocessingSettings, itk::DataObject)
 
-  irisGetMacro(RemappingExponent,float);
-  irisSetMacro(RemappingExponent,float);
+  itkGetConstMacro(GaussianBlurScale,float)
+  itkSetMacro(GaussianBlurScale,float)
+
+  itkGetConstMacro(RemappingSteepness,float)
+  itkSetMacro(RemappingSteepness,float)
+
+  itkGetConstMacro(RemappingExponent,float)
+  itkSetMacro(RemappingExponent,float)
   
   /** Compare two sets of settings */
   bool operator == (const EdgePreprocessingSettings &other) const;
@@ -59,12 +66,21 @@ public:
   /**
    * Create a default instance of the settings based on an image wrapper
    */
-  static EdgePreprocessingSettings MakeDefaultSettings();
+  void InitializeToDefaults();
 
-  // Constructor
+  /**
+    Read the settings from a registry, given the current grey image. This will
+    check if the settings are valid and abort if they are not
+    */
+  void ReadFromRegistry(Registry &reg);
+
+  /** Write the settings to a registry */
+  void WriteToRegistry(Registry &registry);
+
+protected:
+
   EdgePreprocessingSettings();
-  // Destructor
-  virtual ~EdgePreprocessingSettings();
+  virtual ~EdgePreprocessingSettings() {}
 
 private:
   float m_GaussianBlurScale;

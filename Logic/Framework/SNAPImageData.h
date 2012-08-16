@@ -50,9 +50,6 @@
 
 #include "SNAPLevelSetDriver.h"
 
-#include "EdgePreprocessingSettings.h"
-#include "ThresholdSettings.h"
-
 #include <vector>
 
 #include "SNAPLevelSetFunction.h"
@@ -61,6 +58,10 @@
 namespace itk { class Command; }
 class SNAPSegmentationROISettings;
 
+template <typename TIn, typename TOut> class SmoothBinaryThresholdImageFilter;
+template <typename TIn, typename TOut> class EdgePreprocessingImageFilter;
+
+template <class TFilter, class TParameter> class PreviewCapableFilterWrapper;
 
 /**
  * \class SNAPImageData
@@ -76,11 +77,26 @@ public:
   typedef GenericImageData Superclass;
 
   // The type of the internal level set image
-  typedef itk::OrientedImage<float,3> FloatImageType;
-  typedef FloatImageType LevelSetImageType;
-  typedef Superclass::GreyImageType GreyImageType;
-  typedef Superclass::GreyImageType SpeedImageType;
-  typedef Superclass::RGBImageType RGBImageType;
+  typedef itk::OrientedImage<float,3>                           FloatImageType;
+  typedef FloatImageType                                     LevelSetImageType;
+  typedef Superclass::GreyImageType                              GreyImageType;
+  typedef Superclass::GreyImageType                             SpeedImageType;
+  typedef Superclass::RGBImageType                                RGBImageType;
+
+  // Typedefs for the preprocessing image filters
+  typedef SmoothBinaryThresholdImageFilter<GreyImageType, SpeedImageType>
+                                                           ThresholdFilterType;
+
+  typedef PreviewCapableFilterWrapper<ThresholdFilterType,
+                                      ThresholdSettings>
+                                                   ThresholdPreviewWrapperType;
+
+  typedef EdgePreprocessingImageFilter<GreyImageType, SpeedImageType>
+                                                   EdgePreprocessingFilterType;
+
+  typedef PreviewCapableFilterWrapper<EdgePreprocessingFilterType,
+                                      EdgePreprocessingSettings>
+                                           EdgePreprocessingPreviewWrapperType;
 
   SNAPImageData(IRISApplication *m_Parent);
   ~SNAPImageData();
@@ -97,13 +113,11 @@ public:
 
   /** A high level method to perform edge preprocessing on the grey image and
    * store the result in the speed image wrapper */
-  void DoEdgePreprocessing(
-    const EdgePreprocessingSettings &settings,itk::Command *progressCallback = 0);  
+  void DoEdgePreprocessing(itk::Command *progressCallback = 0);
 
   /** A high level method to perform in-out preprocessing on the grey image and
    * store the result in the speed image wrapper */
-  void DoInOutPreprocessing(
-    const ThresholdSettings &settings,itk::Command *progressCallback = 0);
+  void DoInOutPreprocessing(itk::Command *progressCallback = 0);
 
   /**
    * Initialize the Speed image wrapper to blank data
@@ -250,6 +264,10 @@ private:
   /** Check the snake initialization image for validity */
   bool IsSnakeInitializationLoaded();
 
+  /** Objects used to generate previews for the speed image */
+  SmartPtr<ThresholdPreviewWrapperType> m_ThresholdPreviewWrapper;
+  SmartPtr<EdgePreprocessingPreviewWrapperType> m_EdgePreprocessingPreviewWrapper;
+
   // Speed image adata
   SpeedImageWrapper m_SpeedWrapper;
 
@@ -280,6 +298,69 @@ private:
   ColorLabel m_ColorLabel;
 };
 
+
+/**
+  This class wraps around and ITK filter and provides the capability for
+  using the filter to generate an entire image volume or to only generate
+  a set of slices for quick preview.
+  */
+
+template<class TFilter, class TParameter>
+class PreviewCapableFilterWrapper : public itk::Object
+{
+public:
+
+  typedef PreviewCapableFilterWrapper<TFilter, TParameter>             Self;
+  typedef itk::Object                                            Superclass;
+  typedef SmartPtr<Self>                                            Pointer;
+  typedef SmartPtr<const Self>                                 ConstPointer;
+
+  itkTypeMacro(PreviewCapableFilterWrapper, itk::Object)
+
+  itkNewMacro(Self)
+
+  typedef TFilter                                                FilterType;
+  typedef typename TFilter::InputImageType                   InputImageType;
+  typedef typename TFilter::OutputImageType                 OutputImageType;
+  typedef typename OutputImageType::PixelType               OutputPixelType;
+  typedef TParameter                                          ParameterType;
+
+  typedef ImageWrapper<OutputPixelType>                         WrapperType;
+  typedef IRISSlicer<OutputPixelType>                            SlicerType;
+
+  irisIsMacro(PreviewMode)
+
+  /** Enter preview mode */
+  void SetPreviewMode(bool mode);
+
+  /** Set the input image */
+  void SetInputImage(InputImageType *image);
+
+  /** Set the parameters */
+  void SetParameters(ParameterType *param);
+
+  /** Set the output volume */
+  void AttachToWrapper(WrapperType *wrapper);
+
+  /** Compute the output volume (corresponds to the 'Apply' operation) */
+  void ComputeOutputVolume(itk::Command *progress);
+
+protected:
+
+  PreviewCapableFilterWrapper();
+  ~PreviewCapableFilterWrapper() {}
+
+  void UpdatePipeline();
+
+  WrapperType *m_Wrapper;
+
+  SmartPtr<InputImageType> m_InputImage;
+  SmartPtr<FilterType> m_PreviewFilter[3];
+
+  SmartPtr<ParameterType> m_Parameters;
+
+  bool m_PreviewMode;
+};
 
 
 

@@ -54,8 +54,8 @@ void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
   Rebroadcast(this, ModelUpdateEvent(), ThresholdSettingsUpdateEvent());
 
   // Changes to the threshold settings are rebroadcast as own own events
-  Rebroadcast(m_GlobalState->GetThresholdSettingsModel(),
-              ValueChangedEvent(), ThresholdSettingsUpdateEvent());
+  Rebroadcast(m_Driver->GetThresholdSettings(),
+              itk::ModifiedEvent(), ThresholdSettingsUpdateEvent());
 
   // We also need to rebroadcast these events as state change events
   Rebroadcast(this, ThresholdSettingsUpdateEvent(), StateMachineChangeEvent());
@@ -68,8 +68,8 @@ bool SnakeWizardModel
 {
   if(m_Driver->GetCurrentImageData()->IsGreyLoaded())
     {
-    ThresholdSettings ts = m_GlobalState->GetThresholdSettings();
-    x = ts.GetUpperThreshold();
+    ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+    x = ts->GetUpperThreshold();
     if(range)
       {
       range->Minimum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
@@ -87,8 +87,8 @@ bool SnakeWizardModel
 {
   if(m_Driver->GetCurrentImageData()->IsGreyLoaded())
     {
-    ThresholdSettings ts = m_GlobalState->GetThresholdSettings();
-    x = ts.GetLowerThreshold();
+    ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+    x = ts->GetLowerThreshold();
     if(range)
       {
       range->Minimum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
@@ -104,37 +104,35 @@ void SnakeWizardModel
 ::SetThresholdUpperValue(double x)
 {
   // Get the current settings
-  ThresholdSettings ts = m_GlobalState->GetThresholdSettings();
-  if(x < ts.GetLowerThreshold())
-    ts.SetLowerThreshold(x);
+  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  if(x < ts->GetLowerThreshold())
+    ts->SetLowerThreshold(x);
 
-  ts.SetUpperThreshold(x);
-  m_GlobalState->SetThresholdSettings(ts);
+  ts->SetUpperThreshold(x);
 }
 
 void SnakeWizardModel
 ::SetThresholdLowerValue(double x)
 {
   // Get the current settings
-  ThresholdSettings ts = m_GlobalState->GetThresholdSettings();
-  if(x > ts.GetUpperThreshold())
-    ts.SetUpperThreshold(x);
+  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  if(x > ts->GetUpperThreshold())
+    ts->SetUpperThreshold(x);
 
-  ts.SetLowerThreshold(x);
-  m_GlobalState->SetThresholdSettings(ts);
+  ts->SetLowerThreshold(x);
 }
 
 bool SnakeWizardModel::CheckState(SnakeWizardModel::UIState state)
 {
-  ThresholdSettings ts = m_GlobalState->GetThresholdSettings();
+  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
   switch(state)
     {
     case UIF_THESHOLDING_ENABLED:
       return m_Driver->GetCurrentImageData()->IsGreyLoaded();
     case UIF_LOWER_THRESHOLD_ENABLED:
-      return ts.IsLowerThresholdEnabled();
+      return ts->IsLowerThresholdEnabled();
     case UIF_UPPER_THRESHOLD_ENABLED:
-      return ts.IsUpperThresholdEnabled();
+      return ts->IsUpperThresholdEnabled();
     }
 
   return false;
@@ -149,8 +147,8 @@ bool SnakeWizardModel::GetThresholdSmoothnessValueAndRange(double &x, NumericVal
 {
   if(m_Driver->GetCurrentImageData()->IsGreyLoaded())
     {
-    ThresholdSettings ts = m_GlobalState->GetThresholdSettings();
-    x = ts.GetSmoothness();
+    ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+    x = ts->GetSmoothness();
     if(range)
       range->Set(0, 10, 0.1);
     return true;
@@ -160,17 +158,16 @@ bool SnakeWizardModel::GetThresholdSmoothnessValueAndRange(double &x, NumericVal
 
 void SnakeWizardModel::SetThresholdSmoothnessValue(double x)
 {
-  ThresholdSettings ts = m_GlobalState->GetThresholdSettings();
-  ts.SetSmoothness(x);
-  m_GlobalState->SetThresholdSettings(ts);
+  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ts->SetSmoothness(x);
 }
 
 bool SnakeWizardModel::GetThresholdModeValue(ThresholdSettings::ThresholdMode &x)
 {
   if(m_Driver->GetCurrentImageData()->IsGreyLoaded())
     {
-    ThresholdSettings ts = m_GlobalState->GetThresholdSettings();
-    x = ts.GetThresholdMode();
+    ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+    x = ts->GetThresholdMode();
     return true;
     }
   else return false;
@@ -178,20 +175,20 @@ bool SnakeWizardModel::GetThresholdModeValue(ThresholdSettings::ThresholdMode &x
 
 void SnakeWizardModel::SetThresholdModeValue(ThresholdSettings::ThresholdMode x)
 {
-  ThresholdSettings ts = m_GlobalState->GetThresholdSettings();
-  ts.SetThresholdMode(x);
-  m_GlobalState->SetThresholdSettings(ts);
+  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ts->SetThresholdMode(x);
 }
 
 void SnakeWizardModel::EvaluateThresholdFunction(double t, double &x, double &y)
 {
   assert(m_Driver->IsSnakeModeActive());
-  ThresholdSettings ts = m_GlobalState->GetThresholdSettings();
+  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+
   double imin = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
   double imax = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative();
 
   SmoothBinaryThresholdFunctor<float> functor;
-  functor.SetParameters(imin, imax, ts);
+  functor.SetParameters(ts);
 
   x = t * (imax - imin) + imin;
   y = functor(x) * 1.0 / 0x7fff;
@@ -203,7 +200,6 @@ void SnakeWizardModel::ApplyThresholdPreprocessing()
   m_Driver->ComputeSNAPSpeedImage();
 
   // Set the color map for the speed image
-  // TODO: make speed images use normal colormaps
   ColorMap *cm = m_Driver->GetSNAPImageData()->GetSpeed()->GetColorMap();
   cm->SetToSystemPreset(ColorMap::COLORMAP_SPEED);
 

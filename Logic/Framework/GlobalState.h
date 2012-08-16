@@ -45,7 +45,6 @@
 
 #include <vector>
 #include "SNAPCommon.h"
-#include "EdgePreprocessingSettings.h"
 #include "MeshOptions.h"
 #include "SnakeParameters.h"
 #include "ThresholdSettings.h"
@@ -285,15 +284,6 @@ public:
   /** Get the auto-preview feature of edge-mode preprocessor uses  */
   irisGetMacro(ShowPreprocessedInOutPreview,bool);
 
-  /** Get the current settings for in/out snake processing */
-  irisSimplePropertyAccessMacro(ThresholdSettings, ThresholdSettings)
-
-  /** Set the current settings for edge snake processing */
-  irisSetMacro(EdgePreprocessingSettings,EdgePreprocessingSettings);  
-
-  /** Get the current settings for edge snake processing */
-  irisGetMacro(EdgePreprocessingSettings,EdgePreprocessingSettings);
-
   /** Get the current parameters of the snake algorithm */
   irisGetMacro(SnakeParameters,SnakeParameters);
 
@@ -465,12 +455,6 @@ private:
   
   int m_LockHeld; 
   int m_LockOwner;
-
-  // Current settings for threshold preprocessing
-  SmartPtr< ConcretePropertyModel<ThresholdSettings> > m_ThresholdSettingsModel;
-
-  // Current settings for threshold preprocessing
-  EdgePreprocessingSettings m_EdgePreprocessingSettings;
 
   // Current mesh options
   MeshOptions m_MeshOptions;

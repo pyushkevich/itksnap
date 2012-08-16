@@ -68,6 +68,8 @@
 #include "SNAPRegistryIO.h"
 
 #include "IRISSlicer.h"
+#include "EdgePreprocessingSettings.h"
+#include "ThresholdSettings.h"
 
 
 #include <stdio.h>
@@ -99,6 +101,10 @@ IRISApplication
   m_DisplayToAnatomyRAI[0] = "RPS";
   m_DisplayToAnatomyRAI[1] = "AIR";
   m_DisplayToAnatomyRAI[2] = "RIP";
+
+  // Initialize the preprocessing settings
+  m_ThresholdSettings = ThresholdSettings::New();
+  m_EdgePreprocessingSettings = EdgePreprocessingSettings::New();
 }
 
 std::string
@@ -1326,12 +1332,9 @@ IRISApplication
     // Update the history
     m_SystemInterface->UpdateHistory("GreyImage", io->GetFileNameOfNativeImage());
 
-    // Update the preprocessing settings in the global state
-    m_GlobalState->SetEdgePreprocessingSettings(
-      EdgePreprocessingSettings::MakeDefaultSettings());
-    m_GlobalState->SetThresholdSettings(
-      ThresholdSettings::MakeDefaultSettings(
-        m_IRISImageData->GetGrey()));
+    // Update the preprocessing settings to defaults.
+    m_ThresholdSettings->InitializeToDefaultForImage(m_IRISImageData->GetGrey());
+    m_EdgePreprocessingSettings->InitializeToDefaults();
     }
   else if(type == MAIN_RGB)
     {
@@ -1535,13 +1538,13 @@ void IRISApplication::ComputeSNAPSpeedImage(CommandType *progressCB)
   assert(IsSnakeModeActive());
   if(m_GlobalState->GetSnakeType() == EDGE_SNAKE)
     {
-    m_SNAPImageData->DoEdgePreprocessing(
-          m_GlobalState->GetEdgePreprocessingSettings(), progressCB);
+    m_SNAPImageData->DoEdgePreprocessing(progressCB);
     }
   else if(m_GlobalState->GetSnakeType() == IN_OUT_SNAKE)
     {
-    m_SNAPImageData->DoInOutPreprocessing(
-          m_GlobalState->GetThresholdSettings(), progressCB);
+    m_SNAPImageData->DoInOutPreprocessing(progressCB);
     }
+
+  InvokeEvent(SpeedImageChangedEvent());
 }
 

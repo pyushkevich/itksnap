@@ -39,8 +39,6 @@
 #include "Registry.h"
 #include "SnakeParameters.h"
 #include "MeshOptions.h"
-#include "EdgePreprocessingSettings.h"
-#include "ThresholdSettings.h"
 
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
@@ -81,22 +79,6 @@ public:
   void WriteMeshOptions(
     const MeshOptions &in,Registry &registry);
   
-  /** Read edge preprocessing settings from a registry */
-  EdgePreprocessingSettings ReadEdgePreprocessingSettings(
-    Registry &registry,const EdgePreprocessingSettings &defaultSet);
-
-  /** Write edge preprocessing settings to a registry */
-  void WriteEdgePreprocessingSettings(
-    const EdgePreprocessingSettings &in,Registry &registry);
-
-  /** Read threshold settings from a registry */
-  ThresholdSettings ReadThresholdSettings(
-    Registry &registry,const ThresholdSettings &defaultSet);
-
-  /** Write threshold settings to a registry */
-  void WriteThresholdSettings(
-    const ThresholdSettings &in,Registry &registry);
-
   /** Read ROI settings from a registry */
   SNAPSegmentationROISettings ReadSegmentationROISettings(
     Registry &folder, const SNAPSegmentationROISettings &defaultSet);

@@ -54,6 +54,10 @@ class IRISImageData;
 class SNAPImageData;
 class MeshExportSettings;
 class GuidedNativeImageIO;
+class ThresholdSettings;
+class EdgePreprocessingSettings;
+
+
 namespace itk {
   template <class TPixel, unsigned int VDimension> class OrientedImage;
 }
@@ -102,6 +106,7 @@ public:
   FIRES(MainImageDimensionsChangeEvent)
   FIRES(LayerChangeEvent)
   FIRES(SegmentationChangeEvent)
+  FIRES(SpeedImageChangedEvent)
 
 
   /**
@@ -359,6 +364,12 @@ public:
       double zSlice,
       const std::string &undoTitle);
 
+  /** Get the pointer to the settings used for threshold-based preprocessing */
+  irisGetMacro(ThresholdSettings, ThresholdSettings *)
+
+  /** Get the pointer to the settings used for edge-based preprocessing */
+  irisGetMacro(EdgePreprocessingSettings, EdgePreprocessingSettings *)
+
 protected:
 
   IRISApplication();
@@ -371,6 +382,11 @@ protected:
 
   // Color label data
   SmartPtr<ColorLabelTable> m_ColorLabelTable;
+
+  // Settings for the speed preprocessing. Still not sure this is the best
+  // place to put this stuff!
+  SmartPtr<ThresholdSettings> m_ThresholdSettings;
+  SmartPtr<EdgePreprocessingSettings> m_EdgePreprocessingSettings;
 
   // Global state object
   // TODO: Incorporate GlobalState into IRISApplication more nicely

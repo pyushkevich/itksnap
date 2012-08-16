@@ -53,6 +53,13 @@ void
 AbstractModel::Rebroadcaster
 ::Broadcast(itk::Object *source, const itk::EventObject &evt)
 {
+  this->Broadcast((const itk::Object *) source, evt);
+}
+
+void
+AbstractModel::Rebroadcaster
+::Broadcast(const itk::Object *source, const itk::EventObject &evt)
+{
 #ifdef SNAP_DEBUG_EVENTS
   if(flag_snap_debug_events)
     {
@@ -75,5 +82,5 @@ AbstractModel::Rebroadcast(
 {
   Rebroadcaster *reb = new Rebroadcaster(this, trgEvent);
   m_Rebroadcast.push_back(reb);
-  return AddListener(src, srcEvent, reb, &Rebroadcaster::Broadcast);
+  return AddListenerPair(src, srcEvent, reb, &Rebroadcaster::Broadcast, &Rebroadcaster::Broadcast);
 }

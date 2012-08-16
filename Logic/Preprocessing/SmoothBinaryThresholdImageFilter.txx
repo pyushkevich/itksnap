@@ -36,56 +36,11 @@
 template<typename TInputImage,typename TOutputImage>
 SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 ::SmoothBinaryThresholdImageFilter()
+  : Superclass()
 {
-  // Construct the mini-pipeline
-  m_Calculator = CalculatorType::New();
-  m_ThresholdFilter = ThresholdFilterType::New();
-  
-  // Initialize the progress tracker
-  m_ProgressAccumulator = itk::ProgressAccumulator::New();
-  m_ProgressAccumulator->SetMiniPipelineFilter(this);
-  
-  // Add the filters to the progress accumulator (just one filter)
-  m_ProgressAccumulator->RegisterInternalFilter(m_ThresholdFilter,1.0f);
-}
-
-template<typename TInputImage,typename TOutputImage>
-void
-SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
-::GenerateData()
-{
-  // Get the input and output pointers
-  const typename InputImageType::ConstPointer inputImage = this->GetInput();
-  typename OutputImageType::Pointer outputImage = this->GetOutput();
-
-  // Allocate the output image
-  outputImage->SetBufferedRegion(outputImage->GetRequestedRegion());
-  outputImage->Allocate();
-
-  // Reset the progress
-  m_ProgressAccumulator->ResetProgress();
-
-  // Compute the min/max of the image
-  m_Calculator->SetImage(inputImage);
-  m_Calculator->Compute();
-  
-  // Construct the functor
-  FunctorType functor;
-  functor.SetParameters(m_Calculator->GetMinimum(),
-                        m_Calculator->GetMaximum(),
-                        m_ThresholdSettings);
-
-  // Assign the functor to the filter
-  m_ThresholdFilter->SetInput(inputImage);
-  m_ThresholdFilter->SetFunctor(functor);
-
-  // Call the filter's GenerateData()
-  m_ThresholdFilter->GraftOutput(outputImage);
-  m_ThresholdFilter->Update();
-
-  // graft the mini-pipeline output back onto this filter's output.
-  // this is needed to get the appropriate regions passed back.
-  GraftOutput( m_ThresholdFilter->GetOutput() );
+  // Override the number of inputs to 2, so that we can treat parameters
+  // as the second input, and thus respond to parameter changes
+  this->SetNumberOfInputs(2);
 }
 
 template<typename TInputImage,typename TOutputImage>
@@ -99,11 +54,114 @@ SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 template<typename TInputImage,typename TOutputImage>
 void 
 SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
-::SetThresholdSettings(const ThresholdSettings &settings)
+::SetParameters(ThresholdSettings *settings)
 {
-  if(!(settings == m_ThresholdSettings))
+  if(settings != GetParameters())
     {
-    m_ThresholdSettings = settings;
-    this->Modified();
+    // Store the settings as the second input
+    this->SetNthInput(1, settings);
     }
 }
+
+template<typename TInputImage,typename TOutputImage>
+ThresholdSettings *
+SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
+::GetParameters()
+{
+  return static_cast<ThresholdSettings*>(this->GetInputs()[1].GetPointer());
+}
+
+template<typename TInputImage,typename TOutputImage>
+void
+SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
+::SmoothBinaryThresholdImageFilter::GenerateData()
+{
+  // Update the functor with the current settings
+  this->GetFunctor().SetParameters(GetParameters());
+
+  // Execute the filter
+  Superclass::GenerateData();
+}
+
+template<class TPixel>
+void
+SmoothBinaryThresholdFunctor<TPixel>
+::SetParameters(ThresholdSettings *settings)
+{
+  // At least one threshold should be used
+  assert(settings->IsLowerThresholdEnabled() ||
+         settings->IsUpperThresholdEnabled());
+
+  // Store the upper and lower bounds
+  m_LowerThreshold = settings->GetLowerThreshold();
+  m_UpperThreshold = settings->GetUpperThreshold();
+
+  // Handle the bad case: everything is mapped to zero
+  if(m_LowerThreshold >= m_UpperThreshold)
+    {
+    m_ScalingFactor = m_FactorUpper = m_FactorLower = m_Shift = 0.0;
+    return;
+    }
+
+  // Compute the largest scaling for U-L such that the function is greater
+  // than 1-eps
+  float eps = pow((float)10,-(float)settings->GetSmoothness());
+  float maxScaling = (m_UpperThreshold - m_LowerThreshold) / log((2-eps)/eps);
+
+  // Set the factor by which the input is multiplied
+  // m_ScalingFactor = settings.GetSmoothness();
+  m_ScalingFactor = 1 / maxScaling;
+
+  // Combine the usage and inversion flags to get the scaling factors
+  m_FactorLower = settings->IsLowerThresholdEnabled() ? 1.0f : 0.0f;
+  m_FactorUpper = settings->IsUpperThresholdEnabled() ? 1.0f : 0.0f;
+
+  // Compute the shift
+  m_Shift = 1.0f - (m_FactorLower + m_FactorUpper);
+}
+
+template<class TInput>
+short
+SmoothBinaryThresholdFunctor<TInput>
+::operator ()(const TInput &x)
+{
+  // Cast the input to float
+  float z = static_cast<float>(x);
+
+  // Compute the left component
+  float yLower = m_FactorLower * tanh((z-m_LowerThreshold) * m_ScalingFactor);
+
+  // Compute the right component
+  float yUpper = m_FactorUpper * tanh((m_UpperThreshold-z) * m_ScalingFactor);
+
+  // Map to the range -1 ro 1
+  float t = (yLower + yUpper + m_Shift);
+
+  // Return the result (TODO: hack)
+  return static_cast<short>(t * 0x7fff);
+}
+
+template<class TInput>
+bool
+SmoothBinaryThresholdFunctor<TInput>
+::operator ==(const Self &z)
+{
+  return
+      m_LowerThreshold == z.m_LowerThreshold &&
+      m_UpperThreshold == z.m_UpperThreshold &&
+      m_ScalingFactor == z.m_ScalingFactor &&
+      m_FactorLower == z.m_FactorLower &&
+      m_FactorUpper == z.m_FactorUpper &&
+      m_Shift == z.m_Shift;
+}
+
+template<class TInput>
+bool
+SmoothBinaryThresholdFunctor<TInput>
+::operator !=(const Self &z)
+{
+  return !(*this == z);
+}
+
+
+

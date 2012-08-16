@@ -34,6 +34,7 @@
 =========================================================================*/
 #include "ThresholdSettings.h"
 #include "ImageWrapperBase.h"
+#include "Registry.h"
 
 bool 
 ThresholdSettings
@@ -49,38 +50,36 @@ ThresholdSettings
   return !((*this) == other);
 }
 
+void
 ThresholdSettings
-ThresholdSettings
-::MakeDefaultSettings(ScalarImageWrapperBase *wrapper)
+::InitializeToDefaultForImage(ScalarImageWrapperBase *wrapper)
 {
   // Use the min and the max of the wrapper
   double iMin = wrapper->GetImageMinAsDouble();
   double iMax = wrapper->GetImageMaxAsDouble();
 
   // If the image is constant, return default settings
-  if(iMin == iMax) return MakeDefaultSettingsWithoutImage();
-  
-  // Generate the default settings
-  ThresholdSettings settings;
-  settings.m_ThresholdMode = TWO_SIDED;
-  settings.m_LowerThreshold = iMin + (iMax-iMin) / 3.0;
-  settings.m_UpperThreshold = iMin + 2.0 * (iMax-iMin) / 3.0;
-  settings.m_Smoothness = 3.0;
-
-  return settings;
+  if(iMin < iMax)
+    {
+    m_ThresholdMode = TWO_SIDED;
+    m_LowerThreshold = iMin + (iMax-iMin) / 3.0;
+    m_UpperThreshold = iMin + 2.0 * (iMax-iMin) / 3.0;
+    m_Smoothness = 3.0;
+    }
+  else
+    {
+    this->InitializeToDefaultWithoutImage();
+    }
 }
 
+void
 ThresholdSettings
-ThresholdSettings
-::MakeDefaultSettingsWithoutImage()
+::InitializeToDefaultWithoutImage()
 {
-  ThresholdSettings settings;
-  settings.m_ThresholdMode = TWO_SIDED;
-  settings.m_LowerThreshold = 40.0;
-  settings.m_UpperThreshold = 80.0; 
-  settings.m_Smoothness = 3.0;
-
-  return settings;
+  m_ThresholdMode = TWO_SIDED;
+  m_LowerThreshold = 40.0;
+  m_UpperThreshold = 80.0;
+  m_Smoothness = 3.0;
 }
 
 ThresholdSettings
@@ -101,3 +100,76 @@ ThresholdSettings
     return false;
   return true;
 }
+
+bool
+ThresholdSettings
+::IsValidForImage(ScalarImageWrapperBase *wrapper)
+{
+  // Use the min and the max of the wrapper
+  double iMin = wrapper->GetImageMinAsDouble();
+  double iMax = wrapper->GetImageMaxAsDouble();
+
+  // Check threshold irregularities
+  if(m_ThresholdMode == TWO_SIDED || m_ThresholdMode == LOWER)
+    if(m_LowerThreshold < iMin) return false;
+
+  if(m_ThresholdMode == TWO_SIDED || m_ThresholdMode == UPPER)
+    if(m_UpperThreshold > iMax) return false;
+
+  if(m_ThresholdMode == TWO_SIDED)
+    if(m_LowerThreshold >= m_UpperThreshold) return false;
+
+  // Check smoothness
+  if(m_Smoothness < 0.0) return false;
+
+  return true;
+}
+
+void
+ThresholdSettings
+::ReadFromRegistry(Registry &registry, ScalarImageWrapperBase *wrapper)
+{
+  // Use the min and the max of the wrapper to check validity
+  double iMin = wrapper->GetImageMinAsDouble();
+  double iMax = wrapper->GetImageMaxAsDouble();
+
+  // Try reading the settings from the registry
+  float lt = registry["LowerThreshold"][m_LowerThreshold];
+  float ut = registry["UpperThreshold"][m_UpperThreshold];
+  float sm = registry["Smoothness"][m_Smoothness];
+
+  // Check that the settings are valid before proceding
+  if(iMin <= lt && lt <= ut && ut <= iMax && sm >= 0.0)
+    {
+    // Use the threshold values we read
+    m_LowerThreshold = lt;
+    m_UpperThreshold = ut;
+
+    // Read the smoothness information
+    m_Smoothness = sm;
+
+    // For backward compatibility (and out of laziness to set up an enum mapping)
+    // we store the threshold limits as a pair of bools, rather than as the enum
+    bool lower_on =
+        registry["LowerThresholdEnabled"][IsLowerThresholdEnabled()];
+
+    bool upper_on =
+        registry["UpperThresholdEnabled"][IsUpperThresholdEnabled()];
+
+    m_ThresholdMode = upper_on ?
+          (lower_on ? TWO_SIDED : UPPER) :
+          (lower_on ? LOWER : TWO_SIDED);
+    }
+}
+
+void
+ThresholdSettings
+::WriteToRegistry(Registry &registry)
+{
+  registry["LowerThreshold"] << this->GetLowerThreshold();
+  registry["UpperThreshold"] << this->GetUpperThreshold();
+  registry["Smoothness"] << this->GetSmoothness();
+  registry["LowerThresholdEnabled"] << this->IsLowerThresholdEnabled();
+  registry["UpperThresholdEnabled"] << this->IsUpperThresholdEnabled();
+}
+

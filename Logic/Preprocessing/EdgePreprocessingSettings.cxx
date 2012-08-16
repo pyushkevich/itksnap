@@ -33,28 +33,46 @@
 
 =========================================================================*/
 #include "EdgePreprocessingSettings.h"
+#include "ScalarImageWrapper.h"
+#include "Registry.h"
 
 bool 
 EdgePreprocessingSettings
 ::operator == (const EdgePreprocessingSettings &other) const
 {
-  return memcmp(this,&other,sizeof(EdgePreprocessingSettings)) == 0;
+  return (m_GaussianBlurScale == other.m_GaussianBlurScale &&
+          m_RemappingSteepness == other.m_RemappingSteepness &&
+          m_RemappingExponent == other.m_RemappingExponent);
 }
 
 EdgePreprocessingSettings::
 EdgePreprocessingSettings()
 {
+  this->InitializeToDefaults();
+}
+
+void
+EdgePreprocessingSettings
+::InitializeToDefaults()
+{
   SetGaussianBlurScale(1.0f);
   SetRemappingSteepness(0.1f);
   SetRemappingExponent(2.0f);
 }
-EdgePreprocessingSettings::
-~EdgePreprocessingSettings() { /*Needs to be defined to avoid compiler warning about needing a virtual destructor*/};
 
+void
 EdgePreprocessingSettings
-EdgePreprocessingSettings
-::MakeDefaultSettings()
+::ReadFromRegistry(Registry &registry)
 {
-  EdgePreprocessingSettings settings;
-  return settings;
+  m_GaussianBlurScale = registry["GaussianBlurScale"][m_GaussianBlurScale];
+  m_RemappingSteepness = registry["RemappingSteepness"][m_RemappingSteepness];
+  m_RemappingExponent = registry["RemappingExponent"][m_RemappingExponent];
+}
+
+void EdgePreprocessingSettings
+::WriteToRegistry(Registry &registry)
+{
+  registry["GaussianBlurScale"] << m_GaussianBlurScale;
+  registry["RemappingSteepness"] << m_RemappingSteepness;
+  registry["RemappingExponent"] << m_RemappingExponent;
 }

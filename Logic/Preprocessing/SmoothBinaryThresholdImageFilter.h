@@ -51,78 +51,15 @@ class SmoothBinaryThresholdFunctor
 public:
   typedef SmoothBinaryThresholdFunctor<TInput> Self;
 
-  /**
-   * Initialize the function
-   */
-  void SetParameters(TInput,TInput,
-                     const ThresholdSettings &settings)
-  {
-    // At least one threshold should be used
-    assert(settings.IsLowerThresholdEnabled() || 
-           settings.IsUpperThresholdEnabled());
+  /** Initialize the function */
+  void SetParameters(ThresholdSettings *settings);
 
-    // Store the upper and lower bounds
-    m_LowerThreshold = settings.GetLowerThreshold();
-    m_UpperThreshold = settings.GetUpperThreshold();
+  /** Apply the function to image intensity */
+  inline short operator()(const TInput &x);
 
-    // Handle the bad case: everything is mapped to zero
-    if(m_LowerThreshold >= m_UpperThreshold)
-      {
-      m_ScalingFactor = m_FactorUpper = m_FactorLower = m_Shift = 0.0;
-      return;
-      }
-
-    // Compute the largest scaling for U-L such that the function is greater
-    // than 1-eps
-    float eps = pow((float)10,-(float)settings.GetSmoothness());
-    float maxScaling = (m_UpperThreshold - m_LowerThreshold) / log((2-eps)/eps);
-
-    // Set the factor by which the input is multiplied
-    // m_ScalingFactor = settings.GetSmoothness(); 
-    m_ScalingFactor = 1 / maxScaling; 
-
-    // Combine the usage and inversion flags to get the scaling factors    
-    m_FactorLower = settings.IsLowerThresholdEnabled() ? 1.0f : 0.0f;
-    m_FactorUpper = settings.IsUpperThresholdEnabled() ? 1.0f : 0.0f;
-
-    // Compute the shift
-    m_Shift = 1.0f - (m_FactorLower + m_FactorUpper);
-  }
-
-  /**
-   * Apply the function to image intensity
-   */
-  short operator()(const TInput &x)
-  {
-    // Cast the input to float
-    float z = static_cast<float>(x);
-    
-    // Compute the left component
-    float yLower = m_FactorLower * tanh((z-m_LowerThreshold) * m_ScalingFactor);
-
-    // Compute the right component
-    float yUpper = m_FactorUpper * tanh((m_UpperThreshold-z) * m_ScalingFactor);
-
-    // Map to the range -1 ro 1
-    float t = (yLower + yUpper + m_Shift);
-
-    // Return the result (TODO: hack)
-    return static_cast<short>(t * 0x7fff);
-  }
-
-  bool operator ==(const Self &z)
-    {
-    return 
-      m_LowerThreshold == z.m_LowerThreshold &&
-      m_UpperThreshold == z.m_UpperThreshold &&
-      m_ScalingFactor == z.m_ScalingFactor &&
-      m_FactorLower == z.m_FactorLower &&
-      m_FactorUpper == z.m_FactorUpper &&
-      m_Shift == z.m_Shift;
-    }
-
-  bool operator !=(const Self &x)
-    { return !((*this) == x); }
+  /** Compare two functor objects */
+  bool operator ==(const Self &z);
+  bool operator !=(const Self &x);
 
 private:
   // The lower threshold in intensity units
@@ -151,17 +88,12 @@ private:
  * 
  * This filter uses a sigmoid function as a smooth threshold
  */
-template <typename TInputImage,typename TOutputImage = TInputImage>
+template <typename TInputImage,typename TOutputImage>
 class SmoothBinaryThresholdImageFilter: 
-  public itk::ImageToImageFilter<TInputImage,TOutputImage>
+  public itk::UnaryFunctorImageFilter<TInputImage,TOutputImage,
+    SmoothBinaryThresholdFunctor<typename TInputImage::PixelType> >
 {
 public:
-
-  /** Standard class typedefs. */
-  typedef SmoothBinaryThresholdImageFilter                         Self;
-  typedef itk::ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
-  typedef itk::SmartPointer<Self>                               Pointer;
-  typedef itk::SmartPointer<const Self>                    ConstPointer;  
 
   /** Pixel Type of the input image */
   typedef TInputImage                                    InputImageType;
@@ -171,8 +103,16 @@ public:
   typedef TOutputImage                                  OutputImageType;
   typedef typename OutputImageType::PixelType           OutputPixelType;
 
-  /** Functor type used for thresholding */
+  /** The functor type */
   typedef SmoothBinaryThresholdFunctor<InputPixelType>      FunctorType;
+
+  /** Standard class typedefs. */
+  typedef SmoothBinaryThresholdImageFilter                         Self;
+  typedef itk::UnaryFunctorImageFilter<InputImageType,
+                                       OutputImageType,
+                                       FunctorType>          Superclass;
+  typedef itk::SmartPointer<Self>                               Pointer;
+  typedef itk::SmartPointer<const Self>                    ConstPointer;  
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self)
@@ -182,35 +122,19 @@ public:
                       TInputImage::ImageDimension);
 
   /** Assign threshold settings */
-  void SetThresholdSettings(const ThresholdSettings &settings);
+  void SetParameters(ThresholdSettings *settings);
+
+  /** Access the threshold settings */
+  ThresholdSettings *GetParameters();
   
 protected:
 
   SmoothBinaryThresholdImageFilter();
-  virtual ~SmoothBinaryThresholdImageFilter() {};
+  virtual ~SmoothBinaryThresholdImageFilter() {}
   void PrintSelf(std::ostream& os, itk::Indent indent) const;
+
+  void GenerateData();
   
-  /** Generate Data */
-  void GenerateData( void );
-
-private:
-
-  /** The unary functor filter type used for remapping */
-  typedef itk::UnaryFunctorImageFilter<
-    TInputImage,TOutputImage,FunctorType>            ThresholdFilterType;
-  typedef typename ThresholdFilterType::Pointer   ThresholdFilterPointer;
-  
-  /** The min / max calculator used to compute input range */
-  typedef itk::MinimumMaximumImageCalculator<TInputImage> CalculatorType;
-  typedef typename CalculatorType::Pointer             CalculatorPointer;
-
-  /** Progress accumulator object */
-  typedef itk::ProgressAccumulator::Pointer           AccumulatorPointer;
-
-  ThresholdFilterPointer    m_ThresholdFilter;
-  CalculatorPointer         m_Calculator;                                               
-  ThresholdSettings         m_ThresholdSettings;
-  AccumulatorPointer        m_ProgressAccumulator;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

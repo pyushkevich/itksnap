@@ -138,12 +138,15 @@ public:
                       TInputImage::ImageDimension);
 
   /** Assign new edge processing settings */
-  void SetEdgePreprocessingSettings(const EdgePreprocessingSettings &settings);
+  void SetParameters(EdgePreprocessingSettings *parameters);
+
+  /** Get the parameters pointer */
+  EdgePreprocessingSettings *GetParameters();
 
 protected:
 
   EdgePreprocessingImageFilter();
-  virtual ~EdgePreprocessingImageFilter() {};
+  virtual ~EdgePreprocessingImageFilter() {}
   void PrintSelf(std::ostream& os, itk::Indent indent) const;
   
   /** Generate Data */
@@ -196,8 +199,6 @@ private:
   GradientFilterPointer     m_GradientFilter;
   CalculatorPointer         m_Calculator;
   RescaleFilterPointer      m_RescaleFilter;
-
-  EdgePreprocessingSettings m_EdgePreprocessingSettings;
 
   /** Progress tracking object */
   AccumulatorPointer        m_ProgressAccumulator;

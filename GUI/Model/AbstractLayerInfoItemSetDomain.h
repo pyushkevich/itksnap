@@ -2,7 +2,7 @@
 #define ABSTRACTLAYERINFOITEMSETDOMAIN_H
 
 #include <PropertyModel.h>
-#include <GenericImageData.h>
+#include <IRISApplication.h>
 
 /**
   This is a base class for domain descriptions that provide some piece
@@ -21,43 +21,39 @@ public:
   typedef size_t ValueType;
 
   /** Initializes domain that iterates through layers based on the filter */
-  AbstractLayerInfoItemSetDomain(GenericImageData *gid = NULL,
+  AbstractLayerInfoItemSetDomain(IRISApplication *app = NULL,
                                  int role_filter = 0xffffffff)
-    { m_ImageData = gid; m_RoleFilter = role_filter; }
+    { m_Driver = app; m_RoleFilter = role_filter; }
 
   LayerIterator begin() const
   {
-    assert(m_ImageData);
-    return m_ImageData->GetLayers(m_RoleFilter);
+    return m_Driver->GetCurrentImageData()->GetLayers(m_RoleFilter);
   }
 
   LayerIterator end() const
   {
-    assert(m_ImageData);
-    return m_ImageData->GetLayers(m_RoleFilter).MoveToEnd();
+    return m_Driver->GetCurrentImageData()->GetLayers(m_RoleFilter).MoveToEnd();
   }
 
   LayerIterator find(const ValueType &value) const
   {
-    assert(m_ImageData);
-    return m_ImageData->GetLayers(m_RoleFilter).Find(
+    return m_Driver->GetCurrentImageData()->GetLayers(m_RoleFilter).Find(
           reinterpret_cast<ImageWrapperBase *>(value));
   }
 
   ValueType GetValue(const LayerIterator &it) const
   {
-    assert(m_ImageData);
     return reinterpret_cast<size_t>(it.GetLayer());
   }
 
   bool operator == (const AbstractLayerInfoItemSetDomain<TDesc> &cmp) const
-    { return m_ImageData == cmp.m_ImageData && m_RoleFilter == cmp.m_RoleFilter; }
+    { return m_Driver == cmp.m_Driver && m_RoleFilter == cmp.m_RoleFilter; }
 
   bool operator != (const AbstractLayerInfoItemSetDomain<TDesc> &cmp) const
-    { return m_ImageData != cmp.m_ImageData || m_RoleFilter != cmp.m_RoleFilter; }
+    { return m_Driver != cmp.m_Driver || m_RoleFilter != cmp.m_RoleFilter; }
 
 protected:
-  GenericImageData *m_ImageData;
+  IRISApplication *m_Driver;
   int m_RoleFilter;
 };
 

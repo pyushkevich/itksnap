@@ -36,9 +36,13 @@
 #include "SNAPRegistryIO.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
+#include "SNAPImageData.h"
 #include <algorithm>
 #include <vector>
 #include <string>
+
+#include "EdgePreprocessingSettings.h"
+#include "ThresholdSettings.h"
 
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
@@ -241,87 +245,6 @@ SNAPRegistryIO
   registry["MeshSmoothingBoundarySmoothing"] << in.GetMeshSmoothingBoundarySmoothing();
 }
 
-/** Read edge preprocessing settings from a registry */
-EdgePreprocessingSettings 
-SNAPRegistryIO
-::ReadEdgePreprocessingSettings(
-  Registry &registry, const EdgePreprocessingSettings &defaultSet)
-{
-  EdgePreprocessingSettings out;
-
-  out.SetGaussianBlurScale(
-    registry["GaussianBlurScale"][defaultSet.GetGaussianBlurScale()]);
-
-  out.SetRemappingSteepness(
-    registry["RemappingSteepness"][defaultSet.GetRemappingSteepness()]);
-
-  out.SetRemappingExponent(
-    registry["RemappingExponent"][defaultSet.GetRemappingExponent()]);
-  
-  return out;  
-}
-
-/** Write edge preprocessing settings to a registry */
-void 
-SNAPRegistryIO
-::WriteEdgePreprocessingSettings(const EdgePreprocessingSettings &in,
-                                 Registry &registry)
-{
-  registry["GaussianBlurScale"] << in.GetGaussianBlurScale();
-  registry["RemappingSteepness"] << in.GetRemappingSteepness();
-  registry["RemappingExponent"] << in.GetRemappingExponent();
-}
-
-/** Read threshold settings from a registry */
-ThresholdSettings 
-SNAPRegistryIO
-::ReadThresholdSettings(
-  Registry &registry, const ThresholdSettings &defaultSet)
-{
-  ThresholdSettings out;
-  
-  out.SetLowerThreshold(
-    registry["LowerThreshold"][defaultSet.GetLowerThreshold()]);
-
-  out.SetUpperThreshold(
-    registry["UpperThreshold"][defaultSet.GetUpperThreshold()]);
-
-  out.SetSmoothness(
-    registry["Smoothness"][defaultSet.GetSmoothness()]);
-
-  /**
-    For backward compatibility (and out of laziness to set up an enum mapping)
-    we store the threshold limits as a pair of bools, rather than as the enum
-    */
-  bool lower_on =
-      registry["LowerThresholdEnabled"][defaultSet.IsLowerThresholdEnabled()];
-
-  bool upper_on =
-      registry["UpperThresholdEnabled"][defaultSet.IsLowerThresholdEnabled()];
-
-  out.SetThresholdMode(
-        upper_on ?
-          (lower_on ? ThresholdSettings::TWO_SIDED : ThresholdSettings::UPPER) :
-          (lower_on ? ThresholdSettings::LOWER : ThresholdSettings::TWO_SIDED));
-
-  // Check that what we've read is valid
-  if(!out.IsValid())
-    out = defaultSet;
-
-  return out;
-}
-
-/** Write threshold settings to a registry */
-void 
-SNAPRegistryIO
-::WriteThresholdSettings(const ThresholdSettings &in,Registry &registry)
-{
-  registry["LowerThreshold"] << in.GetLowerThreshold();
-  registry["UpperThreshold"] << in.GetUpperThreshold();
-  registry["Smoothness"] << in.GetSmoothness();
-  registry["LowerThresholdEnabled"] << in.IsLowerThresholdEnabled();
-  registry["UpperThresholdEnabled"] << in.IsUpperThresholdEnabled();
-}
 
 /** Write region of interest settings to a registry folder */
 void
@@ -381,12 +304,10 @@ SNAPRegistryIO
     registry.Folder("SNAP.SnakeParameters"));
 
   // Write the preprocessing settings
-  WriteEdgePreprocessingSettings(
-    gs->GetEdgePreprocessingSettings(),
-    registry.Folder("SNAP.Preprocessing.Edge"));
-  WriteThresholdSettings(
-    gs->GetThresholdSettings(),
-    registry.Folder("SNAP.Preprocessing.Region"));
+  app->GetEdgePreprocessingSettings()->WriteToRegistry(registry);
+
+  // Read the threshold settings
+  app->GetThresholdSettings()->WriteToRegistry(registry);
 
   // Write the mesh display options
   WriteMeshOptions(
@@ -457,21 +378,16 @@ SNAPRegistryIO
   if(restorePreprocessing)
     {
     // Read the edge preprocessing settings
-    gs->SetEdgePreprocessingSettings(
-      SNAPRegistryIO::ReadEdgePreprocessingSettings(
-        registry.Folder("SNAP.Preprocessing.Edge"),
-        gs->GetEdgePreprocessingSettings()));
+    app->GetEdgePreprocessingSettings()->ReadFromRegistry(
+          registry.Folder("SNAP.Preprocessing.Edge"));
     
     // Read the thresholding settings (note that since they depend on an image
     // we have to use re-initialized defaults
     if (app->GetIRISImageData()->IsGreyLoaded())
       {
-    gs->SetThresholdSettings(
-      SNAPRegistryIO::ReadThresholdSettings(
-        registry.Folder("SNAP.Preprocessing.Region"),
-        ThresholdSettings::MakeDefaultSettings(
-          app->GetIRISImageData()->GetGrey())));
-	 }
+      app->GetThresholdSettings()->ReadFromRegistry(
+            registry, app->GetIRISImageData()->GetGrey());
+      }
     }
 
   // Read the display options

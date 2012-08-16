@@ -74,6 +74,7 @@ protected:
     virtual ~Rebroadcaster();
 
     void Broadcast(itk::Object *source, const itk::EventObject &evt);
+    void Broadcast(const itk::Object *source, const itk::EventObject &evt);
 
   private:
     AbstractModel *m_Model;

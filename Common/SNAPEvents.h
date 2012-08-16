@@ -64,6 +64,9 @@ itkEventMacro(MainImageDimensionsChangeEvent, LayerChangeEvent)
 /** The segmentation has changed */
 itkEventMacro(SegmentationChangeEvent, LayerChangeEvent)
 
+/** Change to the speed image */
+itkEventMacro(SpeedImageChangedEvent, LayerChangeEvent)
+
 /** Generic event representing that a model has changed */
 itkEventMacro(ModelUpdateEvent, IRISEvent)
 
@@ -154,6 +157,7 @@ unsigned long AddListener(itk::Object *sender,
   typedef itk::MemberCommand<TObserver> Cmd;
   typename Cmd::Pointer cmd = Cmd::New();
   cmd->SetCallbackFunction(observer, memberFunction);
+
   return sender->AddObserver(event, cmd);
 }
 
@@ -166,6 +170,21 @@ unsigned long AddListenerConst(itk::Object *sender,
   typedef itk::MemberCommand<TObserver> Cmd;
   typename Cmd::Pointer cmd = Cmd::New();
   cmd->SetCallbackFunction(observer, memberFunction);
+  return sender->AddObserver(event, cmd);
+}
+
+template <class TObserver>
+unsigned long AddListenerPair(
+    itk::Object *sender,
+    const itk::EventObject &event,
+    TObserver *observer,
+    void (TObserver::*memberFunction)(itk::Object*, const itk::EventObject &),
+    void (TObserver::*constMemberFunction)(const itk::Object*, const itk::EventObject &))
+{
+  typedef itk::MemberCommand<TObserver> Cmd;
+  typename Cmd::Pointer cmd = Cmd::New();
+  cmd->SetCallbackFunction(observer, memberFunction);
+  cmd->SetCallbackFunction(observer, constMemberFunction);
   return sender->AddObserver(event, cmd);
 }
 

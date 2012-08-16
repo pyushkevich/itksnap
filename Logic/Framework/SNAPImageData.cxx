@@ -56,6 +56,7 @@
 #include "SmoothBinaryThresholdImageFilter.h"
 #include "SpeedImageWrapper.h"
 #include "IRISApplication.h"
+#include "ThresholdSettings.h"
 
 
 #include "SNAPImageData.h"
@@ -69,6 +70,17 @@ SNAPImageData
   m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SpeedWrapper);
   m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SnakeInitializationWrapper);
   m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SnakeWrapper);
+
+  // Initialize the threshold-based processing pipeline
+  m_ThresholdPreviewWrapper = ThresholdPreviewWrapperType::New();
+  m_ThresholdPreviewWrapper->AttachToWrapper(&m_SpeedWrapper);
+  m_ThresholdPreviewWrapper->SetParameters(parent->GetThresholdSettings());
+
+  // Update the speed preview objects
+  m_EdgePreprocessingPreviewWrapper = EdgePreprocessingPreviewWrapperType::New();
+  m_EdgePreprocessingPreviewWrapper->AttachToWrapper(&m_SpeedWrapper);
+  m_EdgePreprocessingPreviewWrapper->SetParameters(
+        parent->GetEdgePreprocessingSettings());
 
   // Set the names of the wrapeprs
   m_SpeedWrapper.SetNickname("Speed Image");
@@ -105,37 +117,19 @@ SNAPImageData
 
   // Here or after it's computed?
   m_SpeedWrapper.SetAlpha(255);
+
+  // Initialize the speed preview objects
+  m_EdgePreprocessingPreviewWrapper->SetInputImage(m_GreyImageWrapper->GetImage());
+  m_ThresholdPreviewWrapper->SetInputImage(m_GreyImageWrapper->GetImage());
 }
 
 void 
 SNAPImageData
-::DoEdgePreprocessing(const EdgePreprocessingSettings &settings,
-                      itk::Command *progressCallback)
+::DoEdgePreprocessing(itk::Command *progressCallback)
 { 
-  // Define an edge filter to use for preprocessing
-  typedef EdgePreprocessingImageFilter<GreyImageType, SpeedImageType> FilterType;
-  
-  // Configure the edge filter
-  FilterType::Pointer filter = FilterType::New();
-  
-  // Pass the settings to the filter
-  filter->SetEdgePreprocessingSettings(settings);
-
-  // Set the filter's input
-  filter->SetInput(m_GreyImageWrapper->GetImage());
-
-  // Provide a progress callback (if one is provided)
-  if(progressCallback)
-    filter->AddObserver(itk::ProgressEvent(), progressCallback);
-
-  // Run the filter on the whole image
-  filter->UpdateLargestPossibleRegion();
-  
-  // Pass the output of the filter to the speed wrapper
-  m_SpeedWrapper.SetImage(filter->GetOutput());
-  
-  // Dismantle this pipeline
-  m_SpeedWrapper.GetImage()->DisconnectPipeline();
+  // Use the wrapper object to compute the volume
+  // m_EdgePreprocessingPreviewWrapper->SetParameters(&settings);
+  m_EdgePreprocessingPreviewWrapper->ComputeOutputVolume(progressCallback);
 
   // TODO: Speed images should not just be an implementation of grey images
   m_SpeedWrapper.UpdateIntensityMapFunction();
@@ -146,37 +140,17 @@ SNAPImageData
 
 void 
 SNAPImageData
-::DoInOutPreprocessing(const ThresholdSettings &settings,
-                       itk::Command *progressCallback)
+::DoInOutPreprocessing(itk::Command *progressCallback)
 {
-  // Define an edge filter to use for preprocessing
-  typedef SmoothBinaryThresholdImageFilter<
-      GreyImageType, SpeedImageType> FilterType;
-  
-  // Create an edge filter for whole-image preprocessing
-  FilterType::Pointer filter = FilterType::New();
-  
-  // Pass the settings to the filter
-  filter->SetThresholdSettings(settings);
-
-  // Set the filter's input
-  filter->SetInput(m_GreyImageWrapper->GetImage());
-
-  // Provide a progress callback (if one is provided)
-  if(progressCallback)
-    filter->AddObserver(itk::ProgressEvent(),progressCallback);
-
-  // Run the filter
-  filter->UpdateLargestPossibleRegion();
-  
-  // Pass the output of the filter to the speed wrapper
-  m_SpeedWrapper.SetImage(filter->GetOutput());
-  
-  // Dismantle this pipeline
-  m_SpeedWrapper.GetImage()->DisconnectPipeline();
+  // Use the wrapper object to compute the volume
+  m_ThresholdPreviewWrapper->ComputeOutputVolume(progressCallback);
 
   // TODO: Speed images should not just be an implementation of grey images
   m_SpeedWrapper.UpdateIntensityMapFunction();
+
+  // Here or after it's computed?
+  m_SpeedWrapper.SetAlpha(255);
+
 }
 
 SpeedImageWrapper* 
@@ -570,5 +544,101 @@ SNAPImageData
 
   // Copy the colormap too
   m_GreyImageWrapper->GetColorMap()->CopyInformation(srcWrapper->GetColorMap());
+}
+
+
+#include <IRISSlicer.h>
+
+
+template<class TFilter, class TParameter>
+PreviewCapableFilterWrapper<TFilter, TParameter>
+::PreviewCapableFilterWrapper()
+{
+  m_PreviewMode = false;
+  m_Parameters = NULL;
+
+  // Allocate the volume filter and the preview filters
+  for(int i = 0; i < 3; i++)
+    {
+    m_PreviewFilter[i] = FilterType::New();
+    }
+}
+
+template<class TFilter, class TParameter>
+void
+PreviewCapableFilterWrapper<TFilter, TParameter>
+::SetParameters(ParameterType *param)
+{
+  // Set the parameters of the preview filters
+  m_Parameters = param;
+  for(int i = 0; i < 3; i++)
+    m_PreviewFilter[i]->SetParameters(param);
+}
+
+template<class TFilter, class TParameter>
+void
+PreviewCapableFilterWrapper<TFilter, TParameter>
+::SetInputImage(InputImageType *image)
+{
+  m_InputImage = image;
+  for(unsigned int i = 0; i < 3; i++)
+    m_PreviewFilter[i]->SetInput(image);
+}
+
+template<class TFilter, class TParameter>
+void
+PreviewCapableFilterWrapper<TFilter, TParameter>
+::SetPreviewMode(bool mode)
+{
+  m_PreviewMode = mode;
+  this->UpdatePipeline();
+}
+
+template<class TFilter, class TParameter>
+void
+PreviewCapableFilterWrapper<TFilter, TParameter>
+::AttachToWrapper(WrapperType *wrapper)
+{
+  // The slice preview filters need to be attached to the slicer
+  m_Wrapper = wrapper;
+  this->UpdatePipeline();
+}
+
+template<class TFilter, class TParameter>
+void
+PreviewCapableFilterWrapper<TFilter, TParameter>
+::UpdatePipeline()
+{
+  if(m_PreviewMode)
+    {
+    for(unsigned int i = 0; i < 3; i++)
+      {
+      m_Wrapper->GetSlicer(i)->SetInput(m_PreviewFilter[i]->GetOutput());
+      }
+    }
+  else
+    {
+    for(unsigned int i = 0; i < 3; i++)
+      {
+      m_Wrapper->GetSlicer(i)->SetInput(m_Wrapper->GetImage());
+      }
+    }
+}
+
+template<class TFilter, class TParameter>
+void
+PreviewCapableFilterWrapper<TFilter, TParameter>
+::ComputeOutputVolume(itk::Command *progress)
+{
+  // Create and execute the filter on the whole image extent
+  SmartPtr<FilterType> filter = FilterType::New();
+  filter->SetParameters(m_Parameters);
+  filter->SetInput(m_InputImage);
+  if(progress)
+    filter->AddObserver(itk::ProgressEvent(), progress);
+  filter->GraftOutput(m_Wrapper->GetImage());
+  filter->UpdateLargestPossibleRegion();
+
+  m_Wrapper->GetImage()->DisconnectPipeline();
 }
 

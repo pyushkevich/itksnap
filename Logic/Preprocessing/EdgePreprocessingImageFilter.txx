@@ -33,10 +33,15 @@
 
 =========================================================================*/
 
+#include <EdgePreprocessingSettings.h>
+
 template<typename TInputImage,typename TOutputImage>
 EdgePreprocessingImageFilter<TInputImage,TOutputImage>
 ::EdgePreprocessingImageFilter()
 {  
+  // Set the number of inputs to two (second is the parameters)
+  this->SetNumberOfInputs(2);
+
   // Construct the adaptor
   m_CastFilter = CastFilterType::New();
   m_CastFilter->ReleaseDataFlagOn();
@@ -86,6 +91,12 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
   const typename InputImageType::ConstPointer inputImage = this->GetInput();
   typename OutputImageType::Pointer outputImage = this->GetOutput();
 
+  // Get the settings
+  EdgePreprocessingSettings *settings = this->GetParameters();
+
+  // Settings must be set!
+  assert(settings);
+
   // Initialize the progress counter
   m_ProgressAccumulator->ResetProgress();
 
@@ -98,15 +109,16 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
 
   // Set the variance
   Vector3f variance(
-    m_EdgePreprocessingSettings.GetGaussianBlurScale() * 
-    m_EdgePreprocessingSettings.GetGaussianBlurScale());
+    settings->GetGaussianBlurScale() *
+    settings->GetGaussianBlurScale());
+
   m_GaussianFilter->SetVariance(variance.data_block());
 
   // Construct the functor
   FunctorType functor;
   functor.SetParameters(0.0f,1.0f,
-                        m_EdgePreprocessingSettings.GetRemappingExponent(),
-                        m_EdgePreprocessingSettings.GetRemappingSteepness());
+                        settings->GetRemappingExponent(),
+                        settings->GetRemappingSteepness());
 
   // Assign the functor to the filter
   m_RemappingFilter->SetFunctor(functor);
@@ -118,7 +130,6 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
   // graft the mini-pipeline output back onto this filter's output.
   // this is needed to get the appropriate regions passed back.
   GraftOutput( m_RemappingFilter->GetOutput() );
-
 }
 
 template<typename TInputImage,typename TOutputImage>
@@ -132,14 +143,23 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
 template<typename TInputImage,typename TOutputImage>
 void 
 EdgePreprocessingImageFilter<TInputImage,TOutputImage>
-::SetEdgePreprocessingSettings(const EdgePreprocessingSettings &settings)
+::SetParameters(EdgePreprocessingSettings *settings)
 {
-  if(!(settings == m_EdgePreprocessingSettings))
+  if(settings != GetParameters())
     {
-    m_EdgePreprocessingSettings = settings;    
-    this->Modified();
+    this->SetNthInput(1, settings);
     }
 }
+
+template<typename TInputImage,typename TOutputImage>
+EdgePreprocessingSettings *
+EdgePreprocessingImageFilter<TInputImage,TOutputImage>
+::GetParameters()
+{
+  return static_cast<EdgePreprocessingSettings *>(
+        this->GetInputs()[1].GetPointer());
+}
+
 
 template<typename TInputImage,typename TOutputImage>
 void 
@@ -156,5 +176,6 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
 
   // Use the largest possible region (hack)
   inputPtr->SetRequestedRegion(
-    inputPtr->GetLargestPossibleRegion());
+        inputPtr->GetLargestPossibleRegion());
 }
+

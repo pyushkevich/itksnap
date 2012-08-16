@@ -17,8 +17,7 @@
 CurrentVoxelInfoItemSetDomain
 ::CurrentVoxelInfoItemSetDomain(
     IRISApplication *app, int role_filter)
-  : Superclass(app == NULL ? NULL : app->GetCurrentImageData(), role_filter),
-    m_Driver(app)
+  : Superclass(app, role_filter), m_Driver(app)
 {
 }
 

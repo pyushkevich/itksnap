@@ -79,9 +79,6 @@ GlobalState
 
   m_SpeedViewZero = false;
   m_SnakeParameters = SnakeParameters::GetDefaultEdgeParameters();
-  m_ThresholdSettingsModel = NewSimpleConcreteProperty(
-        ThresholdSettings::MakeDefaultSettingsWithoutImage());
-  m_EdgePreprocessingSettings = EdgePreprocessingSettings::MakeDefaultSettings();
 
   // Default preview modes: enabled for in-out, disabled for edges (too slow)
   m_ShowPreprocessedEdgePreview = false;
