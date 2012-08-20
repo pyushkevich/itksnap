@@ -5,6 +5,7 @@
 #include "SnakeWizardModel.h"
 #include "QtWidgetActivator.h"
 #include "ThresholdSettingsRenderer.h"
+#include "QtCheckBoxCoupling.h"
 
 SpeedImageDialog::SpeedImageDialog(QWidget *parent) :
   QDialog(parent),
@@ -34,6 +35,8 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   makeCoupling(ui->inLowerThreshold, model->GetThresholdLowerModel());
   makeCoupling(ui->inUpperThreshold, model->GetThresholdUpperModel());
   makeCoupling(ui->inThresholdSmoothness, model->GetThresholdSmoothnessModel());
+  makeCoupling(ui->chkThresholdPreview, model->GetThresholdPreviewModel());
+
   makeRadioGroupCoupling(ui->grpThresholdMode, model->GetThresholdModeModel());
 
   // Set up activation

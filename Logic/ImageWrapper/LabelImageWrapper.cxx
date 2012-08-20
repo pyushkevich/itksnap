@@ -99,14 +99,6 @@ LabelImageWrapper
 }
 
 
-void LabelImageWrapper::GetVoxelDisplayAppearance(
-    const Vector3ui &x, ImageWrapperBase::DisplayPixelType &out)
-{
-  LabelType label = this->GetVoxel(x);
-  this->GetLabelColorTable()->GetColorLabel(label).GetRGBAVector(
-        out.GetDataPointer());
-}
-
 /**
  * This definition is needed to use RGBA pixels for compilation
  */

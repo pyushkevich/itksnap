@@ -35,9 +35,13 @@
 #ifndef __ScalarImageWrapper_h_
 #define __ScalarImageWrapper_h_
 
-// Smart pointers have to be included from ITK, can't forward reference them
 #include "ImageWrapper.h"
-#include <itkMinimumMaximumImageCalculator.h>
+
+// Forward references
+namespace itk {
+  template<class TInputImage> class MinimumMaximumImageFilter;
+}
+
 
 /**
  * \class ScalarImageWrapper
@@ -68,8 +72,7 @@ public:
   typedef typename Superclass::SlicerPointer SlicerPointer;
 
   // MinMax calculator type
-  typedef itk::MinimumMaximumImageCalculator<ImageType> MinMaxCalculatorType;
-  typedef SmartPtr<MinMaxCalculatorType> MinMaxCalculatorPointer;
+  typedef itk::MinimumMaximumImageFilter<ImageType> MinMaxFilter;
 
   // Iterator types
   typedef typename Superclass::Iterator Iterator;
@@ -154,10 +157,6 @@ public:
     out[0] = this->GetVoxel(idx);
   }
 
-  /** Get voxel at the position as an RGBA object. This returns the appearance
-    of the voxel for display (applying all intensity transformations) */
-  virtual void GetVoxelDisplayAppearance(const Vector3ui &x, DisplayPixelType &out);
-
   /**
     Get the maximum intensity
     */
@@ -214,7 +213,7 @@ protected:
    * The min-max calculator used to hold min/max values.  This should be
    * replaced by a filter, when the latter is more efficient
    */
-  MinMaxCalculatorPointer m_MinMaxCalc;
+  SmartPtr<MinMaxFilter> m_MinMaxFilter;
 
   // Mapping from native to internal format (get rid of in the future?)
   InternalToNativeFunctor m_NativeMapping;

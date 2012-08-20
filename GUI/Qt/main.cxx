@@ -23,6 +23,10 @@
 
 #include "ImageIODelegates.h"
 
+#include <iostream>
+
+using namespace std;
+
 // Setup printing of stack trace on segmentation faults. This only
 // works on select GNU systems
 #if defined(__GNUC__) && !defined(__CYGWIN__) && !defined(__APPLE__) && !defined(sun) && !defined(WIN32)
@@ -375,7 +379,7 @@ int main(int argc, char *argv[])
   mainwin.show();
 
   // Run application
-  int rc = app.exec();
+    int rc = app.exec();
 
   // If everything cool, save the preferences
   if(!rc)

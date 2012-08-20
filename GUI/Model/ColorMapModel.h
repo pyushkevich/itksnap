@@ -5,7 +5,7 @@
 #include "PropertyModel.h"
 #include "GreyImageWrapper.h"
 #include <UIReporterDelegates.h>
-
+#include "ColorMap.h"
 
 class ColorMap;
 class SystemInterface;

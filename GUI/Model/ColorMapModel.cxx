@@ -232,10 +232,6 @@ bool ColorMapModel::ProcessMouseReleaseEvent(const Vector3d &x)
 void ColorMapModel::OnUpdate()
 {
   Superclass::OnUpdate();
-  if(m_EventBucket->HasEvent(ColorMapChangeEvent()))
-    {
-    this->GetLayer()->UpdateIntensityMapFunction();
-    }
 }
 
 bool

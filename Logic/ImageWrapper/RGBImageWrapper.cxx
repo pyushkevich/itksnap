@@ -78,15 +78,6 @@ RGBImageWrapper<TComponent>
 }
 
 template<class TComponent>
-void RGBImageWrapper<TComponent>
-::GetVoxelDisplayAppearance(
-    const Vector3ui &x, RGBImageWrapper::DisplayPixelType &out)
-{
-  out = m_IntensityFunctor(this->GetVoxel(x));
-}
-
-
-template<class TComponent>
 typename RGBImageWrapper<TComponent>::DisplayPixelType
 RGBImageWrapper<TComponent>::IntensityFunctor
 ::operator()(const PixelType &x) const

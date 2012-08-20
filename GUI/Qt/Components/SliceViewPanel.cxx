@@ -14,6 +14,7 @@
 #include "PolygonDrawingModel.h"
 #include "QtWidgetActivator.h"
 #include "SnakeModeRenderer.h"
+#include "SnakeWizardModel.h"
 
 #include <QStackedLayout>
 #include <QMenu>
@@ -148,6 +149,9 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   // Listen to the Snake ROI model too
   connectITK(m_GlobalUI->GetSnakeROIModel(index),
              ModelUpdateEvent());
+
+  // Listen to all (?) events from the snake wizard as well
+  connectITK(m_GlobalUI->GetSnakeWizardModel(), IRISEvent());
 
   // Activation
   activateOnFlag(this, m_GlobalUI, UIF_BASEIMG_LOADED);

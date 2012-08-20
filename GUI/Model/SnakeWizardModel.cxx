@@ -5,6 +5,7 @@
 #include "GenericImageData.h"
 #include "SNAPImageData.h"
 #include "SmoothBinaryThresholdImageFilter.h"
+#include "ColorMap.h"
 
 SnakeWizardModel::SnakeWizardModel()
 {
@@ -37,6 +38,17 @@ SnakeWizardModel::SnakeWizardModel()
         ThresholdSettingsUpdateEvent(),
         ThresholdSettingsUpdateEvent());
 
+  m_ThresholdPreviewModel = makeChildPropertyModel(
+        this,
+        &Self::GetThresholdPreviewValue,
+        &Self::SetThresholdPreviewValue,
+        ThresholdSettingsUpdateEvent(),
+        ThresholdSettingsUpdateEvent());
+
+  m_SnakeTypeModel = makeChildPropertyModel(
+        this,
+        &Self::GetSnakeTypeValueAndRange,
+        &Self::SetSnakeTypeValue);
 }
 
 void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
@@ -56,6 +68,10 @@ void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
   // Changes to the threshold settings are rebroadcast as own own events
   Rebroadcast(m_Driver->GetThresholdSettings(),
               itk::ModifiedEvent(), ThresholdSettingsUpdateEvent());
+
+  // Changes to the snake mode are cast as model update events
+  Rebroadcast(m_GlobalState->GetSnakeTypeModel(),
+              ValueChangedEvent(), ModelUpdateEvent());
 
   // We also need to rebroadcast these events as state change events
   Rebroadcast(this, ThresholdSettingsUpdateEvent(), StateMachineChangeEvent());
@@ -207,9 +223,32 @@ void SnakeWizardModel::ApplyThresholdPreprocessing()
   m_GlobalState->SetShowSpeed(true);
 }
 
-SnakeWizardModel::AbstractSnakeTypeModel *SnakeWizardModel::GetSnakeTypeModel() const
+bool SnakeWizardModel::GetThresholdPreviewValue(bool &value)
 {
-  return m_GlobalState->GetSnakeTypeModel();
+  if(m_Driver->IsSnakeModeActive())
+    {
+    value = m_Driver->GetSNAPImageData()->GetThresholdPreviewMode();
+    return true;
+    }
+  else return false;
+}
+
+void SnakeWizardModel::SetThresholdPreviewValue(bool value)
+{
+  assert(m_Driver->IsSnakeModeActive());
+  m_Driver->GetSNAPImageData()->SetThresholdPreviewMode(value);
+  m_GlobalState->SetShowSpeed(value);
+}
+
+bool SnakeWizardModel::GetSnakeTypeValueAndRange(
+    SnakeType &value, GlobalState::SnakeTypeDomain *range)
+{
+  return m_GlobalState->GetSnakeTypeModel()->GetValueAndDomain(value, range);
+}
+
+void SnakeWizardModel::SetSnakeTypeValue(SnakeType value)
+{
+  m_Driver->SetSnakeMode(value);
 }
 
 

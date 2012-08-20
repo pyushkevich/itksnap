@@ -136,6 +136,8 @@ SET(LOGIC_CXX
   Logic/Preprocessing/EdgePreprocessingSettings.cxx
   Logic/Preprocessing/ThresholdSettings.cxx
   Logic/Slicing/IntensityCurveVTK.cxx
+  Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
+  Logic/Slicing/LookupTableIntensityMappingFilter.cxx
 )
 
 # The headers for the Logic code
@@ -226,8 +228,8 @@ SET(LOGIC_HEADERS
   Logic/Slicing/IRISSlicer.txx
   Logic/Slicing/IntensityCurveInterface.h
   Logic/Slicing/IntensityCurveVTK.h
-  Logic/Slicing/UnaryFunctorCache.h
-  Logic/Slicing/UnaryFunctorCache.txx  
+  Logic/Slicing/IntensityToColorLookupTableImageFilter.h
+  Logic/Slicing/LookupTableIntensityMappingFilter.h
 )
 
 # These files have the UI model code, which is GUI-TK independent

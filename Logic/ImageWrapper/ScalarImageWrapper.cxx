@@ -28,6 +28,7 @@
 #include "IRISSlicer.h"
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
+#include "itkMinimumMaximumImageFilter.h"
 
 #include "ScalarImageHistogram.h"
 
@@ -38,6 +39,7 @@ ScalarImageWrapper<TPixel>
 ::ScalarImageWrapper()
 {
   m_Histogram = ScalarImageHistogram::New();
+  m_MinMaxFilter = MinMaxFilter::New();
 }
 
 template <class TPixel>
@@ -78,8 +80,7 @@ ScalarImageWrapper<TPixel>
 ::UpdateImagePointer(ImageType *newImage) 
 {
   // Update the max-min pipeline once we have one setup
-  m_MinMaxCalc = MinMaxCalculatorType::New();
-  m_MinMaxCalc->SetImage(newImage);
+  m_MinMaxFilter->SetInput(newImage);
 
   // Call the parent
   ImageWrapper<TPixel>::UpdateImagePointer(newImage);
@@ -205,16 +206,12 @@ ScalarImageWrapper<TPixel>
 ::CheckImageIntensityRange() 
 {
   // Image should be loaded
-  assert(this->m_Image && m_MinMaxCalc);
+  assert(this->m_Image);
 
   // Check if the image has been updated since the last time that
   // the min/max has been computed
-  if (this->m_Image->GetMTime() > m_MinMaxCalc->GetMTime())
-    {
-    m_MinMaxCalc->Compute();
-    m_MinMaxCalc->Modified();
-    m_ImageScaleFactor = 1.0 / (m_MinMaxCalc->GetMaximum() - m_MinMaxCalc->GetMinimum());
-    }
+  m_MinMaxFilter->Update();
+  m_ImageScaleFactor = 1.0 / (m_MinMaxFilter->GetMaximum() - m_MinMaxFilter->GetMinimum());
 }
 
 template <class TPixel> 
@@ -226,7 +223,7 @@ ScalarImageWrapper<TPixel>
   CheckImageIntensityRange();
 
   // Return the max or min
-  return m_MinMaxCalc->GetMinimum();
+  return m_MinMaxFilter->GetMinimum();
 }
 
 template <class TPixel> 
@@ -238,7 +235,7 @@ ScalarImageWrapper<TPixel>
   CheckImageIntensityRange();
 
   // Return the max or min
-  return m_MinMaxCalc->GetMaximum();
+  return m_MinMaxFilter->GetMaximum();
 }
 
 template <class TPixel>
@@ -330,16 +327,6 @@ ScalarImageWrapper<TPixel>
 
   return m_Histogram;
 }
-
-template<class TPixel>
-void ScalarImageWrapper<TPixel>
-::GetVoxelDisplayAppearance(
-    const Vector3ui &x, ImageWrapperBase::DisplayPixelType &out)
-{
-  // This default implementation does nothing
-  out.Fill(0);
-}
-
 
 template class ScalarImageWrapper<float>;
 template class ScalarImageWrapper<GreyType>;

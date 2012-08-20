@@ -36,7 +36,6 @@
 #define __LabelImageWrapper_h_
 
 #include "ScalarImageWrapper.h"
-#include "UnaryFunctorCache.h"
 #include "LabelToRGBAFilter.h"
 
 
@@ -79,10 +78,6 @@ public:
    */
   DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
-  /** Get voxel at the position as an RGBA object. This returns the appearance
-    of the voxel for display (applying all intensity transformations) */
-  void GetVoxelDisplayAppearance(const Vector3ui &x, DisplayPixelType &out);
-
   /** Constructor initializes mapper */
   LabelImageWrapper();
 
@@ -110,16 +105,8 @@ private:
       bool operator != (const IntensityFunctor &) const { return false; }
   };
 
-  // Type of intensity function used to map 3D volume intensity into
-  // 2D slice intensities
-  // typedef 
-  //  UnaryFunctorCache<LabelType,DisplayPixelType,IntensityFunctor> CacheType;  
-  // typedef itk::SmartPointer<CacheType> CachePointer;
-  // typedef CacheType::CachingFunctor CacheFunctor;
-
   // Filter applied to slices
   typedef itk::Image<LabelType,2> LabelSliceType;
-
 
   typedef LabelToRGBAFilter RGBAFilterType;
   typedef RGBAFilterType::Pointer RGBAFilterPointer;

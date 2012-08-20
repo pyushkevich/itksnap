@@ -54,7 +54,7 @@ CurrentVoxelInfoItemSetDomain
 
   // Get the displayed color
   ImageWrapperBase::DisplayPixelType disprgb;
-  it.GetLayer()->GetVoxelDisplayAppearance(cursor, disprgb);
+  it.GetLayer()->GetVoxelUnderCursorAppearance(disprgb);
   vox.Color = Vector3ui(disprgb[0], disprgb[1], disprgb[2]);
 
   // Return the description

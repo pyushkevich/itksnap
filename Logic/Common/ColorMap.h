@@ -39,7 +39,7 @@
 #include "itkRGBAPixel.h"
 #include "Registry.h"
 #include <vector>
-#include "itkObject.h"
+#include "itkDataObject.h"
 #include "SNAPEvents.h"
 
 /**
@@ -54,7 +54,7 @@
  * one RGBA value, and discontinuous points have two values. In between points,
  * the color map is interpolated linearly.
  */
-class ColorMap : public itk::Object
+class ColorMap : public itk::DataObject
 {
 public:
 

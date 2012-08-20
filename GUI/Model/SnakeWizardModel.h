@@ -46,9 +46,10 @@ public:
   irisGetMacro(ThresholdUpperModel, AbstractRangedDoubleProperty *)
   irisGetMacro(ThresholdSmoothnessModel, AbstractRangedDoubleProperty *)
   irisGetMacro(ThresholdModeModel, AbstractThresholdModeModel *)
+  irisGetMacro(ThresholdPreviewModel, AbstractSimpleBooleanProperty *)
 
   // Get the model for the snake type
-  AbstractSnakeTypeModel *GetSnakeTypeModel() const;
+  irisGetMacro(SnakeTypeModel, AbstractSnakeTypeModel *)
 
   /** Check the state flags above */
   bool CheckState(UIState state);
@@ -79,6 +80,14 @@ protected:
   SmartPtr<AbstractThresholdModeModel> m_ThresholdModeModel;
   bool GetThresholdModeValue(ThresholdSettings::ThresholdMode &x);
   void SetThresholdModeValue(ThresholdSettings::ThresholdMode x);
+
+  SmartPtr<AbstractSimpleBooleanProperty> m_ThresholdPreviewModel;
+  bool GetThresholdPreviewValue(bool &value);
+  void SetThresholdPreviewValue(bool value);
+
+  SmartPtr<AbstractSnakeTypeModel> m_SnakeTypeModel;
+  bool GetSnakeTypeValueAndRange(SnakeType &value, GlobalState::SnakeTypeDomain *range);
+  void SetSnakeTypeValue(SnakeType value);
 
   GlobalUIModel *m_Parent;
   IRISApplication *m_Driver;

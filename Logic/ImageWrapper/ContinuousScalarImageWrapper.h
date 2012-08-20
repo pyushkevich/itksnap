@@ -106,14 +106,17 @@ public:
 
 
 
+/**
+  An image wrapper for images that have a continuous intensity range (greyscale,
+  speed), as opposed to a discrete set of values (label images).
 
+  */
 template <class TPixel, class TNativeToDisplayTraits>
 class ContinuousScalarImageWrapper :
   public ScalarImageWrapper<TPixel>, public ContinuousScalarImageWrapperBase
 {
 public:
   ContinuousScalarImageWrapper();
-
 
   typedef TNativeToDisplayTraits TraitsType;
   typedef typename TraitsType::IntensityFunctor IntensityFunctor;
@@ -134,10 +137,6 @@ public:
    */
   DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
-
-  /** Get voxel at the position as an RGBA object. This returns the appearance
-    of the voxel for display (applying all intensity transformations) */
-  void GetVoxelDisplayAppearance(const Vector3ui &x, DisplayPixelType &out);
 
 
 protected:

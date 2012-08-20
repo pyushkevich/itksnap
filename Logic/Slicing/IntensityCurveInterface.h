@@ -35,7 +35,8 @@
 #ifndef __IntensityCurveInterface_h_
 #define __IntensityCurveInterface_h_
 
-#include <itkFunctionBase.h>
+#include <itkDataObject.h>
+#include <itkObjectFactory.h>
 #include <Registry.h>
 #include <SNAPEvents.h>
 
@@ -43,21 +44,18 @@
  * \class IntensityCurveInterface
  * \brief The base class for intensity mapping splines
  */
-class ITK_EXPORT IntensityCurveInterface : public itk::FunctionBase<float,float>
+class ITK_EXPORT IntensityCurveInterface : public itk::DataObject
 {
 public:
 
   /** Standard class typedefs. */
   typedef IntensityCurveInterface Self;
-  typedef itk::FunctionBase<float,float> Superclass;
+  typedef itk::DataObject Superclass;
   typedef itk::SmartPointer<Self> Pointer;
   typedef itk::SmartPointer<const Self> ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(IntensityCurveInterface,itk::FunctionBase)
-
-  /** Fires an event when the curve is modified */
-  FIRES(IntensityCurveChangeEvent)
+  itkTypeMacro(IntensityCurveInterface,itk::DataObject)
 
   /**
    * Initialize the spline with initial number of control points.
@@ -100,6 +98,9 @@ public:
 
   /** Save the curve to a registry object */
   virtual void SaveToRegistry(Registry &registry) const = 0;
+
+  /** Evaluate the curve */
+  virtual float Evaluate(const float &t) const = 0;
 
 protected:
   IntensityCurveInterface(){};

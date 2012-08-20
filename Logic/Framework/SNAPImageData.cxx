@@ -57,6 +57,7 @@
 #include "SpeedImageWrapper.h"
 #include "IRISApplication.h"
 #include "ThresholdSettings.h"
+#include "ColorMap.h"
 
 
 #include "SNAPImageData.h"
@@ -112,9 +113,6 @@ SNAPImageData
   // Intialize the speed based on the current grey image
   m_SpeedWrapper.InitializeToWrapper(m_GreyImageWrapper, 0.0f);
 
-  // TODO: Speed images should not just be an implementation of grey images
-  m_SpeedWrapper.UpdateIntensityMapFunction();
-
   // Here or after it's computed?
   m_SpeedWrapper.SetAlpha(255);
 
@@ -131,9 +129,6 @@ SNAPImageData
   // m_EdgePreprocessingPreviewWrapper->SetParameters(&settings);
   m_EdgePreprocessingPreviewWrapper->ComputeOutputVolume(progressCallback);
 
-  // TODO: Speed images should not just be an implementation of grey images
-  m_SpeedWrapper.UpdateIntensityMapFunction();
-
   // Here or after it's computed?
   m_SpeedWrapper.SetAlpha(255);
 }
@@ -144,9 +139,6 @@ SNAPImageData
 {
   // Use the wrapper object to compute the volume
   m_ThresholdPreviewWrapper->ComputeOutputVolume(progressCallback);
-
-  // TODO: Speed images should not just be an implementation of grey images
-  m_SpeedWrapper.UpdateIntensityMapFunction();
 
   // Here or after it's computed?
   m_SpeedWrapper.SetAlpha(255);
@@ -540,7 +532,6 @@ SNAPImageData
     srcWrapper->GetImageMinAsDouble(),
     srcWrapper->GetImageMaxAsDouble());
   m_GreyImageWrapper->CopyIntensityMap(*srcWrapper);
-  m_GreyImageWrapper->UpdateIntensityMapFunction();
 
   // Copy the colormap too
   m_GreyImageWrapper->GetColorMap()->CopyInformation(srcWrapper->GetColorMap());
@@ -548,6 +539,7 @@ SNAPImageData
 
 
 #include <IRISSlicer.h>
+#include <ColorMap.h>
 
 
 template<class TFilter, class TParameter>
@@ -641,4 +633,36 @@ PreviewCapableFilterWrapper<TFilter, TParameter>
 
   m_Wrapper->GetImage()->DisconnectPipeline();
 }
+
+void SNAPImageData::UpdatePreviewPipeline(SnakeType mode)
+{
+  // This makes sure that if teh corresponding wrapper is in preview mode,
+  // it will be attached to the slicers, and the other wrapper(s) detached.
+  if(mode == IN_OUT_SNAKE)
+    m_ThresholdPreviewWrapper->AttachToWrapper(&m_SpeedWrapper);
+  else if(mode == EDGE_SNAKE)
+    m_EdgePreprocessingPreviewWrapper->AttachToWrapper(&m_SpeedWrapper);
+}
+
+bool SNAPImageData::GetThresholdPreviewMode() const
+{
+  return m_ThresholdPreviewWrapper->IsPreviewMode();
+}
+
+void SNAPImageData::SetThresholdPreviewMode(bool mode)
+{
+  m_ThresholdPreviewWrapper->SetPreviewMode(mode);
+}
+
+bool SNAPImageData::GetEdgePreprocessingPreviewMode() const
+{
+  return m_EdgePreprocessingPreviewWrapper->IsPreviewMode();
+}
+
+void SNAPImageData::SetEdgePreprocessingPreviewMode(bool mode)
+{
+  m_EdgePreprocessingPreviewWrapper->SetPreviewMode(mode);
+}
+
+
 

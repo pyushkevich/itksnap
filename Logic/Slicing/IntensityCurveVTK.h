@@ -54,10 +54,10 @@ public:
   typedef itk::SmartPointer<const Self> ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(IntensityCurveVTK,IntensityCurveInterface);
+  itkTypeMacro(IntensityCurveVTK,IntensityCurveInterface)
 
   /** New method */
-  itkNewMacro(Self);
+  itkNewMacro(Self)
 
   // Defined in the parent class
   void Initialize(unsigned int nControlPoints = 3);

@@ -43,6 +43,7 @@
 
 #include "EdgePreprocessingSettings.h"
 #include "ThresholdSettings.h"
+#include "IntensityCurveInterface.h"
 
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
@@ -404,7 +405,6 @@ SNAPRegistryIO
       {
       app->GetCurrentImageData()->GetGrey()->GetIntensityMapFunction()->
         LoadFromRegistry(registry.Folder("IRIS.IntensityCurve"));
-      app->GetCurrentImageData()->GetGrey()->UpdateIntensityMapFunction();
 	 }
     }
 

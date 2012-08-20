@@ -148,12 +148,14 @@ void ColorMapRenderer::paintGL()
     glBegin(GL_LINE_STRIP);
     glColor4ub(0x00,0x00,0x00,0xff);
     glVertex2d(-0.1, v0[3] / 255.0);
+
     for(size_t i = 0; i < cmap->GetNumberOfCMPoints(); i++)
       {
       ColorMap::CMPoint p = cmap->GetCMPoint(i);
       glVertex2d(p.m_Index, p.m_RGBA[0][3] / 255.0);
       glVertex2d(p.m_Index, p.m_RGBA[1][3] / 255.0);
       }
+
     glVertex2d(1.1, v1[3] / 255.0);
     glEnd();
 

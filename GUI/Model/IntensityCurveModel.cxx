@@ -4,6 +4,7 @@
 #include "itkImageBase.h"
 #include "ScalarImageHistogram.h"
 #include "GlobalUIModel.h"
+#include "IntensityCurveInterface.h"
 
 #include "LayerAssociation.txx"
 
@@ -64,10 +65,10 @@ void
 IntensityCurveModel
 ::RegisterWithLayer(GreyImageWrapperBase *layer)
 {
-  // Listen to events on the layer's curve
+  // Listen to changes in the layer's intensity curve
   unsigned long tag =
       Rebroadcast(layer->GetIntensityMapFunction(),
-                  IntensityCurveChangeEvent(), ModelUpdateEvent());
+                  itk::ModifiedEvent(), ModelUpdateEvent());
 
   // Set a flag so we don't register a listener again
   GetProperties().SetObserverTag(tag);
@@ -519,12 +520,14 @@ void IntensityCurveModel::OnResetCurveAction()
 void IntensityCurveModel::OnUpdate()
 {
   Superclass::OnUpdate();
-
+  /*
+    TODO: REMOVE THIS!
   if(m_EventBucket->HasEvent(IntensityCurveChangeEvent()))
     {
     // Inform the layer that it needs to recompute its intensity map function
     this->GetLayer()->UpdateIntensityMapFunction();
     }
+    */
 }
 
 void IntensityCurveModel::OnAutoFitWindow()

@@ -370,6 +370,15 @@ public:
   /** Get the pointer to the settings used for edge-based preprocessing */
   irisGetMacro(EdgePreprocessingSettings, EdgePreprocessingSettings *)
 
+  /** Set the current snake mode. This method should be called instead of the
+      method in GlobalState because when the snake mode is set, some changes
+      are made to the image data (having to do with setting up the preview
+      filters if they are available, and cleaning speed data) */
+  void SetSnakeMode(SnakeType mode);
+
+  /** Get the current snake mode (active contours must be active) */
+  SnakeType GetSnakeMode() const;
+
 protected:
 
   IRISApplication();

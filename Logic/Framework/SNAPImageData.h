@@ -119,6 +119,18 @@ public:
    * store the result in the speed image wrapper */
   void DoInOutPreprocessing(itk::Command *progressCallback = 0);
 
+  /** Update the preview pipeline in response to the change in the active
+    snake preprocessing mode */
+  void UpdatePreviewPipeline(SnakeType mode);
+
+  /** Toggle preview mode for thresholding */
+  bool GetThresholdPreviewMode() const;
+  void SetThresholdPreviewMode(bool mode);
+
+  /** Toggle preview mode for edge-based processing */
+  bool GetEdgePreprocessingPreviewMode() const;
+  void SetEdgePreprocessingPreviewMode(bool mode);
+
   /**
    * Initialize the Speed image wrapper to blank data
    */

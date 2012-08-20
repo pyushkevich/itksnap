@@ -1548,3 +1548,26 @@ void IRISApplication::ComputeSNAPSpeedImage(CommandType *progressCB)
   InvokeEvent(SpeedImageChangedEvent());
 }
 
+void IRISApplication::SetSnakeMode(SnakeType mode)
+{
+  // We must be in snake mode
+  assert(IsSnakeModeActive());
+
+  // If the mode has changed, some modifications are needed
+  if(mode != m_GlobalState->GetSnakeType())
+    {
+    // Set the actual snake mode
+    m_GlobalState->SetSnakeType(mode);
+
+    // Clear the speed image
+    m_SNAPImageData->UpdatePreviewPipeline(mode);
+    }
+}
+
+SnakeType IRISApplication::GetSnakeMode() const
+{
+  return m_GlobalState->GetSnakeType();
+}
+
+
+

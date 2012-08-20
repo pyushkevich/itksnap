@@ -36,20 +36,12 @@
 #define __GreyImageWrapper_h_
 
 #include "ScalarImageWrapper.h"
-#include "ColorMap.h"
-#include "IntensityCurveVTK.h"
-// #include "UnaryFunctorCache.h"
 
 // Forward references
-namespace itk {
-  template<class TInput,class TOutput> class FunctionBase;
-  template<class TInput,class TOutput,class TFunctor> 
-    class UnaryFunctorImageFilter;
-};
-template <class TInput, class TOutput, class TFunctor> 
-  class UnaryFunctorCache;
-template <class TInput, class TOutput, class TFunctor> 
-  class CachingUnaryFunctor;
+template <class TIn, class TLUT> class IntensityToColorLookupTableImageFilter;
+template <class TIn, class TOut> class LookupTableIntensityMappingFilter;
+class IntensityCurveVTK;
+class ColorMap;
 
 /**
  * \class GreyImageWrapper
@@ -63,6 +55,10 @@ class GreyImageWrapper
     : public ScalarImageWrapper<TPixel>, public GreyImageWrapperBase
 {
 public:
+
+  typedef typename ScalarImageWrapper<TPixel>::ImageType ImageType;
+  typedef typename ScalarImageWrapper<TPixel>::SliceType SliceType;
+  typedef typename ScalarImageWrapper<TPixel>::DisplaySliceType DisplaySliceType;
 
   /**
    * Get the intensity curve to be used for mapping image intensities 
@@ -81,7 +77,7 @@ public:
    */
   void CopyIntensityMap(const GreyImageWrapperBase &source);
 
-  void UpdateIntensityMapFunction();
+  // void UpdateIntensityMapFunction();
 
   /**
    * Set the reference intensity range - a range of intensity that 
@@ -102,18 +98,12 @@ public:
     */
   ColorMap *GetColorMap () const;
 
-
-  /** Get voxel at the position as an RGBA object. This returns the appearance
-    of the voxel for display (applying all intensity transformations) */
-  void GetVoxelDisplayAppearance(const Vector3ui &x, DisplayPixelType &out);
-
   /**
     Automatically rescale the intensity range based on image histogram
     quantiles.
     */
   void AutoFitContrast();
 
-  void Update();
 
   /** Constructor initializes mappers */
   GreyImageWrapper();
@@ -123,76 +113,23 @@ public:
 
 private:
 
-  /**
-   * This object is passed on to the cache for intensity mapping
-   */
-  class IntensityFunctor {
-  public:
+  // Lookup table
+  typedef itk::Image<DisplayPixelType, 1>                     LookupTableType;
 
-    /** Map a grey value */
-    DisplayPixelType operator()(const TPixel &value) const;
+  // Filter that generates the lookup table
+  typedef IntensityToColorLookupTableImageFilter<
+              ImageType, LookupTableType>               LookupTableFilterType;
 
-    // Parent object
-    GreyImageWrapper<TPixel> *m_Parent;
+  // Filter that applies the lookup table to slices
+  typedef LookupTableIntensityMappingFilter<
+                SliceType, DisplaySliceType>              IntensityFilterType;
 
-    // Intensity mapping factors
-    double m_IntensityMin;
-    float m_IntensityFactor;
- 
-    // Equality operators required, if variables defined!!!
-    /*
-    bool operator == (const IntensityFunctor &z) const 
-      { 
-      return 
-        m_Parent->m_IntensityCurveVTK == z.m_Parent->m_IntensityCurveVTK &&
-        m_IntensityFactor == z.m_IntensityFactor &&
-        m_IntensityMin == z.m_IntensityMin &&
-        *(m_Parent->m_ColorMap) == *(z.m_Parent->m_ColorMap);
-      }
 
-    bool operator != (const IntensityFunctor &z) const 
-      { return !(*this == z); }
-    */
+  // LUT generator
+  SmartPtr<LookupTableFilterType> m_LookupTableFilter;
 
-    /**
-     * Set the range over which the input data is mapped to output data
-     */
-    void SetInputRange(TPixel intensityMin,TPixel intensityMax);
-  };
-
-  // Type of intensity function used to map 3D volume intensity into
-  // 2D slice intensities
-  typedef UnaryFunctorCache<TPixel,DisplayPixelType,IntensityFunctor> CacheType;
-  typedef itk::SmartPointer<CacheType> CachePointer;  
-  typedef CachingUnaryFunctor<TPixel,DisplayPixelType,IntensityFunctor>
-     CacheFunctor;
-
-  // Filters applied to slices
-  typedef itk::Image<TPixel,2> GreySliceType;
-  typedef itk::UnaryFunctorImageFilter<
-    GreySliceType,DisplaySliceType,CacheFunctor> IntensityFilterType;
-  typedef itk::SmartPointer<IntensityFilterType> IntensityFilterPointer;
-
-  /**
-   * Reference intensity range. This is used for images that are subregions
-   * of larger images. When evaluating the intensity of these images, the 
-   * intensity curve needs to be applied to the intensity range of the larger 
-   * image, not that of the region.
-   */
-  double m_ReferenceIntensityMin, m_ReferenceIntensityMax;
-  bool m_FlagUseReferenceIntensityRange;
-
-  /**
-   * An instance of the private intensity mapper (this mapper wraps the
-   * passed in float->float function to a new function that is 
-   * [min..max]->uchar)
-   */
-  IntensityFunctor m_IntensityFunctor;
-
-  /**
-   * A cache used for the intensity mapping function
-   */
-  CachePointer m_IntensityMapCache;
+  // Filters for the three slice directions
+  SmartPtr<IntensityFilterType> m_IntensityFilter[3];
 
   /**
    * Implementation of the intensity curve funcitonality. The intensity map
@@ -207,11 +144,8 @@ private:
     */
   SmartPtr<ColorMap> m_ColorMap;
 
-  /**
-   * Filters used to remap the intensity of the slices in this image
-   * into unsigned char images
-   */
-  IntensityFilterPointer m_IntensityFilter[3];
+  // Handle image pointer changes
+  virtual void UpdateImagePointer(ImageType *image);
 
 };
 

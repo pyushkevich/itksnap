@@ -40,7 +40,6 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkUnaryFunctorImageFilter.h"
-#include "UnaryFunctorCache.h"
 #include "itkRGBAPixel.h"
 #include "IRISSlicer.h"
 #include "IRISApplication.h"
@@ -163,7 +162,6 @@ GenericImageData
   // Set properties
   m_GreyImageWrapper->SetImage(image);
   m_GreyImageWrapper->SetNativeMapping(native);
-  m_GreyImageWrapper->UpdateIntensityMapFunction();
 
   // Is this redundant?
   SetMainImageCommon(newGeometry);
@@ -243,7 +241,6 @@ GenericImageData
   GreyImageWrapper<GreyType> *wrapper = new GreyImageWrapper<GreyType>();
   wrapper->SetImage(image);
   wrapper->SetNativeMapping(native);
-  wrapper->UpdateIntensityMapFunction();
   wrapper->SetAlpha(128);
 
   AddOverlayCommon(wrapper);

@@ -33,13 +33,14 @@
 
 =========================================================================*/
 #include "GreyImageWrapper.h"
-#include "UnaryFunctorCache.h"
 #include "IRISSlicer.h"
 
-#include "itkFunctionBase.h"
-#include "itkUnaryFunctorImageFilter.h"
-
 #include "ScalarImageHistogram.h"
+#include "ColorMap.h"
+#include "IntensityCurveVTK.h"
+#include "IntensityToColorLookupTableImageFilter.h"
+#include "LookupTableIntensityMappingFilter.h"
+#include <itkMinimumMaximumImageFilter.h>
 
 template<class TPixel>
 GreyImageWrapper<TPixel>
@@ -53,53 +54,40 @@ GreyImageWrapper<TPixel>
   // Initialize the colormap
   m_ColorMap = ColorMap::New();
 
-  // Initialize the intensity functor
-  m_IntensityFunctor.m_Parent = this;
+  // Initialize the LUT filter
+  m_LookupTableFilter = LookupTableFilterType::New();
+  m_LookupTableFilter->SetIntensityCurve(m_IntensityCurveVTK);
+  m_LookupTableFilter->SetColorMap(m_ColorMap);
+  m_LookupTableFilter->SetImageMinInput(this->m_MinMaxFilter->GetMinimumOutput());
+  m_LookupTableFilter->SetImageMaxInput(this->m_MinMaxFilter->GetMaximumOutput());
 
-  // Instantiate the cache
-  m_IntensityMapCache = CacheType::New();
-
-  // Set the target of the cache
-  m_IntensityMapCache->SetInputFunctor(&m_IntensityFunctor);
-
-  // Instantiate the filters
-  for(unsigned int i=0;i<3;i++) 
-  {
+  // Initialize the filters that apply the LUT
+  for(unsigned int i=0; i<3; i++)
+    {
     m_IntensityFilter[i] = IntensityFilterType::New();
-    m_IntensityFilter[i]->SetFunctor(m_IntensityMapCache->GetCachingFunctor());
     m_IntensityFilter[i]->SetInput(this->GetSlice(i));
-  }
-
-  // By default, reference range is not used
-  m_FlagUseReferenceIntensityRange = false;
+    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetOutput());
+    }
 }
 
 template<class TPixel>
 GreyImageWrapper<TPixel>
 ::~GreyImageWrapper()
 {
-  for (size_t i = 0; i < 3; ++i)
-    {
-    m_IntensityFilter[i] = NULL;
-    }
-  m_IntensityMapCache = NULL;
-  m_IntensityCurveVTK = NULL;
 }
 
 template<class TPixel>
 void GreyImageWrapper<TPixel>
 ::SetReferenceIntensityRange(double refMin, double refMax)
 {
-  m_FlagUseReferenceIntensityRange = true;
-  m_ReferenceIntensityMin = refMin;
-  m_ReferenceIntensityMax = refMax;  
+  m_LookupTableFilter->SetReferenceIntensityRange(refMin, refMax);
 }
 
 template<class TPixel>
 void GreyImageWrapper<TPixel>
 ::ClearReferenceIntensityRange()
 {
-  m_FlagUseReferenceIntensityRange = false;
+  m_LookupTableFilter->RemoveReferenceIntensityRange();
 }
 
 template<class TPixel>
@@ -125,6 +113,8 @@ GreyImageWrapper<TPixel>
     }
 }
 
+/*
+  TODO: kill this!
 template<class TPixel>
 void
 GreyImageWrapper<TPixel>
@@ -153,22 +143,13 @@ GreyImageWrapper<TPixel>
   for(unsigned int i=0;i<3;i++)
     m_IntensityFilter[i]->Modified();
 }
+*/
 
 template<class TPixel>
 typename GreyImageWrapper<TPixel>::DisplaySlicePointer
 GreyImageWrapper<TPixel>
 ::GetDisplaySlice(unsigned int dim)
 {
-  // TODO: this should be handled through ITK DataObject mechanisms, i.e.,
-  // the filter and curve should be itk::DataObjects and passed in as input
-  // the the m_IntensityFilter
-  unsigned long t_filter = m_IntensityFilter[dim]->GetMTime();
-  unsigned long t_curve = m_IntensityCurveVTK->GetMTime();
-  unsigned long t_colormap = m_ColorMap->GetMTime();
-
-  if(t_curve >= t_filter || t_colormap >= t_filter)
-    UpdateIntensityMapFunction();
-
   return m_IntensityFilter[dim]->GetOutput();
 }
 
@@ -180,38 +161,13 @@ GreyImageWrapper<TPixel>
   return m_ColorMap;
 }
 
-
-template<class TPixel>
+template <class TPixel>
 void
 GreyImageWrapper<TPixel>
-::Update()
+::UpdateImagePointer(ImageType *image)
 {
-  // Dirty the intensity filters
-  for(unsigned int i=0;i<3;i++)
-    m_IntensityFilter[i]->Modified();
-}
-
-template<class TPixel>
-void
-GreyImageWrapper<TPixel>
-::GetVoxelDisplayAppearance(const Vector3ui &x, DisplayPixelType &out)
-{
-  // TODO: this should not be needed, see the note for GetDisplaySlice
-  //  -- make sure the display mapping is updated
-  GetDisplaySlice(0);
-
-  // Apply the filter
-  out = m_IntensityFunctor(this->GetVoxel(x));
-}
-
-
-template<class TPixel>
-void
-GreyImageWrapper<TPixel>::IntensityFunctor
-::SetInputRange(TPixel intensityMin, TPixel intensityMax)
-{
-  m_IntensityMin = intensityMin;
-  m_IntensityFactor = 1.0f / (intensityMax-intensityMin);
+  ScalarImageWrapper<TPixel>::UpdateImagePointer(image);
+  m_LookupTableFilter->SetInput(image);
 }
 
 template <class TPixel>
@@ -268,21 +224,6 @@ GreyImageWrapper<TPixel>
 }
 
 
-
-template<class TPixel>
-typename GreyImageWrapper<TPixel>::DisplayPixelType
-GreyImageWrapper<TPixel>::IntensityFunctor
-::operator()(const TPixel &in) const
-{
-  // Map the input value to range of 0 to 1
-  double inZeroOne = (in - m_IntensityMin) * m_IntensityFactor;
-  
-  // Compute the intensity mapping
-  double outZeroOne = m_Parent->m_IntensityCurveVTK->Evaluate(inZeroOne);
-
-  // Map the output to a RGBA pixel
-  return m_Parent->m_ColorMap->MapIndexToRGBA(outZeroOne);
-}
-
-
 template class GreyImageWrapper<short>;
+
+
