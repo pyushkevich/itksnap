@@ -25,39 +25,51 @@ LayerCurrentVoxelInfo
 CurrentVoxelInfoItemSetDomain
 ::GetDescription(const LayerIterator &it) const
 {
+  // The output structure
   LayerCurrentVoxelInfo vox;
 
   // Set the name
   vox.LayerName = it.GetDynamicNickname().c_str();
 
-  // Get the cursor position
-  Vector3ui cursor = m_Driver->GetCursorPosition();
-
-  // Create a string output
-  std::ostringstream oss;
-
-  // See if this layer is grey
-  if(GreyImageWrapperBase *giw = it.GetLayerAsGray())
+  // Make sure that the layer is initialized
+  if(it.GetLayer()->IsInitialized())
     {
-    // Get the text value
-    oss << std::setprecision(4);
-    oss << giw->GetVoxelMappedToNative(cursor);
+    // Get the cursor position
+    Vector3ui cursor = m_Driver->GetCursorPosition();
+
+    // Create a string output
+    std::ostringstream oss;
+
+    // See if this layer is grey
+    if(GreyImageWrapperBase *giw = it.GetLayerAsGray())
+      {
+      // Get the text value
+      oss << std::setprecision(4);
+      oss << giw->GetVoxelMappedToNative(cursor);
+      }
+    else if(RGBImageWrapperBase *rgbiw = it.GetLayerAsRGB())
+      {
+      double rgb[3];
+      rgbiw->GetVoxelAsDouble(cursor, rgb);
+      oss << rgb[0] << "," << rgb[1] << "," << rgb[2];
+      }
+
+    vox.IntensityValue = oss.str();
+
+    // Get the displayed color
+    ImageWrapperBase::DisplayPixelType disprgb;
+    it.GetLayer()->GetVoxelUnderCursorAppearance(disprgb);
+    vox.Color = Vector3ui(disprgb[0], disprgb[1], disprgb[2]);
+
+    // Return the description
+    return vox;
     }
-  else if(RGBImageWrapperBase *rgbiw = it.GetLayerAsRGB())
+  else
     {
-    double rgb[3];
-    rgbiw->GetVoxelAsDouble(cursor, rgb);
-    oss << rgb[0] << "," << rgb[1] << "," << rgb[2];
+    vox.IntensityValue = "";
+    vox.Color = Vector3ui(0);
     }
 
-  vox.IntensityValue = oss.str();
-
-  // Get the displayed color
-  ImageWrapperBase::DisplayPixelType disprgb;
-  it.GetLayer()->GetVoxelUnderCursorAppearance(disprgb);
-  vox.Color = Vector3ui(disprgb[0], disprgb[1], disprgb[2]);
-
-  // Return the description
   return vox;
 }
 

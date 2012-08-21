@@ -66,7 +66,7 @@ class SpeedImageWrapper : public GreyImageWrapper<short>
 public:
   // Basics
   typedef SpeedImageWrapper Self;
-  typedef ScalarImageWrapper<short> Superclass;
+  typedef GreyImageWrapper<short> Superclass;
   typedef Superclass::ImageType ImageType;
 
   /**

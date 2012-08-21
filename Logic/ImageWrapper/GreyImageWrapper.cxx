@@ -56,6 +56,7 @@ GreyImageWrapper<TPixel>
 
   // Initialize the LUT filter
   m_LookupTableFilter = LookupTableFilterType::New();
+  m_LookupTableFilter->SetInput(this->m_Image);
   m_LookupTableFilter->SetIntensityCurve(m_IntensityCurveVTK);
   m_LookupTableFilter->SetColorMap(m_ColorMap);
   m_LookupTableFilter->SetImageMinInput(this->m_MinMaxFilter->GetMinimumOutput());

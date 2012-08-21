@@ -77,6 +77,10 @@ void
 IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
 ::GenerateOutputInformation()
 {
+  // Since this method could be called before the upstream pipeline has
+  // executed, we need to force a all to Update on the input min/max
+  m_InputMin->Update();
+
   LookupTableType *output = this->GetOutput();
   typename LookupTableType::IndexType idx = {{m_InputMin->Get()}};
   typename LookupTableType::SizeType sz = {{1 + m_InputMax->Get() - m_InputMin->Get()}};

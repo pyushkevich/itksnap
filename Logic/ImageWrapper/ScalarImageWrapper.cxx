@@ -79,11 +79,11 @@ void
 ScalarImageWrapper<TPixel>
 ::UpdateImagePointer(ImageType *newImage) 
 {
-  // Update the max-min pipeline once we have one setup
-  m_MinMaxFilter->SetInput(newImage);
-
   // Call the parent
   ImageWrapper<TPixel>::UpdateImagePointer(newImage);
+
+  // Update the max-min pipeline once we have one setup
+  m_MinMaxFilter->SetInput(newImage);
 }
 
 template <class TPixel>

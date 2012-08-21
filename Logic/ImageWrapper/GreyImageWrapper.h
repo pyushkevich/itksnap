@@ -111,7 +111,7 @@ public:
   /** Destructor */
   ~GreyImageWrapper();
 
-private:
+protected:
 
   // Lookup table
   typedef itk::Image<DisplayPixelType, 1>                     LookupTableType;
