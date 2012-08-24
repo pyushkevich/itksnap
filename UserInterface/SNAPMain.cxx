@@ -455,17 +455,25 @@ int main(int argc, char **argv)
 
       // Try to load the image
       try
-        {
-        ui->NonInteractiveLoadOverlayImage(fname, false, false);
-        }
-      catch(itk::ExceptionObject &exc)
-        {
-        cerr << "Error loading file '" << fname << "'" << endl;
-        cerr << "Reason: " << exc << endl;
-        return -1;
-        }
-      }
-    }
+	    {
+		ui->NonInteractiveLoadOverlayImage(fname, false, false);
+	    }
+	  catch(itk::ExceptionObject &exc)
+	    {
+		cerr << "Error loading file '" << fname << "'" << endl;
+		cerr << "Reason: " << exc << endl;
+		return -1;
+	    }
+	  //Octavian_2012_08_24_16:20: added exception as a response to: 
+	  //bug: ID: 3023489: "-o flag size check"
+	  catch(IRISException & IRISexc)
+	    {
+		cerr << "Error loading file '" << fname << "'" << endl;
+		cerr << "Reason: " << IRISexc << endl;
+		return -1;
+	    }
+	}
+  }
 
   // Load labels if supplied
   if(parseResult.IsOptionPresent("--labels"))
