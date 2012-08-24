@@ -348,7 +348,8 @@ public:
   OutputImageType *operator()(GuidedNativeImageIO *nativeIO);
 
   // Set the functor
-  irisSetMacro(Functor, TCastFunctor)
+  void SetFunctor(TCastFunctor functor) 
+    { m_Functor = functor; }
 
 private:
   typename OutputImageType::Pointer m_Output;

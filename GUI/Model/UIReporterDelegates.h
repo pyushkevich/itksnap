@@ -11,6 +11,7 @@ class ViewportSizeReporter
 public:
   virtual bool CanReportSize() = 0;
   virtual Vector2ui GetViewportSize() = 0;
+  virtual ~ViewportSizeReporter() {};
 };
 
 

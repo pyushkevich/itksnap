@@ -25,6 +25,8 @@ public:
     m_ColorMapObserverTag = 0;
   }
 
+  virtual ~ColorMapLayerProperties() {}
+
   enum Side {LEFT = 0, RIGHT, NA};
 
   irisGetSetMacro(SelectedControlIndex, int)

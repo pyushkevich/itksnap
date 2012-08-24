@@ -68,6 +68,7 @@ public:
   typedef DrawOverLabelItemSetIterator const_iterator;
 
   DrawOverLabelItemSetDomain();
+  virtual ~DrawOverLabelItemSetDomain() {}
 
   void Initialize(ColorLabelTable *clt);
 

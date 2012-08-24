@@ -128,6 +128,7 @@ public:
   virtual const_iterator find(const TVal &value) const = 0;
   virtual TVal GetValue(const const_iterator &it) const  = 0;
   virtual TDesc GetDescription(const const_iterator &it) const  = 0;
+  virtual ~AbstractItemSetDomain() {}
 };
 
 /**
@@ -147,6 +148,7 @@ public:
 
   STLMapWrapperItemSetDomain() { m_SourceMap = NULL; }
   STLMapWrapperItemSetDomain(const MapType *refmap) { m_SourceMap = refmap; }
+  virtual ~STLMapWrapperItemSetDomain() {}
 
   const_iterator begin() const
     { assert(m_SourceMap); return m_SourceMap->begin(); }

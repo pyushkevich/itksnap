@@ -36,7 +36,7 @@ public:
   irisGetSetMacro(ObserverTag, unsigned long)
 
   IntensityCurveLayerProperties();
-  ~IntensityCurveLayerProperties();
+  virtual ~IntensityCurveLayerProperties();
 
 
 protected:

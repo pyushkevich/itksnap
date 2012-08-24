@@ -10,6 +10,8 @@ class ImageInfoLayerProperties
 public:
   irisGetSetMacro(ObserverTag, unsigned long)
 
+  virtual ~ImageInfoLayerProperties() {}
+
 protected:
 
   // Whether or not we are already listening to events from this layer

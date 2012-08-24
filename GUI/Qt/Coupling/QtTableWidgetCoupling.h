@@ -31,7 +31,8 @@ public:
   TAtomic GetValue(QTableWidget *w)
   {
     // Get the UserData associated with the current item
-    return w->currentItem()->data(Qt::UserRole).value<TAtomic>();
+    TAtomic val = w->currentItem()->data(Qt::UserRole).value();
+    return val;
   }
 
   void SetValue(QTableWidget *w, const TAtomic &value)
@@ -40,7 +41,8 @@ public:
     for(int i = 0; i < w->rowCount(); i++)
       {
       QTableWidgetItem *item = w->item(i, 0);
-      if(item->data(Qt::UserRole).value<TAtomic>() == value)
+      TAtomic stored_value = item->data(Qt::UserRole).value();
+      if(stored_value == value)
         {
         w->setCurrentItem(item);
         return;
@@ -76,7 +78,8 @@ public:
 
   static TAtomic getValueInRow(QTableWidget *w, int i)
   {
-    return w->item(i,0)->data(Qt::UserRole).value<TAtomic>();
+    TAtomic value = w->item(i,0)->data(Qt::UserRole).value();
+    return value;
   }
 
   static void appendRow(QTableWidget *w, TAtomic value, const TDesc &desc)
@@ -112,7 +115,7 @@ public:
   static void updateRowDescription(QTableWidget *w, int row, const TDesc &desc)
   {
     // The current value
-    TAtomic value = w->item(row, 0)->data(Qt::UserRole).value<TAtomic>();
+    TAtomic value = w->item(row, 0)->data(Qt::UserRole).value();
 
     // Get the properies and compare them to the color label
     for(int col = 0; col < w->columnCount(); col++)
