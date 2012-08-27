@@ -414,7 +414,7 @@ SET(UI_MOC_HEADERS
 SET(UI_NONMOC_HEADERS
   GUI/Qt/Coupling/QtCheckBoxCoupling.h
   GUI/Qt/Coupling/QtComboBoxCoupling.h
-  GUI/Qt/Coupling/QtDoubleSpinboxCoupling.h
+  GUI/Qt/Coupling/QtDoubleSpinBoxCoupling.h
   GUI/Qt/Coupling/QtDoubleSliderWithEditorCoupling.h
   GUI/Qt/Coupling/QtLineEditCoupling.h
   GUI/Qt/Coupling/QtListWidgetCoupling.h
