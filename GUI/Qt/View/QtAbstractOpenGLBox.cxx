@@ -29,6 +29,7 @@
 #include <QStackedLayout>
 #include <QtInteractionDelegateWidget.h>
 #include "LatentITKEventNotifier.h"
+#include "SNAPOpenGL.h"
 #include <AbstractRenderer.h>
 
 QtAbstractOpenGLBox::QtAbstractOpenGLBox(QWidget *parent) :

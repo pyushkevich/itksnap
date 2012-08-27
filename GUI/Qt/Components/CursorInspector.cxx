@@ -108,7 +108,7 @@ void CursorInspector::SetModel(CursorInspectionModel *model)
 
   makeCoupling(ui->tableVoxelUnderCursor,
                m_Model->GetVoxelAtCursorModel(),
-               DefaultWidgetValueTraits<size_t , QTableWidget>(),
+               DefaultWidgetValueTraits<int , QTableWidget>(),
                LayerCurrentVoxelInfoDomainTraits());
 }
 

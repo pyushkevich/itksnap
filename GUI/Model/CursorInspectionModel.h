@@ -43,7 +43,7 @@ protected:
 };
 
 // A concrete model encapsulating the above domain
-typedef ConcretePropertyModel<size_t, CurrentVoxelInfoItemSetDomain>
+typedef ConcretePropertyModel<int, CurrentVoxelInfoItemSetDomain>
   ConcreteLayerVoxelAtCursorModel;
 
 /**

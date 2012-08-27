@@ -31,7 +31,7 @@ public:
   TAtomic GetValue(QTableWidget *w)
   {
     // Get the UserData associated with the current item
-    TAtomic val = w->currentItem()->data(Qt::UserRole).value();
+    TAtomic val = qVariantValue<TAtomic>(w->currentItem()->data(Qt::UserRole));
     return val;
   }
 
@@ -41,7 +41,7 @@ public:
     for(int i = 0; i < w->rowCount(); i++)
       {
       QTableWidgetItem *item = w->item(i, 0);
-      TAtomic stored_value = item->data(Qt::UserRole).value();
+      TAtomic stored_value = qVariantValue<TAtomic>(item->data(Qt::UserRole));
       if(stored_value == value)
         {
         w->setCurrentItem(item);
@@ -78,7 +78,7 @@ public:
 
   static TAtomic getValueInRow(QTableWidget *w, int i)
   {
-    TAtomic value = w->item(i,0)->data(Qt::UserRole).value();
+    TAtomic value = qVariantValue<TAtomic>(w->item(i,0)->data(Qt::UserRole));
     return value;
   }
 
@@ -115,7 +115,7 @@ public:
   static void updateRowDescription(QTableWidget *w, int row, const TDesc &desc)
   {
     // The current value
-    TAtomic value = w->item(row, 0)->data(Qt::UserRole).value();
+    TAtomic value = qVariantValue<TAtomic>(w->item(row, 0)->data(Qt::UserRole));
 
     // Get the properies and compare them to the color label
     for(int col = 0; col < w->columnCount(); col++)

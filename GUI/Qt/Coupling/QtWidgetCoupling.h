@@ -222,6 +222,8 @@ public:
   // The default behavior for setting the widget to null is to do nothing.
   // This should be overridden by child traits classes
   virtual void SetValueToNull(TWidgetPtr) {}
+
+  virtual ~WidgetValueTraitsBase() {}
 };
 
 /**
@@ -254,6 +256,8 @@ public:
     a trivially initialized domain object.
     */
   virtual TDomain GetDomain(TWidgetPtr w) = 0;
+
+  virtual ~WidgetDomainTraitsBase() {}
 };
 
 /** Empty template for default value traits. Specialize for different Qt widgets */

@@ -41,6 +41,13 @@
 // Include OpenGL headers according to the platform
 #include <QtOpenGL/QtOpenGL>
 
+// Include GLU, for some reason taken out of Qt 4.8
+#if defined (__APPLE__)
+  #include <OpenGL/glu.h> 
+#else
+ #include <GL/glu.h>
+#endif
+
 // Inline functions for use with vector classes
 inline void glVertex( const Vector3f &x ) { glVertex3fv(x.data_block()); }
 inline void glVertex( const Vector3d &x ) { glVertex3dv(x.data_block()); }
