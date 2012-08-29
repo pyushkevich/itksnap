@@ -1072,7 +1072,7 @@ long get_system_time_ms()
 #ifdef WIN32
   SYSTEMTIME time;
   GetSystemTime(&time);
-  WORD millis = (time.wSeconds * 1000) + time.wMilliseconds;
+  WORD millis = (time.wSecond * 1000) + time.wMilliseconds;
   return (long) millis;
 #else
   timeval time;

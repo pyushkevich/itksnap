@@ -125,7 +125,7 @@ protected:
   // Update the texture map to mirror the current images in the model
   void UpdateTextureMap();
 
-  friend class OpenGLTextureAssociationFactory;
+  friend struct OpenGLTextureAssociationFactory;
 };
 
 

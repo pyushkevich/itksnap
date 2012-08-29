@@ -88,7 +88,7 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
     m_Mesh->GenerateVTKMeshes(callback);
     InvokeEvent(ModelUpdateEvent());
   }
-  catch(vtkstd::bad_alloc &exc)
+  catch(vtkstd::bad_alloc &)
   {
     throw IRISException("Out of memory during mesh computation");
   }

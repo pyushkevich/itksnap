@@ -105,7 +105,7 @@ void CrosshairsInteractionMode::mouseMoveEvent(QMouseEvent *ev)
       }
     else if(m_LastPressButton == m_BtnZoom)
       {
-      double scaleFactor = pow(1.02f, dx(1));
+      double scaleFactor = pow(1.02, dx(1));
       m_Model->ProcessZoomGesture(scaleFactor);
       }
     else if(m_LastPressButton == m_BtnPan)

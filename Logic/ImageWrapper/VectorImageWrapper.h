@@ -91,14 +91,14 @@ public:
   virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const
   {
     const TPixel &p = this->GetVoxel(x);
-    for(size_t i = 0; i < this->GetNumberOfComponents(); i++)
+    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
       out[i] = p[i];
   }
 
   virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const
   {
     const TPixel &p = this->GetVoxel(idx);
-    for(size_t i = 0; i < this->GetNumberOfComponents(); i++)
+    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
       out[i] = p[i];
   }
 

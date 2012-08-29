@@ -61,7 +61,7 @@ unsigned int
 InteractionModeClient
 ::GetInteractionModeCount()
 {
-  return m_Interactors.size();
+  return (unsigned int) m_Interactors.size();
 }
 
 InteractionMode *

@@ -64,7 +64,7 @@
 #include "itkShiftScaleImageFilter.h"
 #include "itkNumericTraits.h"
 
-#include <zlib.h>
+#include <itk_zlib.h>
 
 
 using namespace std;

@@ -64,23 +64,23 @@ SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 }
 
 template<typename TInputImage,typename TOutputImage>
-ThresholdSettings *
-SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
-::GetParameters()
-{
-  return static_cast<ThresholdSettings*>(this->GetInputs()[1].GetPointer());
-}
-
-template<typename TInputImage,typename TOutputImage>
 void
 SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
-::SmoothBinaryThresholdImageFilter::GenerateData()
+::GenerateData()
 {
   // Update the functor with the current settings
   this->GetFunctor().SetParameters(GetParameters());
 
   // Execute the filter
   Superclass::GenerateData();
+}
+
+template<typename TInputImage,typename TOutputImage>
+ThresholdSettings *
+SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
+::GetParameters()
+{
+  return static_cast<ThresholdSettings*>(this->GetInputs()[1].GetPointer());
 }
 
 template<class TPixel>

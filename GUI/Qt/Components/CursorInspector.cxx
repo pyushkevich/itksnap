@@ -13,7 +13,7 @@
 
 #include <QtSpinBoxCoupling.h>
 #include <QtLineEditCoupling.h>
-#include <QtTableWidgetCoupling.h>.h>
+#include <QtTableWidgetCoupling.h>
 #include <QtWidgetArrayCoupling.h>
 
 /**

@@ -37,6 +37,7 @@
 #include "GlobalState.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
+#include <limits>
 
 SliceWindowCoordinator
 ::SliceWindowCoordinator()
@@ -244,7 +245,7 @@ SliceWindowCoordinator
 {
   if(m_LinkedZoom && m_WindowsRegistered)
     return m_SliceModel[0]->GetViewZoom();
-  else return NAN;
+  else return std::numeric_limits<float>::quiet_NaN();
 }
 
 float
@@ -312,7 +313,7 @@ double round_step_size(double a, double b, double nsteps)
 {
   double delta = fabs(b-a);
   double k = pow(10, floor(log((delta) / nsteps) / log(10.0)));
-  double s = round(delta / (nsteps * k)) * k;
+  double s = floor(0.5 + delta / (nsteps * k)) * k;
   return s;
 }
 
