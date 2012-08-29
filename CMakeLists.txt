@@ -613,7 +613,7 @@ SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
 SET(SNAP_EXE InsightSNAP)
 
 # Define the main SNAP executable
-ADD_EXECUTABLE(${SNAP_EXE} WIN32 GUI/Qt/main.cxx)
+ADD_EXECUTABLE(${SNAP_EXE} GUI/Qt/main.cxx)
 TARGET_LINK_LIBRARIES(${SNAP_EXE}
   ${SNAP_INTERNAL_LIBS}
   ${SNAP_EXTERNAL_LIBS}
