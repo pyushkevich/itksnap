@@ -234,8 +234,12 @@ GenericImageData
                  const InternalToNativeFunctor &native)
 {
   // Check that the image matches the size of the main image
-  assert(m_MainImageWrapper->GetBufferedRegion() ==
-         image->GetBufferedRegion());
+  //Octavian_2012_08_24_16:20: changed assert into this test as a response to:
+  //bug: ID: 3023489: "-o flag size check" 
+  if(m_MainImageWrapper->GetBufferedRegion() !=
+	  image->GetBufferedRegion()) {
+	throw IRISException("Main and overlay data sizes are different");
+  }
 
   // Pass the image to a Grey image wrapper
   GreyImageWrapper<GreyType> *wrapper = new GreyImageWrapper<GreyType>();
@@ -251,8 +255,12 @@ GenericImageData
 ::AddRGBOverlay(RGBImageType  *image)
 {
   // Check that the image matches the size of the main image
-  assert(m_MainImageWrapper->GetBufferedRegion() ==
-         image->GetBufferedRegion());
+  //Octavian_2012_08_24_16:20: changed assert into this test as a response to:
+  //bug: ID: 3023489: "-o flag size check" 
+  if(m_MainImageWrapper->GetBufferedRegion() !=
+	  image->GetBufferedRegion()) {
+		throw IRISException("Main and overlay data sizes are different");
+  }
 
   // Pass the image to a RGB image wrapper
   RGBImageWrapper<unsigned char> *wrapper

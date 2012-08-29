@@ -314,6 +314,14 @@ int main(int argc, char *argv[])
         cerr << "Reason: " << exc << endl;
         return -1;
         }
+	  //Octavian_2012_08_24_16:20: added exception as a response to: 
+	  //bug: ID: 3023489: "-o flag size check"
+	  catch(IRISException & IRISexc)
+	    {
+		cerr << "Error loading file '" << fname << "'" << endl;
+		cerr << "Reason: " << IRISexc << endl;
+		return -1;
+	    }
       }
     }
 
