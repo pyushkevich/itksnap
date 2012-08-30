@@ -150,7 +150,23 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
     }
 }
 
+template<class TInputImage, class TOutputLUT>
+void
+IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
+::SetFixedLookupTableRange(InputPixelType imin, InputPixelType imax)
+{
+  SmartPtr<InputPixelObject> omin = InputPixelObject::New();
+  omin->Set(imin);
+  this->SetImageMinInput(omin);
+
+  SmartPtr<InputPixelObject> omax = InputPixelObject::New();
+  omax->Set(imax);
+  this->SetImageMaxInput(omax);
+}
+
 // Template instantiation
 typedef itk::OrientedImage<short, 3> GreyImageType;
 typedef itk::Image<itk::RGBAPixel<unsigned char>, 1> LUTType;
 template class IntensityToColorLookupTableImageFilter<GreyImageType, LUTType>;
+
+

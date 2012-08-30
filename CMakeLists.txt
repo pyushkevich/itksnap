@@ -53,7 +53,7 @@ ENDIF(${CPACK_SYSTEM_NAME} MATCHES Windows)
 
 # For Apple, we need to base the filename on the architecture
 IF(CMAKE_SYSTEM_NAME MATCHES Darwin)
-  STRING(REPLACE ";" "-" ARCHBIT ${CMAKE_OSX_ARCHITECTURES})
+  STRING(REPLACE ';' "-" ARCHBIT ${CMAKE_OSX_ARCHITECTURES})
   SET(CPACK_SYSTEM_NAME "MacOS-${ARCHBIT}")
 ENDIF(CMAKE_SYSTEM_NAME MATCHES Darwin)
 
@@ -382,7 +382,6 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SnakeToolROIPanel.h
   GUI/Qt/Components/SnakeWizardPanel.h
   GUI/Qt/Components/SNAPComponent.h
-  GUI/Qt/Components/SNAPQtCommon.h
   GUI/Qt/Components/SliceViewPanel.h
   GUI/Qt/Components/ViewPanel3D.h
   GUI/Qt/Components/VoxelIntensityQTableModel.h
@@ -412,6 +411,7 @@ SET(UI_MOC_HEADERS
 
 # These UI headers don't need to be MOC'd
 SET(UI_NONMOC_HEADERS
+  GUI/Qt/Components/SNAPQtCommon.h
   GUI/Qt/Coupling/QtCheckBoxCoupling.h
   GUI/Qt/Coupling/QtComboBoxCoupling.h
   GUI/Qt/Coupling/QtDoubleSpinBoxCoupling.h

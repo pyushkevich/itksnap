@@ -215,10 +215,6 @@ void SnakeWizardModel::ApplyThresholdPreprocessing()
   // Compute the speed image
   m_Driver->ComputeSNAPSpeedImage();
 
-  // Set the color map for the speed image
-  ColorMap *cm = m_Driver->GetSNAPImageData()->GetSpeed()->GetColorMap();
-  cm->SetToSystemPreset(ColorMap::COLORMAP_SPEED);
-
   // The speed image should be shown
   m_GlobalState->SetShowSpeed(true);
 }

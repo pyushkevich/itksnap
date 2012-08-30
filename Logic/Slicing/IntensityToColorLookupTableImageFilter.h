@@ -55,6 +55,11 @@ public:
   /** See notes for SetImageMinInput */
   void SetImageMaxInput(InputPixelObject *input);
 
+  /** Set intensity range to a pair of constants. This is useful when the
+    range of the lookup table will never change. This is an alternative to
+    calling SetImageMinInput() and SetImageMaxInput() */
+  void SetFixedLookupTableRange(InputPixelType imin, InputPixelType imax);
+
   /**
     It is possible to use a separate reference intensity range when mapping
     raw intensities into the domain of the intensity curve. This is relevant

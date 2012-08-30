@@ -36,6 +36,8 @@
 #include "itkUnaryFunctorImageFilter.h"
 #include "IRISSlicer.h"
 #include "ScalarImageHistogram.h"
+#include "IntensityToColorLookupTableImageFilter.h"
+#include "ColorMap.h"
 
 SpeedImageWrapper
 ::SpeedImageWrapper()
@@ -44,9 +46,24 @@ SpeedImageWrapper
   // Initialize to Edge mode
   m_IsModeInsideOutside = false;
 
-  // Set the native mapping (scale by 1 / 0x7fff)
+  // Set the native mapping (scale by 1 / 0x7fff). The speed image represents
+  // floating point values in the range [-1 1]. Internally, it is represented
+  // by an image of short type.
   InternalToNativeFunctor native(1.0 / 0x7fff, 0.0);
   this->SetNativeMapping(native);
+
+  /*
+    Tell the lookup table filter to use the whole range of short values as
+    the domain of the lookup table. This is necessary because the speed
+    image wrapper participates in the Preview pipeline, which means we may
+    request the lookup table before knowing the intensity range of the
+    full speed image. Since the speed image has range [-1 1] anyway, there
+    is no memory overhead to using the full intensity range
+    */
+  this->m_LookupTableFilter->SetFixedLookupTableRange(-0x8000, 0x7fff);
+
+  // By default, speed images use a blue to white colormap
+  this->m_ColorMap->SetToSystemPreset(ColorMap::COLORMAP_SPEED);
 }
 
 SpeedImageWrapper

@@ -36,6 +36,7 @@
 #define __SpeedImageWrapper_h_
 
 #include "GreyImageWrapper.h"
+#include <itkSimpleDataObjectDecorator.h>
 
 // #include "SpeedColorMap.h"
 
@@ -132,6 +133,7 @@ public:
   ~SpeedImageWrapper();
 
 protected:
+
   /** We override this method in order to maintain the preview sources 
    * when the image gets changed */
   void UpdateImagePointer(ImageType *newImage);
