@@ -61,7 +61,9 @@ class SNAPSegmentationROISettings;
 template <typename TIn, typename TOut> class SmoothBinaryThresholdImageFilter;
 template <typename TIn, typename TOut> class EdgePreprocessingImageFilter;
 
-template <class TFilter, class TParameter> class PreviewCapableFilterWrapper;
+template <class TFilterConfigTraits> class SlicePreviewFilterWrapper;
+class SmoothBinaryThresholdFilterConfigTraits;
+class EdgePreprocessingFilterConfigTraits;
 
 /**
  * \class SNAPImageData
@@ -87,15 +89,13 @@ public:
   typedef SmoothBinaryThresholdImageFilter<GreyImageType, SpeedImageType>
                                                            ThresholdFilterType;
 
-  typedef PreviewCapableFilterWrapper<ThresholdFilterType,
-                                      ThresholdSettings>
+  typedef SlicePreviewFilterWrapper<SmoothBinaryThresholdFilterConfigTraits>
                                                    ThresholdPreviewWrapperType;
 
   typedef EdgePreprocessingImageFilter<GreyImageType, SpeedImageType>
                                                    EdgePreprocessingFilterType;
 
-  typedef PreviewCapableFilterWrapper<EdgePreprocessingFilterType,
-                                      EdgePreprocessingSettings>
+  typedef SlicePreviewFilterWrapper<EdgePreprocessingFilterConfigTraits>
                                            EdgePreprocessingPreviewWrapperType;
 
   SNAPImageData(IRISApplication *m_Parent);
@@ -105,6 +105,12 @@ public:
   void InitializeToROI(GenericImageData *source,
                        const SNAPSegmentationROISettings &roi,
                        itk::Command *progressCommand);
+
+  /**
+    Unload all images in the SNAP image data, releasing memory and returning
+    this object to initial state.
+    */
+  void UnloadAll();
 
   /** 
    * Get the preprocessed (speed) image wrapper
@@ -123,13 +129,11 @@ public:
     snake preprocessing mode */
   void UpdatePreviewPipeline(SnakeType mode);
 
-  /** Toggle preview mode for thresholding */
-  bool GetThresholdPreviewMode() const;
-  void SetThresholdPreviewMode(bool mode);
+  /** Get the object that manages threshold-based preprocessing preview */
+  irisGetMacro(ThresholdPreviewWrapper, ThresholdPreviewWrapperType *)
 
-  /** Toggle preview mode for edge-based processing */
-  bool GetEdgePreprocessingPreviewMode() const;
-  void SetEdgePreprocessingPreviewMode(bool mode);
+  /** Get the object that manages edge-based preprocessing preview */
+  irisGetMacro(EdgePreprocessingPreviewWrapper, EdgePreprocessingPreviewWrapperType *)
 
   /**
    * Initialize the Speed image wrapper to blank data
@@ -308,70 +312,40 @@ private:
 
   // The color label that is used for this segmentation
   ColorLabel m_ColorLabel;
+
+
+  friend class SmoothBinaryThresholdFilterConfigTraits;
+  friend class EdgePreprocessingFilterConfigTraits;
 };
 
 
-/**
-  This class wraps around and ITK filter and provides the capability for
-  using the filter to generate an entire image volume or to only generate
-  a set of slices for quick preview.
-  */
 
-template<class TFilter, class TParameter>
-class PreviewCapableFilterWrapper : public itk::Object
-{
+class SmoothBinaryThresholdFilterConfigTraits {
 public:
 
-  typedef PreviewCapableFilterWrapper<TFilter, TParameter>             Self;
-  typedef itk::Object                                            Superclass;
-  typedef SmartPtr<Self>                                            Pointer;
-  typedef SmartPtr<const Self>                                 ConstPointer;
+  typedef SNAPImageData::GreyImageType GreyType;
+  typedef SNAPImageData::SpeedImageType SpeedType;
 
-  itkTypeMacro(PreviewCapableFilterWrapper, itk::Object)
+  typedef SmoothBinaryThresholdImageFilter<GreyType, SpeedType> FilterType;
+  typedef ThresholdSettings ParameterType;
 
-  itkNewMacro(Self)
+  static void AttachInputs(SNAPImageData *sid, FilterType *filter);
+  static void DetachInputs(FilterType *filter);
+  static void SetParameters(ParameterType *p, FilterType *filter);
+};
 
-  typedef TFilter                                                FilterType;
-  typedef typename TFilter::InputImageType                   InputImageType;
-  typedef typename TFilter::OutputImageType                 OutputImageType;
-  typedef typename OutputImageType::PixelType               OutputPixelType;
-  typedef TParameter                                          ParameterType;
+class EdgePreprocessingFilterConfigTraits {
+public:
 
-  typedef ImageWrapper<OutputPixelType>                         WrapperType;
-  typedef IRISSlicer<OutputPixelType>                            SlicerType;
+  typedef SNAPImageData::GreyImageType GreyType;
+  typedef SNAPImageData::SpeedImageType SpeedType;
 
-  irisIsMacro(PreviewMode)
+  typedef EdgePreprocessingImageFilter<GreyType, SpeedType> FilterType;
+  typedef EdgePreprocessingSettings ParameterType;
 
-  /** Enter preview mode */
-  void SetPreviewMode(bool mode);
-
-  /** Set the input image */
-  void SetInputImage(InputImageType *image);
-
-  /** Set the parameters */
-  void SetParameters(ParameterType *param);
-
-  /** Set the output volume */
-  void AttachToWrapper(WrapperType *wrapper);
-
-  /** Compute the output volume (corresponds to the 'Apply' operation) */
-  void ComputeOutputVolume(itk::Command *progress);
-
-protected:
-
-  PreviewCapableFilterWrapper();
-  ~PreviewCapableFilterWrapper() {}
-
-  void UpdatePipeline();
-
-  WrapperType *m_Wrapper;
-
-  SmartPtr<InputImageType> m_InputImage;
-  SmartPtr<FilterType> m_PreviewFilter[3];
-
-  SmartPtr<ParameterType> m_Parameters;
-
-  bool m_PreviewMode;
+  static void AttachInputs(SNAPImageData *sid, FilterType *filter);
+  static void DetachInputs(FilterType *filter);
+  static void SetParameters(ParameterType *p, FilterType *filter);
 };
 
 

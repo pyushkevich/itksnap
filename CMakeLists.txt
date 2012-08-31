@@ -182,6 +182,8 @@ SET(LOGIC_HEADERS
   Logic/Framework/GlobalState.h
   Logic/Framework/IRISApplication.h
   Logic/Framework/IRISImageData.h
+  Logic/Framework/SlicePreviewFilterWrapper.h
+  Logic/Framework/SlicePreviewFilterWrapper.txx
   Logic/Framework/SNAPImageData.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx

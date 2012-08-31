@@ -38,9 +38,11 @@ SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 ::SmoothBinaryThresholdImageFilter()
   : Superclass()
 {
-  // Override the number of inputs to 2, so that we can treat parameters
-  // as the second input, and thus respond to parameter changes
+  // Override the number of inputs to 4, so that we can respond to parameter
+  // changes and image min/max changes automatically.
   this->SetNumberOfInputs(2);
+  m_InputImageMaximum = 0;
+  m_InputImageMinimum = 0;
 }
 
 template<typename TInputImage,typename TOutputImage>
@@ -69,7 +71,19 @@ SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 ::GenerateData()
 {
   // Update the functor with the current settings
-  this->GetFunctor().SetParameters(GetParameters());
+  ThresholdSettings *param = GetParameters();
+
+  // All inputs must be set!
+  assert(param);
+
+  // Set up the functor
+  this->GetFunctor().SetParameters(
+        param, m_InputImageMinimum, m_InputImageMaximum);
+
+  std::cout << "THRESH ORR = "
+            << this->GetOutput()->GetRequestedRegion()
+            << "  IRR = "
+            << this->GetInput()->GetRequestedRegion() << std::endl;
 
   // Execute the filter
   Superclass::GenerateData();
@@ -86,38 +100,41 @@ SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 template<class TPixel>
 void
 SmoothBinaryThresholdFunctor<TPixel>
-::SetParameters(ThresholdSettings *settings)
+::SetParameters(ThresholdSettings *ts, TPixel imin, TPixel imax)
 {
   // At least one threshold should be used
-  assert(settings->IsLowerThresholdEnabled() ||
-         settings->IsUpperThresholdEnabled());
+  assert(ts->IsLowerThresholdEnabled() || ts->IsUpperThresholdEnabled());
+
+  // Bidirectional?
+  bool bidir = ts->IsLowerThresholdEnabled() && ts->IsUpperThresholdEnabled();
 
   // Store the upper and lower bounds
-  m_LowerThreshold = settings->GetLowerThreshold();
-  m_UpperThreshold = settings->GetUpperThreshold();
+  m_LowerThreshold = ts->GetLowerThreshold();
+  m_UpperThreshold = ts->GetUpperThreshold();
 
-  // Handle the bad case: everything is mapped to zero
-  if(m_LowerThreshold >= m_UpperThreshold)
+  // Handle the bidirectional threshold invalid case
+  if(bidir && m_LowerThreshold >= m_UpperThreshold)
     {
     m_ScalingFactor = m_FactorUpper = m_FactorLower = m_Shift = 0.0;
     return;
     }
 
-  // Compute the largest scaling for U-L such that the function is greater
-  // than 1-eps
-  float eps = pow((float)10,-(float)settings->GetSmoothness());
-  float maxScaling = (m_UpperThreshold - m_LowerThreshold) / log((2-eps)/eps);
-
-  // Set the factor by which the input is multiplied
-  // m_ScalingFactor = settings.GetSmoothness();
-  m_ScalingFactor = 1 / maxScaling;
-
   // Combine the usage and inversion flags to get the scaling factors
-  m_FactorLower = settings->IsLowerThresholdEnabled() ? 1.0f : 0.0f;
-  m_FactorUpper = settings->IsUpperThresholdEnabled() ? 1.0f : 0.0f;
+  m_FactorLower = ts->IsLowerThresholdEnabled() ? 1.0f : 0.0f;
+  m_FactorUpper = ts->IsUpperThresholdEnabled() ? 1.0f : 0.0f;
 
   // Compute the shift
   m_Shift = 1.0f - (m_FactorLower + m_FactorUpper);
+
+  // Compute the scaling factor (affecting smoothness) such that the supremum
+  // of the threshold function on the image domain is equal to 1-10^-s, where s
+  // is the smoothness factor
+  double range = bidir
+      ? m_UpperThreshold - m_LowerThreshold
+      : (imax - imin) / 3;        // This is kind of arbitrary
+
+  double eps = pow(10, -ts->GetSmoothness());
+  m_ScalingFactor = static_cast<float>(log((2-eps)/eps) / range);
 }
 
 template<class TInput>

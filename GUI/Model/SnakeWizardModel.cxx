@@ -6,6 +6,7 @@
 #include "SNAPImageData.h"
 #include "SmoothBinaryThresholdImageFilter.h"
 #include "ColorMap.h"
+#include "SlicePreviewFilterWrapper.h"
 
 SnakeWizardModel::SnakeWizardModel()
 {
@@ -67,6 +68,10 @@ void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
 
   // Changes to the threshold settings are rebroadcast as own own events
   Rebroadcast(m_Driver->GetThresholdSettings(),
+              itk::ModifiedEvent(), ThresholdSettingsUpdateEvent());
+
+  // Changes to the preview pipeline (preview status) are broadcast as events
+  Rebroadcast(m_Driver->GetSNAPImageData()->GetThresholdPreviewWrapper(),
               itk::ModifiedEvent(), ThresholdSettingsUpdateEvent());
 
   // Changes to the snake mode are cast as model update events
@@ -204,7 +209,7 @@ void SnakeWizardModel::EvaluateThresholdFunction(double t, double &x, double &y)
   double imax = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative();
 
   SmoothBinaryThresholdFunctor<float> functor;
-  functor.SetParameters(ts);
+  functor.SetParameters(ts, imin, imax);
 
   x = t * (imax - imin) + imin;
   y = functor(x) * 1.0 / 0x7fff;
@@ -223,7 +228,8 @@ bool SnakeWizardModel::GetThresholdPreviewValue(bool &value)
 {
   if(m_Driver->IsSnakeModeActive())
     {
-    value = m_Driver->GetSNAPImageData()->GetThresholdPreviewMode();
+    value = m_Driver->GetSNAPImageData()
+        ->GetThresholdPreviewWrapper()->IsPreviewMode();
     return true;
     }
   else return false;
@@ -232,7 +238,8 @@ bool SnakeWizardModel::GetThresholdPreviewValue(bool &value)
 void SnakeWizardModel::SetThresholdPreviewValue(bool value)
 {
   assert(m_Driver->IsSnakeModeActive());
-  m_Driver->GetSNAPImageData()->SetThresholdPreviewMode(value);
+  m_Driver->GetSNAPImageData()
+      ->GetThresholdPreviewWrapper()->SetPreviewMode(value);
   m_GlobalState->SetShowSpeed(value);
 }
 

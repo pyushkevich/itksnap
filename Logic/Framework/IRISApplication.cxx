@@ -89,7 +89,7 @@ IRISApplication
 
   // Contruct the IRIS and SNAP data objects
   m_IRISImageData = new IRISImageData(this);
-  m_SNAPImageData = NULL;
+  m_SNAPImageData = new SNAPImageData(this);
 
   // Set the current IRIS pointer
   m_CurrentImageData = m_IRISImageData;
@@ -129,8 +129,7 @@ IRISApplication
 ::~IRISApplication() 
 {
   delete m_IRISImageData;
-  if(m_SNAPImageData)
-    delete m_SNAPImageData;
+  delete m_SNAPImageData;
   delete m_GlobalState;
   delete m_SystemInterface;
 }
@@ -140,13 +139,10 @@ IRISApplication
 ::InitializeSNAPImageData(const SNAPSegmentationROISettings &roi,
                           CommandType *progressCommand)
 {
-  assert(m_SNAPImageData == NULL);
   assert(m_IRISImageData->IsMainLoaded());
 
   // Create the SNAP image data object
-  m_SNAPImageData = new SNAPImageData(this);
   m_SNAPImageData->InitializeToROI(m_IRISImageData, roi, progressCommand);
-
   
   // Override the interpolator in ROI for label interpolation, or we will get
   // nonsense
@@ -177,7 +173,6 @@ IRISApplication
   m_SNAPImageData->SetColorLabel(
     m_ColorLabelTable->GetColorLabel(passThroughLabel));
 
-
   // Initialize the speed image of the SNAP image data
   m_SNAPImageData->InitializeSpeed();
 
@@ -205,7 +200,7 @@ IRISApplication
       m_IRISImageData->GetVolumeExtents()));
 
   // Do the same for the SNAP data if needed
-  if(!m_SNAPImageData)
+  if(!m_SNAPImageData->IsMainLoaded())
     return;
 
   // Create the appropriate transform and pass it to the SNAP data
@@ -223,7 +218,7 @@ IRISApplication
                        SnakeType snakeMode)
 {
   // This has to happen in SNAP mode
-  assert(m_SNAPImageData);
+  assert(IsSnakeModeActive());
 
   // Make sure the dimensions of the speed image are appropriate
   assert(to_itkSize(m_SNAPImageData->GetGrey()->GetSize())
@@ -284,7 +279,7 @@ IRISApplication
 ::ClearIRISSegmentationImage()
 {
   // This has to happen in 'pure' IRIS mode
-  assert(m_SNAPImageData == NULL);
+  assert(!IsSnakeModeActive());
 
   // Fill the image with blanks
   this->m_IRISImageData->GetSegmentation()->GetImage()->FillBuffer(0);
@@ -303,7 +298,7 @@ IRISApplication
 ::UpdateIRISSegmentationImage(GuidedNativeImageIO *io)
 {
   // This has to happen in 'pure' IRIS mode
-  assert(m_SNAPImageData == NULL);
+  assert(!IsSnakeModeActive());
 
   // Cast the image to label type
   CastNativeImageToScalar<LabelType> caster;
@@ -373,7 +368,7 @@ IRISApplication
     const std::string &undoTitle)
 {
   // Only in IRIS mode
-  assert(m_SNAPImageData == NULL);
+  assert(!IsSnakeModeActive());
 
   // Get the segmentation image
   LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
@@ -436,7 +431,7 @@ void
 IRISApplication
 ::UpdateIRISWithSnapImageData(CommandType *progressCommand)
 {
-  assert(m_SNAPImageData != NULL);
+  assert(IsSnakeModeActive());
 
   // Get pointers to the source and destination images
   typedef LevelSetImageWrapper::ImageType SourceImageType;
@@ -730,10 +725,10 @@ void
 IRISApplication
 ::ReleaseSNAPImageData() 
 {
-  assert(m_SNAPImageData && m_CurrentImageData != m_SNAPImageData);
+  assert(m_SNAPImageData->IsMainLoaded() &&
+         m_CurrentImageData != m_SNAPImageData);
 
-  delete m_SNAPImageData;
-  m_SNAPImageData = NULL;
+  m_SNAPImageData->UnloadAll();
 }
 
 void 
@@ -751,7 +746,7 @@ IRISApplication
 void IRISApplication
 ::SetCurrentImageDataToSNAP() 
 {
-  assert(m_SNAPImageData);
+  assert(m_SNAPImageData->IsMainLoaded());
   std::cout << "*** SWITCHING TO SNAKE MODE ***" << std::endl;
   if(m_CurrentImageData != m_SNAPImageData)
     {
@@ -907,7 +902,7 @@ IRISApplication
   mob->GenerateVTKMeshes(progress);
 
   // If in SNAP mode, just save the first mesh
-  if(m_SNAPImageData)
+  if(m_SNAPImageData->IsMainLoaded())
     {
     // Get the VTK mesh for the label
     vtkPolyData *mesh = mob->GetVTKMesh(0);
@@ -1257,7 +1252,7 @@ IRISApplication::MainImageType
 IRISApplication
 ::AddIRISOverlayImage(GuidedNativeImageIO *io, MainImageType force_type)
 {
-  assert(m_SNAPImageData == NULL);
+  assert(!IsSnakeModeActive());
   assert(m_IRISImageData->IsMainLoaded());
   assert(io->IsNativeImageLoaded());
 
@@ -1304,7 +1299,7 @@ IRISApplication
 ::UpdateIRISMainImage(GuidedNativeImageIO *io, MainImageType force_type)
 {
   // This has to happen in 'pure' IRIS mode
-  assert(m_SNAPImageData == NULL);
+  assert(!IsSnakeModeActive());
 
   // If the input type is 'ANY', determine based on number of components
   MainImageType type = (force_type == MAIN_ANY)

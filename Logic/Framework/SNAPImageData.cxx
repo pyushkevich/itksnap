@@ -58,9 +58,12 @@
 #include "IRISApplication.h"
 #include "ThresholdSettings.h"
 #include "ColorMap.h"
-
-
 #include "SNAPImageData.h"
+
+#include "SlicePreviewFilterWrapper.h"
+
+
+
 
 
 SNAPImageData
@@ -74,14 +77,9 @@ SNAPImageData
 
   // Initialize the threshold-based processing pipeline
   m_ThresholdPreviewWrapper = ThresholdPreviewWrapperType::New();
-  m_ThresholdPreviewWrapper->AttachToWrapper(&m_SpeedWrapper);
-  m_ThresholdPreviewWrapper->SetParameters(parent->GetThresholdSettings());
 
   // Update the speed preview objects
   m_EdgePreprocessingPreviewWrapper = EdgePreprocessingPreviewWrapperType::New();
-  m_EdgePreprocessingPreviewWrapper->AttachToWrapper(&m_SpeedWrapper);
-  m_EdgePreprocessingPreviewWrapper->SetParameters(
-        parent->GetEdgePreprocessingSettings());
 
   // Set the names of the wrapeprs
   m_SpeedWrapper.SetNickname("Speed Image");
@@ -117,8 +115,15 @@ SNAPImageData
   m_SpeedWrapper.SetAlpha(255);
 
   // Initialize the speed preview objects
-  m_EdgePreprocessingPreviewWrapper->SetInputImage(m_GreyImageWrapper->GetImage());
-  m_ThresholdPreviewWrapper->SetInputImage(m_GreyImageWrapper->GetImage());
+  m_ThresholdPreviewWrapper->AttachInputs(this);
+  m_ThresholdPreviewWrapper->AttachOutputWrapper(&m_SpeedWrapper);
+  m_ThresholdPreviewWrapper->SetParameters(
+        this->m_Parent->GetThresholdSettings());
+
+  m_EdgePreprocessingPreviewWrapper->AttachInputs(this);
+  m_EdgePreprocessingPreviewWrapper->AttachOutputWrapper(&m_SpeedWrapper);
+  m_EdgePreprocessingPreviewWrapper->SetParameters(
+        this->m_Parent->GetEdgePreprocessingSettings());
 }
 
 void 
@@ -538,131 +543,80 @@ SNAPImageData
 }
 
 
-#include <IRISSlicer.h>
-#include <ColorMap.h>
-
-
-template<class TFilter, class TParameter>
-PreviewCapableFilterWrapper<TFilter, TParameter>
-::PreviewCapableFilterWrapper()
+void SNAPImageData::UnloadAll()
 {
-  m_PreviewMode = false;
-  m_Parameters = NULL;
+  // Detach images from the preview filters
+  m_ThresholdPreviewWrapper->DetachInputsAndOutputs();
+  m_EdgePreprocessingPreviewWrapper->DetachInputsAndOutputs();
 
-  // Allocate the volume filter and the preview filters
-  for(int i = 0; i < 3; i++)
-    {
-    m_PreviewFilter[i] = FilterType::New();
-    }
+  // Unload all the data
+  this->UnloadOverlays();
+  this->UnloadMainImage();
 }
 
-template<class TFilter, class TParameter>
-void
-PreviewCapableFilterWrapper<TFilter, TParameter>
-::SetParameters(ParameterType *param)
-{
-  // Set the parameters of the preview filters
-  m_Parameters = param;
-  for(int i = 0; i < 3; i++)
-    m_PreviewFilter[i]->SetParameters(param);
-}
 
-template<class TFilter, class TParameter>
-void
-PreviewCapableFilterWrapper<TFilter, TParameter>
-::SetInputImage(InputImageType *image)
-{
-  m_InputImage = image;
-  for(unsigned int i = 0; i < 3; i++)
-    m_PreviewFilter[i]->SetInput(image);
-}
 
-template<class TFilter, class TParameter>
-void
-PreviewCapableFilterWrapper<TFilter, TParameter>
-::SetPreviewMode(bool mode)
-{
-  m_PreviewMode = mode;
-  this->UpdatePipeline();
-}
-
-template<class TFilter, class TParameter>
-void
-PreviewCapableFilterWrapper<TFilter, TParameter>
-::AttachToWrapper(WrapperType *wrapper)
-{
-  // The slice preview filters need to be attached to the slicer
-  m_Wrapper = wrapper;
-  this->UpdatePipeline();
-}
-
-template<class TFilter, class TParameter>
-void
-PreviewCapableFilterWrapper<TFilter, TParameter>
-::UpdatePipeline()
-{
-  if(m_PreviewMode)
-    {
-    for(unsigned int i = 0; i < 3; i++)
-      {
-      m_Wrapper->GetSlicer(i)->SetInput(m_PreviewFilter[i]->GetOutput());
-      }
-    }
-  else
-    {
-    for(unsigned int i = 0; i < 3; i++)
-      {
-      m_Wrapper->GetSlicer(i)->SetInput(m_Wrapper->GetImage());
-      }
-    }
-}
-
-template<class TFilter, class TParameter>
-void
-PreviewCapableFilterWrapper<TFilter, TParameter>
-::ComputeOutputVolume(itk::Command *progress)
-{
-  // Create and execute the filter on the whole image extent
-  SmartPtr<FilterType> filter = FilterType::New();
-  filter->SetParameters(m_Parameters);
-  filter->SetInput(m_InputImage);
-  if(progress)
-    filter->AddObserver(itk::ProgressEvent(), progress);
-  filter->GraftOutput(m_Wrapper->GetImage());
-  filter->UpdateLargestPossibleRegion();
-
-  m_Wrapper->GetImage()->DisconnectPipeline();
-}
 
 void SNAPImageData::UpdatePreviewPipeline(SnakeType mode)
 {
   // This makes sure that if teh corresponding wrapper is in preview mode,
   // it will be attached to the slicers, and the other wrapper(s) detached.
   if(mode == IN_OUT_SNAKE)
-    m_ThresholdPreviewWrapper->AttachToWrapper(&m_SpeedWrapper);
+    m_ThresholdPreviewWrapper->AttachOutputWrapper(&m_SpeedWrapper);
   else if(mode == EDGE_SNAKE)
-    m_EdgePreprocessingPreviewWrapper->AttachToWrapper(&m_SpeedWrapper);
+    m_EdgePreprocessingPreviewWrapper->AttachOutputWrapper(&m_SpeedWrapper);
 }
 
-bool SNAPImageData::GetThresholdPreviewMode() const
+
+
+
+void
+SmoothBinaryThresholdFilterConfigTraits
+::AttachInputs(SNAPImageData *sid, FilterType *filter)
 {
-  return m_ThresholdPreviewWrapper->IsPreviewMode();
+  filter->SetInput(sid->m_GreyImageWrapper->GetImage());
+  filter->SetInputImageMinimum(sid->GetGrey()->GetImageMinNative());
+  filter->SetInputImageMaximum(sid->GetGrey()->GetImageMaxNative());
 }
 
-void SNAPImageData::SetThresholdPreviewMode(bool mode)
+void
+SmoothBinaryThresholdFilterConfigTraits
+::DetachInputs(FilterType *filter)
 {
-  m_ThresholdPreviewWrapper->SetPreviewMode(mode);
+  filter->SetInput(NULL);
+  filter->SetInputImageMinimum(0);
+  filter->SetInputImageMaximum(0);
 }
 
-bool SNAPImageData::GetEdgePreprocessingPreviewMode() const
+void
+SmoothBinaryThresholdFilterConfigTraits
+::SetParameters(ParameterType *p, FilterType *filter)
 {
-  return m_EdgePreprocessingPreviewWrapper->IsPreviewMode();
+  filter->SetParameters(p);
 }
 
-void SNAPImageData::SetEdgePreprocessingPreviewMode(bool mode)
+void
+EdgePreprocessingFilterConfigTraits
+::AttachInputs(SNAPImageData *sid, FilterType *filter)
 {
-  m_EdgePreprocessingPreviewWrapper->SetPreviewMode(mode);
+  filter->SetInput(sid->m_GreyImageWrapper->GetImage());
 }
 
+void
+EdgePreprocessingFilterConfigTraits
+::DetachInputs(FilterType *filter)
+{
+  filter->SetInput(NULL);
+}
 
+void
+EdgePreprocessingFilterConfigTraits
+::SetParameters(ParameterType *p, FilterType *filter)
+{
+  filter->SetParameters(p);
+}
 
+// Instantiate preview wrappers
+#include "SlicePreviewFilterWrapper.txx"
+template class SlicePreviewFilterWrapper<SmoothBinaryThresholdFilterConfigTraits>;
+template class SlicePreviewFilterWrapper<EdgePreprocessingFilterConfigTraits>;

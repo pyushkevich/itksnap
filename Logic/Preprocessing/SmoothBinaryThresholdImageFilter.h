@@ -35,10 +35,7 @@
 #ifndef __SmoothBinaryThresholdImageFilter_h_
 #define __SmoothBinaryThresholdImageFilter_h_
 
-#include "itkCommand.h"
 #include "itkUnaryFunctorImageFilter.h"
-#include "itkMinimumMaximumImageCalculator.h"
-#include "itkProgressAccumulator.h"
 #include "ThresholdSettings.h"
 
 /**
@@ -52,7 +49,7 @@ public:
   typedef SmoothBinaryThresholdFunctor<TInput> Self;
 
   /** Initialize the function */
-  void SetParameters(ThresholdSettings *settings);
+  void SetParameters(ThresholdSettings *settings, TInput imin, TInput imax);
 
   /** Apply the function to image intensity */
   inline short operator()(const TInput &x);
@@ -114,12 +111,21 @@ public:
   typedef itk::SmartPointer<Self>                               Pointer;
   typedef itk::SmartPointer<const Self>                    ConstPointer;  
 
+
   /** Method for creation through the object factory. */
   itkNewMacro(Self)
 
   /** Image dimension. */
   itkStaticConstMacro(ImageDimension, unsigned int,
                       TInputImage::ImageDimension);
+
+  /** Set the minimum value of the input image. Must be provided for the
+    filter to work */
+  itkSetMacro(InputImageMinimum, double)
+
+  /** Set the maximum value of the input image. Must be provided for the
+    filter to work */
+  itkSetMacro(InputImageMaximum, double)
 
   /** Assign threshold settings */
   void SetParameters(ThresholdSettings *settings);
@@ -134,6 +140,8 @@ protected:
   void PrintSelf(std::ostream& os, itk::Indent indent) const;
 
   void GenerateData();
+
+  double m_InputImageMinimum, m_InputImageMaximum;
   
 };
 
