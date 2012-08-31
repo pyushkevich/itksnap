@@ -241,6 +241,11 @@ ImageIOWizardLogic
 
   // Compete the pattern
   pattern = allImageFiles + pattern;
+
+  //Octavian_2012_08_30_18:25
+  //A patch was added in order to overcome fltk string related crash.
+  pattern += "\n";
+
   return pattern;
 }
 
