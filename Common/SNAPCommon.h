@@ -140,7 +140,14 @@ struct InternalToNativeFunctor
   double scale;
   double shift;
   double operator() (double g) const
-    { return g * scale + shift; }
+    { return MapInternalToNative(g); }
+
+  double MapInternalToNative(double internal) const
+    { return internal * scale + shift; }
+
+  double MapNativeToInternal(double native) const
+    { return (native - shift) / scale; }
+
   InternalToNativeFunctor() : scale(1.0), shift(0.0) {}
   InternalToNativeFunctor(double a, double b) : scale(a), shift(b) {}
 };
