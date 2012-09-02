@@ -540,7 +540,7 @@ LabelEditorUILogic
   else if(m_InToolsOperation->value() == 1)
     {
     // Get the segmentation image
-    typedef itk::OrientedImage<LabelType, 3> LabelImageType;
+    typedef itk::Image<LabelType, 3> LabelImageType;
     LabelImageType::Pointer iSeg =
       m_Driver->GetCurrentImageData()->GetSegmentation()->GetImage();
 

@@ -45,7 +45,7 @@
 #include <sstream>
 
 #include "ImageIOWizardLogic.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkImageIOBase.h"
 #include "itkIOCommon.h"
 #include "itkMetaDataObject.h"

@@ -42,7 +42,7 @@
 #include "FL/fl_ask.H"
 
 #include "itkEventObject.h" 
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageRegionIterator.h"
 #include "itkShiftScaleImageFilter.h"

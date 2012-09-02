@@ -33,7 +33,7 @@
 
 =========================================================================*/
 
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 
 template <class TPixel, class THitTester>
 int

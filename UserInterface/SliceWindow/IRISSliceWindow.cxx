@@ -51,7 +51,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
 
 using namespace std;

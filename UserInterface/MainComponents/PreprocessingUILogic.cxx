@@ -27,7 +27,7 @@
 #include "ThresholdSettings.h"
 #include "UserInterfaceBase.h"
 
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkEventObject.h" 
 
 

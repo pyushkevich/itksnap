@@ -7,7 +7,7 @@
   Version:   $Revision: 1.14 $
   Copyright (c) 2007 Paul A. Yushkevich
   
-  This file is part of ITK-SNAP 
+  This file is part of ITK-SNAP
 
   ITK-SNAP is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -52,9 +52,9 @@ using namespace std;
 class BrushWatershedPipeline
 {
 public:
-  typedef itk::OrientedImage<GreyType, 3> GreyImageType;
-  typedef itk::OrientedImage<LabelType, 3> LabelImageType;
-  typedef itk::OrientedImage<float, 3> FloatImageType;
+  typedef itk::Image<GreyType, 3> GreyImageType;
+  typedef itk::Image<LabelType, 3> LabelImageType;
+  typedef itk::Image<float, 3> FloatImageType;
   typedef itk::Image<unsigned long, 3> WatershedImageType;
   typedef WatershedImageType::IndexType IndexType;
 

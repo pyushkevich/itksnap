@@ -52,7 +52,7 @@ template<class TPixel> class ScalarImageWrapper : public ImageWrapper<TPixel>
 public:
 
   // Basic type definitions
-  typedef itk::OrientedImage<TPixel,3> ImageType;
+  typedef itk::Image<TPixel,3> ImageType;
   typedef typename itk::SmartPointer<ImageType> ImagePointer;
 
   // Slice image type

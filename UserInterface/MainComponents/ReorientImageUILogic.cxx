@@ -38,7 +38,7 @@
 #include "UserInterfaceLogic.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include <cassert>
 #include <string>
 #include <iomanip>

@@ -85,7 +85,7 @@ SNAPAdvectionFieldImageFilter<TInputImage,TOutputValueType>
 
   // graft the mini-pipeline output back onto this filter's output.
   // this is needed to get the appropriate regions passed back.
-  GraftOutput( fltPipeEnd->GetOutput() );
+  this->GraftOutput( fltPipeEnd->GetOutput() );
 }
 
 template<class TInputImage, class TOutputValueType>

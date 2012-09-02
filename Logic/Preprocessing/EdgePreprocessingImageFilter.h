@@ -37,7 +37,7 @@
 
 #include "itkCommand.h"
 #include "itkCastImageFilter.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkGradientMagnitudeImageFilter.h"
 #include "itkImageAdaptor.h"
@@ -124,7 +124,7 @@ public:
 
   /** Type used for internal calculations */
   typedef float                                                RealType;
-  typedef itk::OrientedImage<RealType,3>              InternalImageType;
+  typedef itk::Image<RealType,3>              InternalImageType;
   typedef itk::SmartPointer<InternalImageType>     InternalImagePointer;
 
   /** Functor type used for thresholding */

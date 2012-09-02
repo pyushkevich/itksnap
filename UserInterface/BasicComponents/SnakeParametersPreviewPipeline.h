@@ -37,7 +37,7 @@
 
 #include "SNAPOpenGL.h"
 #include "SNAPCommonUI.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkRGBAPixel.h"
 #include "itkCovariantVector.h"
 #include "itkUnaryFunctorImageFilter.h"
@@ -78,12 +78,12 @@ public:
   virtual ~SnakeParametersPreviewPipeline();
 
   // Images used by this class (internally and externally)
-  typedef itk::OrientedImage<unsigned char, 2> CharImageType;
-  typedef itk::OrientedImage<float, 2> FloatImageType;
+  typedef itk::Image<unsigned char, 2> CharImageType;
+  typedef itk::Image<float, 2> FloatImageType;
 
   // Define a color image for display
   typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
-  typedef itk::OrientedImage<DisplayPixelType,2> DisplayImageType;
+  typedef itk::Image<DisplayPixelType,2> DisplayImageType;
 
   // Index type used to refer to pixels
   typedef FloatImageType::IndexType IndexType;

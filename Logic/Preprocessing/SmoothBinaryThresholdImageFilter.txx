@@ -85,7 +85,7 @@ SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 
   // graft the mini-pipeline output back onto this filter's output.
   // this is needed to get the appropriate regions passed back.
-  GraftOutput( m_ThresholdFilter->GetOutput() );
+  this->GraftOutput( m_ThresholdFilter->GetOutput() );
 }
 
 template<typename TInputImage,typename TOutputImage>

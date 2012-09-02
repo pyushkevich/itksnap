@@ -99,8 +99,8 @@ private:
   UserInterfaceBase *m_ParentUI;
 
   /** The image types used for preprocessing */
-  typedef itk::OrientedImage<GreyType,3> GreyImageType;
-  typedef itk::OrientedImage<float,3> SpeedImageType;
+  typedef itk::Image<GreyType,3> GreyImageType;
+  typedef itk::Image<float,3> SpeedImageType;
   
   /** The filter type for in/out processing */
   typedef SmoothBinaryThresholdImageFilter<

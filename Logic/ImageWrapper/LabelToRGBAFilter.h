@@ -21,6 +21,9 @@
 #include "itkImageToImageFilter.h"
 #include "ColorLabelTable.h"
 
+#include <itkRGBAPixel.h>
+#include <itkNumericTraitsRGBAPixel.h>
+
 /**
  * \class LabelToRGBAFilter
  * \brief Simple filter that maps label image to RGB color image

@@ -220,7 +220,7 @@ SNAPImageData
   m_SnakeColorLabel = labelColor;
 
   // Types of images used here
-  typedef itk::OrientedImage<float,3> FloatImageType;
+  typedef itk::Image<float,3> FloatImageType;
 
   // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
   m_SnakeInitializationWrapper.InitializeToWrapper(&m_GreyWrapper, OUTSIDE_VALUE);

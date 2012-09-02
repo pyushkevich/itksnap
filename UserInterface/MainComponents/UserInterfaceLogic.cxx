@@ -5389,7 +5389,7 @@ void
 UserInterfaceLogic
 ::OnMenuLoadAdvection()
 {
-  typedef itk::OrientedImage<float, 3> AdvectionImage;
+  typedef itk::Image<float, 3> AdvectionImage;
   AdvectionImage::Pointer imgAdvection[3];
   
   // Preprocessing image can only be loaded in SNAP mode

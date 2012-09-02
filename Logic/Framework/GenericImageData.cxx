@@ -33,7 +33,7 @@
 
 =========================================================================*/
 // ITK Includes
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkImageIterator.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"

@@ -97,7 +97,7 @@ public:
   typedef itk::SmartPointer<SelfCommandType> SelfCommandPointer;
 
   /** Floating point image type used internally */
-  typedef itk::OrientedImage<float, VDimension> FloatImageType;
+  typedef itk::Image<float, VDimension> FloatImageType;
   typedef typename itk::SmartPointer<FloatImageType> FloatImagePointer;
 
   /** Type definition for the level set function */

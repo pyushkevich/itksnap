@@ -17,7 +17,7 @@
 
 #include "CommandLineArgumentParser.h"
 #include "ImageIORoutines.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 
 /** Exception when needed parameters are omitted */
 class TestUsageException : public itk::ExceptionObject {};
@@ -63,7 +63,7 @@ class TestBaseOneImage : public TestBase
 {
 public:
   // Type definitions
-  typedef itk::OrientedImage<TPixel,3> ImageType;
+  typedef itk::Image<TPixel,3> ImageType;
   typedef typename ImageType::Pointer ImagePointer;
 
   // Print how to use this test

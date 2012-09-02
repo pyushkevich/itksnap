@@ -48,6 +48,7 @@
 #ifdef SNAP_GZIP_SUPPORT
 #include <zlib.h>
 #endif
+#include "itkSpatialOrientationAdapter.h"
 
 namespace itk {
 
@@ -534,9 +535,23 @@ void VoxBoCUBImageIO::ReadImageInformation()
         OrientationMap::const_iterator it = m_OrientationMap.find(code);
         if(it != m_OrientationMap.end())
           {
-          itk::MetaDataDictionary &dic =this->GetMetaDataDictionary();
-          EncapsulateMetaData<OrientationFlags>(
-            dic, ITK_CoordinateOrientation, it->second);
+              //Octavian original begin
+          //itk::MetaDataDictionary &dic =this->GetMetaDataDictionary();
+          //EncapsulateMetaData<OrientationFlags>(
+            //dic, ITK_CoordinateOrientation, it->second);
+              //Octavian original end
+          //NOTE:  The itk::ImageIOBase direction is a std::vector<std::vector > >, and threeDDirection is a 3x3 matrix
+          itk::SpatialOrientationAdapter soAdaptor;
+          itk::SpatialOrientationAdapter::DirectionType threeDDirection=soAdaptor.ToDirectionCosines(it->second);
+          this->m_Direction[0][0]=threeDDirection[0][0];
+          this->m_Direction[0][1]=threeDDirection[0][1];
+          this->m_Direction[0][2]=threeDDirection[0][2];
+          this->m_Direction[1][0]=threeDDirection[1][0];
+          this->m_Direction[1][1]=threeDDirection[1][1];
+          this->m_Direction[1][2]=threeDDirection[1][2];
+          this->m_Direction[2][0]=threeDDirection[2][0];
+          this->m_Direction[2][1]=threeDDirection[2][1];
+          this->m_Direction[2][2]=threeDDirection[2][2];
           }
         }
 
@@ -637,9 +652,24 @@ VoxBoCUBImageIO
     }
 
   // Write the orientation code
-  MetaDataDictionary &dic = GetMetaDataDictionary();
-  OrientationFlags oflag = SpatialOrientation::ITK_COORDINATE_ORIENTATION_INVALID;
-  if(ExposeMetaData<OrientationFlags>(dic, ITK_CoordinateOrientation, oflag))
+    //Octavian original begin
+  //MetaDataDictionary &dic = GetMetaDataDictionary();
+  //OrientationFlags oflag = SpatialOrientation::ITK_COORDINATE_ORIENTATION_INVALID;
+  //if(ExposeMetaData<OrientationFlags>(dic, ITK_CoordinateOrientation, oflag))
+    //Octavian original end
+    //NOTE:  The itk::ImageIOBase direction is a std::vector<std::vector > >, and threeDDirection is a 3x3 matrix
+    itk::SpatialOrientationAdapter soAdaptor;
+    itk::SpatialOrientationAdapter::DirectionType threeDDirection;
+    threeDDirection[0][0]=this->m_Direction[0][0];
+    threeDDirection[0][1]=this->m_Direction[0][1];
+    threeDDirection[0][2]=this->m_Direction[0][2];
+    threeDDirection[1][0]=this->m_Direction[1][0];
+    threeDDirection[1][1]=this->m_Direction[1][1];
+    threeDDirection[1][2]=this->m_Direction[1][2];
+    threeDDirection[2][0]=this->m_Direction[2][0];
+    threeDDirection[2][1]=this->m_Direction[2][1];
+    threeDDirection[2][2]=this->m_Direction[2][2];
+    OrientationFlags     oflag = soAdaptor.FromDirectionCosines(threeDDirection);
     {
     InverseOrientationMap::const_iterator it = 
       m_InverseOrientationMap.find(oflag);

@@ -37,7 +37,7 @@
 #include "SNAPCommon.h"
 #include "SNAPRegistryIO.h"
 #include "ImageCoordinateGeometry.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 
 #include "itkImageIOBase.h"
 #include "itkAnalyzeImageIO.h"
@@ -345,7 +345,7 @@ GuidedNativeImageIO
   if(m_FileFormat == FORMAT_DICOM && m_DICOMFiles.size() > 1)
     {
     // It seems that ITK can't yet read DICOM into a VectorImage. 
-    typedef itk::OrientedImage<TScalar, 3> GreyImageType;
+    typedef itk::Image<TScalar, 3> GreyImageType;
 
     // Create an image series reader 
     typedef itk::ImageSeriesReader<GreyImageType> ReaderType;

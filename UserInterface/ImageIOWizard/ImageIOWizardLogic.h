@@ -174,7 +174,7 @@ public:
    * type. 
    */
   template<class TPixel> bool DisplaySaveWizard(
-    itk::OrientedImage<TPixel,3> *image, const char *file, const char *type = NULL)
+    itk::Image<TPixel,3> *image, const char *file, const char *type = NULL)
     {
     m_SaveCallback = new TypedSaveCallback<TPixel>(this, image);
     return DisplaySaveWizardImpl(file, type);
@@ -224,7 +224,7 @@ protected:
   template<class TPixel> class TypedSaveCallback : public TypedSaveCallbackBase
   {
   public:
-    typedef itk::OrientedImage<TPixel, 3> ImageType;
+    typedef itk::Image<TPixel, 3> ImageType;
     TypedSaveCallback(ImageIOWizardLogic *client, ImageType *image)
       : m_Client(client), m_Image(image) {}
     void Save(const char *fname, Registry &folder)

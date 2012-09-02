@@ -35,6 +35,10 @@
 #ifndef __SNAPLevelSetFunction_h_
 #define __SNAPLevelSetFunction_h_
 
+#if ITK_VERSION_MAJOR >= 4
+#define ITK_TYPENAME typename
+#endif
+
 //#include "itkLevelSetFunction.h"
 #include "itkSegmentationLevelSetFunction.h"
 #include "itkLinearInterpolateImageFunction.h"

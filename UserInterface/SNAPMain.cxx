@@ -52,7 +52,7 @@
 #include "SystemInterface.h"
 #include "UserInterfaceLogic.h"
 
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkNumericTraits.h"
 
@@ -75,7 +75,7 @@ const GreyType MINGREYVAL = itk::NumericTraits<GreyType>::min();
 // A templated load image method
 template<class TPixel>
 bool LoadImageFromFileInteractive(
-  const char *file, typename itk::SmartPointer< itk::OrientedImage<TPixel,3> > &target)
+  const char *file, typename itk::SmartPointer< itk::Image<TPixel,3> > &target)
 {
   try
     {

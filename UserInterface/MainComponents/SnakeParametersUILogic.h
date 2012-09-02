@@ -50,7 +50,7 @@ class SystemInterface;
 
 // ITK forward references
 namespace itk {
-  template<class TPixel, unsigned int VDimension> class OrientedImage;
+  template<class TPixel, unsigned int VDimension> class Image;
   template<class TObject> class SimpleMemberCommand;
 }
 
@@ -130,7 +130,7 @@ private:
   bool m_UserAccepted;
 
   // Image used to demonstrate examples
-  typedef itk::OrientedImage<float,2> ExampleImageType;
+  typedef itk::Image<float,2> ExampleImageType;
   typedef itk::SmartPointer<ExampleImageType> ExampleImagePointer;
 
   /** Internally used example images */

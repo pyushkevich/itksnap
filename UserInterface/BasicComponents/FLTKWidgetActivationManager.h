@@ -295,21 +295,21 @@ public:
   void AddWidget(Fl_Widget *widget, TFlag flag)
     {
     typedef GenericWidgetWrapper<Fl_Widget,TFlag> WrapperType;
-    AddWidgetWrapper(new WrapperType(widget), flag);
+    this->AddWidgetWrapper(new WrapperType(widget), flag);
     }
 
   /** Associate an FLTK menu item with a flag */
   void AddMenuItem(Fl_Menu_Item *menu, TFlag flag)
     {
     typedef GenericWidgetWrapper<Fl_Menu_Item,TFlag> WrapperType;
-    AddWidgetWrapper(new WrapperType(menu), flag);
+    this->AddWidgetWrapper(new WrapperType(menu), flag);
     }
 
   /** Associate an FLTK checkbox with a flag and two values */
   void AddCheckBox(Fl_Check_Button *cb, TFlag flag, bool onState, bool offState)
     {
     typedef ValuatorWidgetWrapper<Fl_Check_Button, int, TFlag> WrapperType;
-    AddWidgetWrapper(new WrapperType(cb,onState ? 1 : 0,offState ? 1 : 0), flag);    
+    this->AddWidgetWrapper(new WrapperType(cb,onState ? 1 : 0,offState ? 1 : 0), flag);
     }
 
 protected:

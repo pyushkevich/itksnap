@@ -32,6 +32,7 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
+#include "ImageWrapper.h"
 #include "ImageWrapper.txx"
 #include "ScalarImageWrapper.txx"
 #include "LabelImageWrapper.h"
@@ -117,6 +118,7 @@ LabelImageWrapper
 /**
  * This definition is needed to use RGBA pixels for compilation
  */
+/*Octavian
 typedef itk::RGBAPixel<unsigned char> ColorPixel;
 
 namespace itk {
@@ -152,3 +154,4 @@ const ColorPixel itk::NumericTraits<ColorPixel>::Zero =
 const unsigned char itk::NumericTraits<ColorPixel>::OneArray[4] = {1,1,1,1};
 const ColorPixel itk::NumericTraits<ColorPixel>::One = 
   ColorPixel(itk::NumericTraits<ColorPixel>::OneArray);
+Octavian*/

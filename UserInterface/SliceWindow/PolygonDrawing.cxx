@@ -46,7 +46,7 @@
 #include <vnl/vnl_random.h>
 #include "FL/Fl_Menu_Button.H"
 
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkPointSet.h"
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"

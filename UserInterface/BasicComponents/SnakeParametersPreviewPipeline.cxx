@@ -75,7 +75,7 @@ extern void fl_alert(const char *, ...);
 class LevelSetPreview2d
 {
 public:
-  typedef itk::OrientedImage<float, 2> FloatImageType;
+  typedef itk::Image<float, 2> FloatImageType;
   typedef SnakeParametersPreviewPipeline::SampledPointList CurveType;
 
   // Constructor

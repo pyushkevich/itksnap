@@ -59,7 +59,7 @@ extern std::ostream &snaperr;
 #include <itkRGBPixel.h>
 
 /** Definitions for the string streams, for compatibility */
-typedef itk::OStringStream IRISOStringStream;
+typedef std::ostringstream IRISOStringStream;
 typedef std::istringstream IRISIStringStream;
 
 // Non-cvs version

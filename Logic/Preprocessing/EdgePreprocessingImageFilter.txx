@@ -117,7 +117,7 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
 
   // graft the mini-pipeline output back onto this filter's output.
   // this is needed to get the appropriate regions passed back.
-  GraftOutput( m_RemappingFilter->GetOutput() );
+  this->GraftOutput( m_RemappingFilter->GetOutput() );
 
 }
 
