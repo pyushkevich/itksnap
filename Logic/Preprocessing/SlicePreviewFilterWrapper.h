@@ -12,6 +12,37 @@ template <class TPixel> class IRISSlicer;
 class SNAPImageData;
 
 /**
+  Abstract parent class for SlicePreviewFilterWrapper. Allows us to call
+  some methods in the SlicePreviewFilterWrapper without knowing what traits
+  it has been templated over.
+  */
+class AbstractSlicePreviewFilterWrapper : public itk::DataObject
+{
+public:
+  typedef AbstractSlicePreviewFilterWrapper                            Self;
+  typedef itk::DataObject                                        Superclass;
+  typedef SmartPtr<Self>                                            Pointer;
+  typedef SmartPtr<const Self>                                 ConstPointer;
+
+  itkTypeMacro(AbstractSlicePreviewFilterWrapper, itk::DataObject)
+
+  /** Is the preview mode on? */
+  virtual bool IsPreviewMode() const = 0;
+
+  /** Enter preview mode */
+  virtual void SetPreviewMode(bool mode) = 0;
+
+  /** Compute the output volume (corresponds to the 'Apply' operation) */
+  virtual void ComputeOutputVolume(itk::Command *progress) = 0;
+
+protected:
+
+  AbstractSlicePreviewFilterWrapper() {}
+  virtual ~AbstractSlicePreviewFilterWrapper() {}
+
+};
+
+/**
   This class provides support for on-the-fly preview of speed images in
   SNAP. It is designed to be very generic to allow use with complex
   preprocessing pipelines that have multiple inputs. To make the object
@@ -62,16 +93,16 @@ class SNAPImageData;
   to be up to date, and no preprocessing operations take place.
   */
 template<class TFilterConfigTraits>
-class SlicePreviewFilterWrapper : public itk::DataObject
+class SlicePreviewFilterWrapper : public AbstractSlicePreviewFilterWrapper
 {
 public:
 
-  typedef SlicePreviewFilterWrapper<TFilterConfigTraits>              Self;
-  typedef itk::Object                                            Superclass;
+  typedef SlicePreviewFilterWrapper<TFilterConfigTraits>               Self;
+  typedef AbstractSlicePreviewFilterWrapper                      Superclass;
   typedef SmartPtr<Self>                                            Pointer;
   typedef SmartPtr<const Self>                                 ConstPointer;
 
-  itkTypeMacro(SlicePreviewFilterWrapper, itk::DataObject)
+  itkTypeMacro(SlicePreviewFilterWrapper, AbstractSlicePreviewFilterWrapper)
 
   itkNewMacro(Self)
 
@@ -117,6 +148,10 @@ protected:
   OutputWrapperType *m_OutputWrapper;
 
   SmartPtr<FilterType> m_PreviewFilter[3];
+  SmartPtr<FilterType> m_VolumeFilter;
+
+  // So we can loop over all four filters
+  FilterType *GetNthFilter(int);
 
   bool m_PreviewMode;
 };

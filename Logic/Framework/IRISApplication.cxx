@@ -71,10 +71,16 @@
 #include "EdgePreprocessingSettings.h"
 #include "ThresholdSettings.h"
 
+#include "SlicePreviewFilterWrapper.h"
+#include "PreprocessingFilterConfigTraits.h"
+#include "SmoothBinaryThresholdImageFilter.h"
+#include "EdgePreprocessingImageFilter.h"
 
 #include <stdio.h>
 #include <sstream>
 #include <iomanip>
+
+// TODO: stick these traits some
 
 
 IRISApplication
@@ -105,6 +111,15 @@ IRISApplication
   // Initialize the preprocessing settings
   m_ThresholdSettings = ThresholdSettings::New();
   m_EdgePreprocessingSettings = EdgePreprocessingSettings::New();
+
+  // Initialize the preprocessing filter preview wrappers
+  m_ThresholdPreviewWrapper = ThresholdPreviewWrapperType::New();
+  m_ThresholdPreviewWrapper->SetParameters(m_ThresholdSettings);
+
+  m_EdgePreviewWrapper = EdgePreprocessingPreviewWrapperType::New();
+  m_EdgePreviewWrapper->SetParameters(m_EdgePreprocessingSettings);
+
+  m_PreprocessingMode = PREPROCESS_NONE;
 }
 
 std::string
@@ -178,6 +193,9 @@ IRISApplication
 
   // Remember the ROI object
   m_GlobalState->SetSegmentationROISettings(roi);
+
+  // Indicate that the speed image is invalid
+  m_GlobalState->SetSpeedValid(false);
 }
 
 void 
@@ -1528,6 +1546,7 @@ bool IRISApplication::IsSnakeModeActive() const
   return (m_CurrentImageData == m_SNAPImageData);
 }
 
+/*
 void IRISApplication::ComputeSNAPSpeedImage(CommandType *progressCB)
 {
   assert(IsSnakeModeActive());
@@ -1540,13 +1559,21 @@ void IRISApplication::ComputeSNAPSpeedImage(CommandType *progressCB)
     m_SNAPImageData->DoInOutPreprocessing(progressCB);
     }
 
+  // Mark the speed  image as valid
+  m_GlobalState->SetSpeedValid(true);
+
   InvokeEvent(SpeedImageChangedEvent());
 }
+*/
 
 void IRISApplication::SetSnakeMode(SnakeType mode)
 {
   // We must be in snake mode
   assert(IsSnakeModeActive());
+
+  // We can't be changing the snake type while there is an active preprocessing
+  // mode. This should never happen in the code, so we use an assert
+  assert(m_PreprocessingMode == PREPROCESS_NONE);
 
   // If the mode has changed, some modifications are needed
   if(mode != m_GlobalState->GetSnakeType())
@@ -1554,8 +1581,11 @@ void IRISApplication::SetSnakeMode(SnakeType mode)
     // Set the actual snake mode
     m_GlobalState->SetSnakeType(mode);
 
-    // Clear the speed image
-    m_SNAPImageData->UpdatePreviewPipeline(mode);
+    // Set the speed to invalud
+    m_GlobalState->SetSpeedValid(false);
+
+    // Clear the speed layer
+    m_SNAPImageData->InitializeSpeed();
     }
 }
 
@@ -1563,6 +1593,84 @@ SnakeType IRISApplication::GetSnakeMode() const
 {
   return m_GlobalState->GetSnakeType();
 }
+
+
+void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
+{
+  // Do not reenter the same mode
+  if(mode == m_PreprocessingMode)
+    return;
+
+  // Detach the current mode
+  switch(m_PreprocessingMode)
+    {
+    case PREPROCESS_THRESHOLD:
+      m_ThresholdPreviewWrapper->DetachInputsAndOutputs();
+      break;
+
+    case PREPROCESS_EDGE:
+      m_EdgePreviewWrapper->DetachInputsAndOutputs();
+      break;
+
+    default:
+      break;
+    }
+
+  // Enter the new mode
+  switch(mode)
+    {
+    case PREPROCESS_THRESHOLD:
+      m_ThresholdPreviewWrapper->AttachInputs(m_SNAPImageData);
+      m_ThresholdPreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());
+      break;
+
+    case PREPROCESS_EDGE:
+      m_EdgePreviewWrapper->AttachInputs(m_SNAPImageData);
+      m_EdgePreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());
+      break;
+
+    default:
+      break;
+    }
+
+  m_PreprocessingMode = mode;
+}
+
+PreprocessingMode IRISApplication::GetPreprocessingMode() const
+{
+  return m_PreprocessingMode;
+}
+
+AbstractSlicePreviewFilterWrapper *
+IRISApplication
+::GetPreprocessingFilterPreviewer(PreprocessingMode mode)
+{
+  switch(mode)
+    {
+    case PREPROCESS_THRESHOLD:
+      return m_ThresholdPreviewWrapper;
+    case PREPROCESS_EDGE:
+      return m_EdgePreviewWrapper;
+    default:
+      return NULL;
+    }
+}
+
+void
+IRISApplication
+::ApplyCurrentPreprocessingModeToSpeedVolume(itk::Command *progress)
+{
+  AbstractSlicePreviewFilterWrapper *wrapper =
+      this->GetPreprocessingFilterPreviewer(m_PreprocessingMode);
+
+  if(wrapper)
+    {
+    wrapper->ComputeOutputVolume(progress);
+    m_GlobalState->SetSpeedValid(true);
+    }
+}
+
+
 
 
 

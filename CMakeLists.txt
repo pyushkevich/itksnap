@@ -122,7 +122,6 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/RGBImageWrapper.cxx
   Logic/ImageWrapper/ScalarImageHistogram.cxx
   Logic/ImageWrapper/ScalarImageWrapper.cxx
-  Logic/ImageWrapper/SpeedColorMap.cxx
   Logic/ImageWrapper/SpeedImageWrapper.cxx
   Logic/ImageWrapper/VectorImageWrapper.cxx
   Logic/LevelSet/SnakeParameters.cxx
@@ -134,6 +133,7 @@ SET(LOGIC_CXX
   Logic/Mesh/MeshOptions.cxx
   Logic/Mesh/VTKMeshPipeline.cxx
   Logic/Preprocessing/EdgePreprocessingSettings.cxx
+  Logic/Preprocessing/PreprocessingFilterConfigTraits.cxx
   Logic/Preprocessing/ThresholdSettings.cxx
   Logic/Slicing/IntensityCurveVTK.cxx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
@@ -182,8 +182,6 @@ SET(LOGIC_HEADERS
   Logic/Framework/GlobalState.h
   Logic/Framework/IRISApplication.h
   Logic/Framework/IRISImageData.h
-  Logic/Framework/SlicePreviewFilterWrapper.h
-  Logic/Framework/SlicePreviewFilterWrapper.txx
   Logic/Framework/SNAPImageData.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
@@ -198,7 +196,6 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/RGBImageWrapper.h
   Logic/ImageWrapper/ScalarImageHistogram.h
   Logic/ImageWrapper/ScalarImageWrapper.h
-  Logic/ImageWrapper/SpeedColorMap.h
   Logic/ImageWrapper/SpeedImageWrapper.h
   Logic/ImageWrapper/VectorImageWrapper.h
   Logic/LevelSet/LevelSetExtensionFilter.h
@@ -223,6 +220,9 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/EdgePreprocessingImageFilter.h
   Logic/Preprocessing/EdgePreprocessingImageFilter.txx
   Logic/Preprocessing/EdgePreprocessingSettings.h
+  Logic/Preprocessing/PreprocessingFilterConfigTraits.h
+  Logic/Preprocessing/SlicePreviewFilterWrapper.h
+  Logic/Preprocessing/SlicePreviewFilterWrapper.txx
   Logic/Preprocessing/SmoothBinaryThresholdImageFilter.h
   Logic/Preprocessing/SmoothBinaryThresholdImageFilter.txx
   Logic/Preprocessing/ThresholdSettings.h

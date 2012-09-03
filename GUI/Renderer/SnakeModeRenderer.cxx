@@ -23,8 +23,10 @@ void SnakeModeRenderer::paintGL()
     // Get the image data
     SNAPImageData *sid = app->GetSNAPImageData();
 
-    // Depending on the state, draw the speed image
-    if(gs->GetShowSpeed())
+    // The speed image is rendered when the speed volume is marked as valid
+    // in the global state (indicating that the speed volume has been computed)
+    // or if the speed image is hooked up to the preview pipeline
+    if(gs->GetSpeedValid() || sid->GetSpeed()->IsPreviewPipelineAttached())
       {
       GenericSliceRenderer *parent = this->GetParentRenderer();
       parent->DrawTextureForLayer(sid->GetSpeed(), true);

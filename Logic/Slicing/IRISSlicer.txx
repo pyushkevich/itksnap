@@ -36,6 +36,9 @@ template<class TPixel>
 IRISSlicer<TPixel>
 ::IRISSlicer()
 {
+  // Two inputs are allowed (second being the preview input)
+  this->SetNumberOfInputs(2);
+
   // There is a single input to the filter
   this->SetNumberOfRequiredInputs(1);
 
@@ -143,49 +146,63 @@ void IRISSlicer<TPixel>
     }
 }
 
-/*
-template<class TPixel> 
-void IRISSlicer<TPixel>
-::GenerateData()
+template<class TPixel>
+void
+IRISSlicer<TPixel>
+::GenerateInputRequestedRegion()
 {
-  // Here's the input and output
-  InputImagePointer  inputPtr = this->GetInput();
-  OutputImagePointer  outputPtr = this->GetOutput();
-  
-  // Allocate (why is this necessary?)
-  this->AllocateOutputs();
+  // If there is a preview input, and the pipeline of the preview input is
+  // older than the main input, we don't ask the preview to generate a new
+  // slice. Instead, we leave it's requested region as is, so that the
+  // preview does not actually update. This results in a selective behavior,
+  // where we choose the preview if it's newer than the main input, otherwise
+  // we choose the normal input
 
-  // Compute the region in the image for which the slice is being extracted
-  InputImageRegionType inputRegion = inputPtr->GetRequestedRegion();
+  // Actually compute what the input region should be
+  InputImageRegionType inputRegion;
+  this->CallCopyOutputRegionToInputRegion(
+        inputRegion, this->GetOutput()->GetRequestedRegion());
 
-  // Create an iterator that will parse the desired slice in the image
-  InputIteratorType it(inputPtr,inputRegion);
-  it.SetFirstDirection(m_PixelDirectionImageAxis);
-  it.SetSecondDirection(m_LineDirectionImageAxis);
+  // Get the main input
+  InputImageType *main = const_cast<InputImageType *>(this->GetInput(0));
 
-  // Copy the contents using a different method, depending on the axes directions
-  // The direction with index one is the order in which the lines are traversed and
-  // the direction with index two is the order in which the pixels are traversed.
-  if(m_PixelTraverseForward)
-    if(m_LineTraverseForward)
-      CopySliceLineForwardPixelForward(it,outputPtr);
+  // Decide if we want to use the preview input instead
+  InputImageType *preview = const_cast<InputImageType *>(this->GetInput(1));
+
+  if(preview)
+    {
+    if(preview->GetPipelineMTime() > main->GetMTime())
+      {
+      // We want the preview to be updated
+      preview->SetRequestedRegion(inputRegion);
+      }
     else
-      CopySliceLineBackwardPixelForward(it,outputPtr);
-  else
-    if(m_LineTraverseForward)
-      CopySliceLineForwardPixelBackward(it,outputPtr);
-    else
-      CopySliceLineBackwardPixelBackward(it,outputPtr);
+      {
+      // Ignore the preview, prevent it from updating itself needlessly
+      preview->SetRequestedRegion(preview->GetBufferedRegion());
+      }
+
+    main->SetRequestedRegion(inputRegion);
+    }
 }
-*/
+
 
 template<class TPixel> 
 void IRISSlicer<TPixel>
 ::GenerateData()
 {
   // Here's the input and output
-  InputImagePointer  inputPtr = this->GetInput();
-  OutputImagePointer  outputPtr = this->GetOutput();
+  const InputImageType *inputPtr = this->GetInput();
+  OutputImageType *outputPtr = this->GetOutput();
+
+  // Decide if we want to use the preview input instead
+  const InputImageType *preview =
+      (InputImageType *) this->GetInputs()[1].GetPointer();
+
+  if(preview && preview->GetMTime() > inputPtr->GetMTime())
+    {
+    inputPtr = preview;
+    }
   
   // Allocate (why is this necessary?)
   this->AllocateOutputs();
@@ -259,208 +276,17 @@ void IRISSlicer<TPixel>
   os << indent << "Pixels Traversed Forward: " << m_PixelTraverseForward << std::endl;
 }
 
-/*
-// Traverse pixels forward and lines forward
-template<class TPixel> 
+template<class TPixel>
 void IRISSlicer<TPixel>
-::CopySliceLineForwardPixelForward(InputIteratorType itImage, 
-                                   OutputImageType *outputPtr)
-{  
-  // Create an simple iterator for the slice
-  SimpleOutputIteratorType itSlice(outputPtr,outputPtr->GetRequestedRegion());
-
-  // Position both iterators at the beginning
-  itSlice.GoToBegin();
-  itImage.GoToBegin();
-
-  // Parse over lines
-  while(!itSlice.IsAtEnd())
-    {
-    // Parse over pixels
-    while(!itImage.IsAtEndOfLine())
-      {  
-      itSlice.Set(itImage.Value());
-      ++itSlice;
-      ++itImage;
-      }
-
-    // Position the image iterator at the next line
-    itImage.NextLine();
-    }
-}
-
-// Traverse pixels forward and lines backward
-template<class TPixel> 
-void IRISSlicer<TPixel>
-::CopySliceLineBackwardPixelForward(InputIteratorType itImage, 
-                                    OutputImageType *outputPtr)
+::SetPreviewInput(IRISSlicer::InputImageType *input)
 {
-  // Create an iterator into the slice itself
-  OutputIteratorType itSlice(outputPtr,outputPtr->GetRequestedRegion());
-  itSlice.SetDirection(0);
-
-  // Go to the last line  
-  itSlice.GoToReverseBegin();
-  itImage.GoToBegin();
-  
-  // Parse over lines
-  while(!itSlice.IsAtReverseEnd())
-    {
-    // Position the slice iterator at the first pixel of the line
-    itSlice.GoToBeginOfLine();
-
-    // Scan in forward until the end of line
-    while(!itSlice.IsAtEndOfLine())
-      {
-      itSlice.Set(itImage.Value());
-      ++itSlice;
-      ++itImage;
-      }
-
-    // Step over to the previous line
-    itSlice.PreviousLine();
-    itImage.NextLine();
-    }
+  this->SetNthInput(1, input);
 }
 
-// Traverse pixels backward and lines forward
-template<class TPixel> 
-void IRISSlicer<TPixel>
-::CopySliceLineForwardPixelBackward(InputIteratorType itImage, 
-                                    OutputImageType *outputPtr)
+template<class TPixel>
+typename IRISSlicer<TPixel>::InputImageType *
+IRISSlicer<TPixel>
+::GetPreviewInput()
 {
-  // Create an iterator into the slice itself
-  OutputIteratorType itSlice(outputPtr,outputPtr->GetRequestedRegion());
-  itSlice.SetDirection(0);
-
-  // Go to start of the last line  
-  itSlice.GoToBegin();
-  itImage.GoToBegin();
-  
-  // Parse over lines
-  while(!itSlice.IsAtEnd())
-    {
-    // Position the slice iterator at the last pixel of the line
-    itSlice.GoToEndOfLine(); --itSlice;
-    
-    // Scan in backwards until we're past the beginning of the line
-    while(!itSlice.IsAtReverseEndOfLine())
-      {
-      itSlice.Set(itImage.Value());
-      --itSlice;
-      ++itImage;
-      }
-
-    // Step over to the next line
-    itSlice.NextLine();
-    itImage.NextLine();
-    }
+  return const_cast<InputImageType *>(this->GetInput(1));
 }
-
-// Traverse pixels backward and lines backward
-template<class TPixel> 
-void IRISSlicer<TPixel>
-::CopySliceLineBackwardPixelBackward(InputIteratorType itImage, 
-                                     OutputImageType *outputPtr)
-{  
-  // Create an simple iterator for the slice
-  SimpleOutputIteratorType itSlice(outputPtr,outputPtr->GetRequestedRegion());
-  // Position both iterators at the beginning
-  itSlice.GoToReverseBegin();
-  itImage.GoToBegin();
-
-  // Parse over lines
-  while(!itSlice.IsAtReverseEnd())
-    {
-    // Parse over pixels
-    while(!itImage.IsAtEndOfLine())
-      {  
-      itSlice.Set(itImage.Value());
-      --itSlice;
-      ++itImage;
-      }
-
-    // Position the image iterator at the next line
-    itImage.NextLine();
-    }
-}
-*/
-
-/*
-template<class TPixel> 
-void IRISSlicer<TPixel>
-::CopySlice(InputIteratorType itImage, OutputIteratorType itSlice, 
-            int sliceDir, int lineDir)
-{
-  if (sliceDir > 0 && lineDir > 0)
-    {
-    itImage.GoToBegin();
-    while (!itImage.IsAtEndOfSlice())
-      {
-      while (!itImage.IsAtEndOfLine())
-        {
-        itSlice.Set(itImage.Value());
-        ++itSlice;
-        ++itImage;
-        }
-      itImage.NextLine();
-      }
-    } 
-  else if (sliceDir > 0 && lineDir < 0)
-    {
-    itImage.GoToBegin();
-    while (!itImage.IsAtEndOfSlice())
-      {
-      itImage.NextLine();
-      itImage.PreviousLine();
-      while (1)
-        {
-        itSlice.Set(itImage.Value());
-        ++itSlice;
-        if (itImage.IsAtReverseEndOfLine())
-          break;
-        else
-          --itImage;
-        }
-      itImage.NextLine();
-      }
-    } 
-  else if (sliceDir < 0 && lineDir > 0)
-    {
-    itImage.GoToReverseBegin();
-    while (!itImage.IsAtReverseEndOfSlice())
-      {
-      itImage.PreviousLine();
-      itImage.NextLine();
-      while (!itImage.IsAtEndOfLine())
-        {
-        TPixel px = itImage.Value();
-        itSlice.Set(px);
-        ++itSlice;
-        ++itImage;
-        }
-      itImage.PreviousLine();
-      } 
-    } 
-  else if (sliceDir < 0 && lineDir < 0)
-    {
-    itImage.GoToReverseBegin();
-    while (1)
-      {
-      while (1)
-        {
-        itSlice.Set(itImage.Value());
-        ++itSlice;
-        if (itImage.IsAtReverseEndOfLine())
-          break;
-        else
-          --itImage;
-        }            
-      if (itImage.IsAtReverseEndOfSlice())
-        break;
-      else
-        itImage.PreviousLine();
-      } 
-    }
-}
-*/

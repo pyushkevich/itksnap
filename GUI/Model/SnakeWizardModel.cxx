@@ -50,6 +50,7 @@ SnakeWizardModel::SnakeWizardModel()
         this,
         &Self::GetSnakeTypeValueAndRange,
         &Self::SetSnakeTypeValue);
+
 }
 
 void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
@@ -71,7 +72,7 @@ void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
               itk::ModifiedEvent(), ThresholdSettingsUpdateEvent());
 
   // Changes to the preview pipeline (preview status) are broadcast as events
-  Rebroadcast(m_Driver->GetSNAPImageData()->GetThresholdPreviewWrapper(),
+  Rebroadcast(m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD),
               itk::ModifiedEvent(), ThresholdSettingsUpdateEvent());
 
   // Changes to the snake mode are cast as model update events
@@ -182,7 +183,9 @@ void SnakeWizardModel::OnUpdate()
 {
 }
 
-bool SnakeWizardModel::GetThresholdSmoothnessValueAndRange(double &x, NumericValueRange<double> *range)
+bool
+SnakeWizardModel
+::GetThresholdSmoothnessValueAndRange(double &x, NumericValueRange<double> *range)
 {
   if(m_Driver->GetCurrentImageData()->IsGreyLoaded())
     {
@@ -240,18 +243,19 @@ void SnakeWizardModel::EvaluateThresholdFunction(double t, double &x, double &y)
 void SnakeWizardModel::ApplyThresholdPreprocessing()
 {
   // Compute the speed image
-  m_Driver->ComputeSNAPSpeedImage();
+  m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD)
+      ->ComputeOutputVolume(NULL);
 
-  // The speed image should be shown
-  m_GlobalState->SetShowSpeed(true);
+  // The speed image is now valid.
+  m_GlobalState->SetSpeedValid(true);
 }
 
 bool SnakeWizardModel::GetThresholdPreviewValue(bool &value)
 {
   if(m_Driver->IsSnakeModeActive())
     {
-    value = m_Driver->GetSNAPImageData()
-        ->GetThresholdPreviewWrapper()->IsPreviewMode();
+    value = m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD)
+        ->IsPreviewMode();
     return true;
     }
   else return false;
@@ -260,9 +264,8 @@ bool SnakeWizardModel::GetThresholdPreviewValue(bool &value)
 void SnakeWizardModel::SetThresholdPreviewValue(bool value)
 {
   assert(m_Driver->IsSnakeModeActive());
-  m_Driver->GetSNAPImageData()
-      ->GetThresholdPreviewWrapper()->SetPreviewMode(value);
-  m_GlobalState->SetShowSpeed(value);
+  m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD)
+      ->SetPreviewMode(value);
 }
 
 bool SnakeWizardModel::GetSnakeTypeValueAndRange(
@@ -274,6 +277,25 @@ bool SnakeWizardModel::GetSnakeTypeValueAndRange(
 void SnakeWizardModel::SetSnakeTypeValue(SnakeType value)
 {
   m_Driver->SetSnakeMode(value);
+}
+
+void SnakeWizardModel::OnPreprocessingDialogClose()
+{
+  // Disconnect preview pipeline
+  m_Driver->EnterPreprocessingMode(PREPROCESS_NONE);
+  InvokeEvent(ModelUpdateEvent());
+}
+
+void SnakeWizardModel::OnThresholdingPageEnter()
+{
+  m_Driver->EnterPreprocessingMode(PREPROCESS_THRESHOLD);
+  InvokeEvent(ModelUpdateEvent());
+}
+
+void SnakeWizardModel::OnEdgePreprocessingPageEnter()
+{
+  m_Driver->EnterPreprocessingMode(PREPROCESS_EDGE);
+  InvokeEvent(ModelUpdateEvent());
 }
 
 

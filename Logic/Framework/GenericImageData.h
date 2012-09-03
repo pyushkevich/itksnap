@@ -191,17 +191,16 @@ public:
   /**
     Access the main image as a scalar image.
    */
-  GreyImageWrapperBase* GetGrey()
+  GreyImageWrapper<GreyType>* GetGrey()
   {
-    assert(m_GreyImageWrapper && m_GreyImageWrapper->IsInitialized());
     return m_GreyImageWrapper;
   }
 
   /**
    * Access the RGB image (read only access is allowed)
    */
-  RGBImageWrapperBase* GetRGB() {
-    assert(m_RGBImageWrapper && m_RGBImageWrapper->IsInitialized());
+  RGBImageWrapper<unsigned char>* GetRGB()
+  {
     return m_RGBImageWrapper;
   }
 

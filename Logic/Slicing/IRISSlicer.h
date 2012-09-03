@@ -106,6 +106,18 @@ public:
   itkSetMacro(PixelTraverseForward,bool);
   itkGetMacro(PixelTraverseForward,bool);
 
+  /** Add a second `preview' input to the slicer. The slicer will check if
+    the preview input is newer than the main input, and if so, will obtain
+    the data from the preview input. This is used in the speed preview
+    framework, but could also be adapted for other features. Setting the
+    preview input to NULL disables this feature. */
+  void SetPreviewInput(InputImageType *input);
+
+  /**
+    Get the preview input.
+    */
+  InputImageType *GetPreviewInput();
+
 protected:
   IRISSlicer();
   virtual ~IRISSlicer() {};
@@ -121,6 +133,8 @@ protected:
    *
    * \sa ProcessObject::GenerateOutputInformaton()  */
   virtual void GenerateOutputInformation();
+
+  void GenerateInputRequestedRegion();
 
   /**
    * This method maps an input region to an output region

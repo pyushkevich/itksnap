@@ -54,13 +54,8 @@ GlobalState
   // SNAP is off initially
   m_SNAPActive = false;
 
-  // Presets
-  m_SpeedColorMapInRegionMode = COLORMAP_BLUE_BLACK_WHITE;
-  m_SpeedColorMapInEdgeMode = COLORMAP_BLACK_BLACK_WHITE;
-
   // Snake stuff:
   m_SpeedValid = false;
-  m_ShowSpeed = false;
   m_ShowROI = false;
   m_DraggingROI = false;
   m_SnakeActive = false;
@@ -79,13 +74,6 @@ GlobalState
 
   m_SpeedViewZero = false;
   m_SnakeParameters = SnakeParameters::GetDefaultEdgeParameters();
-
-  // Default preview modes: enabled for in-out, disabled for edges (too slow)
-  m_ShowPreprocessedEdgePreview = false;
-  m_ShowPreprocessedInOutPreview = true;
-
-  // The preview is not currently valid
-  m_SpeedPreviewValid = false;
 
   // Bubbles
   m_ActiveBubble = -1;
@@ -160,26 +148,6 @@ GlobalState
 
 #endif /* DRAWING_LOCK */
 
-
-/** Set the colormap in current preprocessing mode*/
-void 
-GlobalState
-::SetSpeedColorMap(ColorMapPreset xPreset)
-{
-  if(this->GetSnakeType() == EDGE_SNAKE)
-    SetSpeedColorMapInEdgeMode(xPreset);
-  else
-    SetSpeedColorMapInRegionMode(xPreset);
-}
-
-/** Get the colormap in current preprocessing mode*/
-ColorMapPreset 
-GlobalState
-::GetSpeedColorMap()
-{
-  return (GetSnakeType() == EDGE_SNAKE) ?
-        GetSpeedColorMapInEdgeMode() : GetSpeedColorMapInRegionMode();
-}
 
 void GlobalState::SetCoverageMode(CoverageModeType coverage)
 {

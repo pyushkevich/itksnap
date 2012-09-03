@@ -610,3 +610,40 @@ template class ImageWrapper<GreyType>;
 template class ImageWrapper<float>;
 template class ImageWrapper<LabelType>;
 template class ImageWrapper<RGBType>;
+
+template <class TPixel>
+void
+ImageWrapper<TPixel>
+::AttachPreviewPipeline(
+    PreviewFilterType *f0, PreviewFilterType *f1, PreviewFilterType *f2)
+{
+  PreviewFilterType *filter[] = {f0, f1, f2};
+  for(int i = 0; i < 3; i++)
+    {
+    // Update the preview inputs to the slicers
+    m_Slicer[i]->SetPreviewInput(filter[i]->GetOutput());
+
+    // Mark the preview filters as modified to ensure that the slicer
+    // is going to use it. TODO: is this really needed?
+    filter[i]->Modified();
+    }
+}
+
+template <class TPixel>
+void
+ImageWrapper<TPixel>
+::DetachPreviewPipeline()
+{
+  for(int i = 0; i < 3; i++)
+    {
+    m_Slicer[i]->SetPreviewInput(NULL);
+    }
+}
+
+template <class TPixel>
+bool
+ImageWrapper<TPixel>
+::IsPreviewPipelineAttached() const
+{
+  return m_Slicer[0]->GetPreviewInput() != NULL;
+}

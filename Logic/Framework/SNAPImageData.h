@@ -58,12 +58,6 @@
 namespace itk { class Command; }
 class SNAPSegmentationROISettings;
 
-template <typename TIn, typename TOut> class SmoothBinaryThresholdImageFilter;
-template <typename TIn, typename TOut> class EdgePreprocessingImageFilter;
-
-template <class TFilterConfigTraits> class SlicePreviewFilterWrapper;
-class SmoothBinaryThresholdFilterConfigTraits;
-class EdgePreprocessingFilterConfigTraits;
 
 /**
  * \class SNAPImageData
@@ -82,21 +76,8 @@ public:
   typedef itk::OrientedImage<float,3>                           FloatImageType;
   typedef FloatImageType                                     LevelSetImageType;
   typedef Superclass::GreyImageType                              GreyImageType;
-  typedef Superclass::GreyImageType                             SpeedImageType;
+  typedef itk::OrientedImage<short, 3>                          SpeedImageType;
   typedef Superclass::RGBImageType                                RGBImageType;
-
-  // Typedefs for the preprocessing image filters
-  typedef SmoothBinaryThresholdImageFilter<GreyImageType, SpeedImageType>
-                                                           ThresholdFilterType;
-
-  typedef SlicePreviewFilterWrapper<SmoothBinaryThresholdFilterConfigTraits>
-                                                   ThresholdPreviewWrapperType;
-
-  typedef EdgePreprocessingImageFilter<GreyImageType, SpeedImageType>
-                                                   EdgePreprocessingFilterType;
-
-  typedef SlicePreviewFilterWrapper<EdgePreprocessingFilterConfigTraits>
-                                           EdgePreprocessingPreviewWrapperType;
 
   SNAPImageData(IRISApplication *m_Parent);
   ~SNAPImageData();
@@ -116,24 +97,6 @@ public:
    * Get the preprocessed (speed) image wrapper
    */
   SpeedImageWrapper* GetSpeed();
-
-  /** A high level method to perform edge preprocessing on the grey image and
-   * store the result in the speed image wrapper */
-  void DoEdgePreprocessing(itk::Command *progressCallback = 0);
-
-  /** A high level method to perform in-out preprocessing on the grey image and
-   * store the result in the speed image wrapper */
-  void DoInOutPreprocessing(itk::Command *progressCallback = 0);
-
-  /** Update the preview pipeline in response to the change in the active
-    snake preprocessing mode */
-  void UpdatePreviewPipeline(SnakeType mode);
-
-  /** Get the object that manages threshold-based preprocessing preview */
-  irisGetMacro(ThresholdPreviewWrapper, ThresholdPreviewWrapperType *)
-
-  /** Get the object that manages edge-based preprocessing preview */
-  irisGetMacro(EdgePreprocessingPreviewWrapper, EdgePreprocessingPreviewWrapperType *)
 
   /**
    * Initialize the Speed image wrapper to blank data
@@ -280,10 +243,6 @@ private:
   /** Check the snake initialization image for validity */
   bool IsSnakeInitializationLoaded();
 
-  /** Objects used to generate previews for the speed image */
-  SmartPtr<ThresholdPreviewWrapperType> m_ThresholdPreviewWrapper;
-  SmartPtr<EdgePreprocessingPreviewWrapperType> m_EdgePreprocessingPreviewWrapper;
-
   // Speed image adata
   SpeedImageWrapper m_SpeedWrapper;
 
@@ -312,41 +271,11 @@ private:
 
   // The color label that is used for this segmentation
   ColorLabel m_ColorLabel;
-
-
-  friend class SmoothBinaryThresholdFilterConfigTraits;
-  friend class EdgePreprocessingFilterConfigTraits;
 };
 
 
 
-class SmoothBinaryThresholdFilterConfigTraits {
-public:
 
-  typedef SNAPImageData::GreyImageType GreyType;
-  typedef SNAPImageData::SpeedImageType SpeedType;
-
-  typedef SmoothBinaryThresholdImageFilter<GreyType, SpeedType> FilterType;
-  typedef ThresholdSettings ParameterType;
-
-  static void AttachInputs(SNAPImageData *sid, FilterType *filter);
-  static void DetachInputs(FilterType *filter);
-  static void SetParameters(ParameterType *p, FilterType *filter);
-};
-
-class EdgePreprocessingFilterConfigTraits {
-public:
-
-  typedef SNAPImageData::GreyImageType GreyType;
-  typedef SNAPImageData::SpeedImageType SpeedType;
-
-  typedef EdgePreprocessingImageFilter<GreyType, SpeedType> FilterType;
-  typedef EdgePreprocessingSettings ParameterType;
-
-  static void AttachInputs(SNAPImageData *sid, FilterType *filter);
-  static void DetachInputs(FilterType *filter);
-  static void SetParameters(ParameterType *p, FilterType *filter);
-};
 
 
 

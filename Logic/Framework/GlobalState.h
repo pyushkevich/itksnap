@@ -76,6 +76,16 @@ enum SnakeType
   EDGE_SNAKE
 };
 
+/**
+  Available modes for speed image generation
+  */
+enum PreprocessingMode
+{
+  PREPROCESS_NONE = 0,
+  PREPROCESS_THRESHOLD,
+  PREPROCESS_EDGE
+};
+
 enum ConstraintsType 
 {
   SAPIRO,
@@ -84,16 +94,6 @@ enum ConstraintsType
   USER
 };
   
-/** Color map presets */
-enum ColorMapPreset 
-{
-  COLORMAP_BLACK_BLACK_WHITE = 0,
-  COLORMAP_BLUE_BLACK_WHITE,
-  COLORMAP_BLACK_GRAY_WHITE,
-  COLORMAP_BLUE_WHITE_RED,
-  COLORMAP_BLACK_YELLOW_WHITE
-};
-
 enum PaintbrushMode
 {
   PAINTBRUSH_RECTANGULAR = 0,
@@ -219,12 +219,6 @@ public:
   /** Set whether SNAP is currently active */
   irisGetMacro(SNAPActive,bool );
 
-  /** Get whether the speed (preprocessing) image is visible */
-  irisSetMacro(ShowSpeed,bool );
-
-  /** Set whether the speed (preprocessing) image is visible */
-  irisGetMacro(ShowSpeed,bool );
-
   /** Get whether the speed (preprocessing) image is valid */
   irisSetMacro(SpeedValid,bool );
 
@@ -237,24 +231,7 @@ public:
   /** Set whether the zero level of the speed image is being displayed */
   irisGetMacro(SpeedViewZero,bool );
 
-  /** Get the colormap used to display speed in edge mode */
-  irisGetMacro(SpeedColorMapInEdgeMode, ColorMapPreset);
-
-  /** Set the colormap used to display speed in edge mode */
-  irisSetMacro(SpeedColorMapInEdgeMode, ColorMapPreset);
-
-  /** Get the colormap used to display speed in region mode */
-  irisGetMacro(SpeedColorMapInRegionMode, ColorMapPreset);
-
-  /** Set the colormap used to display speed in region mode */
-  irisSetMacro(SpeedColorMapInRegionMode, ColorMapPreset);
-
-  /** Set the colormap in current preprocessing mode*/
-  void SetSpeedColorMap(ColorMapPreset xPreset);
-
-  /** Get the colormap in current preprocessing mode*/
-  ColorMapPreset GetSpeedColorMap();
-
+  /** The domain of values for snake type (edge/region) */
   typedef SimpleItemSetDomain<SnakeType, std::string> SnakeTypeDomain;
 
   /** Get the type of the snake being used */
@@ -265,24 +242,6 @@ public:
 
   /** Set whether the snake is currently active */
   irisGetMacro(SnakeActive,bool );
-
-  /** Set whether the speed preview is valid or not */
-  irisSetMacro(SpeedPreviewValid, bool);
-  
-  /** Get whether the speed preview is valid or not */
-  irisGetMacro(SpeedPreviewValid, bool);
-  
-  /** Set the auto-preview feature of edge-mode preprocessor uses  */
-  irisSetMacro(ShowPreprocessedEdgePreview,bool);
-
-  /** Get the auto-preview feature of edge-mode preprocessor uses  */
-  irisGetMacro(ShowPreprocessedEdgePreview,bool);
-
-  /** Set the auto-preview feature of edge-mode preprocessor uses  */
-  irisSetMacro(ShowPreprocessedInOutPreview,bool);
-
-  /** Get the auto-preview feature of edge-mode preprocessor uses  */
-  irisGetMacro(ShowPreprocessedInOutPreview,bool);
 
   /** Get the current parameters of the snake algorithm */
   irisGetMacro(SnakeParameters,SnakeParameters);
@@ -417,20 +376,11 @@ private:
   /** Whether SNAP is currently active */
   bool m_SNAPActive;
 
-  /** Whether the speed (preprocessing) image is visible */
-  bool m_ShowSpeed;
-
   /** Whether the speed (preprocessing) image is valid */
   bool m_SpeedValid;
 
   /** Whether the zero level of the speed image is being displayed */
   bool m_SpeedViewZero;
-
-  /** Color map preset in edge mode */
-  ColorMapPreset m_SpeedColorMapInEdgeMode;
-
-  /** Color map preset in region mode */
-  ColorMapPreset m_SpeedColorMapInRegionMode;
 
   /** The type of the snake being used */
   typedef ConcretePropertyModel<SnakeType, SnakeTypeDomain> SnakeTypeModel;
@@ -458,13 +408,6 @@ private:
 
   // Current mesh options
   MeshOptions m_MeshOptions;
-
-  // Whether preview is valid or not
-  bool m_SpeedPreviewValid;
-  
-  // Auto-preview state
-  bool m_ShowPreprocessedEdgePreview;
-  bool m_ShowPreprocessedInOutPreview;
 
   // Current settings for the snake algorithm
   SnakeParameters m_SnakeParameters;

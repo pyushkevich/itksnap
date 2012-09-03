@@ -387,7 +387,7 @@ int main(int argc, char *argv[])
   mainwin.show();
 
   // Run application
-    int rc = app.exec();
+  int rc = app.exec();
 
   // If everything cool, save the preferences
   if(!rc)

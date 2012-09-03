@@ -61,10 +61,7 @@
 #include "SNAPImageData.h"
 
 #include "SlicePreviewFilterWrapper.h"
-
-
-
-
+#include "PreprocessingFilterConfigTraits.h"
 
 SNAPImageData
 ::SNAPImageData(IRISApplication *parent)
@@ -74,12 +71,6 @@ SNAPImageData
   m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SpeedWrapper);
   m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SnakeInitializationWrapper);
   m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SnakeWrapper);
-
-  // Initialize the threshold-based processing pipeline
-  m_ThresholdPreviewWrapper = ThresholdPreviewWrapperType::New();
-
-  // Update the speed preview objects
-  m_EdgePreprocessingPreviewWrapper = EdgePreprocessingPreviewWrapperType::New();
 
   // Set the names of the wrapeprs
   m_SpeedWrapper.SetNickname("Speed Image");
@@ -113,41 +104,6 @@ SNAPImageData
 
   // Here or after it's computed?
   m_SpeedWrapper.SetAlpha(255);
-
-  // Initialize the speed preview objects
-  m_ThresholdPreviewWrapper->AttachInputs(this);
-  m_ThresholdPreviewWrapper->AttachOutputWrapper(&m_SpeedWrapper);
-  m_ThresholdPreviewWrapper->SetParameters(
-        this->m_Parent->GetThresholdSettings());
-
-  m_EdgePreprocessingPreviewWrapper->AttachInputs(this);
-  m_EdgePreprocessingPreviewWrapper->AttachOutputWrapper(&m_SpeedWrapper);
-  m_EdgePreprocessingPreviewWrapper->SetParameters(
-        this->m_Parent->GetEdgePreprocessingSettings());
-}
-
-void 
-SNAPImageData
-::DoEdgePreprocessing(itk::Command *progressCallback)
-{ 
-  // Use the wrapper object to compute the volume
-  // m_EdgePreprocessingPreviewWrapper->SetParameters(&settings);
-  m_EdgePreprocessingPreviewWrapper->ComputeOutputVolume(progressCallback);
-
-  // Here or after it's computed?
-  m_SpeedWrapper.SetAlpha(255);
-}
-
-void 
-SNAPImageData
-::DoInOutPreprocessing(itk::Command *progressCallback)
-{
-  // Use the wrapper object to compute the volume
-  m_ThresholdPreviewWrapper->ComputeOutputVolume(progressCallback);
-
-  // Here or after it's computed?
-  m_SpeedWrapper.SetAlpha(255);
-
 }
 
 SpeedImageWrapper* 
@@ -545,10 +501,6 @@ SNAPImageData
 
 void SNAPImageData::UnloadAll()
 {
-  // Detach images from the preview filters
-  m_ThresholdPreviewWrapper->DetachInputsAndOutputs();
-  m_EdgePreprocessingPreviewWrapper->DetachInputsAndOutputs();
-
   // Unload all the data
   this->UnloadOverlays();
   this->UnloadMainImage();
@@ -557,66 +509,4 @@ void SNAPImageData::UnloadAll()
 
 
 
-void SNAPImageData::UpdatePreviewPipeline(SnakeType mode)
-{
-  // This makes sure that if teh corresponding wrapper is in preview mode,
-  // it will be attached to the slicers, and the other wrapper(s) detached.
-  if(mode == IN_OUT_SNAKE)
-    m_ThresholdPreviewWrapper->AttachOutputWrapper(&m_SpeedWrapper);
-  else if(mode == EDGE_SNAKE)
-    m_EdgePreprocessingPreviewWrapper->AttachOutputWrapper(&m_SpeedWrapper);
-}
 
-
-
-
-void
-SmoothBinaryThresholdFilterConfigTraits
-::AttachInputs(SNAPImageData *sid, FilterType *filter)
-{
-  filter->SetInput(sid->m_GreyImageWrapper->GetImage());
-  filter->SetInputImageMinimum(sid->GetGrey()->GetImageMinNative());
-  filter->SetInputImageMaximum(sid->GetGrey()->GetImageMaxNative());
-}
-
-void
-SmoothBinaryThresholdFilterConfigTraits
-::DetachInputs(FilterType *filter)
-{
-  filter->SetInput(NULL);
-  filter->SetInputImageMinimum(0);
-  filter->SetInputImageMaximum(0);
-}
-
-void
-SmoothBinaryThresholdFilterConfigTraits
-::SetParameters(ParameterType *p, FilterType *filter)
-{
-  filter->SetParameters(p);
-}
-
-void
-EdgePreprocessingFilterConfigTraits
-::AttachInputs(SNAPImageData *sid, FilterType *filter)
-{
-  filter->SetInput(sid->m_GreyImageWrapper->GetImage());
-}
-
-void
-EdgePreprocessingFilterConfigTraits
-::DetachInputs(FilterType *filter)
-{
-  filter->SetInput(NULL);
-}
-
-void
-EdgePreprocessingFilterConfigTraits
-::SetParameters(ParameterType *p, FilterType *filter)
-{
-  filter->SetParameters(p);
-}
-
-// Instantiate preview wrappers
-#include "SlicePreviewFilterWrapper.txx"
-template class SlicePreviewFilterWrapper<SmoothBinaryThresholdFilterConfigTraits>;
-template class SlicePreviewFilterWrapper<EdgePreprocessingFilterConfigTraits>;

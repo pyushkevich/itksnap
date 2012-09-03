@@ -27,7 +27,7 @@ font-size: 12pt;
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="tabThreshold">
       <attribute name="title">
        <string>Thresholding</string>
       </attribute>
@@ -289,7 +289,7 @@ font-size: 12pt;
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="tabEdge">
       <attribute name="title">
        <string>Clustering</string>
       </attribute>

@@ -6,6 +6,8 @@
 #include "QtWidgetActivator.h"
 #include "ThresholdSettingsRenderer.h"
 #include "QtCheckBoxCoupling.h"
+#include <QCloseEvent>
+#include <QShowEvent>
 
 SpeedImageDialog::SpeedImageDialog(QWidget *parent) :
   QDialog(parent),
@@ -48,4 +50,45 @@ void SpeedImageDialog::on_btnApply_clicked()
 {
   // TODO: this should differ based on the selected page
   m_Model->ApplyThresholdPreprocessing();
+}
+
+void SpeedImageDialog::on_btnOk_clicked()
+{
+  m_Model->ApplyThresholdPreprocessing();
+  m_Model->OnPreprocessingDialogClose();
+  this->accept();
+}
+
+void SpeedImageDialog::on_btnClose_clicked()
+{
+  m_Model->OnPreprocessingDialogClose();
+  this->reject();
+}
+
+void SpeedImageDialog::closeEvent(QCloseEvent *event)
+{
+  // Hide speed if there is no valid image
+  this->on_btnClose_clicked();
+
+  // Done with the event
+  event->accept();
+}
+
+void SpeedImageDialog::showEvent(QShowEvent *event)
+{
+  // Same callback as when tabs change
+  this->on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
+  event->accept();
+}
+
+void SpeedImageDialog::on_tabWidget_currentChanged(int index)
+{
+  if(ui->tabWidget->currentWidget() == ui->tabThreshold)
+    {
+    m_Model->OnThresholdingPageEnter();
+    }
+  else if(ui->tabWidget->currentWidget() == ui->tabEdge)
+    {
+    // m_Model->OnEdgePreprocessingPageEnter();
+    }
 }

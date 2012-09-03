@@ -56,6 +56,13 @@ class MeshExportSettings;
 class GuidedNativeImageIO;
 class ThresholdSettings;
 class EdgePreprocessingSettings;
+class AbstractSlicePreviewFilterWrapper;
+
+template <class TFilterConfigTraits> class SlicePreviewFilterWrapper;
+class SmoothBinaryThresholdFilterConfigTraits;
+class EdgePreprocessingFilterConfigTraits;
+template <typename TIn, typename TOut> class SmoothBinaryThresholdImageFilter;
+template <typename TIn, typename TOut> class EdgePreprocessingImageFilter;
 
 
 namespace itk {
@@ -191,9 +198,33 @@ public:
                                CommandType *progressCommand = NULL);
 
   /**
-    Compute the SNAP speed image using the current pre-processing settings
+    Enter given preprocessing mode. This activates the pipeline that can be
+    used to provide automatic on-the-fly preview of the preprocessing result
+    as the user moves the cursor or changes preprocessing parameters. When
+    preprocessing is done, or before switching to a new preprocessing mode,
+    call this method with PREPROCESS_NONE to disconnect the pipeline.
     */
-  void ComputeSNAPSpeedImage(CommandType *progressCommand = NULL);
+  void EnterPreprocessingMode(PreprocessingMode mode);
+
+  /**
+    Uses the current preprocessing mode to compute the entire extents of the
+    speed image. This also sets the SpeedValid flag in GlobalState to true
+    */
+  void ApplyCurrentPreprocessingModeToSpeedVolume(itk::Command *progress = 0);
+
+  /**
+    Get the current preprocessing mode
+    */
+  PreprocessingMode GetPreprocessingMode() const;
+
+  /**
+    Get a pointer to the object that handles the preview pipeline for the
+    current preprocessing mode. This object can be used to toggle preview
+    and to execute the preprocessing filter. Returns NULL if the mode is
+    PREPROCESS_NONE
+    */
+  AbstractSlicePreviewFilterWrapper *GetPreprocessingFilterPreviewer(
+      PreprocessingMode mode);
 
   /**
    * Update IRIS image data with the segmentation contained in the SNAP image
@@ -392,11 +423,6 @@ protected:
   // Color label data
   SmartPtr<ColorLabelTable> m_ColorLabelTable;
 
-  // Settings for the speed preprocessing. Still not sure this is the best
-  // place to put this stuff!
-  SmartPtr<ThresholdSettings> m_ThresholdSettings;
-  SmartPtr<EdgePreprocessingSettings> m_EdgePreprocessingSettings;
-
   // Global state object
   // TODO: Incorporate GlobalState into IRISApplication more nicely
   GlobalState *m_GlobalState;
@@ -412,8 +438,30 @@ protected:
   // stores 'deltas', i.e., differences between states of the segmentation
   // image. These deltas are compressed, allowing us to store a bunch of 
   // undo steps with little cost in performance or memory
-  
   UndoManagerType m_UndoManager;
+
+  // Settings for the speed preprocessing. Still not sure this is the best
+  // place to put this stuff!
+  SmartPtr<ThresholdSettings> m_ThresholdSettings;
+  SmartPtr<EdgePreprocessingSettings> m_EdgePreprocessingSettings;
+
+  // The threshold-based preview wrapper type
+  typedef SlicePreviewFilterWrapper<SmoothBinaryThresholdFilterConfigTraits>
+                                                   ThresholdPreviewWrapperType;
+
+  // The edge-based preview wrapper type
+  typedef SlicePreviewFilterWrapper<EdgePreprocessingFilterConfigTraits>
+                                           EdgePreprocessingPreviewWrapperType;
+
+  // The threshold-based wrapper
+  SmartPtr<ThresholdPreviewWrapperType> m_ThresholdPreviewWrapper;
+
+  // The edge-based wrapper
+  SmartPtr<EdgePreprocessingPreviewWrapperType> m_EdgePreviewWrapper;
+
+  // The currently hooked up preprocessing filter preview wrapper
+  PreprocessingMode m_PreprocessingMode;
+
 };
 
 #endif // __IRISApplication_h_

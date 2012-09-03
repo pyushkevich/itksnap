@@ -10,11 +10,14 @@
 class GlobalUIModel;
 class IRISApplication;
 
+
+
 class SnakeWizardModel : public AbstractModel
 {
 public:
 
   irisITKObjectMacro(SnakeWizardModel, AbstractModel)
+
 
   // This is a complex model, so there is some granularization over
   // the model update events that it fires.
@@ -60,6 +63,15 @@ public:
   /** Perform the preprocessing based on thresholds */
   void ApplyThresholdPreprocessing();
 
+  /** Processing that must take place when the thresholding page is shown */
+  void OnThresholdingPageEnter();
+
+  /** Processing that must take place when the thresholding page is shown */
+  void OnEdgePreprocessingPageEnter();
+
+  /** Do some cleanup when the preprocessing dialog closes */
+  void OnPreprocessingDialogClose();
+
 
 protected:
   SnakeWizardModel();
@@ -89,6 +101,8 @@ protected:
   bool GetSnakeTypeValueAndRange(SnakeType &value, GlobalState::SnakeTypeDomain *range);
   void SetSnakeTypeValue(SnakeType value);
 
+
+  // Parent model
   GlobalUIModel *m_Parent;
   IRISApplication *m_Driver;
   GlobalState *m_GlobalState;

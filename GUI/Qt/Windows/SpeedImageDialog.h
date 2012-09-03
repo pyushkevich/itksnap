@@ -21,8 +21,17 @@ public:
 
   void SetModel(SnakeWizardModel *model);
 
+  void showEvent(QShowEvent *event);
+  void closeEvent(QCloseEvent *event);
+
 private slots:
   void on_btnApply_clicked();
+
+  void on_btnOk_clicked();
+
+  void on_btnClose_clicked();
+
+  void on_tabWidget_currentChanged(int index);
 
 private:
   Ui::SpeedImageDialog *ui;

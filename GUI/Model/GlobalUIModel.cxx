@@ -285,9 +285,6 @@ void GlobalUIModel::EnterActiveContourMode()
 
   m_Driver->SetCurrentImageDataToSNAP();
 
-  // The speed should not be showing currently
-  m_Driver->GetGlobalState()->SetShowSpeed(false);
-
   // Set the current mode to navigation
   this->SetToolbarMode(CROSSHAIRS_MODE);
 }

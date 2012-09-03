@@ -47,9 +47,10 @@ template <class TPixel> class IRISSlicer;
 class SNAPSegmentationROISettings;
 namespace itk {
   template <unsigned int VDimension> class ImageBase;
+  template <class TImage> class ImageSource;
 }
 
-
+#include <itkImageSource.h>
 
 
 
@@ -77,6 +78,9 @@ public:
   // Slicer type
   typedef IRISSlicer<TPixel> SlicerType;
   typedef SmartPtr<SlicerType> SlicerPointer;
+
+  // Preview source for preview pipelines
+  typedef itk::ImageSource<ImageType> PreviewFilterType;
 
   // Iterator types
   typedef typename itk::ImageRegionIterator<ImageType> Iterator;
@@ -281,6 +285,29 @@ public:
    * \return number of voxels that had been modified
    */
   virtual unsigned int SwapIntensities(TPixel iFirst, TPixel iSecond);
+
+  /**
+    Attach a preview pipeline to the wrapper. This is used with wrappers that
+    represent results of image processing operations, such as speed images.
+    A preview pipeline consists of a filter for each of the three slice
+    directions. When the upstream information in these filters is newer than
+    the image volume stored in the wrapper, the slices returned with
+    GetDisplaySlice() will be those from the preview filters rather than from
+    the image volume.
+    */
+  virtual void AttachPreviewPipeline(
+      PreviewFilterType *f0, PreviewFilterType *f1, PreviewFilterType *f2);
+
+  /**
+    Detach the preview pipeline from the wrapper. The wrapper will always
+    return slices from the internally stored image volume.
+    */
+  virtual void DetachPreviewPipeline();
+
+  /**
+    Report whether the preview pipeline is attached.
+    */
+  virtual bool IsPreviewPipelineAttached() const;
 
 
   virtual void* GetVoxelVoidPointer() const;

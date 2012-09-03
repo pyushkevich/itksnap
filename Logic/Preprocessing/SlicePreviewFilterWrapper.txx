@@ -16,10 +16,9 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
   m_PreviewMode = false;
 
   // Allocate the volume filter and the preview filters
+  m_VolumeFilter = FilterType::New();
   for(int i = 0; i < 3; i++)
-    {
     m_PreviewFilter[i] = FilterType::New();
-    }
 }
 
 template <class TFilterConfigTraits>
@@ -27,9 +26,9 @@ void
 SlicePreviewFilterWrapper<TFilterConfigTraits>
 ::SetParameters(ParameterType *param)
 {
-  // Set the parameters of the preview filters
-  for(int i = 0; i < 3; i++)
-    m_PreviewFilter[i]->SetParameters(param);
+  // Set the parameters of all the filters
+  for(int i = 0; i < 4; i++)
+    this->GetNthFilter(i)->SetParameters(param);
 }
 
 template <class TFilterConfigTraits>
@@ -37,8 +36,8 @@ void
 SlicePreviewFilterWrapper<TFilterConfigTraits>
 ::AttachInputs(SNAPImageData *sid)
 {
-  for(unsigned int i = 0; i < 3; i++)
-    Traits::AttachInputs(sid, m_PreviewFilter[i]);
+  for(int i = 0; i < 4; i++)
+    Traits::AttachInputs(sid, this->GetNthFilter(i));
 }
 
 template <class TFilterConfigTraits>
@@ -74,19 +73,19 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
     for(unsigned int i = 0; i < 3; i++)
       {
       // Disconnect wrapper from this pipeline
-      m_OutputWrapper->GetSlicer(i)->SetInput(m_OutputWrapper->GetImage());
-
-      // Undo the graft
-      m_PreviewFilter[i]->GraftOutput(m_PreviewFilter[i]->GetOutput());
+      m_OutputWrapper->GetSlicer(i)->SetPreviewInput(NULL);
       }
+
+    // Undo the graft
+    m_VolumeFilter->GraftOutput(m_VolumeFilter->GetOutput());
     }
 
   m_OutputWrapper = NULL;
 
-  for(unsigned int i = 0; i < 3; i++)
+  for(unsigned int i = 0; i < 4; i++)
     {
     // Disconnect wrapper from this pipeline
-    Traits::DetachInputs(m_PreviewFilter[i]);
+    Traits::DetachInputs(this->GetNthFilter(i));
     }
 }
 
@@ -99,20 +98,12 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
     {
     if(m_PreviewMode)
       {
-      for(unsigned int i = 0; i < 3; i++)
-        {
-        m_OutputWrapper->GetSlicer(i)->SetInput(m_PreviewFilter[i]->GetOutput());
-        m_PreviewFilter[i]->GraftOutput(m_OutputWrapper->GetImage());
-        m_PreviewFilter[i]->Modified();
-        }
+      m_OutputWrapper->AttachPreviewPipeline(
+            m_PreviewFilter[0], m_PreviewFilter[1], m_PreviewFilter[2]);
       }
     else
       {
-      for(unsigned int i = 0; i < 3; i++)
-        {
-        m_OutputWrapper->GetSlicer(i)->SetInput(m_OutputWrapper->GetImage());
-        m_PreviewFilter[i]->GraftOutput(m_PreviewFilter[i]->GetOutput());
-        }
+      m_OutputWrapper->DetachPreviewPipeline();
       }
     }
 }
@@ -126,18 +117,29 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
   unsigned long tag = 0;
 
   if(progress)
-    tag = m_PreviewFilter[0]->AddObserver(itk::ProgressEvent(), progress);
+    tag = m_VolumeFilter->AddObserver(itk::ProgressEvent(), progress);
+
+  // Temporarily graft the target volume as output of the filter
+  m_VolumeFilter->GraftOutput(m_OutputWrapper->GetImage());
 
   // Execute the preprocessing on the whole image extent
-  m_PreviewFilter[0]->UpdateLargestPossibleRegion();
+  m_VolumeFilter->UpdateLargestPossibleRegion();
 
   // Remove the progress monitor
   if(progress)
-    m_PreviewFilter[0]->RemoveObserver(tag);
+    m_VolumeFilter->RemoveObserver(tag);
 
-  // Set the buffered region on all the preview filters to be the
-  // largest possible region.
-  for(unsigned int i = 0; i < 3; i++)
-    m_PreviewFilter[i]->GetOutput()->SetBufferedRegion(
-          m_OutputWrapper->GetImage()->GetLargestPossibleRegion());
+  // Update the m-time of the output image
+  m_OutputWrapper->GetImage()->Modified();
+
+  // Undo the graft
+  m_VolumeFilter->GraftOutput(m_VolumeFilter->GetOutput());
+}
+
+template <class TFilterConfigTraits>
+typename SlicePreviewFilterWrapper<TFilterConfigTraits>::FilterType *
+SlicePreviewFilterWrapper<TFilterConfigTraits>
+::GetNthFilter(int index)
+{
+  return (index > 0) ? m_PreviewFilter[index-1] : m_VolumeFilter;
 }
