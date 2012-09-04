@@ -1,5 +1,5 @@
 #############################################
-# REQUIRE ITK 3.20 OR LATER                 #
+# REQUIRE ITK                               #
 #############################################
 FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
@@ -43,8 +43,4 @@ MACRO(ITK_DISABLE_FLTK_GENERATED_WARNINGS files)
     ENDIF(CMAKE_COMPILER_IS_GNUCXX)
   ENDIF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 1.6)
 ENDMACRO(ITK_DISABLE_FLTK_GENERATED_WARNINGS)
-
-# Link libraries from the parent CMAKE file
-#LINK_LIBRARIES(ITKAlgorithms ITKCommon ITKBasicFilters)
-LINK_LIBRARIES($(SNAP_ITK_LIBS))
 
