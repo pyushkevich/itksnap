@@ -52,7 +52,7 @@
 #if defined(USE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
 #include "itkParallelSparseFieldLevelSetImageFilterBugFix.h"
 #else 
-#include "itkSparseFieldLevelSetImageFilter.h"
+#include "itkParallelSparseFieldLevelSetImageFilter.h"
 #endif
 
 // Disable some windows debug length messages
@@ -148,7 +148,7 @@ SNAPLevelSetDriver<VDimension>
     typedef itk::ParallelSparseFieldLevelSetImageFilterBugFix<
       FloatImageType, FloatImageType> LevelSetFilterType;
 #else
-    typedef itk::SparseFieldLevelSetImageFilter<
+    typedef itk::ParallelSparseFieldLevelSetImageFilter<
       FloatImageType, FloatImageType> LevelSetFilterType;
 #endif
 
