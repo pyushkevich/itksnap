@@ -40,7 +40,7 @@ SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 {
   // Override the number of inputs to 4, so that we can respond to parameter
   // changes and image min/max changes automatically.
-  this->SetNumberOfInputs(2);
+  this->SetNumberOfIndexedInputs(2);
   m_InputImageMaximum = 0;
   m_InputImageMinimum = 0;
 }

@@ -40,7 +40,7 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
 ::EdgePreprocessingImageFilter()
 {  
   // Set the number of inputs to two (second is the parameters)
-  this->SetNumberOfInputs(2);
+  this->SetNumberOfIndexedInputs(2);
 
   // Construct the adaptor
   m_CastFilter = CastFilterType::New();

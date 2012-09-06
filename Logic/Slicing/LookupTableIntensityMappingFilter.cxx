@@ -7,7 +7,7 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
 ::LookupTableIntensityMappingFilter()
 {
   // The image and the LUT are inputs
-  this->SetNumberOfInputs(2);
+  this->SetNumberOfIndexedInputs(2);
 }
 
 template<class TInputImage, class TOutputImage>
@@ -22,7 +22,8 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
 template<class TInputImage, class TOutputImage>
 void
 LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType &region, int threadId)
+::ThreadedGenerateData(const OutputImageRegionType &region,
+                       itk::ThreadIdType threadId)
 {
   // Get the input, output and the LUT
   const InputImageType *input = this->GetInput();

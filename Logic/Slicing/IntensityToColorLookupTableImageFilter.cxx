@@ -10,7 +10,7 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
 ::IntensityToColorLookupTableImageFilter()
 {
   // The intensity curve and the color map are treated as inputs
-  this->SetNumberOfInputs(5);
+  this->SetNumberOfIndexedInputs(5);
 
   // By default not using a reference range
   m_UseReferenceRange = false;
@@ -110,7 +110,8 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
 template<class TInputImage, class TOutputLUT>
 void
 IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
-::ThreadedGenerateData(const OutputImageRegionType &region, int threadId)
+::ThreadedGenerateData(const OutputImageRegionType &region,
+                       itk::ThreadIdType threadId)
 {
   if(threadId == 0)
     std::cout << "Computing LUT " << region << std::endl;

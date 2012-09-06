@@ -35,7 +35,8 @@ public:
   void SetLookupTable(LookupTableType *lut);
 
   /** The actual work */
-  void ThreadedGenerateData(const OutputImageRegionType &region, int threadId);
+  void ThreadedGenerateData(const OutputImageRegionType &region,
+                            itk::ThreadIdType threadId);
 
 protected:
 

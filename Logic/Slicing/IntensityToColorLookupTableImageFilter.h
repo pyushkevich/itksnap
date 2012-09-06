@@ -77,7 +77,8 @@ public:
 
   void GenerateInputRequestedRegion();
 
-  void ThreadedGenerateData(const OutputImageRegionType &region, int threadId);
+  void ThreadedGenerateData(const OutputImageRegionType &region,
+                            itk::ThreadIdType threadId);
 
 
 protected:

@@ -37,7 +37,8 @@ IRISSlicer<TPixel>
 ::IRISSlicer()
 {
   // Two inputs are allowed (second being the preview input)
-  this->SetNumberOfInputs(2);
+  this->SetNumberOfIndexedInputs(2);
+  this->SetPreviewInput(NULL);
 
   // There is a single input to the filter
   this->SetNumberOfRequiredInputs(1);
