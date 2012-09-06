@@ -163,9 +163,9 @@ public:
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::ImageBase<3> ImageBaseType;
 
-  typedef itk::OrientedImage<GreyType, 3> GreyImageType;
-  typedef itk::OrientedImage<RGBType, 3> RGBImageType;
-  typedef itk::OrientedImage<LabelType, 3> LabelImageType;
+  typedef itk::Image<GreyType, 3> GreyImageType;
+  typedef itk::Image<RGBType, 3> RGBImageType;
+  typedef itk::Image<LabelType, 3> LabelImageType;
 
   typedef std::vector<ImageWrapperBase *> WrapperList;
   typedef WrapperList::iterator WrapperIterator;

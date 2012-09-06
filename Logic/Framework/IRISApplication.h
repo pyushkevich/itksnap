@@ -66,7 +66,7 @@ template <typename TIn, typename TOut> class EdgePreprocessingImageFilter;
 
 
 namespace itk {
-  template <class TPixel, unsigned int VDimension> class OrientedImage;
+  template <class TPixel, unsigned int VDimension> class Image;
 }
 
 /**
@@ -95,15 +95,15 @@ public:
   // Typedefs
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::Size<3> SizeType;
-  typedef itk::OrientedImage<GreyType,3> GreyImageType;
-  typedef itk::OrientedImage<RGBType,3> RGBImageType;
-  typedef itk::OrientedImage<LabelType,3> LabelImageType;
-  typedef itk::OrientedImage<short ,3> SpeedImageType;
+  typedef itk::Image<GreyType,3> GreyImageType;
+  typedef itk::Image<RGBType,3> RGBImageType;
+  typedef itk::Image<LabelType,3> LabelImageType;
+  typedef itk::Image<short ,3> SpeedImageType;
   typedef itk::Command CommandType;
   typedef UndoDataManager<LabelType> UndoManagerType;
 
   // A drawing performed on a slice
-  typedef itk::OrientedImage<unsigned char, 2> SliceBinaryImageType;
+  typedef itk::Image<unsigned char, 2> SliceBinaryImageType;
 
   // Bubble array
   typedef std::vector<Bubble> BubbleArray;

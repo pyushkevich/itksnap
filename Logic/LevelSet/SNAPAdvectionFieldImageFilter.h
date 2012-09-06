@@ -36,7 +36,7 @@
 #define __SNAPAdvectionFieldImageFilter_h_
 
 #include "itkCovariantVector.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkImageToImageFilter.h"
 
 /**

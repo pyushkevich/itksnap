@@ -604,8 +604,8 @@ public:
   void SetEvents(const itk::EventObject &valueEvent,
                  const itk::EventObject &rangeEvent)
   {
-    Rebroadcast(m_Model, valueEvent, ValueChangedEvent());
-    Rebroadcast(m_Model, rangeEvent, DomainChangedEvent());
+    this->Rebroadcast(m_Model, valueEvent, ValueChangedEvent());
+    this->Rebroadcast(m_Model, rangeEvent, DomainChangedEvent());
   }
 
 

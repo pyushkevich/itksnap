@@ -21,6 +21,6 @@ ADD_DEFINITIONS(${QT_DEFINITIONS})
 FIND_PACKAGE(OpenGL REQUIRED)
 
 # Link libraries from the parent CMAKE file
-LINK_LIBRARIES(ITKAlgorithms ITKCommon ITKBasicFilters)
+#LINK_LIBRARIES(ITKAlgorithms ITKCommon ITKBasicFilters)
 
 

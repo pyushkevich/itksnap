@@ -6,7 +6,7 @@
 #include <IRISException.h>
 
 namespace itk {
-  template <class TPixel, unsigned int VDimensions> class OrientedImage;
+  template <class TPixel, unsigned int VDimensions> class Image;
 }
 
 class GenericSliceModel;
@@ -182,7 +182,7 @@ protected:
   double m_FreehandFittingRate;
 
   // Type definition for the slice used for polygon rendering
-  typedef itk::OrientedImage<unsigned char,2> PolygonSliceType;
+  typedef itk::Image<unsigned char,2> PolygonSliceType;
   typedef SmartPtr<PolygonSliceType> PolygonSlicePointer;
 
   /** Slice used for polygon drawing and merging */

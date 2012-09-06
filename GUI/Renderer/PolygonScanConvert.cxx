@@ -34,7 +34,7 @@
 =========================================================================*/
 #include "PolygonScanConvert.h"
 #include "SNAPCommon.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 
 #include <iostream>
 

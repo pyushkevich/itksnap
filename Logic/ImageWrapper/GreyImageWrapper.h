@@ -59,7 +59,9 @@ public:
   typedef typename ScalarImageWrapper<TPixel>::ImageType ImageType;
   typedef typename ScalarImageWrapper<TPixel>::SliceType SliceType;
   typedef typename ScalarImageWrapper<TPixel>::DisplaySliceType DisplaySliceType;
+  typedef typename ScalarImageWrapper<TPixel>::DisplaySlicePointer DisplaySlicePointer;
 
+    
   /**
    * Get the intensity curve to be used for mapping image intensities 
    * from GreyType to DisplayType. The curve is defined on the domain

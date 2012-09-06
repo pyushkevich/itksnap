@@ -41,7 +41,7 @@
 
 // ITK includes (this file is not widely included in SNAP, so it's OK
 // to include a bunch of headers here).
-#include <itkOrientedImage.h>
+#include <itkImage.h>
 #include <itkVTKImageExport.h>
 
 // VTK includes
@@ -77,7 +77,7 @@ class VTKMeshPipeline
 {
 public:
   /** Input image type */
-  typedef itk::OrientedImage<float,3> ImageType;
+  typedef itk::Image<float,3> ImageType;
   typedef itk::SmartPointer<ImageType> ImagePointer;
   
   /** Set the input segmentation image */

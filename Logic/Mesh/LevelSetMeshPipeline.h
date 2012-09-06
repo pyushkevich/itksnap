@@ -41,7 +41,7 @@
 
 // Forward reference to itk classes
 namespace itk {
-  template <class TPixel,unsigned int VDimension> class OrientedImage;
+  template <class TPixel,unsigned int VDimension> class Image;
 }
 
 // Forward reference to our own VTK pipeline
@@ -59,7 +59,7 @@ class LevelSetMeshPipeline
 {
 public:  
   /** Input image type */
-  typedef itk::OrientedImage<float,3> InputImageType;
+  typedef itk::Image<float,3> InputImageType;
   typedef itk::SmartPointer<InputImageType> InputImagePointer;
 
   /** Set the input segmentation image */
