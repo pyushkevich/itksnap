@@ -8,7 +8,7 @@
 #include <vnl/vnl_random.h>
 
 #include "GenericSliceModel.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkPointSet.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "IRISApplication.h"

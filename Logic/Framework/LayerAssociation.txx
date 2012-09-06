@@ -59,7 +59,7 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
     if(it->second.m_Visit != m_VisitCounter)
       {
       delete (TObject *) it->second;
-      erase(it++);
+      this->erase(it++);
       }
     else
       it++;

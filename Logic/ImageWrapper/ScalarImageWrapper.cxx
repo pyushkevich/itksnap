@@ -292,8 +292,8 @@ ScalarImageWrapper<TPixel>
   UpdateImagePointer(filter->GetOutput());
 }
 
-#include "itkListSampleToHistogramGenerator.h"
-#include "itkImageToListAdaptor.h"
+//#include "itkListSampleToHistogramGenerator.h"
+//#include "itkImageToListAdaptor.h"
 
 template <class TPixel>
 const ScalarImageHistogram *

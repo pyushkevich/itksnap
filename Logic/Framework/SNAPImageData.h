@@ -73,10 +73,10 @@ public:
   typedef GenericImageData Superclass;
 
   // The type of the internal level set image
-  typedef itk::OrientedImage<float,3>                           FloatImageType;
+  typedef itk::Image<float,3>                           FloatImageType;
   typedef FloatImageType                                     LevelSetImageType;
   typedef Superclass::GreyImageType                              GreyImageType;
-  typedef itk::OrientedImage<short, 3>                          SpeedImageType;
+  typedef itk::Image<short, 3>                          SpeedImageType;
   typedef Superclass::RGBImageType                                RGBImageType;
 
   SNAPImageData(IRISApplication *m_Parent);
@@ -263,7 +263,7 @@ private:
 
   // Typedefs for defining the advection image that can be loaded externally
   typedef itk::FixedArray<float, 3> VectorType;
-  typedef itk::OrientedImage< VectorType, 3> VectorImageType;
+  typedef itk::Image< VectorType, 3> VectorImageType;
   typedef itk::SmartPointer<VectorImageType> VectorImagePointer;
 
   // The advection image

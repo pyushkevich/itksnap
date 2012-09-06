@@ -39,7 +39,7 @@
 #include "ImageWrapperBase.h"
 #include "ImageCoordinateTransform.h"
 #include <itkImageRegionIterator.h>
-#include <itkOrientedImage.h>
+#include <itkImage.h>
 #include <itkRGBAPixel.h>
 
 // Forward declarations to IRIS classes
@@ -68,7 +68,7 @@ template<class TPixel> class ImageWrapper
 public:
 
   // Basic type definitions
-  typedef itk::OrientedImage<TPixel,3> ImageType;
+  typedef itk::Image<TPixel,3> ImageType;
   typedef SmartPtr<ImageType> ImagePointer;
 
   // Slice image type

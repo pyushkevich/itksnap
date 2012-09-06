@@ -479,7 +479,7 @@ GenericSliceWindow::OnDragAndDrop(const FLTKEvent &event)
 
 unsigned int
 GenericSliceModel
-::MergeSliceSegmentation(itk::OrientedImage<unsigned char, 2> *drawing)
+::MergeSliceSegmentation(itk::Image<unsigned char, 2> *drawing)
 {
   // Z position of slice
   float zpos = this->GetCursorPositionInSliceCoordinates()[2];

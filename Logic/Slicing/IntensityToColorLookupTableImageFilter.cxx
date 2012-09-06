@@ -3,7 +3,7 @@
 
 #include "IntensityCurveInterface.h"
 #include "ColorMap.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 
 template<class TInputImage, class TOutputLUT>
 IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
@@ -165,7 +165,7 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
 }
 
 // Template instantiation
-typedef itk::OrientedImage<short, 3> GreyImageType;
+typedef itk::Image<short, 3> GreyImageType;
 typedef itk::Image<itk::RGBAPixel<unsigned char>, 1> LUTType;
 template class IntensityToColorLookupTableImageFilter<GreyImageType, LUTType>;
 

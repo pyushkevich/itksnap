@@ -37,7 +37,7 @@
 
 #include "Registry.h"
 #include "itkSmartPointer.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 #include "itkImageIOBase.h"
 
 namespace itk
@@ -311,7 +311,7 @@ public:
   RescaleNativeImageToScalar() {}
   virtual ~RescaleNativeImageToScalar() {}
 
-  typedef itk::OrientedImage<TPixel,3> OutputImageType;
+  typedef itk::Image<TPixel,3> OutputImageType;
   typedef itk::ImageBase<3> NativeImageType;
 
   // Constructor, takes pointer to native image
@@ -341,7 +341,7 @@ template<class TPixel, class TCastFunctor>
 class CastNativeImageBase
 {
 public:
-  typedef itk::OrientedImage<TPixel,3> OutputImageType;
+  typedef itk::Image<TPixel,3> OutputImageType;
   typedef itk::ImageBase<3> NativeImageType;
 
   // Constructor, takes pointer to native image

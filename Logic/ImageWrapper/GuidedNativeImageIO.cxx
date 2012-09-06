@@ -37,7 +37,7 @@
 #include "SNAPCommon.h"
 #include "SNAPRegistryIO.h"
 #include "ImageCoordinateGeometry.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 
 #include "itkImageIOBase.h"
 #include "itkAnalyzeImageIO.h"
@@ -407,7 +407,7 @@ GuidedNativeImageIO
   if(m_FileFormat == FORMAT_DICOM && m_DICOMFiles.size() > 1)
     {
     // It seems that ITK can't yet read DICOM into a VectorImage. 
-    typedef itk::OrientedImage<TScalar, 3> GreyImageType;
+    typedef itk::Image<TScalar, 3> GreyImageType;
 
     // Create an image series reader 
     typedef itk::ImageSeriesReader<GreyImageType> ReaderType;
@@ -794,7 +794,7 @@ RescaleNativeImageToScalar<TPixel>
     typedef RescaleScalarNativeImageToScalarFunctor<TPixel, TNative> Functor;
     CastNativeImageBase<TPixel, Functor> caster;
     caster.SetFunctor(Functor(shift, scale));
-    caster.DoCast<TNative>(native);
+    caster.template DoCast<TNative>(native);
     m_Output = caster.m_Output;
     }
   else
@@ -802,7 +802,7 @@ RescaleNativeImageToScalar<TPixel>
     typedef RescaleVectorNativeImageToScalarFunctor<TPixel, TNative> Functor;
     CastNativeImageBase<TPixel, Functor> caster;
     caster.SetFunctor(Functor(shift, scale, ncomp));
-    caster.DoCast<TNative>(native);
+    caster.template DoCast<TNative>(native);
     m_Output = caster.m_Output;
     }
 }
@@ -1000,7 +1000,11 @@ GuidedNativeImageIO::GuessFormatForFileName(
   return FORMAT_COUNT;
 }
 
-
+#include "gdcmReader.h"
+#include "gdcmPixmap.h"
+#include "gdcmPixmapReader.h"
+#include "gdcmImageReader.h"
+#include "gdcmImageHelper.h"
 
 void GuidedNativeImageIO::ParseDicomDirectory(
     const std::string &dir,
@@ -1019,10 +1023,10 @@ void GuidedNativeImageIO::ParseDicomDirectory(
   sh.SetUseSeriesDetails(true);
   sh.SetLoadMode(0);
   sh.SetDirectory(dir, false);
-
+    
   // Clear output
   reg.clear();
-
+    
   // Loop over all series
   for(gdcm::FileList *flist = sh.GetFirstSingleSerieUIDFileSet();
       flist != NULL; flist = sh.GetNextSingleSerieUIDFileSet())
@@ -1033,49 +1037,88 @@ void GuidedNativeImageIO::ParseDicomDirectory(
       sh.OrderFileList(flist);
 
       // Get the file
-      gdcm::File *file = (*flist)[0];
-
+      //Octavian begin
+      //gdcm::File *file = (*flist)[0];
+      gdcm::SmartPointer< gdcm::FileWithName > pFileWithName = (*flist)[0];
+      std::string strFileName = pFileWithName->filename;
+      gdcm::PixmapReader pmr;
+      pmr.SetFileName(strFileName.c_str());
+      gdcm::Pixmap& pm = pmr.GetPixmap();
+      unsigned int unDimsNr = pm.GetNumberOfDimensions();
+      gdcm::FileMetaInformation &header = pFileWithName->GetHeader();
+          
       // Loop over all filenames to collect filenames and see if the image
       // dimensions are consistent.
       std::vector<std::string> fnList;
-      int dims[3] = { file->GetXSize(), file->GetYSize(), file->GetZSize() };
+      
+      //gdcm::DataSet::SizeType dims = header.Size();
+      //int dims[3] = { file->GetXSize(), file->GetYSize(), file->GetZSize() };
       bool same_dims = true;
 
       for(size_t k = 0; k < flist->size(); k++)
         {
-        gdcm::File *fk = (*flist)[k];
-        fnList.push_back(fk->GetFileName());
-        if(fk->GetXSize() != dims[0] ||
-           fk->GetYSize() != dims[1] ||
-           fk->GetZSize() != dims[2])
-          same_dims = false;
+        //gdcm::File *fk = (*flist)[k];
+        //fnList.push_back(fk->GetFileName());
+        gdcm::SmartPointer< gdcm::FileWithName > pFileWithName_k = (*flist)[k];
+        std::string strFileName_k = pFileWithName_k->filename;
+        gdcm::PixmapReader pmr_k;
+        pmr_k.SetFileName(strFileName_k.c_str());
+        gdcm::Pixmap& pm_k = pmr_k.GetPixmap();
+        unsigned int unDimsNr_k = pm_k.GetNumberOfDimensions();
+            
+        fnList.push_back(strFileName_k);
+        //if(fk->GetXSize() != dims[0] ||
+        //   fk->GetYSize() != dims[1] ||
+        //   fk->GetZSize() != dims[2])
+
+        if(unDimsNr != unDimsNr_k) {
+            same_dims = false;
+        } else {
+            unsigned int unI;
+            for(unI = 0; unI < unDimsNr; unI++) {
+                pmr.gdcm::Reader::Read();
+                pmr_k.gdcm::Reader::Read();
+                int nDim = pm.GetDimension(unI);
+                int nDim_k = pm_k.GetDimension(unI);
+
+                if(nDim != nDim_k)
+                    same_dims = false;
+            }
         }
+      }
 
       // Create a registry entry
       Registry r;
 
       // Create its unique series ID
-      r["SeriesId"] << sh.CreateUniqueSeriesIdentifier(file);
+      r["SeriesId"] << sh.CreateUniqueSeriesIdentifier(pFileWithName);
 
       // Also store the files
       r.Folder("SeriesFiles").PutArray(fnList);
 
       // Get textual description
-      r["SeriesDescription"] << file->GetEntryValue(0x0008, 0x103e);
+      //r["SeriesDescription"] << file->GetEntryValue(0x0008, 0x103e);
+
+      if( header.FindDataElement(gdcm::Tag(0x0008, 0x103e)) ) {
+          const gdcm::DataElement &de = header.GetDataElement( gdcm::Tag(0x0008, 0x103e) );
+          r["SeriesDescription"] << de;
+      }
 
       // Get dimensions
       std::ostringstream oss;
       if(same_dims)
         {
-        oss << dims[0] << " x " << dims[1];
-        if(dims[2] != 1)
-          oss << " x " << dims[2];
+        //oss << dims[0] << " x " << dims[1];
+        //oss << dims[0] << " x " << dims[1];
+        //if(dims[2] != 1)
+        //  oss << " x " << dims[2];
         }
       else
         {
         oss << "Variable";
         }
       r["Dimensions"] << oss.str();
+    
 
       // Get the number of images
       r["NumberOfImages"] << flist->size();
@@ -1084,13 +1127,16 @@ void GuidedNativeImageIO::ParseDicomDirectory(
       for(DicomRequest::const_iterator it = req.begin();
           it != req.end(); ++it)
         {
-        r[it->code] << file->GetEntryValue(it->group, it->elem);
+        //r[it->code] << file->GetEntryValue(it->group, it->elem);
+        r[it->code] << header.GetDataElement(gdcm::Tag(it->group, it->elem));
         }
 
       reg.push_back( r );
       }
     }
 
+  //Octavian end
+  
   // Complain if no series have been found
   if(reg.size() == 0)
     throw IRISException(

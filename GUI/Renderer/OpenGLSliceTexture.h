@@ -44,7 +44,7 @@
 #endif
 #endif
 
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 
 /**
  * \class OpenGLSliceTexture

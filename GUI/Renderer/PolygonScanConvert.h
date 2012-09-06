@@ -36,7 +36,7 @@
 #define __PolygonScanConvert_h_
 
 #include "SNAPOpenGL.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 
 class PolygonScanConvertBase
 {

@@ -228,7 +228,7 @@ public:
     This method might be better placed in IRISApplication
    */
   unsigned int MergeSliceSegmentation(
-        itk::OrientedImage<unsigned char, 2> *drawing);
+        itk::Image<unsigned char, 2> *drawing);
 
 protected:
 

@@ -102,6 +102,7 @@ LabelImageWrapper
 /**
  * This definition is needed to use RGBA pixels for compilation
  */
+/*Octavian
 typedef itk::RGBAPixel<unsigned char> ColorPixel;
 
 namespace itk {
@@ -138,3 +139,5 @@ const unsigned char itk::NumericTraits<ColorPixel>::OneArray[4] = {1,1,1,1};
 const ColorPixel itk::NumericTraits<ColorPixel>::One = 
     ColorPixel(itk::NumericTraits<ColorPixel>::OneArray);
 
+ ColorPixel(itk::NumericTraits<ColorPixel>::OneArray);
+Octavian*/

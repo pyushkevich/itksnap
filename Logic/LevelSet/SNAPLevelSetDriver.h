@@ -118,10 +118,10 @@ public:
   typedef itk::SmartPointer<SelfCommandType>             SelfCommandPointer;
 
   /** Speed image type: short, to conserve memory */
-  typedef itk::OrientedImage<short, VDimension>              ShortImageType;
+  typedef itk::Image<short, VDimension>              ShortImageType;
 
   /** Floating point image type used internally */
-  typedef itk::OrientedImage<float, VDimension>              FloatImageType;
+  typedef itk::Image<float, VDimension>              FloatImageType;
   typedef typename itk::SmartPointer<FloatImageType>      FloatImagePointer;
 
   /** Type definition for the level set function */
