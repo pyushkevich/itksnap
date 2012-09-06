@@ -47,12 +47,12 @@ void SnakeToolROIPanel::on_btnAuto_clicked()
 {
   // TODO: Check that the label configuration is valid
 
+  // TODO: Handle resampling requests
+
   // Switch to crosshairs mode
+  m_Model->SetToolbarMode(CROSSHAIRS_MODE);
 
   // Show the snake panel
   MainImageWindow *main = findParentWidget<MainImageWindow>(this);
-  main->SetSnakeWizardVisible(true);
-
-  // Put SNAP into snake mode
-  m_Model->EnterActiveContourMode();
+  main->OpenSnakeWizard();
 }

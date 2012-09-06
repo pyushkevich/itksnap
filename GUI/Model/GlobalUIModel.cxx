@@ -276,17 +276,3 @@ void GlobalUIModel::SetCursorPosition(Vector3ui value)
   m_Driver->SetCursorPosition(value - 1u);
 }
 
-void GlobalUIModel::EnterActiveContourMode()
-{
-  // Initialize the image data
-  // TODO: how to deal with the progress dialog?
-  m_Driver->InitializeSNAPImageData(
-        m_Driver->GetGlobalState()->GetSegmentationROISettings());
-
-  m_Driver->SetCurrentImageDataToSNAP();
-
-  // Set the current mode to navigation
-  this->SetToolbarMode(CROSSHAIRS_MODE);
-}
-
-

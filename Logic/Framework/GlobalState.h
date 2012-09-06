@@ -333,6 +333,11 @@ public:
   /** Whether drawing operations are inverted */
   irisSimplePropertyAccessMacro(PolygonInvert, bool)
 
+  /** Whether the snake has been initialized with a manual segmentation, i.e.
+    before running segmentation with label X, the user has labeled some voxels
+    with label X. Only applicable in snake mode. */
+  irisSimplePropertyAccessMacro(SnakeInitializedWithManualSegmentation, bool)
+
 private:
 
   /** Get the current crosshairs position */
@@ -402,6 +407,9 @@ private:
 
   /** Whether drawing operations are inverted */
   SmartPtr<BoolPropertyModel> m_PolygonInvertModel;
+
+  /** Whether snake has been initialized with manual seg voxels */
+  SmartPtr<BoolPropertyModel> m_SnakeInitializedWithManualSegmentationModel;
   
   int m_LockHeld; 
   int m_LockOwner;

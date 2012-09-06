@@ -105,6 +105,9 @@ public:
   // A drawing performed on a slice
   typedef itk::OrientedImage<unsigned char, 2> SliceBinaryImageType;
 
+  // Bubble array
+  typedef std::vector<Bubble> BubbleArray;
+
   // The main image can be of these types
   enum MainImageType { MAIN_SCALAR, MAIN_RGB, MAIN_ANY };
 
@@ -225,6 +228,11 @@ public:
     */
   AbstractSlicePreviewFilterWrapper *GetPreprocessingFilterPreviewer(
       PreprocessingMode mode);
+
+  /**
+    Get a reference to the bubble array
+    */
+  BubbleArray &GetBubbleArray();
 
   /**
    * Update IRIS image data with the segmentation contained in the SNAP image
@@ -383,8 +391,6 @@ public:
    */
   void ReorientImage(vnl_matrix_fixed<double, 3, 3> inDirection);
 
-
-
   /**
     Apply a binary drawing performed on an orthogonal slice to the
     main segmentation.
@@ -461,6 +467,9 @@ protected:
 
   // The currently hooked up preprocessing filter preview wrapper
   PreprocessingMode m_PreprocessingMode;
+
+  // Array of bubbles
+  BubbleArray m_BubbleArray;
 
 };
 

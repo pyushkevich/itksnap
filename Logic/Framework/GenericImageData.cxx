@@ -588,6 +588,11 @@ ImageWrapperBase * LayerIterator::GetLayer() const
   return (*m_WrapperInRoleIter);
 }
 
+ScalarImageWrapperBase * LayerIterator::GetLayerAsScalar() const
+{
+  return dynamic_cast<ScalarImageWrapperBase *>(this->GetLayer());
+}
+
 GreyImageWrapperBase * LayerIterator::GetLayerAsGray() const
 {
   return dynamic_cast<GreyImageWrapperBase *>(this->GetLayer());

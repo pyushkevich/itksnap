@@ -92,6 +92,9 @@ public:
   /** Get the layer being pointed to */
   ImageWrapperBase *GetLayer() const;
 
+  /** Get the layer being pointed to, cast as Scalar (or NULL) */
+  ScalarImageWrapperBase *GetLayerAsScalar() const;
+
   /** Get the layer being pointed to, cast as Gray (or NULL) */
   GreyImageWrapperBase *GetLayerAsGray() const;
 

@@ -24,6 +24,10 @@ protected:
   virtual ~SnakeModeRenderer() {}
 
   SnakeWizardModel *m_Model;
+
+  void DrawSpeedImage();
+  void DrawBubbles();
+  void DrawEvolvingContour();
 };
 
 #endif // SNAKEMODERENDERER_H

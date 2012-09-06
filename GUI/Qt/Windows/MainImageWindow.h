@@ -60,8 +60,8 @@ public:
   // Get model
   irisGetMacro(Model, GlobalUIModel *)
 
-  // Show or hide the snake wizard
-  void SetSnakeWizardVisible(bool onoff);
+  // Initiate active contour segmentation
+  void OpenSnakeWizard();
 
 public slots:
 

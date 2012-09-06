@@ -106,6 +106,8 @@ GlobalState
   // Polygon inversion - create and initialize
   m_PolygonInvertModel = NewSimpleConcreteProperty(false);
 
+  m_SnakeInitializedWithManualSegmentationModel = NewSimpleConcreteProperty(false);
+
 }
 
 GlobalState

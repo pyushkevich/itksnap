@@ -40,12 +40,12 @@ CurrentVoxelInfoItemSetDomain
     // Create a string output
     std::ostringstream oss;
 
-    // See if this layer is grey
-    if(GreyImageWrapperBase *giw = it.GetLayerAsGray())
+    // See if this layer is a scalar of some kind
+    if(ScalarImageWrapperBase *siw = it.GetLayerAsScalar())
       {
       // Get the text value
       oss << std::setprecision(4);
-      oss << giw->GetVoxelMappedToNative(cursor);
+      oss << siw->GetVoxelMappedToNative(cursor);
       }
     else if(RGBImageWrapperBase *rgbiw = it.GetLayerAsRGB())
       {

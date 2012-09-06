@@ -175,6 +175,51 @@ protected:
   const MapType *m_SourceMap;
 };
 
+
+/**
+  This is an implementation of the domain that wraps around an stl::vector
+  of descriptors. TVal should be an integer type that can be used as an index
+  (int, unsigned int, enum, etc)
+  */
+template <class TVal, class TDesc>
+class STLVectorWrapperItemSetDomain :
+    public AbstractItemSetDomain<TVal, TDesc,
+                                 typename std::vector<TDesc>::const_iterator>
+{
+public:
+  typedef STLVectorWrapperItemSetDomain<TVal, TDesc> Self;
+  typedef typename std::vector<TDesc> VectorType;
+  typedef typename VectorType::const_iterator const_iterator;
+
+  STLVectorWrapperItemSetDomain() { m_SourceVector = NULL; }
+  STLVectorWrapperItemSetDomain(const VectorType *refvec) { m_SourceVector = refvec; }
+  virtual ~STLVectorWrapperItemSetDomain() {}
+
+  const_iterator begin() const
+    { assert(m_SourceVector); return m_SourceVector->begin(); }
+
+  const_iterator end() const
+    { assert(m_SourceVector); return m_SourceVector->end(); }
+
+  const_iterator find(const TVal &value) const
+    { assert(m_SourceVector); return m_SourceVector->begin() + value; }
+
+  TVal GetValue(const const_iterator &it) const
+    { assert(m_SourceVector); return it - m_SourceVector->begin(); }
+
+  TDesc GetDescription(const const_iterator &it) const
+    { assert(m_SourceVector); return *it; }
+
+  virtual bool operator == (const Self &cmp) const
+    { return m_SourceVector == cmp.m_SourceVector; }
+
+  virtual bool operator != (const Self &cmp) const
+    { return m_SourceVector != cmp.m_SourceVector; }
+
+protected:
+  const VectorType *m_SourceVector;
+};
+
 /**
   This is an item domain implementation that is just an stl::map, i.e., it
   owns the data, as opposed to STLMapWrapperItemSetDomain, which references
@@ -222,6 +267,10 @@ public:
 protected:
   MapType m_Map;
 };
+
+
+
+
 
 
 /**

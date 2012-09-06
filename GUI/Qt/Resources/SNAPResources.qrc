@@ -44,5 +44,11 @@
         <file alias="tools.png">tools.png</file>
         <file>arrow_down_16.png</file>
         <file>arrow_up_16.png</file>
+        <file>media-playback-pause-4.png</file>
+        <file>media-playback-start-4.png</file>
+        <file>media-playback-stop-4.png</file>
+        <file>media-seek-backward-4.png</file>
+        <file>media-skip-forward-4.png</file>
+        <file>media-playback-singlestep.png</file>
     </qresource>
 </RCC>

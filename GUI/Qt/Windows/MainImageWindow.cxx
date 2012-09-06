@@ -220,9 +220,13 @@ void MainImageWindow::on_actionLabel_Editor_triggered()
   m_LabelEditor->show();
 }
 
-void MainImageWindow::SetSnakeWizardVisible(bool onoff)
+void MainImageWindow::OpenSnakeWizard()
 {
-  m_DockRight->setVisible(onoff);
+  // Initialize the snake wizard
+  this->m_SnakeWizard->Initialize();
+
+  // Make the dock containing the wizard visible
+  m_DockRight->setVisible(true);
 }
 
 void MainImageWindow::AdjustMarginsForDocks()

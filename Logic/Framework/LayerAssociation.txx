@@ -34,7 +34,7 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
       {
       ImageWrapperBase *wb = lit.GetLayer();
       TFilter *wf = dynamic_cast<TFilter *>(wb);
-      if(wf)
+      if(wf && wf->IsInitialized())
         {
         iterator it = this->find(wf);
         if(it != this->end())

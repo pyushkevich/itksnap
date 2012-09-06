@@ -23,7 +23,16 @@ public:
   // the model update events that it fires.
   itkEventMacro(ThresholdSettingsUpdateEvent, IRISEvent)
 
+  itkEventMacro(ActiveBubbleUpdateEvent, IRISEvent)
+  itkEventMacro(BubbleListUpdateEvent, IRISEvent)
+  itkEventMacro(BubbleDefaultRadiusUpdateEvent, IRISEvent)
+  itkEventMacro(EvolutionIterationEvent, IRISEvent)
+
   FIRES(ThresholdSettingsUpdateEvent)
+  FIRES(ActiveBubbleUpdateEvent)
+  FIRES(BubbleListUpdateEvent)
+  FIRES(BubbleDefaultRadiusUpdateEvent)
+  FIRES(EvolutionIterationEvent)
 
   void SetParentModel(GlobalUIModel *model);
   irisGetMacro(Parent, GlobalUIModel *)
@@ -34,7 +43,11 @@ public:
   enum UIState {
     UIF_THESHOLDING_ENABLED,
     UIF_LOWER_THRESHOLD_ENABLED,
-    UIF_UPPER_THRESHOLD_ENABLED
+    UIF_UPPER_THRESHOLD_ENABLED,
+    UIF_SPEED_AVAILABLE,              // Has speed volume been computed?
+    UIF_PREPROCESSING_ACTIVE,         // Is the preprocessing dialog open?
+    UIF_BUBBLE_SELECTED,
+    UIF_INITIALIZATION_VALID          // Do we have data to start snake evol?
     };
 
   // Model for the threshold mode
@@ -42,7 +55,12 @@ public:
     AbstractThresholdModeModel;
 
   // Model for the snake mode
-  typedef AbstractPropertyModel<SnakeType, GlobalState::SnakeTypeDomain> AbstractSnakeTypeModel;
+  typedef AbstractPropertyModel<SnakeType, GlobalState::SnakeTypeDomain>
+    AbstractSnakeTypeModel;
+
+  // Model for the bubble selection
+  typedef STLVectorWrapperItemSetDomain<int, Bubble> BubbleDomain;
+  typedef AbstractPropertyModel<int, BubbleDomain> AbstractActiveBubbleProperty;
 
   // Models for the threshold-based preprocessing
   irisGetMacro(ThresholdLowerModel, AbstractRangedDoubleProperty *)
@@ -51,8 +69,18 @@ public:
   irisGetMacro(ThresholdModeModel, AbstractThresholdModeModel *)
   irisGetMacro(ThresholdPreviewModel, AbstractSimpleBooleanProperty *)
 
+  // Model for bubble selection
+  irisGetMacro(ActiveBubbleModel, AbstractActiveBubbleProperty *)
+
+  // Model for bubble radius
+  irisGetMacro(BubbleRadiusModel, AbstractRangedDoubleProperty *)
+
   // Get the model for the snake type
   irisGetMacro(SnakeTypeModel, AbstractSnakeTypeModel *)
+
+  // The models for the evolution page
+  irisGetMacro(StepSizeModel, AbstractRangedIntProperty *)
+  irisGetMacro(EvolutionIterationModel, AbstractSimpleIntProperty *)
 
   /** Check the state flags above */
   bool CheckState(UIState state);
@@ -72,6 +100,23 @@ public:
   /** Do some cleanup when the preprocessing dialog closes */
   void OnPreprocessingDialogClose();
 
+  /** Called when first displaying the snake wizard */
+  void OnSnakeModeEnter();
+
+  /** Add bubble at cursor */
+  void AddBubbleAtCursor();
+
+  /** Remove bubble at cursor */
+  void RemoveBubbleAtCursor();
+
+  /** Called when entering the evolution page */
+  void OnEvolutionPageEnter();
+
+  /** Access the model for the step size */
+
+
+  /** Perform a single step of snake evolution */
+  void PerformEvolutionStep();
 
 protected:
   SnakeWizardModel();
@@ -101,11 +146,34 @@ protected:
   bool GetSnakeTypeValueAndRange(SnakeType &value, GlobalState::SnakeTypeDomain *range);
   void SetSnakeTypeValue(SnakeType value);
 
+  SmartPtr<AbstractActiveBubbleProperty> m_ActiveBubbleModel;
+  bool GetActiveBubbleValueAndRange(int &value, BubbleDomain *range);
+  void SetActiveBubbleValue(int value);
+
+  SmartPtr<AbstractRangedDoubleProperty> m_BubbleRadiusModel;
+  bool GetBubbleRadiusValueAndRange(double &value, NumericValueRange<double> *range);
+  void SetBubbleRadiusValue(double value);
+
+  SmartPtr<ConcreteRangedIntProperty> m_StepSizeModel;
+
+  SmartPtr<AbstractSimpleIntProperty> m_EvolutionIterationModel;
+  int GetEvolutionIterationValue();
+
+  // Compute range and def value of radius based on ROI dimensions
+  void ComputeBubbleRadiusDefaultAndRange();
+
+  // Range for the bubble radius variable
+  NumericValueRange<double> m_BubbleRadiusDomain;
+
+  // Default value for the bubble radius (when there is no selection)
+  double m_BubbleRadiusDefaultValue;
 
   // Parent model
   GlobalUIModel *m_Parent;
   IRISApplication *m_Driver;
   GlobalState *m_GlobalState;
+
+
 };
 
 #endif // SNAKEWIZARDMODEL_H

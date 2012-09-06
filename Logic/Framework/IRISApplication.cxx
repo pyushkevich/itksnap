@@ -173,13 +173,19 @@ IRISApplication
   LabelType passThroughLabel = m_GlobalState->GetDrawingColorLabel();
 
   typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
-  IteratorType itLabel(imgNewLabel,imgNewLabel->GetBufferedRegion());  
+  IteratorType itLabel(imgNewLabel,imgNewLabel->GetBufferedRegion());
+  unsigned int nCopied = 0;
   while(!itLabel.IsAtEnd())
     {
     if(itLabel.Value() != passThroughLabel)
       itLabel.Value() = (LabelType) 0;
+    else
+      nCopied++;
     ++itLabel;
     }
+
+  // Record whether the segmentation has any values that are not zero
+  m_GlobalState->SetSnakeInitializedWithManualSegmentation(nCopied > 0);
 
   // Pass the cleaned up segmentation image to SNAP
   m_SNAPImageData->SetSegmentationImage(imgNewLabel);
@@ -1668,6 +1674,12 @@ IRISApplication
     wrapper->ComputeOutputVolume(progress);
     m_GlobalState->SetSpeedValid(true);
     }
+}
+
+IRISApplication::BubbleArray&
+IRISApplication::GetBubbleArray()
+{
+  return m_BubbleArray;
 }
 
 
