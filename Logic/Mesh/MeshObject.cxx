@@ -599,7 +599,7 @@ bool MeshObject
     
     const itk::ImageBase<3>::RegionType region = apImage->GetLargestPossibleRegion();
     itk::ImageBase<3>::SizeType size = region.GetSize();
-    if(size[2] <= 1)
+    if((size[0] <= 1) || (size[0] <= 1) || (size[2] <= 1))
         return(false);
     return(true);
 }
