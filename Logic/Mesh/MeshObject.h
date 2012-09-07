@@ -45,11 +45,17 @@ class vtkPolyData;
 
 namespace itk {
   class Command;
+  template<unsigned int VImageDimension>
+    //class ImageBase< VImageDimension >;
+  class ImageBase;
 }
+
+//#include "itkImageBase.h"
 
 #include "SNAPCommon.h"
 #include "AllPurposeProgressAccumulator.h"
 #include <vector>
+
 
 /**
  * \class MeshObject
@@ -88,6 +94,10 @@ private:
   // Progress accumulator for multi-object rendering
   itk::SmartPointer<AllPurposeProgressAccumulator> m_Progress;
 
+  //Check if apImage is a proper 3D, i.e. the third dimension is
+  //different than 1
+  bool Is3DProper(const itk::ImageBase<3> * apImage) const;
+    
 public:
   MeshObject();
   MeshObject( const MeshObject& M ) { *this=M; } 

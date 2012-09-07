@@ -135,11 +135,17 @@ MeshObject
     // We are in SNAP.  Use one of SNAP's images
     SNAPImageData *snapData = m_Driver->GetSNAPImageData();
 
+    LevelSetMeshPipeline::InputImageType * pImage = snapData->GetLevelSetImage();
+    if((pImage == 0) || (Is3DProper(pImage) == false)) {
+        cerr << "Warning 1: The input image should be a proper 3D one" << endl;
+        return;
+    }
+        
     // Create a pipeline for mesh generation
     LevelSetMeshPipeline *meshPipeline = new LevelSetMeshPipeline();
 
     // Get the float distance transform from the level set mechanism
-    meshPipeline->SetImage(snapData->GetLevelSetImage());
+    meshPipeline->SetImage(pImage);
     
     // Compute the mesh only for the current segmentation color
     vtkPolyData *mesh = vtkPolyData::New();
@@ -151,24 +157,32 @@ MeshObject
   }
   else    
     {
+        
+    IRISMeshPipeline::InputImageType * pImage;
+    
+    // Select the correct image
+    if(!m_GlobalState->GetSnakeActive())
+    {
+        // We are not currently in SNAP.  Use the segmentation image with its
+        // different colors
+        pImage = m_Driver->GetCurrentImageData()->GetSegmentation()->GetImage();
+    }
+    else
+    {
+        // We are in SNAP.  Select one of SNAP's images
+        SNAPImageData *snapData = m_Driver->GetSNAPImageData();
+        pImage = snapData->GetSegmentation()->GetImage();
+    }
+    if((pImage == 0) || (Is3DProper(pImage) == false)) {
+        cerr << "Warning 2: The input image should be a proper 3D one" << endl;
+        return;
+    }
+        
     // Create a pipeline for mesh generation
     IRISMeshPipeline *meshPipeline = new IRISMeshPipeline();
   
-    // Initialize the pipeline with the correct image
-    if(!m_GlobalState->GetSnakeActive())
-      {
-      // We are not currently in SNAP.  Use the segmentation image with its
-      // different colors
-      meshPipeline->SetImage(
-        m_Driver->GetCurrentImageData()->GetSegmentation()->GetImage());    
-  
-      }
-    else
-      {
-      // We are in SNAP.  Use one of SNAP's images
-      SNAPImageData *snapData = m_Driver->GetSNAPImageData();
-      meshPipeline->SetImage(snapData->GetSegmentation()->GetImage());
-      }
+    // Initialize the pipeline with the correctly selected image
+    meshPipeline->SetImage(pImage);
   
     // Pass the settings on to the pipeline
     meshPipeline->SetMeshOptions(m_GlobalState->GetMeshOptions());
@@ -496,6 +510,16 @@ MeshObject
     return true;
     }
   return false;
+}
+
+bool MeshObject
+::Is3DProper(const itk::ImageBase<3> * apImage) const {
+
+    const itk::ImageBase<3>::RegionType region = apImage->GetLargestPossibleRegion();
+    itk::ImageBase<3>::SizeType size = region.GetSize();
+    if(size[2] <= 1)
+        return(false);
+    return(true);
 }
 
 void 
