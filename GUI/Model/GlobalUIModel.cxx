@@ -135,6 +135,31 @@ GlobalUIModel::GlobalUIModel()
   m_CursorPositionModel->Rebroadcast(
         m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
 
+  // ROI size and index models
+  m_SnakeROIIndexModel = makeChildPropertyModel(
+        this,
+        &Self::GetSnakeROIIndexValueAndRange,
+        &Self::SetSnakeROIIndexValue);
+
+  m_SnakeROIIndexModel->Rebroadcast(
+        m_Driver->GetGlobalState()->GetSegmentationROISettingsModel(),
+        ValueChangedEvent(), ValueChangedEvent());
+
+  m_SnakeROIIndexModel->Rebroadcast(
+        m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
+
+  m_SnakeROISizeModel = makeChildPropertyModel(
+        this,
+        &Self::GetSnakeROISizeValueAndRange,
+        &Self::SetSnakeROISizeValue);
+
+  m_SnakeROISizeModel->Rebroadcast(
+        m_Driver->GetGlobalState()->GetSegmentationROISettingsModel(),
+        ValueChangedEvent(), ValueChangedEvent());
+
+  m_SnakeROISizeModel->Rebroadcast(
+        m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
+
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), StateMachineChangeEvent());
@@ -276,3 +301,103 @@ void GlobalUIModel::SetCursorPosition(Vector3ui value)
   m_Driver->SetCursorPosition(value - 1u);
 }
 
+bool GlobalUIModel::GetSnakeROIIndexValueAndRange(
+    Vector3ui &value, NumericValueRange<Vector3ui> *range)
+{
+  // There has to be an image
+  if(!m_Driver->GetCurrentImageData()->IsMainLoaded())
+    return false;
+
+  // Get the image size
+  Vector3ui imsize =
+      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+
+  // Get the system's region of interest
+  GlobalState::RegionType roiSystem =
+      m_Driver->GetGlobalState()->GetSegmentationROI();
+
+  // Populate the return value
+  for(int i = 0; i < 3; i++)
+    {
+    value[i] = roiSystem.GetIndex()[i] + 1;
+    if(range)
+      {
+      range->Minimum[i] = 1;
+      range->Maximum[i] = imsize[i] - 1;
+      range->StepSize[i] = 1;
+      }
+    }
+
+  return true;
+}
+
+void GlobalUIModel::SetSnakeROIIndexValue(Vector3ui value)
+{
+  // Get the image size
+  Vector3ui imsize =
+      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+
+  // Get the system's region of interest
+  GlobalState::RegionType roi =
+      m_Driver->GetGlobalState()->GetSegmentationROI();
+
+  // Index changed, clamp the size
+  for(int i = 0; i < 3; i++)
+    {
+    roi.SetIndex(i, value[i] - 1);
+    roi.SetSize(i, std::min(value[i], imsize[i] - value[i]));
+    }
+
+  m_Driver->GetGlobalState()->SetSegmentationROI(roi);
+}
+
+bool GlobalUIModel::GetSnakeROISizeValueAndRange(
+    Vector3ui &value, NumericValueRange<Vector3ui> *range)
+{
+  // There has to be an image
+  if(!m_Driver->GetCurrentImageData()->IsMainLoaded())
+    return false;
+
+  // Get the image size
+  Vector3ui imsize =
+      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+
+  // Get the system's region of interest
+  GlobalState::RegionType roiSystem =
+      m_Driver->GetGlobalState()->GetSegmentationROI();
+
+  // Populate the return value
+  for(int i = 0; i < 3; i++)
+    {
+    value[i] = roiSystem.GetSize()[i];
+    if(range)
+      {
+      range->Minimum[i] = 1;
+      range->Maximum[i] = imsize[i];
+      range->StepSize[i] = 1;
+      }
+    }
+
+  return true;
+}
+
+void GlobalUIModel::SetSnakeROISizeValue(Vector3ui value)
+{
+  // Get the image size
+  Vector3ui imsize =
+      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+
+  // Get the system's region of interest
+  GlobalState::RegionType roi =
+      m_Driver->GetGlobalState()->GetSegmentationROI();
+
+  // Size changed, clamp the index
+  for(int i = 0; i < 3; i++)
+    {
+    roi.SetSize(i, value[i]);
+    if(value[i] + roi.GetIndex(i) > imsize[i])
+      roi.SetIndex(i, imsize[i] - value[1]);
+    }
+
+  m_Driver->GetGlobalState()->SetSegmentationROI(roi);
+}

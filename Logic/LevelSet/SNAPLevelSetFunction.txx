@@ -38,6 +38,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkNumericTraits.h"
 #include "itkSimpleFastMutexLock.h"
+#include "itkMutexLockHolder.h"
 
 #include <map>
 
@@ -139,55 +140,43 @@ SNAPLevelSetFunction<TSpeedImageType, TImageType>
     const NeighborhoodType &neighborhood,
     void *globalData, const FloatOffsetType &offset)
 {
-  // Create a mutex lock so that this whole section of code is executed
-  // in a single thread. Otherwise our stored speed is not going to be
-  // useful
-  itk::SimpleFastMutexLock mx;
-  mx.Lock();
 
   // Interpolate the speed value at this location. This way, we don't need to
   // perform interpolation each time the GetXXXSpeed() function is called.
   IndexType idx = neighborhood.GetIndex();
   ContinuousIndexType cdx;
   for (unsigned i = 0; i < ImageDimension; ++i)
-    {
     cdx[i] = static_cast<double>(idx[i]) - offset[i];
-    }
-  if ( m_SpeedInterpolator->IsInsideBuffer(cdx) )
-    {
-    m_SpeedValue = static_cast<ScalarValueType>(
-        m_SpeedInterpolator->EvaluateAtContinuousIndex(cdx));
-    }
-  else
-    {
-    m_SpeedValue = static_cast<ScalarValueType>(m_SpeedImage->GetPixel(idx));
-    }
 
-  // Scale the speed value
-  m_SpeedValue *= m_SpeedScaleFactor;
+  // Store the speed in thread-specific memory
+  m_CachedSpeed =
+      m_SpeedScaleFactor * static_cast<ScalarValueType>(
+        m_SpeedInterpolator->IsInsideBuffer(cdx)
+        ? m_SpeedInterpolator->EvaluateAtContinuousIndex(cdx)
+        : m_SpeedImage->GetPixel(idx));
 
   // Call the parent method
-  PixelType rv = Superclass::ComputeUpdate(neighborhood, globalData, offset);
-
-  // Remove the thread lock
-  mx.Unlock();
-
-  // Return the RV
-  return rv;
+  return Superclass::ComputeUpdate(neighborhood, globalData, offset);
 }
 
 template <class TSpeedImageType, class TImageType>
 typename SNAPLevelSetFunction<TSpeedImageType, TImageType>::ScalarValueType
 SNAPLevelSetFunction<TSpeedImageType, TImageType>
-::GetSpeedWithExponent(int exponent) const
+::GetSpeedWithExponent(int exponent,
+                       const NeighborhoodType &neighbourhood,
+                       const FloatOffsetType &offset,
+                       GlobalDataStruct *) const
 {
+  // Get the speed value from thread-specific cache
+  ScalarValueType speed = m_CachedSpeed;
+
   switch(exponent)
     {
     case 0 : return itk::NumericTraits<ScalarValueType>::One;
-    case 1 : return m_SpeedValue;
-    case 2 : return m_SpeedValue * m_SpeedValue;
-    case 3 : return m_SpeedValue * m_SpeedValue * m_SpeedValue;
-    default : return pow(m_SpeedValue, exponent);
+    case 1 : return speed;
+    case 2 : return speed * speed;
+    case 3 : return speed * speed * speed;
+    default : return pow(speed, exponent);
     }
 }
 

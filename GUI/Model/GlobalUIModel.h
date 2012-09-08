@@ -167,6 +167,10 @@ public:
   /** Get the model for the cursor coordinates */
   irisGetMacro(CursorPositionModel, AbstractRangedUIntVec3Property *)
 
+  /** Get the models for the snake ROI */
+  irisGetMacro(SnakeROIIndexModel, AbstractRangedUIntVec3Property *)
+  irisGetMacro(SnakeROISizeModel, AbstractRangedUIntVec3Property *)
+
 protected:
 
   GlobalUIModel();
@@ -225,7 +229,16 @@ protected:
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
   void SetCursorPosition(Vector3ui value);
 
+  // Current ROI for snake mode
+  SmartPtr<AbstractRangedUIntVec3Property> m_SnakeROIIndexModel;
+  bool GetSnakeROIIndexValueAndRange(
+      Vector3ui &value, NumericValueRange<Vector3ui> *range);
+  void SetSnakeROIIndexValue(Vector3ui value);
 
+  SmartPtr<AbstractRangedUIntVec3Property> m_SnakeROISizeModel;
+  bool GetSnakeROISizeValueAndRange(
+      Vector3ui &value, NumericValueRange<Vector3ui> *range);
+  void SetSnakeROISizeValue(Vector3ui value);
 
 };
 

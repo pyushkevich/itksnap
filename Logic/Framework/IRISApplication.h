@@ -235,6 +235,11 @@ public:
   BubbleArray &GetBubbleArray();
 
   /**
+    Initialize the SNAP active contour evolution with the bubbles.
+    */
+  bool InitializeActiveContourPipeline();
+
+  /**
    * Update IRIS image data with the segmentation contained in the SNAP image
    * data.
    */

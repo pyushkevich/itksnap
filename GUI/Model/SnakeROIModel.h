@@ -87,13 +87,6 @@ public:
 
   void ResetROI();
 
-  /**
-    This property model describes the position and size of the ROI in
-    the given dimension. The coordinates use 1-based indexing, consistent
-    with the slice numbering presented to the user
-    */
-  irisGetMacro(ROIPositionAndSizeModel, AbstractRangedUIntVec2Property *)
-
   friend class SnakeROIRenderer;
 
 
@@ -135,12 +128,6 @@ protected:
 
   // Parent model
   GenericSliceModel *m_Parent;
-
-  // ROI position model
-  SmartPtr<AbstractRangedUIntVec2Property> m_ROIPositionAndSizeModel;
-  bool GetROIPositionAndSizeValueAndRange(
-      Vector2ui &value, NumericValueRange<Vector2ui> *domain);
-  void SetROIPositionAndSizeValue(Vector2ui value);
 
   // Private constructor stuff
   SnakeROIModel();

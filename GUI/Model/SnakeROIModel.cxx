@@ -14,6 +14,9 @@ void SnakeROIModel::SetParent(GenericSliceModel *parent)
   Rebroadcast(
         m_Parent->GetDriver()->GetGlobalState()->GetSegmentationROISettingsModel(),
         ValueChangedEvent(), ModelUpdateEvent());
+
+  // Layer change events too?
+  Rebroadcast(m_Parent->GetDriver(), LayerChangeEvent(), ModelUpdateEvent());
 }
 
 // Return true if the selection state has changed
@@ -132,11 +135,7 @@ const unsigned int SnakeROIModel::m_PixelDelta = 8;
 
 SnakeROIModel::SnakeROIModel()
 {
-  // Create child model
-  m_ROIPositionAndSizeModel = makeChildPropertyModel(
-        this,
-        &SnakeROIModel::GetROIPositionAndSizeValueAndRange,
-        &SnakeROIModel::SetROIPositionAndSizeValue);
+
 }
 
 void
@@ -266,72 +265,6 @@ void SnakeROIModel
 
   // Update the system's ROI (TODO: make this fire an event!)
   gs->SetSegmentationROI(roiCorner);
-}
-
-bool SnakeROIModel
-::GetROIPositionAndSizeValueAndRange(
-    Vector2ui &value, NumericValueRange<Vector2ui> *domain)
-{
-  GlobalState *gs = m_Parent->GetDriver()->GetGlobalState();
-  int dim = m_Parent->GetSliceDirectionInImageSpace();
-  unsigned int imsize = m_Parent->GetNumberOfSlices();
-
-  if(gs->isSegmentationROIValid())
-    {
-    // Get the system's region of interest
-    GlobalState::RegionType roiSystem = gs->GetSegmentationROI();
-
-    // Populate the return value
-    value[0] = roiSystem.GetIndex()[dim] + 1;
-    value[1] = roiSystem.GetSize()[dim];
-
-    // Populate the domain
-    if(domain)
-      {
-      domain->Minimum[0] = 1; domain->Maximum[0] = imsize - 1;
-      domain->Minimum[1] = 1; domain->Maximum[1] = imsize;
-      domain->StepSize[0] = 1; domain->StepSize[1] = 1;
-      }
-
-    return true;
-    }
-
-  return false;
-}
-
-void
-SnakeROIModel
-::SetROIPositionAndSizeValue(Vector2ui value)
-{
-  GlobalState *gs = m_Parent->GetDriver()->GetGlobalState();
-  int dim = m_Parent->GetSliceDirectionInImageSpace();
-  unsigned int imsize = m_Parent->GetNumberOfSlices();
-
-  // Get the system's region of interest
-  GlobalState::RegionType roi = gs->GetSegmentationROI();
-
-  // Determine which value the user changed so we can keep it fixed
-  Vector2ui curval(roi.GetIndex()[dim] + 1, roi.GetSize()[dim]);
-
-  unsigned int inew, snew;
-  if(value[0] != curval[0])
-    {
-    // Index changed, clamp the size
-    inew = value[0] - 1;
-    snew = std::min(value[1], imsize - inew);
-    }
-  else
-    {
-    // Size changed, clamp the index
-    snew = value[1];
-    inew = roi.GetIndex()[dim];
-    if(inew + snew > imsize)
-      inew = imsize - snew;
-    }
-
-  roi.SetIndex(dim, inew);
-  roi.SetSize(dim, snew);
-  gs->SetSegmentationROI(roi);
 }
 
 void SnakeROIModel::ResetROI()

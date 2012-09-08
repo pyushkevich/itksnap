@@ -44,6 +44,7 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkVectorCastImageFilter.h"
+#include "ThreadSpecificData.h"
 
 #include "SNAPAdvectionFieldImageFilter.h"
 
@@ -86,6 +87,14 @@
   SetXXXWeight() and SetXXXSpeedExponent() methods. Then  pass in a speed image 
   using SetSpeedImage() and then compute the internal images by 
   calling CalculateInternalImages().  
+
+  PY 2012: The function has been modified to cache the speed values, so that
+  separate calls to GetXXXSpeed do not result in unnecessary interpolations.
+  This takes advantage of the ThreadSpecificData object, which acts like a
+  class member that is thread-specific. A better solution still would be to
+  change the behaviour of ComputeUpdate in the LevelSetFunction to query all
+  of the speed values at once from the child class. But that requires making
+  a copy of the large chunk of the ITK API, which causes maintenance issues.
  */
 template <class TSpeedImageType, class TImageType>
 class ITK_EXPORT SNAPLevelSetFunction
@@ -180,7 +189,11 @@ public:
                                   const FloatOffsetType &);
 
   // Inline function shared by the three XXXSpeed() functions
-  inline ScalarValueType GetSpeedWithExponent(int exponent) const;
+  inline ScalarValueType GetSpeedWithExponent(
+      int exponent,
+      const NeighborhoodType &neighbourhood,
+      const FloatOffsetType &offset,
+      GlobalDataStruct * = 0 ) const;
 
   /** Local multiplier for the curvature term */
   virtual ScalarValueType CurvatureSpeed(
@@ -188,7 +201,8 @@ public:
     const FloatOffsetType &offset, 
     GlobalDataStruct * = 0 ) const
   {
-    return GetSpeedWithExponent(m_CurvatureSpeedExponent);
+    return GetSpeedWithExponent(m_CurvatureSpeedExponent,
+                                neighbourhood, offset);
   }
 
   /** Local multiplier for the laplacian smoothing term */
@@ -197,7 +211,8 @@ public:
     const FloatOffsetType &offset, 
     GlobalDataStruct * = 0 ) const
   {
-    return GetSpeedWithExponent(m_LaplacianSmoothingSpeedExponent);
+    return GetSpeedWithExponent(m_LaplacianSmoothingSpeedExponent,
+                                neighbourhood, offset);
   }
 
   /** Local multiplier for the propagation term */
@@ -206,7 +221,9 @@ public:
     const FloatOffsetType &offset, 
     GlobalDataStruct * = 0 ) const
   {
-    return GetSpeedWithExponent(m_PropagationSpeedExponent);
+    ScalarValueType v = GetSpeedWithExponent(m_PropagationSpeedExponent,
+                                neighbourhood, offset);
+    return v;
   }
 
 
@@ -327,7 +344,7 @@ private:
     VectorType > m_VectorCast;
 
   /** The current value of the speed function */
-  ScalarValueType m_SpeedValue;
+  ThreadSpecificData<ScalarValueType> m_CachedSpeed;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

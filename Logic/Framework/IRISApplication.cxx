@@ -200,6 +200,10 @@ IRISApplication
   // Remember the ROI object
   m_GlobalState->SetSegmentationROISettings(roi);
 
+  // TODO: unify how mode-specific parameters are set
+  m_GlobalState->SetSnakeParameters(
+        SnakeParameters::GetDefaultInOutParameters());
+
   // Indicate that the speed image is invalid
   m_GlobalState->SetSpeedValid(false);
 }
@@ -1590,6 +1594,13 @@ void IRISApplication::SetSnakeMode(SnakeType mode)
     // Set the speed to invalud
     m_GlobalState->SetSpeedValid(false);
 
+    // Set the snake parameters. TODO: see how we did this in the old
+    // snap and preserve the information!!!
+    m_GlobalState->SetSnakeParameters(
+          mode == IN_OUT_SNAKE ?
+            SnakeParameters::GetDefaultInOutParameters() :
+            SnakeParameters::GetDefaultEdgeParameters());
+
     // Clear the speed layer
     m_SNAPImageData->InitializeSpeed();
     }
@@ -1680,6 +1691,21 @@ IRISApplication::BubbleArray&
 IRISApplication::GetBubbleArray()
 {
   return m_BubbleArray;
+}
+
+bool IRISApplication::InitializeActiveContourPipeline()
+{
+  // Initialize the segmentation with current bubbles and parameters
+  if(m_SNAPImageData->InitializeSegmentation(
+       m_GlobalState->GetSnakeParameters(),
+       m_BubbleArray, m_GlobalState->GetDrawingColorLabel()))
+    {
+    // Fire an event indicating the layers have changed
+    InvokeEvent(LayerChangeEvent());
+    return true;
+    }
+
+  return false;
 }
 
 

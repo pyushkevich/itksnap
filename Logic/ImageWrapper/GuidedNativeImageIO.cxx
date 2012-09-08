@@ -1087,7 +1087,7 @@ void GuidedNativeImageIO::ParseDicomDirectory(
         }
       }
 
-      // Create a registry entry
+      // Create a registry entryx
       Registry r;
 
       // Create its unique series ID
