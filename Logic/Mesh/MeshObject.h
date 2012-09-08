@@ -48,6 +48,11 @@ class vtkPolyData;
 #include <vector>
 #include "itkObject.h"
 
+namespace itk {
+    template<unsigned int VImageDimension>
+        class ImageBase;
+}
+
 /**
  * \class MeshObject
  * \brief A class representing a mesh generated from a segmentation.
@@ -187,6 +192,11 @@ protected:
   MeshObject( const MeshObject& M ) { *this=M; }
   MeshObject& operator= ( const MeshObject& M ) { *this=M; return *this; }
   */
+  
+private:
+  //Check if apImage is a proper 3D, i.e. the third dimension is
+  //different than 1
+  bool Is3DProper(const itk::ImageBase<3> * apImage) const;
 
 };
 
