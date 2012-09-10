@@ -796,7 +796,7 @@ IRISApplication
 void
 IRISApplication
 ::ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *progress) 
-  throw(itk::ExceptionObject)
+  throw(itk::ExceptionObject, IRISException)
 {
   // Based on the export settings, we will export one of the labels or all labels
   MeshObject mob;

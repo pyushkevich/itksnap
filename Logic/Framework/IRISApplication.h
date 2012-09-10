@@ -49,6 +49,7 @@ class IRISImageData;
 class SNAPImageData;
 class MeshExportSettings;
 class GuidedNativeImageIO;
+#include "IRISException.h"
 namespace itk {
     template <class TPixel, unsigned int VDimension> class Image;
 }
@@ -237,9 +238,9 @@ public:
    * MeshExportSettings structure.
    */
   void ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *cmd)
-    throw(itk::ExceptionObject);
+    throw(itk::ExceptionObject, IRISException);
 
-  /** 
+  /**
    * This method is used to selectively override labels in a target 
    * segmentation image with the current drawing color.  It uses the 
    * current coverage mode to determine whether to override the pixel 

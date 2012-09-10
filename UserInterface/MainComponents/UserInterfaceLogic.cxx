@@ -71,6 +71,7 @@
 #include "IRISSliceWindow.h"
 #include "SNAPSliceWindow.h"
 #include "Window3D.h"
+#include "IRISException.h"
 
 
 // Additional UI component inludes
@@ -5377,9 +5378,13 @@ void UserInterfaceLogic
     // Get the save settings
     MeshExportSettings sets = m_WizMeshExport->GetExportSettings();
 
-    // Use the settings to save the mesh
-    m_Driver->ExportSegmentationMesh(sets, m_ProgressCommand);
-
+    try {
+      // Use the settings to save the mesh
+      m_Driver->ExportSegmentationMesh(sets, m_ProgressCommand);
+    }
+    catch(IRISException & IRISexc) {
+        fl_alert(IRISexc.what());
+    }
     // Update the history
     m_SystemInterface->UpdateHistory("SegmentationMesh", sets.GetMeshFileName().c_str());
     }
