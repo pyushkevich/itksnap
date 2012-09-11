@@ -33,6 +33,7 @@
 
 =========================================================================*/
 #include "MeshIOWizardUILogic.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "GuidedMeshIO.h"
 #include "FL/Fl_Native_File_Chooser.H"

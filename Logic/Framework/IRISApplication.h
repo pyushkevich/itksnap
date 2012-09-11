@@ -49,7 +49,7 @@ class IRISImageData;
 class SNAPImageData;
 class MeshExportSettings;
 class GuidedNativeImageIO;
-#include "IRISException.h"
+class IRISException;
 namespace itk {
     template <class TPixel, unsigned int VDimension> class Image;
 }

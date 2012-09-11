@@ -36,6 +36,7 @@
 #include "SNAPCommonUI.h"
 #include "ReorientImageUILogic.h"
 #include "UserInterfaceLogic.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "itkImage.h"

@@ -58,6 +58,7 @@
 #include "RGBImageWrapper.h"
 #include "EdgePreprocessingImageFilter.h"
 #include "LayerInspectorUILogic.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "IRISVectorTypesToITKConversion.h"

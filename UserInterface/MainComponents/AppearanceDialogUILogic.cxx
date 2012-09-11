@@ -36,6 +36,7 @@
 #include "SNAPAppearanceSettings.h"
 #include "UserInterfaceBase.h"
 #include "GlobalState.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "SystemInterface.h"
 #include "FL/Fl_Native_File_Chooser.H"

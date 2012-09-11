@@ -33,6 +33,7 @@
 
 =========================================================================*/
 #include "SystemInterface.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISException.h"
 #include "GlobalState.h"

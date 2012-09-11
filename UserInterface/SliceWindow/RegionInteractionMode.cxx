@@ -34,6 +34,7 @@
 =========================================================================*/
 #include "RegionInteractionMode.h"
 
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "IRISSliceWindow.h"

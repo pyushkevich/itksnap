@@ -36,6 +36,7 @@
 #include "LayerInspectorUILogic.h"
 #include "IntensityCurveVTK.h"
 #include "UserInterfaceLogic.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "GreyImageWrapper.h"

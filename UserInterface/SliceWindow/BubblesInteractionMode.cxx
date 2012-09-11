@@ -34,6 +34,7 @@
 =========================================================================*/
 #include "BubblesInteractionMode.h"
 
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISSliceWindow.h"
 #include "UserInterfaceBase.h"

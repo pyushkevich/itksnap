@@ -36,6 +36,7 @@
 
 #include "GlobalState.h"
 #include "OpenGLSliceTexture.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "UserInterfaceBase.h"

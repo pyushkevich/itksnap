@@ -45,6 +45,7 @@
 #include "ColorLabel.h"
 #include "GlobalState.h"
 #include "ImageWrapper.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISMeshPipeline.h"
 #include "LevelSetMeshPipeline.h"

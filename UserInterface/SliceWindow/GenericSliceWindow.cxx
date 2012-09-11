@@ -36,6 +36,7 @@
 
 #include "CrosshairsInteractionMode.h"
 #include "GlobalState.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "OpenGLSliceTexture.h"

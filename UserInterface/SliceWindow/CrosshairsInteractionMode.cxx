@@ -34,6 +34,7 @@
 =========================================================================*/
 #include "CrosshairsInteractionMode.h"
 #include "SNAPOpenGL.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "SNAPAppearanceSettings.h"

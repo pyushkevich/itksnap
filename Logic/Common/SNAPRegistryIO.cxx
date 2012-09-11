@@ -34,6 +34,7 @@
 =========================================================================*/
 #include "IRISVectorTypes.h"
 #include "SNAPRegistryIO.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include <algorithm>

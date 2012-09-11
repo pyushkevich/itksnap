@@ -38,6 +38,7 @@
 #include "SNAPBorlandDummyTypes.h"
 #endif
 
+#include "IRISException.h"
 #include "IRISApplication.h"
 
 #include "GlobalState.h"

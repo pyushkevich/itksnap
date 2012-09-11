@@ -41,6 +41,7 @@
 #include "GlobalState.h"
 #include "PolygonDrawing.h"
 #include "UserInterfaceBase.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "SNAPAppearanceSettings.h"

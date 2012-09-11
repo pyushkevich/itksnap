@@ -43,6 +43,7 @@
 #include "UnaryFunctorCache.h"
 #include "itkRGBAPixel.h"
 #include "IRISSlicer.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include <list>
 
