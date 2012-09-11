@@ -120,6 +120,26 @@ void setupParser(CommandLineArgumentParser &parser)
   parser.AddOption("--debug-events", 0);
 }
 
+#include <QScriptEngine>
+#include <QScriptEngineDebugger>
+
+void scriptChildren(QScriptEngine &engine, QObject *widget, QString parent)
+{
+  for(int i = 0; i < widget->children().size(); i++)
+    {
+    QObject *c = widget->children()[i];
+
+    if(dynamic_cast<QWidget *>(c) || dynamic_cast<QAction *>(c))
+      {
+      QString name = QString("%1_%2").arg(parent).arg(c->objectName());
+      QScriptValue val = engine.newQObject(c);
+      engine.globalObject().setProperty(name, val);
+      scriptChildren(engine, c, name);
+      }
+
+    }
+}
+
 int main(int argc, char *argv[])
 {
   // Setup crash signal handlers
@@ -382,6 +402,14 @@ int main(int argc, char *argv[])
       }
     }
     */
+
+  // Play with scripting
+  QScriptEngine engine;
+  QScriptEngineDebugger bugger;
+  bugger.attachTo(&engine);
+
+  // Find all the child widgets of mainwin
+  engine.globalObject().setProperty("snap", engine.newQObject(&mainwin));
 
   // Show the panel
   mainwin.show();

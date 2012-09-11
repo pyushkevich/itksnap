@@ -503,6 +503,8 @@ IF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${CONFIGURED_SOURCE_DIRECTORY}
     ${ITK_DIR}/Utilities/zlib
     ${OPENGL_INCLUDE_PATH}
+    ${QT_QTSCRIPT_INCLUDE_DIR}
+    ${QT_QTSCRIPTTOOLS_INCLUDE_DIR}
   )
 
 ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
@@ -531,6 +533,8 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Testing
     ${SNAP_BINARY_DIR}
     ${OPENGL_INCLUDE_PATH}
+    ${QT_QTSCRIPT_INCLUDE_DIR}
+    ${QT_QTSCRIPTTOOLS_INCLUDE_DIR}
   )
 
 ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
@@ -568,6 +572,14 @@ ELSE(VTK_USE_PATENTED)
   SET(SNAP_VTK_LIBS ${SNAP_VTK_CORE_LIBS})
 ENDIF(VTK_USE_PATENTED)
 
+# Qt Libraries
+SET(SNAP_QT_LIBS
+  ${QT_LIBRARIES}
+  ${QT_QTSCRIPT_LIBRARY}
+  ${QT_QTSCRIPTTOOLS_LIBRARY}
+
+)
+
 # System libraries
 SET(SNAP_SYSTEM_LIBS
   ${OPENGL_LIBRARIES}
@@ -579,7 +591,8 @@ SET(SNAP_SYSTEM_LIBS
 SET(SNAP_EXTERNAL_LIBS 
   ${SNAP_ITK_LIBS} 
   ${SNAP_VTK_LIBS} 
-  ${SNAP_SYSTEM_LIBS})
+  ${SNAP_SYSTEM_LIBS}
+)
 
 # *****************************************************
 # SNAP Logic and UI Libraries
@@ -605,8 +618,7 @@ ADD_LIBRARY(itksnapui_qt
 # two lines
 TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS})
 TARGET_LINK_LIBRARIES(itksnapui_model itksnaplogic ${SNAP_EXTERNAL_LIBS})
-TARGET_LINK_LIBRARIES(itksnapui_qt itksnapui_model itksnaplogic
-    ${QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
+TARGET_LINK_LIBRARIES(itksnapui_qt ${SNAP_QT_LIBS} ${SNAP_EXTERNAL_LIBS})
 
 # Designate the SNAP internal libraries
 SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
