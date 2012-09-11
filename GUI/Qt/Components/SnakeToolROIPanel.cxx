@@ -27,14 +27,12 @@ void SnakeToolROIPanel::SetModel(GlobalUIModel *model)
 
   // Hook up the couplings for the ROI size controls
   makeArrayCoupling(
-        ui->inIndexX, ui->inSizeX,
-        model->GetSnakeROIModel(0)->GetROIPositionAndSizeModel());
+        ui->inIndexX, ui->inIndexY, ui->inIndexZ,
+        model->GetSnakeROIIndexModel());
+
   makeArrayCoupling(
-        ui->inIndexY, ui->inSizeY,
-        model->GetSnakeROIModel(1)->GetROIPositionAndSizeModel());
-  makeArrayCoupling(
-        ui->inIndexZ, ui->inSizeZ,
-        model->GetSnakeROIModel(2)->GetROIPositionAndSizeModel());
+        ui->inSizeX, ui->inSizeY, ui->inSizeZ,
+        model->GetSnakeROISizeModel());
 }
 
 void SnakeToolROIPanel::on_btnResetROI_clicked()

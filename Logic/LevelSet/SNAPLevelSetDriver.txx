@@ -49,11 +49,7 @@
 #include "itkDenseFiniteDifferenceImageFilter.h"
 #include "LevelSetExtensionFilter.h"
 
-#if defined(USE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
-#include "itkParallelSparseFieldLevelSetImageFilterBugFix.h"
-#else 
-#include "itkSparseFieldLevelSetImageFilter.h"
-#endif
+#include "itkParallelSparseFieldLevelSetImageFilter.h"
 
 // Disable some windows debug length messages
 #if defined(_MSC_VER)
@@ -147,13 +143,8 @@ SNAPLevelSetDriver<VDimension>
   if(m_Parameters.GetSolver() == SnakeParameters::PARALLEL_SPARSE_FIELD_SOLVER)
     {
     // Define an extension to the appropriate filter class
-#if defined(USE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
-    typedef itk::ParallelSparseFieldLevelSetImageFilterBugFix<
+    typedef itk::ParallelSparseFieldLevelSetImageFilter<
       FloatImageType, FloatImageType> LevelSetFilterType;
-#else
-    typedef itk::SparseFieldLevelSetImageFilter<
-      FloatImageType, FloatImageType> LevelSetFilterType;
-#endif
 
     typedef typename LevelSetFilterType::Pointer LevelSetFilterPointer;
     LevelSetFilterPointer filter = LevelSetFilterType::New();

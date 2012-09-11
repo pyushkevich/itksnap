@@ -513,10 +513,7 @@ SnakeWizardModel
 void SnakeWizardModel::OnEvolutionPageEnter()
 {
   // Initialize the segmentation
-  if(!m_Driver->GetSNAPImageData()->InitializeSegmentation(
-       m_GlobalState->GetSnakeParameters(),
-       m_Driver->GetBubbleArray(),
-       m_GlobalState->GetDrawingColorLabel()))
+  if(!m_Driver->InitializeActiveContourPipeline())
     {
     throw IRISException("Failed to initialize the active contour. "
                         "Check that the initialization bubbles are "

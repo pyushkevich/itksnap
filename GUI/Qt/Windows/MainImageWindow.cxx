@@ -37,6 +37,7 @@
 #include "ViewPanel3D.h"
 #include "IRISMainToolbox.h"
 #include "SnakeWizardPanel.h"
+#include "LatentITKEventNotifier.h"
 
 #include <LabelEditorDialog.h>
 
@@ -86,7 +87,8 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
           this, SLOT(AdjustMarginsForDocks()));
 
   connect(m_DockRight, SIGNAL(visibilityChanged(bool)),
-          this, SLOT(AdjustMarginsForDocks()));  
+          this, SLOT(AdjustMarginsForDocks()));
+
 }
 
 MainImageWindow::~MainImageWindow()
@@ -112,7 +114,58 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Initialize the docked panels
   m_Toolbox->SetModel(model);
   // m_SnakeWizard->SetModel(model);
+
+  // Listen for changes to the main image, updating the recent image file
+  // menu. TODO: a more direct way would be to listen to changes to the
+  // history, but that requires making history an event-firing object
+  LatentITKEventNotifier::connect(model->GetDriver(),
+                                  MainImageDimensionsChangeEvent(),
+                                  this,
+                                  SLOT(onModelUpdate(EventBucket)));
+
+  // Populate the recent file menu
+  this->UpdateRecentMenu();
 }
+
+
+// Slot for model updates
+void MainImageWindow::onModelUpdate(const EventBucket &b)
+{
+  if(b.HasEvent(MainImageDimensionsChangeEvent()))
+    {
+    this->UpdateRecentMenu();
+    }
+}
+
+void MainImageWindow::UpdateRecentMenu()
+{
+  // Menus to populate
+  QAction *menus[] = {
+    ui->actionRecent_1,
+    ui->actionRecent_2,
+    ui->actionRecent_3,
+    ui->actionRecent_4,
+    ui->actionRecent_5};
+
+  // List of filenames
+  std::vector<std::string> recent = m_Model->GetRecentMainImages(5);
+
+  // Toggle the state of each menu item
+  for(int i = 0; i < 5; i++)
+    {
+    if(i < recent.size())
+      {
+      menus[i]->setText(recent[i].c_str());
+      menus[i]->setEnabled(true);
+      }
+    else
+      {
+      menus[i]->setText("Not available");
+      menus[i]->setEnabled(false);
+      }
+    }
+}
+
 
 SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 {
@@ -259,4 +312,55 @@ void MainImageWindow::AdjustMarginsForDocks()
 
 }
 
+#include "QtWarningDialog.h"
 
+void MainImageWindow::LoadRecent(QString file)
+{
+  // TODO: prompt for changes!
+
+  // Try loading the image
+  try
+    {
+    IRISWarningList warnings;
+    LoadMainImageDelegate del(m_Model, IRISApplication::MAIN_ANY);
+    m_Model->LoadImageNonInteractive(file.toAscii(), del, warnings);
+    }
+  catch(itk::ExceptionObject &exc)
+    {
+    QMessageBox b(this);
+    b.setText(QString("Failed to load image %1").arg(file));
+    b.setDetailedText(exc.what());
+    b.setIcon(QMessageBox::Critical);
+    b.exec();
+    }
+}
+
+void MainImageWindow::on_actionRecent_1_triggered()
+{
+  // Load the recent image
+  this->LoadRecent(ui->actionRecent_1->text());
+}
+
+void MainImageWindow::on_actionRecent_2_triggered()
+{
+  // Load the recent image
+  this->LoadRecent(ui->actionRecent_2->text());
+}
+
+void MainImageWindow::on_actionRecent_3_triggered()
+{
+  // Load the recent image
+  this->LoadRecent(ui->actionRecent_3->text());
+}
+
+void MainImageWindow::on_actionRecent_4_triggered()
+{
+  // Load the recent image
+  this->LoadRecent(ui->actionRecent_4->text());
+}
+
+void MainImageWindow::on_actionRecent_5_triggered()
+{
+  // Load the recent image
+  this->LoadRecent(ui->actionRecent_5->text());
+}

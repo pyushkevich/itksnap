@@ -29,6 +29,7 @@
 
 #include <QWidget>
 #include <SNAPCommon.h>
+#include <SNAPComponent.h>
 
 class QToolBox;
 class QFrame;
@@ -42,7 +43,7 @@ class LabelInspector;
 class QTabWidget;
 class SnakeToolROIPanel;
 
-class IRISMainToolbox : public QWidget
+class IRISMainToolbox : public SNAPComponent
 {
   Q_OBJECT
 
@@ -64,6 +65,8 @@ public slots:
   void on_BtnPolygonMode_toggled(bool);
   void on_TabInspector_currentChanged(int index);
   void on_BtnSnakeMode_toggled(bool);
+
+  virtual void onModelUpdate(const EventBucket &bucket);
 
 private:
 

@@ -95,6 +95,7 @@ SET(LOGIC_CXX
   Common/Registry.cxx
   Common/SNAPOpenGL.cxx
   Common/SystemInterface.cxx
+  Common/ThreadSpecificData.cxx
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
   Common/Trackball.cxx
@@ -166,6 +167,7 @@ SET(LOGIC_HEADERS
   Common/SNAPOpenGL.h
   Common/SNAPEvents.h
   Common/SystemInterface.h
+  Common/ThreadSpecificData.h
   Common/Trackball.h
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h

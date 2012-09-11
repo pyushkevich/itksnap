@@ -180,25 +180,40 @@
    <property name="text">
     <string>Recent 1</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
   </action>
   <action name="actionRecent_2">
    <property name="text">
     <string>Recent 2</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
    </property>
   </action>
   <action name="actionRecent_3">
    <property name="text">
     <string>Recent 3</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
   </action>
   <action name="actionRecent_4">
    <property name="text">
     <string>Recent 4</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+4</string>
+   </property>
   </action>
   <action name="actionRecent_5">
    <property name="text">
     <string>Recent 5</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+5</string>
    </property>
   </action>
   <action name="actionScreenshot">

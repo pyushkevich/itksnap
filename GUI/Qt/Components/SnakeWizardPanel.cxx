@@ -170,7 +170,7 @@ void SnakeWizardPanel::on_btnPlay_clicked(bool checked)
 {
   // This is where we toggle the snake evolution!
   if(checked)
-    m_EvolutionTimer->start(100);
+    m_EvolutionTimer->start(10);
   else
     m_EvolutionTimer->stop();
 }

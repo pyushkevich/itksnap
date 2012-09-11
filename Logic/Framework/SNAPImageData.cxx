@@ -389,6 +389,7 @@ SNAPImageData
   
   // Make sure that the correct color label is being used
   m_SnakeWrapper.SetColorLabel(m_ColorLabel);
+  m_SnakeWrapper.SetAlpha(m_Parent->GetGlobalState()->GetSegmentationAlpha());
 }
 
 void 
@@ -399,7 +400,11 @@ SNAPImageData
   assert(m_LevelSetDriver);
 
   // Pass through to the level set driver
+  clock_t c1 = clock();
   m_LevelSetDriver->Run(nIterations);
+  clock_t c2 = clock();
+  std::cout << (c2 - c1) * 1.0 / (CLOCKS_PER_SEC * nIterations)
+            << " sec per iteration." << std::endl;
 }
 
 void 
