@@ -1,5 +1,6 @@
 #include "VoxelIntensityQTableModel.h"
 #include <GlobalUIModel.h>
+#include <IRISException.h>
 #include <IRISApplication.h>
 #include <GenericImageData.h>
 #include "LatentITKEventNotifier.h"

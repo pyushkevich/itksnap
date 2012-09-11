@@ -38,8 +38,8 @@
 #include "SNAPBorlandDummyTypes.h"
 #endif
 
+#include "IRISException.h"
 #include "IRISApplication.h"
-
 #include "GlobalState.h"
 #include "GuidedNativeImageIO.h"
 #include "IRISImageData.h"
@@ -922,7 +922,7 @@ IRISApplication
 void
 IRISApplication
 ::ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *progress) 
-  throw(itk::ExceptionObject)
+  throw(itk::ExceptionObject, IRISException)
 {
   // Based on the export settings, we will export one of the labels or all labels
   SmartPtr<MeshObject> mob = MeshObject::New();

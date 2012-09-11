@@ -3,6 +3,7 @@
 
 #include "GlobalUIModel.h"
 #include "SNAPEvents.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "itkCommand.h"

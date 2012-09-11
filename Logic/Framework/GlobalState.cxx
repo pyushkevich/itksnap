@@ -33,6 +33,7 @@
 
 =========================================================================*/
 #include "GlobalState.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 
 GlobalState

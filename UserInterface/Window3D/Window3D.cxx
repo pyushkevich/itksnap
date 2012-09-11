@@ -512,6 +512,10 @@ Window3D
     {
     fl_alert("Out of memory error when generating 3D mesh.");
     }
+  catch(IRISException & IRISexc)
+    {
+    fl_alert(IRISexc.what());
+    }
   m_Canvas->redraw();
 }
 

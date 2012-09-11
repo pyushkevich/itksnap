@@ -1,4 +1,5 @@
 #include "LabelEditorModel.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISException.h"
 

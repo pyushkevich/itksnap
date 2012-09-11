@@ -2,6 +2,7 @@
 #include <QSettings>
 #include "MainImageWindow.h"
 #include "SliceViewPanel.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "SNAPAppearanceSettings.h"
 #include "CommandLineArgumentParser.h"

@@ -2,6 +2,7 @@
 #define IMAGEIODELEGATES_H
 
 #include "SNAPCommon.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISException.h"
 #include <vector>

@@ -26,6 +26,7 @@
 
 #include "GlobalUIModel.h"
 
+#include <IRISException.h>
 #include <IRISApplication.h>
 #include <SNAPAppearanceSettings.h>
 #include <GenericSliceModel.h>
