@@ -55,6 +55,7 @@
 #include "LevelSetImageWrapper.h"
 #include "SignedDistanceFilter.h"
 #include "SpeedImageWrapper.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "ThresholdSettings.h"
 #include "ColorMap.h"

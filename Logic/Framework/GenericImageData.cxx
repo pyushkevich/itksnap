@@ -42,6 +42,7 @@
 #include "itkUnaryFunctorImageFilter.h"
 #include "itkRGBAPixel.h"
 #include "IRISSlicer.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include <algorithm>
 #include <list>

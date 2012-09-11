@@ -45,6 +45,7 @@
 #include "ColorLabel.h"
 #include "GlobalState.h"
 #include "ImageWrapper.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISMeshPipeline.h"
 #include "LevelSetMeshPipeline.h"
@@ -137,8 +138,7 @@ MeshObject
 
     LevelSetMeshPipeline::InputImageType * pImage = snapData->GetLevelSetImage();
     if((pImage == 0) || (Is3DProper(pImage) == false)) {
-        cerr << "Warning 1: The input image should be a proper 3D one" << endl;
-        return;
+        throw IRISException("The input image should be a proper 3D one.");
     }
     
     // Create a pipeline for mesh generation
@@ -174,8 +174,7 @@ MeshObject
         pImage = snapData->GetSegmentation()->GetImage();
     }
     if((pImage == 0) || (Is3DProper(pImage) == false)) {
-        cerr << "Warning 2: The input image should be a proper 3D one" << endl;
-        return;
+        throw IRISException("The input image should be a proper 3D one.");
     }
         
     // Create a pipeline for mesh generation

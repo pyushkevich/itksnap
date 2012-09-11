@@ -50,6 +50,7 @@
 
 // Forward reference to the classes pointed at
 class GenericImageData;
+class IRISException;
 class IRISImageData;
 class SNAPImageData;
 class MeshExportSettings;
@@ -300,7 +301,7 @@ public:
    * MeshExportSettings structure.
    */
   void ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *cmd)
-    throw(itk::ExceptionObject);
+    throw(itk::ExceptionObject, IRISException);
 
   /** 
    * This method is used to selectively override labels in a target 

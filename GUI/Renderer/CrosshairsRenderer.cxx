@@ -30,6 +30,7 @@
 #include "SNAPAppearanceSettings.h"
 #include "GlobalUIModel.h"
 #include "GenericSliceRenderer.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 
 CrosshairsRenderer::CrosshairsRenderer()

@@ -2,6 +2,7 @@
 #include "ui_LayerInspectorDialog.h"
 #include "ContrastInspector.h"
 #include "GlobalUIModel.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "ImageWrapper.h"

@@ -4,6 +4,7 @@
 #include "AbstractModel.h"
 #include "LayerAssociation.h"
 #include "GlobalUIModel.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 
 /**

@@ -1,5 +1,6 @@
 #include "SnakeWizardModel.h"
 #include "GlobalUIModel.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "GlobalState.h"
 #include "GenericImageData.h"

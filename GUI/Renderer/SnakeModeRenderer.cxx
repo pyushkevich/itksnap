@@ -2,6 +2,7 @@
 #include "SnakeWizardModel.h"
 #include "GenericSliceModel.h"
 #include "GlobalUIModel.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "SNAPImageData.h"
 #include "GlobalState.h"

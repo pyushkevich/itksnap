@@ -1,4 +1,5 @@
 #include "SnakeROIRenderer.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "GlobalState.h"
 #include "SnakeROIModel.h"

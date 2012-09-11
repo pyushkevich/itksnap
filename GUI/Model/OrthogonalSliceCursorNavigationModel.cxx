@@ -26,6 +26,7 @@
 
 #include "OrthogonalSliceCursorNavigationModel.h"
 #include "GenericSliceModel.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "GlobalUIModel.h"

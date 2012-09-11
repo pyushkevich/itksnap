@@ -2,6 +2,7 @@
 #include "ui_LabelInspector.h"
 #include <SNAPQtCommon.h>
 #include "GlobalUIModel.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "QtSliderCoupling.h"
 #include "QtComboBoxCoupling.h"

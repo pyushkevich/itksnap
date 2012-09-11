@@ -1,5 +1,6 @@
 #include "Generic3DModel.h"
 #include "GlobalUIModel.h"
+#include "IRISException.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "ImageWrapperBase.h"
@@ -91,6 +92,10 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
   catch(vtkstd::bad_alloc &)
   {
     throw IRISException("Out of memory during mesh computation");
+  }
+  catch(IRISException & IRISexc)
+  {
+    throw IRISexc;
   }
 }
 
