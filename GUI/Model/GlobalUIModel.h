@@ -171,6 +171,9 @@ public:
   irisGetMacro(SnakeROIIndexModel, AbstractRangedUIntVec3Property *)
   irisGetMacro(SnakeROISizeModel, AbstractRangedUIntVec3Property *)
 
+  /** Get a list of k recent images */
+  std::vector<std::string> GetRecentMainImages(unsigned int k = 5);
+
 protected:
 
   GlobalUIModel();

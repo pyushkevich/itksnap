@@ -401,3 +401,24 @@ void GlobalUIModel::SetSnakeROISizeValue(Vector3ui value)
 
   m_Driver->GetGlobalState()->SetSegmentationROI(roi);
 }
+
+std::vector<std::string> GlobalUIModel::GetRecentMainImages(unsigned int k)
+{
+  // Load the list of recent files from the history file
+  const SystemInterface::HistoryListType &history =
+      this->GetSystemInterface()->GetHistory("MainImage");
+
+
+  std::vector<std::string> recent;
+
+  // Take the five most recent items and create menu items
+  for(unsigned int i = 0; i < k; i++)
+    {
+    if(i < history.size())
+      {
+      recent.push_back(history[history.size() - (i+1)]);
+      }
+    }
+
+  return recent;
+}

@@ -36,6 +36,7 @@ class GlobalUIModel;
 class QDockWidget;
 class SnakeWizardPanel;
 class IRISMainToolbox;
+class EventBucket;
 
 class LabelEditorDialog;
 class LayerInspectorDialog;
@@ -63,9 +64,12 @@ public:
   // Initiate active contour segmentation
   void OpenSnakeWizard();
 
+
+  void LoadRecent(QString file);
 public slots:
 
   void AdjustMarginsForDocks();
+  void onModelUpdate(const EventBucket &b);
 
 private slots:
   void on_actionOpen_Greyscale_Image_triggered();
@@ -84,7 +88,16 @@ private slots:
 
   void on_actionLabel_Editor_triggered();
 
+  void on_actionRecent_1_triggered();
+  void on_actionRecent_2_triggered();
+  void on_actionRecent_3_triggered();
+  void on_actionRecent_4_triggered();
+  void on_actionRecent_5_triggered();
+
 private:
+
+  void UpdateRecentMenu();
+
 
   // Left and right docks
   QDockWidget *m_DockLeft, *m_DockRight;

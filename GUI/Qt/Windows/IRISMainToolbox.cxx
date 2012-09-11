@@ -70,7 +70,7 @@ const char *IRISMainToolbox::m_InspectorPageNames[] = {
 // are constructed in C++ code, not in the UI designer. We should redo this
 // using the designer.
 IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
-    QWidget(parent)
+    SNAPComponent(parent)
 {
   m_Model = NULL;
 
@@ -213,6 +213,39 @@ void IRISMainToolbox::SetModel(GlobalUIModel *model)
         this->findChild<QWidget *>("BtnPolygonMode"), model, UIF_SNAKE_MODE);
   activateOnNotFlag(
         this->findChild<QWidget *>("BtnSnakeMode"), model, UIF_SNAKE_MODE);
+
+  // Listen to changes in the toolbar mode
+  connectITK(m_Model->GetToolbarModeModel(), ValueChangedEvent());
+}
+
+void IRISMainToolbox::onModelUpdate(const EventBucket &bucket)
+{
+  // Respond to changes in toolbar mode
+  if(bucket.HasEvent(ValueChangedEvent()))
+    {
+    switch(m_Model->GetToolbarMode())
+      {
+      case CROSSHAIRS_MODE:
+        m_TabInspector->setCurrentIndex(0);
+        m_ToolInspector->setCurrentIndex(0);
+        break;
+
+      case NAVIGATION_MODE:
+        m_TabInspector->setCurrentIndex(1);
+        m_ToolInspector->setCurrentIndex(0);
+        break;
+
+      case POLYGON_DRAWING_MODE:
+        m_TabInspector->setCurrentIndex(2);
+        m_ToolInspector->setCurrentIndex(0);
+        break;
+
+      case ROI_MODE:
+        m_TabInspector->setCurrentIndex(3);
+        m_ToolInspector->setCurrentIndex(1);
+        break;
+      }
+    }
 }
 
 void IRISMainToolbox::on_BtnCrosshairMode_toggled(bool checked)
@@ -221,10 +254,6 @@ void IRISMainToolbox::on_BtnCrosshairMode_toggled(bool checked)
     {
     // Enter crosshair mode
     m_Model->SetToolbarMode(CROSSHAIRS_MODE);
-
-    // Also tab over to the cursor inspector
-    m_TabInspector->setCurrentIndex(0);
-    m_ToolInspector->setCurrentIndex(0);
     }
 }
 
@@ -234,10 +263,6 @@ void IRISMainToolbox::on_BtnZoomPanMode_toggled(bool checked)
     {
     // Enter crosshair mode
     m_Model->SetToolbarMode(NAVIGATION_MODE);
-
-    // Also tab over to the cursor inspector
-    m_TabInspector->setCurrentIndex(1);
-    m_ToolInspector->setCurrentIndex(0);
     }
 }
 
@@ -246,10 +271,6 @@ void IRISMainToolbox::on_BtnPolygonMode_toggled(bool checked)
   if(checked)
     {
     m_Model->SetToolbarMode(POLYGON_DRAWING_MODE);
-
-    // Also tab over to the cursor inspector
-    m_TabInspector->setCurrentIndex(2);
-    m_ToolInspector->setCurrentIndex(0);
     }
 }
 
@@ -258,11 +279,6 @@ void IRISMainToolbox::on_BtnSnakeMode_toggled(bool checked)
   if(checked)
     {
     m_Model->SetToolbarMode(ROI_MODE);
-
-    // Also tab over to the cursor inspector
-    // m_TabInspector->setCurrentWidget(m_ToolInspector);
-    m_ToolInspector->setCurrentIndex(1);
-    m_TabInspector->setCurrentIndex(3);
     }
 }
 
