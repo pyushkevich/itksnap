@@ -39,7 +39,7 @@
 #endif
 
 #include "FL/Fl.H"
-#include "FL/Fl_Native_File_Chooser.H"
+#include "SNAP_Fl_Native_File_Chooser.H"
 #include <FL/Fl_File_Chooser.H>
 
 #include "CommandLineArgumentParser.h"
@@ -129,8 +129,8 @@ bool FindDataDirectoryInteractive(const char *sExePath, SystemInterface &system)
       string sTitle = "Find a directory that contains file " + sMissingFile;
 
       // Look for the file using a file chooser
-      Fl_Native_File_Chooser fc;
-      fc.type(Fl_Native_File_Chooser::BROWSE_FILE);
+      SNAP_Fl_Native_File_Chooser fc;
+      fc.type(SNAP_Fl_Native_File_Chooser::BROWSE_FILE);
       fc.title(sTitle.c_str());
       fc.filter("Directory Token File\t*.txt");
       fc.preset_file(sMissingFile.c_str());

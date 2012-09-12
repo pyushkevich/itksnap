@@ -39,7 +39,7 @@
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "SystemInterface.h"
-#include "FL/Fl_Native_File_Chooser.H"
+#include "SNAP_Fl_Native_File_Chooser.H"
 #include "FL/fl_ask.H"
 #include <string>
 
@@ -100,8 +100,8 @@ AppearanceDialogUILogic
 ::OnExportAction()
 {
   // Prompt for the filename
-  Fl_Native_File_Chooser chooser;
-  chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+  SNAP_Fl_Native_File_Chooser chooser;
+  chooser.type(SNAP_Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
   chooser.title("Export Display Options to .txt file");
   chooser.filter("Text Files\t*.txt");
   // chooser.directory(...)
@@ -123,8 +123,8 @@ AppearanceDialogUILogic
 ::OnImportAction()
 {
   // Prompt for the filename
-  Fl_Native_File_Chooser chooser;
-  chooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
+  SNAP_Fl_Native_File_Chooser chooser;
+  chooser.type(SNAP_Fl_Native_File_Chooser::BROWSE_FILE);
   chooser.title("Import Display Options from .txt file");
   chooser.filter("Text Files\t*.txt");
   // chooser.directory(...)

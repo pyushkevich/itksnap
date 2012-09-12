@@ -333,6 +333,23 @@ SET(UI_HEADERS
   UserInterface/Window3D/Window3D.h
 )
 
+IF(APPLE)
+    SET(MMFILE Utilities/FLTK/SNAP_Fl_Native_File_Chooser/SNAP_Fl_Native_File_Chooser_MAC.mm)
+ENDIF(APPLE)
+
+#SNAP_FLTK
+SET(SNAP_FLTK_CXX
+  Utilities/FLTK/SNAP_Fl_Native_File_Chooser/SNAP_Fl_Native_File_Chooser.cxx
+  #Utilities/FLTK/SNAP_Fl_Native_File_Chooser/SNAP_Fl_Native_File_Chooser_FLTK.cxx
+  ${MMFILE}
+  #Utilities/FLTK/SNAP_Fl_Native_File_Chooser/SNAP_Fl_Native_File_Chooser_WIN32.cxx
+) 
+
+#SNAP_FLTK
+SET(SNAP_FLTK_HEADERS
+  Utilities/FLTK/SNAP_Fl_Native_File_Chooser/SNAP_Fl_Native_File_Chooser.H
+)
+
 # The source code for SNAP testing project
 SET(TESTING_CXX
   Testing/TestMain.cxx
@@ -430,6 +447,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/UserInterface/Window3D
     ${SNAP_BINARY_DIR}/UserInterface/ImageIOWizard
     ${SNAP_BINARY_DIR}/UserInterface/MainComponents
+	${SNAP_SOURCE_DIR}/Utilities/FLTK/SNAP_Fl_Native_File_Chooser
     ${FLTK_INCLUDE_PATH}
     ${OPENGL_INCLUDE_PATH}
   )
@@ -497,6 +515,9 @@ ADD_LIBRARY(itksnaplogic ${LOGIC_CXX} ${LOGIC_HEADERS})
 # The user interface code library
 ADD_LIBRARY(itksnapui ${UI_CXX} ${UI_HEADERS} ${itksnapui_FLTK_UI_SRCS})
 
+# SNAP FLTK native file chooser
+ADD_LIBRARY(snap_fltk_native_file_chooser ${SNAP_FLTK_CXX} ${SNAP_FLTK_HEADERS})
+
 # This is experimental: it seems that shared libraries do not
 # build accurately (at least on MacOS) without the following
 # two lines
@@ -504,7 +525,7 @@ TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS})
 TARGET_LINK_LIBRARIES(itksnapui itksnaplogic ${SNAP_EXTERNAL_LIBS})
 
 # Designate the SNAP internal libraries
-SET(SNAP_INTERNAL_LIBS itksnapui itksnaplogic)
+SET(SNAP_INTERNAL_LIBS snap_fltk_native_file_chooser itksnapui itksnaplogic)
 
 # *****************************************************
 # Define SNAP Executables
@@ -685,4 +706,3 @@ ADD_CUSTOM_TARGET(upload_experimental
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
   COMMENT "Uploading package ${CPACK_TARGET} to SourceForge.net to Experimental directory")
-

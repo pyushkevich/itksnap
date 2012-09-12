@@ -34,7 +34,7 @@
 =========================================================================*/
 #include "SimpleFileDialogLogic.h"
 #include "itkCommand.h"
-#include "FL/Fl_Native_File_Chooser.H"
+#include "SNAP_Fl_Native_File_Chooser.H"
 
 #include <algorithm>
 
@@ -58,7 +58,7 @@ SimpleFileDialogLogic
 ::MakeWindow()
 {
   SimpleFileDialog::MakeWindow();
-  m_FileChooser = new Fl_Native_File_Chooser;
+  m_FileChooser = new SNAP_Fl_Native_File_Chooser;
 }
 
 void
@@ -147,12 +147,12 @@ SimpleFileDialogLogic
 {
   if (m_SaveMode)
     {
-    m_FileChooser->type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+    m_FileChooser->type(SNAP_Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
     m_FileChooser->title("Save a file");
     }
   else
     {
-    m_FileChooser->type(Fl_Native_File_Chooser::BROWSE_FILE);
+    m_FileChooser->type(SNAP_Fl_Native_File_Chooser::BROWSE_FILE);
     m_FileChooser->title("Load a file");
     }
   

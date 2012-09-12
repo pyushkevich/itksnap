@@ -33,7 +33,7 @@
 
 =========================================================================*/
 #include "FL/Fl.H"
-#include "FL/Fl_Native_File_Chooser.H"
+#include "SNAP_Fl_Native_File_Chooser.H"
 #include "FL/filename.H"
 #include "FL/fl_ask.H"
 #include "FL/Fl_Text_Buffer.H"
@@ -308,8 +308,8 @@ void ImageIOWizardLogic
 
   // Configure a file dialog
   const char *fName = NULL;
-  Fl_Native_File_Chooser chooser;
-  chooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
+  SNAP_Fl_Native_File_Chooser chooser;
+  chooser.type(SNAP_Fl_Native_File_Chooser::BROWSE_FILE);
   chooser.title("Load Image");
   chooser.preset_file(path);
   chooser.filter(pattern.c_str());
@@ -1087,10 +1087,10 @@ ImageIOWizardLogic
 
   // Create a file chooser
   const char *fName = NULL;
-  Fl_Native_File_Chooser chooser;
-  chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+  SNAP_Fl_Native_File_Chooser chooser;
+  chooser.type(SNAP_Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
   chooser.title("Save Image As");
-  chooser.options(Fl_Native_File_Chooser::NEW_FOLDER);
+  chooser.options(SNAP_Fl_Native_File_Chooser::NEW_FOLDER);
   chooser.preset_file(path);
   chooser.filter(pattern.c_str());
   if (chooser.show() == 0)

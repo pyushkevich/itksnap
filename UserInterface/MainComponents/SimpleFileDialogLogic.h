@@ -40,7 +40,7 @@
 #include "SimpleFileDialog.h"
 #include "itkCommand.h"
 
-class Fl_Native_File_Chooser;
+class SNAP_Fl_Native_File_Chooser;
 namespace itk {
   class Command;
 }
@@ -148,7 +148,7 @@ private:
   CommandPointer m_LoadCallback;
 
   // File chooser
-  Fl_Native_File_Chooser *m_FileChooser;
+  SNAP_Fl_Native_File_Chooser *m_FileChooser;
 
 };
 
