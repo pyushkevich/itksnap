@@ -1600,6 +1600,9 @@ UserInterfaceLogic
 
   // Activate/deactivate menu items
   // TODO: build a better state machine
+    
+  m_Activation->UpdateFlag(UIF_SNAP_PREPROCESSING_DONE, false);  
+    
   if(m_Activation->GetFlag(UIF_GRAY_LOADED))
     m_Activation->UpdateFlag(UIF_IRIS_WITH_GRAY_LOADED, true);
   else
