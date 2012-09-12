@@ -1,0 +1,3 @@
+INCLUDE_DIRECTORIES(${SNAP_SOURCE_DIR}/Utilities/FLTK/SNAP_Fl_Native_File_Chooser)	
+ADD_LIBRARY(snap_fltk_native_file_chooser 
+	SNAP_Fl_Native_File_Chooser.cxx SNAP_Fl_Native_File_Chooser.h)
