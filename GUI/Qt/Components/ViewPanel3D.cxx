@@ -4,6 +4,7 @@
 #include "Generic3DModel.h"
 #include "itkCommand.h"
 #include "IRISException.h"
+#include <QMessageBox>
 
 ViewPanel3D::ViewPanel3D(QWidget *parent) :
   SNAPComponent(parent),
@@ -30,12 +31,15 @@ void ViewPanel3D::on_btnUpdateMesh_clicked()
   SmartPtr<CommandType> cmd = CommandType::New();
   cmd->SetCallbackFunction(this, &ViewPanel3D::OnRenderProgress);
 
-  try {
+  try
+    {
     // Tell the model to update itself
     m_Model->UpdateSegmentationMesh(cmd);
-  } catch(IRISException & IRISexc) {
-      cerr << IRISexc.what() << endl;
-  }
+    }
+  catch(IRISException & IRISexc)
+    {
+    QMessageBox::warning(this, "Problem generating mesh", IRISexc.what());
+    }
 
   // Delete this later - should be automatic!
   ui->view3d->repaint();
