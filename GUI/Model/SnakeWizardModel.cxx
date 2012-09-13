@@ -540,6 +540,38 @@ int SnakeWizardModel::GetEvolutionIterationValue()
   else return 0;
 }
 
+void SnakeWizardModel::OnEvolutionPageBack()
+{
+  if(m_Driver->GetSNAPImageData()->IsSegmentationActive())
+    m_Driver->GetSNAPImageData()->TerminateSegmentation();
+}
+
+void SnakeWizardModel::OnEvolutionPageFinish()
+{
+  // Stop the segmentation pipeline
+  if(m_Driver->GetSNAPImageData()->IsSegmentationActive())
+    m_Driver->GetSNAPImageData()->TerminateSegmentation();
+
+  // Update IRIS with SNAP images
+  m_Driver->UpdateIRISWithSnapImageData(NULL);
+
+  // Set an undo point
+  m_Driver->StoreUndoPoint("Automatic Segmentation");
+
+  // Return to IRIS mode
+  m_Driver->SetCurrentImageDataToIRIS();
+  m_Driver->ReleaseSNAPImageData();
+}
+
+void SnakeWizardModel::RewindEvolution()
+{
+  if(m_Driver->GetSNAPImageData()->IsSegmentationActive())
+    m_Driver->GetSNAPImageData()->RestartSegmentation();
+
+  // Fire an event
+  InvokeEvent(EvolutionIterationEvent());
+}
+
 
 
 

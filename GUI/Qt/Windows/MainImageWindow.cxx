@@ -70,6 +70,10 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // Hide the right dock for now
   m_DockRight->setVisible(false);
 
+  // Hide the dock when the wizard finishes
+  connect(m_SnakeWizard, SIGNAL(wizardFinished()),
+          this, SLOT(onSnakeWizardFinished()));
+
   // Make the margins adjust when the docks are attached
   connect(m_DockLeft, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)),
           this, SLOT(AdjustMarginsForDocks()));
@@ -363,4 +367,10 @@ void MainImageWindow::on_actionRecent_5_triggered()
 {
   // Load the recent image
   this->LoadRecent(ui->actionRecent_5->text());
+}
+
+void MainImageWindow::onSnakeWizardFinished()
+{
+  // Make the dock containing the wizard visible
+  m_DockRight->setVisible(false);
 }

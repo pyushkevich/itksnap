@@ -166,7 +166,7 @@ void SnakeWizardPanel::on_stack_currentChanged(int page)
   ui->stackStepInfo->setCurrentIndex(page);
 }
 
-void SnakeWizardPanel::on_btnPlay_clicked(bool checked)
+void SnakeWizardPanel::on_btnPlay_toggled(bool checked)
 {
   // This is where we toggle the snake evolution!
   if(checked)
@@ -183,5 +183,43 @@ void SnakeWizardPanel::idleCallback()
 
 void SnakeWizardPanel::on_btnSingleStep_clicked()
 {
+  // Turn off the play button (will turn off the timer too)
+  ui->btnPlay->setChecked(false);
+
+  // Perform a single step
   m_Model->PerformEvolutionStep();
+}
+
+
+void SnakeWizardPanel::on_btnEvolutionBack_clicked()
+{
+  // Turn off the play button (will turn off the timer too)
+  ui->btnPlay->setChecked(false);
+
+  // Tell the model to return to initialization state
+  m_Model->OnEvolutionPageBack();
+
+  // Flip to previous page
+  ui->stack->setCurrentWidget(ui->pgBubbles);
+}
+
+void SnakeWizardPanel::on_btnEvolutionNext_clicked()
+{
+  // Turn off the play button (will turn off the timer too)
+  ui->btnPlay->setChecked(false);
+
+  // Tell the model to return to initialization state
+  m_Model->OnEvolutionPageFinish();
+
+  // Tell parent to hide this window
+  emit wizardFinished();
+}
+
+void SnakeWizardPanel::on_btnRewind_clicked()
+{
+  // Turn off the play button (will turn off the timer too)
+  ui->btnPlay->setChecked(false);
+
+  // Tell the model to return to initialization state
+  m_Model->RewindEvolution();
 }

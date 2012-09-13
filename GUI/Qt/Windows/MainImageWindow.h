@@ -94,6 +94,8 @@ private slots:
   void on_actionRecent_4_triggered();
   void on_actionRecent_5_triggered();
 
+  void onSnakeWizardFinished();
+
 private:
 
   void UpdateRecentMenu();

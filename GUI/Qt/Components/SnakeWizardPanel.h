@@ -28,6 +28,10 @@ public:
     */
   void Initialize();
 
+signals:
+
+  void wizardFinished();
+
 private slots:
 
   void on_btnPreprocess_clicked();
@@ -44,11 +48,18 @@ private slots:
 
   void on_stack_currentChanged(int arg1);
 
-  void on_btnPlay_clicked(bool checked);
+  void on_btnPlay_toggled(bool checked);
 
   void idleCallback();
 
   void on_btnSingleStep_clicked();
+
+
+  void on_btnEvolutionBack_clicked();
+
+  void on_btnEvolutionNext_clicked();
+
+  void on_btnRewind_clicked();
 
 private:
 

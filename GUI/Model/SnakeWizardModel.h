@@ -112,11 +112,18 @@ public:
   /** Called when entering the evolution page */
   void OnEvolutionPageEnter();
 
-  /** Access the model for the step size */
+  /** Called when entering the evolution page */
+  void OnEvolutionPageBack();
 
+  /** Called when entering the evolution page */
+  void OnEvolutionPageFinish();
 
   /** Perform a single step of snake evolution */
   void PerformEvolutionStep();
+
+  /** Rewind the evolution */
+  void RewindEvolution();
+
 
 protected:
   SnakeWizardModel();
