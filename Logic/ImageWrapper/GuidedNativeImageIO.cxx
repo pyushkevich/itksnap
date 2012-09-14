@@ -58,8 +58,12 @@
 #include "itkImageIOFactory.h"
 #include "itkGDCMSeriesFileNames.h"
 #include "gdcmFile.h"
-#include "itkImageToVectorImageFilter.h"
+#include "gdcmScanner.h"
+#include "gdcmSmartPointer.h"
+#include "gdcmSorter.h"
 
+#include "itkGDCMSeriesFileNames.h"
+#include "itkImageToVectorImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkShiftScaleImageFilter.h"
 #include "itkNumericTraits.h"
@@ -1006,6 +1010,95 @@ GuidedNativeImageIO::GuessFormatForFileName(
 #include "gdcmImageReader.h"
 #include "gdcmImageHelper.h"
 
+bool stringCompare( const string &left, const string &right )
+{
+  for( string::const_iterator lit = left.begin(), rit = right.begin(); lit != left.end() && rit != right.end(); ++lit, ++rit )
+  {
+    if( tolower( *lit ) < tolower( *rit ) )
+      return true;
+    else if( tolower( *lit ) > tolower( *rit ) )
+      return false;
+    if( left.size() < right.size() )
+        return true;
+  }
+  return false;
+}
+
+const char * tagToValueString(const gdcm::Scanner::TagToValue & attv, const gdcm::Tag & aTag)
+{
+    gdcm::Scanner::TagToValue::const_iterator it =  attv.find( aTag );
+    const char * value = it->second;
+    return(value);
+}
+
+int tagToValueInt(const gdcm::Scanner::TagToValue & attv, const gdcm::Tag & aTag)
+{
+    const char * value = tagToValueString(attv, aTag);
+    int nRes = atoi(value);
+    return(nRes);
+}
+
+bool getDim(int * apnSzX, int * apnSzY, const string & astrFileName) {
+
+    gdcm::Tag tagRows(0x0028, 0x0010);
+    gdcm::Tag tagCols(0x0028, 0x0011);
+    gdcm::Tag tagDesc(0x0008, 0x103e);
+    
+    gdcm::SmartPointer < gdcm::Scanner > pScanner =  gdcm::Scanner::New();
+    pScanner->AddTag( tagRows );
+    pScanner->AddTag( tagCols );
+    pScanner->AddTag( tagDesc );
+    
+    gdcm::Directory::FilenamesType filenames;
+    filenames.push_back( astrFileName );
+    
+    if( !pScanner->Scan( filenames ) )
+    {
+      return(false);
+    }
+    
+    pScanner->Print( std::cout );
+    
+    if( pScanner->IsKey( astrFileName.c_str() ) )
+    {
+      std::cerr << "INFO:" << astrFileName
+                << " is a proper Key for the Scanner (this is a DICOM file)" << std::endl;
+    }
+    
+    const gdcm::Scanner::TagToValue &ttv = pScanner->GetMapping(astrFileName.c_str());
+    
+    *apnSzX = tagToValueInt(ttv, tagRows);
+    *apnSzY = tagToValueInt(ttv, tagCols);
+    return(true);
+}
+
+const char * getTag(const gdcm::Tag & aTag, const string & astrFileName) {
+    
+    gdcm::SmartPointer < gdcm::Scanner > pScanner =  gdcm::Scanner::New();
+    pScanner->AddTag( aTag );
+    
+    gdcm::Directory::FilenamesType filenames;
+    filenames.push_back( astrFileName );
+    
+    if( !pScanner->Scan( filenames ) )
+    {
+        return(0);
+    }
+    
+    pScanner->Print( std::cout );
+    
+    if( pScanner->IsKey( astrFileName.c_str() ) )
+    {
+        std::cerr << "INFO:" << astrFileName
+        << " is a proper Key for the Scanner (this is a DICOM file)" << std::endl;
+    }
+    
+    const gdcm::Scanner::TagToValue &ttv = pScanner->GetMapping(astrFileName.c_str());
+    const char * pchRes = tagToValueString(ttv, aTag);
+ 
+    return(pchRes);
+}
+
 void GuidedNativeImageIO::ParseDicomDirectory(
     const std::string &dir,
     GuidedNativeImageIO::RegistryArray &reg,
@@ -1017,125 +1110,115 @@ void GuidedNativeImageIO::ParseDicomDirectory(
         "Error: Not a directory. "
         "Trying to look for DICOM series in '%s', which is not a directory",
         dir.c_str());
-
+    
   // Set up the DICOM helper
-  gdcm::SerieHelper sh;
-  sh.SetUseSeriesDetails(true);
-  sh.SetLoadMode(0);
-  sh.SetDirectory(dir, false);
+  //gdcm::SerieHelper sh;
+  //sh.SetUseSeriesDetails(true);
+  //sh.SetLoadMode(0);
+  //sh.SetDirectory(dir, false);
     
   // Clear output
   reg.clear();
     
-  // Loop over all series
-  for(gdcm::FileList *flist = sh.GetFirstSingleSerieUIDFileSet();
-      flist != NULL; flist = sh.GetNextSingleSerieUIDFileSet())
-    {
-    if(flist->size())
-      {
-      // Order the series
-      sh.OrderFileList(flist);
-
-      // Get the file
-      //Octavian begin
-      //gdcm::File *file = (*flist)[0];
-      gdcm::SmartPointer< gdcm::FileWithName > pFileWithName = (*flist)[0];
-      std::string strFileName = pFileWithName->filename;
-      gdcm::PixmapReader pmr;
-      pmr.SetFileName(strFileName.c_str());
-      gdcm::Pixmap& pm = pmr.GetPixmap();
-      unsigned int unDimsNr = pm.GetNumberOfDimensions();
-      gdcm::FileMetaInformation &header = pFileWithName->GetHeader();
-          
-      // Loop over all filenames to collect filenames and see if the image
-      // dimensions are consistent.
-      std::vector<std::string> fnList;
+  itk::GDCMSeriesFileNames::Pointer pitkGDCMSeriesFileNames = itk::GDCMSeriesFileNames::New();
+  pitkGDCMSeriesFileNames->SetDirectory(dir);
+  const itk::SerieUIDContainer & seriesUID = pitkGDCMSeriesFileNames->GetSeriesUIDs();
+  int nSeriesNr = seriesUID.size();
+  int nIndxUIDs;
+  //gdcm::FileList *flist = sh.GetFirstSingleSerieUIDFileSet();
+  
+  for(nIndxUIDs = 0; nIndxUIDs < nSeriesNr; nIndxUIDs++)
+  {
+  const std::string serie = seriesUID[nIndxUIDs];
+  itk::FilenamesContainer filesContainer = pitkGDCMSeriesFileNames->GetFileNames (serie);
+    
+  int nFilesNr = filesContainer.size();
       
-      //gdcm::DataSet::SizeType dims = header.Size();
-      //int dims[3] = { file->GetXSize(), file->GetYSize(), file->GetZSize() };
-      bool same_dims = true;
-
-      for(size_t k = 0; k < flist->size(); k++)
+  if(nFilesNr > 0)
+    {
+    // Order the series
+    //sh.OrderFileList(flist);
+      
+    // Get the file
+    //gdcm::File *file = (*flist)[0];
+        
+    //gdcm::SmartPointer< gdcm::FileWithName > pFileWithName = (*flist)[0];
+    //std::string strFileName = pFileWithName->filename;
+      
+    gdcm::Directory::FilenamesType sortedFilenamesType = filesContainer;
+    sort( sortedFilenamesType.begin(), sortedFilenamesType.end(), stringCompare );
+    
+    int nSzZ = nFilesNr;
+        
+    string strFileName0 = sortedFilenamesType[0];
+    int nSzX0, nSzY0;
+    bool same_dims_and_dims_available = getDim(&nSzX0, &nSzY0, strFileName0);
+    
+    int nIndxFiles;
+    for(nIndxFiles = 0; nIndxFiles < nFilesNr; nIndxFiles++)
+      {
+      string strFileName = sortedFilenamesType[nIndxFiles];
+      int nSzX, nSzY;
+      same_dims_and_dims_available =
+        same_dims_and_dims_available &&
+        getDim(&nSzX, &nSzY, strFileName);
+      if((nSzX0 != nSzX) || (nSzY0 != nSzY))
         {
-        //gdcm::File *fk = (*flist)[k];
-        //fnList.push_back(fk->GetFileName());
-        gdcm::SmartPointer< gdcm::FileWithName > pFileWithName_k = (*flist)[k];
-        std::string strFileName_k = pFileWithName_k->filename;
-        gdcm::PixmapReader pmr_k;
-        pmr_k.SetFileName(strFileName_k.c_str());
-        gdcm::Pixmap& pm_k = pmr_k.GetPixmap();
-        unsigned int unDimsNr_k = pm_k.GetNumberOfDimensions();
-            
-        fnList.push_back(strFileName_k);
-        //if(fk->GetXSize() != dims[0] ||
-        //   fk->GetYSize() != dims[1] ||
-        //   fk->GetZSize() != dims[2])
-
-        if(unDimsNr != unDimsNr_k) {
-            same_dims = false;
-        } else {
-            unsigned int unI;
-            for(unI = 0; unI < unDimsNr; unI++) {
-                pmr.gdcm::Reader::Read();
-                pmr_k.gdcm::Reader::Read();
-                int nDim = pm.GetDimension(unI);
-                int nDim_k = pm_k.GetDimension(unI);
-
-                if(nDim != nDim_k)
-                    same_dims = false;
-            }
+        same_dims_and_dims_available = false;
         }
       }
-
+    
       // Create a registry entryx
       Registry r;
-
+          
       // Create its unique series ID
-      r["SeriesId"] << sh.CreateUniqueSeriesIdentifier(pFileWithName);
-
+      r["SeriesId"] << //sh.CreateUniqueSeriesIdentifier(file)
+        seriesUID[nIndxUIDs];
+        
       // Also store the files
-      r.Folder("SeriesFiles").PutArray(fnList);
-
+      r.Folder("SeriesFiles").PutArray(sortedFilenamesType);
+            
       // Get textual description
-      //r["SeriesDescription"] << file->GetEntryValue(0x0008, 0x103e);
-
-      if( header.FindDataElement(gdcm::Tag(0x0008, 0x103e)) ) {
-          const gdcm::DataElement &de = header.GetDataElement( gdcm::Tag(0x0008, 0x103e) );
-          r["SeriesDescription"] << de;
-      }
+      //string strValue = file->GetEntryValue(0x0008, 0x103e);
+      const char * pchValue = getTag(gdcm::Tag(0x0008, 0x103e), strFileName0);
+      if(pchValue)
+        {
+        r["SeriesDescription"] << pchValue;;
+        }
 
       // Get dimensions
       std::ostringstream oss;
-      if(same_dims)
+      if(same_dims_and_dims_available)
         {
-        //oss << dims[0] << " x " << dims[1];
-        //oss << dims[0] << " x " << dims[1];
-        //if(dims[2] != 1)
-        //  oss << " x " << dims[2];
+        oss << nSzX0 << " x " << nSzY0;
+        if(nSzZ != 1)
+          oss << " x " << nSzZ;
         }
       else
         {
         oss << "Variable";
         }
       r["Dimensions"] << oss.str();
-    
 
       // Get the number of images
-      r["NumberOfImages"] << flist->size();
-
+      r["NumberOfImages"] << nSzZ;
+            
       // Get all other fields that the user wants
-      for(DicomRequest::const_iterator it = req.begin();
-          it != req.end(); ++it)
+      for(DicomRequest::const_iterator it = req.begin(); it != req.end(); ++it)
         {
-        //r[it->code] << file->GetEntryValue(it->group, it->elem);
-        r[it->code] << header.GetDataElement(gdcm::Tag(it->group, it->elem));
+           //r[it->code] << file->GetEntryValue(it->group, it->elem);
+           pchValue = getTag(gdcm::Tag(it->group, it->elem), strFileName0);
+           if(pchValue)
+             {
+               r[it->code] << pchValue;
+             }
         }
-
-      reg.push_back( r );
+            
+        reg.push_back( r );
+        
+        //flist = sh.GetNextSingleSerieUIDFileSet();
       }
     }
-
-  //Octavian end
   
   // Complain if no series have been found
   if(reg.size() == 0)
@@ -1143,9 +1226,6 @@ void GuidedNativeImageIO::ParseDicomDirectory(
         "Error: DICOM series not found. "
         "Directory '%s' does not appear to contain a DICOM series.", dir.c_str());
 }
-
-
-
 
 /*
 
