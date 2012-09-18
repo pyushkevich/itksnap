@@ -39,7 +39,10 @@
 #include "itkSmartPointer.h"
 #include "itkImage.h"
 #include "itkImageIOBase.h"
-
+#include "gdcmTag.h"
+#include "gdcmScanner.h"
+#include "gdcmSmartPointer.h"
+  
 namespace itk
 {
   template<class TPixel, unsigned int VDim> class Image;
@@ -296,6 +299,43 @@ private:
 
   // File format descriptors
   static const FileFormatDescriptor m_FileFormatDescrictorArray[];
+
+  static const gdcm::Tag m_tagRows;
+  static const gdcm::Tag m_tagCols;
+  static const gdcm::Tag m_tagDesc;
+  static const gdcm::Tag m_tagTextDesc;
+  
+  static const char * tagToValueString(const gdcm::Scanner::TagToValue & attv,
+                                const gdcm::Tag & aTag);
+  
+  static int tagToValueInt(const gdcm::Scanner::TagToValue & attv,
+                           const gdcm::Tag & aTag);
+  
+  static bool getDims(int aarrnSzXY[2],
+                      const gdcm::SmartPointer < gdcm::Scanner > apScanner,
+                      const std::string & astrFileName);
+  
+  static const char * getTag(const gdcm::SmartPointer < gdcm::Scanner > apScanner,
+                             const gdcm::Tag & aTag,
+                             const std::string & astrFileName);
+  
+  static bool scanTags(gdcm::SmartPointer < gdcm::Scanner > apScanner,
+                       const gdcm::Directory::FilenamesType & aFileNames);
+  
+  struct DICOMFileInfo
+  {
+    std::string m_strFileName;
+    int m_arrnDims[2];
+    
+    bool operator<(const DICOMFileInfo & aDICOMFileInfo) const;
+    DICOMFileInfo & operator=(const DICOMFileInfo & aDICOMFileInfo);
+    static std::vector < std::string > compArrayFileNames(const std::vector < DICOMFileInfo > & aarrDFIs);
+  };
+  
+  static gdcm::SmartPointer < gdcm::Scanner > Scan(const std::string &dir, const DicomRequest &req);
+  static bool SortHeaders(std::map < std::string, std::vector< DICOMFileInfo > > & amap_UID_FileNames,
+                   const gdcm::SmartPointer < gdcm::Scanner > apScanner,
+                   const std::string &dir);
 };
 
 
@@ -329,6 +369,8 @@ private:
 
   // Method that does the casting
   template<typename TNative> void DoCast(itk::ImageBase<3> *native);
+  
+  
 };
 
 /**

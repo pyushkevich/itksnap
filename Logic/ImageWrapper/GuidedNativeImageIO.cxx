@@ -1005,75 +1005,57 @@ GuidedNativeImageIO::GuessFormatForFileName(
   return FORMAT_COUNT;
 }
 
-#include "gdcmReader.h"
-#include "gdcmPixmap.h"
-#include "gdcmPixmapReader.h"
-#include "gdcmImageReader.h"
-#include "gdcmImageHelper.h"
+const gdcm::Tag GuidedNativeImageIO::m_tagRows(0x0028, 0x0010);
+const gdcm::Tag GuidedNativeImageIO::m_tagCols(0x0028, 0x0011);
+const gdcm::Tag GuidedNativeImageIO::m_tagDesc(0x0008, 0x103e);
+const gdcm::Tag GuidedNativeImageIO::m_tagTextDesc(0x0028, 0x0010);
 
-bool stringCompare( const string &left, const string &right )
+const char * GuidedNativeImageIO::tagToValueString(const gdcm::Scanner::TagToValue & attv,
+                                                   const gdcm::Tag & aTag)
 {
-  for( string::const_iterator lit = left.begin(), rit = right.begin(); lit != left.end() && rit != right.end(); ++lit, ++rit )
-  {
-    if( tolower( *lit ) < tolower( *rit ) )
-      return true;
-    else if( tolower( *lit ) > tolower( *rit ) )
-      return false;
-    if( left.size() < right.size() )
-        return true;
-  }
-  return false;
+  gdcm::Scanner::TagToValue::const_iterator it =  attv.find( aTag );
+  const char * value = it->second;
+  return(value);
 }
 
-const char * tagToValueString(const gdcm::Scanner::TagToValue & attv, const gdcm::Tag & aTag)
+int GuidedNativeImageIO::tagToValueInt(const gdcm::Scanner::TagToValue & attv,
+                                       const gdcm::Tag & aTag)
 {
-    gdcm::Scanner::TagToValue::const_iterator it =  attv.find( aTag );
-    const char * value = it->second;
-    return(value);
+  const char * value = tagToValueString(attv, aTag);
+  int nRes = atoi(value);
+  return(nRes);
 }
 
-int tagToValueInt(const gdcm::Scanner::TagToValue & attv, const gdcm::Tag & aTag)
+bool GuidedNativeImageIO::getDims(int aarrnSzXY[2],
+                                  const gdcm::SmartPointer < gdcm::Scanner > apScanner,
+                                  const string & astrFileName)
 {
-    const char * value = tagToValueString(attv, aTag);
-    int nRes = atoi(value);
-    return(nRes);
-}
-
-gdcm::Tag tagRows(0x0028, 0x0010);
-gdcm::Tag tagCols(0x0028, 0x0011);
-gdcm::Tag tagDesc(0x0008, 0x103e);
-gdcm::Tag tagTextDesc(0x0028, 0x0010);
-
-bool getDims(int aarrnSzXY[2], const gdcm::SmartPointer < gdcm::Scanner > apScanner, const string & astrFileName) {
     
-  if( apScanner->IsKey( astrFileName.c_str() ) )
+  if( apScanner->IsKey( astrFileName.c_str() ) == false)
     {
     std::cerr << "INFO:" << astrFileName
-              << " is a proper Key for the Scanner (this is a DICOM file)" << std::endl;
-    }
-  else
-    {
+    << " does not contain a requested key or is not a DICOM file" << std::endl;
     return(false);
     }
     
   const gdcm::Scanner::TagToValue &ttv = apScanner->GetMapping(astrFileName.c_str());
     
-  aarrnSzXY[0] = tagToValueInt(ttv, tagRows);
-  aarrnSzXY[1] = tagToValueInt(ttv, tagCols);
+  aarrnSzXY[0] = tagToValueInt(ttv, m_tagRows);
+  aarrnSzXY[1] = tagToValueInt(ttv, m_tagCols);
   return(true);
 
 }
 
-const char * getTag(gdcm::SmartPointer < gdcm::Scanner > apScanner,
-                    const gdcm::Tag & aTag,
-                    const string & astrFileName) {
+const char * GuidedNativeImageIO::getTag(const gdcm::SmartPointer < gdcm::Scanner > apScanner,
+                                         const gdcm::Tag & aTag,
+                                         const string & astrFileName) {
     
   const char * pchRes = 0;
-  if( apScanner->IsKey( astrFileName.c_str() ) )
+  if( apScanner->IsKey( astrFileName.c_str() ) == false)
     {
-        std::cerr << "INFO:" << astrFileName
-        << " is a proper Key for the Scanner (this is a DICOM file)" << std::endl;
-        return(pchRes);
+    std::cerr << "INFO:" << astrFileName
+    << " does not contain a requested key or is not a DICOM file" << std::endl;
+    return(0);
     }
     
   const gdcm::Scanner::TagToValue &ttv = apScanner->GetMapping(astrFileName.c_str());
@@ -1083,12 +1065,12 @@ const char * getTag(gdcm::SmartPointer < gdcm::Scanner > apScanner,
 
 }
 
-bool scanTags(gdcm::SmartPointer < gdcm::Scanner > apScanner,
-          const gdcm::Directory::FilenamesType & aFileNames)
+bool GuidedNativeImageIO::scanTags(gdcm::SmartPointer < gdcm::Scanner > apScanner,
+                                   const gdcm::Directory::FilenamesType & aFileNames)
 {
   if( !apScanner->Scan( aFileNames ) )
     {
-        return(false);
+    return(false);
     }
     
   apScanner->Print( std::cout );
@@ -1096,29 +1078,35 @@ bool scanTags(gdcm::SmartPointer < gdcm::Scanner > apScanner,
 }
 
 
-
-struct DICOMFileInfo
+bool GuidedNativeImageIO::DICOMFileInfo::operator<(const GuidedNativeImageIO::DICOMFileInfo & aDICOMFileInfo) const
 {
-  string m_strFileName;
-  int m_arrnDims[2];
+  return(m_strFileName < aDICOMFileInfo.m_strFileName);
+}
   
-  bool operator<(const DICOMFileInfo & aDICOMFileInfo) const
+GuidedNativeImageIO::DICOMFileInfo & GuidedNativeImageIO::DICOMFileInfo::operator=(const GuidedNativeImageIO::DICOMFileInfo & aDICOMFileInfo)
+{
+  m_strFileName = aDICOMFileInfo.m_strFileName;
+  int nI;
+  for(nI = 0; nI < 2; nI++)
     {
-    return(m_strFileName < aDICOMFileInfo.m_strFileName);
+    m_arrnDims[nI] = aDICOMFileInfo.m_arrnDims[nI];
     }
-  DICOMFileInfo & operator=(const DICOMFileInfo & aDICOMFileInfo)
+  return(*this);
+}
+  
+vector < string > GuidedNativeImageIO::DICOMFileInfo::compArrayFileNames(const vector < GuidedNativeImageIO::DICOMFileInfo > & aarrDFIs)
+{
+  int nLen = aarrDFIs.size();
+  vector < string > arrstrRes(nLen);
+  int nI;
+  for(nI = 0; nI < nLen; nI++)
     {
-    m_strFileName = aDICOMFileInfo.m_strFileName;
-    int nI;
-    for(nI = 0; nI < 2; nI++)
-      {
-      m_arrnDims[nI] = aDICOMFileInfo.m_arrnDims[nI];
-      }
-    return(*this);
+    arrstrRes[nI] = aarrDFIs[nI].m_strFileName;
     }
-};
+  return(arrstrRes);
+}
 
-gdcm::SmartPointer < gdcm::Scanner > Scan(
+gdcm::SmartPointer < gdcm::Scanner > GuidedNativeImageIO::Scan(
   const std::string &dir,
   const GuidedNativeImageIO::DicomRequest &req)
 {
@@ -1133,11 +1121,11 @@ gdcm::SmartPointer < gdcm::Scanner > Scan(
   //aarrDFI.resize(nTotFilesNr);
 
   gdcm::SmartPointer < gdcm::Scanner > pScanner =  gdcm::Scanner::New();
-  pScanner->AddTag( tagRows );
-  pScanner->AddTag( tagCols );
-  pScanner->AddTag( tagDesc );
+  pScanner->AddTag( m_tagRows );
+  pScanner->AddTag( m_tagCols );
+  pScanner->AddTag( m_tagDesc );
   // Get textual description
-  pScanner->AddTag( tagTextDesc );
+  pScanner->AddTag( m_tagTextDesc );
     
   for(GuidedNativeImageIO::DicomRequest::const_iterator it = req.begin(); it != req.end(); ++it)
     {
@@ -1149,38 +1137,21 @@ gdcm::SmartPointer < gdcm::Scanner > Scan(
     throw IRISException("Error: Could not scan directory %s" ,dir.c_str());
     }
   return(pScanner);
-
-  //If necessary for debugging:
-  //pScanner->Print( std::cout );
-
-  //int nI = 0;
-  //for(gdcm::Directory::FilenamesType::const_iterator it = filenames.begin(); it != filenames.end(); ++it, nI++)
-  //  {
-  //  DICOMFileInfo & dfi = aarrDFI[nI];
-  //  dif.m_strFileName = *it;
-  //  if(getDims(dif.m_arrnDims, pScanner, dif.m_strFileName) == false)
-  //    {
-  //    return(false);
-  //    }
-  //  }
-  //return(true);
     
 }
 
-bool SortHeaders(map < string, vector< DICOMFileInfo > > & amap_UID_FileNames,
-                 gdcm::SmartPointer < gdcm::Scanner > apScanner,
-                 const std::string &dir)
+bool GuidedNativeImageIO::SortHeaders(
+  map < string, vector< GuidedNativeImageIO::DICOMFileInfo > > & amap_UID_FileNames,
+  const gdcm::SmartPointer < gdcm::Scanner > apScanner,
+  const std::string &dir)
 {
   amap_UID_FileNames.clear();
   
   SNAP::DICOMSerieUniqueIDsMgr uniqueIDsMgr;
   uniqueIDsMgr.Clear();
-  //uniqueIDsMgr.SetUseSeriesDetails(m_UseSeriesDetails ?true?);
-  //uniqueIDsMgr.SetLoadMode( ( m_LoadSequences ? 0 : gdcm::LD_NOSEQ )
-  //                           | ( m_LoadPrivateTags ? 0 : gdcm::LD_NOSHADOW ) );
+  //uniqueIDsMgr.CreateDefaultUniqueSeriesIdentifier();
   uniqueIDsMgr.SetDirectory(dir, false);
-  
-  
+
   gdcm::Directory dirList;
   //unsigned int nfiles =
     dirList.Load(dir, false);
@@ -1204,16 +1175,15 @@ bool SortHeaders(map < string, vector< DICOMFileInfo > > & amap_UID_FileNames,
       for(nI =0; nI < nFilesNr; nI++)
         {
         DICOMFileInfo dfi;
-          dfi.m_strFileName = string( itFN->c_str()
-                                   );
+        dfi.m_strFileName = string( itFN->c_str() );
         if(getDims(dfi.m_arrnDims, apScanner, dfi.m_strFileName) == false)
           {
           return(false);
           }
         arrDFIs[nI] = dfi;
+        itFN++;
         }
       amap_UID_FileNames[id] = arrDFIs;
-      itFN++;
       }
     flist = uniqueIDsMgr.GetNextSingleSerieUIDFileSet();
     }
@@ -1234,9 +1204,9 @@ bool SortHeaders(map < string, vector< DICOMFileInfo > > & amap_UID_FileNames,
 }
 
 void GuidedNativeImageIO::ParseDicomDirectory(
-    const std::string &dir,
-    GuidedNativeImageIO::RegistryArray &reg,
-    const GuidedNativeImageIO::DicomRequest &req)
+  const std::string &dir,
+  GuidedNativeImageIO::RegistryArray &reg,
+  const GuidedNativeImageIO::DicomRequest &req)
 {
   // Must have a directory
   if(!itksys::SystemTools::FileIsDirectory(dir.c_str()))
@@ -1260,7 +1230,6 @@ void GuidedNativeImageIO::ParseDicomDirectory(
   
   int nSeriesNr = map_UID_FileNames.size();
 
-  
   map < string, vector< DICOMFileInfo > >::iterator it_UID_DFI;
   for(it_UID_DFI = map_UID_FileNames.begin(); it_UID_DFI != map_UID_FileNames.end(); it_UID_DFI++)
     {
@@ -1297,7 +1266,8 @@ void GuidedNativeImageIO::ParseDicomDirectory(
       r["SeriesId"] << it_UID_DFI->first;
         
       // Also store the files
-      //r.Folder("SeriesFiles").PutArray(sortedFilenamesType);
+      vector < string > arrstrFileNames = DICOMFileInfo::compArrayFileNames(arrDFIs);
+      r.Folder("SeriesFiles").PutArray(arrstrFileNames);
             
       // Get textual description
       const char * pchValue = getTag(pScanner, gdcm::Tag(0x0008, 0x103e), strFileName0);
@@ -1336,8 +1306,6 @@ void GuidedNativeImageIO::ParseDicomDirectory(
         reg.push_back( r );
       }
     }
-  
-
   
   // Complain if no series have been found
   if(reg.size() == 0)
