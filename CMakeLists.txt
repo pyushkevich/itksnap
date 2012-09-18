@@ -118,6 +118,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/ImageWrapper.cxx
   Logic/ImageWrapper/GreyImageWrapper.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
+  Logic/ImageWrapper/DICOMSerieUniqueIDsMgr.cxx
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/LevelSetImageWrapper.cxx
   Logic/ImageWrapper/RGBImageWrapper.cxx
@@ -189,6 +190,8 @@ SET(LOGIC_HEADERS
   Logic/Framework/UndoDataManager.txx
   Logic/ImageWrapper/ContinuousScalarImageWrapper.h
   Logic/ImageWrapper/GreyImageWrapper.h
+  Logic/ImageWrapper/GuidedNativeImageIO.h
+  Logic/ImageWrapper/DICOMSerieUniqueIDsMgr.h
   Logic/ImageWrapper/ImageIORoutines.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
