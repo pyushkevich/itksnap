@@ -33,7 +33,6 @@
 
 =========================================================================*/
 #include "GuidedNativeImageIO.h"
-#include "DICOMSerieUniqueIDsMgr.h"
 #include "IRISException.h"
 #include "SNAPCommon.h"
 #include "SNAPRegistryIO.h"
@@ -1005,10 +1004,22 @@ GuidedNativeImageIO::GuessFormatForFileName(
   return FORMAT_COUNT;
 }
 
+template <class T>
+bool GuidedNativeImageIO::from_string(T& t, const string& s)
+{
+  std::istringstream iss(s);
+  return !(iss >> t >> std::dec).fail();
+}
+
+
 const gdcm::Tag GuidedNativeImageIO::m_tagRows(0x0028, 0x0010);
 const gdcm::Tag GuidedNativeImageIO::m_tagCols(0x0028, 0x0011);
 const gdcm::Tag GuidedNativeImageIO::m_tagDesc(0x0008, 0x103e);
 const gdcm::Tag GuidedNativeImageIO::m_tagTextDesc(0x0028, 0x0010);
+const gdcm::Tag GuidedNativeImageIO::m_tagSeriesInstanceUID(0x0020,0x000E);
+const gdcm::Tag GuidedNativeImageIO::m_tagSeriesNumber(0x0020,0x0011);
+const gdcm::Tag GuidedNativeImageIO::m_tagAcquisitionNumber(0x0020,0x0012);
+const gdcm::Tag GuidedNativeImageIO::m_tagInstanceNumber(0x0020,0x0013);
 
 const char * GuidedNativeImageIO::tagToValueString(const gdcm::Scanner::TagToValue & attv,
                                                    const gdcm::Tag & aTag)
@@ -1021,8 +1032,17 @@ const char * GuidedNativeImageIO::tagToValueString(const gdcm::Scanner::TagToVal
 int GuidedNativeImageIO::tagToValueInt(const gdcm::Scanner::TagToValue & attv,
                                        const gdcm::Tag & aTag)
 {
-  const char * value = tagToValueString(attv, aTag);
-  int nRes = atoi(value);
+  const string strVal = tagToValueString(attv, aTag);
+  
+  int nRes;
+  
+  bool bOk = from_string< int >(nRes, strVal);
+  
+  if(bOk == false)
+  {
+    throw IRISException("Error: Could not convert a tag into a numerical value");
+  }
+  
   return(nRes);
 }
 
@@ -1048,14 +1068,14 @@ bool GuidedNativeImageIO::getDims(int aarrnSzXY[2],
 
 const char * GuidedNativeImageIO::getTag(const gdcm::SmartPointer < gdcm::Scanner > apScanner,
                                          const gdcm::Tag & aTag,
-                                         const string & astrFileName) {
+                                         const string & astrFileName)
+{
     
   const char * pchRes = 0;
   if( apScanner->IsKey( astrFileName.c_str() ) == false)
     {
-    std::cerr << "INFO:" << astrFileName
-    << " does not contain a requested key or is not a DICOM file" << std::endl;
-    return(0);
+      throw IRISException("INFO: file %s  does not contain a requested key or is not a DICOM file",
+                          astrFileName.c_str());
     }
     
   const gdcm::Scanner::TagToValue &ttv = apScanner->GetMapping(astrFileName.c_str());
@@ -1065,22 +1085,31 @@ const char * GuidedNativeImageIO::getTag(const gdcm::SmartPointer < gdcm::Scanne
 
 }
 
-bool GuidedNativeImageIO::scanTags(gdcm::SmartPointer < gdcm::Scanner > apScanner,
-                                   const gdcm::Directory::FilenamesType & aFileNames)
+long int GuidedNativeImageIO::getTagLongInt(const gdcm::SmartPointer < gdcm::Scanner > apScanner,
+                                            const gdcm::Tag & aTag,
+                                            const string & astrFileName)
 {
-  if( !apScanner->Scan( aFileNames ) )
+  
+  const char * pchRes = GuidedNativeImageIO::getTag(apScanner, aTag, astrFileName);
+  long int nRes;
+  bool bOk = from_string< long int >(nRes, pchRes);
+  if(bOk == false)
     {
-    return(false);
+      throw IRISException("INFO: file %s  does not contain a requested key or is not a DICOM file",
+                          astrFileName.c_str());
     }
-    
-  apScanner->Print( std::cout );
-  return(true);
+  return(nRes);
+  
 }
-
 
 bool GuidedNativeImageIO::DICOMFileInfo::operator<(const GuidedNativeImageIO::DICOMFileInfo & aDICOMFileInfo) const
 {
-  return(m_strFileName < aDICOMFileInfo.m_strFileName);
+  //bool bLessThanSeries = m_strTagSeriesNumber < aDICOMFileInfo.m_strTagSeriesNumber;
+  if(m_nTagAcquisitionNumber == aDICOMFileInfo.m_nTagAcquisitionNumber)
+    {
+    return(m_nTagInstanceNumber < aDICOMFileInfo.m_nTagInstanceNumber);
+    }
+  return(false);
 }
   
 GuidedNativeImageIO::DICOMFileInfo & GuidedNativeImageIO::DICOMFileInfo::operator=(const GuidedNativeImageIO::DICOMFileInfo & aDICOMFileInfo)
@@ -1091,6 +1120,9 @@ GuidedNativeImageIO::DICOMFileInfo & GuidedNativeImageIO::DICOMFileInfo::operato
     {
     m_arrnDims[nI] = aDICOMFileInfo.m_arrnDims[nI];
     }
+  m_nTagSeriesNumber = aDICOMFileInfo.m_nTagSeriesNumber;
+  m_nTagAcquisitionNumber = aDICOMFileInfo.m_nTagAcquisitionNumber;
+  m_nTagInstanceNumber = aDICOMFileInfo.m_nTagInstanceNumber;
   return(*this);
 }
   
@@ -1107,6 +1139,7 @@ vector < string > GuidedNativeImageIO::DICOMFileInfo::compArrayFileNames(const v
 }
 
 gdcm::SmartPointer < gdcm::Scanner > GuidedNativeImageIO::Scan(
+  map < string, vector< GuidedNativeImageIO::DICOMFileInfo > > & amap_UID_FileNames,
   const std::string &dir,
   const GuidedNativeImageIO::DicomRequest &req)
 {
@@ -1126,6 +1159,11 @@ gdcm::SmartPointer < gdcm::Scanner > GuidedNativeImageIO::Scan(
   pScanner->AddTag( m_tagDesc );
   // Get textual description
   pScanner->AddTag( m_tagTextDesc );
+
+  pScanner->AddTag( m_tagSeriesInstanceUID );
+  pScanner->AddTag( m_tagSeriesNumber );
+  pScanner->AddTag( m_tagAcquisitionNumber );
+  pScanner->AddTag( m_tagInstanceNumber );
     
   for(GuidedNativeImageIO::DicomRequest::const_iterator it = req.begin(); it != req.end(); ++it)
     {
@@ -1136,71 +1174,46 @@ gdcm::SmartPointer < gdcm::Scanner > GuidedNativeImageIO::Scan(
     {
     throw IRISException("Error: Could not scan directory %s" ,dir.c_str());
     }
-  return(pScanner);
-    
-}
-
-bool GuidedNativeImageIO::SortHeaders(
-  map < string, vector< GuidedNativeImageIO::DICOMFileInfo > > & amap_UID_FileNames,
-  const gdcm::SmartPointer < gdcm::Scanner > apScanner,
-  const std::string &dir)
-{
+  
   amap_UID_FileNames.clear();
   
-  SNAP::DICOMSerieUniqueIDsMgr uniqueIDsMgr;
-  uniqueIDsMgr.Clear();
-  //uniqueIDsMgr.CreateDefaultUniqueSeriesIdentifier();
-  uniqueIDsMgr.SetDirectory(dir, false);
-
-  gdcm::Directory dirList;
-  //unsigned int nfiles =
-    dirList.Load(dir, false);
-  const gdcm::Directory::FilenamesType &filenames = dirList.GetFilenames();
   gdcm::Directory::FilenamesType::const_iterator itFN = filenames.begin();
-  
-  
-  vector < string > arrstrSeriesUIDs;
-  SNAP::FileList *flist = uniqueIDsMgr.GetFirstSingleSerieUIDFileSet();
-  while ( flist )
+  for(itFN = filenames.begin(); itFN != filenames.end(); itFN++)
     {
-    int nFilesNr = flist->size();
-    if(nFilesNr > 0)
-      {
-      vector< DICOMFileInfo > arrDFIs(nFilesNr);
+    string strFileName = *itFN;
+  
+    string strTagSeriesInstanceUID = getTag(pScanner, m_tagSeriesInstanceUID, strFileName);
 
-      gdcm::File *file = ( *flist )[0]; //for example take the first one
-      std::string id = uniqueIDsMgr.CreateUniqueSeriesIdentifier(file).c_str();
-      arrstrSeriesUIDs.push_back( id.c_str() );
-      int nI;
-      for(nI =0; nI < nFilesNr; nI++)
-        {
-        DICOMFileInfo dfi;
-        dfi.m_strFileName = string( itFN->c_str() );
-        if(getDims(dfi.m_arrnDims, apScanner, dfi.m_strFileName) == false)
-          {
-          return(false);
-          }
-        arrDFIs[nI] = dfi;
-        itFN++;
-        }
-      amap_UID_FileNames[id] = arrDFIs;
+    DICOMFileInfo dfi;
+
+      
+    dfi.m_nTagSeriesNumber = getTagLongInt(pScanner, m_tagSeriesNumber, strFileName);
+    dfi.m_nTagAcquisitionNumber = getTagLongInt(pScanner, m_tagAcquisitionNumber, strFileName);
+    dfi.m_nTagInstanceNumber = getTagLongInt(pScanner, m_tagInstanceNumber, strFileName);
+    
+    string strUID = strTagSeriesInstanceUID;
+    
+    vector < DICOMFileInfo > & arrDFIs = amap_UID_FileNames[strUID];
+ 
+    dfi.m_strFileName = string( itFN->c_str() );
+    if(getDims(dfi.m_arrnDims, pScanner, dfi.m_strFileName) == false)
+      {
+      throw IRISException(
+        "Error: DICOM series read. "
+        "Directory '%s' does not appear to contain a valid DICOM series.", dir.c_str());
       }
-    flist = uniqueIDsMgr.GetNextSingleSerieUIDFileSet();
+    arrDFIs.push_back(dfi);
     }
-  if ( !arrstrSeriesUIDs.size() )
-  {
-    cerr << "Warning: No Series were found" << endl;
-    return(false);
-  }
   
   map < string, vector< DICOMFileInfo > >::iterator it_UID_DFI;
   for(it_UID_DFI = amap_UID_FileNames.begin(); it_UID_DFI != amap_UID_FileNames.end(); it_UID_DFI++)
-    {
+  {
     vector< DICOMFileInfo > & arrDFIs = it_UID_DFI->second;
     sort(arrDFIs.begin(), arrDFIs.end());
-    }
-  return true;
-  
+  }
+
+  return(pScanner);
+    
 }
 
 void GuidedNativeImageIO::ParseDicomDirectory(
@@ -1218,17 +1231,8 @@ void GuidedNativeImageIO::ParseDicomDirectory(
   // Clear output
   reg.clear();
 
-  gdcm::SmartPointer < gdcm::Scanner > pScanner = Scan(dir, req);
-
   map < string, vector< DICOMFileInfo > > map_UID_FileNames;
-  if(SortHeaders(map_UID_FileNames, pScanner, dir) == false)
-    {
-    throw IRISException(
-      "Error: DICOM series read. "
-      "Directory '%s' does not appear to contain a valid DICOM series.", dir.c_str());
-    }
-  
-  int nSeriesNr = map_UID_FileNames.size();
+  gdcm::SmartPointer < gdcm::Scanner > pScanner = Scan(map_UID_FileNames, dir, req);
 
   map < string, vector< DICOMFileInfo > >::iterator it_UID_DFI;
   for(it_UID_DFI = map_UID_FileNames.begin(); it_UID_DFI != map_UID_FileNames.end(); it_UID_DFI++)
@@ -1270,7 +1274,7 @@ void GuidedNativeImageIO::ParseDicomDirectory(
       r.Folder("SeriesFiles").PutArray(arrstrFileNames);
             
       // Get textual description
-      const char * pchValue = getTag(pScanner, gdcm::Tag(0x0008, 0x103e), strFileName0);
+      const char * pchValue = getTag(pScanner, m_tagDesc, strFileName0);
       if(pchValue)
         {
         r["SeriesDescription"] << pchValue;;
