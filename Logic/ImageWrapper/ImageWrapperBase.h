@@ -219,6 +219,20 @@ public:
   virtual double GetImageMaxNative() = 0;
 
   /**
+    Get the maximum possible value of the gradient magnitude. This will
+    compute the gradient magnitude of the image (without Gaussian smoothing)
+    and return the maximum. The value will be cached so repeated calls to
+    this are not expensive.
+    */
+  virtual double GetImageGradientMagnitudeUpperLimit() = 0;
+
+  /**
+    Get the maximum possible value of the gradient magnitude in native units
+    */
+  virtual double GetImageGradientMagnitudeUpperLimitNative() = 0;
+
+
+  /**
     There may be a linear mapping between internal values stored in the
     image and the values stored in the native image format.
     */

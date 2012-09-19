@@ -1,4 +1,5 @@
-#include "ThresholdSettingsRenderer.h"
+#include "EdgePreprocessingSettingsRenderer.h"
+
 #include <vtkChartXY.h>
 #include <vtkPlot.h>
 #include <vtkFloatArray.h>
@@ -11,11 +12,9 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 
+const unsigned int EdgePreprocessingSettingsRenderer::NUM_POINTS = 256;
 
-const unsigned int ThresholdSettingsRenderer::NUM_POINTS = 256;
-
-ThresholdSettingsRenderer::ThresholdSettingsRenderer()
-  : AbstractVTKSceneRenderer()
+EdgePreprocessingSettingsRenderer::EdgePreprocessingSettingsRenderer()
 {
   m_Model = NULL;
 
@@ -27,7 +26,7 @@ ThresholdSettingsRenderer::ThresholdSettingsRenderer()
 
   // Set up the data
   m_DataX = vtkSmartPointer<vtkFloatArray>::New();
-  m_DataX->SetName("Grayscale Intensity");
+  m_DataX->SetName("Edge Strength (Gradient Mangitude)");
   m_DataY = vtkSmartPointer<vtkFloatArray>::New();
   m_DataY->SetName("Speed Image Value");
 
@@ -43,10 +42,11 @@ ThresholdSettingsRenderer::ThresholdSettingsRenderer()
   plot->SetColor(1, 0, 0);
   plot->SetWidth(1.0);
   plot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
-  plot->GetYAxis()->SetMinimum(-1.05);
+  plot->GetYAxis()->SetMinimum(-0.05);
   plot->GetYAxis()->SetMaximum(1.05);
-  plot->GetXAxis()->SetTitle("Input Image Intensity");
+  plot->GetXAxis()->SetTitle("Edge Strength (Gradient Mangitude)");
   plot->GetYAxis()->SetTitle("Speed Value");
+  plot->GetXAxis()->SetBehavior(vtkAxis::AUTO);
 
   // TODO: we could also render a histogram here
 
@@ -55,36 +55,33 @@ ThresholdSettingsRenderer::ThresholdSettingsRenderer()
 
 }
 
-void ThresholdSettingsRenderer::SetModel(SnakeWizardModel *model)
+void EdgePreprocessingSettingsRenderer::SetModel(SnakeWizardModel *model)
 {
   this->m_Model = model;
 
   // Rebroadcast the relevant events from the model in order for the
   // widget that uses this renderer to cause an update
-  Rebroadcast(model, SnakeWizardModel::ThresholdSettingsUpdateEvent(),
+  Rebroadcast(model, SnakeWizardModel::EdgePreprocessingSettingsUpdateEvent(),
               ModelUpdateEvent());
-
-  // TODO: We also need to listen to appearance changes....
 }
 
-void ThresholdSettingsRenderer::UpdatePlotValues()
+void EdgePreprocessingSettingsRenderer::UpdatePlotValues()
 {
-  if(m_Model->CheckState(SnakeWizardModel::UIF_THESHOLDING_ENABLED))
+  if(m_Model->CheckState(SnakeWizardModel::UIF_EDGEPROCESSING_ENABLED))
     {
-    m_Model->EvaluateThresholdFunction(NUM_POINTS,
-                                       m_DataX->GetPointer(0),
-                                       m_DataY->GetPointer(0));
-
+    // Compute the preprocessing function
+    m_Model->EvaluateEdgePreprocessingFunction(NUM_POINTS,
+                                               m_DataX->GetPointer(0),
+                                               m_DataY->GetPointer(0));
     m_PlotTable->Modified();
     m_Chart->RecalculateBounds();
     }
 }
 
 
-void ThresholdSettingsRenderer::OnUpdate()
+void EdgePreprocessingSettingsRenderer::OnUpdate()
 {
   // Update if any events took place
   this->UpdatePlotValues();
-
 }
 

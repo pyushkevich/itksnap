@@ -34,6 +34,13 @@
 =========================================================================*/
 
 #include <EdgePreprocessingSettings.h>
+#include <itkProgressAccumulator.h>
+
+#include <itkCastImageFilter.h>
+#include <itkDiscreteGaussianImageFilter.h>
+#include <itkGradientMagnitudeImageFilter.h>
+#include <itkUnaryFunctorImageFilter.h>
+#include <IRISException.h>
 
 template<typename TInputImage,typename TOutputImage>
 EdgePreprocessingImageFilter<TInputImage,TOutputImage>
@@ -42,44 +49,28 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
   // Set the number of inputs to two (second is the parameters)
   this->SetNumberOfIndexedInputs(2);
 
-  // Construct the adaptor
-  m_CastFilter = CastFilterType::New();
+  // Set the gradient magnitude to default value
+  m_InputImageMaximumGradientMagnitude = 0.0;
+
+  // Initialize the mini-pipeline
+  m_CastFilter = CastFilter::New();
   m_CastFilter->ReleaseDataFlagOn();
-  m_CastFilter->SetInput(this->GetInput()); 
-  
-  // Construct the Gaussian filter
-  m_GaussianFilter = GaussianFilterType::New();
-  m_GaussianFilter->SetUseImageSpacing(false);
-  m_GaussianFilter->ReleaseDataFlagOn();
-  m_GaussianFilter->SetInput(m_CastFilter->GetOutput());
 
-  // The gradient magnitude filter
-  m_GradientFilter = GradientFilterType::New();
-  m_GradientFilter->ReleaseDataFlagOn();
-  m_GradientFilter->SetInput(m_GaussianFilter->GetOutput());  
+  m_BlurFilter = BlurFilter::New();
+  m_BlurFilter->SetInput(m_CastFilter->GetOutput());
+  m_BlurFilter->ReleaseDataFlagOn();
 
-  // The normalization filter
-  m_RescaleFilter = RescaleFilterType::New();
-  m_RescaleFilter->ReleaseDataFlagOn();
-  m_RescaleFilter->SetOutputMinimum(0.0f);
-  m_RescaleFilter->SetOutputMaximum(1.0f);
-  m_RescaleFilter->SetInput(m_GradientFilter->GetOutput());
-  
-  // Construct the Remapping filter
-  m_RemappingFilter = RemappingFilterType::New();
-  m_RemappingFilter->ReleaseDataFlagOn();
-  m_RemappingFilter->SetInput(m_RescaleFilter->GetOutput());
+  // Prevent streaming inside the Gaussian filter because we will be streaming
+  // anyway. Too much streaming increases execution time unnecessarilty
+  m_BlurFilter->SetInternalNumberOfStreamDivisions(1);
+  m_BlurFilter->SetMaximumError(0.1);
 
-  // Create the progress accumulator
-  m_ProgressAccumulator = itk::ProgressAccumulator::New();
-  m_ProgressAccumulator->SetMiniPipelineFilter(this);
+  m_GradMagFilter = GradMagFilter::New();
+  m_GradMagFilter->SetInput(m_BlurFilter->GetOutput());
+  m_GradMagFilter->ReleaseDataFlagOn();
 
-  // Register the filters with the progress accumulator
-  m_ProgressAccumulator->RegisterInternalFilter(m_CastFilter,0.1f);
-  m_ProgressAccumulator->RegisterInternalFilter(m_GaussianFilter,0.6f);
-  m_ProgressAccumulator->RegisterInternalFilter(m_GradientFilter,0.1f);
-  m_ProgressAccumulator->RegisterInternalFilter(m_RescaleFilter,0.1f);
-  m_ProgressAccumulator->RegisterInternalFilter(m_RemappingFilter,0.1f);
+  m_RemapFilter = RemapFilter::New();
+  m_RemapFilter->SetInput(m_GradMagFilter->GetOutput());
 }
 
 template<typename TInputImage,typename TOutputImage>
@@ -95,41 +86,31 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
   EdgePreprocessingSettings *settings = this->GetParameters();
 
   // Settings must be set!
-  assert(settings);
+  if(!settings)
+    throw IRISException("Parameters not set in EdgePreprocessingImageFilter");
 
-  // Initialize the progress counter
-  m_ProgressAccumulator->ResetProgress();
-
-  // Allocate the output image
-  outputImage->SetBufferedRegion(outputImage->GetRequestedRegion());
-  outputImage->Allocate();
-
-  // Pipe in the input image
+  // Configure the pipeline
   m_CastFilter->SetInput(inputImage);
 
-  // Set the variance
-  Vector3f variance(
-    settings->GetGaussianBlurScale() *
-    settings->GetGaussianBlurScale());
-
-  m_GaussianFilter->SetVariance(variance.data_block());
+  // Configure the Gaussian
+  m_BlurFilter->SetUseImageSpacingOff();
+  m_BlurFilter->SetVariance(
+        settings->GetGaussianBlurScale() * settings->GetGaussianBlurScale());
 
   // Construct the functor
+  // TODO: fixme!
   FunctorType functor;
-  functor.SetParameters(0.0f,1.0f,
+  functor.SetParameters(0.0, m_InputImageMaximumGradientMagnitude,
                         settings->GetRemappingExponent(),
                         settings->GetRemappingSteepness());
 
-  // Assign the functor to the filter
-  m_RemappingFilter->SetFunctor(functor);
+  // Configure the remapping filter
+  m_RemapFilter->SetFunctor(functor);
 
-  // Call the filter's GenerateData()
-  m_RemappingFilter->GraftOutput(outputImage);
-  m_RemappingFilter->Update();
-
-  // graft the mini-pipeline output back onto this filter's output.
-  // this is needed to get the appropriate regions passed back.
-  this->GraftOutput( m_RemappingFilter->GetOutput() );
+  // Graft outputs and update the filter
+  m_RemapFilter->GraftOutput(outputImage);
+  m_RemapFilter->Update();
+  this->GraftOutput(m_RemapFilter->GetOutput());
 }
 
 template<typename TInputImage,typename TOutputImage>

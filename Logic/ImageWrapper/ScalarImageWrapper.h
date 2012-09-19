@@ -39,7 +39,8 @@
 
 // Forward references
 namespace itk {
-  template<class TInputImage> class MinimumMaximumImageFilter;
+  template<class TIn> class MinimumMaximumImageFilter;
+  template<class TIn, class TOut> class GradientMagnitudeImageFilter;
 }
 
 
@@ -174,6 +175,19 @@ public:
   }
 
   /**
+    Get the maximum possible value of the gradient magnitude. This will
+    compute the gradient magnitude of the image (without Gaussian smoothing)
+    and return the maximum. The value will be cached so repeated calls to
+    this are not expensive.
+    */
+  double GetImageGradientMagnitudeUpperLimit();
+
+  /**
+    Get the maximum possible value of the gradient magnitude in native units
+    */
+  double GetImageGradientMagnitudeUpperLimitNative();
+
+  /**
    * Get voxel intensity in native space
    */
   double GetVoxelMappedToNative(const Vector3ui &vec) const
@@ -210,10 +224,20 @@ public:
 protected:
 
   /** 
-   * The min-max calculator used to hold min/max values.  This should be
-   * replaced by a filter, when the latter is more efficient
+   * The min-max filter used to compute the range of the image on demand.
    */
   SmartPtr<MinMaxFilter> m_MinMaxFilter;
+
+  /**
+    A mini-pipeline to compute the maximum value of the gradient of
+    the input image on demand.
+    */
+  typedef itk::Image<float ,3> FloatImageType;
+  typedef itk::GradientMagnitudeImageFilter<ImageType, FloatImageType> GradMagFilter;
+  typedef itk::MinimumMaximumImageFilter<FloatImageType> GradMagMaxFilter;
+
+  SmartPtr<GradMagFilter> m_GradientMagnitudeFilter;
+  SmartPtr<GradMagMaxFilter> m_GradientMagnitudeMaximumFilter;
 
   // Mapping from native to internal format (get rid of in the future?)
   InternalToNativeFunctor m_NativeMapping;

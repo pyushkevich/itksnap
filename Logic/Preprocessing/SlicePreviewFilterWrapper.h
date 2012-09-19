@@ -9,6 +9,10 @@ template <class TPixel> class ImageWrapper;
 template <class TPixel> class ScalarImageWrapper;
 template <class TPixel> class IRISSlicer;
 
+namespace itk {
+  template<class TIn, class TOut> class StreamingImageFilter;
+}
+
 class SNAPImageData;
 
 /**
@@ -147,8 +151,12 @@ protected:
 
   OutputWrapperType *m_OutputWrapper;
 
+  // Streamer - to allow reduced memory footprint
+  typedef itk::StreamingImageFilter<OutputImageType, OutputImageType> Streamer;
+
   SmartPtr<FilterType> m_PreviewFilter[3];
   SmartPtr<FilterType> m_VolumeFilter;
+  SmartPtr<Streamer> m_VolumeStreamer;
 
   // So we can loop over all four filters
   FilterType *GetNthFilter(int);

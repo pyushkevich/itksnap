@@ -1,0 +1,44 @@
+#ifndef EDGEPREPROCESSINGSETTINGSRENDERER_H
+#define EDGEPREPROCESSINGSETTINGSRENDERER_H
+
+#include "AbstractVTKSceneRenderer.h"
+#include "vtkSmartPointer.h"
+
+class vtkActor;
+class vtkPropAssembly;
+class vtkChartXY;
+class vtkFloatArray;
+class vtkPlot;
+class vtkTable;
+
+class SnakeWizardModel;
+
+class EdgePreprocessingSettingsRenderer : public AbstractVTKSceneRenderer
+{
+public:
+  irisITKObjectMacro(EdgePreprocessingSettingsRenderer, AbstractVTKSceneRenderer)
+
+  void SetModel(SnakeWizardModel *model);
+
+  void OnUpdate();
+
+  void UpdatePlotValues();
+
+protected:
+
+  EdgePreprocessingSettingsRenderer();
+  virtual ~EdgePreprocessingSettingsRenderer() {}
+
+  SnakeWizardModel *m_Model;
+
+  // Number of data points
+  static const unsigned int NUM_POINTS;
+
+  // Rendering stuff
+  vtkSmartPointer<vtkChartXY> m_Chart;
+  vtkSmartPointer<vtkTable> m_PlotTable;
+  vtkSmartPointer<vtkPlot> m_Plot;
+  vtkSmartPointer<vtkFloatArray> m_DataX, m_DataY;
+};
+
+#endif // EDGEPREPROCESSINGSETTINGSRENDERER_H

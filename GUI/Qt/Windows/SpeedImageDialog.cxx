@@ -5,9 +5,9 @@
 #include "SnakeWizardModel.h"
 #include "QtWidgetActivator.h"
 #include "ThresholdSettingsRenderer.h"
+#include "EdgePreprocessingSettingsRenderer.h"
 #include "QtCheckBoxCoupling.h"
 #include <QCloseEvent>
-#include <QShowEvent>
 
 SpeedImageDialog::SpeedImageDialog(QWidget *parent) :
   QDialog(parent),
@@ -18,6 +18,10 @@ SpeedImageDialog::SpeedImageDialog(QWidget *parent) :
   // Create the renderer and attach it to its GL box
   m_ThresholdRenderer = ThresholdSettingsRenderer::New();
   ui->viewThreshold->SetRenderer(m_ThresholdRenderer);
+
+  // Same for the edge preprocessing
+  m_EdgeSettingsRenderer = EdgePreprocessingSettingsRenderer::New();
+  ui->viewEdgeMapping->SetRenderer(m_EdgeSettingsRenderer);
 }
 
 SpeedImageDialog::~SpeedImageDialog()
@@ -30,10 +34,12 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   // Store the model
   m_Model = model;
 
-  // Pass the model to the renderer
+  // Pass the model to the renderers
   m_ThresholdRenderer->SetModel(model);
+  m_EdgeSettingsRenderer->SetModel(model);
 
-  // Couple the widgets
+
+  // Couple the thresholding widgets
   makeCoupling(ui->inLowerThreshold, model->GetThresholdLowerModel());
   makeCoupling(ui->inUpperThreshold, model->GetThresholdUpperModel());
   makeCoupling(ui->inThresholdSmoothness, model->GetThresholdSmoothnessModel());
@@ -41,7 +47,15 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
 
   makeRadioGroupCoupling(ui->grpThresholdMode, model->GetThresholdModeModel());
 
+  // Couple the edge preprocessing widgets
+  makeCoupling(ui->inEdgeSmoothing, model->GetEdgePreprocessingSigmaModel());
+  makeCoupling(ui->inEdgeKappa, model->GetEdgePreprocessingKappaModel());
+  makeCoupling(ui->inEdgeExponent, model->GetEdgePreprocessingExponentModel());
+  makeCoupling(ui->chkEdgePreview, model->GetEdgePreprocessingPreviewModel());
+
   // Set up activation
+  activateOnFlag(ui->tabThreshold, model, SnakeWizardModel::UIF_THESHOLDING_ENABLED);
+  activateOnFlag(ui->tabEdge, model, SnakeWizardModel::UIF_EDGEPROCESSING_ENABLED);
   activateOnFlag(ui->inLowerThreshold, model, SnakeWizardModel::UIF_LOWER_THRESHOLD_ENABLED);
   activateOnFlag(ui->inUpperThreshold, model, SnakeWizardModel::UIF_UPPER_THRESHOLD_ENABLED);
 }
@@ -74,21 +88,35 @@ void SpeedImageDialog::closeEvent(QCloseEvent *event)
   event->accept();
 }
 
-void SpeedImageDialog::showEvent(QShowEvent *event)
+void SpeedImageDialog::SetPageAndShow()
 {
-  // Same callback as when tabs change
-  this->on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
-  event->accept();
+  // Select appropriate tab?
+  if(m_Model->GetSnakeTypeModel()->GetValue() == IN_OUT_SNAKE)
+    {
+    ui->stack->setCurrentWidget(ui->pgInOut);
+    this->on_tabWidgetInOut_currentChanged(ui->tabWidgetInOut->currentIndex());
+    }
+  else if(m_Model->GetSnakeTypeModel()->GetValue() == EDGE_SNAKE)
+    {
+    ui->stack->setCurrentWidget(ui->pgEdge);
+    this->on_tabWidgetEdge_currentChanged(ui->tabWidgetEdge->currentIndex());
+    }
+
+  this->show();
 }
 
-void SpeedImageDialog::on_tabWidget_currentChanged(int index)
+void SpeedImageDialog::on_tabWidgetEdge_currentChanged(int index)
 {
-  if(ui->tabWidget->currentWidget() == ui->tabThreshold)
+  if(ui->tabWidgetEdge->currentWidget() == ui->tabEdge)
+    {
+    m_Model->OnEdgePreprocessingPageEnter();
+    }
+}
+
+void SpeedImageDialog::on_tabWidgetInOut_currentChanged(int index)
+{
+  if(ui->tabWidgetInOut->currentWidget() == ui->tabThreshold)
     {
     m_Model->OnThresholdingPageEnter();
-    }
-  else if(ui->tabWidget->currentWidget() == ui->tabEdge)
-    {
-    // m_Model->OnEdgePreprocessingPageEnter();
     }
 }

@@ -29,6 +29,7 @@
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
 #include "itkMinimumMaximumImageFilter.h"
+#include "itkGradientMagnitudeImageFilter.h"
 
 #include "ScalarImageHistogram.h"
 
@@ -40,6 +41,13 @@ ScalarImageWrapper<TPixel>
 {
   m_Histogram = ScalarImageHistogram::New();
   m_MinMaxFilter = MinMaxFilter::New();
+
+  m_GradientMagnitudeFilter = GradMagFilter::New();
+  m_GradientMagnitudeFilter->ReleaseDataFlagOn();
+
+  m_GradientMagnitudeMaximumFilter = GradMagMaxFilter::New();
+  m_GradientMagnitudeMaximumFilter->SetInput(
+        m_GradientMagnitudeFilter->GetOutput());
 }
 
 template <class TPixel>
@@ -84,6 +92,9 @@ ScalarImageWrapper<TPixel>
 
   // Update the max-min pipeline once we have one setup
   m_MinMaxFilter->SetInput(newImage);
+
+  // Also update the grad max range pipeline
+  m_GradientMagnitudeFilter->SetInput(newImage);
 }
 
 template <class TPixel>
@@ -237,6 +248,24 @@ ScalarImageWrapper<TPixel>
   // Return the max or min
   return m_MinMaxFilter->GetMaximum();
 }
+
+template <class TPixel>
+double
+ScalarImageWrapper<TPixel>
+::GetImageGradientMagnitudeUpperLimit()
+{
+  m_GradientMagnitudeMaximumFilter->Update();
+  return m_GradientMagnitudeMaximumFilter->GetMaximum();
+}
+
+template <class TPixel>
+double
+ScalarImageWrapper<TPixel>
+::GetImageGradientMagnitudeUpperLimitNative()
+{
+  return m_NativeMapping.scale * this->GetImageGradientMagnitudeUpperLimit();
+}
+
 
 template <class TPixel>
 double 

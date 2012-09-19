@@ -6,6 +6,7 @@
 #include "GenericImageData.h"
 #include "SNAPImageData.h"
 #include "SmoothBinaryThresholdImageFilter.h"
+#include "EdgePreprocessingImageFilter.h"
 #include "ColorMap.h"
 #include "SlicePreviewFilterWrapper.h"
 
@@ -46,6 +47,34 @@ SnakeWizardModel::SnakeWizardModel()
         &Self::SetThresholdPreviewValue,
         ThresholdSettingsUpdateEvent(),
         ThresholdSettingsUpdateEvent());
+
+  m_EdgePreprocessingSigmaModel = makeChildPropertyModel(
+        this,
+        &Self::GetEdgePreprocessingSigmaValueAndRange,
+        &Self::SetEdgePreprocessingSigmaValue,
+        EdgePreprocessingSettingsUpdateEvent(),
+        EdgePreprocessingSettingsUpdateEvent());
+
+  m_EdgePreprocessingKappaModel = makeChildPropertyModel(
+        this,
+        &Self::GetEdgePreprocessingKappaValueAndRange,
+        &Self::SetEdgePreprocessingKappaValue,
+        EdgePreprocessingSettingsUpdateEvent(),
+        EdgePreprocessingSettingsUpdateEvent());
+
+  m_EdgePreprocessingExponentModel = makeChildPropertyModel(
+        this,
+        &Self::GetEdgePreprocessingExponentValueAndRange,
+        &Self::SetEdgePreprocessingExponentValue,
+        EdgePreprocessingSettingsUpdateEvent(),
+        EdgePreprocessingSettingsUpdateEvent());
+
+  m_EdgePreprocessingPreviewModel = makeChildPropertyModel(
+        this,
+        &Self::GetEdgePreprocessingPreviewValue,
+        &Self::SetEdgePreprocessingPreviewValue,
+        EdgePreprocessingSettingsUpdateEvent(),
+        EdgePreprocessingSettingsUpdateEvent());
 
   m_SnakeTypeModel = makeChildPropertyModel(
         this,
@@ -101,62 +130,118 @@ void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
   Rebroadcast(m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD),
               itk::ModifiedEvent(), ThresholdSettingsUpdateEvent());
 
+  // Repeat the same code for the edge preprocessing
+  Rebroadcast(this, ModelUpdateEvent(), EdgePreprocessingSettingsUpdateEvent());
+
+  Rebroadcast(m_Driver->GetEdgePreprocessingSettings(),
+              itk::ModifiedEvent(), EdgePreprocessingSettingsUpdateEvent());
+
+  Rebroadcast(m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_EDGE),
+              itk::ModifiedEvent(), EdgePreprocessingSettingsUpdateEvent());
+
   // Changes to the snake mode are cast as model update events
   Rebroadcast(m_GlobalState->GetSnakeTypeModel(),
               ValueChangedEvent(), ModelUpdateEvent());
 
   // We also need to rebroadcast these events as state change events
   Rebroadcast(this, ThresholdSettingsUpdateEvent(), StateMachineChangeEvent());
+  Rebroadcast(this, EdgePreprocessingSettingsUpdateEvent(), StateMachineChangeEvent());
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
   Rebroadcast(this, ActiveBubbleUpdateEvent(), StateMachineChangeEvent());
+}
+
+
+bool SnakeWizardModel::CheckState(SnakeWizardModel::UIState state)
+{
+  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  switch(state)
+    {
+    case UIF_THESHOLDING_ENABLED:
+      return AreThresholdModelsActive();
+    case UIF_LOWER_THRESHOLD_ENABLED:
+      return ts->IsLowerThresholdEnabled();
+    case UIF_UPPER_THRESHOLD_ENABLED:
+      return ts->IsUpperThresholdEnabled();
+    case UIF_EDGEPROCESSING_ENABLED:
+      return AreEdgePreprocessingModelsActive();
+    case UIF_SPEED_AVAILABLE:
+      return m_GlobalState->GetSpeedValid();
+    case UIF_PREPROCESSING_ACTIVE:
+      return m_Driver->GetPreprocessingMode() != PREPROCESS_NONE;
+    case UIF_BUBBLE_SELECTED:
+      return m_GlobalState->GetActiveBubble() >= 0;
+    case UIF_INITIALIZATION_VALID:
+      return m_GlobalState->GetSnakeInitializedWithManualSegmentation()
+          || m_Driver->GetBubbleArray().size() > 0;
+    }
+
+  return false;
+}
+
+
+void SnakeWizardModel::OnUpdate()
+{
+}
+
+
+bool SnakeWizardModel::AreThresholdModelsActive()
+{
+  return (m_Driver->IsSnakeModeActive() &&
+          m_Driver->GetSnakeMode() == IN_OUT_SNAKE);
+}
+
+bool SnakeWizardModel::AreEdgePreprocessingModelsActive()
+{
+  return (m_Driver->IsSnakeModeActive() &&
+          m_Driver->GetSnakeMode() == EDGE_SNAKE);
 }
 
 bool SnakeWizardModel
 ::GetThresholdUpperValueAndRange(
     double &x, NumericValueRange<double> *range)
 {
-  if(m_Driver->GetCurrentImageData()->IsGreyLoaded())
+  if(!AreThresholdModelsActive())
+    return false;
+
+  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+
+  // The thresholds are stored in internal image representation, but are
+  // presented to the user in native image representation.
+  x = m_Driver->GetCurrentImageData()->GetGrey()->
+      GetNativeMapping().MapInternalToNative(ts->GetUpperThreshold());
+
+  if(range)
     {
-    ThresholdSettings *ts = m_Driver->GetThresholdSettings();
-
-    // The thresholds are stored in internal image representation, but are
-    // presented to the user in native image representation.
-    x = m_Driver->GetCurrentImageData()->GetGrey()->
-        GetNativeMapping().MapInternalToNative(ts->GetUpperThreshold());
-
-    if(range)
-      {
-      range->Minimum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
-      range->Maximum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative();
-      range->StepSize = CalculatePowerOfTenStepSize(range->Minimum, range->Maximum, 100);
-      }
-    return true;
+    range->Minimum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
+    range->Maximum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative();
+    range->StepSize = CalculatePowerOfTenStepSize(range->Minimum, range->Maximum, 100);
     }
-  else return false;
+
+  return true;
 }
 
 bool SnakeWizardModel
 ::GetThresholdLowerValueAndRange(
     double &x, NumericValueRange<double> *range)
 {
-  if(m_Driver->GetCurrentImageData()->IsGreyLoaded())
+  if(!AreThresholdModelsActive())
+    return false;
+
+  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+
+  // The thresholds are stored in internal image representation, but are
+  // presented to the user in native image representation.
+  x = m_Driver->GetCurrentImageData()->GetGrey()->
+      GetNativeMapping().MapInternalToNative(ts->GetLowerThreshold());
+
+  if(range)
     {
-    ThresholdSettings *ts = m_Driver->GetThresholdSettings();
-
-    // The thresholds are stored in internal image representation, but are
-    // presented to the user in native image representation.
-    x = m_Driver->GetCurrentImageData()->GetGrey()->
-        GetNativeMapping().MapInternalToNative(ts->GetLowerThreshold());
-
-    if(range)
-      {
-      range->Minimum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
-      range->Maximum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative();
-      range->StepSize = CalculatePowerOfTenStepSize(range->Minimum, range->Maximum, 100);
-      }
-    return true;
+    range->Minimum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
+    range->Maximum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative();
+    range->StepSize = CalculatePowerOfTenStepSize(range->Minimum, range->Maximum, 100);
     }
-  else return false;
+
+  return true;
 }
 
 void SnakeWizardModel
@@ -189,49 +274,18 @@ void SnakeWizardModel
   ts->SetLowerThreshold(z);
 }
 
-bool SnakeWizardModel::CheckState(SnakeWizardModel::UIState state)
-{
-  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
-  switch(state)
-    {
-    case UIF_THESHOLDING_ENABLED:
-      return m_Driver->GetCurrentImageData()->IsGreyLoaded();
-    case UIF_LOWER_THRESHOLD_ENABLED:
-      return ts->IsLowerThresholdEnabled();
-    case UIF_UPPER_THRESHOLD_ENABLED:
-      return ts->IsUpperThresholdEnabled();
-    case UIF_SPEED_AVAILABLE:
-      return m_GlobalState->GetSpeedValid();
-    case UIF_PREPROCESSING_ACTIVE:
-      return m_Driver->GetPreprocessingMode() != PREPROCESS_NONE;
-    case UIF_BUBBLE_SELECTED:
-      return m_GlobalState->GetActiveBubble() >= 0;
-    case UIF_INITIALIZATION_VALID:
-      return m_GlobalState->GetSnakeInitializedWithManualSegmentation()
-          || m_Driver->GetBubbleArray().size() > 0;
-    }
-
-  return false;
-}
-
-
-void SnakeWizardModel::OnUpdate()
-{
-}
-
 bool
 SnakeWizardModel
 ::GetThresholdSmoothnessValueAndRange(double &x, NumericValueRange<double> *range)
 {
-  if(m_Driver->GetCurrentImageData()->IsGreyLoaded())
-    {
-    ThresholdSettings *ts = m_Driver->GetThresholdSettings();
-    x = ts->GetSmoothness();
-    if(range)
-      range->Set(0, 10, 0.1);
-    return true;
-    }
-  else return false;
+  if(!AreThresholdModelsActive())
+    return false;
+
+  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  x = ts->GetSmoothness();
+  if(range)
+    range->Set(0, 10, 0.1);
+  return true;
 }
 
 void SnakeWizardModel::SetThresholdSmoothnessValue(double x)
@@ -242,13 +296,12 @@ void SnakeWizardModel::SetThresholdSmoothnessValue(double x)
 
 bool SnakeWizardModel::GetThresholdModeValue(ThresholdSettings::ThresholdMode &x)
 {
-  if(m_Driver->GetCurrentImageData()->IsGreyLoaded())
-    {
-    ThresholdSettings *ts = m_Driver->GetThresholdSettings();
-    x = ts->GetThresholdMode();
-    return true;
-    }
-  else return false;
+  if(!AreThresholdModelsActive())
+    return false;
+
+  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  x = ts->GetThresholdMode();
+  return true;
 }
 
 void SnakeWizardModel::SetThresholdModeValue(ThresholdSettings::ThresholdMode x)
@@ -257,7 +310,24 @@ void SnakeWizardModel::SetThresholdModeValue(ThresholdSettings::ThresholdMode x)
   ts->SetThresholdMode(x);
 }
 
-void SnakeWizardModel::EvaluateThresholdFunction(double t, double &x, double &y)
+
+bool SnakeWizardModel::GetThresholdPreviewValue(bool &value)
+{
+  if(!AreThresholdModelsActive())
+    return false;
+
+  value = m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD)->IsPreviewMode();
+  return true;
+}
+
+void SnakeWizardModel::SetThresholdPreviewValue(bool value)
+{
+  assert(AreThresholdModelsActive());
+  m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD)->SetPreviewMode(value);
+}
+
+void SnakeWizardModel
+::EvaluateThresholdFunction(unsigned int n, float *x, float *y)
 {
   assert(m_Driver->IsSnakeModeActive());
 
@@ -271,9 +341,133 @@ void SnakeWizardModel::EvaluateThresholdFunction(double t, double &x, double &y)
   SmoothBinaryThresholdFunctor<float> functor;
   functor.SetParameters(ts, imin, imax);
 
-  double x_internal = t * (imax - imin) + imin;
-  x = grey->GetNativeMapping().MapInternalToNative(x_internal);
-  y = speed->GetNativeMapping().MapInternalToNative(functor(x_internal));
+  for(int i = 0; i < n; i++)
+    {
+    float t = i * 1.0 / (n - 1);
+    float x_internal = t * (imax - imin);
+    x[i] = grey->GetNativeMapping().MapInternalToNative(x_internal);
+    y[i] = speed->GetNativeMapping().MapInternalToNative(functor(x_internal));
+    }
+}
+
+bool
+SnakeWizardModel
+::GetEdgePreprocessingSigmaValueAndRange(
+    double &x, NumericValueRange<double> *range)
+{
+  if(!AreEdgePreprocessingModelsActive())
+    return false;
+
+  EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
+  x = eps->GetGaussianBlurScale();
+  if(range)
+    range->Set(0.1, 3, 0.1);
+
+  return true;
+}
+
+void
+SnakeWizardModel
+::SetEdgePreprocessingSigmaValue(double x)
+{
+  EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
+  eps->SetGaussianBlurScale(x);
+}
+
+bool
+SnakeWizardModel
+::GetEdgePreprocessingKappaValueAndRange(
+    double &x, NumericValueRange<double> *range)
+{
+  if(!AreEdgePreprocessingModelsActive())
+    return false;
+
+  EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
+  x = eps->GetRemappingSteepness();
+  if(range)
+    range->Set(0.01, 0.2, 0.01);
+
+  return true;
+}
+
+void
+SnakeWizardModel
+::SetEdgePreprocessingKappaValue(double x)
+{
+  EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
+  eps->SetRemappingSteepness(x);
+}
+
+
+bool
+SnakeWizardModel
+::GetEdgePreprocessingExponentValueAndRange(
+    double &x, NumericValueRange<double> *range)
+{
+  if(!AreEdgePreprocessingModelsActive())
+    return false;
+
+  EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
+  x = eps->GetRemappingExponent();
+  if(range)
+    range->Set(1, 4, 0.1);
+
+  return true;
+}
+
+void
+SnakeWizardModel
+::SetEdgePreprocessingExponentValue(double x)
+{
+  EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
+  eps->SetRemappingExponent(x);
+}
+
+
+bool
+SnakeWizardModel
+::GetEdgePreprocessingPreviewValue(bool &value)
+{
+  if(!AreEdgePreprocessingModelsActive())
+    return false;
+
+  value = m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_EDGE)->IsPreviewMode();
+  return true;
+}
+
+void
+SnakeWizardModel
+::SetEdgePreprocessingPreviewValue(bool value)
+{
+  assert(AreEdgePreprocessingModelsActive());
+  m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_EDGE)->SetPreviewMode(value);
+}
+
+
+
+void SnakeWizardModel
+::EvaluateEdgePreprocessingFunction(unsigned int n, float *x, float *y)
+{
+  assert(m_Driver->IsSnakeModeActive());
+
+  EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
+  GreyImageWrapperBase *grey = m_Driver->GetSNAPImageData()->GetGrey();
+  SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
+
+  // Get the range of gradient magnitude in native units
+  double xlim = grey->GetImageGradientMagnitudeUpperLimitNative();
+  EdgeRemappingFunctor<float> functor;
+  functor.SetParameters(0, xlim,
+                        eps->GetRemappingExponent(),
+                        eps->GetRemappingSteepness());
+
+  for(int i = 0; i < n; i++)
+    {
+    float t = i * 1.0 / (n - 1);
+    float x_internal = t * xlim;
+    x[i] = grey->GetNativeMapping().MapInternalToNative(x_internal);
+    y[i] = speed->GetNativeMapping().MapInternalToNative(functor(x_internal));
+    }
 }
 
 void SnakeWizardModel::ApplyThresholdPreprocessing()
@@ -283,24 +477,6 @@ void SnakeWizardModel::ApplyThresholdPreprocessing()
 
   // Invoke an event so we get a screen update
   InvokeEvent(ModelUpdateEvent());
-}
-
-bool SnakeWizardModel::GetThresholdPreviewValue(bool &value)
-{
-  if(m_Driver->IsSnakeModeActive())
-    {
-    value = m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD)
-        ->IsPreviewMode();
-    return true;
-    }
-  else return false;
-}
-
-void SnakeWizardModel::SetThresholdPreviewValue(bool value)
-{
-  assert(m_Driver->IsSnakeModeActive());
-  m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD)
-      ->SetPreviewMode(value);
 }
 
 bool SnakeWizardModel::GetSnakeTypeValueAndRange(

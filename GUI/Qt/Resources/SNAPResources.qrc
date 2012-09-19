@@ -50,5 +50,6 @@
         <file>media-seek-backward-4.png</file>
         <file>media-skip-forward-4.png</file>
         <file>media-playback-singlestep.png</file>
+        <file>edgefunction.png</file>
     </qresource>
 </RCC>

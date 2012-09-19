@@ -5,8 +5,10 @@
 
 #include "SmoothBinaryThresholdImageFilter.h"
 #include "EdgePreprocessingImageFilter.h"
+#include "itkStreamingImageFilter.h"
 #include <IRISSlicer.h>
 #include <ColorMap.h>
+#include <itkTimeProbe.h>
 
 
 template <class TFilterConfigTraits>
@@ -17,8 +19,17 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
 
   // Allocate the volume filter and the preview filters
   m_VolumeFilter = FilterType::New();
+  m_VolumeFilter->ReleaseDataFlagOn();
+
   for(int i = 0; i < 3; i++)
     m_PreviewFilter[i] = FilterType::New();
+
+  // Allocate the streamer and attach to the volume filter
+  m_VolumeStreamer = Streamer::New();
+  m_VolumeStreamer->SetInput(m_VolumeFilter->GetOutput());
+
+  // Set up a streaming filter to reduce the memory footprint during execution
+  m_VolumeStreamer->SetNumberOfStreamDivisions(9);
 }
 
 template <class TFilterConfigTraits>
@@ -77,7 +88,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
       }
 
     // Undo the graft
-    m_VolumeFilter->GraftOutput(m_VolumeFilter->GetOutput());
+    m_VolumeStreamer->GraftOutput(m_VolumeStreamer->GetOutput());
     }
 
   m_OutputWrapper = NULL;
@@ -116,24 +127,31 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
   // Attach the progress monitor
   unsigned long tag = 0;
 
+  itk::TimeProbe probe;
+
+
   if(progress)
-    tag = m_VolumeFilter->AddObserver(itk::ProgressEvent(), progress);
+    tag = m_VolumeStreamer->AddObserver(itk::ProgressEvent(), progress);
 
   // Temporarily graft the target volume as output of the filter
-  m_VolumeFilter->GraftOutput(m_OutputWrapper->GetImage());
+  m_VolumeStreamer->GraftOutput(m_OutputWrapper->GetImage());
 
   // Execute the preprocessing on the whole image extent
-  m_VolumeFilter->UpdateLargestPossibleRegion();
+  probe.Start();
+  m_VolumeStreamer->UpdateLargestPossibleRegion();
+  probe.Stop();
+  std::cout << "Time Elapsed: " << probe.GetTotal() << std::endl;
 
   // Remove the progress monitor
   if(progress)
-    m_VolumeFilter->RemoveObserver(tag);
+    m_VolumeStreamer->RemoveObserver(tag);
+
+  // Undo the graft
+  m_VolumeStreamer->GraftOutput(m_VolumeStreamer->GetOutput());
 
   // Update the m-time of the output image
   m_OutputWrapper->GetImage()->Modified();
-
-  // Undo the graft
-  m_VolumeFilter->GraftOutput(m_VolumeFilter->GetOutput());
+  m_OutputWrapper->GetImage()->DisconnectPipeline();
 }
 
 template <class TFilterConfigTraits>

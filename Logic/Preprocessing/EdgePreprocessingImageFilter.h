@@ -36,16 +36,17 @@
 #define __EdgePreprocessingFilter_h_
 
 #include "itkCommand.h"
-#include "itkCastImageFilter.h"
-#include "itkImage.h"
-#include "itkDiscreteGaussianImageFilter.h"
-#include "itkGradientMagnitudeImageFilter.h"
-#include "itkImageAdaptor.h"
-#include "itkMinimumMaximumImageCalculator.h"
-#include "itkProgressAccumulator.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkUnaryFunctorImageFilter.h"
+#include "itkImageToImageFilter.h"
 #include "EdgePreprocessingSettings.h"
+
+namespace itk {
+  template <class TIn, class TOut> class DiscreteGaussianImageFilter;
+  template <class TIn, class TOut> class GradientMagnitudeImageFilter;
+  template <class TIn, class TOut, class Fun> class UnaryFunctorImageFilter;
+  template <class TIn, class TOut> class StreamingImageFilter;
+  template <class TIn, class TOut> class CastImageFilter;
+}
+
 
 /**
  * The g() function that remaps the gradient magnitude image to the 
@@ -121,14 +122,16 @@ public:
   /** Pixel Type of the output image */
   typedef TOutputImage                                  OutputImageType;
   typedef itk::SmartPointer<OutputImageType>         OutputImagePointer;
+  typedef typename Superclass::OutputImageRegionType
+                                                  OutputImageRegionType;
 
   /** Type used for internal calculations */
   typedef float                                                RealType;
-  typedef itk::Image<RealType,3>              InternalImageType;
+  typedef itk::Image<RealType,3>                      InternalImageType;
   typedef itk::SmartPointer<InternalImageType>     InternalImagePointer;
 
   /** Functor type used for thresholding */
-  typedef EdgeRemappingFunctor<RealType>    FunctorType;
+  typedef EdgeRemappingFunctor<RealType>                    FunctorType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self)
@@ -140,6 +143,11 @@ public:
   /** Assign new edge processing settings */
   void SetParameters(EdgePreprocessingSettings *parameters);
 
+  /** Set the maximum possible value of the gradient magnitude of the input
+    image. This should be computed by applying a gradient magnitude filter
+    to the input image. Must be provided for the filter to work. */
+  itkSetMacro(InputImageMaximumGradientMagnitude, double)
+
   /** Get the parameters pointer */
   EdgePreprocessingSettings *GetParameters();
 
@@ -150,7 +158,7 @@ protected:
   void PrintSelf(std::ostream& os, itk::Indent indent) const;
   
   /** Generate Data */
-  void GenerateData( void );
+  void GenerateData();
 
   /** 
    * This method maps an input region to an output region.  It's necessary to
@@ -160,48 +168,24 @@ protected:
 
 private:
 
-  /** The unary functor filter type used for remapping */
-  typedef itk::UnaryFunctorImageFilter<
-    InternalImageType,TOutputImage,FunctorType>      RemappingFilterType;
-  typedef typename RemappingFilterType::Pointer   RemappingFilterPointer;
-  
-  /** The min / max calculator used to compute gradient range */
-  typedef itk::MinimumMaximumImageCalculator<
-    InternalImageType>                                    CalculatorType;
-  typedef typename CalculatorType::Pointer             CalculatorPointer;
+  double m_InputImageMaximumGradientMagnitude;
 
-  /** Adaptor used to cast to float */
-  typedef itk::CastImageFilter<
-    InputImageType,InternalImageType>                     CastFilterType;
-  typedef typename CastFilterType::Pointer             CastFilterPointer;
-  
-  /** Gaussian smoothing filter */
-  typedef itk::DiscreteGaussianImageFilter<
-    InternalImageType,InternalImageType>              GaussianFilterType;
-  typedef typename GaussianFilterType::Pointer     GaussianFilterPointer;
-  
-  /** Gradient magnitude filter */
-  typedef itk::GradientMagnitudeImageFilter<
-    InternalImageType,InternalImageType>              GradientFilterType;
-  typedef typename GradientFilterType::Pointer     GradientFilterPointer;
+  typedef itk::CastImageFilter<InputImageType, InternalImageType>   CastFilter;
 
-  /** Intensity rescaling filter */
-  typedef itk::RescaleIntensityImageFilter<
-    InternalImageType,InternalImageType>               RescaleFilterType;
-  typedef typename RescaleFilterType::Pointer       RescaleFilterPointer;
-  
-  /** Progress accumulator object */
-  typedef itk::ProgressAccumulator::Pointer           AccumulatorPointer;
+  typedef itk::DiscreteGaussianImageFilter<InternalImageType,
+                                           InternalImageType>       BlurFilter;
 
-  CastFilterPointer         m_CastFilter;
-  RemappingFilterPointer    m_RemappingFilter;
-  GaussianFilterPointer     m_GaussianFilter;
-  GradientFilterPointer     m_GradientFilter;
-  CalculatorPointer         m_Calculator;
-  RescaleFilterPointer      m_RescaleFilter;
+  typedef itk::GradientMagnitudeImageFilter<InternalImageType,
+                                            InternalImageType>   GradMagFilter;
 
-  /** Progress tracking object */
-  AccumulatorPointer        m_ProgressAccumulator;
+  typedef itk::UnaryFunctorImageFilter<InternalImageType,
+                                       OutputImageType,
+                                       FunctorType>                RemapFilter;
+
+  SmartPtr<CastFilter> m_CastFilter;
+  SmartPtr<BlurFilter> m_BlurFilter;
+  SmartPtr<GradMagFilter> m_GradMagFilter;
+  SmartPtr<RemapFilter> m_RemapFilter;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

@@ -6,6 +6,7 @@
 
 class SnakeWizardModel;
 class ThresholdSettingsRenderer;
+class EdgePreprocessingSettingsRenderer;
 
 namespace Ui {
 class SpeedImageDialog;
@@ -21,7 +22,10 @@ public:
 
   void SetModel(SnakeWizardModel *model);
 
-  void showEvent(QShowEvent *event);
+  /** Make the appropriate pages available based on the state of the model
+    and show the dialog */
+  void SetPageAndShow();
+
   void closeEvent(QCloseEvent *event);
 
 private slots:
@@ -31,7 +35,9 @@ private slots:
 
   void on_btnClose_clicked();
 
-  void on_tabWidget_currentChanged(int index);
+  void on_tabWidgetEdge_currentChanged(int index);
+
+  void on_tabWidgetInOut_currentChanged(int index);
 
 private:
   Ui::SpeedImageDialog *ui;
@@ -42,6 +48,8 @@ private:
   // TODO: it seems wrong to have the Qt classes own renderer objects,
   // perhaps this should be owned by the model instead?
   SmartPtr<ThresholdSettingsRenderer> m_ThresholdRenderer;
+
+  SmartPtr<EdgePreprocessingSettingsRenderer> m_EdgeSettingsRenderer;
 };
 
 #endif // SPEEDIMAGEDIALOG_H

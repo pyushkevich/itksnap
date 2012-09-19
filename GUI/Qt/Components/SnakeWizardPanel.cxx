@@ -67,7 +67,7 @@ SnakeWizardPanel::~SnakeWizardPanel()
 void SnakeWizardPanel::on_btnPreprocess_clicked()
 {
   // Show the appropriately configured preprocessing dialog
-  m_SpeedDialog->show();
+  m_SpeedDialog->SetPageAndShow();
 }
 
 void SnakeWizardPanel::SetModel(GlobalUIModel *model)

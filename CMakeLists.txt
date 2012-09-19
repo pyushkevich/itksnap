@@ -265,6 +265,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/AbstractVTKSceneRenderer.cxx
   GUI/Renderer/ColorMapRenderer.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
+  GUI/Renderer/EdgePreprocessingSettingsRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
   GUI/Renderer/Generic3DRenderer.cxx
   GUI/Renderer/IntensityCurveRenderer.cxx
@@ -310,6 +311,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/AbstractVTKSceneRenderer.h
   GUI/Renderer/ColorMapRenderer.h
   GUI/Renderer/CrosshairsRenderer.h
+  GUI/Renderer/EdgePreprocessingSettingsRenderer.h
   GUI/Renderer/Generic3DRenderer.h
   GUI/Renderer/GenericSliceRenderer.h
   GUI/Renderer/IntensityCurveRenderer.h
@@ -343,6 +345,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/ViewPanel3D.cxx
   GUI/Qt/Components/VoxelIntensityQTableModel.cxx
   GUI/Qt/Components/ZoomInspector.cxx
+  GUI/Qt/Testing/SNAPTestQt.cxx
   GUI/Qt/View/ColorMapBox.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
   GUI/Qt/View/GenericSliceView.cxx
@@ -427,6 +430,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Coupling/QtSpinBoxCoupling.h
   GUI/Qt/Coupling/QtTableWidgetCoupling.h
   GUI/Qt/Coupling/QtWidgetArrayCoupling.h
+  GUI/Qt/Testing/SNAPTestQt.h
 )
 
 SET(UI_FORMS
@@ -528,6 +532,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Qt
     ${SNAP_SOURCE_DIR}/GUI/Qt/Components
     ${SNAP_SOURCE_DIR}/GUI/Qt/Coupling
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Testing
     ${SNAP_SOURCE_DIR}/GUI/Qt/View
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows
     ${SNAP_SOURCE_DIR}/Testing
@@ -551,6 +556,7 @@ ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Vis
 # ITK Libraries
 SET(SNAP_ITK_LIBS
   ${ITK_LIBRARIES}
+
 )
 
 # Core VTK libraries

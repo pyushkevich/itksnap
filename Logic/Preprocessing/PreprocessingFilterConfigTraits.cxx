@@ -68,6 +68,8 @@ EdgePreprocessingFilterConfigTraits
 ::AttachInputs(SNAPImageData *sid, FilterType *filter)
 {
   filter->SetInput(sid->GetGrey()->GetImage());
+  filter->SetInputImageMaximumGradientMagnitude(
+        sid->GetGrey()->GetImageGradientMagnitudeUpperLimit());
 }
 
 void

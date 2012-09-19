@@ -25,6 +25,7 @@
 #include "ImageIODelegates.h"
 
 #include <iostream>
+#include "SNAPTestQt.h"
 
 using namespace std;
 
@@ -81,10 +82,13 @@ void usage()
   cout << "   -c <a|c|s>          : Launch in compact single-slice mode " << endl;
   cout << "                         (axial, coronal, sagittal)" << endl;
   cout << "   -z FACTOR           : Specify initial zoom in screen pixels/mm" << endl;
-  cout << "Debugging Options" << endl;
+  cout << "Debugging/Testing Options" << endl;
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events      : Dump information regarding UI events" << endl;
 #endif<
+  cout << "   --test list         : List available tests. " << endl;
+  cout << "   --test TESTID       : Execute a test. " << endl;
+  cout << "   --testdir DIR       : Set the root directory for tests. " << endl;
 }
 
 void setupParser(CommandLineArgumentParser &parser)
@@ -119,6 +123,9 @@ void setupParser(CommandLineArgumentParser &parser)
   parser.AddSynonim("--help", "-h");
 
   parser.AddOption("--debug-events", 0);
+
+  parser.AddOption("--test", 1);
+  parser.AddOption("--testdir", 1);
 }
 
 #include <QScriptEngine>
@@ -414,6 +421,18 @@ int main(int argc, char *argv[])
 
   // Show the panel
   mainwin.show();
+
+
+  if(parseResult.IsOptionPresent("--test"))
+    {
+    std::string root = ".";
+    if(parseResult.IsOptionPresent("--testdir"))
+      root = parseResult.GetOptionParameter("--testdir");
+
+    SNAPTestQt tester;
+    tester.Initialize(&mainwin, gui, root);
+    tester.RunTest(parseResult.GetOptionParameter("--test"));
+    }
 
   // Run application
   int rc = app.exec();

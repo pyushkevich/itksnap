@@ -22,6 +22,7 @@ public:
   // This is a complex model, so there is some granularization over
   // the model update events that it fires.
   itkEventMacro(ThresholdSettingsUpdateEvent, IRISEvent)
+  itkEventMacro(EdgePreprocessingSettingsUpdateEvent, IRISEvent)
 
   itkEventMacro(ActiveBubbleUpdateEvent, IRISEvent)
   itkEventMacro(BubbleListUpdateEvent, IRISEvent)
@@ -29,6 +30,7 @@ public:
   itkEventMacro(EvolutionIterationEvent, IRISEvent)
 
   FIRES(ThresholdSettingsUpdateEvent)
+  FIRES(EdgePreprocessingSettingsUpdateEvent)
   FIRES(ActiveBubbleUpdateEvent)
   FIRES(BubbleListUpdateEvent)
   FIRES(BubbleDefaultRadiusUpdateEvent)
@@ -44,6 +46,7 @@ public:
     UIF_THESHOLDING_ENABLED,
     UIF_LOWER_THRESHOLD_ENABLED,
     UIF_UPPER_THRESHOLD_ENABLED,
+    UIF_EDGEPROCESSING_ENABLED,
     UIF_SPEED_AVAILABLE,              // Has speed volume been computed?
     UIF_PREPROCESSING_ACTIVE,         // Is the preprocessing dialog open?
     UIF_BUBBLE_SELECTED,
@@ -69,6 +72,12 @@ public:
   irisGetMacro(ThresholdModeModel, AbstractThresholdModeModel *)
   irisGetMacro(ThresholdPreviewModel, AbstractSimpleBooleanProperty *)
 
+  // Models for the edge-based preprocessing
+  irisGetMacro(EdgePreprocessingSigmaModel, AbstractRangedDoubleProperty *)
+  irisGetMacro(EdgePreprocessingKappaModel, AbstractRangedDoubleProperty *)
+  irisGetMacro(EdgePreprocessingExponentModel, AbstractRangedDoubleProperty *)
+  irisGetMacro(EdgePreprocessingPreviewModel, AbstractSimpleBooleanProperty *)
+
   // Model for bubble selection
   irisGetMacro(ActiveBubbleModel, AbstractActiveBubbleProperty *)
 
@@ -86,7 +95,10 @@ public:
   bool CheckState(UIState state);
 
   /** Evaluate the threshold function so it can be plotted for the user */
-  void EvaluateThresholdFunction(double t, double &x, double &y);
+  void EvaluateThresholdFunction(unsigned int x, float *x, float *y);
+
+  /** Evaluate the threshold function so it can be plotted for the user */
+  void EvaluateEdgePreprocessingFunction(unsigned int n, float *x, float *y);
 
   /** Perform the preprocessing based on thresholds */
   void ApplyThresholdPreprocessing();
@@ -149,6 +161,22 @@ protected:
   bool GetThresholdPreviewValue(bool &value);
   void SetThresholdPreviewValue(bool value);
 
+  SmartPtr<AbstractRangedDoubleProperty> m_EdgePreprocessingSigmaModel;
+  bool GetEdgePreprocessingSigmaValueAndRange(double &x, NumericValueRange<double> *range);
+  void SetEdgePreprocessingSigmaValue(double x);
+
+  SmartPtr<AbstractRangedDoubleProperty> m_EdgePreprocessingExponentModel;
+  bool GetEdgePreprocessingExponentValueAndRange(double &x, NumericValueRange<double> *range);
+  void SetEdgePreprocessingExponentValue(double x);
+
+  SmartPtr<AbstractRangedDoubleProperty> m_EdgePreprocessingKappaModel;
+  bool GetEdgePreprocessingKappaValueAndRange(double &x, NumericValueRange<double> *range);
+  void SetEdgePreprocessingKappaValue(double x);
+
+  SmartPtr<AbstractSimpleBooleanProperty> m_EdgePreprocessingPreviewModel;
+  bool GetEdgePreprocessingPreviewValue(bool &value);
+  void SetEdgePreprocessingPreviewValue(bool value);
+
   SmartPtr<AbstractSnakeTypeModel> m_SnakeTypeModel;
   bool GetSnakeTypeValueAndRange(SnakeType &value, GlobalState::SnakeTypeDomain *range);
   void SetSnakeTypeValue(SnakeType value);
@@ -165,6 +193,10 @@ protected:
 
   SmartPtr<AbstractSimpleIntProperty> m_EvolutionIterationModel;
   int GetEvolutionIterationValue();
+
+  // Helper function to check if particular set of models is active
+  bool AreThresholdModelsActive();
+  bool AreEdgePreprocessingModelsActive();
 
   // Compute range and def value of radius based on ROI dimensions
   void ComputeBubbleRadiusDefaultAndRange();

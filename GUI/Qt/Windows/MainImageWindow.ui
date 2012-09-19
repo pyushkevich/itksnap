@@ -88,8 +88,8 @@
      <addaction name="actionScreenshot"/>
      <addaction name="actionScreenshot_Series"/>
     </widget>
-    <addaction name="actionOpen_Greyscale_Image"/>
-    <addaction name="actionOpen_RGB_Image"/>
+    <addaction name="actionOpenGrey"/>
+    <addaction name="actionOpenRGB"/>
     <addaction name="menuRecent_Images"/>
     <addaction name="separator"/>
     <addaction name="menuSave_Image"/>
@@ -124,7 +124,7 @@
    <addaction name="menuOverlay"/>
    <addaction name="menuTools"/>
   </widget>
-  <action name="actionOpen_Greyscale_Image">
+  <action name="actionOpenGrey">
    <property name="text">
     <string>Open Greyscale Image ...</string>
    </property>
@@ -148,7 +148,7 @@
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="actionOpen_RGB_Image">
+  <action name="actionOpenRGB">
    <property name="text">
     <string>Open RGB Image...</string>
    </property>
