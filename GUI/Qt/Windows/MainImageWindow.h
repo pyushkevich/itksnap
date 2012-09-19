@@ -72,7 +72,7 @@ public slots:
   void onModelUpdate(const EventBucket &b);
 
 private slots:
-  void on_actionOpen_Greyscale_Image_triggered();
+  void on_actionOpenGrey_triggered();
 
   void on_actionQuit_triggered();
 

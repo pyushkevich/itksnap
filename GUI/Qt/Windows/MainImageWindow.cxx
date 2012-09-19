@@ -183,7 +183,7 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
     return NULL;
 }
 
-void MainImageWindow::on_actionOpen_Greyscale_Image_triggered()
+void MainImageWindow::on_actionOpenGrey_triggered()
 {
   // TODO: Prompt for changes to segmentation to be saved
 
