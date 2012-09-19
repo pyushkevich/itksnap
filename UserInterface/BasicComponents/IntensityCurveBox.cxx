@@ -373,6 +373,11 @@ IntensityCurveBox
   GreyImageWrapper::ConstIterator it = source->GetImageConstIterator();
   for(it.GoToBegin();!it.IsAtEnd();++it)
     {
+      double dbVal = it.Value();
+      double dbDiff = ((double)(it.Value())-(double)(iAbsMin));
+      if((dbDiff >= nFrequencies) || (dbDiff < 0)) {
+        int indy = 1;
+      }
     frequency[it.Value()-iAbsMin]++;
     }
 

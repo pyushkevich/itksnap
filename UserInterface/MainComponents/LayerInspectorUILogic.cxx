@@ -163,6 +163,7 @@ void
 LayerInspectorUILogic
 ::DisplayImageInfoTab()
 {
+  OnLayerSelectionUpdate();
   m_BoxCurve->hide();
   m_BoxColorMap->hide();
   m_WinLayerUI->show();

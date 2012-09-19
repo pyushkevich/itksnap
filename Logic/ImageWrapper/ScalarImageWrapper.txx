@@ -65,6 +65,8 @@ ScalarImageWrapper<TPixel>
   // Update the max-min pipeline once we have one setup
   m_MinMaxCalc = MinMaxCalculatorType::New();
   m_MinMaxCalc->SetImage(newImage);
+  
+  m_MinMaxCalc->SetRegion(newImage->GetLargestPossibleRegion());
 
   ImageWrapper<TPixel>::UpdateImagePointer(newImage);
 }
