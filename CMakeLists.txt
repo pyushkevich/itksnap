@@ -189,6 +189,7 @@ SET(LOGIC_HEADERS
   Logic/Framework/UndoDataManager.txx
   Logic/ImageWrapper/ContinuousScalarImageWrapper.h
   Logic/ImageWrapper/GreyImageWrapper.h
+  Logic/ImageWrapper/GuidedNativeImageIO.h
   Logic/ImageWrapper/ImageIORoutines.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
