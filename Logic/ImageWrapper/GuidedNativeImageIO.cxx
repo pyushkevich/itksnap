@@ -1184,9 +1184,16 @@ gdcm::SmartPointer < gdcm::Scanner > GuidedNativeImageIO::Scan(
   for(itFN = filenames.begin(); itFN != filenames.end(); itFN++)
     {
     string strFileName = *itFN;
-  
-    string strTagSeriesInstanceUID = getTag(pScanner, m_tagSeriesInstanceUID, strFileName);
-
+    string strTagSeriesInstanceUID;
+    try
+      {
+      strTagSeriesInstanceUID = getTag(pScanner, m_tagSeriesInstanceUID, strFileName);
+      }
+    catch(IRISException &exc)
+      {
+        continue;
+      }
+      
     DICOMFileInfo dfi;
 
       
@@ -1207,6 +1214,11 @@ gdcm::SmartPointer < gdcm::Scanner > GuidedNativeImageIO::Scan(
       }
     arrDFIs.push_back(dfi);
     }
+  
+  if( amap_UID_FileNames.size() == 0 )
+  {
+    throw IRISException("Error: no DICOM file detected");
+  }
   
   map < string, vector< DICOMFileInfo > >::iterator it_UID_DFI;
   for(it_UID_DFI = amap_UID_FileNames.begin(); it_UID_DFI != amap_UID_FileNames.end(); it_UID_DFI++)

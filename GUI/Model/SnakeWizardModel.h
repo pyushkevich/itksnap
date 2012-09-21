@@ -95,7 +95,7 @@ public:
   bool CheckState(UIState state);
 
   /** Evaluate the threshold function so it can be plotted for the user */
-  void EvaluateThresholdFunction(unsigned int x, float *x, float *y);
+  void EvaluateThresholdFunction(unsigned int n, float *x, float *y);
 
   /** Evaluate the threshold function so it can be plotted for the user */
   void EvaluateEdgePreprocessingFunction(unsigned int n, float *x, float *y);
