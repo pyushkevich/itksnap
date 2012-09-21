@@ -50,16 +50,24 @@ class ColorMap;
  * Adds ability to remap intensity from short to byte using an
  * arbitrary function when outputing slices.
  */
-template <class TPixel>
-class GreyImageWrapper
-    : public ScalarImageWrapper<TPixel>, public GreyImageWrapperBase
+template <class TPixel, class TBase = GreyImageWrapperBase>
+class GreyImageWrapper : public ScalarImageWrapper<TPixel, TBase>
 {
 public:
 
-  typedef typename ScalarImageWrapper<TPixel>::ImageType ImageType;
-  typedef typename ScalarImageWrapper<TPixel>::SliceType SliceType;
-  typedef typename ScalarImageWrapper<TPixel>::DisplaySliceType DisplaySliceType;
-  typedef typename ScalarImageWrapper<TPixel>::DisplaySlicePointer DisplaySlicePointer;
+  // Standard ITK business
+  typedef GreyImageWrapper<TPixel, TBase>                                 Self;
+  typedef ScalarImageWrapper<TPixel, TBase>                         Superclass;
+  typedef SmartPtr<Self>                                               Pointer;
+  typedef SmartPtr<const Self>                                    ConstPointer;
+  itkTypeMacro(GreyImageWrapper, ScalarImageWrapper)
+  itkNewMacro(Self)
+
+  // Types inherited from parent
+  typedef typename Superclass::ImageType                             ImageType;
+  typedef typename Superclass::SliceType                             SliceType;
+  typedef typename Superclass::DisplaySliceType               DisplaySliceType;
+  typedef typename Superclass::DisplaySlicePointer         DisplaySlicePointer;
 
     
   /**
@@ -107,15 +115,16 @@ public:
   void AutoFitContrast();
 
 
+protected:
+
   /** Constructor initializes mappers */
   GreyImageWrapper();
 
   /** Destructor */
   ~GreyImageWrapper();
 
-protected:
-
   // Lookup table
+  typedef typename Superclass::DisplayPixelType              DisplayPixelType;
   typedef itk::Image<DisplayPixelType, 1>                     LookupTableType;
 
   // Filter that generates the lookup table

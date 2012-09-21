@@ -44,7 +44,6 @@ IRISImageData
 
 IRISImageData::~IRISImageData()
 {
-  delete m_UndoWrapper;
 }
 
 void
@@ -74,8 +73,7 @@ IRISImageData
 {
   GenericImageData::SetGreyImage(newGreyImage, newGeometry, native);
 
-  delete m_UndoWrapper;
-  m_UndoWrapper = new LabelImageWrapper();
+  m_UndoWrapper = LabelImageWrapper::New();
   m_UndoWrapper->InitializeToWrapper(m_LabelWrapper, (LabelType) 0);
 }
 
@@ -86,8 +84,7 @@ IRISImageData
 {
   GenericImageData::SetRGBImage(newRGBImage, newGeometry);
 
-  delete m_UndoWrapper;
-  m_UndoWrapper = new LabelImageWrapper();
+  m_UndoWrapper = LabelImageWrapper::New();
   m_UndoWrapper->InitializeToWrapper(m_LabelWrapper, (LabelType) 0);
 }
 
@@ -97,7 +94,6 @@ IRISImageData
 {
   GenericImageData::UnloadMainImage();
 
-  delete m_UndoWrapper;
   m_UndoWrapper = NULL;
 }
 

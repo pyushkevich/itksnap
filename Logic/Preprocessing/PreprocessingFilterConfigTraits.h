@@ -47,6 +47,7 @@ public:
 
   typedef SNAPImageData::GreyImageType GreyType;
   typedef SNAPImageData::SpeedImageType SpeedType;
+  typedef SpeedImageWrapper OutputWrapperType;
 
   typedef SmoothBinaryThresholdImageFilter<GreyType, SpeedType> FilterType;
   typedef ThresholdSettings ParameterType;
@@ -61,6 +62,7 @@ public:
 
   typedef SNAPImageData::GreyImageType GreyType;
   typedef SNAPImageData::SpeedImageType SpeedType;
+  typedef SpeedImageWrapper OutputWrapperType;
 
   typedef EdgePreprocessingImageFilter<GreyType, SpeedType> FilterType;
   typedef EdgePreprocessingSettings ParameterType;

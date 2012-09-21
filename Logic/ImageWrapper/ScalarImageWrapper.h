@@ -52,13 +52,17 @@ namespace itk {
  * is used to unify the treatment of different kinds of scalar images in
  * SNaP.  
  */
-template<class TPixel> class ScalarImageWrapper
-    : public virtual ImageWrapper<TPixel>, public virtual ScalarImageWrapperBase
+template<class TPixel, class TBase = ScalarImageWrapperBase>
+class ScalarImageWrapper : public ImageWrapper<TPixel, TBase>
 {
 public:
 
-  // Basic type definitions
-  typedef ImageWrapper<TPixel> Superclass;
+  // Standard ITK business
+  typedef ScalarImageWrapper<TPixel, TBase>                               Self;
+  typedef ImageWrapper<TPixel, TBase>                               Superclass;
+  typedef SmartPtr<Self>                                               Pointer;
+  typedef SmartPtr<const Self>                                    ConstPointer;
+  itkTypeMacro(ScalarImageWrapper, ImageWrapper)
 
   // Image Types
   typedef typename Superclass::ImageType ImageType;
@@ -78,20 +82,6 @@ public:
   // Iterator types
   typedef typename Superclass::Iterator Iterator;
   typedef typename Superclass::ConstIterator ConstIterator;
-
-  /** 
-   * Default constructor.  Creates an image wrapper with a blank internal 
-   * image 
-   */
-  ScalarImageWrapper();
-
-  /** 
-   * Copy constructor.  Copies the contents of the passed-in image wrapper. 
-   */
-  ScalarImageWrapper(const ScalarImageWrapper<TPixel> &copy);
-  
-  /** Destructor */
-  virtual ~ScalarImageWrapper();
 
   virtual bool IsScalar() const { return true; }
 
@@ -222,6 +212,20 @@ public:
   const ScalarImageHistogram *GetHistogram(size_t nBins = 0);
 
 protected:
+
+  /**
+   * Default constructor.  Creates an image wrapper with a blank internal
+   * image
+   */
+  ScalarImageWrapper();
+
+  /**
+   * Copy constructor.  Copies the contents of the passed-in image wrapper.
+   */
+  ScalarImageWrapper(const Self &copy);
+
+  /** Destructor */
+  virtual ~ScalarImageWrapper();
 
   /** 
    * The min-max filter used to compute the range of the image on demand.

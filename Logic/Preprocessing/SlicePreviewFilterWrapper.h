@@ -5,8 +5,7 @@
 #include "itkDataObject.h"
 #include "itkObjectFactory.h"
 
-template <class TPixel> class ImageWrapper;
-template <class TPixel> class ScalarImageWrapper;
+class ImageWrapperBase;
 template <class TPixel> class IRISSlicer;
 
 namespace itk {
@@ -56,9 +55,11 @@ protected:
 
   The traits object must define the following types
 
-    FilterType      The filter that encapsulates the preprocessing pipeline
+    FilterType         The filter that encapsulates the preprocessing pipeline
 
-    ParameterType   The parameters passed to the filter
+    ParameterType      The parameters passed to the filter
+
+    OutputWrapperType  The type of wrapper these filters connect to
 
   The traits object must also define the following functions
 
@@ -116,7 +117,7 @@ public:
   typedef typename FilterType::OutputImageType              OutputImageType;
   typedef typename OutputImageType::PixelType               OutputPixelType;
 
-  typedef ImageWrapper<OutputPixelType>                   OutputWrapperType;
+  typedef typename TFilterConfigTraits::OutputWrapperType OutputWrapperType;
   typedef IRISSlicer<OutputPixelType>                            SlicerType;
 
   typedef typename TFilterConfigTraits::ParameterType         ParameterType;

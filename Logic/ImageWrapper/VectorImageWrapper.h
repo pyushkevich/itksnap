@@ -26,13 +26,17 @@
  * is used to unify the treatment of different kinds of vector images in
  * SNaP.  
  */
-template<class TPixel> class VectorImageWrapper
-    : public virtual ImageWrapper<TPixel>, public virtual VectorImageWrapperBase
+template<class TPixel, class TBase = VectorImageWrapperBase>
+class VectorImageWrapper : public ImageWrapper<TPixel, TBase>
 {
 public:
 
-  // Basic type definitions
-  typedef ImageWrapper<TPixel> Superclass;
+  // Standard ITK business
+  typedef VectorImageWrapper<TPixel, TBase>                               Self;
+  typedef ImageWrapper<TPixel, TBase>                                Superclass;
+  typedef SmartPtr<Self>                                               Pointer;
+  typedef SmartPtr<const Self>                                    ConstPointer;
+  itkTypeMacro(VectorImageWrapper, ImageWrapper)
 
   // Image Types
   typedef typename Superclass::ImageType ImageType;
@@ -49,21 +53,6 @@ public:
   // Iterator types
   typedef typename Superclass::Iterator Iterator;
   typedef typename Superclass::ConstIterator ConstIterator;
-
-  /** 
-   * Default constructor.  Creates an image wrapper with a blank internal 
-   * image 
-   */
-  VectorImageWrapper() : ImageWrapper<TPixel>() {}
-
-  /** 
-   * Copy constructor.  Copies the contents of the passed-in image wrapper. 
-   */
-  VectorImageWrapper(const VectorImageWrapper<TPixel> &copy)
-    : ImageWrapper<TPixel>(copy) {}
-  
-  /** Destructor */
-  virtual ~VectorImageWrapper() {}
 
   virtual bool IsScalar() const { return false; }
 
@@ -104,6 +93,19 @@ public:
 
 protected:
 
+  /**
+   * Default constructor.  Creates an image wrapper with a blank internal
+   * image
+   */
+  VectorImageWrapper() {}
+
+  /**
+   * Copy constructor.  Copies the contents of the passed-in image wrapper.
+   */
+  VectorImageWrapper(const Self &copy) : Superclass(copy) {}
+
+  /** Destructor */
+  virtual ~VectorImageWrapper() {}
 };
 
 #endif // __VectorImageWrapper_h_

@@ -41,7 +41,6 @@
 
 SpeedImageWrapper
 ::SpeedImageWrapper()
-: GreyImageWrapper<short> ()
 {
   // Initialize to Edge mode
   m_IsModeInsideOutside = false;

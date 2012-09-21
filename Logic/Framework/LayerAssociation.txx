@@ -34,32 +34,38 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
       {
       ImageWrapperBase *wb = lit.GetLayer();
       TFilter *wf = dynamic_cast<TFilter *>(wb);
+      std::cout << "Considering " << wf << std::endl;
       if(wf && wf->IsInitialized())
         {
-        iterator it = this->find(wf);
-        if(it != this->end())
+        std::cout << "  it is initialized! " << std::endl;
+
+        iterator it = m_LayerMap.find(wf->GetUniqueId());
+        if(it != m_LayerMap.end())
           {
+          std::cout << "  it was found! " << std::endl;
+
           // Mark it as visited
           it->second.m_Visit = m_VisitCounter;
           }
         else
           {
+          std::cout << "  it is new! " << std::endl;
           RHS rhs(m_Delegate.New(wf));
           rhs.m_Visit = m_VisitCounter;
-          this->insert(std::make_pair(wf, rhs));
+          m_LayerMap.insert(std::make_pair(wf->GetUniqueId(), rhs));
           }
         }
       }
     }
 
   // Safely delete the objects that have not been visited
-  iterator it = this->begin();
-  while(it != this->end())
+  iterator it = m_LayerMap.begin();
+  while(it != m_LayerMap.end())
     {
     if(it->second.m_Visit != m_VisitCounter)
       {
       delete (TObject *) it->second;
-      this->erase(it++);
+      m_LayerMap.erase(it++);
       }
     else
       it++;
@@ -77,5 +83,25 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
     this->Update();
     }
 }
+
+template<class TObject, class TFilter, class TFactoryDelegate>
+typename LayerAssociation<TObject, TFilter, TFactoryDelegate>::RHS &
+LayerAssociation<TObject, TFilter, TFactoryDelegate>
+::operator [] (const TFilter *p)
+{
+  return m_LayerMap[p->GetUniqueId()];
+}
+
+template<class TObject, class TFilter, class TFactoryDelegate>
+bool
+LayerAssociation<TObject, TFilter, TFactoryDelegate>
+::HasLayer(const TFilter *p)
+{
+  std::cout << p << std::endl;
+  if(p)
+    std::cout << p->GetUniqueId() << std::endl;
+  return p && m_LayerMap.find(p->GetUniqueId()) != m_LayerMap.end();
+}
+
 
 #endif // __Layer_Association_txx__

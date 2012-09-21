@@ -26,9 +26,9 @@
 
 #include <iostream>
 
-template <class TPixel>
-typename VectorImageWrapper<TPixel>::ImagePointer
-VectorImageWrapper<TPixel>
+template <class TPixel, class TBase>
+typename VectorImageWrapper<TPixel,TBase>::ImagePointer
+VectorImageWrapper<TPixel,TBase>
 ::DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                  itk::Command *progressCommand) const
 {
@@ -37,22 +37,22 @@ VectorImageWrapper<TPixel>
    return NULL;
 }
 
-template<class TPixel>
+template <class TPixel, class TBase>
 inline double
-VectorImageWrapper<TPixel>
+VectorImageWrapper<TPixel,TBase>
 ::GetVoxelAsDouble(const itk::Index<3> &idx) const
 {
   // By default, return the first component
   return (double) this->GetVoxel(idx)[0];
 }
 
-template<class TPixel>
+template <class TPixel, class TBase>
 inline double
-VectorImageWrapper<TPixel>
+VectorImageWrapper<TPixel,TBase>
 ::GetVoxelAsDouble(const Vector3ui &x) const
 {
   // By default, return the first component
   return (double) this->GetVoxel(x)[0];
 }
 
-template class VectorImageWrapper<RGBType>;
+template class VectorImageWrapper<RGBType, RGBImageWrapperBase>;

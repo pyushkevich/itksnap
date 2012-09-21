@@ -60,45 +60,48 @@ namespace itk {
  * 
  * Image Wrapper serves as a wrapper around an image pointer, and 
  * is used to unify the treatment of different kinds of images in
- * SNaP.  
+ * SNaP. The image wrapper is parameterized by a base class TBase.
+ * This is done to avoid multiple inheritance. TBase must be a
+ * subclass of ImageWrapperBase.
  */
-template<class TPixel> class ImageWrapper
-    : public virtual ImageWrapperBase
+template<class TPixel, class TBase = ImageWrapperBase>
+class ImageWrapper : public TBase
 {
 public:
 
+  // Standard ITK business
+  typedef ImageWrapper<TPixel, TBase>                                     Self;
+  typedef TBase                                                     Superclass;
+  typedef SmartPtr<Self>                                               Pointer;
+  typedef SmartPtr<const Self>                                    ConstPointer;
+  itkTypeMacro(ImageWrapper, TBase)
+
   // Basic type definitions
-  typedef itk::Image<TPixel,3> ImageType;
-  typedef SmartPtr<ImageType> ImagePointer;
+  typedef typename Superclass::ImageBaseType                     ImageBaseType;
+  typedef itk::Image<TPixel,3>                                       ImageType;
+  typedef SmartPtr<ImageType>                                     ImagePointer;
 
   // Slice image type
-  typedef itk::Image<TPixel,2> SliceType;
-  typedef SmartPtr<SliceType> SlicePointer;
+  typedef itk::Image<TPixel,2>                                       SliceType;
+  typedef SmartPtr<SliceType>                                     SlicePointer;
+
+  typedef typename Superclass::DisplayPixelType               DisplayPixelType;
+  typedef typename Superclass::DisplaySliceType               DisplaySliceType;
 
   // Slicer type
-  typedef IRISSlicer<TPixel> SlicerType;
-  typedef SmartPtr<SlicerType> SlicerPointer;
+  typedef IRISSlicer<TPixel>                                        SlicerType;
+  typedef SmartPtr<SlicerType>                                   SlicerPointer;
 
   // Preview source for preview pipelines
-  typedef itk::ImageSource<ImageType> PreviewFilterType;
+  typedef itk::ImageSource<ImageType>                        PreviewFilterType;
 
   // Iterator types
-  typedef typename itk::ImageRegionIterator<ImageType> Iterator;
-  typedef typename itk::ImageRegionConstIterator<ImageType> ConstIterator;
+  typedef typename itk::ImageRegionIterator<ImageType>                Iterator;
+  typedef typename itk::ImageRegionConstIterator<ImageType>      ConstIterator;
 
-  /** 
-   * Default constructor.  Creates an image wrapper with a blank internal 
-   * image 
-   */
-  ImageWrapper();
+  // Other types from parent
+  typedef typename Superclass::TransformType                     TransformType;
 
-  /** 
-   * Copy constructor.  Copies the contents of the passed-in image wrapper. 
-   */
-  ImageWrapper(const ImageWrapper<TPixel> &copy);
-  
-  /** Destructor */
-  virtual ~ImageWrapper();
 
   /**
    * Initialize the image wrapper to match another image wrapper, setting the
@@ -117,8 +120,10 @@ public:
     const ImageWrapperBase *source, ImageType *image);
 
   /**
-   * Initialize the internal image to a blank image of size x,y,z.
-   */
+    Get a unique id for this wrapper. All wrappers ever created have
+    different ids.
+    */
+  irisGetMacro(UniqueId, unsigned long)
 
   /**
    * Clear the data associated with storing an image
@@ -320,9 +325,28 @@ public:
   irisSetStringMacro(Nickname)
   irisGetStringMacro(Nickname)
 
+  // Create a thumbnail from the image and write it to a .png file
+  void WriteThumbnail(const char *filename, unsigned int maxdim);
 
 
 protected:
+
+  /**
+   * Default constructor.  Creates an image wrapper with a blank internal
+   * image
+   */
+  ImageWrapper();
+
+  /**
+   * Copy constructor.  Copies the contents of the passed-in image wrapper.
+   */
+  ImageWrapper(const Self &copy);
+
+  /** Destructor */
+  virtual ~ImageWrapper();
+
+  /** A unique Id of this wrapper. Used for the LayerAssociation code */
+  unsigned long m_UniqueId;
 
   /** The image that we are wrapping */
   ImagePointer m_Image;

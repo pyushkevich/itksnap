@@ -304,6 +304,7 @@ void GenericSliceRenderer::DrawThumbnail()
 GenericSliceRenderer::Texture *
 GenericSliceRenderer::CreateTexture(ImageWrapperBase *iw)
 {
+  std::cout << "CREATE texture for " << iw << " " << to_itkSize(iw->GetSize()) << std::endl;
   if(iw->IsInitialized())
     {
     Texture *texture = new Texture(4, GL_RGBA);
@@ -313,6 +314,7 @@ GenericSliceRenderer::CreateTexture(ImageWrapperBase *iw)
     GLint imode = as->GetGreyInterpolationMode() == SNAPAppearanceSettings::LINEAR
         ? GL_LINEAR : GL_NEAREST;
     texture->SetInterpolation(imode);
+    std::cout << "Made!" << std::endl;
     return texture;
     }
   else return NULL;
@@ -361,6 +363,9 @@ void GenericSliceRenderer::UpdateTextureMap()
     // TODO: should LayerAssociation attach to IRISApplication instead of
     // ImageData, so we don't have to make this pointless call here?
     m_Texture.SetImageData(m_Model->GetDriver()->GetCurrentImageData());
+    std::cout << "UPDATE_TEXTURE_MAP " << to_itkSize(m_Model->GetDriver()->GetCurrentImageData()->GetMain()->GetSize()) << std::endl;
+
+
     m_Texture.Update();
 /*
     GenericImageData *id = m_Model->GetImageData();

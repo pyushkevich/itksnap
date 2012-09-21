@@ -56,25 +56,30 @@
 
 #include <itksys/SystemTools.hxx>
 
-template <class TPixel> 
-ImageWrapper<TPixel>
+unsigned long GlobalImageWrapperIndex = 0;
+
+template<class TPixel, class TBase>
+ImageWrapper<TPixel,TBase>
 ::ImageWrapper() 
 {
   CommonInitialization();
 }
 
-template <class TPixel>
-ImageWrapper<TPixel>
+template<class TPixel, class TBase>
+ImageWrapper<TPixel,TBase>
 ::~ImageWrapper() 
 {
   Reset();
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 void 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::CommonInitialization()
 {
+  // Set the unique wrapper id
+  m_UniqueId = ++GlobalImageWrapperIndex;
+
   // Set initial state    
   m_Initialized = false;
 
@@ -88,9 +93,9 @@ ImageWrapper<TPixel>
   this->SetImageToDisplayTransformsToDefault();
 }
 
-template <class TPixel>
-ImageWrapper<TPixel>
-::ImageWrapper(const ImageWrapper<TPixel> &copy) 
+template<class TPixel, class TBase>
+ImageWrapper<TPixel,TBase>
+::ImageWrapper(const Self &copy)
 {
   CommonInitialization();
 
@@ -112,17 +117,17 @@ ImageWrapper<TPixel>
     }
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 const ImageCoordinateTransform &
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetImageToDisplayTransform(unsigned int iSlice) const
 {
   return m_ImageToDisplayTransform[iSlice];
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 void
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::SetImageToDisplayTransformsToDefault()
 {
   ImageCoordinateTransform id[3];
@@ -134,9 +139,9 @@ ImageWrapper<TPixel>
   SetImageToDisplayTransform(2,id[2]);
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 Vector3ui
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetSize() const
 {
   // Cast the size to our vector format
@@ -147,9 +152,9 @@ ImageWrapper<TPixel>
         (unsigned int) size[2]);
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 void
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::ToggleVisibility()
 {
   // If visible (alpha > 0), make invisible
@@ -165,25 +170,25 @@ ImageWrapper<TPixel>
     }
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 itk::ImageRegion<3>
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetBufferedRegion() const
 {
   return m_ImageBase->GetBufferedRegion();
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 size_t
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetNumberOfVoxels() const
 {
   return m_ImageBase->GetBufferedRegion().GetNumberOfPixels();
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 Vector3d
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const
 {
   // Use the ITK method to do this
@@ -199,9 +204,9 @@ ImageWrapper<TPixel>
   return xOut;
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 Vector3d
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const
 {
   // Create homogeneous vector
@@ -217,9 +222,9 @@ ImageWrapper<TPixel>
   return Vector3d(p[0], p[1], p[2]);
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 Vector3d
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const
 {
   // Create homogeneous vector
@@ -236,9 +241,9 @@ ImageWrapper<TPixel>
 }
 
 
-template <class TPixel> 
+template<class TPixel, class TBase>
 void 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::PrintDebugInformation() 
 {
   std::cout << "=== Image Properties ===" << std::endl;
@@ -248,9 +253,9 @@ ImageWrapper<TPixel>
   std::cout << "------------------------" << std::endl;
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 void 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::UpdateImagePointer(ImageType *newImage) 
 {
   // Check if the image size has changed
@@ -293,9 +298,9 @@ ImageWrapper<TPixel>
   m_Initialized = true;
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 void 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::InitializeToWrapper(const ImageWrapperBase *source, ImageType *image) 
 {
   // Call the common update method
@@ -309,9 +314,9 @@ ImageWrapper<TPixel>
   SetSliceIndex(source->GetSliceIndex());
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 void 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::InitializeToWrapper(const ImageWrapperBase *source, const TPixel &value) 
 {
   // Allocate the image
@@ -334,18 +339,18 @@ ImageWrapper<TPixel>
   SetSliceIndex(source->GetSliceIndex());
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 void 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::SetImage(ImagePointer newImage) 
 {
   UpdateImagePointer(newImage);
 }
 
 
-template <class TPixel>
+template<class TPixel, class TBase>
 void 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::Reset() 
 {
   if (m_Initialized)
@@ -360,25 +365,25 @@ ImageWrapper<TPixel>
 }
 
 
-template <class TPixel>
+template<class TPixel, class TBase>
 inline const TPixel& 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetVoxel(const Vector3ui &index) const 
 {
   return GetVoxel(index[0],index[1],index[2]);
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 inline TPixel& 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetVoxelForUpdate(const Vector3ui &index) 
 {
   return GetVoxelForUpdate(index[0],index[1],index[2]);
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 inline TPixel& 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetVoxelForUpdate(unsigned int x, unsigned int y, unsigned int z) 
 {
   itk::Index<3> index;
@@ -389,9 +394,9 @@ ImageWrapper<TPixel>
   return GetVoxelForUpdate(index);
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 inline TPixel &
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetVoxelForUpdate(const itk::Index<3> &index)
 {
   // Verify that the pixel is contained by the image at debug time
@@ -401,9 +406,9 @@ ImageWrapper<TPixel>
   return m_Image->GetPixel(index);
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 inline const TPixel& 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetVoxel(unsigned int x, unsigned int y, unsigned int z) const
 {
   itk::Index<3> index;
@@ -414,9 +419,9 @@ ImageWrapper<TPixel>
   return GetVoxel(index);
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 inline const TPixel&
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetVoxel(const itk::Index<3> &index) const
 {
   // Verify that the pixel is contained by the image at debug time
@@ -426,9 +431,9 @@ ImageWrapper<TPixel>
   return m_Image->GetPixel(index);
 }
 
-template <class TPixel> 
-typename ImageWrapper<TPixel>::ConstIterator 
-ImageWrapper<TPixel>
+template<class TPixel, class TBase>
+typename ImageWrapper<TPixel,TBase>::ConstIterator
+ImageWrapper<TPixel,TBase>
 ::GetImageConstIterator() const 
 {
   ConstIterator it(m_Image,m_Image->GetLargestPossibleRegion());
@@ -436,9 +441,9 @@ ImageWrapper<TPixel>
   return it;
 }
 
-template <class TPixel> 
-typename ImageWrapper<TPixel>::Iterator 
-ImageWrapper<TPixel>
+template<class TPixel, class TBase>
+typename ImageWrapper<TPixel,TBase>::Iterator
+ImageWrapper<TPixel,TBase>
 ::GetImageIterator() 
 {
   Iterator it(m_Image,m_Image->GetLargestPossibleRegion());
@@ -446,9 +451,9 @@ ImageWrapper<TPixel>
   return it;
 }
 
-template <class TPixel>    
+template<class TPixel, class TBase>
 void 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::SetSliceIndex(const Vector3ui &cursor)
 {
   // Save the cursor position
@@ -466,9 +471,9 @@ ImageWrapper<TPixel>
 }
 
 
-template <class TPixel>    
+template<class TPixel, class TBase>
 void 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::SetImageToDisplayTransform(unsigned int iSlice,
                              const ImageCoordinateTransform &transform)
 {
@@ -496,25 +501,25 @@ ImageWrapper<TPixel>
 
   /** For each slicer, find out which image dimension does is slice along */
 
-template <class TPixel>    
+template<class TPixel, class TBase>
 unsigned int 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetDisplaySliceImageAxis(unsigned int iSlice)
 {
   return m_Slicer[iSlice]->GetSliceDirectionImageAxis();
 }
 
-template <class TPixel>
-typename ImageWrapper<TPixel>::SliceType*
-ImageWrapper<TPixel>
+template<class TPixel, class TBase>
+typename ImageWrapper<TPixel,TBase>::SliceType*
+ImageWrapper<TPixel,TBase>
 ::GetSlice(unsigned int dimension)
 {
   return m_Slicer[dimension]->GetOutput();
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 TPixel *
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetVoxelPointer() const
 {
   return m_Image->GetBufferPointer();
@@ -522,9 +527,9 @@ ImageWrapper<TPixel>
 
 
 
-template <class TPixel>
+template<class TPixel, class TBase>
 unsigned int 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::ReplaceIntensity(TPixel iOld, TPixel iNew)
 {
   // Counter for the number of replaced voxels
@@ -546,9 +551,9 @@ ImageWrapper<TPixel>
   return nReplaced;
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 unsigned int 
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::SwapIntensities(TPixel iFirst, TPixel iSecond)
 {
   // Counter for the number of replaced voxels
@@ -575,9 +580,9 @@ ImageWrapper<TPixel>
   return nReplaced;
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 void *
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetVoxelVoidPointer() const
 {
   return (void *) m_Image->GetBufferPointer();
@@ -588,9 +593,9 @@ ImageWrapper<TPixel>
   Get the RGBA apperance of the voxel at the intersection of the three
   display slices.
   */
-template <class TPixel>
+template<class TPixel, class TBase>
 void
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::GetVoxelUnderCursorAppearance(DisplayPixelType &out)
 {
   // Make sure the display slice is updated
@@ -605,15 +610,9 @@ ImageWrapper<TPixel>
   out = this->GetDisplaySlice(0)->GetPixel(idx2D);
 }
 
-// Allowed types of image wrappers
-template class ImageWrapper<GreyType>;
-template class ImageWrapper<float>;
-template class ImageWrapper<LabelType>;
-template class ImageWrapper<RGBType>;
-
-template <class TPixel>
+template<class TPixel, class TBase>
 void
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::AttachPreviewPipeline(
     PreviewFilterType *f0, PreviewFilterType *f1, PreviewFilterType *f2)
 {
@@ -629,9 +628,9 @@ ImageWrapper<TPixel>
     }
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 void
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::DetachPreviewPipeline()
 {
   for(int i = 0; i < 3; i++)
@@ -640,10 +639,72 @@ ImageWrapper<TPixel>
     }
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 bool
-ImageWrapper<TPixel>
+ImageWrapper<TPixel,TBase>
 ::IsPreviewPipelineAttached() const
 {
   return m_Slicer[0]->GetPreviewInput() != NULL;
 }
+
+#include <itkImageFileWriter.h>
+#include <itkResampleImageFilter.h>
+#include <itkIdentityTransform.h>
+
+template<class TPixel, class TBase>
+void
+ImageWrapper<TPixel,TBase>
+::WriteThumbnail(const char *file, unsigned int maxdim)
+{
+  // Get the display slice
+  // For now, just use the z-axis for exporting the thumbnails
+  DisplaySliceType *slice = this->GetDisplaySlice(2);
+
+  // The size of the slice
+  Vector2ui slice_dim = slice->GetBufferedRegion().GetSize();
+
+  // The physical extents of the slice
+  Vector2d slice_extent(slice->GetSpacing()[0] * slice_dim[0],
+                        slice->GetSpacing()[0] * slice_dim[1]);
+
+  // The output thumbnail will have the extents as the slice, but its size
+  // must be at max maxdim
+  double slice_extent_max = slice_extent.max_value();
+  double idealThumbSpacing = slice_extent_max / maxdim;
+
+  // Now determine the actual size and actual spacing
+  Vector2ui thumb_size(
+        std::max(1, (int) (0.5 + slice_extent[0] / idealThumbSpacing)),
+        std::max(1, (int) (0.5 + slice_extent[1] / idealThumbSpacing)));
+
+  Vector2d thumb_spacing(slice_extent[0] / thumb_size[0],
+                         slice_extent[1] / thumb_size[1]);
+
+
+  typedef typename itk::IdentityTransform<double, 2> TransformType;
+  TransformType::Pointer transform = TransformType::New();
+
+  typedef typename itk::ResampleImageFilter<
+      DisplaySliceType, DisplaySliceType> ResampleFilter;
+
+  SmartPtr<ResampleFilter> filter = ResampleFilter::New();
+  filter->SetInput(slice);
+  filter->SetTransform(transform);
+  filter->SetSize(to_itkSize(thumb_size));
+  filter->SetOutputSpacing(thumb_spacing.data_block());
+  filter->UpdateLargestPossibleRegion();
+
+  // Write a PNG file
+  typedef typename itk::ImageFileWriter<DisplaySliceType> WriterType;
+  SmartPtr<WriterType> writer = WriterType::New();
+  writer->SetInput(filter->GetOutput());
+  writer->SetFileName(file);
+  writer->Update();
+}
+
+// Allowed types of image wrappers
+template class ImageWrapper<GreyType, GreyImageWrapperBase>;
+template class ImageWrapper<float, ScalarImageWrapperBase>;
+template class ImageWrapper<LabelType, ScalarImageWrapperBase>;
+template class ImageWrapper<RGBType, RGBImageWrapperBase>;
+

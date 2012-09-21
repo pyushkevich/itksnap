@@ -151,21 +151,15 @@ GenericImageData
                const ImageCoordinateGeometry &newGeometry,
                const InternalToNativeFunctor &native)
 {
-  // Clean up wrappers
-  delete m_MainImageWrapper;
-
-  // No RGB
-  m_RGBImageWrapper = NULL;
-
   // Create a main wrapper of fixed type.
-  m_MainImageWrapper = m_GreyImageWrapper = new GreyImageWrapper<GreyType>();
+  SmartPtr<GreyWrapperType> wrapper = GreyWrapperType::New();
 
   // Set properties
-  m_GreyImageWrapper->SetImage(image);
-  m_GreyImageWrapper->SetNativeMapping(native);
+  wrapper->SetImage(image);
+  wrapper->SetNativeMapping(native);
 
-  // Is this redundant?
-  SetMainImageCommon(newGeometry);
+  // Call common code
+  SetMainImageCommon(wrapper, newGeometry);
 }
 
 void
@@ -173,39 +167,40 @@ GenericImageData
 ::SetRGBImage(RGBImageType *image,
               const ImageCoordinateGeometry &newGeometry) 
 {
-  // Clean up wrappers
-  delete m_MainImageWrapper;
+  // Create a main wrapper of fixed type.
+  SmartPtr<RGBWrapperType> wrapper = RGBWrapperType::New();
 
-  // No RGB
-  m_GreyImageWrapper = NULL;
+  // Set properties
+  wrapper->SetImage(image);
 
-  // Create a main wrapper through factory
-  m_MainImageWrapper = m_RGBImageWrapper = new RGBImageWrapper<unsigned char>();
-  m_RGBImageWrapper->SetImage(image);
-
-  SetMainImageCommon(newGeometry);
+  // Call common code
+  SetMainImageCommon(wrapper, newGeometry);
 }
 
 void
 GenericImageData
-::SetMainImageCommon(const ImageCoordinateGeometry &newGeometry)
+::SetMainImageCommon(ImageWrapperBase *wrapper,
+                     const ImageCoordinateGeometry &geometry)
 {
   // Make the wrapper the main image
-  m_Wrappers[LayerIterator::MAIN_ROLE][0] = m_MainImageWrapper;
+  m_Wrappers[LayerIterator::MAIN_ROLE][0] = m_MainImageWrapper = wrapper;
+
+  m_GreyImageWrapper = dynamic_cast<GreyWrapperType *>(m_MainImageWrapper);
+  m_RGBImageWrapper = dynamic_cast<RGBWrapperType *>(m_MainImageWrapper);
+
 
   // Initialize the segmentation data to zeros
-  delete m_LabelWrapper;
-  m_LabelWrapper = new LabelImageWrapper();
+  m_LabelWrapper = LabelImageWrapper::New();
   m_LabelWrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
   m_LabelWrapper->SetLabelColorTable(m_Parent->GetColorLabelTable());
 
-  m_Wrappers[LayerIterator::LABEL_ROLE][0] = m_LabelWrapper;
+  m_Wrappers[LayerIterator::LABEL_ROLE][0] = (ImageWrapperBase *) m_LabelWrapper;
 
   // Set opaque
   m_MainImageWrapper->SetAlpha(255);
 
   // Pass the coordinate transform to the wrappers
-  SetImageGeometry(newGeometry);
+  SetImageGeometry(geometry);
 }
 
 void
@@ -216,17 +211,14 @@ GenericImageData
   UnloadOverlays();
 
   // Clear the main image wrappers
-  delete m_MainImageWrapper;
+  m_Wrappers[LayerIterator::MAIN_ROLE][0] = NULL;
   m_MainImageWrapper = NULL;
   m_GreyImageWrapper = NULL;
   m_RGBImageWrapper = NULL;
 
   // Reset the label wrapper
-  delete m_LabelWrapper;
-  m_LabelWrapper = NULL;
-
-  m_Wrappers[LayerIterator::MAIN_ROLE][0] = NULL;
   m_Wrappers[LayerIterator::LABEL_ROLE][0] = NULL;
+  m_LabelWrapper = NULL;
 }
 
 void
@@ -237,14 +229,13 @@ GenericImageData
   // Check that the image matches the size of the main image
   //Octavian_2012_08_24_16:20: changed assert into this test as a response to:
   //bug: ID: 3023489: "-o flag size check" 
-  if(m_MainImageWrapper->GetBufferedRegion() !=
-          image->GetBufferedRegion())
+  if(m_MainImageWrapper->GetBufferedRegion() != image->GetBufferedRegion())
     {
     throw IRISException("Main and overlay data sizes are different");
     }
 
   // Pass the image to a Grey image wrapper
-  GreyImageWrapper<GreyType> *wrapper = new GreyImageWrapper<GreyType>();
+  SmartPtr<GreyWrapperType> wrapper = GreyWrapperType::New();
   wrapper->SetImage(image);
   wrapper->SetNativeMapping(native);
   wrapper->SetAlpha(128);
@@ -265,8 +256,7 @@ GenericImageData
     }
 
   // Pass the image to a RGB image wrapper
-  RGBImageWrapper<unsigned char> *wrapper
-      = new RGBImageWrapper<unsigned char>();
+  SmartPtr<RGBWrapperType> wrapper = RGBWrapperType::New();
   wrapper->SetImage(image);
 
   AddOverlayCommon(wrapper);
@@ -317,11 +307,6 @@ GenericImageData
     return;
 
   // Release the data associated with the last overlay
-  ImageWrapperBase *wrapper = m_Wrappers[LayerIterator::OVERLAY_ROLE].back();
-  delete wrapper;
-  wrapper = NULL;
-
-  // Clear it off the wrapper lists
   m_Wrappers[LayerIterator::OVERLAY_ROLE].pop_back();
 }
 
@@ -557,7 +542,7 @@ bool LayerIterator::IsPointingToListableLayer() const
     return false;
 
   // Is the layer null?
-  if(*m_WrapperInRoleIter == NULL)
+  if((*m_WrapperInRoleIter).IsNull())
     return false;
 
   return true;

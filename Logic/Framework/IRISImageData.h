@@ -88,7 +88,7 @@ protected:
   // (and it would be difficult for the user too). So this UndoWrapper stores the
   // segmentation image _at the last undo point_. See IRISApplication::StoreUndoPoint
   // for details.
-  LabelImageWrapper *m_UndoWrapper;
+  SmartPtr<LabelImageWrapper> m_UndoWrapper;
 
 };
 

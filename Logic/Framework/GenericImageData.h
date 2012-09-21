@@ -52,8 +52,6 @@
 #include "ImageCoordinateGeometry.h"
 #include <string>
 
-template <class TPixel> class GreyImageWrapper;
-template <class TPixel> class RGBImageWrapper;
 class LabelImageWrapper;
 
 class IRISApplication;
@@ -117,7 +115,7 @@ public:
 
 private:
 
-  typedef std::vector<ImageWrapperBase *> WrapperList;
+  typedef std::vector<SmartPtr<ImageWrapperBase> > WrapperList;
   typedef WrapperList::const_iterator WrapperListIterator;
 
   typedef std::map<LayerRole, WrapperList> WrapperRoleMap;
@@ -167,7 +165,12 @@ public:
   typedef itk::Image<RGBType, 3> RGBImageType;
   typedef itk::Image<LabelType, 3> LabelImageType;
 
-  typedef std::vector<ImageWrapperBase *> WrapperList;
+  typedef GreyImageWrapper<GreyType> GreyWrapperType;
+  typedef RGBImageWrapper<unsigned char> RGBWrapperType;
+
+  typedef SmartPtr<ImageWrapperBase> WrapperPointer;
+
+  typedef std::vector<WrapperPointer> WrapperList;
   typedef WrapperList::iterator WrapperIterator;
   typedef WrapperList::const_iterator WrapperConstIterator;
 
@@ -368,7 +371,9 @@ public:
   irisGetMacro(ImageGeometry,ImageCoordinateGeometry)
 
 protected:
-  virtual void SetMainImageCommon(const ImageCoordinateGeometry &geometry);
+  virtual void SetMainImageCommon(ImageWrapperBase *wrapper,
+                                  const ImageCoordinateGeometry &geometry);
+
   virtual void AddOverlayCommon(ImageWrapperBase *wrapper);
   // virtual void SetCrosshairs(ImageWrapperBase *wrapper, const Vector3ui &crosshairs);
   // virtual void SetImageGeometry(ImageWrapperBase *wrapper, const ImageCoordinateGeometry &geometry);
@@ -397,14 +402,14 @@ protected:
 
   // This pointer is NULL if the main image is of RGB type, and equal to
   // m_MainImageWrapper otherwise.
-  GreyImageWrapper<GreyType> *m_GreyImageWrapper;
+  GreyWrapperType *m_GreyImageWrapper;
 
   // Vice versa
-  RGBImageWrapper<unsigned char> *m_RGBImageWrapper;
+  RGBWrapperType *m_RGBImageWrapper;
 
   // Wrapper around the segmentatoin image.
   // Equal to m_Wrappers[SEGMENTATION].first()
-  LabelImageWrapper *m_LabelWrapper;
+  SmartPtr<LabelImageWrapper> m_LabelWrapper;
 
   // A list of linked wrappers, whose cursor position and image geometry
   // are updated concurrently

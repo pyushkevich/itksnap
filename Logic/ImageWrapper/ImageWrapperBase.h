@@ -57,6 +57,11 @@ public:
 
   virtual ~ImageWrapperBase() { }
 
+  /**
+    Get a unique id for this wrapper. All wrappers ever created have
+    different ids.
+    */
+  virtual unsigned long GetUniqueId() const = 0;
 
   /** Get the coordinate transform for each display slice */
   virtual const ImageCoordinateTransform &GetImageToDisplayTransform(
@@ -165,6 +170,11 @@ public:
   // Access the nickname
   irisVirtualGetStringMacro(Nickname)
   irisVirtualSetStringMacro(Nickname)
+
+  /**
+    Export one of the slices as a thumbnail (e.g., PNG file)
+    */
+  virtual void WriteThumbnail(const char *filename, unsigned int maxdim) = 0;
 
   /**
    * This static function constructs a NIFTI matrix from the ITK direction

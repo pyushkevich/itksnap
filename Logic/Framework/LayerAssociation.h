@@ -45,14 +45,10 @@ template<class TObject,
          class TFactoryDelegate =
            DefaultLayerAssociationFactoryDelegate<TObject, TFilter> >
 class LayerAssociation
-    : public std::map<TFilter *, LayerAssociationObjectWrapper<TObject> >
 {
 public:
   typedef LayerAssociation<TObject, TFilter> Self;
   typedef LayerAssociationObjectWrapper<TObject> RHS;
-  typedef std::map<TFilter *, RHS> Superclass;
-  typedef typename Superclass::iterator iterator;
-  typedef typename Superclass::const_iterator const_iterator;
 
   LayerAssociation();
   virtual ~LayerAssociation();
@@ -64,10 +60,19 @@ public:
   irisSetMacro(Delegate, const TFactoryDelegate &)
   irisGetMacro(Delegate, const TFactoryDelegate &)
 
+  // Allow lookup by layer directly
+  RHS & operator [] (const TFilter *p);
+
+  bool HasLayer(const TFilter *p);
+
   void Update();
 
 protected:
+  typedef std::map<unsigned long, RHS> LayerMap;
+  typedef typename LayerMap::iterator iterator;
+  typedef typename LayerMap::const_iterator const_iterator;
 
+  LayerMap m_LayerMap;
   GenericImageData *m_ImageData;
   TFactoryDelegate m_Delegate;
   unsigned long m_VisitCounter;

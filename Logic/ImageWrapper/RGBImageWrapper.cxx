@@ -35,10 +35,9 @@
 #include "RGBImageWrapper.h"
 #include "itkUnaryFunctorImageFilter.h"
 
-template<class TComponent>
-RGBImageWrapper<TComponent>
+template<class TComponent, class TBase>
+RGBImageWrapper<TComponent,TBase>
 ::RGBImageWrapper()
-: VectorImageWrapper<PixelType> ()
 {
   // Intialize display filters
   for(unsigned int i=0;i<3;i++) 
@@ -54,8 +53,8 @@ RGBImageWrapper<TComponent>
     }
 }
 
-template<class TComponent>
-RGBImageWrapper<TComponent>
+template<class TComponent, class TBase>
+RGBImageWrapper<TComponent,TBase>
 ::~RGBImageWrapper()
 {
   for (size_t i = 0; i < 3; ++i)
@@ -64,9 +63,9 @@ RGBImageWrapper<TComponent>
     }
 }
 
-template<class TComponent>
-typename RGBImageWrapper<TComponent>::DisplaySlicePointer
-RGBImageWrapper<TComponent>
+template<class TComponent, class TBase>
+typename RGBImageWrapper<TComponent,TBase>::DisplaySlicePointer
+RGBImageWrapper<TComponent,TBase>
 ::GetDisplaySlice(unsigned int iSlice)
 {
   // Depending on the current mode, return the display slice or the 
@@ -77,9 +76,9 @@ RGBImageWrapper<TComponent>
   return m_DisplayFilter[iSlice]->GetOutput();
 }
 
-template<class TComponent>
-typename RGBImageWrapper<TComponent>::DisplayPixelType
-RGBImageWrapper<TComponent>::IntensityFunctor
+template<class TComponent, class TBase>
+typename RGBImageWrapper<TComponent,TBase>::DisplayPixelType
+RGBImageWrapper<TComponent,TBase>::IntensityFunctor
 ::operator()(const PixelType &x) const
 {
   // Create a new pixel

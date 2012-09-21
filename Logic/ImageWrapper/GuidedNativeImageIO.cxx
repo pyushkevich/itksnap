@@ -497,6 +497,9 @@ GuidedNativeImageIO
     image->SetVectorLength(m_IOBase->GetNumberOfComponents());
     image->Allocate();
 
+    std::cout << "Reading " << FileName << std::endl;
+    std::cout << "Allocated to read image of size " << dim << std::endl;
+
     // Set the IO region
     itk::ImageIORegion ioRegion(3);
     itk::ImageIORegionAdaptor<3>::Convert(region, ioRegion, index);

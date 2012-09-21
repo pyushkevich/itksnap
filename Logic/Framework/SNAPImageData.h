@@ -107,7 +107,7 @@ public:
    * Clear the preprocessed (speed) image (discard data, etc)
    */
   void ClearSpeed()
-    { m_SpeedWrapper.Reset(); }
+    { m_SpeedWrapper->Reset(); }
 
   /**
    * Check the preprocessed image for validity
@@ -121,7 +121,7 @@ public:
    * Clear the current snake (discard data, etc)
    */
   void ClearSnake()
-    { m_SnakeWrapper.Reset(); }
+    { m_SnakeWrapper->Reset(); }
 
   /**
    * Check the current snake for validity
@@ -238,19 +238,19 @@ private:
 
   /** Clear the snake initialization image (discard data, etc) */
   void ClearSnakeInitialization()
-    { m_SnakeInitializationWrapper.Reset(); }
+    { m_SnakeInitializationWrapper->Reset(); }
 
   /** Check the snake initialization image for validity */
   bool IsSnakeInitializationLoaded();
 
   // Speed image adata
-  SpeedImageWrapper m_SpeedWrapper;
+  SmartPtr<SpeedImageWrapper> m_SpeedWrapper;
 
   // Wrapper around the level set image
-  LevelSetImageWrapper m_SnakeWrapper;
+  SmartPtr<LevelSetImageWrapper> m_SnakeWrapper;
   
   // Snake initialization data (initial distance transform
-  LevelSetImageWrapper m_SnakeInitializationWrapper;
+  SmartPtr<LevelSetImageWrapper> m_SnakeInitializationWrapper;
 
   // Snake driver
   SNAPLevelSetDriver<3> *m_LevelSetDriver;

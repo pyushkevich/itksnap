@@ -68,15 +68,25 @@ SNAPImageData
 ::SNAPImageData(IRISApplication *parent)
 : GenericImageData(parent)
 {
-  // Update the list of linked wrappers
-  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SpeedWrapper);
-  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SnakeInitializationWrapper);
-  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(&m_SnakeWrapper);
-
   // Set the names of the wrapeprs
-  m_SpeedWrapper.SetNickname("Speed Image");
-  m_SnakeInitializationWrapper.SetNickname("Initial Contour");
-  m_SnakeWrapper.SetNickname("Evolving Contour");
+  m_SpeedWrapper = SpeedImageWrapper::New();
+  m_SpeedWrapper->SetNickname("Speed Image");
+
+  m_SnakeInitializationWrapper = LevelSetImageWrapper::New();
+  m_SnakeInitializationWrapper->SetNickname("Initial Contour");
+
+  m_SnakeWrapper = LevelSetImageWrapper::New();
+  m_SnakeWrapper->SetNickname("Evolving Contour");
+
+  // Update the list of linked wrappers
+  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(
+        m_SpeedWrapper.GetPointer());
+
+  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(
+        m_SnakeInitializationWrapper.GetPointer());
+
+  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(
+        m_SnakeWrapper.GetPointer());
 
   // Initialize the level set driver to NULL
   m_LevelSetDriver = NULL;
@@ -101,10 +111,10 @@ SNAPImageData
   assert(m_GreyImageWrapper->IsInitialized());
 
   // Intialize the speed based on the current grey image
-  m_SpeedWrapper.InitializeToWrapper(m_GreyImageWrapper, 0.0f);
+  m_SpeedWrapper->InitializeToWrapper(m_GreyImageWrapper, 0.0f);
 
   // Here or after it's computed?
-  m_SpeedWrapper.SetAlpha(255);
+  m_SpeedWrapper->SetAlpha(255);
 }
 
 SpeedImageWrapper* 
@@ -112,45 +122,45 @@ SNAPImageData
 ::GetSpeed() 
 {
   // Make sure it exists
-  assert(m_SpeedWrapper.IsInitialized());
-  return &m_SpeedWrapper;
+  assert(m_SpeedWrapper->IsInitialized());
+  return m_SpeedWrapper;
 }
 
 bool 
 SNAPImageData
 ::IsSpeedLoaded() 
 {
-  return m_SpeedWrapper.IsInitialized();
+  return m_SpeedWrapper->IsInitialized();
 }
 
 LevelSetImageWrapper* 
 SNAPImageData
 ::GetSnakeInitialization() 
 {
-  assert(m_SnakeInitializationWrapper.IsInitialized());
-  return &m_SnakeInitializationWrapper;
+  assert(m_SnakeInitializationWrapper->IsInitialized());
+  return m_SnakeInitializationWrapper;
 }
 
 bool 
 SNAPImageData
 ::IsSnakeInitializationLoaded() 
 {
-  return (m_SnakeInitializationWrapper.IsInitialized());
+  return (m_SnakeInitializationWrapper->IsInitialized());
 }
 
 LevelSetImageWrapper* 
 SNAPImageData
 ::GetSnake() 
 {
-  assert(m_SnakeWrapper.IsInitialized());
-  return &m_SnakeWrapper;
+  assert(m_SnakeWrapper->IsInitialized());
+  return m_SnakeWrapper;
 }
 
 bool 
 SNAPImageData
 ::IsSnakeLoaded() 
 {
-  return (m_SnakeWrapper.IsInitialized());
+  return (m_SnakeWrapper->IsInitialized());
 }
 
 bool
@@ -159,7 +169,7 @@ SNAPImageData
   const SnakeParameters &parameters, 
   const std::vector<Bubble> &bubbles, unsigned int labelColor)
 {
-  assert(m_SpeedWrapper.IsInitialized());
+  assert(m_SpeedWrapper->IsInitialized());
 
   // Inside/outside values
   const float INSIDE_VALUE = -1.0, OUTSIDE_VALUE = 1.0;
@@ -171,12 +181,12 @@ SNAPImageData
   typedef itk::Image<float,3> FloatImageType;
 
   // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
-  m_SnakeInitializationWrapper.InitializeToWrapper(m_GreyImageWrapper, OUTSIDE_VALUE);
+  m_SnakeInitializationWrapper->InitializeToWrapper(m_GreyImageWrapper, OUTSIDE_VALUE);
 
   // Create the initial level set image by merging the segmentation data from
   // IRIS region with the bubbles
   LabelImageType::Pointer imgInput = m_LabelWrapper->GetImage();
-  FloatImageType::Pointer imgLevelSet = m_SnakeInitializationWrapper.GetImage();
+  FloatImageType::Pointer imgLevelSet = m_SnakeInitializationWrapper->GetImage();
 
   // Get the target region. This really should be a region relative to the IRIS image
   // data, not an image into a needless copy of an IRIS region.
@@ -291,12 +301,12 @@ SNAPImageData
   // voxels
   if (nInitVoxels == 0) 
     {
-    m_SnakeInitializationWrapper.Reset();
+    m_SnakeInitializationWrapper->Reset();
     return false;
     }
 
   // Make sure that the correct color label is being used
-  m_SnakeInitializationWrapper.SetColorLabel(m_ColorLabel);
+  m_SnakeInitializationWrapper->SetColorLabel(m_ColorLabel);
 
   // Initialize the snake driver
   InitalizeSnakeDriver(parameters);
@@ -312,7 +322,7 @@ SNAPImageData
 {
   m_ExternalAdvectionField = VectorImageType::New();
   m_ExternalAdvectionField->SetRegions(
-    m_SpeedWrapper.GetImage()->GetBufferedRegion());
+    m_SpeedWrapper->GetImage()->GetBufferedRegion());
   m_ExternalAdvectionField->Allocate();
   m_ExternalAdvectionField->SetSpacing(
     m_GreyImageWrapper->GetImage()->GetSpacing());
@@ -373,23 +383,23 @@ SNAPImageData
 
   // Initialize the snake driver and pass the parameters
   m_LevelSetDriver = new SNAPLevelSetDriver3d(
-    m_SnakeInitializationWrapper.GetImage(),
-    m_SpeedWrapper.GetImage(),
+    m_SnakeInitializationWrapper->GetImage(),
+    m_SpeedWrapper->GetImage(),
     m_CurrentSnakeParameters,
     m_ExternalAdvectionField);
 
   // Initialize the level set wrapper with the image from the level set 
   // driver and other settings from the other wrappers
-  m_SnakeWrapper.InitializeToWrapper(
+  m_SnakeWrapper->InitializeToWrapper(
     m_GreyImageWrapper,m_LevelSetDriver->GetCurrentState());
-  m_SnakeWrapper.GetImage()->SetOrigin(
+  m_SnakeWrapper->GetImage()->SetOrigin(
         m_GreyImageWrapper->GetImage()->GetOrigin() );
-  m_SnakeWrapper.GetImage()->SetSpacing(
+  m_SnakeWrapper->GetImage()->SetSpacing(
         m_GreyImageWrapper->GetImage()->GetSpacing() );
   
   // Make sure that the correct color label is being used
-  m_SnakeWrapper.SetColorLabel(m_ColorLabel);
-  m_SnakeWrapper.SetAlpha(m_Parent->GetGlobalState()->GetSegmentationAlpha());
+  m_SnakeWrapper->SetColorLabel(m_ColorLabel);
+  m_SnakeWrapper->SetAlpha(m_Parent->GetGlobalState()->GetSegmentationAlpha());
 }
 
 void 
@@ -418,7 +428,7 @@ SNAPImageData
   m_LevelSetDriver->Restart();
 
   // Update the image pointed to by the snake wrapper
-  m_SnakeWrapper.SetImage(m_LevelSetDriver->GetCurrentState());
+  m_SnakeWrapper->SetImage(m_LevelSetDriver->GetCurrentState());
 }
 
 void 

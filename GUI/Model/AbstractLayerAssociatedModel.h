@@ -73,8 +73,14 @@ public:
     m_LayerProperties.Update();
 
     // Unregister from the current layer
-    if(m_LayerProperties.find(m_Layer) != m_LayerProperties.end())
+    if(m_LayerProperties.HasLayer(m_Layer))
+      {
+      // Remove the deletion listener
+      m_Layer->RemoveObserver(m_DeleteEventObserverTag);
+
+      // Call the child's unregister method
       this->UnRegisterFromLayer(m_Layer);
+      }
 
     // Set the layer
     m_Layer = layer;
@@ -84,7 +90,15 @@ public:
     // Note that we don't remove the observer from the old layer because when
     // this method is called, the old layer may have already been destroyed!
     if(m_Layer)
+      {
+      // Listen for delete events from the layer
+      m_DeleteEventObserverTag =
+          AddListener(m_Layer, itk::DeleteEvent(),
+                      this, &Self::LayerDeletionCallback);
+
+      // Do whatever needs to be done to listen to layer events
       this->RegisterWithLayer(m_Layer);
+      }
 
     // Fire an event to indicate the change
     InvokeEvent(ActiveLayerChangedEvent());
@@ -142,7 +156,7 @@ public:
       m_LayerProperties.Update();
 
       // Was the current layer removed?
-      if(m_LayerProperties.find(m_Layer) == m_LayerProperties.end())
+      if(!m_LayerProperties.HasLayer(m_Layer))
         this->SetLayer(NULL);
       }
   }
@@ -171,11 +185,26 @@ protected:
     return new TProperties();
   }
 
+  void LayerDeletionCallback()
+  {
+    // Unregister from the current layer
+    this->UnRegisterFromLayer(m_Layer);
+
+    // Set the layer to NULL
+    m_Layer = NULL;
+
+    // Fire an event to indicate the change
+    InvokeEvent(ActiveLayerChangedEvent());
+  }
+
   // Parent model
   GlobalUIModel *m_ParentModel;
 
   // Currently associated layer
   TWrapper *m_Layer;
+
+  // Tag used to manage deletion observers on the current layer
+  unsigned long m_DeleteEventObserverTag;
 
   // A factory class for creating properties
   class PropertiesFactory

@@ -1341,6 +1341,8 @@ IRISApplication
   ImageCoordinateGeometry icg(
     io->GetNativeImage()->GetDirection().GetVnlMatrix(), m_DisplayToAnatomyRAI, size);
 
+  std::cout << "UpdateIRISMainImage: native size: " << io->GetNativeImage()->GetBufferedRegion().GetSize() << std::endl;
+
   // Cast the native image to desired format and pass on to IRISImageData
   if(type == MAIN_SCALAR)
     {
@@ -1398,6 +1400,8 @@ IRISApplication
   Vector3ui cursor = size; cursor /= 2;
   this->SetCursorPosition(cursor);
 
+  std::cout << "UpdateIRISMainImage: loaded size: " << to_itkSize(m_IRISImageData->GetMain()->GetSize()) << std::endl;
+
   // Reset the UNDO manager
   m_UndoManager.Clear();
 
@@ -1433,6 +1437,9 @@ IRISApplication
     std::string fnMain = m_CurrentImageData->GetMain()->GetFileName();
     m_SystemInterface->AssociateCurrentSettingsWithCurrentImageFile(
           fnMain.c_str(), this);
+
+    // Create a thumbnail from the one of the image slices
+    m_CurrentImageData->GetMain()->WriteThumbnail("thumby.png", 128);
     }
 
   // Reset the automatic segmentation ROI

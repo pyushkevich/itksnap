@@ -35,8 +35,8 @@
 
 #include <iostream>
 
-template <class TPixel>
-ScalarImageWrapper<TPixel>
+template<class TPixel, class TBase>
+ScalarImageWrapper<TPixel,TBase>
 ::ScalarImageWrapper()
 {
   m_Histogram = ScalarImageHistogram::New();
@@ -50,11 +50,11 @@ ScalarImageWrapper<TPixel>
         m_GradientMagnitudeFilter->GetOutput());
 }
 
-template <class TPixel>
-ScalarImageWrapper<TPixel>
-::ScalarImageWrapper(const ScalarImageWrapper<TPixel> &copy) 
+template<class TPixel, class TBase>
+ScalarImageWrapper<TPixel,TBase>
+::ScalarImageWrapper(const Self &copy)
 {
-  ImageWrapper<TPixel>::CommonInitialization();
+  Superclass::CommonInitialization();
 
   // If the source contains an image, make a copy of that image
   if (copy.IsInitialized() && copy.GetImage())
@@ -74,21 +74,21 @@ ScalarImageWrapper<TPixel>
     }
 }
 
-template <class TPixel>
-ScalarImageWrapper<TPixel>
+template<class TPixel, class TBase>
+ScalarImageWrapper<TPixel,TBase>
 ::~ScalarImageWrapper()
 {
 
 }
 
 
-template <class TPixel>
+template<class TPixel, class TBase>
 void 
-ScalarImageWrapper<TPixel>
+ScalarImageWrapper<TPixel,TBase>
 ::UpdateImagePointer(ImageType *newImage) 
 {
   // Call the parent
-  ImageWrapper<TPixel>::UpdateImagePointer(newImage);
+  Superclass::UpdateImagePointer(newImage);
 
   // Update the max-min pipeline once we have one setup
   m_MinMaxFilter->SetInput(newImage);
@@ -97,9 +97,9 @@ ScalarImageWrapper<TPixel>
   m_GradientMagnitudeFilter->SetInput(newImage);
 }
 
-template <class TPixel>
-typename ScalarImageWrapper<TPixel>::ImagePointer
-ScalarImageWrapper<TPixel>
+template<class TPixel, class TBase>
+typename ScalarImageWrapper<TPixel,TBase>::ImagePointer
+ScalarImageWrapper<TPixel,TBase>
 ::DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                  itk::Command *progressCommand) const
 {
@@ -211,9 +211,9 @@ ScalarImageWrapper<TPixel>
 }
 
 
-template <class TPixel> 
+template<class TPixel, class TBase>
 void 
-ScalarImageWrapper<TPixel>
+ScalarImageWrapper<TPixel,TBase>
 ::CheckImageIntensityRange() 
 {
   // Image should be loaded
@@ -225,9 +225,9 @@ ScalarImageWrapper<TPixel>
   m_ImageScaleFactor = 1.0 / (m_MinMaxFilter->GetMaximum() - m_MinMaxFilter->GetMinimum());
 }
 
-template <class TPixel> 
+template<class TPixel, class TBase>
 TPixel 
-ScalarImageWrapper<TPixel>
+ScalarImageWrapper<TPixel,TBase>
 ::GetImageMin() 
 {
   // Make sure min/max are up-to-date
@@ -237,9 +237,9 @@ ScalarImageWrapper<TPixel>
   return m_MinMaxFilter->GetMinimum();
 }
 
-template <class TPixel> 
+template<class TPixel, class TBase>
 TPixel 
-ScalarImageWrapper<TPixel>
+ScalarImageWrapper<TPixel,TBase>
 ::GetImageMax()
 {
   // Make sure min/max are up-to-date
@@ -249,39 +249,39 @@ ScalarImageWrapper<TPixel>
   return m_MinMaxFilter->GetMaximum();
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 double
-ScalarImageWrapper<TPixel>
+ScalarImageWrapper<TPixel,TBase>
 ::GetImageGradientMagnitudeUpperLimit()
 {
   m_GradientMagnitudeMaximumFilter->Update();
   return m_GradientMagnitudeMaximumFilter->GetMaximum();
 }
 
-template <class TPixel>
+template<class TPixel, class TBase>
 double
-ScalarImageWrapper<TPixel>
+ScalarImageWrapper<TPixel,TBase>
 ::GetImageGradientMagnitudeUpperLimitNative()
 {
   return m_NativeMapping.scale * this->GetImageGradientMagnitudeUpperLimit();
 }
 
 
-template <class TPixel>
+template<class TPixel, class TBase>
 double 
-ScalarImageWrapper<TPixel>
+ScalarImageWrapper<TPixel,TBase>
 ::GetImageScaleFactor()
 {
   // Make sure min/max are up-to-date
   CheckImageIntensityRange();
 
   // Return the max or min
-  return m_ImageScaleFactor;    
+  return m_ImageScaleFactor;
 }
 
-template <class TPixel>    
+template<class TPixel, class TBase>
 void 
-ScalarImageWrapper<TPixel>
+ScalarImageWrapper<TPixel,TBase>
 ::RemapIntensityToRange(double min, double max)
 {
   typedef itk::RescaleIntensityImageFilter<ImageType> FilterType;
@@ -300,9 +300,9 @@ ScalarImageWrapper<TPixel>
   UpdateImagePointer(filter->GetOutput());
 }
 
-template <class TPixel>    
+template<class TPixel, class TBase>
 void 
-ScalarImageWrapper<TPixel>
+ScalarImageWrapper<TPixel,TBase>
 ::RemapIntensityToMaximumRange()
 {
   typedef itk::RescaleIntensityImageFilter<ImageType> FilterType;
@@ -324,9 +324,9 @@ ScalarImageWrapper<TPixel>
 //#include "itkListSampleToHistogramGenerator.h"
 //#include "itkImageToListAdaptor.h"
 
-template <class TPixel>
+template<class TPixel, class TBase>
 const ScalarImageHistogram *
-ScalarImageWrapper<TPixel>
+ScalarImageWrapper<TPixel,TBase>
 ::GetHistogram(size_t nBins)
 {
   // Zero parameter means we want to reuse the current histogram size
@@ -358,6 +358,7 @@ ScalarImageWrapper<TPixel>
 }
 
 template class ScalarImageWrapper<float>;
-template class ScalarImageWrapper<GreyType>;
 template class ScalarImageWrapper<LabelType>;
+template class ScalarImageWrapper<GreyType, GreyImageWrapperBase>;
+
 

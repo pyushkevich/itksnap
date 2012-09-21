@@ -58,6 +58,14 @@ class LevelSetImageWrapper : public ScalarImageWrapper<float>
 {
 public:
 
+  // Standard ITK business
+  typedef LevelSetImageWrapper                                            Self;
+  typedef ScalarImageWrapper<float>                                 Superclass;
+  typedef SmartPtr<Self>                                               Pointer;
+  typedef SmartPtr<const Self>                                    ConstPointer;
+  itkTypeMacro(LevelSetImageWrapper, ScalarImageWrapper)
+  itkNewMacro(Self)
+
   /** Set the color label for inside */
   void SetColorLabel(const ColorLabel &label);
   
@@ -67,13 +75,13 @@ public:
    */
   DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
+protected:
   /** Constructor initializes mappers */
   LevelSetImageWrapper();
 
   /** Destructor */
   ~LevelSetImageWrapper();
 
-private:
   /**
    * A very simple functor used to map intensities
    */

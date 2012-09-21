@@ -63,6 +63,14 @@ class LabelImageWrapper : public ScalarImageWrapper<LabelType>
 {
 public:
 
+  // Standard ITK business
+  typedef LabelImageWrapper                                               Self;
+  typedef ScalarImageWrapper<LabelType>                             Superclass;
+  typedef SmartPtr<Self>                                               Pointer;
+  typedef SmartPtr<const Self>                                    ConstPointer;
+  itkTypeMacro(LabelImageWrapper, ScalarImageWrapper)
+  itkNewMacro(Self)
+
   /**
    * Set the table of color labels used to produce color slice images
    */  
@@ -78,6 +86,8 @@ public:
    */
   DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
+private:
+
   /** Constructor initializes mapper */
   LabelImageWrapper();
 
@@ -85,9 +95,8 @@ public:
   LabelImageWrapper(const LabelImageWrapper &source);
 
   /** Destructor */
-  ~LabelImageWrapper();  
+  ~LabelImageWrapper();
 
-private:
   /**
    * Functor used for display caching.  This class keeps a pointer to 
    * the table of colors and maps colors to RGBA Pixels

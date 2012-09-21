@@ -35,20 +35,26 @@ namespace itk {
  *
  * \sa ImageWrapper
  */
-template <class TComponent>
+template <class TComponent, class TBase = RGBImageWrapperBase>
 class RGBImageWrapper :
-    public VectorImageWrapper< itk::RGBPixel<TComponent> >,
-    public RGBImageWrapperBase
+    public VectorImageWrapper< itk::RGBPixel<TComponent>, TBase >
 {
 public:
+
+  // Standard ITK business
+  typedef itk::RGBPixel<TComponent>                                  PixelType;
+  typedef RGBImageWrapper<TComponent, TBase>                              Self;
+  typedef VectorImageWrapper<PixelType, TBase>                      Superclass;
+  typedef SmartPtr<Self>                                               Pointer;
+  typedef SmartPtr<const Self>                                    ConstPointer;
+  itkTypeMacro(RGBImageWrapper, VectorImageWrapper)
+  itkNewMacro(Self)
+
   // Basics
-  typedef itk::RGBPixel<TComponent> PixelType;
-  typedef RGBImageWrapper<TComponent> Self;
-  typedef VectorImageWrapper<PixelType> Superclass;
-  typedef typename Superclass::ImageType ImageType;
-  typedef typename Superclass::DisplaySliceType DisplaySliceType;
-  typedef typename Superclass::DisplaySlicePointer DisplaySlicePointer;
-  typedef typename Superclass::DisplayPixelType DisplayPixelType;
+  typedef typename Superclass::ImageType                             ImageType;
+  typedef typename Superclass::DisplaySliceType               DisplaySliceType;
+  typedef typename Superclass::DisplaySlicePointer         DisplaySlicePointer;
+  typedef typename Superclass::DisplayPixelType               DisplayPixelType;
 
   /**
    * Get the display slice in a given direction.  To change the
@@ -56,14 +62,15 @@ public:
    */
   DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
+protected:
+
   /** Constructor initializes mappers */
   RGBImageWrapper();
 
   /** Destructor */
   ~RGBImageWrapper();
 
-private:
-  
+
   class IntensityFunctor {
   public:
     /** The operator that maps label to color */

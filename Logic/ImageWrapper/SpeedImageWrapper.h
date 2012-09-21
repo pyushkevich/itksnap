@@ -65,9 +65,16 @@ namespace itk {
 class SpeedImageWrapper : public GreyImageWrapper<short>
 {
 public:
+
+  // Standard ITK business
+  typedef SpeedImageWrapper                                               Self;
+  typedef GreyImageWrapper<short>                                   Superclass;
+  typedef SmartPtr<Self>                                               Pointer;
+  typedef SmartPtr<const Self>                                    ConstPointer;
+  itkTypeMacro(SpeedImageWrapper, GreyImageWrapper)
+  itkNewMacro(Self)
+
   // Basics
-  typedef SpeedImageWrapper Self;
-  typedef GreyImageWrapper<short> Superclass;
   typedef Superclass::ImageType ImageType;
 
   /**
@@ -104,13 +111,13 @@ public:
     return !m_IsModeInsideOutside;
     }
 
+protected:
+
   /** Constructor initializes mappers */
   SpeedImageWrapper();
 
   /** Destructor */
   ~SpeedImageWrapper();
-
-protected:
 
   /** Whether or not the image is in edge or in-out mode */
   bool m_IsModeInsideOutside;
