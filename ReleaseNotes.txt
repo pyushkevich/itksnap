@@ -1,6 +1,6 @@
 ======================================
  InsightSNAP Release Notes
- Version 2.2.0
+ Version 2.4.0
 ======================================
 
 
@@ -8,7 +8,7 @@
 1. New Features
 -----------------
 
-1.1. New in Version 2.2.0
+1.1. New in Version 2.4.0
 ----------------------------------------------
 
 This is largely a maintenance release, with a few usability enhancements based
@@ -16,6 +16,45 @@ on user feedback. The main change programmatically is 64 bit support on Linux,
 MacOS and Windows.
 
 1.1.1. New Features and UI Improvements
+
+ -  Ported the dependency on ITK 3.20.1 to ITK 4.2 on all operating systems:
+    Mac OS X, Linux, and Windows.
+
+1.1.2. Bug Fixes and Stability Improvements
+
+ -  Fixed a problem with the RAI code which was not updating after reorienting.
+
+ -  Fixed bug ID: 3371200: The saving of the preprocessed image was failing.
+
+ -  Fixed bug ID: 3309784 and 3415653: Windows file browser broken and enable
+    all document setting not available in version 2.2.0.
+
+ -  Fixed bug ID: 3415681 It was not possible to update the mesh when working
+    with volumes of one slice. An exception is thrown and catch with fl_alert.
+
+ -  Fixed bug ID: 3323300 BYU mesh saving was save-able, while the internal
+    data was not prepared  for this saving. The user interface is correctly
+    updated now.
+
+ -  Fixed: bug ID: 3023489: When running from command line with -o flag,
+    there was no check to see if images are same size. Two asserts were
+    changed in exception throwing.
+
+ -  Fixes for building with different releases of fltk 1.3.
+
+ -  Corrected a bug in the code with SparseLevelSet filter being used
+    instead of ParallelSparse.
+
+======================================
+
+1.2. New in Version 2.2.0
+----------------------------------------------
+
+This is largely a maintenance release, with a few usability enhancements based
+on user feedback. The main change programmatically is 64 bit support on Linux,
+MacOS and Windows.
+
+1.2.1. New Features and UI Improvements
 
  -  64 bit versions of the software are available for Linux, Windows and Mac.
     These versions are now built nightly and will be distributed on
@@ -78,7 +117,7 @@ MacOS and Windows.
 
  -  Ability to save segmentation mesh in active contour mode
 
-1.1.2. Bug Fixes and Stability Improvements
+1.2.2. Bug Fixes and Stability Improvements
 
  -  Fixed a problem with certain operations being very slow because of the way
     the progress bars were displayed. Preprocessing, mesh rendering and mesh
@@ -96,10 +135,10 @@ MacOS and Windows.
 
  -  Fixed problem with bubbles not being spherical for certain image orientations
 
-1.2. New in Version 2.0
+1.3. New in Version 2.0
 ----------------------------------------------
 
-1.2.1. New Features and UI Improvements
+1.3.1. New Features and UI Improvements
 
  -  Support for multiple image layers. Users can now load gray and RGB images
     as overlays on top of the main image layer. For example, one can display a
@@ -170,7 +209,7 @@ MacOS and Windows.
     modes, crosshair motion is accessible through MMB as well.
     
 
-1.2.2. Bug Fixes
+1.3.2. Bug Fixes
 
  -  Fixed an issue with SNAP reading certain types of image twice from disc. This should
     speed up the reading of floating point images, for example.
@@ -190,16 +229,16 @@ MacOS and Windows.
     
  -  Please see the bug tracker on itksnap.org for the full listing of bug fixes.
  
-1.2.3. Website Changes
+1.3.3. Website Changes
 
  -  The itksnap.org website has been Wikified. Content can now be edited on the fly. 
 
 
 
-1.3. New in Version 1.8
+1.4. New in Version 1.8
 ----------------------------------------------
 
-1.3.1. New Features and UI Improvements
+1.4.1. New Features and UI Improvements
  
  -  Support for reading floating point images of arbitrary range. SNAP still
     represents gray images internally as signed short, but now it can load a
@@ -327,7 +366,7 @@ MacOS and Windows.
  -  Documented existing keyboard shortcuts and added some new ones. Available
     shortcuts can be listed by selecting Help->Shortcuts.
 
-1.3.2. Programmatic/Distribution Changes
+1.4.2. Programmatic/Distribution Changes
 
  -  SNAP is now built against ITK 3.8, offering several improvements, especially
     in how image orientation is handled.
@@ -340,23 +379,23 @@ MacOS and Windows.
     Some people complained about the latter. We can also make .rpm and .deb
     packages although these won't be posted for public download yet.
 
-1.3.3. Bug Fixes
+1.4.3. Bug Fixes
 
  -  Level set fix for ITK 3.8 fixes automatic segmentation's weird behavior
 
-1.4. New in Version 1.6.0.1
+1.5. New in Version 1.6.0.1
 ---------------------------
 
-1.4.1. Bug Fixes
+1.5.1. Bug Fixes
 
  -  Major bug in release 1.6.0 involving disabled cursor movement in snake 
     segmentation mode has been resolved.
 
 
-1.5. New in Version 1.6.0
+1.6. New in Version 1.6.0
 -------------------------
 
-1.5.1. New Features and UI Improvements
+1.6.1. New Features and UI Improvements
 
  -  You can now save a sequence of all axial, coronal or sagittal slices with
     overlays as PNG files (File->Save->Screenshot Series). 
@@ -405,11 +444,11 @@ MacOS and Windows.
 
  -  Shortened/simplified some of the menu items
 
-1.5.2. Bug Fixes
+1.6.2. Bug Fixes
 
  -  Various bugs have been fixed :)
 
-1.5.3. Distribution Changes
+1.6.3. Distribution Changes
 
  -  SNAP website fully migrated to sourceforge.net
 
@@ -419,10 +458,10 @@ MacOS and Windows.
  -  Linux binaries will be available starting with 1.6.0
 
 
-1.6. New in Version 1.4.1
+1.7. New in Version 1.4.1
 -------------------------
 
-1.6.1. New Features and UI Improvements
+1.7.1. New Features and UI Improvements
 
  -  Added paintbrush tool to the main toolbar. Paintbrush can be used to quickly
     touch up segmentations. Left mouse button paints with selected label, right
@@ -441,7 +480,7 @@ MacOS and Windows.
     different segmentation from the same viewpoint. Press 's' in the 3D window
     to save the camera state and 'r' to restore it.
 
-1.6.2. Bug Fixes
+1.7.2. Bug Fixes
 
  -  MAJOR: fixed bug that was causing crashes on Win32 during polygon drawing 
     (thanks to Jeff Tsao for this bug fix!)
@@ -459,7 +498,7 @@ MacOS and Windows.
  -  Fixed crash when changing bubble radius and then going back to 
     preprocessing mode
 
-1.6.3. Distribution Changes 
+1.7.3. Distribution Changes
 
  -  Interim SNAP releases are now hosted on SourceForge. ITK repository will only
     be used to host major releases (like 1.6). This allows us to check stuff in
@@ -471,10 +510,10 @@ MacOS and Windows.
     own and the download size is reduced
 
 
-1.7. New in Version 1.4
+1.8. New in Version 1.4
 -----------------------
 
-1.7.1. New Features and User Interface Improvements
+1.8.1. New Features and User Interface Improvements
 
  -  New and improved label editor. You can easily switch between labels while in
     the editor and the interface for adding new labels is more intuitive. You
@@ -513,7 +552,7 @@ MacOS and Windows.
 
  -  The tutorial has been updated to reflect the new features.
 
-1.7.2. Bug Fixes.
+1.8.2. Bug Fixes.
 
  -  SNAP should crash a lot less than before
 
@@ -529,20 +568,20 @@ MacOS and Windows.
 
  -  Lots of other small bugs have been fixed!
 
-1.7.3. Programmatic Enhancements
+1.8.3. Programmatic Enhancements
 
  -  SNAP and IRIS now share the sameset of OpenGL windows. This should prevent
     crashes on some platforms.
 
-1.7.4. Other
+1.8.4. Other
 
  -  SNAP available as a universal (Intel/PPC) binary for MacOS at itksnap.org
 
 
-1.8. New in Version 1.2
+1.9. New in Version 1.2
 -----------------------
 
-1.8.1. User Interface Improvements
+1.9.1. User Interface Improvements
 
  -  The ability to switch between 4-view mode and single view mode. Each of the 
     slice views and the 3D view can be expanded to occupy the entire SNAP window.
@@ -562,7 +601,7 @@ MacOS and Windows.
 
  -  SNAP remembers the last ROI used for each image.
 
-1.8.2. Programmatic Improvements
+1.9.2. Programmatic Improvements
 
  -  The level set segmentation pipeline has been rewritten, taking advantage of
     the stop and go functionality of ITK finite difference filters. This means
@@ -572,7 +611,7 @@ MacOS and Windows.
     machine automatically activates and deactivates UI widgets based on a set of
     flags. Rules such as Flag A => Flag B can be added to the state machine.
 
-1.8.3 Bug Fixes
+1.9.3. Bug Fixes
 
  -  Slice views update correctly when the SNAP window is resized
 
