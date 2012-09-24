@@ -231,6 +231,8 @@ SNAPLevelSetFunction<TImageType>
   else return ( static_cast<ScalarValueType>(m_CurvatureSpeedImage->GetPixel(idx)) );
 }
 
+#include "itkFastMutexLock.h"
+
 template<class TImageType>
 typename SNAPLevelSetFunction<TImageType>::ScalarValueType
 SNAPLevelSetFunction<TImageType>
@@ -241,21 +243,24 @@ SNAPLevelSetFunction<TImageType>
   // If the exponent is zero, there is nothing to return
   if(m_PropagationSpeedExponent == 0)
     return itk::NumericTraits<ScalarValueType>::One; 
-
   
   // Otherwise, perform interpolation on the image
   IndexType idx = neighborhood.GetIndex();
   ContinuousIndexType cdx;
+
+  ScalarValueType v;
   for (unsigned i = 0; i < ImageDimension; ++i)
     {
     cdx[i] = static_cast<double>(idx[i]) - offset[i];
     }
   if ( m_PropagationSpeedInterpolator->IsInsideBuffer(cdx) )
     {
-    return (static_cast<ScalarValueType>(
+    v = (static_cast<ScalarValueType>(
         m_PropagationSpeedInterpolator->EvaluateAtContinuousIndex(cdx)));
     }
-  else return ( static_cast<ScalarValueType>(m_PropagationSpeedImage->GetPixel(idx)) );
+  else v = ( static_cast<ScalarValueType>(m_PropagationSpeedImage->GetPixel(idx)) );
+
+  return v;
 }
 
 template<class TImageType>

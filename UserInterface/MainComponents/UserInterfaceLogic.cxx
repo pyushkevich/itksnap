@@ -3847,6 +3847,10 @@ UserInterfaceLogic
 
   // Fire zoom update event
   OnZoomUpdate();
+
+  // Tell the layer inspector to update itself because the RAI code that it shows
+  // may have changed
+  m_LayerUI->OnLayerSelectionUpdate();
 }
 
 void 
