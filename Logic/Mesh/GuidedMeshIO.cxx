@@ -1,3 +1,5 @@
+#include <string>
+
 #include "GuidedMeshIO.h"
 #include "vtkPolyDataWriter.h"
 #include "vtkSTLWriter.h"
@@ -62,6 +64,12 @@ GuidedMeshIO
     tri->SetInput(mesh);
     writer->SetInput(tri->GetOutput());
     writer->SetFileName(FileName);
+      {
+      std::string strFileName(FileName);
+      writer->SetGeometryFileName((strFileName + ".g").c_str());
+      writer->SetScalarFileName((strFileName + ".s").c_str());
+      writer->SetDisplacementFileName((strFileName + ".d").c_str());
+      }
     writer->Update();
     writer->Delete();
     tri->Delete();

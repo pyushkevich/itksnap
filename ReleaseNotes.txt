@@ -34,7 +34,7 @@ MacOS and Windows.
 
  -  Fixed bug ID: 3323300 BYU mesh saving was save-able, while the internal
     data was not prepared  for this saving. The user interface is correctly
-    updated now.
+    updated now. In addition, the BYU writer save geometric data as well.
 
  -  Fixed: bug ID: 3023489: When running from command line with -o flag,
     there was no check to see if images are same size. Two asserts were
