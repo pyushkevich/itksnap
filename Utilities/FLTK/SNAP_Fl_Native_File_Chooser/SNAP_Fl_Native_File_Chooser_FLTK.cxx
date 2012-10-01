@@ -33,7 +33,7 @@
 #define FLTK_CHOOSER_MULTI     Fl_File_Chooser::MULTI
 #define FLTK_CHOOSER_CREATE    Fl_File_Chooser::CREATE
 
-#include "src/Fl_Native_File_Chooser_common.cxx"
+#include "SNAP_Fl_Native_File_Chooser_common.cxx"
 #include "SNAP_Fl_Native_File_Chooser.H"
 
 #include <sys/stat.h>

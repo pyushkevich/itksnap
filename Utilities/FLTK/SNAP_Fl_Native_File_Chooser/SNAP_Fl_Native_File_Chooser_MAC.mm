@@ -32,7 +32,7 @@
 
 #ifdef __APPLE__
 
-#include "src/Fl_Native_File_Chooser_common.cxx"		// strnew/strfree/strapp/chrcat
+#include "SNAP_Fl_Native_File_Chooser_common.cxx"		// strnew/strfree/strapp/chrcat
 #include <libgen.h>		// dirname(3)
 #include <sys/types.h>		// stat(2)
 #include <sys/stat.h>		// stat(2)
@@ -47,7 +47,7 @@
 void SNAP_Fl_Native_File_Chooser::clear_pathnames() {
   if ( _pathnames ) {
     while ( --_tpathnames >= 0 ) {
-      _pathnames[_tpathnames] = strfree(_pathnames[_tpathnames]);
+      _pathnames[_tpathnames] = SNAP_strfree(_pathnames[_tpathnames]);
     }
     delete [] _pathnames;
     _pathnames = NULL;
@@ -59,7 +59,7 @@ void SNAP_Fl_Native_File_Chooser::clear_pathnames() {
 void SNAP_Fl_Native_File_Chooser::set_single_pathname(const char *s) {
   clear_pathnames();
   _pathnames = new char*[1];
-  _pathnames[0] = strnew(s);
+  _pathnames[0] = SNAP_strnew(s);
   _tpathnames = 1;
 }
 
@@ -88,16 +88,16 @@ SNAP_Fl_Native_File_Chooser::~SNAP_Fl_Native_File_Chooser() {
   // _keepstate		// nothing to manage
   // _tempitem		// nothing to manage
   clear_pathnames();
-  _directory   = strfree(_directory);
-  _title       = strfree(_title);
-  _preset_file = strfree(_preset_file);
-  _filter      = strfree(_filter);
+  _directory   = SNAP_strfree(_directory);
+  _title       = SNAP_strfree(_title);
+  _preset_file = SNAP_strfree(_preset_file);
+  _filter      = SNAP_strfree(_filter);
   //_filt_names		// managed by clear_filters()
   //_filt_patt[i]	// managed by clear_filters()
   //_filt_total		// managed by clear_filters()
   clear_filters();
   //_filt_value		// nothing to manage
-  _errmsg = strfree(_errmsg);
+  _errmsg = SNAP_strfree(_errmsg);
 }
 
 // GET TYPE OF BROWSER
@@ -138,8 +138,8 @@ int SNAP_Fl_Native_File_Chooser::show() {
 //     Internal use only.
 //
 void SNAP_Fl_Native_File_Chooser::errmsg(const char *msg) {
-  _errmsg = strfree(_errmsg);
-  _errmsg = strnew(msg);
+  _errmsg = SNAP_strfree(_errmsg);
+  _errmsg = SNAP_strnew(msg);
 }
 
 // RETURN ERROR MESSAGE
@@ -168,8 +168,8 @@ int SNAP_Fl_Native_File_Chooser::count() const {
 //     Value can be NULL for none.
 //
 void SNAP_Fl_Native_File_Chooser::directory(const char *val) {
-  _directory = strfree(_directory);
-  _directory = strnew(val);
+  _directory = SNAP_strfree(_directory);
+  _directory = SNAP_strnew(val);
 }
 
 // GET PRESET PATHNAME
@@ -183,8 +183,8 @@ const char* SNAP_Fl_Native_File_Chooser::directory() const {
 //     Value can be NULL if no title desired.
 //
 void SNAP_Fl_Native_File_Chooser::title(const char *val) {
-  _title = strfree(_title);
-  _title = strnew(val);
+  _title = SNAP_strfree(_title);
+  _title = SNAP_strnew(val);
 }
 
 // GET TITLE
@@ -198,8 +198,8 @@ const char *SNAP_Fl_Native_File_Chooser::title() const {
 //     Can be NULL if no filter needed
 //
 void SNAP_Fl_Native_File_Chooser::filter(const char *val) {
-  _filter = strfree(_filter);
-  _filter = strnew(val);
+  _filter = SNAP_strfree(_filter);
+  _filter = SNAP_strnew(val);
 
   // Parse filter user specified
   //     IN: _filter = "C Files\t*.{cxx,h}\nText Files\t*.txt"
@@ -222,9 +222,9 @@ const char *SNAP_Fl_Native_File_Chooser::filter() const {
 //    Internal use only.
 //
 void SNAP_Fl_Native_File_Chooser::clear_filters() {
-  _filt_names = strfree(_filt_names);
+  _filt_names = SNAP_strfree(_filt_names);
   for (int i=0; i<_filt_total; i++) {
-    _filt_patt[i] = strfree(_filt_patt[i]);
+    _filt_patt[i] = SNAP_strfree(_filt_patt[i]);
   }
   _filt_total = 0;
 }
@@ -295,12 +295,12 @@ void SNAP_Fl_Native_File_Chooser::parse_filter(const char *in) {
 	  //     CFStringCreateArrayBySeparatingStrings()
 	  //
 	  if ( _filt_total ) {
-	      _filt_names = strapp(_filt_names, "\t");
+	      _filt_names = SNAP_strapp(_filt_names, "\t");
 	  }
-	  _filt_names = strapp(_filt_names, name);
+	  _filt_names = SNAP_strapp(_filt_names, name);
 
 	  // Add filter to the pattern array
-	  _filt_patt[_filt_total++] = strnew(wildcard);
+	  _filt_patt[_filt_total++] = SNAP_strnew(wildcard);
 	}
 	// RESET
 	wildcard[0] = name[0] = '\0';
@@ -313,8 +313,8 @@ void SNAP_Fl_Native_File_Chooser::parse_filter(const char *in) {
       default:				// handle all non-special chars
       regchar:				// handle regular char
 	switch ( mode ) {
-	  case 'n': chrcat(name, *in);     continue;
-	  case 'w': chrcat(wildcard, *in); continue;
+	  case 'n': SNAP_chrcat(name, *in);     continue;
+	  case 'w': SNAP_chrcat(wildcard, *in); continue;
 	}
 	break;
     }
@@ -326,8 +326,8 @@ void SNAP_Fl_Native_File_Chooser::parse_filter(const char *in) {
 //     Value can be NULL for none.
 //
 void SNAP_Fl_Native_File_Chooser::preset_file(const char* val) {
-  _preset_file = strfree(_preset_file);
-  _preset_file = strnew(val);
+  _preset_file = SNAP_strfree(_preset_file);
+  _preset_file = SNAP_strnew(val);
 }
 
 // PRESET FILE
@@ -590,7 +590,7 @@ int SNAP_Fl_Native_File_Chooser::post() {
       _tpathnames = [array count];
       _pathnames = new char*[_tpathnames];
       for(int i = 0; i < _tpathnames; i++) {
-	_pathnames[i] = strnew([(NSString*)[array objectAtIndex:i] fileSystemRepresentation]);
+	_pathnames[i] = SNAP_strnew([(NSString*)[array objectAtIndex:i] fileSystemRepresentation]);
       }
     }
   }

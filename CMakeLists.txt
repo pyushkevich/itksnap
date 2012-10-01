@@ -339,6 +339,7 @@ ENDIF(APPLE)
 
 #SNAP_FLTK
 SET(SNAP_FLTK_CXX
+  #Utilities/FLTK/SNAP_Fl_Native_File_Chooser/SNAP_Fl_Native_File_Chooser_common.cxx
   Utilities/FLTK/SNAP_Fl_Native_File_Chooser/SNAP_Fl_Native_File_Chooser.cxx
   #Utilities/FLTK/SNAP_Fl_Native_File_Chooser/SNAP_Fl_Native_File_Chooser_FLTK.cxx
   ${MMFILE}

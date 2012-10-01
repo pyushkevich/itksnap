@@ -34,7 +34,7 @@
 
 #include <stdio.h>		// debugging
 #include <wchar.h>		//MG
-#include "src/Fl_Native_File_Chooser_common.cxx"		// strnew/strfree/strapp/chrcat
+#include "SNAP_Fl_Native_File_Chooser_common.cxx"		// strnew/strfree/strapp/chrcat
 typedef const wchar_t *LPCWSTR; //MG
 LPCWSTR utf8towchar(const char *in); //MG
 char *wchartoutf8(LPCWSTR in);  //MG
