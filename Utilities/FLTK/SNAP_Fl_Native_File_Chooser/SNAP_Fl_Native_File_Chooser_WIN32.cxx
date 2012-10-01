@@ -154,13 +154,13 @@ SNAP_Fl_Native_File_Chooser::SNAP_Fl_Native_File_Chooser(int val) {
 SNAP_Fl_Native_File_Chooser::~SNAP_Fl_Native_File_Chooser() {
   //_pathnames                // managed by clear_pathnames()
   //_tpathnames               // managed by clear_pathnames()
-  _directory   = strfree(_directory);
-  _title       = strfree(_title);
-  _filter      = strfree(_filter);
+  _directory   = SNAP_strfree(_directory);
+  _title       = SNAP_strfree(_title);
+  _filter      = SNAP_strfree(_filter);
   //_parsedfilt               // managed by clear_filters()
   //_nfilters                 // managed by clear_filters()
-  _preset_file = strfree(_preset_file);
-  _errmsg      = strfree(_errmsg);
+  _preset_file = SNAP_strfree(_preset_file);
+  _errmsg      = SNAP_strfree(_errmsg);
   clear_filters();
   clear_pathnames();
   ClearOFN();
@@ -189,15 +189,15 @@ int SNAP_Fl_Native_File_Chooser::options() const {
 
 // PRIVATE: SET ERROR MESSAGE
 void SNAP_Fl_Native_File_Chooser::errmsg(const char *val) {
-  _errmsg = strfree(_errmsg);
-  _errmsg = strnew(val);
+  _errmsg = SNAP_strfree(_errmsg);
+  _errmsg = SNAP_strnew(val);
 }
 
 // FREE PATHNAMES ARRAY, IF IT HAS ANY CONTENTS
 void SNAP_Fl_Native_File_Chooser::clear_pathnames() {
   if ( _pathnames ) {
     while ( --_tpathnames >= 0 ) {
-      _pathnames[_tpathnames] = strfree(_pathnames[_tpathnames]);
+      _pathnames[_tpathnames] = SNAP_strfree(_pathnames[_tpathnames]);
     }
     delete [] _pathnames;
     _pathnames = NULL;
@@ -209,7 +209,7 @@ void SNAP_Fl_Native_File_Chooser::clear_pathnames() {
 void SNAP_Fl_Native_File_Chooser::set_single_pathname(const char *s) {
   clear_pathnames();
   _pathnames = new char*[1];
-  _pathnames[0] = strnew(s);
+  _pathnames[0] = SNAP_strnew(s);
   _tpathnames = 1;
 }
 
@@ -228,7 +228,7 @@ void SNAP_Fl_Native_File_Chooser::add_pathname(const char *s) {
     _pathnames = tmp;					// use new
     ++_tpathnames;
   }
-  _pathnames[_tpathnames-1] = strnew(s);
+  _pathnames[_tpathnames-1] = SNAP_strnew(s);
 }
 
 // FREE A PIDL (Pointer to IDentity List)
@@ -575,8 +575,8 @@ int SNAP_Fl_Native_File_Chooser::count() const {
 //     Can be NULL if no preset is desired.
 //
 void SNAP_Fl_Native_File_Chooser::directory(const char *val) {
-  _directory = strfree(_directory);
-  _directory = strnew(val);
+  _directory = SNAP_strfree(_directory);
+  _directory = SNAP_strnew(val);
 }
 
 // GET PRESET PATHNAME
@@ -590,8 +590,8 @@ const char *SNAP_Fl_Native_File_Chooser::directory() const {
 //     Can be NULL if no title desired.
 //
 void SNAP_Fl_Native_File_Chooser::title(const char *val) {
-  _title = strfree(_title);
-  _title = strnew(val);
+  _title = SNAP_strfree(_title);
+  _title = SNAP_strnew(val);
 }
 
 // GET TITLE
@@ -605,10 +605,10 @@ const char *SNAP_Fl_Native_File_Chooser::title() const {
 //     Can be NULL if no filter needed
 //
 void SNAP_Fl_Native_File_Chooser::filter(const char *val) {
-  _filter = strfree(_filter);
+  _filter = SNAP_strfree(_filter);
   clear_filters();
   if ( val ) {
-    _filter = strnew(val);
+    _filter = SNAP_strnew(val);
     parse_filter(_filter);
   }
   add_filter("All Files", "*.*");	// always include 'all files' option
@@ -628,7 +628,7 @@ const char *SNAP_Fl_Native_File_Chooser::filter() const {
 // CLEAR FILTERS
 void SNAP_Fl_Native_File_Chooser::clear_filters() {
   _nfilters = 0;
-  _parsedfilt = strfree(_parsedfilt);
+  _parsedfilt = SNAP_strfree(_parsedfilt);
 }
 
 // ADD A FILTER
@@ -777,23 +777,23 @@ void SNAP_Fl_Native_File_Chooser::parse_filter(const char *in) {
 	    // copy in prefix
 	    strcpy(wildcards[nwildcards-1], wildprefix);
 	    // append search char
-	    chrcat(wildcards[nwildcards-1], *in);
+	    SNAP_chrcat(wildcards[nwildcards-1], *in);
 	    continue;
 
 	  case LCURLY_CHR:
 	    if ( nwildcards > 0 ) {
-	      chrcat(wildcards[nwildcards-1], *in);
+	      SNAP_chrcat(wildcards[nwildcards-1], *in);
 	    }
 	    continue;
 
 	  case 'n':
-	    chrcat(name, *in);
+	    SNAP_chrcat(name, *in);
 	    continue;
 
 	  case 'w':
-	    chrcat(wildprefix, *in);
+	    SNAP_chrcat(wildprefix, *in);
 	    for ( t=0; t<nwildcards; t++ ) {
-	      chrcat(wildcards[t], *in);
+	      SNAP_chrcat(wildcards[t], *in);
 	    }
 	    continue;
 	}
@@ -814,8 +814,8 @@ int SNAP_Fl_Native_File_Chooser::filter_value() const {
 
 // PRESET FILENAME FOR 'SAVE AS' CHOOSER
 void SNAP_Fl_Native_File_Chooser::preset_file(const char* val) {
-  _preset_file = strfree(_preset_file);
-  _preset_file = strnew(val);
+  _preset_file = SNAP_strfree(_preset_file);
+  _preset_file = SNAP_strnew(val);
 }
 
 // GET PRESET FILENAME FOR 'SAVE AS' CHOOSER
