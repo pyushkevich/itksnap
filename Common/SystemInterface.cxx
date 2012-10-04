@@ -333,9 +333,9 @@ SystemInterface
   return path;
 }
 
-bool 
+std::string
 SystemInterface
-::FindRegistryAssociatedWithFile(const char *file, Registry &registry)
+::FindUniqueCodeForFile(const char *file, bool generate_if_not_found)
 {
   // Convert the filename to absolute path
   string path = SystemTools::CollapseFullPath(file);
@@ -347,8 +347,39 @@ SystemInterface
   path = EncodeFilename(path);
 
   // Get the key associated with this filename
-  string key = Key("ImageAssociation.Mapping.Element[%s]",path.c_str());
-  string code = Entry(key)[""];
+  string key = this->Key("ImageAssociation.Mapping.Element[%s]",path.c_str());
+
+  // Get the value associated with that key
+  if(generate_if_not_found)
+    {
+    // Compute a timestamp from the start of computer time
+    time_t timestr = time(NULL);
+
+    // Create a key for the file
+    IRISOStringStream scode;
+    scode << setfill('0') << setw(16) << hex << timestr;
+
+    // Return the existing key or the new key
+    string code = this->Entry(key)[scode.str()];
+
+    // Store the code
+    this->Entry(key) << code;
+
+    // Return the code
+    return code;
+    }
+  else
+    {
+    return this->Entry(key)[""];
+    }
+}
+
+bool 
+SystemInterface
+::FindRegistryAssociatedWithFile(const char *file, Registry &registry)
+{
+  // Find the code previously associated with that file
+  string code = this->FindUniqueCodeForFile(file, false);
 
   // If the code does not exist, return w/o success
   if(code.length() == 0) return false;
@@ -538,30 +569,9 @@ bool
 SystemInterface
 ::AssociateRegistryWithFile(const char *file, Registry &registry)
 {
-  // Convert the filename to absolute path
-  string path = SystemTools::CollapseFullPath(file);
-
-  // Convert to unix slashes for consistency
-  SystemTools::ConvertToUnixSlashes(path);
-
-  // Encode the filename as ASCII
-  path = EncodeFilename(path);
-
-  // Compute a timestamp from the start of computer time
-  time_t timestr = time(NULL);
-
-  // Create a key for the file
-  IRISOStringStream scode;
-  scode << setfill('0') << setw(16) << hex << timestr;
+  // Get the unique code
+  string code = FindUniqueCodeForFile(file, true);
   
-  // Look for the file in the registry (may already exist, if not use the
-  // code just generated
-  string key = Key("ImageAssociation.Mapping.Element[%s]",path.c_str());
-  string code = Entry(key)[scode.str().c_str()];
-  
-  // Put the key in the registry
-  Entry(key) << code;
-
   // Create an association file in the settings directory
   string appdir = this->GetApplicationDataDirectory();
   string assdir = appdir + "/ImageAssociations";
@@ -597,6 +607,24 @@ SystemInterface
 
   // Write the registry back
   return AssociateRegistryWithFile(file,registry);
+}
+
+std::string
+SystemInterface
+::GetThumbnailAssociatedWithFile(const char *file)
+{
+  // Get a string giving the thumbnail name
+  string code = this->FindUniqueCodeForFile(file, true);
+
+  // Create an association file in the settings directory
+  string appdir = this->GetApplicationDataDirectory();
+  string thumbdir = appdir + "/Thumbnails";
+  if(!SystemTools::MakeDirectory(thumbdir.c_str()))
+    throw IRISException("Unable to create thumbnail directory %s",
+                        thumbdir.c_str());
+
+  // Create the association filename
+  return thumbdir + "/" + code + ".png";
 }
 
 bool 

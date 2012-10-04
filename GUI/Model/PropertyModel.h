@@ -793,4 +793,7 @@ makeChildPropertyModel(
                                         valueEvent, rangeEvent);
 }
 
+#define irisChildPropertyModelRangedMacro(model) \
+  makeChildPropertyModel(this, &Self::Get##model##ValueAndRange, &Self::Set##model)
+
 #endif // EDITABLENUMERICVALUEMODEL_H

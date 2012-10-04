@@ -256,6 +256,9 @@ void GlobalUIModel
   // Validate the header
   del.ValidateHeader(&io, wl);
 
+  // Unload the current image data
+  del.UnloadCurrentImage();
+
   // Read the image body
   io.ReadNativeImageData();
 

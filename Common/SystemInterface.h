@@ -106,6 +106,9 @@ public:
   /** Find and load a registry file associated with a filename in the system */
   bool AssociateRegistryWithFile(const char *file, Registry &registry);
 
+  /** Get the thumbnail filename associated with an image file */
+  std::string GetThumbnailAssociatedWithFile(const char *file);
+
   /** A higher level method: associates current settings with the current image
    * so that the next time the image is loaded, it can be saved */
   bool AssociateCurrentSettingsWithCurrentImageFile(
@@ -211,6 +214,9 @@ private:
 
   // Filename encoder
   std::string EncodeFilename(const std::string &src);
+
+  // Associate a file with a unique code
+  std::string FindUniqueCodeForFile(const char *file, bool generate_if_not_found);
 
   // Get the directory where application data (pref files, etc) should go
   std::string GetApplicationDataDirectory();

@@ -14,28 +14,137 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <property name="margin">
-     <number>4</number>
-    </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
-     <number>4</number>
+     <number>0</number>
     </property>
-    <item row="0" column="0">
-     <widget class="SliceViewPanel" name="panel0" native="true"/>
-    </item>
-    <item row="0" column="1">
-     <widget class="SliceViewPanel" name="panel1" native="true"/>
-    </item>
-    <item row="1" column="0">
-     <widget class="ViewPanel3D" name="panel3D" native="true">
-      <property name="styleSheet">
-       <string notr="true"/>
+    <property name="margin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QStackedWidget" name="stackMain">
+      <property name="currentIndex">
+       <number>1</number>
       </property>
+      <widget class="QWidget" name="page">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <property name="margin">
+         <number>4</number>
+        </property>
+        <property name="spacing">
+         <number>4</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="SliceViewPanel" name="panel0" native="true"/>
+        </item>
+        <item row="0" column="1">
+         <widget class="SliceViewPanel" name="panel1" native="true"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="ViewPanel3D" name="panel3D" native="true">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="SliceViewPanel" name="panel2" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="page_2">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Recent Images:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="listRecent">
+          <property name="alternatingRowColors">
+           <bool>false</bool>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>128</width>
+            <height>128</height>
+           </size>
+          </property>
+          <property name="movement">
+           <enum>QListView::Free</enum>
+          </property>
+          <property name="gridSize">
+           <size>
+            <width>256</width>
+            <height>256</height>
+           </size>
+          </property>
+          <property name="viewMode">
+           <enum>QListView::IconMode</enum>
+          </property>
+          <property name="uniformItemSizes">
+           <bool>true</bool>
+          </property>
+          <item>
+           <property name="text">
+            <string>Caramba</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normalon>:/root/logo_new.gif</normalon>
+            </iconset>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Booohja</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normalon>:/root/itkLogoSmallTransparentBackground.gif</normalon>
+            </iconset>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="widget" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnLoadGrey">
+             <property name="text">
+              <string>Open Grey Image...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnLoadRGB">
+             <property name="text">
+              <string>Open RGB Image...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="SliceViewPanel" name="panel2" native="true"/>
     </item>
    </layout>
   </widget>

@@ -1439,7 +1439,10 @@ IRISApplication
           fnMain.c_str(), this);
 
     // Create a thumbnail from the one of the image slices
-    m_CurrentImageData->GetMain()->WriteThumbnail("thumby.png", 128);
+    string fnThumb =
+        m_SystemInterface->GetThumbnailAssociatedWithFile(fnMain.c_str());
+
+    m_CurrentImageData->GetMain()->WriteThumbnail(fnThumb.c_str(), 128);
     }
 
   // Reset the automatic segmentation ROI
