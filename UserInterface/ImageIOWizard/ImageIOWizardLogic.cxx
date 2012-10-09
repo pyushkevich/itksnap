@@ -45,6 +45,7 @@
 #include <sstream>
 
 #include "ImageIOWizardLogic.h"
+#include "IRISException.h"
 #include "itkImage.h"
 #include "itkImageIOBase.h"
 #include "itkIOCommon.h"
@@ -1144,7 +1145,8 @@ ImageIOWizardLogic
     }
   catch(itk::ExceptionObject &exc)
     { fl_alert("Error saving file: %s",exc.GetDescription()); }
-  
+  catch(IRISException & IRISexc)
+    { fl_alert("Error saving file: %s",IRISexc.what()); }
   // Restore the cursor
   m_WinOutput->cursor(FL_CURSOR_DEFAULT,FL_FOREGROUND_COLOR, FL_BACKGROUND_COLOR);
 }
