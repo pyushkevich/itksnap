@@ -489,7 +489,7 @@ void
 GuidedNativeImageIO
 ::SaveImage(const char *FileName, Registry &folder, itk::Image<TPixel,3> *image)
 {
-  //Octavian: This is a patch introduced to check if we cab write to target files.
+  //Octavian: This is a patch introduced to check if we can write to target files.
   //This patch covers the NIFTI writer in ITK, which does not throw an exception when saving
   //to a file where we do not have permissions.
   FILE * fp;
