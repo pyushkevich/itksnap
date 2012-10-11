@@ -88,6 +88,9 @@
 
 // Use Windows' chooser
 #ifdef WIN32
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif //_WIN32_WINNT
 #define _WIN32_WINNT	0x0501	// needed for OPENFILENAME's 'FlagsEx'
 #include <stdio.h>
 #include <stdlib.h>		// malloc
