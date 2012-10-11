@@ -3,6 +3,8 @@
 
 #include <cstdlib>
 
+#if defined(ITK_USE_PTHREADS)
+
 /** Support class for ThreadSpecificData */
 class ThreadSpecificDataSupport
 {
@@ -32,7 +34,7 @@ protected:
   // specific data objects;
   void *m_KeyPointer;
 };
-
+#endif //defined(ITK_USE_PTHREADS)
 
 /**
   Encapsulates the functionality provided by pthread_key_create,
@@ -54,8 +56,10 @@ public:
     */
   Self & operator = (const TAtomic &value)
   {
+#if defined(ITK_USE_PTHREADS)
     TAtomic *p = (TAtomic *)(m_Support.GetPtrCreateIfNeeded(sizeof(TAtomic)));
     *p = value;
+#endif //defined(ITK_USE_PTHREADS)
     return *this;
   }
 
@@ -65,13 +69,19 @@ public:
     */
   operator TAtomic() const
   {
-    TAtomic *p = (TAtomic *)(m_Support.GetPtr());
+    TAtomic *p 
+#if defined(ITK_USE_PTHREADS)
+		= (TAtomic *)(m_Support.GetPtr())
+#endif //defined(ITK_USE_PTHREADS)		
+		;
     return *p;
   }
 
 protected:
 
+#ifdef ITK_USE_PTHREADS
   ThreadSpecificDataSupport m_Support;
+#endif ITK_USE_PTHREADS
 };
 
 #endif // THREADSPECIFICDATA_H

@@ -279,7 +279,7 @@ void IRISSlicer<TPixel>
 
 template<class TPixel>
 void IRISSlicer<TPixel>
-::SetPreviewInput(IRISSlicer::InputImageType *input)
+::SetPreviewInput(typename IRISSlicer::InputImageTypePointer input)
 {
   this->SetNthInput(1, input);
 }

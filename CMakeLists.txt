@@ -546,10 +546,15 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 
 # Get rid of this ridiculous warning in VS8
-IF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Visual Studio 9")
+IF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Visual Studio 9" OR CMAKE_GENERATOR MATCHES "Visual Studio 10" )
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
-ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Visual Studio 9")
+ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Visual Studio 9" OR CMAKE_GENERATOR MATCHES "Visual Studio 10" )
   
+IF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Studio" )
+  ADD_DEFINITIONS(-DNOMINMAX)
+ENDIF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Studio" )
+
+
 # ----------------------------------------------------------------
 # Define External Libraries
 # ----------------------------------------------------------------
