@@ -57,6 +57,34 @@ void *ThreadSpecificDataSupport::GetPtr() const
 
 #pragma warning("No support for WIN32 threads in ITK-SNAP yet!")
 
+void ThreadSpecificDataSupport::Deleter(void *p)
+{
+  throw IRISException("ThreadSpecificData unsupported on Win32");
+}
+
+ThreadSpecificDataSupport::ThreadSpecificDataSupport()
+{
+  throw IRISException("ThreadSpecificData unsupported on Win32");
+}
+
+ThreadSpecificDataSupport::~ThreadSpecificDataSupport()
+{
+  throw IRISException("ThreadSpecificData unsupported on Win32");
+}
+
+void *ThreadSpecificDataSupport::GetPtrCreateIfNeeded(size_t data_size)
+{
+  throw IRISException("ThreadSpecificData unsupported on Win32");
+  return NULL;
+}
+
+void *ThreadSpecificDataSupport::GetPtr() const
+{
+  throw IRISException("ThreadSpecificData unsupported on Win32");
+  return NULL;
+}
+
+
 #else
 
 #pragma warning("No support for non-pthread threads in ITK-SNAP yet!")
