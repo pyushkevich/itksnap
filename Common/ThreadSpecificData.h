@@ -33,7 +33,6 @@ protected:
   void *m_KeyPointer;
 };
 
-
 /**
   Encapsulates the functionality provided by pthread_key_create,
   pthread_getspecific and pthread_setspecific. This allows an instance

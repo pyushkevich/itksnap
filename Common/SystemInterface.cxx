@@ -32,6 +32,21 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
+
+#ifdef WIN32
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif //_WIN32_WINNT
+#define _WIN32_WINNT	0x0600
+
+#include <Shlobj.h>
+#endif //WIN32
+
+
+//#define WINVER 0x0600
+//#define WINVER _WIN32_WINNT
+//#define _WIN32_IE 0x0500 
+
 #include "SystemInterface.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
@@ -63,21 +78,21 @@ using namespace std;
 using namespace itksys;
 
 #if defined(WIN32)
-#include <Shlobj.h>
 
 std::string
 SystemInterface::GetApplicationDataDirectory()
 {
   // Get path to /User/[name]/AppData/Roaming or whatever
-  char buffer[MAX_PATH];
+  PWSTR path;
   if(!SUCCEEDED(
-       SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, buffer)))
+	   SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &path)
+	   ))
     throw IRISException("Can not access APPDATA path on WIN32.");
 
   // Append the full information
-  std::string path = std::string(buffer) + "/itksnap.org/ITK-SNAP";
-  itksys::SystemTools::ConvertToUnixSlashes(path);
-  return path;
+  std::string strPath = std::string((char *)path) + "/itksnap.org/ITK-SNAP";
+  itksys::SystemTools::ConvertToUnixSlashes(strPath);
+  return strPath;
 }
 
 #elif defined(__APPLE__)

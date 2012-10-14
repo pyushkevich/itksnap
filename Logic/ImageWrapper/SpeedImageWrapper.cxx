@@ -38,6 +38,7 @@
 #include "ScalarImageHistogram.h"
 #include "IntensityToColorLookupTableImageFilter.h"
 #include "ColorMap.h"
+#include "IntensityCurveInterface.h"
 
 SpeedImageWrapper
 ::SpeedImageWrapper()

@@ -61,7 +61,8 @@ class ITK_EXPORT IRISSlicer
 public:
   /** Standard class typedefs. */
   typedef IRISSlicer  Self;
-  typedef itk::Image<TPixel,3>  InputImageType;
+  typedef typename itk::Image<TPixel,3>  InputImageType;
+  typedef typename itk::Image<TPixel,3> * InputImageTypePointer;
   typedef itk::Image<TPixel,2>  OutputImageType;
   typedef itk::ImageToImageFilter<InputImageType,OutputImageType> Superclass;
   typedef itk::SmartPointer<Self>   Pointer;
@@ -111,7 +112,7 @@ public:
     the data from the preview input. This is used in the speed preview
     framework, but could also be adapted for other features. Setting the
     preview input to NULL disables this feature. */
-  void SetPreviewInput(InputImageType *input);
+  void SetPreviewInput(typename InputImageTypePointer input);
 
   /**
     Get the preview input.
