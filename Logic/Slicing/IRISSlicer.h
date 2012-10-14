@@ -112,7 +112,7 @@ public:
     the data from the preview input. This is used in the speed preview
     framework, but could also be adapted for other features. Setting the
     preview input to NULL disables this feature. */
-  void SetPreviewInput(typename InputImageTypePointer input);
+  void SetPreviewInput(InputImageTypePointer input);
 
   /**
     Get the preview input.
