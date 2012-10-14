@@ -363,31 +363,7 @@ void GenericSliceRenderer::UpdateTextureMap()
     // TODO: should LayerAssociation attach to IRISApplication instead of
     // ImageData, so we don't have to make this pointless call here?
     m_Texture.SetImageData(m_Model->GetDriver()->GetCurrentImageData());
-    std::cout << "UPDATE_TEXTURE_MAP " << to_itkSize(m_Model->GetDriver()->GetCurrentImageData()->GetMain()->GetSize()) << std::endl;
-
-
     m_Texture.Update();
-/*
-    GenericImageData *id = m_Model->GetImageData();
-
-    // Create a new texture map where the associations go
-    TextureMap m;
-    AssociateTexture(id->GetMain(), m_Texture, m);
-    AssociateTexture(id->GetSegmentation(), m_Texture, m);
-    for(GenericImageData::WrapperIterator it = id->GetOverlays()->begin();
-        it != id->GetOverlays()->end(); it++)
-      {
-      AssociateTexture(*it, m_Texture, m);
-      }
-
-    // Delete old textures that haven't been removed after association
-    for(TextureMap::iterator it = m_Texture.begin(); it != m_Texture.end(); it++)
-      delete (it->second);
-
-    // Copy the associations
-    m_Texture = m;
-    }
-    */
     }
 }
 

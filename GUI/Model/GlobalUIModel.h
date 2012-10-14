@@ -171,6 +171,10 @@ public:
   irisGetMacro(SnakeROIIndexModel, AbstractRangedUIntVec3Property *)
   irisGetMacro(SnakeROISizeModel, AbstractRangedUIntVec3Property *)
 
+  /** A model providing access to the list of recently loaded images */
+  typedef AbstractRandomAccessCollectionModel<std::string> StringArrayModel;
+  irisGetMacro(MainImageHistoryModel, StringArrayModel *)
+
   /** Get a list of k recent images */
   std::vector<std::string> GetRecentMainImages(unsigned int k = 5);
 
@@ -243,6 +247,8 @@ protected:
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
   void SetSnakeROISizeValue(Vector3ui value);
 
+  // The model providing the main image history
+  SmartPtr<StringArrayModel> m_MainImageHistoryModel;
 };
 
 #endif // GLOBALUIMODEL_H

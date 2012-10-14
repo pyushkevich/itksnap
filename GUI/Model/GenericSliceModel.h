@@ -78,9 +78,14 @@ public:
   void Initialize(GlobalUIModel *model, int index);
 
   /**
-    Get and set viewport reporter
+    Set the viewport reporter (and listen to viewport events)
     */
-  irisGetSetMacro(SizeReporter, ViewportSizeReporter *)
+  void SetSizeReporter(ViewportSizeReporter *reporter);
+
+  /**
+    Get viewport reporter
+    */
+  irisGetMacro(SizeReporter, ViewportSizeReporter *)
 
 
   /**

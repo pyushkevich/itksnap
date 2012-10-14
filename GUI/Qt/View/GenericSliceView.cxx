@@ -35,7 +35,8 @@ GenericSliceView::GenericSliceView(QWidget *parent) :
   m_Model = NULL;
   m_Renderer = GenericSliceRenderer::New();
 
-  m_ViewportReporter = new QtViewportReporter(this);
+  m_ViewportReporter = QtViewportReporter::New();
+  m_ViewportReporter->SetClientWidget(this);
 
   // We need to grab keyboard focus
   this->SetGrabFocusOnEntry(true);

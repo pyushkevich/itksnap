@@ -33,9 +33,9 @@
 #include <GenericSliceRenderer.h>
 #include <QtAbstractOpenGLBox.h>
 #include <EventBucket.h>
+#include "QtReporterDelegates.h"
 
 class CrosshairsInteractionMode;
-class QtViewportReporter;
 
 class GenericSliceView : public QtAbstractOpenGLBox
 {
@@ -65,7 +65,7 @@ protected:
   GenericSliceModel *m_Model;
 
   // A viewport reporter
-  QtViewportReporter *m_ViewportReporter;
+  SmartPtr<QtViewportReporter> m_ViewportReporter;
 
   // OpenGL renderer (owned by the view)
   SmartPtr<GenericSliceRenderer> m_Renderer;

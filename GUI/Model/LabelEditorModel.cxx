@@ -22,11 +22,6 @@ LabelEditorModel::LabelEditorModel()
         &Self::GetCurrentLabelDescription,
         &Self::SetCurrentLabelDescription);
 
-  m_CurrentLabelIdModel = irisChildPropertyModelRangedMacro(CurrentLabelId);
-  m_CurrentLabelIdModel->Rebroadcast(this, ModelUpdateEvent(), ValueChangedEvent());
-  m_CurrentLabelIdModel->Rebroadcast(this, ModelUpdateEvent(), DomainChangedEvent());
-
-
   m_CurrentLabelIdModel = makeChildPropertyModel(
         this,
         &Self::GetCurrentLabelIdValueAndRange,

@@ -2,16 +2,26 @@
 #define UIREPORTERDELEGATES_H
 
 #include "SNAPCommon.h"
+#include "SNAPEvents.h"
+#include "itkObject.h"
 
 /**
-  An interface used by models to request the viewport size from the GUI.
+  An interface used by models to request the viewport size from the GUI and
+  for the GUI to notify models of changes in the viewport size.
   */
-class ViewportSizeReporter
+class ViewportSizeReporter : public itk::Object
 {
 public:
+  itkEventMacro(ViewportResizeEvent,IRISEvent)
+
+  /** Child classes are expected to fire this event when viewport resizes */
+  FIRES(ViewportResizeEvent)
+
   virtual bool CanReportSize() = 0;
   virtual Vector2ui GetViewportSize() = 0;
-  virtual ~ViewportSizeReporter() {};
+
+protected:
+  virtual ~ViewportSizeReporter() {}
 };
 
 

@@ -153,38 +153,8 @@ int main(int argc, char *argv[])
   // Setup crash signal handlers
   SetupSignalHandlers();
 
-
-
-
-
   // Turn off ITK warning windows
   itk::Object::GlobalWarningDisplayOff();
-
-  // Create an application
-  QApplication app(argc, argv);
-  Q_INIT_RESOURCE(SNAPResources);
-
-  app.setStyle(new QPlastiqueStyle);
-  /*
-  QPalette qp = app.palette();
-  qp.setColor(QPalette::Button, QColor(120,160,240));
-  app.setPalette(qp);
-  */
-
-  // Create the global UI
-  SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
-  IRISApplication *driver = gui->GetDriver();
-
-  // Load the user preferences
-  driver->GetSystemInterface()->LoadUserPreferences();
-
-  // Create the main window
-  MainImageWindow mainwin;
-  mainwin.Initialize(gui);
-
-  /* ==========================
-     PARSE COMMAND LINE OPTIONS
-     ========================== */
 
   // Parse command line arguments
   CommandLineArgumentParser parser;
@@ -198,12 +168,14 @@ int main(int argc, char *argv[])
     return -1;
     }
 
+  // Need help?
   if(parseResult.IsOptionPresent("--help"))
     {
     usage();
     return 0;
     }
 
+  // Parse this option before anything else!
   if(parseResult.IsOptionPresent("--debug-events"))
     {
 #ifdef SNAP_DEBUG_EVENTS
@@ -213,6 +185,24 @@ int main(int argc, char *argv[])
             "without the SNAP_DEBUG_EVENTS option. Please recompile." << endl;
 #endif
     }
+
+  // Create an application
+  QApplication app(argc, argv);
+  Q_INIT_RESOURCE(SNAPResources);
+
+  app.setStyle(new QPlastiqueStyle);
+
+  // Create the global UI
+  SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
+  IRISApplication *driver = gui->GetDriver();
+
+  // Load the user preferences
+  driver->GetSystemInterface()->LoadUserPreferences();
+
+  // Create the main window
+  MainImageWindow mainwin;
+  mainwin.Initialize(gui);
+
 
   // The following situations are possible for main image
   // itksnap file                       <- load as main image, detect file type
@@ -440,5 +430,8 @@ int main(int argc, char *argv[])
   // If everything cool, save the preferences
   if(!rc)
     driver->GetSystemInterface()->SaveUserPreferences();
+
+  // Unload the main image before all the destructors start firing
+  driver->UnloadMainImage();
 }
 

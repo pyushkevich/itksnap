@@ -2,6 +2,7 @@
 #define CONTRASTINSPECTOR_H
 
 #include "SNAPComponent.h"
+#include "SNAPCommon.h"
 
 class IntensityCurveModel;
 class QtViewportReporter;
@@ -41,7 +42,7 @@ private:
   Ui::ContrastInspector *ui;
 
   // Viewport reporter for the curve box
-  QtViewportReporter *m_CurveBoxViewportReporter;
+  SmartPtr<QtViewportReporter> m_CurveBoxViewportReporter;
 };
 
 #endif // CONTRASTINSPECTOR_H

@@ -1,6 +1,7 @@
 #ifndef COLORMAPINSPECTOR_H
 #define COLORMAPINSPECTOR_H
 
+#include "SNAPCommon.h"
 #include "SNAPComponent.h"
 
 class QtViewportReporter;
@@ -47,7 +48,7 @@ private:
   ColorMapModel *m_Model;
 
   // Viewport reporter for the curve box
-  QtViewportReporter *m_ColorMapBoxViewportReporter;
+  SmartPtr<QtViewportReporter> m_ColorMapBoxViewportReporter;
 
   // Whether an update is being done to the presets
   bool m_PresetsUpdating;

@@ -19,7 +19,8 @@ ColorMapInspector::ColorMapInspector(QWidget *parent) :
   m_PresetsUpdating = false;
 
   // Create the viewport reporter
-  m_ColorMapBoxViewportReporter = new QtViewportReporter(ui->boxColorMap);
+  m_ColorMapBoxViewportReporter = QtViewportReporter::New();
+  m_ColorMapBoxViewportReporter->SetClientWidget(ui->boxColorMap);
 
   // Connect the interactor on the colormap box to this object
   ui->boxColorMap->GetDelegate()->SetInspectorWidget(this);

@@ -1400,8 +1400,6 @@ IRISApplication
   Vector3ui cursor = size; cursor /= 2;
   this->SetCursorPosition(cursor);
 
-  std::cout << "UpdateIRISMainImage: loaded size: " << to_itkSize(m_IRISImageData->GetMain()->GetSize()) << std::endl;
-
   // Reset the UNDO manager
   m_UndoManager.Clear();
 
@@ -1450,6 +1448,9 @@ IRISApplication
 
   // Unload the main image
   m_CurrentImageData->UnloadMainImage();
+
+  // Let everyone know that the main image is gone!
+  InvokeEvent(MainImageDimensionsChangeEvent());
 }
 
 IRISApplication::MainImageType 

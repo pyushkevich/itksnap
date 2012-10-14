@@ -40,6 +40,102 @@
 #include "LatentITKEventNotifier.h"
 
 #include <LabelEditorDialog.h>
+#include <QAbstractListModel>
+#include <itksys/SystemTools.hxx>
+
+/**
+  Traits used to display an item from the image history as an entry in
+  the table of recently loaded images
+  */
+class HistoryListModel : public QAbstractListModel
+{
+public:
+
+  int rowCount(const QModelIndex &parent) const
+  {
+    SystemInterface::HistoryListType &history =
+        m_Model->GetDriver()->GetSystemInterface()->GetHistory(m_HistoryName.c_str());
+
+    // Display at most 12 entries in the history
+    return std::min((size_t) 12, history.size());
+  }
+
+  QVariant data(const QModelIndex &index, int role) const
+  {
+    // Get the history
+    SystemInterface::HistoryListType &history =
+        m_Model->GetDriver()->GetSystemInterface()->GetHistory(m_HistoryName.c_str());
+
+    // Get the entry
+    std::string item = history[history.size() - (1 + index.row())];
+
+    // Display the appropriate item
+    if(role == Qt::DisplayRole)
+      {
+      // Get the shorter filename
+      std::string shorty = itksys::SystemTools::GetFilenameName(item.c_str());
+      return QString(shorty.c_str());
+      }
+    else if(role == Qt::DecorationRole)
+      {
+      // Need to get an icon!
+      std::string iconfile = m_Model->GetDriver()->GetSystemInterface()
+          ->GetThumbnailAssociatedWithFile(item.c_str());
+
+      // Need to load the icon
+      QIcon icon;
+      icon.addFile(iconfile.c_str());      
+      return icon;
+      }
+    else if(role == Qt::ToolTipRole)
+      {
+      return QString(item.c_str());
+      }
+    return QVariant();
+  }
+
+  irisGetSetMacro(Model, GlobalUIModel *)
+
+  irisGetSetMacro(HistoryName, std::string)
+
+  HistoryListModel() { m_Model = NULL; }
+
+public slots:
+
+  void onModelUpdate(EventBucket &bucket)
+  {
+    if(bucket.HasEvent(MainImageDimensionsChangeEvent()))
+      {
+      this->reset();
+      }
+  }
+
+protected:
+  // Need a pointer to the model
+  GlobalUIModel *m_Model;
+
+  // The name of the history
+  std::string m_HistoryName;
+};
+
+class HistoryListItemDelegate : public QItemDelegate
+{
+
+public:
+  HistoryListItemDelegate(QWidget *parent) : QItemDelegate(parent) {}
+
+  void paint(QPainter *painter,
+             const QStyleOptionViewItem &option,
+             const QModelIndex &index) const
+  {
+    if(!(option.state & QStyle::State_MouseOver))
+      {
+      painter->setOpacity(0.8);
+      }
+    QItemDelegate::paint(painter, option, index);
+  }
+};
+
 
 MainImageWindow::MainImageWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -66,6 +162,10 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_DockRight->setWidget(m_SnakeWizard);
   m_DockRight->setAllowedAreas(Qt::LeftDockWidgetArea);
   this->addDockWidget(Qt::RightDockWidgetArea, m_DockRight);
+
+  // Delegate for history
+  HistoryListItemDelegate *del = new HistoryListItemDelegate(ui->listRecent);
+  ui->listRecent->setItemDelegate(del);
 
   // Hide the right dock for now
   m_DockRight->setVisible(false);
@@ -117,7 +217,6 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Initialize the docked panels
   m_Toolbox->SetModel(model);
-  // m_SnakeWizard->SetModel(model);
 
   // Listen for changes to the main image, updating the recent image file
   // menu. TODO: a more direct way would be to listen to changes to the
@@ -125,6 +224,18 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   LatentITKEventNotifier::connect(model->GetDriver(),
                                   MainImageDimensionsChangeEvent(),
                                   this,
+                                  SLOT(onModelUpdate(EventBucket)));
+
+  // Create a model for the table of recent images and connect to the widget
+  HistoryListModel *historyModel = new HistoryListModel();
+  historyModel->SetModel(m_Model);
+  historyModel->SetHistoryName("MainImage");
+  ui->listRecent->setModel(historyModel);
+
+  // Make the model listen to events affecting history
+  LatentITKEventNotifier::connect(model->GetDriver(),
+                                  MainImageDimensionsChangeEvent(),
+                                  historyModel,
                                   SLOT(onModelUpdate(EventBucket)));
 
   // Populate the recent file menu
@@ -137,7 +248,14 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
 {
   if(b.HasEvent(MainImageDimensionsChangeEvent()))
     {
+    // Update the recent items
     this->UpdateRecentMenu();
+
+    // Choose what page to show depending on if an image has been loaded
+    if(m_Model->GetDriver()->GetCurrentImageData()->IsMainLoaded())
+      ui->stackMain->setCurrentWidget(ui->pageMain);
+    else
+      ui->stackMain->setCurrentWidget(ui->pageSplash);
     }
 }
 
@@ -329,7 +447,7 @@ void MainImageWindow::LoadRecent(QString file)
     LoadMainImageDelegate del(m_Model, IRISApplication::MAIN_ANY);
     m_Model->LoadImageNonInteractive(file.toAscii(), del, warnings);
     }
-  catch(itk::ExceptionObject &exc)
+  catch(exception &exc)
     {
     QMessageBox b(this);
     b.setText(QString("Failed to load image %1").arg(file));
@@ -373,4 +491,17 @@ void MainImageWindow::onSnakeWizardFinished()
 {
   // Make the dock containing the wizard visible
   m_DockRight->setVisible(false);
+}
+
+void MainImageWindow::on_listRecent_clicked(const QModelIndex &index)
+{
+  // Load the appropriate image
+  QVariant filename = ui->listRecent->model()->data(index, Qt::ToolTipRole);
+  this->LoadRecent(filename.toString());
+}
+
+void MainImageWindow::on_actionUnload_All_triggered()
+{
+  // Unload the main image
+  m_Model->GetDriver()->UnloadMainImage();
 }

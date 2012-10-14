@@ -650,6 +650,7 @@ ImageWrapper<TPixel,TBase>
 #include <itkImageFileWriter.h>
 #include <itkResampleImageFilter.h>
 #include <itkIdentityTransform.h>
+#include <itkFlipImageFilter.h>
 
 template<class TPixel, class TBase>
 void
@@ -665,21 +666,22 @@ ImageWrapper<TPixel,TBase>
 
   // The physical extents of the slice
   Vector2d slice_extent(slice->GetSpacing()[0] * slice_dim[0],
-                        slice->GetSpacing()[0] * slice_dim[1]);
+                        slice->GetSpacing()[1] * slice_dim[1]);
 
   // The output thumbnail will have the extents as the slice, but its size
   // must be at max maxdim
   double slice_extent_max = slice_extent.max_value();
-  double idealThumbSpacing = slice_extent_max / maxdim;
 
-  // Now determine the actual size and actual spacing
-  Vector2ui thumb_size(
-        std::max(1, (int) (0.5 + slice_extent[0] / idealThumbSpacing)),
-        std::max(1, (int) (0.5 + slice_extent[1] / idealThumbSpacing)));
+  // Create a simple square thumbnail
+  Vector2ui thumb_size(maxdim, maxdim);
 
-  Vector2d thumb_spacing(slice_extent[0] / thumb_size[0],
-                         slice_extent[1] / thumb_size[1]);
+  // Spacing is such that the slice extent fits into the thumbnail
+  Vector2d thumb_spacing(slice_extent_max / maxdim,
+                         slice_extent_max / maxdim);
 
+  // The origin of the thumbnail is such that the centers coincide
+  Vector2d thumb_origin(0.5 * (slice_extent[0] - slice_extent_max),
+                        0.5 * (slice_extent[1] - slice_extent_max));
 
   typedef typename itk::IdentityTransform<double, 2> TransformType;
   TransformType::Pointer transform = TransformType::New();
@@ -687,17 +689,29 @@ ImageWrapper<TPixel,TBase>
   typedef typename itk::ResampleImageFilter<
       DisplaySliceType, DisplaySliceType> ResampleFilter;
 
+  // Background color for thumbnails
+  unsigned char defrgb[] = {0,0,0,255};
+
   SmartPtr<ResampleFilter> filter = ResampleFilter::New();
   filter->SetInput(slice);
   filter->SetTransform(transform);
   filter->SetSize(to_itkSize(thumb_size));
   filter->SetOutputSpacing(thumb_spacing.data_block());
-  filter->UpdateLargestPossibleRegion();
+  filter->SetOutputOrigin(thumb_origin.data_block());
+  filter->SetDefaultPixelValue(DisplayPixelType(defrgb));
+
+  // For thumbnails, the image needs to be flipped
+  typedef itk::FlipImageFilter<DisplaySliceType> FlipFilter;
+  SmartPtr<FlipFilter> flipper = FlipFilter::New();
+  flipper->SetInput(filter->GetOutput());
+  typename FlipFilter::FlipAxesArrayType flipaxes;
+  flipaxes[0] = false; flipaxes[1] = true;
+  flipper->SetFlipAxes(flipaxes);
 
   // Write a PNG file
   typedef typename itk::ImageFileWriter<DisplaySliceType> WriterType;
   SmartPtr<WriterType> writer = WriterType::New();
-  writer->SetInput(filter->GetOutput());
+  writer->SetInput(flipper->GetOutput());
   writer->SetFileName(file);
   writer->Update();
 }

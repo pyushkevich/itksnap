@@ -45,6 +45,7 @@
 #include <LabelEditorModel.h>
 #include <CursorInspectionModel.h>
 #include <SnakeWizardModel.h>
+#include <RandomAccessCollectionModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -127,6 +128,16 @@ GlobalUIModel::GlobalUIModel()
         this,
         &Self::GetCursorPositionValueAndRange,
         &Self::SetCursorPosition);
+
+
+  // Set up the history model. This model refers to a registry folder and
+  // lists all the files in the registry.
+  m_MainImageHistoryModel = newRandomAccessContainerModel(
+        m_Driver->GetSystemInterface()->GetHistory("MainImage"));
+
+  // TODO: what about the events? This model and everything downstream needs
+  // to be notified when the history is updated
+
 
   // The model needs to rebroadcast cusror change events as value changes. This
   // is because unlike other more specific models, GlobalUIModel does not fire

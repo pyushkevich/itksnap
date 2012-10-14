@@ -94,7 +94,7 @@ public:
   typedef std::vector<std::string> HistoryListType;
 
   /** Get a filename history list by a particular name */
-  HistoryListType GetHistory(const char *key);
+  HistoryListType &GetHistory(const char *key);
 
   /** Update a filename history list with another filename */
   void UpdateHistory(const char *key, const std::string &file);
@@ -211,6 +211,10 @@ private:
 
   // An object used to write large chunks of SNAP data to the registry
   SNAPRegistryIO *m_RegistryIO;
+
+  // Array of histories for different types of files
+  typedef std::map<std::string, HistoryListType> HistoryMap;
+  HistoryMap m_HistoryMap;
 
   // Filename encoder
   std::string EncodeFilename(const std::string &src);

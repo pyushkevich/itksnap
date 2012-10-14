@@ -284,6 +284,15 @@ void ImageIOWizardModel::LoadImage(std::string filename)
 
     // Update the application
     m_LoadDelegate->UpdateApplicationWithImage(m_GuidedIO);
+
+    // Save the IO hints to the registry
+    Registry regAssoc;
+    SystemInterface *si = m_Parent->GetDriver()->GetSystemInterface();
+    si->FindRegistryAssociatedWithFile(
+          m_GuidedIO->GetFileNameOfNativeImage().c_str(), regAssoc);
+    regAssoc.Folder("Files.Grey").Update(m_Registry);
+    si->AssociateRegistryWithFile(
+          m_GuidedIO->GetFileNameOfNativeImage().c_str(), regAssoc);
   }
   catch(IRISException &excIRIS)
   {

@@ -84,6 +84,23 @@ inline double CalculatePowerOfTenStepSize(double min, double max, size_t minNumS
 }
 
 
+/**
+  An abstract parent type for models that allow random access to items of
+  some type. This abstract class is agnostic to the actual storage type of
+  the source container. For implementations, see RandomAccessCollectionModel
+
+  TODO: reconcile this with domains!
+
+  */
+template <class TItem>
+class AbstractRandomAccessCollectionModel : public AbstractModel
+{
+public:
+  typedef TItem ItemType;
+  virtual unsigned int GetSize() = 0;
+  virtual TItem operator[] (unsigned int n) = 0;
+};
+
 
 /**
   This class represents a domain that allows all values in a data type. It
@@ -792,8 +809,5 @@ makeChildPropertyModel(
   return ModelType::CreatePropertyModel(model, getter, setter,
                                         valueEvent, rangeEvent);
 }
-
-#define irisChildPropertyModelRangedMacro(model) \
-  makeChildPropertyModel(this, &Self::Get##model##ValueAndRange, &Self::Set##model)
 
 #endif // EDITABLENUMERICVALUEMODEL_H

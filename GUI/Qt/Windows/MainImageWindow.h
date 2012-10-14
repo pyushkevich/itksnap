@@ -37,6 +37,7 @@ class QDockWidget;
 class SnakeWizardPanel;
 class IRISMainToolbox;
 class EventBucket;
+class QModelIndex;
 
 class LabelEditorDialog;
 class LayerInspectorDialog;
@@ -95,6 +96,10 @@ private slots:
   void on_actionRecent_5_triggered();
 
   void onSnakeWizardFinished();
+
+  void on_listRecent_clicked(const QModelIndex &index);
+
+  void on_actionUnload_All_triggered();
 
 private:
 

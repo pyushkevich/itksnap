@@ -150,6 +150,15 @@ void
 SystemInterface
 ::SaveUserPreferences()
 {
+  // Write all the histories to the registry
+  Registry &historyFolder = this->Folder("IOHistory");
+  for(HistoryMap::iterator it = m_HistoryMap.begin();
+      it != m_HistoryMap.end(); it++)
+    {
+    historyFolder.Folder(it->first).PutArray(it->second);
+    }
+
+  // Write the registry to disk
   WriteToFile(m_UserPreferenceFile.c_str());
 }
 
@@ -175,8 +184,21 @@ SystemInterface
       this->Clear();
       }
     }
+
   // Enter the current SNAP version into the registry
   Entry("System.CreatedBySNAPVersion") << SNAPCurrentVersionReleaseDate;
+
+  // Read all the relevant histories from the file. We do this dynamically
+  // although it would also have made sense to hard code here the list of
+  // all histories. I guess it does not really matter.
+  Registry &historyFolder = this->Folder("IOHistory");
+  Registry::StringListType historyNames;
+  historyFolder.GetFolderKeys(historyNames);
+  for(Registry::StringListType::iterator it = historyNames.begin();
+      it != historyNames.end(); it++)
+    {
+    m_HistoryMap[*it] = historyFolder.Folder(*it).GetArray(string(""));
+    }
 }
 
 /** 
@@ -349,29 +371,38 @@ SystemInterface
   // Get the key associated with this filename
   string key = this->Key("ImageAssociation.Mapping.Element[%s]",path.c_str());
 
-  // Get the value associated with that key
-  if(generate_if_not_found)
+  // Return the existing code for this key
+  string code = this->Entry(key)[""];
+
+  // If the code was not found, create a new code if requested
+  if(generate_if_not_found && code.size() == 0)
     {
     // Compute a timestamp from the start of computer time
     time_t timestr = time(NULL);
 
+    // Compute a hash
+    long hash = 0;
+    for(int i = 0; i < path.size(); i+=sizeof(long))
+      {
+      long word = 0;
+      for(int j = i, k = 0; j < path.size() && k < sizeof(long); j++,k++)
+        word += ((long) path[j]) << (8 * k);
+      hash ^= word;
+      }
+
     // Create a key for the file
     IRISOStringStream scode;
     scode << setfill('0') << setw(16) << hex << timestr;
+    scode << setfill('0') << setw(2 * sizeof(long)) << hex << hash;
 
     // Return the existing key or the new key
-    string code = this->Entry(key)[scode.str()];
+    code = scode.str();
 
     // Store the code
     this->Entry(key) << code;
+    }
 
-    // Return the code
-    return code;
-    }
-  else
-    {
-    return this->Entry(key)[""];
-    }
+  return code;
 }
 
 bool 
@@ -649,12 +680,12 @@ SystemInterface
 }
 
 /** Get a filename history list by a particular name */
-SystemInterface::HistoryListType 
+SystemInterface::HistoryListType &
 SystemInterface
 ::GetHistory(const char *key)
 {
   // Get the history array
-  return Folder("IOHistory").Folder(string(key)).GetArray(string(""));
+  return m_HistoryMap[key];
 }
 
 /** Update a filename history list with another filename */
@@ -666,7 +697,7 @@ SystemInterface
   std::string file = itksys::SystemTools::CollapseFullPath(filename.c_str());
 
   // Get the current history registry
-  HistoryListType array = GetHistory(key);
+  HistoryListType &array = GetHistory(key);
 
   // First, search the history for the instance of the file and delete
   // existing occurences
@@ -681,10 +712,16 @@ SystemInterface
   if(array.size() > 20)
     array.erase(array.begin(),array.begin() + array.size() - 20);
 
-  // Store the new array to the registry
-  Folder("IOHistory").Folder(string(key)).PutArray(array);
-
   // Save the preferences at this point
+  // TODO: this is only useful for protecting against crashes. When two SNAP
+  // sessions are open at the same time, the histories will still be
+  // overridden. The only ways to overcome this are to (a) store the preferences
+  // in shared memory via IPC; (b) to merge when saving preferences.
+  //
+  // To allow merging, we need to supplement registry with a timestamp on
+  // each entry. However, this is still not enough because some entries may
+  // not be atomic, so we need to know what groups of entries have to be
+  // kept together, for example arrays.
   SaveUserPreferences();
 }
 

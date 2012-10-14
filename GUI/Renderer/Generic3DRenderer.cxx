@@ -57,40 +57,44 @@ void Generic3DRenderer::UpdateAxisRendering()
 {
   // Update the coordinates of the line source
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
-  Vector3ui cursor = app->GetCursorPosition();
-  Vector3ui dims = app->GetCurrentImageData()->GetImageRegion().GetSize();
 
-  // Get the axis appearance properties
-  SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
-  SNAPAppearanceSettings::Element axisapp =
-      as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_3D);
-
-  for(int i = 0; i < 3; i++)
+  if(app->GetCurrentImageData()->IsMainLoaded())
     {
-    // Update the cursor position
-    Vector3d p1 = to_double(cursor), p2 = to_double(cursor);
-    p1[i] = 0; p2[i] = dims[i];
-    m_AxisLineSource[i]->SetPoint1(p1.data_block());
-    m_AxisLineSource[i]->SetPoint2(p2.data_block());
-    m_AxisLineSource[i]->Update();
+    Vector3ui cursor = app->GetCursorPosition();
+    Vector3ui dims = app->GetCurrentImageData()->GetImageRegion().GetSize();
 
-    // Update the visual appearance
-    m_AxisActor[i]->GetProperty()->SetColor(1,0,0);
-    m_AxisActor[i]->GetProperty()->SetLineWidth(4);
+    // Get the axis appearance properties
+    SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
+    SNAPAppearanceSettings::Element axisapp =
+        as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_3D);
 
-    vtkProperty *prop = m_AxisActor[i]->GetProperty();
-    prop->SetColor(axisapp.NormalColor.data_block());
-    if(axisapp.DashSpacing > 0)
+    for(int i = 0; i < 3; i++)
       {
-      prop->SetLineStipplePattern(0x9999);
-      prop->SetLineStippleRepeatFactor(static_cast<int>(axisapp.DashSpacing));
-      prop->SetLineWidth(axisapp.LineThickness);
-      }
+      // Update the cursor position
+      Vector3d p1 = to_double(cursor), p2 = to_double(cursor);
+      p1[i] = 0; p2[i] = dims[i];
+      m_AxisLineSource[i]->SetPoint1(p1.data_block());
+      m_AxisLineSource[i]->SetPoint2(p2.data_block());
+      m_AxisLineSource[i]->Update();
 
-    // Update the transform
-    vtkSmartPointer<vtkTransform> tran = vtkSmartPointer<vtkTransform>::New();
-    tran->SetMatrix(m_Model->GetWorldMatrix().data_block());
-    m_AxisActor[i]->SetUserTransform(tran);
+      // Update the visual appearance
+      m_AxisActor[i]->GetProperty()->SetColor(1,0,0);
+      m_AxisActor[i]->GetProperty()->SetLineWidth(4);
+
+      vtkProperty *prop = m_AxisActor[i]->GetProperty();
+      prop->SetColor(axisapp.NormalColor.data_block());
+      if(axisapp.DashSpacing > 0)
+        {
+        prop->SetLineStipplePattern(0x9999);
+        prop->SetLineStippleRepeatFactor(static_cast<int>(axisapp.DashSpacing));
+        prop->SetLineWidth(axisapp.LineThickness);
+        }
+
+      // Update the transform
+      vtkSmartPointer<vtkTransform> tran = vtkSmartPointer<vtkTransform>::New();
+      tran->SetMatrix(m_Model->GetWorldMatrix().data_block());
+      m_AxisActor[i]->SetUserTransform(tran);
+      }
     }
 }
 

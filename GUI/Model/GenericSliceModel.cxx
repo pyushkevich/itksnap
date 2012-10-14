@@ -72,13 +72,44 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
   Rebroadcast(m_Driver, LayerChangeEvent(), ModelUpdateEvent());
 }
 
+void GenericSliceModel
+::SetSizeReporter(ViewportSizeReporter *reporter)
+{
+  m_SizeReporter = reporter;
+
+  // Rebroadcast the events from the reporter downstream to force an update
+  Rebroadcast(m_SizeReporter,
+              ViewportSizeReporter::ViewportResizeEvent(),
+              ModelUpdateEvent());
+}
+
+
 void GenericSliceModel::OnUpdate()
 {
   // Has there been a change in the image dimensions?
   if(m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
     {
+    // Do a complete initialization
     this->InitializeSlice(m_Driver->GetCurrentImageData());
     }
+  else if(m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent()))
+    {
+    if(this->IsSliceInitialized())
+      {
+      // Check if the zoom should be changed in response to this operation. This
+      // is so if the zoom is currently equal to the optimal zoom, and there is
+      // no linked zoom
+      bool rezoom = (m_ViewZoom == m_OptimalZoom) && !m_ManagedZoom;
+
+      // Just recompute the optimal zoom factor
+      this->ComputeOptimalZoom();
+
+      // Keep zoom optimal if before it was optimal
+      if(rezoom)
+        this->SetViewZoom(m_OptimalZoom);
+      }
+    }
+
 }
 
 void GenericSliceModel::ComputeOptimalZoom()
@@ -128,7 +159,6 @@ GenericSliceModel
   if (!m_ImageData->IsMainLoaded())
     {
     m_SliceInitialized = false;
-    // ClearInteractionStack();
     return;
     }
 
@@ -492,4 +522,5 @@ Vector2ui GenericSliceModel::GetSize()
 {
   return m_SizeReporter->GetViewportSize();
 }
+
 
