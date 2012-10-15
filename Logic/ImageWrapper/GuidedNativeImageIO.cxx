@@ -58,6 +58,7 @@
 #include "itkImageIOFactory.h"
 #include "itkGDCMSeriesFileNames.h"
 #include "itkImageToVectorImageFilter.h"
+#include "itkMRCImageIO.h"
 
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkShiftScaleImageFilter.h"
@@ -86,6 +87,7 @@ GuidedNativeImageIO
   {"VTK", "vtk",                     true,  false, true,  true},
   {"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
   {"NRRD", "nrrd,nhdr",              true,  true,  true,  true},
+  {"MRC", "mrc",                     true,  true,  true,  true},
   {"INVALID FORMAT", "",             false, false, false, false}};
 
 GuidedNativeImageIO
@@ -240,7 +242,8 @@ GuidedNativeImageIO
         }
       }
       break;
-    default:
+	case FORMAT_MRC:      m_IOBase = itk::MRCImageIO::New();          break;
+	default:
       {
       // No IO base was specified in the registry folder. We will use ITK's factory
       // system to find an IO object that can open the file
