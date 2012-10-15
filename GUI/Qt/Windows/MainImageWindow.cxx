@@ -38,6 +38,11 @@
 #include "IRISMainToolbox.h"
 #include "SnakeWizardPanel.h"
 #include "LatentITKEventNotifier.h"
+#include <QProgressDialog>
+#include "QtReporterDelegates.h"
+
+#include "QtCursorOverride.h"
+#include "QtWarningDialog.h"
 
 #include <LabelEditorDialog.h>
 #include <QAbstractListModel>
@@ -193,10 +198,21 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   connect(m_DockRight, SIGNAL(visibilityChanged(bool)),
           this, SLOT(AdjustMarginsForDocks()));
 
+  // Hook up buttons to actions
+  connect(ui->btnLoadGrey, SIGNAL(clicked()), ui->actionOpenGrey, SLOT(trigger()));
+  connect(ui->btnLoadRGB, SIGNAL(clicked()), ui->actionOpenRGB, SLOT(trigger()));
+
+  // Set up the progress dialog
+  m_Progress = new QProgressDialog(this);
+
+  // Create the delegate to pass in to the model
+  m_ProgressReporterDelegate = new QtProgressReporterDelegate();
+  m_ProgressReporterDelegate->SetProgressDialog(m_Progress);
 }
 
 MainImageWindow::~MainImageWindow()
 {
+  delete m_ProgressReporterDelegate;
   delete ui;
 }
 
@@ -217,6 +233,9 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Initialize the docked panels
   m_Toolbox->SetModel(model);
+
+  // Attach the progress reporter delegate to the model
+  m_Model->SetProgressReporterDelegate(m_ProgressReporterDelegate);
 
   // Listen for changes to the main image, updating the recent image file
   // menu. TODO: a more direct way would be to listen to changes to the
@@ -434,7 +453,6 @@ void MainImageWindow::AdjustMarginsForDocks()
 
 }
 
-#include "QtWarningDialog.h"
 
 void MainImageWindow::LoadRecent(QString file)
 {
@@ -443,6 +461,8 @@ void MainImageWindow::LoadRecent(QString file)
   // Try loading the image
   try
     {
+    // Change cursor for this operation
+    QtCursorOverride c(Qt::WaitCursor);
     IRISWarningList warnings;
     LoadMainImageDelegate del(m_Model, IRISApplication::MAIN_ANY);
     m_Model->LoadImageNonInteractive(file.toAscii(), del, warnings);

@@ -20,6 +20,8 @@
 #include <QGridLayout>
 #include <QSpinBox>
 
+#include <QtCursorOverride.h>
+
 #include "IRISException.h"
 #include "ImageIOWizardModel.h"
 #include "MetaDataAccess.h"
@@ -258,24 +260,7 @@ void SelectFilePage::onHistorySelection()
   m_InFilename->setText(action->text());
 }
 
-class CursorOverride
-{
-public:
-  CursorOverride(const QCursor &cursor)
-  {
-    QApplication::setOverrideCursor(cursor);
-  }
 
-  CursorOverride(Qt::CursorShape shape)
-  {
-    QApplication::setOverrideCursor(QCursor(shape));
-  }
-
-  ~CursorOverride()
-  {
-    QApplication::restoreOverrideCursor();
-  }
-};
 
 bool SelectFilePage::validatePage()
 {
@@ -302,7 +287,7 @@ bool SelectFilePage::validatePage()
   if(fmt == GuidedNativeImageIO::FORMAT_DICOM)
     {
     // Change cursor until this object moves out of scope
-    CursorOverride curse(Qt::WaitCursor);
+    QtCursorOverride curse(Qt::WaitCursor);
     try
       {
       m_Model->ProcessDicomDirectory(m_InFilename->text().toStdString());
@@ -317,7 +302,7 @@ bool SelectFilePage::validatePage()
   // If load mode, tell the model to try loading the image
   if(m_Model->IsLoadMode())
     {
-    CursorOverride curse(Qt::WaitCursor);
+    QtCursorOverride curse(Qt::WaitCursor);
     try
       {
       m_Model->SetSelectedFormat(fmt);
@@ -585,7 +570,7 @@ bool DICOMPage::validatePage()
 
   try
     {
-    CursorOverride curse(Qt::WaitCursor);
+    QtCursorOverride curse(Qt::WaitCursor);
     m_Model->LoadDicomSeries(
           this->field("Filename").toString().toStdString(), row);
     }
@@ -793,7 +778,7 @@ bool RawPage::validatePage()
   GuidedNativeImageIO::SetPixelType(hint, pixtype);
 
   // Try loading the image
-  CursorOverride curse(Qt::WaitCursor);
+  QtCursorOverride curse(Qt::WaitCursor);
   try
     {
     m_Model->SetSelectedFormat(GuidedNativeImageIO::FORMAT_RAW);

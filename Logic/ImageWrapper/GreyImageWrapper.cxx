@@ -197,7 +197,7 @@ GreyImageWrapper<TPixel, TBase>
   GreyType imax = hist->GetBinMax(hist->GetSize() - 1);
   GreyType ihigh = imax;
   accum = 0;
-  for(size_t i = hist->GetSize() - 1; i >= 0; i--)
+  for(int i = (int) hist->GetSize() - 1; i >= 0; i--)
     {
     if(accum + hist->GetFrequency(i) < accum_goal)
       {

@@ -1,6 +1,8 @@
 #include "QtReporterDelegates.h"
 #include "UIReporterDelegates.h"
 #include <QResizeEvent>
+#include <QProgressDialog>
+#include <QCoreApplication>
 
 
 
@@ -51,4 +53,25 @@ QtViewportReporter::EventFilter
     m_Owner->InvokeEvent(ViewportResizeEvent());
     }
   return QObject::eventFilter(object, event);
+}
+
+QtProgressReporterDelegate::QtProgressReporterDelegate()
+{
+  m_Dialog = NULL;
+}
+
+void QtProgressReporterDelegate::SetProgressDialog(QProgressDialog *dialog)
+{
+  m_Dialog = dialog;
+  m_Dialog->setMinimum(0);
+  m_Dialog->setMaximum(1000);
+  m_Dialog->setWindowModality(Qt::ApplicationModal);
+  m_Dialog->setLabelText("ITK-SNAP progress");
+}
+
+void QtProgressReporterDelegate::SetProgressValue(double value)
+{
+  std::cout << value << std::endl;
+  m_Dialog->setValue((int) (1000 * value));
+  QCoreApplication::processEvents();
 }

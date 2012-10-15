@@ -2,14 +2,17 @@
 #define __Layer_Association_txx__
 
 #include "LayerAssociation.h"
+#include "IRISApplication.h"
 #include "GenericImageData.h"
+#include "IRISImageData.h"
+#include "SNAPImageData.h"
 #include "ImageWrapperBase.h"
 
 template<class TObject, class TFilter, class TFactoryDelegate>
 LayerAssociation<TObject, TFilter, TFactoryDelegate>
 ::LayerAssociation()
 {
-  m_ImageData = NULL;
+  m_Source = NULL;
   m_VisitCounter = 0;
 }
 
@@ -17,7 +20,7 @@ template<class TObject, class TFilter, class TFactoryDelegate>
 LayerAssociation<TObject, TFilter, TFactoryDelegate>
 ::~LayerAssociation()
 {
-  SetImageData(NULL);
+  SetSource(NULL);
 }
 
 template<class TObject, class TFilter, class TFactoryDelegate>
@@ -28,31 +31,41 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
   m_VisitCounter++;
 
   // Iterate over all the objects in the image data
-  if(m_ImageData)
+  if(m_Source)
     {
-    for(LayerIterator lit = m_ImageData->GetLayers(); !lit.IsAtEnd(); ++lit)
+    // Iterate over all of the image data objects in IRISApplication
+    GenericImageData *id[] = {m_Source->GetIRISImageData(),
+                              m_Source->GetSNAPImageData()};
+
+    for(int k = 0; k < 2; k++)
       {
-      ImageWrapperBase *wb = lit.GetLayer();
-      TFilter *wf = dynamic_cast<TFilter *>(wb);
-      std::cout << "Considering " << wf << std::endl;
-      if(wf && wf->IsInitialized())
+      if(id[k])
         {
-        std::cout << "  it is initialized! " << std::endl;
-
-        iterator it = m_LayerMap.find(wf->GetUniqueId());
-        if(it != m_LayerMap.end())
+        for(LayerIterator lit = id[k]->GetLayers(); !lit.IsAtEnd(); ++lit)
           {
-          std::cout << "  it was found! " << std::endl;
+          ImageWrapperBase *wb = lit.GetLayer();
+          TFilter *wf = dynamic_cast<TFilter *>(wb);
+          std::cout << "Considering " << wf << std::endl;
+          if(wf && wf->IsInitialized())
+            {
+            std::cout << "  it is initialized! " << std::endl;
 
-          // Mark it as visited
-          it->second.m_Visit = m_VisitCounter;
-          }
-        else
-          {
-          std::cout << "  it is new! " << std::endl;
-          RHS rhs(m_Delegate.New(wf));
-          rhs.m_Visit = m_VisitCounter;
-          m_LayerMap.insert(std::make_pair(wf->GetUniqueId(), rhs));
+            iterator it = m_LayerMap.find(wf->GetUniqueId());
+            if(it != m_LayerMap.end())
+              {
+              std::cout << "  it was found! " << std::endl;
+
+              // Mark it as visited
+              it->second.m_Visit = m_VisitCounter;
+              }
+            else
+              {
+              std::cout << "  it is new! " << std::endl;
+              RHS rhs(m_Delegate.New(wf));
+              rhs.m_Visit = m_VisitCounter;
+              m_LayerMap.insert(std::make_pair(wf->GetUniqueId(), rhs));
+              }
+            }
           }
         }
       }
@@ -75,11 +88,11 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
 template<class TObject, class TFilter, class TFactoryDelegate>
 void
 LayerAssociation<TObject, TFilter, TFactoryDelegate>
-::SetImageData(GenericImageData *data)
+::SetSource(IRISApplication *source)
 {
-  if(data != m_ImageData)
+  if(source != m_Source)
     {
-    m_ImageData = data;
+    m_Source = source;
     this->Update();
     }
 }

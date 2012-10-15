@@ -4,6 +4,8 @@
 #include <QWidget>
 #include "UIReporterDelegates.h"
 
+class QProgressDialog;
+
 /**
   An implementation of a viewport reporter for Qt.
 
@@ -40,6 +42,18 @@ protected:
 
   EventFilter *m_Filter;
 
+};
+
+class QtProgressReporterDelegate : public ProgressReporterDelegate
+{
+public:
+  QtProgressReporterDelegate();
+
+  void SetProgressDialog(QProgressDialog *dialog);
+  void SetProgressValue(double);
+
+private:
+  QProgressDialog *m_Dialog;
 };
 
 #endif // QTREQUESTDELEGATES_H

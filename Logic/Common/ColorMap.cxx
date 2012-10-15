@@ -246,8 +246,18 @@ ColorMap
   // are tiny and the overhead of binary search is not worth it
   size_t n = m_CMPoints.size(), lb;
   for(lb = 0; lb < n; lb++)
-    if(j < m_CMPoints[lb].m_Index)
+    {
+    double t = m_CMPoints[lb].m_Index;
+
+    // The right side of this conditional expression is the special case when
+    // j equals to the index in the last control point. In that case we want
+    // to use the left-side value of the last control point, not the right
+    // hand side. Otherwise, the maximum value in the image is treated as
+    // being "outside" of the colormap, and for most colormaps is assigned
+    // a transparent value. That's undesirable
+    if(j < t || (lb == (n-1) && j == t))
       break;
+    }
 
   // Get the interpolants
   const InterpolantData &ic = m_Interpolants[lb];

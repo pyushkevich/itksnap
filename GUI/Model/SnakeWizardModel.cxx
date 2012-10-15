@@ -473,7 +473,7 @@ void SnakeWizardModel
 void SnakeWizardModel::ApplyThresholdPreprocessing()
 {
   // Compute the speed image
-  m_Driver->ApplyCurrentPreprocessingModeToSpeedVolume(NULL);
+  m_Driver->ApplyCurrentPreprocessingModeToSpeedVolume(m_Parent->GetProgressCommand());
 
   // Invoke an event so we get a screen update
   InvokeEvent(ModelUpdateEvent());

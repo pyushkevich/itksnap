@@ -5,6 +5,7 @@
 
 class ImageWrapperBase;
 class GenericImageData;
+class IRISApplication;
 
 template<class TObject, class TLayer>
 struct DefaultLayerAssociationFactoryDelegate
@@ -28,12 +29,8 @@ struct LayerAssociationObjectWrapper
 };
 
 /**
-  YAY! My code is staring to look like Boost! The pro: I have finally figured
-  out the generic programming paradigm. The con: I will be coding ITK-SNAP
-  forever...
-
-  Seriously, this is an object than maintains a one-to-one association between
-  layers in a GenericImageData object, and objects of some user-defined type.
+  This is an object than maintains a one-to-one association between all layers
+  in an IRISApplication and objects of some user-defined type.
   Calling Update() will create new objects for new layers that have appeared
   and delete objects associated with layers that have disappeared.
 
@@ -53,7 +50,7 @@ public:
   LayerAssociation();
   virtual ~LayerAssociation();
 
-  void SetImageData(GenericImageData *data);
+  void SetSource(IRISApplication *app);
 
   // Set the delegate, provided in case you need a delegate with some
   // special functionality.
@@ -73,7 +70,7 @@ protected:
   typedef typename LayerMap::const_iterator const_iterator;
 
   LayerMap m_LayerMap;
-  GenericImageData *m_ImageData;
+  IRISApplication *m_Source;
   TFactoryDelegate m_Delegate;
   unsigned long m_VisitCounter;
 

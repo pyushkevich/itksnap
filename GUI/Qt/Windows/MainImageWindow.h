@@ -38,9 +38,11 @@ class SnakeWizardPanel;
 class IRISMainToolbox;
 class EventBucket;
 class QModelIndex;
+class QProgressDialog;
 
 class LabelEditorDialog;
 class LayerInspectorDialog;
+class QtProgressReporterDelegate;
 
 namespace Ui {
 class MainImageWindow;
@@ -101,6 +103,7 @@ private slots:
 
   void on_actionUnload_All_triggered();
 
+
 private:
 
   void UpdateRecentMenu();
@@ -108,6 +111,9 @@ private:
 
   // Left and right docks
   QDockWidget *m_DockLeft, *m_DockRight;
+
+  // Progress dialog
+  QProgressDialog *m_Progress;
 
   // IRIS main toolbox (in left dock)
   IRISMainToolbox *m_Toolbox;
@@ -122,6 +128,8 @@ private:
   LabelEditorDialog *m_LabelEditor;
 
   LayerInspectorDialog *m_LayerInspector;
+
+  QtProgressReporterDelegate *m_ProgressReporterDelegate;
 };
 
 #endif // MAINIMAGEWINDOW_H

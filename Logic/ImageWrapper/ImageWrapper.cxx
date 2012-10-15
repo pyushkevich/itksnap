@@ -288,7 +288,7 @@ ImageWrapper<TPixel,TBase>
   m_Image->Modified();
 
   // Set the NIFTI/RAS transform
-  m_NiftiSform = ConstructNiftiSform(
+  m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
     m_Image->GetDirection().GetVnlMatrix(),
     m_Image->GetOrigin().GetVnlVector(),
     m_Image->GetSpacing().GetVnlVector());
@@ -651,6 +651,18 @@ ImageWrapper<TPixel,TBase>
 #include <itkResampleImageFilter.h>
 #include <itkIdentityTransform.h>
 #include <itkFlipImageFilter.h>
+#include <itkUnaryFunctorImageFilter.h>
+
+struct RemoveTransparencyFunctor
+{
+  typedef ImageWrapperBase::DisplayPixelType PixelType;
+  PixelType operator()(const PixelType &p)
+  {
+    PixelType pnew = p;
+    pnew[3] = 255;
+    return pnew;
+  }
+};
 
 template<class TPixel, class TBase>
 void
@@ -708,10 +720,16 @@ ImageWrapper<TPixel,TBase>
   flipaxes[0] = false; flipaxes[1] = true;
   flipper->SetFlipAxes(flipaxes);
 
+  // We also need to replace the transparency
+  typedef itk::UnaryFunctorImageFilter<
+      DisplaySliceType, DisplaySliceType, RemoveTransparencyFunctor> OpaqueFilter;
+  SmartPtr<OpaqueFilter> opaquer = OpaqueFilter::New();
+  opaquer->SetInput(flipper->GetOutput());
+
   // Write a PNG file
   typedef typename itk::ImageFileWriter<DisplaySliceType> WriterType;
   SmartPtr<WriterType> writer = WriterType::New();
-  writer->SetInput(flipper->GetOutput());
+  writer->SetInput(opaquer->GetOutput());
   writer->SetFileName(file);
   writer->Update();
 }

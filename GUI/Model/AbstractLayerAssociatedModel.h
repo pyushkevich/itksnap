@@ -51,8 +51,7 @@ public:
     m_ParentModel = parent;
 
     // Associate the layers with properties.
-    m_LayerProperties.SetImageData(
-          m_ParentModel->GetDriver()->GetCurrentImageData());
+    m_LayerProperties.SetSource(m_ParentModel->GetDriver());
 
     // Layer changes in the parent are rebroadcast as model updates
     Rebroadcast(m_ParentModel, LayerChangeEvent(), LayerStructureChangedEvent());
@@ -152,7 +151,6 @@ public:
       // If the layers have changed, we need to update the layer properties
       // object. Then we need to see if the current layer has actually been
       // destroyed
-      m_LayerProperties.SetImageData(m_ParentModel->GetDriver()->GetCurrentImageData());
       m_LayerProperties.Update();
 
       // Was the current layer removed?

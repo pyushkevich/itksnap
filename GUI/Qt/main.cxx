@@ -85,7 +85,7 @@ void usage()
   cout << "Debugging/Testing Options" << endl;
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events      : Dump information regarding UI events" << endl;
-#endif<
+#endif // SNAP_DEBUG_EVENTS
   cout << "   --test list         : List available tests. " << endl;
   cout << "   --test TESTID       : Execute a test. " << endl;
   cout << "   --testdir DIR       : Set the root directory for tests. " << endl;

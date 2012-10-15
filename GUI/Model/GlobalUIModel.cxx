@@ -46,6 +46,7 @@
 #include <CursorInspectionModel.h>
 #include <SnakeWizardModel.h>
 #include <RandomAccessCollectionModel.h>
+#include <UIReporterDelegates.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -172,6 +173,7 @@ GlobalUIModel::GlobalUIModel()
   m_SnakeROISizeModel->Rebroadcast(
         m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
 
+
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), StateMachineChangeEvent());
@@ -195,6 +197,13 @@ GlobalUIModel::GlobalUIModel()
   // Segmentation ROI event
   Rebroadcast(m_Driver->GetGlobalState()->GetSegmentationROISettingsModel(),
               ValueChangedEvent(), SegmentationROIChangedEvent());
+
+  // The initial reporter delegate is NULL
+  m_ProgressReporterDelegate = NULL;
+
+  // Initialize the progress reporting command
+  m_ProgressCommand = itk::MemberCommand<Self>::New();
+  m_ProgressCommand->SetCallbackFunction(this, &GlobalUIModel::ProgressCallback);
 }
 
 GlobalUIModel::~GlobalUIModel()
@@ -436,4 +445,15 @@ std::vector<std::string> GlobalUIModel::GetRecentMainImages(unsigned int k)
     }
 
   return recent;
+}
+
+void
+GlobalUIModel
+::ProgressCallback(itk::Object *source, const itk::EventObject &event)
+{
+  if(m_ProgressReporterDelegate)
+    {
+    itk::ProcessObject *po = static_cast<itk::ProcessObject *>(source);
+    m_ProgressReporterDelegate->SetProgressValue(po->GetProgress());
+    }
 }

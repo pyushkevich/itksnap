@@ -25,4 +25,20 @@ protected:
 };
 
 
+/**
+  This is a progress reporter delegate that allows the SNAP model classes
+  to report progress without knowing what GUI toolkit actually implements
+  the progress dialog.
+  */
+class ProgressReporterDelegate
+{
+public:
+
+  /** Set the progress value between 0 and 1 */
+  virtual void SetProgressValue(double) = 0;
+
+
+
+};
+
 #endif // UIREPORTERDELEGATES_H

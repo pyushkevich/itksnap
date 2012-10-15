@@ -420,6 +420,7 @@ SET(UI_MOC_HEADERS
 # These UI headers don't need to be MOC'd
 SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/SNAPQtCommon.h
+  GUI/Qt/Components/QtCursorOverride.h
   GUI/Qt/Coupling/QtCheckBoxCoupling.h
   GUI/Qt/Coupling/QtComboBoxCoupling.h
   GUI/Qt/Coupling/QtDoubleSpinBoxCoupling.h

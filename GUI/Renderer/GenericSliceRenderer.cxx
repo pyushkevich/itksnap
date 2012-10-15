@@ -50,7 +50,7 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   // Build the texture map
   OpenGLTextureAssociationFactory texFactoryDelegate = { this };
   m_Texture.SetDelegate(texFactoryDelegate);
-  m_Texture.SetImageData(model->GetDriver()->GetCurrentImageData());
+  m_Texture.SetSource(model->GetDriver());
   this->UpdateTextureMap();
 
   // Record and rebroadcast changes in the model
@@ -360,9 +360,6 @@ void GenericSliceRenderer::UpdateTextureMap()
 {
   if(m_Model->IsSliceInitialized())
     {
-    // TODO: should LayerAssociation attach to IRISApplication instead of
-    // ImageData, so we don't have to make this pointless call here?
-    m_Texture.SetImageData(m_Model->GetDriver()->GetCurrentImageData());
     m_Texture.Update();
     }
 }

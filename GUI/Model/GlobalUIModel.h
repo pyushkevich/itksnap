@@ -55,6 +55,7 @@ class ConcreteColorLabelPropertyModel;
 class CursorInspectionModel;
 class SnakeROIModel;
 class SnakeWizardModel;
+class ProgressReporterDelegate;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -178,10 +179,19 @@ public:
   /** Get a list of k recent images */
   std::vector<std::string> GetRecentMainImages(unsigned int k = 5);
 
+  /** Get the progress command */
+  irisGetMacro(ProgressCommand, itk::Command *)
+
+  /** Get and set the progress reporter delegate */
+  irisGetSetMacro(ProgressReporterDelegate, ProgressReporterDelegate *)
+
 protected:
 
   GlobalUIModel();
   ~GlobalUIModel();
+
+  // Callback for reporting progress
+  void ProgressCallback(itk::Object *source, const itk::EventObject &event);
 
   SmartPtr<IRISApplication> m_Driver;
 
@@ -249,6 +259,12 @@ protected:
 
   // The model providing the main image history
   SmartPtr<StringArrayModel> m_MainImageHistoryModel;
+
+  // A pointer to the progress reporter delegate object
+  ProgressReporterDelegate *m_ProgressReporterDelegate;
+
+  // An ITK command used to handle progress
+  SmartPtr<itk::MemberCommand<Self> > m_ProgressCommand;
 };
 
 #endif // GLOBALUIMODEL_H

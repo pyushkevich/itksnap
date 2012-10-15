@@ -89,6 +89,11 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
   if(!settings)
     throw IRISException("Parameters not set in EdgePreprocessingImageFilter");
 
+  itk::ProgressAccumulator::Pointer pac = itk::ProgressAccumulator::New();
+  pac->SetMiniPipelineFilter(this);
+  pac->RegisterInternalFilter(m_BlurFilter, 0.8);
+  pac->RegisterInternalFilter(m_RemapFilter, 0.2);
+
   // Configure the pipeline
   m_CastFilter->SetInput(inputImage);
 

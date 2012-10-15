@@ -3,6 +3,7 @@
 #include "SpeedImageDialog.h"
 #include "GlobalUIModel.h"
 #include "SnakeWizardModel.h"
+#include "QtCursorOverride.h"
 #include "QtComboBoxCoupling.h"
 #include "QtWidgetActivator.h"
 #include "QtTableWidgetCoupling.h"
@@ -142,6 +143,9 @@ void SnakeWizardPanel::on_btnBubbleNext_clicked()
   // Call the initialization code
   try
   {
+    // Handle cursor
+    QtCursorOverride curse(Qt::WaitCursor);
+
     // Initialize the evolution layers
     m_Model->OnEvolutionPageEnter();
 
