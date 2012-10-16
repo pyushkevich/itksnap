@@ -226,6 +226,15 @@ private:
 
   // File format descriptors
   static const FileFormatDescriptor m_FileFormatDescrictorArray[];
+
+  //These function is used for scaling the Spacing and Origin of
+  //images with different units. This is necessary for example in
+  //the case of MRC images, where the units are Angstroms.
+  void scaleSpacingAndOrigin(double adbFactor, IOBasePointer ioBasePointer);
+
+  template<typename TPixel>
+  void scaleSpacingAndOrigin(double adbFactor, itk::Image<TPixel,3> *image);
+
 };
 
 
