@@ -553,8 +553,8 @@ void GuidedNativeImageIO::scaleSpacingAndOrigin(double adbFactor,  GuidedNativeI
 template<typename TPixel>
 void GuidedNativeImageIO::scaleSpacingAndOrigin(double adbFactor, itk::Image<TPixel,3> *image)
 {
-  itk::Image<TPixel,3>::SpacingType spacing = image->GetSpacing();
-  itk::Image<TPixel,3>::PointType origin = image->GetOrigin();
+  typename itk::Image<TPixel,3>::SpacingType spacing = image->GetSpacing();
+  typename itk::Image<TPixel,3>::PointType origin = image->GetOrigin();
   int nI;
   for(nI = 0; nI < 3; nI++)
 	{
