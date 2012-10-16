@@ -39,6 +39,8 @@
 #include <sys/stat.h>
 #include <string.h>
 
+const char *SNAP_Fl_Native_File_Chooser::file_exists_message = "File exists. Are you sure you want to overwrite?";
+
 /**
   The constructor. Internally allocates the native widgets.
   Optional \p val presets the type of browser this will be, 
@@ -74,18 +76,18 @@ SNAP_Fl_Native_File_Chooser::SNAP_Fl_Native_File_Chooser(int val) {
 */
 SNAP_Fl_Native_File_Chooser::~SNAP_Fl_Native_File_Chooser() {
   delete _file_chooser;
-  _filter      = strfree(_filter);
-  _parsedfilt  = strfree(_parsedfilt);
-  _preset_file = strfree(_preset_file);
-  _prevvalue   = strfree(_prevvalue);
-  _directory   = strfree(_directory);
-  _errmsg      = strfree(_errmsg);
+  _filter      = SNAP_strfree(_filter);
+  _parsedfilt  = SNAP_strfree(_parsedfilt);
+  _preset_file = SNAP_strfree(_preset_file);
+  _prevvalue   = SNAP_strfree(_prevvalue);
+  _directory   = SNAP_strfree(_directory);
+  _errmsg      = SNAP_strfree(_errmsg);
 }
 
 // PRIVATE: SET ERROR MESSAGE
 void SNAP_Fl_Native_File_Chooser::errmsg(const char *msg) {
-  _errmsg = strfree(_errmsg);
-  _errmsg = strnew(msg);
+  _errmsg = SNAP_strfree(_errmsg);
+  _errmsg = SNAP_strnew(msg);
 }
 
 // PRIVATE: translate Native types to Fl_File_Chooser types
@@ -193,8 +195,8 @@ int SNAP_Fl_Native_File_Chooser::show() {
   }
 
   if ( _file_chooser->value() && _file_chooser->value()[0] ) {
-    _prevvalue = strfree(_prevvalue);
-    _prevvalue = strnew(_file_chooser->value());
+    _prevvalue = SNAP_strfree(_prevvalue);
+    _prevvalue = SNAP_strnew(_file_chooser->value());
     _filtvalue = _file_chooser->filter_value();	// update filter value
 
     // HANDLE SHOWING 'SaveAs' CONFIRM
@@ -290,8 +292,8 @@ const char *SNAP_Fl_Native_File_Chooser::title() const {
   in the file chooser. The 'All Files' option is always available to the user. 
 */
 void SNAP_Fl_Native_File_Chooser::filter(const char *val) {
-  _filter = strfree(_filter);
-  _filter = strnew(val);
+  _filter = SNAP_strfree(_filter);
+  _filter = SNAP_strnew(val);
   parse_filter();
 }
 
@@ -352,8 +354,8 @@ int SNAP_Fl_Native_File_Chooser::count() const {
   to use the last non-cancelled folder.
 */
 void SNAP_Fl_Native_File_Chooser::directory(const char *val) {
-  _directory = strfree(_directory);
-  _directory = strnew(val);
+  _directory = SNAP_strfree(_directory);
+  _directory = SNAP_strnew(val);
 }
 
 /**
@@ -371,10 +373,10 @@ const char *SNAP_Fl_Native_File_Chooser::directory() const {
 //     "C Files\t*.{cxx,h}\nText Files\t*.txt"  "C Files(*.{cxx,h})\tText Files(*.txt)"
 //
 //     Returns a modified version of the filter that the caller is responsible
-//     for freeing with strfree().
+//     for freeing with SNAP_strfree().
 //
 void SNAP_Fl_Native_File_Chooser::parse_filter() {
-  _parsedfilt = strfree(_parsedfilt);	// clear previous parsed filter (if any)
+  _parsedfilt = SNAP_strfree(_parsedfilt);	// clear previous parsed filter (if any)
   _nfilters = 0;
   char *in = _filter;
   if ( !in ) return;
@@ -412,7 +414,7 @@ void SNAP_Fl_Native_File_Chooser::parse_filter() {
 	  char comp[2048];
 	  sprintf(comp, "%s%.511s(%.511s)", ((_parsedfilt)?"\t":""),
 					    name, wildcard);
-	  _parsedfilt = strapp(_parsedfilt, comp);
+	  _parsedfilt = SNAP_strapp(_parsedfilt, comp);
 	  _nfilters++;
 	  //DEBUG printf("DEBUG: PARSED FILT NOW <%s>\n", _parsedfilt);
 	}
@@ -427,8 +429,8 @@ void SNAP_Fl_Native_File_Chooser::parse_filter() {
       default:				// handle all non-special chars
       regchar:				// handle regular char
 	switch ( mode ) {
-	  case 'n': chrcat(name, *in);     continue;
-	  case 'w': chrcat(wildcard, *in); continue;
+	  case 'n': SNAP_chrcat(name, *in);     continue;
+	  case 'w': SNAP_chrcat(wildcard, *in); continue;
 	}
 	break;
     }
@@ -443,8 +445,8 @@ void SNAP_Fl_Native_File_Chooser::parse_filter() {
   and on most platforms can be used for opening files as well. 
  */
 void SNAP_Fl_Native_File_Chooser::preset_file(const char* val) {
-  _preset_file = strfree(_preset_file);
-  _preset_file = strnew(val);
+  _preset_file = SNAP_strfree(_preset_file);
+  _preset_file = SNAP_strnew(val);
 }
 
 /**
