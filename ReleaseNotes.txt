@@ -20,6 +20,8 @@ MacOS and Windows.
  -  Ported the dependency on ITK 3.20.1 to ITK 4.2 on all operating systems:
     Mac OS X, Linux, and Windows.
 
+-   ITK-SNAP can read and write MRC images now..
+
 1.1.2. Bug Fixes and Stability Improvements
 
  -  Fixed a problem with the RAI code which was not updating after reorienting.

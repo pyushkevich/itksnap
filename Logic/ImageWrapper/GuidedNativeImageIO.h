@@ -60,7 +60,7 @@ public:
   enum FileFormat {
     FORMAT_MHA=0, FORMAT_GIPL, FORMAT_RAW, FORMAT_ANALYZE,
     FORMAT_DICOM, FORMAT_GE4, FORMAT_GE5, FORMAT_NIFTI, FORMAT_SIEMENS, 
-    FORMAT_VTK, FORMAT_VOXBO_CUB, FORMAT_NRRD, FORMAT_COUNT};
+    FORMAT_VTK, FORMAT_VOXBO_CUB, FORMAT_NRRD, FORMAT_MRC, FORMAT_COUNT};
 
   enum RawPixelType {
     PIXELTYPE_UCHAR=0, PIXELTYPE_CHAR, PIXELTYPE_USHORT, PIXELTYPE_SHORT, 
@@ -226,6 +226,15 @@ private:
 
   // File format descriptors
   static const FileFormatDescriptor m_FileFormatDescrictorArray[];
+
+  //These function is used for scaling the Spacing and Origin of
+  //images with different units. This is necessary for example in
+  //the case of MRC images, where the units are Angstroms.
+  void scaleSpacingAndOrigin(double adbFactor, IOBasePointer ioBasePointer);
+
+  template<typename TPixel>
+  void scaleSpacingAndOrigin(double adbFactor, itk::Image<TPixel,3> *image);
+
 };
 
 
