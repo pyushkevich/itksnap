@@ -39,29 +39,6 @@ QtAbstractOpenGLBox::QtAbstractOpenGLBox(QWidget *parent) :
   m_GrabFocusOnEntry = false;
 }
 
-Vector3d QtAbstractOpenGLBox::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
-{
-  // Make this window the current context
-  this->makeCurrent();
-
-  // Convert the event coordinates into the model view coordinates
-  double modelMatrix[16], projMatrix[16];
-  GLint viewport[4];
-  glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-  glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-  glGetIntegerv(GL_VIEWPORT,viewport);
-
-  int x = ev->x();
-  int y = (flipY) ? this->height() - 1 - ev->y() : ev->y();
-
-  // Unproject to get the coordinate of the event
-  Vector3d xProjection;
-  gluUnProject(x, y, 0,
-               modelMatrix,projMatrix,viewport,
-               &xProjection[0], &xProjection[1], &xProjection[2]);
-  return xProjection;
-}
-
 void QtAbstractOpenGLBox::AttachSingleDelegate(QtInteractionDelegateWidget *delegate)
 {
   // Install the delegate

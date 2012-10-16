@@ -70,6 +70,11 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
 
   // Listen to events that require action from this object
   Rebroadcast(m_Driver, LayerChangeEvent(), ModelUpdateEvent());
+
+  // Listen to changes in the layout of the slice view into cells. When
+  // this change occurs, we have to modify the size of the slice views
+  Rebroadcast(m_ParentUI->GetSliceViewCellLayoutModel(),
+              ValueChangedEvent(), ModelUpdateEvent());
 }
 
 void GenericSliceModel
@@ -92,7 +97,8 @@ void GenericSliceModel::OnUpdate()
     // Do a complete initialization
     this->InitializeSlice(m_Driver->GetCurrentImageData());
     }
-  else if(m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent()))
+  else if(m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent())
+          || m_EventBucket->HasEvent(ValueChangedEvent()))
     {
     if(this->IsSliceInitialized())
       {
@@ -126,7 +132,7 @@ void GenericSliceModel::ComputeOptimalZoom()
   m_OptimalViewPosition = worldSize * 0.5f;
 
   // Reduce the width and height of the slice by the margin
-  Vector2ui size = m_SizeReporter->GetViewportSize();
+  Vector2ui size = this->GetSize();
   Vector2i szCanvas =
       Vector2i(size[0], size[1]) - Vector2i(2 * m_Margin);
 
@@ -258,7 +264,7 @@ GenericSliceModel
     xSlice(0) * m_SliceSpacing(0),xSlice(1) * m_SliceSpacing(1));
 
   // Compute the window coordinates
-  Vector2ui size = m_SizeReporter->GetViewportSize();
+  Vector2ui size = this->GetSize();
   Vector2f uvWindow =
     m_ViewZoom * (uvScaled - m_ViewPosition) +
       Vector2f(0.5f * size[0],0.5f * size[1]);
@@ -274,7 +280,7 @@ GenericSliceModel
   assert(IsSliceInitialized() && m_ViewZoom > 0);
 
   // Compute the scaled slice coordinates
-  Vector2ui size = m_SizeReporter->GetViewportSize();
+  Vector2ui size = this->GetSize();
   Vector2f winCenter(0.5f * size[0],0.5f * size[1]);
   Vector2f uvScaled =
     m_ViewPosition + (uvWindow - winCenter) / m_ViewZoom;
@@ -432,7 +438,7 @@ void GenericSliceModel::ComputeThumbnailProperties()
     m_ParentUI->GetAppearanceSettings()->GetZoomThumbnailMaximumSize();
 
   // Recompute the fraction based on maximum size restriction
-  Vector2ui size = m_SizeReporter->GetViewportSize();
+  Vector2ui size = this->GetSize();
   float xNewFraction = xFraction;
   if( size[0] * xNewFraction > xThumbMax )
     xNewFraction = xThumbMax * 1.0f / size[0];
@@ -520,7 +526,10 @@ GenericSliceModel
 
 Vector2ui GenericSliceModel::GetSize()
 {
-  return m_SizeReporter->GetViewportSize();
+  Vector2ui viewport = m_SizeReporter->GetViewportSize();
+  Vector2ui layout = m_ParentUI->GetSliceViewCellLayoutModel()->GetValue();
+  unsigned int rows = layout[0], cols = layout[1];
+  return Vector2ui(viewport[0] / cols, viewport[1] / rows);
 }
 
 

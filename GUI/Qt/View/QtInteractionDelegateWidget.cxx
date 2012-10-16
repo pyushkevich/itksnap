@@ -28,6 +28,7 @@
 #include <QtAbstractOpenGLBox.h>
 #include <QMouseEvent>
 #include "GenericSliceModel.h"
+#include "SNAPOpenGL.h"
 
 QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
   SNAPComponent(parent)
@@ -80,7 +81,7 @@ void QtInteractionDelegateWidget::preprocessEvent(QEvent *ev)
     {
     // Compute the spatial location of the event
     QMouseEvent *emouse = static_cast<QMouseEvent *>(ev);
-    m_XSpace = GetParentGLWidget()->GetEventWorldCoordinates(emouse, true);
+    m_XSpace = this->GetEventWorldCoordinates(emouse, true);
 
     // If a mouse press, back up this info for drag tracking
     if(ev->type() == QEvent::MouseButtonPress)
@@ -109,4 +110,30 @@ void QtInteractionDelegateWidget::preprocessEvent(QEvent *ev)
         m_MiddleDown = false;
       }
     }
+}
+
+Vector3d
+QtInteractionDelegateWidget
+::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
+{
+  // Make the parent window the current context
+  QtAbstractOpenGLBox *parent = this->GetParentGLWidget();
+  parent->makeCurrent();
+
+  // Convert the event coordinates into the model view coordinates
+  double modelMatrix[16], projMatrix[16];
+  GLint viewport[4];
+  glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+  glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+  glGetIntegerv(GL_VIEWPORT,viewport);
+
+  int x = ev->x();
+  int y = (flipY) ? parent->height() - 1 - ev->y() : ev->y();
+
+  // Unproject to get the coordinate of the event
+  Vector3d xProjection;
+  gluUnProject(x, y, 0,
+               modelMatrix,projMatrix,viewport,
+               &xProjection[0], &xProjection[1], &xProjection[2]);
+  return xProjection;
 }

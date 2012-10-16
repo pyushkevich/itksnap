@@ -73,6 +73,10 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
               SegmentationLabelPropertyChangeEvent(), AppearanceUpdateEvent());
   Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetColorLabelTable(),
               SegmentationLabelConfigurationChangeEvent(), AppearanceUpdateEvent());
+
+  // Changes to cell layout also must be rebroadcast
+  Rebroadcast(m_Model->GetParentUI()->GetSliceViewCellLayoutModel(),
+              ValueChangedEvent(), AppearanceUpdateEvent());
 }
 
 void GenericSliceRenderer::OnUpdate()
@@ -85,6 +89,12 @@ void
 GenericSliceRenderer
 ::paintGL()
 {
+  // Number of divisions
+  Vector2ui layout =
+      m_Model->GetParentUI()->GetSliceViewCellLayoutModel()->GetValue();
+  int nrows = (int) layout[0];
+  int ncols = (int) layout[1];
+
   // Get the appearance settings pointer since we use it a lot
   SNAPAppearanceSettings *as =
       m_Model->GetParentUI()->GetAppearanceSettings();
@@ -93,9 +103,6 @@ GenericSliceRenderer
   Vector3d clrBack = as->GetUIElement(
       SNAPAppearanceSettings::BACKGROUND_2D).NormalColor;
 
-  // Clear the display, using a blue shade when under focus
-  glClearColor(clrBack[0], clrBack[1], clrBack[2], 1.0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Slice should be initialized before display
   if (m_Model->IsSliceInitialized())
@@ -106,45 +113,75 @@ GenericSliceRenderer
 
     glDisable(GL_LIGHTING);
 
-    // Prepare for overlay drawing.  The model view is set up to correspond
-    // to pixel coordinates of the slice
-    glPushMatrix();
+    glClearColor(clrBack[0], clrBack[1], clrBack[2], 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // First set of transforms
-    glTranslated(0.5 * m_Model->GetSize()[0],
-                 0.5 * m_Model->GetSize()[1],
-                 0.0);
+    // Draw each cell in the nrows by ncols table of images. Usually, there
+    // will only be one column, but the new SNAP supports side-by-side drawing
+    // of layers for when there are overlays
+    for(int irow = 0; irow < nrows; irow++)
+      for(int icol = 0; icol < ncols; icol++)
+        {
+        // Get the dimensions of the cells
+        unsigned int cell_w = m_Model->GetSize()[0];
+        unsigned int cell_h = m_Model->GetSize()[1];
 
-    // Zoom by display zoom
-    glScalef(m_Model->GetViewZoom(), m_Model->GetViewZoom(), 1.0);
+        // Set up the viewport for the current cell
+        glViewport(icol * cell_w, (nrows - 1 - irow) * cell_h,
+                   cell_w, cell_h);
 
-    // Panning
-    glTranslated(-m_Model->GetViewPosition()[0],
-                 -m_Model->GetViewPosition()[1],
-                 0.0);
+        // Set up the projection
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(0.0, cell_w, 0.0, cell_h);
 
-    // Convert from voxel space to physical units
-    glScalef(m_Model->GetSliceSpacing()[0],
-             m_Model->GetSliceSpacing()[1],
-             1.0);
+        // Establish the model view matrix
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
 
-    // Make the grey and segmentation image textures up-to-date
-    this->DrawMainTexture();
-    this->DrawSegmentationTexture();
+        // Scale to account for multiple rows and columns
+        // glScaled(1.0 / ncols, 1.0 / nrows, 1.0);
 
-    // Draw the overlays
-    if(as->GetOverallVisibility())
-      {
-      // Draw all the overlays added to this object
-      this->DrawOverlays();
+        // Prepare for overlay drawing.  The model view is set up to correspond
+        // to pixel coordinates of the slice
+        glPushMatrix();
 
-      // Draw the zoom locator
-      if(m_Model->IsThumbnailOn())
-        this->DrawThumbnail();
-      }
+        // First set of transforms
+        glTranslated(0.5 * cell_w, 0.5 * cell_h, 0.0);
 
-    // Clean up the GL state
-    glPopMatrix();
+        // Zoom by display zoom
+        glScalef(m_Model->GetViewZoom(), m_Model->GetViewZoom(), 1.0);
+
+        // Panning
+        glTranslated(-m_Model->GetViewPosition()[0],
+                     -m_Model->GetViewPosition()[1],
+                     0.0);
+
+        // Convert from voxel space to physical units
+        glScalef(m_Model->GetSliceSpacing()[0],
+                 m_Model->GetSliceSpacing()[1],
+                 1.0);
+
+        // Make the grey and segmentation image textures up-to-date
+        this->DrawImageLayers(nrows, ncols, irow, icol);
+        this->DrawSegmentationTexture();
+
+        // Draw the overlays
+        if(as->GetOverallVisibility())
+          {
+          // Draw all the overlays added to this object
+          this->DrawOverlays();
+
+          // Draw the zoom locator
+          if(m_Model->IsThumbnailOn() && irow == 0 && icol == 0)
+            this->DrawThumbnail();
+          }
+
+        // Clean up the GL state
+        glPopMatrix();
+
+        }
+
     glPopAttrib();
     }
 
@@ -166,6 +203,36 @@ GenericSliceRenderer
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
+
+void GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int icol)
+{
+  // Get the image data
+  GenericImageData *id = m_Model->GetImageData();
+
+  // Is the display partitioned into rows and columns?
+  if(nrows == 1 && ncols == 1)
+    {
+    // Draw the main texture
+    if (id->IsMainLoaded())
+      DrawTextureForLayer(id->GetMain(), false);
+
+    // Draw each of the overlays with transparency
+    if (!m_ThumbnailDrawing)
+      {
+      for(LayerIterator it(id, LayerIterator::OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+        DrawTextureForLayer(it.GetLayer(), true);
+      }
+    }
+  else
+    {
+    // Draw the i-th texture
+    LayerIterator it(id, LayerIterator::OVERLAY_ROLE | LayerIterator::MAIN_ROLE);
+    it += irow * ncols + icol;
+    if(!it.IsAtEnd())
+      DrawTextureForLayer(it.GetLayer(), false);
+    }
+}
+
 
 void GenericSliceRenderer::DrawMainTexture()
 {
@@ -390,4 +457,5 @@ OpenGLTextureAssociationFactory
 template class LayerAssociation<GenericSliceRenderer::Texture,
                                 ImageWrapperBase,
                                 OpenGLTextureAssociationFactory>;
+
 

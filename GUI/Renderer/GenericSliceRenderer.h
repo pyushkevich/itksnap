@@ -100,6 +100,8 @@ protected:
   void DrawThumbnail();
   void DrawOverlays();
 
+  void DrawImageLayers(int nrows, int ncols, int irow, int icol);
+
   GenericSliceModel *m_Model;
 
   // Whether rendering to thumbnail or not

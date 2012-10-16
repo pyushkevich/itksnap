@@ -46,12 +46,6 @@ public:
   // Whether to grab keyboard focus when the mouse enters this widget
   irisGetSetMacro(GrabFocusOnEntry, bool)
 
-  /** Map the coordinates of a mouse event into 3d spatial coordinates
-    * based on the current GL transform. The Y coordinate can be optionally
-    * flipped
-    */
-  Vector3d GetEventWorldCoordinates(QMouseEvent *ev, bool flipY);
-
   /**
     Use this function when the GL widget is only associated with a single
     interaction mode.

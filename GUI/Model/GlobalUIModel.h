@@ -97,6 +97,8 @@ public:
 
   irisGetMacro(SliceCoordinator, SliceWindowCoordinator *)
 
+  irisGetMacro(SliceViewCellLayoutModel, ConcreteSimpleUIntVec2Property *)
+
   // Convenience access to the SystemInfterface
   SystemInterface *GetSystemInterface() const;
 
@@ -212,6 +214,13 @@ protected:
 
   // Window coordinator
   SmartPtr<SliceWindowCoordinator> m_SliceCoordinator;
+
+  // A model handing the layout of the layers in a slice view. This gives
+  // the number of rows and columns into which the slice views are broken
+  // up when displaying overlays. When this is 1x1, the overlays are painted
+  // on top of each other using transparency. Otherwise, each overlay is shown
+  // in its own cell.
+  SmartPtr<ConcreteSimpleUIntVec2Property> m_SliceViewCellLayoutModel;
 
   // Model for intensity curve manipulation
   SmartPtr<IntensityCurveModel> m_IntensityCurveModel;

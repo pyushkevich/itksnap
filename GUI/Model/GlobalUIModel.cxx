@@ -64,6 +64,10 @@ GlobalUIModel::GlobalUIModel()
   // Create the IRIS application login
   m_Driver = IRISApplication::New();
 
+  // Cell layout model
+  m_SliceViewCellLayoutModel = ConcreteSimpleUIntVec2Property::New();
+  m_SliceViewCellLayoutModel->SetValue(Vector2ui(1,2));
+
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)
     {
