@@ -66,7 +66,7 @@ GlobalUIModel::GlobalUIModel()
 
   // Cell layout model
   m_SliceViewCellLayoutModel = ConcreteSimpleUIntVec2Property::New();
-  m_SliceViewCellLayoutModel->SetValue(Vector2ui(1,2));
+  m_SliceViewCellLayoutModel->SetValue(Vector2ui(2,2));
 
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)

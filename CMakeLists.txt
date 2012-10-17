@@ -113,7 +113,6 @@ SET(LOGIC_CXX
   Logic/Framework/IRISImageData.cxx
   Logic/Framework/SNAPImageData.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
-  Logic/ImageWrapper/ContinuousScalarImageWrapper.cxx
   Logic/ImageWrapper/ImageWrapperBase.cxx
   Logic/ImageWrapper/ImageWrapper.cxx
   Logic/ImageWrapper/GreyImageWrapper.cxx
@@ -352,7 +351,6 @@ SET(UI_QT_CXX
   GUI/Qt/View/GenericSliceView.cxx
   GUI/Qt/View/GenericView3D.cxx
   GUI/Qt/View/IntensityCurveBox.cxx
-  GUI/Qt/View/InteractionMode.cxx
   GUI/Qt/View/InteractionModeClient.cxx
   GUI/Qt/View/QtAbstractOpenGLBox.cxx
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
@@ -384,7 +382,6 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QColorButtonWidget.h
   GUI/Qt/Components/QDoubleSlider.h
   GUI/Qt/Components/QDoubleSliderWithEditor.h
-  GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
   GUI/Qt/Components/SnakeToolROIPanel.h
@@ -421,6 +418,7 @@ SET(UI_MOC_HEADERS
 SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/SNAPQtCommon.h
   GUI/Qt/Components/QtCursorOverride.h
+  GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Coupling/QtCheckBoxCoupling.h
   GUI/Qt/Coupling/QtComboBoxCoupling.h
   GUI/Qt/Coupling/QtDoubleSpinBoxCoupling.h

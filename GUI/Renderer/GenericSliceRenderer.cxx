@@ -162,19 +162,21 @@ GenericSliceRenderer
                  m_Model->GetSliceSpacing()[1],
                  1.0);
 
-        // Make the grey and segmentation image textures up-to-date
-        this->DrawImageLayers(nrows, ncols, irow, icol);
-        this->DrawSegmentationTexture();
-
-        // Draw the overlays
-        if(as->GetOverallVisibility())
+        // Draw the main layers for this row/column combination
+        if(this->DrawImageLayers(nrows, ncols, irow, icol))
           {
-          // Draw all the overlays added to this object
-          this->DrawOverlays();
+          this->DrawSegmentationTexture();
 
-          // Draw the zoom locator
-          if(m_Model->IsThumbnailOn() && irow == 0 && icol == 0)
-            this->DrawThumbnail();
+          // Draw the overlays
+          if(as->GetOverallVisibility())
+            {
+            // Draw all the overlays added to this object
+            this->DrawOverlays();
+
+            // Draw the zoom locator
+            if(m_Model->IsThumbnailOn() && irow == 0 && icol == 0)
+              this->DrawThumbnail();
+            }
           }
 
         // Clean up the GL state
@@ -204,7 +206,7 @@ GenericSliceRenderer
   glLoadIdentity();
 }
 
-void GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int icol)
+bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int icol)
 {
   // Get the image data
   GenericImageData *id = m_Model->GetImageData();
@@ -230,7 +232,11 @@ void GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int i
     it += irow * ncols + icol;
     if(!it.IsAtEnd())
       DrawTextureForLayer(it.GetLayer(), false);
+    else
+      return false;
     }
+
+  return true;
 }
 
 
