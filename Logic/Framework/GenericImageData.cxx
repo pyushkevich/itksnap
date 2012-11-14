@@ -355,6 +355,10 @@ GenericImageData
 {
   SetImageGeometry(m_MainWrappers, geometry);
   SetImageGeometry(m_OverlayWrappers, geometry);
+
+  WrapperList temp;
+  temp.push_back(m_LabelWrapper);
+  SetImageGeometry(temp, geometry);
 }
 
 void
