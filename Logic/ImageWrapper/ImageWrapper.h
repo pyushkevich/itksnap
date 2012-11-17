@@ -85,7 +85,8 @@ public:
   virtual Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const = 0;
   virtual vnl_matrix_fixed<double, 4, 4> GetNiftiSform() const = 0;
   virtual DisplaySlicePointer GetDisplaySlice(unsigned int dim) const = 0;
-
+  virtual void SetDirectionCosineMatrix(const itk::Matrix<double, 3, 3> & aitkMtrx) = 0;
+    
   // Delete internal data structures
   virtual void Reset() = 0;
 };
@@ -363,6 +364,8 @@ public:
   irisGetMacro(Alpha, unsigned char);
   virtual void ToggleVisibility();
 
+  virtual void SetDirectionCosineMatrix(const itk::Matrix<double, 3, 3> & aitkMtrx);
+    
 protected:
 
   /** The image that we are wrapping */

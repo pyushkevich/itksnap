@@ -376,7 +376,7 @@ GenericImageData
     if(wrapper->IsInitialized())
       {
       // Set the direction matrix in the image
-      wrapper->GetImageBase()->SetDirection(
+      wrapper->SetDirectionCosineMatrix(
         itk::Matrix<double,3,3>(geometry.GetImageDirectionCosineMatrix()));
 
       // Update the geometry for each slice

@@ -171,6 +171,20 @@ ImageWrapper<TPixel>
 template <class TPixel>
 void 
 ImageWrapper<TPixel>
+:: SetDirectionCosineMatrix(const itk::Matrix<double, 3, 3> & aitkMtrx)
+{
+  m_Image->SetDirection(aitkMtrx);
+   
+  m_NiftiSform = ConstructNiftiSform(
+    m_Image->GetDirection().GetVnlMatrix(),
+    m_Image->GetOrigin().GetVnlVector(),
+    m_Image->GetSpacing().GetVnlVector());
+  m_NiftiInvSform = vnl_inverse(m_NiftiSform);
+}
+
+template <class TPixel>
+void 
+ImageWrapper<TPixel>
 ::InitializeToWrapper(const ImageWrapperBase *source, ImageType *image) 
 {
   // Call the common update method
