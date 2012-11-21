@@ -33,6 +33,13 @@
 // Use Apple's chooser
 #ifdef __APPLE__
 #include "SNAP_Fl_Native_File_Chooser.H"
+
+// Dummy function to avoid warnings
+int fltkAppleDummyFunction()
+{
+  return 0;
+}
+
 #endif
 
 // All else falls back to FLTK's own chooser

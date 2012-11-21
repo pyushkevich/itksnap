@@ -514,7 +514,7 @@ Window3D
     }
   catch(IRISException & IRISexc)
     {
-    fl_alert(IRISexc.what());
+    fl_alert("%s", IRISexc.what());
     }
   m_Canvas->redraw();
 }
