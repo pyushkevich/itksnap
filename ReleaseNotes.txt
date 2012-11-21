@@ -11,9 +11,10 @@
 1.1. New in Version 2.4.0
 ----------------------------------------------
 
-This is largely a maintenance release, with a few usability enhancements based
-on user feedback. The main change programmatically is 64 bit support on Linux,
-MacOS and Windows.
+This is the last planned release of the FLTK-based version of ITK-SNAP. It adds
+minimal new functionality and addressed a number of bugs reported in the last 
+year. The subsequent releases of ITK-SNAP will be based on the Qt platform and
+will have the 3.x version number. 
 
 1.1.1. New Features and UI Improvements
 
