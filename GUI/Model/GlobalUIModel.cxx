@@ -47,6 +47,7 @@
 #include <SnakeWizardModel.h>
 #include <RandomAccessCollectionModel.h>
 #include <UIReporterDelegates.h>
+#include <ReorientImageModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -116,6 +117,10 @@ GlobalUIModel::GlobalUIModel()
   // Label editor model
   m_LabelEditorModel = LabelEditorModel::New();
   m_LabelEditorModel->SetParentModel(this);
+
+  // Reorient image model
+  m_ReorientImageModel = ReorientImageModel::New();
+  m_ReorientImageModel->SetParentModel(this);
 
   // Cursor inspection
   m_CursorInspectionModel = CursorInspectionModel::New();

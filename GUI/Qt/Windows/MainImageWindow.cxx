@@ -45,8 +45,14 @@
 #include "QtWarningDialog.h"
 
 #include <LabelEditorDialog.h>
+#include <ReorientImageDialog.h>
 #include <QAbstractListModel>
 #include <itksys/SystemTools.hxx>
+#include <QItemDelegate>
+#include <QPainter>
+#include <QDockWidget>
+#include <QMessageBox>
+
 
 /**
   Traits used to display an item from the image history as an entry in
@@ -155,6 +161,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_LayerInspector = new LayerInspectorDialog(this);
   m_LayerInspector->setModal(false);
 
+  m_ReorientImageDialog = new ReorientImageDialog(this);
+  m_ReorientImageDialog->setModal(false);
+
   // Initialize the docked panels
   m_DockLeft = new QDockWidget("ITK-SNAP Toolbox", this);
   m_Toolbox = new IRISMainToolbox(this);
@@ -230,6 +239,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_LabelEditor->SetModel(model->GetLabelEditorModel());
   m_LayerInspector->SetModel(model);
   m_SnakeWizard->SetModel(model);
+  m_ReorientImageDialog->SetModel(model->GetReorientImageModel());
 
   // Initialize the docked panels
   m_Toolbox->SetModel(model);
@@ -524,4 +534,10 @@ void MainImageWindow::on_actionUnload_All_triggered()
 {
   // Unload the main image
   m_Model->GetDriver()->UnloadMainImage();
+}
+
+void MainImageWindow::on_actionReorient_Image_triggered()
+{
+  // Show the reorientation dialog
+  m_ReorientImageDialog->show();
 }

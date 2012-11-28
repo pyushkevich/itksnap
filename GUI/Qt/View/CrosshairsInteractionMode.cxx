@@ -28,6 +28,10 @@
 #include "GenericSliceView.h"
 #include "OrthogonalSliceCursorNavigationModel.h"
 #include "CrosshairsRenderer.h"
+#include <QPinchGesture>
+#include <QPanGesture>
+#include <QSwipeGesture>
+#include <QApplication>
 
 CrosshairsInteractionMode::CrosshairsInteractionMode(GenericSliceView *parent) :
     SliceWindowInteractionDelegateWidget(parent)

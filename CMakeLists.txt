@@ -255,6 +255,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/LayerSelectionModel.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
   GUI/Model/PolygonDrawingModel.cxx
+  GUI/Model/ReorientImageModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
   GUI/Model/SNAPAppearanceSettings.cxx
   GUI/Model/SnakeROIModel.cxx
@@ -297,6 +298,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
   GUI/Model/PolygonDrawingModel.h
   GUI/Model/PropertyModel.h
+  GUI/Model/ReorientImageModel.h
   GUI/Model/SNAPAppearanceSettings.h
   GUI/Model/SNAPUIFlag.h
   GUI/Model/SNAPUIFlag.txx
@@ -367,6 +369,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/LayerInspectorDialog.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
   GUI/Qt/Windows/QtStyles.cxx
+  GUI/Qt/Windows/ReorientImageDialog.cxx
   GUI/Qt/Windows/SpeedImageDialog.cxx
 )
 
@@ -411,6 +414,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
   GUI/Qt/Windows/MainImageWindow.h
+  GUI/Qt/Windows/ReorientImageDialog.h
   GUI/Qt/Windows/SpeedImageDialog.h
 )
 
@@ -451,6 +455,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui
   GUI/Qt/Windows/MainImageWindow.ui
+  GUI/Qt/Windows/ReorientImageDialog.ui
   GUI/Qt/Windows/SpeedImageDialog.ui
 )
 

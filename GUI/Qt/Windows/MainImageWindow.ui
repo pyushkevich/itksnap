@@ -648,6 +648,7 @@ background-color:rgb(88, 88, 88);
     </property>
     <addaction name="actionImage_Contrast"/>
     <addaction name="actionLabel_Editor"/>
+    <addaction name="actionReorient_Image"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSegmentation"/>
@@ -817,6 +818,11 @@ background-color:rgb(88, 88, 88);
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionReorient_Image">
+   <property name="text">
+    <string>Reorient Image...</string>
    </property>
   </action>
  </widget>

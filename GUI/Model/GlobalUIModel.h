@@ -56,6 +56,7 @@ class CursorInspectionModel;
 class SnakeROIModel;
 class SnakeWizardModel;
 class ProgressReporterDelegate;
+class ReorientImageModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -145,6 +146,9 @@ public:
 
   /** Get the model for the label editor */
   irisGetMacro(LabelEditorModel, LabelEditorModel *)
+
+  /** Get the model for image reorientation */
+  irisGetMacro(ReorientImageModel, ReorientImageModel *)
 
   /** Get the model that handles UI for the cursor inspector */
   irisGetMacro(CursorInspectionModel, CursorInspectionModel *)
@@ -236,6 +240,9 @@ protected:
 
   // Label editor model
   SmartPtr<LabelEditorModel> m_LabelEditorModel;
+
+  // Reorient image model
+  SmartPtr<ReorientImageModel> m_ReorientImageModel;
 
   // Cursor interaction model
   SmartPtr<CursorInspectionModel> m_CursorInspectionModel;

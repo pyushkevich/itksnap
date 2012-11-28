@@ -39,7 +39,7 @@
 #include "IRISVectorTypes.h"
 
 // Include OpenGL headers according to the platform
-#include <QtOpenGL/QtOpenGL>
+// #include <QtOpenGL/QtOpenGL>
 
 // Include GLU, for some reason taken out of Qt 4.8
 #if defined (__APPLE__)

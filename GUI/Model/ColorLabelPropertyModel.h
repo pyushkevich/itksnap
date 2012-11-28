@@ -112,9 +112,5 @@ public:
 };
 
 
-// Base class typedef for the concrete implementation below
-typedef ConcretePropertyModel<LabelType, ColorLabelItemSetDomain>
-  ConcreteColorLabelPropertyModelBase;
-
 
 #endif // COLORLABELPROPERTYMODEL_H

@@ -1,5 +1,6 @@
 #include "SNAPOpenGL.h"
 #include <vnl/vnl_math.h>
+#include <vector>
 
 void
 gl_draw_circle_with_border(double x, double y, double r,

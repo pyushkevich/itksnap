@@ -43,6 +43,7 @@ class QProgressDialog;
 class LabelEditorDialog;
 class LayerInspectorDialog;
 class QtProgressReporterDelegate;
+class ReorientImageDialog;
 
 namespace Ui {
 class MainImageWindow;
@@ -104,6 +105,8 @@ private slots:
   void on_actionUnload_All_triggered();
 
 
+  void on_actionReorient_Image_triggered();
+
 private:
 
   void UpdateRecentMenu();
@@ -128,6 +131,8 @@ private:
   LabelEditorDialog *m_LabelEditor;
 
   LayerInspectorDialog *m_LayerInspector;
+
+  ReorientImageDialog *m_ReorientImageDialog;
 
   QtProgressReporterDelegate *m_ProgressReporterDelegate;
 };

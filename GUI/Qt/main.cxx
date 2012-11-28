@@ -19,6 +19,7 @@
 #include "itkCommand.h"
 
 #include <QPlastiqueStyle>
+#include <QAction>
 
 #include "IRISMainToolbox.h"
 
