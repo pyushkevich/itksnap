@@ -40,7 +40,11 @@ bool
 ThresholdSettings
 ::operator == (const ThresholdSettings &other) const
 {
-  return memcmp(this,&other,sizeof(ThresholdSettings)) == 0;
+  return(
+        this->m_LowerThreshold == other.m_LowerThreshold &&
+        this->m_UpperThreshold == other.m_UpperThreshold &&
+        this->m_Smoothness == other.m_Smoothness &&
+        this->m_ThresholdMode == other.m_ThresholdMode);
 }
 
 bool

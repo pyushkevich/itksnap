@@ -37,7 +37,7 @@ QVariant MetadataTableQtModel::data(
     const QModelIndex &index, int role) const
 {
   // Ignore bad requests
-  if(index.isValid() && role == Qt::DisplayRole || role == Qt::ToolTipRole)
+  if(index.isValid() && (role == Qt::DisplayRole || role == Qt::ToolTipRole))
     return m_ParentModel->GetMetadataCell(index.row(), index.column()).c_str();
   else return QVariant();
 }

@@ -26,6 +26,9 @@ public:
   /** A model for the current RAI field */
   irisGetMacro(CurrentRAICodeModel, AbstractSimpleStringProperty *)
 
+  /** Apply current RAI code to the image */
+  void ApplyCurrentRAI();
+
 protected:
 
   // Constructor
@@ -41,6 +44,11 @@ protected:
 
   // The parent model
   GlobalUIModel *m_Parent;
+
+  // Get the 3x3 direction cosine matrix from the current RAI code
+  bool GetDirectionMatrix(const std::string &rai, Matrix3d &outMatrix) const;
+
+
 
 };
 

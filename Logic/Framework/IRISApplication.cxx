@@ -1547,6 +1547,9 @@ IRISApplication
 
   // Send this coordinate transform to the image data
   m_CurrentImageData->SetImageGeometry(icg);
+
+  // Fire the pose change event
+  InvokeEvent(MainImagePoseChangeEvent());
 }
 
 void IRISApplication::LoadLabelDescriptions(const char *file)

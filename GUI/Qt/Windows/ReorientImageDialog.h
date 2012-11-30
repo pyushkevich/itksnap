@@ -23,10 +23,13 @@ protected:
 
   ReorientImageModel *m_Model;
   
+private slots:
+  void on_btnApply_clicked();
+
 private:
   Ui::ReorientImageDialog *ui;
 
-  static const char m_RAICodes[3][2];
+
   static const char *m_AxisLabels[3][2];
 };
 

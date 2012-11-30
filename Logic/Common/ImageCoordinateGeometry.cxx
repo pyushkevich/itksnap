@@ -34,6 +34,11 @@
 =========================================================================*/
 #include "ImageCoordinateGeometry.h"
 
+const char ImageCoordinateGeometry::m_RAICodes[3][2] = {
+  {'R', 'L'},
+  {'A', 'P'},
+  {'I', 'S'}};
+
 ImageCoordinateGeometry
 ::ImageCoordinateGeometry()
 {
@@ -92,9 +97,9 @@ ImageCoordinateGeometry
 
 bool 
 ImageCoordinateGeometry
-::IsRAICodeValid(const char *rai)
+::IsRAICodeValid(const std::string &rai)
 {
-  if(rai == NULL)
+  if(rai.size() != 3)
     return false;
 
   // Check the validity of the RAI code - no repetition
@@ -130,7 +135,7 @@ ImageCoordinateGeometry
 
 Vector3i
 ImageCoordinateGeometry
-::ConvertRAIToCoordinateMapping(const char *rai)
+::ConvertRAIToCoordinateMapping(const std::string &rai)
 {
   assert(IsRAICodeValid(rai));
   
@@ -138,7 +143,7 @@ ImageCoordinateGeometry
 
   for(unsigned int i=0;i<3;i++)
     {
-    switch(rai[i]) 
+    switch(rai[i])
       {
       case 'r' :
       case 'R' : result[i] =  1;break;
@@ -191,7 +196,39 @@ ImageCoordinateGeometry
       }
     }
       
-  return rai_out;  
+  return rai_out;
+}
+
+ImageCoordinateGeometry::DirectionMatrix
+ImageCoordinateGeometry::ConvertRAICodeToDirectionMatrix(
+    const std::string &rai)
+{
+  // Check the RAI code
+  assert(IsRAICodeValid(rai.c_str()));
+
+  // An identity matrix, for pulling out rows
+  Matrix3d eye;
+  eye.set_identity();
+
+  // Create the output direction matrix
+  DirectionMatrix dm(3, 3);
+
+  // Apply the RAI code
+  for(size_t i = 0; i < 3; i++)
+    {
+    for(size_t j = 0; j < 3; j++)
+      {
+      for(size_t k = 0; k < 2; k++)
+        {
+        if(toupper(rai[i]) == m_RAICodes[j][k])
+          {
+          dm.set_column(i, (k==0 ? 1.0 : -1.0) * eye.get_row(j));
+          }
+        }
+      }
+    }
+
+  return dm;
 }
 
 bool

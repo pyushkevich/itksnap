@@ -244,6 +244,11 @@ void IRISMainToolbox::onModelUpdate(const EventBucket &bucket)
         m_TabInspector->setCurrentIndex(3);
         m_ToolInspector->setCurrentIndex(1);
         break;
+
+      case PAINTBRUSH_MODE:
+        break;
+      case ANNOTATION_MODE:
+        break;
       }
     }
 }

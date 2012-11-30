@@ -89,6 +89,7 @@ void IRISSlicer<TPixel>
       
   // Set the region of the output slice
   outputPtr->SetLargestPossibleRegion(outputRegion);
+  outputPtr->SetRequestedRegion(outputRegion);
 
   // Set the spacing and origin
   outputPtr->SetSpacing(outputSpacing);

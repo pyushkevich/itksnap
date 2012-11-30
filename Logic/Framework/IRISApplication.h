@@ -115,6 +115,7 @@ public:
   // Declare events fired by this object
   FIRES(CursorUpdateEvent)
   FIRES(MainImageDimensionsChangeEvent)
+  FIRES(MainImagePoseChangeEvent)
   FIRES(LayerChangeEvent)
   FIRES(SegmentationChangeEvent)
   FIRES(SpeedImageChangedEvent)

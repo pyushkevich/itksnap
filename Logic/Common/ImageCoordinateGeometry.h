@@ -91,13 +91,16 @@ public:
   }
 
   /** Check an RAI orientation code for validity */
-  static bool IsRAICodeValid(const char *code);
+  static bool IsRAICodeValid(const std::string &rai);
 
   /** Map an RAI code to a mapping vector of positive or negative 1,2,3 */
-  static Vector3i ConvertRAIToCoordinateMapping(const char *code);  
+  static Vector3i ConvertRAIToCoordinateMapping(const std::string &rai);
 
   /** Map ITK direction cosines matrix to the closest RAI code */
   static std::string ConvertDirectionMatrixToClosestRAICode(DirectionMatrix mat);
+
+  /** Map RAI code to an ITK direction cosines matrix */
+  static DirectionMatrix ConvertRAICodeToDirectionMatrix(const std::string &rai);
 
   /** Check if the direction cosines are oblique (not parallel to coord system) */
   static bool IsDirectionMatrixOblique(DirectionMatrix mat);
@@ -116,7 +119,10 @@ private:
   ImageCoordinateTransform m_DisplayToImageTransform[3];
 
   // Image to anatomy direction matrix
-  DirectionMatrix m_ImageDirectionCosineMatrix;
-  };
+  DirectionMatrix m_ImageDirectionCosineMatrix;  
+
+  // RAI codes
+  static const char m_RAICodes[3][2];
+};
 
 #endif

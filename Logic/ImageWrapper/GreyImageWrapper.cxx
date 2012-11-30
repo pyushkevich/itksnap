@@ -150,6 +150,7 @@ typename GreyImageWrapper<TPixel, TBase>::DisplaySlicePointer
 GreyImageWrapper<TPixel, TBase>
 ::GetDisplaySlice(unsigned int dim)
 {
+  std::cout << m_IntensityFilter[dim]->GetOutput()->GetBufferedRegion() << std::endl;
   return m_IntensityFilter[dim]->GetOutput();
 }
 
