@@ -25,6 +25,9 @@ protected:
   
 private:
   Ui::ReorientImageDialog *ui;
+
+  static const char m_RAICodes[3][2];
+  static const char *m_AxisLabels[3][2];
 };
 
 #endif // REORIENTIMAGEDIALOG_H

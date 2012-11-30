@@ -128,6 +128,12 @@
             <height>122</height>
            </size>
           </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
           <attribute name="horizontalHeaderVisible">
            <bool>false</bool>
           </attribute>
@@ -198,6 +204,12 @@
             <width>202</width>
             <height>122</height>
            </size>
+          </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
           </property>
           <attribute name="horizontalHeaderVisible">
            <bool>false</bool>

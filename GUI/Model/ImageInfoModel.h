@@ -35,7 +35,7 @@ public:
   void RegisterWithLayer(ScalarImageWrapperBase *layer);
   void UnRegisterFromLayer(ScalarImageWrapperBase *layer);
 
-  // PArent model assignment override
+  // Parent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);
 
   // Function called in response to events

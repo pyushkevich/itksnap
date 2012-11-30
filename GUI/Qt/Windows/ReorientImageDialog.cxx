@@ -25,3 +25,13 @@ void ReorientImageDialog::SetModel(ReorientImageModel *model)
   makeCoupling(ui->outCurrentRAI, m_Model->GetCurrentRAICodeModel());
   makeCoupling(ui->inNewRAI, m_Model->GetNewRAICodeModel());
 }
+
+const char ReorientImageDialog::m_RAICodes[3][2] = {
+  {'R', 'L'},
+  {'A', 'P'},
+  {'I', 'S'}};
+
+const char *ReorientImageDialog::m_AxisLabels[3][2] = {
+  {"Right to Left", "Left to Right"},
+  {"Anterior to Posterior", "Posterior to Anterior"},
+  {"Inferior to Superior", "Superior to Inferior"}};
