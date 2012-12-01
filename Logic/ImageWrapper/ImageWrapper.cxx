@@ -50,6 +50,7 @@
 #include "IRISSlicer.h"
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
+#include "ImageCoordinateGeometry.h"
 
 #include <vnl/vnl_inverse.h>
 #include <iostream>
@@ -469,6 +470,30 @@ ImageWrapper<TPixel,TBase>
     m_Slicer[i]->SetSliceIndex(cursor[axis]);
   }
 }
+
+template<class TPixel, class TBase>
+void
+ImageWrapper<TPixel,TBase>
+::SetImageGeometry(const ImageCoordinateGeometry &geom)
+{
+  // Set the direction matrix in image
+  itk::Matrix<double,3,3> dm(geom.GetImageDirectionCosineMatrix());
+  this->GetImageBase()->SetDirection(dm);
+
+  // Update the geometry for each slice
+  for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
+    {
+    // Set the display transform (modifies the slicer axes)
+    this->SetImageToDisplayTransform(
+          iSlice, geom.GetImageToDisplayTransform(iSlice));
+
+    // Invalidate the requested region in the display slice. This will
+    // cause the RR to reset to largest possible region on next Update
+    typename DisplaySliceType::RegionType invalidRegion;
+    this->GetDisplaySlice(iSlice)->SetRequestedRegion(invalidRegion);
+    }
+}
+
 
 
 template<class TPixel, class TBase>

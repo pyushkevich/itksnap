@@ -384,15 +384,7 @@ GenericImageData
     if(lit.GetLayer() && lit.GetLayer()->IsInitialized())
       {
       // Set the direction matrix in the image
-      lit.GetLayer()->GetImageBase()->SetDirection(
-        itk::Matrix<double,3,3>(geometry.GetImageDirectionCosineMatrix()));
-
-      // Update the geometry for each slice
-      for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
-        {
-        lit.GetLayer()->SetImageToDisplayTransform(
-          iSlice,m_ImageGeometry.GetImageToDisplayTransform(iSlice));
-        }
+      lit.GetLayer()->SetImageGeometry(geometry);
       }
 }
 

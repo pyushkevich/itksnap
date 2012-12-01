@@ -73,19 +73,19 @@ public:
   irisGetMacro(ImageDirectionCosineMatrix, DirectionMatrix);
 
   /** Get the transform from patient to display coordinate system */
-  const ImageCoordinateTransform & GetAnatomyToDisplayTransform(unsigned int i)
+  const ImageCoordinateTransform & GetAnatomyToDisplayTransform(unsigned int i) const
   {
     return m_AnatomyToDisplayTransform[i];
   }
 
   /** Get the transform from image to display coordinate system */
-  const ImageCoordinateTransform & GetImageToDisplayTransform(unsigned int i)
+  const ImageCoordinateTransform & GetImageToDisplayTransform(unsigned int i) const
   {
     return m_ImageToDisplayTransform[i];
   }
 
   /** Get the transform from display to image coordinate system */  
-  const ImageCoordinateTransform & GetDisplayToImageTransform(unsigned int i)
+  const ImageCoordinateTransform & GetDisplayToImageTransform(unsigned int i) const
   {
     return m_DisplayToImageTransform[i];
   }

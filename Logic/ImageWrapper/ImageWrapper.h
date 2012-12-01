@@ -135,6 +135,13 @@ public:
     unsigned int) const;
 
   /**
+   * Update the image coordinate geometry of the image wrapper. This method
+   * sets the image's direction cosine matrix and updates the slicers. It is
+   * used when the orientation of the image is changed
+   */
+  void SetImageGeometry(const ImageCoordinateGeometry &geom);
+
+  /**
    * Use a default image-slice transformation, the first slice is along z,
    * the second along y, the third, along x, all directions of traversal are
    * positive.

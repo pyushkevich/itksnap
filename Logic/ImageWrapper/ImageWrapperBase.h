@@ -23,6 +23,7 @@ class VectorImageWrapperBase;
 class IntensityCurveInterface;
 class ScalarImageHistogram;
 class ColorMap;
+class ImageCoordinateGeometry;
 
 /**
  \class ImageWrapper
@@ -80,6 +81,13 @@ public:
    * positive.
    */
   virtual void SetImageToDisplayTransformsToDefault() = 0;
+
+  /**
+   * Update the image coordinate geometry of the image wrapper. This method
+   * sets the image's direction cosine matrix and updates the slicers. It is
+   * used when the orientation of the image is changed
+   */
+  virtual void SetImageGeometry(const ImageCoordinateGeometry &geom) = 0;
 
   /** Get the current slice index */
   irisVirtualGetMacro(SliceIndex, Vector3ui)
