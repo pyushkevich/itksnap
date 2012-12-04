@@ -492,6 +492,9 @@ ImageWrapper<TPixel,TBase>
     typename DisplaySliceType::RegionType invalidRegion;
     this->GetDisplaySlice(iSlice)->SetRequestedRegion(invalidRegion);
     }
+
+  // Cause the axis indices in the slicers to be updated due to reorientation
+  this->SetSliceIndex(this->GetSliceIndex());
 }
 
 

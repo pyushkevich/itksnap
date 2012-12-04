@@ -43,8 +43,7 @@ void LabelEditorDialog::SetModel(LabelEditorModel *model)
 
   // Coupling for the ID of the current label
   makeCoupling(ui->inLabelId,
-               m_Model->GetCurrentLabelIdModel(),
-               QtCouplingOptions(NULL,false));
+               m_Model->GetCurrentLabelIdModel());
 
   // Opacity (there are two controls)
   makeCoupling(ui->inLabelOpacitySlider,

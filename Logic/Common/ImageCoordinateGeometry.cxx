@@ -39,6 +39,9 @@ const char ImageCoordinateGeometry::m_RAICodes[3][2] = {
   {'A', 'P'},
   {'I', 'S'}};
 
+ImageCoordinateGeometry::AxisDirectionDescriptionMap
+ImageCoordinateGeometry::m_AxisDirectionDescriptionMap;
+
 ImageCoordinateGeometry
 ::ImageCoordinateGeometry()
 {
@@ -133,6 +136,61 @@ ImageCoordinateGeometry
   return rl && ap && is;
 }
 
+ImageCoordinateGeometry::AxisDirectionDescriptionMap
+&ImageCoordinateGeometry::GetAxisDirectionDescriptionMap()
+{
+  if(m_AxisDirectionDescriptionMap.size() == 0)
+    {
+    m_AxisDirectionDescriptionMap[R_TO_L] = "Right to Left";
+    m_AxisDirectionDescriptionMap[L_TO_R] = "Left to Right";
+    m_AxisDirectionDescriptionMap[A_TO_P] = "Anterior to Posterior";
+    m_AxisDirectionDescriptionMap[P_TO_A] = "Posterior to Anterior";
+    m_AxisDirectionDescriptionMap[I_TO_S] = "Inferior to Superior";
+    m_AxisDirectionDescriptionMap[S_TO_I] = "Superior to Inferior";
+    }
+
+  return m_AxisDirectionDescriptionMap;
+}
+
+ImageCoordinateGeometry::AxisDirection
+ImageCoordinateGeometry::ConvertRAILetterToAxisDirection(char letter)
+{
+  ImageCoordinateGeometry::AxisDirection axisDirection;
+
+  switch(letter)
+    {
+    case 'r' :
+    case 'R' : axisDirection = R_TO_L;break;
+    case 'l' :
+    case 'L' : axisDirection = L_TO_R;break;
+    case 'a' :
+    case 'A' : axisDirection = A_TO_P;break;
+    case 'p' :
+    case 'P' : axisDirection = P_TO_A;break;
+    case 'i' :
+    case 'I' : axisDirection = I_TO_S;break;
+    case 's' :
+    case 'S' : axisDirection = S_TO_I;break;
+    default  : axisDirection = INVALID_DIRECTION;
+    }
+  return(axisDirection);
+}
+
+char ImageCoordinateGeometry
+::ConvertAxisDirectionToRAILetter(ImageCoordinateGeometry::AxisDirection dir)
+{
+  switch(dir)
+    {
+    case R_TO_L: return 'R';
+    case L_TO_R: return 'L';
+    case A_TO_P: return 'A';
+    case P_TO_A: return 'P';
+    case I_TO_S: return 'I';
+    case S_TO_I: return 'S';
+    default: assert(0);
+    }
+}
+
 Vector3i
 ImageCoordinateGeometry
 ::ConvertRAIToCoordinateMapping(const std::string &rai)
@@ -143,22 +201,8 @@ ImageCoordinateGeometry
 
   for(unsigned int i=0;i<3;i++)
     {
-    switch(rai[i])
-      {
-      case 'r' :
-      case 'R' : result[i] =  1;break;
-      case 'l' :
-      case 'L' : result[i] = -1;break;
-      case 'a' :
-      case 'A' : result[i] =  2;break;
-      case 'p' :
-      case 'P' : result[i] = -2;break;
-      case 'i' :
-      case 'I' : result[i] =  3;break;
-      case 's' :
-      case 'S' : result[i] = -3;break;
-      default: assert(0);
-      }
+    result[i] = (int) ConvertRAILetterToAxisDirection(rai[i]);
+    assert(result[i] != INVALID_DIRECTION);
     }
 
   return result;

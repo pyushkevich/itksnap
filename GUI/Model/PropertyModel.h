@@ -182,6 +182,8 @@ public:
   TDesc GetDescription(const const_iterator &it) const
     { return it->second; }
 
+  void SetWrappedMap(const MapType *refmap) { m_SourceMap = refmap; }
+
   virtual bool operator == (const Self &cmp) const
     { return m_SourceMap == cmp.m_SourceMap; }
 

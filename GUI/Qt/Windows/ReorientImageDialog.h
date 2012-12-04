@@ -26,11 +26,15 @@ protected:
 private slots:
   void on_btnApply_clicked();
 
+  void on_btnReverseX_clicked();
+
+  void on_btnReverseY_clicked();
+
+  void on_btnReverseZ_clicked();
+
 private:
   Ui::ReorientImageDialog *ui;
 
-
-  static const char *m_AxisLabels[3][2];
 };
 
 #endif // REORIENTIMAGEDIALOG_H

@@ -27,7 +27,7 @@
 #ifndef QTLINEEDITCOUPLING_H
 #define QTLINEEDITCOUPLING_H
 
-#include <QtWidgetCoupling.h>
+#include "QtWidgetCoupling.h"
 #include <iostream>
 #include <iomanip>
 #include <QLineEdit>

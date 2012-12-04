@@ -51,5 +51,6 @@
         <file>media-skip-forward-4.png</file>
         <file>media-playback-singlestep.png</file>
         <file>edgefunction.png</file>
+        <file>revertaxis_16.png</file>
     </qresource>
 </RCC>

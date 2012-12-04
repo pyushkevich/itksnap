@@ -81,7 +81,8 @@ public:
       WidgetValueTraits valueTraits, WidgetDomainTraits domainTraits)
     : m_Widget(w), m_Model(model), m_Updating(false),
       m_ValueTraits(valueTraits), m_DomainTraits(domainTraits),
-      m_CachedValueAvailable(false) {}
+      m_CachedValueAvailable(false),
+      m_AllowUpdateInInvalidState(false) {}
 
   /** 
    * Called the first time the widget is coupled to the model in order to
@@ -92,6 +93,11 @@ public:
     // Call the update method, including updating the domain
     this->DoUpdateWidgetFromModel(true, false);
   }
+
+  /**
+   * Whether the user can update the model when it is in invalid state
+   */
+  irisSetMacro(AllowUpdateInInvalidState, bool)
 
   /** 
    * Respond to a change in the model
@@ -114,11 +120,14 @@ public:
       AtomicType user_value = m_ValueTraits.GetValue(m_Widget);
       AtomicType model_value;
 
+      // Get the current value and status from the model
+      bool valid = m_Model->GetValueAndDomain(model_value, NULL);
+
       // Note: if the model reports that the value is invalid, we are not
       // allowing the user to mess with the value. This may have some odd
       // consequences. We need to investigate.
-      if(m_Model->GetValueAndDomain(model_value, NULL) &&
-         model_value != user_value)
+      if((valid && model_value != user_value)
+         || (!valid && m_AllowUpdateInInvalidState))
         {
         m_Model->SetValue(user_value);
         m_CachedWidgetValue = user_value;
@@ -188,6 +197,9 @@ private:
   bool m_Updating;
   WidgetValueTraits m_ValueTraits;
   WidgetDomainTraits m_DomainTraits;
+
+  // Whether the user can update the model when it is in invalid state
+  bool m_AllowUpdateInInvalidState;
 
   // A temporary copy of the domain
   DomainType m_DomainTemp;
@@ -410,15 +422,25 @@ struct QtCouplingOptions
     */
   bool Unidirectional;
 
-  QtCouplingOptions()
-    : SignalOverride(NULL), Unidirectional(false) {}
+  /**
+   * This flag makes it possible for the widget to write its value to the model
+   * when the model is in invalid state. By default, this is disabled and any
+   * changes by the user to a widget in invalid state are ignored, i.e. not
+   * sent to the model.
+   */
+  bool AllowUpdateInInvalidState;
 
-  QtCouplingOptions(const char *signal, bool unidir)
-    : SignalOverride(signal), Unidirectional(unidir) {}
+  QtCouplingOptions()
+    : SignalOverride(NULL), Unidirectional(false), AllowUpdateInInvalidState(false) {}
+
+  QtCouplingOptions(const char *signal, bool unidir, bool allowchange)
+    : SignalOverride(signal), Unidirectional(unidir),
+      AllowUpdateInInvalidState(allowchange) {}
 
   QtCouplingOptions(const QtCouplingOptions &ref)
     : SignalOverride(ref.SignalOverride),
-      Unidirectional(ref.Unidirectional) {}
+      Unidirectional(ref.Unidirectional),
+      AllowUpdateInInvalidState(ref.AllowUpdateInInvalidState) {}
 };
 
 /**
@@ -473,7 +495,14 @@ void makeCoupling(
     {
     const char *mysignal = (opts.SignalOverride)
         ? opts.SignalOverride : valueTraits.GetSignal();
-    h->connect(w, mysignal, SLOT(onUserModification()));
+    if(mysignal)
+      h->connect(w, mysignal, SLOT(onUserModification()));
+    }
+
+  // Set the allow-changes flag in the mapping
+  if(opts.AllowUpdateInInvalidState)
+    {
+    mapping->SetAllowUpdateInInvalidState(true);
     }
 }
 

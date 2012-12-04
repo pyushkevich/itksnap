@@ -427,6 +427,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Coupling/QtComboBoxCoupling.h
   GUI/Qt/Coupling/QtDoubleSpinBoxCoupling.h
   GUI/Qt/Coupling/QtDoubleSliderWithEditorCoupling.h
+  GUI/Qt/Coupling/QtLabelCoupling.h
   GUI/Qt/Coupling/QtLineEditCoupling.h
   GUI/Qt/Coupling/QtListWidgetCoupling.h
   GUI/Qt/Coupling/QtRadioButtonCoupling.h

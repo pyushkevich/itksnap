@@ -36,6 +36,7 @@
 #define __ImageCoordinateGeometry_h_
 
 #include "ImageCoordinateTransform.h"
+#include <map>
 
 /**
  * \class ImageCoordinateGeometry
@@ -47,6 +48,19 @@ class ImageCoordinateGeometry
   {
 public:
   typedef vnl_matrix<double> DirectionMatrix;
+
+  /**
+   * @brief Enum describing the directions of image axes in anatomical space
+   */
+  enum AxisDirection {
+    INVALID_DIRECTION = 0,
+    R_TO_L = 1, L_TO_R = -1,
+    A_TO_P = 2, P_TO_A = -2,
+    I_TO_S = 3, S_TO_I = -3
+  };
+
+  /** A map from AxisDirection enum to user readable strings */
+  typedef std::map<AxisDirection, std::string> AxisDirectionDescriptionMap;
 
   /** Constructor initializes geometry with default identity transforms */
   ImageCoordinateGeometry();
@@ -93,6 +107,15 @@ public:
   /** Check an RAI orientation code for validity */
   static bool IsRAICodeValid(const std::string &rai);
 
+  /** Get the descriptions of the axis directions */
+  static AxisDirectionDescriptionMap &GetAxisDirectionDescriptionMap();
+
+  /** Convert an RAI code letter to a axis direction */
+  static AxisDirection ConvertRAILetterToAxisDirection(char letter);
+
+  /** Convert axis direction to RAI letter */
+  static char ConvertAxisDirectionToRAILetter(AxisDirection dir);
+
   /** Map an RAI code to a mapping vector of positive or negative 1,2,3 */
   static Vector3i ConvertRAIToCoordinateMapping(const std::string &rai);
 
@@ -123,6 +146,9 @@ private:
 
   // RAI codes
   static const char m_RAICodes[3][2];
+
+  // The axis direction to string map
+  static AxisDirectionDescriptionMap m_AxisDirectionDescriptionMap;
 };
 
 #endif
