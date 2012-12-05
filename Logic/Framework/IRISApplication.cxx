@@ -122,6 +122,17 @@ IRISApplication
   m_PreprocessingMode = PREPROCESS_NONE;
 }
 
+
+bool
+IRISApplication
+::IsImageOrientationOblique()
+{
+  assert(m_CurrentImageData->IsMainLoaded());
+  return ImageCoordinateGeometry::IsDirectionMatrixOblique(
+    m_CurrentImageData->GetImageGeometry().GetImageDirectionCosineMatrix());
+}
+
+
 std::string
 IRISApplication::
 GetImageToAnatomyRAI()
@@ -236,7 +247,7 @@ IRISApplication
     ImageCoordinateGeometry(
       m_SNAPImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
       m_DisplayToAnatomyRAI,
-      m_SNAPImageData->GetVolumeExtents()));
+          m_SNAPImageData->GetVolumeExtents()));
 }
 
 

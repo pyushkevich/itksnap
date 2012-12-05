@@ -783,6 +783,16 @@ public:
   }
 };
 
+class FunctionWrapperPropertyModelIndexedTraits
+{
+public:
+
+  void SetIndex(int index) { m_Index = index; }
+  int GetIndex() const { return m_Index; }
+
+protected:
+  int m_Index;
+};
 
 /**
   Getter traits for the FunctionWrapperPropertyModel that use the compound
@@ -792,7 +802,8 @@ public:
     bool GetValueAndDomain(int i, TVal &value, TDomain &domain);
 */
 template <class TVal, class TDomain, class TModel>
-class FunctionWrapperPropertyModelIndexedCompoundGetterTraits
+class FunctionWrapperPropertyModelIndexedCompoundGetterTraits :
+    public FunctionWrapperPropertyModelIndexedTraits
 {
 public:
   // Signature of the getter
@@ -802,20 +813,34 @@ public:
   bool GetValueAndDomain(
       TModel *model, Getter getter, TVal &value, TDomain *domain)
   {
-    return ((*model).*(getter))(m_Index, value, domain);
+    return ((*model).*(getter))(GetIndex(), value, domain);
   }
-
-  irisGetSetMacro(Index, int)
-
-protected:
-  int m_Index;
 };
+
+
+template <class TVal, class TDomain, class TModel>
+class FunctionWrapperPropertyModelIndexedRangelessGetterTraits :
+    public FunctionWrapperPropertyModelIndexedTraits
+{
+public:
+  // Signature of the getter
+  typedef bool (TModel::*Getter)(int index, TVal &t);
+
+  // Implementation of the get method, just calls the getter directly
+  bool GetValueAndDomain(
+      TModel *model, Getter getter, TVal &value, TDomain *domain)
+  {
+    return ((*model).*(getter))(GetIndex(), value);
+  }
+};
+
 
 /**
   Indexed setter traits
   */
 template <class TVal, class TModel>
-class FunctionWrapperPropertyModelIndexedSimpleSetterTraits
+class FunctionWrapperPropertyModelIndexedSimpleSetterTraits :
+    public FunctionWrapperPropertyModelIndexedTraits
 {
 public:
   // Signature of the getter
@@ -825,13 +850,8 @@ public:
   void SetValue(
       TModel *model, Setter getter, TVal &value)
   {
-    ((*model).*(getter))(m_Index, value);
+    ((*model).*(getter))(GetIndex(), value);
   }
-
-  irisGetSetMacro(Index, int)
-
-protected:
-  int m_Index;
 };
 
 
@@ -930,6 +950,9 @@ wrapIndexedGetterSetterPairAsProperty(
   typedef FunctionWrapperPropertyModelIndexedSimpleSetterTraits<
       TVal, TModel> SetterTraitsType;
 
+  typedef FunctionWrapperPropertyModel<
+      TVal, TDomain, TModel, GetterTraitsType, SetterTraitsType> ModelType;
+
   // Assign the index to the traits
   GetterTraitsType getterTraits;
   getterTraits.SetIndex(index);
@@ -937,10 +960,37 @@ wrapIndexedGetterSetterPairAsProperty(
   SetterTraitsType setterTraits;
   setterTraits.SetIndex(index);
 
-  typedef FunctionWrapperPropertyModel<
-      TVal, TDomain, TModel, GetterTraitsType, SetterTraitsType> ModelType;
-
   // Create the property model
+  return ModelType::CreatePropertyModel(model, getter, setter,
+                                        valueEvent, rangeEvent,
+                                        getterTraits, setterTraits);
+}
+
+template<class TModel, class TVal>
+SmartPtr< AbstractPropertyModel<TVal> >
+wrapIndexedGetterSetterPairAsProperty(
+    TModel *model, int index,
+    bool (TModel::*getter)(int, TVal &),
+    void (TModel::*setter)(int, TVal) = NULL,
+    const itk::EventObject &valueEvent = ModelUpdateEvent(),
+    const itk::EventObject &rangeEvent = ModelUpdateEvent())
+{
+  typedef FunctionWrapperPropertyModelIndexedRangelessGetterTraits<
+      TVal, TrivialDomain, TModel> GetterTraitsType;
+
+  typedef FunctionWrapperPropertyModelIndexedSimpleSetterTraits<
+      TVal, TModel> SetterTraitsType;
+
+  typedef FunctionWrapperPropertyModel<
+      TVal, TrivialDomain, TModel, GetterTraitsType, SetterTraitsType> ModelType;
+
+  // Assign the index to the traits
+  GetterTraitsType getterTraits;
+  getterTraits.SetIndex(index);
+
+  SetterTraitsType setterTraits;
+  setterTraits.SetIndex(index);
+
   return ModelType::CreatePropertyModel(model, getter, setter,
                                         valueEvent, rangeEvent,
                                         getterTraits, setterTraits);

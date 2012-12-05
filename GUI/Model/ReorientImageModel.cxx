@@ -10,6 +10,10 @@
 
 ReorientImageModel::ReorientImageModel()
 {
+  // Initialized cached values
+  m_CurrentRAIValue = "";
+  m_CurrentOrientationIsOblique = false;
+
   // Create the sub-models
   m_NewRAICodeModel = ConcreteSimpleStringProperty::New();
   m_NewRAICodeModel->SetValue("");
@@ -34,16 +38,20 @@ ReorientImageModel::ReorientImageModel()
   // Create the axis direction models
   for(int axis = 0; axis < 3; axis++)
     {
-    m_AxisDirectionModel[axis] = wrapIndexedGetterSetterPairAsProperty(
+    m_NewAxisDirectionModel[axis] = wrapIndexedGetterSetterPairAsProperty(
           this, axis,
-          &Self::GetNthAxisDirectionValueAndDomain,
-          &Self::SetNthAxisDirectionValue);
+          &Self::GetNthNewAxisDirectionValueAndDomain,
+          &Self::SetNthNewAxisDirectionValue);
 
-    m_AxisDirectionModel[axis]->Rebroadcast(
+    m_NewAxisDirectionModel[axis]->Rebroadcast(
           m_NewRAICodeModel, ValueChangedEvent(), ValueChangedEvent());
 
-    m_AxisDirectionModel[axis]->Rebroadcast(
+    m_NewAxisDirectionModel[axis]->Rebroadcast(
           m_NewRAICodeModel, ValueChangedEvent(), DomainChangedEvent());
+
+    m_CurrentAxisDirectionModel[axis] = wrapIndexedGetterSetterPairAsProperty(
+          this, axis,
+          &Self::GetNthCurrentAxisDirectionValue);
     }
 }
 
@@ -62,10 +70,16 @@ void ReorientImageModel::SetParentModel(GlobalUIModel *parent)
               MainImagePoseChangeEvent(), ModelUpdateEvent());
 }
 
-ReorientImageModel::AbstractAxisDirectionProperty
-*ReorientImageModel::GetAxisDirectionModel(int axis) const
+AbstractSimpleStringProperty
+*ReorientImageModel::GetCurrentAxisDirectionModel(int axis) const
 {
-  return m_AxisDirectionModel[axis];
+  return m_CurrentAxisDirectionModel[axis];
+}
+
+ReorientImageModel::AbstractAxisDirectionProperty
+*ReorientImageModel::GetNewAxisDirectionModel(int axis) const
+{
+  return m_NewAxisDirectionModel[axis];
 }
 
 void ReorientImageModel::ApplyCurrentRAI()
@@ -93,12 +107,12 @@ void ReorientImageModel::ApplyCurrentRAI()
 void ReorientImageModel::ReverseAxisDirection(int axis)
 {
   AxisDirection dir;
-  bool valid = m_AxisDirectionModel[axis]->GetValueAndDomain(dir, NULL);
+  bool valid = m_NewAxisDirectionModel[axis]->GetValueAndDomain(dir, NULL);
   if(valid)
     {
     AxisDirection reverse =
         static_cast<AxisDirection>(- static_cast<int>(dir));
-    m_AxisDirectionModel[axis]->SetValue(reverse);
+    m_NewAxisDirectionModel[axis]->SetValue(reverse);
     }
 }
 
@@ -113,25 +127,49 @@ bool ReorientImageModel::CheckState(ReorientImageModel::UIState state)
       return ImageCoordinateGeometry::IsRAICodeValid(rai.c_str());
       }
     case UIF_VALID_AXIS_DIRECTION_X:
-      return GetNthAxisDirectionValueAndDomain(0, dummy, NULL);
+      return GetNthNewAxisDirectionValueAndDomain(0, dummy, NULL);
     case UIF_VALID_AXIS_DIRECTION_Y:
-      return GetNthAxisDirectionValueAndDomain(1, dummy, NULL);
+      return GetNthNewAxisDirectionValueAndDomain(1, dummy, NULL);
     case UIF_VALID_AXIS_DIRECTION_Z:
-      return GetNthAxisDirectionValueAndDomain(2, dummy, NULL);
+      return GetNthNewAxisDirectionValueAndDomain(2, dummy, NULL);
     default: return false;
     }
 }
 
+
 bool ReorientImageModel::GetCurrentRAICodeValue(std::string &value)
 {
-  IRISApplication *app = m_Parent->GetDriver();
-  if(app->GetCurrentImageData()->IsMainLoaded())
+  if(m_CurrentRAIValue.size())
     {
-    value = app->GetImageToAnatomyRAI();
+    value = m_CurrentOrientationIsOblique
+        ? std::string("Oblique, closest to ") + m_CurrentRAIValue
+        : m_CurrentRAIValue;
     return true;
     }
-  return false;
+  else
+    return false;
 }
+
+bool ReorientImageModel
+::GetNthCurrentAxisDirectionValue(int axis, std::string &value)
+{
+  // Get the current rai code value
+  if(m_CurrentRAIValue.size())
+    {
+    char letter = m_CurrentRAIValue[axis];
+    AxisDirection dir =
+        ImageCoordinateGeometry::ConvertRAILetterToAxisDirection(letter);
+    std::string dirstr
+        = ImageCoordinateGeometry::GetAxisDirectionDescriptionMap()[dir];
+    value = m_CurrentOrientationIsOblique
+        ? std::string("Oblique, closest to ") + dirstr
+        : dirstr;
+    return true;
+    }
+  else
+    return false;
+}
+
 
 bool ReorientImageModel::GetInvalidStatusValue(std::string &value)
 {
@@ -144,8 +182,9 @@ bool ReorientImageModel::GetInvalidStatusValue(std::string &value)
   return true;
 }
 
+
 bool ReorientImageModel
-::GetNthAxisDirectionValueAndDomain(
+::GetNthNewAxisDirectionValueAndDomain(
     int axis,
     AxisDirection &value,
     AxisDirectionDomain *domain)
@@ -175,7 +214,7 @@ bool ReorientImageModel
 }
 
 void ReorientImageModel
-::SetNthAxisDirectionValue(int axis, AxisDirection value)
+::SetNthNewAxisDirectionValue(int axis, AxisDirection value)
 {
   // Get the letter for the direction
   char letter = ImageCoordinateGeometry::ConvertAxisDirectionToRAILetter(value);
@@ -196,16 +235,21 @@ void ReorientImageModel::OnUpdate()
 {
   if(this->m_EventBucket->HasEvent(MainImageDimensionsChangeEvent())
      || this->m_EventBucket->HasEvent(MainImagePoseChangeEvent()))
-    {
-    std::string raival;
-    if(GetCurrentRAICodeValue(raival))
+    {    
+    // Obtain the current RAI value
+    IRISApplication *app = m_Parent->GetDriver();
+    if(app->GetCurrentImageData()->IsMainLoaded())
       {
-      m_NewRAICodeModel->SetValue(raival);
+      m_CurrentRAIValue = app->GetImageToAnatomyRAI();
+      m_CurrentOrientationIsOblique = app->IsImageOrientationOblique();
       }
     else
       {
-      m_NewRAICodeModel->SetValue("");
+      m_CurrentRAIValue = "";
       }
+
+    // Set it as the new RAI value
+    m_NewRAICodeModel->SetValue(m_CurrentRAIValue);
     }
 }
 

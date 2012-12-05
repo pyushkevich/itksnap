@@ -49,9 +49,13 @@ void ReorientImageDialog::SetModel(ReorientImageModel *model)
   QtCouplingOptions opts;
   opts.AllowUpdateInInvalidState = true;
 
-  makeCoupling(ui->inNewAxisDirX, m_Model->GetAxisDirectionModel(0), opts);
-  makeCoupling(ui->inNewAxisDirY, m_Model->GetAxisDirectionModel(1), opts);
-  makeCoupling(ui->inNewAxisDirZ, m_Model->GetAxisDirectionModel(2), opts);
+  makeCoupling(ui->inNewAxisDirX, m_Model->GetNewAxisDirectionModel(0), opts);
+  makeCoupling(ui->inNewAxisDirY, m_Model->GetNewAxisDirectionModel(1), opts);
+  makeCoupling(ui->inNewAxisDirZ, m_Model->GetNewAxisDirectionModel(2), opts);
+
+  makeCoupling(ui->outCurrentAxisDirX, m_Model->GetCurrentAxisDirectionModel(0));
+  makeCoupling(ui->outCurrentAxisDirY, m_Model->GetCurrentAxisDirectionModel(1));
+  makeCoupling(ui->outCurrentAxisDirZ, m_Model->GetCurrentAxisDirectionModel(2));
 
 
   // Couple status message with a model

@@ -258,6 +258,9 @@ public:
   /** Update the display-anatomy mapping as an RAI code */
   void SetDisplayToAnatomyRAI(const char *rai0,const char *rai1,const char *rai2);
 
+  /** Does the current image have oblique orientation? */
+  bool IsImageOrientationOblique();
+
   /** Get the current image to anatomy RAI code */
   std::string GetImageToAnatomyRAI();
 

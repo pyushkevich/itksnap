@@ -36,8 +36,11 @@ public:
   /** A model for the invalid status */
   irisGetMacro(InvalidStatusModel, AbstractSimpleStringProperty *)
 
-  /** Models for the direction of the three coordinate axes */
-  AbstractAxisDirectionProperty *GetAxisDirectionModel(int axis) const;
+  /** Models for the current direction of the three coordinate axes */
+  AbstractSimpleStringProperty *GetCurrentAxisDirectionModel(int axis) const;
+
+  /** Models for the new direction of the three coordinate axes */
+  AbstractAxisDirectionProperty *GetNewAxisDirectionModel(int axis) const;
 
   /** Apply current RAI code to the image */
   void ApplyCurrentRAI();
@@ -78,13 +81,17 @@ protected:
   SmartPtr<AbstractSimpleStringProperty> m_InvalidStatusModel;
   bool GetInvalidStatusValue(std::string &value);
 
-  // Models for the three axis directions
-  SmartPtr<AbstractAxisDirectionProperty> m_AxisDirectionModel[3];
+  // Models for the three current axis directions
+  SmartPtr<AbstractSimpleStringProperty> m_CurrentAxisDirectionModel[3];
+  bool GetNthCurrentAxisDirectionValue(int axis, std::string &value);
 
-  bool GetNthAxisDirectionValueAndDomain(
+  // Models for the three new axis directions
+  SmartPtr<AbstractAxisDirectionProperty> m_NewAxisDirectionModel[3];
+
+  bool GetNthNewAxisDirectionValueAndDomain(
       int axis, AxisDirection &value, AxisDirectionDomain *domain);
 
-  void SetNthAxisDirectionValue(int axis, AxisDirection value);
+  void SetNthNewAxisDirectionValue(int axis, AxisDirection value);
 
 
   // Respond to events received by the model
@@ -93,9 +100,14 @@ protected:
   // The parent model
   GlobalUIModel *m_Parent;
 
+  // The current RAI of the loaded image. This is updated in the OnUpdate
+  // method, and is equal to the GetImageToAnatomyRAI in IRISApplication.
+  // We keep a copy of this value to avoid unnecessary computation of the RAI
+  // in response to widget events.
+  std::string m_CurrentRAIValue;
 
-
-
+  // Whether the current rai value is oblique
+  bool m_CurrentOrientationIsOblique;
 
 };
 
