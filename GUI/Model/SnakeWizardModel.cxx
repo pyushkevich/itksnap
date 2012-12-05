@@ -13,83 +13,83 @@
 SnakeWizardModel::SnakeWizardModel()
 {
   // Set up the child models
-  m_ThresholdUpperModel = makeChildPropertyModel(
+  m_ThresholdUpperModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetThresholdUpperValueAndRange,
         &Self::SetThresholdUpperValue,
         ThresholdSettingsUpdateEvent(),
         ThresholdSettingsUpdateEvent());
 
-  m_ThresholdLowerModel = makeChildPropertyModel(
+  m_ThresholdLowerModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetThresholdLowerValueAndRange,
         &Self::SetThresholdLowerValue,
         ThresholdSettingsUpdateEvent(),
         ThresholdSettingsUpdateEvent());
 
-  m_ThresholdSmoothnessModel = makeChildPropertyModel(
+  m_ThresholdSmoothnessModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetThresholdSmoothnessValueAndRange,
         &Self::SetThresholdSmoothnessValue,
         ThresholdSettingsUpdateEvent(),
         ThresholdSettingsUpdateEvent());
 
-  m_ThresholdModeModel = makeChildPropertyModel(
+  m_ThresholdModeModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetThresholdModeValue,
         &Self::SetThresholdModeValue,
         ThresholdSettingsUpdateEvent(),
         ThresholdSettingsUpdateEvent());
 
-  m_ThresholdPreviewModel = makeChildPropertyModel(
+  m_ThresholdPreviewModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetThresholdPreviewValue,
         &Self::SetThresholdPreviewValue,
         ThresholdSettingsUpdateEvent(),
         ThresholdSettingsUpdateEvent());
 
-  m_EdgePreprocessingSigmaModel = makeChildPropertyModel(
+  m_EdgePreprocessingSigmaModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetEdgePreprocessingSigmaValueAndRange,
         &Self::SetEdgePreprocessingSigmaValue,
         EdgePreprocessingSettingsUpdateEvent(),
         EdgePreprocessingSettingsUpdateEvent());
 
-  m_EdgePreprocessingKappaModel = makeChildPropertyModel(
+  m_EdgePreprocessingKappaModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetEdgePreprocessingKappaValueAndRange,
         &Self::SetEdgePreprocessingKappaValue,
         EdgePreprocessingSettingsUpdateEvent(),
         EdgePreprocessingSettingsUpdateEvent());
 
-  m_EdgePreprocessingExponentModel = makeChildPropertyModel(
+  m_EdgePreprocessingExponentModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetEdgePreprocessingExponentValueAndRange,
         &Self::SetEdgePreprocessingExponentValue,
         EdgePreprocessingSettingsUpdateEvent(),
         EdgePreprocessingSettingsUpdateEvent());
 
-  m_EdgePreprocessingPreviewModel = makeChildPropertyModel(
+  m_EdgePreprocessingPreviewModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetEdgePreprocessingPreviewValue,
         &Self::SetEdgePreprocessingPreviewValue,
         EdgePreprocessingSettingsUpdateEvent(),
         EdgePreprocessingSettingsUpdateEvent());
 
-  m_SnakeTypeModel = makeChildPropertyModel(
+  m_SnakeTypeModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetSnakeTypeValueAndRange,
         &Self::SetSnakeTypeValue);
 
 
-  m_ActiveBubbleModel = makeChildPropertyModel(
+  m_ActiveBubbleModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetActiveBubbleValueAndRange,
         &Self::SetActiveBubbleValue,
         ActiveBubbleUpdateEvent(),
         BubbleListUpdateEvent());
 
-  m_BubbleRadiusModel = makeChildPropertyModel(
+  m_BubbleRadiusModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetBubbleRadiusValueAndRange,
         &Self::SetBubbleRadiusValue,
@@ -101,7 +101,7 @@ SnakeWizardModel::SnakeWizardModel()
   // Need to define a null setter function
   void (Self::*nullsetter)(int) = NULL;
 
-  m_EvolutionIterationModel = makeChildPropertyModel(
+  m_EvolutionIterationModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetEvolutionIterationValue,
         nullsetter,

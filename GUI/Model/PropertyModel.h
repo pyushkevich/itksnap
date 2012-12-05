@@ -583,10 +583,10 @@ MAKE_TYPEDEF_PM_NONRNG(std::string,     String)
   without having to check which one the user supplied dynamically.
 
   Note that this class is not meant to be used directly in the GUI model code.
-  Instead, one should make use of the function makeChildPropertyModel, which
+  Instead, one should make use of the function wrapGetterSetterPairAsProperty, which
   serves as a factory for creating models of this type.
 */
-template<class TVal, class TDomain, class TModel, class GetterTraits>
+template<class TVal, class TDomain, class TModel, class GetterTraits, class SetterTraits>
 class FunctionWrapperPropertyModel
     : public AbstractPropertyModel<TVal, TDomain>
 {
@@ -594,7 +594,7 @@ public:
 
   // Standard ITK stuff (can't use irisITKObjectMacro because of two template
   // parameters, comma breaks the macro).
-  typedef FunctionWrapperPropertyModel<TVal, TDomain, TModel, GetterTraits> Self;
+  typedef FunctionWrapperPropertyModel<TVal, TDomain, TModel, GetterTraits, SetterTraits> Self;
   typedef AbstractPropertyModel<TVal, TDomain> Superclass;
   typedef SmartPtr<Self> Pointer;
   typedef SmartPtr<const Self> ConstPointer;
@@ -603,7 +603,9 @@ public:
   itkNewMacro(Self)
 
   // Function pointers to a setter method
-  typedef void (TModel::*Setter)(TVal t);
+  typedef typename SetterTraits::Setter Setter;
+
+  // typedef void (TModel::*Setter)(TVal t);
 
   // The function pointer to the getter is provided by the traits
   typedef typename GetterTraits::Getter Getter;
@@ -615,6 +617,12 @@ public:
     m_Getter = getter;
     m_Setter = setter;
   }
+
+  /** Get a reference to the getter traits */
+  GetterTraits &GetGetterTraits() { return m_GetterTraits; }
+
+  /** Get a reference to the setter traits */
+  SetterTraits &GetSetterTraits() { return m_SetterTraits; }
 
   /**
     Set up the events fired by the parent model that this model should
@@ -637,7 +645,7 @@ public:
     m_Model->Update();
 
     // Call the getter function with the help of the traits object
-    return GetterTraits::GetValueAndDomain(m_Model, m_Getter, value, domain);
+    return m_GetterTraits.GetValueAndDomain(m_Model, m_Getter, value, domain);
   }
 
   void SetValue(TVal value)
@@ -645,13 +653,14 @@ public:
     if(m_Setter)
       {
       static_cast<AbstractModel *>(m_Model)->Update();
-      ((*m_Model).*(m_Setter))(value);
+      m_SetterTraits.SetValue(m_Model, m_Setter, value);
+      // ((*m_Model).*(m_Setter))(value);
       }
   }
 
   /**
     A factory method used to create new models of this type. The user should
-    not need to call this directly, instead use the makeChildPropertyModel
+    not need to call this directly, instead use the wrapGetterSetterPairAsProperty
     methods below. The last two paremeters are the events fired by the parent
     model that should be rebroadcast as the value and domain change events by
     the property model.
@@ -660,11 +669,15 @@ public:
       TModel *parentModel,
       Getter getter, Setter setter,
       const itk::EventObject &valueEvent,
-      const itk::EventObject &rangeEvent)
+      const itk::EventObject &rangeEvent,
+      GetterTraits getterTraits = GetterTraits(),
+      SetterTraits setterTraits = SetterTraits())
   {
     SmartPtr<Self> p = Self::New();
     p->Initialize(parentModel, getter, setter);
     p->SetEvents(valueEvent, rangeEvent);
+    p->m_SetterTraits = setterTraits;
+    p->m_GetterTraits = getterTraits;
 
     // p->UnRegister();
 
@@ -672,11 +685,14 @@ public:
     return pout;
   }
 
+
 protected:
 
   TModel *m_Model;
   Getter m_Getter;
   Setter m_Setter;
+  GetterTraits m_GetterTraits;
+  SetterTraits m_SetterTraits;
 
   FunctionWrapperPropertyModel()
     : m_Model(NULL), m_Getter(NULL), m_Setter(NULL)  {}
@@ -699,7 +715,7 @@ public:
   typedef bool (TModel::*Getter)(TVal &t, TDomain *domain);
 
   // Implementation of the get method, just calls the getter directly
-  static bool GetValueAndDomain(
+  bool GetValueAndDomain(
       TModel *model, Getter getter, TVal &value, TDomain *domain)
   {
     return ((*model).*(getter))(value, domain);
@@ -720,7 +736,7 @@ public:
   typedef bool (TModel::*Getter)(TVal &t);
 
   // Implementation of the get method, just calls the getter directly
-  static bool GetValueAndDomain(
+  bool GetValueAndDomain(
       TModel *model, Getter getter, TVal &value, TDomain *domain)
   {
     return ((*model).*(getter))(value);
@@ -741,13 +757,84 @@ public:
   typedef TVal (TModel::*Getter)();
 
   // Implementation of the get method, just calls the getter directly
-  static bool GetValueAndDomain(
+  bool GetValueAndDomain(
       TModel *model, Getter getter, TVal &value, TDomain *domain)
   {
     value = ((*model).*(getter))();
     return true;
   }
 };
+
+/**
+  Basic setter traits
+  */
+template <class TVal, class TModel>
+class FunctionWrapperPropertyModelSimpleSetterTraits
+{
+public:
+  // Signature of the getter
+  typedef void (TModel::*Setter)(TVal value);
+
+  // Implementation of the get method, just calls the getter directly
+  void SetValue(
+      TModel *model, Setter getter, TVal &value)
+  {
+    ((*model).*(getter))(value);
+  }
+};
+
+
+/**
+  Getter traits for the FunctionWrapperPropertyModel that use the compound
+  getter signature, with a parameter variable i. This is useful when we need
+  to create an array of models that wrap around function of the form
+
+    bool GetValueAndDomain(int i, TVal &value, TDomain &domain);
+*/
+template <class TVal, class TDomain, class TModel>
+class FunctionWrapperPropertyModelIndexedCompoundGetterTraits
+{
+public:
+  // Signature of the getter
+  typedef bool (TModel::*Getter)(int i, TVal &t, TDomain *domain);
+
+  // Implementation of the get method, just calls the getter directly
+  bool GetValueAndDomain(
+      TModel *model, Getter getter, TVal &value, TDomain *domain)
+  {
+    return ((*model).*(getter))(m_Index, value, domain);
+  }
+
+  irisGetSetMacro(Index, int)
+
+protected:
+  int m_Index;
+};
+
+/**
+  Indexed setter traits
+  */
+template <class TVal, class TModel>
+class FunctionWrapperPropertyModelIndexedSimpleSetterTraits
+{
+public:
+  // Signature of the getter
+  typedef void (TModel::*Setter)(int index, TVal value);
+
+  // Implementation of the get method, just calls the getter directly
+  void SetValue(
+      TModel *model, Setter getter, TVal &value)
+  {
+    ((*model).*(getter))(m_Index, value);
+  }
+
+  irisGetSetMacro(Index, int)
+
+protected:
+  int m_Index;
+};
+
+
 
 /**
   This code creates an AbstractPropertyModel that wraps around a pair of
@@ -757,7 +844,7 @@ public:
   */
 template<class TModel, class TVal, class TDomain>
 SmartPtr< AbstractPropertyModel<TVal, TDomain> >
-makeChildPropertyModel(
+wrapGetterSetterPairAsProperty(
     TModel *model,
     bool (TModel::*getter)(TVal &, TDomain *),
     void (TModel::*setter)(TVal) = NULL,
@@ -765,10 +852,13 @@ makeChildPropertyModel(
     const itk::EventObject &rangeEvent = ModelUpdateEvent())
 {
   typedef FunctionWrapperPropertyModelCompoundGetterTraits<
-      TVal, TDomain, TModel> TraitsType;
+      TVal, TDomain, TModel> GetterTraitsType;
+
+  typedef FunctionWrapperPropertyModelSimpleSetterTraits<
+      TVal, TModel> SetterTraitsType;
 
   typedef FunctionWrapperPropertyModel<
-      TVal, TDomain, TModel, TraitsType> ModelType;
+      TVal, TDomain, TModel, GetterTraitsType, SetterTraitsType> ModelType;
 
   return ModelType::CreatePropertyModel(model, getter, setter,
                                         valueEvent, rangeEvent);
@@ -776,7 +866,7 @@ makeChildPropertyModel(
 
 template<class TModel, class TVal>
 SmartPtr< AbstractPropertyModel<TVal> >
-makeChildPropertyModel(
+wrapGetterSetterPairAsProperty(
     TModel *model,
     bool (TModel::*getter)(TVal &),
     void (TModel::*setter)(TVal) = NULL,
@@ -784,10 +874,13 @@ makeChildPropertyModel(
     const itk::EventObject &rangeEvent = ModelUpdateEvent())
 {
   typedef FunctionWrapperPropertyModelRangelessGetterTraits<
-      TVal, TrivialDomain, TModel> TraitsType;
+      TVal, TrivialDomain, TModel> GetterTraitsType;
+
+  typedef FunctionWrapperPropertyModelSimpleSetterTraits<
+      TVal, TModel> SetterTraitsType;
 
   typedef FunctionWrapperPropertyModel<
-      TVal, TrivialDomain, TModel, TraitsType> ModelType;
+      TVal, TrivialDomain, TModel, GetterTraitsType, SetterTraitsType> ModelType;
 
   return ModelType::CreatePropertyModel(model, getter, setter,
                                         valueEvent, rangeEvent);
@@ -795,7 +888,7 @@ makeChildPropertyModel(
 
 template<class TModel, class TVal>
 SmartPtr< AbstractPropertyModel<TVal> >
-makeChildPropertyModel(
+wrapGetterSetterPairAsProperty(
     TModel *model,
     TVal (TModel::*getter)(),
     void (TModel::*setter)(TVal) = NULL,
@@ -803,13 +896,55 @@ makeChildPropertyModel(
     const itk::EventObject &rangeEvent = ModelUpdateEvent())
 {
   typedef FunctionWrapperPropertyModelSimpleGetterTraits<
-      TVal, TrivialDomain, TModel> TraitsType;
+      TVal, TrivialDomain, TModel> GetterTraitsType;
+
+  typedef FunctionWrapperPropertyModelSimpleSetterTraits<
+      TVal, TModel> SetterTraitsType;
 
   typedef FunctionWrapperPropertyModel<
-      TVal, TrivialDomain, TModel, TraitsType> ModelType;
+      TVal, TrivialDomain, TModel, GetterTraitsType, SetterTraitsType> ModelType;
 
   return ModelType::CreatePropertyModel(model, getter, setter,
                                         valueEvent, rangeEvent);
 }
+
+/**
+  A version of wrapGetterSetterPairAsProperty that creates a model that wraps around
+  a function GetXXXValueAndDomain(int i, TVal &value, TDomain *). This is
+  useful when we want to create multiple models that wrap around the same
+  getter/setter function.
+  */
+template<class TModel, class TVal, class TDomain>
+SmartPtr< AbstractPropertyModel<TVal, TDomain> >
+wrapIndexedGetterSetterPairAsProperty(
+    TModel *model,
+    int index,
+    bool (TModel::*getter)(int, TVal &, TDomain *),
+    void (TModel::*setter)(int, TVal) = NULL,
+    const itk::EventObject &valueEvent = ModelUpdateEvent(),
+    const itk::EventObject &rangeEvent = ModelUpdateEvent())
+{
+  typedef FunctionWrapperPropertyModelIndexedCompoundGetterTraits<
+      TVal, TDomain, TModel> GetterTraitsType;
+
+  typedef FunctionWrapperPropertyModelIndexedSimpleSetterTraits<
+      TVal, TModel> SetterTraitsType;
+
+  // Assign the index to the traits
+  GetterTraitsType getterTraits;
+  getterTraits.SetIndex(index);
+
+  SetterTraitsType setterTraits;
+  setterTraits.SetIndex(index);
+
+  typedef FunctionWrapperPropertyModel<
+      TVal, TDomain, TModel, GetterTraitsType, SetterTraitsType> ModelType;
+
+  // Create the property model
+  return ModelType::CreatePropertyModel(model, getter, setter,
+                                        valueEvent, rangeEvent,
+                                        getterTraits, setterTraits);
+}
+
 
 #endif // EDITABLENUMERICVALUEMODEL_H

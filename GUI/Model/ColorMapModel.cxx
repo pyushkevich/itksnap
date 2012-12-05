@@ -9,33 +9,33 @@ template class LayerAssociation<ColorMapLayerProperties,
 ColorMapModel::ColorMapModel()
 {
   // Set up the models
-  m_MovingControlPositionModel = makeChildPropertyModel(
+  m_MovingControlPositionModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetMovingControlPositionValueAndRange,
         &Self::SetMovingControlPosition);
 
   // Get the component model for opacity
-  m_MovingControlOpacityModel = makeChildPropertyModel(
+  m_MovingControlOpacityModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetMovingControlOpacityValueAndRange,
         &Self::SetMovingControlOpacity);
 
-  m_MovingControlSideModel = makeChildPropertyModel(
+  m_MovingControlSideModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetMovingControlSide,
         &Self::SetMovingControlSide);
 
-  m_MovingControlContinuityModel = makeChildPropertyModel(
+  m_MovingControlContinuityModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetMovingControlType,
         &Self::SetMovingControlType);
 
-  m_MovingControlIndexModel = makeChildPropertyModel(
+  m_MovingControlIndexModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetMovingControlIndexValueAndRange,
         &Self::SetMovingControlIndex);
 
-  m_LayerOpacityModel = makeChildPropertyModel(
+  m_LayerOpacityModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetLayerOpacityValueAndRange,
         &Self::SetLayerOpacity);

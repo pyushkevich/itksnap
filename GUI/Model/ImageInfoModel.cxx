@@ -11,25 +11,25 @@ template class LayerAssociation<ImageInfoLayerProperties,
 
 ImageInfoModel::ImageInfoModel()
 {
-  m_ImageDimensionsModel = makeChildPropertyModel(
+  m_ImageDimensionsModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageDimensions);
 
-  m_ImageSpacingModel = makeChildPropertyModel(
+  m_ImageSpacingModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageSpacing);
 
-  m_ImageOriginModel = makeChildPropertyModel(
+  m_ImageOriginModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageOrigin);
 
-  m_ImageItkCoordinatesModel = makeChildPropertyModel(
+  m_ImageItkCoordinatesModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageItkCoordinates);
 
-  m_ImageNiftiCoordinatesModel = makeChildPropertyModel(
+  m_ImageNiftiCoordinatesModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageNiftiCoordinates);
 
-  m_ImageMinMaxModel = makeChildPropertyModel(
+  m_ImageMinMaxModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageMinMax);
 
-  m_ImageOrientationModel = makeChildPropertyModel(
+  m_ImageOrientationModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageOrientation);
 
   // Create the property model for the filter

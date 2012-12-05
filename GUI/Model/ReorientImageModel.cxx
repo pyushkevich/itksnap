@@ -14,11 +14,11 @@ ReorientImageModel::ReorientImageModel()
   m_NewRAICodeModel = ConcreteSimpleStringProperty::New();
   m_NewRAICodeModel->SetValue("");
 
-  m_CurrentRAICodeModel = makeChildPropertyModel(
+  m_CurrentRAICodeModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetCurrentRAICodeValue);
 
-  m_InvalidStatusModel = makeChildPropertyModel(
+  m_InvalidStatusModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetInvalidStatusValue);
 
@@ -32,25 +32,16 @@ ReorientImageModel::ReorientImageModel()
               StateMachineChangeEvent());
 
   // Create the axis direction models
-  m_AxisDirectionModel[0] = makeChildPropertyModel(
-        this,
-        &Self::GetXAxisDirectionValueAndDomain,
-        &Self::SetXAxisDirectionValue);
-
-  m_AxisDirectionModel[1] = makeChildPropertyModel(
-        this,
-        &Self::GetYAxisDirectionValueAndDomain,
-        &Self::SetYAxisDirectionValue);
-
-  m_AxisDirectionModel[2] = makeChildPropertyModel(
-        this,
-        &Self::GetZAxisDirectionValueAndDomain,
-        &Self::SetZAxisDirectionValue);
-
   for(int axis = 0; axis < 3; axis++)
     {
+    m_AxisDirectionModel[axis] = wrapIndexedGetterSetterPairAsProperty(
+          this, axis,
+          &Self::GetNthAxisDirectionValueAndDomain,
+          &Self::SetNthAxisDirectionValue);
+
     m_AxisDirectionModel[axis]->Rebroadcast(
           m_NewRAICodeModel, ValueChangedEvent(), ValueChangedEvent());
+
     m_AxisDirectionModel[axis]->Rebroadcast(
           m_NewRAICodeModel, ValueChangedEvent(), DomainChangedEvent());
     }
@@ -184,7 +175,7 @@ bool ReorientImageModel
 }
 
 void ReorientImageModel
-::SetNthAxisDirectionValue(int axis, const AxisDirection &value)
+::SetNthAxisDirectionValue(int axis, AxisDirection value)
 {
   // Get the letter for the direction
   char letter = ImageCoordinateGeometry::ConvertAxisDirectionToRAILetter(value);

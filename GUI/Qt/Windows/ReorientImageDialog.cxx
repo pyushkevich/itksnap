@@ -53,6 +53,7 @@ void ReorientImageDialog::SetModel(ReorientImageModel *model)
   makeCoupling(ui->inNewAxisDirY, m_Model->GetAxisDirectionModel(1), opts);
   makeCoupling(ui->inNewAxisDirZ, m_Model->GetAxisDirectionModel(2), opts);
 
+
   // Couple status message with a model
   makeCoupling(ui->outInvalidStatus, m_Model->GetInvalidStatusModel());
 

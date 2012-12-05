@@ -78,34 +78,14 @@ protected:
   SmartPtr<AbstractSimpleStringProperty> m_InvalidStatusModel;
   bool GetInvalidStatusValue(std::string &value);
 
-  bool GetNthAxisDirectionValueAndDomain(
-      int axis, AxisDirection &value, AxisDirectionDomain *domain);
-
-  void SetNthAxisDirectionValue(int axis, const AxisDirection &value);
-
   // Models for the three axis directions
   SmartPtr<AbstractAxisDirectionProperty> m_AxisDirectionModel[3];
 
-  // Model for the X-coordinate axis
-  bool GetXAxisDirectionValueAndDomain(
-      AxisDirection &value, AxisDirectionDomain *domain)
-    { return this->GetNthAxisDirectionValueAndDomain(0, value, domain); }
-  void SetXAxisDirectionValue(AxisDirection value)
-    { this->SetNthAxisDirectionValue(0, value); }
+  bool GetNthAxisDirectionValueAndDomain(
+      int axis, AxisDirection &value, AxisDirectionDomain *domain);
 
-  // Model for the Y-coordinate axis
-  bool GetYAxisDirectionValueAndDomain(
-      AxisDirection &value, AxisDirectionDomain *domain)
-    { return this->GetNthAxisDirectionValueAndDomain(1, value, domain); }
-  void SetYAxisDirectionValue(AxisDirection value)
-    { this->SetNthAxisDirectionValue(1, value); }
+  void SetNthAxisDirectionValue(int axis, AxisDirection value);
 
-  // Model for the Z-coordinate axis
-  bool GetZAxisDirectionValueAndDomain(
-      AxisDirection &value, AxisDirectionDomain *domain)
-    { return this->GetNthAxisDirectionValueAndDomain(2, value, domain); }
-  void SetZAxisDirectionValue(AxisDirection value)
-    { this->SetNthAxisDirectionValue(2, value); }
 
   // Respond to events received by the model
   virtual void OnUpdate();

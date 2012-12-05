@@ -76,10 +76,10 @@ CurrentVoxelInfoItemSetDomain
 CursorInspectionModel::CursorInspectionModel()
 {
   // Create the child models
-  m_LabelUnderTheCursorIdModel = makeChildPropertyModel(
+  m_LabelUnderTheCursorIdModel = wrapGetterSetterPairAsProperty(
         this, &CursorInspectionModel::GetLabelUnderTheCursorIdValue);
 
-  m_LabelUnderTheCursorTitleModel = makeChildPropertyModel(
+  m_LabelUnderTheCursorTitleModel = wrapGetterSetterPairAsProperty(
         this, &CursorInspectionModel::GetLabelUnderTheCursorTitleValue);
 
   // Create the child model for the intensity list

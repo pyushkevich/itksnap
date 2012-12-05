@@ -134,7 +134,7 @@ GlobalUIModel::GlobalUIModel()
   m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
 
   // Set up the cursor position model
-  m_CursorPositionModel = makeChildPropertyModel(
+  m_CursorPositionModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetCursorPositionValueAndRange,
         &Self::SetCursorPosition);
@@ -158,7 +158,7 @@ GlobalUIModel::GlobalUIModel()
         m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
 
   // ROI size and index models
-  m_SnakeROIIndexModel = makeChildPropertyModel(
+  m_SnakeROIIndexModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetSnakeROIIndexValueAndRange,
         &Self::SetSnakeROIIndexValue);
@@ -170,7 +170,7 @@ GlobalUIModel::GlobalUIModel()
   m_SnakeROIIndexModel->Rebroadcast(
         m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
 
-  m_SnakeROISizeModel = makeChildPropertyModel(
+  m_SnakeROISizeModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetSnakeROISizeValueAndRange,
         &Self::SetSnakeROISizeValue);

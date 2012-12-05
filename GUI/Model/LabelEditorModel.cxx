@@ -17,27 +17,27 @@ LabelEditorModel::LabelEditorModel()
 
   // Initialize the wrapper models
 
-  m_CurrentLabelDescriptionModel = makeChildPropertyModel(
+  m_CurrentLabelDescriptionModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetCurrentLabelDescription,
         &Self::SetCurrentLabelDescription);
 
-  m_CurrentLabelIdModel = makeChildPropertyModel(
+  m_CurrentLabelIdModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetCurrentLabelIdValueAndRange,
         &Self::SetCurrentLabelId);
 
-  m_CurrentLabelOpacityModel = makeChildPropertyModel(
+  m_CurrentLabelOpacityModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetCurrentLabelOpacityValueAndRange,
         &Self::SetCurrentLabelOpacity);
 
-  m_CurrentLabelHiddenStateModel = makeChildPropertyModel(
+  m_CurrentLabelHiddenStateModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetCurrentLabelHiddenState,
         &Self::SetCurrentLabelHiddenState);
 
-  m_CurrentLabelColorModel = makeChildPropertyModel(
+  m_CurrentLabelColorModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetCurrentLabelColor,
         &Self::SetCurrentLabelColor);

@@ -17,35 +17,35 @@ IntensityCurveModel::IntensityCurveModel()
   : IntensityCurveModelBase()
 {
   // Create the child model for the moving control point id
-  m_MovingControlIdModel = makeChildPropertyModel(
+  m_MovingControlIdModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetMovingControlPointIdValueAndRange,
         &Self::SetMovingControlPointId);
 
   // Create the child model for the control point coordinates
-  m_MovingControlXYModel = makeChildPropertyModel(
+  m_MovingControlXYModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetMovingControlPointPositionAndRange,
         &Self::SetMovingControlPointPosition);
 
   // Window/level model
-  m_LevelWindowModel = makeChildPropertyModel(
+  m_LevelWindowModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetLevelAndWindowValueAndRange,
         &Self::SetLevelAndWindow);
 
   // Histogram bin size and other controls
-  m_HistogramBinSizeModel = makeChildPropertyModel(
+  m_HistogramBinSizeModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetHistogramBinSizeValueAndRange,
         &Self::SetHistogramBinSize);
 
-  m_HistogramCutoffModel = makeChildPropertyModel(
+  m_HistogramCutoffModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetHistogramCutoffValueAndRange,
         &Self::SetHistogramCutoff);
 
-  m_HistogramScaleModel = makeChildPropertyModel(
+  m_HistogramScaleModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetHistogramScale,
         &Self::SetHistogramScale);

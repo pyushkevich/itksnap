@@ -44,7 +44,7 @@ SliceWindowCoordinator
 ::SliceWindowCoordinator()
 {
   // Set up the zoom model
-  m_CommonZoomFactorModel = makeChildPropertyModel(
+  m_CommonZoomFactorModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetCommonZoomValueAndRange,
         &Self::SetCommonZoomValue,
