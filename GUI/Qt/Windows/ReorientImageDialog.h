@@ -2,8 +2,10 @@
 #define REORIENTIMAGEDIALOG_H
 
 #include <QDialog>
+#include <SNAPCommon.h>
 
 class ReorientImageModel;
+class OrientationGraphicRenderer;
 
 namespace Ui {
 class ReorientImageDialog;
@@ -34,6 +36,10 @@ private slots:
 
 private:
   Ui::ReorientImageDialog *ui;
+
+  // TODO: it seems wrong to have the Qt classes own renderer objects,
+  // perhaps this should be owned by the model instead?
+  SmartPtr<OrientationGraphicRenderer> m_CurrentRAIRenderer, m_NewRAIRenderer;
 
 };
 

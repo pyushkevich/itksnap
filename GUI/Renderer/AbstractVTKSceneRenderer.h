@@ -1,7 +1,7 @@
 #ifndef ABSTRACTVTKSCENERENDERER_H
 #define ABSTRACTVTKSCENERENDERER_H
 
-#include "AbstractRenderer.h"
+#include "AbstractVTKRenderer.h"
 #include <vtkSmartPointer.h>
 
 class vtkRenderer;
@@ -14,6 +14,9 @@ class vtkContextView;
   up the basic infrastructure, but the child class is the one responsible
   for maintaining and updating the scene.
 
+  This class should be used for rendering 2D scenes (charts, etc), not 3D
+  data such as vtkPolyData. For that, @see AbstractVTKRenderer
+
   The child class should initialize the scene (vtkProps) in its constructor
   and add these props to the m_Renderer.
 
@@ -21,27 +24,19 @@ class vtkContextView;
   AbstractModel(), and in that method, ensure that the scene is up to date,
   based on the events currently present in the EventBucket
   */
-class AbstractVTKSceneRenderer : public AbstractRenderer
+class AbstractVTKSceneRenderer : public AbstractVTKRenderer
 {
 public:
 
-  irisITKObjectMacro(AbstractVTKSceneRenderer, AbstractRenderer)
+  irisITKObjectMacro(AbstractVTKSceneRenderer, AbstractVTKRenderer)
 
   virtual void paintGL();
-  virtual void resizeGL(int w, int h);
-  virtual void initializeGL();
-
-  vtkRenderWindow *GetRenderWindow();
 
   irisGetSetMacro(BackgroundColor, Vector3d)
-
 
 protected:
 
   // Render window object used to render VTK stuff
-  vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_RenderWindow;
-  vtkSmartPointer<vtkRenderer> m_Renderer;
-
   vtkSmartPointer<vtkContextView> m_ContextView;
 
   // Background color

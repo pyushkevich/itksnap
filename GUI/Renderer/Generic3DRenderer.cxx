@@ -24,11 +24,8 @@
 
 Generic3DRenderer::Generic3DRenderer()
 {
-  m_Renderer = vtkSmartPointer<vtkRenderer>::New();
-
-  m_RenderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-  m_RenderWindow->SwapBuffersOff();
-  m_RenderWindow->AddRenderer(m_Renderer);
+  // Why is this necessary?
+  GetRenderWindow()->SwapBuffersOff();
 
   // Initialize the line sources for the axes
   for(int i = 0; i < 3; i++)
@@ -45,12 +42,12 @@ Generic3DRenderer::Generic3DRenderer()
     m_AxisActor[i] = vtkSmartPointer<vtkActor>::New();
     m_AxisActor[i]->SetMapper(mapper);
 
-    m_Renderer->AddActor(m_AxisActor[i]);
+    this->m_Renderer->AddActor(m_AxisActor[i]);
     }
 
   // Initialize the mesh assembly
   m_MeshAssembly = vtkSmartPointer<vtkPropAssembly>::New();
-  m_Renderer->AddActor(m_MeshAssembly);
+  this->m_Renderer->AddActor(m_MeshAssembly);
 }
 
 void Generic3DRenderer::UpdateAxisRendering()
@@ -109,12 +106,10 @@ void Generic3DRenderer::paintGL()
       as->GetUIElement(SNAPAppearanceSettings::BACKGROUND_3D).NormalColor;
 
   // Set renderer background
-  m_Renderer->SetBackground(clrBack.data_block());
+  this->m_Renderer->SetBackground(clrBack.data_block());
 
-  m_RenderWindow->PushState();
-  m_RenderWindow->OpenGLInit();
-  m_RenderWindow->Render();
-  m_RenderWindow->PopState();
+  // Call the parent's paint method
+  AbstractVTKRenderer::paintGL();
 }
 
 void Generic3DRenderer::UpdateRendering()
@@ -163,12 +158,7 @@ void Generic3DRenderer::UpdateRendering()
     }
 
   // Configure the camera (seems wrong)
-  m_Renderer->ResetCamera();
-}
-
-void Generic3DRenderer::resizeGL(int w, int h)
-{
-  m_RenderWindow->SetSize(w, h);
+  this->m_Renderer->ResetCamera();
 }
 
 void Generic3DRenderer::SetModel(Generic3DModel *model)
@@ -183,10 +173,6 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(m_Model->GetParentUI(), CursorUpdateEvent(), ModelUpdateEvent());
 }
 
-void Generic3DRenderer::initializeGL()
-{
-}
-
 void Generic3DRenderer::OnUpdate()
 {
   if(m_EventBucket->HasEvent(ModelUpdateEvent()))
@@ -198,9 +184,4 @@ void Generic3DRenderer::OnUpdate()
     {
     UpdateAxisRendering();
     }
-}
-
-vtkRenderWindow * Generic3DRenderer::GetRenderWindow()
-{
-  return m_RenderWindow;
 }

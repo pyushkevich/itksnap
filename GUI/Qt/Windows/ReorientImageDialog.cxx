@@ -2,10 +2,12 @@
 #include "ui_ReorientImageDialog.h"
 
 #include <ReorientImageModel.h>
+#include <OrientationGraphicRenderer.h>
 #include <QtLineEditCoupling.h>
 #include <QtLabelCoupling.h>
 #include <QtComboBoxCoupling.h>
 #include <QtWidgetActivator.h>
+#include <QtSimpleOpenGLBox.h>
 
 Q_DECLARE_METATYPE(ImageCoordinateGeometry::AxisDirection);
 
@@ -14,6 +16,13 @@ ReorientImageDialog::ReorientImageDialog(QWidget *parent) :
   ui(new Ui::ReorientImageDialog)
 {
   ui->setupUi(this);
+
+  // Create the renderer and attach to the GL box
+  m_CurrentRAIRenderer = OrientationGraphicRenderer::New();
+  ui->iconCurrent->SetRenderer(m_CurrentRAIRenderer);
+
+  m_NewRAIRenderer = OrientationGraphicRenderer::New();
+  ui->iconNew->SetRenderer(m_NewRAIRenderer);
 }
 
 ReorientImageDialog::~ReorientImageDialog()
@@ -25,6 +34,10 @@ void ReorientImageDialog::SetModel(ReorientImageModel *model)
 {
   // Set the model
   m_Model = model;
+
+  // Pass the model to the renderer
+  m_CurrentRAIRenderer->SetModel(m_Model);
+  m_NewRAIRenderer->SetModel(m_Model);
 
   // Couple widgets to the model
   makeCoupling(ui->outCurrentRAI, m_Model->GetCurrentRAICodeModel());

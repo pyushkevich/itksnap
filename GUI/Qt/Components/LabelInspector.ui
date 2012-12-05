@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>177</width>
+    <width>169</width>
     <height>419</height>
    </rect>
   </property>
@@ -110,7 +110,7 @@ spacing:10;
           <string notr="true">font-size:10pt;</string>
          </property>
          <property name="text">
-          <string>Label used by all drawing and segmentation tools</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Label used by all drawing &lt;br/&gt;and segmentation tools&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -177,7 +177,7 @@ spacing:10;
           <string notr="true">font-size:10pt;</string>
          </property>
          <property name="text">
-          <string>Drawing tools only affect voxels with this label</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Drawing tools only affect &lt;br/&gt;voxels with this label&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>

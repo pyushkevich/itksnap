@@ -1,8 +1,8 @@
 #ifndef GENERIC3DRENDERER_H
 #define GENERIC3DRENDERER_H
 
-#include "AbstractRenderer.h"
-#include "vtkSmartPointer.h"
+#include "AbstractVTKRenderer.h"
+#include <vtkSmartPointer.h>
 
 class Generic3DModel;
 class vtkGenericOpenGLRenderWindow;
@@ -12,22 +12,17 @@ class vtkLineSource;
 class vtkActor;
 class vtkPropAssembly;
 
-class Generic3DRenderer : public AbstractRenderer
+class Generic3DRenderer : public AbstractVTKRenderer
 {
 public:
 
-  irisITKObjectMacro(Generic3DRenderer, AbstractRenderer)
+  irisITKObjectMacro(Generic3DRenderer, AbstractVTKRenderer)
 
   void paintGL();
-  void resizeGL(int w, int h);
-  void initializeGL();
 
   void SetModel(Generic3DModel *model);
 
   void OnUpdate();
-
-  vtkRenderWindow *GetRenderWindow();
-
 
   void UpdateAxisRendering();
 protected:
@@ -38,10 +33,6 @@ protected:
 
   // Update the actors and mappings for the renderer
   void UpdateRendering();
-
-  // Render window object used to render VTK stuff
-  vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_RenderWindow;
-  vtkSmartPointer<vtkRenderer> m_Renderer;
 
   // Prop assembly containing all the segmentation meshes
   vtkSmartPointer<vtkPropAssembly> m_MeshAssembly;

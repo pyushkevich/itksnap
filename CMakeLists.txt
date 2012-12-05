@@ -263,6 +263,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/StateManagement.cxx
   GUI/Model/UIAction.cxx
   GUI/Renderer/AbstractRenderer.cxx
+  GUI/Renderer/AbstractVTKRenderer.cxx
   GUI/Renderer/AbstractVTKSceneRenderer.cxx
   GUI/Renderer/ColorMapRenderer.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
@@ -271,6 +272,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/Generic3DRenderer.cxx
   GUI/Renderer/IntensityCurveRenderer.cxx
   GUI/Renderer/OpenGLSliceTexture.cxx
+  GUI/Renderer/OrientationGraphicRenderer.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
   GUI/Renderer/PolygonScanConvert.cxx
   GUI/Renderer/SnakeROIRenderer.cxx
@@ -310,6 +312,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/UIReporterDelegates.h
   GUI/Model/UIState.h
   GUI/Renderer/AbstractRenderer.h
+  GUI/Renderer/AbstractVTKRenderer.h
   GUI/Renderer/AbstractVTKSceneRenderer.h
   GUI/Renderer/ColorMapRenderer.h
   GUI/Renderer/CrosshairsRenderer.h
@@ -317,6 +320,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/Generic3DRenderer.h
   GUI/Renderer/GenericSliceRenderer.h
   GUI/Renderer/IntensityCurveRenderer.h
+  GUI/Renderer/OrientationGraphicRenderer.h
   GUI/Renderer/PolygonDrawingRenderer.h
   GUI/Renderer/PolygonScanConvert.h
   GUI/Renderer/SnakeROIRenderer.h

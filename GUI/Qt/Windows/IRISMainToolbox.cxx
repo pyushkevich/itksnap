@@ -82,6 +82,8 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
   lMain->setContentsMargins(5,5,5,5);
   lMain->setSpacing(8);
 
+  this->setMaximumWidth(180);
+
   // Create place for 2D buttons
   QGroupBox *tbxSlice = new QGroupBox("Main Toolbox");
   QGridLayout *lTbxSlice = new QGridLayout(tbxSlice);

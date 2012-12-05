@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>593</width>
-    <height>552</height>
+    <height>713</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,9 +15,21 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QGridLayout" name="gridLayout">
+    <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,1">
      <item row="7" column="2">
-      <widget class="QWidget" name="iconNew" native="true">
+      <widget class="QtSimpleOpenGLBox" name="iconNew" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>2</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>200</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">background:blue;</string>
        </property>
@@ -45,7 +57,13 @@
       </widget>
      </item>
      <item row="7" column="1">
-      <widget class="QWidget" name="iconCurrent" native="true">
+      <widget class="QtSimpleOpenGLBox" name="iconCurrent" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>2</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -477,6 +495,14 @@ font: 11pt;</string>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QtSimpleOpenGLBox</class>
+   <extends>QWidget</extends>
+   <header>QtSimpleOpenGLBox.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../Resources/SNAPResources.qrc"/>
  </resources>
