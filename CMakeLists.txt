@@ -278,6 +278,12 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/SnakeROIRenderer.cxx
   GUI/Renderer/SnakeModeRenderer.cxx
   GUI/Renderer/ThresholdSettingsRenderer.cxx
+  GUI/Renderer/OrientationWidget/ReorientGUI/AbstractScannerHelper.cxx
+  GUI/Renderer/OrientationWidget/ReorientGUI/AxesWidget.cxx
+  GUI/Renderer/OrientationWidget/ReorientGUI/Reorient.cxx
+  GUI/Renderer/OrientationWidget/ReorientGUI/ScannedHuman.cxx
+  GUI/Renderer/OrientationWidget/ReorientGUI/ScanningROI.cxx
+  GUI/Renderer/OrientationWidget/ReorientGUI/Source2ActorPipe.cxx
 )
 
 SET(UI_GENERIC_HEADERS
@@ -326,6 +332,13 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/SnakeROIRenderer.h
   GUI/Renderer/SnakeModeRenderer.h
   GUI/Renderer/ThresholdSettingsRenderer.h
+  GUI/Renderer/ThresholdSettingsRenderer.cxx
+  GUI/Renderer/OrientationWidget/ReorientGUI/AbstractScannerHelper.h
+  GUI/Renderer/OrientationWidget/ReorientGUI/AxesWidget.h
+  GUI/Renderer/OrientationWidget/ReorientGUI/Reorient.h
+  GUI/Renderer/OrientationWidget/ReorientGUI/ScannedHuman.h
+  GUI/Renderer/OrientationWidget/ReorientGUI/ScanningROI.h
+  GUI/Renderer/OrientationWidget/ReorientGUI/Source2ActorPipe.h
 )
 
 # These files contain the Qt-specific user interface source code
