@@ -4,6 +4,7 @@
 #include "vtkMatrix4x4.h"
 #include "AbstractVTKRenderer.h"
 #include "vtkSmartPointer.h"
+#include "vtkRenderWindowInteractor.h"
 #include "OrientationWidget/ReorientGUI/AxesWidget.h"
 #include "OrientationWidget/ReorientGUI/ScannedHuman.h"
 #include "OrientationWidget/ReorientGUI/ScanningROI.h"
@@ -40,6 +41,7 @@ protected:
   vtkSmartPointer < ScannedHuman > m_pScannedHuman;
   vtkSmartPointer < ScanningROI > m_pScanningROI;
 
+  //vtkSmartPointer < vtkRenderWindowInteractor > m_pIren;
 };
 
 #endif // ORIENTATIONGRAPHICRENDERER_H

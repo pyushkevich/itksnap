@@ -46,6 +46,10 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
   this->m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetYAxisCaptionActor2D());
   this->m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetZAxisCaptionActor2D());
 
+  //vtkRenderWindow * pvtkRenderWindow = GetRenderWindow();
+  //m_pIren = vtkSmartPointer < vtkRenderWindowInteractor >::New();
+  //pvtkRenderWindow->SetInteractor(m_pIren);
+
 }
 
 
@@ -62,6 +66,29 @@ void OrientationGraphicRenderer::SetModel(ReorientImageModel *model)
 void OrientationGraphicRenderer::OnUpdate()
 {
   // ???
+  std::string rai = m_Model->GetNewRAICodeModel()->GetValue();
+  ImageCoordinateGeometry::DirectionMatrix dm =
+      ImageCoordinateGeometry::ConvertRAICodeToDirectionMatrix(rai);
+
+  vtkSmartPointer < vtkMatrix4x4 > pMatrix4x4 =
+      vtkSmartPointer < vtkMatrix4x4 >::New();
+  pMatrix4x4->Identity();
+  int nI, nJ;
+  for(nI = 0; nI < 3; nI++)
+    {
+    for(nJ = 0; nJ < 3; nJ++)
+      {
+      (*pMatrix4x4)[nI][nJ] = dm[nI][nJ];
+      }
+  }
+//  pMatrix4x4->Identity();
+//  if(tolower(rai[0]) == 'l')
+//    (*pMatrix4x4)[0][0] = -1.0;
+//  if(tolower(rai[1]) == 'p')
+//    (*pMatrix4x4)[1][1] = -1.0;
+//  if(tolower(rai[2]) == 's')
+//    (*pMatrix4x4)[2][2] = -1.0;
+  Update(pMatrix4x4);
 }
 
 void OrientationGraphicRenderer::Update(const vtkSmartPointer < vtkMatrix4x4 > apMatrix4x4)
@@ -70,7 +97,7 @@ void OrientationGraphicRenderer::Update(const vtkSmartPointer < vtkMatrix4x4 > a
 
   m_pScanningROI->Update();
 
-  //Tavi m_pRenWin->Render();
+  GetRenderWindow()->Render();
 }
 
 void OrientationGraphicRenderer::SetDirections(const vtkSmartPointer < vtkMatrix4x4 > apDirections)
