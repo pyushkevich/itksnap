@@ -470,7 +470,7 @@ Window3D
     m_ImageSize = m_Driver->GetCurrentImageData()->GetVolumeExtents();  
 
     // world transform
-    m_WorldMatrix = m_Driver->GetCurrentImageData()->GetMain()->GetNiftiSform();
+    ResetWorldMatrix();
 
     // Volume size
     m_VolumeSize = vector_multiply_mixed<double,unsigned int,3>(
@@ -497,6 +497,20 @@ Window3D
 
   // Fire 3D view update event
   m_ParentUI->OnTrackballUpdate();
+}
+
+void
+Window3D
+::ResetWorldMatrix()
+{
+
+  if (m_Driver->GetCurrentImageData()->IsMainLoaded())
+    {
+
+    // world transform
+    m_WorldMatrix = m_Driver->GetCurrentImageData()->GetMain()->GetNiftiSform();
+
+    }
 }
 
 void 

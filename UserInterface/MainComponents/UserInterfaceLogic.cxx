@@ -3883,6 +3883,8 @@ UserInterfaceLogic
   // Update the mesh and redraw the window
   m_IRISWindowManager3D->UpdateMesh(m_ProgressCommand);
 
+  m_IRISWindowManager3D->ResetWorldMatrix();
+
   m_SliceWindow[3]->redraw();
 
   // This is a safeguard in case the progress events do not fire

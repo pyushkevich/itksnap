@@ -109,6 +109,9 @@ public:
   /** Reset the trackball to default position */
   void ResetView();
 
+  /** Self explaining */
+  void ResetWorldMatrix();
+
   /** Perform the GL drawing operations */
   void OnDraw();
 
