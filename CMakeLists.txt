@@ -278,11 +278,11 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/SnakeROIRenderer.cxx
   GUI/Renderer/SnakeModeRenderer.cxx
   GUI/Renderer/ThresholdSettingsRenderer.cxx
-  GUI/Renderer/OrientationWidget/ReorientGUI/AbstractScannerHelper.cxx
-  GUI/Renderer/OrientationWidget/ReorientGUI/AxesWidget.cxx
-  GUI/Renderer/OrientationWidget/ReorientGUI/ScannedHuman.cxx
-  GUI/Renderer/OrientationWidget/ReorientGUI/ScanningROI.cxx
-  GUI/Renderer/OrientationWidget/ReorientGUI/Source2ActorPipe.cxx
+  GUI/Renderer/OrientationWidget/Reorient/AbstractScannerHelper.cxx
+  GUI/Renderer/OrientationWidget/Reorient/AxesWidget.cxx
+  GUI/Renderer/OrientationWidget/Reorient/ScannedHuman.cxx
+  GUI/Renderer/OrientationWidget/Reorient/ScanningROI.cxx
+  GUI/Renderer/OrientationWidget/Reorient/Source2ActorPipe.cxx
 )
 
 SET(UI_GENERIC_HEADERS
@@ -332,11 +332,11 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/SnakeModeRenderer.h
   GUI/Renderer/ThresholdSettingsRenderer.h
   GUI/Renderer/ThresholdSettingsRenderer.cxx
-  GUI/Renderer/OrientationWidget/ReorientGUI/AbstractScannerHelper.h
-  GUI/Renderer/OrientationWidget/ReorientGUI/AxesWidget.h
-  GUI/Renderer/OrientationWidget/ReorientGUI/ScannedHuman.h
-  GUI/Renderer/OrientationWidget/ReorientGUI/ScanningROI.h
-  GUI/Renderer/OrientationWidget/ReorientGUI/Source2ActorPipe.h
+  GUI/Renderer/OrientationWidget/Reorient/AbstractScannerHelper.h
+  GUI/Renderer/OrientationWidget/Reorient/AxesWidget.h
+  GUI/Renderer/OrientationWidget/Reorient/ScannedHuman.h
+  GUI/Renderer/OrientationWidget/Reorient/ScanningROI.h
+  GUI/Renderer/OrientationWidget/Reorient/Source2ActorPipe.h
 )
 
 # These files contain the Qt-specific user interface source code
@@ -550,7 +550,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
     ${SNAP_SOURCE_DIR}/GUI/Renderer
-    ${SNAP_SOURCE_DIR}/GUI/Renderer/OrientationWidget/ReorientGUI
+    ${SNAP_SOURCE_DIR}/GUI/Renderer/OrientationWidget/Reorient
     ${SNAP_SOURCE_DIR}/GUI/Qt
     ${SNAP_SOURCE_DIR}/GUI/Qt/Components
     ${SNAP_SOURCE_DIR}/GUI/Qt/Coupling
