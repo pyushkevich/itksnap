@@ -1,9 +1,14 @@
 #ifndef ORIENTATIONGRAPHICRENDERER_H
 #define ORIENTATIONGRAPHICRENDERER_H
 
+#include "vtkMatrix4x4.h"
 #include "AbstractVTKRenderer.h"
 #include "vtkSmartPointer.h"
 #include "PropertyModel.h"
+
+class AxesWidget;
+class ScannedHuman;
+class ScanningROI;
 
 class vtkSphereSource;
 
@@ -20,6 +25,11 @@ public:
 
   void OnUpdate();
 
+  void Update(const vtkSmartPointer < vtkMatrix4x4 > apMatrix4x4);
+
+  void SetDirections(const vtkSmartPointer < vtkMatrix4x4 > apDirections);
+  void GetDirections(vtkSmartPointer < vtkMatrix4x4 > apDirections) const;
+
 protected:
 
   OrientationGraphicRenderer();
@@ -27,9 +37,9 @@ protected:
 
   DirectionMatrixModel *m_Model;
 
-  // A sphere to render
-  vtkSmartPointer<vtkSphereSource> m_Dummy;
-
+  vtkSmartPointer < AxesWidget > m_pAxesWidgetAbsolute;
+  vtkSmartPointer < ScannedHuman > m_pScannedHuman;
+  vtkSmartPointer < ScanningROI > m_pScanningROI;
 };
 
 #endif // ORIENTATIONGRAPHICRENDERER_H
