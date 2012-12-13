@@ -7,7 +7,7 @@
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkProperty.h>
 
-#include <ReorientImageModel.h>
+#include <PropertyModel.h>
 
 OrientationGraphicRenderer::OrientationGraphicRenderer()
 {
@@ -33,18 +33,27 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
 
 
 
-void OrientationGraphicRenderer::SetModel(ReorientImageModel *model)
+void OrientationGraphicRenderer::SetModel(DirectionMatrixModel *model)
 {
   this->m_Model = model;
 
   // Rebroadcast the relevant events from the model in order for the
   // widget that uses this renderer to cause an update
-  Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Model, ValueChangedEvent(), ModelUpdateEvent());
 }
 
 void OrientationGraphicRenderer::OnUpdate()
 {
-  // ???
+  // Get the current direction matrix from the model ...
+  DirectionMatrix dm;
+  if(m_Model->GetValueAndDomain(dm, NULL))
+    {
+    // Set the transform on the slices and arrows ...
+    }
+  else
+    {
+    // Hide the slices and arrows
+    }
 }
 
 

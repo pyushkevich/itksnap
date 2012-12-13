@@ -53,6 +53,28 @@ ReorientImageModel::ReorientImageModel()
           this, axis,
           &Self::GetNthCurrentAxisDirectionValue);
     }
+
+  // The current NIFTI matrix
+  m_CurrentWorldMatrixModel = ConcreteMatrixProperty::New();
+
+  // The current direction matrix
+  m_CurrentDirectionMatrixModel = ConcreteMatrixProperty::New();
+
+  // The new NIFTI matrix
+  m_NewWorldMatrixModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetNewWorldMatrixValue);
+
+  m_NewWorldMatrixModel->Rebroadcast(
+        m_NewRAICodeModel, ValueChangedEvent(), ValueChangedEvent());
+
+  // The new NIFTI matrix
+  m_NewDirectionMatrixModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetNewDirectionMatrixValue);
+
+  m_NewDirectionMatrixModel->Rebroadcast(
+        m_NewRAICodeModel, ValueChangedEvent(), ValueChangedEvent());
 }
 
 /** Initialize with the parent model */
@@ -121,6 +143,8 @@ bool ReorientImageModel::CheckState(ReorientImageModel::UIState state)
   AxisDirection dummy;
   switch(state)
     {
+    case UIF_IMAGE_LOADED:
+      return m_Parent->GetDriver()->GetCurrentImageData()->IsMainLoaded();
     case UIF_VALID_NEW_RAI:
       {
       std::string rai = this->m_NewRAICodeModel->GetValue();
@@ -142,7 +166,7 @@ bool ReorientImageModel::GetCurrentRAICodeValue(std::string &value)
   if(m_CurrentRAIValue.size())
     {
     value = m_CurrentOrientationIsOblique
-        ? std::string("Oblique, closest to ") + m_CurrentRAIValue
+        ? std::string("Oblique (closest to ") + m_CurrentRAIValue + std::string(")")
         : m_CurrentRAIValue;
     return true;
     }
@@ -162,7 +186,7 @@ bool ReorientImageModel
     std::string dirstr
         = ImageCoordinateGeometry::GetAxisDirectionDescriptionMap()[dir];
     value = m_CurrentOrientationIsOblique
-        ? std::string("Oblique, closest to ") + dirstr
+        ? std::string("Oblique (appr. ") + dirstr + std::string(")")
         : dirstr;
     return true;
     }
@@ -231,6 +255,40 @@ void ReorientImageModel
   m_NewRAICodeModel->SetValue(rai);
 }
 
+bool ReorientImageModel
+::GetNewWorldMatrixValue(ReorientImageModel::WorldMatrix &value)
+{
+  // Get the RAI
+  std::string rai = this->m_NewRAICodeModel->GetValue();
+  if(!ImageCoordinateGeometry::IsRAICodeValid(rai.c_str()))
+    return false;
+
+  // Get the direction matrix
+  ImageCoordinateGeometry::DirectionMatrix dm
+      = ImageCoordinateGeometry::ConvertRAICodeToDirectionMatrix(rai);
+
+  ImageWrapperBase *im = m_Parent->GetDriver()->GetCurrentImageData()->GetMain();
+  value = ImageWrapperBase::ConstructNiftiSform(
+      dm,
+      im->GetImageBase()->GetOrigin().GetVnlVector(),
+        im->GetImageBase()->GetSpacing().GetVnlVector());
+
+  return true;
+}
+
+bool ReorientImageModel
+::GetNewDirectionMatrixValue(ReorientImageModel::WorldMatrix &value)
+{
+  // Get the RAI
+  std::string rai = this->m_NewRAICodeModel->GetValue();
+  if(!ImageCoordinateGeometry::IsRAICodeValid(rai.c_str()))
+    return false;
+
+  // Get the direction matrix
+  value = ImageCoordinateGeometry::ConvertRAICodeToDirectionMatrix(rai);
+  return true;
+}
+
 void ReorientImageModel::OnUpdate()
 {
   if(this->m_EventBucket->HasEvent(MainImageDimensionsChangeEvent())
@@ -240,12 +298,30 @@ void ReorientImageModel::OnUpdate()
     IRISApplication *app = m_Parent->GetDriver();
     if(app->GetCurrentImageData()->IsMainLoaded())
       {
+      // Get teh RAI value
       m_CurrentRAIValue = app->GetImageToAnatomyRAI();
+
+      // Get the obliqueness
       m_CurrentOrientationIsOblique = app->IsImageOrientationOblique();
+
+      // Get the direction matrix
+      ImageWrapperBase *mainImage = app->GetCurrentImageData()->GetMain();
+      WorldMatrix dm = mainImage->GetImageBase()->GetDirection().GetVnlMatrix();
+
+      m_CurrentDirectionMatrixModel->SetIsValid(true);
+      m_CurrentDirectionMatrixModel->SetValue(dm);
+
+      // Get the NIFTI matrix
+      WorldMatrix mw = mainImage->GetNiftiSform();
+
+      m_CurrentWorldMatrixModel->SetIsValid(true);
+      m_CurrentWorldMatrixModel->SetValue(mw);
       }
     else
       {
       m_CurrentRAIValue = "";
+      m_CurrentWorldMatrixModel->SetIsValid(false);
+      m_CurrentDirectionMatrixModel->SetIsValid(false);
       }
 
     // Set it as the new RAI value

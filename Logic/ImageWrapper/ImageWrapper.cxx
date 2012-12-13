@@ -480,6 +480,13 @@ ImageWrapper<TPixel,TBase>
   itk::Matrix<double,3,3> dm(geom.GetImageDirectionCosineMatrix());
   this->GetImageBase()->SetDirection(dm);
 
+  // Set the NIFTI/RAS transform
+  m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
+    m_Image->GetDirection().GetVnlMatrix(),
+    m_Image->GetOrigin().GetVnlVector(),
+    m_Image->GetSpacing().GetVnlVector());
+  m_NiftiInvSform = vnl_inverse(m_NiftiSform);
+
   // Update the geometry for each slice
   for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
     {

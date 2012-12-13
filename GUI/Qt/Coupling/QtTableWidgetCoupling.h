@@ -15,6 +15,9 @@
   to a row in a table. This is similar to a list box, but with multiple
   columns. TODO: unify this with ListWidget traits by using a Qt
   AbstractItemModel
+
+  This coupling maps an integer value to a row index in a table. The value
+  in the table are specified by the domain of the associated model.
   */
 template <class TAtomic>
 class DefaultWidgetValueTraits<TAtomic, QTableWidget>
@@ -58,6 +61,75 @@ public:
     // Have we found it?
     w->setCurrentItem(NULL);
   }
+};
+
+/** Default traits for mapping a matrix of values (int, double) to a table */
+template <class TElement>
+class DefaultWidgetValueTraits< vnl_matrix<TElement>, QTableWidget>
+{
+public:
+  typedef vnl_matrix<TElement> TMatrix;
+
+  const char *GetSignal()
+  {
+    return SIGNAL(cellChanged(int, int));
+  }
+
+  TMatrix GetValue(QTableWidget *w)
+  {
+    // Extract the values from all cells in the widget
+    TMatrix mat(w->rowCount(), w->columnCount());
+    for(int r = 0; r < w->rowCount(); r++)
+      {
+      for(int c = 0; c < w->rowCount(); c++)
+        {
+        TElement val = qVariantValue<TElement>(w->item(r, c)->data(Qt::DisplayRole));
+        mat(r, c) = val;
+        }
+      }
+    return mat;
+  }
+
+  void SetValue(QTableWidget *w, const TMatrix &mat)
+  {
+    // Adjust the sizes
+    if(w->rowCount() != mat.rows() || w->columnCount() != mat.columns())
+      {
+      w->setRowCount(mat.rows());
+      w->setColumnCount(mat.columns());
+      }
+
+    // Assign the values
+    for(int r = 0; r < w->rowCount(); r++)
+      {
+      for(int c = 0; c < w->rowCount(); c++)
+        {
+        TElement newval = mat(r,c);
+        QTableWidgetItem *item = w->item(r, c);
+        if(!item)
+          {
+          item = new QTableWidgetItem();
+          w->setItem(r, c, item);
+          item->setData(Qt::DisplayRole, QVariant(newval));
+          }
+        else
+          {
+          QVariant oldval = item->data(Qt::DisplayRole);
+          if(oldval.isNull() || qVariantValue<TElement>(oldval) != newval)
+            {
+            item->setData(Qt::DisplayRole, QVariant(newval));
+            }
+          }
+        }
+      }
+  }
+
+  void SetValueToNull(QTableWidget *w)
+  {
+    // Have we found it?
+    w->clearContents();
+  }
+
 };
 
 

@@ -6,6 +6,7 @@
 #include <QtLineEditCoupling.h>
 #include <QtLabelCoupling.h>
 #include <QtComboBoxCoupling.h>
+#include <QtTableWidgetCoupling.h>
 #include <QtWidgetActivator.h>
 #include <QtSimpleOpenGLBox.h>
 
@@ -36,8 +37,8 @@ void ReorientImageDialog::SetModel(ReorientImageModel *model)
   m_Model = model;
 
   // Pass the model to the renderer
-  m_CurrentRAIRenderer->SetModel(m_Model);
-  m_NewRAIRenderer->SetModel(m_Model);
+  m_CurrentRAIRenderer->SetModel(m_Model->GetCurrentDirectionMatrixModel());
+  m_NewRAIRenderer->SetModel(m_Model->GetNewDirectionMatrixModel());
 
   // Couple widgets to the model
   makeCoupling(ui->outCurrentRAI, m_Model->GetCurrentRAICodeModel());
@@ -57,11 +58,15 @@ void ReorientImageDialog::SetModel(ReorientImageModel *model)
   makeCoupling(ui->outCurrentAxisDirY, m_Model->GetCurrentAxisDirectionModel(1));
   makeCoupling(ui->outCurrentAxisDirZ, m_Model->GetCurrentAxisDirectionModel(2));
 
+  makeCoupling(ui->outMatrixCurrent, m_Model->GetCurrentWorldMatrixModel());
+  makeCoupling(ui->outMatrixNew, m_Model->GetNewWorldMatrixModel());
 
   // Couple status message with a model
   makeCoupling(ui->outInvalidStatus, m_Model->GetInvalidStatusModel());
 
   // Set up widget activation
+  activateOnFlag(ui->inNewRAI, m_Model,
+                 ReorientImageModel::UIF_IMAGE_LOADED);
   activateOnFlag(ui->btnApply, m_Model,
                  ReorientImageModel::UIF_VALID_NEW_RAI);
   activateOnFlag(ui->btnReverseX, m_Model,

@@ -21,6 +21,11 @@ public:
   typedef AbstractPropertyModel<AxisDirection, AxisDirectionDomain>
     AbstractAxisDirectionProperty;
 
+  // A model encapsulating the 4x4 NIFTI matrix
+  typedef vnl_matrix<double> WorldMatrix;
+  typedef AbstractPropertyModel<WorldMatrix> AbstractMatrixProperty;
+  typedef ConcretePropertyModel<WorldMatrix> ConcreteMatrixProperty;
+
   // Standard ITK stuff
   irisITKObjectMacro(ReorientImageModel, AbstractModel)
 
@@ -42,6 +47,18 @@ public:
   /** Models for the new direction of the three coordinate axes */
   AbstractAxisDirectionProperty *GetNewAxisDirectionModel(int axis) const;
 
+  /** Model for the current NIFTI matrix */
+  irisGetMacro(CurrentWorldMatrixModel, AbstractMatrixProperty *)
+
+  /** Model for the new NIFTI matrix */
+  irisGetMacro(NewWorldMatrixModel, AbstractMatrixProperty *)
+
+  /** Model for the current ITK Direction matrix */
+  irisGetMacro(CurrentDirectionMatrixModel, AbstractMatrixProperty *)
+
+  /** Model for the new ITK Direction matrix */
+  irisGetMacro(NewDirectionMatrixModel, AbstractMatrixProperty *)
+
   /** Apply current RAI code to the image */
   void ApplyCurrentRAI();
 
@@ -53,6 +70,7 @@ public:
     deactivation of various widgets in the interface
     */
   enum UIState {
+    UIF_IMAGE_LOADED,
     UIF_VALID_NEW_RAI,
     UIF_VALID_AXIS_DIRECTION_X,
     UIF_VALID_AXIS_DIRECTION_Y,
@@ -93,6 +111,19 @@ protected:
 
   void SetNthNewAxisDirectionValue(int axis, AxisDirection value);
 
+  // Current world matrix
+  SmartPtr<ConcreteMatrixProperty> m_CurrentWorldMatrixModel;
+
+  // Current direction matrix
+  SmartPtr<ConcreteMatrixProperty> m_CurrentDirectionMatrixModel;
+
+  // New world matrix
+  SmartPtr<AbstractMatrixProperty> m_NewWorldMatrixModel;
+  bool GetNewWorldMatrixValue(WorldMatrix &value);
+
+  // New direction matrix
+  SmartPtr<AbstractMatrixProperty> m_NewDirectionMatrixModel;
+  bool GetNewDirectionMatrixValue(WorldMatrix &value);
 
   // Respond to events received by the model
   virtual void OnUpdate();
