@@ -11,11 +11,17 @@
 #include <vtkProp.h>
 #include <vtkProp3D.h>
 #include <vtkPolyDataNormals.h>
+#include <vtkPlaneSource.h>
 
 #include "ScanningROI.h"
 
 
 Pair_PlaneSource_Pipe::Pair_PlaneSource_Pipe()
+{
+  init();
+}
+
+void Pair_PlaneSource_Pipe::init()
 {
   m_pPlaneSource = vtkSmartPointer < vtkPlaneSource >::New();
   m_pPipePlane = vtkSmartPointer < Source2ActorPipe >::New();
@@ -56,34 +62,25 @@ void ScanningROI::setPlanesNr(int anPlanesNr)
     for(nI = 0; nI < nPlanesNr; nI++)
 	  {
 		m_pvtkAssembly->RemovePart(m_arrpPairPSP_Axial[nI].m_pPipePlane->getActor());
-		m_pvtkAssembly->RemovePart(m_arrpPairPSP_Coronal[nI].m_pPipePlane->getActor());
 	  }
 	m_arrpPairPSP_Axial.resize(anPlanesNr);
-	m_arrpPairPSP_Coronal.resize(anPlanesNr);
 	for(nI = 0; nI < anPlanesNr; nI++)
 	  {
+      m_arrpPairPSP_Axial[nI].init();
 	  m_pvtkAssembly->AddPart(m_arrpPairPSP_Axial[nI].m_pPipePlane->getActor());
-	  m_pvtkAssembly->AddPart(m_arrpPairPSP_Coronal[nI].m_pPipePlane->getActor());
 	  }						 
     }
   for(nI = 0; nI < anPlanesNr; nI++)
     {
 	vtkSmartPointer < Source2ActorPipe > pPipe = m_arrpPairPSP_Axial[nI].m_pPipePlane;
 	vtkProperty * pProperty = pPipe->getProperty();
-	pProperty->SetRepresentationToWireframe();
+    //pProperty->SetRepresentationToWireframe();
 	pProperty->SetLineWidth(2.0);
 	//pProperty->SetLineStipplePattern(0xFF);
 	pProperty->SetColor(1.0, 1.0, 1.0);
 	//pProperty->BackfaceCullingOn();
 	//pProperty->FrontfaceCullingOn();
-
-	pPipe = m_arrpPairPSP_Coronal[nI].m_pPipePlane;
-	pProperty = pPipe->getProperty();
-	pProperty->SetRepresentationToWireframe();
-	pProperty->SetLineWidth(2.0);
-	//pProperty->SetLineStipplePattern(0xFF);
-	pProperty->SetColor(1.0, 1.0, 1.0);
-	//pProperty->SetOpacity(0.5);
+    pProperty->SetOpacity(0.2);
     }
    
 }
@@ -183,34 +180,34 @@ void ScanningROI::Update()
 	pPlane->SetPoint1(arrdbP1);
 	pPlane->SetPoint2(arrdbP2);
     }
-  double dbDeltaI = m_dbGraphicScale / ((double)(nPlanesNr - 1));
-  for(nI = 0; nI < nPlanesNr; nI++)
-    {
-	vtkSmartPointer < vtkPlaneSource > pPlane = m_arrpPairPSP_Coronal[nI].m_pPlaneSource;
-	double arrdbOrigin[3] = {0.0, 0.0, 0.0},
-	  arrdbP1[3] = {0.0, 0.0, 0.0},
-	  arrdbP2[3] = {0.0, 0.0, 0.0};
+//  double dbDeltaI = m_dbGraphicScale / ((double)(nPlanesNr - 1));
+//  for(nI = 0; nI < nPlanesNr; nI++)
+//    {
+//	vtkSmartPointer < vtkPlaneSource > pPlane = m_arrpPairPSP_Coronal[nI].m_pPlaneSource;
+//	double arrdbOrigin[3] = {0.0, 0.0, 0.0},
+//	  arrdbP1[3] = {0.0, 0.0, 0.0},
+//	  arrdbP2[3] = {0.0, 0.0, 0.0};
 
-	arrdbOrigin[0] = dbDeltaI * nI - ((int)(((double)nPlanesNr) / 2.0))  * dbDeltaI;
-	arrdbOrigin[1] = - m_dbGraphicScale / 2.0;
-	arrdbOrigin[2] = - m_dbGraphicScale / 2.0;
+//	arrdbOrigin[0] = dbDeltaI * nI - ((int)(((double)nPlanesNr) / 2.0))  * dbDeltaI;
+//	arrdbOrigin[1] = - m_dbGraphicScale / 2.0;
+//	arrdbOrigin[2] = - m_dbGraphicScale / 2.0;
 
-	arrdbP1[0] = arrdbOrigin[0];
-	arrdbP1[1] = m_dbGraphicScale / 2.0;
-	arrdbP1[2] = - m_dbGraphicScale / 2.0;
+//	arrdbP1[0] = arrdbOrigin[0];
+//	arrdbP1[1] = m_dbGraphicScale / 2.0;
+//	arrdbP1[2] = - m_dbGraphicScale / 2.0;
 
-	arrdbP2[0] = arrdbOrigin[0];
-	arrdbP2[1] = - m_dbGraphicScale / 2.0;
-	arrdbP2[2] = m_dbGraphicScale / 2.0;
+//	arrdbP2[0] = arrdbOrigin[0];
+//	arrdbP2[1] = - m_dbGraphicScale / 2.0;
+//	arrdbP2[2] = m_dbGraphicScale / 2.0;
 
-	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbOrigin);
-	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
-	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
+//	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbOrigin);
+//	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
+//	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
 
-	pPlane->SetOrigin(arrdbOrigin);
-	pPlane->SetPoint1(arrdbP1);
-	pPlane->SetPoint2(arrdbP2);
-    }
+//	pPlane->SetOrigin(arrdbOrigin);
+//	pPlane->SetPoint1(arrdbP1);
+//	pPlane->SetPoint2(arrdbP2);
+//    }
 }
 
 void ScanningROI::setGraphicScale(double adbGraphicScale)

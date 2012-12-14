@@ -17,6 +17,8 @@ struct Pair_PlaneSource_Pipe
   vtkSmartPointer < Source2ActorPipe > m_pPipePlane;
 
   Pair_PlaneSource_Pipe();
+
+  void init();
 };
 
 class ScanningROI : public AbstractScannerHelper
@@ -25,7 +27,6 @@ class ScanningROI : public AbstractScannerHelper
   double m_arrdbSpacing[3];
 
   std::vector < Pair_PlaneSource_Pipe > m_arrpPairPSP_Axial;
-  std::vector < Pair_PlaneSource_Pipe > m_arrpPairPSP_Coronal;
 
   vtkSmartPointer < vtkMatrix4x4 > m_pMatrix4x4Directions;
 
