@@ -21,25 +21,13 @@ Reorient::Reorient()
   m_pRenWin->SetSize(200, 500);
   m_pRenWin->AddRenderer(m_pRenderer);
 
-  m_pAxesWidgetAbsolute = vtkSmartPointer < AxesWidget >::New();
-  m_pAxesWidgetAbsolute->SetLengths(3.0);
-  m_pRenderer->AddActor(m_pAxesWidgetAbsolute->GetAxesActor());
-
-  m_pScannedHuman = vtkSmartPointer < ScannedHuman >::New();
-  m_pScannedHuman->setGraphicScale(1.0);
-  m_pRenderer->AddActor(m_pScannedHuman->getAssembly());
-
-  m_pScanningROI = vtkSmartPointer < ScanningROI >::New();
-  m_pScanningROI->setGraphicScale(2.0);
-  m_pRenderer->AddActor(m_pScanningROI->getAssembly());
-
-  m_pRenderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetXAxisCaptionActor2D());
-  m_pRenderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetYAxisCaptionActor2D());
-  m_pRenderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetZAxisCaptionActor2D());
+  Connect2Renderer(m_pRenderer);
 
   vtkCamera * pCamera = m_pRenderer->GetActiveCamera();
   pCamera->SetPosition(10.0, -10.0, 10.0);
   pCamera->SetViewUp(0.0, -1.0, 0.0);
+
+  Connect2Renderer(m_pRenderer);
 }
 
 Reorient::~Reorient()
@@ -71,21 +59,7 @@ vtkRenderWindow * Reorient::GetRenderWindow()
 
 void Reorient::Update(const vtkSmartPointer < vtkMatrix4x4 > apMatrix4x4)
 {
-  SetDirections(apMatrix4x4);
-
-  m_pScanningROI->Update();
+  ReorientProps::Update(apMatrix4x4);
 
   m_pRenWin->Render();
-}
-
-void Reorient::SetDirections(const vtkSmartPointer < vtkMatrix4x4 > apDirections)
-{
-	m_pScanningROI->setDirections(apDirections);
-}
-
-void Reorient::GetDirections(vtkSmartPointer < vtkMatrix4x4 > apDirections) const
-{
-  vtkSmartPointer < vtkMatrix4x4 > pDirections =
-	  m_pScanningROI->getDirections();
-  apDirections->DeepCopy(pDirections);
 }

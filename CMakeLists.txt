@@ -282,6 +282,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/OrientationWidget/Reorient/AxesWidget.cxx
   GUI/Renderer/OrientationWidget/Reorient/ScannedHuman.cxx
   GUI/Renderer/OrientationWidget/Reorient/ScanningROI.cxx
+  GUI/Renderer/OrientationWidget/Reorient/ReorientProps.cxx
   GUI/Renderer/OrientationWidget/Reorient/Source2ActorPipe.cxx
 )
 
@@ -336,6 +337,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/OrientationWidget/Reorient/AxesWidget.h
   GUI/Renderer/OrientationWidget/Reorient/ScannedHuman.h
   GUI/Renderer/OrientationWidget/Reorient/ScanningROI.h
+  GUI/Renderer/OrientationWidget/Reorient/ReorientProps.h
   GUI/Renderer/OrientationWidget/Reorient/Source2ActorPipe.h
 )
 
