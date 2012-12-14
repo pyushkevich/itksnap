@@ -6,6 +6,7 @@
 #include <vtkRenderer.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkProperty.h>
+#include <vtkCamera.h>
 
 #include "ScannedHuman.h"
 #include "ScanningROI.h"
@@ -33,8 +34,9 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
 
   //this->m_Renderer->AddActor(actor);
 
+  double dbGraphicScale = 2.0;
   m_pAxesWidgetAbsolute = vtkSmartPointer < AxesWidget >::New();
-  m_pAxesWidgetAbsolute->SetLengths(3.0);
+  m_pAxesWidgetAbsolute->SetLengths(dbGraphicScale * 1.5);
   this->m_Renderer->AddActor(m_pAxesWidgetAbsolute->GetAxesActor());
 
   m_pScannedHuman = vtkSmartPointer < ScannedHuman >::New();
@@ -42,12 +44,16 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
   this->m_Renderer->AddActor(m_pScannedHuman->getAssembly());
 
   m_pScanningROI = vtkSmartPointer < ScanningROI >::New();
-  m_pScanningROI->setGraphicScale(2.0);
+  m_pScanningROI->setGraphicScale(dbGraphicScale);
   this->m_Renderer->AddActor(m_pScanningROI->getAssembly());
 
-  this->m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetXAxisCaptionActor2D());
-  this->m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetYAxisCaptionActor2D());
-  this->m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetZAxisCaptionActor2D());
+  m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetXAxisCaptionActor2D());
+  m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetYAxisCaptionActor2D());
+  m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetZAxisCaptionActor2D());
+
+  vtkCamera * pCamera = m_Renderer->GetActiveCamera();
+  pCamera->SetPosition(dbGraphicScale * 5.0, -dbGraphicScale * 5.0, dbGraphicScale * 5.0);
+  pCamera->SetViewUp(0.0, -1.0, 0.0);
 
   //vtkRenderWindow * pvtkRenderWindow = GetRenderWindow();
   //m_pIren = vtkSmartPointer < vtkRenderWindowInteractor >::New();

@@ -37,6 +37,9 @@ Reorient::Reorient()
   m_pRenderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetYAxisCaptionActor2D());
   m_pRenderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetZAxisCaptionActor2D());
 
+  vtkCamera * pCamera = m_pRenderer->GetActiveCamera();
+  pCamera->SetPosition(10.0, -10.0, 10.0);
+  pCamera->SetViewUp(0.0, -1.0, 0.0);
 }
 
 Reorient::~Reorient()
