@@ -7,7 +7,7 @@ FIND_PACKAGE(VTK REQUIRED)
 INCLUDE(${VTK_USE_FILE})
 
 # use what QVTK built with
-SET(QT_QMAKE_EXECUTABLE ${VTK_QT_Q MAKE_EXECUTABLE} CACHE FILEPATH "")
+SET(QT_QMAKE_EXECUTABLE ${VTK_QT_QMAKE_EXECUTABLE} CACHE FILEPATH "")
 SET(QT_MOC_EXECUTABLE ${VTK_QT_MOC_EXECUTABLE} CACHE FILEPATH "")
 SET(QT_UIC_EXECUTABLE ${VTK_QT_UIC_EXECUTABLE} CACHE FILEPATH "")
 SET(DESIRED_QT_VERSION ${VTK_DESIRED_QT_VERSION} CACHE FILEPATH "")
@@ -20,23 +20,24 @@ ENDIF(QT_USE_FILE)
 
 # Use the include path and library for Qt that is used by VTK.
 INCLUDE_DIRECTORIES(
-        ${QT_INCLUDE_DIR}
-        ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}
+  ${QT_INCLUDE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/../Reorient
 )
 
 QT4_WRAP_UI(UI_SRCS ReorientGUI.ui)
 QT4_WRAP_CPP(MOC_SRCS ReorientGUI.h)
 SET(SRCS ${SRCS} ${MOC_SRCS}
-    main.cpp
-	AxesWidget.h AxesWidget.cpp
-	AbstractScannerHelper.h AbstractScannerHelper.cpp
-	Source2ActorPipe.h Source2ActorPipe.cpp
-	ScannedHuman.h ScannedHuman.cpp
-	ScanningROI.h ScanningROI.cpp
-	Reorient.cpp Reorient.h
-	ReorientGUI.cpp ReorientGUI.h
-	)
+  main.cxx
+  Reorient.h Reorient.cxx
+  ReorientGUI.h ReorientGUI.cxx
+  ${CMAKE_SOURCE_DIR}/../Reorient/AxesWidget.h ${CMAKE_SOURCE_DIR}/../Reorient/AxesWidget.cxx
+  ${CMAKE_SOURCE_DIR}/../Reorient/AbstractScannerHelper.h ${CMAKE_SOURCE_DIR}/../Reorient/AbstractScannerHelper.cxx
+  ${CMAKE_SOURCE_DIR}/../Reorient/Source2ActorPipe.h ${CMAKE_SOURCE_DIR}/../Reorient/Source2ActorPipe.cxx
+  ${CMAKE_SOURCE_DIR}/../Reorient/ScannedHuman.h ${CMAKE_SOURCE_DIR}/../Reorient/ScannedHuman.cxx
+  ${CMAKE_SOURCE_DIR}/../Reorient/ScanningROI.h ${CMAKE_SOURCE_DIR}/../Reorient/ScanningROI.cxx 
+)
 
 ADD_EXECUTABLE(ReorientGUI ${SRCS} ${UI_SRCS})
 
