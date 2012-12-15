@@ -12,8 +12,8 @@
 
 ReorientProps::ReorientProps()
 {
-  m_pAxesWidgetAbsolute = vtkSmartPointer < AxesWidget >::New();
-  m_pAxesWidgetAbsolute->SetLengths(3.0);
+  //m_pAxesWidgetAbsolute = vtkSmartPointer < AxesWidget >::New();
+  //m_pAxesWidgetAbsolute->SetLengths(3.0);
 
   m_pScannedHuman = vtkSmartPointer < ScannedHuman >::New();
   m_pScannedHuman->setGraphicScale(1.0);
@@ -47,7 +47,7 @@ void ReorientProps::GetDirections(vtkSmartPointer < vtkMatrix4x4 > apDirections)
 
 void ReorientProps::Connect2Renderer(vtkRenderer * apRenderer)
 {
-  apRenderer->AddActor(m_pAxesWidgetAbsolute->GetAxesActor());
+  //apRenderer->AddActor(m_pAxesWidgetAbsolute->GetAxesActor());
   apRenderer->AddActor(m_pScannedHuman->getAssembly());
   apRenderer->AddActor(m_pScanningROI->getAssembly());
 

@@ -35,7 +35,7 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
   //this->m_Renderer->AddActor(actor);
 
   double dbGraphicScale = 2.0;
-  double dbPositionFactor = 3.5;
+  double dbPositionFactor = 2.6;
 
   m_ReorientProps.Connect2Renderer(m_Renderer);
 

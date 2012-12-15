@@ -11,9 +11,7 @@
 
 class ReorientProps
 {
-  //void updateRenderer();
-  
-  vtkSmartPointer < AxesWidget > m_pAxesWidgetAbsolute;
+  //vtkSmartPointer < AxesWidget > m_pAxesWidgetAbsolute;
   vtkSmartPointer < ScannedHuman > m_pScannedHuman;
   vtkSmartPointer < ScanningROI > m_pScanningROI;
 
