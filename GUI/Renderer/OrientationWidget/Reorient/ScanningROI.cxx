@@ -12,6 +12,7 @@
 #include <vtkProp3D.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkPlaneSource.h>
+#include <vtkAxesActor.h>
 
 #include "ScanningROI.h"
 
@@ -121,7 +122,8 @@ void ScanningROI::Update()
     {
     m_pAxesWidget->GetAxesActor()->SetPosition(- m_dbGraphicScale / 2.0, -m_dbGraphicScale / 2.0, -m_dbGraphicScale / 2.0);
 	m_pAxesWidget->SetLabels("i", "j", "k");
-  }
+    m_pAxesWidget->SetColors(AxesWidget::m_arrdbColRed, AxesWidget::m_arrdbColGreen, AxesWidget::m_arrdbColBlue);
+    }
   else
     {
 	//m_pAxesWidget->GetAxesActor()->SetPosition(m_dbGraphicScale / 2.0, m_dbGraphicScale / 2.0, m_dbGraphicScale / 2.0);
@@ -134,6 +136,7 @@ void ScanningROI::Update()
 
 	changeOrientation3x3(m_pMatrix4x4Directions);
 	m_pAxesWidget->SetLabels("i", "k", "j");
+    m_pAxesWidget->SetColors(AxesWidget::m_arrdbColRed, AxesWidget::m_arrdbColBlue, AxesWidget::m_arrdbColGreen);
     }
 
   m_pAxesWidget->GetAxesActor()->SetUserMatrix(pMatrix4x4DirectionsAccompanying);

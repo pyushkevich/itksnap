@@ -3,12 +3,16 @@
 #include "vtkSmartPointer.h"
 #include "vtkCaptionActor2D.h"
 #include "vtkTextProperty.h"
+#include "vtkProperty.h"
 
 #include "AxesWidget.h"
 
+const double AxesWidget::m_arrdbColRed[3] = {1.0, 0.0, 0.0};
+const double AxesWidget::m_arrdbColGreen[3] = {0.0, 1.0, 0.0};
+const double AxesWidget::m_arrdbColBlue[3] = {0.0, 0.0, 1.0};
+
 AxesWidget::AxesWidget()
 {
-  //vtkProperty* property = cube->GetCubeProperty();
  
   m_pvtkAxesActor = vtkSmartPointer < vtkAxesActor > ::New();
 
@@ -33,44 +37,62 @@ AxesWidget::AxesWidget()
 
 }
 
-//void AxesWidget::Delete() {
-//	VTK_DELETE_NULL(m_pvtkAxesActor);
-//}
-//
-//AxesWidget::~AxesWidget() {
-//	Delete();
-//}
-
 vtkStandardNewMacro(AxesWidget);
 
-void AxesWidget::VisibilityOn() {
-	m_pvtkAxesActor->VisibilityOn();
+void AxesWidget::VisibilityOn()
+{
+  m_pvtkAxesActor->VisibilityOn();
 }
 
-void AxesWidget::VisibilityOff() {
-	m_pvtkAxesActor->VisibilityOff();
+void AxesWidget::VisibilityOff()
+{
+  m_pvtkAxesActor->VisibilityOff();
 }
 
-int AxesWidget::GetVisibility() {
-	return(m_pvtkAxesActor->GetVisibility());
+int AxesWidget::GetVisibility()
+{
+  return(m_pvtkAxesActor->GetVisibility());
 }
 
 void AxesWidget::SetVisibility(int anVisible) {
-	m_pvtkAxesActor->SetVisibility(anVisible);
+  m_pvtkAxesActor->SetVisibility(anVisible);
 }
 
-void AxesWidget::SetLengths(double adbLength) {
-	m_pvtkAxesActor->SetTotalLength
-		//SetNormalizedShaftLength
-		(adbLength, adbLength, adbLength);
+void AxesWidget::SetLengths(double adbLength)
+{
+  m_pvtkAxesActor->SetTotalLength
+    //SetNormalizedShaftLength
+    (adbLength, adbLength, adbLength);
 }
 
-vtkSmartPointer < vtkAxesActor > AxesWidget::GetAxesActor() {
-	return(m_pvtkAxesActor);
+vtkSmartPointer < vtkAxesActor > AxesWidget::GetAxesActor()
+{
+  return(m_pvtkAxesActor);
 }
 
-void AxesWidget::SetLabels(const char * apchX, const char * apchY, const char * apchZ) {
-	m_pvtkAxesActor->SetXAxisLabelText( apchX );
-	m_pvtkAxesActor->SetYAxisLabelText( apchY );
-	m_pvtkAxesActor->SetZAxisLabelText( apchZ );
+void AxesWidget::SetLabels(const char * apchX, const char * apchY, const char * apchZ)
+{
+  m_pvtkAxesActor->SetXAxisLabelText( apchX );
+  m_pvtkAxesActor->SetYAxisLabelText( apchY );
+  m_pvtkAxesActor->SetZAxisLabelText( apchZ );
+}
+
+void AxesWidget::SetColors(const double aarrdbX[3], const double aarrdbY[3], const double aarrdbZ[3])
+{
+
+  vtkSmartPointer < vtkAxesActor > pAxesActor = GetAxesActor();
+
+  double arrdbX[3], arrdbY[3], arrdbZ[3];
+  memcpy(arrdbX, aarrdbX, 3 * sizeof(double));
+  memcpy(arrdbY, aarrdbY, 3 * sizeof(double));
+  memcpy(arrdbZ, aarrdbZ, 3 * sizeof(double));
+
+  pAxesActor->GetXAxisTipProperty()->SetColor(arrdbX);
+  pAxesActor->GetYAxisTipProperty()->SetColor(arrdbY);
+  pAxesActor->GetZAxisTipProperty()->SetColor(arrdbZ);
+
+  pAxesActor->GetXAxisShaftProperty()->SetColor(arrdbX);
+  pAxesActor->GetYAxisShaftProperty()->SetColor(arrdbY);
+  pAxesActor->GetZAxisShaftProperty()->SetColor(arrdbZ);
+
 }
