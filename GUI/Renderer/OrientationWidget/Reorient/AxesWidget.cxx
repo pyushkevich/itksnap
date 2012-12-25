@@ -26,6 +26,9 @@ AxesWidget::AxesWidget()
   m_pvtkAxesActor->SetConeRadius    ( 1.025 * m_pvtkAxesActor->GetConeRadius() );
   m_pvtkAxesActor->SetSphereRadius  ( 1.500 * m_pvtkAxesActor->GetSphereRadius() );
 
+  m_pvtkAxesActor->SetConeResolution(100);
+  m_pvtkAxesActor->SetCylinderResolution(100);
+
   vtkTextProperty* tprop = m_pvtkAxesActor->GetXAxisCaptionActor2D()->
     GetCaptionTextProperty();
   tprop->ItalicOn();

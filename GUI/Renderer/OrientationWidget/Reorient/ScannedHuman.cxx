@@ -61,25 +61,29 @@ void ScannedHuman::setGraphicScale(double adbGraphicScale)
   vtkSmartPointer < vtkActor > pActor = m_PipeHead->getActor();
   vtkProperty * pProperty = pActor->GetProperty();
   pProperty->SetColor(0.0, 0.0, 1.0);
+  //pProperty->SetDiffuseColor(0.0, 0.0, 1.0);
+  //pProperty->SetDiffuse(1.0);
+  pProperty->SetSpecularColor(0.0, 0.0, 1.0);
+  pProperty->SetSpecular(1.0);
   pActor->SetPosition(0.0, 0.0, dbL * 1.5);
-  m_pSphereSourceHead->SetThetaResolution(25);
-  m_pSphereSourceHead->SetPhiResolution(25);
+  m_pSphereSourceHead->SetThetaResolution(100);
+  m_pSphereSourceHead->SetPhiResolution(100);
 
   pActor = m_PipeRightEye->getActor();
   pProperty = pActor->GetProperty();
   pProperty->SetColor(1.0, 1.0, 1.0);
-  pActor->SetPosition(dbL / 5, - dbL / 3.0, dbL * 1.6);
+  pActor->SetPosition(- dbL / 5, - dbL / 2.85, dbL * 1.7);
   m_pSphereSourceRightEye->SetRadius(dbL/8.0);
-  m_pSphereSourceRightEye->SetThetaResolution(25);
-  m_pSphereSourceRightEye->SetPhiResolution(25);
+  m_pSphereSourceRightEye->SetThetaResolution(100);
+  m_pSphereSourceRightEye->SetPhiResolution(100);
 
   pActor = m_PipeLeftEye->getActor();
   pProperty = pActor->GetProperty();
   pProperty->SetColor(1.0, 1.0, 1.0);
-  pActor->SetPosition(- dbL / 5, - dbL / 3.0, dbL * 1.6);
+  pActor->SetPosition(dbL / 5, - dbL / 2.85, dbL * 1.7);
   m_pSphereSourceLeftEye->SetRadius(dbL/8.0);
-  m_pSphereSourceLeftEye->SetThetaResolution(25);
-  m_pSphereSourceLeftEye->SetPhiResolution(25);
+  m_pSphereSourceLeftEye->SetThetaResolution(100);
+  m_pSphereSourceLeftEye->SetPhiResolution(100);
   
   pActor = m_PipeCone->getActor();
   pProperty = pActor->GetProperty();
@@ -92,13 +96,13 @@ void ScannedHuman::setGraphicScale(double adbGraphicScale)
   m_pConeSource->SetHeight(dbL * 0.25);
   m_pConeSource->SetRadius(dbL * 0.1);
   m_pConeSource->SetDirection(0.0, - 1.0, 0.0);
-  m_pConeSource->SetResolution(25);
+  m_pConeSource->SetResolution(100);
   
   pActor = m_PipeMouth->getActor();
   pProperty = pActor->GetProperty();
   pProperty->SetColor(1.0, 1.0, 1.0);
   m_pTubeFilterMouth->SetRadius(0.05*dbL);
-  m_pTubeFilterMouth->SetNumberOfSides(25);
+  m_pTubeFilterMouth->SetNumberOfSides(100);
   int nPointsNr = 11;
   m_pPointsMouth->SetNumberOfPoints(nPointsNr);
   int nI;
@@ -117,6 +121,10 @@ void ScannedHuman::setGraphicScale(double adbGraphicScale)
   pActor = m_PipeBody->getActor();
   pProperty = pActor->GetProperty();
   pProperty->SetColor(0.0, 0.0, 1.0);
+  //pProperty->SetDiffuseColor(0.0, 0.0, 1.0);
+  //pProperty->SetDiffuse(1.0);
+  pProperty->SetSpecularColor(0.0, 0.0, 1.0);
+  pProperty->SetSpecular(0.5);
   m_pCubeSourceBody->SetYLength(0.75 * dbL);
   m_pCubeSourceBody->SetZLength(2 * dbL);
 
