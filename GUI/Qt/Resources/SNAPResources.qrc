@@ -52,5 +52,11 @@
         <file>media-playback-singlestep.png</file>
         <file>edgefunction.png</file>
         <file>revertaxis_16.png</file>
+        <file>dl_fourviews.png</file>
+        <file>dl_3d.png</file>
+        <file>dl_axial.png</file>
+        <file>dl_coronal.png</file>
+        <file>dl_sagittal.png</file>
+        <file>dl_toolbox.png</file>
     </qresource>
 </RCC>

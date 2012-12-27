@@ -111,6 +111,8 @@ private:
 
   void UpdateRecentMenu();
 
+  void UpdateViewPanelLayout();
+
 
   // Left and right docks
   QDockWidget *m_DockLeft, *m_DockRight;

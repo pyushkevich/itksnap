@@ -33,6 +33,7 @@
 #include "ImageIODelegates.h"
 #include "LayerInspectorDialog.h"
 #include "IntensityCurveModel.h"
+#include "DisplayLayoutModel.h"
 #include "ColorMapModel.h"
 #include "ViewPanel3D.h"
 #include "IRISMainToolbox.h"
@@ -267,6 +268,12 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
                                   historyModel,
                                   SLOT(onModelUpdate(EventBucket)));
 
+  // Listen to events affecting the display layout
+  LatentITKEventNotifier::connect(m_Model->GetDisplayLayoutModel(),
+                                  DisplayLayoutModel::ViewPanelLayoutChangeEvent(),
+                                  this,
+                                  SLOT(onModelUpdate(EventBucket)));
+
   // Populate the recent file menu
   this->UpdateRecentMenu();
 }
@@ -285,6 +292,12 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
       ui->stackMain->setCurrentWidget(ui->pageMain);
     else
       ui->stackMain->setCurrentWidget(ui->pageSplash);
+    }
+
+  // Display layout change
+  else if(b.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent()))
+    {
+    this->UpdateViewPanelLayout();
     }
 }
 
@@ -315,6 +328,30 @@ void MainImageWindow::UpdateRecentMenu()
       menus[i]->setEnabled(false);
       }
     }
+}
+
+void MainImageWindow::UpdateViewPanelLayout()
+{
+  // Get the desired layout
+  DisplayLayoutModel *layoutModel = m_Model->GetDisplayLayoutModel();
+  DisplayLayoutModel::ViewPanelLayout layout =
+      layoutModel->GetViewPanelLayoutModel()->GetValue();
+
+  // If the layout is four views, place all four views into the main layout
+  if(layout == DisplayLayoutModel::FOUR_VIEWS)
+    {
+    if(m_Model->GetDriver()->GetCurrentImageData()->IsMainLoaded())
+      {
+      ui->stackMain->setCurrentWidget(ui->pageMain);
+      }
+    }
+  else if(layout == DisplayLayoutModel::AXIAL_ONLY)
+    {
+    if(m_Model->GetDriver()->GetCurrentImageData()->IsMainLoaded())
+      {
+      }
+    }
+
 }
 
 

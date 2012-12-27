@@ -243,6 +243,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ColorLabelPropertyModel.cxx
   GUI/Model/ColorMapModel.cxx
   GUI/Model/CursorInspectionModel.cxx
+  GUI/Model/DisplayLayoutModel.cxx
   GUI/Model/Generic3DModel.cxx
   GUI/Model/GenericSliceModel.cxx
   GUI/Model/GlobalUIModel.cxx
@@ -292,6 +293,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelPropertyModel.h
   GUI/Model/CursorInspectionModel.h
+  GUI/Model/DisplayLayoutModel.h
   GUI/Model/Generic3DModel.h
   GUI/Model/GenericSliceModel.h
   GUI/Model/GlobalUIModel.h
@@ -344,6 +346,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/ContrastInspector.cxx
   GUI/Qt/Components/ColorMapInspector.cxx
   GUI/Qt/Components/CursorInspector.cxx
+  GUI/Qt/Components/DisplayLayoutInspector.cxx
   GUI/Qt/Components/ImageInfoInspector.cxx
   GUI/Qt/Components/LabelInspector.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
@@ -393,6 +396,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/ContrastInspector.h
   GUI/Qt/Components/ColorMapInspector.h
   GUI/Qt/Components/CursorInspector.h
+  GUI/Qt/Components/DisplayLayoutInspector.h
   GUI/Qt/Components/ImageInfoInspector.h
   GUI/Qt/Components/LabelInspector.h
   GUI/Qt/Components/LatentITKEventNotifier.h
@@ -457,6 +461,7 @@ SET(UI_FORMS
   GUI/Qt/Components/ColorMapInspector.ui
   GUI/Qt/Components/ContrastInspector.ui
   GUI/Qt/Components/CursorInspector.ui
+  GUI/Qt/Components/DisplayLayoutInspector.ui
   GUI/Qt/Components/ImageInfoInspector.ui
   GUI/Qt/Components/LabelInspector.ui
   GUI/Qt/Components/MetadataInspector.ui

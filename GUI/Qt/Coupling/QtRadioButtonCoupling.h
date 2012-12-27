@@ -85,14 +85,18 @@ public:
   }
 };
 
+
 /**
   Create a coupling between a widget containing a set of radio buttons
-  and an enum. The values of the enum must be 0,1,2,... The buttons must
-  be in the same order as the enum entries.
+  and an enum. The values of the enum must be 0,1,2,... The order of the
+  buttons in the last parameter should match the order of the enum. In case
+  that the order of the radio buttons in the parent widget already matches
+  the order of the enum entries, call the second version of this method, below
   */
 template <class TAtomic, class TWidget>
 void makeRadioGroupCoupling(
-    TWidget *w, AbstractPropertyModel<TAtomic> *model)
+    TWidget *w, AbstractPropertyModel<TAtomic> *model,
+    const QObjectList &wlist)
 {
   typedef AbstractPropertyModel<TAtomic> ModelType;
   typedef RadioButtonGroupTraits<TAtomic> WidgetValueTraits;
@@ -120,8 +124,8 @@ void makeRadioGroupCoupling(
         h, SLOT(onPropertyModification(const EventBucket &)));
 
   // Listen to value change events for every child widget
-  const QObjectList &kids = w->children();
-  for(QObjectList::const_iterator it = kids.begin(); it != kids.end(); ++it)
+
+  for(QObjectList::const_iterator it = wlist.begin(); it != wlist.end(); ++it)
     {
     if((*it)->inherits("QAbstractButton"))
       {
@@ -129,6 +133,20 @@ void makeRadioGroupCoupling(
       h->connect(qab, SIGNAL(toggled(bool)), SLOT(onUserModification()));
       }
     }
+}
+
+/**
+  Create a coupling between a widget containing a set of radio buttons
+  and an enum. The values of the enum must be 0,1,2,... The order of the
+  radio button widgets in the parent widget *w should match the order of
+  the enum entries. If not, see the method above.
+  */
+template <class TAtomic, class TWidget>
+void makeRadioGroupCoupling(
+    TWidget *w, AbstractPropertyModel<TAtomic> *model)
+{
+  const QObjectList &kids = w->children();
+  makeRadioGroupCoupling(w, model, kids);
 }
 
 #endif // QTRADIOBUTTONCOUPLING_H

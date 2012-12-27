@@ -35,6 +35,7 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
   //this->m_Renderer->AddActor(actor);
 
   double dbGraphicScale = 2.0;
+  double dbZoomFactor = 2.5;
   m_pAxesWidgetAbsolute = vtkSmartPointer < AxesWidget >::New();
   m_pAxesWidgetAbsolute->SetLengths(dbGraphicScale * 1.5);
   this->m_Renderer->AddActor(m_pAxesWidgetAbsolute->GetAxesActor());
@@ -52,7 +53,9 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
   m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetZAxisCaptionActor2D());
 
   vtkCamera * pCamera = m_Renderer->GetActiveCamera();
-  pCamera->SetPosition(dbGraphicScale * 5.0, -dbGraphicScale * 5.0, dbGraphicScale * 5.0);
+  pCamera->SetPosition(dbGraphicScale * dbZoomFactor,
+                       -dbGraphicScale * dbZoomFactor,
+                       dbGraphicScale * dbZoomFactor);
   pCamera->SetViewUp(0.0, -1.0, 0.0);
 
   //vtkRenderWindow * pvtkRenderWindow = GetRenderWindow();

@@ -37,6 +37,7 @@
 #include <CursorInspector.h>
 #include <LabelInspector.h>
 #include <SnakeToolROIPanel.h>
+#include <DisplayLayoutInspector.h>
 
 #include <SnakeWizardPanel.h>
 
@@ -62,7 +63,7 @@
 
 const char *IRISMainToolbox::m_InspectorPageNames[] = {
     "Cursor Inspector", "Zoom Inspector", "Label Inspector",
-    "Tool Inspector"
+    "Display Inspector", "Tool Inspector"
 };
 
 
@@ -147,11 +148,12 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
   lInspect->addWidget(m_TabInspector);
 
   const char *tabIcons[] = {
-    "crosshair.gif", "zoom.gif", "paintbrush.gif", "tools.png" };
+    "crosshair.gif", "zoom.gif", "paintbrush.gif", "dl_toolbox.png", "tools.png" };
 
   m_ZoomInspector = new ZoomInspector();
   m_CursorInspector = new CursorInspector();
   m_LabelInspector = new LabelInspector();
+  m_DisplayLayoutInspector = new DisplayLayoutInspector();
 
   // The tools page is just a widget with a stack layout
   m_ToolInspector = new QStackedWidget();
@@ -163,11 +165,11 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
 
   QWidget *tabContent[] = {
     m_CursorInspector, m_ZoomInspector, m_LabelInspector,
-    m_ToolInspector
+    m_DisplayLayoutInspector, m_ToolInspector
   };
 
   // Add the four tabs to the tab bar
-  for(int i = 0; i < 4; i++)
+  for(int i = 0; i < 5; i++)
     {
     QWidget *w = new QWidget();
     QVBoxLayout *layout = new QVBoxLayout(w);
@@ -209,6 +211,7 @@ void IRISMainToolbox::SetModel(GlobalUIModel *model)
   m_CursorInspector->SetModel(model->GetCursorInspectionModel());
   m_LabelInspector->SetModel(model);
   m_SnakeToolROIPanel->SetModel(model);
+  // m_DisplayLayoutInspector->SetModel(model);
 
   // Set up state machine
   activateOnNotFlag(

@@ -8,6 +8,9 @@
 /**
   A simple 'bucket' that stores events. You can easily add events to
   the bucket and check if events are present there.
+
+  TODO: the bucket should keep track of objects that fired the event,
+  not only the event types!
   */
 class EventBucket
 {

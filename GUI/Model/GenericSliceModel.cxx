@@ -30,6 +30,7 @@
 #include <IRISApplication.h>
 #include <GenericImageData.h>
 #include <SNAPAppearanceSettings.h>
+#include <DisplayLayoutModel.h>
 
 #include <itkImage.h>
 #include <itkImageRegionIteratorWithIndex.h>
@@ -73,7 +74,8 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
 
   // Listen to changes in the layout of the slice view into cells. When
   // this change occurs, we have to modify the size of the slice views
-  Rebroadcast(m_ParentUI->GetSliceViewCellLayoutModel(),
+  DisplayLayoutModel *dlm = m_ParentUI->GetDisplayLayoutModel();
+  Rebroadcast(dlm->GetSliceViewCellLayoutModel(),
               ValueChangedEvent(), ModelUpdateEvent());
 }
 
@@ -527,7 +529,8 @@ GenericSliceModel
 Vector2ui GenericSliceModel::GetSize()
 {
   Vector2ui viewport = m_SizeReporter->GetViewportSize();
-  Vector2ui layout = m_ParentUI->GetSliceViewCellLayoutModel()->GetValue();
+  DisplayLayoutModel *dlm = m_ParentUI->GetDisplayLayoutModel();
+  Vector2ui layout = dlm->GetSliceViewCellLayoutModel()->GetValue();
   unsigned int rows = layout[0], cols = layout[1];
   return Vector2ui(viewport[0] / cols, viewport[1] / rows);
 }

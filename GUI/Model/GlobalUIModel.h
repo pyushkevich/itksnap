@@ -57,6 +57,7 @@ class SnakeROIModel;
 class SnakeWizardModel;
 class ProgressReporterDelegate;
 class ReorientImageModel;
+class DisplayLayoutModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -97,8 +98,6 @@ public:
   irisGetMacro(AppearanceSettings, SNAPAppearanceSettings *)
 
   irisGetMacro(SliceCoordinator, SliceWindowCoordinator *)
-
-  irisGetMacro(SliceViewCellLayoutModel, ConcreteSimpleUIntVec2Property *)
 
   // Convenience access to the SystemInfterface
   SystemInterface *GetSystemInterface() const;
@@ -155,6 +154,9 @@ public:
 
   /** The model that handles snake wizard interaction */
   irisGetMacro(SnakeWizardModel, SnakeWizardModel *)
+
+  /** The model handling display layout properties */
+  irisGetMacro(DisplayLayoutModel, DisplayLayoutModel *)
 
   /** Load the main image */
   void LoadGrayImage(GuidedNativeImageIO *io);
@@ -219,13 +221,6 @@ protected:
   // Window coordinator
   SmartPtr<SliceWindowCoordinator> m_SliceCoordinator;
 
-  // A model handing the layout of the layers in a slice view. This gives
-  // the number of rows and columns into which the slice views are broken
-  // up when displaying overlays. When this is 1x1, the overlays are painted
-  // on top of each other using transparency. Otherwise, each overlay is shown
-  // in its own cell.
-  SmartPtr<ConcreteSimpleUIntVec2Property> m_SliceViewCellLayoutModel;
-
   // Model for intensity curve manipulation
   SmartPtr<IntensityCurveModel> m_IntensityCurveModel;
 
@@ -255,6 +250,9 @@ protected:
 
   // The snake wizard model
   SmartPtr<SnakeWizardModel> m_SnakeWizardModel;
+
+  // Display layout model
+  SmartPtr<DisplayLayoutModel> m_DisplayLayoutModel;
 
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;

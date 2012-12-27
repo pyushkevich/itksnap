@@ -42,6 +42,7 @@ class QGroupBox;
 class LabelInspector;
 class QTabWidget;
 class SnakeToolROIPanel;
+class DisplayLayoutInspector;
 
 class IRISMainToolbox : public SNAPComponent
 {
@@ -86,6 +87,7 @@ private:
   ZoomInspector *m_ZoomInspector;
   CursorInspector *m_CursorInspector;
   LabelInspector *m_LabelInspector;
+  DisplayLayoutInspector *m_DisplayLayoutInspector;
   QStackedWidget *m_ToolInspector;
 
   SnakeToolROIPanel *m_SnakeToolROIPanel;

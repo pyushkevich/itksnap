@@ -33,6 +33,7 @@
 #include "ImageWrapper.h"
 #include "IRISApplication.h"
 #include "IntensityCurveModel.h"
+#include "DisplayLayoutModel.h"
 #include "ColorMapModel.h"
 #include "LayerAssociation.txx"
 
@@ -75,7 +76,8 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
               SegmentationLabelConfigurationChangeEvent(), AppearanceUpdateEvent());
 
   // Changes to cell layout also must be rebroadcast
-  Rebroadcast(m_Model->GetParentUI()->GetSliceViewCellLayoutModel(),
+  DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
+  Rebroadcast(dlm->GetSliceViewCellLayoutModel(),
               ValueChangedEvent(), AppearanceUpdateEvent());
 }
 
@@ -90,8 +92,8 @@ GenericSliceRenderer
 ::paintGL()
 {
   // Number of divisions
-  Vector2ui layout =
-      m_Model->GetParentUI()->GetSliceViewCellLayoutModel()->GetValue();
+  DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
+  Vector2ui layout = dlm->GetSliceViewCellLayoutModel()->GetValue();
   int nrows = (int) layout[0];
   int ncols = (int) layout[1];
 

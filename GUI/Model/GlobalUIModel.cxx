@@ -48,6 +48,7 @@
 #include <RandomAccessCollectionModel.h>
 #include <UIReporterDelegates.h>
 #include <ReorientImageModel.h>
+#include <DisplayLayoutModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -65,9 +66,9 @@ GlobalUIModel::GlobalUIModel()
   // Create the IRIS application login
   m_Driver = IRISApplication::New();
 
-  // Cell layout model
-  m_SliceViewCellLayoutModel = ConcreteSimpleUIntVec2Property::New();
-  m_SliceViewCellLayoutModel->SetValue(Vector2ui(2,2));
+  // Display layout model
+  m_DisplayLayoutModel = DisplayLayoutModel::New();
+  m_DisplayLayoutModel->SetParentModel(this);
 
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)

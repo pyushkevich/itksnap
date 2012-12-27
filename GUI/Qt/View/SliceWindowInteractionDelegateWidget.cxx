@@ -2,6 +2,7 @@
 #include "GenericSliceModel.h"
 #include "GenericSliceView.h"
 #include "GlobalUIModel.h"
+#include "DisplayLayoutModel.h"
 
 SliceWindowInteractionDelegateWidget
 ::SliceWindowInteractionDelegateWidget(GenericSliceView *parent)
@@ -49,8 +50,8 @@ SliceWindowInteractionDelegateWidget
 
   // Get the cell size and the number of cells
   Vector2ui sz = m_ParentModel->GetSize();
-  Vector2ui cells =
-      m_ParentModel->GetParentUI()->GetSliceViewCellLayoutModel()->GetValue();
+  DisplayLayoutModel *dlm = m_ParentModel->GetParentUI()->GetDisplayLayoutModel();
+  Vector2ui cells = dlm->GetSliceViewCellLayoutModel()->GetValue();
   int nrows = cells[0], ncols = cells[1];
   int icol, irow;
 
