@@ -75,8 +75,7 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
   // Listen to changes in the layout of the slice view into cells. When
   // this change occurs, we have to modify the size of the slice views
   DisplayLayoutModel *dlm = m_ParentUI->GetDisplayLayoutModel();
-  Rebroadcast(dlm->GetSliceViewCellLayoutModel(),
-              ValueChangedEvent(), ModelUpdateEvent());
+  Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(), ModelUpdateEvent());
 }
 
 void GenericSliceModel
@@ -530,7 +529,7 @@ Vector2ui GenericSliceModel::GetSize()
 {
   Vector2ui viewport = m_SizeReporter->GetViewportSize();
   DisplayLayoutModel *dlm = m_ParentUI->GetDisplayLayoutModel();
-  Vector2ui layout = dlm->GetSliceViewCellLayoutModel()->GetValue();
+  Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
   unsigned int rows = layout[0], cols = layout[1];
   return Vector2ui(viewport[0] / cols, viewport[1] / rows);
 }

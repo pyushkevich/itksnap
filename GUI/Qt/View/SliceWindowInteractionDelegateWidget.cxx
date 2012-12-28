@@ -51,7 +51,7 @@ SliceWindowInteractionDelegateWidget
   // Get the cell size and the number of cells
   Vector2ui sz = m_ParentModel->GetSize();
   DisplayLayoutModel *dlm = m_ParentModel->GetParentUI()->GetDisplayLayoutModel();
-  Vector2ui cells = dlm->GetSliceViewCellLayoutModel()->GetValue();
+  Vector2ui cells = dlm->GetSliceViewLayerTilingModel()->GetValue();
   int nrows = cells[0], ncols = cells[1];
   int icol, irow;
 

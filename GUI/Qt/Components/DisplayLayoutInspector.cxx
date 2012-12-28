@@ -28,4 +28,8 @@ void DisplayLayoutInspector::SetModel(DisplayLayoutModel *model)
   rlist.append(ui->btn3D);
   makeRadioGroupCoupling(ui->grpDisplayLayout,
                          m_Model->GetViewPanelLayoutModel(), rlist);
+
+  // Couple the radio buttons for layer layout
+  makeRadioGroupCoupling(ui->grpLayerLayout,
+                         m_Model->GetSliceViewLayerLayoutModel());
 }

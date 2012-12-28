@@ -77,8 +77,8 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 
   // Changes to cell layout also must be rebroadcast
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
-  Rebroadcast(dlm->GetSliceViewCellLayoutModel(),
-              ValueChangedEvent(), AppearanceUpdateEvent());
+  Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(),
+              AppearanceUpdateEvent());
 }
 
 void GenericSliceRenderer::OnUpdate()
@@ -93,7 +93,7 @@ GenericSliceRenderer
 {
   // Number of divisions
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
-  Vector2ui layout = dlm->GetSliceViewCellLayoutModel()->GetValue();
+  Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
   int nrows = (int) layout[0];
   int ncols = (int) layout[1];
 

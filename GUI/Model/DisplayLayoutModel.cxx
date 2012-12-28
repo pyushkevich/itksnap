@@ -1,6 +1,7 @@
 #include "DisplayLayoutModel.h"
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
+#include "GenericImageData.h"
 
 DisplayLayoutModel::DisplayLayoutModel()
 {
@@ -8,13 +9,8 @@ DisplayLayoutModel::DisplayLayoutModel()
   m_ViewPanelLayoutModel = ConcreteViewPanelLayoutProperty::New();
   m_ViewPanelLayoutModel->SetValue(VIEW_ALL);
 
-  // Cell layout model
-  m_SliceViewCellLayoutModel = ConcreteSimpleUIntVec2Property::New();
-  m_SliceViewCellLayoutModel->SetValue(Vector2ui(1,1));
-
   // Rebroadcast relevant events from child models
   Rebroadcast(m_ViewPanelLayoutModel, ValueChangedEvent(), ViewPanelLayoutChangeEvent());
-  Rebroadcast(m_SliceViewCellLayoutModel, ValueChangedEvent(), OverlayLayoutChangeEvent());
 
   // Set up the boolean visibility models
   for(int panel = 0; panel < 4; panel++)
@@ -37,6 +33,27 @@ DisplayLayoutModel::DisplayLayoutModel()
     m_ViewPanelExpandButtonActionModel[panel]->Rebroadcast(
           this, ViewPanelLayoutChangeEvent(), ValueChangedEvent());
     }
+
+  // The layer layout model
+  m_LayerLayout = LAYOUT_STACKED;
+  m_SliceViewLayerLayoutModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetSliceViewLayerLayoutValue,
+        &Self::SetSliceViewLayerLayoutValue);
+
+  // The derived model must react to changes to the internal values
+  m_SliceViewLayerLayoutModel->Rebroadcast(
+        this, LayerLayoutChangeEvent(), ValueChangedEvent());
+
+  // The tiling model
+  m_SliceViewLayerTilingModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetSliceViewLayerTilingValue);
+
+  // The derived model must react to changes to the internal values
+  m_SliceViewLayerTilingModel->Rebroadcast(
+        this, LayerLayoutChangeEvent(), ValueChangedEvent());
+
 }
 
 void DisplayLayoutModel::SetParentModel(GlobalUIModel *parentModel)
@@ -49,6 +66,10 @@ void DisplayLayoutModel::SetParentModel(GlobalUIModel *parentModel)
   Rebroadcast(m_ParentModel->GetDriver(),
               DisplayToAnatomyCoordinateMappingChangeEvent(),
               ViewPanelLayoutChangeEvent());
+
+  // We need to be notified when the number of overlays changes
+  Rebroadcast(m_ParentModel->GetDriver(),
+              LayerChangeEvent(), LayerLayoutChangeEvent());
 }
 
 bool DisplayLayoutModel
@@ -112,3 +133,82 @@ bool DisplayLayoutModel::GetNthViewPanelExpandButtonActionValue(
 
   return true;
 }
+
+bool DisplayLayoutModel
+::GetSliceViewLayerLayoutValue(DisplayLayoutModel::LayerLayout &value)
+{
+  value = m_LayerLayout;
+  return true;
+}
+
+void DisplayLayoutModel
+::SetSliceViewLayerLayoutValue(DisplayLayoutModel::LayerLayout value)
+{
+  m_LayerLayout = value;
+  UpdateSliceViewTiling();
+  InvokeEvent(LayerLayoutChangeEvent());
+}
+
+bool DisplayLayoutModel::GetSliceViewLayerTilingValue(Vector2ui &value)
+{
+  value = m_LayerTiling;
+  return true;
+}
+
+void DisplayLayoutModel::UpdateSliceViewTiling()
+{
+  // In stacked layout, there is only one layer to draw
+  if(m_LayerLayout == LAYOUT_STACKED)
+    {
+    m_LayerTiling.fill(1);
+    }
+
+  // Also, when there is no data, the layout is 1x1
+  else if(!m_ParentModel->GetDriver()->IsMainImageLoaded())
+    {
+    m_LayerTiling.fill(1);
+    }
+
+  // Otherwise, we need to figure out in a smart way... But for now, we
+  // should just use some default tiling scheme
+  else
+    {
+    int n = m_ParentModel->GetDriver()->GetCurrentImageData()->GetNumberOfLayers(
+          LayerIterator::OVERLAY_ROLE | LayerIterator::MAIN_ROLE);
+
+    // A simple algorithm to solve min(ab) s.t. ab >= n, k >= a/b >= 1, where
+    // k is an aspect ratio value
+    // TODO: replace this with a smart algorithm that uses current window size
+    // and the amount of white space wasted in the currently visible views?
+    m_LayerTiling.fill(n);
+    double k = 2.01;
+    for(unsigned int a = 1; a <= n; a++)
+      {
+      for(unsigned int b = ceil(a/k); b <= a; b++)
+        {
+        if(a * b >= n)
+          {
+          if(a * b < m_LayerTiling[1] * m_LayerTiling[0])
+            {
+            m_LayerTiling[1] = a;
+            m_LayerTiling[0] = b;
+            }
+          }
+        }
+      }
+    }
+}
+
+void DisplayLayoutModel::OnUpdate()
+{
+  // If there has been a layer change event, we need to recompute the tiling
+  // model
+  if(m_EventBucket->HasEvent(LayerChangeEvent()))
+    {
+    this->UpdateSliceViewTiling();
+    }
+}
+
+
+
+

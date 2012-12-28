@@ -23,19 +23,26 @@ public:
   itkEventMacro(ViewPanelLayoutChangeEvent, DisplayLayoutChangeEvent)
 
   // Event fired when the layout of the overlays in a slice panel changes
-  itkEventMacro(OverlayLayoutChangeEvent, DisplayLayoutChangeEvent)
+  itkEventMacro(LayerLayoutChangeEvent, DisplayLayoutChangeEvent)
 
   // This model fires a ModelUpdateEvent whenever there is a change in the
   // display layout
   FIRES(ViewPanelLayoutChangeEvent)
-  FIRES(OverlayLayoutChangeEvent)
+  FIRES(LayerLayoutChangeEvent)
 
   /** Layout of the SNAP slice views */
   enum ViewPanelLayout {
     VIEW_ALL = 0, VIEW_AXIAL, VIEW_CORONAL, VIEW_SAGITTAL, VIEW_3D
   };
 
+  /** Layout of overlays in a slice view */
+  enum LayerLayout {
+    LAYOUT_STACKED = 0, LAYOUT_TILED
+  };
+
   typedef AbstractPropertyModel<ViewPanelLayout> AbstractViewPanelLayoutProperty;
+
+  typedef AbstractPropertyModel<LayerLayout> AbstractLayerLayoutProperty;
 
   /** Get the parent model */
   irisGetMacro(ParentModel, GlobalUIModel *)
@@ -60,7 +67,14 @@ public:
    * on top of each other using transparency. Otherwise, each overlay is shown
    * in its own cell.
    */
-  irisGetMacro(SliceViewCellLayoutModel, AbstractSimpleUIntVec2Property *)
+  irisGetMacro(SliceViewLayerTilingModel, AbstractSimpleUIntVec2Property *)
+
+  /**
+   * A model for the layout of the layers in a slice view. This model sets
+   * the stacked/tiled state. If the state is set to tiled, the number of
+   * tiles will be updated as the number of loaded images changes
+   */
+  irisGetMacro(SliceViewLayerLayoutModel, AbstractLayerLayoutProperty *)
 
   /**
    * Read-only boolean property models that dictate what icon should be
@@ -78,8 +92,6 @@ protected:
   typedef ConcretePropertyModel<ViewPanelLayout> ConcreteViewPanelLayoutProperty;
   SmartPtr<ConcreteViewPanelLayoutProperty> m_ViewPanelLayoutModel;
 
-  SmartPtr<ConcreteSimpleUIntVec2Property> m_SliceViewCellLayoutModel;
-
   SmartPtr<AbstractSimpleBooleanProperty> m_ViewPanelVisibilityModel[4];
 
   SmartPtr<AbstractViewPanelLayoutProperty> m_ViewPanelExpandButtonActionModel[4];
@@ -87,6 +99,25 @@ protected:
   bool GetNthViewPanelVisibilityValue(int panel, bool &value);
 
   bool GetNthViewPanelExpandButtonActionValue(int panel, ViewPanelLayout &value);
+
+  // Models dealing with the layout of tiles
+  SmartPtr<AbstractLayerLayoutProperty> m_SliceViewLayerLayoutModel;
+  bool GetSliceViewLayerLayoutValue(LayerLayout &value);
+  void SetSliceViewLayerLayoutValue(LayerLayout value);
+
+  SmartPtr<AbstractSimpleUIntVec2Property> m_SliceViewLayerTilingModel;
+  bool GetSliceViewLayerTilingValue(Vector2ui &value);
+
+  // Update the tiling based on the number of layouts in memory
+  void UpdateSliceViewTiling();
+
+  // The current layer layout mode
+  LayerLayout m_LayerLayout;
+
+  // The current tiling dimensons
+  Vector2ui m_LayerTiling;
+
+  virtual void OnUpdate();
 
   DisplayLayoutModel();
   virtual ~DisplayLayoutModel() {}

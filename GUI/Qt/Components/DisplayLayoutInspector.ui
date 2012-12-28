@@ -221,7 +221,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="widget_2" native="true">
+    <widget class="QWidget" name="grpLayerLayout" native="true">
      <property name="font">
       <font>
        <pointsize>12</pointsize>
@@ -245,6 +245,9 @@
       </property>
       <item>
        <widget class="QRadioButton" name="btnStacked">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When multiple image layers are loaded, they will be rendered on top of each other using transparency. This is useful for overlaying statistical maps over an image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Stacked</string>
         </property>
@@ -252,8 +255,11 @@
       </item>
       <item>
        <widget class="QRadioButton" name="btnGrid">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When multiple image layers are loaded, they will be tiled (shown side by side) within each slice view. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
-         <string>Grid</string>
+         <string>Tiled</string>
         </property>
        </widget>
       </item>
