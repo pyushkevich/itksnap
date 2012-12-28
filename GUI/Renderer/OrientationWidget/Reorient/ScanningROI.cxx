@@ -17,6 +17,8 @@
 #include <vtkAssembly.h>
 #include <vtkTubeFilter.h>
 #include <vtkCellArray.h>
+#include <vtkLine.h>
+#include <vtkLineSource.h>
 
 #include "PolyDataAlgorithm2ActorPipe.h"
 #include "ScanningROI.h"
@@ -27,15 +29,25 @@ Pairs_Plane_Pipe::Pairs_Plane_Pipe()
   init();
 }
 
-void Pairs_Plane_Pipe::init()
+void Pairs_Plane_Pipe::init(int anGridResolution)
 {
   m_p_PlaneSource = vtkSmartPointer < vtkPlaneSource >::New();
   m_p_PlaneSource_Pipe = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
   m_p_PlaneSource_Pipe->setSource(m_p_PlaneSource);
 
-  m_p_TubeFilter = vtkSmartPointer < vtkTubeFilter >::New();
-  m_p_TubeFilter_Pipe = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
-  m_p_TubeFilter_Pipe->setSource(m_p_TubeFilter);
+  m_p_TubeFilter_WireFrame = vtkSmartPointer < vtkTubeFilter >::New();
+  m_p_TubeFilter_WireFrame_Pipe = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
+  m_p_TubeFilter_WireFrame_Pipe->setSource(m_p_TubeFilter_WireFrame);
+
+  m_arrp_TubeFilter_PlanarGrid.resize(anGridResolution);
+  m_arrp_TubeFilter_PlanarGrid_Pipe.resize(anGridResolution);
+  int nI;
+  for(nI = 0; nI < anGridResolution; nI++)
+    {
+    m_arrp_TubeFilter_PlanarGrid[nI] = vtkSmartPointer < vtkTubeFilter >::New();
+    m_arrp_TubeFilter_PlanarGrid_Pipe[nI] = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
+    m_arrp_TubeFilter_PlanarGrid_Pipe[nI]->setSource(m_arrp_TubeFilter_PlanarGrid[nI]);
+    }
 }
 
 vtkStandardNewMacro(ScanningROI);
@@ -63,7 +75,8 @@ ScanningROI::ScanningROI()
 
 void ScanningROI::setPlanesNr(int anPlanesNr)
 {
-  int nI;
+
+  int nI, nJ;
   
   int nPlanesNr = m_arrpPairsPP_Axial.size();
   if(nPlanesNr != anPlanesNr)
@@ -71,30 +84,47 @@ void ScanningROI::setPlanesNr(int anPlanesNr)
 
     for(nI = 0; nI < nPlanesNr; nI++)
 	  {
-        m_pvtkAssembly->RemovePart(m_arrpPairsPP_Axial[nI].m_p_PlaneSource_Pipe->getActor());
-        m_pvtkAssembly->RemovePart(m_arrpPairsPP_Axial[nI].m_p_TubeFilter_Pipe->getActor());
-
-	  }
+      Pairs_Plane_Pipe & ppp = m_arrpPairsPP_Axial[nI];
+      m_pvtkAssembly->RemovePart(ppp.m_p_PlaneSource_Pipe->getActor());
+      m_pvtkAssembly->RemovePart(ppp.m_p_TubeFilter_WireFrame_Pipe->getActor());
+      for(nJ = 0; nJ < nPlanesNr; nJ++)
+        {
+        m_pvtkAssembly->RemovePart(ppp.m_arrp_TubeFilter_PlanarGrid_Pipe[nJ]->getActor());
+        }
+      }
     m_arrpPairsPP_Axial.resize(anPlanesNr);
 	for(nI = 0; nI < anPlanesNr; nI++)
 	  {
-      m_arrpPairsPP_Axial[nI].init();
-      m_pvtkAssembly->AddPart(m_arrpPairsPP_Axial[nI].m_p_PlaneSource_Pipe->getActor());
-      m_pvtkAssembly->AddPart(m_arrpPairsPP_Axial[nI].m_p_TubeFilter_Pipe->getActor());
+      Pairs_Plane_Pipe & ppp = m_arrpPairsPP_Axial[nI];
+      ppp.init(anPlanesNr);
+      m_pvtkAssembly->AddPart(ppp.m_p_PlaneSource_Pipe->getActor());
+      m_pvtkAssembly->AddPart(ppp.m_p_TubeFilter_WireFrame_Pipe->getActor());
+      for(nJ = 0; nJ < anPlanesNr; nJ++)
+        {
+        m_pvtkAssembly->AddPart(ppp.m_arrp_TubeFilter_PlanarGrid_Pipe[nJ]->getActor());
+        }
 	  }						 
     }
   for(nI = 0; nI < anPlanesNr; nI++)
     {
-    vtkSmartPointer < PolyDataAlgorithm2ActorPipe > pPipe = m_arrpPairsPP_Axial[nI].m_p_PlaneSource_Pipe;
+    Pairs_Plane_Pipe & ppp = m_arrpPairsPP_Axial[nI];
+    vtkSmartPointer < PolyDataAlgorithm2ActorPipe > pPipe = ppp.m_p_PlaneSource_Pipe;
 	vtkProperty * pProperty = pPipe->getProperty();
     pProperty->SetColor(1.0, 1.0, 1.0);
     pProperty->SetOpacity(0.2);
 
-    pPipe = m_arrpPairsPP_Axial[nI].m_p_TubeFilter_Pipe;
+    pPipe = ppp.m_p_TubeFilter_WireFrame_Pipe;
     pProperty = pPipe->getProperty();
     pProperty->SetColor(1.0, 1.0, 1.0);
-    //pProperty->SetOpacity(0.2);
-  }
+
+    for(nJ = 0; nJ < anPlanesNr; nJ++)
+      {
+      pPipe = ppp.m_arrp_TubeFilter_PlanarGrid_Pipe[nJ];
+      pProperty = pPipe->getProperty();
+      pProperty->SetColor(0.8, 0.8, 0.8);
+      pProperty->SetOpacity(0.2);
+      }
+    }
    
 }
 
@@ -159,7 +189,7 @@ void ScanningROI::Update()
   
   int nI;
   int nPlanesNr = getPlanesNr();
-  double dbDeltaK = m_dbGraphicScale / ((double)(nPlanesNr - 1));
+  double dbDelta = m_dbGraphicScale / ((double)(nPlanesNr - 1));
   for(nI = 0; nI < nPlanesNr; nI++)
     {
     //First, create the transparent planes
@@ -169,7 +199,7 @@ void ScanningROI::Update()
 
     arrdbOrigin[0] = - m_dbGraphicScale / 2.0;
 	arrdbOrigin[1] = - m_dbGraphicScale / 2.0;
-	arrdbOrigin[2] = dbDeltaK * nI - ((int)(((double)nPlanesNr) / 2.0))  * dbDeltaK;
+    arrdbOrigin[2] = dbDelta * nI - ((int)(((double)nPlanesNr) / 2.0))  * dbDelta;
 
 	arrdbP1[0] = m_dbGraphicScale / 2.0;
 	arrdbP1[1] = - m_dbGraphicScale / 2.0;
@@ -179,11 +209,12 @@ void ScanningROI::Update()
 	arrdbP2[1] = m_dbGraphicScale / 2.0;
 	arrdbP2[2] = arrdbOrigin[2];
 
-	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbOrigin);
-	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
-	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
+    //pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbOrigin);
+    //pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
+    //pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
 
-    vtkSmartPointer < vtkPlaneSource > pPlaneSource = m_arrpPairsPP_Axial[nI].m_p_PlaneSource;
+    Pairs_Plane_Pipe & ppp = m_arrpPairsPP_Axial[nI];
+    vtkSmartPointer < vtkPlaneSource > pPlaneSource = ppp.m_p_PlaneSource;
     pPlaneSource->SetOrigin(arrdbOrigin);
     pPlaneSource->SetPoint1(arrdbP1);
     pPlaneSource->SetPoint2(arrdbP2);
@@ -217,10 +248,24 @@ void ScanningROI::Update()
     pPolyData->SetPoints(pPoints);
     pPolyData->SetLines(pLines);
 
-    vtkSmartPointer < vtkTubeFilter > pTubeFilter = m_arrpPairsPP_Axial[nI].m_p_TubeFilter;
+    vtkSmartPointer < vtkTubeFilter > pTubeFilter = ppp.m_p_TubeFilter_WireFrame;
     pTubeFilter->SetInput(pPolyData);
     pTubeFilter->SetNumberOfSides(100);
     pTubeFilter->SetRadius(0.01 * m_dbGraphicScale);
+
+    //All right, now let's set the grid
+    for(nJ = 0; nJ < nPlanesNr; nJ++)
+      {
+      vtkSmartPointer< vtkLineSource > pLineSource =
+        vtkSmartPointer< vtkLineSource >::New();
+      pLineSource->SetPoint1(arrdbOrigin[0] + dbDelta * nJ, arrdbOrigin[1], arrdbOrigin[2]);
+      pLineSource->SetPoint2(arrdbOrigin[0] + dbDelta * nJ, arrdbP2[1], arrdbOrigin[2]);
+      vtkSmartPointer < vtkTubeFilter > pTubeFilter =
+        ppp.m_arrp_TubeFilter_PlanarGrid[nJ];
+      pTubeFilter->SetInput(pLineSource->GetOutput());
+      pTubeFilter->SetNumberOfSides(100);
+      pTubeFilter->SetRadius(0.005 * m_dbGraphicScale);
+      }
     }
 
 }

@@ -19,12 +19,20 @@ struct Pairs_Plane_Pipe
   vtkSmartPointer < vtkPlaneSource > m_p_PlaneSource;
   vtkSmartPointer < PolyDataAlgorithm2ActorPipe > m_p_PlaneSource_Pipe;
 
-  vtkSmartPointer < vtkTubeFilter > m_p_TubeFilter;
-  vtkSmartPointer < PolyDataAlgorithm2ActorPipe > m_p_TubeFilter_Pipe;
+  vtkSmartPointer < vtkTubeFilter >
+    m_p_TubeFilter_WireFrame;
+  vtkSmartPointer < PolyDataAlgorithm2ActorPipe >
+    m_p_TubeFilter_WireFrame_Pipe;
+
+  //TF stands for TubeFilter
+  std::vector < vtkSmartPointer < vtkTubeFilter > >
+    m_arrp_TubeFilter_PlanarGrid;
+  std::vector < vtkSmartPointer < PolyDataAlgorithm2ActorPipe > >
+    m_arrp_TubeFilter_PlanarGrid_Pipe;
 
   Pairs_Plane_Pipe();
 
-  void init();
+  void init(int anGridResolution = 0);
 };
 
 class ScanningROI : public AbstractScannerHelper
