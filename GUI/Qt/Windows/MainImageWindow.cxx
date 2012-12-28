@@ -44,6 +44,7 @@
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
+#include <QtWidgetCoupling.h>
 
 #include <LabelEditorDialog.h>
 #include <ReorientImageDialog.h>
@@ -154,6 +155,12 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
     ui(new Ui::MainImageWindow)
 {
   ui->setupUi(this);
+
+  // Create the view panels array
+  m_ViewPanels[0] = ui->panel0;
+  m_ViewPanels[1] = ui->panel1;
+  m_ViewPanels[2] = ui->panel2;
+  m_ViewPanels[3] = ui->panel3D;
 
   // Initialize the dialogs
   m_LabelEditor = new LabelEditorDialog(this);
@@ -268,11 +275,14 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
                                   historyModel,
                                   SLOT(onModelUpdate(EventBucket)));
 
-  // Listen to events affecting the display layout
-  LatentITKEventNotifier::connect(m_Model->GetDisplayLayoutModel(),
-                                  DisplayLayoutModel::ViewPanelLayoutChangeEvent(),
-                                  this,
-                                  SLOT(onModelUpdate(EventBucket)));
+  // Couple the visibility of each view panel to the correponding property
+  // model in DisplayLayoutModel
+  DisplayLayoutModel *layoutModel = m_Model->GetDisplayLayoutModel();
+  for(int i = 0; i < 4; i++)
+    {
+    makeWidgetVisibilityCoupling(m_ViewPanels[i],
+                                 layoutModel->GetViewPanelVisibilityModel(i));
+    }
 
   // Populate the recent file menu
   this->UpdateRecentMenu();
@@ -288,17 +298,12 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     this->UpdateRecentMenu();
 
     // Choose what page to show depending on if an image has been loaded
-    if(m_Model->GetDriver()->GetCurrentImageData()->IsMainLoaded())
+    if(m_Model->GetDriver()->IsMainImageLoaded())
       ui->stackMain->setCurrentWidget(ui->pageMain);
     else
       ui->stackMain->setCurrentWidget(ui->pageSplash);
     }
 
-  // Display layout change
-  else if(b.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent()))
-    {
-    this->UpdateViewPanelLayout();
-    }
 }
 
 void MainImageWindow::UpdateRecentMenu()
@@ -328,30 +333,6 @@ void MainImageWindow::UpdateRecentMenu()
       menus[i]->setEnabled(false);
       }
     }
-}
-
-void MainImageWindow::UpdateViewPanelLayout()
-{
-  // Get the desired layout
-  DisplayLayoutModel *layoutModel = m_Model->GetDisplayLayoutModel();
-  DisplayLayoutModel::ViewPanelLayout layout =
-      layoutModel->GetViewPanelLayoutModel()->GetValue();
-
-  // If the layout is four views, place all four views into the main layout
-  if(layout == DisplayLayoutModel::FOUR_VIEWS)
-    {
-    if(m_Model->GetDriver()->GetCurrentImageData()->IsMainLoaded())
-      {
-      ui->stackMain->setCurrentWidget(ui->pageMain);
-      }
-    }
-  else if(layout == DisplayLayoutModel::AXIAL_ONLY)
-    {
-    if(m_Model->GetDriver()->GetCurrentImageData()->IsMainLoaded())
-      {
-      }
-    }
-
 }
 
 

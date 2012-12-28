@@ -74,7 +74,7 @@ void Generic3DModel::OnUpdate()
 void Generic3DModel::OnImageGeometryUpdate()
 {
   // Update the world matrix and other stored variables
-  if(m_Driver->GetCurrentImageData()->IsMainLoaded())
+  if(m_Driver->IsMainImageLoaded())
     m_WorldMatrix = m_Driver->GetCurrentImageData()->GetMain()->GetNiftiSform();
   else
     m_WorldMatrix.set_identity();

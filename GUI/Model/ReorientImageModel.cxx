@@ -144,7 +144,7 @@ bool ReorientImageModel::CheckState(ReorientImageModel::UIState state)
   switch(state)
     {
     case UIF_IMAGE_LOADED:
-      return m_Parent->GetDriver()->GetCurrentImageData()->IsMainLoaded();
+      return m_Parent->GetDriver()->IsMainImageLoaded();
     case UIF_VALID_NEW_RAI:
       {
       std::string rai = this->m_NewRAICodeModel->GetValue();
@@ -296,7 +296,7 @@ void ReorientImageModel::OnUpdate()
     {    
     // Obtain the current RAI value
     IRISApplication *app = m_Parent->GetDriver();
-    if(app->GetCurrentImageData()->IsMainLoaded())
+    if(app->IsMainImageLoaded())
       {
       // Get teh RAI value
       m_CurrentRAIValue = app->GetImageToAnatomyRAI();

@@ -111,8 +111,8 @@ private:
 
   void UpdateRecentMenu();
 
-  void UpdateViewPanelLayout();
-
+  // For convenience, an array of the four panels (3 slice/1 3D)
+  QWidget *m_ViewPanels[4];
 
   // Left and right docks
   QDockWidget *m_DockLeft, *m_DockRight;

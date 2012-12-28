@@ -211,7 +211,7 @@ void IRISMainToolbox::SetModel(GlobalUIModel *model)
   m_CursorInspector->SetModel(model->GetCursorInspectionModel());
   m_LabelInspector->SetModel(model);
   m_SnakeToolROIPanel->SetModel(model);
-  // m_DisplayLayoutInspector->SetModel(model);
+  m_DisplayLayoutInspector->SetModel(model->GetDisplayLayoutModel());
 
   // Set up state machine
   activateOnNotFlag(

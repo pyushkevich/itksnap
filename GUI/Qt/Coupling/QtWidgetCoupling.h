@@ -27,6 +27,7 @@
 #define QTWIDGETCOUPLING_H
 
 #include <QWidget>
+#include <QVariant>
 #include <PropertyModel.h>
 #include <SNAPCommon.h>
 #include <LatentITKEventNotifier.h>
@@ -237,6 +238,34 @@ public:
 
   virtual ~WidgetValueTraitsBase() {}
 };
+
+
+/**
+ * Widget value traits that connect a boolean property of a Qt widget with
+ * a boolean (or boolean-castable) value. These traits don't handle the
+ * property having a null value - probably should be addressed in the future
+ */
+template <class TAtomic>
+class WidgetBooleanNamedPropertyTraits
+    : public WidgetValueTraitsBase<TAtomic, QWidget *>
+{
+public:
+  WidgetBooleanNamedPropertyTraits(const char *propertyName)
+    : m_Property(propertyName) {}
+
+  virtual TAtomic GetValue(QWidget *w)
+  {
+    return qvariant_cast<TAtomic>(w->property(m_Property.c_str()));
+  }
+  virtual void SetValue(QWidget *w, const TAtomic &value)
+  {
+    w->setProperty(m_Property.c_str(), value);
+  }
+
+protected:
+  std::string m_Property;
+};
+
 
 /**
   Base class for widget domain traits. It specifies the methods that the traits
@@ -541,5 +570,35 @@ void makeCoupling(TWidget *w,
         w, model, WidgetValueTraits(), opts);
 }
 
+/**
+ * Create a coupling between a boolean (or integer) model and a named property
+ * in a Qt widget, such as "visible". This allows us to hide/show and otherwise
+ * modify widgets in response to changes in the model layer.
+ */
+template <class TModel>
+void makeBooleanNamedPropertyCoupling(
+    QWidget *w, const char *propertyName,
+    TModel *model,
+    QtCouplingOptions opts = QtCouplingOptions())
+{
+  // Create the traits for the property
+  typedef typename TModel::ValueType ValueType;
+  typedef WidgetBooleanNamedPropertyTraits<ValueType> TraitsType;
+  TraitsType traits(propertyName);
+
+  // Call the main coupling method
+  makeCoupling<TModel, QWidget, TraitsType>(w, model, traits, opts);
+}
+
+/**
+ * Couple the visibility of a widget to a boolean or integer-valued model
+ */
+template <class TModel>
+void makeWidgetVisibilityCoupling(
+    QWidget *w, TModel *model,
+    QtCouplingOptions opts = QtCouplingOptions())
+{
+  makeBooleanNamedPropertyCoupling(w, "visible", model, opts);
+}
 
 #endif // QTWIDGETCOUPLING_H

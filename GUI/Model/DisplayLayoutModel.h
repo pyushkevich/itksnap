@@ -32,7 +32,7 @@ public:
 
   /** Layout of the SNAP slice views */
   enum ViewPanelLayout {
-    FOUR_VIEWS=0, AXIAL_ONLY, CORONAL_ONLY, SAGITTAL_ONLY, THREED_ONLY
+    VIEW_ALL = 0, VIEW_AXIAL, VIEW_CORONAL, VIEW_SAGITTAL, VIEW_3D
   };
 
   typedef AbstractPropertyModel<ViewPanelLayout> AbstractViewPanelLayoutProperty;
@@ -42,6 +42,13 @@ public:
 
   /** Model managing the view panel layouts */
   irisGetMacro(ViewPanelLayoutModel, AbstractViewPanelLayoutProperty *)
+
+  /**
+   * Read-only boolean property models for the visibility of any specific
+   * view panel (0-2 are slice windows, 3 is the 3D window).
+   */
+  AbstractSimpleBooleanProperty *GetViewPanelVisibilityModel(int view) const
+    { return m_ViewPanelVisibilityModel[view]; }
 
   /**
    * A model handing the layout of the layers in a slice view. This gives
@@ -60,6 +67,10 @@ protected:
   SmartPtr<ConcreteViewPanelLayoutProperty> m_ViewPanelLayoutModel;
 
   SmartPtr<ConcreteSimpleUIntVec2Property> m_SliceViewCellLayoutModel;
+
+  SmartPtr<AbstractSimpleBooleanProperty> m_ViewPanelVisibilityModel[4];
+
+  bool GetNthViewPanelVisibilityValue(int panel, bool &value);
 
   DisplayLayoutModel();
   virtual ~DisplayLayoutModel() {}

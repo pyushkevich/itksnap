@@ -302,15 +302,13 @@ public:
   void ExportSlice(AnatomicalDirection iSliceAnatomy, const char *file);
 
   /** Export voxel statistis to a file */
-  void ExportSegmentationStatistics(const char *file) 
-    throw(itk::ExceptionObject);
+  void ExportSegmentationStatistics(const char *file);
 
   /**
    * Export the 3D mesh to a file, using settings passed in the
    * MeshExportSettings structure.
    */
-  void ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *cmd)
-    throw(itk::ExceptionObject, IRISException);
+  void ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *cmd);
 
   /** 
    * This method is used to selectively override labels in a target 
@@ -352,6 +350,11 @@ public:
   MainImageType LoadMainImage(const char *filename, MainImageType force_type);
 
   MainImageType LoadOverlayImage(const char *filename, MainImageType force_type);
+
+  /**
+   * Check if there is an image currently loaded in SNAP.
+   */
+  bool IsMainImageLoaded() const;
 
   /**
    * This is the most high-level method to load a segmentation image. The

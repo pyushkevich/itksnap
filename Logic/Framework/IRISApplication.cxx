@@ -900,7 +900,7 @@ IRISApplication
 
 void 
 IRISApplication
-::ExportSegmentationStatistics(const char *file)  throw(itk::ExceptionObject)
+::ExportSegmentationStatistics(const char *file)
 {
   // Make sure that the segmentation image exists
   assert(m_CurrentImageData->IsSegmentationLoaded());
@@ -933,7 +933,6 @@ IRISApplication
 void
 IRISApplication
 ::ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *progress) 
-  throw(itk::ExceptionObject, IRISException)
 {
   // Based on the export settings, we will export one of the labels or all labels
   SmartPtr<MeshObject> mob = MeshObject::New();
@@ -1481,6 +1480,11 @@ IRISApplication
 
   // Detemine the type
   return AddIRISOverlayImage(&io, force_type);
+}
+
+bool IRISApplication::IsMainImageLoaded() const
+{
+  return this->GetCurrentImageData()->IsMainLoaded();
 }
 
 

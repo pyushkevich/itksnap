@@ -229,7 +229,7 @@ bool GlobalUIModel::CheckState(UIState state)
     case UIF_RGB_LOADED:
       return m_Driver->GetCurrentImageData()->IsRGBLoaded();
     case UIF_BASEIMG_LOADED:
-      return m_Driver->GetCurrentImageData()->IsMainLoaded();
+      return m_Driver->IsMainImageLoaded();
     case UIF_IRIS_ACTIVE:
       return true; // TODO: for now!
     case UIF_MESH_DIRTY:
@@ -249,7 +249,7 @@ bool GlobalUIModel::CheckState(UIState state)
     case UIF_MESH_SAVEABLE:
       break;
     case UIF_GRAY_LOADED:
-      return m_Driver->GetCurrentImageData()->IsMainLoaded();
+      return m_Driver->IsMainImageLoaded();
     case UIF_OVERLAY_LOADED:
       return m_Driver->GetCurrentImageData()->IsOverlayLoaded();
     case UIF_SNAKE_MODE:
@@ -315,7 +315,7 @@ GlobalState * GlobalUIModel::GetGlobalState() const
 bool GlobalUIModel::GetCursorPositionValueAndRange(
     Vector3ui &value, NumericValueRange<Vector3ui> *range)
 {
-  if(m_Driver->GetCurrentImageData()->IsMainLoaded())
+  if(m_Driver->IsMainImageLoaded())
     {
     value = m_Driver->GetCursorPosition() + 1u;
     if(range)
@@ -339,7 +339,7 @@ bool GlobalUIModel::GetSnakeROIIndexValueAndRange(
     Vector3ui &value, NumericValueRange<Vector3ui> *range)
 {
   // There has to be an image
-  if(!m_Driver->GetCurrentImageData()->IsMainLoaded())
+  if(!m_Driver->IsMainImageLoaded())
     return false;
 
   // Get the image size
@@ -389,7 +389,7 @@ bool GlobalUIModel::GetSnakeROISizeValueAndRange(
     Vector3ui &value, NumericValueRange<Vector3ui> *range)
 {
   // There has to be an image
-  if(!m_Driver->GetCurrentImageData()->IsMainLoaded())
+  if(!m_Driver->IsMainImageLoaded())
     return false;
 
   // Get the image size

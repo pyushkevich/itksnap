@@ -55,7 +55,7 @@ void Generic3DRenderer::UpdateAxisRendering()
   // Update the coordinates of the line source
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
 
-  if(app->GetCurrentImageData()->IsMainLoaded())
+  if(app->IsMainImageLoaded())
     {
     Vector3ui cursor = app->GetCursorPosition();
     Vector3ui dims = app->GetCurrentImageData()->GetImageRegion().GetSize();
