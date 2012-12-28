@@ -1,9 +1,11 @@
 #ifndef ABSTRACT_SCANNER_HELPER_H
 #define ABSTRACT_SCANNER_HELPER_H
 
-#include <vtkAssembly.h>
+#include "vtkSmartPointer.h"
+class vtkObject;
+class vtkAssembly;
 
-#include "Source2ActorPipe.h"
+class PolyDataAlgorithm2ActorPipe;
 
 class AbstractScannerHelper : public vtkObject
 {

@@ -1,11 +1,13 @@
 #include <vtkPolyDataAlgorithm.h>
 #include <vtkObjectFactory.h>
+#include <vtkActor.h>
+#include <vtkPolyDataMapper.h>
 
-#include "Source2ActorPipe.h"
+#include "PolyDataAlgorithm2ActorPipe.h"
 
-vtkStandardNewMacro(Source2ActorPipe);
+vtkStandardNewMacro(PolyDataAlgorithm2ActorPipe);
 
-Source2ActorPipe::Source2ActorPipe()
+PolyDataAlgorithm2ActorPipe::PolyDataAlgorithm2ActorPipe()
 {
 
   m_pvtkPolyDataMapper = vtkSmartPointer < vtkPolyDataMapper >::New();
@@ -14,18 +16,18 @@ Source2ActorPipe::Source2ActorPipe()
 
 }
 
-void Source2ActorPipe::setSource(vtkSmartPointer < vtkPolyDataAlgorithm > apvtkPolyDataAlgorithm)
+void PolyDataAlgorithm2ActorPipe::setSource(vtkSmartPointer < vtkPolyDataAlgorithm > apvtkPolyDataAlgorithm)
 {
   m_pvtkPolyDataAlgorithm = apvtkPolyDataAlgorithm;
   m_pvtkPolyDataMapper->SetInput(m_pvtkPolyDataAlgorithm->GetOutput());
 }
 
-vtkSmartPointer < vtkActor > Source2ActorPipe::getActor()
+vtkSmartPointer < vtkActor > PolyDataAlgorithm2ActorPipe::getActor()
 {
   return(m_pvtkActor);
 }
 
-vtkProperty * Source2ActorPipe::getProperty() 
+vtkProperty * PolyDataAlgorithm2ActorPipe::getProperty()
 {
   vtkActor * pActor = getActor();
 

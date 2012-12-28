@@ -34,7 +34,7 @@ SET(SRCS ${SRCS} ${MOC_SRCS}
   ReorientGUI.h ReorientGUI.cxx
   ${CMAKE_SOURCE_DIR}/../Reorient/AxesWidget.h ${CMAKE_SOURCE_DIR}/../Reorient/AxesWidget.cxx
   ${CMAKE_SOURCE_DIR}/../Reorient/AbstractScannerHelper.h ${CMAKE_SOURCE_DIR}/../Reorient/AbstractScannerHelper.cxx
-  ${CMAKE_SOURCE_DIR}/../Reorient/Source2ActorPipe.h ${CMAKE_SOURCE_DIR}/../Reorient/Source2ActorPipe.cxx
+  ${CMAKE_SOURCE_DIR}/../Reorient/PolyDataAlgorithm2ActorPipe.h ${CMAKE_SOURCE_DIR}/../Reorient/PolyDataAlgorithm2ActorPipe.cxx
   ${CMAKE_SOURCE_DIR}/../Reorient/ScannedHuman.h ${CMAKE_SOURCE_DIR}/../Reorient/ScannedHuman.cxx
   ${CMAKE_SOURCE_DIR}/../Reorient/ScanningROI.h ${CMAKE_SOURCE_DIR}/../Reorient/ScanningROI.cxx
   ${CMAKE_SOURCE_DIR}/../Reorient/ReorientProps.h ${CMAKE_SOURCE_DIR}/../Reorient/ReorientProps.cxx

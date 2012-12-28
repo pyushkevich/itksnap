@@ -5,7 +5,7 @@
 #include "vtkWindowToImageFilter.h"
 #include "vtkBMPWriter.h"
 #include "vtkTextProperty.h"
-#include "vtkCubeAxesActor2D.h"
+#include "vtkCaptionActor2D.h"
 
 #include "ScanningROI.h"
 #include "ReorientProps.h"
@@ -51,7 +51,8 @@ void ReorientProps::Connect2Renderer(vtkRenderer * apRenderer)
   apRenderer->AddActor(m_pScannedHuman->getAssembly());
   apRenderer->AddActor(m_pScanningROI->getAssembly());
 
-  apRenderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetXAxisCaptionActor2D());
-  apRenderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetYAxisCaptionActor2D());
-  apRenderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetZAxisCaptionActor2D());
+  vtkSmartPointer < vtkAxesActor > pAxesActor = m_pScanningROI->m_pAxesWidget->GetAxesActor();
+  apRenderer->AddActor(pAxesActor->GetXAxisCaptionActor2D());
+  apRenderer->AddActor(pAxesActor->GetYAxisCaptionActor2D());
+  apRenderer->AddActor(pAxesActor->GetZAxisCaptionActor2D());
 }

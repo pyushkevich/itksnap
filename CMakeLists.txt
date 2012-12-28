@@ -283,7 +283,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/OrientationWidget/Reorient/ScannedHuman.cxx
   GUI/Renderer/OrientationWidget/Reorient/ScanningROI.cxx
   GUI/Renderer/OrientationWidget/Reorient/ReorientProps.cxx
-  GUI/Renderer/OrientationWidget/Reorient/Source2ActorPipe.cxx
+  GUI/Renderer/OrientationWidget/Reorient/PolyDataAlgorithm2ActorPipe.cxx
 )
 
 SET(UI_GENERIC_HEADERS
@@ -338,7 +338,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/OrientationWidget/Reorient/ScannedHuman.h
   GUI/Renderer/OrientationWidget/Reorient/ScanningROI.h
   GUI/Renderer/OrientationWidget/Reorient/ReorientProps.h
-  GUI/Renderer/OrientationWidget/Reorient/Source2ActorPipe.h
+  GUI/Renderer/OrientationWidget/Reorient/PolyDataAlgorithm2ActorPipe.h
 )
 
 # These files contain the Qt-specific user interface source code

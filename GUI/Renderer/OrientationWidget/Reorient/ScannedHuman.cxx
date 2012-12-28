@@ -1,7 +1,7 @@
 #include <vtkPolyDataAlgorithm.h>
 #include <vtkObjectFactory.h>
 #include <vtkProperty.h>
-
+#include <vtkActor.h>
 #include <vtkLineSource.h>
 #include <vtkPoints.h>
 
@@ -27,12 +27,12 @@ ScannedHuman::ScannedHuman()
   
   m_pCubeSourceBody = vtkSmartPointer < vtkCubeSource >::New();
     
-  m_PipeHead = vtkSmartPointer < Source2ActorPipe >::New();
-  m_PipeRightEye = vtkSmartPointer < Source2ActorPipe >::New();
-  m_PipeLeftEye = vtkSmartPointer < Source2ActorPipe >::New();
-  m_PipeCone = vtkSmartPointer < Source2ActorPipe >::New();
-  m_PipeMouth = vtkSmartPointer < Source2ActorPipe >::New();
-  m_PipeBody = vtkSmartPointer < Source2ActorPipe >::New();
+  m_PipeHead = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
+  m_PipeRightEye = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
+  m_PipeLeftEye = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
+  m_PipeCone = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
+  m_PipeMouth = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
+  m_PipeBody = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
   
   m_PipeHead->setSource(m_pSphereSourceHead);
   m_PipeRightEye->setSource(m_pSphereSourceRightEye);
