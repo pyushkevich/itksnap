@@ -35,24 +35,13 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
   //this->m_Renderer->AddActor(actor);
 
   double dbGraphicScale = 2.0;
-  m_pAxesWidgetAbsolute = vtkSmartPointer < AxesWidget >::New();
-  m_pAxesWidgetAbsolute->SetLengths(dbGraphicScale * 1.5);
-  this->m_Renderer->AddActor(m_pAxesWidgetAbsolute->GetAxesActor());
+  double dbPositionFactor = 2.6;
 
-  m_pScannedHuman = vtkSmartPointer < ScannedHuman >::New();
-  m_pScannedHuman->setGraphicScale(1.0);
-  this->m_Renderer->AddActor(m_pScannedHuman->getAssembly());
-
-  m_pScanningROI = vtkSmartPointer < ScanningROI >::New();
-  m_pScanningROI->setGraphicScale(dbGraphicScale);
-  this->m_Renderer->AddActor(m_pScanningROI->getAssembly());
-
-  m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetXAxisCaptionActor2D());
-  m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetYAxisCaptionActor2D());
-  m_Renderer->AddActor(m_pScanningROI->m_pAxesWidget->GetAxesActor()->GetZAxisCaptionActor2D());
+  m_ReorientProps.Connect2Renderer(m_Renderer);
 
   vtkCamera * pCamera = m_Renderer->GetActiveCamera();
-  pCamera->SetPosition(dbGraphicScale * 5.0, -dbGraphicScale * 5.0, dbGraphicScale * 5.0);
+  double dbPosXYZ = dbGraphicScale * dbPositionFactor;
+  pCamera->SetPosition(dbPosXYZ, -dbPosXYZ, dbPosXYZ);
   pCamera->SetViewUp(0.0, -1.0, 0.0);
 
   //vtkRenderWindow * pvtkRenderWindow = GetRenderWindow();
@@ -90,7 +79,7 @@ void OrientationGraphicRenderer::OnUpdate()
         (*pMatrix4x4)[nI][nJ] = dm[nI][nJ];
         }
     }
-    Update(pMatrix4x4);
+    m_ReorientProps.Update(pMatrix4x4);
     }
   else
     {
@@ -100,21 +89,7 @@ void OrientationGraphicRenderer::OnUpdate()
 
 void OrientationGraphicRenderer::Update(const vtkSmartPointer < vtkMatrix4x4 > apMatrix4x4)
 {
-  SetDirections(apMatrix4x4);
-
-  m_pScanningROI->Update();
+  m_ReorientProps.Update(apMatrix4x4);
 
   GetRenderWindow()->Render();
-}
-
-void OrientationGraphicRenderer::SetDirections(const vtkSmartPointer < vtkMatrix4x4 > apDirections)
-{
-    m_pScanningROI->setDirections(apDirections);
-}
-
-void OrientationGraphicRenderer::GetDirections(vtkSmartPointer < vtkMatrix4x4 > apDirections) const
-{
-  vtkSmartPointer < vtkMatrix4x4 > pDirections =
-      m_pScanningROI->getDirections();
-  apDirections->DeepCopy(pDirections);
 }

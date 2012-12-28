@@ -531,7 +531,8 @@ Vector2ui GenericSliceModel::GetSize()
   DisplayLayoutModel *dlm = m_ParentUI->GetDisplayLayoutModel();
   Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
   unsigned int rows = layout[0], cols = layout[1];
-  return Vector2ui(viewport[0] / cols, viewport[1] / rows);
+  //Tavi
+  return Vector2ui(viewport[0] / (cols + 0.00001), viewport[1] / (rows + 0.00001));
 }
 
 
