@@ -118,6 +118,9 @@ itkEventMacro(LabelUnderCursorChangedEvent, IRISEvent)
 /** Segmentation ROI changed */
 itkEventMacro(SegmentationROIChangedEvent, IRISEvent)
 
+/** The mapping between display coordinates and anatomical coordinates changed */
+itkEventMacro(DisplayToAnatomyCoordinateMappingChangeEvent, IRISEvent)
+
 // A setter method that fires events
 #define irisSetWithEventMacro(name,type,event) \
     virtual void Set##name (type _arg) \

@@ -19,15 +19,36 @@ DisplayLayoutModel::DisplayLayoutModel()
   // Set up the boolean visibility models
   for(int panel = 0; panel < 4; panel++)
     {
-    // Create the derived property
+    // Create the derived property for panel visibility
     m_ViewPanelVisibilityModel[panel] = wrapIndexedGetterSetterPairAsProperty(
           this, panel,
           &Self::GetNthViewPanelVisibilityValue);
 
-    // Listen and rebroadcast events from the source property
+    // The derived model must react to changes in view panel layout
     m_ViewPanelVisibilityModel[panel]->Rebroadcast(
-          m_ViewPanelLayoutModel, ValueChangedEvent(), ValueChangedEvent());
+          this, ViewPanelLayoutChangeEvent(), ValueChangedEvent());
+
+    // Create a derived property for panel expand action
+    m_ViewPanelExpandButtonActionModel[panel] = wrapIndexedGetterSetterPairAsProperty(
+          this, panel,
+          &Self::GetNthViewPanelExpandButtonActionValue);
+
+    // The derived model must react to changes in view panel layout
+    m_ViewPanelExpandButtonActionModel[panel]->Rebroadcast(
+          this, ViewPanelLayoutChangeEvent(), ValueChangedEvent());
     }
+}
+
+void DisplayLayoutModel::SetParentModel(GlobalUIModel *parentModel)
+{
+  m_ParentModel = parentModel;
+
+  // We need to rebroadcast the change in the display-to-anatomy mapping
+  // as one of our own events, which will in turn be rebroadcast as value
+  // change events in the derived models.
+  Rebroadcast(m_ParentModel->GetDriver(),
+              DisplayToAnatomyCoordinateMappingChangeEvent(),
+              ViewPanelLayoutChangeEvent());
 }
 
 bool DisplayLayoutModel
@@ -58,6 +79,35 @@ bool DisplayLayoutModel
     value = (layout == VIEW_AXIAL && panel == wAxial)
         || (layout == VIEW_CORONAL && panel == wCoronal)
         || (layout == VIEW_SAGITTAL && panel == wSagittal);
+    }
+
+  return true;
+}
+
+bool DisplayLayoutModel::GetNthViewPanelExpandButtonActionValue(
+    int panel, DisplayLayoutModel::ViewPanelLayout &value)
+{
+  // The current layout
+  ViewPanelLayout layout = m_ViewPanelLayoutModel->GetValue();
+
+  // When the mode is 4-views, the action is to expand to the individual view
+  if(layout == VIEW_ALL)
+    {
+    IRISApplication *driver = m_ParentModel->GetDriver();
+    if(panel == (int) driver->GetDisplayWindowForAnatomicalDirection(ANATOMY_AXIAL))
+      value = VIEW_AXIAL;
+    else if (panel == (int) driver->GetDisplayWindowForAnatomicalDirection(ANATOMY_CORONAL))
+      value = VIEW_CORONAL;
+    else if (panel == (int) driver->GetDisplayWindowForAnatomicalDirection(ANATOMY_SAGITTAL))
+      value = VIEW_SAGITTAL;
+    else
+      value = VIEW_3D;
+    }
+
+  // Otherwise, the action is to return back to 4 views
+  else
+    {
+    value = VIEW_ALL;
     }
 
   return true;

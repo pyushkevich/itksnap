@@ -119,6 +119,7 @@ public:
   FIRES(LayerChangeEvent)
   FIRES(SegmentationChangeEvent)
   FIRES(SpeedImageChangedEvent)
+  FIRES(DisplayToAnatomyCoordinateMappingChangeEvent)
 
 
   /**

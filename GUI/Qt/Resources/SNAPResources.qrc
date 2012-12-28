@@ -58,5 +58,6 @@
         <file>dl_coronal.png</file>
         <file>dl_sagittal.png</file>
         <file>dl_toolbox.png</file>
+        <file>expand_16.png</file>
     </qresource>
 </RCC>

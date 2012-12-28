@@ -37,8 +37,11 @@ public:
 
   typedef AbstractPropertyModel<ViewPanelLayout> AbstractViewPanelLayoutProperty;
 
-  /** Parent model */
-  irisGetSetMacro(ParentModel, GlobalUIModel *)
+  /** Get the parent model */
+  irisGetMacro(ParentModel, GlobalUIModel *)
+
+  /** Assign the parent model */
+  void SetParentModel(GlobalUIModel *parentModel);
 
   /** Model managing the view panel layouts */
   irisGetMacro(ViewPanelLayoutModel, AbstractViewPanelLayoutProperty *)
@@ -59,6 +62,15 @@ public:
    */
   irisGetMacro(SliceViewCellLayoutModel, AbstractSimpleUIntVec2Property *)
 
+  /**
+   * Read-only boolean property models that dictate what icon should be
+   * displayed in the expand/contract buttons in each slice view. There
+   * are four of these models (one for each slice view), and they are of
+   * the type ViewPanelLayout()
+   */
+  AbstractViewPanelLayoutProperty *GetViewPanelExpandButtonActionModel(int view) const
+    { return m_ViewPanelExpandButtonActionModel[view]; }
+
 protected:
 
   GlobalUIModel *m_ParentModel;
@@ -70,7 +82,11 @@ protected:
 
   SmartPtr<AbstractSimpleBooleanProperty> m_ViewPanelVisibilityModel[4];
 
+  SmartPtr<AbstractViewPanelLayoutProperty> m_ViewPanelExpandButtonActionModel[4];
+
   bool GetNthViewPanelVisibilityValue(int panel, bool &value);
+
+  bool GetNthViewPanelExpandButtonActionValue(int panel, ViewPanelLayout &value);
 
   DisplayLayoutModel();
   virtual ~DisplayLayoutModel() {}

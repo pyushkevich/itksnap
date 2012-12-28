@@ -248,6 +248,9 @@ IRISApplication
       m_SNAPImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
       m_DisplayToAnatomyRAI,
           m_SNAPImageData->GetVolumeExtents()));
+
+  // Invoke the corresponding event
+  InvokeEvent(DisplayToAnatomyCoordinateMappingChangeEvent());
 }
 
 

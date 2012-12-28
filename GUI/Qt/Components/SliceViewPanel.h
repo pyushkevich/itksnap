@@ -47,6 +47,8 @@ private slots:
 
   void onContextMenu();
 
+  void on_btnExpand_clicked();
+
 private:
   Ui::SliceViewPanel *ui;
 
@@ -76,6 +78,15 @@ private:
   then to the active mode, then to the crosshair mode
   */
   void ConfigureEventChain(QWidget *w);
+
+  /**
+   * Listen to mouse enter/exit events in order to show and hide toolbars
+   */
+  void enterEvent(QEvent *);
+  void leaveEvent(QEvent *);
+
+  /** Update the expand view / contract view button based on the state */
+  void UpdateExpandViewButton();
 
 };
 

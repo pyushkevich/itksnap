@@ -16,6 +16,7 @@
 #include "QtWidgetActivator.h"
 #include "SnakeModeRenderer.h"
 #include "SnakeWizardModel.h"
+#include "DisplayLayoutModel.h"
 
 #include <QStackedLayout>
 #include <QMenu>
@@ -170,6 +171,13 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   activateOnAllFlags(ui->actionUndo, pm, UIF_DRAWING, UIF_HAVEPOLYGON);
   activateOnAllFlags(ui->actionClearPolygon, pm, UIF_EDITING, UIF_HAVEPOLYGON);
 
+  // Update the expand view button
+  this->UpdateExpandViewButton();
+
+  // Listen to the events affecting the expand view button
+  DisplayLayoutModel *dlm = m_GlobalUI->GetDisplayLayoutModel();
+  connectITK(dlm, DisplayLayoutModel::ViewPanelLayoutChangeEvent());
+
   // Arrange the rendering overlays and widgets based on current mode
   this->OnToolbarModeChange();
 }
@@ -184,6 +192,10 @@ void SliceViewPanel::onModelUpdate(const EventBucket &eb)
      eb.HasEvent(StateMachineChangeEvent()))
     {
     OnToolbarModeChange();
+    }
+  if(eb.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent()))
+    {
+    UpdateExpandViewButton();
     }
   ui->sliceView->update();
 }
@@ -247,6 +259,27 @@ void SliceViewPanel::ConfigureEventChain(QWidget *w)
 
   // The last guy in the chain is the thumbnail interactor
   ui->imCrosshairs->installEventFilter(ui->imThumbnail);
+}
+
+// TODO: implement semi-transparent rendering on widgets on top of the
+// OpenGL scene using code from
+// http://www.qtcentre.org/wiki/index.php?title=Accelerate_your_Widgets_with_OpenGL
+void SliceViewPanel::enterEvent(QEvent *)
+{
+  /*
+  ui->mainToolbar->show();
+  ui->sidebar->show();
+  */
+}
+
+void SliceViewPanel::leaveEvent(QEvent *)
+{
+  /*
+  ui->mainToolbar->hide();
+  ui->sidebar->hide();
+  */
+
+
 }
 
 void SliceViewPanel::SetActiveMode(QWidget *mode, bool clearChildren)
@@ -359,3 +392,40 @@ void SliceViewPanel::SetMouseMotionTracking(bool enable)
   ui->imCrosshairs->setMouseTracking(enable);
   // m_CurrentEventFilter->setMouseTracking(enable);
 }
+
+void SliceViewPanel::on_btnExpand_clicked()
+{
+  // Get the layout applied when the button is pressed
+  DisplayLayoutModel *dlm = m_GlobalUI->GetDisplayLayoutModel();
+  DisplayLayoutModel::ViewPanelLayout layout =
+      dlm->GetViewPanelExpandButtonActionModel(m_Index)->GetValue();
+
+  // Apply this layout
+  dlm->GetViewPanelLayoutModel()->SetValue(layout);
+}
+
+void SliceViewPanel::UpdateExpandViewButton()
+{
+  // Get the layout applied when the button is pressed
+  DisplayLayoutModel *dlm = m_GlobalUI->GetDisplayLayoutModel();
+  DisplayLayoutModel::ViewPanelLayout layout =
+      dlm->GetViewPanelExpandButtonActionModel(m_Index)->GetValue();
+
+  // Set the appropriate icon
+  static const char* iconNames[] =
+    { "fourviews", "axial", "coronal", "sagittal", "3d" };
+
+  QString iconFile = QString(":/root/dl_%1.png").arg(iconNames[layout]);
+  ui->btnExpand->setIcon(QIcon(iconFile));
+
+  // Set the tooltip
+  if(layout == DisplayLayoutModel::VIEW_ALL)
+    {
+    ui->btnExpand->setToolTip("Restore the four-panel display configuration");
+    }
+  else
+    {
+    ui->btnExpand->setToolTip("Expand this view to occupy the entire window");
+    }
+}
+
