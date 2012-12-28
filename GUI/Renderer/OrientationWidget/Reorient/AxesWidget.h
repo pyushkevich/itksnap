@@ -7,11 +7,12 @@
 
 class AxesWidget : public vtkObject {
 	AxesWidget();
-	//virtual ~AxesWidget();
-	//virtual void Delete();
+
 public:
 
-	//static AxesWidget *New();
+    static const double m_arrdbColRed[3];
+    static const double m_arrdbColGreen[3];
+    static const double m_arrdbColBlue[3];
 
 	virtual void VisibilityOn();
 	virtual void VisibilityOff();
@@ -26,6 +27,7 @@ public:
 	vtkSmartPointer < vtkAxesActor > GetAxesActor();
 
 	void SetLabels(const char * apchX, const char * apchY, const char * apchZ);
+    void SetColors(const double aarrdbX[3], const double aarrdbY[3], const double aarrdbZ[3]);
 protected:
 	vtkSmartPointer < vtkAxesActor > m_pvtkAxesActor;
 private:

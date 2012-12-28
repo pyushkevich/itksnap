@@ -5,10 +5,7 @@
 #include "AbstractVTKRenderer.h"
 #include "vtkSmartPointer.h"
 #include "PropertyModel.h"
-
-class AxesWidget;
-class ScannedHuman;
-class ScanningROI;
+#include "ReorientProps.h";
 
 class vtkSphereSource;
 
@@ -27,8 +24,8 @@ public:
 
   void Update(const vtkSmartPointer < vtkMatrix4x4 > apMatrix4x4);
 
-  void SetDirections(const vtkSmartPointer < vtkMatrix4x4 > apDirections);
-  void GetDirections(vtkSmartPointer < vtkMatrix4x4 > apDirections) const;
+  //void SetDirections(const vtkSmartPointer < vtkMatrix4x4 > apDirections);
+  //void GetDirections(vtkSmartPointer < vtkMatrix4x4 > apDirections) const;
 
 protected:
 
@@ -37,9 +34,7 @@ protected:
 
   DirectionMatrixModel *m_Model;
 
-  vtkSmartPointer < AxesWidget > m_pAxesWidgetAbsolute;
-  vtkSmartPointer < ScannedHuman > m_pScannedHuman;
-  vtkSmartPointer < ScanningROI > m_pScanningROI;
+  ReorientProps m_ReorientProps;
 };
 
 #endif // ORIENTATIONGRAPHICRENDERER_H

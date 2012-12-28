@@ -1,4 +1,5 @@
 #include <vtkObjectFactory.h>
+#include <vtkAssembly.h>
 
 #include "AbstractScannerHelper.h"
 

@@ -1,3 +1,4 @@
+#include <vtkSmartPointer.h>
 #include <vtkPolyDataAlgorithm.h>
 #include <vtkObjectFactory.h>
 #include <vtkProperty.h>
@@ -9,23 +10,44 @@
 #include <vtkCaptionActor2D.h>
 #include <vtkTextProperty.h>
 #include <vtkProp.h>
-#include <vtkProp3D.h>
+#include <vtkActor.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkPlaneSource.h>
+#include <vtkAxesActor.h>
+#include <vtkAssembly.h>
+#include <vtkTubeFilter.h>
+#include <vtkCellArray.h>
+#include <vtkLine.h>
+#include <vtkLineSource.h>
 
+#include "PolyDataAlgorithm2ActorPipe.h"
 #include "ScanningROI.h"
+#include "AxesWidget.h"
 
-
-Pair_PlaneSource_Pipe::Pair_PlaneSource_Pipe()
+Pairs_Plane_Pipe::Pairs_Plane_Pipe()
 {
   init();
 }
 
-void Pair_PlaneSource_Pipe::init()
+void Pairs_Plane_Pipe::init(int anGridResolution)
 {
-  m_pPlaneSource = vtkSmartPointer < vtkPlaneSource >::New();
-  m_pPipePlane = vtkSmartPointer < Source2ActorPipe >::New();
-  m_pPipePlane->setSource(m_pPlaneSource);
+  m_p_PlaneSource = vtkSmartPointer < vtkPlaneSource >::New();
+  m_p_PlaneSource_Pipe = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
+  m_p_PlaneSource_Pipe->setSource(m_p_PlaneSource);
+
+  m_p_TubeFilter_WireFrame = vtkSmartPointer < vtkTubeFilter >::New();
+  m_p_TubeFilter_WireFrame_Pipe = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
+  m_p_TubeFilter_WireFrame_Pipe->setSource(m_p_TubeFilter_WireFrame);
+
+  m_arrp_TubeFilter_PlanarGrid.resize(anGridResolution);
+  m_arrp_TubeFilter_PlanarGrid_Pipe.resize(anGridResolution);
+  int nI;
+  for(nI = 0; nI < anGridResolution; nI++)
+    {
+    m_arrp_TubeFilter_PlanarGrid[nI] = vtkSmartPointer < vtkTubeFilter >::New();
+    m_arrp_TubeFilter_PlanarGrid_Pipe[nI] = vtkSmartPointer < PolyDataAlgorithm2ActorPipe >::New();
+    m_arrp_TubeFilter_PlanarGrid_Pipe[nI]->setSource(m_arrp_TubeFilter_PlanarGrid[nI]);
+    }
 }
 
 vtkStandardNewMacro(ScanningROI);
@@ -53,49 +75,62 @@ ScanningROI::ScanningROI()
 
 void ScanningROI::setPlanesNr(int anPlanesNr)
 {
-  int nI;
+
+  int nI, nJ;
   
-  int nPlanesNr = m_arrpPairPSP_Axial.size();
+  int nPlanesNr = m_arrpPairsPP_Axial.size();
   if(nPlanesNr != anPlanesNr)
     {
 
     for(nI = 0; nI < nPlanesNr; nI++)
 	  {
-		m_pvtkAssembly->RemovePart(m_arrpPairPSP_Axial[nI].m_pPipePlane->getActor());
-	  }
-	m_arrpPairPSP_Axial.resize(anPlanesNr);
+      Pairs_Plane_Pipe & ppp = m_arrpPairsPP_Axial[nI];
+      m_pvtkAssembly->RemovePart(ppp.m_p_PlaneSource_Pipe->getActor());
+      m_pvtkAssembly->RemovePart(ppp.m_p_TubeFilter_WireFrame_Pipe->getActor());
+      for(nJ = 0; nJ < nPlanesNr; nJ++)
+        {
+        m_pvtkAssembly->RemovePart(ppp.m_arrp_TubeFilter_PlanarGrid_Pipe[nJ]->getActor());
+        }
+      }
+    m_arrpPairsPP_Axial.resize(anPlanesNr);
 	for(nI = 0; nI < anPlanesNr; nI++)
 	  {
-      m_arrpPairPSP_Axial[nI].init();
-	  m_pvtkAssembly->AddPart(m_arrpPairPSP_Axial[nI].m_pPipePlane->getActor());
+      Pairs_Plane_Pipe & ppp = m_arrpPairsPP_Axial[nI];
+      ppp.init(anPlanesNr);
+      m_pvtkAssembly->AddPart(ppp.m_p_PlaneSource_Pipe->getActor());
+      m_pvtkAssembly->AddPart(ppp.m_p_TubeFilter_WireFrame_Pipe->getActor());
+      for(nJ = 0; nJ < anPlanesNr; nJ++)
+        {
+        m_pvtkAssembly->AddPart(ppp.m_arrp_TubeFilter_PlanarGrid_Pipe[nJ]->getActor());
+        }
 	  }						 
     }
   for(nI = 0; nI < anPlanesNr; nI++)
     {
-	vtkSmartPointer < Source2ActorPipe > pPipe = m_arrpPairPSP_Axial[nI].m_pPipePlane;
+    Pairs_Plane_Pipe & ppp = m_arrpPairsPP_Axial[nI];
+    vtkSmartPointer < PolyDataAlgorithm2ActorPipe > pPipe = ppp.m_p_PlaneSource_Pipe;
 	vtkProperty * pProperty = pPipe->getProperty();
-    //pProperty->SetRepresentationToWireframe();
-	pProperty->SetLineWidth(2.0);
-	//pProperty->SetLineStipplePattern(0xFF);
-	pProperty->SetColor(1.0, 1.0, 1.0);
-	//pProperty->BackfaceCullingOn();
-	//pProperty->FrontfaceCullingOn();
+    pProperty->SetColor(1.0, 1.0, 1.0);
     pProperty->SetOpacity(0.2);
+
+    pPipe = ppp.m_p_TubeFilter_WireFrame_Pipe;
+    pProperty = pPipe->getProperty();
+    pProperty->SetColor(1.0, 1.0, 1.0);
+
+    for(nJ = 0; nJ < anPlanesNr; nJ++)
+      {
+      pPipe = ppp.m_arrp_TubeFilter_PlanarGrid_Pipe[nJ];
+      pProperty = pPipe->getProperty();
+      pProperty->SetColor(0.8, 0.8, 0.8);
+      pProperty->SetOpacity(0.2);
+      }
     }
    
 }
 
 int ScanningROI::getPlanesNr() const
 {
-	return(m_arrpPairPSP_Axial.size());
-}
-
-void ScanningROI::setTranslation(double adbX, double adbY, double adbZ)
-{
-}
-
-void ScanningROI::setTranslation(double aarrdbXYZ[3])
-{
+  return(m_arrpPairsPP_Axial.size());
 }
 
 void ScanningROI::setSpacing(double adbX, double adbY, double adbZ)
@@ -121,7 +156,8 @@ void ScanningROI::Update()
     {
     m_pAxesWidget->GetAxesActor()->SetPosition(- m_dbGraphicScale / 2.0, -m_dbGraphicScale / 2.0, -m_dbGraphicScale / 2.0);
 	m_pAxesWidget->SetLabels("i", "j", "k");
-  }
+    m_pAxesWidget->SetColors(AxesWidget::m_arrdbColRed, AxesWidget::m_arrdbColGreen, AxesWidget::m_arrdbColBlue);
+    }
   else
     {
 	//m_pAxesWidget->GetAxesActor()->SetPosition(m_dbGraphicScale / 2.0, m_dbGraphicScale / 2.0, m_dbGraphicScale / 2.0);
@@ -134,6 +170,7 @@ void ScanningROI::Update()
 
 	changeOrientation3x3(m_pMatrix4x4Directions);
 	m_pAxesWidget->SetLabels("i", "k", "j");
+    m_pAxesWidget->SetColors(AxesWidget::m_arrdbColRed, AxesWidget::m_arrdbColBlue, AxesWidget::m_arrdbColGreen);
     }
 
   m_pAxesWidget->GetAxesActor()->SetUserMatrix(pMatrix4x4DirectionsAccompanying);
@@ -152,17 +189,17 @@ void ScanningROI::Update()
   
   int nI;
   int nPlanesNr = getPlanesNr();
-  double dbDeltaK = m_dbGraphicScale / ((double)(nPlanesNr - 1));
+  double dbDelta = m_dbGraphicScale / ((double)(nPlanesNr - 1));
   for(nI = 0; nI < nPlanesNr; nI++)
     {
-    vtkSmartPointer < vtkPlaneSource > pPlane = m_arrpPairPSP_Axial[nI].m_pPlaneSource;
+    //First, create the transparent planes
     double arrdbOrigin[4] = {0.0, 0.0, 0.0, 1.0},
       arrdbP1[4] = {0.0, 0.0, 0.0, 1.0},
 	  arrdbP2[4] = {0.0, 0.0, 0.0, 1.0};
 
     arrdbOrigin[0] = - m_dbGraphicScale / 2.0;
 	arrdbOrigin[1] = - m_dbGraphicScale / 2.0;
-	arrdbOrigin[2] = dbDeltaK * nI - ((int)(((double)nPlanesNr) / 2.0))  * dbDeltaK;
+    arrdbOrigin[2] = dbDelta * nI - ((int)(((double)nPlanesNr) / 2.0))  * dbDelta;
 
 	arrdbP1[0] = m_dbGraphicScale / 2.0;
 	arrdbP1[1] = - m_dbGraphicScale / 2.0;
@@ -172,42 +209,65 @@ void ScanningROI::Update()
 	arrdbP2[1] = m_dbGraphicScale / 2.0;
 	arrdbP2[2] = arrdbOrigin[2];
 
-	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbOrigin);
-	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
-	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
+    //pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbOrigin);
+    //pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
+    //pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
 
-	pPlane->SetOrigin(arrdbOrigin);
-	pPlane->SetPoint1(arrdbP1);
-	pPlane->SetPoint2(arrdbP2);
+    Pairs_Plane_Pipe & ppp = m_arrpPairsPP_Axial[nI];
+    vtkSmartPointer < vtkPlaneSource > pPlaneSource = ppp.m_p_PlaneSource;
+    pPlaneSource->SetOrigin(arrdbOrigin);
+    pPlaneSource->SetPoint1(arrdbP1);
+    pPlaneSource->SetPoint2(arrdbP2);
+
+    //Second, insert the TubeFilter edge wires
+    double arrdbP3[4] = {0.0, 0.0, 0.0, 1.0};
+    arrdbP3[0] = arrdbP1[0];
+    arrdbP3[1] = arrdbP2[1];
+    arrdbP3[2] = arrdbOrigin[2];
+
+    vtkSmartPointer<vtkPoints> pPoints = vtkSmartPointer<vtkPoints>::New();
+    pPoints->InsertPoint(0, arrdbOrigin);
+    pPoints->InsertPoint(1, arrdbP1);
+
+    //Yes, the order is correct, this point is the 4th one
+    //in defining order on top of the Plane sorce!
+    pPoints->InsertPoint(2, arrdbP3);
+
+    pPoints->InsertPoint(3, arrdbP2);
+    pPoints->InsertPoint(4, arrdbOrigin);
+
+    vtkSmartPointer<vtkCellArray> pLines = vtkSmartPointer<vtkCellArray>::New();
+    pLines->InsertNextCell(5);
+    int nJ;
+    for (nJ = 0; nJ < 5; nJ++)
+      {
+      pLines->InsertCellPoint(nJ);
+      }
+
+    vtkSmartPointer<vtkPolyData> pPolyData = vtkSmartPointer<vtkPolyData>::New();
+    pPolyData->SetPoints(pPoints);
+    pPolyData->SetLines(pLines);
+
+    vtkSmartPointer < vtkTubeFilter > pTubeFilter = ppp.m_p_TubeFilter_WireFrame;
+    pTubeFilter->SetInput(pPolyData);
+    pTubeFilter->SetNumberOfSides(100);
+    pTubeFilter->SetRadius(0.01 * m_dbGraphicScale);
+
+    //All right, now let's set the grid
+    for(nJ = 0; nJ < nPlanesNr; nJ++)
+      {
+      vtkSmartPointer< vtkLineSource > pLineSource =
+        vtkSmartPointer< vtkLineSource >::New();
+      pLineSource->SetPoint1(arrdbOrigin[0] + dbDelta * nJ, arrdbOrigin[1], arrdbOrigin[2]);
+      pLineSource->SetPoint2(arrdbOrigin[0] + dbDelta * nJ, arrdbP2[1], arrdbOrigin[2]);
+      vtkSmartPointer < vtkTubeFilter > pTubeFilter =
+        ppp.m_arrp_TubeFilter_PlanarGrid[nJ];
+      pTubeFilter->SetInput(pLineSource->GetOutput());
+      pTubeFilter->SetNumberOfSides(100);
+      pTubeFilter->SetRadius(0.005 * m_dbGraphicScale);
+      }
     }
-//  double dbDeltaI = m_dbGraphicScale / ((double)(nPlanesNr - 1));
-//  for(nI = 0; nI < nPlanesNr; nI++)
-//    {
-//	vtkSmartPointer < vtkPlaneSource > pPlane = m_arrpPairPSP_Coronal[nI].m_pPlaneSource;
-//	double arrdbOrigin[3] = {0.0, 0.0, 0.0},
-//	  arrdbP1[3] = {0.0, 0.0, 0.0},
-//	  arrdbP2[3] = {0.0, 0.0, 0.0};
 
-//	arrdbOrigin[0] = dbDeltaI * nI - ((int)(((double)nPlanesNr) / 2.0))  * dbDeltaI;
-//	arrdbOrigin[1] = - m_dbGraphicScale / 2.0;
-//	arrdbOrigin[2] = - m_dbGraphicScale / 2.0;
-
-//	arrdbP1[0] = arrdbOrigin[0];
-//	arrdbP1[1] = m_dbGraphicScale / 2.0;
-//	arrdbP1[2] = - m_dbGraphicScale / 2.0;
-
-//	arrdbP2[0] = arrdbOrigin[0];
-//	arrdbP2[1] = - m_dbGraphicScale / 2.0;
-//	arrdbP2[2] = m_dbGraphicScale / 2.0;
-
-//	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbOrigin);
-//	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
-//	pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
-
-//	pPlane->SetOrigin(arrdbOrigin);
-//	pPlane->SetPoint1(arrdbP1);
-//	pPlane->SetPoint2(arrdbP2);
-//    }
 }
 
 void ScanningROI::setGraphicScale(double adbGraphicScale)

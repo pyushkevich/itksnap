@@ -1,28 +1,28 @@
 #ifndef SOURCE_2_ACTOR_PIPE_H
 #define SOURCE_2_ACTOR_PIPE_H
 
-#include <vtkObject.h>
-#include <vtkSmartPointer.h>
-#include <vtkPolyDataAlgorithm.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkActor.h>
+#include "vtkSmartPointer.h"
+class vtkObject;
+class vtkPolyDataAlgorithm;
+class vtkPolyDataMapper;
+class vtkActor;
+class vtkProperty;
 
-class Source2ActorPipe : public vtkObject
+class PolyDataAlgorithm2ActorPipe : public vtkObject
 {
   vtkSmartPointer < vtkPolyDataAlgorithm > m_pvtkPolyDataAlgorithm;
   vtkSmartPointer < vtkPolyDataMapper > m_pvtkPolyDataMapper;
   vtkSmartPointer < vtkActor > m_pvtkActor;
 
-  Source2ActorPipe();
+  PolyDataAlgorithm2ActorPipe();
 public:
 
-  static Source2ActorPipe *New();
+  static PolyDataAlgorithm2ActorPipe *New();
   
   void setSource(vtkSmartPointer < vtkPolyDataAlgorithm > apvtkPolyDataAlgorithm);
   
   vtkSmartPointer < vtkActor > getActor();
   vtkProperty * getProperty();
 };
-
 
 #endif //SOURCE_2_ACTOR_PIPE_H

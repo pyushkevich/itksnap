@@ -3,22 +3,36 @@
 
 #include <vector>
 
-#include <vtkAssembly.h>
-#include <vtkPlaneSource.h>
-#include <vtkCaptionActor2D.h>
+template <class T> class vtkSmartPointer;
+class vtkAssembly;
+class vtkPlaneSource;
+class vtkCaptionActor2D;
+class vtkTubeFilter;
 
-#include "AxesWidget.h"
-#include "Source2ActorPipe.h"
+class AxesWidget;
+class PolyDataAlgorithm2ActorPipe;
+
 #include "AbstractScannerHelper.h"
 
-struct Pair_PlaneSource_Pipe
+struct Pairs_Plane_Pipe
 {
-  vtkSmartPointer < vtkPlaneSource > m_pPlaneSource;
-  vtkSmartPointer < Source2ActorPipe > m_pPipePlane;
+  vtkSmartPointer < vtkPlaneSource > m_p_PlaneSource;
+  vtkSmartPointer < PolyDataAlgorithm2ActorPipe > m_p_PlaneSource_Pipe;
 
-  Pair_PlaneSource_Pipe();
+  vtkSmartPointer < vtkTubeFilter >
+    m_p_TubeFilter_WireFrame;
+  vtkSmartPointer < PolyDataAlgorithm2ActorPipe >
+    m_p_TubeFilter_WireFrame_Pipe;
 
-  void init();
+  //TF stands for TubeFilter
+  std::vector < vtkSmartPointer < vtkTubeFilter > >
+    m_arrp_TubeFilter_PlanarGrid;
+  std::vector < vtkSmartPointer < PolyDataAlgorithm2ActorPipe > >
+    m_arrp_TubeFilter_PlanarGrid_Pipe;
+
+  Pairs_Plane_Pipe();
+
+  void init(int anGridResolution = 0);
 };
 
 class ScanningROI : public AbstractScannerHelper
@@ -26,7 +40,7 @@ class ScanningROI : public AbstractScannerHelper
 
   double m_arrdbSpacing[3];
 
-  std::vector < Pair_PlaneSource_Pipe > m_arrpPairPSP_Axial;
+  std::vector < Pairs_Plane_Pipe > m_arrpPairsPP_Axial;
 
   vtkSmartPointer < vtkMatrix4x4 > m_pMatrix4x4Directions;
 
@@ -41,9 +55,6 @@ public:
   void setPlanesNr(int anPlanesNr);
   int getPlanesNr() const;
 
-  void setTranslation(double adbX, double adbY, double adbZ);
-  void setTranslation(double aarrdbXYZ[3]);
-
   void setSpacing(double adbX, double adbY, double adbZ);
   void setSpacing(double aarrdbXYZ[3]);
 
@@ -57,6 +68,5 @@ public:
   static void changeOrientation3x3(vtkSmartPointer < vtkMatrix4x4 > apvtkMatrix4x4);
 
 };
-
 
 #endif //SCANNING_ROI_H
