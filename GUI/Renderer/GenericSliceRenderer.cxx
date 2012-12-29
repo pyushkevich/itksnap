@@ -176,7 +176,7 @@ GenericSliceRenderer
             this->DrawOverlays();
 
             // Draw the zoom locator
-            if(m_Model->IsThumbnailOn() && irow == 0 && icol == 0)
+            if(m_Model->IsThumbnailOn() && irow == (nrows-1) && icol == 0)
               this->DrawThumbnail();
             }
           }
