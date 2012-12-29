@@ -38,6 +38,8 @@
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISImageData.h"
+#include "GlobalUIModel.h"
+#include "DisplayLayoutModel.h"
 #include <limits>
 
 SliceWindowCoordinator
@@ -103,15 +105,26 @@ SliceWindowCoordinator
 {
   assert(m_WindowsRegistered);
 
+  // How this is computed depends on whether all four views are visible or not
+  DisplayLayoutModel *dlm = m_SliceModel[0]->GetParentUI()->GetDisplayLayoutModel();
+
   // Figure out what is the optimal zoom in each window
+  bool foundVisible = false;
   double minoptzoom = 0;
   for(int i = 0; i < 3; i++)
     {
-    double optzoom = m_SliceModel[i]->GetOptimalZoom();
-    if(i == 0 || minoptzoom > optzoom)
-      minoptzoom = optzoom;
+    if(dlm->GetViewPanelVisibilityModel(i)->GetValue())
+      {
+      double optzoom = m_SliceModel[i]->GetOptimalZoom();
+      if(!foundVisible || minoptzoom > optzoom)
+        {
+        minoptzoom = optzoom;
+        foundVisible = true;
+        }
+      }
     }
 
+  // If nothing is visible, use the optimal zoom from the first window
   return minoptzoom;
 }
 
@@ -131,7 +144,9 @@ SliceWindowCoordinator
   // If linked zoom, use the smallest optimal zoom level
   if(m_LinkedZoom)
     {
-    SetZoomLevelAllWindows(ComputeSmallestOptimalZoomLevel());
+    double optzoom = ComputeSmallestOptimalZoomLevel();
+    if(optzoom > 0.0)
+      SetZoomLevelAllWindows(optzoom);
     }
 }
 
