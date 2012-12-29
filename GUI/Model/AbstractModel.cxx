@@ -74,7 +74,7 @@ AbstractModel::Rebroadcaster
               << std::endl;
     }
 #endif // SNAP_DEBUG_EVENTS
-  m_Model->m_EventBucket->PutEvent(evt);
+  m_Model->m_EventBucket->PutEvent(evt, source);
   m_Model->InvokeEvent(*m_Event);
 }
 

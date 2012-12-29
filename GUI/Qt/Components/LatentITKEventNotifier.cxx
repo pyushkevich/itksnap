@@ -79,7 +79,7 @@ LatentITKEventNotifierHelper
 #endif
 
   // Register this event
-  m_Bucket.PutEvent(evt);
+  m_Bucket.PutEvent(evt, object);
 
   // Emit signal
   emit itkEvent();

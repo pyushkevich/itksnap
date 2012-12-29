@@ -34,6 +34,7 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
 
   //this->m_Renderer->AddActor(actor);
 
+  /*
   double dbGraphicScale = 2.0;
   m_pAxesWidgetAbsolute = vtkSmartPointer < AxesWidget >::New();
   m_pAxesWidgetAbsolute->SetLengths(dbGraphicScale * 1.5);
@@ -58,7 +59,7 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
   //vtkRenderWindow * pvtkRenderWindow = GetRenderWindow();
   //m_pIren = vtkSmartPointer < vtkRenderWindowInteractor >::New();
   //pvtkRenderWindow->SetInteractor(m_pIren);
-
+*/
 }
 
 
@@ -100,21 +101,27 @@ void OrientationGraphicRenderer::OnUpdate()
 
 void OrientationGraphicRenderer::Update(const vtkSmartPointer < vtkMatrix4x4 > apMatrix4x4)
 {
+  /*
   SetDirections(apMatrix4x4);
 
   m_pScanningROI->Update();
 
   GetRenderWindow()->Render();
+  */
 }
 
+/*
 void OrientationGraphicRenderer::SetDirections(const vtkSmartPointer < vtkMatrix4x4 > apDirections)
 {
-    m_pScanningROI->setDirections(apDirections);
+    // m_pScanningROI->setDirections(apDirections);
 }
+*/
 
+/*
 void OrientationGraphicRenderer::GetDirections(vtkSmartPointer < vtkMatrix4x4 > apDirections) const
 {
   vtkSmartPointer < vtkMatrix4x4 > pDirections =
       m_pScanningROI->getDirections();
   apDirections->DeepCopy(pDirections);
 }
+*/

@@ -98,7 +98,9 @@ void GenericSliceModel::OnUpdate()
     // Do a complete initialization
     this->InitializeSlice(m_Driver->GetCurrentImageData());
     }
+  // TODO: what is the ValueChangeEvent here???
   else if(m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent())
+          || m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent())
           || m_EventBucket->HasEvent(ValueChangedEvent()))
     {
     if(this->IsSliceInitialized())

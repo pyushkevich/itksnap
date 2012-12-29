@@ -5,7 +5,7 @@
 #include "AbstractVTKRenderer.h"
 #include "vtkSmartPointer.h"
 #include "PropertyModel.h"
-#include "ReorientProps.h";
+#include "ReorientProps.h"
 
 class vtkSphereSource;
 

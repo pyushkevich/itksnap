@@ -142,7 +142,7 @@ void ImageInfoModel::OnUpdate()
 
   // Is there a change to the metadata?
   if(this->m_EventBucket->HasEvent(ActiveLayerChangedEvent()) ||
-     this->m_EventBucket->HasEvent(ValueChangedEvent()))
+     this->m_EventBucket->HasEvent(ValueChangedEvent(),m_MetadataFilterModel))
     {
     // Recompute the metadata index
     this->UpdateMetadataIndex();
