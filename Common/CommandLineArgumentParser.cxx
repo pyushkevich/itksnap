@@ -108,12 +108,22 @@ CommandLineArgumentParser
 
     // Check if the number of parameters is correct
     int nParameters = m_OptionMap[arg].NumberOfParameters;
-    if(argc_out+nParameters >= argc) 
+    if(nParameters > 0 && argc_out+nParameters >= argc)
       {
       // Too few parameters
       cerr << "Too few parameters to command line option '" << arg 
         << "'" << endl;
       return false;
+      }
+
+    // If the number of parameters is negative, read all parameters that are
+    // not recognized options
+    if(nParameters < 0)
+      {
+      nParameters = 0;
+      for(int j = argc_out+1; j < argc; j++, nParameters++)
+        if(m_OptionMap.find(argv[j]) != m_OptionMap.end())
+          break;
       }
 
     // Tell the result that the option has been encountered
@@ -122,7 +132,6 @@ CommandLineArgumentParser
     // Pass in the parameters
     for(int j=0;j<nParameters;j++,argc_out++)
       outResult.AddParameter(m_OptionMap[arg].CommonName,string(argv[argc_out+1]));
-    
     }
 
   // Everything is good
@@ -146,6 +155,14 @@ CommandLineArgumentParseResult
   assert(number < m_OptionMap[string(option)].size());
 
   return m_OptionMap[string(option)][number].c_str();
+}
+
+int
+CommandLineArgumentParseResult
+::GetNumberOfOptionParameters(const char *option)
+{
+  assert(IsOptionPresent(option));
+  return m_OptionMap[string(option)].size();
 }
 
 void  

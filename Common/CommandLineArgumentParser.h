@@ -59,11 +59,22 @@ public:
   /** Get one of the parameters to the option */
   const char *GetOptionParameter(const char *option, unsigned int number = 0);
 
+  /** Get the number of parameters for the option */
+  int GetNumberOfOptionParameters(const char *option);
+
 private:
   typedef std::vector< std::string > ParameterArrayType;
   typedef std::map< std::string, ParameterArrayType> OptionMapType;
 
   void Clear();
+
+  /**
+   * @brief Add an option with specified number of parameters. The number of
+   * parameters may be negative, in which case all non-options trailing the
+   * command are read as parameters.
+   * @param option
+   * @param nParms
+   */
   void AddOption(const std::string &option, int nParms);
   void AddParameter(const std::string &option, const std::string &parameter);
 

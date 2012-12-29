@@ -107,7 +107,7 @@ void setupParser(CommandLineArgumentParser &parser)
   parser.AddSynonim("--segmentation","-s");
   parser.AddSynonim("--segmentation","-seg");
 
-  parser.AddOption("--overlay", 1);
+  parser.AddOption("--overlay", -1);
   parser.AddSynonim("--overlay", "-o");
 
   parser.AddOption("--labels",1);
@@ -312,35 +312,30 @@ int main(int argc, char *argv[])
         }
       }
 
-    // Load overlay is supplied
+    // Load overlay fs supplied
     if(parseResult.IsOptionPresent("--overlay"))
       {
-      // Get the filename
-      const char *fname = parseResult.GetOptionParameter("--overlay");
-
-      // Update the splash screen
-      // ui->UpdateSplashScreen("Loading overlay image...");
-
-      // Try to load the image
-      try
+      for(int i = 0; i < parseResult.GetNumberOfOptionParameters("--overlay"); i++)
         {
-        LoadOverlayImageDelegate del(gui, IRISApplication::MAIN_ANY);
-        gui->LoadImageNonInteractive(fname, del, warnings);
+        // Get the filename
+        const char *fname = parseResult.GetOptionParameter("--overlay", i);
+
+        // Update the splash screen
+        // ui->UpdateSplashScreen("Loading overlay image...");
+
+        // Try to load the image
+        try
+          {
+          LoadOverlayImageDelegate del(gui, IRISApplication::MAIN_ANY);
+          gui->LoadImageNonInteractive(fname, del, warnings);
+          }
+        catch(std::exception &exc)
+          {
+          cerr << "Error loading overlay '" << fname << "'" << endl;
+          cerr << "Reason: " << exc.what() << endl;
+          return -1;
+          }
         }
-      catch(itk::ExceptionObject &exc)
-        {
-        cerr << "Error loading overlay '" << fname << "'" << endl;
-        cerr << "Reason: " << exc << endl;
-        return -1;
-        }
-	  //Octavian_2012_08_24_16:20: added exception as a response to: 
-	  //bug: ID: 3023489: "-o flag size check"
-	  catch(IRISException & IRISexc)
-	    {
-		cerr << "Error loading file '" << fname << "'" << endl;
-		cerr << "Reason: " << IRISexc << endl;
-		return -1;
-	    }
       }
     }
 
