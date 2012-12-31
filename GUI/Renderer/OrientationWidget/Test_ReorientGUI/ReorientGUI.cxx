@@ -127,6 +127,7 @@ void ReorientGUI::slotSelectNegativeOrientation(bool abInterpretNegativeOrientat
   vtkSmartPointer < vtkMatrix4x4 > pMatrix4x4 =
 	//vtkSmartPointer < vtkMatrix4x4 >::New();
   getMtrx4x4GUI();
+  pMatrix4x4->Transpose();
   if(abInterpretNegativeOrientation3x3 == true)
     {
 	ScanningROI::changeOrientation3x3(pMatrix4x4);
