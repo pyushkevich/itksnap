@@ -3,6 +3,9 @@
 #include <QPixmap>
 #include <QWidget>
 #include <QAction>
+#include <QObject>
+#include <QPushButton>
+#include <QMainWindow>
 
 QIcon CreateColorBoxIcon(int w, int h, const QColor &rgb)
 {
@@ -29,10 +32,38 @@ QIcon CreateInvisibleIcon(int w, int h)
   return QIcon(pix);
 }
 
+QAction *FindUpstreamAction(QWidget *widget, const QString &targetActionName)
+{
+  // Look for a parent of QMainWindow type
+  QMainWindow *topwin = NULL;
+  for(QObject *p = widget; p != NULL; p = p->parent())
+    {
+    if((topwin = dynamic_cast<QMainWindow *>(p)) != NULL)
+      break;
+    }
+
+  // Look for the action
+  if(topwin)
+    {
+    return topwin->findChild<QAction *>(targetActionName);
+    }
+  else
+    {
+    return NULL;
+    }
+}
+
+void ConnectWidgetToTopLevelAction(
+    QWidget *w, const char *signal, QString actionName)
+{
+  QAction *action = FindUpstreamAction(w, actionName);
+  QObject::connect(w, signal, action, SLOT(trigger()));
+}
+
 bool TriggerUpstreamAction(QWidget *widget, const QString &targetActionName)
 {
   // Find and execute the relevant action
-  QAction *action = widget->window()->findChild<QAction *>("actionLabel_Editor");
+  QAction *action = FindUpstreamAction(widget, targetActionName);
   if(action)
     {
     action->trigger();

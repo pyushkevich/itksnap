@@ -51,7 +51,6 @@ public:
 private slots:
 
   void on_chkLinkedZoom_stateChanged(int arg1);
-  void on_btnResetViews_clicked();
 
   void on_btnZoom1_pressed();
   void on_btnZoom2_pressed();

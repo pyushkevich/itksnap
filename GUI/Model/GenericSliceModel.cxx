@@ -389,6 +389,12 @@ GenericSliceModel
   return offset;
 }
 
+void GenericSliceModel::CenterViewOnCursor()
+{
+  Vector2f offset; offset.fill(0.0f);
+  this->SetViewPositionRelativeToCursor(offset);
+}
+
 /*
 GenericSliceModel *
 GenericSliceModel

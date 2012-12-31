@@ -107,6 +107,10 @@ private slots:
 
   void on_actionReorient_Image_triggered();
 
+  void on_actionZoomToFitInAllViews_triggered();
+
+  void on_actionCenter_on_Cursor_triggered();
+
 private:
 
   void UpdateRecentMenu();

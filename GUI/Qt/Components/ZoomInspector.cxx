@@ -31,8 +31,8 @@
 #include "SliceWindowCoordinator.h"
 #include "QtWidgetActivator.h"
 #include "QtDoubleSpinBoxCoupling.h"
+#include <SNAPQtCommon.h>
 #include <vnl/vnl_math.h>
-
 
 ZoomInspector::ZoomInspector(QWidget *parent) :
     SNAPComponent(parent),
@@ -53,11 +53,9 @@ void ZoomInspector::SetModel(GlobalUIModel *model)
   // Set the model
   m_Model = model;
 
-  /*
-  AddListener(model->GetSliceCoordinator(),
-              SliceWindowCoordinator::LinkedZoomUpdateEvent(),
-              this, &ZoomPanModeToolbox::OnZoomChangeInSliceView);
-  */
+  // Connect buttons to global actions
+  ui->btnResetViews->setAction("actionZoomToFitInAllViews");
+  ui->btnCenterViews->setAction("actionCenter_on_Cursor");
 
   // Conditional activation of widgets
   activateOnFlag(ui->inZoom, model, UIF_LINKED_ZOOM);
@@ -75,11 +73,6 @@ void ZoomInspector::SetModel(GlobalUIModel *model)
 void ZoomInspector::on_chkLinkedZoom_stateChanged(int state)
 {
   m_Model->GetSliceCoordinator()->SetLinkedZoom(state == Qt::Checked);
-}
-
-void ZoomInspector::on_btnResetViews_clicked()
-{
-  m_Model->GetSliceCoordinator()->ResetViewToFitInAllWindows();
 }
 
 void ZoomInspector::on_btnZoom1_pressed()

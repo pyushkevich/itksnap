@@ -150,10 +150,10 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
   const char *tabIcons[] = {
     "crosshair.gif", "zoom.gif", "paintbrush.gif", "dl_toolbox.png", "tools.png" };
 
-  m_ZoomInspector = new ZoomInspector();
-  m_CursorInspector = new CursorInspector();
-  m_LabelInspector = new LabelInspector();
-  m_DisplayLayoutInspector = new DisplayLayoutInspector();
+  m_ZoomInspector = new ZoomInspector(this);
+  m_CursorInspector = new CursorInspector(this);
+  m_LabelInspector = new LabelInspector(this);
+  m_DisplayLayoutInspector = new DisplayLayoutInspector(this);
 
   // The tools page is just a widget with a stack layout
   m_ToolInspector = new QStackedWidget();

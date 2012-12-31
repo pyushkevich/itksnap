@@ -22,8 +22,6 @@ public slots:
 
 private slots:
 
-  void on_btnEdit_clicked();
-
 private:
 
   Ui::LabelInspector *ui;

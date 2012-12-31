@@ -173,6 +173,9 @@ public:
   /** Set the offset from the center of the viewport to the cursor position */
   void SetViewPositionRelativeToCursor(Vector2f offset);
 
+  /** Center the view on the image crosshairs */
+  void CenterViewOnCursor();
+
   /** Set the zoom factor (number of pixels on the screen per millimeter in
    * image space */
   irisSetWithEventMacro(ViewZoom, float, SliceModelGeometryChangeEvent)

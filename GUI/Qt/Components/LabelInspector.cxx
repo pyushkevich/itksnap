@@ -15,6 +15,9 @@ LabelInspector::LabelInspector(QWidget *parent) :
   ui->setupUi(this);
   ui->inForeLabel->setIconSize(QSize(16,16));
   ui->inBackLabel->setIconSize(QSize(16,16));
+
+  // Connect to the action in the menubar
+  ui->btnEdit->setAction("actionLabel_Editor");
 }
 
 LabelInspector::~LabelInspector()
@@ -44,13 +47,6 @@ void LabelInspector
   // Couple the inversion checkbox
   makeCoupling(ui->cbInvert,
                m_Model->GetGlobalState()->GetPolygonInvertModel());
-}
-
-
-
-void LabelInspector::on_btnEdit_clicked()
-{
-  TriggerUpstreamAction(this, "actionLabel_Editor");
 }
 
 

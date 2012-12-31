@@ -105,6 +105,9 @@ public:
    * and if not, it only affects the given window */
   void ResetViewToFitInOneWindow(unsigned int window);
 
+  /** Center the view on the cursor in all slice windows */
+  void CenterViewOnCursorInAllWindows();
+
   /** When one of the windows wants to change the zoom w.r.t. a user
    * action, this class will adjust, if necessary, the zoom in the other
    * windows */

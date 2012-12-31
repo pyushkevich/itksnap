@@ -825,6 +825,28 @@ background-color:rgb(88, 88, 88);
     <string>Reorient Image...</string>
    </property>
   </action>
+  <action name="actionZoomToFitInAllViews">
+   <property name="text">
+    <string>ZoomToFitInAllViews</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset the zoom factor in all views to fit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionCenter_on_Cursor">
+   <property name="text">
+    <string>Center on Cursor</string>
+   </property>
+   <property name="toolTip">
+    <string>Center each slice view on the cursor position</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

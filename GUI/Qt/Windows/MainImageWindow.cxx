@@ -41,6 +41,7 @@
 #include "LatentITKEventNotifier.h"
 #include <QProgressDialog>
 #include "QtReporterDelegates.h"
+#include "SliceWindowCoordinator.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -218,6 +219,10 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // Hook up buttons to actions
   connect(ui->btnLoadGrey, SIGNAL(clicked()), ui->actionOpenGrey, SLOT(trigger()));
   connect(ui->btnLoadRGB, SIGNAL(clicked()), ui->actionOpenRGB, SLOT(trigger()));
+
+  // Add actions that are not on the menu
+  addAction(ui->actionZoomToFitInAllViews);
+  addAction(ui->actionCenter_on_Cursor);
 
   // Set up the progress dialog
   m_Progress = new QProgressDialog(this);
@@ -558,4 +563,15 @@ void MainImageWindow::on_actionReorient_Image_triggered()
 {
   // Show the reorientation dialog
   m_ReorientImageDialog->show();
+}
+
+void MainImageWindow::on_actionZoomToFitInAllViews_triggered()
+{
+  // Reset the common zoom factor
+  m_Model->GetSliceCoordinator()->ResetViewToFitInAllWindows();
+}
+
+void MainImageWindow::on_actionCenter_on_Cursor_triggered()
+{
+  m_Model->GetSliceCoordinator()->CenterViewOnCursorInAllWindows();
 }

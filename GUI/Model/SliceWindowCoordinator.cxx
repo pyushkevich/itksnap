@@ -215,6 +215,12 @@ SliceWindowCoordinator
   m_SliceModel[window]->ResetViewToFit();
 }
 
+void SliceWindowCoordinator::CenterViewOnCursorInAllWindows()
+{
+  for(int i = 0; i < 3; i++)
+    m_SliceModel[i]->CenterViewOnCursor();
+}
+
 void
 SliceWindowCoordinator
 ::OnZoomUpdateInWindow(unsigned int irisNotUsed(window), float zoom)
