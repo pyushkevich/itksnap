@@ -1,0 +1,586 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>826</width>
+    <height>533</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QFrame" name="frame">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QFrame" name="frame_2">
+       <property name="geometry">
+        <rect>
+         <x>410</x>
+         <y>10</y>
+         <width>380</width>
+         <height>440</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>380</width>
+         <height>440</height>
+        </size>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLabel" name="label">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>10</y>
+          <width>71</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Translate</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_2">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>140</y>
+          <width>71</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Directions</string>
+        </property>
+       </widget>
+       <widget class="QTableWidget" name="m_pTableWidget">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>160</y>
+          <width>301</width>
+          <height>201</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string/>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="showGrid">
+         <bool>true</bool>
+        </property>
+        <attribute name="horizontalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="horizontalHeaderDefaultSectionSize">
+         <number>75</number>
+        </attribute>
+        <attribute name="horizontalHeaderHighlightSections">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="horizontalHeaderMinimumSectionSize">
+         <number>75</number>
+        </attribute>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="verticalHeaderDefaultSectionSize">
+         <number>50</number>
+        </attribute>
+        <attribute name="verticalHeaderHighlightSections">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="verticalHeaderMinimumSectionSize">
+         <number>50</number>
+        </attribute>
+        <row>
+         <property name="text">
+          <string>New Row</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>New Row</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>New Row</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>New Row</string>
+         </property>
+        </row>
+        <column>
+         <property name="text">
+          <string>New Column</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>New Column</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>New Column</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>New Column</string>
+         </property>
+        </column>
+       </widget>
+       <widget class="QLabel" name="label_3">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>70</y>
+          <width>71</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Spacing</string>
+        </property>
+       </widget>
+       <widget class="QFrame" name="frame_3">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>30</y>
+          <width>301</width>
+          <height>40</height>
+         </rect>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <widget class="QDoubleSpinBox" name="m_pDoubleSpinBoxTX">
+         <property name="geometry">
+          <rect>
+           <x>39</x>
+           <y>10</y>
+           <width>61</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="maximum">
+          <double>9999.989999999999782</double>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_4">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>10</y>
+           <width>16</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>X</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_5">
+         <property name="geometry">
+          <rect>
+           <x>120</x>
+           <y>10</y>
+           <width>16</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Y</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_6">
+         <property name="geometry">
+          <rect>
+           <x>210</x>
+           <y>10</y>
+           <width>16</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Z</string>
+         </property>
+        </widget>
+        <widget class="QDoubleSpinBox" name="m_pDoubleSpinBoxTY">
+         <property name="geometry">
+          <rect>
+           <x>134</x>
+           <y>10</y>
+           <width>61</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="maximum">
+          <double>9999.989999999999782</double>
+         </property>
+        </widget>
+        <widget class="QDoubleSpinBox" name="m_pDoubleSpinBoxTZ">
+         <property name="geometry">
+          <rect>
+           <x>230</x>
+           <y>10</y>
+           <width>61</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="maximum">
+          <double>9999.989999999999782</double>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QFrame" name="frame_4">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>90</y>
+          <width>301</width>
+          <height>40</height>
+         </rect>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <widget class="QDoubleSpinBox" name="m_pDoubleSpinBoxSX">
+         <property name="geometry">
+          <rect>
+           <x>39</x>
+           <y>10</y>
+           <width>61</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="maximum">
+          <double>9999.989999999999782</double>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_10">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>10</y>
+           <width>16</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>X</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_11">
+         <property name="geometry">
+          <rect>
+           <x>120</x>
+           <y>10</y>
+           <width>16</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Y</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_12">
+         <property name="geometry">
+          <rect>
+           <x>210</x>
+           <y>10</y>
+           <width>16</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Z</string>
+         </property>
+        </widget>
+        <widget class="QDoubleSpinBox" name="m_pDoubleSpinBoxSY">
+         <property name="geometry">
+          <rect>
+           <x>134</x>
+           <y>10</y>
+           <width>61</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="maximum">
+          <double>9999.989999999999782</double>
+         </property>
+        </widget>
+        <widget class="QDoubleSpinBox" name="m_pDoubleSpinBoxSX_2">
+         <property name="geometry">
+          <rect>
+           <x>230</x>
+           <y>10</y>
+           <width>61</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="maximum">
+          <double>9999.989999999999782</double>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QFrame" name="frame_5">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>390</y>
+          <width>301</width>
+          <height>40</height>
+         </rect>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <widget class="QDoubleSpinBox" name="m_pDoubleSpinBoxRotPhi">
+         <property name="geometry">
+          <rect>
+           <x>40</x>
+           <y>10</y>
+           <width>61</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="minimum">
+          <double>-9999.989999999999782</double>
+         </property>
+         <property name="maximum">
+          <double>9999.989999999999782</double>
+         </property>
+         <property name="singleStep">
+          <double>0.010000000000000</double>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_13">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>10</y>
+           <width>16</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Phi</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_14">
+         <property name="geometry">
+          <rect>
+           <x>105</x>
+           <y>10</y>
+           <width>31</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Theta</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_15">
+         <property name="geometry">
+          <rect>
+           <x>210</x>
+           <y>10</y>
+           <width>16</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Psi</string>
+         </property>
+        </widget>
+        <widget class="QDoubleSpinBox" name="m_pDoubleSpinBoxRotTheta">
+         <property name="geometry">
+          <rect>
+           <x>134</x>
+           <y>10</y>
+           <width>61</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="minimum">
+          <double>-9999.989999999999782</double>
+         </property>
+         <property name="maximum">
+          <double>9999.989999999999782</double>
+         </property>
+         <property name="singleStep">
+          <double>0.010000000000000</double>
+         </property>
+        </widget>
+        <widget class="QDoubleSpinBox" name="m_pDoubleSpinBoxRotPsi">
+         <property name="geometry">
+          <rect>
+           <x>230</x>
+           <y>10</y>
+           <width>61</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="minimum">
+          <double>-9999.989999999999782</double>
+         </property>
+         <property name="maximum">
+          <double>9999.989999999999782</double>
+         </property>
+         <property name="singleStep">
+          <double>0.010000000000000</double>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QLabel" name="label_7">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>370</y>
+          <width>71</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Rotations</string>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="m_pRadioButtonInterpretNegativeOrientation3x3">
+        <property name="geometry">
+         <rect>
+          <x>100</x>
+          <y>140</y>
+          <width>231</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string comment="This means in reality the first 3x3 elements will be treated as oposite sign values " extracomment="This means in reality the first 3x3 elements will be treated as oposite sign values "/>
+        </property>
+        <property name="statusTip">
+         <string/>
+        </property>
+        <property name="whatsThis">
+         <string comment="This means in reality the first 3x3 elements will be treated as negative values " extracomment="This means in reality the first 3x3 elements will be treated as negative values "/>
+        </property>
+        <property name="accessibleName">
+         <string/>
+        </property>
+        <property name="accessibleDescription">
+         <string/>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string>Assign negative orientation 3x3</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QtSimpleOpenGLBox" name="m_pQtSimpleOpenGLBox" native="true">
+       <property name="geometry">
+        <rect>
+         <x>9</x>
+         <y>19</y>
+         <width>391</width>
+         <height>431</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>826</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QtSimpleOpenGLBox</class>
+   <extends>QWidget</extends>
+   <header location="global">QtSimpleOpenGLBox.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
