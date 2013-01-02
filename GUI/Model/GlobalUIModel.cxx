@@ -49,6 +49,7 @@
 #include <UIReporterDelegates.h>
 #include <ReorientImageModel.h>
 #include <DisplayLayoutModel.h>
+#include <PaintbrushModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -84,6 +85,9 @@ GlobalUIModel::GlobalUIModel()
 
     m_SnakeROIModel[i] = SnakeROIModel::New();
     m_SnakeROIModel[i]->SetParent(m_SliceModel[i]);
+
+    m_PaintbrushModel[i] = PaintbrushModel::New();
+    m_PaintbrushModel[i]->SetParent(m_SliceModel[i]);
     }
 
   // Connect them together with the coordinator

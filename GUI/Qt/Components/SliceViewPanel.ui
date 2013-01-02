@@ -482,6 +482,9 @@ p, li { white-space: pre-wrap; }
       <item>
        <widget class="SnakeROIInteractionMode" name="imSnakeROI" native="true"/>
       </item>
+      <item>
+       <widget class="PaintbrushInteractionMode" name="imPaintbrush" native="true"/>
+      </item>
      </layout>
     </widget>
    </item>
@@ -686,6 +689,12 @@ p, li { white-space: pre-wrap; }
    <class>SnakeROIInteractionMode</class>
    <extends>QWidget</extends>
    <header>SnakeROIInteractionMode.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PaintbrushInteractionMode</class>
+   <extends>QWidget</extends>
+   <header>PaintbrushInteractionMode.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

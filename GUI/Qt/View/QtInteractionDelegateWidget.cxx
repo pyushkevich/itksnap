@@ -137,3 +137,9 @@ QtInteractionDelegateWidget
                &xProjection[0], &xProjection[1], &xProjection[2]);
   return xProjection;
 }
+
+double QtInteractionDelegateWidget::GetNumberOfPixelsMoved(QMouseEvent *ev)
+{
+  QPoint delta = ev->pos() - m_LastPressPos;
+  return sqrt(delta.x() * delta.x() + delta.y() * delta.y());
+}

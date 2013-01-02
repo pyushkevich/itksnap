@@ -66,6 +66,7 @@ public slots:
   void on_BtnPolygonMode_toggled(bool);
   void on_TabInspector_currentChanged(int index);
   void on_BtnSnakeMode_toggled(bool);
+  void on_BtnPaintbrushMode_toggled(bool);
 
   virtual void onModelUpdate(const EventBucket &bucket);
 

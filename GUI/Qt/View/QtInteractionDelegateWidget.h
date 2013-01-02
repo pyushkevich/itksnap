@@ -72,6 +72,9 @@ protected:
   virtual bool isDragging()
     { return m_LeftDown || m_RightDown || m_MiddleDown; }
 
+  // Return the number of pixels moved since last press
+  double GetNumberOfPixelsMoved(QMouseEvent *ev);
+
   // Get a pointer to the parent GL widget
   QtAbstractOpenGLBox *GetParentGLWidget() const;
 

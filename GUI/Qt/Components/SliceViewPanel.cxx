@@ -9,6 +9,7 @@
 #include "itkCommand.h"
 #include "CrosshairsRenderer.h"
 #include "PolygonDrawingRenderer.h"
+#include "PaintbrushRenderer.h"
 #include "SnakeROIRenderer.h"
 #include "SnakeROIModel.h"
 #include "SliceWindowCoordinator.h"
@@ -17,6 +18,7 @@
 #include "SnakeModeRenderer.h"
 #include "SnakeWizardModel.h"
 #include "DisplayLayoutModel.h"
+#include "PaintbrushModel.h"
 
 #include <QStackedLayout>
 #include <QMenu>
@@ -84,6 +86,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   loMain->addWidget(ui->imThumbnail);
   loMain->addWidget(ui->imPolygon);
   loMain->addWidget(ui->imSnakeROI);
+  loMain->addWidget(ui->imPaintbrush);
   delete ui->sliceView->layout();
   ui->sliceView->setLayout(loMain);
 
@@ -131,6 +134,7 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   ui->imThumbnail->SetModel(m_GlobalUI->GetCursorNavigationModel(index));
   ui->imPolygon->SetModel(m_GlobalUI->GetPolygonDrawingModel(index));
   ui->imSnakeROI->SetModel(m_GlobalUI->GetSnakeROIModel(index));
+  ui->imPaintbrush->SetModel(m_GlobalUI->GetPaintbrushModel(index));
 
   // Initialize the 'orphan' renderers (without a custom widget)
   m_SnakeModeRenderer->SetParentRenderer(
@@ -151,6 +155,10 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   // Listen to the Snake ROI model too
   connectITK(m_GlobalUI->GetSnakeROIModel(index),
              ModelUpdateEvent());
+
+  // Listen to paintbrush motion
+  connectITK(m_GlobalUI->GetPaintbrushModel(index),
+             PaintbrushModel::PaintbrushMovedEvent());
 
   // Listen to all (?) events from the snake wizard as well
   connectITK(m_GlobalUI->GetSnakeWizardModel(), IRISEvent());
@@ -320,23 +328,25 @@ void SliceViewPanel::OnToolbarModeChange()
 
   switch((ToolbarModeType)m_GlobalUI->GetToolbarMode())
     {
-  case POLYGON_DRAWING_MODE:
-    ConfigureEventChain(ui->imPolygon);
-    break;
-  case PAINTBRUSH_MODE:
-    break;
-  case ANNOTATION_MODE:
-    break;
-  case ROI_MODE:
-    ConfigureEventChain(ui->imSnakeROI);
-    overlays.push_back(ui->imSnakeROI->GetRenderer());
-    break;
-  case CROSSHAIRS_MODE:
-    ConfigureEventChain(ui->imCrosshairs);
-    break;
-  case NAVIGATION_MODE:
-    ConfigureEventChain(ui->imZoomPan);
-    break;
+    case POLYGON_DRAWING_MODE:
+      ConfigureEventChain(ui->imPolygon);
+      break;
+    case PAINTBRUSH_MODE:
+      ConfigureEventChain(ui->imPaintbrush);
+      overlays.push_back(ui->imPaintbrush->GetRenderer());
+      break;
+    case ANNOTATION_MODE:
+      break;
+    case ROI_MODE:
+      ConfigureEventChain(ui->imSnakeROI);
+      overlays.push_back(ui->imSnakeROI->GetRenderer());
+      break;
+    case CROSSHAIRS_MODE:
+      ConfigureEventChain(ui->imCrosshairs);
+      break;
+    case NAVIGATION_MODE:
+      ConfigureEventChain(ui->imZoomPan);
+      break;
     }
 
   // Need to change to the appropriate page

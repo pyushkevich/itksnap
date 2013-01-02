@@ -58,6 +58,7 @@ class SnakeWizardModel;
 class ProgressReporterDelegate;
 class ReorientImageModel;
 class DisplayLayoutModel;
+class PaintbrushModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -126,6 +127,11 @@ public:
   SnakeROIModel *GetSnakeROIModel(unsigned int i) const
   {
     return m_SnakeROIModel[i];
+  }
+
+  PaintbrushModel *GetPaintbrushModel(unsigned int i) const
+  {
+    return m_PaintbrushModel[i];
   }
 
   /** Get the model for intensity curve navigation */
@@ -217,6 +223,9 @@ protected:
 
   // Models for snake ROI drawing
   SmartPtr<SnakeROIModel> m_SnakeROIModel[3];
+
+  // Models for paintbrush drawing
+  SmartPtr<PaintbrushModel> m_PaintbrushModel[3];
 
   // Window coordinator
   SmartPtr<SliceWindowCoordinator> m_SliceCoordinator;

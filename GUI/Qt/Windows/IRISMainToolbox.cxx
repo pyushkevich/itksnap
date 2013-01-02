@@ -99,7 +99,7 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
   // Button names
   const char *btnNames[] = {
     "BtnCrosshairMode", "BtnZoomPanMode", "BtnPolygonMode",
-    "BtnSnakeMode", "BtnBrushMode", "BtnAnnotateMode",
+    "BtnSnakeMode", "BtnPaintbrushMode", "BtnAnnotateMode",
     "", ""};
 
   const char *icons[] = {
@@ -251,7 +251,10 @@ void IRISMainToolbox::onModelUpdate(const EventBucket &bucket)
         break;
 
       case PAINTBRUSH_MODE:
+        m_TabInspector->setCurrentIndex(2);
+        m_ToolInspector->setCurrentIndex(0);
         break;
+
       case ANNOTATION_MODE:
         break;
       }
@@ -289,6 +292,14 @@ void IRISMainToolbox::on_BtnSnakeMode_toggled(bool checked)
   if(checked)
     {
     m_Model->SetToolbarMode(ROI_MODE);
+    }
+}
+
+void IRISMainToolbox::on_BtnPaintbrushMode_toggled(bool checked)
+{
+  if(checked)
+    {
+    m_Model->SetToolbarMode(PAINTBRUSH_MODE);
     }
 }
 

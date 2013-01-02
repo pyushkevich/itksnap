@@ -255,6 +255,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/LabelEditorModel.cxx
   GUI/Model/LayerSelectionModel.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
+  GUI/Model/PaintbrushModel.cxx
   GUI/Model/PolygonDrawingModel.cxx
   GUI/Model/ReorientImageModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
@@ -274,6 +275,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/IntensityCurveRenderer.cxx
   GUI/Renderer/OpenGLSliceTexture.cxx
   GUI/Renderer/OrientationGraphicRenderer.cxx
+  GUI/Renderer/PaintbrushRenderer.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
   GUI/Renderer/PolygonScanConvert.cxx
   GUI/Renderer/SnakeROIRenderer.cxx
@@ -306,6 +308,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/LabelEditorModel.h
   GUI/Model/LayerSelectionModel.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
+  GUI/Model/PaintbrushModel.h
   GUI/Model/PolygonDrawingModel.h
   GUI/Model/PropertyModel.h
   GUI/Model/ReorientImageModel.h
@@ -329,6 +332,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/GenericSliceRenderer.h
   GUI/Renderer/IntensityCurveRenderer.h
   GUI/Renderer/OrientationGraphicRenderer.h
+  GUI/Renderer/PaintbrushRenderer.h
   GUI/Renderer/PolygonDrawingRenderer.h
   GUI/Renderer/PolygonScanConvert.h
   GUI/Renderer/SnakeROIRenderer.h
@@ -379,6 +383,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
   GUI/Qt/View/QtSimpleOpenGLBox.cxx
   GUI/Qt/View/QtVTKInteractionDelegateWidget.cxx
+  GUI/Qt/View/PaintbrushInteractionMode.cxx
   GUI/Qt/View/PolygonDrawingInteractionMode.cxx
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
   GUI/Qt/View/SnakeROIInteractionMode.cxx
@@ -427,6 +432,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/QtInteractionDelegateWidget.h
   GUI/Qt/View/QtSimpleOpenGLBox.h
   GUI/Qt/View/QtVTKInteractionDelegateWidget.h
+  GUI/Qt/View/PaintbrushInteractionMode.h
   GUI/Qt/View/PolygonDrawingInteractionMode.h
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SnakeROIInteractionMode.h
