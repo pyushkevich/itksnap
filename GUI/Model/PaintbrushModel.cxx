@@ -266,7 +266,6 @@ PaintbrushModel
                    double pixelsMoved, bool release)
 {
   IRISApplication *driver = m_Parent->GetDriver();
-  GlobalState *gs = driver->GetGlobalState();
   PaintbrushSettings pbs = driver->GetGlobalState()->GetPaintbrushSettings();
 
   // The behavior is different for 'fast' regular brushes and adaptive brush. For the
@@ -355,7 +354,8 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
   LabelImageWrapper::ImageType::RegionType xTestRegion;
   for(size_t i = 0; i < 3; i++)
     {
-    if(i != imgLabel->GetDisplaySliceImageAxis(m_Parent->GetId()) || pbs.flat == false)
+    if(i != imgLabel->GetDisplaySliceImageAxis(m_Parent->GetId())
+       || pbs.volumetric)
       {
       // For watersheds, the radius must be > 2
       double rad = (flagWatershed && pbs.radius < 1.5) ? 1.5 : pbs.radius;
@@ -451,6 +451,10 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
   if(flagUpdate)
     {
     imgLabel->GetImage()->Modified();
+
+    // TODO: this is ugly. The code for applying a brush should really be
+    // placed in the IRISApplication.
+    driver->InvokeEvent(SegmentationChangeEvent());
     }
 
   return flagUpdate;
@@ -459,6 +463,11 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
 
 Vector3f PaintbrushModel::GetCenterOfPaintbrushInSliceSpace()
 {
-  return m_Parent->MapImageToSlice(
-        to_float(m_MousePosition) + ComputeOffset());
+  PaintbrushSettings pbs =
+      m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
+
+  if(fmod(pbs.radius, 1.0) == 0)
+    return m_Parent->MapImageToSlice(to_float(m_MousePosition));
+  else
+    return m_Parent->MapImageToSlice(to_float(m_MousePosition) + Vector3f(0.5f));
 }

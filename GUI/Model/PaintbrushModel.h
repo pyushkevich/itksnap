@@ -2,10 +2,10 @@
 #define PAINTBRUSHMODEL_H
 
 #include "AbstractModel.h"
+#include "GlobalState.h"
 
 class GenericSliceModel;
 class BrushWatershedPipeline;
-class PaintbrushSettings;
 
 
 class PaintbrushModel : public AbstractModel

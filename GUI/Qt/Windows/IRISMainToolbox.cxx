@@ -37,6 +37,7 @@
 #include <CursorInspector.h>
 #include <LabelInspector.h>
 #include <SnakeToolROIPanel.h>
+#include <PaintbrushToolPanel.h>
 #include <DisplayLayoutInspector.h>
 
 #include <SnakeWizardPanel.h>
@@ -160,8 +161,11 @@ IRISMainToolbox::IRISMainToolbox(QWidget *parent) :
 
   // Add the various tool panels
   m_SnakeToolROIPanel = new SnakeToolROIPanel();
+  m_PaintbrushToolPanel = new PaintbrushToolPanel();
+
   m_ToolInspector->addWidget(new QWidget(this));
   m_ToolInspector->addWidget(m_SnakeToolROIPanel);
+  m_ToolInspector->addWidget(m_PaintbrushToolPanel);
 
   QWidget *tabContent[] = {
     m_CursorInspector, m_ZoomInspector, m_LabelInspector,
@@ -212,6 +216,7 @@ void IRISMainToolbox::SetModel(GlobalUIModel *model)
   m_LabelInspector->SetModel(model);
   m_SnakeToolROIPanel->SetModel(model);
   m_DisplayLayoutInspector->SetModel(model->GetDisplayLayoutModel());
+  m_PaintbrushToolPanel->SetModel(model->GetPaintbrushSettingsModel());
 
   // Set up state machine
   activateOnNotFlag(
@@ -246,13 +251,13 @@ void IRISMainToolbox::onModelUpdate(const EventBucket &bucket)
         break;
 
       case ROI_MODE:
-        m_TabInspector->setCurrentIndex(3);
-        m_ToolInspector->setCurrentIndex(1);
+        m_TabInspector->setCurrentIndex(4);
+        m_ToolInspector->setCurrentWidget(m_SnakeToolROIPanel);
         break;
 
       case PAINTBRUSH_MODE:
-        m_TabInspector->setCurrentIndex(2);
-        m_ToolInspector->setCurrentIndex(0);
+        m_TabInspector->setCurrentIndex(4);
+        m_ToolInspector->setCurrentWidget(m_PaintbrushToolPanel);
         break;
 
       case ANNOTATION_MODE:

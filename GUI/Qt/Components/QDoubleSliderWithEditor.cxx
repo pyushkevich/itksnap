@@ -1,5 +1,6 @@
 #include "QDoubleSliderWithEditor.h"
 #include "ui_QDoubleSliderWithEditor.h"
+#include <cmath>
 
 QDoubleSliderWithEditor::QDoubleSliderWithEditor(QWidget *parent) :
     QWidget(parent),
@@ -19,6 +20,7 @@ QDoubleSliderWithEditor::QDoubleSliderWithEditor(QWidget *parent) :
 
   m_IgnoreSliderEvent = false;
   m_IgnoreSpinnerEvent = false;
+  m_ForceDiscreteSteps = true;
 }
 
 QDoubleSliderWithEditor::~QDoubleSliderWithEditor()
@@ -92,6 +94,11 @@ void QDoubleSliderWithEditor::setSingleStep(double x)
   ui->spinbox->setSingleStep(x);
 }
 
+void QDoubleSliderWithEditor::setForceDiscreteSteps(bool useDiscreteSteps)
+{
+  m_ForceDiscreteSteps = useDiscreteSteps;
+}
+
 void QDoubleSliderWithEditor::sliderValueChanged(int valslider)
 {
   if(!m_IgnoreSliderEvent)
@@ -100,7 +107,19 @@ void QDoubleSliderWithEditor::sliderValueChanged(int valslider)
     double r = valslider * 1.0 / ui->slider->maximum();
     double a = ui->spinbox->minimum();
     double b = ui->spinbox->maximum();
-    double v = a + (b - a) * r;
+    double v;
+
+    // If necessary, round the value using singleStep
+    if(m_ForceDiscreteSteps)
+      {
+      double step = ui->spinbox->singleStep();
+      double t = 0.5 * step + (b - a) * r;
+      v = a + (t - std::fmod(t, step));
+      }
+    else
+      {
+      v = a + (b - a) * r;
+      }
 
     // Set the value in the spinner and slider
     this->setValue(v);

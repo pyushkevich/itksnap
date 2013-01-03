@@ -59,5 +59,8 @@
         <file>dl_sagittal.png</file>
         <file>dl_toolbox.png</file>
         <file>expand_16.png</file>
+        <file>brush_shape_adaptive.png</file>
+        <file>brush_shape_round.png</file>
+        <file>brush_shape_square.png</file>
     </qresource>
 </RCC>

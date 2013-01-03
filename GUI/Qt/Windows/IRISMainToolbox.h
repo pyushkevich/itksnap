@@ -43,6 +43,7 @@ class LabelInspector;
 class QTabWidget;
 class SnakeToolROIPanel;
 class DisplayLayoutInspector;
+class PaintbrushToolPanel;
 
 class IRISMainToolbox : public SNAPComponent
 {
@@ -92,6 +93,7 @@ private:
   QStackedWidget *m_ToolInspector;
 
   SnakeToolROIPanel *m_SnakeToolROIPanel;
+  PaintbrushToolPanel *m_PaintbrushToolPanel;
 };
 
 #endif // IRISMAINTOOLBOX_H

@@ -38,6 +38,10 @@ public:
   void setSingleStep(double);
   void setOrientation(Qt::Orientation) {}
 
+  /** Whether the slider uses discrete steps (in units of SingleStep) or
+   * a continuous range of values */
+  void setForceDiscreteSteps(bool useDiscreteSteps);
+
 public slots:
 
   void sliderValueChanged(int);
@@ -53,6 +57,7 @@ private:
   Ui::QDoubleSliderWithEditor *ui;
 
   bool m_IgnoreSliderEvent, m_IgnoreSpinnerEvent;
+  bool m_ForceDiscreteSteps;
 };
 
 #endif // QDOUBLESLIDERWITHEDITOR_H

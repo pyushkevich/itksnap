@@ -50,6 +50,7 @@
 #include <ReorientImageModel.h>
 #include <DisplayLayoutModel.h>
 #include <PaintbrushModel.h>
+#include <PaintbrushSettingsModel.h>
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -70,6 +71,12 @@ GlobalUIModel::GlobalUIModel()
   // Display layout model
   m_DisplayLayoutModel = DisplayLayoutModel::New();
   m_DisplayLayoutModel->SetParentModel(this);
+
+  // Paintbrush settings
+  m_PaintbrushSettingsModel = PaintbrushSettingsModel::New();
+  m_PaintbrushSettingsModel->SetParentModel(this);
+
+
 
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)

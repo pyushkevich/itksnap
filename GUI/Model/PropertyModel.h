@@ -997,4 +997,124 @@ wrapIndexedGetterSetterPairAsProperty(
 }
 
 
+
+/**
+ * This model is used to decorate a member in a C++ struct as a property. This
+ * is useful when we have a property of type X, and we want to be able to access
+ * X.a as a property.
+ */
+template <class TStruct, class TMember, class TDomain>
+class StructMemberWrapperPropertyModel
+    : public AbstractPropertyModel<TMember, TDomain>
+{
+public:
+
+  // Standard ITK stuff (can't use irisITKObjectMacro because of two template
+  // parameters, comma breaks the macro).
+  typedef StructMemberWrapperPropertyModel<TStruct, TMember, TDomain> Self;
+  typedef AbstractPropertyModel<TMember, TDomain> Superclass;
+  typedef SmartPtr<Self> Pointer;
+  typedef SmartPtr<const Self> ConstPointer;
+
+  itkTypeMacro(StructMemberWrapperPropertyModel, AbstractPropertyModel)
+  itkNewMacro(Self)
+
+  // Set the source model (the one that manages the TStruct)
+  typedef AbstractPropertyModel<TStruct> ParentModel;
+  void Initialize(ParentModel *model, size_t offset, const TDomain &domain)
+  {
+    m_ParentModel = model;
+    m_MemberOffset = offset;
+    m_Domain = domain;
+
+    // Respond to value change events
+    AbstractModel::Rebroadcast(m_ParentModel, ValueChangedEvent(), ValueChangedEvent());
+  }
+
+  bool GetValueAndDomain(TMember &value, TDomain *domain)
+  {
+    TStruct parentValue;
+    if(m_ParentModel && m_ParentModel->GetValueAndDomain(parentValue,  NULL))
+      {
+      // Get the value of the member based on the offset
+      TMember *valuePtr =
+          reinterpret_cast<TMember *>(
+            reinterpret_cast<char *>(&parentValue) + m_MemberOffset);
+
+      value = *valuePtr;
+      if(domain)
+        *domain = m_Domain;
+
+      return true;
+      }
+    return false;
+  }
+
+  void SetValue(TMember value)
+  {
+    TStruct parentValue;
+    if(m_ParentModel && m_ParentModel->GetValueAndDomain(parentValue,  NULL))
+      {
+      // Get the value of the member based on the offset
+      TMember *valuePtr =
+          reinterpret_cast<TMember *>(
+            reinterpret_cast<char *>(&parentValue) + m_MemberOffset);
+
+      // Set the value
+      if(*valuePtr != value)
+        {
+        *valuePtr = value;
+        m_ParentModel->SetValue(parentValue);
+        }
+      }
+  }
+
+  static SmartPtr<Superclass> CreatePropertyModel(
+      ParentModel *parentModel,
+      size_t offset,
+      TDomain domain)
+  {
+    SmartPtr<Self> p = Self::New();
+    p->Initialize(parentModel, offset, domain);
+
+    // p->UnRegister();
+
+    SmartPtr<Superclass> pout(p);
+    return pout;
+  }
+
+protected:
+  StructMemberWrapperPropertyModel()
+    : m_ParentModel(NULL), m_MemberOffset(0) {}
+
+
+  ParentModel *m_ParentModel;
+  size_t m_MemberOffset;
+  TDomain m_Domain;
+};
+
+template <class TStruct, class TField>
+SmartPtr< AbstractPropertyModel<TField> >
+wrapStructMemberAsSimpleProperty(
+    AbstractPropertyModel<TStruct> *parentModel,
+    size_t offset)
+{
+  typedef StructMemberWrapperPropertyModel<TStruct, TField, TrivialDomain> ModelType;
+  TrivialDomain td;
+  return ModelType::CreatePropertyModel(parentModel, offset, td);
+}
+
+template <class TStruct, class TField>
+SmartPtr< AbstractPropertyModel<TField, NumericValueRange<TField> > >
+wrapStructMemberAsRangedProperty(
+    AbstractPropertyModel<TStruct> *parentModel,
+    size_t offset,
+    const NumericValueRange<TField> &domain)
+{
+  typedef StructMemberWrapperPropertyModel<TStruct, TField, NumericValueRange<TField> > ModelType;
+  return ModelType::CreatePropertyModel(parentModel, offset, domain);
+}
+
+
+
 #endif // EDITABLENUMERICVALUEMODEL_H

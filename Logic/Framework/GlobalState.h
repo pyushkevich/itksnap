@@ -124,7 +124,7 @@ struct PaintbrushSettings
 {
   double radius;
   PaintbrushMode mode;
-  bool flat;
+  bool volumetric;
   bool isotropic;
   bool chase;
 

@@ -59,6 +59,7 @@ class ProgressReporterDelegate;
 class ReorientImageModel;
 class DisplayLayoutModel;
 class PaintbrushModel;
+class PaintbrushSettingsModel;
 
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
@@ -164,6 +165,9 @@ public:
   /** The model handling display layout properties */
   irisGetMacro(DisplayLayoutModel, DisplayLayoutModel *)
 
+  /** Model for managing paintbrush settings */
+  irisGetMacro(PaintbrushSettingsModel, PaintbrushSettingsModel *)
+
   /** Load the main image */
   void LoadGrayImage(GuidedNativeImageIO *io);
 
@@ -262,6 +266,9 @@ protected:
 
   // Display layout model
   SmartPtr<DisplayLayoutModel> m_DisplayLayoutModel;
+
+  // Paintbrush settings
+  SmartPtr<PaintbrushSettingsModel> m_PaintbrushSettingsModel;
 
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;
