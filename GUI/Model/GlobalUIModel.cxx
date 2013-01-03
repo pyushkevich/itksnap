@@ -253,9 +253,9 @@ bool GlobalUIModel::CheckState(UIState state)
     case UIF_LINKED_ZOOM:
       return m_SliceCoordinator->GetLinkedZoom();
     case UIF_UNDO_POSSIBLE:
-      break;
+      return m_Driver->IsUndoPossible();
     case UIF_REDO_POSSIBLE:
-      break;
+      return m_Driver->IsRedoPossible();
     case UIF_UNSAVED_CHANGES:
       break;
     case UIF_MESH_SAVEABLE:

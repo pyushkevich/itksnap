@@ -46,6 +46,7 @@
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
 #include <QtWidgetCoupling.h>
+#include <QtWidgetActivator.h>
 
 #include <LabelEditorDialog.h>
 #include <ReorientImageDialog.h>
@@ -291,6 +292,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Populate the recent file menu
   this->UpdateRecentMenu();
+
+  // Set up activations
+  activateOnFlag(ui->actionUndo, m_Model, UIF_UNDO_POSSIBLE);
+  activateOnFlag(ui->actionRedo, m_Model, UIF_REDO_POSSIBLE);
+
 }
 
 
@@ -574,4 +580,14 @@ void MainImageWindow::on_actionZoomToFitInAllViews_triggered()
 void MainImageWindow::on_actionCenter_on_Cursor_triggered()
 {
   m_Model->GetSliceCoordinator()->CenterViewOnCursorInAllWindows();
+}
+
+void MainImageWindow::on_actionUndo_triggered()
+{
+  m_Model->GetDriver()->Undo();
+}
+
+void MainImageWindow::on_actionRedo_triggered()
+{
+  m_Model->GetDriver()->Redo();
 }

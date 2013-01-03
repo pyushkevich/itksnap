@@ -711,6 +711,7 @@ IRISApplication
   // Set modified flags
   imSeg->GetImage()->Modified();
   imUndo->GetImage()->Modified();
+  InvokeEvent(SegmentationChangeEvent());
 }
 
 
@@ -758,6 +759,7 @@ IRISApplication
   // Set modified flags
   imSeg->GetImage()->Modified();
   imUndo->GetImage()->Modified();
+  InvokeEvent(SegmentationChangeEvent());
 }
 
 
