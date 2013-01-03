@@ -694,6 +694,32 @@ TARGET_LINK_LIBRARIES(${SNAP_EXE}
 ###   ${SNAP_INTERNAL_LIBS}
 ###   ${SNAP_EXTERNAL_LIBS})
 
+SET(TEST_ORIENTATION_WIDGET_HEADERS
+  #GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidget.h
+  GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h
+)
+
+SET(TEST_ORIENTATION_WIDGET_CXX
+  #GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidget.cxx
+  GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.cxx
+  GUI/Renderer/OrientationWidget/Test_OrientationWidget/main.cxx
+)
+
+QT4_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
+QT4_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
+
+
+ADD_EXECUTABLE(Test_OrientationWidget
+  ${TEST_ORIENTATION_WIDGET_CXX} ${TEST_ORIENTATION_WIDGET_HEADERS}
+  ${UI_ORIENTATION_WIDGET_SRCS} ${MOC_ORIENTATION_WIDGET_SRCS}
+)
+
+TARGET_LINK_LIBRARIES(Test_OrientationWidget
+  ${SNAP_INTERNAL_LIBS}
+  ${SNAP_EXTERNAL_LIBS}
+)
+
+
 # ----------------------------------------------------------------
 # Miscelaneous tasks (not related to link and compilation)
 # ----------------------------------------------------------------

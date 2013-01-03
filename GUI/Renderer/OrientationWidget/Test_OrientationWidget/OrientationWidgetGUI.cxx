@@ -5,24 +5,30 @@
 #include <QFileDialog>
 #include <QWheelEvent>
 
+#include <vtkCamera.h>
+#include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
 
-#include "ReorientGUI.h"
-#include "Reorient.h"
-#include "ScanningROI.h"
+
+#include <OrientationGraphicRenderer.h>
+#include <QtSimpleOpenGLBox.h>
+#include <ScanningROI.h>
+#include "OrientationWidgetGUI.h"
+
 
 using namespace std;
 
 
-ReorientGUI::ReorientGUI()
+OrientationWidgetGUI::OrientationWidgetGUI()
 {	
 
   setupUi(this);
   
-  m_pQVTKWidget->SetRenderWindow(m_Reorient.GetRenderWindow());
-  m_Reorient.setInteractor(m_pQVTKWidget->GetInteractor());
-  
+  m_pRAIRenderer = OrientationGraphicRenderer::New();
+  m_pQtSimpleOpenGLBox->SetRenderer(m_pRAIRenderer);
+
   vtkSmartPointer < vtkMatrix4x4 > pMatrix = vtkSmartPointer < vtkMatrix4x4 >::New();
-  m_Reorient.GetDirections(pMatrix);
+  m_ReorientProps.GetDirections(pMatrix);
 
   int nI, nJ;
   for(nI = 0; nI < 4; nI++)
@@ -45,13 +51,20 @@ ReorientGUI::ReorientGUI()
 
   connect(m_pRadioButtonInterpretNegativeOrientation3x3,SIGNAL( toggled(bool) ), this, SLOT( slotSelectNegativeOrientation(bool) ));
   
+  vtkRenderWindow * pWin = m_pRAIRenderer->GetRenderWindow();
+  vtkRendererCollection * pRC = pWin->GetRenderers();
+  vtkRenderer * pRenderer = pRC->GetFirstRenderer();
+  vtkCamera * pCamera = pRenderer->GetActiveCamera();
+  pCamera->SetPosition(10.0, -10.0, 10.0);
+  pCamera->SetViewUp(0.0, -1.0, 0.0);
+
 }
 
-ReorientGUI::~ReorientGUI()
+OrientationWidgetGUI::~OrientationWidgetGUI()
 {
 }
 
-vtkSmartPointer < vtkMatrix4x4 > ReorientGUI::getMtrx4x4GUI()
+vtkSmartPointer < vtkMatrix4x4 > OrientationWidgetGUI::getMtrx4x4GUI()
 {
   vtkSmartPointer < vtkMatrix4x4 > pMatrix4x4 = vtkSmartPointer < vtkMatrix4x4 >::New();
   int nI, nJ;
@@ -66,13 +79,13 @@ vtkSmartPointer < vtkMatrix4x4 > ReorientGUI::getMtrx4x4GUI()
   return(pMatrix4x4);
 }
 
-void ReorientGUI::slotReorient(int anDummyRow, int anDummyCol)
+void OrientationWidgetGUI::slotReorient(int anDummyRow, int anDummyCol)
 {
   vtkSmartPointer < vtkMatrix4x4 > pMatrix4x4 = getMtrx4x4GUI();
-  m_Reorient.Update(pMatrix4x4);
+  m_ReorientProps.Update(pMatrix4x4);
 }
 
-void ReorientGUI::slotPhiThetaPsi(double adbValue)
+void OrientationWidgetGUI::slotPhiThetaPsi(double adbValue)
 {
   disconnect(m_pTableWidget,SIGNAL( cellChanged (int, int) ), this, SLOT( slotReorient(int, int) ));
 
@@ -117,12 +130,12 @@ void ReorientGUI::slotPhiThetaPsi(double adbValue)
     {
 	ScanningROI::changeOrientation3x3(pMatrix4x4);
     }
-  m_Reorient.Update(pMatrix4x4);
+  m_ReorientProps.Update(pMatrix4x4);
 
   connect(m_pTableWidget,SIGNAL( cellChanged (int, int) ), this, SLOT( slotReorient(int, int) ));
 }
 
-void ReorientGUI::slotSelectNegativeOrientation(bool abInterpretNegativeOrientation3x3)
+void OrientationWidgetGUI::slotSelectNegativeOrientation(bool abInterpretNegativeOrientation3x3)
 {
   vtkSmartPointer < vtkMatrix4x4 > pMatrix4x4 =
 	//vtkSmartPointer < vtkMatrix4x4 >::New();
@@ -132,5 +145,5 @@ void ReorientGUI::slotSelectNegativeOrientation(bool abInterpretNegativeOrientat
     {
 	ScanningROI::changeOrientation3x3(pMatrix4x4);
     }
-  m_Reorient.Update(pMatrix4x4);
+  m_ReorientProps.Update(pMatrix4x4);
 }

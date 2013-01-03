@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>804</width>
-    <height>519</height>
+    <width>826</width>
+    <height>533</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -77,7 +77,7 @@
          <widget class="QTableWidget" name="m_pTableWidget">
           <property name="geometry">
            <rect>
-            <x>40</x>
+            <x>30</x>
             <y>160</y>
             <width>301</width>
             <height>201</height>
@@ -174,6 +174,9 @@
           </property>
          </widget>
          <widget class="QFrame" name="frame_3">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="geometry">
            <rect>
             <x>30</x>
@@ -277,6 +280,9 @@
           </widget>
          </widget>
          <widget class="QFrame" name="frame_4">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="geometry">
            <rect>
             <x>30</x>
@@ -382,7 +388,7 @@
          <widget class="QFrame" name="frame_5">
           <property name="geometry">
            <rect>
-            <x>20</x>
+            <x>30</x>
             <y>390</y>
             <width>301</width>
             <height>40</height>
@@ -516,9 +522,9 @@
          <widget class="QRadioButton" name="m_pRadioButtonInterpretNegativeOrientation3x3">
           <property name="geometry">
            <rect>
-            <x>141</x>
+            <x>100</x>
             <y>140</y>
-            <width>191</width>
+            <width>231</width>
             <height>20</height>
            </rect>
           </property>
@@ -541,7 +547,7 @@
            <enum>Qt::RightToLeft</enum>
           </property>
           <property name="text">
-           <string>Interpret negative orientation 3x3</string>
+           <string>Assign negative orientation 3x3</string>
           </property>
          </widget>
         </widget>
@@ -556,8 +562,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>804</width>
-     <height>21</height>
+     <width>826</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>
