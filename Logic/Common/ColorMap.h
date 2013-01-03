@@ -40,6 +40,7 @@
 #include "Registry.h"
 #include <vector>
 #include "itkDataObject.h"
+#include "itkObjectFactory.h"
 #include "SNAPEvents.h"
 
 /**

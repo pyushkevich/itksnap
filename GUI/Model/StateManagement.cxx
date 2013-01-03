@@ -1,5 +1,6 @@
 #include "StateManagement.h"
 #include "SNAPEvents.h"
+#include "SNAPEventListenerCallbacks.h"
 
 void BooleanCondition
 ::OnStateChange()

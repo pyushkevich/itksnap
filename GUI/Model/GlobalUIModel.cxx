@@ -223,8 +223,9 @@ GlobalUIModel::GlobalUIModel()
   m_ProgressReporterDelegate = NULL;
 
   // Initialize the progress reporting command
-  m_ProgressCommand = itk::MemberCommand<Self>::New();
-  m_ProgressCommand->SetCallbackFunction(this, &GlobalUIModel::ProgressCallback);
+  SmartPtr<itk::MemberCommand<Self> > progcmd = itk::MemberCommand<Self>::New();
+  progcmd->SetCallbackFunction(this, &GlobalUIModel::ProgressCallback);
+  m_ProgressCommand = progcmd.GetPointer();
 }
 
 GlobalUIModel::~GlobalUIModel()

@@ -1,5 +1,7 @@
 #include "LatentITKEventNotifier.h"
+#include <itkObject.h>
 #include <QApplication>
+#include <SNAPEventListenerCallbacks.h>
 
 LatentITKEventNotifierCleanup
 ::LatentITKEventNotifierCleanup(QObject *parent)

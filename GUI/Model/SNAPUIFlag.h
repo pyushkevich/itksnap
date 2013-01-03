@@ -3,6 +3,7 @@
 
 #include "StateManagement.h"
 #include "UIState.h"
+#include "SNAPEventListenerCallbacks.h"
 
 class GlobalUIModel;
 

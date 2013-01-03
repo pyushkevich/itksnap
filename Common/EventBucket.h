@@ -5,6 +5,11 @@
 #include <set>
 #include <iostream>
 
+namespace itk
+{
+class Object;
+}
+
 /**
   A simple 'bucket' that stores events. You can easily add events to
   the bucket and check if events are present there.

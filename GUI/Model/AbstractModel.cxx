@@ -2,6 +2,11 @@
 #include "EventBucket.h"
 
 #include <IRISException.h>
+#include <vtkObject.h>
+#include <vtkCommand.h>
+
+#include "SNAPEventListenerCallbacks.h"
+
 
 AbstractModel::AbstractModel()
   : itk::Object()
@@ -78,6 +83,31 @@ AbstractModel::Rebroadcaster
   m_Model->InvokeEvent(*m_Event);
 }
 
+void
+AbstractModel::Rebroadcaster
+::BroadcastVTK(vtkObject *source, unsigned long event, void *)
+{
+#ifdef SNAP_DEBUG_EVENTS
+  if(flag_snap_debug_events)
+    {
+    std::cout << "REBROADCAST VTK event "
+              <<  vtkCommand::GetStringFromEventId(event)
+              << " from " << source->GetClassName()
+              << " [" << source << "] "
+              << " as " << m_Event->GetEventName()
+              << " from " << m_Model->GetNameOfClass()
+              << " [" << m_Model << "] "
+              << std::endl;
+    }
+#endif // SNAP_DEBUG_EVENTS
+
+  // TODO: how to package this up for the bucket?
+  m_Model->m_EventBucket->PutEvent(VTKEvent(), NULL);
+  m_Model->InvokeEvent(*m_Event);
+}
+
+
+
 unsigned long
 AbstractModel::Rebroadcast(
     itk::Object *src, const itk::EventObject &srcEvent, const itk::EventObject &trgEvent)
@@ -85,4 +115,13 @@ AbstractModel::Rebroadcast(
   Rebroadcaster *reb = new Rebroadcaster(this, trgEvent);
   m_Rebroadcast.push_back(reb);
   return AddListenerPair(src, srcEvent, reb, &Rebroadcaster::Broadcast, &Rebroadcaster::Broadcast);
+}
+
+unsigned long
+AbstractModel::Rebroadcast(
+    vtkObject *src, unsigned long srcEvent, const itk::EventObject &trgEvent)
+{
+  Rebroadcaster *reb = new Rebroadcaster(this, trgEvent);
+  m_Rebroadcast.push_back(reb);
+  return AddListenerVTK(src, srcEvent, reb, &Rebroadcaster::BroadcastVTK);
 }

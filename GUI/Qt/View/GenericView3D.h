@@ -1,7 +1,7 @@
 #ifndef GENERICVIEW3D_H
 #define GENERICVIEW3D_H
 
-#include <QtAbstractOpenGLBox.h>
+#include <QtVTKRenderWindowBox.h>
 #include <SNAPCommon.h>
 
 #include <vtkSmartPointer.h>
@@ -13,7 +13,7 @@ class vtkObject;
 class CursorPlacementInteractorStyle;
 
 
-class GenericView3D : public QtAbstractOpenGLBox
+class GenericView3D : public QtVTKRenderWindowBox
 {
   Q_OBJECT
 
@@ -23,11 +23,6 @@ public:
 
   void SetModel(Generic3DModel *model);
 
-  AbstractRenderer *GetRenderer() const;
-
-  void resizeGL(int w, int h);
-
-  void RendererCallback(vtkObject *src, unsigned long event, void *data);
 signals:
 
 public slots:
@@ -41,8 +36,6 @@ protected:
 
   // The renderer (we own it)
   SmartPtr<Generic3DRenderer> m_Renderer;
-
-  vtkGenericRenderWindowInteractor *iren;
 
   vtkSmartPointer<CursorPlacementInteractorStyle> m_CursorPlacementStyle;
 };

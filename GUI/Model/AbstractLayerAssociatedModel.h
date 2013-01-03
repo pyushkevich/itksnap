@@ -6,6 +6,7 @@
 #include "GlobalUIModel.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
+#include "SNAPEventListenerCallbacks.h"
 
 /**
   This is an abstract class for a special type of UI model that can be

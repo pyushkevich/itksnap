@@ -40,6 +40,7 @@
 #include "itkExceptionObject.h"
 #include "itkDataObject.h"
 #include "SNAPEvents.h"
+#include "itkObjectFactory.h"
 
 /**
  * \class ColorLabelTable

@@ -257,7 +257,7 @@ PaintbrushModel
   m_LastApplyX = xSlice;
 
   // Eat the event unless cursor chasing is enabled
-  return !pbs.chase;
+  return pbs.chase ? 0 : 1;
 }
 
 bool
@@ -270,20 +270,14 @@ PaintbrushModel
 
   // The behavior is different for 'fast' regular brushes and adaptive brush. For the
   // adaptive brush, dragging is disabled.
-  if(pbs.mode == PAINTBRUSH_WATERSHED && !m_ReverseMode)
+  if(pbs.mode != PAINTBRUSH_WATERSHED || m_ReverseMode)
     {
-    if(release)
-      driver->StoreUndoPoint("Drawing with paintbrush");
-
-    return !pbs.chase;
-    }
-
-  else
-    {
-    // See how much we have moved since the last event
-    // double delta = (event.XCanvas - m_LastMouseEvent.XCanvas).magnitude();
+    // See how much we have moved since the last event. If we moved more than
+    // the value of the radius, we interpolate the path and place brush strokes
+    // along the path
     if(pixelsMoved > pbs.radius)
       {
+      // Break up the path into steps
       size_t nSteps = (int) ceil(pixelsMoved / pbs.radius);
       for(size_t i = 0; i < nSteps; i++)
         {
@@ -300,18 +294,24 @@ PaintbrushModel
 
       // Scan convert the points into the slice
       ApplyBrush(m_ReverseMode, true);
-
-      // Set an undo point if not in drag mode
-      if(release)
-        driver->StoreUndoPoint("Drawing with paintbrush");
       }
 
     // Store this as the last apply position
     m_LastApplyX = xSlice;
-
-    // Eat the event unless cursor chasing is enabled
-    return !pbs.chase ? 0 : 1;
     }
+
+  // If the mouse is being released, we need to commit the drawing
+  if(release)
+    {
+    driver->StoreUndoPoint("Drawing with paintbrush");
+
+    // TODO: this is ugly. The code for applying a brush should really be
+    // placed in the IRISApplication.
+    driver->InvokeEvent(SegmentationChangeEvent());
+    }
+
+  // Eat the event unless cursor chasing is enabled
+  return pbs.chase ? 0 : 1;
 }
 
 bool PaintbrushModel::ProcessMouseMoveEvent(const Vector3f &xSlice)
@@ -451,10 +451,6 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
   if(flagUpdate)
     {
     imgLabel->GetImage()->Modified();
-
-    // TODO: this is ugly. The code for applying a brush should really be
-    // placed in the IRISApplication.
-    driver->InvokeEvent(SegmentationChangeEvent());
     }
 
   return flagUpdate;

@@ -10,6 +10,10 @@
 #include <QtWidgetActivator.h>
 #include <QtSimpleOpenGLBox.h>
 
+#include <QtVTKInteractionDelegateWidget.h>
+#include <vtkGenericRenderWindowInteractor.h>
+#include <vtkInteractorStyleTrackballCamera.h>
+
 Q_DECLARE_METATYPE(ImageCoordinateGeometry::AxisDirection);
 
 ReorientImageDialog::ReorientImageDialog(QWidget *parent) :
@@ -24,6 +28,9 @@ ReorientImageDialog::ReorientImageDialog(QWidget *parent) :
 
   m_NewRAIRenderer = OrientationGraphicRenderer::New();
   ui->iconNew->SetRenderer(m_NewRAIRenderer);
+
+  // Synchronize the cameras between the two renderers
+  m_NewRAIRenderer->SyncronizeCamera(m_CurrentRAIRenderer);
 }
 
 ReorientImageDialog::~ReorientImageDialog()

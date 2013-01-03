@@ -27,10 +27,9 @@
 #ifndef SNAPEVENTS_H
 #define SNAPEVENTS_H
 
-#include "itkObject.h"
-#include "itkCommand.h"
 #include "itkEventObject.h"
 #include <ostream>
+
 
 /**
   To enable event debugging, ITK-SNAP must be compiled with the
@@ -46,6 +45,9 @@ extern bool flag_snap_debug_events;
 
 // Common events for the whole application
 itkEventMacro(IRISEvent, itk::AnyEvent)
+
+// Any event originating in VTK
+itkEventMacro(VTKEvent, IRISEvent)
 
 // Events fired by IRISApplication
 
@@ -142,56 +144,6 @@ itkEventMacro(DisplayToAnatomyCoordinateMappingChangeEvent, IRISEvent)
 #define FIRES(event) virtual bool Fires##event() const { return true; }
 
 
-template <class TObserver>
-unsigned long AddListener(itk::Object *sender,
-                 const itk::EventObject &event,
-                 TObserver *observer,
-                 void (TObserver::*memberFunction)())
-{
-  typedef itk::SimpleMemberCommand<TObserver> Cmd;
-  typename Cmd::Pointer cmd = Cmd::New();
-  cmd->SetCallbackFunction(observer, memberFunction);
-  return sender->AddObserver(event, cmd);
-}
 
-template <class TObserver>
-unsigned long AddListener(itk::Object *sender,
-                 const itk::EventObject &event,
-                 TObserver *observer,
-                 void (TObserver::*memberFunction)(itk::Object*, const itk::EventObject &))
-{
-  typedef itk::MemberCommand<TObserver> Cmd;
-  typename Cmd::Pointer cmd = Cmd::New();
-  cmd->SetCallbackFunction(observer, memberFunction);
-
-  return sender->AddObserver(event, cmd);
-}
-
-template <class TObserver>
-unsigned long AddListenerConst(itk::Object *sender,
-                 const itk::EventObject &event,
-                 TObserver *observer,
-                 void (TObserver::*memberFunction)(const itk::Object*, const itk::EventObject &))
-{
-  typedef itk::MemberCommand<TObserver> Cmd;
-  typename Cmd::Pointer cmd = Cmd::New();
-  cmd->SetCallbackFunction(observer, memberFunction);
-  return sender->AddObserver(event, cmd);
-}
-
-template <class TObserver>
-unsigned long AddListenerPair(
-    itk::Object *sender,
-    const itk::EventObject &event,
-    TObserver *observer,
-    void (TObserver::*memberFunction)(itk::Object*, const itk::EventObject &),
-    void (TObserver::*constMemberFunction)(const itk::Object*, const itk::EventObject &))
-{
-  typedef itk::MemberCommand<TObserver> Cmd;
-  typename Cmd::Pointer cmd = Cmd::New();
-  cmd->SetCallbackFunction(observer, memberFunction);
-  cmd->SetCallbackFunction(observer, constMemberFunction);
-  return sender->AddObserver(event, cmd);
-}
 
 #endif // SNAPEVENTS_H

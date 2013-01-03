@@ -47,64 +47,25 @@ vtkCxxRevisionMacro(CursorPlacementInteractorStyle, "$Revision: 1.1 $")
 vtkStandardNewMacro(CursorPlacementInteractorStyle)
 
 GenericView3D::GenericView3D(QWidget *parent) :
-    QtAbstractOpenGLBox(parent)
+    QtVTKRenderWindowBox(parent)
 {
-  // Create the renderer
+  // Create and assign the renderer
   m_Renderer = Generic3DRenderer::New();
-
-  // Repaint ourselves when renderer updates
-  connectITK(m_Renderer, ModelUpdateEvent());
-
-  iren = vtkGenericRenderWindowInteractor::New();
-  iren->SetRenderWindow(m_Renderer->GetRenderWindow());
-
-  // context events
-  m_Renderer->GetRenderWindow()->AddObserver(
-        vtkCommand::WindowMakeCurrentEvent,
-        this, &GenericView3D::RendererCallback);
-
-  m_Renderer->GetRenderWindow()->AddObserver(
-        vtkCommand::WindowIsCurrentEvent,
-        this, &GenericView3D::RendererCallback);
-
-  vtkSmartPointer<vtkInteractorStyleTrackballCamera> inter =
-      vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+  this->SetRenderer(m_Renderer);
 
   m_CursorPlacementStyle = vtkSmartPointer<CursorPlacementInteractorStyle>::New();
 
+  // Assign a point picker
   vtkSmartPointer<vtkWorldPointPicker> worldPointPicker =
     vtkSmartPointer<vtkWorldPointPicker>::New();
-  iren->SetPicker(worldPointPicker);
+  m_Renderer->GetRenderWindowInteractor()->SetPicker(worldPointPicker);
 
-
-  iren->SetInteractorStyle(m_CursorPlacementStyle);
-  iren->Initialize();
-
-  // Create interaction delegate widget to handle this interaction
-  QtVTKInteractionDelegateWidget *delegate =
-      new QtVTKInteractionDelegateWidget(this);
-  delegate->SetVTKInteractor(iren);
-  this->AttachSingleDelegate(delegate);
+  // Assign an interactor style
+  m_Renderer->GetRenderWindowInteractor()->SetInteractorStyle(m_CursorPlacementStyle);
 }
 
 GenericView3D::~GenericView3D()
 {
-  iren->Delete();
-
-}
-
-void GenericView3D::RendererCallback(
-    vtkObject *src, unsigned long event, void *data)
-{
-  if(event == vtkCommand::WindowMakeCurrentEvent)
-    {
-    this->makeCurrent();
-    }
-  else if(event == vtkCommand::WindowIsCurrentEvent)
-    {
-    bool *result = static_cast<bool *>(data);
-    *result = QGLContext::currentContext() == this->context();
-    }
 }
 
 void GenericView3D::SetModel(Generic3DModel *model)
@@ -119,11 +80,6 @@ void GenericView3D::SetModel(Generic3DModel *model)
   connectITK(m_Model, ModelUpdateEvent());
 }
 
-AbstractRenderer * GenericView3D::GetRenderer() const
-{
-  return m_Renderer;
-}
-
 void GenericView3D::onModelUpdate(const EventBucket &bucket)
 {
   m_Model->Update();
@@ -131,8 +87,3 @@ void GenericView3D::onModelUpdate(const EventBucket &bucket)
   this->repaint();
 }
 
-void GenericView3D::resizeGL(int w, int h)
-{
-  QtAbstractOpenGLBox::resizeGL(w,h);
-  iren->SetSize(w, h);
-}

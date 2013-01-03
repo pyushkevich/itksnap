@@ -41,7 +41,7 @@ void ViewPanel3D::on_btnUpdateMesh_clicked()
     QMessageBox::warning(this, "Problem generating mesh", IRISexc.what());
     }
 
-  // Delete this later - should be automatic!
+  // TODO: Delete this later - should be automatic!
   ui->view3d->repaint();
 }
 

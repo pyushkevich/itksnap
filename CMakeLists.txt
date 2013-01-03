@@ -386,6 +386,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
   GUI/Qt/View/QtSimpleOpenGLBox.cxx
   GUI/Qt/View/QtVTKInteractionDelegateWidget.cxx
+  GUI/Qt/View/QtVTKRenderWindowBox.cxx
   GUI/Qt/View/PaintbrushInteractionMode.cxx
   GUI/Qt/View/PolygonDrawingInteractionMode.cxx
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
@@ -436,6 +437,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/QtInteractionDelegateWidget.h
   GUI/Qt/View/QtSimpleOpenGLBox.h
   GUI/Qt/View/QtVTKInteractionDelegateWidget.h
+  GUI/Qt/View/QtVTKRenderWindowBox.h
   GUI/Qt/View/PaintbrushInteractionMode.h
   GUI/Qt/View/PolygonDrawingInteractionMode.h
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h

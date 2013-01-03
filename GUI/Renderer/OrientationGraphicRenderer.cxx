@@ -44,10 +44,7 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
   pCamera->SetPosition(dbPosXYZ, -dbPosXYZ, dbPosXYZ);
   pCamera->SetViewUp(0.0, -1.0, 0.0);
 
-  //vtkRenderWindow * pvtkRenderWindow = GetRenderWindow();
-  //m_pIren = vtkSmartPointer < vtkRenderWindowInteractor >::New();
-  //pvtkRenderWindow->SetInteractor(m_pIren);
-
+  this->SetInteractionStyle(TRACKBALL_CAMERA);
 }
 
 

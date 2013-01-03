@@ -61,6 +61,11 @@ class DisplayLayoutModel;
 class PaintbrushModel;
 class PaintbrushSettingsModel;
 
+namespace itk
+{
+class Command;
+}
+
 // Events fired by this object
 itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
 
@@ -294,7 +299,7 @@ protected:
   ProgressReporterDelegate *m_ProgressReporterDelegate;
 
   // An ITK command used to handle progress
-  SmartPtr<itk::MemberCommand<Self> > m_ProgressCommand;
+  SmartPtr<itk::Command> m_ProgressCommand;
 };
 
 #endif // GLOBALUIMODEL_H

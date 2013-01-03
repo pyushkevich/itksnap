@@ -2,12 +2,14 @@
 #define ABSTRACTMODEL_H
 
 #include "itkObject.h"
+#include "itkObjectFactory.h"
 #include "SNAPCommon.h"
 #include "SNAPEvents.h"
 #include "EventBucket.h"
 #include <set>
 #include <string>
 
+class vtkObject;
 
 
 /**
@@ -58,6 +60,13 @@ public:
       itk::Object *src, const itk::EventObject &srcEvent,
       const itk::EventObject &trgEvent);
 
+  /**
+   We can also rebroadcast events from vtk objects. This is handled similar
+   to ITK but events are just unsigned long values.
+   */
+  unsigned long Rebroadcast(vtkObject *src, unsigned long srcEvent,
+      const itk::EventObject &trgEvent);
+
 
 protected:
 
@@ -75,6 +84,8 @@ protected:
 
     void Broadcast(itk::Object *source, const itk::EventObject &evt);
     void Broadcast(const itk::Object *source, const itk::EventObject &evt);
+
+    void BroadcastVTK(vtkObject *source, unsigned long event, void *);
 
   private:
     AbstractModel *m_Model;

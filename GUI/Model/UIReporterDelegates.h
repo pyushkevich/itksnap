@@ -4,6 +4,8 @@
 #include "SNAPCommon.h"
 #include "SNAPEvents.h"
 #include "itkObject.h"
+#include "itkObjectFactory.h"
+
 
 /**
   An interface used by models to request the viewport size from the GUI and

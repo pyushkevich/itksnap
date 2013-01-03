@@ -36,6 +36,8 @@ class EventBucket;
 class QtInteractionDelegateWidget;
 class AbstractRenderer;
 
+namespace itk { class Object; }
+
 class QtAbstractOpenGLBox : public QGLWidget
 {
   Q_OBJECT
