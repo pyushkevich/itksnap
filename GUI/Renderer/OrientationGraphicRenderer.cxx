@@ -81,6 +81,7 @@ void OrientationGraphicRenderer::OnUpdate()
   else
     {
     // Hide the slices and arrows
+    m_ReorientProps.SetROIVisibility(false);
     }
 }
 
