@@ -57,8 +57,12 @@ int AxesWidget::GetVisibility()
   return(m_pvtkAxesActor->GetVisibility());
 }
 
-void AxesWidget::SetVisibility(int anVisible) {
-  m_pvtkAxesActor->SetVisibility(anVisible);
+void AxesWidget::SetVisibility(int Visibility) {
+  m_pvtkAxesActor->SetVisibility(Visibility);
+
+  m_pvtkAxesActor->GetXAxisCaptionActor2D()->SetVisibility(Visibility);
+  m_pvtkAxesActor->GetYAxisCaptionActor2D()->SetVisibility(Visibility);
+  m_pvtkAxesActor->GetZAxisCaptionActor2D()->SetVisibility(Visibility);
 }
 
 void AxesWidget::SetLengths(double adbLength)

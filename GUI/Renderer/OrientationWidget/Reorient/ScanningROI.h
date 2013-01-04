@@ -33,6 +33,8 @@ struct Pairs_Plane_Pipe
   Pairs_Plane_Pipe();
 
   void init(int anGridResolution = 0);
+
+  void SetVisibility(int anVisibility);
 };
 
 class ScanningROI : public AbstractScannerHelper
@@ -67,6 +69,7 @@ public:
 
   static void changeOrientation3x3(vtkSmartPointer < vtkMatrix4x4 > apvtkMatrix4x4);
 
+  void SetVisibility(int anVisibility);
 };
 
 #endif //SCANNING_ROI_H
