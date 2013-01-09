@@ -197,6 +197,10 @@ int main(int argc, char *argv[])
   SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
   IRISApplication *driver = gui->GetDriver();
 
+  // The system interface needs to know the path to the executable
+  driver->GetSystemInterface()->SetFullPathToExecutable(
+        app.applicationFilePath().toStdString());
+
   // Load the user preferences
   driver->GetSystemInterface()->LoadUserPreferences();
 

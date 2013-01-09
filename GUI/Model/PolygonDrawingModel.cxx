@@ -626,7 +626,7 @@ bool PolygonVertexTest(const PolygonVertex &v1, const PolygonVertex &v2)
  */
 void
 PolygonDrawingModel
-::AcceptPolygon(std::list<IRISWarning> &warnings)
+::AcceptPolygon(std::vector<IRISWarning> &warnings)
 {
   assert(m_State == EDITING_STATE);
 

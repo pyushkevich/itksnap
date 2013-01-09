@@ -50,13 +50,18 @@
 
 #include <LabelEditorDialog.h>
 #include <ReorientImageDialog.h>
+#include <DropActionDialog.h>
+
+
 #include <QAbstractListModel>
 #include <itksys/SystemTools.hxx>
 #include <QItemDelegate>
 #include <QPainter>
 #include <QDockWidget>
 #include <QMessageBox>
-
+#include <QDropEvent>
+#include <QDragEnterEvent>
+#include <QUrl>
 
 /**
   Traits used to display an item from the image history as an entry in
@@ -174,6 +179,8 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_ReorientImageDialog = new ReorientImageDialog(this);
   m_ReorientImageDialog->setModal(false);
 
+  m_DropDialog = new DropActionDialog(this);
+
   // Initialize the docked panels
   m_DockLeft = new QDockWidget("ITK-SNAP Toolbox", this);
   m_Toolbox = new IRISMainToolbox(this);
@@ -231,6 +238,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // Create the delegate to pass in to the model
   m_ProgressReporterDelegate = new QtProgressReporterDelegate();
   m_ProgressReporterDelegate->SetProgressDialog(m_Progress);
+
+  // We accept drop events
+  setAcceptDrops(true);
 }
 
 MainImageWindow::~MainImageWindow()
@@ -254,6 +264,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_LayerInspector->SetModel(model);
   m_SnakeWizard->SetModel(model);
   m_ReorientImageDialog->SetModel(model->GetReorientImageModel());
+  m_DropDialog->SetModel(model);
 
   // Initialize the docked panels
   m_Toolbox->SetModel(model);
@@ -513,7 +524,40 @@ void MainImageWindow::LoadRecent(QString file)
     b.setDetailedText(exc.what());
     b.setIcon(QMessageBox::Critical);
     b.exec();
+  }
+}
+
+void MainImageWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+  const QMimeData *md = event->mimeData();
+  if(md->hasUrls() && md->urls().size() == 1)
+    {
+    QUrl url = md->urls().first();
+    if(url.isLocalFile())
+      {
+      event->setDropAction(Qt::CopyAction);
+      event->accept();
+      }
     }
+}
+
+void MainImageWindow::dropEvent(QDropEvent *event)
+{
+  QString file = event->mimeData()->urls().first().path();
+  if(m_Model->GetDriver()->IsMainImageLoaded())
+    {
+    // If an image is already loaded, we show the dialog
+    m_DropDialog->SetDroppedFilename(file);
+    m_DropDialog->setModal(true);
+    m_DropDialog->show();
+    }
+  else
+    {
+    // Otherwise, attempt to load the image
+    this->LoadRecent(file);
+    }
+
+  event->acceptProposedAction();
 }
 
 void MainImageWindow::on_actionRecent_1_triggered()

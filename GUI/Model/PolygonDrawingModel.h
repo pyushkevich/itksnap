@@ -57,7 +57,7 @@ public:
   enum PolygonState { INACTIVE_STATE = 0, DRAWING_STATE, EDITING_STATE };
 
   /** Render polygon onto a target image */
-  void AcceptPolygon(std::list<IRISWarning> &warnings);
+  void AcceptPolygon(std::vector<IRISWarning> &warnings);
 
   /** Copies cached polygon to current polygon */
   void PastePolygon(void);

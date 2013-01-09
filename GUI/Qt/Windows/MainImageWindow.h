@@ -44,6 +44,7 @@ class LabelEditorDialog;
 class LayerInspectorDialog;
 class QtProgressReporterDelegate;
 class ReorientImageDialog;
+class DropActionDialog;
 
 namespace Ui {
 class MainImageWindow;
@@ -70,6 +71,11 @@ public:
 
 
   void LoadRecent(QString file);
+
+  // Handle drag and drop
+  void dragEnterEvent(QDragEnterEvent *event);
+  void dropEvent(QDropEvent *event);
+
 public slots:
 
   void AdjustMarginsForDocks();
@@ -143,6 +149,8 @@ private:
   LayerInspectorDialog *m_LayerInspector;
 
   ReorientImageDialog *m_ReorientImageDialog;
+
+  DropActionDialog *m_DropDialog;
 
   QtProgressReporterDelegate *m_ProgressReporterDelegate;
 };

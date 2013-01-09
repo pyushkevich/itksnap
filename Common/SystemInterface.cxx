@@ -216,117 +216,6 @@ SystemInterface
     }
 }
 
-/** 
- * A method that checks whether the SNAP system directory can be found and 
- * if it can't, prompts the user for the directory.  The path parameter is the
- * location of the executable, i.e., argv[0] 
- */
-bool 
-SystemInterface
-::FindDataDirectory(const char *pathToExe)
-{
-  // Get the directory where the SNAP executable was launched
-  using namespace itksys;
-  typedef std::string StringType;
-
-  // This is the directory we're trying to set
-  StringType sRootDir = "";
-
-  // This is a key that we will use to represent the executable location
-  StringType sCodedExePath;
-
-  // First of all, find the executable file.  Since the program may have been
-  // in the $PATH variable, we don't know for sure where the data is
-  // Create a vector of paths that will be searched for 
-  // the file SNAPProgramDataDirectory.txt
-  StringType sExeFullPath = SystemTools::FindProgram(pathToExe);
-  if(sExeFullPath.length())
-    {
-    // Encode the path to the executable so that we can search for an associated
-    // program data path
-    sCodedExePath = EncodeFilename(sExeFullPath);    
-    }
-  else
-    {
-    // Use a dummy token, so that next time the user runs without an executable,
-    // we can find a data directory
-    sCodedExePath = "00000000";
-    }
-
-  // Check if there is a path associated with the code
-  StringType sAssociationKey = 
-    Key("System.ProgramDataDirectory.Element[%s]",sCodedExePath.c_str());
-  StringType sAssociatedPath = Entry(sAssociationKey)[""];
-
-  // If the associated path exists, prepemd the path to the search list
-  if(sAssociatedPath.length())
-    {
-    // Check that the associated path is a real path containing the required 
-    // file
-    StringType sSearchName = sAssociatedPath + "/" + 
-      GetProgramDataDirectoryTokenFileName();
-
-    // Perform a sanity check on the directory
-    if(SystemTools::FileIsDirectory(sAssociatedPath.c_str()) && 
-       SystemTools::FileExists(sSearchName.c_str()))
-      {
-      // We've found the path
-      sRootDir = sAssociatedPath;
-      }
-    }
-  
-  // If the associated path check failed, but the executable has been found,
-  // which should be the case the first time the program is run, look around
-  // the executable to find the path
-  if(!sRootDir.length() && sExeFullPath.length())
-    {
-    // Create a search list for the filename
-    vector<StringType> vPathList;
-
-    // Look at the directory where the exe sits
-    vPathList.push_back(
-      SystemTools::GetFilenamePath(sExeFullPath) + "/ProgramData");
-
-    // Look one directory up from that
-    vPathList.push_back(
-      SystemTools::GetFilenamePath(
-        SystemTools::GetFilenamePath(sExeFullPath)) + 
-      "/ProgramData");
-
-    // Also, for UNIX installations, look for ${INSTALL_PATH}/share/snap/ProgramData
-    vPathList.push_back(
-       SystemTools::GetFilenamePath(
-         SystemTools::GetFilenamePath(sExeFullPath)) + 
-       "/share/snap/ProgramData");
-
-    // Search for the token file in the path list
-    StringType sFoundFile = 
-      SystemTools::FindFile(
-        GetProgramDataDirectoryTokenFileName(),vPathList);
-    if(sFoundFile.length())
-      sRootDir = SystemTools::GetFilenamePath(sFoundFile);
-    }
-
-  // If we still don't have a root path, there's no home
-  if(!sRootDir.length())
-    return false;
-
-  // Store the property, so the next time we don't have to search at all
-  Entry(sAssociationKey) << sRootDir;
-  
-  // Set the root directory and relative paths
-  m_DataDirectory = sRootDir;
-
-  // Append the paths to get the other directories
-  m_DocumentationDirectory = m_DataDirectory + "/HTMLHelp";
-
-  // Save the path to executable
-  m_FullPathToExecutable = sExeFullPath;
-
-  // Done, success
-  return true;
-}
-
 
 void 
 SystemInterface
@@ -355,19 +244,6 @@ SystemInterface
       exit(-1);
     } 
 #endif
-}
-
-std::string
-SystemInterface
-::GetFileInRootDirectory(const char *fnRelative)
-{
-  // Construct the file name
-  string path = m_DataDirectory + "/" + fnRelative;
-
-  // Make sure the file exists ?
-
-  // Return the file
-  return path;
 }
 
 std::string

@@ -22,7 +22,7 @@ public:
   explicit QtWarningDialog(QWidget *parent = 0);
   ~ QtWarningDialog();
 
-  static void show(const std::list<IRISWarning> &warnings);
+  static void show(const std::vector<IRISWarning> &warnings);
 
 public slots:
 

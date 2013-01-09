@@ -26,14 +26,14 @@ PROJECT(SNAP)
 #     major/minor/patch and different qualifiers. So it's completely wrong to 
 #     release version 1.7.3-beta and then version 1.7.3. The right way to do it
 #     is to have 1.7.3-beta followed by 1.7.5-rc1 followed by 1.8.0 and so on
-SET(SNAP_VERSION_MAJOR 2)
-SET(SNAP_VERSION_MINOR 2)
+SET(SNAP_VERSION_MAJOR 3)
+SET(SNAP_VERSION_MINOR 0)
 SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "")
+SET(SNAP_VERSION_QUALIFIER "-preview")
 SET(SNAP_VERSION_FULL "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}${SNAP_VERSION_QUALIFIER}")
-SET(SNAP_VERSION_RELEASE_DATE "20110504")
+SET(SNAP_VERSION_RELEASE_DATE "20130101")
 SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20090731")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "May 4, 2011")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Jan 1, 2013")
 
 # Shamelessly stolen from ParaView
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_FULL}-${SNAP_VERSION_RELEASE_DATE}")
@@ -392,6 +392,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
   GUI/Qt/View/SnakeROIInteractionMode.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx
+  GUI/Qt/Windows/DropActionDialog.cxx
   GUI/Qt/Windows/IRISMainToolbox.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
@@ -443,6 +444,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SnakeROIInteractionMode.h
   GUI/Qt/View/ThumbnailInteractionMode.h
+  GUI/Qt/Windows/DropActionDialog.h
   GUI/Qt/Windows/IRISMainToolbox.h
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
@@ -489,6 +491,7 @@ SET(UI_FORMS
   GUI/Qt/Components/SnakeWizardPanel.ui
   GUI/Qt/Components/ViewPanel3D.ui
   GUI/Qt/Components/ZoomInspector.ui
+  GUI/Qt/Windows/DropActionDialog.ui
   GUI/Qt/Windows/ImageIODialog.ui
   GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui

@@ -10,7 +10,7 @@
 #include <iostream>
 
 void QtWarningDialog
-::show(const std::list<IRISWarning> &wl)
+::show(const std::vector<IRISWarning> &wl)
 {
   const QString htmlTemplate =
       "<tr><td width=40><img src=\":/root/%1.png\" /></td>"
@@ -19,7 +19,7 @@ void QtWarningDialog
   if(wl.size())
     {
     QString html;
-    for(std::list<IRISWarning>::const_iterator it = wl.begin();
+    for(std::vector<IRISWarning>::const_iterator it = wl.begin();
         it != wl.end(); it++)
       {
       QString text = it->what();

@@ -145,7 +145,7 @@ void PolygonDrawingInteractionMode::onAcceptPolygon()
   glViewport(0, 0, parent->width(), parent->height());
 
   // Create a warning list
-  std::list<IRISWarning> warnings;
+  std::vector<IRISWarning> warnings;
 
   // Call accept polygon code
   m_Model->AcceptPolygon(warnings);

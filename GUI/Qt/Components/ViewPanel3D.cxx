@@ -6,6 +6,83 @@
 #include "IRISException.h"
 #include <QMessageBox>
 
+
+#include <QThread>
+#include <QMutex>
+#include <QWaitCondition>
+
+#ifdef RENDERTHREAD
+class RenderThread : public QThread
+{
+  Q_OBJECT
+
+public:
+  RenderThread(QObject *parent = 0);
+  ~RenderThread();
+
+  /** We call this when the segmentation image has changed or when the
+   * user presses the update button */
+  void UpdateScene();
+
+signals:
+
+  void updatedScene();
+
+protected:
+
+  void run();
+
+private:
+
+  QMutex mutex;
+  QWaitCondition condition;
+  bool restart;
+  bool abort;
+
+
+};
+
+
+RenderThread::RenderThread(QObject *parent)
+  : QThread(parent)
+{
+  restart = false;
+  abort = false;
+}
+
+RenderThread::~RenderThread()
+{
+  mutex.lock();
+  abort = true;
+  condition.wakeOne();
+  mutex.unlock();
+
+  wait();
+}
+
+void RenderThread::UpdateScene()
+{
+  QMutexLocker locker(&mutex);
+  if (!isRunning())
+    {
+    start(LowPriority);
+    }
+  else
+    {
+    restart = true;
+    condition.wakeOne();
+    }
+}
+
+void RenderThread::run()
+{
+  // What do we do?
+  // m_Model
+}
+
+#endif
+
+
 ViewPanel3D::ViewPanel3D(QWidget *parent) :
   SNAPComponent(parent),
   ui(new Ui::ViewPanel3D)
@@ -52,3 +129,5 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
   m_Model = globalUI->GetModel3D();
   ui->view3d->SetModel(m_Model);
 }
+
+

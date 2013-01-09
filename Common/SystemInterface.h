@@ -58,18 +58,9 @@ public:
   SystemInterface();
   virtual ~SystemInterface();
 
-  /** 
-   * A method that checks whether the SNAP system directory can be found and 
-   * if it can't, prompts the user for the directory.  If the user refuses to 
-   * supply the directory, it throws an exception 
-   */
-  bool FindDataDirectory(const char *pathToExe);
-
-  /** 
-   * Get a file relative to the root directory (returns absolute filename), or
-   * throws exception if the file does not exist
-   */
-  std::string GetFileInRootDirectory(const char *fnRelative);
+  /** Set the full path to the executable. This must be called before
+   * some of the features in this class are used */
+  irisGetSetMacro(FullPathToExecutable, std::string)
 
   /** Loads the registry containing user preferences */
   void LoadUserPreferences();
@@ -205,7 +196,6 @@ public:
 
 private:
   std::string m_UserPreferenceFile;
-  std::string m_DataDirectory;
   std::string m_DocumentationDirectory;
   std::string m_FullPathToExecutable;
 
