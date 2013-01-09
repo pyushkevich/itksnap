@@ -17,7 +17,7 @@ public:
 	virtual void VisibilityOn();
 	virtual void VisibilityOff();
 	virtual int GetVisibility();
-	virtual void SetVisibility(int anVisible);
+    virtual void SetVisibility(int anVisibility);
 
 	static AxesWidget * New();
 	

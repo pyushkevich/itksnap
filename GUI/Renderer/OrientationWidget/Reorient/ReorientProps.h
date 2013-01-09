@@ -15,6 +15,8 @@ class ReorientProps
   vtkSmartPointer < ScannedHuman > m_pScannedHuman;
   vtkSmartPointer < ScanningROI > m_pScanningROI;
 
+  static bool isMatrixValid(const vtkSmartPointer < vtkMatrix4x4 > apMatrix4x4);
+
 public:
 
   ReorientProps();
@@ -26,6 +28,8 @@ public:
   void GetDirections(vtkSmartPointer < vtkMatrix4x4 > apDirections) const;
 
   virtual void Connect2Renderer(vtkRenderer * apRenderer);
+
+  void SetROIVisibility(int anVisibility);
 };
 
 
