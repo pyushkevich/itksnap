@@ -541,9 +541,8 @@ void MainImageWindow::dragEnterEvent(QDragEnterEvent *event)
     }
 }
 
-void MainImageWindow::dropEvent(QDropEvent *event)
+void MainImageWindow::LoadDroppedFile(QString file)
 {
-  QString file = event->mimeData()->urls().first().path();
   if(m_Model->GetDriver()->IsMainImageLoaded())
     {
     // If an image is already loaded, we show the dialog
@@ -556,7 +555,12 @@ void MainImageWindow::dropEvent(QDropEvent *event)
     // Otherwise, attempt to load the image
     this->LoadRecent(file);
     }
+}
 
+void MainImageWindow::dropEvent(QDropEvent *event)
+{
+  QString file = event->mimeData()->urls().first().path();
+  LoadDroppedFile(file);
   event->acceptProposedAction();
 }
 
@@ -634,4 +638,16 @@ void MainImageWindow::on_actionUndo_triggered()
 void MainImageWindow::on_actionRedo_triggered()
 {
   m_Model->GetDriver()->Redo();
+}
+
+/** Filter application-level events */
+bool MainImageWindow::eventFilter(QObject *obj, QEvent *event)
+{
+  if (event->type() == QEvent::FileOpen)
+    {
+    QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
+    LoadDroppedFile(openEvent->url().path());
+    return true;
+    }
+  else return false;
 }

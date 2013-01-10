@@ -121,6 +121,12 @@ private slots:
 
   void on_actionRedo_triggered();
 
+protected:
+
+  bool eventFilter(QObject *obj, QEvent *event);
+
+  void LoadDroppedFile(QString file);
+
 private:
 
   void UpdateRecentMenu();

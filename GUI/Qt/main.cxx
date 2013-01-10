@@ -208,6 +208,8 @@ int main(int argc, char *argv[])
   MainImageWindow mainwin;
   mainwin.Initialize(gui);
 
+  // We let the main window handle events to the application
+  app.installEventFilter(&mainwin);
 
   // The following situations are possible for main image
   // itksnap file                       <- load as main image, detect file type
