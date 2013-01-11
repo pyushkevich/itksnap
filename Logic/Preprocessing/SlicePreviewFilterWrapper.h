@@ -6,7 +6,7 @@
 #include "itkObjectFactory.h"
 
 class ImageWrapperBase;
-template <class TPixel> class IRISSlicer;
+template <class TInputImage, class TOutputImage> class IRISSlicer;
 
 namespace itk {
   template<class TIn, class TOut> class StreamingImageFilter;
@@ -118,7 +118,8 @@ public:
   typedef typename OutputImageType::PixelType               OutputPixelType;
 
   typedef typename TFilterConfigTraits::OutputWrapperType OutputWrapperType;
-  typedef IRISSlicer<OutputPixelType>                            SlicerType;
+  typedef IRISSlicer<OutputImageType, itk::Image<OutputPixelType, 2> >
+                                                                 SlicerType;
 
   typedef typename TFilterConfigTraits::ParameterType         ParameterType;
 

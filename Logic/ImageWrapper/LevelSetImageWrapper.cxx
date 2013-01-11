@@ -83,7 +83,7 @@ LevelSetImageWrapper::MappingFunctor
 
 LevelSetImageWrapper
 ::LevelSetImageWrapper()
-: ScalarImageWrapper<float> ()
+: Superclass ()
 {
   // Intialize display filters
   for(unsigned int i=0;i<3;i++) 

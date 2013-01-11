@@ -43,7 +43,8 @@
 #include <itkRGBAPixel.h>
 
 // Forward declarations to IRIS classes
-template <class TPixel> class IRISSlicer;
+template <class TInputImage, class TOutputImage> class IRISSlicer;
+
 class SNAPSegmentationROISettings;
 namespace itk {
   template <unsigned int VDimension> class ImageBase;
@@ -64,13 +65,13 @@ namespace itk {
  * This is done to avoid multiple inheritance. TBase must be a
  * subclass of ImageWrapperBase.
  */
-template<class TPixel, class TBase = ImageWrapperBase>
+template<class TImage, class TBase = ImageWrapperBase>
 class ImageWrapper : public TBase
 {
 public:
 
   // Standard ITK business
-  typedef ImageWrapper<TPixel, TBase>                                     Self;
+  typedef ImageWrapper<TImage, TBase>                                     Self;
   typedef TBase                                                     Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
@@ -78,18 +79,20 @@ public:
 
   // Basic type definitions
   typedef typename Superclass::ImageBaseType                     ImageBaseType;
-  typedef itk::Image<TPixel,3>                                       ImageType;
+  typedef TImage                                                     ImageType;
   typedef SmartPtr<ImageType>                                     ImagePointer;
+  typedef typename TImage::PixelType                                 PixelType;
 
   // Slice image type
-  typedef itk::Image<TPixel,2>                                       SliceType;
+  typedef itk::Image<PixelType,2>                                    SliceType;
   typedef SmartPtr<SliceType>                                     SlicePointer;
 
+  // Display slice type - inherited
   typedef typename Superclass::DisplayPixelType               DisplayPixelType;
   typedef typename Superclass::DisplaySliceType               DisplaySliceType;
 
   // Slicer type
-  typedef IRISSlicer<TPixel>                                        SlicerType;
+  typedef IRISSlicer<ImageType, SliceType>                          SlicerType;
   typedef SmartPtr<SlicerType>                                   SlicerPointer;
 
   // Preview source for preview pipelines
@@ -109,7 +112,7 @@ public:
    * all be updated to match the source
    */
   virtual void InitializeToWrapper(
-    const ImageWrapperBase *source, const TPixel &value);
+    const ImageWrapperBase *source, const PixelType &value);
 
   /** 
    * Initialize the image wrapper with a combination of another image wrapper and
@@ -197,24 +200,24 @@ public:
   /**
    * Get reference to a voxel at a given position.
    */
-  TPixel &GetVoxelForUpdate(unsigned int x,
+  PixelType &GetVoxelForUpdate(unsigned int x,
                                     unsigned int y, 
                                     unsigned int z);
   
-  TPixel &GetVoxelForUpdate(const Vector3ui &index);
+  PixelType &GetVoxelForUpdate(const Vector3ui &index);
   
-  TPixel &GetVoxelForUpdate(const itk::Index<3> &index);
+  PixelType &GetVoxelForUpdate(const itk::Index<3> &index);
 
   /**
    * Get a constant reference to a voxel at a given position.
    */
-  const TPixel &GetVoxel(unsigned int x,
+  const PixelType &GetVoxel(unsigned int x,
                                  unsigned int y, 
                                  unsigned int z) const;
 
-  const TPixel &GetVoxel(const Vector3ui &index) const;
+  const PixelType &GetVoxel(const Vector3ui &index) const;
 
-  const TPixel &GetVoxel(const itk::Index<3> &index) const;
+  const PixelType &GetVoxel(const itk::Index<3> &index) const;
 
   /** 
    * Return the pointed to the ITK image encapsulated by this wrapper.
@@ -251,7 +254,7 @@ public:
   /**
    * This method exposes the scalar pointer in the image
    */
-  virtual TPixel *GetVoxelPointer() const;
+  virtual PixelType *GetVoxelPointer() const;
 
   /** Number of voxels */
   virtual size_t GetNumberOfVoxels() const;
@@ -290,13 +293,13 @@ public:
    * Replace all voxels with intensity values iOld with values iNew. 
    * \return number of voxels that had been modified
    */
-  virtual unsigned int ReplaceIntensity(TPixel iOld, TPixel iNew);
+  virtual unsigned int ReplaceIntensity(PixelType iOld, PixelType iNew);
 
   /** 
    * Swap intensity values iFirst and iSecond
    * \return number of voxels that had been modified
    */
-  virtual unsigned int SwapIntensities(TPixel iFirst, TPixel iSecond);
+  virtual unsigned int SwapIntensities(PixelType iFirst, PixelType iSecond);
 
   /**
     Attach a preview pipeline to the wrapper. This is used with wrappers that

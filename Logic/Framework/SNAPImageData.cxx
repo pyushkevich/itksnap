@@ -482,7 +482,7 @@ SNAPImageData
                   itk::Command *progressCommand)
 {
   // Get the source grey wrapper
-  GreyImageWrapper<GreyType> *srcWrapper = source->m_GreyImageWrapper;
+  GreyWrapperType *srcWrapper = source->m_GreyImageWrapper;
 
   // Get the roi chunk from the grey image
   SmartPtr<GreyImageType> imgNewGrey =

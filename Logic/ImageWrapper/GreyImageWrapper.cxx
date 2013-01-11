@@ -42,8 +42,8 @@
 #include "LookupTableIntensityMappingFilter.h"
 #include <itkMinimumMaximumImageFilter.h>
 
-template<class TPixel, class TBase>
-GreyImageWrapper<TPixel, TBase>
+template<class TImage, class TBase>
+GreyImageWrapper<TImage, TBase>
 ::GreyImageWrapper()
 {
   // Initialize the intensity curve
@@ -70,37 +70,37 @@ GreyImageWrapper<TPixel, TBase>
     }
 }
 
-template<class TPixel, class TBase>
-GreyImageWrapper<TPixel, TBase>
+template<class TImage, class TBase>
+GreyImageWrapper<TImage, TBase>
 ::~GreyImageWrapper()
 {
 }
 
-template<class TPixel, class TBase>
-void GreyImageWrapper<TPixel, TBase>
+template<class TImage, class TBase>
+void GreyImageWrapper<TImage, TBase>
 ::SetReferenceIntensityRange(double refMin, double refMax)
 {
   m_LookupTableFilter->SetReferenceIntensityRange(refMin, refMax);
 }
 
-template<class TPixel, class TBase>
-void GreyImageWrapper<TPixel, TBase>
+template<class TImage, class TBase>
+void GreyImageWrapper<TImage, TBase>
 ::ClearReferenceIntensityRange()
 {
   m_LookupTableFilter->RemoveReferenceIntensityRange();
 }
 
-template<class TPixel, class TBase>
+template<class TImage, class TBase>
 IntensityCurveInterface*
-GreyImageWrapper<TPixel, TBase>
+GreyImageWrapper<TImage, TBase>
 ::GetIntensityMapFunction() const
 {
   return m_IntensityCurveVTK;
 }
 
-template<class TPixel, class TBase>
+template<class TImage, class TBase>
 void
-GreyImageWrapper<TPixel, TBase>
+GreyImageWrapper<TImage, TBase>
 ::CopyIntensityMap(const GreyImageWrapperBase &s)
 {
   const IntensityCurveInterface *ici = s.GetIntensityMapFunction();
@@ -115,9 +115,9 @@ GreyImageWrapper<TPixel, TBase>
 
 /*
   TODO: kill this!
-template<class TPixel, class TBase>
+template<class TImage, class TBase>
 void
-GreyImageWrapper<TPixel, TBase>
+GreyImageWrapper<TImage, TBase>
 ::UpdateIntensityMapFunction()
 {
   // Get the range of the image
@@ -145,34 +145,34 @@ GreyImageWrapper<TPixel, TBase>
 }
 */
 
-template<class TPixel, class TBase>
-typename GreyImageWrapper<TPixel, TBase>::DisplaySlicePointer
-GreyImageWrapper<TPixel, TBase>
+template<class TImage, class TBase>
+typename GreyImageWrapper<TImage, TBase>::DisplaySlicePointer
+GreyImageWrapper<TImage, TBase>
 ::GetDisplaySlice(unsigned int dim)
 {
   return m_IntensityFilter[dim]->GetOutput();
 }
 
-template<class TPixel, class TBase>
+template<class TImage, class TBase>
 ColorMap *
-GreyImageWrapper<TPixel, TBase>
+GreyImageWrapper<TImage, TBase>
 ::GetColorMap() const
 {
   return m_ColorMap;
 }
 
-template <class TPixel, class TBase>
+template <class TImage, class TBase>
 void
-GreyImageWrapper<TPixel, TBase>
+GreyImageWrapper<TImage, TBase>
 ::UpdateImagePointer(ImageType *image)
 {
   Superclass::UpdateImagePointer(image);
   m_LookupTableFilter->SetInput(image);
 }
 
-template <class TPixel, class TBase>
+template <class TImage, class TBase>
 void
-GreyImageWrapper<TPixel, TBase>
+GreyImageWrapper<TImage, TBase>
 ::AutoFitContrast()
 {
   // Get the histogram
@@ -224,6 +224,6 @@ GreyImageWrapper<TPixel, TBase>
 }
 
 
-template class GreyImageWrapper<short>;
+template class GreyImageWrapper< itk::Image<short, 3> >;
 
 

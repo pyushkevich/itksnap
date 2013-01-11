@@ -143,6 +143,8 @@ private:
   static std::map<LayerRole, std::string> m_RoleDefaultNames;
 };
 
+#include <itkVectorImage.h>
+
 
 /**
  * \class GenericImageData
@@ -165,7 +167,7 @@ public:
   typedef itk::Image<RGBType, 3> RGBImageType;
   typedef itk::Image<LabelType, 3> LabelImageType;
 
-  typedef GreyImageWrapper<GreyType> GreyWrapperType;
+  typedef GreyImageWrapper<GreyImageType> GreyWrapperType;
   typedef RGBImageWrapper<unsigned char> RGBWrapperType;
 
   typedef SmartPtr<ImageWrapperBase> WrapperPointer;
@@ -197,7 +199,7 @@ public:
   /**
     Access the main image as a scalar image.
    */
-  GreyImageWrapper<GreyType>* GetGrey()
+  GreyWrapperType* GetGrey()
   {
     return m_GreyImageWrapper;
   }
@@ -205,7 +207,7 @@ public:
   /**
    * Access the RGB image (read only access is allowed)
    */
-  RGBImageWrapper<unsigned char>* GetRGB()
+  RGBWrapperType* GetRGB()
   {
     return m_RGBImageWrapper;
   }

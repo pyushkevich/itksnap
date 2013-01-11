@@ -52,36 +52,37 @@ namespace itk {
  * is used to unify the treatment of different kinds of scalar images in
  * SNaP.  
  */
-template<class TPixel, class TBase = ScalarImageWrapperBase>
-class ScalarImageWrapper : public ImageWrapper<TPixel, TBase>
+template<class TImage, class TBase = ScalarImageWrapperBase>
+class ScalarImageWrapper : public ImageWrapper<TImage, TBase>
 {
 public:
 
   // Standard ITK business
-  typedef ScalarImageWrapper<TPixel, TBase>                               Self;
-  typedef ImageWrapper<TPixel, TBase>                               Superclass;
+  typedef ScalarImageWrapper<TImage, TBase>                               Self;
+  typedef ImageWrapper<TImage, TBase>                               Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(ScalarImageWrapper, ImageWrapper)
 
   // Image Types
-  typedef typename Superclass::ImageType ImageType;
-  typedef typename Superclass::ImagePointer ImagePointer;
+  typedef typename Superclass::ImageType                             ImageType;
+  typedef typename Superclass::ImagePointer                       ImagePointer;
+  typedef typename Superclass::PixelType                             PixelType;
 
   // Slice image type
-  typedef typename Superclass::SliceType SliceType;
-  typedef typename Superclass::SlicePointer SlicePointer;
+  typedef typename Superclass::SliceType                             SliceType;
+  typedef typename Superclass::SlicePointer                       SlicePointer;
 
   // Slicer type
-  typedef typename Superclass::SlicerType SlicerType;
-  typedef typename Superclass::SlicerPointer SlicerPointer;
+  typedef typename Superclass::SlicerType                           SlicerType;
+  typedef typename Superclass::SlicerPointer                     SlicerPointer;
 
   // MinMax calculator type
-  typedef itk::MinimumMaximumImageFilter<ImageType> MinMaxFilter;
+  typedef itk::MinimumMaximumImageFilter<ImageType>               MinMaxFilter;
 
   // Iterator types
-  typedef typename Superclass::Iterator Iterator;
-  typedef typename Superclass::ConstIterator ConstIterator;
+  typedef typename Superclass::Iterator                               Iterator;
+  typedef typename Superclass::ConstIterator                     ConstIterator;
 
   virtual bool IsScalar() const { return true; }
 
@@ -89,13 +90,13 @@ public:
    * Get the minimum intensity value.  Call ComputeImageIntensityRange() 
    * first.
    */
-  virtual TPixel GetImageMin();
+  virtual PixelType GetImageMin();
 
   /**
    * Get the maximum intensity value.  Call ComputeImageIntensityRange() 
    * first.
    */
-  virtual TPixel GetImageMax();
+  virtual PixelType GetImageMax();
 
   /**
    * Get the scaling factor used to convert between intensities stored

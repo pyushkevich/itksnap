@@ -37,14 +37,15 @@ namespace itk {
  */
 template <class TComponent, class TBase = RGBImageWrapperBase>
 class RGBImageWrapper :
-    public VectorImageWrapper< itk::RGBPixel<TComponent>, TBase >
+    public VectorImageWrapper< itk::Image<itk::RGBPixel<TComponent>,3>, TBase >
 {
 public:
 
   // Standard ITK business
   typedef itk::RGBPixel<TComponent>                                  PixelType;
   typedef RGBImageWrapper<TComponent, TBase>                              Self;
-  typedef VectorImageWrapper<PixelType, TBase>                      Superclass;
+  typedef VectorImageWrapper<itk::Image<itk::RGBPixel<TComponent>,3>, TBase>
+                                                                    Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(RGBImageWrapper, VectorImageWrapper)

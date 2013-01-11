@@ -53,7 +53,7 @@ LabelImageWrapper
 
 LabelImageWrapper
 ::LabelImageWrapper(const LabelImageWrapper &source)
-: ScalarImageWrapper<LabelType>(source)
+: Superclass(source)
 {
   // Instantiate the filters
   for(unsigned int i=0;i<3;i++) 

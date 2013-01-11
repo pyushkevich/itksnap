@@ -62,13 +62,13 @@ namespace itk {
 
   \sa ImageWrapper
  */
-class SpeedImageWrapper : public GreyImageWrapper<short>
+class SpeedImageWrapper : public GreyImageWrapper< itk::Image<short, 3> >
 {
 public:
 
   // Standard ITK business
   typedef SpeedImageWrapper                                               Self;
-  typedef GreyImageWrapper<short>                                   Superclass;
+  typedef GreyImageWrapper< itk::Image<short, 3> >                  Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(SpeedImageWrapper, GreyImageWrapper)

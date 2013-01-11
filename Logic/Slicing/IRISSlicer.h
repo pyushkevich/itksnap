@@ -54,31 +54,34 @@
  * directions, accomodating different positions of the display space origin in the
  * image space.
  */
-template <class TPixel>
+template <class TInputImage, class TOutputImage>
 class ITK_EXPORT IRISSlicer 
-: public itk::ImageToImageFilter<itk::Image<TPixel,3>, itk::Image<TPixel,2> >
+: public itk::ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef IRISSlicer  Self;
-  typedef typename itk::Image<TPixel,3>  InputImageType;
-  typedef typename itk::Image<TPixel,3> * InputImageTypePointer;
-  typedef itk::Image<TPixel,2>  OutputImageType;
-  typedef itk::ImageToImageFilter<InputImageType,OutputImageType> Superclass;
-  typedef itk::SmartPointer<Self>   Pointer;
-  typedef itk::SmartPointer<const Self>  ConstPointer;
+  typedef IRISSlicer                                                     Self;
+  typedef itk::ImageToImageFilter<TInputImage, TOutputImage>       Superclass;
+  typedef itk::SmartPointer<Self>                                     Pointer;
+  typedef itk::SmartPointer<const Self>                          ConstPointer;
+
+  typedef TInputImage                                          InputImageType;
+  typedef typename InputImageType::ConstPointer             InputImagePointer;
+  typedef typename InputImageType::PixelType                   InputPixelType;
+
+  typedef TOutputImage                                        OutputImageType;
+  typedef typename OutputImageType::Pointer                OutputImagePointer;
+  typedef typename OutputImageType::PixelType                 OutputPixelType;
 
   /** Method for creation through the object factory. */
-  itkNewMacro(Self);
+  itkNewMacro(Self)
   
   /** Run-time type information (and related methods). */
-  itkTypeMacro(IRISSlicer, ImageToImageFilter);
+  itkTypeMacro(IRISSlicer, ImageToImageFilter)
 
-  /** Some typedefs. */
-  typedef typename InputImageType::ConstPointer  InputImagePointer;
-  typedef typename InputImageType::RegionType  InputImageRegionType; 
-  typedef typename OutputImageType::Pointer  OutputImagePointer;
-  typedef typename OutputImageType::RegionType  OutputImageRegionType;
+  /** Some more typedefs. */
+  typedef typename InputImageType::RegionType             InputImageRegionType;
+  typedef typename OutputImageType::RegionType           OutputImageRegionType;
   typedef itk::ImageSliceConstIteratorWithIndex<InputImageType>  InputIteratorType;
   typedef itk::ImageRegionIteratorWithIndex<OutputImageType>  SimpleOutputIteratorType;
   typedef itk::ImageLinearIteratorWithIndex<OutputImageType> OutputIteratorType;
@@ -112,7 +115,7 @@ public:
     the data from the preview input. This is used in the speed preview
     framework, but could also be adapted for other features. Setting the
     preview input to NULL disables this feature. */
-  void SetPreviewInput(InputImageTypePointer input);
+  void SetPreviewInput(InputImageType *input);
 
   /**
     Get the preview input.

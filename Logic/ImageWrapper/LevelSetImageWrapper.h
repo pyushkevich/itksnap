@@ -54,13 +54,14 @@ class ColorLabel;
  * 
  * \sa ImageWrapper
  */
-class LevelSetImageWrapper : public ScalarImageWrapper<float>
+class LevelSetImageWrapper
+    : public ScalarImageWrapper< itk::Image<float, 3> >
 {
 public:
 
   // Standard ITK business
   typedef LevelSetImageWrapper                                            Self;
-  typedef ScalarImageWrapper<float>                                 Superclass;
+  typedef ScalarImageWrapper<itk::Image<float, 3> >                 Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(LevelSetImageWrapper, ScalarImageWrapper)
@@ -107,7 +108,7 @@ protected:
   // Type of the display intensity mapping filter used when the 
   // input is a in-out image
   typedef itk::UnaryFunctorImageFilter<
-    ImageWrapper<float>::SliceType,DisplaySliceType,MappingFunctor> 
+    Superclass::SliceType, DisplaySliceType, MappingFunctor>
     IntensityFilterType;
   typedef itk::SmartPointer<IntensityFilterType> IntensityFilterPointer;
 

@@ -17,6 +17,7 @@
 
 // Smart pointers have to be included from ITK, can't forward reference them
 #include "ImageWrapper.h"
+#include "itkVariableLengthVector.h"
 
 /**
  * \class VectorImageWrapper
@@ -26,21 +27,26 @@
  * is used to unify the treatment of different kinds of vector images in
  * SNaP.  
  */
-template<class TPixel, class TBase = VectorImageWrapperBase>
-class VectorImageWrapper : public ImageWrapper<TPixel, TBase>
+template<class TImage, class TBase = VectorImageWrapperBase>
+class VectorImageWrapper
+    : public ImageWrapper<TImage, TBase>
 {
 public:
 
   // Standard ITK business
-  typedef VectorImageWrapper<TPixel, TBase>                               Self;
-  typedef ImageWrapper<TPixel, TBase>                                Superclass;
+  typedef VectorImageWrapper<TImage, TBase>                               Self;
+  typedef ImageWrapper<TImage, TBase>                               Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(VectorImageWrapper, ImageWrapper)
 
   // Image Types
-  typedef typename Superclass::ImageType ImageType;
-  typedef typename Superclass::ImagePointer ImagePointer;
+  typedef typename Superclass::ImageType                             ImageType;
+  typedef typename Superclass::ImagePointer                       ImagePointer;
+
+  // Pixel type
+  typedef typename Superclass::PixelType                             PixelType;
+  typedef typename ImageType::InternalPixelType              InternalPixelType;
 
   // Slice image type
   typedef typename Superclass::SliceType SliceType;
@@ -68,7 +74,7 @@ public:
   /** This image type has only one component */
   virtual size_t GetNumberOfComponents() const
   {
-    return TPixel::Dimension;
+    return PixelType::Dimension;
   }
 
   /** Voxel access */
@@ -79,14 +85,14 @@ public:
 
   virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const
   {
-    const TPixel &p = this->GetVoxel(x);
+    const PixelType &p = this->GetVoxel(x);
     for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
       out[i] = p[i];
   }
 
   virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const
   {
-    const TPixel &p = this->GetVoxel(idx);
+    const PixelType &p = this->GetVoxel(idx);
     for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
       out[i] = p[i];
   }

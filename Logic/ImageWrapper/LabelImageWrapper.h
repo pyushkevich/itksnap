@@ -59,13 +59,13 @@ class ColorLabelTable;
  *
  * \sa ImageWrapper
  */
-class LabelImageWrapper : public ScalarImageWrapper<LabelType>
+class LabelImageWrapper : public ScalarImageWrapper< itk::Image<LabelType, 3> >
 {
 public:
 
   // Standard ITK business
   typedef LabelImageWrapper                                               Self;
-  typedef ScalarImageWrapper<LabelType>                             Superclass;
+  typedef ScalarImageWrapper<itk::Image<LabelType, 3> >             Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(LabelImageWrapper, ScalarImageWrapper)

@@ -32,8 +32,8 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-template<class TPixel> 
-IRISSlicer<TPixel>
+template <class TInputImage, class TOutputImage>
+IRISSlicer<TInputImage, TOutputImage>
 ::IRISSlicer()
 {
   // Two inputs are allowed (second being the preview input)
@@ -58,8 +58,8 @@ IRISSlicer<TPixel>
   m_SliceIndex = 0;
 }
 
-template<class TPixel> 
-void IRISSlicer<TPixel>
+template <class TInputImage, class TOutputImage>
+void IRISSlicer<TInputImage, TOutputImage>
 ::GenerateOutputInformation()
 {
   // Get pointers to the inputs and outputs
@@ -95,8 +95,8 @@ void IRISSlicer<TPixel>
   outputPtr->SetOrigin(outputOrigin);
 }
 
-template<class TPixel>
-void IRISSlicer<TPixel>
+template <class TInputImage, class TOutputImage>
+void IRISSlicer<TInputImage, TOutputImage>
 ::CallCopyOutputRegionToInputRegion(InputImageRegionType &destRegion,
                                     const OutputImageRegionType &srcRegion)
 {
@@ -147,9 +147,9 @@ void IRISSlicer<TPixel>
     }
 }
 
-template<class TPixel>
+template <class TInputImage, class TOutputImage>
 void
-IRISSlicer<TPixel>
+IRISSlicer<TInputImage, TOutputImage>
 ::GenerateInputRequestedRegion()
 {
   // If there is a preview input, and the pipeline of the preview input is
@@ -188,8 +188,8 @@ IRISSlicer<TPixel>
 }
 
 
-template<class TPixel> 
-void IRISSlicer<TPixel>
+template <class TInputImage, class TOutputImage>
+void IRISSlicer<TInputImage, TOutputImage>
 ::GenerateData()
 {
   // Here's the input and output
@@ -244,8 +244,8 @@ void IRISSlicer<TPixel>
   size_t nPixel = rgn.GetSize()[0], nLine = rgn.GetSize()[1];
 
   // Get pointers to input and output data
-  const TPixel *pSource = inputPtr->GetBufferPointer();
-  TPixel *pTarget = outputPtr->GetBufferPointer();
+  const InputPixelType *pSource = inputPtr->GetBufferPointer();
+  OutputPixelType *pTarget = outputPtr->GetBufferPointer();
 
   // Position the source
   pSource += iStart;
@@ -263,8 +263,8 @@ void IRISSlicer<TPixel>
     }
 }
 
-template<class TPixel> 
-void IRISSlicer<TPixel>
+template <class TInputImage, class TOutputImage>
+void IRISSlicer<TInputImage, TOutputImage>
 ::PrintSelf(std::ostream &os, itk::Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
@@ -277,16 +277,16 @@ void IRISSlicer<TPixel>
   os << indent << "Pixels Traversed Forward: " << m_PixelTraverseForward << std::endl;
 }
 
-template<class TPixel>
-void IRISSlicer<TPixel>
-::SetPreviewInput(typename IRISSlicer::InputImageTypePointer input)
+template <class TInputImage, class TOutputImage>
+void IRISSlicer<TInputImage, TOutputImage>
+::SetPreviewInput(InputImageType *input)
 {
   this->SetNthInput(1, input);
 }
 
-template<class TPixel>
-typename IRISSlicer<TPixel>::InputImageType *
-IRISSlicer<TPixel>
+template <class TInputImage, class TOutputImage>
+typename IRISSlicer<TInputImage, TOutputImage>::InputImageType *
+IRISSlicer<TInputImage, TOutputImage>
 ::GetPreviewInput()
 {
   return const_cast<InputImageType *>(this->GetInput(1));

@@ -50,14 +50,14 @@ class ColorMap;
  * Adds ability to remap intensity from short to byte using an
  * arbitrary function when outputing slices.
  */
-template <class TPixel, class TBase = GreyImageWrapperBase>
-class GreyImageWrapper : public ScalarImageWrapper<TPixel, TBase>
+template <class TImage, class TBase = GreyImageWrapperBase>
+class GreyImageWrapper : public ScalarImageWrapper<TImage, TBase>
 {
 public:
 
   // Standard ITK business
-  typedef GreyImageWrapper<TPixel, TBase>                                 Self;
-  typedef ScalarImageWrapper<TPixel, TBase>                         Superclass;
+  typedef GreyImageWrapper<TImage, TBase>                                 Self;
+  typedef ScalarImageWrapper<TImage, TBase>                         Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(GreyImageWrapper, ScalarImageWrapper)
@@ -66,6 +66,7 @@ public:
   // Types inherited from parent
   typedef typename Superclass::ImageType                             ImageType;
   typedef typename Superclass::SliceType                             SliceType;
+  typedef typename Superclass::PixelType                             PixelType;
   typedef typename Superclass::DisplaySliceType               DisplaySliceType;
   typedef typename Superclass::DisplaySlicePointer         DisplaySlicePointer;
 
