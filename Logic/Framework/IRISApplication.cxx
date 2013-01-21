@@ -263,7 +263,7 @@ IRISApplication
   assert(IsSnakeModeActive());
 
   // Make sure the dimensions of the speed image are appropriate
-  assert(to_itkSize(m_SNAPImageData->GetGrey()->GetSize())
+  assert(to_itkSize(m_SNAPImageData->GetMain()->GetSize())
     == newSpeedImage->GetBufferedRegion().GetSize());
 
   // Initialize the speed wrapper
@@ -280,13 +280,14 @@ IRISApplication
   m_GlobalState->SetSpeedValid(true);
 
   // Set the snake state
+  // TODO: fix this!
   if(snakeMode == EDGE_SNAKE)
     {
-    m_SNAPImageData->GetSpeed()->SetModeToEdgeSnake();
+    // m_SNAPImageData->GetSpeed()->SetModeToEdgeSnake();
     }
   else
     {
-    m_SNAPImageData->GetSpeed()->SetModeToInsideOutsideSnake();
+     // m_SNAPImageData->GetSpeed()->SetModeToInsideOutsideSnake();
     }
 }
 
@@ -343,7 +344,7 @@ IRISApplication
   assert(!IsSnakeModeActive());
 
   // Cast the image to label type
-  CastNativeImageToScalar<LabelType> caster;
+  CastNativeImage<LabelImageType> caster;
   LabelImageType::Pointer imgLabel = caster(io);
   
   // The header of the label image is made to match that of the grey image
@@ -873,14 +874,17 @@ IRISApplication
   size_t iSliceImg = 
     GetImageDirectionForAnatomicalDirection(iSliceAnat);
 
+  // TODO: should this not export using the default scalar representation,
+  // rather than RGB? Not sure...
+
   // Find the slicer that slices along that direction
   typedef GreyImageWrapperBase::DisplaySliceType SliceType;
   SmartPtr<SliceType> imgGrey = NULL;
   for(size_t i = 0; i < 3; i++)
     {
-    if(iSliceImg == m_CurrentImageData->GetGrey()->GetDisplaySliceImageAxis(i))
+    if(iSliceImg == m_CurrentImageData->GetMain()->GetDisplaySliceImageAxis(i))
       {
-      imgGrey = m_CurrentImageData->GetGrey()->GetDisplaySlice(i);
+      imgGrey = m_CurrentImageData->GetMain()->GetDisplaySlice(i);
       break;
       }
     }
@@ -1291,40 +1295,21 @@ IRISApplication
   return 0;
 }
 
-IRISApplication::MainImageType
+void
 IRISApplication
-::AddIRISOverlayImage(GuidedNativeImageIO *io, MainImageType force_type)
+::AddIRISOverlayImage(GuidedNativeImageIO *io)
 {
   assert(!IsSnakeModeActive());
   assert(m_IRISImageData->IsMainLoaded());
   assert(io->IsNativeImageLoaded());
 
-  // If the input type is 'ANY', determine based on number of components
-  MainImageType type = (force_type == MAIN_ANY)
-    ? (io->GetNumberOfComponentsInNativeImage() == 3 ? MAIN_RGB : MAIN_SCALAR)
-    : force_type;
+  // Rescale the image to grey
+  RescaleNativeImageToIntegralType<AnatomyImageType> rescaler;
+  AnatomyImageType::Pointer imgOverlay = rescaler(io);
+  LinearInternalToNativeIntensityMapping mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
 
-  // Cast the native image to desired format and pass on to IRISImageData
-  if(type == MAIN_SCALAR)
-    {
-    // Rescale the image to grey
-    RescaleNativeImageToScalar<GreyType> rescaler;
-    GreyImageType::Pointer imgGrey = rescaler(io);
-    InternalToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
-
-    // Add the image as the current grayscale overlay
-    m_IRISImageData->AddGreyOverlay(imgGrey, mapper);
-    }
-  else if(type == MAIN_RGB)
-    {
-    // Cast image to RGB
-    CastNativeImageToRGB<RGBType> caster;
-    RGBImageType::Pointer imgRGB = caster(io);
-
-    // Add the image as the current RGB overlay
-    m_IRISImageData->AddRGBOverlay(imgRGB);
-    }
-  else throw itk::ExceptionObject("Unsupported overlay image type");
+  // Add the image as the current grayscale overlay
+  m_IRISImageData->AddOverlay(imgOverlay, mapper);
 
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
@@ -1332,61 +1317,39 @@ IRISApplication
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
-
-  // Return the type loaded as
-  return type;
 }
 
-IRISApplication::MainImageType
+void
 IRISApplication
-::UpdateIRISMainImage(GuidedNativeImageIO *io, MainImageType force_type)
+::UpdateIRISMainImage(GuidedNativeImageIO *io)
 {
   // This has to happen in 'pure' IRIS mode
   assert(!IsSnakeModeActive());
-
-  // If the input type is 'ANY', determine based on number of components
-  MainImageType type = (force_type == MAIN_ANY)
-    ? (io->GetNumberOfComponentsInNativeImage() == 3 ? MAIN_RGB : MAIN_SCALAR)
-    : force_type;
 
   // Get the size of the image as a vector of uint
   Vector3ui size = io->GetNativeImage()->GetBufferedRegion().GetSize();
 
   // Compute the new image geometry for the IRIS data
   ImageCoordinateGeometry icg(
-    io->GetNativeImage()->GetDirection().GetVnlMatrix(), m_DisplayToAnatomyRAI, size);
+        io->GetNativeImage()->GetDirection().GetVnlMatrix(),
+        m_DisplayToAnatomyRAI, size);
 
-  std::cout << "UpdateIRISMainImage: native size: " << io->GetNativeImage()->GetBufferedRegion().GetSize() << std::endl;
+  // Rescale the image to desired number of bits
+  RescaleNativeImageToIntegralType<AnatomyImageType> rescaler;
+  AnatomyImageType::Pointer imgMain = rescaler(io);
+  LinearInternalToNativeIntensityMapping mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
 
-  // Cast the native image to desired format and pass on to IRISImageData
-  if(type == MAIN_SCALAR)
-    {
-    // Rescale the image to grey
-    RescaleNativeImageToScalar<GreyType> rescaler;
-    GreyImageType::Pointer imgGrey = rescaler(io);
-    InternalToNativeFunctor mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
+  // Set the image as the current main anatomy image
+  m_IRISImageData->SetMainImage(imgMain, icg, mapper);
 
-    // Set the image as the current grayscale image
-    m_IRISImageData->SetGreyImage(imgGrey, icg, mapper);
+  // TODO: the threshold settings should probably not be initialized here, but
+  // when we are interacting with them. This way they can adapt to whatever
+  // scalar representation is current.
 
-    // Update the history
-    m_SystemInterface->UpdateHistory("GreyImage", io->GetFileNameOfNativeImage());
-
-    // Update the preprocessing settings to defaults.
-    m_ThresholdSettings->InitializeToDefaultForImage(m_IRISImageData->GetGrey());
-    m_EdgePreprocessingSettings->InitializeToDefaults();
-    }
-  else if(type == MAIN_RGB)
-    {
-    // Cast to RGB
-    CastNativeImageToRGB<RGBType> caster;
-    RGBImageType::Pointer imgRGB = caster(io);
-    m_IRISImageData->SetRGBImage(imgRGB,icg);
-
-    // Update the history
-    m_SystemInterface->UpdateHistory("RGBImage", io->GetFileNameOfNativeImage());
-    }
-  else throw itk::ExceptionObject("Unsupported main image type");
+  // Update the preprocessing settings to defaults.
+  m_ThresholdSettings->InitializeToDefaultForImage(
+        m_IRISImageData->GetMain()->GetDefaultScalarRepresentation());
+  m_EdgePreprocessingSettings->InitializeToDefaults();
 
   // Set the filename and nickname of the image wrapper
   m_IRISImageData->GetMain()->SetFileName(io->GetFileNameOfNativeImage());
@@ -1417,13 +1380,9 @@ IRISApplication
 
   // Reset the UNDO manager
   m_UndoManager.Clear();
-
-  return type;
 }
 
-IRISApplication::MainImageType 
-IRISApplication
-::LoadMainImage(const char *filename, MainImageType force_type)
+void IRISApplication::LoadMainImage(const char *filename)
 {
   // Load the settings associated with this file
   Registry regFull;
@@ -1437,7 +1396,7 @@ IRISApplication
   io.ReadNativeImage(filename, folder);
 
   // Do the work
-  return UpdateIRISMainImage(&io, force_type);
+  UpdateIRISMainImage(&io);
 }
 
 void
@@ -1468,9 +1427,9 @@ IRISApplication
   InvokeEvent(MainImageDimensionsChangeEvent());
 }
 
-IRISApplication::MainImageType 
+void
 IRISApplication
-::LoadOverlayImage(const char *filename, MainImageType force_type)
+::LoadOverlayImage(const char *filename)
 {
   // Load the settings associated with this file
   Registry regFull;
@@ -1484,7 +1443,7 @@ IRISApplication
   io.ReadNativeImage(filename, folder);
 
   // Detemine the type
-  return AddIRISOverlayImage(&io, force_type);
+  AddIRISOverlayImage(&io);
 }
 
 bool IRISApplication::IsMainImageLoaded() const

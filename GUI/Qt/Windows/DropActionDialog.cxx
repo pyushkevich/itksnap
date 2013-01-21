@@ -36,7 +36,7 @@ void DropActionDialog::SetModel(GlobalUIModel *model)
 
 void DropActionDialog::on_btnLoadMain_clicked()
 {
-  LoadMainImageDelegate del(m_Model, IRISApplication::MAIN_ANY);
+  LoadMainImageDelegate del(m_Model);
   this->LoadCommon(del);
 }
 
@@ -48,7 +48,7 @@ void DropActionDialog::on_btnLoadSegmentation_clicked()
 
 void DropActionDialog::on_btnLoadOverlay_clicked()
 {
-  LoadOverlayImageDelegate del(m_Model, IRISApplication::MAIN_ANY);
+  LoadOverlayImageDelegate del(m_Model);
   this->LoadCommon(del);
 }
 

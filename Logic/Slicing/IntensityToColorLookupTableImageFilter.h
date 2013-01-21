@@ -11,7 +11,7 @@ class IntensityCurveInterface;
 /**
   This filter is used to generate a color lookup table from an intensity curve,
   color map, and information regarding the range of the input image. The actual
-  input image is really used in the computation, but it should still be passed
+  input image is not really used in the computation, but it should still be passed
   in. The color lookup table is implemented as a 1-D image of RGBAPixel.
   */
 template <class TInputImage, class TOutputLUT>

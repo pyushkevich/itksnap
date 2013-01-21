@@ -40,23 +40,19 @@ class LoadAnatomicImageDelegate : public AbstractLoadImageDelegate
 {
 public:
 
-  LoadAnatomicImageDelegate(GlobalUIModel *model,
-                            IRISApplication::MainImageType type)
-    : AbstractLoadImageDelegate(model), m_ImageType(type) {}
+  LoadAnatomicImageDelegate(GlobalUIModel *model)
+    : AbstractLoadImageDelegate(model) {}
 
   virtual ~LoadAnatomicImageDelegate() {}
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
 
-protected:
-  IRISApplication::MainImageType m_ImageType;
 };
 
 class LoadMainImageDelegate : public LoadAnatomicImageDelegate
 {
 public:
 
-  LoadMainImageDelegate(GlobalUIModel *model,
-                        IRISApplication::MainImageType type);
+  LoadMainImageDelegate(GlobalUIModel *model);
 
   void UnloadCurrentImage();
   void UpdateApplicationWithImage(GuidedNativeImageIO *io);
@@ -69,8 +65,7 @@ class LoadOverlayImageDelegate : public LoadAnatomicImageDelegate
 {
 public:
 
-  LoadOverlayImageDelegate(GlobalUIModel *model,
-                           IRISApplication::MainImageType type);
+  LoadOverlayImageDelegate(GlobalUIModel *model);
 
   void UnloadCurrentImage();
   void UpdateApplicationWithImage(GuidedNativeImageIO *io);

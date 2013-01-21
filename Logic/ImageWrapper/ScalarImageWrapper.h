@@ -52,22 +52,25 @@ namespace itk {
  * is used to unify the treatment of different kinds of scalar images in
  * SNaP.  
  */
-template<class TImage, class TBase = ScalarImageWrapperBase>
-class ScalarImageWrapper : public ImageWrapper<TImage, TBase>
+template<class TTraits, class TBase = ScalarImageWrapperBase>
+class ScalarImageWrapper : public ImageWrapper<TTraits, TBase>
 {
 public:
 
   // Standard ITK business
-  typedef ScalarImageWrapper<TImage, TBase>                               Self;
-  typedef ImageWrapper<TImage, TBase>                               Superclass;
+  typedef ScalarImageWrapper<TTraits, TBase>                              Self;
+  typedef ImageWrapper<TTraits, TBase>                              Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(ScalarImageWrapper, ImageWrapper)
+  itkNewMacro(Self)
+
 
   // Image Types
   typedef typename Superclass::ImageType                             ImageType;
   typedef typename Superclass::ImagePointer                       ImagePointer;
   typedef typename Superclass::PixelType                             PixelType;
+  typedef typename Superclass::CommonFormatImageType     CommonFormatImageType;
 
   // Slice image type
   typedef typename Superclass::SliceType                             SliceType;
@@ -84,7 +87,17 @@ public:
   typedef typename Superclass::Iterator                               Iterator;
   typedef typename Superclass::ConstIterator                     ConstIterator;
 
+  // Output channels
+  typedef typename Superclass::ExportChannel                     ExportChannel;
+
   virtual bool IsScalar() const { return true; }
+
+  /**
+   * This function just returns the pointer to itself, as the scalar representation
+   * of a scalar image wrapper is itself.
+   * @see ImageWrapperBase::GetScalarRepresentation
+   */
+  ScalarImageWrapperBase *GetDefaultScalarRepresentation() { return this; }
 
   /**
    * Get the minimum intensity value.  Call ComputeImageIntensityRange() 
@@ -98,29 +111,14 @@ public:
    */
   virtual PixelType GetImageMax();
 
+  /** Access the min/max filter */
+  irisGetMacro(MinMaxFilter, MinMaxFilter *)
+
   /**
    * Get the scaling factor used to convert between intensities stored
    * in this image and the 'true' image intensities
    */
   virtual double GetImageScaleFactor();
-
-  /**
-   * Remap the intensity range of the image to a given range
-   */
-  virtual void RemapIntensityToRange(double min, double max);
-
-  /**
-   * Remap the intensity range to max possible range
-   */
-  virtual void RemapIntensityToMaximumRange();
-
-  /**
-   * This method is used to perform a deep copy of a region of this image 
-   * into another image, potentially resampling the region to use a different
-   * voxel size
-   */
-  ImagePointer DeepCopyRegion(const SNAPSegmentationROISettings &roi,
-                              itk::Command *progressCommand = NULL) const;
 
   typedef typename ImageWrapperBase::ShortImageType ShortImageType;
 
@@ -129,25 +127,31 @@ public:
 
   /** Voxel access */
   virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const
-  {
-    return (double) this->GetVoxel(idx);
-  }
+    { return (double) Superclass::GetVoxel(idx); }
 
-  /** Voxel access */
   virtual double GetVoxelAsDouble(const Vector3ui &v) const
-  {
-    return (double) this->GetVoxel(v);
-  }
+    { return (double) Superclass::GetVoxel(v); }
 
   virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const
-  {
-    out[0] = this->GetVoxel(x);
-  }
+    { out[0] = Superclass::GetVoxel(x); }
 
   virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const
-  {
-    out[0] = this->GetVoxel(idx);
-  }
+    { out[0] = Superclass::GetVoxel(idx); }
+
+  /**
+   * Get voxel intensity in native space
+   */
+  double GetVoxelMappedToNative(const Vector3ui &vec) const
+    { return this->m_NativeMapping(this->GetVoxel(vec)); }
+
+  double GetVoxelMappedToNative(const itk::Index<3> &idx) const
+    { return this->m_NativeMapping(this->GetVoxel(idx)); }
+
+  virtual void GetVoxelMappedToNative(const Vector3ui &vec, double *out) const
+    { out[0] = this->m_NativeMapping(Superclass::GetVoxel(vec)); }
+
+  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const
+    { out[0] = this->m_NativeMapping(Superclass::GetVoxel(idx)); }
 
   /**
     Get the maximum intensity
@@ -179,25 +183,12 @@ public:
   double GetImageGradientMagnitudeUpperLimitNative();
 
   /**
-   * Get voxel intensity in native space
-   */
-  double GetVoxelMappedToNative(const Vector3ui &vec) const
-    { return m_NativeMapping(this->GetVoxel(vec)); }
-
-  /**
    * Get min/max voxel intensity in native space
    */
   double GetImageMinNative()
-    { return m_NativeMapping(this->GetImageMin()); }
+    { return this->m_NativeMapping(this->GetImageMin()); }
   double GetImageMaxNative()
-    { return m_NativeMapping(this->GetImageMax()); }
-
-  /**
-    There may be a linear mapping between internal values stored in the
-    image and the values stored in the native image format.
-    */
-  irisGetMacro(NativeMapping, InternalToNativeFunctor)
-  irisSetMacro(NativeMapping, InternalToNativeFunctor)
+    { return this->m_NativeMapping(this->GetImageMax()); }
 
 
   /**
@@ -211,6 +202,19 @@ public:
     will be generated.
     */
   const ScalarImageHistogram *GetHistogram(size_t nBins = 0);
+
+  /**
+   * Get an image cast to a common representation.
+   * @see ScalarImageWrapperBase::GetCommonFormatImage()
+   */
+  CommonFormatImageType* GetCommonFormatImage(
+      ExportChannel channel = ScalarImageWrapperBase::WHOLE_IMAGE);
+
+  /** Return the intensity curve for this layer if it exists */
+  virtual IntensityCurveInterface *GetIntensityCurve() const;
+
+  /** Return the color map for this layer if it exists */
+  virtual ColorMap *GetColorMap() const;
 
 protected:
 
@@ -233,19 +237,20 @@ protected:
    */
   SmartPtr<MinMaxFilter> m_MinMaxFilter;
 
+  // The policy used to extract a common representation image
+  typedef typename TTraits::CommonRepresentationPolicy CommonRepresentationPolicy;
+  CommonRepresentationPolicy m_CommonRepresentationPolicy;
+
   /**
     A mini-pipeline to compute the maximum value of the gradient of
     the input image on demand.
     */
   typedef itk::Image<float ,3> FloatImageType;
-  typedef itk::GradientMagnitudeImageFilter<ImageType, FloatImageType> GradMagFilter;
+  typedef itk::GradientMagnitudeImageFilter<CommonFormatImageType, FloatImageType> GradMagFilter;
   typedef itk::MinimumMaximumImageFilter<FloatImageType> GradMagMaxFilter;
 
   SmartPtr<GradMagFilter> m_GradientMagnitudeFilter;
   SmartPtr<GradMagMaxFilter> m_GradientMagnitudeMaximumFilter;
-
-  // Mapping from native to internal format (get rid of in the future?)
-  InternalToNativeFunctor m_NativeMapping;
 
   /** The intensity scaling factor */
   double m_ImageScaleFactor;
@@ -264,6 +269,7 @@ protected:
 
   // The histogram for this scalar wrapper. It is computed only when asked for
   SmartPtr<ScalarImageHistogram> m_Histogram;
+
 };
 
 #endif // __ScalarImageWrapper_h_

@@ -131,10 +131,10 @@ void CursorInspector::on_actionAutoContrast_triggered()
   LayerIterator it =
       m_Model->GetParent()->GetLoadedLayersSelectionModel()->GetNthLayer(m_PopupRow);
 
-  if(it.GetLayerAsGray())
+  if(it.GetLayer()->GetDisplayMapping()->GetIntensityCurve())
     {
     // Select the currently highlighted layer
-    m_Model->GetParent()->GetIntensityCurveModel()->SetLayer(it.GetLayerAsGray());
+    m_Model->GetParent()->GetIntensityCurveModel()->SetLayer(it.GetLayer());
 
     // Auto-adjust intensity in the selected layer
     m_Model->GetParent()->GetIntensityCurveModel()->OnAutoFitWindow();

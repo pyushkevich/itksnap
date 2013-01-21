@@ -113,16 +113,13 @@ SET(LOGIC_CXX
   Logic/Framework/IRISImageData.cxx
   Logic/Framework/SNAPImageData.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
+  Logic/ImageWrapper/CommonRepresentationPolicy.cxx
+  Logic/ImageWrapper/DisplayMappingPolicy.cxx
   Logic/ImageWrapper/ImageWrapperBase.cxx
   Logic/ImageWrapper/ImageWrapper.cxx
-  Logic/ImageWrapper/GreyImageWrapper.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
-  Logic/ImageWrapper/LabelImageWrapper.cxx
-  Logic/ImageWrapper/LevelSetImageWrapper.cxx
-  Logic/ImageWrapper/RGBImageWrapper.cxx
   Logic/ImageWrapper/ScalarImageHistogram.cxx
   Logic/ImageWrapper/ScalarImageWrapper.cxx
-  Logic/ImageWrapper/SpeedImageWrapper.cxx
   Logic/ImageWrapper/VectorImageWrapper.cxx
   Logic/LevelSet/SnakeParameters.cxx
   Logic/Mesh/AllPurposeProgressAccumulator.cxx
@@ -138,6 +135,8 @@ SET(LOGIC_CXX
   Logic/Slicing/IntensityCurveVTK.cxx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
   Logic/Slicing/LookupTableIntensityMappingFilter.cxx
+  Logic/Slicing/MultiComponentImageToScalarLookupTableImageFilter.cxx
+  Logic/Slicing/RGBALookupTableIntensityMappingFilter.cxx
 )
 
 # The headers for the Logic code
@@ -186,19 +185,16 @@ SET(LOGIC_HEADERS
   Logic/Framework/SNAPImageData.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
-  Logic/ImageWrapper/ContinuousScalarImageWrapper.h
-  Logic/ImageWrapper/GreyImageWrapper.h
+  Logic/ImageWrapper/CommonRepresentationPolicy.h
+  Logic/ImageWrapper/DisplayMappingPolicy.h
   Logic/ImageWrapper/GuidedNativeImageIO.h
   Logic/ImageWrapper/ImageIORoutines.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
-  Logic/ImageWrapper/LabelImageWrapper.h
   Logic/ImageWrapper/LabelToRGBAFilter.h
-  Logic/ImageWrapper/LevelSetImageWrapper.h
-  Logic/ImageWrapper/RGBImageWrapper.h
+  Logic/ImageWrapper/NativeIntensityMappingPolicy.h
   Logic/ImageWrapper/ScalarImageHistogram.h
   Logic/ImageWrapper/ScalarImageWrapper.h
-  Logic/ImageWrapper/SpeedImageWrapper.h
   Logic/ImageWrapper/VectorImageWrapper.h
   Logic/LevelSet/LevelSetExtensionFilter.h
   Logic/LevelSet/SNAPAdvectionFieldImageFilter.h
@@ -234,6 +230,8 @@ SET(LOGIC_HEADERS
   Logic/Slicing/IntensityCurveVTK.h
   Logic/Slicing/IntensityToColorLookupTableImageFilter.h
   Logic/Slicing/LookupTableIntensityMappingFilter.h
+  Logic/Slicing/MultiComponentImageToScalarLookupTableImageFilter.h
+  Logic/Slicing/RGBALookupTableIntensityMappingFilter.h
 )
 
 # These files have the UI model code, which is GUI-TK independent

@@ -71,7 +71,6 @@ typedef itk::ImageRegionConstIterator<GenericImageDataBorlandDummyShortImageType
 typedef itk::MinimumMaximumImageCalculator<GenericImageDataBorlandDummyShortImageType> GenericImageDataBorlandDummyMinMaxCalc;
 #endif
 
-#include "GreyImageWrapper.h"
 #if defined(__BORLANDC__)
 typedef CachingUnaryFunctor<short,unsigned char,GreyImageWrapper::IntensityFunctor> GenericImageDataBorlamdCachingUnaryFunctor;
 typedef itk::UnaryFunctorImageFilter<GenericImageDataBorlandDummyShortImageType,GenericImageDataBorlandDummyImageType2,GenericImageDataBorlamdCachingUnaryFunctor> GenericImageDataDummyFunctorType;
@@ -79,10 +78,6 @@ typedef itk::SmartPointer<GenericImageDataDummyFunctorType> GenericImageDataDumm
 #endif
 
 #include "GenericImageData.h"
-
-#include "LabelImageWrapper.h"
-
-#include "RGBImageWrapper.h"
 
 // System includes
 #include <fstream>
@@ -98,7 +93,7 @@ GenericImageData
   assert(IsSegmentationLoaded());
 
   // Store the voxel
-  m_LabelWrapper->GetVoxelForUpdate(index) = value;
+  m_LabelWrapper->SetVoxel(index, value);
 
   // Mark the image as modified
   m_LabelWrapper->GetImage()->Modified();
@@ -112,15 +107,13 @@ GenericImageData
 
   // Make main image wrapper point to grey wrapper initially
   m_MainImageWrapper = NULL;
-  m_GreyImageWrapper = NULL;
-  m_RGBImageWrapper = NULL;
 
   // Pass the label table from the parent to the label wrapper
   m_LabelWrapper = NULL;
   
   // Add to the relevant lists
   m_Wrappers[LayerIterator::MAIN_ROLE].push_back(m_MainImageWrapper);
-  m_Wrappers[LayerIterator::LABEL_ROLE].push_back(m_MainImageWrapper);
+  m_Wrappers[LayerIterator::LABEL_ROLE].push_back(m_LabelWrapper.GetPointer());
 }
 
 GenericImageData
@@ -145,54 +138,29 @@ GenericImageData
   return m_MainImageWrapper->GetImageBase()->GetOrigin().GetVnlVector();
 }
 
-void 
+
+void
 GenericImageData
-::SetGreyImage(GreyImageType *image,
+::SetMainImage(AnatomicImageType *image,
                const ImageCoordinateGeometry &newGeometry,
-               const InternalToNativeFunctor &native)
+               const LinearInternalToNativeIntensityMapping &native)
 {
   // Create a main wrapper of fixed type.
-  SmartPtr<GreyWrapperType> wrapper = GreyWrapperType::New();
+  SmartPtr<AnatomicImageWrapper> wrapper = AnatomicImageWrapper::New();
 
   // Set properties
   wrapper->SetImage(image);
   wrapper->SetNativeMapping(native);
 
-  // Call common code
-  SetMainImageCommon(wrapper, newGeometry);
-}
-
-void
-GenericImageData
-::SetRGBImage(RGBImageType *image,
-              const ImageCoordinateGeometry &newGeometry) 
-{
-  // Create a main wrapper of fixed type.
-  SmartPtr<RGBWrapperType> wrapper = RGBWrapperType::New();
-
-  // Set properties
-  wrapper->SetImage(image);
-
-  // Call common code
-  SetMainImageCommon(wrapper, newGeometry);
-}
-
-void
-GenericImageData
-::SetMainImageCommon(ImageWrapperBase *wrapper,
-                     const ImageCoordinateGeometry &geometry)
-{
   // Make the wrapper the main image
-  m_Wrappers[LayerIterator::MAIN_ROLE][0] = m_MainImageWrapper = wrapper;
-
-  m_GreyImageWrapper = dynamic_cast<GreyWrapperType *>(m_MainImageWrapper);
-  m_RGBImageWrapper = dynamic_cast<RGBWrapperType *>(m_MainImageWrapper);
-
+  m_Wrappers[LayerIterator::MAIN_ROLE][0] = wrapper.GetPointer();
+  m_MainImageWrapper = wrapper;
 
   // Initialize the segmentation data to zeros
   m_LabelWrapper = LabelImageWrapper::New();
   m_LabelWrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
-  m_LabelWrapper->SetLabelColorTable(m_Parent->GetColorLabelTable());
+
+  m_LabelWrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
 
   m_Wrappers[LayerIterator::LABEL_ROLE][0] = (ImageWrapperBase *) m_LabelWrapper;
 
@@ -200,7 +168,7 @@ GenericImageData
   m_MainImageWrapper->SetAlpha(255);
 
   // Pass the coordinate transform to the wrappers
-  SetImageGeometry(geometry);
+  SetImageGeometry(newGeometry);
 }
 
 void
@@ -213,8 +181,6 @@ GenericImageData
   // Clear the main image wrappers
   m_Wrappers[LayerIterator::MAIN_ROLE][0] = NULL;
   m_MainImageWrapper = NULL;
-  m_GreyImageWrapper = NULL;
-  m_RGBImageWrapper = NULL;
 
   // Reset the label wrapper
   m_Wrappers[LayerIterator::LABEL_ROLE][0] = NULL;
@@ -223,8 +189,8 @@ GenericImageData
 
 void
 GenericImageData
-::AddGreyOverlay(GreyImageType *image,
-                 const InternalToNativeFunctor &native)
+::AddOverlay(AnatomicImageType *image,
+             const LinearInternalToNativeIntensityMapping &native)
 {
   // Check that the image matches the size of the main image
   //Octavian_2012_08_24_16:20: changed assert into this test as a response to:
@@ -235,38 +201,9 @@ GenericImageData
     }
 
   // Pass the image to a Grey image wrapper
-  SmartPtr<GreyWrapperType> wrapper = GreyWrapperType::New();
-  wrapper->SetImage(image);
-  wrapper->SetNativeMapping(native);
-  wrapper->SetAlpha(128);
-
-  AddOverlayCommon(wrapper);
-}
-
-void
-GenericImageData
-::AddRGBOverlay(RGBImageType *image)
-{
-  // Check that the image matches the size of the main image
-  //Octavian_2012_08_24_16:20: changed assert into this test as a response to:
-  //bug: ID: 3023489: "-o flag size check" 
-  if(m_MainImageWrapper->GetBufferedRegion() != image->GetBufferedRegion())
-    {
-    throw IRISException("Main and overlay data sizes are different");
-    }
-
-  // Pass the image to a RGB image wrapper
-  SmartPtr<RGBWrapperType> wrapper = RGBWrapperType::New();
-  wrapper->SetImage(image);
-
-  AddOverlayCommon(wrapper);
-}
-
-void
-GenericImageData
-::AddOverlayCommon(ImageWrapperBase *overlay)
-{
-  // Set up the alpha
+  SmartPtr<AnatomicImageWrapper> overlay = AnatomicImageWrapper::New();
+  overlay->SetImage(image);
+  overlay->SetNativeMapping(native);
   overlay->SetAlpha(128);
 
   // Sync up spacing between the main and overlay image
@@ -287,7 +224,7 @@ GenericImageData
     }
 
   // Add to the overlay wrapper list
-  m_Wrappers[LayerIterator::OVERLAY_ROLE].push_back(overlay);
+  m_Wrappers[LayerIterator::OVERLAY_ROLE].push_back(overlay.GetPointer());
 }
 
 void
@@ -331,23 +268,9 @@ GenericImageData
 
 bool
 GenericImageData
-::IsGreyLoaded()
-{
-  return m_GreyImageWrapper != NULL;
-}
-
-bool
-GenericImageData
 ::IsOverlayLoaded()
 {
   return (m_Wrappers[LayerIterator::OVERLAY_ROLE].size() > 0);
-}
-
-bool
-GenericImageData
-::IsRGBLoaded()
-{
-  return m_RGBImageWrapper != NULL;
 }
 
 bool
@@ -400,34 +323,6 @@ unsigned int GenericImageData::GetNumberOfLayers(int role_filter)
 
   return n;
 }
-
-/*
-inline
-ImageWrapperBase *
-GenericImageData
-::GetLayer(unsigned int layer) const
-{
-  return layer == 0 ? m_MainImageWrapper : m_OverlayWrappers[layer-1];
-}
-
-inline
-GreyImageWrapperBase *
-GenericImageData
-::GetLayerAsGray(unsigned int layer) const
-{
-  return dynamic_cast<GreyImageWrapperBase *>(GetLayer(layer));
-}
-
-inline
-RGBImageWrapperBase *
-GenericImageData
-::GetLayerAsRGB(unsigned int layer) const
-{
-  return dynamic_cast<RGBImageWrapperBase *>(GetLayer(layer));
-}
-
-*/
-
 
 
 LayerIterator
@@ -571,14 +466,9 @@ ScalarImageWrapperBase * LayerIterator::GetLayerAsScalar() const
   return dynamic_cast<ScalarImageWrapperBase *>(this->GetLayer());
 }
 
-GreyImageWrapperBase * LayerIterator::GetLayerAsGray() const
+VectorImageWrapperBase * LayerIterator::GetLayerAsVector() const
 {
-  return dynamic_cast<GreyImageWrapperBase *>(this->GetLayer());
-}
-
-RGBImageWrapperBase * LayerIterator::GetLayerAsRGB() const
-{
-  return dynamic_cast<RGBImageWrapperBase *>(this->GetLayer());
+  return dynamic_cast<VectorImageWrapperBase *>(this->GetLayer());
 }
 
 LayerIterator::LayerRole

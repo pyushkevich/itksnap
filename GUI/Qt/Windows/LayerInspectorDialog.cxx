@@ -133,9 +133,9 @@ void LayerInspectorDialog::onLayerSelection()
   QModelIndex idx = ui->inLayer->selectionModel()->currentIndex();
   LayerIterator it = m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(idx.row());
   ScalarImageWrapperBase *layer_as_scalar = dynamic_cast<ScalarImageWrapperBase *>(it.GetLayer());
-  GreyImageWrapperBase *layer_as_gray = it.GetLayerAsGray();
-  m_Model->GetIntensityCurveModel()->SetLayer(layer_as_gray);
-  m_Model->GetColorMapModel()->SetLayer(layer_as_gray);
+
+  m_Model->GetIntensityCurveModel()->SetLayer(layer_as_scalar);
+  m_Model->GetColorMapModel()->SetLayer(layer_as_scalar);
   m_Model->GetImageInfoModel()->SetLayer(layer_as_scalar);
 }
 

@@ -1,8 +1,5 @@
 #include "SlicePreviewFilterWrapper.h"
 
-#include "GreyImageWrapper.h"
-#include "SpeedImageWrapper.h"
-
 #include "SmoothBinaryThresholdImageFilter.h"
 #include "EdgePreprocessingImageFilter.h"
 #include "itkStreamingImageFilter.h"
@@ -48,7 +45,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
 ::AttachInputs(SNAPImageData *sid)
 {
   for(int i = 0; i < 4; i++)
-    Traits::AttachInputs(sid, this->GetNthFilter(i));
+    Traits::AttachInputs(sid, this->GetNthFilter(i), i);
 }
 
 template <class TFilterConfigTraits>

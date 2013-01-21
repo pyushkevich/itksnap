@@ -1,0 +1,2 @@
+#include "ImageWrapperTraits.h"
+

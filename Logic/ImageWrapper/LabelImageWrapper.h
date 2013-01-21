@@ -97,23 +97,6 @@ private:
   /** Destructor */
   ~LabelImageWrapper();
 
-  /**
-   * Functor used for display caching.  This class keeps a pointer to 
-   * the table of colors and maps colors to RGBA Pixels
-   */
-  class IntensityFunctor {
-  public:    
-      /** The pointer to the label table */
-      ColorLabelTable *m_ColorLabelTable;
-
-      /** The operator that maps label to color */
-      DisplayPixelType operator()(const LabelType &x) const;
-
-      // Dummy equality operators, since there is no data here
-      bool operator == (const IntensityFunctor &) const { return true; }
-      bool operator != (const IntensityFunctor &) const { return false; }
-  };
-
   // Filter applied to slices
   typedef itk::Image<LabelType,2> LabelSliceType;
 
@@ -122,27 +105,7 @@ private:
 
   RGBAFilterPointer m_RGBAFilter[3];
 
-  // typedef 
-  //  itk::UnaryFunctorImageFilter<LabelSliceType,DisplaySliceType,CacheFunctor>
-  //  IntensityFilterType;
-  // typedef itk::SmartPointer<IntensityFilterType> IntensityFilterPointer;
 
-  /**
-   * An instance of the private intensity mapper (this mapper wraps the passed
-   * in list of labels
-   */
-  // IntensityFunctor m_IntensityFunctor;
-
-  /**
-   * A cache used for the intensity mapping function
-   */
-  // CachePointer m_IntensityMapCache;
-
-  /**
-   * Filters used to remap the intensity of the slices in this image
-   * into unsigned char images
-   */
-  // IntensityFilterPointer m_IntensityFilter[3];
 };
 
 #endif // __LabelImageWrapper_h_

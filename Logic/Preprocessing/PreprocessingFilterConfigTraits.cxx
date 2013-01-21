@@ -40,11 +40,17 @@
 
 void
 SmoothBinaryThresholdFilterConfigTraits
-::AttachInputs(SNAPImageData *sid, FilterType *filter)
+::AttachInputs(SNAPImageData *sid, FilterType *filter, int channel)
 {
-  filter->SetInput(sid->GetGrey()->GetImage());
-  filter->SetInputImageMinimum(sid->GetGrey()->GetImageMinAsDouble());
-  filter->SetInputImageMaximum(sid->GetGrey()->GetImageMaxAsDouble());
+  // Get the default scalar represnetation for the main image
+  ScalarImageWrapperBase *scalar = sid->GetMain()->GetDefaultScalarRepresentation();
+  ScalarImageWrapperBase::CommonFormatImageType *image =
+      scalar->GetCommonFormatImage(
+        static_cast<ScalarImageWrapperBase::ExportChannel>(channel));
+
+  filter->SetInput(image);
+  filter->SetInputImageMinimum(scalar->GetImageMinAsDouble());
+  filter->SetInputImageMaximum(scalar->GetImageMaxAsDouble());
 }
 
 void
@@ -65,11 +71,16 @@ SmoothBinaryThresholdFilterConfigTraits
 
 void
 EdgePreprocessingFilterConfigTraits
-::AttachInputs(SNAPImageData *sid, FilterType *filter)
+::AttachInputs(SNAPImageData *sid, FilterType *filter, int channel)
 {
-  filter->SetInput(sid->GetGrey()->GetImage());
+  ScalarImageWrapperBase *scalar = sid->GetMain()->GetDefaultScalarRepresentation();
+  ScalarImageWrapperBase::CommonFormatImageType *image =
+      scalar->GetCommonFormatImage(
+        static_cast<ScalarImageWrapperBase::ExportChannel>(channel));
+
+  filter->SetInput(image);
   filter->SetInputImageMaximumGradientMagnitude(
-        sid->GetGrey()->GetImageGradientMagnitudeUpperLimit());
+        scalar->GetImageGradientMagnitudeUpperLimit());
 }
 
 void

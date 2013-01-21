@@ -14,6 +14,7 @@
 =========================================================================*/
 
 #include "ScalarImageWrapper.h"
+#include "ImageWrapperTraits.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageSliceConstIteratorWithIndex.h"
 #include "itkNumericTraits.h"
@@ -30,13 +31,17 @@
 #include "itkCommand.h"
 #include "itkMinimumMaximumImageFilter.h"
 #include "itkGradientMagnitudeImageFilter.h"
+#include "itkVectorImageToImageAdaptor.h"
+#include "IRISException.h"
+#include "VectorImageWrapper.h"
 
 #include "ScalarImageHistogram.h"
+#include "itkStreamingImageFilter.h"
 
 #include <iostream>
 
-template<class TImage, class TBase>
-ScalarImageWrapper<TImage,TBase>
+template<class TTraits, class TBase>
+ScalarImageWrapper<TTraits,TBase>
 ::ScalarImageWrapper()
 {
   m_Histogram = ScalarImageHistogram::New();
@@ -45,13 +50,19 @@ ScalarImageWrapper<TImage,TBase>
   m_GradientMagnitudeFilter = GradMagFilter::New();
   m_GradientMagnitudeFilter->ReleaseDataFlagOn();
 
+  // Set up a streamer to avoid extra memory use when using the gradient mag
+  // filter. Ideally, there would be a streaming MaximumMinimum filter available
+  typedef itk::StreamingImageFilter<FloatImageType, FloatImageType> StreamerType;
+  typename StreamerType::Pointer streamer = StreamerType::New();
+  streamer->SetInput(m_GradientMagnitudeFilter->GetOutput());
+  streamer->SetNumberOfStreamDivisions(16);
+
   m_GradientMagnitudeMaximumFilter = GradMagMaxFilter::New();
-  m_GradientMagnitudeMaximumFilter->SetInput(
-        m_GradientMagnitudeFilter->GetOutput());
+  m_GradientMagnitudeMaximumFilter->SetInput(streamer->GetOutput());
 }
 
-template<class TImage, class TBase>
-ScalarImageWrapper<TImage,TBase>
+template<class TTraits, class TBase>
+ScalarImageWrapper<TTraits,TBase>
 ::ScalarImageWrapper(const Self &copy)
 {
   Superclass::CommonInitialization();
@@ -65,26 +76,27 @@ ScalarImageWrapper<TImage,TBase>
     newImage->Allocate();
 
     // Copy the image contents
-    PixelType *ptrTarget = newImage->GetBufferPointer();
-    PixelType *ptrSource = copy.GetImage()->GetBufferPointer();
+    typedef typename ImageType::InternalPixelType InternalPixelType;
+    InternalPixelType *ptrTarget = newImage->GetBufferPointer();
+    InternalPixelType *ptrSource = copy.GetImage()->GetBufferPointer();
     memcpy(ptrTarget,ptrSource,
-           sizeof(PixelType) * newImage->GetBufferedRegion().GetNumberOfPixels());
+           sizeof(InternalPixelType) * newImage->GetBufferedRegion().GetNumberOfPixels());
     
     UpdateImagePointer(newImage);
     }
 }
 
-template<class TImage, class TBase>
-ScalarImageWrapper<TImage,TBase>
+template<class TTraits, class TBase>
+ScalarImageWrapper<TTraits,TBase>
 ::~ScalarImageWrapper()
 {
 
 }
 
 
-template<class TImage, class TBase>
+template<class TTraits, class TBase>
 void 
-ScalarImageWrapper<TImage,TBase>
+ScalarImageWrapper<TTraits,TBase>
 ::UpdateImagePointer(ImageType *newImage) 
 {
   // Call the parent
@@ -93,127 +105,23 @@ ScalarImageWrapper<TImage,TBase>
   // Update the max-min pipeline once we have one setup
   m_MinMaxFilter->SetInput(newImage);
 
+  // Update the common representation policy
+  m_CommonRepresentationPolicy.UpdateInputImage(newImage);
+
   // Also update the grad max range pipeline
-  m_GradientMagnitudeFilter->SetInput(newImage);
-}
+  CommonFormatImageType *imgCommon =
+      m_CommonRepresentationPolicy.GetOutput(ScalarImageWrapperBase::WHOLE_IMAGE);
 
-template<class TImage, class TBase>
-typename ScalarImageWrapper<TImage,TBase>::ImagePointer
-ScalarImageWrapper<TImage,TBase>
-::DeepCopyRegion(const SNAPSegmentationROISettings &roi,
-                 itk::Command *progressCommand) const
-{
-  // The filter used to chop off the region of interest
-  typedef itk::RegionOfInterestImageFilter <ImageType,ImageType> ChopFilterType;
-  typename ChopFilterType::Pointer fltChop = ChopFilterType::New();
+  m_GradientMagnitudeFilter->SetInput(imgCommon);
 
-  // Check if there is a difference in voxel size, i.e., user wants resampling
-  Vector3ul vOldSize = this->m_Image->GetLargestPossibleRegion().GetSize();
-  Vector3d vOldSpacing = this->m_Image->GetSpacing();
-  
-  if(roi.GetResampleFlag())
-    {
-    // Compute the number of voxels in the output
-    typedef typename itk::ImageRegion<3> RegionType;
-    typedef typename itk::Size<3> SizeType;
 
-    SizeType vNewSize;
-    RegionType vNewROI;
-    Vector3d vNewSpacing;
-
-    for(unsigned int i = 0; i < 3; i++) 
-      {
-      double scale = roi.GetVoxelScale()[i];
-      vNewSize.SetElement(i, (unsigned long) (vOldSize[i] / scale));
-      vNewROI.SetSize(i,(unsigned long) (roi.GetROI().GetSize(i) / scale));
-      vNewROI.SetIndex(i,(long) (roi.GetROI().GetIndex(i) / scale));
-      vNewSpacing[i] = scale * vOldSpacing[i];
-      }
-
-    // Create a filter for resampling the image
-    typedef itk::ResampleImageFilter<ImageType,ImageType> ResampleFilterType;
-    typename ResampleFilterType::Pointer fltSample = ResampleFilterType::New();
-
-    // Initialize the resampling filter
-    fltSample->SetInput(this->m_Image);
-    fltSample->SetTransform(itk::IdentityTransform<double,3>::New());
-
-    // Typedefs for interpolators
-    typedef itk::NearestNeighborInterpolateImageFunction<
-      ImageType,double> NNInterpolatorType;
-    typedef itk::LinearInterpolateImageFunction<
-      ImageType,double> LinearInterpolatorType;
-    typedef itk::BSplineInterpolateImageFunction<
-      ImageType,double> CubicInterpolatorType;
-
-    // More typedefs are needed for the sinc interpolator
-    static const unsigned int VRadius = 5;
-    typedef itk::Function::HammingWindowFunction<VRadius> WindowFunction;
-    typedef itk::ConstantBoundaryCondition<ImageType> Condition;
-    typedef itk::WindowedSincInterpolateImageFunction<
-      ImageType, VRadius, 
-      WindowFunction, Condition, double> SincInterpolatorType;
-
-    // Choose the interpolator
-    switch(roi.GetInterpolationMethod())
-      {
-      case SNAPSegmentationROISettings::NEAREST_NEIGHBOR :
-        fltSample->SetInterpolator(NNInterpolatorType::New());
-        break;
-
-      case SNAPSegmentationROISettings::TRILINEAR : 
-        fltSample->SetInterpolator(LinearInterpolatorType::New());
-        break;
-
-      case SNAPSegmentationROISettings::TRICUBIC :
-        fltSample->SetInterpolator(CubicInterpolatorType::New());
-        break;  
-
-      case SNAPSegmentationROISettings::SINC_WINDOW_05 :
-        fltSample->SetInterpolator(SincInterpolatorType::New());
-        break;  
-      };
-
-    // Set the image sizes and spacing
-    fltSample->SetSize(vNewSize);
-    fltSample->SetOutputSpacing(vNewSpacing.data_block());
-    fltSample->SetOutputOrigin(this->m_Image->GetOrigin());
-    fltSample->SetOutputDirection(this->m_Image->GetDirection());
-
-    // Set the progress bar
-    if(progressCommand)
-      fltSample->AddObserver(itk::AnyEvent(),progressCommand);
-
-    // Perform resampling
-    fltSample->GetOutput()->SetRequestedRegion(vNewROI);
-    fltSample->Update();  
-
-    // Pipe into the chopper
-    fltChop->SetInput(fltSample->GetOutput());
-
-    // Update the region of interest
-    fltChop->SetRegionOfInterest(vNewROI);
-    }
-  else
-    {
-    // Pipe image into the chopper
-    fltChop->SetInput(this->m_Image);    
-    
-    // Set the region of interest
-    fltChop->SetRegionOfInterest(roi.GetROI());
-    }
-
-  // Update the pipeline
-  fltChop->Update();
-
-  // Return the resulting image
-  return fltChop->GetOutput();
 }
 
 
-template<class TImage, class TBase>
+
+template<class TTraits, class TBase>
 void 
-ScalarImageWrapper<TImage,TBase>
+ScalarImageWrapper<TTraits,TBase>
 ::CheckImageIntensityRange() 
 {
   // Image should be loaded
@@ -225,9 +133,9 @@ ScalarImageWrapper<TImage,TBase>
   m_ImageScaleFactor = 1.0 / (m_MinMaxFilter->GetMaximum() - m_MinMaxFilter->GetMinimum());
 }
 
-template<class TImage, class TBase>
-typename ScalarImageWrapper<TImage,TBase>::PixelType
-ScalarImageWrapper<TImage,TBase>
+template<class TTraits, class TBase>
+typename ScalarImageWrapper<TTraits,TBase>::PixelType
+ScalarImageWrapper<TTraits,TBase>
 ::GetImageMin() 
 {
   // Make sure min/max are up-to-date
@@ -237,9 +145,9 @@ ScalarImageWrapper<TImage,TBase>
   return m_MinMaxFilter->GetMinimum();
 }
 
-template<class TImage, class TBase>
-typename ScalarImageWrapper<TImage,TBase>::PixelType
-ScalarImageWrapper<TImage,TBase>
+template<class TTraits, class TBase>
+typename ScalarImageWrapper<TTraits,TBase>::PixelType
+ScalarImageWrapper<TTraits,TBase>
 ::GetImageMax()
 {
   // Make sure min/max are up-to-date
@@ -249,27 +157,28 @@ ScalarImageWrapper<TImage,TBase>
   return m_MinMaxFilter->GetMaximum();
 }
 
-template<class TImage, class TBase>
+template<class TTraits, class TBase>
 double
-ScalarImageWrapper<TImage,TBase>
+ScalarImageWrapper<TTraits,TBase>
 ::GetImageGradientMagnitudeUpperLimit()
 {
   m_GradientMagnitudeMaximumFilter->Update();
   return m_GradientMagnitudeMaximumFilter->GetMaximum();
 }
 
-template<class TImage, class TBase>
+template<class TTraits, class TBase>
 double
-ScalarImageWrapper<TImage,TBase>
+ScalarImageWrapper<TTraits,TBase>
 ::GetImageGradientMagnitudeUpperLimitNative()
 {
-  return m_NativeMapping.scale * this->GetImageGradientMagnitudeUpperLimit();
+  return this->m_NativeMapping.MapGradientMagnitudeToNative(
+        this->GetImageGradientMagnitudeUpperLimit());
 }
 
 
-template<class TImage, class TBase>
+template<class TTraits, class TBase>
 double 
-ScalarImageWrapper<TImage,TBase>
+ScalarImageWrapper<TTraits,TBase>
 ::GetImageScaleFactor()
 {
   // Make sure min/max are up-to-date
@@ -279,54 +188,12 @@ ScalarImageWrapper<TImage,TBase>
   return m_ImageScaleFactor;
 }
 
-template<class TImage, class TBase>
-void 
-ScalarImageWrapper<TImage,TBase>
-::RemapIntensityToRange(double min, double max)
-{
-  typedef itk::RescaleIntensityImageFilter<ImageType> FilterType;
-  typedef typename FilterType::Pointer FilterPointer;
-
-  // Create a filter to remap the intensities
-  FilterPointer filter = FilterType::New();
-  filter->SetInput(this->m_Image);
-  filter->SetOutputMinimum((PixelType) min);
-  filter->SetOutputMaximum((PixelType) max);
-
-  // Run the filter
-  filter->Update();
-
-  // Store the output and point everything to it
-  UpdateImagePointer(filter->GetOutput());
-}
-
-template<class TImage, class TBase>
-void 
-ScalarImageWrapper<TImage,TBase>
-::RemapIntensityToMaximumRange()
-{
-  typedef itk::RescaleIntensityImageFilter<ImageType> FilterType;
-  typedef typename FilterType::Pointer FilterPointer;
-
-  // Create a filter to remap the intensities
-  FilterPointer filter = FilterType::New();
-  filter->SetInput(this->m_Image);
-  filter->SetOutputMinimum(itk::NumericTraits<PixelType>::min());
-  filter->SetOutputMaximum(itk::NumericTraits<PixelType>::max());
-
-  // Run the filter
-  filter->Update();
-
-  // Store the output and point everything to it
-  UpdateImagePointer(filter->GetOutput());
-}
-
 //#include "itkListSampleToHistogramGenerator.h"
 //#include "itkImageToListAdaptor.h"
 
-template<class TImage, class TBase>
+template<class TTraits, class TBase>
 const ScalarImageHistogram *
-ScalarImageWrapper<TImage,TBase>
+ScalarImageWrapper<TTraits,TBase>
 ::GetHistogram(size_t nBins)
 {
   // Zero parameter means we want to reuse the current histogram size
@@ -347,7 +214,7 @@ ScalarImageWrapper<TImage,TBase>
     // Add all points as samples
     for(ConstIterator it = this->GetImageConstIterator(); !it.IsAtEnd(); ++it)
       {
-      m_Histogram->AddSample(m_NativeMapping(it.Get()));
+      m_Histogram->AddSample(this->m_NativeMapping(it.Get()));
       }
 
     // Set the m-time
@@ -357,8 +224,44 @@ ScalarImageWrapper<TImage,TBase>
   return m_Histogram;
 }
 
-template class ScalarImageWrapper< itk::Image<float, 3> >;
-template class ScalarImageWrapper< itk::Image<LabelType, 3> >;
-template class ScalarImageWrapper< itk::Image<GreyType, 3>, GreyImageWrapperBase>;
+template<class TTraits, class TBase>
+typename ScalarImageWrapper<TTraits, TBase>::CommonFormatImageType *
+ScalarImageWrapper<TTraits, TBase>
+::GetCommonFormatImage(ExportChannel channel)
+{
+  return m_CommonRepresentationPolicy.GetOutput(channel);
+}
 
+template<class TTraits, class TBase>
+IntensityCurveInterface *
+ScalarImageWrapper<TTraits, TBase>
+::GetIntensityCurve() const
+{
+  return this->m_DisplayMapping->GetIntensityCurve();
+}
+
+template<class TTraits, class TBase>
+ColorMap *
+ScalarImageWrapper<TTraits, TBase>
+::GetColorMap() const
+{
+  return this->m_DisplayMapping->GetColorMap();
+}
+
+
+
+template class ScalarImageWrapper<LabelImageWrapperTraits>;
+template class ScalarImageWrapper<SpeedImageWrapperTraits>;
+template class ScalarImageWrapper<LevelSetImageWrapperTraits>;
+template class ScalarImageWrapper< ComponentImageWrapperTraits<GreyType> >;
+
+typedef VectorToScalarMagnitudeFunctor<GreyType> MagFunctor;
+typedef VectorToScalarMaxFunctor<GreyType> MaxFunctor;
+typedef VectorToScalarMeanFunctor<GreyType> MeanFunctor;
+typedef VectorDerivedQuantityImageWrapperTraits<MagFunctor> MagTraits;
+typedef VectorDerivedQuantityImageWrapperTraits<MaxFunctor> MaxTraits;
+typedef VectorDerivedQuantityImageWrapperTraits<MeanFunctor> MeanTraits;
+template class ScalarImageWrapper<MagTraits>;
+template class ScalarImageWrapper<MaxTraits>;
+template class ScalarImageWrapper<MeanTraits>;
 

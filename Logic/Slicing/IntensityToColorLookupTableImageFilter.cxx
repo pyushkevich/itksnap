@@ -165,9 +165,19 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
   this->SetImageMaxInput(omax);
 }
 
+
 // Template instantiation
+#include "itkVectorImageToImageAdaptor.h"
+#include "VectorToScalarImageAccessor.h"
+
 typedef itk::Image<short, 3> GreyImageType;
+typedef itk::VectorImageToImageAdaptor<GreyType, 3> GreyComponentAdaptorType;
 typedef itk::Image<itk::RGBAPixel<unsigned char>, 1> LUTType;
+
 template class IntensityToColorLookupTableImageFilter<GreyImageType, LUTType>;
+template class IntensityToColorLookupTableImageFilter<GreyComponentAdaptorType, LUTType>;
+template class IntensityToColorLookupTableImageFilter<GreyVectorMagnitudeImageAdaptor, LUTType>;
+template class IntensityToColorLookupTableImageFilter<GreyVectorMaxImageAdaptor, LUTType>;
+template class IntensityToColorLookupTableImageFilter<GreyVectorMeanImageAdaptor, LUTType>;
 
 

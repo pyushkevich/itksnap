@@ -12,7 +12,7 @@
 
 class GlobalUIModel;
 class IntensityCurveModel;
-
+class AbstractContinuousImageDisplayMappingPolicy;
 
 
 /**
@@ -53,7 +53,7 @@ protected:
 
 typedef AbstractLayerAssociatedModel<
     IntensityCurveLayerProperties,
-    GreyImageWrapperBase> IntensityCurveModelBase;
+    ImageWrapperBase> IntensityCurveModelBase;
 
 /**
   The intensity curve model is used to interact with the intensity curve in
@@ -78,8 +78,8 @@ public:
   irisGetSetMacro(ViewportReporter, ViewportSizeReporter *)
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(GreyImageWrapperBase *layer);
-  void UnRegisterFromLayer(GreyImageWrapperBase *layer);
+  void RegisterWithLayer(ImageWrapperBase *layer);
+  void UnRegisterFromLayer(ImageWrapperBase *layer);
 
 
   /**
@@ -153,6 +153,8 @@ protected:
 
   // Whether the control point is being dragged
   bool m_FlagDraggedControlPoint;
+
+  AbstractContinuousImageDisplayMappingPolicy *GetDisplayPolicy();
 
   Vector3d GetEventCurveCoordiantes(const Vector3d &x);
   bool UpdateControlPoint(size_t i, float t, float x);

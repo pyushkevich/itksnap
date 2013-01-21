@@ -38,15 +38,12 @@
 #include "SNAPCommon.h"
 #include "IRISException.h"
 
-#include "GreyImageWrapper.h"
 #include "GlobalState.h"
 #include "ColorLabel.h"
 #include "ImageCoordinateGeometry.h"
 
 #include "IRISImageData.h"
 #include "SnakeParameters.h"
-#include "SpeedImageWrapper.h"
-#include "LevelSetImageWrapper.h"
 
 #include "SNAPLevelSetDriver.h"
 
@@ -73,11 +70,10 @@ public:
   typedef GenericImageData Superclass;
 
   // The type of the internal level set image
-  typedef itk::Image<float,3>                           FloatImageType;
-  typedef FloatImageType                                     LevelSetImageType;
-  typedef Superclass::GreyImageType                              GreyImageType;
-  typedef itk::Image<short, 3>                          SpeedImageType;
-  typedef Superclass::RGBImageType                                RGBImageType;
+  typedef itk::Image<float,3>                                   FloatImageType;
+  typedef Superclass::AnatomicImageType                      AnatomicImageType;
+  typedef SpeedImageWrapper::ImageType                          SpeedImageType;
+  typedef LevelSetImageWrapper::ImageType                    LevelSetImageType;
 
   SNAPImageData(IRISApplication *m_Parent);
   ~SNAPImageData();

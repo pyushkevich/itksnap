@@ -47,8 +47,7 @@ class IRISImageData : public GenericImageData
 public:
   typedef GenericImageData Superclass;
   typedef Superclass::ImageBaseType ImageBaseType;
-  typedef Superclass::GreyImageType GreyImageType;
-  typedef Superclass::RGBImageType RGBImageType;
+  typedef Superclass::AnatomicImageType AnatomicImageType;
 
   IRISImageData(IRISApplication *parent);
   virtual ~IRISImageData();
@@ -68,12 +67,9 @@ public:
    */
   void SetSegmentationImage(LabelImageType *newLabelImage);
 
-  void SetGreyImage(GreyImageType *newGreyImage,
+  void SetMainImage(AnatomicImageType *image,
                     const ImageCoordinateGeometry &newGeometry,
-                    const InternalToNativeFunctor &native);
-
-  void SetRGBImage(RGBImageType *newRGBImage,
-                   const ImageCoordinateGeometry &newGeometry);
+                    const LinearInternalToNativeIntensityMapping &native);
 
   virtual void UnloadMainImage();
 

@@ -51,10 +51,7 @@
 #include "GlobalState.h"
 #include "EdgePreprocessingImageFilter.h"
 #include "IRISVectorTypesToITKConversion.h"
-#include "LabelImageWrapper.h"
-#include "LevelSetImageWrapper.h"
 #include "SignedDistanceFilter.h"
-#include "SpeedImageWrapper.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "ThresholdSettings.h"
@@ -108,10 +105,10 @@ SNAPImageData
 ::InitializeSpeed()
 {
   // The Grey image wrapper should be present
-  assert(m_GreyImageWrapper->IsInitialized());
+  assert(m_MainImageWrapper->IsInitialized());
 
   // Intialize the speed based on the current grey image
-  m_SpeedWrapper->InitializeToWrapper(m_GreyImageWrapper, 0.0f);
+  m_SpeedWrapper->InitializeToWrapper(m_MainImageWrapper, 0.0f);
 
   // Here or after it's computed?
   m_SpeedWrapper->SetAlpha(255);
@@ -181,7 +178,7 @@ SNAPImageData
   typedef itk::Image<float,3> FloatImageType;
 
   // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
-  m_SnakeInitializationWrapper->InitializeToWrapper(m_GreyImageWrapper, OUTSIDE_VALUE);
+  m_SnakeInitializationWrapper->InitializeToWrapper(m_MainImageWrapper, OUTSIDE_VALUE);
 
   // Create the initial level set image by merging the segmentation data from
   // IRIS region with the bubbles
@@ -306,7 +303,9 @@ SNAPImageData
     }
 
   // Make sure that the correct color label is being used
-  m_SnakeInitializationWrapper->SetColorLabel(m_ColorLabel);
+  // TODO: restore this functionality once you figure out how to display
+  // level set representations properly !!!
+  // m_SnakeInitializationWrapper->SetColorLabel(m_ColorLabel);
 
   // Initialize the snake driver
   InitalizeSnakeDriver(parameters);
@@ -325,9 +324,9 @@ SNAPImageData
     m_SpeedWrapper->GetImage()->GetBufferedRegion());
   m_ExternalAdvectionField->Allocate();
   m_ExternalAdvectionField->SetSpacing(
-    m_GreyImageWrapper->GetImage()->GetSpacing());
+    m_MainImageWrapper->GetImage()->GetSpacing());
   m_ExternalAdvectionField->SetOrigin(
-    m_GreyImageWrapper->GetImage()->GetOrigin());
+    m_MainImageWrapper->GetImage()->GetOrigin());
 
   typedef itk::ImageRegionConstIterator<FloatImageType> Iterator;
   Iterator itX(imgX,imgX->GetBufferedRegion());
@@ -391,14 +390,18 @@ SNAPImageData
   // Initialize the level set wrapper with the image from the level set 
   // driver and other settings from the other wrappers
   m_SnakeWrapper->InitializeToWrapper(
-    m_GreyImageWrapper,m_LevelSetDriver->GetCurrentState());
+    m_MainImageWrapper,m_LevelSetDriver->GetCurrentState());
   m_SnakeWrapper->GetImage()->SetOrigin(
-        m_GreyImageWrapper->GetImage()->GetOrigin() );
+        m_MainImageWrapper->GetImage()->GetOrigin() );
   m_SnakeWrapper->GetImage()->SetSpacing(
-        m_GreyImageWrapper->GetImage()->GetSpacing() );
+        m_MainImageWrapper->GetImage()->GetSpacing() );
   
   // Make sure that the correct color label is being used
-  m_SnakeWrapper->SetColorLabel(m_ColorLabel);
+
+  // TODO: we need to add support for snake and snake initialization layers!
+  // m_SnakeWrapper->SetColorLabel(m_ColorLabel);
+
+
   m_SnakeWrapper->SetAlpha(m_Parent->GetGlobalState()->GetSegmentationAlpha());
 }
 
@@ -482,14 +485,14 @@ SNAPImageData
                   itk::Command *progressCommand)
 {
   // Get the source grey wrapper
-  GreyWrapperType *srcWrapper = source->m_GreyImageWrapper;
+  AnatomicImageWrapper *srcWrapper = source->GetMain();
 
   // Get the roi chunk from the grey image
-  SmartPtr<GreyImageType> imgNewGrey =
+  SmartPtr<AnatomicImageType> imgNew =
       srcWrapper->DeepCopyRegion(roi, progressCommand);
 
   // Get the size of the region
-  Vector3ui size = imgNewGrey->GetLargestPossibleRegion().GetSize();
+  Vector3ui size = imgNew->GetLargestPossibleRegion().GetSize();
 
   // Compute an image coordinate geometry for the region of interest
   std::string rai[] = {
@@ -501,17 +504,13 @@ SNAPImageData
         rai, size);
 
   // Assign the new wrapper to the target
-  this->SetGreyImage(imgNewGrey, icg,
-                     source->GetGrey()->GetNativeMapping());
+  this->SetMainImage(imgNew, icg, srcWrapper->GetNativeMapping());
 
-  // Assign the intensity mapping function to the Snap data
-  m_GreyImageWrapper->SetReferenceIntensityRange(
-    srcWrapper->GetImageMinAsDouble(),
-    srcWrapper->GetImageMaxAsDouble());
-  m_GreyImageWrapper->CopyIntensityMap(*srcWrapper);
-
-  // Copy the colormap too
-  m_GreyImageWrapper->GetColorMap()->CopyInformation(srcWrapper->GetColorMap());
+  // TODO: it probably makes sense to write a ExtractROI function in ImageWrapper
+  // that would handle all of this internally.
+  typedef AnatomicImageWrapper::DisplayMapping DisplayMapping;
+  DisplayMapping *dmnew = m_MainImageWrapper->GetDisplayMapping();
+  dmnew->DeriveFromReferenceWrapper(srcWrapper);
 }
 
 

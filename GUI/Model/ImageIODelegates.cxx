@@ -15,21 +15,17 @@ void LoadAnatomicImageDelegate
 {
   typedef itk::ImageIOBase IOB;
 
-  if(m_ImageType == IRISApplication::MAIN_SCALAR ||
-     io->GetNumberOfComponentsInNativeImage() != 3)
+  IOB::IOComponentType ct = io->GetComponentTypeInNativeImage();
+  if(ct > IOB::SHORT)
     {
-    IOB::IOComponentType ct = io->GetComponentTypeInNativeImage();
-    if(ct > IOB::SHORT)
-      {
-      wl.push_back(
-            IRISWarning(
-              "Warning: Loss of Precision."
-              "You are opening an image with 32-bit or greater precision, "
-              "but ITK-SNAP only provides 16-bit precision. "
-              "Intensity values reported in ITK-SNAP may differ slightly from the "
-              "actual values in the image."
-              ));
-      }
+    wl.push_back(
+          IRISWarning(
+            "Warning: Loss of Precision."
+            "You are opening an image with 32-bit or greater precision, "
+            "but ITK-SNAP only provides 16-bit precision. "
+            "Intensity values reported in ITK-SNAP may differ slightly from the "
+            "actual values in the image."
+            ));
     }
 }
 
@@ -38,9 +34,8 @@ void LoadAnatomicImageDelegate
    MAIN Image
    ============================= */
 LoadMainImageDelegate
-::LoadMainImageDelegate(GlobalUIModel *model,
-                        IRISApplication::MainImageType type)
-  : LoadAnatomicImageDelegate(model, type)
+::LoadMainImageDelegate(GlobalUIModel *model)
+  : LoadAnatomicImageDelegate(model)
 {
 }
 
@@ -55,7 +50,7 @@ void
 LoadMainImageDelegate
 ::UpdateApplicationWithImage(GuidedNativeImageIO *io)
 {
-  m_Model->GetDriver()->UpdateIRISMainImage(io, m_ImageType);
+  m_Model->GetDriver()->UpdateIRISMainImage(io);
 }
 
 
@@ -64,9 +59,8 @@ LoadMainImageDelegate
    ============================= */
 
 LoadOverlayImageDelegate
-::LoadOverlayImageDelegate(GlobalUIModel *model,
-                           IRISApplication::MainImageType type)
-  : LoadAnatomicImageDelegate(model, type)
+::LoadOverlayImageDelegate(GlobalUIModel *model)
+  : LoadAnatomicImageDelegate(model)
 {
 }
 
@@ -82,7 +76,7 @@ void
 LoadOverlayImageDelegate
 ::UpdateApplicationWithImage(GuidedNativeImageIO *io)
 {
-  m_Model->GetDriver()->AddIRISOverlayImage(io, m_ImageType);
+  m_Model->GetDriver()->AddIRISOverlayImage(io);
 }
 
 

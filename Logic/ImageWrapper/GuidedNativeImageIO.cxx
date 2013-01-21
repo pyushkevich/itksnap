@@ -593,18 +593,13 @@ GuidedNativeImageIO
  * ADAPTER OBJECTS TO CAST NATIVE IMAGE TO GIVEN IMAGE
  ****************************************************************************/
 
-template<typename TPixel>
-typename RescaleNativeImageToScalar<TPixel>::OutputImageType *
-RescaleNativeImageToScalar<TPixel>::operator()(GuidedNativeImageIO *nativeIO)
+template<class TOutputImage>
+typename RescaleNativeImageToIntegralType<TOutputImage>::OutputImageType *
+RescaleNativeImageToIntegralType<TOutputImage>::operator()(
+    GuidedNativeImageIO *nativeIO)
 {
   // Get the native image pointer
   itk::ImageBase<3> *native = nativeIO->GetNativeImage();
-
-  // Allocate the output image
-  m_Output = OutputImageType::New();
-  m_Output->CopyInformation(native);
-  m_Output->SetMetaDataDictionary(native->GetMetaDataDictionary());
-  m_Output->SetRegions(native->GetBufferedRegion());
 
   // Cast image from native format to TPixel
   itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
@@ -681,10 +676,37 @@ protected:
 
 };
 
-template<typename TPixel>
+template<typename TPixel, typename TNative>
+class RescaleVectorNativeImageToVectorFunctor
+{
+public:
+
+  typedef TPixel PixelType;
+
+  RescaleVectorNativeImageToVectorFunctor(double shift, double scale)
+    : m_Shift(shift), m_Scale(scale) {}
+
+  RescaleVectorNativeImageToVectorFunctor()
+    : m_Shift(0), m_Scale(1) {}
+
+  void operator()(TNative *src, TPixel *trg)
+  {
+    *trg = (TPixel) ((*src + m_Shift) * m_Scale + 0.5);
+  }
+
+protected:
+
+  double m_Shift, m_Scale;
+
+};
+
+
+
+
+template<class TOutputImage>
 template<typename TNative>
 void
-RescaleNativeImageToScalar<TPixel>
+RescaleNativeImageToIntegralType<TOutputImage>
 ::DoCast(itk::ImageBase<3> *native)
 {
   // Get the native image
@@ -693,49 +715,40 @@ RescaleNativeImageToScalar<TPixel>
   SmartPtr<InputImageType> input = dynamic_cast<InputImageType *>(native);
   assert(input);
 
-  size_t nvoxels = input->GetBufferedRegion().GetNumberOfPixels();
+  // Get the number of components in the native image
   size_t ncomp = input->GetNumberOfComponentsPerPixel();
 
   // We must compute a scale and shift factor
   double scale = 1.0, shift = 0.0;
 
-  // Only bother with computing the scale and shift if the types are different
-  if(typeid(TPixel) != typeid(TNative))
-    {
-    TNative *ib = input->GetBufferPointer();
+  // The type of the component in the output image. Now, the output image here
+  // may be either a VectorImage or an Image.
+  typedef typename OutputImageType::InternalPixelType OutputComponentType;
 
+  // Only bother with computing the scale and shift if the types are different
+  if(typeid(OutputComponentType) != typeid(TNative))
+    {
     // We must compute the range of the input data
     double imin = itk::NumericTraits<double>::max();
     double imax = -itk::NumericTraits<double>::max();
-    TPixel omax = itk::NumericTraits<TPixel>::max();
-    TPixel omin = itk::NumericTraits<TPixel>::min();
+    OutputComponentType omax = itk::NumericTraits<OutputComponentType>::max();
+    OutputComponentType omin = itk::NumericTraits<OutputComponentType>::min();
 
-    if(ncomp > 1)
+    // Iterate over all the components in the input image
+    for(InputIterator it(input, input->GetBufferedRegion()); !it.IsAtEnd(); ++it)
       {
-      for(InputIterator it(input, input->GetBufferedRegion()); !it.IsAtEnd(); ++it)
+      typename InputImageType::PixelType pix = it.Get();
+      for(int i = 0; i < ncomp; i++)
         {
-        double mag = it.Get().GetSquaredNorm();
-        if(mag < imin) imin = mag;
-        if(mag > imax) imax = mag;
-        }
-      imin = sqrt(imin);
-      imax = sqrt(imax);
-      }
-    else
-      {
-      for(size_t i = 0; i < nvoxels; i++)
-        {
-        // Have to cast to double here
-        double val = ib[i];
+        double val = static_cast<double>(pix[i]);
         if(val < imin) imin = val;
         if(val > imax) imax = val;
         }
       }
 
-
     // Now we have to be careful, depending on the type of the input voxel
     // For float and double, we map the input range into the output range
-    if(!itk::NumericTraits<TNative>::is_integer || ncomp > 1)
+    if(!itk::NumericTraits<TNative>::is_integer)
       {
       // Test whether the input image is actually an integer image cast to
       // floating point. In that case, there is no need for conversion
@@ -743,12 +756,17 @@ RescaleNativeImageToScalar<TPixel>
       if(1.0 * omin <= imin && 1.0 * omax >= imax && ncomp == 1)
         {
         isint = true;
-        for(size_t i = 0; i < nvoxels; i++)
+
+        for(InputIterator it(input, input->GetBufferedRegion()); !it.IsAtEnd(); ++it)
           {
-          TNative vin = ib[i];
-          TNative vcmp = static_cast<TNative>(static_cast<TPixel>(vin + 0.5));
-          if(vin != vcmp)
-            { isint = false; break; }
+          typename InputImageType::PixelType pix = it.Get();
+          for(int i = 0; i < ncomp; i++)
+            {
+            TNative vin = pix[i];
+            TNative vcmp = static_cast<TNative>(static_cast<OutputComponentType>(vin + 0.5));
+            if(vin != vcmp)
+              { isint = false; break; }
+            }
           }
         }
 
@@ -796,27 +814,16 @@ RescaleNativeImageToScalar<TPixel>
   // Create a cast functor. Note that if TPixel == TNative, the functor will
   // not be used because the CastNativeImageBase::DoCast will just assign the
   // input pixel container to the output image
-  if(ncomp == 1)
-    {
-    typedef RescaleScalarNativeImageToScalarFunctor<TPixel, TNative> Functor;
-    CastNativeImageBase<TPixel, Functor> caster;
-    caster.SetFunctor(Functor(shift, scale));
-    caster.template DoCast<TNative>(native);
-    m_Output = caster.m_Output;
-    }
-  else
-    {
-    typedef RescaleVectorNativeImageToScalarFunctor<TPixel, TNative> Functor;
-    CastNativeImageBase<TPixel, Functor> caster;
-    caster.SetFunctor(Functor(shift, scale, ncomp));
-    caster.template DoCast<TNative>(native);
-    m_Output = caster.m_Output;
-    }
+  typedef RescaleVectorNativeImageToVectorFunctor<OutputComponentType, TNative> Functor;
+  CastNativeImage<OutputImageType, Functor> caster;
+  caster.SetFunctor(Functor(shift, scale));
+  caster.template DoCast<TNative>(native);
+  m_Output = caster.m_Output;
 }
 
-template<class TPixel, class TCastFunctor>
-typename CastNativeImageBase<TPixel,TCastFunctor>::OutputImageType *
-CastNativeImageBase<TPixel,TCastFunctor>
+template<class TOutputImage, class TCastFunctor>
+typename CastNativeImage<TOutputImage,TCastFunctor>::OutputImageType *
+CastNativeImage<TOutputImage,TCastFunctor>
 ::operator()(GuidedNativeImageIO *nativeIO)
 {
   // Get the native image pointer
@@ -847,10 +854,12 @@ CastNativeImageBase<TPixel,TCastFunctor>
   return m_Output;
 }
 
-template<class TPixel, class TCastFunctor>
+#include "itkMeasurementVectorTraits.h"
+
+template<class TOutputImage, class TCastFunctor>
 template<typename TNative>
 void
-CastNativeImageBase<TPixel,TCastFunctor>
+CastNativeImage<TOutputImage,TCastFunctor>
 ::DoCast(itk::ImageBase<3> *native)
 {
   // Get the native image
@@ -864,24 +873,27 @@ CastNativeImageBase<TPixel,TCastFunctor>
 
   InPixCon *ipc = input->GetPixelContainer();
 
-  // If the native image does not have three components, we crash
-  if(input->GetNumberOfComponentsPerPixel() != m_Functor.GetNumberOfDimensions())
-    throw IRISException(
-        "Error: Wrong number of components. "
-        "Can not convert image to target format ('%s'). "
-        "Image has %d components per pixel, but ITK-SNAP expects %d components. ",
-        typeid(TPixel).name(),
-        input->GetNumberOfComponentsPerPixel(),
-        m_Functor.GetNumberOfDimensions() );
-
   // Allocate the output image
   m_Output = OutputImageType::New();
   m_Output->CopyInformation(native);
   m_Output->SetMetaDataDictionary(native->GetMetaDataDictionary());
   m_Output->SetRegions(native->GetBufferedRegion());
 
+  // CAREFUL! At this point, it may be that the number of components in the
+  // output is still 1 (because the output is an itk::Image) and the number
+  // of components in the input is not 1. In that case, we can either throw
+  // an exception or use the first component of the input image to fill out
+  // the output image. For the time being, we will throw an exception.
+  int ncomp = input->GetNumberOfComponentsPerPixel();
+  int ncomp_out = m_Output->GetNumberOfComponentsPerPixel();
+  if(ncomp != ncomp_out)
+    {
+    throw IRISException("Unable to cast an input image with %d components to "
+                        "an output image with %d components", ncomp, ncomp_out);
+    }
+
   // Special case: native image is the same as target image
-  if(typeid(TPixel) == typeid(TNative))
+  if(typeid(OutputComponentType) == typeid(TNative))
     {
     typename OutputImageType::PixelContainer *inbuff = 
       dynamic_cast<typename OutputImageType::PixelContainer *>(ipc);
@@ -894,9 +906,8 @@ CastNativeImageBase<TPixel,TCastFunctor>
   // to save memory. This way, SNAP will never use extra memory when loading
   // an image. Some trickery is needed though.
   size_t nvoxels = input->GetBufferedRegion().GetNumberOfPixels();
-  size_t ncomp = input->GetNumberOfComponentsPerPixel();
-  size_t szNative = sizeof(TNative) * ncomp;
-  size_t szTarget = sizeof(TPixel);
+  size_t szNative = sizeof(TNative);
+  size_t szTarget = sizeof(OutputComponentType);
 
   // Bytes allocated in the current pixel container
   size_t nbNative = input->GetPixelContainer()->Capacity() * szNative;
@@ -920,7 +931,7 @@ CastNativeImageBase<TPixel,TCastFunctor>
     }
 
   // Get a pointer to the output buffer (same as input buffer)
-  TPixel *ob = reinterpret_cast<TPixel *>(ib);
+  OutputComponentType *ob = reinterpret_cast<OutputComponentType *>(ib);
 
   // Finally, we get to the code where we map from input format to the output
   // format. Here again we have to be careful. If the native image is larger or
@@ -928,30 +939,31 @@ CastNativeImageBase<TPixel,TCastFunctor>
   // input element will be replaced by one or more output elements. But if the
   // native image is smaller, we want to proceed from the end of the memory
   // block in a descending order, so that the native data is not overridden
+  unsigned long nval =  nvoxels * ncomp;
   if(szTarget > szNative)
     {
-    TNative *pn = ib + (nvoxels - 1) * ncomp;
-    TPixel *pt = ob + nvoxels - 1;
-    for(; pt >= ob; pt--, pn-=ncomp)
+    TNative *pn = ib + nval - 1;
+    OutputComponentType *pt = ob + nval - 1;
+    for(; pt >= ob; pt--, pn--)
       m_Functor(pn, pt);
     }
   else
     {
     TNative *pn = ib;
-    TPixel *pt = ob;
-    for(; pt < ob + nvoxels; pt++, pn+=ncomp)
+    OutputComponentType *pt = ob;
+    for(; pt < ob + nval; pt++, pn++)
       m_Functor(pn, pt);
     }
 
   // If needed, squeeze the memory
   if(nbTarget < nbNative)
-    ob = reinterpret_cast<TPixel *>(realloc(ob, nbTarget));
+    ob = reinterpret_cast<OutputComponentType *>(realloc(ob, nbTarget));
 
   // Create a new container wrapped around the same chunk of memory as the
   // native image. The size we pass in here is the number of elements that
   // have been already allocated. We will shrink that memory later
   SmartPtr<OutPixCon> pc = OutPixCon::New();
-  pc->SetImportPointer(ob, nvoxels, true);
+  pc->SetImportPointer(ob, nval, true);
 
   // Otherwise, allocate the buffer in the output image
   m_Output->SetPixelContainer(pc);
@@ -1403,10 +1415,14 @@ CastNativeImageToScalar<TPixel>
 
 */
 
-template class RescaleNativeImageToScalar<GreyType>;
-template class CastNativeImageBase<RGBType, CastToArrayFunctor<RGBType, 3> >;
-template class CastNativeImageBase<LabelType, CastToScalarFunctor<LabelType> >;
-template class CastNativeImageBase<float, CastToScalarFunctor<float> >;
+template class RescaleNativeImageToIntegralType<itk::Image<GreyType, 3> >;
+template class RescaleNativeImageToIntegralType<itk::VectorImage<GreyType, 3> >;
+
+template class CastNativeImage<itk::Image<unsigned short, 3> >;
+
+// template class CastNativeImageBase<RGBType, CastToArrayFunctor<RGBType, 3> >;
+// template class CastNativeImageBase<LabelType, CastToScalarFunctor<LabelType> >;
+// template class CastNativeImageBase<float, CastToScalarFunctor<float> >;
 
 /*
 template class CastNativeImageToRGB<RGBType>; 

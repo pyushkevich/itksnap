@@ -238,8 +238,6 @@ bool GlobalUIModel::CheckState(UIState state)
   // TODO: implement all the other cases
   switch(state)
     {
-    case UIF_RGB_LOADED:
-      return m_Driver->GetCurrentImageData()->IsRGBLoaded();
     case UIF_BASEIMG_LOADED:
       return m_Driver->IsMainImageLoaded();
     case UIF_IRIS_ACTIVE:
@@ -260,8 +258,6 @@ bool GlobalUIModel::CheckState(UIState state)
       break;
     case UIF_MESH_SAVEABLE:
       break;
-    case UIF_GRAY_LOADED:
-      return m_Driver->IsMainImageLoaded();
     case UIF_OVERLAY_LOADED:
       return m_Driver->GetCurrentImageData()->IsOverlayLoaded();
     case UIF_SNAKE_MODE:
@@ -269,12 +265,6 @@ bool GlobalUIModel::CheckState(UIState state)
     }
 
   return false;
-}
-
-void GlobalUIModel::LoadGrayImage(GuidedNativeImageIO *io)
-{
-  m_Driver->UnloadOverlays();
-  m_Driver->UpdateIRISMainImage(io, IRISApplication::MAIN_SCALAR);
 }
 
 void GlobalUIModel

@@ -45,14 +45,14 @@ class EdgePreprocessingSettings;
 class SmoothBinaryThresholdFilterConfigTraits {
 public:
 
-  typedef SNAPImageData::GreyImageType GreyType;
-  typedef SNAPImageData::SpeedImageType SpeedType;
-  typedef SpeedImageWrapper OutputWrapperType;
+  typedef ScalarImageWrapperBase::CommonFormatImageType               GreyType;
+  typedef SNAPImageData::SpeedImageType                              SpeedType;
+  typedef SpeedImageWrapper                                  OutputWrapperType;
 
-  typedef SmoothBinaryThresholdImageFilter<GreyType, SpeedType> FilterType;
-  typedef ThresholdSettings ParameterType;
+  typedef SmoothBinaryThresholdImageFilter<GreyType, SpeedType>     FilterType;
+  typedef ThresholdSettings                                      ParameterType;
 
-  static void AttachInputs(SNAPImageData *sid, FilterType *filter);
+  static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
   static void DetachInputs(FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter);
 };
@@ -60,14 +60,14 @@ public:
 class EdgePreprocessingFilterConfigTraits {
 public:
 
-  typedef SNAPImageData::GreyImageType GreyType;
-  typedef SNAPImageData::SpeedImageType SpeedType;
-  typedef SpeedImageWrapper OutputWrapperType;
+  typedef ScalarImageWrapperBase::CommonFormatImageType               GreyType;
+  typedef SNAPImageData::SpeedImageType                              SpeedType;
+  typedef SpeedImageWrapper                                  OutputWrapperType;
 
-  typedef EdgePreprocessingImageFilter<GreyType, SpeedType> FilterType;
-  typedef EdgePreprocessingSettings ParameterType;
+  typedef EdgePreprocessingImageFilter<GreyType, SpeedType>         FilterType;
+  typedef EdgePreprocessingSettings                              ParameterType;
 
-  static void AttachInputs(SNAPImageData *sid, FilterType *filter);
+  static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
   static void DetachInputs(FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter);
 };

@@ -98,11 +98,6 @@ void setupParser(CommandLineArgumentParser &parser)
   parser.AddOption("--grey",1);
   parser.AddSynonim("--grey","-g");
 
-  parser.AddOption("--main",1);
-  parser.AddSynonim("--main","-m");
-
-  parser.AddOption("--rgb", 1);
-
   parser.AddOption("--segmentation",1);
   parser.AddSynonim("--segmentation","-s");
   parser.AddSynonim("--segmentation","-seg");
@@ -243,20 +238,9 @@ int main(int argc, char *argv[])
   const char *fnMain = NULL;
   IRISWarningList warnings;
 
-  IRISApplication::MainImageType main_type = IRISApplication::MAIN_ANY;
-  if(parseResult.IsOptionPresent("--main"))
-    {
-    fnMain = parseResult.GetOptionParameter("--main");
-    }
-  else if(parseResult.IsOptionPresent("--grey"))
+  if(parseResult.IsOptionPresent("--grey"))
     {
     fnMain = parseResult.GetOptionParameter("--grey");
-    main_type = IRISApplication::MAIN_SCALAR;
-    }
-  else if(parseResult.IsOptionPresent("--rgb"))
-    {
-    fnMain = parseResult.GetOptionParameter("--rgb");
-    main_type = IRISApplication::MAIN_RGB;
     }
   else if(iTrailing < argc)
     {
@@ -285,7 +269,7 @@ int main(int argc, char *argv[])
     // Try loading the image
     try
       {
-      LoadMainImageDelegate del(gui, main_type);
+      LoadMainImageDelegate del(gui);
       gui->LoadImageNonInteractive(fnMain, del, warnings);
       }
     catch(itk::ExceptionObject &exc)
@@ -332,7 +316,7 @@ int main(int argc, char *argv[])
         // Try to load the image
         try
           {
-          LoadOverlayImageDelegate del(gui, IRISApplication::MAIN_ANY);
+          LoadOverlayImageDelegate del(gui);
           gui->LoadImageNonInteractive(fname, del, warnings);
           }
         catch(std::exception &exc)

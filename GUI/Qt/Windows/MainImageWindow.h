@@ -82,17 +82,9 @@ public slots:
   void onModelUpdate(const EventBucket &b);
 
 private slots:
-  void on_actionOpenGrey_triggered();
-
   void on_actionQuit_triggered();
 
   void on_actionLoad_from_Image_triggered();
-
-  void on_actionAdd_Greyscale_Overlay_triggered();
-
-  void on_actionOpen_RGB_Image_triggered();
-
-  void on_actionAdd_RGB_Overlay_triggered();
 
   void on_actionImage_Contrast_triggered();
 
@@ -120,6 +112,10 @@ private slots:
   void on_actionUndo_triggered();
 
   void on_actionRedo_triggered();
+
+  void on_actionOpenMain_triggered();
+
+  void on_actionAdd_Overlay_triggered();
 
 protected:
 

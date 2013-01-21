@@ -3,7 +3,6 @@
 
 #include "AbstractLayerAssociatedModel.h"
 #include "PropertyModel.h"
-#include "GreyImageWrapper.h"
 
 class ImageInfoLayerProperties
 {
@@ -20,7 +19,7 @@ protected:
 
 typedef AbstractLayerAssociatedModel<
     ImageInfoLayerProperties,
-    ScalarImageWrapperBase> ImageInfoModelBase;
+    ImageWrapperBase> ImageInfoModelBase;
 
 class ImageInfoModel : public ImageInfoModelBase
 {
@@ -32,8 +31,8 @@ public:
   FIRES(MetadataChangeEvent)
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(ScalarImageWrapperBase *layer);
-  void UnRegisterFromLayer(ScalarImageWrapperBase *layer);
+  void RegisterWithLayer(ImageWrapperBase *layer);
+  void UnRegisterFromLayer(ImageWrapperBase *layer);
 
   // Parent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);

@@ -39,8 +39,9 @@
 #include "ImageWrapperBase.h"
 #include "ImageCoordinateTransform.h"
 #include <itkImageRegionIterator.h>
-#include <itkImage.h>
+#include <itkVectorImage.h>
 #include <itkRGBAPixel.h>
+#include <DisplayMappingPolicy.h>
 
 // Forward declarations to IRIS classes
 template <class TInputImage, class TOutputImage> class IRISSlicer;
@@ -65,13 +66,13 @@ namespace itk {
  * This is done to avoid multiple inheritance. TBase must be a
  * subclass of ImageWrapperBase.
  */
-template<class TImage, class TBase = ImageWrapperBase>
+template<class TTraits, class TBase = ImageWrapperBase>
 class ImageWrapper : public TBase
 {
 public:
 
   // Standard ITK business
-  typedef ImageWrapper<TImage, TBase>                                     Self;
+  typedef ImageWrapper<TTraits, TBase>                                    Self;
   typedef TBase                                                     Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
@@ -79,9 +80,10 @@ public:
 
   // Basic type definitions
   typedef typename Superclass::ImageBaseType                     ImageBaseType;
-  typedef TImage                                                     ImageType;
+  typedef typename TTraits::ImageType                                ImageType;
   typedef SmartPtr<ImageType>                                     ImagePointer;
-  typedef typename TImage::PixelType                                 PixelType;
+  typedef typename ImageType::PixelType                              PixelType;
+  typedef typename ImageType::InternalPixelType              InternalPixelType;
 
   // Slice image type
   typedef itk::Image<PixelType,2>                                    SliceType;
@@ -90,6 +92,7 @@ public:
   // Display slice type - inherited
   typedef typename Superclass::DisplayPixelType               DisplayPixelType;
   typedef typename Superclass::DisplaySliceType               DisplaySliceType;
+  typedef typename Superclass::DisplaySlicePointer         DisplaySlicePointer;
 
   // Slicer type
   typedef IRISSlicer<ImageType, SliceType>                          SlicerType;
@@ -104,6 +107,12 @@ public:
 
   // Other types from parent
   typedef typename Superclass::TransformType                     TransformType;
+
+  // Internal intensity to display intensity mapping
+  typedef typename TTraits::DisplayMapping                      DisplayMapping;
+
+  // Native intensity mapping
+  typedef typename TTraits::NativeIntensityMapping      NativeIntensityMapping;
 
 
   /**
@@ -143,6 +152,8 @@ public:
    * used when the orientation of the image is changed
    */
   void SetImageGeometry(const ImageCoordinateGeometry &geom);
+
+
 
   /**
    * Use a default image-slice transformation, the first slice is along z,
@@ -197,27 +208,36 @@ public:
   /** Get the NIFTI s-form matrix for this image */
   irisGetMacro(NiftiSform, TransformType)
 
-  /**
-   * Get reference to a voxel at a given position.
-   */
-  PixelType &GetVoxelForUpdate(unsigned int x,
-                                    unsigned int y, 
-                                    unsigned int z);
-  
-  PixelType &GetVoxelForUpdate(const Vector3ui &index);
-  
-  PixelType &GetVoxelForUpdate(const itk::Index<3> &index);
+  /** Set the voxel at a given position.*/
+  void SetVoxel(const Vector3ui &index, const PixelType &value);
+  void SetVoxel(const itk::Index<3> &index, const PixelType &value);
 
   /**
    * Get a constant reference to a voxel at a given position.
    */
-  const PixelType &GetVoxel(unsigned int x,
-                                 unsigned int y, 
-                                 unsigned int z) const;
+  PixelType GetVoxel(unsigned int x,
+                     unsigned int y,
+                     unsigned int z) const;
 
-  const PixelType &GetVoxel(const Vector3ui &index) const;
+  PixelType GetVoxel(const Vector3ui &index) const;
 
-  const PixelType &GetVoxel(const itk::Index<3> &index) const;
+  PixelType GetVoxel(const itk::Index<3> &index) const;
+
+  /**
+   * Get the mapping between the internal data type and the 'native' range,
+   * i.e., the range of values shown to the user. This may be a linear mapping
+   * or an identity mapping. This method returns an abstract type;
+   */
+  virtual const AbstractNativeIntensityMapping *GetNativeIntensityMapping() const
+    { return &m_NativeMapping; }
+
+  /** These methods access the native mapping in its actual type */
+  irisGetMacro(NativeMapping, NativeIntensityMapping)
+  irisSetMacro(NativeMapping, NativeIntensityMapping)
+
+  /** Get the intensity to display mapping */
+  DisplayMapping *GetDisplayMapping()
+    { return m_DisplayMapping; }
 
   /** 
    * Return the pointed to the ITK image encapsulated by this wrapper.
@@ -254,7 +274,7 @@ public:
   /**
    * This method exposes the scalar pointer in the image
    */
-  virtual PixelType *GetVoxelPointer() const;
+  virtual InternalPixelType *GetVoxelPointer() const;
 
   /** Number of voxels */
   virtual size_t GetNumberOfVoxels() const;
@@ -270,13 +290,14 @@ public:
    */
   virtual void SetImage(ImagePointer newImage);
 
+
   /**
    * This method is used to perform a deep copy of a region of this image 
    * into another image, potentially resampling the region to use a different
    * voxel size
    */
   virtual ImagePointer DeepCopyRegion(const SNAPSegmentationROISettings &roi,
-                              itk::Command *progressCommand = NULL) const = 0;
+                              itk::Command *progressCommand = NULL) const;
 
 
   /**
@@ -300,6 +321,11 @@ public:
    * \return number of voxels that had been modified
    */
   virtual unsigned int SwapIntensities(PixelType iFirst, PixelType iSecond);
+
+  /**
+   * Get the display slice
+   */
+  DisplaySlicePointer GetDisplaySlice(unsigned int dim);
 
   /**
     Attach a preview pipeline to the wrapper. This is used with wrappers that
@@ -382,6 +408,12 @@ protected:
   /** A 'saved' value of alpha for when visibility is toggled */
   unsigned char m_ToggleAlpha;
 
+  /** The pipeline that handles mapping intensities to the display slices */
+  SmartPtr<DisplayMapping> m_DisplayMapping;
+
+  // Mapping from native to internal format
+  NativeIntensityMapping m_NativeMapping;
+
   /** Transform from image space to display space */
   ImageCoordinateTransform m_ImageToDisplayTransform[3];
 
@@ -402,6 +434,10 @@ protected:
 
   /** Common code for the different constructors */
   void CommonInitialization();
+
+  void SetImageGeometry(const itk::Matrix<double,3,3> &directionMatrix,
+                        ImageCoordinateTransform imageToDisplayTransform[3]);
+
 };
 
 #endif // __ImageWrapper_h_

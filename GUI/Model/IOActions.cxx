@@ -5,12 +5,10 @@
 
 
 void LoadMainImageAction
-::Initialize(GlobalUIModel *model, const char *file,
-             IRISApplication::MainImageType type)
+::Initialize(GlobalUIModel *model, const char *file)
 {
   UIAbstractAction::Initialize(model);
   m_File = file;
-  m_ImageType = type;
 }
 
 void LoadMainImageAction
@@ -22,7 +20,7 @@ void LoadMainImageAction
   unload->Execute();
 
   // Tell the driver to load the main image
-  m_Model->GetDriver()->LoadMainImage(m_File.c_str(), m_ImageType);
+  m_Model->GetDriver()->LoadMainImage(m_File.c_str());
 }
 
 

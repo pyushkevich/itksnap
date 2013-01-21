@@ -67,23 +67,11 @@ IRISImageData
 
 void
 IRISImageData
-::SetGreyImage(GreyImageType *newGreyImage,
-                const ImageCoordinateGeometry &newGeometry,
-                const InternalToNativeFunctor &native)
+::SetMainImage(AnatomicImageType *image,
+               const ImageCoordinateGeometry &newGeometry,
+               const LinearInternalToNativeIntensityMapping &native)
 {
-  GenericImageData::SetGreyImage(newGreyImage, newGeometry, native);
-
-  m_UndoWrapper = LabelImageWrapper::New();
-  m_UndoWrapper->InitializeToWrapper(m_LabelWrapper, (LabelType) 0);
-}
-
-void
-IRISImageData
-::SetRGBImage(RGBImageType *newRGBImage,
-              const ImageCoordinateGeometry &newGeometry)
-{
-  GenericImageData::SetRGBImage(newRGBImage, newGeometry);
-
+  GenericImageData::SetMainImage(image, newGeometry, native);
   m_UndoWrapper = LabelImageWrapper::New();
   m_UndoWrapper->InitializeToWrapper(m_LabelWrapper, (LabelType) 0);
 }

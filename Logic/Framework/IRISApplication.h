@@ -68,6 +68,7 @@ template <typename TIn, typename TOut> class EdgePreprocessingImageFilter;
 
 namespace itk {
   template <class TPixel, unsigned int VDimension> class Image;
+  template <class TPixel, unsigned int VDimension> class VectorImage;
 }
 
 /**
@@ -96,8 +97,10 @@ public:
   // Typedefs
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::Size<3> SizeType;
-  typedef itk::Image<GreyType,3> GreyImageType;
-  typedef itk::Image<RGBType,3> RGBImageType;
+
+  // The internal representation of anatomical images
+  typedef itk::VectorImage<GreyType, 3> AnatomyImageType;
+
   typedef itk::Image<LabelType,3> LabelImageType;
   typedef itk::Image<short ,3> SpeedImageType;
   typedef itk::Command CommandType;
@@ -108,9 +111,6 @@ public:
 
   // Bubble array
   typedef std::vector<Bubble> BubbleArray;
-
-  // The main image can be of these types
-  enum MainImageType { MAIN_SCALAR, MAIN_RGB, MAIN_ANY };
 
   // Declare events fired by this object
   FIRES(CursorUpdateEvent)
@@ -158,8 +158,7 @@ public:
    * which holds an image in native format. The second parameter specified whether
    * to force RGB or grey image, or to determine image type based on the data.
    */
-  MainImageType UpdateIRISMainImage(
-    GuidedNativeImageIO *nativeIO, MainImageType force_type);
+  void UpdateIRISMainImage(GuidedNativeImageIO *nativeIO);
 
   /**
    * Add an overlay image into IRIS. This method is called to load either grey or
@@ -167,8 +166,7 @@ public:
    * which holds an image in native format. The second parameter specified whether
    * to force RGB or grey image, or to determine image type based on the data.
    */
-  MainImageType AddIRISOverlayImage(
-    GuidedNativeImageIO *nativeIO, MainImageType force_type);
+  void AddIRISOverlayImage(GuidedNativeImageIO *nativeIO);
 
   /**
    * Set a new grey image for the IRIS Image data.  This method is called when the
@@ -348,9 +346,9 @@ public:
    * image is of a given type (grey vs. rgb) or you can let the program 
    * decide dynamically, based on the number of components in the file
    */
-  MainImageType LoadMainImage(const char *filename, MainImageType force_type);
+  void LoadMainImage(const char *filename);
 
-  MainImageType LoadOverlayImage(const char *filename, MainImageType force_type);
+  void LoadOverlayImage(const char *filename);
 
   /**
    * Check if there is an image currently loaded in SNAP.

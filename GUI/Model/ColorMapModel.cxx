@@ -46,7 +46,8 @@ ColorMapModel::ColorMapModel()
 
 ColorMap* ColorMapModel::GetColorMap()
 {
-  return this->GetLayer()->GetColorMap();
+  // TODO: this needs a fix
+  return this->GetLayer()->GetDefaultScalarRepresentation()->GetColorMap();
 }
 
 bool
@@ -101,24 +102,25 @@ ColorMapModel
 }
 
 
-void ColorMapModel::RegisterWithLayer(GreyImageWrapperBase *layer)
+void ColorMapModel::RegisterWithLayer(ImageWrapperBase *layer)
 {
+  // TODO: fix where the color map is coming from
   ColorMapLayerProperties &p = GetProperties();
   p.SetColorMapObserverTag(
-        Rebroadcast(layer->GetColorMap(),
+        Rebroadcast(layer->GetDefaultScalarRepresentation()->GetColorMap(),
                     ColorMapChangeEvent(), ModelUpdateEvent()));
   p.SetLayerObserverTag(
         Rebroadcast(layer,
                     AppearanceUpdateEvent(), ModelUpdateEvent()));
 }
 
-void ColorMapModel::UnRegisterFromLayer(GreyImageWrapperBase *layer)
+void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer)
 {
   unsigned long tag;
   ColorMapLayerProperties &p = GetProperties();
   if((tag = p.GetLayerObserverTag()))
     {
-    layer->GetColorMap()->RemoveObserver(tag);
+    layer->GetDefaultScalarRepresentation()->GetColorMap()->RemoveObserver(tag);
     }
   if((tag = p.GetColorMapObserverTag()))
     {

@@ -39,6 +39,7 @@
 #include "itkSmartPointer.h"
 #include "itkImage.h"
 #include "itkImageIOBase.h"
+#include "itkVectorImage.h"
 #include "gdcmTag.h"
 #include "gdcmScanner.h"
 #include "gdcmSmartPointer.h"
@@ -351,19 +352,20 @@ private:
 
 
 /**
- * \class RescaleNativeImageToScalar
+ * \class RescaleNativeImageToIntegralType
  * \brief An adapter class that rescales a native-format image from 
  * GuidedNativeImageIO to user-specified scalar type
  */
-template<typename TPixel>
-class RescaleNativeImageToScalar
+template<class TOutputImage>
+class RescaleNativeImageToIntegralType
 {
 public:
-  RescaleNativeImageToScalar() {}
-  virtual ~RescaleNativeImageToScalar() {}
+  RescaleNativeImageToIntegralType() {}
+  virtual ~RescaleNativeImageToIntegralType() {}
 
-  typedef itk::Image<TPixel,3> OutputImageType;
-  typedef itk::ImageBase<3> NativeImageType;
+  typedef TOutputImage                                         OutputImageType;
+  typedef typename TOutputImage::PixelType                     OutputPixelType;
+  typedef itk::ImageBase<3>                                    NativeImageType;
 
   // Constructor, takes pointer to native image
   OutputImageType *operator()(GuidedNativeImageIO *nativeIO);
@@ -380,22 +382,34 @@ private:
 
   // Method that does the casting
   template<typename TNative> void DoCast(itk::ImageBase<3> *native);
-  
-  
 };
+
+template<class TPixel> class TrivialCastFunctor
+{
+public:
+  typedef TPixel PixelType;
+  template<class TNative> void operator()(TNative *src, TPixel *trg)
+    { *trg = static_cast<TPixel>(*src); }
+};
+
 
 /**
  * \class CastNativeImageBase
  * \brief An adapter class that casts a native-format image from 
- * GuidedNativeImageIO to an image of type TPixel. The actual casting
+ * GuidedNativeImageIO to an output image type. The actual casting
  * is done using the functor TCastFunctor. Use derived classes.
  */
-template<class TPixel, class TCastFunctor>
-class CastNativeImageBase
+template<class TOutputImage,
+         class TCastFunctor =
+           TrivialCastFunctor<typename TOutputImage::InternalPixelType> >
+class CastNativeImage
 {
 public:
-  typedef itk::Image<TPixel,3> OutputImageType;
-  typedef itk::ImageBase<3> NativeImageType;
+  typedef TOutputImage                                         OutputImageType;
+  typedef RescaleNativeImageToIntegralType<OutputImageType>       RescalerType;
+  typedef typename RescalerType::NativeImageType               NativeImageType;
+  typedef typename OutputImageType::PixelType                  OutputPixelType;
+  typedef typename OutputImageType::InternalPixelType      OutputComponentType;
 
   // Constructor, takes pointer to native image
   OutputImageType *operator()(GuidedNativeImageIO *nativeIO);
@@ -411,7 +425,7 @@ private:
   // Method that does the casting
   template<typename TNative> void DoCast(itk::ImageBase<3> *native);
 
-  friend class RescaleNativeImageToScalar<TPixel>;
+  friend class RescaleNativeImageToIntegralType<OutputImageType>;
 };
 
 // Functor used for scalar to scalar casting
@@ -437,19 +451,21 @@ public:
  * \brief An adapter class that casts a native-format image from 
  * GuidedNativeImageIO to an RGB image
  */
+/*
 template<typename TRGBPixel>
 class CastNativeImageToRGB : 
   public CastNativeImageBase<TRGBPixel, CastToArrayFunctor<TRGBPixel, 3> > {};
-
+*/
 
 /**
  * \class CastNativeImageToScalar
  * \brief An adapter class that casts a native-format image from 
  * GuidedNativeImageIO to a scalar image of given type
  */
+/*
 template<typename TPixel>
 class CastNativeImageToScalar : 
   public CastNativeImageBase<TPixel, CastToScalarFunctor<TPixel> > {};
-
+*/
 
 #endif

@@ -198,6 +198,10 @@ protected:
   bool AreThresholdModelsActive();
   bool AreEdgePreprocessingModelsActive();
 
+  // For models that work on only a single scalar image layer, report which
+  // layer is currently selected as the target layer
+  ScalarImageWrapperBase *GetSelectedScalarLayer();
+
   // Compute range and def value of radius based on ROI dimensions
   void ComputeBubbleRadiusDefaultAndRange();
 

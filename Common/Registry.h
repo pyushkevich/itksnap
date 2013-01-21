@@ -157,6 +157,8 @@ public:
     m_EnumToStringMap[value] = std::string(description);
     m_StringToEnumMap[description] = value;
   }
+  unsigned int Size() const { return m_EnumToStringMap.size(); }
+  StringType operator [] (TEnum value) { return m_EnumToStringMap[value]; }
 private:
   std::map<TEnum, StringType> m_EnumToStringMap;
   std::map<StringType, TEnum> m_StringToEnumMap;

@@ -36,6 +36,8 @@ int VoxelIntensityQTableModel::columnCount(const QModelIndex &parent) const
   return 2;
 }
 
+#include <iomanip>
+
 QVariant VoxelIntensityQTableModel::data(const QModelIndex &index, int role) const
 {
   if (role == Qt::DisplayRole)
@@ -53,16 +55,27 @@ QVariant VoxelIntensityQTableModel::data(const QModelIndex &index, int role) con
       // Get the cursor position
       Vector3ui cursor = m_Model->GetDriver()->GetCursorPosition();
 
-      // See if this layer is grey
-      if(GreyImageWrapperBase *giw = it.GetLayerAsGray())
+      // TODO: do we want to use a tree model here to represent multi-channel
+      // images? For the time being, we can list all of the components, but
+      // we should really come up with something better
+      ImageWrapperBase *iw = it.GetLayer();
+      vnl_vector<double> voxel(iw->GetNumberOfComponents(), 0.0);
+      iw->GetVoxelMappedToNative(cursor, voxel.data_block());
+
+      if(voxel.size() > 1)
         {
-        return giw->GetVoxelMappedToNative(cursor);
+        std::ostringstream oss;
+        for(int i = 0; i < voxel.size(); i++)
+          {
+          if(i > 0)
+            oss << ",";
+          oss << std::setprecision(3) << voxel[i];
+          }
+        return QString(oss.str().c_str());
         }
-      else if(RGBImageWrapperBase *rgbiw = it.GetLayerAsRGB())
+      else
         {
-        double rgb[3];
-        rgbiw->GetVoxelAsDouble(cursor, rgb);
-        return QString("%1,%2,%3").arg(rgb[0]).arg(rgb[1]).arg(rgb[2]);
+        return voxel[0];
         }
       }
     }

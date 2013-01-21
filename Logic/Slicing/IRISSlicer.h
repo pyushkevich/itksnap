@@ -68,10 +68,12 @@ public:
   typedef TInputImage                                          InputImageType;
   typedef typename InputImageType::ConstPointer             InputImagePointer;
   typedef typename InputImageType::PixelType                   InputPixelType;
+  typedef typename InputImageType::InternalPixelType       InputComponentType;
 
   typedef TOutputImage                                        OutputImageType;
   typedef typename OutputImageType::Pointer                OutputImagePointer;
   typedef typename OutputImageType::PixelType                 OutputPixelType;
+  typedef typename OutputImageType::InternalPixelType     OutputComponentType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self)

@@ -131,42 +131,6 @@ struct DrawOverFilter
 #define MAX_COLOR_LABELS 0xffff
 #define NUM_INITIAL_COLOR_LABELS 6
 
-/**
- A structure used to map intensity from gray to 'native' intensity for
- images that are not of short datatype
- */
-struct InternalToNativeFunctor
-{
-  double scale;
-  double shift;
-  double operator() (double g) const
-    { return MapInternalToNative(g); }
-
-  double MapInternalToNative(double internal) const
-    { return internal * scale + shift; }
-
-  double MapNativeToInternal(double native) const
-    { return (native - shift) / scale; }
-
-  InternalToNativeFunctor() : scale(1.0), shift(0.0) {}
-  InternalToNativeFunctor(double a, double b) : scale(a), shift(b) {}
-};
-
-/** 
- A structure used to map 'native' intensity to gray intensity for
- images that are not of short datatype
- */
-struct NativeToInternalFunctor
-{
-  double scale;
-  double shift;
-  double operator() (double g) const
-    { return g * scale + shift; }
-  NativeToInternalFunctor() : scale(1.0), shift(0.0) {}
-  NativeToInternalFunctor(double a, double b) : scale(a), shift(b) {}
-  NativeToInternalFunctor(InternalToNativeFunctor g2n)
-    : scale(1.0/g2n.scale), shift(-g2n.shift/g2n.scale) {}
-};
 
 /**
   A debugging function to get the system time in ms. Actual definition is

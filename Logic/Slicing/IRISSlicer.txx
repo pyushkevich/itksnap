@@ -187,6 +187,7 @@ IRISSlicer<TInputImage, TOutputImage>
     }
 }
 
+#include "itkImageLinearIteratorWithIndex.h"
 
 template <class TInputImage, class TOutputImage>
 void IRISSlicer<TInputImage, TOutputImage>
@@ -213,6 +214,14 @@ void IRISSlicer<TInputImage, TOutputImage>
 
   // Set the strides in image coordinates
   Vector3i stride_image(1, szVol[0], szVol[1] * szVol[0]);
+
+  // Scale the strides by the number of components. We can't get it from the
+  // image itself since the image may be an ImageAdaptor, so we need to use
+  // the pixel container's size
+  long nintpix = inputPtr->GetPixelContainer()->Size();
+  long nvoxels = szVol[2] * stride_image[2];
+  unsigned int ncomp = static_cast<unsigned int>(nintpix/nvoxels);
+  stride_image *= ncomp;
 
   // Determine the strides for the pixel step and line step
   int sPixel = (m_PixelTraverseForward ? 1 : -1) *
@@ -244,21 +253,36 @@ void IRISSlicer<TInputImage, TOutputImage>
   size_t nPixel = rgn.GetSize()[0], nLine = rgn.GetSize()[1];
 
   // Get pointers to input and output data
-  const InputPixelType *pSource = inputPtr->GetBufferPointer();
-  OutputPixelType *pTarget = outputPtr->GetBufferPointer();
+  const InputComponentType *pSource = inputPtr->GetBufferPointer();
 
-  // Position the source
+  // Set up the output iterator
+  typedef itk::ImageLinearIteratorWithIndex<OutputImageType> OutIterType;
+  OutIterType it_out(outputPtr, outputPtr->GetBufferedRegion());
+
+  // Get the pixel accessor functor - for unified access to voxels
+  typedef typename InputImageType::AccessorFunctorType AccessorFunctorType;
+  AccessorFunctorType accessor;
+  accessor.SetBegin(pSource);
+
+  // Position the source at the first component of the first voxel to traverse
   pSource += iStart;
 
   // Main loop: copy data from source to target
-  for(size_t il = 0; il < nLine; il++)
+  while(!it_out.IsAtEnd())
     {
-    for(size_t ip = 0; ip < nPixel; ip++)
+    while( !it_out.IsAtEndOfLine() )
       {
-      *pTarget = *pSource;
-      pTarget++;
-      pSource+=sPixel;
+      // Use the accessor
+      OutputPixelType val = accessor.Get(*pSource);
+
+      // Set the pixel
+      it_out.Set(val);
+
+      // Go to next pixel
+      ++it_out;
+      pSource += sPixel;
       }
+    it_out.NextLine();
     pSource += sLineDelta;
     }
 }

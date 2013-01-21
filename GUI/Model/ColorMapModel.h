@@ -3,7 +3,6 @@
 
 #include "AbstractLayerAssociatedModel.h"
 #include "PropertyModel.h"
-#include "GreyImageWrapper.h"
 #include <UIReporterDelegates.h>
 #include "ColorMap.h"
 
@@ -49,8 +48,7 @@ protected:
 };
 
 typedef AbstractLayerAssociatedModel<
-    ColorMapLayerProperties,
-    GreyImageWrapperBase> ColorMapModelBase;
+    ColorMapLayerProperties, ImageWrapperBase> ColorMapModelBase;
 
 
 /**
@@ -91,8 +89,8 @@ public:
   bool CheckState(UIState state);
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(GreyImageWrapperBase *layer);
-  void UnRegisterFromLayer(GreyImageWrapperBase *layer);
+  void RegisterWithLayer(ImageWrapperBase *layer);
+  void UnRegisterFromLayer(ImageWrapperBase *layer);
 
   /** Before using the model, it must be coupled with a size reporter */
   irisGetSetMacro(ViewportReporter, ViewportSizeReporter *)

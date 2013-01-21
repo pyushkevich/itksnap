@@ -225,8 +225,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
           this, SLOT(AdjustMarginsForDocks()));
 
   // Hook up buttons to actions
-  connect(ui->btnLoadGrey, SIGNAL(clicked()), ui->actionOpenGrey, SLOT(trigger()));
-  connect(ui->btnLoadRGB, SIGNAL(clicked()), ui->actionOpenRGB, SLOT(trigger()));
+  connect(ui->btnLoadMain, SIGNAL(clicked()), ui->actionOpenMain, SLOT(trigger()));
 
   // Add actions that are not on the menu
   addAction(ui->actionZoomToFitInAllViews);
@@ -370,21 +369,6 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
     return NULL;
 }
 
-void MainImageWindow::on_actionOpenGrey_triggered()
-{
-  // TODO: Prompt for changes to segmentation to be saved
-
-  // Create a model for IO
-  LoadMainImageDelegate delegate(m_Model, IRISApplication::MAIN_SCALAR);
-  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, &delegate, "GreyImage");
-
-  // Execute the IO wizard
-  ImageIOWizard wiz(this);
-  wiz.SetModel(model);
-  wiz.exec();
-}
-
 void MainImageWindow::on_actionQuit_triggered()
 { 
   // TODO: check for unsaved changes
@@ -412,44 +396,6 @@ void MainImageWindow::on_actionLoad_from_Image_triggered()
   wiz.exec();
 }
 
-void MainImageWindow::on_actionAdd_Greyscale_Overlay_triggered()
-{
-  LoadOverlayImageDelegate delegate(m_Model, IRISApplication::MAIN_SCALAR);
-  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, &delegate, "GreyImage");
-
-  // Execute the IO wizard
-  ImageIOWizard wiz(this);
-  wiz.SetModel(model);
-  wiz.exec();
-}
-
-void MainImageWindow::on_actionOpen_RGB_Image_triggered()
-{
-  // TODO: Prompt for changes to segmentation to be saved
-
-  // Create a model for IO
-  LoadMainImageDelegate delegate(m_Model, IRISApplication::MAIN_RGB);
-  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, &delegate, "RGBImage");
-
-  // Execute the IO wizard
-  ImageIOWizard wiz(this);
-  wiz.SetModel(model);
-  wiz.exec();
-}
-
-void MainImageWindow::on_actionAdd_RGB_Overlay_triggered()
-{
-  LoadOverlayImageDelegate delegate(m_Model, IRISApplication::MAIN_RGB);
-  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, &delegate, "RGBImage");
-
-  // Execute the IO wizard
-  ImageIOWizard wiz(this);
-  wiz.SetModel(model);
-  wiz.exec();
-}
 
 void MainImageWindow::on_actionImage_Contrast_triggered()
 {
@@ -514,7 +460,7 @@ void MainImageWindow::LoadRecent(QString file)
     // Change cursor for this operation
     QtCursorOverride c(Qt::WaitCursor);
     IRISWarningList warnings;
-    LoadMainImageDelegate del(m_Model, IRISApplication::MAIN_ANY);
+    LoadMainImageDelegate del(m_Model);
     m_Model->LoadImageNonInteractive(file.toAscii(), del, warnings);
     }
   catch(exception &exc)
@@ -650,4 +596,32 @@ bool MainImageWindow::eventFilter(QObject *obj, QEvent *event)
     return true;
     }
   else return false;
+}
+
+void MainImageWindow::on_actionOpenMain_triggered()
+{
+  // TODO: Prompt for changes to segmentation to be saved
+
+  // Create a model for IO
+  LoadMainImageDelegate delegate(m_Model);
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model, &delegate, "GreyImage");
+
+  // Execute the IO wizard
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
+
+}
+
+void MainImageWindow::on_actionAdd_Overlay_triggered()
+{
+  LoadOverlayImageDelegate delegate(m_Model);
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model, &delegate, "GreyImage");
+
+  // Execute the IO wizard
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
 }

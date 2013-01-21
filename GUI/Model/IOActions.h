@@ -13,16 +13,11 @@ class LoadMainImageAction : public UIAbstractAction
 public:
   irisITKObjectMacro(LoadMainImageAction, UIAbstractAction)
 
-  void Initialize(GlobalUIModel *model,
-                  const char *file,
-                  IRISApplication::MainImageType type);
-
-
+  void Initialize(GlobalUIModel *model, const char *file);
   void Execute();
 
 protected:
   std::string m_File;
-  IRISApplication::MainImageType m_ImageType;
 
   LoadMainImageAction() {}
   ~LoadMainImageAction() {}
@@ -34,14 +29,12 @@ class LoadSegmentationAction : public UIAbstractAction
 public:
   irisITKObjectMacro(LoadSegmentationAction, UIAbstractAction)
 
-  void Initialize(GlobalUIModel *model,
-                  const char *file);
+  void Initialize(GlobalUIModel *model, const char *file);
 
   void Execute();
 
 protected:
   std::string m_File;
-  IRISApplication::MainImageType m_ImageType;
 
   LoadSegmentationAction() {}
   ~LoadSegmentationAction() {}

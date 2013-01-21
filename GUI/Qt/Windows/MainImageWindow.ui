@@ -547,16 +547,9 @@ background-color:rgb(88, 88, 88);
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="btnLoadGrey">
+            <widget class="QPushButton" name="btnLoadMain">
              <property name="text">
-              <string>Open Grey Image...</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="btnLoadRGB">
-             <property name="text">
-              <string>Open RGB Image...</string>
+              <string>Open Image...</string>
              </property>
             </widget>
            </item>
@@ -627,8 +620,7 @@ background-color:rgb(88, 88, 88);
      <addaction name="actionRecent_8"/>
      <addaction name="actionRecent_9"/>
     </widget>
-    <addaction name="actionOpenGrey"/>
-    <addaction name="actionOpenRGB"/>
+    <addaction name="actionOpenMain"/>
     <addaction name="actionOpen_Project"/>
     <addaction name="menuRecent_Images"/>
     <addaction name="menuRecent_Projects"/>
@@ -651,8 +643,7 @@ background-color:rgb(88, 88, 88);
     <property name="title">
      <string>Overlay</string>
     </property>
-    <addaction name="actionAdd_Greyscale_Overlay"/>
-    <addaction name="actionAdd_RGB_Overlay"/>
+    <addaction name="actionAdd_Overlay"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -675,9 +666,12 @@ background-color:rgb(88, 88, 88);
    <addaction name="menuOverlay"/>
    <addaction name="menuTools"/>
   </widget>
-  <action name="actionOpenGrey">
+  <action name="actionOpenMain">
    <property name="text">
-    <string>Open Greyscale Image ...</string>
+    <string>Open Image ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Open the main anatomy image that you wish to display or segment</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+G</string>
@@ -697,14 +691,6 @@ background-color:rgb(88, 88, 88);
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
-   </property>
-  </action>
-  <action name="actionOpenRGB">
-   <property name="text">
-    <string>Open RGB Image...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+R</string>
    </property>
   </action>
   <action name="actionGreyscale_Image">
@@ -805,20 +791,15 @@ background-color:rgb(88, 88, 88);
     <string>Clear</string>
    </property>
   </action>
-  <action name="actionAdd_Greyscale_Overlay">
+  <action name="actionAdd_Overlay">
    <property name="text">
-    <string>Add Greyscale Overlay ...</string>
+    <string>Add Overlay ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Load an image to overlay over the images currently loaded into SNAP</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+G</string>
-   </property>
-  </action>
-  <action name="actionAdd_RGB_Overlay">
-   <property name="text">
-    <string>Add RGB Overlay ...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+R</string>
    </property>
   </action>
   <action name="actionImage_Contrast">

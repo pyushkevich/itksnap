@@ -45,14 +45,14 @@
 
 #include "SNAPCommon.h"
 #include "IRISException.h"
-#include "GreyImageWrapper.h"
-#include "LabelImageWrapper.h"
-#include "RGBImageWrapper.h"
+#include "ImageWrapperTraits.h"
+
+// #include "GreyImageWrapper.h"
+// #include "LabelImageWrapper.h"
+// #include "RGBImageWrapper.h"
 #include "GlobalState.h"
 #include "ImageCoordinateGeometry.h"
 #include <string>
-
-class LabelImageWrapper;
 
 class IRISApplication;
 
@@ -94,10 +94,7 @@ public:
   ScalarImageWrapperBase *GetLayerAsScalar() const;
 
   /** Get the layer being pointed to, cast as Gray (or NULL) */
-  GreyImageWrapperBase *GetLayerAsGray() const;
-
-  /** Get the layer being pointed to, cast as RGB (or NULL) */
-  RGBImageWrapperBase *GetLayerAsRGB() const;
+  VectorImageWrapperBase *GetLayerAsVector() const;
 
   /** Get the role of the current layer */
   LayerRole GetRole() const;
@@ -163,15 +160,19 @@ public:
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::ImageBase<3> ImageBaseType;
 
-  typedef itk::Image<GreyType, 3> GreyImageType;
-  typedef itk::Image<RGBType, 3> RGBImageType;
-  typedef itk::Image<LabelType, 3> LabelImageType;
+  /**
+   * The type of anatomical images. For the time being, all anatomic images
+   * are made to be of type short. Eventually, it may make sense to allow
+   * both short and char images, to save memory in some cases. However, it
+   * is not that common to only have 8-bit precision, so for the time being
+   * we are going to stick to short
+   */
+  typedef AnatomicImageWrapper::ImageType                   AnatomicImageType;
+  typedef LabelImageWrapper::ImageType                         LabelImageType;
 
-  typedef GreyImageWrapper<GreyImageType> GreyWrapperType;
-  typedef RGBImageWrapper<unsigned char> RGBWrapperType;
 
+  // Support for lists of wrappers
   typedef SmartPtr<ImageWrapperBase> WrapperPointer;
-
   typedef std::vector<WrapperPointer> WrapperList;
   typedef WrapperList::iterator WrapperIterator;
   typedef WrapperList::const_iterator WrapperConstIterator;
@@ -185,7 +186,7 @@ public:
    when a new image is loaded. This means that downstream objects should
    not make copies of this pointer.
    */
-  ImageWrapperBase* GetMain()
+  AnatomicImageWrapper* GetMain()
   {
     assert(m_MainImageWrapper->IsInitialized());
     return m_MainImageWrapper;
@@ -195,32 +196,6 @@ public:
   {
     return m_MainImageWrapper && m_MainImageWrapper->IsInitialized();
   }
-
-  /**
-    Access the main image as a scalar image.
-   */
-  GreyWrapperType* GetGrey()
-  {
-    return m_GreyImageWrapper;
-  }
-
-  /**
-   * Access the RGB image (read only access is allowed)
-   */
-  RGBWrapperType* GetRGB()
-  {
-    return m_RGBImageWrapper;
-  }
-
-  /**
-   * Access the overlay images (read only access is allowed)
-   */
-  /*
-  WrapperList* GetOverlays() {
-    return &m_OverlayWrappers;
-  }
-  */
-
 
   /**
     Get the number of layers in certain role(s). This is not as fast
@@ -257,22 +232,11 @@ public:
   // virtual ImageWrapperBase* GetLayer(unsigned int layer) const;
 
   /**
-   * Get layer as a gray image type. If the layer is not of gray type, NULL
-   * will be returned.
-   */
-  // virtual GreyImageWrapperBase* GetLayerAsGray(unsigned int layer) const;
-
-  /**
-   * Get layer as an RGB image type. If the layer is not of RGB type, NULL
-   * will be returned.
-   */
-  // virtual RGBImageWrapperBase* GetLayerAsRGB(unsigned int layer) const;
-
-  /**
    * Access the segmentation image (read only access allowed 
    * to preserve state)
    */
-  LabelImageWrapper* GetSegmentation() {
+  LabelImageWrapper* GetSegmentation()
+  {
     assert(m_MainImageWrapper->IsInitialized() && m_LabelWrapper->IsInitialized());
     return m_LabelWrapper;
   }
@@ -280,7 +244,8 @@ public:
   /** 
    * Get the extents of the image volume
    */
-  Vector3ui GetVolumeExtents() const {
+  Vector3ui GetVolumeExtents() const
+  {
     assert(m_MainImageWrapper->IsInitialized());
     return m_MainImageWrapper->GetSize();
   }
@@ -301,30 +266,35 @@ public:
   Vector3d GetImageOrigin();
 
   /**
-   * Set the grey image (read important note).
-   * 
+   * Set the main image. The main image is the anatomical image that defines
+   * the coordinate space of all other images in a SNAP session. It is the
+   * image in which structures are traced. The main image can have multiple
+   * components or channels (e.g., red, green, blue).
+   *
    * Note: this method replaces the internal pointer to the grey image
    * by the pointer that is passed in.  That means that the caller should relinquish
    * control of this pointer and that the GenericImageData class will dispose of the
-   * pointer properly. 
+   * pointer properly.
    *
    * The second parameter to this method is the new geometry object, which depends
    * on the size of the grey image and will be updated.
+   *
+   * The third parameter is a functor that maps intensity values in each channel
+   * from the internal type (short) to the native type (float or int, depending
+   * on how the image was stored on disk)
    */
-  virtual void SetGreyImage(GreyImageType *image,
+  virtual void SetMainImage(AnatomicImageType *image,
                             const ImageCoordinateGeometry &newGeometry,
-                            const InternalToNativeFunctor &native);
+                            const LinearInternalToNativeIntensityMapping &native);
 
-  virtual void SetRGBImage(RGBImageType *image,
-                           const ImageCoordinateGeometry &newGeometry);
 
+  /** Unload the main image (and everything else) */
   virtual void UnloadMainImage();
 
-  virtual void AddGreyOverlay(GreyImageType *image,
-                              const InternalToNativeFunctor &native);
+  virtual void AddOverlay(AnatomicImageType *image,
+                          const LinearInternalToNativeIntensityMapping &native);
 
-  virtual void AddRGBOverlay(RGBImageType *image);
-
+  /** Handle overlays */
   virtual void UnloadOverlays();
   virtual void UnloadOverlayLast();
 
@@ -337,16 +307,6 @@ public:
    * Set voxel in segmentation image
    */
   void SetSegmentationVoxel(const Vector3ui &index, LabelType value);
-
-  /**
-   * Check validity of greyscale image
-   */
-  bool IsGreyLoaded();
-
-  /**
-   * Check validity of RGB image
-   */
-  bool IsRGBLoaded();
 
   /**
    * Check validity of overlay images
@@ -373,17 +333,6 @@ public:
   irisGetMacro(ImageGeometry,ImageCoordinateGeometry)
 
 protected:
-  virtual void SetMainImageCommon(ImageWrapperBase *wrapper,
-                                  const ImageCoordinateGeometry &geometry);
-
-  virtual void AddOverlayCommon(ImageWrapperBase *wrapper);
-  // virtual void SetCrosshairs(ImageWrapperBase *wrapper, const Vector3ui &crosshairs);
-  // virtual void SetImageGeometry(ImageWrapperBase *wrapper, const ImageCoordinateGeometry &geometry);
-
-  /*
-  virtual ImageWrapperBase* GetNextLayer(
-      int iLayer, LayerIterator::LayerRole role);
-      */
 
   typedef LayerIterator::LayerRole LayerRole;
 
@@ -397,17 +346,9 @@ protected:
   WrapperStorage m_Wrappers;
 
   // A pointer to the 'main' image, i.e., the image that is treated as the
-  // reference for all other images. It is typically the grey image, but
-  // since we now allow for RGB images, it can point to the RGB image too
+  // reference for all other images.
   // Equal to m_Wrappers[MAIN].first()
-  ImageWrapperBase *m_MainImageWrapper;
-
-  // This pointer is NULL if the main image is of RGB type, and equal to
-  // m_MainImageWrapper otherwise.
-  GreyWrapperType *m_GreyImageWrapper;
-
-  // Vice versa
-  RGBWrapperType *m_RGBImageWrapper;
+  AnatomicImageWrapper *m_MainImageWrapper;
 
   // Wrapper around the segmentatoin image.
   // Equal to m_Wrappers[SEGMENTATION].first()

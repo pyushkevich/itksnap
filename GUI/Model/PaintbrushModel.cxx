@@ -3,7 +3,6 @@
 #include "GlobalState.h"
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
-#include "LabelImageWrapper.h"
 #include "GenericImageData.h"
 
 #include "itkRegionOfInterestImageFilter.h"
@@ -378,11 +377,13 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
   // Special code for Watershed brush
   if(flagWatershed)
     {
+    GenericImageData *gid = driver->GetCurrentImageData();
+
     // Precompute the watersheds
     m_Watershed->PrecomputeWatersheds(
-      driver->GetCurrentImageData()->GetGrey()->GetImage(),
-      driver->GetCurrentImageData()->GetSegmentation()->GetImage(),
-      xTestRegion, to_itkIndex(m_MousePosition), pbs.watershed.smooth_iterations);
+          gid->GetMain()->GetDefaultScalarRepresentation()->GetCommonFormatImage(),
+          driver->GetCurrentImageData()->GetSegmentation()->GetImage(),
+          xTestRegion, to_itkIndex(m_MousePosition), pbs.watershed.smooth_iterations);
 
     m_Watershed->RecomputeWatersheds(pbs.watershed.level);
     }

@@ -52,13 +52,13 @@ void ImageInfoModel::SetParentModel(GlobalUIModel *parent)
 }
 
 
-void ImageInfoModel::RegisterWithLayer(ScalarImageWrapperBase *layer)
+void ImageInfoModel::RegisterWithLayer(ImageWrapperBase *layer)
 {
   // We don't need to listen to the events on the layer because they
   // are not going to change anything managed by this model.
 }
 
-void ImageInfoModel::UnRegisterFromLayer(ScalarImageWrapperBase *layer)
+void ImageInfoModel::UnRegisterFromLayer(ImageWrapperBase *layer)
 {
   // We don't need to listen to the events on the layer because they
   // are not going to change anything managed by this model.
@@ -109,10 +109,17 @@ bool ImageInfoModel
 bool ImageInfoModel
 ::GetImageMinMax(Vector2d &value)
 {
-  if(!this->GetLayer()) return false;
-  value = Vector2d(GetLayer()->GetImageMinNative(),
-                   GetLayer()->GetImageMaxNative());
-  return true;
+  ImageWrapperBase *layer = this->GetLayer();
+
+  // TODO: figure out how to handle this conistently throughout!
+  if(layer)
+    {
+    ScalarImageWrapperBase *sl = layer->GetDefaultScalarRepresentation();
+    value = Vector2d(sl->GetImageMinNative(), sl->GetImageMaxNative());
+    return true;
+    }
+
+  return false;
 }
 
 bool ImageInfoModel

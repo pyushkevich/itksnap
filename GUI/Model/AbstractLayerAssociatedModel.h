@@ -7,6 +7,7 @@
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "SNAPEventListenerCallbacks.h"
+#include "ImageWrapperBase.h"
 
 /**
   This is an abstract class for a special type of UI model that can be
@@ -14,7 +15,7 @@
   are models for contrast adjustment, colormap adjustment, etc., i.e.,
   models that link the GUI with one image layer. Two options were available:
   to associate a single such model with each image layer, or to create just
-  one model, and allow the layer for that model to be switched out. I chose
+  one model, and allow the layer for that model to be switched. I chose
   the second option because it reduced the number of models that have to be
   kept around. However, the model has to keep track of layer-specific
   properties, and also has to be smart about registering and unregistering

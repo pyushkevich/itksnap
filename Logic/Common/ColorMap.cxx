@@ -435,14 +435,15 @@ void ColorMap
     }
 }
 
-
- void ColorMap
+// TODO: the colormap should know if it is in a given system preset or not, and if
+// so, only save the preset name.
+void ColorMap
 ::LoadFromRegistry(Registry &reg)
 {
   // Store the number of control points
   size_t n = reg["NumberOfControlPoints"][0];
   if(n == 0)
-    throw IRISException("Can not read color map. No entries found");
+    return;
 
   // Read each control point
   CMPointList newpts;

@@ -53,3 +53,6 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
 // Declare specific instances that will exist
 template class LookupTableIntensityMappingFilter<
     itk::Image<short, 2>, itk::Image< itk::RGBAPixel<unsigned char> > >;
+
+
+

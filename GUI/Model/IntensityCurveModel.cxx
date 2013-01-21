@@ -5,7 +5,7 @@
 #include "ScalarImageHistogram.h"
 #include "GlobalUIModel.h"
 #include "IntensityCurveInterface.h"
-
+#include "DisplayMappingPolicy.h"
 #include "LayerAssociation.txx"
 
 template class LayerAssociation<IntensityCurveLayerProperties,
@@ -61,15 +61,26 @@ IntensityCurveModel::~IntensityCurveModel()
 
 }
 
+AbstractContinuousImageDisplayMappingPolicy *
+IntensityCurveModel
+::GetDisplayPolicy()
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  if(layer)
+    return dynamic_cast<AbstractContinuousImageDisplayMappingPolicy *>
+        (layer->GetDisplayMapping());
+  return NULL;
+}
+
 void
 IntensityCurveModel
-::RegisterWithLayer(GreyImageWrapperBase *layer)
+::RegisterWithLayer(ImageWrapperBase *layer)
 {
   std::cout << "ICM register with layer " << layer << std::endl;
 
   // Listen to changes in the layer's intensity curve
   unsigned long tag =
-      Rebroadcast(layer->GetIntensityMapFunction(),
+      Rebroadcast(layer->GetDisplayMapping(),
                   itk::ModifiedEvent(), ModelUpdateEvent());
 
   // Set a flag so we don't register a listener again
@@ -78,7 +89,7 @@ IntensityCurveModel
 
 void
 IntensityCurveModel
-::UnRegisterFromLayer(GreyImageWrapperBase *layer)
+::UnRegisterFromLayer(ImageWrapperBase *layer)
 {
   std::cout << "ICM unregister from layer " << layer << std::endl;
 
@@ -86,7 +97,7 @@ IntensityCurveModel
   unsigned long tag = GetProperties().GetObserverTag();
   if(tag)
     {
-    layer->GetIntensityMapFunction()->RemoveObserver(tag);
+    layer->GetDisplayMapping()->RemoveObserver(tag);
     }
 }
 
@@ -110,7 +121,7 @@ IntensityCurveModel
     }
 
   // Get the histogram
-  return m_Layer->GetHistogram(nBins);
+  return m_Layer->GetDefaultScalarRepresentation()->GetHistogram(nBins);
 }
 
 IntensityCurveLayerProperties::IntensityCurveLayerProperties()
@@ -128,8 +139,8 @@ IntensityCurveLayerProperties::~IntensityCurveLayerProperties()
 
 IntensityCurveInterface * IntensityCurveModel::GetCurve()
 {
-  assert(m_Layer);
-  return m_Layer->GetIntensityMapFunction();
+  assert(this->GetDisplayPolicy());
+  return this->GetDisplayPolicy()->GetIntensityCurve();
 }
 
 bool
@@ -326,14 +337,16 @@ IntensityCurveModel
 ::GetLevelAndWindowValueAndRange(Vector2d &lw,
                                  NumericValueRange<Vector2d> *range)
 {
-  if(!m_Layer)
+  AbstractContinuousImageDisplayMappingPolicy *dmp = this->GetDisplayPolicy();
+  if(!dmp)
     return false;
 
-  IntensityCurveInterface *curve = this->GetCurve();
+  IntensityCurveInterface *curve = dmp->GetIntensityCurve();
 
   // Get the absolute range
-  double iAbsMin = m_Layer->GetImageMinNative();
-  double iAbsMax = m_Layer->GetImageMaxNative();
+  Vector2d iAbsRange = dmp->GetNativeImageRangeForCurve();
+  double iAbsMin = iAbsRange[0];
+  double iAbsMax = iAbsRange[1];
   double iAbsSpan = iAbsMax - iAbsMin;
 
   // Get the starting and ending control points
@@ -372,16 +385,18 @@ void
 IntensityCurveModel
 ::SetLevelAndWindow(Vector2d p)
 {
-  IntensityCurveInterface *curve = this->GetCurve();
+  AbstractContinuousImageDisplayMappingPolicy *dmp = this->GetDisplayPolicy();
+  assert(dmp);
+
+  IntensityCurveInterface *curve = dmp->GetIntensityCurve();
+
+  // Get the absolute range
+  Vector2d iAbsRange = dmp->GetNativeImageRangeForCurve();
 
   // Assure that input and output outside of the image range
   // is handled gracefully
   // m_InLevel->value(m_InLevel->clamp(m_InLevel->value()));
   // m_InWindow->value(m_InWindow->clamp(m_InWindow->value()));
-
-  // Get the absolute range
-  double iAbsMin = m_Layer->GetImageMinNative();
-  double iAbsMax = m_Layer->GetImageMaxNative();
 
   // Get the new values of min and max
   double iMin = p(0);
@@ -391,9 +406,9 @@ IntensityCurveModel
   assert(iMin < iMax);
 
   // Compute the unit coordinate values that correspond to min and max
-  double factor = 1.0 / (iAbsMax - iAbsMin);
-  double t0 = factor * (iMin - iAbsMin);
-  double t1 = factor * (iMax - iAbsMin);
+  double factor = 1.0 / (iAbsRange[1] - iAbsRange[0]);
+  double t0 = factor * (iMin - iAbsRange[0]);
+  double t1 = factor * (iMax - iAbsRange[0]);
 
   // Update the curve boundary
   curve->ScaleControlPointsToWindow((float) t0, (float) t1);
@@ -405,19 +420,24 @@ IntensityCurveModel
     Vector2d &pos,
     NumericValueRange<Vector2d> *range)
 {
-  // If no control point selected, the value is invalid
-  if(!m_Layer || GetProperties().GetMovingControlPoint() < 0)
+  AbstractContinuousImageDisplayMappingPolicy *dmp = this->GetDisplayPolicy();
+  if(!dmp)
     return false;
 
-  IntensityCurveInterface *curve = this->GetCurve();
+  // If no control point selected, the value is invalid
+  if(GetProperties().GetMovingControlPoint() < 0)
+    return false;
+
+  IntensityCurveInterface *curve = dmp->GetIntensityCurve();
   int cp = GetProperties().GetMovingControlPoint();
+
+  // Get the absolute range
+  Vector2d iAbsRange = dmp->GetNativeImageRangeForCurve();
 
   // Compute the position
   float x, t;
   curve->GetControlPoint(cp, t, x);
-  double intensity =
-      m_Layer->GetImageMinNative() * (1-t) +
-      m_Layer->GetImageMaxNative() * t;
+  double intensity = iAbsRange[0] * (1-t) + iAbsRange[1] * t;
 
   pos = Vector2d(intensity,x);
 
@@ -426,12 +446,10 @@ IntensityCurveModel
     {
     float t0, x0, t1, x1;
 
-    double iAbsMin = m_Layer->GetImageMinNative();
-    double iAbsMax = m_Layer->GetImageMaxNative();
-    double iAbsSpan = iAbsMax - iAbsMin;
+    double iAbsSpan = iAbsRange[1] - iAbsRange[0];
 
     double xStep = pow(10, floor(0.5 + log10(iAbsSpan) - 3));
-    double order = log10(std::max(fabs(iAbsMin), fabs(iAbsMax)));
+    double order = log10(std::max(fabs(iAbsRange[0]), fabs(iAbsRange[1])));
     double maxabsval = pow(10, ceil(order)+2);
 
     if(cp == 0)
@@ -441,7 +459,7 @@ IntensityCurveModel
     else
       {
       curve->GetControlPoint(cp - 1, t0, x0);
-      range->Minimum[0] = iAbsMin + iAbsSpan * t0 + xStep;
+      range->Minimum[0] = iAbsRange[0] + iAbsSpan * t0 + xStep;
       }
 
     if(cp == (int)(curve->GetControlPointCount() - 1))
@@ -451,7 +469,7 @@ IntensityCurveModel
     else
       {
       curve->GetControlPoint(cp + 1, t1, x1);
-      range->Maximum[0] = iAbsMin + iAbsSpan * t1 - xStep;
+      range->Maximum[0] = iAbsRange[0] + iAbsSpan * t1 - xStep;
       }
 
     if(cp == 0)
@@ -477,13 +495,14 @@ IntensityCurveModel
 
 void IntensityCurveModel::SetMovingControlPointPosition(Vector2d p)
 {
-  assert(m_Layer);
-  IntensityCurveInterface *curve = this->GetCurve();
+  AbstractContinuousImageDisplayMappingPolicy *dmp = this->GetDisplayPolicy();
+  assert(dmp);
 
-  double t = (p[0] - m_Layer->GetImageMinNative()) /
-      (m_Layer->GetImageMaxNative() - m_Layer->GetImageMinNative());
-  curve->UpdateControlPoint(GetProperties().GetMovingControlPoint(),
-                            t, p[1]);
+  IntensityCurveInterface *curve = dmp->GetIntensityCurve();
+  Vector2d iAbsRange = dmp->GetNativeImageRangeForCurve();
+
+  double t = (p[0] - iAbsRange[0]) / (iAbsRange[1] - iAbsRange[0]);
+  curve->UpdateControlPoint(GetProperties().GetMovingControlPoint(), t, p[1]);
 }
 
 
@@ -537,10 +556,11 @@ void IntensityCurveModel::OnUpdate()
 void IntensityCurveModel::OnAutoFitWindow()
 {
   // There must be a layer
-  assert(m_Layer);
+  AbstractContinuousImageDisplayMappingPolicy *dmp = this->GetDisplayPolicy();
+  assert(dmp);
 
   // Get the histogram
-  m_Layer->AutoFitContrast();
+  dmp->AutoFitContrast();
 }
 
 bool

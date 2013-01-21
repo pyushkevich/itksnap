@@ -317,10 +317,10 @@ SNAPRegistryIO
     registry.Folder("IRIS.MeshOptions"));
 
   // Save the intensity mapping curve
-  if (app->GetIRISImageData()->IsGreyLoaded())
+  if (app->GetIRISImageData()->IsMainLoaded())
     {
-    app->GetCurrentImageData()->GetGrey()->GetIntensityMapFunction()->
-      SaveToRegistry(registry.Folder("IRIS.IntensityCurve"));
+    VectorImageWrapperBase *main = app->GetCurrentImageData()->GetMain();
+    main->GetDisplayMapping()->Save(registry.Folder("IRIS.DisplayMapping"));
     }
 
   // Write file related information
@@ -359,9 +359,14 @@ SNAPRegistryIO
   // Get a pointer to the global state
   GlobalState *gs = app->GetGlobalState();
 
+  // Get the main image if it's loaded
+  VectorImageWrapperBase *main =
+      app->IsMainImageLoaded()
+      ? app->GetCurrentImageData()->GetMain()
+      : NULL;
+
   // First of all, make sure that the image referred to in the association file
   // matches the image currently loaded
-  Vector3i xxx=iris_vector_fixed<int,3>(7);
   Vector3i dims = (registry["Files.Grey.Dimensions"])[Vector3i(0)];
   if(dims != to_int(app->GetIRISImageData()->GetVolumeExtents()))
     return false;
@@ -385,10 +390,10 @@ SNAPRegistryIO
     
     // Read the thresholding settings (note that since they depend on an image
     // we have to use re-initialized defaults
-    if (app->GetIRISImageData()->IsGreyLoaded())
+    if (main)
       {
       app->GetThresholdSettings()->ReadFromRegistry(
-            registry, app->GetIRISImageData()->GetGrey());
+            registry, main->GetDefaultScalarRepresentation());
       }
     }
 
@@ -402,11 +407,10 @@ SNAPRegistryIO
         gs->GetMeshOptions()));
 
     // Restore the intensity mapping curve
-    if (app->GetIRISImageData()->IsGreyLoaded())
+    if (main)
       {
-      app->GetCurrentImageData()->GetGrey()->GetIntensityMapFunction()->
-        LoadFromRegistry(registry.Folder("IRIS.IntensityCurve"));
-	 }
+      main->GetDisplayMapping()->Restore(registry.Folder("IRIS.DisplayMapping"));
+      }
     }
 
   // Read the information about the bounding box and ROI sub-sampling

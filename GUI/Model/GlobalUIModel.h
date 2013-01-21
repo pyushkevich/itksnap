@@ -173,9 +173,6 @@ public:
   /** Model for managing paintbrush settings */
   irisGetMacro(PaintbrushSettingsModel, PaintbrushSettingsModel *)
 
-  /** Load the main image */
-  void LoadGrayImage(GuidedNativeImageIO *io);
-
   /** Load an image non-interactively through a delegate */
   void LoadImageNonInteractive(const char *fname,
                                AbstractLoadImageDelegate &delegate,

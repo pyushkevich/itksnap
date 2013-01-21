@@ -196,6 +196,13 @@ bool SnakeWizardModel::AreEdgePreprocessingModelsActive()
           m_Driver->GetSnakeMode() == EDGE_SNAKE);
 }
 
+ScalarImageWrapperBase *SnakeWizardModel::GetSelectedScalarLayer()
+{
+  // TODO: this should be set by the wizard through user interaction.
+  // This is just a placeholder
+  return m_Driver->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
+}
+
 bool SnakeWizardModel
 ::GetThresholdUpperValueAndRange(
     double &x, NumericValueRange<double> *range)
@@ -203,17 +210,17 @@ bool SnakeWizardModel
   if(!AreThresholdModelsActive())
     return false;
 
+  ScalarImageWrapperBase *iw = this->GetSelectedScalarLayer();
   ThresholdSettings *ts = m_Driver->GetThresholdSettings();
 
   // The thresholds are stored in internal image representation, but are
   // presented to the user in native image representation.
-  x = m_Driver->GetCurrentImageData()->GetGrey()->
-      GetNativeMapping().MapInternalToNative(ts->GetUpperThreshold());
+  x = iw->GetNativeIntensityMapping()->MapInternalToNative(ts->GetUpperThreshold());
 
   if(range)
     {
-    range->Minimum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
-    range->Maximum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative();
+    range->Minimum = iw->GetImageMinNative();
+    range->Maximum = iw->GetImageMaxNative();
     range->StepSize = CalculatePowerOfTenStepSize(range->Minimum, range->Maximum, 100);
     }
 
@@ -227,17 +234,17 @@ bool SnakeWizardModel
   if(!AreThresholdModelsActive())
     return false;
 
+  ScalarImageWrapperBase *iw = this->GetSelectedScalarLayer();
   ThresholdSettings *ts = m_Driver->GetThresholdSettings();
 
   // The thresholds are stored in internal image representation, but are
   // presented to the user in native image representation.
-  x = m_Driver->GetCurrentImageData()->GetGrey()->
-      GetNativeMapping().MapInternalToNative(ts->GetLowerThreshold());
+  x = iw->GetNativeIntensityMapping()->MapInternalToNative(ts->GetLowerThreshold());
 
   if(range)
     {
-    range->Minimum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMinNative();
-    range->Maximum = m_Driver->GetCurrentImageData()->GetGrey()->GetImageMaxNative();
+    range->Minimum = iw->GetImageMinNative();
+    range->Maximum = iw->GetImageMaxNative();
     range->StepSize = CalculatePowerOfTenStepSize(range->Minimum, range->Maximum, 100);
     }
 
@@ -248,8 +255,8 @@ void SnakeWizardModel
 ::SetThresholdUpperValue(double x)
 {
   // Map the value to internal format
-  float z = (float) m_Driver->GetCurrentImageData()->GetGrey()->
-      GetNativeMapping().MapNativeToInternal(x);
+  ScalarImageWrapperBase *iw = this->GetSelectedScalarLayer();
+  float z = (float) iw->GetNativeIntensityMapping()->MapNativeToInternal(x);
 
   // Get the current settings
   ThresholdSettings *ts = m_Driver->GetThresholdSettings();
@@ -263,8 +270,8 @@ void SnakeWizardModel
 ::SetThresholdLowerValue(double x)
 {
   // Map the value to internal format
-  float z = (float) m_Driver->GetCurrentImageData()->GetGrey()->
-      GetNativeMapping().MapNativeToInternal(x);
+  ScalarImageWrapperBase *iw = this->GetSelectedScalarLayer();
+  float z = (float) iw->GetNativeIntensityMapping()->MapNativeToInternal(x);
 
   // Get the current settings
   ThresholdSettings *ts = m_Driver->GetThresholdSettings();
@@ -331,8 +338,8 @@ void SnakeWizardModel
 {
   assert(m_Driver->IsSnakeModeActive());
 
+  ScalarImageWrapperBase *grey = this->GetSelectedScalarLayer();
   ThresholdSettings *ts = m_Driver->GetThresholdSettings();
-  GreyImageWrapperBase *grey = m_Driver->GetSNAPImageData()->GetGrey();
   SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
 
   double imin = grey->GetImageMinAsDouble();
@@ -345,8 +352,8 @@ void SnakeWizardModel
     {
     float t = i * 1.0 / (n - 1);
     float x_internal = t * (imax - imin);
-    x[i] = grey->GetNativeMapping().MapInternalToNative(x_internal);
-    y[i] = speed->GetNativeMapping().MapInternalToNative(functor(x_internal));
+    x[i] = grey->GetNativeIntensityMapping()->MapInternalToNative(x_internal);
+    y[i] = speed->GetNativeIntensityMapping()->MapInternalToNative(functor(x_internal));
     }
 }
 
@@ -451,7 +458,7 @@ void SnakeWizardModel
   assert(m_Driver->IsSnakeModeActive());
 
   EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
-  GreyImageWrapperBase *grey = m_Driver->GetSNAPImageData()->GetGrey();
+  ScalarImageWrapperBase *grey = this->GetSelectedScalarLayer();
   SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
 
   // Get the range of gradient magnitude in native units
@@ -465,8 +472,8 @@ void SnakeWizardModel
     {
     float t = i * 1.0 / (n - 1);
     float x_internal = t * xlim;
-    x[i] = grey->GetNativeMapping().MapInternalToNative(x_internal);
-    y[i] = speed->GetNativeMapping().MapInternalToNative(functor(x_internal));
+    x[i] = grey->GetNativeIntensityMapping()->MapInternalToNative(x_internal);
+    y[i] = grey->GetNativeIntensityMapping()->MapInternalToNative(functor(x_internal));
     }
 }
 

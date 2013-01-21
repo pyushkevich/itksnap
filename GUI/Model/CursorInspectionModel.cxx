@@ -40,20 +40,13 @@ CurrentVoxelInfoItemSetDomain
     // Create a string output
     std::ostringstream oss;
 
-    // See if this layer is a scalar of some kind
-    if(ScalarImageWrapperBase *siw = it.GetLayerAsScalar())
-      {
-      // Get the text value
-      oss << std::setprecision(4);
-      oss << siw->GetVoxelMappedToNative(cursor);
-      }
-    else if(RGBImageWrapperBase *rgbiw = it.GetLayerAsRGB())
-      {
-      double rgb[3];
-      rgbiw->GetVoxelAsDouble(cursor, rgb);
-      oss << rgb[0] << "," << rgb[1] << "," << rgb[2];
-      }
+    // TODO: implement something smart for vector images, because for RGB this
+    // is not the right way to display current intensity
+    ScalarImageWrapperBase *siw = it.GetLayer()->GetDefaultScalarRepresentation();
 
+    // Get the text value
+    oss << std::setprecision(4);
+    oss << siw->GetVoxelMappedToNative(cursor);
     vox.IntensityValue = oss.str();
 
     // Get the displayed color

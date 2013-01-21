@@ -40,10 +40,11 @@
 
 using namespace std;
 
+// TODO: enable collection of statistics on multi-channel image data. The
+// question here is which channels to select for statistics, all or some?
 struct SegmentationStatisticsSource {
   string name;
   ScalarImageWrapperBase *image;
-  InternalToNativeFunctor funk;
 };
 
 void
@@ -59,22 +60,20 @@ SegmentationStatistics
                            LayerIterator::OVERLAY_ROLE);
       !it.IsAtEnd(); ++it)
     {
-    GreyImageWrapperBase *ib = it.GetLayerAsGray();
-    if(ib)
+    ScalarImageWrapperBase *layer = it.GetLayerAsScalar();
+    SegmentationStatisticsSource src;
+    if(it.GetRole() == LayerIterator::MAIN_ROLE)
       {
-      SegmentationStatisticsSource src;
-      if(it.GetRole() == LayerIterator::MAIN_ROLE)
-        src.name = "image";
-      else
-        {
-        ostringstream oss; oss << "ovl " << ++iOvl;
-        src.name = oss.str();
-        }
-
-      src.image = ib;
-      src.funk = ib->GetNativeMapping();
-      isrc.push_back(src);
+      src.name = "image";
       }
+    else
+      {
+      ostringstream oss; oss << "ovl " << ++iOvl;
+      src.name = oss.str();
+      }
+
+    src.image = layer;
+    isrc.push_back(src);
     }
 
   // Get the number of gray image layers
@@ -108,8 +107,7 @@ SegmentationStatistics
     // Update the gray statistics
     for(size_t j = 0; j < ngray; j++)
       {
-      double vint = isrc[j].image->GetVoxelAsDouble(idx);
-      double v = isrc[j].funk(vint);
+      double v = isrc[j].image->GetVoxelMappedToNative(idx);
       entry.gray[j].sum += v;
       entry.gray[j].sumsq += v * v;
       }

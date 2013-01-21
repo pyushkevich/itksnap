@@ -18,6 +18,11 @@
 // Smart pointers have to be included from ITK, can't forward reference them
 #include "ImageWrapper.h"
 #include "itkVariableLengthVector.h"
+#include "itkVectorImageToImageAdaptor.h"
+#include "ScalarImageWrapper.h"
+#include "itkImageAdaptor.h"
+#include "VectorToScalarImageAccessor.h"
+
 
 /**
  * \class VectorImageWrapper
@@ -27,18 +32,19 @@
  * is used to unify the treatment of different kinds of vector images in
  * SNaP.  
  */
-template<class TImage, class TBase = VectorImageWrapperBase>
+template<class TTraits, class TBase = VectorImageWrapperBase>
 class VectorImageWrapper
-    : public ImageWrapper<TImage, TBase>
+    : public ImageWrapper<TTraits, TBase>
 {
 public:
 
   // Standard ITK business
-  typedef VectorImageWrapper<TImage, TBase>                               Self;
-  typedef ImageWrapper<TImage, TBase>                               Superclass;
+  typedef VectorImageWrapper<TTraits, TBase>                              Self;
+  typedef ImageWrapper<TTraits, TBase>                              Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(VectorImageWrapper, ImageWrapper)
+  itkNewMacro(Self)
 
   // Image Types
   typedef typename Superclass::ImageType                             ImageType;
@@ -49,18 +55,55 @@ public:
   typedef typename ImageType::InternalPixelType              InternalPixelType;
 
   // Slice image type
-  typedef typename Superclass::SliceType SliceType;
-  typedef typename Superclass::SlicerPointer SlicePointer;
+  typedef typename Superclass::SliceType                             SliceType;
+  typedef typename Superclass::SlicerPointer                      SlicePointer;
 
   // Slicer type
-  typedef typename Superclass::SlicerType SlicerType;
-  typedef typename Superclass::SlicerPointer SlicerPointer;
+  typedef typename Superclass::SlicerType                           SlicerType;
+  typedef typename Superclass::SlicerPointer                     SlicerPointer;
 
   // Iterator types
-  typedef typename Superclass::Iterator Iterator;
-  typedef typename Superclass::ConstIterator ConstIterator;
+  typedef typename Superclass::Iterator                               Iterator;
+  typedef typename Superclass::ConstIterator                     ConstIterator;
+
+  // Access to the components
+  typedef typename TTraits::ComponentWrapperType         ComponentWrapperType;
 
   virtual bool IsScalar() const { return false; }
+
+  /**
+   * This function returns whatever scalar representation is current.
+   * @see ImageWrapperBase::GetScalarRepresentation
+   */
+  ScalarImageWrapperBase *GetDefaultScalarRepresentation()
+  {
+    return this->GetScalarRepresentation(m_DefaultScalarRepType,
+                                         m_DefaultScalarRepIndex);
+  }
+
+  ScalarImageWrapperBase *GetScalarRepresentation(
+      VectorImageWrapperBase::ScalarRepresentation type,
+      int index = 0);
+
+  /**
+   * This returns the same as GetScalarRepresentation(SCALAR_REP_COMPONENT, i),
+   * but cast to its true type, rather than ScalarImageWrapperBase.
+   */
+  ComponentWrapperType *GetComponentWrapper(unsigned int index)
+  {
+    return m_Components[index];
+  }
+
+  /**
+   * Set the scalar representation of the vector image wrapper.
+   */
+  void SetDefaultScalarRepresentation(
+      VectorImageWrapperBase::ScalarRepresentation type,
+      int index = 0)
+  {
+    m_DefaultScalarRepType = type;
+    m_DefaultScalarRepIndex = index;
+  }
 
   /**
    * This method is used to perform a deep copy of a region of this image 
@@ -74,28 +117,47 @@ public:
   /** This image type has only one component */
   virtual size_t GetNumberOfComponents() const
   {
-    return PixelType::Dimension;
+    return this->m_Image->GetNumberOfComponentsPerPixel();
   }
 
   /** Voxel access */
-  virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const;
+  // virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const;
 
   /** Voxel access */
-  virtual double GetVoxelAsDouble(const Vector3ui &v) const;
+  // virtual double GetVoxelAsDouble(const Vector3ui &v) const;
 
   virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const
   {
-    const PixelType &p = this->GetVoxel(x);
+    const PixelType &p = Superclass::GetVoxel(x);
     for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
       out[i] = p[i];
   }
 
   virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const
   {
-    const PixelType &p = this->GetVoxel(idx);
+    const PixelType &p = Superclass::GetVoxel(idx);
     for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
       out[i] = p[i];
   }
+
+  virtual void GetVoxelMappedToNative(const Vector3ui &x, double *out) const
+  {
+    const PixelType &p = Superclass::GetVoxel(x);
+    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
+      out[i] = this->m_NativeMapping(p[i]);
+  }
+
+  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const
+  {
+    const PixelType &p = Superclass::GetVoxel(idx);
+    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
+      out[i] = this->m_NativeMapping(p[i]);
+  }
+
+  virtual void SetSliceIndex(const Vector3ui &cursor);
+
+  virtual void SetImageToDisplayTransform(
+    unsigned int iSlice,const ImageCoordinateTransform &transform);
 
 protected:
 
@@ -103,15 +165,39 @@ protected:
    * Default constructor.  Creates an image wrapper with a blank internal
    * image
    */
-  VectorImageWrapper() {}
+  VectorImageWrapper();
 
   /**
    * Copy constructor.  Copies the contents of the passed-in image wrapper.
    */
   VectorImageWrapper(const Self &copy) : Superclass(copy) {}
 
+  virtual void UpdateImagePointer(ImageType *newImage);
+
   /** Destructor */
   virtual ~VectorImageWrapper() {}
+
+  /** Create a derived wrapper of a certain type */
+  template <class TFunctor> SmartPtr<ScalarImageWrapperBase>
+  CreateDerivedWrapper(
+      ImageType *image, ColorMap *refmap);
+
+  // Array of component wrappers
+  typedef SmartPtr<ComponentWrapperType> ComponentWrapperPointer;
+  std::vector<ComponentWrapperPointer> m_Components;
+
+  // Array of derived quantities
+  typedef SmartPtr<ScalarImageWrapperBase> ScalarWrapperPointer;
+  std::vector<ScalarWrapperPointer> m_DerivedWrappers;
+
+  // Default scalar representation
+  VectorImageWrapperBase::ScalarRepresentation m_DefaultScalarRepType;
+  unsigned int m_DefaultScalarRepIndex;
+
+  // Other derived wrappers
+  typedef VectorToScalarMagnitudeFunctor<InternalPixelType> MagnitudeFunctor;
+  typedef VectorToScalarMaxFunctor<InternalPixelType> MaxFunctor;
+  typedef VectorToScalarMeanFunctor<InternalPixelType> MeanFunctor;
 };
 
 #endif // __VectorImageWrapper_h_
