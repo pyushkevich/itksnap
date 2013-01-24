@@ -66,6 +66,8 @@ public:
   typedef typename Superclass::Iterator                               Iterator;
   typedef typename Superclass::ConstIterator                     ConstIterator;
 
+  typedef typename Superclass::NativeIntensityMapping   NativeIntensityMapping;
+
   // Access to the components
   typedef typename TTraits::ComponentWrapperType         ComponentWrapperType;
 
@@ -89,10 +91,7 @@ public:
    * This returns the same as GetScalarRepresentation(SCALAR_REP_COMPONENT, i),
    * but cast to its true type, rather than ScalarImageWrapperBase.
    */
-  ComponentWrapperType *GetComponentWrapper(unsigned int index)
-  {
-    return m_Components[index];
-  }
+  ComponentWrapperType *GetComponentWrapper(unsigned int index);
 
   /**
    * Set the scalar representation of the vector image wrapper.
@@ -154,6 +153,8 @@ public:
       out[i] = this->m_NativeMapping(p[i]);
   }
 
+  virtual void SetNativeMapping(NativeIntensityMapping mapping);
+
   virtual void SetSliceIndex(const Vector3ui &cursor);
 
   virtual void SetImageToDisplayTransform(
@@ -182,13 +183,14 @@ protected:
   CreateDerivedWrapper(
       ImageType *image, ColorMap *refmap);
 
-  // Array of component wrappers
-  typedef SmartPtr<ComponentWrapperType> ComponentWrapperPointer;
-  std::vector<ComponentWrapperPointer> m_Components;
-
   // Array of derived quantities
   typedef SmartPtr<ScalarImageWrapperBase> ScalarWrapperPointer;
-  std::vector<ScalarWrapperPointer> m_DerivedWrappers;
+  typedef typename VectorImageWrapperBase::ScalarRepresentation ScalarRepresentation;
+  typedef std::pair<ScalarRepresentation, int> ScalarRepIndex;
+
+  typedef std::map<ScalarRepIndex, ScalarWrapperPointer> ScalarRepMap;
+  typedef typename ScalarRepMap::iterator ScalarRepIterator;
+  ScalarRepMap m_ScalarReps;
 
   // Default scalar representation
   VectorImageWrapperBase::ScalarRepresentation m_DefaultScalarRepType;

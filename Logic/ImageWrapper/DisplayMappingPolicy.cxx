@@ -14,6 +14,7 @@
 #include "IRISException.h"
 #include "itkCommand.h"
 #include "itkUnaryFunctorImageFilter.h"
+#include "InputSelectionImageFilter.h"
 
 
 template<class TWrapperTraits>
@@ -424,10 +425,14 @@ MultiChannelDisplayMode::MultiChannelDisplayMode()
   UseRGB = false;
   SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_COMPONENT;
   SelectedComponent = 0;
-  AnimationSpeed = 0;
+}
 
-
-
+MultiChannelDisplayMode::MultiChannelDisplayMode(
+    bool use_rgb, VectorImageWrapperBase::ScalarRepresentation rep,
+    int comp)
+  : UseRGB(use_rgb), SelectedScalarRep(rep),
+    SelectedComponent(comp)
+{
 
 }
 
@@ -444,7 +449,6 @@ void MultiChannelDisplayMode::Save(Registry &reg)
   reg["UseRGB"] << UseRGB;
   reg["SelectedScalarRep"].PutEnum(GetScalarRepNames(), SelectedScalarRep);
   reg["SelectedComponent"] << SelectedComponent;
-  reg["AnimationSpeed"] << AnimationSpeed;
 }
 
 MultiChannelDisplayMode
@@ -455,7 +459,6 @@ MultiChannelDisplayMode::Load(Registry &reg)
   mode.SelectedScalarRep = reg["SelectedScalarRep"].GetEnum(
         GetScalarRepNames(), mode.SelectedScalarRep);
   mode.SelectedComponent = reg["SelectedComponent"][mode.SelectedComponent];
-  mode.AnimationSpeed = reg["SelectedComponent"][mode.AnimationSpeed];
   return mode;
 }
 
@@ -473,6 +476,22 @@ MultiChannelDisplayMode::GetScalarRepNames()
   return namemap;
 }
 
+int MultiChannelDisplayMode::GetHashValue() const
+{
+  if(UseRGB)
+    return 10000;
+
+  if(SelectedScalarRep != VectorImageWrapperBase::SCALAR_REP_COMPONENT)
+    return SelectedScalarRep * 100;
+
+  return SelectedComponent;
+}
+
+bool operator < (const MultiChannelDisplayMode &a, const MultiChannelDisplayMode &b)
+{
+  return a.GetHashValue() < b.GetHashValue();
+}
+
 
 
 
@@ -481,6 +500,7 @@ template <class TWrapperTraits>
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
 ::MultiChannelDisplayMappingPolicy()
 {
+  m_Animate = false;
 }
 
 template <class TWrapperTraits>
@@ -508,6 +528,10 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 {
   // Component wrappers
   typedef typename WrapperType::ComponentWrapperType ComponentWrapperType;
+
+  // Initialize the display slice selectors
+  for(unsigned int i=0; i<3; i++)
+    m_DisplaySliceSelector[i] = DisplaySliceSelector::New();
 
   // If the number of components is 3, set up the RGB pipeline
   if(m_Wrapper->GetNumberOfComponents() == 3)
@@ -547,6 +571,10 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
         m_RGBMapper[i]->SetInput(j, comp->GetSlice(i));
         }
 
+      // Add this filter as the input to the selector
+      m_DisplaySliceSelector[i]->AddSelectableInput(
+            MultiChannelDisplayMode(true, VectorImageWrapperBase::SCALAR_REP_COMPONENT),
+            m_RGBMapper[i]->GetOutput());
       }
     }
   else
@@ -554,6 +582,28 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     m_LUTGenerator = NULL;
     for(unsigned int j=0; j<3; j++)
       m_RGBMapper[j] = NULL;
+    }
+
+  // Add all the other filters as inputs to the selector
+  for(int i = 0; i < 3; i++)
+    {
+    for(int j = 0; j < VectorImageWrapperBase::NUMBER_OF_SCALAR_REPS; j++)
+      {
+      VectorImageWrapperBase::ScalarRepresentation rep =
+          static_cast<VectorImageWrapperBase::ScalarRepresentation>(
+            VectorImageWrapperBase::SCALAR_REP_COMPONENT + j);
+
+      int nc = (j == 0) ? m_Wrapper->GetNumberOfComponents() : 1;
+      for(int k = 0; k < nc; k++)
+        {
+        DisplaySlicePointer slice =
+            m_Wrapper->GetScalarRepresentation(rep, k)->GetDisplaySlice(i);
+
+        m_DisplaySliceSelector[i]->AddSelectableInput(
+              MultiChannelDisplayMode(false, rep, k),
+              slice);
+        }
+      }
     }
 
   // Set display mode to default
@@ -610,6 +660,10 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
   // Store the mode
   m_DisplayMode = mode;
 
+  // Select the proper output in the selection filters
+  for(int i = 0; i < 3; i++)
+    m_DisplaySliceSelector[i]->SetSelectedInput(mode);
+
   // Point to the selected scalar representation
   int nc = m_Wrapper->GetNumberOfComponents();
   if(mode.UseRGB)
@@ -627,7 +681,12 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     m_ScalarRepresentation =
         m_Wrapper->GetScalarRepresentation(
           mode.SelectedScalarRep, mode.SelectedComponent);
+    if(m_ScalarRepresentation == NULL)
+      std::cerr << "NULL!!!" << std::endl;
     }
+
+  // Invoke the modified event
+  this->InvokeEvent(itk::ModifiedEvent());
 }
 
 
@@ -636,14 +695,7 @@ typename MultiChannelDisplayMappingPolicy<TWrapperTraits>::DisplaySlicePointer
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
 ::GetDisplaySlice(unsigned int slice)
 {
-  if(m_ScalarRepresentation)
-    {
-    return m_ScalarRepresentation->GetDisplaySlice(slice);
-    }
-  else
-    {
-    return m_RGBMapper[slice]->GetOutput();
-    }
+  return m_DisplaySliceSelector[slice]->GetOutput();
 }
 
 template <class TWrapperTraits>
@@ -678,11 +730,7 @@ bool
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
 ::IsContrastMultiComponent() const
 {
-  if(m_DisplayMode.UseRGB)
-    return true;
-
-  else if(m_DisplayMode.SelectedScalarRep == VectorImageWrapperBase::SCALAR_REP_COMPONENT
-          && m_DisplayMode.AnimationSpeed > 0)
+  if(m_DisplayMode.UseRGB || m_Animate)
     return true;
 
   return false;
@@ -799,7 +847,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
       }
 
     // Restore the display mode
-    this->SetDisplayMode(MultiChannelDisplayMode::Load(folder));
+    // this->SetDisplayMode(MultiChannelDisplayMode::Load(folder));
     }
 }
 

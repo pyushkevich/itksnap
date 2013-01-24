@@ -60,6 +60,7 @@ class ReorientImageModel;
 class DisplayLayoutModel;
 class PaintbrushModel;
 class PaintbrushSettingsModel;
+class ComponentSelectionModel;
 
 namespace itk
 {
@@ -148,6 +149,9 @@ public:
 
   /** Get the model for obtaining image info for layers */
   irisGetMacro(ImageInfoModel, ImageInfoModel *)
+
+  /** Get the model for selecting channels in a multi-channel image */
+  irisGetMacro(ComponentSelectionModel, ComponentSelectionModel *)
 
   /** Get the model encapsulating the main images and all overlays */
   irisGetMacro(LoadedLayersSelectionModel, LayerSelectionModel *)
@@ -244,6 +248,9 @@ protected:
 
   // Model for image info interaction
   SmartPtr<ImageInfoModel> m_ImageInfoModel;
+
+  // Model for multi-channel image component selection
+  SmartPtr<ComponentSelectionModel> m_ComponentSelectionModel;
 
   // Layer selection model encapsulating the main image and overlays
   SmartPtr<LayerSelectionModel> m_LoadedLayersSelectionModel;

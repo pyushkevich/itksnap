@@ -20,14 +20,14 @@ void DisplayLayoutInspector::SetModel(DisplayLayoutModel *model)
   m_Model = model;
 
   // Couple the view panel layout toolbar buttons to the model
-  QObjectList rlist;
-  rlist.append(ui->btnFourViews);
-  rlist.append(ui->btnAxial);
-  rlist.append(ui->btnCoronal);
-  rlist.append(ui->btnSagittal);
-  rlist.append(ui->btn3D);
-  makeRadioGroupCoupling(ui->grpDisplayLayout,
-                         m_Model->GetViewPanelLayoutModel(), rlist);
+  std::map<DisplayLayoutModel::ViewPanelLayout, QAbstractButton *> rmap;
+  rmap[DisplayLayoutModel::VIEW_ALL] = ui->btnFourViews;
+  rmap[DisplayLayoutModel::VIEW_AXIAL] = ui->btnAxial;
+  rmap[DisplayLayoutModel::VIEW_CORONAL] = ui->btnCoronal;
+  rmap[DisplayLayoutModel::VIEW_SAGITTAL] = ui->btnSagittal;
+  rmap[DisplayLayoutModel::VIEW_3D] = ui->btn3D;
+  makeRadioGroupCoupling(ui->grpDisplayLayout, rmap,
+                         m_Model->GetViewPanelLayoutModel());
 
   // Couple the radio buttons for layer layout
   makeRadioGroupCoupling(ui->grpLayerLayout,

@@ -25,13 +25,12 @@ void PaintbrushToolPanel::SetModel(PaintbrushSettingsModel *model)
   m_Model = model;
 
   // Couple the radio buttons
-  QObjectList lModeButtons;
-  lModeButtons.push_back(ui->btnSquare);
-  lModeButtons.push_back(ui->btnRound);
-  lModeButtons.push_back(ui->btnWatershed);
-  makeRadioGroupCoupling(ui->grpBrushStyle,
-                         m_Model->GetPaintbrushModeModel(),
-                         lModeButtons);
+  std::map<PaintbrushMode, QAbstractButton *> rmap;
+  rmap[PAINTBRUSH_RECTANGULAR] = ui->btnSquare;
+  rmap[PAINTBRUSH_ROUND] = ui->btnRound;
+  rmap[PAINTBRUSH_WATERSHED] = ui->btnWatershed;
+  makeRadioGroupCoupling(ui->grpBrushStyle, rmap,
+                         m_Model->GetPaintbrushModeModel());
 
   // Couple the other controls
   makeCoupling(ui->chkVolumetric, model->GetVolumetricBrushModel());

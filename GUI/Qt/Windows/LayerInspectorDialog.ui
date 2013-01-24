@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>580</width>
+    <width>603</width>
     <height>479</height>
    </rect>
   </property>
@@ -147,6 +147,14 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
+     <widget class="GeneralLayerInspector" name="cmpComponent">
+      <attribute name="title">
+       <string>General</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select which channels to show for multi-channel images (images with multiple components per voxel)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </attribute>
+     </widget>
      <widget class="ContrastInspector" name="cmpContrast">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -171,7 +179,7 @@
      </widget>
      <widget class="ImageInfoInspector" name="cmpInfo">
       <attribute name="title">
-       <string>Information</string>
+       <string>Info</string>
       </attribute>
      </widget>
      <widget class="MetadataInspector" name="cmpMetadata">
@@ -211,6 +219,12 @@
    <class>MetadataInspector</class>
    <extends>QWidget</extends>
    <header location="global">MetadataInspector.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GeneralLayerInspector</class>
+   <extends>QWidget</extends>
+   <header>GeneralLayerInspector.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

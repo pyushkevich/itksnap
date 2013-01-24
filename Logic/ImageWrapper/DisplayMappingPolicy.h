@@ -14,6 +14,7 @@ template <class T, class U> class IntensityToColorLookupTableImageFilter;
 template <class T, class U> class LookupTableIntensityMappingFilter;
 template <class T> class RGBALookupTableIntensityMappingFilter;
 template <class T, class U> class MultiComponentImageToScalarLookupTableImageFilter;
+template <class T, typename U> class InputSelectionImageFilter;
 
 /**
  * @brief An abstract class describing intensity mapping between image
@@ -269,14 +270,13 @@ struct MultiChannelDisplayMode
    */
   int SelectedComponent;
 
-  /**
-   * Animation speed - relevant only when scalar representation is component.
-   * The value of 0 means there is no animation. TODO: Implement this!
-   */
-  int AnimationSpeed;
-
   /** Default constructor - select first component */
   MultiChannelDisplayMode();
+
+  /** Default constructor - select first component */
+  MultiChannelDisplayMode(bool use_rgb,
+                          VectorImageWrapperBase::ScalarRepresentation rep,
+                          int comp = 0);
 
   /** Initialize for RGB mode */
   static MultiChannelDisplayMode DefaultForRGB();
@@ -289,8 +289,19 @@ struct MultiChannelDisplayMode
 
   typedef VectorImageWrapperBase::ScalarRepresentation ScalarRepresentation;
   static RegistryEnumMap<ScalarRepresentation> &GetScalarRepNames();
+
+  /** Get a hash value for this struct - for ordering purposes */
+  int GetHashValue() const;
+
+  /** Comparison operators */
+  bool operator == (const MultiChannelDisplayMode &mode)
+    { return GetHashValue() == mode.GetHashValue(); }
+
+  bool operator != (const MultiChannelDisplayMode &mode)
+    { return GetHashValue() != mode.GetHashValue(); }
 };
 
+bool operator < (const MultiChannelDisplayMode &a, const MultiChannelDisplayMode &b);
 
 
 /**
@@ -378,6 +389,9 @@ public:
   irisVirtualGetMacro(DisplayMode, MultiChannelDisplayMode)
   irisVirtualSetMacro(DisplayMode, MultiChannelDisplayMode)
 
+  irisVirtualGetMacro(Animate, bool)
+  irisVirtualSetMacro(Animate, bool)
+
 };
 
 template <class TWrapperTraits>
@@ -415,6 +429,9 @@ public:
   /** Get the display mode */
   irisGetMacro(DisplayMode, MultiChannelDisplayMode)
 
+  /** Get/Set the animation status */
+  irisGetSetMacro(Animate, bool)
+
   DisplaySlicePointer GetDisplaySlice(unsigned int slice);
 
   Vector2d GetNativeImageRangeForCurve();
@@ -448,11 +465,18 @@ protected:
 
   MultiChannelDisplayMode m_DisplayMode;
 
+  bool m_Animate;
+
   ScalarImageWrapperBase *m_ScalarRepresentation;
   WrapperType *m_Wrapper;
 
   SmartPtr<GenerateLUTFilter> m_LUTGenerator;
   SmartPtr<ApplyLUTFilter> m_RGBMapper[3];
+
+  // Filters used to select the right pipeline for display
+  typedef InputSelectionImageFilter<
+    DisplaySliceType, MultiChannelDisplayMode> DisplaySliceSelector;
+  SmartPtr<DisplaySliceSelector> m_DisplaySliceSelector[3];
 
   void ModifiedEventCallback();
 };

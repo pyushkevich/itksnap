@@ -13,6 +13,7 @@
 #include "ImageInfoModel.h"
 #include "LatentITKEventNotifier.h"
 #include "QtDoubleSliderWithEditorCoupling.h"
+#include "ComponentSelectionModel.h"
 
 
 
@@ -115,6 +116,7 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
   ui->cmpColorMap->SetModel(model->GetColorMapModel());
   ui->cmpInfo->SetModel(model->GetImageInfoModel());
   ui->cmpMetadata->SetModel(model->GetImageInfoModel());
+  ui->cmpComponent->SetModel(model->GetComponentSelectionModel());
 
   // We need to listen to layer changes in the model
   LatentITKEventNotifier::connect(
@@ -132,11 +134,16 @@ void LayerInspectorDialog::onLayerSelection()
   // Update the current layer selection
   QModelIndex idx = ui->inLayer->selectionModel()->currentIndex();
   LayerIterator it = m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(idx.row());
-  ScalarImageWrapperBase *layer_as_scalar = dynamic_cast<ScalarImageWrapperBase *>(it.GetLayer());
+  ImageWrapperBase *layer = it.GetLayer();
 
-  m_Model->GetIntensityCurveModel()->SetLayer(layer_as_scalar);
-  m_Model->GetColorMapModel()->SetLayer(layer_as_scalar);
-  m_Model->GetImageInfoModel()->SetLayer(layer_as_scalar);
+  // For each model, set the layer
+  m_Model->GetIntensityCurveModel()->SetLayer(layer);
+  m_Model->GetColorMapModel()->SetLayer(layer);
+  m_Model->GetImageInfoModel()->SetLayer(layer);
+  if(layer->GetNumberOfComponents() > 1)
+    {
+    m_Model->GetComponentSelectionModel()->SetLayer(it.GetLayerAsVector());
+    }
 }
 
 void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
@@ -150,6 +157,7 @@ void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
     m_Model->GetImageInfoModel()->Update();
     m_Model->GetColorMapModel()->Update();
     m_Model->GetIntensityCurveModel()->Update();
+    m_Model->GetComponentSelectionModel()->Update();
 
     // If the currently selected layer has been lost, move to the first
     // available layer

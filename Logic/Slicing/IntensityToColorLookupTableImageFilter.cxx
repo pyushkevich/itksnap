@@ -85,6 +85,9 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
   typename LookupTableType::IndexType idx = {{m_InputMin->Get()}};
   typename LookupTableType::SizeType sz = {{1 + m_InputMax->Get() - m_InputMin->Get()}};
   typename LookupTableType::RegionType region(idx, sz);
+
+  // TODO: remove
+  std::cout << "Range for LUT is [" << idx[0] << "," << idx[0] + (int) sz[0] - 1 << "]" << std::endl;
   output->SetLargestPossibleRegion(region);
 }
 

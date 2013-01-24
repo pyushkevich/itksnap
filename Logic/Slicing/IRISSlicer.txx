@@ -32,6 +32,13 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
+#include "itkDefaultPixelAccessor.h"
+#include "itkDefaultPixelAccessorFunctor.h"
+#include "itkImageAdaptor.h"
+#include "itkImage.h"
+#include "itkVectorImage.h"
+#include "itkVectorImageToImageAdaptor.h"
+
 template <class TInputImage, class TOutputImage>
 IRISSlicer<TInputImage, TOutputImage>
 ::IRISSlicer()
@@ -188,6 +195,8 @@ IRISSlicer<TInputImage, TOutputImage>
 }
 
 #include "itkImageLinearIteratorWithIndex.h"
+#include "itkImageRegionConstIterator.h"
+#include "itkImageConstIterator.h"
 
 template <class TInputImage, class TOutputImage>
 void IRISSlicer<TInputImage, TOutputImage>
@@ -261,10 +270,16 @@ void IRISSlicer<TInputImage, TOutputImage>
 
   // Get the pixel accessor functor - for unified access to voxels
   typedef typename InputImageType::AccessorFunctorType AccessorFunctorType;
-  AccessorFunctorType accessor;
-  accessor.SetBegin(pSource);
+  typedef typename InputImageType::AccessorType AccessorType;
+  typedef typename InputImageType::OffsetValueType OffsetType;
+  AccessorType accessor = inputPtr->GetPixelAccessor();
+  AccessorFunctorType accessor_functor;
+  accessor_functor.SetPixelAccessor(accessor);
+  accessor_functor.SetBegin(pSource);
 
   // Position the source at the first component of the first voxel to traverse
+  // OffsetType offset =
+  const InputComponentType *pBegin = pSource;
   pSource += iStart;
 
   // Main loop: copy data from source to target
@@ -273,7 +288,8 @@ void IRISSlicer<TInputImage, TOutputImage>
     while( !it_out.IsAtEndOfLine() )
       {
       // Use the accessor
-      OutputPixelType val = accessor.Get(*pSource);
+      accessor_functor.SetBegin(pSource);
+      OutputPixelType val = accessor_functor.Get(*pSource);
 
       // Set the pixel
       it_out.Set(val);

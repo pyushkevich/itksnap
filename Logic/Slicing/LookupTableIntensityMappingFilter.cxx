@@ -19,6 +19,8 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
   this->SetNthInput(1, lut);
 }
 
+#include "itkImageRegionConstIteratorWithIndex.h"
+
 template<class TInputImage, class TOutputImage>
 void
 LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
@@ -35,13 +37,29 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
       - m_LookupTable->GetLargestPossibleRegion().GetIndex()[0];
 
   // Define the iterators
-  itk::ImageRegionConstIterator<TInputImage> inputIt(input, region);
+  // TODO: no index
+  // itk::ImageRegionConstIterator<TInputImage> inputIt(input, region);
+  itk::ImageRegionConstIteratorWithIndex<TInputImage> inputIt(input, region);
   itk::ImageRegionIterator<TOutputImage> outputIt(output, region);
 
   // Perform the intensity mapping using the LUT (no bounds checking!)
   while( !inputIt.IsAtEnd() )
     {
     InputPixelType xin = inputIt.Get();
+
+    // TODO: remove
+    int lut_start = m_LookupTable->GetLargestPossibleRegion().GetIndex()[0];
+    int lut_size = m_LookupTable->GetLargestPossibleRegion().GetSize()[0];
+    if(xin < lut_start || xin >= lut_start + lut_size)
+      {
+      if(threadId == 0)
+        {
+        std::cerr << xin << " out of range [" << lut_start << "," << lut_start+lut_size-1 << "]" << std::endl;
+        std::cerr << inputIt.GetIndex() << std::endl;
+        break;
+        }
+      }
+
     OutputPixelType xout = *(lutp + xin);
     outputIt.Set(xout);
 

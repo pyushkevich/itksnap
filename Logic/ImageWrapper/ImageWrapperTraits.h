@@ -84,7 +84,7 @@ public:
 
   typedef itk::VectorImageToImageAdaptor<TPixel, 3> ImageType;
 
-  typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
+  typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
   typedef CastingScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 };
@@ -101,7 +101,7 @@ public:
   typedef VectorToScalarImageAccessor<TFunctor> AccessorType;
   typedef itk::ImageAdaptor<InternalImageType, AccessorType> ImageType;
 
-  typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
+  typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
   typedef CastingScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 };

@@ -117,6 +117,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/DisplayMappingPolicy.cxx
   Logic/ImageWrapper/ImageWrapperBase.cxx
   Logic/ImageWrapper/ImageWrapper.cxx
+  Logic/ImageWrapper/InputSelectionImageFilter.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/ScalarImageHistogram.cxx
   Logic/ImageWrapper/ScalarImageWrapper.cxx
@@ -191,6 +192,7 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/ImageIORoutines.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
+  Logic/ImageWrapper/InputSelectionImageFilter.h
   Logic/ImageWrapper/LabelToRGBAFilter.h
   Logic/ImageWrapper/NativeIntensityMappingPolicy.h
   Logic/ImageWrapper/ScalarImageHistogram.h
@@ -240,6 +242,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/AbstractModel.cxx
   GUI/Model/ColorLabelPropertyModel.cxx
   GUI/Model/ColorMapModel.cxx
+  GUI/Model/ComponentSelectionModel.cxx
   GUI/Model/CursorInspectionModel.cxx
   GUI/Model/DisplayLayoutModel.cxx
   GUI/Model/Generic3DModel.cxx
@@ -294,6 +297,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/AbstractModel.h
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelPropertyModel.h
+  GUI/Model/ComponentSelectionModel.h
   GUI/Model/CursorInspectionModel.h
   GUI/Model/DisplayLayoutModel.h
   GUI/Model/Generic3DModel.h
@@ -357,6 +361,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/LabelInspector.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
   GUI/Qt/Components/MetadataInspector.cxx
+  GUI/Qt/Components/GeneralLayerInspector.cxx
   GUI/Qt/Components/PaintbrushToolPanel.cxx
   GUI/Qt/Components/QActionButton.cxx
   GUI/Qt/Components/QColorButtonWidget.cxx
@@ -412,6 +417,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/LabelInspector.h
   GUI/Qt/Components/LatentITKEventNotifier.h
   GUI/Qt/Components/MetadataInspector.h
+  GUI/Qt/Components/GeneralLayerInspector.h
   GUI/Qt/Components/PaintbrushToolPanel.h
   GUI/Qt/Components/QActionButton.h
   GUI/Qt/Components/QColorButtonWidget.h
@@ -481,6 +487,7 @@ SET(UI_FORMS
   GUI/Qt/Components/ImageInfoInspector.ui
   GUI/Qt/Components/LabelInspector.ui
   GUI/Qt/Components/MetadataInspector.ui
+  GUI/Qt/Components/GeneralLayerInspector.ui
   GUI/Qt/Components/PaintbrushToolPanel.ui
   GUI/Qt/Components/QDoubleSliderWithEditor.ui
   GUI/Qt/Components/QtWarningDialog.ui

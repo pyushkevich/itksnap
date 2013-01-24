@@ -29,87 +29,81 @@
 
 #include <QtWidgetCoupling.h>
 #include <QRadioButton>
+#include <map>
 
 template <class TAtomic>
 struct RadioButtonGroupTraits :
     public WidgetValueTraitsBase<TAtomic, QWidget *>
 {
 public:
+  typedef std::map<TAtomic, QAbstractButton *> ButtonMap;
+  typedef typename ButtonMap::iterator ButtonIterator;
+
+  RadioButtonGroupTraits(ButtonMap bm) : m_ButtonMap(bm) {}
+
   TAtomic GetValue(QWidget *w)
   {
     // Figure out which button is checked
-    int ifound = 0;
-    for(QObjectList::const_iterator it = w->children().begin();
-        it != w->children().end(); ++it)
+    for(ButtonIterator it = m_ButtonMap.begin(); it != m_ButtonMap.end(); ++it)
       {
-      if((*it)->inherits("QAbstractButton"))
-        {
-        QAbstractButton *qab = static_cast<QAbstractButton *>(*it);
+        QAbstractButton *qab = it->second;
         if(qab->isChecked())
-          break;
-        ++ifound;
-        }
+          return it->first;
       }
-    return static_cast<TAtomic>(ifound);
+
+    // This is ambiguous...
+    return static_cast<TAtomic>(0);
   }
 
   void SetValue(QWidget *w, const TAtomic &value)
   {
-    // Figure out which button is checked
-    int ifound = (int) value;
-
-    // Set all the radios
-    for(QObjectList::const_iterator it = w->children().begin();
-        it != w->children().end(); ++it)
+    // Set all the buttons
+    for(ButtonIterator it = m_ButtonMap.begin(); it != m_ButtonMap.end(); ++it)
       {
-      if((*it)->inherits("QAbstractButton"))
-        {
-        QAbstractButton *qab = static_cast<QAbstractButton *>(*it);
-        qab->setChecked(ifound-- == 0);
-        }
+      QAbstractButton *qab = it->second;
+      qab->setChecked(it->first == value);
       }
   }
 
   void SetValueToNull(QWidget *w)
   {
-    // Set all the radios
-    for(QObjectList::const_iterator it = w->children().begin();
-        it != w->children().end(); ++it)
+    // Set all the buttons
+    for(ButtonIterator it = m_ButtonMap.begin(); it != m_ButtonMap.end(); ++it)
       {
-      if((*it)->inherits("QAbstractButton"))
-        {
-        QAbstractButton *qab = static_cast<QAbstractButton *>(*it);
-        qab->setChecked(false);
-        }
+      QAbstractButton *qab = it->second;
+      qab->setChecked(false);
       }
   }
+
+protected:
+
+  ButtonMap m_ButtonMap;
 };
 
 
 /**
   Create a coupling between a widget containing a set of radio buttons
-  and an enum. The values of the enum must be 0,1,2,... The order of the
-  buttons in the last parameter should match the order of the enum. In case
-  that the order of the radio buttons in the parent widget already matches
-  the order of the enum entries, call the second version of this method, below
+  and a set of values of type TAtomic (true/false, enum, integer, etc).
+  The mapping of values to button widgets is provided in the third parameter.
   */
-template <class TAtomic, class TWidget>
+template <class TAtomic>
 void makeRadioGroupCoupling(
-    TWidget *w, AbstractPropertyModel<TAtomic> *model,
-    const QObjectList &wlist)
+    QWidget *parentWidget,
+    std::map<TAtomic, QAbstractButton *> buttonMap,
+    AbstractPropertyModel<TAtomic> *model)
 {
   typedef AbstractPropertyModel<TAtomic> ModelType;
   typedef RadioButtonGroupTraits<TAtomic> WidgetValueTraits;
-  typedef DefaultWidgetDomainTraits<TrivialDomain, TWidget> WidgetDomainTraits;
+  typedef DefaultWidgetDomainTraits<TrivialDomain, QWidget> WidgetDomainTraits;
 
   typedef PropertyModelToWidgetDataMapping<
-      ModelType, TWidget *,
+      ModelType, QWidget *,
       WidgetValueTraits, WidgetDomainTraits> MappingType;
 
-  WidgetValueTraits valueTraits;
+  WidgetValueTraits valueTraits(buttonMap);
   WidgetDomainTraits domainTraits;
-  MappingType *mapping = new MappingType(w, model, valueTraits, domainTraits);
-  QtCouplingHelper *h = new QtCouplingHelper(w, mapping);
+  MappingType *mapping = new MappingType(parentWidget, model, valueTraits, domainTraits);
+  QtCouplingHelper *h = new QtCouplingHelper(parentWidget, mapping);
 
   // Populate the widget
   mapping->InitializeWidgetFromModel();
@@ -124,29 +118,36 @@ void makeRadioGroupCoupling(
         h, SLOT(onPropertyModification(const EventBucket &)));
 
   // Listen to value change events for every child widget
-
-  for(QObjectList::const_iterator it = wlist.begin(); it != wlist.end(); ++it)
+  typedef typename std::map<TAtomic, QAbstractButton *>::const_iterator Iter;
+  for(Iter it = buttonMap.begin(); it != buttonMap.end(); ++it)
     {
-    if((*it)->inherits("QAbstractButton"))
-      {
-      QAbstractButton *qab = static_cast<QAbstractButton *>(*it);
+      QAbstractButton *qab = it->second;
       h->connect(qab, SIGNAL(toggled(bool)), SLOT(onUserModification()));
-      }
     }
 }
+
 
 /**
   Create a coupling between a widget containing a set of radio buttons
   and an enum. The values of the enum must be 0,1,2,... The order of the
   radio button widgets in the parent widget *w should match the order of
-  the enum entries. If not, see the method above.
+  the enum entries. This method only fits specific situations, in other
+  cases see the more general version above
   */
-template <class TAtomic, class TWidget>
+template <class TAtomic>
 void makeRadioGroupCoupling(
-    TWidget *w, AbstractPropertyModel<TAtomic> *model)
+    QWidget *w, AbstractPropertyModel<TAtomic> *model)
 {
   const QObjectList &kids = w->children();
-  makeRadioGroupCoupling(w, model, kids);
+  std::map<TAtomic, QAbstractButton *> buttonMap;
+  int iwidget = 0;
+  for(QObjectList::const_iterator it = kids.begin(); it != kids.end(); ++it)
+    {
+    QAbstractButton *qab = dynamic_cast<QAbstractButton *>(*it);
+    if(qab)
+      buttonMap[static_cast<TAtomic>(iwidget++)] = qab;
+    }
+  makeRadioGroupCoupling(w, buttonMap, model);
 }
 
 #endif // QTRADIOBUTTONCOUPLING_H
