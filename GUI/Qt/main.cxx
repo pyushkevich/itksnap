@@ -127,6 +127,8 @@ void setupParser(CommandLineArgumentParser &parser)
 
   parser.AddOption("--test", 1);
   parser.AddOption("--testdir", 1);
+
+  parser.AddOption("--testQtScript", 1);
 }
 
 #include <QScriptEngine>
@@ -425,6 +427,15 @@ int main(int argc, char *argv[])
     tester.Initialize(&mainwin, gui, root);
     tester.RunTest(parseResult.GetOptionParameter("--test"));
     }
+
+  if(parseResult.IsOptionPresent("--testQtScript"))
+    {
+    int nIndxTest = atoi(parseResult.GetOptionParameter("--testQtScript"));
+    cout << "Prototype Test with QtScript executed - Test nr " << nIndxTest << endl;
+    cout << "CheckResultQtScript" << endl;
+    return(0);
+    }
+
 
   // Run application
   int rc = app.exec();
