@@ -74,22 +74,23 @@ void usage()
   cout << "ITK-SnAP Command Line Usage:" << endl;
   cout << "   snap [options] [main_image]" << endl;
   cout << "Options:" << endl;
-  cout << "   -m FILE             : Load main image FILE (grey or RGB)" << endl;
-  cout << "   -g FILE             : Load main image FILE as greyscale" << endl;
-  cout << "   --rgb FILE          : Load main image FILE as RGB image" << endl;
-  cout << "   -s FILE             : Load segmentation image FILE" << endl;
-  cout << "   -l FILE             : Load label description file FILE" << endl;
-  cout << "   -o FILE             : Load overlay image FILE (can be repeated)" << endl;
-  cout << "   -c <a|c|s>          : Launch in compact single-slice mode " << endl;
+  cout << "   -m FILE              : Load main image FILE (grey or RGB)" << endl;
+  cout << "   -g FILE              : Load main image FILE as greyscale" << endl;
+  cout << "   --rgb FILE           : Load main image FILE as RGB image" << endl;
+  cout << "   -s FILE              : Load segmentation image FILE" << endl;
+  cout << "   -l FILE              : Load label description file FILE" << endl;
+  cout << "   -o FILE              : Load overlay image FILE (can be repeated)" << endl;
+  cout << "   -c <a|c|s>           : Launch in compact single-slice mode " << endl;
   cout << "                         (axial, coronal, sagittal)" << endl;
-  cout << "   -z FACTOR           : Specify initial zoom in screen pixels/mm" << endl;
+  cout << "   -z FACTOR            : Specify initial zoom in screen pixels/mm" << endl;
   cout << "Debugging/Testing Options" << endl;
 #ifdef SNAP_DEBUG_EVENTS
-  cout << "   --debug-events      : Dump information regarding UI events" << endl;
+  cout << "   --debug-events       : Dump information regarding UI events" << endl;
 #endif // SNAP_DEBUG_EVENTS
-  cout << "   --test list         : List available tests. " << endl;
-  cout << "   --test TESTID       : Execute a test. " << endl;
-  cout << "   --testdir DIR       : Set the root directory for tests. " << endl;
+  cout << "   --test list          : List available tests. " << endl;
+  cout << "   --test TESTID        : Execute a test. " << endl;
+  cout << "   --testdir DIR        : Set the root directory for tests. " << endl;
+  cout << "   --testQtScript index : Runs QtScript based test indexed by index. " << endl;
 }
 
 void setupParser(CommandLineArgumentParser &parser)
