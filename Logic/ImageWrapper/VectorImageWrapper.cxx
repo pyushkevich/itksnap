@@ -25,6 +25,7 @@
 #include "itkCommand.h"
 #include "ImageWrapperTraits.h"
 #include "itkVectorImageToImageAdaptor.h"
+#include "itkMinimumMaximumImageFilter.h"
 
 #include <iostream>
 
@@ -36,7 +37,20 @@ VectorImageWrapper<TTraits,TBase>
   // Initialize the derived wrapper array
   m_DefaultScalarRepType = VectorImageWrapperBase::SCALAR_REP_COMPONENT;
   m_DefaultScalarRepIndex = 0;
+
+  // Initialize the flattened image
+  m_FlatImage = NULL;
+
+  // Initialize the filters
+  m_MinMaxFilter = MinMaxFilterType::New();
 }
+
+template <class TTraits, class TBase>
+VectorImageWrapper<TTraits,TBase>
+::~VectorImageWrapper()
+{
+}
+
 
 
 template <class TTraits, class TBase>
@@ -51,6 +65,43 @@ VectorImageWrapper<TTraits,TBase>
 }
 
 template <class TTraits, class TBase>
+vnl_vector<double>
+VectorImageWrapper<TTraits,TBase>
+::GetVoxelUnderCursorDisplayedValue()
+{
+  // TODO: erase this
+  for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
+    {
+    ScalarImageWrapperBase *s = it->second;
+    ScalarRepIndex idx = it->first;
+    std::cout << "VOX: " << idx.first
+              << ":" << idx.second
+              << " RAW " << s->GetVoxelAsDouble(this->m_SliceIndex)
+              << " NAT " << s->GetVoxelMappedToNative(this->m_SliceIndex)
+              << std::endl;
+    }
+
+
+
+  MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
+  if(mode.UseRGB)
+    {
+    vnl_vector<double> v(3);
+    this->GetVoxelMappedToNative(this->m_SliceIndex, v.data_block());
+    return v;
+    }
+  else
+    {
+    ScalarImageWrapperBase *siw =
+        this->GetScalarRepresentation(mode.SelectedScalarRep, mode.SelectedComponent);
+    vnl_vector<double> v(1);
+    v[0] = siw->GetVoxelMappedToNative(this->m_SliceIndex);
+    return v;
+    }
+}
+
+
+template <class TTraits, class TBase>
 void
 VectorImageWrapper<TTraits,TBase>
 ::SetNativeMapping(NativeIntensityMapping mapping)
@@ -60,22 +111,64 @@ VectorImageWrapper<TTraits,TBase>
   // Propagate to owned scalar wrappers
   for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
     {
-    AbstractNativeIntensityMapping *abstract_mapping =
-        const_cast<AbstractNativeIntensityMapping *>(
-          it->second->GetNativeIntensityMapping());
+    ScalarRepIndex idx = it->first;
+    if(idx.first == VectorImageWrapperBase::SCALAR_REP_COMPONENT)
+      {
+      // Get the mapping cast to proper type
+      AbstractNativeIntensityMapping *abstract_mapping =
+          const_cast<AbstractNativeIntensityMapping *>(
+            it->second->GetNativeIntensityMapping());
 
-    NativeIntensityMapping *real_mapping =
-        dynamic_cast<NativeIntensityMapping *>(abstract_mapping);
+      NativeIntensityMapping *real_mapping =
+          dynamic_cast<NativeIntensityMapping *>(abstract_mapping);
 
-    (*real_mapping) = mapping;
+      // Assign the native mapping to the component
+      (*real_mapping) = mapping;
+      }
+
+    // These are the derived wrappers. They use the identity mapping, but they
+    // need to know what the source native mapping is.
+    else if(idx.first == VectorImageWrapperBase::SCALAR_REP_MAGNITUDE)
+      {
+      SetNativeMappingInDerivedWrapper<MagnitudeFunctor>(it->second, mapping);
+      }
+    else if(idx.first == VectorImageWrapperBase::SCALAR_REP_MAX)
+      {
+      SetNativeMappingInDerivedWrapper<MaxFunctor>(it->second, mapping);
+      }
+    else if(idx.first == VectorImageWrapperBase::SCALAR_REP_AVERAGE)
+      {
+      SetNativeMappingInDerivedWrapper<MeanFunctor>(it->second, mapping);
+      }
     }
+}
+
+template <class TTraits, class TBase>
+template <class TFunctor>
+void
+VectorImageWrapper<TTraits,TBase>
+::SetNativeMappingInDerivedWrapper(
+    ScalarImageWrapperBase *w,
+    NativeIntensityMapping &mapping)
+{
+  typedef VectorDerivedQuantityImageWrapperTraits<TFunctor> WrapperTraits;
+  typedef typename WrapperTraits::WrapperType DerivedWrapper;
+  typedef typename DerivedWrapper::ImageType AdaptorType;
+  typedef typename AdaptorType::AccessorType PixelAccessor;
+
+  // Cast to the right type
+  DerivedWrapper *dw = dynamic_cast<DerivedWrapper *>(w);
+
+  // Get the accessor
+  PixelAccessor &accessor = dw->GetImage()->GetPixelAccessor();
+  accessor.SetSourceNativeMapping(mapping.GetScale(), mapping.GetShift());
 }
 
 template <class TTraits, class TBase>
 template <class TFunctor>
 SmartPtr<ScalarImageWrapperBase>
 VectorImageWrapper<TTraits,TBase>
-::CreateDerivedWrapper(ImageType *image, ColorMap *refmap)
+::CreateDerivedWrapper(ImageType *image)
 {
   typedef VectorDerivedQuantityImageWrapperTraits<TFunctor> WrapperTraits;
   typedef typename WrapperTraits::WrapperType DerivedWrapper;
@@ -86,19 +179,19 @@ VectorImageWrapper<TTraits,TBase>
 
   SmartPtr<DerivedWrapper> wrapper = DerivedWrapper::New();
   wrapper->InitializeToWrapper(this, adaptor);
-  wrapper->GetDisplayMapping()->SetColorMap(refmap);
 
   SmartPtr<ScalarImageWrapperBase> ptrout = wrapper.GetPointer();
 
   return ptrout;
 }
 
+
 template <class TTraits, class TBase>
 void
 VectorImageWrapper<TTraits,TBase>
 ::UpdateImagePointer(ImageType *newImage)
 {
-  // Create the component wrappers
+  // Create the component wrappers before calling the parent's method.
   int nc = newImage->GetNumberOfComponentsPerPixel();
 
   // The first component image will serve as the reference for the other
@@ -116,6 +209,33 @@ VectorImageWrapper<TTraits,TBase>
     // Create a wrapper for this image and assign the component image
     SmartPtr<ComponentWrapperType> cw = ComponentWrapperType::New();
     cw->InitializeToWrapper(this, comp);
+
+    // Store the wrapper
+    m_ScalarReps[std::make_pair(
+          VectorImageWrapperBase::SCALAR_REP_COMPONENT, i)] = cw.GetPointer();
+    }
+
+  m_ScalarReps[std::make_pair(VectorImageWrapperBase::SCALAR_REP_MAGNITUDE, 0)]
+      = this->template CreateDerivedWrapper<MagnitudeFunctor>(newImage);
+
+  m_ScalarReps[std::make_pair(VectorImageWrapperBase::SCALAR_REP_MAX, 0)]
+      = this->template CreateDerivedWrapper<MaxFunctor>(newImage);
+
+  m_ScalarReps[std::make_pair(VectorImageWrapperBase::SCALAR_REP_AVERAGE, 0)]
+      = this->template CreateDerivedWrapper<MeanFunctor>(newImage);
+
+  // Create a flat representation of the image
+  m_FlatImage = FlatImageType::New();
+  typename FlatImageType::SizeType flatsize;
+  flatsize[0] = newImage->GetPixelContainer()->Size();
+  m_FlatImage->SetRegions(flatsize);
+  m_FlatImage->SetPixelContainer(newImage->GetPixelContainer());
+
+  // Connect the flat image to the min/max computer
+  m_MinMaxFilter->SetInput(m_FlatImage);
+
+
+  /*
 
     // Make sure intensity curve is shared by the components
     // TODO: what should be shared is the entire pipeline. That requires us to
@@ -140,19 +260,11 @@ VectorImageWrapper<TTraits,TBase>
     }
 
   // Initialize the computed derived wrappers
-  ColorMap *cm = cref->GetDisplayMapping()->GetColorMap();
+  ColorMap *cm = cref->GetDisplayMapping()->GetColorMap(); */
 
-  m_ScalarReps[std::make_pair(VectorImageWrapperBase::SCALAR_REP_MAGNITUDE, 0)]
-      = this->template CreateDerivedWrapper<MagnitudeFunctor>(newImage, cm);
-
-  m_ScalarReps[std::make_pair(VectorImageWrapperBase::SCALAR_REP_MAX, 0)]
-      = this->template CreateDerivedWrapper<MaxFunctor>(newImage, cm);
-
-  m_ScalarReps[std::make_pair(VectorImageWrapperBase::SCALAR_REP_AVERAGE, 0)]
-      = this->template CreateDerivedWrapper<MeanFunctor>(newImage, cm);
-
-  // Call the parent
+  // Call the parent's method = this will initialize the display mapping
   Superclass::UpdateImagePointer(newImage);
+
 }
 
 template <class TTraits, class TBase>
@@ -201,6 +313,22 @@ VectorImageWrapper<TTraits,TBase>
     {
     it->second->SetImageToDisplayTransform(iSlice, transform);
     }
+}
+
+template<class TTraits, class TBase>
+typename VectorImageWrapper<TTraits,TBase>::ComponentTypeObject *
+VectorImageWrapper<TTraits,TBase>
+::GetImageMinObject() const
+{
+  return m_MinMaxFilter->GetMinimumOutput();
+}
+
+template<class TTraits, class TBase>
+typename VectorImageWrapper<TTraits,TBase>::ComponentTypeObject *
+VectorImageWrapper<TTraits,TBase>
+::GetImageMaxObject() const
+{
+  return m_MinMaxFilter->GetMaximumOutput();
 }
 
 

@@ -6,7 +6,7 @@
 
 // This compiles the LayerAssociation for the color map
 template class LayerAssociation<ImageInfoLayerProperties,
-                                GreyImageWrapperBase,
+                                ImageWrapperBase,
                                 ImageInfoModelBase::PropertiesFactory>;
 
 ImageInfoModel::ImageInfoModel()

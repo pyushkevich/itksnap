@@ -23,6 +23,10 @@
 #include "itkImageAdaptor.h"
 #include "VectorToScalarImageAccessor.h"
 
+namespace itk
+{
+template<class TIn> class MinimumMaximumImageFilter;
+}
 
 /**
  * \class VectorImageWrapper
@@ -69,7 +73,10 @@ public:
   typedef typename Superclass::NativeIntensityMapping   NativeIntensityMapping;
 
   // Access to the components
-  typedef typename TTraits::ComponentWrapperType         ComponentWrapperType;
+  typedef typename TTraits::ComponentWrapperType          ComponentWrapperType;
+
+  // Pipeline objects wrapped around values
+  typedef typename Superclass::ComponentTypeObject         ComponentTypeObject;
 
   virtual bool IsScalar() const { return false; }
 
@@ -153,6 +160,23 @@ public:
       out[i] = this->m_NativeMapping(p[i]);
   }
 
+  /**
+   * Get the component-wise minimum and maximum of the image in native format
+   */
+  virtual ComponentTypeObject *GetImageMinObject() const;
+  virtual ComponentTypeObject *GetImageMaxObject() const;
+
+  /**
+   * This method returns a vector of values for the voxel under the cursor.
+   * This is the natural value or set of values that should be displayed to
+   * the user. The value depends on the current display mode. For scalar
+   * images, it's just the value of the voxel, but for multi-component images,
+   * it's the value of the selected component (if there is one) or the value
+   * of the multiple components when the mode is RGB.
+   */
+  virtual vnl_vector<double> GetVoxelUnderCursorDisplayedValue();
+
+
   virtual void SetNativeMapping(NativeIntensityMapping mapping);
 
   virtual void SetSliceIndex(const Vector3ui &cursor);
@@ -176,12 +200,15 @@ protected:
   virtual void UpdateImagePointer(ImageType *newImage);
 
   /** Destructor */
-  virtual ~VectorImageWrapper() {}
+  virtual ~VectorImageWrapper();
 
   /** Create a derived wrapper of a certain type */
-  template <class TFunctor> SmartPtr<ScalarImageWrapperBase>
-  CreateDerivedWrapper(
-      ImageType *image, ColorMap *refmap);
+  template <class TFunctor>
+  SmartPtr<ScalarImageWrapperBase> CreateDerivedWrapper(ImageType *image);
+
+  template <class TFunctor>
+  void SetNativeMappingInDerivedWrapper(
+      ScalarImageWrapperBase *w, NativeIntensityMapping &mapping);
 
   // Array of derived quantities
   typedef SmartPtr<ScalarImageWrapperBase> ScalarWrapperPointer;
@@ -196,10 +223,21 @@ protected:
   VectorImageWrapperBase::ScalarRepresentation m_DefaultScalarRepType;
   unsigned int m_DefaultScalarRepIndex;
 
+  // For computing image statistics, we can represent the image as a one-dimensional
+  // image of size n_voxels * n_components. This image can then be fed as input to
+  // the min/max and histogram computation filters. Of course the flat image
+  // shares the buffer with the 3D image so there is no memory waste
+  typedef itk::Image<InternalPixelType, 1>                       FlatImageType;
+  SmartPtr<FlatImageType> m_FlatImage;
+
+  // Min/max filter
+  typedef itk::MinimumMaximumImageFilter<FlatImageType> MinMaxFilterType;
+  SmartPtr<MinMaxFilterType> m_MinMaxFilter;
+
   // Other derived wrappers
-  typedef VectorToScalarMagnitudeFunctor<InternalPixelType> MagnitudeFunctor;
-  typedef VectorToScalarMaxFunctor<InternalPixelType> MaxFunctor;
-  typedef VectorToScalarMeanFunctor<InternalPixelType> MeanFunctor;
+  typedef VectorToScalarMagnitudeFunctor<InternalPixelType,float> MagnitudeFunctor;
+  typedef VectorToScalarMaxFunctor<InternalPixelType, float> MaxFunctor;
+  typedef VectorToScalarMeanFunctor<InternalPixelType,float> MeanFunctor;
 };
 
 #endif // __VectorImageWrapper_h_

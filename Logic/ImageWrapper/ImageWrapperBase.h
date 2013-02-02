@@ -177,11 +177,33 @@ public:
   virtual void GetVoxelMappedToNative(const Vector3ui &vec, double *out) const = 0;
   virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const = 0;
 
+  /** Return componentwise minimum cast to double, without mapping to native range */
+  virtual double GetImageMinAsDouble() = 0;
+
+  /** Return componentwise maximum cast to double, without mapping to native range */
+  virtual double GetImageMaxAsDouble() = 0;
+
+  /** Return componentwise minimum cast to double, after mapping to native range */
+  virtual double GetImageMinNative() = 0;
+
+  /** Return componentwise maximum cast to double, after mapping to native range */
+  virtual double GetImageMaxNative() = 0;
+
   /**
     Get the RGBA apperance of the voxel at the intersection of the three
     display slices.
     */
   virtual void GetVoxelUnderCursorAppearance(DisplayPixelType &out) = 0;
+
+  /**
+   * This method returns a vector of values for the voxel under the cursor.
+   * This is the natural value or set of values that should be displayed to
+   * the user. The value depends on the current display mode. For scalar
+   * images, it's just the value of the voxel, but for multi-component images,
+   * it's the value of the selected component (if there is one) or the value
+   * of the multiple components when the mode is RGB.
+   */
+  virtual vnl_vector<double> GetVoxelUnderCursorDisplayedValue() = 0;
 
   /** Get the voxel array, as void pointer */
   virtual void *GetVoxelVoidPointer() const = 0;
@@ -272,14 +294,6 @@ public:
   virtual double GetVoxelMappedToNative(const Vector3ui &vec) const = 0;
   virtual double GetVoxelMappedToNative(const itk::Index<3> &idx) const = 0;
 
-  /** Get the min/max intensity (internal representation) */
-  virtual double GetImageMaxAsDouble() = 0;
-  virtual double GetImageMinAsDouble() = 0;
-
-  /** Get min/max voxel intensity in native space */
-  virtual double GetImageMinNative() = 0;
-  virtual double GetImageMaxNative() = 0;
-
   /**
     Get the maximum possible value of the gradient magnitude. This will
     compute the gradient magnitude of the image (without Gaussian smoothing)
@@ -349,42 +363,6 @@ public:
 
 };
 
-class GreyImageWrapperBase : public virtual ContinuousScalarImageWrapperBase
-{
-public:
-
-  /**
-   * Get the intensity curve to be used for mapping image intensities
-   * from GreyType to DisplayType. The curve is defined on the domain
-   * [0, 1]. By default, the entire intensity range of the image is
-   * mapped to the domain of the curve. However, in some situations
-   * (e.g., when the image is a subregion of another image with respect
-   * to which the curve was created), the domain of the curve should
-   * correspond to a different intensity range. That can be specified
-   * using the SetReferenceIntensityRange() function
-   */
-  virtual IntensityCurveInterface* GetIntensityMapFunction() const = 0;
-
-  /**
-   * Copy the intensity curve information from another grey image wrapper
-   */
-  virtual void CopyIntensityMap(const GreyImageWrapperBase &source) = 0;
-
-  /**
-    Automatically rescale the intensity range based on image histogram
-    quantiles.
-    */
-  virtual void AutoFitContrast() = 0;
-
-  /**
-   * Set the reference intensity range - a range of intensity that
-   * is mapped to the domain of the intensity curve
-   * @see GetIntensityMapFunction
-   */
-  virtual void SetReferenceIntensityRange(double refMin, double refMax) = 0;
-  virtual void ClearReferenceIntensityRange() = 0;
-
-};
 
 class VectorImageWrapperBase : public virtual ImageWrapperBase
 {

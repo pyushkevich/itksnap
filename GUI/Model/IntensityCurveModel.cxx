@@ -9,7 +9,7 @@
 #include "LayerAssociation.txx"
 
 template class LayerAssociation<IntensityCurveLayerProperties,
-                                GreyImageWrapperBase,
+                                ImageWrapperBase,
                                 IntensityCurveModelBase::PropertiesFactory>;
 
 

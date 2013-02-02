@@ -136,7 +136,6 @@ SET(LOGIC_CXX
   Logic/Slicing/IntensityCurveVTK.cxx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
   Logic/Slicing/LookupTableIntensityMappingFilter.cxx
-  Logic/Slicing/MultiComponentImageToScalarLookupTableImageFilter.cxx
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.cxx
 )
 
@@ -232,7 +231,6 @@ SET(LOGIC_HEADERS
   Logic/Slicing/IntensityCurveVTK.h
   Logic/Slicing/IntensityToColorLookupTableImageFilter.h
   Logic/Slicing/LookupTableIntensityMappingFilter.h
-  Logic/Slicing/MultiComponentImageToScalarLookupTableImageFilter.h
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.h
 )
 

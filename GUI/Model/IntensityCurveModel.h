@@ -123,13 +123,6 @@ public:
   /** Reset the curve */
   void OnResetCurveAction();
 
-  /**
-    Create a new property object for a new layer
-    */
-  IntensityCurveLayerProperties *CreateProperty(GreyImageWrapperBase *w);
-
-
-
   /** Update the model in response to upstream events */
   virtual void OnUpdate();
 

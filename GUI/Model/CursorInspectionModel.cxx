@@ -13,6 +13,9 @@
 /**
   The domain used to present intensity information about the voxel under
   the cursor
+
+  TODO: eventually, it would be nice to have a tree display for multi-component
+  data, so that we can see the values of all components at once.
   */
 CurrentVoxelInfoItemSetDomain
 ::CurrentVoxelInfoItemSetDomain(
@@ -40,13 +43,21 @@ CurrentVoxelInfoItemSetDomain
     // Create a string output
     std::ostringstream oss;
 
-    // TODO: implement something smart for vector images, because for RGB this
-    // is not the right way to display current intensity
-    ScalarImageWrapperBase *siw = it.GetLayer()->GetDefaultScalarRepresentation();
+    // Get the intensity or intensities that the user is seeing
+    vnl_vector<double> v = it.GetLayer()->GetVoxelUnderCursorDisplayedValue();
 
-    // Get the text value
-    oss << std::setprecision(4);
-    oss << siw->GetVoxelMappedToNative(cursor);
+    // Print with varying degrees of precision
+    if(v.size() == 1)
+      {
+      oss << std::setprecision(4);
+      oss << v[0];
+      }
+    else if(v.size() == 3)
+      {
+      oss << std::setprecision(2);
+      oss << v[0] << "," << v[1] << "," << v[2];
+      }
+
     vox.IntensityValue = oss.str();
 
     // Get the displayed color

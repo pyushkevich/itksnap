@@ -48,10 +48,14 @@ public:
    * should be set before all of the other inputs */
   void SetMultiComponentImage(InputImageType *image);
 
-  /** Set the minumum and maximum inputs for each component */
-  void SetComponentMinMax(unsigned int comp,
-                          InputComponentObject *omin,
-                          InputComponentObject *omax);
+  /**
+    One of the inputs to the filter is an object representing the minimum
+    value of the input image intensity range over all the components.
+    */
+  void SetImageMinInput(InputPixelObject *input);
+
+  /** See notes for SetImageMinInput */
+  void SetImageMaxInput(InputPixelObject *input);
 
   void GenerateOutputInformation();
 
@@ -69,11 +73,9 @@ protected:
 
   // Things that affect the LUT computation
   SmartPtr<IntensityCurveInterface> m_IntensityCurve;
-  std::vector< SmartPtr<InputComponentObject> > m_InputMin, m_InputMax;
 
   // Overall min/max over all the components
-  InputComponentType m_GlobalMin, m_GlobalMax;
-
+  SmartPtr<InputPixelObject> m_InputMin, m_InputMax;
 };
 
 #endif // MULTICOMPONENTIMAGETOSCALARLOOKUPTABLEIMAGEFILTER_H

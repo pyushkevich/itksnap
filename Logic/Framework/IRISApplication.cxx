@@ -878,7 +878,7 @@ IRISApplication
   // rather than RGB? Not sure...
 
   // Find the slicer that slices along that direction
-  typedef GreyImageWrapperBase::DisplaySliceType SliceType;
+  typedef ImageWrapperBase::DisplaySliceType SliceType;
   SmartPtr<SliceType> imgGrey = NULL;
   for(size_t i = 0; i < 3; i++)
     {

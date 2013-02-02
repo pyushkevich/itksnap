@@ -134,27 +134,19 @@ ScalarImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-typename ScalarImageWrapper<TTraits,TBase>::PixelType
+typename ScalarImageWrapper<TTraits,TBase>::ComponentTypeObject *
 ScalarImageWrapper<TTraits,TBase>
-::GetImageMin() 
+::GetImageMinObject() const
 {
-  // Make sure min/max are up-to-date
-  CheckImageIntensityRange();
-
-  // Return the max or min
-  return m_MinMaxFilter->GetMinimum();
+  return m_MinMaxFilter->GetMinimumOutput();
 }
 
 template<class TTraits, class TBase>
-typename ScalarImageWrapper<TTraits,TBase>::PixelType
+typename ScalarImageWrapper<TTraits,TBase>::ComponentTypeObject *
 ScalarImageWrapper<TTraits,TBase>
-::GetImageMax()
+::GetImageMaxObject() const
 {
-  // Make sure min/max are up-to-date
-  CheckImageIntensityRange();
-
-  // Return the max or min
-  return m_MinMaxFilter->GetMaximum();
+  return m_MinMaxFilter->GetMaximumOutput();
 }
 
 template<class TTraits, class TBase>
@@ -187,6 +179,18 @@ ScalarImageWrapper<TTraits,TBase>
   // Return the max or min
   return m_ImageScaleFactor;
 }
+
+template<class TTraits, class TBase>
+vnl_vector<double>
+ScalarImageWrapper<TTraits,TBase>
+::GetVoxelUnderCursorDisplayedValue()
+{
+  vnl_vector<double> v(1);
+  v[0] = this->GetVoxelMappedToNative(this->m_SliceIndex);
+  return v;
+}
+
+
 
 //#include "itkListSampleToHistogramGenerator.h"
 //#include "itkImageToListAdaptor.h"
@@ -255,12 +259,9 @@ template class ScalarImageWrapper<SpeedImageWrapperTraits>;
 template class ScalarImageWrapper<LevelSetImageWrapperTraits>;
 template class ScalarImageWrapper< ComponentImageWrapperTraits<GreyType> >;
 
-typedef VectorToScalarMagnitudeFunctor<GreyType> MagFunctor;
-typedef VectorToScalarMaxFunctor<GreyType> MaxFunctor;
-typedef VectorToScalarMeanFunctor<GreyType> MeanFunctor;
-typedef VectorDerivedQuantityImageWrapperTraits<MagFunctor> MagTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<MaxFunctor> MaxTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<MeanFunctor> MeanTraits;
+typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor> MagTraits;
+typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMaxFunctor> MaxTraits;
+typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor> MeanTraits;
 template class ScalarImageWrapper<MagTraits>;
 template class ScalarImageWrapper<MaxTraits>;
 template class ScalarImageWrapper<MeanTraits>;

@@ -4,16 +4,15 @@
 #include "ImageWrapperBase.h"
 #include "itkDataObject.h"
 #include "itkObjectFactory.h"
+#include "IntensityToColorLookupTableImageFilter.h"
 
 class ColorLabelTable;
 class LabelToRGBAFilter;
 class IntensityCurveVTK;
 class Registry;
 template <class TEnum> class RegistryEnumMap;
-template <class T, class U> class IntensityToColorLookupTableImageFilter;
 template <class T, class U> class LookupTableIntensityMappingFilter;
 template <class T> class RGBALookupTableIntensityMappingFilter;
-template <class T, class U> class MultiComponentImageToScalarLookupTableImageFilter;
 template <class T, typename U> class InputSelectionImageFilter;
 
 /**
@@ -121,6 +120,7 @@ public:
   virtual IntensityCurveInterface *GetIntensityCurve() const = 0;
   virtual Vector2d GetNativeImageRangeForCurve() = 0;
   virtual void AutoFitContrast() = 0;
+  virtual void SetColorMap(ColorMap *map) = 0;
 };
 
 class AbstractCachingAndColorMapDisplayMappingPolicy
@@ -130,10 +130,14 @@ public:
   irisITKAbstractObjectMacro(AbstractCachingAndColorMapDisplayMappingPolicy,
                              AbstractContinuousImageDisplayMappingPolicy)
 
-  virtual void SetReferenceIntensityRange(double refMin, double refMax) = 0;
-  virtual void ClearReferenceIntensityRange() = 0;
-
 };
+
+
+
+
+
+
+
 
 template<class TWrapperTraits>
 class CachingCurveAndColorMapDisplayMappingPolicy
@@ -147,23 +151,42 @@ public:
   typedef typename TWrapperTraits::WrapperType WrapperType;
   typedef typename TWrapperTraits::ImageType ImageType;
   typedef typename ImageType::PixelType PixelType;
+  typedef typename TWrapperTraits::ComponentType ComponentType;
   typedef itk::Image<PixelType, 2> InputSliceType;
 
   typedef ImageWrapperBase::DisplaySliceType DisplaySliceType;
   typedef ImageWrapperBase::DisplaySlicePointer DisplaySlicePointer;
   typedef ImageWrapperBase::DisplayPixelType DisplayPixelType;
 
-  void CopyIntensityMap(WrapperType *srcWrapper);
+  // Lookup table
+  typedef itk::Image<DisplayPixelType, 1>                     LookupTableType;
+
+  // Min/Max inputs
+  typedef itk::SimpleDataObjectDecorator<ComponentType>   ComponentObjectType;
+
 
   /**
-   * Set the reference intensity range - a range of intensity that
-   * is mapped to the domain of the intensity curve
-   * @see GetIntensityMapFunction
+   * @brief Copy the LUT, intensity curve, and color map from another display
+   * mapping. This allows memory savings by sharing the LUT among multiple
+   * wrappers. This is used with components on a multi-component image
    */
-  void SetReferenceIntensityRange(double refMin, double refMax);
+  void CopyDisplayPipeline(const Self *reference);
+
+  void DeepCopyIntensityMap(WrapperType *srcWrapper);
+
+  /**
+   * Set the reference intensity range for the lookup table and intensity curve.
+   * This means that the LUT is constructed not between the image min and image
+   * max, but between some other pair of values. This is useful when the image
+   * in the imagewrapper is a subregion of another image, or when the image is
+   * a component of a multi-component image.
+   */
+  void SetReferenceIntensityRange(ComponentObjectType *refMin,
+                                  ComponentObjectType *refMax);
+
   void ClearReferenceIntensityRange();
 
-
+  // ?
   Vector2d GetNativeImageRangeForCurve();
 
 
@@ -211,9 +234,6 @@ protected:
   ~CachingCurveAndColorMapDisplayMappingPolicy();
 
 
-  // Lookup table
-  typedef itk::Image<DisplayPixelType, 1>                     LookupTableType;
-
   // Filter that generates the lookup table
   typedef IntensityToColorLookupTableImageFilter<
               ImageType, LookupTableType>               LookupTableFilterType;
@@ -245,6 +265,16 @@ protected:
   WrapperType *m_Wrapper;
 
 };
+
+
+
+
+
+
+
+
+
+
 
 /**
  * This little struct describes the behavior of the multichannel display
@@ -446,6 +476,7 @@ public:
 
   virtual IntensityCurveInterface *GetIntensityCurve() const;
   virtual ColorMap *GetColorMap() const;
+  virtual void SetColorMap(ColorMap *map);
 
   virtual void Save(Registry &folder);
   virtual void Restore(Registry &folder);

@@ -36,7 +36,8 @@ public:
 
   typedef ScalarImageWrapper<LabelImageWrapperTraits> WrapperType;
 
-  typedef itk::Image<LabelType, 3> ImageType;
+  typedef LabelType ComponentType;
+  typedef itk::Image<ComponentType, 3> ImageType;
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef ColorLabelTableDisplayMappingPolicy<Self> DisplayMapping;
@@ -50,7 +51,8 @@ public:
 
   typedef ScalarImageWrapper<SpeedImageWrapperTraits> WrapperType;
 
-  typedef itk::Image<GreyType, 3> ImageType;
+  typedef GreyType ComponentType;
+  typedef itk::Image<ComponentType, 3> ImageType;
 
   typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
@@ -64,7 +66,8 @@ public:
 
   typedef ScalarImageWrapper<LevelSetImageWrapperTraits> WrapperType;
 
-  typedef itk::Image<float, 3> ImageType;
+  typedef float ComponentType;
+  typedef itk::Image<ComponentType, 3> ImageType;
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef LinearColorMapDisplayMappingPolicy<Self> DisplayMapping;
@@ -82,7 +85,8 @@ public:
 
   typedef ScalarImageWrapper<Self> WrapperType;
 
-  typedef itk::VectorImageToImageAdaptor<TPixel, 3> ImageType;
+  typedef TPixel ComponentType;
+  typedef itk::VectorImageToImageAdaptor<ComponentType, 3> ImageType;
 
   typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
@@ -96,12 +100,14 @@ public:
   typedef VectorDerivedQuantityImageWrapperTraits<TFunctor> Self;
   typedef ScalarImageWrapper<Self> WrapperType;
 
-  typedef typename TFunctor::PixelType ExternalType;
-  typedef itk::VectorImage<ExternalType, 3> InternalImageType;
+  typedef typename TFunctor::OutputPixelType ComponentType;
+
+  typedef typename TFunctor::InputPixelType InternalComponentType;
+  typedef itk::VectorImage<InternalComponentType, 3> InternalImageType;
   typedef VectorToScalarImageAccessor<TFunctor> AccessorType;
   typedef itk::ImageAdaptor<InternalImageType, AccessorType> ImageType;
 
-  typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
+  typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
   typedef CastingScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 };
@@ -116,10 +122,12 @@ public:
   typedef VectorImageWrapper<Self> WrapperType;
 
   // Component stuff
-  typedef ComponentImageWrapperTraits<TPixel> ComponentWrapperTraits;
+  typedef TPixel ComponentType;
+
+  typedef ComponentImageWrapperTraits<ComponentType> ComponentWrapperTraits;
   typedef ScalarImageWrapper<ComponentWrapperTraits> ComponentWrapperType;
 
-  typedef itk::VectorImage<TPixel, 3> ImageType;
+  typedef itk::VectorImage<ComponentType, 3> ImageType;
 
   typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef MultiChannelDisplayMappingPolicy<Self> DisplayMapping;

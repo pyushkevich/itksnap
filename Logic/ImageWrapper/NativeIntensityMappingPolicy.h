@@ -15,6 +15,8 @@ public:
   virtual double MapGradientMagnitudeToNative(double g) const = 0;
   virtual double MapInternalToNative(double g) const = 0;
   virtual double MapNativeToInternal(double g) const = 0;
+  virtual double GetScale() const = 0;
+  virtual double GetShift() const = 0;
 };
 
 class LinearInternalToNativeIntensityMapping : public AbstractNativeIntensityMapping
@@ -31,6 +33,9 @@ public:
 
   double MapNativeToInternal(double native) const
     { return (native - shift) / scale; }
+
+  virtual double GetScale() const { return scale; }
+  virtual double GetShift() const { return shift; }
 
   LinearInternalToNativeIntensityMapping() : scale(1.0), shift(0.0) {}
   LinearInternalToNativeIntensityMapping(double a, double b) : scale(a), shift(b) {}
@@ -54,6 +59,9 @@ public:
 
   double MapNativeToInternal(double native) const
     { return native; }
+
+  virtual double GetScale() const { return 1; }
+  virtual double GetShift() const { return 0; }
 
 };
 

@@ -48,7 +48,6 @@
 #include <list>
 #include <map>
 #include <iostream>
-#include "ImageWrapperFactory.h"
 
 /** Borland compiler is very lazy so we need to instantiate the template
  *  by hand */

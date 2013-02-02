@@ -42,9 +42,11 @@
 #include <itkVectorImage.h>
 #include <itkRGBAPixel.h>
 #include <DisplayMappingPolicy.h>
+#include <itkSimpleDataObjectDecorator.h>
 
 // Forward declarations to IRIS classes
 template <class TInputImage, class TOutputImage> class IRISSlicer;
+template <class TFunctor> class UnaryValueToValueFilter;
 
 class SNAPSegmentationROISettings;
 namespace itk {
@@ -83,7 +85,15 @@ public:
   typedef typename TTraits::ImageType                                ImageType;
   typedef SmartPtr<ImageType>                                     ImagePointer;
   typedef typename ImageType::PixelType                              PixelType;
+
+  // This is the pixel type of the buffer pointer, i.e., internal representation
   typedef typename ImageType::InternalPixelType              InternalPixelType;
+
+  // This is the type of the outwardly visible components in the image. For
+  // wrappers that encapsulate 'real' images and vector images, this is the same
+  // as the internal pixel type, but for wrappers that encapsulate an image
+  // adaptor, the component type is the output type of the adaptor
+  typedef typename TTraits::ComponentType                        ComponentType;
 
   // Slice image type
   typedef itk::Image<PixelType,2>                                    SliceType;
@@ -114,6 +124,9 @@ public:
   // Native intensity mapping
   typedef typename TTraits::NativeIntensityMapping      NativeIntensityMapping;
 
+  // Objects used to represent min/max intensity in the image
+  typedef itk::SimpleDataObjectDecorator<ComponentType>    ComponentTypeObject;
+  typedef itk::SimpleDataObjectDecorator<double>                  DoubleObject;
 
   /**
    * Initialize the image wrapper to match another image wrapper, setting the
@@ -167,6 +180,8 @@ public:
     display slices.
     */
   virtual void GetVoxelUnderCursorAppearance(DisplayPixelType &out);
+
+
 
   /** Get the current slice index */
   irisGetMacro(SliceIndex, Vector3ui)
@@ -264,6 +279,25 @@ public:
    */
   virtual void SetImageToDisplayTransform(
     unsigned int iSlice,const ImageCoordinateTransform &transform);
+
+  /**
+   * Get an ITK pipeline object holding the minimum value in the image. For
+   * multi-component images, this is the minimum value over all components.
+   */
+  virtual ComponentTypeObject *GetImageMinObject() const = 0;
+  virtual ComponentTypeObject *GetImageMaxObject() const = 0;
+
+  /** Return componentwise minimum cast to double, without mapping to native range */
+  virtual double GetImageMinAsDouble();
+
+  /** Return componentwise maximum cast to double, without mapping to native range */
+  virtual double GetImageMaxAsDouble();
+
+  /** Return componentwise minimum cast to double, after mapping to native range */
+  virtual double GetImageMinNative();
+
+  /** Return componentwise maximum cast to double, after mapping to native range */
+  virtual double GetImageMaxNative();
 
 
   /**

@@ -3,7 +3,7 @@
 
 // This compiles the LayerAssociation for the color map
 template class LayerAssociation<ColorMapLayerProperties,
-                                GreyImageWrapperBase,
+                                ImageWrapperBase,
                                 ColorMapModelBase::PropertiesFactory>;
 
 ColorMapModel::ColorMapModel()

@@ -90,6 +90,9 @@ public:
   // Output channels
   typedef typename Superclass::ExportChannel                     ExportChannel;
 
+  // Pipeline objects wrapped around values
+  typedef typename Superclass::ComponentTypeObject         ComponentTypeObject;
+
   virtual bool IsScalar() const { return true; }
 
   /**
@@ -98,18 +101,6 @@ public:
    * @see ImageWrapperBase::GetScalarRepresentation
    */
   ScalarImageWrapperBase *GetDefaultScalarRepresentation() { return this; }
-
-  /**
-   * Get the minimum intensity value.  Call ComputeImageIntensityRange() 
-   * first.
-   */
-  virtual PixelType GetImageMin();
-
-  /**
-   * Get the maximum intensity value.  Call ComputeImageIntensityRange() 
-   * first.
-   */
-  virtual PixelType GetImageMax();
 
   /** Access the min/max filter */
   irisGetMacro(MinMaxFilter, MinMaxFilter *)
@@ -154,20 +145,19 @@ public:
     { out[0] = this->m_NativeMapping(Superclass::GetVoxel(idx)); }
 
   /**
-    Get the maximum intensity
-    */
-  virtual double GetImageMaxAsDouble()
-  {
-    return (double) this->GetImageMax();
-  }
+   * This method returns a vector of values for the voxel under the cursor.
+   * This is the natural value or set of values that should be displayed to
+   * the user. The value depends on the current display mode. For scalar
+   * images, it's just the value of the voxel, but for multi-component images,
+   * it's the value of the selected component (if there is one) or the value
+   * of the multiple components when the mode is RGB.
+   */
+  virtual vnl_vector<double> GetVoxelUnderCursorDisplayedValue();
 
-  /**
-    Get the minimum intensity
-    */
-  virtual double GetImageMinAsDouble()
-  {
-    return (double) this->GetImageMin();
-  }
+  virtual ComponentTypeObject *GetImageMinObject() const;
+
+  virtual ComponentTypeObject *GetImageMaxObject() const;
+
 
   /**
     Get the maximum possible value of the gradient magnitude. This will
@@ -181,15 +171,6 @@ public:
     Get the maximum possible value of the gradient magnitude in native units
     */
   double GetImageGradientMagnitudeUpperLimitNative();
-
-  /**
-   * Get min/max voxel intensity in native space
-   */
-  double GetImageMinNative()
-    { return this->m_NativeMapping(this->GetImageMin()); }
-  double GetImageMaxNative()
-    { return this->m_NativeMapping(this->GetImageMax()); }
-
 
   /**
     Compute the image histogram. The histogram is cached inside of the

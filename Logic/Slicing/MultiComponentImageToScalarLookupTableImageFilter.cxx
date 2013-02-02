@@ -23,12 +23,7 @@ MultiComponentImageToScalarLookupTableImageFilter<TInputImage, TOutputLUT>
 ::SetMultiComponentImage(InputImageType *image)
 {
   // Figure out how many components we have
-  int nc = image->GetNumberOfComponentsPerPixel();
-  this->SetNumberOfIndexedInputs(2 * nc + 2);
-
-  // Resize the min/max sources
-  m_InputMin.resize(nc);
-  m_InputMax.resize(nc);
+  this->SetNumberOfIndexedInputs(4);
 
   // Set the first input
   this->SetNthInput(0, image);
@@ -46,14 +41,19 @@ MultiComponentImageToScalarLookupTableImageFilter<TInputImage, TOutputLUT>
 template<class TInputImage, class TOutputLUT>
 void
 MultiComponentImageToScalarLookupTableImageFilter<TInputImage, TOutputLUT>
-::SetComponentMinMax(unsigned int comp,
-                     InputComponentObject *omin,
-                     InputComponentObject *omax)
+::SetImageMinInput(InputPixelObject *input)
 {
-  m_InputMin[comp] = omin;
-  m_InputMax[comp] = omax;
-  this->SetNthInput(2 + comp * 2, omin);
-  this->SetNthInput(2 + comp * 2 + 1, omax);
+  m_InputMin = input;
+  this->SetNthInput(2, input);
+}
+
+template<class TInputImage, class TOutputLUT>
+void
+MultiComponentImageToScalarLookupTableImageFilter<TInputImage, TOutputLUT>
+::SetImageMaxInput(InputPixelObject *input)
+{
+  m_InputMax = input;
+  this->SetNthInput(3, input);
 }
 
 template<class TInputImage, class TOutputLUT>
@@ -62,23 +62,12 @@ MultiComponentImageToScalarLookupTableImageFilter<TInputImage, TOutputLUT>
 ::GenerateOutputInformation()
 {
   // We need to compute a global max/min
-  InputComponentType gmin, gmax;
-  for(int i = 0; i < m_InputMin.size(); i++)
-    {
-    // Since this method could be called before the upstream pipeline has
-    // executed, we need to force a all to Update on the input min/max
-    m_InputMin[i]->Update();
-    m_GlobalMin = (i == 0 || m_GlobalMin > m_InputMin[i]->Get())
-        ? m_InputMin[i]->Get()
-        : m_GlobalMin;
-    m_GlobalMax = (i == 0 || m_GlobalMax < m_InputMax[i]->Get())
-        ? m_InputMax[i]->Get()
-        : m_GlobalMax;
-    }
+  InputComponentType gmin = m_InputMin.Get();
+  InputComponentType gmax = m_InputMax.Get();
 
   LookupTableType *output = this->GetOutput();
-  typename LookupTableType::IndexType idx = {{m_GlobalMin}};
-  typename LookupTableType::SizeType sz = {{1 + m_GlobalMax - m_GlobalMin}};
+  typename LookupTableType::IndexType idx = {{gmin}};
+  typename LookupTableType::SizeType sz = {{1 + gmax - gmin}};
   typename LookupTableType::RegionType region(idx, sz);
   output->SetLargestPossibleRegion(region);
 }
@@ -112,10 +101,13 @@ MultiComponentImageToScalarLookupTableImageFilter<TInputImage, TOutputLUT>
   if(threadId == 0)
     std::cout << "Computing LUT " << region << std::endl;
 
+  InputComponentType gmin = m_InputMin.Get();
+  InputComponentType gmax = m_InputMax.Get();
+
   // Set the intensity mapping for the functor
   float scale, shift;
-  shift = m_GlobalMin;
-  scale = 1.0f / (m_GlobalMax - m_GlobalMin);
+  shift = gmin;
+  scale = 1.0f / (gmax - gmin);
 
   // Do the actual computation of the cache
   LookupTableType *output = this->GetOutput();

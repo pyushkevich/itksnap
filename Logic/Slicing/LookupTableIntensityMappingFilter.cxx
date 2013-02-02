@@ -1,13 +1,14 @@
 #include "LookupTableIntensityMappingFilter.h"
 #include <itkImageRegionIterator.h>
 #include <itkRGBAPixel.h>
+#include "LookupTableTraits.h"
 
 template<class TInputImage, class TOutputImage>
 LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
 ::LookupTableIntensityMappingFilter()
 {
   // The image and the LUT are inputs
-  this->SetNumberOfIndexedInputs(2);
+  this->SetNumberOfIndexedInputs(4);
 }
 
 template<class TInputImage, class TOutputImage>
@@ -19,7 +20,23 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
   this->SetNthInput(1, lut);
 }
 
-#include "itkImageRegionConstIteratorWithIndex.h"
+template<class TInputImage, class TOutputImage>
+void
+LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
+::SetImageMinInput(InputPixelObject *input)
+{
+  m_InputMin = input;
+  this->SetNthInput(2, input);
+}
+
+template<class TInputImage, class TOutputImage>
+void
+LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
+::SetImageMaxInput(InputPixelObject *input)
+{
+  m_InputMax = input;
+  this->SetNthInput(3, input);
+}
 
 template<class TInputImage, class TOutputImage>
 void
@@ -36,31 +53,29 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
       m_LookupTable->GetBufferPointer()
       - m_LookupTable->GetLargestPossibleRegion().GetIndex()[0];
 
+  // Compute the shift and scale factors that map the input values into
+  // the LUT values. These are ignored for integral pixel types, but used
+  // for floating point types
+  float lutScale;
+  InputPixelType lutShift;
+  LookupTableTraits<InputPixelType>::ComputeLinearMappingToLUT(
+        m_InputMin->Get(), m_InputMax->Get(), lutScale, lutShift);
+
   // Define the iterators
-  // TODO: no index
-  // itk::ImageRegionConstIterator<TInputImage> inputIt(input, region);
-  itk::ImageRegionConstIteratorWithIndex<TInputImage> inputIt(input, region);
+  itk::ImageRegionConstIterator<TInputImage> inputIt(input, region);
   itk::ImageRegionIterator<TOutputImage> outputIt(output, region);
 
   // Perform the intensity mapping using the LUT (no bounds checking!)
   while( !inputIt.IsAtEnd() )
     {
+    // Get the input intensity
     InputPixelType xin = inputIt.Get();
 
-    // TODO: remove
-    int lut_start = m_LookupTable->GetLargestPossibleRegion().GetIndex()[0];
-    int lut_size = m_LookupTable->GetLargestPossibleRegion().GetSize()[0];
-    if(xin < lut_start || xin >= lut_start + lut_size)
-      {
-      if(threadId == 0)
-        {
-        std::cerr << xin << " out of range [" << lut_start << "," << lut_start+lut_size-1 << "]" << std::endl;
-        std::cerr << inputIt.GetIndex() << std::endl;
-        break;
-        }
-      }
+    // Find the corresponding LUT offset
+    int lut_offset = LookupTableTraits<InputPixelType>::ComputeLUTOffset(
+          lutScale, lutShift, xin);
 
-    OutputPixelType xout = *(lutp + xin);
+    OutputPixelType xout = *(lutp + lut_offset);
     outputIt.Set(xout);
 
     ++inputIt;
@@ -72,5 +87,7 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
 template class LookupTableIntensityMappingFilter<
     itk::Image<short, 2>, itk::Image< itk::RGBAPixel<unsigned char> > >;
 
+template class LookupTableIntensityMappingFilter<
+    itk::Image<float, 2>, itk::Image< itk::RGBAPixel<unsigned char> > >;
 
 

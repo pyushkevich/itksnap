@@ -6,7 +6,6 @@
 #include "IntensityToColorLookupTableImageFilter.h"
 #include "LookupTableIntensityMappingFilter.h"
 #include "RGBALookupTableIntensityMappingFilter.h"
-#include "MultiComponentImageToScalarLookupTableImageFilter.h"
 #include "ColorMap.h"
 #include "ScalarImageHistogram.h"
 #include "itkMinimumMaximumImageFilter.h"
@@ -55,7 +54,6 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
 {
   // Nothing to do here, since we are connected to the slices?
 }
-
 
 
 template<class TWrapperTraits>
@@ -120,7 +118,6 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   for(unsigned int i=0; i<3; i++)
     {
     m_IntensityFilter[i] = IntensityFilterType::New();
-    m_IntensityFilter[i]->SetInput(wrapper->GetSlice(i));
     m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetOutput());
     }
 }
@@ -132,8 +129,39 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 {
   // Hook up the image to the filter
   m_LookupTableFilter->SetInput(m_Wrapper->GetImage());
+
+  // Hook up the min/max filters
   m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetMinMaxFilter()->GetMinimumOutput());
   m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetMinMaxFilter()->GetMaximumOutput());
+
+  for(unsigned int i=0; i<3; i++)
+    {
+    m_IntensityFilter[i]->SetInput(m_Wrapper->GetSlice(i));
+    m_IntensityFilter[i]->SetImageMinInput(m_Wrapper->GetMinMaxFilter()->GetMinimumOutput());
+    m_IntensityFilter[i]->SetImageMaxInput(m_Wrapper->GetMinMaxFilter()->GetMaximumOutput());
+    }
+}
+
+template<class TWrapperTraits>
+void
+CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
+::CopyDisplayPipeline(const Self *reference)
+{
+  // Copy the lookup table filter. Not sure we need to do this, or just set
+  // it to NULL.
+  m_LookupTableFilter = reference->m_LookupTableFilter;
+
+  // Configure the per-slice filters
+  for(unsigned int i=0; i<3; i++)
+    {
+    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetOutput());
+    m_IntensityFilter[i]->SetImageMinInput(m_LookupTableFilter->GetImageMinInput());
+    m_IntensityFilter[i]->SetImageMaxInput(m_LookupTableFilter->GetImageMaxInput());
+    }
+
+  // Copy the color map and the intensity curve
+  m_ColorMap = reference->m_ColorMap;
+  m_IntensityCurveVTK = reference->m_IntensityCurveVTK;
 }
 
 template<class TWrapperTraits>
@@ -141,6 +169,9 @@ void
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 ::DeriveFromReferenceWrapper(WrapperType *srcWrapper)
 {
+  // TODO: Figure out how to do this right...
+
+  /*
   SetReferenceIntensityRange(srcWrapper->GetImageMinAsDouble(),
                              srcWrapper->GetImageMaxAsDouble());
 
@@ -148,14 +179,16 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 
   m_ColorMap->CopyInformation(
         srcWrapper->GetDisplayMapping()->GetColorMap());
+        */
 }
 
 template<class TWrapperTraits>
 void
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
-::SetReferenceIntensityRange(double refMin, double refMax)
+::SetReferenceIntensityRange(ComponentObjectType *refMin, ComponentObjectType *refMax)
 {
-  m_LookupTableFilter->SetReferenceIntensityRange(refMin, refMax);
+  m_LookupTableFilter->SetImageMinInput(refMin);
+  m_LookupTableFilter->SetImageMaxInput(refMax);
 }
 
 template<class TWrapperTraits>
@@ -163,14 +196,14 @@ void
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 ::ClearReferenceIntensityRange()
 {
-  m_LookupTableFilter->RemoveReferenceIntensityRange();
+  m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetMinMaxFilter()->GetMinimumOutput());
+  m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetMinMaxFilter()->GetMaximumOutput());
 }
-
 
 template<class TWrapperTraits>
 void
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
-::CopyIntensityMap(WrapperType *srcWrapper)
+::DeepCopyIntensityMap(WrapperType *srcWrapper)
 {
   Self *s = srcWrapper->GetDisplayMapping();
   const IntensityCurveInterface *ici = s->m_IntensityCurveVTK;
@@ -537,27 +570,11 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
   if(m_Wrapper->GetNumberOfComponents() == 3)
     {
     m_LUTGenerator = GenerateLUTFilter::New();
-    m_LUTGenerator->SetMultiComponentImage(m_Wrapper->GetImage());
-
-    // Hook up the max/min objects
-    for(int i = 0; i < 3; i++)
-      {
-      // Get the i-th component
-      ComponentWrapperType *comp = m_Wrapper->GetComponentWrapper(i);
-
-      // Take its min and max
-      m_LUTGenerator->SetComponentMinMax(
-            i,
-            comp->GetMinMaxFilter()->GetMinimumOutput(),
-            comp->GetMinMaxFilter()->GetMaximumOutput());
-
-      // Use the intensity curve in the first component
-      if(i == 0)
-        {
-        m_LUTGenerator->SetIntensityCurve(
-              comp->GetDisplayMapping()->GetIntensityCurve());
-        }
-      }
+    m_LUTGenerator->SetInput(m_Wrapper->GetImage());
+    m_LUTGenerator->SetImageMinInput(m_Wrapper->GetImageMinObject());
+    m_LUTGenerator->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
+    m_LUTGenerator->SetIntensityCurve(
+          m_Wrapper->GetComponentWrapper(0)->GetIntensityCurve());
 
     // Initialize the filters that apply the LUT
     for(unsigned int i=0; i<3; i++)
@@ -584,24 +601,54 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
       m_RGBMapper[j] = NULL;
     }
 
-  // Add all the other filters as inputs to the selector
-  for(int i = 0; i < 3; i++)
+  // Get the reference component wrapper whose properties will be shared
+  // with the other components
+  typedef typename WrapperType::ComponentWrapperType ComponentWrapper;
+  ComponentWrapper *first_comp = static_cast<ComponentWrapper *>(
+        m_Wrapper->GetComponentWrapper(0));
+
+  // The min/max for this LUT should be the global min/max, overriding
+  // the default, which is component-wise min/max.
+  first_comp->GetDisplayMapping()->SetReferenceIntensityRange(
+        m_Wrapper->GetImageMinObject(), m_Wrapper->GetImageMaxObject());
+
+  // Configure all the component wrappers display mappings
+  for(int j = 0; j < VectorImageWrapperBase::NUMBER_OF_SCALAR_REPS; j++)
     {
-    for(int j = 0; j < VectorImageWrapperBase::NUMBER_OF_SCALAR_REPS; j++)
+    VectorImageWrapperBase::ScalarRepresentation rep =
+        static_cast<VectorImageWrapperBase::ScalarRepresentation>(
+          VectorImageWrapperBase::SCALAR_REP_COMPONENT + j);
+
+    int nc = (j == 0) ? m_Wrapper->GetNumberOfComponents() : 1;
+    for(int k = 0; k < nc; k++)
       {
-      VectorImageWrapperBase::ScalarRepresentation rep =
-          static_cast<VectorImageWrapperBase::ScalarRepresentation>(
-            VectorImageWrapperBase::SCALAR_REP_COMPONENT + j);
+      // Get the component/derived wrapper
+      ScalarImageWrapperBase *sw = m_Wrapper->GetScalarRepresentation(rep, k);
 
-      int nc = (j == 0) ? m_Wrapper->GetNumberOfComponents() : 1;
-      for(int k = 0; k < nc; k++)
+      // Try casting to the component type
+      ComponentWrapper *cw = dynamic_cast<ComponentWrapper *>(sw);
+      if(cw && cw != first_comp)
         {
-        DisplaySlicePointer slice =
-            m_Wrapper->GetScalarRepresentation(rep, k)->GetDisplaySlice(i);
+        // Copy the LUT from the first comp to the current component.
+        cw->GetDisplayMapping()->CopyDisplayPipeline(first_comp->GetDisplayMapping());
+        }
 
+      else if(cw != first_comp)
+        {
+        AbstractContinuousImageDisplayMappingPolicy *dp =
+            static_cast<AbstractContinuousImageDisplayMappingPolicy *>(
+              sw->GetDisplayMapping());
+
+        // Copy the LUT from the first comp to the current component.
+        dp->SetColorMap(first_comp->GetColorMap());
+        }
+
+      // Pass inputs to the slice selector
+      for(int i = 0; i < 3; i++)
+        {
         m_DisplaySliceSelector[i]->AddSelectableInput(
               MultiChannelDisplayMode(false, rep, k),
-              slice);
+              sw->GetDisplaySlice(i));
         }
       }
     }
@@ -726,6 +773,15 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 }
 
 template <class TWrapperTraits>
+void
+MultiChannelDisplayMappingPolicy<TWrapperTraits>
+::SetColorMap(ColorMap *map)
+{
+  // TODO: do we really need an implementation?
+}
+
+
+template <class TWrapperTraits>
 bool
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
 ::IsContrastMultiComponent() const
@@ -744,20 +800,18 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 {
   double cmin, cmax;
 
-  // When any or all of the components are used in display, the intensity range
-  // for the curve purposes is derived from the min/max of all the components
-  if(IsContrastMultiComponent())
+  // The native range is global componentwise max/min when we are in RGB mode
+  // or when we are in single component mode (because the curves are shared
+  // between these display modes).
+  if(m_DisplayMode.UseRGB ||
+     m_DisplayMode.SelectedScalarRep == VectorImageWrapperBase::SCALAR_REP_COMPONENT)
     {
-    cmin = m_Wrapper->GetComponentWrapper(0)->GetImageMinNative();
-    cmax = m_Wrapper->GetComponentWrapper(0)->GetImageMaxNative();
-    for(int i = 1; i < m_Wrapper->GetNumberOfComponents(); i++)
-      {
-      double imin = m_Wrapper->GetComponentWrapper(i)->GetImageMinNative();
-      double imax = m_Wrapper->GetComponentWrapper(i)->GetImageMaxNative();
-      cmin = std::min(cmin, imin);
-      cmax = std::max(cmax, imax);
-      }
+    cmin = m_Wrapper->GetImageMinNative();
+    cmax = m_Wrapper->GetImageMaxNative();
     }
+
+  // Otherwise, when displaying a derived component, the image range is specific
+  // to that component (the component has its own curve).
   else
     {
     cmin = m_ScalarRepresentation->GetImageMinNative();

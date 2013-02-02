@@ -64,6 +64,7 @@
 #include "IRISException.h"
 #include "itkImageAdaptor.h"
 #include "itkVectorImageToImageAdaptor.h"
+#include "UnaryValueToValueFilter.h"
 
 
 #include <vnl/vnl_inverse.h>
@@ -72,6 +73,20 @@
 #include <itksys/SystemTools.hxx>
 
 unsigned long GlobalImageWrapperIndex = 0;
+
+
+template <class TPixel>
+class SimpleCastToDoubleFunctor
+{
+public:
+  typedef TPixel InputType;
+  typedef double OutputType;
+  double operator()(TPixel input) { return static_cast<double>(input); }
+};
+
+
+
+
 
 template<class TTraits, class TBase>
 ImageWrapper<TTraits,TBase>
@@ -591,9 +606,44 @@ ImageWrapper<TTraits,TBase>
     m_DisplayToImageTransform[iSlice].GetCoordinateOrientation(0) > 0);
 
   m_Slicer[iSlice]->SetLineTraverseForward(
-    m_DisplayToImageTransform[iSlice].GetCoordinateOrientation(1) > 0);
+        m_DisplayToImageTransform[iSlice].GetCoordinateOrientation(1) > 0);
 }
 
+template<class TTraits, class TBase>
+inline double
+ImageWrapper<TTraits,TBase>
+::GetImageMinAsDouble()
+{
+  this->GetImageMinObject()->Update();
+  return static_cast<double>(this->GetImageMinObject()->Get());
+}
+
+template<class TTraits, class TBase>
+inline double
+ImageWrapper<TTraits,TBase>
+::GetImageMaxAsDouble()
+{
+  this->GetImageMaxObject()->Update();
+  return static_cast<double>(this->GetImageMaxObject()->Get());
+}
+
+template<class TTraits, class TBase>
+inline double
+ImageWrapper<TTraits,TBase>
+::GetImageMinNative()
+{
+  this->GetImageMinObject()->Update();
+  return m_NativeMapping(this->GetImageMinObject()->Get());
+}
+
+template<class TTraits, class TBase>
+inline double
+ImageWrapper<TTraits,TBase>
+::GetImageMaxNative()
+{
+  this->GetImageMaxObject()->Update();
+  return m_NativeMapping(this->GetImageMaxObject()->Get());
+}
 
   /** For each slicer, find out which image dimension does is slice along */
 
@@ -1044,12 +1094,9 @@ template class ImageWrapper<LevelSetImageWrapperTraits, ScalarImageWrapperBase>;
 template class ImageWrapper<AnatomicImageWrapperTraits<GreyType>, VectorImageWrapperBase>;
 template class ImageWrapper<ComponentImageWrapperTraits<GreyType>, ScalarImageWrapperBase>;
 
-typedef VectorToScalarMagnitudeFunctor<GreyType> MagFunctor;
-typedef VectorToScalarMaxFunctor<GreyType> MaxFunctor;
-typedef VectorToScalarMeanFunctor<GreyType> MeanFunctor;
-typedef VectorDerivedQuantityImageWrapperTraits<MagFunctor> MagTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<MaxFunctor> MaxTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<MeanFunctor> MeanTraits;
+typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor> MagTraits;
+typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMaxFunctor> MaxTraits;
+typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor> MeanTraits;
 template class ImageWrapper<MagTraits, ScalarImageWrapperBase>;
 template class ImageWrapper<MaxTraits, ScalarImageWrapperBase>;
 template class ImageWrapper<MeanTraits, ScalarImageWrapperBase>;

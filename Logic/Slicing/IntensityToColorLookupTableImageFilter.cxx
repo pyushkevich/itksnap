@@ -1,60 +1,44 @@
 #include "IntensityToColorLookupTableImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 
+#include "LookupTableTraits.h"
 #include "IntensityCurveInterface.h"
 #include "ColorMap.h"
 #include "itkImage.h"
 
-template<class TInputImage, class TOutputLUT>
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
-::IntensityToColorLookupTableImageFilter()
-{
-  // The intensity curve and the color map are treated as inputs
-  this->SetNumberOfIndexedInputs(5);
 
+
+template<class TInputImage, class TOutputLUT, class TComponent>
+AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+::AbstractLookupTableImageFilter()
+{
   // By default not using a reference range
   m_UseReferenceRange = false;
+  m_ImageMinInput = NULL;
+  m_ImageMaxInput = NULL;
 }
 
-template<class TInputImage, class TOutputLUT>
+template<class TInputImage, class TOutputLUT, class TComponent>
 void
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
-::SetIntensityCurve(IntensityCurveInterface *curve)
+AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+::SetImageMinInput(MinMaxObjectType *input)
 {
-  m_IntensityCurve = curve;
-  this->SetNthInput(1, curve);
+  m_ImageMinInput = input;
+  this->SetInput("image_min", input);
 }
 
-template<class TInputImage, class TOutputLUT>
+template<class TInputImage, class TOutputLUT, class TComponent>
 void
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
-::SetColorMap(ColorMap *map)
+AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+::SetImageMaxInput(MinMaxObjectType *input)
 {
-  m_ColorMap = map;
-  this->SetNthInput(2, map);
+  m_ImageMaxInput = input;
+  this->SetInput("image_max", input);
 }
 
-template<class TInputImage, class TOutputLUT>
+template<class TInputImage, class TOutputLUT, class TComponent>
 void
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
-::SetImageMinInput(InputPixelObject *input)
-{
-  m_InputMin = input;
-  this->SetNthInput(3, input);
-}
-
-template<class TInputImage, class TOutputLUT>
-void
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
-::SetImageMaxInput(InputPixelObject *input)
-{
-  m_InputMax = input;
-  this->SetNthInput(4, input);
-}
-
-template<class TInputImage, class TOutputLUT>
-void
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
+AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 ::SetReferenceIntensityRange(double min, double max)
 {
   m_UseReferenceRange = true;
@@ -63,46 +47,50 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
   this->Modified();
 }
 
-template<class TInputImage, class TOutputLUT>
+template<class TInputImage, class TOutputLUT, class TComponent>
 void
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
+AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 ::RemoveReferenceIntensityRange()
 {
   m_UseReferenceRange = false;
   this->Modified();
 }
 
-template<class TInputImage, class TOutputLUT>
+template<class TInputImage, class TOutputLUT, class TComponent>
 void
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
+AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 ::GenerateOutputInformation()
 {
   // Since this method could be called before the upstream pipeline has
   // executed, we need to force a all to Update on the input min/max
-  m_InputMin->Update();
+  m_ImageMinInput->Update();
 
   LookupTableType *output = this->GetOutput();
-  typename LookupTableType::IndexType idx = {{m_InputMin->Get()}};
-  typename LookupTableType::SizeType sz = {{1 + m_InputMax->Get() - m_InputMin->Get()}};
-  typename LookupTableType::RegionType region(idx, sz);
+
+  // Use the type-specific traits to compute the range of the lookup table
+  typename LookupTableType::RegionType region =
+      LookupTableTraits<InputComponentType>::ComputeLUTRange(
+        m_ImageMinInput->Get(), m_ImageMaxInput->Get());
 
   // TODO: remove
-  std::cout << "Range for LUT is [" << idx[0] << "," << idx[0] + (int) sz[0] - 1 << "]" << std::endl;
+  std::cout << "Range for LUT is [" << region.GetIndex(0) << ","
+            << region.GetIndex(0) + region.GetSize(0) - 1 << "]"
+            << std::endl;
   output->SetLargestPossibleRegion(region);
 }
 
-template<class TInputImage, class TOutputLUT>
+template<class TInputImage, class TOutputLUT, class TComponent>
 void
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
+AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 ::EnlargeOutputRequestedRegion(itk::DataObject *)
 {
   LookupTableType *output = this->GetOutput();
   output->SetRequestedRegion(output->GetLargestPossibleRegion());
 }
 
-template<class TInputImage, class TOutputLUT>
+template<class TInputImage, class TOutputLUT, class TComponent>
 void
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
+AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 ::GenerateInputRequestedRegion()
 {
   // The input region is the whole image
@@ -110,9 +98,9 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
   input->SetRequestedRegionToLargestPossibleRegion();
 }
 
-template<class TInputImage, class TOutputLUT>
+template<class TInputImage, class TOutputLUT, class TComponent>
 void
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
+AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 ::ThreadedGenerateData(const OutputImageRegionType &region,
                        itk::ThreadIdType threadId)
 {
@@ -120,20 +108,14 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
     std::cout << "Computing LUT " << region << std::endl;
 
   // Get the image max and min
-  InputPixelType imin = m_InputMin->Get(), imax = m_InputMax->Get();
+  InputComponentType imin = m_ImageMinInput->Get(), imax = m_ImageMaxInput->Get();
 
-  // Set the intensity mapping for the functor
-  float scale, shift;
-  if(m_UseReferenceRange)
-    {
-    shift = m_ReferenceMin;
-    scale = 1.0f / (m_ReferenceMax - m_ReferenceMin);
-    }
-  else
-    {
-    shift = imin;
-    scale = 1.0f / (imax - imin);
-    }
+  // Compute the mapping from LUT position to [0 1] range for the curve
+  float scale, shift;  
+  LookupTableTraits<InputComponentType>::ComputeLinearMappingToUnitInterval(
+        m_UseReferenceRange ? m_ReferenceMin : imin,
+        m_UseReferenceRange ? m_ReferenceMax : imax,
+        scale, shift);
 
   // Do the actual computation of the cache
   LookupTableType *output = this->GetOutput();
@@ -147,26 +129,86 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
     float inZeroOne = (pos - shift) * scale;
 
     // Compute the intensity mapping
-    float outZeroOne = m_IntensityCurve->Evaluate(inZeroOne);
-
-    // Map the output to a RGBA pixel
-    it.Set(m_ColorMap->MapIndexToRGBA(outZeroOne));
+    it.Set(this->ComputeLUTValue(inZeroOne));
     }
 }
 
-template<class TInputImage, class TOutputLUT>
+template<class TInputImage, class TOutputLUT, class TComponent>
 void
-IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
-::SetFixedLookupTableRange(InputPixelType imin, InputPixelType imax)
+AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+::SetFixedLookupTableRange(InputComponentType imin, InputComponentType imax)
 {
-  SmartPtr<InputPixelObject> omin = InputPixelObject::New();
+  SmartPtr<MinMaxObjectType> omin = MinMaxObjectType::New();
   omin->Set(imin);
   this->SetImageMinInput(omin);
 
-  SmartPtr<InputPixelObject> omax = InputPixelObject::New();
+  SmartPtr<MinMaxObjectType> omax = MinMaxObjectType::New();
   omax->Set(imax);
   this->SetImageMaxInput(omax);
 }
+
+
+
+
+template<class TInputImage, class TOutputLUT, class TComponent>
+typename IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>::OutputPixelType
+IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+::ComputeLUTValue(float inZeroOne)
+{
+  // Apply the intensity curve
+  float outZeroOne = m_IntensityCurve->Evaluate(inZeroOne);
+
+  // Map the output to a RGBA pixel
+  return m_ColorMap->MapIndexToRGBA(outZeroOne);
+}
+
+template<class TInputImage, class TOutputLUT, class TComponent>
+void
+IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+::SetIntensityCurve(IntensityCurveInterface *curve)
+{
+  m_IntensityCurve = curve;
+  this->SetInput("curve", curve);
+}
+
+template<class TInputImage, class TOutputLUT, class TComponent>
+void
+IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+::SetColorMap(ColorMap *map)
+{
+  m_ColorMap = map;
+  this->SetInput("colormap", map);
+}
+
+
+
+
+template<class TInputImage, class TOutputLUT, class TComponent>
+void
+MultiComponentImageToScalarLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+::SetIntensityCurve(IntensityCurveInterface *curve)
+{
+  m_IntensityCurve = curve;
+  this->SetInput("curve", curve);
+}
+
+template<class TInputImage, class TOutputLUT, class TComponent>
+typename MultiComponentImageToScalarLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>::OutputPixelType
+MultiComponentImageToScalarLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+::ComputeLUTValue(float inZeroOne)
+{
+  // Compute the intensity mapping
+  float outZeroOne = m_IntensityCurve->Evaluate(inZeroOne);
+
+  // Map the output to a RGBA pixel
+  return static_cast<OutputPixelType>(255.0 * outZeroOne);
+}
+
+
+
+
+
+
 
 
 // Template instantiation
@@ -176,11 +218,24 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT>
 typedef itk::Image<short, 3> GreyImageType;
 typedef itk::VectorImageToImageAdaptor<GreyType, 3> GreyComponentAdaptorType;
 typedef itk::Image<itk::RGBAPixel<unsigned char>, 1> LUTType;
+typedef itk::Image<unsigned char, 1> ScalarLUTType;
+typedef itk::Image<float, 3> FloatImageType;
+typedef itk::VectorImage<short, 3> AnatomicImageType;
+
+template class AbstractLookupTableImageFilter<GreyImageType, LUTType, GreyType>;
+template class AbstractLookupTableImageFilter<FloatImageType, LUTType, float>;
+template class AbstractLookupTableImageFilter<GreyComponentAdaptorType, LUTType, GreyType>;
+template class AbstractLookupTableImageFilter<GreyVectorMagnitudeImageAdaptor, LUTType, float>;
+template class AbstractLookupTableImageFilter<GreyVectorMaxImageAdaptor, LUTType, float>;
+template class AbstractLookupTableImageFilter<GreyVectorMeanImageAdaptor, LUTType, float>;
+template class AbstractLookupTableImageFilter<AnatomicImageType, ScalarLUTType, GreyType>;
 
 template class IntensityToColorLookupTableImageFilter<GreyImageType, LUTType>;
+template class IntensityToColorLookupTableImageFilter<FloatImageType, LUTType>;
 template class IntensityToColorLookupTableImageFilter<GreyComponentAdaptorType, LUTType>;
 template class IntensityToColorLookupTableImageFilter<GreyVectorMagnitudeImageAdaptor, LUTType>;
 template class IntensityToColorLookupTableImageFilter<GreyVectorMaxImageAdaptor, LUTType>;
 template class IntensityToColorLookupTableImageFilter<GreyVectorMeanImageAdaptor, LUTType>;
 
+template class MultiComponentImageToScalarLookupTableImageFilter<AnatomicImageType, ScalarLUTType>;
 
