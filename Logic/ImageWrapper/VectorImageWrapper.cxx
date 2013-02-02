@@ -26,6 +26,7 @@
 #include "ImageWrapperTraits.h"
 #include "itkVectorImageToImageAdaptor.h"
 #include "itkMinimumMaximumImageFilter.h"
+#include "ScalarImageHistogram.h"
 
 #include <iostream>
 
@@ -329,6 +330,20 @@ VectorImageWrapper<TTraits,TBase>
 ::GetImageMaxObject() const
 {
   return m_MinMaxFilter->GetMaximumOutput();
+}
+
+
+template<class TTraits, class TBase>
+void
+VectorImageWrapper<TTraits,TBase>
+::AddSamplesToHistogram()
+{
+  typedef itk::ImageRegionConstIterator<FlatImageType> FlatIterator;
+  FlatIterator it(m_FlatImage, m_FlatImage->GetBufferedRegion());
+  for(; !it.IsAtEnd(); ++it)
+    {
+    this->m_Histogram->AddSample(this->m_NativeMapping(it.Get()));
+    }
 }
 
 

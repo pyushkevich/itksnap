@@ -118,7 +118,24 @@ public:
                              AbstractDisplayMappingPolicy)
 
   virtual IntensityCurveInterface *GetIntensityCurve() const = 0;
+
+  /**
+   * @brief Get the intensity range relative to which the contrast mapping
+   * curve is constructed. This is primarily used when displaying the curve
+   * to the user.
+   * @return Vector containing min/max of the curve range (in native units)
+   */
   virtual Vector2d GetNativeImageRangeForCurve() = 0;
+
+  /**
+   * @brief Get the histogram associated with the current state of the display
+   * policy. For single-component layers, this method just returns the
+   * component's histogram. For multi-component layers, it may return the
+   * pooled histogram, e.g., when the display is in RGB mode
+   * @param nBins Number of bins desired in the histogram
+   */
+  virtual const ScalarImageHistogram *GetHistogram(int nBins) = 0;
+
   virtual void AutoFitContrast() = 0;
   virtual void SetColorMap(ColorMap *map) = 0;
 };
@@ -186,8 +203,9 @@ public:
 
   void ClearReferenceIntensityRange();
 
-  // ?
   Vector2d GetNativeImageRangeForCurve();
+
+  virtual const ScalarImageHistogram *GetHistogram(int nBins);
 
 
   /**
@@ -465,6 +483,7 @@ public:
   DisplaySlicePointer GetDisplaySlice(unsigned int slice);
 
   Vector2d GetNativeImageRangeForCurve();
+  virtual const ScalarImageHistogram *GetHistogram(int nBins);
 
   /**
    * @brief Returns true when the display mode is such that the image min, max

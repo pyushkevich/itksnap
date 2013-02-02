@@ -176,7 +176,6 @@ public:
    */
   virtual vnl_vector<double> GetVoxelUnderCursorDisplayedValue();
 
-
   virtual void SetNativeMapping(NativeIntensityMapping mapping);
 
   virtual void SetSliceIndex(const Vector3ui &cursor);
@@ -238,6 +237,8 @@ protected:
   typedef VectorToScalarMagnitudeFunctor<InternalPixelType,float> MagnitudeFunctor;
   typedef VectorToScalarMaxFunctor<InternalPixelType, float> MaxFunctor;
   typedef VectorToScalarMeanFunctor<InternalPixelType,float> MeanFunctor;
+
+  virtual void AddSamplesToHistogram();
 };
 
 #endif // __VectorImageWrapper_h_

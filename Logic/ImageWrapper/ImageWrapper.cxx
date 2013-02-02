@@ -65,6 +65,7 @@
 #include "itkImageAdaptor.h"
 #include "itkVectorImageToImageAdaptor.h"
 #include "UnaryValueToValueFilter.h"
+#include "ScalarImageHistogram.h"
 
 
 #include <vnl/vnl_inverse.h>
@@ -122,6 +123,9 @@ ImageWrapper<TTraits,TBase>
   m_DisplayMapping = DisplayMapping::New();
   m_DisplayMapping->Initialize(
         static_cast<typename TTraits::WrapperType *>(this));
+
+  // Initialize the histogram
+  m_Histogram = ScalarImageHistogram::New();
 
   // Set the transform to identity, which will initialize the directions of the
   // slicers
@@ -645,8 +649,45 @@ ImageWrapper<TTraits,TBase>
   return m_NativeMapping(this->GetImageMaxObject()->Get());
 }
 
-  /** For each slicer, find out which image dimension does is slice along */
 
+template<class TTraits, class TBase>
+const ScalarImageHistogram *
+ImageWrapper<TTraits,TBase>
+::GetHistogram(size_t nBins)
+{
+  // Zero parameter means we want to reuse the current histogram size
+  if(nBins == 0)
+    nBins = m_Histogram->GetSize();
+  if(nBins == 0)
+    nBins = 128;
+
+  // TODO: the histogram should be generated using a filter to take advantage
+  // of ITK threading
+
+  // First check if an update is needed
+  if(m_Histogram->GetMTime() < this->m_Image->GetMTime() ||
+     m_Histogram->GetSize() != nBins)
+    {
+    std::cout << "COMPUTING HISTOGRAM WITH " << nBins << " Bins." << std::endl;
+
+    // Create the histogram
+    m_Histogram->Initialize(this->GetImageMinNative(),
+                            this->GetImageMaxNative(),
+                            nBins);
+
+    // Call the virtual method to build histogram
+    this->AddSamplesToHistogram();
+
+    // Set the m-time
+    m_Histogram->Modified();
+    }
+
+  return m_Histogram;
+}
+
+
+
+/** For each slicer, find out which image dimension does is slice along */
 template<class TTraits, class TBase>
 unsigned int 
 ImageWrapper<TTraits,TBase>

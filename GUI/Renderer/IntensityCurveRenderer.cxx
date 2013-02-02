@@ -92,15 +92,18 @@ void IntensityCurveRenderer::paintGL()
 
       // Set up a transform, such that the histogram plot area fits into
       // the unit square
-      double xspan = histogram->GetBinMax(nBins - 1) - histogram->GetBinMin(0);
+      Vector2d lw = m_Model->GetLevelWindowModel()->GetValue();
+      double level = lw[0], window = lw[1];
+
+      // double xspan = histogram->GetBinMax(nBins - 1) - histogram->GetBinMin(0);
       double yspan = histogram->GetMaxFrequency() *
           m_Model->GetProperties().GetHistogramCutoff();
 
       if(m_Model->GetProperties().IsHistogramLog() && yspan > 0)
         yspan = log10(yspan);
 
-      glScaled(1.0 / xspan, 1.0 / yspan, 1.0);
-      glTranslated(-histogram->GetBinMin(0), 0, 0);
+      glScaled(1.0 / window, 1.0 / yspan, 1.0);
+      glTranslated(-level, 0, 0);
 
       // Figure out how many pixels are actually inside each histogram bin
 

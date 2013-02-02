@@ -225,6 +225,14 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 }
 
 template<class TWrapperTraits>
+const ScalarImageHistogram *
+CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
+::GetHistogram(int nBins)
+{
+  return m_Wrapper->GetHistogram(nBins);
+}
+
+template<class TWrapperTraits>
 typename CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>::DisplaySlicePointer
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 ::GetDisplaySlice(unsigned int dim)
@@ -819,6 +827,24 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     }
 
   return Vector2d(cmin, cmax);
+}
+
+template<class TWrapperTraits>
+const ScalarImageHistogram *
+MultiChannelDisplayMappingPolicy<TWrapperTraits>
+::GetHistogram(int nBins)
+{
+  if(m_DisplayMode.UseRGB)
+    {
+    // In RGB mode, we should return a pooled histogram of the data.
+    return m_Wrapper->GetHistogram(nBins);
+    }
+  else
+    {
+    // Otherwise, we return the component-specific histogram
+    return m_ScalarRepresentation->GetHistogram(nBins);
+    }
+
 }
 
 

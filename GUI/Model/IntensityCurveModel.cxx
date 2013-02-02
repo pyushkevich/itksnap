@@ -106,8 +106,8 @@ const ScalarImageHistogram *
 IntensityCurveModel
 ::GetHistogram()
 {
-  // Check that we have a layer
-  assert(m_Layer);
+  AbstractContinuousImageDisplayMappingPolicy *dmp = this->GetDisplayPolicy();
+  assert(dmp);
 
   // Get the properties for the layer
   IntensityCurveLayerProperties *p = m_LayerProperties[m_Layer];
@@ -121,7 +121,7 @@ IntensityCurveModel
     }
 
   // Get the histogram
-  return m_Layer->GetDefaultScalarRepresentation()->GetHistogram(nBins);
+  return dmp->GetHistogram(nBins);
 }
 
 IntensityCurveLayerProperties::IntensityCurveLayerProperties()

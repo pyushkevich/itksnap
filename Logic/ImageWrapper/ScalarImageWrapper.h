@@ -173,18 +173,6 @@ public:
   double GetImageGradientMagnitudeUpperLimitNative();
 
   /**
-    Compute the image histogram. The histogram is cached inside of the
-    object, so repeated calls to this function with the same nBins parameter
-    will not require additional computation.
-
-    Calling with default parameter (0) will use the same number of bins that
-    is currently in the histogram (i.e., return/recompute current histogram).
-    If there is no current histogram, a default histogram with 128 entries
-    will be generated.
-    */
-  const ScalarImageHistogram *GetHistogram(size_t nBins = 0);
-
-  /**
    * Get an image cast to a common representation.
    * @see ScalarImageWrapperBase::GetCommonFormatImage()
    */
@@ -248,9 +236,8 @@ protected:
    */
   virtual void UpdateImagePointer(ImageType *);
 
-  // The histogram for this scalar wrapper. It is computed only when asked for
-  SmartPtr<ScalarImageHistogram> m_Histogram;
 
+  virtual void AddSamplesToHistogram();
 };
 
 #endif // __ScalarImageWrapper_h_

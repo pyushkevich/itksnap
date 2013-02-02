@@ -299,6 +299,19 @@ public:
   /** Return componentwise maximum cast to double, after mapping to native range */
   virtual double GetImageMaxNative();
 
+  /**
+    Compute the image histogram. The histogram is cached inside of the
+    object, so repeated calls to this function with the same nBins parameter
+    will not require additional computation.
+
+    Calling with default parameter (0) will use the same number of bins that
+    is currently in the histogram (i.e., return/recompute current histogram).
+    If there is no current histogram, a default histogram with 128 entries
+    will be generated.
+
+    For multi-component data, the histogram is pooled over all components.
+    */
+  const ScalarImageHistogram *GetHistogram(size_t nBins = 0);
 
   /**
    * Get a slice of the image in a given direction
@@ -460,6 +473,10 @@ protected:
   // Each layer has a filename and a nickname
   std::string m_FileName, m_Nickname;
 
+  // The histogram for this scalar wrapper. It is computed only when asked for
+  SmartPtr<ScalarImageHistogram> m_Histogram;
+
+
   /**
    * Handle a change in the image pointer (i.e., a load operation on the image or 
    * an initialization operation)
@@ -471,6 +488,8 @@ protected:
 
   void SetImageGeometry(const itk::Matrix<double,3,3> &directionMatrix,
                         ImageCoordinateTransform imageToDisplayTransform[3]);
+
+  virtual void AddSamplesToHistogram() = 0;
 
 };
 

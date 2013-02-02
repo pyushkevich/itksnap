@@ -34,8 +34,8 @@
 #include "itkVectorImageToImageAdaptor.h"
 #include "IRISException.h"
 #include "VectorImageWrapper.h"
-
 #include "ScalarImageHistogram.h"
+
 #include "itkStreamingImageFilter.h"
 
 #include <iostream>
@@ -44,7 +44,6 @@ template<class TTraits, class TBase>
 ScalarImageWrapper<TTraits,TBase>
 ::ScalarImageWrapper()
 {
-  m_Histogram = ScalarImageHistogram::New();
   m_MinMaxFilter = MinMaxFilter::New();
 
   m_GradientMagnitudeFilter = GradMagFilter::New();
@@ -190,42 +189,16 @@ ScalarImageWrapper<TTraits,TBase>
   return v;
 }
 
-
-
-//#include "itkListSampleToHistogramGenerator.h"
-//#include "itkImageToListAdaptor.h"
-
 template<class TTraits, class TBase>
-const ScalarImageHistogram *
+void
 ScalarImageWrapper<TTraits,TBase>
-::GetHistogram(size_t nBins)
+::AddSamplesToHistogram()
 {
-  // Zero parameter means we want to reuse the current histogram size
-  if(nBins == 0)
-    nBins = m_Histogram->GetSize();
-  if(nBins == 0)
-    nBins = 128;
-
-  // First check if an update is needed
-  if(m_Histogram->GetMTime() < this->m_Image->GetMTime() ||
-     m_Histogram->GetSize() != nBins)
+  // Add all points as samples
+  for(ConstIterator it = this->GetImageConstIterator(); !it.IsAtEnd(); ++it)
     {
-    // Create the histogram
-    m_Histogram->Initialize(this->GetImageMinNative(),
-                            this->GetImageMaxNative(),
-                            nBins);
-
-    // Add all points as samples
-    for(ConstIterator it = this->GetImageConstIterator(); !it.IsAtEnd(); ++it)
-      {
-      m_Histogram->AddSample(this->m_NativeMapping(it.Get()));
-      }
-
-    // Set the m-time
-    m_Histogram->Modified();
+    this->m_Histogram->AddSample(this->m_NativeMapping(it.Get()));
     }
-
-  return m_Histogram;
 }
 
 template<class TTraits, class TBase>
