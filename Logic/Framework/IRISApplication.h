@@ -177,6 +177,13 @@ public:
   void UnloadOverlayLast();
   void UnloadMainImage();
 
+  /**
+   * Quit the application. This responds to the quit action in the main application.
+   * This unloads all layers. Additionally, when the application is in snake mode,
+   * it first cancels snake mode
+   */
+  void Quit();
+
   /** 
    * Update the IRIS image data with an external segmentation image (e.g., 
    * loaded from a file).

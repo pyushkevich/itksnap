@@ -40,9 +40,22 @@ public:
   LinearInternalToNativeIntensityMapping() : scale(1.0), shift(0.0) {}
   LinearInternalToNativeIntensityMapping(double a, double b) : scale(a), shift(b) {}
 
-private:
+protected:
   double scale;
   double shift;
+};
+
+class SpeedImageInternalToNativeIntensityMapping
+    : public LinearInternalToNativeIntensityMapping
+{
+public:
+  SpeedImageInternalToNativeIntensityMapping()
+  {
+    // Map the range of short to -1 : 1
+    short smin = -0x7fff, smax = 0x7fff;
+    this->scale = 2.0 / ((int) smax - (int) smin);
+    this->shift = 0.0;
+  }
 };
 
 class IdentityInternalToNativeIntensityMapping : public AbstractNativeIntensityMapping

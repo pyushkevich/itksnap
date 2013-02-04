@@ -382,14 +382,6 @@ public:
     NUMBER_OF_SCALAR_REPS
   };
 
-  /**
-   * Set the scalar representation of the vector image wrapper. The first
-   * parameter is teh type of scalar representation (e.g., extract a specific
-   * component, extract magnitude of the vector, etc.) and the second, optional
-   * parameter is the index - only relevant for component representation.
-   */
-  virtual void SetDefaultScalarRepresentation(
-      ScalarRepresentation type, int index = 0) = 0;
 
   virtual ScalarImageWrapperBase *GetScalarRepresentation(
       ScalarRepresentation type, int index = 0) = 0;

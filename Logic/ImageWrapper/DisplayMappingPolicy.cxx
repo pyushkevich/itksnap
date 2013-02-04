@@ -108,6 +108,8 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 
   // Initialize the colormap
   m_ColorMap = ColorMap::New();
+  m_ColorMap->SetToSystemPreset(
+        static_cast<ColorMap::SystemPreset>(TWrapperTraits::DefaultColorMap));
 
   // Initialize the LUT filter
   m_LookupTableFilter = LookupTableFilterType::New();
@@ -351,6 +353,9 @@ LinearColorMapDisplayMappingPolicy<TWrapperTraits>
 ::LinearColorMapDisplayMappingPolicy()
 {
   m_ColorMap = ColorMap::New();
+  m_ColorMap->SetToSystemPreset(
+        static_cast<ColorMap::SystemPreset>(TWrapperTraits::DefaultColorMap));
+
   m_Wrapper = NULL;
 
   // Initialize the functor - based on the hard-coded range of the
@@ -951,7 +956,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 template class ColorLabelTableDisplayMappingPolicy<LabelImageWrapperTraits>;
 
 template class LinearColorMapDisplayMappingPolicy<LevelSetImageWrapperTraits>;
-template class CachingCurveAndColorMapDisplayMappingPolicy<SpeedImageWrapperTraits>;
+template class LinearColorMapDisplayMappingPolicy<SpeedImageWrapperTraits>;
 
 template class MultiChannelDisplayMappingPolicy<AnatomicImageWrapperTraits<GreyType> >;
 

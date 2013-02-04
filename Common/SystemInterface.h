@@ -123,8 +123,8 @@ public:
   Registry ReadSavedObject(const char *category, const char *name);
   void UpdateSavedObject(const char *category, const char *name, Registry &folder);
   void DeleteSavedObject(const char *category, const char *name);
-  std::string DecodeObjectName(std::string fname);
-  std::string EncodeObjectName(std::string fname);
+  static std::string DecodeObjectName(std::string fname);
+  static std::string EncodeObjectName(std::string fname);
 
   
   /** 

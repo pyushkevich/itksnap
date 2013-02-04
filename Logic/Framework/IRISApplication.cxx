@@ -217,6 +217,9 @@ IRISApplication
 
   // Indicate that the speed image is invalid
   m_GlobalState->SetSpeedValid(false);
+
+  // The set of layers has changed
+  InvokeEvent(LayerChangeEvent());
 }
 
 void 
@@ -1425,6 +1428,19 @@ IRISApplication
 
   // Let everyone know that the main image is gone!
   InvokeEvent(MainImageDimensionsChangeEvent());
+}
+
+void IRISApplication::Quit()
+{
+  if(IsSnakeModeActive())
+    {
+    // Before quitting the application, we need to exit snake mode
+    SetCurrentImageDataToIRIS();
+    ReleaseSNAPImageData();
+    }
+
+  UnloadOverlays();
+  UnloadMainImage();
 }
 
 void

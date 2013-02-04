@@ -30,20 +30,19 @@
 
 #include <iostream>
 
+#include "itkVectorGradientAnisotropicDiffusionImageFilter.h"
+
 
 template <class TTraits, class TBase>
 VectorImageWrapper<TTraits,TBase>
 ::VectorImageWrapper()
 {
-  // Initialize the derived wrapper array
-  m_DefaultScalarRepType = VectorImageWrapperBase::SCALAR_REP_COMPONENT;
-  m_DefaultScalarRepIndex = 0;
-
   // Initialize the flattened image
   m_FlatImage = NULL;
 
   // Initialize the filters
   m_MinMaxFilter = MinMaxFilterType::New();
+
 }
 
 template <class TTraits, class TBase>
@@ -62,7 +61,7 @@ VectorImageWrapper<TTraits,TBase>
 {
    std::cout << "VectorImageWrapper::DeepCopyRegion" << std::endl;
    std::cout << std::flush;
-   return NULL;
+   return Superclass::DeepCopyRegion(roi, progressCommand);
 }
 
 template <class TTraits, class TBase>
@@ -266,6 +265,21 @@ VectorImageWrapper<TTraits,TBase>
   // Call the parent's method = this will initialize the display mapping
   Superclass::UpdateImagePointer(newImage);
 
+}
+
+template <class TTraits, class TBase>
+inline ScalarImageWrapperBase *
+VectorImageWrapper<TTraits,TBase>
+::GetDefaultScalarRepresentation()
+{
+  ScalarImageWrapperBase *rep =
+      this->m_DisplayMapping->GetScalarRepresentation();
+  if(rep)
+    return rep;
+
+  // TODO: This is somewhat arbitrary! Maybe it should be something the user
+  // can change under settings, i.e., "Default scalar representation for RGB images".
+  return this->GetScalarRepresentation(VectorImageWrapperBase::SCALAR_REP_MAX);
 }
 
 template <class TTraits, class TBase>

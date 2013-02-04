@@ -285,9 +285,24 @@ protected:
 };
 
 
+/*
+template<class TWrapperTraits>
+class SpeedImageWrapperDisplayPolicy
+    : public LinearColorMapDisplayMappingPolicy
+{
+public:
+  irisITKObjectMacro(SpeedImageWrapperDisplayPolicy<TWrapperTraits>,
+                     CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>)
 
+  void UpdateImagePointer(ImageType *image);
 
+protected:
 
+  SpeedImageWrapperDisplayPolicy() {}
+  virtual ~SpeedImageWrapperDisplayPolicy() {}
+
+};
+*/
 
 
 
@@ -501,6 +516,8 @@ public:
   virtual void Restore(Registry &folder);
 
   virtual void AutoFitContrast();
+
+  irisGetMacro(ScalarRepresentation, ScalarImageWrapperBase *)
 
 protected:
 

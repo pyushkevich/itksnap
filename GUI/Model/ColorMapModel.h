@@ -210,6 +210,9 @@ protected:
   bool GetLayerOpacityValueAndRange(
       double &value, NumericValueRange<double> *range);
   void SetLayerOpacity(double value);
+
+  // Extract a colormap from the layer if it has one
+  ColorMap *GetColorMap(ImageWrapperBase *layer);
 };
 
 #endif // COLORMAPMODEL_H

@@ -137,13 +137,14 @@ void LayerInspectorDialog::onLayerSelection()
   ImageWrapperBase *layer = it.GetLayer();
 
   // For each model, set the layer
-  m_Model->GetIntensityCurveModel()->SetLayer(layer);
-  m_Model->GetColorMapModel()->SetLayer(layer);
+  m_Model->GetColorMapModel()->SetLayer(
+    layer->GetDisplayMapping()->GetColorMap() ? layer : NULL);
+
+  m_Model->GetIntensityCurveModel()->SetLayer(
+        layer->GetDisplayMapping()->GetIntensityCurve() ? layer : NULL);
+
   m_Model->GetImageInfoModel()->SetLayer(layer);
-  if(layer->GetNumberOfComponents() > 1)
-    {
-    m_Model->GetComponentSelectionModel()->SetLayer(it.GetLayerAsVector());
-    }
+  m_Model->GetComponentSelectionModel()->SetLayer(it.GetLayerAsVector());
 }
 
 void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
@@ -168,8 +169,10 @@ void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
         ui->inLayer->selectionModel()->setCurrentIndex(
               m_LayerListModel->index(0),
               QItemSelectionModel::SelectCurrent);
-        onLayerSelection();
         }
       }
+
+    // Layer selection needs to be updated
+    onLayerSelection();
     }
 }

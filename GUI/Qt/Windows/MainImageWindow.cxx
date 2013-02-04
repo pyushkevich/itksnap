@@ -374,8 +374,7 @@ void MainImageWindow::on_actionQuit_triggered()
   // TODO: check for unsaved changes
 
   // Unload all images (this causes the associations to be saved)
-  m_Model->GetDriver()->UnloadOverlays();
-  m_Model->GetDriver()->UnloadMainImage();
+  m_Model->GetDriver()->Quit();
 
   // Exit the application
   QCoreApplication::exit();

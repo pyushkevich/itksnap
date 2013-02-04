@@ -70,6 +70,10 @@ public:
     */
   void SetLayer(TWrapper *layer)
   {
+    // There is nothing to do if the layer is already set
+    if(layer && m_Layer == layer)
+      return;
+
     // Make sure the layer-specific stuff is up to date
     m_LayerProperties.Update();
 
@@ -96,6 +100,10 @@ public:
       m_DeleteEventObserverTag =
           AddListener(m_Layer, itk::DeleteEvent(),
                       this, &Self::LayerDeletionCallback);
+
+      std::cout << "DeleteEvent registration "
+                << " layer " << m_Layer << " id " << m_Layer->GetUniqueId()
+                << " observer " << this << std::endl;
 
       // Do whatever needs to be done to listen to layer events
       this->RegisterWithLayer(m_Layer);

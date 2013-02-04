@@ -166,7 +166,7 @@ void ColorMapInspector::on_btnAddPreset_clicked()
   // What default to recommend?
   int sel = ui->inPreset->currentIndex();
   QString seltext = ui->inPreset->itemText(sel);
-  QString deflt = (sel < ColorMap::COLORMAP_SIZE)
+  QString deflt = (sel < ColorMap::COLORMAP_CUSTOM)
       ? QString("My ") + seltext : seltext;
 
   // Prompt the user for input

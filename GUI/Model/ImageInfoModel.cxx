@@ -111,11 +111,10 @@ bool ImageInfoModel
 {
   ImageWrapperBase *layer = this->GetLayer();
 
-  // TODO: figure out how to handle this conistently throughout!
+  // TODO: figure out how to handle this conistently throughout
   if(layer)
     {
-    ScalarImageWrapperBase *sl = layer->GetDefaultScalarRepresentation();
-    value = Vector2d(sl->GetImageMinNative(), sl->GetImageMaxNative());
+    value = Vector2d(layer->GetImageMinNative(), layer->GetImageMaxNative());
     return true;
     }
 

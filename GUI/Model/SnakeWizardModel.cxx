@@ -351,7 +351,7 @@ void SnakeWizardModel
   for(int i = 0; i < n; i++)
     {
     float t = i * 1.0 / (n - 1);
-    float x_internal = t * (imax - imin);
+    float x_internal = imin + t * (imax - imin);
     x[i] = grey->GetNativeIntensityMapping()->MapInternalToNative(x_internal);
     y[i] = speed->GetNativeIntensityMapping()->MapInternalToNative(functor(x_internal));
     }

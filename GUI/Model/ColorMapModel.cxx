@@ -44,10 +44,16 @@ ColorMapModel::ColorMapModel()
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
 }
 
+ColorMap* ColorMapModel::GetColorMap(ImageWrapperBase *layer)
+{
+  // Get the display mapping cast to a type that supports colormap
+  return layer->GetDisplayMapping()->GetColorMap();
+}
+
+
 ColorMap* ColorMapModel::GetColorMap()
 {
-  // TODO: this needs a fix
-  return this->GetLayer()->GetDefaultScalarRepresentation()->GetColorMap();
+  return this->GetColorMap(this->GetLayer());
 }
 
 bool
@@ -104,14 +110,18 @@ ColorMapModel
 
 void ColorMapModel::RegisterWithLayer(ImageWrapperBase *layer)
 {
-  // TODO: fix where the color map is coming from
+  // Register for the model events
+  ColorMap *cm = this->GetColorMap(layer);
   ColorMapLayerProperties &p = GetProperties();
   p.SetColorMapObserverTag(
-        Rebroadcast(layer->GetDefaultScalarRepresentation()->GetColorMap(),
-                    ColorMapChangeEvent(), ModelUpdateEvent()));
+        Rebroadcast(cm, ColorMapChangeEvent(), ModelUpdateEvent()));
   p.SetLayerObserverTag(
-        Rebroadcast(layer,
-                    AppearanceUpdateEvent(), ModelUpdateEvent()));
+        Rebroadcast(layer,AppearanceUpdateEvent(), ModelUpdateEvent()));
+
+  // Check if the colormap matches one of the presets, and if so, set
+  // it as the current preset
+  p.SetSelectedPreset(cm->GetPresetName(cm->GetSystemPreset()));
+
 }
 
 void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer)
@@ -120,7 +130,7 @@ void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer)
   ColorMapLayerProperties &p = GetProperties();
   if((tag = p.GetLayerObserverTag()))
     {
-    layer->GetDefaultScalarRepresentation()->GetColorMap()->RemoveObserver(tag);
+    this->GetColorMap(layer)->RemoveObserver(tag);
     }
   if((tag = p.GetColorMapObserverTag()))
     {
@@ -391,7 +401,7 @@ ColorMapModel
 ::CheckState(ColorMapModel::UIState state)
 {
   // All flags are false if no layer is loaded
-  if(this->GetLayer() == NULL)
+  if(this->GetLayer() == NULL || this->GetColorMap() == NULL)
     return false;
 
   // Otherwise get the properties
@@ -548,7 +558,7 @@ void ColorMapModel::SetParentModel(GlobalUIModel *parent)
   m_System = m_ParentModel->GetDriver()->GetSystemInterface();
 
   // Get the list of system presets
-  for(int i = 0; i < ColorMap::COLORMAP_SIZE; i++)
+  for(int i = 0; i < ColorMap::COLORMAP_CUSTOM; i++)
     {
     m_PresetSystem.push_back(
           ColorMap::GetPresetName(static_cast<ColorMap::SystemPreset>(i)));

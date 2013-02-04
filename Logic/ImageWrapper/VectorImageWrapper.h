@@ -81,14 +81,14 @@ public:
   virtual bool IsScalar() const { return false; }
 
   /**
-   * This function returns whatever scalar representation is current.
+   * This function returns whatever scalar representation is current. The
+   * current representation depends on the display mode of the wrapper. If the
+   * display mode is RGB, the default scalar representation in MaximumComponent,
+   * which is somewhat arbitrary. If the components are being animated, there
+   * is also some ambiguity as to what the default scalar component should be.
    * @see ImageWrapperBase::GetScalarRepresentation
    */
-  ScalarImageWrapperBase *GetDefaultScalarRepresentation()
-  {
-    return this->GetScalarRepresentation(m_DefaultScalarRepType,
-                                         m_DefaultScalarRepIndex);
-  }
+  ScalarImageWrapperBase *GetDefaultScalarRepresentation();
 
   ScalarImageWrapperBase *GetScalarRepresentation(
       VectorImageWrapperBase::ScalarRepresentation type,
@@ -99,17 +99,6 @@ public:
    * but cast to its true type, rather than ScalarImageWrapperBase.
    */
   ComponentWrapperType *GetComponentWrapper(unsigned int index);
-
-  /**
-   * Set the scalar representation of the vector image wrapper.
-   */
-  void SetDefaultScalarRepresentation(
-      VectorImageWrapperBase::ScalarRepresentation type,
-      int index = 0)
-  {
-    m_DefaultScalarRepType = type;
-    m_DefaultScalarRepIndex = index;
-  }
 
   /**
    * This method is used to perform a deep copy of a region of this image 
@@ -217,10 +206,6 @@ protected:
   typedef std::map<ScalarRepIndex, ScalarWrapperPointer> ScalarRepMap;
   typedef typename ScalarRepMap::iterator ScalarRepIterator;
   ScalarRepMap m_ScalarReps;
-
-  // Default scalar representation
-  VectorImageWrapperBase::ScalarRepresentation m_DefaultScalarRepType;
-  unsigned int m_DefaultScalarRepIndex;
 
   // For computing image statistics, we can represent the image as a one-dimensional
   // image of size n_voxels * n_components. This image can then be fed as input to

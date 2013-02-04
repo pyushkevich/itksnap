@@ -77,7 +77,7 @@ public:
     COLORMAP_RED, COLORMAP_GREEN, COLORMAP_BLUE,
     COLORMAP_SPRING, COLORMAP_SUMMER,
     COLORMAP_AUTUMN, COLORMAP_WINTER, COLORMAP_COPPER, COLORMAP_HSV,
-    COLORMAP_BWR, COLORMAP_RWB, COLORMAP_SPEED, COLORMAP_SIZE
+    COLORMAP_BWR, COLORMAP_RWB, COLORMAP_SPEED, COLORMAP_CUSTOM
     };
 
   /** CMPoint representation */
@@ -90,6 +90,7 @@ public:
     RGBAType m_RGBA[2];
 
     bool operator==(const CMPoint& rhs) const;
+    bool operator!=(const CMPoint& rhs) const;
 
     CMPoint();
 
@@ -123,11 +124,9 @@ public:
   CMPoint GetCMPoint(size_t j) const
   { return m_CMPoints[j]; }
 
-  void UpdateCMPoint(size_t j, const CMPoint &p)
-  { m_CMPoints[j] = p; this->UpdateInterpolants(); }
+  void UpdateCMPoint(size_t j, const CMPoint &p);
 
-  void DeleteCMPoint(size_t j)
-  { m_CMPoints.erase(m_CMPoints.begin() + j); this->UpdateInterpolants(); }
+  void DeleteCMPoint(size_t j);
 
   /**
      * This method inserts a new control point, which is interpolated
@@ -183,6 +182,9 @@ private:
   { float slope[4], intercept[4]; };
   typedef std::vector<InterpolantData> InterpolantVector;
   InterpolantVector m_Interpolants;
+
+  // Enum for saving presets
+  static RegistryEnumMap<SystemPreset> m_ColorMapPresetEnumMap;
 };
 
 

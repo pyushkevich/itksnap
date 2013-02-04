@@ -82,7 +82,7 @@ void ColorMapRenderer::paintGL()
   glDisable(GL_TEXTURE_2D);
 
 
-  if(m_Model->GetLayer() != NULL)
+  if(m_Model->GetLayer() != NULL && m_Model->GetColorMap() != NULL)
     {
     // Turn on alpha blending
     glEnable(GL_BLEND);

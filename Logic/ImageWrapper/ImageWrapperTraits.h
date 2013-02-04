@@ -10,6 +10,7 @@
 
 #include "ScalarImageWrapper.h"
 #include "VectorImageWrapper.h"
+#include "ColorMap.h"
 
 namespace itk
 {
@@ -54,9 +55,14 @@ public:
   typedef GreyType ComponentType;
   typedef itk::Image<ComponentType, 3> ImageType;
 
-  typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
-  typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
+  typedef SpeedImageInternalToNativeIntensityMapping NativeIntensityMapping;
+  typedef LinearColorMapDisplayMappingPolicy<Self> DisplayMapping;
   typedef NullScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
+
+  static void GetFixedIntensityRange(float &min, float &max)
+    { min = -0x7fff; max = 0x7fff; }
+
+  itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_SPEED);
 };
 
 class LevelSetImageWrapperTraits
@@ -75,6 +81,8 @@ public:
 
   static void GetFixedIntensityRange(float &min, float &max)
     { min = -4.0; max = 4.0; }
+
+  itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_BWR);
 };
 
 template <class TPixel>
@@ -91,6 +99,8 @@ public:
   typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
   typedef CastingScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
+
+  itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_GREY);
 };
 
 template <class TFunctor>
@@ -110,6 +120,8 @@ public:
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
   typedef CastingScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
+
+  itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_GREY);
 };
 
 

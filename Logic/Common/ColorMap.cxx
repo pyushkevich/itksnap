@@ -55,6 +55,13 @@ ColorMap::CMPoint
   return true;
 }
 
+bool
+ColorMap::CMPoint
+::operator!=(const ColorMap::CMPoint& rhs) const
+{
+  return !(*this == rhs);
+}
+
 ColorMap::CMPoint
 ::CMPoint()
 {
@@ -132,6 +139,16 @@ ColorMap
 ::ColorMap()
 {
   SetToSystemPreset(COLORMAP_GREY);
+
+  // Set up the enum map
+  if(!m_ColorMapPresetEnumMap.Size())
+    {
+    for(int i = 0; i <= COLORMAP_CUSTOM; i++)
+      {
+      SystemPreset preset = static_cast<SystemPreset>(i);
+      m_ColorMapPresetEnumMap.AddPair(preset, this->GetPresetName(preset));
+      }
+    }
 }
 
 ColorMap
@@ -139,20 +156,7 @@ ColorMap
 {
 }
 
-/*
-ColorMap
-::ColorMap(const ColorMap& rhs)
-{
-  CMPointConstIterator it = rhs.m_CMPoints.begin();
-  m_CMPreset = rhs.m_CMPreset;
-  while (it != rhs.m_CMPoints.end())
-    {
-    m_CMPoints.push_back( *it );
-    ++it;
-    }
-  this->UpdateInterpolants(); 
-}
-*/
+RegistryEnumMap<ColorMap::SystemPreset> ColorMap::m_ColorMapPresetEnumMap;
 
 bool
 ColorMap
@@ -189,6 +193,8 @@ ColorMap
   CMPointIterator itnew = m_CMPoints.insert(it, newbie);
 
   this->UpdateInterpolants(); 
+
+  m_CMPreset = COLORMAP_CUSTOM;
 
   return itnew - m_CMPoints.begin();
 }
@@ -394,44 +400,69 @@ ColorMap
       m_CMPoints.push_back( CMPoint(1.0,    0xff, 0xff, 0xff, 0xff) );
       break;
 
-    case COLORMAP_SIZE:
+    case COLORMAP_CUSTOM:
       // to suppress compiler warning
-      std::cerr << "COLORMAP_SIZE: should never get there ..." << std::endl;
+      std::cerr << "COLORMAP_CUSTOM: should never get there ..." << std::endl;
       break;
    }
 
-  this->UpdateInterpolants(); 
+  this->UpdateInterpolants();
 }
+
+void ColorMap::UpdateCMPoint(size_t j, const ColorMap::CMPoint &p)
+{
+  if(m_CMPoints[j] != p)
+    {
+    m_CMPoints[j] = p;
+    this->UpdateInterpolants();
+    m_CMPreset = COLORMAP_CUSTOM;
+    }
+}
+
+void ColorMap::DeleteCMPoint(size_t j)
+{
+  m_CMPoints.erase(m_CMPoints.begin() + j);
+  this->UpdateInterpolants();
+  m_CMPreset = COLORMAP_CUSTOM;
+}
+
 
 void ColorMap
 ::SaveToRegistry(Registry &reg)
 {
-  // Store the number of control points
-  reg["NumberOfControlPoints"] << m_CMPoints.size();
+  // Save what system preset we are using (if any)
+  reg.Entry("Preset").PutEnum(m_ColorMapPresetEnumMap, m_CMPreset);
 
-  RegistryEnumMap<CMPointType> emap;
-  emap.AddPair(CONTINUOUS,"Continuous");
-  emap.AddPair(DISCONTINUOUS,"Discontinuous");
-
-  // Save each control point
-  for(size_t iPoint = 0; iPoint < m_CMPoints.size(); iPoint++)
+  // For custom colormaps, save them
+  if(m_CMPreset == COLORMAP_CUSTOM)
     {
-    // Get the current values, just in case
-    CMPoint p = m_CMPoints[iPoint];
+    // Store the number of control points
+    reg["NumberOfControlPoints"] << m_CMPoints.size();
 
-    // Create a folder in the registry
-    std::string key = reg.Key("ControlPoint[%04d]",iPoint);
-    Registry &folder = reg.Folder(key);
-    folder["Index"] << p.m_Index;
-    folder["Type"].PutEnum(emap, p.m_Type);
-    folder["Left.R"] << (int) p.m_RGBA[0][0];
-    folder["Left.G"] << (int) p.m_RGBA[0][1];
-    folder["Left.B"] << (int) p.m_RGBA[0][2];
-    folder["Left.A"] << (int) p.m_RGBA[0][3];
-    folder["Right.R"] << (int) p.m_RGBA[1][0];
-    folder["Right.G"] << (int) p.m_RGBA[1][1];
-    folder["Right.B"] << (int) p.m_RGBA[1][2];
-    folder["Right.A"] << (int) p.m_RGBA[1][3];
+    RegistryEnumMap<CMPointType> emap;
+    emap.AddPair(CONTINUOUS,"Continuous");
+    emap.AddPair(DISCONTINUOUS,"Discontinuous");
+
+    // Save each control point
+    for(size_t iPoint = 0; iPoint < m_CMPoints.size(); iPoint++)
+      {
+      // Get the current values, just in case
+      CMPoint p = m_CMPoints[iPoint];
+
+      // Create a folder in the registry
+      std::string key = reg.Key("ControlPoint[%04d]",iPoint);
+      Registry &folder = reg.Folder(key);
+      folder["Index"] << p.m_Index;
+      folder["Type"].PutEnum(emap, p.m_Type);
+      folder["Left.R"] << (int) p.m_RGBA[0][0];
+      folder["Left.G"] << (int) p.m_RGBA[0][1];
+      folder["Left.B"] << (int) p.m_RGBA[0][2];
+      folder["Left.A"] << (int) p.m_RGBA[0][3];
+      folder["Right.R"] << (int) p.m_RGBA[1][0];
+      folder["Right.G"] << (int) p.m_RGBA[1][1];
+      folder["Right.B"] << (int) p.m_RGBA[1][2];
+      folder["Right.A"] << (int) p.m_RGBA[1][3];
+      }
     }
 }
 
@@ -440,69 +471,84 @@ void ColorMap
 void ColorMap
 ::LoadFromRegistry(Registry &reg)
 {
-  // Store the number of control points
-  size_t n = reg["NumberOfControlPoints"][0];
-  if(n == 0)
-    return;
+  // See what system preset we are using (if any)
+  SystemPreset preset =
+      reg.Entry("Preset").GetEnum(m_ColorMapPresetEnumMap, COLORMAP_GREY);
 
-  // Read each control point
-  CMPointList newpts;
-
-  RegistryEnumMap<CMPointType> emap;
-  emap.AddPair(CONTINUOUS,"Continuous");
-  emap.AddPair(DISCONTINUOUS,"Discontinuous");
-
-  // Save each control point
-  for(size_t iPoint = 0; iPoint < n; iPoint++)
+  // If system preset, apply it and we're done
+  if(preset != COLORMAP_CUSTOM)
     {
-    // Get the current values, just in case
-    CMPoint p;
-
-    // Create a folder in the registry
-    std::string key = reg.Key("ControlPoint[%04d]",iPoint);
-    Registry &folder = reg.Folder(key);
-
-    p.m_Index = folder["Index"][-1.0];
-    p.m_Type = folder["Type"].GetEnum(emap, CONTINUOUS);
-    p.m_RGBA[0][0] = (unsigned char) folder["Left.R"][0];
-    p.m_RGBA[0][1] = (unsigned char) folder["Left.G"][0];
-    p.m_RGBA[0][2] = (unsigned char) folder["Left.B"][0];
-    p.m_RGBA[0][3] = (unsigned char) folder["Left.A"][0];
-    if(p.m_Type == CONTINUOUS)
-      {
-      p.m_RGBA[1][0] = p.m_RGBA[0][0];
-      p.m_RGBA[1][1] = p.m_RGBA[0][1];
-      p.m_RGBA[1][2] = p.m_RGBA[0][2];
-      p.m_RGBA[1][3] = p.m_RGBA[0][3];
-      }
-    else
-      {
-      p.m_RGBA[1][0] = (unsigned char) folder["Right.R"][0];
-      p.m_RGBA[1][1] = (unsigned char) folder["Right.G"][0];
-      p.m_RGBA[1][2] = (unsigned char) folder["Right.B"][0];
-      p.m_RGBA[1][3] = (unsigned char) folder["Right.A"][0];
-      }
-
-    // Check validity
-    if(iPoint == 0 && p.m_Index != 0.0)
-      throw IRISException("Can not read color map. First point has non-zero index.");
-
-    if(iPoint == n-1 && p.m_Index != 1.0)
-      throw IRISException("Can not read color map. Last point has index not equal to 1.");
-
-    if(iPoint > 0 && p.m_Index < newpts[iPoint-1].m_Index)
-      throw IRISException("Can not read color map. Indices are not stored in order.");
-
-    newpts.push_back(p);
+    SetToSystemPreset(preset);
     }
+  else
+    {
+    // Store the number of control points
+    size_t n = reg["NumberOfControlPoints"][0];
+    if(n == 0)
+      return;
 
-  // Got this far? store the new map
-  m_CMPoints = newpts;
-  this->UpdateInterpolants();
+    // Read each control point
+    CMPointList newpts;
+
+    RegistryEnumMap<CMPointType> emap;
+    emap.AddPair(CONTINUOUS,"Continuous");
+    emap.AddPair(DISCONTINUOUS,"Discontinuous");
+
+    // Save each control point
+    for(size_t iPoint = 0; iPoint < n; iPoint++)
+      {
+      // Get the current values, just in case
+      CMPoint p;
+
+      // Create a folder in the registry
+      std::string key = reg.Key("ControlPoint[%04d]",iPoint);
+      Registry &folder = reg.Folder(key);
+
+      p.m_Index = folder["Index"][-1.0];
+      p.m_Type = folder["Type"].GetEnum(emap, CONTINUOUS);
+      p.m_RGBA[0][0] = (unsigned char) folder["Left.R"][0];
+      p.m_RGBA[0][1] = (unsigned char) folder["Left.G"][0];
+      p.m_RGBA[0][2] = (unsigned char) folder["Left.B"][0];
+      p.m_RGBA[0][3] = (unsigned char) folder["Left.A"][0];
+      if(p.m_Type == CONTINUOUS)
+        {
+        p.m_RGBA[1][0] = p.m_RGBA[0][0];
+        p.m_RGBA[1][1] = p.m_RGBA[0][1];
+        p.m_RGBA[1][2] = p.m_RGBA[0][2];
+        p.m_RGBA[1][3] = p.m_RGBA[0][3];
+        }
+      else
+        {
+        p.m_RGBA[1][0] = (unsigned char) folder["Right.R"][0];
+        p.m_RGBA[1][1] = (unsigned char) folder["Right.G"][0];
+        p.m_RGBA[1][2] = (unsigned char) folder["Right.B"][0];
+        p.m_RGBA[1][3] = (unsigned char) folder["Right.A"][0];
+        }
+
+      // Check validity
+      if(iPoint == 0 && p.m_Index != 0.0)
+        throw IRISException("Can not read color map. First point has non-zero index.");
+
+      if(iPoint == n-1 && p.m_Index != 1.0)
+        throw IRISException("Can not read color map. Last point has index not equal to 1.");
+
+      if(iPoint > 0 && p.m_Index < newpts[iPoint-1].m_Index)
+        throw IRISException("Can not read color map. Indices are not stored in order.");
+
+      newpts.push_back(p);
+      }
+
+    // Got this far? store the new map
+    m_CMPoints = newpts;
+    this->UpdateInterpolants();
+
+    m_CMPreset = COLORMAP_CUSTOM;
+    }
  }
 
  void ColorMap::CopyInformation(const ColorMap *source)
  {
+   m_CMPreset = source->m_CMPreset;
    m_CMPoints = source->m_CMPoints;
    m_Interpolants = source->m_Interpolants;
    this->Modified();
@@ -527,7 +573,8 @@ void ColorMap
      "HSV",
      "Blue to white to red",
      "Red to white to blue",
-     "Blue to black to white"
+     "Blue to black to white",
+     "Custom"
    };
 
    return preset_names[preset];
