@@ -377,6 +377,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/VoxelIntensityQTableModel.cxx
   GUI/Qt/Components/ZoomInspector.cxx
   GUI/Qt/Testing/SNAPTestQt.cxx
+  GUI/Qt/Testing/QtScriptTest1.cxx
   GUI/Qt/View/ColorMapBox.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
   GUI/Qt/View/GenericSliceView.cxx
@@ -475,6 +476,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Coupling/QtTableWidgetCoupling.h
   GUI/Qt/Coupling/QtWidgetArrayCoupling.h
   GUI/Qt/Testing/SNAPTestQt.h
+  GUI/Qt/Testing/QtScriptTest1.h
 )
 
 SET(UI_FORMS

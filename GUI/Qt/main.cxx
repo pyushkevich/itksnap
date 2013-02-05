@@ -8,6 +8,7 @@
 #include "CommandLineArgumentParser.h"
 #include "SliceWindowCoordinator.h"
 #include "SnakeWizardPanel.h"
+#include "QtScriptTest1.h"
 
 #include "GenericSliceView.h"
 #include "GenericSliceModel.h"
@@ -418,7 +419,10 @@ int main(int argc, char *argv[])
     int nIndxTest = atoi(parseResult.GetOptionParameter("--testQtScript"));
     cout << "Prototype Test with QtScript executed - Test nr " << nIndxTest << endl;
     cout << "CheckResultQtScript" << endl;
-    return(0);
+
+    QtScriptTest1(&engine);
+
+    //return(0);
     }
 
 
