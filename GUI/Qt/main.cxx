@@ -420,7 +420,10 @@ int main(int argc, char *argv[])
     cout << "Prototype Test with QtScript executed - Test nr " << nIndxTest << endl;
     cout << "CheckResultQtScript" << endl;
 
-    QtScriptTest1(&engine);
+    //QtScriptTest1(&engine);
+    QtScriptTest1 test1;
+    test1.Initialize(&mainwin, gui, "");
+    test1.Run(&engine);
 
     //return(0);
     }

@@ -61,6 +61,7 @@ class DisplayLayoutModel;
 class PaintbrushModel;
 class PaintbrushSettingsModel;
 class ComponentSelectionModel;
+class QtScriptTest1;
 
 namespace itk
 {
@@ -284,6 +285,8 @@ protected:
   bool GetCursorPositionValueAndRange(
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
   void SetCursorPosition(Vector3ui value);
+  friend class QtScriptTest1;
+
 
   // Current ROI for snake mode
   SmartPtr<AbstractRangedUIntVec3Property> m_SnakeROIIndexModel;

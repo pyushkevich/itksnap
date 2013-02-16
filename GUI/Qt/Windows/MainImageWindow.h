@@ -138,6 +138,8 @@ private:
   // IRIS main toolbox (in left dock)
   IRISMainToolbox *m_Toolbox;
 
+  friend class QtScriptTest1;
+
   // SNAP wizard panel (in right dock)
   SnakeWizardPanel *m_SnakeWizard;
 
