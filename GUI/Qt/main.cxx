@@ -421,9 +421,10 @@ int main(int argc, char *argv[])
     cout << "CheckResultQtScript" << endl;
 
     //QtScriptTest1(&engine);
-    QtScriptTest1 test1;
-    test1.Initialize(&mainwin, gui, "");
-    test1.Run(&engine);
+    //Yes, with memory leak so far
+    QtScriptTest1 * pTest1 = new QtScriptTest1();
+    pTest1->Initialize(&mainwin, gui, "");
+    pTest1->Run(&engine);
 
     //return(0);
     }
