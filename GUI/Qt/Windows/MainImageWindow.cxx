@@ -448,30 +448,6 @@ void MainImageWindow::AdjustMarginsForDocks()
 
 }
 
-
-void MainImageWindow::LoadRecent(QString file)
-{
-  // TODO: prompt for changes!
-
-  // Try loading the image
-  try
-    {
-    // Change cursor for this operation
-    QtCursorOverride c(Qt::WaitCursor);
-    IRISWarningList warnings;
-    LoadMainImageDelegate del(m_Model);
-    m_Model->LoadImageNonInteractive(file.toAscii(), del, warnings);
-    }
-  catch(exception &exc)
-    {
-    QMessageBox b(this);
-    b.setText(QString("Failed to load image %1").arg(file));
-    b.setDetailedText(exc.what());
-    b.setIcon(QMessageBox::Critical);
-    b.exec();
-  }
-}
-
 void MainImageWindow::dragEnterEvent(QDragEnterEvent *event)
 {
   const QMimeData *md = event->mimeData();
@@ -507,6 +483,29 @@ void MainImageWindow::dropEvent(QDropEvent *event)
   QString file = event->mimeData()->urls().first().path();
   LoadDroppedFile(file);
   event->acceptProposedAction();
+}
+
+void MainImageWindow::LoadRecent(QString file)
+{
+  // TODO: prompt for changes!
+
+  // Try loading the image
+  try
+    {
+    // Change cursor for this operation
+    QtCursorOverride c(Qt::WaitCursor);
+    IRISWarningList warnings;
+    LoadMainImageDelegate del(m_Model);
+    m_Model->LoadImageNonInteractive(file.toAscii(), del, warnings);
+    }
+  catch(exception &exc)
+    {
+    QMessageBox b(this);
+    b.setText(QString("Failed to load image %1").arg(file));
+    b.setDetailedText(exc.what());
+    b.setIcon(QMessageBox::Critical);
+    b.exec();
+  }
 }
 
 void MainImageWindow::on_actionRecent_1_triggered()

@@ -44,6 +44,7 @@ class QTabWidget;
 class SnakeToolROIPanel;
 class DisplayLayoutInspector;
 class PaintbrushToolPanel;
+class QtScriptTest1;
 
 class IRISMainToolbox : public SNAPComponent
 {
@@ -88,6 +89,8 @@ private:
   // Toolbox for zoom/pan actions
   ZoomInspector *m_ZoomInspector;
   CursorInspector *m_CursorInspector;
+  friend class QtScriptTest1;
+
   LabelInspector *m_LabelInspector;
   DisplayLayoutInspector *m_DisplayLayoutInspector;
   QStackedWidget *m_ToolInspector;

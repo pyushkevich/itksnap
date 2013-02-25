@@ -69,14 +69,13 @@ public:
   // Initiate active contour segmentation
   void OpenSnakeWizard();
 
-
-  void LoadRecent(QString file);
-
   // Handle drag and drop
   void dragEnterEvent(QDragEnterEvent *event);
   void dropEvent(QDropEvent *event);
 
 public slots:
+
+  void LoadRecent(QString file);
 
   void AdjustMarginsForDocks();
   void onModelUpdate(const EventBucket &b);
@@ -138,6 +137,8 @@ private:
 
   // IRIS main toolbox (in left dock)
   IRISMainToolbox *m_Toolbox;
+
+  friend class QtScriptTest1;
 
   // SNAP wizard panel (in right dock)
   SnakeWizardPanel *m_SnakeWizard;

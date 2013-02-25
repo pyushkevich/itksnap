@@ -379,6 +379,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/VoxelIntensityQTableModel.cxx
   GUI/Qt/Components/ZoomInspector.cxx
   GUI/Qt/Testing/SNAPTestQt.cxx
+  GUI/Qt/Testing/QtScriptTest1.cxx
   GUI/Qt/View/ColorMapBox.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
   GUI/Qt/View/GenericSliceView.cxx
@@ -433,6 +434,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/VoxelIntensityQTableModel.h
   GUI/Qt/Components/ZoomInspector.h
   GUI/Qt/Coupling/QtWidgetCoupling.h
+  GUI/Qt/Testing/QtScriptTest1.h
   GUI/Qt/View/ColorMapBox.h
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
@@ -704,7 +706,7 @@ ENABLE_TESTING()
 MESSAGE(STATUS "--testQtScript 2")
 
 ADD_TEST(TestQtScript ${SNAP_EXE} --testQtScript 2)
-SET_TESTS_PROPERTIES(TestQtScript PROPERTIES PASS_REGULAR_EXPRESSION "CheckResultQtScript")
+SET_TESTS_PROPERTIES(TestQtScript PROPERTIES PASS_REGULAR_EXPRESSION "QtScriptTest1::Run: 71")
 
 # Define the testing EXE
 ### ADD_EXECUTABLE(snaptest ${TESTING_CXX})

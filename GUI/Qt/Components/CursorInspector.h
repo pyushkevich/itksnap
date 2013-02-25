@@ -6,7 +6,7 @@
 
 class QMenu;
 class CursorInspectionModel;
-
+class QtScriptTest1;
 
 namespace Ui {
     class CursorInspector;
@@ -35,6 +35,9 @@ private slots:
 
 private:
   Ui::CursorInspector *ui;
+  friend class QtScriptTest1;
+
+
   CursorInspectionModel *m_Model;
   QMenu *m_ContextMenu;
 
