@@ -143,6 +143,12 @@ IntensityCurveInterface * IntensityCurveModel::GetCurve()
   return this->GetDisplayPolicy()->GetIntensityCurve();
 }
 
+Vector2d IntensityCurveModel::GetNativeImageRangeForCurve()
+{
+  assert(this->GetDisplayPolicy());
+  return this->GetDisplayPolicy()->GetNativeImageRangeForCurve();
+}
+
 bool
 IntensityCurveModel
 ::UpdateControlPoint(size_t i, float t, float x)

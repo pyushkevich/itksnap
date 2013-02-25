@@ -8,6 +8,7 @@
 #include "QtWidgetArrayCoupling.h"
 #include "QtReporterDelegates.h"
 #include "QtWidgetActivator.h"
+#include "IntensityCurveVTKRenderer.h"
 
 ContrastInspector::ContrastInspector(QWidget *parent) :
     SNAPComponent(parent),
@@ -19,6 +20,10 @@ ContrastInspector::ContrastInspector(QWidget *parent) :
   // Create the viewport reporter
   m_CurveBoxViewportReporter = QtViewportReporter::New();
   m_CurveBoxViewportReporter->SetClientWidget(ui->box);
+
+  // Set up the renderer
+  m_CurveRenderer = IntensityCurveVTKRenderer::New();
+  ui->plotWidget->SetRenderer(m_CurveRenderer);
 }
 
 ContrastInspector::~ContrastInspector()
@@ -31,6 +36,9 @@ void ContrastInspector::SetModel(IntensityCurveModel *model)
   // Set the model
   m_Model = model;
   ui->box->SetModel(model);
+
+  // Set the model on the renderer
+  m_CurveRenderer->SetModel(model);
 
   // Connect the viewport reporter to the model
   model->SetViewportReporter(m_CurveBoxViewportReporter);

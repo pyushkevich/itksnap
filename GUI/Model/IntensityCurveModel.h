@@ -91,11 +91,17 @@ public:
     UIF_CONTROL_SELECTED
     };
 
-
   /**
     Get the curve stored in the current layer
     */
   IntensityCurveInterface *GetCurve();
+
+  /** Get the input intensity range for the curve (native) */
+  Vector2d GetNativeImageRangeForCurve();
+
+  /** Get the extent of the curve domain, in native intensity units */
+  Vector2d GetCurveFirstPoint();
+  Vector2d GetCurveLastPoint();
 
   /**
     Check the state flags above
@@ -141,13 +147,14 @@ protected:
   IntensityCurveModel();
   virtual ~IntensityCurveModel();
 
+  AbstractContinuousImageDisplayMappingPolicy *GetDisplayPolicy();
+
   // A size reporter delegate
   ViewportSizeReporter *m_ViewportReporter;
 
   // Whether the control point is being dragged
   bool m_FlagDraggedControlPoint;
 
-  AbstractContinuousImageDisplayMappingPolicy *GetDisplayPolicy();
 
   Vector3d GetEventCurveCoordiantes(const Vector3d &x);
   bool UpdateControlPoint(size_t i, float t, float x);

@@ -273,6 +273,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/GenericSliceRenderer.cxx
   GUI/Renderer/Generic3DRenderer.cxx
   GUI/Renderer/IntensityCurveRenderer.cxx
+  GUI/Renderer/IntensityCurveVTKRenderer.cxx
   GUI/Renderer/OpenGLSliceTexture.cxx
   GUI/Renderer/OrientationGraphicRenderer.cxx
   GUI/Renderer/PaintbrushRenderer.cxx
@@ -333,6 +334,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/Generic3DRenderer.h
   GUI/Renderer/GenericSliceRenderer.h
   GUI/Renderer/IntensityCurveRenderer.h
+  GUI/Renderer/IntensityCurveVTKRenderer.h
   GUI/Renderer/OrientationGraphicRenderer.h
   GUI/Renderer/PaintbrushRenderer.h
   GUI/Renderer/PolygonDrawingRenderer.h

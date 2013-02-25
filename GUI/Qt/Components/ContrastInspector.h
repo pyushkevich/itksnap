@@ -6,6 +6,7 @@
 
 class IntensityCurveModel;
 class QtViewportReporter;
+class IntensityCurveVTKRenderer;
 
 namespace Ui {
   class ContrastInspector;
@@ -43,6 +44,8 @@ private:
 
   // Viewport reporter for the curve box
   SmartPtr<QtViewportReporter> m_CurveBoxViewportReporter;
+
+  SmartPtr<IntensityCurveVTKRenderer> m_CurveRenderer;
 };
 
 #endif // CONTRASTINSPECTOR_H

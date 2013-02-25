@@ -249,6 +249,16 @@ QGroupBox::title {
        </widget>
       </item>
       <item>
+       <widget class="QtSimpleOpenGLBox" name="plotWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>160</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QWidget" name="widget" native="true">
         <layout class="QGridLayout" name="gridLayout">
          <property name="horizontalSpacing">
@@ -584,6 +594,12 @@ p, li { white-space: pre-wrap; }
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>QtSimpleOpenGLBox</class>
+   <extends>QWidget</extends>
+   <header>QtSimpleOpenGLBox.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>IntensityCurveBox</class>
    <extends>QWidget</extends>

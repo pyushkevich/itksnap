@@ -130,6 +130,7 @@ void ColorMapInspector::on_btnControlColor_clicked()
   this->PromptUserForColor();
 }
 
+// TODO: this should be done using a combo box coupling!
 void ColorMapInspector::PopulatePresets()
 {
   // Get the list of system presets and custom presets from the model
