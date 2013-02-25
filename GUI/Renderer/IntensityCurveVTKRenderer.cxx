@@ -77,7 +77,6 @@ public:
       isotran->Translate(xy_screen);
       painter->PushMatrix();
       painter->SetTransform(isotran);
-      // painter->DrawWedge(0, 0, 4, 0.f, 0.f, 360.f);
       painter->DrawArc(0, 0, radius, 0.f, 360.f);
       painter->PopMatrix();
       }

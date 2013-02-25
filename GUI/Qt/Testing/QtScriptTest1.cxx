@@ -55,7 +55,7 @@ void QtScriptTest1::RunQTimerTriggered()
 
   QString commandLoad("snap.LoadRecent(");
   commandLoad += '"';
-  commandLoad += "/Users/octavian/Programs/ITK-SNAP/Data/MRI-crop/MRIcrop-orig.gipl";
+  commandLoad += "/Users/pauly/tk/itksnap_old/data/MRIcrop-orig.gipl";
   commandLoad += '"';
   commandLoad += ");\n";
 
