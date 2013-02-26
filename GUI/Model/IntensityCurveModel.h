@@ -99,9 +99,13 @@ public:
   /** Get the input intensity range for the curve (native) */
   Vector2d GetNativeImageRangeForCurve();
 
-  /** Get the extent of the curve domain, in native intensity units */
-  Vector2d GetCurveFirstPoint();
-  Vector2d GetCurveLastPoint();
+  /**
+   * Get the visibile intensity range (in native image intensity units).
+   * The lower bound of this range is the minimum of the first control point's
+   * intensity and the minimum of the image intensity. The upper bound is the
+   * maximum of the last control point's intensity and the maximum image value.
+   */
+  Vector2d GetVisibleImageRange();
 
   /**
     Check the state flags above

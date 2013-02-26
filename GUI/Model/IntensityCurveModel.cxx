@@ -149,6 +149,31 @@ Vector2d IntensityCurveModel::GetNativeImageRangeForCurve()
   return this->GetDisplayPolicy()->GetNativeImageRangeForCurve();
 }
 
+Vector2d IntensityCurveModel::GetVisibleImageRange()
+{
+  IntensityCurveInterface *curve = this->GetCurve();
+  assert(curve);
+
+  // Get the control point range
+  float t0, y0, t1, y1;
+  curve->GetControlPoint(0, t0, y0);
+  curve->GetControlPoint(curve->GetControlPointCount() - 1, t1, y1);
+
+  // Get the reference intensity range
+  Vector2d range = this->GetNativeImageRangeForCurve();
+
+  // Compute the range over which the curve is plotted, where [0 1] is the
+  // image intensity range
+  float z0 = std::min(t0, 0.0f);
+  float z1 = std::max(t1, 1.0f);
+
+  // Compute the range over which the curve is plotted, in intensity units
+  Vector2d outRange;
+  outRange[0] = range[0] * (1 - z0) + range[1] * z0;
+  outRange[1] = range[0] * (1 - z1) + range[1] * z1;
+  return outRange;
+}
+
 bool
 IntensityCurveModel
 ::UpdateControlPoint(size_t i, float t, float x)

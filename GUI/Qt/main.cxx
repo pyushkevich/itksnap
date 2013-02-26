@@ -420,6 +420,8 @@ int main(int argc, char *argv[])
     cout << "Prototype Test with QtScript executed - Test nr " << nIndxTest << endl;
     cout << "CheckResultQtScript" << endl;
 
+    // Should have one script C++ class, multiple text scripts in QtScript format
+
     //QtScriptTest1(&engine);
     //Yes, with memory leak so far
     QtScriptTest1 * pTest1 = new QtScriptTest1();

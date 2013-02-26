@@ -14,6 +14,9 @@ class vtkTable;
 
 class IntensityCurveModel;
 class IntensityCurveControlPointsContextItem;
+class AbstractColorMapContextItem;
+class HorizontalColorMapContextItem;
+class VerticalColorMapContextItem;
 
 class IntensityCurveVTKRenderer : public AbstractVTKSceneRenderer
 {
@@ -41,10 +44,12 @@ protected:
 
   vtkSmartPointer<IntensityCurveControlPointsContextItem> m_Controls;
 
-  vtkSmartPointer<vtkTable> m_ControlTable;
-  vtkSmartPointer<vtkPlot> m_ControlPlot;
-  vtkSmartPointer<vtkFloatArray> m_ControlX, m_ControlY;
+  vtkSmartPointer<vtkTable> m_HistogramTable;
+  vtkSmartPointer<vtkPlot> m_HistogramPlot;
+  vtkSmartPointer<vtkFloatArray> m_HistogramX, m_HistogramY;
 
+  vtkSmartPointer<HorizontalColorMapContextItem> m_XColorMapItem;
+  vtkSmartPointer<VerticalColorMapContextItem> m_YColorMapItem;
 
   IntensityCurveModel *m_Model;
 

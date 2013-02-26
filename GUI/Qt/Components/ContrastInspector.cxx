@@ -10,6 +10,8 @@
 #include "QtWidgetActivator.h"
 #include "IntensityCurveVTKRenderer.h"
 
+#include <QPalette>
+
 ContrastInspector::ContrastInspector(QWidget *parent) :
     SNAPComponent(parent),
     ui(new Ui::ContrastInspector)
@@ -24,6 +26,12 @@ ContrastInspector::ContrastInspector(QWidget *parent) :
   // Set up the renderer
   m_CurveRenderer = IntensityCurveVTKRenderer::New();
   ui->plotWidget->SetRenderer(m_CurveRenderer);
+
+  // Set the renderer's background to match the widget's
+  const QPalette &pal = ui->plotWidget->palette();
+  const QColor &bcol = pal.foreground().color();
+  m_CurveRenderer->SetBackgroundColor(
+        Vector3d(bcol.redF(), bcol.greenF(), bcol.blueF()));
 }
 
 ContrastInspector::~ContrastInspector()

@@ -59,6 +59,31 @@ void QtScriptTest1::RunQTimerTriggered()
   commandLoad += '"';
   commandLoad += ");\n";
 
+  // two options to load data for the test are
+  // 1. InsightSNAP -g image.nii --testQtScript ... (easy way)
+  // 2. File->Open Image -> interact with fields in the IO dialog (is it possible?)
+
+
+  // C++
+  // sleep
+  // run next line from a QtScript
+  // ...
+
+  // All this stuff below is in QtScript, not C++
+  // SCRIPT FUNCTION LoadImage {
+  //   timer fires
+  //   m_Window->findChild("OpenImageAction") - call slot trigger()
+  //   sleep
+  //   m_FileDialog->findChild("InFileName") - call slot setText()
+  //   sleep
+  //   m_FileDialog->findChild("nextButton") - call slot trigger()
+  // }
+
+  // sleep
+  // m_Window->findChild("InCursorX") - call slot setValue()
+
+
+  // How does this work??
   QScriptValue res = m_pEngine->evaluate(commandLoad);
 
   IRISMainToolbox * pIRISMainToolbox = m_Window->m_Toolbox;
@@ -70,6 +95,10 @@ void QtScriptTest1::RunQTimerTriggered()
   QScriptValue qscvalInCursorX = m_pEngine->newQObject(pUiCursorInspector->inCursorX);
 
   pUiCursorInspector->inCursorX->setValue(21);
+
+  // Each widget has a widget name! You can search for a widget by its name
+  //   pUiCursorInspector->inCursorX->objectName()
+  //   something like ... m_Window->findChild("inCursorX")
 
   m_pEngine->globalObject().setProperty("inCursorX", qscvalInCursorX);
 
