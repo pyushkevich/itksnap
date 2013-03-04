@@ -23,6 +23,7 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
   SetSource(NULL);
 }
 
+
 template<class TObject, class TFilter, class TFactoryDelegate>
 void
 LayerAssociation<TObject, TFilter, TFactoryDelegate>

@@ -74,11 +74,6 @@ VectorImageWrapper<TTraits,TBase>
     {
     ScalarImageWrapperBase *s = it->second;
     ScalarRepIndex idx = it->first;
-    std::cout << "VOX: " << idx.first
-              << ":" << idx.second
-              << " RAW " << s->GetVoxelAsDouble(this->m_SliceIndex)
-              << " NAT " << s->GetVoxelMappedToNative(this->m_SliceIndex)
-              << std::endl;
     }
 
 

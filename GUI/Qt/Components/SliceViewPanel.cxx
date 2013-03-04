@@ -254,19 +254,25 @@ void SliceViewPanel::on_inSlicePosition_valueChanged(int value)
 
 void SliceViewPanel::ConfigureEventChain(QWidget *w)
 {
-  // Remove all filters from the crosshair widget
+  // Remove all event filters from the slice view
   QObjectList kids = ui->sliceView->children();
   for(QObjectList::Iterator it = kids.begin(); it!=kids.end(); ++it)
-    ui->imCrosshairs->removeEventFilter(*it);
+    ui->sliceView->removeEventFilter(*it);
+
+  // Now add the event filters in the order in which we want them to react
+  // to events. The last event filter is first to receive events, and should
+  // thus be the thumbnail interaction mode. The first event filter is always
+  // the crosshairs interaction mode, which is the fallback for all others.
+  ui->sliceView->installEventFilter(ui->imCrosshairs);
 
   // If the current mode is not crosshairs mode, add it as the filter
   if(w != ui->imCrosshairs)
     {
-    ui->imCrosshairs->installEventFilter(w);
+    ui->sliceView->installEventFilter(w);
     }
 
   // The last guy in the chain is the thumbnail interactor
-  ui->imCrosshairs->installEventFilter(ui->imThumbnail);
+  ui->sliceView->installEventFilter(ui->imThumbnail);
 }
 
 // TODO: implement semi-transparent rendering on widgets on top of the

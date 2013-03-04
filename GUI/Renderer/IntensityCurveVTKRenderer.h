@@ -14,7 +14,6 @@ class vtkTable;
 
 class IntensityCurveModel;
 class IntensityCurveControlPointsContextItem;
-class NewIntensityCurveControlPointsContextItem;
 class AbstractColorMapContextItem;
 class HorizontalColorMapContextItem;
 class VerticalColorMapContextItem;
@@ -43,7 +42,7 @@ protected:
 
   // vtkSmartPointer<IntensityCurveControlPointsContextItem> m_ControlPoints;
 
-  vtkSmartPointer<NewIntensityCurveControlPointsContextItem> m_Controls;
+  vtkSmartPointer<IntensityCurveControlPointsContextItem> m_Controls;
 
   vtkSmartPointer<vtkTable> m_HistogramTable;
   vtkSmartPointer<vtkPlot> m_HistogramPlot;
@@ -55,6 +54,9 @@ protected:
   IntensityCurveModel *m_Model;
 
   enum { CURVE_RESOLUTION = 64 };
+
+  void OnCurrentControlPointChangedInScene(vtkObject *, unsigned long, void *);
+
 };
 
 #endif // INTENSITYCURVEVTKRENDERER_H

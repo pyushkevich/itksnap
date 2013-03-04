@@ -158,8 +158,6 @@ public:
   /** Delete a selected preset */
   void DeletePreset(std::string name);
 
-  Vector3d tempSavePoint;
-
 
 protected:
 

@@ -140,7 +140,6 @@ void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer)
 
 bool ColorMapModel::ProcessMousePressEvent(const Vector3d &x)
 {
-  tempSavePoint = x;
   assert(m_ViewportReporter && m_ViewportReporter->CanReportSize());
   Vector2ui vp = m_ViewportReporter->GetViewportSize();
 
@@ -245,6 +244,16 @@ bool ColorMapModel::ProcessMouseReleaseEvent(const Vector3d &x)
 void ColorMapModel::OnUpdate()
 {
   Superclass::OnUpdate();
+
+  /*
+  // If there was a color map change event, we may need to update the
+  // current preset, since the color map is no longer going to match any
+  // preset
+  if(m_EventBucket->HasEvent(ColorMapChangeEvent()))
+    this->GetProperties().SetSelectedPreset(
+        this->GetColorMap()->GetPresetName(
+          this->GetColorMap()->GetSystemPreset()));
+  */
 }
 
 bool

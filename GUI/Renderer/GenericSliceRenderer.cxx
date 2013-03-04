@@ -83,8 +83,14 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 
 void GenericSliceRenderer::OnUpdate()
 {
+  // Make sure the model has been updated first
   m_Model->Update();
-  this->UpdateTextureMap();
+
+  // Only update the texture map in response to "big" events
+  if(m_EventBucket->HasEvent(ModelUpdateEvent(), m_Model))
+    {
+    this->UpdateTextureMap();
+    }
 }
 
 void

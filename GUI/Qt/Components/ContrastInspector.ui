@@ -74,7 +74,7 @@ QGroupBox::title {
       <string notr="true"/>
      </property>
      <property name="title">
-      <string>Visible Range of Intensity</string>
+      <string>Linear Contrast Adjustment:</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <property name="margin">
@@ -329,7 +329,7 @@ QGroupBox::title {
    <item>
     <widget class="QGroupBox" name="grpCurve">
      <property name="title">
-      <string>Curve-Based Contrast Adjustment</string>
+      <string>Curve-Based Contrast Adjustment:</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
@@ -611,7 +611,7 @@ p, li { white-space: pre-wrap; }
    <item>
     <widget class="QGroupBox" name="grpHistogram">
      <property name="title">
-      <string>Histogram Options</string>
+      <string>Histogram Display Options:</string>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
