@@ -36,10 +36,16 @@ QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
   m_LeftDown = false;
   m_MiddleDown = false;
   m_RightDown = false;
+  m_Filtering = false;
 }
 
 bool QtInteractionDelegateWidget::event(QEvent *ev)
 {
+  // If the event was sent to the widget itself, ignore it. The delegate
+  // only should receive events through the sender
+  if(!m_Filtering)
+    return false;
+
   // Generate data from this event
   preprocessEvent(ev);
 
@@ -65,7 +71,10 @@ QtAbstractOpenGLBox * QtInteractionDelegateWidget::GetParentGLWidget() const
 bool QtInteractionDelegateWidget::eventFilter(QObject *obj, QEvent *ev)
 {
   ev->setAccepted(false);
+  m_Filtering = true;
   this->event(ev);
+  m_Filtering = false;
+
   if(ev->isAccepted())
     return true;
   else return QWidget::eventFilter(obj, ev);

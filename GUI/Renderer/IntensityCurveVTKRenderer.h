@@ -14,6 +14,7 @@ class vtkTable;
 
 class IntensityCurveModel;
 class IntensityCurveControlPointsContextItem;
+class NewIntensityCurveControlPointsContextItem;
 class AbstractColorMapContextItem;
 class HorizontalColorMapContextItem;
 class VerticalColorMapContextItem;
@@ -42,7 +43,7 @@ protected:
 
   // vtkSmartPointer<IntensityCurveControlPointsContextItem> m_ControlPoints;
 
-  vtkSmartPointer<IntensityCurveControlPointsContextItem> m_Controls;
+  vtkSmartPointer<NewIntensityCurveControlPointsContextItem> m_Controls;
 
   vtkSmartPointer<vtkTable> m_HistogramTable;
   vtkSmartPointer<vtkPlot> m_HistogramPlot;

@@ -140,6 +140,7 @@ void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer)
 
 bool ColorMapModel::ProcessMousePressEvent(const Vector3d &x)
 {
+  tempSavePoint = x;
   assert(m_ViewportReporter && m_ViewportReporter->CanReportSize());
   Vector2ui vp = m_ViewportReporter->GetViewportSize();
 

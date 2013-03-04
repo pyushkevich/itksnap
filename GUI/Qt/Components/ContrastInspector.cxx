@@ -21,17 +21,12 @@ ContrastInspector::ContrastInspector(QWidget *parent) :
 
   // Create the viewport reporter
   m_CurveBoxViewportReporter = QtViewportReporter::New();
-  m_CurveBoxViewportReporter->SetClientWidget(ui->box);
+  m_CurveBoxViewportReporter->SetClientWidget(ui->plotWidget);
 
   // Set up the renderer
   m_CurveRenderer = IntensityCurveVTKRenderer::New();
   ui->plotWidget->SetRenderer(m_CurveRenderer);
-
-  // Set the renderer's background to match the widget's
-  const QPalette &pal = ui->plotWidget->palette();
-  const QColor &bcol = pal.foreground().color();
-  m_CurveRenderer->SetBackgroundColor(
-        Vector3d(bcol.redF(), bcol.greenF(), bcol.blueF()));
+  m_CurveRenderer->SetBackgroundColor(Vector3d(1.0, 1.0, 1.0));
 }
 
 ContrastInspector::~ContrastInspector()
@@ -43,7 +38,6 @@ void ContrastInspector::SetModel(IntensityCurveModel *model)
 {
   // Set the model
   m_Model = model;
-  ui->box->SetModel(model);
 
   // Set the model on the renderer
   m_CurveRenderer->SetModel(model);
@@ -61,8 +55,10 @@ void ContrastInspector::SetModel(IntensityCurveModel *model)
                     m_Model->GetMovingControlXYModel());
 
   // Set up couplings for window and level
-  makeArrayCoupling(ui->inLevel, ui->inWindow,
-                    m_Model->GetLevelWindowModel());
+  makeCoupling(ui->inMin, m_Model->GetIntensityRangeModel(IntensityCurveModel::MINIMUM));
+  makeCoupling(ui->inMax, m_Model->GetIntensityRangeModel(IntensityCurveModel::MAXIMUM));
+  makeCoupling(ui->inLevel, m_Model->GetIntensityRangeModel(IntensityCurveModel::LEVEL));
+  makeCoupling(ui->inWindow, m_Model->GetIntensityRangeModel(IntensityCurveModel::WINDOW));
 
   // Make coupling for the control point id
   makeCoupling(ui->inControlId, m_Model->GetMovingControlIdModel());

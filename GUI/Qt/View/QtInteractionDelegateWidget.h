@@ -43,7 +43,6 @@ class QtInteractionDelegateWidget : public SNAPComponent
 public:
   explicit QtInteractionDelegateWidget(QWidget *parent = 0);
 
-
 signals:
 
 public slots:
@@ -87,6 +86,9 @@ protected:
 
   // Whether we are between a press and a release for a particular button
   bool m_LeftDown, m_RightDown, m_MiddleDown;
+
+  // Whether we are currently filtering an event from another widget
+  bool m_Filtering;
 
 
 };

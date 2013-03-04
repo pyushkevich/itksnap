@@ -19,6 +19,9 @@
 #include "vtkTransform2D.h"
 #include "vtkScalarsToColorsItem.h"
 #include "vtkImageData.h"
+#include "vtkContextInteractorStyle.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkContextMouseEvent.h"
 
 #include "IntensityCurveModel.h"
 #include "IntensityCurveInterface.h"
@@ -217,6 +220,106 @@ vtkStandardNewMacro(HorizontalColorMapContextItem)
 vtkStandardNewMacro(VerticalColorMapContextItem)
 
 
+class NewIntensityCurveControlPointsContextItem : public vtkControlPointsItem
+{
+public:
+  vtkTypeMacro(NewIntensityCurveControlPointsContextItem, vtkControlPointsItem)
+
+  static NewIntensityCurveControlPointsContextItem *New();
+
+  virtual void GetControlPoint(vtkIdType index, double *point)
+  {
+    // Return the coordinates of the point, in plot units
+    IntensityCurveInterface *curve = m_Model->GetCurve();
+    Vector2d range = m_Model->GetNativeImageRangeForCurve();
+
+    float t, x, y;
+    curve->GetControlPoint(index, t, y);
+    x = range[0] * (1 - t) + range[1] * t;
+
+    point[0] = x;
+    point[1] = y;
+  }
+
+  virtual int GetNumberOfPoints() const
+  {
+    if(m_Model)
+      return m_Model->GetCurve()->GetControlPointCount();
+    else return 0;
+  }
+
+  virtual void SetControlPoint(vtkIdType index, double *point)
+  {
+    // Return the coordinates of the point, in plot units
+    IntensityCurveInterface *curve = m_Model->GetCurve();
+    Vector2d range = m_Model->GetNativeImageRangeForCurve();
+
+    // Force the positions of the starting and ending points
+    float t = (point[0] - range[0]) / (range[1] - range[0]);
+    float y = point[1];
+
+    m_Model->UpdateControlPoint(index, t, y);
+  }
+
+  virtual void DrawSelectedPoints(vtkContext2D *painter)
+  {
+    painter->GetBrush()->SetColor(255, 255, 0.0, 255);
+    Superclass::DrawSelectedPoints(painter);
+  }
+
+  // I had to cannibalize the paint method because VTK hardcoded some basic
+  // properties such as the point color
+  virtual bool Paint(vtkContext2D *painter)
+  {
+    painter->GetBrush()->SetColor(255, 0, 0, 255);
+    painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
+    painter->GetPen()->SetWidth(1.2);
+    painter->GetPen()->SetColor(0, 0, 0, 128);
+
+    this->ScreenPointRadius = 5;
+    this->DrawUnselectedPoints(painter);
+
+    if (this->CurrentPoint != -1)
+      {
+
+      painter->GetBrush()->SetColor(255, 255, 0, 255);
+      painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
+
+      this->ScreenPointRadius = 6;
+      this->DrawPoint(painter, this->CurrentPoint);
+      }
+
+    this->Transform->SetMatrix(painter->GetTransform()->GetMatrix());
+    return true;
+  }
+
+  virtual unsigned long int GetControlPointsMTime()
+  {
+    // TODO: figure this out!
+    return this->GetMTime();
+  }
+
+
+  void SetModel(IntensityCurveModel *model)
+  {
+    m_Model = model;
+    this->Modified();
+  }
+
+protected:
+
+  NewIntensityCurveControlPointsContextItem()
+  {
+    m_Model = NULL;
+  }
+
+  ~NewIntensityCurveControlPointsContextItem() {}
+
+  IntensityCurveModel *m_Model;
+
+};
+
+
 class IntensityCurveControlPointsContextItem : public vtkPlot
 {
 public:
@@ -299,6 +402,58 @@ public:
     this->Modified();
   }
 
+  int GetControlPointInVicinity(double x, double y)
+  {
+    IntensityCurveInterface *curve = m_Model->GetCurve();
+
+    float rx = 1;
+    float ry = 1;
+    float fx = 1.0f / (rx * rx);
+    float fy = 1.0f / (ry * ry);
+
+    float minDistance = 1.0f;
+    int nearestPoint = -1;
+
+    for (unsigned int c=0;c<curve->GetControlPointCount();c++) {
+
+      // Get the next control point
+      float cx,cy;
+      curve->GetControlPoint(c,cx,cy);
+
+      // Check the distance to the control point
+      float d = (cx - x) * (cx - x) * fx + (cy - y) * (cy - y) * fy;
+      if (minDistance >= d) {
+        minDistance = d;
+        nearestPoint = c;
+      }
+    }
+
+    // Negative: return -1
+    return nearestPoint;
+  }
+
+  virtual bool Hit(const vtkContextMouseEvent &mouse)
+  {
+    // Check if we are over one of the control points
+    double pos[2];
+    pos[0] = mouse.Pos[0];
+    pos[1] = mouse.Pos[1];
+
+    int closest = GetControlPointInVicinity(pos[0], pos[1]);
+    return true;
+  }
+
+  virtual bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse)
+  {
+    if (mouse.Button == vtkContextMouseEvent::LEFT_BUTTON)
+      {
+      std::cout << "Left button click!" << std::endl;
+      }
+    return true;
+
+
+  }
+
 protected:
 
   IntensityCurveControlPointsContextItem()
@@ -324,9 +479,11 @@ protected:
 };
 
 vtkStandardNewMacro(IntensityCurveControlPointsContextItem);
+vtkStandardNewMacro(NewIntensityCurveControlPointsContextItem);
 
 
 IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
+  : AbstractVTKSceneRenderer()
 {
   this->m_RenderWindow->SetMultiSamples(0);
   this->m_RenderWindow->SetLineSmoothing(1);
@@ -336,6 +493,9 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
 
   // Set up the scene for rendering
   m_Chart = vtkSmartPointer<vtkChartXY>::New();
+
+  // Configure chart behavior
+  m_Chart->ForceAxesToBoundsOn();
 
   // Add the chart to the renderer
   m_ContextView->GetScene()->AddItem(m_Chart);
@@ -375,6 +535,9 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   m_CurvePlot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
   m_CurvePlot->GetYAxis()->SetMinimum(-0.1);
   m_CurvePlot->GetYAxis()->SetMaximum(1.05);
+  m_CurvePlot->GetYAxis()->SetMinimumLimit(-0.1);
+  m_CurvePlot->GetYAxis()->SetMaximumLimit(1.1);
+
   m_CurvePlot->GetXAxis()->SetTitle("Image Intensity");
   m_CurvePlot->GetYAxis()->SetTitle("Output Intensity");
   m_CurvePlot->GetXAxis()->SetBehavior(vtkAxis::FIXED);
@@ -385,8 +548,9 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   m_Chart->AddPlot(m_XColorMapItem);
   m_Chart->AddPlot(m_YColorMapItem);
 
-  m_Controls = vtkSmartPointer<IntensityCurveControlPointsContextItem>::New();
+  m_Controls = vtkSmartPointer<NewIntensityCurveControlPointsContextItem>::New();
   m_Chart->AddPlot(m_Controls);
+
 }
 
 IntensityCurveVTKRenderer::~IntensityCurveVTKRenderer()
@@ -449,6 +613,9 @@ IntensityCurveVTKRenderer
     float margin = (x1 - x0) / 40.0;
     m_CurvePlot->GetXAxis()->SetMinimum(x0 - margin);
     m_CurvePlot->GetXAxis()->SetMaximum(x1 + margin);
+
+    // While we are here, we need to set the bounds on the control point plot
+    m_Controls->SetUserBounds(x0, x1, 0.0, 1.0);
 
     // Set the terminal points of the curve as well
     m_CurveX->SetValue(0, x0 - margin);

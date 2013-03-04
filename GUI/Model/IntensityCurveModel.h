@@ -100,6 +100,11 @@ public:
   Vector2d GetNativeImageRangeForCurve();
 
   /**
+   * Get the current min and max of the curve in native image units
+   */
+  Vector2d GetCurveRange();
+
+  /**
    * Get the visibile intensity range (in native image intensity units).
    * The lower bound of this range is the minimum of the first control point's
    * intensity and the minimum of the image intensity. The upper bound is the
@@ -133,17 +138,28 @@ public:
   /** Reset the curve */
   void OnResetCurveAction();
 
+  /** Try changing the control point to new values */
+  bool UpdateControlPoint(size_t i, float t, float x);
+
+
   /** Update the model in response to upstream events */
   virtual void OnUpdate();
 
   // Access the models
   irisGetMacro(MovingControlXYModel, AbstractRangedDoubleVec2Property *)
-  irisGetMacro(LevelWindowModel, AbstractRangedDoubleVec2Property *)
   irisGetMacro(MovingControlIdModel, AbstractRangedIntProperty *)
   irisGetMacro(HistogramBinSizeModel, AbstractRangedIntProperty *)
   irisGetMacro(HistogramCutoffModel, AbstractRangedDoubleProperty *)
   irisGetMacro(HistogramScaleModel, AbstractSimpleBooleanProperty *)
 
+  // This enum lists the types of global intensity range properties for which
+  // separate models are defined
+  enum IntensityRangePropertyType { MINIMUM = 0, MAXIMUM, LEVEL, WINDOW };
+
+  // Access the models for the intensity min, max, level and window. These
+  // models are specified by an index
+  AbstractRangedDoubleProperty *GetIntensityRangeModel(
+      IntensityRangePropertyType index) const;
 
   void OnAutoFitWindow();
 protected:
@@ -161,7 +177,6 @@ protected:
 
 
   Vector3d GetEventCurveCoordiantes(const Vector3d &x);
-  bool UpdateControlPoint(size_t i, float t, float x);
   int GetControlPointInVicinity(float x, float y, int pixelRadius);
 
   // Model for the control point index
@@ -180,13 +195,14 @@ protected:
                                              NumericValueRange<Vector2d> *range);
   void SetMovingControlPointPosition(Vector2d p);
 
-  // Child models for window and level
-  SmartPtr<AbstractRangedDoubleVec2Property> m_LevelWindowModel;
+  // Child models for min, max, window and level
+  SmartPtr<AbstractRangedDoubleProperty> m_IntensityRangeModel[4];
 
   // Window and level access methods
-  bool GetLevelAndWindowValueAndRange(Vector2d &lw,
-                                      NumericValueRange<Vector2d> *range);
-  void SetLevelAndWindow(Vector2d p);
+  bool GetIntensityRangeIndexedValueAndRange(int index,
+                                      double &value,
+                                      NumericValueRange<double> *range);
+  void SetIntensityRangeIndexedValue(int index, double value);
 
   // Child model for histogram bin size
   SmartPtr<AbstractRangedIntProperty> m_HistogramBinSizeModel;

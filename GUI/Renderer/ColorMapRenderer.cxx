@@ -189,6 +189,8 @@ void ColorMapRenderer::paintGL()
       }
     }
 
+  gl_draw_circle_with_border(m_Model->tempSavePoint[0], m_Model->tempSavePoint[1], 3.0, m_Width, m_Height, Vector3ui(255,0,0));
+
   // Pop the attributes
   glPopAttrib();
 

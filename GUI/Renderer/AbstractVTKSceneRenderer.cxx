@@ -5,6 +5,7 @@
 #include <vtkContextView.h>
 
 AbstractVTKSceneRenderer::AbstractVTKSceneRenderer()
+  : AbstractVTKRenderer()
 {
   // Initialize some properties of the renderer
   this->m_RenderWindow->SwapBuffersOff();

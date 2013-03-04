@@ -158,6 +158,9 @@ public:
   /** Delete a selected preset */
   void DeletePreset(std::string name);
 
+  Vector3d tempSavePoint;
+
+
 protected:
 
   ColorMapModel();
@@ -213,6 +216,7 @@ protected:
 
   // Extract a colormap from the layer if it has one
   ColorMap *GetColorMap(ImageWrapperBase *layer);
+
 };
 
 #endif // COLORMAPMODEL_H

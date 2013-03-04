@@ -195,7 +195,7 @@ font-size: 12pt;
                <number>0</number>
               </property>
               <item>
-               <widget class="QtSimpleOpenGLBox" name="viewThreshold" native="true">
+               <widget class="QtVTKRenderWindowBox" name="viewThreshold" native="true">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                   <horstretch>0</horstretch>
@@ -596,15 +596,21 @@ font-size: 12pt;
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QDoubleSliderWithEditor</class>
-   <extends>QSlider</extends>
-   <header>QDoubleSliderWithEditor.h</header>
-  </customwidget>
-  <customwidget>
    <class>QtSimpleOpenGLBox</class>
    <extends>QWidget</extends>
    <header>QtSimpleOpenGLBox.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QtVTKRenderWindowBox</class>
+   <extends>QWidget</extends>
+   <header location="global">QtVTKRenderWindowBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QDoubleSliderWithEditor</class>
+   <extends>QSlider</extends>
+   <header location="global">QDoubleSliderWithEditor.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

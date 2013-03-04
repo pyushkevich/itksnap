@@ -28,11 +28,12 @@ IntensityCurveModel::IntensityCurveModel()
         &Self::GetMovingControlPointPositionAndRange,
         &Self::SetMovingControlPointPosition);
 
-  // Window/level model
-  m_LevelWindowModel = wrapGetterSetterPairAsProperty(
-        this,
-        &Self::GetLevelAndWindowValueAndRange,
-        &Self::SetLevelAndWindow);
+  // Min/max/level/window models
+  for(int i = 0; i < 4; i++)
+    m_IntensityRangeModel[i] = wrapIndexedGetterSetterPairAsProperty(
+          this, i,
+          &Self::GetIntensityRangeIndexedValueAndRange,
+          &Self::SetIntensityRangeIndexedValue);
 
   // Histogram bin size and other controls
   m_HistogramBinSizeModel = wrapGetterSetterPairAsProperty(
@@ -129,7 +130,7 @@ IntensityCurveLayerProperties::IntensityCurveLayerProperties()
   m_ObserverTag = 0;
   m_HistogramLog = false;
   m_MovingControlPoint = false;
-  m_HistogramBinSize = 4;
+  m_HistogramBinSize = 10;
   m_HistogramCutoff = 1;
 }
 
@@ -139,14 +140,35 @@ IntensityCurveLayerProperties::~IntensityCurveLayerProperties()
 
 IntensityCurveInterface * IntensityCurveModel::GetCurve()
 {
-  assert(this->GetDisplayPolicy());
-  return this->GetDisplayPolicy()->GetIntensityCurve();
+  return (this->GetDisplayPolicy())
+      ? this->GetDisplayPolicy()->GetIntensityCurve()
+      : NULL;
 }
 
 Vector2d IntensityCurveModel::GetNativeImageRangeForCurve()
 {
   assert(this->GetDisplayPolicy());
   return this->GetDisplayPolicy()->GetNativeImageRangeForCurve();
+}
+
+Vector2d IntensityCurveModel::GetCurveRange()
+{
+  IntensityCurveInterface *curve = this->GetCurve();
+  assert(curve);
+
+  // Get the control point range
+  float t0, y0, t1, y1;
+  curve->GetControlPoint(0, t0, y0);
+  curve->GetControlPoint(curve->GetControlPointCount() - 1, t1, y1);
+
+  // Get the reference intensity range
+  Vector2d range = this->GetNativeImageRangeForCurve();
+
+  // Map the extents of the control points to image units
+  Vector2d outRange;
+  outRange[0] = range[0] * (1 - t0) + range[1] * t0;
+  outRange[1] = range[0] * (1 - t1) + range[1] * t1;
+  return outRange;
 }
 
 Vector2d IntensityCurveModel::GetVisibleImageRange()
@@ -365,32 +387,25 @@ IntensityCurveModel
 
 bool
 IntensityCurveModel
-::GetLevelAndWindowValueAndRange(Vector2d &lw,
-                                 NumericValueRange<Vector2d> *range)
+::GetIntensityRangeIndexedValueAndRange(
+    int index,
+    double &value,
+    NumericValueRange<double> *range)
 {
-  AbstractContinuousImageDisplayMappingPolicy *dmp = this->GetDisplayPolicy();
-  if(!dmp)
+  if(!this->GetCurve())
     return false;
 
-  IntensityCurveInterface *curve = dmp->GetIntensityCurve();
-
-  // Get the absolute range
-  Vector2d iAbsRange = dmp->GetNativeImageRangeForCurve();
-  double iAbsMin = iAbsRange[0];
-  double iAbsMax = iAbsRange[1];
-  double iAbsSpan = iAbsMax - iAbsMin;
-
-  // Get the starting and ending control points
-  float t0, x0, t1, x1;
-  curve->GetControlPoint(0,t0,x0);
-  curve->GetControlPoint(curve->GetControlPointCount()-1,t1,x1);
-
-  // The the curve intensity range
-  double iMin = iAbsMin + iAbsSpan * t0;
-  double iMax = iAbsMin + iAbsSpan * t1;
+  // Get the range of the curve in image units
+  Vector2d crange = this->GetCurveRange();
 
   // Level and window
-  lw = Vector2d(iMin, iMax - iMin);
+  switch(index)
+    {
+    case 0 : value = crange[0]; break;
+    case 1 : value = crange[1]; break;
+    case 2 : value = (crange[0] + crange[1]) / 2; break;
+    case 3 : value = (crange[1] - crange[0]); break;
+    }
 
   // Compute range and step if needed
   if(range)
@@ -398,52 +413,79 @@ IntensityCurveModel
     // The range for the window and level are basically unlimited. To be safe, we
     // set it to be two orders of magnitude greater than the largest absolute
     // value in the image.
-    double step = pow(10, floor(0.5 + log10(iAbsSpan) - 3));
-    double order = log10(std::max(fabs(iAbsMin), fabs(iAbsMax)));
+    Vector2d irange = this->GetNativeImageRangeForCurve();
+    double step = pow(10, floor(0.5 + log10(irange[1] - irange[0]) - 3));
+    double order = log10(std::max(fabs(irange[0]), fabs(irange[1])));
     double maxabsval = pow(10, ceil(order)+2);
 
-    range->Minimum = Vector2d(-maxabsval, step);
-    range->Maximum = Vector2d(maxabsval, maxabsval);
-    range->StepSize = Vector2d(step, step);
+    // Set the ranges for each of the four properties
+    switch(index)
+      {
+      case 0 :
+      case 1 :
+      case 2 :
+        range->Minimum = -maxabsval;
+        range->Maximum = maxabsval;
+        break;
+      case 3 :
+        range->Minimum = 0.0;
+        range->Maximum = maxabsval;
+        break;
+      }
+    range->StepSize = step;
     }
 
   // Value is valid
   return true;
 }
 
-
-void
-IntensityCurveModel
-::SetLevelAndWindow(Vector2d p)
+void IntensityCurveModel::SetIntensityRangeIndexedValue(int index, double value)
 {
-  AbstractContinuousImageDisplayMappingPolicy *dmp = this->GetDisplayPolicy();
-  assert(dmp);
+  // Get the curve
+  IntensityCurveInterface *curve = this->GetCurve();
 
-  IntensityCurveInterface *curve = dmp->GetIntensityCurve();
+  // Get the intensity range and curve range in image units
+  Vector2d irange = this->GetNativeImageRangeForCurve();
+  Vector2d crange = this->GetCurveRange();
 
-  // Get the absolute range
-  Vector2d iAbsRange = dmp->GetNativeImageRangeForCurve();
+  // Get the current window and level
+  double win = crange[1] - crange[0];
+  double level = (crange[0] + crange[1]) / 2;
+  double step = pow(10, floor(0.5 + log10(irange[1] - irange[0]) - 3));
 
-  // Assure that input and output outside of the image range
-  // is handled gracefully
-  // m_InLevel->value(m_InLevel->clamp(m_InLevel->value()));
-  // m_InWindow->value(m_InWindow->clamp(m_InWindow->value()));
+  // How we set the output range depends on what property was changed
+  switch(index)
+    {
+    case 0:         // min
+      crange[0] = value;
+      if(crange[0] >= crange[1])
+        crange[1] = crange[0] + step;
+      break;
+    case 1:         // max
+      crange[1] = value;
+      if(crange[1] <= crange[0])
+        crange[0] = crange[1] - step;
+      break;
+    case 2:         // level (mid-range)
+      crange[0] = value - win / 2;
+      crange[1] = value + win / 2;
+      break;
+    case 3:         // window
+      if(value <= 0)
+        value = step;
+      crange[0] = level - value / 2;
+      crange[1] = level + value / 2;
+      break;
+    }
 
-  // Get the new values of min and max
-  double iMin = p(0);
-  double iMax = iMin + p(1);
+  // Map the range into curve units
+  double t0 = (crange[0] - irange[0]) / (irange[1] - irange[0]);
+  double t1 = (crange[1] - irange[0]) / (irange[1] - irange[0]);
 
-  // Min better be less than max
-  assert(iMin < iMax);
-
-  // Compute the unit coordinate values that correspond to min and max
-  double factor = 1.0 / (iAbsRange[1] - iAbsRange[0]);
-  double t0 = factor * (iMin - iAbsRange[0]);
-  double t1 = factor * (iMax - iAbsRange[0]);
-
-  // Update the curve boundary
-  curve->ScaleControlPointsToWindow((float) t0, (float) t1);
+  curve->ScaleControlPointsToWindow(t0, t1);
 }
+
+
 
 bool
 IntensityCurveModel
@@ -582,6 +624,13 @@ void IntensityCurveModel::OnUpdate()
     this->GetLayer()->UpdateIntensityMapFunction();
     }
     */
+}
+
+AbstractRangedDoubleProperty *
+IntensityCurveModel::GetIntensityRangeModel(
+    IntensityRangePropertyType index) const
+{
+  return m_IntensityRangeModel[index];
 }
 
 void IntensityCurveModel::OnAutoFitWindow()

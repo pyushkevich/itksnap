@@ -294,19 +294,18 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   m_ColorMap->LoadFromRegistry(reg.Folder("ColorMap"));
 }
 
-template<class TWrapperTraits>
 void
-CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
+AbstractContinuousImageDisplayMappingPolicy
 ::AutoFitContrast()
 {
-  // Get the histogram
-  const ScalarImageHistogram *hist = m_Wrapper->GetHistogram();
+  // Get the histogram with the current number of bins
+  const ScalarImageHistogram *hist = this->GetHistogram(0);
 
   // Integrate the histogram until reaching 0.1%
-  PixelType imin = hist->GetBinMin(0);
-  PixelType ilow = imin;
+  double imin = hist->GetBinMin(0);
+  double ilow = imin;
   size_t accum = 0;
-  size_t accum_goal = m_Wrapper->GetNumberOfVoxels() / 1000;
+  size_t accum_goal = hist->GetTotalSamples() / 1000;
   for(size_t i = 0; i < hist->GetSize(); i++)
     {
     if(accum + hist->GetFrequency(i) < accum_goal)
@@ -318,8 +317,8 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
     }
 
   // Same, but from above
-  PixelType imax = hist->GetBinMax(hist->GetSize() - 1);
-  PixelType ihigh = imax;
+  double imax = hist->GetBinMax(hist->GetSize() - 1);
+  double ihigh = imax;
   accum = 0;
   for(int i = (int) hist->GetSize() - 1; i >= 0; i--)
     {
@@ -336,15 +335,13 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
     { ilow = imin; ihigh = imax; }
 
   // Compute the unit coordinate values that correspond to min and max
-  double iAbsMax = m_Wrapper->GetImageMaxAsDouble();
-  double iAbsMin = m_Wrapper->GetImageMinAsDouble();
-  double factor = 1.0 / (iAbsMax - iAbsMin);
-  double t0 = factor * (ilow - iAbsMin);
-  double t1 = factor * (ihigh - iAbsMin);
+  Vector2d irange = this->GetNativeImageRangeForCurve();
+  double factor = 1.0 / (irange[1] - irange[0]);
+  double t0 = factor * (ilow - irange[0]);
+  double t1 = factor * (ihigh - irange[0]);
 
   // Set the window and level
-  m_IntensityCurveVTK->ScaleControlPointsToWindow(
-        (float) t0, (float) t1);
+  this->GetIntensityCurve()->ScaleControlPointsToWindow((float) t0, (float) t1);
 }
 
 
@@ -858,18 +855,8 @@ void
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
 ::AutoFitContrast()
 {
-  if(IsContrastMultiComponent())
-    {
-    // Get the pooled histogram of all the layers - how?
-    // TODO: fix this soon!
-    }
-  else
-    {
-    AbstractContinuousImageDisplayMappingPolicy *dp =
-        static_cast<AbstractContinuousImageDisplayMappingPolicy *>(
-          m_ScalarRepresentation->GetDisplayMapping());
-    dp->AutoFitContrast();
-    }
+  // It's safe to just call the parent's method
+  Superclass::AutoFitContrast();
 }
 
 

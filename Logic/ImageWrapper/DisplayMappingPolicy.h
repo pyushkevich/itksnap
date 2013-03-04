@@ -136,8 +136,17 @@ public:
    */
   virtual const ScalarImageHistogram *GetHistogram(int nBins) = 0;
 
-  virtual void AutoFitContrast() = 0;
   virtual void SetColorMap(ColorMap *map) = 0;
+
+  /**
+   * Automatically fit the contrast mapping based on the percentiles of
+   * the image histogram.
+   * TODO: the accuracy of this is currently limited by the bin size in
+   * the histogram. At some point, it may make sense to have separate
+   * histograms for display and for auto-fitting.
+   */
+  virtual void AutoFitContrast();
+
 };
 
 class AbstractCachingAndColorMapDisplayMappingPolicy
@@ -230,12 +239,6 @@ public:
    * Set a new intensity curve
    */
   void SetIntensityCurve(IntensityCurveInterface *curve);
-
-  /**
-    Automatically rescale the intensity range based on image histogram
-    quantiles.
-    */
-  void AutoFitContrast();
 
   void Initialize(WrapperType *wrapper);
   void UpdateImagePointer(ImageType *image);
