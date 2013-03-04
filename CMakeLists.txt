@@ -382,7 +382,6 @@ SET(UI_QT_CXX
   GUI/Qt/View/CrosshairsInteractionMode.cxx
   GUI/Qt/View/GenericSliceView.cxx
   GUI/Qt/View/GenericView3D.cxx
-  GUI/Qt/View/IntensityCurveBox.cxx
   GUI/Qt/View/InteractionModeClient.cxx
   GUI/Qt/View/QtAbstractOpenGLBox.cxx
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
@@ -437,7 +436,6 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
   GUI/Qt/View/GenericView3D.h
-  GUI/Qt/View/IntensityCurveBox.h
   GUI/Qt/View/QtAbstractOpenGLBox.h
   GUI/Qt/View/QtInteractionDelegateWidget.h
   GUI/Qt/View/QtSimpleOpenGLBox.h
