@@ -119,10 +119,11 @@ public:
   irisGetSetMacro(HistoryName, std::string)
 
   HistoryListModel() { m_Model = NULL; }
+  virtual ~HistoryListModel() {}
 
 public slots:
 
-  void onModelUpdate(EventBucket &bucket)
+  void onModelUpdate(const EventBucket &bucket)
   {
     if(bucket.HasEvent(MainImageDimensionsChangeEvent()))
       {
@@ -277,7 +278,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   LatentITKEventNotifier::connect(model->GetDriver(),
                                   MainImageDimensionsChangeEvent(),
                                   this,
-                                  SLOT(onModelUpdate(EventBucket)));
+                                  SLOT(onModelUpdate(const EventBucket&)));
 
   // Create a model for the table of recent images and connect to the widget
   HistoryListModel *historyModel = new HistoryListModel();
@@ -289,7 +290,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   LatentITKEventNotifier::connect(model->GetDriver(),
                                   MainImageDimensionsChangeEvent(),
                                   historyModel,
-                                  SLOT(onModelUpdate(EventBucket)));
+                                  SLOT(onModelUpdate(const EventBucket&)));
 
   // Couple the visibility of each view panel to the correponding property
   // model in DisplayLayoutModel

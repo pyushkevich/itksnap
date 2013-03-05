@@ -35,7 +35,6 @@ void ApplyCSS(QWidget *widget, const char *file)
   if(qf.open(QFile::ReadOnly))
     {
     QString qs(qf.readAll());
-    std::cerr << qs.toStdString() << std::endl;
     widget->setStyleSheet(qs);
     }
   else

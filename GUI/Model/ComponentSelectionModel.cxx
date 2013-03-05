@@ -2,6 +2,10 @@
 #include "DisplayMappingPolicy.h"
 #include "LayerAssociation.txx"
 
+template class LayerAssociation<ComponentSelectionLayerProperties,
+                                VectorImageWrapperBase,
+                                ComponentSelectionModel::PropertiesFactory>;
+
 
 ComponentSelectionModel::ComponentSelectionModel()
 {
