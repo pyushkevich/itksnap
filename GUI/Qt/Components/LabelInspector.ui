@@ -28,7 +28,6 @@
   <property name="styleSheet">
    <string notr="true">*  {
 font-size: 12px;
-font-family: Helvetica;
 }
 
 QAbstractItemView::item {
@@ -51,10 +50,7 @@ QAbstractItemView::item {
       <widget class="QLabel" name="label">
        <property name="font">
         <font>
-         <family>Helvetica</family>
-         <pointsize>12</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
+         <pointsize>-1</pointsize>
         </font>
        </property>
        <property name="text">
@@ -130,10 +126,7 @@ spacing:10;
       <widget class="QLabel" name="label_2">
        <property name="font">
         <font>
-         <family>Helvetica</family>
-         <pointsize>12</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
+         <pointsize>-1</pointsize>
         </font>
        </property>
        <property name="text">
@@ -255,10 +248,7 @@ p, li { white-space: pre-wrap; }
       <widget class="QLabel" name="label_6">
        <property name="font">
         <font>
-         <family>Helvetica</family>
-         <pointsize>12</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
+         <pointsize>-1</pointsize>
         </font>
        </property>
        <property name="text">

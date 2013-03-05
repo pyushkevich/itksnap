@@ -33,8 +33,7 @@ font-size: 12px;
     <widget class="QCheckBox" name="chkLinkedZoom">
      <property name="font">
       <font>
-       <family>Helvetica</family>
-       <pointsize>12</pointsize>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
@@ -72,8 +71,7 @@ font-size: 12px;
       <widget class="QLabel" name="label">
        <property name="font">
         <font>
-         <family>Helvetica</family>
-         <pointsize>10</pointsize>
+         <pointsize>-1</pointsize>
         </font>
        </property>
        <property name="styleSheet">
@@ -164,8 +162,7 @@ font-size: 12px;
        </property>
        <property name="font">
         <font>
-         <family>Helvetica</family>
-         <pointsize>12</pointsize>
+         <pointsize>-1</pointsize>
         </font>
        </property>
        <property name="keyboardTracking">
@@ -340,8 +337,7 @@ font-size: 12px;
         </property>
         <property name="font">
          <font>
-          <family>Helvetica</family>
-          <pointsize>12</pointsize>
+          <pointsize>-1</pointsize>
          </font>
         </property>
         <property name="text">
@@ -359,8 +355,7 @@ font-size: 12px;
         </property>
         <property name="font">
          <font>
-          <family>Helvetica</family>
-          <pointsize>12</pointsize>
+          <pointsize>-1</pointsize>
          </font>
         </property>
         <property name="text">

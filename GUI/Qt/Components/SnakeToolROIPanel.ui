@@ -43,12 +43,12 @@ font-size: 11px;
      </property>
      <property name="font">
       <font>
-       <pointsize>11</pointsize>
+       <pointsize>-1</pointsize>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">* {
-font-size: 11pt;
+font-size: 11px;
 }
 </string>
      </property>
@@ -74,9 +74,7 @@ font-size: 11pt;
     <widget class="QLabel" name="label_4">
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
+       <pointsize>-1</pointsize>
       </font>
      </property>
      <property name="text">
@@ -97,9 +95,7 @@ font-size: 11pt;
        <widget class="QLabel" name="label_3">
         <property name="font">
          <font>
-          <pointsize>12</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
+          <pointsize>-1</pointsize>
          </font>
         </property>
         <property name="text">
@@ -162,9 +158,7 @@ font-size: 11pt;
        <widget class="QLabel" name="label_2">
         <property name="font">
          <font>
-          <pointsize>12</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
+          <pointsize>-1</pointsize>
          </font>
         </property>
         <property name="text">
@@ -239,7 +233,7 @@ font-size: 11pt;
         </property>
         <property name="font">
          <font>
-          <pointsize>12</pointsize>
+          <pointsize>-1</pointsize>
          </font>
         </property>
         <property name="text">
@@ -317,7 +311,7 @@ font-size: 11pt;
         </property>
         <property name="font">
          <font>
-          <pointsize>12</pointsize>
+          <pointsize>-1</pointsize>
          </font>
         </property>
         <property name="text">

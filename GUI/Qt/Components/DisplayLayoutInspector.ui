@@ -14,7 +14,10 @@
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true">* {
+font-size: 12px;
+}
+</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="margin">
@@ -24,9 +27,7 @@
     <widget class="QLabel" name="label">
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
+       <pointsize>-1</pointsize>
       </font>
      </property>
      <property name="text">
@@ -210,9 +211,7 @@
     <widget class="QLabel" name="label_2">
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
+       <pointsize>-1</pointsize>
       </font>
      </property>
      <property name="text">
@@ -224,7 +223,7 @@
     <widget class="QWidget" name="grpLayerLayout" native="true">
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
+       <pointsize>-1</pointsize>
       </font>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
