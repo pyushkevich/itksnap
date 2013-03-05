@@ -116,4 +116,5 @@ void AbstractVTKRenderer::resizeGL(int w, int h)
 {
   // Pass the size to VTK
   m_RenderWindow->SetSize(w, h);
+  m_Interactor->UpdateSize(w, h);
 }
