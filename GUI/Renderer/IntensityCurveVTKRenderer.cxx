@@ -115,6 +115,9 @@ protected:
         reinterpret_cast<unsigned char*>(this->Texture->GetScalarPointer(0,0,0));
     Vector2d range = m_Model->GetNativeImageRangeForCurve();
 
+    // Get the colormap, and if there is none (RGB display), then use
+    // the default greyscale colormap
+    ColorMap *cm = m_ColorMapModel->GetColorMap();
 
     // Draw the texture. The texture is being drawn on the x-axis, so it must
     // first be interpolated through the intensity curve
@@ -128,7 +131,15 @@ protected:
 
       // Map the intensity value to the colormap index
       double y = curve->Evaluate(t);
-      ColorMap::RGBAType rgba = m_ColorMapModel->GetColorMap()->MapIndexToRGBA(y);
+
+      // Below we handle the null colormap case, used when adjusting contrast
+      // on RGB-mode images
+      ColorMap::RGBAType rgba;
+      if(cm)
+        rgba = cm->MapIndexToRGBA(y);
+      else
+        rgba[0] = rgba[1] = rgba[2] = 255.0 * y;
+
       for(int j = 0; j < 3; j++)
         *data++ = rgba[j];
 
@@ -194,6 +205,9 @@ protected:
     unsigned char *data =
         reinterpret_cast<unsigned char*>(this->Texture->GetScalarPointer(0,0,0));
 
+    // Get the colormap (may be NULL)
+    ColorMap *cm = m_ColorMapModel->GetColorMap();
+
     // Draw the texture. The texture is being drawn on the y-axis, so we use
     // simple interpolation
     for(int i = 0; i < dim; i++)
@@ -201,8 +215,14 @@ protected:
       // Here x is the intensity value for which we want to look up the color
       double t = i * 1.0 / (dim - 1);
 
-      // Map the intensity value to the colormap index
-      ColorMap::RGBAType rgba = m_ColorMapModel->GetColorMap()->MapIndexToRGBA(t);
+      // Below we handle the null colormap case, used when adjusting contrast
+      // on RGB-mode images
+      ColorMap::RGBAType rgba;
+      if(cm)
+        rgba = cm->MapIndexToRGBA(t);
+      else
+        rgba[0] = rgba[1] = rgba[2] = 255.0 * t;
+
       for(int j = 0; j < 3; j++)
         *data++ = rgba[j];
 

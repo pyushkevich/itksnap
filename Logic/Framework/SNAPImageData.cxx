@@ -108,7 +108,7 @@ SNAPImageData
   assert(m_MainImageWrapper->IsInitialized());
 
   // Intialize the speed based on the current grey image
-  m_SpeedWrapper->InitializeToWrapper(m_MainImageWrapper, 0.0f);
+  m_SpeedWrapper->InitializeToWrapper(m_MainImageWrapper, (GreyType) 0);
 
   // Here or after it's computed?
   m_SpeedWrapper->SetAlpha(255);

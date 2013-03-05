@@ -21,6 +21,17 @@ class QSpinBox;
 namespace imageiowiz
 {
 
+/*
+ * TODO/NOTE:
+ *
+ * This was one of the first elements ported to Qt. For that reason, it does
+ * not follow the same design patterns as the newer Qt code. Namely, it does
+ * not make use of .ui files (all the Qt elements are coded in C++ directly)
+ * and it does not use model couplings in the way that newer code does.
+ *
+ * Eventually, this code should be brought in line with the newer code.
+ */
+
 class AbstractPage : public QWizardPage
 {
   Q_OBJECT

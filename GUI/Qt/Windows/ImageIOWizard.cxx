@@ -341,29 +341,23 @@ int SelectFilePage::nextId() const
 
 void SelectFilePage::on_btnBrowse_pressed()
 {
-  // Set the dialog properties
-  if(m_Model->IsLoadMode())
-    {
-    m_BrowseDialog->setAcceptMode(QFileDialog::AcceptOpen);
-    m_BrowseDialog->setFileMode(QFileDialog::ExistingFile);
-    }
-  else
-    {
-    m_BrowseDialog->setAcceptMode(QFileDialog::AcceptSave);
-    m_BrowseDialog->setFileMode(QFileDialog::AnyFile);
-    m_BrowseDialog->setDefaultSuffix(
-          m_Model->GetDefaultExtensionForSave().c_str());
-    }
-
   // Initialize the dialog with what's in the filebox
   std::string file = m_InFilename->text().toStdString();
   std::string dir = m_Model->GetBrowseDirectory(file);
-  if(dir.length())
-    m_BrowseDialog->setDirectory(dir.c_str());
 
-  // Get the file name
-  if(m_BrowseDialog->exec() && m_BrowseDialog->selectedFiles().size())
-    m_InFilename->setText(m_BrowseDialog->selectedFiles().first());
+  // Set the dialog properties
+  if(m_Model->IsLoadMode())
+    {
+    QString sel = QFileDialog::getOpenFileName(this, "Open Image File", file.c_str());
+    if(sel.length())
+      m_InFilename->setText(sel);
+    }
+  else
+    {
+    QString sel = QFileDialog::getSaveFileName(this, "Save Image File", file.c_str());
+    if(sel.length())
+      m_InFilename->setText(sel);
+    }
 }
 
 void SelectFilePage::on_inFilename_textChanged(const QString &text)
