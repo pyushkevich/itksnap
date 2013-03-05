@@ -49,7 +49,7 @@ public:
 
   void setValue(double x)
   {
-    int v = (int) 1000 * (x - m_DoubleMin) / (m_DoubleMax-m_DoubleMin);
+    int v = (int) (1000 * (x - m_DoubleMin) / (m_DoubleMax-m_DoubleMin));
     QSlider::setValue(v);
   }
 
@@ -64,7 +64,7 @@ private:
 
   void updateStep()
   {
-    QSlider::setSingleStep(1000 * m_DoubleStep / (m_DoubleMax - m_DoubleMin));
+    QSlider::setSingleStep((int)(1000 * m_DoubleStep / (m_DoubleMax - m_DoubleMin)));
   }
 };
 

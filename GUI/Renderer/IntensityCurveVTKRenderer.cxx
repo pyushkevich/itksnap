@@ -138,7 +138,7 @@ protected:
       if(cm)
         rgba = cm->MapIndexToRGBA(y);
       else
-        rgba[0] = rgba[1] = rgba[2] = 255.0 * y;
+        rgba[0] = rgba[1] = rgba[2] = (unsigned char)(255.0 * y);
 
       for(int j = 0; j < 3; j++)
         *data++ = rgba[j];
@@ -221,7 +221,7 @@ protected:
       if(cm)
         rgba = cm->MapIndexToRGBA(t);
       else
-        rgba[0] = rgba[1] = rgba[2] = 255.0 * t;
+        rgba[0] = rgba[1] = rgba[2] = (unsigned char)(255.0 * t);
 
       for(int j = 0; j < 3; j++)
         *data++ = rgba[j];
@@ -281,7 +281,7 @@ public:
 
   virtual void DrawSelectedPoints(vtkContext2D *painter)
   {
-    painter->GetBrush()->SetColor(255, 255, 0.0, 255);
+    painter->GetBrush()->SetColor(255, 255, 0, 255);
     Superclass::DrawSelectedPoints(painter);
   }
 

@@ -42,8 +42,8 @@ AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 ::SetReferenceIntensityRange(double min, double max)
 {
   m_UseReferenceRange = true;
-  m_ReferenceMin = min;
-  m_ReferenceMax = max;
+  m_ReferenceMin = (InputComponentType) min;
+  m_ReferenceMax = (InputComponentType) max;
   this->Modified();
 }
 

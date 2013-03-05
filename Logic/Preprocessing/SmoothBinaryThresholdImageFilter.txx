@@ -95,7 +95,7 @@ SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 template<class TPixel>
 void
 SmoothBinaryThresholdFunctor<TPixel>
-::SetParameters(ThresholdSettings *ts, TPixel imin, TPixel imax)
+::SetParameters(ThresholdSettings *ts, double imin, double imax)
 {
   // At least one threshold should be used
   assert(ts->IsLowerThresholdEnabled() || ts->IsUpperThresholdEnabled());

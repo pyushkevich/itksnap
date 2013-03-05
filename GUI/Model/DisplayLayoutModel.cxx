@@ -184,7 +184,8 @@ void DisplayLayoutModel::UpdateSliceViewTiling()
     double k = 2.01;
     for(unsigned int a = 1; a <= n; a++)
       {
-      for(unsigned int b = ceil(a/k); b <= a; b++)
+      unsigned int b0 = (unsigned int)(ceil(a/k));
+      for(unsigned int b = b0; b <= a; b++)
         {
         if(a * b >= n)
           {

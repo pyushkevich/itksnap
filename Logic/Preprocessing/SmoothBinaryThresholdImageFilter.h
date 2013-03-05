@@ -49,7 +49,7 @@ public:
   typedef SmoothBinaryThresholdFunctor<TInput> Self;
 
   /** Initialize the function */
-  void SetParameters(ThresholdSettings *settings, TInput imin, TInput imax);
+  void SetParameters(ThresholdSettings *settings, double imin, double imax);
 
   /** Apply the function to image intensity */
   inline short operator()(const TInput &x);
