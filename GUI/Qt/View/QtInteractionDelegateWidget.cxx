@@ -37,6 +37,9 @@ QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
   m_MiddleDown = false;
   m_RightDown = false;
   m_Filtering = false;
+
+  // The widget is hidden
+  this->hide();
 }
 
 bool QtInteractionDelegateWidget::event(QEvent *ev)

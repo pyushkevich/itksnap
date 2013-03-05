@@ -15,7 +15,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">* {
-font-size: 12pt;
+font-size: 12px;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">

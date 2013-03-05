@@ -29,8 +29,9 @@ void AbstractVTKRenderer::paintGL()
   // Update the scene
   this->Update();
 
-  // Do the actual rendering!
-  m_RenderWindow->Render();
+  // Do the rendering but only when interactor is enabled (from QVTKWidget2)
+  if(m_RenderWindow->GetInteractor() && m_RenderWindow->GetInteractor()->GetEnabled())
+    m_RenderWindow->Render();
 }
 
 void AbstractVTKRenderer::initializeGL()
