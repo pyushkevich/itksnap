@@ -13,6 +13,11 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">* {
+font-size:11px;
+}</string>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="margin">
     <number>0</number>
@@ -131,7 +136,7 @@
              <widget class="QToolButton" name="btnZoomToFit">
               <property name="font">
                <font>
-                <family>Helvetica</family>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="toolTip">
@@ -180,7 +185,7 @@
               </property>
               <property name="font">
                <font>
-                <family>Helvetica</family>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="toolTip">
@@ -204,7 +209,7 @@
               </property>
               <property name="font">
                <font>
-                <family>Helvetica</family>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="toolTip">
@@ -226,7 +231,7 @@ p, li { white-space: pre-wrap; }
              <widget class="QToolButton" name="btnClearDrawing">
               <property name="font">
                <font>
-                <family>Helvetica</family>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="toolTip">
@@ -282,7 +287,7 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="font">
                <font>
-                <family>Helvetica</family>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="toolTip">
@@ -306,7 +311,7 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="font">
                <font>
-                <family>Helvetica</family>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="toolTip">
@@ -334,7 +339,7 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="font">
                <font>
-                <family>Helvetica</family>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="toolTip">
@@ -356,7 +361,7 @@ p, li { white-space: pre-wrap; }
              <widget class="QToolButton" name="btnDeletePolygon">
               <property name="font">
                <font>
-                <family>Helvetica</family>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="toolTip">
@@ -406,7 +411,7 @@ p, li { white-space: pre-wrap; }
              <widget class="QToolButton" name="btnPastePolygon">
               <property name="font">
                <font>
-                <family>Helvetica</family>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="toolTip">
@@ -440,9 +445,11 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="font">
          <font>
-          <family>Helvetica</family>
-          <pointsize>11</pointsize>
+          <pointsize>-1</pointsize>
          </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font-size:11px;</string>
         </property>
         <property name="text">
          <string>TextLabel</string>
