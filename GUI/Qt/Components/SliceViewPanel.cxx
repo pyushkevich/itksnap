@@ -32,7 +32,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   // Create my own renderers
   m_SnakeModeRenderer = SnakeModeRenderer::New();
 
-  QString menuStyle = "font-size: 12pt;";
+  QString menuStyle = "font-size: 12px;";
 
   // Create the popup menus for the polygon mode
   m_MenuPolyInactive = new QMenu(ui->imPolygon);
@@ -79,6 +79,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   // layout. This assures that all of the interactors have the same size as
   // the sliceView. The actual propagation of events is handled by the
   // event filter logic.
+  /*
   QStackedLayout *loMain = new QStackedLayout();
   loMain->setContentsMargins(0,0,0,0);
   loMain->addWidget(ui->imCrosshairs);
@@ -89,6 +90,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   loMain->addWidget(ui->imPaintbrush);
   delete ui->sliceView->layout();
   ui->sliceView->setLayout(loMain);
+  */
 
   // Configure the initial event chain
   m_CurrentEventFilter = NULL;

@@ -18,7 +18,7 @@
   background-color:rgb(240,240,240);
 }
 QTableWidget {
-  font: 10pt fixed;
+  font: 10px fixed;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -47,7 +47,7 @@ QTableWidget {
          <widget class="QLabel" name="outInvalidStatus">
           <property name="styleSheet">
            <string notr="true">color:rgb(128, 0, 0);
-font: 11pt;</string>
+font: 11px;</string>
           </property>
           <property name="text">
            <string>TextLabel</string>

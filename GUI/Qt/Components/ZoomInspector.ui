@@ -21,8 +21,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">*  {
-font-size: 12pt;
-font-family: Helvetica;
+font-size: 12px;
 }
 </string>
   </property>
@@ -78,7 +77,7 @@ font-family: Helvetica;
         </font>
        </property>
        <property name="styleSheet">
-        <string notr="true">font-size:10pt;</string>
+        <string notr="true">font-size:10px;</string>
        </property>
        <property name="text">
         <string>Common zoom factor shared by all slice views</string>

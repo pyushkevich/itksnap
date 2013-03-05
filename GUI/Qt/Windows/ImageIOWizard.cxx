@@ -129,7 +129,7 @@ SelectFilePage::SelectFilePage(QWidget *parent)
 
   // Label for filename error messages
   m_OutFilenameError = new QLabel("");
-  m_OutFilenameError->setStyleSheet("font-size:10pt; color: #7f0000;");
+  m_OutFilenameError->setStyleSheet("font-size:10px; color: #7f0000;");
   m_OutFilenameError->setWordWrap(true);
 
   // A couple of buttons
@@ -144,7 +144,7 @@ SelectFilePage::SelectFilePage(QWidget *parent)
   m_BtnHistory->setObjectName("btnHistory");
 
   m_HistoryMenu = new QMenu("History", m_BtnHistory);
-  m_HistoryMenu->setStyleSheet("font-size: 12pt;");
+  m_HistoryMenu->setStyleSheet("font-size: 12px;");
   m_BtnHistory->setMenu(m_HistoryMenu);
 
   lobtn->addWidget(m_OutFilenameError,1,Qt::AlignLeft);
@@ -675,7 +675,7 @@ RawPage::RawPage(QWidget *parent)
   lo->addWidget(m_OutActualSize, 6, 2, 1, 1);
 
   QLabel *lbrace = new QLabel("}");
-  lbrace->setStyleSheet("font-size: 30pt");
+  lbrace->setStyleSheet("font-size: 30px");
   lo->addWidget(lbrace, 5, 3, 2, 1);
   lo->addWidget(new QLabel("should be equal"), 5, 4, 2, 2);
 

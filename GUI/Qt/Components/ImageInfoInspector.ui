@@ -18,7 +18,7 @@
   background-origin: content;
   margin-top: 2.5ex;
   font-weight: normal;
-  font-size: 12pt;
+  font-size: 12px;
   font-family: helvetica;
   color: black;
   padding: 5px;
