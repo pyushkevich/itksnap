@@ -59,8 +59,6 @@ VectorImageWrapper<TTraits,TBase>
 ::DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                  itk::Command *progressCommand) const
 {
-   std::cout << "VectorImageWrapper::DeepCopyRegion" << std::endl;
-   std::cout << std::flush;
    return Superclass::DeepCopyRegion(roi, progressCommand);
 }
 

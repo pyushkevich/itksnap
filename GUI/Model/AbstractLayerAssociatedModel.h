@@ -75,7 +75,6 @@ public:
       return;
 
     // Make sure the layer-specific stuff is up to date
-    std::cout << "SetLayer" << std::endl;
     m_LayerProperties.Update();
 
     // Unregister from the current layer
@@ -102,9 +101,14 @@ public:
           AddListener(m_Layer, itk::DeleteEvent(),
                       this, &Self::LayerDeletionCallback);
 
-      std::cout << "DeleteEvent registration "
-                << " layer " << m_Layer << " id " << m_Layer->GetUniqueId()
-                << " observer " << this << std::endl;
+#ifdef SNAP_DEBUG_EVENTS
+      if(flag_snap_debug_events)
+        {
+        std::cout << "DeleteEvent registration "
+                  << " layer " << m_Layer << " id " << m_Layer->GetUniqueId()
+                  << " observer " << this << std::endl;
+        }
+#endif
 
       // Do whatever needs to be done to listen to layer events
       this->RegisterWithLayer(m_Layer);
@@ -162,7 +166,6 @@ public:
       // If the layers have changed, we need to update the layer properties
       // object. Then we need to see if the current layer has actually been
       // destroyed
-      std::cout << "LAYER CHANGE" << std::endl;
       m_LayerProperties.Update();
 
       // Was the current layer removed?

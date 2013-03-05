@@ -32,7 +32,6 @@ public:
     Vector3d picked;
     this->Interactor->GetPicker()->GetPickPosition(picked.data_block());
 
-    std::cout << "Picked value: " << picked[0] << " " << picked[1] << " " << picked[2] << std::endl;
     m_Model->SetCursorFromPickResult(picked);
 
     // Forward events

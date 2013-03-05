@@ -124,7 +124,6 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
   // Attach the progress monitor
   unsigned long tag = 0;
 
-  itk::TimeProbe probe;
 
 
   if(progress)
@@ -134,10 +133,11 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
   m_VolumeStreamer->GraftOutput(m_OutputWrapper->GetImage());
 
   // Execute the preprocessing on the whole image extent
-  probe.Start();
+  // itk::TimeProbe probe;
+  // probe.Start();
   m_VolumeStreamer->UpdateLargestPossibleRegion();
-  probe.Stop();
-  std::cout << "Time Elapsed: " << probe.GetTotal() << std::endl;
+  // probe.Stop();
+  // std::cout << "Time Elapsed: " << probe.GetTotal() << std::endl;
 
   // Remove the progress monitor
   if(progress)

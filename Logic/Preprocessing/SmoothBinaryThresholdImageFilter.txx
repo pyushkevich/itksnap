@@ -80,11 +80,6 @@ SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
   this->GetFunctor().SetParameters(
         param, m_InputImageMinimum, m_InputImageMaximum);
 
-  std::cout << "THRESH ORR = "
-            << this->GetOutput()->GetRequestedRegion()
-            << "  IRR = "
-            << this->GetInput()->GetRequestedRegion() << std::endl;
-
   // Execute the filter
   Superclass::GenerateData();
 }

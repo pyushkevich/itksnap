@@ -795,7 +795,6 @@ void IRISApplication
 ::SetCurrentImageDataToSNAP() 
 {
   assert(m_SNAPImageData->IsMainLoaded());
-  std::cout << "*** SWITCHING TO SNAKE MODE ***" << std::endl;
   if(m_CurrentImageData != m_SNAPImageData)
     {
     // The cursor needs to be modified to point to the same location

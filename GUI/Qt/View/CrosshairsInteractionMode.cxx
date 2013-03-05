@@ -237,7 +237,8 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
     QCoreApplication::sendEvent(m_WheelEventTarget, &evnew);
     event->accept();
     }
-    /*
+
+  /*
   int numDegrees = event->delta() / 8;
   int numSteps = numDegrees / 15;
   std::cout << "Wheel event: " << event->delta() << std::endl;

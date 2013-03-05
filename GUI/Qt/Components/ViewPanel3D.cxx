@@ -98,7 +98,7 @@ ViewPanel3D::~ViewPanel3D()
 void ViewPanel3D::OnRenderProgress()
 {
   // TODO: fix this, add progress bar
-  std::cout << "." << std::flush;
+  // std::cout << "." << std::flush;
 }
 
 void ViewPanel3D::on_btnUpdateMesh_clicked()

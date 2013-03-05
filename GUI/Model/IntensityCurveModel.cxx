@@ -77,8 +77,6 @@ void
 IntensityCurveModel
 ::RegisterWithLayer(ImageWrapperBase *layer)
 {
-  std::cout << "ICM register with layer " << layer << std::endl;
-
   // Listen to changes in the layer's intensity curve
   unsigned long tag =
       Rebroadcast(layer->GetDisplayMapping(),
@@ -92,8 +90,6 @@ void
 IntensityCurveModel
 ::UnRegisterFromLayer(ImageWrapperBase *layer)
 {
-  std::cout << "ICM unregister from layer " << layer << std::endl;
-
   // It's safe to call GetProperties()
   unsigned long tag = GetProperties().GetObserverTag();
   if(tag)

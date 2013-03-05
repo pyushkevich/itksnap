@@ -71,7 +71,6 @@ void QtProgressReporterDelegate::SetProgressDialog(QProgressDialog *dialog)
 
 void QtProgressReporterDelegate::SetProgressValue(double value)
 {
-  std::cout << value << std::endl;
   m_Dialog->setValue((int) (1000 * value));
   QCoreApplication::processEvents();
 }

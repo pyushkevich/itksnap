@@ -73,9 +73,6 @@ AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
         m_ImageMinInput->Get(), m_ImageMaxInput->Get());
 
   // TODO: remove
-  std::cout << "Range for LUT is [" << region.GetIndex(0) << ","
-            << region.GetIndex(0) + region.GetSize(0) - 1 << "]"
-            << std::endl;
   output->SetLargestPossibleRegion(region);
 }
 
@@ -104,9 +101,6 @@ AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 ::ThreadedGenerateData(const OutputImageRegionType &region,
                        itk::ThreadIdType threadId)
 {
-  if(threadId == 0)
-    std::cout << "Computing LUT " << region << std::endl;
-
   // Get the image max and min
   InputComponentType imin = m_ImageMinInput->Get(), imax = m_ImageMaxInput->Get();
 

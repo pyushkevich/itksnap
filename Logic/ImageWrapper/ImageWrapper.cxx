@@ -668,8 +668,6 @@ ImageWrapper<TTraits,TBase>
   if(m_Histogram->GetMTime() < this->m_Image->GetMTime() ||
      m_Histogram->GetSize() != nBins)
     {
-    std::cout << "COMPUTING HISTOGRAM WITH " << nBins << " Bins." << std::endl;
-
     // Create the histogram
     m_Histogram->Initialize(this->GetImageMinNative(),
                             this->GetImageMaxNative(),

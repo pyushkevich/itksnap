@@ -46,22 +46,16 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
           {
           ImageWrapperBase *wb = lit.GetLayer();
           TFilter *wf = dynamic_cast<TFilter *>(wb);
-          std::cout << "Considering " << wf << std::endl;
           if(wf && wf->IsInitialized())
             {
-            std::cout << "  it is initialized! " << std::endl;
-
             iterator it = m_LayerMap.find(wf->GetUniqueId());
             if(it != m_LayerMap.end())
               {
-              std::cout << "  it was found! " << std::endl;
-
               // Mark it as visited
               it->second.m_Visit = m_VisitCounter;
               }
             else
               {
-              std::cout << "  it is new! " << std::endl;
               RHS rhs(m_Delegate.New(wf));
               rhs.m_Visit = m_VisitCounter;
               m_LayerMap.insert(std::make_pair(wf->GetUniqueId(), rhs));
@@ -111,9 +105,6 @@ bool
 LayerAssociation<TObject, TFilter, TFactoryDelegate>
 ::HasLayer(const TFilter *p)
 {
-  std::cout << p << std::endl;
-  if(p)
-    std::cout << p->GetUniqueId() << std::endl;
   return p && m_LayerMap.find(p->GetUniqueId()) != m_LayerMap.end();
 }
 

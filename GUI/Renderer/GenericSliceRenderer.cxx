@@ -385,7 +385,6 @@ void GenericSliceRenderer::DrawThumbnail()
 GenericSliceRenderer::Texture *
 GenericSliceRenderer::CreateTexture(ImageWrapperBase *iw)
 {
-  std::cout << "CREATE texture for " << iw << " " << to_itkSize(iw->GetSize()) << std::endl;
   if(iw->IsInitialized())
     {
     Texture *texture = new Texture(4, GL_RGBA);
@@ -395,7 +394,6 @@ GenericSliceRenderer::CreateTexture(ImageWrapperBase *iw)
     GLint imode = as->GetGreyInterpolationMode() == SNAPAppearanceSettings::LINEAR
         ? GL_LINEAR : GL_NEAREST;
     texture->SetInterpolation(imode);
-    std::cout << "Made!" << std::endl;
     return texture;
     }
   else return NULL;

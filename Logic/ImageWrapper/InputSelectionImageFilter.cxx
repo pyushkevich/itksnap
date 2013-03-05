@@ -34,15 +34,8 @@ void
 InputSelectionImageFilter<TInputImage,TTag>
 ::SetSelectedInput(InputSelectionImageFilter::TagType &tag)
 {
-  for(typename TagMap::iterator it = m_TagMap.begin(); it != m_TagMap.end(); ++it)
-    {
-    std::cout << it->first.SelectedScalarRep << ","
-              << it->first.SelectedComponent << ": "
-              << it->second.GetPointer() << std::endl;
-    }
   this->SetInput(m_TagMap[tag]);
   m_SelectedInput = tag;
-  std::cout << "Selected input " << m_TagMap[tag] << std::endl;
   this->Modified();
 }
 
