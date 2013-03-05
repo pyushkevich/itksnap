@@ -11,8 +11,10 @@ QtVTKInteractionDelegateWidget::QtVTKInteractionDelegateWidget(QWidget *parent) 
 void QtVTKInteractionDelegateWidget::SetVTKEventState(QMouseEvent *ev)
 {
   Qt::KeyboardModifiers km = QApplication::keyboardModifiers();
+  float x = ev->posF().x();
+  float y = ev->posF().y();
   m_VTKInteractor->SetEventInformationFlipY(
-        ev->posF().x(), ev->posF().y(),
+        x, y, 
         km.testFlag(Qt::ControlModifier),
         km.testFlag(Qt::ShiftModifier));
 }
