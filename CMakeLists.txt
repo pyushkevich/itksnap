@@ -357,6 +357,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/ColorMapInspector.cxx
   GUI/Qt/Components/CursorInspector.cxx
   GUI/Qt/Components/DisplayLayoutInspector.cxx
+  GUI/Qt/Components/HistoryQListModel.cxx
   GUI/Qt/Components/ImageInfoInspector.cxx
   GUI/Qt/Components/LabelInspector.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
@@ -413,6 +414,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/ColorMapInspector.h
   GUI/Qt/Components/CursorInspector.h
   GUI/Qt/Components/DisplayLayoutInspector.h
+  GUI/Qt/Components/HistoryQListModel.h
   GUI/Qt/Components/ImageInfoInspector.h
   GUI/Qt/Components/LabelInspector.h
   GUI/Qt/Components/LatentITKEventNotifier.h

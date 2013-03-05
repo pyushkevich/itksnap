@@ -42,6 +42,7 @@
 #include <QProgressDialog>
 #include "QtReporterDelegates.h"
 #include "SliceWindowCoordinator.h"
+#include "HistoryQListModel.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -54,7 +55,6 @@
 
 
 #include <QAbstractListModel>
-#include <itksys/SystemTools.hxx>
 #include <QItemDelegate>
 #include <QPainter>
 #include <QDockWidget>
@@ -63,81 +63,7 @@
 #include <QDragEnterEvent>
 #include <QUrl>
 
-/**
-  Traits used to display an item from the image history as an entry in
-  the table of recently loaded images
-  */
-class HistoryListModel : public QAbstractListModel
-{
-public:
 
-  int rowCount(const QModelIndex &parent) const
-  {
-    SystemInterface::HistoryListType &history =
-        m_Model->GetDriver()->GetSystemInterface()->GetHistory(m_HistoryName.c_str());
-
-    // Display at most 12 entries in the history
-    return std::min((size_t) 12, history.size());
-  }
-
-  QVariant data(const QModelIndex &index, int role) const
-  {
-    // Get the history
-    SystemInterface::HistoryListType &history =
-        m_Model->GetDriver()->GetSystemInterface()->GetHistory(m_HistoryName.c_str());
-
-    // Get the entry
-    std::string item = history[history.size() - (1 + index.row())];
-
-    // Display the appropriate item
-    if(role == Qt::DisplayRole)
-      {
-      // Get the shorter filename
-      std::string shorty = itksys::SystemTools::GetFilenameName(item.c_str());
-      return QString(shorty.c_str());
-      }
-    else if(role == Qt::DecorationRole)
-      {
-      // Need to get an icon!
-      std::string iconfile = m_Model->GetDriver()->GetSystemInterface()
-          ->GetThumbnailAssociatedWithFile(item.c_str());
-
-      // Need to load the icon
-      QIcon icon;
-      icon.addFile(iconfile.c_str());      
-      return icon;
-      }
-    else if(role == Qt::ToolTipRole)
-      {
-      return QString(item.c_str());
-      }
-    return QVariant();
-  }
-
-  irisGetSetMacro(Model, GlobalUIModel *)
-
-  irisGetSetMacro(HistoryName, std::string)
-
-  HistoryListModel() { m_Model = NULL; }
-  virtual ~HistoryListModel() {}
-
-public slots:
-
-  void onModelUpdate(const EventBucket &bucket)
-  {
-    if(bucket.HasEvent(MainImageDimensionsChangeEvent()))
-      {
-      this->reset();
-      }
-  }
-
-protected:
-  // Need a pointer to the model
-  GlobalUIModel *m_Model;
-
-  // The name of the history
-  std::string m_HistoryName;
-};
 
 class HistoryListItemDelegate : public QItemDelegate
 {
@@ -281,7 +207,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
                                   SLOT(onModelUpdate(const EventBucket&)));
 
   // Create a model for the table of recent images and connect to the widget
-  HistoryListModel *historyModel = new HistoryListModel();
+  HistoryQListModel *historyModel = new HistoryQListModel();
   historyModel->SetModel(m_Model);
   historyModel->SetHistoryName("MainImage");
   ui->listRecent->setModel(historyModel);

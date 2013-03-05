@@ -158,4 +158,6 @@ private:
   QtProgressReporterDelegate *m_ProgressReporterDelegate;
 };
 
+
+
 #endif // MAINIMAGEWINDOW_H
