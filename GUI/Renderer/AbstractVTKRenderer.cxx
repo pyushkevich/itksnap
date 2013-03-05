@@ -6,6 +6,30 @@
 #include <vtkInteractorStyleTrackballActor.h>
 #include <vtkRenderer.h>
 #include <vtkCommand.h>
+#include <vtkObjectFactory.h>
+
+class QtRenderWindowInteractor : public vtkRenderWindowInteractor
+{
+public:
+  static QtRenderWindowInteractor *New();
+
+  vtkTypeMacro(QtRenderWindowInteractor, vtkRenderWindowInteractor);
+
+  virtual void Initialize() { this->Initialized = 1; this->Enable(); }
+  // virtual void Start() { }
+  // virtual void TerminateApp() { }
+
+
+protected:
+
+  QtRenderWindowInteractor() {}
+  virtual ~QtRenderWindowInteractor() {}
+
+};
+
+vtkStandardNewMacro(QtRenderWindowInteractor);
+
+
 
 AbstractVTKRenderer::AbstractVTKRenderer()
 {
@@ -19,7 +43,7 @@ AbstractVTKRenderer::AbstractVTKRenderer()
   m_RenderWindow->AddRenderer(m_Renderer);
 
   // Set up the interactor
-  m_Interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  m_Interactor = vtkSmartPointer<QtRenderWindowInteractor>::New();
   m_Interactor->SetRenderWindow(m_RenderWindow);
   m_Interactor->SetInteractorStyle(NULL);
 }
@@ -29,9 +53,15 @@ void AbstractVTKRenderer::paintGL()
   // Update the scene
   this->Update();
 
+  // Make sure the interactor is enabled
+  if(!m_Interactor->GetInitialized())
+    {
+    m_Interactor->Initialize();
+    m_Interactor->Enable();
+    }
+
   // Do the rendering but only when interactor is enabled (from QVTKWidget2)
-  if(m_RenderWindow->GetInteractor() && m_RenderWindow->GetInteractor()->GetEnabled())
-    m_RenderWindow->Render();
+  m_RenderWindow->Render();
 }
 
 void AbstractVTKRenderer::initializeGL()
