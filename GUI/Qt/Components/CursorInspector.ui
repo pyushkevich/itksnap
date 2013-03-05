@@ -157,6 +157,9 @@ font-size: 11px;
        <bold>true</bold>
       </font>
      </property>
+     <property name="styleSheet">
+      <string notr="true">font-weight:bold;</string>
+     </property>
      <property name="text">
       <string>Intensity under cursor</string>
      </property>
@@ -228,6 +231,9 @@ font-size: 11px;
        <bold>true</bold>
       </font>
      </property>
+     <property name="styleSheet">
+      <string notr="true">font-weight:bold;</string>
+     </property>
      <property name="text">
       <string>Label under cursor</string>
      </property>
@@ -263,8 +269,11 @@ font-size: 11px;
          <bold>true</bold>
         </font>
        </property>
+       <property name="styleSheet">
+        <string notr="true">font-weight:bold;</string>
+       </property>
        <property name="text">
-        <string>Description:</string>
+        <string>Description</string>
        </property>
       </widget>
      </item>

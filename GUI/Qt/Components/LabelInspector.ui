@@ -51,7 +51,12 @@ QAbstractItemView::item {
        <property name="font">
         <font>
          <pointsize>-1</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-weight:bold;</string>
        </property>
        <property name="text">
         <string>Foreground label</string>
@@ -106,7 +111,7 @@ spacing:10;
           <string notr="true">font-size:10px;</string>
          </property>
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Label used by all drawing &lt;br/&gt;and segmentation tools&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Label used by drawing &lt;br/&gt;and segmentation tools&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -127,7 +132,12 @@ spacing:10;
        <property name="font">
         <font>
          <pointsize>-1</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-weight:bold;</string>
        </property>
        <property name="text">
         <string>Background label</string>
@@ -249,7 +259,12 @@ p, li { white-space: pre-wrap; }
        <property name="font">
         <font>
          <pointsize>-1</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-weight:bold;</string>
        </property>
        <property name="text">
         <string>Label opacity</string>

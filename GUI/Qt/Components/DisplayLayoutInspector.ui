@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>392</width>
+    <width>172</width>
     <height>498</height>
    </rect>
   </property>
@@ -28,7 +28,12 @@ font-size: 12px;
      <property name="font">
       <font>
        <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-weight:bold;</string>
      </property>
      <property name="text">
       <string>Display Layout:</string>
@@ -212,7 +217,12 @@ font-size: 12px;
      <property name="font">
       <font>
        <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-weight:bold;</string>
      </property>
      <property name="text">
       <string>Overlay Placement:</string>
