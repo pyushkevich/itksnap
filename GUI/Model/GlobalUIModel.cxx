@@ -233,6 +233,11 @@ GlobalUIModel::GlobalUIModel()
   SmartPtr<itk::MemberCommand<Self> > progcmd = itk::MemberCommand<Self>::New();
   progcmd->SetCallbackFunction(this, &GlobalUIModel::ProgressCallback);
   m_ProgressCommand = progcmd.GetPointer();
+
+  // Initialize the IPC flag properties
+  m_SynchronizeCursorModel = NewSimpleConcreteProperty(true);
+  m_SynchronizeZoomPanModel = NewSimpleConcreteProperty(true);
+  m_Synchronize3DPoseModel = NewSimpleConcreteProperty(true);
 }
 
 GlobalUIModel::~GlobalUIModel()

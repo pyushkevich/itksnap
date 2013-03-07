@@ -217,6 +217,10 @@ public:
    *  from thelast saved screenshot filename */
   std::string GenerateScreenshotFilename();
 
+  // Models for cursor, zoom, 3D pose synchronization
+  irisGetMacro(SynchronizeCursorModel, AbstractSimpleBooleanProperty *)
+  irisGetMacro(SynchronizeZoomPanModel, AbstractSimpleBooleanProperty *)
+  irisGetMacro(Synchronize3DPoseModel, AbstractSimpleBooleanProperty *)
 
 protected:
 
@@ -318,6 +322,11 @@ protected:
 
   // Screenshot filename
   std::string m_LastScreenshotFileName;
+
+  // Models for cursor, zoom, 3D pose synchronization
+  SmartPtr<ConcreteSimpleBooleanProperty> m_SynchronizeCursorModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_SynchronizeZoomPanModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_Synchronize3DPoseModel;
 };
 
 #endif // GLOBALUIMODEL_H

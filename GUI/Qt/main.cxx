@@ -10,6 +10,7 @@
 #include "SnakeWizardPanel.h"
 #include "QtScriptTest1.h"
 #include "QtRendererPlatformSupport.h"
+#include "QtIPCManager.h"
 
 #include "GenericSliceView.h"
 #include "GenericSliceModel.h"
@@ -435,6 +436,10 @@ int main(int argc, char *argv[])
     //return(0);
     }
 
+  // Configure the IPC communications (as a hidden widget)
+  QtIPCManager *ipcman = new QtIPCManager(&mainwin);
+  ipcman->hide();
+  ipcman->SetModel(gui);
 
   // Run application
   int rc = app.exec();
