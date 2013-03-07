@@ -221,6 +221,7 @@ public:
   irisGetMacro(ThumbnailZoom, float)
 
   irisGetMacro(ImageToDisplayTransform, const ImageCoordinateTransform &)
+  irisGetMacro(DisplayToAnatomyTransform, const ImageCoordinateTransform &)
 
   /** Compute the canvas size needed to display slice at current zoom factor */
   Vector2i GetOptimalCanvasSize();

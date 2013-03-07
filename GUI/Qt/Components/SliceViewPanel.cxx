@@ -19,6 +19,9 @@
 #include "SnakeWizardModel.h"
 #include "DisplayLayoutModel.h"
 #include "PaintbrushModel.h"
+#include "SliceWindowDecorationRenderer.h"
+#include "MainImageWindow.h"
+#include "SNAPQtCommon.h"
 
 #include <QStackedLayout>
 #include <QMenu>
@@ -31,6 +34,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
 
   // Create my own renderers
   m_SnakeModeRenderer = SnakeModeRenderer::New();
+  m_DecorationRenderer = SliceWindowDecorationRenderer::New();
 
   QString menuStyle = "font-size: 12px;";
 
@@ -139,9 +143,13 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   ui->imPaintbrush->SetModel(m_GlobalUI->GetPaintbrushModel(index));
 
   // Initialize the 'orphan' renderers (without a custom widget)
-  m_SnakeModeRenderer->SetParentRenderer(
-        static_cast<GenericSliceRenderer *>(ui->sliceView->GetRenderer()));
+  GenericSliceRenderer *parentRenderer =
+      static_cast<GenericSliceRenderer *>(ui->sliceView->GetRenderer());
+
+  m_DecorationRenderer->SetParentRenderer(parentRenderer);
+  m_SnakeModeRenderer->SetParentRenderer(parentRenderer);
   m_SnakeModeRenderer->SetModel(m_GlobalUI->GetSnakeWizardModel());
+
 
   // Add listener for changes to the model
   connectITK(m_GlobalUI->GetSliceModel(index), ModelUpdateEvent());
@@ -332,6 +340,7 @@ void SliceViewPanel::OnToolbarModeChange()
   overlays.clear();
   overlays.push_back(m_SnakeModeRenderer);
   overlays.push_back(ui->imCrosshairs->GetRenderer());
+  overlays.push_back(m_DecorationRenderer);
   overlays.push_back(ui->imPolygon->GetRenderer());
 
   switch((ToolbarModeType)m_GlobalUI->GetToolbarMode())
@@ -447,3 +456,9 @@ void SliceViewPanel::UpdateExpandViewButton()
     }
 }
 
+
+void SliceViewPanel::on_btnScreenshot_clicked()
+{
+  MainImageWindow *parent = findParentWidget<MainImageWindow>(this);
+  parent->ExportScreenshot(m_Index);
+}

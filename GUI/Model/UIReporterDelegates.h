@@ -43,4 +43,19 @@ public:
 
 };
 
+/**
+ This is a delegate that renders text into a bitmap. This is used with
+ OpenGL code that needs to draw text
+ */
+class TextRenderingDelegate
+{
+public:
+  virtual void RenderTextInOpenGL(
+      const char *text,
+      int x, int y, int w, int h,
+      int font_size,
+      int align_horiz, int align_vert,
+      unsigned char rgba[]) = 0;
+};
+
 #endif // UIREPORTERDELEGATES_H

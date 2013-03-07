@@ -192,6 +192,7 @@ GenericSliceRenderer
 
         }
 
+    // Draw the various decorations
     glPopAttrib();
     }
 

@@ -343,18 +343,19 @@ void SelectFilePage::on_btnBrowse_pressed()
 {
   // Initialize the dialog with what's in the filebox
   std::string file = m_InFilename->text().toStdString();
-  std::string dir = m_Model->GetBrowseDirectory(file);
 
   // Set the dialog properties
   if(m_Model->IsLoadMode())
     {
-    QString sel = QFileDialog::getOpenFileName(this, "Open Image File", file.c_str());
+    QFileInfo fi(QString::fromStdString(file));
+    QString sel = QFileDialog::getOpenFileName(this, "Open Image File", fi.path());
     if(sel.length())
       m_InFilename->setText(sel);
     }
   else
     {
-    QString sel = QFileDialog::getSaveFileName(this, "Save Image File", file.c_str());
+    QFileInfo fi(QString::fromStdString(file));
+    QString sel = QFileDialog::getSaveFileName(this, "Save Image File", fi.path());
     if(sel.length())
       m_InFilename->setText(sel);
     }

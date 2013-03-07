@@ -53,6 +53,8 @@
 #include <PaintbrushModel.h>
 #include <PaintbrushSettingsModel.h>
 
+#include <itksys/SystemTools.hxx>
+
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
 
@@ -462,6 +464,43 @@ std::vector<std::string> GlobalUIModel::GetRecentMainImages(unsigned int k)
     }
 
   return recent;
+}
+
+std::string GlobalUIModel::GenerateScreenshotFilename()
+{
+  // Get the last screen shot filename used
+  std::string last = m_LastScreenshotFileName;
+  if(last.length() == 0)
+    return "snapshot0001.png";
+
+  // Count how many digits there are at the end of the filename
+  std::string noext =
+    itksys::SystemTools::GetFilenameWithoutExtension(last);
+  unsigned int digits = 0;
+  for(int i = noext.length() - 1; i >= 0; i--)
+    {
+    if(isdigit(noext[i]))
+      digits++;
+    else break;
+    }
+
+  // If there are no digits, return the filename
+  if(digits == 0) return last;
+
+  // Get the number at the end of the string
+  std::string snum = noext.substr(noext.length() - digits);
+  std::istringstream iss(snum);
+  unsigned long num = 0;
+  iss >> num;
+
+  // Increment the number by one and convert to another string, padding with zeros
+  std::ostringstream oss;
+  oss << itksys::SystemTools::GetFilenamePath(last);
+  oss << "/";
+  oss << noext.substr(0, noext.length() - digits);
+  oss << std::setw(digits) << std::setfill('0') << (num + 1);
+  oss << itksys::SystemTools::GetFilenameExtension(last);
+  return oss.str();
 }
 
 void

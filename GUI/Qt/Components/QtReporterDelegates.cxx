@@ -4,6 +4,8 @@
 #include <QProgressDialog>
 #include <QCoreApplication>
 
+#include <QPainter>
+#include <QPixmap>
 
 
 QtViewportReporter::QtViewportReporter()
@@ -74,3 +76,4 @@ void QtProgressReporterDelegate::SetProgressValue(double value)
   m_Dialog->setValue((int) (1000 * value));
   QCoreApplication::processEvents();
 }
+

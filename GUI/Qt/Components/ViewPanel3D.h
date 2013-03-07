@@ -8,6 +8,7 @@ namespace Ui {
 }
 
 class Generic3DModel;
+class GenericView3D;
 
 class ViewPanel3D : public SNAPComponent
 {
@@ -21,8 +22,13 @@ public:
   void Initialize(GlobalUIModel *model);
 
   void OnRenderProgress();
+
+  GenericView3D *Get3DView();
+
 private slots:
   void on_btnUpdateMesh_clicked();
+
+  void on_btnScreenshot_clicked();
 
 private:
   Ui::ViewPanel3D *ui;

@@ -9,6 +9,7 @@
 #include "SliceWindowCoordinator.h"
 #include "SnakeWizardPanel.h"
 #include "QtScriptTest1.h"
+#include "QtRendererPlatformSupport.h"
 
 #include "GenericSliceView.h"
 #include "GenericSliceModel.h"
@@ -155,6 +156,9 @@ int main(int argc, char *argv[])
 
   // Turn off ITK warning windows
   itk::Object::GlobalWarningDisplayOff();
+
+  // Connect Qt to the Renderer subsystem
+  AbstractRenderer::SetPlatformSupport(new QtRendererPlatformSupport());
 
   // Parse command line arguments
   CommandLineArgumentParser parser;

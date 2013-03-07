@@ -69,6 +69,9 @@ public:
   // Initiate active contour segmentation
   void OpenSnakeWizard();
 
+  // Export a screenshot from one of the panels
+  void ExportScreenshot(int panelIndex);
+
   // Handle drag and drop
   void dragEnterEvent(QDragEnterEvent *event);
   void dropEvent(QDropEvent *event);
@@ -115,6 +118,12 @@ private slots:
   void on_actionOpenMain_triggered();
 
   void on_actionAdd_Overlay_triggered();
+
+  void on_actionSSAxial_triggered();
+
+  void on_actionSSCoronal_triggered();
+
+  void on_actionSSSagittal_triggered();
 
 protected:
 

@@ -5,7 +5,8 @@
 #include "itkCommand.h"
 #include "IRISException.h"
 #include <QMessageBox>
-
+#include "MainImageWindow.h"
+#include "SNAPQtCommon.h"
 
 #include <QThread>
 #include <QMutex>
@@ -101,6 +102,11 @@ void ViewPanel3D::OnRenderProgress()
   // std::cout << "." << std::flush;
 }
 
+GenericView3D *ViewPanel3D::Get3DView()
+{
+  return ui->view3d;
+}
+
 void ViewPanel3D::on_btnUpdateMesh_clicked()
 {
   // Do something about a progress bar
@@ -131,3 +137,9 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
 }
 
 
+
+void ViewPanel3D::on_btnScreenshot_clicked()
+{
+  MainImageWindow *window = findParentWidget<MainImageWindow>(this);
+  window->ExportScreenshot(3);
+}

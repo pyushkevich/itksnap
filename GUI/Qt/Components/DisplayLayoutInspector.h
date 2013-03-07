@@ -18,7 +18,7 @@ public:
   ~DisplayLayoutInspector();
 
   void SetModel(DisplayLayoutModel *model);
-  
+    
 private:
   Ui::DisplayLayoutInspector *ui;
 

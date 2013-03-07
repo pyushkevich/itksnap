@@ -439,7 +439,7 @@ p, li { white-space: pre-wrap; }
        <widget class="QLabel" name="lblSliceInfo">
         <property name="minimumSize">
          <size>
-          <width>56</width>
+          <width>64</width>
           <height>0</height>
          </size>
         </property>
@@ -453,6 +453,9 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="text">
          <string>TextLabel</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>

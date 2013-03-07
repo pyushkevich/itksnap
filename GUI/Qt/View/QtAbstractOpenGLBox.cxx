@@ -32,6 +32,11 @@
 #include "SNAPOpenGL.h"
 #include <AbstractRenderer.h>
 
+#include <vtkSmartPointer.h>
+#include <vtkImageData.h>
+
+#include "GLToPNG.h"
+
 QtAbstractOpenGLBox::QtAbstractOpenGLBox(QWidget *parent) :
     QGLWidget(parent)
 {
@@ -48,6 +53,13 @@ void QtAbstractOpenGLBox::AttachSingleDelegate(QtInteractionDelegateWidget *dele
 
   // Delegate handles all of our events
   this->installEventFilter(delegate);
+}
+
+bool QtAbstractOpenGLBox::SaveScreenshot(std::string filename)
+{
+  m_ScreenshotRequest = QString::fromStdString(filename);
+  this->repaint();
+  return true;
 }
 
 
@@ -73,6 +85,22 @@ void QtAbstractOpenGLBox::paintGL()
 
   // Do the actual painting
   GetRenderer()->paintGL();
+
+  // If screenshot set, handle it
+  if(m_ScreenshotRequest.length())
+    {
+    try
+      {
+      vtkSmartPointer<vtkImageData> image = GLToVTKImageData(
+            (unsigned int) GL_RGB, 0, 0, this->width(), this->height());
+      VTKImageDataToPNG(image, m_ScreenshotRequest.toStdString().c_str());
+      }
+    catch(...)
+      {
+      // TODO: should we notify user of failures?
+      }
+    m_ScreenshotRequest = QString();
+    }
 }
 
 void QtAbstractOpenGLBox::resizeGL(int w, int h)

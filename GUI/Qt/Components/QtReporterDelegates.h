@@ -5,6 +5,7 @@
 #include "UIReporterDelegates.h"
 
 class QProgressDialog;
+class QGLWidget;
 
 /**
   An implementation of a viewport reporter for Qt.
@@ -54,6 +55,21 @@ public:
 
 private:
   QProgressDialog *m_Dialog;
+};
+
+class QtTextRenderingDelegate : public TextRenderingDelegate
+{
+public:
+
+  virtual void RenderTextInOpenGL(
+      const char *text,
+      int x, int y, int w, int h,
+      int font_size,
+      int align_horiz, int align_vert,
+      unsigned char rgba[]);
+
+protected:
+
 };
 
 #endif // QTREQUESTDELEGATES_H

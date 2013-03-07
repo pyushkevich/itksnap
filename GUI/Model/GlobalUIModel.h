@@ -210,6 +210,14 @@ public:
   /** Get and set the progress reporter delegate */
   irisGetSetMacro(ProgressReporterDelegate, ProgressReporterDelegate *)
 
+  /** Get and set the last screenshot filename */
+  irisGetSetMacro(LastScreenshotFileName, std::string)
+
+  /** Generate a suggested filename for saving screenshots, by incrementing
+   *  from thelast saved screenshot filename */
+  std::string GenerateScreenshotFilename();
+
+
 protected:
 
   GlobalUIModel();
@@ -307,6 +315,9 @@ protected:
 
   // An ITK command used to handle progress
   SmartPtr<itk::Command> m_ProgressCommand;
+
+  // Screenshot filename
+  std::string m_LastScreenshotFileName;
 };
 
 #endif // GLOBALUIMODEL_H

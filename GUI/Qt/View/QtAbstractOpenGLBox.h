@@ -60,6 +60,11 @@ public:
     */
   virtual AbstractRenderer* GetRenderer() const = 0;
 
+  /**
+   Take a screenshot, save to a PNG file
+   */
+  virtual bool SaveScreenshot(std::string filename);
+
 public slots:
 
   // Default slot for model updates
@@ -87,6 +92,9 @@ protected:
 
   // Whether this widget grabs keyboard focus when the mouse enters it
   bool m_GrabFocusOnEntry;
+
+  // Whether a screenshot has been requested (non-empty string)
+  QString m_ScreenshotRequest;
 
 signals:
 

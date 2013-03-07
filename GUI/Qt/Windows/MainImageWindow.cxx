@@ -43,6 +43,10 @@
 #include "QtReporterDelegates.h"
 #include "SliceWindowCoordinator.h"
 #include "HistoryQListModel.h"
+#include "GenericView3D.h"
+#include "GenericSliceView.h"
+
+
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -62,6 +66,8 @@
 #include <QDropEvent>
 #include <QDragEnterEvent>
 #include <QUrl>
+#include <QFileDialog>
+#include <QGLWidget>
 
 
 
@@ -549,4 +555,57 @@ void MainImageWindow::on_actionAdd_Overlay_triggered()
   ImageIOWizard wiz(this);
   wiz.SetModel(model);
   wiz.exec();
+}
+
+void MainImageWindow::ExportScreenshot(int panelIndex)
+{
+  // Generate a filename for the screenshot
+  std::string finput = m_Model->GenerateScreenshotFilename();
+
+  // Open a file browser and have the user select something
+  QString fuser = QFileDialog::getSaveFileName(
+        this,
+        "Save Snapshot As",
+        finput.c_str(),
+        "PNG Images (*.png)");
+
+  // If nothing selected, exit
+  if(fuser.length() == 0)
+    return;
+
+  // What panel is this?
+  QtAbstractOpenGLBox *target = NULL;
+  if(panelIndex == 3)
+    {
+    target = ui->panel3D->Get3DView();
+    }
+  else
+    {
+    SliceViewPanel *svp = reinterpret_cast<SliceViewPanel *>(m_ViewPanels[panelIndex]);
+    target = svp->GetSliceView();
+    }
+
+  // Call the screenshot saving method, which will execute asynchronously
+  target->SaveScreenshot(fuser.toStdString());
+
+  // Store the last filename
+  m_Model->SetLastScreenshotFileName(fuser.toStdString());
+}
+
+void MainImageWindow::on_actionSSAxial_triggered()
+{
+  ExportScreenshot(
+        m_Model->GetDriver()->GetDisplayWindowForAnatomicalDirection(ANATOMY_AXIAL));
+}
+
+void MainImageWindow::on_actionSSCoronal_triggered()
+{
+  ExportScreenshot(
+        m_Model->GetDriver()->GetDisplayWindowForAnatomicalDirection(ANATOMY_CORONAL));
+}
+
+void MainImageWindow::on_actionSSSagittal_triggered()
+{
+  ExportScreenshot(
+        m_Model->GetDriver()->GetDisplayWindowForAnatomicalDirection(ANATOMY_SAGITTAL));
 }

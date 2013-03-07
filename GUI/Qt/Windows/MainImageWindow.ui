@@ -24,7 +24,7 @@
     <item>
      <widget class="QStackedWidget" name="stackMain">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="pageMain">
        <layout class="QGridLayout" name="gridLayout_2">
@@ -607,8 +607,16 @@ background-color:rgb(88, 88, 88);
       <addaction name="actionCoronal"/>
       <addaction name="actionSagittal"/>
      </widget>
+     <widget class="QMenu" name="menuScreenshot">
+      <property name="title">
+       <string>Screenshot</string>
+      </property>
+      <addaction name="actionSSAxial"/>
+      <addaction name="actionSSCoronal"/>
+      <addaction name="actionSSSagittal"/>
+     </widget>
      <addaction name="menuImage_Slice"/>
-     <addaction name="actionScreenshot"/>
+     <addaction name="menuScreenshot"/>
      <addaction name="actionScreenshot_Series"/>
     </widget>
     <widget class="QMenu" name="menuRecent_Projects">
@@ -753,11 +761,6 @@ background-color:rgb(88, 88, 88);
     <string>Ctrl+5</string>
    </property>
   </action>
-  <action name="actionScreenshot">
-   <property name="text">
-    <string>Screenshot</string>
-   </property>
-  </action>
   <action name="actionScreenshot_Series">
    <property name="text">
     <string>Screenshot Series</string>
@@ -892,6 +895,30 @@ background-color:rgb(88, 88, 88);
   <action name="actionSave_Project">
    <property name="text">
     <string>Save Project...</string>
+   </property>
+  </action>
+  <action name="actionSSAxial">
+   <property name="text">
+    <string>Axial</string>
+   </property>
+   <property name="toolTip">
+    <string>Export a screenshot of the axial view as an image</string>
+   </property>
+  </action>
+  <action name="actionSSCoronal">
+   <property name="text">
+    <string>Coronal</string>
+   </property>
+   <property name="toolTip">
+    <string>Export a screenshot of the axial view as an image</string>
+   </property>
+  </action>
+  <action name="actionSSSagittal">
+   <property name="text">
+    <string>Sagittal</string>
+   </property>
+   <property name="toolTip">
+    <string>Export a screenshot of the axial view as an image</string>
    </property>
   </action>
  </widget>

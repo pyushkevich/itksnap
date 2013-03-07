@@ -108,6 +108,14 @@ enum AnatomicalDirection
   ANATOMY_CORONAL
 };
 
+enum DisplayPanel
+{
+  PANEL_AXIAL = 0,
+  PANEL_SAGITTAL,
+  PANEL_CORONAL,
+  PANEL_3D
+};
+
 /** Watershed settings for paintbrush */
 struct PaintbrushWatershedSettings
 {

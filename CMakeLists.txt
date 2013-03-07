@@ -274,12 +274,14 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/EdgePreprocessingSettingsRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
   GUI/Renderer/Generic3DRenderer.cxx
+  GUI/Renderer/GLToPNG.cxx
   GUI/Renderer/IntensityCurveVTKRenderer.cxx
   GUI/Renderer/OpenGLSliceTexture.cxx
   GUI/Renderer/OrientationGraphicRenderer.cxx
   GUI/Renderer/PaintbrushRenderer.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
   GUI/Renderer/PolygonScanConvert.cxx
+  GUI/Renderer/SliceWindowDecorationRenderer.cxx
   GUI/Renderer/SnakeROIRenderer.cxx
   GUI/Renderer/SnakeModeRenderer.cxx
   GUI/Renderer/ThresholdSettingsRenderer.cxx
@@ -334,11 +336,13 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/EdgePreprocessingSettingsRenderer.h
   GUI/Renderer/Generic3DRenderer.h
   GUI/Renderer/GenericSliceRenderer.h
+  GUI/Renderer/GLToPNG.h
   GUI/Renderer/IntensityCurveVTKRenderer.h
   GUI/Renderer/OrientationGraphicRenderer.h
   GUI/Renderer/PaintbrushRenderer.h
   GUI/Renderer/PolygonDrawingRenderer.h
   GUI/Renderer/PolygonScanConvert.h
+  GUI/Renderer/SliceWindowDecorationRenderer.h
   GUI/Renderer/SnakeROIRenderer.h
   GUI/Renderer/SnakeModeRenderer.h
   GUI/Renderer/ThresholdSettingsRenderer.h
@@ -368,6 +372,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QColorButtonWidget.cxx
   GUI/Qt/Components/QDoubleSlider.cxx
   GUI/Qt/Components/QDoubleSliderWithEditor.cxx
+  GUI/Qt/Components/QtRendererPlatformSupport.cxx
   GUI/Qt/Components/QtReporterDelegates.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
@@ -465,6 +470,7 @@ SET(UI_MOC_HEADERS
 SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/SNAPQtCommon.h
   GUI/Qt/Components/QtCursorOverride.h
+  GUI/Qt/Components/QtRendererPlatformSupport.h
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Coupling/QtCheckBoxCoupling.h
   GUI/Qt/Coupling/QtComboBoxCoupling.h

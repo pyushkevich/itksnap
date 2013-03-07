@@ -8,6 +8,7 @@ class GenericSliceView;
 class QMenu;
 class QtInteractionDelegateWidget;
 class SnakeModeRenderer;
+class SliceWindowDecorationRenderer;
 
 namespace Ui {
     class SliceViewPanel;
@@ -23,6 +24,9 @@ public:
 
   // Register the data model with this widget
   void Initialize(GlobalUIModel *model, unsigned int index);
+
+  // Get the index of this panel
+  irisGetMacro(Index, unsigned int)
 
   GenericSliceView *GetSliceView();
 
@@ -49,6 +53,8 @@ private slots:
 
   void on_btnExpand_clicked();
 
+  void on_btnScreenshot_clicked();
+
 private:
   Ui::SliceViewPanel *ui;
 
@@ -64,6 +70,7 @@ private:
   // Some renderers don't require a separate widget (no user interaction)
   // and so they are owned by this panel.
   SmartPtr<SnakeModeRenderer> m_SnakeModeRenderer;
+  SmartPtr<SliceWindowDecorationRenderer> m_DecorationRenderer;
 
 
   // Index of the panel
