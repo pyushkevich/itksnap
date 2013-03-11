@@ -415,6 +415,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/QtStyles.cxx
   GUI/Qt/Windows/ReorientImageDialog.cxx
   GUI/Qt/Windows/SpeedImageDialog.cxx
+  GUI/Qt/Windows/SplashPanel.cxx
 )
 
 # The header files for the UI project
@@ -470,6 +471,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/MainImageWindow.h
   GUI/Qt/Windows/ReorientImageDialog.h
   GUI/Qt/Windows/SpeedImageDialog.h
+  GUI/Qt/Windows/SplashPanel.h
 )
 
 # These UI headers don't need to be MOC'd
@@ -519,6 +521,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/MainImageWindow.ui
   GUI/Qt/Windows/ReorientImageDialog.ui
   GUI/Qt/Windows/SpeedImageDialog.ui
+  GUI/Qt/Windows/SplashPanel.ui
 )
 
 SET(UI_RESOURCES

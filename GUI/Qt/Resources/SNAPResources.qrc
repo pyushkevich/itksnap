@@ -67,5 +67,6 @@
         <file>mb_left.png</file>
         <file>undo_22.png</file>
         <file>redo_22.png</file>
+        <file>snap_splash_172.png</file>
     </qresource>
 </RCC>

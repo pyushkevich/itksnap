@@ -46,6 +46,8 @@ class ReorientImageDialog;
 class DropActionDialog;
 class MainControlPanel;
 
+class SplashPanel;
+
 namespace Ui {
 class MainImageWindow;
 }
@@ -165,6 +167,8 @@ private:
   DropActionDialog *m_DropDialog;
 
   QtProgressReporterDelegate *m_ProgressReporterDelegate;
+
+  SplashPanel *m_SplashPanel;
 };
 
 

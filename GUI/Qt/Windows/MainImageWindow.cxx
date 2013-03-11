@@ -45,6 +45,7 @@
 #include "HistoryQListModel.h"
 #include "GenericView3D.h"
 #include "GenericSliceView.h"
+#include "SplashPanel.h"
 
 
 
@@ -118,8 +119,12 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_DropDialog = new DropActionDialog(this);
 
   // Initialize the docked panels
-  m_DockLeft = new QDockWidget("ITK-SNAP Toolbox", this);
+  m_DockLeft = new QDockWidget(this);
   m_DockLeft->setAllowedAreas(Qt::LeftDockWidgetArea);
+  m_DockLeft->setFeatures(
+        QDockWidget::DockWidgetFloatable |
+        QDockWidget::DockWidgetMovable);
+  m_DockLeft->setWindowTitle("ITK-SNAP Toolbox");
   this->addDockWidget(Qt::LeftDockWidgetArea, m_DockLeft);
 
   m_ControlPanel = new MainControlPanel(this);
@@ -134,6 +139,10 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // Delegate for history
   HistoryListItemDelegate *del = new HistoryListItemDelegate(ui->listRecent);
   ui->listRecent->setItemDelegate(del);
+
+  // Set the splash panel in the left dock
+  m_SplashPanel = new SplashPanel(this);
+  m_DockLeft->setWidget(m_SplashPanel);
 
   // Hide the right dock for now
   m_DockRight->setVisible(false);
@@ -174,6 +183,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // Create the delegate to pass in to the model
   m_ProgressReporterDelegate = new QtProgressReporterDelegate();
   m_ProgressReporterDelegate->SetProgressDialog(m_Progress);
+
+  // Set title
+  this->setWindowTitle("ITK-SNAP");
 
   // We accept drop events
   setAcceptDrops(true);
@@ -259,12 +271,12 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     if(m_Model->GetDriver()->IsMainImageLoaded())
       {
       ui->stackMain->setCurrentWidget(ui->pageMain);
-      m_DockRight->setVisible(true);
+      m_DockLeft->setWidget(m_ControlPanel);
       }
     else
       {
       ui->stackMain->setCurrentWidget(ui->pageSplash);
-      m_DockRight->setVisible(false);
+      m_DockLeft->setWidget(m_SplashPanel);
       }
     }
 
