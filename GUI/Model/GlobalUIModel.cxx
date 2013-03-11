@@ -52,6 +52,7 @@
 #include <DisplayLayoutModel.h>
 #include <PaintbrushModel.h>
 #include <PaintbrushSettingsModel.h>
+#include <SynchronizationModel.h>
 
 #include <itksys/SystemTools.hxx>
 
@@ -149,6 +150,10 @@ GlobalUIModel::GlobalUIModel()
   m_SnakeWizardModel = SnakeWizardModel::New();
   m_SnakeWizardModel->SetParentModel(this);
 
+  // Synchronization model
+  m_SynchronizationModel = SynchronizationModel::New();
+  m_SynchronizationModel->SetParentModel(this);
+
   // Initialize the properties
   m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
 
@@ -234,10 +239,6 @@ GlobalUIModel::GlobalUIModel()
   progcmd->SetCallbackFunction(this, &GlobalUIModel::ProgressCallback);
   m_ProgressCommand = progcmd.GetPointer();
 
-  // Initialize the IPC flag properties
-  m_SynchronizeCursorModel = NewSimpleConcreteProperty(true);
-  m_SynchronizeZoomPanModel = NewSimpleConcreteProperty(true);
-  m_Synchronize3DPoseModel = NewSimpleConcreteProperty(true);
 }
 
 GlobalUIModel::~GlobalUIModel()

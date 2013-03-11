@@ -279,7 +279,10 @@ public:
 
   /** Get the display window corresponding to an anatomical direction */
   size_t GetDisplayWindowForAnatomicalDirection(
-    AnatomicalDirection iAnat);
+    AnatomicalDirection iAnat) const;
+
+  /** Get the anatomical direction in the i-th display window */
+  AnatomicalDirection GetAnatomicalDirectionForDisplayWindow(int iWin) const;
 
   /**
    * Get the global state object

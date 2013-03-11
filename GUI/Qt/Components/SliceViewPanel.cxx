@@ -22,6 +22,7 @@
 #include "SliceWindowDecorationRenderer.h"
 #include "MainImageWindow.h"
 #include "SNAPQtCommon.h"
+#include "QtScrollbarCoupling.h"
 
 #include <QStackedLayout>
 #include <QMenu>
@@ -31,6 +32,10 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
     ui(new Ui::SliceViewPanel)
 {
   ui->setupUi(this);
+
+  // Initialize
+  m_GlobalUI = NULL;
+  m_SliceModel = NULL;
 
   // Create my own renderers
   m_SnakeModeRenderer = SnakeModeRenderer::New();
@@ -112,6 +117,8 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   // Send wheel events from Crosshairs mode to the slider
   ui->imCrosshairs->SetWheelEventTargetWidget(ui->inSlicePosition);
 
+  // Set page size on the slice position widget
+  ui->inSlicePosition->setPageStep(5);
 }
 
 SliceViewPanel::~SliceViewPanel()
@@ -130,8 +137,11 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   this->m_GlobalUI = model;
   this->m_Index = index;
 
+  // Get the slice model
+  m_SliceModel = m_GlobalUI->GetSliceModel(index);
+
   // Initialize the slice view
-  ui->sliceView->SetModel(m_GlobalUI->GetSliceModel(index));
+  ui->sliceView->SetModel(m_SliceModel);
 
   // Initialize the interaction modes
   ui->imCrosshairs->SetModel(m_GlobalUI->GetCursorNavigationModel(index));
@@ -150,10 +160,11 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   m_SnakeModeRenderer->SetParentRenderer(parentRenderer);
   m_SnakeModeRenderer->SetModel(m_GlobalUI->GetSnakeWizardModel());
 
+  // Listen to cursor change events, which require a repaint of the slice view
+  connectITK(m_GlobalUI->GetDriver(), CursorUpdateEvent());
 
   // Add listener for changes to the model
-  connectITK(m_GlobalUI->GetSliceModel(index), ModelUpdateEvent());
-  connectITK(m_GlobalUI, CursorUpdateEvent());
+  connectITK(m_SliceModel, ModelUpdateEvent());
 
   // Listen to toolbar change events
   connectITK(m_GlobalUI, ToolbarModeChangeEvent());
@@ -172,6 +183,9 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   // Listen to all (?) events from the snake wizard as well
   connectITK(m_GlobalUI->GetSnakeWizardModel(), IRISEvent());
+
+  // Widget coupling
+  makeCoupling(ui->inSlicePosition, m_SliceModel->GetSliceIndexModel());
 
   // Activation
   activateOnFlag(this, m_GlobalUI, UIF_BASEIMG_LOADED);
@@ -202,10 +216,6 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
 void SliceViewPanel::onModelUpdate(const EventBucket &eb)
 {
-  if(eb.HasEvent(ModelUpdateEvent()) || eb.HasEvent(CursorUpdateEvent()))
-    {
-    UpdateSlicePositionWidgets();
-    }
   if(eb.HasEvent(ToolbarModeChangeEvent()) ||
      eb.HasEvent(StateMachineChangeEvent()))
     {
@@ -218,48 +228,12 @@ void SliceViewPanel::onModelUpdate(const EventBucket &eb)
   ui->sliceView->update();
 }
 
-void SliceViewPanel::UpdateSlicePositionWidgets()
-{
-  // Be sure to update the model
-  this->GetSliceView()->GetModel()->Update();
-
-  // Get the current slice index
-  int pos = (int) GetSliceView()->GetModel()->GetSliceIndex();
-
-  // Get the current slice index
-  int dim = (int) GetSliceView()->GetModel()->GetNumberOfSlices();
-
-  // Update the slider
-  ui->inSlicePosition->setValue(pos);
-  ui->inSlicePosition->setMaximum(dim - 1);
-  ui->inSlicePosition->setSingleStep(1);
-  ui->inSlicePosition->setPageStep(5);
-
-  // Update the text display
-  ui->lblSliceInfo->setText(QString("%1 of %2").arg(pos+1).arg(dim));
-}
-
-void SliceViewPanel::OnCursorUpdate()
-{
-  UpdateSlicePositionWidgets();
-
-  // Request a redraw of the GUI
-  ui->sliceView->update();
-}
-
-void SliceViewPanel::OnImageDimensionsUpdate()
-{
-  // Get the current slice index
-  UpdateSlicePositionWidgets();
-}
-
 void SliceViewPanel::on_inSlicePosition_valueChanged(int value)
 {
-  // TODO: this can be handled using a coupling instead
-
-  // Update the cursor position in the model
-  if(value != (int) GetSliceView()->GetModel()->GetSliceIndex())
-    this->GetSliceView()->GetModel()->UpdateSliceIndex(value);
+  // Update the text output
+  int pos = ui->inSlicePosition->value();
+  int lim = ui->inSlicePosition->maximum();
+  ui->lblSliceInfo->setText(QString("%1 of %2").arg(pos+1).arg(lim+1));
 }
 
 void SliceViewPanel::ConfigureEventChain(QWidget *w)

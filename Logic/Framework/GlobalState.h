@@ -105,7 +105,8 @@ enum AnatomicalDirection
 {
   ANATOMY_AXIAL = 0,
   ANATOMY_SAGITTAL,
-  ANATOMY_CORONAL
+  ANATOMY_CORONAL,
+  ANATOMY_NONSENSE
 };
 
 enum DisplayPanel

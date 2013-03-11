@@ -9,6 +9,7 @@ class QMenu;
 class QtInteractionDelegateWidget;
 class SnakeModeRenderer;
 class SliceWindowDecorationRenderer;
+class GenericSliceModel;
 
 namespace Ui {
     class SliceViewPanel;
@@ -29,12 +30,6 @@ public:
   irisGetMacro(Index, unsigned int)
 
   GenericSliceView *GetSliceView();
-
-  // Callback for cursor change events
-  void OnCursorUpdate();
-  void OnImageDimensionsUpdate();
-
-  void UpdateSlicePositionWidgets();
 
   // Callback for when the toolbar changes
   void SetMouseMotionTracking(bool enable);
@@ -66,6 +61,9 @@ private:
 
   // Global UI pointer
   GlobalUIModel *m_GlobalUI;
+
+  // Slice model
+  GenericSliceModel *m_SliceModel;
 
   // Some renderers don't require a separate widget (no user interaction)
   // and so they are owned by this panel.

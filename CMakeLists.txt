@@ -265,6 +265,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/SnakeROIModel.cxx
   GUI/Model/SnakeWizardModel.cxx
   GUI/Model/StateManagement.cxx
+  GUI/Model/SynchronizationModel.cxx
   GUI/Model/UIAction.cxx
   GUI/Renderer/AbstractRenderer.cxx
   GUI/Renderer/AbstractVTKRenderer.cxx
@@ -325,6 +326,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/SnakeROIModel.h
   GUI/Model/SnakeWizardModel.h
   GUI/Model/StateManagement.h
+  GUI/Model/SynchronizationModel.h
   GUI/Model/UIAction.h
   GUI/Model/UIReporterDelegates.h
   GUI/Model/UIState.h
@@ -382,6 +384,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SNAPComponent.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
+  GUI/Qt/Components/SynchronizationInspector.cxx
   GUI/Qt/Components/ViewPanel3D.cxx
   GUI/Qt/Components/VoxelIntensityQTableModel.cxx
   GUI/Qt/Components/ZoomInspector.cxx
@@ -403,11 +406,11 @@ SET(UI_QT_CXX
   GUI/Qt/View/SnakeROIInteractionMode.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx
   GUI/Qt/Windows/DropActionDialog.cxx
-  GUI/Qt/Windows/IRISMainToolbox.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
   GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
+  GUI/Qt/Windows/MainControlPanel.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
   GUI/Qt/Windows/QtStyles.cxx
   GUI/Qt/Windows/ReorientImageDialog.cxx
@@ -438,6 +441,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SnakeWizardPanel.h
   GUI/Qt/Components/SNAPComponent.h
   GUI/Qt/Components/SliceViewPanel.h
+  GUI/Qt/Components/SynchronizationInspector.h
   GUI/Qt/Components/ViewPanel3D.h
   GUI/Qt/Components/VoxelIntensityQTableModel.h
   GUI/Qt/Components/ZoomInspector.h
@@ -458,11 +462,11 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/SnakeROIInteractionMode.h
   GUI/Qt/View/ThumbnailInteractionMode.h
   GUI/Qt/Windows/DropActionDialog.h
-  GUI/Qt/Windows/IRISMainToolbox.h
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
+  GUI/Qt/Windows/MainControlPanel.h
   GUI/Qt/Windows/MainImageWindow.h
   GUI/Qt/Windows/ReorientImageDialog.h
   GUI/Qt/Windows/SpeedImageDialog.h
@@ -504,12 +508,14 @@ SET(UI_FORMS
   GUI/Qt/Components/SliceViewPanel.ui
   GUI/Qt/Components/SnakeToolROIPanel.ui
   GUI/Qt/Components/SnakeWizardPanel.ui
+  GUI/Qt/Components/SynchronizationInspector.ui
   GUI/Qt/Components/ViewPanel3D.ui
   GUI/Qt/Components/ZoomInspector.ui
   GUI/Qt/Windows/DropActionDialog.ui
   GUI/Qt/Windows/ImageIODialog.ui
   GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui
+  GUI/Qt/Windows/MainControlPanel.ui
   GUI/Qt/Windows/MainImageWindow.ui
   GUI/Qt/Windows/ReorientImageDialog.ui
   GUI/Qt/Windows/SpeedImageDialog.ui

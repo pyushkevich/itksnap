@@ -62,5 +62,8 @@
         <file>brush_shape_adaptive.png</file>
         <file>brush_shape_round.png</file>
         <file>brush_shape_square.png</file>
+        <file>menu-arrow.png</file>
+        <file>network-wireless.png</file>
+        <file>mb_left.png</file>
     </qresource>
 </RCC>

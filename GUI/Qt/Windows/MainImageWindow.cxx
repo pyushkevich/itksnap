@@ -27,6 +27,7 @@
 #include "MainImageWindow.h"
 #include "ui_MainImageWindow.h"
 
+#include "MainControlPanel.h"
 #include "ImageIOWizard.h"
 #include "ImageIOWizardModel.h"
 #include "GlobalUIModel.h"
@@ -36,7 +37,6 @@
 #include "DisplayLayoutModel.h"
 #include "ColorMapModel.h"
 #include "ViewPanel3D.h"
-#include "IRISMainToolbox.h"
 #include "SnakeWizardPanel.h"
 #include "LatentITKEventNotifier.h"
 #include <QProgressDialog>
@@ -96,6 +96,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 {
   ui->setupUi(this);
 
+  // Make sure we initialize on the intro page
+  ui->stackMain->setCurrentWidget(ui->pageSplash);
+
   // Create the view panels array
   m_ViewPanels[0] = ui->panel0;
   m_ViewPanels[1] = ui->panel1;
@@ -116,10 +119,11 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Initialize the docked panels
   m_DockLeft = new QDockWidget("ITK-SNAP Toolbox", this);
-  m_Toolbox = new IRISMainToolbox(this);
-  m_DockLeft->setWidget(m_Toolbox);
   m_DockLeft->setAllowedAreas(Qt::LeftDockWidgetArea);
   this->addDockWidget(Qt::LeftDockWidgetArea, m_DockLeft);
+
+  m_ControlPanel = new MainControlPanel(this);
+  m_DockLeft->setWidget(m_ControlPanel);
 
   m_DockRight = new QDockWidget("Segment 3D", this);
   m_SnakeWizard = new SnakeWizardPanel(this);
@@ -199,7 +203,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_DropDialog->SetModel(model);
 
   // Initialize the docked panels
-  m_Toolbox->SetModel(model);
+  m_ControlPanel->SetModel(model);
 
   // Attach the progress reporter delegate to the model
   m_Model->SetProgressReporterDelegate(m_ProgressReporterDelegate);

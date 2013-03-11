@@ -35,7 +35,6 @@ class SliceViewPanel;
 class GlobalUIModel;
 class QDockWidget;
 class SnakeWizardPanel;
-class IRISMainToolbox;
 class EventBucket;
 class QModelIndex;
 class QProgressDialog;
@@ -45,6 +44,7 @@ class LayerInspectorDialog;
 class QtProgressReporterDelegate;
 class ReorientImageDialog;
 class DropActionDialog;
+class MainControlPanel;
 
 namespace Ui {
 class MainImageWindow;
@@ -145,7 +145,7 @@ private:
   QProgressDialog *m_Progress;
 
   // IRIS main toolbox (in left dock)
-  IRISMainToolbox *m_Toolbox;
+  MainControlPanel *m_ControlPanel;
 
   friend class QtScriptTest1;
 

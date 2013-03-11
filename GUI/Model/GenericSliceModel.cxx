@@ -55,6 +55,13 @@ GenericSliceModel::GenericSliceModel()
 
   // Viewport size reporter is NULL
   m_SizeReporter = NULL;
+
+  // Create submodels
+  m_SliceIndexModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetSliceIndexValueAndDomain,
+        &Self::SetSlideIndexValue);
+
 }
 
 void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
@@ -76,6 +83,9 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
   // this change occurs, we have to modify the size of the slice views
   DisplayLayoutModel *dlm = m_ParentUI->GetDisplayLayoutModel();
   Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(), ModelUpdateEvent());
+
+  // Listen to cursor update events and rebroadcast them for the child model
+  m_SliceIndexModel->Rebroadcast(model, CursorUpdateEvent(), ValueChangedEvent());
 }
 
 void GenericSliceModel
@@ -542,4 +552,23 @@ Vector2ui GenericSliceModel::GetSize()
   return Vector2ui(viewport[0] / cols, viewport[1] / rows);
 }
 
+
+bool GenericSliceModel
+::GetSliceIndexValueAndDomain(int &value, NumericValueRange<int> *domain)
+{
+  if(!m_Driver->IsMainImageLoaded())
+    return false;
+
+  value = this->GetSliceIndex();
+  if(domain)
+    {
+    domain->Set(0, this->GetNumberOfSlices()-1, 1);
+    }
+  return true;
+}
+
+void GenericSliceModel::SetSlideIndexValue(int value)
+{
+  this->UpdateSliceIndex(value);
+}
 

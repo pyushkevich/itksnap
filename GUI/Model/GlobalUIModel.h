@@ -61,7 +61,7 @@ class DisplayLayoutModel;
 class PaintbrushModel;
 class PaintbrushSettingsModel;
 class ComponentSelectionModel;
-class QtScriptTest1;
+class SynchronizationModel;
 
 namespace itk
 {
@@ -73,12 +73,12 @@ itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
 
 enum ToolbarModeType
 {
-  POLYGON_DRAWING_MODE,
+  CROSSHAIRS_MODE = 0,
   NAVIGATION_MODE,
-  CROSSHAIRS_MODE,
+  POLYGON_DRAWING_MODE,
   PAINTBRUSH_MODE,
-  ANNOTATION_MODE,
-  ROI_MODE
+  ROI_MODE,
+  ANNOTATION_MODE
 };
 
 
@@ -178,6 +178,9 @@ public:
   /** Model for managing paintbrush settings */
   irisGetMacro(PaintbrushSettingsModel, PaintbrushSettingsModel *)
 
+  /** Model for multi-session sync */
+  irisGetMacro(SynchronizationModel, SynchronizationModel *)
+
   /** Load an image non-interactively through a delegate */
   void LoadImageNonInteractive(const char *fname,
                                AbstractLoadImageDelegate &delegate,
@@ -216,11 +219,6 @@ public:
   /** Generate a suggested filename for saving screenshots, by incrementing
    *  from thelast saved screenshot filename */
   std::string GenerateScreenshotFilename();
-
-  // Models for cursor, zoom, 3D pose synchronization
-  irisGetMacro(SynchronizeCursorModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(SynchronizeZoomPanModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(Synchronize3DPoseModel, AbstractSimpleBooleanProperty *)
 
 protected:
 
@@ -292,13 +290,14 @@ protected:
   // Paintbrush settings
   SmartPtr<PaintbrushSettingsModel> m_PaintbrushSettingsModel;
 
+  // Synchronization
+  SmartPtr<SynchronizationModel> m_SynchronizationModel;
+
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;
   bool GetCursorPositionValueAndRange(
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
   void SetCursorPosition(Vector3ui value);
-  friend class QtScriptTest1;
-
 
   // Current ROI for snake mode
   SmartPtr<AbstractRangedUIntVec3Property> m_SnakeROIIndexModel;
@@ -323,10 +322,6 @@ protected:
   // Screenshot filename
   std::string m_LastScreenshotFileName;
 
-  // Models for cursor, zoom, 3D pose synchronization
-  SmartPtr<ConcreteSimpleBooleanProperty> m_SynchronizeCursorModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_SynchronizeZoomPanModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_Synchronize3DPoseModel;
 };
 
 #endif // GLOBALUIMODEL_H

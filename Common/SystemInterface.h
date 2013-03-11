@@ -38,6 +38,7 @@
 
 #include "Registry.h"
 #include "Trackball.h"
+#include "GlobalState.h"
 
 class IRISApplication;
 class SNAPRegistryIO;
@@ -143,8 +144,8 @@ public:
     // The cursor position in world coordinates
     Vector3d cursor;
 
-    // The common zoom factor (screen pixels / mm)
-    double zoom_level;   
+    // The zoom factor (screen pixels / mm)
+    double zoom_level[3];
 
     // The position of the viewport center relative to cursor
     // in all three slice views
@@ -171,8 +172,8 @@ public:
   bool IPCBroadcast(IPCMessage mout);
   bool IPCBroadcastCursor(Vector3d cursor);
   bool IPCBroadcastTrackball(Trackball tball);
-  bool IPCBroadcastZoomLevel(double zoom);
-  bool IPCBroadcastViewPosition(Vector2f vec[3]);
+  bool IPCBroadcastZoomLevel(AnatomicalDirection dir, double zoom);
+  bool IPCBroadcastViewPosition(AnatomicalDirection dir, Vector2f vec);
 
   /** Interprocess communication: release shared memory */
   void IPCClose();

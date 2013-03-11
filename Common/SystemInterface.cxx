@@ -771,7 +771,7 @@ SystemInterface
 
 bool
 SystemInterface
-::IPCBroadcastZoomLevel(double zoom_level)
+::IPCBroadcastZoomLevel(AnatomicalDirection dir, double zoom)
 {
   // Try reading the current memory
   IPCMessage mcurr;
@@ -780,13 +780,13 @@ SystemInterface
   IPCRead(mcurr);
 
   // Update the message
-  mcurr.zoom_level = zoom_level;
+  mcurr.zoom_level[dir] = zoom;
   return IPCBroadcast(mcurr);
 }
 
 bool
 SystemInterface
-::IPCBroadcastViewPosition(Vector2f vec[3])
+::IPCBroadcastViewPosition(AnatomicalDirection dir, Vector2f vec)
 {
   // Try reading the current memory
   IPCMessage mcurr;
@@ -795,9 +795,7 @@ SystemInterface
   IPCRead(mcurr);
 
   // Update the message
-  mcurr.viewPositionRelative[0] = vec[0];
-  mcurr.viewPositionRelative[1] = vec[1];
-  mcurr.viewPositionRelative[2] = vec[2];
+  mcurr.viewPositionRelative[dir] = vec;
 
   return IPCBroadcast(mcurr);
 }

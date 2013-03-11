@@ -853,7 +853,7 @@ IRISApplication
 size_t 
 IRISApplication
 ::GetDisplayWindowForAnatomicalDirection(
-  AnatomicalDirection iAnat)
+  AnatomicalDirection iAnat) const
 {
   string rai1 = "SRA", rai2 = "ILP";
   char c1 = rai1[iAnat], c2 = rai2[iAnat];
@@ -866,6 +866,21 @@ IRISApplication
 
   assert(0);
   return 0;
+}
+
+AnatomicalDirection
+IRISApplication::GetAnatomicalDirectionForDisplayWindow(int iWin) const
+{
+  char sd = m_DisplayToAnatomyRAI[iWin][2];
+  if(sd == 'S' || sd == 'I')
+    return ANATOMY_AXIAL;
+  else if (sd == 'R' || sd == 'L')
+    return ANATOMY_SAGITTAL;
+  else if (sd == 'A' || sd == 'P')
+    return ANATOMY_CORONAL;
+
+  assert(0);
+  return(ANATOMY_NONSENSE);
 }
 
 void

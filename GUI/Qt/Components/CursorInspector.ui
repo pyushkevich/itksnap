@@ -167,9 +167,15 @@ font-size: 11px;
    </item>
    <item>
     <widget class="QTableWidget" name="tableVoxelUnderCursor">
+     <property name="minimumSize">
+      <size>
+       <width>162</width>
+       <height>0</height>
+      </size>
+     </property>
      <property name="maximumSize">
       <size>
-       <width>179</width>
+       <width>185</width>
        <height>120</height>
       </size>
      </property>
@@ -299,54 +305,6 @@ font-size: 11px;
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="Line" name="line_4">
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QWidget" name="widget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="margin">
-       <number>0</number>
-      </property>
-      <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>17</width>
-          <height>19</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="chkSync">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When checked, the position of the cursor will be synchronized between different sessions of ITK-SNAP running on the same computer. Synchronization is based on the cursor coordinates in physical space.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>Multi-session cursor</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
    </item>
    <item>
     <spacer name="verticalSpacer">

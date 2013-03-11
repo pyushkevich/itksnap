@@ -4,7 +4,6 @@
 #include<QDebug>
 
 #include "MainImageWindow.h"
-#include "IRISMainToolbox.h"
 #include "CursorInspector.h"
 #include "ui_CursorInspector.h"
 #include "GlobalUIModel.h"
@@ -82,24 +81,31 @@ void QtScriptTest1::RunQTimerTriggered()
   // sleep
   // m_Window->findChild("InCursorX") - call slot setValue()
 
+  CursorInspector *ci = m_Window->findChild<CursorInspector *>("CursorInspector");
+  QSpinBox *inX = ci->findChild<QSpinBox *>("inCursorX");
+  QSpinBox *outId = ci->findChild<QSpinBox *>("outLabelId");
+  inX->setValue(21);
+
 
   // How does this work??
   QScriptValue res = m_pEngine->evaluate(commandLoad);
 
-  IRISMainToolbox * pIRISMainToolbox = m_Window->m_Toolbox;
+  /*
+  MainControlPanel * pIRISMainToolbox = m_Window->m_ControlPanel;
   CursorInspector * pCursorInspector = pIRISMainToolbox->m_CursorInspector;
   Ui::CursorInspector * pUiCursorInspector = pCursorInspector->ui;
 
   CursorInspectionModel * pCursorInspectionModel = m_Model->GetCursorInspectionModel();
 
-  QScriptValue qscvalInCursorX = m_pEngine->newQObject(pUiCursorInspector->inCursorX);
 
   pUiCursorInspector->inCursorX->setValue(21);
+  */
 
   // Each widget has a widget name! You can search for a widget by its name
   //   pUiCursorInspector->inCursorX->objectName()
   //   something like ... m_Window->findChild("inCursorX")
 
+  QScriptValue qscvalInCursorX = m_pEngine->newQObject(inX);
   m_pEngine->globalObject().setProperty("inCursorX", qscvalInCursorX);
 
   QString commandSetX("inCursorX.valueChanged(21);\n");
@@ -118,11 +124,11 @@ void QtScriptTest1::RunQTimerTriggered()
   value[0] = 21;
   value[1] = 52;
   value[2] = 33;
-  m_Model->SetCursorPosition(value);
+  m_Model->GetDriver()->SetCursorPosition(value);
 
-  int nRes = pUiCursorInspector->inCursorX->value();
+  int nRes = inX->value();
 
-  int nReadRes = pUiCursorInspector->outLabelId->value();
+  int nReadRes = outId->value();
   //This function just prints the results of the interogated image.
   //The check of correctness is done in CMakeLists
   cout << "QtScriptTest1::Run: " << nReadRes << endl;

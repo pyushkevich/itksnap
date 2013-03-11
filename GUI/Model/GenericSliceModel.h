@@ -34,6 +34,7 @@
 #include "AbstractModel.h"
 #include "ImageWrapper.h"
 #include "UIReporterDelegates.h"
+#include "PropertyModel.h"
 
 
 class GlobalUIModel;
@@ -146,6 +147,11 @@ public:
    * Get the slice index for this window
    */
   unsigned int GetSliceIndex();
+
+  /**
+   * Get the model that handles slice index information
+   */
+  irisGetMacro(SliceIndexModel, AbstractRangedIntProperty *)
 
   /**
    * Set the index of the slice in the current view. This method will
@@ -317,6 +323,10 @@ protected:
 
   /** Access the next window in the slice pipeline */
   GenericSliceModel *GetNextSliceWindow();
+
+  SmartPtr<AbstractRangedIntProperty> m_SliceIndexModel;
+  bool GetSliceIndexValueAndDomain(int &value, NumericValueRange<int> *domain);
+  void SetSlideIndexValue(int value);
 };
 
 #endif // GENERICSLICEMODEL_H

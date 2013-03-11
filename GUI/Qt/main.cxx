@@ -24,8 +24,6 @@
 #include <QPlastiqueStyle>
 #include <QAction>
 
-#include "IRISMainToolbox.h"
-
 #include "ImageIODelegates.h"
 
 #include <iostream>
@@ -404,9 +402,16 @@ int main(int argc, char *argv[])
   // Find all the child widgets of mainwin
   engine.globalObject().setProperty("snap", engine.newQObject(&mainwin));
 
+  // Configure the IPC communications (as a hidden widget)
+  QtIPCManager *ipcman = new QtIPCManager(&mainwin);
+  ipcman->hide();
+  ipcman->SetModel(gui->GetSynchronizationModel());
+
+  // Start in cross-hairs mode
+  gui->SetToolbarMode(CROSSHAIRS_MODE);
+
   // Show the panel
   mainwin.show();
-
 
   if(parseResult.IsOptionPresent("--test"))
     {
@@ -435,11 +440,6 @@ int main(int argc, char *argv[])
 
     //return(0);
     }
-
-  // Configure the IPC communications (as a hidden widget)
-  QtIPCManager *ipcman = new QtIPCManager(&mainwin);
-  ipcman->hide();
-  ipcman->SetModel(gui);
 
   // Run application
   int rc = app.exec();

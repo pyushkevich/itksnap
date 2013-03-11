@@ -4,7 +4,7 @@
 #include <QObject>
 #include <SNAPComponent.h>
 
-class GlobalUIModel;
+class SynchronizationModel;
 
 /**
  * @brief This class manages IPC communications between SNAP sessions on the
@@ -18,7 +18,7 @@ class QtIPCManager : public SNAPComponent
 public:
   explicit QtIPCManager(QWidget *parent = 0);
 
-  void SetModel(GlobalUIModel *model);
+  void SetModel(SynchronizationModel *model);
   
 signals:
   
@@ -32,7 +32,7 @@ protected:
 
 private:
 
-  GlobalUIModel *m_Model;
+  SynchronizationModel *m_Model;
 };
 
 #endif // QTIPCMANAGER_H

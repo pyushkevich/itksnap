@@ -118,9 +118,6 @@ void CursorInspector::SetModel(CursorInspectionModel *model)
                m_Model->GetVoxelAtCursorModel(),
                DefaultWidgetValueTraits<int , QTableWidget>(),
                LayerCurrentVoxelInfoDomainTraits());
-
-  makeCoupling(ui->chkSync,
-               m_Model->GetParent()->GetSynchronizeCursorModel());
 }
 
 void CursorInspector::onContextMenuRequested(QPoint pos)
