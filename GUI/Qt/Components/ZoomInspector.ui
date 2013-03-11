@@ -51,22 +51,9 @@ font-size: 12px;
      <property name="spacing">
       <number>0</number>
      </property>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
+     <property name="leftMargin">
+      <number>20</number>
+     </property>
      <item>
       <widget class="QLabel" name="label">
        <property name="font">
@@ -78,7 +65,7 @@ font-size: 12px;
         <string notr="true">font-size:10px;</string>
        </property>
        <property name="text">
-        <string>Common zoom factor shared by all slice views</string>
+        <string>Maintains a common zoom factor in all slice views.</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

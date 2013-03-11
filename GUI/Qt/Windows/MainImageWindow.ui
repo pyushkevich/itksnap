@@ -852,6 +852,10 @@ background-color:rgb(88, 88, 88);
    </property>
   </action>
   <action name="actionUndo">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/undo_22.png</normaloff>:/root/undo_22.png</iconset>
+   </property>
    <property name="text">
     <string>Undo</string>
    </property>
@@ -860,6 +864,10 @@ background-color:rgb(88, 88, 88);
    </property>
   </action>
   <action name="actionRedo">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/redo_22.png</normaloff>:/root/redo_22.png</iconset>
+   </property>
    <property name="text">
     <string>Redo</string>
    </property>
@@ -936,7 +944,9 @@ background-color:rgb(88, 88, 88);
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../Resources/SNAPResources.qrc"/>
+ </resources>
  <connections/>
  <designerdata>
   <property name="gridDeltaX">

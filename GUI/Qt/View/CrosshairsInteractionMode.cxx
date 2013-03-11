@@ -169,6 +169,8 @@ bool CrosshairsInteractionMode::gestureEvent(QGestureEvent *ev)
     return true;
     }
 
+  /*
+
   // Get the pan event
   if(QPanGesture *pan =
       static_cast<QPanGesture *>(ev->gesture(Qt::PanGesture)))
@@ -206,14 +208,17 @@ bool CrosshairsInteractionMode::gestureEvent(QGestureEvent *ev)
     return true;
     }
   return false;
+
+  */
+  else return false;
 }
 
 void CrosshairsInteractionMode::enterEvent(QEvent *)
 {
   // Respond to standard gestures
-  this->grabGesture(Qt::PinchGesture);
-  this->grabGesture(Qt::PanGesture);
-  this->grabGesture(Qt::SwipeGesture);
+  this->m_ParentView->grabGesture(Qt::PinchGesture);
+  // this->m_ParentView->grabGesture(Qt::PanGesture);
+  // this->m_ParentView->grabGesture(Qt::SwipeGesture);
 }
 
 void CrosshairsInteractionMode::leaveEvent(QEvent *)

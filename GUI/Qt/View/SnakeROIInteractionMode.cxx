@@ -69,8 +69,6 @@ void SnakeROIInteractionMode::enterEvent(QEvent *)
   // TODO: this is hideous!
   SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
   panel->SetMouseMotionTracking(true);
-  // parentWidget()->setMouseTracking(true);
-  // this->setMouseTracking(true);
 }
 
 void SnakeROIInteractionMode::leaveEvent(QEvent *)

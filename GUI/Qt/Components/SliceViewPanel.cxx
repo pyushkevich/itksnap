@@ -389,9 +389,7 @@ void SliceViewPanel::onContextMenu()
 
 void SliceViewPanel::SetMouseMotionTracking(bool enable)
 {
-  // ui->sliceView->setMouseTracking(enable);
-  ui->imCrosshairs->setMouseTracking(enable);
-  // m_CurrentEventFilter->setMouseTracking(enable);
+  ui->sliceView->setMouseTracking(enable);
 }
 
 void SliceViewPanel::on_btnExpand_clicked()

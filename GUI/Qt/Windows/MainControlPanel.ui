@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>184</width>
-    <height>614</height>
+    <height>588</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -52,27 +52,63 @@ QGroupBox::title {
    <item>
     <widget class="QGroupBox" name="grpToolbox">
      <property name="styleSheet">
-      <string notr="true">QToolButton {
-	width: 22px;
-	height: 22px;
-	icon-size: 22px;
-	padding: 1px;
-}
+      <string notr="true">
 
 QToolBar {
 	padding: 0px;
 }</string>
      </property>
      <property name="title">
-      <string>Main Toolbox</string>
+      <string>Main Toolbar</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <property name="spacing">
-       <number>4</number>
+       <number>2</number>
       </property>
       <property name="margin">
        <number>0</number>
       </property>
+      <item>
+       <widget class="QWidget" name="panelToolbarMode" native="true">
+        <property name="styleSheet">
+         <string notr="true">QToolButton {
+	width: 22px;
+	height: 22px;
+	icon-size: 22px;
+	padding: 1px;
+}</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="margin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="panelToolbarAction" native="true">
+        <property name="styleSheet">
+         <string notr="true">QToolButton {
+	width: 16px;
+	height: 16px;
+	icon-size: 16px;
+	padding: 1px;
+}</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="margin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -137,7 +173,7 @@ QToolButton:hover, QToolButton:checked {
             <string>...</string>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../Resources/SNAPResources.qrc">
              <normaloff>:/root/crosshair.gif</normaloff>:/root/crosshair.gif</iconset>
            </property>
            <property name="checkable">
@@ -166,7 +202,7 @@ QToolButton:hover, QToolButton:checked {
             <string>...</string>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../Resources/SNAPResources.qrc">
              <normaloff>:/root/zoom.gif</normaloff>:/root/zoom.gif</iconset>
            </property>
            <property name="checkable">
@@ -192,7 +228,7 @@ QToolButton:hover, QToolButton:checked {
             <string>...</string>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../Resources/SNAPResources.qrc">
              <normaloff>:/root/paintbrush.gif</normaloff>:/root/paintbrush.gif</iconset>
            </property>
            <property name="checkable">
@@ -218,7 +254,7 @@ QToolButton:hover, QToolButton:checked {
             <string>...</string>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../Resources/SNAPResources.qrc">
              <normaloff>:/root/dl_toolbox.png</normaloff>:/root/dl_toolbox.png</iconset>
            </property>
            <property name="checkable">
@@ -244,7 +280,7 @@ QToolButton:hover, QToolButton:checked {
             <string>...</string>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../Resources/SNAPResources.qrc">
              <normaloff>:/root/network-wireless.png</normaloff>:/root/network-wireless.png</iconset>
            </property>
            <property name="checkable">
@@ -270,7 +306,7 @@ QToolButton:hover, QToolButton:checked {
             <string>...</string>
            </property>
            <property name="icon">
-            <iconset>
+            <iconset resource="../Resources/SNAPResources.qrc">
              <normaloff>:/root/tools.png</normaloff>:/root/tools.png</iconset>
            </property>
            <property name="checkable">
@@ -328,7 +364,7 @@ QToolButton:hover, QToolButton:checked {
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/crosshair.gif</normaloff>:/root/crosshair.gif</iconset>
    </property>
    <property name="text">
@@ -343,7 +379,7 @@ QToolButton:hover, QToolButton:checked {
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/zoom.gif</normaloff>:/root/zoom.gif</iconset>
    </property>
    <property name="text">
@@ -358,7 +394,7 @@ QToolButton:hover, QToolButton:checked {
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/poly.gif</normaloff>:/root/poly.gif</iconset>
    </property>
    <property name="text">
@@ -373,7 +409,7 @@ QToolButton:hover, QToolButton:checked {
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/paintbrush.gif</normaloff>:/root/paintbrush.gif</iconset>
    </property>
    <property name="text">
@@ -388,7 +424,7 @@ QToolButton:hover, QToolButton:checked {
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/snake.gif</normaloff>:/root/snake.gif</iconset>
    </property>
    <property name="text">
@@ -443,6 +479,8 @@ QToolButton:hover, QToolButton:checked {
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../Resources/SNAPResources.qrc"/>
+ </resources>
  <connections/>
 </ui>

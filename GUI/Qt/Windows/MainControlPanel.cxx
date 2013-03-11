@@ -2,6 +2,7 @@
 #include "ui_MainControlPanel.h"
 #include "GlobalUIModel.h"
 #include "QtWidgetActivator.h"
+#include "SNAPQtCommon.h"
 
 
 #include <QActionGroup>
@@ -78,6 +79,7 @@
  */
 
 #include <QToolBar>
+#include <QWhatsThis>
 
 MainControlPanel::MainControlPanel(QWidget *parent) :
   SNAPComponent(parent),
@@ -87,8 +89,9 @@ MainControlPanel::MainControlPanel(QWidget *parent) :
 
   m_Model = NULL;
 
+  // The mode toolbar
   QToolBar *toolbar = new QToolBar(this);
-  ui->grpToolbox->layout()->addWidget(toolbar);
+  ui->panelToolbarMode->layout()->addWidget(toolbar);
 
   QActionGroup *ag = new QActionGroup(this);
   ag->addAction(ui->actionCrosshair);
@@ -98,6 +101,13 @@ MainControlPanel::MainControlPanel(QWidget *parent) :
   ag->addAction(ui->actionSnake);
 
   toolbar->addActions(ag->actions());
+
+  // The action toolbar
+  QToolBar *toolCmd = new QToolBar(this);
+  ui->panelToolbarAction->layout()->addWidget(toolCmd);
+
+  toolCmd->addAction(FindUpstreamAction(this, "actionUndo"));
+  toolCmd->addAction(FindUpstreamAction(this, "actionRedo"));
 }
 
 void MainControlPanel::SetModel(GlobalUIModel *model)

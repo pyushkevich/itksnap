@@ -257,9 +257,15 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
 
     // Choose what page to show depending on if an image has been loaded
     if(m_Model->GetDriver()->IsMainImageLoaded())
+      {
       ui->stackMain->setCurrentWidget(ui->pageMain);
+      m_DockRight->setVisible(true);
+      }
     else
+      {
       ui->stackMain->setCurrentWidget(ui->pageSplash);
+      m_DockRight->setVisible(false);
+      }
     }
 
 }

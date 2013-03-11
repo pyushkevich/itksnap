@@ -65,5 +65,7 @@
         <file>menu-arrow.png</file>
         <file>network-wireless.png</file>
         <file>mb_left.png</file>
+        <file>undo_22.png</file>
+        <file>redo_22.png</file>
     </qresource>
 </RCC>

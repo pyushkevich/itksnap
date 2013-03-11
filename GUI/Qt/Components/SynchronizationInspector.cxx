@@ -9,6 +9,9 @@ SynchronizationInspector::SynchronizationInspector(QWidget *parent) :
   ui(new Ui::SynchronizationInspector)
 {
   ui->setupUi(this);
+
+  // TODO: add the code to support multiple channels
+  ui->panelChannel->setVisible(false);
 }
 
 SynchronizationInspector::~SynchronizationInspector()
