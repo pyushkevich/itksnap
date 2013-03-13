@@ -204,6 +204,12 @@ public:
   typedef AbstractRandomAccessCollectionModel<std::string> StringArrayModel;
   irisGetMacro(MainImageHistoryModel, StringArrayModel *)
 
+  /** A model for overall segmentation opacity (int, range 0..100) */
+  irisRangedPropertyAccessMacro(SegmentationOpacity, int)
+
+  /** A model for the segmentation visibility on/off state */
+  irisSimplePropertyAccessMacro(SegmentationVisibility, bool)
+
   /** Get a list of k recent images */
   std::vector<std::string> GetRecentMainImages(unsigned int k = 5);
 
@@ -322,6 +328,13 @@ protected:
   // Screenshot filename
   std::string m_LastScreenshotFileName;
 
+  // Segmentation opacity and visibility models
+  SmartPtr<AbstractRangedIntProperty> m_SegmentationOpacityModel;
+  SmartPtr<AbstractSimpleBooleanProperty> m_SegmentationVisibilityModel;
+
+  // Callbacks for the opacity model
+  bool GetSegmentationOpacityValueAndRange(int &value, NumericValueRange<int> *domain);
+  void SetSegmentationOpacityValue(int value);
 };
 
 #endif // GLOBALUIMODEL_H

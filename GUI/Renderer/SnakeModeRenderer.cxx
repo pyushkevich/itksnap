@@ -94,7 +94,7 @@ void SnakeModeRenderer::DrawBubbles()
     ColorLabel cl = app->GetColorLabelTable()->GetColorLabel(currentcolor);
 
     // Get the current alpha blending factor for displaying overlays
-    unsigned char alpha = gs->GetSegmentationAlpha();
+    unsigned char alpha = (unsigned char)(255 * gs->GetSegmentationAlpha());
 
     // Get the color of the active color label
     unsigned char rgb[3];

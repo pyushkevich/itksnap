@@ -127,6 +127,22 @@ private slots:
 
   void on_actionSSSagittal_triggered();
 
+  void on_actionCrosshair_triggered(bool checked);
+
+  void on_actionZoomPan_triggered(bool checked);
+
+  void on_actionPolygon_triggered(bool checked);
+
+  void on_actionPaintbrush_triggered(bool checked);
+
+  void on_actionSnake_triggered(bool checked);
+
+  void on_actionSegmentationIncreaseOpacity_triggered();
+
+  void on_actionSegmentationDecreaseOpacity_triggered();
+
+  void on_actionSegmentationToggle_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);

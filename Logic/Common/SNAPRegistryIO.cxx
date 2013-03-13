@@ -338,8 +338,7 @@ SNAPRegistryIO
   registry["IRIS.LabelState.CoverageMode"].PutEnum(
     m_EnumMapCoverage,gs->GetDrawOverFilter().CoverageMode);
   registry["IRIS.LabelState.PolygonInvert"] << gs->GetPolygonInvert();
-  registry["IRIS.LabelState.OverallAlpha"] << 
-    (int) gs->GetSegmentationAlpha();
+  registry["IRIS.LabelState.SegmentationAlpha"] << gs->GetSegmentationAlpha();
 
   // Write the information about the bounding box and ROI sub-sampling
   WriteSegmentationROISettings(
@@ -441,7 +440,7 @@ SNAPRegistryIO
     
     // Read the segmentation alpha
     gs->SetSegmentationAlpha(
-      registry["IRIS.LabelState.OverallAlpha"][gs->GetSegmentationAlpha()]);
+      registry["IRIS.LabelState.SegmentationAlpha"][gs->GetSegmentationAlpha()]);
     } // If restore labels
 
   // Read other settings

@@ -46,6 +46,7 @@
 #include "GenericView3D.h"
 #include "GenericSliceView.h"
 #include "SplashPanel.h"
+#include "QtWidgetCoupling.h"
 
 
 
@@ -255,7 +256,6 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Set up activations
   activateOnFlag(ui->actionUndo, m_Model, UIF_UNDO_POSSIBLE);
   activateOnFlag(ui->actionRedo, m_Model, UIF_REDO_POSSIBLE);
-
 }
 
 
@@ -630,4 +630,64 @@ void MainImageWindow::on_actionSSSagittal_triggered()
 {
   ExportScreenshot(
         m_Model->GetDriver()->GetDisplayWindowForAnatomicalDirection(ANATOMY_SAGITTAL));
+}
+
+void MainImageWindow::on_actionCrosshair_triggered(bool checked)
+{
+  if(checked)
+    {
+    // Enter crosshair mode
+    m_Model->SetToolbarMode(CROSSHAIRS_MODE);
+    }
+}
+
+void MainImageWindow::on_actionZoomPan_triggered(bool checked)
+{
+  if(checked)
+    {
+    // Enter crosshair mode
+    m_Model->SetToolbarMode(NAVIGATION_MODE);
+    }
+}
+
+void MainImageWindow::on_actionPolygon_triggered(bool checked)
+{
+  if(checked)
+    {
+    m_Model->SetToolbarMode(POLYGON_DRAWING_MODE);
+    }
+}
+
+void MainImageWindow::on_actionPaintbrush_triggered(bool checked)
+{
+  if(checked)
+    {
+    m_Model->SetToolbarMode(PAINTBRUSH_MODE);
+    }
+}
+
+void MainImageWindow::on_actionSnake_triggered(bool checked)
+{
+  if(checked)
+    {
+    m_Model->SetToolbarMode(ROI_MODE);
+    }
+}
+
+void MainImageWindow::on_actionSegmentationIncreaseOpacity_triggered()
+{
+  int opacity = m_Model->GetSegmentationOpacity();
+  m_Model->SetSegmentationOpacity(std::min(opacity+5, 100));
+}
+
+void MainImageWindow::on_actionSegmentationDecreaseOpacity_triggered()
+{
+  int opacity = m_Model->GetSegmentationOpacity();
+  m_Model->SetSegmentationOpacity(std::max(opacity-5, 0));
+}
+
+void MainImageWindow::on_actionSegmentationToggle_triggered()
+{
+  bool value = m_Model->GetSegmentationVisibility();
+  m_Model->SetSegmentationVisibility(!value);
 }

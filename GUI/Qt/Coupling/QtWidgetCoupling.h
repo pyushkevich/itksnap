@@ -247,17 +247,17 @@ public:
  */
 template <class TAtomic>
 class WidgetBooleanNamedPropertyTraits
-    : public WidgetValueTraitsBase<TAtomic, QWidget *>
+    : public WidgetValueTraitsBase<TAtomic, QObject *>
 {
 public:
   WidgetBooleanNamedPropertyTraits(const char *propertyName)
     : m_Property(propertyName) {}
 
-  virtual TAtomic GetValue(QWidget *w)
+  virtual TAtomic GetValue(QObject *w)
   {
     return qvariant_cast<TAtomic>(w->property(m_Property.c_str()));
   }
-  virtual void SetValue(QWidget *w, const TAtomic &value)
+  virtual void SetValue(QObject *w, const TAtomic &value)
   {
     w->setProperty(m_Property.c_str(), value);
   }
@@ -404,7 +404,7 @@ class QtCouplingHelper : public QObject
   Q_OBJECT
 
 public:
-  explicit QtCouplingHelper(QWidget *widget, AbstractWidgetDataMapping *dm)
+  explicit QtCouplingHelper(QObject *widget, AbstractWidgetDataMapping *dm)
     : QObject(widget)
   {
     m_DataMapping = dm;
@@ -577,7 +577,7 @@ void makeCoupling(TWidget *w,
  */
 template <class TModel>
 void makeBooleanNamedPropertyCoupling(
-    QWidget *w, const char *propertyName,
+    QObject *w, const char *propertyName,
     TModel *model,
     QtCouplingOptions opts = QtCouplingOptions())
 {
@@ -587,7 +587,7 @@ void makeBooleanNamedPropertyCoupling(
   TraitsType traits(propertyName);
 
   // Call the main coupling method
-  makeCoupling<TModel, QWidget, TraitsType>(w, model, traits, opts);
+  makeCoupling<TModel, QObject, TraitsType>(w, model, traits, opts);
 }
 
 /**

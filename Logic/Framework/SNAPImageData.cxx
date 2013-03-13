@@ -401,8 +401,8 @@ SNAPImageData
   // TODO: we need to add support for snake and snake initialization layers!
   // m_SnakeWrapper->SetColorLabel(m_ColorLabel);
 
-
-  m_SnakeWrapper->SetAlpha(m_Parent->GetGlobalState()->GetSegmentationAlpha());
+  m_SnakeWrapper->SetAlpha(
+        (unsigned char)(255 * m_Parent->GetGlobalState()->GetSegmentationAlpha()));
 }
 
 void 

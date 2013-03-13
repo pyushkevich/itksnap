@@ -37,15 +37,6 @@ private slots:
 
   void on_btnToolInspector_clicked(bool checked);
 
-  void on_actionCrosshair_triggered(bool checked);
-
-  void on_actionZoomPan_triggered(bool checked);
-
-  void on_actionPolygon_triggered(bool checked);
-
-  void on_actionPaintbrush_triggered(bool checked);
-
-  void on_actionSnake_triggered(bool checked);
 
 private:
   Ui::MainControlPanel *ui;

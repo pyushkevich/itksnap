@@ -53,6 +53,7 @@
 #include <PaintbrushModel.h>
 #include <PaintbrushSettingsModel.h>
 #include <SynchronizationModel.h>
+#include "NumericPropertyToggleAdaptor.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -206,6 +207,18 @@ GlobalUIModel::GlobalUIModel()
   m_SnakeROISizeModel->Rebroadcast(
         m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
 
+
+  // Segmentation opacity models
+  m_SegmentationOpacityModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetSegmentationOpacityValueAndRange,
+        &Self::SetSegmentationOpacityValue);
+
+  m_SegmentationOpacityModel->RebroadcastFromSourceProperty(
+        m_Driver->GetGlobalState()->GetSegmentationAlphaModel());
+
+  m_SegmentationVisibilityModel =
+      NewNumericPropertyToggleAdaptor(m_SegmentationOpacityModel.GetPointer(), 0, 50);
 
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());
@@ -450,6 +463,27 @@ void GlobalUIModel::SetSnakeROISizeValue(Vector3ui value)
 
   m_Driver->GetGlobalState()->SetSegmentationROI(roi);
 }
+
+bool
+GlobalUIModel::GetSegmentationOpacityValueAndRange(
+    int &value, NumericValueRange<int> *domain)
+{
+  // Round the current alpha value to the nearest integer
+  double alpha = m_Driver->GetGlobalState()->GetSegmentationAlpha();
+  value = (int)(alpha * 100 + 0.5);
+
+  // Set the domain
+  if(domain)
+    domain->Set(0, 100, 5);
+
+  return true;
+}
+
+void GlobalUIModel::SetSegmentationOpacityValue(int value)
+{
+  m_Driver->GetGlobalState()->SetSegmentationAlpha(value / 100.0);
+}
+
 
 std::vector<std::string> GlobalUIModel::GetRecentMainImages(unsigned int k)
 {

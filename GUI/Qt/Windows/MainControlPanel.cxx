@@ -94,11 +94,11 @@ MainControlPanel::MainControlPanel(QWidget *parent) :
   ui->panelToolbarMode->layout()->addWidget(toolbar);
 
   QActionGroup *ag = new QActionGroup(this);
-  ag->addAction(ui->actionCrosshair);
-  ag->addAction(ui->actionZoomPan);
-  ag->addAction(ui->actionPolygon);
-  ag->addAction(ui->actionPaintbrush);
-  ag->addAction(ui->actionSnake);
+  ag->addAction(FindUpstreamAction(this, "actionCrosshair"));
+  ag->addAction(FindUpstreamAction(this, "actionZoomPan"));
+  ag->addAction(FindUpstreamAction(this, "actionPolygon"));
+  ag->addAction(FindUpstreamAction(this, "actionPaintbrush"));
+  ag->addAction(FindUpstreamAction(this, "actionSnake"));
 
   toolbar->addActions(ag->actions());
 
@@ -123,9 +123,6 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
 
   // Set up state machine
   activateOnFlag(this, m_Model, UIF_BASEIMG_LOADED);
-  activateOnNotFlag(ui->actionPolygon, m_Model, UIF_SNAKE_MODE);
-  activateOnNotFlag(ui->actionPaintbrush, m_Model, UIF_SNAKE_MODE);
-  activateOnNotFlag(ui->actionSnake, m_Model, UIF_SNAKE_MODE);
 
   // Listen to changes in the toolbar mode
   connectITK(m_Model->GetToolbarModeModel(), ValueChangedEvent());
@@ -221,44 +218,3 @@ void MainControlPanel::on_btnToolInspector_clicked(bool checked)
 }
 
 
-void MainControlPanel::on_actionCrosshair_triggered(bool checked)
-{
-  if(checked)
-    {
-    // Enter crosshair mode
-    m_Model->SetToolbarMode(CROSSHAIRS_MODE);
-    }
-}
-
-void MainControlPanel::on_actionZoomPan_triggered(bool checked)
-{
-  if(checked)
-    {
-    // Enter crosshair mode
-    m_Model->SetToolbarMode(NAVIGATION_MODE);
-    }
-}
-
-void MainControlPanel::on_actionPolygon_triggered(bool checked)
-{
-  if(checked)
-    {
-    m_Model->SetToolbarMode(POLYGON_DRAWING_MODE);
-    }
-}
-
-void MainControlPanel::on_actionPaintbrush_triggered(bool checked)
-{
-  if(checked)
-    {
-    m_Model->SetToolbarMode(PAINTBRUSH_MODE);
-    }
-}
-
-void MainControlPanel::on_actionSnake_triggered(bool checked)
-{
-  if(checked)
-    {
-    m_Model->SetToolbarMode(ROI_MODE);
-    }
-}

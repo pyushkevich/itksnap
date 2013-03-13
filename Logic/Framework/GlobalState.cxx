@@ -36,6 +36,7 @@
 #include "IRISException.h"
 #include "IRISApplication.h"
 
+
 GlobalState
 ::GlobalState(IRISApplication *parent)
 {
@@ -49,8 +50,8 @@ GlobalState
   m_LockHeld = 0;
   m_LockOwner = 0;
 
-  // Segmentation alpha
-  m_SegmentationAlphaModel = NewRangedConcreteProperty<unsigned char>(128, 0, 255, 1);
+  // Segmentation alpha model - range [0 1]
+  m_SegmentationAlphaModel = NewRangedConcreteProperty<double>(0.5, 0.0, 1.0, 0.01);
 
   // SNAP is off initially
   m_SNAPActive = false;

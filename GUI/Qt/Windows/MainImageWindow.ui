@@ -644,21 +644,62 @@ background-color:rgb(88, 88, 88);
     <property name="title">
      <string>Segmentation</string>
     </property>
+    <widget class="QMenu" name="menuAppearance">
+     <property name="title">
+      <string>Appearance</string>
+     </property>
+     <addaction name="actionSegmentationToggle"/>
+     <addaction name="separator"/>
+     <addaction name="actionSegmentationIncreaseOpacity"/>
+     <addaction name="actionSegmentationDecreaseOpacity"/>
+    </widget>
     <addaction name="actionLoad_from_Image"/>
     <addaction name="actionClear"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave_as_Image"/>
+    <addaction name="actionSave_as_Mesh"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_Labels"/>
+    <addaction name="actionSave_Label_Descriptions"/>
+    <addaction name="separator"/>
+    <addaction name="actionVolumes_and_Statistics"/>
+    <addaction name="separator"/>
+    <addaction name="menuAppearance"/>
    </widget>
    <widget class="QMenu" name="menuOverlay">
     <property name="title">
      <string>Overlay</string>
     </property>
     <addaction name="actionAdd_Overlay"/>
+    <addaction name="separator"/>
+    <addaction name="actionUnload_Last_Overlay"/>
+    <addaction name="actionUnload_All_Overlays"/>
+    <addaction name="separator"/>
+    <addaction name="actionLayer_Inspector"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
      <string>Tools</string>
     </property>
+    <widget class="QMenu" name="menuActive_Main_Tool">
+     <property name="title">
+      <string>Active Main Tool</string>
+     </property>
+     <addaction name="actionCrosshair"/>
+     <addaction name="actionZoomPan"/>
+     <addaction name="actionPolygon"/>
+     <addaction name="actionPaintbrush"/>
+     <addaction name="actionSnake"/>
+    </widget>
+    <addaction name="menuActive_Main_Tool"/>
+    <addaction name="actionActive_3D_Tool"/>
+    <addaction name="separator"/>
     <addaction name="actionImage_Contrast"/>
+    <addaction name="actionColor_Map_Editor"/>
+    <addaction name="actionImage_Information"/>
+    <addaction name="separator"/>
     <addaction name="actionLabel_Editor"/>
+    <addaction name="separator"/>
     <addaction name="actionReorient_Image"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
@@ -668,11 +709,17 @@ background-color:rgb(88, 88, 88);
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuSegmentation"/>
    <addaction name="menuOverlay"/>
    <addaction name="menuTools"/>
+   <addaction name="menuHelp"/>
   </widget>
   <action name="actionOpenMain">
    <property name="text">
@@ -695,7 +742,7 @@ background-color:rgb(88, 88, 88);
   </action>
   <action name="actionLoad_from_Image">
    <property name="text">
-    <string>Load from Image...</string>
+    <string>Open...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -807,7 +854,7 @@ background-color:rgb(88, 88, 88);
   </action>
   <action name="actionImage_Contrast">
    <property name="text">
-    <string>Image Contrast ...</string>
+    <string>Contrast Adjustment...</string>
    </property>
    <property name="toolTip">
     <string>Adjust image contrast</string>
@@ -927,6 +974,181 @@ background-color:rgb(88, 88, 88);
    </property>
    <property name="toolTip">
     <string>Export a screenshot of the axial view as an image</string>
+   </property>
+  </action>
+  <action name="actionSave_as_Image">
+   <property name="text">
+    <string>Save as Image Volume...</string>
+   </property>
+  </action>
+  <action name="actionSave_as_Mesh">
+   <property name="text">
+    <string>Export as Surface Mesh...</string>
+   </property>
+  </action>
+  <action name="actionLoad_Labels">
+   <property name="text">
+    <string>Load Labels Descriptions...</string>
+   </property>
+  </action>
+  <action name="actionSave_Label_Descriptions">
+   <property name="text">
+    <string>Save Label Descriptions...</string>
+   </property>
+  </action>
+  <action name="actionVolumes_and_Statistics">
+   <property name="text">
+    <string>Volumes and Statistics...</string>
+   </property>
+  </action>
+  <action name="actionSegmentationToggle">
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Toggle Visibility</string>
+   </property>
+   <property name="shortcut">
+    <string>S</string>
+   </property>
+  </action>
+  <action name="actionSegmentationIncreaseOpacity">
+   <property name="text">
+    <string>Increase Opacity</string>
+   </property>
+   <property name="shortcut">
+    <string>D</string>
+   </property>
+  </action>
+  <action name="actionSegmentationDecreaseOpacity">
+   <property name="text">
+    <string>Decrease Opacity</string>
+   </property>
+   <property name="shortcut">
+    <string>A</string>
+   </property>
+  </action>
+  <action name="actionActive_3D_Tool">
+   <property name="text">
+    <string>Active 3D Tool</string>
+   </property>
+  </action>
+  <action name="actionColor_Map_Editor">
+   <property name="text">
+    <string>Color Map Editor...</string>
+   </property>
+  </action>
+  <action name="actionImage_Information">
+   <property name="text">
+    <string>Image Information...</string>
+   </property>
+  </action>
+  <action name="actionUnload_Last_Overlay">
+   <property name="text">
+    <string>Unload Last Overlay</string>
+   </property>
+  </action>
+  <action name="actionUnload_All_Overlays">
+   <property name="text">
+    <string>Unload All Overlays</string>
+   </property>
+  </action>
+  <action name="actionLayer_Inspector">
+   <property name="text">
+    <string>Layer Inspector...</string>
+   </property>
+  </action>
+  <action name="actionCrosshair">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/crosshair.gif</normaloff>:/root/crosshair.gif</iconset>
+   </property>
+   <property name="text">
+    <string>Crosshair Tool</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Crosshair Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and drag the left mouse button to move the 3D cursor in the image. Use the right mouse button to zoom, and the middle mouse button to pan.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>1</string>
+   </property>
+  </action>
+  <action name="actionZoomPan">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/zoom.gif</normaloff>:/root/zoom.gif</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom/Pan Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Zoom/Pan Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and drag the left mouse button to pan the slice views. Use the right mouse button to zoom in and out.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>2</string>
+   </property>
+  </action>
+  <action name="actionPolygon">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/poly.gif</normaloff>:/root/poly.gif</iconset>
+   </property>
+   <property name="text">
+    <string>Polygon Drawing Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Polygon Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Primary tool for manual segmentation. Use the mouse to draw polygons on the 2D slice views, then edit the polygons and fill them with segmentation labels.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>3</string>
+   </property>
+  </action>
+  <action name="actionPaintbrush">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/paintbrush.gif</normaloff>:/root/paintbrush.gif</iconset>
+   </property>
+   <property name="text">
+    <string>Paintbrush Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Paintbrush Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;A tool for manual editing of segmentations. Hold the left mouse button and drag the mouse to draw with the currently selected label using one of the available brush shapes. Use the right mouse button to draw wuth the background label.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>4</string>
+   </property>
+  </action>
+  <action name="actionSnake">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/snake.gif</normaloff>:/root/snake.gif</iconset>
+   </property>
+   <property name="text">
+    <string>Active Contour Segmentation Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Active Contour Segmentation (Snake) Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Select a region of interest (ROI) for automatic segmentation. Use the mouse to move the boundaries of the ROI, then click the &amp;quot;Segment 3D&amp;quot; button to begin automatic segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>5</string>
    </property>
   </action>
  </widget>

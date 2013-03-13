@@ -4,9 +4,10 @@
 #include "GlobalUIModel.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
-#include "QtSliderCoupling.h"
 #include "QtComboBoxCoupling.h"
 #include "QtCheckBoxCoupling.h"
+#include "QtSliderCoupling.h"
+#include "QtSpinBoxCoupling.h"
 
 LabelInspector::LabelInspector(QWidget *parent) :
   SNAPComponent(parent),
@@ -32,8 +33,9 @@ void LabelInspector
   m_Model = model;
 
   // Use couplings where we can
-  makeCoupling(ui->inOpacity,
-               m_Model->GetDriver()->GetGlobalState()->GetSegmentationAlphaModel());
+  makeCoupling(ui->inOpacity, m_Model->GetSegmentationOpacityModel());
+  makeCoupling(ui->inOpacityValue, m_Model->GetSegmentationOpacityModel());
+  makeCoupling(ui->chkVisible, m_Model->GetSegmentationVisibilityModel());
 
   // Couple the color label combo box. The actual logic for how the labels are
   // mapped to color labels is handled in QtComboBoxCoupling.h

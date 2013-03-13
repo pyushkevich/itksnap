@@ -186,8 +186,8 @@ public:
   /** Set whether the segmentation image uses linear interpolation */
   irisGetMacro(InterpolateSegmentation,bool );
 
-  /** Get/Set the transparency of the segmentation overlay */
-  irisRangedPropertyAccessMacro(SegmentationAlpha, unsigned char)
+  /** Get/Set the on/off state of the segmentation overlay */
+  irisRangedPropertyAccessMacro(SegmentationAlpha, double)
 
   /** Get the current 3D toolbar mode */
   irisSetMacro(ToolbarMode3D,ToolbarMode3DType);
@@ -370,7 +370,7 @@ private:
   bool m_InterpolateSegmentation;
 
   /** The transparency of the segmentation overlay */
-  SmartPtr<RangedUCharPropertyModel> m_SegmentationAlphaModel;
+  SmartPtr<ConcreteRangedDoubleProperty> m_SegmentationAlphaModel;
 
   /** The current crosshairs position */
   Vector3ui m_CrosshairsPosition;

@@ -307,8 +307,8 @@ void GenericSliceRenderer::DrawSegmentationTexture()
   if (id->IsSegmentationLoaded())
     {
     Texture *texture = m_Texture[id->GetSegmentation()];
-    texture->DrawTransparent(
-          m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSegmentationAlpha());
+    double alpha = m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
+    texture->DrawTransparent((unsigned char)(255 * alpha));
     }
   }
 
