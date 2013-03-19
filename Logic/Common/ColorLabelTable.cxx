@@ -169,6 +169,7 @@ ColorLabelTable
   m_LabelMap = inputMap;
 
   // Fire the event
+  this->Modified();
   InvokeEvent(SegmentationLabelConfigurationChangeEvent());
 }
 
@@ -271,6 +272,7 @@ ColorLabelTable
     }
 
   // Fire the event
+  this->Modified();
   InvokeEvent(SegmentationLabelConfigurationChangeEvent());
 }
 

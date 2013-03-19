@@ -52,6 +52,8 @@ public:
   bool operator != (const AbstractLayerInfoItemSetDomain<TDesc> &cmp) const
     { return m_Driver != cmp.m_Driver || m_RoleFilter != cmp.m_RoleFilter; }
 
+  virtual bool isAtomic() { return false; }
+
 protected:
   IRISApplication *m_Driver;
   int m_RoleFilter;

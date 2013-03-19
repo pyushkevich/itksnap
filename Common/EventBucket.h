@@ -42,6 +42,8 @@ public:
 
   void Clear();
 
+  unsigned long GetMTime() const { return m_MTime; }
+
   friend std::ostream& operator<<(std::ostream& sink, const EventBucket& eb);
 
 protected:
@@ -57,6 +59,12 @@ protected:
 
   BucketType m_Bucket;
 
+  /** Each bucket has a unique id. This allows code to check whether or not
+   * it has already handled a bucket or not. This should not really be needed
+   * because event handlers should never get called twice with the same
+   * bucket, but it seems that in Qt this does happen sometimes */
+  unsigned long m_MTime;
+  static unsigned long m_GlobalMTime;
 };
 
 // IO operator

@@ -6,6 +6,8 @@
 #include <QObject>
 #include <QPushButton>
 #include <QMainWindow>
+#include <QMessageBox>
+#include <QApplication>
 
 QIcon CreateColorBoxIcon(int w, int h, const QColor &rgb)
 {
@@ -42,15 +44,30 @@ QAction *FindUpstreamAction(QWidget *widget, const QString &targetActionName)
       break;
     }
 
+  // If nothing found, try a global search
+  if(!topwin)
+    {
+    QWidgetList lst = QApplication::topLevelWidgets();
+    for(QWidgetList::Iterator it = lst.begin();
+        it != lst.end(); ++it)
+      {
+      QWidget *w = *it;
+      if((topwin = dynamic_cast<QMainWindow *>(w)) != NULL)
+        break;
+      }
+    }
+
   // Look for the action
+  QAction *result = NULL;
   if(topwin)
     {
-    return topwin->findChild<QAction *>(targetActionName);
+    result = topwin->findChild<QAction *>(targetActionName);
     }
-  else
-    {
-    return NULL;
-    }
+
+  if(!result)
+      std::cerr << "Failed find upstream action " << targetActionName.toStdString() << std::endl;
+
+  return result;
 }
 
 void ConnectWidgetToTopLevelAction(
@@ -71,4 +88,29 @@ bool TriggerUpstreamAction(QWidget *widget, const QString &targetActionName)
     }
   else
     return false;
+}
+
+QStringList toQStringList(const std::vector<std::string> inlist)
+{
+  QStringList qsl;
+  qsl.reserve(inlist.size());
+  for(std::vector<std::string>::const_iterator it = inlist.begin();
+      it != inlist.end(); ++it)
+    {
+    qsl.push_back(QString::fromStdString(*it));
+    }
+  return qsl;
+}
+
+void ReportNonLethalException(QWidget *parent,
+                              std::exception &exc,
+                              QString windowTitleText,
+                              QString mainErrorText)
+{
+  QMessageBox b(parent);
+  b.setText(mainErrorText);
+  b.setWindowTitle(QString("%1 - ITK-SNAP").arg(windowTitleText));
+  b.setDetailedText(exc.what());
+  b.setIcon(QMessageBox::Critical);
+  b.exec();
 }

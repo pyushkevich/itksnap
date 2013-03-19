@@ -1,7 +1,10 @@
 #include "EventBucket.h"
 
+unsigned long EventBucket::m_GlobalMTime = 1;
+
 EventBucket::EventBucket()
 {
+  m_MTime = m_GlobalMTime++;
 }
 
 EventBucket::~EventBucket()
@@ -17,6 +20,7 @@ void EventBucket::Clear()
     delete(it->first);
     }
   m_Bucket.clear();
+  m_MTime = m_GlobalMTime++;
 }
 
 bool EventBucket::HasEvent(const itk::EventObject &evt, const itk::Object *source) const
@@ -47,6 +51,7 @@ void EventBucket::PutEvent(const itk::EventObject &evt, const itk::Object *sourc
     entry.first = evt.MakeObject();
     entry.second = source;
     m_Bucket.insert(entry);
+    m_MTime = m_GlobalMTime++;
     }
 }
 

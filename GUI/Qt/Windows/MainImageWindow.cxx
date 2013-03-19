@@ -47,7 +47,7 @@
 #include "GenericSliceView.h"
 #include "SplashPanel.h"
 #include "QtWidgetCoupling.h"
-
+#include "SimpleFileDialogWithHistory.h"
 
 
 #include "QtCursorOverride.h"
@@ -70,7 +70,7 @@
 #include <QUrl>
 #include <QFileDialog>
 #include <QGLWidget>
-
+#include <SNAPQtCommon.h>
 
 
 class HistoryListItemDelegate : public QItemDelegate
@@ -455,12 +455,9 @@ void MainImageWindow::LoadRecent(QString file)
     }
   catch(exception &exc)
     {
-    QMessageBox b(this);
-    b.setText(QString("Failed to load image %1").arg(file));
-    b.setDetailedText(exc.what());
-    b.setIcon(QMessageBox::Critical);
-    b.exec();
-  }
+    ReportNonLethalException(this, exc, "Image IO Error",
+                             QString("Failed to load image %1").arg(file));
+    }
 }
 
 void MainImageWindow::on_actionRecent_1_triggered()
@@ -690,4 +687,62 @@ void MainImageWindow::on_actionSegmentationToggle_triggered()
 {
   bool value = m_Model->GetSegmentationVisibility();
   m_Model->SetSegmentationVisibility(!value);
+}
+
+
+void MainImageWindow::on_actionLoadLabels_triggered()
+{
+  // Get the history
+  QStringList qslHistory = toQStringList(
+        m_Model->GetSystemInterface()->GetHistory("LabelDescriptions"));
+
+  // Ask for a filename
+  QString selection = SimpleFileDialogWithHistory::showOpenDialog(
+        "Open Label Descriptions - ITK-SNAP",
+        "Label Description File",
+        qslHistory,
+        "Text Files (*.txt);; Label Files (*.label);; All Files (*)");
+
+  // Open the labels from the selection
+  if(selection.length())
+    {
+    try
+      {
+      m_Model->GetDriver()->LoadLabelDescriptions(selection.toStdString().c_str());
+      }
+    catch(std::exception &exc)
+      {
+      ReportNonLethalException(this, exc, "Label Description IO Error",
+                               QString("Failed to load label descriptions"));
+      }
+    }
+}
+
+void MainImageWindow::on_actionSaveLabels_triggered()
+{
+  // Get the history
+  QStringList qslHistory = toQStringList(
+        m_Model->GetSystemInterface()->GetHistory("LabelDescriptions"));
+
+  // Ask for a filename
+  QString selection = SimpleFileDialogWithHistory::showSaveDialog(
+        "Save Label Descriptions - ITK-SNAP",
+        "Label Description File",
+        qslHistory,
+        "Text Files (*.txt);; Label Files (*.label);; All Files (*)");
+
+  // Open the labels from the selection
+  if(selection.length())
+    {
+    try
+      {
+      m_Model->GetDriver()->SaveLabelDescriptions(
+            selection.toStdString().c_str());
+      }
+    catch(std::exception &exc)
+      {
+      ReportNonLethalException(this, exc, "Label Description IO Error",
+                               QString("Failed to save label descriptions"));
+      }
+    }
 }

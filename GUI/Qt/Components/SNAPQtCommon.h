@@ -23,6 +23,8 @@ void ConnectWidgetToTopLevelAction(QWidget *w, const char *signal, QString actio
 // if the upstream action was found, false otherwise
 bool TriggerUpstreamAction(QWidget *w, const QString &targetActionName);
 
+// Convert a container of std::strings into a QStringList
+QStringList toQStringList(const std::vector<std::string> inlist);
 
 // Find a parent window of appropriate class
 template <class TWidget>
@@ -41,5 +43,12 @@ TWidget *findParentWidget(QObject *w)
   while(w);
   return NULL;
 }
+
+// Standard way for handling non-lethal exceptions
+void ReportNonLethalException(QWidget *parent,
+                              std::exception &exc,
+                              QString windowTitleText,
+                              QString mainErrorText);
+
 
 #endif // SNAPQTCOMMON_H

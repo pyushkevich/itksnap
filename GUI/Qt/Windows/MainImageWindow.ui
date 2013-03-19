@@ -659,8 +659,8 @@ background-color:rgb(88, 88, 88);
     <addaction name="actionSave_as_Image"/>
     <addaction name="actionSave_as_Mesh"/>
     <addaction name="separator"/>
-    <addaction name="actionLoad_Labels"/>
-    <addaction name="actionSave_Label_Descriptions"/>
+    <addaction name="actionLoadLabels"/>
+    <addaction name="actionSaveLabels"/>
     <addaction name="separator"/>
     <addaction name="actionVolumes_and_Statistics"/>
     <addaction name="separator"/>
@@ -986,12 +986,12 @@ background-color:rgb(88, 88, 88);
     <string>Export as Surface Mesh...</string>
    </property>
   </action>
-  <action name="actionLoad_Labels">
+  <action name="actionLoadLabels">
    <property name="text">
-    <string>Load Labels Descriptions...</string>
+    <string>Load Label Descriptions...</string>
    </property>
   </action>
-  <action name="actionSave_Label_Descriptions">
+  <action name="actionSaveLabels">
    <property name="text">
     <string>Save Label Descriptions...</string>
    </property>

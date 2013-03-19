@@ -81,6 +81,7 @@ public:
   bool operator == (const DrawOverLabelItemSetDomain &refdom);
   bool operator != (const DrawOverLabelItemSetDomain &refdom);
 
+  bool isAtomic() { return false; }
 
 private:
 

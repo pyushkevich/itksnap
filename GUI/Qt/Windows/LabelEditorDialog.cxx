@@ -13,14 +13,18 @@
 #include <QtWidgetArrayCoupling.h>
 #include <QtCheckBoxCoupling.h>
 #include <QtPushButtonCoupling.h>
+#include <QtColorWheelCoupling.h>
 
 #include <QtWidgetActivator.h>
+#include <ColorWheel.h>
 
 LabelEditorDialog::LabelEditorDialog(QWidget *parent) :
   QDialog(parent),
   ui(new Ui::LabelEditorDialog)
 {
   ui->setupUi(this);
+
+  ui->inColorWheel->setWheelWidth(15);
 }
 
 LabelEditorDialog::~LabelEditorDialog()
@@ -57,8 +61,14 @@ void LabelEditorDialog::SetModel(LabelEditorModel *model)
                     m_Model->GetCurrentLabelHiddenStateModel());
 
   // Color button
-  makeCoupling(ui->btnLabelColor,
-               m_Model->GetCurrentLabelColorModel());
+  makeCoupling(ui->btnLabelColor, m_Model->GetCurrentLabelColorModel());
+
+  // Color wheel
+  makeCoupling(ui->inColorWheel, m_Model->GetCurrentLabelColorModel());
+
+  // RGB sliders
+  makeArrayCoupling(ui->inRed, ui->inGreen, ui->inBlue,
+                    m_Model->GetCurrentLabelColorModel());
 
   // Set up activations
   activateOnFlag(ui->grpSelectedLabel, m_Model,

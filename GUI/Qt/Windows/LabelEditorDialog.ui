@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>548</width>
-    <height>462</height>
+    <height>537</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -191,8 +191,131 @@ QGroupBox::title {
            </property>
           </spacer>
          </item>
-         <item>
-          <widget class="QColorButtonWidget" name="btnLabelColor" native="true"/>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="widget_6" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>100</height>
+         </size>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3" columnstretch="0,1,0,0,0">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <item row="3" column="2" colspan="2">
+          <widget class="QColorButtonWidget" name="btnLabelColor" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>60</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3" colspan="2">
+          <widget class="QSpinBox" name="inRed">
+           <property name="maximumSize">
+            <size>
+             <width>56</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="maximum">
+            <number>255</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>B:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>R:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QSpinBox" name="inBlue">
+           <property name="maximumSize">
+            <size>
+             <width>56</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="maximum">
+            <number>255</number>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" rowspan="5">
+          <widget class="ColorWheel" name="inColorWheel" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>120</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>120</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>G:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3" colspan="2">
+          <widget class="QSpinBox" name="inGreen">
+           <property name="maximumSize">
+            <size>
+             <width>56</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="maximum">
+            <number>255</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>5</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
@@ -419,7 +542,7 @@ QGroupBox::title {
         <property name="sizeHint" stdset="0">
          <size>
           <width>20</width>
-          <height>40</height>
+          <height>5</height>
          </size>
         </property>
        </spacer>
@@ -492,6 +615,12 @@ QGroupBox::title {
    <class>QColorButtonWidget</class>
    <extends>QWidget</extends>
    <header>QColorButtonWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ColorWheel</class>
+   <extends>QWidget</extends>
+   <header>ColorWheel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

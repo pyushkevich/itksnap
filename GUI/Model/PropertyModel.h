@@ -72,6 +72,13 @@ template<class TVal> struct NumericValueRange
   {
     return (Minimum != comp.Minimum) || (Maximum != comp.Maximum) || (StepSize != comp.StepSize);
   }
+
+  // An atomic domain holds its own state, so it is possible to compare two
+  // atomic domains to determine if they are the same or different. Domains
+  // that store references to external objects are not atomic.
+  virtual bool isAtomic() { return true; }
+
+
 };
 
 /**
@@ -113,6 +120,10 @@ public:
   bool operator == (const TrivialDomain &cmp) { return true; }
   bool operator != (const TrivialDomain &cmp) { return false; }
 
+  // An atomic domain holds its own state, so it is possible to compare two
+  // atomic domains to determine if they are the same or different. Domains
+  // that store references to external objects are not atomic.
+  bool isAtomic() { return true; }
 };
 
 /**
@@ -190,6 +201,11 @@ public:
   virtual bool operator != (const Self &cmp) const
     { return m_SourceMap != cmp.m_SourceMap; }
 
+  // An atomic domain holds its own state, so it is possible to compare two
+  // atomic domains to determine if they are the same or different. Domains
+  // that store references to external objects are not atomic.
+  virtual bool isAtomic() { return false; }
+
 protected:
   const MapType *m_SourceMap;
 };
@@ -234,6 +250,11 @@ public:
 
   virtual bool operator != (const Self &cmp) const
     { return m_SourceVector != cmp.m_SourceVector; }
+
+  // An atomic domain holds its own state, so it is possible to compare two
+  // atomic domains to determine if they are the same or different. Domains
+  // that store references to external objects are not atomic.
+  virtual bool isAtomic() { return false; }
 
 protected:
   const VectorType *m_SourceVector;
@@ -282,6 +303,11 @@ public:
 
   virtual bool operator != (const Self &cmp) const
     { return m_Map != cmp.m_Map; }
+
+  // An atomic domain holds its own state, so it is possible to compare two
+  // atomic domains to determine if they are the same or different. Domains
+  // that store references to external objects are not atomic.
+  virtual bool isAtomic() { return true; }
 
 protected:
   MapType m_Map;

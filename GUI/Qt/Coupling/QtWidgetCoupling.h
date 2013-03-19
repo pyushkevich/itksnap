@@ -83,7 +83,9 @@ public:
     : m_Widget(w), m_Model(model), m_Updating(false),
       m_ValueTraits(valueTraits), m_DomainTraits(domainTraits),
       m_CachedValueAvailable(false),
-      m_AllowUpdateInInvalidState(false) {}
+      m_CachedDomainAvailable(false),
+      m_AllowUpdateInInvalidState(false),
+      m_LastBucketMTime(0) {}
 
   /** 
    * Called the first time the widget is coupled to the model in order to
@@ -105,10 +107,17 @@ public:
    */
   void UpdateWidgetFromModel(const EventBucket &bucket)
   {
+    // Make sure we don't process the same event bucket twice
+    if(bucket.GetMTime() <= m_LastBucketMTime)
+      return;
+
     // The bucket parameter tells us whether the domain changed or not
     this->DoUpdateWidgetFromModel(
           bucket.HasEvent(DomainChangedEvent()),
           bucket.HasEvent(DomainDescriptionChangedEvent()));
+
+    // Store the bucket id
+    m_LastBucketMTime = bucket.GetMTime();
   }
 
   /**
@@ -122,6 +131,9 @@ public:
       AtomicType model_value;
 
       // Get the current value and status from the model
+      // TODO: this information could be cached, and dirtied in the case of
+      // an event. Currently, we are doing a lot of unnecessary accesses to
+      // the model just to check hte validity and current value of th model
       bool valid = m_Model->GetValueAndDomain(model_value, NULL);
 
       // Note: if the model reports that the value is invalid, we are not
@@ -163,11 +175,21 @@ protected:
       // just call SetDomain without first checking if the change is 'real'.
       if(flagDomainChange)
         {
-        m_DomainTraits.SetDomain(m_Widget, m_DomainTemp);
+        if(!m_CachedDomainAvailable || m_CachedWidgetDomain != m_DomainTemp)
+          {
+          m_DomainTraits.SetDomain(m_Widget, m_DomainTemp);
 
-        // Once the domain changes, the current cached value can no longer be
-        // trusted because the widget may have reconfigured.
-        m_CachedValueAvailable = false;
+          // Once the domain changes, the current cached value can no longer be
+          // trusted because the widget may have reconfigured.
+          m_CachedValueAvailable = false;
+
+          // Cache the domain if it is atomic (supports comparison operator)
+          if(m_DomainTemp.isAtomic())
+            {
+            m_CachedWidgetDomain = m_DomainTemp;
+            m_CachedDomainAvailable = true;
+            }
+          }
         }
       else if(flagDomainDescriptionChange)
         {
@@ -204,6 +226,7 @@ private:
 
   // A temporary copy of the domain
   DomainType m_DomainTemp;
+  DomainType m_CachedWidgetDomain;
 
   // We cache the last known value in the widget to avoid unnecessary updates
   // of the widget in response to events generated from the model after the
@@ -211,7 +234,12 @@ private:
   AtomicType m_CachedWidgetValue;
 
   // Whether or not the cached value can be used
-  bool m_CachedValueAvailable;
+  bool m_CachedValueAvailable, m_CachedDomainAvailable;
+
+  // The last bucked ID handled by this widget. This is used to protect against
+  // updates being invoked twice with the same event bucket (seems like some
+  // sort of a Qt weirdness)
+  unsigned long m_LastBucketMTime;
 };
 
 

@@ -143,6 +143,10 @@ private slots:
 
   void on_actionSegmentationToggle_triggered();
 
+  void on_actionLoadLabels_triggered();
+
+  void on_actionSaveLabels_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);

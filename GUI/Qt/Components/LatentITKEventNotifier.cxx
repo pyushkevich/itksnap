@@ -94,6 +94,7 @@ void
 LatentITKEventNotifierHelper
 ::onQueuedEvent()
 {
+  static int invocation = 0;
   if(!m_Bucket.IsEmpty())
     {
 #ifdef SNAP_DEBUG_EVENTS
@@ -105,6 +106,8 @@ LatentITKEventNotifierHelper
                 << "'" << std::endl;
       }
 #endif
+
+    ++invocation;
 
     // Send the event to the target object - immediate
     emit dispatchEvent(m_Bucket);

@@ -1574,6 +1574,12 @@ void IRISApplication::LoadLabelDescriptions(const char *file)
   m_SystemInterface->UpdateHistory("LabelDescriptions", file);
 }
 
+void IRISApplication::SaveLabelDescriptions(const char *file)
+{
+  this->m_ColorLabelTable->SaveToFile(file);
+  m_SystemInterface->UpdateHistory("LabelDescriptions", file);
+}
+
 bool IRISApplication::IsSnakeModeActive() const
 {
   return (m_CurrentImageData == m_SNAPImageData);

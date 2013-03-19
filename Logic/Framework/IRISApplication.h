@@ -382,6 +382,11 @@ public:
   void LoadLabelDescriptions(const char *filename);
 
   /**
+    Save label descriptions to file
+    */
+  void SaveLabelDescriptions(const char *filename);
+
+  /**
    * Store the current state as an undo point, allowing the user to revert
    * to this state at a later point. The state in this context is just the
    * segmentation image in IRIS.
