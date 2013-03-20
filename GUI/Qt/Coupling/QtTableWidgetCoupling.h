@@ -66,6 +66,7 @@ public:
 /** Default traits for mapping a matrix of values (int, double) to a table */
 template <class TElement>
 class DefaultWidgetValueTraits< vnl_matrix<TElement>, QTableWidget>
+    : public WidgetValueTraitsBase< vnl_matrix<TElement>, QTableWidget* >
 {
 public:
   typedef vnl_matrix<TElement> TMatrix;

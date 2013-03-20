@@ -41,6 +41,11 @@ LabelEditorModel::LabelEditorModel()
         this,
         &Self::GetCurrentLabelColor,
         &Self::SetCurrentLabelColor);
+
+  m_IsForegroundBackgroundModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetIsForegroundBackground,
+        &Self::SetIsForegroundBackground);
 }
 
 void LabelEditorModel::SetParentModel(GlobalUIModel *parent)
@@ -56,6 +61,13 @@ void LabelEditorModel::SetParentModel(GlobalUIModel *parent)
 
   // Listen to events
   Rebroadcast(m_LabelTable, SegmentationLabelChangeEvent(), ModelUpdateEvent());
+
+  // Listen to changes in the active label event
+  m_IsForegroundBackgroundModel->RebroadcastFromSourceProperty(
+        m_Parent->GetGlobalState()->GetDrawingColorLabelModel());
+
+  m_IsForegroundBackgroundModel->RebroadcastFromSourceProperty(
+        m_Parent->GetGlobalState()->GetDrawOverFilterModel());
 }
 
 bool LabelEditorModel::GetCurrentLabelDescription(std::string &value)
@@ -85,7 +97,7 @@ bool LabelEditorModel::GetCurrentLabelIdValueAndRange(
     {
     value = m_SelectedId;
     if(domain)
-      domain->Set(1, MAX_COLOR_LABELS, 1);
+      domain->Set(0, MAX_COLOR_LABELS, 1);
     return true;
     }
   return false;
@@ -161,6 +173,54 @@ void LabelEditorModel::SetCurrentLabelColor(Vector3ui value)
     m_LabelTable->SetColorLabel(m_SelectedId, m_SelectedColorLabel);
     }
 }
+
+bool LabelEditorModel::GetIsForegroundBackground(Vector2b &value)
+{
+  if(GetAndStoreCurrentLabel())
+    {
+    LabelType fg = m_Parent->GetGlobalState()->GetDrawingColorLabel();
+    DrawOverFilter bg = m_Parent->GetGlobalState()->GetDrawOverFilter();
+
+    value[0] = (fg == m_SelectedId);
+    value[1] = (bg.CoverageMode == PAINT_OVER_ONE && bg.DrawOverLabel == m_SelectedId);
+    return true;
+    }
+  return false;
+}
+
+void LabelEditorModel::SetIsForegroundBackground(Vector2b value)
+{
+  GlobalState *gs = m_Parent->GetGlobalState();
+  if(GetAndStoreCurrentLabel())
+    {
+    LabelType fg = gs->GetDrawingColorLabel();
+    DrawOverFilter bg = gs->GetDrawOverFilter();
+
+    if(value[0])
+      {
+      gs->SetDrawingColorLabel(m_SelectedId);
+      }
+    else
+      {
+      // Do nothing - there is no default label to switch to...
+      }
+
+    if(value[1])
+      {
+      bg.CoverageMode = PAINT_OVER_ONE;
+      bg.DrawOverLabel = m_SelectedId;
+      gs->SetDrawOverFilter(bg);
+      }
+    else
+      {
+      bg.CoverageMode = PAINT_OVER_ALL;
+      bg.DrawOverLabel = 0;
+      gs->SetDrawOverFilter(bg);
+      }
+    }
+}
+
+
 
 bool LabelEditorModel::GetAndStoreCurrentLabel()
 {
@@ -262,6 +322,11 @@ void LabelEditorModel::DeleteCurrentLabel()
     // Invalidate the current label
     m_LabelTable->SetColorLabelValid(m_SelectedId, false);
     }
+}
+
+void LabelEditorModel::ResetLabels()
+{
+  m_LabelTable->InitializeToDefaults();
 }
 
 bool LabelEditorModel::ReassignLabelId(LabelType newid)

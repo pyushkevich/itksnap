@@ -254,6 +254,12 @@ public:
   // Get the Qt signal that the widget fires when its value has changed
   virtual const char *GetSignal() { return NULL; }
 
+  // Get the widget that generates the signal above. Normally it's the same
+  // as the input widget, but in some cases, it's some other QObject that
+  // fires the signal, i.e., in QAbstractItemView, it would be the item
+  // selection model rather than the view itself
+  virtual QObject *GetSignalEmitter(QObject *w) { return w; }
+
   // Get the value from the widget
   virtual TAtomic GetValue(TWidgetPtr) = 0;
 
@@ -552,8 +558,9 @@ void makeCoupling(
     {
     const char *mysignal = (opts.SignalOverride)
         ? opts.SignalOverride : valueTraits.GetSignal();
-    if(mysignal)
-      h->connect(w, mysignal, SLOT(onUserModification()));
+    QObject *emitter = valueTraits.GetSignalEmitter(w);
+    if(mysignal && emitter)
+      h->connect(emitter, mysignal, SLOT(onUserModification()));
     }
 
   // Set the allow-changes flag in the mapping

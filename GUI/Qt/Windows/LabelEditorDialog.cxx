@@ -12,11 +12,16 @@
 #include <QtDoubleSpinBoxCoupling.h>
 #include <QtWidgetArrayCoupling.h>
 #include <QtCheckBoxCoupling.h>
-#include <QtPushButtonCoupling.h>
+#include <QtAbstractButtonCoupling.h>
 #include <QtColorWheelCoupling.h>
-
+#include <SNAPQtCommon.h>
 #include <QtWidgetActivator.h>
 #include <ColorWheel.h>
+#include <QMenu>
+
+#include <QSortFilterProxyModel>
+#include <QStandardItemModel>
+#include <QtAbstractItemViewCoupling.h>
 
 LabelEditorDialog::LabelEditorDialog(QWidget *parent) :
   QDialog(parent),
@@ -25,6 +30,20 @@ LabelEditorDialog::LabelEditorDialog(QWidget *parent) :
   ui->setupUi(this);
 
   ui->inColorWheel->setWheelWidth(15);
+
+  // Add some actions to the action button
+  QMenu *menu = new QMenu();
+  ui->btnActions->setMenu(menu);
+  menu->addAction(FindUpstreamAction(this, "actionLoadLabels"));
+  menu->addAction(FindUpstreamAction(this, "actionSaveLabels"));
+  menu->addSeparator();
+  menu->addAction(ui->actionResetLabels);
+
+  // Set up a filter model for the label list view
+  m_LabelListFilterModel = new QSortFilterProxyModel(this);
+  m_LabelListFilterModel->setSourceModel(new QStandardItemModel(this));
+  m_LabelListFilterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+  ui->lvLabels->setModel(m_LabelListFilterModel);
 }
 
 LabelEditorDialog::~LabelEditorDialog()
@@ -32,13 +51,15 @@ LabelEditorDialog::~LabelEditorDialog()
   delete ui;
 }
 
+#include <QSortFilterProxyModel>
+
 void LabelEditorDialog::SetModel(LabelEditorModel *model)
 {
   // Store the model
   m_Model = model;
 
   // Couple widgets to the model
-  makeCoupling(ui->listLabels, m_Model->GetCurrentLabelModel());
+  makeCoupling((QAbstractItemView *) (ui->lvLabels), m_Model->GetCurrentLabelModel());
 
   // Coupling for the description of the current label. Override the default
   // signal for this widget.
@@ -69,6 +90,11 @@ void LabelEditorDialog::SetModel(LabelEditorModel *model)
   // RGB sliders
   makeArrayCoupling(ui->inRed, ui->inGreen, ui->inBlue,
                     m_Model->GetCurrentLabelColorModel());
+
+  // Set as foreground/background buttons
+  makeArrayCoupling((QAbstractButton *)ui->btnForeground,
+                    (QAbstractButton *) ui->btnBackground,
+                    m_Model->GetIsForegroundBackgroundModel());
 
   // Set up activations
   activateOnFlag(ui->grpSelectedLabel, m_Model,
@@ -158,4 +184,14 @@ void LabelEditorDialog::on_inLabelId_editingFinished()
     // Set the value to the current value
     ui->inLabelId->setValue(curid);
     }
+}
+
+void LabelEditorDialog::on_actionResetLabels_triggered()
+{
+  m_Model->ResetLabels();
+}
+
+void LabelEditorDialog::on_inLabelFilter_textChanged(const QString &arg1)
+{
+  m_LabelListFilterModel->setFilterFixedString(arg1);
 }

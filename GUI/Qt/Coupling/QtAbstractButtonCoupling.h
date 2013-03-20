@@ -24,8 +24,8 @@
 
 =========================================================================*/
 
-#ifndef QTPUSHBUTTONCOUPLING_H
-#define QTPUSHBUTTONCOUPLING_H
+#ifndef QTABSTRACTBUTTONCOUPLING_H
+#define QTABSTRACTBUTTONCOUPLING_H
 
 #include <QtWidgetCoupling.h>
 #include "SNAPQtCommon.h"
@@ -70,4 +70,30 @@ public:
 };
 
 
-#endif // QTPUSHBUTTONCOUPLING_H
+template <>
+class DefaultWidgetValueTraits<bool, QAbstractButton>
+    : public WidgetValueTraitsBase<bool, QAbstractButton *>
+{
+public:
+  const char *GetSignal()
+  {
+    return SIGNAL(toggled(bool));
+  }
+
+  bool GetValue(QAbstractButton *w)
+  {
+    return w->isChecked();
+  }
+
+  void SetValue(QAbstractButton *w, const bool &value)
+  {
+    w->setChecked(value);
+  }
+
+  void SetValueToNull(QAbstractButton *w)
+  {
+    w->setChecked(false);
+  }
+};
+
+#endif // QTABSTRACTBUTTONCOUPLING_H

@@ -4,7 +4,8 @@
 #include <QDialog>
 
 class LabelEditorModel;
-class QListWidgetItem;
+class QStandardItemModel;
+class QSortFilterProxyModel;
 
 namespace Ui {
     class LabelEditorDialog;
@@ -31,10 +32,17 @@ private slots:
 
   void on_inLabelId_editingFinished();
 
+  void on_actionResetLabels_triggered();
+
+  void on_inLabelFilter_textChanged(const QString &arg1);
+
 private:
   Ui::LabelEditorDialog *ui;
 
   LabelEditorModel *m_Model;
+
+  // The Qt model tied to the QListView
+  QSortFilterProxyModel *m_LabelListFilterModel;
 };
 
 #endif // LABELEDITORDIALOG_H

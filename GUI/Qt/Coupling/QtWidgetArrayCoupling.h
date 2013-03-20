@@ -304,7 +304,10 @@ void makeWidgetArrayCoupling(
 
   // Listen to value change events for this widget
   for(int i = 0; i < VDim; i++)
-    h->connect(wa[i], trValue.GetSignal(), SLOT(onUserModification()));
+    {
+    h->connect(trValue.GetSignalEmitter(wa[i]),
+               trValue.GetSignal(), SLOT(onUserModification()));
+    }
 }
 
 /**

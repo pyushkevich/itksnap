@@ -36,6 +36,10 @@ public:
   /** Get the model for the current label id */
   irisGetMacro(CurrentLabelColorModel, AbstractSimpleUIntVec3Property *)
 
+  /** Get the model that specifies whether the current label is background or
+   * foreground label */
+  irisGetMacro(IsForegroundBackgroundModel, AbstractSimpleBooleanVec2Property *)
+
   /** Change the label id of the selected label */
   bool ReassignLabelId(LabelType newid);
 
@@ -60,6 +64,9 @@ public:
 
   /** Delete the selected label */
   void DeleteCurrentLabel();
+
+  /** Reset labels to defaults */
+  void ResetLabels();
 
 protected:
 
@@ -96,6 +103,11 @@ protected:
   SmartPtr<AbstractSimpleUIntVec3Property> m_CurrentLabelColorModel;
   bool GetCurrentLabelColor(Vector3ui &value);
   void SetCurrentLabelColor(Vector3ui value);
+
+  // Foreground/background status
+  SmartPtr<AbstractSimpleBooleanVec2Property> m_IsForegroundBackgroundModel;
+  bool GetIsForegroundBackground(Vector2b &value);
+  void SetIsForegroundBackground(Vector2b value);
 
   // The parent model
   GlobalUIModel *m_Parent;

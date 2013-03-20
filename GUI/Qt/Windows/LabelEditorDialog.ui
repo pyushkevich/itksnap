@@ -560,14 +560,7 @@ QGroupBox::title {
        <number>6</number>
       </property>
       <item>
-       <widget class="QListWidget" name="listLabels">
-        <property name="iconSize">
-         <size>
-          <width>16</width>
-          <height>16</height>
-         </size>
-        </property>
-       </widget>
+       <widget class="QListView" name="lvLabels"/>
       </item>
       <item>
        <widget class="QWidget" name="widget_5" native="true">
@@ -581,7 +574,7 @@ QGroupBox::title {
          <item>
           <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>Find:</string>
+            <string>Filter:</string>
            </property>
           </widget>
          </item>
@@ -589,16 +582,28 @@ QGroupBox::title {
           <widget class="QLineEdit" name="inLabelFilter"/>
          </item>
          <item>
-          <widget class="QToolButton" name="toolButton">
+          <widget class="QToolButton" name="btnForeground">
+           <property name="toolTip">
+            <string>Press to set the selected label as the foreground label</string>
+           </property>
            <property name="text">
-            <string>&lt;</string>
+            <string>F</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="toolButton_2">
+          <widget class="QToolButton" name="btnBackground">
+           <property name="toolTip">
+            <string>Press to set the selected label as the background label</string>
+           </property>
            <property name="text">
-            <string>&gt;</string>
+            <string>B</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -609,6 +614,14 @@ QGroupBox::title {
     </widget>
    </item>
   </layout>
+  <action name="actionResetLabels">
+   <property name="text">
+    <string>Reset Label Descriptions</string>
+   </property>
+   <property name="toolTip">
+    <string>Restores label descriptions to the default values.</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

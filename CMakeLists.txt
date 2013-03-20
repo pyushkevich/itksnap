@@ -484,18 +484,23 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/QtCursorOverride.h
   GUI/Qt/Components/QtRendererPlatformSupport.h
   GUI/Qt/Components/QtReporterDelegates.h
+  GUI/Qt/Coupling/QtAbstractButtonCoupling.h
+  GUI/Qt/Coupling/QtAbstractItemViewCoupling.h
   GUI/Qt/Coupling/QtCheckBoxCoupling.h
+  GUI/Qt/Coupling/QtColorWheelCoupling.h
   GUI/Qt/Coupling/QtComboBoxCoupling.h
-  GUI/Qt/Coupling/QtDoubleSpinBoxCoupling.h
   GUI/Qt/Coupling/QtDoubleSliderWithEditorCoupling.h
+  GUI/Qt/Coupling/QtDoubleSpinBoxCoupling.h
   GUI/Qt/Coupling/QtLabelCoupling.h
   GUI/Qt/Coupling/QtLineEditCoupling.h
   GUI/Qt/Coupling/QtListWidgetCoupling.h
   GUI/Qt/Coupling/QtRadioButtonCoupling.h
+  GUI/Qt/Coupling/QtScrollbarCoupling.h
   GUI/Qt/Coupling/QtSliderCoupling.h
   GUI/Qt/Coupling/QtSpinBoxCoupling.h
   GUI/Qt/Coupling/QtTableWidgetCoupling.h
   GUI/Qt/Coupling/QtWidgetArrayCoupling.h
+  GUI/Qt/Coupling/QtWidgetCoupling.h
   GUI/Qt/Testing/SNAPTestQt.h
 )
 
