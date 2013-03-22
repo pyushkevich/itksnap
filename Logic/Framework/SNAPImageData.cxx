@@ -62,8 +62,7 @@
 #include "PreprocessingFilterConfigTraits.h"
 
 SNAPImageData
-::SNAPImageData(IRISApplication *parent)
-: GenericImageData(parent)
+::SNAPImageData()
 {
   // Set the names of the wrapeprs
   m_SpeedWrapper = SpeedImageWrapper::New();
@@ -76,14 +75,9 @@ SNAPImageData
   m_SnakeWrapper->SetNickname("Evolving Contour");
 
   // Update the list of linked wrappers
-  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(
-        m_SpeedWrapper.GetPointer());
-
-  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(
-        m_SnakeInitializationWrapper.GetPointer());
-
-  m_Wrappers[LayerIterator::SNAP_ROLE].push_back(
-        m_SnakeWrapper.GetPointer());
+  PushBackImageWrapper(LayerIterator::SNAP_ROLE, m_SpeedWrapper.GetPointer());
+  PushBackImageWrapper(LayerIterator::SNAP_ROLE, m_SnakeInitializationWrapper.GetPointer());
+  PushBackImageWrapper(LayerIterator::SNAP_ROLE, m_SnakeWrapper.GetPointer());
 
   // Initialize the level set driver to NULL
   m_LevelSetDriver = NULL;

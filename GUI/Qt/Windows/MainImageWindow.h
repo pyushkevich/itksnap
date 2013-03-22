@@ -45,6 +45,7 @@ class QtProgressReporterDelegate;
 class ReorientImageDialog;
 class DropActionDialog;
 class MainControlPanel;
+class StatisticsDialog;
 
 class SplashPanel;
 
@@ -147,6 +148,8 @@ private slots:
 
   void on_actionSaveLabels_triggered();
 
+  void on_actionVolumesAndStatistics_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);
@@ -189,6 +192,8 @@ private:
   QtProgressReporterDelegate *m_ProgressReporterDelegate;
 
   SplashPanel *m_SplashPanel;
+
+  StatisticsDialog *m_StatisticsDialog;
 };
 
 

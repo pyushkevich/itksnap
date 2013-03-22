@@ -48,34 +48,7 @@
 #include <list>
 #include <map>
 #include <iostream>
-
-/** Borland compiler is very lazy so we need to instantiate the template
- *  by hand */
-#if defined(__BORLANDC__)
-typedef IRISSlicer<unsigned char> GenericImageDataDummyIRISSlicerTypeUchar;
-typedef itk::SmartPointer<GenericImageDataDummyIRISSlicerTypeUchar> GenericImageDataDummySmartPointerSlicerType;
-typedef IRISSlicer<short> GenericImageDataDummyIRISSlicerTypeShort;
-typedef itk::SmartPointer<GenericImageDataDummyIRISSlicerTypeShort> GenericImageDataDummySmartPointerSlicerShortType;
-typedef itk::ImageRegion<3> GenericImageDataBorlandDummyImageRegionType;
-typedef itk::ImageRegion<2> GenericImageDataBorlandDummyImageRegionType2;
-typedef itk::ImageBase<3> GenericImageDataBorlandDummyImageBaseType;
-typedef itk::ImageBase<2> GenericImageDataBorlandDummyImageBaseType2;
-typedef itk::Image<unsigned char,3> GenericImageDataBorlandDummyImageType;
-typedef itk::Image<unsigned char,2> GenericImageDataBorlandDummyImageType2;
-typedef itk::ImageRegionConstIterator<GenericImageDataBorlandDummyImageType> GenericImageDataBorlandDummyConstIteratorType;
-typedef itk::Image<short,3> GenericImageDataBorlandDummyShortImageType;
-typedef itk::Image<short,2> GenericImageDataBorlandDummyShortImageType2;
-typedef itk::Image<itk::RGBAPixel<unsigned char>,2> GenericImageDataBorlandDummyShortImageTypeRGBA;
-typedef itk::ImageRegionConstIterator<GenericImageDataBorlandDummyShortImageType> GenericImageDataBorlandDummyConstIteratorShortType;
-typedef itk::MinimumMaximumImageCalculator<GenericImageDataBorlandDummyShortImageType> GenericImageDataBorlandDummyMinMaxCalc;
-#endif
-
-#if defined(__BORLANDC__)
-typedef CachingUnaryFunctor<short,unsigned char,GreyImageWrapper::IntensityFunctor> GenericImageDataBorlamdCachingUnaryFunctor;
-typedef itk::UnaryFunctorImageFilter<GenericImageDataBorlandDummyShortImageType,GenericImageDataBorlandDummyImageType2,GenericImageDataBorlamdCachingUnaryFunctor> GenericImageDataDummyFunctorType;
-typedef itk::SmartPointer<GenericImageDataDummyFunctorType> GenericImageDataDummyFunctorTypePointerType;
-#endif
-
+#include "SNAPEventListenerCallbacks.h"
 #include "GenericImageData.h"
 
 // System includes
@@ -99,11 +72,8 @@ GenericImageData
 }
 
 GenericImageData
-::GenericImageData(IRISApplication *parent) 
+::GenericImageData()
 {
-  // Copy the parent object
-  m_Parent = parent;
-
   // Make main image wrapper point to grey wrapper initially
   m_MainImageWrapper = NULL;
 
@@ -152,7 +122,7 @@ GenericImageData
   wrapper->SetNativeMapping(native);
 
   // Make the wrapper the main image
-  m_Wrappers[LayerIterator::MAIN_ROLE][0] = wrapper.GetPointer();
+  SetSingleImageWrapper(LayerIterator::MAIN_ROLE, wrapper.GetPointer());
   m_MainImageWrapper = wrapper;
 
   // Initialize the segmentation data to zeros
@@ -160,8 +130,7 @@ GenericImageData
   m_LabelWrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
 
   m_LabelWrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
-
-  m_Wrappers[LayerIterator::LABEL_ROLE][0] = (ImageWrapperBase *) m_LabelWrapper;
+  SetSingleImageWrapper(LayerIterator::LABEL_ROLE, m_LabelWrapper.GetPointer());
 
   // Set opaque
   m_MainImageWrapper->SetAlpha(255);
@@ -178,11 +147,11 @@ GenericImageData
   UnloadOverlays();
 
   // Clear the main image wrappers
-  m_Wrappers[LayerIterator::MAIN_ROLE][0] = NULL;
+  RemoveSingleImageWrapper(LayerIterator::MAIN_ROLE);
   m_MainImageWrapper = NULL;
 
   // Reset the label wrapper
-  m_Wrappers[LayerIterator::LABEL_ROLE][0] = NULL;
+  RemoveSingleImageWrapper(LayerIterator::LABEL_ROLE);
   m_LabelWrapper = NULL;
 }
 
@@ -223,7 +192,7 @@ GenericImageData
     }
 
   // Add to the overlay wrapper list
-  m_Wrappers[LayerIterator::OVERLAY_ROLE].push_back(overlay.GetPointer());
+  PushBackImageWrapper(LayerIterator::OVERLAY_ROLE, overlay.GetPointer());
 }
 
 void
@@ -243,7 +212,7 @@ GenericImageData
     return;
 
   // Release the data associated with the last overlay
-  m_Wrappers[LayerIterator::OVERLAY_ROLE].pop_back();
+  PopBackImageWrapper(LayerIterator::OVERLAY_ROLE);
 }
 
 void
@@ -322,6 +291,46 @@ unsigned int GenericImageData::GetNumberOfLayers(int role_filter)
 
   return n;
 }
+
+
+
+void GenericImageData::PushBackImageWrapper(LayerRole role,
+                                            ImageWrapperBase *wrapper)
+{
+  m_Wrappers[role].push_back(wrapper);
+  AddListener(wrapper, WrapperMetadataChangeEvent(), this, &GenericImageData::OnWrapperEvent);
+}
+
+
+void GenericImageData::PopBackImageWrapper(LayerRole role)
+{
+  m_Wrappers[role].pop_back();
+}
+
+void GenericImageData::SetSingleImageWrapper(LayerRole role,
+                                             ImageWrapperBase *wrapper)
+{
+  assert(m_Wrappers[role].size() == 1);
+  m_Wrappers[role].front() = wrapper;
+  AddListener(wrapper, WrapperMetadataChangeEvent(), this, &GenericImageData::OnWrapperEvent);
+}
+
+void GenericImageData::RemoveSingleImageWrapper(LayerRole role)
+{
+  assert(m_Wrappers[role].size() == 1);
+  m_Wrappers[role].front() = NULL;
+}
+
+
+void GenericImageData::OnWrapperEvent(itk::Object *source, const itk::EventObject &event)
+{
+  this->InvokeEvent(event);
+}
+
+
+
+
+
 
 
 LayerIterator
@@ -500,9 +509,9 @@ std::string
 LayerIterator::GetDynamicNickname() const
 {
   // If there is a nickname, return it
-  const char *nick = this->GetLayer()->GetNickname();
-  if(nick && strlen(nick))
-    return std::string(nick);
+  const std::string &nick = this->GetLayer()->GetNickname();
+  if(nick.length())
+    return nick;
 
   // Otherwise assign a name
   std::string roleName = m_RoleDefaultNames[this->GetRole()];
@@ -537,7 +546,4 @@ void LayerIterator::Print(const char *what) const
     std::cout << "  Valid:        " << this->IsPointingToListableLayer() << std::endl;
     }
 }
-
-
-
 

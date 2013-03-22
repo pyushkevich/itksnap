@@ -66,6 +66,7 @@
 #include "vtkUnsignedShortArray.h"
 #include "vtkPointData.h"
 #include "SNAPRegistryIO.h"
+#include "SNAPEventListenerCallbacks.h"
 
 #include "IRISSlicer.h"
 #include "EdgePreprocessingSettings.h"
@@ -94,11 +95,21 @@ IRISApplication
   m_ColorLabelTable = ColorLabelTable::New();
 
   // Contruct the IRIS and SNAP data objects
-  m_IRISImageData = new IRISImageData(this);
-  m_SNAPImageData = new SNAPImageData(this);
+  m_IRISImageData = IRISImageData::New();
+  m_IRISImageData->SetParent(this);
+
+  m_SNAPImageData = SNAPImageData::New();
+  m_SNAPImageData->SetParent(this);
 
   // Set the current IRIS pointer
-  m_CurrentImageData = m_IRISImageData;
+  m_CurrentImageData = m_IRISImageData.GetPointer();
+
+  // Listen to events from wrappers
+  AddListener(m_IRISImageData, WrapperMetadataChangeEvent(),
+              this, &Self::OnWrapperEvent);
+
+  AddListener(m_SNAPImageData, WrapperMetadataChangeEvent(),
+              this, &Self::OnWrapperEvent);
 
   // Construct new global state object
   m_GlobalState = new GlobalState(this);
@@ -154,10 +165,14 @@ GetDisplayToAnatomyRAI(unsigned int slice)
 IRISApplication
 ::~IRISApplication() 
 {
-  delete m_IRISImageData;
-  delete m_SNAPImageData;
   delete m_GlobalState;
   delete m_SystemInterface;
+}
+
+void IRISApplication::OnWrapperEvent(itk::Object *src, const itk::EventObject &event)
+{
+  // Fire the event down the line
+  this->InvokeEvent(event);
 }
 
 void 

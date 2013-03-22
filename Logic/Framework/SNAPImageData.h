@@ -67,16 +67,13 @@ class SNAPSegmentationROISettings;
 class SNAPImageData : public GenericImageData 
 {
 public:
-  typedef GenericImageData Superclass;
+  irisITKObjectMacro(SNAPImageData, GenericImageData)
 
   // The type of the internal level set image
   typedef itk::Image<float,3>                                   FloatImageType;
   typedef Superclass::AnatomicImageType                      AnatomicImageType;
   typedef SpeedImageWrapper::ImageType                          SpeedImageType;
   typedef LevelSetImageWrapper::ImageType                    LevelSetImageType;
-
-  SNAPImageData(IRISApplication *m_Parent);
-  ~SNAPImageData();
 
   /** Initialize to an ROI from another image data object */
   void InitializeToROI(GenericImageData *source,
@@ -196,7 +193,12 @@ public:
    * the level set function used internally for segmentation */
   SNAPLevelSetDriver<3>::LevelSetFunctionType *GetLevelSetFunction();
   
-private:
+protected:
+
+  SNAPImageData();
+  ~SNAPImageData();
+
+
 
   /** A functor for inverting an image */
   class InvertFunctor {

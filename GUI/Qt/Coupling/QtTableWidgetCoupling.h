@@ -176,6 +176,7 @@ public:
       // Set the item properties
       QTableWidgetItem *item = new QTableWidgetItem();
       item->setText(text);
+      item->setToolTip(text);
       item->setIcon(icon);
       item->setData(Qt::UserRole + 1, iconSig);
       w->setItem(row, col, item);
@@ -211,6 +212,7 @@ public:
       if(currentText != newText)
         {
         item->setText(newText);
+        item->setToolTip(newText);
         }
       }
   }

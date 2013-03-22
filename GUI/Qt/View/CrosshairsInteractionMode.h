@@ -58,6 +58,9 @@ public:
 
   bool gestureEvent(QGestureEvent *);
 
+  // Handle keystrokes
+  void keyPressEvent(QKeyEvent *);
+
   void SetMouseButtonBehaviorToCrosshairsMode();
   void SetMouseButtonBehaviorToZoomPanMode();
 

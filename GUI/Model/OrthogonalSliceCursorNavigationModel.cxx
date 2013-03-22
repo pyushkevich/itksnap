@@ -31,6 +31,7 @@
 #include "GenericImageData.h"
 #include "GlobalUIModel.h"
 #include "SliceWindowCoordinator.h"
+#include "ImageCoordinateTransform.h"
 
 void OrthogonalSliceCursorNavigationModel::UpdateCursor(Vector2f x)
 {
@@ -52,6 +53,22 @@ void OrthogonalSliceCursorNavigationModel::UpdateCursor(Vector2f x)
 
   // Update the crosshairs position in the global state
   m_Parent->GetDriver()->SetCursorPosition(xCrossClamped);
+}
+
+void OrthogonalSliceCursorNavigationModel::ProcessKeyNavigation(Vector3i dx)
+{
+  // Get the displacement in image space
+  Vector3f dximg =
+      m_Parent->GetDisplayToImageTransform().TransformVector(to_float(dx));
+  Vector3i dximgi = to_int(dximg);
+
+  // Update the cursor
+  IRISApplication *app = m_Parent->GetDriver();
+  Vector3i xSize = to_int(app->GetCurrentImageData()->GetVolumeExtents());
+  Vector3i cursor = to_int(app->GetCursorPosition());
+  cursor += dximgi;
+  cursor = cursor.clamp(Vector3i(0), xSize - 1);
+  app->SetCursorPosition(to_unsigned_int(cursor));
 }
 
 void OrthogonalSliceCursorNavigationModel::BeginZoom()

@@ -36,8 +36,7 @@
 #include "IRISImageData.h"
 
 IRISImageData
-::IRISImageData(IRISApplication *parent)
-  : GenericImageData(parent)
+::IRISImageData()
 {
   m_UndoWrapper = NULL;
 }

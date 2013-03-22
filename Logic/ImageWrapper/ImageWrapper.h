@@ -200,7 +200,7 @@ public:
   Vector3ui GetSize() const;
 
   /** Get layer transparency */
-  irisSetWithEventMacro(Alpha, unsigned char, AppearanceUpdateEvent)
+  irisSetWithEventMacro(Alpha, unsigned char, WrapperMetadataChangeEvent)
 
   /** Set layer transparency */
   irisGetMacro(Alpha, unsigned char)
@@ -405,8 +405,8 @@ public:
   irisGetStringMacro(FileName)
 
   // Access the nickname
-  irisSetStringMacro(Nickname)
-  irisGetStringMacro(Nickname)
+  irisSetWithEventMacro(Nickname, const std::string &, WrapperMetadataChangeEvent)
+  irisGetMacro(Nickname, const std::string &)
 
   // Create a thumbnail from the image and write it to a .png file
   void WriteThumbnail(const char *filename, unsigned int maxdim);

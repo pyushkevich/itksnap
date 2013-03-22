@@ -450,8 +450,8 @@ protected:
 
   // Image data objects
   GenericImageData *m_CurrentImageData;
-  IRISImageData *m_IRISImageData;
-  SNAPImageData *m_SNAPImageData;
+  SmartPtr<IRISImageData> m_IRISImageData;
+  SmartPtr<SNAPImageData> m_SNAPImageData;
 
   // Color label data
   SmartPtr<ColorLabelTable> m_ColorLabelTable;
@@ -497,6 +497,9 @@ protected:
 
   // Array of bubbles
   BubbleArray m_BubbleArray;
+
+  // Handle events fired by imagedata objects
+  void OnWrapperEvent(itk::Object *src, const itk::EventObject &event);
 
 };
 

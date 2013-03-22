@@ -57,7 +57,7 @@ public:
   typedef vnl_matrix_fixed<double, 4, 4> TransformType;
 
   // Image wrappers can fire certain events
-  FIRES(AppearanceUpdateEvent)
+  FIRES(WrapperMetadataChangeEvent)
 
   virtual ~ImageWrapperBase() { }
 
@@ -229,8 +229,8 @@ public:
   irisVirtualSetStringMacro(FileName)
 
   // Access the nickname
-  irisVirtualGetStringMacro(Nickname)
-  irisVirtualSetStringMacro(Nickname)
+  irisVirtualGetMacro(Nickname, const std::string &)
+  irisVirtualSetMacro(Nickname, const std::string &)
 
   /**
     Export one of the slices as a thumbnail (e.g., PNG file)

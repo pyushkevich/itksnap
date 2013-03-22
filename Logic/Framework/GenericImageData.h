@@ -46,6 +46,7 @@
 #include "SNAPCommon.h"
 #include "IRISException.h"
 #include "ImageWrapperTraits.h"
+#include <itkObject.h>
 
 // #include "GreyImageWrapper.h"
 // #include "LabelImageWrapper.h"
@@ -153,9 +154,11 @@ private:
  *  + exists(si) ==> exists(gi)
  *  + if exists(si) then size(si) == size(gi)
  */
-class GenericImageData 
+class GenericImageData : public itk::Object
 {
 public:
+  irisITKObjectMacro(GenericImageData, itk::Object)
+
   // Image type definitions
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::ImageBase<3> ImageBaseType;
@@ -177,8 +180,10 @@ public:
   typedef WrapperList::iterator WrapperIterator;
   typedef WrapperList::const_iterator WrapperConstIterator;
 
-  GenericImageData(IRISApplication *parent);
-  virtual ~GenericImageData();
+  /**
+   * Set the parent driver
+   */
+  irisGetSetMacro(Parent, IRISApplication *)
 
   /** 
    Access the 'main' image, either grey or RGB. The main image is the
@@ -334,6 +339,10 @@ public:
 
 protected:
 
+  GenericImageData();
+  virtual ~GenericImageData();
+
+
   typedef LayerIterator::LayerRole LayerRole;
 
   // The base storage for the layers in the image data. For each role, there
@@ -368,6 +377,18 @@ protected:
 
   friend class SNAPImageData;
   friend class LayerIterator;
+
+  // Append an image wrapper to a role
+  void PushBackImageWrapper(LayerRole, ImageWrapperBase *wrapper);
+  void PopBackImageWrapper(LayerRole);
+  void SetSingleImageWrapper(LayerRole, ImageWrapperBase *wrapper);
+  void RemoveSingleImageWrapper(LayerRole);
+
+  // Callback for wrapper events
+  void OnWrapperEvent(itk::Object *source, const itk::EventObject &event);
+
+
+
 };
 
 #endif

@@ -213,6 +213,28 @@ bool CrosshairsInteractionMode::gestureEvent(QGestureEvent *ev)
   else return false;
 }
 
+void CrosshairsInteractionMode::keyPressEvent(QKeyEvent *ev)
+{
+  Vector3i dx(0,0,0);
+  switch(ev->key())
+    {
+    case Qt::Key_Up:       dx = Vector3i( 0, 1, 0); break;
+    case Qt::Key_Down:     dx = Vector3i( 0,-1, 0); break;
+    case Qt::Key_Left:     dx = Vector3i(-1, 0, 0); break;
+    case Qt::Key_Right:    dx = Vector3i( 1, 0, 0); break;
+    case Qt::Key_PageUp:   dx = Vector3i( 0, 0, 1); break;
+    case Qt::Key_PageDown: dx = Vector3i( 0, 0,-1); break;
+    default:
+      ev->ignore(); return;
+    }
+
+  if(ev->modifiers() & Qt::ShiftModifier)
+    dx *= 5;
+
+  m_Model->ProcessKeyNavigation(dx);
+  ev->accept();
+}
+
 void CrosshairsInteractionMode::enterEvent(QEvent *)
 {
   // Respond to standard gestures

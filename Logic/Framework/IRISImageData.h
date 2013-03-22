@@ -45,12 +45,10 @@
 class IRISImageData : public GenericImageData
 {
 public:
-  typedef GenericImageData Superclass;
+  irisITKObjectMacro(IRISImageData, GenericImageData)
+
   typedef Superclass::ImageBaseType ImageBaseType;
   typedef Superclass::AnatomicImageType AnatomicImageType;
-
-  IRISImageData(IRISApplication *parent);
-  virtual ~IRISImageData();
 
   /**
    * Access the segmentation image (read only access allowed 
@@ -74,6 +72,9 @@ public:
   virtual void UnloadMainImage();
 
 protected:
+
+  IRISImageData();
+  virtual ~IRISImageData();
 
   // Starting with SNAP 1.6, the IRISImageData object will store a second
   // copy of the segmentation image for the purpose of implementing fast 

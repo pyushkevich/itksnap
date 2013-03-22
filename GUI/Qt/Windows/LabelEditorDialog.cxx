@@ -43,6 +43,7 @@ LabelEditorDialog::LabelEditorDialog(QWidget *parent) :
   m_LabelListFilterModel = new QSortFilterProxyModel(this);
   m_LabelListFilterModel->setSourceModel(new QStandardItemModel(this));
   m_LabelListFilterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+  m_LabelListFilterModel->setFilterKeyColumn(-1);
   ui->lvLabels->setModel(m_LabelListFilterModel);
 }
 

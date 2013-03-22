@@ -74,9 +74,8 @@ public:
   // drag or three-finger gesture)
   void ProcessThumbnailPanGesture(Vector2i uvOffset);
 
-
-
-
+  // Process arrow key and pageup/down commands
+  void ProcessKeyNavigation(Vector3i dx);
 protected:
 
   OrthogonalSliceCursorNavigationModel() {}

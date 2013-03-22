@@ -418,6 +418,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/SimpleFileDialogWithHistory.cxx
   GUI/Qt/Windows/SpeedImageDialog.cxx
   GUI/Qt/Windows/SplashPanel.cxx
+  GUI/Qt/Windows/StatisticsDialog.cxx
 )
 
 # The header files for the UI project
@@ -476,6 +477,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/SimpleFileDialogWithHistory.h
   GUI/Qt/Windows/SpeedImageDialog.h
   GUI/Qt/Windows/SplashPanel.h
+  GUI/Qt/Windows/StatisticsDialog.h
 )
 
 # These UI headers don't need to be MOC'd
@@ -532,6 +534,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/SimpleFileDialogWithHistory.ui
   GUI/Qt/Windows/SpeedImageDialog.ui
   GUI/Qt/Windows/SplashPanel.ui
+  GUI/Qt/Windows/StatisticsDialog.ui
 )
 
 SET(UI_RESOURCES

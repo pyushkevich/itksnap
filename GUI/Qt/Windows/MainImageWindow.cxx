@@ -48,7 +48,7 @@
 #include "SplashPanel.h"
 #include "QtWidgetCoupling.h"
 #include "SimpleFileDialogWithHistory.h"
-
+#include "StatisticsDialog.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -118,6 +118,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_ReorientImageDialog->setModal(false);
 
   m_DropDialog = new DropActionDialog(this);
+
+  m_StatisticsDialog = new StatisticsDialog(this);
+  m_StatisticsDialog->setModal(false);
 
   // Initialize the docked panels
   m_DockLeft = new QDockWidget(this);
@@ -214,6 +217,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_SnakeWizard->SetModel(model);
   m_ReorientImageDialog->SetModel(model->GetReorientImageModel());
   m_DropDialog->SetModel(model);
+  m_StatisticsDialog->SetModel(model);
 
   // Initialize the docked panels
   m_ControlPanel->SetModel(model);
@@ -745,4 +749,9 @@ void MainImageWindow::on_actionSaveLabels_triggered()
                                QString("Failed to save label descriptions"));
       }
     }
+}
+
+void MainImageWindow::on_actionVolumesAndStatistics_triggered()
+{
+  m_StatisticsDialog->Activate();
 }

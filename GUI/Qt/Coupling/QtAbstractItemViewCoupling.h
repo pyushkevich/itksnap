@@ -9,6 +9,7 @@
 #include <QModelIndex>
 #include <QStandardItemModel>
 #include <QAbstractProxyModel>
+#include <ColorLabel.h>
 
 /**
  * Some Ideas:
@@ -17,8 +18,12 @@
  *    domain as trivial.
  *
  * 2. Coupling between a model that represents a list of items with descriptors
- *    and a QStandardItemModel. Mapping is through
+ *    and a QStandardItemModel. Mapping is through a coupling. This coupling
+ *    maps between rows in the descriptor and items in the item model.
  */
+
+
+
 
 template <class TAtomic>
 class DefaultWidgetValueTraits<TAtomic, QAbstractItemView>
@@ -39,7 +44,9 @@ public:
   TAtomic GetValue(QAbstractItemView *w)
   {
     // Get the UserData associated with the current item
-    return qVariantValue<TAtomic>(w->currentIndex().data(Qt::UserRole));
+    QModelIndex icur = w->currentIndex();
+    QModelIndex irow = w->model()->index(icur.row(), 0);
+    return qVariantValue<TAtomic>(irow.data(Qt::UserRole));
   }
 
   void SetValue(QAbstractItemView *w, const TAtomic &value)
@@ -122,10 +129,10 @@ public:
       for(int j = 0; j < model->columnCount(); j++)
         {
         QStandardItem *item = new QStandardItem();
-        TRowTraits::createItem(item, j, value, row);
+        TRowTraits::updateItem(item, j, value, row);
         rlist.append(item);
-        model->appendRow(rlist);
         }
+      model->appendRow(rlist);
       }
   }
 
@@ -154,7 +161,7 @@ public:
         {
         const DescriptorType &row = domain.GetDescription(it);
         for(int j = 0; j <  model->columnCount(); j++)
-          TRowTraits::updateItem(model->item(i,j), j, row);
+          TRowTraits::updateItem(model->item(i,j), j, id, row);
         }
       }
   }
@@ -167,13 +174,13 @@ public:
   }
 };
 
-class ColorLabelToQSIMCouplingRowTraits
+class SingleColumnColorLabelToQSIMCouplingRowTraits
 {
 public:
 
   static int columnCount() { return 1; }
 
-  static void createItem(QStandardItem *item, int column, LabelType label, const ColorLabel &cl)
+  static void updateItem(QStandardItem *item, int column, LabelType label, const ColorLabel &cl)
   {
     // The description
     QString text(cl.GetLabel());
@@ -188,30 +195,44 @@ public:
     item->setIcon(ic);
     item->setText(text);
     item->setData(label, Qt::UserRole);
-    item->setData(fill, Qt::UserRole + 1);
     item->setData(text, Qt::EditRole);
   }
 
-  static void updateItem(QStandardItem *item, int column, const ColorLabel &cl)
+  static LabelType getItemValue(QStandardItem *item)
   {
-    // Get the properies and compare them to the color label
-    QColor currentFill = qVariantValue<QColor>(item->data(Qt::UserRole+1));
-    QColor newFill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
+    return qVariantValue<LabelType>(item->data(Qt::UserRole));
+  }
+};
 
-    if(currentFill != newFill)
+class TwoColumnColorLabelToQSIMCouplingRowTraits
+{
+public:
+
+  static int columnCount() { return 2; }
+
+  static void updateItem(QStandardItem *item, int column, LabelType label, const ColorLabel &cl)
+  {
+    // The description
+    if(column == 0)
       {
-      QIcon ic = CreateColorBoxIcon(16, 16, newFill);
+      QString text = QString("%1").arg(label);
+
+      // The color
+      QColor fill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
+
+      // Icon based on the color
+      QIcon ic = CreateColorBoxIcon(16, 16, fill);
+
+      // Create item and set its properties
       item->setIcon(ic);
-      item->setData(newFill, Qt::UserRole + 1);
+      item->setText(text);
+      item->setData(text, Qt::EditRole);
+      item->setData(label, Qt::UserRole);
       }
-
-    QString currentText = item->text();
-    QString newText(cl.GetLabel());
-
-    if(currentText != newText)
+    else if(column == 1)
       {
-      item->setText(newText);
-      item->setData(newText, Qt::EditRole);
+      item->setText(cl.GetLabel());
+      item->setData(cl.GetLabel(), Qt::EditRole);
       }
   }
 
@@ -229,7 +250,7 @@ class DefaultQSIMCouplingRowTraits
 
 template<>
 class DefaultQSIMCouplingRowTraits<LabelType, ColorLabel>
-    : public ColorLabelToQSIMCouplingRowTraits
+    : public TwoColumnColorLabelToQSIMCouplingRowTraits
 {
 };
 

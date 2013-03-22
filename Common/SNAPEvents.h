@@ -103,6 +103,9 @@ itkEventMacro(DomainDescriptionChangedEvent, IRISEvent)
 /** A change to appearance of a renderer, etc */
 itkEventMacro(AppearanceUpdateEvent, IRISEvent)
 
+/** A change to the name of something (e.g., image wrapper) */
+itkEventMacro(WrapperMetadataChangeEvent, IRISEvent)
+
 /** A change to the intensity curve */
 itkEventMacro(IntensityCurveChangeEvent, IRISEvent)
 

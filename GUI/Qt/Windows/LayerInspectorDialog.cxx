@@ -44,12 +44,23 @@ public:
   QVariant data(const QModelIndex &index, int qtrole) const
   {
     // Ignore bad requests
-    if(!index.isValid() || qtrole != Qt::DisplayRole)
+    if(!index.isValid())
       return QVariant();
 
-    // Get the name of the layer
-    LayerIterator it = m_Model->GetNthLayer(index.row());
-    return QString(it.GetDynamicNickname().c_str());
+    if(qtrole == Qt::DisplayRole || qtrole == Qt::EditRole)
+      {
+      // Get the name of the layer
+      LayerIterator it = m_Model->GetNthLayer(index.row());
+      return QString(it.GetDynamicNickname().c_str());
+      }
+    else if(qtrole == Qt::ToolTipRole)
+      {
+      // Get the name of the layer
+      LayerIterator it = m_Model->GetNthLayer(index.row());
+      return QString(it.GetLayer()->GetFileName());
+      }
+    else
+      return QVariant();
   }
 
   bool setData(const QModelIndex &index, const QVariant &value, int qtrole)

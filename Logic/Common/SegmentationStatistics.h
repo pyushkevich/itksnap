@@ -39,6 +39,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <map>
 
 class GenericImageData;
 class ColorLabelTable;
@@ -62,21 +63,30 @@ public:
     Entry() : count(0),volume_mm3(0) {}
   };
 
+  typedef std::map<LabelType, Entry> EntryMap;
+
   /* Compute statistics from a segmentation image */
   void Compute(GenericImageData *id);
   
   /* Export to a text file using legacy format */
   void ExportLegacy(std::ostream &oss, const ColorLabelTable &clt);
 
-  /* Export to a text file as a formatted table */
-  void ExportText(std::ostream &oss, const ColorLabelTable &clt);
+  /* Export to a CSV or text file */
+  void Export(std::ostream &oss, const std::string &colsep, const ColorLabelTable &clt);
 
-  const Entry * GetStats() const
+  const EntryMap &GetStats() const
     { return m_Stats; }
 
+  const std::vector<std::string> &GetImageStatisticsColumns() const
+    { return m_ImageStatisticsColumnNames; }
+
 private:
+
   // Label statistics
-  Entry m_Stats[MAX_COLOR_LABELS];
+  EntryMap m_Stats;
+
+  // Column information
+  std::vector<std::string> m_ImageStatisticsColumnNames;
   
 };
 

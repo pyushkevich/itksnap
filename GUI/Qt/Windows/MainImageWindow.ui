@@ -662,7 +662,7 @@ background-color:rgb(88, 88, 88);
     <addaction name="actionLoadLabels"/>
     <addaction name="actionSaveLabels"/>
     <addaction name="separator"/>
-    <addaction name="actionVolumes_and_Statistics"/>
+    <addaction name="actionVolumesAndStatistics"/>
     <addaction name="separator"/>
     <addaction name="menuAppearance"/>
    </widget>
@@ -996,7 +996,7 @@ background-color:rgb(88, 88, 88);
     <string>Save Label Descriptions...</string>
    </property>
   </action>
-  <action name="actionVolumes_and_Statistics">
+  <action name="actionVolumesAndStatistics">
    <property name="text">
     <string>Volumes and Statistics...</string>
    </property>

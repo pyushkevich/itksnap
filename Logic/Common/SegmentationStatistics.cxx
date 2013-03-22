@@ -40,88 +40,88 @@
 
 using namespace std;
 
-// TODO: enable collection of statistics on multi-channel image data. The
-// question here is which channels to select for statistics, all or some?
-struct SegmentationStatisticsSource {
-  string name;
-  ScalarImageWrapperBase *image;
-};
+
 
 void
 SegmentationStatistics
 ::Compute(GenericImageData *id)
 {
-  // A list of image sources
-  vector<SegmentationStatisticsSource> isrc;
+  // TODO: improve efficiency by using filters to integrate
 
-  // Use the iterator to collect layers for statistics
-  unsigned int iOvl = 0;
+  // A list of image sources
+  vector<ScalarImageWrapperBase *> layers;
+
+  // Clear the list of column names
+  m_ImageStatisticsColumnNames.clear();
+
+  // Find all the images available for statistics computation
   for(LayerIterator it(id, LayerIterator::MAIN_ROLE |
                            LayerIterator::OVERLAY_ROLE);
       !it.IsAtEnd(); ++it)
     {
-    ScalarImageWrapperBase *layer = it.GetLayerAsScalar();
-    SegmentationStatisticsSource src;
-    if(it.GetRole() == LayerIterator::MAIN_ROLE)
+    ScalarImageWrapperBase *lscalar = it.GetLayerAsScalar();
+    if(lscalar)
       {
-      src.name = "image";
+      m_ImageStatisticsColumnNames.push_back(lscalar->GetNickname());
+      layers.push_back(lscalar);
       }
     else
       {
-      ostringstream oss; oss << "ovl " << ++iOvl;
-      src.name = oss.str();
+      VectorImageWrapperBase *lvector = it.GetLayerAsVector();
+      for(int j = 0; j < lvector->GetNumberOfComponents(); j++)
+        {
+        std::ostringstream oss;
+        oss << lvector->GetNickname();
+        if(lvector->GetNumberOfComponents() > 1)
+          oss << " [" << j << "]";
+        m_ImageStatisticsColumnNames.push_back(oss.str());
+        layers.push_back(lvector->GetScalarRepresentation(
+              VectorImageWrapperBase::SCALAR_REP_COMPONENT, j));
+        }
       }
-
-    src.image = layer;
-    isrc.push_back(src);
     }
 
   // Get the number of gray image layers
-  size_t ngray = isrc.size();
+  size_t ngray = layers.size();
 
   // Clear and initialize the statistics table
-  for(size_t i = 0; i < MAX_COLOR_LABELS; i++)
-    {
-    m_Stats[i] = Entry();
-    for(size_t j = 0; j < ngray; j++)
-      {
-      GrayStats gs;
-      gs.layer_id = isrc[j].name;
-      m_Stats[i].gray.push_back(gs);
-      }
-    }
+  m_Stats.clear();
 
-  // Compute the statistics by iterating over each voxel
-  for(LabelImageWrapper::ConstIterator itLabel = 
+  // Aggregate the statistical data
+  for(LabelImageWrapper::ConstIterator itLabel =
     id->GetSegmentation()->GetImageConstIterator();
     !itLabel.IsAtEnd(); ++itLabel)
     {
     // Get the label and the corresponding entry
     LabelType label = itLabel.Value();
     Entry &entry = m_Stats[label];
-    itk::Index<3> idx = itLabel.GetIndex();
+    if(entry.count == 0)
+      {
+      entry.gray.resize(ngray);
+      }
 
-    // Increment number of voxels for this label
+    // Increase the count
     entry.count++;
 
-    // Update the gray statistics
+    // Integrate the image data
+    itk::Index<3> idx = itLabel.GetIndex();
     for(size_t j = 0; j < ngray; j++)
       {
-      double v = isrc[j].image->GetVoxelMappedToNative(idx);
+      double v = layers[j]->GetVoxelMappedToNative(idx);
       entry.gray[j].sum += v;
       entry.gray[j].sumsq += v * v;
       }
     }
-  
+
   // Compute the size of a voxel, in mm^3
   const double *spacing = 
     id->GetMain()->GetImageBase()->GetSpacing().GetDataPointer();
   double volVoxel = spacing[0] * spacing[1] * spacing[2];
   
   // Compute the mean and standard deviation
-  for (size_t i=0; i < MAX_COLOR_LABELS; i++)
+  for(EntryMap::iterator it = m_Stats.begin(); it != m_Stats.end(); ++it)
     {
-    Entry &entry = m_Stats[i];
+    Entry &entry = it->second;
     for(size_t j = 0; j < ngray; j++)
       {
       entry.gray[j].mean = entry.gray[j].sum / entry.count;
@@ -172,6 +172,54 @@ SegmentationStatistics
 
       fout << endl;
       }      
+    }
+}
+
+#include "itksys/SystemTools.hxx"
+
+void SegmentationStatistics
+::Export(ostream &oss, const string &colsep, const ColorLabelTable &clt)
+{
+  // Write out the header
+  oss << "Label Id" << colsep;
+  oss << "Label Name" << colsep;
+  oss << "Number Of Voxels" << colsep;
+  oss << "Volume (mm^3)";
+
+  // Print the list of column names
+  for(int i = 0; i < m_ImageStatisticsColumnNames.size(); i++)
+    {
+    std::string colname = m_ImageStatisticsColumnNames[i];
+    itksys::SystemTools::ReplaceString(colname, colsep.c_str(), " ");
+
+    oss << colsep << "Image mean (" << colname << ")";
+    oss << colsep << "Image stdev (" << colname << ")";
+    }
+
+  // Endline
+  oss << std::endl;
+
+  // Write each row
+  for(EntryMap::iterator it = m_Stats.begin(); it != m_Stats.end(); ++it)
+    {
+    LabelType i = it->first;
+    Entry &entry = it->second;
+    oss << i << colsep;
+
+    std::string label(clt.GetColorLabel(i).GetLabel());
+    itksys::SystemTools::ReplaceString(label, colsep.c_str(), " ");
+    oss << label << colsep;
+
+    oss << entry.count << colsep;
+    oss << entry.volume_mm3;
+
+    for(int j = 0; j < entry.gray.size(); j++)
+      {
+      oss << colsep << entry.gray[j].mean;
+      oss << colsep << entry.gray[j].sd;
+      }
+
+    oss << std::endl;
     }
 }
 
