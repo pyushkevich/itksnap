@@ -214,9 +214,9 @@ void SelectFilePage::initializePage()
 
   // Set title
   if(m_Model->IsLoadMode())
-    setTitle("Open 3D Image");
+    setTitle(QString("Open %1").arg(m_Model->GetDisplayName().c_str()));
   else
-    setTitle("Save 3D Image");
+    setTitle(QString("Save %1").arg(m_Model->GetDisplayName().c_str()));
 
   // Clear the combo box model
   m_FormatModel->clear();
@@ -299,19 +299,23 @@ bool SelectFilePage::validatePage()
       }
     }
 
-  // If load mode, tell the model to try loading the image
-  if(m_Model->IsLoadMode())
+  // Save or load the image
+  try
     {
     QtCursorOverride curse(Qt::WaitCursor);
-    try
+    m_Model->SetSelectedFormat(fmt);
+    if(m_Model->IsLoadMode())
       {
-      m_Model->SetSelectedFormat(fmt);
       m_Model->LoadImage(m_InFilename->text().toStdString());
       }
-    catch(IRISException &exc)
+    else
       {
-      return ErrorMessage(exc);
+      m_Model->SaveImage(m_InFilename->text().toStdString());
       }
+    }
+  catch(IRISException &exc)
+    {
+    return ErrorMessage(exc);
     }
 
   return true;

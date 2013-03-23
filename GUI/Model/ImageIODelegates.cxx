@@ -220,3 +220,10 @@ LoadSegmentationImageDelegate
 }
 
 
+
+void DefaultSaveImageDelegate
+::SaveImage(const std::string &fname, GuidedNativeImageIO *io,
+            Registry &reg, IRISWarningList &wl)
+{
+  m_Wrapper->WriteToFile(fname.c_str(), reg);
+}

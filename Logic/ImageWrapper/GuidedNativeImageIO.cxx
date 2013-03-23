@@ -567,16 +567,16 @@ GuidedImageIO<TPixel>
 }
 */
 
-template<typename TPixel>
+template<typename TImageType>
 void
 GuidedNativeImageIO
-::SaveImage(const char *FileName, Registry &folder, itk::Image<TPixel,3> *image)
+::SaveImage(const char *FileName, Registry &folder, TImageType *image)
 {
   // Create an Image IO based on the folder
   CreateImageIO(FileName, folder, false);
 
   // Save the image
-  typedef itk::ImageFileWriter< itk::Image<TPixel,3> > WriterType;
+  typedef itk::ImageFileWriter<TImageType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
   
   writer->SetFileName(FileName);

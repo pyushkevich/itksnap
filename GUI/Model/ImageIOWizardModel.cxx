@@ -16,31 +16,40 @@ ImageIOWizardModel::ImageIOWizardModel()
   m_Parent = NULL;
   m_GuidedIO = NULL;
   m_LoadDelegate = NULL;
+  m_SaveDelegate = NULL;
 }
 
 
 void
 ImageIOWizardModel
-::InitializeForSave(GlobalUIModel *parent, const char *name)
+::InitializeForSave(GlobalUIModel *parent,
+                    AbstractSaveImageDelegate *delegate,
+                    const char *name,
+                    const char *dispName)
 {
   m_Parent = parent;
   m_Mode = SAVE;
   m_HistoryName = name;
+  m_DisplayName = dispName;
   m_GuidedIO = new GuidedNativeImageIO();
   m_LoadDelegate = NULL;
+  m_SaveDelegate = delegate;
 }
 
 void
 ImageIOWizardModel
 ::InitializeForLoad(GlobalUIModel *parent,
                     AbstractLoadImageDelegate *delegate,
-                    const char *name)
+                    const char *name,
+                    const char *dispName)
 {
   m_Parent = parent;
   m_Mode = LOAD;
   m_HistoryName = name;
+  m_DisplayName = dispName;
   m_GuidedIO = new GuidedNativeImageIO();
   m_LoadDelegate = delegate;
+  m_SaveDelegate = NULL;
 }
 
 ImageIOWizardModel::~ImageIOWizardModel()
@@ -175,6 +184,11 @@ ImageIOWizardModel::HistoryType ImageIOWizardModel::GetHistory() const
       ->GetHistory(m_HistoryName.c_str());
 }
 
+std::string ImageIOWizardModel::GetDisplayName() const
+{
+  return m_DisplayName;
+}
+
 template<class T>
 std::string triple2str(const T &triple)
 {
@@ -297,6 +311,19 @@ void ImageIOWizardModel::LoadImage(std::string filename)
   catch(IRISException &excIRIS)
   {
     throw excIRIS;
+  }
+  catch(std::exception &exc)
+  {
+    throw IRISException("Error: exception occured during image IO. "
+                        "Exception: %s", exc.what());
+  }
+}
+
+void ImageIOWizardModel::SaveImage(std::string filename)
+{
+  try
+  {
+  m_SaveDelegate->SaveImage(filename, m_GuidedIO, m_Registry, m_Warnings);
   }
   catch(std::exception &exc)
   {

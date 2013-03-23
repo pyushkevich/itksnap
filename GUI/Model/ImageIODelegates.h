@@ -9,6 +9,7 @@
 
 class GlobalUIModel;
 class IRISWarningList;
+class ImageWrapperBase;
 
 class IRISWarningList : public std::vector<IRISWarning> {};
 
@@ -87,5 +88,42 @@ protected:
 
 };
 
+
+class AbstractSaveImageDelegate
+{
+public:
+
+  AbstractSaveImageDelegate(GlobalUIModel *model)
+    { m_Model = model; }
+
+  virtual ~AbstractSaveImageDelegate() {}
+
+  virtual void SaveImage(
+      const std::string &fname,
+      GuidedNativeImageIO *io,
+      Registry &reg,
+      IRISWarningList &wl) = 0;
+
+protected:
+  GlobalUIModel *m_Model;
+};
+
+class DefaultSaveImageDelegate : public AbstractSaveImageDelegate
+{
+public:
+  DefaultSaveImageDelegate(GlobalUIModel *model, ImageWrapperBase *wrapper)
+    : AbstractSaveImageDelegate(model), m_Wrapper(wrapper) {}
+
+  virtual ~DefaultSaveImageDelegate() {}
+
+  virtual void SaveImage(
+      const std::string &fname,
+      GuidedNativeImageIO *io,
+      Registry &reg,
+      IRISWarningList &wl);
+
+protected:
+  ImageWrapperBase *m_Wrapper;
+};
 
 #endif // IMAGEIODELEGATES_H

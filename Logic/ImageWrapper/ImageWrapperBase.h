@@ -27,6 +27,8 @@ class ImageCoordinateGeometry;
 class AbstractNativeIntensityMapping;
 class AbstractDisplayMappingPolicy;
 class SNAPSegmentationROISettings;
+class GuidedNativeImageIO;
+class Registry;
 
 /**
  \class ImageWrapper
@@ -236,6 +238,11 @@ public:
     Export one of the slices as a thumbnail (e.g., PNG file)
     */
   virtual void WriteThumbnail(const char *filename, unsigned int maxdim) = 0;
+
+  /**
+   * Write the image to disk with the help of the GuidedNativeImageIO object
+   */
+  virtual void WriteToFile(const char *filename, Registry &hints) = 0;
 
   /**
    * This static function constructs a NIFTI matrix from the ITK direction

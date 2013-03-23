@@ -66,6 +66,7 @@
 #include "itkVectorImageToImageAdaptor.h"
 #include "UnaryValueToValueFilter.h"
 #include "ScalarImageHistogram.h"
+#include "GuidedNativeImageIO.h"
 
 
 #include <vnl/vnl_inverse.h>
@@ -86,7 +87,243 @@ public:
 };
 
 
+/**
+ * Some functions in the image wrapper are only defined for 'concrete' image
+ * wrappers, i.e., those that store an image or a vectorimage. These functions
+ * involve copying subregions, filling the buffer, IO, etc. To handle this
+ * differential availability of functionality, we use partial template
+ * specialization below.
+ */
+template <class TImage>
+class ImageWrapperPartialSpecializationTraits
+{
+public:
+  typedef TImage ImageType;
+  typedef typename TImage::PixelType PixelType;
 
+  static void FillBuffer(ImageType *image, PixelType)
+  {
+    throw IRISException("FillBuffer unsupported for class %s",
+                        image->GetNameOfClass());
+  }
+
+  static void Write(ImageType *image, const char *fname, Registry &hints)
+  {
+    throw IRISException("FillBuffer unsupported for class %s",
+                        image->GetNameOfClass());
+  }
+
+  static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        const SNAPSegmentationROISettings &roi,
+                                        itk::Command *progressCommand)
+  {
+    throw IRISException("CopyRegion unsupported for class %s",
+                        image->GetNameOfClass());
+    return NULL;
+  }
+};
+
+template <class TImage>
+class ImageWrapperPartialSpecializationTraitsCommon
+{
+public:
+  typedef TImage ImageType;
+  typedef typename TImage::PixelType PixelType;
+
+  static void FillBuffer(ImageType *image, PixelType p)
+  {
+    image->FillBuffer(p);
+  }
+
+  static void Write(ImageType *image, const char *fname, Registry &hints)
+  {
+    GuidedNativeImageIO io;
+    io.CreateImageIO(fname, hints, false);
+    itk::ImageIOBase *base = io.GetIOBase();
+
+    typedef itk::ImageFileWriter<TImage> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName(fname);
+    if(base)
+      writer->SetImageIO(base);
+    writer->SetInput(image);
+    writer->Update();
+  }
+
+  template <class TInterpolateFunction>
+  static SmartPtr<ImageType> DeepCopyImageRegion(
+      ImageType *image,
+      TInterpolateFunction *interp,
+      const SNAPSegmentationROISettings &roi,
+      itk::Command *progressCommand)
+  {
+    // The filter used to chop off the region of interest
+    typedef itk::RegionOfInterestImageFilter <ImageType,ImageType> ChopFilterType;
+    typename ChopFilterType::Pointer fltChop = ChopFilterType::New();
+
+    // Check if there is a difference in voxel size, i.e., user wants resampling
+    Vector3ul vOldSize = image->GetLargestPossibleRegion().GetSize();
+    Vector3d vOldSpacing = image->GetSpacing();
+
+    if(roi.GetResampleFlag())
+      {
+      // Compute the number of voxels in the output
+      typedef typename itk::ImageRegion<3> RegionType;
+      typedef typename itk::Size<3> SizeType;
+
+      SizeType vNewSize;
+      RegionType vNewROI;
+      Vector3d vNewSpacing;
+
+      for(unsigned int i = 0; i < 3; i++)
+        {
+        double scale = roi.GetVoxelScale()[i];
+        vNewSize.SetElement(i, (unsigned long) (vOldSize[i] / scale));
+        vNewROI.SetSize(i,(unsigned long) (roi.GetROI().GetSize(i) / scale));
+        vNewROI.SetIndex(i,(long) (roi.GetROI().GetIndex(i) / scale));
+        vNewSpacing[i] = scale * vOldSpacing[i];
+        }
+
+      // Create a filter for resampling the image
+      typedef itk::ResampleImageFilter<ImageType,ImageType> ResampleFilterType;
+      typename ResampleFilterType::Pointer fltSample = ResampleFilterType::New();
+
+      // Initialize the resampling filter
+      fltSample->SetInput(image);
+      fltSample->SetTransform(itk::IdentityTransform<double,3>::New());
+      fltSample->SetInterpolator(interp);
+
+      // Set the image sizes and spacing
+      fltSample->SetSize(vNewSize);
+      fltSample->SetOutputSpacing(vNewSpacing.data_block());
+      fltSample->SetOutputOrigin(image->GetOrigin());
+      fltSample->SetOutputDirection(image->GetDirection());
+
+      // Set the progress bar
+      if(progressCommand)
+        fltSample->AddObserver(itk::AnyEvent(),progressCommand);
+
+      // Perform resampling
+      fltSample->GetOutput()->SetRequestedRegion(vNewROI);
+      fltSample->Update();
+
+      // Pipe into the chopper
+      fltChop->SetInput(fltSample->GetOutput());
+
+      // Update the region of interest
+      fltChop->SetRegionOfInterest(vNewROI);
+      }
+    else
+      {
+      // Pipe image into the chopper
+      fltChop->SetInput(image);
+
+      // Set the region of interest
+      fltChop->SetRegionOfInterest(roi.GetROI());
+      }
+
+    // Update the pipeline
+    fltChop->Update();
+
+    // Return the resulting image
+    return fltChop->GetOutput();
+  }
+
+};
+
+
+template<class TPixel, unsigned int VDim>
+class ImageWrapperPartialSpecializationTraits< itk::Image<TPixel, VDim> >
+    : public ImageWrapperPartialSpecializationTraitsCommon< itk::Image<TPixel, VDim> >
+{
+public:
+  typedef itk::Image<TPixel, VDim> ImageType;
+  typedef typename ImageType::PixelType PixelType;
+  typedef ImageWrapperPartialSpecializationTraitsCommon<ImageType> Superclass;
+
+  static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        const SNAPSegmentationROISettings &roi,
+                                        itk::Command *progressCommand)
+  {
+    typedef itk::InterpolateImageFunction<ImageType> Interpolator;
+    SmartPtr<Interpolator> interp = NULL;
+
+    // Choose the interpolator
+    switch(roi.GetInterpolationMethod())
+      {
+      case SNAPSegmentationROISettings::NEAREST_NEIGHBOR :
+        typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double> NNInterpolatorType;
+        interp = NNInterpolatorType::New().GetPointer();
+        break;
+
+      case SNAPSegmentationROISettings::TRILINEAR :
+        typedef itk::LinearInterpolateImageFunction<ImageType,double> LinearInterpolatorType;
+        interp = LinearInterpolatorType::New().GetPointer();
+        break;
+
+      case SNAPSegmentationROISettings::TRICUBIC :
+        typedef itk::BSplineInterpolateImageFunction<ImageType,double> CubicInterpolatorType;
+        interp = CubicInterpolatorType::New().GetPointer();
+        break;
+
+      case SNAPSegmentationROISettings::SINC_WINDOW_05 :
+        // More typedefs are needed for the sinc interpolator
+        static const unsigned int VRadius = 5;
+        typedef itk::Function::HammingWindowFunction<VRadius> WindowFunction;
+        typedef itk::ConstantBoundaryCondition<ImageType> Condition;
+        typedef itk::WindowedSincInterpolateImageFunction<
+          ImageType, VRadius, WindowFunction, Condition, double> SincInterpolatorType;
+        interp = SincInterpolatorType::New().GetPointer();
+        break;
+      };
+
+    return Superclass::template DeepCopyImageRegion<Interpolator>(image,interp,roi,progressCommand);
+  }
+};
+
+
+template<class TPixel, unsigned int VDim>
+class ImageWrapperPartialSpecializationTraits< itk::VectorImage<TPixel, VDim> >
+   : public ImageWrapperPartialSpecializationTraitsCommon< itk::VectorImage<TPixel, VDim> >
+{
+public:
+  typedef itk::VectorImage<TPixel, VDim> ImageType;
+  typedef typename ImageType::PixelType PixelType;
+  typedef ImageWrapperPartialSpecializationTraitsCommon<ImageType> Superclass;
+
+  static void FillBuffer(ImageType *image, PixelType p)
+  {
+    image->FillBuffer(p);
+  }
+
+  static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        const SNAPSegmentationROISettings &roi,
+                                        itk::Command *progressCommand)
+  {
+    typedef itk::InterpolateImageFunction<ImageType> Interpolator;
+    SmartPtr<Interpolator> interp = NULL;
+
+    // Choose the interpolator
+    switch(roi.GetInterpolationMethod())
+      {
+      case SNAPSegmentationROISettings::NEAREST_NEIGHBOR :
+        typedef itk::NearestNeighborInterpolateImageFunction<ImageType> NNInterpolatorType;
+        interp = NNInterpolatorType::New().GetPointer();
+        break;
+
+      case SNAPSegmentationROISettings::TRILINEAR :
+        typedef itk::LinearInterpolateImageFunction<ImageType> LinearInterpolatorType;
+        interp = LinearInterpolatorType::New().GetPointer();
+        break;
+
+      default:
+        throw IRISException("Higher-order interpolation for vector images is unsupported.");
+      };
+
+    return Superclass::template DeepCopyImageRegion<Interpolator>(image,interp,roi,progressCommand);
+  }
+
+};
 
 
 template<class TTraits, class TBase>
@@ -356,54 +593,20 @@ ImageWrapper<TTraits,TBase>
   SetSliceIndex(source->GetSliceIndex());
 }
 
-template<class TImage>
-class FillTraits
-{
-public:
-  typedef typename TImage::PixelType PixelType;
-  static void FillBuffer(TImage *image, PixelType)
-  {
-    throw IRISException("FillBuffer unsupported for class %s",
-                        image->GetNameOfClass());
-  }
-};
 
-template<class TPixel, unsigned int VDim>
-class FillTraits< itk::Image<TPixel, VDim> >
-{
-public:
-  typedef itk::Image<TPixel, VDim> ImageType;
-  typedef typename ImageType::PixelType PixelType;
-
-  static void FillBuffer(ImageType *image, PixelType p)
-  {
-    image->FillBuffer(p);
-  }
-};
-
-template<class TPixel, unsigned int VDim>
-class FillTraits< itk::VectorImage<TPixel, VDim> >
-{
-public:
-  typedef itk::VectorImage<TPixel, VDim> ImageType;
-  typedef typename ImageType::PixelType PixelType;
-
-  static void FillBuffer(ImageType *image, PixelType p)
-  {
-    image->FillBuffer(p);
-  }
-};
 
 template<class TTraits, class TBase>
 void 
 ImageWrapper<TTraits,TBase>
 ::InitializeToWrapper(const ImageWrapperBase *source, const PixelType &value)
 {
+  typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
+
   // Allocate the image
   ImagePointer newImage = ImageType::New();
   newImage->SetRegions(source->GetImageBase()->GetBufferedRegion().GetSize());
   newImage->Allocate();
-  FillTraits<ImageType>::FillBuffer(newImage, value);
+  Specialization::FillBuffer(newImage.GetPointer(), value);
   newImage->SetOrigin(source->GetImageBase()->GetOrigin());
   newImage->SetSpacing(source->GetImageBase()->GetSpacing());
   newImage->SetDirection(source->GetImageBase()->GetDirection());
@@ -784,6 +987,67 @@ ImageWrapper<TTraits,TBase>
 }
 
 
+// The method that can be called for some wrappers, not others
+template <class TImage>
+static void DoWriteImage(TImage *image, const char *fname, Registry &hints)
+{
+  GuidedNativeImageIO io;
+  io.CreateImageIO(fname, hints, false);
+  itk::ImageIOBase *base = io.GetIOBase();
+
+  typedef itk::ImageFileWriter<TImage> WriterType;
+  typename WriterType::Pointer writer = WriterType::New();
+  writer->SetFileName(fname);
+  if(base)
+    writer->SetImageIO(base);
+  writer->SetInput(image);
+  writer->Update();
+}
+
+template<class TImage>
+class ImageWrapperWriteTraits
+{
+public:
+  static void Write(TImage *image, const char *fname, Registry &hints)
+  {
+    throw IRISException("FillBuffer unsupported for class %s",
+                        image->GetNameOfClass());
+  }
+};
+
+template<class TPixel, unsigned int VDim>
+class ImageWrapperWriteTraits< itk::Image<TPixel, VDim> >
+{
+public:
+  typedef itk::Image<TPixel, VDim> ImageType;
+  static void Write(ImageType *image, const char *fname, Registry &hints)
+  {
+    DoWriteImage(image, fname, hints);
+  }
+};
+
+template<class TPixel, unsigned int VDim>
+class ImageWrapperWriteTraits< itk::VectorImage<TPixel, VDim> >
+{
+public:
+  typedef itk::VectorImage<TPixel, VDim> ImageType;
+  static void Write(ImageType *image, const char *fname, Registry &hints)
+  {
+    DoWriteImage(image, fname, hints);
+  }
+};
+
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::WriteToFile(const char *filename, Registry &hints)
+{
+  typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
+  Specialization::Write(m_Image, filename, hints);
+}
+
+
 /**
   Get the RGBA apperance of the voxel at the intersection of the three
   display slices.
@@ -924,184 +1188,6 @@ ImageWrapper<TTraits,TBase>
   writer->Update();
 }
 
-/**
- * This function implements deep copy behavior for images that support it
- * (itk::Image, itk::VectorImage)
- */
-template <class TInputImage, class TInterpolateFunction>
-static SmartPtr<TInputImage> DeepCopyImageRegion(
-    TInputImage *image,
-    TInterpolateFunction *interp,
-    const SNAPSegmentationROISettings &roi,
-    itk::Command *progressCommand)
-{
-  // The filter used to chop off the region of interest
-  typedef itk::RegionOfInterestImageFilter <TInputImage,TInputImage> ChopFilterType;
-  typename ChopFilterType::Pointer fltChop = ChopFilterType::New();
-
-  // Check if there is a difference in voxel size, i.e., user wants resampling
-  Vector3ul vOldSize = image->GetLargestPossibleRegion().GetSize();
-  Vector3d vOldSpacing = image->GetSpacing();
-
-  if(roi.GetResampleFlag())
-    {
-    // Compute the number of voxels in the output
-    typedef typename itk::ImageRegion<3> RegionType;
-    typedef typename itk::Size<3> SizeType;
-
-    SizeType vNewSize;
-    RegionType vNewROI;
-    Vector3d vNewSpacing;
-
-    for(unsigned int i = 0; i < 3; i++)
-      {
-      double scale = roi.GetVoxelScale()[i];
-      vNewSize.SetElement(i, (unsigned long) (vOldSize[i] / scale));
-      vNewROI.SetSize(i,(unsigned long) (roi.GetROI().GetSize(i) / scale));
-      vNewROI.SetIndex(i,(long) (roi.GetROI().GetIndex(i) / scale));
-      vNewSpacing[i] = scale * vOldSpacing[i];
-      }
-
-    // Create a filter for resampling the image
-    typedef itk::ResampleImageFilter<TInputImage,TInputImage> ResampleFilterType;
-    typename ResampleFilterType::Pointer fltSample = ResampleFilterType::New();
-
-    // Initialize the resampling filter
-    fltSample->SetInput(image);
-    fltSample->SetTransform(itk::IdentityTransform<double,3>::New());
-    fltSample->SetInterpolator(interp);
-
-    // Set the image sizes and spacing
-    fltSample->SetSize(vNewSize);
-    fltSample->SetOutputSpacing(vNewSpacing.data_block());
-    fltSample->SetOutputOrigin(image->GetOrigin());
-    fltSample->SetOutputDirection(image->GetDirection());
-
-    // Set the progress bar
-    if(progressCommand)
-      fltSample->AddObserver(itk::AnyEvent(),progressCommand);
-
-    // Perform resampling
-    fltSample->GetOutput()->SetRequestedRegion(vNewROI);
-    fltSample->Update();
-
-    // Pipe into the chopper
-    fltChop->SetInput(fltSample->GetOutput());
-
-    // Update the region of interest
-    fltChop->SetRegionOfInterest(vNewROI);
-    }
-  else
-    {
-    // Pipe image into the chopper
-    fltChop->SetInput(image);
-
-    // Set the region of interest
-    fltChop->SetRegionOfInterest(roi.GetROI());
-    }
-
-  // Update the pipeline
-  fltChop->Update();
-
-  // Return the resulting image
-  return fltChop->GetOutput();
-}
-
-
-template<class TImage>
-class RegionCopier
-{
-public:
-  typedef TImage ImageType;
-  static SmartPtr<ImageType> Copy(ImageType *image,
-                                  const SNAPSegmentationROISettings &roi,
-                                  itk::Command *progressCommand)
-  {
-    throw IRISException("Deep copy is not supported for image adaptor");
-    return NULL;
-  }
-};
-
-template<class TPixel, unsigned int VDim>
-class RegionCopier< itk::Image<TPixel, VDim> >
-{
-public:
-  typedef itk::Image<TPixel, VDim> ImageType;
-  static SmartPtr<ImageType> Copy(ImageType *image,
-                                  const SNAPSegmentationROISettings &roi,
-                                  itk::Command *progressCommand)
-  {
-    typedef itk::InterpolateImageFunction<ImageType> Interpolator;
-    SmartPtr<Interpolator> interp = NULL;
-
-    // Choose the interpolator
-    switch(roi.GetInterpolationMethod())
-      {
-      case SNAPSegmentationROISettings::NEAREST_NEIGHBOR :
-        typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double> NNInterpolatorType;
-        interp = NNInterpolatorType::New().GetPointer();
-        break;
-
-      case SNAPSegmentationROISettings::TRILINEAR :
-        typedef itk::LinearInterpolateImageFunction<ImageType,double> LinearInterpolatorType;
-        interp = LinearInterpolatorType::New().GetPointer();
-        break;
-
-      case SNAPSegmentationROISettings::TRICUBIC :
-        typedef itk::BSplineInterpolateImageFunction<ImageType,double> CubicInterpolatorType;
-        interp = CubicInterpolatorType::New().GetPointer();
-        break;
-
-      case SNAPSegmentationROISettings::SINC_WINDOW_05 :
-        // More typedefs are needed for the sinc interpolator
-        static const unsigned int VRadius = 5;
-        typedef itk::Function::HammingWindowFunction<VRadius> WindowFunction;
-        typedef itk::ConstantBoundaryCondition<ImageType> Condition;
-        typedef itk::WindowedSincInterpolateImageFunction<
-          ImageType, VRadius, WindowFunction, Condition, double> SincInterpolatorType;
-        interp = SincInterpolatorType::New().GetPointer();
-        break;
-      };
-
-    return DeepCopyImageRegion<ImageType,Interpolator>(image,interp,roi,progressCommand);
-  }
-};
-
-template<class TPixel, unsigned int VDim>
-class RegionCopier< itk::VectorImage<TPixel, VDim> >
-{
-public:
-  typedef itk::VectorImage<TPixel, VDim> ImageType;
-  static SmartPtr<ImageType> Copy(ImageType *image,
-                                  const SNAPSegmentationROISettings &roi,
-                                  itk::Command *progressCommand)
-  {
-    typedef itk::InterpolateImageFunction<ImageType> Interpolator;
-    SmartPtr<Interpolator> interp = NULL;
-
-    // Choose the interpolator
-    switch(roi.GetInterpolationMethod())
-      {
-      case SNAPSegmentationROISettings::NEAREST_NEIGHBOR :
-        typedef itk::NearestNeighborInterpolateImageFunction<ImageType> NNInterpolatorType;
-        interp = NNInterpolatorType::New().GetPointer();
-        break;
-
-      case SNAPSegmentationROISettings::TRILINEAR :
-        typedef itk::LinearInterpolateImageFunction<ImageType> LinearInterpolatorType;
-        interp = LinearInterpolatorType::New().GetPointer();
-        break;
-
-      default:
-        throw IRISException("Higher-order interpolation for vector images is unsupported.");
-      };
-
-    return DeepCopyImageRegion<ImageType,Interpolator>(image,interp,roi,progressCommand);
-  }
-};
-
-
-
 
 template<class TTraits, class TBase>
 typename ImageWrapper<TTraits,TBase>::ImagePointer
@@ -1109,9 +1195,11 @@ ImageWrapper<TTraits,TBase>
 ::DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                  itk::Command *progressCommand) const
 {
+
   // We use partial template specialization here because region copy is
   // only supported for images that are concrete (Image, VectorImage)
-  return RegionCopier<ImageType>::Copy(m_Image, roi, progressCommand);
+  typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
+  return Specialization::CopyRegion(m_Image, roi, progressCommand);
 }
 
 

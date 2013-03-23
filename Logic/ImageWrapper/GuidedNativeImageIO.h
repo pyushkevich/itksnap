@@ -125,7 +125,7 @@ public:
     The purpose is to allow users to check the validity of the header before
     actually loading the data completely.
     */
-  const itk::ImageIOBase *GetIOBase()
+  itk::ImageIOBase *GetIOBase()
     { return m_IOBase; }
 
   /**
@@ -184,8 +184,8 @@ public:
    * Save an image using the Registry folder to specify parameters. This method
    * is templated over the image type.
    */
-  template<typename TPixel>
-    void SaveImage(const char *FileName, Registry &folder, itk::Image<TPixel,3> *image);
+  template<class TImageType>
+    void SaveImage(const char *FileName, Registry &folder, TImageType *image);
 
   /** Parse registry to get file format */
   static FileFormat GetFileFormat(Registry &folder, FileFormat dflt = FORMAT_COUNT);
@@ -245,17 +245,17 @@ public:
       RegistryArray &reg,
       const DicomRequest &req = DicomRequest());
 
-  // Get the output of the last operation
-  // irisGetMacro(IOBase, itk::ImageIOBase *);    
 
-private:
-  
-  /** 
+  /**
    * Create an ImageIO object using a registry folder. Second parameter is
    * true for reading the file, false for writing the file
    */
   void CreateImageIO(const char *fname, Registry &folder, bool read);
 
+  // Get the output of the last operation
+  // irisGetMacro(IOBase, itk::ImageIOBase *);    
+
+private:
   /** Templated function to create RAW image IO */
   template <typename TRaw> void CreateRawImageIO(Registry &folder);
 

@@ -408,6 +408,11 @@ public:
   irisSetWithEventMacro(Nickname, const std::string &, WrapperMetadataChangeEvent)
   irisGetMacro(Nickname, const std::string &)
 
+  /**
+   * Write the image to disk with the help of the GuidedNativeImageIO object
+   */
+  virtual void WriteToFile(const char *filename, Registry &hints);
+
   // Create a thumbnail from the image and write it to a .png file
   void WriteThumbnail(const char *filename, unsigned int maxdim);
 

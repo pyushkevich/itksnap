@@ -46,7 +46,7 @@ void
 SegmentationStatistics
 ::Compute(GenericImageData *id)
 {
-  // TODO: improve efficiency by using filters to integrate
+  // TODO: improve efficiency by using filters to integrate label intensities
 
   // A list of image sources
   vector<ScalarImageWrapperBase *> layers;

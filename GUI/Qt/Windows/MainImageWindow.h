@@ -150,6 +150,8 @@ private slots:
 
   void on_actionVolumesAndStatistics_triggered();
 
+  void on_actionSaveSegmentation_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);

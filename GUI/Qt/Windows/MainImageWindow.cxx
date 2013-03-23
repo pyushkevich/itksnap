@@ -346,7 +346,8 @@ void MainImageWindow::on_actionLoad_from_Image_triggered()
   // Create a model for IO
   LoadSegmentationImageDelegate delegate(m_Model);
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, &delegate, "LabelImage");
+  model->InitializeForLoad(m_Model, &delegate,
+                           "LabelImage", "Segmentation Image");
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);
@@ -559,7 +560,8 @@ void MainImageWindow::on_actionOpenMain_triggered()
   // Create a model for IO
   LoadMainImageDelegate delegate(m_Model);
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, &delegate, "GreyImage");
+  model->InitializeForLoad(m_Model, &delegate,
+                           "GreyImage", "Main Image");
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);
@@ -572,7 +574,8 @@ void MainImageWindow::on_actionAdd_Overlay_triggered()
 {
   LoadOverlayImageDelegate delegate(m_Model);
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, &delegate, "GreyImage");
+  model->InitializeForLoad(m_Model, &delegate,
+                           "GreyImage", "Overlay Image");
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);
@@ -754,4 +757,22 @@ void MainImageWindow::on_actionSaveLabels_triggered()
 void MainImageWindow::on_actionVolumesAndStatistics_triggered()
 {
   m_StatisticsDialog->Activate();
+}
+
+void MainImageWindow::on_actionSaveSegmentation_triggered()
+{
+  // Create delegate
+  DefaultSaveImageDelegate delegate(
+        m_Model, m_Model->GetDriver()->GetCurrentImageData()->GetSegmentation());
+
+  // Create a model for IO
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForSave(m_Model, &delegate,
+                           "LabelImage",
+                           "Segmentation Image");
+
+  // Execute the IO wizard
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
 }
