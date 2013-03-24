@@ -26,6 +26,7 @@
 #include "ImageIOWizardModel.h"
 #include "MetaDataAccess.h"
 #include "IOActions.h"
+#include "SNAPQtCommon.h"
 
 namespace imageiowiz {
 
@@ -243,15 +244,10 @@ void SelectFilePage::initializePage()
         m_InFormat->findData(QVariant(m_Model->GetSelectedFormat())));
 
   // Populate the history button
-  m_HistoryMenu->clear();
-  ImageIOWizardModel::HistoryType history = m_Model->GetHistory();
-  for(ImageIOWizardModel::HistoryType::reverse_iterator rit = history.rbegin();
-      rit != history.rend(); rit++)
-    {
-    m_HistoryMenu->addAction(
-          rit->c_str(), this, SLOT(onHistorySelection()));
-    }
-  m_BtnHistory->setEnabled(history.size() > 0);
+  PopulateHistoryMenu(m_HistoryMenu, this, SLOT(onHistorySelection()),
+                      m_Model->GetParent(),
+                      QString::fromStdString(m_Model->GetHistoryName()));
+  m_BtnHistory->setEnabled(m_HistoryMenu->actions().size() > 0);
 }
 
 void SelectFilePage::onHistorySelection()

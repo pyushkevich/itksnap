@@ -53,6 +53,7 @@
 #include "IRISException.h"
 #include "GlobalState.h"
 #include "SNAPRegistryIO.h"
+#include "HistoryManager.h"
 #include <itksys/Directory.hxx>
 #include <itksys/SystemTools.hxx>
 #include "itkVoxBoCUBImageIOFactory.h"
@@ -123,6 +124,9 @@ SystemInterface
   // Initialize the registry
   m_RegistryIO = new SNAPRegistryIO;
 
+  // Initialize the history manager
+  m_HistoryManager = new HistoryManager();
+
   // Register the Image IO factories that are not part of ITK
   itk::ObjectFactoryBase::RegisterFactory( 
     itk::VoxBoCUBImageIOFactory::New() );
@@ -155,6 +159,7 @@ SystemInterface
 ::~SystemInterface()
 {
   delete m_RegistryIO;
+  delete m_HistoryManager;
 
   // Detach shared memory
   IPCClose();
@@ -165,13 +170,8 @@ void
 SystemInterface
 ::SaveUserPreferences()
 {
-  // Write all the histories to the registry
-  Registry &historyFolder = this->Folder("IOHistory");
-  for(HistoryMap::iterator it = m_HistoryMap.begin();
-      it != m_HistoryMap.end(); it++)
-    {
-    historyFolder.Folder(it->first).PutArray(it->second);
-    }
+  // Write all the global histories to the registry
+  m_HistoryManager->SaveGlobalHistory(this->Folder("IOHistory"));
 
   // Write the registry to disk
   WriteToFile(m_UserPreferenceFile.c_str());
@@ -203,17 +203,8 @@ SystemInterface
   // Enter the current SNAP version into the registry
   Entry("System.CreatedBySNAPVersion") << SNAPCurrentVersionReleaseDate;
 
-  // Read all the relevant histories from the file. We do this dynamically
-  // although it would also have made sense to hard code here the list of
-  // all histories. I guess it does not really matter.
-  Registry &historyFolder = this->Folder("IOHistory");
-  Registry::StringListType historyNames;
-  historyFolder.GetFolderKeys(historyNames);
-  for(Registry::StringListType::iterator it = historyNames.begin();
-      it != historyNames.end(); it++)
-    {
-    m_HistoryMap[*it] = historyFolder.Folder(*it).GetArray(string(""));
-    }
+  // Read all the global histories from the file.
+  m_HistoryManager->LoadGlobalHistory(this->Folder("IOHistory"));
 }
 
 
@@ -569,53 +560,6 @@ SystemInterface
   else
     return false;
 }
-
-/** Get a filename history list by a particular name */
-SystemInterface::HistoryListType &
-SystemInterface
-::GetHistory(const char *key)
-{
-  // Get the history array
-  return m_HistoryMap[key];
-}
-
-/** Update a filename history list with another filename */
-void
-SystemInterface
-::UpdateHistory(const char *key, const std::string &filename)
-{
-  // Create a string for the new file
-  std::string file = itksys::SystemTools::CollapseFullPath(filename.c_str());
-
-  // Get the current history registry
-  HistoryListType &array = GetHistory(key);
-
-  // First, search the history for the instance of the file and delete
-  // existing occurences
-  HistoryListType::iterator it;
-  while((it = find(array.begin(),array.end(),file)) != array.end())
-    array.erase(it);
-
-  // Append the file to the end of the array
-  array.push_back(file);
-
-  // Trim the array to appropriate size
-  if(array.size() > 20)
-    array.erase(array.begin(),array.begin() + array.size() - 20);
-
-  // Save the preferences at this point
-  // TODO: this is only useful for protecting against crashes. When two SNAP
-  // sessions are open at the same time, the histories will still be
-  // overridden. The only ways to overcome this are to (a) store the preferences
-  // in shared memory via IPC; (b) to merge when saving preferences.
-  //
-  // To allow merging, we need to supplement registry with a timestamp on
-  // each entry. However, this is still not enough because some entries may
-  // not be atomic, so we need to know what groups of entries have to be
-  // kept together, for example arrays.
-  SaveUserPreferences();
-}
-
 
 // We start versioning at 1000. Every time we change
 // the protocol, we should increment the version id

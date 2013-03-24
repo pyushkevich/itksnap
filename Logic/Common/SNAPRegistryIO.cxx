@@ -38,6 +38,7 @@
 #include "IRISApplication.h"
 #include "IRISImageData.h"
 #include "SNAPImageData.h"
+#include "HistoryManager.h"
 #include <algorithm>
 #include <vector>
 #include <string>
@@ -323,9 +324,13 @@ SNAPRegistryIO
     main->GetDisplayMapping()->Save(registry.Folder("IRIS.DisplayMapping"));
     }
 
-  // Write file related information
+  // TODO: remove this!
+  /*
   registry["Files.Segmentation.FileName"] << gs->GetLastAssociatedSegmentationFileName();
   registry["Files.Preprocessing.FileName"] << gs->GetLastAssociatedPreprocessingFileName();
+  */
+
+  // Write file related information
   registry["Files.Grey.Orientation"] << app->GetImageToAnatomyRAI();
   registry["Files.Grey.Dimensions"] << 
     to_int(app->GetIRISImageData()->GetVolumeExtents());
@@ -346,6 +351,10 @@ SNAPRegistryIO
 
   // Write the color label table
   app->GetColorLabelTable()->SaveToRegistry(registry.Folder("IRIS.LabelTable"));
+
+  // Write the local history
+  app->GetSystemInterface()->GetHistoryManager()->SaveLocalHistory(
+        registry.Folder("IOHistory"));
 }
 
 bool 
@@ -444,10 +453,17 @@ SNAPRegistryIO
     } // If restore labels
 
   // Read other settings
+  // TODO: erase
+  /*
   gs->SetLastAssociatedSegmentationFileName(
     registry["Files.Segmentation.FileName"][""]);  
   gs->SetLastAssociatedPreprocessingFileName(
     registry["Files.Preprocessing.FileName"][""]);
+    */
+
+  // Read the local history
+  app->GetSystemInterface()->GetHistoryManager()->LoadLocalHistory(
+        registry.Folder("IOHistory"));
 
   // Done!
   return true;

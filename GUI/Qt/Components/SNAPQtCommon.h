@@ -7,6 +7,8 @@
 
 class QWidget;
 class QAction;
+class GlobalUIModel;
+class QMenu;
 
 // Generate an icon with a black border and a given fill color
 QIcon CreateColorBoxIcon(int w, int h, const QColor &rgb);
@@ -49,6 +51,27 @@ void ReportNonLethalException(QWidget *parent,
                               std::exception &exc,
                               QString windowTitleText,
                               QString mainErrorText);
+
+/** Populate a menu with history items */
+void PopulateHistoryMenu(
+    QMenu *menu, QObject *receiver, const char *slot,
+    GlobalUIModel *model, QString hist_category);
+
+void PopulateHistoryMenu(
+    QMenu *menu, QObject *receiver, const char *slot,
+    const QStringList &local_history, const QStringList &global_history);
+
+
+/** Show a generic file save dialog with a history dropdown */
+QString ShowSimpleSaveDialogWithHistory(
+    GlobalUIModel *model, QString hist_category,
+    QString window_title, QString file_title, QString file_pattern);
+
+/** Show a generic file open dialog with a history dropdown */
+QString ShowSimpleOpenDialogWithHistory(
+    GlobalUIModel *model, QString hist_category,
+    QString window_title, QString file_title, QString file_pattern);
+
 
 
 #endif // SNAPQTCOMMON_H

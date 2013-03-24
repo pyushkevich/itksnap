@@ -1,4 +1,5 @@
 #include "HistoryQListModel.h"
+#include "HistoryManager.h"
 #include "SystemInterface.h"
 #include "IRISApplication.h"
 #include "GlobalUIModel.h"
@@ -14,8 +15,8 @@ HistoryQListModel::HistoryQListModel(QObject *parent) :
 
 int HistoryQListModel::rowCount(const QModelIndex &parent) const
 {
-  SystemInterface::HistoryListType &history =
-      m_Model->GetDriver()->GetSystemInterface()->GetHistory(m_HistoryName.c_str());
+  HistoryManager *hm = m_Model->GetDriver()->GetSystemInterface()->GetHistoryManager();
+  const HistoryManager::HistoryListType &history = hm->GetGlobalHistory(m_HistoryName.c_str());
 
   // Display at most 12 entries in the history
   return std::min((size_t) 12, history.size());
@@ -24,8 +25,8 @@ int HistoryQListModel::rowCount(const QModelIndex &parent) const
 QVariant HistoryQListModel::data(const QModelIndex &index, int role) const
 {
   // Get the history
-  SystemInterface::HistoryListType &history =
-      m_Model->GetDriver()->GetSystemInterface()->GetHistory(m_HistoryName.c_str());
+  HistoryManager *hm = m_Model->GetDriver()->GetSystemInterface()->GetHistoryManager();
+  const HistoryManager::HistoryListType &history = hm->GetGlobalHistory(m_HistoryName.c_str());
 
   // Get the entry
   std::string item = history[history.size() - (1 + index.row())];

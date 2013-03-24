@@ -54,6 +54,7 @@
 #include <PaintbrushSettingsModel.h>
 #include <SynchronizationModel.h>
 #include "NumericPropertyToggleAdaptor.h"
+#include "HistoryManager.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -168,7 +169,9 @@ GlobalUIModel::GlobalUIModel()
   // Set up the history model. This model refers to a registry folder and
   // lists all the files in the registry.
   m_MainImageHistoryModel = newRandomAccessContainerModel(
-        m_Driver->GetSystemInterface()->GetHistory("MainImage"));
+        const_cast<std::vector<std::string> &>(
+          m_Driver->GetSystemInterface()->GetHistoryManager()->
+            GetGlobalHistory("MainImage")));
 
   // TODO: what about the events? This model and everything downstream needs
   // to be notified when the history is updated
@@ -488,9 +491,8 @@ void GlobalUIModel::SetSegmentationOpacityValue(int value)
 std::vector<std::string> GlobalUIModel::GetRecentMainImages(unsigned int k)
 {
   // Load the list of recent files from the history file
-  const SystemInterface::HistoryListType &history =
-      this->GetSystemInterface()->GetHistory("MainImage");
-
+  const HistoryManager::HistoryListType &history =
+      this->GetSystemInterface()->GetHistoryManager()->GetGlobalHistory("MainImage");
 
   std::vector<std::string> recent;
 

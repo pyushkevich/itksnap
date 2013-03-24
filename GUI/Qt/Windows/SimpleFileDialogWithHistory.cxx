@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <QMenu>
 
+#include "SNAPQtCommon.h"
 
 SimpleFileDialogWithHistory::SimpleFileDialogWithHistory(QWidget *parent) :
   QDialog(parent),
@@ -22,21 +23,21 @@ SimpleFileDialogWithHistory::~SimpleFileDialogWithHistory()
   delete ui;
 }
 
-void SimpleFileDialogWithHistory::populateHistory(const QStringList &history)
+void SimpleFileDialogWithHistory
+::populateHistory(const QStringList &local_history,
+                  const QStringList &global_history)
 {
   QMenu *menu = ui->btnHistory->menu();
-  for(QStringList::const_iterator it = history.begin(); it != history.end(); ++it)
-    {
-    menu->addAction(*it, this, SLOT(onHistorySelection()));
-    }
-  ui->btnHistory->setEnabled(history.size() > 0);
+  PopulateHistoryMenu(menu, this, SLOT(onHistorySelection()),
+                      local_history, global_history);
+  ui->btnHistory->setEnabled(menu->actions().size() > 0);
 }
 
 QString
 SimpleFileDialogWithHistory
 ::showOpenDialog(QString window_title,
                  QString file_title,
-                 QStringList &history_list,
+                 QStringList &local_history, QStringList &global_history,
                  QString file_pattern)
 {
   // Configure the dialog
@@ -45,7 +46,7 @@ SimpleFileDialogWithHistory
   dialog->ui->label->setText(file_title);
   dialog->m_OpenMode = true;
   dialog->m_FilePattern = file_pattern;
-  dialog->populateHistory(history_list);
+  dialog->populateHistory(local_history, global_history);
 
   // Launch the dialog
   if(dialog->exec() == QDialog::Accepted)
@@ -59,7 +60,7 @@ QString
 SimpleFileDialogWithHistory
 ::showSaveDialog(QString window_title,
                  QString file_title,
-                 QStringList &history_list,
+                 QStringList &local_history, QStringList &global_history,
                  QString file_pattern)
 {
   // Configure the dialog
@@ -68,7 +69,7 @@ SimpleFileDialogWithHistory
   dialog->ui->label->setText(file_title);
   dialog->m_OpenMode = false;
   dialog->m_FilePattern = file_pattern;
-  dialog->populateHistory(history_list);
+  dialog->populateHistory(local_history, global_history);
 
   // Launch the dialog
   if(dialog->exec() == QDialog::Accepted)

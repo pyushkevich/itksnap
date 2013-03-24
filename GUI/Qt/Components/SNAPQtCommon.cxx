@@ -8,6 +8,13 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QApplication>
+#include <QMenu>
+
+#include "GlobalUIModel.h"
+#include "SystemInterface.h"
+#include "IRISApplication.h"
+#include "HistoryManager.h"
+#include "SimpleFileDialogWithHistory.h"
 
 QIcon CreateColorBoxIcon(int w, int h, const QColor &rgb)
 {
@@ -114,3 +121,77 @@ void ReportNonLethalException(QWidget *parent,
   b.setIcon(QMessageBox::Critical);
   b.exec();
 }
+
+void PopulateHistoryMenu(
+    QMenu *menu, QObject *receiver, const char *slot,
+    const QStringList &local_history,
+    const QStringList &global_history)
+{
+  menu->clear();
+
+  QStringListIterator itLocal(local_history);
+  itLocal.toBack();
+  while(itLocal.hasPrevious())
+    menu->addAction(itLocal.previous(), receiver, slot);
+
+  int nLocal = menu->actions().size();
+
+  QStringListIterator itGlobal(global_history);
+  itGlobal.toBack();
+  while(itGlobal.hasPrevious())
+    {
+    QString entry = itGlobal.previous();
+    if(local_history.indexOf(entry) == -1)
+      menu->addAction(entry, receiver, slot);
+    }
+
+  if(nLocal > 0 && menu->actions().size() > nLocal)
+    menu->insertSeparator(menu->actions()[nLocal]);
+}
+
+
+void PopulateHistoryMenu(
+    QMenu *menu, QObject *receiver, const char *slot,
+    GlobalUIModel *model, QString hist_category)
+{
+  HistoryManager *hm =
+      model->GetDriver()->GetSystemInterface()->GetHistoryManager();
+
+  QStringList hl = toQStringList(hm->GetLocalHistory(hist_category.toStdString()));
+  QStringList hg = toQStringList(hm->GetGlobalHistory(hist_category.toStdString()));
+  PopulateHistoryMenu(menu, receiver, slot, hl, hg);
+}
+
+
+
+/** Show a generic file save dialog with a history dropdown */
+QString ShowSimpleSaveDialogWithHistory(
+    GlobalUIModel *model, QString hist_category,
+    QString window_title, QString file_title, QString file_pattern)
+{
+  HistoryManager *hm =
+      model->GetDriver()->GetSystemInterface()->GetHistoryManager();
+
+  QStringList hl = toQStringList(hm->GetLocalHistory(hist_category.toStdString()));
+  QStringList hg = toQStringList(hm->GetGlobalHistory(hist_category.toStdString()));
+
+  return SimpleFileDialogWithHistory::showSaveDialog(
+        window_title, file_title, hl, hg, file_pattern);
+}
+
+/** Show a generic file open dialog with a history dropdown */
+QString ShowSimpleOpenDialogWithHistory(
+    GlobalUIModel *model, QString hist_category,
+    QString window_title, QString file_title, QString file_pattern)
+{
+  HistoryManager *hm =
+      model->GetDriver()->GetSystemInterface()->GetHistoryManager();
+
+  QStringList hl = toQStringList(hm->GetLocalHistory(hist_category.toStdString()));
+  QStringList hg = toQStringList(hm->GetGlobalHistory(hist_category.toStdString()));
+
+  return SimpleFileDialogWithHistory::showOpenDialog(
+        window_title, file_title, hl, hg, file_pattern);
+}
+
+

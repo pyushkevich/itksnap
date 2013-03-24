@@ -91,6 +91,7 @@ SET(LOGIC_CXX
   ${SNAP_BINARY_DIR}/SNAPCommon.cxx
   Common/CommandLineArgumentParser.cxx
   Common/EventBucket.cxx
+  Common/HistoryManager.cxx
   Common/IRISException.cxx
   Common/Registry.cxx
   Common/SNAPOpenGL.cxx
@@ -143,6 +144,7 @@ SET(LOGIC_CXX
 SET(LOGIC_HEADERS
   Common/CommandLineArgumentParser.h
   Common/Credits.h
+  Common/HistoryManager.h
   Common/IRISException.h
   Common/IRISVectorTypes.h
   Common/IRISVectorTypes.txx

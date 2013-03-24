@@ -15,11 +15,13 @@ public:
 
   static QString showOpenDialog(
       QString window_title, QString file_title,
-      QStringList &history_list, QString file_pattern);
+      QStringList &local_history, QStringList &global_history,
+      QString file_pattern);
   
   static QString showSaveDialog(
       QString window_title, QString file_title,
-      QStringList &history_list, QString file_pattern);
+      QStringList &local_history, QStringList &global_history,
+      QString file_pattern);
 
 private slots:
   void on_btnBrowse_clicked();
@@ -33,7 +35,8 @@ protected:
   ~SimpleFileDialogWithHistory();
 
   // Populate the history
-  void populateHistory(const QStringList &history);
+  void populateHistory(const QStringList &local_history,
+                       const QStringList &global_history);
 
   // Mode of operation (Save/Open)
   bool m_OpenMode;

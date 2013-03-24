@@ -44,6 +44,7 @@ public:
                          AbstractSaveImageDelegate *delegate,
                          const char *name, const char *dispName);
 
+  irisGetMacro(Parent, GlobalUIModel *)
   irisGetMacro(GuidedIO, GuidedNativeImageIO *)
 
   // Does the model support loading
@@ -99,8 +100,7 @@ public:
   /**
     Get the history of filenames
     */
-  typedef std::vector<std::string> HistoryType;
-  HistoryType GetHistory() const;
+  irisGetMacro(HistoryName, std::string)
 
   /**
     Get the display name to show in the dialog
@@ -161,6 +161,8 @@ public:
   void LoadDicomSeries(const std::string &filename, int series);
 
 
+  irisGetSetMacro(SuggestedFilename, std::string)
+
   /**
     Access the registry stored in the model and used for providing hints to
     the image IO.
@@ -201,8 +203,8 @@ protected:
   // Registry containing auxiliary info
   Registry m_Registry;
 
-  // Filename picked by the user
-  std::string m_Filename;
+  // Suggested filename
+  std::string m_SuggestedFilename;
 
   // DICOM support
   GuidedNativeImageIO::RegistryArray m_DicomContents;

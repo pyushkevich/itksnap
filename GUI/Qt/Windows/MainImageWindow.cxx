@@ -699,15 +699,11 @@ void MainImageWindow::on_actionSegmentationToggle_triggered()
 
 void MainImageWindow::on_actionLoadLabels_triggered()
 {
-  // Get the history
-  QStringList qslHistory = toQStringList(
-        m_Model->GetSystemInterface()->GetHistory("LabelDescriptions"));
-
   // Ask for a filename
-  QString selection = SimpleFileDialogWithHistory::showOpenDialog(
+  QString selection = ShowSimpleOpenDialogWithHistory(
+        m_Model, "LabelDescriptions",
         "Open Label Descriptions - ITK-SNAP",
         "Label Description File",
-        qslHistory,
         "Text Files (*.txt);; Label Files (*.label);; All Files (*)");
 
   // Open the labels from the selection
@@ -727,15 +723,11 @@ void MainImageWindow::on_actionLoadLabels_triggered()
 
 void MainImageWindow::on_actionSaveLabels_triggered()
 {
-  // Get the history
-  QStringList qslHistory = toQStringList(
-        m_Model->GetSystemInterface()->GetHistory("LabelDescriptions"));
-
   // Ask for a filename
-  QString selection = SimpleFileDialogWithHistory::showSaveDialog(
+  QString selection = ShowSimpleSaveDialogWithHistory(
+        m_Model, "LabelDescriptions",
         "Save Label Descriptions - ITK-SNAP",
         "Label Description File",
-        qslHistory,
         "Text Files (*.txt);; Label Files (*.label);; All Files (*)");
 
   // Open the labels from the selection
@@ -770,6 +762,10 @@ void MainImageWindow::on_actionSaveSegmentation_triggered()
   model->InitializeForSave(m_Model, &delegate,
                            "LabelImage",
                            "Segmentation Image");
+
+  // Pass a suggested filename
+  model->SetSuggestedFilename(
+        m_Model->GetGlobalState()->GetLastAssociatedSegmentationFileName());
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);

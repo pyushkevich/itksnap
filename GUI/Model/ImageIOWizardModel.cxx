@@ -5,6 +5,7 @@
 #include "SystemInterface.h"
 #include "ImageCoordinateGeometry.h"
 #include <itksys/SystemTools.hxx>
+#include "HistoryManager.h"
 
 #include "IRISException.h"
 #include <sstream>
@@ -176,12 +177,6 @@ ImageIOWizardModel::GetBrowseDirectory(const std::string &file)
 
   // By default, return empty string
   return std::string("");
-}
-
-ImageIOWizardModel::HistoryType ImageIOWizardModel::GetHistory() const
-{
-  return m_Parent->GetDriver()->GetSystemInterface()
-      ->GetHistory(m_HistoryName.c_str());
 }
 
 std::string ImageIOWizardModel::GetDisplayName() const
@@ -404,8 +399,11 @@ void ImageIOWizardModel::Finalize()
 {
   if(IsImageLoaded())
     {
-    m_Parent->GetDriver()->GetSystemInterface()->UpdateHistory(
-          m_HistoryName.c_str(), m_GuidedIO->GetFileNameOfNativeImage().c_str());
+    // Note that the local history is not updated when loading a main image!
+    m_Parent->GetDriver()->GetSystemInterface()->GetHistoryManager()->
+        UpdateHistory(m_HistoryName.c_str(),
+                      m_GuidedIO->GetFileNameOfNativeImage().c_str(),
+                      m_HistoryName != "MainImage");
     }
 }
 

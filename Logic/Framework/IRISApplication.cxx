@@ -67,11 +67,10 @@
 #include "vtkPointData.h"
 #include "SNAPRegistryIO.h"
 #include "SNAPEventListenerCallbacks.h"
-
+#include "HistoryManager.h"
 #include "IRISSlicer.h"
 #include "EdgePreprocessingSettings.h"
 #include "ThresholdSettings.h"
-
 #include "SlicePreviewFilterWrapper.h"
 #include "PreprocessingFilterConfigTraits.h"
 #include "SmoothBinaryThresholdImageFilter.h"
@@ -1388,7 +1387,8 @@ IRISApplication
   m_IRISImageData->GetMain()->SetNickname(io->GetNicknameOfNativeImage());
 
   // Update the system's history list
-  m_SystemInterface->UpdateHistory("MainImage", io->GetFileNameOfNativeImage());
+  m_SystemInterface->GetHistoryManager()->UpdateHistory(
+        "MainImage", io->GetFileNameOfNativeImage(), false);
 
   // Reset the segmentation ROI
   m_GlobalState->SetSegmentationROI(io->GetNativeImage()->GetBufferedRegion());
@@ -1586,13 +1586,15 @@ void IRISApplication::LoadLabelDescriptions(const char *file)
   m_GlobalState->SetDrawOverFilter(DrawOverFilter());
 
   // Update the history
-  m_SystemInterface->UpdateHistory("LabelDescriptions", file);
+  m_SystemInterface->GetHistoryManager()->
+      UpdateHistory("LabelDescriptions", file, true);
 }
 
 void IRISApplication::SaveLabelDescriptions(const char *file)
 {
   this->m_ColorLabelTable->SaveToFile(file);
-  m_SystemInterface->UpdateHistory("LabelDescriptions", file);
+  m_SystemInterface->GetHistoryManager()->
+      UpdateHistory("LabelDescriptions", file, true);
 }
 
 bool IRISApplication::IsSnakeModeActive() const

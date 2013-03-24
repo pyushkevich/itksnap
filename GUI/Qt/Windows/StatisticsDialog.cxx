@@ -4,9 +4,12 @@
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
 #include "SegmentationStatistics.h"
+#include "HistoryManager.h"
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QHeaderView>
+#include <QMimeData>
+#include <QClipboard>
 #include <SNAPQtCommon.h>
 #include <QtCursorOverride.h>
 #include <SimpleFileDialogWithHistory.h>
@@ -94,8 +97,6 @@ void StatisticsDialog::on_btnUpdate_clicked()
   this->FillTable();
 }
 
-#include <QMimeData>
-#include <QClipboard>
 
 void StatisticsDialog::on_btnCopy_clicked()
 {
@@ -111,15 +112,11 @@ void StatisticsDialog::on_btnCopy_clicked()
 
 void StatisticsDialog::on_btnExport_clicked()
 {
-  // Get the history
-  QStringList qslHistory = toQStringList(
-        m_Model->GetSystemInterface()->GetHistory("Statistics"));
-
   // Ask for a filename
-  QString selection = SimpleFileDialogWithHistory::showSaveDialog(
+  QString selection = ShowSimpleSaveDialogWithHistory(
+        m_Model, "Statistics",
         "Export Volumes and Statistics - ITK-SNAP",
         "Volumes and Statistics File",
-        qslHistory,
         "Text Files (*.txt);; Comma Separated Value Files (*.csv);; All Files (*)");
 
   // Open the labels from the selection
@@ -136,7 +133,8 @@ void StatisticsDialog::on_btnExport_clicked()
         {
         m_Stats->Export(fout, "\t", *m_Model->GetDriver()->GetColorLabelTable());
         }
-      m_Model->GetSystemInterface()->UpdateHistory("Statistics", selection.toStdString());
+      m_Model->GetSystemInterface()->GetHistoryManager()->
+          UpdateHistory("Statistics", selection.toStdString(), true);
       }
     catch(std::exception &exc)
       {
