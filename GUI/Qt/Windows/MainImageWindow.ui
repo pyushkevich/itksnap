@@ -657,6 +657,8 @@ background-color:rgb(88, 88, 88);
     <addaction name="actionClear"/>
     <addaction name="separator"/>
     <addaction name="actionSaveSegmentation"/>
+    <addaction name="actionSaveSegmentationAs"/>
+    <addaction name="separator"/>
     <addaction name="actionSave_as_Mesh"/>
     <addaction name="separator"/>
     <addaction name="actionLoadLabels"/>
@@ -976,9 +978,9 @@ background-color:rgb(88, 88, 88);
     <string>Export a screenshot of the axial view as an image</string>
    </property>
   </action>
-  <action name="actionSaveSegmentation">
+  <action name="actionSaveSegmentationAs">
    <property name="text">
-    <string>Save as Image Volume...</string>
+    <string>Save as...</string>
    </property>
   </action>
   <action name="actionSave_as_Mesh">
@@ -1149,6 +1151,14 @@ background-color:rgb(88, 88, 88);
    </property>
    <property name="shortcut">
     <string>5</string>
+   </property>
+  </action>
+  <action name="actionSaveSegmentation">
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

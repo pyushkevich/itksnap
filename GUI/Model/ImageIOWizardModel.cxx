@@ -35,6 +35,7 @@ ImageIOWizardModel
   m_GuidedIO = new GuidedNativeImageIO();
   m_LoadDelegate = NULL;
   m_SaveDelegate = delegate;
+  m_SuggestedFilename = delegate->GetCurrentFilename();
 }
 
 void

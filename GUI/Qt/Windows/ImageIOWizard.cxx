@@ -249,6 +249,9 @@ void SelectFilePage::initializePage()
                       m_Model->GetParent(),
                       from_utf8(m_Model->GetHistoryName()));
   m_BtnHistory->setEnabled(m_HistoryMenu->actions().size() > 0);
+
+  // Start with the suggested filename
+  m_InFilename->setText(from_utf8(m_Model->GetSuggestedFilename()));
 }
 
 void SelectFilePage::onHistorySelection()

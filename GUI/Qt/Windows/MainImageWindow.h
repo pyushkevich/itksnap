@@ -152,6 +152,8 @@ private slots:
 
   void on_actionSaveSegmentation_triggered();
 
+  void on_actionSaveSegmentationAs_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);
@@ -162,6 +164,8 @@ private:
 
   void UpdateRecentMenu();
   void UpdateWindowTitle();
+
+  void SaveSegmentation(bool interactive);
 
   // For convenience, an array of the four panels (3 slice/1 3D)
   QWidget *m_ViewPanels[4];

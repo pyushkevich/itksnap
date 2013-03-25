@@ -220,10 +220,40 @@ LoadSegmentationImageDelegate
 }
 
 
+DefaultSaveImageDelegate::DefaultSaveImageDelegate(
+    GlobalUIModel *model,
+    ImageWrapperBase *wrapper,
+    const std::string &histname,
+    bool trackInLocalHistory)
+  : AbstractSaveImageDelegate(model),
+    m_Wrapper(wrapper),
+    m_Track(trackInLocalHistory)
+{
+  this->AddHistoryName(histname);
+}
+
+void DefaultSaveImageDelegate::AddHistoryName(const std::string &histname)
+{
+  m_HistoryNames.push_back(histname);
+}
+
+#include "HistoryManager.h"
 
 void DefaultSaveImageDelegate
 ::SaveImage(const std::string &fname, GuidedNativeImageIO *io,
             Registry &reg, IRISWarningList &wl)
 {
   m_Wrapper->WriteToFile(fname.c_str(), reg);
+  m_Wrapper->SetFileName(fname);
+  for(std::list<std::string>::const_iterator it = m_HistoryNames.begin();
+      it != m_HistoryNames.end(); ++it)
+    {
+    m_Model->GetDriver()->GetHistoryManager()->UpdateHistory(*it, fname, m_Track);
+    }
 }
+
+const char *DefaultSaveImageDelegate::GetCurrentFilename()
+{
+  return m_Wrapper->GetFileName();
+}
+

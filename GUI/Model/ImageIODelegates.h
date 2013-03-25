@@ -104,6 +104,8 @@ public:
       Registry &reg,
       IRISWarningList &wl) = 0;
 
+  virtual const char *GetCurrentFilename() = 0;
+
 protected:
   GlobalUIModel *m_Model;
 };
@@ -111,8 +113,14 @@ protected:
 class DefaultSaveImageDelegate : public AbstractSaveImageDelegate
 {
 public:
-  DefaultSaveImageDelegate(GlobalUIModel *model, ImageWrapperBase *wrapper)
-    : AbstractSaveImageDelegate(model), m_Wrapper(wrapper) {}
+  DefaultSaveImageDelegate(GlobalUIModel *model,
+                           ImageWrapperBase *wrapper,
+                           const std::string &histname,
+                           bool trackInLocalHistory = true);
+
+  // Add a history name to update when the filename is saved. It is possible
+  // for multiple history names to be updated
+  void AddHistoryName(const std::string &histname);
 
   virtual ~DefaultSaveImageDelegate() {}
 
@@ -122,8 +130,12 @@ public:
       Registry &reg,
       IRISWarningList &wl);
 
+  virtual const char *GetCurrentFilename();
+
 protected:
   ImageWrapperBase *m_Wrapper;
+  std::list<std::string> m_HistoryNames;
+  bool m_Track;
 };
 
 #endif // IMAGEIODELEGATES_H

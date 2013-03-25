@@ -339,12 +339,21 @@ void MainImageWindow::UpdateWindowTitle()
     segfile = from_utf8(gid->GetSegmentation()->GetNickname());
     }
 
-  if(!segfile.length())
-    segfile = "New Segmentation";
-
   if(mainfile.length())
     {
-    this->setWindowTitle(QString("%1 - %2 - ITK-SNAP").arg(mainfile).arg(segfile));
+    if(segfile.length())
+      {
+      this->setWindowTitle(QString("%1 - %2 - ITK-SNAP").arg(mainfile).arg(segfile));
+      ui->actionSaveSegmentation->setText(QString("Save \"%1\"").arg(segfile));
+      ui->actionSaveSegmentationAs->setText(QString("Save \"%1\" as...").arg(segfile));
+      }
+    else
+      {
+      this->setWindowTitle(QString("%1 - New Image - ITK-SNAP").arg(mainfile));
+      ui->actionSaveSegmentation->setText(QString("Save").arg(segfile));
+      ui->actionSaveSegmentationAs->setText(QString("Save as...").arg(segfile));
+
+      }
     }
   else
     {
@@ -788,11 +797,12 @@ void MainImageWindow::on_actionVolumesAndStatistics_triggered()
   m_StatisticsDialog->Activate();
 }
 
-void MainImageWindow::on_actionSaveSegmentation_triggered()
+void MainImageWindow::SaveSegmentation(bool interactive)
 {
   // Create delegate
   DefaultSaveImageDelegate delegate(
-        m_Model, m_Model->GetDriver()->GetCurrentImageData()->GetSegmentation());
+        m_Model, m_Model->GetDriver()->GetCurrentImageData()->GetSegmentation(),
+        "LabelImage");
 
   // Create a model for IO
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
@@ -800,12 +810,36 @@ void MainImageWindow::on_actionSaveSegmentation_triggered()
                            "LabelImage",
                            "Segmentation Image");
 
-  // Pass a suggested filename
-  model->SetSuggestedFilename(
-        m_Model->GetGlobalState()->GetLastAssociatedSegmentationFileName());
+  // Interactive or not?
+  if(interactive || model->GetSuggestedFilename().size() == 0)
+    {
+    // Execute the IO wizard
+    ImageIOWizard wiz(this);
+    wiz.SetModel(model);
+    wiz.exec();
+    }
+  else
+    {
+    try
+      {
+      model->SaveImage(model->GetSuggestedFilename());
+      }
+    catch(std::exception &exc)
+      {
+      ReportNonLethalException(
+            this, exc, "Image IO Error",
+            QString("Failed to save image %1").arg(
+              from_utf8(model->GetSuggestedFilename())));
+      }
+    }
+}
 
-  // Execute the IO wizard
-  ImageIOWizard wiz(this);
-  wiz.SetModel(model);
-  wiz.exec();
+void MainImageWindow::on_actionSaveSegmentation_triggered()
+{
+  SaveSegmentation(false);
+}
+
+void MainImageWindow::on_actionSaveSegmentationAs_triggered()
+{
+  SaveSegmentation(true);
 }
