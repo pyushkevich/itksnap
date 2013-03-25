@@ -14,8 +14,7 @@
 #include "LatentITKEventNotifier.h"
 #include "QtDoubleSliderWithEditorCoupling.h"
 #include "ComponentSelectionModel.h"
-
-
+#include "SNAPQtCommon.h"
 
 
 /**
@@ -51,13 +50,13 @@ public:
       {
       // Get the name of the layer
       LayerIterator it = m_Model->GetNthLayer(index.row());
-      return QString(it.GetDynamicNickname().c_str());
+      return from_utf8(it.GetLayer()->GetNickname());
       }
     else if(qtrole == Qt::ToolTipRole)
       {
       // Get the name of the layer
       LayerIterator it = m_Model->GetNthLayer(index.row());
-      return QString(it.GetLayer()->GetFileName());
+      return from_utf8(it.GetLayer()->GetFileName());
       }
     else
       return QVariant();
@@ -71,14 +70,9 @@ public:
 
     // Get the layer iter
     LayerIterator it = m_Model->GetNthLayer(index.row());
-    QString nick(it.GetDynamicNickname().c_str());
-    if(nick != value.toString())
-      {
-      it.GetLayer()->SetNickname(value.toString().toStdString());
-      emit dataChanged(index, index);
-      return true;
-      }
-    return false;
+    it.GetLayer()->SetCustomNickname(to_utf8(value.toString()));
+    emit dataChanged(index, index);
+    return true;
   }
 
   Qt::ItemFlags flags(const QModelIndex &index) const

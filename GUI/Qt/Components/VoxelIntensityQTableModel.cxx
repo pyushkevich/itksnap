@@ -48,7 +48,7 @@ QVariant VoxelIntensityQTableModel::data(const QModelIndex &index, int role) con
 
     if(index.column() == 0)
       {
-      return QString(it.GetDynamicNickname().c_str());
+      return QString(it.GetLayer()->GetNickname().c_str());
       }
     else
       {

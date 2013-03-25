@@ -986,6 +986,44 @@ ImageWrapper<TTraits,TBase>
   return (void *) m_Image->GetBufferPointer();
 }
 
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits, TBase>
+::SetFileName(const std::string &name)
+{
+  m_FileName = name;
+  m_FileNameShort = itksys::SystemTools::GetFilenameName(name);
+  this->InvokeEvent(WrapperMetadataChangeEvent());
+}
+
+template<class TTraits, class TBase>
+const std::string &
+ImageWrapper<TTraits, TBase>
+::GetNickname() const
+{
+  if(m_CustomNickname.length())
+    return m_CustomNickname;
+
+  else if(m_FileName.length())
+    return m_FileNameShort;
+
+  else return m_DefaultNickname;
+}
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits, TBase>
+::SetCustomNickname(const std::string &nickname)
+{
+  // Make sure the nickname is real
+  if(nickname == m_FileNameShort)
+    m_CustomNickname.clear();
+  else
+    m_CustomNickname = nickname;
+
+  this->InvokeEvent(WrapperMetadataChangeEvent());
+}
+
 
 // The method that can be called for some wrappers, not others
 template <class TImage>
@@ -1043,8 +1081,13 @@ void
 ImageWrapper<TTraits,TBase>
 ::WriteToFile(const char *filename, Registry &hints)
 {
+  // Do the actual writing
   typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
   Specialization::Write(m_Image, filename, hints);
+
+  // Store the filename
+  m_FileName = itksys::SystemTools::GetFilenamePath(filename);
+
 }
 
 

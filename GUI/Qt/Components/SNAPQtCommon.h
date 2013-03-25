@@ -72,6 +72,16 @@ QString ShowSimpleOpenDialogWithHistory(
     GlobalUIModel *model, QString hist_category,
     QString window_title, QString file_title, QString file_pattern);
 
+/** Convert a QString to a std::string using UTF8 encoding */
+inline std::string to_utf8(const QString &qstring)
+{
+  return std::string(qstring.toUtf8().constData());
+}
 
+/** Convert an std::string with UTF8 encoding to a Qt string */
+inline QString from_utf8(const std::string &input)
+{
+  return QString::fromUtf8(input.c_str());
+}
 
 #endif // SNAPQTCOMMON_H

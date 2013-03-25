@@ -66,13 +66,13 @@ SNAPImageData
 {
   // Set the names of the wrapeprs
   m_SpeedWrapper = SpeedImageWrapper::New();
-  m_SpeedWrapper->SetNickname("Speed Image");
+  m_SpeedWrapper->SetDefaultNickname("Speed Image");
 
   m_SnakeInitializationWrapper = LevelSetImageWrapper::New();
-  m_SnakeInitializationWrapper->SetNickname("Initial Contour");
+  m_SnakeInitializationWrapper->SetDefaultNickname("Initial Contour");
 
   m_SnakeWrapper = LevelSetImageWrapper::New();
-  m_SnakeWrapper->SetNickname("Evolving Contour");
+  m_SnakeWrapper->SetDefaultNickname("Evolving Contour");
 
   // Update the list of linked wrappers
   PushBackImageWrapper(LayerIterator::SNAP_ROLE, m_SpeedWrapper.GetPointer());

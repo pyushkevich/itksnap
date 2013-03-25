@@ -46,7 +46,7 @@ AbstractPage::AbstractPage(QWidget *parent)
 bool
 AbstractPage::ErrorMessage(const IRISException &exc)
 {
-  QString text(exc.what());
+  QString text = QString::fromUtf8(exc.what());
   QString head = text.section(".",0,0);
   QString tail = text.section(".", 1);
 
@@ -66,7 +66,7 @@ AbstractPage::WarningMessage(const IRISWarningList &wl)
     QString html;
     for(size_t i = 0; i < wl.size(); i++)
       {
-      QString text = wl[i].what();
+      QString text = QString::fromUtf8(wl[i].what());
       QString head = text.section(".",0,0);
       QString tail = text.section(".", 1);
       html += QString(m_HtmlTemplate).arg(
@@ -83,7 +83,8 @@ AbstractPage::ErrorMessage(const char *subject, const char *detail)
   QString html = QString(
         "<html><body><ul>"
         "<li><b>%1</b>%2</li>"
-        "</ul></body></html>").arg(subject, detail);
+        "</ul></body></html>").arg(QString::fromUtf8(subject),
+                                   QString::fromUtf8(detail));
 
   m_OutMessage->setText(html);
 
@@ -246,7 +247,7 @@ void SelectFilePage::initializePage()
   // Populate the history button
   PopulateHistoryMenu(m_HistoryMenu, this, SLOT(onHistorySelection()),
                       m_Model->GetParent(),
-                      QString::fromStdString(m_Model->GetHistoryName()));
+                      from_utf8(m_Model->GetHistoryName()));
   m_BtnHistory->setEnabled(m_HistoryMenu->actions().size() > 0);
 }
 
@@ -286,7 +287,7 @@ bool SelectFilePage::validatePage()
     QtCursorOverride curse(Qt::WaitCursor);
     try
       {
-      m_Model->ProcessDicomDirectory(m_InFilename->text().toStdString());
+      m_Model->ProcessDicomDirectory(to_utf8(m_InFilename->text()));
       return true;
       }
     catch(IRISException &exc)
@@ -302,11 +303,11 @@ bool SelectFilePage::validatePage()
     m_Model->SetSelectedFormat(fmt);
     if(m_Model->IsLoadMode())
       {
-      m_Model->LoadImage(m_InFilename->text().toStdString());
+      m_Model->LoadImage(to_utf8(m_InFilename->text()));
       }
     else
       {
-      m_Model->SaveImage(m_InFilename->text().toStdString());
+      m_Model->SaveImage(to_utf8(m_InFilename->text()));
       }
     }
   catch(IRISException &exc)
@@ -342,19 +343,19 @@ int SelectFilePage::nextId() const
 void SelectFilePage::on_btnBrowse_pressed()
 {
   // Initialize the dialog with what's in the filebox
-  std::string file = m_InFilename->text().toStdString();
+  std::string file = to_utf8(m_InFilename->text());
 
   // Set the dialog properties
   if(m_Model->IsLoadMode())
     {
-    QFileInfo fi(QString::fromStdString(file));
+    QFileInfo fi(from_utf8(file));
     QString sel = QFileDialog::getOpenFileName(this, "Open Image File", fi.path());
     if(sel.length())
       m_InFilename->setText(sel);
     }
   else
     {
-    QFileInfo fi(QString::fromStdString(file));
+    QFileInfo fi(from_utf8(file));
     QString sel = QFileDialog::getSaveFileName(this, "Save Image File", fi.path());
     if(sel.length())
       m_InFilename->setText(sel);
@@ -367,7 +368,7 @@ void SelectFilePage::on_inFilename_textChanged(const QString &text)
 
   // The file format for the checkbox
   GuidedNativeImageIO::FileFormat fmt =
-      m_Model->GuessFileFormat(text.toStdString(), file_exists);
+      m_Model->GuessFileFormat(to_utf8(text), file_exists);
 
   // Select the appropriate entry in the combo box
   m_InFormat->setCurrentIndex(m_InFormat->findData(QVariant(fmt)));
@@ -425,7 +426,7 @@ void SummaryPage::AddItem(
 {
   QTreeWidgetItem *item = new QTreeWidgetItem(parent);
   item->setText(0, key);
-  item->setText(1, m_Model->GetSummaryItem(si).c_str());
+  item->setText(1, from_utf8(m_Model->GetSummaryItem(si)));
 }
 
 void SummaryPage::AddItem(
@@ -435,7 +436,7 @@ void SummaryPage::AddItem(
 {
   QTreeWidgetItem *item = new QTreeWidgetItem(parent);
   item->setText(0, key);
-  item->setText(1, m_Model->GetSummaryItem(si).c_str());
+  item->setText(1, from_utf8(m_Model->GetSummaryItem(si)));
 }
 
 
@@ -566,8 +567,7 @@ bool DICOMPage::validatePage()
   try
     {
     QtCursorOverride curse(Qt::WaitCursor);
-    m_Model->LoadDicomSeries(
-          this->field("Filename").toString().toStdString(), row);
+    m_Model->LoadDicomSeries(to_utf8(this->field("Filename").toString()), row);
     }
   catch(IRISException &exc)
     {
@@ -715,8 +715,7 @@ void RawPage::initializePage()
   Registry hint = m_Model->GetHints();
 
   // Get the size of the image in bytes
-  m_FileSize = m_Model->GetFileSizeInBytes(
-        field("Filename").toString().toStdString());
+  m_FileSize = m_Model->GetFileSizeInBytes(to_utf8(field("Filename").toString()));
   m_OutActualSize->setValue(m_FileSize);
 
   // Assign to the widgets
@@ -777,7 +776,7 @@ bool RawPage::validatePage()
   try
     {
     m_Model->SetSelectedFormat(GuidedNativeImageIO::FORMAT_RAW);
-    m_Model->LoadImage(field("Filename").toString().toStdString());
+    m_Model->LoadImage(to_utf8(field("Filename").toString()));
     }
   catch(IRISException &exc)
     {

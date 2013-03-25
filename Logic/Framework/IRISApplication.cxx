@@ -89,6 +89,7 @@ IRISApplication
 {
   // Create a new system interface
   m_SystemInterface = new SystemInterface();
+  m_HistoryManager = m_SystemInterface->GetHistoryManager();
 
   // Initialize the color table
   m_ColorLabelTable = ColorLabelTable::New();
@@ -374,18 +375,10 @@ IRISApplication
 
   // Update filenames
   m_IRISImageData->GetSegmentation()->SetFileName(io->GetFileNameOfNativeImage());
-  m_IRISImageData->GetSegmentation()->SetNickname(io->GetNicknameOfNativeImage());
 
-  // Check that the range is valid
-#if MAX_COLOR_LABELS < 0xffff
-  if(m_IRISImageData->GetSegmentation()->GetImageMax() > MAX_COLOR_LABELS)
-    {
-    m_IRISImageData->GetSegmentation()->GetImage()->FillBuffer(0);
-    throw IRISException(
-      "Segmentation image has more labels than maximum allowed (%d)", 
-      MAX_COLOR_LABELS);
-    }
-#endif
+  // Update the history
+  m_SystemInterface->GetHistoryManager()->UpdateHistory(
+        "LabelImage", io->GetFileNameOfNativeImage(), true);
 
   // Update the color labels, so that for every label in the image
   // there is a valid color label
@@ -1342,6 +1335,14 @@ IRISApplication
   // Add the image as the current grayscale overlay
   m_IRISImageData->AddOverlay(imgOverlay, mapper);
 
+  // Set the filename of the overlay
+  // TODO: this is cumbersome, could we just initialize the wrapper from the
+  // GuidedNativeImageIO without passing all this junk around?
+  m_IRISImageData->GetLastOverlay()->SetFileName(io->GetFileNameOfNativeImage());
+
+  // Add the overlay to the history
+  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), true);
+
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
   m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
@@ -1384,11 +1385,10 @@ IRISApplication
 
   // Set the filename and nickname of the image wrapper
   m_IRISImageData->GetMain()->SetFileName(io->GetFileNameOfNativeImage());
-  m_IRISImageData->GetMain()->SetNickname(io->GetNicknameOfNativeImage());
 
   // Update the system's history list
-  m_SystemInterface->GetHistoryManager()->UpdateHistory(
-        "MainImage", io->GetFileNameOfNativeImage(), false);
+  m_HistoryManager->UpdateHistory("MainImage", io->GetFileNameOfNativeImage(), false);
+  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), false);
 
   // Reset the segmentation ROI
   m_GlobalState->SetSegmentationROI(io->GetNativeImage()->GetBufferedRegion());

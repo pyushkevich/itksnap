@@ -397,14 +397,6 @@ bool ImageIOWizardModel::IsImageLoaded() const
 
 void ImageIOWizardModel::Finalize()
 {
-  if(IsImageLoaded())
-    {
-    // Note that the local history is not updated when loading a main image!
-    m_Parent->GetDriver()->GetSystemInterface()->GetHistoryManager()->
-        UpdateHistory(m_HistoryName.c_str(),
-                      m_GuidedIO->GetFileNameOfNativeImage().c_str(),
-                      m_HistoryName != "MainImage");
-    }
 }
 
 

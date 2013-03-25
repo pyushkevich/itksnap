@@ -400,13 +400,35 @@ public:
 
   virtual void* GetVoxelVoidPointer() const;
 
+  /**
+   * Set the filename of the image wrapper. If the wrapper does not have a
+   * nickname, the nickname will be changed to the file part of the filename.
+   */
+  void SetFileName(const std::string &name);
+
+
   // Access the filename
-  irisSetStringMacro(FileName)
   irisGetStringMacro(FileName)
 
-  // Access the nickname
-  irisSetWithEventMacro(Nickname, const std::string &, WrapperMetadataChangeEvent)
-  irisGetMacro(Nickname, const std::string &)
+  /**
+   * Fallback nickname - shown if no filename and no custom nickname set.
+   */
+  irisGetSetMacro(DefaultNickname, const std::string &)
+
+  /**
+   * Get the nickname of the image. A nickname is a shorter description of the
+   * image that is displayed to the user. If a custom nickname is not set, it
+   * defaults to the filename (without path). If there is no filename (i.e.,
+   * the layer is internal), the default nickname is used.
+   */
+  const std::string &GetNickname() const;
+
+  /**
+   * Set the custom nickname for the wrapper.
+   */
+  virtual void SetCustomNickname(const std::string &nickname);
+
+
 
   /**
    * Write the image to disk with the help of the GuidedNativeImageIO object
@@ -475,8 +497,16 @@ protected:
   // Transform from image index to NIFTI world coordinates
   TransformType m_NiftiSform, m_NiftiInvSform;
 
-  // Each layer has a filename and a nickname
-  std::string m_FileName, m_Nickname;
+  // Each layer has a filename, from which it is belived to have come
+  std::string m_FileName, m_FileNameShort;
+
+  // Each layer has a nickname. But this gets complicated, because the nickname
+  // can be set by the user, or it can be default for the wrapper, or it can be
+  // derived from the filename. The nicknames are used in the following order.
+  // - if there is a custom nickname, it is shown
+  // - if there is a filename, nickname is set to the shortened filename
+  // - if there is no filename, nickname is set to the default nickname
+  std::string m_DefaultNickname, m_CustomNickname;
 
   // The histogram for this scalar wrapper. It is computed only when asked for
   SmartPtr<ScalarImageHistogram> m_Histogram;

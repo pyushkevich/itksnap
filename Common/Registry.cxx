@@ -261,16 +261,21 @@ Registry
   IRISOStringStream oss;
   for(unsigned int i=0; i < input.length() ; i++)
     {
-    if(!isprint(input[i]) || input[i]=='%' || isspace(input[i]))
+    // Map the character to positive integer (0..255)
+    char c = input[i];
+    int v = static_cast<int>(static_cast<unsigned char>(c));
+
+    // We only print ASCII codes
+    if(v <= 0x20 || v >= 0x7f || c == '%')
       {
       // Replace character by a escape string
       oss << '%';
-      oss << setw(2) << setfill('0') << hex << (int)input[i];
+      oss << setw(2) << setfill('0') << hex << v;
       }
     else
       {
       // Just copy the character
-      oss << input[i];
+      oss << c;
       }
     }
 

@@ -248,7 +248,9 @@ SystemInterface
   SystemTools::ConvertToUnixSlashes(path);
 
   // Encode the filename as ASCII
+  std::cout << path << std::endl;
   path = EncodeFilename(path);
+  std::cout << path << std::endl;
 
   // Get the key associated with this filename
   string key = this->Key("ImageAssociation.Mapping.Element[%s]",path.c_str());
@@ -471,9 +473,13 @@ SystemInterface
 ::EncodeFilename(const string &src)
 {
   IRISOStringStream sout;
-  
-  for(unsigned int i=0;i<src.length();i++)
-    sout << setw(2) << setfill('0') << hex << (int)src[i];
+
+  const char *chararray = src.c_str();
+  for(unsigned int i=0;i<strlen(chararray);i++)
+    {
+    unsigned char c = (unsigned char) chararray[i];
+    sout << setw(2) << setfill('0') << (int) c;
+    }
 
   return sout.str();
 }

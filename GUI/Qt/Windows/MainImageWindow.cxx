@@ -49,6 +49,8 @@
 #include "QtWidgetCoupling.h"
 #include "SimpleFileDialogWithHistory.h"
 #include "StatisticsDialog.h"
+#include "ImageWrapperBase.h"
+#include "IRISImageData.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -229,7 +231,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // menu. TODO: a more direct way would be to listen to changes to the
   // history, but that requires making history an event-firing object
   LatentITKEventNotifier::connect(model->GetDriver(),
-                                  MainImageDimensionsChangeEvent(),
+                                  LayerChangeEvent(),
                                   this,
                                   SLOT(onModelUpdate(const EventBucket&)));
 
@@ -243,6 +245,12 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   LatentITKEventNotifier::connect(model->GetDriver(),
                                   MainImageDimensionsChangeEvent(),
                                   historyModel,
+                                  SLOT(onModelUpdate(const EventBucket&)));
+
+  // Listen to metadata changes, since they affect the title window
+  LatentITKEventNotifier::connect(model->GetDriver(),
+                                  WrapperMetadataChangeEvent(),
+                                  this,
                                   SLOT(onModelUpdate(const EventBucket&)));
 
   // Couple the visibility of each view panel to the correponding property
@@ -284,6 +292,12 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
       }
     }
 
+  if(b.HasEvent(LayerChangeEvent()) || b.HasEvent(WrapperMetadataChangeEvent()))
+    {
+    // Update the window title
+    this->UpdateWindowTitle();
+    }
+
 }
 
 void MainImageWindow::UpdateRecentMenu()
@@ -304,7 +318,7 @@ void MainImageWindow::UpdateRecentMenu()
     {
     if(i < recent.size())
       {
-      menus[i]->setText(recent[i].c_str());
+      menus[i]->setText(from_utf8(recent[i]));
       menus[i]->setEnabled(true);
       }
     else
@@ -312,6 +326,29 @@ void MainImageWindow::UpdateRecentMenu()
       menus[i]->setText("Not available");
       menus[i]->setEnabled(false);
       }
+    }
+}
+
+void MainImageWindow::UpdateWindowTitle()
+{
+  GenericImageData *gid = m_Model->GetDriver()->GetIRISImageData();
+  QString mainfile, segfile;
+  if(gid && gid->IsMainLoaded())
+    {
+    mainfile = from_utf8(gid->GetMain()->GetNickname());
+    segfile = from_utf8(gid->GetSegmentation()->GetNickname());
+    }
+
+  if(!segfile.length())
+    segfile = "New Segmentation";
+
+  if(mainfile.length())
+    {
+    this->setWindowTitle(QString("%1 - %2 - ITK-SNAP").arg(mainfile).arg(segfile));
+    }
+  else
+    {
+    this->setWindowTitle("ITK-SNAP");
     }
 }
 
@@ -456,7 +493,7 @@ void MainImageWindow::LoadRecent(QString file)
     QtCursorOverride c(Qt::WaitCursor);
     IRISWarningList warnings;
     LoadMainImageDelegate del(m_Model);
-    m_Model->LoadImageNonInteractive(file.toAscii(), del, warnings);
+    m_Model->LoadImageNonInteractive(file.toUtf8().constData(), del, warnings);
     }
   catch(exception &exc)
     {
@@ -561,7 +598,7 @@ void MainImageWindow::on_actionOpenMain_triggered()
   LoadMainImageDelegate delegate(m_Model);
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
   model->InitializeForLoad(m_Model, &delegate,
-                           "GreyImage", "Main Image");
+                           "AnatomicImage", "Main Image");
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);
@@ -575,7 +612,7 @@ void MainImageWindow::on_actionAdd_Overlay_triggered()
   LoadOverlayImageDelegate delegate(m_Model);
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
   model->InitializeForLoad(m_Model, &delegate,
-                           "GreyImage", "Overlay Image");
+                           "AnatomicImage", "Overlay Image");
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);

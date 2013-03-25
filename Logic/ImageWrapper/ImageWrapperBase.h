@@ -230,9 +230,16 @@ public:
   irisVirtualGetStringMacro(FileName)
   irisVirtualSetStringMacro(FileName)
 
-  // Access the nickname
+  // Access the nickname - which may be a custom nickname or derived from the
+  // filename if there is no custom nickname
   irisVirtualGetMacro(Nickname, const std::string &)
-  irisVirtualSetMacro(Nickname, const std::string &)
+
+  // Set the custom nickname - precedence over the filename
+  irisVirtualSetMacro(CustomNickname, const std::string &)
+
+  // Fallback nickname - shown if no filename and no custom nickname set.
+  irisVirtualGetMacro(DefaultNickname, const std::string &)
+  irisVirtualSetMacro(DefaultNickname, const std::string &)
 
   /**
     Export one of the slices as a thumbnail (e.g., PNG file)

@@ -100,11 +100,6 @@ public:
   /** Get the role of the current layer */
   LayerRole GetRole() const;
 
-  /** Get a dynamic name for the current layer. If the layer has a nickname,
-    it will be returned. Otherwise, a generic name will be returned based on
-    the index of the layer in its role */
-  std::string GetDynamicNickname() const;
-
   void Print(const char *) const;
 
   /** Compare two iterators */
@@ -233,6 +228,8 @@ public:
                           n, GetNumberOfLayers());
     return it.GetLayer();
   }
+
+  ImageWrapperBase *GetLastOverlay();
 
   // virtual ImageWrapperBase* GetLayer(unsigned int layer) const;
 

@@ -32,7 +32,7 @@ CurrentVoxelInfoItemSetDomain
   LayerCurrentVoxelInfo vox;
 
   // Set the name
-  vox.LayerName = it.GetDynamicNickname().c_str();
+  vox.LayerName = it.GetLayer()->GetNickname().c_str();
 
   // Make sure that the layer is initialized
   if(it.GetLayer()->IsInitialized())

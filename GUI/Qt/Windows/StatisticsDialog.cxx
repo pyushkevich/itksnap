@@ -55,7 +55,7 @@ void StatisticsDialog::FillTable()
 
   const std::vector<std::string> &cols = m_Stats->GetImageStatisticsColumns();
   for(int j = 0; j < cols.size(); j++)
-    header << cols[j].c_str();
+    header << from_utf8(cols[j]);
 
   // Fill out the item model
   m_ItemModel->clear();
@@ -124,7 +124,7 @@ void StatisticsDialog::on_btnExport_clicked()
     {
     try
       {
-      std::ofstream fout(selection.toStdString().c_str());
+      std::ofstream fout(selection.toUtf8());
       if(selection.endsWith(".csv", Qt::CaseInsensitive))
         {
         m_Stats->Export(fout, ",", *m_Model->GetDriver()->GetColorLabelTable());

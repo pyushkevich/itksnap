@@ -161,6 +161,7 @@ protected:
 private:
 
   void UpdateRecentMenu();
+  void UpdateWindowTitle();
 
   // For convenience, an array of the four panels (3 slice/1 3D)
   QWidget *m_ViewPanels[4];

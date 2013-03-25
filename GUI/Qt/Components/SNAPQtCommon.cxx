@@ -104,7 +104,7 @@ QStringList toQStringList(const std::vector<std::string> inlist)
   for(std::vector<std::string>::const_iterator it = inlist.begin();
       it != inlist.end(); ++it)
     {
-    qsl.push_back(QString::fromStdString(*it));
+    qsl.push_back(from_utf8(*it));
     }
   return qsl;
 }

@@ -5,7 +5,7 @@
 #include "GlobalUIModel.h"
 #include <itksys/SystemTools.hxx>
 #include <QIcon>
-
+#include "SNAPQtCommon.h"
 
 HistoryQListModel::HistoryQListModel(QObject *parent) :
   QAbstractListModel(parent)
@@ -36,7 +36,7 @@ QVariant HistoryQListModel::data(const QModelIndex &index, int role) const
     {
     // Get the shorter filename
     std::string shorty = itksys::SystemTools::GetFilenameName(item.c_str());
-    return QString(shorty.c_str());
+    return from_utf8(shorty);
     }
   else if(role == Qt::DecorationRole)
     {
@@ -51,7 +51,7 @@ QVariant HistoryQListModel::data(const QModelIndex &index, int role) const
     }
   else if(role == Qt::ToolTipRole)
     {
-    return QString(item.c_str());
+    return from_utf8(item.c_str());
     }
   return QVariant();
 

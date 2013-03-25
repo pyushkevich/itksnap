@@ -192,7 +192,6 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/CommonRepresentationPolicy.h
   Logic/ImageWrapper/DisplayMappingPolicy.h
   Logic/ImageWrapper/GuidedNativeImageIO.h
-  Logic/ImageWrapper/ImageIORoutines.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
   Logic/ImageWrapper/InputSelectionImageFilter.h

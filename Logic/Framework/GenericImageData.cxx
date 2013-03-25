@@ -292,6 +292,11 @@ unsigned int GenericImageData::GetNumberOfLayers(int role_filter)
   return n;
 }
 
+ImageWrapperBase *GenericImageData::GetLastOverlay()
+{
+  return m_Wrappers[LayerIterator::OVERLAY_ROLE].back();
+}
+
 
 
 void GenericImageData::PushBackImageWrapper(LayerRole role,
@@ -505,28 +510,6 @@ bool LayerIterator::operator !=(const LayerIterator &it)
 
 std::map<LayerIterator::LayerRole, std::string> LayerIterator::m_RoleDefaultNames;
 
-std::string
-LayerIterator::GetDynamicNickname() const
-{
-  // If there is a nickname, return it
-  const std::string &nick = this->GetLayer()->GetNickname();
-  if(nick.length())
-    return nick;
-
-  // Otherwise assign a name
-  std::string roleName = m_RoleDefaultNames[this->GetRole()];
-
-  // If more than one in that role, augment by a number
-  if(m_RoleIter->second.size() > 1)
-    {
-    std::ostringstream oss;
-    int pos = (int)(m_WrapperInRoleIter - m_RoleIter->second.begin());
-    oss << roleName << " " << (1+pos);
-    roleName = oss.str();
-    }
-
-  return roleName;
-}
 
 void LayerIterator::Print(const char *what) const
 {

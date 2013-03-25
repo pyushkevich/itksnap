@@ -295,6 +295,11 @@ public:
   irisGetMacro(SystemInterface, SystemInterface *);
 
   /**
+   * Get the history manager
+   */
+  irisGetMacro(HistoryManager, HistoryManager *)
+
+  /**
    * Set the current cursor position.  This will cause all the active image
    * wrappers to update their current slice numbers
    */
@@ -462,6 +467,9 @@ protected:
 
   // SystemInterface used to get things from the system
   SystemInterface *m_SystemInterface;
+
+  // History manager
+  HistoryManager *m_HistoryManager;
 
   /** RAI between anatomy space and image space */
   std::string m_DisplayToAnatomyRAI[3];

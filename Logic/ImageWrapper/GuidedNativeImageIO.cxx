@@ -359,12 +359,6 @@ GuidedNativeImageIO
 
   // Also pull out a nickname for this file, if it's in the folder
   m_NativeNickname = m_Hints["Nickname"][""];
-
-  // If there is no nickname, construct it
-  if(m_NativeNickname.size() == 0)
-    {
-    m_NativeNickname = itksys::SystemTools::GetFilenameName(m_IOBase->GetFileName());
-    }
 }
 
 void

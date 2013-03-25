@@ -37,9 +37,9 @@ public:
                          const LayerCurrentVoxelInfo &desc, int col)
   {
     if(col == 0)
-      return QString::fromStdString(desc.LayerName);
+      return from_utf8(desc.LayerName);
     else
-      return QString::fromStdString(desc.IntensityValue);
+      return from_utf8(desc.IntensityValue);
   }
 
   static QIcon GetIcon(ValueType value,
