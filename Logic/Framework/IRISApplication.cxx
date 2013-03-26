@@ -1410,6 +1410,10 @@ IRISApplication
   Vector3ui cursor = size; cursor /= 2;
   this->SetCursorPosition(cursor);
 
+  // This line forces the cursor to be propagated to the image even if the
+  // crosshairs positions did not change from their previous values
+  this->GetIRISImageData()->SetCrosshairs(cursor);
+
   // Reset the UNDO manager
   m_UndoManager.Clear();
 }

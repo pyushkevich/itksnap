@@ -162,6 +162,7 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   // Listen to cursor change events, which require a repaint of the slice view
   connectITK(m_GlobalUI->GetDriver(), CursorUpdateEvent());
+  connectITK(m_GlobalUI->GetDriver(), MainImageDimensionsChangeEvent());
 
   // Add listener for changes to the model
   connectITK(m_SliceModel, ModelUpdateEvent());
