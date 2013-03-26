@@ -690,7 +690,7 @@ bool ColorMapModel
   if(!m_Layer)
     return false;
 
-  value = (double) m_Layer->GetAlpha();
+  value = (double) (255.0 * m_Layer->GetAlpha());
   if(range)
     {
     range->Set(0, 255, 1);
@@ -702,7 +702,7 @@ bool ColorMapModel
 void ColorMapModel::SetLayerOpacity(double value)
 {
   assert(m_Layer);
-  m_Layer->SetAlpha((unsigned char) value);
+  m_Layer->SetAlpha(value / 255.0);
 }
 
 

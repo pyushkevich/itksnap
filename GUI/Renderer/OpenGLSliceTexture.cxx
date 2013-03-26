@@ -196,7 +196,7 @@ OpenGLSliceTexture<TPixel>
 template<class TPixel>
 void
 OpenGLSliceTexture<TPixel>
-::DrawTransparent(unsigned char alpha)
+::DrawTransparent(double alpha)
 {
   // Update the texture
   Update();
@@ -216,7 +216,7 @@ OpenGLSliceTexture<TPixel>
   glBindTexture(GL_TEXTURE_2D,m_TextureIndex);
 
   // Set the color to white
-  glColor4ub(255,255,255,alpha);
+  glColor4ub(255,255,255,(unsigned char)(alpha * 255));
     
   int w = m_Image->GetBufferedRegion().GetSize()[0];
   int h = m_Image->GetBufferedRegion().GetSize()[1];

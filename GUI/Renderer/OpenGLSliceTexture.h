@@ -109,7 +109,7 @@ public:
   /**
    * Draw the texture in transparent mode, with given level of alpha blending.
    */
-  void DrawTransparent(unsigned char alpha);
+  void DrawTransparent(double alpha);
 
 private:
   

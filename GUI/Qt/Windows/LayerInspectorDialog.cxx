@@ -12,8 +12,8 @@
 #include "ColorMapModel.h"
 #include "ImageInfoModel.h"
 #include "LatentITKEventNotifier.h"
-#include "QtDoubleSliderWithEditorCoupling.h"
-#include "ComponentSelectionModel.h"
+#include "QtSliderCoupling.h"
+#include "LayerGeneralPropertiesModel.h"
 #include "SNAPQtCommon.h"
 
 
@@ -91,6 +91,7 @@ private:
 };
 
 
+#include <QMenu>
 
 LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
     QDialog(parent),
@@ -98,6 +99,11 @@ LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   m_LayerListModel = new LayerListQtModel(this);
+
+  // Set up the action button
+  QMenu *menu = new QMenu(this);
+  menu->addAction(ui->actionSaveSelectedLayerAs);
+  ui->btnAction->setMenu(menu);
 }
 
 LayerInspectorDialog::~LayerInspectorDialog()
@@ -121,7 +127,7 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
   ui->cmpColorMap->SetModel(model->GetColorMapModel());
   ui->cmpInfo->SetModel(model->GetImageInfoModel());
   ui->cmpMetadata->SetModel(model->GetImageInfoModel());
-  ui->cmpComponent->SetModel(model->GetComponentSelectionModel());
+  ui->cmpComponent->SetModel(model->GetLayerGeneralPropertiesModel());
 
   // We need to listen to layer changes in the model
   LatentITKEventNotifier::connect(
@@ -130,7 +136,7 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
 
   // Connect the layer opacity model
   makeCoupling(
-        ui->inLayerOpacity,
+        ui->inOverlayOpacity,
         model->GetColorMapModel()->GetLayerOpacityModel());
 }
 
@@ -151,14 +157,14 @@ void LayerInspectorDialog::onLayerSelection()
           layer->GetDisplayMapping()->GetIntensityCurve() ? layer : NULL);
 
     m_Model->GetImageInfoModel()->SetLayer(layer);
-    m_Model->GetComponentSelectionModel()->SetLayer(it.GetLayerAsVector());
+    m_Model->GetLayerGeneralPropertiesModel()->SetLayer(layer);
     }
   else
     {
     m_Model->GetColorMapModel()->SetLayer(NULL);
     m_Model->GetIntensityCurveModel()->SetLayer(NULL);
     m_Model->GetImageInfoModel()->SetLayer(NULL);
-    m_Model->GetComponentSelectionModel()->SetLayer(NULL);
+    m_Model->GetLayerGeneralPropertiesModel()->SetLayer(NULL);
     }
 }
 
@@ -173,7 +179,7 @@ void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
     m_Model->GetImageInfoModel()->Update();
     m_Model->GetColorMapModel()->Update();
     m_Model->GetIntensityCurveModel()->Update();
-    m_Model->GetComponentSelectionModel()->Update();
+    m_Model->GetLayerGeneralPropertiesModel()->Update();
 
     // If the currently selected layer has been lost, move to the first
     // available layer
@@ -195,4 +201,10 @@ void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
     // Layer selection needs to be updated
     onLayerSelection();
     }
+}
+
+void LayerInspectorDialog::on_actionSaveSelectedLayerAs_triggered()
+{
+
+
 }

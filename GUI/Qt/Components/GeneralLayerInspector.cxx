@@ -1,13 +1,14 @@
 #include "GeneralLayerInspector.h"
 #include "ui_GeneralLayerInspector.h"
 
-#include "ComponentSelectionModel.h"
+#include "LayerGeneralPropertiesModel.h"
 
 #include "QtCheckBoxCoupling.h"
 #include "QtComboBoxCoupling.h"
 #include "QtSpinBoxCoupling.h"
+#include "QtSliderCoupling.h"
 
-Q_DECLARE_METATYPE(ComponentSelectionModel::DisplayMode)
+Q_DECLARE_METATYPE(LayerGeneralPropertiesModel::DisplayMode)
 
 GeneralLayerInspector::GeneralLayerInspector(QWidget *parent) :
   QWidget(parent),
@@ -21,7 +22,7 @@ GeneralLayerInspector::~GeneralLayerInspector()
   delete ui;
 }
 
-void GeneralLayerInspector::SetModel(ComponentSelectionModel *model)
+void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
 {
   m_Model = model;
 
@@ -30,4 +31,7 @@ void GeneralLayerInspector::SetModel(ComponentSelectionModel *model)
   makeCoupling(ui->inComponent, m_Model->GetSelectedComponentModel());
   makeCoupling(ui->chkAnimate, m_Model->GetAnimateModel());
 
+  makeCoupling(ui->inOpacity, m_Model->GetLayerOpacityModel());
+  makeCoupling(ui->inOpacityValue, m_Model->GetLayerOpacityModel());
+  makeCoupling(ui->chkVisible, m_Model->GetLayerVisibilityModel());
 }

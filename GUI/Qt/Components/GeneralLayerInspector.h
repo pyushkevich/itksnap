@@ -7,7 +7,8 @@ namespace Ui {
 class GeneralLayerInspector;
 }
 
-class ComponentSelectionModel;
+class GlobalUIModel;
+class LayerGeneralPropertiesModel;
 
 class GeneralLayerInspector : public QWidget
 {
@@ -17,12 +18,12 @@ public:
   explicit GeneralLayerInspector(QWidget *parent = 0);
   ~GeneralLayerInspector();
 
-  void SetModel(ComponentSelectionModel *model);
+  void SetModel(LayerGeneralPropertiesModel *model);
   
 private:
   Ui::GeneralLayerInspector *ui;
 
-  ComponentSelectionModel *m_Model;
+  LayerGeneralPropertiesModel *m_Model;
 };
 
 #endif // MULTICHANNELINSPECTOR_H

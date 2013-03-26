@@ -200,13 +200,10 @@ public:
   Vector3ui GetSize() const;
 
   /** Get layer transparency */
-  irisSetWithEventMacro(Alpha, unsigned char, WrapperMetadataChangeEvent)
+  irisSetWithEventMacro(Alpha, double, WrapperMetadataChangeEvent)
 
   /** Set layer transparency */
-  irisGetMacro(Alpha, unsigned char)
-
-  /** Switch on/off visibility */
-  virtual void ToggleVisibility();
+  irisGetMacro(Alpha, double)
 
   /** Get the buffered region of the image */
   virtual itk::ImageRegion<3> GetBufferedRegion() const;
@@ -487,10 +484,7 @@ protected:
   bool m_Initialized;
 
   /** Transparency */
-  unsigned char m_Alpha;
-
-  /** A 'saved' value of alpha for when visibility is toggled */
-  unsigned char m_ToggleAlpha;
+  double m_Alpha;
 
   /** The pipeline that handles mapping intensities to the display slices */
   SmartPtr<DisplayMapping> m_DisplayMapping;

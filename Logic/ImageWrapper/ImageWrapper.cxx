@@ -429,24 +429,6 @@ ImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-void
-ImageWrapper<TTraits,TBase>
-::ToggleVisibility()
-{
-  // If visible (alpha > 0), make invisible
-  if(m_Alpha > 0)
-    {
-    m_ToggleAlpha = m_Alpha;
-    SetAlpha(0);
-    }
-  // If invisible, return to saved alpha value
-  else
-    {
-    SetAlpha(m_ToggleAlpha);
-    }
-}
-
-template<class TTraits, class TBase>
 itk::ImageRegion<3>
 ImageWrapper<TTraits,TBase>
 ::GetBufferedRegion() const
@@ -643,8 +625,7 @@ ImageWrapper<TTraits,TBase>
     }
   m_Initialized = false;
 
-  m_Alpha = 128;
-  m_ToggleAlpha = 128;
+  m_Alpha = 0.5;
 }
 
 

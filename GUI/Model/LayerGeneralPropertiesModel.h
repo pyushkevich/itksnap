@@ -1,5 +1,5 @@
-#ifndef COMPONENTSELECTIONMODEL_H
-#define COMPONENTSELECTIONMODEL_H
+#ifndef LAYERGENERALPROPERTIESMODEL_H
+#define LAYERGENERALPROPERTIESMODEL_H
 
 #include "AbstractLayerAssociatedModel.h"
 #include "PropertyModel.h"
@@ -9,12 +9,12 @@ class AbstractMultiChannelDisplayMappingPolicy;
 /**
  * Properties maintained for each layer in the layer association
  */
-class ComponentSelectionLayerProperties
+class GeneralLayerProperties
 {
 public:
   irisGetSetMacro(ObserverTag, unsigned long)
 
-  virtual ~ComponentSelectionLayerProperties() {}
+  virtual ~GeneralLayerProperties() {}
 
 protected:
 
@@ -23,13 +23,12 @@ protected:
 };
 
 typedef AbstractLayerAssociatedModel<
-    ComponentSelectionLayerProperties,
-    VectorImageWrapperBase> ComponentSelectionModelBase;
+    GeneralLayerProperties, ImageWrapperBase> LayerGeneralPropertiesModelBase;
 
-class ComponentSelectionModel : public ComponentSelectionModelBase
+class LayerGeneralPropertiesModel : public LayerGeneralPropertiesModelBase
 {
 public:
-  irisITKObjectMacro(ComponentSelectionModel, ComponentSelectionModelBase)
+  irisITKObjectMacro(LayerGeneralPropertiesModel, LayerGeneralPropertiesModelBase)
 
   /**
    * This enum defines the selections that the user can make for display mode.
@@ -42,8 +41,8 @@ public:
   };
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(VectorImageWrapperBase *layer);
-  void UnRegisterFromLayer(VectorImageWrapperBase *layer, bool being_deleted);
+  void RegisterWithLayer(ImageWrapperBase *layer);
+  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted);
 
   // Parent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);
@@ -60,10 +59,16 @@ public:
   irisGetMacro(SelectedComponentModel, AbstractRangedIntProperty *)
   irisGetMacro(AnimateModel, AbstractSimpleBooleanProperty *)
 
+  /** A model for overall layer opacity (int, range 0..100) */
+  irisRangedPropertyAccessMacro(LayerOpacity, int)
+
+  /** A model for the layer visibility on/off state */
+  irisSimplePropertyAccessMacro(LayerVisibility, bool)
+
 protected:
 
-  ComponentSelectionModel();
-  virtual ~ComponentSelectionModel();
+  LayerGeneralPropertiesModel();
+  virtual ~LayerGeneralPropertiesModel();
 
   SmartPtr<AbstractDisplayModeModel> m_DisplayModeModel;
   bool GetDisplayModeValueAndRange(DisplayMode &value, DisplayModeDomain *domain);
@@ -77,8 +82,17 @@ protected:
   bool GetAnimateValue(bool &value);
   void SetAnimateValue(bool value);
 
+  // layer opacity and visibility models
+  SmartPtr<AbstractRangedIntProperty> m_LayerOpacityModel;
+  SmartPtr<AbstractSimpleBooleanProperty> m_LayerVisibilityModel;
+
+  // Callbacks for the opacity model
+  bool GetLayerOpacityValueAndRange(int &value, NumericValueRange<int> *domain);
+  void SetLayerOpacityValue(int value);
+
   // Get the current display settings
-  AbstractMultiChannelDisplayMappingPolicy *GetDisplayPolicy();
+  VectorImageWrapperBase *GetLayerAsVector();
+  AbstractMultiChannelDisplayMappingPolicy *GetMultiChannelDisplayPolicy();
 };
 
-#endif // COMPONENTSELECTIONMODEL_H
+#endif // LAYERGENERALPROPERTIESMODEL_H

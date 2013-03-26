@@ -243,7 +243,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/AbstractModel.cxx
   GUI/Model/ColorLabelPropertyModel.cxx
   GUI/Model/ColorMapModel.cxx
-  GUI/Model/ComponentSelectionModel.cxx
+  GUI/Model/LayerGeneralPropertiesModel.cxx
   GUI/Model/CursorInspectionModel.cxx
   GUI/Model/DisplayLayoutModel.cxx
   GUI/Model/Generic3DModel.cxx
@@ -301,7 +301,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/AbstractModel.h
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelPropertyModel.h
-  GUI/Model/ComponentSelectionModel.h
+  GUI/Model/LayerGeneralPropertiesModel.h
   GUI/Model/CursorInspectionModel.h
   GUI/Model/DisplayLayoutModel.h
   GUI/Model/Generic3DModel.h

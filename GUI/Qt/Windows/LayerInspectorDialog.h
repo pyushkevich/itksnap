@@ -34,6 +34,9 @@ public slots:
   virtual void onModelUpdate(const EventBucket &bucket);
 
 
+private slots:
+  void on_actionSaveSelectedLayerAs_triggered();
+
 private:
     Ui::LayerInspectorDialog *ui;
     GlobalUIModel *m_Model;

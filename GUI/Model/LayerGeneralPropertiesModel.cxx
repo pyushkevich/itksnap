@@ -1,13 +1,14 @@
-#include "ComponentSelectionModel.h"
+#include "LayerGeneralPropertiesModel.h"
 #include "DisplayMappingPolicy.h"
 #include "LayerAssociation.txx"
+#include "NumericPropertyToggleAdaptor.h"
 
-template class LayerAssociation<ComponentSelectionLayerProperties,
+template class LayerAssociation<GeneralLayerProperties,
                                 VectorImageWrapperBase,
-                                ComponentSelectionModel::PropertiesFactory>;
+                                LayerGeneralPropertiesModel::PropertiesFactory>;
 
 
-ComponentSelectionModel::ComponentSelectionModel()
+LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
 {
   // Create the derived models
   m_DisplayModeModel = wrapGetterSetterPairAsProperty(
@@ -24,22 +25,34 @@ ComponentSelectionModel::ComponentSelectionModel()
         this,
         &Self::GetAnimateValue,
         &Self::SetAnimateValue);
+
+  m_LayerOpacityModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetLayerOpacityValueAndRange,
+        &Self::SetLayerOpacityValue);
+
+  m_LayerVisibilityModel =
+      NewNumericPropertyToggleAdaptor(m_LayerOpacityModel.GetPointer(), 0, 50);
 }
 
-ComponentSelectionModel::~ComponentSelectionModel()
+LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
 {
 
 }
 
 
 void
-ComponentSelectionModel::SetParentModel(GlobalUIModel *parent)
+LayerGeneralPropertiesModel::SetParentModel(GlobalUIModel *parent)
 {
   Superclass::SetParentModel(parent);
+
+  m_LayerOpacityModel->Rebroadcast(
+        parent->GetDriver(), WrapperMetadataChangeEvent(), ValueChangedEvent());
+
 }
 
 void
-ComponentSelectionModel::RegisterWithLayer(VectorImageWrapperBase *layer)
+LayerGeneralPropertiesModel::RegisterWithLayer(ImageWrapperBase *layer)
 {
   // Listen to changes in the layer's intensity curve
   // TODO: maybe we need better event granularity here? This event will fire when
@@ -53,7 +66,7 @@ ComponentSelectionModel::RegisterWithLayer(VectorImageWrapperBase *layer)
 }
 
 void
-ComponentSelectionModel::UnRegisterFromLayer(VectorImageWrapperBase *layer, bool being_deleted)
+LayerGeneralPropertiesModel::UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted)
 {
   if(!being_deleted)
     {
@@ -67,22 +80,22 @@ ComponentSelectionModel::UnRegisterFromLayer(VectorImageWrapperBase *layer, bool
 }
 
 void
-ComponentSelectionModel::OnUpdate()
+LayerGeneralPropertiesModel::OnUpdate()
 {
   Superclass::OnUpdate();
 
   // Do we need this method?
 }
 
-bool ComponentSelectionModel
+bool LayerGeneralPropertiesModel
 ::GetDisplayModeValueAndRange(DisplayMode &value, DisplayModeDomain *domain)
 {
-  VectorImageWrapperBase *layer = this->GetLayer();
+  VectorImageWrapperBase *layer = this->GetLayerAsVector();
   if(!layer)
     return false;
 
   // Get the current display mode
-  MultiChannelDisplayMode mode = GetDisplayPolicy()->GetDisplayMode();
+  MultiChannelDisplayMode mode = GetMultiChannelDisplayPolicy()->GetDisplayMode();
   if(mode.UseRGB)
     {
     value = MODE_RGB;
@@ -120,53 +133,55 @@ bool ComponentSelectionModel
   return true;
 }
 
-void ComponentSelectionModel
+void LayerGeneralPropertiesModel
 ::SetDisplayModeValue(DisplayMode value)
 {
+  assert(this->GetLayerAsVector());
+
   // Get the current display mode
-  MultiChannelDisplayMode mode = GetDisplayPolicy()->GetDisplayMode();
+  MultiChannelDisplayMode mode = GetMultiChannelDisplayPolicy()->GetDisplayMode();
 
   // Update the current display mode
   switch(value)
     {
-    case ComponentSelectionModel::MODE_COMPONENT:
+    case LayerGeneralPropertiesModel::MODE_COMPONENT:
       mode.SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_COMPONENT;
       mode.UseRGB = false;
       break;
-    case ComponentSelectionModel::MODE_MAGNITUDE:
+    case LayerGeneralPropertiesModel::MODE_MAGNITUDE:
       mode.SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_MAGNITUDE;
       mode.SelectedComponent = 0;
       mode.UseRGB = false;
       break;
-    case ComponentSelectionModel::MODE_MAX:
+    case LayerGeneralPropertiesModel::MODE_MAX:
       mode.SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_MAX;
       mode.SelectedComponent = 0;
       mode.UseRGB = false;
       break;
-    case ComponentSelectionModel::MODE_AVERAGE:
+    case LayerGeneralPropertiesModel::MODE_AVERAGE:
       mode.SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_AVERAGE;
       mode.SelectedComponent = 0;
       mode.UseRGB = false;
       break;
-    case ComponentSelectionModel::MODE_RGB:
+    case LayerGeneralPropertiesModel::MODE_RGB:
       mode.UseRGB = true;
       mode.SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_COMPONENT;
       mode.SelectedComponent = 0;
       break;
     }
 
-  GetDisplayPolicy()->SetDisplayMode(mode);
+  GetMultiChannelDisplayPolicy()->SetDisplayMode(mode);
 }
 
-bool ComponentSelectionModel
+bool LayerGeneralPropertiesModel
 ::GetSelectedComponentValueAndRange(int &value, NumericValueRange<int> *domain)
 {
-  VectorImageWrapperBase *layer = this->GetLayer();
+  VectorImageWrapperBase *layer = this->GetLayerAsVector();
   if(!layer)
     return false;
 
   // Get the current display mode
-  MultiChannelDisplayMode mode = GetDisplayPolicy()->GetDisplayMode();
+  MultiChannelDisplayMode mode = GetMultiChannelDisplayPolicy()->GetDisplayMode();
 
   // Mode must be single component
   if(mode.UseRGB ||
@@ -184,42 +199,73 @@ bool ComponentSelectionModel
   return true;
 }
 
-void ComponentSelectionModel
+void LayerGeneralPropertiesModel
 ::SetSelectedComponentValue(int value)
 {
+  assert(this->GetLayerAsVector());
+
   // Get the current display mode
-  MultiChannelDisplayMode mode = GetDisplayPolicy()->GetDisplayMode();
+  MultiChannelDisplayMode mode = GetMultiChannelDisplayPolicy()->GetDisplayMode();
   mode.SelectedComponent = value - 1;
-  GetDisplayPolicy()->SetDisplayMode(mode);
+  GetMultiChannelDisplayPolicy()->SetDisplayMode(mode);
 }
 
-bool ComponentSelectionModel
+bool LayerGeneralPropertiesModel
 ::GetAnimateValue(bool &value)
 {
-  if(!this->GetLayer())
+  if(!this->GetLayerAsVector())
     return false;
 
   // Get the current display mode
-  MultiChannelDisplayMode mode = GetDisplayPolicy()->GetDisplayMode();
+  MultiChannelDisplayMode mode = GetMultiChannelDisplayPolicy()->GetDisplayMode();
 
   // Animation is only possible when showing components
   if(mode.UseRGB ||
      mode.SelectedScalarRep != VectorImageWrapperBase::SCALAR_REP_COMPONENT)
     return false;
 
-  value = GetDisplayPolicy()->GetAnimate();
+  value = GetMultiChannelDisplayPolicy()->GetAnimate();
   return true;
 }
 
-void ComponentSelectionModel
+void LayerGeneralPropertiesModel
 ::SetAnimateValue(bool value)
 {
+  assert(this->GetLayerAsVector());
+
   // Get the current display mode
-  GetDisplayPolicy()->SetAnimate(value);
+  GetMultiChannelDisplayPolicy()->SetAnimate(value);
 }
 
+bool LayerGeneralPropertiesModel
+::GetLayerOpacityValueAndRange(int &value, NumericValueRange<int> *domain)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  if(layer)
+    {
+    value = (int)(100.0 * layer->GetAlpha());
+    if(domain)
+      domain->Set(0, 100, 5);
+    return true;
+    }
+  return false;
+}
+
+void LayerGeneralPropertiesModel::SetLayerOpacityValue(int value)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  layer->SetAlpha(value / 100.0);
+}
+
+VectorImageWrapperBase *
+LayerGeneralPropertiesModel::GetLayerAsVector()
+{
+  return dynamic_cast<VectorImageWrapperBase *>(this->GetLayer());
+}
+
+
 AbstractMultiChannelDisplayMappingPolicy *
-ComponentSelectionModel::GetDisplayPolicy()
+LayerGeneralPropertiesModel::GetMultiChannelDisplayPolicy()
 {
   AbstractMultiChannelDisplayMappingPolicy *dp = static_cast<
       AbstractMultiChannelDisplayMappingPolicy *>(

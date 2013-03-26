@@ -130,13 +130,10 @@ public:
   virtual Vector3ui GetSize() const = 0;
 
   /** Get layer transparency */
-  irisVirtualSetMacro(Alpha, unsigned char)
+  irisVirtualSetMacro(Alpha, double)
 
   /** Set layer transparency */
-  irisVirtualGetMacro(Alpha, unsigned char)
-
-  /** Switch on/off visibility */
-  virtual void ToggleVisibility() = 0;
+  irisVirtualGetMacro(Alpha, double)
 
   /**
    * Get the buffered region of the image

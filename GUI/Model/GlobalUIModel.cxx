@@ -41,7 +41,7 @@
 #include <LayerSelectionModel.h>
 #include <ColorMapModel.h>
 #include <ImageInfoModel.h>
-#include <ComponentSelectionModel.h>
+#include <LayerGeneralPropertiesModel.h>
 #include <Generic3DModel.h>
 #include <LabelEditorModel.h>
 #include <CursorInspectionModel.h>
@@ -122,8 +122,8 @@ GlobalUIModel::GlobalUIModel()
   m_ImageInfoModel->SetParentModel(this);
 
   // Component selection
-  m_ComponentSelectionModel = ComponentSelectionModel::New();
-  m_ComponentSelectionModel->SetParentModel(this);
+  m_LayerGeneralPropertiesModel = LayerGeneralPropertiesModel::New();
+  m_LayerGeneralPropertiesModel->SetParentModel(this);
 
   // Layer selections
   m_LoadedLayersSelectionModel = LayerSelectionModel::New();
