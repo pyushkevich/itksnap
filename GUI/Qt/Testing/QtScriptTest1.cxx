@@ -252,7 +252,7 @@ void QtScriptTest1::Run_ValidateFinish()
 
   //Tavi crashing so far ---- cout << "QtScriptTest1::Run: " << nReadRes << endl;
 
-
+  exit(0);
 
 }
 
