@@ -407,6 +407,16 @@ public:
   void SetFileName(const std::string &name);
 
 
+  virtual void UnRegister()
+  {
+    if(this->m_Image)
+      {
+      std::cout << "UnRegister in wrapper " << this << std::endl;
+      this->PrintObservers(std::cout, 4);
+      }
+    itk::Object::UnRegister();
+  }
+
   // Access the filename
   irisGetStringMacro(FileName)
 

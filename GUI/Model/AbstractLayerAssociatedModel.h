@@ -84,7 +84,7 @@ public:
       m_Layer->RemoveObserver(m_DeleteEventObserverTag);
 
       // Call the child's unregister method
-      this->UnRegisterFromLayer(m_Layer);
+      this->UnRegisterFromLayer(m_Layer, false);
       }
 
     // Set the layer
@@ -146,8 +146,13 @@ public:
     method implementation should retain the tag returned by the call to
     the Rebroadcast method. This tag can be placed in the layer-associated
     properties, and then used during the call to UnRegister.
+
+    The second parameter to this method specifies whether the method is
+    called in response to the layer being deleted or not. If they layer is
+    being deleted, we are unsure about the state of the layer and we don't
+    need to remove observers from it.
 . */
-  virtual void UnRegisterFromLayer(TWrapper *layer) = 0;
+  virtual void UnRegisterFromLayer(TWrapper *layer, bool being_deleted) = 0;
 
   /**
     The model has its own OnUpdate implementation, which handles changes
@@ -201,7 +206,7 @@ protected:
   void LayerDeletionCallback()
   {
     // Unregister from the current layer
-    this->UnRegisterFromLayer(m_Layer);
+    this->UnRegisterFromLayer(m_Layer, true);
 
     // Set the layer to NULL
     m_Layer = NULL;

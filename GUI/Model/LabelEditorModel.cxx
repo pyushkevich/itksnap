@@ -193,7 +193,6 @@ void LabelEditorModel::SetIsForegroundBackground(Vector2b value)
   GlobalState *gs = m_Parent->GetGlobalState();
   if(GetAndStoreCurrentLabel())
     {
-    LabelType fg = gs->GetDrawingColorLabel();
     DrawOverFilter bg = gs->GetDrawOverFilter();
 
     if(value[0])

@@ -21,7 +21,7 @@ void QtRendererPlatformSupport
   pen_color.setRgbF(rgbf[0], rgbf[1], rgbf[2], 1.0);
   painter.setPen(pen_color);
 
-  int ah, av;
+  int ah = Qt::AlignHCenter, av = Qt::AlignVCenter;
   switch(align_horiz)
     {
     case AbstractRendererPlatformSupport::LEFT    : ah = Qt::AlignLeft;    break;

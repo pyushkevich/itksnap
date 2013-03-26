@@ -126,7 +126,7 @@ void QtScriptTest1::RunQTimerTriggered()
   value[2] = 33;
   m_Model->GetDriver()->SetCursorPosition(value);
 
-  int nRes = inX->value();
+  // int nRes = inX->value();
 
   int nReadRes = outId->value();
   //This function just prints the results of the interogated image.

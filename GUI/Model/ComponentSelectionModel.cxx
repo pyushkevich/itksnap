@@ -53,13 +53,16 @@ ComponentSelectionModel::RegisterWithLayer(VectorImageWrapperBase *layer)
 }
 
 void
-ComponentSelectionModel::UnRegisterFromLayer(VectorImageWrapperBase *layer)
+ComponentSelectionModel::UnRegisterFromLayer(VectorImageWrapperBase *layer, bool being_deleted)
 {
-  // It's safe to call GetProperties()
-  unsigned long tag = GetProperties().GetObserverTag();
-  if(tag)
+  if(!being_deleted)
     {
-    layer->GetDisplayMapping()->RemoveObserver(tag);
+    // It's safe to call GetProperties()
+    unsigned long tag = GetProperties().GetObserverTag();
+    if(tag)
+      {
+      layer->GetDisplayMapping()->RemoveObserver(tag);
+      }
     }
 }
 

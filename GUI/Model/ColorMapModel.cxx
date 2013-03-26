@@ -124,17 +124,20 @@ void ColorMapModel::RegisterWithLayer(ImageWrapperBase *layer)
 
 }
 
-void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer)
+void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted)
 {
-  unsigned long tag;
-  ColorMapLayerProperties &p = GetProperties();
-  if((tag = p.GetLayerObserverTag()))
+  if(!being_deleted)
     {
-    this->GetColorMap(layer)->RemoveObserver(tag);
-    }
-  if((tag = p.GetColorMapObserverTag()))
-    {
-    layer->RemoveObserver(tag);
+    unsigned long tag;
+    ColorMapLayerProperties &p = GetProperties();
+    if((tag = p.GetLayerObserverTag()))
+      {
+      this->GetColorMap(layer)->RemoveObserver(tag);
+      }
+    if((tag = p.GetColorMapObserverTag()))
+      {
+      layer->RemoveObserver(tag);
+      }
     }
 }
 

@@ -401,7 +401,7 @@ ColorLabel ColorLabelTable::GetDefaultColorLabel(LabelType id) const
     }
   else
     {
-    unsigned char r,g,b;
+    unsigned char r = 0, g = 0, b = 0;
     parse_color(m_ColorList[(id-1) % m_ColorListSize],r,g,b);
 
     deflab.SetRGB(r,g,b);

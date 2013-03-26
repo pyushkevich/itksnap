@@ -88,13 +88,16 @@ IntensityCurveModel
 
 void
 IntensityCurveModel
-::UnRegisterFromLayer(ImageWrapperBase *layer)
+::UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted)
 {
-  // It's safe to call GetProperties()
-  unsigned long tag = GetProperties().GetObserverTag();
-  if(tag)
+  if(!being_deleted)
     {
-    layer->GetDisplayMapping()->RemoveObserver(tag);
+    // It's safe to call GetProperties()
+    unsigned long tag = GetProperties().GetObserverTag();
+    if(tag)
+      {
+      layer->GetDisplayMapping()->RemoveObserver(tag);
+      }
     }
 }
 

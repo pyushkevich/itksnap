@@ -64,16 +64,6 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-  // glColor4d( elt.NormalColor[0], elt.NormalColor[1], elt.NormalColor[2], 1.0 );
-
-  // Set the text drawing color
-  unsigned char rgba[] = {
-    (unsigned char)(255 * elt.NormalColor[0]),
-    (unsigned char)(255 * elt.NormalColor[1]),
-    (unsigned char)(255 * elt.NormalColor[2]),
-    255
-  };
-
   // Get the various sizes and offsets
   int offset = 4 + elt.FontSize;
   int margin = elt.FontSize / 3;
@@ -162,13 +152,6 @@ void SliceWindowDecorationRenderer::DrawRulers()
 
   std::ostringstream oss;
   oss << scale << " " << unit;
-
-  unsigned char rgba[] = {
-    (unsigned char)(255 * elt.NormalColor[0]),
-    (unsigned char)(255 * elt.NormalColor[1]),
-    (unsigned char)(255 * elt.NormalColor[2]),
-    255
-  };
 
   // Create the font info
   AbstractRendererPlatformSupport::FontInfo font_info =

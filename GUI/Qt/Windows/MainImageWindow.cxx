@@ -350,8 +350,8 @@ void MainImageWindow::UpdateWindowTitle()
     else
       {
       this->setWindowTitle(QString("%1 - New Image - ITK-SNAP").arg(mainfile));
-      ui->actionSaveSegmentation->setText(QString("Save").arg(segfile));
-      ui->actionSaveSegmentationAs->setText(QString("Save as...").arg(segfile));
+      ui->actionSaveSegmentation->setText(QString("Save"));
+      ui->actionSaveSegmentationAs->setText(QString("Save as..."));
 
       }
     }

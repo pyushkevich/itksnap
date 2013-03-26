@@ -269,7 +269,6 @@ public:
   virtual void SetControlPoint(vtkIdType index, double *point)
   {
     // Return the coordinates of the point, in plot units
-    IntensityCurveInterface *curve = m_Model->GetCurve();
     Vector2d range = m_Model->GetNativeImageRangeForCurve();
 
     // Force the positions of the starting and ending points

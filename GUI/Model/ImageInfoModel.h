@@ -31,8 +31,8 @@ public:
   FIRES(MetadataChangeEvent)
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(ImageWrapperBase *layer);
-  void UnRegisterFromLayer(ImageWrapperBase *layer);
+  void RegisterWithLayer(ImageWrapperBase *layer) {}
+  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted) {}
 
   // Parent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);

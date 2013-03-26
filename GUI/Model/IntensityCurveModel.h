@@ -79,7 +79,7 @@ public:
 
   // Implementation of virtual functions from parent class
   void RegisterWithLayer(ImageWrapperBase *layer);
-  void UnRegisterFromLayer(ImageWrapperBase *layer);
+  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted);
 
 
   /**

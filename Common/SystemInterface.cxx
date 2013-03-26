@@ -248,9 +248,7 @@ SystemInterface
   SystemTools::ConvertToUnixSlashes(path);
 
   // Encode the filename as ASCII
-  std::cout << path << std::endl;
   path = EncodeFilename(path);
-  std::cout << path << std::endl;
 
   // Get the key associated with this filename
   string key = this->Key("ImageAssociation.Mapping.Element[%s]",path.c_str());

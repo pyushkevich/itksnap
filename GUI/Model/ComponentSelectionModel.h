@@ -43,7 +43,7 @@ public:
 
   // Implementation of virtual functions from parent class
   void RegisterWithLayer(VectorImageWrapperBase *layer);
-  void UnRegisterFromLayer(VectorImageWrapperBase *layer);
+  void UnRegisterFromLayer(VectorImageWrapperBase *layer, bool being_deleted);
 
   // Parent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);

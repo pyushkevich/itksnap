@@ -138,18 +138,28 @@ void LayerInspectorDialog::onLayerSelection()
 {
   // Update the current layer selection
   QModelIndex idx = ui->inLayer->selectionModel()->currentIndex();
-  LayerIterator it = m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(idx.row());
-  ImageWrapperBase *layer = it.GetLayer();
+  if(idx.row() >= 0)
+    {
+    LayerIterator it = m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(idx.row());
+    ImageWrapperBase *layer = it.GetLayer();
 
-  // For each model, set the layer
-  m_Model->GetColorMapModel()->SetLayer(
-    layer->GetDisplayMapping()->GetColorMap() ? layer : NULL);
+    // For each model, set the layer
+    m_Model->GetColorMapModel()->SetLayer(
+      layer->GetDisplayMapping()->GetColorMap() ? layer : NULL);
 
-  m_Model->GetIntensityCurveModel()->SetLayer(
-        layer->GetDisplayMapping()->GetIntensityCurve() ? layer : NULL);
+    m_Model->GetIntensityCurveModel()->SetLayer(
+          layer->GetDisplayMapping()->GetIntensityCurve() ? layer : NULL);
 
-  m_Model->GetImageInfoModel()->SetLayer(layer);
-  m_Model->GetComponentSelectionModel()->SetLayer(it.GetLayerAsVector());
+    m_Model->GetImageInfoModel()->SetLayer(layer);
+    m_Model->GetComponentSelectionModel()->SetLayer(it.GetLayerAsVector());
+    }
+  else
+    {
+    m_Model->GetColorMapModel()->SetLayer(NULL);
+    m_Model->GetIntensityCurveModel()->SetLayer(NULL);
+    m_Model->GetImageInfoModel()->SetLayer(NULL);
+    m_Model->GetComponentSelectionModel()->SetLayer(NULL);
+    }
 }
 
 void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
@@ -174,6 +184,11 @@ void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
         ui->inLayer->selectionModel()->setCurrentIndex(
               m_LayerListModel->index(0),
               QItemSelectionModel::SelectCurrent);
+        }
+      else
+        {
+        ui->inLayer->selectionModel()->setCurrentIndex(
+              QModelIndex(), QItemSelectionModel::SelectCurrent);
         }
       }
 

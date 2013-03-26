@@ -51,19 +51,6 @@ void ImageInfoModel::SetParentModel(GlobalUIModel *parent)
   Rebroadcast(m_ParentModel, CursorUpdateEvent(), ModelUpdateEvent());
 }
 
-
-void ImageInfoModel::RegisterWithLayer(ImageWrapperBase *layer)
-{
-  // We don't need to listen to the events on the layer because they
-  // are not going to change anything managed by this model.
-}
-
-void ImageInfoModel::UnRegisterFromLayer(ImageWrapperBase *layer)
-{
-  // We don't need to listen to the events on the layer because they
-  // are not going to change anything managed by this model.
-}
-
 bool ImageInfoModel
 ::GetImageDimensions(Vector3ui &value)
 {

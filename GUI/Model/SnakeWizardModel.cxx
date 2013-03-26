@@ -459,7 +459,6 @@ void SnakeWizardModel
 
   EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
   ScalarImageWrapperBase *grey = this->GetSelectedScalarLayer();
-  SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
 
   // Get the range of gradient magnitude in native units
   double xlim = grey->GetImageGradientMagnitudeUpperLimitNative();
