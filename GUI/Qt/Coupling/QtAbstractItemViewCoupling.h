@@ -262,4 +262,14 @@ class DefaultWidgetDomainTraits<TDomain, QAbstractItemView>
 {
 };
 
+template<>
+class DefaultWidgetDomainTraits<TrivialDomain, QAbstractItemView>
+{
+public:
+  void SetDomain(QAbstractItemView *w, const TrivialDomain &domain) {}
+  TrivialDomain GetDomain(QAbstractItemView *w) { return TrivialDomain(); }
+  void UpdateDomainDescription(QAbstractItemView *w, const TrivialDomain &domain) {}
+};
+
+
 #endif // QTABSTRACTITEMVIEWCOUPLING_H

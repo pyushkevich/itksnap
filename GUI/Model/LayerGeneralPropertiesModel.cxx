@@ -33,6 +33,14 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
 
   m_LayerVisibilityModel =
       NewNumericPropertyToggleAdaptor(m_LayerOpacityModel.GetPointer(), 0, 50);
+
+  m_FilenameModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetFilenameValue);
+
+  m_NicknameModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetNicknameValue,
+        &Self::SetNicknameValue);
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -46,9 +54,9 @@ LayerGeneralPropertiesModel::SetParentModel(GlobalUIModel *parent)
 {
   Superclass::SetParentModel(parent);
 
-  m_LayerOpacityModel->Rebroadcast(
-        parent->GetDriver(), WrapperMetadataChangeEvent(), ValueChangedEvent());
-
+  this->Rebroadcast(
+        parent->GetDriver(),
+        WrapperMetadataChangeEvent(), ModelUpdateEvent());
 }
 
 void
@@ -255,6 +263,34 @@ void LayerGeneralPropertiesModel::SetLayerOpacityValue(int value)
 {
   ImageWrapperBase *layer = this->GetLayer();
   layer->SetAlpha(value / 100.0);
+}
+
+bool LayerGeneralPropertiesModel::GetFilenameValue(std::string &value)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  if(layer)
+    {
+    value = layer->GetFileName();
+    return true;
+    }
+  return false;
+}
+
+bool LayerGeneralPropertiesModel::GetNicknameValue(std::string &value)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  if(layer)
+    {
+    value = layer->GetCustomNickname();
+    return true;
+    }
+  return false;
+}
+
+void LayerGeneralPropertiesModel::SetNicknameValue(std::string value)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  layer->SetCustomNickname(value);
 }
 
 VectorImageWrapperBase *

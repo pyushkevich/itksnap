@@ -29,6 +29,8 @@ public:
 
   void UpdatePlotValues();
 
+  virtual void paintGL();
+
 protected:
 
   IntensityCurveVTKRenderer();

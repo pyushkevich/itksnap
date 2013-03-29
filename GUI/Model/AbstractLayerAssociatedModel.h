@@ -8,6 +8,7 @@
 #include "IRISApplication.h"
 #include "SNAPEventListenerCallbacks.h"
 #include "ImageWrapperBase.h"
+#include "PropertyModel.h"
 
 /**
   This is an abstract class for a special type of UI model that can be
@@ -179,8 +180,11 @@ public:
       }
   }
 
-
-
+  /**
+   * A boolean property model indicating whether the model is holding a
+   * layer or not. This can be used to toggle parts of the user interface
+   */
+  irisGetMacro(HasLayerModel, AbstractSimpleBooleanProperty * )
 
 
 protected:
@@ -193,6 +197,9 @@ protected:
 
     m_ParentModel = NULL;
     m_Layer = NULL;
+
+    m_HasLayerModel = wrapGetterSetterPairAsProperty(
+          this, &Self::GetHasLayerValue);
   }
 
   virtual ~AbstractLayerAssociatedModel() {}
@@ -232,6 +239,13 @@ protected:
       { return m_Model->CreateProperty(w); }
     Self *m_Model;
   };
+
+  // Model as to whether the layer is set
+  SmartPtr<AbstractSimpleBooleanProperty> m_HasLayerModel;
+  bool GetHasLayerValue()
+  {
+    return this->m_Layer != NULL;
+  }
 
   // Association between a layer and a set of properties
   typedef LayerAssociation<

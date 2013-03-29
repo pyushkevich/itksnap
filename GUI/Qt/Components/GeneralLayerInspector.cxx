@@ -7,6 +7,7 @@
 #include "QtComboBoxCoupling.h"
 #include "QtSpinBoxCoupling.h"
 #include "QtSliderCoupling.h"
+#include "QtLineEditCoupling.h"
 
 Q_DECLARE_METATYPE(LayerGeneralPropertiesModel::DisplayMode)
 
@@ -34,4 +35,7 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling(ui->inOpacity, m_Model->GetLayerOpacityModel());
   makeCoupling(ui->inOpacityValue, m_Model->GetLayerOpacityModel());
   makeCoupling(ui->chkVisible, m_Model->GetLayerVisibilityModel());
+
+  makeCoupling(ui->outFilename, m_Model->GetFilenameModel());
+  makeCoupling(ui->inNickname, m_Model->GetNicknameModel());
 }

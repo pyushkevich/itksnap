@@ -172,7 +172,7 @@ GenericImageData
   SmartPtr<AnatomicImageWrapper> overlay = AnatomicImageWrapper::New();
   overlay->SetImage(image);
   overlay->SetNativeMapping(native);
-  overlay->SetAlpha(128);
+  overlay->SetAlpha(0.5);
 
   // Sync up spacing between the main and overlay image
   overlay->GetImageBase()->SetSpacing(
@@ -310,6 +310,13 @@ void GenericImageData::PushBackImageWrapper(LayerRole role,
 void GenericImageData::PopBackImageWrapper(LayerRole role)
 {
   m_Wrappers[role].pop_back();
+}
+
+void GenericImageData::RemoveImageWrapper(LayerRole role,
+                                          ImageWrapperBase *wrapper)
+{
+  m_Wrappers[role].erase(
+        std::find(m_Wrappers[role].begin(), m_Wrappers[role].end(), wrapper));
 }
 
 void GenericImageData::SetSingleImageWrapper(LayerRole role,

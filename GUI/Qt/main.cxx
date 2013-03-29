@@ -450,5 +450,8 @@ int main(int argc, char *argv[])
 
   // Unload the main image before all the destructors start firing
   driver->UnloadMainImage();
+
+  // Destroy the model before the GUI is destroyed
+  gui = NULL;
 }
 

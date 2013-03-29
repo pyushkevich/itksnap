@@ -434,7 +434,7 @@ public:
    * Set the custom nickname for the wrapper.
    */
   virtual void SetCustomNickname(const std::string &nickname);
-
+  irisGetMacro(CustomNickname, const std::string &);
 
 
   /**

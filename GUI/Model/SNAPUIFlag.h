@@ -34,7 +34,9 @@ public:
 
   bool operator() () const
   {
-    return m_Model->CheckState(m_State);
+    if(m_Model)
+      return m_Model->CheckState(m_State);
+    else return false;
   }
 
 protected:
@@ -43,20 +45,35 @@ protected:
   {
     m_Model = model;
     m_State = state;
+
     m_Tag = AddListener<Self>(
           m_Model, StateMachineChangeEvent(),
           this, &Self::OnStateChange);
+
+    m_DeleteTag = AddListener<Self>(
+          m_Model, itk::DeleteEvent(),
+          this, &Self::OnModelDeletion);
   }
 
   virtual ~SNAPUIFlag()
   {
-    m_Model->RemoveObserver(m_Tag);
+    if(m_Model)
+      {
+      m_Model->RemoveObserver(m_Tag);
+      m_Model->RemoveObserver(m_DeleteTag);
+      }
   }
+
+  virtual void OnModelDeletion()
+  {
+    m_Model = NULL;
+  }
+
 
 private:
   TModel *m_Model;
   TStateEnum m_State;
-  unsigned long m_Tag;
+  unsigned long m_Tag, m_DeleteTag;
 };
 
 #endif // SNAPUIFLAG_H

@@ -232,6 +232,7 @@ public:
   irisVirtualGetMacro(Nickname, const std::string &)
 
   // Set the custom nickname - precedence over the filename
+  irisVirtualGetMacro(CustomNickname, const std::string &)
   irisVirtualSetMacro(CustomNickname, const std::string &)
 
   // Fallback nickname - shown if no filename and no custom nickname set.

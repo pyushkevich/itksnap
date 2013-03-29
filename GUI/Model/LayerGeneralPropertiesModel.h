@@ -65,6 +65,12 @@ public:
   /** A model for the layer visibility on/off state */
   irisSimplePropertyAccessMacro(LayerVisibility, bool)
 
+  /** A model for the filename */
+  irisSimplePropertyAccessMacro(Filename, std::string)
+
+  /** A model for the nickname */
+  irisSimplePropertyAccessMacro(Nickname, std::string)
+
 protected:
 
   LayerGeneralPropertiesModel();
@@ -89,6 +95,15 @@ protected:
   // Callbacks for the opacity model
   bool GetLayerOpacityValueAndRange(int &value, NumericValueRange<int> *domain);
   void SetLayerOpacityValue(int value);
+
+  // Filename and nickname
+  SmartPtr<AbstractSimpleStringProperty> m_FilenameModel;
+  SmartPtr<AbstractSimpleStringProperty> m_NicknameModel;
+
+  bool GetFilenameValue(std::string &value);
+
+  bool GetNicknameValue(std::string &value);
+  void SetNicknameValue(std::string value);
 
   // Get the current display settings
   VectorImageWrapperBase *GetLayerAsVector();

@@ -28,6 +28,7 @@
 #define QTLINEEDITCOUPLING_H
 
 #include "QtWidgetCoupling.h"
+#include "SNAPQtCommon.h"
 #include <iostream>
 #include <iomanip>
 #include <QLineEdit>
@@ -40,7 +41,7 @@ public:
 
   virtual TAtomic GetValue(QLineEdit *w)
   {
-    std::istringstream iss(w->text().toStdString());
+    std::istringstream iss(to_utf8(w->text()));
     TAtomic value;
     iss >> value;
     return value;
@@ -50,7 +51,7 @@ public:
   {
     std::ostringstream oss;
     oss << value;
-    w->setText(oss.str().c_str());
+    w->setText(from_utf8(oss.str()));
   }
 
   virtual void SetValueToNull(QLineEdit *w)
@@ -72,12 +73,12 @@ public:
 
   virtual std::string GetValue(QLineEdit *w)
   {
-    return w->text().toStdString();
+    return to_utf8(w->text());
   }
 
   virtual void SetValue(QLineEdit *w, const std::string &value)
   {
-    w->setText(value.c_str());
+    w->setText(from_utf8(value));
   }
 
   virtual void SetValueToNull(QLineEdit *w)

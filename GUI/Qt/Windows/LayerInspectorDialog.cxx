@@ -85,6 +85,12 @@ public:
     emit layoutChanged();
   }
 
+  void onLayerNamesUpdate()
+  {
+    emit dataChanged(this->index(0,0),
+                     this->index(m_Model->GetNumberOfLayers()-1, 0));
+  }
+
 private:
   LayerSelectionModel *m_Model;
 
@@ -134,6 +140,11 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
         model, LayerChangeEvent(),
         this, SLOT(onModelUpdate(const EventBucket &)));
 
+  // We also need to handle changes to metadata
+  LatentITKEventNotifier::connect(
+        model->GetDriver(), WrapperMetadataChangeEvent(),
+        this, SLOT(onModelUpdate(const EventBucket &)));
+
   // Connect the layer opacity model
   makeCoupling(
         ui->inOverlayOpacity,
@@ -148,6 +159,11 @@ void LayerInspectorDialog::onLayerSelection()
     {
     LayerIterator it = m_Model->GetLoadedLayersSelectionModel()->GetNthLayer(idx.row());
     ImageWrapperBase *layer = it.GetLayer();
+
+    // For our purposes, uninitialized layers are just the same as null layers,
+    // they can not participate in layer association.
+    if(layer && !layer->IsInitialized())
+      layer = NULL;
 
     // For each model, set the layer
     m_Model->GetColorMapModel()->SetLayer(
@@ -200,6 +216,10 @@ void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
 
     // Layer selection needs to be updated
     onLayerSelection();
+    }
+  else if(bucket.HasEvent(WrapperMetadataChangeEvent()))
+    {
+    m_LayerListModel->onLayerNamesUpdate();
     }
 }
 

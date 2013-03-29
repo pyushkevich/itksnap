@@ -376,8 +376,11 @@ protected:
   friend class LayerIterator;
 
   // Append an image wrapper to a role
-  void PushBackImageWrapper(LayerRole, ImageWrapperBase *wrapper);
-  void PopBackImageWrapper(LayerRole);
+  void PushBackImageWrapper(LayerRole role, ImageWrapperBase *wrapper);
+  void PopBackImageWrapper(LayerRole role);
+  void RemoveImageWrapper(LayerRole role, ImageWrapperBase *wrapper);
+
+  // For roles that only have one wrapper
   void SetSingleImageWrapper(LayerRole, ImageWrapperBase *wrapper);
   void RemoveSingleImageWrapper(LayerRole);
 

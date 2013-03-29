@@ -68,6 +68,9 @@ void ContrastInspector::SetModel(IntensityCurveModel *model)
   makeCoupling(ui->inCutoff, m_Model->GetHistogramCutoffModel());
   makeCoupling(ui->inLogScale, m_Model->GetHistogramScaleModel());
 
+  // Couple visibility of the GL widget to the model having a layer
+  makeWidgetVisibilityCoupling(ui->plotWidget, m_Model->GetHasLayerModel());
+
   // Handle activations
   activateOnFlag(this, m_Model,
                  IntensityCurveModel::UIF_LAYER_ACTIVE);

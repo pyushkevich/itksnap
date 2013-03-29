@@ -62,8 +62,8 @@ public:
     AbstractSnakeTypeModel;
 
   // Model for the bubble selection
-  typedef STLVectorWrapperItemSetDomain<int, Bubble> BubbleDomain;
-  typedef AbstractPropertyModel<int, BubbleDomain> AbstractActiveBubbleProperty;
+  // typedef STLVectorWrapperItemSetDomain<int, Bubble> BubbleDomain;
+  // typedef AbstractPropertyModel<int, BubbleDomain> AbstractActiveBubbleProperty;
 
   // Models for the threshold-based preprocessing
   irisGetMacro(ThresholdLowerModel, AbstractRangedDoubleProperty *)
@@ -79,7 +79,7 @@ public:
   irisGetMacro(EdgePreprocessingPreviewModel, AbstractSimpleBooleanProperty *)
 
   // Model for bubble selection
-  irisGetMacro(ActiveBubbleModel, AbstractActiveBubbleProperty *)
+  irisGetMacro(ActiveBubbleModel, AbstractSimpleIntProperty *)
 
   // Model for bubble radius
   irisGetMacro(BubbleRadiusModel, AbstractRangedDoubleProperty *)
@@ -120,6 +120,9 @@ public:
 
   /** Remove bubble at cursor */
   void RemoveBubbleAtCursor();
+
+  /** Update a bubble */
+  bool UpdateBubble(int index, Bubble bubble);
 
   /** Called when entering the evolution page */
   void OnEvolutionPageEnter();
@@ -181,8 +184,8 @@ protected:
   bool GetSnakeTypeValueAndRange(SnakeType &value, GlobalState::SnakeTypeDomain *range);
   void SetSnakeTypeValue(SnakeType value);
 
-  SmartPtr<AbstractActiveBubbleProperty> m_ActiveBubbleModel;
-  bool GetActiveBubbleValueAndRange(int &value, BubbleDomain *range);
+  SmartPtr<AbstractSimpleIntProperty> m_ActiveBubbleModel;
+  bool GetActiveBubbleValue(int &value);
   void SetActiveBubbleValue(int value);
 
   SmartPtr<AbstractRangedDoubleProperty> m_BubbleRadiusModel;

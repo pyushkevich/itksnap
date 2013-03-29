@@ -6,45 +6,127 @@
 #include "QtCursorOverride.h"
 #include "QtComboBoxCoupling.h"
 #include "QtWidgetActivator.h"
-#include "QtTableWidgetCoupling.h"
 #include "QtDoubleSliderWithEditorCoupling.h"
+#include <QtAbstractItemViewCoupling.h>
 #include "QtSpinBoxCoupling.h"
 #include "IRISException.h"
 #include <QMessageBox>
 #include <QTimer>
+#include <IRISApplication.h>
 
 Q_DECLARE_METATYPE(SnakeType)
 
-
 /**
-  A traits class for mapping bubble structures into Qt table rows
-  */
-class BubbleItemDescriptionTraits
+ * An item model for editing bubble data
+ */
+void BubbleItemModel::setSourceModel(SnakeWizardModel *model)
 {
-public:
-  static QString GetText(int value, const Bubble &desc, int column)
-  {
-    if(column < 3)
-      {
-      return QString("%1").arg(desc.center[column]);
-      }
-    else if(column == 3)
-      {
-      return QString("%1").arg(desc.radius);
-      }
-    else return QString();
-  }
+  m_Model = model;
+  LatentITKEventNotifier::connect(
+        model, SnakeWizardModel::BubbleListUpdateEvent(),
+        this, SLOT(onBubbleListUpdate()));
+  LatentITKEventNotifier::connect(
+        model, SnakeWizardModel::BubbleDefaultRadiusUpdateEvent(),
+        this, SLOT(onBubbleValuesUpdate()));
+}
 
-  static QIcon GetIcon(int value, const Bubble &desc, int column)
-  {
-    return QIcon();
-  }
+int BubbleItemModel::rowCount(const QModelIndex &parent) const
+{
+  std::vector<Bubble> &ba = m_Model->GetParent()->GetDriver()->GetBubbleArray();
+  return ba.size();
+}
 
-  static QVariant GetIconSignature(int value, const Bubble &desc, int column)
-  {
-    return QVariant();
-  }
-};
+int BubbleItemModel::columnCount(const QModelIndex &parent) const
+{
+  return 4;
+}
+
+QVariant BubbleItemModel::data(const QModelIndex &index, int role) const
+{
+  std::vector<Bubble> &ba = m_Model->GetParent()->GetDriver()->GetBubbleArray();
+  Bubble &b = ba[index.row()];
+  if(role == Qt::EditRole || role == Qt::DisplayRole)
+    {
+    if(index.column()==3)
+      return QString("%1").arg(b.radius);
+    else
+      return QString("%1").arg(b.center[index.column()]);
+    }
+  else if(role == Qt::UserRole)
+    {
+    // This is so that the selection model coupling works
+    return index.row();
+    }
+  return QVariant();
+}
+
+bool BubbleItemModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+  std::vector<Bubble> &ba = m_Model->GetParent()->GetDriver()->GetBubbleArray();
+  Bubble b = ba[index.row()];
+  bool modified = false;
+
+  if(index.column()==3)
+    {
+    bool convok;
+    double dv = value.toDouble(&convok);
+    if(convok && dv > 0 && b.radius != dv)
+      {
+      b.radius = dv;
+      modified = true;
+      }
+    }
+  else
+    {
+    bool convok;
+    int iv = value.toInt(&convok);
+    if(convok && b.center[index.column()] != iv)
+      {
+      b.center[index.column()] = iv;
+      modified = true;
+      }
+    }
+
+  if(modified)
+    return m_Model->UpdateBubble(index.row(), b);
+
+  return false;
+}
+
+Qt::ItemFlags BubbleItemModel::flags(const QModelIndex &index) const
+{
+  Qt::ItemFlags flags =
+      Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsEnabled;
+  return flags;
+}
+
+QVariant BubbleItemModel::headerData(
+    int section, Qt::Orientation orientation, int role) const
+{
+  if(orientation == Qt::Horizontal && role == Qt::DisplayRole)
+    {
+    switch(section)
+      {
+      case 0 : return tr("X");
+      case 1 : return tr("Y");
+      case 2 : return tr("Z");
+      case 3 : return tr("Radius");
+      }
+    }
+  return QVariant();
+}
+
+void BubbleItemModel::onBubbleListUpdate()
+{
+  emit layoutChanged();
+}
+
+void BubbleItemModel::onBubbleValuesUpdate()
+{
+  emit dataChanged(this->index(0,0),
+                   this->index(this->rowCount(QModelIndex())-1,3));
+}
+
 
 
 SnakeWizardPanel::SnakeWizardPanel(QWidget *parent) :
@@ -71,6 +153,7 @@ void SnakeWizardPanel::on_btnPreprocess_clicked()
   m_SpeedDialog->SetPageAndShow();
 }
 
+
 void SnakeWizardPanel::SetModel(GlobalUIModel *model)
 {
   // Store and pass on the models
@@ -82,6 +165,7 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
   makeCoupling(ui->inSnakeType, m_Model->GetSnakeTypeModel());
   makeCoupling(ui->inBubbleRadius, m_Model->GetBubbleRadiusModel());
 
+  /*
   // Couple the table to the active bubble model
   // TODO: simplify this garbage! this is too complex!
   typedef TextAndIconTableWidgetRowTraits<
@@ -95,6 +179,14 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
 
   makeCoupling(ui->tableBubbleList, m_Model->GetActiveBubbleModel(),
                BubbleValueTraits(), BubbleDomainTraits());
+               */
+
+  BubbleItemModel *biModel = new BubbleItemModel(this);
+  biModel->setSourceModel(m_Model);
+  ui->tableBubbleList->setModel(biModel);
+
+  makeCoupling((QAbstractItemView *) ui->tableBubbleList,
+               m_Model->GetActiveBubbleModel());
 
   makeCoupling(ui->inStepSize, m_Model->GetStepSizeModel());
   makeCoupling(ui->outIteration, m_Model->GetEvolutionIterationModel());

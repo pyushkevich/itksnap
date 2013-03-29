@@ -81,13 +81,11 @@ SnakeWizardModel::SnakeWizardModel()
         &Self::GetSnakeTypeValueAndRange,
         &Self::SetSnakeTypeValue);
 
-
   m_ActiveBubbleModel = wrapGetterSetterPairAsProperty(
         this,
-        &Self::GetActiveBubbleValueAndRange,
+        &Self::GetActiveBubbleValue,
         &Self::SetActiveBubbleValue,
-        ActiveBubbleUpdateEvent(),
-        BubbleListUpdateEvent());
+        ActiveBubbleUpdateEvent());
 
   m_BubbleRadiusModel = wrapGetterSetterPairAsProperty(
         this,
@@ -517,7 +515,7 @@ void SnakeWizardModel::OnEdgePreprocessingPageEnter()
 
 bool
 SnakeWizardModel
-::GetActiveBubbleValueAndRange(int &value, SnakeWizardModel::BubbleDomain *range)
+::GetActiveBubbleValue(int &value)
 {
   // This is irrelevant when the snake is inactive
   if(!m_Driver->IsSnakeModeActive())
@@ -525,12 +523,6 @@ SnakeWizardModel
 
   // This may be -1 if no bubbles are selected
   value = m_GlobalState->GetActiveBubble();
-
-  // Provide the actual bubble list
-  if(range)
-    {
-    *range = BubbleDomain(&m_Driver->GetBubbleArray());
-    }
   return true;
 }
 
@@ -584,6 +576,18 @@ void SnakeWizardModel::RemoveBubbleAtCursor()
     {
     throw IRISException("Invalid bubble index %d selected for removal.", ibub);
     }
+}
+
+bool SnakeWizardModel::UpdateBubble(int index, Bubble bubble)
+{
+  if(m_Driver->GetCurrentImageData()->GetImageRegion().IsInside(
+       to_itkIndex(bubble.center)))
+    {
+    m_Driver->GetBubbleArray()[index] = bubble;
+    InvokeEvent(BubbleDefaultRadiusUpdateEvent());
+    return true;
+    }
+  return false;
 }
 
 void SnakeWizardModel::OnSnakeModeEnter()

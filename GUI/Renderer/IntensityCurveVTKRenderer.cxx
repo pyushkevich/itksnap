@@ -74,7 +74,7 @@ protected:
 
   virtual void GetBounds(double bounds[4])
   {
-    if(m_Model)
+    if(m_Model && m_Model->GetLayer())
       {
       Vector2d vis_range = m_Model->GetVisibleImageRange();
       bounds[0] = vis_range[0];
@@ -168,7 +168,7 @@ protected:
 
   virtual void GetBounds(double bounds[4])
   {
-    if(m_Model)
+    if(m_Model && m_Model->GetLayer())
       {
       Vector2d vis_range = m_Model->GetVisibleImageRange();
       float margin = (vis_range[1] - vis_range[0]) / 40.0;
@@ -261,7 +261,7 @@ public:
 
   virtual int GetNumberOfPoints() const
   {
-    if(m_Model)
+    if(m_Model && m_Model->GetLayer())
       return m_Model->GetCurve()->GetControlPointCount();
     else return 0;
   }
@@ -560,12 +560,23 @@ IntensityCurveVTKRenderer
     }
 }
 
+void IntensityCurveVTKRenderer::paintGL()
+{
+  if(m_Model && m_Model->GetLayer())
+    {
+    Superclass::paintGL();
+    }
+}
+
 void
 IntensityCurveVTKRenderer
 ::OnUpdate()
 {
   m_Model->Update();
-  this->UpdatePlotValues();
+  if(m_Model && m_Model->GetLayer())
+    {
+    this->UpdatePlotValues();
+    }
 }
 
 void
