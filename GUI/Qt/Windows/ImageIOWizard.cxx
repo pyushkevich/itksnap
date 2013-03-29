@@ -161,6 +161,7 @@ SelectFilePage::SelectFilePage(QWidget *parent)
   m_InFormat = new QComboBox();
   m_InFormat->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   m_InFormat->setMaxVisibleItems(16);
+  m_InFormat->setObjectName("inFormat");
 
   QLabel *label2 = new QLabel("Image file &format:");
   label2->setBuddy(m_InFormat);
