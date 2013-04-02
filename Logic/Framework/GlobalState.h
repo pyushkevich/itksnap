@@ -253,10 +253,7 @@ public:
   irisGetMacro(SnakeActive,bool );
 
   /** Get the current parameters of the snake algorithm */
-  irisGetMacro(SnakeParameters,SnakeParameters);
-
-  /** Set the current parameters of the snake algorithm */
-  irisSetMacro(SnakeParameters,SnakeParameters);
+  irisSimplePropertyAccessMacro(SnakeParameters, SnakeParameters)
 
   /** Get the current mesh rendering options */
   irisGetMacro(MeshOptions,MeshOptions);
@@ -427,7 +424,8 @@ private:
   MeshOptions m_MeshOptions;
 
   // Current settings for the snake algorithm
-  SnakeParameters m_SnakeParameters;
+  typedef ConcretePropertyModel<SnakeParameters, TrivialDomain> ConcreteSnakeParametersModel;
+  SmartPtr<ConcreteSnakeParametersModel> m_SnakeParametersModel;
 
   // File name of the current grey file
   std::string m_LastAssociatedSegmentationFileName;

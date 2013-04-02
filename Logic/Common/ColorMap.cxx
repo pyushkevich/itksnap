@@ -400,6 +400,12 @@ ColorMap
       m_CMPoints.push_back( CMPoint(1.0,    0xff, 0xff, 0xff, 0xff) );
       break;
 
+    case COLORMAP_LEVELSET:
+      m_CMPoints.push_back( CMPoint(0.0,    0xff, 0x00, 0x00, 0xff) );
+      m_CMPoints.push_back( CMPoint(0.4,    0xff, 0x00, 0x00, 0xff) );
+      m_CMPoints.push_back( CMPoint(0.6,    0xff, 0xff, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0,    0xff, 0xff, 0xff, 0x00) );
+
     case COLORMAP_CUSTOM:
       // to suppress compiler warning
       std::cerr << "COLORMAP_CUSTOM: should never get there ..." << std::endl;
@@ -574,6 +580,8 @@ void ColorMap
      "Blue to white to red",
      "Red to white to blue",
      "Blue to black to white",
+     "Speed image",
+     "Level set image",
      "Custom"
    };
 

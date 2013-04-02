@@ -9,6 +9,8 @@ class QWidget;
 class QAction;
 class GlobalUIModel;
 class QMenu;
+class QSlider;
+class QSpinBox;
 
 // Generate an icon with a black border and a given fill color
 QIcon CreateColorBoxIcon(int w, int h, const QColor &rgb);
@@ -45,6 +47,8 @@ TWidget *findParentWidget(QObject *w)
   while(w);
   return NULL;
 }
+
+// Couple a slider and a
 
 // Standard way for handling non-lethal exceptions
 void ReportNonLethalException(QWidget *parent,

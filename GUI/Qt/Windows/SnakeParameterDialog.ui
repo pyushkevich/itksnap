@@ -1,0 +1,860 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SnakeParameterDialog</class>
+ <widget class="QDialog" name="SnakeParameterDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>717</width>
+    <height>432</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Active Contour Evolution Parameters - ITK-SNAP</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="1">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>320</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-size:11px;</string>
+     </property>
+     <property name="title">
+      <string>Conceptual Illustration of Forces in 2D</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_10" rowstretch="0,1,0,1">
+      <property name="margin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="0" column="0" alignment="Qt::AlignHCenter">
+       <widget class="QLabel" name="lblForceAlpha">
+        <property name="text">
+         <string>Region Competition</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" alignment="Qt::AlignHCenter">
+       <widget class="QLabel" name="lblForceBeta">
+        <property name="text">
+         <string>Smoothing</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QtSimpleOpenGLBox" name="boxForceAlpha" native="true">
+        <property name="styleSheet">
+         <string notr="true">border:1px black solid;</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QtSimpleOpenGLBox" name="boxForceBeta" native="true"/>
+      </item>
+      <item row="2" column="0" alignment="Qt::AlignHCenter">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Edge Attraction</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" alignment="Qt::AlignHCenter">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Combined Force</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QtSimpleOpenGLBox" name="boxForceGamma" native="true"/>
+      </item>
+      <item row="3" column="1">
+       <widget class="QtSimpleOpenGLBox" name="boxForceTotal" native="true"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="maximumSize">
+      <size>
+       <width>357</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Intuitive Mode</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>12</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QStackedWidget" name="stackIntuitive">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="pageZhu">
+          <layout class="QVBoxLayout" name="verticalLayout_6">
+           <property name="margin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="title">
+              <string>Region competition force:</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_2">
+              <property name="leftMargin">
+               <number>4</number>
+              </property>
+              <property name="topMargin">
+               <number>6</number>
+              </property>
+              <property name="rightMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>4</number>
+              </property>
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label">
+                <property name="styleSheet">
+                 <string notr="true">font-size:11px;</string>
+                </property>
+                <property name="text">
+                 <string>Pushes the contour inwards or outwards, modulated by the sign and value of the speed image.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QDoubleSpinBox" name="inZhuAlphaSimple"/>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSlider" name="inZhuAlphaSimpleSlider">
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="tickPosition">
+                 <enum>QSlider::TicksBelow</enum>
+                </property>
+                <property name="tickInterval">
+                 <number>25</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_3">
+             <property name="title">
+              <string>Smoothing (curvature) force:</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_3">
+              <property name="leftMargin">
+               <number>4</number>
+              </property>
+              <property name="topMargin">
+               <number>6</number>
+              </property>
+              <property name="rightMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>4</number>
+              </property>
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label_2">
+                <property name="styleSheet">
+                 <string notr="true">font-size:11px;</string>
+                </property>
+                <property name="text">
+                 <string>Makes the contour boundary smoother and can prevent the contour from leaking into narrow objects such as vessels.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QDoubleSpinBox" name="inZhuBetaSimple"/>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSlider" name="inZhuBetaSimpleSlider">
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="tickPosition">
+                 <enum>QSlider::TicksBelow</enum>
+                </property>
+                <property name="tickInterval">
+                 <number>25</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="pageCaselles">
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <property name="margin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QGroupBox" name="groupBox_5">
+             <property name="title">
+              <string>Expansion (baloon) force</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_4">
+              <property name="leftMargin">
+               <number>4</number>
+              </property>
+              <property name="topMargin">
+               <number>6</number>
+              </property>
+              <property name="rightMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>4</number>
+              </property>
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label_3">
+                <property name="styleSheet">
+                 <string notr="true">font-size:11px;</string>
+                </property>
+                <property name="text">
+                 <string>A force pushing outwards (or inwards if the weight below is negative) on the contour boundary proportionally to the speed image.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QDoubleSpinBox" name="inCasellesAlphaSimple"/>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSlider" name="inCasellesAlphaSimpleSlider">
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="tickPosition">
+                 <enum>QSlider::TicksBelow</enum>
+                </property>
+                <property name="tickInterval">
+                 <number>25</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_6">
+             <property name="title">
+              <string>Smoothing (curvature) force:</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_5">
+              <property name="leftMargin">
+               <number>4</number>
+              </property>
+              <property name="topMargin">
+               <number>6</number>
+              </property>
+              <property name="rightMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>4</number>
+              </property>
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label_4">
+                <property name="styleSheet">
+                 <string notr="true">font-size:11px;</string>
+                </property>
+                <property name="text">
+                 <string>Makes the contour boundary smoother and can prevent the contour from leaking into narrow objects such as vessels.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QDoubleSpinBox" name="inCasellesBetaSimple"/>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSlider" name="inCasellesBetaSimpleSlider">
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="tickPosition">
+                 <enum>QSlider::TicksBelow</enum>
+                </property>
+                <property name="tickInterval">
+                 <number>25</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_7">
+             <property name="title">
+              <string>Edge attraction (advection) force:</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_6">
+              <property name="leftMargin">
+               <number>4</number>
+              </property>
+              <property name="topMargin">
+               <number>6</number>
+              </property>
+              <property name="rightMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>4</number>
+              </property>
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label_5">
+                <property name="styleSheet">
+                 <string notr="true">font-size:11px;</string>
+                </property>
+                <property name="text">
+                 <string>Attracts the boundary of the contour to nearby edges and can prevent the contour from leaking past edges.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QDoubleSpinBox" name="inCasellesGammaSimple"/>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSlider" name="inCasellesGammaSimpleSlider">
+                <property name="maximum">
+                 <number>100</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="tickPosition">
+                 <enum>QSlider::TicksBelow</enum>
+                </property>
+                <property name="tickInterval">
+                 <number>10</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabMath">
+      <attribute name="title">
+       <string>Math Mode</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>12</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_8">
+         <property name="title">
+          <string>Contour evolution equation:</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_8" columnstretch="0,0">
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>8</number>
+          </property>
+          <item row="2" column="1" alignment="Qt::AlignRight">
+           <widget class="QCheckBox" name="chkAdvanced">
+            <property name="toolTip">
+             <string>The advanced expression provides additional flexibility by allowing the exponent of the speed image to be changed in each of the terms.</string>
+            </property>
+            <property name="text">
+             <string>Use advanced expression</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QStackedWidget" name="stackEqn">
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="pageEqnZhu">
+             <layout class="QVBoxLayout" name="verticalLayout">
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <item alignment="Qt::AlignHCenter">
+               <widget class="QLabel" name="outFormula_2">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap resource="../Resources/SNAPResources.qrc">:/root/formula02.gif</pixmap>
+                </property>
+                <property name="scaledContents">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="pageEqnCaselles">
+             <layout class="QVBoxLayout" name="verticalLayout_2">
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <item alignment="Qt::AlignHCenter">
+               <widget class="QLabel" name="outFormula">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap resource="../Resources/SNAPResources.qrc">:/root/formula01.gif</pixmap>
+                </property>
+                <property name="scaledContents">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="pageEqnAdvanced">
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <item>
+               <spacer name="verticalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>1</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="outFormula_3">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap resource="../Resources/SNAPResources.qrc">:/root/formula03.gif</pixmap>
+                </property>
+                <property name="scaledContents">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_5">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>Parameters:</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_7">
+          <property name="leftMargin">
+           <number>4</number>
+          </property>
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>16</number>
+          </property>
+          <item row="1" column="2">
+           <widget class="QDoubleSlider" name="inBetaMathSlider">
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksBelow</enum>
+            </property>
+            <property name="tickInterval">
+             <number>25</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QLabel" name="lblBetaExp">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;r&lt;span style=&quot; vertical-align:sub;&quot;&gt;β&lt;/span&gt;:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="inAlphaMath"/>
+          </item>
+          <item row="0" column="2">
+           <widget class="QDoubleSlider" name="inAlphaMathSlider">
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksBelow</enum>
+            </property>
+            <property name="tickInterval">
+             <number>25</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>β:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="inBetaMath"/>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>α:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QLabel" name="lblAlphaExp">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;r&lt;span style=&quot; vertical-align:sub;&quot;&gt;α&lt;/span&gt;:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="inGammaMath"/>
+          </item>
+          <item row="2" column="2">
+           <widget class="QDoubleSlider" name="inGammaMathSlider">
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksBelow</enum>
+            </property>
+            <property name="tickInterval">
+             <number>25</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3">
+           <widget class="QLabel" name="lblGammaExp">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;r&lt;span style=&quot; vertical-align:sub;&quot;&gt;γ&lt;/span&gt;:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="lblGammaMath">
+            <property name="text">
+             <string>γ:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QSpinBox" name="inAlphaExp"/>
+          </item>
+          <item row="1" column="4">
+           <widget class="QSpinBox" name="inBetaExp"/>
+          </item>
+          <item row="2" column="4">
+           <widget class="QSpinBox" name="inGammaExp"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabAdvanced">
+      <attribute name="title">
+       <string>Advanced</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>12</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_9">
+         <property name="title">
+          <string>Speed-up factor</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_9">
+          <property name="leftMargin">
+           <number>4</number>
+          </property>
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <item row="1" column="0">
+           <widget class="QDoubleSpinBox" name="inSpeedup"/>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSlider" name="inSpeedupSlider">
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksBelow</enum>
+            </property>
+            <property name="tickInterval">
+             <number>25</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_13">
+            <property name="styleSheet">
+             <string notr="true">font-size:11px;</string>
+            </property>
+            <property name="text">
+             <string>It is possible to speed up active contour evolution by increasing the step size over the theoretically optimal value. However, this can result in numerical instability.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QDoubleSlider</class>
+   <extends>QSlider</extends>
+   <header location="global">QDoubleSlider.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QtSimpleOpenGLBox</class>
+   <extends>QWidget</extends>
+   <header location="global">QtSimpleOpenGLBox.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../Resources/SNAPResources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>SnakeParameterDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>SnakeParameterDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

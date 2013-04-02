@@ -9,49 +9,42 @@ class QDoubleSlider : public QSlider
 public:
   explicit QDoubleSlider(QWidget *parent = 0);
 
-  double minimum()
+  double doubleMinimum()
   {
     return m_DoubleMin;
   }
 
-  double maximum()
+  double doubleMaximum()
   {
     return m_DoubleMax;
   }
 
-  double singleStep()
+  double doubleSingleStep()
   {
     return m_DoubleStep;
   }
 
-  void setMinimum(double value)
+  void setDoubleMinimum(double value)
   {
     m_DoubleMin = value;
-    updateStep();
+    updateRange();
   }
 
-  void setMaximum(double value)
+  void setDoubleMaximum(double value)
   {
     m_DoubleMax = value;
-    updateStep();
+    updateRange();
   }
 
-  void setSingleStep(double value)
+  void setDoubleSingleStep(double value)
   {
     m_DoubleStep = value;
-    updateStep();
+    updateRange();
   }
 
-  double value() const
-  {
-    return QSlider::value() * 0.001 * (m_DoubleMax-m_DoubleMin) + m_DoubleMin;
-  }
+  double doubleValue();
 
-  void setValue(double x)
-  {
-    int v = (int) (1000 * (x - m_DoubleMin) / (m_DoubleMax-m_DoubleMin));
-    QSlider::setValue(v);
-  }
+  void setDoubleValue(double x);
 
 signals:
 
@@ -61,6 +54,11 @@ private:
   double m_DoubleMin;
   double m_DoubleMax;
   double m_DoubleStep;
+  double m_DoubleValue;
+
+  int m_CorrespondingIntValue;
+
+  void updateRange();
 
   void updateStep()
   {

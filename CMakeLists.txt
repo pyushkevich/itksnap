@@ -124,6 +124,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/ScalarImageWrapper.cxx
   Logic/ImageWrapper/VectorImageWrapper.cxx
   Logic/LevelSet/SnakeParameters.cxx
+  Logic/LevelSet/SnakeParametersPreviewPipeline.cxx
   Logic/Mesh/AllPurposeProgressAccumulator.cxx
   Logic/Mesh/GuidedMeshIO.cxx
   Logic/Mesh/IRISMeshPipeline.cxx
@@ -194,6 +195,7 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/GuidedNativeImageIO.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
+  Logic/ImageWrapper/ImageWrapperTraits.h
   Logic/ImageWrapper/InputSelectionImageFilter.h
   Logic/ImageWrapper/LabelToRGBAFilter.h
   Logic/ImageWrapper/NativeIntensityMappingPolicy.h
@@ -201,6 +203,7 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/ScalarImageWrapper.h
   Logic/ImageWrapper/VectorImageWrapper.h
   Logic/LevelSet/LevelSetExtensionFilter.h
+  Logic/LevelSet/SnakeParametersPreviewPipeline.h
   Logic/LevelSet/SNAPAdvectionFieldImageFilter.h
   Logic/LevelSet/SNAPAdvectionFieldImageFilter.txx
   Logic/LevelSet/SNAPLevelSetDriver.h
@@ -263,6 +266,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ReorientImageModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
   GUI/Model/SNAPAppearanceSettings.cxx
+  GUI/Model/SnakeParameterModel.cxx
   GUI/Model/SnakeROIModel.cxx
   GUI/Model/SnakeWizardModel.cxx
   GUI/Model/StateManagement.cxx
@@ -284,6 +288,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/PolygonDrawingRenderer.cxx
   GUI/Renderer/PolygonScanConvert.cxx
   GUI/Renderer/SliceWindowDecorationRenderer.cxx
+  GUI/Renderer/SnakeParameterPreviewRenderer.cxx
   GUI/Renderer/SnakeROIRenderer.cxx
   GUI/Renderer/SnakeModeRenderer.cxx
   GUI/Renderer/ThresholdSettingsRenderer.cxx
@@ -324,6 +329,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/SNAPUIFlag.h
   GUI/Model/SNAPUIFlag.txx
   GUI/Model/SliceWindowCoordinator.h
+  GUI/Model/SnakeParameterModel.h
   GUI/Model/SnakeROIModel.h
   GUI/Model/SnakeWizardModel.h
   GUI/Model/StateManagement.h
@@ -346,6 +352,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/PolygonDrawingRenderer.h
   GUI/Renderer/PolygonScanConvert.h
   GUI/Renderer/SliceWindowDecorationRenderer.h
+  GUI/Renderer/SnakeParameterPreviewRenderer.h
   GUI/Renderer/SnakeROIRenderer.h
   GUI/Renderer/SnakeModeRenderer.h
   GUI/Renderer/ThresholdSettingsRenderer.h
@@ -417,6 +424,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/QtStyles.cxx
   GUI/Qt/Windows/ReorientImageDialog.cxx
   GUI/Qt/Windows/SimpleFileDialogWithHistory.cxx
+  GUI/Qt/Windows/SnakeParameterDialog.cxx
   GUI/Qt/Windows/SpeedImageDialog.cxx
   GUI/Qt/Windows/SplashPanel.cxx
   GUI/Qt/Windows/StatisticsDialog.cxx
@@ -476,6 +484,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/MainImageWindow.h
   GUI/Qt/Windows/ReorientImageDialog.h
   GUI/Qt/Windows/SimpleFileDialogWithHistory.h
+  GUI/Qt/Windows/SnakeParameterDialog.h
   GUI/Qt/Windows/SpeedImageDialog.h
   GUI/Qt/Windows/SplashPanel.h
   GUI/Qt/Windows/StatisticsDialog.h
@@ -533,6 +542,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/MainImageWindow.ui
   GUI/Qt/Windows/ReorientImageDialog.ui
   GUI/Qt/Windows/SimpleFileDialogWithHistory.ui
+  GUI/Qt/Windows/SnakeParameterDialog.ui
   GUI/Qt/Windows/SpeedImageDialog.ui
   GUI/Qt/Windows/SplashPanel.ui
   GUI/Qt/Windows/StatisticsDialog.ui

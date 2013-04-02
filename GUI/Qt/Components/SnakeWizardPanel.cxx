@@ -1,6 +1,7 @@
 #include "SnakeWizardPanel.h"
 #include "ui_SnakeWizardPanel.h"
 #include "SpeedImageDialog.h"
+#include "SnakeParameterDialog.h"
 #include "GlobalUIModel.h"
 #include "SnakeWizardModel.h"
 #include "QtCursorOverride.h"
@@ -136,6 +137,7 @@ SnakeWizardPanel::SnakeWizardPanel(QWidget *parent) :
   ui->setupUi(this);
 
   m_SpeedDialog = new SpeedImageDialog(this);
+  m_ParameterDialog = new SnakeParameterDialog(this);
 
   // Hook up the timer!
   m_EvolutionTimer = new QTimer(this);
@@ -160,6 +162,7 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
   m_ParentModel = model;
   m_Model = model->GetSnakeWizardModel();
   m_SpeedDialog->SetModel(m_Model);
+  m_ParameterDialog->SetModel(model->GetSnakeParameterModel());
 
   // Couple widgets to models
   makeCoupling(ui->inSnakeType, m_Model->GetSnakeTypeModel());
@@ -318,4 +321,11 @@ void SnakeWizardPanel::on_btnRewind_clicked()
 
   // Tell the model to return to initialization state
   m_Model->RewindEvolution();
+}
+
+void SnakeWizardPanel::on_btnEvolutionParameters_clicked()
+{
+  m_ParameterDialog->show();
+  m_ParameterDialog->activateWindow();
+  m_ParameterDialog->raise();
 }

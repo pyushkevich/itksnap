@@ -82,6 +82,8 @@ public:
 
   // Define a comparison operator
   bool operator ==(const SnakeParameters &p) const;
+  bool operator !=(const SnakeParameters &p) const
+    { return !((*this) == p); }
 
   /** Whether we wish to automatically compute optimal time step 
    * in level snake propagation */

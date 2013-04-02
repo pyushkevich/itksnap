@@ -69,4 +69,9 @@
         <file>redo_22.png</file>
         <file>snap_splash_172.png</file>
     </qresource>
+    <qresource prefix="/snapres">
+        <file>snapres/EdgeForcesExample.png</file>
+        <file>snapres/RegionForcesExample.png</file>
+        <file>snapres/SnakeParameterPreviewCurve.txt</file>
+    </qresource>
 </RCC>

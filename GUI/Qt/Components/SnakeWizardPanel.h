@@ -12,6 +12,7 @@ class SpeedImageDialog;
 class GlobalUIModel;
 class SnakeWizardModel;
 class QTimer;
+class SnakeParameterDialog;
 
 class BubbleItemModel : public QAbstractTableModel
 {
@@ -92,9 +93,12 @@ private slots:
 
   void on_btnRewind_clicked();
 
+  void on_btnEvolutionParameters_clicked();
+
 private:
 
   SpeedImageDialog *m_SpeedDialog;
+  SnakeParameterDialog *m_ParameterDialog;
   GlobalUIModel *m_ParentModel;
   SnakeWizardModel *m_Model;
 

@@ -464,15 +464,22 @@ void
 Registry
 ::ReadFromFile(const char *pathname) 
 {
-  // Create an error stream
-  IRISOStringStream serr;
-      
   // Create output stream
   ifstream sin(pathname,std::ios::in);
   if(!sin.good())
     throw IOException("Unable to open the Registry file");
 
-  try 
+  ReadFromStream(sin);
+
+}
+
+void Registry
+::ReadFromStream(istream &sin)
+{
+  // Create an error stream
+  IRISOStringStream serr;
+
+  try
     {
     // Try reading
     Read(sin,serr);

@@ -53,6 +53,7 @@
 #include <PaintbrushModel.h>
 #include <PaintbrushSettingsModel.h>
 #include <SynchronizationModel.h>
+#include <SnakeParameterModel.h>
 #include "NumericPropertyToggleAdaptor.h"
 #include "HistoryManager.h"
 
@@ -65,7 +66,7 @@
 template class SNAPUIFlag<GlobalUIModel, UIState>;
 
 
-GlobalUIModel::GlobalUIModel()
+GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   : AbstractModel()
 {
   // Create the appearance settings objects
@@ -73,6 +74,7 @@ GlobalUIModel::GlobalUIModel()
 
   // Create the IRIS application login
   m_Driver = IRISApplication::New();
+  m_Driver->GetSystemInterface()->SetSystemInfoDelegate(sid);
 
   // Display layout model
   m_DisplayLayoutModel = DisplayLayoutModel::New();
@@ -81,8 +83,6 @@ GlobalUIModel::GlobalUIModel()
   // Paintbrush settings
   m_PaintbrushSettingsModel = PaintbrushSettingsModel::New();
   m_PaintbrushSettingsModel->SetParentModel(this);
-
-
 
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)
@@ -155,6 +155,10 @@ GlobalUIModel::GlobalUIModel()
   // Synchronization model
   m_SynchronizationModel = SynchronizationModel::New();
   m_SynchronizationModel->SetParentModel(this);
+
+  // Snake parameter model
+  m_SnakeParameterModel = SnakeParameterModel::New();
+  m_SnakeParameterModel->SetParentModel(this);
 
   // Initialize the properties
   m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
@@ -330,6 +334,14 @@ void GlobalUIModel
   del.UpdateApplicationWithImage(&io);
 }
 
+
+GlobalUIModel::Pointer
+GlobalUIModel::New(SystemInfoDelegate *sid)
+{
+  Pointer smartPtr = new GlobalUIModel(sid);
+  smartPtr->UnRegister();
+  return smartPtr;
+}
 
 SystemInterface * GlobalUIModel::GetSystemInterface() const
 {

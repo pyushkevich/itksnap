@@ -72,4 +72,16 @@ protected:
 
 };
 
+class QtSystemInfoDelegate : public SystemInfoDelegate
+{
+public:
+  virtual std::string GetApplicationDirectory();
+  virtual std::string GetApplicationFile();
+
+  typedef itk::Image<unsigned char, 2> GrayscaleImage;
+
+  virtual void LoadResourceAsImage2D(std::string tag, GrayscaleImage *image);
+  virtual void LoadResourceAsRegistry(std::string tag, Registry &reg);
+};
+
 #endif // QTREQUESTDELEGATES_H

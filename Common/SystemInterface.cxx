@@ -54,6 +54,7 @@
 #include "GlobalState.h"
 #include "SNAPRegistryIO.h"
 #include "HistoryManager.h"
+#include "UIReporterDelegates.h"
 #include <itksys/Directory.hxx>
 #include <itksys/SystemTools.hxx>
 #include "itkVoxBoCUBImageIOFactory.h"
@@ -165,6 +166,12 @@ SystemInterface
   IPCClose();
 }
 
+string SystemInterface::GetFullPathToExecutable() const
+{
+  assert(m_SystemInfoDelegate);
+  return m_SystemInfoDelegate->GetApplicationFile();
+}
+
 
 void
 SystemInterface
@@ -213,25 +220,26 @@ SystemInterface
 ::LaunchChildSNAP(std::list<std::string> args)
 {
   // Must have a valid path to the EXE
-  if(m_FullPathToExecutable.length() == 0)
+  std::string exefile = this->GetFullPathToExecutable();
+  if(exefile.length() == 0)
     throw IRISException("Path to executable unknown in LaunchChildSNAP");
 
   // Create the argument array
   char **argv = new char* [args.size()+2];
   int iarg = 0;
-  argv[iarg++] = (char *) m_FullPathToExecutable.c_str();
+  argv[iarg++] = (char *) exefile.c_str();
   for(std::list<std::string>::iterator it=args.begin(); it!=args.end(); ++it)
     argv[iarg++] = (char *) it->c_str();
   argv[iarg++] = NULL;
 
   // Create child process
 #ifdef WIN32
-  _spawnvp(_P_NOWAIT, m_FullPathToExecutable.c_str(), argv);
+  _spawnvp(_P_NOWAIT, exefile.c_str(), argv);
 #else
   int pid;
   if((pid = fork()) == 0)
     {
-    if(execvp(m_FullPathToExecutable.c_str(), argv) < 0)
+    if(execvp(exefile.c_str(), argv) < 0)
       exit(-1);
     } 
 #endif

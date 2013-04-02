@@ -62,6 +62,7 @@ class PaintbrushModel;
 class PaintbrushSettingsModel;
 class LayerGeneralPropertiesModel;
 class SynchronizationModel;
+class SnakeParameterModel;
 
 namespace itk
 {
@@ -81,6 +82,7 @@ enum ToolbarModeType
   ANNOTATION_MODE
 };
 
+class SystemInfoDelegate;
 
 
 /**
@@ -92,7 +94,16 @@ class GlobalUIModel : public AbstractModel
 
 public:
 
-  irisITKObjectMacro(GlobalUIModel, AbstractModel)
+  typedef AbstractModel Superclass;
+  typedef GlobalUIModel Self;
+  typedef SmartPtr<Self> Pointer;
+  typedef SmartPtr<const Self> ConstPointer;
+
+  itkTypeMacro(GlobalUIModel, AbstractModel)
+
+  // This class has a custom New function that takes a parameter, because
+  // this parameter is necessary for initialization
+  static Pointer New(SystemInfoDelegate *sid);
 
   // Events fired by this object
   FIRES(CursorUpdateEvent)
@@ -181,6 +192,9 @@ public:
   /** Model for multi-session sync */
   irisGetMacro(SynchronizationModel, SynchronizationModel *)
 
+  /** Model for snake parameter editing */
+  irisGetMacro(SnakeParameterModel, SnakeParameterModel *)
+
   /** Load an image non-interactively through a delegate */
   void LoadImageNonInteractive(const char *fname,
                                AbstractLoadImageDelegate &delegate,
@@ -228,7 +242,7 @@ public:
 
 protected:
 
-  GlobalUIModel();
+  GlobalUIModel(SystemInfoDelegate *sid);
   ~GlobalUIModel();
 
   // Callback for reporting progress
@@ -298,6 +312,9 @@ protected:
 
   // Synchronization
   SmartPtr<SynchronizationModel> m_SynchronizationModel;
+
+  // Snake parameters
+  SmartPtr<SnakeParameterModel> m_SnakeParameterModel;
 
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;

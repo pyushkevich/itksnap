@@ -7,6 +7,14 @@
 #include <QPainter>
 #include <QPixmap>
 
+#include <QImage>
+#include "itkImage.h"
+#include "itkImageRegionIteratorWithIndex.h"
+#include "Registry.h"
+#include <sstream>
+
+#include "SNAPQtCommon.h"
+
 
 QtViewportReporter::QtViewportReporter()
 {
@@ -77,3 +85,48 @@ void QtProgressReporterDelegate::SetProgressValue(double value)
   QCoreApplication::processEvents();
 }
 
+
+std::string QtSystemInfoDelegate::GetApplicationDirectory()
+{
+  return to_utf8(QCoreApplication::applicationDirPath());
+}
+
+std::string QtSystemInfoDelegate::GetApplicationFile()
+{
+  return to_utf8(QCoreApplication::applicationFilePath());
+}
+
+void QtSystemInfoDelegate
+::LoadResourceAsImage2D(std::string tag, GrayscaleImage *image)
+{
+  // Load the image using Qt
+  QImage iq(QString(":/snapres/snapres/%1").arg(from_utf8(tag)));
+
+  // Initialize the itk image
+  itk::ImageRegion<2> region;
+  region.SetSize(0, iq.width());
+  region.SetSize(1, iq.height());
+  image->SetRegions(region);
+  image->Allocate();
+
+  // Fill the image buffer
+  for(itk::ImageRegionIteratorWithIndex<GrayscaleImage> it(image, region);
+      !it.IsAtEnd(); ++it)
+    {
+    it.Set(qGray(iq.pixel(it.GetIndex()[0],it.GetIndex()[1])));
+    }
+}
+
+void QtSystemInfoDelegate::LoadResourceAsRegistry(std::string tag, Registry &reg)
+{
+  // Read the file into a byte array
+  QFile file(QString(":/snapres/snapres/%1").arg(from_utf8(tag)));
+  if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+    QByteArray ba = file.readAll();
+
+    // Read the registry contents
+    std::stringstream ss(ba.data());
+    reg.ReadFromStream(ss);
+    }
+}

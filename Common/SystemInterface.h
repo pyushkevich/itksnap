@@ -43,6 +43,7 @@
 class IRISApplication;
 class SNAPRegistryIO;
 class HistoryManager;
+class SystemInfoDelegate;
 
 #ifdef WIN32
 #include <windows.h>
@@ -60,9 +61,16 @@ public:
   SystemInterface();
   virtual ~SystemInterface();
 
-  /** Set the full path to the executable. This must be called before
-   * some of the features in this class are used */
-  irisGetSetMacro(FullPathToExecutable, std::string)
+  /**
+   * Set a pointer to the delegate class that can be used to access
+   * system-specific information
+   */
+  irisGetSetMacro(SystemInfoDelegate, SystemInfoDelegate *)
+
+  /**
+   * Get the full path to executable
+   */
+  std::string GetFullPathToExecutable() const;
 
   /** Loads the registry containing user preferences */
   void LoadUserPreferences();
@@ -193,13 +201,15 @@ public:
 private:
   std::string m_UserPreferenceFile;
   std::string m_DocumentationDirectory;
-  std::string m_FullPathToExecutable;
 
   // An object used to write large chunks of SNAP data to the registry
   SNAPRegistryIO *m_RegistryIO;
 
   // History manager
   HistoryManager *m_HistoryManager;
+
+  // Delegate
+  SystemInfoDelegate *m_SystemInfoDelegate;
 
   // Filename encoder
   std::string EncodeFilename(const std::string &src);

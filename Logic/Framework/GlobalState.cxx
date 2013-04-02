@@ -75,7 +75,9 @@ GlobalState
       = NewSimpleConcreteProperty(SNAPSegmentationROISettings());
 
   m_SpeedViewZero = false;
-  m_SnakeParameters = SnakeParameters::GetDefaultEdgeParameters();
+
+  m_SnakeParametersModel = ConcreteSnakeParametersModel::New();
+  m_SnakeParametersModel->SetValue(SnakeParameters::GetDefaultEdgeParameters());
 
   // Bubbles
   m_ActiveBubble = -1;

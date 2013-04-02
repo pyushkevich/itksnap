@@ -86,12 +86,12 @@ public:
 
   TAtomic GetValue(QDoubleSlider *w)
   {
-    return static_cast<TAtomic>(w->value());
+    return static_cast<TAtomic>(w->doubleValue());
   }
 
   void SetValue(QDoubleSlider *w, const TAtomic &value)
   {
-    w->setValue(static_cast<double>(value));
+    w->setDoubleValue(static_cast<double>(value));
   }
 };
 
@@ -102,17 +102,17 @@ class DefaultWidgetDomainTraits<NumericValueRange<TAtomic>, QDoubleSlider>
 public:
   void SetDomain(QDoubleSlider *w, const NumericValueRange<TAtomic> &range)
   {
-    w->setMinimum(range.Minimum);
-    w->setMaximum(range.Maximum);
-    w->setSingleStep(range.StepSize);
+    w->setDoubleMinimum(range.Minimum);
+    w->setDoubleMaximum(range.Maximum);
+    w->setDoubleSingleStep(range.StepSize);
   }
 
   NumericValueRange<TAtomic> GetDomain(QDoubleSlider *w)
   {
     return NumericValueRange<TAtomic>(
-          static_cast<TAtomic>(w->minimum()),
-          static_cast<TAtomic>(w->maximum()),
-          static_cast<TAtomic>(w->singleStep()));
+          static_cast<TAtomic>(w->doubleMinimum()),
+          static_cast<TAtomic>(w->doubleMaximum()),
+          static_cast<TAtomic>(w->doubleSingleStep()));
   }
 };
 

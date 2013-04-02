@@ -82,7 +82,7 @@ public:
   static void GetFixedIntensityRange(float &min, float &max)
     { min = -4.0; max = 4.0; }
 
-  itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_BWR);
+  itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_LEVELSET);
 };
 
 template <class TPixel>

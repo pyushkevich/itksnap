@@ -6,6 +6,12 @@
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 
+namespace itk
+{
+template <class TPixel, unsigned int VDim> class Image;
+}
+
+class Registry;
 
 /**
   An interface used by models to request the viewport size from the GUI and
@@ -56,6 +62,20 @@ public:
       int font_size,
       int align_horiz, int align_vert,
       unsigned char rgba[]) = 0;
+};
+
+/**
+ This delegate is used to obtain system-specific information
+ */
+class SystemInfoDelegate
+{
+public:
+  virtual std::string GetApplicationDirectory() = 0;
+  virtual std::string GetApplicationFile() = 0;
+
+  typedef itk::Image<unsigned char, 2> GrayscaleImage;
+  virtual void LoadResourceAsImage2D(std::string tag, GrayscaleImage *image) = 0;
+  virtual void LoadResourceAsRegistry(std::string tag, Registry &reg) = 0;
 };
 
 #endif // UIREPORTERDELEGATES_H

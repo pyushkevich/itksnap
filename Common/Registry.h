@@ -347,6 +347,9 @@ public:
   /** Read this Registry from a file */
   void ReadFromFile(const char *pathname);
 
+  /** Read from an std::ifstream */
+  void ReadFromStream(std::istream &sin);
+
   /** Experimental */
   void SetFlagAddIfNotFound(bool yesno);
 
