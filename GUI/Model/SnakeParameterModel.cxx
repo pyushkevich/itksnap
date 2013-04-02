@@ -8,6 +8,7 @@
 #include "UIReporterDelegates.h"
 #include "SNAPRegistryIO.h"
 #include "HistoryManager.h"
+#include "SNAPImageData.h"
 
 
 SnakeParameterModel::SnakeParameterModel()
@@ -152,12 +153,24 @@ void SnakeParameterModel::SetupPreviewPipeline()
 
 void SnakeParameterModel::OnUpdate()
 {
-  // Update the image used by the preview pipeline
-  ExampleImageType *speed = this->IsRegionSnake()
-      ? m_ExampleImage[1] : m_ExampleImage[0];
-  if(m_PreviewPipeline->GetSpeedImage() != speed)
-    m_PreviewPipeline->SetSpeedImage(speed);
-  m_PreviewPipeline->SetSnakeParameters(m_ParametersModel->GetValue());
+  if(this->m_EventBucket->HasEvent(ValueChangedEvent(), m_ParametersModel))
+    {
+    // Send the parameters to the segmentation pipeline. This is kind of
+    // stupid, because we are using a model to coordinate between two copies
+    // of the parameters, but it should work
+    SNAPImageData *sid = m_ParentModel->GetDriver()->GetSNAPImageData();
+    if(sid && sid->IsSegmentationActive())
+      {
+      sid->SetSegmentationParameters(m_ParametersModel->GetValue());
+      }
+
+    // Update the speed image used by the preview pipeline
+    ExampleImageType *speed = this->IsRegionSnake()
+        ? m_ExampleImage[1] : m_ExampleImage[0];
+    if(m_PreviewPipeline->GetSpeedImage() != speed)
+      m_PreviewPipeline->SetSpeedImage(speed);
+    m_PreviewPipeline->SetSnakeParameters(m_ParametersModel->GetValue());
+    }
 }
 
 bool SnakeParameterModel::IsRegionSnake()

@@ -103,7 +103,7 @@ SNAPLevelSetDriver<VDimension>
   // Set up the level set function
 
   // The sign of the advection term is flipped in our equation
-  m_LevelSetFunction->SetAdvectionWeight( - p.GetAdvectionWeight());
+  m_LevelSetFunction->SetAdvectionWeight(- p.GetAdvectionWeight());
   m_LevelSetFunction->SetAdvectionSpeedExponent(p.GetAdvectionSpeedExponent());
 
   // The curvature exponent for traditional/legacy reasons has a +1 value.

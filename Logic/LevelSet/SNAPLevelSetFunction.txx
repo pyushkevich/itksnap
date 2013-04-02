@@ -112,17 +112,24 @@ SNAPLevelSetFunction<TSpeedImageType,TImageType>
   IndexType idx = neighborhood.GetIndex();
   typedef typename VectorInterpolatorType::ContinuousIndexType VectorContinuousIndexType;
   VectorContinuousIndexType cdx;
+  typename SNAPLevelSetFunction<TSpeedImageType,TImageType>::VectorType avec;
   for (unsigned i = 0; i < ImageDimension; ++i)
     {
     cdx[i] = static_cast<double>(idx[i]) - offset[i];
     }
   if ( m_AdvectionFieldInterpolator->IsInsideBuffer(cdx) )
     {
-    return (
-      m_VectorCast(
-       m_AdvectionFieldInterpolator->EvaluateAtContinuousIndex(cdx)));
+    avec = m_VectorCast(m_AdvectionFieldInterpolator->EvaluateAtContinuousIndex(cdx));
     }
-  else return ( m_AdvectionField->GetPixel(idx) );
+  else
+    {
+    avec = m_AdvectionField->GetPixel(idx);
+    }
+
+  for(unsigned i = 0; i < ImageDimension; i++)
+    avec[i] *= m_SpeedScaleFactor;
+
+  return avec;
 }
 
 template <class TSpeedImageType, class TImageType>

@@ -49,15 +49,15 @@ ScalarImageWrapper<TTraits,TBase>
   m_GradientMagnitudeFilter = GradMagFilter::New();
   m_GradientMagnitudeFilter->ReleaseDataFlagOn();
 
-  // Set up a streamer to avoid extra memory use when using the gradient mag
-  // filter. Ideally, there would be a streaming MaximumMinimum filter available
-  typedef itk::StreamingImageFilter<FloatImageType, FloatImageType> StreamerType;
-  typename StreamerType::Pointer streamer = StreamerType::New();
-  streamer->SetInput(m_GradientMagnitudeFilter->GetOutput());
-  streamer->SetNumberOfStreamDivisions(16);
-
+  // TODO: This filter is a huge waste of memory because it computes the
+  // gradient of the image just to obtain a maximum value. Not only that,
+  // the filter is applied to the common representation (float) image, so
+  // it requires another intermediate volume. The right thing to do would
+  // be to implement a filter that computes the maximum possible gradient
+  // magnitude of the image using a streaming implementation, and without
+  // having to cast to float.
   m_GradientMagnitudeMaximumFilter = GradMagMaxFilter::New();
-  m_GradientMagnitudeMaximumFilter->SetInput(streamer->GetOutput());
+  m_GradientMagnitudeMaximumFilter->SetInput(m_GradientMagnitudeFilter->GetOutput());
 }
 
 template<class TTraits, class TBase>
@@ -112,8 +112,6 @@ ScalarImageWrapper<TTraits,TBase>
       m_CommonRepresentationPolicy.GetOutput(ScalarImageWrapperBase::WHOLE_IMAGE);
 
   m_GradientMagnitudeFilter->SetInput(imgCommon);
-
-
 }
 
 

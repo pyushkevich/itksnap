@@ -390,7 +390,7 @@ SnakeWizardModel
   EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
   x = eps->GetRemappingSteepness();
   if(range)
-    range->Set(0.01, 0.2, 0.01);
+    range->Set(0.001, 0.2, 0.001);
 
   return true;
 }
@@ -415,7 +415,7 @@ SnakeWizardModel
   EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
   x = eps->GetRemappingExponent();
   if(range)
-    range->Set(1, 4, 0.1);
+    range->Set(1, 4, 0.01);
 
   return true;
 }
@@ -457,6 +457,7 @@ void SnakeWizardModel
 
   EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
   ScalarImageWrapperBase *grey = this->GetSelectedScalarLayer();
+  SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
 
   // Get the range of gradient magnitude in native units
   double xlim = grey->GetImageGradientMagnitudeUpperLimitNative();
@@ -469,8 +470,8 @@ void SnakeWizardModel
     {
     float t = i * 1.0 / (n - 1);
     float x_internal = t * xlim;
-    x[i] = grey->GetNativeIntensityMapping()->MapInternalToNative(x_internal);
-    y[i] = grey->GetNativeIntensityMapping()->MapInternalToNative(functor(x_internal));
+    x[i] = x_internal;
+    y[i] = speed->GetNativeIntensityMapping()->MapInternalToNative(functor(x_internal));
     }
 }
 

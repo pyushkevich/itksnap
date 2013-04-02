@@ -51,7 +51,7 @@ QVariant BubbleItemModel::data(const QModelIndex &index, int role) const
     if(index.column()==3)
       return QString("%1").arg(b.radius);
     else
-      return QString("%1").arg(b.center[index.column()]);
+      return QString("%1").arg(b.center[index.column()]+1);
     }
   else if(role == Qt::UserRole)
     {
@@ -81,9 +81,9 @@ bool BubbleItemModel::setData(const QModelIndex &index, const QVariant &value, i
     {
     bool convok;
     int iv = value.toInt(&convok);
-    if(convok && b.center[index.column()] != iv)
+    if(convok && b.center[index.column()]+1 != iv)
       {
-      b.center[index.column()] = iv;
+      b.center[index.column()] = iv-1;
       modified = true;
       }
     }

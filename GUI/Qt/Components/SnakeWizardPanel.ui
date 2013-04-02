@@ -203,7 +203,7 @@ p, li { white-space: pre-wrap; }
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="pgPreproc">
          <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -926,6 +926,9 @@ p, li { white-space: pre-wrap; }
                </property>
                <property name="buttonSymbols">
                 <enum>QAbstractSpinBox::NoButtons</enum>
+               </property>
+               <property name="maximum">
+                <number>9999</number>
                </property>
               </widget>
              </item>
