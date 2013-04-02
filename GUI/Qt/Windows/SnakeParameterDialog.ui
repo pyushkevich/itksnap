@@ -7,13 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>717</width>
-    <height>432</height>
+    <height>451</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Active Contour Evolution Parameters - ITK-SNAP</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="bottomMargin">
+    <number>8</number>
+   </property>
+   <property name="verticalSpacing">
+    <number>8</number>
+   </property>
    <item row="0" column="1">
     <widget class="QGroupBox" name="groupBox">
      <property name="sizePolicy">
@@ -34,7 +40,7 @@
      <property name="title">
       <string>Conceptual Illustration of Forces in 2D</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_10" rowstretch="0,1,0,1">
+     <layout class="QGridLayout" name="gridLayout_10" rowstretch="0,1,0,0,1,0">
       <property name="margin">
        <number>4</number>
       </property>
@@ -55,47 +61,131 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QtSimpleOpenGLBox" name="boxForceAlpha" native="true">
-        <property name="styleSheet">
-         <string notr="true">border:1px black solid;</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QtSimpleOpenGLBox" name="boxForceBeta" native="true"/>
-      </item>
-      <item row="2" column="0" alignment="Qt::AlignHCenter">
+      <item row="3" column="0" alignment="Qt::AlignHCenter">
        <widget class="QLabel" name="label_9">
         <property name="text">
          <string>Edge Attraction</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1" alignment="Qt::AlignHCenter">
+      <item row="3" column="1" alignment="Qt::AlignHCenter">
        <widget class="QLabel" name="label_11">
         <property name="text">
          <string>Combined Force</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QtSimpleOpenGLBox" name="boxForceGamma" native="true"/>
+      <item row="1" column="0">
+       <widget class="QFrame" name="frame">
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_9">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QtSimpleOpenGLBox" name="boxForceAlpha" native="true">
+           <property name="styleSheet">
+            <string notr="true">border:1px black solid;</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="QtSimpleOpenGLBox" name="boxForceTotal" native="true"/>
+      <item row="1" column="1">
+       <widget class="QFrame" name="frame_2">
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_10">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QtSimpleOpenGLBox" name="boxForceBeta" native="true">
+           <property name="styleSheet">
+            <string notr="true">border:1px black solid;</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QFrame" name="frame_3">
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_11">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QtSimpleOpenGLBox" name="boxForceGamma" native="true">
+           <property name="styleSheet">
+            <string notr="true">border:1px black solid;</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QFrame" name="frame_4">
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_12">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QtSimpleOpenGLBox" name="boxForceTotal" native="true">
+           <property name="styleSheet">
+            <string notr="true">border:1px black solid;</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="2" alignment="Qt::AlignRight">
+       <widget class="QWidget" name="widget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>20</height>
+         </size>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="margin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QCheckBox" name="chkAnimate">
+           <property name="text">
+            <string>Animate</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
-    </widget>
-   </item>
-   <item row="1" column="0" colspan="2">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
     </widget>
    </item>
    <item row="0" column="0">
@@ -805,6 +895,65 @@
      </widget>
     </widget>
    </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QWidget" name="widget_2" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>20</height>
+      </size>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="spacing">
+       <number>6</number>
+      </property>
+      <property name="margin">
+       <number>2</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="btnRestore">
+        <property name="text">
+         <string>Restore Defaults</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnOpen">
+        <property name="text">
+         <string>Open...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnSave">
+        <property name="text">
+         <string>Save...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnClose">
+        <property name="text">
+         <string>Close</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -820,39 +969,49 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>inZhuAlphaSimple</tabstop>
+  <tabstop>inZhuAlphaSimpleSlider</tabstop>
+  <tabstop>inZhuBetaSimple</tabstop>
+  <tabstop>inZhuBetaSimpleSlider</tabstop>
+  <tabstop>inCasellesAlphaSimple</tabstop>
+  <tabstop>inCasellesAlphaSimpleSlider</tabstop>
+  <tabstop>inCasellesBetaSimple</tabstop>
+  <tabstop>inCasellesBetaSimpleSlider</tabstop>
+  <tabstop>inCasellesGammaSimple</tabstop>
+  <tabstop>inCasellesGammaSimpleSlider</tabstop>
+  <tabstop>chkAdvanced</tabstop>
+  <tabstop>inAlphaMath</tabstop>
+  <tabstop>inAlphaMathSlider</tabstop>
+  <tabstop>inAlphaExp</tabstop>
+  <tabstop>inBetaMath</tabstop>
+  <tabstop>inBetaMathSlider</tabstop>
+  <tabstop>inBetaExp</tabstop>
+  <tabstop>inGammaMath</tabstop>
+  <tabstop>inGammaMathSlider</tabstop>
+  <tabstop>inGammaExp</tabstop>
+  <tabstop>inSpeedup</tabstop>
+  <tabstop>inSpeedupSlider</tabstop>
+  <tabstop>chkAnimate</tabstop>
+ </tabstops>
  <resources>
   <include location="../Resources/SNAPResources.qrc"/>
  </resources>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
+   <sender>btnClose</sender>
+   <signal>clicked()</signal>
    <receiver>SnakeParameterDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>657</x>
+     <y>431</y>
     </hint>
     <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>SnakeParameterDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>529</x>
+     <y>447</y>
     </hint>
    </hints>
   </connection>

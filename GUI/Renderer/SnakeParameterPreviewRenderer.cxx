@@ -42,6 +42,9 @@ void SnakeParameterPreviewRenderer::SetModel(SnakeParameterModel *model)
   m_Texture->SetImage(m_Pipeline->GetDisplayImage());
 
   Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Model->GetAnimateDemoModel(), ValueChangedEvent(), ModelUpdateEvent());
+
+  Rebroadcast(m_Model, SnakeParameterModel::DemoLoopEvent(), ModelUpdateEvent());
 }
 
 void SnakeParameterPreviewRenderer::paintGL()
@@ -75,7 +78,7 @@ void SnakeParameterPreviewRenderer::paintGL()
   glColor3d(1.0, 0.0, 0.0);
 
   // Draw the evolving contour if it's available
-  if(m_Pipeline->IsDemoLoopRunning())
+  if(m_Model->GetAnimateDemo())
     {
     std::vector<Vector2d> &points = m_Pipeline->GetDemoLoopContour();
     glColor3d(1.0, 0.0, 0.0);

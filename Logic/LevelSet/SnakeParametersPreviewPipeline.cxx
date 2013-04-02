@@ -277,7 +277,7 @@ public:
 
   // See if there is something to display
   bool IsLevelSetComputed()
-    { return m_Driver != NULL; }
+    { return m_Driver != NULL && !m_DriverDirty; }
 
   // Get the level set image to display
   FloatImageType *GetLevelSetImage()
@@ -286,6 +286,10 @@ public:
   // Get the evolving contour
   vector<Vector2d> &GetEvolvingContour()
     { return m_CurrentCurve; }
+
+  // Restart the demo
+  void Restart()
+    { m_DriverDirty = true; m_CurrentCurve.clear(); }
 
 private:
   // Parameters of the level set algorithm
@@ -320,6 +324,11 @@ SnakeParametersPreviewPipeline
   m_DemoLoop->OnTimerEvent();
 }
 
+void SnakeParametersPreviewPipeline::AnimationRestart()
+{
+  m_DemoLoop->Restart();
+}
+
 SnakeParametersPreviewPipeline
 ::SnakeParametersPreviewPipeline(GlobalState *state)
 {
@@ -344,9 +353,6 @@ SnakeParametersPreviewPipeline
 
   // Create a new demo loop
   m_DemoLoop = new LevelSetPreview2d;
-
-  // The demo loop is not running
-  m_DemoLoopRunning = false;
 }
 
 SnakeParametersPreviewPipeline

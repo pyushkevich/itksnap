@@ -4,6 +4,7 @@
 #include "SNAPCommon.h"
 #include "AbstractModel.h"
 #include "PropertyModel.h"
+#include "SnakeParameters.h"
 
 class GlobalUIModel;
 class SnakeParametersPreviewPipeline;
@@ -23,7 +24,11 @@ public:
 
   irisITKObjectMacro(SnakeParameterModel, AbstractModel)
 
+  // This model fires a custom DemoLoopEvent when the demo loop is run
+  itkEventMacro(DemoLoopEvent, IRISEvent)
+  FIRES(DemoLoopEvent)
 
+  irisGetMacro(ParentModel, GlobalUIModel *)
   void SetParentModel(GlobalUIModel *model);
 
   virtual void OnUpdate();
@@ -47,15 +52,32 @@ public:
   AbstractRangedIntProperty *GetExponentModel(int index)
     { return m_ExponentModel[index]; }
 
+  // Speedup factor
+  irisRangedPropertyAccessMacro(SpeedupFactor, double)
+
   // The model for whether the advanced mode (exponents) is on
-  irisGetMacro(AdvancedEquationModeModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(CasellesOrAdvancedModeModel, AbstractSimpleBooleanProperty *)
+  irisSimplePropertyAccessMacro(AdvancedEquationMode, bool)
+  irisSimplePropertyAccessMacro(CasellesOrAdvancedMode, bool)
+
+  // Whether the demo is being animated
+  irisSimplePropertyAccessMacro(AnimateDemo, bool)
 
   // Whether or not we are in Zhu (region competition) mode
   bool IsRegionSnake();
 
   // Preview pipeline
-  irisGetMacro(PreviewPipeline, SnakeParametersPreviewPipeline *);
+  irisGetMacro(PreviewPipeline, SnakeParametersPreviewPipeline *)
+
+  // Run a loop of the demo animation
+  void PerformAnimationStep();
+
+  // Run a loop of the demo animation
+  void ResetAnimation();
+
+  // Parameter IO
+  void LoadParameters(const std::string &file);
+  void SaveParameters(const std::string &file);
+  void RestoreDefaults();
 
 
 protected:
@@ -73,10 +95,17 @@ protected:
       int index, int &value, NumericValueRange<int> *domain);
   void SetExponentValue(int index, int value);
 
+  SmartPtr<AbstractRangedDoubleProperty> m_SpeedupFactorModel;
+  bool GetSpeedupFactorValueAndRange(
+      double &value, NumericValueRange<double> *domain);
+  void SetSpeedupFactorValue(double value);
+
   SmartPtr<ConcreteSimpleBooleanProperty> m_AdvancedEquationModeModel;
 
   SmartPtr<AbstractSimpleBooleanProperty> m_CasellesOrAdvancedModeModel;
   bool GetCasellesOrAdvancedModeValue();
+
+  SmartPtr<ConcreteSimpleBooleanProperty> m_AnimateDemoModel;
 
   void SetupPreviewPipeline();
 
@@ -88,7 +117,10 @@ protected:
   SmartPtr<ExampleImageType> m_ExampleImage[2];
 
   // Parent model
-  GlobalUIModel *m_Parent;
+  GlobalUIModel *m_ParentModel;
+
+  // Model governing the parameters
+  AbstractPropertyModel<SnakeParameters, TrivialDomain> *m_ParametersModel;
 };
 
 #endif // SNAKEPARAMETERMODEL_H

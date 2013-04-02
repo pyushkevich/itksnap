@@ -144,10 +144,6 @@ public:
   /** Get a list of densely interpolated points on the curve (for drawing) */
   irisGetMacro(SampledPoints,const SampledPointList &);
 
-  /** Is the demo loop running ? */
-  irisIsMacro(DemoLoopRunning);
-  irisSetMacro(DemoLoopRunning, bool);
-
   /** Get the demo loop contour */
   std::vector<Vector2d> &GetDemoLoopContour();
 
@@ -157,6 +153,9 @@ public:
 
   /** Set the idle callback function that FLTK should call in demo mode */
   void AnimationCallback();
+
+  /** Have the animation restart on the next callback */
+  void AnimationRestart();
 
 private:
 
@@ -225,9 +224,6 @@ private:
 
   // Demo loop object
   LevelSetPreview2d *m_DemoLoop;
-
-  // Whether the demo loop is currently running
-  bool m_DemoLoopRunning;
 };
 
 
