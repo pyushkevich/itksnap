@@ -44,7 +44,7 @@ QGroupBox::title {
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
-    <number>20</number>
+    <number>8</number>
    </property>
    <property name="margin">
     <number>5</number>

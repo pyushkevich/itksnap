@@ -408,7 +408,7 @@ int main(int argc, char *argv[])
   gui->SetToolbarMode(CROSSHAIRS_MODE);
 
   // Show the panel
-  mainwin.show();
+  mainwin.ShowFirstTime();
 
   if(parseResult.IsOptionPresent("--test"))
     {

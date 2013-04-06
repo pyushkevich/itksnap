@@ -270,6 +270,20 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionRedo, m_Model, UIF_REDO_POSSIBLE);
 }
 
+void MainImageWindow::ShowFirstTime()
+{
+  // Before showing the window, select the right pages for the main view
+  // and the sidebar, otherwise we get an annoying flashing of windows at
+  // startup, as the pages are changed in response to an event
+  this->UpdateMainLayout();
+
+  // Also make sure the other elements look right before showing the window
+  this->UpdateRecentMenu();
+  this->UpdateWindowTitle();
+
+  // Show the window
+  this->show();
+}
 
 // Slot for model updates
 void MainImageWindow::onModelUpdate(const EventBucket &b)
@@ -278,18 +292,7 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     {
     // Update the recent items
     this->UpdateRecentMenu();
-
-    // Choose what page to show depending on if an image has been loaded
-    if(m_Model->GetDriver()->IsMainImageLoaded())
-      {
-      ui->stackMain->setCurrentWidget(ui->pageMain);
-      m_DockLeft->setWidget(m_ControlPanel);
-      }
-    else
-      {
-      ui->stackMain->setCurrentWidget(ui->pageSplash);
-      m_DockLeft->setWidget(m_SplashPanel);
-      }
+    this->UpdateMainLayout();
     }
 
   if(b.HasEvent(LayerChangeEvent()) || b.HasEvent(WrapperMetadataChangeEvent()))
@@ -297,7 +300,21 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     // Update the window title
     this->UpdateWindowTitle();
     }
+}
 
+void MainImageWindow::UpdateMainLayout()
+{
+  // Choose what page to show depending on if an image has been loaded
+  if(m_Model->GetDriver()->IsMainImageLoaded())
+    {
+    ui->stackMain->setCurrentWidget(ui->pageMain);
+    m_DockLeft->setWidget(m_ControlPanel);
+    }
+  else
+    {
+    ui->stackMain->setCurrentWidget(ui->pageSplash);
+    m_DockLeft->setWidget(m_SplashPanel);
+    }
 }
 
 void MainImageWindow::UpdateRecentMenu()

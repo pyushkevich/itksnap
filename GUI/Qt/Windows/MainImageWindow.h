@@ -66,6 +66,9 @@ public:
   // Initialize with a model
   void Initialize(GlobalUIModel *model);
 
+  // Show the window for the first time
+  void ShowFirstTime();
+
   // Get model
   irisGetMacro(Model, GlobalUIModel *)
 
@@ -164,6 +167,7 @@ private:
 
   void UpdateRecentMenu();
   void UpdateWindowTitle();
+  void UpdateMainLayout();
 
   void SaveSegmentation(bool interactive);
 
