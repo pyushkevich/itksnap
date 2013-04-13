@@ -182,8 +182,13 @@ public:
 
   static void updateItem(QStandardItem *item, int column, LabelType label, const ColorLabel &cl)
   {
+    // Handle the timestamp - if the timestamp has not changed, don't need to update
+    unsigned long ts = item->data(Qt::UserRole+1).toLongLong();
+    if(ts == cl.GetTimeStamp().GetMTime())
+      return;
+
     // The description
-    QString text(cl.GetLabel());
+    QString text = QString::fromUtf8(cl.GetLabel());
 
     // The color
     QColor fill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
@@ -196,6 +201,7 @@ public:
     item->setText(text);
     item->setData(label, Qt::UserRole);
     item->setData(text, Qt::EditRole);
+    item->setData((qulonglong) cl.GetTimeStamp().GetMTime(), Qt::UserRole+1);
   }
 
   static LabelType getItemValue(QStandardItem *item)
@@ -212,6 +218,11 @@ public:
 
   static void updateItem(QStandardItem *item, int column, LabelType label, const ColorLabel &cl)
   {
+    // Handle the timestamp - if the timestamp has not changed, don't need to update
+    unsigned long ts = item->data(Qt::UserRole+1).toLongLong();
+    if(ts == cl.GetTimeStamp().GetMTime())
+      return;
+
     // The description
     if(column == 0)
       {
@@ -231,9 +242,13 @@ public:
       }
     else if(column == 1)
       {
-      item->setText(cl.GetLabel());
-      item->setData(cl.GetLabel(), Qt::EditRole);
+      QString text = QString::fromUtf8(cl.GetLabel());
+      item->setText(text);
+      item->setData(text, Qt::EditRole);
       }
+
+    // Update the timestamp
+    item->setData((qulonglong) cl.GetTimeStamp().GetMTime(), Qt::UserRole+1);
   }
 
   static LabelType getItemValue(QStandardItem *item)

@@ -144,12 +144,12 @@ void ColorMapInspector::PopulatePresets()
 
   ui->inPreset->clear();
   for(unsigned int i = 0; i < pSystem.size(); i++)
-    ui->inPreset->addItem(pSystem[i].c_str());
+    ui->inPreset->addItem(from_utf8(pSystem[i]));
   if(pUser.size())
     {
     ui->inPreset->insertSeparator(pSystem.size());
     for(unsigned int i = 0; i < pUser.size(); i++)
-      ui->inPreset->addItem(pUser[i].c_str());
+      ui->inPreset->addItem(from_utf8(pUser[i]));
     }
 
   m_PresetsUpdating = false;
@@ -159,7 +159,7 @@ void ColorMapInspector::on_inPreset_currentIndexChanged(int index)
 {
   // Set the preset
   if(!m_PresetsUpdating)
-    m_Model->SelectPreset(ui->inPreset->itemText(index).toAscii());
+    m_Model->SelectPreset(to_utf8(ui->inPreset->itemText(index)));
 }
 
 void ColorMapInspector::on_btnAddPreset_clicked()
@@ -179,7 +179,7 @@ void ColorMapInspector::on_btnAddPreset_clicked()
 
   if(ok)
     {
-    m_Model->SaveAsPreset(input.toStdString());
+    m_Model->SaveAsPreset(to_utf8(input));
     }
 }
 
@@ -187,7 +187,7 @@ void ColorMapInspector::on_btnDelPreset_clicked()
 {
   int sel = ui->inPreset->currentIndex();
   QString seltext = ui->inPreset->itemText(sel);
-  m_Model->DeletePreset(seltext.toStdString());
+  m_Model->DeletePreset(to_utf8(seltext));
 }
 
 

@@ -7,6 +7,7 @@
 #include "QtWarningDialog.h"
 #include "QtCursorOverride.h"
 #include <QMessageBox>
+#include "SNAPQtCommon.h"
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -55,7 +56,7 @@ void DropActionDialog::on_btnLoadOverlay_clicked()
 void DropActionDialog::on_btnLoadNew_clicked()
 {
   std::list<std::string> args;
-  args.push_back(ui->outFilename->text().toStdString());
+  args.push_back(to_utf8(ui->outFilename->text()));
   try
     {
     m_Model->GetSystemInterface()->LaunchChildSNAP(args);
@@ -73,19 +74,18 @@ void DropActionDialog::on_btnLoadNew_clicked()
 
 void DropActionDialog::LoadCommon(AbstractLoadImageDelegate &delegate)
 {
-  QString file = ui->outFilename->text();
+  std::string file = to_utf8(ui->outFilename->text());
   QtCursorOverride c(Qt::WaitCursor);
   try
     {
     IRISWarningList warnings;
-    m_Model->LoadImageNonInteractive(file.toStdString().c_str(),
-                                     delegate, warnings);
+    m_Model->LoadImageNonInteractive(file.c_str(), delegate, warnings);
     this->accept();
     }
   catch(exception &exc)
     {
     QMessageBox b(this);
-    b.setText(QString("Failed to load image %1").arg(file));
+    b.setText(QString("Failed to load image %1").arg(ui->outFilename->text()));
     b.setDetailedText(exc.what());
     b.setIcon(QMessageBox::Critical);
     b.exec();

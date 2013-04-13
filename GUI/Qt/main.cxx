@@ -429,7 +429,7 @@ int main(int argc, char *argv[])
 
     // Should have one script C++ class, multiple text scripts in QtScript format
 
-    //QtScriptTest1(&engine);
+    //QtScriptTest1(&eng  ine);
     //Yes, with memory leak so far
     QtScriptTest1 * pTest1 = new QtScriptTest1();
     pTest1->Initialize(&mainwin, gui, "");

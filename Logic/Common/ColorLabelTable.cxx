@@ -428,13 +428,16 @@ void ColorLabelTable::SetColorLabel(size_t id, const ColorLabel &label)
   if(it == m_LabelMap.end())
     {
     m_LabelMap[id] = label;
-    InvokeEvent(SegmentationLabelConfigurationChangeEvent());
+    InvokeEvent(SegmentationLabelConfigurationChangeEvent());    
     }
   else
     {
     it->second = label;
+    it->second.GetTimeStamp().Modified();
     InvokeEvent(SegmentationLabelPropertyChangeEvent());
     }
+
+
 
   this->Modified();
  }

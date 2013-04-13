@@ -1,6 +1,7 @@
 #ifndef SNAPQTCOMMON_H
 #define SNAPQTCOMMON_H
 
+#include <QBrush>
 #include <QIcon>
 #include <QObject>
 #include <SNAPCommon.h>
@@ -11,11 +12,25 @@ class GlobalUIModel;
 class QMenu;
 class QSlider;
 class QSpinBox;
+class ColorLabelTable;
+class ColorLabel;
 
 // Generate an icon with a black border and a given fill color
+QIcon CreateColorBoxIcon(int w, int h, const QBrush &brush);
 QIcon CreateColorBoxIcon(int w, int h, const QColor &rgb);
 QIcon CreateColorBoxIcon(int w, int h, const Vector3ui &rgb);
 QIcon CreateInvisibleIcon(int w, int h);
+
+// Generate a brush corresponding to a color label
+QBrush GetBrushForColorLabel(const ColorLabel &cl);
+QBrush GetBrushForDrawOverFilter(DrawOverFilter flt, const ColorLabel &cl);
+QString GetTitleForColorLabel(const ColorLabel &cl);
+QString GetTitleForDrawOverFilter(DrawOverFilter flt, const ColorLabel &cl);
+
+QBrush GetBrushForColorLabel(int label, ColorLabelTable *clt);
+QBrush GetBrushForDrawOverFilter(DrawOverFilter flt, ColorLabelTable *clt);
+QString GetTitleForColorLabel(int label, ColorLabelTable *clt);
+QString GetTitleForDrawOverFilter(DrawOverFilter flt, ColorLabelTable *clt);
 
 // Find an upstream action for a widget
 QAction* FindUpstreamAction(QWidget *w, const QString &targetActionName);

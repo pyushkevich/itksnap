@@ -1,4 +1,4 @@
-#include "colorwheel.h"
+#include "ColorWheel.h"
 
 ColorWheel::ColorWheel(QWidget *parent) :
   QWidget(parent),
@@ -15,6 +15,9 @@ ColorWheel::ColorWheel(QWidget *parent) :
   setMinimumSize(200,200);
   //    setMaximumSize(400,400);
   setCursor(Qt::CrossCursor);
+
+  wheel = QImage(initSize, QImage::Format_ARGB32_Premultiplied);
+  wheel.fill(Qt::transparent);
 }
 
 QColor ColorWheel::color()

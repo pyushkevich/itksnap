@@ -2,6 +2,7 @@
 #define QTLABELCOUPLING_H
 
 #include "QtWidgetCoupling.h"
+#include "SNAPQtCommon.h"
 #include <iostream>
 #include <iomanip>
 #include <QLabel>
@@ -14,7 +15,7 @@ public:
 
   virtual TAtomic GetValue(QLabel *w)
   {
-    std::istringstream iss(w->text().toStdString());
+    std::istringstream iss(to_utf8(w->text()));
     TAtomic value;
     iss >> value;
     return value;

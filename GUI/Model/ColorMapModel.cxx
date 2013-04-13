@@ -526,10 +526,10 @@ void ColorMapModel::GetPresets(
   user = m_PresetUser;
 }
 
-void ColorMapModel::SelectPreset(const char *preset)
+void ColorMapModel::SelectPreset(const std::string &preset)
 {
   // Is this a system preset?
-  if(preset && strlen(preset))
+  if(preset.length())
     {
     // Is it a system preset?
     PresetList::iterator itSys =
@@ -543,7 +543,7 @@ void ColorMapModel::SelectPreset(const char *preset)
       {
       try
         {
-        Registry reg = m_System->ReadSavedObject("ColorMaps", preset);
+        Registry reg = m_System->ReadSavedObject("ColorMaps", preset.c_str());
         this->GetColorMap()->LoadFromRegistry(reg);
         }
       catch(IRISException &exc)

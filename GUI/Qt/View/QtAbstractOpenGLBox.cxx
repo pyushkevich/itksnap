@@ -31,6 +31,7 @@
 #include "LatentITKEventNotifier.h"
 #include "SNAPOpenGL.h"
 #include <AbstractRenderer.h>
+#include "SNAPQtCommon.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
@@ -57,7 +58,7 @@ void QtAbstractOpenGLBox::AttachSingleDelegate(QtInteractionDelegateWidget *dele
 
 bool QtAbstractOpenGLBox::SaveScreenshot(std::string filename)
 {
-  m_ScreenshotRequest = QString::fromStdString(filename);
+  m_ScreenshotRequest = from_utf8(filename);
   this->repaint();
   return true;
 }
@@ -93,7 +94,8 @@ void QtAbstractOpenGLBox::paintGL()
       {
       vtkSmartPointer<vtkImageData> image = GLToVTKImageData(
             (unsigned int) GL_RGB, 0, 0, this->width(), this->height());
-      VTKImageDataToPNG(image, m_ScreenshotRequest.toStdString().c_str());
+      std::string fn = to_utf8(m_ScreenshotRequest);
+      VTKImageDataToPNG(image, fn.c_str());
       }
     catch(...)
       {

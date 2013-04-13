@@ -134,7 +134,7 @@ void StatisticsDialog::on_btnExport_clicked()
         m_Stats->Export(fout, "\t", *m_Model->GetDriver()->GetColorLabelTable());
         }
       m_Model->GetSystemInterface()->GetHistoryManager()->
-          UpdateHistory("Statistics", selection.toStdString(), true);
+          UpdateHistory("Statistics", to_utf8(selection), true);
       }
     catch(std::exception &exc)
       {

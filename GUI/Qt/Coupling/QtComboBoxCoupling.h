@@ -167,6 +167,7 @@ public:
   }
 };
 
+// TODO: this stuff should be replaced by coupling with the abstract item model
 // Specific traits for filling drawing color label combos
 class DrawingColorRowDescriptionTraits
 {
@@ -174,12 +175,13 @@ public:
 
   static QString GetText(LabelType label, const ColorLabel &cl)
   {
-    return QString(cl.GetLabel());
+    return GetTitleForColorLabel(cl);
   }
 
   static QIcon GetIcon(LabelType label, const ColorLabel &cl)
   {
-    return CreateColorBoxIcon(16, 16, QColor(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2)));
+    QBrush brush = GetBrushForColorLabel(cl);
+    return CreateColorBoxIcon(16, 16, brush);
   }
 
   static QVariant GetIconSignature(LabelType label, const ColorLabel &cl)
@@ -195,20 +197,13 @@ public:
 
   static QString GetText(DrawOverFilter filter, const ColorLabel &cl)
   {
-    if(filter.CoverageMode == PAINT_OVER_ALL)
-      return QString("All labels");
-    else if(filter.CoverageMode == PAINT_OVER_VISIBLE)
-      return QString("All visible labels");
-    else
-      return DrawingColorRowDescriptionTraits::GetText(filter.DrawOverLabel, cl);
+    return GetTitleForDrawOverFilter(filter, cl);
   }
 
   static QIcon GetIcon(DrawOverFilter filter, const ColorLabel &cl)
   {
-    if(filter.CoverageMode == PAINT_OVER_ONE)
-      return DrawingColorRowDescriptionTraits::GetIcon(filter.DrawOverLabel, cl);
-    else
-      return CreateInvisibleIcon(16,16);
+    QBrush brush = GetBrushForDrawOverFilter(filter, cl);
+    return CreateColorBoxIcon(16, 16, brush);
   }
 
   static QVariant GetIconSignature(DrawOverFilter filter, const ColorLabel &cl)
@@ -216,7 +211,7 @@ public:
     if(filter.CoverageMode == PAINT_OVER_ONE)
       return DrawingColorRowDescriptionTraits::GetIconSignature(filter.DrawOverLabel, cl);
     else
-      return QVariant(0);
+      return QVariant(filter.CoverageMode);
   }
 };
 

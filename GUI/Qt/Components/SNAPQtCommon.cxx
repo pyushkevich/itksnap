@@ -15,17 +15,23 @@
 #include "IRISApplication.h"
 #include "HistoryManager.h"
 #include "SimpleFileDialogWithHistory.h"
+#include "ColorLabelTable.h"
+
+QIcon CreateColorBoxIcon(int w, int h, const QBrush &brush)
+{
+  QRect r(2,2,w-5,w-5);
+  QPixmap pix(w, h);
+  pix.fill(QColor(0,0,0,0));
+  QPainter paint(&pix);
+  paint.setPen(Qt::black);
+  paint.setBrush(brush);
+  paint.drawRect(r);
+  return QIcon(pix);
+}
 
 QIcon CreateColorBoxIcon(int w, int h, const QColor &rgb)
 {
- QRect r(2,2,w-5,w-5);
- QPixmap pix(w, h);
- pix.fill(QColor(0,0,0,0));
- QPainter paint(&pix);
- paint.setPen(Qt::black);
- paint.fillRect(r,rgb);
- paint.drawRect(r);
- return QIcon(pix);
+  return CreateColorBoxIcon(w, h, QBrush(rgb));
 }
 
 QIcon CreateColorBoxIcon(int w, int h, const Vector3ui &rgb)
@@ -40,6 +46,68 @@ QIcon CreateInvisibleIcon(int w, int h)
   pix.fill(QColor(0,0,0,0));
   return QIcon(pix);
 }
+
+QBrush GetBrushForColorLabel(const ColorLabel &cl)
+{
+  return QBrush(QColor(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2)));
+}
+
+QBrush GetBrushForDrawOverFilter(DrawOverFilter flt, const ColorLabel &cl)
+{
+  switch(flt.CoverageMode)
+    {
+    case PAINT_OVER_VISIBLE:
+      return QBrush(Qt::black, Qt::Dense6Pattern);
+    case PAINT_OVER_ONE:
+      return QBrush(QColor(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2)));
+    case PAINT_OVER_ALL:
+      return QBrush(Qt::black, Qt::BDiagPattern);
+    }
+}
+
+QString GetTitleForColorLabel(const ColorLabel &cl)
+{
+  return QString::fromUtf8(cl.GetLabel());
+}
+
+QString GetTitleForDrawOverFilter(DrawOverFilter flt, const ColorLabel &cl)
+{
+  switch(flt.CoverageMode)
+    {
+    case PAINT_OVER_VISIBLE:
+      return QString("All visible labels");
+    case PAINT_OVER_ONE:
+      return QString::fromUtf8(cl.GetLabel());
+    case PAINT_OVER_ALL:
+      return QString("All labels");
+    }
+}
+
+QBrush GetBrushForColorLabel(int label, ColorLabelTable *clt)
+{
+  return GetBrushForColorLabel(clt->GetColorLabel(label));
+}
+
+QBrush GetBrushForDrawOverFilter(DrawOverFilter flt, ColorLabelTable *clt)
+{
+  return GetBrushForDrawOverFilter(flt, clt->GetColorLabel(flt.DrawOverLabel));
+}
+
+QString GetTitleForColorLabel(int label, ColorLabelTable *clt)
+{
+  return GetTitleForColorLabel(clt->GetColorLabel(label));
+}
+
+QString GetTitleForDrawOverFilter(DrawOverFilter flt, ColorLabelTable *clt)
+{
+  return GetTitleForDrawOverFilter(flt, clt->GetColorLabel(flt.DrawOverLabel));
+}
+
+
+
+
+
+
 
 QAction *FindUpstreamAction(QWidget *widget, const QString &targetActionName)
 {

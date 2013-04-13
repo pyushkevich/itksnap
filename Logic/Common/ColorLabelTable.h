@@ -41,6 +41,7 @@
 #include "itkDataObject.h"
 #include "SNAPEvents.h"
 #include "itkObjectFactory.h"
+#include "itkTimeStamp.h"
 
 /**
  * \class ColorLabelTable

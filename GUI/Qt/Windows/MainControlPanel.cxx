@@ -3,7 +3,8 @@
 #include "GlobalUIModel.h"
 #include "QtWidgetActivator.h"
 #include "SNAPQtCommon.h"
-
+#include "LabelSelectionButton.h"
+#include "LabelSelectionPopup.h"
 
 #include <QActionGroup>
 #include <QMenu>
@@ -106,8 +107,18 @@ MainControlPanel::MainControlPanel(QWidget *parent) :
   QToolBar *toolCmd = new QToolBar(this);
   ui->panelToolbarAction->layout()->addWidget(toolCmd);
 
+  // Label selection button
+  m_LabelSelectionButton = new LabelSelectionButton(this);
+
   toolCmd->addAction(FindUpstreamAction(this, "actionUndo"));
   toolCmd->addAction(FindUpstreamAction(this, "actionRedo"));
+  toolCmd->addWidget(m_LabelSelectionButton);
+
+  // Add a shortcut for the button
+  m_LabelSelectionButton->setShortcut(QKeySequence("l"));
+
+  // Set up the label popup
+  m_LabelSelectionPopup = new LabelSelectionPopup(this);
 }
 
 void MainControlPanel::SetModel(GlobalUIModel *model)
@@ -120,6 +131,9 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
   ui->pageSyncInspector->SetModel(m_Model->GetSynchronizationModel());
   ui->pagePaintbrushTool->SetModel(m_Model->GetPaintbrushSettingsModel());
   ui->pageSnakeTool->SetModel(m_Model);
+
+  m_LabelSelectionButton->SetModel(model);
+  m_LabelSelectionPopup->SetModel(model);
 
   // Set up state machine
   activateOnFlag(this, m_Model, UIF_BASEIMG_LOADED);
@@ -216,5 +230,6 @@ void MainControlPanel::on_btnToolInspector_clicked(bool checked)
     ui->grpInspector->setTitle("Active Tool Inspector");
     }
 }
+
 
 

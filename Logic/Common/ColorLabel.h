@@ -36,11 +36,11 @@
 #define __ColorLabel_h_
 
 #include "SNAPCommon.h"
+#include "itkTimeStamp.h"
 
 #include <assert.h>
 #include <list>
     
-
 /**
  * \class ColorLabel
  * \brief Information about a label used for segmentation.
@@ -51,8 +51,20 @@
 class ColorLabel {
 public:
   // Dummy constructor and destructor (to make gcc happy)
-  ColorLabel() {}
+  ColorLabel() { m_TimeStamp.Modified(); }
   virtual ~ColorLabel() {}
+
+  // Copy constructor
+  ColorLabel(const ColorLabel &cl)
+    : m_Label(cl.m_Label), m_Value(cl.m_Value), m_DatabaseId(cl.m_DatabaseId),
+      m_Id(cl.m_Id), m_Visible(cl.m_Visible), m_VisibleIn3D(cl.m_VisibleIn3D),
+      m_UpdateTime(cl.m_UpdateTime), m_Alpha(cl.m_Alpha)
+  {
+    m_RGB[0] = cl.m_RGB[0];
+    m_RGB[1] = cl.m_RGB[1];
+    m_RGB[2] = cl.m_RGB[2];
+    m_TimeStamp = cl.m_TimeStamp;
+  }
 
   // Read the Visible attribute
   irisIsMacro(Visible);
@@ -155,6 +167,9 @@ public:
     m_RGB[2] = lSource.m_RGB[2];
     }
 
+  const itk::TimeStamp &GetTimeStamp() const { return m_TimeStamp; }
+  itk::TimeStamp &GetTimeStamp() { return m_TimeStamp; }
+
 private:
   // The descriptive text of the label
   std::string m_Label;
@@ -191,6 +206,9 @@ private:
 
   // A list of labels that this label contains
   std::list< unsigned int > m_Children;
+
+  // An itk TimeStamp, allows tracking of changes to the label appearance
+  itk::TimeStamp m_TimeStamp;
 };
 
 

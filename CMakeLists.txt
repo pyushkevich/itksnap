@@ -374,6 +374,8 @@ SET(UI_QT_CXX
   GUI/Qt/Components/HistoryQListModel.cxx
   GUI/Qt/Components/ImageInfoInspector.cxx
   GUI/Qt/Components/LabelInspector.cxx
+  GUI/Qt/Components/LabelMiniInspector.cxx
+  GUI/Qt/Components/LabelSelectionButton.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
   GUI/Qt/Components/MetadataInspector.cxx
   GUI/Qt/Components/GeneralLayerInspector.cxx
@@ -414,6 +416,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
   GUI/Qt/View/SnakeROIInteractionMode.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx
+  GUI/Qt/Windows/LabelSelectionPopup.cxx
   GUI/Qt/Windows/DropActionDialog.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
@@ -439,6 +442,8 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/HistoryQListModel.h
   GUI/Qt/Components/ImageInfoInspector.h
   GUI/Qt/Components/LabelInspector.h
+  GUI/Qt/Components/LabelMiniInspector.h
+  GUI/Qt/Components/LabelSelectionButton.h
   GUI/Qt/Components/LatentITKEventNotifier.h
   GUI/Qt/Components/MetadataInspector.h
   GUI/Qt/Components/GeneralLayerInspector.h
@@ -475,6 +480,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SnakeROIInteractionMode.h
   GUI/Qt/View/ThumbnailInteractionMode.h
+  GUI/Qt/Windows/LabelSelectionPopup.h
   GUI/Qt/Windows/DropActionDialog.h
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
@@ -523,6 +529,7 @@ SET(UI_FORMS
   GUI/Qt/Components/DisplayLayoutInspector.ui
   GUI/Qt/Components/ImageInfoInspector.ui
   GUI/Qt/Components/LabelInspector.ui
+  GUI/Qt/Components/LabelMiniInspector.ui
   GUI/Qt/Components/MetadataInspector.ui
   GUI/Qt/Components/GeneralLayerInspector.ui
   GUI/Qt/Components/PaintbrushToolPanel.ui
@@ -534,6 +541,7 @@ SET(UI_FORMS
   GUI/Qt/Components/SynchronizationInspector.ui
   GUI/Qt/Components/ViewPanel3D.ui
   GUI/Qt/Components/ZoomInspector.ui
+  GUI/Qt/Windows/LabelSelectionPopup.ui
   GUI/Qt/Windows/DropActionDialog.ui
   GUI/Qt/Windows/ImageIODialog.ui
   GUI/Qt/Windows/LabelEditorDialog.ui

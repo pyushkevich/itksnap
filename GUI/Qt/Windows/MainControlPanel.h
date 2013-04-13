@@ -3,6 +3,9 @@
 
 #include <SNAPComponent.h>
 
+class LabelSelectionButton;
+class LabelSelectionPopup;
+
 namespace Ui {
 class MainControlPanel;
 }
@@ -41,6 +44,9 @@ private slots:
 private:
   Ui::MainControlPanel *ui;
   GlobalUIModel *m_Model;
+
+  LabelSelectionButton *m_LabelSelectionButton;
+  LabelSelectionPopup *m_LabelSelectionPopup;
 };
 
 #endif // MAINCONTROLPANEL_H

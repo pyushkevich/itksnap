@@ -675,10 +675,10 @@ void MainImageWindow::ExportScreenshot(int panelIndex)
     }
 
   // Call the screenshot saving method, which will execute asynchronously
-  target->SaveScreenshot(fuser.toStdString());
+  target->SaveScreenshot(to_utf8(fuser));
 
   // Store the last filename
-  m_Model->SetLastScreenshotFileName(fuser.toStdString());
+  m_Model->SetLastScreenshotFileName(to_utf8(fuser));
 }
 
 void MainImageWindow::on_actionSSAxial_triggered()
@@ -774,7 +774,8 @@ void MainImageWindow::on_actionLoadLabels_triggered()
     {
     try
       {
-      m_Model->GetDriver()->LoadLabelDescriptions(selection.toStdString().c_str());
+      std::string utf = to_utf8(selection);
+      m_Model->GetDriver()->LoadLabelDescriptions(utf.c_str());
       }
     catch(std::exception &exc)
       {
@@ -798,8 +799,8 @@ void MainImageWindow::on_actionSaveLabels_triggered()
     {
     try
       {
-      m_Model->GetDriver()->SaveLabelDescriptions(
-            selection.toStdString().c_str());
+      std::string utf = to_utf8(selection);
+      m_Model->GetDriver()->SaveLabelDescriptions(utf.c_str());
       }
     catch(std::exception &exc)
       {

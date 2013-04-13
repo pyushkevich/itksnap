@@ -150,7 +150,7 @@ public:
 
   /** Select one of the presets. The index is into the combined list
     of system and user presets */
-  void SelectPreset(const char *preset);
+  void SelectPreset(const std::string &preset);
 
   /** Save the current state as a preset */
   void SaveAsPreset(std::string name);

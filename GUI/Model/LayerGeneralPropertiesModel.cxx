@@ -4,7 +4,7 @@
 #include "NumericPropertyToggleAdaptor.h"
 
 template class LayerAssociation<GeneralLayerProperties,
-                                VectorImageWrapperBase,
+                                ImageWrapperBase,
                                 LayerGeneralPropertiesModel::PropertiesFactory>;
 
 
