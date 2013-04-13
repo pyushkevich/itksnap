@@ -32,7 +32,7 @@ InputSelectionImageFilter<TInputImage,TTag>
 template<class TInputImage, typename TTag>
 void
 InputSelectionImageFilter<TInputImage,TTag>
-::SetSelectedInput(InputSelectionImageFilter::TagType &tag)
+::SetSelectedInput(TagType &tag)
 {
   this->SetInput(m_TagMap[tag]);
   m_SelectedInput = tag;

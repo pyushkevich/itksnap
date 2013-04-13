@@ -41,6 +41,10 @@
 // Include OpenGL headers according to the platform
 // #include <QtOpenGL/QtOpenGL>
 
+#if defined(WIN32)
+#include <windows.h>
+#endif
+
 // Include GLU, for some reason taken out of Qt 4.8
 #if defined (__APPLE__)
   #include <OpenGL/glu.h> 

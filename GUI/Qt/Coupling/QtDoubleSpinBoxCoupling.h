@@ -78,7 +78,7 @@ public:
     // precision for the widget.
     if(range.StepSize > 0)
       {
-      double logstep = log10(range.StepSize);
+      double logstep = std::log10((double)range.StepSize);
       int prec = std::max((int) (1 - floor(logstep)), 0);
       w->setDecimals(prec);
       }

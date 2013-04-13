@@ -153,5 +153,5 @@ QtInteractionDelegateWidget
 double QtInteractionDelegateWidget::GetNumberOfPixelsMoved(QMouseEvent *ev)
 {
   QPoint delta = ev->pos() - m_LastPressPos;
-  return sqrt(delta.x() * delta.x() + delta.y() * delta.y());
+  return std::sqrt((double)(delta.x() * delta.x() + delta.y() * delta.y()));
 }

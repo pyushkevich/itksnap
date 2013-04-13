@@ -1,5 +1,6 @@
 #include "ColorMapModel.h"
 #include "LayerAssociation.txx"
+#include <algorithm>
 
 // This compiles the LayerAssociation for the color map
 template class LayerAssociation<ColorMapLayerProperties,
@@ -434,7 +435,7 @@ ColorMapModel
       return idx >= 0 && this->GetColorMap()->GetCMPoint(idx).m_Type ==
           ColorMap::DISCONTINUOUS;
     case UIF_USER_PRESET_SELECTED:
-      return find(m_PresetUser.begin(), m_PresetUser.end(),
+      return std::find(m_PresetUser.begin(), m_PresetUser.end(),
                   this->GetProperties().GetSelectedPreset()) < m_PresetUser.end();
     }
   return false;
