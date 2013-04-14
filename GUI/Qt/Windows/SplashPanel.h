@@ -14,7 +14,7 @@ class SplashPanel : public QWidget
 public:
   explicit SplashPanel(QWidget *parent = 0);
   ~SplashPanel();
-  
+
 private:
   Ui::SplashPanel *ui;
 };

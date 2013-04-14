@@ -45,10 +45,11 @@
    <item alignment="Qt::AlignHCenter">
     <widget class="QLabel" name="label_2">
      <property name="styleSheet">
-      <string notr="true">font-size:18px;</string>
+      <string notr="true">font-size:24px;
+</string>
      </property>
      <property name="text">
-      <string>ITK-SNAP 3.0</string>
+      <string>ITK-SNAP</string>
      </property>
     </widget>
    </item>
@@ -69,7 +70,7 @@
     </spacer>
    </item>
    <item alignment="Qt::AlignHCenter">
-    <widget class="QLabel" name="label_3">
+    <widget class="QLabel" name="outVersion">
      <property name="styleSheet">
       <string notr="true">font-size:11px;
 color:rgb(109, 109, 109);</string>
@@ -77,6 +78,9 @@ color:rgb(109, 109, 109);</string>
      <property name="text">
       <string>Version X.X.X
 Jan 12, 2013</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </item>
@@ -128,19 +132,18 @@ Guido Gerig</string>
    <item>
     <widget class="QLabel" name="label_5">
      <property name="styleSheet">
-      <string notr="true">font-size:11px;
+      <string notr="true">font-size:10px;
 color:rgb(109, 109, 109);</string>
      </property>
      <property name="text">
-      <string>Development funded by
-grant R01 EB014346,
-grant R03 EB008200,
-PO 467-MZ-202446-1
-from the US National
-Insitutes of Health</string>
+      <string>This project is supported by grants R01 EB014346, R03 EB008200, and PO 467-MZ-202446-1 from the 
+US National Insitutes of Health</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
