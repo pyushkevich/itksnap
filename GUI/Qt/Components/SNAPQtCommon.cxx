@@ -63,6 +63,7 @@ QBrush GetBrushForDrawOverFilter(DrawOverFilter flt, const ColorLabel &cl)
     case PAINT_OVER_ALL:
       return QBrush(Qt::black, Qt::BDiagPattern);
     }
+  return QBrush();
 }
 
 QString GetTitleForColorLabel(const ColorLabel &cl)
@@ -81,6 +82,7 @@ QString GetTitleForDrawOverFilter(DrawOverFilter flt, const ColorLabel &cl)
     case PAINT_OVER_ALL:
       return QString("All labels");
     }
+  return QString();
 }
 
 QBrush GetBrushForColorLabel(int label, ColorLabelTable *clt)

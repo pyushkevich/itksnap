@@ -2,6 +2,7 @@
 #include "SystemInterface.h"
 #include "Registry.h"
 #include "itksys/SystemTools.hxx"
+#include <algorithm>
 
 const unsigned int HistoryManager::HISTORY_SIZE_LOCAL = 5;
 const unsigned int HistoryManager::HISTORY_SIZE_GLOBAL = 20;
@@ -44,7 +45,7 @@ void HistoryManager
   // First, search the history for the instance of the file and delete
   // existing occurences
   HistoryListType::iterator it;
-  while((it = find(array.begin(),array.end(),file)) != array.end())
+  while((it = std::find(array.begin(),array.end(),file)) != array.end())
     array.erase(it);
 
   // Append the file to the end of the array

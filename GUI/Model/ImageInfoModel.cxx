@@ -2,6 +2,7 @@
 #include "LayerAssociation.txx"
 #include "MetaDataAccess.h"
 #include <cctype>
+#include <algorithm>
 
 
 // This compiles the LayerAssociation for the color map
