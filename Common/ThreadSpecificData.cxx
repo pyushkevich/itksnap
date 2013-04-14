@@ -55,33 +55,55 @@ void *ThreadSpecificDataSupport::GetPtr() const
 
 #elif defined(ITK_USE_WIN32_THREADS)
 
-#pragma warning("No support for WIN32 threads in ITK-SNAP yet!")
-
 void ThreadSpecificDataSupport::Deleter(void *p)
 {
-  throw IRISException("ThreadSpecificData unsupported on Win32");
 }
 
 ThreadSpecificDataSupport::ThreadSpecificDataSupport()
 {
-  throw IRISException("ThreadSpecificData unsupported on Win32");
+  DWORD *key = new DWORD[1];
+  key[0] = TlsAlloc();
+  if(key[0] == TLS_OUT_OF_INDEXES)
+    throw IRISException("TlsAlloc failed with error %d", GetLastError());
+  m_KeyPointer = key;
 }
 
 ThreadSpecificDataSupport::~ThreadSpecificDataSupport()
 {
-  throw IRISException("ThreadSpecificData unsupported on Win32");
+  DWORD *key = (DWORD *) m_KeyPointer;
+  
+  // Delete the stored stuff
+  void *pdata = TlsGetValue(key[0]);
+  if(pdata)
+    free(pdata);
+
+  TlsFree(key[0]);
+  delete [] key;
 }
 
 void *ThreadSpecificDataSupport::GetPtrCreateIfNeeded(size_t data_size)
 {
-  throw IRISException("ThreadSpecificData unsupported on Win32");
-  return NULL;
+  DWORD *key = (DWORD *) m_KeyPointer;
+  void *pdata = TlsGetValue(key[0]);
+
+  if(!pdata)
+    {
+    if(GetLastError() != ERROR_SUCCESS)
+      throw IRISException("TlsGetValue failed with error %d", GetLastError());
+
+    pdata = malloc(data_size);
+    if(!TlsSetValue(key[0], pdata))
+      throw IRISException("TlsSetValue failed with error %d", GetLastError());
+    }
+
+  return pdata;
 }
 
 void *ThreadSpecificDataSupport::GetPtr() const
 {
-  throw IRISException("ThreadSpecificData unsupported on Win32");
-  return NULL;
+  DWORD *key = (DWORD *) m_KeyPointer;
+  void *pdata = TlsGetValue(key[0]);
+  return pdata;
 }
 
 
