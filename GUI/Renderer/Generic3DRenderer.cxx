@@ -6,6 +6,7 @@
 #include "GenericImageData.h"
 
 #include "vtkGenericOpenGLRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
 #include "vtkProperty.h"
@@ -21,6 +22,8 @@
 #include "ColorLabel.h"
 #include "IRISApplication.h"
 #include "vtkCommand.h"
+
+#include "Window3DPicker.h"
 
 Generic3DRenderer::Generic3DRenderer()
 {
@@ -48,7 +51,39 @@ Generic3DRenderer::Generic3DRenderer()
   // Initialize the mesh assembly
   m_MeshAssembly = vtkSmartPointer<vtkPropAssembly>::New();
   this->m_Renderer->AddActor(m_MeshAssembly);
+
+  // Create a picker
+  vtkSmartPointer<Window3DPicker> picker = vtkSmartPointer<Window3DPicker>::New();
+  this->GetRenderWindowInteractor()->SetPicker(picker);
 }
+
+void Generic3DRenderer::SetModel(Generic3DModel *model)
+{
+  // Save the model
+  m_Model = model;
+
+  // Record and rebroadcast changes in the model
+  Rebroadcast(m_Model->GetMesh(), itk::ModifiedEvent(), ModelUpdateEvent());
+
+  // Respond to changes in image dimension - these require big updates
+  Rebroadcast(m_Model->GetParentUI()->GetDriver(),
+              MainImageDimensionsChangeEvent(), ModelUpdateEvent());
+
+  // Respond to cursor events
+  Rebroadcast(m_Model->GetParentUI(), CursorUpdateEvent(), ModelUpdateEvent());
+
+  // Respond to label appearance change events
+  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetColorLabelTable(),
+              SegmentationLabelChangeEvent(), ModelUpdateEvent());
+
+  // Update the main components
+  this->UpdateAxisRendering();
+  this->UpdateCamera(true);
+
+  // Set the model in the picker
+  Window3DPicker::SafeDownCast(this->GetRenderWindowInteractor()->GetPicker())->SetModel(m_Model);
+}
+
 
 void Generic3DRenderer::UpdateAxisRendering()
 {
@@ -237,29 +272,6 @@ void Generic3DRenderer::UpdateMeshAppearance()
 
 }
 
-void Generic3DRenderer::SetModel(Generic3DModel *model)
-{
-  // Save the model
-  m_Model = model;
-
-  // Record and rebroadcast changes in the model
-  Rebroadcast(m_Model->GetMesh(), itk::ModifiedEvent(), ModelUpdateEvent());
-
-  // Respond to changes in image dimension - these require big updates
-  Rebroadcast(m_Model->GetParentUI()->GetDriver(),
-              MainImageDimensionsChangeEvent(), ModelUpdateEvent());
-
-  // Respond to cursor events
-  Rebroadcast(m_Model->GetParentUI(), CursorUpdateEvent(), ModelUpdateEvent());
-
-  // Respond to label appearance change events
-  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetColorLabelTable(),
-              SegmentationLabelChangeEvent(), ModelUpdateEvent());
-
-  // Update the main components
-  this->UpdateAxisRendering();
-  this->UpdateCamera(true);
-}
 
 void Generic3DRenderer::OnUpdate()
 {

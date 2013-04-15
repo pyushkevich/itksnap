@@ -293,6 +293,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/SnakeROIRenderer.cxx
   GUI/Renderer/SnakeModeRenderer.cxx
   GUI/Renderer/ThresholdSettingsRenderer.cxx
+  GUI/Renderer/Window3DPicker.cxx
   GUI/Renderer/OrientationWidget/Reorient/AbstractScannerHelper.cxx
   GUI/Renderer/OrientationWidget/Reorient/AxesWidget.cxx
   GUI/Renderer/OrientationWidget/Reorient/ScannedHuman.cxx
@@ -358,7 +359,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/SnakeROIRenderer.h
   GUI/Renderer/SnakeModeRenderer.h
   GUI/Renderer/ThresholdSettingsRenderer.h
-  GUI/Renderer/ThresholdSettingsRenderer.cxx
+  GUI/Renderer/Window3DPicker.h
   GUI/Renderer/OrientationWidget/Reorient/AbstractScannerHelper.h
   GUI/Renderer/OrientationWidget/Reorient/AxesWidget.h
   GUI/Renderer/OrientationWidget/Reorient/ScannedHuman.h

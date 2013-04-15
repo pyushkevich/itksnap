@@ -94,6 +94,9 @@ void AbstractVTKRenderer::SetInteractionStyle(AbstractVTKRenderer::InteractionSt
     case AbstractVTKRenderer::TRACKBALL_ACTOR:
       stylePtr = vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
       break;
+    case AbstractVTKRenderer::PICKER:
+      stylePtr = vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
+      break;
     }
   m_Interactor->SetInteractorStyle(stylePtr);
 }

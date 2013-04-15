@@ -5,11 +5,12 @@
 #include <QEvent>
 #include <QMouseEvent>
 #include <vtkInteractorStyle.h>
+#include <vtkInteractorStyleUser.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkCommand.h>
 #include <QtVTKInteractionDelegateWidget.h>
-#include <vtkWorldPointPicker.h>
+#include <vtkPointPicker.h>
 #include <vtkRendererCollection.h>
 #include <vtkObjectFactory.h>
 
@@ -28,10 +29,10 @@ public:
                                         this->Interactor->GetEventPosition()[1],
                                         0,  // always zero.
                                         this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-    Vector3d picked;
-    this->Interactor->GetPicker()->GetPickPosition(picked.data_block());
+    // Vector3d picked;
+    // this->Interactor->GetPicker()->GetPickPosition(picked.data_block());
 
-    m_Model->SetCursorFromPickResult(picked);
+    // m_Model->SetCursorFromPickResult(picked);
 
     // Forward events
     vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
@@ -70,14 +71,13 @@ void GenericView3D::SetModel(Generic3DModel *model)
 
   // TODO: move this out of the qt class
   // Assign a point picker
-  vtkSmartPointer<vtkWorldPointPicker> worldPointPicker =
-    vtkSmartPointer<vtkWorldPointPicker>::New();
-  m_Model->GetRenderer()->GetRenderWindowInteractor()->SetPicker(worldPointPicker);
+  // vtkSmartPointer<vtkPointPicker> picker = vtkSmartPointer<vtkPointPicker>::New();
+  // m_Model->GetRenderer()->GetRenderWindowInteractor()->SetPicker(picker);
 
   // Assign an interactor style
-  // m_Renderer->GetRenderWindowInteractor()->SetInteractorStyle(m_CursorPlacementStyle);
-  m_Model->GetRenderer()->GetRenderWindowInteractor()->SetInteractorStyle(
-        vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New());
+  m_Model->GetRenderer()->GetRenderWindowInteractor()->SetInteractorStyle(m_CursorPlacementStyle);
+  // m_Model->GetRenderer()->GetRenderWindowInteractor()->SetInteractorStyle(
+  //      vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New());
 
 }
 

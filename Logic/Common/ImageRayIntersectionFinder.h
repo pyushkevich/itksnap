@@ -51,7 +51,7 @@ class ImageRayIntersectionFinder
 public:
     virtual ~ImageRayIntersectionFinder() {}
   /** Image type */
-  typedef itk::OrientedImage<TPixel,3> ImageType;
+  typedef itk::Image<TPixel,3> ImageType;
 
   /** Set the hit-test functor to evaluate for hits */
   irisSetMacro(HitTester,THitTester);

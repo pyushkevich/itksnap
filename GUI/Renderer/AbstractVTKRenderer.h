@@ -26,7 +26,7 @@ public:
    * @brief Enums corresponding to different VTK interaction styles
    */
   enum InteractionStyle {
-    NO_INTERACTION = 0, TRACKBALL_CAMERA, TRACKBALL_ACTOR
+    NO_INTERACTION = 0, TRACKBALL_CAMERA, TRACKBALL_ACTOR, PICKER
   };
 
   virtual void paintGL();
