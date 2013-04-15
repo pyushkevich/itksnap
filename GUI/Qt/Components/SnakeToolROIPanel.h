@@ -4,6 +4,7 @@
 #include <SNAPComponent.h>
 
 class GlobalUIModel;
+class ResampleDialog;
 
 namespace Ui {
 class SnakeToolROIPanel;
@@ -28,6 +29,7 @@ private:
   Ui::SnakeToolROIPanel *ui;
 
   GlobalUIModel *m_Model;
+  ResampleDialog *m_ResampleDialog;
 };
 
 #endif // SNAKETOOLROIPANEL_H

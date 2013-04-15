@@ -64,6 +64,9 @@ struct SnakeROISideSelectionState
   to always show the box (even when the cursor is outside of the selection)
   and to use a fill to indicate that a region is outside of the ROI. But
   all this is easy to change.
+
+  The model also provides the property models for the dialog used to resample
+  the snake ROI.
 */
 
 class SnakeROIModel : public AbstractModel
@@ -132,6 +135,7 @@ protected:
   // Private constructor stuff
   SnakeROIModel();
   virtual ~SnakeROIModel() {}
+
 };
 
 #endif // SNAKEROIMODEL_H

@@ -1,7 +1,6 @@
 #include "GenericView3D.h"
 #include "Generic3DModel.h"
 #include "Generic3DRenderer.h"
-
 #include "vtkGenericRenderWindowInteractor.h"
 #include <QEvent>
 #include <QMouseEvent>
@@ -48,19 +47,8 @@ vtkStandardNewMacro(CursorPlacementInteractorStyle)
 GenericView3D::GenericView3D(QWidget *parent) :
     QtVTKRenderWindowBox(parent)
 {
-  // Create and assign the renderer
-  m_Renderer = Generic3DRenderer::New();
-  this->SetRenderer(m_Renderer);
-
   m_CursorPlacementStyle = vtkSmartPointer<CursorPlacementInteractorStyle>::New();
 
-  // Assign a point picker
-  vtkSmartPointer<vtkWorldPointPicker> worldPointPicker =
-    vtkSmartPointer<vtkWorldPointPicker>::New();
-  m_Renderer->GetRenderWindowInteractor()->SetPicker(worldPointPicker);
-
-  // Assign an interactor style
-  m_Renderer->GetRenderWindowInteractor()->SetInteractorStyle(m_CursorPlacementStyle);
 }
 
 GenericView3D::~GenericView3D()
@@ -70,13 +58,27 @@ GenericView3D::~GenericView3D()
 void GenericView3D::SetModel(Generic3DModel *model)
 {
   m_Model = model;
-  m_Renderer->SetModel(model);
+
+  // Assign the renderer
+  this->SetRenderer(m_Model->GetRenderer());
 
   // Pass the model to the placement style, which handles picking
   m_CursorPlacementStyle->SetModel(model);
 
   // Listen to updates on the model
   connectITK(m_Model, ModelUpdateEvent());
+
+  // TODO: move this out of the qt class
+  // Assign a point picker
+  vtkSmartPointer<vtkWorldPointPicker> worldPointPicker =
+    vtkSmartPointer<vtkWorldPointPicker>::New();
+  m_Model->GetRenderer()->GetRenderWindowInteractor()->SetPicker(worldPointPicker);
+
+  // Assign an interactor style
+  // m_Renderer->GetRenderWindowInteractor()->SetInteractorStyle(m_CursorPlacementStyle);
+  m_Model->GetRenderer()->GetRenderWindowInteractor()->SetInteractorStyle(
+        vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New());
+
 }
 
 void GenericView3D::onModelUpdate(const EventBucket &bucket)

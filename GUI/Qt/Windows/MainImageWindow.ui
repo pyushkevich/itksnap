@@ -693,8 +693,17 @@ background-color:rgb(88, 88, 88);
      <addaction name="actionPaintbrush"/>
      <addaction name="actionSnake"/>
     </widget>
+    <widget class="QMenu" name="menuActive_3D_Tool">
+     <property name="title">
+      <string>Active 3D Tool</string>
+     </property>
+     <addaction name="action3DTrackball"/>
+     <addaction name="action3DCrosshair"/>
+     <addaction name="action3DScalpel"/>
+     <addaction name="action3DSpray"/>
+    </widget>
     <addaction name="menuActive_Main_Tool"/>
-    <addaction name="actionActive_3D_Tool"/>
+    <addaction name="menuActive_3D_Tool"/>
     <addaction name="separator"/>
     <addaction name="actionImage_Contrast"/>
     <addaction name="actionColor_Map_Editor"/>
@@ -1030,11 +1039,6 @@ background-color:rgb(88, 88, 88);
     <string>A</string>
    </property>
   </action>
-  <action name="actionActive_3D_Tool">
-   <property name="text">
-    <string>Active 3D Tool</string>
-   </property>
-  </action>
   <action name="actionColor_Map_Editor">
    <property name="text">
     <string>Color Map Editor...</string>
@@ -1159,6 +1163,66 @@ background-color:rgb(88, 88, 88);
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="action3DTrackball">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/rotate3d.gif</normaloff>:/root/rotate3d.gif</iconset>
+   </property>
+   <property name="text">
+    <string>3D Trackball Tool</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Trackball Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and drag the left mouse button to rotate the 3D scene. Use the right mouse button to zoom, and the middle mouse button to pan the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="action3DCrosshair">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/crosshair3D.gif</normaloff>:/root/crosshair3D.gif</iconset>
+   </property>
+   <property name="text">
+    <string>3D Crosshair Tool</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Crosshair Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click the left button over a segmentation surface in the 3D window to position the 3D cursor at that position.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="action3DScalpel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/scalpel.gif</normaloff>:/root/scalpel.gif</iconset>
+   </property>
+   <property name="text">
+    <string>3D Scalpel Tool</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Scalpel Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Left-click on two points in the 3D window to define a cutplane. Then click 'Accept' to relabel the segmentation on one side of the cutplane.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="action3DSpray">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/spray.gif</normaloff>:/root/spray.gif</iconset>
+   </property>
+   <property name="text">
+    <string>3D Spray Paint Tool</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Spray Paint Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and hold the left mouse button to relabel voxels on the boundaries of segmented objects.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
  </widget>

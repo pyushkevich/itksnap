@@ -1,4 +1,5 @@
 #include "Generic3DModel.h"
+#include "Generic3DRenderer.h"
 #include "GlobalUIModel.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
@@ -23,6 +24,8 @@ Generic3DModel::Generic3DModel()
   // Initialize the matrix to nil
   m_WorldMatrix.set_identity();
 
+  // Create the renderer
+  m_Renderer = Generic3DRenderer::New();
 }
 
 void Generic3DModel::Initialize(GlobalUIModel *parent)
@@ -37,8 +40,11 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   // Update our geometry model
   OnImageGeometryUpdate();
 
+  // Initialize the renderer
+  m_Renderer->SetModel(this);
+
   // Listen to the layer change events
-  Rebroadcast(m_Driver, LayerChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Driver, MainImageDimensionsChangeEvent(), ModelUpdateEvent());
 
   // Listen to segmentation change events
   Rebroadcast(m_Driver, SegmentationChangeEvent(), ModelUpdateEvent());
@@ -55,11 +61,20 @@ Vector3d Generic3DModel::GetCenterOfRotation()
   return affine_transform_point(m_WorldMatrix, m_Driver->GetCursorPosition());
 }
 
+void Generic3DModel::ResetView()
+{
+  m_Renderer->ResetView();
+}
+
 void Generic3DModel::OnUpdate()
 {
   // If we experienced a change in main image, we have to respond!
-  if(m_EventBucket->HasEvent(LayerChangeEvent()))
+  if(m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
     {
+    // There is no more mesh to render - until the user does something!
+    m_Mesh->DiscardVTKMeshes();
+
+    // The geometry has changed
     this->OnImageGeometryUpdate();
     }
   if(m_EventBucket->HasEvent(SegmentationChangeEvent()))

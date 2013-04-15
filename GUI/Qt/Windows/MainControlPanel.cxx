@@ -119,6 +119,18 @@ MainControlPanel::MainControlPanel(QWidget *parent) :
 
   // Set up the label popup
   m_LabelSelectionPopup = new LabelSelectionPopup(this);
+
+  // Set up the 3D toolbar
+  QToolBar *tool3D = new QToolBar(this);
+  ui->panelToolbarMode3D->layout()->addWidget(tool3D);
+
+  QActionGroup *ag3d = new QActionGroup(this);
+  ag3d->addAction(FindUpstreamAction(this, "action3DTrackball"));
+  ag3d->addAction(FindUpstreamAction(this, "action3DCrosshair"));
+  ag3d->addAction(FindUpstreamAction(this, "action3DScalpel"));
+  ag3d->addAction(FindUpstreamAction(this, "action3DSpray"));
+
+  tool3D->addActions(ag3d->actions());
 }
 
 void MainControlPanel::SetModel(GlobalUIModel *model)

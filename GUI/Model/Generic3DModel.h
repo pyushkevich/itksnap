@@ -7,6 +7,7 @@
 class GlobalUIModel;
 class IRISApplication;
 class MeshObject;
+class Generic3DRenderer;
 
 namespace itk
 {
@@ -36,6 +37,9 @@ public:
   // Get the parent model
   irisGetMacro(ParentUI, GlobalUIModel *)
 
+  // Get the renderer
+  irisGetMacro(Renderer, Generic3DRenderer *)
+
   // Get the mesh object
   irisGetMacro(Mesh, MeshObject *)
 
@@ -44,6 +48,9 @@ public:
 
   // Get the center of rotation for the 3D window
   Vector3d GetCenterOfRotation();
+
+  // Reset the viewpoint
+  void ResetView();
 
 protected:
 
@@ -55,6 +62,9 @@ protected:
 
   // Parent (where the global UI state is stored)
   GlobalUIModel *m_ParentUI;
+
+  // Renderer
+  SmartPtr<Generic3DRenderer> m_Renderer;
 
   // Helps to have a pointer to the iris application
   IRISApplication *m_Driver;

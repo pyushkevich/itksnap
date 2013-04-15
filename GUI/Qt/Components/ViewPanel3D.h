@@ -30,6 +30,8 @@ private slots:
 
   void on_btnScreenshot_clicked();
 
+  void on_btnResetView_clicked();
+
 private:
   Ui::ViewPanel3D *ui;
 

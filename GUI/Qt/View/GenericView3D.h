@@ -7,7 +7,6 @@
 #include <vtkSmartPointer.h>
 
 class Generic3DModel;
-class Generic3DRenderer;
 class vtkGenericRenderWindowInteractor;
 class vtkObject;
 class CursorPlacementInteractorStyle;
@@ -33,9 +32,6 @@ protected:
 
   // The model in charge
   Generic3DModel *m_Model;
-
-  // The renderer (we own it)
-  SmartPtr<Generic3DRenderer> m_Renderer;
 
   vtkSmartPointer<CursorPlacementInteractorStyle> m_CursorPlacementStyle;
 };

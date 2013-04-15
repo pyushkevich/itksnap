@@ -22,9 +22,10 @@ public:
 
   void SetModel(Generic3DModel *model);
 
-  void OnUpdate();
+  virtual void OnUpdate();
 
-  void UpdateAxisRendering();
+  void ResetView();
+
 protected:
   Generic3DRenderer();
   virtual ~Generic3DRenderer() {}
@@ -32,7 +33,12 @@ protected:
   Generic3DModel *m_Model;
 
   // Update the actors and mappings for the renderer
-  void UpdateRendering();
+  void UpdateRendering();  
+  void UpdateAxisRendering();
+  void UpdateMeshAppearance();
+
+  // Update the camera
+  void UpdateCamera(bool reset);
 
   // Prop assembly containing all the segmentation meshes
   vtkSmartPointer<vtkPropAssembly> m_MeshAssembly;

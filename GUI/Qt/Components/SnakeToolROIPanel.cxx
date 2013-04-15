@@ -8,11 +8,14 @@
 #include <SnakeROIModel.h>
 #include <MainImageWindow.h>
 
+#include "ResampleDialog.h"
+
 SnakeToolROIPanel::SnakeToolROIPanel(QWidget *parent) :
   SNAPComponent(parent),
   ui(new Ui::SnakeToolROIPanel)
 {
   ui->setupUi(this);
+  m_ResampleDialog = new ResampleDialog(this);
 }
 
 SnakeToolROIPanel::~SnakeToolROIPanel()
@@ -24,6 +27,9 @@ void SnakeToolROIPanel::SetModel(GlobalUIModel *model)
 {
   // Store the model
   m_Model = model;
+
+  // Pass the model to the resample dialog
+  m_ResampleDialog->SetModel(model->GetSnakeROIResampleModel());
 
   // Hook up the couplings for the ROI size controls
   makeArrayCoupling(
@@ -45,7 +51,12 @@ void SnakeToolROIPanel::on_btnAuto_clicked()
 {
   // TODO: Check that the label configuration is valid
 
-  // TODO: Handle resampling requests
+  // Handle resampling if requested
+  if(ui->chkResample->isChecked())
+    {
+    if(m_ResampleDialog->exec() != QDialog::Accepted)
+      return;
+    }
 
   // Switch to crosshairs mode
   m_Model->SetToolbarMode(CROSSHAIRS_MODE);

@@ -268,6 +268,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/SNAPAppearanceSettings.cxx
   GUI/Model/SnakeParameterModel.cxx
   GUI/Model/SnakeROIModel.cxx
+  GUI/Model/SnakeROIResampleModel.cxx
   GUI/Model/SnakeWizardModel.cxx
   GUI/Model/StateManagement.cxx
   GUI/Model/SynchronizationModel.cxx
@@ -331,6 +332,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/SliceWindowCoordinator.h
   GUI/Model/SnakeParameterModel.h
   GUI/Model/SnakeROIModel.h
+  GUI/Model/SnakeROIResampleModel.h
   GUI/Model/SnakeWizardModel.h
   GUI/Model/StateManagement.h
   GUI/Model/SynchronizationModel.h
@@ -426,6 +428,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/MainImageWindow.cxx
   GUI/Qt/Windows/QtStyles.cxx
   GUI/Qt/Windows/ReorientImageDialog.cxx
+  GUI/Qt/Windows/ResampleDialog.cxx
   GUI/Qt/Windows/SimpleFileDialogWithHistory.cxx
   GUI/Qt/Windows/SnakeParameterDialog.cxx
   GUI/Qt/Windows/SpeedImageDialog.cxx
@@ -489,6 +492,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/MainControlPanel.h
   GUI/Qt/Windows/MainImageWindow.h
   GUI/Qt/Windows/ReorientImageDialog.h
+  GUI/Qt/Windows/ResampleDialog.h
   GUI/Qt/Windows/SimpleFileDialogWithHistory.h
   GUI/Qt/Windows/SnakeParameterDialog.h
   GUI/Qt/Windows/SpeedImageDialog.h
@@ -549,6 +553,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/MainControlPanel.ui
   GUI/Qt/Windows/MainImageWindow.ui
   GUI/Qt/Windows/ReorientImageDialog.ui
+  GUI/Qt/Windows/ResampleDialog.ui
   GUI/Qt/Windows/SimpleFileDialogWithHistory.ui
   GUI/Qt/Windows/SnakeParameterDialog.ui
   GUI/Qt/Windows/SpeedImageDialog.ui

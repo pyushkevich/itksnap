@@ -37,11 +37,17 @@
          </property>
          <item row="2" column="1">
           <widget class="QDoubleSpinBox" name="outInputY">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="readOnly">
             <bool>true</bool>
            </property>
            <property name="buttonSymbols">
             <enum>QAbstractSpinBox::NoButtons</enum>
+           </property>
+           <property name="decimals">
+            <number>8</number>
            </property>
           </widget>
          </item>
@@ -76,11 +82,17 @@ voxel size</string>
          </item>
          <item row="1" column="1">
           <widget class="QDoubleSpinBox" name="outInputX">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="readOnly">
             <bool>true</bool>
            </property>
            <property name="buttonSymbols">
             <enum>QAbstractSpinBox::NoButtons</enum>
+           </property>
+           <property name="decimals">
+            <number>8</number>
            </property>
           </widget>
          </item>
@@ -100,11 +112,17 @@ voxel size</string>
          </item>
          <item row="3" column="1">
           <widget class="QDoubleSpinBox" name="outInputZ">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="readOnly">
             <bool>true</bool>
            </property>
            <property name="buttonSymbols">
             <enum>QAbstractSpinBox::NoButtons</enum>
+           </property>
+           <property name="decimals">
+            <number>8</number>
            </property>
           </widget>
          </item>
@@ -155,6 +173,9 @@ voxel size</string>
          </item>
          <item row="1" column="3">
           <widget class="QDoubleSpinBox" name="inOutVoxelX">
+           <property name="focusPolicy">
+            <enum>Qt::WheelFocus</enum>
+           </property>
            <property name="buttonSymbols">
             <enum>QAbstractSpinBox::NoButtons</enum>
            </property>
@@ -163,7 +184,7 @@ voxel size</string>
          <item row="5" column="3">
           <widget class="QPushButton" name="btnAuto">
            <property name="text">
-            <string>Auto</string>
+            <string>Suggest</string>
            </property>
           </widget>
          </item>
@@ -254,6 +275,17 @@ voxel size</string>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>inActionX</tabstop>
+  <tabstop>inOutVoxelX</tabstop>
+  <tabstop>inActionY</tabstop>
+  <tabstop>inOutVoxelY</tabstop>
+  <tabstop>inActionZ</tabstop>
+  <tabstop>inOutVoxelZ</tabstop>
+  <tabstop>btnAuto</tabstop>
+  <tabstop>inInterpolation</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

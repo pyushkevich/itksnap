@@ -155,58 +155,58 @@ MeshObject
     // Deallocate the filter
     delete meshPipeline;
   }
-  else    
+  else
     {
-        
+
     IRISMeshPipeline::InputImageType * pImage;
     
     // Select the correct image
     if(!m_GlobalState->GetSnakeActive())
-    {
-        // We are not currently in SNAP.  Use the segmentation image with its
-        // different colors
-        pImage = m_Driver->GetCurrentImageData()->GetSegmentation()->GetImage();
-    }
+      {
+      // We are not currently in SNAP.  Use the segmentation image with its
+      // different colors
+      pImage = m_Driver->GetCurrentImageData()->GetSegmentation()->GetImage();
+      }
     else
-    {
-        // We are in SNAP.  Select one of SNAP's images
-        SNAPImageData *snapData = m_Driver->GetSNAPImageData();
-        pImage = snapData->GetSegmentation()->GetImage();
-    }
+      {
+      // We are in SNAP.  Select one of SNAP's images
+      SNAPImageData *snapData = m_Driver->GetSNAPImageData();
+      pImage = snapData->GetSegmentation()->GetImage();
+      }
     if((pImage == 0) || (Is3DProper(pImage) == false)) {
-        throw IRISException("The input image should be a proper 3D one.");
-    }
-        
+      throw IRISException("The input image should be a proper 3D one.");
+      }
+
     // Create a pipeline for mesh generation
     IRISMeshPipeline *meshPipeline = new IRISMeshPipeline();
-  
+
     // Initialize the pipeline with the correctly selected image
     meshPipeline->SetImage(pImage);
-  
+
     // Pass the settings on to the pipeline
     meshPipeline->SetMeshOptions(m_GlobalState->GetMeshOptions());
-  
+
     // Run the first step in this pipeline
     meshPipeline->ComputeBoundingBoxes();
 
     // Add the listener to the progress accumulator
-    unsigned long xObserverTag = 
-      m_Progress->AddObserver(itk::ProgressEvent(), command);
+    unsigned long xObserverTag =
+        m_Progress->AddObserver(itk::ProgressEvent(), command);
 
     // Initialize the progress meter
     for(i = 1; i < MAX_COLOR_LABELS; i++)
       {
       ColorLabel cl = m_Driver->GetColorLabelTable()->GetColorLabel(i);
       if(cl.IsVisibleIn3D() && meshPipeline->CanComputeMesh(i))
-        { 
+        {
         m_Progress->RegisterSource(
-          meshPipeline->GetProgressAccumulator(),
-          1.0 * meshPipeline->GetVoxelsInBoundingBox(i));
+              meshPipeline->GetProgressAccumulator(),
+              1.0 * meshPipeline->GetVoxelsInBoundingBox(i));
         }
       }
 
     // Compute a list of meshes in the filter
-    for(i = 1; i < MAX_COLOR_LABELS; i++) 
+    for(i = 1; i < MAX_COLOR_LABELS; i++)
       {
       ColorLabel cl = m_Driver->GetColorLabelTable()->GetColorLabel(i);
       if(cl.IsVisibleIn3D() && meshPipeline->CanComputeMesh(i))
@@ -230,6 +230,9 @@ MeshObject
     // Deallocate the filter
     delete meshPipeline;
     }
+
+  // Invoke a modified event (?)
+  this->InvokeEvent(itk::ModifiedEvent());
 }
 
 void 
@@ -296,6 +299,9 @@ MeshObject
     }
 
   m_Meshes.clear();
+
+  // Invoke a modified event (?)
+  this->InvokeEvent(itk::ModifiedEvent());
 }
 
 size_t 

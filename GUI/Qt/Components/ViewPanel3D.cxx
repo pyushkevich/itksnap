@@ -143,3 +143,8 @@ void ViewPanel3D::on_btnScreenshot_clicked()
   MainImageWindow *window = findParentWidget<MainImageWindow>(this);
   window->ExportScreenshot(3);
 }
+
+void ViewPanel3D::on_btnResetView_clicked()
+{
+  m_Model->ResetView();
+}

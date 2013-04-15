@@ -43,23 +43,23 @@
        <number>0</number>
       </property>
       <item>
+       <widget class="QToolButton" name="btnAccept">
+        <property name="text">
+         <string>Accept</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QToolButton" name="btnUpdateMesh">
         <property name="text">
-         <string>update</string>
+         <string>Update Scene</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="toolButton_2">
+       <widget class="QToolButton" name="btnResetView">
         <property name="text">
-         <string>...</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="toolButton_3">
-        <property name="text">
-         <string>...</string>
+         <string>Reset View</string>
         </property>
        </widget>
       </item>

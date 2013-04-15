@@ -55,6 +55,7 @@ class ConcreteColorLabelPropertyModel;
 class CursorInspectionModel;
 class SnakeROIModel;
 class SnakeWizardModel;
+class SnakeROIResampleModel;
 class ProgressReporterDelegate;
 class ReorientImageModel;
 class DisplayLayoutModel;
@@ -63,6 +64,7 @@ class PaintbrushSettingsModel;
 class LayerGeneralPropertiesModel;
 class SynchronizationModel;
 class SnakeParameterModel;
+
 
 namespace itk
 {
@@ -195,6 +197,9 @@ public:
   /** Model for snake parameter editing */
   irisGetMacro(SnakeParameterModel, SnakeParameterModel *)
 
+  /** Model for the snake ROI resampling */
+  irisGetMacro(SnakeROIResampleModel, SnakeROIResampleModel *)
+
   /** Load an image non-interactively through a delegate */
   void LoadImageNonInteractive(const char *fname,
                                AbstractLoadImageDelegate &delegate,
@@ -315,6 +320,9 @@ protected:
 
   // Snake parameters
   SmartPtr<SnakeParameterModel> m_SnakeParameterModel;
+
+  // Snake resampling model
+  SmartPtr<SnakeROIResampleModel> m_SnakeROIResampleModel;
 
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;

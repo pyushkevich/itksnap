@@ -4,6 +4,10 @@
 #include "GenericImageData.h"
 #include "GlobalState.h"
 
+SnakeROIModel::SnakeROIModel()
+{
+}
+
 
 void SnakeROIModel::SetParent(GenericSliceModel *parent)
 {
@@ -133,10 +137,6 @@ bool SnakeROIModel::ProcessDragEvent(
 // The click detection radius (delta)
 const unsigned int SnakeROIModel::m_PixelDelta = 8;
 
-SnakeROIModel::SnakeROIModel()
-{
-
-}
 
 void
 SnakeROIModel

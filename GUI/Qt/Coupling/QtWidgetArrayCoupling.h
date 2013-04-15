@@ -48,26 +48,39 @@ public:
     individual widgets in the array
     */
   WidgetArrayValueTraits(ChildTraits childTraits)
-    : m_ChildTraits(childTraits) {}
+    : m_ChildTraits(childTraits) { m_CacheValid.fill(false); }
 
   ValueType GetValue(WidgetArrayType wa)
   {
-    ValueType value;
+    ValueType value = m_CachedModelValue;
     for(unsigned int i = 0; i < VDim; i++)
-      value(i) = m_ChildTraits.GetValue(wa[i]);
+      {
+      TAtomic valWidget = m_ChildTraits.GetValue(wa[i]);
+      if(!m_CacheValid[i] || valWidget != m_CachedWidgetValue[i])
+        {
+        value(i) = valWidget;
+        m_CacheValid[i] = false;
+        }
+      }
     return value;
   }
 
   void SetValue(WidgetArrayType wa, const ValueType &value)
   {
     for(unsigned int i = 0; i < VDim; i++)
+      {
       m_ChildTraits.SetValue(wa[i], value(i));
+      m_CachedModelValue[i] = value(i);
+      m_CachedWidgetValue[i] = m_ChildTraits.GetValue(wa[i]);
+      m_CacheValid[i] = true;
+      }
   }
 
   void SetValueToNull(WidgetArrayType wa)
   {
     for(unsigned int i = 0; i < VDim; i++)
       m_ChildTraits.SetValueToNull(wa[i]);
+    m_CacheValid.fill(false);
   }
 
   const char *GetSignal()
@@ -77,6 +90,14 @@ public:
 
 protected:
   ChildTraits m_ChildTraits;
+
+  // We must cache the values sent to each widget and the corresponding states
+  // of each widget. This is because some widgets change the value passed to
+  // them. If one of the widgets in the array is edited by the user, we only
+  // want that widget's value to be sent to the model, while using the cached
+  // values for the other widgets.
+  ValueType m_CachedModelValue, m_CachedWidgetValue;
+  iris_vector_fixed<bool, VDim> m_CacheValid;
 };
 
 /**

@@ -54,6 +54,7 @@
 #include <PaintbrushSettingsModel.h>
 #include <SynchronizationModel.h>
 #include <SnakeParameterModel.h>
+#include <SnakeROIResampleModel.h>
 #include "NumericPropertyToggleAdaptor.h"
 #include "HistoryManager.h"
 
@@ -151,6 +152,10 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   // Snake model
   m_SnakeWizardModel = SnakeWizardModel::New();
   m_SnakeWizardModel->SetParentModel(this);
+
+  // Snake ROI resampling model
+  m_SnakeROIResampleModel = SnakeROIResampleModel::New();
+  m_SnakeROIResampleModel->SetParentModel(this);
 
   // Synchronization model
   m_SynchronizationModel = SynchronizationModel::New();
