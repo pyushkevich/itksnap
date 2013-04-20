@@ -398,18 +398,52 @@ IRISApplication
 ::DrawOverLabel(LabelType iTarget)
 {
   // Get the current merge settings
-  DrawOverFilter filter = m_GlobalState->GetDrawOverFilter();
-  LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
-
-  // Assign the output intensity based on the current drawing mode    
-  bool visible = m_ColorLabelTable->GetColorLabel(iTarget).IsVisible();
+  const DrawOverFilter &filter = m_GlobalState->GetDrawOverFilter();
+  const LabelType &iDrawing = m_GlobalState->GetDrawingColorLabel();
 
   // If mode is paint over all, the victim is overridden
-  return
-      ((filter.CoverageMode == PAINT_OVER_ALL) ||
-       (filter.CoverageMode == PAINT_OVER_VISIBLE && visible) ||
-       (filter.CoverageMode == PAINT_OVER_ONE && filter.DrawOverLabel == iTarget))
-      ? iDrawing : iTarget;
+  if(filter.CoverageMode == PAINT_OVER_ALL)
+    return iDrawing;
+
+  if(filter.CoverageMode == PAINT_OVER_ONE && filter.DrawOverLabel == iTarget)
+    return iDrawing;
+
+  if(filter.CoverageMode == PAINT_OVER_VISIBLE
+     && m_ColorLabelTable->GetColorLabel(iTarget).IsVisible())
+    return iDrawing;
+
+  return iTarget;
+}
+
+void IRISApplication::BeginSegmentationUpdate(std::string undo_name)
+{
+  m_SegmentationUpdateName = undo_name;
+  m_SegmentationChangeCount = 0;
+}
+
+void IRISApplication::UpdateSegmentationVoxel(const Vector3ui &pos)
+{
+  // Get the segmentation image
+  LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
+  LabelType &label = seg->GetPixel(to_itkIndex(pos));
+  LabelType newlabel = DrawOverLabel(label);
+  if(label != newlabel)
+    {
+    label = newlabel;
+    m_SegmentationChangeCount++;
+    }
+}
+
+int IRISApplication::EndSegmentationUpdate()
+{
+  if(m_SegmentationChangeCount > 0)
+    {
+    m_CurrentImageData->GetSegmentation()->GetImage()->Modified();
+    this->StoreUndoPoint(m_SegmentationUpdateName.c_str());
+    }
+
+  m_SegmentationUpdateName = std::string();
+  return m_SegmentationChangeCount;
 }
 
 unsigned int

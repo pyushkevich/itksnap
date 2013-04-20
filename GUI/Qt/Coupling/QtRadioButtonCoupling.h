@@ -27,59 +27,9 @@
 #ifndef QTRADIOBUTTONCOUPLING_H
 #define QTRADIOBUTTONCOUPLING_H
 
-#include <QtWidgetCoupling.h>
+#include <QtCheckableWidgetGroupCoupling.h>
 #include <QRadioButton>
 #include <map>
-
-template <class TAtomic>
-struct RadioButtonGroupTraits :
-    public WidgetValueTraitsBase<TAtomic, QWidget *>
-{
-public:
-  typedef std::map<TAtomic, QAbstractButton *> ButtonMap;
-  typedef typename ButtonMap::iterator ButtonIterator;
-
-  RadioButtonGroupTraits(ButtonMap bm) : m_ButtonMap(bm) {}
-
-  TAtomic GetValue(QWidget *w)
-  {
-    // Figure out which button is checked
-    for(ButtonIterator it = m_ButtonMap.begin(); it != m_ButtonMap.end(); ++it)
-      {
-        QAbstractButton *qab = it->second;
-        if(qab->isChecked())
-          return it->first;
-      }
-
-    // This is ambiguous...
-    return static_cast<TAtomic>(0);
-  }
-
-  void SetValue(QWidget *w, const TAtomic &value)
-  {
-    // Set all the buttons
-    for(ButtonIterator it = m_ButtonMap.begin(); it != m_ButtonMap.end(); ++it)
-      {
-      QAbstractButton *qab = it->second;
-      qab->setChecked(it->first == value);
-      }
-  }
-
-  void SetValueToNull(QWidget *w)
-  {
-    // Set all the buttons
-    for(ButtonIterator it = m_ButtonMap.begin(); it != m_ButtonMap.end(); ++it)
-      {
-      QAbstractButton *qab = it->second;
-      qab->setChecked(false);
-      }
-  }
-
-protected:
-
-  ButtonMap m_ButtonMap;
-};
-
 
 /**
   Create a coupling between a widget containing a set of radio buttons
@@ -92,38 +42,7 @@ void makeRadioGroupCoupling(
     std::map<TAtomic, QAbstractButton *> buttonMap,
     AbstractPropertyModel<TAtomic> *model)
 {
-  typedef AbstractPropertyModel<TAtomic> ModelType;
-  typedef RadioButtonGroupTraits<TAtomic> WidgetValueTraits;
-  typedef DefaultWidgetDomainTraits<TrivialDomain, QWidget> WidgetDomainTraits;
-
-  typedef PropertyModelToWidgetDataMapping<
-      ModelType, QWidget *,
-      WidgetValueTraits, WidgetDomainTraits> MappingType;
-
-  WidgetValueTraits valueTraits(buttonMap);
-  WidgetDomainTraits domainTraits;
-  MappingType *mapping = new MappingType(parentWidget, model, valueTraits, domainTraits);
-  QtCouplingHelper *h = new QtCouplingHelper(parentWidget, mapping);
-
-  // Populate the widget
-  mapping->InitializeWidgetFromModel();
-
-  // Listen to value change events from the model
-  LatentITKEventNotifier::connect(
-        model, ValueChangedEvent(),
-        h, SLOT(onPropertyModification(const EventBucket &)));
-
-  LatentITKEventNotifier::connect(
-        model, DomainChangedEvent(),
-        h, SLOT(onPropertyModification(const EventBucket &)));
-
-  // Listen to value change events for every child widget
-  typedef typename std::map<TAtomic, QAbstractButton *>::const_iterator Iter;
-  for(Iter it = buttonMap.begin(); it != buttonMap.end(); ++it)
-    {
-      QAbstractButton *qab = it->second;
-      h->connect(qab, SIGNAL(toggled(bool)), SLOT(onUserModification()));
-    }
+  makeCheckableWidgetGroupCoupling(parentWidget, buttonMap, model);
 }
 
 
@@ -147,7 +66,8 @@ void makeRadioGroupCoupling(
     if(qab)
       buttonMap[static_cast<TAtomic>(iwidget++)] = qab;
     }
-  makeRadioGroupCoupling(w, buttonMap, model);
+  makeCheckableWidgetGroupCoupling(w, buttonMap, model);
 }
+
 
 #endif // QTRADIOBUTTONCOUPLING_H

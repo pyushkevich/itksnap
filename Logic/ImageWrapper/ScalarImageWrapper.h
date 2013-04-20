@@ -36,12 +36,16 @@
 #define __ScalarImageWrapper_h_
 
 #include "ImageWrapper.h"
+#include "vtkSmartPointer.h"
 
 // Forward references
 namespace itk {
   template<class TIn> class MinimumMaximumImageFilter;
   template<class TIn, class TOut> class GradientMagnitudeImageFilter;
+  template<class TInputImage> class VTKImageExport;
 }
+
+class vtkImageImport;
 
 
 /**
@@ -185,6 +189,10 @@ public:
   /** Return the color map for this layer if it exists */
   virtual ColorMap *GetColorMap() const;
 
+  /** Get a version of this image that is usable in VTK pipelines */
+  vtkImageImport *GetVTKImporter();
+
+
 protected:
 
   /**
@@ -238,6 +246,14 @@ protected:
 
 
   virtual void AddSamplesToHistogram();
+
+
+  typedef itk::VTKImageExport<ImageType> VTKExporter;
+  SmartPtr<VTKExporter> m_VTKExporter;
+
+  vtkSmartPointer<vtkImageImport> m_VTKImporter;
+
+  void SetupVTKImportExport();
 };
 
 #endif // __ScalarImageWrapper_h_

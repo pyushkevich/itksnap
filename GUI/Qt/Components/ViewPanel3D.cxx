@@ -12,6 +12,7 @@
 #include <QMutex>
 #include <QWaitCondition>
 
+
 #ifdef RENDERTHREAD
 class RenderThread : public QThread
 {
@@ -147,4 +148,15 @@ void ViewPanel3D::on_btnScreenshot_clicked()
 void ViewPanel3D::on_btnResetView_clicked()
 {
   m_Model->ResetView();
+}
+
+void ViewPanel3D::on_btnAccept_clicked()
+{
+  if(!m_Model->AcceptAction())
+    {
+    QMessageBox::information(this, "No voxels were updated",
+                             "The 3D operation did not update any voxels in "
+                             "the segmentation. Check that the foreground and "
+                             "background labels are selected correctly.");
+    }
 }

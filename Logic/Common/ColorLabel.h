@@ -123,6 +123,12 @@ public:
     m_RGB[2] = in_Blue;
   }
 
+  // Get the RGB values as a double vector (range 0-1)
+  Vector3d GetRGBAsDoubleVector() const
+  {
+    return Vector3d(m_RGB[0] / 255., m_RGB[1] / 255., m_RGB[2] / 255.);
+  }
+
   // Copy RGB into an array
   void GetRGBVector(unsigned char array[3]) const {
     array[0] = m_RGB[0];

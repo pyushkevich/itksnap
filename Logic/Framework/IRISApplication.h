@@ -332,6 +332,35 @@ public:
   LabelType DrawOverLabel(LabelType iTarget);
 
   /**
+   * Method that signals the beginning of segmentation update operation. This
+   * method should be used in conjuction with UpdateSegmentationVoxel method
+   * to apply current drawing properties to a set of voxels
+   *
+   * These methods don't perform error checking - it's the user's responsibility
+   * to call them in the correct order. The methods are not currently reentrant
+   * (i.e., should not be used by multiple threads).
+   *
+   * TODO: this is currently only being used for spray paint. But this set of
+   * methods should be expanded with a method that works with itk iterators and
+   * should be made the main entrypoint for changing segmentations. This will
+   * especially be necessary for RLE segmentation management.
+   *
+   */
+  void BeginSegmentationUpdate(std::string undo_name);
+
+  /**
+   * Apply the current drawing label to a voxel. Depending on coverage mode
+   * and the voxel's current label, the label of the voxel may be changed
+   */
+  void UpdateSegmentationVoxel(const Vector3ui &pos);
+
+  /**
+   * Complete the segmentation update. Returns the actual number of voxels
+   * relabeled since BeginSegmentationUpdate();
+   */
+  int EndSegmentationUpdate();
+
+  /**
    * Really simple replacement of one label with another. Returns the 
    * number of voxels changed.
    */
@@ -505,6 +534,10 @@ protected:
 
   // Array of bubbles
   BubbleArray m_BubbleArray;
+
+  // State used in conjunction with BeginSegmentationUpdate/EndSegmentationUpdate
+  std::string m_SegmentationUpdateName;
+  unsigned int m_SegmentationChangeCount;
 
   // Handle events fired by imagedata objects
   void OnWrapperEvent(itk::Object *src, const itk::EventObject &event);

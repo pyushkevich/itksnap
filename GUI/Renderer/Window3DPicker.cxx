@@ -43,9 +43,19 @@ public:
 
 
 double Window3DPicker::IntersectWithLine(
-    double p1[], double p2[], double tol,
-    vtkAssemblyPath *, vtkProp3D *, vtkAbstractMapper3D *)
+    double pt1[], double pt2[], double tol,
+    vtkAssemblyPath *path, vtkProp3D *prop, vtkAbstractMapper3D *mapper)
 {
+  // This method will be called once for every prop in the Renderer. We only
+  // need to compute the intersection once. So we cache the input point
+  // parameters
+  static Vector3d p1_cache(0.0), p2_cache(0.0);
+  Vector3d p1(pt1), p2(pt2);
+
+  if(p1 == p1_cache && p2 == p2_cache)
+    return VTK_DOUBLE_MAX;
+
+
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
   ImageWrapperBase *main = app->GetCurrentImageData()->GetMain();
 
@@ -54,8 +64,8 @@ double Window3DPicker::IntersectWithLine(
   Vector3d x1 = main->TransformNIFTICoordinatesToVoxelIndex(Vector3d(p2));
 
   Vector3i pos;
-  bool result = false;
-
+  int result = -1;
+  double t = VTK_DOUBLE_MAX;
 
   // Intersect with the correct wrapper
   if(app->IsSnakeModeActive() && app->GetSNAPImageData()->IsSnakeLoaded())
@@ -78,12 +88,30 @@ double Window3DPicker::IntersectWithLine(
     }
 
   // Apply
-  if(result)
-      {
-      app->SetCursorPosition(to_unsigned_int(pos));
-      }
+  if(result > 0)
+    {
+    // Set the cursor position at the right place
+    m_PickSuccessful = true;
+    m_PickPosition = pos;
 
-  return 0;
+    // Find the closest point along the ray and return it
+    t = dot_product(x0-x1, x0-to_double(pos)) / dot_product(x0-x1, x0-x1);
+    }
+  else
+    {
+    m_PickSuccessful = false;
+    }
+
+  p1_cache = p1;
+  p2_cache = p2;
+
+  return t;
+}
+
+Window3DPicker::Window3DPicker()
+{
+  m_PickSuccessful = false;
+  m_Model = NULL;
 }
 
 vtkCxxRevisionMacro(Window3DPicker, "$Revision: 1.1 $")

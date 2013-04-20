@@ -17,6 +17,7 @@
 #include "vtkLineSource.h"
 #include "vtkPropAssembly.h"
 
+
 #include "MeshObject.h"
 
 #include "ColorLabel.h"
@@ -24,6 +25,21 @@
 #include "vtkCommand.h"
 
 #include "Window3DPicker.h"
+
+#include "vtkUnstructuredGridVolumeRayCastMapper.h"
+#include "vtkDiscreteMarchingCubes.h"
+#include "vtkWindowedSincPolyDataFilter.h"
+#include "vtkThreshold.h"
+#include "vtkDataSetMapper.h"
+#include "vtkTransformFilter.h"
+#include "vtkTransform.h"
+#include "vtkLookupTable.h"
+#include "vtkDataSetSurfaceFilter.h"
+#include "vtkGeometryFilter.h"
+
+#include "vtkGlyph3D.h"
+#include "vtkCubeSource.h"
+#include "vtkSphereSource.h"
 
 Generic3DRenderer::Generic3DRenderer()
 {
@@ -55,6 +71,34 @@ Generic3DRenderer::Generic3DRenderer()
   // Create a picker
   vtkSmartPointer<Window3DPicker> picker = vtkSmartPointer<Window3DPicker>::New();
   this->GetRenderWindowInteractor()->SetPicker(picker);
+
+  // Create a glyph filter which handles spray paint
+  vtkSmartPointer<vtkSphereSource> cube = vtkSmartPointer<vtkSphereSource>::New();
+  m_SprayGlyphFilter = vtkSmartPointer<vtkGlyph3D>::New();
+  m_SprayGlyphFilter->SetSourceConnection(cube->GetOutputPort());
+  m_SprayGlyphFilter->SetScaleModeToDataScalingOff();
+  m_SprayGlyphFilter->SetScaleFactor(1.4);
+
+
+  // Create a transform filter for the glyph filter
+  m_SprayTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkTransformFilter> tf_glyph = vtkSmartPointer<vtkTransformFilter>::New();
+  tf_glyph->SetTransform(m_SprayTransform.GetPointer());
+  tf_glyph->SetInputConnection(m_SprayGlyphFilter->GetOutputPort());
+
+  // Create the spray paint property
+  m_SprayProperty = vtkSmartPointer<vtkProperty>::New();
+  m_SprayProperty->SetShading(VTK_FLAT);
+
+  // Create a mapper, etc for the glyph filter and add to the renderer
+  vtkSmartPointer<vtkPolyDataMapper> mapper_spray = vtkSmartPointer<vtkPolyDataMapper>::New();
+  mapper_spray->SetInputConnection(tf_glyph->GetOutputPort());
+
+  // Create and add an actor for the spray
+  vtkSmartPointer<vtkActor> actor_spray = vtkSmartPointer<vtkActor>::New();
+  actor_spray->SetMapper(mapper_spray);
+  actor_spray->SetProperty(m_SprayProperty);
+  m_Renderer->AddActor(actor_spray);
 }
 
 void Generic3DRenderer::SetModel(Generic3DModel *model)
@@ -62,26 +106,84 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   // Save the model
   m_Model = model;
 
+  // Get a pointer to the application class
+  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
+
   // Record and rebroadcast changes in the model
   Rebroadcast(m_Model->GetMesh(), itk::ModifiedEvent(), ModelUpdateEvent());
 
   // Respond to changes in image dimension - these require big updates
-  Rebroadcast(m_Model->GetParentUI()->GetDriver(),
-              MainImageDimensionsChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(app, MainImageDimensionsChangeEvent(), ModelUpdateEvent());
+
+  // Respond to changes to the segmentation (commented out for now, since changes
+  // are only in response to pressing the update mesh button)
+  // Rebroadcast(app, SegmentationChangeEvent(), ModelUpdateEvent());
 
   // Respond to cursor events
   Rebroadcast(m_Model->GetParentUI(), CursorUpdateEvent(), ModelUpdateEvent());
 
   // Respond to label appearance change events
-  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetColorLabelTable(),
+  Rebroadcast(app->GetColorLabelTable(),
               SegmentationLabelChangeEvent(), ModelUpdateEvent());
+
+  // Respond to change in current label
+  Rebroadcast(app->GetGlobalState()->GetDrawingColorLabelModel(),
+              ValueChangedEvent(), ModelUpdateEvent());
+
+  // Respond to spray paint events
+  Rebroadcast(m_Model, Generic3DModel::SprayPaintEvent(), ModelUpdateEvent());
 
   // Update the main components
   this->UpdateAxisRendering();
   this->UpdateCamera(true);
 
+  // Hook up the spray pipeline
+  m_SprayGlyphFilter->SetInput(m_Model->GetSprayPoints());
+
   // Set the model in the picker
   Window3DPicker::SafeDownCast(this->GetRenderWindowInteractor()->GetPicker())->SetModel(m_Model);
+}
+
+
+void Generic3DRenderer::UpdateSegmentationMeshAssembly()
+{
+  // Get the mesh from the parent object
+  MeshObject *mesh = m_Model->GetMesh();
+
+  // Get the app driver
+  IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
+
+  // Clear the mesh assembly (and make sure it's modified, in case there are
+  // no more meshes to add
+  m_MeshAssembly->GetParts()->RemoveAllItems();
+  m_MeshAssembly->Modified();
+
+  // For each of the meshes, generate a data mapper and an actor
+  for(unsigned int i = 0; i < mesh->GetNumberOfVTKMeshes(); i++)
+    {
+    // Create a mapper
+    vtkSmartPointer<vtkPolyDataMapper> pdm =
+        vtkSmartPointer<vtkPolyDataMapper>::New();
+    pdm->SetInput(mesh->GetVTKMesh(i));
+
+    // Get the label of that mesh
+    const ColorLabel &cl =
+        driver->GetColorLabelTable()->GetColorLabel(
+          mesh->GetVTKMeshLabel(i));
+
+    // Create a property
+    vtkSmartPointer<vtkProperty> prop = vtkSmartPointer<vtkProperty>::New();
+    prop->SetColor(cl.GetRGBAsDoubleVector().data_block());
+    prop->SetOpacity(cl.GetAlpha() / 255.0);
+
+    // Create an actor
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(pdm);
+    actor->SetProperty(prop);
+
+    // Add the actor to the renderer
+    m_MeshAssembly->AddPart(actor);
+    }
 }
 
 
@@ -127,7 +229,25 @@ void Generic3DRenderer::UpdateAxisRendering()
       tran->SetMatrix(m_Model->GetWorldMatrix().data_block());
       m_AxisActor[i]->SetUserTransform(tran);
       }
-    }  
+    }
+}
+
+void Generic3DRenderer::UpdateSprayGlyphAppearanceAndShape()
+{
+  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
+  if(app->IsMainImageLoaded())
+    {
+    ImageWrapperBase *main = app->GetCurrentImageData()->GetMain();
+
+    // The color of the spray paint is the same as the current label
+    LabelType dl = app->GetGlobalState()->GetDrawingColorLabel();
+    ColorLabel cdl = app->GetColorLabelTable()->GetColorLabel(dl);
+    m_SprayProperty->SetColor(cdl.GetRGBAsDoubleVector().data_block());
+
+    // Set the spray transform
+    vnl_matrix_fixed<double, 4, 4> vox2nii = main->GetNiftiSform();
+    m_SprayTransform->SetMatrix(vox2nii.data_block());
+    }
 }
 
 void Generic3DRenderer::UpdateCamera(bool reset)
@@ -186,56 +306,7 @@ void Generic3DRenderer::paintGL()
   AbstractVTKRenderer::paintGL();
 }
 
-void Generic3DRenderer::UpdateRendering()
-{
-  // Get the mesh from the parent object
-  MeshObject *mesh = m_Model->GetMesh();
-
-  // Get the app driver
-  IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
-
-  // Clear the mesh assembly (and make sure it's modified, in case there are
-  // no more meshes to add
-  m_MeshAssembly->GetParts()->RemoveAllItems();
-  m_MeshAssembly->Modified();
-
-  // For each of the meshes, generate a data mapper and an actor
-  for(unsigned int i = 0; i < mesh->GetNumberOfVTKMeshes(); i++)
-    {
-    // Create a mapper
-    vtkSmartPointer<vtkPolyDataMapper> pdm =
-        vtkSmartPointer<vtkPolyDataMapper>::New();
-    pdm->SetInput(mesh->GetVTKMesh(i));
-
-    // Get the label of that mesh
-    const ColorLabel &cl =
-        driver->GetColorLabelTable()->GetColorLabel(
-          mesh->GetVTKMeshLabel(i));
-
-    // Create a property
-    vtkSmartPointer<vtkProperty> prop = vtkSmartPointer<vtkProperty>::New();
-    prop->SetColor(cl.GetRGB(0) / 255.0,
-                   cl.GetRGB(1) / 255.0,
-                   cl.GetRGB(2) / 255.0);
-    prop->SetOpacity(cl.GetAlpha() / 255.0);
-
-    // Create an actor
-    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(pdm);
-    actor->SetProperty(prop);
-
-    // Transform the actor from voxel space to physical space
-    //vtkSmartPointer<vtkTransform> tran = vtkSmartPointer<vtkTransform>::New();
-    //tran->SetMatrix(m_Model->GetWorldMatrix().data_block());
-    //actor->SetUserTransform(tran);
-
-    // Add the actor to the renderer
-    m_MeshAssembly->AddPart(actor);
-    }
-
-}
-
-void Generic3DRenderer::UpdateMeshAppearance()
+void Generic3DRenderer::UpdateSegmentationMeshAppearance()
 {
   // Get the mesh from the parent object
   MeshObject *mesh = m_Model->GetMesh();
@@ -269,7 +340,6 @@ void Generic3DRenderer::UpdateMeshAppearance()
     else
       prop->SetOpacity(0.0);
     }
-
 }
 
 
@@ -278,27 +348,55 @@ void Generic3DRenderer::OnUpdate()
   // Update the model first
   m_Model->Update();
 
+  // Access the application
+  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
+  GlobalState *gs = app->GetGlobalState();
+
+  // Define a bunch of local flags to make this code easier to read
+  bool main_changed = m_EventBucket->HasEvent(MainImageDimensionsChangeEvent());
+  bool labels_props_changed = m_EventBucket->HasEvent(SegmentationLabelChangeEvent());
+  bool mesh_updated = m_EventBucket->HasEvent(itk::ModifiedEvent());
+  bool cursor_moved = m_EventBucket->HasEvent(CursorUpdateEvent());
+  bool active_label_changed = m_EventBucket->HasEvent(ValueChangedEvent(),
+                                                      gs->GetDrawingColorLabelModel());
+  bool spray_action = m_EventBucket->HasEvent(Generic3DModel::SprayPaintEvent());
+
   // Deal with the updates to the mesh state
-  if(m_EventBucket->HasEvent(itk::ModifiedEvent())
-     || m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
+  if(mesh_updated || main_changed)
     {
-    this->UpdateRendering();
+    UpdateSegmentationMeshAssembly();
     }
-  else if(m_EventBucket->HasEvent(SegmentationLabelChangeEvent()))
+  else if(labels_props_changed)
     {
-    UpdateMeshAppearance();
+    UpdateSegmentationMeshAppearance();
     }
 
-  // Deal with camera and axes
-  if(m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
+  // Deal with axes
+  if(main_changed || cursor_moved)
     {
     UpdateAxisRendering();
+    }
+
+  // Deal with camera
+  if(main_changed)
+    {
     UpdateCamera(true);
     }
-  else if(m_EventBucket->HasEvent(CursorUpdateEvent()))
+  else if(cursor_moved)
     {
-    UpdateAxisRendering();
     UpdateCamera(false);
+    }
+
+  // Deal with the spray paint appearance and shape
+  if(main_changed || labels_props_changed || active_label_changed)
+    {
+    UpdateSprayGlyphAppearanceAndShape();
+    }
+
+  // Deal with spray events
+  if(main_changed || spray_action)
+    {
+    m_SprayGlyphFilter->Update();
     }
 }
 

@@ -11,13 +11,14 @@ class MainControlPanel;
 }
 
 class GlobalUIModel;
+class MainImageWindow;
 
 class MainControlPanel : public SNAPComponent
 {
   Q_OBJECT
   
 public:
-  explicit MainControlPanel(QWidget *parent = 0);
+  explicit MainControlPanel(MainImageWindow *parent = 0);
   ~MainControlPanel();
 
   void SetModel(GlobalUIModel *model);

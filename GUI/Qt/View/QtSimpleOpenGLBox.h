@@ -27,7 +27,7 @@ public:
 
 public slots:
 
-  void onModelUpdate(const EventBucket &bucket);
+  virtual void onModelUpdate(const EventBucket &bucket);
 
 protected:
 

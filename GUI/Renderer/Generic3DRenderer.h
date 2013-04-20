@@ -11,6 +11,10 @@ class vtkRenderWindow;
 class vtkLineSource;
 class vtkActor;
 class vtkPropAssembly;
+class vtkProperty;
+class vtkTransform;
+
+class vtkGlyph3D;
 
 class Generic3DRenderer : public AbstractVTKRenderer
 {
@@ -33,9 +37,14 @@ protected:
   Generic3DModel *m_Model;
 
   // Update the actors and mappings for the renderer
-  void UpdateRendering();  
+  void UpdateSegmentationMeshAssembly();
+  void UpdateSegmentationMeshAppearance();
+
+  // Update the actors representing the axes
   void UpdateAxisRendering();
-  void UpdateMeshAppearance();
+
+  // Update the spray paint glyph properties
+  void UpdateSprayGlyphAppearanceAndShape();
 
   // Update the camera
   void UpdateCamera(bool reset);
@@ -47,10 +56,15 @@ protected:
   vtkSmartPointer<vtkLineSource> m_AxisLineSource[3];
   vtkSmartPointer<vtkActor> m_AxisActor[3];
 
-  // List of actors, properties, mappers for meshes
-  //std::vector< vtkSmartPointer<vtkActor> > m_MeshActors;
-  //std::vector< vtkSmartPointer<vtkPolyDataMapper> > m_MeshMappers;
-  //std::vector< vtkSmartPointer<vtkProperty> > m_MeshProps;
+  // Glyph filter used to render spray paint stuff
+  vtkSmartPointer<vtkGlyph3D> m_SprayGlyphFilter;
+
+  // The property controlling the spray paint
+  vtkSmartPointer<vtkProperty> m_SprayProperty;
+
+  // The transform applied to spray points
+  vtkSmartPointer<vtkTransform> m_SprayTransform;
+
 };
 
 #endif // GENERIC3DRENDERER_H

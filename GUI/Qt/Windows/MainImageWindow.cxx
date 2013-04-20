@@ -56,6 +56,7 @@
 #include "QtWarningDialog.h"
 #include <QtWidgetCoupling.h>
 #include <QtWidgetActivator.h>
+#include <QtActionGroupCoupling.h>
 
 #include <LabelEditorDialog.h>
 #include <ReorientImageDialog.h>
@@ -99,6 +100,20 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
     ui(new Ui::MainImageWindow)
 {
   ui->setupUi(this);
+
+  // Group mutually exclusive actions into action groups
+  QActionGroup *grpToolbarMain = new QActionGroup(this);
+  ui->actionCrosshair->setActionGroup(grpToolbarMain);
+  ui->actionZoomPan->setActionGroup(grpToolbarMain);
+  ui->actionPolygon->setActionGroup(grpToolbarMain);
+  ui->actionPaintbrush->setActionGroup(grpToolbarMain);
+  ui->actionSnake->setActionGroup(grpToolbarMain);
+
+  QActionGroup *grpToolbar3D = new QActionGroup(this);
+  ui->action3DTrackball->setActionGroup(grpToolbar3D);
+  ui->action3DCrosshair->setActionGroup(grpToolbar3D);
+  ui->action3DSpray->setActionGroup(grpToolbar3D);
+  ui->action3DScalpel->setActionGroup(grpToolbar3D);
 
   // Make sure we initialize on the intro page
   ui->stackMain->setCurrentWidget(ui->pageSplash);
@@ -268,6 +283,15 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Set up activations
   activateOnFlag(ui->actionUndo, m_Model, UIF_UNDO_POSSIBLE);
   activateOnFlag(ui->actionRedo, m_Model, UIF_REDO_POSSIBLE);
+
+  // Hook up toolbar actions to the toolbar
+  makeActionGroupCoupling(this->GetMainToolActionGroup(),
+                          m_Model->GetToolbarModeModel());
+
+  makeActionGroupCoupling(this->Get3DToolActionGroup(),
+                          m_Model->GetToolbarMode3DModel());
+
+
 }
 
 void MainImageWindow::ShowFirstTime()
@@ -508,6 +532,16 @@ void MainImageWindow::dropEvent(QDropEvent *event)
   event->acceptProposedAction();
 }
 
+QActionGroup *MainImageWindow::GetMainToolActionGroup()
+{
+  return ui->actionCrosshair->actionGroup();
+}
+
+QActionGroup *MainImageWindow::Get3DToolActionGroup()
+{
+  return ui->action3DCrosshair->actionGroup();
+}
+
 void MainImageWindow::LoadRecent(QString file)
 {
   // TODO: prompt for changes!
@@ -699,47 +733,6 @@ void MainImageWindow::on_actionSSSagittal_triggered()
         m_Model->GetDriver()->GetDisplayWindowForAnatomicalDirection(ANATOMY_SAGITTAL));
 }
 
-void MainImageWindow::on_actionCrosshair_triggered(bool checked)
-{
-  if(checked)
-    {
-    // Enter crosshair mode
-    m_Model->SetToolbarMode(CROSSHAIRS_MODE);
-    }
-}
-
-void MainImageWindow::on_actionZoomPan_triggered(bool checked)
-{
-  if(checked)
-    {
-    // Enter crosshair mode
-    m_Model->SetToolbarMode(NAVIGATION_MODE);
-    }
-}
-
-void MainImageWindow::on_actionPolygon_triggered(bool checked)
-{
-  if(checked)
-    {
-    m_Model->SetToolbarMode(POLYGON_DRAWING_MODE);
-    }
-}
-
-void MainImageWindow::on_actionPaintbrush_triggered(bool checked)
-{
-  if(checked)
-    {
-    m_Model->SetToolbarMode(PAINTBRUSH_MODE);
-    }
-}
-
-void MainImageWindow::on_actionSnake_triggered(bool checked)
-{
-  if(checked)
-    {
-    m_Model->SetToolbarMode(ROI_MODE);
-    }
-}
 
 void MainImageWindow::on_actionSegmentationIncreaseOpacity_triggered()
 {
@@ -861,3 +854,4 @@ void MainImageWindow::on_actionSaveSegmentationAs_triggered()
 {
   SaveSegmentation(true);
 }
+

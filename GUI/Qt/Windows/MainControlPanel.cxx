@@ -5,7 +5,9 @@
 #include "SNAPQtCommon.h"
 #include "LabelSelectionButton.h"
 #include "LabelSelectionPopup.h"
+#include "MainImageWindow.h"
 
+#include <QtActionGroupCoupling.h>
 #include <QActionGroup>
 #include <QMenu>
 
@@ -82,7 +84,7 @@
 #include <QToolBar>
 #include <QWhatsThis>
 
-MainControlPanel::MainControlPanel(QWidget *parent) :
+MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   SNAPComponent(parent),
   ui(new Ui::MainControlPanel)
 {
@@ -92,16 +94,8 @@ MainControlPanel::MainControlPanel(QWidget *parent) :
 
   // The mode toolbar
   QToolBar *toolbar = new QToolBar(this);
-  ui->panelToolbarMode->layout()->addWidget(toolbar);
-
-  QActionGroup *ag = new QActionGroup(this);
-  ag->addAction(FindUpstreamAction(this, "actionCrosshair"));
-  ag->addAction(FindUpstreamAction(this, "actionZoomPan"));
-  ag->addAction(FindUpstreamAction(this, "actionPolygon"));
-  ag->addAction(FindUpstreamAction(this, "actionPaintbrush"));
-  ag->addAction(FindUpstreamAction(this, "actionSnake"));
-
-  toolbar->addActions(ag->actions());
+  ui->panelToolbarMode->layout()->addWidget(toolbar);  
+  toolbar->addActions(parent->GetMainToolActionGroup()->actions());
 
   // The action toolbar
   QToolBar *toolCmd = new QToolBar(this);
@@ -123,14 +117,7 @@ MainControlPanel::MainControlPanel(QWidget *parent) :
   // Set up the 3D toolbar
   QToolBar *tool3D = new QToolBar(this);
   ui->panelToolbarMode3D->layout()->addWidget(tool3D);
-
-  QActionGroup *ag3d = new QActionGroup(this);
-  ag3d->addAction(FindUpstreamAction(this, "action3DTrackball"));
-  ag3d->addAction(FindUpstreamAction(this, "action3DCrosshair"));
-  ag3d->addAction(FindUpstreamAction(this, "action3DScalpel"));
-  ag3d->addAction(FindUpstreamAction(this, "action3DSpray"));
-
-  tool3D->addActions(ag3d->actions());
+  tool3D->addActions(parent->Get3DToolActionGroup()->actions());
 }
 
 void MainControlPanel::SetModel(GlobalUIModel *model)
@@ -152,6 +139,7 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
 
   // Listen to changes in the toolbar mode
   connectITK(m_Model->GetToolbarModeModel(), ValueChangedEvent());
+  connectITK(m_Model->GetToolbarMode3DModel(), ValueChangedEvent());
 }
 
 void MainControlPanel::onModelUpdate(const EventBucket &bucket)
@@ -174,7 +162,7 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     ui->pageBlank};
 
   // Respond to changes in toolbar mode
-  if(bucket.HasEvent(ValueChangedEvent()))
+  if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetToolbarModeModel()))
     {
     int mode = (int) m_Model->GetToolbarMode();
     mode_inspector_btn[mode]->click();

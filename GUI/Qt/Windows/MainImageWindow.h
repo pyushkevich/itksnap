@@ -46,6 +46,7 @@ class ReorientImageDialog;
 class DropActionDialog;
 class MainControlPanel;
 class StatisticsDialog;
+class QActionGroup;
 
 class SplashPanel;
 
@@ -81,6 +82,12 @@ public:
   // Handle drag and drop
   void dragEnterEvent(QDragEnterEvent *event);
   void dropEvent(QDropEvent *event);
+
+  // Get the action group for the main tool
+  QActionGroup *GetMainToolActionGroup();
+
+  // Get the action group for the 3D tool
+  QActionGroup *Get3DToolActionGroup();
 
 public slots:
 
@@ -131,16 +138,6 @@ private slots:
 
   void on_actionSSSagittal_triggered();
 
-  void on_actionCrosshair_triggered(bool checked);
-
-  void on_actionZoomPan_triggered(bool checked);
-
-  void on_actionPolygon_triggered(bool checked);
-
-  void on_actionPaintbrush_triggered(bool checked);
-
-  void on_actionSnake_triggered(bool checked);
-
   void on_actionSegmentationIncreaseOpacity_triggered();
 
   void on_actionSegmentationDecreaseOpacity_triggered();
@@ -156,6 +153,7 @@ private slots:
   void on_actionSaveSegmentation_triggered();
 
   void on_actionSaveSegmentationAs_triggered();
+
 
 protected:
 

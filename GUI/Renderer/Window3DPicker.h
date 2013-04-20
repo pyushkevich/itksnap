@@ -15,11 +15,18 @@ public:
 
   irisGetSetMacro(Model, Generic3DModel *)
 
+  irisIsMacro(PickSuccessful)
+
+  irisGetMacro(PickPosition, Vector3i)
 
 protected:
   virtual double IntersectWithLine(double p1[3], double p2[3], double tol, vtkAssemblyPath *, vtkProp3D *, vtkAbstractMapper3D *);
 
+  Window3DPicker();
+
   Generic3DModel *m_Model;
+  bool m_PickSuccessful;
+  Vector3i m_PickPosition;
 };
 
 

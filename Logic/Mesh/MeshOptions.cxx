@@ -38,7 +38,7 @@ MeshOptions
 ::MeshOptions()
 {
   // Begin render switches
-  m_UseGaussianSmoothing = true;
+  m_UseGaussianSmoothing = false;
   m_UseDecimation = false;
   m_UseMeshSmoothing = false;
 

@@ -24,8 +24,6 @@ public:
   
 signals:
   
-public slots:
-  
 protected:
 
   QtVTKInteractionDelegateWidget *m_InteractionDelegate;

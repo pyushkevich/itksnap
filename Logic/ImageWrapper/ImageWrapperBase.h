@@ -29,6 +29,7 @@ class AbstractDisplayMappingPolicy;
 class SNAPSegmentationROISettings;
 class GuidedNativeImageIO;
 class Registry;
+class vtkImageImport;
 
 /**
  \class ImageWrapper
@@ -265,6 +266,7 @@ public:
 
   typedef itk::Image<short, 3> ShortImageType;
 
+
 protected:
 
 };
@@ -358,6 +360,9 @@ public:
    * Get the color map used to present image intensities as RGBA.
    */
   virtual ColorMap *GetColorMap() const = 0;
+
+  /** Get a version of this image that is usable in VTK pipelines */
+  virtual vtkImageImport *GetVTKImporter() = 0;
 };
 
 /**

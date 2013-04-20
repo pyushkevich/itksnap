@@ -167,13 +167,13 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
 
   // Initialize the properties
   m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
+  m_ToolbarMode3DModel = NewSimpleConcreteProperty(TRACKBALL_MODE);
 
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetCursorPositionValueAndRange,
         &Self::SetCursorPosition);
-
 
   // Set up the history model. This model refers to a registry folder and
   // lists all the files in the registry.

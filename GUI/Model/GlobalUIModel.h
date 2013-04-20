@@ -84,6 +84,14 @@ enum ToolbarModeType
   ANNOTATION_MODE
 };
 
+enum ToolbarMode3DType
+{
+  TRACKBALL_MODE = 0,
+  CROSSHAIRS_3D_MODE,
+  SPRAYPAINT_MODE,
+  SCALPEL_MODE
+};
+
 class SystemInfoDelegate;
 
 
@@ -129,6 +137,9 @@ public:
 
   /** Get/Set the current toolbar mode */
   irisSimplePropertyAccessMacro(ToolbarMode,ToolbarModeType)
+
+  /** Set/Get the current 3D toolbar mode */
+  irisSimplePropertyAccessMacro(ToolbarMode3D,ToolbarMode3DType)
 
   GenericSliceModel *GetSliceModel(unsigned int i) const
     { return m_SliceModel[i]; }
@@ -305,6 +316,9 @@ protected:
 
   // The current 2D toolbar mode
   SmartPtr<ConcretePropertyModel<ToolbarModeType> > m_ToolbarModeModel;
+
+  // The current 3D toolbar mode
+  SmartPtr<ConcretePropertyModel<ToolbarMode3DType> > m_ToolbarMode3DModel;
 
   // The snake wizard model
   SmartPtr<SnakeWizardModel> m_SnakeWizardModel;

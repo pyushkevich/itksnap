@@ -3,11 +3,13 @@
 
 #include "AbstractModel.h"
 #include "vtkSmartPointer.h"
+#include "SNAPEvents.h"
 
 class GlobalUIModel;
 class IRISApplication;
 class MeshObject;
 class Generic3DRenderer;
+class vtkPolyData;
 
 namespace itk
 {
@@ -20,6 +22,10 @@ public:
 
   irisITKObjectMacro(Generic3DModel, AbstractModel)
 
+  // Special events
+  itkEventMacro(SprayPaintEvent, IRISEvent)
+  FIRES(SprayPaintEvent)
+
   // Matrix for various transforms
   typedef vnl_matrix_fixed<double, 4, 4> Mat4d;
 
@@ -31,8 +37,14 @@ public:
   // Tell the model to update the segmentation mesh
   void UpdateSegmentationMesh(itk::Command *callback);
 
-  // Position the cursor at the click position (based on vtk Pick)
-  void SetCursorFromPickResult(const Vector3d &p);
+  // Accept the current drawing operation
+  bool AcceptAction();
+
+  // Position cursor at the screen position under the cursor
+  bool PickSegmentationVoxelUnderMouse(int px, int py);
+
+  // Add a spraypaint bubble at the screen position under the cursor
+  bool SpraySegmentationVoxelUnderMouse(int px, int py);
 
   // Get the parent model
   irisGetMacro(ParentUI, GlobalUIModel *)
@@ -51,6 +63,9 @@ public:
 
   // Reset the viewpoint
   void ResetView();
+
+  // Get the spray points
+  vtkPolyData *GetSprayPoints() const;
 
 protected:
 
@@ -75,6 +90,9 @@ protected:
   // World matrix - a copy of the NIFTI transform in the main image,
   // updated on the event main image changes
   Mat4d m_WorldMatrix;
+
+  // Set of spraypainted points in image coordinates
+  vtkSmartPointer<vtkPolyData> m_SprayPoints;
 
 };
 

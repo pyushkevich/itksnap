@@ -10,7 +10,7 @@ class Generic3DModel;
 class vtkGenericRenderWindowInteractor;
 class vtkObject;
 class CursorPlacementInteractorStyle;
-
+class vtkInteractorStyle;
 
 class GenericView3D : public QtVTKRenderWindowBox
 {
@@ -26,12 +26,15 @@ signals:
 
 public slots:
 
-  void onModelUpdate(const EventBucket &bucket);
+  void onToolbarModeChange();
 
 protected:
 
   // The model in charge
   Generic3DModel *m_Model;
+
+  // The interactor styles corresponding to each mode
+  vtkSmartPointer<vtkInteractorStyle> m_InteractionStyle[4];
 
   vtkSmartPointer<CursorPlacementInteractorStyle> m_CursorPlacementStyle;
 };

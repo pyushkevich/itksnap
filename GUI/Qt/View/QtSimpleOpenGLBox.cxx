@@ -9,6 +9,9 @@ QtSimpleOpenGLBox::QtSimpleOpenGLBox(QWidget *parent)
 
 void QtSimpleOpenGLBox::onModelUpdate(const EventBucket &bucket)
 {
+  if(m_Renderer)
+    m_Renderer->Update();
+
   this->update();
 }
 

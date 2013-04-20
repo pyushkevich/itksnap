@@ -55,14 +55,6 @@
 
 class IRISApplication;
 
-enum ToolbarMode3DType
-{
-  TRACKBALL_MODE,
-  CROSSHAIRS_3D_MODE,
-  SPRAYPAINT_MODE,
-  SCALPEL_MODE
-};
-
 enum MeshFilterType
 {
   SELECT_MESH_SINGLE,
@@ -188,12 +180,6 @@ public:
 
   /** Get/Set the on/off state of the segmentation overlay */
   irisRangedPropertyAccessMacro(SegmentationAlpha, double)
-
-  /** Get the current 3D toolbar mode */
-  irisSetMacro(ToolbarMode3D,ToolbarMode3DType);
-
-  /** Set the current 3D toolbar mode */
-  irisGetMacro(ToolbarMode3D,ToolbarMode3DType);
 
   /** Get whether the slice requires an update or not (TODO: obsolete?) */
   irisSetMacro(UpdateSliceFlag,int );
@@ -371,9 +357,6 @@ private:
 
   /** The current crosshairs position */
   Vector3ui m_CrosshairsPosition;
-
-  /** The current 3D toolbar mode */
-  ToolbarMode3DType m_ToolbarMode3D;
 
   /** Whether the slice requires an update or not (TODO: obsolete?) */
   int m_UpdateSliceFlag;
