@@ -104,12 +104,16 @@ IRISApplication
   // Set the current IRIS pointer
   m_CurrentImageData = m_IRISImageData.GetPointer();
 
-  // Listen to events from wrappers
+  // Listen to events from wrappers and image data objects and refire them
+  // as our own events.
   AddListener(m_IRISImageData, WrapperMetadataChangeEvent(),
-              this, &Self::OnWrapperEvent);
+              this, &Self::RefireEvent);
 
   AddListener(m_SNAPImageData, WrapperMetadataChangeEvent(),
-              this, &Self::OnWrapperEvent);
+              this, &Self::RefireEvent);
+
+  AddListener(m_SNAPImageData, LevelSetImageChangeEvent(),
+              this, &Self::RefireEvent);
 
   // Construct new global state object
   m_GlobalState = new GlobalState(this);
@@ -169,10 +173,13 @@ IRISApplication
   delete m_SystemInterface;
 }
 
-void IRISApplication::OnWrapperEvent(itk::Object *src, const itk::EventObject &event)
+void IRISApplication::RefireEvent(itk::Object *src, const itk::EventObject &event)
 {
   // Fire the event down the line
-  this->InvokeEvent(event);
+  itk::EventObject *ev = event.MakeObject();
+  std::cout << ev->GetEventName() << std::endl;
+  this->InvokeEvent(*ev);
+  delete ev;
 }
 
 void 
@@ -440,6 +447,7 @@ int IRISApplication::EndSegmentationUpdate()
     {
     m_CurrentImageData->GetSegmentation()->GetImage()->Modified();
     this->StoreUndoPoint(m_SegmentationUpdateName.c_str());
+    this->InvokeEvent(SegmentationChangeEvent());
     }
 
   m_SegmentationUpdateName = std::string();
@@ -1638,6 +1646,11 @@ void IRISApplication::SaveLabelDescriptions(const char *file)
 bool IRISApplication::IsSnakeModeActive() const
 {
   return (m_CurrentImageData == m_SNAPImageData);
+}
+
+bool IRISApplication::IsSnakeModeLevelSetActive() const
+{
+  return IsSnakeModeActive() && m_SNAPImageData->IsSnakeLoaded();
 }
 
 /*

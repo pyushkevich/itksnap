@@ -67,7 +67,10 @@ itkEventMacro(MainImageDimensionsChangeEvent, LayerChangeEvent)
 itkEventMacro(MainImagePoseChangeEvent, LayerChangeEvent)
 
 /** The segmentation has changed */
-itkEventMacro(SegmentationChangeEvent, LayerChangeEvent)
+itkEventMacro(SegmentationChangeEvent, IRISEvent)
+
+/** The level set image has changed (due to iteration) */
+itkEventMacro(LevelSetImageChangeEvent, IRISEvent)
 
 /** Change to the speed image */
 itkEventMacro(SpeedImageChangedEvent, LayerChangeEvent)

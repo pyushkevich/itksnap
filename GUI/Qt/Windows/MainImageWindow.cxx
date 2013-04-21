@@ -284,6 +284,18 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionUndo, m_Model, UIF_UNDO_POSSIBLE);
   activateOnFlag(ui->actionRedo, m_Model, UIF_REDO_POSSIBLE);
 
+  // Tool action activations
+  activateOnFlag(ui->actionCrosshair, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionZoomPan, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionPolygon, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSnake, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionPaintbrush, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+
+  activateOnFlag(ui->action3DCrosshair, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->action3DTrackball, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->action3DScalpel, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->action3DSpray, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+
   // Hook up toolbar actions to the toolbar
   makeActionGroupCoupling(this->GetMainToolActionGroup(),
                           m_Model->GetToolbarModeModel());

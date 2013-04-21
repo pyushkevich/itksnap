@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include "MainImageWindow.h"
 #include "SNAPQtCommon.h"
+#include "QtWidgetActivator.h"
 
 #include <QThread>
 #include <QMutex>
@@ -135,6 +136,10 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
   m_GlobalUI = globalUI;
   m_Model = globalUI->GetModel3D();
   ui->view3d->SetModel(m_Model);
+
+  // Set activations
+  activateOnFlag(ui->btnAccept, m_Model, Generic3DModel::UIF_MESH_ACTION_PENDING);
+  activateOnFlag(ui->btnUpdateMesh, m_Model, Generic3DModel::UIF_MESH_DIRTY);
 }
 
 

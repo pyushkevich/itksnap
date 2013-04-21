@@ -34,6 +34,8 @@ Generic3DModel::Generic3DModel()
   m_Renderer = Generic3DRenderer::New();
 }
 
+#include "itkImage.h"
+
 void Generic3DModel::Initialize(GlobalUIModel *parent)
 {
   // Store the parent
@@ -54,6 +56,35 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
 
   // Listen to segmentation change events
   Rebroadcast(m_Driver, SegmentationChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Driver, LevelSetImageChangeEvent(), ModelUpdateEvent());
+
+  // Rebroadcast model change events as state changes
+  Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
+  Rebroadcast(this, SprayPaintEvent(), StateMachineChangeEvent());
+  Rebroadcast(m_ParentUI->GetToolbarMode3DModel(), ValueChangedEvent(), StateMachineChangeEvent());
+}
+
+bool Generic3DModel::CheckState(Generic3DModel::UIState state)
+{
+  if(!m_ParentUI->GetDriver()->IsMainImageLoaded())
+    return false;
+
+  switch(state)
+    {
+    case UIF_MESH_DIRTY:
+      {
+      return m_Mesh->IsMeshDirty();
+      }
+
+    case UIF_MESH_ACTION_PENDING:
+      {
+      if(m_ParentUI->GetToolbarMode3D() == SPRAYPAINT_MODE)
+        return m_SprayPoints->GetNumberOfPoints() > 0;
+      else return false;
+      }
+    }
+
+  return false;
 }
 
 Generic3DModel::Mat4d &Generic3DModel::GetWorldMatrix()
@@ -97,6 +128,7 @@ void Generic3DModel::OnUpdate()
     // Segmentation changed - this means that the mesh object is dirty.
     // But we don't update it automatically because that would be way too
     // slow. Instead, we need the user to ask for a re-rendering!
+
 
     }
 }

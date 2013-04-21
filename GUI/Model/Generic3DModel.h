@@ -25,14 +25,24 @@ public:
   // Special events
   itkEventMacro(SprayPaintEvent, IRISEvent)
   FIRES(SprayPaintEvent)
+  FIRES(StateMachineChangeEvent)
 
   // Matrix for various transforms
   typedef vnl_matrix_fixed<double, 4, 4> Mat4d;
 
   Generic3DModel();
 
+  // States pertaining to this model
+  enum UIState {
+    UIF_MESH_DIRTY = 0,
+    UIF_MESH_ACTION_PENDING
+  };
+
   // Set the parent model
   void Initialize(GlobalUIModel *parent);
+
+  // Check the state
+  bool CheckState(UIState state);
 
   // Tell the model to update the segmentation mesh
   void UpdateSegmentationMesh(itk::Command *callback);

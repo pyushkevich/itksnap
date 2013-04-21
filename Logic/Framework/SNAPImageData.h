@@ -69,6 +69,9 @@ class SNAPImageData : public GenericImageData
 public:
   irisITKObjectMacro(SNAPImageData, GenericImageData)
 
+  // This class fires LevelSetImageChangeEvent
+  FIRES(LevelSetImageChangeEvent)
+
   // The type of the internal level set image
   typedef itk::Image<float,3>                                   FloatImageType;
   typedef Superclass::AnatomicImageType                      AnatomicImageType;

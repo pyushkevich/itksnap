@@ -64,7 +64,7 @@ protected:
 
   // The transform applied to spray points
   vtkSmartPointer<vtkTransform> m_SprayTransform;
-
+  vtkSmartPointer<vtkActor> m_SprayActor;
 };
 
 #endif // GENERIC3DRENDERER_H

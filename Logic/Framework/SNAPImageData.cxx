@@ -407,7 +407,9 @@ SNAPImageData
   m_SnakeWrapper->GetImage()->SetSpacing(
         m_MainImageWrapper->GetImage()->GetSpacing() );
 
-  InvokeEvent(LayerChangeEvent());
+  // Fire events (layers changed and level set image changed)
+  this->InvokeEvent(LayerChangeEvent());
+  this->InvokeEvent(LevelSetImageChangeEvent());
 
   // Make sure that the correct color label is being used
 
@@ -416,6 +418,9 @@ SNAPImageData
 
   m_SnakeWrapper->SetAlpha(
         (unsigned char)(255 * m_Parent->GetGlobalState()->GetSegmentationAlpha()));
+
+  // Fire the update event
+
 }
 
 void 
@@ -431,6 +436,9 @@ SNAPImageData
   clock_t c2 = clock();
   std::cout << (c2 - c1) * 1.0 / (CLOCKS_PER_SEC * nIterations)
             << " sec per iteration." << std::endl;
+
+  // Fire the update event
+  this->InvokeEvent(LevelSetImageChangeEvent());
 }
 
 void 
@@ -445,6 +453,9 @@ SNAPImageData
 
   // Update the image pointed to by the snake wrapper
   m_SnakeWrapper->SetImage(m_LevelSetDriver->GetCurrentState());
+
+  // Fire the update event
+  this->InvokeEvent(LevelSetImageChangeEvent());
 }
 
 void 
@@ -456,6 +467,9 @@ SNAPImageData
 
   // Delete the level set driver and all the problems that go along with it
   delete m_LevelSetDriver; m_LevelSetDriver = NULL;
+
+  // Fire the update event
+  this->InvokeEvent(LevelSetImageChangeEvent());
 }
 
 void 

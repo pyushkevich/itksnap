@@ -95,10 +95,10 @@ Generic3DRenderer::Generic3DRenderer()
   mapper_spray->SetInputConnection(tf_glyph->GetOutputPort());
 
   // Create and add an actor for the spray
-  vtkSmartPointer<vtkActor> actor_spray = vtkSmartPointer<vtkActor>::New();
-  actor_spray->SetMapper(mapper_spray);
-  actor_spray->SetProperty(m_SprayProperty);
-  m_Renderer->AddActor(actor_spray);
+  m_SprayActor = vtkSmartPointer<vtkActor>::New();
+  m_SprayActor->SetMapper(mapper_spray);
+  m_SprayActor->SetProperty(m_SprayProperty);
+  m_Renderer->AddActor(m_SprayActor);
 }
 
 void Generic3DRenderer::SetModel(Generic3DModel *model)
@@ -132,6 +132,10 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 
   // Respond to spray paint events
   Rebroadcast(m_Model, Generic3DModel::SprayPaintEvent(), ModelUpdateEvent());
+
+  // Respond to changes in toolbar mode
+  Rebroadcast(m_Model->GetParentUI()->GetToolbarMode3DModel(),
+              ValueChangedEvent(), ModelUpdateEvent());
 
   // Update the main components
   this->UpdateAxisRendering();
@@ -357,9 +361,11 @@ void Generic3DRenderer::OnUpdate()
   bool labels_props_changed = m_EventBucket->HasEvent(SegmentationLabelChangeEvent());
   bool mesh_updated = m_EventBucket->HasEvent(itk::ModifiedEvent());
   bool cursor_moved = m_EventBucket->HasEvent(CursorUpdateEvent());
-  bool active_label_changed = m_EventBucket->HasEvent(ValueChangedEvent(),
-                                                      gs->GetDrawingColorLabelModel());
+  bool active_label_changed = m_EventBucket->HasEvent(
+        ValueChangedEvent(), gs->GetDrawingColorLabelModel());
   bool spray_action = m_EventBucket->HasEvent(Generic3DModel::SprayPaintEvent());
+  bool mode_changed = m_EventBucket->HasEvent(
+        ValueChangedEvent(), m_Model->GetParentUI()->GetToolbarMode3DModel());
 
   // Deal with the updates to the mesh state
   if(mesh_updated || main_changed)
@@ -397,6 +403,12 @@ void Generic3DRenderer::OnUpdate()
   if(main_changed || spray_action)
     {
     m_SprayGlyphFilter->Update();
+    }
+
+  // Deal with mode changes
+  if(mode_changed)
+    {
+    m_SprayActor->SetVisibility(m_Model->GetParentUI()->GetToolbarMode3D() == SPRAYPAINT_MODE);
     }
 }
 

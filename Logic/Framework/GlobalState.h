@@ -232,12 +232,6 @@ public:
   /** Get the type of the snake being used */
   irisGenericPropertyAccessMacro(SnakeType, SnakeType, SnakeTypeDomain)
 
-  /** Get whether the snake is currently active */
-  irisSetMacro(SnakeActive,bool );
-
-  /** Set whether the snake is currently active */
-  irisGetMacro(SnakeActive,bool );
-
   /** Get the current parameters of the snake algorithm */
   irisSimplePropertyAccessMacro(SnakeParameters, SnakeParameters)
 
@@ -379,9 +373,6 @@ private:
   /** The type of the snake being used */
   typedef ConcretePropertyModel<SnakeType, SnakeTypeDomain> SnakeTypeModel;
   SmartPtr<SnakeTypeModel> m_SnakeTypeModel;
-
-  /** Whether the snake is currently active */
-  bool m_SnakeActive;
 
   /** Grey image file extension */
   char * m_GreyFileExtension; 

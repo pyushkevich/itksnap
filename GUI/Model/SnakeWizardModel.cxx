@@ -600,6 +600,10 @@ void SnakeWizardModel::OnSnakeModeEnter()
 
   m_Driver->SetCurrentImageDataToSNAP();
 
+  // Upon entering this mode, we need reset the active tools
+  m_Parent->SetToolbarMode(CROSSHAIRS_MODE);
+  m_Parent->SetToolbarMode3D(TRACKBALL_MODE);
+
   // Some preparatory stuff
   this->ComputeBubbleRadiusDefaultAndRange();
 }

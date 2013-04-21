@@ -87,6 +87,7 @@ MeshObject
   m_DisplayListNumber = 0;
   m_DisplayListIndex = 0;
   m_Progress = AllPurposeProgressAccumulator::New();
+  m_BuildTime = 0;
 }
 
 MeshObject
@@ -129,17 +130,17 @@ MeshObject
 
   // The mesh is constructed differently depending on whether there is an
   // actively evolving level set or not SNAP mode or in IRIS mode
-  if (m_GlobalState->GetSnakeActive() && 
-      m_Driver->GetSNAPImageData()->IsSnakeLoaded()) 
+  if (m_Driver->IsSnakeModeLevelSetActive())
     {
     
     // We are in SNAP.  Use one of SNAP's images
     SNAPImageData *snapData = m_Driver->GetSNAPImageData();
 
     LevelSetMeshPipeline::InputImageType * pImage = snapData->GetLevelSetImage();
-    if((pImage == 0) || (Is3DProper(pImage) == false)) {
-        throw IRISException("The input image should be a proper 3D one.");
-    }
+    if((pImage == 0) || (Is3DProper(pImage) == false))
+      {
+      throw IRISException("The input image should be a proper 3D one.");
+      }
     
     // Create a pipeline for mesh generation
     LevelSetMeshPipeline *meshPipeline = new LevelSetMeshPipeline();
@@ -151,17 +152,18 @@ MeshObject
     vtkPolyData *mesh = vtkPolyData::New();
     meshPipeline->ComputeMesh(mesh);
     m_Meshes.push_back(mesh);
+    m_Labels.push_back(m_Driver->GetGlobalState()->GetDrawingColorLabel());
     
     // Deallocate the filter
     delete meshPipeline;
-  }
+    }
   else
     {
 
     IRISMeshPipeline::InputImageType * pImage;
     
     // Select the correct image
-    if(!m_GlobalState->GetSnakeActive())
+    if(!m_Driver->IsSnakeModeActive())
       {
       // We are not currently in SNAP.  Use the segmentation image with its
       // different colors
@@ -232,7 +234,38 @@ MeshObject
     }
 
   // Invoke a modified event (?)
-  this->InvokeEvent(itk::ModifiedEvent());
+  this->Modified();
+
+  // Record the time that the mesh was built
+  m_BuildTime = this->GetMTime();
+}
+
+bool MeshObject::IsMeshDirty()
+{
+  // If there is no image loaded, the mesh is not considered dirty
+  if(!m_Driver->IsMainImageLoaded())
+    return false;
+
+  // Image base
+  itk::ImageBase<3> *image = NULL;
+
+  // Get the appropriate source image
+  if(m_Driver->IsSnakeModeLevelSetActive())
+    {
+    // We are in SNAP.  Use one of SNAP's images
+    SNAPImageData *snapData = m_Driver->GetSNAPImageData();
+    image = snapData->GetLevelSetImage();
+    }
+  else
+    {
+    image = m_Driver->GetCurrentImageData()->GetSegmentation()->GetImageBase();
+    }
+
+  // Compare the timestamps
+  if(image->GetMTime() > this->m_BuildTime)
+    return true;
+
+  return false;
 }
 
 void 
@@ -301,7 +334,7 @@ MeshObject
   m_Meshes.clear();
 
   // Invoke a modified event (?)
-  this->InvokeEvent(itk::ModifiedEvent());
+  this->Modified();
 }
 
 size_t 
@@ -529,7 +562,7 @@ MeshObject
   // check if the snake is not active
   // if yes it means we are in IRIS 
   // so we render all segmentations
-  if (!m_GlobalState->GetSnakeActive()) 
+  if (!m_Driver->IsSnakeModeActive())
     {
     
     // First render all the fully opaque objects

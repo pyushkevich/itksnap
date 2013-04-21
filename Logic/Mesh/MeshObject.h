@@ -111,6 +111,11 @@ public:
   void GenerateVTKMeshes(itk::Command *command);
 
   /**
+   * Does the mesh need updating?
+   */
+  bool IsMeshDirty();
+
+  /**
    * Convert VTK meshes to display lists. This method is called inside
    * GenerateMesh. Normally, you would not use this method.
    */
@@ -187,6 +192,9 @@ protected:
 
   // Progress accumulator for multi-object rendering
   itk::SmartPointer<AllPurposeProgressAccumulator> m_Progress;
+
+  // Time when the mesh was last build
+  unsigned long m_BuildTime;
 
   /*
   MeshObject( const MeshObject& M ) { *this=M; }

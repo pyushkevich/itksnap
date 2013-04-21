@@ -60,7 +60,6 @@ GlobalState
   m_SpeedValid = false;
   m_ShowROI = false;
   m_DraggingROI = false;
-  m_SnakeActive = false;
 
   // Snake type model initialization
   m_SnakeTypeModel = ConcretePropertyModel<SnakeType, SnakeTypeDomain>::New();

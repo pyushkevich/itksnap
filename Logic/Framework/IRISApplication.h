@@ -152,6 +152,11 @@ public:
     */
   bool IsSnakeModeActive() const;
 
+  /**
+   * Whether there is currently a valid level set function
+   */
+  bool IsSnakeModeLevelSetActive() const;
+
   /** 
    * Set a new main image for IRIS. This method is called to load either grey or
    * RGB image data into IRISImageData. The parameter is the GuidedNativeImageIO,
@@ -539,8 +544,8 @@ protected:
   std::string m_SegmentationUpdateName;
   unsigned int m_SegmentationChangeCount;
 
-  // Handle events fired by imagedata objects
-  void OnWrapperEvent(itk::Object *src, const itk::EventObject &event);
+  // Refire certain events fired by IRISImageData and SNAPImageData as our own
+  void RefireEvent(itk::Object *src, const itk::EventObject &event);
 
 };
 

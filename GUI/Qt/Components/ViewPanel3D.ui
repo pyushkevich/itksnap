@@ -45,21 +45,21 @@
       <item>
        <widget class="QToolButton" name="btnAccept">
         <property name="text">
-         <string>Accept</string>
+         <string>accept</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QToolButton" name="btnUpdateMesh">
         <property name="text">
-         <string>Update Scene</string>
+         <string>update mesh</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QToolButton" name="btnResetView">
         <property name="text">
-         <string>Reset View</string>
+         <string>reset view</string>
         </property>
        </widget>
       </item>

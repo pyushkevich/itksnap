@@ -77,6 +77,10 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   m_Driver = IRISApplication::New();
   m_Driver->GetSystemInterface()->SetSystemInfoDelegate(sid);
 
+  // Initialize the properties
+  m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
+  m_ToolbarMode3DModel = NewSimpleConcreteProperty(TRACKBALL_MODE);
+
   // Display layout model
   m_DisplayLayoutModel = DisplayLayoutModel::New();
   m_DisplayLayoutModel->SetParentModel(this);
@@ -164,10 +168,6 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   // Snake parameter model
   m_SnakeParameterModel = SnakeParameterModel::New();
   m_SnakeParameterModel->SetParentModel(this);
-
-  // Initialize the properties
-  m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
-  m_ToolbarMode3DModel = NewSimpleConcreteProperty(TRACKBALL_MODE);
 
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(
@@ -274,16 +274,16 @@ GlobalUIModel::~GlobalUIModel()
 bool GlobalUIModel::CheckState(UIState state)
 {
   // TODO: implement all the other cases
+
+  // TODO: the flag values need to be cached and updated in response to incoming
+  // events. Otherwise, there are just too many of these calls happening. Alternatively,
+  // each state could be handled as a separate model.
   switch(state)
     {
     case UIF_BASEIMG_LOADED:
       return m_Driver->IsMainImageLoaded();
-    case UIF_IRIS_ACTIVE:
-      return true; // TODO: for now!
-    case UIF_MESH_DIRTY:
-      return false; // TODO:
-    case UIF_MESH_ACTION_PENDING:
-      break;
+    case UIF_IRIS_WITH_BASEIMG_LOADED:
+      return m_Driver->IsMainImageLoaded() && !m_Driver->IsSnakeModeActive();
     case UIF_ROI_VALID:
       break;
     case UIF_LINKED_ZOOM:
