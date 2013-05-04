@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QFile>
 
 
 #include "ImageIOWizard.h"
@@ -65,13 +66,6 @@ public:
 
 void QtScriptTest1::Run_ActionOpenMainTriggered()
 {
-  cout << "!!!!!!!!!!!!!!!!!!!!" << endl;
-
-  // two options to load data for the test are
-  // 1. InsightSNAP -g image.nii --testQtScript ... (easy way)
-  // 2. File->Open Image -> interact with fields in the IO dialog (is it possible?)
-
-
   // C++
   // sleep
   // run next line from a QtScript
@@ -89,13 +83,6 @@ void QtScriptTest1::Run_ActionOpenMainTriggered()
 
   // sleep
   // m_Window->findChild("InCursorX") - call slot setValue()
-
-  CursorInspector *ci = m_Window->findChild<CursorInspector *>("CursorInspector");
-  //QSpinBox *
-  //inX = ci->findChild<QSpinBox *>("inCursorX");
-  inX = m_Window->findChild<QSpinBox *>("inCursorX");
-  QSpinBox *outId = ci->findChild<QSpinBox *>("outLabelId");
-  //Tavi crashing so far ---- inX->setValue(21);
 
   QAction * pActionOpenMain = m_Window->findChild<QAction *>("actionOpenMain");
   disconnect(m_pQTimer, SIGNAL(timeout()), this, SLOT(Run_ActionOpenMainTriggered()));
@@ -209,8 +196,6 @@ void QtScriptTest1::Run_ValidateFinish()
   QSpinBox * inY = m_Window->findChild<QSpinBox *>("inCursorY");
   QSpinBox * inZ = m_Window->findChild<QSpinBox *>("inCursorZ");
 
-
-
   QScriptValue qscvalInCursorX = m_pEngine->newQObject(inX);
   QScriptValue qscvalInCursorY = m_pEngine->newQObject(inY);
   QScriptValue qscvalInCursorZ = m_pEngine->newQObject(inZ);
@@ -219,9 +204,18 @@ void QtScriptTest1::Run_ValidateFinish()
   m_pEngine->globalObject().setProperty("inCursorY", qscvalInCursorY);
   m_pEngine->globalObject().setProperty("inCursorZ", qscvalInCursorZ);
 
-  QString commandSetXYZ("inCursorX.setValue(21);\n");
-  commandSetXYZ += "inCursorY.setValue(52);\n";
-  commandSetXYZ += "inCursorZ.setValue(33);\n";
+  QFile file("/Users/octavian/Programs/ITK-SNAP/itksnap_qtsnap/QtCreator/itksnap/GUI/Qt/Testing/QtScriptTest1/ValidateFinish.js");
+  if(!file.open(QIODevice::ReadOnly))
+  {
+      int indy = 1;
+      exit(0);
+  }
+
+  QTextStream in (&file);
+  in.setCodec("UTF-8");
+  QString commandSetXYZ = in.readAll();
+  file.close();
+
   QScriptValue res = m_pEngine->evaluate(commandSetXYZ);
 
   if (m_pEngine->hasUncaughtException()) {

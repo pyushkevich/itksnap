@@ -26,7 +26,6 @@ public:
 
 public slots:
 
-    //void RunQTimerTriggered();
     void Run_ActionOpenMainTriggered();
     void Run_SetFileDetails();
     void Run_ValidateNext();
@@ -43,7 +42,6 @@ private:
 
 
     CursorInspector *ci;
-    QSpinBox *inX;
     QSpinBox *outId;
 
     QAction * pActionOpenMain;
