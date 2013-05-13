@@ -8,15 +8,15 @@ EMGaussianMixtures::EMGaussianMixtures(double **x, int dataSize, int dataDim, in
   m_latent = new double*[dataSize];
   m_probs = new double[dataSize*numOfClass];
   for (int i = 0; i < dataSize; i++)
-  {
+    {
     m_latent[i] = &m_probs[i*numOfClass];
-  }
+    }
   m_pdf = new double*[dataSize];
   m_probs2 = new double[dataSize*numOfClass];
   for (int i = 0; i < dataSize; i++)
-  {
+    {
     m_pdf[i] = &m_probs2[i*numOfClass];
-  }
+    }
   m_tmp1 = new double[numOfClass];
   m_tmp2 = new double[dataDim];
   m_tmp3 = new double[dataDim*dataDim];
@@ -48,10 +48,10 @@ void EMGaussianMixtures::Reset(void)
   m_fail = 0;
   m_logLikelihood = std::numeric_limits<double>::infinity();
   for (int i = 0; i < m_numOfData*m_numOfGaussian; i++)
-  {
+    {
     m_probs[i] = 0;
     m_probs2[i] = 0;
-  }
+    }
 }
 
 void EMGaussianMixtures::SetMaxIteration(int maxIteration)
@@ -73,10 +73,10 @@ void EMGaussianMixtures::SetParameters(int index, double *mean, double *covarian
 void EMGaussianMixtures::SetGaussianMixtureModel(GaussianMixtureModel *gmm)
 {
   for (int i = 0; i < m_numOfGaussian; i++)
-  {
+    {
     m_gmm->SetGaussian(i, gmm->GetMean(i), gmm->GetCovariance(i));
     m_gmm->SetWeight(i, gmm->GetWeight(i));
-  }
+    }
 }
 
 void EMGaussianMixtures::SetPrior(double **prior)
@@ -102,14 +102,14 @@ double ** EMGaussianMixtures::Update(void)
   m_numOfIteration = 0;
   m_fail = 0;
   while ((fabs(m_logLikelihood - currentLogLikelihood) > m_precision) && (m_numOfIteration < m_maxIteration))
-  {
-    if (m_logLikelihood < currentLogLikelihood)
     {
+    if (m_logLikelihood < currentLogLikelihood)
+      {
       m_fail = 1;
       std::cout << "!!!!!! Log Likelihood increase, EM fails" << std::endl;
       std::cout << "old=" <<m_logLikelihood << std::endl << "new=" << currentLogLikelihood << std::endl;
       // break;
-    }
+      }
     ++m_numOfIteration;
     m_logLikelihood = currentLogLikelihood;
     EvaluatePDF();
@@ -118,16 +118,16 @@ double ** EMGaussianMixtures::Update(void)
     UpdateMean();
     UpdateCovariance();
     if (m_setPriorFlag == 0)
-    {
+      {
       UpdateWeight();
-    }
+      }
 
     std::cout << std::endl <<"=====================" << std::endl;
     std::cout << "After " << m_numOfIteration << " Iteration:" << std::endl;
     std::cout << "log likelihood:" << std::endl << m_logLikelihood << std::endl;
     PrintParameters();
     //getchar();
-  }
+    }
   return m_latent;
 }
 
@@ -144,19 +144,19 @@ double ** EMGaussianMixtures::UpdateOnce(void)
   end = clock();
   std::cout << "evaluate likelihood spending " << (end-start)/1000 << std::endl;
   if (m_logLikelihood < currentLogLikelihood)
-  {
+    {
     m_fail = 1;
     std::cout << "!!!!!! Log Likelihood increase, EM fails" << std::endl;
     std::cout << "old=" <<m_logLikelihood << std::endl << "new=" << currentLogLikelihood << std::endl;
-  }
+    }
   if (fabs(m_logLikelihood - currentLogLikelihood) <= m_precision)
-  {
+    {
     std::cout << "Log Likelihood converged" << std::endl;
-  }
+    }
   if (m_numOfIteration >= m_maxIteration)
-  {
+    {
     std::cout << "Reach the maximum iteration number" << std::endl;
-  }
+    }
   ++m_numOfIteration;
   m_logLikelihood = currentLogLikelihood;
   
@@ -173,12 +173,12 @@ double ** EMGaussianMixtures::UpdateOnce(void)
   end = clock();
   std::cout << "covariance spending " << (end-start)/1000 << std::endl;
   if (m_setPriorFlag == 0)
-  {
+    {
     start = clock();
     UpdateWeight();
     end = clock();
     std::cout << "weight spending " << (end-start)/1000 << std::endl;
-  }
+    }
 
   std::cout << std::endl <<"=====================" << std::endl;
   std::cout << "After " << m_numOfIteration << " Iteration:" << std::endl;
@@ -191,136 +191,140 @@ double ** EMGaussianMixtures::UpdateOnce(void)
 void EMGaussianMixtures::EvaluatePDF(void)
 {
   for (int i = 0; i < m_numOfData; i++)
-  {
-    for (int j = 0; j < m_numOfGaussian; j++)
     {
+    if(i == 2783)
+      std::cout << "hi" << std::endl;
+    for (int j = 0; j < m_numOfGaussian; j++)
+      {
       m_pdf[i][j] = m_gmm->EvaluatePDF(j, m_x[i]);
+      }
     }
-  }
   if (m_setPriorFlag == 0)
-  {
-    for (int j = 0; j < m_numOfGaussian; j++)
     {
+    for (int j = 0; j < m_numOfGaussian; j++)
+      {
       m_weight[j] = m_gmm->GetWeight(j);
+      }
     }
-  }
 }
+
+#include <vnl/vnl_math.h>
 
 void EMGaussianMixtures::UpdateLatent(void)
 {
   double sum = 0;
   for (int i = 0; i < m_numOfGaussian; i++)
-  {
+    {
     m_sum[i] = 0;
-  }
+    }
   
   if (m_setPriorFlag == 0)
-  {
-    for (int i = 0; i < m_numOfData; i++)
     {
+    for (int i = 0; i < m_numOfData; i++)
+      {
       sum = 0;
       for (int j = 0; j < m_numOfGaussian; j++)
-      {
-	m_tmp1[j] = m_weight[j] * m_pdf[i][j];
-	sum += m_tmp1[j];
-      }
+        {
+        m_tmp1[j] = m_weight[j] * m_pdf[i][j] + 1e-10;
+        sum += m_tmp1[j];
+        }
       for (int j = 0; j < m_numOfGaussian; j++)
-      {
-	m_latent[i][j] = m_tmp1[j] / sum;
-	m_sum[j] += m_latent[i][j];
+        {
+        m_latent[i][j] = m_tmp1[j] / sum;
+        m_sum[j] += m_latent[i][j];
+        }
       }
     }
-  }
   else
-  {
-    for (int i = 0; i < m_numOfData; i++)
     {
+    for (int i = 0; i < m_numOfData; i++)
+      {
       sum = 0;
       for (int j = 0; j < m_numOfGaussian; j++)
-      {
-	m_tmp1[j] = m_prior[i][j] * m_pdf[i][j];
-	sum += m_tmp1[j];
-      }
+        {
+        m_tmp1[j] = m_prior[i][j] * m_pdf[i][j];
+        sum += m_tmp1[j];
+        }
       for (int j = 0; j < m_numOfGaussian; j++)
-      {
-	m_latent[i][j] = m_tmp1[j] / sum;
-	m_sum[j] += m_latent[i][j];
+        {
+        m_latent[i][j] = m_tmp1[j] / sum;
+        m_sum[j] += m_latent[i][j];
+        }
       }
     }
-  }
 }
 
 void EMGaussianMixtures::UpdateMean(void)
 {
   for (int i = 0; i < m_numOfGaussian; i++)
-  {
-    for (int j = 0; j < m_dimOfGaussian; j++)
     {
+    for (int j = 0; j < m_dimOfGaussian; j++)
+      {
       m_tmp2[j] = 0;
-    }
+      }
     
     for (int j = 0; j < m_numOfData; j++)
-    {
-      for (int k = 0; k < m_dimOfGaussian; k++)
       {
-	m_tmp2[k] += m_latent[j][i] * m_x[j][k];
+      for (int k = 0; k < m_dimOfGaussian; k++)
+        {
+        m_tmp2[k] += m_latent[j][i] * m_x[j][k];
+        }
       }
-    }
 
     for (int j = 0; j < m_dimOfGaussian; j++)
-    {
+      {
       m_tmp2[j] = m_tmp2[j] / m_sum[i];
-    }
+      }
 
     m_gmm->SetMean(i, m_tmp2);
-  }
+    }
 }
 
 void EMGaussianMixtures::UpdateCovariance(void)
 {
   double *current_mean;
   for (int i = 0; i < m_numOfGaussian; i++)
-  {
+    {
     current_mean = m_gmm->GetMean(i);
     
     for (int j = 0; j < m_dimOfGaussian; j++)
-    {
-      for (int k = 0; k < m_dimOfGaussian; k++)
       {
-	m_tmp3[j*m_dimOfGaussian+k] = 0;
+      for (int k = 0; k < m_dimOfGaussian; k++)
+        {
+        m_tmp3[j*m_dimOfGaussian+k] = 0;
+        }
       }
-    }
     
     for (int j = 0; j < m_numOfData; j++)
-    {
-      for (int k = 0; k < m_dimOfGaussian; k++)
       {
-	m_tmp2[k] = m_x[j][k] - current_mean[k];
-      }
       for (int k = 0; k < m_dimOfGaussian; k++)
-      {
-	for (int l = 0; l < m_dimOfGaussian; l++)
-	{
-	  m_tmp3[k*m_dimOfGaussian+l] += m_tmp2[k] * m_tmp2[l] * m_latent[j][i];
-	}
+        {
+        m_tmp2[k] = m_x[j][k] - current_mean[k];
+        }
+      for (int k = 0; k < m_dimOfGaussian; k++)
+        {
+        for (int l = 0; l < m_dimOfGaussian; l++)
+          {
+          m_tmp3[k*m_dimOfGaussian+l] += m_tmp2[k] * m_tmp2[l] * m_latent[j][i];
+          }
+        }
       }
-    }
 
     for (int j = 0; j < m_dimOfGaussian*m_dimOfGaussian; j++)
-    {
+      {
       m_tmp3[j] = m_tmp3[j] / m_sum[i];
-    }
+      }
 
     m_gmm->SetCovariance(i, m_tmp3);
-  }
+    }
 }
 
 void EMGaussianMixtures::UpdateWeight(void)
 {
   for (int i = 0; i < m_numOfGaussian; i++)
-  {
+    {
     m_gmm->SetWeight(i, m_sum[i]/m_numOfData);
-  }
+    }
 }
 
 double EMGaussianMixtures::EvaluateLogLikelihood(void)
@@ -328,29 +332,29 @@ double EMGaussianMixtures::EvaluateLogLikelihood(void)
   double tmp1 = 0;
   double tmp2 = 0;
   if (m_setPriorFlag == 0)
-  {
-    for (int i = 0; i < m_numOfData; i++)
     {
+    for (int i = 0; i < m_numOfData; i++)
+      {
       tmp1 = 0;
       for (int j = 0; j < m_numOfGaussian; j++)
-      {
-	tmp1 += m_weight[j] * m_pdf[i][j];
-      }
+        {
+        tmp1 += m_weight[j] * m_pdf[i][j];
+        }
       tmp2 += log(tmp1);
+      }
     }
-  }
   else
-  {
-    for (int i = 0; i < m_numOfData; i++)
     {
+    for (int i = 0; i < m_numOfData; i++)
+      {
       tmp1 = 0;
       for (int j = 0; j < m_numOfGaussian; j++)
-      {
-	tmp1 += m_prior[i][j] * m_pdf[i][j];
-      }
+        {
+        tmp1 += m_prior[i][j] * m_pdf[i][j];
+        }
       tmp2 += log(tmp1);
+      }
     }
-  }
   return tmp1;
 }
 

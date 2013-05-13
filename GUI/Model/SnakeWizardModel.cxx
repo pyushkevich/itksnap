@@ -9,6 +9,7 @@
 #include "EdgePreprocessingImageFilter.h"
 #include "ColorMap.h"
 #include "SlicePreviewFilterWrapper.h"
+#include "UnsupervisedClustering.h"
 
 SnakeWizardModel::SnakeWizardModel()
 {
@@ -104,6 +105,11 @@ SnakeWizardModel::SnakeWizardModel()
         &Self::GetEvolutionIterationValue,
         nullsetter,
         EvolutionIterationEvent());
+
+  m_NumberOfClustersModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetNumberOfClustersValueAndRange,
+        &Self::SetNumberOfClustersValue);
 }
 
 void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
@@ -514,6 +520,12 @@ void SnakeWizardModel::OnEdgePreprocessingPageEnter()
   InvokeEvent(ModelUpdateEvent());
 }
 
+void SnakeWizardModel::OnClusteringPageEnter()
+{
+  m_Driver->EnterPreprocessingMode(PREPROCESS_GMM);
+  InvokeEvent(ModelUpdateEvent());
+}
+
 bool
 SnakeWizardModel
 ::GetActiveBubbleValue(int &value)
@@ -651,6 +663,7 @@ void SnakeWizardModel::ComputeBubbleRadiusDefaultAndRange()
   InvokeEvent(BubbleDefaultRadiusUpdateEvent());
 }
 
+
 bool
 SnakeWizardModel
 ::GetBubbleRadiusValueAndRange(
@@ -763,6 +776,45 @@ void SnakeWizardModel::RewindEvolution()
   InvokeEvent(EvolutionIterationEvent());
 }
 
+
+bool SnakeWizardModel
+::GetNumberOfClustersValueAndRange(
+    int &value, NumericValueRange<int> *range)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  if(uc)
+    {
+    value = uc->GetNumberOfClusters();
+    if(range)
+      range->Set(2, 20, 1);
+    return true;
+    }
+
+  return false;
+}
+
+void SnakeWizardModel
+::SetNumberOfClustersValue(
+    int value)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  assert(uc);
+
+  uc->SetNumberOfClusters(value);
+}
+
+
+void SnakeWizardModel::PerformClusteringIteration()
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  assert(uc);
+
+  uc->Iterate();
+}
+
+void SnakeWizardModel::ReinitializeClustering()
+{
+}
 
 
 

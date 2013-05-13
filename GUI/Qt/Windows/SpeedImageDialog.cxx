@@ -7,6 +7,7 @@
 #include "ThresholdSettingsRenderer.h"
 #include "EdgePreprocessingSettingsRenderer.h"
 #include "QtCheckBoxCoupling.h"
+#include "QtSpinBoxCoupling.h"
 #include <QCloseEvent>
 
 SpeedImageDialog::SpeedImageDialog(QWidget *parent) :
@@ -52,6 +53,9 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   makeCoupling(ui->inEdgeKappa, model->GetEdgePreprocessingKappaModel());
   makeCoupling(ui->inEdgeExponent, model->GetEdgePreprocessingExponentModel());
   makeCoupling(ui->chkEdgePreview, model->GetEdgePreprocessingPreviewModel());
+
+  // Couple the clustering widgets
+  makeCoupling(ui->inNumClusters, model->GetNumberOfClustersModel());
 
   // Set up activation
   activateOnFlag(ui->tabThreshold, model, SnakeWizardModel::UIF_THESHOLDING_ENABLED);
@@ -119,4 +123,18 @@ void SpeedImageDialog::on_tabWidgetInOut_currentChanged(int index)
     {
     m_Model->OnThresholdingPageEnter();
     }
+  else if(ui->tabWidgetInOut->currentWidget() == ui->tabCluster)
+    {
+    m_Model->OnClusteringPageEnter();
+    }
+}
+
+void SpeedImageDialog::on_btnReinitialize_clicked()
+{
+  m_Model->ReinitializeClustering();
+}
+
+void SpeedImageDialog::on_btnIterate_clicked()
+{
+  m_Model->PerformClusteringIteration();
 }

@@ -10,6 +10,7 @@ Gaussian::Gaussian(int dimension)
   m_covariance_matrix = new MatrixType(dimension, dimension);
   m_precision_matrix = 0;
   m_x_matrix = new MatrixType(dimension, 1);
+  m_x_vector = new VectorType(dimension);
 }
 
 Gaussian::Gaussian(int dimension, double *mean, double *covariance)
@@ -29,9 +30,11 @@ Gaussian::Gaussian(int dimension, double *mean, double *covariance)
       (*m_covariance_matrix)(i,j) = covariance[i*dimension+j];
     }
   }
-  m_precision_matrix = new MatrixInverseType(*m_covariance_matrix);
+  m_precision_matrix_generator = new MatrixInverseType(*m_covariance_matrix);
+  m_precision_matrix = new MatrixType(dimension, dimension);
   m_normalization = sqrt(pow(2*M_PI, m_dimension) * vnl_determinant(*m_covariance_matrix));
   m_x_matrix = new MatrixType(dimension, 1);
+  m_x_vector = new VectorType(dimension);
 }
 
 Gaussian::~Gaussian()
@@ -45,6 +48,7 @@ Gaussian::~Gaussian()
     delete m_precision_matrix;
   }
   delete m_x_matrix;
+  delete m_x_vector;
 }
 
 double * Gaussian::GetMean()
@@ -93,7 +97,9 @@ void Gaussian::SetCovariance(double *covariance)
       (*m_covariance_matrix)(i,j) = covariance[i*m_dimension+j];
     }
   }
-  m_precision_matrix = new MatrixInverseType(*m_covariance_matrix);
+  m_precision_matrix_generator = new MatrixInverseType(*m_covariance_matrix);
+  m_precision_matrix = new MatrixType(m_dimension, m_dimension);
+  (*m_precision_matrix) = *m_precision_matrix_generator;
   m_normalization = sqrt(pow(2*M_PI, m_dimension) * vnl_determinant(*m_covariance_matrix));
   m_setCovarianceFlag = 1;
 }
@@ -102,12 +108,21 @@ double Gaussian::EvaluatePDF(double *x)
 {
   for(int i = 0; i < m_dimension; i++)
   {
-    (*m_x_matrix)(i,0) = x[i] - (*m_mean_matrix)(i,0);
+    (*m_x_vector)[i] = x[i] - (*m_mean_matrix)(i,0);
+    // (*m_x_matrix)(i,0) = x[i] - (*m_mean_matrix)(i,0);
   }
+
+  double t = dot_product((*m_precision_matrix) * (*m_x_vector), (*m_x_vector));
+  double z = exp(-0.5 * t) / m_normalization;
+
+  /*
   return (exp(( -0.5*(*m_x_matrix).transpose()
-		* (*m_precision_matrix)
+    * (*m_precision_matrix)
 		* (*m_x_matrix) )(0,0))
 	  / m_normalization);
+    */
+
+  return z;
 }
 
 void Gaussian::PrintParameters()

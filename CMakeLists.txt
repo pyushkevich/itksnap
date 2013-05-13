@@ -139,6 +139,7 @@ SET(LOGIC_CXX
   Logic/Preprocessing/GMM/Gaussian.cxx
   Logic/Preprocessing/GMM/GaussianMixtureModel.cxx
   Logic/Preprocessing/GMM/KMeansPlusPlus.cxx
+  Logic/Preprocessing/GMM/UnsupervisedClustering.cxx
   Logic/Slicing/IntensityCurveVTK.cxx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
   Logic/Slicing/LookupTableIntensityMappingFilter.cxx
@@ -239,6 +240,7 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/GMM/Gaussian.h
   Logic/Preprocessing/GMM/GaussianMixtureModel.h
   Logic/Preprocessing/GMM/KMeansPlusPlus.h
+  Logic/Preprocessing/GMM/UnsupervisedClustering.h
   Logic/Slicing/IRISSlicer.h
   Logic/Slicing/IRISSlicer.txx
   Logic/Slicing/IntensityCurveInterface.h

@@ -58,6 +58,7 @@ class GuidedNativeImageIO;
 class ThresholdSettings;
 class EdgePreprocessingSettings;
 class AbstractSlicePreviewFilterWrapper;
+class UnsupervisedClustering;
 
 template <class TFilterConfigTraits> class SlicePreviewFilterWrapper;
 class SmoothBinaryThresholdFilterConfigTraits;
@@ -473,6 +474,9 @@ public:
   /** Get the pointer to the settings used for edge-based preprocessing */
   irisGetMacro(EdgePreprocessingSettings, EdgePreprocessingSettings *)
 
+  /** Get the object used to drive the unsupervised clustering */
+  irisGetMacro(ClusteringEngine, UnsupervisedClustering *)
+
   /** Set the current snake mode. This method should be called instead of the
       method in GlobalState because when the snake mode is set, some changes
       are made to the image data (having to do with setting up the preview
@@ -533,6 +537,9 @@ protected:
 
   // The edge-based wrapper
   SmartPtr<EdgePreprocessingPreviewWrapperType> m_EdgePreviewWrapper;
+
+  // The EM classification object (TODO: make it itk::Object derived)
+  SmartPtr<UnsupervisedClustering> m_ClusteringEngine;
 
   // The currently hooked up preprocessing filter preview wrapper
   PreprocessingMode m_PreprocessingMode;

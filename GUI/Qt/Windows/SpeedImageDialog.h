@@ -39,6 +39,10 @@ private slots:
 
   void on_tabWidgetInOut_currentChanged(int index);
 
+  void on_btnReinitialize_clicked();
+
+  void on_btnIterate_clicked();
+
 private:
   Ui::SpeedImageDialog *ui;
 

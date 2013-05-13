@@ -109,6 +109,9 @@ public:
   /** Processing that must take place when the thresholding page is shown */
   void OnEdgePreprocessingPageEnter();
 
+  /** Processing that must take place when the clustering page is shown */
+  void OnClusteringPageEnter();
+
   /** Do some cleanup when the preprocessing dialog closes */
   void OnPreprocessingDialogClose();
 
@@ -138,6 +141,15 @@ public:
 
   /** Rewind the evolution */
   void RewindEvolution();
+
+  /* ===================================================================
+   * CLUSTERING SUPPORT (GMM)
+   * =================================================================== */
+  irisRangedPropertyAccessMacro(NumberOfClusters, int)
+
+  void ReinitializeClustering();
+
+  void PerformClusteringIteration();
 
 
 protected:
@@ -213,6 +225,13 @@ protected:
 
   // Default value for the bubble radius (when there is no selection)
   double m_BubbleRadiusDefaultValue;
+
+  /* ===================================================================
+   * CLUSTERING SUPPORT (GMM)
+   * =================================================================== */
+  SmartPtr<AbstractRangedIntProperty> m_NumberOfClustersModel;
+  bool GetNumberOfClustersValueAndRange(int &value, NumericValueRange<int> *range);
+  void SetNumberOfClustersValue(int value);
 
   // Parent model
   GlobalUIModel *m_Parent;
