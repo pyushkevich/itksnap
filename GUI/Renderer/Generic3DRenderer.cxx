@@ -115,9 +115,12 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   // Respond to changes in image dimension - these require big updates
   Rebroadcast(app, MainImageDimensionsChangeEvent(), ModelUpdateEvent());
 
-  // Respond to changes to the segmentation (commented out for now, since changes
-  // are only in response to pressing the update mesh button)
-  // Rebroadcast(app, SegmentationChangeEvent(), ModelUpdateEvent());
+  // Respond to changes to the segmentation. These are ignored unless we are
+  // in continous update mode, in which case the renderers are rebuilt
+  Rebroadcast(app, SegmentationChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(app, LevelSetImageChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Model->GetContinuousUpdateModel(), ValueChangedEvent(), ModelUpdateEvent());
+
 
   // Respond to cursor events
   Rebroadcast(m_Model->GetParentUI(), CursorUpdateEvent(), ModelUpdateEvent());
@@ -366,6 +369,9 @@ void Generic3DRenderer::OnUpdate()
   bool spray_action = m_EventBucket->HasEvent(Generic3DModel::SprayPaintEvent());
   bool mode_changed = m_EventBucket->HasEvent(
         ValueChangedEvent(), m_Model->GetParentUI()->GetToolbarMode3DModel());
+  bool segmentation_changed =
+      m_EventBucket->HasEvent(SegmentationChangeEvent()) ||
+      m_EventBucket->HasEvent(LevelSetImageChangeEvent());
 
   // Deal with the updates to the mesh state
   if(mesh_updated || main_changed)
@@ -376,6 +382,8 @@ void Generic3DRenderer::OnUpdate()
     {
     UpdateSegmentationMeshAppearance();
     }
+
+  // If the segmentation changed
 
   // Deal with axes
   if(main_changed || cursor_moved)

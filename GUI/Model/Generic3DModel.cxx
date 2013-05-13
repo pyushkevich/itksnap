@@ -32,6 +32,9 @@ Generic3DModel::Generic3DModel()
 
   // Create the renderer
   m_Renderer = Generic3DRenderer::New();
+
+  // Continuous update model
+  m_ContinuousUpdateModel = NewSimpleConcreteProperty(false);
 }
 
 #include "itkImage.h"
@@ -122,14 +125,6 @@ void Generic3DModel::OnUpdate()
 
     // The geometry has changed
     this->OnImageGeometryUpdate();
-    }
-  if(m_EventBucket->HasEvent(SegmentationChangeEvent()))
-    {
-    // Segmentation changed - this means that the mesh object is dirty.
-    // But we don't update it automatically because that would be way too
-    // slow. Instead, we need the user to ask for a re-rendering!
-
-
     }
 }
 

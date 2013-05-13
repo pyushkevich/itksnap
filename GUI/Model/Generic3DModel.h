@@ -2,6 +2,7 @@
 #define GENERIC3DMODEL_H
 
 #include "AbstractModel.h"
+#include "PropertyModel.h"
 #include "vtkSmartPointer.h"
 #include "SNAPEvents.h"
 
@@ -43,6 +44,10 @@ public:
 
   // Check the state
   bool CheckState(UIState state);
+
+  // A flag indicating that the mesh should be continually updated
+  // TODO: replace this with an update in a background thread
+  irisSimplePropertyAccessMacro(ContinuousUpdate, bool)
 
   // Tell the model to update the segmentation mesh
   void UpdateSegmentationMesh(itk::Command *callback);
@@ -103,6 +108,9 @@ protected:
 
   // Set of spraypainted points in image coordinates
   vtkSmartPointer<vtkPolyData> m_SprayPoints;
+
+  // Continuous update model
+  SmartPtr<ConcreteSimpleBooleanProperty> m_ContinuousUpdateModel;
 
 };
 
