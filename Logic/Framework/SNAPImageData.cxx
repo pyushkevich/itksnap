@@ -540,6 +540,27 @@ SNAPImageData
   typedef AnatomicImageWrapper::DisplayMapping DisplayMapping;
   DisplayMapping *dmnew = m_MainImageWrapper->GetDisplayMapping();
   dmnew->DeriveFromReferenceWrapper(srcWrapper);
+
+  // Repeat all of this for the overlays
+  for(LayerIterator lit = source->GetLayers(LayerIterator::OVERLAY_ROLE);
+      !lit.IsAtEnd(); ++lit)
+    {
+    // Cast the layer to anatomic image wrapper type
+    AnatomicImageWrapper *ovlWrapper =
+        dynamic_cast<AnatomicImageWrapper *>(lit.GetLayer());
+
+    assert(ovlWrapper);
+
+    // Create a copy of the layer for the requested ROI
+    SmartPtr<AnatomicImageType> ovlNew = ovlWrapper->DeepCopyRegion(roi, progressCommand);
+
+    // Add the overlay
+    this->AddOverlay(ovlNew, ovlWrapper->GetNativeMapping());
+
+    // Nickname
+    this->GetLastOverlay()->SetDefaultNickname(
+          std::string("ROI [") + source->GetLastOverlay()->GetNickname() + std::string("]"));
+    }
 }
 
 
