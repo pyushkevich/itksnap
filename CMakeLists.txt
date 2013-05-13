@@ -135,6 +135,10 @@ SET(LOGIC_CXX
   Logic/Preprocessing/EdgePreprocessingSettings.cxx
   Logic/Preprocessing/PreprocessingFilterConfigTraits.cxx
   Logic/Preprocessing/ThresholdSettings.cxx
+  Logic/Preprocessing/GMM/EMGaussianMixtures.cxx
+  Logic/Preprocessing/GMM/Gaussian.cxx
+  Logic/Preprocessing/GMM/GaussianMixtureModel.cxx
+  Logic/Preprocessing/GMM/KMeansPlusPlus.cxx
   Logic/Slicing/IntensityCurveVTK.cxx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
   Logic/Slicing/LookupTableIntensityMappingFilter.cxx
@@ -231,6 +235,10 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/SmoothBinaryThresholdImageFilter.h
   Logic/Preprocessing/SmoothBinaryThresholdImageFilter.txx
   Logic/Preprocessing/ThresholdSettings.h
+  Logic/Preprocessing/GMM/EMGaussianMixtures.h
+  Logic/Preprocessing/GMM/Gaussian.h
+  Logic/Preprocessing/GMM/GaussianMixtureModel.h
+  Logic/Preprocessing/GMM/KMeansPlusPlus.h
   Logic/Slicing/IRISSlicer.h
   Logic/Slicing/IRISSlicer.txx
   Logic/Slicing/IntensityCurveInterface.h
@@ -633,6 +641,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/LevelSet
     ${SNAP_SOURCE_DIR}/Logic/Mesh
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing
+    ${SNAP_SOURCE_DIR}/Logic/Preprocessing/GMM
     ${SNAP_SOURCE_DIR}/Logic/Slicing
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model

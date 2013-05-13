@@ -1,0 +1,57 @@
+#ifndef EM_GAUSSIAN_MIXTURES_H
+#define EM_GAUSSIAN_MIXTURES_H
+
+#include "GaussianMixtureModel.h"
+
+class EMGaussianMixtures
+{
+public:
+  EMGaussianMixtures(double **x, int dataSize, int dataDim, int numOfClass);
+  ~EMGaussianMixtures();
+
+  void Reset(void);
+  void SetMaxIteration(int maxIteration);
+  void SetPrecision(double precision);
+  void SetParameters(int index, double *mean, double *covariance, double weight);
+  void SetGaussianMixtureModel(GaussianMixtureModel *gmm);
+  void SetPrior(double **prior);
+  void RemovePrior(void);
+  
+  int GetMaxIteration(void);
+
+  double ** Update(void);
+  double ** UpdateOnce(void);
+  double EvaluateLogLikelihood(void);
+  void PrintParameters(void);
+
+private:
+  void EvaluatePDF(void);
+  void UpdateLatent(void);
+  void UpdateMean(void);
+  void UpdateCovariance(void);
+  void UpdateWeight(void);
+  
+  double **m_latent;
+  double **m_pdf;
+  double **m_prior;
+  double **m_x;
+  double *m_probs;
+  double *m_probs2;
+  double *m_tmp1;
+  double *m_tmp2;
+  double *m_tmp3;
+  double *m_sum;
+  double *m_weight;
+  double m_logLikelihood;
+  int m_numOfGaussian;
+  int m_dimOfGaussian;
+  int m_maxIteration;
+  int m_numOfIteration;
+  int m_numOfData;
+  int m_setPriorFlag;
+  int m_fail;
+  double m_precision;
+  GaussianMixtureModel *m_gmm;
+};
+
+#endif
