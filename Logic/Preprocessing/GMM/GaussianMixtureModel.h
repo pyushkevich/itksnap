@@ -27,6 +27,9 @@ public:
   void SetWeight(int index, double weight);
   double EvaluatePDF(int index, double *x);
   void PrintParameters();
+
+  int GetNumberOfGaussians() { return m_numOfGaussian; }
+  int GetNumberOfComponents() { return m_dimOfGaussian; }
   
 private:
   int m_numOfGaussian;

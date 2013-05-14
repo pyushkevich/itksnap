@@ -2,15 +2,51 @@
 #define SPEEDIMAGEDIALOG_H
 
 #include <QDialog>
+#include <QAbstractTableModel>
 #include <SNAPCommon.h>
 
 class SnakeWizardModel;
 class ThresholdSettingsRenderer;
 class EdgePreprocessingSettingsRenderer;
+class GaussianMixtureModel;
 
 namespace Ui {
 class SpeedImageDialog;
 }
+
+// The qt model for the GMM cluster list
+class GMMTableModel : public QAbstractTableModel
+{
+  Q_OBJECT
+
+public:
+
+  GMMTableModel(QObject *parent);
+
+  virtual int rowCount(const QModelIndex &parent) const;
+
+  virtual int columnCount(const QModelIndex &parent) const;
+
+  virtual QVariant data(const QModelIndex &index, int role) const;
+
+  virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+
+  void SetParentModel(SnakeWizardModel *parent);
+
+public slots:
+
+  void onMixtureModelChange();
+
+protected:
+
+  SnakeWizardModel *m_ParentModel;
+
+
+  GaussianMixtureModel *GetGMM() const;
+
+
+};
+
 
 class SpeedImageDialog : public QDialog
 {
@@ -54,6 +90,9 @@ private:
   SmartPtr<ThresholdSettingsRenderer> m_ThresholdRenderer;
 
   SmartPtr<EdgePreprocessingSettingsRenderer> m_EdgeSettingsRenderer;
+
+  // Qt table model for the cluster table
+  GMMTableModel *m_GMMTableModel;
 };
 
 #endif // SPEEDIMAGEDIALOG_H

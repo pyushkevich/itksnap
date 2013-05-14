@@ -6,11 +6,13 @@ Gaussian::Gaussian(int dimension)
 {
   m_mean = new double[dimension];
   m_covariance = new double[dimension*dimension];
-  m_mean_matrix = new MatrixType(dimension, 1);
+//  m_mean_matrix = new MatrixType(dimension, 1);
+  m_mean_vector = new VectorType(dimension);
   m_covariance_matrix = new MatrixType(dimension, dimension);
   m_precision_matrix = 0;
-  m_x_matrix = new MatrixType(dimension, 1);
+//  m_x_matrix = new MatrixType(dimension, 1);
   m_x_vector = new VectorType(dimension);
+  m_precision_matrix = new MatrixType(dimension, dimension);
 }
 
 Gaussian::Gaussian(int dimension, double *mean, double *covariance)
@@ -18,22 +20,23 @@ Gaussian::Gaussian(int dimension, double *mean, double *covariance)
 {
   m_mean = new double[dimension];
   m_covariance = new double[dimension*dimension];
-  m_mean_matrix = new MatrixType(dimension, 1);
+//  m_mean_matrix = new MatrixType(dimension, 1);
+  m_mean_vector = new VectorType(dimension);
   m_covariance_matrix = new MatrixType(dimension, dimension);
   for (int i = 0; i < dimension; i++)
   {
     m_mean[i] = mean[i];
-    (*m_mean_matrix)(i,0) = mean[i];
+    (*m_mean_vector)(i) = mean[i];
     for (int j = 0; j < dimension; j++)
     {
       m_covariance[i*dimension+j] = covariance[i*dimension+j];
       (*m_covariance_matrix)(i,j) = covariance[i*dimension+j];
     }
   }
-  m_precision_matrix_generator = new MatrixInverseType(*m_covariance_matrix);
   m_precision_matrix = new MatrixType(dimension, dimension);
+  (*m_precision_matrix) = vnl_matrix_inverse<double>(*m_covariance_matrix);
   m_normalization = sqrt(pow(2*M_PI, m_dimension) * vnl_determinant(*m_covariance_matrix));
-  m_x_matrix = new MatrixType(dimension, 1);
+//  m_x_matrix = new MatrixType(dimension, 1);
   m_x_vector = new VectorType(dimension);
 }
 
@@ -41,13 +44,14 @@ Gaussian::~Gaussian()
 {
   delete m_mean;
   delete m_covariance;
-  delete m_mean_matrix;
+//  delete m_mean_matrix;
+  delete m_mean_vector;
   delete m_covariance_matrix;
   if (m_precision_matrix != 0)
   {
     delete m_precision_matrix;
   }
-  delete m_x_matrix;
+//  delete m_x_matrix;
   delete m_x_vector;
 }
 
@@ -82,7 +86,7 @@ void Gaussian::SetMean(double *mean)
   for(int i = 0; i < m_dimension; i++)
   {
     m_mean[i] = mean[i];
-    (*m_mean_matrix)(i,0) = mean[i];
+    (*m_mean_vector)(i) = mean[i];
   }
   m_setMeanFlag = 1;
 }
@@ -97,9 +101,12 @@ void Gaussian::SetCovariance(double *covariance)
       (*m_covariance_matrix)(i,j) = covariance[i*m_dimension+j];
     }
   }
-  m_precision_matrix_generator = new MatrixInverseType(*m_covariance_matrix);
-  m_precision_matrix = new MatrixType(m_dimension, m_dimension);
-  (*m_precision_matrix) = *m_precision_matrix_generator;
+//  m_precision_matrix_generator = new MatrixInverseType(*m_covariance_matrix);
+//  m_precision_matrix = new MatrixType(m_dimension, m_dimension);
+
+
+
+  (*m_precision_matrix) = vnl_matrix_inverse<double>(*m_covariance_matrix);
   m_normalization = sqrt(pow(2*M_PI, m_dimension) * vnl_determinant(*m_covariance_matrix));
   m_setCovarianceFlag = 1;
 }
@@ -108,7 +115,7 @@ double Gaussian::EvaluatePDF(double *x)
 {
   for(int i = 0; i < m_dimension; i++)
   {
-    (*m_x_vector)[i] = x[i] - (*m_mean_matrix)(i,0);
+    (*m_x_vector)(i) = x[i] - (*m_mean_vector)(i);
     // (*m_x_matrix)(i,0) = x[i] - (*m_mean_matrix)(i,0);
   }
 

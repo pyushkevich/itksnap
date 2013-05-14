@@ -10,7 +10,6 @@ class Gaussian
 public:
   typedef vnl_matrix<double> MatrixType;
   typedef vnl_vector<double> VectorType;
-  typedef vnl_matrix_inverse<double> MatrixInverseType;
   
   Gaussian(int dimension);
   Gaussian(int dimension, double *mean, double *covariance);
@@ -32,12 +31,12 @@ private:
   double *m_mean;
   double *m_covariance;
   double m_normalization;
-  MatrixType *m_mean_matrix;
+//  MatrixType *m_mean_matrix;
   MatrixType *m_covariance_matrix;
-  MatrixInverseType *m_precision_matrix_generator;
   MatrixType *m_precision_matrix;
-  MatrixType *m_x_matrix;
+//  MatrixType *m_x_matrix;
   VectorType *m_x_vector;
+  VectorType *m_mean_vector;
 
 
 };

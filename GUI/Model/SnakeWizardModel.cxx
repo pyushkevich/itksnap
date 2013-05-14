@@ -511,18 +511,21 @@ void SnakeWizardModel::OnPreprocessingDialogClose()
 void SnakeWizardModel::OnThresholdingPageEnter()
 {
   m_Driver->EnterPreprocessingMode(PREPROCESS_THRESHOLD);
+  InvokeEvent(GMMModifiedEvent());
   InvokeEvent(ModelUpdateEvent());
 }
 
 void SnakeWizardModel::OnEdgePreprocessingPageEnter()
 {
   m_Driver->EnterPreprocessingMode(PREPROCESS_EDGE);
+  InvokeEvent(GMMModifiedEvent());
   InvokeEvent(ModelUpdateEvent());
 }
 
 void SnakeWizardModel::OnClusteringPageEnter()
 {
   m_Driver->EnterPreprocessingMode(PREPROCESS_GMM);
+  InvokeEvent(GMMModifiedEvent());
   InvokeEvent(ModelUpdateEvent());
 }
 
@@ -801,6 +804,7 @@ void SnakeWizardModel
   assert(uc);
 
   uc->SetNumberOfClusters(value);
+  this->InvokeEvent(GMMModifiedEvent());
 }
 
 
@@ -810,6 +814,7 @@ void SnakeWizardModel::PerformClusteringIteration()
   assert(uc);
 
   uc->Iterate();
+  this->InvokeEvent(GMMModifiedEvent());
 }
 
 void SnakeWizardModel::ReinitializeClustering()

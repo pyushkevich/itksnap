@@ -105,12 +105,12 @@ void UnsupervisedClustering::InitializeEM()
 
   m_ClusteringInitializer->Initialize();
 
-  // Get the GMM
-  m_MixtureModel = m_ClusteringInitializer->GetGaussianMixtureModel();
-
-
-  m_ClusteringEM->SetGaussianMixtureModel(m_MixtureModel);
+  m_ClusteringEM->SetGaussianMixtureModel(
+        m_ClusteringInitializer->GetGaussianMixtureModel());
   m_ClusteringEM->SetMaxIteration(10);
+
+  // Get the GMM
+  m_MixtureModel = m_ClusteringEM->GetGaussianMixtureModel();
 }
 
 
@@ -118,6 +118,7 @@ void UnsupervisedClustering::Iterate()
 {
   long start = clock();
   m_ClusteringEM->UpdateOnce();
+  m_MixtureModel->PrintParameters();
   long end = clock();
   std::cout << "spending " << (end-start)/1000 << std::endl;
 }

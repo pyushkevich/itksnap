@@ -28,6 +28,7 @@ public:
   itkEventMacro(BubbleListUpdateEvent, IRISEvent)
   itkEventMacro(BubbleDefaultRadiusUpdateEvent, IRISEvent)
   itkEventMacro(EvolutionIterationEvent, IRISEvent)
+  itkEventMacro(GMMModifiedEvent, IRISEvent)
 
   FIRES(ThresholdSettingsUpdateEvent)
   FIRES(EdgePreprocessingSettingsUpdateEvent)
@@ -35,6 +36,7 @@ public:
   FIRES(BubbleListUpdateEvent)
   FIRES(BubbleDefaultRadiusUpdateEvent)
   FIRES(EvolutionIterationEvent)
+  FIRES(GMMModifiedEvent)
 
   void SetParentModel(GlobalUIModel *model);
   irisGetMacro(Parent, GlobalUIModel *)

@@ -16,6 +16,9 @@ public:
   void SetGaussianMixtureModel(GaussianMixtureModel *gmm);
   void SetPrior(double **prior);
   void RemovePrior(void);
+
+  GaussianMixtureModel *GetGaussianMixtureModel() const { return m_gmm; }
+
   
   int GetMaxIteration(void);
 
