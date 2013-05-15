@@ -36,7 +36,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
 {
   // Set the parameters of all the filters
   for(int i = 0; i < 4; i++)
-    this->GetNthFilter(i)->SetParameters(param);
+    Traits::SetParameters(param, this->GetNthFilter(i));
 }
 
 template <class TFilterConfigTraits>

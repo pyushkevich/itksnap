@@ -230,6 +230,8 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/EdgePreprocessingImageFilter.h
   Logic/Preprocessing/EdgePreprocessingImageFilter.txx
   Logic/Preprocessing/EdgePreprocessingSettings.h
+  Logic/Preprocessing/GMMClassifyImageFilter.h
+  Logic/Preprocessing/GMMClassifyImageFilter.txx
   Logic/Preprocessing/PreprocessingFilterConfigTraits.h
   Logic/Preprocessing/SlicePreviewFilterWrapper.h
   Logic/Preprocessing/SlicePreviewFilterWrapper.txx

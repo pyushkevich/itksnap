@@ -63,8 +63,10 @@ class UnsupervisedClustering;
 template <class TFilterConfigTraits> class SlicePreviewFilterWrapper;
 class SmoothBinaryThresholdFilterConfigTraits;
 class EdgePreprocessingFilterConfigTraits;
+class GMMPreprocessingFilterConfigTraits;
 template <typename TIn, typename TOut> class SmoothBinaryThresholdImageFilter;
 template <typename TIn, typename TOut> class EdgePreprocessingImageFilter;
+template <typename TIn, typename TOut> class GMMClassifyImageFilter;
 
 
 namespace itk {
@@ -532,11 +534,18 @@ protected:
   typedef SlicePreviewFilterWrapper<EdgePreprocessingFilterConfigTraits>
                                            EdgePreprocessingPreviewWrapperType;
 
+  // The GMM preview wrapper type
+  typedef SlicePreviewFilterWrapper<GMMPreprocessingFilterConfigTraits>
+                                            GMMPreprocessingPreviewWrapperType;
+
   // The threshold-based wrapper
   SmartPtr<ThresholdPreviewWrapperType> m_ThresholdPreviewWrapper;
 
   // The edge-based wrapper
   SmartPtr<EdgePreprocessingPreviewWrapperType> m_EdgePreviewWrapper;
+
+  // GMM-based preprocessing wrapper
+  SmartPtr<GMMPreprocessingPreviewWrapperType> m_GMMPreviewWrapper;
 
   // The EM classification object (TODO: make it itk::Object derived)
   SmartPtr<UnsupervisedClustering> m_ClusteringEngine;

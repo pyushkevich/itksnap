@@ -225,13 +225,24 @@ void EMGaussianMixtures::UpdateLatent(void)
       sum = 0;
       for (int j = 0; j < m_numOfGaussian; j++)
         {
-        m_tmp1[j] = m_weight[j] * m_pdf[i][j] + 1e-10;
+        m_tmp1[j] = m_weight[j] * m_pdf[i][j];
         sum += m_tmp1[j];
         }
-      for (int j = 0; j < m_numOfGaussian; j++)
+      if(sum == 0)
         {
-        m_latent[i][j] = m_tmp1[j] / sum;
-        m_sum[j] += m_latent[i][j];
+        for (int j = 0; j < m_numOfGaussian; j++)
+          {
+          m_latent[i][j] = 1.0 / m_numOfGaussian;
+          m_sum[j] += m_latent[i][j];
+          }
+        }
+      else
+        {
+        for (int j = 0; j < m_numOfGaussian; j++)
+          {
+          m_latent[i][j] = m_tmp1[j] / sum;
+          m_sum[j] += m_latent[i][j];
+          }
         }
       }
     }

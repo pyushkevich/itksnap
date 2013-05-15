@@ -807,7 +807,8 @@ void SnakeWizardModel
   this->InvokeEvent(GMMModifiedEvent());
 }
 
-
+#include "PreprocessingFilterConfigTraits.h"
+#include "GMMClassifyImageFilter.h"
 void SnakeWizardModel::PerformClusteringIteration()
 {
   UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
@@ -815,6 +816,15 @@ void SnakeWizardModel::PerformClusteringIteration()
 
   uc->Iterate();
   this->InvokeEvent(GMMModifiedEvent());
+
+  // TODO: this is not the right way to do this! Make MixtureModel an itkObject
+  // and an inout to the filter, so we don't have to update the filter itself!!
+  // THIS IS HACKY!!!
+  typedef SlicePreviewFilterWrapper<GMMPreprocessingFilterConfigTraits>
+                                            GMMPreprocessingPreviewWrapperType;
+  GMMPreprocessingPreviewWrapperType *junk =
+      (GMMPreprocessingPreviewWrapperType *) m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_GMM);
+  junk->SetParameters(uc->GetMixtureModel());
 }
 
 void SnakeWizardModel::ReinitializeClustering()

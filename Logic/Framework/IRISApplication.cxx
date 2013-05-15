@@ -76,6 +76,7 @@
 #include "SmoothBinaryThresholdImageFilter.h"
 #include "EdgePreprocessingImageFilter.h"
 #include "UnsupervisedClustering.h"
+#include "GMMClassifyImageFilter.h"
 
 
 
@@ -136,6 +137,8 @@ IRISApplication
 
   m_EdgePreviewWrapper = EdgePreprocessingPreviewWrapperType::New();
   m_EdgePreviewWrapper->SetParameters(m_EdgePreprocessingSettings);
+
+  m_GMMPreviewWrapper = GMMPreprocessingPreviewWrapperType::New();
 
   m_PreprocessingMode = PREPROCESS_NONE;
 }
@@ -1730,6 +1733,8 @@ void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
       break;
 
     case PREPROCESS_GMM:
+      m_GMMPreviewWrapper->DetachInputsAndOutputs();
+
       // Deallocate whatever was created for GMM processing
       m_ClusteringEngine = NULL;
       break;
@@ -1756,6 +1761,10 @@ void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
       // Create the EM class and maybe run the KNN plus method?
       m_ClusteringEngine = UnsupervisedClustering::New();
       m_ClusteringEngine->SetDataSource(m_SNAPImageData);
+
+      m_GMMPreviewWrapper->AttachInputs(m_SNAPImageData);
+      m_GMMPreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());
+      m_GMMPreviewWrapper->SetParameters(m_ClusteringEngine->GetMixtureModel());
       break;
 
     default:
@@ -1780,6 +1789,8 @@ IRISApplication
       return m_ThresholdPreviewWrapper;
     case PREPROCESS_EDGE:
       return m_EdgePreviewWrapper;
+    case PREPROCESS_GMM:
+      return m_GMMPreviewWrapper;
     default:
       return NULL;
     }

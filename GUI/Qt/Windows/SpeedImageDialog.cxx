@@ -212,6 +212,15 @@ int GMMTableModel::columnCount(const QModelIndex &parent) const
 
 QVariant GMMTableModel::data(const QModelIndex &index, int role) const
 {
+  // Only return value for display role
+  if(role == Qt::CheckStateRole && index.column() == 0)
+    {
+    return Qt::Unchecked;
+    }
+
+  else if(role != Qt::DisplayRole)
+    return QVariant();
+
   // Get the number of clusters
   GaussianMixtureModel *gmm = this->GetGMM();
   assert(gmm);
@@ -219,7 +228,7 @@ QVariant GMMTableModel::data(const QModelIndex &index, int role) const
   // Get the proper component
   int cluster = index.row();
   if(index.column() == 0)
-    return false;
+    return QVariant();
   if(index.column() == 1)
     return gmm->GetWeight(cluster);
   else
@@ -230,6 +239,9 @@ QVariant GMMTableModel::data(const QModelIndex &index, int role) const
 
 QVariant GMMTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+  if(role != Qt::DisplayRole)
+    return QVariant();
+
   if(orientation == Qt::Horizontal)
     {
     if(section == 0)

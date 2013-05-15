@@ -36,7 +36,10 @@
 #include "PreprocessingFilterConfigTraits.h"
 #include "SlicePreviewFilterWrapper.h"
 #include "SlicePreviewFilterWrapper.txx"
-
+#include "GMMClassifyImageFilter.h"
+#include "GMMClassifyImageFilter.txx"
+#include "IRISApplication.h"
+#include "UnsupervisedClustering.h"
 
 void
 SmoothBinaryThresholdFilterConfigTraits
@@ -97,6 +100,45 @@ EdgePreprocessingFilterConfigTraits
   filter->SetParameters(p);
 }
 
+
+
+void
+GMMPreprocessingFilterConfigTraits
+::AttachInputs(SNAPImageData *sid, FilterType *filter, int channel)
+{
+  // Iterate through all of the relevant layers
+  for(LayerIterator it = sid->GetLayers(LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+      !it.IsAtEnd(); ++it)
+    {
+    AnatomicImageWrapper *aiw = dynamic_cast<AnatomicImageWrapper *>(it.GetLayer());
+    filter->PushBackInput(aiw->GetImage());
+    }
+
+  // Set the GMM input
+  UnsupervisedClustering *uc = sid->GetParent()->GetClusteringEngine();
+  assert(uc);
+  filter->SetMixtureModel(uc->GetMixtureModel());
+}
+
+void
+GMMPreprocessingFilterConfigTraits
+::DetachInputs(FilterType *filter)
+{
+  while(filter->GetNumberOfInputs())
+    filter->PopBackInput();
+
+  filter->SetMixtureModel(NULL);
+}
+
+void
+GMMPreprocessingFilterConfigTraits
+::SetParameters(ParameterType *p, FilterType *filter)
+{
+  filter->SetMixtureModel(p);
+}
+
+
 // Instantiate preview wrappers
 template class SlicePreviewFilterWrapper<SmoothBinaryThresholdFilterConfigTraits>;
 template class SlicePreviewFilterWrapper<EdgePreprocessingFilterConfigTraits>;
+template class SlicePreviewFilterWrapper<GMMPreprocessingFilterConfigTraits>;

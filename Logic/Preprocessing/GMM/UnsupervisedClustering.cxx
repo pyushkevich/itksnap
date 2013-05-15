@@ -111,6 +111,7 @@ void UnsupervisedClustering::InitializeEM()
 
   // Get the GMM
   m_MixtureModel = m_ClusteringEM->GetGaussianMixtureModel();
+
 }
 
 
