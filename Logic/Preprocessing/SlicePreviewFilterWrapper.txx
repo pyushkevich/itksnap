@@ -124,8 +124,6 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
   // Attach the progress monitor
   unsigned long tag = 0;
 
-
-
   if(progress)
     tag = m_VolumeStreamer->AddObserver(itk::ProgressEvent(), progress);
 

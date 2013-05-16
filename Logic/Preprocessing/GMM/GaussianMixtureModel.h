@@ -26,6 +26,8 @@ public:
   void SetCovariance(int index, double *covariance);
   void SetWeight(int index, double weight);
   double EvaluatePDF(int index, double *x);
+  double EvaluatePDF(int index, vnl_vector<double> &x, vnl_vector<double> &xscratch);
+
   void PrintParameters();
 
   int GetNumberOfGaussians() { return m_numOfGaussian; }

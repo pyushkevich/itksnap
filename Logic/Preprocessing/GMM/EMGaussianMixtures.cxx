@@ -192,8 +192,6 @@ void EMGaussianMixtures::EvaluatePDF(void)
 {
   for (int i = 0; i < m_numOfData; i++)
     {
-    if(i == 2783)
-      std::cout << "hi" << std::endl;
     for (int j = 0; j < m_numOfGaussian; j++)
       {
       m_pdf[i][j] = m_gmm->EvaluatePDF(j, m_x[i]);

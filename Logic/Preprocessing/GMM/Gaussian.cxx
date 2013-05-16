@@ -132,6 +132,20 @@ double Gaussian::EvaluatePDF(double *x)
   return z;
 }
 
+double Gaussian::EvaluatePDF(VectorType &x, VectorType &xscratch)
+{
+  for(int i = 0; i < m_dimension; i++)
+  {
+    xscratch[i] = x[i] - (*m_mean_vector)(i);
+  }
+
+  double t = dot_product((*m_precision_matrix) * xscratch, xscratch);
+  double z = exp(-0.5 * t) / m_normalization;
+
+  return z;
+}
+
+
 void Gaussian::PrintParameters()
 {
   if (m_setMeanFlag != 0)

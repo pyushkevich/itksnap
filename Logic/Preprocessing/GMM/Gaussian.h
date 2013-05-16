@@ -20,6 +20,7 @@ public:
   void SetCovariance(double *covariance);
   void SetParameters(double *mean, double *covariance);
   double EvaluatePDF(double *x);
+  double EvaluatePDF(VectorType &x, VectorType &xscratch);
   void PrintParameters();
 
   //To do random number, check SPD

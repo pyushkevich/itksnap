@@ -118,7 +118,10 @@ void UnsupervisedClustering::InitializeEM()
 void UnsupervisedClustering::Iterate()
 {
   long start = clock();
-  m_ClusteringEM->UpdateOnce();
+  double **post = m_ClusteringEM->UpdateOnce();
+  std::cout << "POSTERIOR AT 23069 IS " << post[23069][0] << std::endl;
+  std::cout << "  " << post[23069][1] << std::endl;
+  std::cout << "  " << post[23069][2] << std::endl;
   m_MixtureModel->PrintParameters();
   long end = clock();
   std::cout << "spending " << (end-start)/1000 << std::endl;
