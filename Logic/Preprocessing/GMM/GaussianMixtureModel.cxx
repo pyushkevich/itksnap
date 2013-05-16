@@ -1,24 +1,19 @@
 #include "GaussianMixtureModel.h"
 #include <iostream>
 
-GaussianMixtureModel::GaussianMixtureModel(int dimOfGaussian)
-  :m_dimOfGaussian(dimOfGaussian), m_numOfGaussian(0)
-{
-  m_gaussian = new GaussianVector();
-  m_weight = new WeightVector();
-}
-
 GaussianMixtureModel::GaussianMixtureModel(int dimOfGaussian, int numOfGaussian)
   :m_dimOfGaussian(dimOfGaussian), m_numOfGaussian(numOfGaussian)
 {
   m_gaussian = new GaussianVector();
   m_weight = new WeightVector();
+  m_foreground_state = new BoolVector();
   Gaussian *gaussian;
   for (int i = 0; i < numOfGaussian; i++)
   {
     gaussian = new Gaussian(dimOfGaussian);
     m_gaussian->push_back(gaussian);
     m_weight->push_back(0);
+    m_foreground_state->push_back(i == 0);
   }
 }
 
@@ -30,6 +25,7 @@ GaussianMixtureModel::~GaussianMixtureModel()
   }
   delete m_gaussian;
   delete m_weight;
+  delete m_foreground_state;
 }
 
 Gaussian * GaussianMixtureModel::GetGaussian(int index)
@@ -82,14 +78,6 @@ double GaussianMixtureModel::GetWeight(int index)
     std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
     exit(0);
   }
-}
-
-void GaussianMixtureModel::AddGaussian(double *mean, double *covariance, double weight)
-{
-  Gaussian *gaussian = new Gaussian(m_dimOfGaussian, mean, covariance);
-  m_gaussian->push_back(gaussian);
-  m_weight->push_back(weight);
-  ++m_numOfGaussian;
 }
 
 void GaussianMixtureModel::SetGaussian(int index, double *mean, double *covariance)
@@ -181,5 +169,20 @@ void GaussianMixtureModel::PrintParameters()
     std::cout << std::endl << "Gaussian Component " << ++i << ":" << std::endl;
     std::cout << "weight:" << std::endl << *weightIter << std::endl;
     (*gaussianIter)->PrintParameters();
-  }
+    }
+}
+
+bool GaussianMixtureModel::IsForeground(int index)
+{
+  return (*m_foreground_state)[index];
+}
+
+void GaussianMixtureModel::SetForeground(int index)
+{
+  (*m_foreground_state)[index] = true;
+}
+
+void GaussianMixtureModel::SetBackground(int index)
+{
+  (*m_foreground_state)[index] = false;
 }

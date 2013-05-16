@@ -139,6 +139,11 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
   vnl_vector<double> x_scratch(m_MixtureModel->GetNumberOfComponents());
   vnl_vector<double> p(m_MixtureModel->GetNumberOfGaussians());
 
+  // Create a multiplier vector (1 for foreground, -1 for background)
+  vnl_vector<double> pfactor(m_MixtureModel->GetNumberOfGaussians());
+  for(int i = 0; i < m_MixtureModel->GetNumberOfGaussians(); i++)
+    pfactor[i] = m_MixtureModel->IsForeground(i) ? 1.0 : -1.0;
+
   // Iterate through all the voxels
   while ( !it_out.IsAtEnd() )
     {
@@ -161,7 +166,7 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
       // TODO: this should be the foreground component
       p[k] = m_MixtureModel->EvaluatePDF(k, x, x_scratch) * m_MixtureModel->GetWeight(k);
       psum += p[k];
-      pdiff += (k == 1) ? p[k] : -p[k];
+      pdiff += p[k] * pfactor[k];
       }
 
     double post = (psum == 0) ? 0.0 : pdiff / psum;

@@ -1,6 +1,7 @@
 #ifndef GAUSSIAN_MIXTURE_MODEL_H
 #define GAUSSIAN_MIXTURE_MODEL_H
 
+#include "itkDataObject.h"
 #include "Gaussian.h"
 #include <vector>
 
@@ -9,10 +10,10 @@ class GaussianMixtureModel
 public:
   typedef std::vector<Gaussian *> GaussianVector;
   typedef std::vector<double> WeightVector;
+  typedef std::vector<bool> BoolVector;
   typedef GaussianVector::iterator GaussianVectorIterator;
   typedef WeightVector::iterator WeightVectorIterator;
   
-  GaussianMixtureModel(int dimOfGaussian);
   GaussianMixtureModel(int dimOfGaussian, int numOfGaussian);
   ~GaussianMixtureModel();
   
@@ -20,7 +21,6 @@ public:
   double * GetMean(int index);
   double * GetCovariance(int index);
   double GetWeight(int index);
-  void AddGaussian(double *mean, double *covariance, double weight);
   void SetGaussian(int index, double *mean, double *covariance);
   void SetMean(int index, double *mean);
   void SetCovariance(int index, double *covariance);
@@ -32,12 +32,21 @@ public:
 
   int GetNumberOfGaussians() { return m_numOfGaussian; }
   int GetNumberOfComponents() { return m_dimOfGaussian; }
+
+  /**
+   * Is the cluster an object or background?
+   */
+  bool IsForeground(int index);
+
+  void SetForeground(int index);
+  void SetBackground(int index);
   
 private:
   int m_numOfGaussian;
   int m_dimOfGaussian;
   GaussianVector *m_gaussian;
   WeightVector *m_weight;
+  BoolVector *m_foreground_state;
 };
 
 #endif

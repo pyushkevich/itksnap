@@ -154,6 +154,9 @@ public:
 
   void PerformClusteringIteration();
 
+  // TODO: get rid of this?
+  bool SetClusterForegroundState(int cluster, bool state);
+
 
 protected:
   SnakeWizardModel();
@@ -231,6 +234,10 @@ protected:
   SmartPtr<AbstractRangedIntProperty> m_NumberOfClustersModel;
   bool GetNumberOfClustersValueAndRange(int &value, NumericValueRange<int> *range);
   void SetNumberOfClustersValue(int value);
+
+  // TODO: this should be handled through the ITK modified mechanism
+  void TagGMMPreprocessingFilterModified();
+
 
   // Parent model
   GlobalUIModel *m_Parent;

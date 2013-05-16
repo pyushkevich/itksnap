@@ -9,6 +9,10 @@
 #include "QtCheckBoxCoupling.h"
 #include "QtSpinBoxCoupling.h"
 #include <QCloseEvent>
+#include "GlobalUIModel.h"
+#include "IRISApplication.h"
+#include "UnsupervisedClustering.h"
+#include "GaussianMixtureModel.h"
 
 
 
@@ -162,10 +166,9 @@ void SpeedImageDialog::on_btnIterate_clicked()
 
 
 
-#include "GlobalUIModel.h"
-#include "IRISApplication.h"
-#include "UnsupervisedClustering.h"
-#include "GaussianMixtureModel.h"
+/* ============================================
+ * Qt MODEL Behind the Cluster Listing Table
+ * ============================================ */
 
 void GMMTableModel::SetParentModel(SnakeWizardModel *parent)
 {
@@ -213,29 +216,38 @@ int GMMTableModel::columnCount(const QModelIndex &parent) const
 
 QVariant GMMTableModel::data(const QModelIndex &index, int role) const
 {
-  // Only return value for display role
-  if(role == Qt::CheckStateRole && index.column() == 0)
-    {
-    return Qt::Unchecked;
-    }
+  // Get the current row (cluster index)
+  int cluster = index.row();
 
-  else if(role != Qt::DisplayRole)
-    return QVariant();
-
-  // Get the number of clusters
+  // Get a pointer to the GMM
   GaussianMixtureModel *gmm = this->GetGMM();
   assert(gmm);
 
-  // Get the proper component
-  int cluster = index.row();
-  if(index.column() == 0)
-    return QVariant();
-  if(index.column() == 1)
-    return gmm->GetWeight(cluster);
-  else
-    return gmm->GetMean(cluster)[index.column()-2];
+  // For first row, return checkboxes
+  if(role == Qt::CheckStateRole && index.column() == 0)
+    {
+    return gmm->IsForeground(cluster) ? Qt::Checked : Qt::Unchecked;
+    }
 
-  return QVariant();
+  else if((role == Qt::DisplayRole || role == Qt::EditRole) && index.column() == 1)
+    {
+    return gmm->GetWeight(cluster);
+    }
+
+  else if((role == Qt::DisplayRole || role == Qt::EditRole) && index.column() > 1)
+    {
+    return gmm->GetMean(cluster)[index.column()-2];
+    }
+
+  else return QVariant();
+}
+
+Qt::ItemFlags GMMTableModel::flags(const QModelIndex &index) const
+{
+  if(index.column() == 0)
+    return Qt::ItemIsUserCheckable | QAbstractTableModel::flags(index);
+  else
+    return QAbstractTableModel::flags(index);
 }
 
 QVariant GMMTableModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -265,6 +277,24 @@ QVariant GMMTableModel::headerData(int section, Qt::Orientation orientation, int
     }
 
   return QVariant();
+}
+
+bool GMMTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+  if(index.column() == 0)
+    {
+    bool state = value.toBool();
+
+    // TODO: it would be nice to do this in the mixture model class, without having to
+    // have a special method in the SpeedWizardModel class
+    if(m_ParentModel->SetClusterForegroundState(index.row(), state))
+      {
+      GaussianMixtureModel *gmm = this->GetGMM();
+      emit dataChanged(this->index(0,0), this->index(gmm->GetNumberOfGaussians()-1, 0));
+      return true;
+      }
+    }
+  return false;
 }
 
 
