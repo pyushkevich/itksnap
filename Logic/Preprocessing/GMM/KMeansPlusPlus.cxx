@@ -40,8 +40,8 @@ void KMeansPlusPlus::Initialize(void)
   //   m_xCounter[i] = 0;
   // }
   
-  /* srand(time(0)); */
-  srand(12345);
+  srand(time(0));
+
   m_centers[0] = (int)(((double) rand() / (double) RAND_MAX) * m_dataSize);
   double distSum = 0;
   for (int i = 0; i < m_dataSize; i++)

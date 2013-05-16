@@ -85,6 +85,14 @@ void UnsupervisedClustering::SetNumberOfClusters(int nClusters)
     }
 }
 
+void UnsupervisedClustering::ReinitializeClusters()
+{
+  if(m_DataArray)
+    {
+    this->InitializeEM();
+    }
+}
+
 void UnsupervisedClustering::InitializeEM()
 {
   if(m_ClusteringEM)

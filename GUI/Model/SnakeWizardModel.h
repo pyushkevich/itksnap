@@ -67,18 +67,19 @@ public:
   // typedef STLVectorWrapperItemSetDomain<int, Bubble> BubbleDomain;
   // typedef AbstractPropertyModel<int, BubbleDomain> AbstractActiveBubbleProperty;
 
+  // Model for whether the current pre-processing model is in preview mode or not
+  irisGetMacro(PreviewModel, AbstractSimpleBooleanProperty *)
+
   // Models for the threshold-based preprocessing
   irisGetMacro(ThresholdLowerModel, AbstractRangedDoubleProperty *)
   irisGetMacro(ThresholdUpperModel, AbstractRangedDoubleProperty *)
   irisGetMacro(ThresholdSmoothnessModel, AbstractRangedDoubleProperty *)
   irisGetMacro(ThresholdModeModel, AbstractThresholdModeModel *)
-  irisGetMacro(ThresholdPreviewModel, AbstractSimpleBooleanProperty *)
 
   // Models for the edge-based preprocessing
   irisGetMacro(EdgePreprocessingSigmaModel, AbstractRangedDoubleProperty *)
   irisGetMacro(EdgePreprocessingKappaModel, AbstractRangedDoubleProperty *)
   irisGetMacro(EdgePreprocessingExponentModel, AbstractRangedDoubleProperty *)
-  irisGetMacro(EdgePreprocessingPreviewModel, AbstractSimpleBooleanProperty *)
 
   // Model for bubble selection
   irisGetMacro(ActiveBubbleModel, AbstractSimpleIntProperty *)
@@ -174,9 +175,9 @@ protected:
   bool GetThresholdModeValue(ThresholdSettings::ThresholdMode &x);
   void SetThresholdModeValue(ThresholdSettings::ThresholdMode x);
 
-  SmartPtr<AbstractSimpleBooleanProperty> m_ThresholdPreviewModel;
-  bool GetThresholdPreviewValue(bool &value);
-  void SetThresholdPreviewValue(bool value);
+  SmartPtr<AbstractSimpleBooleanProperty> m_PreviewModel;
+  bool GetPreviewValue(bool &value);
+  void SetPreviewValue(bool value);
 
   SmartPtr<AbstractRangedDoubleProperty> m_EdgePreprocessingSigmaModel;
   bool GetEdgePreprocessingSigmaValueAndRange(double &x, NumericValueRange<double> *range);
@@ -189,10 +190,6 @@ protected:
   SmartPtr<AbstractRangedDoubleProperty> m_EdgePreprocessingKappaModel;
   bool GetEdgePreprocessingKappaValueAndRange(double &x, NumericValueRange<double> *range);
   void SetEdgePreprocessingKappaValue(double x);
-
-  SmartPtr<AbstractSimpleBooleanProperty> m_EdgePreprocessingPreviewModel;
-  bool GetEdgePreprocessingPreviewValue(bool &value);
-  void SetEdgePreprocessingPreviewValue(bool value);
 
   SmartPtr<AbstractSnakeTypeModel> m_SnakeTypeModel;
   bool GetSnakeTypeValueAndRange(SnakeType &value, GlobalState::SnakeTypeDomain *range);

@@ -49,11 +49,13 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   // Pass the model to the sub-models
   m_GMMTableModel->SetParentModel(model);
 
+  // Couple the preview checkbox
+  makeCoupling(ui->chkPreview, model->GetPreviewModel());
+
   // Couple the thresholding widgets
   makeCoupling(ui->inLowerThreshold, model->GetThresholdLowerModel());
   makeCoupling(ui->inUpperThreshold, model->GetThresholdUpperModel());
   makeCoupling(ui->inThresholdSmoothness, model->GetThresholdSmoothnessModel());
-  makeCoupling(ui->chkThresholdPreview, model->GetThresholdPreviewModel());
 
   makeRadioGroupCoupling(ui->grpThresholdMode, model->GetThresholdModeModel());
 
@@ -61,7 +63,6 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   makeCoupling(ui->inEdgeSmoothing, model->GetEdgePreprocessingSigmaModel());
   makeCoupling(ui->inEdgeKappa, model->GetEdgePreprocessingKappaModel());
   makeCoupling(ui->inEdgeExponent, model->GetEdgePreprocessingExponentModel());
-  makeCoupling(ui->chkEdgePreview, model->GetEdgePreprocessingPreviewModel());
 
   // Couple the clustering widgets
   makeCoupling(ui->inNumClusters, model->GetNumberOfClustersModel());

@@ -42,12 +42,16 @@ SnakeWizardModel::SnakeWizardModel()
         ThresholdSettingsUpdateEvent(),
         ThresholdSettingsUpdateEvent());
 
-  m_ThresholdPreviewModel = wrapGetterSetterPairAsProperty(
+  m_PreviewModel = wrapGetterSetterPairAsProperty(
         this,
-        &Self::GetThresholdPreviewValue,
-        &Self::SetThresholdPreviewValue,
-        ThresholdSettingsUpdateEvent(),
-        ThresholdSettingsUpdateEvent());
+        &Self::GetPreviewValue,
+        &Self::SetPreviewValue);
+
+  // TODO: which events from the parent model should be rebroadcast by the
+  // preview model?
+
+  // EdgePreprocessingSettingsUpdateEvent(),
+  // EdgePreprocessingSettingsUpdateEvent()
 
   m_EdgePreprocessingSigmaModel = wrapGetterSetterPairAsProperty(
         this,
@@ -67,13 +71,6 @@ SnakeWizardModel::SnakeWizardModel()
         this,
         &Self::GetEdgePreprocessingExponentValueAndRange,
         &Self::SetEdgePreprocessingExponentValue,
-        EdgePreprocessingSettingsUpdateEvent(),
-        EdgePreprocessingSettingsUpdateEvent());
-
-  m_EdgePreprocessingPreviewModel = wrapGetterSetterPairAsProperty(
-        this,
-        &Self::GetEdgePreprocessingPreviewValue,
-        &Self::SetEdgePreprocessingPreviewValue,
         EdgePreprocessingSettingsUpdateEvent(),
         EdgePreprocessingSettingsUpdateEvent());
 
@@ -142,6 +139,9 @@ void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
 
   Rebroadcast(m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_EDGE),
               itk::ModifiedEvent(), EdgePreprocessingSettingsUpdateEvent());
+
+  Rebroadcast(m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_GMM),
+              itk::ModifiedEvent(), GMMModifiedEvent());
 
   // Changes to the snake mode are cast as model update events
   Rebroadcast(m_GlobalState->GetSnakeTypeModel(),
@@ -322,19 +322,24 @@ void SnakeWizardModel::SetThresholdModeValue(ThresholdSettings::ThresholdMode x)
 }
 
 
-bool SnakeWizardModel::GetThresholdPreviewValue(bool &value)
+bool SnakeWizardModel::GetPreviewValue(bool &value)
 {
-  if(!AreThresholdModelsActive())
-    return false;
-
-  value = m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD)->IsPreviewMode();
-  return true;
+  PreprocessingMode mode = m_Driver->GetPreprocessingMode();
+  if(mode != PREPROCESS_NONE)
+    {
+    value = m_Driver->GetPreprocessingFilterPreviewer(mode)->IsPreviewMode();
+    return true;
+    }
+  return false;
 }
 
-void SnakeWizardModel::SetThresholdPreviewValue(bool value)
+void SnakeWizardModel::SetPreviewValue(bool value)
 {
-  assert(AreThresholdModelsActive());
-  m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD)->SetPreviewMode(value);
+  PreprocessingMode mode = m_Driver->GetPreprocessingMode();
+  if(mode != PREPROCESS_NONE)
+    {
+    m_Driver->GetPreprocessingFilterPreviewer(mode)->SetPreviewMode(value);
+    }
 }
 
 void SnakeWizardModel
@@ -433,27 +438,6 @@ SnakeWizardModel
   EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
   eps->SetRemappingExponent(x);
 }
-
-
-bool
-SnakeWizardModel
-::GetEdgePreprocessingPreviewValue(bool &value)
-{
-  if(!AreEdgePreprocessingModelsActive())
-    return false;
-
-  value = m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_EDGE)->IsPreviewMode();
-  return true;
-}
-
-void
-SnakeWizardModel
-::SetEdgePreprocessingPreviewValue(bool value)
-{
-  assert(AreEdgePreprocessingModelsActive());
-  m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_EDGE)->SetPreviewMode(value);
-}
-
 
 
 void SnakeWizardModel
@@ -829,6 +813,20 @@ void SnakeWizardModel::PerformClusteringIteration()
 
 void SnakeWizardModel::ReinitializeClustering()
 {
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  assert(uc);
+
+  uc->ReinitializeClusters();
+  this->InvokeEvent(GMMModifiedEvent());
+
+  // TODO: this is not the right way to do this! Make MixtureModel an itkObject
+  // and an inout to the filter, so we don't have to update the filter itself!!
+  // THIS IS HACKY!!!
+  typedef SlicePreviewFilterWrapper<GMMPreprocessingFilterConfigTraits>
+                                            GMMPreprocessingPreviewWrapperType;
+  GMMPreprocessingPreviewWrapperType *junk =
+      (GMMPreprocessingPreviewWrapperType *) m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_GMM);
+  junk->SetParameters(uc->GetMixtureModel());
 }
 
 

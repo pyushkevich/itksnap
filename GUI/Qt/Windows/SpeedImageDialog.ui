@@ -38,7 +38,7 @@ font-size: 12px;
        <item>
         <widget class="QTabWidget" name="tabWidgetInOut">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tabThreshold">
           <attribute name="title">
@@ -268,22 +268,6 @@ font-size: 12px;
              </layout>
             </widget>
            </item>
-           <item row="11" column="1" rowspan="2">
-            <widget class="QWidget" name="widget_4" native="true">
-             <layout class="QVBoxLayout" name="verticalLayout_3">
-              <property name="margin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QCheckBox" name="chkThresholdPreview">
-                <property name="text">
-                 <string>&amp;Preview result</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
            <item row="0" column="0" colspan="2">
             <spacer name="verticalSpacer_3">
              <property name="orientation">
@@ -462,22 +446,6 @@ font-size: 12px;
              </property>
             </widget>
            </item>
-           <item row="4" column="1" rowspan="2">
-            <widget class="QWidget" name="widget_5" native="true">
-             <layout class="QVBoxLayout" name="verticalLayout_8">
-              <property name="margin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QCheckBox" name="chkEdgePreview">
-                <property name="text">
-                 <string>&amp;Preview result</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
            <item row="5" column="0">
             <widget class="QDoubleSliderWithEditor" name="inEdgeSmoothing">
              <property name="orientation">
@@ -573,6 +541,22 @@ font-size: 12px;
        <number>18</number>
       </property>
       <item>
+       <widget class="QWidget" name="widget_4" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QCheckBox" name="chkPreview">
+           <property name="text">
+            <string>&amp;Preview result</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -652,6 +636,11 @@ font-size: 12px;
  </widget>
  <customwidgets>
   <customwidget>
+   <class>QDoubleSliderWithEditor</class>
+   <extends>QSlider</extends>
+   <header location="global">QDoubleSliderWithEditor.h</header>
+  </customwidget>
+  <customwidget>
    <class>QtSimpleOpenGLBox</class>
    <extends>QWidget</extends>
    <header>QtSimpleOpenGLBox.h</header>
@@ -662,11 +651,6 @@ font-size: 12px;
    <extends>QWidget</extends>
    <header location="global">QtVTKRenderWindowBox.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QDoubleSliderWithEditor</class>
-   <extends>QSlider</extends>
-   <header location="global">QDoubleSliderWithEditor.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
