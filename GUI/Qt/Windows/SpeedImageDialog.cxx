@@ -70,6 +70,7 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
 
   // Couple the clustering widgets
   makeCoupling(ui->inNumClusters, model->GetNumberOfClustersModel());
+  makeCoupling(ui->inNumSamples, model->GetNumberOfGMMSamplesModel());
 
   // Set up activation
   activateOnFlag(ui->tabThreshold, model, SnakeWizardModel::UIF_THESHOLDING_ENABLED);

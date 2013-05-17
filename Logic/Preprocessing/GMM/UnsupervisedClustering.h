@@ -20,11 +20,15 @@ public:
 
   irisGetMacro(NumberOfClusters, int)
 
+  irisGetMacro(NumberOfSamples, int)
+
   irisGetMacro(MixtureModel, GaussianMixtureModel *)
 
   void SetNumberOfClusters(int nClusters);
 
-  void ReinitializeClusters();
+  void SetNumberOfSamples(int nSamples);
+
+  void InitializeClusters();
 
   void Iterate();
 
@@ -36,13 +40,16 @@ protected:
 
 
   void InitializeEM();
+  void SampleDataSource();
 
   EMGaussianMixtures *m_ClusteringEM;
   KMeansPlusPlus *m_ClusteringInitializer;
   GaussianMixtureModel *m_MixtureModel;
   GenericImageData *m_DataSource;
 
-  int m_NumberOfClusters, m_NumberOfComponents, m_NumberOfVoxels;
+  int m_NumberOfClusters, m_NumberOfComponents, m_NumberOfVoxels, m_NumberOfSamples;
+
+  bool m_SamplesDirty;
 
   // TODO: this is duplication of data and also double is larger than we need
   double **m_DataArray;

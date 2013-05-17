@@ -149,6 +149,7 @@ public:
    * CLUSTERING SUPPORT (GMM)
    * =================================================================== */
   irisRangedPropertyAccessMacro(NumberOfClusters, int)
+  irisRangedPropertyAccessMacro(NumberOfGMMSamples, int)
 
   void ReinitializeClustering();
 
@@ -231,13 +232,19 @@ protected:
   /* ===================================================================
    * CLUSTERING SUPPORT (GMM)
    * =================================================================== */
+
+  // Model for the number of clusters
   SmartPtr<AbstractRangedIntProperty> m_NumberOfClustersModel;
   bool GetNumberOfClustersValueAndRange(int &value, NumericValueRange<int> *range);
   void SetNumberOfClustersValue(int value);
 
+  // Model for the number of clusters
+  SmartPtr<AbstractRangedIntProperty> m_NumberOfGMMSamplesModel;
+  bool GetNumberOfGMMSamplesValueAndRange(int &value, NumericValueRange<int> *range);
+  void SetNumberOfGMMSamplesValue(int value);
+
   // TODO: this should be handled through the ITK modified mechanism
   void TagGMMPreprocessingFilterModified();
-
 
   // Parent model
   GlobalUIModel *m_Parent;

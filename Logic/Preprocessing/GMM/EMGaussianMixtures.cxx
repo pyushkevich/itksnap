@@ -231,12 +231,12 @@ double EMGaussianMixtures::ComputePosterior(int nGauss, double *log_pdf, double 
       {
       // The log of (w[k] * pdf[k]) / (w[j] * pdf[j])
       double exponent = (log_w[k] + log_pdf[k]) - exp_j;
-      if(exponent < -60)
+      if(exponent < -20)
         {
         // (w[k] * pdf[k]) / (w[j] * pdf[j]) is effectively zero
         continue;
         }
-      else if(exponent > 60)
+      else if(exponent > 20)
         {
         // latent[i][j] is effectively zero
         denom = vnl_huge_val(1.0);

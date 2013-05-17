@@ -1761,6 +1761,7 @@ void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
       // Create the EM class and maybe run the KNN plus method?
       m_ClusteringEngine = UnsupervisedClustering::New();
       m_ClusteringEngine->SetDataSource(m_SNAPImageData);
+      m_ClusteringEngine->InitializeClusters();
 
       m_GMMPreviewWrapper->AttachInputs(m_SNAPImageData);
       m_GMMPreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());

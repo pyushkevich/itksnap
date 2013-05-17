@@ -107,6 +107,12 @@ SnakeWizardModel::SnakeWizardModel()
         this,
         &Self::GetNumberOfClustersValueAndRange,
         &Self::SetNumberOfClustersValue);
+
+  m_NumberOfGMMSamplesModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetNumberOfGMMSamplesValueAndRange,
+        &Self::SetNumberOfGMMSamplesValue);
+
 }
 
 void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
@@ -509,6 +515,10 @@ void SnakeWizardModel::OnEdgePreprocessingPageEnter()
 void SnakeWizardModel::OnClusteringPageEnter()
 {
   m_Driver->EnterPreprocessingMode(PREPROCESS_GMM);
+
+  // Explicitly initialize the EM object
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+
   InvokeEvent(GMMModifiedEvent());
   InvokeEvent(ModelUpdateEvent());
 }
@@ -788,6 +798,31 @@ void SnakeWizardModel
   assert(uc);
 
   uc->SetNumberOfClusters(value);
+  uc->InitializeClusters();
+  this->InvokeEvent(GMMModifiedEvent());
+}
+
+bool SnakeWizardModel::GetNumberOfGMMSamplesValueAndRange(int &value, NumericValueRange<int> *range)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  if(uc)
+    {
+    value = uc->GetNumberOfSamples();
+    if(range)
+      range->Set(1, m_Driver->GetCurrentImageData()->GetMain()->GetNumberOfVoxels(), 5000);
+    return true;
+    }
+
+  return false;
+}
+
+void SnakeWizardModel::SetNumberOfGMMSamplesValue(int value)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  assert(uc);
+
+  uc->SetNumberOfSamples(value);
+  uc->InitializeClusters();
   this->InvokeEvent(GMMModifiedEvent());
 }
 
@@ -853,7 +888,7 @@ void SnakeWizardModel::ReinitializeClustering()
   UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
   assert(uc);
 
-  uc->ReinitializeClusters();
+  uc->InitializeClusters();
   this->InvokeEvent(GMMModifiedEvent());
 
   TagGMMPreprocessingFilterModified();
