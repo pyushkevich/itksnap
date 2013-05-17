@@ -43,6 +43,12 @@ public:
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef ColorLabelTableDisplayMappingPolicy<Self> DisplayMapping;
   typedef NullScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
+
+  // Whether this image is shown on top of all other layers by default
+  itkStaticConstMacro(StickyByDefault, bool, true);
+
+  // Whether this image is produced from another by a pipeline (e.g., speed image)
+  itkStaticConstMacro(PipelineOutput, bool, false);
 };
 
 class SpeedImageWrapperTraits
@@ -63,6 +69,12 @@ public:
     { min = -0x7fff; max = 0x7fff; }
 
   itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_SPEED);
+
+  // Whether this image is shown on top of all other layers by default
+  itkStaticConstMacro(StickyByDefault, bool, false);
+
+  // Whether this image is produced from another by a pipeline (e.g., speed image)
+  itkStaticConstMacro(PipelineOutput, bool, true);
 };
 
 class LevelSetImageWrapperTraits
@@ -83,6 +95,12 @@ public:
     { min = -4.0; max = 4.0; }
 
   itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_LEVELSET);
+
+  // Whether this image is shown on top of all other layers by default
+  itkStaticConstMacro(StickyByDefault, bool, true);
+
+  // Whether this image is produced from another by a pipeline (e.g., speed image)
+  itkStaticConstMacro(PipelineOutput, bool, true);
 };
 
 template <class TPixel>
@@ -101,6 +119,12 @@ public:
   typedef CastingScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_GREY);
+
+  // Whether this image is shown on top of all other layers by default
+  itkStaticConstMacro(StickyByDefault, bool, false);
+
+  // Whether this image is produced from another by a pipeline (e.g., speed image)
+  itkStaticConstMacro(PipelineOutput, bool, false);
 };
 
 template <class TFunctor>
@@ -122,6 +146,12 @@ public:
   typedef CastingScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_GREY);
+
+  // Whether this image is shown on top of all other layers by default
+  itkStaticConstMacro(StickyByDefault, bool, false);
+
+  // Whether this image is produced from another by a pipeline (e.g., speed image)
+  itkStaticConstMacro(PipelineOutput, bool, false);
 };
 
 
@@ -143,6 +173,12 @@ public:
 
   typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef MultiChannelDisplayMappingPolicy<Self> DisplayMapping;
+
+  // Whether this image is shown on top of all other layers by default
+  itkStaticConstMacro(StickyByDefault, bool, false);
+
+  // Whether this image is produced from another by a pipeline (e.g., speed image)
+  itkStaticConstMacro(PipelineOutput, bool, false);
 };
 
 // Global typedefs for traits with GreyType

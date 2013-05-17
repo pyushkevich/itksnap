@@ -75,11 +75,18 @@ public:
   typedef std::list<SliceRendererDelegate *> RendererDelegateList;
 
   // Get a reference to the list of overlays stored in here
-  const RendererDelegateList &GetOverlays() const
-    { return m_Overlays; }
+  const RendererDelegateList &GetGlobalOverlays() const
+    { return m_GlobalOverlays; }
 
-  RendererDelegateList &GetOverlays()
-    { return m_Overlays; }
+  RendererDelegateList &GetGlobalOverlays()
+    { return m_GlobalOverlays; }
+
+  // Get a reference to the list of overlays stored in here
+  const RendererDelegateList &GetTiledOverlays() const
+    { return m_TiledOverlays; }
+
+  RendererDelegateList &GetTiledOverlays()
+    { return m_TiledOverlays; }
 
   // This method can be used by the renderer delegates to draw a texture
   void DrawTextureForLayer(ImageWrapperBase *layer, bool use_transparency);
@@ -98,7 +105,8 @@ protected:
   void DrawSegmentationTexture();
   void DrawOverlayTexture();
   void DrawThumbnail();
-  void DrawOverlays();
+  void DrawTiledOverlays();
+  void DrawGlobalOverlays();
 
   // Draw the image and overlays either on top of each other or separately
   // in individual cells. Returns true if a layer was drawn, false if not,
@@ -118,7 +126,7 @@ protected:
   TextureMap m_Texture;
 
   // A list of overlays that the user can configure
-  RendererDelegateList m_Overlays;
+  RendererDelegateList m_TiledOverlays, m_GlobalOverlays;
 
   // Internal method used by UpdateTextureMap()
   // void AssociateTexture(ImageWrapperBase *iw, TextureMap &src, TextureMap &trg);

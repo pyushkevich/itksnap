@@ -205,6 +205,22 @@ public:
   /** Set layer transparency */
   irisGetMacro(Alpha, double)
 
+  /**
+   * Get layer stickiness. A sticky layer always is shown 'on top' of other
+   * layers, e.g., the segmentation layer, or the level set image. A layer that
+   * is not sticky is shown in its own tile when the display is in tiled mode
+   */
+  irisSetWithEventMacro(Sticky, bool, WrapperMetadataChangeEvent)
+
+  /** Set layer stickiness */
+  irisIsMacro(Sticky)
+
+  /**
+   * Whether the layer is drawable. Some layers may be initialized, but not
+   * yet computed, in which case they should not yet be drawn.
+   */
+  virtual bool IsDrawable() const;
+
   /** Get the buffered region of the image */
   virtual itk::ImageRegion<3> GetBufferedRegion() const;
 
@@ -485,6 +501,12 @@ protected:
 
   /** Transparency */
   double m_Alpha;
+
+  /** Stickiness (whether the layer can be tiled or not) */
+  bool m_Sticky;
+
+  /** Time when the internal image was allocated */
+  unsigned long m_ImageAssignTime;
 
   /** The pipeline that handles mapping intensities to the display slices */
   SmartPtr<DisplayMapping> m_DisplayMapping;

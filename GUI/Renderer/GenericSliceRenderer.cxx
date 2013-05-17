@@ -106,6 +106,10 @@ GenericSliceRenderer
   int nrows = (int) layout[0];
   int ncols = (int) layout[1];
 
+  // Get the dimensions of the cells
+  unsigned int cell_w = m_Model->GetSize()[0];
+  unsigned int cell_h = m_Model->GetSize()[1];
+
   // Get the appearance settings pointer since we use it a lot
   SNAPAppearanceSettings *as =
       m_Model->GetParentUI()->GetAppearanceSettings();
@@ -113,7 +117,6 @@ GenericSliceRenderer
   // Get the properties for the background color
   Vector3d clrBack = as->GetUIElement(
       SNAPAppearanceSettings::BACKGROUND_2D).NormalColor;
-
 
   // Slice should be initialized before display
   if (m_Model->IsSliceInitialized())
@@ -133,10 +136,6 @@ GenericSliceRenderer
     for(int irow = 0; irow < nrows; irow++)
       for(int icol = 0; icol < ncols; icol++)
         {
-        // Get the dimensions of the cells
-        unsigned int cell_w = m_Model->GetSize()[0];
-        unsigned int cell_h = m_Model->GetSize()[1];
-
         // Set up the viewport for the current cell
         glViewport(icol * cell_w, (nrows - 1 - irow) * cell_h,
                    cell_w, cell_h);
@@ -182,7 +181,7 @@ GenericSliceRenderer
           if(as->GetOverallVisibility())
             {
             // Draw all the overlays added to this object
-            this->DrawOverlays();
+            this->DrawTiledOverlays();
 
             // Draw the zoom locator
             if(m_Model->IsThumbnailOn() && irow == (nrows-1) && icol == 0)
@@ -192,8 +191,32 @@ GenericSliceRenderer
 
         // Clean up the GL state
         glPopMatrix();
-
         }
+
+    // Set the viewport and projection to original dimensions
+    Vector2ui vp = m_Model->GetSizeReporter()->GetViewportSize();
+
+    glViewport(0, 0, vp[0], vp[1]);
+
+    // Set up the projection
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0.0, vp[0], 0.0, vp[1]);
+
+    // Establish the model view matrix
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // Draw the global overlays
+    this->DrawGlobalOverlays();
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
 
     // Draw the various decorations
     glPopAttrib();
@@ -223,32 +246,75 @@ bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int i
   // Get the image data
   GenericImageData *id = m_Model->GetImageData();
 
+  // If drawing the thumbnail, only draw the main layer
+  if(m_ThumbnailDrawing)
+    {
+    DrawTextureForLayer(id->GetMain(), false);
+    return true;
+    }
+
   // Is the display partitioned into rows and columns?
   if(nrows == 1 && ncols == 1)
     {
-    // Draw the main texture
-    if (id->IsMainLoaded())
-      DrawTextureForLayer(id->GetMain(), false);
-
-    // Draw each of the overlays with transparency
-    if (!m_ThumbnailDrawing)
+    // Draw all the layers that are visible except segmentation, which is handled
+    // separately (last)
+    for(LayerIterator it(id); !it.IsAtEnd(); ++it)
       {
-      for(LayerIterator it(id, LayerIterator::OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+      ImageWrapperBase *layer = it.GetLayer();
+      if(it.GetRole() == LayerIterator::MAIN_ROLE)
+        {
+        DrawTextureForLayer(layer, false);
+        }
+      else if(it.GetRole() != LayerIterator::LABEL_ROLE
+              && layer->IsDrawable() && layer->GetAlpha() > 0)
+        {
         DrawTextureForLayer(it.GetLayer(), true);
+        }
       }
+
+    return true;
     }
   else
     {
-    // Draw the i-th texture
-    LayerIterator it(id, LayerIterator::OVERLAY_ROLE | LayerIterator::MAIN_ROLE);
-    it += irow * ncols + icol;
-    if(!it.IsAtEnd())
-      DrawTextureForLayer(it.GetLayer(), false);
-    else
-      return false;
-    }
+    // How many layers to go until we get to the one we want to paint?
+    int togo = irow * ncols + icol;
 
-  return true;
+    // Skip all layers until we get to the sticky layer we want to paint
+    for(LayerIterator it(id); !it.IsAtEnd(); ++it)
+      {
+      if(it.GetRole() == LayerIterator::MAIN_ROLE || !it.GetLayer()->IsSticky())
+        {
+        if(togo > 0)
+          togo--;
+        else
+          {
+          // Check if the layer is in drawable condition. If not, draw nothing.
+          if(!it.GetLayer()->IsDrawable())
+            return false;
+
+          // Draw the particular layer
+          DrawTextureForLayer(it.GetLayer(), false);
+
+          // Now draw all the non-sticky layers
+          for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
+            {
+            if(itov.GetRole() != LayerIterator::MAIN_ROLE
+               && itov.GetLayer()->IsSticky()
+               && it.GetLayer()->IsDrawable()
+               && itov.GetLayer()->GetAlpha() > 0)
+              {
+              DrawTextureForLayer(itov.GetLayer(), true);
+              }
+            }
+
+          return true;
+          }
+        }
+      }
+
+    // Didn't draw anything...
+    return false;
+    }
 }
 
 
@@ -346,7 +412,7 @@ void GenericSliceRenderer::DrawThumbnail()
   DrawMainTexture();
 
   // Draw the overlays that are shown on the thumbnail
-  DrawOverlays();
+  DrawTiledOverlays();
 
   // Apply the line settings
   SNAPAppearanceSettings::ApplyUIElementLineSettings(elt);
@@ -451,12 +517,23 @@ void GenericSliceRenderer::initializeGL()
 {
 }
 
-void GenericSliceRenderer::DrawOverlays()
+void GenericSliceRenderer::DrawTiledOverlays()
 {
   // The renderer will contain a list of overlays that implement the
   // generic interface
-  for(RendererDelegateList::iterator it = m_Overlays.begin();
-      it != m_Overlays.end(); it++)
+  for(RendererDelegateList::iterator it = m_TiledOverlays.begin();
+      it != m_TiledOverlays.end(); it++)
+    {
+    (*it)->paintGL();
+    }
+}
+
+void GenericSliceRenderer::DrawGlobalOverlays()
+{
+  // The renderer will contain a list of overlays that implement the
+  // generic interface
+  for(RendererDelegateList::iterator it = m_GlobalOverlays.begin();
+      it != m_GlobalOverlays.end(); it++)
     {
     (*it)->paintGL();
     }

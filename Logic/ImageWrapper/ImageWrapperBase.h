@@ -137,6 +137,22 @@ public:
   irisVirtualGetMacro(Alpha, double)
 
   /**
+   * Get layer stickiness. A sticky layer always is shown 'on top' of other
+   * layers, e.g., the segmentation layer, or the level set image. A layer that
+   * is not sticky is shown in its own tile when the display is in tiled mode
+   */
+  irisVirtualSetMacro(Sticky, bool)
+
+  /** Set layer stickiness */
+  irisVirtualIsMacro(Sticky)
+
+  /**
+   * Whether the layer is drawable. Some layers may be initialized, but not
+   * yet computed, in which case they should not yet be drawn.
+   */
+  irisVirtualIsMacro(Drawable)
+
+  /**
    * Get the buffered region of the image
    */
   virtual itk::ImageRegion<3> GetBufferedRegion() const = 0;

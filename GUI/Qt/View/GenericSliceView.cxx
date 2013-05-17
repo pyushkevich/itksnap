@@ -69,9 +69,3 @@ void GenericSliceView::onModelUpdate(const EventBucket &b)
   this->update();
 }
 
-GenericSliceRenderer::RendererDelegateList &
-GenericSliceView::GetRendererOverlays()
-{
-  return m_Renderer->GetOverlays();
-}
-

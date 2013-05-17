@@ -364,6 +364,9 @@ ImageWrapper<TTraits,TBase>
   // Initialize the histogram
   m_Histogram = ScalarImageHistogram::New();
 
+  // Set sticky flag
+  m_Sticky = TTraits::StickyByDefault;
+
   // Set the transform to identity, which will initialize the directions of the
   // slicers
   this->SetImageToDisplayTransformsToDefault();
@@ -427,6 +430,28 @@ ImageWrapper<TTraits,TBase>
     (unsigned int) size[1],
         (unsigned int) size[2]);
 }
+
+template<class TTraits, class TBase>
+bool
+ImageWrapper<TTraits,TBase>
+::IsDrawable() const
+{
+  // If not initialized, the layer is not drawable
+  if(!this->IsInitialized())
+    return false;
+
+  // If the image is a pipeline output, then it is displayable either if
+  // there is a preview pipeline in place, or if the image volume itself has
+  // been modified.
+  if(TTraits::PipelineOutput)
+    {
+    return IsPreviewPipelineAttached() || m_Image->GetMTime() > m_ImageAssignTime;
+    }
+
+  // Otherwise, it's drawable
+  return true;
+}
+
 
 template<class TTraits, class TBase>
 itk::ImageRegion<3>
@@ -557,6 +582,9 @@ ImageWrapper<TTraits,TBase>
 
   // We have been initialized
   m_Initialized = true;
+
+  // Store the time when the image was assigned
+  m_ImageAssignTime = m_Image->GetMTime();
 }
 
 template<class TTraits, class TBase>

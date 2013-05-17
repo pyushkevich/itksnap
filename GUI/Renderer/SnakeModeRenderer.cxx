@@ -23,12 +23,12 @@ void SnakeModeRenderer::paintGL()
     SNAPImageData *sid = app->GetSNAPImageData();
 
     // Draw the speed (always)
-    this->DrawSpeedImage();
+    // this->DrawSpeedImage();
 
     if(sid->IsSegmentationActive())
       {
       // Draw the current segmentation after the segmentation starts
-      this->DrawEvolvingContour();
+      // this->DrawEvolvingContour();
       }
     else
       {

@@ -309,14 +309,21 @@ void SliceViewPanel::SetActiveMode(QWidget *mode, bool clearChildren)
 
 void SliceViewPanel::OnToolbarModeChange()
 {
+  // Get the renderer and configure its overlays
+  GenericSliceRenderer *ren = (GenericSliceRenderer *) ui->sliceView->GetRenderer();
+
   // Configure the renderers
-  GenericSliceRenderer::RendererDelegateList &overlays =
-      ui->sliceView->GetRendererOverlays();
-  overlays.clear();
-  overlays.push_back(m_SnakeModeRenderer);
-  overlays.push_back(ui->imCrosshairs->GetRenderer());
-  overlays.push_back(m_DecorationRenderer);
-  overlays.push_back(ui->imPolygon->GetRenderer());
+  GenericSliceRenderer::RendererDelegateList &ovTiled = ren->GetTiledOverlays();
+  GenericSliceRenderer::RendererDelegateList &ovGlobal = ren->GetGlobalOverlays();
+
+  // Append the overlays in the right order
+  ovTiled.clear();
+  ovTiled.push_back(m_SnakeModeRenderer);
+  ovTiled.push_back(ui->imCrosshairs->GetRenderer());
+  ovTiled.push_back(ui->imPolygon->GetRenderer());
+
+  ovGlobal.clear();
+  ovGlobal.push_back(m_DecorationRenderer);
 
   switch((ToolbarModeType)m_GlobalUI->GetToolbarMode())
     {
@@ -325,13 +332,13 @@ void SliceViewPanel::OnToolbarModeChange()
       break;
     case PAINTBRUSH_MODE:
       ConfigureEventChain(ui->imPaintbrush);
-      overlays.push_back(ui->imPaintbrush->GetRenderer());
+      ovTiled.push_back(ui->imPaintbrush->GetRenderer());
       break;
     case ANNOTATION_MODE:
       break;
     case ROI_MODE:
       ConfigureEventChain(ui->imSnakeROI);
-      overlays.push_back(ui->imSnakeROI->GetRenderer());
+      ovTiled.push_back(ui->imSnakeROI->GetRenderer());
       break;
     case CROSSHAIRS_MODE:
       ConfigureEventChain(ui->imCrosshairs);

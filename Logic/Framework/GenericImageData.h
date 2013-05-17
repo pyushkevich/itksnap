@@ -66,8 +66,8 @@ public:
   {
     MAIN_ROLE = 0x0001,
     OVERLAY_ROLE = 0x0002,
-    LABEL_ROLE = 0x0004,
-    SNAP_ROLE = 0x0008,
+    SNAP_ROLE = 0x0004,
+    LABEL_ROLE = 0x0008,
     NO_ROLE = 0x0010
   };
 

@@ -70,6 +70,10 @@ void DisplayLayoutModel::SetParentModel(GlobalUIModel *parentModel)
   // We need to be notified when the number of overlays changes
   Rebroadcast(m_ParentModel->GetDriver(),
               LayerChangeEvent(), LayerLayoutChangeEvent());
+
+  // We also need notification when the layer stickiness changes
+  Rebroadcast(m_ParentModel->GetDriver(),
+              WrapperMetadataChangeEvent(), LayerLayoutChangeEvent());
 }
 
 bool DisplayLayoutModel
@@ -157,6 +161,8 @@ bool DisplayLayoutModel::GetSliceViewLayerTilingValue(Vector2ui &value)
 
 void DisplayLayoutModel::UpdateSliceViewTiling()
 {
+  GenericImageData *id = m_ParentModel->GetDriver()->GetCurrentImageData();
+
   // In stacked layout, there is only one layer to draw
   if(m_LayerLayout == LAYOUT_STACKED)
     {
@@ -173,8 +179,13 @@ void DisplayLayoutModel::UpdateSliceViewTiling()
   // should just use some default tiling scheme
   else
     {
-    int n = m_ParentModel->GetDriver()->GetCurrentImageData()->GetNumberOfLayers(
-          LayerIterator::OVERLAY_ROLE | LayerIterator::MAIN_ROLE);
+    // Count the number of non-sticky layers, always counting main layer as 1
+    int n = 0;
+    for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+      {
+      if(it.GetRole() == LayerIterator::MAIN_ROLE || !it.GetLayer()->IsSticky())
+        n++;
+      }
 
     // A simple algorithm to solve min(ab) s.t. ab >= n, k >= a/b >= 1, where
     // k is an aspect ratio value
