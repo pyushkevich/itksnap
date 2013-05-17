@@ -43,7 +43,7 @@ LatentITKEventNotifierCleanup
     {
     std::cout << "DELETE CALLBACK from " << object->GetNameOfClass()
               << " [" << typeid(*object).name() << "]"
-              << " event " << evt.GetEventName() << std::endl;
+              << " event " << evt.GetEventName() << std::endl << std::flush;
     }
 #endif
   // Forget the source.
@@ -76,7 +76,7 @@ LatentITKEventNotifierHelper
               << " [" << object << "] "
               << " for " << parent()->metaObject()->className()
               << " named '" << qPrintable(parent()->objectName())
-              << "'" << std::endl;
+              << "'" << std::endl << std::flush;
     }
 #endif
 
@@ -103,7 +103,7 @@ LatentITKEventNotifierHelper
       std::cout << "SEND " << m_Bucket
                 << " to " << parent()->metaObject()->className()
                 << " named '" << qPrintable(parent()->objectName())
-                << "'" << std::endl;
+                << "'" << std::endl << std::flush;
       }
 #endif
 

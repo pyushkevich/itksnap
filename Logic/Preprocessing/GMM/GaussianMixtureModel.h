@@ -25,6 +25,10 @@ public:
   void SetMean(int index, double *mean);
   void SetCovariance(int index, double *covariance);
   void SetWeight(int index, double weight);
+
+  double EvaluateLogPDF(int index, double *x);
+  double EvaluateLogPDF(int index, vnl_vector<double> &x, vnl_vector<double> &xscratch);
+
   double EvaluatePDF(int index, double *x);
   double EvaluatePDF(int index, vnl_vector<double> &x, vnl_vector<double> &xscratch);
 

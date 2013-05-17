@@ -19,6 +19,11 @@ public:
   void SetMean(double *mean);
   void SetCovariance(double *covariance);
   void SetParameters(double *mean, double *covariance);
+
+
+  double EvaluateLogPDF(double *x);
+  double EvaluateLogPDF(VectorType &x, VectorType &xscratch);
+
   double EvaluatePDF(double *x);
   double EvaluatePDF(VectorType &x, VectorType &xscratch);
   void PrintParameters();
@@ -31,7 +36,8 @@ private:
   int m_setCovarianceFlag;
   double *m_mean;
   double *m_covariance;
-  double m_normalization;
+  double m_normalization, m_log_normalization;
+  bool m_is_delta;
 //  MatrixType *m_mean_matrix;
   MatrixType *m_covariance_matrix;
   MatrixType *m_precision_matrix;

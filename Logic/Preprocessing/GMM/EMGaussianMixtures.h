@@ -27,6 +27,8 @@ public:
   double EvaluateLogLikelihood(void);
   void PrintParameters(void);
 
+  static double ComputePosterior(int nGauss, double *log_pdf, double *log_w, int j);
+
 private:
   void EvaluatePDF(void);
   void UpdateLatent(void);
@@ -35,7 +37,7 @@ private:
   void UpdateWeight(void);
   
   double **m_latent;
-  double **m_pdf;
+  double **m_log_pdf;
   double **m_prior;
   double **m_x;
   double *m_probs;

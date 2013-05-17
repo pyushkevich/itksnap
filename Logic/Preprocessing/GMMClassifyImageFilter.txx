@@ -3,6 +3,7 @@
 
 #include "GMMClassifyImageFilter.h"
 #include "itkImageRegionConstIterator.h"
+#include "EMGaussianMixtures.h"
 
 template <class TInputImage, class TOutputImage>
 GMMClassifyImageFilter<TInputImage, TOutputImage>
@@ -137,12 +138,17 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
 
   vnl_vector<double> x(m_MixtureModel->GetNumberOfComponents());
   vnl_vector<double> x_scratch(m_MixtureModel->GetNumberOfComponents());
+  vnl_vector<double> log_pdf(m_MixtureModel->GetNumberOfGaussians());
+  vnl_vector<double> log_w(m_MixtureModel->GetNumberOfGaussians());
   vnl_vector<double> p(m_MixtureModel->GetNumberOfGaussians());
 
   // Create a multiplier vector (1 for foreground, -1 for background)
   vnl_vector<double> pfactor(m_MixtureModel->GetNumberOfGaussians());
   for(int i = 0; i < m_MixtureModel->GetNumberOfGaussians(); i++)
+    {
     pfactor[i] = m_MixtureModel->IsForeground(i) ? 1.0 : -1.0;
+    log_w[i] = log(m_MixtureModel->GetWeight(i));
+    }
 
   // Iterate through all the voxels
   while ( !it_out.IsAtEnd() )
@@ -159,21 +165,25 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
       ++it_in[i];
       }
 
-    // Evaluate the GMM for each of the clusters
-    double psum = 0, pdiff = 0;
+    // Evaluate the posterior probability robustly
     for(int k = 0; k < m_MixtureModel->GetNumberOfGaussians(); k++)
       {
-      // TODO: this should be the foreground component
-      p[k] = m_MixtureModel->EvaluatePDF(k, x, x_scratch) * m_MixtureModel->GetWeight(k);
-      psum += p[k];
+      log_pdf[k] = m_MixtureModel->EvaluateLogPDF(k, x, x_scratch);
+      }
+
+    // Evaluate the GMM for each of the clusters
+    double pdiff = 0;
+    for(int k = 0; k < m_MixtureModel->GetNumberOfGaussians(); k++)
+      {
+      p[k] = EMGaussianMixtures::ComputePosterior(
+            m_MixtureModel->GetNumberOfGaussians(),
+            log_pdf.data_block(), log_w.data_block(), k);
+
       pdiff += p[k] * pfactor[k];
       }
 
-    double post = (psum == 0) ? 0.0 : pdiff / psum;
-
-
     // Store the value
-    it_out.Set(post * 0x7fff);
+    it_out.Set(pdiff * 0x7fff);
     ++it_out;
     }
 }

@@ -34,7 +34,7 @@ void AbstractModel::Update()
       {
       std::cout << "UPDATE called in model " << this->GetNameOfClass()
                 << " [" << this << "] "
-                << " with " << *m_EventBucket << std::endl;
+                << " with " << *m_EventBucket << std::endl << std::flush;
       }
 #endif
     this->OnUpdate();
@@ -76,7 +76,7 @@ AbstractModel::Rebroadcaster
               << " as " << m_Event->GetEventName()
               << " from " << m_Model->GetNameOfClass()
               << " [" << m_Model << "] "
-              << std::endl;
+              << std::endl << std::flush;
     }
 #endif // SNAP_DEBUG_EVENTS
   m_Model->m_EventBucket->PutEvent(evt, source);
@@ -97,7 +97,7 @@ AbstractModel::Rebroadcaster
               << " as " << m_Event->GetEventName()
               << " from " << m_Model->GetNameOfClass()
               << " [" << m_Model << "] "
-              << std::endl;
+              << std::endl << std::flush;
     }
 #endif // SNAP_DEBUG_EVENTS
 

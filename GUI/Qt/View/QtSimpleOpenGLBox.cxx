@@ -9,10 +9,15 @@ QtSimpleOpenGLBox::QtSimpleOpenGLBox(QWidget *parent)
 
 void QtSimpleOpenGLBox::onModelUpdate(const EventBucket &bucket)
 {
-  if(m_Renderer)
-    m_Renderer->Update();
+  if(this->isVisible())
+    {
+    // TODO: this seems redundant, Update is already called in the paint method
+    // of the renderer, and update() just causes paint to be called.
+    if(m_Renderer)
+      m_Renderer->Update();
 
-  this->update();
+    this->update();
+    }
 }
 
 void QtSimpleOpenGLBox::SetRenderer(AbstractRenderer *renderer)

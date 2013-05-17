@@ -146,6 +146,20 @@ double GaussianMixtureModel::EvaluatePDF(int index, double *x)
   }
 }
 
+double GaussianMixtureModel::EvaluateLogPDF(int index, double *x)
+{
+  if (index < m_numOfGaussian)
+  {
+    return (*m_gaussian)[index]->EvaluateLogPDF(x);
+  }
+  else
+  {
+    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
+    exit(0);
+  }
+}
+
+
 double GaussianMixtureModel::EvaluatePDF(int index, vnl_vector<double> &x, vnl_vector<double> &xscratch)
 {
   if (index < m_numOfGaussian)
@@ -157,6 +171,19 @@ double GaussianMixtureModel::EvaluatePDF(int index, vnl_vector<double> &x, vnl_v
     exit(0);
   }
 }
+
+double GaussianMixtureModel::EvaluateLogPDF(int index, vnl_vector<double> &x, vnl_vector<double> &xscratch)
+{
+  if (index < m_numOfGaussian)
+  {
+    return (*m_gaussian)[index]->EvaluateLogPDF(x, xscratch); }
+  else
+  {
+    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
+    exit(0);
+  }
+}
+
 
 void GaussianMixtureModel::PrintParameters()
 {

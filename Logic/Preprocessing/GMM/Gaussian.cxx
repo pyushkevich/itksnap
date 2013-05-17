@@ -2,7 +2,7 @@
 #include <iostream>
 
 Gaussian::Gaussian(int dimension)
-  :m_dimension(dimension), m_setMeanFlag(0), m_setCovarianceFlag(0), m_normalization(0)
+  :m_dimension(dimension), m_setMeanFlag(0), m_setCovarianceFlag(0), m_normalization(0), m_log_normalization(0)
 {
   m_mean = new double[dimension];
   m_covariance = new double[dimension*dimension];
@@ -23,6 +23,8 @@ Gaussian::Gaussian(int dimension, double *mean, double *covariance)
 //  m_mean_matrix = new MatrixType(dimension, 1);
   m_mean_vector = new VectorType(dimension);
   m_covariance_matrix = new MatrixType(dimension, dimension);
+
+  m_is_delta = true;
   for (int i = 0; i < dimension; i++)
   {
     m_mean[i] = mean[i];
@@ -31,11 +33,19 @@ Gaussian::Gaussian(int dimension, double *mean, double *covariance)
     {
       m_covariance[i*dimension+j] = covariance[i*dimension+j];
       (*m_covariance_matrix)(i,j) = covariance[i*dimension+j];
+      if(fabs(covariance[i*m_dimension+j]) > 1.e-10)
+        m_is_delta = false;
     }
   }
+
   m_precision_matrix = new MatrixType(dimension, dimension);
-  (*m_precision_matrix) = vnl_matrix_inverse<double>(*m_covariance_matrix);
-  m_normalization = sqrt(pow(2*M_PI, m_dimension) * vnl_determinant(*m_covariance_matrix));
+  if(!m_is_delta)
+    {
+    (*m_precision_matrix) = vnl_matrix_inverse<double>(*m_covariance_matrix);
+    m_normalization = sqrt(pow(2*M_PI, m_dimension) * vnl_determinant(*m_covariance_matrix));
+    m_log_normalization = log(m_normalization);
+    }
+
 //  m_x_matrix = new MatrixType(dimension, 1);
   m_x_vector = new VectorType(dimension);
 }
@@ -93,24 +103,34 @@ void Gaussian::SetMean(double *mean)
 
 void Gaussian::SetCovariance(double *covariance)
 {
+  m_is_delta = true;
   for(int i = 0; i < m_dimension; i++)
   {
     for(int j = 0; j < m_dimension; j++)
     {
       m_covariance[i*m_dimension+j] = covariance[i*m_dimension+j];
       (*m_covariance_matrix)(i,j) = covariance[i*m_dimension+j];
+      if(fabs(covariance[i*m_dimension+j]) > 1.e-10)
+        m_is_delta = false;
     }
   }
 //  m_precision_matrix_generator = new MatrixInverseType(*m_covariance_matrix);
 //  m_precision_matrix = new MatrixType(m_dimension, m_dimension);
 
-
-
-  (*m_precision_matrix) = vnl_matrix_inverse<double>(*m_covariance_matrix);
-  m_normalization = sqrt(pow(2*M_PI, m_dimension) * vnl_determinant(*m_covariance_matrix));
-  m_setCovarianceFlag = 1;
+  if(!m_is_delta)
+    {
+    (*m_precision_matrix) = vnl_matrix_inverse<double>(*m_covariance_matrix);
+    m_normalization = sqrt(pow(2*M_PI, m_dimension) * vnl_determinant(*m_covariance_matrix));
+    m_log_normalization = log(m_normalization);
+    m_setCovarianceFlag = 1;
+    }
+  else
+    {
+    // the Gaussian is a delta function. The code should not use the precision matrix or normalization
+    }
 }
 
+#include <vnl/vnl_math.h>
 double Gaussian::EvaluatePDF(double *x)
 {
   for(int i = 0; i < m_dimension; i++)
@@ -119,8 +139,17 @@ double Gaussian::EvaluatePDF(double *x)
     // (*m_x_matrix)(i,0) = x[i] - (*m_mean_matrix)(i,0);
   }
 
-  double t = dot_product((*m_precision_matrix) * (*m_x_vector), (*m_x_vector));
-  double z = exp(-0.5 * t) / m_normalization;
+  if(!m_is_delta)
+    {
+    double t = dot_product((*m_precision_matrix) * (*m_x_vector), (*m_x_vector));
+    double z = exp(-0.5 * t) / m_normalization;
+    return z;
+    }
+  else
+    {
+    // Behave like a delta function
+    return m_x_vector->inf_norm() == 0.0 ? vnl_huge_val(1.0) : 0.0;
+    }
 
   /*
   return (exp(( -0.5*(*m_x_matrix).transpose()
@@ -128,8 +157,42 @@ double Gaussian::EvaluatePDF(double *x)
 		* (*m_x_matrix) )(0,0))
 	  / m_normalization);
     */
+}
 
-  return z;
+double Gaussian::EvaluateLogPDF(double *x)
+{
+  for(int i = 0; i < m_dimension; i++)
+  {
+    (*m_x_vector)(i) = x[i] - (*m_mean_vector)(i);
+  }
+
+  if(!m_is_delta)
+    {
+    double t = dot_product((*m_precision_matrix) * (*m_x_vector), (*m_x_vector));
+    return -0.5 * t - m_log_normalization;
+    }
+  else
+    {
+    return m_x_vector->inf_norm() == 0.0 ? vnl_huge_val(1.0) : -vnl_huge_val(1.0);
+    }
+}
+
+double Gaussian::EvaluateLogPDF(VectorType &x, VectorType &xscratch)
+{
+  for(int i = 0; i < m_dimension; i++)
+  {
+    xscratch[i] = x[i] - (*m_mean_vector)(i);
+  }
+
+  if(!m_is_delta)
+    {
+    double t = dot_product((*m_precision_matrix) * xscratch, xscratch);
+    return -0.5 * t - m_log_normalization;
+    }
+  else
+    {
+    return xscratch.inf_norm() == 0.0 ? vnl_huge_val(1.0) : -vnl_huge_val(1.0);
+    }
 }
 
 double Gaussian::EvaluatePDF(VectorType &x, VectorType &xscratch)
@@ -139,10 +202,17 @@ double Gaussian::EvaluatePDF(VectorType &x, VectorType &xscratch)
     xscratch[i] = x[i] - (*m_mean_vector)(i);
   }
 
-  double t = dot_product((*m_precision_matrix) * xscratch, xscratch);
-  double z = exp(-0.5 * t) / m_normalization;
-
-  return z;
+  if(!m_is_delta)
+    {
+    double t = dot_product((*m_precision_matrix) * xscratch, xscratch);
+    double z = exp(-0.5 * t) / m_normalization;
+    return z;
+    }
+  else
+    {
+    // Behave like a delta function
+    return m_x_vector->inf_norm() == 0.0 ? vnl_huge_val(1.0) : 0.0;
+    }
 }
 
 

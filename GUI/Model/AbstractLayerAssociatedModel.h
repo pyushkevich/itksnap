@@ -107,7 +107,7 @@ public:
         {
         std::cout << "DeleteEvent registration "
                   << " layer " << m_Layer << " id " << m_Layer->GetUniqueId()
-                  << " observer " << this << std::endl;
+                  << " observer " << this << std::endl << std::flush;
         }
 #endif
 
