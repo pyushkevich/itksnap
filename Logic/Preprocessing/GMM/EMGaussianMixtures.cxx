@@ -208,7 +208,7 @@ void EMGaussianMixtures::EvaluatePDF(void)
 
 #include <vnl/vnl_math.h>
 
-double EMGaussianMixtures::ComputePosterior(int nGauss, double *log_pdf, double *log_w, int j)
+double EMGaussianMixtures::ComputePosterior(int nGauss, double *log_pdf, double *w, double *log_w, int j)
 {
   // Instead of directly computing the expression
   //   latent[i][j] = w[j] * N(x_i; m_j, Sigma_j) / Sum_k[w[k] * N(x_i; m_k, Sigma_k)]
@@ -220,6 +220,10 @@ double EMGaussianMixtures::ComputePosterior(int nGauss, double *log_pdf, double 
   //   latent[i][j] = 1 / (1 + Sum_(k!=j)[ exp(a_k - a_j) ])
   // which is numerically stable
 
+  // If the weight of the class is zero, the posterior is automatically zero
+  if(w[j] == 0)
+    return 0;
+
   // We are computing m_latent[i][j]
   double denom = 1.0;
 
@@ -227,7 +231,7 @@ double EMGaussianMixtures::ComputePosterior(int nGauss, double *log_pdf, double 
   double exp_j = (log_w[j] + log_pdf[j]);
   for (int k = 0; k < nGauss; k++)
     {
-    if(j != k)
+    if(j != k && w[k] > 0)
       {
       // The log of (w[k] * pdf[k]) / (w[j] * pdf[j])
       double exponent = (log_w[k] + log_pdf[k]) - exp_j;
@@ -250,7 +254,10 @@ double EMGaussianMixtures::ComputePosterior(int nGauss, double *log_pdf, double 
     }
 
   // Now compute 1/denom
-  return 1.0 / denom;
+  double post = 1.0 / denom;
+  if(post != post)
+    std::cout << "NAN here" << std::endl;
+  return post;
 }
 
 void EMGaussianMixtures::UpdateLatent(void)
@@ -272,7 +279,7 @@ void EMGaussianMixtures::UpdateLatent(void)
       {
       for (int j = 0; j < m_numOfGaussian; j++)
         {
-        m_latent[i][j] = ComputePosterior(m_numOfGaussian, logw.data_block(), m_log_pdf[i], j);
+        m_latent[i][j] = ComputePosterior(m_numOfGaussian, m_log_pdf[i], m_weight, logw.data_block(), j);
         m_sum[j] += m_latent[i][j];
         }
 
@@ -408,7 +415,8 @@ double EMGaussianMixtures::EvaluateLogLikelihood(void)
       tmp1 = 0;
       for (int j = 0; j < m_numOfGaussian; j++)
         {
-        tmp1 += m_weight[j] * exp(m_log_pdf[i][j]);
+        if(!m_gmm->GetGaussian(j)->isDeltaFunction())
+          tmp1 += m_weight[j] * exp(m_log_pdf[i][j]);
         }
       tmp2 += log(tmp1);
       }
@@ -420,7 +428,8 @@ double EMGaussianMixtures::EvaluateLogLikelihood(void)
       tmp1 = 0;
       for (int j = 0; j < m_numOfGaussian; j++)
         {
-        tmp1 += m_prior[i][j] * exp(m_log_pdf[i][j]);
+        if(!m_gmm->GetGaussian(j)->isDeltaFunction())
+          tmp1 += m_prior[i][j] * exp(m_log_pdf[i][j]);
         }
       tmp2 += log(tmp1);
       }

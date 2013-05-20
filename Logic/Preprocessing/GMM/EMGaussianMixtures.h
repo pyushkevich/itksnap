@@ -27,7 +27,7 @@ public:
   double EvaluateLogLikelihood(void);
   void PrintParameters(void);
 
-  static double ComputePosterior(int nGauss, double *log_pdf, double *log_w, int j);
+  static double ComputePosterior(int nGauss, double *log_pdf, double *w, double *log_w, int j);
 
 private:
   void EvaluatePDF(void);

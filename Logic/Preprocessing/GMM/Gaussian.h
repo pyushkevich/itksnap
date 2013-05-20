@@ -28,6 +28,8 @@ public:
   double EvaluatePDF(VectorType &x, VectorType &xscratch);
   void PrintParameters();
 
+  bool isDeltaFunction();
+
   //To do random number, check SPD
   
 private:

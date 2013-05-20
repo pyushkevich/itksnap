@@ -156,6 +156,11 @@ void SpeedImageDialog::on_btnIterate_clicked()
 
 
 
+void SpeedImageDialog::on_btnIterateTen_clicked()
+{
+  for(int i = 0; i < 10; i++)
+    m_Model->PerformClusteringIteration();
+}
 
 
 
@@ -304,4 +309,5 @@ GMMTableModel::GMMTableModel(QObject *parent)
 {
   m_ParentModel = NULL;
 }
+
 

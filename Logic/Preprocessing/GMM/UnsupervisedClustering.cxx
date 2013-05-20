@@ -23,7 +23,15 @@ UnsupervisedClustering::~UnsupervisedClustering()
     }
 
   if(m_DataArray)
+    {
+    // Delete the main data buffer
+    delete m_DataArray[0];
+
+    // Delete the pointers into the buffer
     delete m_DataArray;
+    }
+
+
 }
 
 
@@ -45,6 +53,10 @@ void UnsupervisedClustering::SampleDataSource()
 {
   if(m_DataArray)
     {
+    // Delete the main data buffer
+    delete m_DataArray[0];
+
+    // Delete the pointers into the buffer
     delete m_DataArray;
     }
 
@@ -127,6 +139,8 @@ void UnsupervisedClustering::SampleDataSource()
 
       pVoxel++;
       }
+
+    assert(pVoxel == nsam);
 
     m_NumberOfVoxels = nsam;
     }

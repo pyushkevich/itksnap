@@ -312,7 +312,7 @@ font-size: 12px;
              </property>
             </widget>
            </item>
-           <item row="5" column="3">
+           <item row="5" column="4">
             <spacer name="horizontalSpacer_2">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -325,18 +325,34 @@ font-size: 12px;
              </property>
             </spacer>
            </item>
-           <item row="0" column="3" alignment="Qt::AlignRight">
+           <item row="0" column="4" alignment="Qt::AlignRight">
             <widget class="QSpinBox" name="inNumClusters">
+             <property name="minimumSize">
+              <size>
+               <width>96</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
                <width>128</width>
                <height>16777215</height>
               </size>
              </property>
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
             </widget>
            </item>
-           <item row="3" column="0" colspan="4">
-            <widget class="QTableView" name="tblClusters"/>
+           <item row="3" column="0" colspan="5">
+            <widget class="QTableView" name="tblClusters">
+             <attribute name="horizontalHeaderDefaultSectionSize">
+              <number>80</number>
+             </attribute>
+             <attribute name="verticalHeaderDefaultSectionSize">
+              <number>24</number>
+             </attribute>
+            </widget>
            </item>
            <item row="5" column="0">
             <widget class="QPushButton" name="btnReinitialize">
@@ -352,13 +368,32 @@ font-size: 12px;
              </property>
             </widget>
            </item>
-           <item row="4" column="3" alignment="Qt::AlignRight">
+           <item row="5" column="3">
+            <widget class="QPushButton" name="btnIterateTen">
+             <property name="text">
+              <string>Iterate x10</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="4">
             <widget class="QSpinBox" name="inNumSamples">
+             <property name="minimumSize">
+              <size>
+               <width>96</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
-               <width>128</width>
+               <width>96</width>
                <height>16777215</height>
               </size>
+             </property>
+             <property name="correctionMode">
+              <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+             </property>
+             <property name="keyboardTracking">
+              <bool>false</bool>
              </property>
             </widget>
            </item>

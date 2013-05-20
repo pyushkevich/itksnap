@@ -140,6 +140,7 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
   vnl_vector<double> x_scratch(m_MixtureModel->GetNumberOfComponents());
   vnl_vector<double> log_pdf(m_MixtureModel->GetNumberOfGaussians());
   vnl_vector<double> log_w(m_MixtureModel->GetNumberOfGaussians());
+  vnl_vector<double> w(m_MixtureModel->GetNumberOfGaussians());
   vnl_vector<double> p(m_MixtureModel->GetNumberOfGaussians());
 
   // Create a multiplier vector (1 for foreground, -1 for background)
@@ -148,6 +149,7 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
     {
     pfactor[i] = m_MixtureModel->IsForeground(i) ? 1.0 : -1.0;
     log_w[i] = log(m_MixtureModel->GetWeight(i));
+    w[i] = m_MixtureModel->GetWeight(i);
     }
 
   // Iterate through all the voxels
@@ -177,7 +179,7 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
       {
       p[k] = EMGaussianMixtures::ComputePosterior(
             m_MixtureModel->GetNumberOfGaussians(),
-            log_pdf.data_block(), log_w.data_block(), k);
+            log_pdf.data_block(), w.data_block(), log_w.data_block(), k);
 
       pdiff += p[k] * pfactor[k];
       }

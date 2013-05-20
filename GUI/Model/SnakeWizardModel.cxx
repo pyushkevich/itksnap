@@ -799,6 +799,7 @@ void SnakeWizardModel
 
   uc->SetNumberOfClusters(value);
   uc->InitializeClusters();
+  this->TagGMMPreprocessingFilterModified();
   this->InvokeEvent(GMMModifiedEvent());
 }
 
@@ -809,7 +810,11 @@ bool SnakeWizardModel::GetNumberOfGMMSamplesValueAndRange(int &value, NumericVal
     {
     value = uc->GetNumberOfSamples();
     if(range)
-      range->Set(1, m_Driver->GetCurrentImageData()->GetMain()->GetNumberOfVoxels(), 5000);
+      {
+      int nvox = m_Driver->GetCurrentImageData()->GetMain()->GetNumberOfVoxels();
+      range->Set(std::min(nvox, 5000), nvox, 5000);
+      }
+
     return true;
     }
 
@@ -823,6 +828,7 @@ void SnakeWizardModel::SetNumberOfGMMSamplesValue(int value)
 
   uc->SetNumberOfSamples(value);
   uc->InitializeClusters();
+  this->TagGMMPreprocessingFilterModified();
   this->InvokeEvent(GMMModifiedEvent());
 }
 

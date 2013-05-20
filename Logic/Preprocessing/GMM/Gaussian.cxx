@@ -250,5 +250,10 @@ void Gaussian::PrintParameters()
   else
   {
     std::cout << "covariance:" << std::endl << "NA" << std::endl;
-  }
+    }
+}
+
+bool Gaussian::isDeltaFunction()
+{
+  return m_is_delta;
 }
