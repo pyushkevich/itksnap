@@ -9,47 +9,12 @@ class SnakeWizardModel;
 class ThresholdSettingsRenderer;
 class EdgePreprocessingSettingsRenderer;
 class GaussianMixtureModel;
+class GMMTableModel;
 
 namespace Ui {
 class SpeedImageDialog;
 }
 
-// The qt model for the GMM cluster list
-class GMMTableModel : public QAbstractTableModel
-{
-  Q_OBJECT
-
-public:
-
-  GMMTableModel(QObject *parent);
-
-  virtual int rowCount(const QModelIndex &parent) const;
-
-  virtual int columnCount(const QModelIndex &parent) const;
-
-  virtual QVariant data(const QModelIndex &index, int role) const;
-
-  virtual Qt::ItemFlags flags(const QModelIndex &index) const;
-
-  virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-
-  virtual bool setData(const QModelIndex &index, const QVariant &value, int role);
-
-  void SetParentModel(SnakeWizardModel *parent);
-
-public slots:
-
-  void onMixtureModelChange();
-
-protected:
-
-  SnakeWizardModel *m_ParentModel;
-
-
-  GaussianMixtureModel *GetGMM() const;
-
-
-};
 
 
 class SpeedImageDialog : public QDialog

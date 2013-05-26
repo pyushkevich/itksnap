@@ -13,9 +13,9 @@
 #include "IRISApplication.h"
 #include "UnsupervisedClustering.h"
 #include "GaussianMixtureModel.h"
-
-
-
+#include "ImageWrapperBase.h"
+#include "SNAPQtCommon.h"
+#include "GMMTableModel.h"
 
 SpeedImageDialog::SpeedImageDialog(QWidget *parent) :
   QDialog(parent),
@@ -26,6 +26,7 @@ SpeedImageDialog::SpeedImageDialog(QWidget *parent) :
   // Set up the GMM table
   m_GMMTableModel = new GMMTableModel(this);
   ui->tblClusters->setModel(m_GMMTableModel);
+  ui->tblClusters->setItemDelegate(new GMMItemDelegate(this));
 
   // Create the renderer and attach it to its GL box
   m_ThresholdRenderer = ThresholdSettingsRenderer::New();
@@ -171,143 +172,5 @@ void SpeedImageDialog::on_btnIterateTen_clicked()
 
 
 
-
-/* ============================================
- * Qt MODEL Behind the Cluster Listing Table
- * ============================================ */
-
-void GMMTableModel::SetParentModel(SnakeWizardModel *parent)
-{
-  m_ParentModel = parent;
-
-  LatentITKEventNotifier::connect(m_ParentModel,
-                                  SnakeWizardModel::GMMModifiedEvent(),
-                                  this, SLOT(onMixtureModelChange()));
-}
-
-void GMMTableModel::onMixtureModelChange()
-{
-  this->layoutChanged();
-}
-
-GaussianMixtureModel *GMMTableModel::GetGMM() const
-{
-  if(!m_ParentModel)
-    return NULL;
-
-  // Get the unsupervised clustering class
-  UnsupervisedClustering *uc =
-    m_ParentModel->GetParent()->GetDriver()->GetClusteringEngine();
-
-  // If we are not in GMM mode, there is no uc!
-  if(!uc) return NULL;
-
-  // Get the number of clusters
-  return uc->GetMixtureModel();
-}
-
-int GMMTableModel::rowCount(const QModelIndex &parent) const
-{
-  // Get the number of clusters
-  GaussianMixtureModel *gmm = this->GetGMM();
-  return gmm ? gmm->GetNumberOfGaussians() : 0;
-}
-
-int GMMTableModel::columnCount(const QModelIndex &parent) const
-{
-  // Get the number of clusters
-  GaussianMixtureModel *gmm = this->GetGMM();
-  return gmm ? gmm->GetNumberOfComponents() + 2 : 0;
-}
-
-QVariant GMMTableModel::data(const QModelIndex &index, int role) const
-{
-  // Get the current row (cluster index)
-  int cluster = index.row();
-
-  // Get a pointer to the GMM
-  GaussianMixtureModel *gmm = this->GetGMM();
-  assert(gmm);
-
-  // For first row, return checkboxes
-  if(role == Qt::CheckStateRole && index.column() == 0)
-    {
-    return gmm->IsForeground(cluster) ? Qt::Checked : Qt::Unchecked;
-    }
-
-  else if((role == Qt::DisplayRole || role == Qt::EditRole) && index.column() == 1)
-    {
-    return gmm->GetWeight(cluster);
-    }
-
-  else if((role == Qt::DisplayRole || role == Qt::EditRole) && index.column() > 1)
-    {
-    return gmm->GetMean(cluster)[index.column()-2];
-    }
-
-  else return QVariant();
-}
-
-Qt::ItemFlags GMMTableModel::flags(const QModelIndex &index) const
-{
-  if(index.column() == 0)
-    return Qt::ItemIsUserCheckable | QAbstractTableModel::flags(index);
-  else
-    return QAbstractTableModel::flags(index);
-}
-
-QVariant GMMTableModel::headerData(int section, Qt::Orientation orientation, int role) const
-{
-  if(role != Qt::DisplayRole)
-    return QVariant();
-
-  if(orientation == Qt::Horizontal)
-    {
-    if(section == 0)
-      {
-      return "Primary";
-      }
-    else if(section == 1)
-      {
-      return "Weight";
-      }
-    else
-      {
-      return QString("Comp. %1").arg(section-1);
-      }
-    }
-
-  else if(orientation == Qt::Vertical)
-    {
-    return QString("Cluster %1").arg(section+1);
-    }
-
-  return QVariant();
-}
-
-bool GMMTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
-{
-  if(index.column() == 0)
-    {
-    bool state = value.toBool();
-
-    // TODO: it would be nice to do this in the mixture model class, without having to
-    // have a special method in the SpeedWizardModel class
-    if(m_ParentModel->SetClusterForegroundState(index.row(), state))
-      {
-      GaussianMixtureModel *gmm = this->GetGMM();
-      emit dataChanged(this->index(0,0), this->index(gmm->GetNumberOfGaussians()-1, 0));
-      return true;
-      }
-    }
-  return false;
-}
-
-
-GMMTableModel::GMMTableModel(QObject *parent)
-  : QAbstractTableModel(parent)
-{
-  m_ParentModel = NULL;
-}
 
 

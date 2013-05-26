@@ -255,8 +255,6 @@ double EMGaussianMixtures::ComputePosterior(int nGauss, double *log_pdf, double 
 
   // Now compute 1/denom
   double post = 1.0 / denom;
-  if(post != post)
-    std::cout << "NAN here" << std::endl;
   return post;
 }
 

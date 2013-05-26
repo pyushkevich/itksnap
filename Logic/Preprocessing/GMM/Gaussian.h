@@ -16,6 +16,7 @@ public:
   ~Gaussian();
   double * GetMean();
   double * GetCovariance();
+  double GetTotalVariance();
   void SetMean(double *mean);
   void SetCovariance(double *covariance);
   void SetParameters(double *mean, double *covariance);

@@ -9,7 +9,7 @@
 
 class GlobalUIModel;
 class IRISApplication;
-
+class ImageWrapperBase;
 
 
 class SnakeWizardModel : public AbstractModel
@@ -97,6 +97,25 @@ public:
   /** Check the state flags above */
   bool CheckState(UIState state);
 
+  /** A component index in an anatomic image wrapper */
+  typedef std::pair<ImageWrapperBase *, int> ComponentInfo;
+
+  /**
+   * This method allows a quick lookup between components involved in
+   * multi-variate segmentation algorithms and corresponding layers. For
+   * example, snake mode may be launched with a six-component main image
+   * and a single-component overlay. Then there are seven components used
+   * in total, and calling this method with 0-5 will return the main image,
+   * and calling it with 6 will return the overlay
+   */
+  ComponentInfo GetLayerAndIndexForNthComponent(int n);
+
+  /**
+   * Returns the total number of components available for multi-variate
+   * segmentation methods. \see GetLayerAndIndexForNthComponent().
+   */
+  int GetNumberOfComponentsForSegmentation();
+
   /** Evaluate the threshold function so it can be plotted for the user */
   void EvaluateThresholdFunction(unsigned int n, float *x, float *y);
 
@@ -157,6 +176,9 @@ public:
 
   // TODO: get rid of this?
   bool SetClusterForegroundState(int cluster, bool state);
+
+  // TODO: get rid of this?
+  bool SetClusterWeight(int cluster, double weight);
 
 
 protected:
@@ -245,6 +267,11 @@ protected:
 
   // TODO: this should be handled through the ITK modified mechanism
   void TagGMMPreprocessingFilterModified();
+
+  // A list of all components available to clustering and other multi-variate
+  // segmentation code. This list is updated in OnUpdate() in response to any
+  // events that change the number of available layers.
+  std::vector<ComponentInfo> m_ComponentInfo;
 
   // Parent model
   GlobalUIModel *m_Parent;

@@ -88,7 +88,14 @@ double * Gaussian::GetCovariance()
   {
     std::cout << "covariance hasn't setup yet at " << __FILE__ << " : " << __LINE__  <<std::endl;
     exit(0);
-  }
+    }
+}
+
+#include <vnl/vnl_trace.h>
+
+double Gaussian::GetTotalVariance()
+{
+  return vnl_trace(*m_covariance_matrix);
 }
 
 void Gaussian::SetMean(double *mean)

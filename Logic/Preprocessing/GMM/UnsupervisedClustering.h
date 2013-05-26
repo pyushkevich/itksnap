@@ -41,6 +41,7 @@ protected:
 
   void InitializeEM();
   void SampleDataSource();
+  void SortClustersByRelevance();
 
   EMGaussianMixtures *m_ClusteringEM;
   KMeansPlusPlus *m_ClusteringInitializer;
@@ -51,8 +52,12 @@ protected:
 
   bool m_SamplesDirty;
 
-  // TODO: this is duplication of data and also double is larger than we need
+  // TODO: probably double is larger than we need
   double **m_DataArray;
+
+  // A set of samples located near the center of the image, used to sort
+  // initial clusters in terms of relevance to the user
+  std::vector<int> m_CenterSamples;
 };
 
 #endif // UNSUPERVISEDCLUSTERING_H

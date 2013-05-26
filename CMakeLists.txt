@@ -414,6 +414,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/VoxelIntensityQTableModel.cxx
   GUI/Qt/Components/ZoomInspector.cxx
   GUI/Qt/External/ColorWheel/ColorWheel.cxx
+  GUI/Qt/ModelView/GMMTableModel.cxx
   GUI/Qt/Testing/SNAPTestQt.cxx
   GUI/Qt/Testing/QtScriptTest1.cxx
   GUI/Qt/View/ColorMapBox.cxx
@@ -481,6 +482,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/ZoomInspector.h
   GUI/Qt/Coupling/QtWidgetCoupling.h
   GUI/Qt/External/ColorWheel/ColorWheel.h
+  GUI/Qt/ModelView/GMMTableModel.h
   GUI/Qt/Testing/QtScriptTest1.h
   GUI/Qt/View/ColorMapBox.h
   GUI/Qt/View/CrosshairsInteractionMode.h
@@ -656,6 +658,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Qt/Coupling
     ${SNAP_SOURCE_DIR}/GUI/Qt/External
     ${SNAP_SOURCE_DIR}/GUI/Qt/External/ColorWheel
+    ${SNAP_SOURCE_DIR}/GUI/Qt/ModelView
     ${SNAP_SOURCE_DIR}/GUI/Qt/Testing
     ${SNAP_SOURCE_DIR}/GUI/Qt/View
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows

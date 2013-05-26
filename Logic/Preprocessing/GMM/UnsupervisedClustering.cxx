@@ -79,71 +79,54 @@ void UnsupervisedClustering::SampleDataSource()
   for(int i = 0; i < nsam; i++, buffer+=nComp)
     m_DataArray[i] = buffer;
 
-  // Are we randomly sampling?
-  if(nvox == nsam)
+  // Create a random walk through the main image
+  typedef AnatomicImageWrapper::ImageType AnatomicImage;
+  AnatomicImage *main = m_DataSource->GetMain()->GetImage();
+  typedef itk::ImageRandomConstIteratorWithIndex<AnatomicImage> RandomIter;
+  RandomIter itRand(main, main->GetBufferedRegion());
+  itRand.SetNumberOfSamples(nsam);
+
+  // Initialize the 'central' samples list
+  m_CenterSamples.clear();
+  m_CenterSamples.reserve(400);
+
+  // Define the center region
+  itk::ImageRegion<3> rcenter = main->GetBufferedRegion();
+  rcenter.ShrinkByRadius(to_itkSize(Vector3d(rcenter.GetSize()) * 0.2));
+
+  // Do the random walk
+  int pVoxel = 0;
+  for(; !itRand.IsAtEnd(); ++itRand)
     {
-    // Allocate the data array
+    itk::Index<3> idx = itRand.GetIndex();
+    AnatomicImage::OffsetValueType offset = main->ComputeOffset(idx);
+
     int iOffset = 0;
     for(LayerIterator lit = m_DataSource->GetLayers(
           LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
         !lit.IsAtEnd(); ++lit)
       {
       AnatomicImageWrapper *aiw = dynamic_cast<AnatomicImageWrapper *>(lit.GetLayer());
-      int pVoxel = 0;
       int iComp = aiw->GetNumberOfComponents();
-      for(AnatomicImageWrapper::Iterator it = aiw->GetImageIterator();
-          !it.IsAtEnd(); ++it, ++pVoxel)
-        {
-        AnatomicImageWrapper::PixelType pixel = it.Get();
-        for(int j = 0; j < iComp; j++)
-          m_DataArray[pVoxel][iOffset + j] = pixel[j];
-        }
+      AnatomicImageWrapper::InternalPixelType *pixel =
+          aiw->GetImage()->GetBufferPointer() + offset * iComp;
+
+      for(int j = 0; j < iComp; j++)
+        m_DataArray[pVoxel][iOffset + j] = pixel[j];
 
       iOffset += iComp;
       }
 
-    m_NumberOfVoxels = nvox;
-    }
-  else
-    {
-    // Create a random walk through the main image
-    typedef AnatomicImageWrapper::ImageType AnatomicImage;
-    AnatomicImage *main = m_DataSource->GetMain()->GetImage();
-    typedef itk::ImageRandomConstIteratorWithIndex<AnatomicImage> RandomIter;
-    RandomIter itRand(main, main->GetBufferedRegion());
-    itRand.SetNumberOfSamples(nsam);
-
-    // Do the random walk
-    int pVoxel = 0;
-    for(; !itRand.IsAtEnd(); ++itRand)
+    // Store as a 'central' sample if in the central 60% of the image
+    if(m_CenterSamples.size() < 400 && rcenter.IsInside(idx))
       {
-      itk::Index<3> idx = itRand.GetIndex();
-      AnatomicImage::OffsetValueType offset = main->ComputeOffset(idx);
-
-      int iOffset = 0;
-      for(LayerIterator lit = m_DataSource->GetLayers(
-            LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
-          !lit.IsAtEnd(); ++lit)
-        {
-        AnatomicImageWrapper *aiw = dynamic_cast<AnatomicImageWrapper *>(lit.GetLayer());
-        int iComp = aiw->GetNumberOfComponents();
-        AnatomicImageWrapper::InternalPixelType *pixel =
-            aiw->GetImage()->GetBufferPointer() + offset * iComp;
-
-
-        for(int j = 0; j < iComp; j++)
-          m_DataArray[pVoxel][iOffset + j] = pixel[j];
-
-        iOffset += iComp;
-        }
-
-      pVoxel++;
+      m_CenterSamples.push_back(pVoxel);
       }
 
-    assert(pVoxel == nsam);
-
-    m_NumberOfVoxels = nsam;
+    pVoxel++;
     }
+
+  m_NumberOfVoxels = nsam;
 
   m_NumberOfComponents = nComp;
   m_SamplesDirty = false;
@@ -200,11 +183,67 @@ void UnsupervisedClustering::InitializeEM()
 
   m_ClusteringEM->SetGaussianMixtureModel(
         m_ClusteringInitializer->GetGaussianMixtureModel());
+
   m_ClusteringEM->SetMaxIteration(10);
 
   // Get the GMM
   m_MixtureModel = m_ClusteringEM->GetGaussianMixtureModel();
 
+  // Sort the clusters based on center samples
+  SortClustersByRelevance();
+}
+
+void UnsupervisedClustering::SortClustersByRelevance()
+{
+  int ng = m_MixtureModel->GetNumberOfGaussians();
+  vnl_vector<double> log_pdf(ng), log_w(ng), w(ng);
+
+  // the array to sort
+  typedef std::pair<double, int> RelevancePair;
+  std::vector<RelevancePair> rel(ng);
+
+  for(int k = 0; k < ng; k++)
+    {
+    log_w[k] = log(m_MixtureModel->GetWeight(k));
+    w[k] = m_MixtureModel->GetWeight(k);
+    rel[k].first = 0.0;
+    rel[k].second = k;
+    }
+
+  for(int i = 0; i < m_CenterSamples.size(); i++)
+    {
+    int s = m_CenterSamples[i];
+    for(int k = 0; k < ng; k++)
+      {
+      log_pdf[k] = m_MixtureModel->EvaluateLogPDF(k, m_DataArray[s]);
+      }
+
+    for(int k = 0; k < ng; k++)
+      {
+      // Accumulate the posterior
+      rel[k].first -= EMGaussianMixtures::ComputePosterior(
+            ng, log_pdf.data_block(), w.data_block(), log_w.data_block(), k);
+      }
+    }
+
+  // Sort the relevance array
+  std::sort(rel.begin(), rel.end());
+
+  // Create a new mixture model
+  GaussianMixtureModel *gmmtemp =
+      new GaussianMixtureModel(m_MixtureModel->GetNumberOfComponents(), ng);
+  for(int k = 0; k < ng; k++)
+    {
+    int j = rel[k].second;
+    gmmtemp->SetWeight(k, m_MixtureModel->GetWeight(j));
+    gmmtemp->SetGaussian(k, m_MixtureModel->GetMean(j), m_MixtureModel->GetCovariance(j));
+    }
+
+  // Assign it to the EM
+  m_ClusteringEM->SetGaussianMixtureModel(gmmtemp);
+  m_MixtureModel = m_ClusteringEM->GetGaussianMixtureModel();
+
+  delete gmmtemp;
 }
 
 

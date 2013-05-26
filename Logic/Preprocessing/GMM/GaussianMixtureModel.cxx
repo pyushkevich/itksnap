@@ -123,14 +123,51 @@ void GaussianMixtureModel::SetCovariance(int index, double *covariance)
 void GaussianMixtureModel::SetWeight(int index, double weight)
 {
   if (index < m_numOfGaussian)
-  {
+    {
     (*m_weight)[index] = weight;
-  }
+    }
   else
-  {
+    {
     std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
     exit(0);
-  }
+    }
+}
+
+void GaussianMixtureModel::SetWeightAndRenormalize(int index, double weight)
+{
+  // Check the range
+  if (index >= m_numOfGaussian)
+    {
+    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
+    exit(0);
+    }
+
+  // The weight should be clamped to the range [0 1]
+  double w_curr = (*m_weight)[index];
+  double w_clamp = std::max(std::min(weight, 1.0), 0.0);
+  double w_scale = w_curr == 1.0 ? 0.0 : (1.0 - w_clamp) / (1.0 - w_curr);
+  double w_sum = 0.0;
+
+  // Update all the weights so the sum is still one
+  for(int i = 0; i < m_numOfGaussian; i++)
+    {
+    if(i == index)
+      {
+      (*m_weight)[i] = w_clamp;
+      }
+    else
+      {
+      (*m_weight)[i] *= w_scale;
+      }
+
+    // Keet track of the sum of weights
+    w_sum += (*m_weight)[i];
+    }
+
+  // There is still a possibility that the sum of weights is not 1. In that
+  // case assign the difference to the next cluster
+  if(w_sum < 1.0)
+    (*m_weight)[(index % m_numOfGaussian)] += 1.0 - w_sum;
 }
 
 double GaussianMixtureModel::EvaluatePDF(int index, double *x)

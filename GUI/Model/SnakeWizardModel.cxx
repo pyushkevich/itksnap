@@ -191,6 +191,28 @@ bool SnakeWizardModel::CheckState(SnakeWizardModel::UIState state)
 
 void SnakeWizardModel::OnUpdate()
 {
+  // If there is a change in available layers, we must rebuild the list
+  // of available components.
+  if(m_EventBucket->HasEvent(LayerChangeEvent()))
+    {
+    m_ComponentInfo.clear();
+    LayerIterator it = m_Driver->GetSNAPImageData()->GetLayers(
+          LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+    for(; !it.IsAtEnd(); ++it)
+      {
+      if(it.GetLayerAsVector())
+        {
+        for(int comp = 0; comp < it.GetLayerAsVector()->GetNumberOfComponents(); ++comp)
+          {
+          m_ComponentInfo.push_back(std::make_pair(it.GetLayer(), comp));
+          }
+        }
+      else
+        {
+        m_ComponentInfo.push_back(std::make_pair(it.GetLayer(), 0));
+        }
+      }
+    }
 }
 
 
@@ -886,7 +908,25 @@ bool SnakeWizardModel::SetClusterForegroundState(int cluster, bool state)
     {
     return false;
     }
+}
 
+bool SnakeWizardModel::SetClusterWeight(int cluster, double weight)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  assert(uc);
+
+  GaussianMixtureModel *gmm = uc->GetMixtureModel();
+
+  if(weight != gmm->GetWeight(cluster))
+    {
+    gmm->SetWeightAndRenormalize(cluster, weight);
+
+    TagGMMPreprocessingFilterModified();
+    this->InvokeEvent(GMMModifiedEvent());
+    return true;
+    }
+  else
+    return false;
 }
 
 void SnakeWizardModel::ReinitializeClustering()
@@ -900,6 +940,20 @@ void SnakeWizardModel::ReinitializeClustering()
   TagGMMPreprocessingFilterModified();
 }
 
+
+int SnakeWizardModel::GetNumberOfComponentsForSegmentation()
+{
+  this->Update();
+  return m_ComponentInfo.size();
+}
+
+SnakeWizardModel::ComponentInfo
+SnakeWizardModel::GetLayerAndIndexForNthComponent(int n)
+{
+  this->Update();
+  assert(n < m_ComponentInfo.size());
+  return m_ComponentInfo[n];
+}
 
 
 
