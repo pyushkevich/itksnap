@@ -63,34 +63,42 @@ VectorImageWrapper<TTraits,TBase>
    return Superclass::DeepCopyRegion(roi, progressCommand);
 }
 
-template <class TTraits, class TBase>
-vnl_vector<double>
+template<class TTraits, class TBase>
+void
 VectorImageWrapper<TTraits,TBase>
-::GetVoxelUnderCursorDisplayedValue()
+::GetVoxelUnderCursorDisplayedValueAndAppearance(
+    vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
-  // TODO: erase this
-  for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
-    {
-    ScalarImageWrapperBase *s = it->second;
-    ScalarRepIndex idx = it->first;
-    }
-
-
-
+  // Get the numerical value
   MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
   if(mode.UseRGB)
     {
-    vnl_vector<double> v(3);
-    this->GetVoxelMappedToNative(this->m_SliceIndex, v.data_block());
-    return v;
+    // Make sure the display slice is updated
+    this->GetDisplaySlice(0)->Update();
+
+    // Find the correct voxel in the space of the first display slice
+    Vector3ui idxDisp =
+        this->GetImageToDisplayTransform(0).TransformVoxelIndex(this->GetSliceIndex());
+
+    // Get the RGB value
+    typename DisplaySliceType::IndexType idx2D = {{idxDisp[0], idxDisp[1]}};
+    out_appearance = this->GetDisplaySlice(0)->GetPixel(idx2D);
+
+    // Get the value vector in native range
+    out_value.set_size(this->GetNumberOfComponents());
+    for(int i = 0; i < this->GetNumberOfComponents(); i++)
+      {
+      InternalPixelType p =
+          this->GetComponentWrapper(i)->GetSlicer(0)->GetOutput()->GetPixel(idx2D);
+      out_value[i] = this->m_NativeMapping(p);
+      }
     }
   else
     {
+    // Just delegate to the scalar wrapper
     ScalarImageWrapperBase *siw =
         this->GetScalarRepresentation(mode.SelectedScalarRep, mode.SelectedComponent);
-    vnl_vector<double> v(1);
-    v[0] = siw->GetVoxelMappedToNative(this->m_SliceIndex);
-    return v;
+    siw->GetVoxelUnderCursorDisplayedValueAndAppearance(out_value, out_appearance);
     }
 }
 

@@ -1100,27 +1100,6 @@ ImageWrapper<TTraits,TBase>
 }
 
 
-/**
-  Get the RGBA apperance of the voxel at the intersection of the three
-  display slices.
-  */
-template<class TTraits, class TBase>
-void
-ImageWrapper<TTraits,TBase>
-::GetVoxelUnderCursorAppearance(DisplayPixelType &out)
-{
-  // Make sure the display slice is updated
-  this->GetDisplaySlice(0)->Update();
-
-  // Find the correct voxel in the space of the first display slice
-  Vector3ui idxDisp =
-      m_ImageToDisplayTransform[0].TransformVoxelIndex(m_SliceIndex);
-
-  // Get the RGB value
-  typename DisplaySliceType::IndexType idx2D = {{idxDisp[0], idxDisp[1]}};
-  out = this->GetDisplaySlice(0)->GetPixel(idx2D);
-}
-
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>

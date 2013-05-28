@@ -60,11 +60,15 @@ public:
 
   // Slice image type
   typedef typename Superclass::SliceType                             SliceType;
-  typedef typename Superclass::SlicerPointer                      SlicePointer;
+  typedef typename Superclass::SlicePointer                       SlicePointer;
 
   // Slicer type
   typedef typename Superclass::SlicerType                           SlicerType;
   typedef typename Superclass::SlicerPointer                     SlicerPointer;
+
+  // Display types
+  typedef typename Superclass::DisplaySliceType               DisplaySliceType;
+  typedef typename Superclass::DisplayPixelType               DisplayPixelType;
 
   // Iterator types
   typedef typename Superclass::Iterator                               Iterator;
@@ -161,9 +165,11 @@ public:
    * the user. The value depends on the current display mode. For scalar
    * images, it's just the value of the voxel, but for multi-component images,
    * it's the value of the selected component (if there is one) or the value
-   * of the multiple components when the mode is RGB.
+   * of the multiple components when the mode is RGB. In the second parameter,
+   * the method returns the RGB appearance of the voxel under the cursor
    */
-  virtual vnl_vector<double> GetVoxelUnderCursorDisplayedValue();
+  virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
+      vnl_vector<double> &out_value, DisplayPixelType &out_appearance);
 
   virtual void SetNativeMapping(NativeIntensityMapping mapping);
 

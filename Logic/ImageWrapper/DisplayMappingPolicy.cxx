@@ -623,6 +623,13 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 {
   // Save the wrapper pointer
   m_Wrapper = wrapper;
+
+  // Modified events from the display policy fire as modification events
+  // for the wrapper
+  Rebroadcaster::Rebroadcast(this, itk::ModifiedEvent(),
+                             wrapper, WrapperMetadataChangeEvent());
+  Rebroadcaster::Rebroadcast(this, itk::ModifiedEvent(),
+                             wrapper, WrapperDisplayMappingChangeEvent());
 }
 
 template <class TWrapperTraits>

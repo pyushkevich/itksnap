@@ -182,14 +182,31 @@ ScalarImageWrapper<TTraits,TBase>
   return m_ImageScaleFactor;
 }
 
+/**
+  Get the RGBA apperance of the voxel at the intersection of the three
+  display slices.
+  */
 template<class TTraits, class TBase>
-vnl_vector<double>
+void
 ScalarImageWrapper<TTraits,TBase>
-::GetVoxelUnderCursorDisplayedValue()
+::GetVoxelUnderCursorDisplayedValueAndAppearance(
+    vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
-  vnl_vector<double> v(1);
-  v[0] = this->GetVoxelMappedToNative(this->m_SliceIndex);
-  return v;
+  // Make sure the display slice is updated
+  this->GetDisplaySlice(0)->Update();
+
+  // Find the correct voxel in the space of the first display slice
+  Vector3ui idxDisp =
+      this->GetImageToDisplayTransform(0).TransformVoxelIndex(this->GetSliceIndex());
+
+  // Get the RGB value
+  typename DisplaySliceType::IndexType idx2D = {{idxDisp[0], idxDisp[1]}};
+  out_appearance = this->GetDisplaySlice(0)->GetPixel(idx2D);
+
+  // Get the numerical value
+  PixelType val_raw = this->GetSlicer(0)->GetOutput()->GetPixel(idx2D);
+  out_value.set_size(1);
+  out_value[0] = this->m_NativeMapping(val_raw);
 }
 
 template<class TTraits, class TBase>

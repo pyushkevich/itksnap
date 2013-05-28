@@ -212,20 +212,16 @@ public:
   virtual double GetImageMaxNative() = 0;
 
   /**
-    Get the RGBA apperance of the voxel at the intersection of the three
-    display slices.
-    */
-  virtual void GetVoxelUnderCursorAppearance(DisplayPixelType &out) = 0;
-
-  /**
    * This method returns a vector of values for the voxel under the cursor.
    * This is the natural value or set of values that should be displayed to
    * the user. The value depends on the current display mode. For scalar
    * images, it's just the value of the voxel, but for multi-component images,
    * it's the value of the selected component (if there is one) or the value
-   * of the multiple components when the mode is RGB.
+   * of the multiple components when the mode is RGB. In the second parameter,
+   * the method returns the RGB appearance of the voxel under the cursor
    */
-  virtual vnl_vector<double> GetVoxelUnderCursorDisplayedValue() = 0;
+  virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
+      vnl_vector<double> &out_value, DisplayPixelType &out_appearance) = 0;
 
   /** Get the voxel array, as void pointer */
   virtual void *GetVoxelVoidPointer() const = 0;

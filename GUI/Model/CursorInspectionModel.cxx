@@ -43,8 +43,10 @@ CurrentVoxelInfoItemSetDomain
     // Create a string output
     std::ostringstream oss;
 
-    // Get the intensity or intensities that the user is seeing
-    vnl_vector<double> v = it.GetLayer()->GetVoxelUnderCursorDisplayedValue();
+    // Get the intensity or intensities that the user is seeing and the RGB
+    vnl_vector<double> v;
+    ImageWrapperBase::DisplayPixelType disprgb;
+    it.GetLayer()->GetVoxelUnderCursorDisplayedValueAndAppearance(v, disprgb);
 
     // Print with varying degrees of precision
     if(v.size() == 1)
@@ -61,8 +63,6 @@ CurrentVoxelInfoItemSetDomain
     vox.IntensityValue = oss.str();
 
     // Get the displayed color
-    ImageWrapperBase::DisplayPixelType disprgb;
-    it.GetLayer()->GetVoxelUnderCursorAppearance(disprgb);
     vox.Color = Vector3ui(disprgb[0], disprgb[1], disprgb[2]);
 
     // Return the description

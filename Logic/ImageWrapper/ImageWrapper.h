@@ -175,13 +175,6 @@ public:
    */
   virtual void SetImageToDisplayTransformsToDefault();
 
-  /**
-    Get the RGBA apperance of the voxel at the intersection of the three
-    display slices.
-    */
-  virtual void GetVoxelUnderCursorAppearance(DisplayPixelType &out);
-
-
 
   /** Get the current slice index */
   irisGetMacro(SliceIndex, Vector3ui)
