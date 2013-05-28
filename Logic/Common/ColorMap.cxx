@@ -297,8 +297,14 @@ void
 ColorMap
 ::SetToSystemPreset(SystemPreset preset)
 {
-  m_CMPoints.clear();
   m_CMPreset = preset;
+
+  // Handle the special case of COLORMAP_CUSTOM, in which case we don't mess
+  // mess with the colormap
+  if(preset == COLORMAP_CUSTOM)
+    return;
+
+  m_CMPoints.clear();
   switch(preset)
   {
     case COLORMAP_GREY:
@@ -398,6 +404,13 @@ ColorMap
       m_CMPoints.push_back( CMPoint(1.0,    0xff, 0xff, 0xff, 0xff) );
       break;
 
+    case COLORMAP_SPEED_OVERLAY:
+      m_CMPoints.push_back( CMPoint(0.0,    0xff, 0xff, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(0.4,    0xff, 0xff, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(0.6,    0xff, 0x00, 0x00, 0xff) );
+      m_CMPoints.push_back( CMPoint(1.0,    0xff, 0x00, 0x00, 0xff) );
+      break;
+
     case COLORMAP_LEVELSET:
       m_CMPoints.push_back( CMPoint(0.0,    0xff, 0x00, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(0.4,    0xff, 0x00, 0x00, 0xff) );
@@ -405,8 +418,6 @@ ColorMap
       m_CMPoints.push_back( CMPoint(1.0,    0xff, 0xff, 0xff, 0x00) );
 
     case COLORMAP_CUSTOM:
-      // to suppress compiler warning
-      std::cerr << "COLORMAP_CUSTOM: should never get there ..." << std::endl;
       break;
    }
 
@@ -576,8 +587,8 @@ void ColorMap
      "HSV",
      "Blue to white to red",
      "Red to white to blue",
-     "Blue to black to white",
-     "Speed image",
+     "Speed image (blue to black to white)",
+     "Speed image (semi-transparent overlay)",
      "Level set image",
      "Custom"
    };

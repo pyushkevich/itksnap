@@ -30,7 +30,7 @@ public:
 
   irisGetSetMacro(SelectedControlIndex, int)
   irisGetSetMacro(SelectedControlSide, Side)
-  irisGetSetMacro(SelectedPreset, std::string)
+  irisGetSetMacro(SelectedUserPreset, std::string)
 
 protected:
 
@@ -41,7 +41,7 @@ protected:
   Side m_SelectedControlSide;
 
   // The index of the current preset
-  std::string m_SelectedPreset;
+  std::string m_SelectedUserPreset;
 
   // Whether or not we are already listening to events from this layer
   unsigned long m_ColorMapObserverTag, m_LayerObserverTag;
@@ -158,6 +158,8 @@ public:
   /** Delete a selected preset */
   void DeletePreset(std::string name);
 
+  /** Get the currently selected preset */
+  std::string GetSelectedPreset();
 
 protected:
 

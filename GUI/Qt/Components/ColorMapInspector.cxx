@@ -109,7 +109,7 @@ void ColorMapInspector::onModelUpdate(const EventBucket &b)
   if(m_Model->GetLayer())
     {
     m_PresetsUpdating = true;
-    std::string sel = m_Model->GetProperties().GetSelectedPreset();
+    std::string sel = m_Model->GetSelectedPreset();
     int index = ui->inPreset->findText(sel.c_str());
     ui->inPreset->setCurrentIndex(index);
     m_PresetsUpdating = false;

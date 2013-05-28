@@ -425,7 +425,7 @@ bool SnakeWizardModel::GetRedTransparentSpeedModeValue(bool &value)
   if(mode != PREPROCESS_NONE)
     {
     SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
-    if(speed->GetColorMap()->GetSystemPreset() == ColorMap::COLORMAP_LEVELSET
+    if(speed->GetColorMap()->GetSystemPreset() == ColorMap::COLORMAP_SPEED_OVERLAY
        && speed->IsSticky() && speed->GetAlpha() == 0.5)
       {
       value = true;
@@ -444,7 +444,7 @@ void SnakeWizardModel::SetRedTransparentSpeedModeValue(bool value)
   SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
   if(value)
     {
-    speed->GetColorMap()->SetToSystemPreset(ColorMap::COLORMAP_LEVELSET);
+    speed->GetColorMap()->SetToSystemPreset(ColorMap::COLORMAP_SPEED_OVERLAY);
     speed->SetSticky(true);
     speed->SetAlpha(0.5);
     }

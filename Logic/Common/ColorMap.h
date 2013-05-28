@@ -75,7 +75,8 @@ public:
     COLORMAP_RED, COLORMAP_GREEN, COLORMAP_BLUE,
     COLORMAP_SPRING, COLORMAP_SUMMER,
     COLORMAP_AUTUMN, COLORMAP_WINTER, COLORMAP_COPPER, COLORMAP_HSV,
-    COLORMAP_BWR, COLORMAP_RWB, COLORMAP_SPEED, COLORMAP_LEVELSET,
+    COLORMAP_BWR, COLORMAP_RWB, COLORMAP_SPEED, COLORMAP_SPEED_OVERLAY,
+    COLORMAP_LEVELSET,
     COLORMAP_CUSTOM
     };
 
@@ -114,8 +115,14 @@ public:
      */
   RGBAType MapIndexToRGBA(double j) const;
 
-  /** This method initializes the color map to one of the system presets */
+  /**
+   * This method initializes the color map to one of the system presets. It
+   * is also possible to call this method with COLORMAP_CUSTOM as the parameter,
+   * in which case the colormap itself will be unchanged, but will be treated
+   * as a custom color map.
+   */
   void SetToSystemPreset(SystemPreset preset);
+
 
   size_t GetNumberOfCMPoints() const
   { return m_CMPoints.size(); }
