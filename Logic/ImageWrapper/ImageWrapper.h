@@ -200,7 +200,7 @@ public:
   Vector3ui GetSize() const;
 
   /** Get layer transparency */
-  irisSetWithEventMacro(Alpha, double, WrapperMetadataChangeEvent)
+  irisSetWithEventMacro(Alpha, double, WrapperDisplayMappingChangeEvent)
 
   /** Set layer transparency */
   irisGetMacro(Alpha, double)

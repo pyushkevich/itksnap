@@ -113,14 +113,8 @@ void CursorInspectionModel::SetParentModel(GlobalUIModel *parent)
   m_VoxelAtCursorModel->Rebroadcast(
         this, ModelUpdateEvent(), DomainDescriptionChangedEvent());
   m_VoxelAtCursorModel->Rebroadcast(
-        parent->GetIntensityCurveModel(),
-        ModelUpdateEvent(), DomainDescriptionChangedEvent());
-  m_VoxelAtCursorModel->Rebroadcast(
-        parent->GetColorMapModel(),
-        ModelUpdateEvent(), DomainDescriptionChangedEvent());
-  m_VoxelAtCursorModel->Rebroadcast(
         parent->GetDriver(),
-        WrapperMetadataChangeEvent(), DomainDescriptionChangedEvent());
+        WrapperDisplayMappingChangeEvent(), DomainDescriptionChangedEvent());
 
   // Rebroadcast events from the parent as model update events. This could
   // have a little more granularity, but for the moment, mapping all these

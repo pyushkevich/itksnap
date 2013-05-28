@@ -106,15 +106,18 @@ AbstractModel::Rebroadcaster
   m_Model->InvokeEvent(*m_Event);
 }
 
-
+#include "Rebroadcaster.h"
 
 unsigned long
 AbstractModel::Rebroadcast(
     itk::Object *src, const itk::EventObject &srcEvent, const itk::EventObject &trgEvent)
 {
+  /*
   Rebroadcaster *reb = new Rebroadcaster(this, trgEvent);
   m_Rebroadcast.push_back(reb);
   return AddListenerPair(src, srcEvent, reb, &Rebroadcaster::Broadcast, &Rebroadcaster::Broadcast);
+  */
+  return ::Rebroadcaster::Rebroadcast(src, srcEvent, this, trgEvent, m_EventBucket);
 }
 
 unsigned long

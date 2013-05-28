@@ -59,8 +59,14 @@ public:
   // Transform matrices
   typedef vnl_matrix_fixed<double, 4, 4> TransformType;
 
-  // Image wrappers can fire certain events
+  /**
+   * The image wrapper fires a WrapperMetadataChangeEvent when properties
+   * such as nickname are modified. It fires a WrapperDisplayMappingChangeEvent
+   * when the factors affecting the mapping from internal data to the slice
+   * display (e.g., color map) are modified.
+   */
   FIRES(WrapperMetadataChangeEvent)
+  FIRES(WrapperDisplayMappingChangeEvent)
 
   virtual ~ImageWrapperBase() { }
 

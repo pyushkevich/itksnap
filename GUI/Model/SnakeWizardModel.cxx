@@ -47,6 +47,16 @@ SnakeWizardModel::SnakeWizardModel()
         &Self::GetPreviewValue,
         &Self::SetPreviewValue);
 
+  m_BlueWhiteSpeedModeModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetBlueWhiteSpeedModeValue,
+        &Self::SetBlueWhiteSpeedModeValue);
+
+  m_RedTransparentSpeedModeModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetRedTransparentSpeedModeValue,
+        &Self::SetRedTransparentSpeedModeValue);
+
   // TODO: which events from the parent model should be rebroadcast by the
   // preview model?
 
@@ -158,6 +168,14 @@ void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
   Rebroadcast(this, EdgePreprocessingSettingsUpdateEvent(), StateMachineChangeEvent());
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
   Rebroadcast(this, ActiveBubbleUpdateEvent(), StateMachineChangeEvent());
+
+  // The two appearance mode models depend on changes to the color map and
+  // the metadata of the speed image wrapper
+  m_BlueWhiteSpeedModeModel->Rebroadcast(
+        m_Driver, WrapperChangeEvent(), ValueChangedEvent());
+
+  m_RedTransparentSpeedModeModel->Rebroadcast(
+        m_Driver, WrapperChangeEvent(), ValueChangedEvent());
 }
 
 
@@ -369,6 +387,70 @@ void SnakeWizardModel::SetPreviewValue(bool value)
     m_Driver->GetPreprocessingFilterPreviewer(mode)->SetPreviewMode(value);
     }
 }
+
+bool SnakeWizardModel::GetBlueWhiteSpeedModeValue(bool &value)
+{
+  PreprocessingMode mode = m_Driver->GetPreprocessingMode();
+  if(mode != PREPROCESS_NONE)
+    {
+    SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
+    if(speed->GetColorMap()->GetSystemPreset() == ColorMap::COLORMAP_SPEED
+       && !speed->IsSticky() && speed->GetAlpha() == 1.0)
+      {
+      value = true;
+      }
+    else
+      {
+      value = false;
+      }
+    return true;
+    }
+  return false;
+}
+
+void SnakeWizardModel::SetBlueWhiteSpeedModeValue(bool value)
+{
+  SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
+  if(value)
+    {
+    speed->GetColorMap()->SetToSystemPreset(ColorMap::COLORMAP_SPEED);
+    speed->SetSticky(false);
+    speed->SetAlpha(1.0);
+    }
+}
+
+bool SnakeWizardModel::GetRedTransparentSpeedModeValue(bool &value)
+{
+  PreprocessingMode mode = m_Driver->GetPreprocessingMode();
+  if(mode != PREPROCESS_NONE)
+    {
+    SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
+    if(speed->GetColorMap()->GetSystemPreset() == ColorMap::COLORMAP_LEVELSET
+       && speed->IsSticky() && speed->GetAlpha() == 0.5)
+      {
+      value = true;
+      }
+    else
+      {
+      value = false;
+      }
+    return true;
+    }
+  return false;
+}
+
+void SnakeWizardModel::SetRedTransparentSpeedModeValue(bool value)
+{
+  SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
+  if(value)
+    {
+    speed->GetColorMap()->SetToSystemPreset(ColorMap::COLORMAP_LEVELSET);
+    speed->SetSticky(true);
+    speed->SetAlpha(0.5);
+    }
+}
+
+
 
 void SnakeWizardModel
 ::EvaluateThresholdFunction(unsigned int n, float *x, float *y)

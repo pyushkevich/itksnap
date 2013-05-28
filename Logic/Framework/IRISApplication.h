@@ -560,9 +560,6 @@ protected:
   std::string m_SegmentationUpdateName;
   unsigned int m_SegmentationChangeCount;
 
-  // Refire certain events fired by IRISImageData and SNAPImageData as our own
-  void RefireEvent(itk::Object *src, const itk::EventObject &event);
-
 };
 
 #endif // __IRISApplication_h_

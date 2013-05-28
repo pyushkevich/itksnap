@@ -7,6 +7,10 @@
 #include "itkImage.h"
 
 
+/* ===============================================================
+    AbstractLookupTableImageFilter implementation
+   =============================================================== */
+
 
 template<class TInputImage, class TOutputLUT, class TComponent>
 AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
@@ -142,7 +146,9 @@ AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 }
 
 
-
+/* ===============================================================
+    IntensityToColorLookupTableImageFilter implementation
+   =============================================================== */
 
 template<class TInputImage, class TOutputLUT, class TComponent>
 typename IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>::OutputPixelType
@@ -176,6 +182,9 @@ IntensityToColorLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 
 
 
+/* ===============================================================
+    MultiComponentImageToScalarLookupTableImageFilter implementation
+   =============================================================== */
 
 template<class TInputImage, class TOutputLUT, class TComponent>
 void

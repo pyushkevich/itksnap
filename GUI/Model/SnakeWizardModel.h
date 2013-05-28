@@ -70,6 +70,11 @@ public:
   // Model for whether the current pre-processing model is in preview mode or not
   irisGetMacro(PreviewModel, AbstractSimpleBooleanProperty *)
 
+  // Models for the current speed rendering style. These are true if the speed
+  // is displayed using the selected style, false otherwise
+  irisGetMacro(BlueWhiteSpeedModeModel, AbstractSimpleBooleanProperty *)
+  irisGetMacro(RedTransparentSpeedModeModel, AbstractSimpleBooleanProperty *)
+
   // Models for the threshold-based preprocessing
   irisGetMacro(ThresholdLowerModel, AbstractRangedDoubleProperty *)
   irisGetMacro(ThresholdUpperModel, AbstractRangedDoubleProperty *)
@@ -204,6 +209,14 @@ protected:
   SmartPtr<AbstractSimpleBooleanProperty> m_PreviewModel;
   bool GetPreviewValue(bool &value);
   void SetPreviewValue(bool value);
+
+  SmartPtr<AbstractSimpleBooleanProperty> m_BlueWhiteSpeedModeModel;
+  bool GetBlueWhiteSpeedModeValue(bool &value);
+  void SetBlueWhiteSpeedModeValue(bool value);
+
+  SmartPtr<AbstractSimpleBooleanProperty> m_RedTransparentSpeedModeModel;
+  bool GetRedTransparentSpeedModeValue(bool &value);
+  void SetRedTransparentSpeedModeValue(bool value);
 
   SmartPtr<AbstractRangedDoubleProperty> m_EdgePreprocessingSigmaModel;
   bool GetEdgePreprocessingSigmaValueAndRange(double &x, NumericValueRange<double> *range);

@@ -66,7 +66,7 @@
 #include "vtkUnsignedShortArray.h"
 #include "vtkPointData.h"
 #include "SNAPRegistryIO.h"
-#include "SNAPEventListenerCallbacks.h"
+#include "Rebroadcaster.h"
 #include "HistoryManager.h"
 #include "IRISSlicer.h"
 #include "EdgePreprocessingSettings.h"
@@ -110,14 +110,11 @@ IRISApplication
 
   // Listen to events from wrappers and image data objects and refire them
   // as our own events.
-  AddListener(m_IRISImageData, WrapperMetadataChangeEvent(),
-              this, &Self::RefireEvent);
+  Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, WrapperChangeEvent(), this);
+  Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, WrapperChangeEvent(), this);
 
-  AddListener(m_SNAPImageData, WrapperMetadataChangeEvent(),
-              this, &Self::RefireEvent);
-
-  AddListener(m_SNAPImageData, LevelSetImageChangeEvent(),
-              this, &Self::RefireEvent);
+  // TODO: should this also be a generic Wrapper Image Data change event?
+  Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LevelSetImageChangeEvent(), this);
 
   // Construct new global state object
   m_GlobalState = new GlobalState(this);
@@ -177,15 +174,6 @@ IRISApplication
 {
   delete m_GlobalState;
   delete m_SystemInterface;
-}
-
-void IRISApplication::RefireEvent(itk::Object *src, const itk::EventObject &event)
-{
-  // Fire the event down the line
-  itk::EventObject *ev = event.MakeObject();
-  std::cout << ev->GetEventName() << std::endl;
-  this->InvokeEvent(*ev);
-  delete ev;
 }
 
 void 

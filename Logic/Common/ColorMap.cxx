@@ -154,6 +154,7 @@ ColorMap
 ColorMap
 ::~ColorMap()
 {
+  std::cout << "Destructor in color map " << this << " ref ct " << this->m_ReferenceCount << std::endl;
 }
 
 RegistryEnumMap<ColorMap::SystemPreset> ColorMap::m_ColorMapPresetEnumMap;
@@ -239,9 +240,6 @@ ColorMap
 
   // Update state
   this->Modified();
-
-  // Fire a change event
-  this->InvokeEvent(ColorMapChangeEvent());
 }
 
 ColorMap::RGBAType
@@ -558,7 +556,6 @@ void ColorMap
    m_CMPoints = source->m_CMPoints;
    m_Interpolants = source->m_Interpolants;
    this->Modified();
-   this->InvokeEvent(ColorMapChangeEvent());
  }
 
  const char * ColorMap::GetPresetName(ColorMap::SystemPreset preset)

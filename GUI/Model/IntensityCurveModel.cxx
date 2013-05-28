@@ -79,8 +79,7 @@ IntensityCurveModel
 {
   // Listen to changes in the layer's intensity curve
   unsigned long tag =
-      Rebroadcast(layer->GetDisplayMapping(),
-                  itk::ModifiedEvent(), ModelUpdateEvent());
+      Rebroadcast(layer, WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
 
   // Set a flag so we don't register a listener again
   GetProperties().SetObserverTag(tag);
@@ -615,14 +614,6 @@ void IntensityCurveModel::OnResetCurveAction()
 void IntensityCurveModel::OnUpdate()
 {
   Superclass::OnUpdate();
-  /*
-    TODO: REMOVE THIS!
-  if(m_EventBucket->HasEvent(IntensityCurveChangeEvent()))
-    {
-    // Inform the layer that it needs to recompute its intensity map function
-    this->GetLayer()->UpdateIntensityMapFunction();
-    }
-    */
 }
 
 AbstractRangedDoubleProperty *

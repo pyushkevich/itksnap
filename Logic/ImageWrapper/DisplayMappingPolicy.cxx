@@ -14,6 +14,12 @@
 #include "itkCommand.h"
 #include "itkUnaryFunctorImageFilter.h"
 #include "InputSelectionImageFilter.h"
+#include "Rebroadcaster.h"
+
+
+/* ===============================================================
+    ColorLabelTableDisplayMappingPolicy implementation
+   =============================================================== */
 
 
 template<class TWrapperTraits>
@@ -45,6 +51,7 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
     m_RGBAFilter[i]->SetInput(wrapper->GetSlice(i));
     m_RGBAFilter[i]->SetColorTable(NULL);
     }
+
 }
 
 template <class TWrapperTraits>
@@ -72,6 +79,13 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
   // Set the new table
   for(unsigned int i=0;i<3;i++)
     m_RGBAFilter[i]->SetColorTable(labels);
+
+  // Propagate the events from to color label table to the wrapper
+  Rebroadcaster::Rebroadcast(labels, SegmentationLabelChangeEvent(),
+                             m_Wrapper, WrapperDisplayMappingChangeEvent());
+
+  Rebroadcaster::Rebroadcast(labels, SegmentationLabelConfigurationChangeEvent(),
+                             m_Wrapper, WrapperDisplayMappingChangeEvent());
 }
 
 template<class TWrapperTraits>
@@ -81,6 +95,11 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
 {
   return m_RGBAFilter[0]->GetColorTable();
 }
+
+
+/* ===============================================================
+    CachingCurveAndColorMapDisplayMappingPolicy implementation
+   =============================================================== */
 
 template<class TWrapperTraits>
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
@@ -103,18 +122,20 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 {
   // Initialize the intensity curve
   m_Wrapper = wrapper;
-  m_IntensityCurveVTK = IntensityCurveVTK::New();
-  m_IntensityCurveVTK->Initialize();
+
+  // Initialize the LUT filter
+  m_LookupTableFilter = LookupTableFilterType::New();
 
   // Initialize the colormap
   m_ColorMap = ColorMap::New();
   m_ColorMap->SetToSystemPreset(
         static_cast<ColorMap::SystemPreset>(TWrapperTraits::DefaultColorMap));
+  this->SetColorMap(m_ColorMap);
 
-  // Initialize the LUT filter
-  m_LookupTableFilter = LookupTableFilterType::New();
-  m_LookupTableFilter->SetIntensityCurve(m_IntensityCurveVTK);
-  m_LookupTableFilter->SetColorMap(m_ColorMap);
+  // Initialize the intensity curve
+  m_IntensityCurveVTK = IntensityCurveVTK::New();
+  m_IntensityCurveVTK->Initialize();
+  this->SetIntensityCurve(m_IntensityCurveVTK);
 
   // Initialize the filters that apply the LUT
   for(unsigned int i=0; i<3; i++)
@@ -162,8 +183,8 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
     }
 
   // Copy the color map and the intensity curve
-  m_ColorMap = reference->m_ColorMap;
-  m_IntensityCurveVTK = reference->m_IntensityCurveVTK;
+  this->SetColorMap(reference->m_ColorMap);
+  this->SetIntensityCurve(reference->m_IntensityCurveVTK);
 }
 
 template<class TWrapperTraits>
@@ -264,7 +285,14 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 ::SetIntensityCurve(IntensityCurveInterface *curve)
 {
   m_IntensityCurveVTK = static_cast<IntensityCurveVTK *>(curve);
+
+  // Connect the curve to the LUT filter
   m_LookupTableFilter->SetIntensityCurve(m_IntensityCurveVTK);
+
+  // Connect modified events from the color map to appropriate events
+  // from the image wrapper
+  Rebroadcaster::Rebroadcast(m_IntensityCurveVTK, itk::ModifiedEvent(),
+                             m_Wrapper, WrapperDisplayMappingChangeEvent());
 }
 
 template<class TWrapperTraits>
@@ -273,7 +301,14 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 ::SetColorMap(ColorMap *map)
 {
   m_ColorMap = map;
+
+  // Attach the color map to the LUT filter
   m_LookupTableFilter->SetColorMap(m_ColorMap);
+
+  // Connect modified events from the color map to appropriate events
+  // from the image wrapper
+  Rebroadcaster::Rebroadcast(m_ColorMap, itk::ModifiedEvent(),
+                             m_Wrapper, WrapperDisplayMappingChangeEvent());
 }
 
 template<class TWrapperTraits>
@@ -293,6 +328,17 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   m_IntensityCurveVTK->LoadFromRegistry(reg.Folder("Curve"));
   m_ColorMap->LoadFromRegistry(reg.Folder("ColorMap"));
 }
+
+
+
+
+
+
+
+
+/* ===============================================================
+    AbstractContinuousImageDisplayMappingPolicy implementation
+   =============================================================== */
 
 void
 AbstractContinuousImageDisplayMappingPolicy
@@ -344,6 +390,9 @@ AbstractContinuousImageDisplayMappingPolicy
   this->GetIntensityCurve()->ScaleControlPointsToWindow((float) t0, (float) t1);
 }
 
+/* ===============================================================
+    LinearColorMapDisplayMappingPolicy implementation
+   =============================================================== */
 
 template <class TWrapperTraits>
 LinearColorMapDisplayMappingPolicy<TWrapperTraits>
@@ -367,6 +416,10 @@ LinearColorMapDisplayMappingPolicy<TWrapperTraits>
     {
     m_Filter[i] = IntensityFilterType::New();
     m_Filter[i]->SetFunctor(m_Functor);
+
+    // The color map is added as a 'named' input of the filter. This ensures
+    // that as the colormap is modified, the filter will be updated
+    m_Filter[i]->SetInput("colormap", m_ColorMap);
     }
 
 }
@@ -390,6 +443,9 @@ LinearColorMapDisplayMappingPolicy<TWrapperTraits>
     {
     m_Filter[i]->SetInput(wrapper->GetSlice(i));
     }
+
+  Rebroadcaster::Rebroadcast(m_ColorMap, itk::ModifiedEvent(),
+                             m_Wrapper, WrapperDisplayMappingChangeEvent());
 }
 
 template <class TWrapperTraits>
@@ -461,6 +517,9 @@ LinearColorMapDisplayMappingPolicy<TWrapperTraits>
 
 
 
+/* ===============================================================
+    MultiChannelDisplayMode implementation
+   =============================================================== */
 
 
 MultiChannelDisplayMode::MultiChannelDisplayMode()
@@ -537,7 +596,9 @@ bool operator < (const MultiChannelDisplayMode &a, const MultiChannelDisplayMode
 
 
 
-
+/* ===============================================================
+    MultiChannelDisplayMappingPolicy implementation
+   =============================================================== */
 
 template <class TWrapperTraits>
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
@@ -665,48 +726,6 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 
   // Set display mode to default
   SetDisplayMode(MultiChannelDisplayMode());
-
-  // Listen to modified events from all the intensity curves and color maps
-  // handled by this object
-  // TODO: is it not better to just move the AbstractModel framework into the
-  // SNAP logic layer and make these children of abstract model and use
-  // Rebroadcast?
-  typedef itk::SimpleMemberCommand<Self> Command;
-  SmartPtr<Command> cmd = Command::New();
-  cmd->SetCallbackFunction(this, &Self::ModifiedEventCallback);
-  if(m_Wrapper->GetNumberOfComponents() == 1)
-    {
-    // When there is only one component, we only need to worry about it, not
-    // the derived components
-    this->GetIntensityCurve()->AddObserver(itk::ModifiedEvent(), cmd);
-    this->GetColorMap()->AddObserver(itk::ModifiedEvent(), cmd);
-    }
-  else
-    {
-    // Apply this for all scalar components
-    for(int k = 0; k < VectorImageWrapperBase::NUMBER_OF_SCALAR_REPS; k++)
-      {
-      ScalarImageWrapperBase *s = m_Wrapper->GetScalarRepresentation(
-            static_cast<VectorImageWrapperBase::ScalarRepresentation>(k));
-      s->GetDisplayMapping()->GetIntensityCurve()->AddObserver(
-            itk::ModifiedEvent(), cmd);
-      }
-
-    // The colormap is shared among all
-    ScalarImageWrapperBase *s0 =
-        m_Wrapper->GetScalarRepresentation(VectorImageWrapperBase::SCALAR_REP_COMPONENT);
-    s0->GetColorMap()->AddObserver(itk::ModifiedEvent(), cmd);
-    }
-
-}
-
-
-template <class TWrapperTraits>
-void
-MultiChannelDisplayMappingPolicy<TWrapperTraits>
-::ModifiedEventCallback()
-{
-  this->InvokeEvent(itk::ModifiedEvent());
 }
 
 template <class TWrapperTraits>

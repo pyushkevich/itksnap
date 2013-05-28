@@ -106,14 +106,20 @@ itkEventMacro(DomainDescriptionChangedEvent, IRISEvent)
 /** A change to appearance of a renderer, etc */
 itkEventMacro(AppearanceUpdateEvent, IRISEvent)
 
-/** A change to the name of something (e.g., image wrapper) */
-itkEventMacro(WrapperMetadataChangeEvent, IRISEvent)
+/** Parent event for events fired by the image wrapper */
+itkEventMacro(WrapperChangeEvent, IRISEvent)
+
+/** A change to a image wrapper property (e.g., nickname) */
+itkEventMacro(WrapperMetadataChangeEvent, WrapperChangeEvent)
+
+/** A change to the display mapping of an image wrapper (e.g. color map) */
+itkEventMacro(WrapperDisplayMappingChangeEvent, WrapperChangeEvent)
 
 /** A change to the intensity curve */
-itkEventMacro(IntensityCurveChangeEvent, IRISEvent)
+itkEventMacro(IntensityCurveChangeEvent, WrapperDisplayMappingChangeEvent)
 
 /** A change to the color map */
-itkEventMacro(ColorMapChangeEvent, IRISEvent)
+itkEventMacro(ColorMapChangeEvent, WrapperDisplayMappingChangeEvent)
 
 /** Changes to the color label table */
 itkEventMacro(SegmentationLabelChangeEvent, IRISEvent)

@@ -547,8 +547,6 @@ protected:
   typedef InputSelectionImageFilter<
     DisplaySliceType, MultiChannelDisplayMode> DisplaySliceSelector;
   SmartPtr<DisplaySliceSelector> m_DisplaySliceSelector[3];
-
-  void ModifiedEventCallback();
 };
 
 

@@ -384,11 +384,6 @@ protected:
   void SetSingleImageWrapper(LayerRole, ImageWrapperBase *wrapper);
   void RemoveSingleImageWrapper(LayerRole);
 
-  // Callback for wrapper events
-  void OnWrapperEvent(itk::Object *source, const itk::EventObject &event);
-
-
-
 };
 
 #endif

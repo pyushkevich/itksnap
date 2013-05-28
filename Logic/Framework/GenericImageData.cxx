@@ -50,6 +50,7 @@
 #include <iostream>
 #include "SNAPEventListenerCallbacks.h"
 #include "GenericImageData.h"
+#include "Rebroadcaster.h"
 
 // System includes
 #include <fstream>
@@ -302,8 +303,11 @@ ImageWrapperBase *GenericImageData::GetLastOverlay()
 void GenericImageData::PushBackImageWrapper(LayerRole role,
                                             ImageWrapperBase *wrapper)
 {
+  // Append the wrapper
   m_Wrappers[role].push_back(wrapper);
-  AddListener(wrapper, WrapperMetadataChangeEvent(), this, &GenericImageData::OnWrapperEvent);
+
+  // Rebroadcast the wrapper-related events as our own events
+  Rebroadcaster::RebroadcastAsSourceEvent(wrapper, WrapperChangeEvent(), this);
 }
 
 
@@ -324,19 +328,15 @@ void GenericImageData::SetSingleImageWrapper(LayerRole role,
 {
   assert(m_Wrappers[role].size() == 1);
   m_Wrappers[role].front() = wrapper;
-  AddListener(wrapper, WrapperMetadataChangeEvent(), this, &GenericImageData::OnWrapperEvent);
+
+  // Rebroadcast the wrapper-related events as our own events
+  Rebroadcaster::RebroadcastAsSourceEvent(wrapper, WrapperChangeEvent(), this);
 }
 
 void GenericImageData::RemoveSingleImageWrapper(LayerRole role)
 {
   assert(m_Wrappers[role].size() == 1);
   m_Wrappers[role].front() = NULL;
-}
-
-
-void GenericImageData::OnWrapperEvent(itk::Object *source, const itk::EventObject &event)
-{
-  this->InvokeEvent(event);
 }
 
 

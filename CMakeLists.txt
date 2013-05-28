@@ -93,6 +93,7 @@ SET(LOGIC_CXX
   Common/EventBucket.cxx
   Common/HistoryManager.cxx
   Common/IRISException.cxx
+  Common/Rebroadcaster.cxx
   Common/Registry.cxx
   Common/SNAPOpenGL.cxx
   Common/SystemInterface.cxx
@@ -167,6 +168,7 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.txx
   Common/ITKExtras/itkVoxBoCUBImageIO.h
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
+  Common/Rebroadcaster.h
   Common/Registry.h
   Common/SNAPBorlandDummyTypes.h
   Common/SNAPCommon.h

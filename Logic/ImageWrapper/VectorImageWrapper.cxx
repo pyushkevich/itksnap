@@ -27,6 +27,7 @@
 #include "itkVectorImageToImageAdaptor.h"
 #include "itkMinimumMaximumImageFilter.h"
 #include "ScalarImageHistogram.h"
+#include "Rebroadcaster.h"
 
 #include <iostream>
 
@@ -175,9 +176,12 @@ VectorImageWrapper<TTraits,TBase>
 
   SmartPtr<ScalarImageWrapperBase> ptrout = wrapper.GetPointer();
 
+  // When creating derived wrappers, we need to rebroadcast the events from
+  // that wrapper as our own events
+  Rebroadcaster::RebroadcastAsSourceEvent(wrapper, WrapperChangeEvent(), this);
+
   return ptrout;
 }
-
 
 template <class TTraits, class TBase>
 void
@@ -206,6 +210,9 @@ VectorImageWrapper<TTraits,TBase>
     // Store the wrapper
     m_ScalarReps[std::make_pair(
           VectorImageWrapperBase::SCALAR_REP_COMPONENT, i)] = cw.GetPointer();
+
+    // Rebroadcast the events from that wrapper
+    Rebroadcaster::RebroadcastAsSourceEvent(cw, WrapperChangeEvent(), this);
     }
 
   m_ScalarReps[std::make_pair(VectorImageWrapperBase::SCALAR_REP_MAGNITUDE, 0)]

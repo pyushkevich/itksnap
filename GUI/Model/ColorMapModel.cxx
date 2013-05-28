@@ -115,7 +115,7 @@ void ColorMapModel::RegisterWithLayer(ImageWrapperBase *layer)
   ColorMap *cm = this->GetColorMap(layer);
   ColorMapLayerProperties &p = GetProperties();
   p.SetColorMapObserverTag(
-        Rebroadcast(cm, ColorMapChangeEvent(), ModelUpdateEvent()));
+        Rebroadcast(cm, itk::ModifiedEvent(), ModelUpdateEvent()));
   p.SetLayerObserverTag(
         Rebroadcast(layer,AppearanceUpdateEvent(), ModelUpdateEvent()));
 
@@ -133,11 +133,11 @@ void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer, bool being_dele
     ColorMapLayerProperties &p = GetProperties();
     if((tag = p.GetLayerObserverTag()))
       {
-      this->GetColorMap(layer)->RemoveObserver(tag);
+      layer->RemoveObserver(tag);
       }
     if((tag = p.GetColorMapObserverTag()))
       {
-      layer->RemoveObserver(tag);
+      this->GetColorMap(layer)->RemoveObserver(tag);
       }
     }
 }
@@ -248,16 +248,6 @@ bool ColorMapModel::ProcessMouseReleaseEvent(const Vector3d &x)
 void ColorMapModel::OnUpdate()
 {
   Superclass::OnUpdate();
-
-  /*
-  // If there was a color map change event, we may need to update the
-  // current preset, since the color map is no longer going to match any
-  // preset
-  if(m_EventBucket->HasEvent(ColorMapChangeEvent()))
-    this->GetProperties().SetSelectedPreset(
-        this->GetColorMap()->GetPresetName(
-          this->GetColorMap()->GetSystemPreset()));
-  */
 }
 
 bool

@@ -61,22 +61,8 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   Rebroadcast(m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlphaModel(),
               ValueChangedEvent(), AppearanceUpdateEvent());
 
-  Rebroadcast(m_Model->GetDriver(), WrapperMetadataChangeEvent(),
-              AppearanceUpdateEvent());
-
-  // Also listen to events on intensity curves
-  Rebroadcast(m_Model->GetParentUI()->GetIntensityCurveModel(),
-              ModelUpdateEvent(), AppearanceUpdateEvent());
-
-  // Also listen to events on the color map
-  Rebroadcast(m_Model->GetParentUI()->GetColorMapModel(),
-              ModelUpdateEvent(), AppearanceUpdateEvent());
-
-  // The color label table is yet another source of appearance changes
-  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetColorLabelTable(),
-              SegmentationLabelPropertyChangeEvent(), AppearanceUpdateEvent());
-  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetColorLabelTable(),
-              SegmentationLabelConfigurationChangeEvent(), AppearanceUpdateEvent());
+  // Listen to changes in the appearance of any of the wrappers
+  Rebroadcast(m_Model->GetDriver(), WrapperChangeEvent(), AppearanceUpdateEvent());
 
   // Changes to cell layout also must be rebroadcast
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();

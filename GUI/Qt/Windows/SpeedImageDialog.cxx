@@ -2,6 +2,7 @@
 #include "ui_SpeedImageDialog.h"
 #include "QtDoubleSliderWithEditorCoupling.h"
 #include "QtRadioButtonCoupling.h"
+#include "QtAbstractButtonCoupling.h"
 #include "SnakeWizardModel.h"
 #include "QtWidgetActivator.h"
 #include "ThresholdSettingsRenderer.h"
@@ -56,6 +57,8 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
 
   // Couple the preview checkbox
   makeCoupling(ui->chkPreview, model->GetPreviewModel());
+  makeCoupling((QAbstractButton *) ui->btnSpeedBlue, model->GetBlueWhiteSpeedModeModel());
+  makeCoupling((QAbstractButton *) ui->btnSpeedOverlay, model->GetRedTransparentSpeedModeModel());
 
   // Couple the thresholding widgets
   makeCoupling(ui->inLowerThreshold, model->GetThresholdLowerModel());

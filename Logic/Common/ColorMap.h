@@ -61,8 +61,6 @@ public:
 
   irisITKObjectMacro(ColorMap, itk::Object)
 
-  FIRES(ColorMapChangeEvent)
-
   /** RGBA type */
   typedef unsigned char EltType;
   typedef itk::RGBAPixel<EltType> RGBAType;
