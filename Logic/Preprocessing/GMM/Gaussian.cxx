@@ -91,6 +91,11 @@ double * Gaussian::GetCovariance()
     }
 }
 
+double Gaussian::GetCovarianceComponent(int row, int col)
+{
+  return (*m_covariance_matrix)(row,col);
+}
+
 #include <vnl/vnl_trace.h>
 
 double Gaussian::GetTotalVariance()

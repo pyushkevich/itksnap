@@ -219,6 +219,9 @@ void SnakeWizardPanel::Initialize()
 
 void SnakeWizardPanel::on_btnNextPreproc_clicked()
 {
+  // Initialize the model
+  m_Model->OnBubbleModeEnter();
+
   // Move to the bubble page
   ui->stack->setCurrentWidget(ui->pgBubbles);
 }

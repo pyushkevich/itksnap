@@ -157,6 +157,26 @@ typedef iris_vector_fixed<bool,3> Vector3b;
 typedef vnl_matrix_fixed<double,3,3> Matrix3d;
 typedef vnl_matrix_fixed<double,4,4> Matrix4d;
 
+// An equivalent to MATLAB's linspace command
+template<class T>
+inline vnl_vector<T> linspace(T x0, T x1, unsigned int n)
+{
+  vnl_vector<T> v(n);
+  double step = (x1 - x0) / (n - 1);
+  for(int i = 0; i < n; i++)
+    v[i] = (i == n-1) ? x1 : x0 + i * step;
+  return v;
+}
+
+template<class T>
+void
+linspace(T *v, T x0, T x1, unsigned int n)
+{
+  double step = (x1 - x0) / (n - 1);
+  for(int i = 0; i < n; i++)
+    v[i] = (i == n-1) ? x1 : x0 + i * step;
+}
+
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "IRISVectorTypes.txx"
 #endif

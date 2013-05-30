@@ -3,6 +3,7 @@
 #include "QtDoubleSliderWithEditorCoupling.h"
 #include "QtRadioButtonCoupling.h"
 #include "QtAbstractButtonCoupling.h"
+#include "QtComboBoxCoupling.h"
 #include "SnakeWizardModel.h"
 #include "QtWidgetActivator.h"
 #include "ThresholdSettingsRenderer.h"
@@ -17,6 +18,7 @@
 #include "ImageWrapperBase.h"
 #include "SNAPQtCommon.h"
 #include "GMMTableModel.h"
+#include "GMMRenderer.h"
 
 SpeedImageDialog::SpeedImageDialog(QWidget *parent) :
   QDialog(parent),
@@ -36,6 +38,9 @@ SpeedImageDialog::SpeedImageDialog(QWidget *parent) :
   // Same for the edge preprocessing
   m_EdgeSettingsRenderer = EdgePreprocessingSettingsRenderer::New();
   ui->viewEdgeMapping->SetRenderer(m_EdgeSettingsRenderer);
+
+  m_GMMRenderer = GMMRenderer::New();
+  ui->viewClustering->SetRenderer(m_GMMRenderer);
 }
 
 SpeedImageDialog::~SpeedImageDialog()
@@ -51,6 +56,7 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   // Pass the model to the renderers
   m_ThresholdRenderer->SetModel(model);
   m_EdgeSettingsRenderer->SetModel(model);
+  m_GMMRenderer->SetModel(model);
 
   // Pass the model to the sub-models
   m_GMMTableModel->SetParentModel(model);
@@ -75,6 +81,7 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   // Couple the clustering widgets
   makeCoupling(ui->inNumClusters, model->GetNumberOfClustersModel());
   makeCoupling(ui->inNumSamples, model->GetNumberOfGMMSamplesModel());
+  makeCoupling(ui->inClusterXComponent, model->GetClusterPlottedComponentModel());
 
   // Set up activation
   activateOnFlag(ui->tabThreshold, model, SnakeWizardModel::UIF_THESHOLDING_ENABLED);

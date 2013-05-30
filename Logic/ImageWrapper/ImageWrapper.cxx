@@ -871,7 +871,7 @@ ImageWrapper<TTraits,TBase>
   if(nBins == 0)
     nBins = m_Histogram->GetSize();
   if(nBins == 0)
-    nBins = 128;
+    nBins = DEFAULT_HISTOGRAM_BINS;
 
   // TODO: the histogram should be generated using a filter to take advantage
   // of ITK threading

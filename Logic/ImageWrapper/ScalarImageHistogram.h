@@ -24,8 +24,20 @@ public:
   unsigned long GetFrequency(size_t iBin) const;
   size_t GetSize() const;
 
+  /**
+   * Determine the largest frequency to display in the plot of the histogram.
+   * Sometimes histograms have bins that are much higher than most of the
+   * histogram (e.g., background voxels all zero in an image), and we want to
+   * set a cutoff for the y-axis when showing such a histogram, so that the
+   * bulk of the histogram is visible. We determine range here by taking the
+   * 95th percentile of the histogram bin frequencies, and plotting that at
+   * the level of 80% of the y-axis.
+   */
+  double GetReasonableDisplayCutoff(double quantile=0.95, double quantile_height=0.80) const;
+
   irisGetMacro(MaxFrequency, unsigned long)
   irisGetMacro(TotalSamples, unsigned long)
+  irisGetMacro(BinWidth, double)
 
 protected:
   ScalarImageHistogram();

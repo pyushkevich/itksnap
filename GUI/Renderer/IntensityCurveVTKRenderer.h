@@ -3,7 +3,7 @@
 
 #include "AbstractVTKSceneRenderer.h"
 #include "vtkSmartPointer.h"
-
+#include "LayerHistogramPlotAssembly.h"
 
 class vtkActor;
 class vtkPropAssembly;
@@ -46,9 +46,8 @@ protected:
 
   vtkSmartPointer<IntensityCurveControlPointsContextItem> m_Controls;
 
-  vtkSmartPointer<vtkTable> m_HistogramTable;
-  vtkSmartPointer<vtkPlot> m_HistogramPlot;
-  vtkSmartPointer<vtkFloatArray> m_HistogramX, m_HistogramY;
+  // Histogram
+  LayerHistogramPlotAssembly *m_HistogramAssembly;
 
   vtkSmartPointer<HorizontalColorMapContextItem> m_XColorMapItem;
   vtkSmartPointer<VerticalColorMapContextItem> m_YColorMapItem;

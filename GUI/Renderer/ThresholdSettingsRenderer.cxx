@@ -1,16 +1,20 @@
 #include "ThresholdSettingsRenderer.h"
 #include <vtkChartXY.h>
 #include <vtkPlot.h>
+#include <vtkPlotBar.h>
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
 #include <vtkAxis.h>
 #include <SnakeWizardModel.h>
+#include "LayerHistogramPlotAssembly.h"
+#include "ImageWrapperBase.h"
+#include "ScalarImageHistogram.h"
 
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
-
+#include "vtkGenericOpenGLRenderWindow.h"
 
 const unsigned int ThresholdSettingsRenderer::NUM_POINTS = 256;
 
@@ -37,22 +41,34 @@ ThresholdSettingsRenderer::ThresholdSettingsRenderer()
   m_PlotTable->AddColumn(m_DataY);
   m_PlotTable->SetNumberOfRows(NUM_POINTS);
 
+  // Create the histogram assembly
+  m_HistogramAssembly = new LayerHistogramPlotAssembly();
+  m_HistogramAssembly->AddToChart(m_Chart);
+
   // Set up the plot
   vtkPlot *plot = m_Chart->AddPlot(vtkChart::LINE);
   plot->SetInput(m_PlotTable, 0, 1);
   plot->SetColor(1, 0, 0);
-  plot->SetWidth(1.0);
+  plot->SetWidth(2.0);
   plot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
-  plot->GetYAxis()->SetMinimum(-1.05);
+  plot->GetYAxis()->SetMinimum(-0.05);
   plot->GetYAxis()->SetMaximum(1.05);
-  plot->GetXAxis()->SetTitle("Input Image Intensity");
-  plot->GetYAxis()->SetTitle("Speed Value");
-
-  // TODO: we could also render a histogram here
+  plot->GetXAxis()->SetTitle("Input image intensity");
+  plot->GetYAxis()->SetTitle("Threshold function");
 
   // Set the background to white
   m_BackgroundColor.fill(1.0);
 
+  // Customize the render window
+  this->m_RenderWindow->SetMultiSamples(0);
+  this->m_RenderWindow->SetLineSmoothing(1);
+  this->m_RenderWindow->SetPolygonSmoothing(1);
+}
+
+ThresholdSettingsRenderer::~ThresholdSettingsRenderer()
+{
+  // Create the histogram assembly
+  delete m_HistogramAssembly;
 }
 
 void ThresholdSettingsRenderer::SetModel(SnakeWizardModel *model)
@@ -74,6 +90,9 @@ void ThresholdSettingsRenderer::UpdatePlotValues()
     m_Model->EvaluateThresholdFunction(NUM_POINTS,
                                        m_DataX->GetPointer(0),
                                        m_DataY->GetPointer(0));
+
+    const ScalarImageHistogram *hist = m_Model->GetLayerAndIndexForNthComponent(0).ComponentWrapper->GetHistogram(0);
+    m_HistogramAssembly->PlotWithFixedLimits(hist, 0.0, 1.0);
 
     m_PlotTable->Modified();
     m_Chart->RecalculateBounds();

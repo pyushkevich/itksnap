@@ -99,7 +99,7 @@ public:
   void SetColorLabel(size_t id, const ColorLabel &label);
 
   /** Generate a default color label at index i */
-  ColorLabel GetDefaultColorLabel(LabelType id) const;
+  static ColorLabel GetDefaultColorLabel(LabelType id);
 
   bool IsColorLabelValid(LabelType id) const;
 

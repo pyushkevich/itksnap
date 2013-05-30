@@ -382,7 +382,7 @@ ColorLabelTable
   return m_LabelMap.size();
 }
 
-ColorLabel ColorLabelTable::GetDefaultColorLabel(LabelType id) const
+ColorLabel ColorLabelTable::GetDefaultColorLabel(LabelType id)
 {
   assert(id < MAX_COLOR_LABELS);
 

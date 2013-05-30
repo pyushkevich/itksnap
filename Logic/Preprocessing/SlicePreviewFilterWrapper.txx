@@ -12,7 +12,7 @@ template <class TFilterConfigTraits>
 SlicePreviewFilterWrapper<TFilterConfigTraits>
 ::SlicePreviewFilterWrapper()
 {
-  m_PreviewMode = false;
+  m_PreviewMode = TFilterConfigTraits::GetDefaultPreviewMode();
 
   // Allocate the volume filter and the preview filters
   m_VolumeFilter = FilterType::New();

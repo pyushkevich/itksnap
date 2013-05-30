@@ -25,6 +25,7 @@
 
 #include "IntensityCurveModel.h"
 #include "IntensityCurveInterface.h"
+#include "LayerHistogramPlotAssembly.h"
 #include "ScalarImageHistogram.h"
 #include "ColorMapModel.h"
 
@@ -393,16 +394,8 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   m_PlotTable->SetNumberOfRows(CURVE_RESOLUTION+3);
 
   // Set up the histogram plot
-  m_HistogramX = vtkSmartPointer<vtkFloatArray>::New();
-  m_HistogramX->SetName("Image Intensity");
-  m_HistogramY = vtkSmartPointer<vtkFloatArray>::New();
-  m_HistogramY->SetName("Frequency");
-  m_HistogramTable = vtkSmartPointer<vtkTable>::New();
-  m_HistogramTable->AddColumn(m_HistogramX);
-  m_HistogramTable->AddColumn(m_HistogramY);
-  m_HistogramPlot = m_Chart->AddPlot(vtkChart::BAR);
-  m_HistogramPlot->SetInput(m_HistogramTable, 0, 1);
-  m_HistogramPlot->SetColor(0.8, 0.8, 1.0);
+  m_HistogramAssembly = new LayerHistogramPlotAssembly();
+  m_HistogramAssembly->AddToChart(m_Chart);
 
   // Set up the curve plot
   m_CurvePlot = m_Chart->AddPlot(vtkChart::LINE);
@@ -443,6 +436,7 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
 
 IntensityCurveVTKRenderer::~IntensityCurveVTKRenderer()
 {
+  delete m_HistogramAssembly;
 }
 
 void
@@ -531,25 +525,10 @@ IntensityCurveVTKRenderer
     m_PlotTable->Modified();
 
     // Compute the histogram entries
-    const ScalarImageHistogram *histogram = m_Model->GetHistogram();
-    m_HistogramTable->SetNumberOfRows(histogram->GetSize());
-
-    // Figure out how to scale the histogram
-    double yspan = histogram->GetMaxFrequency() *
-        m_Model->GetProperties().GetHistogramCutoff();
-    if(m_Model->GetProperties().IsHistogramLog() && yspan > 0)
-      yspan = log10(yspan);
-    double scaleFactor = 1.0 / yspan;
-    for(int i = 0; i < histogram->GetSize(); i++)
-      {
-      m_HistogramX->SetValue(i, histogram->GetBinCenter(i));
-      double y = histogram->GetFrequency(i);
-      if(m_Model->GetProperties().IsHistogramLog() && y > 0)
-        y = log10(y);
-      m_HistogramY->SetValue(i, y * scaleFactor);
-      }
-
-    m_HistogramTable->Modified();
+    m_HistogramAssembly->PlotWithFixedLimits(
+          m_Model->GetHistogram(), 0.0, 1.0,
+          m_Model->GetProperties().GetHistogramCutoff(),
+          m_Model->GetProperties().IsHistogramLog());
 
     m_XColorMapItem->Modified();
     m_YColorMapItem->Modified();

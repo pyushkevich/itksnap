@@ -112,7 +112,7 @@ IntensityCurveModel
   IntensityCurveLayerProperties *p = m_LayerProperties[m_Layer];
 
   // Figure out the number of bins that we want
-  unsigned int nBins = 64;
+  unsigned int nBins = DEFAULT_HISTOGRAM_BINS;
   if(m_ViewportReporter && m_ViewportReporter->CanReportSize())
     {
     unsigned int width = m_ViewportReporter->GetViewportSize()[0];

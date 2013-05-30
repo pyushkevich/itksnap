@@ -532,8 +532,7 @@ SNAPImageData
 
   // Assign the new wrapper to the target
   this->SetMainImage(imgNew, icg, srcWrapper->GetNativeMapping());
-  this->GetMain()->SetDefaultNickname(
-        std::string("ROI [") + source->GetMain()->GetNickname() + std::string("]"));
+  this->GetMain()->SetDefaultNickname(source->GetMain()->GetNickname());
 
   // TODO: it probably makes sense to write a ExtractROI function in ImageWrapper
   // that would handle all of this internally.
@@ -558,8 +557,7 @@ SNAPImageData
     this->AddOverlay(ovlNew, ovlWrapper->GetNativeMapping());
 
     // Nickname
-    this->GetLastOverlay()->SetDefaultNickname(
-          std::string("ROI [") + source->GetLastOverlay()->GetNickname() + std::string("]"));
+    this->GetLastOverlay()->SetDefaultNickname(ovlWrapper->GetNickname());
     }
 }
 

@@ -10,6 +10,7 @@ class ThresholdSettingsRenderer;
 class EdgePreprocessingSettingsRenderer;
 class GaussianMixtureModel;
 class GMMTableModel;
+class GMMRenderer;
 
 namespace Ui {
 class SpeedImageDialog;
@@ -61,6 +62,8 @@ private:
   SmartPtr<ThresholdSettingsRenderer> m_ThresholdRenderer;
 
   SmartPtr<EdgePreprocessingSettingsRenderer> m_EdgeSettingsRenderer;
+
+  SmartPtr<GMMRenderer> m_GMMRenderer;
 
   // Qt table model for the cluster table
   GMMTableModel *m_GMMTableModel;

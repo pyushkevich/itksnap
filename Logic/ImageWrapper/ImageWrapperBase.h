@@ -212,6 +212,20 @@ public:
   virtual double GetImageMaxNative() = 0;
 
   /**
+    Compute the image histogram. The histogram is cached inside of the
+    object, so repeated calls to this function with the same nBins parameter
+    will not require additional computation.
+
+    Calling with default parameter (0) will use the same number of bins that
+    is currently in the histogram (i.e., return/recompute current histogram).
+    If there is no current histogram, a default histogram with 128 entries
+    will be generated.
+
+    For multi-component data, the histogram is pooled over all components.
+    */
+  virtual const ScalarImageHistogram *GetHistogram(size_t nBins) = 0;
+
+  /**
    * This method returns a vector of values for the voxel under the cursor.
    * This is the natural value or set of values that should be displayed to
    * the user. The value depends on the current display mode. For scalar
@@ -338,12 +352,6 @@ public:
     Get the maximum possible value of the gradient magnitude in native units
     */
   virtual double GetImageGradientMagnitudeUpperLimitNative() = 0;
-
-  /**
-    Compute the histogram of the image and store it in the ITK
-    histogram object.
-    */
-  virtual const ScalarImageHistogram *GetHistogram(size_t nBins) = 0;
 
   /**
    * Extract a GreyType representation from the image wrapper. Note that

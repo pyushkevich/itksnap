@@ -14,6 +14,10 @@
  * Qt MODEL Behind the Cluster Listing Table
  * ============================================ */
 
+
+
+
+
 void GMMTableModel::SetParentModel(SnakeWizardModel *parent)
 {
   m_ParentModel = parent;
@@ -89,14 +93,14 @@ QVariant GMMTableModel::data(const QModelIndex &index, int role) const
 
   else if((role == Qt::DisplayRole || role == Qt::EditRole) && ctype == COLUMN_MEAN)
     {
-    double mean = gmm->GetMean(cluster)[columnIndexInType(index)];
-    return QString::number(mean, 'g', 3);
+    double mean = m_ParentModel->GetClusterNativeMean(cluster, columnIndexInType(index));
+    return QString("%1").arg(mean, 8, 'g', -1);
     }
 
   else if((role == Qt::DisplayRole || role == Qt::EditRole)  && ctype == COLUMN_TRACE)
     {
-    double var = gmm->GetGaussian(cluster)->GetTotalVariance();
-    return QString::number(var, 'g', 3);
+    double var = m_ParentModel->GetClusterNativeTotalVariance(cluster);
+    return QString("%1").arg(var, 8, 'g', -1);
     }
 
   else if(role == Qt::TextAlignmentRole && ctype == COLUMN_PRIMARY)
@@ -120,6 +124,8 @@ Qt::ItemFlags GMMTableModel::flags(const QModelIndex &index) const
     case COLUMN_PRIMARY:
       return Qt::ItemIsUserCheckable | f;
     case COLUMN_WEIGHT:
+      return Qt::ItemIsEditable | f;
+    case COLUMN_MEAN:
       return Qt::ItemIsEditable | f;
     default:
       return f;
@@ -166,9 +172,10 @@ QVariant GMMTableModel::headerData(int section, Qt::Orientation orientation, int
         {
         // Get the component information
         SnakeWizardModel::ComponentInfo ci =
-            m_ParentModel->GetLayerAndIndexForNthComponent(section-1);
-        QString nick = from_utf8(ci.first->GetNickname());
-        return QString("<html><body>Cluster mean for image <b>%1</b> component <b>%2</b></body></html>").arg(nick).arg(ci.second);
+            m_ParentModel->GetLayerAndIndexForNthComponent(section-COLUMN_MEAN);
+        QString nick = from_utf8(ci.ImageWrapper->GetNickname());
+        return QString("<html><body>Cluster mean for image <b>%1</b>"
+                       " component <b>%2</b></body></html>").arg(nick).arg(ci.ComponentIndex);
         }
       }
     }
@@ -177,6 +184,11 @@ QVariant GMMTableModel::headerData(int section, Qt::Orientation orientation, int
     {
     if(role == Qt::DisplayRole)
       return QString("Cluster %1").arg(section+1);
+    else if(role == Qt::DecorationRole)
+      {
+      Vector3d rgb = ColorLabelTable::GetDefaultColorLabel(section+1).GetRGBAsDoubleVector();
+      return CreateColorBoxIcon(16, 16, to_unsigned_int(rgb * 255.0));
+      }
     }
 
   return QVariant();
@@ -195,7 +207,7 @@ bool GMMTableModel::setData(const QModelIndex &index, const QVariant &value, int
     // have a special method in the SpeedWizardModel class
     if(m_ParentModel->SetClusterForegroundState(index.row(), state))
       {
-      emit dataChanged(this->index(0,0), this->index(ngauss, 0));
+      emit dataChanged(this->index(0,index.column()), this->index(ngauss, index.column()));
       return true;
       }
     }
@@ -204,7 +216,18 @@ bool GMMTableModel::setData(const QModelIndex &index, const QVariant &value, int
     double weight = value.toDouble();
     if(m_ParentModel->SetClusterWeight(index.row(), weight))
       {
-      emit dataChanged(this->index(0,1), this->index(ngauss, 1));
+      emit dataChanged(this->index(0,index.column()), this->index(ngauss, index.column()));
+      return true;
+      }
+    }
+
+  else if(columnType(index) == COLUMN_MEAN)
+    {
+    double mean = value.toDouble();
+    if(m_ParentModel->SetClusterNativeMean(
+         index.row(), columnIndexInType(index), mean))
+      {
+      emit dataChanged(index, index);
       return true;
       }
     }

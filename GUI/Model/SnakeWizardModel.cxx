@@ -10,6 +10,10 @@
 #include "ColorMap.h"
 #include "SlicePreviewFilterWrapper.h"
 #include "UnsupervisedClustering.h"
+#include "PreprocessingFilterConfigTraits.h"
+#include "GMMClassifyImageFilter.h"
+
+
 
 SnakeWizardModel::SnakeWizardModel()
 {
@@ -123,6 +127,8 @@ SnakeWizardModel::SnakeWizardModel()
         &Self::GetNumberOfGMMSamplesValueAndRange,
         &Self::SetNumberOfGMMSamplesValue);
 
+  m_ClusterPlottedComponentModel = ComponentIndexModel::New();
+  this->UpdateClusterPlottedComponentModel();
 }
 
 void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
@@ -218,19 +224,50 @@ void SnakeWizardModel::OnUpdate()
           LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
     for(; !it.IsAtEnd(); ++it)
       {
-      if(it.GetLayerAsVector())
+      if(VectorImageWrapperBase *viw = it.GetLayerAsVector())
         {
         for(int comp = 0; comp < it.GetLayerAsVector()->GetNumberOfComponents(); ++comp)
           {
-          m_ComponentInfo.push_back(std::make_pair(it.GetLayer(), comp));
+          ComponentInfo ci;
+          ci.ImageWrapper = viw;
+          ci.ComponentWrapper = viw->GetScalarRepresentation(
+                VectorImageWrapperBase::SCALAR_REP_COMPONENT, comp);
+          ci.ComponentIndex = comp;
+          m_ComponentInfo.push_back(ci);
           }
         }
       else
         {
-        m_ComponentInfo.push_back(std::make_pair(it.GetLayer(), 0));
+        ComponentInfo ci;
+        ci.ImageWrapper = ci.ComponentWrapper = it.GetLayerAsScalar();
+        ci.ComponentIndex = 0;
+        m_ComponentInfo.push_back(ci);
         }
       }
+
+    this->UpdateClusterPlottedComponentModel();
     }
+}
+
+void SnakeWizardModel::UpdateClusterPlottedComponentModel()
+{
+  this->m_ClusterPlottedComponentModel->SetValue(0);
+  ComponentDomain cd;
+  for(int i = 0; i < m_ComponentInfo.size(); i++)
+    {
+    std::ostringstream oss;
+    oss << (i+1) << " : " << m_ComponentInfo[i].ImageWrapper->GetNickname();
+    cd[i] = oss.str();
+    }
+  this->m_ClusterPlottedComponentModel->SetDomain(cd);
+}
+
+void SnakeWizardModel::OnBubbleModeEnter()
+{
+  // When entering bubble mode, we should not use the overlay display of the
+  // speed image, as tht clashes with bubble placement visually
+  if(this->GetRedTransparentSpeedModeModel()->GetValue())
+    this->SetBlueWhiteSpeedModeValue(true);
 }
 
 
@@ -473,6 +510,10 @@ void SnakeWizardModel
     float x_internal = imin + t * (imax - imin);
     x[i] = grey->GetNativeIntensityMapping()->MapInternalToNative(x_internal);
     y[i] = speed->GetNativeIntensityMapping()->MapInternalToNative(functor(x_internal));
+
+    // We are actually plotting the threshold function itself, not the speed
+    // function, so we will scale further to the range [0 1]
+    y[i] = 0.5 * (y[i] + 1.0);
     }
 }
 
@@ -936,9 +977,6 @@ void SnakeWizardModel::SetNumberOfGMMSamplesValue(int value)
   this->InvokeEvent(GMMModifiedEvent());
 }
 
-#include "PreprocessingFilterConfigTraits.h"
-#include "GMMClassifyImageFilter.h"
-
 void SnakeWizardModel::TagGMMPreprocessingFilterModified()
 {
   // TODO: this is not the right way to do this! Make MixtureModel an itkObject
@@ -992,6 +1030,13 @@ bool SnakeWizardModel::SetClusterForegroundState(int cluster, bool state)
     }
 }
 
+double SnakeWizardModel::GetClusterWeight(int cluster)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  GaussianMixtureModel *gmm = uc->GetMixtureModel();
+  return gmm->GetWeight(cluster);
+}
+
 bool SnakeWizardModel::SetClusterWeight(int cluster, double weight)
 {
   UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
@@ -1009,6 +1054,63 @@ bool SnakeWizardModel::SetClusterWeight(int cluster, double weight)
     }
   else
     return false;
+}
+
+double SnakeWizardModel::GetClusterNativeMean(int cluster, int component)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  GaussianMixtureModel *gmm = uc->GetMixtureModel();
+  ImageWrapperBase *aiw = this->GetLayerAndIndexForNthComponent(component).ImageWrapper;
+  const AbstractNativeIntensityMapping *nim = aiw->GetNativeIntensityMapping();
+  return nim->MapInternalToNative(gmm->GetMean(cluster)[component]);
+}
+
+bool SnakeWizardModel::SetClusterNativeMean(int cluster, int component, double x)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  GaussianMixtureModel *gmm = uc->GetMixtureModel();
+  ImageWrapperBase *aiw = this->GetLayerAndIndexForNthComponent(component).ImageWrapper;
+  const AbstractNativeIntensityMapping *nim = aiw->GetNativeIntensityMapping();
+  vnl_vector<double> mean_raw(gmm->GetMean(cluster), gmm->GetNumberOfComponents());
+  double mk = nim->MapNativeToInternal(x);
+  if(mk != mean_raw[component])
+    {
+    mean_raw[component] = mk;
+    gmm->SetMean(cluster, mean_raw.data_block());
+
+    TagGMMPreprocessingFilterModified();
+    this->InvokeEvent(GMMModifiedEvent());
+
+    return true;
+    }
+
+  return false;
+}
+
+double SnakeWizardModel::GetClusterNativeCovariance(int cluster, int comp1, int comp2)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  GaussianMixtureModel *gmm = uc->GetMixtureModel();
+
+  const AbstractNativeIntensityMapping *nim1 =
+      this->GetLayerAndIndexForNthComponent(comp1).ImageWrapper->GetNativeIntensityMapping();
+
+  const AbstractNativeIntensityMapping *nim2 =
+      this->GetLayerAndIndexForNthComponent(comp2).ImageWrapper->GetNativeIntensityMapping();
+
+  double cov_raw = gmm->GetGaussian(cluster)->GetCovarianceComponent(comp1, comp2);
+  return cov_raw * nim1->GetScale() * nim2->GetScale();
+}
+
+double SnakeWizardModel::GetClusterNativeTotalVariance(int cluster)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  GaussianMixtureModel *gmm = uc->GetMixtureModel();
+  int ng = gmm->GetNumberOfGaussians();
+  double var = 0;
+  for(int i = 0; i < gmm->GetNumberOfComponents(); i++)
+    var += this->GetClusterNativeCovariance(cluster, i, i);
+  return var;
 }
 
 void SnakeWizardModel::ReinitializeClustering()

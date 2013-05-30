@@ -12,6 +12,7 @@ class vtkPlot;
 class vtkTable;
 
 class SnakeWizardModel;
+class LayerHistogramPlotAssembly;
 
 class ThresholdSettingsRenderer : public AbstractVTKSceneRenderer
 {
@@ -26,7 +27,7 @@ public:
 protected:
 
   ThresholdSettingsRenderer();
-  virtual ~ThresholdSettingsRenderer() {}
+  virtual ~ThresholdSettingsRenderer();
 
   SnakeWizardModel *m_Model;
 
@@ -38,6 +39,9 @@ protected:
   vtkSmartPointer<vtkTable> m_PlotTable;
   vtkSmartPointer<vtkPlot> m_Plot;
   vtkSmartPointer<vtkFloatArray> m_DataX, m_DataY;
+
+  // Histogram rendering
+  LayerHistogramPlotAssembly *m_HistogramAssembly;
 };
 
 #endif // THRESHOLDSETTINGSRENDERER_H

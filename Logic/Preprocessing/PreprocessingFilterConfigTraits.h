@@ -58,6 +58,7 @@ public:
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
   static void DetachInputs(FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter);
+  static bool GetDefaultPreviewMode() { return true; }
 };
 
 class EdgePreprocessingFilterConfigTraits {
@@ -73,6 +74,7 @@ public:
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
   static void DetachInputs(FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter);
+  static bool GetDefaultPreviewMode() { return false; }
 };
 
 
@@ -89,6 +91,7 @@ public:
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
   static void DetachInputs(FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter);
+  static bool GetDefaultPreviewMode() { return true; }
 };
 
 

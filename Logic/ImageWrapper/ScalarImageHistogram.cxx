@@ -1,4 +1,5 @@
 #include "ScalarImageHistogram.h"
+#include <algorithm>
 
 ScalarImageHistogram::ScalarImageHistogram()
 {
@@ -89,6 +90,17 @@ ScalarImageHistogram
 ::GetSize() const
 {
   return m_Bins.size();
+}
+
+double ScalarImageHistogram::GetReasonableDisplayCutoff(double quantile, double quantile_height) const
+{
+  std::vector<unsigned long> binsort = m_Bins;
+  std::sort(binsort.begin(), binsort.end());
+
+  int n = binsort.size();
+  int pos = std::min(std::max((int) (0.5 + quantile * (n - 1)) , 0), n - 1);
+  unsigned long qval = binsort[pos];
+  return std::min(qval * 1.0 / quantile_height, (double) binsort.back());
 }
 
 

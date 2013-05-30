@@ -132,6 +132,8 @@ struct DrawOverFilter
 #define NUM_INITIAL_COLOR_LABELS 6
 
 
+#define DEFAULT_HISTOGRAM_BINS 40
+
 /**
   A debugging function to get the system time in ms. Actual definition is
   in SystemInterface.cxx

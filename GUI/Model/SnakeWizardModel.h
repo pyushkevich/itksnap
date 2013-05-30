@@ -86,6 +86,9 @@ public:
   irisGetMacro(EdgePreprocessingKappaModel, AbstractRangedDoubleProperty *)
   irisGetMacro(EdgePreprocessingExponentModel, AbstractRangedDoubleProperty *)
 
+  // What happens when we enter bubble mode
+  void OnBubbleModeEnter();
+
   // Model for bubble selection
   irisGetMacro(ActiveBubbleModel, AbstractSimpleIntProperty *)
 
@@ -102,8 +105,13 @@ public:
   /** Check the state flags above */
   bool CheckState(UIState state);
 
-  /** A component index in an anatomic image wrapper */
-  typedef std::pair<ImageWrapperBase *, int> ComponentInfo;
+  /** A reference to a component used in automatic segmentation */
+  struct ComponentInfo
+  {
+    ImageWrapperBase *ImageWrapper;
+    ScalarImageWrapperBase *ComponentWrapper;
+    int ComponentIndex;
+  };
 
   /**
    * This method allows a quick lookup between components involved in
@@ -175,6 +183,11 @@ public:
   irisRangedPropertyAccessMacro(NumberOfClusters, int)
   irisRangedPropertyAccessMacro(NumberOfGMMSamples, int)
 
+  typedef SimpleItemSetDomain<int, std::string> ComponentDomain;
+  typedef ConcretePropertyModel<int, ComponentDomain> ComponentIndexModel;
+
+  irisGetMacro(ClusterPlottedComponentModel, ComponentIndexModel *)
+
   void ReinitializeClustering();
 
   void PerformClusteringIteration();
@@ -183,7 +196,16 @@ public:
   bool SetClusterForegroundState(int cluster, bool state);
 
   // TODO: get rid of this?
+  double GetClusterWeight(int cluster);
   bool SetClusterWeight(int cluster, double weight);
+
+  double GetClusterNativeMean(int cluster, int component);
+  bool SetClusterNativeMean(int cluster, int component, double x);
+
+  double GetClusterNativeCovariance(int cluster, int comp1, int comp2);
+  double GetClusterNativeTotalVariance(int cluster);
+
+  double EvaluateClusterMarginalUnivariatePDF(int cluster, int component, double x);
 
 
 protected:
@@ -278,6 +300,9 @@ protected:
   bool GetNumberOfGMMSamplesValueAndRange(int &value, NumericValueRange<int> *range);
   void SetNumberOfGMMSamplesValue(int value);
 
+  // Model for the selected component
+  SmartPtr<ComponentIndexModel> m_ClusterPlottedComponentModel;
+
   // TODO: this should be handled through the ITK modified mechanism
   void TagGMMPreprocessingFilterModified();
 
@@ -285,6 +310,9 @@ protected:
   // segmentation code. This list is updated in OnUpdate() in response to any
   // events that change the number of available layers.
   std::vector<ComponentInfo> m_ComponentInfo;
+
+  // Update the model for component selection
+  void UpdateClusterPlottedComponentModel();
 
   // Parent model
   GlobalUIModel *m_Parent;
