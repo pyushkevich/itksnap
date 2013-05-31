@@ -287,6 +287,9 @@ public:
   const_iterator find(const TVal &value) const
     { return m_Map.find(value); }
 
+  void clear()
+    { m_Map.clear(); }
+
   TVal GetValue(const const_iterator &it) const
     { return it->first; }
 

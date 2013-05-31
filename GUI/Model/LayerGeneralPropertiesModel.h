@@ -32,7 +32,7 @@ public:
 
   /**
    * This enum defines the selections that the user can make for display mode.
-   * These selections roughly map to the VectorImageWrapperBase::ScalarRepresentation
+   * These selections roughly map to the ScalarRepresentation
    * but the RGB mode is handled differently here and there (because RGB mode does
    * is not a scalar representation).
    */

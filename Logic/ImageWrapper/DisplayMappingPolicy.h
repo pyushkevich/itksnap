@@ -328,7 +328,7 @@ struct MultiChannelDisplayMode
    * When not in RGB mode, which scalar representation is selected for
    * display. Only used if UseRGB is false.
    */
-  VectorImageWrapperBase::ScalarRepresentation SelectedScalarRep;
+  ScalarRepresentation SelectedScalarRep;
 
   /**
    * When the scalar representation is 'component', which component is
@@ -341,7 +341,7 @@ struct MultiChannelDisplayMode
 
   /** Default constructor - select first component */
   MultiChannelDisplayMode(bool use_rgb,
-                          VectorImageWrapperBase::ScalarRepresentation rep,
+                          ScalarRepresentation rep,
                           int comp = 0);
 
   /** Initialize for RGB mode */
@@ -353,7 +353,7 @@ struct MultiChannelDisplayMode
   /** Restore from registry */
   static MultiChannelDisplayMode Load(Registry &reg);
 
-  typedef VectorImageWrapperBase::ScalarRepresentation ScalarRepresentation;
+  typedef ScalarRepresentation ScalarRepresentation;
   static RegistryEnumMap<ScalarRepresentation> &GetScalarRepNames();
 
   /** Get a hash value for this struct - for ordering purposes */
@@ -480,8 +480,6 @@ public:
   typedef ImageWrapperBase::DisplaySliceType DisplaySliceType;
   typedef ImageWrapperBase::DisplaySlicePointer DisplaySlicePointer;
   typedef ImageWrapperBase::DisplayPixelType DisplayPixelType;
-
-  typedef typename VectorImageWrapperBase::ScalarRepresentation ScalarRep;
 
   void Initialize(WrapperType *wrapper);
   void UpdateImagePointer(ImageType *image);

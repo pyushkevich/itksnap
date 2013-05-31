@@ -46,15 +46,16 @@ ThresholdSettingsRenderer::ThresholdSettingsRenderer()
   m_HistogramAssembly->AddToChart(m_Chart);
 
   // Set up the plot
-  vtkPlot *plot = m_Chart->AddPlot(vtkChart::LINE);
-  plot->SetInput(m_PlotTable, 0, 1);
-  plot->SetColor(1, 0, 0);
-  plot->SetWidth(2.0);
-  plot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
-  plot->GetYAxis()->SetMinimum(-0.05);
-  plot->GetYAxis()->SetMaximum(1.05);
-  plot->GetXAxis()->SetTitle("Input image intensity");
-  plot->GetYAxis()->SetTitle("Threshold function");
+  m_Plot = m_Chart->AddPlot(vtkChart::LINE);
+  m_Plot->SetInput(m_PlotTable, 0, 1);
+  m_Plot->SetColor(1, 0, 0);
+  m_Plot->SetWidth(2.0);
+  m_Plot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
+  m_Plot->GetYAxis()->SetMinimum(-0.05);
+  m_Plot->GetYAxis()->SetMaximum(1.05);
+  m_Plot->GetXAxis()->SetTitle("Input image intensity");
+  m_Plot->GetXAxis()->SetBehavior(vtkAxis::FIXED);
+  m_Plot->GetYAxis()->SetTitle("Threshold function");
 
   // Set the background to white
   m_BackgroundColor.fill(1.0);
@@ -91,8 +92,13 @@ void ThresholdSettingsRenderer::UpdatePlotValues()
                                        m_DataX->GetPointer(0),
                                        m_DataY->GetPointer(0));
 
-    const ScalarImageHistogram *hist = m_Model->GetLayerAndIndexForNthComponent(0).ComponentWrapper->GetHistogram(0);
+    ScalarImageWrapperBase *layer = m_Model->GetActiveScalarLayer(PREPROCESS_THRESHOLD);
+    const ScalarImageHistogram *hist = layer->GetHistogram(0);
     m_HistogramAssembly->PlotWithFixedLimits(hist, 0.0, 1.0);
+
+    m_Plot->GetXAxis()->SetRange(
+          layer->GetImageMinNative() - hist->GetBinWidth(),
+          layer->GetImageMaxNative() + hist->GetBinWidth());
 
     m_PlotTable->Modified();
     m_Chart->RecalculateBounds();

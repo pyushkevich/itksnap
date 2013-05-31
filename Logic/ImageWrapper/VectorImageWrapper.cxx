@@ -114,7 +114,7 @@ VectorImageWrapper<TTraits,TBase>
   for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
     {
     ScalarRepIndex idx = it->first;
-    if(idx.first == VectorImageWrapperBase::SCALAR_REP_COMPONENT)
+    if(idx.first == SCALAR_REP_COMPONENT)
       {
       // Get the mapping cast to proper type
       AbstractNativeIntensityMapping *abstract_mapping =
@@ -130,15 +130,15 @@ VectorImageWrapper<TTraits,TBase>
 
     // These are the derived wrappers. They use the identity mapping, but they
     // need to know what the source native mapping is.
-    else if(idx.first == VectorImageWrapperBase::SCALAR_REP_MAGNITUDE)
+    else if(idx.first == SCALAR_REP_MAGNITUDE)
       {
       SetNativeMappingInDerivedWrapper<MagnitudeFunctor>(it->second, mapping);
       }
-    else if(idx.first == VectorImageWrapperBase::SCALAR_REP_MAX)
+    else if(idx.first == SCALAR_REP_MAX)
       {
       SetNativeMappingInDerivedWrapper<MaxFunctor>(it->second, mapping);
       }
-    else if(idx.first == VectorImageWrapperBase::SCALAR_REP_AVERAGE)
+    else if(idx.first == SCALAR_REP_AVERAGE)
       {
       SetNativeMappingInDerivedWrapper<MeanFunctor>(it->second, mapping);
       }
@@ -182,6 +182,9 @@ VectorImageWrapper<TTraits,TBase>
   SmartPtr<DerivedWrapper> wrapper = DerivedWrapper::New();
   wrapper->InitializeToWrapper(this, adaptor);
 
+  // Assign a parent wrapper to the derived wrapper
+  wrapper->SetParentWrapper(this);
+
   SmartPtr<ScalarImageWrapperBase> ptrout = wrapper.GetPointer();
 
   // When creating derived wrappers, we need to rebroadcast the events from
@@ -215,21 +218,24 @@ VectorImageWrapper<TTraits,TBase>
     SmartPtr<ComponentWrapperType> cw = ComponentWrapperType::New();
     cw->InitializeToWrapper(this, comp);
 
+    // Assign a parent wrapper to the derived wrapper
+    cw->SetParentWrapper(this);
+
     // Store the wrapper
     m_ScalarReps[std::make_pair(
-          VectorImageWrapperBase::SCALAR_REP_COMPONENT, i)] = cw.GetPointer();
+          SCALAR_REP_COMPONENT, i)] = cw.GetPointer();
 
     // Rebroadcast the events from that wrapper
     Rebroadcaster::RebroadcastAsSourceEvent(cw, WrapperChangeEvent(), this);
     }
 
-  m_ScalarReps[std::make_pair(VectorImageWrapperBase::SCALAR_REP_MAGNITUDE, 0)]
+  m_ScalarReps[std::make_pair(SCALAR_REP_MAGNITUDE, 0)]
       = this->template CreateDerivedWrapper<MagnitudeFunctor>(newImage);
 
-  m_ScalarReps[std::make_pair(VectorImageWrapperBase::SCALAR_REP_MAX, 0)]
+  m_ScalarReps[std::make_pair(SCALAR_REP_MAX, 0)]
       = this->template CreateDerivedWrapper<MaxFunctor>(newImage);
 
-  m_ScalarReps[std::make_pair(VectorImageWrapperBase::SCALAR_REP_AVERAGE, 0)]
+  m_ScalarReps[std::make_pair(SCALAR_REP_AVERAGE, 0)]
       = this->template CreateDerivedWrapper<MeanFunctor>(newImage);
 
   // Create a flat representation of the image
@@ -263,7 +269,7 @@ VectorImageWrapper<TTraits,TBase>
       }
 
     // Store the component
-    m_ScalarReps[std::make_pair(VectorImageWrapperBase::SCALAR_REP_COMPONENT, i)]
+    m_ScalarReps[std::make_pair(SCALAR_REP_COMPONENT, i)]
         = cw.GetPointer();
     }
 
@@ -287,17 +293,36 @@ VectorImageWrapper<TTraits,TBase>
 
   // TODO: This is somewhat arbitrary! Maybe it should be something the user
   // can change under settings, i.e., "Default scalar representation for RGB images".
-  return this->GetScalarRepresentation(VectorImageWrapperBase::SCALAR_REP_MAX);
+  return this->GetScalarRepresentation(SCALAR_REP_MAX);
 }
 
 template <class TTraits, class TBase>
 inline ScalarImageWrapperBase *
 VectorImageWrapper<TTraits,TBase>
 ::GetScalarRepresentation(
-    VectorImageWrapperBase::ScalarRepresentation type,
+    ScalarRepresentation type,
     int index)
 {
   return m_ScalarReps[std::make_pair(type, index)];
+}
+
+template <class TTraits, class TBase>
+bool
+VectorImageWrapper<TTraits,TBase>
+::FindScalarRepresentation(
+    ImageWrapperBase *scalar_rep, ScalarRepresentation &type, int &index) const
+{
+  for(ScalarRepConstIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
+    {
+    if(it->second.GetPointer() == scalar_rep)
+      {
+      type = it->first.first;
+      index = it->first.second;
+      return true;
+      }
+    }
+
+  return false;
 }
 
 template <class TTraits, class TBase>
@@ -305,7 +330,7 @@ typename VectorImageWrapper<TTraits,TBase>::ComponentWrapperType *
 VectorImageWrapper<TTraits,TBase>
 ::GetComponentWrapper(unsigned int index)
 {
-  ScalarRepIndex repidx(VectorImageWrapperBase::SCALAR_REP_COMPONENT, index);
+  ScalarRepIndex repidx(SCALAR_REP_COMPONENT, index);
   return static_cast<ComponentWrapperType *>(m_ScalarReps[repidx].GetPointer());
 }
 

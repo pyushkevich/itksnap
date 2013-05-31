@@ -32,6 +32,20 @@ class Registry;
 class vtkImageImport;
 
 /**
+ * Supported ways of extracting a scalar value from vector-valued data.
+ * These modes allow the image to be cast to a scalar image and used in
+ * single-modality pipelines
+ */
+enum ScalarRepresentation
+{
+  SCALAR_REP_COMPONENT = 0,
+  SCALAR_REP_MAGNITUDE,
+  SCALAR_REP_MAX,
+  SCALAR_REP_AVERAGE,
+  NUMBER_OF_SCALAR_REPS
+};
+
+/**
  \class ImageWrapper
  \brief Abstract parent class for all image wrappers
 
@@ -84,6 +98,17 @@ public:
    * scalar representation (e.g., one of the components, magnitude, max, mean).
    */
   virtual ScalarImageWrapperBase *GetDefaultScalarRepresentation() = 0;
+
+  /**
+   * Get the parent wrapper for this wrapper. For 'normal' wrappers, this method
+   * returns NULL, indicating that the wrapper is a top-level wrapper. For derived
+   * wrappers (i.e., components and scalar representations of vector wrappers),
+   * this method returns the vector wrapper from which the wrapper is derived
+   */
+  virtual ImageWrapperBase *GetParentWrapper() const = 0;
+
+  /** Set the parent wrapper */
+  virtual void SetParentWrapper(ImageWrapperBase *parent) = 0;
 
   /** Get the coordinate transform for each display slice */
   virtual const ImageCoordinateTransform &GetImageToDisplayTransform(
@@ -298,6 +323,24 @@ public:
 
   typedef itk::Image<short, 3> ShortImageType;
 
+  /**
+   * The image wrapper has a generic mechanism for associating data with it.
+   * For example, we can associate some parameter values for a specific
+   * image processing algorithm with each layer. Do do that, we simply
+   * assign a pointer to the data to a specific string role. Internally,
+   * a smart pointer is used to point to the associated data.
+   *
+   * Users of this method might also want to rebroadcast events from the
+   * associated object as events of type WrapperUserChangeEvent(). These
+   * events will then propagate all the way up to the IRISApplication.
+   */
+  virtual void SetUserData(const std::string &role, itk::Object *data) = 0;
+
+  /**
+   * Get the user data associated with this wrapper for a specific role. If
+   * no association exists, NULL is returned.
+   */
+  virtual itk::Object* GetUserData(const std::string &role) const = 0;
 
 protected:
 
@@ -391,49 +434,22 @@ public:
   virtual vtkImageImport *GetVTKImporter() = 0;
 };
 
-/**
-  This type of image wrapper is meant to represent a continuous range of values
-  as opposed to a discrete set of labels. The wrapper contains a color map
-  which is used to map from intensity ranges to display pixels
-  */
-class ContinuousScalarImageWrapperBase : public virtual ScalarImageWrapperBase
-{
-public:
-
-  /** Set the reference to the color map object */
-  virtual ColorMap* GetColorMap() const = 0;
-
-
-};
 
 
 class VectorImageWrapperBase : public virtual ImageWrapperBase
 {
 public:
 
-  /**
-   * Supported ways of extracting a scalar value from vector-valued data.
-   * These modes allow the image to be cast to a scalar image and used in
-   * single-modality pipelines
-   */
-  enum ScalarRepresentation
-  {
-    SCALAR_REP_COMPONENT = 0,
-    SCALAR_REP_MAGNITUDE,
-    SCALAR_REP_MAX,
-    SCALAR_REP_AVERAGE,
-    NUMBER_OF_SCALAR_REPS
-  };
-
-
   virtual ScalarImageWrapperBase *GetScalarRepresentation(
       ScalarRepresentation type, int index = 0) = 0;
+
+  /**
+   * If scalar_rep is a scalar representation of the vector image wrapper, find
+   * the type of the representation and the index. Otherwise return false;
+   */
+  virtual bool FindScalarRepresentation(
+      ImageWrapperBase *scalar_rep, ScalarRepresentation &type, int &index) const = 0;
 };
 
-class RGBImageWrapperBase : public virtual VectorImageWrapperBase
-{
-public:
-
-};
 
 #endif // IMAGEWRAPPERBASE_H

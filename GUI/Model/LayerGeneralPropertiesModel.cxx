@@ -112,13 +112,13 @@ bool LayerGeneralPropertiesModel
     {
     switch(mode.SelectedScalarRep)
       {
-      case VectorImageWrapperBase::SCALAR_REP_MAGNITUDE:
+      case SCALAR_REP_MAGNITUDE:
         value = MODE_MAGNITUDE; break;
-      case VectorImageWrapperBase::SCALAR_REP_MAX:
+      case SCALAR_REP_MAX:
         value = MODE_MAX; break;
-      case VectorImageWrapperBase::SCALAR_REP_AVERAGE:
+      case SCALAR_REP_AVERAGE:
         value = MODE_AVERAGE; break;
-      case VectorImageWrapperBase::SCALAR_REP_COMPONENT:
+      case SCALAR_REP_COMPONENT:
         value = MODE_COMPONENT; break;
       default:
         return false;
@@ -153,27 +153,27 @@ void LayerGeneralPropertiesModel
   switch(value)
     {
     case LayerGeneralPropertiesModel::MODE_COMPONENT:
-      mode.SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_COMPONENT;
+      mode.SelectedScalarRep = SCALAR_REP_COMPONENT;
       mode.UseRGB = false;
       break;
     case LayerGeneralPropertiesModel::MODE_MAGNITUDE:
-      mode.SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_MAGNITUDE;
+      mode.SelectedScalarRep = SCALAR_REP_MAGNITUDE;
       mode.SelectedComponent = 0;
       mode.UseRGB = false;
       break;
     case LayerGeneralPropertiesModel::MODE_MAX:
-      mode.SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_MAX;
+      mode.SelectedScalarRep = SCALAR_REP_MAX;
       mode.SelectedComponent = 0;
       mode.UseRGB = false;
       break;
     case LayerGeneralPropertiesModel::MODE_AVERAGE:
-      mode.SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_AVERAGE;
+      mode.SelectedScalarRep = SCALAR_REP_AVERAGE;
       mode.SelectedComponent = 0;
       mode.UseRGB = false;
       break;
     case LayerGeneralPropertiesModel::MODE_RGB:
       mode.UseRGB = true;
-      mode.SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_COMPONENT;
+      mode.SelectedScalarRep = SCALAR_REP_COMPONENT;
       mode.SelectedComponent = 0;
       break;
     }
@@ -193,7 +193,7 @@ bool LayerGeneralPropertiesModel
 
   // Mode must be single component
   if(mode.UseRGB ||
-     mode.SelectedScalarRep != VectorImageWrapperBase::SCALAR_REP_COMPONENT)
+     mode.SelectedScalarRep != SCALAR_REP_COMPONENT)
     return false;
 
   // Use 1-based indexing
@@ -229,7 +229,7 @@ bool LayerGeneralPropertiesModel
 
   // Animation is only possible when showing components
   if(mode.UseRGB ||
-     mode.SelectedScalarRep != VectorImageWrapperBase::SCALAR_REP_COMPONENT)
+     mode.SelectedScalarRep != SCALAR_REP_COMPONENT)
     return false;
 
   value = GetMultiChannelDisplayPolicy()->GetAnimate();

@@ -115,6 +115,12 @@ itkEventMacro(WrapperMetadataChangeEvent, WrapperChangeEvent)
 /** A change to the display mapping of an image wrapper (e.g. color map) */
 itkEventMacro(WrapperDisplayMappingChangeEvent, WrapperChangeEvent)
 
+/** A change to wrapper-associated user data */
+itkEventMacro(WrapperUserDataChangeEvent, WrapperChangeEvent)
+
+/** A change to wrapper-associated image processing settings */
+itkEventMacro(WrapperProcessingSettingsChangeEvent, WrapperUserDataChangeEvent)
+
 /** A change to the intensity curve */
 itkEventMacro(IntensityCurveChangeEvent, WrapperDisplayMappingChangeEvent)
 

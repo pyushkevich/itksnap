@@ -332,3 +332,15 @@ void SnakeWizardPanel::on_btnEvolutionParameters_clicked()
   m_ParameterDialog->activateWindow();
   m_ParameterDialog->raise();
 }
+
+void SnakeWizardPanel::on_btnCancel_clicked()
+{
+  // Turn off the play button (will turn off the timer too)
+  ui->btnPlay->setChecked(false);
+
+  // Tell the model to return to initialization state
+  m_Model->OnCancelSegmentation();
+
+  // Tell parent to hide this window
+  emit wizardFinished();
+}

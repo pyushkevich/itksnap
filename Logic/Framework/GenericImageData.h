@@ -229,6 +229,15 @@ public:
     return it.GetLayer();
   }
 
+  /**
+    Find a layer given the layer's unique id. The role_filter restricts the
+    search to specific layers, and the search_derived flag enables searching
+    among the derived (component, mean) wrappers in vector wrappers.
+    */
+  ImageWrapperBase *FindLayer(unsigned long unique_id, bool search_derived,
+                              int role_filter = 0xffffffff);
+
+
   ImageWrapperBase *GetLastOverlay();
 
   // virtual ImageWrapperBase* GetLayer(unsigned int layer) const;

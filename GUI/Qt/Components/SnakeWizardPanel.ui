@@ -1045,6 +1045,13 @@ p, li { white-space: pre-wrap; }
      </property>
     </spacer>
    </item>
+   <item>
+    <widget class="QPushButton" name="btnCancel">
+     <property name="text">
+      <string>Cancel Segmentation</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>

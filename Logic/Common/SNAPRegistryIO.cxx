@@ -310,7 +310,8 @@ SNAPRegistryIO
   app->GetEdgePreprocessingSettings()->WriteToRegistry(registry);
 
   // Read the threshold settings
-  app->GetThresholdSettings()->WriteToRegistry(registry);
+  // TODO: how are we going to handle per-component settings?
+  // app->GetThresholdSettings()->WriteToRegistry(registry);
 
   // Write the mesh display options
   WriteMeshOptions(
@@ -400,8 +401,9 @@ SNAPRegistryIO
     // we have to use re-initialized defaults
     if (main)
       {
-      app->GetThresholdSettings()->ReadFromRegistry(
-            registry, main->GetDefaultScalarRepresentation());
+      // TODO: do something about reading and writing threshold settings
+      // app->GetThresholdSettings()->ReadFromRegistry(
+      //      registry, main->GetDefaultScalarRepresentation());
       }
     }
 

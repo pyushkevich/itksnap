@@ -11,6 +11,8 @@ class EdgePreprocessingSettingsRenderer;
 class GaussianMixtureModel;
 class GMMTableModel;
 class GMMRenderer;
+class ImageLayerSelectionModel;
+
 
 namespace Ui {
 class SpeedImageDialog;

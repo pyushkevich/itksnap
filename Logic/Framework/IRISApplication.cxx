@@ -125,12 +125,12 @@ IRISApplication
   m_DisplayToAnatomyRAI[2] = "RIP";
 
   // Initialize the preprocessing settings
-  m_ThresholdSettings = ThresholdSettings::New();
+  // TODO: m_ThresholdSettings = ThresholdSettings::New();
   m_EdgePreprocessingSettings = EdgePreprocessingSettings::New();
 
   // Initialize the preprocessing filter preview wrappers
   m_ThresholdPreviewWrapper = ThresholdPreviewWrapperType::New();
-  m_ThresholdPreviewWrapper->SetParameters(m_ThresholdSettings);
+  // TODO: m_ThresholdPreviewWrapper->SetParameters(m_ThresholdSettings);
 
   m_EdgePreviewWrapper = EdgePreprocessingPreviewWrapperType::New();
   m_EdgePreviewWrapper->SetParameters(m_EdgePreprocessingSettings);
@@ -1415,8 +1415,8 @@ IRISApplication
   // scalar representation is current.
 
   // Update the preprocessing settings to defaults.
-  m_ThresholdSettings->InitializeToDefaultForImage(
-        m_IRISImageData->GetMain()->GetDefaultScalarRepresentation());
+  // TODO: m_ThresholdSettings->InitializeToDefaultForImage(
+  //      m_IRISImageData->GetMain()->GetDefaultScalarRepresentation());
   m_EdgePreprocessingSettings->InitializeToDefaults();
 
   // Set the filename and nickname of the image wrapper

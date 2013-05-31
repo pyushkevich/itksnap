@@ -6,6 +6,7 @@
 #include "itkObjectFactory.h"
 
 class ImageWrapperBase;
+class ScalarImageWrapperBase;
 template <class TInputImage, class TOutputImage> class IRISSlicer;
 
 namespace itk {
@@ -37,6 +38,12 @@ public:
 
   /** Compute the output volume (corresponds to the 'Apply' operation) */
   virtual void ComputeOutputVolume(itk::Command *progress) = 0;
+
+  /** Select the active scalar layer (for filters that operate on only one) */
+  virtual void SetActiveScalarLayer(ScalarImageWrapperBase *layer) = 0;
+
+  /** Get the active scalar layer (for filters that operate on only one). */
+  virtual ScalarImageWrapperBase *GetActiveScalarLayer() const = 0;
 
 protected:
 
@@ -135,6 +142,12 @@ public:
   /** Set the output volume */
   void AttachOutputWrapper(OutputWrapperType *wrapper);
 
+  /** Select the active scalar layer (for filters that operate on only one) */
+  void SetActiveScalarLayer(ScalarImageWrapperBase *layer);
+
+  /** Get the active scalar layer (for filters that operate on only one). */
+  irisGetMacro(ActiveScalarLayer, ScalarImageWrapperBase *)
+
   /** Set the parameters */
   void SetParameters(ParameterType *param);
 
@@ -162,6 +175,9 @@ protected:
 
   // So we can loop over all four filters
   FilterType *GetNthFilter(int);
+
+  // Active scalar layer (for layers that support this functionality)
+  ScalarImageWrapperBase *m_ActiveScalarLayer;
 
   bool m_PreviewMode;
 };

@@ -525,12 +525,12 @@ LinearColorMapDisplayMappingPolicy<TWrapperTraits>
 MultiChannelDisplayMode::MultiChannelDisplayMode()
 {
   UseRGB = false;
-  SelectedScalarRep = VectorImageWrapperBase::SCALAR_REP_COMPONENT;
+  SelectedScalarRep = SCALAR_REP_COMPONENT;
   SelectedComponent = 0;
 }
 
 MultiChannelDisplayMode::MultiChannelDisplayMode(
-    bool use_rgb, VectorImageWrapperBase::ScalarRepresentation rep,
+    bool use_rgb, ScalarRepresentation rep,
     int comp)
   : UseRGB(use_rgb), SelectedScalarRep(rep),
     SelectedComponent(comp)
@@ -570,10 +570,10 @@ MultiChannelDisplayMode::GetScalarRepNames()
   static RegistryEnumMap<ScalarRepresentation> namemap;
   if(namemap.Size() == 0)
     {
-    namemap.AddPair(VectorImageWrapperBase::SCALAR_REP_COMPONENT, "Component");
-    namemap.AddPair(VectorImageWrapperBase::SCALAR_REP_MAGNITUDE, "Magnitude");
-    namemap.AddPair(VectorImageWrapperBase::SCALAR_REP_MAX, "Maximum");
-    namemap.AddPair(VectorImageWrapperBase::SCALAR_REP_AVERAGE, "Average");
+    namemap.AddPair(SCALAR_REP_COMPONENT, "Component");
+    namemap.AddPair(SCALAR_REP_MAGNITUDE, "Magnitude");
+    namemap.AddPair(SCALAR_REP_MAX, "Maximum");
+    namemap.AddPair(SCALAR_REP_AVERAGE, "Average");
     }
   return namemap;
 }
@@ -583,7 +583,7 @@ int MultiChannelDisplayMode::GetHashValue() const
   if(UseRGB)
     return 10000;
 
-  if(SelectedScalarRep != VectorImageWrapperBase::SCALAR_REP_COMPONENT)
+  if(SelectedScalarRep != SCALAR_REP_COMPONENT)
     return SelectedScalarRep * 100;
 
   return SelectedComponent;
@@ -668,7 +668,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 
       // Add this filter as the input to the selector
       m_DisplaySliceSelector[i]->AddSelectableInput(
-            MultiChannelDisplayMode(true, VectorImageWrapperBase::SCALAR_REP_COMPONENT),
+            MultiChannelDisplayMode(true, SCALAR_REP_COMPONENT),
             m_RGBMapper[i]->GetOutput());
       }
     }
@@ -691,11 +691,11 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
         m_Wrapper->GetImageMinObject(), m_Wrapper->GetImageMaxObject());
 
   // Configure all the component wrappers display mappings
-  for(int j = 0; j < VectorImageWrapperBase::NUMBER_OF_SCALAR_REPS; j++)
+  for(int j = 0; j < NUMBER_OF_SCALAR_REPS; j++)
     {
-    VectorImageWrapperBase::ScalarRepresentation rep =
-        static_cast<VectorImageWrapperBase::ScalarRepresentation>(
-          VectorImageWrapperBase::SCALAR_REP_COMPONENT + j);
+    ScalarRepresentation rep =
+        static_cast<ScalarRepresentation>(
+          SCALAR_REP_COMPONENT + j);
 
     int nc = (j == 0) ? m_Wrapper->GetNumberOfComponents() : 1;
     for(int k = 0; k < nc; k++)
@@ -840,7 +840,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
   // or when we are in single component mode (because the curves are shared
   // between these display modes).
   if(m_DisplayMode.UseRGB ||
-     m_DisplayMode.SelectedScalarRep == VectorImageWrapperBase::SCALAR_REP_COMPONENT)
+     m_DisplayMode.SelectedScalarRep == SCALAR_REP_COMPONENT)
     {
     cmin = m_Wrapper->GetImageMinNative();
     cmax = m_Wrapper->GetImageMaxNative();
@@ -900,9 +900,9 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     {
     // We need to save the properties for each of the relevant scalar
     // representations.
-    for(int i = 0; i < VectorImageWrapperBase::NUMBER_OF_SCALAR_REPS; i++)
+    for(int i = 0; i < NUMBER_OF_SCALAR_REPS; i++)
       {
-      ScalarRep rep = static_cast<ScalarRep>(i);
+      ScalarRepresentation rep = static_cast<ScalarRepresentation>(i);
       std::string repname = MultiChannelDisplayMode::GetScalarRepNames()[rep];
 
       // Get the scalar representation in question
@@ -932,9 +932,9 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     {
     // We need to restore the properties for each of the relevant scalar
     // representations.
-    for(int i = 0; i < VectorImageWrapperBase::NUMBER_OF_SCALAR_REPS; i++)
+    for(int i = 0; i < NUMBER_OF_SCALAR_REPS; i++)
       {
-      ScalarRep rep = static_cast<ScalarRep>(i);
+      ScalarRepresentation rep = static_cast<ScalarRepresentation>(i);
       std::string repname = MultiChannelDisplayMode::GetScalarRepNames()[rep];
 
       // Get the scalar representation in question

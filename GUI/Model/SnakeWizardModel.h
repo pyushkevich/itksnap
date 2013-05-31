@@ -6,6 +6,7 @@
 #include "PropertyModel.h"
 #include "ThresholdSettings.h"
 #include "GlobalState.h"
+#include "ImageWrapperBase.h"
 
 class GlobalUIModel;
 class IRISApplication;
@@ -63,12 +64,24 @@ public:
   typedef AbstractPropertyModel<SnakeType, GlobalState::SnakeTypeDomain>
     AbstractSnakeTypeModel;
 
+  // Model for layer selection
+  typedef SimpleItemSetDomain<unsigned long, std::string> LayerSelectionDomain;
+  typedef AbstractPropertyModel<unsigned long, LayerSelectionDomain> AbstractLayerSelectionModel;
+
+  // Model for scalar representation selection within a layer
+  typedef std::pair<ScalarRepresentation, int> LayerScalarRepIndex;
+  typedef SimpleItemSetDomain<LayerScalarRepIndex, std::string> ScalarRepSelectionDomain;
+  typedef AbstractPropertyModel<LayerScalarRepIndex, ScalarRepSelectionDomain> AbstractScalarRepSelectionModel;
+
   // Model for the bubble selection
   // typedef STLVectorWrapperItemSetDomain<int, Bubble> BubbleDomain;
   // typedef AbstractPropertyModel<int, BubbleDomain> AbstractActiveBubbleProperty;
 
   // Model for whether the current pre-processing model is in preview mode or not
   irisGetMacro(PreviewModel, AbstractSimpleBooleanProperty *)
+
+  // Get the active layer for single-layer processing modes
+  ScalarImageWrapperBase *GetActiveScalarLayer(PreprocessingMode mode);
 
   // Models for the current speed rendering style. These are true if the speed
   // is displayed using the selected style, false otherwise
@@ -80,6 +93,10 @@ public:
   irisGetMacro(ThresholdUpperModel, AbstractRangedDoubleProperty *)
   irisGetMacro(ThresholdSmoothnessModel, AbstractRangedDoubleProperty *)
   irisGetMacro(ThresholdModeModel, AbstractThresholdModeModel *)
+
+  // Model for selecting which image layer is used for thresholding
+  irisGetMacro(ThresholdActiveLayerModel, AbstractLayerSelectionModel *)
+  irisGetMacro(ThresholdActiveScalarRepModel, AbstractScalarRepSelectionModel *)
 
   // Models for the edge-based preprocessing
   irisGetMacro(EdgePreprocessingSigmaModel, AbstractRangedDoubleProperty *)
@@ -177,6 +194,9 @@ public:
   /** Rewind the evolution */
   void RewindEvolution();
 
+  /** Cancel segmentation and return to IRIS */
+  void OnCancelSegmentation();
+
   /* ===================================================================
    * CLUSTERING SUPPORT (GMM)
    * =================================================================== */
@@ -228,6 +248,14 @@ protected:
   bool GetThresholdModeValue(ThresholdSettings::ThresholdMode &x);
   void SetThresholdModeValue(ThresholdSettings::ThresholdMode x);
 
+  SmartPtr<AbstractLayerSelectionModel> m_ThresholdActiveLayerModel;
+  bool GetThresholdActiveLayerValueAndRange(unsigned long &value, LayerSelectionDomain *range);
+  void SetThresholdActiveLayerValue(unsigned long value);
+
+  SmartPtr<AbstractScalarRepSelectionModel> m_ThresholdActiveScalarRepModel;
+  bool GetThresholdActiveScalarRepValueAndRange(LayerScalarRepIndex &value, ScalarRepSelectionDomain *range);
+  void SetThresholdActiveScalarRepValue(LayerScalarRepIndex value);
+
   SmartPtr<AbstractSimpleBooleanProperty> m_PreviewModel;
   bool GetPreviewValue(bool &value);
   void SetPreviewValue(bool value);
@@ -268,6 +296,9 @@ protected:
 
   SmartPtr<AbstractSimpleIntProperty> m_EvolutionIterationModel;
   int GetEvolutionIterationValue();
+
+  // Get the threshold settings for the active layer
+  ThresholdSettings *GetThresholdSettings();
 
   // Helper function to check if particular set of models is active
   bool AreThresholdModelsActive();

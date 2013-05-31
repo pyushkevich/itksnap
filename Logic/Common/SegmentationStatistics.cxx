@@ -76,7 +76,7 @@ SegmentationStatistics
           oss << " [" << j << "]";
         m_ImageStatisticsColumnNames.push_back(oss.str());
         layers.push_back(lvector->GetScalarRepresentation(
-              VectorImageWrapperBase::SCALAR_REP_COMPONENT, j));
+              SCALAR_REP_COMPONENT, j));
         }
       }
     }

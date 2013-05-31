@@ -471,7 +471,7 @@ public:
       const std::string &undoTitle);
 
   /** Get the pointer to the settings used for threshold-based preprocessing */
-  irisGetMacro(ThresholdSettings, ThresholdSettings *)
+  // irisGetMacro(ThresholdSettings, ThresholdSettings *)
 
   /** Get the pointer to the settings used for edge-based preprocessing */
   irisGetMacro(EdgePreprocessingSettings, EdgePreprocessingSettings *)
@@ -523,7 +523,7 @@ protected:
 
   // Settings for the speed preprocessing. Still not sure this is the best
   // place to put this stuff!
-  SmartPtr<ThresholdSettings> m_ThresholdSettings;
+  // SmartPtr<ThresholdSettings> m_ThresholdSettings;
   SmartPtr<EdgePreprocessingSettings> m_EdgePreprocessingSettings;
 
   // The threshold-based preview wrapper type

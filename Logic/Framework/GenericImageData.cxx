@@ -293,6 +293,38 @@ unsigned int GenericImageData::GetNumberOfLayers(int role_filter)
   return n;
 }
 
+ImageWrapperBase *
+GenericImageData
+::FindLayer(unsigned long unique_id, bool search_derived, int role_filter)
+{
+  for(LayerIterator it = this->GetLayers(role_filter); !it.IsAtEnd(); ++it)
+    {
+    if(it.GetLayer()->GetUniqueId() == unique_id)
+      {
+      return it.GetLayer();
+      }
+    else if(search_derived)
+      {
+      VectorImageWrapperBase *vec = it.GetLayerAsVector();
+      if(vec)
+        {
+        for(int j = SCALAR_REP_COMPONENT; j < NUMBER_OF_SCALAR_REPS; j++)
+          {
+          int n = (j == SCALAR_REP_COMPONENT) ? vec->GetNumberOfComponents() : 1;
+          for(int k = 0; k < n; k++)
+            {
+            ImageWrapperBase *w = vec->GetScalarRepresentation((ScalarRepresentation) j, k);
+            if(w && w->GetUniqueId() == unique_id)
+              return w;
+            }
+          }
+        }
+      }
+    }
+
+  return NULL;
+}
+
 ImageWrapperBase *GenericImageData::GetLastOverlay()
 {
   return m_Wrappers[LayerIterator::OVERLAY_ROLE].back();

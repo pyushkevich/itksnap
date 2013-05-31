@@ -129,6 +129,16 @@ public:
   typedef itk::SimpleDataObjectDecorator<double>                  DoubleObject;
 
   /**
+   * Get the parent wrapper for this wrapper. For 'normal' wrappers, this method
+   * returns NULL, indicating that the wrapper is a top-level wrapper. For derived
+   * wrappers (i.e., components and scalar representations of vector wrappers),
+   * this method returns the vector wrapper from which the wrapper is derived.
+   *
+   * You should not have to call the SetParentWrapper method. It's used internally
+   */
+  irisGetSetMacro(ParentWrapper, ImageWrapperBase *)
+
+  /**
    * Initialize the image wrapper to match another image wrapper, setting the
    * image pixels to a default value. The slice indices and the transforms will
    * all be updated to match the source
@@ -454,6 +464,25 @@ public:
   // Create a thumbnail from the image and write it to a .png file
   void WriteThumbnail(const char *filename, unsigned int maxdim);
 
+  /**
+   * The image wrapper has a generic mechanism for associating data with it.
+   * For example, we can associate some parameter values for a specific
+   * image processing algorithm with each layer. Do do that, we simply
+   * assign a pointer to the data to a specific string role. Internally,
+   * a smart pointer is used to point to the associated data.
+   *
+   * Users of this method might also want to rebroadcast events from the
+   * associated object as events of type WrapperUserChangeEvent(). These
+   * events will then propagate all the way up to the IRISApplication.
+   */
+  void SetUserData(const std::string &role, itk::Object *data);
+
+  /**
+   * Get the user data associated with this wrapper for a specific role. If
+   * no association exists, NULL is returned. The method is templated over the
+   * return type to avoid casting in user code.
+   */
+  itk::Object* GetUserData(const std::string &role) const;
 
 protected:
 
@@ -530,6 +559,9 @@ protected:
   // The histogram for this scalar wrapper. It is computed only when asked for
   SmartPtr<ScalarImageHistogram> m_Histogram;
 
+  // A map to store user-associated data
+  typedef std::map<std::string, SmartPtr<itk::Object> > UserDataMapType;
+  UserDataMapType m_UserDataMap;
 
   /**
    * Handle a change in the image pointer (i.e., a load operation on the image or 
@@ -544,6 +576,9 @@ protected:
                         ImageCoordinateTransform imageToDisplayTransform[3]);
 
   virtual void AddSamplesToHistogram() = 0;
+
+  /** Parent wrapper */
+  ImageWrapperBase *m_ParentWrapper;
 
 };
 

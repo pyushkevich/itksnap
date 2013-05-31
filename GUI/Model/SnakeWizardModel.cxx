@@ -46,6 +46,20 @@ SnakeWizardModel::SnakeWizardModel()
         ThresholdSettingsUpdateEvent(),
         ThresholdSettingsUpdateEvent());
 
+  m_ThresholdActiveLayerModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetThresholdActiveLayerValueAndRange,
+        &Self::SetThresholdActiveLayerValue,
+        ThresholdSettingsUpdateEvent(),
+        ThresholdSettingsUpdateEvent());
+
+  m_ThresholdActiveScalarRepModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetThresholdActiveScalarRepValueAndRange,
+        &Self::SetThresholdActiveScalarRepValue,
+        ThresholdSettingsUpdateEvent(),
+        ThresholdSettingsUpdateEvent());
+
   m_PreviewModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetPreviewValue,
@@ -146,8 +160,8 @@ void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
   Rebroadcast(this, ModelUpdateEvent(), ThresholdSettingsUpdateEvent());
 
   // Changes to the threshold settings are rebroadcast as own own events
-  Rebroadcast(m_Driver->GetThresholdSettings(),
-              itk::ModifiedEvent(), ThresholdSettingsUpdateEvent());
+  Rebroadcast(m_Driver,
+              WrapperProcessingSettingsChangeEvent(), ThresholdSettingsUpdateEvent());
 
   // Changes to the preview pipeline (preview status) are broadcast as events
   Rebroadcast(m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD),
@@ -187,15 +201,15 @@ void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
 
 bool SnakeWizardModel::CheckState(SnakeWizardModel::UIState state)
 {
-  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ThresholdSettings *ts = this->GetThresholdSettings();
   switch(state)
     {
     case UIF_THESHOLDING_ENABLED:
       return AreThresholdModelsActive();
     case UIF_LOWER_THRESHOLD_ENABLED:
-      return ts->IsLowerThresholdEnabled();
+      return ts && ts->IsLowerThresholdEnabled();
     case UIF_UPPER_THRESHOLD_ENABLED:
-      return ts->IsUpperThresholdEnabled();
+      return ts && ts->IsUpperThresholdEnabled();
     case UIF_EDGEPROCESSING_ENABLED:
       return AreEdgePreprocessingModelsActive();
     case UIF_SPEED_AVAILABLE:
@@ -231,7 +245,7 @@ void SnakeWizardModel::OnUpdate()
           ComponentInfo ci;
           ci.ImageWrapper = viw;
           ci.ComponentWrapper = viw->GetScalarRepresentation(
-                VectorImageWrapperBase::SCALAR_REP_COMPONENT, comp);
+                SCALAR_REP_COMPONENT, comp);
           ci.ComponentIndex = comp;
           m_ComponentInfo.push_back(ci);
           }
@@ -247,6 +261,11 @@ void SnakeWizardModel::OnUpdate()
 
     this->UpdateClusterPlottedComponentModel();
     }
+}
+
+ScalarImageWrapperBase *SnakeWizardModel::GetActiveScalarLayer(PreprocessingMode mode)
+{
+  return m_Driver->GetPreprocessingFilterPreviewer(mode)->GetActiveScalarLayer();
 }
 
 void SnakeWizardModel::UpdateClusterPlottedComponentModel()
@@ -274,13 +293,13 @@ void SnakeWizardModel::OnBubbleModeEnter()
 bool SnakeWizardModel::AreThresholdModelsActive()
 {
   return (m_Driver->IsSnakeModeActive() &&
-          m_Driver->GetSnakeMode() == IN_OUT_SNAKE);
+          m_Driver->GetPreprocessingMode() == PREPROCESS_THRESHOLD);
 }
 
 bool SnakeWizardModel::AreEdgePreprocessingModelsActive()
 {
   return (m_Driver->IsSnakeModeActive() &&
-          m_Driver->GetSnakeMode() == EDGE_SNAKE);
+          m_Driver->GetPreprocessingMode() == PREPROCESS_EDGE);
 }
 
 ScalarImageWrapperBase *SnakeWizardModel::GetSelectedScalarLayer()
@@ -297,8 +316,8 @@ bool SnakeWizardModel
   if(!AreThresholdModelsActive())
     return false;
 
-  ScalarImageWrapperBase *iw = this->GetSelectedScalarLayer();
-  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ScalarImageWrapperBase *iw = this->GetActiveScalarLayer(PREPROCESS_THRESHOLD);
+  ThresholdSettings *ts = this->GetThresholdSettings();
 
   // The thresholds are stored in internal image representation, but are
   // presented to the user in native image representation.
@@ -321,8 +340,8 @@ bool SnakeWizardModel
   if(!AreThresholdModelsActive())
     return false;
 
-  ScalarImageWrapperBase *iw = this->GetSelectedScalarLayer();
-  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ScalarImageWrapperBase *iw = this->GetActiveScalarLayer(PREPROCESS_THRESHOLD);
+  ThresholdSettings *ts = this->GetThresholdSettings();
 
   // The thresholds are stored in internal image representation, but are
   // presented to the user in native image representation.
@@ -342,11 +361,11 @@ void SnakeWizardModel
 ::SetThresholdUpperValue(double x)
 {
   // Map the value to internal format
-  ScalarImageWrapperBase *iw = this->GetSelectedScalarLayer();
+  ScalarImageWrapperBase *iw = this->GetActiveScalarLayer(PREPROCESS_THRESHOLD);
   float z = (float) iw->GetNativeIntensityMapping()->MapNativeToInternal(x);
 
   // Get the current settings
-  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ThresholdSettings *ts = this->GetThresholdSettings();
   if(z < ts->GetLowerThreshold())
     ts->SetLowerThreshold(z);
 
@@ -357,11 +376,11 @@ void SnakeWizardModel
 ::SetThresholdLowerValue(double x)
 {
   // Map the value to internal format
-  ScalarImageWrapperBase *iw = this->GetSelectedScalarLayer();
+  ScalarImageWrapperBase *iw = this->GetActiveScalarLayer(PREPROCESS_THRESHOLD);
   float z = (float) iw->GetNativeIntensityMapping()->MapNativeToInternal(x);
 
   // Get the current settings
-  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ThresholdSettings *ts = this->GetThresholdSettings();
   if(z > ts->GetUpperThreshold())
     ts->SetUpperThreshold(z);
 
@@ -375,7 +394,7 @@ SnakeWizardModel
   if(!AreThresholdModelsActive())
     return false;
 
-  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ThresholdSettings *ts = this->GetThresholdSettings();
   x = ts->GetSmoothness();
   if(range)
     range->Set(0, 10, 0.1);
@@ -384,7 +403,7 @@ SnakeWizardModel
 
 void SnakeWizardModel::SetThresholdSmoothnessValue(double x)
 {
-  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ThresholdSettings *ts = this->GetThresholdSettings();
   ts->SetSmoothness(x);
 }
 
@@ -393,16 +412,121 @@ bool SnakeWizardModel::GetThresholdModeValue(ThresholdSettings::ThresholdMode &x
   if(!AreThresholdModelsActive())
     return false;
 
-  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ThresholdSettings *ts = this->GetThresholdSettings();
   x = ts->GetThresholdMode();
   return true;
 }
 
 void SnakeWizardModel::SetThresholdModeValue(ThresholdSettings::ThresholdMode x)
 {
-  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ThresholdSettings *ts = this->GetThresholdSettings();
   ts->SetThresholdMode(x);
 }
+
+bool SnakeWizardModel::GetThresholdActiveLayerValueAndRange(unsigned long &value, SnakeWizardModel::LayerSelectionDomain *range)
+{
+  // Get the currently selected layer
+  ScalarImageWrapperBase *active = GetActiveScalarLayer(PREPROCESS_THRESHOLD);
+
+  if(active)
+    {
+    // Figure out the top level wrapper for the selected component
+    ImageWrapperBase *parent = active->GetParentWrapper();
+    if(parent)
+      value = parent->GetUniqueId();
+    else
+      value = active->GetUniqueId();
+
+    // Set up the domain
+    if(range)
+      {
+      range->clear();
+      for(LayerIterator it = m_Driver->GetSNAPImageData()->GetLayers(
+            LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+          !it.IsAtEnd(); ++it)
+        {
+        (*range)[it.GetLayer()->GetUniqueId()] = it.GetLayer()->GetNickname();
+        }
+      }
+
+    return true;
+    }
+
+  return false;
+}
+
+void SnakeWizardModel::SetThresholdActiveLayerValue(unsigned long value)
+{
+  // Find the layer
+  ImageWrapperBase *layer = m_Driver->GetSNAPImageData()->FindLayer(value, false);
+  if(layer)
+    {
+    m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD)->SetActiveScalarLayer(
+          layer->GetDefaultScalarRepresentation());
+    }
+}
+
+bool
+SnakeWizardModel
+::GetThresholdActiveScalarRepValueAndRange(
+    SnakeWizardModel::LayerScalarRepIndex &value, SnakeWizardModel::ScalarRepSelectionDomain *range)
+{
+  // Get the currently selected scalar layer
+  ScalarImageWrapperBase *active = GetActiveScalarLayer(PREPROCESS_THRESHOLD);
+  VectorImageWrapperBase *parent =
+      (active) ? dynamic_cast<VectorImageWrapperBase*>(active->GetParentWrapper()) : NULL;
+
+  // If the scalar layer is its own parent, there should be nothing selected
+  if(active && parent && parent->GetNumberOfComponents() > 1)
+    {
+    // Now we must figure out the index of the layer in the parent
+    if(parent->FindScalarRepresentation(active, value.first, value.second))
+      {
+      // Configure the domain
+      if(range)
+        {
+        range->clear();
+        for(int sr = SCALAR_REP_COMPONENT; sr < NUMBER_OF_SCALAR_REPS; sr++)
+          {
+          (*range)[std::make_pair(SCALAR_REP_MAGNITUDE, 0)] = "Magnitude of Components";
+          (*range)[std::make_pair(SCALAR_REP_MAX, 0)] = "Maximum Component";
+          (*range)[std::make_pair(SCALAR_REP_AVERAGE, 0)] = "Average Component";
+
+          for(int k = 0; k < parent->GetNumberOfComponents(); k++)
+            {
+            std::ostringstream oss;
+            oss << "Component " << (k+1);
+            (*range)[std::make_pair(SCALAR_REP_COMPONENT, k)] = oss.str();
+            }
+          }
+        }
+
+      return true;
+      }
+    }
+
+  return false;
+}
+
+void
+SnakeWizardModel
+::SetThresholdActiveScalarRepValue(LayerScalarRepIndex value)
+{
+  // Get the currently selected scalar layer
+  ScalarImageWrapperBase *active =GetActiveScalarLayer(PREPROCESS_THRESHOLD);
+  VectorImageWrapperBase *parent =
+      (active) ? dynamic_cast<VectorImageWrapperBase*>(active->GetParentWrapper()) : NULL;
+
+  // The parent should be not null!
+  assert(parent);
+
+  // Set the component within the parent
+  ScalarImageWrapperBase *comp = parent->GetScalarRepresentation(value.first, value.second);
+  m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_THRESHOLD)->SetActiveScalarLayer(comp);
+}
+
+
+
 
 
 bool SnakeWizardModel::GetPreviewValue(bool &value)
@@ -494,8 +618,8 @@ void SnakeWizardModel
 {
   assert(m_Driver->IsSnakeModeActive());
 
-  ScalarImageWrapperBase *grey = this->GetSelectedScalarLayer();
-  ThresholdSettings *ts = m_Driver->GetThresholdSettings();
+  ScalarImageWrapperBase *grey = this->GetActiveScalarLayer(PREPROCESS_THRESHOLD);
+  ThresholdSettings *ts = this->GetThresholdSettings();
   SpeedImageWrapper *speed = m_Driver->GetSNAPImageData()->GetSpeed();
 
   double imin = grey->GetImageMinAsDouble();
@@ -886,6 +1010,17 @@ int SnakeWizardModel::GetEvolutionIterationValue()
   else return 0;
 }
 
+ThresholdSettings *SnakeWizardModel::GetThresholdSettings()
+{
+  // Get the layer currently being thresholded
+  ScalarImageWrapperBase *layer = GetActiveScalarLayer(PREPROCESS_THRESHOLD);
+
+  // Get the threshold settings from that layer
+  return layer
+      ? dynamic_cast<ThresholdSettings *>(layer->GetUserData("ThresholdSettings"))
+      : NULL;
+}
+
 void SnakeWizardModel::OnEvolutionPageBack()
 {
   if(m_Driver->GetSNAPImageData()->IsSegmentationActive())
@@ -903,6 +1038,17 @@ void SnakeWizardModel::OnEvolutionPageFinish()
 
   // Set an undo point
   m_Driver->StoreUndoPoint("Automatic Segmentation");
+
+  // Return to IRIS mode
+  m_Driver->SetCurrentImageDataToIRIS();
+  m_Driver->ReleaseSNAPImageData();
+}
+
+void SnakeWizardModel::OnCancelSegmentation()
+{
+  // Stop the segmentation pipeline
+  if(m_Driver->GetSNAPImageData()->IsSegmentationActive())
+    m_Driver->GetSNAPImageData()->TerminateSegmentation();
 
   // Return to IRIS mode
   m_Driver->SetCurrentImageDataToIRIS();

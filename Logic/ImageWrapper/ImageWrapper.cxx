@@ -367,6 +367,10 @@ ImageWrapper<TTraits,TBase>
   // Set sticky flag
   m_Sticky = TTraits::StickyByDefault;
 
+  // By default, the parent wrapper is NULL. This is overridden for wrappers
+  // that are derived from vector wrappers. See VectorImageWrapper::CreateDerivedWrapper
+  m_ParentWrapper = NULL;
+
   // Set the transform to identity, which will initialize the directions of the
   // slicers
   this->SetImageToDisplayTransformsToDefault();
@@ -1219,6 +1223,24 @@ ImageWrapper<TTraits,TBase>
   writer->Update();
 }
 
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::SetUserData(const std::string &role, itk::Object *data)
+{
+  m_UserDataMap[role] = data;
+}
+
+template<class TTraits, class TBase>
+itk::Object *
+ImageWrapper<TTraits,TBase>
+::GetUserData(const std::string &role) const
+{
+  UserDataMapType::const_iterator it = m_UserDataMap.find(role);
+  if(it == m_UserDataMap.end())
+    return NULL;
+  else return it->second;
+}
 
 template<class TTraits, class TBase>
 typename ImageWrapper<TTraits,TBase>::ImagePointer

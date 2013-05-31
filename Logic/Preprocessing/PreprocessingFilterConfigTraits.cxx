@@ -40,20 +40,21 @@
 #include "GMMClassifyImageFilter.txx"
 #include "IRISApplication.h"
 #include "UnsupervisedClustering.h"
+#include "Rebroadcaster.h"
 
 void
 SmoothBinaryThresholdFilterConfigTraits
 ::AttachInputs(SNAPImageData *sid, FilterType *filter, int channel)
 {
-  // Get the default scalar represnetation for the main image
-  ScalarImageWrapperBase *scalar = sid->GetMain()->GetDefaultScalarRepresentation();
-  ScalarImageWrapperBase::CommonFormatImageType *image =
-      scalar->GetCommonFormatImage(
-        static_cast<ScalarImageWrapperBase::ExportChannel>(channel));
+  // The work of attaching inputs to the filter is done in SetActiveScalarLayer,
+  // so this method does nothing.
+}
 
-  filter->SetInput(image);
-  filter->SetInputImageMinimum(scalar->GetImageMinAsDouble());
-  filter->SetInputImageMaximum(scalar->GetImageMaxAsDouble());
+ScalarImageWrapperBase *
+SmoothBinaryThresholdFilterConfigTraits
+::GetDefaultScalarLayer(SNAPImageData *sid)
+{
+  return sid->GetMain()->GetDefaultScalarRepresentation();
 }
 
 void
@@ -67,9 +68,41 @@ SmoothBinaryThresholdFilterConfigTraits
 
 void
 SmoothBinaryThresholdFilterConfigTraits
-::SetParameters(ParameterType *p, FilterType *filter)
+::SetParameters(ParameterType *p, FilterType *filter, int channel)
 {
-  filter->SetParameters(p);
+  // Parameters are associated with the layer, so there is nothing to do here
+}
+
+void SmoothBinaryThresholdFilterConfigTraits::SetActiveScalarLayer(
+    ScalarImageWrapperBase *layer, SmoothBinaryThresholdFilterConfigTraits::FilterType *filter, int channel)
+{
+  ScalarImageWrapperBase::CommonFormatImageType *image =
+      layer->GetCommonFormatImage(
+        static_cast<ScalarImageWrapperBase::ExportChannel>(channel));
+
+  filter->SetInput(image);
+  filter->SetInputImageMinimum(layer->GetImageMinAsDouble());
+  filter->SetInputImageMaximum(layer->GetImageMaxAsDouble());
+
+  // Check if we have threshold parameters already associated with this layer
+  SmartPtr<ThresholdSettings> ts =
+      dynamic_cast<ThresholdSettings *>(layer->GetUserData("ThresholdSettings"));
+  if(ts.IsNull())
+    {
+    // Associate threshold settings with this layer
+    ts = ThresholdSettings::New();
+    ts->InitializeToDefaultForImage(layer);
+    layer->SetUserData("ThresholdSettings", ts);
+
+    // Propagate modified events from the threshold settings object as events
+    // from ImageWrapper. These events are further broadcast by GenericImageData
+    // and IRISApplication, making it easy for GUI classes to respond to them
+    Rebroadcaster::Rebroadcast(ts, itk::ModifiedEvent(),
+                               layer, WrapperProcessingSettingsChangeEvent());
+    }
+
+  // Pass the parameters to the filter
+  filter->SetParameters(ts);
 }
 
 void
@@ -95,7 +128,7 @@ EdgePreprocessingFilterConfigTraits
 
 void
 EdgePreprocessingFilterConfigTraits
-::SetParameters(ParameterType *p, FilterType *filter)
+::SetParameters(ParameterType *p, FilterType *filter, int channel)
 {
   filter->SetParameters(p);
 }
@@ -132,7 +165,7 @@ GMMPreprocessingFilterConfigTraits
 
 void
 GMMPreprocessingFilterConfigTraits
-::SetParameters(ParameterType *p, FilterType *filter)
+::SetParameters(ParameterType *p, FilterType *filter, int channel)
 {
   filter->SetMixtureModel(p);
 }

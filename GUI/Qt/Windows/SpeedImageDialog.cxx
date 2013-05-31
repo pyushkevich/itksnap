@@ -10,7 +10,9 @@
 #include "EdgePreprocessingSettingsRenderer.h"
 #include "QtCheckBoxCoupling.h"
 #include "QtSpinBoxCoupling.h"
+#include "QtComboBoxCoupling.h"
 #include <QCloseEvent>
+#include <QTreeView>
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
 #include "UnsupervisedClustering.h"
@@ -19,6 +21,8 @@
 #include "SNAPQtCommon.h"
 #include "GMMTableModel.h"
 #include "GMMRenderer.h"
+
+Q_DECLARE_METATYPE(SnakeWizardModel::LayerScalarRepIndex)
 
 SpeedImageDialog::SpeedImageDialog(QWidget *parent) :
   QDialog(parent),
@@ -72,6 +76,9 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   makeCoupling(ui->inThresholdSmoothness, model->GetThresholdSmoothnessModel());
 
   makeRadioGroupCoupling(ui->grpThresholdMode, model->GetThresholdModeModel());
+
+  makeCoupling(ui->inThresholdImage, model->GetThresholdActiveLayerModel());
+  makeCoupling(ui->inThresholdComponent, model->GetThresholdActiveScalarRepModel());
 
   // Couple the edge preprocessing widgets
   makeCoupling(ui->inEdgeSmoothing, model->GetEdgePreprocessingSigmaModel());

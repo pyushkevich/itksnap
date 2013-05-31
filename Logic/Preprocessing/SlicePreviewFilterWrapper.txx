@@ -27,6 +27,9 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
 
   // Set up a streaming filter to reduce the memory footprint during execution
   m_VolumeStreamer->SetNumberOfStreamDivisions(9);
+
+  // No active layer by default
+  m_ActiveScalarLayer = NULL;
 }
 
 template <class TFilterConfigTraits>
@@ -36,7 +39,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
 {
   // Set the parameters of all the filters
   for(int i = 0; i < 4; i++)
-    Traits::SetParameters(param, this->GetNthFilter(i));
+    Traits::SetParameters(param, this->GetNthFilter(i), i);
 }
 
 template <class TFilterConfigTraits>
@@ -44,8 +47,15 @@ void
 SlicePreviewFilterWrapper<TFilterConfigTraits>
 ::AttachInputs(SNAPImageData *sid)
 {
+  // Get the default scalar layer for the traits. If this is NULL, the method
+  // does not expect an active layer to be specified (acts on all inputs)
+  m_ActiveScalarLayer = Traits::GetDefaultScalarLayer(sid);
   for(int i = 0; i < 4; i++)
+    {
     Traits::AttachInputs(sid, this->GetNthFilter(i), i);
+    if(m_ActiveScalarLayer)
+      Traits::SetActiveScalarLayer(m_ActiveScalarLayer, this->GetNthFilter(i), i);
+    }
 }
 
 template <class TFilterConfigTraits>
@@ -95,6 +105,8 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
     // Disconnect wrapper from this pipeline
     Traits::DetachInputs(this->GetNthFilter(i));
     }
+
+  m_ActiveScalarLayer = NULL;
 }
 
 template <class TFilterConfigTraits>
@@ -155,4 +167,16 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
 ::GetNthFilter(int index)
 {
   return (index > 0) ? m_PreviewFilter[index-1] : m_VolumeFilter;
+}
+
+
+template <class TFilterConfigTraits>
+void
+SlicePreviewFilterWrapper<TFilterConfigTraits>
+::SetActiveScalarLayer(ScalarImageWrapperBase *layer)
+{
+  m_ActiveScalarLayer = layer;
+  for(int i = 0; i < 4; i++)
+    Traits::SetActiveScalarLayer(m_ActiveScalarLayer, this->GetNthFilter(i), i);
+  this->Modified();
 }

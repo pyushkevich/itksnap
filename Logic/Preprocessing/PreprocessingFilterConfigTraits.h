@@ -53,12 +53,20 @@ public:
   typedef SpeedImageWrapper                                  OutputWrapperType;
 
   typedef SmoothBinaryThresholdImageFilter<GreyType, SpeedType>     FilterType;
+
+  // The 'parameters' for this filter consist of just the scalar image layer to
+  // which the filter should be applied. The actual parameters (thresholds) are
+  // obtained from the selected layer's user data.
   typedef ThresholdSettings                                      ParameterType;
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
   static void DetachInputs(FilterType *filter);
-  static void SetParameters(ParameterType *p, FilterType *filter);
+  static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
+
+  static ScalarImageWrapperBase* GetDefaultScalarLayer(SNAPImageData *sid);
+  static void SetActiveScalarLayer(
+      ScalarImageWrapperBase *layer, FilterType *filter, int channel);
 };
 
 class EdgePreprocessingFilterConfigTraits {
@@ -73,8 +81,12 @@ public:
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
   static void DetachInputs(FilterType *filter);
-  static void SetParameters(ParameterType *p, FilterType *filter);
+  static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return false; }
+
+  static ScalarImageWrapperBase* GetDefaultScalarLayer(SNAPImageData *sid) { return NULL; }
+  static void SetActiveScalarLayer(
+      ScalarImageWrapperBase *layer, FilterType *filter, int channel) {}
 };
 
 
@@ -90,8 +102,12 @@ public:
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
   static void DetachInputs(FilterType *filter);
-  static void SetParameters(ParameterType *p, FilterType *filter);
+  static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
+
+  static ScalarImageWrapperBase* GetDefaultScalarLayer(SNAPImageData *sid) { return NULL; }
+  static void SetActiveScalarLayer(
+      ScalarImageWrapperBase *layer, FilterType *filter, int channel) {}
 };
 
 

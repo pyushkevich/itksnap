@@ -95,6 +95,8 @@ private slots:
 
   void on_btnEvolutionParameters_clicked();
 
+  void on_btnCancel_clicked();
+
 private:
 
   SpeedImageDialog *m_SpeedDialog;

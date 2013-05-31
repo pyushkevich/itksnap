@@ -95,8 +95,15 @@ public:
   ScalarImageWrapperBase *GetDefaultScalarRepresentation();
 
   ScalarImageWrapperBase *GetScalarRepresentation(
-      VectorImageWrapperBase::ScalarRepresentation type,
+      ScalarRepresentation type,
       int index = 0);
+
+  /**
+   * If scalar_rep is a scalar representation of the vector image wrapper, find
+   * the type of the representation and the index. Otherwise return false;
+   */
+  bool FindScalarRepresentation(
+      ImageWrapperBase *scalar_rep, ScalarRepresentation &type, int &index) const;
 
   /**
    * This returns the same as GetScalarRepresentation(SCALAR_REP_COMPONENT, i),
@@ -206,11 +213,11 @@ protected:
 
   // Array of derived quantities
   typedef SmartPtr<ScalarImageWrapperBase> ScalarWrapperPointer;
-  typedef typename VectorImageWrapperBase::ScalarRepresentation ScalarRepresentation;
   typedef std::pair<ScalarRepresentation, int> ScalarRepIndex;
 
   typedef std::map<ScalarRepIndex, ScalarWrapperPointer> ScalarRepMap;
   typedef typename ScalarRepMap::iterator ScalarRepIterator;
+  typedef typename ScalarRepMap::const_iterator ScalarRepConstIterator;
   ScalarRepMap m_ScalarReps;
 
   // For computing image statistics, we can represent the image as a one-dimensional
