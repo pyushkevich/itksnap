@@ -564,7 +564,7 @@ MultiChannelDisplayMode::Load(Registry &reg)
   return mode;
 }
 
-RegistryEnumMap<MultiChannelDisplayMode::ScalarRepresentation> &
+RegistryEnumMap<ScalarRepresentation> &
 MultiChannelDisplayMode::GetScalarRepNames()
 {
   static RegistryEnumMap<ScalarRepresentation> namemap;
