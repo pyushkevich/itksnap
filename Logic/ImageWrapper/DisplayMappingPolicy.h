@@ -353,7 +353,6 @@ struct MultiChannelDisplayMode
   /** Restore from registry */
   static MultiChannelDisplayMode Load(Registry &reg);
 
-  typedef ScalarRepresentation ScalarRepresentation;
   static RegistryEnumMap<ScalarRepresentation> &GetScalarRepNames();
 
   /** Get a hash value for this struct - for ordering purposes */
