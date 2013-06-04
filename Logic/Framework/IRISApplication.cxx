@@ -653,9 +653,9 @@ IRISApplication
 
 void
 IRISApplication
-::SetCursorPosition(const Vector3ui cursor)
+::SetCursorPosition(const Vector3ui cursor, bool force)
 {
-  if(cursor != this->GetCursorPosition())
+  if(cursor != this->GetCursorPosition() || force)
     {
     m_GlobalState->SetCrosshairsPosition(cursor);
     this->GetCurrentImageData()->SetCrosshairs(cursor);
@@ -869,7 +869,7 @@ void IRISApplication
     m_CurrentImageData = m_SNAPImageData;
 
     // Set the calculated cursor position
-    this->SetCursorPosition(newCursor);
+    this->SetCursorPosition(newCursor, true);
 
     // Fire the event
     InvokeEvent(MainImageDimensionsChangeEvent());

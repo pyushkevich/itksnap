@@ -1,5 +1,7 @@
 #include "ColorMapModel.h"
 #include "LayerAssociation.txx"
+#include "NumericPropertyToggleAdaptor.h"
+
 #include <algorithm>
 
 // This compiles the LayerAssociation for the color map
@@ -40,6 +42,9 @@ ColorMapModel::ColorMapModel()
         this,
         &Self::GetLayerOpacityValueAndRange,
         &Self::SetLayerOpacity);
+
+  m_LayerVisibilityModel =
+      NewNumericPropertyToggleAdaptor(m_LayerOpacityModel.GetPointer(), 0., 50.);
 
   // The model update events should also be rebroadcast as state changes
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
@@ -714,6 +719,7 @@ void ColorMapModel::SetLayerOpacity(double value)
   assert(m_Layer);
   m_Layer->SetAlpha(value / 255.0);
 }
+
 
 
 

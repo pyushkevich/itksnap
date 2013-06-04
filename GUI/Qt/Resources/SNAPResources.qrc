@@ -70,6 +70,8 @@
         <file>snap_splash_172.png</file>
         <file>speed_bluegray.png</file>
         <file>speed_redoverlay.png</file>
+        <file>layout_overlay_16.png</file>
+        <file>layout_tile_16.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

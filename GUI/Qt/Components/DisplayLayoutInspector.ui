@@ -236,41 +236,77 @@ font-size: 12px;
        <pointsize>-1</pointsize>
       </font>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
-       <number>2</number>
+       <number>4</number>
       </property>
-      <property name="leftMargin">
-       <number>12</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
+      <property name="margin">
        <number>0</number>
       </property>
       <item>
-       <widget class="QRadioButton" name="btnStacked">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When multiple image layers are loaded, they will be rendered on top of each other using transparency. This is useful for overlaying statistical maps over an image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <widget class="QToolButton" name="btnStack">
+        <property name="minimumSize">
+         <size>
+          <width>72</width>
+          <height>0</height>
+         </size>
         </property>
         <property name="text">
-         <string>Stacked</string>
+         <string>Stack</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../Resources/SNAPResources.qrc">
+          <normaloff>:/root/layout_overlay_16.png</normaloff>:/root/layout_overlay_16.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="btnGrid">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When multiple image layers are loaded, they will be tiled (shown side by side) within each slice view. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <widget class="QToolButton" name="btnTile">
+        <property name="minimumSize">
+         <size>
+          <width>72</width>
+          <height>0</height>
+         </size>
         </property>
         <property name="text">
-         <string>Tiled</string>
+         <string>Tile</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../Resources/SNAPResources.qrc">
+          <normaloff>:/root/layout_tile_16.png</normaloff>:/root/layout_tile_16.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
         </property>
        </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>1</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
      </layout>
     </widget>
@@ -295,9 +331,9 @@ font-size: 12px;
   <tabstop>btnAxial</tabstop>
   <tabstop>btnCoronal</tabstop>
   <tabstop>btnSagittal</tabstop>
-  <tabstop>btnStacked</tabstop>
-  <tabstop>btnGrid</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../Resources/SNAPResources.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -50,6 +50,8 @@ private slots:
 
   void on_btnScreenshot_clicked();
 
+  void on_btnToggleLayout_clicked();
+
 private:
   Ui::SliceViewPanel *ui;
 

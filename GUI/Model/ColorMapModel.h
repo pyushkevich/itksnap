@@ -126,6 +126,9 @@ public:
   /** The overall opacity of the selected layer */
   irisGetMacro(LayerOpacityModel, AbstractRangedDoubleProperty *)
 
+  /** The overall visibility of the selected layer */
+  irisGetMacro(LayerVisibilityModel, AbstractSimpleBooleanProperty *)
+
   /** Get the color map in associated layer */
   ColorMap *GetColorMap();
 
@@ -171,6 +174,7 @@ protected:
   SmartPtr<ContinuityValueModel> m_MovingControlContinuityModel;
   SmartPtr<AbstractRangedIntProperty> m_MovingControlIndexModel;
   SmartPtr<AbstractRangedDoubleProperty> m_LayerOpacityModel;
+  SmartPtr<AbstractSimpleBooleanProperty> m_LayerVisibilityModel;
 
   // A pointer to the system interface object
   SystemInterface *m_System;

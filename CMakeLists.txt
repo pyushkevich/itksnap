@@ -1,19 +1,19 @@
-#############################################
-# CMAKE PRELIMINARIES                       #
-#############################################
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6.2)
-IF(COMMAND CMAKE_POLICY)
-  CMAKE_POLICY(SET CMP0003 NEW)
-ENDIF(COMMAND CMAKE_POLICY)  
+#--------------------------------------------------------------------------------
+# PROJECT: SNAP                             
+#--------------------------------------------------------------------------------
+# This CMake file is modeled after QtTest example project from
+# http://www.cmake.org/Wiki/BundleUtilitiesExample
 
-#############################################
-# PROJECT: SNAP                             #
-#############################################
 PROJECT(SNAP)
 
-#############################################
-# VERSION INFORMATION                       #
-#############################################
+#--------------------------------------------------------------------------------
+# CMAKE PRELIMINARIES                       
+#--------------------------------------------------------------------------------
+cmake_minimum_required(VERSION 2.8.8)
+
+#--------------------------------------------------------------------------------
+# VERSION INFORMATION                       
+#--------------------------------------------------------------------------------
 # On SNAP versions.
 # =================
 # The SNAP version consists of four fields: major, minor, patch and qualifier
@@ -26,44 +26,28 @@ PROJECT(SNAP)
 #     major/minor/patch and different qualifiers. So it's completely wrong to 
 #     release version 1.7.3-beta and then version 1.7.3. The right way to do it
 #     is to have 1.7.3-beta followed by 1.7.5-rc1 followed by 1.8.0 and so on
+
+# These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 2)
 SET(SNAP_VERSION_MINOR 5)
 SET(SNAP_VERSION_PATCH 0)
 SET(SNAP_VERSION_QUALIFIER "-alpha")
-SET(SNAP_VERSION_FULL "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}${SNAP_VERSION_QUALIFIER}")
+
+# These fields should also be modified each time
 SET(SNAP_VERSION_RELEASE_DATE "20130414")
-SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20130101")
 SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Apr 14, 2013")
 
-# Shamelessly stolen from ParaView
-SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_FULL}-${SNAP_VERSION_RELEASE_DATE}")
-IF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
-  EXEC_PROGRAM(uname ARGS "-m" OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
-ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
-IF(NOT DEFINED CPACK_SYSTEM_NAME)
-  SET(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
-ENDIF(NOT DEFINED CPACK_SYSTEM_NAME)
-IF(${CPACK_SYSTEM_NAME} MATCHES Windows)
-  IF(CMAKE_CL_64)
-    SET(CPACK_SYSTEM_NAME win64-${CMAKE_SYSTEM_PROCESSOR})
-  ELSE(CMAKE_CL_64)
-    SET(CPACK_SYSTEM_NAME win32-${CMAKE_SYSTEM_PROCESSOR})
-  ENDIF(CMAKE_CL_64)
-ENDIF(${CPACK_SYSTEM_NAME} MATCHES Windows)
+# This field should only change when the format of the settings files changes
+# in a non backwards-compatible way
+SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20130101")
 
-# For Apple, we need to base the filename on the architecture
-IF(CMAKE_SYSTEM_NAME MATCHES Darwin)
-  STRING(REPLACE ';' "-" ARCH ${CMAKE_OSX_ARCHITECTURES})
-  SET(CPACK_SYSTEM_NAME "MacOS-${ARCH}")
-ENDIF(CMAKE_SYSTEM_NAME MATCHES Darwin)
+# This should not need to change
+SET(SNAP_VERSION_FULL 
+  "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}${SNAP_VERSION_QUALIFIER}")
 
-IF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
-  SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
-ENDIF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
-
-#########################################################
-# FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS #
-#########################################################
+#--------------------------------------------------------------------------------
+# FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS 
+#--------------------------------------------------------------------------------
 IF(DEFINED InsightApplications_SOURCE_DIR)
   SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS FALSE CACHE BOOL 
 	"Is SNAP being built separate from InsightApplications?")
@@ -76,9 +60,9 @@ IF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
   INCLUDE(${SNAP_SOURCE_DIR}/CMake/standalone.cmake)
 ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
 
-#############################################
-# SOURCE FILE SPECIFICATION                 #
-#############################################
+#--------------------------------------------------------------------------------
+# SOURCE FILE SPECIFICATION                 
+#--------------------------------------------------------------------------------
 
 # One of the files needs to be configured (to insert version info)
 CONFIGURE_FILE(
@@ -605,9 +589,9 @@ SET(TESTING_HEADERS
   Testing/TestImageWrapper.h
 )
 
-#############################################
-# LIBRARIES AND EXTERNAL CODE               #
-#############################################
+#--------------------------------------------------------------------------------
+# Specify include path
+#--------------------------------------------------------------------------------
 
 # Due to a limitation in Visual studio 6.0 on the length of include directories
 # that can be specified, (here we are including all the include directories from
@@ -618,26 +602,20 @@ IF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
   FILE( GLOB_RECURSE SNAP_GLOBBED_CXX "${SNAP_SOURCE_DIR}/*.cxx" )
   FILE( GLOB_RECURSE SNAP_GLOBBED_H "${SNAP_SOURCE_DIR}/*.h" )
   FILE( GLOB_RECURSE SNAP_GLOBBED_TXX "${SNAP_SOURCE_DIR}/*.txx" )
-  SET( SNAP_SOURCES
-            ${SNAP_GLOBBED_CXX}
-            ${SNAP_GLOBBED_H}
-            ${SNAP_GLOBBED_TXX}
-     )
+  SET(SNAP_SOURCES ${SNAP_GLOBBED_CXX} ${SNAP_GLOBBED_H} ${SNAP_GLOBBED_TXX})
   MAKE_DIRECTORY( "${SNAP_BINARY_DIR}/src" )
   SET( CONFIGURED_SOURCE_DIRECTORY "${SNAP_BINARY_DIR}/src" )
   FOREACH( SourceFile ${SNAP_SOURCES} )
     GET_FILENAME_COMPONENT( CONFIGURED_SOURCE_FILE ${SourceFile} NAME )
     SET( CONFIGURED_SOURCE_FILE "${CONFIGURED_SOURCE_DIRECTORY}/${CONFIGURED_SOURCE_FILE}" )
-    CONFIGURE_FILE( ${SourceFile} ${CONFIGURED_SOURCE_FILE}
-                     COPYONLY IMMEDIATE )
+    CONFIGURE_FILE( ${SourceFile} ${CONFIGURED_SOURCE_FILE} COPYONLY IMMEDIATE )
   ENDFOREACH( SourceFile )
   INCLUDE_DIRECTORIES(
     ${CONFIGURED_SOURCE_DIRECTORY}
     ${ITK_DIR}/Utilities/zlib
     ${OPENGL_INCLUDE_PATH}
     ${QT_QTSCRIPT_INCLUDE_DIR}
-    ${QT_QTSCRIPTTOOLS_INCLUDE_DIR}
-  )
+    ${QT_QTSCRIPTTOOLS_INCLUDE_DIR})
 
 ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 
@@ -677,6 +655,10 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 
 ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 
+#--------------------------------------------------------------------------------
+# Compiler-specific warinings
+#--------------------------------------------------------------------------------
+
 # Get rid of this ridiculous warning in VS8
 IF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Visual Studio 9" OR CMAKE_GENERATOR MATCHES "Visual Studio 10" )
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
@@ -686,19 +668,15 @@ IF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Studio"
   ADD_DEFINITIONS(-DNOMINMAX)
 ENDIF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Studio" )
 
-
-# ----------------------------------------------------------------
+#--------------------------------------------------------------------------------
 # Define External Libraries
-# ----------------------------------------------------------------
+#--------------------------------------------------------------------------------
 
 # ITK Libraries
-SET(SNAP_ITK_LIBS
-  ${ITK_LIBRARIES}
-
-)
+SET(SNAP_ITK_LIBS ${ITK_LIBRARIES})
 
 # Core VTK libraries
-SET(SNAP_VTK_CORE_LIBS
+SET(SNAP_VTK_LIBS
   vtkCharts
   vtkCommon
   vtkRendering
@@ -709,19 +687,11 @@ SET(SNAP_VTK_CORE_LIBS
   vtkIO
 )
 
-# VTK Libraries with possible inclusion of patented code
-IF(VTK_USE_PATENTED)
-  SET(SNAP_VTK_LIBS vtkPatented ${SNAP_VTK_CORE_LIBS})
-ELSE(VTK_USE_PATENTED)
-  SET(SNAP_VTK_LIBS ${SNAP_VTK_CORE_LIBS})
-ENDIF(VTK_USE_PATENTED)
-
 # Qt Libraries
 SET(SNAP_QT_LIBS
   ${QT_LIBRARIES}
   ${QT_QTSCRIPT_LIBRARY}
   ${QT_QTSCRIPTTOOLS_LIBRARY}
-
 )
 
 # System libraries
@@ -738,13 +708,13 @@ SET(SNAP_EXTERNAL_LIBS
   ${SNAP_SYSTEM_LIBS}
 )
 
-# *****************************************************
-# SNAP Logic and UI Libraries
-# *****************************************************
+#--------------------------------------------------------------------------------
+# Define SNAP library targets (logic and UI)
+#--------------------------------------------------------------------------------
 
 # Wrap the QT input files
 QT4_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
-QT4_WRAP_CPP(UI_HEADERS_MOC ${UI_MOC_HEADERS})
+QT4_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
 QT4_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
 
 # The SNAP logic library
@@ -755,7 +725,8 @@ ADD_LIBRARY(itksnapui_model ${UI_GENERIC_CXX} ${UI_GENERIC_HEADERS})
 
 # The user interface code library
 ADD_LIBRARY(itksnapui_qt
-  ${UI_QT_CXX} ${UI_HEADERS_MOC} ${UI_MOC_HEADERS} ${UI_NONMOC_HEADERS} ${UI_FORM_HEADERS} ${UI_RESOURCES_RCC})
+  ${UI_QT_CXX} ${UI_WRAPPED_MOC_HEADERS} ${UI_MOC_HEADERS} 
+  ${UI_NONMOC_HEADERS} ${UI_FORM_HEADERS} ${UI_RESOURCES_RCC})
 
 # This is experimental: it seems that shared libraries do not
 # build accurately (at least on MacOS) without the following
@@ -767,46 +738,68 @@ TARGET_LINK_LIBRARIES(itksnapui_qt ${SNAP_QT_LIBS} ${SNAP_EXTERNAL_LIBS})
 # Designate the SNAP internal libraries
 SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
 
-# *****************************************************
-# Define SNAP Executables
-# *****************************************************
-SET(SNAP_EXE InsightSNAP)
+#--------------------------------------------------------------------------------
+# Define main SNAP executable
+#--------------------------------------------------------------------------------
+
+# Code for the main application
+SET(SNAP_MAIN_SRC GUI/Qt/main.cxx)
+
+# On Apple, configure the application icon
+IF(APPLE)
+
+  # the icon file
+  SET(SNAP_OSX_ICON ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns)
+
+  # set how it shows up in the Info.plist file
+  SET(MACOSX_BUNDLE_ICON_FILE itksnap.icns) 
+  
+  # set where in the bundle to put the icns file
+  SET_SOURCE_FILES_PROPERTIES(${SNAP_OSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+
+  # include the icns file in the target
+  SET(SNAP_MAIN_SRC ${SNAP_MAIN_SRC} ${SNAP_OSX_ICON})
+
+ENDIF(APPLE)
+
 
 # Define the main SNAP executable
-ADD_EXECUTABLE(${SNAP_EXE} GUI/Qt/main.cxx)
-TARGET_LINK_LIBRARIES(${SNAP_EXE}
-  ${SNAP_INTERNAL_LIBS}
-  ${SNAP_EXTERNAL_LIBS}
-  )
+SET(SNAP_BUNDLE_NAME ITK-SNAP)
 
+# Configure the executable's sources and libraries
+ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} MACOSX_BUNDLE WIN32 ${SNAP_MAIN_SRC})
+TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
+
+# On apple, we also need our custom plist.info file to be configured
+IF(APPLE)
+  SET_TARGET_PROPERTIES(${SNAP_BUNDLE_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST
+    ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/Info.plist)
+ENDIF(APPLE)
+
+#--------------------------------------------------------------------------------
+# Testing-related executables
+#--------------------------------------------------------------------------------
 
 ENABLE_TESTING()
 
-MESSAGE(STATUS "--testQtScript 2")
-
+# Tavi's qt script test
 ADD_TEST(TestQtScript ${SNAP_EXE} --testQtScript 2)
 SET_TESTS_PROPERTIES(TestQtScript PROPERTIES PASS_REGULAR_EXPRESSION "QtScriptTest1::Run: 71")
 
-# Define the testing EXE
-### ADD_EXECUTABLE(snaptest ${TESTING_CXX})
-### TARGET_LINK_LIBRARIES(snaptest
-###   ${SNAP_INTERNAL_LIBS}
-###   ${SNAP_EXTERNAL_LIBS})
-
+# Orientation widget test
 SET(TEST_ORIENTATION_WIDGET_HEADERS
-  #GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidget.h
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h
 )
 
 SET(TEST_ORIENTATION_WIDGET_CXX
-  #GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidget.cxx
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.cxx
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/main.cxx
 )
 
-QT4_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
-QT4_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
-
+QT4_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS 
+  GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
+QT4_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS 
+  GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
 
 ADD_EXECUTABLE(Test_OrientationWidget
   ${TEST_ORIENTATION_WIDGET_CXX} ${TEST_ORIENTATION_WIDGET_HEADERS}
@@ -818,15 +811,18 @@ TARGET_LINK_LIBRARIES(Test_OrientationWidget
   ${SNAP_EXTERNAL_LIBS}
 )
 
+INCLUDE(CTest)
 
-# ----------------------------------------------------------------
-# Miscelaneous tasks (not related to link and compilation)
-# ----------------------------------------------------------------
+#--------------------------------------------------------------------------------
+# Copy and configure the program data directory
+#--------------------------------------------------------------------------------
+
 # All program files - use recursive globbing
-FILE(GLOB_RECURSE PROGRAM_DATA_FILES ProgramData "*.txt" "*.html" "*.gif" "*.png" "*.img.gz" "*.hdr")
+FILE(GLOB_RECURSE SNAP_PROGRAM_DATA_FILES 
+  ProgramData "*.txt" "*.html" "*.gif" "*.png" "*.img.gz" "*.hdr")
 
 # Copy documentation from the source tree to the build tree
-FOREACH(DATAFILE ${PROGRAM_DATA_FILES})
+FOREACH(DATAFILE ${SNAP_PROGRAM_DATA_FILES})
   FILE(RELATIVE_PATH SHORTNAME ${SNAP_SOURCE_DIR} ${DATAFILE})
   CONFIGURE_FILE(
     ${SNAP_SOURCE_DIR}/${SHORTNAME}
@@ -834,125 +830,100 @@ FOREACH(DATAFILE ${PROGRAM_DATA_FILES})
    COPYONLY)
 ENDFOREACH(DATAFILE)
 
-#########################################################
-# INSTALLATION AND PACKAGING with CPack                 #
-#########################################################
-INCLUDE(CMake/CustomBuildSettings.cmake)
+#--------------------------------------------------------------------------------
+# INSTALLATION AND PACKAGING SECTION
+#--------------------------------------------------------------------------------
 
-# Generate forward shared executable
-SUBDIRS(Utilities/Forwarding)
+#--------------------------------------------------------------------------------
+# Create a complete name for the package, including the system information
+# (Shamelessly stolen from ParaView's CMakeLists.txt)
 
-# Install the SNAP executable in the appropriate place.
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_FULL}-${SNAP_VERSION_RELEASE_DATE}")
+IF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
+  EXEC_PROGRAM(uname ARGS "-m" OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
+ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
+IF(NOT DEFINED CPACK_SYSTEM_NAME)
+  SET(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
+ENDIF(NOT DEFINED CPACK_SYSTEM_NAME)
+IF(${CPACK_SYSTEM_NAME} MATCHES Windows)
+  IF(CMAKE_CL_64)
+    SET(CPACK_SYSTEM_NAME win64-${CMAKE_SYSTEM_PROCESSOR})
+  ELSE(CMAKE_CL_64)
+    SET(CPACK_SYSTEM_NAME win32-${CMAKE_SYSTEM_PROCESSOR})
+  ENDIF(CMAKE_CL_64)
+ENDIF(${CPACK_SYSTEM_NAME} MATCHES Windows)
 
-# Windows (Microsoft Visual Studio)
-IF(WIN32 AND NOT UNIX)
-  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION bin)
-  SET(SNAP_DATA_INSTALL_DIR ".")
-ENDIF(WIN32 AND NOT UNIX)
+MESSAGE(STATUS "=== Installation Section ===")
+MESSAGE(STATUS "   CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR}")
+MESSAGE(STATUS "   CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 
-# Apple
+# For Apple, we need to base the filename on the architecture
+IF(CMAKE_SYSTEM_NAME MATCHES Darwin)
+  STRING(REPLACE ";" "-" ARCH ${CMAKE_OSX_ARCHITECTURES})
+  SET(CPACK_SYSTEM_NAME "MacOS-${ARCH}")
+  MESSAGE(STATUS "   ARCH ${ARCH}")
+  MESSAGE(STATUS "   CMAKE_OSX_ARCHITECTURES ${CMAKE_OSX_ARCHITECTURES}")
+ENDIF(CMAKE_SYSTEM_NAME MATCHES Darwin)
+
+MESSAGE(STATUS "   CPACK_SYSTEM_NAME ${CPACK_SYSTEM_NAME}")
+
+IF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
+  SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
+ENDIF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
+
+MESSAGE(STATUS "   CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME}")
+
+#--------------------------------------------------------------------------------
+# Set up the bundle directory names
+
+SET(plugin_dest_dir bin)
+SET(qtconf_dest_dir bin)
+SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/${SNAP_BUNDLE_NAME}")
 IF(APPLE)
-  # Copy executable into the bundle
-  SET(SNAP_MAIN_INSTALL_DIR ITK-SNAP.app/Contents/MacOS)
-  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
-  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
+  SET(plugin_dest_dir ${SNAP_BUNDLE_NAME}.app/Contents/MacOS)
+  SET(qtconf_dest_dir ${SNAP_BUNDLE_NAME}.app/Contents/Resources)
+  SET(APPS "\${CMAKE_INSTALL_PREFIX}/${SNAP_BUNDLE_NAME}.app")
+ENDIF(APPLE)
+IF(WIN32)
+  SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/${SNAP_BUNDLE_NAME}.exe")
+ENDIF(WIN32)
 
-  # Configure the XML file
-  CONFIGURE_FILE(
-    ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/Info.plist
-    ${SNAP_BINARY_DIR}/Utilities/MacOS/BundleResources/Info.plist)
-  INSTALL(FILES ${SNAP_BINARY_DIR}/Utilities/MacOS/BundleResources/Info.plist
-    DESTINATION ITK-SNAP.app/Contents) 
-  INSTALL(FILES ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns
-    DESTINATION ITK-SNAP.app/Contents/Resources)
+#--------------------------------------------------------------------------------
+# Install the application, on Apple, the bundle is at the root of the
+# install tree, and on other platforms it'll go into the bin directory.
+INSTALL(TARGETS ${SNAP_BUNDLE_NAME} 
+    BUNDLE DESTINATION . COMPONENT Runtime
+    RUNTIME DESTINATION bin COMPONENT Runtime
+    )
+
+# Include the qt4 dependent libraries
+include(DeployQt4)
+IF(APPLE)
+  install_qt4_executable(${SNAP_BUNDLE_NAME}.app "qsqlite;qgif")
+ELSEIF(WIN32)
+
+ELSE()
+
+ENDIF()
+
+
+#--------------------------------------------------------------------------------
+# Configure CPack
+
+# Which generator to use
+IF(APPLE)
+  SET(CPACK_GENERATOR DragNDrop)
+ELSEIF(WIN32)
+  SET(CPACK_GENERATOR NSIS)
+ELSE(APPLE)
+  SET(CPACK_GENERATOR TGZ)
 ENDIF(APPLE)
 
-# Other UNIX
-IF(UNIX AND NOT APPLE)
-  SET(SNAP_MAIN_INSTALL_DIR lib/snap-${SNAP_VERSION_FULL})
-  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
-  INSTALL(TARGETS ${SNAP_EXE} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
-ENDIF(UNIX AND NOT APPLE)
+include(CPack)
 
-# Install the Program Data files
-INSTALL(DIRECTORY ${SNAP_BINARY_DIR}/ProgramData DESTINATION ${SNAP_DATA_INSTALL_DIR})
-
-# On Win32, we must include the redistributable
-IF(MSVC80 OR MSVC90 OR MSVC10)
-  FIND_PROGRAM(VCREDIST_EXE vcredist_x86.exe vcredist_x64.exe)
-  IF(VCREDIST_EXE)
-    GET_FILENAME_COMPONENT(VCREDIST_NAME ${VCREDIST_EXE} NAME)
-    INSTALL(FILES ${VCREDIST_EXE} DESTINATION bin)
-    SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
-      "ExecWait '\\\"$INSTDIR\\\\bin\\\\${VCREDIST_NAME}\\\" /q:a'")
-  ENDIF(VCREDIST_EXE)
-ENDIF(MSVC80 OR MSVC90 OR MSVC10)
-
-# Allow package generation
-SET(CPACK_PACKAGE_NAME "itksnap")
-SET(CPACK_PACKAGE_CONTACT "Paul A. Yushkevich")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ITK-SNAP 3D Image Segmentation Tool")
-SET(CPACK_PACKAGE_VENDOR "itksnap.org")
-SET(CPACK_PACKAGE_VERSION_MAJOR "${SNAP_VERSION_MAJOR}")
-SET(CPACK_PACKAGE_VERSION_MINOR "${SNAP_VERSION_MINOR}")
-SET(CPACK_PACKAGE_VERSION_PATCH "${SNAP_VERSION_PATCH}")
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "itksnap-${SNAP_VERSION_FULL}")
-
-# Show GPL license
-SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
-
-IF(WIN32 AND NOT UNIX)
-
-  # There is a bug in NSI that does not handle full unix paths properly. Make
-  # sure there is at least one set of four (4) backlasshes.
-  SET(CPACK_GENERATOR "NSIS")
-  SET(CPACK_NSIS_INSTALLED_ICON_NAME "InsightSNAP.exe")
-  SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ITK-SNAP")
-  SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.itksnap.org")
-  SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.itksnap.org/credits.php")
-  SET(CPACK_NSIS_MODIFY_PATH OFF)
-  
-  # Give it a windowsy directory name
-  SET(CPACK_PACKAGE_INSTALL_DIRECTORY "ITK-SNAP ${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}")
-  
-  # On Win32, the executable is the actual exe
-  SET(CPACK_PACKAGE_EXECUTABLES InsightSNAP "ITK-SNAP")
-  
-ELSE(WIN32 AND NOT UNIX)
-
-  # Set the generator to either STGZ or Apple
-  IF(NOT APPLE)
-    SET(CPACK_GENERATOR "TGZ")
-  ELSE(NOT APPLE)
-    SET(CPACK_GENERATOR "ZIP")
-  ENDIF(NOT APPLE)
-
-  # Executable is the forward sharing exe
-  SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
-
-ENDIF(WIN32 AND NOT UNIX)
-
-# Figure out the extension of the binary
-MESSAGE(STATUS "Generator: ${CPACK_GENERATOR}")
-IF(CPACK_GENERATOR STREQUAL "NSIS")
-  SET(CPACK_EXTENSION "exe")
-ELSEIF(CPACK_GENERATOR STREQUAL "ZIP")
-  SET(CPACK_EXTENSION "zip")
-ELSEIF(CPACK_GENERATOR STREQUAL "TGZ")
-  SET(CPACK_EXTENSION "tar.gz")
-ENDIF(CPACK_GENERATOR STREQUAL "NSIS")
-
-# The filename of the installable package
-SET(CPACK_TARGET_FILENAME ${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION})
-SET(CPACK_TARGET ${SNAP_BINARY_DIR}/${CPACK_TARGET_FILENAME})
-
-# Call CPACK
-INCLUDE(CPack)
-INCLUDE(CTest)
-
-#########################################################
-# Automatic Uploading of Nightly Packages               #
-#########################################################
+#--------------------------------------------------------------------------------
+# Uploading code to SourceForge
+#--------------------------------------------------------------------------------
 FIND_PROGRAM(SCP_PROGRAM NAMES scp DOC "Location of the scp program (optional)")
 MARK_AS_ADVANCED(SCP_PROGRAM)
 
@@ -977,4 +948,5 @@ ADD_CUSTOM_TARGET(upload_experimental
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
   COMMENT "Uploading package ${CPACK_TARGET} to SourceForge.net to Experimental directory")
+
 

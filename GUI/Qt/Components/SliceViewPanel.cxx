@@ -210,6 +210,7 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   // Listen to the events affecting the expand view button
   DisplayLayoutModel *dlm = m_GlobalUI->GetDisplayLayoutModel();
   connectITK(dlm, DisplayLayoutModel::ViewPanelLayoutChangeEvent());
+  connectITK(dlm, DisplayLayoutModel::LayerLayoutChangeEvent());
 
   // Arrange the rendering overlays and widgets based on current mode
   this->OnToolbarModeChange();
@@ -222,7 +223,8 @@ void SliceViewPanel::onModelUpdate(const EventBucket &eb)
     {
     OnToolbarModeChange();
     }
-  if(eb.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent()))
+  if(eb.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent()) ||
+     eb.HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent()))
     {
     UpdateExpandViewButton();
     }
@@ -434,6 +436,19 @@ void SliceViewPanel::UpdateExpandViewButton()
     {
     ui->btnExpand->setToolTip("Expand this view to occupy the entire window");
     }
+
+  // Also expand the tile/cascade button
+  DisplayLayoutModel::LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
+  if(ll == DisplayLayoutModel::LAYOUT_TILED)
+    {
+    ui->btnToggleLayout->setIcon(QIcon(":/root/layout_overlay_16.png"));
+    ui->btnToggleLayout->setToolTip("Render image overlays on top of each other");
+    }
+  else if(ll == DisplayLayoutModel::LAYOUT_STACKED)
+    {
+    ui->btnToggleLayout->setIcon(QIcon(":/root/layout_tile_16.png"));
+    ui->btnToggleLayout->setToolTip("Tile image overlays side by side");
+    }
 }
 
 
@@ -441,4 +456,18 @@ void SliceViewPanel::on_btnScreenshot_clicked()
 {
   MainImageWindow *parent = findParentWidget<MainImageWindow>(this);
   parent->ExportScreenshot(m_Index);
+}
+
+void SliceViewPanel::on_btnToggleLayout_clicked()
+{
+  DisplayLayoutModel *dlm = m_GlobalUI->GetDisplayLayoutModel();
+  DisplayLayoutModel::LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
+  if(ll == DisplayLayoutModel::LAYOUT_TILED)
+    {
+    dlm->GetSliceViewLayerLayoutModel()->SetValue(DisplayLayoutModel::LAYOUT_STACKED);
+    }
+  else
+    {
+    dlm->GetSliceViewLayerLayoutModel()->SetValue(DisplayLayoutModel::LAYOUT_TILED);
+    }
 }

@@ -41,6 +41,7 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         this,
         &Self::GetNicknameValue,
         &Self::SetNicknameValue);
+
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -57,6 +58,10 @@ LayerGeneralPropertiesModel::SetParentModel(GlobalUIModel *parent)
   this->Rebroadcast(
         parent->GetDriver(),
         WrapperMetadataChangeEvent(), ModelUpdateEvent());
+
+  this->Rebroadcast(
+        parent->GetDriver(),
+        WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
 }
 
 void

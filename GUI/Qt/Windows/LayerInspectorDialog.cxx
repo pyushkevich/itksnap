@@ -13,6 +13,8 @@
 #include "ImageInfoModel.h"
 #include "LatentITKEventNotifier.h"
 #include "QtSliderCoupling.h"
+#include "QtCheckBoxCoupling.h"
+#include "QtSpinBoxCoupling.h"
 #include "LayerGeneralPropertiesModel.h"
 #include "SNAPQtCommon.h"
 
@@ -146,9 +148,16 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
         this, SLOT(onModelUpdate(const EventBucket &)));
 
   // Connect the layer opacity model
-  makeCoupling(
-        ui->inOverlayOpacity,
-        model->GetColorMapModel()->GetLayerOpacityModel());
+  makeCoupling(ui->inOverlayOpacity,
+               model->GetLayerGeneralPropertiesModel()->GetLayerOpacityModel());
+
+  makeCoupling(ui->inOverlayOpacityValue,
+               model->GetLayerGeneralPropertiesModel()->GetLayerOpacityModel());
+
+  makeCoupling(ui->chkVisible,
+               model->GetLayerGeneralPropertiesModel()->GetLayerVisibilityModel());
+
+
 }
 
 void LayerInspectorDialog::onLayerSelection()

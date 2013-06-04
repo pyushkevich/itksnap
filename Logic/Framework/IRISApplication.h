@@ -309,9 +309,11 @@ public:
 
   /**
    * Set the current cursor position.  This will cause all the active image
-   * wrappers to update their current slice numbers
+   * wrappers to update their current slice numbers. By default, the method
+   * does nothing if the passed in cursor position is the same as the current
+   * cursor position. When force is true, the cursor position is set regardless.
    */
-  void SetCursorPosition(const Vector3ui cursor);
+  void SetCursorPosition(const Vector3ui cursor, bool force = false);
 
   /**
    * Get the cursor position
