@@ -867,9 +867,7 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES Darwin)
 
 MESSAGE(STATUS "   CPACK_SYSTEM_NAME ${CPACK_SYSTEM_NAME}")
 
-IF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
-  SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
-ENDIF(NOT DEFINED CPACK_PACKAGE_FILE_NAME)
+SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
 
 MESSAGE(STATUS "   CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME}")
 
@@ -889,20 +887,34 @@ IF(WIN32)
 ENDIF(WIN32)
 
 #--------------------------------------------------------------------------------
-# Install the application, on Apple, the bundle is at the root of the
-# install tree, and on other platforms it'll go into the bin directory.
-INSTALL(TARGETS ${SNAP_BUNDLE_NAME} 
-    BUNDLE DESTINATION . COMPONENT Runtime
-    RUNTIME DESTINATION bin COMPONENT Runtime
-    )
+# Install the application
 
-# Include the qt4 dependent libraries
-include(DeployQt4)
 IF(APPLE)
+
+  # on Apple, the bundle is at the root of the
+  # install tree, and on other platforms it'll go into the bin directory.
+  INSTALL(TARGETS ${SNAP_BUNDLE_NAME} 
+      BUNDLE DESTINATION . COMPONENT Runtime)
+
+  # Include the qt4 dependent libraries
+  include(DeployQt4)
   install_qt4_executable(${SNAP_BUNDLE_NAME}.app "qsqlite;qgif")
+
 ELSEIF(WIN32)
 
 ELSE()
+
+  # On Linux, we generate forward shared executable
+  SUBDIRS(Utilities/Forwarding)
+
+  SET(SNAP_EXE "ITK-SNAP")
+  SET(SNAP_MAIN_INSTALL_DIR lib/snap-${SNAP_VERSION_FULL})
+  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
+  SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
+  INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
+
+  include(DeployQt4)
+  install_qt4_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} "qgif")
 
 ENDIF()
 
@@ -913,17 +925,31 @@ ENDIF()
 # Which generator to use
 IF(APPLE)
   SET(CPACK_GENERATOR DragNDrop)
+  SET(CPACK_EXTENSION "dmg")
 ELSEIF(WIN32)
   SET(CPACK_GENERATOR NSIS)
+  SET(CPACK_EXTENSION "exe")
 ELSE(APPLE)
   SET(CPACK_GENERATOR TGZ)
+  SET(CPACK_EXTENSION "tar.gz")
 ENDIF(APPLE)
 
+#--------------------------------------------------------------------------------
+# Construct the name of the package
+SET(CPACK_PACKAGE_FILE_NAME_WEXT "${CPACK_PACKAGE_FILE_NAME}.${CPACK_EXTENSION}")
+
+
+#--------------------------------------------------------------------------------
+# Set up package target
 include(CPack)
 
 #--------------------------------------------------------------------------------
 # Uploading code to SourceForge
 #--------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------
+# Configure SCP
+
 FIND_PROGRAM(SCP_PROGRAM NAMES scp DOC "Location of the scp program (optional)")
 MARK_AS_ADVANCED(SCP_PROGRAM)
 
@@ -937,16 +963,20 @@ SET(NIGHTLY_TARGET "qtsnap-nightly-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 
 SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/i/it/itk-snap/itk-snap")
 
+#--------------------------------------------------------------------------------
+# Create targets
+
 ADD_CUSTOM_TARGET(upload_nightly 
-  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} ${CPACK_TARGET_FILENAME} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Nightly/${NIGHTLY_TARGET}
+  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS}
+  ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Nightly/${NIGHTLY_TARGET}
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
-  COMMENT "Uploading package ${CPACK_TARGET} to SourceForge.net as ${NIGHTLY_TARGET}")
+  COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${NIGHTLY_TARGET}")
 
 ADD_CUSTOM_TARGET(upload_experimental 
-  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} ${CPACK_TARGET_FILENAME} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental
+  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} ${PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
-  COMMENT "Uploading package ${CPACK_TARGET} to SourceForge.net to Experimental directory")
+  COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net to Experimental directory")
 
 

@@ -154,7 +154,6 @@ ColorMap
 ColorMap
 ::~ColorMap()
 {
-  std::cout << "Destructor in color map " << this << " ref ct " << this->m_ReferenceCount << std::endl;
 }
 
 RegistryEnumMap<ColorMap::SystemPreset> ColorMap::m_ColorMapPresetEnumMap;

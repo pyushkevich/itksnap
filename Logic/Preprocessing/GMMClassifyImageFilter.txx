@@ -185,7 +185,7 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
       }
 
     // Store the value
-    it_out.Set(pdiff * 0x7fff);
+    it_out.Set((OutputPixelType)(pdiff * 0x7fff));
     ++it_out;
     }
 }

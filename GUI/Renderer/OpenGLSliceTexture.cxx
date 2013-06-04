@@ -107,7 +107,6 @@ OpenGLSliceTexture<TPixel>
   // Check if everything is up-to-date and no computation is needed
   if (m_IsTextureInitalized && m_UpdateTime == m_Image->GetPipelineMTime())
     {
-    printf("Texture update time %d, image update time %d\n", (int) m_UpdateTime, (int) m_Image->GetPipelineMTime());
     return;
     }
 

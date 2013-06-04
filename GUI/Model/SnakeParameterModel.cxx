@@ -115,7 +115,7 @@ void SnakeParameterModel::SetupPreviewPipeline()
       m_ExampleImage[i] = ExampleImageType::New();
       m_ExampleImage[i]->SetRegions(defregion);
       m_ExampleImage[i]->Allocate();
-      m_ExampleImage[i]->FillBuffer(0.0f);
+      m_ExampleImage[i]->FillBuffer(0);
       }
     }
 

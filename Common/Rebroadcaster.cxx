@@ -52,8 +52,6 @@ unsigned long Rebroadcaster
     cmd_target_delete->SetCallback(&Rebroadcaster::DeleteTargetCallback);
     cmd_target_delete->SetConstCallback(&Rebroadcaster::DeleteTargetConstCallback);
     target->AddObserver(itk::DeleteEvent(), cmd_target_delete);
-
-    std::cout << "REGTRG " << target << " of type " << target->GetNameOfClass() << std::endl;
     }
 
   // Add the association to the target's list
@@ -67,8 +65,6 @@ unsigned long Rebroadcaster
     cmd_source_delete->SetCallback(&Rebroadcaster::DeleteSourceCallback);
     cmd_source_delete->SetConstCallback(&Rebroadcaster::DeleteSourceConstCallback);
     source->AddObserver(itk::DeleteEvent(), cmd_source_delete);
-
-    std::cout << "REGSRC " << source << " of type " << source->GetNameOfClass() << std::endl;
     }
 
   // Add the association to the source's list
@@ -99,7 +95,6 @@ void Rebroadcaster::DeleteTargetConstCallback(
 {
   // The target object is being deleted. This means that the corresponding
   // associations should be detatched from their source objects.
-  std::cout << "DELTRG from " << target << " of type " << target->GetNameOfClass() << std::endl;
 
   // Find the list of associations for the target object.
   DispatchMap::iterator itmap = m_TargetMap.find(target);
@@ -139,7 +134,6 @@ void Rebroadcaster::DeleteSourceConstCallback(
 {
   // The source object is being deleted. We need to destroy all of its
   // associations. We don't need to remove any observers though.
-  std::cout << "DELSRC from " << source << " of type " << source->GetNameOfClass() << std::endl;
 
   // Find the list of associations for the source object.
   DispatchMap::iterator itmap = m_SourceMap.find(source);
