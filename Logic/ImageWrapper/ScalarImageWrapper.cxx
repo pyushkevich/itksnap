@@ -26,6 +26,9 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
+#include "itkVTKImageExport.h"
+#include "itkStreamingImageFilter.h"
+
 #include "IRISSlicer.h"
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
@@ -36,7 +39,7 @@
 #include "VectorImageWrapper.h"
 #include "ScalarImageHistogram.h"
 
-#include "itkStreamingImageFilter.h"
+#include "vtkImageImport.h"
 
 #include <iostream>
 
@@ -221,14 +224,12 @@ ScalarImageWrapper<TTraits,TBase>
     }
 }
 
-#include "vtkImageImport.h"
-#include "itkVTKImageExport.h"
 
 
 template<class TTraits, class TBase>
 void
 ScalarImageWrapper<TTraits,TBase>
-::ScalarImageWrapper::SetupVTKImportExport()
+::SetupVTKImportExport()
 {
   // Initialize the VTK Exporter
   m_VTKExporter = VTKExporter::New();
@@ -268,7 +269,7 @@ ScalarImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 vtkImageImport *
 ScalarImageWrapper<TTraits,TBase>
-::ScalarImageWrapper::GetVTKImporter()
+::GetVTKImporter()
 {
   return m_VTKImporter;
 }

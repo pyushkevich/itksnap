@@ -68,6 +68,7 @@
   #include <iostream>
   #include <process.h>
   #include <windows.h>
+  #include <cstdlib>
 #else
   #include <sys/types.h> 
   #include <sys/ipc.h> 
@@ -84,6 +85,8 @@ using namespace itksys;
 std::string
 SystemInterface::GetApplicationDataDirectory()
 {
+  // TODO: when the username is not ASCII, this crashes!
+
   // Get path to /User/[name]/AppData/Roaming or whatever
   PWSTR path;
   if(!SUCCEEDED(
@@ -91,9 +94,33 @@ SystemInterface::GetApplicationDataDirectory()
 	   ))
     throw IRISException("Can not access APPDATA path on WIN32.");
 
+  std::string utf8_path;
+  int nch = WideCharToMultiByte(CP_ACP, 0, path, -1, NULL, 0, NULL, NULL);
+  if(nch > 0)
+    {
+    LPSTR pszMBCS = (LPSTR) _alloca ( nch );
+    if ( NULL != pszMBCS )
+      {
+      nch = WideCharToMultiByte ( CP_ACP, 0, path, -1, pszMBCS, nch, NULL, NULL );
+      if(nch > 0)
+        {
+        utf8_path=pszMBCS;
+        }
+      }
+    }
+
+  if(utf8_path.length() == 0)
+    throw IRISException("Can not convert APPDATA path to multi-byte string");
+
+  // std::string appdata = getenv("APPDATA");
+
+
+
   // Append the full information
-  std::string strPath = std::string((char *)path) + "/itksnap.org/ITK-SNAP";
+  std::string strPath = utf8_path + "/itksnap.org/ITK-SNAP";
   itksys::SystemTools::ConvertToUnixSlashes(strPath);
+  // std::cout << "Roaming App Data Path is " << strPath << std::endl;
+
   return strPath;
 }
 

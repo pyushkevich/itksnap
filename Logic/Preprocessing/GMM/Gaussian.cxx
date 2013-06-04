@@ -1,5 +1,6 @@
 #include "Gaussian.h"
 #include <iostream>
+#include <vnl/vnl_math.h>
 
 Gaussian::Gaussian(int dimension)
   :m_dimension(dimension), m_setMeanFlag(0), m_setCovarianceFlag(0), m_normalization(0), m_log_normalization(0)
@@ -42,7 +43,7 @@ Gaussian::Gaussian(int dimension, double *mean, double *covariance)
   if(!m_is_delta)
     {
     (*m_precision_matrix) = vnl_matrix_inverse<double>(*m_covariance_matrix);
-    m_normalization = sqrt(pow(2*M_PI, m_dimension) * vnl_determinant(*m_covariance_matrix));
+    m_normalization = sqrt(pow(2*vnl_math::pi, m_dimension) * vnl_determinant(*m_covariance_matrix));
     m_log_normalization = log(m_normalization);
     }
 
@@ -132,7 +133,7 @@ void Gaussian::SetCovariance(double *covariance)
   if(!m_is_delta)
     {
     (*m_precision_matrix) = vnl_matrix_inverse<double>(*m_covariance_matrix);
-    m_normalization = sqrt(pow(2*M_PI, m_dimension) * vnl_determinant(*m_covariance_matrix));
+    m_normalization = sqrt(pow(2*vnl_math::pi, m_dimension) * vnl_determinant(*m_covariance_matrix));
     m_log_normalization = log(m_normalization);
     m_setCovarianceFlag = 1;
     }

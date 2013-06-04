@@ -6,6 +6,8 @@
 #include "ImageWrapper.h"
 #include "ImageWrapperTraits.h"
 
+#include <algorithm>
+
 UnsupervisedClustering::UnsupervisedClustering()
 {
   m_ClusteringEM = NULL;

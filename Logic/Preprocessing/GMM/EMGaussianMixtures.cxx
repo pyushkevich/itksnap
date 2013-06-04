@@ -1,6 +1,6 @@
 #include "EMGaussianMixtures.h"
 #include <iostream>
-
+#include <ctime>
 
 EMGaussianMixtures::EMGaussianMixtures(double **x, int dataSize, int dataDim, int numOfClass)
   :m_x(x), m_numOfData(dataSize), m_dimOfGaussian(dataDim), m_numOfGaussian(numOfClass), m_setPriorFlag(0), m_numOfIteration(0), m_fail(0)
@@ -24,7 +24,7 @@ EMGaussianMixtures::EMGaussianMixtures(double **x, int dataSize, int dataDim, in
   m_weight = new double[numOfClass];
   m_gmm = new GaussianMixtureModel(dataDim, numOfClass);
   m_maxIteration = 30;
-  m_precision = pow(10,-7);
+  m_precision = 1.0e-7;
   m_logLikelihood = std::numeric_limits<double>::infinity();
 }
 

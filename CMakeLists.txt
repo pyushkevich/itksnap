@@ -767,7 +767,7 @@ ENDIF(APPLE)
 SET(SNAP_BUNDLE_NAME ITK-SNAP)
 
 # Configure the executable's sources and libraries
-ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} MACOSX_BUNDLE WIN32 ${SNAP_MAIN_SRC})
+ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} MACOSX_BUNDLE ${SNAP_MAIN_SRC})
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
 
 # On apple, we also need our custom plist.info file to be configured
@@ -871,20 +871,9 @@ SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NA
 
 MESSAGE(STATUS "   CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME}")
 
-#--------------------------------------------------------------------------------
-# Set up the bundle directory names
+# Additional CPack resources
+SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
 
-SET(plugin_dest_dir bin)
-SET(qtconf_dest_dir bin)
-SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/${SNAP_BUNDLE_NAME}")
-IF(APPLE)
-  SET(plugin_dest_dir ${SNAP_BUNDLE_NAME}.app/Contents/MacOS)
-  SET(qtconf_dest_dir ${SNAP_BUNDLE_NAME}.app/Contents/Resources)
-  SET(APPS "\${CMAKE_INSTALL_PREFIX}/${SNAP_BUNDLE_NAME}.app")
-ENDIF(APPLE)
-IF(WIN32)
-  SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/${SNAP_BUNDLE_NAME}.exe")
-ENDIF(WIN32)
 
 #--------------------------------------------------------------------------------
 # Install the application
@@ -901,6 +890,42 @@ IF(APPLE)
   install_qt4_executable(${SNAP_BUNDLE_NAME}.app "qsqlite;qgif")
 
 ELSEIF(WIN32)
+
+  # Install to the bin directory
+  INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION bin)
+
+  # Include the qt4 dependent libraries
+  include(DeployQt4)
+  install_qt4_executable(bin/${SNAP_BUNDLE_NAME}.exe "qsqlite;qgif")
+
+  # On windows, we have to configure NSIS
+  SET(CPACK_NSIS_INSTALLED_ICON_NAME "ITK-SNAP.exe")
+  SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ITK-SNAP")
+  SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.itksnap.org")
+  SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.itksnap.org/credits.php")
+  SET(CPACK_NSIS_MODIFY_PATH OFF)
+
+  # CMake does not yet know to install into (x64) program files or not
+  IF(CMAKE_CL_64)
+    SET(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
+  ENDIF(CMAKE_CL_64)
+
+  # Give it a windowsy directory name
+  SET(CPACK_PACKAGE_INSTALL_DIRECTORY "ITK-SNAP ${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}")
+  
+  # On Win32, the executable is the actual exe
+  SET(CPACK_PACKAGE_EXECUTABLES ITK-SNAP "ITK-SNAP")
+
+  # On Win32, we must include the redistributable
+  IF(MSVC80 OR MSVC90 OR MSVC10)
+	  FIND_PROGRAM(VCREDIST_EXE vcredist_x86.exe vcredist_x64.exe)
+	  IF(VCREDIST_EXE)
+	  GET_FILENAME_COMPONENT(VCREDIST_NAME ${VCREDIST_EXE} NAME)
+	  INSTALL(FILES ${VCREDIST_EXE} DESTINATION bin)
+	  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
+		  "ExecWait '\\\"$INSTDIR\\\\bin\\\\${VCREDIST_NAME}\\\" /q:a'")
+	  ENDIF(VCREDIST_EXE)
+  ENDIF(MSVC80 OR MSVC90 OR MSVC10)
 
 ELSE()
 
