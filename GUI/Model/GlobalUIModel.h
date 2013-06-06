@@ -240,6 +240,12 @@ public:
   /** A model for the segmentation visibility on/off state */
   irisSimplePropertyAccessMacro(SegmentationVisibility, bool)
 
+  /** Method to toggle overlay visibility (all or selected overlays) */
+  void ToggleOverlayVisibility();
+
+  /** Method to adjust overlay opacity (all or selected overlays) */
+  void AdjustOverlayOpacity(int delta);
+
   /** Get a list of k recent images */
   std::vector<std::string> GetRecentMainImages(unsigned int k = 5);
 

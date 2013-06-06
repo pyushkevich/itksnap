@@ -13,10 +13,19 @@ class GeneralLayerProperties
 {
 public:
   irisGetSetMacro(ObserverTag, unsigned long)
+  irisGetSetMacro(VisibilityToggleModel, AbstractSimpleBooleanProperty *)
+
+  GeneralLayerProperties()
+    : m_ObserverTag(0), m_VisibilityToggleModel(NULL) {}
 
   virtual ~GeneralLayerProperties() {}
 
 protected:
+
+  // The visibility toggle model for this layer. This model must remember the
+  // previous opacity value (and restore it when toggled from off to on) so it
+  // has to be associated with each layer
+  SmartPtr<AbstractSimpleBooleanProperty> m_VisibilityToggleModel;
 
   // Whether or not we are already listening to events from this layer
   unsigned long m_ObserverTag;
@@ -95,6 +104,10 @@ protected:
   // Callbacks for the opacity model
   bool GetLayerOpacityValueAndRange(int &value, NumericValueRange<int> *domain);
   void SetLayerOpacityValue(int value);
+
+  // Callbacks for the visibility model
+  bool GetLayerVisibilityValue(bool &value);
+  void SetLayerVisibilityValue(bool value);
 
   // Filename and nickname
   SmartPtr<AbstractSimpleStringProperty> m_FilenameModel;

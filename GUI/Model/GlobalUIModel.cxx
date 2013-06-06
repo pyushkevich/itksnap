@@ -305,6 +305,63 @@ bool GlobalUIModel::CheckState(UIState state)
   return false;
 }
 
+void GlobalUIModel::ToggleOverlayVisibility()
+{
+  // Are we in tiled mode or in stack mode?
+  GenericImageData *id = m_Driver->GetCurrentImageData();
+  bool stack =
+      (m_DisplayLayoutModel->GetSliceViewLayerLayoutModel()->GetValue()
+       == DisplayLayoutModel::LAYOUT_STACKED);
+
+  // Remember what layer is current in the general properties model
+  ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
+
+  // Apply the toggle for all overlays
+  for(LayerIterator it = id->GetLayers(LayerIterator::OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+    {
+    // In stack mode, every overlay is affected. In tile mode, only stickly layers
+    // are affected
+    if(stack || it.GetLayer()->IsSticky())
+      {
+      m_LayerGeneralPropertiesModel->SetLayer(it.GetLayer());
+      m_LayerGeneralPropertiesModel->GetLayerVisibilityModel()->SetValue(
+            !m_LayerGeneralPropertiesModel->GetLayerVisibilityModel()->GetValue());
+      }
+    }
+
+  // Restore the active layer
+  m_LayerGeneralPropertiesModel->SetLayer(curr_layer);
+}
+
+void GlobalUIModel::AdjustOverlayOpacity(int delta)
+{
+  // Are we in tiled mode or in stack mode?
+  GenericImageData *id = m_Driver->GetCurrentImageData();
+  bool stack =
+      (m_DisplayLayoutModel->GetSliceViewLayerLayoutModel()->GetValue()
+       == DisplayLayoutModel::LAYOUT_STACKED);
+
+  // Remember what layer is current in the general properties model
+  ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
+
+  // Apply the toggle for all overlays
+  for(LayerIterator it = id->GetLayers(LayerIterator::OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+    {
+    // In stack mode, every overlay is affected. In tile mode, only stickly layers
+    // are affected
+    if(stack || it.GetLayer()->IsSticky())
+      {
+      m_LayerGeneralPropertiesModel->SetLayer(it.GetLayer());
+      int op = m_LayerGeneralPropertiesModel->GetLayerOpacityModel()->GetValue();
+      int op_new = std::min(100, std::max(0, op + delta));
+      m_LayerGeneralPropertiesModel->GetLayerOpacityModel()->SetValue(op_new);
+      }
+    }
+
+  // Restore the active layer
+  m_LayerGeneralPropertiesModel->SetLayer(curr_layer);
+}
+
 void GlobalUIModel
 ::LoadImageNonInteractive(const char *fname,
                           AbstractLoadImageDelegate &del,

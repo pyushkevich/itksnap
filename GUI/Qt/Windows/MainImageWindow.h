@@ -155,6 +155,12 @@ private slots:
   void on_actionSaveSegmentationAs_triggered();
 
 
+  void on_actionOverlayVisibilityToggleAll_triggered();
+
+  void on_actionOverlayVisibilityIncreaseAll_triggered();
+
+  void on_actionOverlayVisibilityDecreaseAll_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);

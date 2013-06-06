@@ -870,3 +870,18 @@ void MainImageWindow::on_actionSaveSegmentationAs_triggered()
   SaveSegmentation(true);
 }
 
+
+void MainImageWindow::on_actionOverlayVisibilityToggleAll_triggered()
+{
+  m_Model->ToggleOverlayVisibility();
+}
+
+void MainImageWindow::on_actionOverlayVisibilityIncreaseAll_triggered()
+{
+  m_Model->AdjustOverlayOpacity(5);
+}
+
+void MainImageWindow::on_actionOverlayVisibilityDecreaseAll_triggered()
+{
+  m_Model->AdjustOverlayOpacity(-5);
+}

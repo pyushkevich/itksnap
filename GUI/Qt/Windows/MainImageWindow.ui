@@ -672,12 +672,23 @@ background-color:rgb(88, 88, 88);
     <property name="title">
      <string>Overlay</string>
     </property>
+    <widget class="QMenu" name="menuOverlayAppearance">
+     <property name="title">
+      <string>Appearance</string>
+     </property>
+     <addaction name="actionOverlayVisibilityToggleAll"/>
+     <addaction name="separator"/>
+     <addaction name="actionOverlayVisibilityIncreaseAll"/>
+     <addaction name="actionOverlayVisibilityDecreaseAll"/>
+    </widget>
     <addaction name="actionAdd_Overlay"/>
     <addaction name="separator"/>
     <addaction name="actionUnload_Last_Overlay"/>
     <addaction name="actionUnload_All_Overlays"/>
     <addaction name="separator"/>
     <addaction name="actionLayer_Inspector"/>
+    <addaction name="separator"/>
+    <addaction name="menuOverlayAppearance"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -1223,6 +1234,33 @@ background-color:rgb(88, 88, 88);
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Spray Paint Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and hold the left mouse button to relabel voxels on the boundaries of segmented objects.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionOverlayVisibilityToggleAll">
+   <property name="text">
+    <string>Toggle Visibility (All)</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle Visibility (All)</string>
+   </property>
+   <property name="shortcut">
+    <string>W</string>
+   </property>
+  </action>
+  <action name="actionOverlayVisibilityIncreaseAll">
+   <property name="text">
+    <string>Increase Opacity (All)</string>
+   </property>
+   <property name="shortcut">
+    <string>E</string>
+   </property>
+  </action>
+  <action name="actionOverlayVisibilityDecreaseAll">
+   <property name="text">
+    <string>Decrease Opacity (All)</string>
+   </property>
+   <property name="shortcut">
+    <string>Q</string>
    </property>
   </action>
  </widget>

@@ -31,8 +31,10 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         &Self::GetLayerOpacityValueAndRange,
         &Self::SetLayerOpacityValue);
 
-  m_LayerVisibilityModel =
-      NewNumericPropertyToggleAdaptor(m_LayerOpacityModel.GetPointer(), 0, 50);
+  m_LayerVisibilityModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetLayerVisibilityValue,
+        &Self::SetLayerVisibilityValue);
 
   m_FilenameModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetFilenameValue);
@@ -76,6 +78,16 @@ LayerGeneralPropertiesModel::RegisterWithLayer(ImageWrapperBase *layer)
 
   // Set a flag so we don't register a listener again
   GetProperties().SetObserverTag(tag);
+
+  // Set up the toggle model in the properties
+  if(!GetProperties().GetVisibilityToggleModel())
+    {
+    GetProperties().SetVisibilityToggleModel(
+          NewNumericPropertyToggleAdaptor(this->m_LayerOpacityModel.GetPointer(), 0, 50));
+
+    GetProperties().GetVisibilityToggleModel()->Rebroadcast(
+          layer, WrapperMetadataChangeEvent(), ValueChangedEvent());
+    }
 }
 
 void
@@ -268,6 +280,19 @@ void LayerGeneralPropertiesModel::SetLayerOpacityValue(int value)
 {
   ImageWrapperBase *layer = this->GetLayer();
   layer->SetAlpha(value / 100.0);
+}
+
+bool LayerGeneralPropertiesModel::GetLayerVisibilityValue(bool &value)
+{
+  if(!this->GetLayer())
+    return false;
+
+  return this->GetProperties().GetVisibilityToggleModel()->GetValueAndDomain(value, NULL);
+}
+
+void LayerGeneralPropertiesModel::SetLayerVisibilityValue(bool value)
+{
+  this->GetProperties().GetVisibilityToggleModel()->SetValue(value);
 }
 
 bool LayerGeneralPropertiesModel::GetFilenameValue(std::string &value)
