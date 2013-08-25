@@ -504,13 +504,20 @@ void
 LayerInspectorUILogic
 ::OnCurveChange()
 {
-  m_BoxColorMap->hide();
+  if(m_WinLayerUI->shown())
+    {
+    m_BoxColorMap->hide();
+    }
+
   // Update the values of the window and level
   UpdateWindowAndLevel();
 
   // Redraw the window
-  m_BoxCurve->redraw();
-  m_BoxCurve->show();
+  if(m_WinLayerUI->shown())
+    {
+    m_BoxCurve->redraw();
+    m_BoxCurve->show();
+    }
 
   // Update the image wrapper
   m_GreyWrapper->UpdateIntensityMapFunction();
@@ -545,7 +552,7 @@ LayerInspectorUILogic
   GreyType imax = m_GreyWrapper->GetImageMax();
   GreyType ihigh = imax;
   accum = 0;
-  for(size_t i = hist.size() - 1; i >= 0; i--)
+  for(int i = hist.size() - 1; i >= 0; i--)
     {
     if(accum + hist[i] < accum_goal)
       {
@@ -812,8 +819,12 @@ LayerInspectorUILogic
 
   m_BoxColorMap->SetColorMap(cm);
   m_BoxColorMap->SetSelectedCMPoint(-1);
-  m_BoxColorMap->redraw();
-  m_BoxColorMap->show();
+
+  if(m_WinLayerUI->shown())
+    {
+    m_BoxColorMap->redraw();
+    m_BoxColorMap->show();
+    }
 
   // Update the image
   m_GreyWrapper->SetColorMap(cm);

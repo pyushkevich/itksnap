@@ -46,6 +46,7 @@ public:
   virtual void OnNewAction() = 0;
   virtual void OnDuplicateAction() = 0;
   virtual void OnDeleteAction() = 0;
+  virtual void OnDeleteAllAction() = 0;
   virtual void OnSetIdAction() = 0;
   virtual void OnMoveUpAction() = 0;
   virtual void OnMoveDownAction() = 0;

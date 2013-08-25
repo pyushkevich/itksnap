@@ -2006,28 +2006,49 @@ UserInterfaceLogic
     throw IRISException("Incorrect display layout");
 
   // Handle full-screen toggle
-  if(m_DisplayLayout.full_screen && !dl.full_screen)
+  if(m_DisplayLayout.full_screen != dl.full_screen)
     {
-    if(m_DisplayLayout.size == FULL_SIZE)
+    if(!dl.full_screen)
       {
-      m_WinMain->fullscreen_off(x,y,w,h);
+      if(m_DisplayLayout.size == FULL_SIZE)
+        {
+        m_WinMain->fullscreen_off(x,y,w,h);
+        }
+      else
+        {
+        m_WinMain->fullscreen_off(x,y,w / 2, h / 2);
+        }
+      m_FullScreen = false;
       }
-    else
-      {
-      m_WinMain->fullscreen_off(x,y,w / 2, h / 2);
-      }
-    m_FullScreen = false;
-    }
 
-  else if(!m_DisplayLayout.full_screen && dl.full_screen)
-    {
-    if(m_DisplayLayout.size == FULL_SIZE)
+    else 
       {
-      w = m_WinMain->w(); h = m_WinMain->h();
-      x = m_WinMain->x(); y = m_WinMain->y();
+      if(m_DisplayLayout.size == FULL_SIZE)
+        {
+        w = m_WinMain->w(); h = m_WinMain->h();
+        x = m_WinMain->x(); y = m_WinMain->y();
+        }
+      m_WinMain->fullscreen();
+      m_WinMain->override();
+
+      m_FullScreen = true;
       }
-    m_WinMain->fullscreen();
-    m_FullScreen = true;
+
+    // Cause a redraw of GL windows
+    for(unsigned int j = 0; j < 4; j++)
+      {
+      if(dl.slice_config == FOUR_SLICE || dl.slice_config == AXIAL+j)
+        m_SliceWindow[j]->show();
+      }
+
+    // Cause textures to be reset
+    for (unsigned int i=0; i<3; i++) 
+      {
+      if(m_GlobalState->GetSNAPActive())
+        m_SNAPWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
+      else
+        m_IRISWindowManager2D[i]->InitializeSlice(m_Driver->GetCurrentImageData());
+      }
     }
 
   // Handle window size selection
@@ -2235,6 +2256,20 @@ void
 SNAPMainWindow
 ::resize(int x, int y, int w, int h)
 {
+  // Handle the shrinking of the window below the minimum size of the 
+  // left hand panel. In this case we make the whole thing squeezable
+  Fl_Group *rightpane = m_ParentUI->m_GrpRightPanePlaceholderNormal;
+  Fl_Group *leftpane = m_ParentUI->m_GrpControls;
+
+  if(h < 735)
+    {
+    leftpane->resizable(leftpane);
+    }
+  else
+    {
+    leftpane->resizable(NULL);
+    }
+
   // Call parent class
   Fl_Double_Window::resize(x,y,w,h);
 
@@ -2706,18 +2741,43 @@ UserInterfaceLogic
   // Add the idle event handler
   Fl::add_timeout(0.03, &UserInterfaceLogic::GlobalIdleHandler);
 
-  // Make sure the window is visible
-  m_WinMain->show();
+  // Before showing the main window, let's make sure it's not bigger than the
+  // available screen space
+  if(Fl::w() < m_WinMain->w() || Fl::h() < m_WinMain->h())
+    {
+    // Resize to fit the available screen space
+    int wopt = m_WinMain->w(), hopt = m_WinMain->h();
+    m_WinMain->size(
+      std::min(Fl::w()-100, wopt),
+      std::min(Fl::h()-100, hopt));
+    
+    // Make sure the window is visible
+    m_WinMain->show();
 
-  // Show all of the GL boxes
-  for(unsigned int i = 0; i < 4; i++)
-    m_SliceWindow[i]->show();
+    // Show all of the GL boxes
+    for(unsigned int i = 0; i < 4; i++)
+      m_SliceWindow[i]->show();
+
+    // Resize again to fit the available screen space
+    m_WinMain->size(
+      std::min(Fl::w(), wopt),
+      std::min(Fl::h(), hopt));
+    }
+  else
+    {
+    // Make sure the window is visible
+    m_WinMain->show();
+
+    // Show all of the GL boxes
+    for(unsigned int i = 0; i < 4; i++)
+      m_SliceWindow[i]->show();
+    }
 
   // Show the IRIS interface
 }
 
 void 
-UserInterfaceLogic
+  UserInterfaceLogic
 ::ShowIRIS()
 {
   // Show the right wizard page
@@ -4277,12 +4337,19 @@ UserInterfaceLogic
   // Warn if the image has been scaled
   GreyTypeToNativeFunctor native = 
     m_Driver->GetCurrentImageData()->GetGrey()->GetNativeMapping();
-  if(m_AppearanceSettings->GetFlagFloatingPointWarningByDefault() == 1 
+  if(m_AppearanceSettings->GetFlagFloatingPointWarningByDefault() 
     && (native.scale != 1.0 || native.shift != 0.0))
     {
     m_WinPrecisionWarning->show();
+
+    while (m_WinPrecisionWarning->shown()) 
+      Fl::wait();
+
     if(m_ChkPrecisionWarningDisable->value())
+      {
       m_AppearanceSettings->SetFlagFloatingPointWarningByDefault(false);
+      m_AppearanceSettings->SaveToRegistry(m_SystemInterface->Folder("UserInterface.AppearanceSettings"));
+      }
     }
 }
 

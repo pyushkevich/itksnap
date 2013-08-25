@@ -8,7 +8,7 @@ class LabelEditorUI {open : {private LabelEditorUIBase}
   } {
     Fl_Window m_WinMain {
       label {Segmentation Label Editor - ITK-SNAP} open
-      xywh {811 254 440 405} type Double
+      xywh {114 272 440 405} type Double
       code0 {\#include "LabelEditorUIBase.h"} visible
     } {
       Fl_Group {} {
@@ -25,7 +25,7 @@ class LabelEditorUI {open : {private LabelEditorUIBase}
         xywh {220 25 210 320} box PLASTIC_THIN_UP_BOX selection_color 53 labelfont 1 labelsize 12 align 5
       } {
         Fl_Group {} {
-          label Appearance open selected
+          label Appearance open
           xywh {220 50 210 295} labelsize 12
         } {
           Fl_Input m_InLabelName {
@@ -98,17 +98,17 @@ class LabelEditorUI {open : {private LabelEditorUIBase}
       Fl_Button {} {
         label New
         callback {OnNewAction()}
-        xywh {10 370 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        xywh {10 370 45 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Button {} {
         label Delete
         callback {OnDeleteAction()}
-        xywh {160 370 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        xywh {135 370 45 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Button {} {
         label Duplicate
         callback {OnDuplicateAction()}
-        xywh {85 370 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        xywh {65 370 60 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Button {} {
         label Close
@@ -118,16 +118,21 @@ class LabelEditorUI {open : {private LabelEditorUIBase}
       Fl_Button {} {
         label {Tools...}
         callback {OnToolsDialogAction()}
-        xywh {235 370 65 25} box PLASTIC_UP_BOX color 180 labelsize 12
+        xywh {280 370 60 25} box PLASTIC_UP_BOX color 180 labelsize 12
       }
       Fl_Group {} {
-        label {Note: changes to label ids and deletion of labels can not be undone!} open
+        label {Note: changes to label ids and deletion/resetting of labels can not be undone!} open
         xywh {10 345 420 20} labelsize 10 align 20
       } {}
+      Fl_Button {} {
+        label {Delete All}
+        callback {OnDeleteAllAction()} selected
+        tooltip {Reset the list of labels to the defaults. All changes to the labels will be lost.} xywh {195 370 70 25} box PLASTIC_UP_BOX color 180 labelsize 12
+      }
     }
     Fl_Window m_WinTools {
       label {Label Tools - ITK-SNAP} open
-      xywh {826 625 295 270} type Double modal visible
+      xywh {729 435 295 270} type Double modal visible
     } {
       Fl_Button m_BtnToolsApply {
         label Apply

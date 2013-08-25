@@ -7,7 +7,7 @@ INCLUDE(${ITK_USE_FILE})
 #############################################
 # REQUIRE VTK                               #
 #############################################
-FIND_PACKAGE(VTK 5.6 REQUIRED)
+FIND_PACKAGE(VTK REQUIRED)
 INCLUDE (${VTK_USE_FILE})
 
 #############################################

@@ -71,6 +71,7 @@ public:
   void OnNewAction();
   void OnDuplicateAction();
   void OnDeleteAction();
+  void OnDeleteAllAction();
   void OnSetIdAction();
   void OnMoveUpAction();
   void OnMoveDownAction();
