@@ -232,6 +232,9 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   m_SegmentationVisibilityModel =
       NewNumericPropertyToggleAdaptor(m_SegmentationOpacityModel.GetPointer(), 0, 50);
 
+  // Simple toggle for whether controls for layer visibility and reorder are shown
+  m_LayerVisibilityEditableModel = NewSimpleConcreteProperty(false);
+
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), StateMachineChangeEvent());
@@ -364,7 +367,7 @@ void GlobalUIModel::AdjustOverlayOpacity(int delta)
 
 void GlobalUIModel
 ::LoadImageNonInteractive(const char *fname,
-                          AbstractLoadImageDelegate &del,
+                          AbstractLoadImageDelegate *del,
                           IRISWarningList &wl)
 {
   // Load the settings associated with this file
@@ -381,19 +384,19 @@ void GlobalUIModel
   io.ReadNativeImageHeader(fname, folder);
 
   // Validate the header
-  del.ValidateHeader(&io, wl);
+  del->ValidateHeader(&io, wl);
 
   // Unload the current image data
-  del.UnloadCurrentImage();
+  del->UnloadCurrentImage();
 
   // Read the image body
   io.ReadNativeImageData();
 
   // Validate the image data
-  del.ValidateImage(&io, wl);
+  del->ValidateImage(&io, wl);
 
   // Put the image in the right place
-  del.UpdateApplicationWithImage(&io);
+  del->UpdateApplicationWithImage(&io);
 }
 
 

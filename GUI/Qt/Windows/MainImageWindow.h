@@ -38,6 +38,7 @@ class SnakeWizardPanel;
 class EventBucket;
 class QModelIndex;
 class QProgressDialog;
+class AboutDialog;
 
 class LabelEditorDialog;
 class LayerInspectorDialog;
@@ -161,6 +162,10 @@ private slots:
 
   void on_actionOverlayVisibilityDecreaseAll_triggered();
 
+  void on_actionLayerInspector_triggered();
+
+  void on_actionAbout_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);
@@ -207,6 +212,8 @@ private:
   QtProgressReporterDelegate *m_ProgressReporterDelegate;
 
   SplashPanel *m_SplashPanel;
+
+  AboutDialog *m_AboutDialog;
 
   StatisticsDialog *m_StatisticsDialog;
 };

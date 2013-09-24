@@ -86,6 +86,13 @@ protected:
     EventBucket *m_Bucket;
     unsigned long m_SourceTag;
 
+    // Whether this association is in response to a delete event.
+    bool m_IsForDeleteEvent;
+
+    // For debug purposes, it helps to keep the names of the source and target
+    // objects in memory, in case these objects are deleted
+    const char *m_SourceObjectName, *m_TargetObjectName;
+
     bool m_RefireSource;
   };
 

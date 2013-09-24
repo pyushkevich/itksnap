@@ -43,7 +43,7 @@ private:
   Ui::DropActionDialog *ui;
   GlobalUIModel *m_Model;
 
-  void LoadCommon(AbstractLoadImageDelegate &delegate);
+  void LoadCommon(AbstractLoadImageDelegate *delegate);
 };
 
 #endif // DROPACTIONDIALOG_H

@@ -5,6 +5,7 @@
 #include "PropertyModel.h"
 
 class AbstractMultiChannelDisplayMappingPolicy;
+class LayerTableRowModel;
 
 /**
  * Properties maintained for each layer in the layer association
@@ -121,6 +122,12 @@ protected:
   // Get the current display settings
   VectorImageWrapperBase *GetLayerAsVector();
   AbstractMultiChannelDisplayMappingPolicy *GetMultiChannelDisplayPolicy();
+
+  // Get the LayerTableRowModel corresponding to the selected layer, or
+  // NULL if no layer is selected. Some of the properties that this model
+  // exposes are already exposed in LayerTableRowModel, so we delegate to
+  // them.
+  LayerTableRowModel *GetSelectedLayerTableRowModel();
 };
 
 #endif // LAYERGENERALPROPERTIESMODEL_H

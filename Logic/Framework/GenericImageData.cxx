@@ -348,6 +348,24 @@ void GenericImageData::PopBackImageWrapper(LayerRole role)
   m_Wrappers[role].pop_back();
 }
 
+void GenericImageData::MoveLayer(ImageWrapperBase *layer, int direction)
+{
+  // Find the layer
+  LayerIterator it(this);
+  it.Find(layer);
+  if(!it.IsAtEnd())
+    {
+    WrapperList &wl = m_Wrappers[it.GetRole()];
+    int k = it.GetPositionInRole();
+
+    // Make sure the operation is legal!
+    assert(k + direction >= 0 && k + direction < wl.size());
+
+    // Do the swap
+    std::swap(wl[k], wl[k+direction]);
+    }
+}
+
 void GenericImageData::RemoveImageWrapper(LayerRole role,
                                           ImageWrapperBase *wrapper)
 {
@@ -530,6 +548,31 @@ LayerIterator::GetRole() const
   return m_RoleIter->first;
 }
 
+int LayerIterator::GetPositionInRole() const
+{
+  return (int)(m_WrapperInRoleIter - m_RoleIter->second.begin());
+}
+
+int LayerIterator::GetNumberOfLayersInRole()
+{
+  assert(IsPointingToListableLayer());
+  return m_RoleIter->second.size();
+}
+
+bool LayerIterator::IsFirstInRole() const
+{
+  assert(IsPointingToListableLayer());
+  int pos = m_WrapperInRoleIter - m_RoleIter->second.begin();
+  return (pos == 0);
+}
+
+bool LayerIterator::IsLastInRole() const
+{
+  assert(IsPointingToListableLayer());
+  int pos = m_WrapperInRoleIter - m_RoleIter->second.begin();
+  return (pos == m_RoleIter->second.size() - 1);
+}
+
 bool LayerIterator::operator ==(const LayerIterator &it)
 {
   // Two iterators are equal if they both point to the same location
@@ -553,8 +596,6 @@ std::map<LayerIterator::LayerRole, std::string> LayerIterator::m_RoleDefaultName
 void LayerIterator::Print(const char *what) const
 {
   std::cout << "LI with filter " << m_RoleFilter << " operation " << what << std::endl;
-  if(m_RoleFilter > 3)
-    std::cout << "  WTF?" << std::endl;
   if(this->IsAtEnd())
     {
     std::cout << "  AT END" << std::endl;

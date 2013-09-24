@@ -2,6 +2,7 @@
 #include "DisplayMappingPolicy.h"
 #include "LayerAssociation.txx"
 #include "NumericPropertyToggleAdaptor.h"
+#include "LayerTableRowModel.h"
 
 template class LayerAssociation<GeneralLayerProperties,
                                 ImageWrapperBase,
@@ -77,17 +78,7 @@ LayerGeneralPropertiesModel::RegisterWithLayer(ImageWrapperBase *layer)
                   itk::ModifiedEvent(), ModelUpdateEvent());
 
   // Set a flag so we don't register a listener again
-  GetProperties().SetObserverTag(tag);
-
-  // Set up the toggle model in the properties
-  if(!GetProperties().GetVisibilityToggleModel())
-    {
-    GetProperties().SetVisibilityToggleModel(
-          NewNumericPropertyToggleAdaptor(this->m_LayerOpacityModel.GetPointer(), 0, 50));
-
-    GetProperties().GetVisibilityToggleModel()->Rebroadcast(
-          layer, WrapperMetadataChangeEvent(), ValueChangedEvent());
-    }
+  GetProperties().SetObserverTag(tag);  
 }
 
 void
@@ -265,34 +256,26 @@ void LayerGeneralPropertiesModel
 bool LayerGeneralPropertiesModel
 ::GetLayerOpacityValueAndRange(int &value, NumericValueRange<int> *domain)
 {
-  ImageWrapperBase *layer = this->GetLayer();
-  if(layer)
-    {
-    value = (int)(100.0 * layer->GetAlpha());
-    if(domain)
-      domain->Set(0, 100, 5);
-    return true;
-    }
-  return false;
+  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  return trm ? trm->GetLayerOpacityModel()->GetValueAndDomain(value, domain) : false;
 }
 
 void LayerGeneralPropertiesModel::SetLayerOpacityValue(int value)
 {
-  ImageWrapperBase *layer = this->GetLayer();
-  layer->SetAlpha(value / 100.0);
+  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  trm->GetLayerOpacityModel()->SetValue(value);
 }
 
 bool LayerGeneralPropertiesModel::GetLayerVisibilityValue(bool &value)
 {
-  if(!this->GetLayer())
-    return false;
-
-  return this->GetProperties().GetVisibilityToggleModel()->GetValueAndDomain(value, NULL);
+  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  return trm ? trm->GetVisibilityToggleModel()->GetValueAndDomain(value, NULL) : false;
 }
 
 void LayerGeneralPropertiesModel::SetLayerVisibilityValue(bool value)
 {
-  this->GetProperties().GetVisibilityToggleModel()->SetValue(value);
+  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  trm->GetVisibilityToggleModel()->SetValue(value);
 }
 
 bool LayerGeneralPropertiesModel::GetFilenameValue(std::string &value)
@@ -337,4 +320,11 @@ LayerGeneralPropertiesModel::GetMultiChannelDisplayPolicy()
       AbstractMultiChannelDisplayMappingPolicy *>(
         this->GetLayer()->GetDisplayMapping());
   return dp;
+}
+
+LayerTableRowModel *LayerGeneralPropertiesModel::GetSelectedLayerTableRowModel()
+{
+  if(m_Layer)
+    return dynamic_cast<LayerTableRowModel *>(m_Layer->GetUserData("LayerTableRowModel"));
+  else return NULL;
 }

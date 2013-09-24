@@ -74,7 +74,7 @@ public:
    * the stacked/tiled state. If the state is set to tiled, the number of
    * tiles will be updated as the number of loaded images changes
    */
-  irisGetMacro(SliceViewLayerLayoutModel, AbstractLayerLayoutProperty *)
+  irisSimplePropertyAccessMacro(SliceViewLayerLayout, LayerLayout)
 
   /**
    * Read-only boolean property models that dictate what icon should be

@@ -37,19 +37,22 @@ void DropActionDialog::SetModel(GlobalUIModel *model)
 
 void DropActionDialog::on_btnLoadMain_clicked()
 {
-  LoadMainImageDelegate del(m_Model);
+  SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
+  del->Initialize(m_Model);
   this->LoadCommon(del);
 }
 
 void DropActionDialog::on_btnLoadSegmentation_clicked()
 {
-  LoadSegmentationImageDelegate del(m_Model);
+  SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
+  del->Initialize(m_Model);
   this->LoadCommon(del);
 }
 
 void DropActionDialog::on_btnLoadOverlay_clicked()
 {
-  LoadOverlayImageDelegate del(m_Model);
+  SmartPtr<LoadOverlayImageDelegate > del = LoadOverlayImageDelegate ::New();
+  del->Initialize(m_Model);
   this->LoadCommon(del);
 }
 
@@ -72,7 +75,7 @@ void DropActionDialog::on_btnLoadNew_clicked()
     }
 }
 
-void DropActionDialog::LoadCommon(AbstractLoadImageDelegate &delegate)
+void DropActionDialog::LoadCommon(AbstractLoadImageDelegate *delegate)
 {
   std::string file = to_utf8(ui->outFilename->text());
   QtCursorOverride c(Qt::WaitCursor);

@@ -21,6 +21,8 @@ protected:
 
   void DrawRulers();
 
+  void DrawNicknames();
+
   SliceWindowDecorationRenderer();
   virtual ~SliceWindowDecorationRenderer();
 };

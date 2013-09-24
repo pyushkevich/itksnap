@@ -72,6 +72,26 @@
         <file>speed_redoverlay.png</file>
         <file>layout_overlay_16.png</file>
         <file>layout_tile_16.png</file>
+        <file>layer_Inspector_16.png</file>
+        <file>layer_invisible_16.png</file>
+        <file>layer_visible_16.png</file>
+        <file>triangle_small_down_16.png</file>
+        <file>triangle_small_right_16.png</file>
+        <file>lock_blue_16.png</file>
+        <file>lock_gray_16.png</file>
+        <file>fancyslider.css</file>
+        <file>save_22.png</file>
+        <file>open_popup_16.png</file>
+        <file>icons8_pin_16.png</file>
+        <file>icons8_unpin_16.png</file>
+        <file>icons8_down_18.png</file>
+        <file>icons8_invisible_16.png</file>
+        <file>icons8_up_18.png</file>
+        <file>icons8_visible_16.png</file>
+        <file>icons8_close_16.png</file>
+        <file>logo_square.png</file>
+        <file>logo_square_shadow.png</file>
+        <file>icons8_fantasy_16.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

@@ -33,12 +33,6 @@ void LoadAnatomicImageDelegate
 /* =============================
    MAIN Image
    ============================= */
-LoadMainImageDelegate
-::LoadMainImageDelegate(GlobalUIModel *model)
-  : LoadAnatomicImageDelegate(model)
-{
-}
-
 void
 LoadMainImageDelegate
 ::UnloadCurrentImage()
@@ -57,12 +51,6 @@ LoadMainImageDelegate
 /* =============================
    OVERLAY Image
    ============================= */
-
-LoadOverlayImageDelegate
-::LoadOverlayImageDelegate(GlobalUIModel *model)
-  : LoadAnatomicImageDelegate(model)
-{
-}
 
 void
 LoadOverlayImageDelegate
@@ -108,12 +96,6 @@ LoadOverlayImageDelegate
 /* =============================
    SEGMENTATION Image
    ============================= */
-
-LoadSegmentationImageDelegate
-::LoadSegmentationImageDelegate(GlobalUIModel *model)
-  : AbstractLoadImageDelegate(model)
-{
-}
 
 void
 LoadSegmentationImageDelegate
@@ -220,15 +202,16 @@ LoadSegmentationImageDelegate
 }
 
 
-DefaultSaveImageDelegate::DefaultSaveImageDelegate(
+void
+DefaultSaveImageDelegate::Initialize(
     GlobalUIModel *model,
     ImageWrapperBase *wrapper,
     const std::string &histname,
     bool trackInLocalHistory)
-  : AbstractSaveImageDelegate(model),
-    m_Wrapper(wrapper),
-    m_Track(trackInLocalHistory)
 {
+  AbstractSaveImageDelegate::Initialize(model);
+  m_Wrapper = wrapper;
+  m_Track = trackInLocalHistory;
   this->AddHistoryName(histname);
 }
 

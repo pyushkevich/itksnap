@@ -213,7 +213,7 @@ public:
 
   /** Load an image non-interactively through a delegate */
   void LoadImageNonInteractive(const char *fname,
-                               AbstractLoadImageDelegate &delegate,
+                               AbstractLoadImageDelegate *delegate,
                                IRISWarningList &wl);
 
   /**
@@ -239,6 +239,9 @@ public:
 
   /** A model for the segmentation visibility on/off state */
   irisSimplePropertyAccessMacro(SegmentationVisibility, bool)
+
+  /** Whether layer visibility and organization properties are editable */
+  irisSimplePropertyAccessMacro(LayerVisibilityEditable, bool)
 
   /** Method to toggle overlay visibility (all or selected overlays) */
   void ToggleOverlayVisibility();
@@ -376,6 +379,9 @@ protected:
   // Segmentation opacity and visibility models
   SmartPtr<AbstractRangedIntProperty> m_SegmentationOpacityModel;
   SmartPtr<AbstractSimpleBooleanProperty> m_SegmentationVisibilityModel;
+
+  // Whether layer visibility and order are editable in the layer inspector
+  SmartPtr<ConcreteSimpleBooleanProperty> m_LayerVisibilityEditableModel;
 
   // Callbacks for the opacity model
   bool GetSegmentationOpacityValueAndRange(int &value, NumericValueRange<int> *domain);

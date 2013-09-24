@@ -5,6 +5,7 @@
 #include "GenericSliceRenderer.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
+#include "DisplayLayoutModel.h"
 
 SliceWindowDecorationRenderer::SliceWindowDecorationRenderer()
 {
@@ -19,6 +20,8 @@ void SliceWindowDecorationRenderer::paintGL()
 {
   DrawOrientationLabels();
   DrawRulers();
+  DrawNicknames();
+
 }
 
 void SliceWindowDecorationRenderer::DrawOrientationLabels()
@@ -91,6 +94,83 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
   glPopAttrib();
 }
 
+void SliceWindowDecorationRenderer::DrawNicknames()
+{
+  // Draw the nicknames
+  GenericSliceModel *parentModel = this->GetParentRenderer()->GetModel();
+  DisplayLayoutModel *dlm = parentModel->GetParentUI()->GetDisplayLayoutModel();
+  Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
+  int nrows = (int) layout[0];
+  int ncols = (int) layout[1];
+
+  if(nrows * ncols == 1)
+    return;
+
+  // Get the properties for the labels
+  SNAPAppearanceSettings *as =
+      parentModel->GetParentUI()->GetAppearanceSettings();
+
+  const SNAPAppearanceSettings::Element &elt =
+      as->GetUIElement(SNAPAppearanceSettings::RULER);
+
+  // Leave if the labels are disabled
+  if(!elt.Visible) return;
+
+  // Apply the label properties
+  glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT);
+  glPushMatrix();
+  glLoadIdentity();
+
+  SNAPAppearanceSettings::ApplyUIElementLineSettings(elt);
+  glColor4d( elt.NormalColor[0], elt.NormalColor[1], elt.NormalColor[2], 1.0 );
+
+  // Get the viewport size
+  Vector2ui vp = parentModel->GetSizeReporter()->GetViewportSize();
+  int w = vp[0] / ncols, h = vp[1] / nrows;
+
+  // Find the longest nickname
+  int maxtextlen = 0;
+  for(int i = 0; i < nrows; i++)
+    {
+    for(int j = 0; j < ncols; j++)
+      {
+      // Define the ROI for this label
+      ImageWrapperBase *layer =
+          this->GetParentRenderer()->GetLayerForNthTile(i, j);
+      if(layer && layer->GetNickname().length() > maxtextlen)
+        maxtextlen = layer->GetNickname().length();
+      }
+    }
+
+  // Adjust the font size
+  int fs = elt.FontSize;
+  if(fs * maxtextlen > 0.8 * w)
+    fs = (int) ((1.4 * w) / maxtextlen);
+
+  AbstractRendererPlatformSupport::FontInfo font_info =
+        { AbstractRendererPlatformSupport::SANS, fs, false };
+
+  // Draw each nickname
+  for(int i = 0; i < nrows; i++)
+    {
+    for(int j = 0; j < ncols; j++)
+      {
+      // Define the ROI for this label
+      ImageWrapperBase *layer =
+          this->GetParentRenderer()->GetLayerForNthTile(i, j);
+      if(layer)
+        {
+        this->m_PlatformSupport->RenderTextInOpenGL(
+              layer->GetNickname().c_str(),
+              w * j, h * (nrows - i) - 20, w, 15, font_info,
+              AbstractRendererPlatformSupport::HCENTER,
+              AbstractRendererPlatformSupport::TOP,
+              elt.NormalColor);
+        }
+      }
+    }
+}
+
 void SliceWindowDecorationRenderer::DrawRulers()
 {
   GenericSliceModel *parentModel = this->GetParentRenderer()->GetModel();
@@ -129,12 +209,12 @@ void SliceWindowDecorationRenderer::DrawRulers()
   // Draw a zoom bar
   double bw = scale * zoom;
   glBegin(GL_LINES);
-  glVertex2d(5,vp[1] - 5);
-  glVertex2d(5,vp[1] - 20);
-  glVertex2d(5,vp[1] - 10);
-  glVertex2d(5 + bw,vp[1] - 10);
-  glVertex2d(5 + bw,vp[1] - 5);
-  glVertex2d(5 + bw,vp[1] - 20);
+  glVertex2d(vp[0] - 5,5);
+  glVertex2d(vp[0] - 5,15);
+  glVertex2d(vp[0] - 5,10);
+  glVertex2d(vp[0] - (5 + bw),10);
+  glVertex2d(vp[0] - (5 + bw),5);
+  glVertex2d(vp[0] - (5 + bw),15);
   glEnd();
 
   // Based on the log of the scale, determine the unit
@@ -162,16 +242,16 @@ void SliceWindowDecorationRenderer::DrawRulers()
     {
     this->m_PlatformSupport->RenderTextInOpenGL(
         oss.str().c_str(),
-        10, vp[1]-32, (int) bw, 20,
-        font_info, 0, 1, elt.NormalColor);
+        vp[0]-(bw+10), 12, (int) bw, 20,
+        font_info, 0, -1, elt.NormalColor);
     //gl_draw(oss.str().c_str(), 10, h - 30, (int) bw, 20, FL_ALIGN_TOP);
     }
   else
     {
     this->m_PlatformSupport->RenderTextInOpenGL(
           oss.str().c_str(),
-          (int) (bw+10), vp[1] - 20, (int) (bw + elt.FontSize * 4+10), 15,
-          font_info, -1, 0, elt.NormalColor);
+          vp[0] - (int) (2 * bw + elt.FontSize * 4 + 20), 5, (int) (bw + elt.FontSize * 4+10), 10,
+          font_info, 1, 0, elt.NormalColor);
     // gl_draw(oss.str().c_str(), (int) bw+10, h - 20, (int) bw + elt.FontSize * 4+10, 15, FL_ALIGN_LEFT);
     }
 

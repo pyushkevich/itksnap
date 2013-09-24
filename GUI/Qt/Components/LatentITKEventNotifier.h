@@ -82,8 +82,6 @@ private:
   static LatentITKEventNotifierHelper *doConnect(
       const itk::EventObject &evt, QObject *target, const char *slot);
 
-  static std::map<QObject *, LatentITKEventNotifierHelper *> m_HelperMap;
-
 };
 
 

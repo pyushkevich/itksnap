@@ -138,14 +138,17 @@ LatentITKEventNotifierHelper
 }
 */
 
-std::map<QObject *, LatentITKEventNotifierHelper *>
-LatentITKEventNotifier::m_HelperMap;
-
-
 void LatentITKEventNotifier
 ::connect(itk::Object *source, const itk::EventObject &evt,
           QObject *target, const char *slot)
 {
+  std::cout
+      << "Connect itk::Object " << source->GetNameOfClass()
+      << " event " << evt.GetEventName()
+      << " to QObject " << target->objectName().toStdString()
+      << " slot " << slot << std::endl;
+
+
   // Call common implementation
   LatentITKEventNotifierHelper *c = doConnect(evt, target, slot);
 
@@ -162,16 +165,16 @@ LatentITKEventNotifierHelper*
 LatentITKEventNotifier
 ::doConnect(const itk::EventObject &evt, QObject *target, const char *slot)
 {
-  // Try to find the helper object
-  LatentITKEventNotifierHelper *c;
-  if(m_HelperMap.find(target) == m_HelperMap.end())
+  // It is possible that there is already a helper attached to the target
+  // object. In that case, we can economize by reusing that helper
+  LatentITKEventNotifierHelper *c =
+      target->findChild<LatentITKEventNotifierHelper *>();
+
+  if(!c)
     {
+    // Here the helper becomes property of QObject target, so that if the
+    // target is deleted, the helper will also go away
     c = new LatentITKEventNotifierHelper(target);
-    m_HelperMap[target] = c;
-    }
-  else
-    {
-    c = m_HelperMap[target];
     }
 
   // Connect to the target qobject

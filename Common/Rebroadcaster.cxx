@@ -16,9 +16,15 @@ unsigned long Rebroadcaster
   // might cause some issues if users are not careful.
   Association *assoc = new Association(source, target, targetEvent);
 
-  // Add listeners to the source object
-  assoc->m_SourceTag = AddListenerPair(
-        source, sourceEvent, assoc, &Association::Callback, &Association::ConstCallback);
+  // Add listeners to the source object, unless the source event is a delete
+  // event, in which case, we already are going to register for it in order
+  // to delete the associate when the source is deleted.
+  assoc->m_IsForDeleteEvent = itk::DeleteEvent().CheckEvent(&sourceEvent);
+  if(!assoc->m_IsForDeleteEvent)
+    {
+    assoc->m_SourceTag = AddListenerPair(
+          source, sourceEvent, assoc, &Association::Callback, &Association::ConstCallback);
+    }
 
   // Pass the bucket pointer
   assoc->m_Bucket = bucket;
@@ -149,6 +155,16 @@ void Rebroadcaster::DeleteSourceConstCallback(
     // Remove the association from the target's list
     m_TargetMap[assoc->m_Target].remove(assoc);
 
+    // If the association is for a delete event, then it must be triggered,
+    // because these associations are not hooked up to the source objects using
+    // AddListener as non-delete associations
+    if(assoc->m_IsForDeleteEvent)
+      {
+      // This call will propagate the event downstream, even though the
+      // association itself will be deleted
+      assoc->ConstCallback(source, evt);
+      }
+
     // Delete the association
     delete assoc;
     }
@@ -166,6 +182,9 @@ Rebroadcaster::Association::Association(
   m_TargetEvent = targetEvent.MakeObject();
   m_Bucket = NULL;
   m_SourceTag = 0;
+
+  m_SourceObjectName = source->GetNameOfClass();
+  m_TargetObjectName = target->GetNameOfClass();
 
   // Are we refiring the source event or firing the target event?
   m_RefireSource = Rebroadcaster::RefireEvent().CheckEvent(m_TargetEvent);
@@ -192,10 +211,10 @@ void Rebroadcaster::Association::ConstCallback(const itk::Object *source, const 
   if(flag_snap_debug_events)
     {
     std::cout << "REBROADCAST event " <<  evt.GetEventName()
-              << " from " << source->GetNameOfClass()
+              << " from " << m_SourceObjectName
               << " [" << source << "] "
               << " as " << firedEvent->GetEventName()
-              << " from " << m_Target->GetNameOfClass()
+              << " from " << m_TargetObjectName
               << " [" << m_Target << "] "
               << std::endl << std::flush;
     }

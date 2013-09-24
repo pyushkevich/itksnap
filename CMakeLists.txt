@@ -244,7 +244,6 @@ SET(UI_GENERIC_CXX
   GUI/Model/AbstractModel.cxx
   GUI/Model/ColorLabelPropertyModel.cxx
   GUI/Model/ColorMapModel.cxx
-  GUI/Model/LayerGeneralPropertiesModel.cxx
   GUI/Model/CursorInspectionModel.cxx
   GUI/Model/DisplayLayoutModel.cxx
   GUI/Model/Generic3DModel.cxx
@@ -256,6 +255,8 @@ SET(UI_GENERIC_CXX
   GUI/Model/IntensityCurveModel.cxx
   GUI/Model/IOActions.cxx
   GUI/Model/LabelEditorModel.cxx
+  GUI/Model/LayerGeneralPropertiesModel.cxx
+  GUI/Model/LayerTableRowModel.cxx
   GUI/Model/LayerSelectionModel.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
   GUI/Model/PaintbrushModel.cxx
@@ -308,7 +309,6 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/AbstractModel.h
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelPropertyModel.h
-  GUI/Model/LayerGeneralPropertiesModel.h
   GUI/Model/CursorInspectionModel.h
   GUI/Model/DisplayLayoutModel.h
   GUI/Model/Generic3DModel.h
@@ -320,7 +320,9 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/IntensityCurveModel.h
   GUI/Model/IOActions.h
   GUI/Model/LabelEditorModel.h
+  GUI/Model/LayerGeneralPropertiesModel.h
   GUI/Model/LayerSelectionModel.h
+  GUI/Model/LayerTableRowModel.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
   GUI/Model/PaintbrushModel.h
   GUI/Model/PaintbrushSettingsModel.h
@@ -372,6 +374,7 @@ SET(UI_GENERIC_HEADERS
 
 # These files contain the Qt-specific user interface source code
 SET(UI_QT_CXX
+  GUI/Qt/Components/CollapsableGroupBox.cxx
   GUI/Qt/Components/ContrastInspector.cxx
   GUI/Qt/Components/ColorMapInspector.cxx
   GUI/Qt/Components/CursorInspector.cxx
@@ -382,6 +385,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/LabelMiniInspector.cxx
   GUI/Qt/Components/LabelSelectionButton.cxx
   GUI/Qt/Components/LatentITKEventNotifier.cxx
+  GUI/Qt/Components/LayerInspectorRowDelegate.cxx
   GUI/Qt/Components/MetadataInspector.cxx
   GUI/Qt/Components/GeneralLayerInspector.cxx
   GUI/Qt/Components/PaintbrushToolPanel.cxx
@@ -422,12 +426,13 @@ SET(UI_QT_CXX
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
   GUI/Qt/View/SnakeROIInteractionMode.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx
-  GUI/Qt/Windows/LabelSelectionPopup.cxx
+  GUI/Qt/Windows/AboutDialog.cxx
   GUI/Qt/Windows/DropActionDialog.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
   GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
+  GUI/Qt/Windows/LabelSelectionPopup.cxx
   GUI/Qt/Windows/MainControlPanel.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
   GUI/Qt/Windows/QtStyles.cxx
@@ -442,6 +447,7 @@ SET(UI_QT_CXX
 
 # The header files for the UI project
 SET(UI_MOC_HEADERS
+  GUI/Qt/Components/CollapsableGroupBox.h
   GUI/Qt/Components/ContrastInspector.h
   GUI/Qt/Components/ColorMapInspector.h
   GUI/Qt/Components/CursorInspector.h
@@ -452,6 +458,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/LabelMiniInspector.h
   GUI/Qt/Components/LabelSelectionButton.h
   GUI/Qt/Components/LatentITKEventNotifier.h
+  GUI/Qt/Components/LayerInspectorRowDelegate.h
   GUI/Qt/Components/MetadataInspector.h
   GUI/Qt/Components/GeneralLayerInspector.h
   GUI/Qt/Components/PaintbrushToolPanel.h
@@ -488,12 +495,13 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SnakeROIInteractionMode.h
   GUI/Qt/View/ThumbnailInteractionMode.h
-  GUI/Qt/Windows/LabelSelectionPopup.h
+  GUI/Qt/Windows/AboutDialog.h
   GUI/Qt/Windows/DropActionDialog.h
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
+  GUI/Qt/Windows/LabelSelectionPopup.h
   GUI/Qt/Windows/MainControlPanel.h
   GUI/Qt/Windows/MainImageWindow.h
   GUI/Qt/Windows/ReorientImageDialog.h
@@ -513,6 +521,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Coupling/QtAbstractButtonCoupling.h
   GUI/Qt/Coupling/QtAbstractItemViewCoupling.h
+  GUI/Qt/Coupling/QtActionCoupling.h
   GUI/Qt/Coupling/QtCheckBoxCoupling.h
   GUI/Qt/Coupling/QtColorWheelCoupling.h
   GUI/Qt/Coupling/QtComboBoxCoupling.h
@@ -532,6 +541,7 @@ SET(UI_NONMOC_HEADERS
 )
 
 SET(UI_FORMS
+  GUI/Qt/Components/CollapsableGroupBox.ui
   GUI/Qt/Components/ColorMapInspector.ui
   GUI/Qt/Components/ContrastInspector.ui
   GUI/Qt/Components/CursorInspector.ui
@@ -539,6 +549,7 @@ SET(UI_FORMS
   GUI/Qt/Components/ImageInfoInspector.ui
   GUI/Qt/Components/LabelInspector.ui
   GUI/Qt/Components/LabelMiniInspector.ui
+  GUI/Qt/Components/LayerInspectorRowDelegate.ui
   GUI/Qt/Components/MetadataInspector.ui
   GUI/Qt/Components/GeneralLayerInspector.ui
   GUI/Qt/Components/PaintbrushToolPanel.ui
@@ -550,11 +561,12 @@ SET(UI_FORMS
   GUI/Qt/Components/SynchronizationInspector.ui
   GUI/Qt/Components/ViewPanel3D.ui
   GUI/Qt/Components/ZoomInspector.ui
-  GUI/Qt/Windows/LabelSelectionPopup.ui
+  GUI/Qt/Windows/AboutDialog.ui
   GUI/Qt/Windows/DropActionDialog.ui
   GUI/Qt/Windows/ImageIODialog.ui
   GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui
+  GUI/Qt/Windows/LabelSelectionPopup.ui
   GUI/Qt/Windows/MainControlPanel.ui
   GUI/Qt/Windows/MainImageWindow.ui
   GUI/Qt/Windows/ReorientImageDialog.ui

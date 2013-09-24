@@ -19,14 +19,14 @@ class IRISWarningList : public std::vector<IRISWarning> {};
   the behavior of image IO wizards, as well as to load images from
   command line.
   */
-class AbstractLoadImageDelegate
+class AbstractLoadImageDelegate : public itk::Object
 {
 public:
 
-  AbstractLoadImageDelegate(GlobalUIModel *model)
-    { m_Model = model; }
+  irisITKAbstractObjectMacro(AbstractLoadImageDelegate, itk::Object)
 
-  virtual ~AbstractLoadImageDelegate() {}
+  virtual void Initialize(GlobalUIModel *model)
+    { m_Model = model; }
 
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) {}
@@ -34,6 +34,9 @@ public:
   virtual void UpdateApplicationWithImage(GuidedNativeImageIO *io) = 0;
 
 protected:
+  AbstractLoadImageDelegate() {}
+  virtual ~AbstractLoadImageDelegate() {}
+
   GlobalUIModel *m_Model;
 };
 
@@ -41,24 +44,27 @@ class LoadAnatomicImageDelegate : public AbstractLoadImageDelegate
 {
 public:
 
-  LoadAnatomicImageDelegate(GlobalUIModel *model)
-    : AbstractLoadImageDelegate(model) {}
+  irisITKAbstractObjectMacro(LoadAnatomicImageDelegate, AbstractLoadImageDelegate)
 
-  virtual ~LoadAnatomicImageDelegate() {}
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
 
+protected:
+  LoadAnatomicImageDelegate() {}
+  virtual ~LoadAnatomicImageDelegate() {}
 };
 
 class LoadMainImageDelegate : public LoadAnatomicImageDelegate
 {
 public:
 
-  LoadMainImageDelegate(GlobalUIModel *model);
+  irisITKObjectMacro(LoadMainImageDelegate, LoadAnatomicImageDelegate)
 
   void UnloadCurrentImage();
   void UpdateApplicationWithImage(GuidedNativeImageIO *io);
 
 protected:
+  LoadMainImageDelegate() {}
+  virtual ~LoadMainImageDelegate() {}
 
 };
 
@@ -66,18 +72,22 @@ class LoadOverlayImageDelegate : public LoadAnatomicImageDelegate
 {
 public:
 
-  LoadOverlayImageDelegate(GlobalUIModel *model);
+  irisITKObjectMacro(LoadOverlayImageDelegate, LoadAnatomicImageDelegate)
 
   void UnloadCurrentImage();
   void UpdateApplicationWithImage(GuidedNativeImageIO *io);
   void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
+
+protected:
+  LoadOverlayImageDelegate() {}
+  virtual ~LoadOverlayImageDelegate() {}
 };
 
 class LoadSegmentationImageDelegate : public AbstractLoadImageDelegate
 {
 public:
 
-  LoadSegmentationImageDelegate(GlobalUIModel *model);
+  irisITKObjectMacro(LoadSegmentationImageDelegate, AbstractLoadImageDelegate)
 
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl);
@@ -85,18 +95,19 @@ public:
   void UpdateApplicationWithImage(GuidedNativeImageIO *io);
 
 protected:
-
+  LoadSegmentationImageDelegate() {}
+  virtual ~LoadSegmentationImageDelegate() {}
 };
 
 
-class AbstractSaveImageDelegate
+class AbstractSaveImageDelegate : public itk::Object
 {
 public:
 
-  AbstractSaveImageDelegate(GlobalUIModel *model)
-    { m_Model = model; }
+  irisITKAbstractObjectMacro(AbstractSaveImageDelegate, itk::Object)
 
-  virtual ~AbstractSaveImageDelegate() {}
+  virtual void Initialize(GlobalUIModel *model)
+    { m_Model = model; }
 
   virtual void SaveImage(
       const std::string &fname,
@@ -107,22 +118,25 @@ public:
   virtual const char *GetCurrentFilename() = 0;
 
 protected:
+  AbstractSaveImageDelegate() {}
+  virtual ~AbstractSaveImageDelegate() {}
+
   GlobalUIModel *m_Model;
 };
 
 class DefaultSaveImageDelegate : public AbstractSaveImageDelegate
 {
 public:
-  DefaultSaveImageDelegate(GlobalUIModel *model,
-                           ImageWrapperBase *wrapper,
-                           const std::string &histname,
-                           bool trackInLocalHistory = true);
+  irisITKObjectMacro(DefaultSaveImageDelegate, AbstractSaveImageDelegate)
+
+  virtual void Initialize(GlobalUIModel *model,
+                          ImageWrapperBase *wrapper,
+                          const std::string &histname,
+                          bool trackInLocalHistory = true);
 
   // Add a history name to update when the filename is saved. It is possible
   // for multiple history names to be updated
   void AddHistoryName(const std::string &histname);
-
-  virtual ~DefaultSaveImageDelegate() {}
 
   virtual void SaveImage(
       const std::string &fname,
@@ -133,6 +147,10 @@ public:
   virtual const char *GetCurrentFilename();
 
 protected:
+
+  DefaultSaveImageDelegate() {}
+  virtual ~DefaultSaveImageDelegate() {}
+
   ImageWrapperBase *m_Wrapper;
   std::list<std::string> m_HistoryNames;
   bool m_Track;

@@ -59,6 +59,7 @@ class ThresholdSettings;
 class EdgePreprocessingSettings;
 class AbstractSlicePreviewFilterWrapper;
 class UnsupervisedClustering;
+class ImageWrapperBase;
 
 template <class TFilterConfigTraits> class SlicePreviewFilterWrapper;
 class SmoothBinaryThresholdFilterConfigTraits;
@@ -184,6 +185,12 @@ public:
   void UnloadOverlays();
   void UnloadOverlayLast();
   void UnloadMainImage();
+
+  /**
+   * Move layers (overlay for now) up and down in the list, changing their
+   * display order
+   */
+  void ChangeOverlayPosition(ImageWrapperBase *overlay, int dir);
 
   /**
    * Quit the application. This responds to the quit action in the main application.

@@ -1161,6 +1161,7 @@ ImageWrapper<TTraits,TBase>
   // Get the display slice
   // For now, just use the z-axis for exporting the thumbnails
   DisplaySliceType *slice = this->GetDisplaySlice(2);
+  slice->Update();
 
   // The size of the slice
   Vector2ui slice_dim = slice->GetBufferedRegion().GetSize();

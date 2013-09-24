@@ -36,6 +36,10 @@ public:
     SI_ENDIAN, SI_COMPONENTS, SI_DATATYPE, SI_FILESIZE
   };
 
+  // Initialize the wizard for load operations. Note that the delegate,
+  // which specializes the behavior of this class, is stored internally
+  // using a smart pointer, so its ownership can be relinquished to the
+  // wizard.
   void InitializeForLoad(GlobalUIModel *parent,
                          AbstractLoadImageDelegate *delegate,
                          const char *name, const char *dispName);
@@ -185,10 +189,10 @@ protected:
   Mode m_Mode;
 
   // Delegate that does the actual loading or saving
-  AbstractLoadImageDelegate *m_LoadDelegate;
+  SmartPtr<AbstractLoadImageDelegate> m_LoadDelegate;
 
   // Delegate than handles saving
-  AbstractSaveImageDelegate *m_SaveDelegate;
+  SmartPtr<AbstractSaveImageDelegate> m_SaveDelegate;
 
   // The history list associated with the model
   std::string m_HistoryName, m_DisplayName;

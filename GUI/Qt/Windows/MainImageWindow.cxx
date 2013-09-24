@@ -51,6 +51,7 @@
 #include "StatisticsDialog.h"
 #include "ImageWrapperBase.h"
 #include "IRISImageData.h"
+#include "AboutDialog.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -164,6 +165,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // Set the splash panel in the left dock
   m_SplashPanel = new SplashPanel(this);
   m_DockLeft->setWidget(m_SplashPanel);
+
+  // Create the about dialog
+  m_AboutDialog = new AboutDialog(this);
 
   // Hide the right dock for now
   m_DockRight->setVisible(false);
@@ -446,9 +450,10 @@ void MainImageWindow::on_actionLoad_from_Image_triggered()
   // TODO: Prompt for changes to segmentation to be saved
 
   // Create a model for IO
-  LoadSegmentationImageDelegate delegate(m_Model);
+  SmartPtr<LoadSegmentationImageDelegate> delegate = LoadSegmentationImageDelegate::New();
+  delegate->Initialize(m_Model);
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, &delegate,
+  model->InitializeForLoad(m_Model, delegate,
                            "LabelImage", "Segmentation Image");
 
   // Execute the IO wizard
@@ -460,6 +465,9 @@ void MainImageWindow::on_actionLoad_from_Image_triggered()
 
 void MainImageWindow::on_actionImage_Contrast_triggered()
 {
+  // Go to the contrast page in the dialog
+  m_LayerInspector->SetPageToContrastAdjustment();
+
   // Show the dialog
   m_LayerInspector->show();
 }
@@ -567,7 +575,8 @@ void MainImageWindow::LoadRecent(QString file)
     // Change cursor for this operation
     QtCursorOverride c(Qt::WaitCursor);
     IRISWarningList warnings;
-    LoadMainImageDelegate del(m_Model);
+    SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
+    del->Initialize(m_Model);
     m_Model->LoadImageNonInteractive(file.toUtf8().constData(), del, warnings);
     }
   catch(exception &exc)
@@ -670,9 +679,10 @@ void MainImageWindow::on_actionOpenMain_triggered()
   // TODO: Prompt for changes to segmentation to be saved
 
   // Create a model for IO
-  LoadMainImageDelegate delegate(m_Model);
+  SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
+  delegate->Initialize(m_Model);
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, &delegate,
+  model->InitializeForLoad(m_Model, delegate,
                            "AnatomicImage", "Main Image");
 
   // Execute the IO wizard
@@ -684,9 +694,10 @@ void MainImageWindow::on_actionOpenMain_triggered()
 
 void MainImageWindow::on_actionAdd_Overlay_triggered()
 {
-  LoadOverlayImageDelegate delegate(m_Model);
+  SmartPtr<LoadOverlayImageDelegate> delegate = LoadOverlayImageDelegate::New();
+  delegate->Initialize(m_Model);
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, &delegate,
+  model->InitializeForLoad(m_Model, delegate,
                            "AnatomicImage", "Overlay Image");
 
   // Execute the IO wizard
@@ -826,13 +837,15 @@ void MainImageWindow::on_actionVolumesAndStatistics_triggered()
 void MainImageWindow::SaveSegmentation(bool interactive)
 {
   // Create delegate
-  DefaultSaveImageDelegate delegate(
-        m_Model, m_Model->GetDriver()->GetCurrentImageData()->GetSegmentation(),
+  SmartPtr<DefaultSaveImageDelegate> delegate = DefaultSaveImageDelegate::New();
+  delegate->Initialize(
+        m_Model,
+        m_Model->GetDriver()->GetCurrentImageData()->GetSegmentation(),
         "LabelImage");
 
   // Create a model for IO
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForSave(m_Model, &delegate,
+  model->InitializeForSave(m_Model, delegate,
                            "LabelImage",
                            "Segmentation Image");
 
@@ -884,4 +897,16 @@ void MainImageWindow::on_actionOverlayVisibilityIncreaseAll_triggered()
 void MainImageWindow::on_actionOverlayVisibilityDecreaseAll_triggered()
 {
   m_Model->AdjustOverlayOpacity(-5);
+}
+
+void MainImageWindow::on_actionLayerInspector_triggered()
+{
+  // Show the dialog
+  m_LayerInspector->show();
+}
+
+void MainImageWindow::on_actionAbout_triggered()
+{
+  // Show the about window
+  m_AboutDialog->show();
 }

@@ -91,6 +91,9 @@ public:
   // This method can be used by the renderer delegates to draw a texture
   void DrawTextureForLayer(ImageWrapperBase *layer, bool use_transparency);
 
+  // Get the layer that is drawn in the given tile
+  ImageWrapperBase *GetLayerForNthTile(int row, int col);
+
   // A callback for when the model is reinitialized
   // void OnModelReinitialize();
 

@@ -336,6 +336,13 @@ IRISApplication
   InvokeEvent(LayerChangeEvent());
 }
 
+void IRISApplication
+::ChangeOverlayPosition(ImageWrapperBase *overlay, int dir)
+{
+  m_IRISImageData->MoveLayer(overlay, dir);
+  InvokeEvent(LayerChangeEvent());
+}
+
 void
 IRISApplication
 ::ClearIRISSegmentationImage()

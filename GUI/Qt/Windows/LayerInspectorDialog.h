@@ -7,8 +7,9 @@
 class IntensityCurveBox;
 class ContrastInspector;
 class GlobalUIModel;
-class LayerListQtModel;
 class EventBucket;
+class LayerInspectorRowDelegate;
+class ImageWrapperBase;
 
 namespace Ui {
     class LayerInspectorDialog;
@@ -19,7 +20,7 @@ namespace Ui {
 
 class LayerInspectorDialog : public QDialog
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
     explicit LayerInspectorDialog(QWidget *parent = 0);
@@ -27,20 +28,34 @@ public:
 
   void SetModel(GlobalUIModel *model);
 
-public slots:
+  void SetPageToContrastAdjustment();
+  void SetPageToColorMap();
 
-  void onLayerSelection();
+  bool eventFilter(QObject *source, QEvent *event);
+
+public slots:
 
   virtual void onModelUpdate(const EventBucket &bucket);
 
+  void layerSelected(bool);
+
+signals:
+
+  void layerListHover(bool);
 
 private slots:
   void on_actionSaveSelectedLayerAs_triggered();
 
 private:
-    Ui::LayerInspectorDialog *ui;
-    GlobalUIModel *m_Model;
-    LayerListQtModel *m_LayerListModel;
+  Ui::LayerInspectorDialog *ui;
+  GlobalUIModel *m_Model;
+
+  void GenerateModelsForLayers();
+  void BuildLayerWidgetHierarchy();
+  void SetActiveLayer(ImageWrapperBase *layer);
+
+  // List of layer delegate widgets
+  QList<LayerInspectorRowDelegate *> m_Delegates;
 };
 
 #endif // LAYERINSPECTORDIALOG_H

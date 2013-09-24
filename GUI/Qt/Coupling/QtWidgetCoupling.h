@@ -28,9 +28,11 @@
 
 #include <QWidget>
 #include <QVariant>
+#include <QAction>
 #include <PropertyModel.h>
 #include <SNAPCommon.h>
 #include <LatentITKEventNotifier.h>
+
 
 /**
   Abstract class for hierarchy of data mappings between widgets and models. The mapping

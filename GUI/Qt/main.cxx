@@ -273,7 +273,8 @@ int main(int argc, char *argv[])
     // Try loading the image
     try
       {
-      LoadMainImageDelegate del(gui);
+      SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
+      del->Initialize(gui);
       gui->LoadImageNonInteractive(fnMain, del, warnings);
       }
     catch(itk::ExceptionObject &exc)
@@ -295,7 +296,8 @@ int main(int argc, char *argv[])
       // Try to load the image
       try
         {
-        LoadSegmentationImageDelegate del(gui);
+        SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
+        del->Initialize(gui);
         gui->LoadImageNonInteractive(fname, del, warnings);
         }
       catch(itk::ExceptionObject &exc)
@@ -320,7 +322,8 @@ int main(int argc, char *argv[])
         // Try to load the image
         try
           {
-          LoadOverlayImageDelegate del(gui);
+          SmartPtr<LoadOverlayImageDelegate> del = LoadOverlayImageDelegate::New();
+          del->Initialize(gui);
           gui->LoadImageNonInteractive(fname, del, warnings);
           }
         catch(std::exception &exc)

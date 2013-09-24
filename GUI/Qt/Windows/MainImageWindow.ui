@@ -686,7 +686,7 @@ background-color:rgb(88, 88, 88);
     <addaction name="actionUnload_Last_Overlay"/>
     <addaction name="actionUnload_All_Overlays"/>
     <addaction name="separator"/>
-    <addaction name="actionLayer_Inspector"/>
+    <addaction name="actionLayerInspector"/>
     <addaction name="separator"/>
     <addaction name="menuOverlayAppearance"/>
    </widget>
@@ -735,6 +735,7 @@ background-color:rgb(88, 88, 88);
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -1070,7 +1071,11 @@ background-color:rgb(88, 88, 88);
     <string>Unload All Overlays</string>
    </property>
   </action>
-  <action name="actionLayer_Inspector">
+  <action name="actionLayerInspector">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/layer_Inspector_16.png</normaloff>:/root/layer_Inspector_16.png</iconset>
+   </property>
    <property name="text">
     <string>Layer Inspector...</string>
    </property>
@@ -1261,6 +1266,14 @@ background-color:rgb(88, 88, 88);
    </property>
    <property name="shortcut">
     <string>Q</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About ITK-SNAP</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::AboutRole</enum>
    </property>
   </action>
  </widget>

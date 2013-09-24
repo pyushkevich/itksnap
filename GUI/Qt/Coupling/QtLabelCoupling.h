@@ -25,7 +25,7 @@ public:
   {
     std::ostringstream oss;
     oss << value;
-    w->setText(oss.str().c_str());
+    w->setText(from_utf8(oss.str()));
   }
 
   virtual void SetValueToNull(QLabel *w)

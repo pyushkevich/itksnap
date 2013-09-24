@@ -473,7 +473,7 @@ typedef ConcretePropertyModel<bool> BoolPropertyModel;
   virtual AbstractPropertyModel<type, NumericValueRange<type> > * Get##name##Model () const \
     { return this->m_##name##Model; }
 
-#define irisSimplePropertyAccessMacro(name,type) \
+  #define irisSimplePropertyAccessMacro(name,type) \
   virtual void Set##name (type _arg) \
     { this->m_##name##Model->SetValue(_arg); } \
   virtual type Get##name () const \

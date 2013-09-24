@@ -262,46 +262,57 @@ bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int i
     }
   else
     {
-    // How many layers to go until we get to the one we want to paint?
-    int togo = irow * ncols + icol;
+    // Geth the n-th layer
+    ImageWrapperBase *layer = GetLayerForNthTile(irow, icol);
 
-    // Skip all layers until we get to the sticky layer we want to paint
-    for(LayerIterator it(id); !it.IsAtEnd(); ++it)
+    // Check if the layer is in drawable condition. If not, draw nothing.
+    if(!layer)
+      return false;
+
+    // Draw the particular layer
+    DrawTextureForLayer(layer, false);
+
+    // Now draw all the non-sticky layers
+    for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
       {
-      if(it.GetRole() == LayerIterator::MAIN_ROLE || !it.GetLayer()->IsSticky())
+      if(itov.GetRole() != LayerIterator::MAIN_ROLE
+         && itov.GetLayer()->IsSticky()
+         && itov.GetLayer()->IsDrawable()
+         && itov.GetLayer()->GetAlpha() > 0)
         {
-        if(togo > 0)
-          togo--;
-        else
-          {
-          // Check if the layer is in drawable condition. If not, draw nothing.
-          if(!it.GetLayer()->IsDrawable())
-            return false;
-
-          // Draw the particular layer
-          DrawTextureForLayer(it.GetLayer(), false);
-
-          // Now draw all the non-sticky layers
-          for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
-            {
-            if(itov.GetRole() != LayerIterator::MAIN_ROLE
-               && itov.GetLayer()->IsSticky()
-               && it.GetLayer()->IsDrawable()
-               && itov.GetLayer()->GetAlpha() > 0)
-              {
-              DrawTextureForLayer(itov.GetLayer(), true);
-              }
-            }
-
-          return true;
-          }
+        DrawTextureForLayer(itov.GetLayer(), true);
         }
       }
 
-    // Didn't draw anything...
-    return false;
+    return true;
     }
 }
+
+
+ImageWrapperBase *GenericSliceRenderer::GetLayerForNthTile(int row, int col)
+{
+  // Number of divisions
+  DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
+  Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
+  int ncols = (int) layout[1];
+
+  // How many layers to go until we get to the one we want to paint?
+  int togo = row * ncols + col;
+
+  // Skip all layers until we get to the sticky layer we want to paint
+  for(LayerIterator it(m_Model->GetImageData()); !it.IsAtEnd(); ++it)
+    {
+    if(it.GetRole() == LayerIterator::MAIN_ROLE || !it.GetLayer()->IsSticky())
+      {
+      if(togo == 0)
+        return it.GetLayer()->IsDrawable() ? it.GetLayer() : NULL;
+      togo--;
+      }
+    }
+
+  return NULL;
+}
+
 
 
 void GenericSliceRenderer::DrawMainTexture()

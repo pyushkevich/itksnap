@@ -107,6 +107,7 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   toolCmd->addAction(FindUpstreamAction(this, "actionUndo"));
   toolCmd->addAction(FindUpstreamAction(this, "actionRedo"));
   toolCmd->addWidget(m_LabelSelectionButton);
+  toolCmd->addAction(FindUpstreamAction(this, "actionLayerInspector"));
 
   // Add a shortcut for the button
   m_LabelSelectionButton->setShortcut(QKeySequence("l"));

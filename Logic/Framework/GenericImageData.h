@@ -100,6 +100,16 @@ public:
   /** Get the role of the current layer */
   LayerRole GetRole() const;
 
+  /** Get the position of the current layer within its role */
+  int GetPositionInRole() const;
+
+  /** Get the number of layers in the role of current layer */
+  int GetNumberOfLayersInRole();
+
+  /** Check if this is the first/last layer in its role */
+  bool IsFirstInRole() const;
+  bool IsLastInRole() const;
+
   void Print(const char *) const;
 
   /** Compare two iterators */
@@ -308,6 +318,14 @@ public:
   /** Handle overlays */
   virtual void UnloadOverlays();
   virtual void UnloadOverlayLast();
+
+  /**
+   * Change the ordering of the layers within a particular role (for now just
+   * overlays are supported in the GUI) by moving the specified layer up or
+   * down one spot. The sign of the direction determines whether the layer is
+   * moved up or down.
+   */
+  virtual void MoveLayer(ImageWrapperBase *layer, int direction);
 
   /**
    * This method sets the segmentation image (see note for SetGrey).
