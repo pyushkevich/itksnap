@@ -23,6 +23,7 @@
 #include "itkImageAdaptor.h"
 #include "VectorToScalarImageAccessor.h"
 
+template<class TIn> class ThreadedHistogramImageFilter;
 namespace itk
 {
 template<class TIn> class MinimumMaximumImageFilter;
@@ -185,6 +186,21 @@ public:
   virtual void SetImageToDisplayTransform(
     unsigned int iSlice,const ImageCoordinateTransform &transform);
 
+
+  /**
+    Compute the image histogram. The histogram is cached inside of the
+    object, so repeated calls to this function with the same nBins parameter
+    will not require additional computation.
+
+    Calling with default parameter (0) will use the same number of bins that
+    is currently in the histogram (i.e., return/recompute current histogram).
+    If there is no current histogram, a default histogram with 128 entries
+    will be generated.
+
+    For multi-component data, the histogram is pooled over all components.
+    */
+  const ScalarImageHistogram *GetHistogram(size_t nBins = 0);
+
 protected:
 
   /**
@@ -231,12 +247,14 @@ protected:
   typedef itk::MinimumMaximumImageFilter<FlatImageType> MinMaxFilterType;
   SmartPtr<MinMaxFilterType> m_MinMaxFilter;
 
+  // Histogram filter
+  typedef ThreadedHistogramImageFilter<FlatImageType> HistogramFilterType;
+  SmartPtr<HistogramFilterType> m_HistogramFilter;
+
   // Other derived wrappers
   typedef VectorToScalarMagnitudeFunctor<InternalPixelType,float> MagnitudeFunctor;
   typedef VectorToScalarMaxFunctor<InternalPixelType, float> MaxFunctor;
   typedef VectorToScalarMeanFunctor<InternalPixelType,float> MeanFunctor;
-
-  virtual void AddSamplesToHistogram();
 };
 
 #endif // __VectorImageWrapper_h_

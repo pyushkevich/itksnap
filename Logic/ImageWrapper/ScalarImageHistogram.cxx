@@ -8,6 +8,7 @@ ScalarImageHistogram::ScalarImageHistogram()
   m_Scale = 0;
   m_MaxFrequency = 0;
   m_TotalSamples = 0;
+  m_BinCount = 0;
 }
 
 ScalarImageHistogram::~ScalarImageHistogram()
@@ -32,28 +33,12 @@ ScalarImageHistogram
   m_Scale = 1.0 / m_BinWidth;
 
   // Allocate the histogram
+  m_BinCount = nBins;
   m_Bins.clear();
-  m_Bins.resize(nBins, 0);
+  m_Bins.resize(m_BinCount, 0);
 
   m_MaxFrequency = 0;
   m_TotalSamples = 0;
-}
-
-void
-ScalarImageHistogram
-::AddSample(double v)
-{
-  int index = (int) (m_Scale * (v - m_FirstBinStart));
-
-  if(index < 0) index = 0;
-  else if(index >= (int) m_Bins.size())
-    index = m_Bins.size() - 1;
-
-  unsigned long k = ++m_Bins[index];
-
-  // Update total, max frequency
-  m_MaxFrequency = std::max(m_MaxFrequency, k);
-  m_TotalSamples++;
 }
 
 
@@ -89,7 +74,31 @@ size_t
 ScalarImageHistogram
 ::GetSize() const
 {
-  return m_Bins.size();
+  return m_BinCount;
+}
+
+void
+ScalarImageHistogram
+::AddCompatibleHistogram(const Self &addee)
+{
+  assert(addee.m_Bins.size() == m_Bins.size());
+  assert(addee.m_FirstBinStart == m_FirstBinStart);
+  assert(addee.m_BinWidth == m_BinWidth);
+
+  for(unsigned int i = 0; i < m_Bins.size(); i++)
+    {
+    unsigned long n = addee.m_Bins[i];
+    unsigned long k = (m_Bins[i] += n);
+    m_MaxFrequency = std::max(m_MaxFrequency, k);
+    m_TotalSamples+=n;
+    }
+}
+
+void ScalarImageHistogram::ApplyIntensityTransform(double scale, double shift)
+{
+  m_FirstBinStart = scale * m_FirstBinStart + shift;
+  m_BinWidth = scale * m_BinWidth;
+  m_Scale = 1.0 / m_BinWidth;
 }
 
 double ScalarImageHistogram::GetReasonableDisplayCutoff(double quantile, double quantile_height) const

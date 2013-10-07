@@ -26,6 +26,7 @@
 #include "ImageWrapperTraits.h"
 #include "itkVectorImageToImageAdaptor.h"
 #include "itkMinimumMaximumImageFilter.h"
+#include "ThreadedHistogramImageFilter.h"
 #include "ScalarImageHistogram.h"
 #include "Rebroadcaster.h"
 
@@ -43,7 +44,7 @@ VectorImageWrapper<TTraits,TBase>
 
   // Initialize the filters
   m_MinMaxFilter = MinMaxFilterType::New();
-
+  m_HistogramFilter = HistogramFilterType::New();
 }
 
 template <class TTraits, class TBase>
@@ -110,22 +111,21 @@ VectorImageWrapper<TTraits,TBase>
 {
   Superclass::SetNativeMapping(mapping);
 
+  // Propagate the mapping to the histogram
+  m_HistogramFilter->SetIntensityTransform(mapping.GetScale(), mapping.GetShift());
+
   // Propagate to owned scalar wrappers
   for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
     {
     ScalarRepIndex idx = it->first;
     if(idx.first == SCALAR_REP_COMPONENT)
       {
-      // Get the mapping cast to proper type
-      AbstractNativeIntensityMapping *abstract_mapping =
-          const_cast<AbstractNativeIntensityMapping *>(
-            it->second->GetNativeIntensityMapping());
+      // Cast the wrapper the right type
+      ComponentWrapperType *cw =
+          dynamic_cast<ComponentWrapperType *>(it->second.GetPointer());
 
-      NativeIntensityMapping *real_mapping =
-          dynamic_cast<NativeIntensityMapping *>(abstract_mapping);
-
-      // Assign the native mapping to the component
-      (*real_mapping) = mapping;
+      // Pass the native to the component wrapper
+      cw->SetNativeMapping(mapping);
       }
 
     // These are the derived wrappers. They use the identity mapping, but they
@@ -248,6 +248,13 @@ VectorImageWrapper<TTraits,TBase>
   // Connect the flat image to the min/max computer
   m_MinMaxFilter->SetInput(m_FlatImage);
 
+  // Hook up the histogram computer to the flat image and min/max filter
+  m_HistogramFilter->SetInput(m_FlatImage);
+  m_HistogramFilter->SetRangeInputs(m_MinMaxFilter->GetMinimumOutput(),
+                                    m_MinMaxFilter->GetMaximumOutput());
+
+  // Set the number of bins (TODO - how to do this smartly?)
+  m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
 
   /*
 
@@ -295,6 +302,21 @@ VectorImageWrapper<TTraits,TBase>
   // can change under settings, i.e., "Default scalar representation for RGB images".
   return this->GetScalarRepresentation(SCALAR_REP_MAX);
 }
+
+template<class TTraits, class TBase>
+const ScalarImageHistogram *
+VectorImageWrapper<TTraits,TBase>
+::GetHistogram(size_t nBins)
+{
+  // If the user passes in a non-zero number of bins, we pass that as a
+  // parameter to the filter
+  if(nBins > 0)
+    m_HistogramFilter->SetNumberOfBins(nBins);
+
+  m_HistogramFilter->Update();
+  return m_HistogramFilter->GetHistogramOutput();
+}
+
 
 template <class TTraits, class TBase>
 inline ScalarImageWrapperBase *
@@ -377,20 +399,6 @@ VectorImageWrapper<TTraits,TBase>
 ::GetImageMaxObject() const
 {
   return m_MinMaxFilter->GetMaximumOutput();
-}
-
-
-template<class TTraits, class TBase>
-void
-VectorImageWrapper<TTraits,TBase>
-::AddSamplesToHistogram()
-{
-  typedef itk::ImageRegionConstIterator<FlatImageType> FlatIterator;
-  FlatIterator it(m_FlatImage, m_FlatImage->GetBufferedRegion());
-  for(; !it.IsAtEnd(); ++it)
-    {
-    this->m_Histogram->AddSample(this->m_NativeMapping(it.Get()));
-    }
 }
 
 

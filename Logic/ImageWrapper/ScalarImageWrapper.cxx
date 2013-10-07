@@ -38,6 +38,7 @@
 #include "IRISException.h"
 #include "VectorImageWrapper.h"
 #include "ScalarImageHistogram.h"
+#include "ThreadedHistogramImageFilter.h"
 
 #include "vtkImageImport.h"
 
@@ -48,6 +49,7 @@ ScalarImageWrapper<TTraits,TBase>
 ::ScalarImageWrapper()
 {
   m_MinMaxFilter = MinMaxFilter::New();
+  m_HistogramFilter = HistogramFilterType::New();
 
   m_GradientMagnitudeFilter = GradMagFilter::New();
   m_GradientMagnitudeFilter->ReleaseDataFlagOn();
@@ -110,6 +112,14 @@ ScalarImageWrapper<TTraits,TBase>
   // Update the max-min pipeline once we have one setup
   m_MinMaxFilter->SetInput(newImage);
 
+  // Update the histogram mini-pipeline
+  m_HistogramFilter->SetInput(newImage);
+  m_HistogramFilter->SetRangeInputs(m_MinMaxFilter->GetMinimumOutput(),
+                                    m_MinMaxFilter->GetMaximumOutput());
+
+  // Set the number of bins to default
+  m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
+
   // Update the common representation policy
   m_CommonRepresentationPolicy.UpdateInputImage(newImage);
 
@@ -122,6 +132,16 @@ ScalarImageWrapper<TTraits,TBase>
   m_VTKExporter->SetInput(newImage);
 }
 
+template <class TTraits, class TBase>
+void
+ScalarImageWrapper<TTraits,TBase>
+::SetNativeMapping(NativeIntensityMapping mapping)
+{
+  Superclass::SetNativeMapping(mapping);
+
+  // Propagate the mapping to the histogram
+  m_HistogramFilter->SetIntensityTransform(mapping.GetScale(), mapping.GetShift());
+}
 
 
 template<class TTraits, class TBase>
@@ -215,20 +235,6 @@ ScalarImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 void
 ScalarImageWrapper<TTraits,TBase>
-::AddSamplesToHistogram()
-{
-  // Add all points as samples
-  for(ConstIterator it = this->GetImageConstIterator(); !it.IsAtEnd(); ++it)
-    {
-    this->m_Histogram->AddSample(this->m_NativeMapping(it.Get()));
-    }
-}
-
-
-
-template<class TTraits, class TBase>
-void
-ScalarImageWrapper<TTraits,TBase>
 ::SetupVTKImportExport()
 {
   // Initialize the VTK Exporter
@@ -298,6 +304,19 @@ ScalarImageWrapper<TTraits, TBase>
   return this->m_DisplayMapping->GetColorMap();
 }
 
+template<class TTraits, class TBase>
+const ScalarImageHistogram *
+ScalarImageWrapper<TTraits,TBase>
+::GetHistogram(size_t nBins)
+{
+  // If the user passes in a non-zero number of bins, we pass that as a
+  // parameter to the filter
+  if(nBins > 0)
+    m_HistogramFilter->SetNumberOfBins(nBins);
+
+  m_HistogramFilter->Update();
+  return m_HistogramFilter->GetHistogramOutput();
+}
 
 
 template class ScalarImageWrapper<LabelImageWrapperTraits>;

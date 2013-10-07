@@ -1,0 +1,12 @@
+Points.ArraySize = 11
+Points.Element[0]	=	0.2875	0.53125
+Points.Element[1]	=	0.36875	0.75
+Points.Element[2]	=	0.5375	0.7625
+Points.Element[3]	=	0.89375	0.84375
+Points.Element[4]	=	0.5375	0.525
+Points.Element[5]	=	0.6875	0.2125
+Points.Element[6]	=	0.45625	0.31875
+Points.Element[7]	=	0.1625	0.06875
+Points.Element[8]	=	0.38125	0.13125
+Points.Element[9]	=	0.10625	0.125
+Points.Element[10]	=	0.19375	0.36875

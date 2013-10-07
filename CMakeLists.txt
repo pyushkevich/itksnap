@@ -192,6 +192,8 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/NativeIntensityMappingPolicy.h
   Logic/ImageWrapper/ScalarImageHistogram.h
   Logic/ImageWrapper/ScalarImageWrapper.h
+  Logic/ImageWrapper/ThreadedHistogramImageFilter.h
+  Logic/ImageWrapper/ThreadedHistogramImageFilter.hxx
   Logic/ImageWrapper/VectorImageWrapper.h
   Logic/LevelSet/LevelSetExtensionFilter.h
   Logic/LevelSet/SnakeParametersPreviewPipeline.h

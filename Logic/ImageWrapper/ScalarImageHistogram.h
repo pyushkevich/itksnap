@@ -1,7 +1,7 @@
 #ifndef SCALARIMAGEHISTOGRAM_H
 #define SCALARIMAGEHISTOGRAM_H
 
-#include <itkObject.h>
+#include <itkDataObject.h>
 #include <itkObjectFactory.h>
 #include <SNAPCommon.h>
 
@@ -11,10 +11,10 @@
   A very simple histogram object. It just contains a set of bins
   counting the intensities in an image.
   */
-class ScalarImageHistogram : public itk::Object
+class ScalarImageHistogram : public itk::DataObject
 {
 public:
-  irisITKObjectMacro(ScalarImageHistogram, itk::Object)
+  irisITKObjectMacro(ScalarImageHistogram, itk::DataObject)
 
   void Initialize(double vmin, double vmax, size_t nBins);
   void AddSample(double v);
@@ -23,6 +23,20 @@ public:
   double GetBinCenter(size_t iBin) const;
   unsigned long GetFrequency(size_t iBin) const;
   size_t GetSize() const;
+
+  /**
+   * Add the contents of an existing histogram to the current histogram. The
+   * code assumes that the histograms have been initialized with the same
+   * parameters to Initialize(). This is used in multi-threaded code to build
+   * histograms
+   */
+  void AddCompatibleHistogram(const Self &addee);
+
+  /**
+   * Apply an intensity transform to the histogram. This applies scaling and
+   * shift to the bin boundaries.
+   */
+  void ApplyIntensityTransform(double scale, double shift);
 
   /**
    * Determine the largest frequency to display in the plot of the histogram.
@@ -47,7 +61,28 @@ protected:
 
   double m_FirstBinStart, m_BinWidth, m_Scale;
   unsigned long m_MaxFrequency, m_TotalSamples;
+  int m_BinCount;
 
 };
+
+inline void ScalarImageHistogram::AddSample(double v)
+{
+  int index = (int) (m_Scale * (v - m_FirstBinStart));
+
+  if(index < 0)
+    index = 0;
+  else if(index >= m_BinCount)
+    index = m_BinCount - 1;
+
+  unsigned long k = ++m_Bins[index];
+
+  // Update total, max frequency
+  if(m_MaxFrequency < k)
+    m_MaxFrequency = k;
+
+  m_TotalSamples++;
+}
+
+
 
 #endif // SCALARIMAGEHISTOGRAM_H

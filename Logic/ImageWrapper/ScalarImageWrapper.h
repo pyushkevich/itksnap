@@ -39,6 +39,7 @@
 #include "vtkSmartPointer.h"
 
 // Forward references
+template<class TIn> class ThreadedHistogramImageFilter;
 namespace itk {
   template<class TIn> class MinimumMaximumImageFilter;
   template<class TIn, class TOut> class GradientMagnitudeImageFilter;
@@ -91,6 +92,9 @@ public:
   // MinMax calculator type
   typedef itk::MinimumMaximumImageFilter<ImageType>               MinMaxFilter;
 
+  // Histogram filter
+  typedef ThreadedHistogramImageFilter<ImageType>          HistogramFilterType;
+
   // Iterator types
   typedef typename Superclass::Iterator                               Iterator;
   typedef typename Superclass::ConstIterator                     ConstIterator;
@@ -100,6 +104,9 @@ public:
 
   // Pipeline objects wrapped around values
   typedef typename Superclass::ComponentTypeObject         ComponentTypeObject;
+
+  typedef typename Superclass::NativeIntensityMapping   NativeIntensityMapping;
+
 
   virtual bool IsScalar() const { return true; }
 
@@ -168,6 +175,19 @@ public:
 
   virtual ComponentTypeObject *GetImageMaxObject() const;
 
+  /**
+    Compute the image histogram. The histogram is cached inside of the
+    object, so repeated calls to this function with the same nBins parameter
+    will not require additional computation.
+
+    Calling with default parameter (0) will use the same number of bins that
+    is currently in the histogram (i.e., return/recompute current histogram).
+    If there is no current histogram, a default histogram with 128 entries
+    will be generated.
+
+    For multi-component data, the histogram is pooled over all components.
+    */
+  const ScalarImageHistogram *GetHistogram(size_t nBins = 0);
 
   /**
     Get the maximum possible value of the gradient magnitude. This will
@@ -198,6 +218,9 @@ public:
   /** Get a version of this image that is usable in VTK pipelines */
   vtkImageImport *GetVTKImporter();
 
+  /** Extends parent method */
+  virtual void SetNativeMapping(NativeIntensityMapping mapping);
+
 
 protected:
 
@@ -219,6 +242,11 @@ protected:
    * The min-max filter used to compute the range of the image on demand.
    */
   SmartPtr<MinMaxFilter> m_MinMaxFilter;
+
+  /**
+   * The filter used for histogram computation
+   */
+  SmartPtr<HistogramFilterType> m_HistogramFilter;
 
   // The policy used to extract a common representation image
   typedef typename TTraits::CommonRepresentationPolicy CommonRepresentationPolicy;
@@ -249,9 +277,6 @@ protected:
    * an initialization operation)
    */
   virtual void UpdateImagePointer(ImageType *);
-
-
-  virtual void AddSamplesToHistogram();
 
 
   typedef itk::VTKImageExport<ImageType> VTKExporter;

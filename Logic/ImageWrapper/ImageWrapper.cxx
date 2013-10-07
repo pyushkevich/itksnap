@@ -361,9 +361,6 @@ ImageWrapper<TTraits,TBase>
   m_DisplayMapping->Initialize(
         static_cast<typename TTraits::WrapperType *>(this));
 
-  // Initialize the histogram
-  m_Histogram = ScalarImageHistogram::New();
-
   // Set sticky flag
   m_Sticky = TTraits::StickyByDefault;
 
@@ -863,40 +860,6 @@ ImageWrapper<TTraits,TBase>
 {
   this->GetImageMaxObject()->Update();
   return m_NativeMapping(this->GetImageMaxObject()->Get());
-}
-
-
-template<class TTraits, class TBase>
-const ScalarImageHistogram *
-ImageWrapper<TTraits,TBase>
-::GetHistogram(size_t nBins)
-{
-  // Zero parameter means we want to reuse the current histogram size
-  if(nBins == 0)
-    nBins = m_Histogram->GetSize();
-  if(nBins == 0)
-    nBins = DEFAULT_HISTOGRAM_BINS;
-
-  // TODO: the histogram should be generated using a filter to take advantage
-  // of ITK threading
-
-  // First check if an update is needed
-  if(m_Histogram->GetMTime() < this->m_Image->GetMTime() ||
-     m_Histogram->GetSize() != nBins)
-    {
-    // Create the histogram
-    m_Histogram->Initialize(this->GetImageMinNative(),
-                            this->GetImageMaxNative(),
-                            nBins);
-
-    // Call the virtual method to build histogram
-    this->AddSamplesToHistogram();
-
-    // Set the m-time
-    m_Histogram->Modified();
-    }
-
-  return m_Histogram;
 }
 
 
