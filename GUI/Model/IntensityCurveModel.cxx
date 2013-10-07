@@ -77,12 +77,30 @@ void
 IntensityCurveModel
 ::RegisterWithLayer(ImageWrapperBase *layer)
 {
+  IntensityCurveLayerProperties &p = GetProperties();
+
   // Listen to changes in the layer's intensity curve
   unsigned long tag =
       Rebroadcast(layer, WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
 
   // Set a flag so we don't register a listener again
-  GetProperties().SetObserverTag(tag);
+  p.SetObserverTag(tag);
+
+  // If this is the first time we are registered with this layer, we are going
+  // to set the histogram cutoff optimally. The user may change this later so
+  // we only do this for the first-time registration.
+  //
+  // TODO: it may make more sense for this to be a property that's associated
+  // with the image for future times that it is loaded. Then the cutoff would
+  // have to be stored in the ImageWrapper.
+  if(p.IsFirstTime())
+    {
+    // Set the cutoff automatically
+    const ScalarImageHistogram *hist = layer->GetHistogram(0);
+    p.SetHistogramCutoff(
+          hist->GetReasonableDisplayCutoff(0.95, 0.6) / hist->GetMaxFrequency());
+    p.SetFirstTime(false);
+    }
 }
 
 void
@@ -130,6 +148,7 @@ IntensityCurveLayerProperties::IntensityCurveLayerProperties()
   m_MovingControlPoint = false;
   m_HistogramBinSize = 10;
   m_HistogramCutoff = 1;
+  m_FirstTime = true;
 }
 
 IntensityCurveLayerProperties::~IntensityCurveLayerProperties()

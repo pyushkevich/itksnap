@@ -33,6 +33,10 @@ public:
   /** The control point currently moving */
   irisGetSetMacro(MovingControlPoint, int)
 
+  /** Is this the first time we are registered with the layer? */
+  irisIsMacro(FirstTime)
+  irisSetMacro(FirstTime, bool)
+
   irisGetSetMacro(ObserverTag, unsigned long)
 
   IntensityCurveLayerProperties();
@@ -46,6 +50,12 @@ protected:
   double m_HistogramCutoff;
 
   int m_MovingControlPoint;
+
+  // Whether or not we have been registered with this layer before.
+  // By default, this is set to true. This flag allows us to perform
+  // some one-off initialization stuff (like set the histogram cutoff)
+  // in RegisterWithLayer
+  bool m_FirstTime;
 
   // Whether or not we are already listening to events from this layer
   unsigned long m_ObserverTag;
