@@ -46,6 +46,8 @@ public:
    * bulk of the histogram is visible. We determine range here by taking the
    * 95th percentile of the histogram bin frequencies, and plotting that at
    * the level of 80% of the y-axis.
+   *
+   * The return value is relative to MaxFrequency, e.g., 0.1
    */
   double GetReasonableDisplayCutoff(double quantile=0.95, double quantile_height=0.80) const;
 

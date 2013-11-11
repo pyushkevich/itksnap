@@ -109,7 +109,15 @@ double ScalarImageHistogram::GetReasonableDisplayCutoff(double quantile, double 
   int n = binsort.size();
   int pos = std::min(std::max((int) (0.5 + quantile * (n - 1)) , 0), n - 1);
   unsigned long qval = binsort[pos];
-  return std::min(qval * 1.0 / quantile_height, (double) binsort.back());
+  double cutoff_freq = std::min(qval * 1.0 / quantile_height, (double) binsort.back());
+  double cutoff_fraction = cutoff_freq / m_MaxFrequency;
+
+  // Find the closest power of 10 smaller than the cutoff
+  // p <= cutoff < 10p
+  double p = pow(10, std::floor(log10(cutoff_fraction)));
+  double cutoff_rnd = std::ceil(cutoff_fraction / p) * p;
+
+  return cutoff_rnd;
 }
 
 

@@ -97,8 +97,7 @@ IntensityCurveModel
     {
     // Set the cutoff automatically
     const ScalarImageHistogram *hist = layer->GetHistogram(0);
-    p.SetHistogramCutoff(
-          hist->GetReasonableDisplayCutoff(0.95, 0.6) / hist->GetMaxFrequency());
+    p.SetHistogramCutoff(hist->GetReasonableDisplayCutoff(0.95, 0.6));
     p.SetFirstTime(false);
     }
 }

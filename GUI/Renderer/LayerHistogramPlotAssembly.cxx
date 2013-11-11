@@ -51,7 +51,7 @@ void LayerHistogramPlotAssembly::PlotWithFixedLimits(
   // Determine the maximum frequency we are going to show
   double fmax = (max_plotted_freq_fraction > 0.0)
       ? histogram->GetMaxFrequency() * max_plotted_freq_fraction
-      : histogram->GetReasonableDisplayCutoff(
+      : histogram->GetMaxFrequency() * histogram->GetReasonableDisplayCutoff(
           m_ReasonableScaleQuantileParameter,
           m_ReasonableScaleHeightParameter);
 
@@ -96,5 +96,6 @@ double LayerHistogramPlotAssembly::PlotAsEmpiricalDensity(
   // Return the y cutoff
   return histogram->GetReasonableDisplayCutoff(
         m_ReasonableScaleQuantileParameter,
-        m_ReasonableScaleHeightParameter) * scaleFactor;
+        m_ReasonableScaleHeightParameter)
+      * histogram->GetMaxFrequency() * scaleFactor;
 }
