@@ -140,6 +140,8 @@ void SpeedImageDialog::SetPageAndShow()
     }
 
   this->show();
+  this->activateWindow();
+  this->raise();
 }
 
 void SpeedImageDialog::on_tabWidgetEdge_currentChanged(int index)

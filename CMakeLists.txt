@@ -85,8 +85,9 @@ SET(LOGIC_CXX
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
   Common/Trackball.cxx
-  Logic/Common/ColorMap.cxx
   Logic/Common/ColorLabelTable.cxx
+  Logic/Common/ColorMap.cxx
+  Logic/Common/ColorMapPresetManager.cxx
   Logic/Common/ImageCoordinateGeometry.cxx
   Logic/Common/ImageCoordinateTransform.cxx
   Logic/Common/MetaDataAccess.cxx
@@ -152,6 +153,8 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.txx
   Common/ITKExtras/itkVoxBoCUBImageIO.h
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
+  Common/PresetManager.h
+  Common/PresetManager.hxx
   Common/Rebroadcaster.h
   Common/Registry.h
   Common/SNAPBorlandDummyTypes.h
@@ -164,6 +167,7 @@ SET(LOGIC_HEADERS
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
   Logic/Common/ColorMap.h
+  Logic/Common/ColorMapPresetManager.h
   Logic/Common/ImageCoordinateGeometry.h
   Logic/Common/ImageCoordinateTransform.h
   Logic/Common/SegmentationStatistics.h

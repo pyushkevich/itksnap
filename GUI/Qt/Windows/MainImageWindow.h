@@ -90,6 +90,9 @@ public:
   // Get the action group for the 3D tool
   QActionGroup *Get3DToolActionGroup();
 
+  // Get the layer inspector
+  LayerInspectorDialog *GetLayerInspector();
+
 public slots:
 
   void LoadRecent(QString file);
@@ -166,6 +169,12 @@ private slots:
 
   void on_actionAbout_triggered();
 
+  void on_actionColor_Map_Editor_triggered();
+
+  void on_actionImage_Information_triggered();
+
+  void on_actionUnload_Last_Overlay_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);
@@ -179,6 +188,9 @@ private:
   void UpdateMainLayout();
 
   void SaveSegmentation(bool interactive);
+
+  // Raise a dialog (equivalent to calling show, raise, activateWindow)
+  void RaiseDialog(QDialog *dialog);
 
   // For convenience, an array of the four panels (3 slice/1 3D)
   QWidget *m_ViewPanels[4];

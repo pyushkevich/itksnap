@@ -27,7 +27,7 @@ QToolButton::hovered
 
 QMenu::item 
 {
-	font-size:11pt;
+	font-size:9px;
 }
 </string>
   </property>

@@ -336,6 +336,19 @@ IRISApplication
   InvokeEvent(LayerChangeEvent());
 }
 
+void IRISApplication::UnloadOverlay(ImageWrapperBase *ovl)
+{
+  // Unload this overlay
+  m_IRISImageData->UnloadOverlay(ovl);
+
+  // for overlay, we don't want to change the cursor location
+  // just force the IRISSlicer to update
+  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // Fire event
+  InvokeEvent(LayerChangeEvent());
+}
+
 void IRISApplication
 ::ChangeOverlayPosition(ImageWrapperBase *overlay, int dir)
 {

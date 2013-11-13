@@ -8,6 +8,7 @@
 class LayerTableRowModel;
 class ImageWrapperBase;
 class QMenu;
+class QActionGroup;
 class QContextMenuEvent;
 
 namespace Ui {
@@ -35,8 +36,14 @@ public:
   ImageWrapperBase *GetLayer() const;
 
   bool selected() const { return m_Selected; }
-
   void setSelected(bool value);
+
+  // Access the actions for this item
+  QAction * saveAction() const;
+  QAction * closeAction() const;
+
+  // Get the context menu for this item
+  QMenu *contextMenu() const;
 
   void enterEvent(QEvent *);
   void leaveEvent(QEvent *);
@@ -63,6 +70,12 @@ private slots:
 
   void on_actionSave_triggered();
 
+  void on_actionClose_triggered();
+
+  void onColorMapPresetSelected();
+
+  void on_actionAutoContrast_triggered();
+
 private:
   Ui::LayerInspectorRowDelegate *ui;
 
@@ -79,9 +92,17 @@ private:
   // A popup menu
   QMenu *m_PopupMenu;
 
+  // A submenu for the color maps
+  QMenu *m_ColorMapMenu, *m_DisplayModeMenu;
+
+  // An action group for the system presets
+  QActionGroup* m_SystemPresetActionGroup, *m_DisplayModeActionGroup;
+
   void ApplyColorMap();
   void UpdateBackgroundPalette();
   void UpdateVisibilityControls();
+  void UpdateColorMapMenu();
+  void UpdateComponentMenu();
   void OnNicknameUpdate();
 };
 

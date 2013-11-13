@@ -1,6 +1,7 @@
 #include "ColorMapModel.h"
 #include "LayerAssociation.txx"
 #include "NumericPropertyToggleAdaptor.h"
+#include "ColorMapPresetManager.h"
 
 #include <algorithm>
 
@@ -45,6 +46,12 @@ ColorMapModel::ColorMapModel()
 
   m_LayerVisibilityModel =
       NewNumericPropertyToggleAdaptor(m_LayerOpacityModel.GetPointer(), 0., 50.);
+
+  // Create the color map preset manager
+  m_PresetManager = ColorMapPresetManager::New();
+
+  // Rebroadcast modifications in the preset manager as our own events
+  Rebroadcast(m_PresetManager, itk::ModifiedEvent(), PresetUpdateEvent());
 
   // The model update events should also be rebroadcast as state changes
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
@@ -119,15 +126,14 @@ void ColorMapModel::RegisterWithLayer(ImageWrapperBase *layer)
   // Register for the model events
   ColorMap *cm = this->GetColorMap(layer);
   ColorMapLayerProperties &p = GetProperties();
-  p.SetColorMapObserverTag(
-        Rebroadcast(cm, itk::ModifiedEvent(), ModelUpdateEvent()));
+
+  // Rebroadcast wrapper change events
   p.SetLayerObserverTag(
-        Rebroadcast(layer,AppearanceUpdateEvent(), ModelUpdateEvent()));
+        Rebroadcast(layer,WrapperDisplayMappingChangeEvent(), ModelUpdateEvent()));
 
-  // Check if the colormap matches one of the presets, and if so, set
-  // it as the current preset
-  p.SetSelectedUserPreset("");
-
+  // Update the cached preset value
+  if(cm)
+    p.SetSelectedPreset(m_PresetManager->QueryPreset(cm));
 }
 
 void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted)
@@ -139,10 +145,6 @@ void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer, bool being_dele
     if((tag = p.GetLayerObserverTag()))
       {
       layer->RemoveObserver(tag);
-      }
-    if((tag = p.GetColorMapObserverTag()))
-      {
-      this->GetColorMap(layer)->RemoveObserver(tag);
       }
     }
 }
@@ -254,12 +256,16 @@ void ColorMapModel::OnUpdate()
 {
   Superclass::OnUpdate();
 
-  // Check if the preset has changed in the color map. If it has, we need to
-  // clear out the user preset name
-  if(m_EventBucket->HasEvent(itk::ModifiedEvent()))
+  // If the preset changed or the color map changed, we should update the
+  // currently selected preset
+  if(m_Layer && this->GetColorMap())
     {
-    if(this->GetColorMap()->GetSystemPreset() != ColorMap::COLORMAP_CUSTOM)
-      this->GetProperties().SetSelectedUserPreset("");
+    if(m_EventBucket->HasEvent(itk::ModifiedEvent(), m_PresetManager)
+       || m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent()))
+      {
+      ColorMapLayerProperties &p = this->GetProperties();
+      p.SetSelectedPreset(m_PresetManager->QueryPreset(this->GetColorMap()));
+      }
     }
 }
 
@@ -437,8 +443,10 @@ ColorMapModel
     case UIF_CONTROL_SELECTED_IS_DISCONTINUOUS:
       return idx >= 0 && this->GetColorMap()->GetCMPoint(idx).m_Type ==
           ColorMap::DISCONTINUOUS;
+    case UIF_PRESET_SELECTED:
+      return p.GetSelectedPreset().first != ColorMapPresetManager::PRESET_NONE;
     case UIF_USER_PRESET_SELECTED:
-      return this->GetProperties().GetSelectedUserPreset().length() > 0;
+      return p.GetSelectedPreset().first == ColorMapPresetManager::PRESET_USER;
     }
   return false;
 }
@@ -521,47 +529,19 @@ void ColorMapModel::SetMovingControlType(Continuity value)
     }
 }
 
-
+// TODO: this copies the names needlessly
 void ColorMapModel::GetPresets(
     ColorMapModel::PresetList &system, ColorMapModel::PresetList &user)
 {
-  system = m_PresetSystem;
-  user = m_PresetUser;
+  system = m_PresetManager->GetSystemPresets();
+  user = m_PresetManager->GetUserPresets();
 }
 
 void ColorMapModel::SelectPreset(const std::string &preset)
 {
   // Is this a system preset?
   if(preset.length())
-    {
-    // Is it a system preset?
-    PresetList::iterator itSys =
-        find(m_PresetSystem.begin(), m_PresetSystem.end(), string(preset));
-    if(itSys != m_PresetSystem.end())
-      {
-      this->GetColorMap()->SetToSystemPreset(
-            static_cast<ColorMap::SystemPreset>(itSys - m_PresetSystem.begin()));
-
-      // No user preset selected
-      this->GetProperties().SetSelectedUserPreset("");
-      }
-    else
-      {
-      try
-        {
-        Registry reg = m_System->ReadSavedObject("ColorMaps", preset.c_str());
-        this->GetColorMap()->LoadFromRegistry(reg);
-
-        // Store the selected user preset in the properties.
-        this->GetProperties().SetSelectedUserPreset(preset);
-        }
-      catch(IRISException &exc)
-        {
-        throw IRISException("Unable to read preset from disk. Exception: %s",
-                            exc.what());
-        }
-      }
-    }
+    m_PresetManager->SetToPreset(this->GetColorMap(), preset);
 
   // Clear the selection
   this->GetProperties().SetSelectedControlIndex(-1);
@@ -576,72 +556,27 @@ void ColorMapModel::SetParentModel(GlobalUIModel *parent)
   // Get the pointer to the system interface
   m_System = m_ParentModel->GetDriver()->GetSystemInterface();
 
-  // Get the list of system presets
-  for(int i = 0; i < ColorMap::COLORMAP_CUSTOM; i++)
-    {
-    m_PresetSystem.push_back(
-          ColorMap::GetPresetName(static_cast<ColorMap::SystemPreset>(i)));
-    }
-
-  // Get the current list of user presets. I am assuming that this will not
-  // change other than through the model
-  m_PresetUser = m_System->GetSavedObjectNames("ColorMaps");
+  // Initialize the preset manager
+  m_PresetManager->Initialize(m_System);
 }
 
 #include <algorithm>
 
 void ColorMapModel::SaveAsPreset(std::string name)
 {
-  // Put the colormap in a registry
-  Registry reg;
-  this->GetColorMap()->SetToSystemPreset(ColorMap::COLORMAP_CUSTOM);
-  this->GetColorMap()->SaveToRegistry(reg);
-
-  // Write to file
-  m_System->UpdateSavedObject("ColorMaps", name.c_str(), reg);
-
-  // Refresh the list of user presets
-  m_PresetUser = m_System->GetSavedObjectNames("ColorMaps");
-
-  // Find the new preset in the list
-  PresetList::iterator it =
-      find(m_PresetUser.begin(), m_PresetUser.end(), name);
-
-  if(it != m_PresetUser.end())
-    {
-    this->GetProperties().SetSelectedUserPreset(name);
-    }
-  else
-    {
-    this->GetProperties().SetSelectedUserPreset("");
-    }
-
-  // Invoke an update event
-  InvokeEvent(PresetUpdateEvent());
+  // Save preset
+  m_PresetManager->SaveAsPreset(this->GetColorMap(), name);
 }
 
 void ColorMapModel::DeletePreset(std::string name)
 {
   // Delete the preset
-  m_System->DeleteSavedObject("ColorMaps",name.c_str());
-
-  // Clear the selected preset
-  GetProperties().SetSelectedUserPreset("");
-
-  // Update the user preset list
-  m_PresetUser = m_System->GetSavedObjectNames("ColorMaps");
-
-  // Fire an event
-  InvokeEvent(PresetUpdateEvent());
+  m_PresetManager->DeletePreset(name);
 }
 
 std::string ColorMapModel::GetSelectedPreset()
 {
-  std::string user_preset = this->GetProperties().GetSelectedUserPreset();
-  if(user_preset.length())
-    return user_preset;
-  else
-    return ColorMap::GetPresetName(this->GetColorMap()->GetSystemPreset());
+  return this->GetProperties().GetSelectedPreset().second;
 }
 
 bool ColorMapModel::GetMovingControlIndexValueAndRange(

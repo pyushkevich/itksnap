@@ -6,6 +6,7 @@
 class ImageWrapperBase;
 class GlobalUIModel;
 class ImageIOWizardModel;
+class MultiChannelDisplayMode;
 
 /**
  * @brief The LayerTableRowModel class
@@ -44,6 +45,13 @@ public:
   /** A model for the component name */
   irisSimplePropertyAccessMacro(ComponentName, std::string)
 
+  /** A model for the color map preset currently selected */
+  irisSimplePropertyAccessMacro(ColorMapPreset, std::string)
+
+  /** A model for the display mode */
+  typedef AbstractPropertyModel<MultiChannelDisplayMode, TrivialDomain> AbstractDisplayModeModel;
+  irisGetMacro(DisplayModeModel, AbstractDisplayModeModel *)
+
   /**
     States in which the model can be, which allow the activation and
     deactivation of various widgets in the interface
@@ -52,7 +60,11 @@ public:
     UIF_OPACITY_EDITABLE,
     UIF_PINNABLE,
     UIF_MOVABLE_UP,
-    UIF_MOVABLE_DOWN
+    UIF_MOVABLE_DOWN,
+    UIF_CLOSABLE,
+    UIF_COLORMAP_ADJUSTABLE,
+    UIF_CONTRAST_ADJUSTABLE,
+    UIF_MULTICOMPONENT
     };
 
   /** Check the state of the system */
@@ -71,6 +83,22 @@ public:
    */
   SmartPtr<ImageIOWizardModel> CreateIOWizardModelForSave();
 
+  /**
+   * Close the current layer
+   */
+  void CloseLayer();
+
+  /** Auto-adjust contrast (via the IntensityCurveModel) */
+  void AutoAdjustContrast();
+
+
+  typedef std::list<MultiChannelDisplayMode> DisplayModeList;
+
+  /** Get a mapping of available display modes to user-readable strings */
+  irisGetMacro(AvailableDisplayModes, const DisplayModeList &)
+
+  /** Get the printable name for a display mode */
+  std::string GetDisplayModeString(const MultiChannelDisplayMode &mode);
 
 protected:
   LayerTableRowModel();
@@ -84,6 +112,9 @@ protected:
 
   // Role information (cached)
   int m_LayerRole, m_LayerPositionInRole, m_LayerNumberOfLayersInRole;
+
+  // Cached list of display modes
+  DisplayModeList m_AvailableDisplayModes;
 
   // Visibility model
   SmartPtr<AbstractSimpleBooleanProperty> m_VisibilityToggleModel;
@@ -107,11 +138,27 @@ protected:
   SmartPtr<AbstractSimpleStringProperty> m_ComponentNameModel;
   bool GetComponentNameValue(std::string &value);
 
+  // Color map preset model
+  SmartPtr<AbstractSimpleStringProperty> m_ColorMapPresetModel;
+  bool GetColorMapPresetValue(std::string &value);
+  void SetColorMapPresetValue(std::string value);
+
+  // Display mode model
+  SmartPtr<AbstractDisplayModeModel> m_DisplayModeModel;
+  bool GetDisplayModeValue(MultiChannelDisplayMode &value);
+  void SetDisplayModeValue(MultiChannelDisplayMode value);
+
   // Update our state in response to events from the layer
   virtual void OnUpdate();
 
   // Update cached role information
   void UpdateRoleInfo();
+
+  // Update cached display modes list
+  void UpdateDisplayModeList();
+
+  // Get the display mode
+  MultiChannelDisplayMode GetDisplayMode();
 };
 
 #endif // LAYERTABLEROWMODEL_H

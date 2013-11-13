@@ -80,6 +80,8 @@ void ColorMapInspector::SetModel(ColorMapModel *model)
                  ColorMapModel::UIF_CONTROL_SELECTED_IS_DISCONTINUOUS);
   activateOnFlag(ui->btnRight, m_Model,
                  ColorMapModel::UIF_CONTROL_SELECTED_IS_DISCONTINUOUS);
+  activateOnNotFlag(ui->btnAddPreset, m_Model,
+                    ColorMapModel::UIF_PRESET_SELECTED);
   activateOnFlag(ui->btnDelPreset, m_Model,
                  ColorMapModel::UIF_USER_PRESET_SELECTED);
 
@@ -124,7 +126,6 @@ void ColorMapInspector::PromptUserForColor()
   m_Model->SetSelectedColor(Vector3d(color.redF(), color.greenF(), color.blueF()));
 }
 
-
 void ColorMapInspector::on_btnControlColor_clicked()
 {
   this->PromptUserForColor();
@@ -137,19 +138,33 @@ void ColorMapInspector::PopulatePresets()
   ColorMapModel::PresetList pSystem, pUser;
   m_Model->GetPresets(pSystem, pUser);
 
-  // TODO: generate icons for the colormaps
-
   // Add the presets to the list
   m_PresetsUpdating = true;
 
-  ui->inPreset->clear();
-  for(unsigned int i = 0; i < pSystem.size(); i++)
-    ui->inPreset->addItem(from_utf8(pSystem[i]));
-  if(pUser.size())
+  // The system presets don't change, so we only need to set them the
+  // first time around
+  if(ui->inPreset->model()->rowCount() == 0)
     {
+    for(unsigned int i = 0; i < pSystem.size(); i++)
+      {
+      ColorMap *cm = m_Model->GetPresetManager()->GetPreset(pSystem[i]);
+      QIcon icon = CreateColorMapIcon(16, 16, cm);
+      ui->inPreset->addItem(icon, from_utf8(pSystem[i]));
+      }
     ui->inPreset->insertSeparator(pSystem.size());
-    for(unsigned int i = 0; i < pUser.size(); i++)
-      ui->inPreset->addItem(from_utf8(pUser[i]));
+    }
+  else
+    {
+    // Remove all the user presets
+    while(ui->inPreset->model()->rowCount() > pSystem.size())
+      ui->inPreset->removeItem(ui->inPreset->model()->rowCount() - 1);
+    }
+
+  for(unsigned int i = 0; i < pUser.size(); i++)
+    {
+    ColorMap *cm = m_Model->GetPresetManager()->GetPreset(pUser[i]);
+    QIcon icon = CreateColorMapIcon(16, 16, cm);
+    ui->inPreset->addItem(icon, from_utf8(pUser[i]));
     }
 
   m_PresetsUpdating = false;
@@ -164,20 +179,14 @@ void ColorMapInspector::on_inPreset_currentIndexChanged(int index)
 
 void ColorMapInspector::on_btnAddPreset_clicked()
 {
-  // What default to recommend?
-  int sel = ui->inPreset->currentIndex();
-  QString seltext = ui->inPreset->itemText(sel);
-  QString deflt = (sel < ColorMap::COLORMAP_CUSTOM)
-      ? QString("My ") + seltext : seltext;
-
   // Prompt the user for input
   bool ok;
   QString input = QInputDialog::getText(
         this, tr("Preset Name"),
         tr("Enter the name for the new preset:"),
-        QLineEdit::Normal, deflt, &ok);
+        QLineEdit::Normal, "", &ok);
 
-  if(ok)
+  if(ok && !input.isEmpty())
     {
     m_Model->SaveAsPreset(to_utf8(input));
     }

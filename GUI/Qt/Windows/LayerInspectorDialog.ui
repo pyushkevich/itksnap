@@ -28,10 +28,15 @@
        <height>0</height>
       </size>
      </property>
+     <property name="styleSheet">
+      <string notr="true">QToolButton {
+	width: 16px;
+	height: 16px;
+	icon-size: 16px;
+	padding: 1px;
+}</string>
+     </property>
      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0,0">
-      <property name="spacing">
-       <number>6</number>
-      </property>
       <property name="margin">
        <number>0</number>
       </property>
@@ -62,7 +67,7 @@
            <x>0</x>
            <y>0</y>
            <width>150</width>
-           <height>439</height>
+           <height>409</height>
           </rect>
          </property>
          <property name="styleSheet">
@@ -209,17 +214,16 @@
     <string>Press this button to display layer visibility and opacity controls in the list of layers</string>
    </property>
   </action>
-  <action name="actionToggleLayout">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
+  <action name="actionLayoutToggle">
    <property name="icon">
     <iconset resource="../Resources/SNAPResources.qrc">
-     <normaloff>:/root/layout_overlay_16.png</normaloff>
-     <normalon>:/root/layout_tile_16.png</normalon>:/root/layout_overlay_16.png</iconset>
+     <normaloff>:/root/layout_tile_16.png</normaloff>:/root/layout_tile_16.png</iconset>
    </property>
    <property name="text">
-    <string>Toggle Display Layout</string>
+    <string>Layout Toggle</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle layout between tiled and stacked</string>
    </property>
   </action>
  </widget>

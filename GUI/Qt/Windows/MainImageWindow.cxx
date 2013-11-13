@@ -469,14 +469,31 @@ void MainImageWindow::on_actionImage_Contrast_triggered()
   m_LayerInspector->SetPageToContrastAdjustment();
 
   // Show the dialog
-  m_LayerInspector->show();
+  RaiseDialog(m_LayerInspector);
 }
 
+void MainImageWindow::on_actionColor_Map_Editor_triggered()
+{
+  // Go to the contrast page in the dialog
+  m_LayerInspector->SetPageToContrastAdjustment();
+
+  // Show the dialog
+  RaiseDialog(m_LayerInspector);
+}
+
+void MainImageWindow::on_actionImage_Information_triggered()
+{
+  // Go to the contrast page in the dialog
+  m_LayerInspector->SetPageToImageInfo();
+
+  // Show the dialog
+  RaiseDialog(m_LayerInspector);
+}
 
 void MainImageWindow::on_actionLabel_Editor_triggered()
 {
   // Execute the label editor
-  m_LabelEditor->show();
+  RaiseDialog(m_LabelEditor);
 }
 
 void MainImageWindow::OpenSnakeWizard()
@@ -539,7 +556,7 @@ void MainImageWindow::LoadDroppedFile(QString file)
     // If an image is already loaded, we show the dialog
     m_DropDialog->SetDroppedFilename(file);
     m_DropDialog->setModal(true);
-    m_DropDialog->show();
+    RaiseDialog(m_DropDialog);
     }
   else
     {
@@ -563,6 +580,11 @@ QActionGroup *MainImageWindow::GetMainToolActionGroup()
 QActionGroup *MainImageWindow::Get3DToolActionGroup()
 {
   return ui->action3DCrosshair->actionGroup();
+}
+
+LayerInspectorDialog *MainImageWindow::GetLayerInspector()
+{
+  return m_LayerInspector;
 }
 
 void MainImageWindow::LoadRecent(QString file)
@@ -638,7 +660,7 @@ void MainImageWindow::on_actionUnload_All_triggered()
 void MainImageWindow::on_actionReorient_Image_triggered()
 {
   // Show the reorientation dialog
-  m_ReorientImageDialog->show();
+  RaiseDialog(m_ReorientImageDialog);
 }
 
 void MainImageWindow::on_actionZoomToFitInAllViews_triggered()
@@ -873,6 +895,13 @@ void MainImageWindow::SaveSegmentation(bool interactive)
     }
 }
 
+void MainImageWindow::RaiseDialog(QDialog *dialog)
+{
+  dialog->show();
+  dialog->activateWindow();
+  dialog->raise();
+}
+
 void MainImageWindow::on_actionSaveSegmentation_triggered()
 {
   SaveSegmentation(false);
@@ -902,11 +931,18 @@ void MainImageWindow::on_actionOverlayVisibilityDecreaseAll_triggered()
 void MainImageWindow::on_actionLayerInspector_triggered()
 {
   // Show the dialog
-  m_LayerInspector->show();
+  RaiseDialog(m_LayerInspector);
 }
 
 void MainImageWindow::on_actionAbout_triggered()
 {
   // Show the about window
-  m_AboutDialog->show();
+  RaiseDialog(m_AboutDialog);
+}
+
+
+
+void MainImageWindow::on_actionUnload_Last_Overlay_triggered()
+{
+
 }

@@ -96,25 +96,18 @@ QGroupBox::title {
          </size>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>-1</number>
         </property>
         <property name="maxVisibleItems">
          <number>16</number>
         </property>
-        <item>
-         <property name="text">
-          <string>Cheese</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Milk</string>
-         </property>
-        </item>
        </widget>
       </item>
       <item row="1" column="2">
        <widget class="QToolButton" name="btnAddPreset">
+        <property name="toolTip">
+         <string>Save the current color map as a new preset</string>
+        </property>
         <property name="text">
          <string>+</string>
         </property>
@@ -122,6 +115,9 @@ QGroupBox::title {
       </item>
       <item row="1" column="3">
        <widget class="QToolButton" name="btnDelPreset">
+        <property name="toolTip">
+         <string>Delete the selected preset</string>
+        </property>
         <property name="text">
          <string>-</string>
         </property>

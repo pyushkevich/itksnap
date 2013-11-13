@@ -5,6 +5,7 @@
 #include "PropertyModel.h"
 #include <UIReporterDelegates.h>
 #include "ColorMap.h"
+#include "ColorMapPresetManager.h"
 
 class ColorMap;
 class SystemInterface;
@@ -14,14 +15,14 @@ class ColorMapLayerProperties
 public:
 
   irisGetSetMacro(LayerObserverTag, unsigned long)
-  irisGetSetMacro(ColorMapObserverTag, unsigned long)
 
   ColorMapLayerProperties()
   {
     m_SelectedControlIndex = -1;
     m_SelectedControlSide = NA;
     m_LayerObserverTag = 0;
-    m_ColorMapObserverTag = 0;
+    m_SelectedPreset =
+        std::make_pair(ColorMapPresetManager::PRESET_NONE, std::string());
   }
 
   virtual ~ColorMapLayerProperties() {}
@@ -30,7 +31,7 @@ public:
 
   irisGetSetMacro(SelectedControlIndex, int)
   irisGetSetMacro(SelectedControlSide, Side)
-  irisGetSetMacro(SelectedUserPreset, std::string)
+  irisGetSetMacro(SelectedPreset, ColorMapPresetManager::PresetMatch)
 
 protected:
 
@@ -40,8 +41,8 @@ protected:
   // Side of the control point, if discontinuous
   Side m_SelectedControlSide;
 
-  // The index of the current preset
-  std::string m_SelectedUserPreset;
+  // Cached information about the currently selected preset
+  ColorMapPresetManager::PresetMatch m_SelectedPreset;
 
   // Whether or not we are already listening to events from this layer
   unsigned long m_ColorMapObserverTag, m_LayerObserverTag;
@@ -78,6 +79,7 @@ public:
     UIF_CONTROL_SELECTED,
     UIF_CONTROL_SELECTED_IS_NOT_ENDPOINT,
     UIF_CONTROL_SELECTED_IS_DISCONTINUOUS,
+    UIF_PRESET_SELECTED,
     UIF_USER_PRESET_SELECTED
     };
 
@@ -151,6 +153,9 @@ public:
   /** Get the list of color map presets */
   void GetPresets(PresetList &system, PresetList &user);
 
+  /** Get the preset manager object */
+  irisGetMacro(PresetManager, ColorMapPresetManager *)
+
   /** Select one of the presets. The index is into the combined list
     of system and user presets */
   void SelectPreset(const std::string &preset);
@@ -183,8 +188,11 @@ protected:
   // corresponding widget changes).
   ViewportSizeReporter *m_ViewportReporter;
 
+  // Color map preset manager
+  SmartPtr<ColorMapPresetManager> m_PresetManager;
+
   // Colormap presets
-  PresetList m_PresetSystem, m_PresetUser;
+  // PresetList m_PresetSystem, m_PresetUser;
 
   // Get the RGBA for selected point
   bool GetSelectedRGBA(ColorMap::RGBAType &rgba);

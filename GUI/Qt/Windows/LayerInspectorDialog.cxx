@@ -19,11 +19,15 @@
 #include "SNAPQtCommon.h"
 #include "LayerInspectorRowDelegate.h"
 #include "QGroupBox"
+#include "QComboBox"
 #include "QToolBar"
+#include <QToolButton>
 #include "CollapsableGroupBox.h"
 #include "LayerTableRowModel.h"
 #include "GlobalUIModel.h"
 #include "QtActionCoupling.h"
+#include "QtActionGroupCoupling.h"
+#include "DisplayLayoutModel.h"
 
 #include <QMenu>
 
@@ -38,12 +42,17 @@ LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
   ui->loToolbar->addWidget(tb);
   tb->setIconSize(QSize(16,16));
 
+  m_SaveSelectedButton = new QToolButton(this);
+
+  tb->addWidget(m_SaveSelectedButton);
+  tb->addAction(ui->actionEditVisibility);
+  tb->addAction(ui->actionLayoutToggle);
+
   // Set up the action button
   QMenu *menu = new QMenu(this);
   menu->addAction(ui->actionSaveSelectedLayerAs);
-  tb->addAction(ui->actionSaveSelectedLayerAs);
-  tb->addAction(ui->actionEditVisibility);
-  tb->addAction(ui->actionToggleLayout);
+
+
 
   // Set up the list of custom layer widgets
   QVBoxLayout *loLayers = new QVBoxLayout();
@@ -84,6 +93,14 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
         model->GetDriver(), WrapperMetadataChangeEvent(),
         this, SLOT(onModelUpdate(const EventBucket &)));
 
+  // For the tile/stacked button, we currently don't have a coupling mechanism
+  // that supports it, so instead, we respond to the event directly
+  LatentITKEventNotifier::connect(
+        model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel(),
+        ValueChangedEvent(),
+        this, SLOT(onModelUpdate(const EventBucket &)));
+
+
   // The button turning on and off the visibility/reorder/pinning controls
   // on the layer rows is tied to a model in GenericUIModel
   makeCoupling(
@@ -99,6 +116,20 @@ void LayerInspectorDialog::SetPageToContrastAdjustment()
 void LayerInspectorDialog::SetPageToColorMap()
 {
   ui->tabWidget->setCurrentWidget(ui->cmpColorMap);
+}
+
+void LayerInspectorDialog::SetPageToImageInfo()
+{
+  ui->tabWidget->setCurrentWidget(ui->cmpInfo);
+}
+
+QMenu *LayerInspectorDialog::GetLayerContextMenu(ImageWrapperBase *layer)
+{
+  foreach(LayerInspectorRowDelegate *del, m_Delegates)
+    if(del->GetLayer() == layer)
+      return del->contextMenu();
+
+  return NULL;
 }
 
 bool LayerInspectorDialog::eventFilter(QObject *source, QEvent *event)
@@ -269,10 +300,20 @@ void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
     m_Model->GetIntensityCurveModel()->Update();
     m_Model->GetLayerGeneralPropertiesModel()->Update();
     }
+
+  if(bucket.HasEvent(ValueChangedEvent(),
+                     m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()))
+    {
+    this->UpdateLayerLayoutAction();
+    }
 }
 
 void LayerInspectorDialog::layerSelected(bool flag)
 {
+  // Remove all actions from the save button
+  foreach(QAction *action, m_SaveSelectedButton->actions())
+    m_SaveSelectedButton->removeAction(action);
+
   // Turn off all the other widgets
   if(flag)
     {
@@ -286,6 +327,9 @@ void LayerInspectorDialog::layerSelected(bool flag)
     // Switch the current layer in all the right-pane models
     LayerInspectorRowDelegate *wsel = (LayerInspectorRowDelegate *) this->sender();
     this->SetActiveLayer(wsel->GetLayer());
+
+    // Put this layer's actions on the menu
+    m_SaveSelectedButton->setDefaultAction(wsel->saveAction());
     }
 }
 
@@ -297,8 +341,7 @@ void LayerInspectorDialog::SetActiveLayer(ImageWrapperBase *layer)
     layer = NULL;
 
   // For each model, set the layer
-  m_Model->GetColorMapModel()->SetLayer(
-        layer->GetDisplayMapping()->GetColorMap() ? layer : NULL);
+  m_Model->GetColorMapModel()->SetLayer(layer);
 
   m_Model->GetIntensityCurveModel()->SetLayer(
         layer->GetDisplayMapping()->GetIntensityCurve() ? layer : NULL);
@@ -307,8 +350,51 @@ void LayerInspectorDialog::SetActiveLayer(ImageWrapperBase *layer)
   m_Model->GetLayerGeneralPropertiesModel()->SetLayer(layer);
 }
 
+void
+LayerInspectorDialog::UpdateLayerLayoutAction()
+{
+  DisplayLayoutModel *dlm = m_Model->GetDisplayLayoutModel();
+  DisplayLayoutModel::LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
+
+  if(ll == DisplayLayoutModel::LAYOUT_TILED)
+    {
+    ui->actionLayoutToggle->setIcon(QIcon(":/root/layout_overlay_16.png"));
+    ui->actionLayoutToggle->setToolTip("Render image overlays on top of each other");
+    }
+  else if(ll == DisplayLayoutModel::LAYOUT_STACKED)
+    {
+    ui->actionLayoutToggle->setIcon(QIcon(":/root/layout_tile_16.png"));
+    ui->actionLayoutToggle->setToolTip("Tile image overlays side by side");
+    }
+}
+
 void LayerInspectorDialog::on_actionSaveSelectedLayerAs_triggered()
 {
+  // Save the currently selected layer
 
 
+}
+
+void LayerInspectorDialog::on_actionLayoutToggle_triggered(bool value)
+{
+  DisplayLayoutModel *dlm = m_Model->GetDisplayLayoutModel();
+  DisplayLayoutModel::LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
+  if(ll == DisplayLayoutModel::LAYOUT_TILED)
+    {
+    dlm->GetSliceViewLayerLayoutModel()->SetValue(DisplayLayoutModel::LAYOUT_STACKED);
+    }
+  else
+    {
+    dlm->GetSliceViewLayerLayoutModel()->SetValue(DisplayLayoutModel::LAYOUT_TILED);
+    }
+}
+
+void LayerInspectorDialog::on_buttonBox_accepted()
+{
+  this->close();
+}
+
+void LayerInspectorDialog::on_buttonBox_rejected()
+{
+  this->close();
 }

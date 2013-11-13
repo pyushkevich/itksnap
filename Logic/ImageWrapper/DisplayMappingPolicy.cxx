@@ -538,6 +538,13 @@ MultiChannelDisplayMode::MultiChannelDisplayMode(
 
 }
 
+MultiChannelDisplayMode::MultiChannelDisplayMode(int value)
+{
+  UseRGB = false;
+  SelectedScalarRep = SCALAR_REP_COMPONENT;
+  SelectedComponent = 0;
+}
+
 MultiChannelDisplayMode
 MultiChannelDisplayMode::DefaultForRGB()
 {

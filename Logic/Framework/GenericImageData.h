@@ -318,6 +318,7 @@ public:
   /** Handle overlays */
   virtual void UnloadOverlays();
   virtual void UnloadOverlayLast();
+  virtual void UnloadOverlay(ImageWrapperBase *overlay);
 
   /**
    * Change the ordering of the layers within a particular role (for now just

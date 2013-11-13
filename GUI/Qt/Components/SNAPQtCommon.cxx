@@ -16,6 +16,7 @@
 #include "HistoryManager.h"
 #include "SimpleFileDialogWithHistory.h"
 #include "ColorLabelTable.h"
+#include "ColorMap.h"
 
 QIcon CreateColorBoxIcon(int w, int h, const QBrush &brush)
 {
@@ -46,6 +47,56 @@ QIcon CreateInvisibleIcon(int w, int h)
   pix.fill(QColor(0,0,0,0));
   return QIcon(pix);
 }
+
+
+#include <map>
+#include <itkObject.h>
+
+QIcon CreateColorMapIcon(int w, int h, ColorMap *cmap)
+{
+  // Maintain a static map of icons for each existing color map
+  typedef std::pair<itk::TimeStamp, QIcon> StampedIcon;
+  typedef std::map<ColorMap *, StampedIcon> IconMap;
+  static IconMap icon_map;
+
+  // Get the color map's timestamp
+  itk::TimeStamp ts_cmap = cmap->GetTimeStamp();
+
+  // Try to find the icon in the icon map
+  IconMap::iterator it = icon_map.find(cmap);
+  if(it != icon_map.end())
+    {
+    // We have created an icon for this before. Check that it's current and
+    // that it matches the requested size (only one size is cached!)
+    itk::TimeStamp ts_icon = it->second.first;
+    if(ts_cmap == ts_icon)
+      return it->second.second;
+    }
+
+  // Create the actual icon
+  QPixmap pix(w, h);
+  pix.fill(QColor(0,0,0,0));
+
+  QPainter paint(&pix);
+  for(int x = 3; x <= w-4; x++)
+    {
+    double t = (x - 3.0) / (w - 7.0);
+    ColorMap::RGBAType rgba = cmap->MapIndexToRGBA(t);
+    paint.setPen(QColor(rgba[0], rgba[1], rgba[2]));
+    paint.drawLine(x, 3, x, w-4);
+    }
+
+  paint.setPen(Qt::black);
+  QRect r(2,2,w-5,w-5);
+  paint.drawRect(r);
+
+  QIcon icon(pix);
+
+  // Save the icon
+  icon_map[cmap] = std::make_pair(ts_cmap, icon);
+  return icon;
+}
+
 
 QBrush GetBrushForColorLabel(const ColorLabel &cl)
 {

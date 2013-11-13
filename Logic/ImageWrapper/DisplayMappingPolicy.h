@@ -344,6 +344,10 @@ struct MultiChannelDisplayMode
                           ScalarRepresentation rep,
                           int comp = 0);
 
+  /** Constructor from an integer, used for compatibility purposes, allowing
+   * zero to be cast to the default mode state */
+  MultiChannelDisplayMode(int value);
+
   /** Initialize for RGB mode */
   static MultiChannelDisplayMode DefaultForRGB();
 
@@ -359,15 +363,14 @@ struct MultiChannelDisplayMode
   int GetHashValue() const;
 
   /** Comparison operators */
-  bool operator == (const MultiChannelDisplayMode &mode)
+  bool operator == (const MultiChannelDisplayMode &mode) const
     { return GetHashValue() == mode.GetHashValue(); }
 
-  bool operator != (const MultiChannelDisplayMode &mode)
+  bool operator != (const MultiChannelDisplayMode &mode) const
     { return GetHashValue() != mode.GetHashValue(); }
 };
 
 bool operator < (const MultiChannelDisplayMode &a, const MultiChannelDisplayMode &b);
-
 
 /**
  * Display mapping policy for speed and level set images, i.e., images that

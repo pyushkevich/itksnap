@@ -416,7 +416,9 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   m_XColorMapItem = vtkSmartPointer<HorizontalColorMapContextItem>::New();
   m_YColorMapItem = vtkSmartPointer<VerticalColorMapContextItem>::New();
   m_Chart->AddPlot(m_XColorMapItem);
-  m_Chart->AddPlot(m_YColorMapItem);
+
+  // I commented this out, because the chart looks too busy
+  // m_Chart->AddPlot(m_YColorMapItem);
 
   m_Controls = vtkSmartPointer<IntensityCurveControlPointsContextItem>::New();
   m_Chart->AddPlot(m_Controls);

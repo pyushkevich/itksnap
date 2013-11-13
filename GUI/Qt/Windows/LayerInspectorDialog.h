@@ -10,6 +10,8 @@ class GlobalUIModel;
 class EventBucket;
 class LayerInspectorRowDelegate;
 class ImageWrapperBase;
+class QToolButton;
+class QMenu;
 
 namespace Ui {
     class LayerInspectorDialog;
@@ -30,6 +32,10 @@ public:
 
   void SetPageToContrastAdjustment();
   void SetPageToColorMap();
+  void SetPageToImageInfo();
+
+  // Get the context menu corresponding to a specific layer.
+  QMenu *GetLayerContextMenu(ImageWrapperBase *layer);
 
   bool eventFilter(QObject *source, QEvent *event);
 
@@ -46,6 +52,12 @@ signals:
 private slots:
   void on_actionSaveSelectedLayerAs_triggered();
 
+  void on_actionLayoutToggle_triggered(bool);
+
+  void on_buttonBox_accepted();
+
+  void on_buttonBox_rejected();
+
 private:
   Ui::LayerInspectorDialog *ui;
   GlobalUIModel *m_Model;
@@ -53,6 +65,10 @@ private:
   void GenerateModelsForLayers();
   void BuildLayerWidgetHierarchy();
   void SetActiveLayer(ImageWrapperBase *layer);
+  void UpdateLayerLayoutAction();
+
+  // Tool bar buttons that use actions from the selected layer widgets
+  QToolButton *m_SaveSelectedButton;
 
   // List of layer delegate widgets
   QList<LayerInspectorRowDelegate *> m_Delegates;

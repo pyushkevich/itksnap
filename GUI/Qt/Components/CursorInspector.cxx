@@ -17,6 +17,7 @@
 #include <QMenu>
 #include <IntensityCurveModel.h>
 #include <LayerSelectionModel.h>
+#include "SNAPQtCommon.h"
 
 #include <QtSpinBoxCoupling.h>
 #include <QtCheckBoxCoupling.h>
@@ -120,11 +121,30 @@ void CursorInspector::SetModel(CursorInspectionModel *model)
                LayerCurrentVoxelInfoDomainTraits());
 }
 
+#include "MainImageWindow.h"
+#include "LayerInspectorDialog.h"
+
 void CursorInspector::onContextMenuRequested(QPoint pos)
 {
   m_PopupRow = ui->tableVoxelUnderCursor->rowAt(pos.y());
   if(m_PopupRow >= 0)
-    m_ContextMenu->popup(QCursor::pos());
+    {
+    // Instead of creating a separate context menu here, we use a context menu
+    // from the corresponding row in the LayerInspector.
+    MainImageWindow *winmain = findParentWidget<MainImageWindow>(this);
+    LayerInspectorDialog *inspector = winmain->GetLayerInspector();
+
+    // Find the corresponding layer
+    LayerIterator it =
+        m_Model->GetParent()->GetLoadedLayersSelectionModel()->GetNthLayer(m_PopupRow);
+
+    // Get the menu
+    QMenu *menu = inspector->GetLayerContextMenu(it.GetLayer());
+
+    // Show the menu
+    if(menu)
+      menu->popup(QCursor::pos());
+    }
 }
 
 void CursorInspector::on_actionAutoContrast_triggered()

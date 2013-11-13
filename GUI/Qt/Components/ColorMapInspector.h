@@ -3,6 +3,7 @@
 
 #include "SNAPCommon.h"
 #include "SNAPComponent.h"
+#include <map>
 
 class QtViewportReporter;
 class ColorMapModel;
@@ -49,6 +50,9 @@ private:
 
   // Viewport reporter for the curve box
   SmartPtr<QtViewportReporter> m_ColorMapBoxViewportReporter;
+
+  // Icons for the different presets
+  std::map<std::string, QIcon> m_PresetMap;
 
   // Whether an update is being done to the presets
   bool m_PresetsUpdating;

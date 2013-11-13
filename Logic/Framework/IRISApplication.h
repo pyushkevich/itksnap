@@ -184,6 +184,7 @@ public:
    */
   void UnloadOverlays();
   void UnloadOverlayLast();
+  void UnloadOverlay(ImageWrapperBase *ovl);
   void UnloadMainImage();
 
   /**

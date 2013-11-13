@@ -216,6 +216,17 @@ GenericImageData
   PopBackImageWrapper(LayerIterator::OVERLAY_ROLE);
 }
 
+void GenericImageData
+::UnloadOverlay(ImageWrapperBase *overlay)
+{
+  // Erase the overlay
+  WrapperList &overlays = m_Wrappers[LayerIterator::OVERLAY_ROLE];
+  WrapperIterator it =
+      std::find(overlays.begin(), overlays.end(), overlay);
+  if(it != overlays.end())
+    overlays.erase(it);
+}
+
 void
 GenericImageData
 ::SetSegmentationImage(LabelImageType *newLabelImage) 

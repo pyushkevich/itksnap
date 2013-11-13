@@ -7,6 +7,7 @@
 #include "QtAbstractButtonCoupling.h"
 #include "QtLabelCoupling.h"
 #include "QtSliderCoupling.h"
+#include "QtActionGroupCoupling.h"
 #include <QGraphicsOpacityEffect>
 #include <QPropertyAnimation>
 #include <QFile>
@@ -19,6 +20,9 @@
 
 #include "DisplayMappingPolicy.h"
 #include "ColorMap.h"
+#include "ColorMapModel.h"
+
+class QAction;
 
 QString LayerInspectorRowDelegate::m_SliderStyleSheetTemplate;
 
@@ -30,10 +34,21 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
 
   // Confirugre the popup menu
   m_PopupMenu = new QMenu(this);
+  m_PopupMenu->setStyleSheet("font-size:11px;");
+
+  // Add the save/close actions
   m_PopupMenu->addAction(ui->actionSave);
   m_PopupMenu->addAction(ui->actionClose);
   m_PopupMenu->addSeparator();
   m_PopupMenu->addAction(ui->actionAutoContrast);
+
+  // Add the color map menu
+  m_ColorMapMenu = m_PopupMenu->addMenu("Color Map");
+  m_SystemPresetActionGroup = NULL;
+
+  // Add the component selection menu
+  m_DisplayModeMenu = m_PopupMenu->addMenu("Multi-Component Display");
+  m_DisplayModeActionGroup = NULL;
 
   // set up an event filter
   ui->inLayerOpacity->installEventFilter(this);
@@ -77,19 +92,31 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   activateOnFlag(ui->btnSticky, model, LayerTableRowModel::UIF_PINNABLE);
   activateOnFlag(ui->btnMoveUp, model, LayerTableRowModel::UIF_MOVABLE_UP);
   activateOnFlag(ui->btnMoveDown, model, LayerTableRowModel::UIF_MOVABLE_DOWN);
+  activateOnFlag(ui->actionClose, model, LayerTableRowModel::UIF_CLOSABLE);
+  activateOnFlag(ui->actionAutoContrast, model, LayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
+  activateOnFlag(m_ColorMapMenu, model, LayerTableRowModel::UIF_COLORMAP_ADJUSTABLE);
+  activateOnFlag(m_DisplayModeMenu, model, LayerTableRowModel::UIF_MULTICOMPONENT);
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());
   OnNicknameUpdate();
   ApplyColorMap();
 
+  // Listen to preset changes from the color map model
+  connectITK(m_Model->GetParentModel()->GetColorMapModel(),
+             ColorMapModel::PresetUpdateEvent());
+
+  // Update the color map menu
+  UpdateColorMapMenu();
+
+  // Update the component menu
+  UpdateComponentMenu();
 
   // The page shown in this widget depends on whether the visibility editing
   // is on or off
   connectITK(m_Model->GetParentModel()->GetLayerVisibilityEditableModel(),
              ValueChangedEvent());
   UpdateVisibilityControls();
-
 }
 
 ImageWrapperBase *LayerInspectorRowDelegate::GetLayer() const
@@ -155,6 +182,21 @@ void LayerInspectorRowDelegate::setSelected(bool value)
     }
 }
 
+QAction *LayerInspectorRowDelegate::saveAction() const
+{
+  return ui->actionSave;
+}
+
+QAction *LayerInspectorRowDelegate::closeAction() const
+{
+  return ui->actionClose;
+}
+
+QMenu *LayerInspectorRowDelegate::contextMenu() const
+{
+  return this->m_PopupMenu;
+}
+
 void LayerInspectorRowDelegate::enterEvent(QEvent *)
 {
   m_Hover = true;
@@ -216,13 +258,111 @@ void LayerInspectorRowDelegate::UpdateVisibilityControls()
     }
 }
 
+void LayerInspectorRowDelegate::UpdateColorMapMenu()
+{
+  // The presets are available from the color map model. We can use them
+  // regardless of the row that is currently selected
+  ColorMapModel *cmm = m_Model->GetParentModel()->GetColorMapModel();
+  ColorMapPresetManager *pm = cmm->GetPresetManager();
+
+  // Get the system and user presets
+  ColorMapModel::PresetList pSystem, pUser;
+  cmm->GetPresets(pSystem, pUser);
+
+  // Remove all of the existing actions
+  m_ColorMapMenu->clear();
+  if(m_SystemPresetActionGroup)
+    delete m_SystemPresetActionGroup;
+
+  // Create a map from preset names to actions
+  std::map<std::string, QAction *> actionMap;
+
+  // Add all of the system presets
+  m_SystemPresetActionGroup = new QActionGroup(this);
+
+  // Create the actions for the system presets
+  for(unsigned int i = 0; i < pSystem.size(); i++)
+    {
+    QIcon icon = CreateColorMapIcon(16, 16, pm->GetPreset(pSystem[i]));
+    QAction *action = m_SystemPresetActionGroup->addAction(icon, from_utf8(pSystem[i]));
+    action->setCheckable(true);
+    actionMap[pSystem[i]] = action;
+    }
+
+  // Add a separator to the action group
+  m_SystemPresetActionGroup->addAction("")->setSeparator(true);
+
+  // Add the user presets to the action group
+  for(unsigned int i = 0; i < pUser.size(); i++)
+    {
+    QIcon icon = CreateColorMapIcon(16, 16, pm->GetPreset(pUser[i]));
+    QAction *action = m_SystemPresetActionGroup->addAction(icon, from_utf8(pUser[i]));
+    action->setCheckable(true);
+    actionMap[pUser[i]] = action;
+    }
+
+  // Connect the action group to the model
+  makeActionGroupCoupling(m_SystemPresetActionGroup,
+                          actionMap,
+                          m_Model->GetColorMapPresetModel());
+
+  // Add the action group to the menu
+  m_ColorMapMenu->addActions(m_SystemPresetActionGroup->actions());
+}
+
+void LayerInspectorRowDelegate::UpdateComponentMenu()
+{
+  m_DisplayModeMenu->clear();
+
+  if(m_DisplayModeActionGroup)
+    delete m_DisplayModeActionGroup;
+
+  // Create a map from display modes to actions
+  std::map<MultiChannelDisplayMode, QAction *> actionMap;
+
+  // Add all of the system presets
+  m_DisplayModeActionGroup = new QActionGroup(this);
+
+  // Get the list of all available display modes from the model
+  const LayerTableRowModel::DisplayModeList &modes = m_Model->GetAvailableDisplayModes();
+
+  // Create the actions for the display modes
+  LayerTableRowModel::DisplayModeList::const_iterator it;
+  for(it = modes.begin(); it != modes.end(); it++)
+    {
+    MultiChannelDisplayMode mode = *it;
+
+    // Insert some separators into the menu
+    if(mode.SelectedScalarRep == SCALAR_REP_MAGNITUDE || mode.UseRGB)
+      m_DisplayModeMenu->addSeparator();
+
+    // Create an action
+    QAction *action = m_DisplayModeMenu->addAction(
+          from_utf8(m_Model->GetDisplayModeString(mode)));
+
+    action->setCheckable(true);
+
+    m_DisplayModeActionGroup->addAction(action);
+
+    actionMap[mode] = action;
+    }
+
+  // Hook up with the ctions
+  makeActionGroupCoupling(m_DisplayModeActionGroup, actionMap,
+                          m_Model->GetDisplayModeModel());
+}
+
+
 void LayerInspectorRowDelegate::OnNicknameUpdate()
 {
   // Update things that depend on the nickname
   QString name = from_utf8(m_Model->GetNickname());
-  ui->actionSave->setText(QString("Save \"%1\" ...").arg(name));
-  ui->actionClose->setText(QString("Close \"%1\"").arg(name));
+  ui->actionSave->setText(QString("Save image \"%1\" ...").arg(name));
+  ui->actionSave->setToolTip(ui->actionSave->text());
+  ui->actionClose->setText(QString("Close image \"%1\"").arg(name));
+  ui->actionClose->setToolTip(ui->actionClose->text());
   ui->outLayerNickname->setToolTip(name);
+
 }
 
 void LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
@@ -231,13 +371,17 @@ void LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
     {
     this->ApplyColorMap();
     }
-  else if(bucket.HasEvent(WrapperMetadataChangeEvent()))
+  if(bucket.HasEvent(WrapperMetadataChangeEvent()))
     {
     this->OnNicknameUpdate();
     }
-  else if(bucket.HasEvent(ValueChangedEvent()))
+  if(bucket.HasEvent(ValueChangedEvent()))
     {
     this->UpdateVisibilityControls();
+    }
+  if(bucket.HasEvent(ColorMapModel::PresetUpdateEvent()))
+    {
+    this->UpdateColorMapMenu();
     }
 }
 
@@ -304,4 +448,18 @@ void LayerInspectorRowDelegate::on_actionSave_triggered()
   ImageIOWizard wiz(this);
   wiz.SetModel(model);
   wiz.exec();
+}
+
+void LayerInspectorRowDelegate::on_actionClose_triggered()
+{
+  m_Model->CloseLayer();
+}
+
+void LayerInspectorRowDelegate::onColorMapPresetSelected()
+{
+}
+
+void LayerInspectorRowDelegate::on_actionAutoContrast_triggered()
+{
+  m_Model->AutoAdjustContrast();
 }
