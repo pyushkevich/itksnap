@@ -107,7 +107,7 @@ public:
   irisITKAbstractObjectMacro(AbstractSaveImageDelegate, itk::Object)
 
   virtual void Initialize(GlobalUIModel *model)
-    { m_Model = model; }
+    { m_Model = model; m_SaveSuccessful = false; }
 
   virtual void SaveImage(
       const std::string &fname,
@@ -117,11 +117,17 @@ public:
 
   virtual const char *GetCurrentFilename() = 0;
 
+  /**
+   * Has the file been saves successfully after the call to SaveImage?
+   */
+  bool IsSaveSuccessful() { return m_SaveSuccessful; }
+
 protected:
   AbstractSaveImageDelegate() {}
   virtual ~AbstractSaveImageDelegate() {}
 
   GlobalUIModel *m_Model;
+  bool m_SaveSuccessful;
 };
 
 class DefaultSaveImageDelegate : public AbstractSaveImageDelegate

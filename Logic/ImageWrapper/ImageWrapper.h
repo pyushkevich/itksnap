@@ -437,8 +437,15 @@ public:
    */
   virtual void WriteToFile(const char *filename, Registry &hints);
 
-  // Create a thumbnail from the image and write it to a .png file
+  /**
+   * Create a thumbnail from the image and write it to a .png file
+   */
   void WriteThumbnail(const char *filename, unsigned int maxdim);
+
+  /**
+   * Check if the image has unsaved changes
+   */
+  bool HasUnsavedChanges() const;
 
   /**
    * The image wrapper has a generic mechanism for associating data with it.
@@ -503,8 +510,8 @@ protected:
   /** Stickiness (whether the layer can be tiled or not) */
   bool m_Sticky;
 
-  /** Time when the internal image was allocated */
-  unsigned long m_ImageAssignTime;
+  /** Time when the internal image was allocated, and when it was last saved */
+  itk::TimeStamp m_ImageAssignTime, m_ImageSaveTime;
 
   /** The pipeline that handles mapping intensities to the display slices */
   SmartPtr<DisplayMapping> m_DisplayMapping;

@@ -17,6 +17,7 @@
 #include "GlobalUIModel.h"
 #include "ImageIODelegates.h"
 #include "ImageIOWizard.h"
+#include "MainImageWindow.h"
 
 #include "DisplayMappingPolicy.h"
 #include "ColorMap.h"
@@ -452,7 +453,9 @@ void LayerInspectorRowDelegate::on_actionSave_triggered()
 
 void LayerInspectorRowDelegate::on_actionClose_triggered()
 {
-  m_Model->CloseLayer();
+  if(m_Model->IsPromptingNecessary())
+    if(findParentWidget<MainImageWindow>(this)->PromptForUnsavedChanges())
+      m_Model->CloseLayer();
 }
 
 void LayerInspectorRowDelegate::onColorMapPresetSelected()

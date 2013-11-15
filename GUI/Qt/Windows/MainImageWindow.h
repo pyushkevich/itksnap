@@ -93,6 +93,10 @@ public:
   // Get the layer inspector
   LayerInspectorDialog *GetLayerInspector();
 
+  // Prompt the user whether they want to proceed with unsaved changes to
+  // the segmentation and other image layers
+  bool PromptForUnsavedChanges();
+
 public slots:
 
   void LoadRecent(QString file);
@@ -175,6 +179,8 @@ private slots:
 
   void on_actionUnload_Last_Overlay_triggered();
 
+  void on_actionClear_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);
@@ -187,7 +193,9 @@ private:
   void UpdateWindowTitle();
   void UpdateMainLayout();
 
-  void SaveSegmentation(bool interactive);
+  // Save the segmentation (interactively or not). Return true if save was
+  // successful
+  bool SaveSegmentation(bool interactive);
 
   // Raise a dialog (equivalent to calling show, raise, activateWindow)
   void RaiseDialog(QDialog *dialog);

@@ -228,6 +228,11 @@ SmartPtr<ImageIOWizardModel> LayerTableRowModel::CreateIOWizardModelForSave()
   return modelIO;
 }
 
+bool LayerTableRowModel::IsPromptingNecessary()
+{
+  return m_LayerRole == LayerIterator::MAIN_ROLE;
+}
+
 void LayerTableRowModel::CloseLayer()
 {
   // If this is an overlay, we unload it like this

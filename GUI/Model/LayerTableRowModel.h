@@ -84,6 +84,11 @@ public:
   SmartPtr<ImageIOWizardModel> CreateIOWizardModelForSave();
 
   /**
+   * Whether closing the layer requires prompting for changes
+   */
+  bool IsPromptingNecessary();
+
+  /**
    * Close the current layer
    */
   void CloseLayer();

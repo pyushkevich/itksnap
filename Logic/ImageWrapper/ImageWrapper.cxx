@@ -584,7 +584,7 @@ ImageWrapper<TTraits,TBase>
   m_Initialized = true;
 
   // Store the time when the image was assigned
-  m_ImageAssignTime = m_Image->GetMTime();
+  m_ImageAssignTime = m_Image->GetTimeStamp();
 }
 
 template<class TTraits, class TBase>
@@ -1063,6 +1063,9 @@ ImageWrapper<TTraits,TBase>
   // Store the filename
   m_FileName = itksys::SystemTools::GetFilenamePath(filename);
 
+  // Store the timestamp when the filename was written
+  m_ImageSaveTime = m_Image->GetTimeStamp();
+
 }
 
 
@@ -1184,6 +1187,15 @@ ImageWrapper<TTraits,TBase>
   writer->SetInput(opaquer->GetOutput());
   writer->SetFileName(file);
   writer->Update();
+}
+
+template<class TTraits, class TBase>
+bool
+ImageWrapper<TTraits,TBase>
+::HasUnsavedChanges() const
+{
+  itk::TimeStamp tsNow = m_Image->GetTimeStamp();
+  return (tsNow > m_ImageAssignTime && tsNow > m_ImageSaveTime);
 }
 
 template<class TTraits, class TBase>

@@ -8,6 +8,7 @@
 #include "QtCursorOverride.h"
 #include <QMessageBox>
 #include "SNAPQtCommon.h"
+#include "MainImageWindow.h"
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -37,6 +38,10 @@ void DropActionDialog::SetModel(GlobalUIModel *model)
 
 void DropActionDialog::on_btnLoadMain_clicked()
 {
+  // Prompt for unsaved changes before replacing the main image
+  if(!findParentWidget<MainImageWindow>(this)->PromptForUnsavedChanges())
+    return;
+
   SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
   del->Initialize(m_Model);
   this->LoadCommon(del);
@@ -44,6 +49,10 @@ void DropActionDialog::on_btnLoadMain_clicked()
 
 void DropActionDialog::on_btnLoadSegmentation_clicked()
 {
+  // Prompt for unsaved changes before replacing the main image
+  if(!findParentWidget<MainImageWindow>(this)->PromptForUnsavedChanges())
+    return;
+
   SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
   del->Initialize(m_Model);
   this->LoadCommon(del);

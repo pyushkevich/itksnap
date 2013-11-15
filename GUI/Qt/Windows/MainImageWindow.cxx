@@ -433,7 +433,9 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 
 void MainImageWindow::on_actionQuit_triggered()
 { 
-  // TODO: check for unsaved changes
+  // Prompt for unsaved changes
+  if(!PromptForUnsavedChanges())
+    return;
 
   // Close all the windows that are open
   QApplication::closeAllWindows();
@@ -447,7 +449,9 @@ void MainImageWindow::on_actionQuit_triggered()
 
 void MainImageWindow::on_actionLoad_from_Image_triggered()
 {
-  // TODO: Prompt for changes to segmentation to be saved
+  // Prompt for unsaved changes
+  if(!PromptForUnsavedChanges())
+    return;
 
   // Create a model for IO
   SmartPtr<LoadSegmentationImageDelegate> delegate = LoadSegmentationImageDelegate::New();
@@ -587,9 +591,36 @@ LayerInspectorDialog *MainImageWindow::GetLayerInspector()
   return m_LayerInspector;
 }
 
+bool MainImageWindow::PromptForUnsavedChanges()
+{
+  // Check if the segmentation has unsaved changes
+  bool unsaved_seg =
+      m_Model->GetDriver()->GetIRISImageData()->IsSegmentationLoaded() &&
+      m_Model->GetDriver()->GetIRISImageData()->GetSegmentation()->HasUnsavedChanges();
+
+  if(!unsaved_seg)
+    return true;
+
+  QMessageBox msgBox;
+  msgBox.setText("The segmentation image has unsaved changes.");
+  msgBox.setInformativeText("Do you want to save your changes?");
+  msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+  msgBox.setDefaultButton(QMessageBox::Save);
+  int ret = msgBox.exec();
+
+  if(ret == QMessageBox::Save)
+    return this->SaveSegmentation(true);
+  else if(ret == QMessageBox::Discard)
+    return true;
+  else
+    return false;
+}
+
 void MainImageWindow::LoadRecent(QString file)
 {
-  // TODO: prompt for changes!
+  // Prompt for unsaved changes
+  if(!PromptForUnsavedChanges())
+    return;
 
   // Try loading the image
   try
@@ -653,6 +684,10 @@ void MainImageWindow::on_listRecent_clicked(const QModelIndex &index)
 
 void MainImageWindow::on_actionUnload_All_triggered()
 {
+  // Prompt for unsaved changes
+  if(!PromptForUnsavedChanges())
+    return;
+
   // Unload the main image
   m_Model->GetDriver()->UnloadMainImage();
 }
@@ -698,7 +733,9 @@ bool MainImageWindow::eventFilter(QObject *obj, QEvent *event)
 
 void MainImageWindow::on_actionOpenMain_triggered()
 {
-  // TODO: Prompt for changes to segmentation to be saved
+  // Prompt for unsaved changes
+  if(!PromptForUnsavedChanges())
+    return;
 
   // Create a model for IO
   SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
@@ -856,7 +893,7 @@ void MainImageWindow::on_actionVolumesAndStatistics_triggered()
   m_StatisticsDialog->Activate();
 }
 
-void MainImageWindow::SaveSegmentation(bool interactive)
+bool MainImageWindow::SaveSegmentation(bool interactive)
 {
   // Create delegate
   SmartPtr<DefaultSaveImageDelegate> delegate = DefaultSaveImageDelegate::New();
@@ -893,6 +930,8 @@ void MainImageWindow::SaveSegmentation(bool interactive)
               from_utf8(model->GetSuggestedFilename())));
       }
     }
+
+  return delegate->IsSaveSuccessful();
 }
 
 void MainImageWindow::RaiseDialog(QDialog *dialog)
@@ -945,4 +984,13 @@ void MainImageWindow::on_actionAbout_triggered()
 void MainImageWindow::on_actionUnload_Last_Overlay_triggered()
 {
 
+}
+
+void MainImageWindow::on_actionClear_triggered()
+{
+  // Prompt for unsaved changes
+  if(!PromptForUnsavedChanges())
+    return;
+
+  m_Model->GetDriver()->ClearIRISSegmentationImage();
 }

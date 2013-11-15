@@ -226,13 +226,23 @@ void DefaultSaveImageDelegate
 ::SaveImage(const std::string &fname, GuidedNativeImageIO *io,
             Registry &reg, IRISWarningList &wl)
 {
-  m_Wrapper->WriteToFile(fname.c_str(), reg);
-  m_Wrapper->SetFileName(fname);
-  for(std::list<std::string>::const_iterator it = m_HistoryNames.begin();
-      it != m_HistoryNames.end(); ++it)
+  try
     {
-    m_Model->GetDriver()->GetHistoryManager()->UpdateHistory(*it, fname, m_Track);
+    m_SaveSuccessful = false;
+    m_Wrapper->WriteToFile(fname.c_str(), reg);
+    m_SaveSuccessful = true;
+
+    m_Wrapper->SetFileName(fname);
+    for(std::list<std::string>::const_iterator it = m_HistoryNames.begin();
+        it != m_HistoryNames.end(); ++it)
+      {
+      m_Model->GetDriver()->GetHistoryManager()->UpdateHistory(*it, fname, m_Track);
+      }
     }
+  catch(std::exception &exc)
+    {
+    throw exc;
+   }
 }
 
 const char *DefaultSaveImageDelegate::GetCurrentFilename()

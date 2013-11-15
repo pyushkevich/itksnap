@@ -308,6 +308,11 @@ public:
   virtual void WriteToFile(const char *filename, Registry &hints) = 0;
 
   /**
+   * Check if the image has unsaved changes
+   */
+  bool HasUnsavedChanges() const;
+
+  /**
    * This static function constructs a NIFTI matrix from the ITK direction
    * cosines matrix and Spacing and Origin vectors
    */

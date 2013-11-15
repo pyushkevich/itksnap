@@ -874,7 +874,8 @@ void SnakeWizardModel::OnSnakeModeEnter()
   // Initialize the image data
   // TODO: how to deal with the progress dialog?
   m_Driver->InitializeSNAPImageData(
-        m_Driver->GetGlobalState()->GetSegmentationROISettings());
+        m_Driver->GetGlobalState()->GetSegmentationROISettings(),
+        m_Parent->GetProgressCommand());
 
   m_Driver->SetCurrentImageDataToSNAP();
 
