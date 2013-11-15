@@ -34,32 +34,19 @@
 =========================================================================*/
 #include "SNAPSegmentationROISettings.h"
 
-bool 
-SNAPSegmentationROISettings
-::TransformImageVoxelToROIVoxel(const Vector3ui &vImage, Vector3ui &vROI)
+
+void SNAPSegmentationROISettings::SetROI(const itk::ImageRegion<3> &roi)
 {
-  itk::Index<3> idx = to_itkIndex(vImage);
-  if(m_ROI.IsInside(idx)) 
-  {
-    for(unsigned int i = 0; i < 3; i++)
+  if(m_ROI != roi)
     {
-      unsigned int p = vImage[i] - m_ROI.GetIndex()[i];
-      vROI[i] = (unsigned int) (p / m_VoxelScale[i]);
+    m_ROI = roi;
+    m_ResampleDimensions = Vector3ui(roi.GetSize());
     }
-    return true;
-  }
-  else return false;
 }
 
-void
-SNAPSegmentationROISettings
-::TransformROIVoxelToImageVoxel(const Vector3ui &vROI, Vector3ui &vImage)
+bool SNAPSegmentationROISettings::IsResampling() const
 {
-  for(unsigned int i = 0; i < 3; i++)
-  {
-    unsigned int p = (unsigned int) (vROI[i] * m_VoxelScale[i]);
-    vImage[i] = p + m_ROI.GetIndex()[i];
-    }
+  return m_ROI.GetSize() != to_itkSize(m_ResampleDimensions);
 }
 
 bool SNAPSegmentationROISettings
@@ -68,8 +55,7 @@ bool SNAPSegmentationROISettings
 {
   return
       m_ROI == other.m_ROI &&
-      m_ResampleFlag == other.m_ResampleFlag &&
-      m_VoxelScale == other.m_VoxelScale &&
+      m_ResampleDimensions == other.m_ResampleDimensions &&
       m_InterpolationMethod == other.m_InterpolationMethod;
 }
 

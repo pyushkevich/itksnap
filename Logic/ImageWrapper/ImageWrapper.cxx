@@ -157,32 +157,33 @@ public:
       const SNAPSegmentationROISettings &roi,
       itk::Command *progressCommand)
   {
-    // The filter used to chop off the region of interest
-    typedef itk::RegionOfInterestImageFilter <ImageType,ImageType> ChopFilterType;
-    typename ChopFilterType::Pointer fltChop = ChopFilterType::New();
-
     // Check if there is a difference in voxel size, i.e., user wants resampling
-    Vector3ul vOldSize = image->GetLargestPossibleRegion().GetSize();
     Vector3d vOldSpacing = image->GetSpacing();
+    Vector3d vOldOrigin = image->GetOrigin();
+    Vector3i vROIIndex(roi.GetROI().GetIndex());
+    Vector3ui vROISize(roi.GetROI().GetSize());
 
-    if(roi.GetResampleFlag())
+    if(roi.IsResampling())
       {
       // Compute the number of voxels in the output
       typedef typename itk::ImageRegion<3> RegionType;
       typedef typename itk::Size<3> SizeType;
 
-      SizeType vNewSize;
-      RegionType vNewROI;
-      Vector3d vNewSpacing;
+      // We need to compute the new spacing and origin of the resampled
+      // ROI piece. To do this, we need the direction matrix
+      typedef typename ImageType::DirectionType DirectionType;
+      const DirectionType &dm = image->GetDirection();
 
-      for(unsigned int i = 0; i < 3; i++)
-        {
-        double scale = roi.GetVoxelScale()[i];
-        vNewSize.SetElement(i, (unsigned long) (vOldSize[i] / scale));
-        vNewROI.SetSize(i,(unsigned long) (roi.GetROI().GetSize(i) / scale));
-        vNewROI.SetIndex(i,(long) (roi.GetROI().GetIndex(i) / scale));
-        vNewSpacing[i] = scale * vOldSpacing[i];
-        }
+      // The spacing of the new ROI
+      Vector3d vNewSpacing =
+          element_quotient(element_product(vOldSpacing, to_double(vROISize)),
+                           to_double(roi.GetResampleDimensions()));
+
+      // The origin of the new ROI
+      Vector3d vNewOrigin =
+          vOldOrigin + dm.GetVnlMatrix() * (
+            element_product((to_double(vROIIndex) - 0.5), vOldSpacing) +
+            vNewSpacing * 0.5);
 
       // Create a filter for resampling the image
       typedef itk::ResampleImageFilter<ImageType,ImageType> ResampleFilterType;
@@ -194,39 +195,37 @@ public:
       fltSample->SetInterpolator(interp);
 
       // Set the image sizes and spacing
-      fltSample->SetSize(vNewSize);
+      fltSample->SetSize(to_itkSize(roi.GetResampleDimensions()));
       fltSample->SetOutputSpacing(vNewSpacing.data_block());
-      fltSample->SetOutputOrigin(image->GetOrigin());
+      fltSample->SetOutputOrigin(vNewOrigin.data_block());
       fltSample->SetOutputDirection(image->GetDirection());
 
       // Set the progress bar
       if(progressCommand)
         fltSample->AddObserver(itk::AnyEvent(),progressCommand);
 
-      // Perform resampling
-      fltSample->GetOutput()->SetRequestedRegion(vNewROI);
       fltSample->Update();
 
-      // Pipe into the chopper
-      fltChop->SetInput(fltSample->GetOutput());
-
-      // Update the region of interest
-      fltChop->SetRegionOfInterest(vNewROI);
+      return fltSample->GetOutput();
       }
     else
       {
+      // The filter used to chop off the region of interest
+      typedef itk::RegionOfInterestImageFilter <ImageType,ImageType> ChopFilterType;
+      typename ChopFilterType::Pointer fltChop = ChopFilterType::New();
+
       // Pipe image into the chopper
       fltChop->SetInput(image);
 
       // Set the region of interest
       fltChop->SetRegionOfInterest(roi.GetROI());
+
+      // Update the pipeline
+      fltChop->Update();
+
+      // Return the resulting image
+      return fltChop->GetOutput();
       }
-
-    // Update the pipeline
-    fltChop->Update();
-
-    // Return the resulting image
-    return fltChop->GetOutput();
   }
 
 };

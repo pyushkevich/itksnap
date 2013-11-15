@@ -255,8 +255,7 @@ SNAPRegistryIO
 ::WriteSegmentationROISettings(
   const SNAPSegmentationROISettings &in, Registry &folder)
 {
-  folder["ResampleFlag"] << in.GetResampleFlag();
-  folder["VoxelScale"] << in.GetVoxelScale();  
+  folder["ResampleDimensions"] << to_int(in.GetResampleDimensions());
   for(unsigned int d = 0; d < 3; d++)
     {
     Registry &sub = folder.Folder(folder.Key("ROIBox[%d]",d));
@@ -273,9 +272,6 @@ SNAPRegistryIO
 {
   SNAPSegmentationROISettings out;
 
-  // Read resampling properties
-  out.SetResampleFlag(folder["ResampleFlag"][dfl.GetResampleFlag()]);
-  out.SetVoxelScale(folder["VoxelScale"][dfl.GetVoxelScale()]);
   out.SetInterpolationMethod(
     folder["InterpolationMethod"].GetEnum(
       m_EnumMapROI, dfl.GetInterpolationMethod()));
@@ -290,6 +286,12 @@ SNAPRegistryIO
     outRegion.SetSize(d,  sub["Size"][(int) dflRegion.GetSize(d)]);    
     }
   out.SetROI(outRegion);
+
+  // Read resampling properties. If the folder does not contain the resample
+  // dimensions value (added in ITK-SNAP 3.0), we default to the ROI dimensions
+  out.SetResampleDimensions(
+        to_unsigned_int(
+          folder["ResampleDimensions"][to_int(Vector3ui(outRegion.GetSize()))]));
 
   return out;
 }  

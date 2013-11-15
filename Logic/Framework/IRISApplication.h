@@ -503,6 +503,9 @@ protected:
   IRISApplication();
   virtual ~IRISApplication();
 
+  // Map cursor from one image data to another
+  void TransferCursor(GenericImageData *source, GenericImageData *target);
+
   // Image data objects
   GenericImageData *m_CurrentImageData;
   SmartPtr<IRISImageData> m_IRISImageData;

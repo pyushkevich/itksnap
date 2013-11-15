@@ -2,6 +2,7 @@
 #define SNAKEROIRESAMPLEMODEL_H
 
 #include "PropertyModel.h"
+#include "SNAPSegmentationROISettings.h"
 
 class GlobalUIModel;
 
@@ -15,15 +16,40 @@ public:
 
   irisITKObjectMacro(SnakeROIResampleModel, AbstractModel)
 
-  irisRangedPropertyAccessMacro(InputSpacing, Vector3d)
-  irisRangedPropertyAccessMacro(OutputSpacing, Vector3d)
+  AbstractRangedDoubleProperty *GetInputSpacingModel(int index)
+    { return m_InputSpacingModel[index]; }
 
-  typedef SimpleItemSetDomain<double, std::string> ScaleFactorDomain;
-  typedef AbstractPropertyModel<double, ScaleFactorDomain> AbstractScaleFactorModel;
-  AbstractScaleFactorModel *GetNthScaleFactorModel(int index) const
-    { return m_ScaleFactorModel[index]; }
+  AbstractRangedUIntProperty *GetInputDimensionsModel(int index)
+    { return m_InputDimensionsModel[index]; }
+
+  AbstractRangedDoubleProperty *GetOutputSpacingModel(int index)
+    { return m_OutputSpacingModel[index]; }
+
+  AbstractRangedUIntProperty *GetOutputDimensionsModel(int index)
+    { return m_OutputDimensionsModel[index]; }
+
+  irisSimplePropertyAccessMacro(FixedAspectRatio, bool)
+
+  typedef SNAPSegmentationROISettings::InterpolationMethod InterpolationMode;
+  typedef SimpleItemSetDomain<InterpolationMode, std::string> InterpolationModeDomain;
+  typedef AbstractPropertyModel<InterpolationMode, InterpolationModeDomain> AbstractInterpolationModeModel;
+
+  irisGetMacro(InterpolationModeModel, AbstractInterpolationModeModel *)
 
   void SetParentModel(GlobalUIModel *model);
+
+  /** Reset to default (no scaling) */
+  void Reset();
+
+  /** Accept the user's changes */
+  void Accept();
+
+  /** Availabel quick presets */
+  enum ResamplePreset {
+    SUPER_2, SUB_2, SUPER_ISO, SUB_ISO
+  };
+
+  void ApplyPreset(ResamplePreset preset);
 
 protected:
 
@@ -31,21 +57,44 @@ protected:
   virtual ~SnakeROIResampleModel() {}
 
   GlobalUIModel *m_Parent;
+  AbstractPropertyModel<SNAPSegmentationROISettings> *m_ROISettingsModel;
 
-  SmartPtr<AbstractRangedDoubleVec3Property> m_InputSpacingModel;
-  bool GetInputSpacingValueAndRange(Vector3d &value, NumericValueRange<Vector3d> *domain);
+  SmartPtr<AbstractRangedDoubleProperty> m_InputSpacingModel[3];
+  bool GetInputSpacingValueAndRange(int index, double &value, NumericValueRange<double> *domain);
 
-  SmartPtr<AbstractRangedDoubleVec3Property> m_OutputSpacingModel;
-  bool GetOutputSpacingValueAndRange(Vector3d &value, NumericValueRange<Vector3d> *domain);
-  void SetOutputSpacingValue(Vector3d value);
+  SmartPtr<AbstractRangedUIntProperty> m_InputDimensionsModel[3];
+  bool GetInputDimensionsValueAndRange(int index, unsigned int &value, NumericValueRange<unsigned int > *domain);
 
-  SmartPtr<AbstractScaleFactorModel> m_ScaleFactorModel[3];
-  bool GetIndexedScaleFactorValueAndRange(int index, double &value, ScaleFactorDomain *domain);
-  void SetIndexedScaleFactorValue(int index, double value);
+  SmartPtr<AbstractRangedDoubleProperty> m_OutputSpacingModel[3];
+  bool GetOutputSpacingValueAndRange(int index, double &value, NumericValueRange<double> *domain);
+  void SetOutputSpacingValue(int index, double value);
 
-  void ComputeSpacingDomain(NumericValueRange<Vector3d> *domain);
+  SmartPtr<AbstractRangedUIntProperty> m_OutputDimensionsModel[3];
+  bool GetOutputDimensionsValueAndRange(int index, unsigned int &value, NumericValueRange<unsigned int> *domain);
+  void SetOutputDimensionsValue(int index, unsigned int value);
 
-  ScaleFactorDomain m_ScaleFactorDomain;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_FixedAspectRatioModel;
+
+  void ComputeCachedDomains();
+
+  void EnforceAspectRatio(int source_idx);
+
+  virtual void OnUpdate();
+
+  // Cached information about the ROI. This is where this model stores its
+  // state until the user says 'ok'
+  Vector3ui m_ResampleDimensions;
+
+  // Cached domain values - to avoid recomputing all the time
+  NumericValueRange<double> m_SpacingDomain[3];
+  NumericValueRange<unsigned int> m_DimensionsDomain[3];
+
+  // Map for interpolation modes
+  InterpolationModeDomain m_InterpolationModeDomain;
+
+  // Model for the interpolation modes
+  typedef ConcretePropertyModel<InterpolationMode, InterpolationModeDomain> ConcreteInterpolationModeModel;
+  SmartPtr<ConcreteInterpolationModeModel> m_InterpolationModeModel;
 };
 
 #endif // SNAKEROIRESAMPLEMODEL_H

@@ -7,6 +7,8 @@
 #include <GlobalUIModel.h>
 #include <SnakeROIModel.h>
 #include <MainImageWindow.h>
+#include "SnakeROIResampleModel.h"
+
 
 #include "ResampleDialog.h"
 
@@ -56,6 +58,12 @@ void SnakeToolROIPanel::on_btnAuto_clicked()
     {
     if(m_ResampleDialog->exec() != QDialog::Accepted)
       return;
+    }
+  else
+    {
+    // Make sure that no interpolation is applied
+    m_Model->GetSnakeROIResampleModel()->Reset();
+    m_Model->GetSnakeROIResampleModel()->Accept();
     }
 
   // Switch to crosshairs mode

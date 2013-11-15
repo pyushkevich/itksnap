@@ -131,6 +131,24 @@ Registry
   return targetArray.size();
 }
 
+bool Registry::HasKey(const Registry::StringType &key)
+{
+  // Get the containing folder
+  StringType::size_type iDot = key.find_first_of('.');
+
+  // There is a subfolder
+  if(iDot != key.npos)
+    {
+    StringType child = key.substr(0,iDot);
+    StringType childKey = key.substr(iDot+1);
+    return Folder(child).HasKey(childKey);
+    }
+
+  // Search for the key and return it if found
+  EntryIterator it = m_EntryMap.find(key);
+  return it != m_EntryMap.end();
+}
+
 void 
 Registry
 ::Write(ostream &sout,const StringType &prefix)

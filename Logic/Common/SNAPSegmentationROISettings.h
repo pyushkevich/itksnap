@@ -53,43 +53,31 @@ public:
 
   SNAPSegmentationROISettings()
     {
-    m_ResampleFlag = false;
-    m_VoxelScale.fill(1.0);
     m_InterpolationMethod = NEAREST_NEIGHBOR;
     }
 
   virtual ~SNAPSegmentationROISettings() {}
 
   // Get the region of interest, in the main IRIS image
-  irisSetMacro(ROI,itk::ImageRegion<3>);
+  void SetROI(const itk::ImageRegion<3> &roi);
   
   // Set the region of interest, in the main IRIS image
-  irisGetMacro(ROI,itk::ImageRegion<3>);
+  irisGetMacro(ROI,itk::ImageRegion<3>)
 
   // Get whether or not resampling is desired for the region
-  irisSetMacro(ResampleFlag,bool);
-  
-  // Set whether or not resampling is desired for the region
-  irisGetMacro(ResampleFlag,bool);
+  bool IsResampling() const;
 
-  // Get the scaling factor for each dimension
-  irisSetMacro(VoxelScale,Vector3d);
+  // Specify the resampling to be applied to the ROI (new size)
+  irisSetMacro(ResampleDimensions,Vector3ui)
   
-  // Set the scaling factor for each dimension
-  irisGetMacro(VoxelScale,Vector3d);
+  // Get the size of the ROI after resampling
+  irisGetMacro(ResampleDimensions,Vector3ui)
 
   // Get the interpolation method used
-  irisSetMacro(InterpolationMethod,InterpolationMethod);
+  irisSetMacro(InterpolationMethod,InterpolationMethod)
   
   // Set the interpolation method used
-  irisGetMacro(InterpolationMethod,InterpolationMethod);
-
-  // Map image voxel to an ROI voxel, if the result is outside of the region
-  // this will return false, and not change the index
-  bool TransformImageVoxelToROIVoxel(const Vector3ui &vImage, Vector3ui &vROI);
-
-  // Map ROI voxel into an image voxel. The result will be inside the image
-  void TransformROIVoxelToImageVoxel(const Vector3ui &vROI, Vector3ui &vImage);
+  irisGetMacro(InterpolationMethod,InterpolationMethod)
 
   bool operator == (const SNAPSegmentationROISettings &other) const;
   bool operator != (const SNAPSegmentationROISettings &other) const;
@@ -99,11 +87,8 @@ private:
   // The region of interest, in the main IRIS image
   itk::ImageRegion<3> m_ROI;
   
-  // Whether or not resampling is desired for the region
-  bool m_ResampleFlag;
-  
   // The scaling factor for each dimension
-  Vector3d m_VoxelScale;
+  Vector3ui m_ResampleDimensions;
   
   // The interpolation method used
   InterpolationMethod m_InterpolationMethod;

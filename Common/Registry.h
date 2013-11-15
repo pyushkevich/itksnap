@@ -321,6 +321,9 @@ public:
   /** Get a list of all subfolder keys, append it to keyList */
   int GetFolderKeys(StringListType &keyList);
 
+  /** Check if a key exists */
+  bool HasKey(const StringType &key);
+
   /** Find a value in a folder or return "" */
   StringType FindValue(const StringType& value);
 

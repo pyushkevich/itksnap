@@ -60,6 +60,13 @@ template<class TVal> struct NumericValueRange
     StepSize = (TVal) 0;
   }
 
+  NumericValueRange(const NumericValueRange<TVal> &ref)
+  {
+    Minimum = ref.Minimum;
+    Maximum = ref.Maximum;
+    StepSize = ref.StepSize;
+  }
+
   void Set(TVal min, TVal max, TVal step)
     { Minimum = min; Maximum = max; StepSize = step; }
 

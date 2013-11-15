@@ -555,7 +555,7 @@ IRISApplication
   SNAPSegmentationROISettings roi = m_GlobalState->GetSegmentationROISettings();
 
   // If the ROI has been resampled, resample the segmentation in reverse direction
-  if(roi.GetResampleFlag())
+  if(roi.IsResampling())
     {
     // Create a resampling filter
     typedef itk::ResampleImageFilter<SourceImageType,SourceImageType> ResampleFilterType;
@@ -842,6 +842,32 @@ IRISApplication
   m_SNAPImageData->UnloadAll();
 }
 
+void
+IRISApplication
+::TransferCursor(GenericImageData *source, GenericImageData *target)
+{
+  Vector3d cursorSource = to_double(this->GetCursorPosition());
+
+  Vector3d xyzSource =
+      source->GetMain()->TransformVoxelIndexToNIFTICoordinates(cursorSource);
+
+  itk::Index<3> indexTarget =
+      to_itkIndex(target->GetMain()->TransformNIFTICoordinatesToVoxelIndex(xyzSource));
+
+  Vector3ui newCursor;
+
+  if(target->GetMain()->GetBufferedRegion().IsInside(indexTarget))
+    {
+    // Set the cursor at the current physical position
+    this->SetCursorPosition(Vector3ui(indexTarget), true);
+    }
+  else
+    {
+    // Set the cursor at the center
+    this->SetCursorPosition(target->GetMain()->GetSize() / 2u, true);
+    }
+}
+
 void 
 IRISApplication
 ::SetCurrentImageDataToIRIS() 
@@ -850,6 +876,7 @@ IRISApplication
   if(m_CurrentImageData != m_IRISImageData)
     {
     m_CurrentImageData = m_IRISImageData;
+    TransferCursor(m_SNAPImageData, m_IRISImageData);
     InvokeEvent(MainImageDimensionsChangeEvent());
     }
 }
@@ -862,34 +889,10 @@ void IRISApplication
     {
     // The cursor needs to be modified to point to the same location
     // as before, or to the center of the image
-    Vector3d cursorIRIS = to_double(this->GetCursorPosition());
-
-    Vector3d xIRIS =
-        m_IRISImageData->GetMain()->TransformVoxelIndexToNIFTICoordinates(cursorIRIS);
-
-    Vector3d indexSNAP =
-        m_SNAPImageData->GetMain()->TransformNIFTICoordinatesToVoxelIndex(xIRIS);
-
-    itk::Index<3> idxSNAP = to_itkIndex(indexSNAP);
-
-    Vector3ui newCursor;
-
-    if(m_SNAPImageData->GetMain()->GetBufferedRegion().IsInside(idxSNAP))
-      {
-      // Set the cursor at the current physical position
-      newCursor = Vector3ui(idxSNAP);
-      }
-    else
-      {
-      // Set the cursor at the center
-      newCursor = m_SNAPImageData->GetMain()->GetSize() / 2u;
-      }
+    TransferCursor(m_IRISImageData, m_SNAPImageData);
 
     // Set the image data
     m_CurrentImageData = m_SNAPImageData;
-
-    // Set the calculated cursor position
-    this->SetCursorPosition(newCursor, true);
 
     // Fire the event
     InvokeEvent(MainImageDimensionsChangeEvent());

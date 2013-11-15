@@ -2,138 +2,255 @@
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
+#include "SNAPSegmentationROISettings.h"
 
 SnakeROIResampleModel::SnakeROIResampleModel()
 {
   // Set up the property models
-  m_InputSpacingModel = wrapGetterSetterPairAsProperty(
-        this, &Self::GetInputSpacingValueAndRange);
-
-  m_OutputSpacingModel = wrapGetterSetterPairAsProperty(
-        this, &Self::GetOutputSpacingValueAndRange, &Self::SetOutputSpacingValue);
-
-  // Create the domain for the drop down boxes
-  m_ScaleFactorDomain[1. / 5.] = "1 : 5 (supersample)";
-  m_ScaleFactorDomain[1. / 4.] = "1 : 4 (supersample)";
-  m_ScaleFactorDomain[1. / 3.] = "1 : 3 (supersample)";
-  m_ScaleFactorDomain[1. / 2.] = "1 : 2 (supersample)";
-  m_ScaleFactorDomain[1. / 1.] = "1 : 1 (no change)";
-  m_ScaleFactorDomain[2.]      = "2 : 1 (subsample)";
-  m_ScaleFactorDomain[3.]      = "3 : 1 (subsample)";
-  m_ScaleFactorDomain[4.]      = "4 : 1 (subsample)";
-  m_ScaleFactorDomain[5.]      = "5 : 1 (subsample)";
-
-  // Create the model for the scale factors
   for(int i = 0; i < 3; i++)
     {
-    m_ScaleFactorModel[i] =
-        wrapIndexedGetterSetterPairAsProperty(
-          this, i,
-          &Self::GetIndexedScaleFactorValueAndRange,
-          &Self::SetIndexedScaleFactorValue);
+    m_InputSpacingModel[i] = wrapIndexedGetterSetterPairAsProperty(
+          this, i, &Self::GetInputSpacingValueAndRange);
+
+    m_InputDimensionsModel[i] = wrapIndexedGetterSetterPairAsProperty(
+          this, i, &Self::GetInputDimensionsValueAndRange);
+
+    m_OutputSpacingModel[i] = wrapIndexedGetterSetterPairAsProperty(
+          this, i, &Self::GetOutputSpacingValueAndRange, &Self::SetOutputSpacingValue);
+
+    m_OutputDimensionsModel[i] = wrapIndexedGetterSetterPairAsProperty(
+          this, i, &Self::GetOutputDimensionsValueAndRange, &Self::SetOutputDimensionsValue);
     }
+
+  // Aspect ratio
+  m_FixedAspectRatioModel = NewSimpleConcreteProperty(false);
+
+  // Create the interpolation model
+  m_InterpolationModeModel = ConcreteInterpolationModeModel::New();
 }
 
 void SnakeROIResampleModel::SetParentModel(GlobalUIModel *model)
 {
   m_Parent = model;
+  m_ROISettingsModel =
+      m_Parent->GetDriver()->GetGlobalState()->GetSegmentationROISettingsModel();
 
   // Listen to changes in the parent's segmentation ROI settings
-  Rebroadcast(
-        m_Parent->GetDriver()->GetGlobalState()->GetSegmentationROISettingsModel(),
-        ValueChangedEvent(), ModelUpdateEvent());
+  Rebroadcast(m_ROISettingsModel, ValueChangedEvent(), ModelUpdateEvent());
 
-  // Layer change events too?
+  // Layer change events too
   Rebroadcast(m_Parent->GetDriver(), LayerChangeEvent(), ModelUpdateEvent());
 }
 
-void SnakeROIResampleModel::ComputeSpacingDomain(NumericValueRange<Vector3d> *domain)
+void SnakeROIResampleModel::Reset()
+{
+  SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
+  m_ResampleDimensions = roi.GetROI().GetSize();
+  m_InterpolationModeModel->SetValue(SNAPSegmentationROISettings::TRILINEAR);
+  InvokeEvent(ModelUpdateEvent());
+}
+
+void SnakeROIResampleModel::Accept()
+{
+  SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
+  roi.SetResampleDimensions(m_ResampleDimensions);
+  roi.SetInterpolationMethod(m_InterpolationModeModel->GetValue());
+  m_ROISettingsModel->SetValue(roi);
+}
+
+void SnakeROIResampleModel::ApplyPreset(SnakeROIResampleModel::ResamplePreset preset)
+{
+  // Get the current spacing
+  IRISApplication *app = m_Parent->GetDriver();
+  Vector3d in_spacing = app->GetCurrentImageData()->GetImageSpacing();
+  Vector3d out_spacing;
+
+  if(preset == SUPER_2)
+    {
+    out_spacing = in_spacing / 2.0;
+    }
+  else if(preset == SUB_2)
+    {
+    out_spacing = in_spacing * 2.0;
+    }
+  if(preset == SUPER_ISO)
+    {
+    double mindim = in_spacing.min_value();
+    out_spacing.fill(mindim);
+    this->SetFixedAspectRatio(false);
+    }
+  else if(preset == SUB_ISO)
+    {
+    double maxdim = in_spacing.max_value();
+    out_spacing.fill(maxdim);
+    this->SetFixedAspectRatio(false);
+    }
+
+  for(int i = 0; i < 3; i++)
+    m_OutputSpacingModel[i]->SetValue(out_spacing[i]);
+
+}
+
+void SnakeROIResampleModel::ComputeCachedDomains()
 {
   IRISApplication *app = m_Parent->GetDriver();
   Vector3d spacing = app->GetCurrentImageData()->GetImageSpacing();
+  SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
 
   // The reasonable range for the value is not obvious. The largest possible
   // value should be the dimension of the image times the voxel size. The
   // smallest should be something reasonable, like voxel size/10, rounded,
   // since any larger interpolation would be infeasible. The step should probably
   // equal the smallest value
-  Vector3ui sz = app->GetCurrentImageData()->GetImageRegion().GetSize();
-  Vector3d step = spacing * 0.1;
+  Vector3ui sz = roi.GetROI().GetSize();
   for(int i = 0; i < 3; i++)
-    step[i] = pow(10, floor(log10(step[i])));
+    {
+    double step = pow(10, floor(log10(spacing[i] / 10.0)));
+    m_SpacingDomain[i].Set(step, sz[i] * spacing[i], step);
+    m_DimensionsDomain[i].Set(1, sz[i]*10, 1);
+    }
 
-  domain->Set(step, element_product(to_double(sz), spacing), step);
+  // TODO: higher order interpolation methods are currently unsupported for
+  // vector images. This is a problem and should be fixed
+
+  // Set up the interpolation mode map
+  m_InterpolationModeDomain[SNAPSegmentationROISettings::NEAREST_NEIGHBOR] =
+      "Nearest neighbor (fast)";
+  m_InterpolationModeDomain[SNAPSegmentationROISettings::TRILINEAR] =
+      "Linear interpolation (better quality)";
+  // m_InterpolationModeDomain[SNAPSegmentationROISettings::TRICUBIC] =
+  //     "Cubic interpolation (high quality)";
+  // m_InterpolationModeDomain[SNAPSegmentationROISettings::SINC_WINDOW_05] =
+  //     "Windowed sinc interpolation (best quality)";
+
+  m_InterpolationModeModel->SetDomain(m_InterpolationModeDomain);
+
 }
 
-bool SnakeROIResampleModel::GetInputSpacingValueAndRange(
-    Vector3d &value, NumericValueRange<Vector3d> *domain)
+void SnakeROIResampleModel::EnforceAspectRatio(int source_idx)
+{
+  SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
+
+  double aspect = m_ResampleDimensions[source_idx] * 1.0 / roi.GetROI().GetSize()[source_idx];
+
+  for(int i = 0; i < 3; i++)
+    {
+    if(i != source_idx)
+      {
+      unsigned int new_dim =
+          itk::Math::Round<double>(aspect * roi.GetROI().GetSize()[i]);
+      m_ResampleDimensions[i] = new_dim >= 1 ? new_dim : 1;
+      }
+    }
+}
+
+void SnakeROIResampleModel::OnUpdate()
+{
+  if(this->m_EventBucket->HasEvent(LayerChangeEvent()) ||
+     this->m_EventBucket->HasEvent(ValueChangedEvent(), m_ROISettingsModel))
+    {
+    if(m_Parent->GetDriver()->IsMainImageLoaded())
+      {
+      ComputeCachedDomains();
+      SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
+      m_ResampleDimensions = roi.GetResampleDimensions();
+      m_InterpolationModeModel->SetValue(roi.GetInterpolationMethod());
+      }
+    }
+}
+
+bool SnakeROIResampleModel::GetInputSpacingValueAndRange(int index,
+    double &value, NumericValueRange<double> *domain)
 {
   IRISApplication *app = m_Parent->GetDriver();
   if(app->IsMainImageLoaded())
     {
-    value = app->GetCurrentImageData()->GetImageSpacing();
+    value = app->GetCurrentImageData()->GetImageSpacing()[index];
 
     if(domain)
-      this->ComputeSpacingDomain(domain);
+      *domain = m_SpacingDomain[index];
 
     return true;
     }
+  return false;
+}
+
+bool SnakeROIResampleModel
+::GetInputDimensionsValueAndRange(
+    int index, unsigned int &value, NumericValueRange<unsigned int> *domain)
+{
+  IRISApplication *app = m_Parent->GetDriver();
+  if(app->IsMainImageLoaded())
+    {
+    SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
+    value = roi.GetROI().GetSize()[index];
+    return true;
+    }
+
   return false;
 }
 
 bool SnakeROIResampleModel::GetOutputSpacingValueAndRange(
-    Vector3d &value, NumericValueRange<Vector3d> *domain)
+    int index, double &value, NumericValueRange<double> *domain)
 {
   IRISApplication *app = m_Parent->GetDriver();
   if(app->IsMainImageLoaded())
     {
-    SNAPSegmentationROISettings roi = app->GetGlobalState()->GetSegmentationROISettings();
-    Vector3d scale = roi.GetVoxelScale();
-    Vector3d spacing = app->GetCurrentImageData()->GetImageSpacing();
-
-    value = element_product(scale, spacing);
+    Vector3d inSpacing = app->GetCurrentImageData()->GetImageSpacing();
+    SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
+    value = roi.GetROI().GetSize()[index] * inSpacing[index] / m_ResampleDimensions[index];
 
     if(domain)
-      this->ComputeSpacingDomain(domain);
+      *domain = m_SpacingDomain[index];
 
     return true;
     }
   return false;
 }
 
-void SnakeROIResampleModel::SetOutputSpacingValue(Vector3d value)
+void SnakeROIResampleModel::SetOutputSpacingValue(int index, double value)
 {
   IRISApplication *app = m_Parent->GetDriver();
-  SNAPSegmentationROISettings roi = app->GetGlobalState()->GetSegmentationROISettings();
-  Vector3d spacing = app->GetCurrentImageData()->GetImageSpacing();
-  roi.SetVoxelScale(element_quotient(value,spacing));
-  app->GetGlobalState()->SetSegmentationROISettings(roi);
+  SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
+  Vector3d inSpacing = app->GetCurrentImageData()->GetImageSpacing();
+
+  // Calculate the dimensions
+  m_ResampleDimensions[index] = itk::Math::Round<double>(
+        roi.GetROI().GetSize()[index] * inSpacing[index] / value);
+
+  if(GetFixedAspectRatio())
+    EnforceAspectRatio(index);
+
+  InvokeEvent(ModelUpdateEvent());
 }
 
-bool SnakeROIResampleModel::GetIndexedScaleFactorValueAndRange(
-    int index, double &value, ScaleFactorDomain *domain)
+bool SnakeROIResampleModel
+::GetOutputDimensionsValueAndRange(int index, unsigned int &value, NumericValueRange<unsigned int> *domain)
 {
   IRISApplication *app = m_Parent->GetDriver();
+  SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
   if(app->IsMainImageLoaded())
     {
-    SNAPSegmentationROISettings roi = app->GetGlobalState()->GetSegmentationROISettings();
-    Vector3d scale = roi.GetVoxelScale();
-    value = scale[index];
+    value = m_ResampleDimensions[index];
     if(domain)
-      *domain = m_ScaleFactorDomain;
-    std::cout << "Get: Scale[" << index << "] = " << scale[index] << std::endl;
+      {
+      *domain = m_DimensionsDomain[index];
+      }
     return true;
     }
+
   return false;
 }
 
-void SnakeROIResampleModel::SetIndexedScaleFactorValue(
-    int index, double value)
+void SnakeROIResampleModel
+::SetOutputDimensionsValue(int index, unsigned int value)
 {
-  IRISApplication *app = m_Parent->GetDriver();
-  SNAPSegmentationROISettings roi = app->GetGlobalState()->GetSegmentationROISettings();
-  Vector3d scale = roi.GetVoxelScale();
-  scale[index] = value;
-  roi.SetVoxelScale(scale);
-  app->GetGlobalState()->SetSegmentationROISettings(roi);
+  m_ResampleDimensions[index] = value;
+
+  if(GetFixedAspectRatio())
+    EnforceAspectRatio(index);
+
+  InvokeEvent(ModelUpdateEvent());
 }
+
+
