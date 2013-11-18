@@ -253,7 +253,9 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   Rebroadcast(this, CursorUpdateEvent(), LabelUnderCursorChangedEvent());
   Rebroadcast(m_Driver->GetColorLabelTable(), SegmentationLabelChangeEvent(),
               LabelUnderCursorChangedEvent());
+
   Rebroadcast(m_Driver, SegmentationChangeEvent(), LabelUnderCursorChangedEvent());
+  Rebroadcast(m_Driver, SegmentationChangeEvent(), StateMachineChangeEvent());
 
   // Segmentation ROI event
   Rebroadcast(m_Driver->GetGlobalState()->GetSegmentationROISettingsModel(),

@@ -80,7 +80,9 @@ void PaintbrushInteractionMode::leaveEvent(QEvent *)
   SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
   panel->SetMouseMotionTracking(false);
 
-  m_Model->ProcessMouseLeaveEvent();
+  // This fixes a crash when you press quit in paintbrush mode
+  if(panel->isVisible())
+    m_Model->ProcessMouseLeaveEvent();
 }
 
 
