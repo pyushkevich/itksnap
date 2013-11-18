@@ -22,6 +22,7 @@
 #include "itkCommand.h"
 
 #include <QPlastiqueStyle>
+#include <QWindowsVistaStyle>
 #include <QAction>
 
 #include "ImageIODelegates.h"

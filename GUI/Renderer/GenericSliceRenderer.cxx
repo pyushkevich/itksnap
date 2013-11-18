@@ -169,9 +169,6 @@ GenericSliceRenderer
             // Draw all the overlays added to this object
             this->DrawTiledOverlays();
 
-            // Draw the zoom locator
-            if(m_Model->IsThumbnailOn() && irow == (nrows-1) && icol == 0)
-              this->DrawThumbnail();
             }
           }
 
@@ -194,6 +191,10 @@ GenericSliceRenderer
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
+
+    // Draw the zoom locator
+    if(m_Model->IsThumbnailOn())
+      this->DrawThumbnail();
 
     // Draw the global overlays
     this->DrawGlobalOverlays();
@@ -392,6 +393,11 @@ void GenericSliceRenderer::DrawThumbnail()
   m_Model->ComputeThumbnailProperties();
   Vector2i tPos = m_Model->GetThumbnailPosition();
   double tZoom = m_Model->GetThumbnailZoom();
+
+  // Current display layout
+  DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
+  Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
+  unsigned int rows = layout[0], cols = layout[1];
 
   // Indicate the fact that we are currently drawing in thumbnail mode
   m_ThumbnailDrawing = true;

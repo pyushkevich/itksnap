@@ -169,6 +169,10 @@ void SliceWindowDecorationRenderer::DrawNicknames()
         }
       }
     }
+
+
+  glPopMatrix();
+  glPopAttrib();
 }
 
 void SliceWindowDecorationRenderer::DrawRulers()
@@ -190,8 +194,6 @@ void SliceWindowDecorationRenderer::DrawRulers()
 
   SNAPAppearanceSettings::ApplyUIElementLineSettings(elt);
   glColor4d( elt.NormalColor[0], elt.NormalColor[1], elt.NormalColor[2], 1.0 );
-
-  // gl_font(FL_HELVETICA, elt.FontSize);
 
   // Pick the scale of the ruler
   Vector2ui vp = parentModel->GetSizeReporter()->GetViewportSize();
@@ -244,7 +246,6 @@ void SliceWindowDecorationRenderer::DrawRulers()
         oss.str().c_str(),
         vp[0]-(bw+10), 12, (int) bw, 20,
         font_info, 0, -1, elt.NormalColor);
-    //gl_draw(oss.str().c_str(), 10, h - 30, (int) bw, 20, FL_ALIGN_TOP);
     }
   else
     {
@@ -252,10 +253,8 @@ void SliceWindowDecorationRenderer::DrawRulers()
           oss.str().c_str(),
           vp[0] - (int) (2 * bw + elt.FontSize * 4 + 20), 5, (int) (bw + elt.FontSize * 4+10), 10,
           font_info, 1, 0, elt.NormalColor);
-    // gl_draw(oss.str().c_str(), (int) bw+10, h - 20, (int) bw + elt.FontSize * 4+10, 15, FL_ALIGN_LEFT);
     }
 
   glPopMatrix();
   glPopAttrib();
-
 }
