@@ -239,6 +239,9 @@ public:
   /** Get the NIFTI s-form matrix for this image */
   irisGetMacro(NiftiSform, TransformType)
 
+  /** Get the inverse NIFTI s-form matrix for this image */
+  irisGetMacro(NiftiInvSform, TransformType)
+
   /** Set the voxel at a given position.*/
   void SetVoxel(const Vector3ui &index, const PixelType &value);
   void SetVoxel(const itk::Index<3> &index, const PixelType &value);

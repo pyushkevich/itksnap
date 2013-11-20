@@ -94,11 +94,87 @@ private:
   bool m_IsPainting;
 };
 
+
+class ScalpelInteractorStyle : public vtkInteractorStyleTrackballCamera
+{
+public:
+  static ScalpelInteractorStyle* New();
+  vtkTypeRevisionMacro(ScalpelInteractorStyle, vtkInteractorStyleTrackballCamera)
+
+  irisGetSetMacro(Model, Generic3DModel *)
+
+  virtual void OnLeftButtonDown()
+  {
+    Vector2i xevent(this->Interactor->GetEventPosition());
+    switch(m_Model->GetScalpelStatus())
+      {
+      case Generic3DModel::SCALPEL_LINE_NULL:
+        m_Model->SetScalpelStartPoint(xevent[0], xevent[1]);
+        break;
+      case Generic3DModel::SCALPEL_LINE_STARTED:
+        m_Model->SetScalpelEndPoint(xevent[0], xevent[1], true);
+        break;
+      case Generic3DModel::SCALPEL_LINE_COMPLETED:
+        vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+        break;
+      }
+  }
+
+  virtual void OnMouseMove()
+  {
+    Vector2i xevent(this->Interactor->GetEventPosition());
+    switch(m_Model->GetScalpelStatus())
+      {
+      case Generic3DModel::SCALPEL_LINE_STARTED:
+        m_Model->SetScalpelEndPoint(xevent[0], xevent[1], false);
+        break;
+      default:
+        vtkInteractorStyleTrackballCamera::OnMouseMove();
+        break;
+      }
+ }
+
+  virtual void OnEnter()
+  {
+    vtkInteractorStyleTrackballCamera::OnEnter();
+
+    // Record that we're inside
+    m_Inside = true;
+
+    // Record the end point
+    OnMouseMove();
+  }
+
+  virtual void OnLeave()
+  {
+    vtkInteractorStyleTrackballCamera::OnLeave();
+
+    // Record that we're inside
+    m_Inside = false;
+  }
+
+  irisGetMacro(Inside,bool)
+
+protected:
+
+  ScalpelInteractorStyle() : m_Model(NULL) {}
+  virtual ~ScalpelInteractorStyle() {}
+
+  Generic3DModel *m_Model;
+
+  bool m_Inside;
+};
+
+
+
 vtkCxxRevisionMacro(CursorPlacementInteractorStyle, "$Revision: 1.1 $")
 vtkStandardNewMacro(CursorPlacementInteractorStyle)
 
 vtkCxxRevisionMacro(SpraycanInteractorStyle, "$Revision: 1.1 $")
 vtkStandardNewMacro(SpraycanInteractorStyle)
+
+vtkCxxRevisionMacro(ScalpelInteractorStyle, "$Revision: 1.1 $")
+vtkStandardNewMacro(ScalpelInteractorStyle)
 
 
 
@@ -113,7 +189,7 @@ GenericView3D::GenericView3D(QWidget *parent) :
       = vtkSmartPointer<CursorPlacementInteractorStyle>::New();
 
   m_InteractionStyle[SCALPEL_MODE]
-      = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+      = vtkSmartPointer<ScalpelInteractorStyle>::New();
 
   m_InteractionStyle[SPRAYPAINT_MODE]
       = vtkSmartPointer<SpraycanInteractorStyle>::New();
@@ -130,12 +206,15 @@ void GenericView3D::SetModel(Generic3DModel *model)
   // Assign the renderer
   this->SetRenderer(m_Model->GetRenderer());
 
-  // Pass the model to the cursor placement style, which handles picking
+  // Pass the model to the different interactors
   CursorPlacementInteractorStyle::SafeDownCast(
         m_InteractionStyle[CROSSHAIRS_3D_MODE])->SetModel(model);
 
   SpraycanInteractorStyle::SafeDownCast(
         m_InteractionStyle[SPRAYPAINT_MODE])->SetModel(model);
+
+  ScalpelInteractorStyle::SafeDownCast(
+        m_InteractionStyle[SCALPEL_MODE])->SetModel(model);
 
   // Listen to toolbar changes
   connectITK(m_Model->GetParentUI()->GetToolbarMode3DModel(),
@@ -151,5 +230,7 @@ void GenericView3D::onToolbarModeChange()
 
   m_Model->GetRenderer()->GetRenderWindowInteractor()
       ->SetInteractorStyle(m_InteractionStyle[mode]);
+
+  setMouseTracking(mode == SCALPEL_MODE);
 }
 

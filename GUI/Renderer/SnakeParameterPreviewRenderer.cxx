@@ -129,8 +129,6 @@ void SnakeParameterPreviewRenderer::paintGL()
       {
       case PROPAGATION_FORCE :
         force = p.PropagationForce;
-        if(i == 0)
-          std::cout << "prop-force = " << force << std::endl;
         break;
       case CURVATURE_FORCE :
         force = p.CurvatureForce;

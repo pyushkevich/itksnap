@@ -1221,8 +1221,13 @@ IRISApplication
     // Check the side of the plane
     if(distance > 0)
       {
-      LabelType &voxel = it.Value();
-      voxel = table[voxel];
+      LabelType voxel = it.Value();
+      LabelType newvox = table[voxel];
+      if(voxel != newvox)
+        {
+        it.Set(newvox);
+        m_SegmentationChangeCount++;
+        }
       }
 
     // Next voxel

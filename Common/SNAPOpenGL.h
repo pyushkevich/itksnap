@@ -93,4 +93,6 @@ gl_draw_circle_with_border(double x, double y, double r,
                            int vp_width, int vp_height,
                            Vector3ui color);
 
+Vector3d adjust_color_luminance(const Vector3d &color, double factor);
+
 #endif // __SNAPOpenGL_h_

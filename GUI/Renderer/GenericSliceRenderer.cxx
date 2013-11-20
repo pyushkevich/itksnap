@@ -64,6 +64,9 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   // Listen to changes in the appearance of any of the wrappers
   Rebroadcast(m_Model->GetDriver(), WrapperChangeEvent(), AppearanceUpdateEvent());
 
+  // Listen to changes to the segmentation
+  Rebroadcast(m_Model->GetDriver(), SegmentationChangeEvent(), AppearanceUpdateEvent());
+
   // Changes to cell layout also must be rebroadcast
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
   Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(),

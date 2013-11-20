@@ -10,11 +10,15 @@ class vtkRenderer;
 class vtkRenderWindow;
 class vtkLineSource;
 class vtkActor;
+class vtkActor2D;
 class vtkPropAssembly;
 class vtkProperty;
 class vtkTransform;
-
+class vtkImplicitPlaneWidget;
 class vtkGlyph3D;
+class vtkTransformPolyDataFilter;
+class vtkCubeSource;
+class vtkCoordinate;
 
 class Generic3DRenderer : public AbstractVTKRenderer
 {
@@ -29,6 +33,15 @@ public:
   virtual void OnUpdate();
 
   void ResetView();
+
+  /** Get the normal to the scalpel plane in world coordinates */
+  Vector3d GetScalpelPlaneNormal() const;
+
+  /** Get the origin of the scalpel plane in world coordinates */
+  Vector3d GetScalpelPlaneOrigin() const;
+
+  /** Compute the world coordinates of a click and a ray pointing inward (not normalized) */
+  void ComputeRayFromClick(int x, int y, Vector3d &m_Point, Vector3d &m_Ray);
 
 protected:
   Generic3DRenderer();
@@ -45,6 +58,12 @@ protected:
 
   // Update the spray paint glyph properties
   void UpdateSprayGlyphAppearanceAndShape();
+
+  // Update the scalpel rendering
+  void UpdateScalpelRendering();
+
+  // Update the scalpel plane appearance (color, etc)
+  void UpdateScalpelPlaneAppearance();
 
   // Update the camera
   void UpdateCamera(bool reset);
@@ -65,6 +84,18 @@ protected:
   // The transform applied to spray points
   vtkSmartPointer<vtkTransform> m_SprayTransform;
   vtkSmartPointer<vtkActor> m_SprayActor;
+
+  // The actors for the scalpel drawing
+  vtkSmartPointer<vtkLineSource> m_ScalpelLineSource;
+  vtkSmartPointer<vtkActor2D> m_ScalpelLineActor;
+
+  // The actors for the scalpel plane
+  vtkSmartPointer<vtkCubeSource> m_ImageCubeSource;
+  vtkSmartPointer<vtkTransformPolyDataFilter> m_ImageCubeTransform;
+  vtkSmartPointer<vtkImplicitPlaneWidget> m_ScalpelPlaneWidget;
+
+  // Coordinate mapper
+  vtkSmartPointer<vtkCoordinate> m_CoordinateMapper;
 };
 
 #endif // GENERIC3DRENDERER_H

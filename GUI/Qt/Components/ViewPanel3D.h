@@ -21,11 +21,11 @@ public:
   // Register with the global model
   void Initialize(GlobalUIModel *model);
 
-  void OnRenderProgress();
-
   GenericView3D *Get3DView();
 
 private slots:
+  virtual void onModelUpdate(const EventBucket &bucket);
+
   void on_btnUpdateMesh_clicked();
 
   void on_btnScreenshot_clicked();
@@ -34,6 +34,12 @@ private slots:
 
   void on_btnAccept_clicked();
 
+  void on_btnCancel_clicked();
+
+  void on_btnExpand_clicked();
+
+
+
 private:
   Ui::ViewPanel3D *ui;
 
@@ -41,6 +47,7 @@ private:
 
   Generic3DModel *m_Model;
 
+  void UpdateExpandViewButton();
 };
 
 #endif // VIEWPANEL3D_H

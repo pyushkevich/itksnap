@@ -27,7 +27,6 @@ public:
   ColorVec GetValue(ColorWheel *w)
   {
     QColor qclr = w->color();
-    std::cout << "Read " << qclr << std::endl;
     return ColorVec(qclr.red(), qclr.green(), qclr.blue());
   }
 
@@ -37,11 +36,7 @@ public:
     QColor newcol(value[0],value[1],value[2]);
     if(newcol != w->color())
       {
-      std::cout << "Check " << w->color() << std::endl;
-      std::cout << "Write " << newcol << std::endl;
       w->setColor(newcol);
-      std::cout << "Post " << w->color() << std::endl;
-
       }
   }
 

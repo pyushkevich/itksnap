@@ -417,7 +417,6 @@ void LayerInspectorRowDelegate::ApplyColorMap()
     QString gradient = QString("qlineargradient(x1:0, y1:0, x2:1, y2:0, %1);")
         .arg(stops.join(","));
 
-    std::cout << gradient.toStdString() << std::endl;
     QString stylesheet = m_SliderStyleSheetTemplate;
     stylesheet.replace("#gradient#", gradient);
     ui->inLayerOpacity->setStyleSheet(stylesheet);

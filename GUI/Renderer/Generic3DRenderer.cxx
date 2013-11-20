@@ -8,7 +8,9 @@
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkPolyDataMapper2D.h"
 #include "vtkActor.h"
+#include "vtkActor2D.h"
 #include "vtkProperty.h"
 #include "vtkRenderer.h"
 #include "vtkSphereSource.h"
@@ -16,6 +18,7 @@
 #include "vtkTransform.h"
 #include "vtkLineSource.h"
 #include "vtkPropAssembly.h"
+#include "vtkMath.h"
 
 
 #include "MeshObject.h"
@@ -40,11 +43,33 @@
 #include "vtkGlyph3D.h"
 #include "vtkCubeSource.h"
 #include "vtkSphereSource.h"
+#include "vtkImplicitPlaneWidget.h"
+#include "vtkTransformPolyDataFilter.h"
+#include "vtkCubeSource.h"
+#include "vtkCoordinate.h"
+
+# include <vnl/vnl_cross.h>
+
 
 Generic3DRenderer::Generic3DRenderer()
 {
   // Why is this necessary?
-  GetRenderWindow()->SwapBuffersOff();
+  GetRenderWindow()->SetMultiSamples(4);
+  GetRenderWindow()->SetLineSmoothing(1);
+
+  // Initialize the mesh assembly
+  m_MeshAssembly = vtkSmartPointer<vtkPropAssembly>::New();
+  this->m_Renderer->AddActor(m_MeshAssembly);
+
+  // Create a picker
+  vtkSmartPointer<Window3DPicker> picker = vtkSmartPointer<Window3DPicker>::New();
+  this->GetRenderWindowInteractor()->SetPicker(picker);
+
+  // Coordinate mapper
+  m_CoordinateMapper = vtkSmartPointer<vtkCoordinate>::New();
+  m_CoordinateMapper->SetCoordinateSystemToViewport();
+
+  // ------------------ AXES ----------------------------
 
   // Initialize the line sources for the axes
   for(int i = 0; i < 3; i++)
@@ -64,13 +89,8 @@ Generic3DRenderer::Generic3DRenderer()
     this->m_Renderer->AddActor(m_AxisActor[i]);
     }
 
-  // Initialize the mesh assembly
-  m_MeshAssembly = vtkSmartPointer<vtkPropAssembly>::New();
-  this->m_Renderer->AddActor(m_MeshAssembly);
 
-  // Create a picker
-  vtkSmartPointer<Window3DPicker> picker = vtkSmartPointer<Window3DPicker>::New();
-  this->GetRenderWindowInteractor()->SetPicker(picker);
+  // ------------------ SPRAYPAINT ----------------------------
 
   // Create a glyph filter which handles spray paint
   vtkSmartPointer<vtkSphereSource> cube = vtkSmartPointer<vtkSphereSource>::New();
@@ -78,7 +98,6 @@ Generic3DRenderer::Generic3DRenderer()
   m_SprayGlyphFilter->SetSourceConnection(cube->GetOutputPort());
   m_SprayGlyphFilter->SetScaleModeToDataScalingOff();
   m_SprayGlyphFilter->SetScaleFactor(1.4);
-
 
   // Create a transform filter for the glyph filter
   m_SprayTransform = vtkSmartPointer<vtkTransform>::New();
@@ -98,7 +117,38 @@ Generic3DRenderer::Generic3DRenderer()
   m_SprayActor = vtkSmartPointer<vtkActor>::New();
   m_SprayActor->SetMapper(mapper_spray);
   m_SprayActor->SetProperty(m_SprayProperty);
-  m_Renderer->AddActor(m_SprayActor);
+
+  // ------------------ SCALPEL ----------------------------
+
+  // Create the line actor for scalpel positioning
+  m_ScalpelLineSource = vtkSmartPointer<vtkLineSource>::New();
+
+  // Create mapper, actor, etc
+  vtkSmartPointer<vtkPolyDataMapper2D> mapper_scalpel =
+      vtkSmartPointer<vtkPolyDataMapper2D>::New();
+  mapper_scalpel->SetInputConnection(m_ScalpelLineSource->GetOutputPort());
+
+  m_ScalpelLineActor = vtkSmartPointer<vtkActor2D>::New();
+  m_ScalpelLineActor->SetMapper(mapper_scalpel);
+
+  this->m_Renderer->AddActor(m_ScalpelLineActor);
+
+  m_ImageCubeSource = vtkSmartPointer<vtkCubeSource>::New();
+  m_ImageCubeTransform = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  m_ImageCubeTransform->SetInputConnection(m_ImageCubeSource->GetOutputPort());
+  m_ScalpelPlaneWidget = vtkSmartPointer<vtkImplicitPlaneWidget>::New();
+  m_ScalpelPlaneWidget->SetInput(m_ImageCubeTransform->GetOutput());
+
+  m_ScalpelPlaneWidget->SetInteractor(this->GetRenderWindowInteractor());
+  m_ScalpelPlaneWidget->SetPlaceFactor(1.0);
+
+  m_ScalpelPlaneWidget->OutlineTranslationOff();
+  m_ScalpelPlaneWidget->OutsideBoundsOff();
+  m_ScalpelPlaneWidget->ScaleEnabledOff();
+
+  m_ScalpelPlaneWidget->GetPlaneProperty()->SetOpacity(0.5);
+  m_ScalpelPlaneWidget->GetOutlineProperty()->SetOpacity(0.2);
+  m_ScalpelPlaneWidget->SetTubing(1);
 }
 
 void Generic3DRenderer::SetModel(Generic3DModel *model)
@@ -121,7 +171,6 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(app, LevelSetImageChangeEvent(), ModelUpdateEvent());
   Rebroadcast(m_Model->GetContinuousUpdateModel(), ValueChangedEvent(), ModelUpdateEvent());
 
-
   // Respond to cursor events
   Rebroadcast(m_Model->GetParentUI(), CursorUpdateEvent(), ModelUpdateEvent());
 
@@ -135,6 +184,9 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 
   // Respond to spray paint events
   Rebroadcast(m_Model, Generic3DModel::SprayPaintEvent(), ModelUpdateEvent());
+
+  // Respond to scalpel events
+  Rebroadcast(m_Model, Generic3DModel::ScalpelEvent(), ModelUpdateEvent());
 
   // Respond to changes in toolbar mode
   Rebroadcast(m_Model->GetParentUI()->GetToolbarMode3DModel(),
@@ -209,6 +261,10 @@ void Generic3DRenderer::UpdateAxisRendering()
     SNAPAppearanceSettings::Element axisapp =
         as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_3D);
 
+    // Voxel to world transform
+    vtkSmartPointer<vtkTransform> tran = vtkSmartPointer<vtkTransform>::New();
+    tran->SetMatrix(m_Model->GetWorldMatrix().data_block());
+
     for(int i = 0; i < 3; i++)
       {
       // Update the cursor position
@@ -232,11 +288,127 @@ void Generic3DRenderer::UpdateAxisRendering()
         }
 
       // Update the transform
-      vtkSmartPointer<vtkTransform> tran = vtkSmartPointer<vtkTransform>::New();
-      tran->SetMatrix(m_Model->GetWorldMatrix().data_block());
       m_AxisActor[i]->SetUserTransform(tran);
       }
+
+    // Also update the image cube
+    m_ImageCubeSource->SetBounds(0, dims[0], 0, dims[1], 0, dims[2]);
+    m_ImageCubeTransform->SetTransform(tran);
+    m_ImageCubeTransform->Update();
+    m_ImageCubeTransform->GetOutput()->ComputeBounds();
     }
+}
+
+
+void Generic3DRenderer::UpdateScalpelRendering()
+{
+  // If not in scalpel mode, just disable everything
+  if(m_Model->GetParentUI()->GetToolbarMode3D() != SCALPEL_MODE)
+    {
+    m_ScalpelPlaneWidget->SetEnabled(0);
+    m_ScalpelLineActor->SetVisibility(0);
+    return;
+    }
+
+  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
+
+  if(m_Model->GetScalpelStatus() == Generic3DModel::SCALPEL_LINE_STARTED)
+    {
+    m_ScalpelLineActor->SetVisibility(1);
+    m_ScalpelLineSource->SetPoint1(
+          m_Model->GetScalpelStart()[0], m_Model->GetScalpelStart()[1], 0);
+    m_ScalpelLineSource->SetPoint2(
+          m_Model->GetScalpelEnd()[0], m_Model->GetScalpelEnd()[1], 0);
+    m_ScalpelLineSource->Update();
+    }
+  else
+    {
+    m_ScalpelLineActor->SetVisibility(0);
+    }
+
+  if(m_Model->GetScalpelStatus() == Generic3DModel::SCALPEL_LINE_COMPLETED)
+    {
+    // Get the endpoints of the cut the user drew on the viewport
+    Vector2i w0 = m_Model->GetScalpelStart(), w1 = m_Model->GetScalpelEnd();
+
+    // If for some reason the endpoints are the same, we just make the cut
+    // plane vertical on the screen
+    if(w0 == w1)
+      w1[1] = w0[1] + 1;
+
+    // Use the coordinate mapper to map the two points on the viewport to
+    // world coordinates
+    m_CoordinateMapper->SetValue(w0[0], w0[1], 0.0);
+    Vector3d p0(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer));
+
+    m_CoordinateMapper->SetValue(w1[0], w1[1], 0.0);
+    Vector3d p1(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer));
+
+    // Vector from start to end in world coords
+    Vector3d v01 = p1 - p0;
+
+    // Vector pointing into the screen
+    m_CoordinateMapper->SetValue(w0[0], w0[1], 1.0);
+    Vector3d w = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer)) - p0;
+
+    // Compute the plane normal vector as the cross-product of the vector between
+    // the endpoints and the vector pointing out of the viewport
+    Vector3d n = - vnl_cross_3d(v01, w);
+    n.normalize();
+
+    // Compute the intercept of the implicit plane
+    double intercept = dot_product(p0, n);
+
+    // Compute the center of the image volume
+    Vector3d xctr(m_ScalpelPlaneWidget->GetInput()->GetCenter());
+    Vector3d orig = xctr - n * (dot_product(xctr, n) - intercept);
+
+    // m_ImageCubeTransform->Update();
+    // m_ImageCubeTransform->GetOutput()->ComputeBounds();
+    // m_ScalpelPlaneWidget->SetInteractor(this->GetRenderWindowInteractor());
+    // m_ScalpelPlaneWidget->SetPlaceFactor(1.0);
+    m_ScalpelPlaneWidget->PlaceWidget();
+    m_ScalpelPlaneWidget->SetEnabled(1);
+
+    // We will also need to set the origin of the plane
+    m_ScalpelPlaneWidget->SetNormal(n.data_block());
+    m_ScalpelPlaneWidget->SetOrigin(orig.data_block());
+    }
+  else
+    {
+    m_ScalpelPlaneWidget->SetEnabled(0);
+    }
+}
+
+
+void Generic3DRenderer::UpdateScalpelPlaneAppearance()
+{
+  // The color of the normal is the same as the current label
+  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
+  LabelType dl = app->GetGlobalState()->GetDrawingColorLabel();
+  ColorLabel cdl = app->GetColorLabelTable()->GetColorLabel(dl);
+
+  // Get a color and a brighter color
+  // (I'm using http://www.poynton.com/PDFs/ColorFAQ.pdf)
+  Vector3d color = cdl.GetRGBAsDoubleVector();
+  Vector3d color_xyz, color_brighter, color_darker;
+
+  vtkMath::RGBToXYZ(color.data_block(), color_xyz.data_block());
+  color_xyz *= 1.1;
+  vtkMath::XYZToRGB(color_xyz.data_block(), color_brighter.data_block());
+
+  vtkMath::RGBToXYZ(color.data_block(), color_xyz.data_block());
+  color_xyz /= 1.1;
+  vtkMath::XYZToRGB(color_xyz.data_block(), color_darker.data_block());
+
+  vtkProperty *p_normal = m_ScalpelPlaneWidget->GetNormalProperty();
+  p_normal->SetColor(color_darker.data_block());
+
+  vtkProperty *ps_normal = m_ScalpelPlaneWidget->GetSelectedNormalProperty();
+  ps_normal->SetColor(color_brighter.data_block());
+
+  vtkProperty *p_edges = m_ScalpelPlaneWidget->GetEdgesProperty();
+  p_edges->SetColor(color_darker.data_block());
 }
 
 void Generic3DRenderer::UpdateSprayGlyphAppearanceAndShape()
@@ -359,6 +531,9 @@ void Generic3DRenderer::OnUpdate()
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
   GlobalState *gs = app->GetGlobalState();
 
+  // Get the mode
+  ToolbarMode3DType mode = m_Model->GetParentUI()->GetToolbarMode3D();
+
   // Define a bunch of local flags to make this code easier to read
   bool main_changed = m_EventBucket->HasEvent(MainImageDimensionsChangeEvent());
   bool labels_props_changed = m_EventBucket->HasEvent(SegmentationLabelChangeEvent());
@@ -367,6 +542,7 @@ void Generic3DRenderer::OnUpdate()
   bool active_label_changed = m_EventBucket->HasEvent(
         ValueChangedEvent(), gs->GetDrawingColorLabelModel());
   bool spray_action = m_EventBucket->HasEvent(Generic3DModel::SprayPaintEvent());
+  bool scalpel_action = m_EventBucket->HasEvent(Generic3DModel::ScalpelEvent());
   bool mode_changed = m_EventBucket->HasEvent(
         ValueChangedEvent(), m_Model->GetParentUI()->GetToolbarMode3DModel());
   bool segmentation_changed =
@@ -405,18 +581,22 @@ void Generic3DRenderer::OnUpdate()
   if(main_changed || labels_props_changed || active_label_changed)
     {
     UpdateSprayGlyphAppearanceAndShape();
+    UpdateScalpelPlaneAppearance();
     }
 
   // Deal with spray events
-  if(main_changed || spray_action)
+  if(main_changed || spray_action || mode_changed)
     {
-    m_SprayGlyphFilter->Update();
+    if(m_Model->GetSprayPoints()->GetNumberOfPoints() && mode == SPRAYPAINT_MODE)
+      this->m_Renderer->AddActor(m_SprayActor);
+    else
+      this->m_Renderer->RemoveActor(m_SprayActor);
     }
 
-  // Deal with mode changes
-  if(mode_changed)
+  // Deal with scalpel events
+  if(main_changed || scalpel_action || mode_changed)
     {
-    m_SprayActor->SetVisibility(m_Model->GetParentUI()->GetToolbarMode3D() == SPRAYPAINT_MODE);
+    UpdateScalpelRendering();
     }
 }
 
@@ -424,4 +604,25 @@ void Generic3DRenderer::ResetView()
 {
   this->UpdateCamera(true);
   InvokeEvent(ModelUpdateEvent());
+}
+
+Vector3d Generic3DRenderer::GetScalpelPlaneNormal() const
+{
+  return Vector3d(m_ScalpelPlaneWidget->GetNormal());
+}
+
+Vector3d Generic3DRenderer::GetScalpelPlaneOrigin() const
+{
+  return Vector3d(m_ScalpelPlaneWidget->GetOrigin());
+}
+
+void Generic3DRenderer::ComputeRayFromClick(int x, int y, Vector3d &m_Point, Vector3d &m_Ray)
+{
+  // Get the position of the click in world coordinates
+  m_CoordinateMapper->SetValue(x, y, 0);
+  m_Point = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer));
+
+  // Get the normal vector to the viewport
+  m_CoordinateMapper->SetValue(x, y, 1);
+  m_Ray = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer)) - m_Point;
 }

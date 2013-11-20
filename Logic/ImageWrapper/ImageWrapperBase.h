@@ -200,6 +200,9 @@ public:
   /** Get the NIFTI s-form matrix for this image */
   irisVirtualGetMacro(NiftiSform, TransformType)
 
+  /** Get the inverse NIFTI s-form matrix for this image */
+  irisVirtualGetMacro(NiftiInvSform, TransformType)
+
   /** Get a display slice correpsponding to the current index */
   virtual DisplaySlicePointer GetDisplaySlice(unsigned int dim) = 0;
 

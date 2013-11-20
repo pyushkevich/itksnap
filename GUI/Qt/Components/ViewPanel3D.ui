@@ -43,16 +43,9 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QToolButton" name="btnAccept">
-        <property name="text">
-         <string>accept</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QToolButton" name="btnUpdateMesh">
         <property name="text">
-         <string>update mesh</string>
+         <string>render</string>
         </property>
        </widget>
       </item>
@@ -60,6 +53,36 @@
        <widget class="QToolButton" name="btnResetView">
         <property name="text">
          <string>reset view</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>5</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnAccept">
+        <property name="text">
+         <string>accept</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnCancel">
+        <property name="text">
+         <string>cancel</string>
         </property>
        </widget>
       </item>
@@ -75,6 +98,23 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnExpand">
+        <property name="maximumSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../Resources/SNAPResources.qrc">
+          <normaloff>:/root/dl_3d.png</normaloff>:/root/dl_3d.png</iconset>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QToolButton" name="btnScreenshot">
@@ -107,6 +147,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../Resources/SNAPResources.qrc"/>
+ </resources>
  <connections/>
 </ui>

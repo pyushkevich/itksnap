@@ -55,14 +55,12 @@ void QtVTKInteractionDelegateWidget::mouseReleaseEvent(QMouseEvent *ev)
 
 void QtVTKInteractionDelegateWidget::mouseMoveEvent(QMouseEvent *ev)
 {
-  if(this->isDragging())
-    {
-    SetVTKEventState(ev);
-    m_VTKInteractor->MouseMoveEvent();
+  // Set the position information
+  SetVTKEventState(ev);
+  m_VTKInteractor->MouseMoveEvent();
 
-    // TODO: why do we need to force this?
-    this->GetParentGLWidget()->update();
-    }
+  // TODO: why do we need to force this?
+  this->GetParentGLWidget()->update();
 }
 
 void QtVTKInteractionDelegateWidget::SetVTKInteractor(vtkRenderWindowInteractor *iren)

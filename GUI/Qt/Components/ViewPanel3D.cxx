@@ -8,12 +8,13 @@
 #include "MainImageWindow.h"
 #include "SNAPQtCommon.h"
 #include "QtWidgetActivator.h"
+#include "DisplayLayoutModel.h"
 
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
 
-
+// Just playing around, this does not work
 #ifdef RENDERTHREAD
 class RenderThread : public QThread
 {
@@ -98,28 +99,25 @@ ViewPanel3D::~ViewPanel3D()
   delete ui;
 }
 
-void ViewPanel3D::OnRenderProgress()
-{
-  // TODO: fix this, add progress bar
-  // std::cout << "." << std::flush;
-}
-
 GenericView3D *ViewPanel3D::Get3DView()
 {
   return ui->view3d;
 }
 
+void ViewPanel3D::onModelUpdate(const EventBucket &bucket)
+{
+  if(bucket.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent()))
+    {
+    UpdateExpandViewButton();
+    }
+}
+
 void ViewPanel3D::on_btnUpdateMesh_clicked()
 {
-  // Do something about a progress bar
-  typedef itk::SimpleMemberCommand<ViewPanel3D> CommandType;
-  SmartPtr<CommandType> cmd = CommandType::New();
-  cmd->SetCallbackFunction(this, &ViewPanel3D::OnRenderProgress);
-
   try
     {
     // Tell the model to update itself
-    m_Model->UpdateSegmentationMesh(cmd);
+    m_Model->UpdateSegmentationMesh(m_Model->GetParentUI()->GetProgressCommand());
     }
   catch(IRISException & IRISexc)
     {
@@ -139,10 +137,33 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
 
   // Set activations
   activateOnFlag(ui->btnAccept, m_Model, Generic3DModel::UIF_MESH_ACTION_PENDING);
+  activateOnFlag(ui->btnCancel, m_Model, Generic3DModel::UIF_MESH_ACTION_PENDING);
   activateOnFlag(ui->btnUpdateMesh, m_Model, Generic3DModel::UIF_MESH_DIRTY);
+
+  // Listen to layout events
+  connectITK(m_Model->GetParentUI()->GetDisplayLayoutModel(),
+             DisplayLayoutModel::ViewPanelLayoutChangeEvent());
 }
 
+void ViewPanel3D::UpdateExpandViewButton()
+{
+  // Get the layout applied when the button is pressed
+  DisplayLayoutModel *dlm = m_GlobalUI->GetDisplayLayoutModel();
+  DisplayLayoutModel::ViewPanelLayout layout =
+      dlm->GetViewPanelExpandButtonActionModel(3)->GetValue();
 
+  // Set the tooltip
+  if(layout == DisplayLayoutModel::VIEW_ALL)
+    {
+    ui->btnExpand->setIcon(QIcon(":/root/dl_fourviews.png"));
+    ui->btnExpand->setToolTip("Restore the four-panel display configuration");
+    }
+  else
+    {
+    ui->btnExpand->setIcon(QIcon(":/root/dl_3d.png"));
+    ui->btnExpand->setToolTip("Expand the 3D view to occupy the entire window");
+    }
+}
 
 void ViewPanel3D::on_btnScreenshot_clicked()
 {
@@ -164,4 +185,20 @@ void ViewPanel3D::on_btnAccept_clicked()
                              "the segmentation. Check that the foreground and "
                              "background labels are selected correctly.");
     }
+}
+
+void ViewPanel3D::on_btnCancel_clicked()
+{
+  m_Model->CancelAction();
+}
+
+void ViewPanel3D::on_btnExpand_clicked()
+{
+  // Get the layout applied when the button is pressed
+  DisplayLayoutModel *dlm = m_GlobalUI->GetDisplayLayoutModel();
+  DisplayLayoutModel::ViewPanelLayout layout =
+      dlm->GetViewPanelExpandButtonActionModel(3)->GetValue();
+
+  // Apply this layout
+  dlm->GetViewPanelLayoutModel()->SetValue(layout);
 }
