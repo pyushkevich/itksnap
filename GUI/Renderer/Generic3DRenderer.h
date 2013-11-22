@@ -19,6 +19,7 @@ class vtkGlyph3D;
 class vtkTransformPolyDataFilter;
 class vtkCubeSource;
 class vtkCoordinate;
+class vtkCamera;
 
 class Generic3DRenderer : public AbstractVTKRenderer
 {
@@ -33,6 +34,18 @@ public:
   virtual void OnUpdate();
 
   void ResetView();
+
+  // Save the camera state
+  void SaveCameraState();
+
+  // Restore the camera state from saved
+  void RestoreSavedCameraState();
+
+  // Restore the camera state from saved
+  void DeleteSavedCameraState();
+
+  // Restore the camera state from saved
+  bool IsSavedCameraStateAvailable();
 
   /** Get the normal to the scalpel plane in world coordinates */
   Vector3d GetScalpelPlaneNormal() const;
@@ -99,6 +112,9 @@ protected:
 
   // Coordinate mapper
   vtkSmartPointer<vtkCoordinate> m_CoordinateMapper;
+
+  // Saved camera state
+  vtkSmartPointer<vtkCamera> m_SavedCameraState;
 };
 
 #endif // GENERIC3DRENDERER_H

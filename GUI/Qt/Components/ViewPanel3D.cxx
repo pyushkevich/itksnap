@@ -9,7 +9,10 @@
 #include "SNAPQtCommon.h"
 #include "QtWidgetActivator.h"
 #include "DisplayLayoutModel.h"
-
+#include <QtCore>
+#include <qtconcurrentrun.h>
+#include "itkProcessObject.h"
+#include <QMenu>
 
 
 
@@ -19,11 +22,29 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   ui(new Ui::ViewPanel3D)
 {
   ui->setupUi(this);
-  m_RenderWorker = new RenderWorker();
 
+  // Set up timer for continuous update rendering
   m_RenderTimer = new QTimer();
   m_RenderTimer->setInterval(100);
   connect(m_RenderTimer, SIGNAL(timeout()), SLOT(onTimer()));
+
+  // Create a progress command
+  m_RenderProgressCommand = CommandType::New();
+  m_RenderProgressCommand->SetCallbackFunction(this, &ViewPanel3D::ProgressCallback);
+
+  // Connect the progress event
+  ui->progressBar->setRange(0, 1000);
+  QObject::connect(this, SIGNAL(renderProgress(int)), ui->progressBar, SLOT(setValue(int)),
+                   Qt::DirectConnection);
+
+  // Set up the context menu
+  m_DropMenu = new QMenu(this);
+  m_DropMenu->setStyleSheet("font-size:11px;");
+  m_DropMenu->addAction(ui->actionReset_Viewpoint);
+  m_DropMenu->addAction(ui->actionSave_Viewpoint);
+  m_DropMenu->addAction(ui->actionRestore_Viewpoint);
+  m_DropMenu->addSeparator();
+  m_DropMenu->addAction(ui->actionContinuous_Update);
 }
 
 ViewPanel3D::~ViewPanel3D()
@@ -50,6 +71,7 @@ void ViewPanel3D::on_btnUpdateMesh_clicked()
     {
     // Tell the model to update itself
     m_Model->UpdateSegmentationMesh(m_Model->GetParentUI()->GetProgressCommand());
+    // m_Model->UpdateSegmentationMesh(m_RenderProgressCommand);
     }
   catch(IRISException & IRISexc)
     {
@@ -71,12 +93,13 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
   activateOnFlag(ui->btnAccept, m_Model, Generic3DModel::UIF_MESH_ACTION_PENDING);
   activateOnFlag(ui->btnCancel, m_Model, Generic3DModel::UIF_MESH_ACTION_PENDING);
   activateOnFlag(ui->btnUpdateMesh, m_Model, Generic3DModel::UIF_MESH_DIRTY);
+  activateOnFlag(ui->actionRestore_Viewpoint, m_Model, Generic3DModel::UIF_CAMERA_STATE_SAVED);
 
   // Listen to layout events
   connectITK(m_Model->GetParentUI()->GetDisplayLayoutModel(),
              DisplayLayoutModel::ViewPanelLayoutChangeEvent());
 
-  m_RenderWorker->SetModel(m_Model);
+  // Start the timer
   m_RenderTimer->start();
 }
 
@@ -100,15 +123,29 @@ void ViewPanel3D::UpdateExpandViewButton()
     }
 }
 
+// This method is run in a concurrent thread
+void ViewPanel3D::UpdateMeshesInBackground()
+{
+  // Make sure the model actually requires updating
+  if(m_Model && m_Model->CheckState(Generic3DModel::UIF_MESH_DIRTY))
+    {
+    m_Model->UpdateSegmentationMesh(m_RenderProgressCommand);
+    }
+}
+
+void ViewPanel3D::ProgressCallback(itk::Object *source, const itk::EventObject &)
+{
+  itk::ProcessObject *po = static_cast<itk::ProcessObject *>(source);
+
+  m_RenderProgressMutex.lock();
+  m_RenderProgressValue = po->GetProgress();
+  m_RenderProgressMutex.unlock();
+}
+
 void ViewPanel3D::on_btnScreenshot_clicked()
 {
   MainImageWindow *window = findParentWidget<MainImageWindow>(this);
   window->ExportScreenshot(3);
-}
-
-void ViewPanel3D::on_btnResetView_clicked()
-{
-  m_Model->ResetView();
 }
 
 void ViewPanel3D::on_btnAccept_clicked()
@@ -138,16 +175,60 @@ void ViewPanel3D::on_btnExpand_clicked()
   dlm->GetViewPanelLayoutModel()->SetValue(layout);
 }
 
-void ViewPanel3D::onWorkerUpdate()
-{
-  this->update();
-}
-
-#include <QtCore>
-#include <qtconcurrentrun.h>
 void ViewPanel3D::onTimer()
 {
-  static QFuture<void> future;
-  if(!future.isRunning())
-    future = QtConcurrent::run(m_RenderWorker, &RenderWorker::timerHit);
+  if(!m_RenderFuture.isRunning())
+    {
+    // Does work need to be done?
+    if(m_Model && m_Model->CheckState(Generic3DModel::UIF_MESH_DIRTY)
+       && ui->actionContinuous_Update->isChecked())
+      {
+      // Launch the worker thread
+      m_RenderProgressValue = 0;
+      m_RenderElapsedTicks = 0;
+      m_RenderFuture = QtConcurrent::run(this, &ViewPanel3D::UpdateMeshesInBackground);
+      }
+    else
+      {
+      ui->progressBar->setVisible(false);
+      }
+    }
+  else
+    {
+    // We only want to show progress after some minimum timeout (1 sec)
+    if((++m_RenderElapsedTicks) > 10)
+      {
+      ui->progressBar->setVisible(true);
+
+      m_RenderProgressMutex.lock();
+      emit renderProgress((int)(1000 * m_RenderProgressValue));
+      m_RenderProgressMutex.unlock();
+      }
+    }
+}
+
+void ViewPanel3D::on_actionReset_Viewpoint_triggered()
+{
+  m_Model->ResetView();
+}
+
+void ViewPanel3D::on_actionSave_Viewpoint_triggered()
+{
+  m_Model->SaveCameraState();
+}
+
+void ViewPanel3D::on_actionRestore_Viewpoint_triggered()
+{
+  m_Model->RestoreCameraState();
+}
+
+void ViewPanel3D::on_actionContinuous_Update_triggered()
+{
+  ui->btnUpdateMesh->setVisible(!ui->actionContinuous_Update->isChecked());
+}
+
+void ViewPanel3D::on_btnMenu_pressed()
+{
+  m_DropMenu->popup(QCursor::pos());
+  ui->btnMenu->setDown(false);
 }

@@ -2,84 +2,27 @@
 #define VIEWPANEL3D_H
 
 #include <SNAPComponent.h>
-
-namespace Ui {
-  class ViewPanel3D;
-}
-
-class Generic3DModel;
-class GenericView3D;
-
 #include "Generic3DModel.h"
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
 #include <QDebug>
 #include <QTimer>
+#include <QFutureWatcher>
 #include <itkCommand.h>
 
-// Just playing around, this does not work
-class RenderWorker : public QObject
-{
-  Q_OBJECT
+namespace Ui {
+  class ViewPanel3D;
+}
 
-public:
-  RenderWorker(QObject *parent = 0)
-    : QObject(parent), m_Model(NULL)
-  {
-    m_Timer = new QTimer();
-    m_Timer->setInterval(1200);
-    QObject::connect(m_Timer, SIGNAL(timeout()), this, SLOT(timerHit()), Qt::DirectConnection);
+namespace itk {
+  template <class T> class MemberCommand;
+}
 
-    m_Command = CommandType::New();
-    m_Command->SetCallbackFunction(this, &RenderWorker::filter_cb);
-  }
+class Generic3DModel;
+class GenericView3D;
+class QMenu;
 
-  void filter_cb() const
-  {
-    qDebug() << "progress ";
-  }
-
-  void SetModel(Generic3DModel *model)
-  {
-    m_Model = model;
-  }
-
-public slots:
-
-  void timerHit()
-  {
-    // Update the mesh if necessary
-    if(m_Model)
-      {
-      if(m_Model->CheckState(Generic3DModel::UIF_MESH_DIRTY))
-        {
-        m_Model->UpdateSegmentationMesh(m_Command);
-        qDebug() << "Updated mesh in worker thread";
-        emit updatedScene();
-        }
-      }
-  }
-
-  void process()
-  {
-    qDebug() << "Worker starting";
-    m_Timer->start();   // puts one event in the threads event queue
-  }
-
-
-signals:
-
-  void updatedScene();
-
-protected:
-
-
-  Generic3DModel *m_Model;
-  QTimer *m_Timer;
-  typedef itk::SimpleConstMemberCommand<RenderWorker> CommandType;
-  SmartPtr<CommandType> m_Command;
-};
 
 class ViewPanel3D : public SNAPComponent
 {
@@ -94,6 +37,10 @@ public:
 
   GenericView3D *Get3DView();
 
+signals:
+
+  void renderProgress(int progress);
+
 private slots:
   virtual void onModelUpdate(const EventBucket &bucket);
 
@@ -101,18 +48,24 @@ private slots:
 
   void on_btnScreenshot_clicked();
 
-  void on_btnResetView_clicked();
-
   void on_btnAccept_clicked();
 
   void on_btnCancel_clicked();
 
   void on_btnExpand_clicked();
 
-  void onWorkerUpdate();
-
   void onTimer();
 
+
+  void on_actionReset_Viewpoint_triggered();
+
+  void on_actionSave_Viewpoint_triggered();
+
+  void on_actionRestore_Viewpoint_triggered();
+
+  void on_actionContinuous_Update_triggered();
+
+  void on_btnMenu_pressed();
 
 private:
   Ui::ViewPanel3D *ui;
@@ -121,11 +74,30 @@ private:
 
   Generic3DModel *m_Model;
 
-  RenderWorker *m_RenderWorker;
+  QMenu *m_DropMenu;
 
   QTimer *m_RenderTimer;
 
+  // A future used to track background rendering
+  QFuture<void> m_RenderFuture;
+
+  // A mutex on the progress value, which is accesed by multiple threads
+  mutable QMutex m_RenderProgressMutex;
+
+  // Progress of the rendering operation
+  double m_RenderProgressValue;
+
+  // Elapsed time since begin of render operation
+  int m_RenderElapsedTicks;
+
+  typedef itk::MemberCommand<ViewPanel3D> CommandType;
+  SmartPtr<CommandType> m_RenderProgressCommand;
+
   void UpdateExpandViewButton();
+
+  void UpdateMeshesInBackground();
+
+  void ProgressCallback(itk::Object *source, const itk::EventObject &event);
 };
 
 #endif // VIEWPANEL3D_H

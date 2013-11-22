@@ -500,6 +500,29 @@ void Generic3DRenderer::UpdateCamera(bool reset)
     }
 }
 
+void Generic3DRenderer::SaveCameraState()
+{
+  m_SavedCameraState = vtkSmartPointer<vtkCamera>::New();
+  m_SavedCameraState->DeepCopy(this->m_Renderer->GetActiveCamera());
+}
+
+void Generic3DRenderer::RestoreSavedCameraState()
+{
+  if(m_SavedCameraState)
+    this->m_Renderer->GetActiveCamera()->DeepCopy(m_SavedCameraState);
+  InvokeEvent(ModelUpdateEvent());
+}
+
+void Generic3DRenderer::DeleteSavedCameraState()
+{
+  m_SavedCameraState = NULL;
+}
+
+bool Generic3DRenderer::IsSavedCameraStateAvailable()
+{
+  return m_SavedCameraState != NULL;
+}
+
 void Generic3DRenderer::paintGL()
 {
   // Get the appearance settings
@@ -598,6 +621,7 @@ void Generic3DRenderer::OnUpdate()
   if(main_changed)
     {
     UpdateCamera(true);
+    DeleteSavedCameraState();
     }
   else if(cursor_moved)
     {

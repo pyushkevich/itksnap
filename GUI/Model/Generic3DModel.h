@@ -39,7 +39,8 @@ public:
   // States pertaining to this model
   enum UIState {
     UIF_MESH_DIRTY = 0,
-    UIF_MESH_ACTION_PENDING
+    UIF_MESH_ACTION_PENDING,
+    UIF_CAMERA_STATE_SAVED
   };
 
   // State of scalpel drawging
@@ -101,6 +102,12 @@ public:
 
   // Reset the viewpoint
   void ResetView();
+
+  // Save the camera state
+  void SaveCameraState();
+
+  // Restore the camera state
+  void RestoreCameraState();
 
   // Get the spray points
   vtkPolyData *GetSprayPoints() const;

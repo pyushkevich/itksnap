@@ -90,6 +90,10 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
       else return false;
       }
 
+    case UIF_CAMERA_STATE_SAVED:
+      {
+      return m_Renderer->IsSavedCameraStateAvailable();
+      }
     }
 
   return false;
@@ -109,6 +113,17 @@ Vector3d Generic3DModel::GetCenterOfRotation()
 void Generic3DModel::ResetView()
 {
   m_Renderer->ResetView();
+}
+
+void Generic3DModel::SaveCameraState()
+{
+  m_Renderer->SaveCameraState();
+  InvokeEvent(StateMachineChangeEvent());
+}
+
+void Generic3DModel::RestoreCameraState()
+{
+  m_Renderer->RestoreSavedCameraState();
 }
 
 vtkPolyData *Generic3DModel::GetSprayPoints() const
