@@ -143,8 +143,8 @@ VTKMeshPipeline
   m_Progress->UnregisterAllSources();
 
   // Define the current pipeline end-point
-  vtkImageData *pipeImageTail = m_VTKImporter->GetOutput();
-  vtkPolyData *pipePolyTail = NULL;
+  vtkAlgorithmOutput *pipeImageTail = m_VTKImporter->GetOutputPort();
+  vtkAlgorithmOutput *pipePolyTail = NULL;
 
   // Route the pipeline according to the settings
   // 1. Check if Gaussian smoothing will be used
@@ -152,9 +152,9 @@ VTKMeshPipeline
   if(options.GetUseGaussianSmoothing()) 
     {    
     // The Gaussian filter is enabled
-    m_VTKGaussianFilter->SetInput(pipeImageTail);
+    m_VTKGaussianFilter->SetInputConnection(pipeImageTail);
     m_Progress->RegisterSource(m_VTKGaussianFilter, 10.0f);
-    pipeImageTail = m_VTKGaussianFilter->GetOutput();
+    pipeImageTail = m_VTKGaussianFilter->GetOutputPort();
 
     // Apply parameters to the Gaussian filter
     float sigma = options.GetGaussianStandardDeviation();
@@ -170,23 +170,23 @@ VTKMeshPipeline
   // 2. Set input to the appropriate contour filter
 
   // Marching cubes gets the tail
-  m_MarchingCubesFilter->SetInput(pipeImageTail);
+  m_MarchingCubesFilter->SetInputConnection(pipeImageTail);
   m_Progress->RegisterSource(m_MarchingCubesFilter, 10.0f);
-  pipePolyTail = m_MarchingCubesFilter->GetOutput();
+  pipePolyTail = m_MarchingCubesFilter->GetOutputPort();
 
   // 2.5 Pipe marching cubes output to the transform
-  m_TransformFilter->SetInput(pipePolyTail);
+  m_TransformFilter->SetInputConnection(pipePolyTail);
   m_Progress->RegisterSource(m_TransformFilter, 1.0f);
-  pipePolyTail = m_TransformFilter->GetOutput();
+  pipePolyTail = m_TransformFilter->GetOutputPort();
 
   // 3. Check if decimation is required
   if(options.GetUseDecimation())
     {
 
     // Decimate filter gets the pipe tail
-    m_DecimateFilter->SetInput(pipePolyTail);
+    m_DecimateFilter->SetInputConnection(pipePolyTail);
     m_Progress->RegisterSource(m_DecimateFilter, 5.0);
-    pipePolyTail = m_DecimateFilter->GetOutput();
+    pipePolyTail = m_DecimateFilter->GetOutputPort();
 
     // Apply parameters to the decimation filter
     m_DecimateFilter->SetTargetReduction(
@@ -209,9 +209,9 @@ VTKMeshPipeline
   if(options.GetUseMeshSmoothing())
     {
     // Pipe smoothed output into the pipeline
-    m_PolygonSmoothingFilter->SetInput(pipePolyTail);
+    m_PolygonSmoothingFilter->SetInputConnection(pipePolyTail);
     m_Progress->RegisterSource(m_PolygonSmoothingFilter, 3.0);
-    pipePolyTail = m_PolygonSmoothingFilter->GetOutput();
+    pipePolyTail = m_PolygonSmoothingFilter->GetOutputPort();
 
     // Apply parameters to the mesh smoothing filter
     m_PolygonSmoothingFilter->SetNumberOfIterations(
@@ -234,11 +234,12 @@ VTKMeshPipeline
     }
 
   // 6. Pipe in the final output into the stripper
-  m_StripperFilter->SetInput(pipePolyTail);
+  m_StripperFilter->SetInputConnection(pipePolyTail);
   m_Progress->RegisterSource(m_StripperFilter, 2.0);
 }
 
 #include <ctime>
+#include "itkImageFileWriter.h"
 
 void
 VTKMeshPipeline
@@ -258,6 +259,7 @@ VTKMeshPipeline
   m_VTKExporter->SetInput(m_InputImage);
   m_VTKImporter->Modified();
 
+
   // Update the pipeline
   // m_StripperFilter->Update();
 
@@ -265,6 +267,9 @@ VTKMeshPipeline
   // outMesh->UpdateInformation();
   // outMesh->Update();
   // m_StripperFilter->UnRegister(m_StripperFilter->GetOutput());
+  m_VTKImporter->Update();
+  m_VTKGaussianFilter->Update();
+  m_MarchingCubesFilter->Update();
   m_StripperFilter->Update();
 
   // In the case that the jacobian of the transform is negative,
@@ -278,6 +283,9 @@ VTKMeshPipeline
         nrm->SetComponent(i,j,-nrm->GetComponent(i,j));
     nrm->Modified();
     }
+
+  // Disconnect pipeline
+  m_StripperFilter->SetOutput(NULL);
 }
 
 void

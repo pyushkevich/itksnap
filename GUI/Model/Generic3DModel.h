@@ -5,10 +5,11 @@
 #include "PropertyModel.h"
 #include "vtkSmartPointer.h"
 #include "SNAPEvents.h"
+#include "itkMutexLock.h"
 
 class GlobalUIModel;
 class IRISApplication;
-class MeshObject;
+class MeshManager;
 class Generic3DRenderer;
 class vtkPolyData;
 
@@ -61,6 +62,9 @@ public:
   // Tell the model to update the segmentation mesh
   void UpdateSegmentationMesh(itk::Command *callback);
 
+  // Reentrant function to check if mesh is being constructed in another thread
+  bool IsMeshUpdating();
+
   // Accept the current drawing operation
   bool AcceptAction();
 
@@ -88,9 +92,6 @@ public:
 
   // Get the renderer
   irisGetMacro(Renderer, Generic3DRenderer *)
-
-  // Get the mesh object
-  irisGetMacro(Mesh, MeshObject *)
 
   // Get the transform from image space to world coordinates
   Mat4d &GetWorldMatrix();
@@ -124,9 +125,6 @@ protected:
   // Helps to have a pointer to the iris application
   IRISApplication *m_Driver;
 
-  // Mesh object - used to handle all mesh operations
-  SmartPtr<MeshObject> m_Mesh;
-
   // World matrix - a copy of the NIFTI transform in the main image,
   // updated on the event main image changes
   Mat4d m_WorldMatrix, m_WorldMatrixInverse;
@@ -143,6 +141,8 @@ protected:
   // Continuous update model
   SmartPtr<ConcreteSimpleBooleanProperty> m_ContinuousUpdateModel;
 
+  // Is the mesh updating
+  bool m_MeshUpdating;
 };
 
 #endif // GENERIC3DMODEL_H

@@ -68,8 +68,11 @@ protected:
   // Update the camera
   void UpdateCamera(bool reset);
 
-  // Prop assembly containing all the segmentation meshes
-  vtkSmartPointer<vtkPropAssembly> m_MeshAssembly;
+  typedef std::map<LabelType, vtkSmartPointer<vtkActor> > ActorMap;
+  typedef ActorMap::iterator ActorMapIterator;
+
+  // Collection of actors for different color labels in use
+  ActorMap m_ActorMap;
 
   // Line sources for drawing the crosshairs
   vtkSmartPointer<vtkLineSource> m_AxisLineSource[3];

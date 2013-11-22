@@ -73,10 +73,20 @@ LevelSetMeshPipeline
 
 void
 LevelSetMeshPipeline
-::ComputeMesh(vtkPolyData *outMesh)
+::UpdateMesh()
 {
+  // We need to generate a new mesh object. Otherwise, if there is concurrent
+  // rendering and mesh computation, the mesh would be accessed by two threads
+  // at the same time, which is a problem.
+  m_Mesh = vtkSmartPointer<vtkPolyData>::New();
+
   // Run the pipeline
-  m_VTKPipeline->ComputeMesh(outMesh);
+  m_VTKPipeline->ComputeMesh(m_Mesh);
+}
+
+vtkPolyData *LevelSetMeshPipeline::GetMesh()
+{
+  return m_Mesh;
 }
 
 void 

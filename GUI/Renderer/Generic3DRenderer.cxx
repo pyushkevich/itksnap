@@ -21,7 +21,7 @@
 #include "vtkMath.h"
 
 
-#include "MeshObject.h"
+#include "MeshManager.h"
 
 #include "ColorLabel.h"
 #include "IRISApplication.h"
@@ -47,8 +47,9 @@
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkCubeSource.h"
 #include "vtkCoordinate.h"
+#include "vtkQuadricLODActor.h"
 
-# include <vnl/vnl_cross.h>
+#include <vnl/vnl_cross.h>
 
 
 Generic3DRenderer::Generic3DRenderer()
@@ -56,10 +57,6 @@ Generic3DRenderer::Generic3DRenderer()
   // Why is this necessary?
   GetRenderWindow()->SetMultiSamples(4);
   GetRenderWindow()->SetLineSmoothing(1);
-
-  // Initialize the mesh assembly
-  m_MeshAssembly = vtkSmartPointer<vtkPropAssembly>::New();
-  this->m_Renderer->AddActor(m_MeshAssembly);
 
   // Create a picker
   vtkSmartPointer<Window3DPicker> picker = vtkSmartPointer<Window3DPicker>::New();
@@ -160,14 +157,14 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
 
   // Record and rebroadcast changes in the model
-  Rebroadcast(m_Model->GetMesh(), itk::ModifiedEvent(), ModelUpdateEvent());
+  Rebroadcast(app->GetMeshManager(), itk::ModifiedEvent(), ModelUpdateEvent());
 
   // Respond to changes in image dimension - these require big updates
   Rebroadcast(app, MainImageDimensionsChangeEvent(), ModelUpdateEvent());
 
   // Respond to changes to the segmentation. These are ignored unless we are
   // in continous update mode, in which case the renderers are rebuilt
-  Rebroadcast(app, SegmentationChangeEvent(), ModelUpdateEvent());
+  // Rebroadcast(app, SegmentationChangeEvent(), ModelUpdateEvent());
   Rebroadcast(app, LevelSetImageChangeEvent(), ModelUpdateEvent());
   Rebroadcast(m_Model->GetContinuousUpdateModel(), ValueChangedEvent(), ModelUpdateEvent());
 
@@ -206,42 +203,77 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 
 void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 {
-  // Get the mesh from the parent object
-  MeshObject *mesh = m_Model->GetMesh();
+  if(m_Model->IsMeshUpdating())
+    return;
 
   // Get the app driver
   IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
 
-  // Clear the mesh assembly (and make sure it's modified, in case there are
-  // no more meshes to add
-  m_MeshAssembly->GetParts()->RemoveAllItems();
-  m_MeshAssembly->Modified();
+  // Get the mesh from the parent object
+  MeshManager *mesh = driver->GetMeshManager();
+  MeshManager::MeshCollection meshes = mesh->GetMeshes();
+  typedef MeshManager::MeshCollection::const_iterator MeshIterator;
 
-  // For each of the meshes, generate a data mapper and an actor
-  for(unsigned int i = 0; i < mesh->GetNumberOfVTKMeshes(); i++)
+  // Remove all actors that are no longer in use, and update the ones for which the
+  // mesh has changed
+  for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); )
     {
-    // Create a mapper
-    vtkSmartPointer<vtkPolyDataMapper> pdm =
-        vtkSmartPointer<vtkPolyDataMapper>::New();
-    pdm->SetInput(mesh->GetVTKMesh(i));
+    // Is there a mesh for this actor?
+    MeshIterator it_mesh = meshes.find(it_actor->first);
 
-    // Get the label of that mesh
-    const ColorLabel &cl =
-        driver->GetColorLabelTable()->GetColorLabel(
-          mesh->GetVTKMeshLabel(i));
+    if(it_mesh == meshes.end())
+      {
+      // The actor no longer has a corresponding mesh, and should be removed
+      this->m_Renderer->RemoveActor(it_actor->second);
 
-    // Create a property
-    vtkSmartPointer<vtkProperty> prop = vtkSmartPointer<vtkProperty>::New();
-    prop->SetColor(cl.GetRGBAsDoubleVector().data_block());
-    prop->SetOpacity(cl.GetAlpha() / 255.0);
+      // Delete the actor completely (funky iterator++ code that works)
+      m_ActorMap.erase(it_actor++);
+      }
+    else
+      {
+      if(it_mesh->second != it_actor->second->GetMapper()->GetInput())
+        {
+        // The mesh has changed, and needs to be fed to the mapper
+        vtkPolyDataMapper::SafeDownCast(it_actor->second->GetMapper())
+            ->SetInput(it_mesh->second);
+        }
 
-    // Create an actor
-    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(pdm);
-    actor->SetProperty(prop);
+      // Increment the iterator
+      it_actor++;
+      }
+    }
 
-    // Add the actor to the renderer
-    m_MeshAssembly->AddPart(actor);
+  // Now create actors for all the meshes that don't have them yet
+  for(MeshIterator it_mesh = meshes.begin(); it_mesh != meshes.end(); ++it_mesh)
+    {
+    // See if an actor exists for this label
+    if(m_ActorMap.find(it_mesh->first) == m_ActorMap.end())
+      {
+      vtkPolyData *mesh = it_mesh->second;
+
+      // Create a mapper
+      vtkSmartPointer<vtkPolyDataMapper> pdm = vtkSmartPointer<vtkPolyDataMapper>::New();
+      pdm->SetInput(mesh);
+
+      // Get the label of that mesh
+      const ColorLabel &cl = driver->GetColorLabelTable()->GetColorLabel(it_mesh->first);
+
+      // Create a property
+      vtkSmartPointer<vtkProperty> prop = vtkSmartPointer<vtkProperty>::New();
+      prop->SetColor(cl.GetRGBAsDoubleVector().data_block());
+      prop->SetOpacity(cl.GetAlpha() / 255.0);
+
+      // Create an actor
+      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+      actor->SetMapper(pdm);
+      actor->SetProperty(prop);
+
+      // Add the actor to the renderer
+      m_Renderer->AddActor(actor);
+
+      // Keep the actor in the map
+      m_ActorMap.insert(std::make_pair(it_mesh->first, actor));
+      }
     }
 }
 
@@ -487,32 +519,27 @@ void Generic3DRenderer::paintGL()
 
 void Generic3DRenderer::UpdateSegmentationMeshAppearance()
 {
-  // Get the mesh from the parent object
-  MeshObject *mesh = m_Model->GetMesh();
-
   // Get the app driver
   IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
 
-  // For each of the meshes, generate a data mapper and an actor
-  m_MeshAssembly->GetParts()->InitTraversal();
-  for(int i = 0; i < mesh->GetNumberOfVTKMeshes(); i++)
+  // Get the mesh from the parent object
+  MeshManager *mesh = driver->GetMeshManager();
+
+
+  // For each actor, update the property to reflect current state
+  for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); ++it_actor)
     {
     // Get the next prop
-    vtkActor *actor = vtkActor::SafeDownCast(
-          m_MeshAssembly->GetParts()->GetNextProp());
+    vtkActor *actor = it_actor->second;
 
     // Get the label of that mesh
-    const ColorLabel &cl =
-        driver->GetColorLabelTable()->GetColorLabel(
-          mesh->GetVTKMeshLabel(i));
+    const ColorLabel &cl = driver->GetColorLabelTable()->GetColorLabel(it_actor->first);
 
     // Get the property
     vtkProperty *prop = actor->GetProperty();
 
     // Assign the color and opacity
-    prop->SetColor(cl.GetRGB(0) / 255.0,
-                   cl.GetRGB(1) / 255.0,
-                   cl.GetRGB(2) / 255.0);
+    prop->SetColor(cl.GetRGB(0) / 255.0, cl.GetRGB(1) / 255.0, cl.GetRGB(2) / 255.0);
 
     if(cl.IsVisibleIn3D())
       prop->SetOpacity(cl.GetAlpha() / 255.0);

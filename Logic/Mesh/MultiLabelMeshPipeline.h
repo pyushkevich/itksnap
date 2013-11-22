@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   ITK-SNAP
-  Module:    $RCSfile: IRISMeshPipeline.h,v $
+  Module:    $RCSfile: MultiLabelMeshPipeline.h,v $
   Language:  C++
   Date:      $Date: 2009/01/23 20:09:38 $
   Version:   $Revision: 1.3 $
@@ -32,35 +32,48 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
-#ifndef __IRISMeshPipeline_h_
-#define __IRISMeshPipeline_h_
+#ifndef __MultiLabelMeshPipeline_h_
+#define __MultiLabelMeshPipeline_h_
 
 #include "SNAPCommon.h"
 #include "itkImageRegion.h"
 #include "itkSmartPointer.h"
 #include "MeshOptions.h"
+#include "vtkSmartPointer.h"
+#include "itksys/MD5.h"
+#include "itkObjectFactory.h"
 
 // Forward reference to itk classes
 namespace itk {
   template <class TPixel,unsigned int VDimension> class Image;
   template <class TInputImage, class TOutputImage> class RegionOfInterestImageFilter;
   template <class TInputImage, class TOutputImage> class BinaryThresholdImageFilter;
+  template <class TImage> class ImageLinearConstIteratorWithIndex;
 }
+
 
 // Forward references
 class VTKMeshPipeline;
 class vtkPolyData;
 class AllPurposeProgressAccumulator;
 
+
 /**
- * \class IRISMeshPipeline
- * \brief A small pipeline used to convert a segmentation image to a mesh in IRIS.
+ * \class MultiLabelMeshPipeline
+ * \brief A small pipeline used to convert a multi-label segmentation image to
+ * a collection of VTK meshes.
  *
- * This pipeline preprocesses each label in the segmentation image by blurring it.
+ * For each label, the pipeline uses the checksum mechanism to keep track of
+ * whether it has been updated relative to the corresponding mesh. This makes
+ * it possible for selective mesh recomputation, leading to fast mesh computation
+ * even for big segmentations.
  */
-class IRISMeshPipeline 
+class MultiLabelMeshPipeline : public itk::Object
 {
 public:
+
+  irisITKObjectMacro(MultiLabelMeshPipeline, itk::Object)
+
   /** Input image type */
   typedef itk::Image<LabelType,3> InputImageType;
   typedef itk::SmartPointer<InputImageType> InputImagePointer;
@@ -86,15 +99,24 @@ public:
   /** Compute a mesh for a particular color label.  Returns true if 
    * the color label is not present in the image */
   bool ComputeMesh(LabelType label, vtkPolyData *outData);
+
+  /** Update the meshes */
+  void UpdateMeshes(itk::Command *progressCommand);
+
+  /** Get the collection of computed meshes */
+  std::map<LabelType, vtkPolyData *> GetMeshCollection();
+
   
-  /** Constructor, which builds the pipeline */
-  IRISMeshPipeline();
-
-  /** Deallocate the pipeline filters */
-  ~IRISMeshPipeline();
-
   /** Get the progress accumulator from the VTK mesh pipeline */
   AllPurposeProgressAccumulator *GetProgressAccumulator();
+
+protected:
+
+  /** Constructor, which builds the pipeline */
+  MultiLabelMeshPipeline();
+
+  /** Deallocate the pipeline filters */
+  ~MultiLabelMeshPipeline();
 
 private:
   // Type definitions for the various filters used by this object
@@ -122,6 +144,29 @@ private:
   // standardized range
   ThresholdFilterPointer      m_ThrehsoldFilter;
 
+  // Cached information about a VTK mesh
+  struct MeshInfo
+  {
+    // The pointer to the mesh
+    vtkSmartPointer<vtkPolyData> Mesh;
+
+    // The checksum for the mesh
+    unsigned long CheckSum;
+
+    // The extents of the bounding box
+    Vector3i BoundingBox[2];
+
+    // The number of voxels
+    unsigned long Count;
+
+    MeshInfo();
+    ~MeshInfo();
+  };
+
+  // Collection of mesh data for labels present in the image
+  typedef std::map<LabelType, MeshInfo> MeshInfoMap;
+  MeshInfoMap m_MeshInfo;
+
   // Set of bounding boxes
   itk::ImageRegion<3>         m_BoundingBox[MAX_COLOR_LABELS];
 
@@ -130,6 +175,13 @@ private:
 
   // The VTK pipeline
   VTKMeshPipeline *           m_VTKPipeline;
+
+  // Helper routine for the update command
+  void UpdateMeshInfoHelper(
+      MeshInfo *current_meshinfo,
+      const itk::Index<3> &run_start,
+      itk::ImageLinearConstIteratorWithIndex<InputImageType> &it,
+      unsigned long pos);
 };
 
 #endif

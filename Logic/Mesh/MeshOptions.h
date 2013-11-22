@@ -101,6 +101,8 @@ public:
   irisGetMacro(MeshSmoothingBoundarySmoothing,bool);
   irisSetMacro(MeshSmoothingBoundarySmoothing,bool);
 
+  bool operator == (const MeshOptions &opts) const;
+  bool operator != (const MeshOptions &opts) const;
 
 private:
   // Begin render switches

@@ -38,6 +38,9 @@
 #include "SNAPCommon.h"
 #include "itkSmartPointer.h"
 #include "MeshOptions.h"
+#include "vtkSmartPointer.h"
+#include "itkObject.h"
+#include "itkObjectFactory.h"
 
 // Forward reference to itk classes
 namespace itk {
@@ -55,9 +58,12 @@ class vtkPolyData;
  * This pipeline takes a floating point image computed by the level
  * set filter and uses a contour algorithm to get a triangular mesh
  */
-class LevelSetMeshPipeline
+class LevelSetMeshPipeline : public itk::Object
 {
 public:  
+
+  irisITKObjectMacro(LevelSetMeshPipeline, itk::Object)
+
   /** Input image type */
   typedef itk::Image<float,3> InputImageType;
   typedef itk::SmartPointer<InputImageType> InputImagePointer;
@@ -69,7 +75,12 @@ public:
   void SetMeshOptions(const MeshOptions &options);
 
   /** Compute the mesh for the segmentation level set */
-  void ComputeMesh(vtkPolyData *outData);
+  void UpdateMesh();
+
+  /** Get the stored mesh */
+  vtkPolyData *GetMesh();
+
+protected:
   
   /** Constructor, which builds the pipeline */
   LevelSetMeshPipeline();
@@ -90,6 +101,9 @@ private:
 
   // The VTK pipeline
   VTKMeshPipeline *m_VTKPipeline;
+
+  // The output mesh
+  vtkSmartPointer<vtkPolyData> m_Mesh;
 };
 
 #endif //__LevelSetMeshPipeline_h_

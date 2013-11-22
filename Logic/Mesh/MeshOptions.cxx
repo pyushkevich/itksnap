@@ -64,6 +64,36 @@ MeshOptions
   m_MeshSmoothingBoundarySmoothing = false;
 }
 
+bool MeshOptions::operator ==(const MeshOptions &opts) const
+{
+  // Begin render switches
+  return(
+        opts.m_UseGaussianSmoothing == m_UseGaussianSmoothing &&
+        opts.m_UseDecimation == m_UseDecimation &&
+        opts.m_UseMeshSmoothing == m_UseMeshSmoothing &&
+        opts.m_GaussianStandardDeviation == m_GaussianStandardDeviation &&
+        opts.m_GaussianError == m_GaussianError &&
+        opts.m_DecimateTargetReduction == m_DecimateTargetReduction &&
+        opts.m_DecimateInitialError == m_DecimateInitialError &&
+        opts.m_DecimateAspectRatio == m_DecimateAspectRatio &&
+        opts.m_DecimateFeatureAngle == m_DecimateFeatureAngle &&
+        opts.m_DecimateErrorIncrement == m_DecimateErrorIncrement &&
+        opts.m_DecimateMaximumIterations == m_DecimateMaximumIterations &&
+        opts.m_DecimatePreserveTopology == m_DecimatePreserveTopology &&
+        opts.m_MeshSmoothingRelaxationFactor == m_MeshSmoothingRelaxationFactor &&
+        opts.m_MeshSmoothingIterations == m_MeshSmoothingIterations &&
+        opts.m_MeshSmoothingConvergence == m_MeshSmoothingConvergence &&
+        opts.m_MeshSmoothingFeatureAngle == m_MeshSmoothingFeatureAngle &&
+        opts.m_MeshSmoothingFeatureEdgeSmoothing == m_MeshSmoothingFeatureEdgeSmoothing &&
+        opts.m_MeshSmoothingBoundarySmoothing == m_MeshSmoothingBoundarySmoothing);
+}
+
+bool MeshOptions::operator !=(const MeshOptions &opts) const
+{
+  return !(*this == opts);
+}
+
+
 MeshOptions
 ::~MeshOptions()
 {
@@ -128,3 +158,5 @@ MeshOptions
  *Revision 1.2  2002/03/08 14:06:30  moon
  *Added Header and Log tags to all files
  **/
+
+

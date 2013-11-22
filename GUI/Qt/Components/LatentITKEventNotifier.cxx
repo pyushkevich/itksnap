@@ -142,13 +142,6 @@ void LatentITKEventNotifier
 ::connect(itk::Object *source, const itk::EventObject &evt,
           QObject *target, const char *slot)
 {
-  std::cout
-      << "Connect itk::Object " << source->GetNameOfClass()
-      << " event " << evt.GetEventName()
-      << " to QObject " << target->objectName().toStdString()
-      << " slot " << slot << std::endl;
-
-
   // Call common implementation
   LatentITKEventNotifierHelper *c = doConnect(evt, target, slot);
 

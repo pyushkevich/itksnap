@@ -60,6 +60,7 @@ class EdgePreprocessingSettings;
 class AbstractSlicePreviewFilterWrapper;
 class UnsupervisedClustering;
 class ImageWrapperBase;
+class MeshManager;
 
 template <class TFilterConfigTraits> class SlicePreviewFilterWrapper;
 class SmoothBinaryThresholdFilterConfigTraits;
@@ -498,6 +499,9 @@ public:
   /** Get the current snake mode (active contours must be active) */
   SnakeType GetSnakeMode() const;
 
+  /** Get the object used to manage VTK mesh creation */
+  irisGetMacro(MeshManager, MeshManager *)
+
 protected:
 
   IRISApplication();
@@ -562,6 +566,9 @@ protected:
 
   // The EM classification object (TODO: make it itk::Object derived)
   SmartPtr<UnsupervisedClustering> m_ClusteringEngine;
+
+  // Mesh object (used to manage meshes)
+  SmartPtr<MeshManager> m_MeshManager;
 
   // The currently hooked up preprocessing filter preview wrapper
   PreprocessingMode m_PreprocessingMode;

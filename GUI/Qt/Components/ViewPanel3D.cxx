@@ -10,81 +10,8 @@
 #include "QtWidgetActivator.h"
 #include "DisplayLayoutModel.h"
 
-#include <QThread>
-#include <QMutex>
-#include <QWaitCondition>
-
-// Just playing around, this does not work
-#ifdef RENDERTHREAD
-class RenderThread : public QThread
-{
-  Q_OBJECT
-
-public:
-  RenderThread(QObject *parent = 0);
-  ~RenderThread();
-
-  /** We call this when the segmentation image has changed or when the
-   * user presses the update button */
-  void UpdateScene();
-
-signals:
-
-  void updatedScene();
-
-protected:
-
-  void run();
-
-private:
-
-  QMutex mutex;
-  QWaitCondition condition;
-  bool restart;
-  bool abort;
 
 
-};
-
-
-RenderThread::RenderThread(QObject *parent)
-  : QThread(parent)
-{
-  restart = false;
-  abort = false;
-}
-
-RenderThread::~RenderThread()
-{
-  mutex.lock();
-  abort = true;
-  condition.wakeOne();
-  mutex.unlock();
-
-  wait();
-}
-
-void RenderThread::UpdateScene()
-{
-  QMutexLocker locker(&mutex);
-  if (!isRunning())
-    {
-    start(LowPriority);
-    }
-  else
-    {
-    restart = true;
-    condition.wakeOne();
-    }
-}
-
-void RenderThread::run()
-{
-  // What do we do?
-  // m_Model
-}
-
-#endif
 
 
 ViewPanel3D::ViewPanel3D(QWidget *parent) :
@@ -92,6 +19,11 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   ui(new Ui::ViewPanel3D)
 {
   ui->setupUi(this);
+  m_RenderWorker = new RenderWorker();
+
+  m_RenderTimer = new QTimer();
+  m_RenderTimer->setInterval(100);
+  connect(m_RenderTimer, SIGNAL(timeout()), SLOT(onTimer()));
 }
 
 ViewPanel3D::~ViewPanel3D()
@@ -143,11 +75,14 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
   // Listen to layout events
   connectITK(m_Model->GetParentUI()->GetDisplayLayoutModel(),
              DisplayLayoutModel::ViewPanelLayoutChangeEvent());
+
+  m_RenderWorker->SetModel(m_Model);
+  m_RenderTimer->start();
 }
 
 void ViewPanel3D::UpdateExpandViewButton()
 {
-  // Get the layout applied when the button is pressed
+  // Get the layout a pplied when the button is pressed
   DisplayLayoutModel *dlm = m_GlobalUI->GetDisplayLayoutModel();
   DisplayLayoutModel::ViewPanelLayout layout =
       dlm->GetViewPanelExpandButtonActionModel(3)->GetValue();
@@ -201,4 +136,18 @@ void ViewPanel3D::on_btnExpand_clicked()
 
   // Apply this layout
   dlm->GetViewPanelLayoutModel()->SetValue(layout);
+}
+
+void ViewPanel3D::onWorkerUpdate()
+{
+  this->update();
+}
+
+#include <QtCore>
+#include <qtconcurrentrun.h>
+void ViewPanel3D::onTimer()
+{
+  static QFuture<void> future;
+  if(!future.isRunning())
+    future = QtConcurrent::run(m_RenderWorker, &RenderWorker::timerHit);
 }

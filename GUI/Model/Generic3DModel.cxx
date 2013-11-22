@@ -5,7 +5,7 @@
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "ImageWrapperBase.h"
-#include "MeshObject.h"
+#include "MeshManager.h"
 #include "Window3DPicker.h"
 #include "vtkRenderWindow.h"
 #include "vtkRendererCollection.h"
@@ -19,9 +19,6 @@
 
 Generic3DModel::Generic3DModel()
 {
-  // Create the mesh object
-  m_Mesh = MeshObject::New();
-
   // Initialize the matrix to nil
   m_WorldMatrix.set_identity();
 
@@ -48,9 +45,6 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   m_ParentUI = parent;
   m_Driver = parent->GetDriver();
 
-  // Initialize the mesh source
-  m_Mesh->Initialize(m_Driver);
-
   // Update our geometry model
   OnImageGeometryUpdate();
 
@@ -61,8 +55,8 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   Rebroadcast(m_Driver, MainImageDimensionsChangeEvent(), ModelUpdateEvent());
 
   // Listen to segmentation change events
-  Rebroadcast(m_Driver, SegmentationChangeEvent(), ModelUpdateEvent());
-  Rebroadcast(m_Driver, LevelSetImageChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Driver, SegmentationChangeEvent(), StateMachineChangeEvent());
+  Rebroadcast(m_Driver, LevelSetImageChangeEvent(), StateMachineChangeEvent());
 
   // Rebroadcast model change events as state changes
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
@@ -82,7 +76,7 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
     {
     case UIF_MESH_DIRTY:
       {
-      return m_Mesh->IsMeshDirty();
+      return m_Driver->GetMeshManager()->IsMeshDirty();
       }
 
     case UIF_MESH_ACTION_PENDING:
@@ -128,7 +122,7 @@ void Generic3DModel::OnUpdate()
   if(m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
     {
     // There is no more mesh to render - until the user does something!
-    m_Mesh->DiscardVTKMeshes();
+    // m_Mesh->DiscardVTKMeshes();
 
     // Clear the spray points
     m_SprayPoints->GetPoints()->Reset();
@@ -155,13 +149,21 @@ void Generic3DModel::OnImageGeometryUpdate()
     }
 }
 
+#include "itkMutexLockHolder.h"
+
 void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
 {
+  // Prevent concurrent access to this method
+  itk::SimpleFastMutexLock mutex;
+  itk::MutexLockHolder<itk::SimpleFastMutexLock> mholder(mutex);
+
   try
   {
     // Generate all the mesh objects
-    m_Mesh->DiscardVTKMeshes();
-    m_Mesh->GenerateVTKMeshes(callback);
+    m_MeshUpdating = true;
+    m_Driver->GetMeshManager()->UpdateVTKMeshes(callback);
+    m_MeshUpdating = false;
+
     InvokeEvent(ModelUpdateEvent());
   }
   catch(vtkstd::bad_alloc &)
@@ -172,6 +174,11 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
   {
     throw IRISexc;
   }
+}
+
+bool Generic3DModel::IsMeshUpdating()
+{
+  return m_MeshUpdating;
 }
 
 bool Generic3DModel::AcceptAction()

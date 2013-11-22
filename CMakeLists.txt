@@ -113,9 +113,9 @@ SET(LOGIC_CXX
   Logic/LevelSet/SnakeParametersPreviewPipeline.cxx
   Logic/Mesh/AllPurposeProgressAccumulator.cxx
   Logic/Mesh/GuidedMeshIO.cxx
-  Logic/Mesh/IRISMeshPipeline.cxx
+  Logic/Mesh/MultiLabelMeshPipeline.cxx
   Logic/Mesh/LevelSetMeshPipeline.cxx
-  Logic/Mesh/MeshObject.cxx
+  Logic/Mesh/MeshManager.cxx
   Logic/Mesh/MeshOptions.cxx
   Logic/Mesh/VTKMeshPipeline.cxx
   Logic/Preprocessing/EdgePreprocessingSettings.cxx
@@ -214,9 +214,9 @@ SET(LOGIC_HEADERS
   Logic/LevelSet/SnakeParameters.h
   Logic/Mesh/AllPurposeProgressAccumulator.h
   Logic/Mesh/GuidedMeshIO.h
-  Logic/Mesh/IRISMeshPipeline.h
+  Logic/Mesh/MultiLabelMeshPipeline.h
   Logic/Mesh/LevelSetMeshPipeline.h
-  Logic/Mesh/MeshObject.h
+  Logic/Mesh/MeshManager.h
   Logic/Mesh/MeshOptions.h
   Logic/Mesh/VTKMeshPipeline.h
   Logic/Preprocessing/EdgePreprocessingImageFilter.h
