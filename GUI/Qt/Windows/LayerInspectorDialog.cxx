@@ -132,6 +132,15 @@ QMenu *LayerInspectorDialog::GetLayerContextMenu(ImageWrapperBase *layer)
   return NULL;
 }
 
+QAction *LayerInspectorDialog::GetLayerSaveAction(ImageWrapperBase *layer)
+{
+  foreach(LayerInspectorRowDelegate *del, m_Delegates)
+    if(del->GetLayer() == layer)
+      return del->saveAction();
+
+  return NULL;
+}
+
 bool LayerInspectorDialog::eventFilter(QObject *source, QEvent *event)
 {
   if(source == ui->saLayersContents)

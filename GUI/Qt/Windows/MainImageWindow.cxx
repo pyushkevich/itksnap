@@ -301,6 +301,13 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->action3DScalpel, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->action3DSpray, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
+  // Save activations
+  activateOnFlag(ui->actionSaveMain, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSaveMainROI, m_Model, UIF_SNAKE_MODE);
+  activateOnFlag(ui->actionSaveSpeed, m_Model, UIF_SNAKE_MODE);
+  activateOnFlag(ui->actionSaveLevelSet, m_Model, UIF_LEVEL_SET_ACTIVE);
+
+
   // Hook up toolbar actions to the toolbar
   makeActionGroupCoupling(this->GetMainToolActionGroup(),
                           m_Model->GetToolbarModeModel());
@@ -1001,4 +1008,57 @@ void MainImageWindow::on_actionSave_as_Mesh_triggered()
   MeshExportWizard wizard(this);
   wizard.SetModel(m_Model->GetMeshExportModel());
   wizard.exec();
+}
+
+void MainImageWindow::on_actionSaveMain_triggered()
+{
+  // This should only happen in SNAP mode
+  assert(!m_Model->GetDriver()->IsSnakeModeActive());
+
+  // Handle this through the layer manager
+  ImageWrapperBase *wrapper =
+      m_Model->GetDriver()->GetIRISImageData()->GetMain();
+  QAction *save_action = m_LayerInspector->GetLayerSaveAction(wrapper);
+  if(save_action)
+    save_action->trigger();
+}
+
+#include "SNAPImageData.h"
+void MainImageWindow::on_actionSaveSpeed_triggered()
+{
+  // This should only happen in SNAP mode
+  assert(m_Model->GetDriver()->IsSnakeModeActive());
+
+  // Handle this through the layer manager
+  ImageWrapperBase *wrapper =
+      m_Model->GetDriver()->GetSNAPImageData()->GetSpeed();
+  QAction *save_action = m_LayerInspector->GetLayerSaveAction(wrapper);
+  if(save_action)
+    save_action->trigger();
+}
+
+void MainImageWindow::on_actionSaveLevelSet_triggered()
+{
+  // This should only happen in SNAP mode
+  assert(m_Model->GetDriver()->IsSnakeModeLevelSetActive());
+
+  // Handle this through the layer manager
+  ImageWrapperBase *wrapper =
+      m_Model->GetDriver()->GetSNAPImageData()->GetSnake();
+  QAction *save_action = m_LayerInspector->GetLayerSaveAction(wrapper);
+  if(save_action)
+    save_action->trigger();
+}
+
+void MainImageWindow::on_actionSaveMainROI_triggered()
+{
+  // This should only happen in SNAP mode
+  assert(m_Model->GetDriver()->IsSnakeModeActive());
+
+  // Handle this through the layer manager
+  ImageWrapperBase *wrapper =
+      m_Model->GetDriver()->GetSNAPImageData()->GetMain();
+  QAction *save_action = m_LayerInspector->GetLayerSaveAction(wrapper);
+  if(save_action)
+    save_action->trigger();
 }

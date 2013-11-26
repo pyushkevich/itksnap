@@ -183,6 +183,14 @@ private slots:
 
   void on_actionSave_as_Mesh_triggered();
 
+  void on_actionSaveMain_triggered();
+
+  void on_actionSaveSpeed_triggered();
+
+  void on_actionSaveLevelSet_triggered();
+
+  void on_actionSaveMainROI_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);

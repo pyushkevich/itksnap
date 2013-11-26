@@ -12,6 +12,7 @@ class LayerInspectorRowDelegate;
 class ImageWrapperBase;
 class QToolButton;
 class QMenu;
+class QAction;
 
 namespace Ui {
     class LayerInspectorDialog;
@@ -36,6 +37,9 @@ public:
 
   // Get the context menu corresponding to a specific layer.
   QMenu *GetLayerContextMenu(ImageWrapperBase *layer);
+
+  // Get the save action for a specific layer
+  QAction *GetLayerSaveAction(ImageWrapperBase *layer);
 
   bool eventFilter(QObject *source, QEvent *event);
 

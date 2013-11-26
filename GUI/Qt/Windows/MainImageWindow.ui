@@ -589,11 +589,11 @@ background-color:rgb(88, 88, 88);
      <property name="title">
       <string>Save Image</string>
      </property>
-     <addaction name="actionGreyscale_Image"/>
+     <addaction name="actionSaveMain"/>
      <addaction name="separator"/>
-     <addaction name="actionPreprocessed_Image"/>
-     <addaction name="actionLevel_Set_Image"/>
-     <addaction name="actionGreyscale_Image_Region"/>
+     <addaction name="actionSaveSpeed"/>
+     <addaction name="actionSaveLevelSet"/>
+     <addaction name="actionSaveMainROI"/>
     </widget>
     <widget class="QMenu" name="menuExport">
      <property name="title">
@@ -771,24 +771,36 @@ background-color:rgb(88, 88, 88);
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="actionGreyscale_Image">
+  <action name="actionSaveMain">
    <property name="text">
-    <string>Greyscale Image ...</string>
+    <string>Main Image ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Main Image</string>
    </property>
   </action>
-  <action name="actionPreprocessed_Image">
+  <action name="actionSaveSpeed">
    <property name="text">
-    <string>Preprocessed Image ...</string>
+    <string>Speed Image ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the Speed Image in Active Contour Mode</string>
    </property>
   </action>
-  <action name="actionLevel_Set_Image">
+  <action name="actionSaveLevelSet">
    <property name="text">
     <string>Level Set Image ...</string>
    </property>
+   <property name="toolTip">
+    <string>Save level set image in active snake mode</string>
+   </property>
   </action>
-  <action name="actionGreyscale_Image_Region">
+  <action name="actionSaveMainROI">
    <property name="text">
-    <string>Greyscale Image Region ...</string>
+    <string>Main Image (Region of Interest) ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the region of interest selected for active contour segmentation</string>
    </property>
   </action>
   <action name="actionRecent_1">

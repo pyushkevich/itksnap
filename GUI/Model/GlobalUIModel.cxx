@@ -310,6 +310,8 @@ bool GlobalUIModel::CheckState(UIState state)
       return m_Driver->GetCurrentImageData()->IsOverlayLoaded();
     case UIF_SNAKE_MODE:
       return m_Driver->IsSnakeModeActive();
+    case UIF_LEVEL_SET_ACTIVE:
+      return m_Driver->IsSnakeModeLevelSetActive();
     }
 
   return false;
