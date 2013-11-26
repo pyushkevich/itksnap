@@ -20,17 +20,8 @@ void SnakeModeRenderer::paintGL()
   if(app->IsSnakeModeActive()
      && !this->GetParentRenderer()->IsThumbnailDrawing())
     {
-    SNAPImageData *sid = app->GetSNAPImageData();
-
-    // Draw the speed (always)
-    // this->DrawSpeedImage();
-
-    if(sid->IsSegmentationActive())
-      {
-      // Draw the current segmentation after the segmentation starts
-      // this->DrawEvolvingContour();
-      }
-    else
+    // Bubbles are drawn only when on the bubbles page
+    if(m_Model->CheckState(SnakeWizardModel::UIF_BUBBLE_MODE))
       {
       // Draw the bubbles before segmentation starts
       this->DrawBubbles();

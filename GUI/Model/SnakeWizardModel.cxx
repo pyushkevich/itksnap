@@ -143,6 +143,8 @@ SnakeWizardModel::SnakeWizardModel()
 
   m_ClusterPlottedComponentModel = ComponentIndexModel::New();
   this->UpdateClusterPlottedComponentModel();
+
+  m_InteractionMode = MODE_NONE;
 }
 
 void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
@@ -204,6 +206,8 @@ bool SnakeWizardModel::CheckState(SnakeWizardModel::UIState state)
   ThresholdSettings *ts = this->GetThresholdSettings();
   switch(state)
     {
+    case UIF_BUBBLE_MODE:
+      return m_InteractionMode == MODE_BUBBLES;
     case UIF_THESHOLDING_ENABLED:
       return AreThresholdModelsActive();
     case UIF_LOWER_THRESHOLD_ENABLED:
@@ -268,6 +272,11 @@ ScalarImageWrapperBase *SnakeWizardModel::GetActiveScalarLayer(PreprocessingMode
   return m_Driver->GetPreprocessingFilterPreviewer(mode)->GetActiveScalarLayer();
 }
 
+void SnakeWizardModel::OnBubbleModeBack()
+{
+  SetInteractionMode(MODE_PREPROCESSING);
+}
+
 void SnakeWizardModel::UpdateClusterPlottedComponentModel()
 {
   this->m_ClusterPlottedComponentModel->SetValue(0);
@@ -287,6 +296,9 @@ void SnakeWizardModel::OnBubbleModeEnter()
   // speed image, as tht clashes with bubble placement visually
   if(this->GetRedTransparentSpeedModeModel()->GetValue())
     this->SetBlueWhiteSpeedModeValue(true);
+
+  // We are in bubble mode
+  SetInteractionMode(MODE_BUBBLES);
 }
 
 
@@ -885,6 +897,9 @@ void SnakeWizardModel::OnSnakeModeEnter()
 
   // Some preparatory stuff
   this->ComputeBubbleRadiusDefaultAndRange();
+
+  // We begin in preprocessing mode
+  SetInteractionMode(MODE_PREPROCESSING);
 }
 
 void SnakeWizardModel::ComputeBubbleRadiusDefaultAndRange()
@@ -928,6 +943,12 @@ void SnakeWizardModel::ComputeBubbleRadiusDefaultAndRange()
 
   // Let the GUI know that the values have changed
   InvokeEvent(BubbleDefaultRadiusUpdateEvent());
+}
+
+void SnakeWizardModel::SetInteractionMode(SnakeWizardModel::InteractionMode mode)
+{
+  m_InteractionMode = mode;
+  InvokeEvent(StateMachineChangeEvent());
 }
 
 
@@ -983,6 +1004,9 @@ SnakeWizardModel
 
 void SnakeWizardModel::OnEvolutionPageEnter()
 {
+  // We are no longer bubble
+  SetInteractionMode(MODE_EVOLUTION);
+
   // Initialize the segmentation
   if(!m_Driver->InitializeActiveContourPipeline())
     {
@@ -1026,6 +1050,8 @@ void SnakeWizardModel::OnEvolutionPageBack()
 {
   if(m_Driver->GetSNAPImageData()->IsSegmentationActive())
     m_Driver->GetSNAPImageData()->TerminateSegmentation();
+
+  SetInteractionMode(MODE_BUBBLES);
 }
 
 void SnakeWizardModel::OnEvolutionPageFinish()

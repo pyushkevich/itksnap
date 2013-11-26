@@ -860,18 +860,17 @@ IRISApplication
   itk::Index<3> indexTarget =
       to_itkIndex(target->GetMain()->TransformNIFTICoordinatesToVoxelIndex(xyzSource));
 
-  Vector3ui newCursor;
+  Vector3ui newCursor =
+      target->GetMain()->GetBufferedRegion().IsInside(indexTarget)
+      ? Vector3ui(indexTarget)
+      : target->GetMain()->GetSize() / 2u;
 
-  if(target->GetMain()->GetBufferedRegion().IsInside(indexTarget))
-    {
-    // Set the cursor at the current physical position
-    this->SetCursorPosition(Vector3ui(indexTarget), true);
-    }
-  else
-    {
-    // Set the cursor at the center
-    this->SetCursorPosition(target->GetMain()->GetSize() / 2u, true);
-    }
+  // Store the cursor position in the global state and the target image data
+  m_GlobalState->SetCrosshairsPosition(newCursor);
+  target->SetCrosshairs(newCursor);
+
+  // Fire the appropriate event
+  InvokeEvent(CursorUpdateEvent());
 }
 
 void 
@@ -1073,20 +1072,22 @@ IRISApplication
   else if(sets.GetFlagSingleScene())
     {
     // Create an append filter
-    vtkAppendPolyData *append = vtkAppendPolyData::New();
-    std::vector<vtkUnsignedShortArray *> scalarArray;
+    vtkSmartPointer<vtkAppendPolyData> append = vtkSmartPointer<vtkAppendPolyData>::New();
 
     for(it = meshes.begin(); it != meshes.end(); it++)
       {
       // Get the VTK mesh for the label
       vtkPolyData *mesh = it->second;
-      vtkUnsignedShortArray *scalar = vtkUnsignedShortArray::New();
+      vtkSmartPointer<vtkUnsignedShortArray> scalar =
+          vtkSmartPointer<vtkUnsignedShortArray>::New();
+
       scalar->SetNumberOfComponents(1);
+
       scalar->Allocate(mesh->GetNumberOfPoints());
       for(int j = 0; j < mesh->GetNumberOfPoints(); j++)
         scalar->InsertNextTuple1(it->first);
+
       mesh->GetPointData()->SetScalars(scalar);
-      scalarArray.push_back(scalar);
       append->AddInput(mesh);
       }
 
@@ -1097,9 +1098,9 @@ IRISApplication
     Registry rFormat = sets.GetMeshFormat();
     io.SaveMesh(sets.GetMeshFileName().c_str(), rFormat, append->GetOutput());
 
-    append->Delete();
-    for(size_t i = 0; i < scalarArray.size(); i++)
-      scalarArray[i]->Delete();
+    // Remove the scalars from the meshes
+    for(it = meshes.begin(); it != meshes.end(); it++)
+      it->second->GetPointData()->SetScalars(NULL);
     }
   else
     {

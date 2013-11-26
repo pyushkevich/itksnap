@@ -44,6 +44,14 @@ public:
 
   virtual void OnUpdate();
 
+  // Interaction modes (correspond to wizard pages)
+  enum InteractionMode {
+    MODE_PREPROCESSING,
+    MODE_BUBBLES,
+    MODE_EVOLUTION,
+    MODE_NONE
+  };
+
   // State machine enums
   enum UIState {
     UIF_THESHOLDING_ENABLED,
@@ -53,7 +61,8 @@ public:
     UIF_SPEED_AVAILABLE,              // Has speed volume been computed?
     UIF_PREPROCESSING_ACTIVE,         // Is the preprocessing dialog open?
     UIF_BUBBLE_SELECTED,
-    UIF_INITIALIZATION_VALID          // Do we have data to start snake evol?
+    UIF_INITIALIZATION_VALID,          // Do we have data to start snake evol?
+    UIF_BUBBLE_MODE
     };
 
   // Model for the threshold mode
@@ -102,6 +111,9 @@ public:
   irisGetMacro(EdgePreprocessingSigmaModel, AbstractRangedDoubleProperty *)
   irisGetMacro(EdgePreprocessingKappaModel, AbstractRangedDoubleProperty *)
   irisGetMacro(EdgePreprocessingExponentModel, AbstractRangedDoubleProperty *)
+
+  // Called when entering proprocessing mode (i.e., back from button page)
+  void OnBubbleModeBack();
 
   // What happens when we enter bubble mode
   void OnBubbleModeEnter();
@@ -316,6 +328,11 @@ protected:
 
   // Default value for the bubble radius (when there is no selection)
   double m_BubbleRadiusDefaultValue;
+
+  // Are we in bubble mode
+  InteractionMode m_InteractionMode;
+
+  void SetInteractionMode(InteractionMode mode);
 
   /* ===================================================================
    * CLUSTERING SUPPORT (GMM)

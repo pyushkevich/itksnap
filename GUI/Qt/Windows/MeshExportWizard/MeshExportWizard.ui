@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MeshExportWizard</class>
+ <widget class="QWizard" name="MeshExportWizard">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Wizard</string>
+  </property>
+  <widget class="MeshExportModePage" name="pageMode">
+   <property name="title">
+    <string>Which labels will be exported?</string>
+   </property>
+  </widget>
+  <widget class="MeshExportBrowsePage" name="pageBrowse">
+   <property name="title">
+    <string>Export destination</string>
+   </property>
+   <property name="subTitle">
+    <string/>
+   </property>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MeshExportBrowsePage</class>
+   <extends>QWizardPage</extends>
+   <header>MeshExportBrowsePage.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MeshExportModePage</class>
+   <extends>QWizardPage</extends>
+   <header>MeshExportModePage.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -57,6 +57,7 @@
 #include <SnakeROIResampleModel.h>
 #include "NumericPropertyToggleAdaptor.h"
 #include "HistoryManager.h"
+#include "MeshExportModel.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -168,6 +169,10 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   // Snake parameter model
   m_SnakeParameterModel = SnakeParameterModel::New();
   m_SnakeParameterModel->SetParentModel(this);
+
+  // Mesh export model
+  m_MeshExportModel = MeshExportModel::New();
+  m_MeshExportModel->SetParentModel(this);
 
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(

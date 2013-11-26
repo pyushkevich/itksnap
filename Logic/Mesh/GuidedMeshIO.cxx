@@ -11,6 +11,7 @@ GuidedMeshIO
   m_EnumFileFormat.AddPair(FORMAT_VTK, "VTK Mesh");
   m_EnumFileFormat.AddPair(FORMAT_BYU, "BYU Mesh");
   m_EnumFileFormat.AddPair(FORMAT_STL, "STL Mesh"); 
+  m_EnumFileFormat.AddPair(FORMAT_VRML, "VRML Scene");
   m_EnumFileFormat.AddPair(FORMAT_COUNT, "INVALID FORMAT");
 }
 

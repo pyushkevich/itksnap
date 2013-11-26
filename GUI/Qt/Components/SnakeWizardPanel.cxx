@@ -260,6 +260,9 @@ void SnakeWizardPanel::on_btnBubbleBack_clicked()
 {
   // Move to the preprocessing page
   ui->stack->setCurrentWidget(ui->pgPreproc);
+
+  // Tell the model
+  m_Model->OnBubbleModeBack();
 }
 
 void SnakeWizardPanel::on_stack_currentChanged(int page)

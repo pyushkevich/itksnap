@@ -58,7 +58,7 @@ public:
   virtual ~GuidedMeshIO() { /*To avoid compiler warning.*/ }
   
   enum FileFormat {
-    FORMAT_VTK=0, FORMAT_STL, FORMAT_BYU, FORMAT_COUNT };
+    FORMAT_VTK=0, FORMAT_STL, FORMAT_BYU, FORMAT_VRML, FORMAT_COUNT };
 
   /** Default constructor */
   GuidedMeshIO();

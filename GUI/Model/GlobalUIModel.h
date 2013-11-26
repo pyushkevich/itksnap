@@ -64,6 +64,7 @@ class PaintbrushSettingsModel;
 class LayerGeneralPropertiesModel;
 class SynchronizationModel;
 class SnakeParameterModel;
+class MeshExportModel;
 
 
 namespace itk
@@ -210,6 +211,9 @@ public:
 
   /** Model for the snake ROI resampling */
   irisGetMacro(SnakeROIResampleModel, SnakeROIResampleModel *)
+
+  /** Model for the mesh export wizard */
+  irisGetMacro(MeshExportModel, MeshExportModel *)
 
   /** Load an image non-interactively through a delegate */
   void LoadImageNonInteractive(const char *fname,
@@ -366,6 +370,9 @@ protected:
 
   // The model providing the main image history
   SmartPtr<StringArrayModel> m_MainImageHistoryModel;
+
+  // The model for the mesh export wizard
+  SmartPtr<MeshExportModel> m_MeshExportModel;
 
   // A pointer to the progress reporter delegate object
   ProgressReporterDelegate *m_ProgressReporterDelegate;

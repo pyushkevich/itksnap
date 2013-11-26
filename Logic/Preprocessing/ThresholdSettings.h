@@ -60,7 +60,7 @@ public:
   irisITKObjectMacro(ThresholdSettings, itk::DataObject)
 
   /** The mode for setting the threshold */
-  enum ThresholdMode { TWO_SIDED=0, UPPER, LOWER };
+  enum ThresholdMode { TWO_SIDED=0, LOWER, UPPER };
 
   itkSetMacro(LowerThreshold, float)
   itkGetConstMacro(LowerThreshold, float)

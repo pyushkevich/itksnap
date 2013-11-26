@@ -181,6 +181,8 @@ private slots:
 
   void on_actionClear_triggered();
 
+  void on_actionSave_as_Mesh_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);

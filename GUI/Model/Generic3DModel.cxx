@@ -11,6 +11,7 @@
 #include "vtkRendererCollection.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkPointData.h"
+#include "itkMutexLockHolder.h"
 
 // All the VTK stuff
 #include "vtkPolyData.h"
@@ -126,6 +127,36 @@ void Generic3DModel::RestoreCameraState()
   m_Renderer->RestoreSavedCameraState();
 }
 
+#include "MeshExportSettings.h"
+#include "vtkVRMLExporter.h"
+void Generic3DModel::ExportMesh(const MeshExportSettings &settings)
+{
+  // Update the mesh
+  this->UpdateSegmentationMesh(m_ParentUI->GetProgressCommand());
+
+  // Prevent concurrent access to this method and mesh update
+  itk::MutexLockHolder<itk::SimpleFastMutexLock> mholder(m_MutexLock);
+
+  // Certain formats require a VTK exporter and use a render window. They
+  // are handled directly in this code, rather than in the Guided code.
+  // TODO: it would make sense to unify this functionality in GuidedMeshIO
+  GuidedMeshIO mesh_io;
+  Registry reg_format = settings.GetMeshFormat();
+  if(mesh_io.GetFileFormat(reg_format) == GuidedMeshIO::FORMAT_VRML)
+    {
+    // Create the exporter
+    vtkSmartPointer<vtkVRMLExporter> exporter = vtkSmartPointer<vtkVRMLExporter>::New();
+    exporter->SetFileName(settings.GetMeshFileName().c_str());
+    exporter->SetInput(m_Renderer->GetRenderWindow());
+    exporter->Update();
+    return;
+    }
+
+  // Export the mesh
+  m_ParentUI->GetDriver()->ExportSegmentationMesh(
+        settings, m_ParentUI->GetProgressCommand());
+}
+
 vtkPolyData *Generic3DModel::GetSprayPoints() const
 {
   return m_SprayPoints.GetPointer();
@@ -169,8 +200,7 @@ void Generic3DModel::OnImageGeometryUpdate()
 void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
 {
   // Prevent concurrent access to this method
-  itk::SimpleFastMutexLock mutex;
-  itk::MutexLockHolder<itk::SimpleFastMutexLock> mholder(mutex);
+  itk::MutexLockHolder<itk::SimpleFastMutexLock> mholder(m_MutexLock);
 
   try
   {
@@ -309,7 +339,7 @@ bool Generic3DModel::IntersectSegmentation(int vx, int vy, Vector3i &hit)
     typedef ImageRayIntersectionFinder<float, SnakeImageHitTester> RayCasterType;
     RayCasterType caster;
     result = caster.FindIntersection(
-          m_ParentUI->GetDriver()->GetSNAPImageData()->GetLevelSetImage(),
+          m_ParentUI->GetDriver()->GetSNAPImageData()->GetSnake()->GetImage(),
           x_image, d_image, hit);
     }
   else

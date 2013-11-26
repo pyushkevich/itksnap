@@ -229,7 +229,7 @@ bool MeshManager::IsMeshDirty()
     {
     // We are in SNAP.  Use one of SNAP's images
     SNAPImageData *snapData = m_Driver->GetSNAPImageData();
-    image = snapData->GetLevelSetImage();
+    image = snapData->GetSnake()->GetImage();
     }
   else
     {

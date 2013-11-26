@@ -12,6 +12,7 @@ class IRISApplication;
 class MeshManager;
 class Generic3DRenderer;
 class vtkPolyData;
+class MeshExportSettings;
 
 namespace itk
 {
@@ -109,6 +110,9 @@ public:
   // Restore the camera state
   void RestoreCameraState();
 
+  // Export the 3D model
+  void ExportMesh(const MeshExportSettings &settings);
+
   // Get the spray points
   vtkPolyData *GetSprayPoints() const;
 
@@ -150,6 +154,10 @@ protected:
 
   // Is the mesh updating
   bool m_MeshUpdating;
+
+  // A mutex lock to allow background processing of mesh updates
+  itk::SimpleFastMutexLock m_MutexLock;
+
 };
 
 #endif // GENERIC3DMODEL_H

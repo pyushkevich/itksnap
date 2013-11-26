@@ -74,7 +74,7 @@ double Window3DPicker::IntersectWithLine(
     RayCasterType caster;
 
     result = caster.FindIntersection(
-          app->GetSNAPImageData()->GetLevelSetImage(), x0, x1 - x0, pos);
+          app->GetSNAPImageData()->GetSnake()->GetImage(), x0, x1 - x0, pos);
     }
   else
     {

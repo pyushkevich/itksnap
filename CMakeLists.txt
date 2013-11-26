@@ -264,6 +264,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/LayerGeneralPropertiesModel.cxx
   GUI/Model/LayerTableRowModel.cxx
   GUI/Model/LayerSelectionModel.cxx
+  GUI/Model/MeshExportModel.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
   GUI/Model/PaintbrushModel.cxx
   GUI/Model/PaintbrushSettingsModel.cxx
@@ -329,6 +330,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/LayerGeneralPropertiesModel.h
   GUI/Model/LayerSelectionModel.h
   GUI/Model/LayerTableRowModel.h
+  GUI/Model/MeshExportModel.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
   GUI/Model/PaintbrushModel.h
   GUI/Model/PaintbrushSettingsModel.h
@@ -449,6 +451,9 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/SpeedImageDialog.cxx
   GUI/Qt/Windows/SplashPanel.cxx
   GUI/Qt/Windows/StatisticsDialog.cxx
+  GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.cxx
+  GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.cxx
+  GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.cxx
 )
 
 # The header files for the UI project
@@ -517,6 +522,9 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/SpeedImageDialog.h
   GUI/Qt/Windows/SplashPanel.h
   GUI/Qt/Windows/StatisticsDialog.h
+  GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.h
+  GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.h
+  GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.h
 )
 
 # These UI headers don't need to be MOC'd
@@ -582,6 +590,9 @@ SET(UI_FORMS
   GUI/Qt/Windows/SpeedImageDialog.ui
   GUI/Qt/Windows/SplashPanel.ui
   GUI/Qt/Windows/StatisticsDialog.ui
+  GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.ui
+  GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.ui
+  GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.ui
 )
 
 SET(UI_RESOURCES
@@ -664,6 +675,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Qt/Testing
     ${SNAP_SOURCE_DIR}/GUI/Qt/View
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/MeshExportWizard
     ${SNAP_SOURCE_DIR}/Testing
     ${SNAP_BINARY_DIR}
     ${OPENGL_INCLUDE_PATH}

@@ -49,6 +49,7 @@
 #include "QtWidgetCoupling.h"
 #include "SimpleFileDialogWithHistory.h"
 #include "StatisticsDialog.h"
+#include "MeshExportWizard.h"
 #include "ImageWrapperBase.h"
 #include "IRISImageData.h"
 #include "AboutDialog.h"
@@ -993,4 +994,11 @@ void MainImageWindow::on_actionClear_triggered()
     return;
 
   m_Model->GetDriver()->ClearIRISSegmentationImage();
+}
+
+void MainImageWindow::on_actionSave_as_Mesh_triggered()
+{
+  MeshExportWizard wizard(this);
+  wizard.SetModel(m_Model->GetMeshExportModel());
+  wizard.exec();
 }
