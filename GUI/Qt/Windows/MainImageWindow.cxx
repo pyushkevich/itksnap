@@ -156,7 +156,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_DockRight = new QDockWidget("Segment 3D", this);
   m_SnakeWizard = new SnakeWizardPanel(this);
   m_DockRight->setWidget(m_SnakeWizard);
-  m_DockRight->setAllowedAreas(Qt::LeftDockWidgetArea);
+  m_DockRight->setAllowedAreas(Qt::RightDockWidgetArea);
   this->addDockWidget(Qt::RightDockWidgetArea, m_DockRight);
 
   // Delegate for history
@@ -513,6 +513,9 @@ void MainImageWindow::OpenSnakeWizard()
   // Initialize the snake wizard
   this->m_SnakeWizard->Initialize();
 
+  // Remember the size of the window before the right dock was shown
+  m_SizeWithoutRightDock = this->size();
+
   // Make the dock containing the wizard visible
   m_DockRight->setVisible(true);
 }
@@ -681,6 +684,14 @@ void MainImageWindow::onSnakeWizardFinished()
 {
   // Make the dock containing the wizard visible
   m_DockRight->setVisible(false);
+
+  // TODO: this way of handling the size of the main window after the right
+  // dock is hidden is rudimentary. I should learn how to use sizePolicy and
+  // sizeHint fields more effectively.
+
+  // Return to previous size
+  this->layout()->activate();
+  resize(m_SizeWithoutRightDock.width(), m_SizeWithoutRightDock.height());
 }
 
 void MainImageWindow::on_listRecent_clicked(const QModelIndex &index)
@@ -1061,4 +1072,9 @@ void MainImageWindow::on_actionSaveMainROI_triggered()
   QAction *save_action = m_LayerInspector->GetLayerSaveAction(wrapper);
   if(save_action)
     save_action->trigger();
+}
+
+QSize MainImageWindow::sizeHint() const
+{
+  return QSize(900,700);
 }

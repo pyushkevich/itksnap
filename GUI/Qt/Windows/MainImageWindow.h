@@ -191,6 +191,8 @@ private slots:
 
   void on_actionSaveMainROI_triggered();
 
+  virtual QSize sizeHint() const;
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);
@@ -215,6 +217,9 @@ private:
 
   // Left and right docks
   QDockWidget *m_DockLeft, *m_DockRight;
+
+  // Size before the right dock is shown
+  QSize m_SizeWithoutRightDock;
 
   // Progress dialog
   QProgressDialog *m_Progress;
