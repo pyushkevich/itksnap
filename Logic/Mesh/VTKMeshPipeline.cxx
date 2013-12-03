@@ -35,6 +35,7 @@
 #include "VTKMeshPipeline.h"
 #include "AllPurposeProgressAccumulator.h"
 #include "ImageWrapper.h"
+#include "MeshOptions.h"
 #include <map>
 
 using namespace std;
@@ -45,6 +46,9 @@ VTKMeshPipeline
 {
   // Initialize the progress tracker
   m_Progress = AllPurposeProgressAccumulator::New();
+
+  // Initialize the options
+  m_MeshOptions = MeshOptions::New();
 
   // Initialize all the filters involved in the transaction, but do not
   // pipe the inputs and outputs between these filters. The piping is quite
@@ -134,7 +138,7 @@ VTKMeshPipeline
 
 void
 VTKMeshPipeline
-::SetMeshOptions(const MeshOptions &options)
+::SetMeshOptions(MeshOptions *options)
 {
   // Store the options
   m_MeshOptions = options;
@@ -149,7 +153,7 @@ VTKMeshPipeline
   // Route the pipeline according to the settings
   // 1. Check if Gaussian smoothing will be used
 
-  if(options.GetUseGaussianSmoothing()) 
+  if(options->GetUseGaussianSmoothing())
     {    
     // The Gaussian filter is enabled
     m_VTKGaussianFilter->SetInputConnection(pipeImageTail);
@@ -157,7 +161,7 @@ VTKMeshPipeline
     pipeImageTail = m_VTKGaussianFilter->GetOutputPort();
 
     // Apply parameters to the Gaussian filter
-    float sigma = options.GetGaussianStandardDeviation();
+    float sigma = options->GetGaussianStandardDeviation();
 
     // Sigma is in millimeters
     const double *spacing = m_InputImage->GetSpacing().GetDataPointer();
@@ -180,7 +184,7 @@ VTKMeshPipeline
   pipePolyTail = m_TransformFilter->GetOutputPort();
 
   // 3. Check if decimation is required
-  if(options.GetUseDecimation())
+  if(options->GetUseDecimation())
     {
 
     // Decimate filter gets the pipe tail
@@ -190,23 +194,23 @@ VTKMeshPipeline
 
     // Apply parameters to the decimation filter
     m_DecimateFilter->SetTargetReduction(
-      options.GetDecimateTargetReduction());
+      options->GetDecimateTargetReduction());
 
     m_DecimateFilter->SetMaximumError(
-      options.GetDecimateInitialError());
+      options->GetDecimateMaximumError());
 
     m_DecimateFilter->SetFeatureAngle(
-      options.GetDecimateFeatureAngle());
+      options->GetDecimateFeatureAngle());
 
     m_DecimateFilter->SetPreserveTopology(
-      options.GetDecimatePreserveTopology());
+      options->GetDecimatePreserveTopology());
 
     } // If decimate enabled
 
   // 4. Compute the normals (non-patented only)
 
   // 5. Include/exclude mesh smoothing filter
-  if(options.GetUseMeshSmoothing())
+  if(options->GetUseMeshSmoothing())
     {
     // Pipe smoothed output into the pipeline
     m_PolygonSmoothingFilter->SetInputConnection(pipePolyTail);
@@ -215,22 +219,22 @@ VTKMeshPipeline
 
     // Apply parameters to the mesh smoothing filter
     m_PolygonSmoothingFilter->SetNumberOfIterations(
-      options.GetMeshSmoothingIterations());
+      options->GetMeshSmoothingIterations());
 
     m_PolygonSmoothingFilter->SetRelaxationFactor(
-      options.GetMeshSmoothingRelaxationFactor()); 
+      options->GetMeshSmoothingRelaxationFactor());
 
     m_PolygonSmoothingFilter->SetFeatureAngle(
-      options.GetMeshSmoothingFeatureAngle());
+      options->GetMeshSmoothingFeatureAngle());
 
     m_PolygonSmoothingFilter->SetFeatureEdgeSmoothing(
-      options.GetMeshSmoothingFeatureEdgeSmoothing());
+      options->GetMeshSmoothingFeatureEdgeSmoothing());
 
     m_PolygonSmoothingFilter->SetBoundarySmoothing(
-      options.GetMeshSmoothingBoundarySmoothing());
+      options->GetMeshSmoothingBoundarySmoothing());
 
     m_PolygonSmoothingFilter->SetConvergence(
-      options.GetMeshSmoothingConvergence());
+      options->GetMeshSmoothingConvergence());
     }
 
   // 6. Pipe in the final output into the stripper

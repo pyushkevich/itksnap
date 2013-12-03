@@ -73,6 +73,8 @@ CONFIGURE_FILE(
 # is organized into a separate library
 SET(LOGIC_CXX
   ${SNAP_BINARY_DIR}/SNAPCommon.cxx
+  Common/AbstractModel.cxx
+  Common/AbstractPropertyContainerModel.cxx
   Common/CommandLineArgumentParser.cxx
   Common/EventBucket.cxx
   Common/HistoryManager.cxx
@@ -134,6 +136,8 @@ SET(LOGIC_CXX
 
 # The headers for the Logic code
 SET(LOGIC_HEADERS
+  Common/AbstractModel.h
+  Common/AbstractPropertyContainerModel.h
   Common/CommandLineArgumentParser.h
   Common/Credits.h
   Common/HistoryManager.h
@@ -155,6 +159,7 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
   Common/PresetManager.h
   Common/PresetManager.hxx
+  Common/PropertyModel.h
   Common/Rebroadcaster.h
   Common/Registry.h
   Common/SNAPBorlandDummyTypes.h
@@ -247,13 +252,13 @@ SET(LOGIC_HEADERS
 # These files have the UI model code, which is GUI-TK independent
 SET(UI_GENERIC_CXX
   GUI/Model/AbstractLayerAssociatedModel.cxx
-  GUI/Model/AbstractModel.cxx
   GUI/Model/ColorLabelPropertyModel.cxx
   GUI/Model/ColorMapModel.cxx
   GUI/Model/CursorInspectionModel.cxx
   GUI/Model/DisplayLayoutModel.cxx
   GUI/Model/Generic3DModel.cxx
   GUI/Model/GenericSliceModel.cxx
+  GUI/Model/GlobalPreferencesModel.cxx
   GUI/Model/GlobalUIModel.cxx
   GUI/Model/ImageIODelegates.cxx
   GUI/Model/ImageIOWizardModel.cxx
@@ -313,13 +318,13 @@ SET(UI_GENERIC_CXX
 SET(UI_GENERIC_HEADERS
   GUI/Model/AbstractLayerAssociatedModel.h
   GUI/Model/AbstractLayerInfoItemSetDomain.h
-  GUI/Model/AbstractModel.h
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelPropertyModel.h
   GUI/Model/CursorInspectionModel.h
   GUI/Model/DisplayLayoutModel.h
   GUI/Model/Generic3DModel.h
   GUI/Model/GenericSliceModel.h
+  GUI/Model/GlobalPreferencesModel.h
   GUI/Model/GlobalUIModel.h
   GUI/Model/ImageInfoModel.h
   GUI/Model/ImageIODelegates.h
@@ -335,7 +340,6 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/PaintbrushModel.h
   GUI/Model/PaintbrushSettingsModel.h
   GUI/Model/PolygonDrawingModel.h
-  GUI/Model/PropertyModel.h
   GUI/Model/ReorientImageModel.h
   GUI/Model/SNAPAppearanceSettings.h
   GUI/Model/SNAPUIFlag.h
@@ -443,6 +447,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/LabelSelectionPopup.cxx
   GUI/Qt/Windows/MainControlPanel.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
+  GUI/Qt/Windows/PreferencesDialog.cxx
   GUI/Qt/Windows/QtStyles.cxx
   GUI/Qt/Windows/ReorientImageDialog.cxx
   GUI/Qt/Windows/ResampleDialog.cxx
@@ -515,6 +520,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/LabelSelectionPopup.h
   GUI/Qt/Windows/MainControlPanel.h
   GUI/Qt/Windows/MainImageWindow.h
+  GUI/Qt/Windows/PreferencesDialog.h
   GUI/Qt/Windows/ReorientImageDialog.h
   GUI/Qt/Windows/ResampleDialog.h
   GUI/Qt/Windows/SimpleFileDialogWithHistory.h
@@ -583,6 +589,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/LabelSelectionPopup.ui
   GUI/Qt/Windows/MainControlPanel.ui
   GUI/Qt/Windows/MainImageWindow.ui
+  GUI/Qt/Windows/PreferencesDialog.ui
   GUI/Qt/Windows/ReorientImageDialog.ui
   GUI/Qt/Windows/ResampleDialog.ui
   GUI/Qt/Windows/SimpleFileDialogWithHistory.ui

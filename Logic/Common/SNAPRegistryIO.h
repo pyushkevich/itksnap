@@ -72,8 +72,8 @@ public:
     const SnakeParameters &in,Registry &registry);
   
   /** Read mesh options from a registry */
-  MeshOptions ReadMeshOptions(
-    Registry &registry,const MeshOptions &defaultSet);
+  void ReadMeshOptions(
+    Registry &registry, MeshOptions *target);
 
   /** Write mesh options to a registry */
   void WriteMeshOptions(

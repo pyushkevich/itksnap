@@ -324,10 +324,6 @@ protected:
 };
 
 
-
-
-
-
 /**
   A parent class for a family of models that encapsulate a single value of
   a particular type. These models use events to communicate changes in state
@@ -357,6 +353,8 @@ template <class TVal, class TDomain = TrivialDomain>
 class AbstractPropertyModel : public AbstractModel
 {
 public:
+
+  irisITKAbstractObjectMacro(AbstractPropertyModel, AbstractModel)
 
   /** The atomic type encompassed by the model */
   typedef TVal ValueType;
@@ -443,6 +441,24 @@ public:
   irisSetWithEventMacro(Domain, TDomain, DomainChangedEvent)
   irisSetWithEventMacro(IsValid, bool, ValueChangedEvent)
 
+  // Simple implementation of the deep copy function
+  void DeepCopy(const Self *source)
+  {
+    // Copy the relevant stuff
+    this->SetValue(source->m_Value);
+    this->SetDomain(source->m_Domain);
+    this->SetIsValid(source->m_IsValid);
+  }
+
+  /** Compare with another model (by value only, not domain) */
+  bool Equals(const Self *source) const
+  {
+    // Cast to the right type
+    return(source->m_Value == m_Value &&
+           source->m_IsValid == m_IsValid);
+  }
+
+
 protected:
 
   ConcretePropertyModel()
@@ -457,19 +473,6 @@ protected:
   bool m_IsValid;
 };
 
-// Definitions of common concrete property models with numeric ranges
-typedef ConcretePropertyModel<double, NumericValueRange<double> > RangedDoublePropertyModel;
-typedef ConcretePropertyModel<float, NumericValueRange<float> > RangedFloatPropertyModel;
-typedef ConcretePropertyModel<int, NumericValueRange<int> > RangedIntPropertyModel;
-typedef ConcretePropertyModel<unsigned int, NumericValueRange<unsigned int> > RangedUIntPropertyModel;
-typedef ConcretePropertyModel<short, NumericValueRange<short> > RangedShortPropertyModel;
-typedef ConcretePropertyModel<unsigned short, NumericValueRange<unsigned short> > RangedUShortPropertyModel;
-typedef ConcretePropertyModel<char, NumericValueRange<int> > RangedCharPropertyModel;
-typedef ConcretePropertyModel<unsigned char, NumericValueRange<unsigned char> > RangedUCharPropertyModel;
-
-// Definitions of common concrete property models without numeric ranges
-typedef ConcretePropertyModel<bool> BoolPropertyModel;
-
 // A macro to generate functions GetXXX(), SetXXX() and GetXXXModel() in a class
 // that contains a ConcretePropertyModel of a certain type named m_XXXModel
 #define irisRangedPropertyAccessMacro(name,type) \
@@ -480,7 +483,7 @@ typedef ConcretePropertyModel<bool> BoolPropertyModel;
   virtual AbstractPropertyModel<type, NumericValueRange<type> > * Get##name##Model () const \
     { return this->m_##name##Model; }
 
-  #define irisSimplePropertyAccessMacro(name,type) \
+#define irisSimplePropertyAccessMacro(name,type) \
   virtual void Set##name (type _arg) \
     { this->m_##name##Model->SetValue(_arg); } \
   virtual type Get##name () const \
@@ -720,7 +723,6 @@ public:
     SmartPtr<Superclass> pout(p);
     return pout;
   }
-
 
 protected:
 

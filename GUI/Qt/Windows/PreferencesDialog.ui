@@ -1,0 +1,1380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PreferencesDialog</class>
+ <widget class="QDialog" name="PreferencesDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>689</width>
+    <height>554</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
+   <item row="2" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QStackedWidget" name="stack">
+     <property name="currentIndex">
+      <number>3</number>
+     </property>
+     <widget class="QWidget" name="pageGeneral">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QTabWidget" name="tabWidget_4">
+         <property name="currentIndex">
+          <number>1</number>
+         </property>
+         <widget class="QWidget" name="tab_6">
+          <attribute name="title">
+           <string>Default Behavior</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_11">
+           <item>
+            <widget class="QCheckBox" name="checkBox_2">
+             <property name="text">
+              <string>Maintain same zoom factor in all slices (&quot;linked zoom&quot;)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_3">
+             <property name="text">
+              <string>Automatically update 3D mesh in a background process</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_4">
+             <property name="text">
+              <string>Synchronize coordinate information between multiple ITK-SNAP session</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox">
+             <property name="title">
+              <string/>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <property name="margin">
+               <number>6</number>
+              </property>
+              <item>
+               <spacer name="horizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="checkBox">
+                <property name="text">
+                 <string>Cursor position</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="checkBox_7">
+                <property name="text">
+                 <string>Zoom</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="checkBox_8">
+                <property name="text">
+                 <string>Pan</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_7">
+          <attribute name="title">
+           <string>Permissions</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_14">
+           <item>
+            <widget class="QCheckBox" name="checkBox_5">
+             <property name="text">
+              <string>Allow ITK-SNAP to check for updates periodically</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="pageLayout">
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QTabWidget" name="tabWidget">
+         <property name="currentIndex">
+          <number>1</number>
+         </property>
+         <widget class="QWidget" name="tab">
+          <attribute name="title">
+           <string>Layout</string>
+          </attribute>
+          <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+           <item>
+            <widget class="QWidget" name="widget_2" native="true">
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QGroupBox" name="groupBox_3">
+                <property name="title">
+                 <string>Current screen layout:</string>
+                </property>
+                <layout class="QGridLayout" name="gridLayout_2">
+                 <property name="margin">
+                  <number>6</number>
+                 </property>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label">
+                   <property name="minimumSize">
+                    <size>
+                     <width>64</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>64</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">background-color:rgb(179, 179, 179);
+border-color:rgb(51, 51, 51);
+border-style:solid;
+border-width:1px;
+color:white;</string>
+                   </property>
+                   <property name="text">
+                    <string>Axial</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QLabel" name="label_2">
+                   <property name="minimumSize">
+                    <size>
+                     <width>64</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>64</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">background-color:rgb(179, 179, 179);
+border-color:rgb(51, 51, 51);
+border-style:solid;
+border-width:1px;
+color:white;</string>
+                   </property>
+                   <property name="text">
+                    <string>Coronal</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="label_3">
+                   <property name="minimumSize">
+                    <size>
+                     <width>64</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>64</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">background-color:rgb(179, 179, 179);
+border-color:rgb(51, 51, 51);
+border-style:solid;
+border-width:1px;
+color:white;</string>
+                   </property>
+                   <property name="text">
+                    <string>3D View</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QLabel" name="label_4">
+                   <property name="minimumSize">
+                    <size>
+                     <width>64</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>64</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">background-color:rgb(179, 179, 179);
+border-color:rgb(51, 51, 51);
+border-style:solid;
+border-width:1px;
+color:white;</string>
+                   </property>
+                   <property name="text">
+                    <string>Sagittal</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>213</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="widget_3" native="true">
+             <layout class="QVBoxLayout" name="verticalLayout_7">
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QGroupBox" name="groupBox_4">
+                <property name="title">
+                 <string>Available Layouts:</string>
+                </property>
+                <layout class="QGridLayout" name="gridLayout_4">
+                 <item row="0" column="0">
+                  <widget class="QRadioButton" name="radioButton">
+                   <property name="text">
+                    <string>ASC</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="2">
+                  <widget class="QRadioButton" name="radioButton_3">
+                   <property name="text">
+                    <string>CAS</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QRadioButton" name="radioButton_2">
+                   <property name="text">
+                    <string>SAC</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QRadioButton" name="radioButton_4">
+                   <property name="text">
+                    <string>ACS</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QRadioButton" name="radioButton_5">
+                   <property name="text">
+                    <string>SCA</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="2">
+                  <widget class="QRadioButton" name="radioButton_6">
+                   <property name="text">
+                    <string>CSA</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_5">
+                <property name="title">
+                 <string>Additional options:</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_8">
+                 <item>
+                  <widget class="QCheckBox" name="checkBox_6">
+                   <property name="text">
+                    <string>Display anterior on the left</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBox_9">
+                   <property name="text">
+                    <string>Patient right is screen left</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_3">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_3">
+          <attribute name="title">
+           <string>Display</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_9">
+           <item>
+            <widget class="QGroupBox" name="groupBox_6">
+             <property name="title">
+              <string>Thumbnail</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_10">
+              <item>
+               <widget class="QCheckBox" name="checkBox_10">
+                <property name="text">
+                 <string>Show thumbnail when the slice does not fit in window</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="widget_4" native="true">
+                <layout class="QFormLayout" name="formLayout">
+                 <property name="verticalSpacing">
+                  <number>6</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>36</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_6">
+                   <property name="text">
+                    <string>Thumbnail size, relative to slice:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QSpinBox" name="spinBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="suffix">
+                    <string>%</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QSpinBox" name="spinBox_2">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="suffix">
+                    <string> px</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_7">
+                   <property name="text">
+                    <string>Maximum thumbnail size:</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_7">
+             <property name="title">
+              <string>Anatomic image display:</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_2">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>Interpolation mode:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="comboBox"/>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>Default colormap for overays:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="comboBox_2"/>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page">
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QTabWidget" name="tabWidget_2">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tab_2">
+          <attribute name="title">
+           <string>Appearance</string>
+          </attribute>
+          <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="1,0">
+           <item>
+            <widget class="QGroupBox" name="groupBox_8">
+             <property name="title">
+              <string>Visual elements:</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_13">
+              <item>
+               <widget class="QTreeWidget" name="treeWidget">
+                <column>
+                 <property name="text">
+                  <string>Item</string>
+                 </property>
+                </column>
+                <item>
+                 <property name="text">
+                  <string>Slice Views</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Background</string>
+                  </property>
+                  <property name="checkState">
+                   <enum>Checked</enum>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Crosshair</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Rulers</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Markers</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>ROI Edges</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Paintbrush</string>
+                  </property>
+                 </item>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>3D View</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Background</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Crosshair</string>
+                  </property>
+                 </item>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Zoom Thumbnail</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Image</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Crosshair</string>
+                  </property>
+                 </item>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Polygon Tool</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Outline (drawing)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Outline (editing)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Completion line</string>
+                  </property>
+                 </item>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_9">
+             <property name="title">
+              <string>Appearance:</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_12">
+              <item>
+               <widget class="QWidget" name="widget_7" native="true">
+                <layout class="QFormLayout" name="formLayout_3">
+                 <property name="fieldGrowthPolicy">
+                  <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+                 </property>
+                 <property name="margin">
+                  <number>0</number>
+                 </property>
+                 <item row="0" column="1">
+                  <widget class="QCheckBox" name="checkBox_12">
+                   <property name="text">
+                    <string>Visible</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <spacer name="verticalSpacer_7">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>5</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="label_14">
+                   <property name="text">
+                    <string>Normal color:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QPushButton" name="pushButton_2">
+                   <property name="text">
+                    <string>Choose</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="label_13">
+                   <property name="text">
+                    <string>Active color:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QPushButton" name="pushButton">
+                   <property name="text">
+                    <string>Choose</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="1">
+                  <spacer name="verticalSpacer_5">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>5</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="5" column="0">
+                  <widget class="QLabel" name="label_10">
+                   <property name="text">
+                    <string>Line thickness:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="6" column="0">
+                  <widget class="QLabel" name="label_11">
+                   <property name="text">
+                    <string>Dash spacing:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="6" column="1">
+                  <widget class="QSpinBox" name="spinBox_3">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="1">
+                  <widget class="QCheckBox" name="checkBox_11">
+                   <property name="text">
+                    <string>Smooth lines</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="1">
+                  <spacer name="verticalSpacer_6">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>5</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="9" column="0">
+                  <widget class="QLabel" name="label_12">
+                   <property name="text">
+                    <string>Font size:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="9" column="1">
+                  <widget class="QSpinBox" name="spinBox_4">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="pageRendering">
+      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0">
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QTabWidget" name="tabWidget_3">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tab_4">
+          <attribute name="title">
+           <string>Smoothing</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="spacing">
+            <number>6</number>
+           </property>
+           <item>
+            <widget class="QCheckBox" name="checkBox_20">
+             <property name="text">
+              <string>Gaussian image smoothing (slow, improves display quality)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="title">
+              <string/>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QWidget" name="widget" native="true">
+                <layout class="QFormLayout" name="formLayout_4">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_9">
+                   <property name="text">
+                    <string>Standard deviation:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="widget_5" native="true">
+                <layout class="QFormLayout" name="formLayout_5">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_15">
+                   <property name="text">
+                    <string>Approximation error max:</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_3">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_13">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>10</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_21">
+             <property name="text">
+              <string>Laplacian mesh smoothing (slow, improves mesh quality)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_12">
+             <property name="title">
+              <string/>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_3">
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QWidget" name="widget_6" native="true">
+                <layout class="QFormLayout" name="formLayout_6">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_16">
+                   <property name="text">
+                    <string>Convergence:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_4">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_6">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_18">
+                   <property name="text">
+                    <string>Iterations:</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QWidget" name="widget_8" native="true">
+                <layout class="QFormLayout" name="formLayout_7">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_17">
+                   <property name="text">
+                    <string>Feature angle:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_5">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_7">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_19">
+                   <property name="text">
+                    <string>Relaxation:</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QWidget" name="widget_10" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <item>
+                  <spacer name="horizontalSpacer_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBox_23">
+                   <property name="text">
+                    <string>Feature edge smoothing</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBox_22">
+                   <property name="text">
+                    <string>Boundary smoothing</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="widget_9" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout_8"/>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_9">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_5">
+          <attribute name="title">
+           <string>Decimation</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <widget class="QCheckBox" name="checkBox_26">
+             <property name="text">
+              <string>Decimate mesh (reduces number of polygons)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_13">
+             <property name="title">
+              <string/>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_5">
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QWidget" name="widget_11" native="true">
+                <layout class="QFormLayout" name="formLayout_8">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_20">
+                   <property name="text">
+                    <string>Target reductions:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_8">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_9">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_21">
+                   <property name="text">
+                    <string>Initial error:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_12">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="label_24">
+                   <property name="text">
+                    <string>Iterations:</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QWidget" name="widget_12" native="true">
+                <layout class="QFormLayout" name="formLayout_9">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_22">
+                   <property name="text">
+                    <string>Error increment:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_10">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_11">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_23">
+                   <property name="text">
+                    <string>Aspect ratio:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_13">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="label_25">
+                   <property name="text">
+                    <string>Feature angle:</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QWidget" name="widget_13" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <item>
+                  <spacer name="horizontalSpacer_3">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBox_25">
+                   <property name="text">
+                    <string>Preserve topology</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_14">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item row="0" column="0" rowspan="2">
+    <widget class="QListWidget" name="listWidget">
+     <property name="minimumSize">
+      <size>
+       <width>140</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>140</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <item>
+      <property name="text">
+       <string>General</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Slice Views</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Appearance</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>3D Rendering</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLabel" name="outPage">
+     <property name="styleSheet">
+      <string notr="true">font-size:14px;
+font-weight:bold;</string>
+     </property>
+     <property name="text">
+      <string>General</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>PreferencesDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>PreferencesDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

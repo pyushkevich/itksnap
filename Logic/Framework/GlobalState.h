@@ -45,7 +45,6 @@
 
 #include <vector>
 #include "SNAPCommon.h"
-#include "MeshOptions.h"
 #include "SnakeParameters.h"
 #include "ThresholdSettings.h"
 #include "SNAPSegmentationROISettings.h"
@@ -54,6 +53,7 @@
 #include "ColorLabelPropertyModel.h"
 
 class IRISApplication;
+class MeshOptions;
 
 enum MeshFilterType
 {
@@ -154,6 +154,10 @@ struct Bubble {
 /**
  * \class GlobalState
  * \brief Contains global variables describing the state of the application.
+ *
+ * TODO: this class should be refactored to use PropertyModel objects for all
+ * the various settings, rather than mixing PropertyModels with simple attributes.
+ *
  */
 class GlobalState 
 {
@@ -237,10 +241,7 @@ public:
   irisSimplePropertyAccessMacro(SnakeParameters, SnakeParameters)
 
   /** Get the current mesh rendering options */
-  irisGetMacro(MeshOptions,MeshOptions);
-
-  /** Set the current mesh rendering options */
-  irisSetMacro(MeshOptions,MeshOptions);
+  irisGetMacro(MeshOptions, MeshOptions *);
 
   /** Settings associated with the segmentation ROI */
   irisSimplePropertyAccessMacro(SegmentationROISettings, SNAPSegmentationROISettings)
@@ -384,19 +385,19 @@ private:
   /** Whether the context menu is enabled for polygon drawing. I don't think
     this is the right place to put this, because it's quite GUI specific, but
     for the time being, I stick it here */
-  SmartPtr<BoolPropertyModel> m_PolygonDrawingContextMenuModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_PolygonDrawingContextMenuModel;
 
   /** Whether drawing operations are inverted */
-  SmartPtr<BoolPropertyModel> m_PolygonInvertModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_PolygonInvertModel;
 
   /** Whether snake has been initialized with manual seg voxels */
-  SmartPtr<BoolPropertyModel> m_SnakeInitializedWithManualSegmentationModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_SnakeInitializedWithManualSegmentationModel;
   
   int m_LockHeld; 
   int m_LockOwner;
 
   // Current mesh options
-  MeshOptions m_MeshOptions;
+  SmartPtr<MeshOptions> m_MeshOptions;
 
   // Current settings for the snake algorithm
   typedef ConcretePropertyModel<SnakeParameters, TrivialDomain> ConcreteSnakeParametersModel;

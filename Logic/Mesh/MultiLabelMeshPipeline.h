@@ -38,7 +38,6 @@
 #include "SNAPCommon.h"
 #include "itkImageRegion.h"
 #include "itkSmartPointer.h"
-#include "MeshOptions.h"
 #include "vtkSmartPointer.h"
 #include "itksys/MD5.h"
 #include "itkObjectFactory.h"
@@ -53,6 +52,7 @@ namespace itk {
 
 
 // Forward references
+class MeshOptions;
 class VTKMeshPipeline;
 class vtkPolyData;
 class AllPurposeProgressAccumulator;
@@ -88,7 +88,7 @@ public:
   unsigned long GetVoxelsInBoundingBox(LabelType label) const;
 
   /** Set the mesh options for this filter */
-  void SetMeshOptions(const MeshOptions &options);
+  void SetMeshOptions(const MeshOptions *options);
 
   /** Can we compute a mesh for this label? */
   bool CanComputeMesh(LabelType label)
@@ -132,7 +132,7 @@ private:
   typedef itk::SmartPointer<ThresholdFilter>         ThresholdFilterPointer;
   
   // Current set of mesh options
-  MeshOptions                 m_MeshOptions;
+  SmartPtr<MeshOptions>       m_MeshOptions;
 
   // The input image
   InputImagePointer           m_InputImage;

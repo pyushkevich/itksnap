@@ -43,6 +43,7 @@
 // SNAP includes
 #include "IRISVectorTypesToITKConversion.h"
 #include "VTKMeshPipeline.h"
+#include "MeshOptions.h"
 
 // ITK includes
 #include "itkRegionOfInterestImageFilter.h"
@@ -71,6 +72,7 @@ MultiLabelMeshPipeline
   m_VTKPipeline->SetImage(m_ThrehsoldFilter->GetOutput());
 
   // Set the initial mesh options
+  m_MeshOptions = MeshOptions::New();
   m_VTKPipeline->SetMeshOptions(m_MeshOptions);
 }
 
@@ -82,13 +84,13 @@ MultiLabelMeshPipeline
 
 void
 MultiLabelMeshPipeline
-::SetMeshOptions(const MeshOptions &options)
+::SetMeshOptions(const MeshOptions *options)
 {
   // Store the options
-  if(m_MeshOptions != options)
+  if(*m_MeshOptions != *options)
     {
     // Save the options
-    m_MeshOptions = options;
+    m_MeshOptions->DeepCopy(options);
 
     // Apply the options to the internal pipeline
     m_VTKPipeline->SetMeshOptions(m_MeshOptions);

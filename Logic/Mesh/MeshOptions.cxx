@@ -38,65 +38,42 @@ MeshOptions
 ::MeshOptions()
 {
   // Begin render switches
-  m_UseGaussianSmoothing = false;
-  m_UseDecimation = false;
-  m_UseMeshSmoothing = false;
+  m_UseGaussianSmoothingModel = 
+    NewSimpleProperty("UseGaussianSmoothing", false);
+  m_UseDecimationModel = 
+    NewSimpleProperty("UseDecimation", false);
+  m_UseMeshSmoothingModel = 
+    NewSimpleProperty("UseMeshSmoothing", false);
 
   // Begin gsmooth params
-  m_GaussianStandardDeviation = 0.8f;
-  m_GaussianError = 0.03f;
+  m_GaussianStandardDeviationModel = 
+    NewRangedProperty("GaussianStandardDeviation", 0.8f,0.0f,3.0f,0.1f);
+  m_GaussianErrorModel = 
+    NewRangedProperty("GaussianError", 0.03f,0.001f,0.1f,0.001f);
 
   // Begin decimate params
-  m_DecimateTargetReduction = 0.95f;
-  m_DecimateInitialError = 0.002f;
-  m_DecimateAspectRatio = 20.0f;
-  m_DecimateErrorIncrement = 0.002f;
-  m_DecimateMaximumIterations = 1;
-  m_DecimateFeatureAngle = 45;
-  m_DecimatePreserveTopology = true;
+  m_DecimateTargetReductionModel = 
+    NewRangedProperty("DecimateTargetReduction", 0.95f,0.5f,0.99f,0.01f);
+  m_DecimateMaximumErrorModel = 
+    NewRangedProperty("DecimateMaximumError", 0.002f,0.0f,1.0f,0.001f);
+  m_DecimateFeatureAngleModel = 
+    NewRangedProperty("DecimateFeatureAngle", 45.0f,0.0f,90.0f,1.0f);
+  m_DecimatePreserveTopologyModel = 
+    NewSimpleProperty("DecimatePreserveTopology", true);
    
   // Begin msmooth params
-  m_MeshSmoothingIterations = 1;
-  m_MeshSmoothingRelaxationFactor = 0.01f;
-  m_MeshSmoothingFeatureAngle = 45;
-  m_MeshSmoothingConvergence = 0;
-  m_MeshSmoothingFeatureEdgeSmoothing = false;
-  m_MeshSmoothingBoundarySmoothing = false;
-}
-
-bool MeshOptions::operator ==(const MeshOptions &opts) const
-{
-  // Begin render switches
-  return(
-        opts.m_UseGaussianSmoothing == m_UseGaussianSmoothing &&
-        opts.m_UseDecimation == m_UseDecimation &&
-        opts.m_UseMeshSmoothing == m_UseMeshSmoothing &&
-        opts.m_GaussianStandardDeviation == m_GaussianStandardDeviation &&
-        opts.m_GaussianError == m_GaussianError &&
-        opts.m_DecimateTargetReduction == m_DecimateTargetReduction &&
-        opts.m_DecimateInitialError == m_DecimateInitialError &&
-        opts.m_DecimateAspectRatio == m_DecimateAspectRatio &&
-        opts.m_DecimateFeatureAngle == m_DecimateFeatureAngle &&
-        opts.m_DecimateErrorIncrement == m_DecimateErrorIncrement &&
-        opts.m_DecimateMaximumIterations == m_DecimateMaximumIterations &&
-        opts.m_DecimatePreserveTopology == m_DecimatePreserveTopology &&
-        opts.m_MeshSmoothingRelaxationFactor == m_MeshSmoothingRelaxationFactor &&
-        opts.m_MeshSmoothingIterations == m_MeshSmoothingIterations &&
-        opts.m_MeshSmoothingConvergence == m_MeshSmoothingConvergence &&
-        opts.m_MeshSmoothingFeatureAngle == m_MeshSmoothingFeatureAngle &&
-        opts.m_MeshSmoothingFeatureEdgeSmoothing == m_MeshSmoothingFeatureEdgeSmoothing &&
-        opts.m_MeshSmoothingBoundarySmoothing == m_MeshSmoothingBoundarySmoothing);
-}
-
-bool MeshOptions::operator !=(const MeshOptions &opts) const
-{
-  return !(*this == opts);
-}
-
-
-MeshOptions
-::~MeshOptions()
-{
+  m_MeshSmoothingIterationsModel = 
+    NewRangedProperty("MeshSmoothingIterations", 20u,0u,10000u,1u);
+  m_MeshSmoothingRelaxationFactorModel = 
+    NewRangedProperty("MeshSmoothingRelaxationFactor", 0.01f,0.0f,0.1f,0.001f);
+  m_MeshSmoothingFeatureAngleModel = 
+    NewRangedProperty("MeshSmoothingFeatureAngle", 45.0f,0.0f,90.0f,1.0f);
+  m_MeshSmoothingConvergenceModel = 
+    NewRangedProperty("MeshSmoothingConvergence", 0.0f,0.0f,1.0f,0.001f);
+  m_MeshSmoothingFeatureEdgeSmoothingModel = 
+    NewSimpleProperty("MeshSmoothingFeatureEdgeSmoothing", false);
+  m_MeshSmoothingBoundarySmoothingModel = 
+    NewSimpleProperty("MeshSmoothingBoundarySmoothing", false);
 }
 
 /*

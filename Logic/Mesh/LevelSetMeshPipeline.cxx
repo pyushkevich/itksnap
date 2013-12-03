@@ -40,12 +40,16 @@
 
 #include "LevelSetMeshPipeline.h"
 #include "VTKMeshPipeline.h"
+#include "MeshOptions.h"
 
 LevelSetMeshPipeline
 ::LevelSetMeshPipeline()
 {
   // Initialize the VTK Exporter
   m_VTKPipeline = new VTKMeshPipeline();
+
+  // Create the mesh options
+  m_MeshOptions = MeshOptions::New();
 
   // Initialize the options
   SetMeshOptions(m_MeshOptions);
@@ -59,16 +63,19 @@ LevelSetMeshPipeline
 
 void
 LevelSetMeshPipeline
-::SetMeshOptions(const MeshOptions &options)
+::SetMeshOptions(const MeshOptions *options)
 {
-  // Store the options
-  m_MeshOptions = options;
+  if(*m_MeshOptions != *options)
+    {
+    // Copy the options
+    m_MeshOptions->DeepCopy(options);
 
-  // Turn of the Gaussian smoothing
-  m_MeshOptions.SetUseGaussianSmoothing(false);
+    // Turn of the Gaussian smoothing
+    m_MeshOptions->SetUseGaussianSmoothing(false);
 
-  // Apply the options to the internal pipeline
-  m_VTKPipeline->SetMeshOptions(m_MeshOptions);
+    // Apply the options to the internal pipeline
+    m_VTKPipeline->SetMeshOptions(m_MeshOptions);
+    }
 }
 
 void

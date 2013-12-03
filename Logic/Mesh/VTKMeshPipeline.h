@@ -36,7 +36,6 @@
 #define __VTKMeshPipeline_h_
 
 #include "SNAPCommon.h"
-#include "MeshOptions.h"
 #include "AllPurposeProgressAccumulator.h"
 
 // ITK includes (this file is not widely included in SNAP, so it's OK
@@ -66,6 +65,7 @@
 typedef float vtkFloatingPointType;
 #endif
 
+class MeshOptions;
 class VTKProgressAccumulator;
 
 /**
@@ -84,7 +84,7 @@ public:
   void SetImage(ImageType *input);
 
   /** Set the mesh options for this filter */
-  void SetMeshOptions(const MeshOptions &options);
+  void SetMeshOptions(MeshOptions *options);
 
   /** Compute a mesh for a particular color label */
   void ComputeMesh(vtkPolyData *outData);
@@ -106,7 +106,7 @@ private:
   typedef itk::SmartPointer<VTKExportType> VTKExportPointer;
   
   // Current set of mesh options
-  MeshOptions m_MeshOptions;
+  SmartPtr<MeshOptions> m_MeshOptions;
 
   // The input image
   ImagePointer m_InputImage;

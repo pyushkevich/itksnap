@@ -35,7 +35,7 @@
 #include "GlobalState.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
-
+#include "MeshOptions.h"
 
 GlobalState
 ::GlobalState(IRISApplication *parent)
@@ -110,6 +110,9 @@ GlobalState
   m_PolygonInvertModel = NewSimpleConcreteProperty(false);
 
   m_SnakeInitializedWithManualSegmentationModel = NewSimpleConcreteProperty(false);
+
+  // Mesh options
+  m_MeshOptions = MeshOptions::New();
 
 }
 

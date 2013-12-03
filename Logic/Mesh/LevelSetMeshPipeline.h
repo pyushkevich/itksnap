@@ -37,7 +37,6 @@
 
 #include "SNAPCommon.h"
 #include "itkSmartPointer.h"
-#include "MeshOptions.h"
 #include "vtkSmartPointer.h"
 #include "itkObject.h"
 #include "itkObjectFactory.h"
@@ -48,6 +47,7 @@ namespace itk {
 }
 
 // Forward reference to our own VTK pipeline
+class MeshOptions;
 class VTKMeshPipeline;
 class vtkPolyData;
 
@@ -72,7 +72,7 @@ public:
   void SetImage(InputImageType *input);
 
   /** Set the mesh options for this filter */
-  void SetMeshOptions(const MeshOptions &options);
+  void SetMeshOptions(const MeshOptions *options);
 
   /** Compute the mesh for the segmentation level set */
   void UpdateMesh();
@@ -94,7 +94,7 @@ private:
   typedef itk::SmartPointer<InternalImageType> InternalImagePointer;
   
   // Current set of mesh options
-  MeshOptions m_MeshOptions;
+  SmartPtr<MeshOptions> m_MeshOptions;
 
   // The input image
   InputImagePointer m_InputImage;
