@@ -11,19 +11,19 @@ class ColorMapPresetTraits
 {
 public:
   typedef ColorMap ManagedType;
-  typedef ColorMap::SystemPreset SystemPresetIterator;
+  typedef int SystemPresetIterator;
 
   static std::string GetPresetCategoryName() { return std::string("ColorMaps"); }
 
-  static SystemPresetIterator SystemPresetBegin() { return ColorMap::COLORMAP_GREY; }
+  static SystemPresetIterator SystemPresetBegin() { return (int) ColorMap::COLORMAP_GREY; }
 
-  static SystemPresetIterator SystemPresetEnd() { return ColorMap::COLORMAP_CUSTOM; }
+  static SystemPresetIterator SystemPresetEnd() { return (int) ColorMap::COLORMAP_CUSTOM; }
 
   static void SetToSystemPreset(ManagedType *cmap, const SystemPresetIterator &preset)
-    { cmap->SetToSystemPreset(preset); }
+    { cmap->SetToSystemPreset((ColorMap::SystemPreset) preset); }
 
   static std::string GetSystemPresetName(const SystemPresetIterator &preset)
-    { return ColorMap::GetPresetName(preset); }
+    { return ColorMap::GetPresetName((ColorMap::SystemPreset) preset); }
 
   static void ReadFromRegistry(ManagedType *cmap, Registry &folder)
     { cmap->LoadFromRegistry(folder); }

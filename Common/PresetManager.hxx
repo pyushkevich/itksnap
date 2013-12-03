@@ -23,7 +23,7 @@ PresetManager<TManagedObjectTraits>
   m_PresetSystem.clear();
   for(SystemPresetIterator i = TManagedObjectTraits::SystemPresetBegin();
       i != TManagedObjectTraits::SystemPresetEnd();
-      ++i)
+      i++)
     {
     std::string name = TManagedObjectTraits::GetSystemPresetName(i);
     ManagedTypePtr mtp = ManagedType::New();
