@@ -723,6 +723,8 @@ background-color:rgb(88, 88, 88);
     <addaction name="actionLabel_Editor"/>
     <addaction name="separator"/>
     <addaction name="actionReorient_Image"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -1286,6 +1288,11 @@ background-color:rgb(88, 88, 88);
    </property>
    <property name="menuRole">
     <enum>QAction::AboutRole</enum>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="text">
+    <string>Preferences ...</string>
    </property>
   </action>
  </widget>

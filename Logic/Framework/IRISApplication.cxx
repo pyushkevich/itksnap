@@ -116,7 +116,8 @@ IRISApplication
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LevelSetImageChangeEvent(), this);
 
   // Construct new global state object
-  m_GlobalState = new GlobalState(this);
+  m_GlobalState = GlobalState::New();
+  m_GlobalState->SetDriver(this);
 
   // Initialize the display-anatomy transformation with RPI code
   m_DisplayToAnatomyRAI[0] = "RPS";
@@ -175,7 +176,6 @@ GetDisplayToAnatomyRAI(unsigned int slice)
 IRISApplication
 ::~IRISApplication() 
 {
-  delete m_GlobalState;
   delete m_SystemInterface;
 }
 

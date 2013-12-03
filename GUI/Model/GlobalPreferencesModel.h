@@ -5,6 +5,10 @@
 #include "ColorMap.h"
 #include "SNAPAppearanceSettings.h"
 
+class MeshOptions;
+class GlobalUIModel;
+class DefaultBehaviorSettings;
+
 /**
  * This model exposes the different global preferences to the GUI. It is set
  * up for a dialog in which the user must press Apply for the changes to
@@ -14,18 +18,17 @@
 class GlobalPreferencesModel : public AbstractModel
 {
 public:
-  GlobalPreferencesModel();
+  irisITKObjectMacro(GlobalPreferencesModel, AbstractModel)
 
-  // Default behaviors
-  irisSimplePropertyAccessMacro(LinkedZoom, bool)
-  irisSimplePropertyAccessMacro(ContinuousMeshUpdate, bool)
-  irisSimplePropertyAccessMacro(Synchronization, bool)
-  irisSimplePropertyAccessMacro(SyncCursor, bool)
-  irisSimplePropertyAccessMacro(SyncZoom, bool)
-  irisSimplePropertyAccessMacro(SyncPan, bool)
+  // Typedefs for interpolation mode
+  enum InterpolationMode { NEAREST = 0, LINEAR };
+  typedef SimpleItemSetDomain<InterpolationMode, std::string> InterpolationDomain;
 
-  // Permissions
-  irisSimplePropertyAccessMacro(CheckForUpdates, bool)
+  // Typedefs for appearance
+  typedef SNAPAppearanceSettings::UIElements UIElement;
+
+  // Default behaviors and permissions
+  irisGetMacro(DefaultBehaviorSettings, DefaultBehaviorSettings *)
 
   // Screen layout
 
@@ -35,14 +38,11 @@ public:
   irisRangedPropertyAccessMacro(ThumbnailMaxSize, int)
 
   // Other slice display properties
-  enum InterpolationMode { NEAREST = 0, LINEAR };
-  typedef SimpleItemSetDomain<InterpolationMode, std::string> InterpolationDomain;
   irisGenericPropertyAccessMacro(Interpolation, InterpolationMode, InterpolationDomain)
 
   irisSimplePropertyAccessMacro(DefaultColorMapPreset, std::string)
 
   // Appearance
-  typedef SNAPAppearanceSettings::UIElements UIElement;
   irisSimplePropertyAccessMacro(ActiveUIElement, UIElement)
   irisSimplePropertyAccessMacro(ElementVisibility, bool)
   irisRangedPropertyAccessMacro(ElementNormalColor, Vector3ui)
@@ -52,22 +52,31 @@ public:
   irisSimplePropertyAccessMacro(ElementAntiAlias, bool)
   irisSimplePropertyAccessMacro(ElementFontSize, bool)
 
+  // Mesh options
+  irisGetMacro(MeshOptions, MeshOptions *)
 
+  /**
+   * Set the parent model
+   */
+  void SetParentModel(GlobalUIModel *parent);
+
+  /**
+   * Initialize the internal cached properties based on current system state.
+   * This method should be called when opening the properties dialog, or on revert
+   */
+  void InitializePreferences();
+
+  /**
+   * Update the system state with the current cached preferences
+   */
+  void ApplyPreferences();
 
 protected:
 
-  // Default behaviors
-  SmartPtr<ConcreteSimpleBooleanProperty> m_LinkedZoomModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_ContinuousMeshUpdateModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_SynchronizationModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_SyncCursorModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_SyncZoomModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_SyncPanModel;
+  GlobalPreferencesModel();
 
-  // Permissions
-  SmartPtr<ConcreteSimpleBooleanProperty> m_CheckForUpdatesModel;
-
-  // Screen layout
+  // Default behaviors and permissions (copy of the system's settings)
+  SmartPtr<DefaultBehaviorSettings> m_DefaultBehaviorSettings;
 
   // Thumbnail properties
   SmartPtr<ConcreteSimpleBooleanProperty> m_ThumbnailVisibilityModel;
@@ -81,7 +90,6 @@ protected:
   SmartPtr<ConcreteSimpleStringProperty> m_DefaultColorMapPresetModel;
 
   // Appearance
-
   SmartPtr<ConcretePropertyModel<UIElement, TrivialDomain> > m_ActiveUIElementModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_ElementVisibilityModel;
   SmartPtr<ConcreteRangedUIntVec3Property> m_ElementNormalColorModel;
@@ -90,6 +98,12 @@ protected:
   SmartPtr<ConcreteRangedIntProperty> m_ElementDashSpacingModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_ElementAntiAliasModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_ElementFontSizeModel;
+
+  // Mesh options (we keep a copy)
+  SmartPtr<MeshOptions> m_MeshOptions;
+
+  // Parent model
+  GlobalUIModel *m_ParentModel;
 };
 
 #endif // GLOBALPREFERENCESMODEL_H

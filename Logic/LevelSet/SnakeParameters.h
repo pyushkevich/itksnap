@@ -37,6 +37,8 @@
 
 #include "SNAPCommon.h"
 
+// TODO: implement this using AbstractPropertyContainerModel
+
 /**
  * \class SnakeParameters
  * \brief Parameters for the Level Set evolution.

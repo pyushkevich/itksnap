@@ -36,9 +36,10 @@
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "MeshOptions.h"
+#include "DefaultBehaviorSettings.h"
 
 GlobalState
-::GlobalState(IRISApplication *parent)
+::GlobalState()
 {
   m_GreyFileExtension = NULL;
   m_CrosshairsPosition[0] = 0;
@@ -97,14 +98,9 @@ GlobalState
 
   // Create the drawing label model
   m_DrawingColorLabelModel = ConcreteColorLabelPropertyModel::New();
-  m_DrawingColorLabelModel->Initialize(parent->GetColorLabelTable());
-  m_DrawingColorLabelModel->SetValue(
-        parent->GetColorLabelTable()->FindNextValidLabel(0,false));
 
   // Create the draw-over label model
   m_DrawOverFilterModel = ConcreteDrawOverFilterPropertyModel::New();
-  m_DrawOverFilterModel->Initialize(parent->GetColorLabelTable());
-  m_DrawOverFilterModel->SetValue(DrawOverFilter(PAINT_OVER_ALL, 0));
 
   // Polygon inversion - create and initialize
   m_PolygonInvertModel = NewSimpleConcreteProperty(false);
@@ -114,7 +110,23 @@ GlobalState
   // Mesh options
   m_MeshOptions = MeshOptions::New();
 
+  // Default behaviors
+  m_DefaultBehaviorSettings = DefaultBehaviorSettings::New();
 }
+
+void GlobalState::SetDriver(IRISApplication *parent)
+{
+  m_Driver = parent;
+
+  m_DrawingColorLabelModel->Initialize(parent->GetColorLabelTable());
+  m_DrawingColorLabelModel->SetValue(
+        parent->GetColorLabelTable()->FindNextValidLabel(0,false));
+
+  // Create the draw-over label model
+  m_DrawOverFilterModel->Initialize(parent->GetColorLabelTable());
+  m_DrawOverFilterModel->SetValue(DrawOverFilter(PAINT_OVER_ALL, 0));
+}
+
 
 GlobalState
 ::~GlobalState() 
@@ -185,4 +197,5 @@ GlobalState::RegionType GlobalState::GetSegmentationROI()
 {
   return this->GetSegmentationROISettings().GetROI();
 }
+
 

@@ -96,6 +96,7 @@ SET(LOGIC_CXX
   Logic/Common/SegmentationStatistics.cxx
   Logic/Common/SNAPRegistryIO.cxx
   Logic/Common/SNAPSegmentationROISettings.cxx
+  Logic/Framework/DefaultBehaviorSettings.cxx
   Logic/Framework/GenericImageData.cxx
   Logic/Framework/GlobalState.cxx
   Logic/Framework/IRISApplication.cxx
@@ -181,6 +182,7 @@ SET(LOGIC_HEADERS
   Logic/Common/MetaDataAccess.h
   Logic/Common/SNAPRegistryIO.h
   Logic/Common/SNAPSegmentationROISettings.h
+  Logic/Framework/DefaultBehaviorSettings.h
   Logic/Framework/GenericImageData.h
   Logic/Framework/GlobalState.h
   Logic/Framework/IRISApplication.h

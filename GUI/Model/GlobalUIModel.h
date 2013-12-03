@@ -65,7 +65,7 @@ class LayerGeneralPropertiesModel;
 class SynchronizationModel;
 class SnakeParameterModel;
 class MeshExportModel;
-
+class GlobalPreferencesModel;
 
 namespace itk
 {
@@ -214,6 +214,9 @@ public:
 
   /** Model for the mesh export wizard */
   irisGetMacro(MeshExportModel, MeshExportModel *)
+
+  /** Model for the preferences dialog */
+  irisGetMacro(GlobalPreferencesModel, GlobalPreferencesModel *)
 
   /** Load an image non-interactively through a delegate */
   void LoadImageNonInteractive(const char *fname,
@@ -373,6 +376,9 @@ protected:
 
   // The model for the mesh export wizard
   SmartPtr<MeshExportModel> m_MeshExportModel;
+
+  // Global preferences model
+  SmartPtr<GlobalPreferencesModel> m_GlobalPreferencesModel;
 
   // A pointer to the progress reporter delegate object
   ProgressReporterDelegate *m_ProgressReporterDelegate;

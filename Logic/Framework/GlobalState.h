@@ -54,6 +54,7 @@
 
 class IRISApplication;
 class MeshOptions;
+class DefaultBehaviorSettings;
 
 enum MeshFilterType
 {
@@ -159,17 +160,18 @@ struct Bubble {
  * the various settings, rather than mixing PropertyModels with simple attributes.
  *
  */
-class GlobalState 
+class GlobalState : public AbstractModel
 {
 public:
+  irisITKObjectMacro(GlobalState, AbstractModel)
+
   // Region of interest definition
   typedef itk::ImageRegion<3> RegionType;
 
   // Define the bubble array
   typedef std::vector<Bubble> BubbleArray;
 
-  GlobalState(IRISApplication *parent);
-  virtual ~GlobalState();
+  void SetDriver(IRISApplication *app);
 
   /** Get whether the grey image display uses linear interpolation */
   irisSetMacro(InterpolateGrey,bool );
@@ -241,7 +243,10 @@ public:
   irisSimplePropertyAccessMacro(SnakeParameters, SnakeParameters)
 
   /** Get the current mesh rendering options */
-  irisGetMacro(MeshOptions, MeshOptions *);
+  irisGetMacro(MeshOptions, MeshOptions *)
+
+  /** Get the default behavior settings */
+  irisGetMacro(DefaultBehaviorSettings, DefaultBehaviorSettings *)
 
   /** Settings associated with the segmentation ROI */
   irisSimplePropertyAccessMacro(SegmentationROISettings, SNAPSegmentationROISettings)
@@ -326,6 +331,12 @@ public:
     with label X. Only applicable in snake mode. */
   irisSimplePropertyAccessMacro(SnakeInitializedWithManualSegmentation, bool)
 
+
+protected:
+
+  GlobalState();
+  virtual ~GlobalState();
+
 private:
 
   /** Get the current crosshairs position */
@@ -399,6 +410,9 @@ private:
   // Current mesh options
   SmartPtr<MeshOptions> m_MeshOptions;
 
+  // Default behavior settings
+  SmartPtr<DefaultBehaviorSettings> m_DefaultBehaviorSettings;
+
   // Current settings for the snake algorithm
   typedef ConcretePropertyModel<SnakeParameters, TrivialDomain> ConcreteSnakeParametersModel;
   SmartPtr<ConcreteSnakeParametersModel> m_SnakeParametersModel;
@@ -420,6 +434,8 @@ private:
 
   // Annotation settings
   AnnotationSettings m_AnnotationSettings;
+
+  IRISApplication *m_Driver;
 
 
 };

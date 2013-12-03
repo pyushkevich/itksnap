@@ -27,7 +27,7 @@
    <item row="1" column="1">
     <widget class="QStackedWidget" name="stack">
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="pageGeneral">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -37,7 +37,7 @@
        <item>
         <widget class="QTabWidget" name="tabWidget_4">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tab_6">
           <attribute name="title">
@@ -45,23 +45,23 @@
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_11">
            <item>
-            <widget class="QCheckBox" name="checkBox_2">
+            <widget class="QCheckBox" name="chkLinkedZoom">
              <property name="text">
               <string>Maintain same zoom factor in all slices (&quot;linked zoom&quot;)</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox_3">
+            <widget class="QCheckBox" name="chkContinuousUpdate">
              <property name="text">
               <string>Automatically update 3D mesh in a background process</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox_4">
+            <widget class="QCheckBox" name="chkSynchronize">
              <property name="text">
-              <string>Synchronize coordinate information between multiple ITK-SNAP session</string>
+              <string>Synchronize view between multiple ITK-SNAP sessions</string>
              </property>
             </widget>
            </item>
@@ -88,21 +88,21 @@
                </spacer>
               </item>
               <item>
-               <widget class="QCheckBox" name="checkBox">
+               <widget class="QCheckBox" name="chkSyncCursor">
                 <property name="text">
                  <string>Cursor position</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="checkBox_7">
+               <widget class="QCheckBox" name="chkSyncZoom">
                 <property name="text">
                  <string>Zoom</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="checkBox_8">
+               <widget class="QCheckBox" name="chkSyncPan">
                 <property name="text">
                  <string>Pan</string>
                 </property>
@@ -132,7 +132,7 @@
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_14">
            <item>
-            <widget class="QCheckBox" name="checkBox_5">
+            <widget class="QCheckBox" name="chkCheckForUpdates">
              <property name="text">
               <string>Allow ITK-SNAP to check for updates periodically</string>
              </property>
@@ -188,7 +188,7 @@
                   <number>6</number>
                  </property>
                  <item row="1" column="0">
-                  <widget class="QLabel" name="label">
+                  <widget class="QLabel" name="outViewTopLeft">
                    <property name="minimumSize">
                     <size>
                      <width>64</width>
@@ -220,7 +220,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="1" column="1">
-                  <widget class="QLabel" name="label_2">
+                  <widget class="QLabel" name="outViewTopRight">
                    <property name="minimumSize">
                     <size>
                      <width>64</width>
@@ -252,7 +252,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="2" column="0">
-                  <widget class="QLabel" name="label_3">
+                  <widget class="QLabel" name="outViewBottomLeft">
                    <property name="minimumSize">
                     <size>
                      <width>64</width>
@@ -284,7 +284,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="2" column="1">
-                  <widget class="QLabel" name="label_4">
+                  <widget class="QLabel" name="outViewBottomRight">
                    <property name="minimumSize">
                     <size>
                      <width>64</width>
@@ -347,42 +347,42 @@ color:white;</string>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_4">
                  <item row="0" column="0">
-                  <widget class="QRadioButton" name="radioButton">
+                  <widget class="QRadioButton" name="btnASC">
                    <property name="text">
                     <string>ASC</string>
                    </property>
                   </widget>
                  </item>
                  <item row="0" column="2">
-                  <widget class="QRadioButton" name="radioButton_3">
+                  <widget class="QRadioButton" name="btnCAS">
                    <property name="text">
                     <string>CAS</string>
                    </property>
                   </widget>
                  </item>
                  <item row="0" column="1">
-                  <widget class="QRadioButton" name="radioButton_2">
+                  <widget class="QRadioButton" name="btnSAC">
                    <property name="text">
                     <string>SAC</string>
                    </property>
                   </widget>
                  </item>
                  <item row="1" column="0">
-                  <widget class="QRadioButton" name="radioButton_4">
+                  <widget class="QRadioButton" name="btnACS">
                    <property name="text">
                     <string>ACS</string>
                    </property>
                   </widget>
                  </item>
                  <item row="1" column="1">
-                  <widget class="QRadioButton" name="radioButton_5">
+                  <widget class="QRadioButton" name="btnSCA">
                    <property name="text">
                     <string>SCA</string>
                    </property>
                   </widget>
                  </item>
                  <item row="1" column="2">
-                  <widget class="QRadioButton" name="radioButton_6">
+                  <widget class="QRadioButton" name="btnCSA">
                    <property name="text">
                     <string>CSA</string>
                    </property>
@@ -398,14 +398,14 @@ color:white;</string>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_8">
                  <item>
-                  <widget class="QCheckBox" name="checkBox_6">
+                  <widget class="QCheckBox" name="chkLayoutAnteriorSide">
                    <property name="text">
                     <string>Display anterior on the left</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBox_9">
+                  <widget class="QCheckBox" name="chkLayoutRightLeft">
                    <property name="text">
                     <string>Patient right is screen left</string>
                    </property>
@@ -444,7 +444,7 @@ color:white;</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_10">
               <item>
-               <widget class="QCheckBox" name="checkBox_10">
+               <widget class="QCheckBox" name="chkShowThumbnail">
                 <property name="text">
                  <string>Show thumbnail when the slice does not fit in window</string>
                 </property>
@@ -473,7 +473,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="0" column="1">
-                  <widget class="QSpinBox" name="spinBox">
+                  <widget class="QSpinBox" name="inThumbnailFraction">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -486,7 +486,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="1" column="1">
-                  <widget class="QSpinBox" name="spinBox_2">
+                  <widget class="QSpinBox" name="inThumbnailMaxSize">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -525,7 +525,7 @@ color:white;</string>
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QComboBox" name="comboBox"/>
+               <widget class="QComboBox" name="inInterpolationMode"/>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_8">
@@ -535,7 +535,7 @@ color:white;</string>
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QComboBox" name="comboBox_2"/>
+               <widget class="QComboBox" name="inDefaultColorMap"/>
               </item>
              </layout>
             </widget>
@@ -581,7 +581,7 @@ color:white;</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_13">
               <item>
-               <widget class="QTreeWidget" name="treeWidget">
+               <widget class="QTreeWidget" name="treeVisualElements">
                 <column>
                  <property name="text">
                   <string>Item</string>
@@ -696,7 +696,7 @@ color:white;</string>
                   <number>0</number>
                  </property>
                  <item row="0" column="1">
-                  <widget class="QCheckBox" name="checkBox_12">
+                  <widget class="QCheckBox" name="chkElementVisible">
                    <property name="text">
                     <string>Visible</string>
                    </property>
@@ -726,7 +726,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="2" column="1">
-                  <widget class="QPushButton" name="pushButton_2">
+                  <widget class="QPushButton" name="btnElementNormalColor">
                    <property name="text">
                     <string>Choose</string>
                    </property>
@@ -740,7 +740,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="3" column="1">
-                  <widget class="QPushButton" name="pushButton">
+                  <widget class="QPushButton" name="btnElementActiveColor">
                    <property name="text">
                     <string>Choose</string>
                    </property>
@@ -770,7 +770,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="5" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox">
+                  <widget class="QDoubleSpinBox" name="inElementThickness">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -787,7 +787,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="6" column="1">
-                  <widget class="QSpinBox" name="spinBox_3">
+                  <widget class="QSpinBox" name="inElementDashSpacing">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -797,7 +797,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="7" column="1">
-                  <widget class="QCheckBox" name="checkBox_11">
+                  <widget class="QCheckBox" name="chkElementAntiAlias">
                    <property name="text">
                     <string>Smooth lines</string>
                    </property>
@@ -827,7 +827,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="9" column="1">
-                  <widget class="QSpinBox" name="spinBox_4">
+                  <widget class="QSpinBox" name="inElementFontSize">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -856,7 +856,7 @@ color:white;</string>
        <item>
         <widget class="QTabWidget" name="tabWidget_3">
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="tab_4">
           <attribute name="title">
@@ -867,7 +867,7 @@ color:white;</string>
             <number>6</number>
            </property>
            <item>
-            <widget class="QCheckBox" name="checkBox_20">
+            <widget class="QCheckBox" name="chkGaussianSmooth">
              <property name="text">
               <string>Gaussian image smoothing (slow, improves display quality)</string>
              </property>
@@ -893,7 +893,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="0" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+                  <widget class="QDoubleSpinBox" name="inGaussianSmoothDeviation">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -919,7 +919,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="0" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_3">
+                  <widget class="QDoubleSpinBox" name="inGaussianSmoothMaxError">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -951,7 +951,7 @@ color:white;</string>
             </spacer>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox_21">
+            <widget class="QCheckBox" name="chkMeshSmooth">
              <property name="text">
               <string>Laplacian mesh smoothing (slow, improves mesh quality)</string>
              </property>
@@ -980,7 +980,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="0" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_4">
+                  <widget class="QDoubleSpinBox" name="inMeshSmoothConvergence">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -990,7 +990,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="1" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_6">
+                  <widget class="QDoubleSpinBox" name="inMeshSmoothIterations">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -1020,7 +1020,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="0" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_5">
+                  <widget class="QDoubleSpinBox" name="inMeshSmoothFeatureAngle">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -1030,7 +1030,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="1" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_7">
+                  <widget class="QDoubleSpinBox" name="inMeshSmoothRelaxation">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -1066,14 +1066,14 @@ color:white;</string>
                   </spacer>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBox_23">
+                  <widget class="QCheckBox" name="chkMeshSmoothFeatureEdgeSmoothing">
                    <property name="text">
                     <string>Feature edge smoothing</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBox_22">
+                  <widget class="QCheckBox" name="chkMeshSmoothBoundarySmoothing">
                    <property name="text">
                     <string>Boundary smoothing</string>
                    </property>
@@ -1111,7 +1111,7 @@ color:white;</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="QCheckBox" name="checkBox_26">
+            <widget class="QCheckBox" name="chkDecimate">
              <property name="text">
               <string>Decimate mesh (reduces number of polygons)</string>
              </property>
@@ -1132,25 +1132,18 @@ color:white;</string>
               <item row="0" column="0">
                <widget class="QWidget" name="widget_11" native="true">
                 <layout class="QFormLayout" name="formLayout_8">
+                 <property name="fieldGrowthPolicy">
+                  <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+                 </property>
                  <item row="0" column="0">
                   <widget class="QLabel" name="label_20">
                    <property name="text">
-                    <string>Target reductions:</string>
+                    <string>Target reduction:</string>
                    </property>
                   </widget>
                  </item>
                  <item row="0" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_8">
-                   <property name="minimumSize">
-                    <size>
-                     <width>80</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_9">
+                  <widget class="QDoubleSpinBox" name="inDecimateTargetReduction">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
@@ -1162,24 +1155,17 @@ color:white;</string>
                  <item row="1" column="0">
                   <widget class="QLabel" name="label_21">
                    <property name="text">
-                    <string>Initial error:</string>
+                    <string>Maximum error:</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_12">
+                 <item row="1" column="1">
+                  <widget class="QDoubleSpinBox" name="inDecimateMaxError">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
                      <height>0</height>
                     </size>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QLabel" name="label_24">
-                   <property name="text">
-                    <string>Iterations:</string>
                    </property>
                   </widget>
                  </item>
@@ -1189,54 +1175,23 @@ color:white;</string>
               <item row="0" column="1">
                <widget class="QWidget" name="widget_12" native="true">
                 <layout class="QFormLayout" name="formLayout_9">
+                 <property name="fieldGrowthPolicy">
+                  <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+                 </property>
                  <item row="0" column="0">
-                  <widget class="QLabel" name="label_22">
+                  <widget class="QLabel" name="label_25">
                    <property name="text">
-                    <string>Error increment:</string>
+                    <string>Feature angle:</string>
                    </property>
                   </widget>
                  </item>
                  <item row="0" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_10">
+                  <widget class="QDoubleSpinBox" name="inDecimateFeatureAngle">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
                      <height>0</height>
                     </size>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_11">
-                   <property name="minimumSize">
-                    <size>
-                     <width>80</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_23">
-                   <property name="text">
-                    <string>Aspect ratio:</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="1">
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_13">
-                   <property name="minimumSize">
-                    <size>
-                     <width>80</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QLabel" name="label_25">
-                   <property name="text">
-                    <string>Feature angle:</string>
                    </property>
                   </widget>
                  </item>
@@ -1260,7 +1215,7 @@ color:white;</string>
                   </spacer>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBox_25">
+                  <widget class="QCheckBox" name="chkDecimatePreserveTopology">
                    <property name="text">
                     <string>Preserve topology</string>
                    </property>
@@ -1342,6 +1297,57 @@ font-weight:bold;</string>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>listWidget</tabstop>
+  <tabstop>tabWidget_4</tabstop>
+  <tabstop>chkLinkedZoom</tabstop>
+  <tabstop>chkContinuousUpdate</tabstop>
+  <tabstop>chkSynchronize</tabstop>
+  <tabstop>chkSyncCursor</tabstop>
+  <tabstop>chkSyncZoom</tabstop>
+  <tabstop>chkSyncPan</tabstop>
+  <tabstop>chkCheckForUpdates</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>btnASC</tabstop>
+  <tabstop>btnSAC</tabstop>
+  <tabstop>btnCAS</tabstop>
+  <tabstop>btnACS</tabstop>
+  <tabstop>btnSCA</tabstop>
+  <tabstop>btnCSA</tabstop>
+  <tabstop>chkLayoutAnteriorSide</tabstop>
+  <tabstop>chkLayoutRightLeft</tabstop>
+  <tabstop>chkShowThumbnail</tabstop>
+  <tabstop>inThumbnailFraction</tabstop>
+  <tabstop>inThumbnailMaxSize</tabstop>
+  <tabstop>inInterpolationMode</tabstop>
+  <tabstop>inDefaultColorMap</tabstop>
+  <tabstop>tabWidget_2</tabstop>
+  <tabstop>treeVisualElements</tabstop>
+  <tabstop>chkElementVisible</tabstop>
+  <tabstop>btnElementNormalColor</tabstop>
+  <tabstop>btnElementActiveColor</tabstop>
+  <tabstop>inElementThickness</tabstop>
+  <tabstop>inElementDashSpacing</tabstop>
+  <tabstop>chkElementAntiAlias</tabstop>
+  <tabstop>inElementFontSize</tabstop>
+  <tabstop>tabWidget_3</tabstop>
+  <tabstop>chkGaussianSmooth</tabstop>
+  <tabstop>inGaussianSmoothDeviation</tabstop>
+  <tabstop>inGaussianSmoothMaxError</tabstop>
+  <tabstop>chkMeshSmooth</tabstop>
+  <tabstop>inMeshSmoothConvergence</tabstop>
+  <tabstop>inMeshSmoothFeatureAngle</tabstop>
+  <tabstop>inMeshSmoothIterations</tabstop>
+  <tabstop>inMeshSmoothRelaxation</tabstop>
+  <tabstop>chkMeshSmoothFeatureEdgeSmoothing</tabstop>
+  <tabstop>chkMeshSmoothBoundarySmoothing</tabstop>
+  <tabstop>chkDecimate</tabstop>
+  <tabstop>inDecimateTargetReduction</tabstop>
+  <tabstop>inDecimateFeatureAngle</tabstop>
+  <tabstop>inDecimateMaxError</tabstop>
+  <tabstop>chkDecimatePreserveTopology</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

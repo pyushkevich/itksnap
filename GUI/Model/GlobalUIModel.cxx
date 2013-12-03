@@ -58,6 +58,9 @@
 #include "NumericPropertyToggleAdaptor.h"
 #include "HistoryManager.h"
 #include "MeshExportModel.h"
+#include "GlobalPreferencesModel.h"
+#include "MeshOptions.h"
+#include "DefaultBehaviorSettings.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -173,6 +176,10 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   // Mesh export model
   m_MeshExportModel = MeshExportModel::New();
   m_MeshExportModel->SetParentModel(this);
+
+  // Global prefs model
+  m_GlobalPreferencesModel = GlobalPreferencesModel::New();
+  m_GlobalPreferencesModel->SetParentModel(this);
 
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(

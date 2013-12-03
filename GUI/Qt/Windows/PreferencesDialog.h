@@ -7,6 +7,8 @@ namespace Ui {
 class PreferencesDialog;
 }
 
+class GlobalPreferencesModel;
+
 class PreferencesDialog : public QDialog
 {
   Q_OBJECT
@@ -14,9 +16,16 @@ class PreferencesDialog : public QDialog
 public:
   explicit PreferencesDialog(QWidget *parent = 0);
   ~PreferencesDialog();
+
+  void SetModel(GlobalPreferencesModel *model);
+
+public slots:
+  virtual void show();
   
 private:
   Ui::PreferencesDialog *ui;
+
+  GlobalPreferencesModel *m_Model;
 };
 
 #endif // PREFERENCESDIALOG_H

@@ -63,6 +63,7 @@
 #include <LabelEditorDialog.h>
 #include <ReorientImageDialog.h>
 #include <DropActionDialog.h>
+#include <PreferencesDialog.h>
 
 
 #include <QAbstractListModel>
@@ -170,6 +171,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // Create the about dialog
   m_AboutDialog = new AboutDialog(this);
 
+  // Create the preferences dialog
+  m_PreferencesDialog = new PreferencesDialog(this);
+
   // Hide the right dock for now
   m_DockRight->setVisible(false);
 
@@ -240,6 +244,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_ReorientImageDialog->SetModel(model->GetReorientImageModel());
   m_DropDialog->SetModel(model);
   m_StatisticsDialog->SetModel(model);
+  m_PreferencesDialog->SetModel(model->GetGlobalPreferencesModel());
 
   // Initialize the docked panels
   m_ControlPanel->SetModel(model);
@@ -1077,4 +1082,9 @@ void MainImageWindow::on_actionSaveMainROI_triggered()
 QSize MainImageWindow::sizeHint() const
 {
   return QSize(900,700);
+}
+
+void MainImageWindow::on_actionPreferences_triggered()
+{
+  RaiseDialog(m_PreferencesDialog);
 }

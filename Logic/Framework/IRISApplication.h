@@ -520,7 +520,7 @@ protected:
 
   // Global state object
   // TODO: Incorporate GlobalState into IRISApplication more nicely
-  GlobalState *m_GlobalState;
+  SmartPtr<GlobalState> m_GlobalState;
 
   // SystemInterface used to get things from the system
   SystemInterface *m_SystemInterface;

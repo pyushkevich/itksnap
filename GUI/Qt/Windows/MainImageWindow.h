@@ -48,6 +48,7 @@ class DropActionDialog;
 class MainControlPanel;
 class StatisticsDialog;
 class QActionGroup;
+class PreferencesDialog;
 
 class SplashPanel;
 
@@ -193,6 +194,8 @@ private slots:
 
   virtual QSize sizeHint() const;
 
+  void on_actionPreferences_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);
@@ -251,6 +254,8 @@ private:
   AboutDialog *m_AboutDialog;
 
   StatisticsDialog *m_StatisticsDialog;
+
+  PreferencesDialog *m_PreferencesDialog;
 };
 
 
