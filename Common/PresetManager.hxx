@@ -1,6 +1,7 @@
 #include "PresetManager.h"
 #include "SystemInterface.h"
 #include "IRISException.h"
+#include <algorithm>
 
 template <class TManagedObjectTraits>
 PresetManager<TManagedObjectTraits>
