@@ -15,7 +15,7 @@ AbstractPropertyContainerModel::DeepCopy(
     assert(it->first == itSrc->first);
     ConcretePropertyHolderBase *ptr_src = itSrc->second;
     ConcretePropertyHolderBase *ptr_trg = it->second;
-    ptr_trg->DeepCopy(ptr_trg);
+    ptr_trg->DeepCopy(ptr_src);
     ++it; ++itSrc;
     }
 }
@@ -34,7 +34,7 @@ bool AbstractPropertyContainerModel::operator == (
     assert(it->first == itSrc->first);
     ConcretePropertyHolderBase *ptr_src = itSrc->second;
     ConcretePropertyHolderBase *ptr_trg = it->second;
-    if(!ptr_trg->Equals(ptr_trg))
+    if(!ptr_trg->Equals(ptr_src))
       return false;
     ++it; ++itSrc;
     }
@@ -62,5 +62,8 @@ void AbstractPropertyContainerModel::ReadFromRegistry(Registry &folder)
     {
     it->second->Deserialize(folder);
     }
+
+  // Flag this object as modified
+  this->Modified();
 }
 

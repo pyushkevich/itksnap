@@ -141,3 +141,11 @@ PresetManager<TManagedObjectTraits>
 {
   return m_PresetMap[preset];
 }
+
+template <class TManagedObjectTraits>
+bool
+PresetManager<TManagedObjectTraits>
+::IsValidPreset(const std::string &preset)
+{
+  return m_PresetMap.find(preset) != m_PresetMap.end();
+}

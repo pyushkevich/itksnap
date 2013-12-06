@@ -36,6 +36,7 @@
 #include "DisplayLayoutModel.h"
 #include "ColorMapModel.h"
 #include "LayerAssociation.txx"
+#include "SliceWindowCoordinator.h"
 
 GenericSliceRenderer
 ::GenericSliceRenderer()
@@ -71,12 +72,19 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
   Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(),
               AppearanceUpdateEvent());
+
+  // Listen to changes in appearance
+  Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings(),
+              ChildPropertyChangedEvent(), AppearanceUpdateEvent());
 }
 
 void GenericSliceRenderer::OnUpdate()
 {
   // Make sure the model has been updated first
   m_Model->Update();
+
+  // Also make sure to update the model zoom coordinator (this is confusing)
+  m_Model->GetParentUI()->GetSliceCoordinator()->Update();
 
   // Only update the texture map in response to "big" events
   if(m_EventBucket->HasEvent(ModelUpdateEvent(), m_Model))
@@ -105,7 +113,7 @@ GenericSliceRenderer
 
   // Get the properties for the background color
   Vector3d clrBack = as->GetUIElement(
-      SNAPAppearanceSettings::BACKGROUND_2D).NormalColor;
+      SNAPAppearanceSettings::BACKGROUND_2D)->GetNormalColor();
 
   // Slice should be initialized before display
   if (m_Model->IsSliceInitialized())
@@ -343,9 +351,13 @@ void GenericSliceRenderer::DrawTextureForLayer(
   SNAPAppearanceSettings *as =
       m_Model->GetParentUI()->GetAppearanceSettings();
 
+  // Get the global display settings
+  const GlobalDisplaySettings *gds =
+      m_Model->GetParentUI()->GetGlobalDisplaySettings();
+
   // Get the interpolation mode
   GLenum interp =
-      as->GetGreyInterpolationMode() == SNAPAppearanceSettings::LINEAR
+      gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR
       ? GL_LINEAR : GL_NEAREST;
 
   // Get the texture
@@ -362,7 +374,7 @@ void GenericSliceRenderer::DrawTextureForLayer(
     else
       {
       Vector3d clrBackground = m_ThumbnailDrawing
-        ? as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL).NormalColor
+        ? as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL)->GetNormalColor()
         : Vector3d(1.0);
       tex->Draw(clrBackground);
       }
@@ -386,11 +398,11 @@ void GenericSliceRenderer::DrawThumbnail()
   {
   // Get the thumbnail appearance properties
   SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
-  const SNAPAppearanceSettings::Element &elt =
+  const OpenGLAppearanceElement *elt =
       as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL);
 
   // If thumbnail is not to be drawn, exit
-  if(!elt.Visible) return;
+  if(!elt->GetVisible()) return;
 
   // Tell model to figure out the thumbnail size
   m_Model->ComputeThumbnailProperties();
@@ -421,14 +433,14 @@ void GenericSliceRenderer::DrawThumbnail()
   DrawTiledOverlays();
 
   // Apply the line settings
-  SNAPAppearanceSettings::ApplyUIElementLineSettings(elt);
+  elt->ApplyLineSettings();
 
   // Draw the little version of the image in the corner of the window
   double w = m_Model->GetSliceSize()[0];
   double h = m_Model->GetSliceSize()[1];
 
   // Draw the line around the image
-  glColor3dv(elt.NormalColor.data_block());
+  glColor3dv(elt->GetNormalColor().data_block());
   glBegin(GL_LINE_LOOP);
   glVertex2d(0,0);
   glVertex2d(0,h);
@@ -444,7 +456,7 @@ void GenericSliceRenderer::DrawThumbnail()
   w = m_Model->GetSize()[0] * 0.5 / m_Model->GetViewZoom();
   h = m_Model->GetSize()[1] * 0.5 / m_Model->GetViewZoom();
 
-  glColor3dv(elt.ActiveColor.data_block());
+  glColor3dv(elt->GetActiveColor().data_block());
   glBegin(GL_LINE_LOOP);
   glVertex2d(-w,-h);
   glVertex2d(-w, h);
@@ -466,9 +478,12 @@ GenericSliceRenderer::CreateTexture(ImageWrapperBase *iw)
     Texture *texture = new Texture(4, GL_RGBA);
     texture->SetImage(iw->GetDisplaySlice(m_Model->GetId()).GetPointer());
 
-    SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
-    GLint imode = as->GetGreyInterpolationMode() == SNAPAppearanceSettings::LINEAR
+    const GlobalDisplaySettings *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
+
+    GLint imode =
+        (gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR)
         ? GL_LINEAR : GL_NEAREST;
+
     texture->SetInterpolation(imode);
     return texture;
     }

@@ -189,7 +189,7 @@ protected:
   ViewportSizeReporter *m_ViewportReporter;
 
   // Color map preset manager
-  SmartPtr<ColorMapPresetManager> m_PresetManager;
+  ColorMapPresetManager *m_PresetManager;
 
   // Colormap presets
   // PresetList m_PresetSystem, m_PresetUser;

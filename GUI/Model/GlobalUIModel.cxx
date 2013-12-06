@@ -61,6 +61,7 @@
 #include "GlobalPreferencesModel.h"
 #include "MeshOptions.h"
 #include "DefaultBehaviorSettings.h"
+#include "SNAPAppearanceSettings.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -75,7 +76,10 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   : AbstractModel()
 {
   // Create the appearance settings objects
-  m_AppearanceSettings = new SNAPAppearanceSettings();
+  m_AppearanceSettings = SNAPAppearanceSettings::New();
+
+  // Global display settings
+  m_GlobalDisplaySettings = GlobalDisplaySettings::New();
 
   // Create the IRIS application login
   m_Driver = IRISApplication::New();
@@ -114,9 +118,7 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
 
   // Connect them together with the coordinator
   m_SliceCoordinator = SliceWindowCoordinator::New();
-  GenericSliceModel *ptr[3] =
-    { m_SliceModel[0], m_SliceModel[1], m_SliceModel[2] };
-  m_SliceCoordinator->RegisterSliceModels(ptr);
+  m_SliceCoordinator->SetParentModel(this);
 
   // Intensity curve model
   m_IntensityCurveModel = IntensityCurveModel::New();
@@ -285,7 +287,6 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
 
 GlobalUIModel::~GlobalUIModel()
 {
-  delete m_AppearanceSettings;
 }
 
 bool GlobalUIModel::CheckState(UIState state)
@@ -424,6 +425,40 @@ GlobalUIModel::New(SystemInfoDelegate *sid)
   return smartPtr;
 }
 
+void GlobalUIModel::SetGlobalDisplaySettings(
+    const GlobalDisplaySettings *settings)
+{
+  // Check if the settings affecting the slice RAI codes have changed
+  std::string raiOld[3], raiNew[3];
+  m_GlobalDisplaySettings->GetAnatomyToDisplayTransforms(raiOld[0], raiOld[1], raiOld[2]);
+  settings->GetAnatomyToDisplayTransforms(raiNew[0], raiNew[1], raiNew[2]);
+
+  // Update the global display settings
+  m_GlobalDisplaySettings->DeepCopy(settings);
+
+  // React to the change in RAI codes
+  if(raiOld[0] != raiNew[0] || raiOld[1] != raiNew[1] || raiOld[2] != raiNew[2])
+    {
+    // Update the RAI codes in all slice views
+    m_Driver->SetDisplayToAnatomyRAI(
+          raiNew[0].c_str(), raiNew[1].c_str(), raiNew[2].c_str());
+
+    // Update the cursor location
+    if(m_Driver->IsMainImageLoaded())
+      {
+      // Update the cursor position (forced)
+      m_Driver->SetCursorPosition(m_Driver->GetCursorPosition(), true);
+
+      // Reinitialize all the slice views
+      for(int i = 0; i < 3; i++)
+        m_SliceModel[i]->InitializeSlice(m_Driver->GetCurrentImageData());
+
+      // Recenter all views
+      m_SliceCoordinator->ResetViewToFitInAllWindows();
+      }
+    }
+}
+
 SystemInterface * GlobalUIModel::GetSystemInterface() const
 {
   return m_Driver->GetSystemInterface();
@@ -434,7 +469,75 @@ GlobalState * GlobalUIModel::GetGlobalState() const
   return m_Driver->GetGlobalState();
 }
 
+#include "SynchronizationModel.h"
 
+void GlobalUIModel::LoadUserPreferences()
+{
+  SystemInterface *si = m_Driver->GetSystemInterface();
+
+  DefaultBehaviorSettings *dbs =
+      m_Driver->GetGlobalState()->GetDefaultBehaviorSettings();
+
+  // Load the user preferences from the file system
+  si->LoadUserPreferences();
+
+  // Read the appearance settings
+  m_AppearanceSettings->LoadFromRegistry(
+        si->Folder("UserInterface.Appearance"));
+
+  // Read the default behaviors
+  dbs->ReadFromRegistry(
+        si->Folder("UserInterface.DefaultBehavior"));
+
+  // Read the global display properties
+  m_GlobalDisplaySettings->ReadFromRegistry(
+        si->Folder("SliceView.DisplaySettings"));
+
+  // Read the 3D mesh options
+  m_Driver->GetGlobalState()->GetMeshOptions()->ReadFromRegistry(
+        si->Folder("View3D.MeshOptions"));
+
+  // At this point we should check if the color map preset in the prefs
+  // is still a valid preset, and if it isn't, replace it with a default
+  if(!m_Driver->GetColorMapPresetManager()->IsValidPreset(
+       dbs->GetOverlayColorMapPreset()))
+    {
+    dbs->SetOverlayColorMapPreset(ColorMap::GetPresetName(ColorMap::COLORMAP_GREY));
+    }
+
+  // Apply the default startup behaviors
+  m_SliceCoordinator->SetLinkedZoom(dbs->GetLinkedZoom());
+  m_SynchronizationModel->SetSyncEnabled(dbs->GetSynchronization());
+  m_SynchronizationModel->SetSyncCursor(dbs->GetSyncCursor());
+  m_SynchronizationModel->SetSyncZoom(dbs->GetSyncZoom());
+  m_SynchronizationModel->SetSyncPan(dbs->GetSyncPan());
+  m_Model3D->SetContinuousUpdate(dbs->GetContinuousMeshUpdate());
+  m_DisplayLayoutModel->SetSliceViewLayerLayout(dbs->GetOverlayLayout());
+}
+
+void GlobalUIModel::SaveUserPreferences()
+{
+  SystemInterface *si = m_Driver->GetSystemInterface();
+
+  // Read the appearance settings
+  m_AppearanceSettings->SaveToRegistry(
+        si->Folder("UserInterface.Appearance"));
+
+  // Read the default behaviors
+  m_Driver->GetGlobalState()->GetDefaultBehaviorSettings()->WriteToRegistry(
+        si->Folder("UserInterface.DefaultBehavior"));
+
+  // Read the global display properties
+  m_GlobalDisplaySettings->WriteToRegistry(
+        si->Folder("SliceView.DisplaySettings"));
+
+  // Read the 3D mesh options
+  m_Driver->GetGlobalState()->GetMeshOptions()->WriteToRegistry(
+        si->Folder("View3D.MeshOptions"));
+
+  // Save the preferences
+  si->SaveUserPreferences();
+}
 
 bool GlobalUIModel::GetCursorPositionValueAndRange(
     Vector3ui &value, NumericValueRange<Vector3ui> *range)

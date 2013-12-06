@@ -157,6 +157,27 @@ public:
     m_EnumToStringMap[value] = std::string(description);
     m_StringToEnumMap[description] = value;
   }
+
+  bool GetEnumValue(const StringType &key, TEnum &outValue) const
+  {
+    typename std::map<StringType, TEnum>::const_iterator it = m_StringToEnumMap.find(key);
+    if(it == m_StringToEnumMap.end())
+      return false;
+
+    outValue = it->second;
+    return true;
+  }
+
+  bool GetString(TEnum value, StringType &outString) const
+  {
+    typename std::map<TEnum, StringType>::const_iterator it = m_EnumToStringMap.find(value);
+    if(it == m_EnumToStringMap.end())
+      return false;
+
+    outString = it->second;
+    return true;
+  }
+
   unsigned int Size() const { return m_EnumToStringMap.size(); }
   StringType operator [] (TEnum value) { return m_EnumToStringMap[value]; }
 private:
@@ -257,20 +278,22 @@ public:
     m_Null = false;
   }
 
-  /** Put an enum into this entry */
-  template <class TEnum> void PutEnum(
-    RegistryEnumMap<TEnum> &rem,TEnum value)
+  /**
+   * Put an enum into this entry. If the enum map does not have the value,
+   * nothing will be written to the entry (entry will be null)
+   */
+  template <class TEnum> void PutEnum(const RegistryEnumMap<TEnum> &rem, TEnum value)
   {
-    (*this) << rem.m_EnumToStringMap[value];;
+    m_Null = !rem.GetString(value, m_String);
   }
 
   /** Get an enum from this entry */
-  template <class TEnum> TEnum GetEnum(
-    RegistryEnumMap<TEnum> &rem,TEnum defaultValue)
+  template <class TEnum> TEnum GetEnum(const RegistryEnumMap<TEnum> &rem, TEnum defaultValue)
   {
-    if(rem.m_StringToEnumMap.find(m_String) == rem.m_StringToEnumMap.end())
-      return defaultValue;
-    else return rem.m_StringToEnumMap[m_String];
+    TEnum value;
+    if(rem.GetEnumValue(m_String, value))
+      return value;
+    else return defaultValue;
   }
 
 private:

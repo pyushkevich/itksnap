@@ -31,6 +31,7 @@
 #include "SliceWindowCoordinator.h"
 #include "QtWidgetActivator.h"
 #include "QtDoubleSpinBoxCoupling.h"
+#include "QtCheckBoxCoupling.h"
 #include <SNAPQtCommon.h>
 #include <vnl/vnl_math.h>
 
@@ -64,6 +65,10 @@ void ZoomInspector::SetModel(GlobalUIModel *model)
   activateOnFlag(ui->btnZoom4, model, UIF_LINKED_ZOOM);
 
   activateOnFlag(this, model, UIF_BASEIMG_LOADED);
+
+  // Couple the linked zoom checkbox
+  makeCoupling(ui->chkLinkedZoom,
+               model->GetSliceCoordinator()->GetLinkedZoomModel());
 
   // Couple zoom widget to the linked zoom level
   makeCoupling(ui->inZoom,

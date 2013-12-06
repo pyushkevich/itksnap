@@ -103,6 +103,12 @@ itkEventMacro(DomainChangedEvent, IRISEvent)
 // the items are displayed, but does not need to rebuild the list of items.
 itkEventMacro(DomainDescriptionChangedEvent, IRISEvent)
 
+// An event used by property containers that indicates that one of the child
+// properties has been modified. For the time being, there does not seem to
+// be a need to distinguish between child property value changes and domain
+// changes, so there is just a single event.
+itkEventMacro(ChildPropertyChangedEvent, IRISEvent)
+
 /** A change to appearance of a renderer, etc */
 itkEventMacro(AppearanceUpdateEvent, IRISEvent)
 

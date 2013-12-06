@@ -81,6 +81,9 @@ public:
   /** Access a preset */
   ManagedType *GetPreset(const std::string &preset);
 
+  /** Whether a string is a valid preset */
+  bool IsValidPreset(const std::string &preset);
+
 
 protected:
 

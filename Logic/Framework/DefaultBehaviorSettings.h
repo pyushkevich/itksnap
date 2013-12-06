@@ -2,6 +2,7 @@
 #define DEFAULTBEHAVIORSETTINGS_H
 
 #include "AbstractPropertyContainerModel.h"
+#include "DisplayLayoutModel.h"
 
 /**
  * A set of default behaviors for SNAP. These are read at startup and used
@@ -23,6 +24,16 @@ public:
   // Permissions
   irisSimplePropertyAccessMacro(CheckForUpdates, bool)
 
+  // Default colormap for overlays. Since this can be a user preset, the
+  // value is specified as a string. This value may point to a preset that
+  // has been deleted, so we have to be careful to check and reset to default
+  // if that is the case
+  irisSimplePropertyAccessMacro(OverlayColorMapPreset, std::string)
+
+  // Default layout
+  typedef DisplayLayoutModel::LayerLayout LayerLayout;
+  irisSimplePropertyAccessMacro(OverlayLayout, DisplayLayoutModel::LayerLayout)
+
 protected:
 
   // Default behaviors
@@ -35,6 +46,12 @@ protected:
 
   // Permissions
   SmartPtr<ConcreteSimpleBooleanProperty> m_CheckForUpdatesModel;
+
+  // Overlay behaviors
+  SmartPtr<ConcreteSimpleStringProperty> m_OverlayColorMapPresetModel;
+
+  typedef ConcretePropertyModel<LayerLayout, TrivialDomain> ConcreteLayerLayoutModel;
+  SmartPtr<ConcreteLayerLayoutModel> m_OverlayLayoutModel;
 
   // Constructor
   DefaultBehaviorSettings();

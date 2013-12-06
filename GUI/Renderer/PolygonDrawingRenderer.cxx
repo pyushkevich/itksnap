@@ -47,22 +47,22 @@ PolygonDrawingRenderer
     return;
 
   // Get appearance settings for the drawing
-  SNAPAppearanceSettings::Element &aeDraw = as->GetUIElement(
+  OpenGLAppearanceElement *aeDraw = as->GetUIElement(
         SNAPAppearanceSettings::POLY_DRAW_MAIN);
 
-  SNAPAppearanceSettings::Element &aeClose = as->GetUIElement(
+  OpenGLAppearanceElement *aeClose = as->GetUIElement(
         SNAPAppearanceSettings::POLY_DRAW_CLOSE);
 
-  SNAPAppearanceSettings::Element &aeEdit = as->GetUIElement(
+  OpenGLAppearanceElement *aeEdit = as->GetUIElement(
         SNAPAppearanceSettings::POLY_EDIT);
 
 
   // Check if the loop should be highlighted
   const Vector3d &aeDrawColor = m_Model->IsHoverOverFirstVertex()
-      ? aeDraw.ActiveColor : aeDraw.NormalColor;
+      ? aeDraw->GetActiveColor() : aeDraw->GetActiveColor();
 
   const Vector3d &aeCloseColor = m_Model->IsHoverOverFirstVertex()
-      ? aeClose.ActiveColor : aeClose.NormalColor;
+      ? aeClose->GetActiveColor() : aeClose->GetNormalColor();
 
   // Push the line state
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
@@ -80,7 +80,7 @@ PolygonDrawingRenderer
   if (state == PolygonDrawingModel::EDITING_STATE)
   {
     glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-    SNAPAppearanceSettings::ApplyUIElementLineSettings(aeEdit);
+    aeEdit->ApplyLineSettings();
 
     glBegin(GL_LINES);
 
@@ -93,9 +93,9 @@ PolygonDrawingRenderer
 
       // Set the color based on the mode
       if (it->selected && itNext->selected)
-        glColor3dv(aeEdit.ActiveColor.data_block());
+        glColor3dv(aeEdit->GetActiveColor().data_block());
       else
-        glColor3dv(aeEdit.NormalColor.data_block());
+        glColor3dv(aeEdit->GetNormalColor().data_block());
 
       // Draw the line
       glVertex3f(it->x, it->y, 0);
@@ -109,8 +109,7 @@ PolygonDrawingRenderer
   {
     // Not editing state
     glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-    SNAPAppearanceSettings::ApplyUIElementLineSettings(aeDraw);
-
+    aeDraw->ApplyLineSettings();
 
     // Draw the vertices
     glBegin(GL_LINE_STRIP);
@@ -142,11 +141,11 @@ PolygonDrawingRenderer
       glEnd();
       }
 
-    else if(dvx.size() + vx.size() > 2 && aeClose.Visible)
+    else if(dvx.size() + vx.size() > 2 && aeClose->GetVisible())
       {
       // Draw the stripped line.
       glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-      SNAPAppearanceSettings::ApplyUIElementLineSettings(aeClose);
+      aeClose->ApplyLineSettings();
 
       glBegin(GL_LINES);
       glColor3dv(aeCloseColor.data_block());
@@ -171,11 +170,11 @@ PolygonDrawingRenderer
     if(it->control)
       {
       if (it->selected)
-        glColor3dv(aeEdit.ActiveColor.data_block());
+        glColor3dv(aeEdit->GetActiveColor().data_block());
       else if (state == PolygonDrawingModel::DRAWING_STATE)
         glColor3dv(aeDrawColor.data_block());
       else
-        glColor3dv(aeEdit.NormalColor.data_block());
+        glColor3dv(aeEdit->GetNormalColor().data_block());
 
       glVertex3f(it->x,it->y,0.0f);
       }
@@ -185,7 +184,7 @@ PolygonDrawingRenderer
   if(dvx.size())
     {
     PolygonVertex last = dvx.back();
-    glColor3dv(aeEdit.ActiveColor.data_block());
+    glColor3dv(aeEdit->GetActiveColor().data_block());
     glVertex3f(last.x, last.y, 0.0f);
     }
 
@@ -198,7 +197,7 @@ PolygonDrawingRenderer
     glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
     glLineWidth(1);
-    glColor3dv(aeEdit.ActiveColor.data_block());
+    glColor3dv(aeEdit->GetActiveColor().data_block());
     DrawBox(m_Model->GetSelectionBox());
 
     glPopAttrib();
@@ -208,7 +207,7 @@ PolygonDrawingRenderer
     glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
     glLineWidth(1);
-    glColor3dv(aeEdit.ActiveColor.data_block());
+    glColor3dv(aeEdit->GetActiveColor().data_block());
     Vector2f border = m_Model->GetPixelSize() * 4.0f;
     glLineWidth(1);
     glColor3fv(m_EditModeSelectedColor);

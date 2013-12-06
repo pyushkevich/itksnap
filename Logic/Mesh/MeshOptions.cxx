@@ -39,7 +39,7 @@ MeshOptions
 {
   // Begin render switches
   m_UseGaussianSmoothingModel = 
-    NewSimpleProperty("UseGaussianSmoothing", false);
+    NewSimpleProperty("UseGaussianSmoothing", true);
   m_UseDecimationModel = 
     NewSimpleProperty("UseDecimation", false);
   m_UseMeshSmoothingModel = 

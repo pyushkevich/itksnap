@@ -43,26 +43,126 @@
 #include "SNAPCommon.h"
 #include "Registry.h"
 #include <string>
+#include "AbstractPropertyContainerModel.h"
+
+
+/**
+ * A structure that describes the appearance of a screen element
+ */
+struct Element
+{
+  Vector3d NormalColor;
+  Vector3d ActiveColor;
+  double LineThickness;
+  double DashSpacing;
+  int FontSize;
+  bool Visible, AlphaBlending;
+};
+
+
+class OpenGLAppearanceElement : public AbstractPropertyContainerModel
+{
+public:
+  irisITKObjectMacro(OpenGLAppearanceElement, AbstractPropertyContainerModel)
+
+  irisRangedPropertyAccessMacro(NormalColor, Vector3d)
+  irisRangedPropertyAccessMacro(ActiveColor, Vector3d)
+
+  irisRangedPropertyAccessMacro(LineThickness, double)
+  irisRangedPropertyAccessMacro(DashSpacing, double)
+  irisRangedPropertyAccessMacro(FontSize, int)
+
+  irisSimplePropertyAccessMacro(Visible, bool)
+  irisSimplePropertyAccessMacro(AlphaBlending, bool)
+
+  /** An enumeration of the fields that an element may possess */
+  enum UIElementFeatures
+    {
+    NORMAL_COLOR = 0, ACTIVE_COLOR, LINE_THICKNESS, DASH_SPACING,
+    FONT_SIZE, VISIBLE, ALPHA_BLEND, FEATURE_COUNT
+    };
+
+  // Set the validity of all the properties at once using an int array
+  // indexed by the enum UIElementFeatures
+  void SetValid(const int validity[]);
+
+  // Apply the GL line settings in the element
+  void ApplyLineSettings(bool applyThickness = true, bool applyStipple = true) const;
+
+protected:
+
+  SmartPtr<ConcreteRangedDoubleVec3Property> m_NormalColorModel, m_ActiveColorModel;
+  SmartPtr<ConcreteRangedDoubleProperty> m_LineThicknessModel, m_DashSpacingModel;
+  SmartPtr<ConcreteRangedIntProperty> m_FontSizeModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_VisibleModel, m_AlphaBlendingModel;
+
+  OpenGLAppearanceElement();
+
+};
+
+
+class GlobalDisplaySettings : public AbstractPropertyContainerModel
+{
+public:
+  irisITKObjectMacro(GlobalDisplaySettings, AbstractPropertyContainerModel)
+
+  /** Enumeration of interpolation modes */
+  enum UIGreyInterpolation { NEAREST = 0, LINEAR};
+
+  /** Enumeration of 2D display layouts */
+  enum UISliceLayout
+  {
+    LAYOUT_ASC = 0, LAYOUT_ACS, LAYOUT_SAC, LAYOUT_SCA, LAYOUT_CAS, LAYOUT_CSA, LAYOUT_COUNT
+  };
+
+  irisSimplePropertyAccessMacro(FlagDisplayZoomThumbnail, bool)
+  irisRangedPropertyAccessMacro(ZoomThumbnailSizeInPercent, double)
+  irisRangedPropertyAccessMacro(ZoomThumbnailMaximumSize, int)
+  irisSimplePropertyAccessMacro(GreyInterpolationMode, UIGreyInterpolation)
+  irisSimplePropertyAccessMacro(FlagLayoutPatientAnteriorShownLeft, bool)
+  irisSimplePropertyAccessMacro(FlagLayoutPatientRightShownLeft, bool)
+  irisSimplePropertyAccessMacro(SliceLayout, UISliceLayout)
+
+  /**
+   * This method uses SliceLayout, FlagLayoutPatientAnteriorShownLeft and
+   * FlagLayoutPatientRightShownLeft to generate RAI codes for the three
+   * display views.
+   * Use in conjunction with IRISApplication::SetDisplayToAnatomyRAI
+   */
+  void GetAnatomyToDisplayTransforms(
+      std::string &rai1, std::string &rai2, std::string &rai3) const;
+
+protected:
+
+  // Global settings
+  SmartPtr<ConcreteSimpleBooleanProperty> m_FlagDisplayZoomThumbnailModel;
+  SmartPtr<ConcreteRangedDoubleProperty> m_ZoomThumbnailSizeInPercentModel;
+  SmartPtr<ConcreteRangedIntProperty> m_ZoomThumbnailMaximumSizeModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientAnteriorShownLeftModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientRightShownLeftModel;
+
+  typedef ConcretePropertyModel<UIGreyInterpolation, TrivialDomain> ConcreteInterpolationModel;
+  SmartPtr<ConcreteInterpolationModel> m_GreyInterpolationModeModel;
+
+  typedef ConcretePropertyModel<UISliceLayout, TrivialDomain> ConcreteSliceLayoutModel;
+  SmartPtr<ConcreteSliceLayoutModel> m_SliceLayoutModel;
+
+  GlobalDisplaySettings();
+};
+
+
 
 /**
  * \class SNAPAppearanceSettings
  * \brief User interface settings that the user can configure
  */
-class SNAPAppearanceSettings
+class SNAPAppearanceSettings : public AbstractModel
 {
 public:
-  /**
-   * A structure that describes the appearance of a screen element
-   */
-  struct Element
-  {
-    Vector3d NormalColor;
-    Vector3d ActiveColor;
-    double LineThickness;
-    double DashSpacing;
-    int FontSize;
-    bool Visible, AlphaBlending;
-  };
+
+  irisITKObjectMacro(SNAPAppearanceSettings, AbstractModel)
+
+  FIRES(ChildPropertyChangedEvent)
 
   /** An enumeration of available screen elements */
   enum UIElements
@@ -75,146 +175,48 @@ public:
     ELEMENT_COUNT
     };
 
-  /** An enumeration of the fields that an element may possess */
-  enum UIElementFeatures
-    {
-    NORMAL_COLOR = 0, ACTIVE_COLOR, LINE_THICKNESS, DASH_SPACING,
-    FONT_SIZE, VISIBLE, ALPHA_BLEND, FEATURE_COUNT
-    };
-
-  /** Enumeration of interpolation modes */
-  enum UIGreyInterpolation
-    {
-    NEAREST = 0, LINEAR
-    };
-
-  /** Enumeration of 2D display layouts */
-  enum UISliceLayout
-    {
-    LAYOUT_ASC = 0, LAYOUT_ACS, LAYOUT_SAC, LAYOUT_SCA, LAYOUT_CAS, LAYOUT_CSA, LAYOUT_COUNT
-    };
-
-  SNAPAppearanceSettings();
-  virtual ~SNAPAppearanceSettings() {}
-
   void LoadFromRegistry(Registry &registry);
   void SaveToRegistry(Registry &registry);
 
   // Access a user interface element
-  Element &GetUIElement(unsigned int iElement)
+  OpenGLAppearanceElement *GetUIElement(unsigned int iElement)
     { return m_Elements[iElement]; }
 
-  // Set a user interface element
-  void SetUIElement(unsigned int iElement, const Element &value)
-    { m_Elements[iElement] = value; }
+  // Access a user interface element
+  const OpenGLAppearanceElement *GetUIElementDefaultSettings(unsigned int iElement)
+    { return m_DefaultElementSettings[iElement]; }
 
-  // Check whether the feature is applicable to an element
-  static bool IsFeatureApplicable(unsigned int iElement, unsigned int iFeature)
-    { return m_Applicable[iElement][iFeature] != 0; }
+  irisGetMacro(OverallVisibility, bool)
+  irisSetMacro(OverallVisibility, bool)
 
-  // Apply the GL settings associated with an appearance element
-  static void ApplyUIElementLineSettings(const Element &elt,
-    bool applyThickness = true, bool applyStipple = true);
+protected:
 
-  irisGetMacro(FlagDisplayZoomThumbnail, bool);
-  irisSetMacro(FlagDisplayZoomThumbnail, bool);
-
-  irisGetMacro(FlagLinkedZoomByDefault, bool);
-  irisSetMacro(FlagLinkedZoomByDefault, bool);
-
-  irisGetMacro(FlagMultisessionZoomByDefault, bool);
-  irisSetMacro(FlagMultisessionZoomByDefault, bool);
-
-  irisGetMacro(FlagMultisessionPanByDefault, bool);
-  irisSetMacro(FlagMultisessionPanByDefault, bool);
-
-  irisGetMacro(FlagFloatingPointWarningByDefault, bool);
-  irisSetMacro(FlagFloatingPointWarningByDefault, bool);
-
-  irisGetMacro(FlagEnableAutoCheckForUpdateByDefault, int);
-  irisSetMacro(FlagEnableAutoCheckForUpdateByDefault, int);
-
-  irisGetMacro(FlagEnableHiddenFeaturesByDefault, bool);
-  irisSetMacro(FlagEnableHiddenFeaturesByDefault, bool);
-
-  irisGetMacro(ZoomThumbnailSizeInPercent, double);
-  irisSetMacro(ZoomThumbnailSizeInPercent, double);
-
-  irisGetMacro(ZoomThumbnailMaximumSize, int);
-  irisSetMacro(ZoomThumbnailMaximumSize, int);
-
-  irisGetMacro(GreyInterpolationMode, UIGreyInterpolation);
-  irisSetMacro(GreyInterpolationMode, UIGreyInterpolation);
-
-  irisGetMacro(FlagLayoutPatientAnteriorShownLeft, bool);
-  irisSetMacro(FlagLayoutPatientAnteriorShownLeft, bool);
-
-  irisGetMacro(FlagLayoutPatientRightShownLeft, bool);
-  irisSetMacro(FlagLayoutPatientRightShownLeft, bool);
-
-  irisGetMacro(FlagAutoPan, bool);
-  irisSetMacro(FlagAutoPan, bool);
-
-  irisGetMacro(SliceLayout, UISliceLayout);
-  irisSetMacro(SliceLayout, UISliceLayout);
-
-  irisGetMacro(OverallVisibility, bool);
-  irisSetMacro(OverallVisibility, bool);
-
-  /** 
-   * This method uses SliceLayout, FlagLayoutPatientAnteriorShownLeft and
-   * FlagLayoutPatientRightShownLeft to generate RAI codes for the three
-   * display views. 
-   * Use in conjunction with IRISApplication::SetDisplayToAnatomyRAI
-   */
-  void GetAnatomyToDisplayTransforms(std::string &rai1, std::string &rai2, std::string &rai3);
+  SNAPAppearanceSettings();
+  virtual ~SNAPAppearanceSettings() {}
 
 private:
-  // Global settings
-  bool m_FlagDisplayZoomThumbnail;
-  bool m_FlagLinkedZoomByDefault;
-  bool m_FlagMultisessionZoomByDefault;
-  bool m_FlagMultisessionPanByDefault;
-  bool m_FlagFloatingPointWarningByDefault;
-  bool m_FlagEnableHiddenFeaturesByDefault;
-  bool m_FlagAutoPan;
-  int m_FlagEnableAutoCheckForUpdateByDefault;
-  double m_ZoomThumbnailSizeInPercent;
-  int m_ZoomThumbnailMaximumSize;
   bool m_OverallVisibility;
 
-  // Interpolation used for rendering slices (for now, linear or n-nbr)
-  UIGreyInterpolation m_GreyInterpolationMode;
-
-  /** This is needed to read enum of interpolation modes from registry */
-  RegistryEnumMap<UIGreyInterpolation> m_EnumMapInterpolationMode;
-
-  // Current 2D view layout
-  UISliceLayout m_SliceLayout;
-
-  // View layout additional flags
-  bool m_FlagLayoutPatientAnteriorShownLeft;
-  bool m_FlagLayoutPatientRightShownLeft;
-
-  // This is needed to read 2D view layout enums
-  RegistryEnumMap<UISliceLayout> m_EnumMapSliceLayout;
-
-  /** An array of user interface elements */
-  Element m_Elements[ELEMENT_COUNT];
+  /** An array of current user interface elements */
+  SmartPtr<OpenGLAppearanceElement> m_Elements[ELEMENT_COUNT];
     
-  /** A list of flags that indicate for each element, whether each feature is 
-   * applicable or not */
-  static const int m_Applicable[ELEMENT_COUNT][FEATURE_COUNT];
+  /** The set of default values for each element */
+  SmartPtr<OpenGLAppearanceElement> m_DefaultElementSettings[ELEMENT_COUNT];
+
+  /** A list of flags that indicate for each element, whether each feature is
+   * applicable or not. This is used to set up the defaults */
+  static const int m_Applicable[ELEMENT_COUNT][OpenGLAppearanceElement::FEATURE_COUNT];
 
   /** Names of the appearance elements */
   static const char *m_ElementNames[];
 
-  /** The set of default values for each element */
-  static Element m_DefaultElementSettings[ELEMENT_COUNT];
-
   /** Initialize the default settings */
-  static void InitializeDefaultSettings();
+  void InitializeDefaultSettings();
 };
+
+
+
+
 
 
 #endif // __SNAPAppearanceSettings_h_

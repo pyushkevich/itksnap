@@ -77,6 +77,8 @@
 #include "EdgePreprocessingImageFilter.h"
 #include "UnsupervisedClustering.h"
 #include "GMMClassifyImageFilter.h"
+#include "DefaultBehaviorSettings.h"
+#include "ColorMapPresetManager.h"
 
 
 
@@ -93,6 +95,10 @@ IRISApplication
   // Create a new system interface
   m_SystemInterface = new SystemInterface();
   m_HistoryManager = m_SystemInterface->GetHistoryManager();
+
+  // Create a color map preset manager
+  m_ColorMapPresetManager = ColorMapPresetManager::New();
+  m_ColorMapPresetManager->Initialize(m_SystemInterface);
 
   // Initialize the color table
   m_ColorLabelTable = ColorLabelTable::New();
@@ -252,7 +258,7 @@ IRISApplication
 
   if(!m_IRISImageData->IsMainLoaded())
     return;
-  
+
   // Create the appropriate transform and pass it to the IRIS data
   m_IRISImageData->SetImageGeometry(
     ImageCoordinateGeometry(
@@ -260,16 +266,15 @@ IRISApplication
       m_DisplayToAnatomyRAI,
       m_IRISImageData->GetVolumeExtents()));
 
-  // Do the same for the SNAP data if needed
-  if(!m_SNAPImageData->IsMainLoaded())
-    return;
-
   // Create the appropriate transform and pass it to the SNAP data
-  m_SNAPImageData->SetImageGeometry(
-    ImageCoordinateGeometry(
-      m_SNAPImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
-      m_DisplayToAnatomyRAI,
-          m_SNAPImageData->GetVolumeExtents()));
+  if(m_SNAPImageData->IsMainLoaded())
+    {
+    m_SNAPImageData->SetImageGeometry(
+      ImageCoordinateGeometry(
+        m_SNAPImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
+        m_DisplayToAnatomyRAI,
+            m_SNAPImageData->GetVolumeExtents()));
+    }
 
   // Invoke the corresponding event
   InvokeEvent(DisplayToAnatomyCoordinateMappingChangeEvent());
@@ -1392,6 +1397,7 @@ IRISApplication
   return 0;
 }
 
+
 void
 IRISApplication
 ::AddIRISOverlayImage(GuidedNativeImageIO *io)
@@ -1419,6 +1425,13 @@ IRISApplication
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
   m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // Apply the default color map for overlays
+  std::string deflt_preset =
+      m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
+  m_ColorMapPresetManager->SetToPreset(
+        m_IRISImageData->GetLastOverlay()->GetDisplayMapping()->GetColorMap(),
+        deflt_preset);
 
   // Fire event
   InvokeEvent(LayerChangeEvent());

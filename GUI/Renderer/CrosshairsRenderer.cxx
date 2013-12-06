@@ -47,13 +47,13 @@ void CrosshairsRenderer::paintGL()
       parentModel->GetParentUI()->GetAppearanceSettings();
 
   // Get the line color, thickness and dash spacing for the crosshairs
-  SNAPAppearanceSettings::Element elt =
+  OpenGLAppearanceElement *elt =
     this->GetParentRenderer()->IsThumbnailDrawing()
     ? as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_THUMB)
     : as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
 
   // Exit if the crosshars are not drawn
-  if(!elt.Visible) return;
+  if(!elt->GetVisible()) return;
 
   // Get the current cursor position
   Vector3ui xCursorInteger = parentModel->GetDriver()->GetCursorPosition();
@@ -73,10 +73,10 @@ void CrosshairsRenderer::paintGL()
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
   // Apply the line properties; thick line is only applied in zoom thumbnail (?)
-  SNAPAppearanceSettings::ApplyUIElementLineSettings(elt);
+  elt->ApplyLineSettings();
 
   // Apply the color
-  glColor3dv(elt.NormalColor.data_block());
+  glColor3dv(elt->GetNormalColor().data_block());
 
   // Refit matrix so that the lines are centered on the current pixel
   glPushMatrix();

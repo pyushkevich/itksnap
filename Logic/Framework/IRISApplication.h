@@ -62,6 +62,10 @@ class UnsupervisedClustering;
 class ImageWrapperBase;
 class MeshManager;
 
+template <class TTraits> class PresetManager;
+class ColorMapPresetTraits;
+typedef PresetManager<ColorMapPresetTraits> ColorMapPresetManager;
+
 template <class TFilterConfigTraits> class SlicePreviewFilterWrapper;
 class SmoothBinaryThresholdFilterConfigTraits;
 class EdgePreprocessingFilterConfigTraits;
@@ -502,6 +506,9 @@ public:
   /** Get the object used to manage VTK mesh creation */
   irisGetMacro(MeshManager, MeshManager *)
 
+  /** Get the preset manager for color maps */
+  irisGetMacro(ColorMapPresetManager, ColorMapPresetManager *)
+
 protected:
 
   IRISApplication();
@@ -569,6 +576,9 @@ protected:
 
   // Mesh object (used to manage meshes)
   SmartPtr<MeshManager> m_MeshManager;
+
+  // Color map preset manager
+  SmartPtr<ColorMapPresetManager> m_ColorMapPresetManager;
 
   // The currently hooked up preprocessing filter preview wrapper
   PreprocessingMode m_PreprocessingMode;

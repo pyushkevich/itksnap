@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
   IRISApplication *driver = gui->GetDriver();
 
   // Load the user preferences
-  driver->GetSystemInterface()->LoadUserPreferences();
+  gui->LoadUserPreferences();
 
   // Create the main window
   MainImageWindow mainwin;
@@ -447,7 +447,7 @@ int main(int argc, char *argv[])
 
   // If everything cool, save the preferences
   if(!rc)
-    driver->GetSystemInterface()->SaveUserPreferences();
+    gui->SaveUserPreferences();
 
   // Unload the main image before all the destructors start firing
   driver->UnloadMainImage();

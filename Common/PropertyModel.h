@@ -323,6 +323,16 @@ protected:
   MapType m_Map;
 };
 
+/**
+ * States that can be checked for property models. We place this enum outside
+ * of the class AbstractPropertyModel because this class is templated. This
+ * enum is meant to be used with the SNAPUIFlag framework.
+ */
+enum PropertyModelUIState
+{
+  // Indicates that the
+  UIF_PROPERTY_IS_VALID = 0
+};
 
 /**
   A parent class for a family of models that encapsulate a single value of
@@ -367,6 +377,7 @@ public:
     having changed. */
   FIRES(ValueChangedEvent)
   FIRES(DomainChangedEvent)
+  FIRES(StateMachineChangeEvent)
 
   /** A setter method */
   virtual void SetValue(TVal value) = 0;
@@ -396,6 +407,20 @@ public:
   }
 
   /**
+   * The model can participate in the state management mechanism with SNAPUIFlag.
+   * At the moment, the only flag available is the Validity flag.
+   */
+  bool CheckState(PropertyModelUIState flag)
+  {
+    if(flag == UIF_PROPERTY_IS_VALID)
+      {
+      TVal value;
+      return GetValueAndDomain(value, NULL);
+      }
+    else return false;
+  }
+
+  /**
     Sometimes it is useful to have the model rebroadcast value and domain
     change events from another model. An example may be a model that wraps
     around another model, e.g., if model A is of a compound type T and
@@ -407,6 +432,13 @@ public:
   {
     Rebroadcast(source, ValueChangedEvent(), ValueChangedEvent());
     Rebroadcast(source, DomainChangedEvent(), DomainChangedEvent());
+  }
+
+protected:
+
+  AbstractPropertyModel()
+  {
+    Rebroadcast(this, ValueChangedEvent(), StateMachineChangeEvent());
   }
 };
 
@@ -644,8 +676,6 @@ public:
   // Function pointers to a setter method
   typedef typename SetterTraits::Setter Setter;
 
-  // typedef void (TModel::*Setter)(TVal t);
-
   // The function pointer to the getter is provided by the traits
   typedef typename GetterTraits::Getter Getter;
 
@@ -693,7 +723,6 @@ public:
       {
       static_cast<AbstractModel *>(m_Model)->Update();
       m_SetterTraits.SetValue(m_Model, m_Setter, value);
-      // ((*m_Model).*(m_Setter))(value);
       }
   }
 

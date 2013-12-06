@@ -54,9 +54,7 @@ void ReorientImageDialog::SetModel(ReorientImageModel *model)
 
   // Allow the user to change the direction axis combos even when they are
   // in a state that is invalid
-  QtCouplingOptions opts;
-  opts.AllowUpdateInInvalidState = true;
-
+  QtCouplingOptions opts(QtCouplingOptions::ALLOW_UPDATES_WHEN_INVALID);
   makeCoupling(ui->inNewAxisDirX, m_Model->GetNewAxisDirectionModel(0), opts);
   makeCoupling(ui->inNewAxisDirY, m_Model->GetNewAxisDirectionModel(1), opts);
   makeCoupling(ui->inNewAxisDirZ, m_Model->GetNewAxisDirectionModel(2), opts);

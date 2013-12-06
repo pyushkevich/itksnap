@@ -32,7 +32,7 @@
 #include <PropertyModel.h>
 #include <SNAPCommon.h>
 #include <LatentITKEventNotifier.h>
-
+#include "QtWidgetActivator.h"
 
 /**
   Abstract class for hierarchy of data mappings between widgets and models. The mapping
@@ -225,6 +225,10 @@ private:
 
   // Whether the user can update the model when it is in invalid state
   bool m_AllowUpdateInInvalidState;
+
+  // A specific property of the widget that should be toggled when the model
+  // is in NULL state (visible/enabled)
+  QString m_NullStateProperty;
 
   // A temporary copy of the domain
   DomainType m_DomainTemp;
@@ -467,6 +471,68 @@ protected:
   */
 struct QtCouplingOptions
 {
+  enum Option
+  {
+    NO_OPTIONS = 0x0,
+
+    /**
+      This flag disconnects the Widget -> Model direction of the coupling. The
+      coupling will update the widget value and domain in response to changes
+      in the model, but it will not update the model from changes in the widget.
+      This is useful when we want to explicitly handle changes in the
+      widget. For example, if we need to check the validity of the value and/or
+      present a dialog box, we would use this option, and then set up an explicit
+      slot to handle changes from the widget and update the model.
+      */
+    UNIDIRECTIONAL = 0x1,
+
+    /**
+     * This flag makes it possible for the widget to write its value to the model
+     * when the model is in invalid state. By default, this is disabled and any
+     * changes by the user to a widget in invalid state are ignored, i.e. not
+     * sent to the model.
+     */
+    ALLOW_UPDATES_WHEN_INVALID = 0x2,
+
+    /**
+     * Whether the widget should be deactivated when the model is in Null state.
+     * Passing this option to makeCoupling will create a widget activator for the
+     * widget. Make sure no other activators are set on the widget
+     */
+    DEACTIVATE_WHEN_INVALID = 0x4
+  };
+
+  Q_DECLARE_FLAGS(Options, Option)
+
+  irisGetSetMacro(Options, Options)
+  irisGetSetMacro(SignalOverride, const char *)
+
+  bool IsUnidirectional()
+    { return m_Options.testFlag(UNIDIRECTIONAL); }
+
+  bool IsUpdateAllowedWhenInvalid()
+    { return m_Options.testFlag(ALLOW_UPDATES_WHEN_INVALID); }
+
+  bool IsDeactivatedWhenInvalid()
+    { return m_Options.testFlag(DEACTIVATE_WHEN_INVALID); }
+
+  QtCouplingOptions(Options opts = NO_OPTIONS)
+    : m_SignalOverride(NULL), m_Options(opts) {}
+
+  QtCouplingOptions(const char *signal, Options opts = NO_OPTIONS)
+    : m_SignalOverride(signal), m_Options(opts) {}
+
+  QtCouplingOptions(const QtCouplingOptions &ref)
+    : m_SignalOverride(ref.m_SignalOverride),
+      m_Options(ref.m_Options) {}
+
+private:
+
+  /**
+   * The options
+   */
+  Options m_Options;
+
   /**
     This value allow the default signal associated with a widget coupling
     to be overriden. For each Qt widget, there is a default signal that we
@@ -474,39 +540,10 @@ struct QtCouplingOptions
     signal. The model is updated in response to this signal. When set to NULL
     this means that the default signal will be used.
     */
-  const char *SignalOverride;
-
-  /**
-    This flag disconnects the Widget -> Model direction of the coupling. The
-    coupling will update the widget value and domain in response to changes
-    in the model, but it will not update the model from changes in the widget.
-    This is useful when we want to explicitly handle changes in the
-    widget. For example, if we need to check the validity of the value and/or
-    present a dialog box, we would use this option, and then set up an explicit
-    slot to handle changes from the widget and update the model.
-    */
-  bool Unidirectional;
-
-  /**
-   * This flag makes it possible for the widget to write its value to the model
-   * when the model is in invalid state. By default, this is disabled and any
-   * changes by the user to a widget in invalid state are ignored, i.e. not
-   * sent to the model.
-   */
-  bool AllowUpdateInInvalidState;
-
-  QtCouplingOptions()
-    : SignalOverride(NULL), Unidirectional(false), AllowUpdateInInvalidState(false) {}
-
-  QtCouplingOptions(const char *signal, bool unidir, bool allowchange)
-    : SignalOverride(signal), Unidirectional(unidir),
-      AllowUpdateInInvalidState(allowchange) {}
-
-  QtCouplingOptions(const QtCouplingOptions &ref)
-    : SignalOverride(ref.SignalOverride),
-      Unidirectional(ref.Unidirectional),
-      AllowUpdateInInvalidState(ref.AllowUpdateInInvalidState) {}
+  const char *m_SignalOverride;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(QtCouplingOptions::Options)
 
 /**
  * This function is the entry point into the coupling system between property models
@@ -556,19 +593,25 @@ void makeCoupling(
         h, SLOT(onPropertyModification(const EventBucket &)));
 
   // Listen to change events on this widget, unless asked not to
-  if(!opts.Unidirectional)
+  if(!opts.IsUnidirectional())
     {
-    const char *mysignal = (opts.SignalOverride)
-        ? opts.SignalOverride : valueTraits.GetSignal();
+    const char *mysignal = (opts.GetSignalOverride())
+        ? opts.GetSignalOverride() : valueTraits.GetSignal();
     QObject *emitter = valueTraits.GetSignalEmitter(w);
     if(mysignal && emitter)
       h->connect(emitter, mysignal, SLOT(onUserModification()));
     }
 
   // Set the allow-changes flag in the mapping
-  if(opts.AllowUpdateInInvalidState)
+  if(opts.IsUpdateAllowedWhenInvalid())
     {
     mapping->SetAllowUpdateInInvalidState(true);
+    }
+
+  // Create an activator
+  if(opts.IsDeactivatedWhenInvalid())
+    {
+    activateOnFlag(w, model, UIF_PROPERTY_IS_VALID);
     }
 }
 

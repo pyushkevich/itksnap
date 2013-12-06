@@ -47,15 +47,18 @@ SliceWindowCoordinator
 {
   // Set up the zoom model
   m_CommonZoomFactorModel = wrapGetterSetterPairAsProperty(
-        this,
-        &Self::GetCommonZoomValueAndRange,
-        &Self::SetCommonZoomValue,
+        this, &Self::GetCommonZoomValueAndRange, &Self::SetCommonZoomValue,
+        ZoomLevelUpdateEvent(), ZoomLevelUpdateEvent());
+
+  m_LinkedZoomModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetLinkedZoomValue, &Self::SetLinkedZoomValue,
         ZoomLevelUpdateEvent(), ZoomLevelUpdateEvent());
 
   // Initialize to defaults
   m_SliceModel[0] = m_SliceModel[1] = m_SliceModel[2] = NULL;
   m_LinkedZoom = false;
   m_WindowsRegistered = false;
+  m_ParentModel = NULL;
 }
 
 SliceWindowCoordinator
@@ -65,38 +68,37 @@ SliceWindowCoordinator
 
 void
 SliceWindowCoordinator
-::RegisterSliceModels(GenericSliceModel *windows[])
+::SetParentModel(GlobalUIModel *model)
 {
+  m_ParentModel = model;
+
   for(unsigned int i=0;i<3;i++)
     {
-    m_SliceModel[i] = windows[i];
+    m_SliceModel[i] = m_ParentModel->GetSliceModel(i);
     m_SliceModel[i]->SetManagedZoom(m_LinkedZoom);
     }
+
   m_WindowsRegistered = true;
+
+  // Listen to image dimension change events
+  Rebroadcast(m_ParentModel->GetDriver(), MainImageDimensionsChangeEvent(), ModelUpdateEvent());
 }
 
-void 
-SliceWindowCoordinator
-::SetLinkedZoom(bool flag)
+void SliceWindowCoordinator::OnUpdate()
 {
-  if(m_LinkedZoom != flag)
+  // Has a new main image been loaded
+  if(this->m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
     {
-    m_LinkedZoom = flag;
+    // Update each of the slice models, allowing them to respond to the main image
+    // dimensions change
+    for(unsigned int i = 0; i < 3; i++)
+      m_SliceModel[i]->Update();
 
-    if(m_WindowsRegistered)
-      {
-      // Tell the windows whether they are managed or not
-      for(unsigned int i=0;i<3;i++)
-        m_SliceModel[i]->SetManagedZoom(m_LinkedZoom);
-
-      // Set the common zoom
-      if(m_LinkedZoom)
-        SetCommonZoomToSmallestWindowZoom();
-      }
-
-    // Fire the appropriate event
-    InvokeEvent(LinkedZoomUpdateEvent());
+    // Reset the view to fit (depending on linked zoom)
+    if(m_ParentModel->GetDriver()->IsMainImageLoaded())
+      this->ResetViewToFitInAllWindows();
     }
+
 }
 
 double
@@ -106,7 +108,7 @@ SliceWindowCoordinator
   assert(m_WindowsRegistered);
 
   // How this is computed depends on whether all four views are visible or not
-  DisplayLayoutModel *dlm = m_SliceModel[0]->GetParentUI()->GetDisplayLayoutModel();
+  DisplayLayoutModel *dlm = m_ParentModel->GetDisplayLayoutModel();
 
   // Figure out what is the optimal zoom in each window
   bool foundVisible = false;
@@ -343,7 +345,7 @@ bool SliceWindowCoordinator::GetCommonZoomValueAndRange(
     double &zoom, NumericValueRange<double> *range)
 {
   // Linked zoom required
-  if(!GetLinkedZoom())
+  if(!GetLinkedZoom() || !m_ParentModel->GetDriver()->IsMainImageLoaded())
     return false;
 
   // Get the zoom
@@ -355,10 +357,14 @@ bool SliceWindowCoordinator::GetCommonZoomValueAndRange(
     float fmin, fmax;
     GetZoomRange(0, fmin, fmax);
 
-    // Compute a reasonable step value
     range->Minimum = fmin;
     range->Maximum = fmax;
-    range->StepSize = round_step_size(fmax, fmin, 100.0);
+
+    // Compute a reasonable step value. This is tricky, because zoom is not
+    // really a linear variable, at high zoom levels, you want steps to be
+    // larger than at small zoom levels. So how about a step that's just on
+    // the order of one hundredth of the current level?
+    range->StepSize = CalculatePowerOfTenStepSize(0, zoom, 10);
     }
 
   return true;
@@ -368,3 +374,33 @@ void SliceWindowCoordinator::SetCommonZoomValue(double zoom)
 {
   this->SetZoomLevelAllWindows((float) zoom);
 }
+
+bool SliceWindowCoordinator::GetLinkedZoomValue(bool &out_value)
+{
+  out_value = m_LinkedZoom;
+  return true;
+}
+
+void SliceWindowCoordinator::SetLinkedZoomValue(bool value)
+{
+  if(m_LinkedZoom != value)
+    {
+    m_LinkedZoom = value;
+
+    if(m_WindowsRegistered)
+      {
+      // Tell the windows whether they are managed or not
+      for(unsigned int i=0;i<3;i++)
+        m_SliceModel[i]->SetManagedZoom(m_LinkedZoom);
+
+      // Set the common zoom if an image is loaded
+      if(m_LinkedZoom && m_ParentModel->GetDriver()->IsMainImageLoaded())
+        SetCommonZoomToSmallestWindowZoom();
+      }
+
+    // Fire the appropriate event
+    InvokeEvent(LinkedZoomUpdateEvent());
+    }
+}
+
+

@@ -5,6 +5,10 @@
 #include <QIcon>
 #include <QObject>
 #include <SNAPCommon.h>
+#include <string>
+#include <QMetaType>
+
+Q_DECLARE_METATYPE(std::string)
 
 class QWidget;
 class QAction;
@@ -15,6 +19,8 @@ class QSpinBox;
 class ColorLabelTable;
 class ColorLabel;
 class ColorMap;
+class QComboBox;
+class ColorMapModel;
 
 // Generate an icon with a black border and a given fill color
 QIcon CreateColorBoxIcon(int w, int h, const QBrush &brush);
@@ -26,6 +32,14 @@ QIcon CreateInvisibleIcon(int w, int h);
 // caching so that the icon is only regenerated if the color map has been
 // modified since the last time the icon was generated.
 QIcon CreateColorMapIcon(int w, int h, ColorMap *cmap);
+
+/**
+ * Generate a combo box with color map presets. Ideally, this would be handled
+ * through the coupling mechanism, but the mechanism does not currently support
+ * separators. Such a combo box is required in a few places, so it made sense to
+ * put the code here
+ */
+void PopulateColorMapPresetCombo(QComboBox *combo, ColorMapModel *model);
 
 // Generate a brush corresponding to a color label
 QBrush GetBrushForColorLabel(const ColorLabel &cl);

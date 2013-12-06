@@ -35,11 +35,11 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
   const char *labels[2][2];
 
   // Get the properties for the labels
-  const SNAPAppearanceSettings::Element &elt =
+  const OpenGLAppearanceElement *elt =
       as->GetUIElement(SNAPAppearanceSettings::MARKERS);
 
   // Leave if the labels are disabled
-  if(!elt.Visible) return;
+  if(!elt->GetVisible()) return;
 
   // Repeat for X and Y directions
   for(unsigned int i=0;i<2;i++)
@@ -68,27 +68,27 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
   // Get the various sizes and offsets
-  int offset = 4 + elt.FontSize;
-  int margin = elt.FontSize / 3;
+  int offset = 4 + elt->GetFontSize();
+  int margin = elt->GetFontSize() / 3;
   Vector2ui vp = parentModel->GetSizeReporter()->GetViewportSize();
   int w = vp[0], h = vp[1];
 
   // Create the font info
   AbstractRendererPlatformSupport::FontInfo font_info =
-        { AbstractRendererPlatformSupport::TYPEWRITER, elt.FontSize, true };
+        { AbstractRendererPlatformSupport::TYPEWRITER, elt->GetFontSize(), true };
 
   // Use the delegate to draw text
   this->m_PlatformSupport->RenderTextInOpenGL(
-        labels[0][0], margin, (h-offset)/2, offset, offset, font_info, -1, 0, elt.NormalColor);
+        labels[0][0], margin, (h-offset)/2, offset, offset, font_info, -1, 0, elt->GetNormalColor());
 
   this->m_PlatformSupport->RenderTextInOpenGL(
-        labels[0][1], w - (offset+margin), (h-offset)/2, offset, offset, font_info, 1, 0, elt.NormalColor);
+        labels[0][1], w - (offset+margin), (h-offset)/2, offset, offset, font_info, 1, 0, elt->GetNormalColor());
 
   this->m_PlatformSupport->RenderTextInOpenGL(
-        labels[1][0], (w-offset)/2, 0, offset, offset, font_info, 0, -1, elt.NormalColor);
+        labels[1][0], (w-offset)/2, 0, offset, offset, font_info, 0, -1, elt->GetNormalColor());
 
   this->m_PlatformSupport->RenderTextInOpenGL(
-        labels[1][1], (w-offset)/2, h - (offset+1), offset, offset, font_info, 0, 1, elt.NormalColor);
+        labels[1][1], (w-offset)/2, h - (offset+1), offset, offset, font_info, 0, 1, elt->GetNormalColor());
 
   glPopMatrix();
   glPopAttrib();
@@ -110,19 +110,19 @@ void SliceWindowDecorationRenderer::DrawNicknames()
   SNAPAppearanceSettings *as =
       parentModel->GetParentUI()->GetAppearanceSettings();
 
-  const SNAPAppearanceSettings::Element &elt =
+  const OpenGLAppearanceElement *elt =
       as->GetUIElement(SNAPAppearanceSettings::RULER);
 
   // Leave if the labels are disabled
-  if(!elt.Visible) return;
+  if(!elt->GetVisible()) return;
 
   // Apply the label properties
   glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT);
   glPushMatrix();
   glLoadIdentity();
 
-  SNAPAppearanceSettings::ApplyUIElementLineSettings(elt);
-  glColor4d( elt.NormalColor[0], elt.NormalColor[1], elt.NormalColor[2], 1.0 );
+  elt->ApplyLineSettings();
+  glColor4d( elt->GetNormalColor()[0], elt->GetNormalColor()[1], elt->GetNormalColor()[2], 1.0 );
 
   // Get the viewport size
   Vector2ui vp = parentModel->GetSizeReporter()->GetViewportSize();
@@ -143,7 +143,7 @@ void SliceWindowDecorationRenderer::DrawNicknames()
     }
 
   // Adjust the font size
-  int fs = elt.FontSize;
+  int fs = elt->GetFontSize();
   if(fs * maxtextlen > 0.8 * w)
     fs = (int) ((1.4 * w) / maxtextlen);
 
@@ -165,7 +165,7 @@ void SliceWindowDecorationRenderer::DrawNicknames()
               w * j, h * (nrows - i) - 20, w, 15, font_info,
               AbstractRendererPlatformSupport::HCENTER,
               AbstractRendererPlatformSupport::TOP,
-              elt.NormalColor);
+              elt->GetNormalColor());
         }
       }
     }
@@ -182,18 +182,18 @@ void SliceWindowDecorationRenderer::DrawRulers()
       parentModel->GetParentUI()->GetAppearanceSettings();
 
   // Get the properties for the labels
-  const SNAPAppearanceSettings::Element &elt =
+  const OpenGLAppearanceElement *elt =
       as->GetUIElement(SNAPAppearanceSettings::RULER);
 
   // Leave if the labels are disabled
-  if(!elt.Visible) return;
+  if(!elt->GetVisible()) return;
 
   glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT);
   glPushMatrix();
   glLoadIdentity();
 
-  SNAPAppearanceSettings::ApplyUIElementLineSettings(elt);
-  glColor4d( elt.NormalColor[0], elt.NormalColor[1], elt.NormalColor[2], 1.0 );
+  elt->ApplyLineSettings();
+  glColor4d( elt->GetNormalColor()[0], elt->GetNormalColor()[1], elt->GetNormalColor()[2], 1.0 );
 
   // Pick the scale of the ruler
   Vector2ui vp = parentModel->GetSizeReporter()->GetViewportSize();
@@ -237,22 +237,22 @@ void SliceWindowDecorationRenderer::DrawRulers()
 
   // Create the font info
   AbstractRendererPlatformSupport::FontInfo font_info =
-        { AbstractRendererPlatformSupport::SANS, elt.FontSize, false };
+        { AbstractRendererPlatformSupport::SANS, elt->GetFontSize(), false };
 
   // See if we can squeeze the label under the ruler
-  if(bw > elt.FontSize * 4)
+  if(bw > elt->GetFontSize() * 4)
     {
     this->m_PlatformSupport->RenderTextInOpenGL(
         oss.str().c_str(),
         vp[0]-(bw+10), 12, (int) bw, 20,
-        font_info, 0, -1, elt.NormalColor);
+        font_info, 0, -1, elt->GetNormalColor());
     }
   else
     {
     this->m_PlatformSupport->RenderTextInOpenGL(
           oss.str().c_str(),
-          vp[0] - (int) (2 * bw + elt.FontSize * 4 + 20), 5, (int) (bw + elt.FontSize * 4+10), 10,
-          font_info, 1, 0, elt.NormalColor);
+          vp[0] - (int) (2 * bw + elt->GetFontSize() * 4 + 20), 5, (int) (bw + elt->GetFontSize() * 4+10), 10,
+          font_info, 1, 0, elt->GetNormalColor());
     }
 
   glPopMatrix();

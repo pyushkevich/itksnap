@@ -86,6 +86,7 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
 
   // Listen to cursor update events and rebroadcast them for the child model
   m_SliceIndexModel->Rebroadcast(model, CursorUpdateEvent(), ValueChangedEvent());
+
 }
 
 void GenericSliceModel
@@ -108,6 +109,7 @@ void GenericSliceModel::OnUpdate()
     // Do a complete initialization
     this->InitializeSlice(m_Driver->GetCurrentImageData());
     }
+
   // TODO: what is the ValueChangeEvent here???
   else if(m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent())
           || m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent())
@@ -208,14 +210,11 @@ GenericSliceModel
   // We have been initialized
   m_SliceInitialized = true;
 
-  // Notify listeners that image content has changed
-  // InvokeEvent(SliceModelImageDimensionsChangeEvent());
-
   // Compute the optimal zoom for this slice
   ComputeOptimalZoom();
 
-  // setup default view - fit to window
-  ResetViewToFit();
+  // Fire a modified event, forcing a repaint of the window
+  InvokeEvent(ModelUpdateEvent());
 }
 
 Vector2i
@@ -419,8 +418,8 @@ bool
 GenericSliceModel
 ::IsThumbnailOn()
 {
-  return m_ParentUI->GetAppearanceSettings()->GetFlagDisplayZoomThumbnail()
-      && m_ViewZoom > m_OptimalZoom;
+  const GlobalDisplaySettings *gds = m_ParentUI->GetGlobalDisplaySettings();
+  return gds->GetFlagDisplayZoomThumbnail() && (m_ViewZoom > m_OptimalZoom);
 }
 
 Vector3f GenericSliceModel::GetCursorPositionInSliceCoordinates()
@@ -448,13 +447,14 @@ void GenericSliceModel::UpdateSliceIndex(unsigned int newIndex)
 
 void GenericSliceModel::ComputeThumbnailProperties()
 {
+  // Get the global display settings
+  const GlobalDisplaySettings *gds = m_ParentUI->GetGlobalDisplaySettings();
+
   // The thumbnail will occupy a specified fraction of the target canvas
-  float xFraction = 0.01f *
-    m_ParentUI->GetAppearanceSettings()->GetZoomThumbnailSizeInPercent();
+  float xFraction = 0.01f * gds->GetZoomThumbnailSizeInPercent();
 
   // But it must not exceed a predefined size in pixels in either dimension
-  float xThumbMax =
-    m_ParentUI->GetAppearanceSettings()->GetZoomThumbnailMaximumSize();
+  float xThumbMax = gds->GetZoomThumbnailMaximumSize();
 
   // Recompute the fraction based on maximum size restriction
   Vector2ui size = this->GetSize();

@@ -1086,5 +1086,5 @@ QSize MainImageWindow::sizeHint() const
 
 void MainImageWindow::on_actionPreferences_triggered()
 {
-  RaiseDialog(m_PreferencesDialog);
+  m_PreferencesDialog->ShowDialog();
 }

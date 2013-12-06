@@ -65,6 +65,7 @@ LoadOverlayImageDelegate
 ::UpdateApplicationWithImage(GuidedNativeImageIO *io)
 {
   m_Model->GetDriver()->AddIRISOverlayImage(io);
+
 }
 
 

@@ -66,6 +66,7 @@ class SynchronizationModel;
 class SnakeParameterModel;
 class MeshExportModel;
 class GlobalPreferencesModel;
+class GlobalDisplaySettings;
 
 namespace itk
 {
@@ -128,6 +129,12 @@ public:
 
   irisGetMacro(AppearanceSettings, SNAPAppearanceSettings *)
 
+  /** Get the global display settings (thumbnail properties, etc.) */
+  irisGetMacro(GlobalDisplaySettings, const GlobalDisplaySettings *)
+
+  /** Update the global display settings (thumbnail properties, etc.) */
+  void SetGlobalDisplaySettings(const GlobalDisplaySettings *settings);
+
   irisGetMacro(SliceCoordinator, SliceWindowCoordinator *)
 
   // Convenience access to the SystemInfterface
@@ -135,6 +142,22 @@ public:
 
   // I don't know why this is in a separate class
   GlobalState *GetGlobalState() const;
+
+  /**
+   * Load the global user preferences at startup. This high-level method
+   * loads the preference file into m_SystemInterface and then pulls out
+   * of the registry folders various settings.
+   *
+   * TODO: this is coded badly. SystemInterface is a poorly designed class
+   * that combines low-level and high-level functionality. It needs to be
+   * recoded
+   */
+  void LoadUserPreferences();
+
+  /**
+   * Save user preferences to disk before quitting the application
+   */
+  void SaveUserPreferences();
 
   /** Get/Set the current toolbar mode */
   irisSimplePropertyAccessMacro(ToolbarMode,ToolbarModeType)
@@ -282,7 +305,9 @@ protected:
 
   SmartPtr<IRISApplication> m_Driver;
 
-  SNAPAppearanceSettings *m_AppearanceSettings;
+  SmartPtr<SNAPAppearanceSettings> m_AppearanceSettings;
+
+  SmartPtr<GlobalDisplaySettings> m_GlobalDisplaySettings;
 
   // A set of three slice models, representing the UI state of each
   // of the 2D slice panels the user interacts with

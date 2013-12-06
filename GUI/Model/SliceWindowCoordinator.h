@@ -40,7 +40,7 @@
 #include <SNAPEvents.h>
 #include "PropertyModel.h"
 
-class SliceWindowCoordinator;
+class GlobalUIModel;
 
 /*
   Who fires the events? Widgets interacting with the Zoom Factor model expect
@@ -66,17 +66,16 @@ public:
 
   FIRES(LinkedZoomUpdateEvent)
 
-  /** Assigns three windows for the coordinator to manage */
-  void RegisterSliceModels(GenericSliceModel *windows[3]);
+  /** Initialize the model. Assigns three windows for the coordinator to manage */
+  void SetParentModel(GlobalUIModel *model);
+
+  /** Respond to updates */
+  virtual void OnUpdate();
 
   /** Specify whether the coordinator should maintain linked zoom
    * in the three slice windows */
-  void SetLinkedZoom(bool flag);
+  irisSimplePropertyAccessMacro(LinkedZoom, bool)
 
-  /** Specify whether the coordinator should maintain linked zoom
-   * in the three slice windows */
-  irisGetMacro(LinkedZoom,bool)
-  
   /** Set the zoom to a fraction of the optimal zoom.  This makes 
    * the most sense when the zoom level is linked, but can be performed 
    * regardless */
@@ -146,17 +145,8 @@ protected:
   /** Virtual destructor */
   virtual ~SliceWindowCoordinator();
 
-  /** Pointer to the application driver for this UI object */
-  //IRISApplication *m_Driver;
-
-  /** Pointer to the global state object (shorthand) */
-  //GlobalState *m_GlobalState;
-
-  /** Pointer to GUI that contains this Window3D object */
-  //UserInterfaceBase *m_ParentUI;   
-
-  /** The image data object that is displayed in this window */
-  //GenericImageData *m_ImageData;
+  /** The parent model */
+  GlobalUIModel *m_ParentModel;
 
   /** The pointers to three window interactors managed by this class */
   GenericSliceModel *m_SliceModel[3];
@@ -173,13 +163,20 @@ protected:
   /** Compute the smallest of the optimal zoom levels of the slice views */
   double ComputeSmallestOptimalZoomLevel();
 
-  // Chold model governing linked zoom properties
+  // Child model governing linked zoom properties
   SmartPtr<AbstractRangedDoubleProperty> m_CommonZoomFactorModel;
 
-  // Access method for getting common zoom value and range
+  // Methods that the model above wraps around
   bool GetCommonZoomValueAndRange(double &zoom,
                                   NumericValueRange<double> *range);
   void SetCommonZoomValue(double zoom);
+
+  // Child model for the linked zoom flag
+  SmartPtr<AbstractSimpleBooleanProperty> m_LinkedZoomModel;
+
+  // Methods that the model above wraps around
+  bool GetLinkedZoomValue(bool &out_value);
+  void SetLinkedZoomValue(bool value);
 };
 
 #endif // __SliceWindowCoordinator_h_

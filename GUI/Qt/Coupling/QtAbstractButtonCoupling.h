@@ -34,7 +34,8 @@
 #include <QColorButtonWidget.h>
 
 /**
-  Default traits for QColorButtonWidget. TColorRep should be an integer type.
+  Default traits for QColorButtonWidget, to be hooked up to a model of integer
+  3-vector that specifies color in the 0-255 range
   */
 template <class TColorRep>
 class DefaultWidgetValueTraits< iris_vector_fixed<TColorRep, 3>, QColorButtonWidget>
@@ -67,7 +68,65 @@ public:
   {
     w->setValue(QColor());
   }
+
+protected:
 };
+
+/**
+  Alternative traits for QColorButtonWidget, to be hooked up to a model of double
+  3-vector that specifies color in the 0-1 range
+  */
+template <>
+class DefaultWidgetValueTraits< iris_vector_fixed<double, 3>, QColorButtonWidget>
+    : public WidgetValueTraitsBase<iris_vector_fixed<double, 3>, QColorButtonWidget *>
+{
+public:
+
+  typedef iris_vector_fixed<double, 3> ColorVec;
+
+  // Get the Qt signal that the widget fires when its value has changed. The
+  // value here is the selected item in the combo box.
+  const char *GetSignal()
+  {
+    return SIGNAL(valueChanged());
+  }
+
+  ColorVec GetValue(QColorButtonWidget *w)
+  {
+    QColor qclr = w->value();
+    return ColorVec(qclr.red() / 255.0, qclr.green() / 255.0, qclr.blue() / 255.0);
+  }
+
+  void SetValue(QColorButtonWidget *w, const ColorVec &value)
+  {
+    // We have to actually find the item
+    Vector3i cint = to_int(value * 255.0);
+    w->setValue(QColor(cint[0], cint[1], cint[2]));
+  }
+
+  void SetValueToNull(QColorButtonWidget *w)
+  {
+    w->setValue(QColor());
+  }
+
+protected:
+};
+
+
+/**
+ * This traits class allows a color button widget to be hooked up to a model
+ * with a domain. However, the domain will be ignored.
+ */
+template <class TAtomic>
+class DefaultWidgetDomainTraits<NumericValueRange<TAtomic>, QColorButtonWidget>
+    : public WidgetDomainTraitsBase<NumericValueRange<TAtomic>, QColorButtonWidget *>
+{
+public:
+  typedef NumericValueRange<TAtomic> DomainType;
+  virtual void SetDomain(QColorButtonWidget *, const DomainType &) { }
+  virtual DomainType GetDomain(QColorButtonWidget *) { return DomainType(); }
+};
+
 
 
 template <>

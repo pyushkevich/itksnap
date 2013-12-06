@@ -189,6 +189,11 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(m_Model->GetParentUI()->GetToolbarMode3DModel(),
               ValueChangedEvent(), ModelUpdateEvent());
 
+  // Listen to changes in appearance
+  Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings(),
+              ChildPropertyChangedEvent(), ModelUpdateEvent());
+
+
   // Update the main components
   this->UpdateAxisRendering();
   this->UpdateCamera(true);
@@ -290,7 +295,7 @@ void Generic3DRenderer::UpdateAxisRendering()
 
     // Get the axis appearance properties
     SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
-    SNAPAppearanceSettings::Element axisapp =
+    OpenGLAppearanceElement *axisapp =
         as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_3D);
 
     // Voxel to world transform
@@ -311,12 +316,12 @@ void Generic3DRenderer::UpdateAxisRendering()
       m_AxisActor[i]->GetProperty()->SetLineWidth(4);
 
       vtkProperty *prop = m_AxisActor[i]->GetProperty();
-      prop->SetColor(axisapp.NormalColor.data_block());
-      if(axisapp.DashSpacing > 0)
+      prop->SetColor(axisapp->GetNormalColor().data_block());
+      if(axisapp->GetDashSpacing() > 0)
         {
         prop->SetLineStipplePattern(0x9999);
-        prop->SetLineStippleRepeatFactor(static_cast<int>(axisapp.DashSpacing));
-        prop->SetLineWidth(axisapp.LineThickness);
+        prop->SetLineStippleRepeatFactor(static_cast<int>(axisapp->GetDashSpacing()));
+        prop->SetLineWidth(axisapp->GetLineThickness());
         }
 
       // Update the transform
@@ -531,7 +536,7 @@ void Generic3DRenderer::paintGL()
 
   // Load the background color
   Vector3d clrBack =
-      as->GetUIElement(SNAPAppearanceSettings::BACKGROUND_3D).NormalColor;
+      as->GetUIElement(SNAPAppearanceSettings::BACKGROUND_3D)->GetNormalColor();
 
   // Set renderer background
   this->m_Renderer->SetBackground(clrBack.data_block());
@@ -599,6 +604,10 @@ void Generic3DRenderer::OnUpdate()
       m_EventBucket->HasEvent(SegmentationChangeEvent()) ||
       m_EventBucket->HasEvent(LevelSetImageChangeEvent());
 
+  bool appearance_changed =
+      m_EventBucket->HasEvent(ChildPropertyChangedEvent(),
+                              m_Model->GetParentUI()->GetAppearanceSettings());
+
   // Deal with the updates to the mesh state
   if(mesh_updated || main_changed)
     {
@@ -612,7 +621,7 @@ void Generic3DRenderer::OnUpdate()
   // If the segmentation changed
 
   // Deal with axes
-  if(main_changed || cursor_moved)
+  if(main_changed || cursor_moved || appearance_changed)
     {
     UpdateAxisRendering();
     }

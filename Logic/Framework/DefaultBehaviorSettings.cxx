@@ -1,4 +1,5 @@
 #include "DefaultBehaviorSettings.h"
+#include "ColorMap.h"
 
 DefaultBehaviorSettings::DefaultBehaviorSettings()
 {
@@ -12,4 +13,18 @@ DefaultBehaviorSettings::DefaultBehaviorSettings()
 
   // Permissions
   m_CheckForUpdatesModel = NewSimpleProperty("CheckForUpdates", true);
+
+  // Overlay behavior
+  m_OverlayColorMapPresetModel =
+      NewSimpleProperty("OverlayColorMapPreset",
+                        std::string(ColorMap::GetPresetName(ColorMap::COLORMAP_GREY)));
+
+  // Layer layout (uses enum)
+  RegistryEnumMap<LayerLayout> enummap;
+  enummap.AddPair(DisplayLayoutModel::LAYOUT_STACKED, "Stacked");
+  enummap.AddPair(DisplayLayoutModel::LAYOUT_STACKED, "Tiled");
+  m_OverlayLayoutModel =
+      NewSimpleEnumProperty("OverlayLayout",
+                            DisplayLayoutModel::LAYOUT_STACKED,
+                            enummap);
 }

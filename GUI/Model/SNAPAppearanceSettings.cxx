@@ -29,7 +29,7 @@ using namespace std;
 //          FONT_SIZE,    VISIBLE,      ALPHA_BLEND,    FEATURE_COUNT
 const int 
 SNAPAppearanceSettings
-::m_Applicable[SNAPAppearanceSettings::ELEMENT_COUNT][SNAPAppearanceSettings::FEATURE_COUNT] = {
+::m_Applicable[SNAPAppearanceSettings::ELEMENT_COUNT][OpenGLAppearanceElement::FEATURE_COUNT] = {
     { 1, 0, 1, 1, 0, 1, 1 },    // Crosshairs
     { 1, 0, 0, 0, 1, 1, 1 },    // Markers
     { 1, 1, 1, 1, 0, 0, 1 },    // ROI
@@ -47,161 +47,164 @@ SNAPAppearanceSettings
     { 1, 1, 1, 1, 0, 0, 1 }     // POLY_EDIT
     };
 
-SNAPAppearanceSettings::Element 
-SNAPAppearanceSettings
-::m_DefaultElementSettings[SNAPAppearanceSettings::ELEMENT_COUNT];
-
 void 
 SNAPAppearanceSettings
 ::InitializeDefaultSettings()
 {
+  // Initialize all the elements
+  for(int i = 0; i < ELEMENT_COUNT; i++)
+    {
+    m_DefaultElementSettings[i] = OpenGLAppearanceElement::New();
+    m_DefaultElementSettings[i]->SetValid(m_Applicable[i]);
+    }
+
   // An element pointer for setting properties
-  Element *elt;
+  OpenGLAppearanceElement *elt;
   
   // Crosshairs
-  elt = &m_DefaultElementSettings[CROSSHAIRS];
-  elt->NormalColor = Vector3d(0.3, 0.3, 1.0);
-  elt->ActiveColor = Vector3d(0.0, 0.0, 0.0);
-  elt->LineThickness = 1.0;
-  elt->DashSpacing = 1.0;
-  elt->FontSize = 0;
-  elt->Visible = true;
-  elt->AlphaBlending = false;
+  elt = m_DefaultElementSettings[CROSSHAIRS];
+  elt->SetNormalColor(Vector3d(0.3, 0.3, 1.0));
+  elt->SetActiveColor(Vector3d(0.0, 0.0, 0.0));
+  elt->SetLineThickness(1.0);
+  elt->SetDashSpacing(1.0);
+  elt->SetFontSize(0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(false);
 
   // Markers
-  elt = &m_DefaultElementSettings[MARKERS];
-  elt->NormalColor = Vector3d(1.0, 0.75, 0.0);
-  elt->ActiveColor = Vector3d(0.0, 0.0, 0.0);
-  elt->LineThickness = 0.0;
-  elt->DashSpacing = 0.0;
-  elt->FontSize = 16;
-  elt->Visible = true;
-  elt->AlphaBlending = false;
+  elt = m_DefaultElementSettings[MARKERS];
+  elt->SetNormalColor(Vector3d(1.0, 0.75, 0.0));
+  elt->SetActiveColor(Vector3d(0.0, 0.0, 0.0));
+  elt->SetLineThickness(0.0);
+  elt->SetDashSpacing(0.0);
+  elt->SetFontSize(16);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(false);
 
   // ROI
-  elt = &m_DefaultElementSettings[ROI_BOX];
-  elt->NormalColor = Vector3d(1.0, 0.0, 0.2);
-  elt->ActiveColor = Vector3d(1.0, 1.0, 0.2);
-  elt->LineThickness = 1.0;
-  elt->DashSpacing = 3.0;
-  elt->FontSize = 0;
-  elt->Visible = true;
-  elt->AlphaBlending = false;
+  elt = m_DefaultElementSettings[ROI_BOX];
+  elt->SetNormalColor(Vector3d(1.0, 0.0, 0.2));
+  elt->SetActiveColor(Vector3d(1.0, 1.0, 0.2));
+  elt->SetLineThickness(1.0);
+  elt->SetDashSpacing(3.0);
+  elt->SetFontSize(0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(false);
 
   // Slice background
-  elt = &m_DefaultElementSettings[BACKGROUND_3D];
-  elt->NormalColor = Vector3d(0.0, 0.0, 0.0);
-  elt->ActiveColor = Vector3d(0.0, 0.0, 0.0);
-  elt->LineThickness = 0.0;
-  elt->DashSpacing = 0.0;
-  elt->FontSize = 0;
-  elt->Visible = true;
-  elt->AlphaBlending = false;
+  elt = m_DefaultElementSettings[BACKGROUND_3D];
+  elt->SetNormalColor(Vector3d(0.0, 0.0, 0.0));
+  elt->SetActiveColor(Vector3d(0.0, 0.0, 0.0));
+  elt->SetLineThickness(0.0);
+  elt->SetDashSpacing(0.0);
+  elt->SetFontSize(0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(false);
 
   // 3D Window background
-  elt = &m_DefaultElementSettings[BACKGROUND_3D];
-  elt->NormalColor = Vector3d(0.0, 0.0, 0.0);
-  elt->ActiveColor = Vector3d(0.0, 0.0, 0.0);
-  elt->LineThickness = 0.0;
-  elt->DashSpacing = 0.0;
-  elt->FontSize = 0;
-  elt->Visible = true;
-  elt->AlphaBlending = false;
+  elt = m_DefaultElementSettings[BACKGROUND_3D];
+  elt->SetNormalColor(Vector3d(0.0, 0.0, 0.0));
+  elt->SetActiveColor(Vector3d(0.0, 0.0, 0.0));
+  elt->SetLineThickness(0.0);
+  elt->SetDashSpacing(0.0);
+  elt->SetFontSize(0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(false);
 
   // Zoom thumbail
-  elt = &m_DefaultElementSettings[ZOOM_THUMBNAIL];
-  elt->NormalColor = Vector3d(1.0, 1.0, 0.0);
-  elt->ActiveColor = Vector3d(1.0, 1.0, 1.0);
-  elt->LineThickness = 1.0;
-  elt->DashSpacing = 0.0;
-  elt->FontSize = 0;
-  elt->Visible = true;
-  elt->AlphaBlending = false;
+  elt = m_DefaultElementSettings[ZOOM_THUMBNAIL];
+  elt->SetNormalColor(Vector3d(1.0, 1.0, 0.0));
+  elt->SetActiveColor(Vector3d(1.0, 1.0, 1.0));
+  elt->SetLineThickness(1.0);
+  elt->SetDashSpacing(0.0);
+  elt->SetFontSize(0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(false);
 
   // 3D crosshairs
-  elt = &m_DefaultElementSettings[CROSSHAIRS_3D];
-  elt->NormalColor = Vector3d(0.3, 0.3, 1.0);
-  elt->ActiveColor = Vector3d(0.0, 0.0, 0.0);
-  elt->LineThickness = 1.0;
-  elt->DashSpacing = 1.0;
-  elt->FontSize = 0;
-  elt->Visible = true;
-  elt->AlphaBlending = true;
+  elt = m_DefaultElementSettings[CROSSHAIRS_3D];
+  elt->SetNormalColor(Vector3d(0.3, 0.3, 1.0));
+  elt->SetActiveColor(Vector3d(0.0, 0.0, 0.0));
+  elt->SetLineThickness(1.0);
+  elt->SetDashSpacing(1.0);
+  elt->SetFontSize(0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(true);
 
   // Thumbnail crosshairs
-  elt = &m_DefaultElementSettings[CROSSHAIRS_THUMB];
-  elt->NormalColor = Vector3d(0.3, 0.3, 1.0);
-  elt->ActiveColor = Vector3d(0.0, 0.0, 0.0);
-  elt->LineThickness = 1.0;
-  elt->DashSpacing = 1.0;
-  elt->FontSize = 0;
-  elt->Visible = true;
-  elt->AlphaBlending = false;
+  elt = m_DefaultElementSettings[CROSSHAIRS_THUMB];
+  elt->SetNormalColor(Vector3d(0.3, 0.3, 1.0));
+  elt->SetActiveColor(Vector3d(0.0, 0.0, 0.0));
+  elt->SetLineThickness(1.0);
+  elt->SetDashSpacing(1.0);
+  elt->SetFontSize(0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(false);
 
   // Thumbnail crosshairs
-  elt = &m_DefaultElementSettings[IMAGE_BOX_3D];
-  elt->NormalColor = Vector3d(0.2, 0.2, 0.2);
-  elt->ActiveColor = Vector3d(0.4, 0.4, 0.4);
-  elt->LineThickness = 1.0;
-  elt->DashSpacing = 1.0;
-  elt->FontSize = 0;
-  elt->Visible = true;
-  elt->AlphaBlending = false;
+  elt = m_DefaultElementSettings[IMAGE_BOX_3D];
+  elt->SetNormalColor(Vector3d(0.2, 0.2, 0.2));
+  elt->SetActiveColor(Vector3d(0.4, 0.4, 0.4));
+  elt->SetLineThickness(1.0);
+  elt->SetDashSpacing(1.0);
+  elt->SetFontSize(0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(false);
 
   // Thumbnail crosshairs
-  elt = &m_DefaultElementSettings[ROI_BOX_3D];
-  elt->NormalColor = Vector3d(1.0, 0.0, 0.2);
-  elt->ActiveColor = Vector3d(1.0, 1.0, 0.2);
-  elt->LineThickness = 1.0;
-  elt->DashSpacing = 3.0;
-  elt->FontSize = 0;
-  elt->Visible = true;
-  elt->AlphaBlending = false;
+  elt = m_DefaultElementSettings[ROI_BOX_3D];
+  elt->SetNormalColor(Vector3d(1.0, 0.0, 0.2));
+  elt->SetActiveColor(Vector3d(1.0, 1.0, 0.2));
+  elt->SetLineThickness(1.0);
+  elt->SetDashSpacing(3.0);
+  elt->SetFontSize(0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(false);
    
   // Paintbrush outline
-  elt = &m_DefaultElementSettings[PAINTBRUSH_OUTLINE];
-  elt->NormalColor = Vector3d(1.0, 0.0, 0.2);
-  elt->ActiveColor = Vector3d(1.0, 1.0, 0.2);
-  elt->LineThickness = 1.0;
-  elt->DashSpacing = 1.0;
-  elt->FontSize = 0;
-  elt->Visible = true;
-  elt->AlphaBlending = false;
+  elt = m_DefaultElementSettings[PAINTBRUSH_OUTLINE];
+  elt->SetNormalColor(Vector3d(1.0, 0.0, 0.2));
+  elt->SetActiveColor(Vector3d(1.0, 1.0, 0.2));
+  elt->SetLineThickness(1.0);
+  elt->SetDashSpacing(1.0);
+  elt->SetFontSize(0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(false);
 
   // Markers
-  elt = &m_DefaultElementSettings[RULER];
-  elt->NormalColor = Vector3d(0.3, 1.0, 0.0);
-  elt->ActiveColor = Vector3d(0.0, 0.0, 0.0);
-  elt->LineThickness = 1.0;
-  elt->DashSpacing = 0.0;
-  elt->FontSize = 12;
-  elt->Visible = true;
-  elt->AlphaBlending = true;
+  elt = m_DefaultElementSettings[RULER];
+  elt->SetNormalColor(Vector3d(0.3, 1.0, 0.0));
+  elt->SetActiveColor(Vector3d(0.0, 0.0, 0.0));
+  elt->SetLineThickness(1.0);
+  elt->SetDashSpacing(0.0);
+  elt->SetFontSize(12);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(true);
 
   // Polygon outline (drawing)
-  elt = &m_DefaultElementSettings[POLY_DRAW_MAIN];
-  elt->NormalColor = Vector3d(1.0, 0.0, 0.5);
-  elt->ActiveColor = Vector3d(1.0, 0.8, 0.9);
-  elt->LineThickness = 2.0;
-  elt->Visible = true;
-  elt->AlphaBlending = true;
+  elt = m_DefaultElementSettings[POLY_DRAW_MAIN];
+  elt->SetNormalColor(Vector3d(1.0, 0.0, 0.5));
+  elt->SetActiveColor(Vector3d(1.0, 0.8, 0.9));
+  elt->SetLineThickness(2.0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(true);
 
   // Polygon outline (drawing)
-  elt = &m_DefaultElementSettings[POLY_DRAW_CLOSE];
-  elt->NormalColor = Vector3d(1.0, 0.0, 0.5);
-  elt->ActiveColor = Vector3d(1.0, 0.8, 0.9);
-  elt->LineThickness = 2.0;
-  elt->Visible = false;
-  elt->DashSpacing = 1.0;
-  elt->AlphaBlending = true;
+  elt = m_DefaultElementSettings[POLY_DRAW_CLOSE];
+  elt->SetNormalColor(Vector3d(1.0, 0.0, 0.5));
+  elt->SetActiveColor(Vector3d(1.0, 0.8, 0.9));
+  elt->SetLineThickness(2.0);
+  elt->SetVisible(false);
+  elt->SetDashSpacing(1.0);
+  elt->SetAlphaBlending(true);
 
   // Polygon outline (editing)
-  elt = &m_DefaultElementSettings[POLY_EDIT];
-  elt->NormalColor = Vector3d(1.0, 0.0, 0.0);
-  elt->ActiveColor = Vector3d(0.0, 1.0, 0.0);
-  elt->LineThickness = 2.0;
-  elt->Visible = true;
-  elt->AlphaBlending = true;
+  elt = m_DefaultElementSettings[POLY_EDIT];
+  elt->SetNormalColor(Vector3d(1.0, 0.0, 0.0));
+  elt->SetActiveColor(Vector3d(0.0, 1.0, 0.0));
+  elt->SetLineThickness(2.0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(true);
 }
 
 const char *
@@ -215,90 +218,30 @@ SNAPAppearanceSettings
 SNAPAppearanceSettings
 ::SNAPAppearanceSettings()
 {
-  // Initialize the default settings
+  // Initialize the default settings the first time this method is called
   InitializeDefaultSettings();
 
-  // Set the common flags
-  m_FlagLinkedZoomByDefault = true;
-  m_FlagMultisessionZoomByDefault = true;
-  m_FlagMultisessionPanByDefault = true;
-  m_FlagFloatingPointWarningByDefault = true;
-  m_FlagEnableHiddenFeaturesByDefault = false;
-  m_FlagEnableAutoCheckForUpdateByDefault = -1;
-  m_ZoomThumbnailMaximumSize = 160;
-  m_ZoomThumbnailSizeInPercent = 30.0;
-  m_FlagDisplayZoomThumbnail = true;
-  m_GreyInterpolationMode = NEAREST;
-
-  m_SliceLayout = LAYOUT_ASC;
-  m_FlagLayoutPatientAnteriorShownLeft = true;
-  m_FlagLayoutPatientRightShownLeft = true;
-  m_FlagAutoPan = false;
-
-  m_EnumMapInterpolationMode.AddPair(NEAREST,"NearestNeighbor");
-  m_EnumMapInterpolationMode.AddPair(LINEAR,"Linear");
-
-  m_EnumMapSliceLayout.AddPair(LAYOUT_ASC,"ASC");
-  m_EnumMapSliceLayout.AddPair(LAYOUT_ACS,"ACS");
-  m_EnumMapSliceLayout.AddPair(LAYOUT_SAC,"SAC");
-  m_EnumMapSliceLayout.AddPair(LAYOUT_SCA,"SCA");
-  m_EnumMapSliceLayout.AddPair(LAYOUT_CAS,"CAS");
-  m_EnumMapSliceLayout.AddPair(LAYOUT_CSA,"CSA");
-  
   // Set the UI elements to their default values  
   for(unsigned int iElement = 0; iElement < ELEMENT_COUNT; iElement++)
-    m_Elements[iElement] = m_DefaultElementSettings[iElement];
+    {
+    // Create the elements
+    m_Elements[iElement] = OpenGLAppearanceElement::New();
+    m_Elements[iElement]->DeepCopy(m_DefaultElementSettings[iElement]);
+
+    // Rebroadcast modification events from the elements
+    Rebroadcast(m_Elements[iElement], ChildPropertyChangedEvent(), ChildPropertyChangedEvent());
+    }
 
   // Initial visibility is true
   m_OverallVisibility = true;
-
 }
 
 void
 SNAPAppearanceSettings
 ::LoadFromRegistry(Registry &r)
 {
-  // Load the flags and settings
-  m_FlagDisplayZoomThumbnail =
-    r["FlagDisplayZoomThumbnail"][m_FlagDisplayZoomThumbnail];
-
-  m_FlagLinkedZoomByDefault = 
-    r["FlagLinkedZoomByDefault"][m_FlagLinkedZoomByDefault];
-
-  m_FlagMultisessionZoomByDefault = 
-    r["FlagMultisessionZoomByDefault"][m_FlagMultisessionZoomByDefault];
-
-  m_FlagMultisessionPanByDefault = 
-    r["FlagMultisessionPanByDefault"][m_FlagMultisessionPanByDefault];
-
-  m_FlagFloatingPointWarningByDefault = 
-    r["FlagFloatingPointWarningByDefault"][m_FlagFloatingPointWarningByDefault];
-
-  m_FlagEnableHiddenFeaturesByDefault = 
-    r["FlagEnableHiddenFeaturesByDefault"][m_FlagEnableHiddenFeaturesByDefault];
-
-  m_FlagEnableAutoCheckForUpdateByDefault =
-    r["FlagEnableAutoCheckForUpdateByDefault"][m_FlagEnableAutoCheckForUpdateByDefault];
-
-  m_FlagAutoPan =
-    r["FlagAutoPan"][m_FlagAutoPan];
-
-  m_ZoomThumbnailSizeInPercent = 
-    r["ZoomThumbnailSizeInPercent"][m_ZoomThumbnailSizeInPercent];
-
-  m_ZoomThumbnailMaximumSize = 
-    r["ZoomThumbnailMaximumSize"][m_ZoomThumbnailMaximumSize];
-
-  m_GreyInterpolationMode = 
-    r["GreyImageInterpolationMode"].GetEnum(m_EnumMapInterpolationMode, NEAREST);
 
   // Overall visibility is not saved or loaded
-
-  // Read slice layout information
-  m_SliceLayout = 
-    r["SliceLayout"].GetEnum(m_EnumMapSliceLayout, LAYOUT_ASC);
-  m_FlagLayoutPatientAnteriorShownLeft = r["PatientAnteriorShownLeft"][true];
-  m_FlagLayoutPatientRightShownLeft = r["PatientRightShownLeft"][true];
 
   // Load the user interface elements
   for(unsigned int iElement = 0; iElement < ELEMENT_COUNT; iElement++)
@@ -307,18 +250,7 @@ SNAPAppearanceSettings
     Registry& f = r.Folder( 
       r.Key("UserInterfaceElement[%s]", m_ElementNames[iElement]) );
 
-    // Get the default element
-    const Element &def = m_DefaultElementSettings[iElement];
-    Element &elt = m_Elements[iElement];
-    
-    // Store the element in the folder
-    elt.NormalColor = f["NormalColor"][def.NormalColor];
-    elt.ActiveColor = f["ActiveColor"][def.ActiveColor];
-    elt.LineThickness = f["LineThickness"][def.LineThickness];
-    elt.DashSpacing = f["DashSpacing"][def.DashSpacing];
-    elt.FontSize = f["FontSize"][def.FontSize];
-    elt.AlphaBlending = f["AlphaBlending"][def.AlphaBlending];
-    elt.Visible = f["Visible"][def.Visible];
+    m_Elements[iElement]->ReadFromRegistry(f);
     }
 }
 
@@ -326,28 +258,6 @@ void
 SNAPAppearanceSettings
 ::SaveToRegistry(Registry &r)
 {
-  // Save the flags and settings
-  r["FlagDisplayZoomThumbnail"] << m_FlagDisplayZoomThumbnail;
-  r["FlagLinkedZoomByDefault"] << m_FlagLinkedZoomByDefault;
-  r["FlagMultisessionZoomByDefault"] << m_FlagMultisessionZoomByDefault;
-  r["FlagMultisessionPanByDefault"] << m_FlagMultisessionPanByDefault;
-  r["FlagFloatingPointWarningByDefault"] << m_FlagFloatingPointWarningByDefault;
-  r["FlagEnableHiddenFeaturesByDefault"] << m_FlagEnableHiddenFeaturesByDefault;
-  r["FlagEnableAutoCheckForUpdateByDefault"] << m_FlagEnableAutoCheckForUpdateByDefault;
-  r["FlagAutoPan"] << m_FlagAutoPan;
-  r["ZoomThumbnailSizeInPercent"] << m_ZoomThumbnailSizeInPercent;
-  r["ZoomThumbnailMaximumSize"] << m_ZoomThumbnailMaximumSize;
-  r["GreyImageInterpolationMode"].PutEnum(m_EnumMapInterpolationMode, m_GreyInterpolationMode);
-
-  // Overall visibility is not saved or loaded
-
-  // Write slice layout information
-  r["SliceLayout"].PutEnum(m_EnumMapSliceLayout, m_SliceLayout);
-  r["PatientAnteriorShownLeft"] << m_FlagLayoutPatientAnteriorShownLeft;
-  r["PatientRightShownLeft"] << m_FlagLayoutPatientRightShownLeft;
-  
-
-
   // Save each of the screen elements
   for(unsigned int iElement = 0; iElement < ELEMENT_COUNT; iElement++)
     {
@@ -356,70 +266,136 @@ SNAPAppearanceSettings
       r.Key("UserInterfaceElement[%s]", m_ElementNames[iElement]) );
 
     // Get the default element
-    Element &elt = m_Elements[iElement];
-    
-    // Store the element in the folder
-    f["NormalColor"] << elt.NormalColor;
-    f["ActiveColor"] << elt.ActiveColor;
-    f["LineThickness"] << elt.LineThickness;
-    f["DashSpacing"] << elt.DashSpacing;
-    f["FontSize"] << elt.FontSize;
-    f["AlphaBlending"] << elt.AlphaBlending;
-    f["Visible"] << elt.Visible;
+    m_Elements[iElement]->WriteToRegistry(f);
     }
 }
 
-void 
-SNAPAppearanceSettings
-::ApplyUIElementLineSettings(const Element &elt, bool applyThickness, bool applyStipple)
+GlobalDisplaySettings::GlobalDisplaySettings()
 {
-  // Apply the thickness properties
-  if(applyThickness)
-    {
-    // Choose whether to use blending or not
-    if( elt.AlphaBlending )
-      {
-      glEnable(GL_BLEND);
-      glEnable(GL_LINE_SMOOTH);
-      glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      }
-    glLineWidth( elt.LineThickness );
-    }
-  if(applyStipple && elt.DashSpacing != 0)
-    {
-    // Set the line thickness and stipple
-    glEnable(GL_LINE_STIPPLE);
-    glLineStipple( static_cast<GLint>(elt.DashSpacing),
-                   0x9999 ); // 0011 0011 0011 0011  // 1001 1001 1001 1001
-    }
+  // This is needed to read enum of interpolation modes from registry
+  RegistryEnumMap<UIGreyInterpolation> emap_interp;
+  emap_interp.AddPair(NEAREST,"NearestNeighbor");
+  emap_interp.AddPair(LINEAR,"Linear");
+
+  // This is needed to read 2D view layout enums
+  RegistryEnumMap<UISliceLayout> emap_layout;
+  emap_layout.AddPair(LAYOUT_ASC,"ASC");
+  emap_layout.AddPair(LAYOUT_ACS,"ACS");
+  emap_layout.AddPair(LAYOUT_SAC,"SAC");
+  emap_layout.AddPair(LAYOUT_SCA,"SCA");
+  emap_layout.AddPair(LAYOUT_CAS,"CAS");
+  emap_layout.AddPair(LAYOUT_CSA,"CSA");
+
+  // Set the common flags
+  m_FlagDisplayZoomThumbnailModel =
+      NewSimpleProperty("FlagDisplayZoomThumbnail", true);
+
+  m_ZoomThumbnailMaximumSizeModel =
+      NewRangedProperty("ZoomThumbnailMaximumSize", 160, 40, 400, 10);
+
+  m_ZoomThumbnailSizeInPercentModel =
+      NewRangedProperty("ZoomThumbnailSizeInPercent", 30.0, 5.0, 50.0, 1.0);
+
+  m_GreyInterpolationModeModel =
+      NewSimpleEnumProperty("GreyInterpolationMode", NEAREST, emap_interp);
+
+  m_SliceLayoutModel =
+      NewSimpleEnumProperty("SliceLayout", LAYOUT_ASC, emap_layout);
+
+  m_FlagLayoutPatientAnteriorShownLeftModel =
+      NewSimpleProperty("FlagLayoutPatientAnteriorShownLeft", true);
+
+  m_FlagLayoutPatientRightShownLeftModel =
+      NewSimpleProperty("FlagLayoutPatientRightShownLeft", true);
+
 }
 
-void SNAPAppearanceSettings
-::GetAnatomyToDisplayTransforms(string &rai1, string &rai2, string &rai3)
+void GlobalDisplaySettings
+::GetAnatomyToDisplayTransforms(string &rai1, string &rai2, string &rai3) const
 {
-  unsigned int order[6][3] = 
+  unsigned int order[6][3] =
     {{0,1,2},{0,2,1},{1,0,2},{1,2,0},{2,0,1},{2,1,0}};
 
   // Start with stock orientations
   string axes[3] = {string("RPS"),string("AIL"),string("RIP")};
 
   // Switch the configurable directions
-  if(!m_FlagLayoutPatientRightShownLeft)
+  if(!GetFlagLayoutPatientRightShownLeft())
     {
     axes[0][0] = axes[2][0] = 'L';
     }
-  if(!m_FlagLayoutPatientAnteriorShownLeft)
+  if(!GetFlagLayoutPatientAnteriorShownLeft())
     {
     axes[1][0] = 'P';
     }
 
   // Convert layout index to integer
-  size_t i = (size_t) m_SliceLayout;
+  size_t i = (size_t) GetSliceLayout();
 
   // Set the axes
   rai1 = axes[order[i][0]];
   rai2 = axes[order[i][1]];
   rai3 = axes[order[i][2]];
 }
+
+
+void OpenGLAppearanceElement::SetValid(const int validity[])
+{
+  m_NormalColorModel->SetIsValid(validity[NORMAL_COLOR]);
+  m_ActiveColorModel->SetIsValid(validity[ACTIVE_COLOR]);
+  m_LineThicknessModel->SetIsValid(validity[LINE_THICKNESS]);
+  m_DashSpacingModel->SetIsValid(validity[DASH_SPACING]);
+  m_FontSizeModel->SetIsValid(validity[FONT_SIZE]);
+  m_VisibleModel->SetIsValid(validity[VISIBLE]);
+  m_AlphaBlendingModel->SetIsValid(validity[ALPHA_BLEND]);
+}
+
+void OpenGLAppearanceElement
+::ApplyLineSettings(bool applyThickness, bool applyStipple) const
+{
+  // Apply the thickness properties
+  if(applyThickness)
+    {
+    // Choose whether to use blending or not
+    if(GetAlphaBlending())
+      {
+      glEnable(GL_BLEND);
+      glEnable(GL_LINE_SMOOTH);
+      glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      }
+    glLineWidth(GetLineThickness());
+    }
+  if(applyStipple && GetDashSpacing() != 0)
+    {
+    // Set the line thickness and stipple
+    glEnable(GL_LINE_STIPPLE);
+    glLineStipple( static_cast<GLint>(GetDashSpacing()),
+                   0x9999 ); // 0011 0011 0011 0011  // 1001 1001 1001 1001
+    }
+}
+
+OpenGLAppearanceElement::OpenGLAppearanceElement()
+{
+  m_NormalColorModel =
+      NewRangedProperty("NormalColor",
+                        Vector3d(0.0), Vector3d(0.0), Vector3d(1.0), Vector3d(0.01));
+
+  m_ActiveColorModel =
+      NewRangedProperty("ActiveColor",
+                        Vector3d(0.0), Vector3d(0.0), Vector3d(1.0), Vector3d(0.01));
+
+  m_LineThicknessModel =
+      NewRangedProperty("LineThickness", 0.0, 0.0, 5.0, 0.1);
+
+  m_DashSpacingModel =
+      NewRangedProperty("DashSpacing", 0.0, 0.0, 5.0, 0.1);
+
+  m_FontSizeModel =
+      NewRangedProperty("FontSize", 0, 0, 36, 1);
+
+  m_VisibleModel = NewSimpleProperty("Visible", false);
+  m_AlphaBlendingModel = NewSimpleProperty("AlphaBlending", false);
+}
+
 

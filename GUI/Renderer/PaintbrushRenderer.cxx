@@ -88,7 +88,7 @@ void PaintbrushRenderer::paintGL()
   // Paint all the edges in the paintbrush definition
   SNAPAppearanceSettings *as =
       m_Model->GetParent()->GetParentUI()->GetAppearanceSettings();
-  const SNAPAppearanceSettings::Element &elt =
+  const OpenGLAppearanceElement *elt =
     as->GetUIElement(SNAPAppearanceSettings::PAINTBRUSH_OUTLINE);
 
   // Build the mask edges
@@ -98,8 +98,8 @@ void PaintbrushRenderer::paintGL()
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
   // Apply the line properties
-  glColor3dv(elt.NormalColor.data_block());
-  SNAPAppearanceSettings::ApplyUIElementLineSettings(elt);
+  glColor3dv(elt->GetNormalColor().data_block());
+  elt->ApplyLineSettings();
 
   // Get the brush position
   Vector3f xPos = m_Model->GetCenterOfPaintbrushInSliceSpace();

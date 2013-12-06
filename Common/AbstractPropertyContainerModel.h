@@ -19,16 +19,60 @@ public:
   virtual void Deserialize(Registry &folder) = 0;
 };
 
+template <class TAtomic>
+class DefaultRegistrySerializationTraits
+{
+public:
+  void Serialize(RegistryValue &entry, const TAtomic &value) const
+  {
+    entry << value;
+  }
+  void Deserialize(RegistryValue &entry, TAtomic &value, const TAtomic &deflt) const
+  {
+    value = entry[deflt];
+  }
+};
+
+template <class TAtomic>
+class RegistryEnumSerializationTraits
+{
+public:
+  typedef RegistryEnumMap<TAtomic> EnumMap;
+  typedef RegistryEnumSerializationTraits<TAtomic> Self;
+
+  RegistryEnumSerializationTraits() {}
+
+  RegistryEnumSerializationTraits(const EnumMap &enummap)
+    : m_EnumMap(enummap) {}
+
+  RegistryEnumSerializationTraits(const Self &other)
+    : m_EnumMap(other.m_EnumMap) {}
+
+  void Serialize(RegistryValue &entry, const TAtomic &value) const
+  {
+    entry.PutEnum(m_EnumMap, value);
+  }
+  void Deserialize(RegistryValue &entry, TAtomic &value, const TAtomic &deflt) const
+  {
+    value = entry.GetEnum(m_EnumMap, deflt);
+  }
+
+private:
+  EnumMap m_EnumMap;
+};
+
+
+
 /**
  * A helper class for AbstractPropertyContainerModel that holds a pointer to
  * a ConcretePointerModel and supports copy and serialization operations.
  */
-template <class TAtomic, class TDomain>
+template <class TAtomic, class TDomain, class TRegistryTraits>
 class ConcretePropertyHolder : public ConcretePropertyHolderBase
 {
 public:
   // ITK stuff
-  typedef ConcretePropertyHolder<TAtomic, TDomain> Self;
+  typedef ConcretePropertyHolder<TAtomic, TDomain, TRegistryTraits> Self;
   typedef ConcretePropertyHolderBase Superclass;
   typedef SmartPtr<Self> Pointer;
   typedef SmartPtr<const Self> ConstPointer;
@@ -57,18 +101,25 @@ public:
   {
     TAtomic value;
     if(m_Property->GetValueAndDomain(value, NULL))
-      folder[m_RegistryKey] << value;
+      {
+      m_Traits.Serialize(folder.Entry(m_RegistryKey), value);
+      }
   }
 
   virtual void Deserialize(Registry &folder)
   {
     RegistryValue &rv = folder.Entry(m_RegistryKey);
     if(!rv.IsNull())
-      m_Property->SetValue(rv[m_Property->GetValue()]);
+      {
+      TAtomic value;
+      m_Traits.Deserialize(rv, value, m_Property->GetValue());
+      m_Property->SetValue(value);
+      }
   }
 
   irisGetSetMacro(Property, PropertyType *)
   irisGetSetMacro(RegistryKey, const std::string &)
+  irisGetSetMacro(Traits, const TRegistryTraits &)
 
 protected:
 
@@ -78,6 +129,8 @@ protected:
   // Registry key for serialization
   std::string m_RegistryKey;
 
+  // A traits object for serialization
+  TRegistryTraits m_Traits;
 };
 
 
@@ -155,6 +208,8 @@ class AbstractPropertyContainerModel : public AbstractModel
 public:
   irisITKObjectMacro(AbstractPropertyContainerModel, AbstractModel)
 
+  FIRES(ChildPropertyChangedEvent)
+
   void DeepCopy(const AbstractPropertyContainerModel *source);
 
   virtual bool operator == (const AbstractPropertyContainerModel &source);
@@ -175,24 +230,44 @@ protected:
   RegisterProperty(const std::string &key,
                    SmartPtr< ConcretePropertyModel<TAtomic, TDomain> > model)
   {
-    typedef ConcretePropertyHolder<TAtomic, TDomain> HolderType;
+    typedef DefaultRegistrySerializationTraits<TAtomic> RegTraits;
+    typedef ConcretePropertyHolder<TAtomic, TDomain, RegTraits> HolderType;
     SmartPtr<HolderType> holder = HolderType::New();
     holder->SetProperty(model);
     holder->SetRegistryKey(key);
     m_Properties.insert(std::make_pair(key, holder));
+
+    // Propagate the modification events from the property
+    Rebroadcast(model, ValueChangedEvent(), ChildPropertyChangedEvent());
+    Rebroadcast(model, DomainChangedEvent(), ChildPropertyChangedEvent());
+
     return model;
   }
 
-  // Retrieve a property
+  // Register a child model with an enum atomic type. The third parameter is
+  // the enum-to-string mapping used to serialize the enum.
   template <class TAtomic, class TDomain>
-  ConcretePropertyModel<TAtomic, TDomain> *
-  GetProperty(const std::string &key) const
+  SmartPtr< ConcretePropertyModel<TAtomic, TDomain> >
+  RegisterEnumProperty(const std::string &key,
+                       SmartPtr< ConcretePropertyModel<TAtomic, TDomain> > model,
+                       const RegistryEnumMap<TAtomic> &enummap)
   {
-    const ConcretePropertyHolder<TAtomic, TDomain> *holder =
-        static_cast<const ConcretePropertyHolder<TAtomic, TDomain> *> (
-          m_Properties.find(key)->second.GetPointer());
+    typedef RegistryEnumSerializationTraits<TAtomic> RegTraits;
+    RegTraits traits(enummap);
 
-    return holder->GetProperty();
+    typedef ConcretePropertyHolder<TAtomic, TDomain, RegTraits> HolderType;
+    SmartPtr<HolderType> holder = HolderType::New();
+    holder->SetProperty(model);
+    holder->SetRegistryKey(key);
+    holder->SetTraits(traits);
+
+    m_Properties.insert(std::make_pair(key, holder));
+
+    // Propagate the modification events from the property
+    Rebroadcast(model, ValueChangedEvent(), ChildPropertyChangedEvent());
+    Rebroadcast(model, DomainChangedEvent(), ChildPropertyChangedEvent());
+
+    return model;
   }
 
   // A convenience method that creates a new simple concrete property and
@@ -215,6 +290,16 @@ protected:
                     const TAtomic &step)
   {
     return RegisterProperty(key, NewRangedConcreteProperty(value, minval, maxval, step));
+  }
+
+  // A convenience method that creates a new simple concrete property and
+  // then registers it using RegisterModel
+  template <class TAtomic>
+  SmartPtr< ConcretePropertyModel<TAtomic, TrivialDomain> >
+  NewSimpleEnumProperty(const std::string &key, const TAtomic &value,
+                        const RegistryEnumMap<TAtomic> &enummap)
+  {
+    return RegisterEnumProperty(key, NewSimpleConcreteProperty(value), enummap);
   }
 
 private:

@@ -43,31 +43,35 @@ public:
 
   TAtomic GetValue(QAbstractItemView *w)
   {
-    // Get the UserData associated with the current item
+    // Get the UserData associated with the current item    
     QModelIndex icur = w->currentIndex();
-    QModelIndex irow = w->model()->index(icur.row(), 0);
+    QModelIndex irow = w->model()->index(icur.row(), 0, w->currentIndex().parent());
     return qVariantValue<TAtomic>(irow.data(Qt::UserRole));
+  }
+
+  bool FindRowRecursive(QAbstractItemView *w, QModelIndex parent, const TAtomic &value)
+  {
+    for(int i = 0; i < w->model()->rowCount(parent); i++)
+      {
+      QModelIndex index = w->model()->index(i, 0, parent);
+      TAtomic val = w->model()->data(index, Qt::UserRole).value<TAtomic>();
+      if(val == value)
+        {
+        w->setCurrentIndex(index);
+        return true;
+        }
+      else if(FindRowRecursive(w, index, value))
+        {
+        return true;
+        }
+      }
+    return false;
   }
 
   void SetValue(QAbstractItemView *w, const TAtomic &value)
   {
-    // Unset the current index
-   int row = -1;
-
-    // We have to actually find the item
-    for(int i = 0; i < w->model()->rowCount(); i++)
-      {
-      QModelIndex idx = w->model()->index(i, 0);
-      if(qVariantValue<TAtomic>(w->model()->data(idx, Qt::UserRole)) == value)
-        {
-        row = i;
-        break;
-        }
-      }
-
-    // Have we found it?
-    QModelIndex index = w->model()->index(row, 0);
-    w->setCurrentIndex(index);
+    // Find the item in the model
+    FindRowRecursive(w, QModelIndex(), value);
   }
 
   void SetValueToNull(QAbstractItemView *w)

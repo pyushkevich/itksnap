@@ -53,6 +53,7 @@
 #include "IRISImageData.h"
 #include "SNAPImageData.h"
 #include "AllPurposeProgressAccumulator.h"
+#include "MeshOptions.h"
 
 // ITK includes
 #include "itkRegionOfInterestImageFilter.h"
@@ -238,6 +239,10 @@ bool MeshManager::IsMeshDirty()
 
   // Compare the timestamps
   if(image->GetMTime() > this->m_BuildTime)
+    return true;
+
+  // Also check if the mesh options have been modified since
+  if(m_Driver->GetGlobalState()->GetMeshOptions()->GetMTime() > this->m_BuildTime)
     return true;
 
   return false;

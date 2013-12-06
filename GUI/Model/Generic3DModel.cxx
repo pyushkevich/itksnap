@@ -12,6 +12,7 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkPointData.h"
 #include "itkMutexLockHolder.h"
+#include "MeshOptions.h"
 
 // All the VTK stuff
 #include "vtkPolyData.h"
@@ -64,6 +65,8 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   Rebroadcast(this, SprayPaintEvent(), StateMachineChangeEvent());
   Rebroadcast(this, ScalpelEvent(), StateMachineChangeEvent());
   Rebroadcast(m_ParentUI->GetToolbarMode3DModel(), ValueChangedEvent(), StateMachineChangeEvent());
+  Rebroadcast(m_ParentUI->GetGlobalState()->GetMeshOptions(),
+              itk::ModifiedEvent(), StateMachineChangeEvent());
 }
 
 bool Generic3DModel::CheckState(Generic3DModel::UIState state)

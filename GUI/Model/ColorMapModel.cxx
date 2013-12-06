@@ -48,10 +48,7 @@ ColorMapModel::ColorMapModel()
       NewNumericPropertyToggleAdaptor(m_LayerOpacityModel.GetPointer(), 0., 50.);
 
   // Create the color map preset manager
-  m_PresetManager = ColorMapPresetManager::New();
-
-  // Rebroadcast modifications in the preset manager as our own events
-  Rebroadcast(m_PresetManager, itk::ModifiedEvent(), PresetUpdateEvent());
+  m_PresetManager = NULL;
 
   // The model update events should also be rebroadcast as state changes
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
@@ -555,9 +552,10 @@ void ColorMapModel::SetParentModel(GlobalUIModel *parent)
 
   // Get the pointer to the system interface
   m_System = m_ParentModel->GetDriver()->GetSystemInterface();
+  m_PresetManager = m_ParentModel->GetDriver()->GetColorMapPresetManager();
 
-  // Initialize the preset manager
-  m_PresetManager->Initialize(m_System);
+  // Rebroadcast modifications in the preset manager as our own events
+  Rebroadcast(m_PresetManager, itk::ModifiedEvent(), PresetUpdateEvent());
 }
 
 #include <algorithm>

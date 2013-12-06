@@ -134,39 +134,13 @@ void ColorMapInspector::on_btnControlColor_clicked()
 // TODO: this should be done using a combo box coupling!
 void ColorMapInspector::PopulatePresets()
 {
-  // Get the list of system presets and custom presets from the model
-  ColorMapModel::PresetList pSystem, pUser;
-  m_Model->GetPresets(pSystem, pUser);
-
   // Add the presets to the list
   m_PresetsUpdating = true;
 
-  // The system presets don't change, so we only need to set them the
-  // first time around
-  if(ui->inPreset->model()->rowCount() == 0)
-    {
-    for(unsigned int i = 0; i < pSystem.size(); i++)
-      {
-      ColorMap *cm = m_Model->GetPresetManager()->GetPreset(pSystem[i]);
-      QIcon icon = CreateColorMapIcon(16, 16, cm);
-      ui->inPreset->addItem(icon, from_utf8(pSystem[i]));
-      }
-    ui->inPreset->insertSeparator(pSystem.size());
-    }
-  else
-    {
-    // Remove all the user presets
-    while(ui->inPreset->model()->rowCount() > pSystem.size())
-      ui->inPreset->removeItem(ui->inPreset->model()->rowCount() - 1);
-    }
+  // Populte the combo box (for now, we don't have a coupling for this)
+  PopulateColorMapPresetCombo(ui->inPreset, m_Model);
 
-  for(unsigned int i = 0; i < pUser.size(); i++)
-    {
-    ColorMap *cm = m_Model->GetPresetManager()->GetPreset(pUser[i]);
-    QIcon icon = CreateColorMapIcon(16, 16, cm);
-    ui->inPreset->addItem(icon, from_utf8(pUser[i]));
-    }
-
+  // Done updating
   m_PresetsUpdating = false;
 }
 

@@ -18,12 +18,12 @@ public:
   void SetParentModel(GlobalUIModel *parent);
 
   /** Models controlling sync state */
-  irisGetMacro(SyncEnabledModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(SyncChannelModel, ConcreteRangedIntProperty *)
-  irisGetMacro(SyncCursorModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(SyncZoomModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(SyncPanModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(SyncCameraModel, AbstractSimpleBooleanProperty *)
+  irisSimplePropertyAccessMacro(SyncEnabled, bool)
+  irisRangedPropertyAccessMacro(SyncChannel, int)
+  irisSimplePropertyAccessMacro(SyncCursor, bool)
+  irisSimplePropertyAccessMacro(SyncZoom, bool)
+  irisSimplePropertyAccessMacro(SyncPan, bool)
+  irisSimplePropertyAccessMacro(SyncCamera, bool)
 
   /** This method should be called by UI at regular intervals to read IPC state */
   void ReadIPCState();

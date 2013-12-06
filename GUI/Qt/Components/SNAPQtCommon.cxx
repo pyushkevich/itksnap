@@ -9,6 +9,8 @@
 #include <QMessageBox>
 #include <QApplication>
 #include <QMenu>
+#include <QComboBox>
+#include <QStandardItemModel>
 
 #include "GlobalUIModel.h"
 #include "SystemInterface.h"
@@ -17,6 +19,7 @@
 #include "SimpleFileDialogWithHistory.h"
 #include "ColorLabelTable.h"
 #include "ColorMap.h"
+#include "ColorMapModel.h"
 
 QIcon CreateColorBoxIcon(int w, int h, const QBrush &brush)
 {
@@ -96,6 +99,59 @@ QIcon CreateColorMapIcon(int w, int h, ColorMap *cmap)
   icon_map[cmap] = std::make_pair(ts_cmap, icon);
   return icon;
 }
+
+QStandardItem *CreateColorMapPresetItem(
+    ColorMapModel *cmm, const std::string &preset)
+{
+  ColorMap *cm = cmm->GetPresetManager()->GetPreset(preset);
+  QIcon icon = CreateColorMapIcon(16, 16, cm);
+
+  QStandardItem *item = new QStandardItem(icon, from_utf8(preset));
+  item->setData(QVariant::fromValue(preset), Qt::UserRole);
+
+  return item;
+}
+
+void
+PopulateColorMapPresetCombo(QComboBox *combo, ColorMapModel *model)
+{
+  // Get the list of system presets and custom presets from the model
+  ColorMapModel::PresetList pSystem, pUser;
+  model->GetPresets(pSystem, pUser);
+
+  // What is the current item
+  QVariant currentItemData = combo->itemData(combo->currentIndex(), Qt::UserRole);
+  std::string currentPreset = currentItemData.value<std::string>();
+  int newIndex = -1;
+
+  // The system presets don't change, so we only need to set them the
+  // first time around
+  QStandardItemModel *sim = new QStandardItemModel();
+
+  for(unsigned int i = 0; i < pSystem.size(); i++)
+    {
+    sim->appendRow(CreateColorMapPresetItem(model, pSystem[i]));
+    if(currentPreset == pSystem[i])
+      newIndex = i;
+    }
+
+  for(unsigned int i = 0; i < pUser.size(); i++)
+    {
+    sim->appendRow(CreateColorMapPresetItem(model, pUser[i]));
+    if(currentPreset == pUser[i])
+      newIndex = pSystem.size() + i;
+    }
+
+  // Update the model
+  combo->setModel(sim);
+
+  // Set the current item if possible
+  combo->setCurrentIndex(newIndex);
+
+  // Insert separator
+  combo->insertSeparator(pSystem.size());
+}
+
 
 
 QBrush GetBrushForColorLabel(const ColorLabel &cl)
@@ -282,6 +338,7 @@ void PopulateHistoryMenu(
   QStringList hg = toQStringList(hm->GetGlobalHistory(hist_category.toStdString()));
   PopulateHistoryMenu(menu, receiver, slot, hl, hg);
 }
+
 
 
 

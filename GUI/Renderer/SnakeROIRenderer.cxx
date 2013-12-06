@@ -43,14 +43,14 @@ void SnakeROIRenderer::paintGL()
     return;
 
   // Get the line color, thickness and dash spacing
-  const SNAPAppearanceSettings::Element &elt =
+  const OpenGLAppearanceElement *elt =
       as->GetUIElement(SNAPAppearanceSettings::ROI_BOX);
 
   // Set line properties
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
   // Apply the line properties
-  SNAPAppearanceSettings::ApplyUIElementLineSettings(elt);
+  elt->ApplyLineSettings();
 
   // Start drawing the lines
   glBegin(GL_LINES);
@@ -62,7 +62,7 @@ void SnakeROIRenderer::paintGL()
     {
     // Select color according to edge state
     glColor3dv( m_Model->m_Highlight.Highlighted[dir][i] ?
-      elt.ActiveColor.data_block() : elt.NormalColor.data_block() );
+      elt->GetActiveColor().data_block() : elt->GetNormalColor().data_block() );
 
     // Compute the vertices of the edge
     Vector2f x0,x1;

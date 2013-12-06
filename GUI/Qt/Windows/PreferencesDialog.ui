@@ -27,7 +27,7 @@
    <item row="1" column="1">
     <widget class="QStackedWidget" name="stack">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="pageGeneral">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -165,8 +165,147 @@
        <item>
         <widget class="QTabWidget" name="tabWidget">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
+         <widget class="QWidget" name="tab_3">
+          <attribute name="title">
+           <string>Display</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_9">
+           <property name="spacing">
+            <number>20</number>
+           </property>
+           <item>
+            <widget class="QGroupBox" name="groupBox_7">
+             <property name="title">
+              <string>Anatomic image display:</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_2">
+              <property name="fieldGrowthPolicy">
+               <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>Interpolation mode:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="inInterpolationMode"/>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>Default layout for overlays:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>Default colormap for overays:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="inDefaultColorMap"/>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="inOverlayLayout"/>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_6">
+             <property name="title">
+              <string>Zoom Thumbnail</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_10">
+              <item>
+               <widget class="QCheckBox" name="chkShowThumbnail">
+                <property name="text">
+                 <string>Show thumbnail when the slice does not fit in window</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="widget_4" native="true">
+                <layout class="QFormLayout" name="formLayout">
+                 <property name="verticalSpacing">
+                  <number>6</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>36</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_6">
+                   <property name="text">
+                    <string>Thumbnail size, relative to slice:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QSpinBox" name="inThumbnailFraction">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="suffix">
+                    <string>%</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QSpinBox" name="inThumbnailMaxSize">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="suffix">
+                    <string> px</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_7">
+                   <property name="text">
+                    <string>Maximum thumbnail size:</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
          <widget class="QWidget" name="tab">
           <attribute name="title">
            <string>Layout</string>
@@ -341,7 +480,7 @@ color:white;</string>
                <number>0</number>
               </property>
               <item>
-               <widget class="QGroupBox" name="groupBox_4">
+               <widget class="QGroupBox" name="grpLayoutRadio">
                 <property name="title">
                  <string>Available Layouts:</string>
                 </property>
@@ -432,129 +571,6 @@ color:white;</string>
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="tab_3">
-          <attribute name="title">
-           <string>Display</string>
-          </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout_9">
-           <item>
-            <widget class="QGroupBox" name="groupBox_6">
-             <property name="title">
-              <string>Thumbnail</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_10">
-              <item>
-               <widget class="QCheckBox" name="chkShowThumbnail">
-                <property name="text">
-                 <string>Show thumbnail when the slice does not fit in window</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QWidget" name="widget_4" native="true">
-                <layout class="QFormLayout" name="formLayout">
-                 <property name="verticalSpacing">
-                  <number>6</number>
-                 </property>
-                 <property name="leftMargin">
-                  <number>36</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_6">
-                   <property name="text">
-                    <string>Thumbnail size, relative to slice:</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QSpinBox" name="inThumbnailFraction">
-                   <property name="minimumSize">
-                    <size>
-                     <width>80</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="suffix">
-                    <string>%</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QSpinBox" name="inThumbnailMaxSize">
-                   <property name="minimumSize">
-                    <size>
-                     <width>80</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="suffix">
-                    <string> px</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_7">
-                   <property name="text">
-                    <string>Maximum thumbnail size:</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_7">
-             <property name="title">
-              <string>Anatomic image display:</string>
-             </property>
-             <layout class="QFormLayout" name="formLayout_2">
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_5">
-                <property name="text">
-                 <string>Interpolation mode:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QComboBox" name="inInterpolationMode"/>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>Default colormap for overays:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QComboBox" name="inDefaultColorMap"/>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer_4">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </widget>
         </widget>
        </item>
       </layout>
@@ -581,107 +597,17 @@ color:white;</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_13">
               <item>
-               <widget class="QTreeWidget" name="treeVisualElements">
-                <column>
-                 <property name="text">
-                  <string>Item</string>
-                 </property>
-                </column>
-                <item>
-                 <property name="text">
-                  <string>Slice Views</string>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>Background</string>
-                  </property>
-                  <property name="checkState">
-                   <enum>Checked</enum>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Crosshair</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Rulers</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Markers</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>ROI Edges</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Paintbrush</string>
-                  </property>
-                 </item>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>3D View</string>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>Background</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Crosshair</string>
-                  </property>
-                 </item>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Zoom Thumbnail</string>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>Image</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Crosshair</string>
-                  </property>
-                 </item>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Polygon Tool</string>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>Outline (drawing)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Outline (editing)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Completion line</string>
-                  </property>
-                 </item>
-                </item>
+               <widget class="QTreeView" name="treeVisualElements">
+                <attribute name="headerVisible">
+                 <bool>false</bool>
+                </attribute>
                </widget>
               </item>
              </layout>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_9">
+            <widget class="QGroupBox" name="grpAppearance">
              <property name="title">
               <string>Appearance:</string>
              </property>
@@ -719,32 +645,30 @@ color:white;</string>
                   </spacer>
                  </item>
                  <item row="2" column="0">
-                  <widget class="QLabel" name="label_14">
+                  <widget class="QLabel" name="labelElementNormalColor">
                    <property name="text">
                     <string>Normal color:</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>btnElementNormalColor</cstring>
                    </property>
                   </widget>
                  </item>
                  <item row="2" column="1">
-                  <widget class="QPushButton" name="btnElementNormalColor">
-                   <property name="text">
-                    <string>Choose</string>
-                   </property>
-                  </widget>
+                  <widget class="QColorButtonWidget" name="btnElementNormalColor"/>
                  </item>
                  <item row="3" column="0">
-                  <widget class="QLabel" name="label_13">
+                  <widget class="QLabel" name="labelElementActiveColor">
                    <property name="text">
                     <string>Active color:</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>btnElementActiveColor</cstring>
                    </property>
                   </widget>
                  </item>
                  <item row="3" column="1">
-                  <widget class="QPushButton" name="btnElementActiveColor">
-                   <property name="text">
-                    <string>Choose</string>
-                   </property>
-                  </widget>
+                  <widget class="QColorButtonWidget" name="btnElementActiveColor"/>
                  </item>
                  <item row="4" column="1">
                   <spacer name="verticalSpacer_5">
@@ -762,14 +686,17 @@ color:white;</string>
                    </property>
                   </spacer>
                  </item>
-                 <item row="5" column="0">
-                  <widget class="QLabel" name="label_10">
+                 <item row="6" column="0">
+                  <widget class="QLabel" name="labelElementLineThickness">
                    <property name="text">
                     <string>Line thickness:</string>
                    </property>
+                   <property name="buddy">
+                    <cstring>inElementThickness</cstring>
+                   </property>
                   </widget>
                  </item>
-                 <item row="5" column="1">
+                 <item row="6" column="1">
                   <widget class="QDoubleSpinBox" name="inElementThickness">
                    <property name="minimumSize">
                     <size>
@@ -779,14 +706,17 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="6" column="0">
-                  <widget class="QLabel" name="label_11">
+                 <item row="9" column="0">
+                  <widget class="QLabel" name="labelElementDashSpacing">
                    <property name="text">
                     <string>Dash spacing:</string>
                    </property>
+                   <property name="buddy">
+                    <cstring>inElementDashSpacing</cstring>
+                   </property>
                   </widget>
                  </item>
-                 <item row="6" column="1">
+                 <item row="9" column="1">
                   <widget class="QSpinBox" name="inElementDashSpacing">
                    <property name="minimumSize">
                     <size>
@@ -796,14 +726,7 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="7" column="1">
-                  <widget class="QCheckBox" name="chkElementAntiAlias">
-                   <property name="text">
-                    <string>Smooth lines</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="8" column="1">
+                 <item row="11" column="1">
                   <spacer name="verticalSpacer_6">
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>
@@ -819,20 +742,72 @@ color:white;</string>
                    </property>
                   </spacer>
                  </item>
-                 <item row="9" column="0">
-                  <widget class="QLabel" name="label_12">
+                 <item row="12" column="0">
+                  <widget class="QLabel" name="labelElementFontSize">
                    <property name="text">
                     <string>Font size:</string>
                    </property>
+                   <property name="buddy">
+                    <cstring>inElementFontSize</cstring>
+                   </property>
                   </widget>
                  </item>
-                 <item row="9" column="1">
+                 <item row="12" column="1">
                   <widget class="QSpinBox" name="inElementFontSize">
                    <property name="minimumSize">
                     <size>
                      <width>80</width>
                      <height>0</height>
                     </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="1">
+                  <widget class="QCheckBox" name="chkElementAntiAlias">
+                   <property name="text">
+                    <string>Smooth </string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="1">
+                  <spacer name="verticalSpacer_10">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>5</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="widget_14" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_10">
+                 <item>
+                  <widget class="QPushButton" name="btnElementReset">
+                   <property name="toolTip">
+                    <string>Resets the appearance of the selected visual elements to its default</string>
+                   </property>
+                   <property name="text">
+                    <string>Reset</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnElementResetAll">
+                   <property name="toolTip">
+                    <string>Resets the appearance of all visual elements to their defaults</string>
+                   </property>
+                   <property name="text">
+                    <string>Reset All</string>
                    </property>
                   </widget>
                  </item>
@@ -856,7 +831,7 @@ color:white;</string>
        <item>
         <widget class="QTabWidget" name="tabWidget_3">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tab_4">
           <attribute name="title">
@@ -1262,6 +1237,9 @@ color:white;</string>
        <height>16777215</height>
       </size>
      </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
      <item>
       <property name="text">
        <string>General</string>
@@ -1297,6 +1275,13 @@ font-weight:bold;</string>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QColorButtonWidget</class>
+   <extends>QPushButton</extends>
+   <header>QColorButtonWidget.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>listWidget</tabstop>
   <tabstop>tabWidget_4</tabstop>
@@ -1320,7 +1305,6 @@ font-weight:bold;</string>
   <tabstop>inThumbnailFraction</tabstop>
   <tabstop>inThumbnailMaxSize</tabstop>
   <tabstop>inInterpolationMode</tabstop>
-  <tabstop>inDefaultColorMap</tabstop>
   <tabstop>tabWidget_2</tabstop>
   <tabstop>treeVisualElements</tabstop>
   <tabstop>chkElementVisible</tabstop>
@@ -1328,7 +1312,6 @@ font-weight:bold;</string>
   <tabstop>btnElementActiveColor</tabstop>
   <tabstop>inElementThickness</tabstop>
   <tabstop>inElementDashSpacing</tabstop>
-  <tabstop>chkElementAntiAlias</tabstop>
   <tabstop>inElementFontSize</tabstop>
   <tabstop>tabWidget_3</tabstop>
   <tabstop>chkGaussianSmooth</tabstop>

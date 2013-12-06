@@ -252,4 +252,16 @@ class DefaultWidgetDomainTraits<TDomain, QComboBox>
 {
 };
 
+// Define the behavior with trivial domain. In this case, we assume that the combo
+// box was set up in the GUI to have userdata matching the items in the model
+template <>
+class DefaultWidgetDomainTraits<TrivialDomain, QComboBox>
+    : public WidgetDomainTraitsBase<TrivialDomain, QComboBox *>
+{
+public:
+  virtual void SetDomain(QComboBox *w, const TrivialDomain &domain) {}
+  virtual TrivialDomain GetDomain(QComboBox *w) { return TrivialDomain(); }
+};
+
+
 #endif // QTCOMBOBOXCOUPLING_H
