@@ -34,18 +34,131 @@
 =========================================================================*/
 #include "Registry.h"
 #include "IRISVectorTypes.h"
+#include "itkXMLFile.h"
 
 #include <stdio.h>
 #include <cstdlib>
 #include <cstdarg>
 #include <fstream>
 #include <iomanip>
+#include "itksys/SystemTools.hxx"
+#include "IRISException.h"
 
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #endif
 
 using namespace std;
+
+
+
+/** Reader for XML files */
+class RegistryXMLFileReader : public itk::XMLReader<Registry>
+{
+public:
+
+  irisITKObjectMacro(RegistryXMLFileReader, itk::XMLReader<Registry>)
+
+protected:
+
+  RegistryXMLFileReader() {}
+
+  virtual int CanReadFile(const char *name);
+  virtual void StartElement(const char *name, const char **atts);
+  virtual void EndElement(const char *name);
+  virtual void CharacterDataHandler(const char *inData, int inLength);
+
+  static int strcmpi(const char *str1, const char *str2)
+  {
+    return itksys::SystemTools::Strucmp(str1, str2);
+  }
+
+  // The folder stack
+  std::list<Registry *> m_FolderStack;
+};
+
+int RegistryXMLFileReader::CanReadFile(const char *name)
+{
+  if ( !itksys::SystemTools::FileExists(name)
+       || itksys::SystemTools::FileIsDirectory(name)
+       || itksys::SystemTools::FileLength(name) == 0 )
+    {
+    return 0;
+    }
+
+  return 1;
+}
+
+void RegistryXMLFileReader::StartElement(const char *name, const char **atts)
+{
+  // If this is the root-level element <registry>, it can be ignored
+  if(strcmpi(name, "registry") == 0)
+    {
+    // Put the target registry on the stack
+    assert(this->GetOutputObject());
+    m_FolderStack.push_back(this->GetOutputObject());
+    return;
+    }
+
+  // If the stack is empty throw up
+  if(m_FolderStack.size() == 0)
+    throw IRISException("Problem parsing Registry XML file. The file might not be valid.");
+
+  // Read the attributes into a map
+  typedef std::map<std::string, std::string> AttributeMap;
+  typedef AttributeMap::const_iterator AttrIter;
+  AttributeMap attrmap;
+
+  for(int i = 0; atts[i] != NULL && atts[i+1] != NULL; i+=2)
+    attrmap[itksys::SystemTools::LowerCase(atts[i])] = atts[i+1];
+
+  // Process tags
+  if(strcmpi(name, "folder") == 0)
+    {
+    AttrIter itKey = attrmap.find("key");
+    if(itKey == attrmap.end())
+      throw IRISException("Missing 'key' attribute to <folder> element");
+
+    // Create a new folder and place it on the stack
+    Registry &newFolder = m_FolderStack.back()->Folder(itKey->second);
+    m_FolderStack.push_back(&newFolder);
+    }
+  else if(strcmpi(name, "entry") == 0)
+    {
+    AttrIter itKey = attrmap.find("key");
+    if(itKey == attrmap.end())
+      throw IRISException("Missing 'key' attribute to <entry> element");
+
+    AttrIter itValue = attrmap.find("value");
+    if(itValue == attrmap.end())
+      throw IRISException("Missing 'value' attribute to <entry> element");
+
+    // Create a new entry (TODO: decode!)
+    m_FolderStack.back()->Entry(itKey->second) = RegistryValue(itValue->second);
+    }
+  else
+    throw IRISException("Unknown XML element <%s>", name);
+}
+
+
+void RegistryXMLFileReader::EndElement(const char *name)
+{
+  if(strcmpi(name, "registry") == 0)
+    {
+    m_FolderStack.clear();
+    }
+
+  else if(strcmpi(name, "folder") == 0)
+    {
+    m_FolderStack.pop_back();
+    }
+}
+
+void RegistryXMLFileReader::CharacterDataHandler(const char *inData, int inLength)
+{
+  return;
+}
+
 
 RegistryValue
 ::RegistryValue()
@@ -131,7 +244,7 @@ Registry
   return targetArray.size();
 }
 
-bool Registry::HasKey(const Registry::StringType &key)
+bool Registry::HasEntry(const Registry::StringType &key)
 {
   // Get the containing folder
   StringType::size_type iDot = key.find_first_of('.');
@@ -141,7 +254,7 @@ bool Registry::HasKey(const Registry::StringType &key)
     {
     StringType child = key.substr(0,iDot);
     StringType childKey = key.substr(iDot+1);
-    return Folder(child).HasKey(childKey);
+    return Folder(child).HasEntry(childKey);
     }
 
   // Search for the key and return it if found
@@ -149,7 +262,25 @@ bool Registry::HasKey(const Registry::StringType &key)
   return it != m_EntryMap.end();
 }
 
-void 
+bool Registry::HasFolder(const Registry::StringType &key)
+{
+  // Get the containing folder
+  StringType::size_type iDot = key.find_first_of('.');
+
+  // There is a subfolder
+  if(iDot != key.npos)
+    {
+    StringType child = key.substr(0,iDot);
+    StringType childKey = key.substr(iDot+1);
+    return Folder(child).HasFolder(childKey);
+    }
+
+  // Search for the key and return it if found
+  FolderIterator it = m_FolderMap.find(key);
+  return it != m_FolderMap.end();
+}
+
+void
 Registry
 ::Write(ostream &sout,const StringType &prefix)
 {
@@ -173,6 +304,38 @@ Registry
     // Write the folder contents (recursive, contents prefixed with full path name)
     itf->second->Write(sout, prefix + itf->first + "." );
     }  
+}
+
+void
+Registry
+::WriteXML(ostream &sout, const StringType &prefix)
+{
+  // Write the entries in this folder
+  for(EntryIterator ite = m_EntryMap.begin();ite != m_EntryMap.end(); ++ite)
+    {
+    // Only write the non-null entries
+    if(!ite->second.IsNull())
+      {
+      // Write the key
+      sout << prefix << "<entry key=\"" << EncodeXML(ite->first) << "\"";
+
+      // Write the encoded value
+      sout << " value=\"" << EncodeXML(ite->second.GetInternalString()) << "\" />" << endl;
+      }
+    }
+
+  // Write the folders
+  for(FolderIterator itf = m_FolderMap.begin(); itf != m_FolderMap.end(); ++itf)
+    {
+    // Write the folder tag
+    sout << prefix << "<folder key=\"" << EncodeXML(itf->first) << "\" >" << endl;
+
+    // Write the folder contents (recursive, contents prefixed with full path name)
+    itf->second->WriteXML(sout, prefix + "  ");
+
+    // Close the folder
+    sout << prefix << "</folder>" << endl;
+    }
 }
 
 void 
@@ -271,6 +434,43 @@ Registry
   m_FolderMap.clear();
 }
 
+Registry::StringType
+Registry
+::EncodeXML(const StringType &input)
+{
+  IRISOStringStream oss;
+  for(unsigned int i=0; i < input.length() ; i++)
+    {
+    // Map the character to positive integer (0..255)
+    char c = input[i];
+    int v = static_cast<int>(static_cast<unsigned char>(c));
+
+    // There are special characters not allowed in XML
+    switch(c)
+      {
+      case '<' :
+        oss << "&lt;"; break;
+      case '>' :
+        oss << "&gt;"; break;
+      case '&' :
+        oss << "&amp;"; break;
+      case '\'' :
+        oss << "&apos;"; break;
+      case '\"' :
+        oss << "&quot;"; break;
+      default:
+        oss << c; break;
+      }
+   }
+
+  // Return the resulting string
+  return oss.str();
+}
+
+Registry::StringType Registry::DecodeXML(const Registry::StringType &input)
+{
+  return input;
+}
 
 Registry::StringType
 Registry
@@ -475,6 +675,40 @@ Registry
   Write(sout,"");
 }
 
+void Registry::WriteToXMLFile(const char *pathname, const char *header)
+{
+  // Open the file
+  ofstream sout(pathname,std::ios::out);
+
+  // Set the stream to be picky
+  sout.exceptions(std::ios::failbit);
+
+  // Write the XML string
+  sout << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << endl;
+
+  // Write the header
+  if(header)
+    sout << "<!--" << header << "-->" << endl;
+
+  // Write the DOCTYPE content
+  sout << "<!DOCTYPE registry [" << endl
+       << "<!ELEMENT registry (entry*,folder*)>" << endl
+       << "<!ELEMENT folder (entry*,folder*)>" << endl
+       << "<!ELEMENT entry EMPTY>" << endl
+       << "<!ATTLIST folder key CDATA #REQUIRED>" << endl
+       << "<!ATTLIST entry key CDATA #REQUIRED>" << endl
+       << "<!ATTLIST entry value CDATA #REQUIRED>" << endl
+       << "]>" << endl;
+
+  // Write to the stream
+  sout << "<registry>" << endl;
+  WriteXML(sout, "  ");
+  sout << "</registry>" << endl;
+}
+
+
+
+
 /**
 * Read folder from file
 */
@@ -512,5 +746,12 @@ void Registry
     throw SyntaxException(serr.str().c_str());
 }
 
+void Registry::ReadFromXMLFile(const char *pathname)
+{
+  SmartPtr<RegistryXMLFileReader> reader = RegistryXMLFileReader::New();
+  reader->SetOutputObject(this);
+  reader->SetFilename(pathname);
+  reader->GenerateOutputInformation();
+}
 
 

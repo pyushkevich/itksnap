@@ -100,9 +100,9 @@ void CursorInspectionModel::SetParentModel(GlobalUIModel *parent)
 
   // Initialize the layer voxel list model
   int role =
-      LayerIterator::MAIN_ROLE |
-      LayerIterator::OVERLAY_ROLE |
-      LayerIterator::SNAP_ROLE;
+      MAIN_ROLE |
+      OVERLAY_ROLE |
+      SNAP_ROLE;
 
   CurrentVoxelInfoItemSetDomain dom(app, role);
   m_VoxelAtCursorModel->SetDomain(dom);

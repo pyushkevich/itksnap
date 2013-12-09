@@ -64,6 +64,7 @@
 #include <ReorientImageDialog.h>
 #include <DropActionDialog.h>
 #include <PreferencesDialog.h>
+#include "SaveModifiedLayersDialog.h"
 
 
 #include <QAbstractListModel>
@@ -468,7 +469,7 @@ void MainImageWindow::on_actionLoad_from_Image_triggered()
 
   // Create a model for IO
   SmartPtr<LoadSegmentationImageDelegate> delegate = LoadSegmentationImageDelegate::New();
-  delegate->Initialize(m_Model);
+  delegate->Initialize(m_Model->GetDriver());
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
   model->InitializeForLoad(m_Model, delegate,
                            "LabelImage", "Segmentation Image");
@@ -645,8 +646,8 @@ void MainImageWindow::LoadRecent(QString file)
     QtCursorOverride c(Qt::WaitCursor);
     IRISWarningList warnings;
     SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
-    del->Initialize(m_Model);
-    m_Model->LoadImageNonInteractive(file.toUtf8().constData(), del, warnings);
+    del->Initialize(m_Model->GetDriver());
+    m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings);
     }
   catch(exception &exc)
     {
@@ -763,7 +764,7 @@ void MainImageWindow::on_actionOpenMain_triggered()
 
   // Create a model for IO
   SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
-  delegate->Initialize(m_Model);
+  delegate->Initialize(m_Model->GetDriver());
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
   model->InitializeForLoad(m_Model, delegate,
                            "AnatomicImage", "Main Image");
@@ -778,7 +779,7 @@ void MainImageWindow::on_actionOpenMain_triggered()
 void MainImageWindow::on_actionAdd_Overlay_triggered()
 {
   SmartPtr<LoadOverlayImageDelegate> delegate = LoadOverlayImageDelegate::New();
-  delegate->Initialize(m_Model);
+  delegate->Initialize(m_Model->GetDriver());
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
   model->InitializeForLoad(m_Model, delegate,
                            "AnatomicImage", "Overlay Image");
@@ -922,7 +923,7 @@ bool MainImageWindow::SaveSegmentation(bool interactive)
   // Create delegate
   SmartPtr<DefaultSaveImageDelegate> delegate = DefaultSaveImageDelegate::New();
   delegate->Initialize(
-        m_Model,
+        m_Model->GetDriver(),
         m_Model->GetDriver()->GetCurrentImageData()->GetSegmentation(),
         "LabelImage");
 
@@ -1087,4 +1088,68 @@ QSize MainImageWindow::sizeHint() const
 void MainImageWindow::on_actionPreferences_triggered()
 {
   m_PreferencesDialog->ShowDialog();
+}
+
+
+void MainImageWindow::on_actionCreateProject_triggered()
+{
+  // Make sure that there are no unsaved changes. Not sure why this is even
+  // necessary.
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(
+       m_Model, SaveModifiedLayersDialog::DiscardDisabled, this))
+    return;
+
+  // Prompt for a project filename
+  QString file =
+      QFileDialog::getSaveFileName(
+        this, "Save New Project As ...", QString(),
+        "ITK-SNAP Project Files (*.snapprj)");
+
+  // If user hits cancel, move on
+  if(file.isNull())
+    return;
+
+  // Make sure to get an absolute path, because the project needs that info
+  QString file_abs = QFileInfo(file).absoluteFilePath();
+
+  // If file was provided, set it as the current project file
+  m_Model->GetDriver()->SaveProject(to_utf8(file_abs));
+}
+
+
+void MainImageWindow::on_actionOpenProject_triggered()
+{
+  // Check for unsaved changes before loading new data
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(
+       m_Model, SaveModifiedLayersDialog::NoOption, this))
+    return;
+
+  // Prompt for a project filename
+  QString file =
+      QFileDialog::getOpenFileName(
+        this, "Open Project ...", QString(),
+        "ITK-SNAP Project Files (*.snapprj)");
+
+  // If user hits cancel, move on
+  if(file.isNull())
+    return;
+
+  // Make sure to get an absolute path, because the project needs that info
+  QString file_abs = QFileInfo(file).absoluteFilePath();
+
+  // Try loading the image
+  try
+    {
+    // Change cursor for this operation
+    QtCursorOverride c(Qt::WaitCursor);
+    IRISWarningList warnings;
+
+    // Load the project
+    m_Model->GetDriver()->OpenProject(to_utf8(file_abs), warnings);
+    }
+  catch(exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Image IO Error",
+                             QString("Failed to load image %1").arg(file_abs));
+    }
 }

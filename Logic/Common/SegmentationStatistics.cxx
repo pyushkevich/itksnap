@@ -55,8 +55,8 @@ SegmentationStatistics
   m_ImageStatisticsColumnNames.clear();
 
   // Find all the images available for statistics computation
-  for(LayerIterator it(id, LayerIterator::MAIN_ROLE |
-                           LayerIterator::OVERLAY_ROLE);
+  for(LayerIterator it(id, MAIN_ROLE |
+                           OVERLAY_ROLE);
       !it.IsAtEnd(); ++it)
     {
     ScalarImageWrapperBase *lscalar = it.GetLayerAsScalar();

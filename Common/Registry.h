@@ -48,6 +48,7 @@
 #include <vector>
 
 #include "SNAPCommon.h"
+#include "itkXMLFile.h"
 
 inline Vector2d GetValueWithDefault(const std::string &source, bool isNull, Vector2d defaultValue)
 {
@@ -344,8 +345,11 @@ public:
   /** Get a list of all subfolder keys, append it to keyList */
   int GetFolderKeys(StringListType &keyList);
 
-  /** Check if a key exists */
-  bool HasKey(const StringType &key);
+  /** Check if an entry with the given key exists */
+  bool HasEntry(const StringType &key);
+
+  /** Check if a subfolder with the given key exists */
+  bool HasFolder(const StringType &key);
 
   /** Find a value in a folder or return "" */
   StringType FindValue(const StringType& value);
@@ -365,6 +369,9 @@ public:
    * header, each line of which must start with the '#" character  */
   void WriteToFile(const char *pathname, const char *header = NULL);
 
+  /** Write the Registry to an XML file */
+  void WriteToXMLFile(const char *pathname, const char *header = NULL);
+
   /**
    * Update the registry with keys from another registry
    */
@@ -375,6 +382,10 @@ public:
 
   /** Read from an std::ifstream */
   void ReadFromStream(std::istream &sin);
+
+  /** Read from XML file */
+  void ReadFromXMLFile(const char *pathname);
+
 
   /** Experimental */
   void SetFlagAddIfNotFound(bool yesno);
@@ -457,6 +468,9 @@ private:
   /** Write this folder recursively to a stream */
   void Write(std::ostream &sout,const StringType &keyPrefix);
 
+  /** Write this folder recursively to a stream in XML format */
+  void WriteXML(std::ostream &sout,const StringType &keyPrefix);
+
   /** Read this folder recursively from a stream, recording syntax errors */
   void Read(std::istream &sin, std::ostream &serr);
 
@@ -465,6 +479,16 @@ private:
 
   /** Decode a string for writing to file */
   static StringType Decode(const StringType &input);
+
+  /** Encode a string for writing to file */
+  static StringType EncodeXML(const StringType &input);
+
+  /** Decode a string for writing to file */
+  static StringType DecodeXML(const StringType &input);
 };
+
+
+#include <itkXMLFile.h>
+
 
 #endif

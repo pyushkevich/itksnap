@@ -241,11 +241,6 @@ public:
   /** Model for the preferences dialog */
   irisGetMacro(GlobalPreferencesModel, GlobalPreferencesModel *)
 
-  /** Load an image non-interactively through a delegate */
-  void LoadImageNonInteractive(const char *fname,
-                               AbstractLoadImageDelegate *delegate,
-                               IRISWarningList &wl);
-
   /**
     Check the state of the system. This class will issue StateChangeEvent()
     when one of the flags has changed. This method can be used together with
@@ -424,6 +419,7 @@ protected:
   // Callbacks for the opacity model
   bool GetSegmentationOpacityValueAndRange(int &value, NumericValueRange<int> *domain);
   void SetSegmentationOpacityValue(int value);
+
 };
 
 #endif // GLOBALUIMODEL_H

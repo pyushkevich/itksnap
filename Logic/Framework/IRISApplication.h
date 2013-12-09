@@ -61,6 +61,9 @@ class AbstractSlicePreviewFilterWrapper;
 class UnsupervisedClustering;
 class ImageWrapperBase;
 class MeshManager;
+class AbstractLoadImageDelegate;
+class IRISWarningList;
+
 
 template <class TTraits> class PresetManager;
 class ColorMapPresetTraits;
@@ -166,29 +169,43 @@ public:
    */
   bool IsSnakeModeLevelSetActive() const;
 
+  /**
+   * Load an image using a delegate object. The delegate specializes the behavior
+   * of this class to different layer roles (main image, overlay). The warnings
+   * generated in the course of the IO operation are stored in the passed in
+   * warning list object;
+   */
+  void LoadImageViaDelegate(const char *fname,
+                            AbstractLoadImageDelegate *del,
+                            IRISWarningList &wl);
+
+  /**
+   * Load an image for a particular role using the default delegate for this role.
+   * This convenience method is currently implemented for MAIN, OVERLAY and LABEL
+   * image types. This method loads the associated settings and metadata for the
+   * image either from the user's image associations directory (default) or from
+   * the provided Registry object.
+   */
+  void LoadImage(const char *fname, LayerRole role,
+                 IRISWarningList &wl, Registry *meta_data_reg = NULL);
+
   /** 
-   * Set a new main image for IRIS. This method is called to load either grey or
-   * RGB image data into IRISImageData. The parameter is the GuidedNativeImageIO,
-   * which holds an image in native format. The second parameter specified whether
-   * to force RGB or grey image, or to determine image type based on the data.
+   * Update the main image in IRIS. The first parameter is the IO object that
+   * has the image data loaded, and the second parameter is an optional pointer
+   * to a registry from which to read the metadata. If not provided, metadata
+   * will be read from the 'image association' files automatically generated
+   * as images are closed.
    */
-  void UpdateIRISMainImage(GuidedNativeImageIO *nativeIO);
+  void UpdateIRISMainImage(GuidedNativeImageIO *nativeIO, Registry *metadata = NULL);
 
   /**
-   * Add an overlay image into IRIS. This method is called to load either grey or
-   * RGB image data into IRISImageData. The parameter is the GuidedNativeImageIO,
-   * which holds an image in native format. The second parameter specified whether
-   * to force RGB or grey image, or to determine image type based on the data.
+   * Add an overlay image into IRIS.
    */
-  void AddIRISOverlayImage(GuidedNativeImageIO *nativeIO);
+  void AddIRISOverlayImage(GuidedNativeImageIO *nativeIO, Registry *metadata = NULL);
 
   /**
-   * Set a new grey image for the IRIS Image data.  This method is called when the
-   * grey image is loaded.  The prerequisite to this method is that the SNAP data
-   * not be active (CurrentImageData == IRISImageData).
+   * Remove a specific overlay
    */
-  void UnloadOverlays();
-  void UnloadOverlayLast();
   void UnloadOverlay(ImageWrapperBase *ovl);
   void UnloadMainImage();
 
@@ -408,30 +425,12 @@ public:
                      const Vector3d &ray, 
                      Vector3i &hit) const;
 
-  /**
-   * Load the main image from file. You can either specify that the main
-   * image is of a given type (grey vs. rgb) or you can let the program 
-   * decide dynamically, based on the number of components in the file
-   */
-  void LoadMainImage(const char *filename);
 
-  void LoadOverlayImage(const char *filename);
 
   /**
    * Check if there is an image currently loaded in SNAP.
    */
   bool IsMainImageLoaded() const;
-
-  /**
-   * This is the most high-level method to load a segmentation image. The
-   * segmentation image can only be loaded after the grey image has been 
-   * loaded and it must have the same dimensions
-   * 
-   * This function is deprecated and replaced by the more robust version
-   * in the ImageIOWizardLogic class!
-   *
-   */
-  void LoadLabelImageFile(const char *filename);
 
   /**
     Load label descriptions from file
@@ -508,6 +507,25 @@ public:
 
   /** Get the preset manager for color maps */
   irisGetMacro(ColorMapPresetManager, ColorMapPresetManager *)
+
+  // ----------------------- Project support ------------------------------
+
+  /**
+   * Save a project. This method requires that all the layers that can be
+   * saved in the project have a filename. The project will be written to
+   * the file in the Registry format. The name of the project will be stored.
+   *
+   * A project is reset (set to empty string) when a new main image is loaded.
+   */
+  void SaveProject(const std::string &proj_file);
+
+  /**
+   * Open an existing project.
+   */
+  void OpenProject(const std::string &proj_file, IRISWarningList &warn);
+
+  // --------------------- End project support ----------------------------
+
 
 protected:
 
@@ -589,6 +607,12 @@ protected:
   // State used in conjunction with BeginSegmentationUpdate/EndSegmentationUpdate
   std::string m_SegmentationUpdateName;
   unsigned int m_SegmentationChangeCount;
+
+  // Save metadata for a layer to the associations file
+  void SaveMetaDataAssociatedWithLayer(ImageWrapperBase *layer, int role,
+                                       Registry *override = NULL);
+  void LoadMetaDataAssociatedWithLayer(ImageWrapperBase *layer, int role,
+                                       Registry *override = NULL);
 
 };
 

@@ -94,6 +94,10 @@ extern const GreyType MAXGREYVAL;
 extern const GreyType MINGREYVAL;
 typedef itk::RGBPixel<unsigned char> RGBType;
 
+/************************************************************************/
+/* Enums that are common enough to declare them outside of a class      */
+/************************************************************************/
+
 // Coverage mode for draw-over operations
 enum CoverageModeType
 {
@@ -101,6 +105,17 @@ enum CoverageModeType
   PAINT_OVER_VISIBLE,
   PAINT_OVER_ONE
 };
+
+// Role played by an image layer.
+enum LayerRole
+{
+  MAIN_ROLE = 0x0001,
+  OVERLAY_ROLE = 0x0002,
+  SNAP_ROLE = 0x0004,
+  LABEL_ROLE = 0x0008,
+  NO_ROLE = 0x0010
+};
+
 
 // An atomic data type to represent draw-over state
 struct DrawOverFilter
@@ -186,6 +201,14 @@ public:
  */
 #define irisGetMacro(name,type) \
     virtual type Get##name () const { \
+    return this->m_##name; \
+}
+
+/**
+ * Get macro borrowed from VTK and modified.  Assumes m_ for private vars
+ */
+#define irisStaticGetMacro(name,type) \
+    static type Get##name () const { \
     return this->m_##name; \
 }
 

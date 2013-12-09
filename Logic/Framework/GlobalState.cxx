@@ -112,6 +112,9 @@ GlobalState
 
   // Default behaviors
   m_DefaultBehaviorSettings = DefaultBehaviorSettings::New();
+
+  // Project stuff
+  m_ProjectFilenameModel = NewSimpleConcreteProperty(std::string());
 }
 
 void GlobalState::SetDriver(IRISApplication *parent)

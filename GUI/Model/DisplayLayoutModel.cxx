@@ -183,7 +183,7 @@ void DisplayLayoutModel::UpdateSliceViewTiling()
     int n = 0;
     for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
       {
-      if(it.GetRole() == LayerIterator::MAIN_ROLE || !it.GetLayer()->IsSticky())
+      if(it.GetRole() == MAIN_ROLE || !it.GetLayer()->IsSticky())
         n++;
       }
 

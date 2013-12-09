@@ -79,14 +79,12 @@
 #include "GMMClassifyImageFilter.h"
 #include "DefaultBehaviorSettings.h"
 #include "ColorMapPresetManager.h"
-
+#include "ImageIODelegates.h"
 
 
 #include <stdio.h>
 #include <sstream>
 #include <iomanip>
-
-
 
 IRISApplication
 ::IRISApplication() 
@@ -318,34 +316,11 @@ IRISApplication
     }
 }
 
-void
-IRISApplication
-::UnloadOverlays()
-{
-  // unload all the overlays
-  m_IRISImageData->UnloadOverlays();
-
-  // Fire event
-  InvokeEvent(LayerChangeEvent());
-}
-
-void
-IRISApplication
-::UnloadOverlayLast()
-{
-  // unload the last overlay
-  m_IRISImageData->UnloadOverlayLast();
-
-  // for overlay, we don't want to change the cursor location
-  // just force the IRISSlicer to update
-  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
-
-  // Fire event
-  InvokeEvent(LayerChangeEvent());
-}
-
 void IRISApplication::UnloadOverlay(ImageWrapperBase *ovl)
 {
+  // Save the overlay associated settings
+  SaveMetaDataAssociatedWithLayer(ovl, OVERLAY_ROLE);
+
   // Unload this overlay
   m_IRISImageData->UnloadOverlay(ovl);
 
@@ -1400,7 +1375,7 @@ IRISApplication
 
 void
 IRISApplication
-::AddIRISOverlayImage(GuidedNativeImageIO *io)
+::AddIRISOverlayImage(GuidedNativeImageIO *io, Registry *metadata)
 {
   assert(!IsSnakeModeActive());
   assert(m_IRISImageData->IsMainLoaded());
@@ -1433,13 +1408,17 @@ IRISApplication
         m_IRISImageData->GetLastOverlay()->GetDisplayMapping()->GetColorMap(),
         deflt_preset);
 
+  // Read and apply the project-level settings associated with the main image
+  LoadMetaDataAssociatedWithLayer(
+        m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE, metadata);
+
   // Fire event
   InvokeEvent(LayerChangeEvent());
 }
 
 void
 IRISApplication
-::UpdateIRISMainImage(GuidedNativeImageIO *io)
+::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadata)
 {
   // This has to happen in 'pure' IRIS mode
   assert(!IsSnakeModeActive());
@@ -1460,6 +1439,9 @@ IRISApplication
   // Set the image as the current main anatomy image
   m_IRISImageData->SetMainImage(imgMain, icg, mapper);
 
+  // Set the filename and nickname of the image wrapper
+  m_IRISImageData->GetMain()->SetFileName(io->GetFileNameOfNativeImage());
+
   // TODO: the threshold settings should probably not be initialized here, but
   // when we are interacting with them. This way they can adapt to whatever
   // scalar representation is current.
@@ -1469,9 +1451,6 @@ IRISApplication
   //      m_IRISImageData->GetMain()->GetDefaultScalarRepresentation());
   m_EdgePreprocessingSettings->InitializeToDefaults();
 
-  // Set the filename and nickname of the image wrapper
-  m_IRISImageData->GetMain()->SetFileName(io->GetFileNameOfNativeImage());
-
   // Update the system's history list
   m_HistoryManager->UpdateHistory("MainImage", io->GetFileNameOfNativeImage(), false);
   m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), false);
@@ -1479,15 +1458,9 @@ IRISApplication
   // Reset the segmentation ROI
   m_GlobalState->SetSegmentationROI(io->GetNativeImage()->GetBufferedRegion());
 
-  // Try to load the settings associated with this main image
-  Registry associated;
-  if(m_SystemInterface->FindRegistryAssociatedWithFile(
-       io->GetFileNameOfNativeImage().c_str(), associated))
-    {
-    // Load the settings using RegistryIO
-    SNAPRegistryIO rio;
-    rio.ReadImageAssociatedSettings(associated, this, true, true, true, true);
-    }
+  // Read and apply the project-level settings associated with the main image
+  LoadMetaDataAssociatedWithLayer(
+        m_IRISImageData->GetMain(), MAIN_ROLE, metadata);
 
   // Fire the dimensions change event
   InvokeEvent(MainImageDimensionsChangeEvent());
@@ -1504,21 +1477,87 @@ IRISApplication
   m_UndoManager.Clear();
 }
 
-void IRISApplication::LoadMainImage(const char *filename)
+void IRISApplication::LoadMetaDataAssociatedWithLayer(
+    ImageWrapperBase *layer, int role, Registry *override)
 {
-  // Load the settings associated with this file
-  Registry regFull;
-  m_SystemInterface->FindRegistryAssociatedWithFile(filename, regFull);
-    
-  // Get the folder dealing with grey image properties
-  Registry &folder = regFull.Folder("Files.Grey");
+  Registry assoc, *folder;
 
-  // Create a native image IO object
-  GuidedNativeImageIO io;
-  io.ReadNativeImage(filename, folder);
 
-  // Do the work
-  UpdateIRISMainImage(&io);
+  if(override)
+    folder = override;
+  else if(m_SystemInterface->FindRegistryAssociatedWithFile(layer->GetFileName(), assoc))
+    {
+    LayerRole role_cast = (LayerRole) role;
+
+    // Determine the group under which the association is stored. This is to
+    // deal with the situation when the same image is loaded as a main and as
+    // a segmentation, for example
+    std::string roletype;
+    if(role_cast == MAIN_ROLE || role_cast == OVERLAY_ROLE)
+      roletype = "AnatomicImage";
+    else
+      roletype = SNAPRegistryIO::GetEnumMapLayerRole()[role_cast].c_str();
+
+    folder = &assoc.Folder(Registry::Key("Role[%s]", roletype.c_str()));
+    }
+  else
+    return;
+
+  // Read the image-level metadata (display map, etc) for the image
+  layer->ReadMetaData(folder->Folder("LayerMetaData"));
+
+  // Read and apply the project-level settings associated with the main image
+  if(role == MAIN_ROLE)
+    {
+    SNAPRegistryIO rio;
+    rio.ReadImageAssociatedSettings(folder->Folder("ProjectMetaData"), this, true, true, true, true);
+    }
+}
+
+
+void IRISApplication
+::SaveMetaDataAssociatedWithLayer(ImageWrapperBase *layer, int role, Registry *override)
+{
+  Registry assoc, *folder;
+
+  // Load the current associations for the main image
+  if(override)
+    {
+    folder = override;
+    }
+  else
+    {
+    m_SystemInterface->FindRegistryAssociatedWithFile(layer->GetFileName(), assoc);
+
+    LayerRole role_cast = (LayerRole) role;
+
+    // Determine the group under which the association is stored. This is to
+    // deal with the situation when the same image is loaded as a main and as
+    // a segmentation, for example
+    std::string roletype;
+    if(role_cast == MAIN_ROLE || role_cast == OVERLAY_ROLE)
+      roletype = "AnatomicImage";
+    else
+      roletype = SNAPRegistryIO::GetEnumMapLayerRole()[role_cast].c_str();
+
+    folder = &assoc.Folder(Registry::Key("Role[%s]", roletype.c_str()));
+    }
+
+  // TODO: enable this
+  // Write the metadata for the specific layer
+  layer->WriteMetaData(folder->Folder("LayerMetaData"));
+
+  // For the main image layer, write the project-level settings
+  if(role == MAIN_ROLE)
+    {
+    // Write the project-level associations
+    SNAPRegistryIO io;
+    io.WriteImageAssociatedSettings(this, folder->Folder("ProjectMetaData"));
+    }
+
+  // Save the settings
+  if(!override)
+    m_SystemInterface->AssociateRegistryWithFile(layer->GetFileName(), assoc);
 }
 
 void
@@ -1528,14 +1567,14 @@ IRISApplication
   // Save the settings for this image
   if(m_CurrentImageData->IsMainLoaded())
     {
-    std::string fnMain = m_CurrentImageData->GetMain()->GetFileName();
-    m_SystemInterface->AssociateCurrentSettingsWithCurrentImageFile(
-          fnMain.c_str(), this);
+    ImageWrapperBase *image = m_CurrentImageData->GetMain();
+    const char *fnMain = image->GetFileName();
+
+    // Write the image-level and project-level associations
+    SaveMetaDataAssociatedWithLayer(image, MAIN_ROLE);
 
     // Create a thumbnail from the one of the image slices
-    string fnThumb =
-        m_SystemInterface->GetThumbnailAssociatedWithFile(fnMain.c_str());
-
+    std::string fnThumb = m_SystemInterface->GetThumbnailAssociatedWithFile(fnMain);
     m_CurrentImageData->GetMain()->WriteThumbnail(fnThumb.c_str(), 128);
     }
 
@@ -1549,6 +1588,204 @@ IRISApplication
   InvokeEvent(MainImageDimensionsChangeEvent());
 }
 
+void IRISApplication
+::LoadImageViaDelegate(const char *fname,
+                       AbstractLoadImageDelegate *del,
+                       IRISWarningList &wl)
+{
+  // Load the settings associated with this file
+  Registry reg;
+  m_SystemInterface->FindRegistryAssociatedWithFile(fname, reg);
+
+  // Get the folder dealing with grey image properties
+  Registry &folder = reg.Folder("Files.Grey");
+
+  // Create a native image IO object
+  GuidedNativeImageIO io;
+
+  // Load the header of the image
+  io.ReadNativeImageHeader(fname, folder);
+
+  // Validate the header
+  del->ValidateHeader(&io, wl);
+
+  // Unload the current image data
+  del->UnloadCurrentImage();
+
+  // Read the image body
+  io.ReadNativeImageData();
+
+  // Validate the image data
+  del->ValidateImage(&io, wl);
+
+  // Put the image in the right place
+  del->UpdateApplicationWithImage(&io);
+}
+
+void IRISApplication
+::LoadImage(const char *fname, LayerRole role,
+            IRISWarningList &wl, Registry *meta_data_reg)
+{
+  // Pointer to the delegate
+  SmartPtr<AbstractLoadImageDelegate> delegate;
+
+  switch(role)
+    {
+    case MAIN_ROLE:
+      delegate = LoadMainImageDelegate::New().GetPointer();
+      break;
+    case OVERLAY_ROLE:
+      delegate = LoadOverlayImageDelegate::New().GetPointer();
+      break;
+    case LABEL_ROLE:
+      delegate = LoadSegmentationImageDelegate::New().GetPointer();
+      break;
+    default:
+      throw IRISException("LoadImage does not support role %d", role);
+    }
+
+  delegate->Initialize(this);
+  if(meta_data_reg)
+    delegate->SetMetaDataRegistry(meta_data_reg);
+  this->LoadImageViaDelegate(fname, delegate, wl);
+}
+
+
+
+void IRISApplication::SaveProject(const std::string &proj_file)
+{
+  // Header for ITK-SNAP projects
+  static const char *header =
+      "ITK-SNAP (itksnap.org) Project File\n"
+      "\n"
+      "This file can be moved/copied along with the images that it references\n"
+      "as long as the relative location of the images to the project file is \n"
+      "the same. Do not modify the SaveLocation entry, or this will not work.\n";
+
+  // Get the full name of the project file
+  std::string proj_file_full = itksys::SystemTools::CollapseFullPath(proj_file.c_str());
+
+  // Get the directory in which the project will be saved
+  std::string project_dir = itksys::SystemTools::GetParentDirectory(proj_file_full.c_str());
+
+  // Create a registry that will be used to save the project
+  Registry preg;
+
+  // Put version information - later versions may not be compatible
+  preg["Version"] << SNAPCurrentVersionReleaseDate;
+
+  // Save the directory to the project file. This allows us to deal with the project
+  // being moved elsewhere in the filesystem
+  preg["SaveLocation"] << project_dir;
+
+  // Save each of the layers with 'saveable' roles
+  LayerIterator it = GetCurrentImageData()->GetLayers(
+        MAIN_ROLE | LABEL_ROLE | OVERLAY_ROLE);
+
+  int i = 0;
+  while(!it.IsAtEnd())
+    {
+    ImageWrapperBase *layer = it.GetLayer();
+
+    // The UI is responsible for making sure that the layer does not have unsaved changes
+    assert(!layer->HasUnsavedChanges());
+
+    // Get the filename of the layer
+    const char *filename = layer->GetFileName();
+
+    // Get the full name of the image file
+    std::string layer_file_full = itksys::SystemTools::CollapseFullPath(filename);
+
+    // Create a folder for this layer
+    Registry &folder = preg.Folder(Registry::Key("Layers.Layer[%03d]", i));
+
+    // Put the filename and relative filename into the folder
+    folder["AbsolutePath"] << layer_file_full;
+
+    // Put the role associated with the file into the folder
+    folder["Role"].PutEnum(SNAPRegistryIO::GetEnumMapLayerRole(), it.GetRole());
+
+    // Save the metadata associated with the layer
+    SaveMetaDataAssociatedWithLayer(layer, it.GetRole(), &folder);
+
+    // On to the next layer
+    ++it; ++i;
+    }
+
+  // Finally, save the registry
+  preg.WriteToXMLFile(proj_file_full.c_str(), header);
+
+  // Save the project filename
+  m_GlobalState->SetProjectFilename(proj_file_full.c_str());
+}
+
+void IRISApplication::OpenProject(
+    const std::string &proj_file, IRISWarningList &warn)
+{
+  // Load the registry file
+  Registry preg;
+  preg.ReadFromXMLFile(proj_file.c_str());
+
+  // Get the full name of the project file
+  std::string proj_file_full = itksys::SystemTools::CollapseFullPath(proj_file.c_str());
+
+  // Get the directory in which the project will be saved
+  std::string project_dir = itksys::SystemTools::GetParentDirectory(proj_file_full.c_str());
+
+  // Read the location where the file was saved initially
+  std::string project_save_dir = preg["SaveLocation"][""];
+
+  // If the locations are different, we will attempt to find relative paths first
+  bool moved = (project_save_dir != project_dir);
+
+  // Read all the layers
+  std::string key;
+  for(int i = 0;
+      preg.HasFolder(key = Registry::Key("Layers.Layer[%03d]", i));
+      i++)
+    {
+    // Get the key for the next image
+    Registry &folder = preg.Folder(key);
+
+    // Read the role
+    LayerRole role = folder["Role"].GetEnum(
+          SNAPRegistryIO::GetEnumMapLayerRole(), NO_ROLE);
+
+    // Validate the role
+    if(role == MAIN_ROLE && i != 0)
+      throw IRISException("Layer %d in a project may not be of type 'Main Image'", i);
+
+    if(role != MAIN_ROLE && i == 0)
+      throw IRISException("Layer 0 in a project must be of type 'Main Image'");
+
+    if(role != MAIN_ROLE && role != LABEL_ROLE
+       && role != OVERLAY_ROLE)
+      throw IRISException("Layer %d has an unrecognized type", i);
+
+    // Get the filenames for the layer
+    std::string layer_file_full = folder["AbsolutePath"][""];
+
+    // If the project has moved, try finding a relative location
+    if(moved)
+      {
+      std::string relative_path = itksys::SystemTools::RelativePath(
+            project_save_dir.c_str(), layer_file_full.c_str());
+
+      std::string moved_file_full = itksys::SystemTools::CollapseFullPath(
+            relative_path.c_str(), project_dir.c_str());
+
+      if(itksys::SystemTools::FileExists(moved_file_full.c_str(), true))
+        layer_file_full = moved_file_full;
+      }
+
+    // Load the image and its metadata
+    LoadImage(layer_file_full.c_str(), role, warn, &folder);
+    }
+}
+
+
+
+
 void IRISApplication::Quit()
 {
   if(IsSnakeModeActive())
@@ -1558,27 +1795,16 @@ void IRISApplication::Quit()
     ReleaseSNAPImageData();
     }
 
-  UnloadOverlays();
+  // Delete all the overlays
+  LayerIterator itovl = m_CurrentImageData->GetLayers(OVERLAY_ROLE);
+  while(!itovl.IsAtEnd())
+    {
+    UnloadOverlay(itovl.GetLayer());
+    itovl = m_CurrentImageData->GetLayers(OVERLAY_ROLE);
+    }
+
+  // Unload the main image
   UnloadMainImage();
-}
-
-void
-IRISApplication
-::LoadOverlayImage(const char *filename)
-{
-  // Load the settings associated with this file
-  Registry regFull;
-  m_SystemInterface->FindRegistryAssociatedWithFile(filename, regFull);
-    
-  // Get the folder dealing with grey image properties
-  Registry &folder = regFull.Folder("Files.Grey");
-
-  // Create a native image IO object
-  GuidedNativeImageIO io;
-  io.ReadNativeImage(filename, folder);
-
-  // Detemine the type
-  AddIRISOverlayImage(&io);
 }
 
 bool IRISApplication::IsMainImageLoaded() const
@@ -1623,26 +1849,6 @@ IRISApplication
   m_GlobalState->SetRGBFileName(filename);  
 }
 */
-
-void 
-IRISApplication
-::LoadLabelImageFile(const char *filename)
-{
-  // Load the settings associated with this file
-  Registry regFull;
-  m_SystemInterface->FindRegistryAssociatedWithFile(filename, regFull);
-
-  // Get the folder dealing with grey image properties
-  // TODO: Figure out something about this!!!
-  Registry &regGrey = regFull.Folder("Files.Grey");
-
-  // Read the image in native format
-  GuidedNativeImageIO io;
-  io.ReadNativeImage(filename, regGrey);
-
-  // Set the image as the current grayscale image
-  UpdateIRISSegmentationImage(&io);
-}
 
 void 
 IRISApplication

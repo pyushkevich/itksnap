@@ -1190,6 +1190,34 @@ ImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::WriteMetaData(Registry &reg)
+{
+  // Save the display mapping
+  m_DisplayMapping->Save(reg.Folder("DisplayMapping"));
+
+  // Save the alpha and the stickiness
+  reg["Alpha"] << m_Alpha;
+  reg["Sticky"] << m_Sticky;
+  reg["CustomNickName"] << m_CustomNickname;
+}
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::ReadMetaData(Registry &reg)
+{
+  // Load the display mapping
+  m_DisplayMapping->Restore(reg.Folder("DisplayMapping"));
+
+  // Load the alpha and the stickiness
+  this->SetAlpha(reg["Alpha"][m_Alpha]);
+  this->SetSticky(reg["Sticky"][m_Sticky]);
+  this->SetCustomNickname(reg["CustomNickName"][m_CustomNickname]);
+}
+
+template<class TTraits, class TBase>
 bool
 ImageWrapper<TTraits,TBase>
 ::HasUnsavedChanges() const

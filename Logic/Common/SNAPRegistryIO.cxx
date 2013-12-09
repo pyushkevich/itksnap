@@ -47,6 +47,12 @@
 #include "ThresholdSettings.h"
 #include "IntensityCurveInterface.h"
 
+RegistryEnumMap<CoverageModeType> SNAPRegistryIO::m_EnumMapCoverage;
+RegistryEnumMap<SnakeParameters::SolverType> SNAPRegistryIO::m_EnumMapSolver;
+RegistryEnumMap<SnakeParameters::SnakeType> SNAPRegistryIO::m_EnumMapSnakeType;
+RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> SNAPRegistryIO::m_EnumMapROI;
+RegistryEnumMap<LayerRole> SNAPRegistryIO::m_EnumMapLayerRole;
+
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #endif
@@ -56,30 +62,7 @@ using namespace std;
 SNAPRegistryIO
 ::SNAPRegistryIO()
 {
-  // Set up the enum objects
-  m_EnumMapCoverage.AddPair(PAINT_OVER_ALL,"OverAll");
-  m_EnumMapCoverage.AddPair(PAINT_OVER_VISIBLE,"OverVisible");
-  m_EnumMapCoverage.AddPair(PAINT_OVER_ONE,"OverOne");
-
-  m_EnumMapSolver.AddPair(SnakeParameters::DENSE_SOLVER,"Dense");
-  m_EnumMapSolver.AddPair(SnakeParameters::LEGACY_SOLVER,"Legacy");
-  m_EnumMapSolver.AddPair(SnakeParameters::SPARSE_FIELD_SOLVER,"SparseField");
-  m_EnumMapSolver.AddPair(SnakeParameters::NARROW_BAND_SOLVER,"NarrowBand");
-  m_EnumMapSolver.AddPair(SnakeParameters::PARALLEL_SPARSE_FIELD_SOLVER,
-                              "ParallelSparseField");
-
-  m_EnumMapSnakeType.AddPair(SnakeParameters::EDGE_SNAKE,"EdgeStopping");
-  m_EnumMapSnakeType.AddPair(SnakeParameters::REGION_SNAKE,"RegionCompetition");
-
-  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::NEAREST_NEIGHBOR,"Nearest");
-  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::TRILINEAR,"TriLinear");
-  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::TRICUBIC,"Cubic");
-  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::SINC_WINDOW_05,"Sinc05");
-
-
-
-
-
+  BuildEnums();
 }
 
 /** Read snake parameters from a registry */
@@ -189,6 +172,36 @@ SNAPRegistryIO
     sub["Size"] << in.GetROI().GetSize(d);
     }
   folder["InterpolationMethod"].PutEnum(m_EnumMapROI,in.GetInterpolationMethod());
+}
+
+RegistryEnumMap<CoverageModeType> &SNAPRegistryIO::GetEnumMapCoverage()
+{
+  BuildEnums();
+  return m_EnumMapCoverage;
+}
+
+RegistryEnumMap<SnakeParameters::SolverType> &SNAPRegistryIO::GetEnumMapSolver()
+{
+  BuildEnums();
+  return m_EnumMapSolver;
+}
+
+RegistryEnumMap<SnakeParameters::SnakeType> &SNAPRegistryIO::GetEnumMapSnakeType()
+{
+  BuildEnums();
+  return m_EnumMapSnakeType;
+}
+
+RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> &SNAPRegistryIO::GetEnumMapROI()
+{
+  BuildEnums();
+  return m_EnumMapROI;
+}
+
+RegistryEnumMap<LayerRole> &SNAPRegistryIO::GetEnumMapLayerRole()
+{
+  BuildEnums();
+  return m_EnumMapLayerRole;
 }
 
 SNAPSegmentationROISettings 
@@ -394,4 +407,36 @@ SNAPRegistryIO
 
   // Done!
   return true;
+}
+
+void SNAPRegistryIO::BuildEnums()
+{
+  if(m_EnumMapCoverage.Size())
+    return;
+
+  // Set up the enum objects
+  m_EnumMapCoverage.AddPair(PAINT_OVER_ALL,"OverAll");
+  m_EnumMapCoverage.AddPair(PAINT_OVER_VISIBLE,"OverVisible");
+  m_EnumMapCoverage.AddPair(PAINT_OVER_ONE,"OverOne");
+
+  m_EnumMapSolver.AddPair(SnakeParameters::DENSE_SOLVER,"Dense");
+  m_EnumMapSolver.AddPair(SnakeParameters::LEGACY_SOLVER,"Legacy");
+  m_EnumMapSolver.AddPair(SnakeParameters::SPARSE_FIELD_SOLVER,"SparseField");
+  m_EnumMapSolver.AddPair(SnakeParameters::NARROW_BAND_SOLVER,"NarrowBand");
+  m_EnumMapSolver.AddPair(SnakeParameters::PARALLEL_SPARSE_FIELD_SOLVER,
+                              "ParallelSparseField");
+
+  m_EnumMapSnakeType.AddPair(SnakeParameters::EDGE_SNAKE,"EdgeStopping");
+  m_EnumMapSnakeType.AddPair(SnakeParameters::REGION_SNAKE,"RegionCompetition");
+
+  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::NEAREST_NEIGHBOR,"Nearest");
+  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::TRILINEAR,"TriLinear");
+  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::TRICUBIC,"Cubic");
+  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::SINC_WINDOW_05,"Sinc05");
+
+  m_EnumMapLayerRole.AddPair(MAIN_ROLE, "MainRole");
+  m_EnumMapLayerRole.AddPair(OVERLAY_ROLE, "OverlayRole");
+  m_EnumMapLayerRole.AddPair(LABEL_ROLE, "SegmentationRole");
+  m_EnumMapLayerRole.AddPair(SNAP_ROLE, "SnakeModeRole");
+  m_EnumMapLayerRole.AddPair(NO_ROLE, "InvalidRole");
 }

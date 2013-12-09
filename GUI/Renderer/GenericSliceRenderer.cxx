@@ -259,11 +259,11 @@ bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int i
     for(LayerIterator it(id); !it.IsAtEnd(); ++it)
       {
       ImageWrapperBase *layer = it.GetLayer();
-      if(it.GetRole() == LayerIterator::MAIN_ROLE)
+      if(it.GetRole() == MAIN_ROLE)
         {
         DrawTextureForLayer(layer, false);
         }
-      else if(it.GetRole() != LayerIterator::LABEL_ROLE
+      else if(it.GetRole() != LABEL_ROLE
               && layer->IsDrawable() && layer->GetAlpha() > 0)
         {
         DrawTextureForLayer(it.GetLayer(), true);
@@ -287,7 +287,7 @@ bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int i
     // Now draw all the non-sticky layers
     for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
       {
-      if(itov.GetRole() != LayerIterator::MAIN_ROLE
+      if(itov.GetRole() != MAIN_ROLE
          && itov.GetLayer()->IsSticky()
          && itov.GetLayer()->IsDrawable()
          && itov.GetLayer()->GetAlpha() > 0)
@@ -314,7 +314,7 @@ ImageWrapperBase *GenericSliceRenderer::GetLayerForNthTile(int row, int col)
   // Skip all layers until we get to the sticky layer we want to paint
   for(LayerIterator it(m_Model->GetImageData()); !it.IsAtEnd(); ++it)
     {
-    if(it.GetRole() == LayerIterator::MAIN_ROLE || !it.GetLayer()->IsSticky())
+    if(it.GetRole() == MAIN_ROLE || !it.GetLayer()->IsSticky())
       {
       if(togo == 0)
         return it.GetLayer()->IsDrawable() ? it.GetLayer() : NULL;
@@ -339,7 +339,7 @@ void GenericSliceRenderer::DrawMainTexture()
   // Draw each of the overlays
   if (!m_ThumbnailDrawing)
     {
-    for(LayerIterator it(id, LayerIterator::OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+    for(LayerIterator it(id, OVERLAY_ROLE); !it.IsAtEnd(); ++it)
       DrawTextureForLayer(it.GetLayer(), true);
     }
 }

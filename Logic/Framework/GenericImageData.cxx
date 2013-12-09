@@ -51,6 +51,7 @@
 #include "SNAPEventListenerCallbacks.h"
 #include "GenericImageData.h"
 #include "Rebroadcaster.h"
+#include "LayerIterator.h"
 
 // System includes
 #include <fstream>
@@ -82,8 +83,8 @@ GenericImageData
   m_LabelWrapper = NULL;
   
   // Add to the relevant lists
-  m_Wrappers[LayerIterator::MAIN_ROLE].push_back(m_MainImageWrapper);
-  m_Wrappers[LayerIterator::LABEL_ROLE].push_back(m_LabelWrapper.GetPointer());
+  m_Wrappers[MAIN_ROLE].push_back(m_MainImageWrapper);
+  m_Wrappers[LABEL_ROLE].push_back(m_LabelWrapper.GetPointer());
 }
 
 GenericImageData
@@ -121,17 +122,19 @@ GenericImageData
   // Set properties
   wrapper->SetImage(image);
   wrapper->SetNativeMapping(native);
+  wrapper->SetDefaultNickname("Main Image");
 
   // Make the wrapper the main image
-  SetSingleImageWrapper(LayerIterator::MAIN_ROLE, wrapper.GetPointer());
+  SetSingleImageWrapper(MAIN_ROLE, wrapper.GetPointer());
   m_MainImageWrapper = wrapper;
 
   // Initialize the segmentation data to zeros
   m_LabelWrapper = LabelImageWrapper::New();
   m_LabelWrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
+  m_LabelWrapper->SetDefaultNickname("Segmentation Image");
 
   m_LabelWrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
-  SetSingleImageWrapper(LayerIterator::LABEL_ROLE, m_LabelWrapper.GetPointer());
+  SetSingleImageWrapper(LABEL_ROLE, m_LabelWrapper.GetPointer());
 
   // Set opaque
   m_MainImageWrapper->SetAlpha(255);
@@ -148,11 +151,11 @@ GenericImageData
   UnloadOverlays();
 
   // Clear the main image wrappers
-  RemoveSingleImageWrapper(LayerIterator::MAIN_ROLE);
+  RemoveSingleImageWrapper(MAIN_ROLE);
   m_MainImageWrapper = NULL;
 
   // Reset the label wrapper
-  RemoveSingleImageWrapper(LayerIterator::LABEL_ROLE);
+  RemoveSingleImageWrapper(LABEL_ROLE);
   m_LabelWrapper = NULL;
 }
 
@@ -174,6 +177,7 @@ GenericImageData
   overlay->SetImage(image);
   overlay->SetNativeMapping(native);
   overlay->SetAlpha(0.5);
+  overlay->SetDefaultNickname("Main Image");
 
   // Sync up spacing between the main and overlay image
   overlay->GetImageBase()->SetSpacing(
@@ -193,14 +197,14 @@ GenericImageData
     }
 
   // Add to the overlay wrapper list
-  PushBackImageWrapper(LayerIterator::OVERLAY_ROLE, overlay.GetPointer());
+  PushBackImageWrapper(OVERLAY_ROLE, overlay.GetPointer());
 }
 
 void
 GenericImageData
 ::UnloadOverlays()
 {
-  while (m_Wrappers[LayerIterator::OVERLAY_ROLE].size() > 0)
+  while (m_Wrappers[OVERLAY_ROLE].size() > 0)
     UnloadOverlayLast();
 }
 
@@ -213,14 +217,14 @@ GenericImageData
     return;
 
   // Release the data associated with the last overlay
-  PopBackImageWrapper(LayerIterator::OVERLAY_ROLE);
+  PopBackImageWrapper(OVERLAY_ROLE);
 }
 
 void GenericImageData
 ::UnloadOverlay(ImageWrapperBase *overlay)
 {
   // Erase the overlay
-  WrapperList &overlays = m_Wrappers[LayerIterator::OVERLAY_ROLE];
+  WrapperList &overlays = m_Wrappers[OVERLAY_ROLE];
   WrapperIterator it =
       std::find(overlays.begin(), overlays.end(), overlay);
   if(it != overlays.end())
@@ -250,7 +254,7 @@ bool
 GenericImageData
 ::IsOverlayLoaded()
 {
-  return (m_Wrappers[LayerIterator::OVERLAY_ROLE].size() > 0);
+  return (m_Wrappers[OVERLAY_ROLE].size() > 0);
 }
 
 bool
@@ -338,7 +342,7 @@ GenericImageData
 
 ImageWrapperBase *GenericImageData::GetLastOverlay()
 {
-  return m_Wrappers[LayerIterator::OVERLAY_ROLE].back();
+  return m_Wrappers[OVERLAY_ROLE].back();
 }
 
 
@@ -404,220 +408,4 @@ void GenericImageData::RemoveSingleImageWrapper(LayerRole role)
 
 
 
-
-
-LayerIterator
-::LayerIterator(
-    GenericImageData *data, int role_filter)
-{
-  // Store the source information
-  m_ImageData = data;
-  m_RoleFilter = role_filter;
-
-  // Populate role names
-  if(m_RoleDefaultNames.size() == 0)
-    {
-    m_RoleDefaultNames.insert(std::make_pair(MAIN_ROLE, "Main Image"));
-    m_RoleDefaultNames.insert(std::make_pair(OVERLAY_ROLE, "Overlay"));
-    m_RoleDefaultNames.insert(std::make_pair(LABEL_ROLE, "Segmentation"));
-    m_RoleDefaultNames.insert(std::make_pair(SNAP_ROLE, "SNAP Image"));
-    }
-
-  // Move to the beginning
-  MoveToBegin();
-}
-
-LayerIterator& LayerIterator
-::MoveToBegin()
-{
-  // Initialize to point to the first wrapper in the first role, even if
-  // this is an invalid configuration
-  m_RoleIter = m_ImageData->m_Wrappers.begin();
-  if(m_RoleIter != m_ImageData->m_Wrappers.end())
-    m_WrapperInRoleIter = m_RoleIter->second.begin();
-
-  // Move up until we find a valid role or end
-  while(!IsAtEnd() && !IsPointingToListableLayer())
-    {
-    MoveToNextTrialPosition();
-    }
-
-  return *this;
-}
-
-bool LayerIterator
-::IsAtEnd() const
-{
-  // We are at end when there are no roles left
-  return m_RoleIter == m_ImageData->m_Wrappers.end();
-}
-
-
-LayerIterator& LayerIterator
-::MoveToEnd()
-{
-  m_RoleIter = m_ImageData->m_Wrappers.end();
-  return *this;
-}
-
-LayerIterator& LayerIterator
-::Find(ImageWrapperBase *value)
-{
-  // Just a linear search - we won't have so many wrappers!
-  MoveToBegin();
-  while(!this->IsAtEnd() && this->GetLayer() != value)
-    ++(*this);
-  return *this;
-}
-
-void LayerIterator::MoveToNextTrialPosition()
-{
-  // If we are at the end of storage, that's it
-  if(m_RoleIter == m_ImageData->m_Wrappers.end())
-    return;
-
-  // If we are at the end of a chain of wrappers, or if the current role
-  // is not a valid role, go to the start of the next role
-  else if(m_WrapperInRoleIter == m_RoleIter->second.end() ||
-     !(m_RoleFilter & m_RoleIter->first))
-    {
-    ++m_RoleIter;
-    if(m_RoleIter != m_ImageData->m_Wrappers.end())
-      m_WrapperInRoleIter = m_RoleIter->second.begin();
-
-    }
-
-  // Otherwise, advance the iterator in the wrapper chain
-  else
-    ++m_WrapperInRoleIter;
-}
-
-bool LayerIterator::IsPointingToListableLayer() const
-{
-  // I split this up for debugging
-
-  // Are we at end of roles?
-  if(m_RoleIter == m_ImageData->m_Wrappers.end())
-    return false;
-
-  // Are we in a valid role?
-  GenericImageData::LayerRole lr = m_RoleIter->first;
-  if((m_RoleFilter & lr) == 0)
-    return false;
-
-  // In our role, are we at the end?
-  if(m_WrapperInRoleIter == m_RoleIter->second.end())
-    return false;
-
-  // Is the layer null?
-  if((*m_WrapperInRoleIter).IsNull())
-    return false;
-
-  return true;
-}
-
-LayerIterator &
-LayerIterator::operator ++()
-{
-  do
-    {
-    MoveToNextTrialPosition();
-    }
-  while(!IsAtEnd() && !IsPointingToListableLayer());
-
-  return *this;
-}
-
-LayerIterator &
-LayerIterator::operator +=(int k)
-{
-  for(int i = 0; i < k; i++)
-    ++(*this);
-  return *this;
-}
-
-ImageWrapperBase * LayerIterator::GetLayer() const
-{
-  assert(IsPointingToListableLayer());
-  return (*m_WrapperInRoleIter);
-}
-
-ScalarImageWrapperBase * LayerIterator::GetLayerAsScalar() const
-{
-  return dynamic_cast<ScalarImageWrapperBase *>(this->GetLayer());
-}
-
-VectorImageWrapperBase * LayerIterator::GetLayerAsVector() const
-{
-  return dynamic_cast<VectorImageWrapperBase *>(this->GetLayer());
-}
-
-LayerIterator::LayerRole
-LayerIterator::GetRole() const
-{
-  assert(IsPointingToListableLayer());
-  return m_RoleIter->first;
-}
-
-int LayerIterator::GetPositionInRole() const
-{
-  return (int)(m_WrapperInRoleIter - m_RoleIter->second.begin());
-}
-
-int LayerIterator::GetNumberOfLayersInRole()
-{
-  assert(IsPointingToListableLayer());
-  return m_RoleIter->second.size();
-}
-
-bool LayerIterator::IsFirstInRole() const
-{
-  assert(IsPointingToListableLayer());
-  int pos = m_WrapperInRoleIter - m_RoleIter->second.begin();
-  return (pos == 0);
-}
-
-bool LayerIterator::IsLastInRole() const
-{
-  assert(IsPointingToListableLayer());
-  int pos = m_WrapperInRoleIter - m_RoleIter->second.begin();
-  return (pos == m_RoleIter->second.size() - 1);
-}
-
-bool LayerIterator::operator ==(const LayerIterator &it)
-{
-  // Two iterators are equal if they both point to the same location
-  // or both are at the end.
-  if(this->IsAtEnd())
-    return it.IsAtEnd();
-  else if(it.IsAtEnd())
-    return false;
-  else
-    return this->GetLayer() == it.GetLayer();
-}
-
-bool LayerIterator::operator !=(const LayerIterator &it)
-{
-  return !((*this) == it);
-}
-
-std::map<LayerIterator::LayerRole, std::string> LayerIterator::m_RoleDefaultNames;
-
-
-void LayerIterator::Print(const char *what) const
-{
-  std::cout << "LI with filter " << m_RoleFilter << " operation " << what << std::endl;
-  if(this->IsAtEnd())
-    {
-    std::cout << "  AT END" << std::endl;
-    }
-  else
-    {
-    std::cout << "  Role:         " << m_RoleDefaultNames[this->GetRole()] << std::endl;
-    std::cout << "  Pos. in Role: "
-              << (int)(m_WrapperInRoleIter - m_RoleIter->second.begin()) << " of "
-              << (int) m_RoleIter->second.size() << std::endl;
-    std::cout << "  Valid:        " << this->IsPointingToListableLayer() << std::endl;
-    }
-}
 

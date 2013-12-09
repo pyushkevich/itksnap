@@ -7,7 +7,7 @@
 #include "IRISException.h"
 #include <vector>
 
-class GlobalUIModel;
+class IRISApplication;
 class IRISWarningList;
 class ImageWrapperBase;
 
@@ -25,8 +25,19 @@ public:
 
   irisITKAbstractObjectMacro(AbstractLoadImageDelegate, itk::Object)
 
-  virtual void Initialize(GlobalUIModel *model)
-    { m_Model = model; }
+  virtual void Initialize(IRISApplication *driver)
+    { m_Driver = driver; }
+
+  /**
+   * Set the registry that will be used to load image-level and project-level
+   * metadata associated with the image. If the registry is not specified, the
+   * code will attempt to load it from the automatically created image
+   * association files (created every time an image is closed). The registry
+   * should contain a folder LayerMetaData for the layer-specific stuff (e.g.,
+   * colormap, etc). For layers in the "MAIN Image" role, it can contain a
+   * folder "ProjectMetaData" as well.
+   */
+  irisGetSetMacro(MetaDataRegistry, Registry *)
 
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) {}
@@ -34,10 +45,13 @@ public:
   virtual void UpdateApplicationWithImage(GuidedNativeImageIO *io) = 0;
 
 protected:
-  AbstractLoadImageDelegate() {}
+  AbstractLoadImageDelegate() : m_MetaDataRegistry(NULL) {}
   virtual ~AbstractLoadImageDelegate() {}
 
-  GlobalUIModel *m_Model;
+  IRISApplication *m_Driver;
+
+private:
+  Registry *m_MetaDataRegistry;
 };
 
 class LoadAnatomicImageDelegate : public AbstractLoadImageDelegate
@@ -106,8 +120,8 @@ public:
 
   irisITKAbstractObjectMacro(AbstractSaveImageDelegate, itk::Object)
 
-  virtual void Initialize(GlobalUIModel *model)
-    { m_Model = model; m_SaveSuccessful = false; }
+  virtual void Initialize(IRISApplication *driver)
+    { m_Driver = driver; m_SaveSuccessful = false; }
 
   virtual void SaveImage(
       const std::string &fname,
@@ -126,7 +140,7 @@ protected:
   AbstractSaveImageDelegate() {}
   virtual ~AbstractSaveImageDelegate() {}
 
-  GlobalUIModel *m_Model;
+  IRISApplication *m_Driver;
   bool m_SaveSuccessful;
 };
 
@@ -135,7 +149,7 @@ class DefaultSaveImageDelegate : public AbstractSaveImageDelegate
 public:
   irisITKObjectMacro(DefaultSaveImageDelegate, AbstractSaveImageDelegate)
 
-  virtual void Initialize(GlobalUIModel *model,
+  virtual void Initialize(IRISApplication *driver,
                           ImageWrapperBase *wrapper,
                           const std::string &histname,
                           bool trackInLocalHistory = true);

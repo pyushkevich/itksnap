@@ -239,7 +239,7 @@ void SnakeWizardModel::OnUpdate()
     {
     m_ComponentInfo.clear();
     LayerIterator it = m_Driver->GetSNAPImageData()->GetLayers(
-          LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+          MAIN_ROLE | OVERLAY_ROLE);
     for(; !it.IsAtEnd(); ++it)
       {
       if(VectorImageWrapperBase *viw = it.GetLayerAsVector())
@@ -454,7 +454,7 @@ bool SnakeWizardModel::GetThresholdActiveLayerValueAndRange(unsigned long &value
       {
       range->clear();
       for(LayerIterator it = m_Driver->GetSNAPImageData()->GetLayers(
-            LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+            MAIN_ROLE | OVERLAY_ROLE);
           !it.IsAtEnd(); ++it)
         {
         (*range)[it.GetLayer()->GetUniqueId()] = it.GetLayer()->GetNickname();

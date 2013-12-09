@@ -446,9 +446,22 @@ public:
   void WriteThumbnail(const char *filename, unsigned int maxdim);
 
   /**
+   * Save metadata to a Registry file. The metadata are data that are not
+   * contained in the image header are need to be restored when the image
+   * is reloaded. Currently, this mainly includes the display mapping, but
+   * also the transparency, etc.
+   */
+  virtual void WriteMetaData(Registry &reg);
+
+  /**
+   * Restore metadata from a registry
+   */
+  virtual void ReadMetaData(Registry &reg);
+
+  /**
    * Check if the image has unsaved changes
    */
-  bool HasUnsavedChanges() const;
+  virtual bool HasUnsavedChanges() const;
 
   /**
    * The image wrapper has a generic mechanism for associating data with it.

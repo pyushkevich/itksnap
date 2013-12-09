@@ -85,7 +85,7 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   m_Driver = IRISApplication::New();
   m_Driver->GetSystemInterface()->SetSystemInfoDelegate(sid);
 
-  // Initialize the properties
+  // Initialize the propertiess
   m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
   m_ToolbarMode3DModel = NewSimpleConcreteProperty(TRACKBALL_MODE);
 
@@ -140,8 +140,8 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   m_LoadedLayersSelectionModel = LayerSelectionModel::New();
   m_LoadedLayersSelectionModel->SetParentModel(this);
   m_LoadedLayersSelectionModel->SetRoleFilter(
-        LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE |
-        LayerIterator::SNAP_ROLE);
+        MAIN_ROLE | OVERLAY_ROLE |
+        SNAP_ROLE);
 
   // 3D model
   m_Model3D = Generic3DModel::New();
@@ -337,7 +337,7 @@ void GlobalUIModel::ToggleOverlayVisibility()
   ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
 
   // Apply the toggle for all overlays
-  for(LayerIterator it = id->GetLayers(LayerIterator::OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+  for(LayerIterator it = id->GetLayers(OVERLAY_ROLE); !it.IsAtEnd(); ++it)
     {
     // In stack mode, every overlay is affected. In tile mode, only stickly layers
     // are affected
@@ -365,7 +365,7 @@ void GlobalUIModel::AdjustOverlayOpacity(int delta)
   ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
 
   // Apply the toggle for all overlays
-  for(LayerIterator it = id->GetLayers(LayerIterator::OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+  for(LayerIterator it = id->GetLayers(OVERLAY_ROLE); !it.IsAtEnd(); ++it)
     {
     // In stack mode, every overlay is affected. In tile mode, only stickly layers
     // are affected
@@ -380,40 +380,6 @@ void GlobalUIModel::AdjustOverlayOpacity(int delta)
 
   // Restore the active layer
   m_LayerGeneralPropertiesModel->SetLayer(curr_layer);
-}
-
-void GlobalUIModel
-::LoadImageNonInteractive(const char *fname,
-                          AbstractLoadImageDelegate *del,
-                          IRISWarningList &wl)
-{
-  // Load the settings associated with this file
-  Registry reg;
-  m_Driver->GetSystemInterface()->FindRegistryAssociatedWithFile(fname, reg);
-
-  // Get the folder dealing with grey image properties
-  Registry &folder = reg.Folder("Files.Grey");
-
-  // Create a native image IO object
-  GuidedNativeImageIO io;
-
-  // Load the header of the image
-  io.ReadNativeImageHeader(fname, folder);
-
-  // Validate the header
-  del->ValidateHeader(&io, wl);
-
-  // Unload the current image data
-  del->UnloadCurrentImage();
-
-  // Read the image body
-  io.ReadNativeImageData();
-
-  // Validate the image data
-  del->ValidateImage(&io, wl);
-
-  // Put the image in the right place
-  del->UpdateApplicationWithImage(&io);
 }
 
 
@@ -740,6 +706,9 @@ std::string GlobalUIModel::GenerateScreenshotFilename()
   oss << itksys::SystemTools::GetFilenameExtension(last);
   return oss.str();
 }
+
+
+
 
 void
 GlobalUIModel

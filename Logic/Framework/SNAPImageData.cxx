@@ -93,7 +93,7 @@ SNAPImageData
     {
     m_SpeedWrapper = SpeedImageWrapper::New();
     m_SpeedWrapper->SetDefaultNickname("Speed Image");
-    PushBackImageWrapper(LayerIterator::SNAP_ROLE, m_SpeedWrapper.GetPointer());
+    PushBackImageWrapper(SNAP_ROLE, m_SpeedWrapper.GetPointer());
     }
 
   m_SpeedWrapper->InitializeToWrapper(m_MainImageWrapper, (GreyType) 0);
@@ -173,7 +173,7 @@ SNAPImageData
     {
     m_SnakeInitializationWrapper = LevelSetImageWrapper::New();
     m_SnakeInitializationWrapper->SetDefaultNickname("Initial Contour");
-    PushBackImageWrapper(LayerIterator::SNAP_ROLE, m_SnakeInitializationWrapper.GetPointer());
+    PushBackImageWrapper(SNAP_ROLE, m_SnakeInitializationWrapper.GetPointer());
     }
 
   // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
@@ -299,7 +299,7 @@ SNAPImageData
   // voxels
   if (nInitVoxels == 0) 
     {
-    this->RemoveImageWrapper(LayerIterator::SNAP_ROLE, m_SnakeInitializationWrapper);
+    this->RemoveImageWrapper(SNAP_ROLE, m_SnakeInitializationWrapper);
     m_SnakeInitializationWrapper = NULL;
     InvokeEvent(LayerChangeEvent());
     return false;
@@ -395,7 +395,7 @@ SNAPImageData
     {
     m_SnakeWrapper = LevelSetImageWrapper::New();
     m_SnakeWrapper->SetDefaultNickname("Evolving Contour");
-    PushBackImageWrapper(LayerIterator::SNAP_ROLE, m_SnakeWrapper.GetPointer());
+    PushBackImageWrapper(SNAP_ROLE, m_SnakeWrapper.GetPointer());
     }
 
   // Initialize the level set wrapper with the image from the level set 
@@ -543,7 +543,7 @@ SNAPImageData
   dmnew->DeriveFromReferenceWrapper(srcWrapper);
 
   // Repeat all of this for the overlays
-  for(LayerIterator lit = source->GetLayers(LayerIterator::OVERLAY_ROLE);
+  for(LayerIterator lit = source->GetLayers(OVERLAY_ROLE);
       !lit.IsAtEnd(); ++lit)
     {
     // Cast the layer to anatomic image wrapper type
@@ -571,8 +571,8 @@ void SNAPImageData::UnloadAll()
   this->UnloadMainImage();
 
   // We need to unload all the SNAP layers
-  while(this->m_Wrappers[LayerIterator::SNAP_ROLE].size())
-    PopBackImageWrapper(LayerIterator::SNAP_ROLE);
+  while(this->m_Wrappers[SNAP_ROLE].size())
+    PopBackImageWrapper(SNAP_ROLE);
   m_SpeedWrapper = NULL;
   m_SnakeInitializationWrapper = NULL;
   m_SnakeWrapper = NULL;

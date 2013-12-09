@@ -196,6 +196,10 @@ private slots:
 
   void on_actionPreferences_triggered();
 
+  void on_actionCreateProject_triggered();
+
+  void on_actionOpenProject_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);

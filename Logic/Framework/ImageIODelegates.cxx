@@ -1,14 +1,12 @@
 #include "ImageIODelegates.h"
 #include "GuidedNativeImageIO.h"
 #include "IRISApplication.h"
-#include "GlobalUIModel.h"
 #include "GenericImageData.h"
 
 
 /* =============================
    Abstract Classes
    ============================= */
-
 
 void LoadAnatomicImageDelegate
 ::ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl)
@@ -37,14 +35,15 @@ void
 LoadMainImageDelegate
 ::UnloadCurrentImage()
 {
-  m_Model->GetDriver()->UnloadMainImage();
+  m_Driver->UnloadMainImage();
 }
 
 void
 LoadMainImageDelegate
 ::UpdateApplicationWithImage(GuidedNativeImageIO *io)
 {
-  m_Model->GetDriver()->UpdateIRISMainImage(io);
+  // Update the IRIS driver
+  m_Driver->UpdateIRISMainImage(io, this->GetMetaDataRegistry());
 }
 
 
@@ -64,7 +63,7 @@ void
 LoadOverlayImageDelegate
 ::UpdateApplicationWithImage(GuidedNativeImageIO *io)
 {
-  m_Model->GetDriver()->AddIRISOverlayImage(io);
+  m_Driver->AddIRISOverlayImage(io, this->GetMetaDataRegistry());
 
 }
 
@@ -77,7 +76,7 @@ LoadOverlayImageDelegate
   LoadAnatomicImageDelegate::ValidateHeader(io, wl);
 
   // Now check for dimensions mismatch
-  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
+  GenericImageData *id = m_Driver->GetCurrentImageData();
 
   // Check the dimensions, throw exception
   Vector3ui szSeg = io->GetDimensionsOfNativeImage();
@@ -102,7 +101,7 @@ void
 LoadSegmentationImageDelegate
 ::ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl)
 {
-  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
+  GenericImageData *id = m_Driver->GetCurrentImageData();
 
   // Check the dimensions, throw exception
   Vector3ui szSeg = io->GetDimensionsOfNativeImage();
@@ -132,7 +131,7 @@ LoadSegmentationImageDelegate
 ::ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl)
 {
   // Get the two images to compare
-  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
+  GenericImageData *id = m_Driver->GetCurrentImageData();
   itk::ImageBase<3> *main = id->GetMain()->GetImageBase();
   itk::ImageBase<3> *native = io->GetNativeImage();
 
@@ -192,25 +191,25 @@ void
 LoadSegmentationImageDelegate
 ::UpdateApplicationWithImage(GuidedNativeImageIO *io)
 {
-  m_Model->GetDriver()->UpdateIRISSegmentationImage(io);
+  m_Driver->UpdateIRISSegmentationImage(io);
 }
 
 void
 LoadSegmentationImageDelegate
 ::UnloadCurrentImage()
 {
-  m_Model->GetDriver()->ClearIRISSegmentationImage();
+  m_Driver->ClearIRISSegmentationImage();
 }
 
 
 void
 DefaultSaveImageDelegate::Initialize(
-    GlobalUIModel *model,
+    IRISApplication *driver,
     ImageWrapperBase *wrapper,
     const std::string &histname,
     bool trackInLocalHistory)
 {
-  AbstractSaveImageDelegate::Initialize(model);
+  AbstractSaveImageDelegate::Initialize(driver);
   m_Wrapper = wrapper;
   m_Track = trackInLocalHistory;
   this->AddHistoryName(histname);
@@ -237,7 +236,7 @@ void DefaultSaveImageDelegate
     for(std::list<std::string>::const_iterator it = m_HistoryNames.begin();
         it != m_HistoryNames.end(); ++it)
       {
-      m_Model->GetDriver()->GetHistoryManager()->UpdateHistory(*it, fname, m_Track);
+      m_Driver->GetHistoryManager()->UpdateHistory(*it, fname, m_Track);
       }
     }
   catch(std::exception &exc)
@@ -250,4 +249,5 @@ const char *DefaultSaveImageDelegate::GetCurrentFilename()
 {
   return m_Wrapper->GetFileName();
 }
+
 

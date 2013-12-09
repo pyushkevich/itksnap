@@ -25,7 +25,6 @@
 #include "IRISException.h"
 #include "ImageIOWizardModel.h"
 #include "MetaDataAccess.h"
-#include "IOActions.h"
 #include "SNAPQtCommon.h"
 
 namespace imageiowiz {

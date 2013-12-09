@@ -140,7 +140,7 @@ GMMPreprocessingFilterConfigTraits
 ::AttachInputs(SNAPImageData *sid, FilterType *filter, int channel)
 {
   // Iterate through all of the relevant layers
-  for(LayerIterator it = sid->GetLayers(LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+  for(LayerIterator it = sid->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
       !it.IsAtEnd(); ++it)
     {
     AnatomicImageWrapper *aiw = dynamic_cast<AnatomicImageWrapper *>(it.GetLayer());

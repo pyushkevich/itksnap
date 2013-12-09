@@ -331,6 +331,15 @@ public:
     with label X. Only applicable in snake mode. */
   irisSimplePropertyAccessMacro(SnakeInitializedWithManualSegmentation, bool)
 
+  // ----------------------- Project support ------------------------------
+
+  /**
+   * Model for the filename of the current project. This is an empty string if
+   * there is no project.
+   */
+  irisSimplePropertyAccessMacro(ProjectFilename, std::string)
+
+  // --------------------- End Project support ----------------------------
 
 protected:
 
@@ -437,6 +446,8 @@ private:
 
   IRISApplication *m_Driver;
 
+  // ------------------- Project Related -----------------------------------
+  SmartPtr<ConcreteSimpleStringProperty> m_ProjectFilenameModel;
 
 };
 

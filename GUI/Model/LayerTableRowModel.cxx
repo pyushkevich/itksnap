@@ -64,22 +64,22 @@ bool LayerTableRowModel::CheckState(UIState state)
     {
     // Opacity can be edited for all layers except the main image layer
     case LayerTableRowModel::UIF_OPACITY_EDITABLE:
-      return (m_LayerRole != LayerIterator::MAIN_ROLE);
+      return (m_LayerRole != MAIN_ROLE);
 
     case LayerTableRowModel::UIF_PINNABLE:
-      return (m_LayerRole != LayerIterator::MAIN_ROLE && tiling);
+      return (m_LayerRole != MAIN_ROLE && tiling);
 
     case LayerTableRowModel::UIF_MOVABLE_UP:
-      return (m_LayerRole == LayerIterator::OVERLAY_ROLE
+      return (m_LayerRole == OVERLAY_ROLE
               && m_LayerPositionInRole > 0);
 
     case LayerTableRowModel::UIF_MOVABLE_DOWN:
-      return (m_LayerRole == LayerIterator::OVERLAY_ROLE
+      return (m_LayerRole == OVERLAY_ROLE
               && m_LayerPositionInRole < m_LayerNumberOfLayersInRole - 1);
 
     case LayerTableRowModel::UIF_CLOSABLE:
-      return ((m_LayerRole == LayerIterator::OVERLAY_ROLE
-               || m_LayerRole == LayerIterator::MAIN_ROLE) && !snapmode);
+      return ((m_LayerRole == OVERLAY_ROLE
+               || m_LayerRole == MAIN_ROLE) && !snapmode);
 
     case LayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
       return (m_Layer && m_Layer->GetDisplayMapping()->GetIntensityCurve());
@@ -188,19 +188,19 @@ SmartPtr<ImageIOWizardModel> LayerTableRowModel::CreateIOWizardModelForSave()
   // as a kind of user data in each wrapper. However, for now, we will just
   // infer it from the role and type
   std::string history, category;
-  if(m_LayerRole == LayerIterator::MAIN_ROLE)
+  if(m_LayerRole == MAIN_ROLE)
     {
     history = "AnatomicImage";
     category = "Main Image";
     }
 
-  else if(m_LayerRole == LayerIterator::OVERLAY_ROLE)
+  else if(m_LayerRole == OVERLAY_ROLE)
     {
     history = "AnatomicImage";
     category = "Overlay Image";
     }
 
-  else if(m_LayerRole == LayerIterator::SNAP_ROLE)
+  else if(m_LayerRole == SNAP_ROLE)
     {
     if(dynamic_cast<SpeedImageWrapper *>(m_Layer))
       {
@@ -218,7 +218,7 @@ SmartPtr<ImageIOWizardModel> LayerTableRowModel::CreateIOWizardModelForSave()
   // Create delegate
   SmartPtr<DefaultSaveImageDelegate> delegate
       = DefaultSaveImageDelegate::New();
-  delegate->Initialize(GetParentModel(),m_Layer,history);
+  delegate->Initialize(GetParentModel()->GetDriver(), m_Layer, history);
 
   // Create a model for IO
   SmartPtr<ImageIOWizardModel> modelIO = ImageIOWizardModel::New();
@@ -230,20 +230,20 @@ SmartPtr<ImageIOWizardModel> LayerTableRowModel::CreateIOWizardModelForSave()
 
 bool LayerTableRowModel::IsPromptingNecessary()
 {
-  return m_LayerRole == LayerIterator::MAIN_ROLE;
+  return m_LayerRole == MAIN_ROLE;
 }
 
 void LayerTableRowModel::CloseLayer()
 {
   // If this is an overlay, we unload it like this
-  if(m_LayerRole == LayerIterator::OVERLAY_ROLE)
+  if(m_LayerRole == OVERLAY_ROLE)
     {
     m_ParentModel->GetDriver()->UnloadOverlay(m_Layer);
     m_Layer = NULL;
     }
 
   // The main image can also be unloaded
-  else if(m_LayerRole == LayerIterator::MAIN_ROLE)
+  else if(m_LayerRole == MAIN_ROLE)
     {
     m_ParentModel->GetDriver()->UnloadMainImage();
     m_Layer = NULL;

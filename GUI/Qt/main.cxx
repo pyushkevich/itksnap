@@ -275,8 +275,8 @@ int main(int argc, char *argv[])
     try
       {
       SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
-      del->Initialize(gui);
-      gui->LoadImageNonInteractive(fnMain, del, warnings);
+      del->Initialize(driver);
+      driver->LoadImageViaDelegate(fnMain, del, warnings);
       }
     catch(itk::ExceptionObject &exc)
       {
@@ -298,8 +298,8 @@ int main(int argc, char *argv[])
       try
         {
         SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
-        del->Initialize(gui);
-        gui->LoadImageNonInteractive(fname, del, warnings);
+        del->Initialize(driver);
+        driver->LoadImageViaDelegate(fname, del, warnings);
         }
       catch(itk::ExceptionObject &exc)
         {
@@ -324,8 +324,8 @@ int main(int argc, char *argv[])
         try
           {
           SmartPtr<LoadOverlayImageDelegate> del = LoadOverlayImageDelegate::New();
-          del->Initialize(gui);
-          gui->LoadImageNonInteractive(fname, del, warnings);
+          del->Initialize(driver);
+          driver->LoadImageViaDelegate(fname, del, warnings);
           }
         catch(std::exception &exc)
           {

@@ -99,8 +99,10 @@ SET(LOGIC_CXX
   Logic/Framework/DefaultBehaviorSettings.cxx
   Logic/Framework/GenericImageData.cxx
   Logic/Framework/GlobalState.cxx
+  Logic/Framework/ImageIODelegates.cxx
   Logic/Framework/IRISApplication.cxx
   Logic/Framework/IRISImageData.cxx
+  Logic/Framework/LayerIterator.cxx
   Logic/Framework/SNAPImageData.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
   Logic/ImageWrapper/CommonRepresentationPolicy.cxx
@@ -185,10 +187,12 @@ SET(LOGIC_HEADERS
   Logic/Framework/DefaultBehaviorSettings.h
   Logic/Framework/GenericImageData.h
   Logic/Framework/GlobalState.h
+  Logic/Framework/ImageIODelegates.h
   Logic/Framework/IRISApplication.h
   Logic/Framework/IRISImageData.h
   Logic/Framework/LayerAssociation.h
   Logic/Framework/LayerAssociation.txx
+  Logic/Framework/LayerIterator.h
   Logic/Framework/SNAPImageData.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
@@ -262,11 +266,9 @@ SET(UI_GENERIC_CXX
   GUI/Model/GenericSliceModel.cxx
   GUI/Model/GlobalPreferencesModel.cxx
   GUI/Model/GlobalUIModel.cxx
-  GUI/Model/ImageIODelegates.cxx
   GUI/Model/ImageIOWizardModel.cxx
   GUI/Model/ImageInfoModel.cxx
   GUI/Model/IntensityCurveModel.cxx
-  GUI/Model/IOActions.cxx
   GUI/Model/LabelEditorModel.cxx
   GUI/Model/LayerGeneralPropertiesModel.cxx
   GUI/Model/LayerTableRowModel.cxx
@@ -277,6 +279,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/PaintbrushSettingsModel.cxx
   GUI/Model/PolygonDrawingModel.cxx
   GUI/Model/ReorientImageModel.cxx
+  GUI/Model/SaveModifiedLayersModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
   GUI/Model/SNAPAppearanceSettings.cxx
   GUI/Model/SnakeParameterModel.cxx
@@ -329,10 +332,8 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/GlobalPreferencesModel.h
   GUI/Model/GlobalUIModel.h
   GUI/Model/ImageInfoModel.h
-  GUI/Model/ImageIODelegates.h
   GUI/Model/ImageIOWizardModel.h
   GUI/Model/IntensityCurveModel.h
-  GUI/Model/IOActions.h
   GUI/Model/LabelEditorModel.h
   GUI/Model/LayerGeneralPropertiesModel.h
   GUI/Model/LayerSelectionModel.h
@@ -343,6 +344,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/PaintbrushSettingsModel.h
   GUI/Model/PolygonDrawingModel.h
   GUI/Model/ReorientImageModel.h
+  GUI/Model/SaveModifiedLayersModel.h
   GUI/Model/SNAPAppearanceSettings.h
   GUI/Model/SNAPUIFlag.h
   GUI/Model/SNAPUIFlag.txx
@@ -453,6 +455,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/QtStyles.cxx
   GUI/Qt/Windows/ReorientImageDialog.cxx
   GUI/Qt/Windows/ResampleDialog.cxx
+  GUI/Qt/Windows/SaveModifiedLayersDialog.cxx
   GUI/Qt/Windows/SimpleFileDialogWithHistory.cxx
   GUI/Qt/Windows/SnakeParameterDialog.cxx
   GUI/Qt/Windows/SpeedImageDialog.cxx
@@ -525,6 +528,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/PreferencesDialog.h
   GUI/Qt/Windows/ReorientImageDialog.h
   GUI/Qt/Windows/ResampleDialog.h
+  GUI/Qt/Windows/SaveModifiedLayersDialog.h
   GUI/Qt/Windows/SimpleFileDialogWithHistory.h
   GUI/Qt/Windows/SnakeParameterDialog.h
   GUI/Qt/Windows/SpeedImageDialog.h
@@ -594,6 +598,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/PreferencesDialog.ui
   GUI/Qt/Windows/ReorientImageDialog.ui
   GUI/Qt/Windows/ResampleDialog.ui
+  GUI/Qt/Windows/SaveModifiedLayersDialog.ui
   GUI/Qt/Windows/SimpleFileDialogWithHistory.ui
   GUI/Qt/Windows/SnakeParameterDialog.ui
   GUI/Qt/Windows/SpeedImageDialog.ui

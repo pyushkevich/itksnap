@@ -43,7 +43,7 @@ void DropActionDialog::on_btnLoadMain_clicked()
     return;
 
   SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
-  del->Initialize(m_Model);
+  del->Initialize(m_Model->GetDriver());
   this->LoadCommon(del);
 }
 
@@ -54,14 +54,14 @@ void DropActionDialog::on_btnLoadSegmentation_clicked()
     return;
 
   SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
-  del->Initialize(m_Model);
+  del->Initialize(m_Model->GetDriver());
   this->LoadCommon(del);
 }
 
 void DropActionDialog::on_btnLoadOverlay_clicked()
 {
   SmartPtr<LoadOverlayImageDelegate > del = LoadOverlayImageDelegate ::New();
-  del->Initialize(m_Model);
+  del->Initialize(m_Model->GetDriver());
   this->LoadCommon(del);
 }
 
@@ -91,7 +91,7 @@ void DropActionDialog::LoadCommon(AbstractLoadImageDelegate *delegate)
   try
     {
     IRISWarningList warnings;
-    m_Model->LoadImageNonInteractive(file.c_str(), delegate, warnings);
+    m_Model->GetDriver()->LoadImageViaDelegate(file.c_str(), delegate, warnings);
     this->accept();
     }
   catch(exception &exc)

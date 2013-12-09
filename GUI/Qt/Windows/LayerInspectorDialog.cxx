@@ -162,9 +162,9 @@ void LayerInspectorDialog::GenerateModelsForLayers()
 {
   // Iterate over the layers for each class of displayed layers
   LayerIterator it = m_Model->GetDriver()->GetCurrentImageData()->GetLayers(
-        LayerIterator::MAIN_ROLE |
-        LayerIterator::OVERLAY_ROLE |
-        LayerIterator::SNAP_ROLE);
+        MAIN_ROLE |
+        OVERLAY_ROLE |
+        SNAP_ROLE);
 
   for(; !it.IsAtEnd(); ++it)
     {
@@ -189,9 +189,9 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
   static QMap<int, QString> mapRoleNames;
   if(mapRoleNames.size() == 0)
     {
-    mapRoleNames[LayerIterator::MAIN_ROLE] = "Main Image";
-    mapRoleNames[LayerIterator::OVERLAY_ROLE] = "Overlays";
-    mapRoleNames[LayerIterator::SNAP_ROLE] = "Snake Mode Layers";
+    mapRoleNames[MAIN_ROLE] = "Main Image";
+    mapRoleNames[OVERLAY_ROLE] = "Overlays";
+    mapRoleNames[SNAP_ROLE] = "Snake Mode Layers";
     }
 
   // Get the top-level layout in the pane
@@ -227,10 +227,10 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
 
   // Iterate over the layers for each class of displayed layers
   LayerIterator it = m_Model->GetDriver()->GetCurrentImageData()->GetLayers(
-        LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE | LayerIterator::SNAP_ROLE);
+        MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE);
 
   // The current role and associated group box
-  LayerIterator::LayerRole currentRole = LayerIterator::NO_ROLE;
+  LayerRole currentRole = NO_ROLE;
   CollapsableGroupBox *currentGroupBox = NULL;
 
   // The row widget for the main image layer (default selection)
@@ -239,7 +239,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
   // Loop over all the layers
   for(; !it.IsAtEnd(); ++it)
     {
-    LayerIterator::LayerRole role = it.GetRole();
+    LayerRole role = it.GetRole();
     if(role != currentRole)
       {
       // Create the new groupbox
@@ -253,7 +253,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
     LayerInspectorRowDelegate *w = new LayerInspectorRowDelegate(this);
 
     // Is this the main layer? Then remember the widget
-    if(role == LayerIterator::MAIN_ROLE)
+    if(role == MAIN_ROLE)
       w_main = w;
 
     // Find the model for this layer

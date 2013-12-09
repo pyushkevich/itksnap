@@ -65,7 +65,7 @@ void UnsupervisedClustering::SampleDataSource()
   // Figure out the number of data components
   unsigned int nComp = 0;
   for(LayerIterator lit = m_DataSource->GetLayers(
-        LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+        MAIN_ROLE | OVERLAY_ROLE);
       !lit.IsAtEnd(); ++lit)
     {
     nComp += lit.GetLayer()->GetNumberOfComponents();
@@ -105,7 +105,7 @@ void UnsupervisedClustering::SampleDataSource()
 
     int iOffset = 0;
     for(LayerIterator lit = m_DataSource->GetLayers(
-          LayerIterator::MAIN_ROLE | LayerIterator::OVERLAY_ROLE);
+          MAIN_ROLE | OVERLAY_ROLE);
         !lit.IsAtEnd(); ++lit)
       {
       AnatomicImageWrapper *aiw = dynamic_cast<AnatomicImageWrapper *>(lit.GetLayer());

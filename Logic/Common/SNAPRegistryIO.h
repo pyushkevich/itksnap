@@ -87,13 +87,23 @@ public:
   void WriteSegmentationROISettings(
     const SNAPSegmentationROISettings &in, Registry &folder);
 
+  static RegistryEnumMap<CoverageModeType> &GetEnumMapCoverage();
+  static RegistryEnumMap<SnakeParameters::SolverType> &GetEnumMapSolver();
+  static RegistryEnumMap<SnakeParameters::SnakeType> &GetEnumMapSnakeType();
+  static RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> &GetEnumMapROI();
+  static RegistryEnumMap<LayerRole> &GetEnumMapLayerRole();
 
+protected:
 
-  // Some enumeraticns used by this class
-  RegistryEnumMap<CoverageModeType> m_EnumMapCoverage;
-  RegistryEnumMap<SnakeParameters::SolverType> m_EnumMapSolver;
-  RegistryEnumMap<SnakeParameters::SnakeType> m_EnumMapSnakeType;
-  RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> m_EnumMapROI;
+  // Method to build all the enums
+  static void BuildEnums();
+
+  // Some enumeraticns used by this class and others
+  static RegistryEnumMap<CoverageModeType> m_EnumMapCoverage;
+  static RegistryEnumMap<SnakeParameters::SolverType> m_EnumMapSolver;
+  static RegistryEnumMap<SnakeParameters::SnakeType> m_EnumMapSnakeType;
+  static RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> m_EnumMapROI;
+  static RegistryEnumMap<LayerRole> m_EnumMapLayerRole;
 
 };
 

@@ -313,7 +313,20 @@ public:
   /**
    * Check if the image has unsaved changes
    */
-  bool HasUnsavedChanges() const;
+  virtual bool HasUnsavedChanges() const = 0;
+
+  /**
+   * Save metadata to a Registry file. The metadata are data that are not
+   * contained in the image header are need to be restored when the image
+   * is reloaded. Currently, this mainly includes the display mapping, but
+   * also the transparency, etc.
+   */
+  virtual void WriteMetaData(Registry &reg) = 0;
+
+  /**
+   * Restore metadata from a registry
+   */
+  virtual void ReadMetaData(Registry &reg) = 0;
 
   /**
    * This static function constructs a NIFTI matrix from the ITK direction
