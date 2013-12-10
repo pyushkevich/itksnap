@@ -274,8 +274,9 @@ public:
   /** Method to adjust overlay opacity (all or selected overlays) */
   void AdjustOverlayOpacity(int delta);
 
-  /** Get a list of k recent images */
-  std::vector<std::string> GetRecentMainImages(unsigned int k = 5);
+  /** Get a list of k recent "things" that are tracked in history */
+  std::vector<std::string> GetRecentHistoryItems(
+      const char *historyCategory, unsigned int k = 5);
 
   /** Get the progress command */
   irisGetMacro(ProgressCommand, itk::Command *)

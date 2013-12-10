@@ -302,6 +302,11 @@ bool GlobalUIModel::CheckState(UIState state)
       return m_Driver->IsMainImageLoaded();
     case UIF_IRIS_WITH_BASEIMG_LOADED:
       return m_Driver->IsMainImageLoaded() && !m_Driver->IsSnakeModeActive();
+    case UIF_IRIS_MODE:
+      return !m_Driver->IsSnakeModeActive();
+    case UIF_IRIS_WITH_OVERLAY_LOADED:
+      return m_Driver->IsMainImageLoaded() && !m_Driver->IsSnakeModeActive()
+          && m_Driver->GetCurrentImageData()->GetNumberOfOverlays() > 0;
     case UIF_ROI_VALID:
       break;
     case UIF_LINKED_ZOOM:
@@ -650,11 +655,12 @@ void GlobalUIModel::SetSegmentationOpacityValue(int value)
 }
 
 
-std::vector<std::string> GlobalUIModel::GetRecentMainImages(unsigned int k)
+std::vector<std::string>
+GlobalUIModel::GetRecentHistoryItems(const char *historyCategory, unsigned int k)
 {
   // Load the list of recent files from the history file
   const HistoryManager::HistoryListType &history =
-      this->GetSystemInterface()->GetHistoryManager()->GetGlobalHistory("MainImage");
+      this->GetSystemInterface()->GetHistoryManager()->GetGlobalHistory(historyCategory);
 
   std::vector<std::string> recent;
 

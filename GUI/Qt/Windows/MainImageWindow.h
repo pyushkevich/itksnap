@@ -100,7 +100,8 @@ public:
 
 public slots:
 
-  void LoadRecent(QString file);
+  void LoadRecentActionTriggered();
+  void LoadRecentProjectActionTriggered();
 
   void AdjustMarginsForDocks();
   void onModelUpdate(const EventBucket &b);
@@ -113,12 +114,6 @@ private slots:
   void on_actionImage_Contrast_triggered();
 
   void on_actionLabel_Editor_triggered();
-
-  void on_actionRecent_1_triggered();
-  void on_actionRecent_2_triggered();
-  void on_actionRecent_3_triggered();
-  void on_actionRecent_4_triggered();
-  void on_actionRecent_5_triggered();
 
   void onSnakeWizardFinished();
 
@@ -196,9 +191,11 @@ private slots:
 
   void on_actionPreferences_triggered();
 
-  void on_actionCreateProject_triggered();
+  void on_actionOpenWorkspace_triggered();
 
-  void on_actionOpenProject_triggered();
+  void on_actionSaveWorkspace_triggered();
+
+  void on_actionSaveWorkspaceAs_triggered();
 
 protected:
 
@@ -211,10 +208,18 @@ private:
   void UpdateRecentMenu();
   void UpdateWindowTitle();
   void UpdateMainLayout();
+  void UpdateProjectMenuItems();
+  void UpdateRecentProjectsMenu();
+
+  // Load image without interaction (used for recent/drop action)
+  void LoadMainImage(const QString &file);
 
   // Save the segmentation (interactively or not). Return true if save was
   // successful
   bool SaveSegmentation(bool interactive);
+
+  // Save the project (interactively or not)
+  bool SaveWorkspace(bool interactive);
 
   // Raise a dialog (equivalent to calling show, raise, activateWindow)
   void RaiseDialog(QDialog *dialog);

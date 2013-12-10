@@ -156,6 +156,8 @@ public:
                               int role_filter = 0xffffffff);
 
 
+  int GetNumberOfOverlays();
+
   ImageWrapperBase *GetLastOverlay();
 
   // virtual ImageWrapperBase* GetLayer(unsigned int layer) const;

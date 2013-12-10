@@ -66,7 +66,7 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   Rebroadcast(this, ScalpelEvent(), StateMachineChangeEvent());
   Rebroadcast(m_ParentUI->GetToolbarMode3DModel(), ValueChangedEvent(), StateMachineChangeEvent());
   Rebroadcast(m_ParentUI->GetGlobalState()->GetMeshOptions(),
-              itk::ModifiedEvent(), StateMachineChangeEvent());
+              ChildPropertyChangedEvent(), StateMachineChangeEvent());
 }
 
 bool Generic3DModel::CheckState(Generic3DModel::UIState state)

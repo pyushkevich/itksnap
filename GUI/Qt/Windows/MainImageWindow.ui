@@ -619,18 +619,8 @@ background-color:rgb(88, 88, 88);
      <addaction name="menuScreenshot"/>
      <addaction name="actionScreenshot_Series"/>
     </widget>
-    <widget class="QMenu" name="menuRecent_Projects">
-     <property name="title">
-      <string>Recent Projects</string>
-     </property>
-     <addaction name="actionRecent_6"/>
-     <addaction name="actionRecent_7"/>
-     <addaction name="actionRecent_8"/>
-     <addaction name="actionRecent_9"/>
-    </widget>
     <addaction name="actionOpenMain"/>
     <addaction name="menuRecent_Images"/>
-    <addaction name="menuRecent_Projects"/>
     <addaction name="separator"/>
     <addaction name="menuSave_Image"/>
     <addaction name="menuExport"/>
@@ -739,16 +729,23 @@ background-color:rgb(88, 88, 88);
    </widget>
    <widget class="QMenu" name="menuProject">
     <property name="title">
-     <string>Project</string>
+     <string>Workspace</string>
     </property>
-    <addaction name="actionCreateProject"/>
+    <widget class="QMenu" name="menuRecentWorkspaces">
+     <property name="title">
+      <string>Recent Workspaces</string>
+     </property>
+     <addaction name="actionRecentWorkspace1"/>
+     <addaction name="actionRecentWorkspace2"/>
+     <addaction name="actionRecentWorkspace3"/>
+     <addaction name="actionRecentWorkspace4"/>
+     <addaction name="actionRecentWorkspace5"/>
+    </widget>
+    <addaction name="actionOpenWorkspace"/>
+    <addaction name="menuRecentWorkspaces"/>
     <addaction name="separator"/>
-    <addaction name="actionOpenProject"/>
-    <addaction name="separator"/>
-    <addaction name="actionSave_Project_2"/>
-    <addaction name="actionSave_Project_As"/>
-    <addaction name="separator"/>
-    <addaction name="actionClose_Project"/>
+    <addaction name="actionSaveWorkspace"/>
+    <addaction name="actionSaveWorkspaceAs"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -971,22 +968,22 @@ background-color:rgb(88, 88, 88);
     <string>Ctrl+Shift+Z</string>
    </property>
   </action>
-  <action name="actionRecent_6">
+  <action name="actionRecentWorkspace_1">
    <property name="text">
     <string>Recent 1</string>
    </property>
   </action>
-  <action name="actionRecent_7">
+  <action name="actionRecentWorkspace_2">
    <property name="text">
     <string>Recent 2</string>
    </property>
   </action>
-  <action name="actionRecent_8">
+  <action name="actionRecentWorkspace_3">
    <property name="text">
     <string>Recent 3</string>
    </property>
   </action>
-  <action name="actionRecent_9">
+  <action name="actionRecentWorkspace_4">
    <property name="text">
     <string>Recent 4</string>
    </property>
@@ -1297,29 +1294,58 @@ background-color:rgb(88, 88, 88);
     <string>Preferences ...</string>
    </property>
   </action>
-  <action name="actionCreateProject">
+  <action name="actionSaveWorkspace">
    <property name="text">
-    <string>Create Project ...</string>
+    <string>Save Workspace ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the current workspace, including open image layers and associated settings and parameters</string>
    </property>
   </action>
-  <action name="actionSave_Project_2">
+  <action name="actionOpenWorkspace">
    <property name="text">
-    <string>Save Project ...</string>
+    <string>Open Workspace ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a workspace containing multiple image layers and associated settings and parameters</string>
    </property>
   </action>
-  <action name="actionOpenProject">
+  <action name="actionSaveWorkspaceAs">
    <property name="text">
-    <string>Open Project ...</string>
+    <string>Save Workspace As ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the current workspace, including open image layers and associated settings and parameters</string>
    </property>
   </action>
-  <action name="actionSave_Project_As">
+  <action name="actionRecentWorkspace_5">
    <property name="text">
-    <string>Save Project As ...</string>
+    <string>Recent 5</string>
    </property>
   </action>
-  <action name="actionClose_Project">
+  <action name="actionRecentWorkspace1">
    <property name="text">
-    <string>Close Project</string>
+    <string>Recent 1</string>
+   </property>
+  </action>
+  <action name="actionRecentWorkspace2">
+   <property name="text">
+    <string>Recent 2</string>
+   </property>
+  </action>
+  <action name="actionRecentWorkspace3">
+   <property name="text">
+    <string>Recent 3</string>
+   </property>
+  </action>
+  <action name="actionRecentWorkspace4">
+   <property name="text">
+    <string>Recent 4</string>
+   </property>
+  </action>
+  <action name="actionRecentWorkspace5">
+   <property name="text">
+    <string>Recent 5</string>
    </property>
   </action>
  </widget>

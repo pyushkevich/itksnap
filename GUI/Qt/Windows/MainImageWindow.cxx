@@ -220,6 +220,18 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // We accept drop events
   setAcceptDrops(true);
+
+  // Connect recent file/project menu items
+  connect(ui->actionRecent_1, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
+  connect(ui->actionRecent_2, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
+  connect(ui->actionRecent_3, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
+  connect(ui->actionRecent_4, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
+  connect(ui->actionRecent_5, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
+  connect(ui->actionRecentWorkspace1, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
+  connect(ui->actionRecentWorkspace2, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
+  connect(ui->actionRecentWorkspace3, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
+  connect(ui->actionRecentWorkspace4, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
+  connect(ui->actionRecentWorkspace5, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
 }
 
 MainImageWindow::~MainImageWindow()
@@ -266,6 +278,9 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   historyModel->SetModel(m_Model);
   historyModel->SetHistoryName("MainImage");
   ui->listRecent->setModel(historyModel);
+  ui->listRecent->setGridSize(QSize(200, 160));
+  ui->listRecent->setSpacing(24);
+
 
   // Make the model listen to events affecting history
   LatentITKEventNotifier::connect(model->GetDriver(),
@@ -279,6 +294,12 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
                                   this,
                                   SLOT(onModelUpdate(const EventBucket&)));
 
+  // Listen to changes in project filename, they affect the menu titles
+  this->UpdateProjectMenuItems();
+  LatentITKEventNotifier::connect(
+        model->GetGlobalState()->GetProjectFilenameModel(),
+        ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
+
   // Couple the visibility of each view panel to the correponding property
   // model in DisplayLayoutModel
   DisplayLayoutModel *layoutModel = m_Model->GetDisplayLayoutModel();
@@ -290,10 +311,43 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Populate the recent file menu
   this->UpdateRecentMenu();
+  this->UpdateRecentProjectsMenu();
 
-  // Set up activations
+  // Set up activations - File menu
+  activateOnFlag(ui->actionOpenMain, m_Model, UIF_IRIS_MODE);
+  activateOnFlag(ui->menuRecent_Images, m_Model, UIF_IRIS_MODE);
+  activateOnFlag(ui->actionSaveMain, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSaveSpeed, m_Model, UIF_SNAKE_MODE);
+  activateOnFlag(ui->actionSaveLevelSet, m_Model, UIF_LEVEL_SET_ACTIVE);
+  activateOnFlag(ui->actionSaveMainROI, m_Model, UIF_SNAKE_MODE);
+  activateOnFlag(ui->menuExport, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionUnload_All, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+
+  // Set up activations - Edit menu
   activateOnFlag(ui->actionUndo, m_Model, UIF_UNDO_POSSIBLE);
   activateOnFlag(ui->actionRedo, m_Model, UIF_REDO_POSSIBLE);
+
+  // Set up activations - Segmentation menu
+  activateOnFlag(ui->actionLoad_from_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionClear, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSaveSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSaveSegmentationAs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSave_as_Mesh, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionLoadLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSaveLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionVolumesAndStatistics, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->menuAppearance, m_Model, UIF_BASEIMG_LOADED);
+
+  // Overlay action activations
+  activateOnFlag(ui->actionAdd_Overlay, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionUnload_Last_Overlay, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionUnload_All_Overlays, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->menuOverlayAppearance, m_Model, UIF_OVERLAY_LOADED);
+
+  // Workspace menu
+  activateOnFlag(ui->actionOpenWorkspace, m_Model, UIF_IRIS_MODE);
+  activateOnFlag(ui->actionSaveWorkspace, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSaveWorkspaceAs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
   // Tool action activations
   activateOnFlag(ui->actionCrosshair, m_Model, UIF_BASEIMG_LOADED);
@@ -307,12 +361,13 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->action3DScalpel, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->action3DSpray, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
-  // Save activations
-  activateOnFlag(ui->actionSaveMain, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionSaveMainROI, m_Model, UIF_SNAKE_MODE);
-  activateOnFlag(ui->actionSaveSpeed, m_Model, UIF_SNAKE_MODE);
-  activateOnFlag(ui->actionSaveLevelSet, m_Model, UIF_LEVEL_SET_ACTIVE);
+  activateOnFlag(ui->actionImage_Contrast, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionColor_Map_Editor, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionLabel_Editor, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionImage_Information, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionLabel_Editor, m_Model, UIF_BASEIMG_LOADED);
 
+  activateOnFlag(ui->actionReorient_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
   // Hook up toolbar actions to the toolbar
   makeActionGroupCoupling(this->GetMainToolActionGroup(),
@@ -333,6 +388,7 @@ void MainImageWindow::ShowFirstTime()
 
   // Also make sure the other elements look right before showing the window
   this->UpdateRecentMenu();
+  this->UpdateRecentProjectsMenu();
   this->UpdateWindowTitle();
 
   // Show the window
@@ -347,12 +403,19 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     // Update the recent items
     this->UpdateRecentMenu();
     this->UpdateMainLayout();
+    this->UpdateWindowTitle();
     }
 
   if(b.HasEvent(LayerChangeEvent()) || b.HasEvent(WrapperMetadataChangeEvent()))
     {
     // Update the window title
     this->UpdateWindowTitle();
+    }
+
+  if(b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->GetProjectFilenameModel()))
+    {
+    this->UpdateProjectMenuItems();
+    this->UpdateRecentProjectsMenu();
     }
 }
 
@@ -382,7 +445,7 @@ void MainImageWindow::UpdateRecentMenu()
     ui->actionRecent_5};
 
   // List of filenames
-  std::vector<std::string> recent = m_Model->GetRecentMainImages(5);
+  std::vector<std::string> recent = m_Model->GetRecentHistoryItems("MainImage", 5);
 
   // Toggle the state of each menu item
   for(int i = 0; i < 5; i++)
@@ -399,6 +462,37 @@ void MainImageWindow::UpdateRecentMenu()
       }
     }
 }
+
+void MainImageWindow::UpdateRecentProjectsMenu()
+{
+  // Menus to populate
+  QAction *menus[] = {
+    ui->actionRecentWorkspace1,
+    ui->actionRecentWorkspace2,
+    ui->actionRecentWorkspace3,
+    ui->actionRecentWorkspace4,
+    ui->actionRecentWorkspace5};
+
+  // List of filenames
+  std::vector<std::string> recent = m_Model->GetRecentHistoryItems("Project", 5);
+
+  // Toggle the state of each menu item
+  for(int i = 0; i < 5; i++)
+    {
+    if(i < recent.size())
+      {
+      menus[i]->setText(from_utf8(recent[i]));
+      menus[i]->setEnabled(true);
+      }
+    else
+      {
+      menus[i]->setText("Not available");
+      menus[i]->setEnabled(false);
+      }
+    }
+}
+
+
 
 void MainImageWindow::UpdateWindowTitle()
 {
@@ -429,9 +523,26 @@ void MainImageWindow::UpdateWindowTitle()
   else
     {
     this->setWindowTitle("ITK-SNAP");
+    ui->actionSaveSegmentation->setText(QString("Save"));
+    ui->actionSaveSegmentationAs->setText(QString("Save as..."));
     }
 }
 
+void MainImageWindow::UpdateProjectMenuItems()
+{
+  // Get the project filename
+  QString project = from_utf8(m_Model->GetGlobalState()->GetProjectFilename());
+  if(project.length())
+    {
+    // Get the filename without path
+    ui->actionSaveWorkspace->setText(
+          QString("Save Workspace \"%1\"").arg(QFileInfo(project).fileName()));
+    }
+  else
+    {
+    ui->actionSaveWorkspace->setText(QString("Save Workspace ..."));
+    }
+}
 
 SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 {
@@ -582,7 +693,7 @@ void MainImageWindow::LoadDroppedFile(QString file)
   else
     {
     // Otherwise, attempt to load the image
-    this->LoadRecent(file);
+    this->LoadMainImage(file);
     }
 }
 
@@ -633,7 +744,8 @@ bool MainImageWindow::PromptForUnsavedChanges()
     return false;
 }
 
-void MainImageWindow::LoadRecent(QString file)
+
+void MainImageWindow::LoadMainImage(const QString &file)
 {
   // Prompt for unsaved changes
   if(!PromptForUnsavedChanges())
@@ -656,35 +768,42 @@ void MainImageWindow::LoadRecent(QString file)
     }
 }
 
-void MainImageWindow::on_actionRecent_1_triggered()
+void MainImageWindow::LoadRecentActionTriggered()
 {
-  // Load the recent image
-  this->LoadRecent(ui->actionRecent_1->text());
+  // Get the filename that wants to be loaded
+  QAction *action = qobject_cast<QAction *>(sender());
+  QString file = action->text();
+  LoadMainImage(file);
 }
 
-void MainImageWindow::on_actionRecent_2_triggered()
+void MainImageWindow::LoadRecentProjectActionTriggered()
 {
-  // Load the recent image
-  this->LoadRecent(ui->actionRecent_2->text());
+  // Get the filename that wants to be loaded
+  QAction *action = qobject_cast<QAction *>(sender());
+  QString file = action->text();
+
+  // Check for unsaved changes before loading new data
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(
+       m_Model, SaveModifiedLayersDialog::NoOption, this))
+    return;
+
+  // Try loading the image
+  try
+    {
+    // Change cursor for this operation
+    QtCursorOverride c(Qt::WaitCursor);
+    IRISWarningList warnings;
+
+    // Load the project
+    m_Model->GetDriver()->OpenProject(to_utf8(file), warnings);
+    }
+  catch(exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Error Opening Project",
+                             QString("Failed to open project %1").arg(file));
+    }
 }
 
-void MainImageWindow::on_actionRecent_3_triggered()
-{
-  // Load the recent image
-  this->LoadRecent(ui->actionRecent_3->text());
-}
-
-void MainImageWindow::on_actionRecent_4_triggered()
-{
-  // Load the recent image
-  this->LoadRecent(ui->actionRecent_4->text());
-}
-
-void MainImageWindow::on_actionRecent_5_triggered()
-{
-  // Load the recent image
-  this->LoadRecent(ui->actionRecent_5->text());
-}
 
 void MainImageWindow::onSnakeWizardFinished()
 {
@@ -704,7 +823,7 @@ void MainImageWindow::on_listRecent_clicked(const QModelIndex &index)
 {
   // Load the appropriate image
   QVariant filename = ui->listRecent->model()->data(index, Qt::ToolTipRole);
-  this->LoadRecent(filename.toString());
+  this->LoadMainImage(filename.toString());
 }
 
 void MainImageWindow::on_actionUnload_All_triggered()
@@ -1091,33 +1210,7 @@ void MainImageWindow::on_actionPreferences_triggered()
 }
 
 
-void MainImageWindow::on_actionCreateProject_triggered()
-{
-  // Make sure that there are no unsaved changes. Not sure why this is even
-  // necessary.
-  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(
-       m_Model, SaveModifiedLayersDialog::DiscardDisabled, this))
-    return;
-
-  // Prompt for a project filename
-  QString file =
-      QFileDialog::getSaveFileName(
-        this, "Save New Project As ...", QString(),
-        "ITK-SNAP Project Files (*.snapprj)");
-
-  // If user hits cancel, move on
-  if(file.isNull())
-    return;
-
-  // Make sure to get an absolute path, because the project needs that info
-  QString file_abs = QFileInfo(file).absoluteFilePath();
-
-  // If file was provided, set it as the current project file
-  m_Model->GetDriver()->SaveProject(to_utf8(file_abs));
-}
-
-
-void MainImageWindow::on_actionOpenProject_triggered()
+void MainImageWindow::on_actionOpenWorkspace_triggered()
 {
   // Check for unsaved changes before loading new data
   if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(
@@ -1149,7 +1242,59 @@ void MainImageWindow::on_actionOpenProject_triggered()
     }
   catch(exception &exc)
     {
-    ReportNonLethalException(this, exc, "Image IO Error",
-                             QString("Failed to load image %1").arg(file_abs));
+    ReportNonLethalException(this, exc, "Error Opening Project",
+                             QString("Failed to open project %1").arg(file_abs));
     }
+}
+
+bool MainImageWindow::SaveWorkspace(bool interactive)
+{
+  // Make sure that there are no unsaved changes. This is necessary before
+  // a workspace can be saved. We disable the discard feature here because
+  // the subsequent action does not close anything
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(
+       m_Model, SaveModifiedLayersDialog::DiscardDisabled, this))
+    return false;
+
+  // Get the currently stored project name
+  QString file_abs = from_utf8(m_Model->GetGlobalState()->GetProjectFilename());
+
+  // Prompt for a project filename if one was not provided
+  if(interactive || file_abs.length() == 0)
+    {
+    // Get the file from the user
+    QString file = QFileDialog::getSaveFileName(
+          this, "Save New Project As ...", QString(),
+          "ITK-SNAP Project Files (*.snapprj)");
+
+    // If user hits cancel, move on
+    if(file.isNull())
+      return false;
+
+    // Make sure to get an absolute path, because the project needs that info
+    file_abs = QFileInfo(file).absoluteFilePath();
+    }
+
+  // If file was provided, set it as the current project file
+  try
+    {
+    m_Model->GetDriver()->SaveProject(to_utf8(file_abs));
+    return true;
+    }
+  catch(exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Error Saving Project",
+                             QString("Failed to save project %1").arg(file_abs));
+    return false;
+    }
+}
+
+void MainImageWindow::on_actionSaveWorkspace_triggered()
+{
+  SaveWorkspace(false);
+}
+
+void MainImageWindow::on_actionSaveWorkspaceAs_triggered()
+{
+  SaveWorkspace(true);
 }

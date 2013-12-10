@@ -11,6 +11,7 @@
 #include "QtScriptTest1.h"
 #include "QtRendererPlatformSupport.h"
 #include "QtIPCManager.h"
+#include "QtCursorOverride.h"
 
 #include "GenericSliceView.h"
 #include "GenericSliceModel.h"
@@ -75,15 +76,15 @@ void usage()
   // Print usage info and exit
   cout << "ITK-SnAP Command Line Usage:" << endl;
   cout << "   snap [options] [main_image]" << endl;
-  cout << "Options:" << endl;
-  cout << "   -m FILE              : Load main image FILE (grey or RGB)" << endl;
-  cout << "   -g FILE              : Load main image FILE as greyscale" << endl;
-  cout << "   --rgb FILE           : Load main image FILE as RGB image" << endl;
-  cout << "   -s FILE              : Load segmentation image FILE" << endl;
-  cout << "   -l FILE              : Load label description file FILE" << endl;
-  cout << "   -o FILE              : Load overlay image FILE (can be repeated)" << endl;
-  cout << "   -c <a|c|s>           : Launch in compact single-slice mode " << endl;
-  cout << "                         (axial, coronal, sagittal)" << endl;
+  cout << "Image Options:" << endl;
+  cout << "   -g FILE              : Load the greyscale image from FILE" << endl;
+  cout << "   -s FILE              : Load the segmentation image from FILE" << endl;
+  cout << "   -l FILE              : Load label descriptions from FILE" << endl;
+  cout << "   -o FILE              : Load overlay image from FILE" << endl;
+  cout << "                        :   (-o option can be repeated multiple times)" << endl;
+  cout << "   -w FILE              : Load workspace from FILE" << endl;
+  cout << "                        :   (-w cannot be mixed with -g,-s,-l,-o options)" << endl;
+  cout << "Additional Options:" << endl;
   cout << "   -z FACTOR            : Specify initial zoom in screen pixels/mm" << endl;
   cout << "Debugging/Testing Options" << endl;
 #ifdef SNAP_DEBUG_EVENTS
@@ -111,6 +112,9 @@ void setupParser(CommandLineArgumentParser &parser)
   parser.AddOption("--labels",1);
   parser.AddSynonim("--labels","--label");
   parser.AddSynonim("--labels","-l");
+
+  parser.AddOption("--workspace", 1);
+  parser.AddSynonim("--workspace", "-w");
 
   parser.AddOption("--zoom", 1);
   parser.AddSynonim("--zoom", "-z");
@@ -211,152 +215,163 @@ int main(int argc, char *argv[])
   // We let the main window handle events to the application
   app.installEventFilter(&mainwin);
 
-  // The following situations are possible for main image
-  // itksnap file                       <- load as main image, detect file type
-  // itksnap --main file                <- load as main image, detect file type
-  // itksnap --gray file                <- load as main image, force gray
-  // itksnap --rgb file                 <- load as main image, force RGB
-  // itksnap --gray file1 --rgb file2   <- error
-  // itksnap --gray file1 file2         <- ignore file2
-  // itksnap --rgb file1 file2          <- ignore file2
-
-  // Check validity of options for main image
-  if(parseResult.IsOptionPresent("--grey") && parseResult.IsOptionPresent("--rgb"))
-    {
-    cerr << "Error: options --rgb and --grey are mutually exclusive." << endl;
-    return -1;
-    }
-
-  if(parseResult.IsOptionPresent("--main") && parseResult.IsOptionPresent("--rgb"))
-    {
-    cerr << "Error: options --main and --rgb are mutually exclusive." << endl;
-    return -1;
-    }
-
-  if(parseResult.IsOptionPresent("--main") && parseResult.IsOptionPresent("--grey"))
-    {
-    cerr << "Error: options --main and --grey are mutually exclusive." << endl;
-    return -1;
-    }
-
-  // Check if a main image file is specified
-  const char *fnMain = NULL;
+  // Start parsing options
+  const char *fnMain = NULL, *fnWorkspace = NULL;
   IRISWarningList warnings;
 
-  if(parseResult.IsOptionPresent("--grey"))
+  // Check if a workspace is being loaded
+  if(parseResult.IsOptionPresent("--workspace"))
     {
-    fnMain = parseResult.GetOptionParameter("--grey");
-    }
-  else if(iTrailing < argc)
-    {
-    fnMain = argv[iTrailing];
-    }
+    // Put a waiting cursor
+    QtCursorOverride curse(Qt::WaitCursor);
 
-  // If no main, there should be no overlays, segmentation
-  if(!fnMain && parseResult.IsOptionPresent("--segmentation"))
-    {
-    cerr << "Error: -s can not be used without -m, -g, or --rgb" << endl;
-    return -1;
-    }
-
-  if(!fnMain && parseResult.IsOptionPresent("--overlay"))
-    {
-    cerr << "Error: -o can not be used without -m, -g, or --rgb" << endl;
-    return -1;
-    }
-
-  // Load main image file
-  if(fnMain)
-    {
-    // Update the splash screen
-    // ui->UpdateSplashScreen("Loading image...");
-
-    // Try loading the image
-    try
+    // Check for incompatible options
+    if(parseResult.IsOptionPresent("--grey")
+       || parseResult.IsOptionPresent("--overlay")
+       || parseResult.IsOptionPresent("--labels")
+       || parseResult.IsOptionPresent("--segmentation"))
       {
-      SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
-      del->Initialize(driver);
-      driver->LoadImageViaDelegate(fnMain, del, warnings);
-      }
-    catch(itk::ExceptionObject &exc)
-      {
-      cerr << "Error loading image '" << fnMain << "'" << endl;
-      cerr << "Reason: " << exc << endl;
+      cerr << "Error: Option -w may not be used with -g, -o, -l or -s options." << endl;
       return -1;
       }
 
-    // Load the segmentation if supplied
-    if(parseResult.IsOptionPresent("--segmentation"))
+    // Get the workspace filename
+    fnWorkspace = parseResult.GetOptionParameter("--workspace");
+
+    // Load the workspace
+    try
       {
-      // Get the filename
-      const char *fname = parseResult.GetOptionParameter("--segmentation");
+      driver->OpenProject(fnWorkspace, warnings);
+      }
+    catch(itk::ExceptionObject &exc)
+      {
+      cerr << "Error loading workspace '" << fnWorkspace << "'" << endl;
+      cerr << "Reason: " << exc << endl;
+      return -1;
+      }
+    }
+
+  // No workspace, just images
+  else
+    {
+    // The following situations are possible for main image
+    // itksnap file                       <- load as main image, detect file type
+    // itksnap --gray file                <- load as main image, force gray
+    // itksnap --gray file1 file2         <- ignore file2
+
+    // Check if a main image file is specified
+    if(parseResult.IsOptionPresent("--grey"))
+      {
+      fnMain = parseResult.GetOptionParameter("--grey");
+      }
+    else if(iTrailing < argc)
+      {
+      fnMain = argv[iTrailing];
+      }
+
+    // If no main, there should be no overlays, segmentation
+    if(!fnMain && parseResult.IsOptionPresent("--segmentation"))
+      {
+      cerr << "Error: Option -s must be used together with option -g" << endl;
+      return -1;
+      }
+
+    if(!fnMain && parseResult.IsOptionPresent("--overlay"))
+      {
+      cerr << "Error: Option -p must be used together with option -g" << endl;
+      return -1;
+      }
+
+    // Load main image file
+    if(fnMain)
+      {
+      // Put a waiting cursor
+      QtCursorOverride curse(Qt::WaitCursor);
 
       // Update the splash screen
-      // ui->UpdateSplashScreen("Loading segmentation image...");
+      // ui->UpdateSplashScreen("Loading image...");
 
-      // Try to load the image
+      // Try loading the image
       try
         {
-        SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
-        del->Initialize(driver);
-        driver->LoadImageViaDelegate(fname, del, warnings);
+        driver->LoadImage(fnMain, MAIN_ROLE, warnings);
         }
       catch(itk::ExceptionObject &exc)
         {
-        cerr << "Error loading segmentation '" << fname << "'" << endl;
+        cerr << "Error loading image '" << fnMain << "'" << endl;
         cerr << "Reason: " << exc << endl;
         return -1;
         }
-      }
 
-    // Load overlay fs supplied
-    if(parseResult.IsOptionPresent("--overlay"))
-      {
-      for(int i = 0; i < parseResult.GetNumberOfOptionParameters("--overlay"); i++)
+      // Load the segmentation if supplied
+      if(parseResult.IsOptionPresent("--segmentation"))
         {
         // Get the filename
-        const char *fname = parseResult.GetOptionParameter("--overlay", i);
+        const char *fname = parseResult.GetOptionParameter("--segmentation");
 
         // Update the splash screen
-        // ui->UpdateSplashScreen("Loading overlay image...");
+        // ui->UpdateSplashScreen("Loading segmentation image...");
 
         // Try to load the image
         try
           {
-          SmartPtr<LoadOverlayImageDelegate> del = LoadOverlayImageDelegate::New();
-          del->Initialize(driver);
-          driver->LoadImageViaDelegate(fname, del, warnings);
+          driver->LoadImage(fname, LABEL_ROLE, warnings);
           }
-        catch(std::exception &exc)
+        catch(itk::ExceptionObject &exc)
           {
-          cerr << "Error loading overlay '" << fname << "'" << endl;
-          cerr << "Reason: " << exc.what() << endl;
+          cerr << "Error loading segmentation '" << fname << "'" << endl;
+          cerr << "Reason: " << exc << endl;
           return -1;
           }
         }
-      }
-    }
 
-  // Load labels if supplied
-  if(parseResult.IsOptionPresent("--labels"))
-    {
-    // Get the filename
-    const char *fname = parseResult.GetOptionParameter("--labels");
+      // Load overlay fs supplied
+      if(parseResult.IsOptionPresent("--overlay"))
+        {
+        for(int i = 0; i < parseResult.GetNumberOfOptionParameters("--overlay"); i++)
+          {
+          // Get the filename
+          const char *fname = parseResult.GetOptionParameter("--overlay", i);
 
-    // Update the splash screen
-    // ui->UpdateSplashScreen("Loading label descriptions...");
+          // Update the splash screen
+          // ui->UpdateSplashScreen("Loading overlay image...");
 
-    try
+          // Try to load the image
+          try
+            {
+            driver->LoadImage(fname, OVERLAY_ROLE, warnings);
+            }
+          catch(std::exception &exc)
+            {
+            cerr << "Error loading overlay '" << fname << "'" << endl;
+            cerr << "Reason: " << exc.what() << endl;
+            return -1;
+            }
+          }
+        }
+      } // if main image filename supplied
+
+    // Load labels if supplied
+    if(parseResult.IsOptionPresent("--labels"))
       {
-      // Load the label file
-      driver->LoadLabelDescriptions(fname);
+      // Get the filename
+      const char *fname = parseResult.GetOptionParameter("--labels");
+
+      // Update the splash screen
+      // ui->UpdateSplashScreen("Loading label descriptions...");
+
+      try
+        {
+        // Load the label file
+        driver->LoadLabelDescriptions(fname);
+        }
+      catch(itk::ExceptionObject &exc)
+        {
+        cerr << "Error reading label descriptions: " <<
+          exc.GetDescription() << endl;
+        }
       }
-    catch(itk::ExceptionObject &exc)
-      {
-      cerr << "Error reading label descriptions: " <<
-        exc.GetDescription() << endl;
-      }
-    }
+    } // Not loading workspace
 
   // Set initial zoom if specified
   if(parseResult.IsOptionPresent("--zoom"))

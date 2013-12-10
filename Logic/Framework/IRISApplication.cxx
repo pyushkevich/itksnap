@@ -1584,6 +1584,9 @@ IRISApplication
   // Unload the main image
   m_CurrentImageData->UnloadMainImage();
 
+  // After unloading the main image, we reset the workspace filename
+  m_GlobalState->SetProjectFilename("");
+
   // Let everyone know that the main image is gone!
   InvokeEvent(MainImageDimensionsChangeEvent());
 }
@@ -1717,6 +1720,10 @@ void IRISApplication::SaveProject(const std::string &proj_file)
 
   // Save the project filename
   m_GlobalState->SetProjectFilename(proj_file_full.c_str());
+
+  // Update the history
+  m_SystemInterface->GetHistoryManager()->
+      UpdateHistory("Project", proj_file_full, false);
 }
 
 void IRISApplication::OpenProject(
@@ -1781,6 +1788,13 @@ void IRISApplication::OpenProject(
     // Load the image and its metadata
     LoadImage(layer_file_full.c_str(), role, warn, &folder);
     }
+
+  // Save the project filename
+  m_GlobalState->SetProjectFilename(proj_file_full.c_str());
+
+  // Update the history
+  m_SystemInterface->GetHistoryManager()->
+      UpdateHistory("Project", proj_file_full, false);
 }
 
 

@@ -340,6 +340,11 @@ GenericImageData
   return NULL;
 }
 
+int GenericImageData::GetNumberOfOverlays()
+{
+  return m_Wrappers[OVERLAY_ROLE].size();
+}
+
 ImageWrapperBase *GenericImageData::GetLastOverlay()
 {
   return m_Wrappers[OVERLAY_ROLE].back();

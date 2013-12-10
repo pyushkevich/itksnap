@@ -2,6 +2,7 @@
 #include <QGLWidget>
 #include <QPainter>
 #include <QPixmap>
+#include "SNAPQtCommon.h"
 
 void QtRendererPlatformSupport
 ::RenderTextInOpenGL(const char *text,
@@ -50,7 +51,7 @@ void QtRendererPlatformSupport
   qfont.setBold(font.bold);
   painter.setFont(qfont);
 
-  painter.drawText(QRectF(0,0,w,h), ah | av, text);
+  painter.drawText(QRectF(0,0,w,h), ah | av, QString::fromUtf8(text));
 
   QImage gl = QGLWidget::convertToGLFormat(canvas);
 
