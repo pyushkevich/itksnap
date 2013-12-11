@@ -22,7 +22,19 @@
 	<string>itksnap</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
-		<dict>
+                <dict>
+                        <key>CFBundleTypeName</key>
+                        <string>ITK-SNAP Workspace File</string>
+                        <key>CFBundleTypeRole</key>
+                        <string>Viewer</string>
+                        <key>CFBundleTypeExtensions</key>
+                        <array>
+                                <string>itksnap</string>
+                        </array>
+                        <key>CFBundleTypeIconFile</key>
+                        <string>itksnap.icns</string>
+                </dict>
+                <dict>
 			<key>CFBundleTypeName</key>
 			<string>NIfTI File</string>
 			<key>CFBundleTypeRole</key>
@@ -30,7 +42,8 @@
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>nii</string>
-			</array>
+                                <string>nii-gz</string>
+                        </array>
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>

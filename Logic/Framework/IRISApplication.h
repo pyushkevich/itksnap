@@ -539,6 +539,13 @@ public:
    */
   bool IsProjectUnsaved();
 
+  /**
+   * Check if a file constitutes a project. This needs to be done quickly,
+   * and since the files passed in might be binary, loading the file in
+   * memory is not an option
+   */
+  bool IsProjectFile(const char *filename);
+
   // --------------------- End project support ----------------------------
 
 

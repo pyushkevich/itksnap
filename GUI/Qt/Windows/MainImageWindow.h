@@ -115,6 +115,8 @@ private slots:
 
   void on_listRecent_clicked(const QModelIndex &index);
 
+  void on_listRecentWorkspaces_clicked(const QModelIndex &index);
+
   void on_actionUnload_All_triggered();
 
 
@@ -209,6 +211,9 @@ private:
 
   // Load image without interaction (used for recent/drop action)
   void LoadMainImage(const QString &file);
+
+  void LoadProject(const QString &file);
+
 
   // Save the segmentation (interactively or not). Return true if save was
   // successful

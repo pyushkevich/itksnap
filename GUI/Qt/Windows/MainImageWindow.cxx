@@ -165,6 +165,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   HistoryListItemDelegate *del = new HistoryListItemDelegate(ui->listRecent);
   ui->listRecent->setItemDelegate(del);
 
+  HistoryListItemDelegate *delws = new HistoryListItemDelegate(ui->listRecentWorkspaces);
+  ui->listRecentWorkspaces->setItemDelegate(del);
+
   // Set the splash panel in the left dock
   m_SplashPanel = new SplashPanel(this);
   m_DockLeft->setWidget(m_SplashPanel);
@@ -203,6 +206,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Hook up buttons to actions
   connect(ui->btnLoadMain, SIGNAL(clicked()), ui->actionOpenMain, SLOT(trigger()));
+  connect(ui->btnLoadWorkspace, SIGNAL(clicked()), ui->actionOpenWorkspace, SLOT(trigger()));
 
   // Add actions that are not on the menu
   addAction(ui->actionZoomToFitInAllViews);
@@ -278,9 +282,12 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   historyModel->SetModel(m_Model);
   historyModel->SetHistoryName("MainImage");
   ui->listRecent->setModel(historyModel);
-  ui->listRecent->setGridSize(QSize(200, 160));
-  ui->listRecent->setSpacing(24);
 
+  // Create a similar model for the recent workspaces
+  HistoryQListModel *historyModelWorkspace = new HistoryQListModel();
+  historyModelWorkspace->SetModel(m_Model);
+  historyModelWorkspace->SetHistoryName("Project");
+  ui->listRecentWorkspaces->setModel(historyModelWorkspace);
 
   // Make the model listen to events affecting history
   LatentITKEventNotifier::connect(model->GetDriver(),
@@ -312,6 +319,9 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Populate the recent file menu
   this->UpdateRecentMenu();
   this->UpdateRecentProjectsMenu();
+
+  // Update which page is shown
+  this->UpdateMainLayout();
 
   // Set up activations - File menu
   activateOnFlag(ui->actionOpenMain, m_Model, UIF_IRIS_MODE);
@@ -429,8 +439,16 @@ void MainImageWindow::UpdateMainLayout()
     }
   else
     {
+    // Go to the splash page
     ui->stackMain->setCurrentWidget(ui->pageSplash);
     m_DockLeft->setWidget(m_SplashPanel);
+
+    // Choose the appropriate page depending on whether there are recent images
+    // in the recent image list
+    if(ui->listRecent->model()->rowCount())
+      ui->tabSplash->setCurrentWidget(ui->tabRecent);
+    else
+      ui->tabSplash->setCurrentWidget(ui->tabGettingStarted);
     }
 }
 
@@ -683,17 +701,33 @@ void MainImageWindow::dragEnterEvent(QDragEnterEvent *event)
 
 void MainImageWindow::LoadDroppedFile(QString file)
 {
-  if(m_Model->GetDriver()->IsMainImageLoaded())
+  // Check if the dropped file is a project
+  if(m_Model->GetDriver()->IsProjectFile(to_utf8(file).c_str()))
     {
-    // If an image is already loaded, we show the dialog
-    m_DropDialog->SetDroppedFilename(file);
-    m_DropDialog->setModal(true);
-    RaiseDialog(m_DropDialog);
+    // For the time being, the feature of opening the workspace in a new
+    // window is not implemented. Instead, we just prompt the user for
+    // unsaved changes.
+    if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
+      return;
+
+    // Load the project
+    LoadProject(file);
     }
+
   else
     {
-    // Otherwise, attempt to load the image
-    this->LoadMainImage(file);
+    if(m_Model->GetDriver()->IsMainImageLoaded())
+      {
+      // If an image is already loaded, we show the dialog
+      m_DropDialog->SetDroppedFilename(file);
+      m_DropDialog->setModal(true);
+      RaiseDialog(m_DropDialog);
+      }
+    else
+      {
+      // Otherwise, attempt to load the image
+      this->LoadMainImage(file);
+      }
     }
 }
 
@@ -750,16 +784,8 @@ void MainImageWindow::LoadRecentActionTriggered()
   LoadMainImage(file);
 }
 
-void MainImageWindow::LoadRecentProjectActionTriggered()
+void MainImageWindow::LoadProject(const QString &file)
 {
-  // Check for unsaved changes before loading new data
-  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
-    return;
-
-  // Get the filename that wants to be loaded
-  QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
-
   // Try loading the image
   try
     {
@@ -775,6 +801,18 @@ void MainImageWindow::LoadRecentProjectActionTriggered()
     ReportNonLethalException(this, exc, "Error Opening Project",
                              QString("Failed to open project %1").arg(file));
     }
+}
+
+void MainImageWindow::LoadRecentProjectActionTriggered()
+{
+  // Check for unsaved changes before loading new data
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
+    return;
+
+  // Get the filename that wants to be loaded
+  QAction *action = qobject_cast<QAction *>(sender());
+  QString file = action->text();
+  LoadProject(file);
 }
 
 
@@ -797,6 +835,13 @@ void MainImageWindow::on_listRecent_clicked(const QModelIndex &index)
   // Load the appropriate image
   QVariant filename = ui->listRecent->model()->data(index, Qt::ToolTipRole);
   this->LoadMainImage(filename.toString());
+}
+
+void MainImageWindow::on_listRecentWorkspaces_clicked(const QModelIndex &index)
+{
+  // Load the appropriate image
+  QVariant filename = ui->listRecentWorkspaces->model()->data(index, Qt::ToolTipRole);
+  this->LoadProject(filename.toString());
 }
 
 void MainImageWindow::on_actionUnload_All_triggered()

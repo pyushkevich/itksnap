@@ -28,18 +28,18 @@ cmake_minimum_required(VERSION 2.8.8)
 #     is to have 1.7.3-beta followed by 1.7.5-rc1 followed by 1.8.0 and so on
 
 # These four fields should be modified when versions change
-SET(SNAP_VERSION_MAJOR 2)
-SET(SNAP_VERSION_MINOR 5)
+SET(SNAP_VERSION_MAJOR 3)
+SET(SNAP_VERSION_MINOR 0)
 SET(SNAP_VERSION_PATCH 0)
 SET(SNAP_VERSION_QUALIFIER "-alpha")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20130414")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Apr 14, 2013")
+SET(SNAP_VERSION_RELEASE_DATE "20131214")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Dec 14, 2013")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
-SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20130101")
+SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20131201")
 
 # This should not need to change
 SET(SNAP_VERSION_FULL 

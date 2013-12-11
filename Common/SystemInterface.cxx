@@ -165,7 +165,7 @@ SystemInterface
      throw IRISException("Unable to create application data directory %s", appdir.c_str());
 
   // Set the preferences file
-  m_UserPreferenceFile = appdir + "/UserPreferences.txt";
+  m_UserPreferenceFile = appdir + "/UserPreferences.xml";
 
   // Get the process ID
 #ifdef WIN32
@@ -208,7 +208,7 @@ SystemInterface
   m_HistoryManager->SaveGlobalHistory(this->Folder("IOHistory"));
 
   // Write the registry to disk
-  WriteToFile(m_UserPreferenceFile.c_str());
+  WriteToXMLFile(m_UserPreferenceFile.c_str());
 }
 
 
@@ -220,7 +220,7 @@ SystemInterface
   if(SystemTools::FileExists(m_UserPreferenceFile.c_str()))
     {
     // Read the contents of the preferences from file
-    ReadFromFile(m_UserPreferenceFile.c_str());
+    ReadFromXMLFile(m_UserPreferenceFile.c_str());
 
     // Check if the preferences contain a version string
     string version = Entry("System.CreatedBySNAPVersion")["00000000"];
@@ -334,12 +334,12 @@ SystemInterface
 
   // Generate the association filename
   string appdir = GetApplicationDataDirectory();
-  string assfil = appdir + "/ImageAssociations/" + code + ".txt";
+  string assfil = appdir + "/ImageAssociations/" + code + ".xml";
 
   // Try loading the registry
   try 
     {
-    registry.ReadFromFile(assfil.c_str());
+    registry.ReadFromXMLFile(assfil.c_str());
     return true;
     }
   catch(...)
@@ -425,7 +425,7 @@ SystemInterface
     if(SystemTools::FileExists(ffull.str().c_str(), true))
       {
       // Check extension
-      if(SystemTools::GetFilenameExtension(fname) == ".txt")
+      if(SystemTools::GetFilenameExtension(fname) == ".xml")
         {
         string base = SystemTools::GetFilenameWithoutExtension(fname);
         string name = DecodeObjectName(base);
@@ -450,14 +450,15 @@ SystemInterface
 
   // Create a save filename
   IRISOStringStream sfile;
-  sfile << catdir << "/" << EncodeObjectName(name) << ".txt";
+  sfile << catdir << "/" << EncodeObjectName(name) << ".xml";
   string fname = sfile.str();
 
   // Check the filename
   if(!SystemTools::FileExists(fname.c_str(), true))
     throw IRISException("Saved object file does not exist");
 
-  Registry reg(fname.c_str());
+  Registry reg;
+  reg.ReadFromXMLFile(fname.c_str());
   return reg;
 }
 
@@ -473,11 +474,11 @@ SystemInterface
 
   // Create a save filename
   IRISOStringStream sfile;
-  sfile << catdir << "/" << EncodeObjectName(name) << ".txt";
+  sfile << catdir << "/" << EncodeObjectName(name) << ".xml";
   string fname = sfile.str();
 
   // Save the data
-  folder.WriteToFile(fname.c_str());
+  folder.WriteToXMLFile(fname.c_str());
 }
 
 void 
@@ -532,12 +533,12 @@ SystemInterface
                         assdir.c_str());
 
   // Create the association filename
-  string assfil = assdir + "/" + code + ".txt";
+  string assfil = assdir + "/" + code + ".xml";
 
   // Store the registry to that path
   try 
     {
-    registry.WriteToFile(assfil.c_str());
+    registry.WriteToXMLFile(assfil.c_str());
     return true;
     }
   catch(...)

@@ -1571,6 +1571,18 @@ IRISApplication
     // Create a thumbnail from the one of the image slices
     std::string fnThumb = m_SystemInterface->GetThumbnailAssociatedWithFile(fnMain);
     m_CurrentImageData->GetMain()->WriteThumbnail(fnThumb.c_str(), 128);
+
+    // Do likewise for the project if one exists
+    if(m_GlobalState->GetProjectFilename().length())
+      {
+      // TODO: it would look nicer if we actually saved the state of the SNAP
+      // windows rather than just the image in its current colormap. But this
+      // would require doing this elsewhere
+      std::string fnThumb = m_SystemInterface->GetThumbnailAssociatedWithFile(
+            m_GlobalState->GetProjectFilename().c_str());
+
+      m_CurrentImageData->GetMain()->WriteThumbnail(fnThumb.c_str(), 128);
+      }
     }
 
   // Reset the automatic segmentation ROI
@@ -1866,6 +1878,23 @@ bool IRISApplication::IsProjectUnsaved()
 
   // Compare with the last saved state
   return (reg_current != m_LastSavedProjectState);
+}
+
+bool IRISApplication::IsProjectFile(const char *filename)
+{
+  // This is pretty weak. What we really need is XML validation to check
+  // that this is a real registry, and then some minimal check to see that
+  // this is a project file
+  try
+  {
+  Registry preg;
+  preg.ReadFromXMLFile(filename);
+  return (preg.HasEntry("SaveLocation") && preg.HasEntry("Version"));
+  }
+  catch(...)
+  {
+  return false;
+  }
 }
 
 
