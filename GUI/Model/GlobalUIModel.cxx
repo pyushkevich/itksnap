@@ -62,6 +62,7 @@
 #include "MeshOptions.h"
 #include "DefaultBehaviorSettings.h"
 #include "SNAPAppearanceSettings.h"
+#include "ImageIOWizardModel.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -713,7 +714,42 @@ std::string GlobalUIModel::GenerateScreenshotFilename()
   return oss.str();
 }
 
+SmartPtr<ImageIOWizardModel>
+GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole role)
+{
+  // Create save delegate for this layer
+  SmartPtr<AbstractSaveImageDelegate> delegate =
+      m_Driver->CreateSaveDelegateForLayer(layer, role);
 
+  // Figure out the category name
+  std::string category;
+  switch(role)
+    {
+    case MAIN_ROLE:
+      category = "Main Image";
+      break;
+    case OVERLAY_ROLE:
+      category = "Overlay Image";
+      break;
+    case SNAP_ROLE:
+      if(dynamic_cast<SpeedImageWrapper *>(layer))
+        category = "Speed Image";
+      else if(dynamic_cast<LevelSetImageWrapper *>(layer))
+        category = "Level Set Image";
+      break;
+    case LABEL_ROLE:
+      category = "Segmentation Image";
+      break;
+    case NO_ROLE:
+      break;
+    }
+
+  // Create a model for IO
+  SmartPtr<ImageIOWizardModel> modelIO = ImageIOWizardModel::New();
+  modelIO->InitializeForSave(this, delegate, category.c_str());
+
+  return modelIO;
+}
 
 
 void

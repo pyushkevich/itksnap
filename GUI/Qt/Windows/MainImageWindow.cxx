@@ -500,8 +500,8 @@ void MainImageWindow::UpdateWindowTitle()
   QString mainfile, segfile;
   if(gid && gid->IsMainLoaded())
     {
-    mainfile = from_utf8(gid->GetMain()->GetNickname());
-    segfile = from_utf8(gid->GetSegmentation()->GetNickname());
+    mainfile = QFileInfo(from_utf8(gid->GetMain()->GetFileName())).fileName();
+    segfile = QFileInfo(from_utf8(gid->GetSegmentation()->GetFileName())).fileName();
     }
 
   if(mainfile.length())
@@ -511,13 +511,13 @@ void MainImageWindow::UpdateWindowTitle()
       this->setWindowTitle(QString("%1 - %2 - ITK-SNAP").arg(mainfile).arg(segfile));
       ui->actionSaveSegmentation->setText(QString("Save \"%1\"").arg(segfile));
       ui->actionSaveSegmentationAs->setText(QString("Save \"%1\" as...").arg(segfile));
+      ui->actionSaveSegmentationAs->setVisible(true);
       }
     else
       {
       this->setWindowTitle(QString("%1 - New Segmentation - ITK-SNAP").arg(mainfile));
-      ui->actionSaveSegmentation->setText(QString("Save"));
-      ui->actionSaveSegmentationAs->setText(QString("Save as..."));
-
+      ui->actionSaveSegmentation->setText(QString("Save Segmentation Image ..."));
+      ui->actionSaveSegmentationAs->setVisible(false);
       }
     }
   else
@@ -559,7 +559,7 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 void MainImageWindow::on_actionQuit_triggered()
 { 
   // Prompt for unsaved changes
-  if(!PromptForUnsavedChanges())
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
     return;
 
   // Close all the windows that are open
@@ -575,7 +575,7 @@ void MainImageWindow::on_actionQuit_triggered()
 void MainImageWindow::on_actionLoad_from_Image_triggered()
 {
   // Prompt for unsaved changes
-  if(!PromptForUnsavedChanges())
+  if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
     return;
 
   // Create a model for IO
@@ -719,36 +719,10 @@ LayerInspectorDialog *MainImageWindow::GetLayerInspector()
   return m_LayerInspector;
 }
 
-bool MainImageWindow::PromptForUnsavedChanges()
-{
-  // Check if the segmentation has unsaved changes
-  bool unsaved_seg =
-      m_Model->GetDriver()->GetIRISImageData()->IsSegmentationLoaded() &&
-      m_Model->GetDriver()->GetIRISImageData()->GetSegmentation()->HasUnsavedChanges();
-
-  if(!unsaved_seg)
-    return true;
-
-  QMessageBox msgBox;
-  msgBox.setText("The segmentation image has unsaved changes.");
-  msgBox.setInformativeText("Do you want to save your changes?");
-  msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-  msgBox.setDefaultButton(QMessageBox::Save);
-  int ret = msgBox.exec();
-
-  if(ret == QMessageBox::Save)
-    return this->SaveSegmentation(true);
-  else if(ret == QMessageBox::Discard)
-    return true;
-  else
-    return false;
-}
-
-
 void MainImageWindow::LoadMainImage(const QString &file)
 {
   // Prompt for unsaved changes
-  if(!PromptForUnsavedChanges())
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
     return;
 
   // Try loading the image
@@ -778,14 +752,13 @@ void MainImageWindow::LoadRecentActionTriggered()
 
 void MainImageWindow::LoadRecentProjectActionTriggered()
 {
+  // Check for unsaved changes before loading new data
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
+    return;
+
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
   QString file = action->text();
-
-  // Check for unsaved changes before loading new data
-  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(
-       m_Model, SaveModifiedLayersDialog::NoOption, this))
-    return;
 
   // Try loading the image
   try
@@ -829,7 +802,7 @@ void MainImageWindow::on_listRecent_clicked(const QModelIndex &index)
 void MainImageWindow::on_actionUnload_All_triggered()
 {
   // Prompt for unsaved changes
-  if(!PromptForUnsavedChanges())
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
     return;
 
   // Unload the main image
@@ -878,7 +851,7 @@ bool MainImageWindow::eventFilter(QObject *obj, QEvent *event)
 void MainImageWindow::on_actionOpenMain_triggered()
 {
   // Prompt for unsaved changes
-  if(!PromptForUnsavedChanges())
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
     return;
 
   // Create a model for IO
@@ -1039,43 +1012,9 @@ void MainImageWindow::on_actionVolumesAndStatistics_triggered()
 
 bool MainImageWindow::SaveSegmentation(bool interactive)
 {
-  // Create delegate
-  SmartPtr<DefaultSaveImageDelegate> delegate = DefaultSaveImageDelegate::New();
-  delegate->Initialize(
-        m_Model->GetDriver(),
-        m_Model->GetDriver()->GetCurrentImageData()->GetSegmentation(),
-        "LabelImage");
-
-  // Create a model for IO
-  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForSave(m_Model, delegate,
-                           "LabelImage",
-                           "Segmentation Image");
-
-  // Interactive or not?
-  if(interactive || model->GetSuggestedFilename().size() == 0)
-    {
-    // Execute the IO wizard
-    ImageIOWizard wiz(this);
-    wiz.SetModel(model);
-    wiz.exec();
-    }
-  else
-    {
-    try
-      {
-      model->SaveImage(model->GetSuggestedFilename());
-      }
-    catch(std::exception &exc)
-      {
-      ReportNonLethalException(
-            this, exc, "Image IO Error",
-            QString("Failed to save image %1").arg(
-              from_utf8(model->GetSuggestedFilename())));
-      }
-    }
-
-  return delegate->IsSaveSuccessful();
+  return SaveImageLayer(
+        m_Model, m_Model->GetDriver()->GetCurrentImageData()->GetSegmentation(),
+        LABEL_ROLE, interactive, this);
 }
 
 void MainImageWindow::RaiseDialog(QDialog *dialog)
@@ -1133,10 +1072,10 @@ void MainImageWindow::on_actionUnload_Last_Overlay_triggered()
 void MainImageWindow::on_actionClear_triggered()
 {
   // Prompt for unsaved changes
-  if(!PromptForUnsavedChanges())
+  if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
     return;
 
-  m_Model->GetDriver()->ClearIRISSegmentationImage();
+  m_Model->GetDriver()->ResetIRISSegmentationImage();
 }
 
 void MainImageWindow::on_actionSave_as_Mesh_triggered()
@@ -1213,15 +1152,13 @@ void MainImageWindow::on_actionPreferences_triggered()
 void MainImageWindow::on_actionOpenWorkspace_triggered()
 {
   // Check for unsaved changes before loading new data
-  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(
-       m_Model, SaveModifiedLayersDialog::NoOption, this))
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
     return;
 
-  // Prompt for a project filename
-  QString file =
-      QFileDialog::getOpenFileName(
-        this, "Open Project ...", QString(),
-        "ITK-SNAP Project Files (*.snapprj)");
+  // Use the dialog with history - to be consistent with other parts of SNAP
+  QString file = ShowSimpleOpenDialogWithHistory(
+        m_Model, "Project", "Open Workspace",
+        "Workspace File", "ITK-SNAP Workspace Files (*.itksnap)");
 
   // If user hits cancel, move on
   if(file.isNull())
@@ -1251,42 +1188,17 @@ bool MainImageWindow::SaveWorkspace(bool interactive)
 {
   // Make sure that there are no unsaved changes. This is necessary before
   // a workspace can be saved. We disable the discard feature here because
-  // the subsequent action does not close anything
+  // the subsequent action does not close anything. The real purpose of this
+  // dialog is to make sure each layer is assigned a name before saving the
+  // workspace
   if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(
-       m_Model, SaveModifiedLayersDialog::DiscardDisabled, this))
+       m_Model, NULL,
+       SaveModifiedLayersDialog::DiscardDisabled
+       | SaveModifiedLayersDialog::ProjectsDisabled))
     return false;
 
-  // Get the currently stored project name
-  QString file_abs = from_utf8(m_Model->GetGlobalState()->GetProjectFilename());
-
-  // Prompt for a project filename if one was not provided
-  if(interactive || file_abs.length() == 0)
-    {
-    // Get the file from the user
-    QString file = QFileDialog::getSaveFileName(
-          this, "Save New Project As ...", QString(),
-          "ITK-SNAP Project Files (*.snapprj)");
-
-    // If user hits cancel, move on
-    if(file.isNull())
-      return false;
-
-    // Make sure to get an absolute path, because the project needs that info
-    file_abs = QFileInfo(file).absoluteFilePath();
-    }
-
-  // If file was provided, set it as the current project file
-  try
-    {
-    m_Model->GetDriver()->SaveProject(to_utf8(file_abs));
-    return true;
-    }
-  catch(exception &exc)
-    {
-    ReportNonLethalException(this, exc, "Error Saving Project",
-                             QString("Failed to save project %1").arg(file_abs));
-    return false;
-    }
+  // Use the global method
+  return ::SaveWorkspace(m_Model, interactive, this);
 }
 
 void MainImageWindow::on_actionSaveWorkspace_triggered()

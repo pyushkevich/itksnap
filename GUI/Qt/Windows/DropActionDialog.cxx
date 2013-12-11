@@ -9,6 +9,8 @@
 #include <QMessageBox>
 #include "SNAPQtCommon.h"
 #include "MainImageWindow.h"
+#include "SaveModifiedLayersDialog.h"
+#include "IRISImageData.h"
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -39,7 +41,7 @@ void DropActionDialog::SetModel(GlobalUIModel *model)
 void DropActionDialog::on_btnLoadMain_clicked()
 {
   // Prompt for unsaved changes before replacing the main image
-  if(!findParentWidget<MainImageWindow>(this)->PromptForUnsavedChanges())
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
     return;
 
   SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
@@ -49,8 +51,8 @@ void DropActionDialog::on_btnLoadMain_clicked()
 
 void DropActionDialog::on_btnLoadSegmentation_clicked()
 {
-  // Prompt for unsaved changes before replacing the main image
-  if(!findParentWidget<MainImageWindow>(this)->PromptForUnsavedChanges())
+  // Prompt for unsaved changes before replacing the segmentation
+  if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
     return;
 
   SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();

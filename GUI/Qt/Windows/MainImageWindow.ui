@@ -642,10 +642,11 @@ background-color:rgb(88, 88, 88);
      <addaction name="actionSegmentationDecreaseOpacity"/>
     </widget>
     <addaction name="actionLoad_from_Image"/>
-    <addaction name="actionClear"/>
     <addaction name="separator"/>
     <addaction name="actionSaveSegmentation"/>
     <addaction name="actionSaveSegmentationAs"/>
+    <addaction name="separator"/>
+    <addaction name="actionClear"/>
     <addaction name="separator"/>
     <addaction name="actionSave_as_Mesh"/>
     <addaction name="separator"/>
@@ -776,7 +777,7 @@ background-color:rgb(88, 88, 88);
   </action>
   <action name="actionLoad_from_Image">
    <property name="text">
-    <string>Open...</string>
+    <string>Open Segmentation ...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -884,7 +885,7 @@ background-color:rgb(88, 88, 88);
   </action>
   <action name="actionClear">
    <property name="text">
-    <string>Clear</string>
+    <string>Unload Segmentation</string>
    </property>
   </action>
   <action name="actionAdd_Overlay">
@@ -1024,12 +1025,12 @@ background-color:rgb(88, 88, 88);
   </action>
   <action name="actionLoadLabels">
    <property name="text">
-    <string>Load Label Descriptions...</string>
+    <string>Import Label Descriptions...</string>
    </property>
   </action>
   <action name="actionSaveLabels">
    <property name="text">
-    <string>Save Label Descriptions...</string>
+    <string>Export Label Descriptions...</string>
    </property>
   </action>
   <action name="actionVolumesAndStatistics">
@@ -1346,6 +1347,21 @@ background-color:rgb(88, 88, 88);
   <action name="actionRecentWorkspace5">
    <property name="text">
     <string>Recent 5</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open ...</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save ...</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="text">
+    <string>Reset to Defaults</string>
    </property>
   </action>
  </widget>

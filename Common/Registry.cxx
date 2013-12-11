@@ -654,6 +654,49 @@ Registry::
   //  delete itf->second;
 }
 
+bool Registry::operator == (const Registry &other) const
+{
+  // Compare the folders
+  if(m_FolderMap.size() != other.m_FolderMap.size())
+    return false;
+
+  for(FolderIterator it1 = m_FolderMap.begin(), it2 = other.m_FolderMap.begin();
+      it1 != m_FolderMap.end(); ++it1, ++it2)
+    {
+    // Compare keys
+    if(it1->first != it2->first)
+      return false;
+
+    // Compare subfolder contents (recursively)
+    if(*(it1->second) != *(it2->second))
+      return false;
+    }
+
+  // Compare the entries
+  if(m_EntryMap.size() != other.m_EntryMap.size())
+    return false;
+
+  for(EntryConstIterator it1 = m_EntryMap.begin(), it2 = other.m_EntryMap.begin();
+      it1 != m_EntryMap.end(); ++it1, ++it2)
+    {
+    // Compare keys
+    if(it1->first != it2->first)
+      return false;
+
+    // Compare subfolder contents (recursively)
+    if(it1->second != it2->second)
+      return false;
+    }
+
+  return true;
+}
+
+bool Registry::operator != (const Registry &other) const
+{
+  return ! (*this == other);
+}
+
+
 /**
 * Write the folder to a disk
 */

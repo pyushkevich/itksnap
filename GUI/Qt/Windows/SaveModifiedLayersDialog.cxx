@@ -5,6 +5,31 @@
 #include <QPushButton>
 #include "SaveModifiedLayersModel.h"
 #include "SNAPQtCommon.h"
+#include "ImageIOWizard.h"
+#include "QtAbstractItemViewCoupling.h"
+#include "QtWidgetActivator.h"
+#include "GlobalUIModel.h"
+#include "IRISApplication.h"
+#include "IRISImageData.h"
+
+class QtSaveModifiedLayersInteractionDelegate
+    : public AbstractSaveModifiedLayersInteractionDelegate
+{
+public:
+
+  virtual bool SaveImageLayer(
+      GlobalUIModel *model, ImageWrapperBase *wrapper, LayerRole role)
+  {
+    return ::SaveImageLayer(model, wrapper, role);
+  }
+
+  virtual bool SaveProject(GlobalUIModel *model)
+  {
+    return ::SaveWorkspace(model, false, NULL);
+  }
+
+};
+
 
 SaveModifiedLayersDialog::SaveModifiedLayersDialog(QWidget *parent) :
   QDialog(parent),
@@ -33,6 +58,17 @@ void SaveModifiedLayersDialog::SetModel(SaveModifiedLayersModel *model)
 
   // Fill out
   this->UpdateUnsavedTable();
+
+  // Couple the model to the list
+  makeCoupling((QAbstractItemView *) ui->tableLayers, m_Model->GetCurrentItemModel());
+
+  // Activate the save all button
+  activateOnFlag(ui->buttonBox->button(QDialogButtonBox::SaveAll),
+                 m_Model, SaveModifiedLayersModel::UIF_CAN_SAVE_ALL);
+
+  // Activate the save all button
+  activateOnFlag(ui->buttonBox->button(QDialogButtonBox::Save),
+                 m_Model, SaveModifiedLayersModel::UIF_CAN_SAVE_CURRENT);
 }
 
 void SaveModifiedLayersDialog::SetOptions(PromptOptions opts)
@@ -42,12 +78,19 @@ void SaveModifiedLayersDialog::SetOptions(PromptOptions opts)
         !opts.testFlag(DiscardDisabled));
 }
 
-bool SaveModifiedLayersDialog::PromptForUnsavedChanges(
-    GlobalUIModel *model, PromptOptions opts, QWidget *parent)
+bool
+SaveModifiedLayersDialog
+::PromptForUnsavedChanges(
+    GlobalUIModel *model, ImageWrapperBase *singleLayer,
+    PromptOptions opts, QWidget *parent)
 {
-  // Create a model
+  // Create a callback delegate
+  QtSaveModifiedLayersInteractionDelegate cb_delegate;
+
+  // Create and configure the model
   SmartPtr<SaveModifiedLayersModel> saveModel = SaveModifiedLayersModel::New();
-  saveModel->SetParentModel(model);
+  saveModel->Initialize(model, singleLayer);
+  saveModel->SetUIDelegate(&cb_delegate);
 
   // Check if there is anything to save
   if(saveModel->GetUnsavedItems().size() == 0)
@@ -61,6 +104,14 @@ bool SaveModifiedLayersDialog::PromptForUnsavedChanges(
 
   // Show the dialog
   return (dialog->exec() == QDialog::Accepted);
+}
+
+bool
+SaveModifiedLayersDialog
+::PromptForUnsavedSegmentationChanges(GlobalUIModel *model)
+{
+  ImageWrapperBase *layer = model->GetDriver()->GetIRISImageData()->GetSegmentation();
+  return PromptForUnsavedChanges(model, layer);
 }
 
 void SaveModifiedLayersDialog::onModelUpdate(const EventBucket &bucket)
@@ -81,7 +132,8 @@ void SaveModifiedLayersDialog::UpdateUnsavedTable()
   const ItemArray &items = m_Model->GetUnsavedItems();
 
   // Create a standard item model for unsaved items
-  QStandardItemModel *qsim = new QStandardItemModel(items.size(), 2, ui->tableLayers);
+  QStandardItemModel *qsim = new QStandardItemModel(ui->tableLayers);
+  qsim->setColumnCount(2);
   qsim->setHorizontalHeaderItem(0, new QStandardItem("Unsaved Item"));
   qsim->setHorizontalHeaderItem(1, new QStandardItem("Filename"));
 
@@ -89,14 +141,26 @@ void SaveModifiedLayersDialog::UpdateUnsavedTable()
   for(int i = 0; i < items.size(); i++)
     {
     AbstractSaveableItem *unsaved = items[i];
+    if(unsaved->NeedsDecision())
+      {
+      QList<QStandardItem *> row;
 
-    // The first column
-    QStandardItem *item = new QStandardItem(from_utf8(unsaved->GetDescription()));
-    item->setData(unsaved->GetId(), Qt::UserRole);
+      // The first column
+      row.append(new QStandardItem(from_utf8(unsaved->GetDescription())));
+      row.back()->setData(unsaved->GetId(), Qt::UserRole);
 
-    qsim->setItem(i, 0, item);
-    qsim->setItem(i, 1, new QStandardItem(from_utf8(unsaved->GetFilename())));
+      if(unsaved->GetFilename().size())
+        row.append(new QStandardItem(from_utf8(unsaved->GetFilename())));
+      else
+        row.append(new QStandardItem("Not assigned"));
+
+      qsim->appendRow(row);
+      }
     }
+
+  // If there are no more rows to add, we are done with the dialog
+  if(qsim->rowCount() == 0)
+    this->accept();
 
   // Before setting the contents, we need to check what's the selected item
   // because the coupling is going to change that. This is actually a bit of
@@ -117,3 +181,30 @@ void SaveModifiedLayersDialog::UpdateUnsavedTable()
 }
 
 
+
+void SaveModifiedLayersDialog::on_buttonBox_clicked(QAbstractButton *button)
+{
+  // Save selected item
+  if(button == ui->buttonBox->button(QDialogButtonBox::Save))
+    {
+    // If the item has a filename, save it as is. If it does not, save it via
+    // its wizard. The trouble is, the wizard needs to know about the item, so
+    // this is not so simple.
+    m_Model->SaveCurrent();
+    }
+  else if(button == ui->buttonBox->button(QDialogButtonBox::Discard))
+    {
+    // Discard the changes to this image.
+    m_Model->DiscardCurrent();
+    }
+  else if(button == ui->buttonBox->button(QDialogButtonBox::SaveAll))
+    {
+    // Cancel out the dialog.
+    m_Model->SaveAll();
+    }
+  else if(button == ui->buttonBox->button(QDialogButtonBox::Cancel))
+    {
+    // Cancel out the dialog.
+    this->reject();
+    }
+}

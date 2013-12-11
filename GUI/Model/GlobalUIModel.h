@@ -67,6 +67,8 @@ class SnakeParameterModel;
 class MeshExportModel;
 class GlobalPreferencesModel;
 class GlobalDisplaySettings;
+class ImageIOWizardModel;
+class ImageWrapperBase;
 
 namespace itk
 {
@@ -290,6 +292,15 @@ public:
   /** Generate a suggested filename for saving screenshots, by incrementing
    *  from thelast saved screenshot filename */
   std::string GenerateScreenshotFilename();
+
+  /**
+   * Create a temporary model for saving an image layer to a file, to use in
+   * conjunction with an IO wizard. We pass in the Layer and the LayerRole
+   */
+  SmartPtr<ImageIOWizardModel> CreateIOWizardModelForSave(
+      ImageWrapperBase *layer, LayerRole role);
+
+
 
 protected:
 

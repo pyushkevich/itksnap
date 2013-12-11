@@ -94,10 +94,6 @@ public:
   // Get the layer inspector
   LayerInspectorDialog *GetLayerInspector();
 
-  // Prompt the user whether they want to proceed with unsaved changes to
-  // the segmentation and other image layers
-  bool PromptForUnsavedChanges();
-
 public slots:
 
   void LoadRecentActionTriggered();

@@ -222,10 +222,15 @@ public:
   /** Unload the main image (and everything else) */
   virtual void UnloadMainImage();
 
-  virtual void AddOverlay(AnatomicImageType *image,
-                          const LinearInternalToNativeIntensityMapping &native);
+  /**
+   * Reset the segmentation wrapper. This happens when the main image is loaded
+   * or when the user asks for a new segmentation image
+   */
+  virtual void ResetSegmentationImage();
 
   /** Handle overlays */
+  virtual void AddOverlay(AnatomicImageType *image,
+                          const LinearInternalToNativeIntensityMapping &native);
   virtual void UnloadOverlays();
   virtual void UnloadOverlayLast();
   virtual void UnloadOverlay(ImageWrapperBase *overlay);

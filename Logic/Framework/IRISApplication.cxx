@@ -341,24 +341,19 @@ void IRISApplication
 
 void
 IRISApplication
-::ClearIRISSegmentationImage()
+::ResetIRISSegmentationImage()
 {
   // This has to happen in 'pure' IRIS mode
   assert(!IsSnakeModeActive());
 
-  // Fill the image with blanks
-  this->m_IRISImageData->GetSegmentation()->GetImage()->FillBuffer(0);
-  this->m_IRISImageData->GetSegmentation()->GetImage()->Modified();
-
-  // Fill the undo image with blanks too
-  this->m_IRISImageData->GetUndoImage()->GetImage()->FillBuffer(0);
-  this->m_IRISImageData->GetUndoImage()->GetImage()->Modified();
+  // Reset the segmentation image
+  this->m_IRISImageData->ResetSegmentationImage();
 
   // Clear the undo buffer
   m_UndoManager.Clear();
 
   // Fire the appropriate event
-  InvokeEvent(SegmentationChangeEvent());
+  InvokeEvent(LayerChangeEvent());
 }
 
 void
@@ -1587,6 +1582,9 @@ IRISApplication
   // After unloading the main image, we reset the workspace filename
   m_GlobalState->SetProjectFilename("");
 
+  // Reset the project registry
+  m_LastSavedProjectState = Registry();
+
   // Let everyone know that the main image is gone!
   InvokeEvent(MainImageDimensionsChangeEvent());
 }
@@ -1653,7 +1651,104 @@ void IRISApplication
   this->LoadImageViaDelegate(fname, delegate, wl);
 }
 
+SmartPtr<AbstractSaveImageDelegate>
+IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole role)
+{
+  // TODO: need some unified way of handling histories and categories
 
+  // Which history does the image belong under? This goes beyond the role
+  // of the image, as in snake mode, there are sub-roles that the wrappers
+  // have. The safest thing is to have the history information be stored
+  // as a kind of user data in each wrapper. However, for now, we will just
+  // infer it from the role and type
+  std::string history, category;
+  if(role == MAIN_ROLE)
+    {
+    history = "AnatomicImage";
+    category = "Main Image";
+    }
+
+  else if(role == LABEL_ROLE)
+    {
+    history = "LabelImage";
+    category = "Segmentation Image";
+    }
+
+  else if(role == OVERLAY_ROLE)
+    {
+    history = "AnatomicImage";
+    category = "Overlay Image";
+    }
+
+  else if(role == SNAP_ROLE)
+    {
+    if(dynamic_cast<SpeedImageWrapper *>(layer))
+      {
+      history = "SpeedImage";
+      category = "Speed Image";
+      }
+
+    else if(dynamic_cast<LevelSetImageWrapper *>(layer))
+      {
+      history = "LevelSetImage";
+      category = "Level Set Image";
+      }
+    }
+
+  // Create delegate
+  SmartPtr<DefaultSaveImageDelegate> delegate = DefaultSaveImageDelegate::New();
+  delegate->Initialize(this, layer, history);
+
+  // Return the delegate
+  return delegate.GetPointer();
+}
+
+
+void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string proj_file_full)
+{
+  // Clear the registry contents
+  preg.Clear();
+
+  // Get the directory in which the project will be saved
+  std::string project_dir = itksys::SystemTools::GetParentDirectory(proj_file_full.c_str());
+
+  // Put version information - later versions may not be compatible
+  preg["Version"] << SNAPCurrentVersionReleaseDate;
+
+  // Save the directory to the project file. This allows us to deal with the project
+  // being moved elsewhere in the filesystem
+  preg["SaveLocation"] << project_dir;
+
+  // Save each of the layers with 'saveable' roles
+  int i = 0;
+  for(LayerIterator it = GetCurrentImageData()->GetLayers(
+        MAIN_ROLE | LABEL_ROLE | OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+    {
+    ImageWrapperBase *layer = it.GetLayer();
+
+    // Get the filename of the layer
+    const char *filename = layer->GetFileName();
+
+    // If the layer does not have a filename, skip it
+    if(!filename || strlen(filename) == 0)
+      continue;
+
+    // Get the full name of the image file
+    std::string layer_file_full = itksys::SystemTools::CollapseFullPath(filename);
+
+    // Create a folder for this layer
+    Registry &folder = preg.Folder(Registry::Key("Layers.Layer[%03d]", i++));
+
+    // Put the filename and relative filename into the folder
+    folder["AbsolutePath"] << layer_file_full;
+
+    // Put the role associated with the file into the folder
+    folder["Role"].PutEnum(SNAPRegistryIO::GetEnumMapLayerRole(), it.GetRole());
+
+    // Save the metadata associated with the layer
+    SaveMetaDataAssociatedWithLayer(layer, it.GetRole(), &folder);
+    }
+}
 
 void IRISApplication::SaveProject(const std::string &proj_file)
 {
@@ -1668,52 +1763,11 @@ void IRISApplication::SaveProject(const std::string &proj_file)
   // Get the full name of the project file
   std::string proj_file_full = itksys::SystemTools::CollapseFullPath(proj_file.c_str());
 
-  // Get the directory in which the project will be saved
-  std::string project_dir = itksys::SystemTools::GetParentDirectory(proj_file_full.c_str());
-
   // Create a registry that will be used to save the project
   Registry preg;
 
-  // Put version information - later versions may not be compatible
-  preg["Version"] << SNAPCurrentVersionReleaseDate;
-
-  // Save the directory to the project file. This allows us to deal with the project
-  // being moved elsewhere in the filesystem
-  preg["SaveLocation"] << project_dir;
-
-  // Save each of the layers with 'saveable' roles
-  LayerIterator it = GetCurrentImageData()->GetLayers(
-        MAIN_ROLE | LABEL_ROLE | OVERLAY_ROLE);
-
-  int i = 0;
-  while(!it.IsAtEnd())
-    {
-    ImageWrapperBase *layer = it.GetLayer();
-
-    // The UI is responsible for making sure that the layer does not have unsaved changes
-    assert(!layer->HasUnsavedChanges());
-
-    // Get the filename of the layer
-    const char *filename = layer->GetFileName();
-
-    // Get the full name of the image file
-    std::string layer_file_full = itksys::SystemTools::CollapseFullPath(filename);
-
-    // Create a folder for this layer
-    Registry &folder = preg.Folder(Registry::Key("Layers.Layer[%03d]", i));
-
-    // Put the filename and relative filename into the folder
-    folder["AbsolutePath"] << layer_file_full;
-
-    // Put the role associated with the file into the folder
-    folder["Role"].PutEnum(SNAPRegistryIO::GetEnumMapLayerRole(), it.GetRole());
-
-    // Save the metadata associated with the layer
-    SaveMetaDataAssociatedWithLayer(layer, it.GetRole(), &folder);
-
-    // On to the next layer
-    ++it; ++i;
-    }
+  // Do the actual writing to the registry
+  SaveProjectToRegistry(preg, proj_file_full);
 
   // Finally, save the registry
   preg.WriteToXMLFile(proj_file_full.c_str(), header);
@@ -1724,6 +1778,9 @@ void IRISApplication::SaveProject(const std::string &proj_file)
   // Update the history
   m_SystemInterface->GetHistoryManager()->
       UpdateHistory("Project", proj_file_full, false);
+
+  // Store the project registry
+  m_LastSavedProjectState = preg;
 }
 
 void IRISApplication::OpenProject(
@@ -1795,6 +1852,20 @@ void IRISApplication::OpenProject(
   // Update the history
   m_SystemInterface->GetHistoryManager()->
       UpdateHistory("Project", proj_file_full, false);
+
+  // Simulate saving the project into a registy that will be cached. This
+  // allows us to check later whether the project state has changed.
+  SaveProjectToRegistry(m_LastSavedProjectState, proj_file_full);
+}
+
+bool IRISApplication::IsProjectUnsaved()
+{
+  // Place the current state of the project into the registry
+  Registry reg_current;
+  SaveProjectToRegistry(reg_current, m_GlobalState->GetProjectFilename());
+
+  // Compare with the last saved state
+  return (reg_current != m_LastSavedProjectState);
 }
 
 

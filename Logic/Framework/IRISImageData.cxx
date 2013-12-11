@@ -56,6 +56,7 @@ IRISImageData
   LabelImageWrapper::Iterator itUndo = m_UndoWrapper->GetImageIterator();
   LabelImageWrapper::ConstIterator itSeg = m_LabelWrapper->GetImageConstIterator();
 
+  // TODO: use a copy filter!
   while(!itUndo.IsAtEnd())
     {
     itUndo.Set(itSeg.Get());
@@ -66,11 +67,9 @@ IRISImageData
 
 void
 IRISImageData
-::SetMainImage(AnatomicImageType *image,
-               const ImageCoordinateGeometry &newGeometry,
-               const LinearInternalToNativeIntensityMapping &native)
+::ResetSegmentationImage()
 {
-  GenericImageData::SetMainImage(image, newGeometry, native);
+  GenericImageData::ResetSegmentationImage();
   m_UndoWrapper = LabelImageWrapper::New();
   m_UndoWrapper->InitializeToWrapper(m_LabelWrapper, (LabelType) 0);
 }

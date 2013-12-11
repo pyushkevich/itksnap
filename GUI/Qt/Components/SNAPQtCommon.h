@@ -21,6 +21,7 @@ class ColorLabel;
 class ColorMap;
 class QComboBox;
 class ColorMapModel;
+class ImageWrapperBase;
 
 // Generate an icon with a black border and a given fill color
 QIcon CreateColorBoxIcon(int w, int h, const QBrush &brush);
@@ -100,7 +101,6 @@ void PopulateHistoryMenu(
     QMenu *menu, QObject *receiver, const char *slot,
     const QStringList &local_history, const QStringList &global_history);
 
-
 /** Show a generic file save dialog with a history dropdown */
 QString ShowSimpleSaveDialogWithHistory(
     GlobalUIModel *model, QString hist_category,
@@ -110,6 +110,23 @@ QString ShowSimpleSaveDialogWithHistory(
 QString ShowSimpleOpenDialogWithHistory(
     GlobalUIModel *model, QString hist_category,
     QString window_title, QString file_title, QString file_pattern);
+
+/**
+ * This static save method provides a simple interface for saving an
+ * image layer either interactively or non-interactively depending on
+ * whether the image layer has a filename set. Exceptions are handled
+ * within the method. The method returns true if the image was actually
+ * saved, and false if there was a problem, or user cancelled.
+ */
+bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
+                    LayerRole role, bool force_interactive = false,
+                    QWidget *parent = NULL);
+
+
+/**
+ * A static method to save the project/workspace to file
+ */
+bool SaveWorkspace(GlobalUIModel *model, bool interactive, QWidget *widget);
 
 /** Convert a QString to a std::string using UTF8 encoding */
 inline std::string to_utf8(const QString &qstring)

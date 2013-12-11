@@ -65,9 +65,12 @@ public:
    */
   void SetSegmentationImage(LabelImageType *newLabelImage);
 
-  void SetMainImage(AnatomicImageType *image,
-                    const ImageCoordinateGeometry &newGeometry,
-                    const LinearInternalToNativeIntensityMapping &native);
+  /**
+   * We override the parent's ResetSegmentationImage in order to initialize the
+   * undo wrapper to match.
+   */
+  void ResetSegmentationImage();
+
 
   virtual void UnloadMainImage();
 

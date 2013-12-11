@@ -86,7 +86,7 @@ public:
   /**
    * Whether closing the layer requires prompting for changes
    */
-  bool IsPromptingNecessary();
+  bool IsMainLayer();
 
   /**
    * Close the current layer
@@ -116,7 +116,9 @@ protected:
   ImageWrapperBase *m_Layer;
 
   // Role information (cached)
-  int m_LayerRole, m_LayerPositionInRole, m_LayerNumberOfLayersInRole;
+  LayerRole m_LayerRole;
+
+  int m_LayerPositionInRole, m_LayerNumberOfLayersInRole;
 
   // Cached list of display modes
   DisplayModeList m_AvailableDisplayModes;

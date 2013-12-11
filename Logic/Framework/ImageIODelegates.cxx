@@ -2,6 +2,7 @@
 #include "GuidedNativeImageIO.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
+#include "HistoryManager.h"
 
 
 /* =============================
@@ -198,7 +199,8 @@ void
 LoadSegmentationImageDelegate
 ::UnloadCurrentImage()
 {
-  m_Driver->ClearIRISSegmentationImage();
+  // It is unnecessary to unload the current segmentation image, because that
+  // just will reinitialize it with zeros. It's safe to just do nothing.
 }
 
 
@@ -220,7 +222,11 @@ void DefaultSaveImageDelegate::AddHistoryName(const std::string &histname)
   m_HistoryNames.push_back(histname);
 }
 
-#include "HistoryManager.h"
+const char *DefaultSaveImageDelegate::GetHistoryName()
+{
+  return m_HistoryNames.front().c_str();
+}
+
 
 void DefaultSaveImageDelegate
 ::SaveImage(const std::string &fname, GuidedNativeImageIO *io,

@@ -128,6 +128,20 @@ GenericImageData
   SetSingleImageWrapper(MAIN_ROLE, wrapper.GetPointer());
   m_MainImageWrapper = wrapper;
 
+  // Reset the segmentation image
+  ResetSegmentationImage();
+
+  // Set opaque
+  m_MainImageWrapper->SetAlpha(255);
+
+  // Pass the coordinate transform to the wrappers
+  SetImageGeometry(newGeometry);
+}
+
+void
+GenericImageData
+::ResetSegmentationImage()
+{
   // Initialize the segmentation data to zeros
   m_LabelWrapper = LabelImageWrapper::New();
   m_LabelWrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
@@ -135,12 +149,6 @@ GenericImageData
 
   m_LabelWrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
   SetSingleImageWrapper(LABEL_ROLE, m_LabelWrapper.GetPointer());
-
-  // Set opaque
-  m_MainImageWrapper->SetAlpha(255);
-
-  // Pass the coordinate transform to the wrappers
-  SetImageGeometry(newGeometry);
 }
 
 void

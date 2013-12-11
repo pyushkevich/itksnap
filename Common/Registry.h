@@ -197,6 +197,17 @@ public:
   /** Initializing constructor: sets the object to a value */
   RegistryValue(const std::string &value);
 
+  /** Comparison */
+  bool operator == (const RegistryValue &other) const
+  {
+    return m_Null == other.m_Null && m_String == other.m_String;
+  }
+
+  bool operator != (const RegistryValue &other) const
+  {
+    return ! (*this == other);
+  }
+
   /** Is the value present in the Registry? */
   bool IsNull() const { return m_Null; }
 
@@ -326,6 +337,11 @@ public:
 
   /** Destructor */
   virtual ~Registry();
+
+  /** Comparison */
+  bool operator == (const Registry &other) const;
+
+  bool operator != (const Registry &other) const;
 
   /** Get a reference to a value in this registry, which can then be queried */
   RegistryValue &operator[](const StringType &key) { return Entry(key); }

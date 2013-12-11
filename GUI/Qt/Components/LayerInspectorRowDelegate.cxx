@@ -18,6 +18,7 @@
 #include "ImageIODelegates.h"
 #include "ImageIOWizard.h"
 #include "MainImageWindow.h"
+#include "SaveModifiedLayersDialog.h"
 
 #include "DisplayMappingPolicy.h"
 #include "ColorMap.h"
@@ -452,8 +453,11 @@ void LayerInspectorRowDelegate::on_actionSave_triggered()
 
 void LayerInspectorRowDelegate::on_actionClose_triggered()
 {
-  if(!m_Model->IsPromptingNecessary()
-     || findParentWidget<MainImageWindow>(this)->PromptForUnsavedChanges())
+  // Should we prompt for a single layer or all layers?
+  ImageWrapperBase *prompted_layer = m_Model->IsMainLayer() ? NULL : m_Model->GetLayer();
+
+  // Prompt for changes
+  if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), prompted_layer))
     {
     m_Model->CloseLayer();
     }

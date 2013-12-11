@@ -11,7 +11,10 @@
 #include <QMenu>
 #include <QComboBox>
 #include <QStandardItemModel>
+#include <QFileInfo>
 
+
+#include "QtCursorOverride.h"
 #include "GlobalUIModel.h"
 #include "SystemInterface.h"
 #include "IRISApplication.h"
@@ -20,6 +23,8 @@
 #include "ColorLabelTable.h"
 #include "ColorMap.h"
 #include "ColorMapModel.h"
+#include "ImageIOWizard.h"
+
 
 QIcon CreateColorBoxIcon(int w, int h, const QBrush &brush)
 {
@@ -372,4 +377,73 @@ QString ShowSimpleOpenDialogWithHistory(
         window_title, file_title, hl, hg, file_pattern);
 }
 
+bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
+                    LayerRole role, bool force_interactive,
+                    QWidget *parent)
+{
+  // Create a model for saving the segmentation image via a wizard
+  SmartPtr<ImageIOWizardModel> wiz_model =
+      model->CreateIOWizardModelForSave(wrapper, role);
+
+  // Interactive or not?
+  if(force_interactive || wiz_model->GetSuggestedFilename().size() == 0)
+    {
+    // Execute the IO wizard
+    ImageIOWizard wiz(parent);
+    wiz.SetModel(wiz_model);
+    wiz.exec();
+    }
+  else
+    {
+    try
+      {
+      QtCursorOverride curse(Qt::WaitCursor);
+      wiz_model->SaveImage(wiz_model->GetSuggestedFilename());
+      }
+    catch(std::exception &exc)
+      {
+      ReportNonLethalException(
+            parent, exc, "Image IO Error",
+            QString("Failed to save image %1").arg(
+              from_utf8(wiz_model->GetSuggestedFilename())));
+      }
+    }
+
+  return wiz_model->GetSaveDelegate()->IsSaveSuccessful();
+}
+
+bool SaveWorkspace(GlobalUIModel *model, bool interactive, QWidget *widget)
+{
+  // Get the currently stored project name
+  QString file_abs = from_utf8(model->GetGlobalState()->GetProjectFilename());
+
+  // Prompt for a project filename if one was not provided
+  if(interactive || file_abs.length() == 0)
+    {
+    // Use the dialog with history - to be consistent with other parts of SNAP
+    QString file = ShowSimpleSaveDialogWithHistory(
+          model, "Project", "Save Workspace",
+          "Workspace File", "ITK-SNAP Workspace Files (*.itksnap)");
+
+    // If user hits cancel, move on
+    if(file.isNull())
+      return false;
+
+    // Make sure to get an absolute path, because the project needs that info
+    file_abs = QFileInfo(file).absoluteFilePath();
+    }
+
+  // If file was provided, set it as the current project file
+  try
+    {
+    model->GetDriver()->SaveProject(to_utf8(file_abs));
+    return true;
+    }
+  catch(exception &exc)
+    {
+    ReportNonLethalException(widget, exc, "Error Saving Project",
+                             QString("Failed to save project %1").arg(file_abs));
+    return false;
+    }
+}
 

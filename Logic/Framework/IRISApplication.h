@@ -62,6 +62,7 @@ class UnsupervisedClustering;
 class ImageWrapperBase;
 class MeshManager;
 class AbstractLoadImageDelegate;
+class AbstractSaveImageDelegate;
 class IRISWarningList;
 
 
@@ -189,6 +190,13 @@ public:
   void LoadImage(const char *fname, LayerRole role,
                  IRISWarningList &wl, Registry *meta_data_reg = NULL);
 
+  /**
+   * Create a delegate for saving an image interactively or non-interactively
+   * via a wizard.
+   */
+  SmartPtr<AbstractSaveImageDelegate> CreateSaveDelegateForLayer(
+      ImageWrapperBase *layer, LayerRole role);
+
   /** 
    * Update the main image in IRIS. The first parameter is the IO object that
    * has the image data loaded, and the second parameter is an optional pointer
@@ -231,7 +239,7 @@ public:
   /** 
    * Clear the IRIS segmentation image
    */
-  void ClearIRISSegmentationImage();
+  void ResetIRISSegmentationImage();
 
   /** 
    * Update the SNAP image data with an external speed image (e.g., 
@@ -524,6 +532,13 @@ public:
    */
   void OpenProject(const std::string &proj_file, IRISWarningList &warn);
 
+  /**
+   * Check if the project has modified since the last time it was saved. This
+   * is a bit tricky to keep track of, because the project includes both the
+   * list of images and the parameters.
+   */
+  bool IsProjectUnsaved();
+
   // --------------------- End project support ----------------------------
 
 
@@ -613,6 +628,15 @@ protected:
                                        Registry *override = NULL);
   void LoadMetaDataAssociatedWithLayer(ImageWrapperBase *layer, int role,
                                        Registry *override = NULL);
+
+  // ----------------------- Project support ------------------------------
+
+  // Cached state of the project at the time of last open/save. Used to check
+  // if the project has been modified.
+  Registry m_LastSavedProjectState;
+
+  // Internal method used by the project IO code
+  void SaveProjectToRegistry(Registry &preg, const std::string proj_file_full);
 
 };
 

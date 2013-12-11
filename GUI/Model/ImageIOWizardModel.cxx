@@ -25,12 +25,11 @@ void
 ImageIOWizardModel
 ::InitializeForSave(GlobalUIModel *parent,
                     AbstractSaveImageDelegate *delegate,
-                    const char *name,
                     const char *dispName)
 {
   m_Parent = parent;
   m_Mode = SAVE;
-  m_HistoryName = name;
+  m_HistoryName = delegate->GetHistoryName();
   m_DisplayName = dispName;
   m_GuidedIO = new GuidedNativeImageIO();
   m_LoadDelegate = NULL;

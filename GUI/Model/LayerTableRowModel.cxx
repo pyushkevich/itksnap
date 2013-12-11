@@ -10,6 +10,7 @@
 #include "ColorMapModel.h"
 #include "IntensityCurveModel.h"
 #include "LayerGeneralPropertiesModel.h"
+#include "SNAPImageData.h"
 
 
 LayerTableRowModel::LayerTableRowModel()
@@ -46,7 +47,7 @@ LayerTableRowModel::LayerTableRowModel()
   m_VisibilityToggleModel = NewNumericPropertyToggleAdaptor(
         m_LayerOpacityModel.GetPointer(), 0, 50);
 
-  m_LayerRole = -1;
+  m_LayerRole = NO_ROLE;
   m_LayerPositionInRole = -1;
 }
 
@@ -98,7 +99,7 @@ void LayerTableRowModel::UpdateRoleInfo()
 {
   LayerIterator it(m_ParentModel->GetDriver()->GetCurrentImageData());
   it.Find(m_Layer);
-  m_LayerRole = (int) it.GetRole();
+  m_LayerRole = it.GetRole();
   m_LayerPositionInRole = it.GetPositionInRole();
   m_LayerNumberOfLayersInRole = it.GetNumberOfLayersInRole();
 }
@@ -176,59 +177,13 @@ void LayerTableRowModel::MoveLayerDown()
   m_ParentModel->GetDriver()->ChangeOverlayPosition(m_Layer, +1);
 }
 
-#include "SNAPImageData.h"
 
 SmartPtr<ImageIOWizardModel> LayerTableRowModel::CreateIOWizardModelForSave()
 {
-  // TODO: need some unified way of handling histories and categories
-
-  // Which history does the image belong under? This goes beyond the role
-  // of the image, as in snake mode, there are sub-roles that the wrappers
-  // have. The safest thing is to have the history information be stored
-  // as a kind of user data in each wrapper. However, for now, we will just
-  // infer it from the role and type
-  std::string history, category;
-  if(m_LayerRole == MAIN_ROLE)
-    {
-    history = "AnatomicImage";
-    category = "Main Image";
-    }
-
-  else if(m_LayerRole == OVERLAY_ROLE)
-    {
-    history = "AnatomicImage";
-    category = "Overlay Image";
-    }
-
-  else if(m_LayerRole == SNAP_ROLE)
-    {
-    if(dynamic_cast<SpeedImageWrapper *>(m_Layer))
-      {
-      history = "SpeedImage";
-      category = "Speed Image";
-      }
-
-    else if(dynamic_cast<LevelSetImageWrapper *>(m_Layer))
-      {
-      history = "LevelSetImage";
-      category = "Level Set Image";
-      }
-    }
-
-  // Create delegate
-  SmartPtr<DefaultSaveImageDelegate> delegate
-      = DefaultSaveImageDelegate::New();
-  delegate->Initialize(GetParentModel()->GetDriver(), m_Layer, history);
-
-  // Create a model for IO
-  SmartPtr<ImageIOWizardModel> modelIO = ImageIOWizardModel::New();
-  modelIO->InitializeForSave(GetParentModel(), delegate,
-                           history.c_str(), category.c_str());
-
-  return modelIO;
+  return m_ParentModel->CreateIOWizardModelForSave(m_Layer, m_LayerRole);
 }
 
-bool LayerTableRowModel::IsPromptingNecessary()
+bool LayerTableRowModel::IsMainLayer()
 {
   return m_LayerRole == MAIN_ROLE;
 }
@@ -370,7 +325,7 @@ void LayerTableRowModel::OnUpdate()
   if(this->m_EventBucket->HasEvent(itk::DeleteEvent(), m_Layer))
     {
     m_Layer = NULL;
-    m_LayerRole = -1;
+    m_LayerRole = NO_ROLE;
     m_LayerPositionInRole = -1;
     m_LayerNumberOfLayersInRole = -1;
     }

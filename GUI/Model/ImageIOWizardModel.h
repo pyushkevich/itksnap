@@ -46,7 +46,7 @@ public:
 
   void InitializeForSave(GlobalUIModel *parent,
                          AbstractSaveImageDelegate *delegate,
-                         const char *name, const char *dispName);
+                         const char *dispName);
 
   irisGetMacro(Parent, GlobalUIModel *)
   irisGetMacro(GuidedIO, GuidedNativeImageIO *)
@@ -56,6 +56,12 @@ public:
 
   // Does the model support loading
   bool IsSaveMode() const { return m_Mode == SAVE; }
+
+  /** Access the IO delegate used for loading */
+  irisGetMacro(LoadDelegate, AbstractLoadImageDelegate *)
+
+  /** Access the IO delegate used for saving */
+  irisGetMacro(SaveDelegate, AbstractSaveImageDelegate *)
 
   // Whether we can save or load a file format
   virtual bool CanHandleFileFormat(FileFormat fmt);

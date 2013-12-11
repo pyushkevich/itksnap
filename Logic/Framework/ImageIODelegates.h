@@ -131,6 +131,8 @@ public:
 
   virtual const char *GetCurrentFilename() = 0;
 
+  virtual const char *GetHistoryName() = 0;
+
   /**
    * Has the file been saves successfully after the call to SaveImage?
    */
@@ -157,6 +159,8 @@ public:
   // Add a history name to update when the filename is saved. It is possible
   // for multiple history names to be updated
   void AddHistoryName(const std::string &histname);
+
+  virtual const char *GetHistoryName();
 
   virtual void SaveImage(
       const std::string &fname,
