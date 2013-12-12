@@ -17,6 +17,7 @@ public:
   virtual bool Equals(const ConcretePropertyHolderBase *other) = 0;
   virtual void Serialize(Registry &folder) const = 0;
   virtual void Deserialize(Registry &folder) = 0;
+  virtual const itk::TimeStamp &GetPropertyTimeStamp() const = 0;
 };
 
 template <class TAtomic>
@@ -117,6 +118,12 @@ public:
       }
   }
 
+  virtual const itk::TimeStamp &GetPropertyTimeStamp() const
+  {
+    return m_Property->GetTimeStamp();
+  }
+
+
   irisGetSetMacro(Property, PropertyType *)
   irisGetSetMacro(RegistryKey, const std::string &)
   irisGetSetMacro(Traits, const TRegistryTraits &)
@@ -215,6 +222,12 @@ public:
   virtual bool operator == (const AbstractPropertyContainerModel &source);
 
   virtual bool operator != (const AbstractPropertyContainerModel &source);
+
+  /** Return this objects modified time. This will return the latest of our
+   * own modified time and the modified times of all the children */
+  virtual unsigned long GetMTime() const;
+
+  virtual const itk::TimeStamp &GetTimeStamp() const;
 
   void WriteToRegistry(Registry &folder) const;
 

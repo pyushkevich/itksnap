@@ -48,6 +48,11 @@ bool AbstractPropertyContainerModel::operator != (
   return !(*this == source);
 }
 
+unsigned long AbstractPropertyContainerModel::GetMTime() const
+{
+  return this->GetTimeStamp().GetMTime();
+}
+
 void AbstractPropertyContainerModel::WriteToRegistry(Registry &folder) const
 {
   for(PropertyMapCIter it = m_Properties.begin(); it != m_Properties.end(); it++)
@@ -67,3 +72,15 @@ void AbstractPropertyContainerModel::ReadFromRegistry(Registry &folder)
   this->Modified();
 }
 
+
+const itk::TimeStamp &AbstractPropertyContainerModel::GetTimeStamp() const
+{
+  const itk::TimeStamp *ts = &AbstractModel::GetTimeStamp();
+  for(PropertyMapCIter it = m_Properties.begin(); it != m_Properties.end(); it++)
+    {
+    const itk::TimeStamp &tschild = it->second->GetPropertyTimeStamp();
+    if(tschild > (*ts))
+      ts = &tschild;
+    }
+  return *ts;
+}

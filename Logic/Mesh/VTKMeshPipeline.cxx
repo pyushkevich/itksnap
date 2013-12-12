@@ -164,11 +164,10 @@ VTKMeshPipeline
     float sigma = options->GetGaussianStandardDeviation();
 
     // Sigma is in millimeters
-    const double *spacing = m_InputImage->GetSpacing().GetDataPointer();
-    m_VTKGaussianFilter->SetStandardDeviation(
-      sigma / spacing[0], sigma / spacing[1], sigma / spacing[2]);
-    m_VTKGaussianFilter->SetRadiusFactors(
-      3 * sigma / spacing[0], 3 * sigma / spacing[1], 3 * sigma / spacing[2]);
+    m_VTKGaussianFilter->SetStandardDeviation(sigma, sigma, sigma);
+
+    // TODO: we are ignoring the maximum error parameter!
+    m_VTKGaussianFilter->SetRadiusFactors(1.5, 1.5, 1.5);
     }
 
   // 2. Set input to the appropriate contour filter

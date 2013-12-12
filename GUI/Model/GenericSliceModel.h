@@ -68,8 +68,11 @@ public:
 
   irisITKObjectMacro(GenericSliceModel, AbstractModel)
 
+  itkEventMacro(ViewportResizeEvent, IRISEvent)
+
   FIRES(ModelUpdateEvent)
   FIRES(SliceModelGeometryChangeEvent)
+  FIRES(ViewportResizeEvent)
 
   // irisDeclareEventObserver(ReinitializeEvent)
 
@@ -189,6 +192,9 @@ public:
   /** Get the zoom factor (number of pixels on the screen per millimeter in
    * image space */
   irisGetMacro(ViewZoom,float)
+
+  /** Computes the zoom that gives the best fit for the window */
+  void ComputeOptimalZoom();
 
   /** Compute the optimal zoom (best fit) */
   irisGetMacro(OptimalZoom,float)
@@ -319,15 +325,13 @@ protected:
   // State of the model (whether it's been initialized)
   bool m_SliceInitialized;
 
-  // Computes the zoom that gives the best fit for the window
-  void ComputeOptimalZoom();
-
   /** Access the next window in the slice pipeline */
   GenericSliceModel *GetNextSliceWindow();
 
   SmartPtr<AbstractRangedIntProperty> m_SliceIndexModel;
   bool GetSliceIndexValueAndDomain(int &value, NumericValueRange<int> *domain);
   void SetSlideIndexValue(int value);
+
 };
 
 #endif // GENERICSLICEMODEL_H

@@ -34,6 +34,7 @@
 =========================================================================*/
 // ITK Includes
 #include "IRISImageData.h"
+#include "itkImage.h"
 
 IRISImageData
 ::IRISImageData()
@@ -52,17 +53,10 @@ IRISImageData
   // Set the new segmentation image
   GenericImageData::SetSegmentationImage(newLabelImage);
   
-  // Update the undo wrapper to match
-  LabelImageWrapper::Iterator itUndo = m_UndoWrapper->GetImageIterator();
-  LabelImageWrapper::ConstIterator itSeg = m_LabelWrapper->GetImageConstIterator();
-
-  // TODO: use a copy filter!
-  while(!itUndo.IsAtEnd())
-    {
-    itUndo.Set(itSeg.Get());
-    ++itUndo;
-    ++itSeg;
-    }
+  // Copy the image contents to the undo buffer
+  memcpy(m_UndoWrapper->GetImage()->GetBufferPointer(),
+         m_LabelWrapper->GetImage()->GetBufferPointer(),
+         m_LabelWrapper->GetImage()->GetPixelContainer()->Size() * sizeof(LabelType));
 }
 
 void

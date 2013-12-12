@@ -196,7 +196,7 @@ MeshManager::MeshCollection MeshManager::GetMeshes()
       return meshes;
       }
     }
-  else
+  else if(m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
     {
     // Get the mesh pipeline associated with the level set image wrapper
     LabelImageWrapper *wrapper = m_Driver->GetCurrentImageData()->GetSegmentation();

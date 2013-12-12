@@ -382,13 +382,35 @@ IRISApplication
   m_SystemInterface->GetHistoryManager()->UpdateHistory(
         "LabelImage", io->GetFileNameOfNativeImage(), true);
 
-  // Update the color labels, so that for every label in the image
-  // there is a valid color label
-  LabelImageWrapper::ConstIterator it = 
-    m_IRISImageData->GetSegmentation()->GetImageConstIterator();
-  for( ; !it.IsAtEnd(); ++it)
-    if(!m_ColorLabelTable->IsColorLabelValid(it.Get()))
-      m_ColorLabelTable->SetColorLabelValid(it.Get(), true);
+  // TODO: this is horrible code, because it calls std::map::find for every
+  // voxel in the segmentation image. The objective is to get the list of all
+  // labels used in the segmentation image, but going about it this way is
+  // just dumb.
+
+  // We need to figure out which labels are used by the segmentation image.
+  // Here is an efficient way to do so, without threading. An even more
+  // efficient way would be to use threading. This takes advantage of the
+  // fact that label images are largely contiguous. The number of calls to
+  // SetColorLabelValid should be minimal
+  LabelImageType *seg = m_IRISImageData->GetSegmentation()->GetImage();
+  LabelType *buffer = seg->GetBufferPointer();
+  long npixels = seg->GetPixelContainer()->Size();
+
+  if(npixels > 0)
+    {
+    LabelType last_label = buffer[0];
+    m_ColorLabelTable->SetColorLabelValid(last_label, true);
+
+    for(int i = 1; i < npixels; i++)
+      {
+      LabelType current_label = buffer[i];
+      if(current_label != last_label)
+        {
+        last_label = current_label;
+        m_ColorLabelTable->SetColorLabelValid(current_label, true);
+        }
+      }
+    }
 
   // Reset the UNDO manager
   m_UndoManager.Clear();

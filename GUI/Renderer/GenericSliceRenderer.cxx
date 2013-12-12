@@ -115,18 +115,18 @@ GenericSliceRenderer
   Vector3d clrBack = as->GetUIElement(
       SNAPAppearanceSettings::BACKGROUND_2D)->GetNormalColor();
 
+  // Set up lighting attributes
+  glPushAttrib(GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT |
+               GL_PIXEL_MODE_BIT | GL_TEXTURE_BIT );
+
+  glDisable(GL_LIGHTING);
+
+  glClearColor(clrBack[0], clrBack[1], clrBack[2], 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   // Slice should be initialized before display
   if (m_Model->IsSliceInitialized())
     {
-    // Set up lighting attributes
-    glPushAttrib(GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT |
-                 GL_PIXEL_MODE_BIT | GL_TEXTURE_BIT );
-
-    glDisable(GL_LIGHTING);
-
-    glClearColor(clrBack[0], clrBack[1], clrBack[2], 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     // Draw each cell in the nrows by ncols table of images. Usually, there
     // will only be one column, but the new SNAP supports side-by-side drawing
     // of layers for when there are overlays
@@ -216,9 +216,10 @@ GenericSliceRenderer
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
 
-    // Draw the various decorations
-    glPopAttrib();
     }
+
+  // Draw the various decorations
+  glPopAttrib();
 
   // Display!
   glFlush();

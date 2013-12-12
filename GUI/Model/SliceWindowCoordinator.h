@@ -177,6 +177,9 @@ protected:
   // Methods that the model above wraps around
   bool GetLinkedZoomValue(bool &out_value);
   void SetLinkedZoomValue(bool value);
+
+  // Are the slice models initialized
+  bool AreSliceModelsInitialized();
 };
 
 #endif // __SliceWindowCoordinator_h_

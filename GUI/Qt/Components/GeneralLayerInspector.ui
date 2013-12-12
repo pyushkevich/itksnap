@@ -151,16 +151,6 @@ QGroupBox::title {
       <property name="margin">
        <number>6</number>
       </property>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Component:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" colspan="2">
-       <widget class="QComboBox" name="inMode"/>
-      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
@@ -168,13 +158,30 @@ QGroupBox::title {
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="inComponent"/>
+      <item row="0" column="1" colspan="3">
+       <widget class="QComboBox" name="inMode"/>
       </item>
-      <item row="1" column="2" alignment="Qt::AlignRight">
+      <item row="1" column="3" alignment="Qt::AlignRight">
        <widget class="QCheckBox" name="chkAnimate">
         <property name="text">
          <string>Animate</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Component:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="inComponent"/>
+      </item>
+      <item row="1" column="2">
+       <widget class="QSlider" name="inComponentSlider">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>

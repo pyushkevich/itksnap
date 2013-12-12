@@ -180,8 +180,8 @@ void ViewPanel3D::onTimer()
   if(!m_RenderFuture.isRunning())
     {
     // Does work need to be done?
-    if(m_Model && m_Model->CheckState(Generic3DModel::UIF_MESH_DIRTY)
-       && ui->actionContinuous_Update->isChecked())
+    if(m_Model && ui->actionContinuous_Update->isChecked()
+       && m_Model->CheckState(Generic3DModel::UIF_MESH_DIRTY))
       {
       // Launch the worker thread
       m_RenderProgressValue = 0;

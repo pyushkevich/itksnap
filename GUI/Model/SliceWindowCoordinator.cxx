@@ -76,12 +76,22 @@ SliceWindowCoordinator
     {
     m_SliceModel[i] = m_ParentModel->GetSliceModel(i);
     m_SliceModel[i]->SetManagedZoom(m_LinkedZoom);
+
+    // Listen to updates to the viewport size. These require zoom factors to be
+    // recomputed
+    Rebroadcast(m_SliceModel[i], GenericSliceModel::ViewportResizeEvent(), ModelUpdateEvent());
     }
 
   m_WindowsRegistered = true;
 
   // Listen to image dimension change events
   Rebroadcast(m_ParentModel->GetDriver(), MainImageDimensionsChangeEvent(), ModelUpdateEvent());
+
+  // Listen to changes in the layout of the slice view into cells. When
+  // this change occurs, we have to modify the size of the slice views
+  DisplayLayoutModel *dlm = m_ParentModel->GetDisplayLayoutModel();
+  Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(), ModelUpdateEvent());
+
 }
 
 void SliceWindowCoordinator::OnUpdate()
@@ -97,6 +107,32 @@ void SliceWindowCoordinator::OnUpdate()
     // Reset the view to fit (depending on linked zoom)
     if(m_ParentModel->GetDriver()->IsMainImageLoaded())
       this->ResetViewToFitInAllWindows();
+    }
+
+  if(this->m_EventBucket->HasEvent(GenericSliceModel::ViewportResizeEvent())
+     || this->m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent()))
+    {
+    // If we are maintaining linked zoom, then this class is going to manage the
+    // recomputation of optimal zoom in each window and resetting of the zoom.
+    if(m_LinkedZoom && AreSliceModelsInitialized())
+      {
+      // Is the current zoom same as the optimal zoom? If so, we will force a
+      // reset after the optimal zooms have been computed
+      double common_opt_zoom = ComputeSmallestOptimalZoomLevel();
+      double common_zoom = GetCommonZoomLevel();
+      bool rezoom = (common_zoom == common_opt_zoom);
+
+      // Recompute the optimal zoom in each of the views
+      for(unsigned int i = 0; i < 3; i++)
+        m_SliceModel[i]->ComputeOptimalZoom();
+
+      // Optionally, reset the view
+      if(rezoom)
+        this->ResetViewToFitInAllWindows();
+      }
+
+    // Update each of the slice models. This will cause them to recompute their
+    // optimal zoom.
     }
 
 }
@@ -401,6 +437,18 @@ void SliceWindowCoordinator::SetLinkedZoomValue(bool value)
     // Fire the appropriate event
     InvokeEvent(LinkedZoomUpdateEvent());
     }
+}
+
+bool SliceWindowCoordinator::AreSliceModelsInitialized()
+{
+  if(!m_WindowsRegistered)
+    return false;
+
+  for(unsigned int i=0;i<3;i++)
+    if(!m_SliceModel[i]->IsSliceInitialized())
+      return false;
+
+  return true;
 }
 
 

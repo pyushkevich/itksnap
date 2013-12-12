@@ -195,6 +195,8 @@ private slots:
 
   void on_actionSaveWorkspaceAs_triggered();
 
+  void UpdateMainLayout();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);
@@ -205,7 +207,6 @@ private:
 
   void UpdateRecentMenu();
   void UpdateWindowTitle();
-  void UpdateMainLayout();
   void UpdateProjectMenuItems();
   void UpdateRecentProjectsMenu();
 

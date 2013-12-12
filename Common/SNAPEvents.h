@@ -154,6 +154,7 @@ itkEventMacro(DisplayToAnatomyCoordinateMappingChangeEvent, IRISEvent)
     if(this->m_##name != _arg) \
       { \
       this->m_##name = _arg; \
+      this->Modified(); \
       this->InvokeEvent(event()); \
       } \
 }

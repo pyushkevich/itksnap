@@ -98,6 +98,12 @@ void GenericSliceModel
   Rebroadcast(m_SizeReporter,
               ViewportSizeReporter::ViewportResizeEvent(),
               ModelUpdateEvent());
+
+  // We also rebroadcast as a special type of event that the slice coordinator
+  // is going to listen to
+  Rebroadcast(m_SizeReporter,
+              ViewportSizeReporter::ViewportResizeEvent(),
+              ViewportResizeEvent());
 }
 
 
@@ -115,12 +121,16 @@ void GenericSliceModel::OnUpdate()
           || m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent())
           || m_EventBucket->HasEvent(ValueChangedEvent()))
     {
-    if(this->IsSliceInitialized())
+
+    // We only react to the viewport resize if the zoom is not managed by the
+    // coordinator. When zoom is managed, the coordinator will take care of
+    // computing the optimal zoom and resetting the view
+    if(this->IsSliceInitialized() && !m_ManagedZoom)
       {
       // Check if the zoom should be changed in response to this operation. This
       // is so if the zoom is currently equal to the optimal zoom, and there is
       // no linked zoom
-      bool rezoom = (m_ViewZoom == m_OptimalZoom) && !m_ManagedZoom;
+      bool rezoom = (m_ViewZoom == m_OptimalZoom);
 
       // Just recompute the optimal zoom factor
       this->ComputeOptimalZoom();

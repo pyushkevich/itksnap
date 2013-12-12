@@ -354,16 +354,16 @@ ColorLabelTable
     {
     // Label is being validated. If it does not exist, insert the default
     m_LabelMap[id] = this->GetDefaultColorLabel(id);
+    this->Modified();
     InvokeEvent(SegmentationLabelConfigurationChangeEvent());
     }
   else if (!flag && it != m_LabelMap.end())
     {
     // The label is being invalidated - just delete it
     m_LabelMap.erase(it);
+    this->Modified();
     InvokeEvent(SegmentationLabelConfigurationChangeEvent());
     }
-
-  this->Modified();
 }
 
 bool

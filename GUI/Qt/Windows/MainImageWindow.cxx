@@ -412,8 +412,13 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     {
     // Update the recent items
     this->UpdateRecentMenu();
-    this->UpdateMainLayout();
     this->UpdateWindowTitle();
+
+    // Delaying the relayout of the main window seems to reduce the amount of
+    // flashing that occurs when loading images.
+    // TODO: figure out if we can avoid flashing altogether
+    QTimer::singleShot(200, this, SLOT(UpdateMainLayout()));
+
     }
 
   if(b.HasEvent(LayerChangeEvent()) || b.HasEvent(WrapperMetadataChangeEvent()))
@@ -445,10 +450,11 @@ void MainImageWindow::UpdateMainLayout()
 
     // Choose the appropriate page depending on whether there are recent images
     // in the recent image list
-    if(ui->listRecent->model()->rowCount())
-      ui->tabSplash->setCurrentWidget(ui->tabRecent);
-    else
+    if(ui->listRecent->model()->rowCount() == 0)
       ui->tabSplash->setCurrentWidget(ui->tabGettingStarted);
+
+    else if(ui->tabSplash->currentWidget() == ui->tabGettingStarted)
+      ui->tabSplash->setCurrentWidget(ui->tabRecent);
     }
 }
 

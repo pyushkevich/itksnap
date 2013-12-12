@@ -30,6 +30,7 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   // Couple the widgets
   makeCoupling(ui->inMode, m_Model->GetDisplayModeModel());
   makeCoupling(ui->inComponent, m_Model->GetSelectedComponentModel());
+  makeCoupling(ui->inComponentSlider, m_Model->GetSelectedComponentModel());
   makeCoupling(ui->chkAnimate, m_Model->GetAnimateModel());
 
   makeCoupling(ui->inOpacity, m_Model->GetLayerOpacityModel());
