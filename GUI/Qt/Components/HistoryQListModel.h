@@ -3,6 +3,7 @@
 
 #include "SNAPCommon.h"
 #include <QAbstractListModel>
+#include <vector>
 
 class EventBucket;
 class GlobalUIModel;
@@ -21,8 +22,7 @@ public:
   virtual int rowCount(const QModelIndex &parent) const;
   virtual QVariant data(const QModelIndex &index, int role) const;
 
-  irisGetSetMacro(Model, GlobalUIModel *)
-  irisGetSetMacro(HistoryName, std::string)
+  void Initialize(GlobalUIModel *, const std::string &category);
 
 signals:
   
@@ -36,6 +36,9 @@ protected:
 
   // The name of the history
   std::string m_HistoryName;
+
+  // The cached value of the history - we keep it for speed
+  std::vector<std::string> m_CachedHistory;
 
 };
 

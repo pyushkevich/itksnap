@@ -190,17 +190,6 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
         &Self::GetCursorPositionValueAndRange,
         &Self::SetCursorPosition);
 
-  // Set up the history model. This model refers to a registry folder and
-  // lists all the files in the registry.
-  m_MainImageHistoryModel = newRandomAccessContainerModel(
-        const_cast<std::vector<std::string> &>(
-          m_Driver->GetSystemInterface()->GetHistoryManager()->
-            GetGlobalHistory("MainImage")));
-
-  // TODO: what about the events? This model and everything downstream needs
-  // to be notified when the history is updated
-
-
   // The model needs to rebroadcast cusror change events as value changes. This
   // is because unlike other more specific models, GlobalUIModel does not fire
   // ModelUpdateEvent objects.
@@ -675,6 +664,21 @@ GlobalUIModel::GetRecentHistoryItems(const char *historyCategory, unsigned int k
     }
 
   return recent;
+}
+
+bool GlobalUIModel::IsHistoryEmpty(const char *historyCategory)
+{
+  // Load the list of recent files from the history file
+  const HistoryManager::HistoryListType &history =
+      this->GetSystemInterface()->GetHistoryManager()->GetGlobalHistory(historyCategory);
+
+  return history.size() == 0;
+}
+
+GlobalUIModel::AbstractHistoryModel *
+GlobalUIModel::GetHistoryModel(const std::string &category)
+{
+  return m_Driver->GetHistoryManager()->GetGlobalHistoryModel(category);
 }
 
 std::string GlobalUIModel::GenerateScreenshotFilename()

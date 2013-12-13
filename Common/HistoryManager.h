@@ -39,6 +39,8 @@
 #include <vector>
 #include <map>
 #include <string>
+#include "PropertyModel.h"
+
 
 class SystemInterface;
 class Registry;
@@ -48,7 +50,9 @@ class Registry;
  * This class manages file IO history in the SNAP application. Starting with
  * version 3.0, there is a global history for each kind of file (main image,
  * segmentation, label descriptions, etc) and a history associated with each
- * main image. This class maintains the history entries.
+ * main image. This class maintains the history entries. Each history is a
+ * "PropertyModel", so other objects can register to observe changes to the
+ * history.
  */
 class HistoryManager
 {
@@ -57,6 +61,9 @@ public:
   // Typedef for history lists
   typedef std::vector<std::string> HistoryListType;
 
+  // Typedef for the history model
+  typedef AbstractPropertyModel<HistoryListType, TrivialDomain> AbstractHistoryModel;
+
   /** Update the history in one of the named categories. The last parameter
       is whether the history entry should be made local, i.e., associated
       with the currently loaded main image. */
@@ -64,11 +71,21 @@ public:
                      const std::string &file,
                      bool make_local);
 
-  /** Get the local history in a category */
-  const HistoryListType &GetLocalHistory(const std::string &category);
+  /** Delete an item from the global history  */
+  void DeleteHistoryItem(const std::string &category,
+                         const std::string &file);
 
-  /** Get the global history in a category */
-  const HistoryListType &GetGlobalHistory(const std::string &category);
+  /** Get the model encapsulating local history */
+  AbstractHistoryModel *GetLocalHistoryModel(const std::string &category);
+
+  /** Get the model encapsulating local history */
+  AbstractHistoryModel *GetGlobalHistoryModel(const std::string &category);
+
+  /** Get the local history in a category (pass by value) */
+  HistoryListType GetLocalHistory(const std::string &category);
+
+  /** Get the global history in a category (pass by value)*/
+  HistoryListType GetGlobalHistory(const std::string &category);
 
   /** Create a registry holding the local history */
   void SaveLocalHistory(Registry &folder)
@@ -93,15 +110,20 @@ protected:
 
   static const unsigned int HISTORY_SIZE_LOCAL, HISTORY_SIZE_GLOBAL;
 
+  // Typedef the concrete history model
+  typedef ConcretePropertyModel<HistoryListType, TrivialDomain> ConcreteHistoryModel;
+  typedef SmartPtr<ConcreteHistoryModel> ConcreteHistoryModelPtr;
+
   // Array of histories for different types of files
-  typedef std::map<std::string, HistoryListType> HistoryMap;
+  typedef std::map<std::string, ConcreteHistoryModelPtr> HistoryMap;
   HistoryMap m_LocalHistory, m_GlobalHistory;
 
+  ConcreteHistoryModel *GetHistory(const std::string &category, HistoryMap &hmap);
   void SaveHistory(Registry &folder, HistoryMap &hmap);
   void LoadHistory(Registry &folder, HistoryMap &hmap);
 
   void UpdateHistoryList(
-      HistoryListType &hl, const std::string &file, unsigned int maxsize);
+      ConcreteHistoryModel *model, const std::string &file, unsigned int maxsize);
 
   // The system interface class
   SystemInterface *m_SystemInterface;

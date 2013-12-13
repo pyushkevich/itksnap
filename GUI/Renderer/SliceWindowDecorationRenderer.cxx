@@ -145,7 +145,7 @@ void SliceWindowDecorationRenderer::DrawNicknames()
   // Adjust the font size
   int fs = elt->GetFontSize();
   if(fs * maxtextlen > 0.8 * w)
-    fs = (int) ((1.4 * w) / maxtextlen);
+    fs = (int) ((0.8 * w) / maxtextlen);
 
   AbstractRendererPlatformSupport::FontInfo font_info =
         { AbstractRendererPlatformSupport::SANS, fs, false };

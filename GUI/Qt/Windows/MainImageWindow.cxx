@@ -53,6 +53,7 @@
 #include "ImageWrapperBase.h"
 #include "IRISImageData.h"
 #include "AboutDialog.h"
+#include "HistoryManager.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -79,24 +80,6 @@
 #include <QGLWidget>
 #include <SNAPQtCommon.h>
 
-
-class HistoryListItemDelegate : public QItemDelegate
-{
-
-public:
-  HistoryListItemDelegate(QWidget *parent) : QItemDelegate(parent) {}
-
-  void paint(QPainter *painter,
-             const QStyleOptionViewItem &option,
-             const QModelIndex &index) const
-  {
-    if(!(option.state & QStyle::State_MouseOver))
-      {
-      painter->setOpacity(0.8);
-      }
-    QItemDelegate::paint(painter, option, index);
-  }
-};
 
 
 MainImageWindow::MainImageWindow(QWidget *parent) :
@@ -161,12 +144,12 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_DockRight->setAllowedAreas(Qt::RightDockWidgetArea);
   this->addDockWidget(Qt::RightDockWidgetArea, m_DockRight);
 
-  // Delegate for history
-  HistoryListItemDelegate *del = new HistoryListItemDelegate(ui->listRecent);
-  ui->listRecent->setItemDelegate(del);
+  // Set up the recent items panels
+  connect(ui->panelRecentImages, SIGNAL(RecentItemSelected(QString)),
+          SLOT(LoadMainImage(QString)));
 
-  HistoryListItemDelegate *delws = new HistoryListItemDelegate(ui->listRecentWorkspaces);
-  ui->listRecentWorkspaces->setItemDelegate(del);
+  connect(ui->panelRecentWorkspaces, SIGNAL(RecentItemSelected(QString)),
+          SLOT(LoadProject(QString)));
 
   // Set the splash panel in the left dock
   m_SplashPanel = new SplashPanel(this);
@@ -277,35 +260,25 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
                                   this,
                                   SLOT(onModelUpdate(const EventBucket&)));
 
-  // Create a model for the table of recent images and connect to the widget
-  HistoryQListModel *historyModel = new HistoryQListModel();
-  historyModel->SetModel(m_Model);
-  historyModel->SetHistoryName("MainImage");
-  ui->listRecent->setModel(historyModel);
+  // Hook up the recent lists
+  ui->panelRecentImages->Initialize(m_Model, "MainImage");
+  ui->panelRecentWorkspaces->Initialize(m_Model, "Project");
 
-  // Create a similar model for the recent workspaces
-  HistoryQListModel *historyModelWorkspace = new HistoryQListModel();
-  historyModelWorkspace->SetModel(m_Model);
-  historyModelWorkspace->SetHistoryName("Project");
-  ui->listRecentWorkspaces->setModel(historyModelWorkspace);
-
-  // Make the model listen to events affecting history
-  LatentITKEventNotifier::connect(model->GetDriver(),
-                                  MainImageDimensionsChangeEvent(),
-                                  historyModel,
-                                  SLOT(onModelUpdate(const EventBucket&)));
-
-  // Listen to metadata changes, since they affect the title window
-  LatentITKEventNotifier::connect(model->GetDriver(),
-                                  WrapperMetadataChangeEvent(),
-                                  this,
-                                  SLOT(onModelUpdate(const EventBucket&)));
-
-  // Listen to changes in project filename, they affect the menu titles
-  this->UpdateProjectMenuItems();
+  // Observe changes to the main image history, since that affects the recent
+  // menu items
   LatentITKEventNotifier::connect(
-        model->GetGlobalState()->GetProjectFilenameModel(),
-        ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
+        model->GetHistoryModel("MainImage"), ValueChangedEvent(),
+        this, SLOT(onModelUpdate(EventBucket)));
+
+  // Likewise for the project history, they affect the menu titles
+  LatentITKEventNotifier::connect(
+        model->GetHistoryModel("Project"), ValueChangedEvent(),
+        this, SLOT(onModelUpdate(EventBucket)));
+
+  // Also listen to changes to the project filename
+  LatentITKEventNotifier::connect(
+        model->GetGlobalState()->GetProjectFilenameModel(), ValueChangedEvent(),
+        this, SLOT(onModelUpdate(EventBucket)));
 
   // Couple the visibility of each view panel to the correponding property
   // model in DisplayLayoutModel
@@ -410,15 +383,10 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
 {
   if(b.HasEvent(MainImageDimensionsChangeEvent()))
     {
-    // Update the recent items
-    this->UpdateRecentMenu();
-    this->UpdateWindowTitle();
-
     // Delaying the relayout of the main window seems to reduce the amount of
     // flashing that occurs when loading images.
     // TODO: figure out if we can avoid flashing altogether
     QTimer::singleShot(200, this, SLOT(UpdateMainLayout()));
-
     }
 
   if(b.HasEvent(LayerChangeEvent()) || b.HasEvent(WrapperMetadataChangeEvent()))
@@ -427,10 +395,19 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     this->UpdateWindowTitle();
     }
 
+  if(b.HasEvent(ValueChangedEvent(), m_Model->GetHistoryModel("MainImage")))
+    {
+    this->UpdateRecentMenu();
+    }
+
+  if(b.HasEvent(ValueChangedEvent(), m_Model->GetHistoryModel("Project")))
+    {
+    this->UpdateRecentProjectsMenu();
+    }
+
   if(b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->GetProjectFilenameModel()))
     {
     this->UpdateProjectMenuItems();
-    this->UpdateRecentProjectsMenu();
     }
 }
 
@@ -449,14 +426,15 @@ void MainImageWindow::UpdateMainLayout()
     m_DockLeft->setWidget(m_SplashPanel);
 
     // Choose the appropriate page depending on whether there are recent images
-    // in the recent image list
-    if(ui->listRecent->model()->rowCount() == 0)
+    // available
+    if(m_Model->IsHistoryEmpty("MainImage"))
       ui->tabSplash->setCurrentWidget(ui->tabGettingStarted);
 
     else if(ui->tabSplash->currentWidget() == ui->tabGettingStarted)
       ui->tabSplash->setCurrentWidget(ui->tabRecent);
     }
 }
+
 
 void MainImageWindow::UpdateRecentMenu()
 {
@@ -834,20 +812,6 @@ void MainImageWindow::onSnakeWizardFinished()
   // Return to previous size
   this->layout()->activate();
   resize(m_SizeWithoutRightDock.width(), m_SizeWithoutRightDock.height());
-}
-
-void MainImageWindow::on_listRecent_clicked(const QModelIndex &index)
-{
-  // Load the appropriate image
-  QVariant filename = ui->listRecent->model()->data(index, Qt::ToolTipRole);
-  this->LoadMainImage(filename.toString());
-}
-
-void MainImageWindow::on_listRecentWorkspaces_clicked(const QModelIndex &index)
-{
-  // Load the appropriate image
-  QVariant filename = ui->listRecentWorkspaces->model()->data(index, Qt::ToolTipRole);
-  this->LoadProject(filename.toString());
 }
 
 void MainImageWindow::on_actionUnload_All_triggered()
@@ -1261,3 +1225,4 @@ void MainImageWindow::on_actionSaveWorkspaceAs_triggered()
 {
   SaveWorkspace(true);
 }
+

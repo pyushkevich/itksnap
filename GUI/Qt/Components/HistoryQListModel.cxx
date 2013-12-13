@@ -6,6 +6,7 @@
 #include <itksys/SystemTools.hxx>
 #include <QIcon>
 #include "SNAPQtCommon.h"
+#include "LatentITKEventNotifier.h"
 
 HistoryQListModel::HistoryQListModel(QObject *parent) :
   QAbstractListModel(parent)
@@ -15,21 +16,14 @@ HistoryQListModel::HistoryQListModel(QObject *parent) :
 
 int HistoryQListModel::rowCount(const QModelIndex &parent) const
 {
-  HistoryManager *hm = m_Model->GetDriver()->GetSystemInterface()->GetHistoryManager();
-  const HistoryManager::HistoryListType &history = hm->GetGlobalHistory(m_HistoryName.c_str());
-
   // Display at most 12 entries in the history
-  return std::min((size_t) 12, history.size());
+  return std::min((size_t) 12, m_CachedHistory.size());
 }
 
 QVariant HistoryQListModel::data(const QModelIndex &index, int role) const
 {
-  // Get the history
-  HistoryManager *hm = m_Model->GetDriver()->GetSystemInterface()->GetHistoryManager();
-  const HistoryManager::HistoryListType &history = hm->GetGlobalHistory(m_HistoryName.c_str());
-
   // Get the entry
-  std::string item = history[history.size() - (1 + index.row())];
+  std::string item = m_CachedHistory[m_CachedHistory.size() - (1 + index.row())];
 
   // Display the appropriate item
   if(role == Qt::DisplayRole)
@@ -49,7 +43,7 @@ QVariant HistoryQListModel::data(const QModelIndex &index, int role) const
     icon.addFile(iconfile.c_str());
     return icon;
     }
-  else if(role == Qt::ToolTipRole)
+  else if(role == Qt::ToolTipRole || role == Qt::UserRole)
     {
     return from_utf8(item.c_str());
     }
@@ -57,10 +51,29 @@ QVariant HistoryQListModel::data(const QModelIndex &index, int role) const
 
 }
 
+void HistoryQListModel::Initialize(
+    GlobalUIModel *model, const std::string &category)
+{
+  m_Model = model;
+  m_HistoryName = category;
+
+  // Get the property models for the local and global histories
+  HistoryManager::AbstractHistoryModel *hmodel =
+      m_Model->GetDriver()->GetHistoryManager()->GetGlobalHistoryModel(category);
+
+  // Listen for updates from the history model
+  LatentITKEventNotifier::connect(hmodel, ValueChangedEvent(),
+                                  this, SLOT(onModelUpdate(EventBucket)));
+
+  // Cache the history
+  m_CachedHistory = hmodel->GetValue();
+}
+
 void HistoryQListModel::onModelUpdate(const EventBucket &bucket)
 {
-  if(bucket.HasEvent(MainImageDimensionsChangeEvent()))
-    {
-    this->reset();
-    }
+  // When history changes, we update
+  m_CachedHistory =
+      m_Model->GetDriver()->GetHistoryManager()->GetGlobalHistory(m_HistoryName);
+
+  this->reset();
 }

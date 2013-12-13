@@ -257,10 +257,6 @@ public:
   irisGetMacro(SnakeROIIndexModel, AbstractRangedUIntVec3Property *)
   irisGetMacro(SnakeROISizeModel, AbstractRangedUIntVec3Property *)
 
-  /** A model providing access to the list of recently loaded images */
-  typedef AbstractRandomAccessCollectionModel<std::string> StringArrayModel;
-  irisGetMacro(MainImageHistoryModel, StringArrayModel *)
-
   /** A model for overall segmentation opacity (int, range 0..100) */
   irisRangedPropertyAccessMacro(SegmentationOpacity, int)
 
@@ -279,6 +275,15 @@ public:
   /** Get a list of k recent "things" that are tracked in history */
   std::vector<std::string> GetRecentHistoryItems(
       const char *historyCategory, unsigned int k = 5);
+
+  /** Check if a particular history is empty */
+  bool IsHistoryEmpty(const char *historyCategory);
+
+  typedef AbstractPropertyModel< std::vector<std::string> > AbstractHistoryModel;
+
+  /** A quick-access method to the global history models, same as calling the
+   * GetGlobalHistoryModel() in the HistoryManager() */
+  AbstractHistoryModel *GetHistoryModel(const std::string &category);
 
   /** Get the progress command */
   irisGetMacro(ProgressCommand, itk::Command *)
@@ -402,9 +407,6 @@ protected:
   bool GetSnakeROISizeValueAndRange(
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
   void SetSnakeROISizeValue(Vector3ui value);
-
-  // The model providing the main image history
-  SmartPtr<StringArrayModel> m_MainImageHistoryModel;
 
   // The model for the mesh export wizard
   SmartPtr<MeshExportModel> m_MeshExportModel;

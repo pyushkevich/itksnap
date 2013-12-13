@@ -113,12 +113,7 @@ private slots:
 
   void onSnakeWizardFinished();
 
-  void on_listRecent_clicked(const QModelIndex &index);
-
-  void on_listRecentWorkspaces_clicked(const QModelIndex &index);
-
   void on_actionUnload_All_triggered();
-
 
   void on_actionReorient_Image_triggered();
 
@@ -197,6 +192,12 @@ private slots:
 
   void UpdateMainLayout();
 
+  // Load image without interaction (used for recent/drop action).
+  void LoadMainImage(const QString &file);
+
+  // Load project without interaction (used for recent/drop action)
+  void LoadProject(const QString &file);
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);
@@ -209,11 +210,6 @@ private:
   void UpdateWindowTitle();
   void UpdateProjectMenuItems();
   void UpdateRecentProjectsMenu();
-
-  // Load image without interaction (used for recent/drop action)
-  void LoadMainImage(const QString &file);
-
-  void LoadProject(const QString &file);
 
 
   // Save the segmentation (interactively or not). Return true if save was
@@ -267,6 +263,7 @@ private:
   StatisticsDialog *m_StatisticsDialog;
 
   PreferencesDialog *m_PreferencesDialog;
+
 };
 
 

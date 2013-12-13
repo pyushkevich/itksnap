@@ -414,6 +414,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QtReporterDelegates.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
+  GUI/Qt/Components/RecentHistoryItemsView.cxx
   GUI/Qt/Components/SnakeToolROIPanel.cxx
   GUI/Qt/Components/SnakeWizardPanel.cxx
   GUI/Qt/Components/SNAPComponent.cxx
@@ -490,6 +491,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QtIPCManager.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
+  GUI/Qt/Components/RecentHistoryItemsView.h
   GUI/Qt/Components/SnakeToolROIPanel.h
   GUI/Qt/Components/SnakeWizardPanel.h
   GUI/Qt/Components/SNAPComponent.h
@@ -581,6 +583,7 @@ SET(UI_FORMS
   GUI/Qt/Components/PaintbrushToolPanel.ui
   GUI/Qt/Components/QDoubleSliderWithEditor.ui
   GUI/Qt/Components/QtWarningDialog.ui
+  GUI/Qt/Components/RecentHistoryItemsView.ui
   GUI/Qt/Components/SliceViewPanel.ui
   GUI/Qt/Components/SnakeToolROIPanel.ui
   GUI/Qt/Components/SnakeWizardPanel.ui
