@@ -91,21 +91,32 @@ void OrthogonalSliceCursorNavigationModel
   SliceWindowCoordinator *coordinator =
       m_Parent->GetParentUI()->GetSliceCoordinator();
 
-  // Compute the zoom factor (is this good?)
-  float zoom = m_StartViewZoom * scaleFactor;
+  // Sometimes the scalefactor is 1, in which case, we restore the zoom
+  if(scaleFactor == 1.0f)
+    {
+    if(m_Parent->GetViewZoom() == m_StartViewZoom)
+      return;
+    else
+      m_Parent->SetViewZoom(m_StartViewZoom);
+    }
+  else
+    {
+    // Compute the zoom factor (is this good?)
+    float zoom = m_StartViewZoom * scaleFactor;
 
-  // Clamp the zoom factor to reasonable limits
-  zoom = coordinator->ClampZoom(m_Parent->GetId(), zoom);
+    // Clamp the zoom factor to reasonable limits
+    zoom = coordinator->ClampZoom(m_Parent->GetId(), zoom);
 
-  // Make sure the zoom factor is an integer fraction
-  zoom = m_Parent->GetOptimalZoom() *
-         ((int)(zoom / m_Parent->GetOptimalZoom() * 100)) / 100.0f;
+    // Make sure the zoom factor is an integer fraction
+    zoom = m_Parent->GetOptimalZoom() *
+           ((int)(zoom / m_Parent->GetOptimalZoom() * 100)) / 100.0f;
 
-  // Set the zoom factor using the window coordinator
-  m_Parent->SetViewZoom(zoom);
+    // Set the zoom factor using the window coordinator
+    m_Parent->SetViewZoom(zoom);
+    }
 
   // TODO: remove this!
-  coordinator->OnZoomUpdateInWindow(m_Parent->GetId(), zoom);
+  coordinator->OnZoomUpdateInWindow(m_Parent->GetId(), m_Parent->GetViewZoom());
 }
 
 void
