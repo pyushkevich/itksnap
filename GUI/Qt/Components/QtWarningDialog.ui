@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>ITK-SNAP - Warnings Generated</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">

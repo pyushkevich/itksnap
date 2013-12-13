@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Reorient Image - ITK-SNAP</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QLineEdit:read-only {

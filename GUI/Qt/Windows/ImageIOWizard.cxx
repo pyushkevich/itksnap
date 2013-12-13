@@ -813,6 +813,12 @@ void ImageIOWizard::SetModel(ImageIOWizardModel *model)
   QList<int> ids = pageIds();
   for(QList<int>::iterator it=ids.begin();it!=ids.end();it++)
     static_cast<AbstractPage *>(this->page(*it))->SetModel(model);
+
+  // Set the title
+  if(model->IsLoadMode())
+    this->setWindowTitle("Open Image - ITK-SNAP");
+  else
+    this->setWindowTitle("Save Image - ITK-SNAP");
 }
 
 

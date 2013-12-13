@@ -305,7 +305,10 @@ public:
   SmartPtr<ImageIOWizardModel> CreateIOWizardModelForSave(
       ImageWrapperBase *layer, LayerRole role);
 
-
+  /**
+   * Perform an animation step
+   */
+  void AnimateLayerComponents();
 
 protected:
 

@@ -50,6 +50,8 @@ class StatisticsDialog;
 class QActionGroup;
 class PreferencesDialog;
 
+class QTimer;
+
 class SplashPanel;
 
 namespace Ui {
@@ -198,6 +200,8 @@ private slots:
   // Load project without interaction (used for recent/drop action)
   void LoadProject(const QString &file);
 
+  void onAnimationTimeout();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);
@@ -264,6 +268,8 @@ private:
 
   PreferencesDialog *m_PreferencesDialog;
 
+  // A timer used to animate components
+  QTimer *m_AnimateTimer;
 };
 
 

@@ -755,6 +755,34 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
   return modelIO;
 }
 
+void GlobalUIModel::AnimateLayerComponents()
+{
+  // TODO: For now all the layers tagged as animating animate. This is the
+  // dumbest possible way to do animation, but it's fine for one layer or
+  // multiple layers with the same number of components.
+  for(LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers();
+      !it.IsAtEnd(); ++it)
+    {
+    if(it.GetLayer()->GetNumberOfComponents() > 1)
+      {
+      AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
+          AbstractMultiChannelDisplayMappingPolicy *>(
+            it.GetLayer()->GetDisplayMapping());
+
+      if(dp && dp->GetAnimate())
+        {
+        MultiChannelDisplayMode mode = dp->GetDisplayMode();
+        if(mode.SelectedScalarRep == SCALAR_REP_COMPONENT)
+          {
+          mode.SelectedComponent =
+              (mode.SelectedComponent + 1) % it.GetLayer()->GetNumberOfComponents();
+          dp->SetDisplayMode(mode);
+          }
+        }
+      }
+    }
+}
+
 
 void
 GlobalUIModel

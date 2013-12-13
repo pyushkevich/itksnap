@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Preferences - ITK-SNAP</string>
   </property>
   <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
    <item row="2" column="0" colspan="2">
@@ -655,7 +655,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="2" column="1">
-                  <widget class="QColorButtonWidget" name="btnElementNormalColor"/>
+                  <widget class="QColorButtonWidget" name="btnElementNormalColor" native="true"/>
                  </item>
                  <item row="3" column="0">
                   <widget class="QLabel" name="labelElementActiveColor">
@@ -668,7 +668,7 @@ color:white;</string>
                   </widget>
                  </item>
                  <item row="3" column="1">
-                  <widget class="QColorButtonWidget" name="btnElementActiveColor"/>
+                  <widget class="QColorButtonWidget" name="btnElementActiveColor" native="true"/>
                  </item>
                  <item row="4" column="1">
                   <spacer name="verticalSpacer_5">
@@ -1278,8 +1278,9 @@ font-weight:bold;</string>
  <customwidgets>
   <customwidget>
    <class>QColorButtonWidget</class>
-   <extends>QPushButton</extends>
+   <extends>QWidget</extends>
    <header>QColorButtonWidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <tabstops>

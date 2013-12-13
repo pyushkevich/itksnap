@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ITK-SNAP: Open Document</string>
+   <string>Open Document - ITK-SNAP</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">

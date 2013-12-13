@@ -84,7 +84,8 @@
 
 MainImageWindow::MainImageWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainImageWindow)
+    ui(new Ui::MainImageWindow),
+    m_Model(NULL)
 {
   ui->setupUi(this);
 
@@ -219,6 +220,14 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   connect(ui->actionRecentWorkspace3, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
   connect(ui->actionRecentWorkspace4, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
   connect(ui->actionRecentWorkspace5, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
+
+  // Set up the animation timer
+  m_AnimateTimer = new QTimer(this);
+  m_AnimateTimer->setInterval(1000);
+  connect(m_AnimateTimer, SIGNAL(timeout()), SLOT(onAnimationTimeout()));
+
+  // Start the timer (it doesn't cost much...)
+  m_AnimateTimer->start();
 }
 
 MainImageWindow::~MainImageWindow()
@@ -784,7 +793,13 @@ void MainImageWindow::LoadProject(const QString &file)
     {
     ReportNonLethalException(this, exc, "Error Opening Project",
                              QString("Failed to open project %1").arg(file));
-    }
+  }
+}
+
+void MainImageWindow::onAnimationTimeout()
+{
+  if(m_Model)
+    m_Model->AnimateLayerComponents();
 }
 
 void MainImageWindow::LoadRecentProjectActionTriggered()
