@@ -98,7 +98,7 @@ bool LayerIterator::IsPointingToListableLayer() const
     return false;
 
   // Are we in a valid role?
-  GenericImageData::LayerRole lr = m_RoleIter->first;
+  LayerRole lr = m_RoleIter->first;
   if((m_RoleFilter & lr) == 0)
     return false;
 

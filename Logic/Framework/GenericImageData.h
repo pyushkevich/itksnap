@@ -282,9 +282,6 @@ protected:
   GenericImageData();
   virtual ~GenericImageData();
 
-
-  typedef LayerRole LayerRole;
-
   // The base storage for the layers in the image data. For each role, there
   // is a list of wrappers serving in that role. For many roles, there will
   // be only one wrapper serving in that role.
