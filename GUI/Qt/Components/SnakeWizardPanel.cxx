@@ -33,8 +33,16 @@ void BubbleItemModel::setSourceModel(SnakeWizardModel *model)
 
 int BubbleItemModel::rowCount(const QModelIndex &parent) const
 {
-  std::vector<Bubble> &ba = m_Model->GetParent()->GetDriver()->GetBubbleArray();
-  return ba.size();
+  // Only top-level items exist
+  if(parent.isValid())
+    {
+    return 0;
+    }
+  else
+    {
+    std::vector<Bubble> &ba = m_Model->GetParent()->GetDriver()->GetBubbleArray();
+    return ba.size();
+    }
 }
 
 int BubbleItemModel::columnCount(const QModelIndex &parent) const

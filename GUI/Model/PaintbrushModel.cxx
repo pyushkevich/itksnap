@@ -177,6 +177,10 @@ Vector3f PaintbrushModel::ComputeOffset()
 
 void PaintbrushModel::ComputeMousePosition(const Vector3f &xSlice)
 {
+  // Only when an image is loaded
+  if(!m_Parent->GetDriver()->IsMainImageLoaded())
+    return;
+
   // Get the paintbrush properties
   PaintbrushSettings pbs =
       m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();

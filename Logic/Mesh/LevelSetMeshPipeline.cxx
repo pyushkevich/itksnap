@@ -50,9 +50,8 @@ LevelSetMeshPipeline
 
   // Create the mesh options
   m_MeshOptions = MeshOptions::New();
-
-  // Initialize the options
-  SetMeshOptions(m_MeshOptions);
+  m_MeshOptions->SetUseGaussianSmoothing(false);
+  m_VTKPipeline->SetMeshOptions(m_MeshOptions);
 }
 
 LevelSetMeshPipeline

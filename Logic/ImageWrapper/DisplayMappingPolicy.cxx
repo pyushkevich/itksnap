@@ -952,7 +952,16 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
       }
 
     // Restore the display mode
-    // this->SetDisplayMode(MultiChannelDisplayMode::Load(folder));
+    MultiChannelDisplayMode mode = MultiChannelDisplayMode::Load(folder);
+
+    // Make sure the display mode is compatible
+    if(m_Wrapper && mode.UseRGB && m_Wrapper->GetNumberOfComponents() != 3)
+      mode = MultiChannelDisplayMode();
+
+    if(m_Wrapper && mode.SelectedComponent >= m_Wrapper->GetNumberOfComponents())
+      mode = MultiChannelDisplayMode();
+
+    this->SetDisplayMode(mode);
     }
 }
 

@@ -264,15 +264,6 @@ VTKMeshPipeline
 
 
   // Update the pipeline
-  // m_StripperFilter->Update();
-
-  // Set the source of outMesh to null
-  // outMesh->UpdateInformation();
-  // outMesh->Update();
-  // m_StripperFilter->UnRegister(m_StripperFilter->GetOutput());
-  m_VTKImporter->Update();
-  m_VTKGaussianFilter->Update();
-  m_MarchingCubesFilter->Update();
   m_StripperFilter->Update();
 
   // In the case that the jacobian of the transform is negative,

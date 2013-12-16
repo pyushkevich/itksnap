@@ -94,17 +94,28 @@ protected:
 
     // Get the clear label
     const ColorLabel &clear = m_ColorTable->GetColorLabel(0);
+    const ColorLabel *cllast = &clear;
+
+    // Keep track of the last pixel - this reduces the amount of color label
+    // lookups, taking advantage of the fact that segmentations are homogeneous
+    InputPixelType last_pixel = 0;
 
     // Simple loop
-    const LabelType *xin = inputPtr->GetBufferPointer();
+    const LabelType *xin = inputPtr->GetBufferPointer(), *xinend = xin + n;
     OutputPixelType *xout = outputPtr->GetBufferPointer();
-    for(size_t i = 0; i < n; i++)
+    for(; xin < xinend; ++xin, ++xout)
       {
-      const ColorLabel &cl = m_ColorTable->GetColorLabel(xin[i]);
-      if(cl.IsVisible())
-        cl.GetRGBAVector(xout[i].GetDataPointer());
-      else
-        clear.GetRGBAVector(xout[i].GetDataPointer());
+      if(*xin != last_pixel)
+        {
+        last_pixel = *xin;
+        const ColorLabel &cl = m_ColorTable->GetColorLabel(last_pixel);
+        if(cl.IsVisible())
+          cllast = &cl;
+        else
+          cllast = &clear;
+        }
+
+      cllast->GetRGBAVector(xout->GetDataPointer());
       }
     }
 

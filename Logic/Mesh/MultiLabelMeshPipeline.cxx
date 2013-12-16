@@ -352,8 +352,6 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
 
       // Update progress
       progress->StartNextRun(m_VTKPipeline->GetProgressAccumulator());
-
-      std::cout << "Making mesh for label " << it->first << std::endl;
       }
     }
 
