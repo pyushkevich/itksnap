@@ -603,7 +603,8 @@ SystemInterface
 
 // We start versioning at 1000. Every time we change
 // the protocol, we should increment the version id
-const short SystemInterface::IPC_VERSION = 0x1003;
+// 0x1004 - Dec 2013, ITK-SNAP 3.0.0 alpha
+const short SystemInterface::IPC_VERSION = 0x1004;
 
 void
 SystemInterface
@@ -639,6 +640,7 @@ SystemInterface
   if(m_IPCHandle < 0)
     {
     cerr << "Shared memory (shmget) error: " << strerror(errno) << endl;
+    cerr << "This error may occur if a user is running two versions of ITK-SNAP" << endl;
     cerr << "Multisession support is disabled" << endl;
     m_IPCSharedData = NULL;
     }
