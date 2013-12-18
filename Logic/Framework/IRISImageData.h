@@ -51,15 +51,6 @@ public:
   typedef Superclass::AnatomicImageType AnatomicImageType;
 
   /**
-   * Access the segmentation image (read only access allowed 
-   * to preserve state)
-   */
-  LabelImageWrapper* GetUndoImage() {
-    assert(m_MainImageWrapper->IsInitialized() && m_UndoWrapper->IsInitialized());
-    return m_UndoWrapper;
-  }
-
-  /**
    * We override the parent's SetSegmentationImage in order to initialize the
    * undo wrapper to match.
    */
@@ -78,18 +69,6 @@ protected:
 
   IRISImageData();
   virtual ~IRISImageData();
-
-  // Starting with SNAP 1.6, the IRISImageData object will store a second
-  // copy of the segmentation image for the purpose of implementing fast 
-  // undo functionality. This image is used to support situations where we
-  // want to allow multiple updates to the segmentation image between saving
-  // 'undo points'. This is necessary for paintbrush operation, since it would
-  // be too expensive to store an undo point for every movement of the paintbrush
-  // (and it would be difficult for the user too). So this UndoWrapper stores the
-  // segmentation image _at the last undo point_. See IRISApplication::StoreUndoPoint
-  // for details.
-  SmartPtr<LabelImageWrapper> m_UndoWrapper;
-
 };
 
 #endif

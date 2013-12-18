@@ -50,6 +50,12 @@ public:
     MODE_COMPONENT = 0, MODE_MAGNITUDE, MODE_MAX, MODE_AVERAGE, MODE_RGB
   };
 
+  /** States for this model */
+  enum UIState {
+    UIF_MULTICOMPONENT,
+    UIF_CAN_SWITCH_COMPONENTS
+  };
+
   // Implementation of virtual functions from parent class
   void RegisterWithLayer(ImageWrapperBase *layer);
   void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted);
@@ -59,6 +65,9 @@ public:
 
   // Function called in response to events
   virtual void OnUpdate();
+
+  // State management
+  bool CheckState(UIState state);
 
   // Typedefs for the model for component selection
   typedef SimpleItemSetDomain<DisplayMode, std::string> DisplayModeDomain;

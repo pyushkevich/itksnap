@@ -65,6 +65,12 @@ LayerGeneralPropertiesModel::SetParentModel(GlobalUIModel *parent)
   this->Rebroadcast(
         parent->GetDriver(),
         WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
+
+  this->Rebroadcast(
+        parent->GetDriver(),
+        MainImageDimensionsChangeEvent(), ModelUpdateEvent());
+
+  this->Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
 }
 
 void
@@ -101,6 +107,25 @@ LayerGeneralPropertiesModel::OnUpdate()
   Superclass::OnUpdate();
 
   // Do we need this method?
+}
+
+bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIState state)
+{
+  if(!m_Layer)
+    return false;
+
+  switch(state)
+    {
+    case UIF_CAN_SWITCH_COMPONENTS:
+      {
+        AbstractMultiChannelDisplayMappingPolicy *dp =
+            dynamic_cast<AbstractMultiChannelDisplayMappingPolicy *>(
+              m_Layer->GetDisplayMapping());
+        return dp && dp->GetDisplayMode().SelectedScalarRep == SCALAR_REP_COMPONENT;
+      }
+    case UIF_MULTICOMPONENT:
+      return m_Layer->GetNumberOfComponents() > 1;
+    }
 }
 
 bool LayerGeneralPropertiesModel

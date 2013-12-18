@@ -18,6 +18,10 @@ void SliceWindowInteractionDelegateWidget::preprocessEvent(QEvent *ev)
   // Do the parent's processing
   QtInteractionDelegateWidget::preprocessEvent(ev);
 
+  // Don't do nothing if slice not initialized
+  if(!m_ParentModel || !m_ParentModel->IsSliceInitialized())
+    return;
+
   // Deal with mouse events
   if(ev->type() == QEvent::MouseButtonPress ||
      ev->type() == QEvent::MouseButtonRelease ||

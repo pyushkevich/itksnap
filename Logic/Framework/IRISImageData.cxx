@@ -39,7 +39,6 @@
 IRISImageData
 ::IRISImageData()
 {
-  m_UndoWrapper = NULL;
 }
 
 IRISImageData::~IRISImageData()
@@ -52,11 +51,6 @@ IRISImageData
 {
   // Set the new segmentation image
   GenericImageData::SetSegmentationImage(newLabelImage);
-  
-  // Copy the image contents to the undo buffer
-  memcpy(m_UndoWrapper->GetImage()->GetBufferPointer(),
-         m_LabelWrapper->GetImage()->GetBufferPointer(),
-         m_LabelWrapper->GetImage()->GetPixelContainer()->Size() * sizeof(LabelType));
 }
 
 void
@@ -64,8 +58,6 @@ IRISImageData
 ::ResetSegmentationImage()
 {
   GenericImageData::ResetSegmentationImage();
-  m_UndoWrapper = LabelImageWrapper::New();
-  m_UndoWrapper->InitializeToWrapper(m_LabelWrapper, (LabelType) 0);
 }
 
 void
@@ -73,7 +65,5 @@ IRISImageData
 ::UnloadMainImage()
 {
   GenericImageData::UnloadMainImage();
-
-  m_UndoWrapper = NULL;
 }
 

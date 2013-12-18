@@ -45,6 +45,7 @@ UndoDataManager<TPixel>
   this->m_MaxTotalSize = nMaxTotalSize;
   this->m_TotalSize = 0;
   m_Position = m_DeltaList.begin();
+  m_CumulativeDelta = NULL;
 }
 
 template<typename TPixel>
@@ -155,4 +156,15 @@ UndoDataManager<TPixel>
     sd.push_back(delta->GetUniqueID());
     }
   return sd;
+}
+
+
+template<typename TPixel>
+void
+UndoDataManager<TPixel>
+::SetCumulativeDelta(UndoDataManager::Delta *delta)
+{
+  if(m_CumulativeDelta)
+    delete m_CumulativeDelta;
+  m_CumulativeDelta = delta;
 }

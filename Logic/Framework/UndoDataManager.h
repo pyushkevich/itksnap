@@ -95,6 +95,14 @@ public:
       unsigned long GetUniqueID() const
         { return m_UniqueID; }
 
+      Delta & operator = (const Delta &other)
+      {
+        m_Array = other.m_Array;
+        m_CurrentLength = other.m_CurrentLength;
+        m_LastValue = other.m_LastValue;
+        return *this;
+      }
+
     protected:
       typedef std::pair<size_t, TPixel> RLEPair;
       typedef std::vector<RLEPair> RLEArray;
@@ -118,6 +126,11 @@ public:
   bool IsRedoPossible();
   Delta *GetDeltaForRedo();
 
+  Delta *GetCumulativeDelta()
+    { return m_CumulativeDelta; }
+
+  void SetCumulativeDelta(Delta *);
+
   size_t GetNumberOfDeltas()
     { return m_DeltaList.size(); }
 
@@ -138,4 +151,6 @@ private:
   DList m_DeltaList;
   DIterator m_Position;
   size_t m_TotalSize, m_MinDeltas, m_MaxTotalSize;
+
+  Delta *m_CumulativeDelta;
 };

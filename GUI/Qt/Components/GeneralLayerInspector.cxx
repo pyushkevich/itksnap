@@ -9,6 +9,8 @@
 #include "QtSliderCoupling.h"
 #include "QtLineEditCoupling.h"
 
+#include "QtWidgetActivator.h"
+
 Q_DECLARE_METATYPE(LayerGeneralPropertiesModel::DisplayMode)
 
 GeneralLayerInspector::GeneralLayerInspector(QWidget *parent) :
@@ -39,4 +41,15 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
 
   makeCoupling(ui->outFilename, m_Model->GetFilenameModel());
   makeCoupling(ui->inNickname, m_Model->GetNicknameModel());
+
+  activateOnFlag(ui->grpMulticomponent, m_Model,
+                 LayerGeneralPropertiesModel::UIF_MULTICOMPONENT);
+
+  activateOnFlag(ui->chkAnimate, m_Model,
+                 LayerGeneralPropertiesModel::UIF_CAN_SWITCH_COMPONENTS);
+  activateOnFlag(ui->inComponent, m_Model,
+                 LayerGeneralPropertiesModel::UIF_CAN_SWITCH_COMPONENTS);
+  activateOnFlag(ui->inComponentSlider, m_Model,
+                 LayerGeneralPropertiesModel::UIF_CAN_SWITCH_COMPONENTS);
+
 }

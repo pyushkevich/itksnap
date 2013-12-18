@@ -56,10 +56,12 @@ LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
 
   // Set up the list of custom layer widgets
   QVBoxLayout *loLayers = new QVBoxLayout();
-  ui->saLayersContents->setLayout(loLayers);
-  loLayers->setSizeConstraint(QLayout::SetMinAndMaxSize);
-  loLayers->setContentsMargins(0,0,0,0);
+  loLayers->setContentsMargins(1, 0, 1, 0);
   loLayers->setSpacing(0);
+  ui->saLayersContents->setLayout(loLayers);
+  // loLayers->setSizeConstraint(QLayout::SetMinAndMaxSize);
+  // loLayers->setContentsMargins(0,0,0,0);
+  // loLayers->setSpacing(0);
 
   // Filter events to the widget containing the list of layers. This is
   // used to hide and show controls (keep UI less busy) and to handle some
