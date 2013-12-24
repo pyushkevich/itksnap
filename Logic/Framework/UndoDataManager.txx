@@ -162,7 +162,7 @@ UndoDataManager<TPixel>
 template<typename TPixel>
 void
 UndoDataManager<TPixel>
-::SetCumulativeDelta(UndoDataManager::Delta *delta)
+::SetCumulativeDelta(Delta *delta)
 {
   if(m_CumulativeDelta)
     delete m_CumulativeDelta;
