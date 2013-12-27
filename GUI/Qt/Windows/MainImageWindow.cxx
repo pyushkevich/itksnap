@@ -363,10 +363,10 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Hook up toolbar actions to the toolbar
   makeActionGroupCoupling(this->GetMainToolActionGroup(),
-                          m_Model->GetToolbarModeModel());
+                          m_Model->GetGlobalState()->GetToolbarModeModel());
 
   makeActionGroupCoupling(this->Get3DToolActionGroup(),
-                          m_Model->GetToolbarMode3DModel());
+                          m_Model->GetGlobalState()->GetToolbarMode3DModel());
 
 
 }

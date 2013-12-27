@@ -111,6 +111,24 @@ enum DisplayPanel
   PANEL_3D
 };
 
+enum ToolbarModeType
+{
+  CROSSHAIRS_MODE = 0,
+  NAVIGATION_MODE,
+  POLYGON_DRAWING_MODE,
+  PAINTBRUSH_MODE,
+  ROI_MODE,
+  ANNOTATION_MODE
+};
+
+enum ToolbarMode3DType
+{
+  TRACKBALL_MODE = 0,
+  CROSSHAIRS_3D_MODE,
+  SPRAYPAINT_MODE,
+  SCALPEL_MODE
+};
+
 /** Watershed settings for paintbrush */
 struct PaintbrushWatershedSettings
 {
@@ -331,6 +349,12 @@ public:
     with label X. Only applicable in snake mode. */
   irisSimplePropertyAccessMacro(SnakeInitializedWithManualSegmentation, bool)
 
+  /** Get/Set the current toolbar mode */
+  irisSimplePropertyAccessMacro(ToolbarMode,ToolbarModeType)
+
+  /** Set/Get the current 3D toolbar mode */
+  irisSimplePropertyAccessMacro(ToolbarMode3D,ToolbarMode3DType)
+
   // ----------------------- Project support ------------------------------
 
   /**
@@ -412,6 +436,12 @@ private:
 
   /** Whether snake has been initialized with manual seg voxels */
   SmartPtr<ConcreteSimpleBooleanProperty> m_SnakeInitializedWithManualSegmentationModel;
+
+  // The current 2D toolbar mode
+  SmartPtr<ConcretePropertyModel<ToolbarModeType> > m_ToolbarModeModel;
+
+  // The current 3D toolbar mode
+  SmartPtr<ConcretePropertyModel<ToolbarMode3DType> > m_ToolbarMode3DModel;
   
   int m_LockHeld; 
   int m_LockOwner;

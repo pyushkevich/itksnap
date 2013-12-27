@@ -8,7 +8,7 @@
 #include <SnakeROIModel.h>
 #include <MainImageWindow.h>
 #include "SnakeROIResampleModel.h"
-
+#include "GlobalState.h"
 
 #include "ResampleDialog.h"
 
@@ -67,7 +67,7 @@ void SnakeToolROIPanel::on_btnAuto_clicked()
     }
 
   // Switch to crosshairs mode
-  m_Model->SetToolbarMode(CROSSHAIRS_MODE);
+  m_Model->GetGlobalState()->SetToolbarMode(CROSSHAIRS_MODE);
 
   // Show the snake panel
   MainImageWindow *main = findParentWidget<MainImageWindow>(this);

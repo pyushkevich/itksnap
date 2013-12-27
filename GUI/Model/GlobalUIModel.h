@@ -75,26 +75,6 @@ namespace itk
 class Command;
 }
 
-// Events fired by this object
-itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
-
-enum ToolbarModeType
-{
-  CROSSHAIRS_MODE = 0,
-  NAVIGATION_MODE,
-  POLYGON_DRAWING_MODE,
-  PAINTBRUSH_MODE,
-  ROI_MODE,
-  ANNOTATION_MODE
-};
-
-enum ToolbarMode3DType
-{
-  TRACKBALL_MODE = 0,
-  CROSSHAIRS_3D_MODE,
-  SPRAYPAINT_MODE,
-  SCALPEL_MODE
-};
 
 class SystemInfoDelegate;
 
@@ -124,6 +104,7 @@ public:
   FIRES(LayerChangeEvent)
   FIRES(LinkedZoomUpdateEvent)
   FIRES(LabelUnderCursorChangedEvent)
+  FIRES(ToolbarModeChangedEvent)
 
 
 
@@ -160,12 +141,6 @@ public:
    * Save user preferences to disk before quitting the application
    */
   void SaveUserPreferences();
-
-  /** Get/Set the current toolbar mode */
-  irisSimplePropertyAccessMacro(ToolbarMode,ToolbarModeType)
-
-  /** Set/Get the current 3D toolbar mode */
-  irisSimplePropertyAccessMacro(ToolbarMode3D,ToolbarMode3DType)
 
   GenericSliceModel *GetSliceModel(unsigned int i) const
     { return m_SliceModel[i]; }
@@ -369,12 +344,6 @@ protected:
 
   // 3D Model
   SmartPtr<Generic3DModel> m_Model3D;
-
-  // The current 2D toolbar mode
-  SmartPtr<ConcretePropertyModel<ToolbarModeType> > m_ToolbarModeModel;
-
-  // The current 3D toolbar mode
-  SmartPtr<ConcretePropertyModel<ToolbarMode3DType> > m_ToolbarMode3DModel;
 
   // The snake wizard model
   SmartPtr<SnakeWizardModel> m_SnakeWizardModel;

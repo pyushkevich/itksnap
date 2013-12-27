@@ -186,7 +186,7 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(m_Model, Generic3DModel::ScalpelEvent(), ModelUpdateEvent());
 
   // Respond to changes in toolbar mode
-  Rebroadcast(m_Model->GetParentUI()->GetToolbarMode3DModel(),
+  Rebroadcast(m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3DModel(),
               ValueChangedEvent(), ModelUpdateEvent());
 
   // Listen to changes in appearance
@@ -236,7 +236,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       }
     else
       {
-      if(it_mesh->second != it_actor->second->GetMapper()->GetInput())
+      if(it_mesh->second.GetPointer() != it_actor->second->GetMapper()->GetInput())
         {
         // The mesh has changed, and needs to be fed to the mapper
         vtkPolyDataMapper::SafeDownCast(it_actor->second->GetMapper())
@@ -340,7 +340,7 @@ void Generic3DRenderer::UpdateAxisRendering()
 void Generic3DRenderer::UpdateScalpelRendering()
 {
   // If not in scalpel mode, just disable everything
-  if(m_Model->GetParentUI()->GetToolbarMode3D() != SCALPEL_MODE)
+  if(m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3D() != SCALPEL_MODE)
     {
     m_ScalpelPlaneWidget->SetEnabled(0);
     m_ScalpelLineActor->SetVisibility(0);
@@ -587,7 +587,7 @@ void Generic3DRenderer::OnUpdate()
   GlobalState *gs = app->GetGlobalState();
 
   // Get the mode
-  ToolbarMode3DType mode = m_Model->GetParentUI()->GetToolbarMode3D();
+  ToolbarMode3DType mode = m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3D();
 
   // Define a bunch of local flags to make this code easier to read
   bool main_changed = m_EventBucket->HasEvent(MainImageDimensionsChangeEvent());
@@ -599,7 +599,8 @@ void Generic3DRenderer::OnUpdate()
   bool spray_action = m_EventBucket->HasEvent(Generic3DModel::SprayPaintEvent());
   bool scalpel_action = m_EventBucket->HasEvent(Generic3DModel::ScalpelEvent());
   bool mode_changed = m_EventBucket->HasEvent(
-        ValueChangedEvent(), m_Model->GetParentUI()->GetToolbarMode3DModel());
+        ValueChangedEvent(),
+        m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3DModel());
   bool segmentation_changed =
       m_EventBucket->HasEvent(SegmentationChangeEvent()) ||
       m_EventBucket->HasEvent(LevelSetImageChangeEvent());

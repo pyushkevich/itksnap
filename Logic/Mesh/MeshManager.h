@@ -50,6 +50,7 @@ class LevelSetMeshPipeline;
 #include "AllPurposeProgressAccumulator.h"
 #include <vector>
 #include "itkObject.h"
+#include "vtkSmartPointer.h"
 
 namespace itk {
     template<unsigned int VImageDimension>
@@ -83,7 +84,7 @@ public:
    * Get the mapping of labels to vtk mesh pointers. This method has a
    * slight overhead of copying the data
    */
-  typedef std::map<LabelType, vtkPolyData *> MeshCollection;
+  typedef std::map<LabelType, vtkSmartPointer<vtkPolyData> > MeshCollection;
   MeshCollection GetMeshes();
 
   /**

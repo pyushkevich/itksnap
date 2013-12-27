@@ -6,6 +6,7 @@
 #include "LabelSelectionButton.h"
 #include "LabelSelectionPopup.h"
 #include "MainImageWindow.h"
+#include "GlobalState.h"
 
 #include <QtActionGroupCoupling.h>
 #include <QActionGroup>
@@ -139,8 +140,8 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
   activateOnFlag(this, m_Model, UIF_BASEIMG_LOADED);
 
   // Listen to changes in the toolbar mode
-  connectITK(m_Model->GetToolbarModeModel(), ValueChangedEvent());
-  connectITK(m_Model->GetToolbarMode3DModel(), ValueChangedEvent());
+  connectITK(m_Model->GetGlobalState()->GetToolbarModeModel(), ValueChangedEvent());
+  connectITK(m_Model->GetGlobalState()->GetToolbarMode3DModel(), ValueChangedEvent());
 }
 
 void MainControlPanel::onModelUpdate(const EventBucket &bucket)
@@ -163,9 +164,10 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     ui->pageBlank};
 
   // Respond to changes in toolbar mode
-  if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetToolbarModeModel()))
+  GlobalState *gs = m_Model->GetGlobalState();
+  if(bucket.HasEvent(ValueChangedEvent(), gs->GetToolbarModeModel()))
     {
-    int mode = (int) m_Model->GetToolbarMode();
+    int mode = (int) gs->GetToolbarMode();
     mode_inspector_btn[mode]->click();
     ui->stackToolPage->setCurrentWidget(mode_tool_pages[mode]);
     }

@@ -383,9 +383,9 @@ MultiLabelMeshPipeline::MeshInfo::~MeshInfo()
 }
 
 
-std::map<LabelType, vtkPolyData *> MultiLabelMeshPipeline::GetMeshCollection()
+std::map<LabelType, vtkSmartPointer<vtkPolyData> > MultiLabelMeshPipeline::GetMeshCollection()
 {
-  std::map<LabelType, vtkPolyData *> meshes;
+  std::map<LabelType, vtkSmartPointer<vtkPolyData> > meshes;
   for(MeshInfoMap::iterator it = m_MeshInfo.begin(); it != m_MeshInfo.end(); ++it)
     meshes[it->first] = it->second.Mesh;
   return meshes;

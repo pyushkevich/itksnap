@@ -1,21 +1,191 @@
 ======================================
  InsightSNAP Release Notes
- Version 2.2.0
+ Version 3.0.0-alpha
 ======================================
-
 
 -----------------
 1. New Features
 -----------------
 
-1.1. New in Version 2.2.0
+1.1. New in Version 3.0.0
+----------------------------------------------
+
+This is a major new release of ITK-SNAP. The user interface has been completely
+rewritten using the Qt platform, and new functionality for multi-modal image
+segmentation has been added.
+
+1.1.1. New functionality for multi-modality image segmentation
+
+ -  SNAP is no longer limited to just scalar-valued and RGB-valued images. An
+    image with any number of components can be loaded into SNAP. The GUI provides
+    widgets for selecting the currently shown component, deriving scalar images
+    from the components (magnitude, maximum, average), and for three-component
+    images, rendering them as color RGB images. It is also possible to animate
+    components, e.g., for time-varying image data. Multi-component images enjoy
+    access to the same features as scalar images, such as curve-based contrast
+    adjustment, colormaps, etc.
+
+ -  When multiple layers are loaded into SNAP, the user has a new option to
+    tile the layers in each of the 2D slice views. This greatly simplifies
+    working with multiple overlays. This also carries over to the automatic
+    segmentation mode, where the speed image can now be displayed side by side
+    with the anatomical images. It can also aid manual segmentation of
+    multi-modality data. During manual segmentation, polygon outlines are traced
+    on top of each of the tiled views.
+
+ -  Automatic segmentation (using active contours) can now be performed in
+    multi-modality images. Multiple image layers, each of which may have
+    multiple components (e.g., RGB, complex or tensor data), can be passed to
+    the auto-segmentation mode. Once there, the user can use the new clustering
+    preprocessing mode to derive a speed image from this multi-variate input.
+    The current implementation of clustering uses Gaussian Mixture Modeling.
+    The user selects the desired number of clusters (i.e., tissue classes) and
+    once the clusters are initialized, chooses the cluster of interest.
+
+1.1.2. New features in the Qt-based GUI
+
+ -  The graphical user interface (GUI) uses Qt, a much more powerful toolkit
+    than the FLTK toolkit in the previous versions. The new GUI is much richer
+    with multiple access paths to common functions (such as choosing the active
+    label or changing the color map for an overlay). There are fewer 'apply'
+    buttons to press, as most of the time, the program reacts immediately to
+    user input into the widgets. More features are available in the left-side
+    panel, and these features are organized more logically than before.
+
+ -  New functionality for saving and opening workspaces. A workspace represents
+    the state of ITK-SNAP at a given moment, including all the images currently
+    loaded in an ITK-SNAP window, as well as associated settings and parameters.
+    Workspaces are saved in the XML format. They can be packaged together with
+    the images to which they refer and shared with other users.
+
+ -  The layer inspector dialog is greatly improved, with new features for
+    reordering layers, quickly changing their visibility, applying a colormap,
+    adjusting contrast, saving, etc. The speed image and level set image,
+    created by the program during automatic segmentation, are now accessible
+    in the layer inspector, so the user can change their color maps as well.
+    In the future, the layer inspector will provide access to much more
+    functionality, such as applying image processing operations (smoothing,
+    feature extraction, bias field correction) to individual layers.
+
+ -  The various plots in the GUI now use the vtkChart library in VTK. This
+    provides richer visualization capabilities than the old version in which
+    all the plots were rendered using custom OpenGL code. This is particularly
+    noticable in the contrast adjustment page of the layer inspector and in
+    the preprocessing dialog in auto-segmentation mode.
+
+ -  The window shown at startup shows a graphical list of recently opened images
+    and workspaces. This makes it easier to quickly load an image, and keeps the
+    GUI clean during startup.
+
+ -  SNAP recognizes pinch gestures (tested on the Mac) for zoom. This should
+    make interaction easier for trackpad users.
+
+ -  Layers can be assigned nicknames, such as "T1".
+
+ -  Unicode support. Filenames and user-entered data can now be in any language.
+
+ -  The label editor has new features, such as resetting all labels do defaults,
+    filtering labels by name, assinging foreground/background labels directly
+    from the dialog.
+
+1.1.3. Improvements to 3D rendering window
+
+ -  The 3D rendering window now uses the VTK toolkit for rendering. This will
+    make it easier to introduce new functionality (such as volume rendering)
+    in future versions.
+
+ -  The 3D rendering pipeline is much smarter than before. It detects changes
+    to individual labels in the segmentation, so each paint operation no longer
+    requires the entire set of 3D meshes to be recomputed. Rendering is
+    significantly faster than before.
+
+ -  There is a new option to automatically render meshes in a background thread.
+    When enabled, the mesh updates itself in response to polygon and paintbrush
+    operations. This works well even for large and complex segmentations. However,
+    this is still an experimental feature and may lead to occasional weird crashes
+    due to multi-threading issues.
+
+ -  The scalpel tool uses VTK's 3D cutplane widget that can be rotated and moved
+    after the cut has been drawn.
+
+1.1.4. Other new features
+
+ -  Reduced memory footprint for large images. The previous version of SNAP
+    would allocate on the order of 6 bytes for every voxel in the main image.
+    Two bytes were used to store the grayscale image intensity, two for the
+    segmentation, and two for the segmentation undo buffer. The undo buffer is
+    now stored in a compressed format, reducing the required memory by almost
+    one third. In the future, we also plan to compress the segmentation itself,
+    which will cut the memory use by another 2 bytes per voxel.
+
+ -  Improved support for reading/parsing DICOM data. When the user opens a file
+    in a directory containing DICOM images, SNAP parses this directory
+    much faster than in previous versions (especially when data is on CDs) and
+    lists all the series with their dimensions and other meta-data, making it
+    easier to determine which series one wishes to load.
+
+1.1.5. Programmatic improvements
+
+ -  The SNAP code has been extensively refactored. There is a new "model" layer
+    separating the Qt GUI from the "logic" layer. This layer is agnostic to the
+    type of GUI toolkit used, and implements generic GUI logic. This design
+    minimizes the amount of Qt code, so that swapping Qt versions or even
+    porting to a different toolkit will be easier in the future. Unlike the old
+    FLTK code, which had huge numbers callbacks, the new code relies on a
+    widget-model coupling mechanism. This makes the code more robust and
+    reduces the amount of Qt-aware code.
+
+
+1.2. New in Version 2.4.0
+----------------------------------------------
+
+This is the last planned release of the FLTK-based version of ITK-SNAP. It adds
+minimal new functionality and addressed a number of bugs reported in the last
+year. The subsequent releases of ITK-SNAP will be based on the Qt platform and
+will have the 3.x version number.
+
+1.2.1. New Features and UI Improvements
+
+ -  Ported the dependency on ITK 3.20.1 to ITK 4.2 on all operating systems:
+    Mac OS X, Linux, and Windows.
+
+ -  ITK-SNAP can read and write MRC images now.
+
+1.2.2. Bug Fixes and Stability Improvements
+
+ -  Fixed a problem with the RAI code which was not updating after reorienting.
+
+ -  Fixed bug ID: 3371200: The saving of the preprocessed image was failing.
+
+ -  Fixed bug ID: 3309784 and 3415653: Windows file browser broken and enable
+    all document setting not available in version 2.2.0.
+
+ -  Fixed bug ID: 3415681 It was not possible to update the mesh when working
+    with volumes of one slice. An exception is thrown and catch with fl_alert.
+
+ -  Fixed bug ID: 3323300 BYU mesh saving was save-able, while the internal
+    data was not prepared  for this saving. The user interface is correctly
+    updated now. In addition, the BYU writer save geometric data as well.
+
+ -  Fixed: bug ID: 3023489: When running from command line with -o flag,
+    there was no check to see if images are same size. Two asserts were
+    changed in exception throwing.
+
+ -  Fixes for building with different releases of fltk 1.3.
+
+ -  Corrected a bug in the code with SparseLevelSet filter being used
+    instead of ParallelSparse.
+
+======================================
+
+1.3. New in Version 2.2.0
 ----------------------------------------------
 
 This is largely a maintenance release, with a few usability enhancements based
 on user feedback. The main change programmatically is 64 bit support on Linux,
 MacOS and Windows.
 
-1.1.1. New Features and UI Improvements
+1.3.1. New Features and UI Improvements
 
  -  64 bit versions of the software are available for Linux, Windows and Mac.
     These versions are now built nightly and will be distributed on
@@ -34,7 +204,7 @@ MacOS and Windows.
     includes the Fl_Table widget.
 
  -  A new tab on the layer inspector displaying image metadata, particularly
-    useful for DICOM files. 
+    useful for DICOM files.
 
  -  Several changes to the polygon drawing interface. The buttons at the
     bottom of the slice window are now shown dynamically, based on what the
@@ -61,11 +231,11 @@ MacOS and Windows.
     for sagittal or 'c' for coronal. You can restore default SNAP layout using
     Ctrl-F3 (Command-F3 on the Mac) or using the toolbar button that pops up.
 
- -  Also added command line options --zoom and --help 
+ -  Also added command line options --zoom and --help
 
  -  The 'reset view' button under the slice windows has been renamed 'zoom to
     fit' and it behaves more sensibly when zoom is linked across the slice
-    views. 
+    views.
 
  -  Improved integration with MacOS and Windows operating systems. On both
     MacOS and Windows, you can drag and drop a file into an open SNAP window
@@ -78,14 +248,14 @@ MacOS and Windows.
 
  -  Ability to save segmentation mesh in active contour mode
 
-1.1.2. Bug Fixes and Stability Improvements
+1.3.2. Bug Fixes and Stability Improvements
 
  -  Fixed a problem with certain operations being very slow because of the way
     the progress bars were displayed. Preprocessing, mesh rendering and mesh
     IO will now be much faster
 
  -  Fixed problems with the snake parameter dialog. The images are now
-    properly displayed and animation works. 
+    properly displayed and animation works.
 
  -  Fixed problems with automatic panning in crosshairs mode. Also added a
     button to enable this feature; it is disabled by default.
@@ -96,33 +266,33 @@ MacOS and Windows.
 
  -  Fixed problem with bubbles not being spherical for certain image orientations
 
-1.2. New in Version 2.0
+1.4. New in Version 2.0
 ----------------------------------------------
 
-1.2.1. New Features and UI Improvements
+1.4.1. New Features and UI Improvements
 
  -  Support for multiple image layers. Users can now load gray and RGB images
     as overlays on top of the main image layer. For example, one can display a
-    statistical map as an overlay over an anatomical image. As of version 
+    statistical map as an overlay over an anatomical image. As of version
     1.9.8, overlays must have the same dimensions as the main image.
 
- -  A new layer inspector window. Each layer in SNAP (main image and each of the 
+ -  A new layer inspector window. Each layer in SNAP (main image and each of the
     overlays) can be examined using the layer inspector. Currently there are three
-    tabs: one for setting the intensity mapping of the layer (i.e., mapping from 
+    tabs: one for setting the intensity mapping of the layer (i.e., mapping from
     image intensity to display intensity); one for selecting and editing the color
-    map and transparency of the layer; and one providing information about the layer. 
+    map and transparency of the layer; and one providing information about the layer.
     The layer inspector replaces the old "Image Information" and "Intensity Curve"
     windows. The color bar editor is only partially functional as of 1.9.9.
 
  -  Hiding the UI. Using the 'F3' key, users can toggle certain user interface elements
     on and off. Press 'F3' once, and the left sidebar and the menu bar disappear.
     Press 'F3' twice, and all the UI elements disappear, so you are looking just at the
-    image. Press 'F3' again, and the UI is restored to the original state. This 
+    image. Press 'F3' again, and the UI is restored to the original state. This
     feature works well with the '+' buttons on the slice windows. It's intended for
     multi-session SNAP users, so that the screen real estate can be used more efficiently
     by multiple SNAP sessions.
 
- -  Because now the most common SNAP commands have a shortcut, you will be able to 
+ -  Because now the most common SNAP commands have a shortcut, you will be able to
     do a lot with the UI hidden. Select 'Help->Keyboard Shortcuts' to see a listing.
 
  -  Fullscreen mode. Press 'F4' to toggle fullscreen SNAP. Use it with 'F3' to let the
@@ -136,22 +306,22 @@ MacOS and Windows.
     file chooser can be further enhanced by installing the DTI-TK Quick Look
     plugin that supports NIfTI/Analyze image preview (www.nitrc.org/projects/dtitk)
 
- -  When launched from command line, SNAP can automatically determine whether an 
+ -  When launched from command line, SNAP can automatically determine whether an
     image is a 3-component RGB image or a grayscale image. To use this functionality,
     users must run SNAP without "-g" or "-rgb" options:
 
         itksnap image.nii
 
     This feature is ideal for users who want to associate ITK-SNAP with certain 3D image
-    types in their operating system (in Finder or Windows Explorer). 
+    types in their operating system (in Finder or Windows Explorer).
 
  -  Automatic check for software update. Users can enable automatic update checking.
 
- -  External web browser support. Help and other HTML pages are now displayed in the 
-    operating system's own web browser, from itksnap.org. This may displease users 
+ -  External web browser support. Help and other HTML pages are now displayed in the
+    operating system's own web browser, from itksnap.org. This may displease users
     connected to the internet, but this makes managing documentation a lot easier and
     hopefully will allow us to keep the documentation up to date with the features.
-    
+
  -  Crash recovery. When an out-of-memory or other crash occurs, ITK-SNAP will ask you
     if you want to save the segmentation image before exiting. Of course this may not
     always work, but it should make a lot of frustrated users a little less frustrated.
@@ -160,21 +330,21 @@ MacOS and Windows.
     ITK-SNAP requires 6 bytes per voxel in manual segmentation mode. More memory is needed for
     mesh rendering, and a lot more for automatic segmentation. When loading images in 32-bit
     or 64-bit formats, more memory may be required at the time of image IO. That is because
-    ITK NIFTI reader (and maybe other readers) keeps a second copy of the image in memory 
-    during IO. This memory is immediately deallocated though.  
-	
- -  Unified navigation modes. The crosshair mode allows zoom and pan (RMB/MMB), and has an 
+    ITK NIFTI reader (and maybe other readers) keeps a second copy of the image in memory
+    during IO. This memory is immediately deallocated though.
+
+ -  Unified navigation modes. The crosshair mode allows zoom and pan (RMB/MMB), and has an
     auto-pan feature when you move the crosshair close to the edge of the slice window.
     The zoom/pan mode is redundant, but we left it in place for backward compatibility.
     In the zoom/pan mode, zoom is RMB, pan is LMB, crosshair motion is MMB. In all other
     modes, crosshair motion is accessible through MMB as well.
-    
 
-1.2.2. Bug Fixes
+
+1.4.2. Bug Fixes
 
  -  Fixed an issue with SNAP reading certain types of image twice from disc. This should
     speed up the reading of floating point images, for example.
-    
+
  -  Color map cache is now computed on the fly. This makes interaction with the intensity
     curve and color map more real-time.
 
@@ -182,25 +352,25 @@ MacOS and Windows.
     nothing. Did not know how to fix it correctly, so replaced the parallel
     sparse field solver with the non-parallel one. This may slow down
     automatic segmentation on some machines, so this is an outstanding issue.
-    
+
  -  Found a bug that caused images with unusual coordinate orientations to be incorrectly
     displayed (wrong coordinate labels assigned). This was caused by incorrect mapping of
     ITK direction matrix to "RAI" codes in SNAP. This affects display of NIFTI, DICOM and
     other image files. It also affects the behavior of the Reorient Image dialog.
-    
+
  -  Please see the bug tracker on itksnap.org for the full listing of bug fixes.
- 
-1.2.3. Website Changes
 
- -  The itksnap.org website has been Wikified. Content can now be edited on the fly. 
+1.4.3. Website Changes
+
+ -  The itksnap.org website has been Wikified. Content can now be edited on the fly.
 
 
 
-1.3. New in Version 1.8
+1.5. New in Version 1.8
 ----------------------------------------------
 
-1.3.1. New Features and UI Improvements
- 
+1.5.1. New Features and UI Improvements
+
  -  Support for reading floating point images of arbitrary range. SNAP still
     represents gray images internally as signed short, but now it can load a
     floating point image and remap its intensity range to signed shorts. When
@@ -224,7 +394,7 @@ MacOS and Windows.
     ITK-SNAP. Let us know if this feature works for you. Potentially, we may add
     other algorithms in the future, including running the level set inside of
     the brush.
-    
+
  -  Support for image orientation. This is a major step towards NIFTI
     compatibility (part of our R03 effort) and something many users should find
     helpful. Formats such as NIFTI, DICOM, and a couple others encode the
@@ -238,13 +408,13 @@ MacOS and Windows.
  -  A new 'reorient image' dialog has been added, so that if the orientation
     information in the header is wrong, you can change the orientation and save
     the image. For now, the user can only specify reorientations that are
-    parallel to the anatomical axes. 
+    parallel to the anatomical axes.
 
  -  World cursor coordinates (under image information) are now displayed in
     NIFTI / MNI coordinates as well as ITK coordinates. The difference is that
     the NIFTI coordinates incorporate orientation and are in the (L->R, P->A,
     I->S) coordinate frame. ITK coordinates are (x * spacing + origin), and
-    ignore orientation. 
+    ignore orientation.
 
  -  3D Meshes generated and rendered by SNAP are now represented in NIFTI world
     coordinates. Previously, the coordinates were computed using the formula
@@ -258,7 +428,7 @@ MacOS and Windows.
     This means that the meshes output by earlier versions of SNAP may be
     translated and rotated relative to the meshes output by version 1.8. This will
     not affect users who simply view meshes in SNAP; however users who export
-    meshes to other programs will be affected. 
+    meshes to other programs will be affected.
 
  -  Multisession cursor (similar to yoking in MRIcro) now uses these NIFTI
     coordinates rather than ITK coordinates. This is a key feature because it
@@ -272,7 +442,7 @@ MacOS and Windows.
     voxel. If in session A you move your cursor, the cursor in session B will
     move to the voxel center closest to the physical position referenced by the
     cursor in session A.
-    
+
  -  A new multi-session zoom feature. Similar to the multi-session cursor, this
     allows the zoom level to be maintained across multiple SNAP sessions. Useful
     if you do a lot of zooming in and out when working with a pair of scans.
@@ -297,7 +467,7 @@ MacOS and Windows.
     feature is useful when comparing two segmentations of the same image.
 
  -  A new ruler display in slice windows. Can be disabled or modified on the
-    display options dialog. 
+    display options dialog.
 
  -  Much better tracking of changes to the segmentation image and better
     promting to save changes before quitting or loading a new image. The title
@@ -327,7 +497,7 @@ MacOS and Windows.
  -  Documented existing keyboard shortcuts and added some new ones. Available
     shortcuts can be listed by selecting Help->Shortcuts.
 
-1.3.2. Programmatic/Distribution Changes
+1.5.2. Programmatic/Distribution Changes
 
  -  SNAP is now built against ITK 3.8, offering several improvements, especially
     in how image orientation is handled.
@@ -340,26 +510,26 @@ MacOS and Windows.
     Some people complained about the latter. We can also make .rpm and .deb
     packages although these won't be posted for public download yet.
 
-1.3.3. Bug Fixes
+1.5.3. Bug Fixes
 
  -  Level set fix for ITK 3.8 fixes automatic segmentation's weird behavior
 
-1.4. New in Version 1.6.0.1
+1.6. New in Version 1.6.0.1
 ---------------------------
 
-1.4.1. Bug Fixes
+1.6.1. Bug Fixes
 
- -  Major bug in release 1.6.0 involving disabled cursor movement in snake 
+ -  Major bug in release 1.6.0 involving disabled cursor movement in snake
     segmentation mode has been resolved.
 
 
-1.5. New in Version 1.6.0
+1.7. New in Version 1.6.0
 -------------------------
 
-1.5.1. New Features and UI Improvements
+1.7.1. New Features and UI Improvements
 
  -  You can now save a sequence of all axial, coronal or sagittal slices with
-    overlays as PNG files (File->Save->Screenshot Series). 
+    overlays as PNG files (File->Save->Screenshot Series).
 
  -  Automatic window and level computation based on the image histogram. The
     window and level are set to the 1st and 99th percentiles of the intensity
@@ -367,17 +537,17 @@ MacOS and Windows.
     hyper-intensity in medical imaging data. The feature is accessed in the
     "Options->Image Contrast" menu (or hit Alt-I in the main window).
 
- -  Cursor synchronization across multiple SNAP sessions (similar to the Yoke 
+ -  Cursor synchronization across multiple SNAP sessions (similar to the Yoke
     feature in MRIcro). The mechanism uses POSIX shared memory. Can be turned
-    off using the 'Synchronize Cursor' checkbox. Currently, only enabled in 
+    off using the 'Synchronize Cursor' checkbox. Currently, only enabled in
     manual segmentation mode; probably will enable in snake mode in the near
     future.
 
         --- NOTE FOR MacOS Users ---
-        MacOS doesn't allow you double-click the application icon to open a 
-        new instance. To open multiple instances of ITK-SNAP, you need to launch 
+        MacOS doesn't allow you double-click the application icon to open a
+        new instance. To open multiple instances of ITK-SNAP, you need to launch
         it from the command line.
-        ----------------------------    
+        ----------------------------
 
  -  SNAP will prompt you before closing if there are unsaved changes.
 
@@ -385,31 +555,31 @@ MacOS and Windows.
     segmentation.
 
  -  Support for RGB (color) images in SNAP. This is great for segmenting in DTI
-    data (manually, for the time being). RGB images can be loaded as the base 
+    data (manually, for the time being). RGB images can be loaded as the base
     image or as an overlay over the gray. To create these RGB images, use the new
     DTI-TK developed by Hui (Gary) Zhang, available from
 
         http://www.picsl.upenn.edu/resources_dtitk.aspx
 
- -  Segmentations can be exported as VTK meshes (for example, for loading in 
+ -  Segmentations can be exported as VTK meshes (for example, for loading in
     ParaView).
 
  -  Multilevel undo/redo functionality for all segmentation operations (polygon,
     paintbrush, freehand, 3D segmentation, 3D cutplane). Undo memory is
     preserved when loading new segmentation images.
 
- -  Freehand drawing support in polygon mode (hold and drag the mouse button). 
+ -  Freehand drawing support in polygon mode (hold and drag the mouse button).
     This feature is especially useful for using SNAP on a tablet.
 
  -  Added keyboard shortcuts 'a','s','d' for the opacity slider
 
  -  Shortened/simplified some of the menu items
 
-1.5.2. Bug Fixes
+1.7.2. Bug Fixes
 
  -  Various bugs have been fixed :)
 
-1.5.3. Distribution Changes
+1.7.3. Distribution Changes
 
  -  SNAP website fully migrated to sourceforge.net
 
@@ -419,10 +589,10 @@ MacOS and Windows.
  -  Linux binaries will be available starting with 1.6.0
 
 
-1.6. New in Version 1.4.1
+1.8. New in Version 1.4.1
 -------------------------
 
-1.6.1. New Features and UI Improvements
+1.8.1. New Features and UI Improvements
 
  -  Added paintbrush tool to the main toolbar. Paintbrush can be used to quickly
     touch up segmentations. Left mouse button paints with selected label, right
@@ -441,9 +611,9 @@ MacOS and Windows.
     different segmentation from the same viewpoint. Press 's' in the 3D window
     to save the camera state and 'r' to restore it.
 
-1.6.2. Bug Fixes
+1.8.2. Bug Fixes
 
- -  MAJOR: fixed bug that was causing crashes on Win32 during polygon drawing 
+ -  MAJOR: fixed bug that was causing crashes on Win32 during polygon drawing
     (thanks to Jeff Tsao for this bug fix!)
 
  -  Fixed problems with the getsnap.sh linux script
@@ -456,14 +626,14 @@ MacOS and Windows.
 
  -  Fixed problem where the screen was blank after loading preprocessed image
 
- -  Fixed crash when changing bubble radius and then going back to 
+ -  Fixed crash when changing bubble radius and then going back to
     preprocessing mode
 
-1.6.3. Distribution Changes 
+1.8.3. Distribution Changes
 
  -  Interim SNAP releases are now hosted on SourceForge. ITK repository will only
     be used to host major releases (like 1.6). This allows us to check stuff in
-    independently of the ITK code freezes. It also makes it easier to add new 
+    independently of the ITK code freezes. It also makes it easier to add new
     developers.
 
  -  SNAP CMake files should automatically detect when SNAP is being built
@@ -471,10 +641,10 @@ MacOS and Windows.
     own and the download size is reduced
 
 
-1.7. New in Version 1.4
+1.9. New in Version 1.4
 -----------------------
 
-1.7.1. New Features and User Interface Improvements
+1.9.1. New Features and User Interface Improvements
 
  -  New and improved label editor. You can easily switch between labels while in
     the editor and the interface for adding new labels is more intuitive. You
@@ -482,24 +652,24 @@ MacOS and Windows.
 
  -  New and improved interface for intensity reparameterization. The histogram
     display is more visible and you have more control over the number of bins in
-    the histogram and the scaling of the bars (linear or log). 
+    the histogram and the scaling of the bars (linear or log).
 
  -  SNAP remembers all settings associated with loading an image. This means that
-    any image loaded previously can be reloaded without going throught the 
-    wizard. 
+    any image loaded previously can be reloaded without going throught the
+    wizard.
 
  -  We've added File->Load Previous menu to let you load images quickly
 
- -  SNAP can now read DICOM file series (experimental support) and it can read 
+ -  SNAP can now read DICOM file series (experimental support) and it can read
     and write VoxBo CUB image files.
 
  -  SNAP remembers more image-associated settings from session to session. For
     example, it will remember the intensity reparameterization that you last
     used. SNAP will also remember the orientation ("RAI" code) that was last
-    used to read each image. 
+    used to read each image.
 
  -  New Image Information window is available under the File menu. It displays
-    the size of the image and the current cursor position. 
+    the size of the image and the current cursor position.
 
  -  A color map feature has been added in the automatic segmentation mode. The
     color map lets you select different color schemes for displaying the
@@ -513,7 +683,7 @@ MacOS and Windows.
 
  -  The tutorial has been updated to reflect the new features.
 
-1.7.2. Bug Fixes.
+1.9.2. Bug Fixes.
 
  -  SNAP should crash a lot less than before
 
@@ -529,40 +699,40 @@ MacOS and Windows.
 
  -  Lots of other small bugs have been fixed!
 
-1.7.3. Programmatic Enhancements
+1.9.3. Programmatic Enhancements
 
  -  SNAP and IRIS now share the sameset of OpenGL windows. This should prevent
     crashes on some platforms.
 
-1.7.4. Other
+1.9.4. Other
 
  -  SNAP available as a universal (Intel/PPC) binary for MacOS at itksnap.org
 
 
-1.8. New in Version 1.2
+1.10. New in Version 1.2
 -----------------------
 
-1.8.1. User Interface Improvements
+1.10.1. User Interface Improvements
 
- -  The ability to switch between 4-view mode and single view mode. Each of the 
+ -  The ability to switch between 4-view mode and single view mode. Each of the
     slice views and the 3D view can be expanded to occupy the entire SNAP window.
 
- -  A zoom thumbnail is now displayed when a slice view is zoomed in. The thumbnail 
+ -  A zoom thumbnail is now displayed when a slice view is zoomed in. The thumbnail
     view can be used to pan the slice.
 
- -  User can specify whether he/she prefers to start in linked zoom mode or in 
+ -  User can specify whether he/she prefers to start in linked zoom mode or in
     unlinked zoom mode.
 
  -  User can change the appearance of various display elements, including the
     crosshairs, the region of interest selection box, the window background and
-    more. 
+    more.
 
  -  SNAP automatically determines the image orientation (RAI) when that information
     is available in the image file
 
  -  SNAP remembers the last ROI used for each image.
 
-1.8.2. Programmatic Improvements
+1.10.2. Programmatic Improvements
 
  -  The level set segmentation pipeline has been rewritten, taking advantage of
     the stop and go functionality of ITK finite difference filters. This means
@@ -572,7 +742,7 @@ MacOS and Windows.
     machine automatically activates and deactivates UI widgets based on a set of
     flags. Rules such as Flag A => Flag B can be added to the state machine.
 
-1.8.3 Bug Fixes
+1.10.3. Bug Fixes
 
  -  Slice views update correctly when the SNAP window is resized
 
@@ -584,7 +754,18 @@ MacOS and Windows.
 
 2. Known Issues
 -----------------
- -  
+ -  Active contour evolution fails with small bubbles and thin passed in
+    initializations. This seems to be an ITK 4.x bug.
+
+ -  Some advanced features (annotation mode, label editor advanced tools) have
+    not yet been ported to Qt. They will be ported in future versions, and
+    expanded in the process. There is a plan to integrate SNAP and C3D which
+    will provide much richer image processing support for images and segmentations.
+
+ -  The cutplane in the scalpel tool is too big when the camera is zoomed in and
+    it needs a flip button. Also with dark labels you can't see the handle.
+
+ -  Not all the keyboard shortcuts have been ported yet.
 
 
 3. Wish List

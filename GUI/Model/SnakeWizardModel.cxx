@@ -884,16 +884,11 @@ bool SnakeWizardModel::UpdateBubble(int index, Bubble bubble)
 void SnakeWizardModel::OnSnakeModeEnter()
 {
   // Initialize the image data
-  // TODO: how to deal with the progress dialog?
   m_Driver->InitializeSNAPImageData(
         m_Driver->GetGlobalState()->GetSegmentationROISettings(),
         m_Parent->GetProgressCommand());
 
   m_Driver->SetCurrentImageDataToSNAP();
-
-  // Upon entering this mode, we need reset the active tools
-  m_Parent->SetToolbarMode(CROSSHAIRS_MODE);
-  m_Parent->SetToolbarMode3D(TRACKBALL_MODE);
 
   // Some preparatory stuff
   this->ComputeBubbleRadiusDefaultAndRange();

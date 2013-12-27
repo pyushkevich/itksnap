@@ -104,7 +104,7 @@ public:
   void UpdateMeshes(itk::Command *progressCommand);
 
   /** Get the collection of computed meshes */
-  std::map<LabelType, vtkPolyData *> GetMeshCollection();
+  std::map<LabelType, vtkSmartPointer<vtkPolyData> > GetMeshCollection();
 
   
   /** Get the progress accumulator from the VTK mesh pipeline */

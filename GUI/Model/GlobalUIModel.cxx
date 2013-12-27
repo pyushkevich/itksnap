@@ -86,10 +86,6 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   m_Driver = IRISApplication::New();
   m_Driver->GetSystemInterface()->SetSystemInfoDelegate(sid);
 
-  // Initialize the propertiess
-  m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
-  m_ToolbarMode3DModel = NewSimpleConcreteProperty(TRACKBALL_MODE);
-
   // Display layout model
   m_DisplayLayoutModel = DisplayLayoutModel::New();
   m_DisplayLayoutModel->SetParentModel(this);
@@ -251,7 +247,8 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
   Rebroadcast(m_Driver, LayerChangeEvent(), StateMachineChangeEvent());
 
   // Rebroadcast toolbar model change events (TODO: needed?)
-  Rebroadcast(m_ToolbarModeModel, ValueChangedEvent(), ToolbarModeChangeEvent());
+  Rebroadcast(m_Driver->GetGlobalState()->GetToolbarModeModel(),
+              ValueChangedEvent(), ToolbarModeChangeEvent());
 
   // All the events that result in the voxel under the cursor changing
   Rebroadcast(this, CursorUpdateEvent(), LabelUnderCursorChangedEvent());

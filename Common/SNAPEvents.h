@@ -87,6 +87,9 @@ itkEventMacro(StateMachineChangeEvent, IRISEvent)
 /** The value of the common zoom has changed */
 itkEventMacro(ZoomLevelUpdateEvent, IRISEvent)
 
+/** Toolbar mode change */
+itkEventMacro(ToolbarModeChangeEvent, IRISEvent)
+
 /** Events used by numeric value models */
 
 // The value of the numeric model changed

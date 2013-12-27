@@ -327,7 +327,7 @@ void SliceViewPanel::OnToolbarModeChange()
   ovGlobal.clear();
   ovGlobal.push_back(m_DecorationRenderer);
 
-  switch((ToolbarModeType)m_GlobalUI->GetToolbarMode())
+  switch(m_GlobalUI->GetGlobalState()->GetToolbarMode())
     {
     case POLYGON_DRAWING_MODE:
       ConfigureEventChain(ui->imPolygon);
@@ -353,7 +353,7 @@ void SliceViewPanel::OnToolbarModeChange()
   // Need to change to the appropriate page
   QStackedLayout *loPages =
       static_cast<QStackedLayout *>(ui->toolbar->layout());
-  if(m_GlobalUI->GetToolbarMode() == POLYGON_DRAWING_MODE)
+  if(m_GlobalUI->GetGlobalState()->GetToolbarMode() == POLYGON_DRAWING_MODE)
     {
     switch(m_GlobalUI->GetPolygonDrawingModel(m_Index)->GetState())
       {
@@ -377,7 +377,7 @@ void SliceViewPanel::on_btnZoomToFit_clicked()
 
 void SliceViewPanel::onContextMenu()
 {
-  if(m_GlobalUI->GetToolbarMode() == POLYGON_DRAWING_MODE)
+  if(m_GlobalUI->GetGlobalState()->GetToolbarMode() == POLYGON_DRAWING_MODE)
     {
     QMenu *menu = NULL;
     switch(m_GlobalUI->GetPolygonDrawingModel(m_Index)->GetState())

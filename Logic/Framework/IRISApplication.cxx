@@ -1068,6 +1068,10 @@ void IRISApplication
 
     // Fire the event
     InvokeEvent(MainImageDimensionsChangeEvent());
+
+    // Upon entering this mode, we need reset the active tools
+    m_GlobalState->SetToolbarMode(CROSSHAIRS_MODE);
+    m_GlobalState->SetToolbarMode3D(TRACKBALL_MODE);
     }
 }
 
@@ -1757,6 +1761,9 @@ IRISApplication
     {
     ImageWrapperBase *image = m_CurrentImageData->GetMain();
     const char *fnMain = image->GetFileName();
+
+    // Reset the toolbar mode to default
+    m_GlobalState->SetToolbarMode(CROSSHAIRS_MODE);
 
     // Write the image-level and project-level associations
     SaveMetaDataAssociatedWithLayer(image, MAIN_ROLE);

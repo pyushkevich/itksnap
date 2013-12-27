@@ -115,6 +115,10 @@ GlobalState
 
   // Project stuff
   m_ProjectFilenameModel = NewSimpleConcreteProperty(std::string());
+
+  // Initialize the propertiess
+  m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
+  m_ToolbarMode3DModel = NewSimpleConcreteProperty(TRACKBALL_MODE);
 }
 
 void GlobalState::SetDriver(IRISApplication *parent)

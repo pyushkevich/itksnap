@@ -217,7 +217,7 @@ void GenericView3D::SetModel(Generic3DModel *model)
         m_InteractionStyle[SCALPEL_MODE])->SetModel(model);
 
   // Listen to toolbar changes
-  connectITK(m_Model->GetParentUI()->GetToolbarMode3DModel(),
+  connectITK(m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3DModel(),
              ValueChangedEvent(), SLOT(onToolbarModeChange()));
 
   // Use the current toolbar settings
@@ -226,7 +226,7 @@ void GenericView3D::SetModel(Generic3DModel *model)
 
 void GenericView3D::onToolbarModeChange()
 {
-  int mode = (int) m_Model->GetParentUI()->GetToolbarMode3D();
+  int mode = (int) m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3D();
 
   m_Model->GetRenderer()->GetRenderWindowInteractor()
       ->SetInteractorStyle(m_InteractionStyle[mode]);

@@ -12,6 +12,7 @@
 #include "QtRendererPlatformSupport.h"
 #include "QtIPCManager.h"
 #include "QtCursorOverride.h"
+#include "SNAPQtCommon.h"
 
 #include "GenericSliceView.h"
 #include "GenericSliceModel.h"
@@ -34,8 +35,8 @@
 using namespace std;
 
 // Setup printing of stack trace on segmentation faults. This only
-// works on select GNU systems
-#if defined(__GNUC__) && !defined(__CYGWIN__) && !defined(__APPLE__) && !defined(sun) && !defined(WIN32)
+// works on POSIX systems
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
 
 #include <signal.h>
 #include <execinfo.h>
@@ -43,7 +44,7 @@ using namespace std;
 void SegmentationFaultHandler(int sig)
 {
   cerr << "*************************************" << endl;
-  cerr << "ITK-SNAP: Segmentation Fault!   " << endl;
+  cerr << "ITK-SNAP: " << sys_siglist[sig] << endl;
   cerr << "BACKTRACE: " << endl;
   void *array[50];
   int nsize = backtrace(array, 50);
@@ -65,6 +66,30 @@ void SetupSignalHandlers()
 }
 
 #endif
+
+/** Class to handle exceptions in Qt callbacks */
+class SNAPQApplication : public QApplication
+{
+public:
+  SNAPQApplication(int argc, char **argv) :
+    QApplication(argc, argv) {}
+
+  bool notify(QObject *object, QEvent *event)
+  {
+    try { return QApplication::notify(object, event); }
+    catch(std::exception &exc)
+    {
+      // Crash!
+      ReportNonLethalException(NULL, exc, "Unexpected Error",
+                               "ITK-SNAP has crashed due to an unexpected error");
+
+      // Exit the application
+      QApplication::exit(-1);
+
+      return false;
+    }
+  }
+};
 
 
 #ifdef SNAP_DEBUG_EVENTS
@@ -195,7 +220,7 @@ int main(int argc, char *argv[])
     }
 
   // Create an application
-  QApplication app(argc, argv);
+  SNAPQApplication app(argc, argv);
   Q_INIT_RESOURCE(SNAPResources);
 
   app.setStyle(new QPlastiqueStyle);
@@ -209,11 +234,11 @@ int main(int argc, char *argv[])
   gui->LoadUserPreferences();
 
   // Create the main window
-  MainImageWindow mainwin;
-  mainwin.Initialize(gui);
+  MainImageWindow *mainwin = new MainImageWindow();
+  mainwin->Initialize(gui);
 
   // We let the main window handle events to the application
-  app.installEventFilter(&mainwin);
+  app.installEventFilter(mainwin);
 
   // Start parsing options
   const char *fnMain = NULL, *fnWorkspace = NULL;
@@ -416,18 +441,18 @@ int main(int argc, char *argv[])
   bugger.attachTo(&engine);
 
   // Find all the child widgets of mainwin
-  engine.globalObject().setProperty("snap", engine.newQObject(&mainwin));
+  engine.globalObject().setProperty("snap", engine.newQObject(mainwin));
 
   // Configure the IPC communications (as a hidden widget)
-  QtIPCManager *ipcman = new QtIPCManager(&mainwin);
+  QtIPCManager *ipcman = new QtIPCManager(mainwin);
   ipcman->hide();
   ipcman->SetModel(gui->GetSynchronizationModel());
 
   // Start in cross-hairs mode
-  gui->SetToolbarMode(CROSSHAIRS_MODE);
+  gui->GetGlobalState()->SetToolbarMode(CROSSHAIRS_MODE);
 
   // Show the panel
-  mainwin.ShowFirstTime();
+  mainwin->ShowFirstTime();
 
   if(parseResult.IsOptionPresent("--test"))
     {
@@ -436,7 +461,7 @@ int main(int argc, char *argv[])
       root = parseResult.GetOptionParameter("--testdir");
 
     SNAPTestQt tester;
-    tester.Initialize(&mainwin, gui, root);
+    tester.Initialize(mainwin, gui, root);
     tester.RunTest(parseResult.GetOptionParameter("--test"));
     }
 
@@ -451,7 +476,7 @@ int main(int argc, char *argv[])
     //QtScriptTest1(&eng  ine);
     //Yes, with memory leak so far
     QtScriptTest1 * pTest1 = new QtScriptTest1();
-    pTest1->Initialize(&mainwin, gui, "");
+    pTest1->Initialize(mainwin, gui, "");
     pTest1->Run(&engine);
 
     //return(0);
@@ -467,7 +492,10 @@ int main(int argc, char *argv[])
   // Unload the main image before all the destructors start firing
   driver->UnloadMainImage();
 
-  // Destroy the model before the GUI is destroyed
+  // Get rid of the main window while the model is still alive
+  delete mainwin;
+
+  // Destroy the model after the GUI is destroyed
   gui = NULL;
 }
 

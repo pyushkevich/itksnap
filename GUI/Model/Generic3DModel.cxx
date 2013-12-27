@@ -64,7 +64,8 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
   Rebroadcast(this, SprayPaintEvent(), StateMachineChangeEvent());
   Rebroadcast(this, ScalpelEvent(), StateMachineChangeEvent());
-  Rebroadcast(m_ParentUI->GetToolbarMode3DModel(), ValueChangedEvent(), StateMachineChangeEvent());
+  Rebroadcast(m_ParentUI->GetGlobalState()->GetToolbarMode3DModel(),
+              ValueChangedEvent(), StateMachineChangeEvent());
   Rebroadcast(m_ParentUI->GetGlobalState()->GetMeshOptions(),
               ChildPropertyChangedEvent(), StateMachineChangeEvent());
 }
@@ -74,7 +75,7 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
   if(!m_ParentUI->GetDriver()->IsMainImageLoaded())
     return false;
 
-  ToolbarMode3DType mode = m_ParentUI->GetToolbarMode3D();
+  ToolbarMode3DType mode = m_ParentUI->GetGlobalState()->GetToolbarMode3D();
 
   switch(state)
     {
@@ -231,7 +232,7 @@ bool Generic3DModel::IsMeshUpdating()
 
 bool Generic3DModel::AcceptAction()
 {
-  ToolbarMode3DType mode = m_ParentUI->GetToolbarMode3D();
+  ToolbarMode3DType mode = m_ParentUI->GetGlobalState()->GetToolbarMode3D();
   IRISApplication *app = m_ParentUI->GetDriver();
 
   // Accept the current action
@@ -281,7 +282,7 @@ bool Generic3DModel::AcceptAction()
 
 void Generic3DModel::CancelAction()
 {
-  ToolbarMode3DType mode = m_ParentUI->GetToolbarMode3D();
+  ToolbarMode3DType mode = m_ParentUI->GetGlobalState()->GetToolbarMode3D();
   if(mode == SPRAYPAINT_MODE)
     {
     // Clear the spray points
