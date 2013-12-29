@@ -84,6 +84,13 @@ extern const char SNAPCurrentVersionReleaseDate[];
 // incompatible with the current version and will be erased
 extern const char SNAPLastIncompatibleReleaseDate[];
 
+// Build date - shown to help debugging nightly builds
+extern const char SNAPBuildDate[];
+
+// GIT signature
+extern const char SNAPGitSignature[];
+
+
 // Voxel types 
 // CAREFUL: do not redefine this to INT without disabling the usage of
 // UnaryFunctorCache in the GreyImageWrapper type.  Greyscale instensities
