@@ -142,8 +142,12 @@ EdgePreprocessingSettings *
 EdgePreprocessingImageFilter<TInputImage,TOutputImage>
 ::GetParameters()
 {
-  return static_cast<EdgePreprocessingSettings *>(
-        this->GetInputs()[1].GetPointer());
+  if(this->GetNumberOfInputs() > 1)
+    {
+    return static_cast<EdgePreprocessingSettings *>(
+          this->GetInputs()[1].GetPointer());
+    }
+  else return NULL;
 }
 
 
