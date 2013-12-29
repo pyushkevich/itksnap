@@ -1198,7 +1198,7 @@ gdcm::SmartPointer < gdcm::Scanner > GuidedNativeImageIO::Scan(
       {
       strTagSeriesInstanceUID = getTag(pScanner, m_tagSeriesInstanceUID, strFileName);
       }
-    catch(IRISException &exc)
+    catch(IRISException &)
       {
         continue;
       }

@@ -62,6 +62,14 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
   // Nothing to do here, since we are connected to the slices?
 }
 
+template <class TWrapperTraits>
+void
+ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
+::DeriveFromReferenceWrapper(WrapperType *refwrapper)
+{
+  // TODO: add implementation
+}
+
 
 template<class TWrapperTraits>
 typename ColorLabelTableDisplayMappingPolicy<TWrapperTraits>::DisplaySlicePointer

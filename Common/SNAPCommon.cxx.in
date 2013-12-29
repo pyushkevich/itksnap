@@ -37,3 +37,8 @@ const char SNAPCurrentVersionReleaseDate[] = "@SNAP_VERSION_RELEASE_DATE@";
 // incompatible with the current version and will be erased
 const char SNAPLastIncompatibleReleaseDate[] = "@SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE@";
 
+// Build date - shown to help debugging nightly builds
+const char SNAPBuildDate[] = "@SNAP_VERSION_COMPILE_DATE@";
+
+// GIT signature
+const char SNAPGitSignature[] = "@SNAP_VERSION_GIT_SHA1@";

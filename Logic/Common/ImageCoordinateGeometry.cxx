@@ -187,7 +187,9 @@ char ImageCoordinateGeometry
     case P_TO_A: return 'P';
     case I_TO_S: return 'I';
     case S_TO_I: return 'S';
-    default: assert(0);
+    default:
+      assert(0);
+      return (char) 0;
     }
 }
 

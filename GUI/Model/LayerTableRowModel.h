@@ -6,7 +6,7 @@
 class ImageWrapperBase;
 class GlobalUIModel;
 class ImageIOWizardModel;
-class MultiChannelDisplayMode;
+struct MultiChannelDisplayMode;
 
 /**
  * @brief The LayerTableRowModel class

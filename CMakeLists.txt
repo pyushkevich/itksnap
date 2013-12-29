@@ -12,6 +12,24 @@ PROJECT(SNAP)
 cmake_minimum_required(VERSION 2.8.8)
 
 #--------------------------------------------------------------------------------
+# MACROS
+#--------------------------------------------------------------------------------
+# Get today's date (see http://cmake.3232098.n2.nabble.com/How-to-get-the-current-date-td5776870.html)
+MACRO (TODAY RESULT)
+    IF (WIN32)
+        EXECUTE_PROCESS(COMMAND "cmd" " /C date /T" OUTPUT_VARIABLE ${RESULT})
+        string(REGEX REPLACE "(..)/(..)/..(..).*" "\\1/\\2/\\3" ${RESULT} ${${RESULT}})
+    ELSEIF(UNIX)
+        EXECUTE_PROCESS(COMMAND "date" "+%b %d, %Y" OUTPUT_VARIABLE ${RESULT})
+        string(REGEX REPLACE "(...) (..), (....).*" "\\1 \\2, \\3" ${RESULT} ${${RESULT}})
+    ELSE (WIN32)
+        MESSAGE(SEND_ERROR "date not implemented")
+        SET(${RESULT} 000000)
+    ENDIF (WIN32)
+ENDMACRO (TODAY)
+
+
+#--------------------------------------------------------------------------------
 # VERSION INFORMATION                       
 #--------------------------------------------------------------------------------
 # On SNAP versions.
@@ -44,6 +62,14 @@ SET(SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE "20131201")
 # This should not need to change
 SET(SNAP_VERSION_FULL 
   "${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}.${SNAP_VERSION_PATCH}${SNAP_VERSION_QUALIFIER}")
+
+# Get today's date (see http://cmake.3232098.n2.nabble.com/How-to-get-the-current-date-td5776870.html)
+TODAY(SNAP_VERSION_COMPILE_DATE)
+
+# Get the current git hash
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/rpavlik/")
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC SNAP_VERSION_GIT_SHA1)
 
 #--------------------------------------------------------------------------------
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS 
