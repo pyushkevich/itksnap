@@ -52,6 +52,8 @@ RegistryEnumMap<SnakeParameters::SolverType> SNAPRegistryIO::m_EnumMapSolver;
 RegistryEnumMap<SnakeParameters::SnakeType> SNAPRegistryIO::m_EnumMapSnakeType;
 RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> SNAPRegistryIO::m_EnumMapROI;
 RegistryEnumMap<LayerRole> SNAPRegistryIO::m_EnumMapLayerRole;
+RegistryEnumMap<LayerLayout> SNAPRegistryIO::m_EnumMapLayerLayout;
+
 
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
@@ -204,7 +206,13 @@ RegistryEnumMap<LayerRole> &SNAPRegistryIO::GetEnumMapLayerRole()
   return m_EnumMapLayerRole;
 }
 
-SNAPSegmentationROISettings 
+RegistryEnumMap<LayerLayout> &SNAPRegistryIO::GetEnumMapLayerLayout()
+{
+  BuildEnums();
+  return m_EnumMapLayerLayout;
+}
+
+SNAPSegmentationROISettings
 SNAPRegistryIO
 ::ReadSegmentationROISettings(
   Registry &folder, const SNAPSegmentationROISettings &dfl)
@@ -266,12 +274,6 @@ SNAPRegistryIO
     main->GetDisplayMapping()->Save(registry.Folder("IRIS.DisplayMapping"));
     }
 
-  // TODO: remove this!
-  /*
-  registry["Files.Segmentation.FileName"] << gs->GetLastAssociatedSegmentationFileName();
-  registry["Files.Preprocessing.FileName"] << gs->GetLastAssociatedPreprocessingFileName();
-  */
-
   // Write file related information
   registry["Files.Grey.Orientation"] << app->GetImageToAnatomyRAI();
   registry["Files.Grey.Dimensions"] << 
@@ -297,6 +299,10 @@ SNAPRegistryIO
   // Write the local history
   app->GetSystemInterface()->GetHistoryManager()->SaveLocalHistory(
         registry.Folder("IOHistory"));
+
+  // Write the tiling state
+  registry["IRIS.SliceViewLayerLayout"].PutEnum(
+        GetEnumMapLayerLayout(), gs->GetSliceViewLayerLayout());
 }
 
 bool 
@@ -359,6 +365,11 @@ SNAPRegistryIO
       {
       main->GetDisplayMapping()->Restore(registry.Folder("IRIS.DisplayMapping"));
       }
+
+    // Tiling state
+    gs->SetSliceViewLayerLayout(registry["IRIS.SliceViewLayerLayout"].GetEnum(
+          GetEnumMapLayerLayout(), gs->GetSliceViewLayerLayout()));
+
     }
 
   // Read the information about the bounding box and ROI sub-sampling
@@ -439,4 +450,7 @@ void SNAPRegistryIO::BuildEnums()
   m_EnumMapLayerRole.AddPair(LABEL_ROLE, "SegmentationRole");
   m_EnumMapLayerRole.AddPair(SNAP_ROLE, "SnakeModeRole");
   m_EnumMapLayerRole.AddPair(NO_ROLE, "InvalidRole");
+
+  m_EnumMapLayerLayout.AddPair(LAYOUT_STACKED, "Stacked");
+  m_EnumMapLayerLayout.AddPair(LAYOUT_TILED, "Tiled");
 }

@@ -4,6 +4,7 @@
 class GlobalUIModel;
 
 #include "PropertyModel.h"
+#include "GlobalState.h"
 
 /**
  * @brief A model that manages display layout properties. This model is
@@ -35,14 +36,7 @@ public:
     VIEW_ALL = 0, VIEW_AXIAL, VIEW_CORONAL, VIEW_SAGITTAL, VIEW_3D
   };
 
-  /** Layout of overlays in a slice view */
-  enum LayerLayout {
-    LAYOUT_STACKED = 0, LAYOUT_TILED
-  };
-
   typedef AbstractPropertyModel<ViewPanelLayout> AbstractViewPanelLayoutProperty;
-
-  typedef AbstractPropertyModel<LayerLayout> AbstractLayerLayoutProperty;
 
   /** Get the parent model */
   irisGetMacro(ParentModel, GlobalUIModel *)
@@ -72,9 +66,10 @@ public:
   /**
    * A model for the layout of the layers in a slice view. This model sets
    * the stacked/tiled state. If the state is set to tiled, the number of
-   * tiles will be updated as the number of loaded images changes
+   * tiles will be updated as the number of loaded images changes. This model
+   * actually just returns the model with the same name in the global state
    */
-  irisSimplePropertyAccessMacro(SliceViewLayerLayout, LayerLayout)
+  AbstractPropertyModel<LayerLayout, TrivialDomain> *GetSliceViewLayerLayoutModel() const;
 
   /**
    * Read-only boolean property models that dictate what icon should be
@@ -98,21 +93,13 @@ protected:
 
   bool GetNthViewPanelVisibilityValue(int panel, bool &value);
 
-  bool GetNthViewPanelExpandButtonActionValue(int panel, ViewPanelLayout &value);
-
-  // Models dealing with the layout of tiles
-  SmartPtr<AbstractLayerLayoutProperty> m_SliceViewLayerLayoutModel;
-  bool GetSliceViewLayerLayoutValue(LayerLayout &value);
-  void SetSliceViewLayerLayoutValue(LayerLayout value);
-
   SmartPtr<AbstractSimpleUIntVec2Property> m_SliceViewLayerTilingModel;
   bool GetSliceViewLayerTilingValue(Vector2ui &value);
 
+  bool GetNthViewPanelExpandButtonActionValue(int panel, ViewPanelLayout &value);
+
   // Update the tiling based on the number of layouts in memory
   void UpdateSliceViewTiling();
-
-  // The current layer layout mode
-  LayerLayout m_LayerLayout;
 
   // The current tiling dimensons
   Vector2ui m_LayerTiling;

@@ -129,6 +129,11 @@ enum ToolbarMode3DType
   SCALPEL_MODE
 };
 
+/** Layout of overlays in a slice view */
+enum LayerLayout {
+  LAYOUT_STACKED = 0, LAYOUT_TILED
+};
+
 /** Watershed settings for paintbrush */
 struct PaintbrushWatershedSettings
 {
@@ -355,6 +360,9 @@ public:
   /** Set/Get the current 3D toolbar mode */
   irisSimplePropertyAccessMacro(ToolbarMode3D,ToolbarMode3DType)
 
+  /** Set/Get the layout of multiple layers in slice views */
+  irisSimplePropertyAccessMacro(SliceViewLayerLayout, LayerLayout)
+
   // ----------------------- Project support ------------------------------
 
   /**
@@ -442,6 +450,9 @@ private:
 
   // The current 3D toolbar mode
   SmartPtr<ConcretePropertyModel<ToolbarMode3DType> > m_ToolbarMode3DModel;
+
+  // Slice view layout model
+  SmartPtr<ConcretePropertyModel<LayerLayout> > m_SliceViewLayerLayoutModel;
   
   int m_LockHeld; 
   int m_LockOwner;

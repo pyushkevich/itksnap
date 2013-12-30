@@ -92,6 +92,7 @@ public:
   static RegistryEnumMap<SnakeParameters::SnakeType> &GetEnumMapSnakeType();
   static RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> &GetEnumMapROI();
   static RegistryEnumMap<LayerRole> &GetEnumMapLayerRole();
+  static RegistryEnumMap<LayerLayout> &GetEnumMapLayerLayout();
 
 protected:
 
@@ -104,6 +105,7 @@ protected:
   static RegistryEnumMap<SnakeParameters::SnakeType> m_EnumMapSnakeType;
   static RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> m_EnumMapROI;
   static RegistryEnumMap<LayerRole> m_EnumMapLayerRole;
+  static RegistryEnumMap<LayerLayout> m_EnumMapLayerLayout;
 
 };
 

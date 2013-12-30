@@ -55,8 +55,8 @@ bool LayerTableRowModel::CheckState(UIState state)
 {
   // Are we in tiling mode?
   bool tiling = (
-        m_ParentModel->GetDisplayLayoutModel()->GetSliceViewLayerLayout() ==
-        DisplayLayoutModel::LAYOUT_TILED);
+        m_ParentModel->GetGlobalState()->GetSliceViewLayerLayout() ==
+        LAYOUT_TILED);
 
   bool snapmode = m_ParentModel->GetDriver()->IsSnakeModeActive();
 

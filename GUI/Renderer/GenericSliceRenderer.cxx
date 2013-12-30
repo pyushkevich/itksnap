@@ -86,6 +86,9 @@ void GenericSliceRenderer::OnUpdate()
   // Also make sure to update the model zoom coordinator (this is confusing)
   m_Model->GetParentUI()->GetSliceCoordinator()->Update();
 
+  // Also make sure to update the display layout model
+  m_Model->GetParentUI()->GetDisplayLayoutModel()->Update();
+
   // Only update the texture map in response to "big" events
   if(m_EventBucket->HasEvent(ModelUpdateEvent(), m_Model))
     {

@@ -1,5 +1,6 @@
 #include "DefaultBehaviorSettings.h"
 #include "ColorMap.h"
+#include "SNAPRegistryIO.h"
 
 DefaultBehaviorSettings::DefaultBehaviorSettings()
 {
@@ -20,11 +21,6 @@ DefaultBehaviorSettings::DefaultBehaviorSettings()
                         std::string(ColorMap::GetPresetName(ColorMap::COLORMAP_GREY)));
 
   // Layer layout (uses enum)
-  RegistryEnumMap<LayerLayout> enummap;
-  enummap.AddPair(DisplayLayoutModel::LAYOUT_STACKED, "Stacked");
-  enummap.AddPair(DisplayLayoutModel::LAYOUT_STACKED, "Tiled");
-  m_OverlayLayoutModel =
-      NewSimpleEnumProperty("OverlayLayout",
-                            DisplayLayoutModel::LAYOUT_STACKED,
-                            enummap);
+  m_OverlayLayoutModel = NewSimpleEnumProperty("OverlayLayout", LAYOUT_STACKED,
+                                               SNAPRegistryIO::GetEnumMapLayerLayout());
 }

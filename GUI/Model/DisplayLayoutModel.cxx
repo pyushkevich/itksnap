@@ -34,17 +34,6 @@ DisplayLayoutModel::DisplayLayoutModel()
           this, ViewPanelLayoutChangeEvent(), ValueChangedEvent());
     }
 
-  // The layer layout model
-  m_LayerLayout = LAYOUT_STACKED;
-  m_SliceViewLayerLayoutModel = wrapGetterSetterPairAsProperty(
-        this,
-        &Self::GetSliceViewLayerLayoutValue,
-        &Self::SetSliceViewLayerLayoutValue);
-
-  // The derived model must react to changes to the internal values
-  m_SliceViewLayerLayoutModel->Rebroadcast(
-        this, LayerLayoutChangeEvent(), ValueChangedEvent());
-
   // The tiling model
   m_SliceViewLayerTilingModel = wrapGetterSetterPairAsProperty(
         this,
@@ -71,9 +60,20 @@ void DisplayLayoutModel::SetParentModel(GlobalUIModel *parentModel)
   Rebroadcast(m_ParentModel->GetDriver(),
               LayerChangeEvent(), LayerLayoutChangeEvent());
 
+  // and when the tiled/stacked mode changes
+  Rebroadcast(m_ParentModel->GetGlobalState()->GetSliceViewLayerLayoutModel(),
+              ValueChangedEvent(), LayerLayoutChangeEvent());
+
   // We also need notification when the layer stickiness changes
   Rebroadcast(m_ParentModel->GetDriver(),
               WrapperMetadataChangeEvent(), LayerLayoutChangeEvent());
+
+}
+
+AbstractPropertyModel<LayerLayout, TrivialDomain> *
+DisplayLayoutModel::GetSliceViewLayerLayoutModel() const
+{
+  return m_ParentModel->GetGlobalState()->GetSliceViewLayerLayoutModel();
 }
 
 bool DisplayLayoutModel
@@ -138,21 +138,6 @@ bool DisplayLayoutModel::GetNthViewPanelExpandButtonActionValue(
   return true;
 }
 
-bool DisplayLayoutModel
-::GetSliceViewLayerLayoutValue(DisplayLayoutModel::LayerLayout &value)
-{
-  value = m_LayerLayout;
-  return true;
-}
-
-void DisplayLayoutModel
-::SetSliceViewLayerLayoutValue(DisplayLayoutModel::LayerLayout value)
-{
-  m_LayerLayout = value;
-  UpdateSliceViewTiling();
-  InvokeEvent(LayerLayoutChangeEvent());
-}
-
 bool DisplayLayoutModel::GetSliceViewLayerTilingValue(Vector2ui &value)
 {
   value = m_LayerTiling;
@@ -164,7 +149,7 @@ void DisplayLayoutModel::UpdateSliceViewTiling()
   GenericImageData *id = m_ParentModel->GetDriver()->GetCurrentImageData();
 
   // In stacked layout, there is only one layer to draw
-  if(m_LayerLayout == LAYOUT_STACKED)
+  if(m_ParentModel->GetGlobalState()->GetSliceViewLayerLayout() == LAYOUT_STACKED)
     {
     m_LayerTiling.fill(1);
     }
@@ -215,7 +200,9 @@ void DisplayLayoutModel::OnUpdate()
 {
   // If there has been a layer change event, we need to recompute the tiling
   // model
-  if(m_EventBucket->HasEvent(LayerChangeEvent()))
+  if(m_EventBucket->HasEvent(LayerChangeEvent())
+     || m_EventBucket->HasEvent(ValueChangedEvent(),
+                                m_ParentModel->GetGlobalState()->GetSliceViewLayerLayoutModel()))
     {
     this->UpdateSliceViewTiling();
     }

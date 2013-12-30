@@ -22,7 +22,7 @@
 
 Q_DECLARE_METATYPE(GlobalDisplaySettings::UIGreyInterpolation)
 Q_DECLARE_METATYPE(SNAPAppearanceSettings::UIElements)
-Q_DECLARE_METATYPE(DisplayLayoutModel::LayerLayout)
+Q_DECLARE_METATYPE(LayerLayout)
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
   QDialog(parent),
@@ -38,9 +38,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
   // Set up layoyt options
   ui->inOverlayLayout->clear();
   ui->inOverlayLayout->addItem(QIcon(":/root/layout_overlay_16.png"),
-                               "Stack", QVariant::fromValue(DisplayLayoutModel::LAYOUT_STACKED));
+                               "Stack", QVariant::fromValue(LAYOUT_STACKED));
   ui->inOverlayLayout->addItem(QIcon(":/root/layout_tile_16.png"),
-                               "Tile", QVariant::fromValue(DisplayLayoutModel::LAYOUT_TILED));
+                               "Tile", QVariant::fromValue(LAYOUT_TILED));
 
   // Set up tree of appearance elements
   QStandardItemModel *model = new QStandardItemModel();

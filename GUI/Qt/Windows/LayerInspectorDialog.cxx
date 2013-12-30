@@ -365,14 +365,14 @@ void
 LayerInspectorDialog::UpdateLayerLayoutAction()
 {
   DisplayLayoutModel *dlm = m_Model->GetDisplayLayoutModel();
-  DisplayLayoutModel::LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
+  LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
 
-  if(ll == DisplayLayoutModel::LAYOUT_TILED)
+  if(ll == LAYOUT_TILED)
     {
     ui->actionLayoutToggle->setIcon(QIcon(":/root/layout_overlay_16.png"));
     ui->actionLayoutToggle->setToolTip("Render image overlays on top of each other");
     }
-  else if(ll == DisplayLayoutModel::LAYOUT_STACKED)
+  else if(ll == LAYOUT_STACKED)
     {
     ui->actionLayoutToggle->setIcon(QIcon(":/root/layout_tile_16.png"));
     ui->actionLayoutToggle->setToolTip("Tile image overlays side by side");
@@ -389,14 +389,14 @@ void LayerInspectorDialog::on_actionSaveSelectedLayerAs_triggered()
 void LayerInspectorDialog::on_actionLayoutToggle_triggered(bool value)
 {
   DisplayLayoutModel *dlm = m_Model->GetDisplayLayoutModel();
-  DisplayLayoutModel::LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
-  if(ll == DisplayLayoutModel::LAYOUT_TILED)
+  LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
+  if(ll == LAYOUT_TILED)
     {
-    dlm->GetSliceViewLayerLayoutModel()->SetValue(DisplayLayoutModel::LAYOUT_STACKED);
+    dlm->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_STACKED);
     }
   else
     {
-    dlm->GetSliceViewLayerLayoutModel()->SetValue(DisplayLayoutModel::LAYOUT_TILED);
+    dlm->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
     }
 }
 

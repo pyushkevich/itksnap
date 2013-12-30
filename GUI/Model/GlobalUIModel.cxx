@@ -323,7 +323,7 @@ void GlobalUIModel::ToggleOverlayVisibility()
   GenericImageData *id = m_Driver->GetCurrentImageData();
   bool stack =
       (m_DisplayLayoutModel->GetSliceViewLayerLayoutModel()->GetValue()
-       == DisplayLayoutModel::LAYOUT_STACKED);
+       == LAYOUT_STACKED);
 
   // Remember what layer is current in the general properties model
   ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
@@ -351,7 +351,7 @@ void GlobalUIModel::AdjustOverlayOpacity(int delta)
   GenericImageData *id = m_Driver->GetCurrentImageData();
   bool stack =
       (m_DisplayLayoutModel->GetSliceViewLayerLayoutModel()->GetValue()
-       == DisplayLayoutModel::LAYOUT_STACKED);
+       == LAYOUT_STACKED);
 
   // Remember what layer is current in the general properties model
   ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
@@ -470,7 +470,7 @@ void GlobalUIModel::LoadUserPreferences()
   m_SynchronizationModel->SetSyncZoom(dbs->GetSyncZoom());
   m_SynchronizationModel->SetSyncPan(dbs->GetSyncPan());
   m_Model3D->SetContinuousUpdate(dbs->GetContinuousMeshUpdate());
-  m_DisplayLayoutModel->SetSliceViewLayerLayout(dbs->GetOverlayLayout());
+  m_Driver->GetGlobalState()->SetSliceViewLayerLayout(dbs->GetOverlayLayout());
 }
 
 void GlobalUIModel::SaveUserPreferences()

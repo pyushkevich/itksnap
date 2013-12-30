@@ -31,8 +31,7 @@ public:
   irisSimplePropertyAccessMacro(OverlayColorMapPreset, std::string)
 
   // Default layout
-  typedef DisplayLayoutModel::LayerLayout LayerLayout;
-  irisSimplePropertyAccessMacro(OverlayLayout, DisplayLayoutModel::LayerLayout)
+  irisSimplePropertyAccessMacro(OverlayLayout, LayerLayout)
 
 protected:
 

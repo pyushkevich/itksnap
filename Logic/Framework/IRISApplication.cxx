@@ -1735,7 +1735,6 @@ void IRISApplication
     folder = &assoc.Folder(Registry::Key("Role[%s]", roletype.c_str()));
     }
 
-  // TODO: enable this
   // Write the metadata for the specific layer
   layer->WriteMetaData(folder->Folder("LayerMetaData"));
 

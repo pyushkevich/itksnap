@@ -438,13 +438,13 @@ void SliceViewPanel::UpdateExpandViewButton()
     }
 
   // Also expand the tile/cascade button
-  DisplayLayoutModel::LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
-  if(ll == DisplayLayoutModel::LAYOUT_TILED)
+  LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
+  if(ll == LAYOUT_TILED)
     {
     ui->btnToggleLayout->setIcon(QIcon(":/root/layout_overlay_16.png"));
     ui->btnToggleLayout->setToolTip("Render image overlays on top of each other");
     }
-  else if(ll == DisplayLayoutModel::LAYOUT_STACKED)
+  else if(ll == LAYOUT_STACKED)
     {
     ui->btnToggleLayout->setIcon(QIcon(":/root/layout_tile_16.png"));
     ui->btnToggleLayout->setToolTip("Tile image overlays side by side");
@@ -461,13 +461,13 @@ void SliceViewPanel::on_btnScreenshot_clicked()
 void SliceViewPanel::on_btnToggleLayout_clicked()
 {
   DisplayLayoutModel *dlm = m_GlobalUI->GetDisplayLayoutModel();
-  DisplayLayoutModel::LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
-  if(ll == DisplayLayoutModel::LAYOUT_TILED)
+  LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
+  if(ll == LAYOUT_TILED)
     {
-    dlm->GetSliceViewLayerLayoutModel()->SetValue(DisplayLayoutModel::LAYOUT_STACKED);
+    dlm->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_STACKED);
     }
   else
     {
-    dlm->GetSliceViewLayerLayoutModel()->SetValue(DisplayLayoutModel::LAYOUT_TILED);
+    dlm->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
     }
 }
