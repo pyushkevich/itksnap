@@ -329,6 +329,10 @@ void LayerTableRowModel::OnUpdate()
     m_LayerPositionInRole = -1;
     m_LayerNumberOfLayersInRole = -1;
     }
+  else if(this->m_EventBucket->HasEvent(LayerChangeEvent()))
+    {
+    this->UpdateRoleInfo();
+    }
 }
 
 
