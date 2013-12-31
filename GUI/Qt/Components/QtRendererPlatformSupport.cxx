@@ -2,6 +2,7 @@
 #include <QGLWidget>
 #include <QPainter>
 #include <QPixmap>
+#include <QFontMetrics>
 #include "SNAPQtCommon.h"
 
 void QtRendererPlatformSupport
@@ -61,4 +62,25 @@ void QtRendererPlatformSupport
   glRasterPos2i(x, y);
   glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, gl.bits());
   glPopAttrib();
+}
+
+int
+QtRendererPlatformSupport
+::MeasureTextWidth(const char *text, AbstractRendererPlatformSupport::FontInfo font)
+{
+  QFont qfont;
+  switch(font.type)
+    {
+    case AbstractRendererPlatformSupport::SERIF:
+      qfont.setFamily("Times");     break;
+    case AbstractRendererPlatformSupport::SANS:
+      qfont.setFamily("Helvetica"); break;
+    case AbstractRendererPlatformSupport::TYPEWRITER:
+      qfont.setFamily("Courier"); break;
+    }
+  qfont.setPixelSize(font.pixel_size);
+  qfont.setBold(font.bold);
+
+  QFontMetrics fm(qfont);
+  return fm.width(QString::fromUtf8(text));
 }

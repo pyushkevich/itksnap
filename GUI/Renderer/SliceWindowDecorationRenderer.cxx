@@ -128,8 +128,12 @@ void SliceWindowDecorationRenderer::DrawNicknames()
   Vector2ui vp = parentModel->GetSizeReporter()->GetViewportSize();
   int w = vp[0] / ncols, h = vp[1] / nrows;
 
+  // Adjust the font size
+  AbstractRendererPlatformSupport::FontInfo font_info =
+        { AbstractRendererPlatformSupport::SANS, elt->GetFontSize(), false };
+
   // Find the longest nickname
-  int maxtextlen = 0;
+  int maxwidth = 0;
   for(int i = 0; i < nrows; i++)
     {
     for(int j = 0; j < ncols; j++)
@@ -137,18 +141,22 @@ void SliceWindowDecorationRenderer::DrawNicknames()
       // Define the ROI for this label
       ImageWrapperBase *layer =
           this->GetParentRenderer()->GetLayerForNthTile(i, j);
-      if(layer && layer->GetNickname().length() > maxtextlen)
-        maxtextlen = layer->GetNickname().length();
+
+      if(layer)
+        {
+        int fw = this->m_PlatformSupport->MeasureTextWidth(
+              layer->GetNickname().c_str(), font_info);
+        if(fw > maxwidth)
+          maxwidth = fw;
+        }
       }
     }
 
   // Adjust the font size
-  int fs = elt->GetFontSize();
-  if(fs * maxtextlen > 0.8 * w)
-    fs = (int) ((0.8 * w) / maxtextlen);
-
-  AbstractRendererPlatformSupport::FontInfo font_info =
-        { AbstractRendererPlatformSupport::SANS, fs, false };
+  if(maxwidth > 0.92 * w)
+    {
+    font_info.pixel_size = (int) (font_info.pixel_size * w * 0.92 / maxwidth);
+    }
 
   // Draw each nickname
   for(int i = 0; i < nrows; i++)

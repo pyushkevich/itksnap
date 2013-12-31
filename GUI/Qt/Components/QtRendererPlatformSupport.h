@@ -13,6 +13,8 @@ public:
       int align_horiz, int align_vert,
       const Vector3d &rgbf);
 
+  virtual int MeasureTextWidth(const char *text, FontInfo font);
+
 };
 
 #endif // QTRENDERERPLATFORMSUPPORT_H

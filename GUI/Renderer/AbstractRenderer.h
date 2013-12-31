@@ -30,6 +30,8 @@ public:
       FontInfo font,
       int align_horiz, int align_vert,
       const Vector3d &rgbf) = 0;
+
+  virtual int MeasureTextWidth(const char *text, FontInfo font) = 0;
 };
 
 
