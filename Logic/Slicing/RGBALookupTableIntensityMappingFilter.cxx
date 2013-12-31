@@ -55,7 +55,7 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
       ++inputIt[d];
       }
 
-    xout[3] = 1; // alpha = 1
+    xout[3] = 255; // alpha = 1
     outputIt.Set(xout);
     ++outputIt;
     }
