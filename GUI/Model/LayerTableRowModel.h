@@ -7,6 +7,7 @@ class ImageWrapperBase;
 class GlobalUIModel;
 class ImageIOWizardModel;
 struct MultiChannelDisplayMode;
+class GenericImageData;
 
 /**
  * @brief The LayerTableRowModel class
@@ -111,6 +112,9 @@ protected:
 
   // Parent model
   GlobalUIModel *m_ParentModel;
+
+  // Generic image data object in which this layer lives.
+  GenericImageData *m_ImageData;
 
   // Layer
   ImageWrapperBase *m_Layer;

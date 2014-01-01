@@ -138,7 +138,7 @@ MeshManager
     pipeline->SetMeshOptions(m_GlobalState->GetMeshOptions());
 
     // Compute the mesh only for the current segmentation color
-    pipeline->UpdateMesh();
+    pipeline->UpdateMesh(m_Driver->GetSNAPImageData()->GetLevelSetPipelineMutexLock());
     }
   else
     {

@@ -49,6 +49,7 @@ LayerTableRowModel::LayerTableRowModel()
 
   m_LayerRole = NO_ROLE;
   m_LayerPositionInRole = -1;
+  m_ImageData = NULL;
 }
 
 bool LayerTableRowModel::CheckState(UIState state)
@@ -97,7 +98,7 @@ bool LayerTableRowModel::CheckState(UIState state)
 
 void LayerTableRowModel::UpdateRoleInfo()
 {
-  LayerIterator it(m_ParentModel->GetDriver()->GetCurrentImageData());
+  LayerIterator it(m_ImageData);
   it.Find(m_Layer);
   m_LayerRole = it.GetRole();
   m_LayerPositionInRole = it.GetPositionInRole();
@@ -136,6 +137,7 @@ void LayerTableRowModel::Initialize(GlobalUIModel *parentModel, ImageWrapperBase
 {
   m_ParentModel = parentModel;
   m_Layer = layer;
+  m_ImageData = parentModel->GetDriver()->GetCurrentImageData();
 
   // For some of the functions, it is useful to know the role and the index
   // in the role of this layer. We shouldn't have to worry about this info

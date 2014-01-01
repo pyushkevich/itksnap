@@ -29,24 +29,6 @@ void SnakeModeRenderer::paintGL()
     }
 }
 
-void SnakeModeRenderer::DrawSpeedImage()
-{
-  IRISApplication *app = m_Model->GetParent()->GetDriver();
-  GlobalState *gs = app->GetGlobalState();
-
-  // Get the image data
-  SNAPImageData *sid = app->GetSNAPImageData();
-
-  // The speed image is rendered when the speed volume is marked as valid
-  // in the global state (indicating that the speed volume has been computed)
-  // or if the speed image is hooked up to the preview pipeline
-  if(gs->GetSpeedValid() || sid->GetSpeed()->IsPreviewPipelineAttached())
-    {
-    GenericSliceRenderer *parent = this->GetParentRenderer();
-    parent->DrawTextureForLayer(sid->GetSpeed(), true);
-    }
-}
-
 void SnakeModeRenderer::DrawBubbles()
 {
   const GLubyte stipple[] = {
@@ -177,12 +159,4 @@ void SnakeModeRenderer::DrawBubbles()
     glDisable(GL_BLEND);
     glPopAttrib();
     }
-}
-
-void SnakeModeRenderer::DrawEvolvingContour()
-{
-  IRISApplication *app = m_Model->GetParent()->GetDriver();
-  SNAPImageData *sid = app->GetSNAPImageData();
-  GenericSliceRenderer *parent = this->GetParentRenderer();
-  parent->DrawTextureForLayer(sid->GetSnake(), true);
 }

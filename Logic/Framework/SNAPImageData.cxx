@@ -46,6 +46,7 @@
 #include "itkDanielssonDistanceMapImageFilter.h"
 #include "itkSubtractImageFilter.h"
 #include "itkUnaryFunctorImageFilter.h"
+#include "itkFastMutexLock.h"
 
 #include "SmoothBinaryThresholdImageFilter.h"
 #include "GlobalState.h"
@@ -61,6 +62,7 @@
 #include "SlicePreviewFilterWrapper.h"
 #include "PreprocessingFilterConfigTraits.h"
 
+
 SNAPImageData
 ::SNAPImageData()
 {
@@ -71,6 +73,9 @@ SNAPImageData
 
   // Set the initial label color
   m_SnakeColorLabel = 0;
+
+  // Create the mutex lock
+  m_LevelSetPipelineMutexLock = itk::FastMutexLock::New();
 }
 
 
@@ -383,6 +388,9 @@ SNAPImageData
   // Copy the configuration parameters
   m_CurrentSnakeParameters = p;
 
+  // Enter a thread-safe section
+  m_LevelSetPipelineMutexLock->Lock();
+
   // Initialize the snake driver and pass the parameters
   m_LevelSetDriver = new SNAPLevelSetDriver3d(
     m_SnakeInitializationWrapper->GetImage(),
@@ -407,19 +415,19 @@ SNAPImageData
   m_SnakeWrapper->GetImage()->SetSpacing(
         m_MainImageWrapper->GetImage()->GetSpacing() );
 
+  // This makes sure that m_SnakeWrapper->IsDrawable() returns true
+  m_SnakeWrapper->GetImage()->Modified();
+
+  // Finish thread-safe section
+  m_LevelSetPipelineMutexLock->Unlock();
+
   // Fire events (layers changed and level set image changed)
   this->InvokeEvent(LayerChangeEvent());
   this->InvokeEvent(LevelSetImageChangeEvent());
 
-  // Make sure that the correct color label is being used
-
-  // TODO: we need to add support for snake and snake initialization layers!
-  // m_SnakeWrapper->SetColorLabel(m_ColorLabel);
-
+  // Why use segmentation's alpha?
   m_SnakeWrapper->SetAlpha(
         (unsigned char)(255 * m_Parent->GetGlobalState()->GetSegmentationAlpha()));
-
-  // Fire the update event
 
 }
 
@@ -431,9 +439,16 @@ SNAPImageData
   assert(m_LevelSetDriver);
 
   // Pass through to the level set driver
+
+  // Enter a thread-safe section
+  m_LevelSetPipelineMutexLock->Lock();
+
   clock_t c1 = clock();
   m_LevelSetDriver->Run(nIterations);
   clock_t c2 = clock();
+
+  // Leave a thread-safe section
+  m_LevelSetPipelineMutexLock->Unlock();
 
   /*
   std::cout << (c2 - c1) * 1.0 / (CLOCKS_PER_SEC * nIterations)
@@ -450,11 +465,20 @@ SNAPImageData
   // Should be in level set mode
   assert(m_LevelSetDriver);
 
+  // Enter a thread-safe section
+  m_LevelSetPipelineMutexLock->Lock();
+
   // Pass through to the level set driver
   m_LevelSetDriver->Restart();
 
   // Update the image pointed to by the snake wrapper
   m_SnakeWrapper->SetImage(m_LevelSetDriver->GetCurrentState());
+
+  // This makes sure that m_SnakeWrapper->IsDrawable() returns true
+  m_SnakeWrapper->GetImage()->Modified();
+
+  // Leave a thread-safe section
+  m_LevelSetPipelineMutexLock->Unlock();
 
   // Fire the update event
   this->InvokeEvent(LevelSetImageChangeEvent());
@@ -467,8 +491,14 @@ SNAPImageData
   // Should be in level set mode
   assert(m_LevelSetDriver);
 
+  // Enter a thread-safe section
+  m_LevelSetPipelineMutexLock->Lock();
+
   // Delete the level set driver and all the problems that go along with it
   delete m_LevelSetDriver; m_LevelSetDriver = NULL;
+
+  // Leave a thread-safe section
+  m_LevelSetPipelineMutexLock->Unlock();
 
   // Fire the update event
   this->InvokeEvent(LevelSetImageChangeEvent());

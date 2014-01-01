@@ -44,6 +44,7 @@
 // Forward reference to itk classes
 namespace itk {
   template <class TPixel,unsigned int VDimension> class Image;
+  class FastMutexLock;
 }
 
 // Forward reference to our own VTK pipeline
@@ -74,8 +75,11 @@ public:
   /** Set the mesh options for this filter */
   void SetMeshOptions(const MeshOptions *options);
 
-  /** Compute the mesh for the segmentation level set */
-  void UpdateMesh();
+  /** Compute the mesh for the segmentation level set. An optional pointer
+      to a mutex lock can be provided. If passed in, the portion of the code
+      where the image data is accessed will be locked. This is to prevent mesh
+      update clashing with level set evolution iteration. */
+  void UpdateMesh(itk::FastMutexLock *lock = NULL);
 
   /** Get the stored mesh */
   vtkPolyData *GetMesh();

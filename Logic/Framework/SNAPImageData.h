@@ -52,7 +52,11 @@
 #include "SNAPLevelSetFunction.h"
 #include "itkImageAdaptor.h"
 
-namespace itk { class Command; }
+namespace itk {
+  class Command;
+  class FastMutexLock;
+}
+
 class SNAPSegmentationROISettings;
 
 
@@ -195,6 +199,15 @@ public:
   /** This method is public for testing purposes.  It will give a pointer to 
    * the level set function used internally for segmentation */
   SNAPLevelSetDriver<3>::LevelSetFunctionType *GetLevelSetFunction();
+
+  /**
+   * SNAPImageData provides a mutex lock that prevents multiple threads from
+   * causing the level set pipeline to update at once. In particular this
+   * can happen if the meshes are being generated from the level set data
+   * in a background thread
+   */
+  irisGetMacro(LevelSetPipelineMutexLock, itk::FastMutexLock *)
+
   
 protected:
 
@@ -272,6 +285,10 @@ protected:
 
   // The color label that is used for this segmentation
   ColorLabel m_ColorLabel;
+
+  // SNAPImageData provides a mutex lock that prevents multiple threads from
+  // causing the level set pipeline to update at once.
+  SmartPtr<itk::FastMutexLock> m_LevelSetPipelineMutexLock;
 };
 
 

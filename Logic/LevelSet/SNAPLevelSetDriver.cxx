@@ -127,6 +127,7 @@ SNAPLevelSetDriver<VDimension>
     filter->SetNumberOfLayers(3);
     filter->SetIsoSurfaceValue(0.0f);
     filter->SetDifferenceFunction(m_LevelSetFunction);
+    std::cout << filter->GetPointer() << std::endl;
     }
   else if(m_Parameters.GetSolver() == SnakeParameters::NARROW_BAND_SOLVER)
     {

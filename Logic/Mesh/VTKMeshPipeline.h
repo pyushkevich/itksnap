@@ -87,7 +87,7 @@ public:
   void SetMeshOptions(MeshOptions *options);
 
   /** Compute a mesh for a particular color label */
-  void ComputeMesh(vtkPolyData *outData);
+  void ComputeMesh(vtkPolyData *outData, itk::FastMutexLock *lock = NULL);
 
   /** Get the progress accumulator */
   AllPurposeProgressAccumulator *GetProgressAccumulator()
