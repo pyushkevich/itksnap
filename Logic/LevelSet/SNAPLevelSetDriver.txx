@@ -158,6 +158,7 @@ SNAPLevelSetDriver<VDimension>
     filter->SetNumberOfLayers(3);
     filter->SetIsoSurfaceValue(0.0f);
     filter->SetDifferenceFunction(m_LevelSetFunction);
+    filter->InPlaceOn();
     }
 /*
   else if(m_Parameters.GetSolver() == SnakeParameters::NARROW_BAND_SOLVER)
@@ -195,6 +196,7 @@ SNAPLevelSetDriver<VDimension>
     // Perform the special configuration tasks on the filter
     filter->SetInput(m_InitializationImage);
     filter->SetDifferenceFunction(m_LevelSetFunction);
+    filter->InPlaceOn();
     }
 
   else

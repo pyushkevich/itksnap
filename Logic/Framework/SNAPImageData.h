@@ -247,25 +247,12 @@ protected:
   /** A callback made after an update in the segmentation pipeline */
   CommandPointer m_SegmentationUpdateCallback;
 
-  /** Get the snake initialization image */
-  LevelSetImageWrapper* GetSnakeInitialization();
-
-  /** Clear the snake initialization image (discard data, etc) */
-  void ClearSnakeInitialization()
-    { m_SnakeInitializationWrapper->Reset(); }
-
-  /** Check the snake initialization image for validity */
-  bool IsSnakeInitializationLoaded();
-
   // Speed image adata
   SmartPtr<SpeedImageWrapper> m_SpeedWrapper;
 
   // Wrapper around the level set image
   SmartPtr<LevelSetImageWrapper> m_SnakeWrapper;
   
-  // Snake initialization data (initial distance transform
-  SmartPtr<LevelSetImageWrapper> m_SnakeInitializationWrapper;
-
   // Snake driver
   SNAPLevelSetDriver<3> *m_LevelSetDriver;
 

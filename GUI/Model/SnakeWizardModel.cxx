@@ -893,6 +893,10 @@ void SnakeWizardModel::OnSnakeModeEnter()
   // Some preparatory stuff
   this->ComputeBubbleRadiusDefaultAndRange();
 
+  // Reset the bubbles
+  m_Driver->GetBubbleArray().clear();
+  m_GlobalState->UnsetActiveBubble();
+
   // We begin in preprocessing mode
   SetInteractionMode(MODE_PREPROCESSING);
 }
@@ -1043,8 +1047,14 @@ ThresholdSettings *SnakeWizardModel::GetThresholdSettings()
 
 void SnakeWizardModel::OnEvolutionPageBack()
 {
-  if(m_Driver->GetSNAPImageData()->IsSegmentationActive())
-    m_Driver->GetSNAPImageData()->TerminateSegmentation();
+
+  // Abort the segmentation (stops segmentation and resets the snake
+  SNAPImageData *sid = m_Driver->GetSNAPImageData();
+  if(sid->IsSegmentationActive())
+    {
+    sid->TerminateSegmentation();
+    sid->ClearSnake();
+    }
 
   SetInteractionMode(MODE_BUBBLES);
 }

@@ -126,22 +126,6 @@ SNAPImageData
 
 LevelSetImageWrapper* 
 SNAPImageData
-::GetSnakeInitialization() 
-{
-  assert(IsSnakeInitializationLoaded());
-  return m_SnakeInitializationWrapper;
-}
-
-bool 
-SNAPImageData
-::IsSnakeInitializationLoaded() 
-{
-  return (m_SnakeInitializationWrapper
-          && m_SnakeInitializationWrapper->IsInitialized());
-}
-
-LevelSetImageWrapper* 
-SNAPImageData
 ::GetSnake() 
 {
   assert(IsSnakeLoaded());
@@ -165,7 +149,7 @@ SNAPImageData
   assert(IsSpeedLoaded());
 
   // Inside/outside values
-  const float INSIDE_VALUE = -1.0, OUTSIDE_VALUE = 1.0;
+  const float INSIDE_VALUE = -4.0, OUTSIDE_VALUE = 4.0;
   
   // Store the label color
   m_SnakeColorLabel = labelColor;
@@ -174,22 +158,22 @@ SNAPImageData
   typedef itk::Image<float,3> FloatImageType;
 
   // If a initialization wrapper does not exist, create it
-  if(m_SnakeInitializationWrapper.IsNull())
+  if(!m_SnakeWrapper)
     {
-    m_SnakeInitializationWrapper = LevelSetImageWrapper::New();
-    m_SnakeInitializationWrapper->SetDefaultNickname("Initial Contour");
-    PushBackImageWrapper(SNAP_ROLE, m_SnakeInitializationWrapper.GetPointer());
+    m_SnakeWrapper = LevelSetImageWrapper::New();
+    m_SnakeWrapper->SetDefaultNickname("Evolving Contour");
+    PushBackImageWrapper(SNAP_ROLE, m_SnakeWrapper.GetPointer());
     }
 
   // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
-  m_SnakeInitializationWrapper->InitializeToWrapper(m_MainImageWrapper, OUTSIDE_VALUE);
+  m_SnakeWrapper->InitializeToWrapper(m_MainImageWrapper, OUTSIDE_VALUE);
 
   InvokeEvent(LayerChangeEvent());
 
   // Create the initial level set image by merging the segmentation data from
   // IRIS region with the bubbles
   LabelImageType::Pointer imgInput = m_LabelWrapper->GetImage();
-  FloatImageType::Pointer imgLevelSet = m_SnakeInitializationWrapper->GetImage();
+  FloatImageType::Pointer imgLevelSet = m_SnakeWrapper->GetImage();
 
   // Get the target region. This really should be a region relative to the IRIS image
   // data, not an image into a needless copy of an IRIS region.
@@ -304,8 +288,8 @@ SNAPImageData
   // voxels
   if (nInitVoxels == 0) 
     {
-    this->RemoveImageWrapper(SNAP_ROLE, m_SnakeInitializationWrapper);
-    m_SnakeInitializationWrapper = NULL;
+    this->RemoveImageWrapper(SNAP_ROLE, m_SnakeWrapper);
+    m_SnakeWrapper = NULL;
     InvokeEvent(LayerChangeEvent());
     return false;
     }
@@ -393,29 +377,13 @@ SNAPImageData
 
   // Initialize the snake driver and pass the parameters
   m_LevelSetDriver = new SNAPLevelSetDriver3d(
-    m_SnakeInitializationWrapper->GetImage(),
+    m_SnakeWrapper->GetImage(),
     m_SpeedWrapper->GetImage(),
     m_CurrentSnakeParameters,
     m_ExternalAdvectionField);
 
-  // Create teh snake wrapper
-  if(m_SnakeWrapper.IsNull())
-    {
-    m_SnakeWrapper = LevelSetImageWrapper::New();
-    m_SnakeWrapper->SetDefaultNickname("Evolving Contour");
-    PushBackImageWrapper(SNAP_ROLE, m_SnakeWrapper.GetPointer());
-    }
-
-  // Initialize the level set wrapper with the image from the level set 
-  // driver and other settings from the other wrappers
-  m_SnakeWrapper->InitializeToWrapper(
-    m_MainImageWrapper,m_LevelSetDriver->GetCurrentState());
-  m_SnakeWrapper->GetImage()->SetOrigin(
-        m_MainImageWrapper->GetImage()->GetOrigin() );
-  m_SnakeWrapper->GetImage()->SetSpacing(
-        m_MainImageWrapper->GetImage()->GetSpacing() );
-
   // This makes sure that m_SnakeWrapper->IsDrawable() returns true
+  m_SnakeWrapper->SetImage(m_LevelSetDriver->GetCurrentState());
   m_SnakeWrapper->GetImage()->Modified();
 
   // Finish thread-safe section
@@ -604,7 +572,6 @@ void SNAPImageData::UnloadAll()
   while(this->m_Wrappers[SNAP_ROLE].size())
     PopBackImageWrapper(SNAP_ROLE);
   m_SpeedWrapper = NULL;
-  m_SnakeInitializationWrapper = NULL;
   m_SnakeWrapper = NULL;
 
   InvokeEvent(LayerChangeEvent());
