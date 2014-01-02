@@ -35,6 +35,8 @@ public:
 
   virtual DisplaySlicePointer GetDisplaySlice(unsigned int slice) = 0;
 
+  virtual void DeriveFromReferenceWrapper(ImageWrapperBase *source) = 0;
+
   virtual void Save(Registry &folder) = 0;
   virtual void Restore(Registry &folder) = 0;
 };
@@ -85,7 +87,7 @@ public:
   void Initialize(WrapperType *wrapper);
   void UpdateImagePointer(ImageType *image);
 
-  void DeriveFromReferenceWrapper(WrapperType *refwrapper);
+  void DeriveFromReferenceWrapper(ImageWrapperBase *source);
 
   DisplaySlicePointer GetDisplaySlice(unsigned int slice);
 
@@ -243,7 +245,7 @@ public:
   void Initialize(WrapperType *wrapper);
   void UpdateImagePointer(ImageType *image);
 
-  void DeriveFromReferenceWrapper(WrapperType *refwrapper);
+  void DeriveFromReferenceWrapper(ImageWrapperBase *source);
 
   virtual void Save(Registry &folder);
   virtual void Restore(Registry &folder);
@@ -416,6 +418,8 @@ public:
 
   virtual IntensityCurveInterface *GetIntensityCurve() const { return NULL; }
 
+  void DeriveFromReferenceWrapper(ImageWrapperBase *source) {}
+
   virtual void Save(Registry &folder);
   virtual void Restore(Registry &folder);
 
@@ -486,7 +490,7 @@ public:
   void Initialize(WrapperType *wrapper);
   void UpdateImagePointer(ImageType *image);
 
-  void DeriveFromReferenceWrapper(WrapperType *refwrapper);
+  void DeriveFromReferenceWrapper(ImageWrapperBase *source);
 
 
   /** Set the display mode */

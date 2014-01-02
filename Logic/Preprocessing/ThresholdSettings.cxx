@@ -44,7 +44,8 @@ ThresholdSettings
         this->m_LowerThreshold == other.m_LowerThreshold &&
         this->m_UpperThreshold == other.m_UpperThreshold &&
         this->m_Smoothness == other.m_Smoothness &&
-        this->m_ThresholdMode == other.m_ThresholdMode);
+        this->m_ThresholdMode == other.m_ThresholdMode &&
+        this->m_Initialized == other.m_Initialized);
 }
 
 bool
@@ -72,18 +73,13 @@ ThresholdSettings
     }
   else
     {
-    this->InitializeToDefaultWithoutImage();
+    m_ThresholdMode = LOWER;
+    m_LowerThreshold = iMin;
+    m_UpperThreshold = iMax;
+    m_Smoothness = 3.0;
     }
-}
 
-void
-ThresholdSettings
-::InitializeToDefaultWithoutImage()
-{
-  m_ThresholdMode = TWO_SIDED;
-  m_LowerThreshold = 40.0;
-  m_UpperThreshold = 80.0;
-  m_Smoothness = 3.0;
+  m_Initialized = true;
 }
 
 ThresholdSettings
@@ -93,6 +89,7 @@ ThresholdSettings
   m_LowerThreshold = 0.0;
   m_UpperThreshold = 1.0; 
   m_Smoothness = 1.0;
+  m_Initialized = false;
 }
 
 bool
@@ -163,6 +160,9 @@ ThresholdSettings
     m_ThresholdMode = upper_on ?
           (lower_on ? TWO_SIDED : UPPER) :
           (lower_on ? LOWER : TWO_SIDED);
+
+    // Set as having been initialized
+    m_Initialized = true;
     }
 }
 
@@ -170,6 +170,8 @@ void
 ThresholdSettings
 ::WriteToRegistry(Registry &registry)
 {
+  assert(m_Initialized);
+
   registry["LowerThreshold"] << this->GetLowerThreshold();
   registry["UpperThreshold"] << this->GetUpperThreshold();
   registry["Smoothness"] << this->GetSmoothness();

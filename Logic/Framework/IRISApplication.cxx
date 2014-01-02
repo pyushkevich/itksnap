@@ -1599,6 +1599,9 @@ IRISApplication
         m_IRISImageData->GetLastOverlay()->GetDisplayMapping()->GetColorMap(),
         deflt_preset);
 
+  // Initialize the layer-specific segmentation parameters
+  CreateSegmentationSettings(m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE);
+
   // Read and apply the project-level settings associated with the main image
   LoadMetaDataAssociatedWithLayer(
         m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE, metadata);
@@ -1606,6 +1609,28 @@ IRISApplication
   // Fire event
   InvokeEvent(LayerChangeEvent());
 }
+
+void
+IRISApplication
+::CreateSegmentationSettings(ImageWrapperBase *wrapper, LayerRole role)
+{
+  // Create threshold settings for every scalar component of this wrapper
+  if(wrapper->IsScalar())
+    {
+    // Create threshold settings for this wrapper
+    SmartPtr<ThresholdSettings> ts = ThresholdSettings::New();
+    wrapper->SetUserData("ThresholdSettings", ts);
+    }
+  else
+    {
+    // Call the method recursively for the components
+    VectorImageWrapperBase *vec = dynamic_cast<VectorImageWrapperBase *>(wrapper);
+    for(int i = 0; i < vec->GetNumberOfComponents(); i++)
+      CreateSegmentationSettings(
+            vec->GetScalarRepresentation(SCALAR_REP_COMPONENT, i), role);
+    }
+}
+
 
 void
 IRISApplication
@@ -1633,14 +1658,11 @@ IRISApplication
   // Set the filename and nickname of the image wrapper
   m_IRISImageData->GetMain()->SetFileName(io->GetFileNameOfNativeImage());
 
-  // TODO: the threshold settings should probably not be initialized here, but
-  // when we are interacting with them. This way they can adapt to whatever
-  // scalar representation is current.
-
   // Update the preprocessing settings to defaults.
-  // TODO: m_ThresholdSettings->InitializeToDefaultForImage(
-  //      m_IRISImageData->GetMain()->GetDefaultScalarRepresentation());
   m_EdgePreprocessingSettings->InitializeToDefaults();
+
+  // Initialize the layer-specific segmentation parameters
+  CreateSegmentationSettings(m_IRISImageData->GetMain(), MAIN_ROLE);
 
   // Update the system's history list
   m_HistoryManager->UpdateHistory("MainImage", io->GetFileNameOfNativeImage(), false);

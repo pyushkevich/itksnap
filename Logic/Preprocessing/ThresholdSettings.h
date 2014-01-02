@@ -74,6 +74,8 @@ public:
   itkSetMacro(ThresholdMode, ThresholdMode)
   itkGetConstMacro(ThresholdMode, ThresholdMode)
 
+  itkGetMacro(Initialized, bool)
+
   bool IsLowerThresholdEnabled() const
   {
     return m_ThresholdMode != UPPER;
@@ -99,11 +101,6 @@ public:
    */
   void InitializeToDefaultForImage(ScalarImageWrapperBase *wrapper);
 
-  /** This will create a slightly less useful settings object with thresholds
-   * at 40 and 100.  Before using them, make sure that the image is in range
-   * of 40 and 100 */
-  void InitializeToDefaultWithoutImage();
-
   /**
     Read the settings from a registry, given the current grey image. This will
     check if the settings are valid and abort if they are not
@@ -122,6 +119,10 @@ private:
   float m_LowerThreshold;
   float m_UpperThreshold;
   float m_Smoothness;
+
+  // Whether the settings have been initialized. When constructed, the settings
+  // are set to an uninitialized state.
+  bool m_Initialized;
   
   ThresholdMode m_ThresholdMode;
 };

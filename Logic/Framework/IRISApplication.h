@@ -636,6 +636,10 @@ protected:
   void LoadMetaDataAssociatedWithLayer(ImageWrapperBase *layer, int role,
                                        Registry *override = NULL);
 
+  // Create layer-specific segmentation settings (threshold settings, e.g.)
+  void CreateSegmentationSettings(ImageWrapperBase *wrapper, LayerRole role);
+
+
   // ----------------------- Project support ------------------------------
 
   // Cached state of the project at the time of last open/save. Used to check

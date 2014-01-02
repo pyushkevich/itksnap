@@ -223,6 +223,11 @@ protected:
       { return input == 0 ? 1 : 0; }
   };
 
+  /** Copy nickname, settings, and other such junk from IRIS to SNAP during
+   * initialization */
+  void CopyLayerMetadata(ImageWrapperBase *target, ImageWrapperBase *source);
+
+
   /** Initialize the driver used to control the snake.  This driver is used to
    * run the snake several iterations at a time, without resetting the filter
    * between iteration blocks.  After executing each block of iterations, the

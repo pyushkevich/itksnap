@@ -532,13 +532,9 @@ SNAPImageData
 
   // Assign the new wrapper to the target
   this->SetMainImage(imgNew, icg, srcWrapper->GetNativeMapping());
-  this->GetMain()->SetDefaultNickname(source->GetMain()->GetNickname());
 
-  // TODO: it probably makes sense to write a ExtractROI function in ImageWrapper
-  // that would handle all of this internally.
-  typedef AnatomicImageWrapper::DisplayMapping DisplayMapping;
-  DisplayMapping *dmnew = m_MainImageWrapper->GetDisplayMapping();
-  dmnew->DeriveFromReferenceWrapper(srcWrapper);
+  // Copy metadata
+  this->CopyLayerMetadata(this->GetMain(), source->GetMain());
 
   // Repeat all of this for the overlays
   for(LayerIterator lit = source->GetLayers(OVERLAY_ROLE);
@@ -556,9 +552,39 @@ SNAPImageData
     // Add the overlay
     this->AddOverlay(ovlNew, ovlWrapper->GetNativeMapping());
 
-    // Nickname
-    this->GetLastOverlay()->SetDefaultNickname(ovlWrapper->GetNickname());
+    // Copy metadata
+    this->CopyLayerMetadata(this->GetLastOverlay(), ovlWrapper);
     }
+}
+
+void SNAPImageData::CopyLayerMetadata(
+    ImageWrapperBase *target, ImageWrapperBase *source)
+{
+  // Nickname
+  target->SetDefaultNickname(source->GetNickname());
+
+  // Display mapping. TODO: this currently does nothing because the Derive
+  // method has not been implemented. Not good.
+  target->GetDisplayMapping()->DeriveFromReferenceWrapper(source);
+
+  // Threshold settings. These should be copied for each scalar component
+  if(source->IsScalar())
+    {
+    target->SetUserData("ThresholdSettings", source->GetUserData("ThresholdSettings"));
+    }
+  else
+    {
+    VectorImageWrapperBase *v_source = dynamic_cast<VectorImageWrapperBase *>(source);
+    VectorImageWrapperBase *v_target = dynamic_cast<VectorImageWrapperBase *>(target);
+    for(int i = 0; i < v_source->GetNumberOfComponents(); i++)
+      {
+      ImageWrapperBase *c_source = v_source->GetScalarRepresentation(SCALAR_REP_COMPONENT, i);
+      ImageWrapperBase *c_target = v_target->GetScalarRepresentation(SCALAR_REP_COMPONENT, i);
+      c_target->SetUserData("ThresholdSettings", c_source->GetUserData("ThresholdSettings"));
+      }
+    }
+
+  // TODO: alpha, stickiness?
 }
 
 

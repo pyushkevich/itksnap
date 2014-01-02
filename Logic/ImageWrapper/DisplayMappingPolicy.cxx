@@ -65,7 +65,7 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
 template <class TWrapperTraits>
 void
 ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
-::DeriveFromReferenceWrapper(WrapperType *refwrapper)
+::DeriveFromReferenceWrapper(ImageWrapperBase *source)
 {
   // TODO: add implementation
 }
@@ -198,7 +198,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 template<class TWrapperTraits>
 void
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
-::DeriveFromReferenceWrapper(WrapperType *srcWrapper)
+::DeriveFromReferenceWrapper(ImageWrapperBase *source)
 {
   // TODO: Figure out how to do this right...
 
@@ -977,7 +977,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 template <class TWrapperTraits>
 void
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
-::DeriveFromReferenceWrapper(WrapperType *refwrapper)
+::DeriveFromReferenceWrapper(ImageWrapperBase *source)
 {
   // TODO:
   // I guess we have to call this method for each of the scalar wrappers
