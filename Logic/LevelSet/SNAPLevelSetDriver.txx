@@ -48,18 +48,52 @@
 #include "itkNarrowBandLevelSetImageFilter.h"
 #include "itkDenseFiniteDifferenceImageFilter.h"
 #include "LevelSetExtensionFilter.h"
-
-#if defined(USE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
-#include "itkParallelSparseFieldLevelSetImageFilterBugFix.h"
-#else 
 #include "itkParallelSparseFieldLevelSetImageFilter.h"
-#endif
 
 // Disable some windows debug length messages
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #pragma warning ( disable : 4503 )
 #endif
+
+/**
+ * THIS IS A WORKAROUND FOR A BUG THAT I FOUND IN THE PARALLEL SPARSE LEVEL SET
+ * FILTER. For small seeds, the way the filter splits up the image into regions
+ * for different threads, some threads end up with empty regions (no nodes). The
+ * function that computes the timestep from the per-region timesteps then sets
+ * the timestep to 0, and the filter stops. The work-around changes the step size
+ * for empty regions to 1 and fixes the problem.
+ */
+template< class TInputImage, class TOutputImage >
+class ParallelSparseFieldLevelSetImageFilterBugFix
+    : public itk::ParallelSparseFieldLevelSetImageFilter< TInputImage, TOutputImage >
+{
+public:
+
+  typedef ParallelSparseFieldLevelSetImageFilterBugFix                             Self;
+  typedef itk::ParallelSparseFieldLevelSetImageFilter< TInputImage, TOutputImage > Superclass;
+  typedef itk::SmartPointer< Self >                                                Pointer;
+  typedef itk::SmartPointer< const Self >                                          ConstPointer;
+
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self)
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(ParallelSparseFieldLevelSetImageFilterBugFix,
+               itk::ParallelSparseFieldLevelSetImageFilter)
+
+  virtual typename Superclass::TimeStepType ThreadedCalculateChange(itk::ThreadIdType ThreadId)
+  {
+    typename Superclass::TimeStepType ts = Superclass::ThreadedCalculateChange(ThreadId);
+
+    if(ThreadId > 0 && this->m_Data[ThreadId].m_Count == 0)
+      return 1.0;
+    else
+      return ts;
+  }
+
+  itk::SimpleFastMutexLock locky;
+};
 
 
 // Create an inverting functor
@@ -144,13 +178,8 @@ SNAPLevelSetDriver<VDimension>
   if(m_Parameters.GetSolver() == SnakeParameters::PARALLEL_SPARSE_FIELD_SOLVER)
     {
     // Define an extension to the appropriate filter class
-#if defined(USE_ITK36_ITK38_SPARSEFIELD_BUGFIX)
-    typedef itk::ParallelSparseFieldLevelSetImageFilterBugFix<
+    typedef ParallelSparseFieldLevelSetImageFilterBugFix<
       FloatImageType, FloatImageType> LevelSetFilterType;
-#else
-    typedef itk::ParallelSparseFieldLevelSetImageFilter<
-      FloatImageType, FloatImageType> LevelSetFilterType;
-#endif
 
     typedef typename LevelSetFilterType::Pointer LevelSetFilterPointer;
     LevelSetFilterPointer filter = LevelSetFilterType::New();
