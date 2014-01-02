@@ -166,6 +166,9 @@ public:
   /** Revert the segmentation to the beginning */
   void RestartSegmentation();
 
+  /** Check for convergence */
+  bool IsEvolutionConverged();
+
   /** Update the segmentation parameters, can be done either from the 
    * segmentation pipeline callback or on the fly.  This method is smart enough 
    * to reinitialize the level set driver if the Solver parameter changes */

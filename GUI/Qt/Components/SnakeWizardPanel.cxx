@@ -290,8 +290,9 @@ void SnakeWizardPanel::on_btnPlay_toggled(bool checked)
 
 void SnakeWizardPanel::idleCallback()
 {
-  // Step the snake
-  m_Model->PerformEvolutionStep();
+  // Step the snake. If converged (returns true), stop playing
+  if(m_Model->PerformEvolutionStep())
+    ui->btnPlay->setChecked(false);
 }
 
 void SnakeWizardPanel::on_btnSingleStep_clicked()

@@ -1011,13 +1011,18 @@ void SnakeWizardModel::OnEvolutionPageEnter()
     }
 }
 
-void SnakeWizardModel::PerformEvolutionStep()
+bool SnakeWizardModel::PerformEvolutionStep()
 {
   // Do the segmentation step!
   m_Driver->GetSNAPImageData()->RunSegmentation(m_StepSizeModel->GetValue());
 
   // Fire an event
   InvokeEvent(EvolutionIterationEvent());
+
+  // Return the status. In the future, this should check for convergence, but
+  // the way the parallel sparse filter is behaving in the more recent versions
+  // of ITK, the RMSChange flag is just meaningless.
+  return false;
 }
 
 int SnakeWizardModel::GetEvolutionIterationValue()

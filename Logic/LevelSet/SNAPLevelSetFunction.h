@@ -287,9 +287,10 @@ public:
       is non-zero, the fixed time step will be returned. */
   virtual TimeStepType ComputeGlobalTimeStep(void *GlobalData) const
     { 
+    TimeStepType step = Superclass::ComputeGlobalTimeStep(GlobalData);
     return m_TimeStepFactor == 0
-      ? Superclass::ComputeGlobalTimeStep(GlobalData)
-      : m_TimeStepFactor * Superclass::ComputeGlobalTimeStep(GlobalData); 
+      ? step
+      : m_TimeStepFactor * step;
     }
 
 protected:

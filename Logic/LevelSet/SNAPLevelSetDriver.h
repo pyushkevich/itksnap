@@ -149,6 +149,9 @@ public:
   /** Run the filter */
   void Run(unsigned int nIterations);
 
+  /** Check for convergence */
+  bool IsEvolutionConverged();
+
   /** Restart the snake */
   void Restart();
 

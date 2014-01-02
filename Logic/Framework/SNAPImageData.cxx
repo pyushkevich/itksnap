@@ -411,9 +411,9 @@ SNAPImageData
   // Enter a thread-safe section
   m_LevelSetPipelineMutexLock->Lock();
 
-  clock_t c1 = clock();
+  // clock_t c1 = clock();
   m_LevelSetDriver->Run(nIterations);
-  clock_t c2 = clock();
+  // clock_t c2 = clock();
 
   // Leave a thread-safe section
   m_LevelSetPipelineMutexLock->Unlock();
@@ -424,6 +424,16 @@ SNAPImageData
 
   // Fire the update event
   this->InvokeEvent(LevelSetImageChangeEvent());
+}
+
+bool
+SNAPImageData
+::IsEvolutionConverged()
+{
+  // Make the method reentrant
+  itk::MutexLockHolder<itk::FastMutexLock> holder(*m_LevelSetPipelineMutexLock);
+
+  return m_LevelSetDriver->IsEvolutionConverged();
 }
 
 void 

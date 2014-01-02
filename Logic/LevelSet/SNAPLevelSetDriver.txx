@@ -57,6 +57,45 @@
 #pragma warning ( disable : 4503 )
 #endif
 
+/*
+ * THIS IS A WORKAROUND FOR A BUG THAT I FOUND IN THE PARALLEL SPARSE LEVEL SET
+ * FILTER. For small seeds, the way the filter splits up the image into regions
+ * for different threads, some threads end up with empty regions (no nodes). The
+ * function that computes the timestep from the per-region timesteps then sets
+ * the timestep to 0, and the filter stops. The work-around changes the step size
+ * for empty regions to 1 and fixes the problem.
+ */
+template< class TInputImage, class TOutputImage >
+class ParallelSparseFieldLevelSetImageFilterBugFix
+    : public itk::ParallelSparseFieldLevelSetImageFilter< TInputImage, TOutputImage >
+{
+public:
+
+  typedef ParallelSparseFieldLevelSetImageFilterBugFix                             Self;
+  typedef itk::ParallelSparseFieldLevelSetImageFilter< TInputImage, TOutputImage > Superclass;
+  typedef itk::SmartPointer< Self >                                                Pointer;
+  typedef itk::SmartPointer< const Self >                                          ConstPointer;
+
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self)
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(ParallelSparseFieldLevelSetImageFilterBugFix,
+               itk::ParallelSparseFieldLevelSetImageFilter)
+
+  virtual typename Superclass::TimeStepType ThreadedCalculateChange(itk::ThreadIdType ThreadId)
+  {
+    typename Superclass::TimeStepType ts = Superclass::ThreadedCalculateChange(ThreadId);
+
+    if(ThreadId > 0 && this->m_Data[ThreadId].m_Count == 0)
+      return 1.0;
+    else
+      return ts;
+  }
+
+  itk::SimpleFastMutexLock locky;
+};
+
 
 // Create an inverting functor
 class InvertFunctor {
@@ -143,8 +182,8 @@ SNAPLevelSetDriver<VDimension>
   if(m_Parameters.GetSolver() == SnakeParameters::PARALLEL_SPARSE_FIELD_SOLVER)
     {
     // Define an extension to the appropriate filter class
-    typedef itk::ParallelSparseFieldLevelSetImageFilter<
-      FloatImageType, FloatImageType> LevelSetFilterType;
+    typedef ParallelSparseFieldLevelSetImageFilterBugFix<
+        FloatImageType, FloatImageType> LevelSetFilterType;
 
     typedef typename LevelSetFilterType::Pointer LevelSetFilterPointer;
     LevelSetFilterPointer filter = LevelSetFilterType::New();
@@ -245,6 +284,20 @@ SNAPLevelSetDriver<VDimension>
   // update the entire image
   m_LevelSetFilter->UpdateLargestPossibleRegion();
 }
+
+template<unsigned int VDimension>
+bool
+SNAPLevelSetDriver<VDimension>
+::IsEvolutionConverged()
+{
+  if(m_LevelSetFilter->GetElapsedIterations() == 0)
+    return false;
+
+  // For now, require absolute convergence
+  std::cout << m_LevelSetFilter->GetRMSChange() << std::endl;
+  return (m_LevelSetFilter->GetRMSChange() == 0.0);
+}
+
 
 template<unsigned int VDimension>
 typename SNAPLevelSetDriver<VDimension>::FloatImageType * 

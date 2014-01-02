@@ -200,8 +200,11 @@ public:
   /** Called when entering the evolution page */
   void OnEvolutionPageFinish();
 
-  /** Perform a single step of snake evolution */
-  void PerformEvolutionStep();
+  /**
+   * Perform a single step of snake evolution. Returns true if the evolution
+   * has converged
+   */
+  bool PerformEvolutionStep();
 
   /** Rewind the evolution */
   void RewindEvolution();
