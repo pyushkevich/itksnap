@@ -1,38 +1,46 @@
 #include "GaussianMixtureModel.h"
 #include <iostream>
+#include <algorithm>
 
-GaussianMixtureModel::GaussianMixtureModel(int dimOfGaussian, int numOfGaussian)
-  :m_dimOfGaussian(dimOfGaussian), m_numOfGaussian(numOfGaussian)
+GaussianMixtureModel::GaussianMixtureModel()
+  :m_dimOfGaussian(0), m_numOfGaussian(0)
 {
-  m_gaussian = new GaussianVector();
-  m_weight = new WeightVector();
-  m_foreground_state = new BoolVector();
-  Gaussian *gaussian;
-  for (int i = 0; i < numOfGaussian; i++)
-  {
-    gaussian = new Gaussian(dimOfGaussian);
-    m_gaussian->push_back(gaussian);
-    m_weight->push_back(0);
-    m_foreground_state->push_back(i == 0);
-  }
 }
 
 GaussianMixtureModel::~GaussianMixtureModel()
 {
-  for(GaussianVectorIterator iter = m_gaussian->begin(); iter != m_gaussian->end(); ++iter)
-  {
+  // Delete all of the existing Gaussians
+  for(GaussianVectorIterator iter = m_gaussian.begin(); iter != m_gaussian.end(); ++iter)
     delete *iter;
-  }
-  delete m_gaussian;
-  delete m_weight;
-  delete m_foreground_state;
+}
+
+void GaussianMixtureModel::Initialize(int dimOfGaussian, int numOfGaussian)
+{
+  m_dimOfGaussian = dimOfGaussian;
+  m_numOfGaussian = numOfGaussian;
+
+  // Delete all of the existing Gaussians
+  for(GaussianVectorIterator iter = m_gaussian.begin(); iter != m_gaussian.end(); ++iter)
+    delete *iter;
+
+  // Allocate the new clusters
+  m_gaussian.resize(numOfGaussian, NULL);
+  m_weight.resize(numOfGaussian, 0);
+  m_foreground_state.resize(numOfGaussian, 0);
+
+  for (int i = 0; i < numOfGaussian; i++)
+    m_gaussian[i] = new Gaussian(dimOfGaussian);
+
+  // Mark the first cluster as foreground
+  if(numOfGaussian > 0)
+    m_foreground_state[0] = 1;
 }
 
 Gaussian * GaussianMixtureModel::GetGaussian(int index)
 {
   if (index < m_numOfGaussian)
   {
-    return (*m_gaussian)[index];
+    return m_gaussian[index];
   }
   else
   {
@@ -45,7 +53,7 @@ double * GaussianMixtureModel::GetMean(int index)
 {
   if (index < m_numOfGaussian)
   {
-    return (*m_gaussian)[index]->GetMean();
+    return m_gaussian[index]->GetMean();
   }
   else
   {
@@ -58,7 +66,7 @@ double * GaussianMixtureModel::GetCovariance(int index)
 {
   if (index < m_numOfGaussian)
   {
-    return (*m_gaussian)[index]->GetCovariance();
+    return m_gaussian[index]->GetCovariance();
   }
   else
   {
@@ -71,7 +79,7 @@ double GaussianMixtureModel::GetWeight(int index)
 {
   if (index < m_numOfGaussian)
   {
-    return (*m_weight)[index];
+    return m_weight[index];
   }
   else
   {
@@ -84,8 +92,8 @@ void GaussianMixtureModel::SetGaussian(int index, double *mean, double *covarian
 {
   if (index < m_numOfGaussian)
   {
-    (*m_gaussian)[index]->SetMean(mean);
-    (*m_gaussian)[index]->SetCovariance(covariance);
+    m_gaussian[index]->SetMean(mean);
+    m_gaussian[index]->SetCovariance(covariance);
   }
   else
   {
@@ -98,7 +106,7 @@ void GaussianMixtureModel::SetMean(int index, double *mean)
 {
   if (index < m_numOfGaussian)
   {
-    (*m_gaussian)[index]->SetMean(mean);
+    m_gaussian[index]->SetMean(mean);
   }
   else
   {
@@ -111,7 +119,7 @@ void GaussianMixtureModel::SetCovariance(int index, double *covariance)
 {
   if (index < m_numOfGaussian)
   {
-    (*m_gaussian)[index]->SetCovariance(covariance);
+    m_gaussian[index]->SetCovariance(covariance);
   }
   else
   {
@@ -124,7 +132,7 @@ void GaussianMixtureModel::SetWeight(int index, double weight)
 {
   if (index < m_numOfGaussian)
     {
-    (*m_weight)[index] = weight;
+    m_weight[index] = weight;
     }
   else
     {
@@ -143,7 +151,7 @@ void GaussianMixtureModel::SetWeightAndRenormalize(int index, double weight)
     }
 
   // The weight should be clamped to the range [0 1]
-  double w_curr = (*m_weight)[index];
+  double w_curr = m_weight[index];
   double w_clamp = std::max(std::min(weight, 1.0), 0.0);
   double w_scale = w_curr == 1.0 ? 0.0 : (1.0 - w_clamp) / (1.0 - w_curr);
   double w_sum = 0.0;
@@ -153,28 +161,28 @@ void GaussianMixtureModel::SetWeightAndRenormalize(int index, double weight)
     {
     if(i == index)
       {
-      (*m_weight)[i] = w_clamp;
+      m_weight[i] = w_clamp;
       }
     else
       {
-      (*m_weight)[i] *= w_scale;
+      m_weight[i] *= w_scale;
       }
 
     // Keet track of the sum of weights
-    w_sum += (*m_weight)[i];
+    w_sum += m_weight[i];
     }
 
   // There is still a possibility that the sum of weights is not 1. In that
   // case assign the difference to the next cluster
   if(w_sum < 1.0)
-    (*m_weight)[(index % m_numOfGaussian)] += 1.0 - w_sum;
+    m_weight[(index % m_numOfGaussian)] += 1.0 - w_sum;
 }
 
 double GaussianMixtureModel::EvaluatePDF(int index, double *x)
 {
   if (index < m_numOfGaussian)
   {
-    return (*m_gaussian)[index]->EvaluatePDF(x);
+    return m_gaussian[index]->EvaluatePDF(x);
   }
   else
   {
@@ -187,7 +195,7 @@ double GaussianMixtureModel::EvaluateLogPDF(int index, double *x)
 {
   if (index < m_numOfGaussian)
   {
-    return (*m_gaussian)[index]->EvaluateLogPDF(x);
+    return m_gaussian[index]->EvaluateLogPDF(x);
   }
   else
   {
@@ -201,7 +209,8 @@ double GaussianMixtureModel::EvaluatePDF(int index, vnl_vector<double> &x, vnl_v
 {
   if (index < m_numOfGaussian)
   {
-    return (*m_gaussian)[index]->EvaluatePDF(x, xscratch); }
+    return m_gaussian[index]->EvaluatePDF(x, xscratch);
+  }
   else
   {
     std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
@@ -213,7 +222,8 @@ double GaussianMixtureModel::EvaluateLogPDF(int index, vnl_vector<double> &x, vn
 {
   if (index < m_numOfGaussian)
   {
-    return (*m_gaussian)[index]->EvaluateLogPDF(x, xscratch); }
+    return m_gaussian[index]->EvaluateLogPDF(x, xscratch);
+    }
   else
   {
     std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
@@ -227,8 +237,8 @@ void GaussianMixtureModel::PrintParameters()
   int i = 0;
   GaussianVectorIterator gaussianIter;
   WeightVectorIterator weightIter;
-  for(gaussianIter = m_gaussian->begin(), weightIter = m_weight->begin();
-      gaussianIter != m_gaussian->end(); ++gaussianIter, ++weightIter)
+  for(gaussianIter = m_gaussian.begin(), weightIter = m_weight.begin();
+      gaussianIter != m_gaussian.end(); ++gaussianIter, ++weightIter)
   {
     std::cout << std::endl << "Gaussian Component " << ++i << ":" << std::endl;
     std::cout << "weight:" << std::endl << *weightIter << std::endl;
@@ -238,15 +248,15 @@ void GaussianMixtureModel::PrintParameters()
 
 bool GaussianMixtureModel::IsForeground(int index)
 {
-  return (*m_foreground_state)[index];
+  return m_foreground_state[index];
 }
 
 void GaussianMixtureModel::SetForeground(int index)
 {
-  (*m_foreground_state)[index] = true;
+  m_foreground_state[index] = true;
 }
 
 void GaussianMixtureModel::SetBackground(int index)
 {
-  (*m_foreground_state)[index] = false;
+  m_foreground_state[index] = false;
 }

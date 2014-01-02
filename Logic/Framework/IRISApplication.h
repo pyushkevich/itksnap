@@ -64,6 +64,7 @@ class MeshManager;
 class AbstractLoadImageDelegate;
 class AbstractSaveImageDelegate;
 class IRISWarningList;
+class GaussianMixtureModel;
 
 
 template <class TTraits> class PresetManager;
@@ -587,8 +588,12 @@ protected:
 
   // Settings for the speed preprocessing. Still not sure this is the best
   // place to put this stuff!
-  // SmartPtr<ThresholdSettings> m_ThresholdSettings;
   SmartPtr<EdgePreprocessingSettings> m_EdgePreprocessingSettings;
+
+  // The last mixture model used for clustering. This is reused during repeated
+  // calls to the active contour segmentation, as long as the layers haven't
+  // been updated.
+  SmartPtr<GaussianMixtureModel> m_LastUsedMixtureModel;
 
   // The threshold-based preview wrapper type
   typedef SlicePreviewFilterWrapper<SmoothBinaryThresholdFilterConfigTraits>
@@ -639,6 +644,9 @@ protected:
   // Create layer-specific segmentation settings (threshold settings, e.g.)
   void CreateSegmentationSettings(ImageWrapperBase *wrapper, LayerRole role);
 
+  // Helper functions for GMM mode enter/exit
+  void EnterGMMPreprocessingMode();
+  void LeaveGMMPreprocessingMode();
 
   // ----------------------- Project support ------------------------------
 

@@ -2,6 +2,7 @@
 #define EM_GAUSSIAN_MIXTURES_H
 
 #include "GaussianMixtureModel.h"
+#include "SNAPCommon.h"
 
 class EMGaussianMixtures
 {
@@ -56,7 +57,8 @@ private:
   int m_setPriorFlag;
   int m_fail;
   double m_precision;
-  GaussianMixtureModel *m_gmm;
+
+  SmartPtr<GaussianMixtureModel> m_gmm;
 };
 
 #endif

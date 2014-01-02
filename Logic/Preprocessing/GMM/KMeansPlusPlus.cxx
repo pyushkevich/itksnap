@@ -11,7 +11,9 @@ KMeansPlusPlus::KMeansPlusPlus(double **x, int dataSize, int dataDim, int numOfC
   m_centers = new int[numOfClusters];
   m_xCounter = new int[numOfClusters];
   m_distance = new double[dataSize];
-  m_gmm = new GaussianMixtureModel(dataDim, numOfClusters);
+
+  m_gmm = GaussianMixtureModel::New();
+  m_gmm->Initialize(dataDim, numOfClusters);
 }
 
 KMeansPlusPlus::~KMeansPlusPlus()
@@ -20,7 +22,6 @@ KMeansPlusPlus::~KMeansPlusPlus()
   delete m_xCenter;
   delete m_xCounter;
   delete m_distance;
-  delete m_gmm;
 }
 
 double KMeansPlusPlus::Distance(double *x, double *y)

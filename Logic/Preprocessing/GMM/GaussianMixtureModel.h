@@ -1,21 +1,24 @@
 #ifndef GAUSSIAN_MIXTURE_MODEL_H
 #define GAUSSIAN_MIXTURE_MODEL_H
 
+#include "SNAPCommon.h"
 #include "itkDataObject.h"
+#include "itkObjectFactory.h"
 #include "Gaussian.h"
 #include <vector>
 
-class GaussianMixtureModel
+class GaussianMixtureModel : public itk::DataObject
 {
 public:
+  irisITKObjectMacro(GaussianMixtureModel, itk::DataObject)
+
   typedef std::vector<Gaussian *> GaussianVector;
   typedef std::vector<double> WeightVector;
   typedef std::vector<bool> BoolVector;
   typedef GaussianVector::iterator GaussianVectorIterator;
   typedef WeightVector::iterator WeightVectorIterator;
-  
-  GaussianMixtureModel(int dimOfGaussian, int numOfGaussian);
-  ~GaussianMixtureModel();
+
+  void Initialize(int dimOfGaussian, int numOfGaussian);
   
   Gaussian * GetGaussian(int index);
   double * GetMean(int index);
@@ -46,12 +49,16 @@ public:
   void SetForeground(int index);
   void SetBackground(int index);
   
-private:
+protected:
+
+  GaussianMixtureModel();
+  ~GaussianMixtureModel();
+
   int m_numOfGaussian;
   int m_dimOfGaussian;
-  GaussianVector *m_gaussian;
-  WeightVector *m_weight;
-  BoolVector *m_foreground_state;
+  GaussianVector m_gaussian;
+  WeightVector m_weight;
+  BoolVector m_foreground_state;
 };
 
 #endif

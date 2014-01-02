@@ -24,6 +24,8 @@ public:
 
   irisGetMacro(MixtureModel, GaussianMixtureModel *)
 
+  void SetMixtureModel(GaussianMixtureModel *model);
+
   void SetNumberOfClusters(int nClusters);
 
   void SetNumberOfSamples(int nSamples);

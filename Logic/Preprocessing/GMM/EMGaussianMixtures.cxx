@@ -22,7 +22,10 @@ EMGaussianMixtures::EMGaussianMixtures(double **x, int dataSize, int dataDim, in
   m_tmp3 = new double[dataDim*dataDim];
   m_sum = new double[numOfClass];
   m_weight = new double[numOfClass];
-  m_gmm = new GaussianMixtureModel(dataDim, numOfClass);
+
+  m_gmm = GaussianMixtureModel::New();
+  m_gmm->Initialize(dataDim, numOfClass);
+
   m_maxIteration = 30;
   m_precision = 1.0e-7;
   m_logLikelihood = std::numeric_limits<double>::infinity();
@@ -38,7 +41,6 @@ EMGaussianMixtures::~EMGaussianMixtures()
   delete m_tmp2;
   delete m_tmp3;
   delete m_sum;
-  delete m_gmm;
   delete m_weight;
 }
 
@@ -76,6 +78,10 @@ void EMGaussianMixtures::SetGaussianMixtureModel(GaussianMixtureModel *gmm)
     {
     m_gmm->SetGaussian(i, gmm->GetMean(i), gmm->GetCovariance(i));
     m_gmm->SetWeight(i, gmm->GetWeight(i));
+    if(gmm->IsForeground(i))
+      m_gmm->SetForeground(i);
+    else
+      m_gmm->SetBackground(i);
     }
 }
 

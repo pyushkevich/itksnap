@@ -796,10 +796,6 @@ void SnakeWizardModel::OnEdgePreprocessingPageEnter()
 void SnakeWizardModel::OnClusteringPageEnter()
 {
   m_Driver->EnterPreprocessingMode(PREPROCESS_GMM);
-
-  // Explicitly initialize the EM object
-  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
-
   InvokeEvent(GMMModifiedEvent());
   InvokeEvent(ModelUpdateEvent());
 }

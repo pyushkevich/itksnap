@@ -349,6 +349,10 @@ void SnakeWizardPanel::on_btnCancel_clicked()
   // Turn off the play button (will turn off the timer too)
   ui->btnPlay->setChecked(false);
 
+  // Make sure all dialogs are closed
+  m_SpeedDialog->close();
+  m_ParameterDialog->close();
+
   // Tell the model to return to initialization state
   m_Model->OnCancelSegmentation();
 

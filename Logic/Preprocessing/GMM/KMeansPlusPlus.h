@@ -2,6 +2,7 @@
 #define KMEANS_PLUS_PLUS_H
 
 #include "GaussianMixtureModel.h"
+#include "SNAPCommon.h"
 
 class KMeansPlusPlus
 {
@@ -21,7 +22,7 @@ private:
   int m_dataSize;
   int m_dataDim;
   int m_numOfClusters;
-  GaussianMixtureModel *m_gmm;
+  SmartPtr<GaussianMixtureModel> m_gmm;
 };
 
 #endif

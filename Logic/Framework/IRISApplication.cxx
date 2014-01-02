@@ -2293,6 +2293,65 @@ SnakeType IRISApplication::GetSnakeMode() const
   return m_GlobalState->GetSnakeType();
 }
 
+void IRISApplication::LeaveGMMPreprocessingMode()
+{
+  m_GMMPreviewWrapper->DetachInputsAndOutputs();
+
+  // Before deleting the clustering engine, we store the mixture model
+  // The smart pointer mechanism makes sure the mixture model lives on
+  // even if the clustering engine is deleted
+  m_LastUsedMixtureModel = m_ClusteringEngine->GetMixtureModel();
+
+  // Update the m_time on the mixture model, so in the future we can test
+  // if it is current
+  m_LastUsedMixtureModel->Modified();
+
+  // Deallocate whatever was created for GMM processing
+  m_ClusteringEngine = NULL;
+}
+
+void IRISApplication::EnterGMMPreprocessingMode()
+{
+  // Create a new clustering engine with some samples
+  m_ClusteringEngine = UnsupervisedClustering::New();
+  m_ClusteringEngine->SetDataSource(m_SNAPImageData);
+  m_ClusteringEngine->InitializeClusters();
+
+  // Check if the last used mixture model matches the number of componetns
+  bool can_use_saved_mixture =
+      (m_LastUsedMixtureModel &&
+       m_LastUsedMixtureModel->GetNumberOfComponents() ==
+       m_ClusteringEngine->GetMixtureModel()->GetNumberOfComponents());
+
+  if(can_use_saved_mixture)
+    {
+    // Check if the m-time on any of the images in IRISImageData has been
+    // updated, indicating that this is new/different data
+    for(LayerIterator lit = m_IRISImageData->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+        !lit.IsAtEnd(); ++lit)
+      {
+      if(lit.GetLayer()->GetImageBase()->GetMTime() > m_LastUsedMixtureModel->GetMTime())
+        {
+        can_use_saved_mixture = false;
+        break;
+        }
+      }
+
+    // If the timestamp check has been passed, we can use the original mixture.
+    // TODO: clean up this code, currently it does a lot of unnecessary calls to Kmeans++
+    if(can_use_saved_mixture)
+      {
+      m_ClusteringEngine->SetNumberOfClusters(m_LastUsedMixtureModel->GetNumberOfGaussians());
+      m_ClusteringEngine->InitializeClusters();
+      m_ClusteringEngine->SetMixtureModel(m_LastUsedMixtureModel);
+      }
+    }
+
+  m_GMMPreviewWrapper->AttachInputs(m_SNAPImageData);
+  m_GMMPreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());
+  m_GMMPreviewWrapper->SetParameters(m_ClusteringEngine->GetMixtureModel());
+}
+
 
 void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
 {
@@ -2312,10 +2371,7 @@ void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
       break;
 
     case PREPROCESS_GMM:
-      m_GMMPreviewWrapper->DetachInputsAndOutputs();
-
-      // Deallocate whatever was created for GMM processing
-      m_ClusteringEngine = NULL;
+      this->LeaveGMMPreprocessingMode();
       break;
 
     default:
@@ -2336,15 +2392,7 @@ void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
       break;
 
     case PREPROCESS_GMM:
-
-      // Create the EM class and maybe run the KNN plus method?
-      m_ClusteringEngine = UnsupervisedClustering::New();
-      m_ClusteringEngine->SetDataSource(m_SNAPImageData);
-      m_ClusteringEngine->InitializeClusters();
-
-      m_GMMPreviewWrapper->AttachInputs(m_SNAPImageData);
-      m_GMMPreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());
-      m_GMMPreviewWrapper->SetParameters(m_ClusteringEngine->GetMixtureModel());
+      this->EnterGMMPreprocessingMode();
       break;
 
     default:

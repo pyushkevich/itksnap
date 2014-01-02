@@ -49,6 +49,12 @@ void UnsupervisedClustering::SetDataSource(GenericImageData *imageData)
     }
 }
 
+void UnsupervisedClustering::SetMixtureModel(GaussianMixtureModel *model)
+{
+  m_ClusteringEM->SetGaussianMixtureModel(model);
+  m_MixtureModel = m_ClusteringEM->GetGaussianMixtureModel();
+}
+
 #include "itkImageRandomConstIteratorWithIndex.hxx"
 
 void UnsupervisedClustering::SampleDataSource()
@@ -232,8 +238,8 @@ void UnsupervisedClustering::SortClustersByRelevance()
   std::sort(rel.begin(), rel.end());
 
   // Create a new mixture model
-  GaussianMixtureModel *gmmtemp =
-      new GaussianMixtureModel(m_MixtureModel->GetNumberOfComponents(), ng);
+  SmartPtr<GaussianMixtureModel> gmmtemp = GaussianMixtureModel::New();
+  gmmtemp->Initialize(m_MixtureModel->GetNumberOfComponents(), ng);
   for(int k = 0; k < ng; k++)
     {
     int j = rel[k].second;
@@ -244,8 +250,6 @@ void UnsupervisedClustering::SortClustersByRelevance()
   // Assign it to the EM
   m_ClusteringEM->SetGaussianMixtureModel(gmmtemp);
   m_MixtureModel = m_ClusteringEM->GetGaussianMixtureModel();
-
-  delete gmmtemp;
 }
 
 
