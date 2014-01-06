@@ -29,6 +29,7 @@
 
 #include <QMainWindow>
 #include "SNAPCommon.h"
+#include "GlobalState.h"
 
 class GenericSliceView;
 class SliceViewPanel;
@@ -82,6 +83,12 @@ public:
 
   // Export a screenshot from one of the panels
   void ExportScreenshot(int panelIndex);
+
+  // Export a screenshot series from one of the panels
+  void ExportScreenshotSeries(AnatomicalDirection direction);
+
+  // Export a slice from one of the panels
+  void ExportSlice(AnatomicalDirection direction);
 
   // Handle drag and drop
   void dragEnterEvent(QDragEnterEvent *event);
@@ -201,6 +208,18 @@ private slots:
   void LoadProject(const QString &file);
 
   void onAnimationTimeout();
+
+  void on_actionExportAxial_triggered();
+
+  void on_actionExportCoronal_triggered();
+
+  void on_actionExportSagittal_triggered();
+
+  void on_actionSSSeriesAxial_triggered();
+
+  void on_actionSSSeriesCoronal_triggered();
+
+  void on_actionSSSeriesSagittal_triggered();
 
 protected:
 

@@ -966,6 +966,71 @@ void MainImageWindow::on_actionSSSagittal_triggered()
 }
 
 
+#include "SynchronizationModel.h"
+
+void MainImageWindow::ExportScreenshotSeries(AnatomicalDirection direction)
+{
+  // Get the corresponding window
+  unsigned int iWindow =
+      m_Model->GetDriver()->GetDisplayWindowForAnatomicalDirection(direction);
+
+  // Get the corresponding image direction
+  unsigned int iImageDir =
+      m_Model->GetDriver()->GetImageDirectionForAnatomicalDirection(direction);
+
+  // Browse for the output directory
+  QString duser = QFileDialog::getExistingDirectory(
+        this,
+        "Directory where to save the screenshot series");
+
+  if(!duser.length())
+    return;
+
+  // Generate the output filename
+  const char *names[] = { "axial0001.png", "coronal0001.png", "sagittal0001.png" };
+  std::string filename = to_utf8(QDir(duser).filePath(names[direction]));
+
+  // back up cursor location
+  Vector3ui xCrossImageOld = m_Model->GetDriver()->GetCursorPosition();
+  Vector3ui xCrossImage = xCrossImageOld;
+  Vector3ui xSize = m_Model->GetDriver()->GetCurrentImageData()->GetVolumeExtents();
+  xCrossImage[iImageDir] = 0;
+
+  // Get the panel that's saving
+  SliceViewPanel *svp = reinterpret_cast<SliceViewPanel *>(m_ViewPanels[iWindow]);
+  QtAbstractOpenGLBox *target = svp->GetSliceView();
+
+  // turn sync off temporarily
+  bool sync_state = m_Model->GetSynchronizationModel()->GetSyncEnabled();
+  m_Model->GetSynchronizationModel()->SetSyncEnabled(false);
+
+  for (size_t i = 0; i < xSize[iImageDir]; ++i)
+  {
+    // Set the cursor position
+    m_Model->GetDriver()->SetCursorPosition(xCrossImage);
+
+    // Repaint the GL window and save screenshot
+    target->SaveScreenshot(filename);
+    target->updateGL();
+    // QCoreApplication::processEvents();
+
+    // Go to the next slice
+    xCrossImage[iImageDir]++;
+
+    // Generate the next filename
+    m_Model->SetLastScreenshotFileName(filename);
+    filename = m_Model->GenerateScreenshotFilename();
+  }
+
+  // recover the original cursor position
+  m_Model->GetDriver()->SetCursorPosition(xCrossImageOld);
+
+  // turn sync back on
+  m_Model->GetSynchronizationModel()->SetSyncEnabled(sync_state);
+}
+
+
+
 void MainImageWindow::on_actionSegmentationIncreaseOpacity_triggered()
 {
   int opacity = m_Model->GetSegmentationOpacity();
@@ -1241,3 +1306,55 @@ void MainImageWindow::on_actionSaveWorkspaceAs_triggered()
   SaveWorkspace(true);
 }
 
+
+void MainImageWindow::ExportSlice(AnatomicalDirection direction)
+{
+  // Generate a default filename for this slice
+  static const char *defpref[3] = {"axial", "sagittal", "coronal"};
+  char deffn[40];
+
+  // Figure out what slice it is
+  size_t iSliceImg =
+    m_Model->GetDriver()->GetImageDirectionForAnatomicalDirection(direction);
+
+  sprintf(deffn,"%s_slice_%04d.png", defpref[direction],
+    m_Model->GetDriver()->GetCursorPosition()[iSliceImg] + 1);
+
+  // We need to get a filename for the export
+  std::string fuser = to_utf8(
+        QFileDialog::getSaveFileName(
+          this, "Save Slice As", deffn,"Images (*.png *.jpg *.tiff)"));
+
+  if(fuser.length())
+    m_Model->GetDriver()->ExportSlice(direction, fuser.c_str());
+}
+
+void MainImageWindow::on_actionExportAxial_triggered()
+{
+  this->ExportSlice(ANATOMY_AXIAL);
+}
+
+void MainImageWindow::on_actionExportCoronal_triggered()
+{
+  this->ExportSlice(ANATOMY_CORONAL);
+}
+
+void MainImageWindow::on_actionExportSagittal_triggered()
+{
+  this->ExportSlice(ANATOMY_SAGITTAL);
+}
+
+void MainImageWindow::on_actionSSSeriesAxial_triggered()
+{
+  this->ExportScreenshotSeries(ANATOMY_AXIAL);
+}
+
+void MainImageWindow::on_actionSSSeriesCoronal_triggered()
+{
+  this->ExportScreenshotSeries(ANATOMY_CORONAL);
+}
+
+void MainImageWindow::on_actionSSSeriesSagittal_triggered()
+{
+  this->ExportScreenshotSeries(ANATOMY_SAGITTAL);
+}

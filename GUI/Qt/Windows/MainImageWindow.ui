@@ -325,9 +325,9 @@ color:rgb(103, 103, 103);
       <property name="title">
        <string>Image Slice</string>
       </property>
-      <addaction name="actionAxial"/>
-      <addaction name="actionCoronal"/>
-      <addaction name="actionSagittal"/>
+      <addaction name="actionExportAxial"/>
+      <addaction name="actionExportCoronal"/>
+      <addaction name="actionExportSagittal"/>
      </widget>
      <widget class="QMenu" name="menuScreenshot">
       <property name="title">
@@ -337,9 +337,17 @@ color:rgb(103, 103, 103);
       <addaction name="actionSSCoronal"/>
       <addaction name="actionSSSagittal"/>
      </widget>
+     <widget class="QMenu" name="menuScreenshot_Series">
+      <property name="title">
+       <string>Screenshot Series</string>
+      </property>
+      <addaction name="actionSSSeriesAxial"/>
+      <addaction name="actionSSSeriesCoronal"/>
+      <addaction name="actionSSSeriesSagittal"/>
+     </widget>
      <addaction name="menuImage_Slice"/>
      <addaction name="menuScreenshot"/>
-     <addaction name="actionScreenshot_Series"/>
+     <addaction name="menuScreenshot_Series"/>
     </widget>
     <addaction name="actionOpenMain"/>
     <addaction name="menuRecent_Images"/>
@@ -577,24 +585,28 @@ color:rgb(103, 103, 103);
     <string>Ctrl+5</string>
    </property>
   </action>
-  <action name="actionScreenshot_Series">
-   <property name="text">
-    <string>Screenshot Series</string>
-   </property>
-  </action>
-  <action name="actionAxial">
+  <action name="actionExportAxial">
    <property name="text">
     <string>Axial</string>
    </property>
+   <property name="toolTip">
+    <string>Export axial image slice as an image</string>
+   </property>
   </action>
-  <action name="actionCoronal">
+  <action name="actionExportCoronal">
    <property name="text">
     <string>Coronal</string>
    </property>
+   <property name="toolTip">
+    <string>Export coronal image slice as an image</string>
+   </property>
   </action>
-  <action name="actionSagittal">
+  <action name="actionExportSagittal">
    <property name="text">
     <string>Sagittal</string>
+   </property>
+   <property name="toolTip">
+    <string>Export sagittal image slice as an image</string>
    </property>
   </action>
   <action name="actionUnload_All">
@@ -1084,6 +1096,30 @@ color:rgb(103, 103, 103);
   <action name="actionReset">
    <property name="text">
     <string>Reset to Defaults</string>
+   </property>
+  </action>
+  <action name="actionSSSeriesAxial">
+   <property name="text">
+    <string>Axial</string>
+   </property>
+   <property name="toolTip">
+    <string>Iterate through all the slices in the axial view and save as a series of PNG image files.</string>
+   </property>
+  </action>
+  <action name="actionSSSeriesCoronal">
+   <property name="text">
+    <string>Coronal</string>
+   </property>
+   <property name="toolTip">
+    <string>Iterate through all the slices in the coronal view and save as a series of PNG image files.</string>
+   </property>
+  </action>
+  <action name="actionSSSeriesSagittal">
+   <property name="text">
+    <string>Sagittal</string>
+   </property>
+   <property name="toolTip">
+    <string>Iterate through all the slices in the sagittal view and save as a series of PNG image files.</string>
    </property>
   </action>
  </widget>

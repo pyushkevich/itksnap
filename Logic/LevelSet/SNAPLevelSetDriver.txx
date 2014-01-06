@@ -57,7 +57,7 @@
 #pragma warning ( disable : 4503 )
 #endif
 
-/*
+/**
  * THIS IS A WORKAROUND FOR A BUG THAT I FOUND IN THE PARALLEL SPARSE LEVEL SET
  * FILTER. For small seeds, the way the filter splits up the image into regions
  * for different threads, some threads end up with empty regions (no nodes). The
