@@ -45,6 +45,9 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   m_DropMenu->addAction(ui->actionRestore_Viewpoint);
   m_DropMenu->addSeparator();
   m_DropMenu->addAction(ui->actionContinuous_Update);
+
+  // Make the actions globally accessible
+  this->addActions(m_DropMenu->actions());
 }
 
 ViewPanel3D::~ViewPanel3D()

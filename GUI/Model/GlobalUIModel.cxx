@@ -63,6 +63,7 @@
 #include "DefaultBehaviorSettings.h"
 #include "SNAPAppearanceSettings.h"
 #include "ImageIOWizardModel.h"
+#include "IntensityCurveInterface.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -315,6 +316,32 @@ bool GlobalUIModel::CheckState(UIState state)
     }
 
   return false;
+}
+
+void GlobalUIModel::AutoContrastAllLayers()
+{
+  GenericImageData *id = m_Driver->GetCurrentImageData();
+  for(LayerIterator it = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+    {
+    ImageWrapperBase *layer = it.GetLayer();
+    AbstractContinuousImageDisplayMappingPolicy *policy =
+        dynamic_cast<AbstractContinuousImageDisplayMappingPolicy *>(layer->GetDisplayMapping());
+    if(policy)
+      policy->AutoFitContrast();
+    }
+}
+
+void GlobalUIModel::ResetContrastAllLayers()
+{
+  GenericImageData *id = m_Driver->GetCurrentImageData();
+  for(LayerIterator it = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+    {
+    ImageWrapperBase *layer = it.GetLayer();
+    AbstractContinuousImageDisplayMappingPolicy *policy =
+        dynamic_cast<AbstractContinuousImageDisplayMappingPolicy *>(layer->GetDisplayMapping());
+    if(policy && policy->GetIntensityCurve())
+      policy->GetIntensityCurve()->Reset();
+    }
 }
 
 void GlobalUIModel::ToggleOverlayVisibility()
@@ -780,6 +807,63 @@ void GlobalUIModel::AnimateLayerComponents()
     }
 }
 
+void GlobalUIModel::IncrementDrawingColorLabel(int delta)
+{
+  ColorLabelTable *clt = m_Driver->GetColorLabelTable();
+  LabelType current = m_Driver->GetGlobalState()->GetDrawingColorLabel();
+  ColorLabelTable::ValidLabelConstIterator pos =
+      clt->GetValidLabels().find(current);
+  if(delta == 1)
+    ++pos;
+  else if(delta == -1)
+    --pos;
+
+  if(pos != clt->GetValidLabels().end())
+    m_Driver->GetGlobalState()->SetDrawingColorLabel(pos->first);
+}
+
+void GlobalUIModel::IncrementDrawOverColorLabel(int delta)
+{
+  // Handle basic cases
+  DrawOverFilter dof = m_Driver->GetGlobalState()->GetDrawOverFilter();
+  if(dof.CoverageMode == PAINT_OVER_ALL && delta == 1)
+    {
+    dof.CoverageMode = PAINT_OVER_VISIBLE;
+    }
+  else if(dof.CoverageMode == PAINT_OVER_VISIBLE && delta == 1)
+    {
+    dof.CoverageMode = PAINT_OVER_ONE;
+    dof.DrawOverLabel = 0;
+    }
+  else if(dof.CoverageMode == PAINT_OVER_VISIBLE && delta == -1)
+    {
+    dof.CoverageMode = PAINT_OVER_ALL;
+    }
+  else if(dof.CoverageMode == PAINT_OVER_ONE && delta == -1 && dof.DrawOverLabel == 0)
+    {
+    dof.CoverageMode = PAINT_OVER_VISIBLE;
+    dof.DrawOverLabel = 0;
+    }
+  else if(dof.CoverageMode == PAINT_OVER_ONE)
+    {
+    ColorLabelTable *clt = m_Driver->GetColorLabelTable();
+    ColorLabelTable::ValidLabelConstIterator pos =
+        clt->GetValidLabels().find(dof.DrawOverLabel);
+    if(delta == 1)
+      ++pos;
+    else if(delta == -1)
+      --pos;
+
+    if(pos != clt->GetValidLabels().end())
+      dof.DrawOverLabel = pos->first;
+    }
+  else
+    {
+    return;
+    }
+
+  m_Driver->GetGlobalState()->SetDrawOverFilter(dof);
+}
 
 void
 GlobalUIModel

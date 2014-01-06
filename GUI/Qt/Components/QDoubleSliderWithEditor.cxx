@@ -139,6 +139,16 @@ void QDoubleSliderWithEditor::spinnerValueChanged(double value)
     }
 }
 
+void QDoubleSliderWithEditor::stepUp()
+{
+  ui->spinbox->stepUp();
+}
+
+void QDoubleSliderWithEditor::stepDown()
+{
+  ui->spinbox->stepDown();
+}
+
 void QDoubleSliderWithEditor::setValueToNull()
 {
   // First, set the value to minimum

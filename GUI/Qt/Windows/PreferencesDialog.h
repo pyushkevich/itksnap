@@ -25,7 +25,9 @@ public:
   // This method should be used to show the dialog each time!
   void ShowDialog();
 
-  
+  // Goes to a particular page
+  void GoToAppearancePage();
+
 private slots:
   void on_listWidget_itemSelectionChanged();
 

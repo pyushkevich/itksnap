@@ -285,6 +285,18 @@ public:
    */
   void AnimateLayerComponents();
 
+  /** Increment the current color label (delta = 1 or -1) */
+  void IncrementDrawingColorLabel(int delta);
+
+  /** Increment the draw over color label (delta = 1 or -1) */
+  void IncrementDrawOverColorLabel(int delta);
+
+  /** Auto-adjust contrast in all image layers */
+  void AutoContrastAllLayers();
+
+  /** Auto-adjust contrast in all image layers */
+  void ResetContrastAllLayers();
+
 protected:
 
   GlobalUIModel(SystemInfoDelegate *sid);

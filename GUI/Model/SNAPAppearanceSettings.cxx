@@ -233,7 +233,7 @@ SNAPAppearanceSettings
     }
 
   // Initial visibility is true
-  m_OverallVisibility = true;
+  m_OverallVisibilityModel = NewSimpleConcreteProperty(true);
 }
 
 void
@@ -241,7 +241,7 @@ SNAPAppearanceSettings
 ::LoadFromRegistry(Registry &r)
 {
 
-  // Overall visibility is not saved or loaded
+  // Overall visibility is not saved or loaded (it's a temprary setting)
 
   // Load the user interface elements
   for(unsigned int iElement = 0; iElement < ELEMENT_COUNT; iElement++)

@@ -72,6 +72,9 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   ui->btnSplitNodes->setDefaultAction(ui->actionSplitSelected);
   ui->btnUndoLast->setDefaultAction(ui->actionUndo);
 
+  this->addAction(ui->actionZoom_In);
+  this->addAction(ui->actionZoom_Out);
+
   // Connect the context menu signal from polygon mode to this widget
   connect(ui->imPolygon, SIGNAL(contextMenuRequested()), SLOT(onContextMenu()));
 
@@ -470,4 +473,16 @@ void SliceViewPanel::on_btnToggleLayout_clicked()
     {
     dlm->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
     }
+}
+
+void SliceViewPanel::on_actionZoom_In_triggered()
+{
+  // Zoom in
+  m_GlobalUI->GetSliceCoordinator()->ZoomInOrOutInOneWindow(m_Index, 1.1);
+}
+
+void SliceViewPanel::on_actionZoom_Out_triggered()
+{
+  // Zoom out
+  m_GlobalUI->GetSliceCoordinator()->ZoomInOrOutInOneWindow(m_Index, 1.0 / 1.1);
 }

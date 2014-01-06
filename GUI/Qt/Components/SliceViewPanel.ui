@@ -637,7 +637,7 @@ p, li { white-space: pre-wrap; }
     <string>Deletes the selected vertices in the polygon</string>
    </property>
    <property name="shortcut">
-    <string>+</string>
+    <string>-</string>
    </property>
   </action>
   <action name="actionSplitSelected">
@@ -655,7 +655,7 @@ p, li { white-space: pre-wrap; }
     <string>Splits each selected edge in the polygon by inserting a new vertex in the middle</string>
    </property>
    <property name="shortcut">
-    <string>Del</string>
+    <string>+</string>
    </property>
   </action>
   <action name="actionClearPolygon">
@@ -689,6 +689,39 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="shortcut">
     <string>Ctrl+Return</string>
+   </property>
+  </action>
+  <action name="actionZoom_In">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/icons8_zoomin_16.png</normaloff>:/root/icons8_zoomin_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom In</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Up</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetWithChildrenShortcut</enum>
+   </property>
+  </action>
+  <action name="actionZoom_Out">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/icons8_zoomout_16.png</normaloff>:/root/icons8_zoomout_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom Out</string>
+   </property>
+   <property name="toolTip">
+    <string>Zoom Out</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Down</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetWithChildrenShortcut</enum>
    </property>
   </action>
  </widget>

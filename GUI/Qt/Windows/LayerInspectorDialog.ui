@@ -127,7 +127,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="GeneralLayerInspector" name="cmpComponent">
       <attribute name="title">

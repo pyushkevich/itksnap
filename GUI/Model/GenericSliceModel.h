@@ -189,6 +189,12 @@ public:
    * image space */
   irisSetWithEventMacro(ViewZoom, float, SliceModelGeometryChangeEvent)
 
+  /**
+   * Zoom in/out by a specified factor. This method will 'stop' at the optimal
+   * zoom if it's between the old zoom and the new zoom
+   */
+  void ZoomInOrOut(float factor);
+
   /** Get the zoom factor (number of pixels on the screen per millimeter in
    * image space */
   irisGetMacro(ViewZoom,float)

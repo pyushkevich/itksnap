@@ -192,9 +192,6 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   connect(ui->btnLoadMain, SIGNAL(clicked()), ui->actionOpenMain, SLOT(trigger()));
   connect(ui->btnLoadWorkspace, SIGNAL(clicked()), ui->actionOpenWorkspace, SLOT(trigger()));
 
-  // Add actions that are not on the menu
-  addAction(ui->actionZoomToFitInAllViews);
-  addAction(ui->actionCenter_on_Cursor);
 
   // Set up the progress dialog
   m_Progress = new QProgressDialog(this);
@@ -318,6 +315,18 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Set up activations - Edit menu
   activateOnFlag(ui->actionUndo, m_Model, UIF_UNDO_POSSIBLE);
   activateOnFlag(ui->actionRedo, m_Model, UIF_REDO_POSSIBLE);
+  activateOnFlag(ui->actionForegroundLabelNext, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionForegroundLabelPrev, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionBackgroundLabelNext, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionBackgroundLabelPrev, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+
+  // Add actions that are not on the menu
+  activateOnFlag(ui->actionZoomToFitInAllViews, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionCenter_on_Cursor, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionZoom_to_100, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionZoom_to_200, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionZoom_to_400, m_Model, UIF_BASEIMG_LOADED);
+
 
   // Set up activations - Segmentation menu
   activateOnFlag(ui->actionLoad_from_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
@@ -353,7 +362,10 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->action3DScalpel, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->action3DSpray, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
+  activateOnFlag(ui->actionLayerInspector, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionImage_Contrast, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionAutoContrastGlobal, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionResetContrastGlobal, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionColor_Map_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionLabel_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionImage_Information, m_Model, UIF_BASEIMG_LOADED);
@@ -855,6 +867,22 @@ void MainImageWindow::on_actionCenter_on_Cursor_triggered()
 {
   m_Model->GetSliceCoordinator()->CenterViewOnCursorInAllWindows();
 }
+
+void MainImageWindow::on_actionZoom_to_100_triggered()
+{
+  m_Model->GetSliceCoordinator()->SetZoomPercentageInAllWindows(1);
+}
+
+void MainImageWindow::on_actionZoom_to_200_triggered()
+{
+  m_Model->GetSliceCoordinator()->SetZoomPercentageInAllWindows(2);
+}
+
+void MainImageWindow::on_actionZoom_to_400_triggered()
+{
+  m_Model->GetSliceCoordinator()->SetZoomPercentageInAllWindows(4);
+}
+
 
 void MainImageWindow::on_actionUndo_triggered()
 {
@@ -1358,3 +1386,61 @@ void MainImageWindow::on_actionSSSeriesSagittal_triggered()
 {
   this->ExportScreenshotSeries(ANATOMY_SAGITTAL);
 }
+
+void MainImageWindow::on_actionForegroundLabelPrev_triggered()
+{
+  // Decrement the active label
+  m_Model->IncrementDrawingColorLabel(-1);
+}
+
+void MainImageWindow::on_actionForegroundLabelNext_triggered()
+{
+  // Increment the active label
+  m_Model->IncrementDrawingColorLabel(1);
+}
+
+void MainImageWindow::on_actionBackgroundLabelPrev_triggered()
+{
+  m_Model->IncrementDrawOverColorLabel(-1);
+}
+
+void MainImageWindow::on_actionBackgroundLabelNext_triggered()
+{
+  m_Model->IncrementDrawOverColorLabel(1);
+}
+
+void MainImageWindow::on_actionToggle_All_Annotations_triggered()
+{
+  // Toggle the overall visibility
+  m_Model->GetAppearanceSettings()->SetOverallVisibility(
+        !m_Model->GetAppearanceSettings()->GetOverallVisibility());
+}
+
+void MainImageWindow::on_actionToggle_Crosshair_triggered()
+{
+  // Toggle the crosshair visibility
+  OpenGLAppearanceElement *elt = m_Model->GetAppearanceSettings()->GetUIElement(
+        SNAPAppearanceSettings::CROSSHAIRS);
+  elt->SetVisible(!elt->GetVisible());
+}
+
+void MainImageWindow::on_actionAnnotation_Preferences_triggered()
+{
+  // Show the preferences dialog
+  m_PreferencesDialog->ShowDialog();
+  m_PreferencesDialog->GoToAppearancePage();
+}
+
+void MainImageWindow::on_actionAutoContrastGlobal_triggered()
+{
+  // This triggers the autocontrast option for all layers.
+  m_Model->AutoContrastAllLayers();
+}
+
+void MainImageWindow::on_actionResetContrastGlobal_triggered()
+{
+  // This triggers the autocontrast option for all layers.
+  m_Model->ResetContrastAllLayers();
+}
+
+

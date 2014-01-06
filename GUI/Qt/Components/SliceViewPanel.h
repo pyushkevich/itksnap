@@ -52,6 +52,10 @@ private slots:
 
   void on_btnToggleLayout_clicked();
 
+  void on_actionZoom_In_triggered();
+
+  void on_actionZoom_Out_triggered();
+
 private:
   Ui::SliceViewPanel *ui;
 

@@ -253,6 +253,23 @@ SliceWindowCoordinator
   m_SliceModel[window]->ResetViewToFit();
 }
 
+void
+SliceWindowCoordinator
+::ZoomInOrOutInOneWindow(unsigned int window, float factor)
+{
+  // Only if initialized
+  assert(m_WindowsRegistered);
+
+  // Apply in the current window
+  m_SliceModel[window]->ZoomInOrOut(factor);
+
+  // Reset zoom to fit in the current window
+  if(m_LinkedZoom)
+    {
+    SetZoomLevelAllWindows(m_SliceModel[window]->GetViewZoom());
+    }
+}
+
 void SliceWindowCoordinator::CenterViewOnCursorInAllWindows()
 {
   for(int i = 0; i < 3; i++)

@@ -625,7 +625,7 @@ IntensityCurveModel
 
 void IntensityCurveModel::OnResetCurveAction()
 {
-  this->GetCurve()->Initialize(this->GetCurve()->GetControlPointCount());
+  this->GetCurve()->Reset();
   InvokeEvent(ModelUpdateEvent());
 }
 

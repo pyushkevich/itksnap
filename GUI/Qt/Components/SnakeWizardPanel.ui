@@ -79,7 +79,7 @@ QGroupBox::title {
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="pgInfoPreproc">
          <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -203,7 +203,7 @@ p, li { white-space: pre-wrap; }
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="pgPreproc">
          <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -478,6 +478,9 @@ p, li { white-space: pre-wrap; }
             <property name="text">
              <string>Add Bubble at Cursor</string>
             </property>
+            <property name="shortcut">
+             <string>Return</string>
+            </property>
            </widget>
           </item>
           <item>
@@ -587,6 +590,9 @@ p, li { white-space: pre-wrap; }
             </property>
             <property name="text">
              <string>Delete Active Bubble</string>
+            </property>
+            <property name="shortcut">
+             <string>Backspace</string>
             </property>
            </widget>
           </item>
@@ -1053,6 +1059,25 @@ p, li { white-space: pre-wrap; }
     </widget>
    </item>
   </layout>
+  <action name="actionIncreaseBubbleRadius">
+   <property name="text">
+    <string>Increase bubble radius</string>
+   </property>
+   <property name="shortcut">
+    <string>+</string>
+   </property>
+  </action>
+  <action name="actionDecreaseBubbleRadius">
+   <property name="text">
+    <string>Decrease bubble radius</string>
+   </property>
+   <property name="toolTip">
+    <string>Decrease bubble radius</string>
+   </property>
+   <property name="shortcut">
+    <string>-</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

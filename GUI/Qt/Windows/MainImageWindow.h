@@ -221,6 +221,30 @@ private slots:
 
   void on_actionSSSeriesSagittal_triggered();
 
+  void on_actionForegroundLabelPrev_triggered();
+
+  void on_actionForegroundLabelNext_triggered();
+
+  void on_actionBackgroundLabelPrev_triggered();
+
+  void on_actionBackgroundLabelNext_triggered();
+
+  void on_actionToggle_All_Annotations_triggered();
+
+  void on_actionToggle_Crosshair_triggered();
+
+  void on_actionAnnotation_Preferences_triggered();
+
+  void on_actionAutoContrastGlobal_triggered();
+
+  void on_actionResetContrastGlobal_triggered();
+
+  void on_actionZoom_to_100_triggered();
+
+  void on_actionZoom_to_200_triggered();
+
+  void on_actionZoom_to_400_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);

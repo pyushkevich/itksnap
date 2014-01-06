@@ -189,6 +189,11 @@ void PreferencesDialog::ShowDialog()
   this->raise();
 }
 
+void PreferencesDialog::GoToAppearancePage()
+{
+  ui->listWidget->setCurrentRow(2);
+}
+
 void PreferencesDialog::on_listWidget_itemSelectionChanged()
 {
   // Select the right page in the right pane

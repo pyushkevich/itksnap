@@ -414,6 +414,20 @@ void GenericSliceModel::CenterViewOnCursor()
   this->SetViewPositionRelativeToCursor(offset);
 }
 
+void GenericSliceModel::ZoomInOrOut(float factor)
+{
+  float oldzoom = m_ViewZoom;
+  float newzoom = oldzoom * factor;
+
+  if( (oldzoom < m_OptimalZoom && newzoom > m_OptimalZoom) ||
+      (oldzoom > m_OptimalZoom && newzoom < m_OptimalZoom) )
+    {
+    newzoom = m_OptimalZoom;
+    }
+
+  SetViewZoom(newzoom);
+}
+
 /*
 GenericSliceModel *
 GenericSliceModel

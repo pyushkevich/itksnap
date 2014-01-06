@@ -13,6 +13,16 @@ PaintbrushToolPanel::PaintbrushToolPanel(QWidget *parent) :
   ui(new Ui::PaintbrushToolPanel)
 {
   ui->setupUi(this);
+
+  // Adjust the shortcuts for increase/decrease behavior
+  ui->actionBrushIncrease->setShortcuts(
+        ui->actionBrushIncrease->shortcuts() << QKeySequence('='));
+
+  ui->actionBrushDecrease->setShortcuts(
+        ui->actionBrushDecrease->shortcuts() << QKeySequence('_'));
+
+  addAction(ui->actionBrushIncrease);
+  addAction(ui->actionBrushDecrease);
 }
 
 PaintbrushToolPanel::~PaintbrushToolPanel()

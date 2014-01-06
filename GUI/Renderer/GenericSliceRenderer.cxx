@@ -37,6 +37,7 @@
 #include "ColorMapModel.h"
 #include "LayerAssociation.txx"
 #include "SliceWindowCoordinator.h"
+#include "PaintbrushSettingsModel.h"
 
 GenericSliceRenderer
 ::GenericSliceRenderer()
@@ -76,6 +77,15 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   // Listen to changes in appearance
   Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings(),
               ChildPropertyChangedEvent(), AppearanceUpdateEvent());
+
+  // Listen to overall visibility of overlaps
+  Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel(),
+              ValueChangedEvent(), AppearanceUpdateEvent());
+
+  // Paintbrush appearance changes
+  PaintbrushSettingsModel *psm = m_Model->GetParentUI()->GetPaintbrushSettingsModel();
+  Rebroadcast(psm->GetBrushSizeModel(), ValueChangedEvent(), AppearanceUpdateEvent());
+
 }
 
 void GenericSliceRenderer::OnUpdate()
@@ -206,12 +216,15 @@ GenericSliceRenderer
     glPushMatrix();
     glLoadIdentity();
 
-    // Draw the zoom locator
-    if(m_Model->IsThumbnailOn())
-      this->DrawThumbnail();
+    if(as->GetOverallVisibility())
+      {
+      // Draw the zoom locator
+      if(m_Model->IsThumbnailOn())
+        this->DrawThumbnail();
 
-    // Draw the global overlays
-    this->DrawGlobalOverlays();
+      // Draw the global overlays
+      this->DrawGlobalOverlays();
+      }
 
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();

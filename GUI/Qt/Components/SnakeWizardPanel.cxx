@@ -150,6 +150,16 @@ SnakeWizardPanel::SnakeWizardPanel(QWidget *parent) :
   // Hook up the timer!
   m_EvolutionTimer = new QTimer(this);
   connect(m_EvolutionTimer, SIGNAL(timeout()), this, SLOT(idleCallback()));
+
+  // Adjust the shortcuts for increase/decrease behavior
+  ui->actionIncreaseBubbleRadius->setShortcuts(
+        ui->actionIncreaseBubbleRadius->shortcuts() << QKeySequence('='));
+
+  ui->actionDecreaseBubbleRadius->setShortcuts(
+        ui->actionDecreaseBubbleRadius->shortcuts() << QKeySequence('_'));
+
+  this->addAction(ui->actionIncreaseBubbleRadius);
+  this->addAction(ui->actionDecreaseBubbleRadius);
 }
 
 SnakeWizardPanel::~SnakeWizardPanel()
@@ -359,4 +369,14 @@ void SnakeWizardPanel::on_btnCancel_clicked()
 
   // Tell parent to hide this window
   emit wizardFinished();
+}
+
+void SnakeWizardPanel::on_actionIncreaseBubbleRadius_triggered()
+{
+  ui->inBubbleRadius->stepUp();
+}
+
+void SnakeWizardPanel::on_actionDecreaseBubbleRadius_triggered()
+{
+  ui->inBubbleRadius->stepDown();
 }

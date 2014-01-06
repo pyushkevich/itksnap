@@ -46,6 +46,8 @@ public slots:
 
   void sliderValueChanged(int);
   void spinnerValueChanged(double);
+  void stepUp();
+  void stepDown();
 
 signals:
   void valueChanged(double);

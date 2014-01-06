@@ -94,6 +94,8 @@
         <file>icons8_fantasy_16.png</file>
         <file>COPYING</file>
         <file>license.txt</file>
+        <file>icons8_zoomin_16.png</file>
+        <file>icons8_zoomout_16.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

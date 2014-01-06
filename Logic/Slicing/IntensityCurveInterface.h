@@ -64,6 +64,11 @@ public:
   virtual void Initialize(unsigned int nControlPoints = 3) = 0;
 
   /**
+   * Reset to linear mapping, keeping number of points intact
+   */
+  virtual void Reset() { this->Initialize(this->GetControlPointCount()); }
+
+  /**
    * Get the value of a control point
    */
   virtual void GetControlPoint(unsigned int iControlPoint, 

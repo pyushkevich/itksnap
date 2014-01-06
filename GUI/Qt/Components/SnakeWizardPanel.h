@@ -97,6 +97,10 @@ private slots:
 
   void on_btnCancel_clicked();
 
+  void on_actionIncreaseBubbleRadius_triggered();
+
+  void on_actionDecreaseBubbleRadius_triggered();
+
 private:
 
   SpeedImageDialog *m_SpeedDialog;

@@ -104,6 +104,9 @@ public:
    * and if not, it only affects the given window */
   void ResetViewToFitInOneWindow(unsigned int window);
 
+  /** Update zoom by a specified factor in a window */
+  void ZoomInOrOutInOneWindow(unsigned int window, float factor);
+
   /** Center the view on the cursor in all slice windows */
   void CenterViewOnCursorInAllWindows();
 

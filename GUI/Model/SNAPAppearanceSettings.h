@@ -186,8 +186,7 @@ public:
   const OpenGLAppearanceElement *GetUIElementDefaultSettings(unsigned int iElement)
     { return m_DefaultElementSettings[iElement]; }
 
-  irisGetMacro(OverallVisibility, bool)
-  irisSetMacro(OverallVisibility, bool)
+  irisSimplePropertyAccessMacro(OverallVisibility, bool)
 
 protected:
 
@@ -195,7 +194,8 @@ protected:
   virtual ~SNAPAppearanceSettings() {}
 
 private:
-  bool m_OverallVisibility;
+  /** Overall visibility - overrides all other flags */
+  SmartPtr<ConcreteSimpleBooleanProperty> m_OverallVisibilityModel;
 
   /** An array of current user interface elements */
   SmartPtr<OpenGLAppearanceElement> m_Elements[ELEMENT_COUNT];

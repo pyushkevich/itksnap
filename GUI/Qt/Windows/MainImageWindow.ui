@@ -405,8 +405,6 @@ color:rgb(103, 103, 103);
     <addaction name="actionUnload_Last_Overlay"/>
     <addaction name="actionUnload_All_Overlays"/>
     <addaction name="separator"/>
-    <addaction name="actionLayerInspector"/>
-    <addaction name="separator"/>
     <addaction name="menuOverlayAppearance"/>
    </widget>
    <widget class="QMenu" name="menuTools">
@@ -432,12 +430,23 @@ color:rgb(103, 103, 103);
      <addaction name="action3DScalpel"/>
      <addaction name="action3DSpray"/>
     </widget>
-    <addaction name="menuActive_Main_Tool"/>
-    <addaction name="menuActive_3D_Tool"/>
+    <widget class="QMenu" name="menuContrast">
+     <property name="title">
+      <string>Image Contrast</string>
+     </property>
+     <addaction name="actionImage_Contrast"/>
+     <addaction name="separator"/>
+     <addaction name="actionAutoContrastGlobal"/>
+     <addaction name="actionResetContrastGlobal"/>
+    </widget>
+    <addaction name="actionLayerInspector"/>
     <addaction name="separator"/>
-    <addaction name="actionImage_Contrast"/>
+    <addaction name="menuContrast"/>
     <addaction name="actionColor_Map_Editor"/>
     <addaction name="actionImage_Information"/>
+    <addaction name="separator"/>
+    <addaction name="menuActive_Main_Tool"/>
+    <addaction name="menuActive_3D_Tool"/>
     <addaction name="separator"/>
     <addaction name="actionLabel_Editor"/>
     <addaction name="separator"/>
@@ -449,8 +458,50 @@ color:rgb(103, 103, 103);
     <property name="title">
      <string>Edit</string>
     </property>
+    <widget class="QMenu" name="menuForeground_Label">
+     <property name="title">
+      <string>Foreground Label</string>
+     </property>
+     <addaction name="actionForegroundLabelPrev"/>
+     <addaction name="actionForegroundLabelNext"/>
+    </widget>
+    <widget class="QMenu" name="menuBackground_Label">
+     <property name="title">
+      <string>Background Label</string>
+     </property>
+     <addaction name="actionBackgroundLabelPrev"/>
+     <addaction name="actionBackgroundLabelNext"/>
+    </widget>
+    <widget class="QMenu" name="menuSlice_Annotations">
+     <property name="title">
+      <string>Slice Annotations</string>
+     </property>
+     <addaction name="actionToggle_All_Annotations"/>
+     <addaction name="actionToggle_Crosshair"/>
+     <addaction name="separator"/>
+     <addaction name="actionAnnotation_Preferences"/>
+    </widget>
+    <widget class="QMenu" name="menuZoom">
+     <property name="title">
+      <string>View Zoom</string>
+     </property>
+     <addaction name="actionZoomToFitInAllViews"/>
+     <addaction name="separator"/>
+     <addaction name="actionZoom_to_100"/>
+     <addaction name="actionZoom_to_200"/>
+     <addaction name="actionZoom_to_400"/>
+     <addaction name="separator"/>
+     <addaction name="actionCenter_on_Cursor"/>
+    </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
+    <addaction name="separator"/>
+    <addaction name="menuForeground_Label"/>
+    <addaction name="menuBackground_Label"/>
+    <addaction name="separator"/>
+    <addaction name="menuSlice_Annotations"/>
+    <addaction name="separator"/>
+    <addaction name="menuZoom"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -640,9 +691,6 @@ color:rgb(103, 103, 103);
    <property name="toolTip">
     <string>Adjust image contrast</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+I</string>
-   </property>
   </action>
   <action name="actionLabel_Editor">
    <property name="text">
@@ -659,7 +707,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionZoomToFitInAllViews">
    <property name="text">
-    <string>ZoomToFitInAllViews</string>
+    <string>Zoom to Fit in All Views</string>
    </property>
    <property name="toolTip">
     <string>Reset the zoom factor in all views to fit</string>
@@ -670,13 +718,13 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionCenter_on_Cursor">
    <property name="text">
-    <string>Center on Cursor</string>
+    <string>Center All Views on Cursor</string>
    </property>
    <property name="toolTip">
     <string>Center each slice view on the cursor position</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+C</string>
+    <string>C</string>
    </property>
   </action>
   <action name="actionUndo">
@@ -826,6 +874,9 @@ color:rgb(103, 103, 103);
    </property>
    <property name="text">
     <string>Layer Inspector...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
   <action name="actionCrosshair">
@@ -1120,6 +1171,107 @@ color:rgb(103, 103, 103);
    </property>
    <property name="toolTip">
     <string>Iterate through all the slices in the sagittal view and save as a series of PNG image files.</string>
+   </property>
+  </action>
+  <action name="actionForegroundLabelPrev">
+   <property name="text">
+    <string>Previous</string>
+   </property>
+   <property name="shortcut">
+    <string>&lt;</string>
+   </property>
+  </action>
+  <action name="actionForegroundLabelNext">
+   <property name="text">
+    <string>Next</string>
+   </property>
+   <property name="shortcut">
+    <string>&gt;</string>
+   </property>
+  </action>
+  <action name="actionBackgroundLabelPrev">
+   <property name="text">
+    <string>Previous</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+,</string>
+   </property>
+  </action>
+  <action name="actionBackgroundLabelNext">
+   <property name="text">
+    <string>Next</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+.</string>
+   </property>
+  </action>
+  <action name="actionToggle_All_Annotations">
+   <property name="text">
+    <string>Toggle All Annotations</string>
+   </property>
+   <property name="shortcut">
+    <string>X</string>
+   </property>
+  </action>
+  <action name="actionToggle_Crosshair">
+   <property name="text">
+    <string>Toggle Crosshair</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+X</string>
+   </property>
+  </action>
+  <action name="actionAnnotation_Preferences">
+   <property name="text">
+    <string>Annotation Preferences...</string>
+   </property>
+  </action>
+  <action name="actionAutoContrastGlobal">
+   <property name="text">
+    <string>Auto-Adjust Contrast (all layers)</string>
+   </property>
+   <property name="toolTip">
+    <string>Automatically adjust contrast in the main image and all overlays</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+J</string>
+   </property>
+  </action>
+  <action name="actionResetContrastGlobal">
+   <property name="text">
+    <string>Reset Contrast (all layers)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+J</string>
+   </property>
+  </action>
+  <action name="actionHa">
+   <property name="text">
+    <string>Ha</string>
+   </property>
+  </action>
+  <action name="actionZoom_to_100">
+   <property name="text">
+    <string>Zoom to Actual Size x1</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+F, 1</string>
+   </property>
+  </action>
+  <action name="actionZoom_to_200">
+   <property name="text">
+    <string>Zoom to Actual Size x2</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+F, 2</string>
+   </property>
+  </action>
+  <action name="actionZoom_to_400">
+   <property name="text">
+    <string>Zoom to Actual Size x4</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+F, 4</string>
    </property>
   </action>
  </widget>
