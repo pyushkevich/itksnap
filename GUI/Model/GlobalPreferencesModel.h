@@ -38,6 +38,11 @@ public:
   // Default behaviors and permissions
   irisGetMacro(DefaultBehaviorSettings, DefaultBehaviorSettings *)
 
+  // The model controlling whether updates are enabled or disabled must
+  // be exposed to the GUI as a boolean model, whereas internally it is
+  // of an ENUM type
+  irisSimplePropertyAccessMacro(CheckForUpdate, bool)
+
   // Screen layout
   irisGetMacro(GlobalDisplaySettings, GlobalDisplaySettings *)
 
@@ -87,6 +92,11 @@ protected:
 
   // Default behaviors and permissions (copy of the system's settings)
   SmartPtr<DefaultBehaviorSettings> m_DefaultBehaviorSettings;
+
+  // Updates model
+  SmartPtr<AbstractSimpleBooleanProperty> m_CheckForUpdateModel;
+  bool GetCheckForUpdateValue(bool &outValue);
+  void SetCheckForUpdateValue(bool inValue);
 
   // Color map preset model (tricky)
   SmartPtr<ConcreteSimpleStringProperty> m_DefaultColorMapPresetModel;

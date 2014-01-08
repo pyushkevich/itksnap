@@ -9,18 +9,18 @@ AboutDialog::AboutDialog(QWidget *parent) :
 {
   ui->setupUi(this);
 
+  // Load the credits file
+  QFile fCredits(":root/credits.html");
+  if(fCredits.open(QFile::ReadOnly))
+    ui->outCredits->setHtml(QString(fCredits.readAll()));
+
   // Load the contents into the browser
   QFile fLicense(":/root/license.txt");
   if(fLicense.open(QFile::ReadOnly))
-    {
     ui->outLicense->setPlainText(QString(fLicense.readAll()));
-    }
 
   // Load the build information
-  QString temptext = ui->outBuild->toHtml();
-  temptext.replace("%BUILD_DATE%", SNAPBuildDate);
-  temptext.replace("%GIT_COMMIT%", SNAPGitSignature);
-  ui->outBuild->setHtml(temptext);
+  ui->outBuild->setPlainText(QString::fromUtf8(SNAPBuildInfo));
 }
 
 AboutDialog::~AboutDialog()

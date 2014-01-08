@@ -85,11 +85,7 @@ extern const char SNAPCurrentVersionReleaseDate[];
 extern const char SNAPLastIncompatibleReleaseDate[];
 
 // Build date - shown to help debugging nightly builds
-extern const char SNAPBuildDate[];
-
-// GIT signature
-extern const char SNAPGitSignature[];
-
+extern const char SNAPBuildInfo[];
 
 // Voxel types 
 // CAREFUL: do not redefine this to INT without disabling the usage of

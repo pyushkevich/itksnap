@@ -28,6 +28,11 @@ MACRO (TODAY RESULT)
     ENDIF (WIN32)
 ENDMACRO (TODAY)
 
+get_cmake_property(_variableNames VARIABLES)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
+
 
 #--------------------------------------------------------------------------------
 # VERSION INFORMATION                       
@@ -49,11 +54,11 @@ ENDMACRO (TODAY)
 SET(SNAP_VERSION_MAJOR 3)
 SET(SNAP_VERSION_MINOR 0)
 SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "-alpha")
+SET(SNAP_VERSION_QUALIFIER "-beta")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20131214")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Dec 14, 2013")
+SET(SNAP_VERSION_RELEASE_DATE "20140108")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Jan 08, 2014")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -85,6 +90,47 @@ ENDIF(DEFINED InsightApplications_SOURCE_DIR)
 IF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
   INCLUDE(${SNAP_SOURCE_DIR}/CMake/standalone.cmake)
 ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
+
+#--------------------------------------------------------------------------------
+# CPACK PACKAGE NAME
+# Create a complete name for the package, including the system information
+# (Shamelessly stolen from ParaView's CMakeLists.txt)
+#--------------------------------------------------------------------------------
+# *** THIS CODE MUST APPEAR BEFORE CALLING CONFIGURE_FILE on SNAPCommon.cxx ***
+#--------------------------------------------------------------------------------
+
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_FULL}-${SNAP_VERSION_RELEASE_DATE}")
+IF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
+  EXEC_PROGRAM(uname ARGS "-m" OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
+ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
+IF(NOT DEFINED CPACK_SYSTEM_NAME)
+  SET(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
+ENDIF(NOT DEFINED CPACK_SYSTEM_NAME)
+IF(${CPACK_SYSTEM_NAME} MATCHES Windows)
+  IF(CMAKE_CL_64)
+    SET(CPACK_SYSTEM_NAME win64-${CMAKE_SYSTEM_PROCESSOR})
+  ELSE(CMAKE_CL_64)
+    SET(CPACK_SYSTEM_NAME win32-${CMAKE_SYSTEM_PROCESSOR})
+  ENDIF(CMAKE_CL_64)
+ENDIF(${CPACK_SYSTEM_NAME} MATCHES Windows)
+
+# For Apple, we need to base the filename on the architecture
+IF(CMAKE_SYSTEM_NAME MATCHES Darwin)
+  STRING(REPLACE ";" "-" ARCH ${CMAKE_OSX_ARCHITECTURES})
+  SET(CPACK_SYSTEM_NAME "MacOS-${ARCH}")
+  MESSAGE(STATUS "   ARCH ${ARCH}")
+  MESSAGE(STATUS "   CMAKE_OSX_ARCHITECTURES ${CMAKE_OSX_ARCHITECTURES}")
+ENDIF(CMAKE_SYSTEM_NAME MATCHES Darwin)
+
+MESSAGE(STATUS "   CPACK_SYSTEM_NAME ${CPACK_SYSTEM_NAME}")
+
+SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
+
+MESSAGE(STATUS "   CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME}")
+
+# Additional CPack resources
+SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
+
 
 #--------------------------------------------------------------------------------
 # SOURCE FILE SPECIFICATION                 
@@ -908,46 +954,9 @@ ENDFOREACH(DATAFILE)
 # INSTALLATION AND PACKAGING SECTION
 #--------------------------------------------------------------------------------
 
-#--------------------------------------------------------------------------------
-# Create a complete name for the package, including the system information
-# (Shamelessly stolen from ParaView's CMakeLists.txt)
-
-SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_FULL}-${SNAP_VERSION_RELEASE_DATE}")
-IF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
-  EXEC_PROGRAM(uname ARGS "-m" OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
-ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
-IF(NOT DEFINED CPACK_SYSTEM_NAME)
-  SET(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
-ENDIF(NOT DEFINED CPACK_SYSTEM_NAME)
-IF(${CPACK_SYSTEM_NAME} MATCHES Windows)
-  IF(CMAKE_CL_64)
-    SET(CPACK_SYSTEM_NAME win64-${CMAKE_SYSTEM_PROCESSOR})
-  ELSE(CMAKE_CL_64)
-    SET(CPACK_SYSTEM_NAME win32-${CMAKE_SYSTEM_PROCESSOR})
-  ENDIF(CMAKE_CL_64)
-ENDIF(${CPACK_SYSTEM_NAME} MATCHES Windows)
-
 MESSAGE(STATUS "=== Installation Section ===")
 MESSAGE(STATUS "   CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR}")
 MESSAGE(STATUS "   CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
-
-# For Apple, we need to base the filename on the architecture
-IF(CMAKE_SYSTEM_NAME MATCHES Darwin)
-  STRING(REPLACE ";" "-" ARCH ${CMAKE_OSX_ARCHITECTURES})
-  SET(CPACK_SYSTEM_NAME "MacOS-${ARCH}")
-  MESSAGE(STATUS "   ARCH ${ARCH}")
-  MESSAGE(STATUS "   CMAKE_OSX_ARCHITECTURES ${CMAKE_OSX_ARCHITECTURES}")
-ENDIF(CMAKE_SYSTEM_NAME MATCHES Darwin)
-
-MESSAGE(STATUS "   CPACK_SYSTEM_NAME ${CPACK_SYSTEM_NAME}")
-
-SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
-
-MESSAGE(STATUS "   CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME}")
-
-# Additional CPack resources
-SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
-
 
 #--------------------------------------------------------------------------------
 # Install the application

@@ -96,7 +96,7 @@ QTabBar:tab:hover {
            <enum>QTabWidget::North</enum>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tabGettingStarted">
            <attribute name="title">
@@ -508,6 +508,10 @@ color:rgb(103, 103, 103);
      <string>Help</string>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="separator"/>
+    <addaction name="actionCheck_for_Updates"/>
+    <addaction name="separator"/>
+    <addaction name="actionDocumentation_Home"/>
    </widget>
    <widget class="QMenu" name="menuProject">
     <property name="title">
@@ -1272,6 +1276,16 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+F, 4</string>
+   </property>
+  </action>
+  <action name="actionCheck_for_Updates">
+   <property name="text">
+    <string>Check for Software Updates ...</string>
+   </property>
+  </action>
+  <action name="actionDocumentation_Home">
+   <property name="text">
+    <string>Documentation Home ...</string>
    </property>
   </action>
  </widget>

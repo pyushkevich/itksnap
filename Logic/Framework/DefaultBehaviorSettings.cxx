@@ -13,7 +13,11 @@ DefaultBehaviorSettings::DefaultBehaviorSettings()
   m_SyncPanModel = NewSimpleProperty("SyncPan", true);
 
   // Permissions
-  m_CheckForUpdatesModel = NewSimpleProperty("CheckForUpdates", true);
+  RegistryEnumMap<UpdateCheckingPermission> remUpdate;
+  remUpdate.AddPair(UPDATE_NO, "No");
+  remUpdate.AddPair(UPDATE_YES, "Yes");
+  remUpdate.AddPair(UPDATE_UNKNOWN, "Unknown");
+  m_CheckForUpdatesModel = NewSimpleEnumProperty("CheckForUpdates", UPDATE_UNKNOWN, remUpdate);
 
   // Overlay behavior
   m_OverlayColorMapPresetModel =

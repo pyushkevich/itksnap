@@ -43,6 +43,10 @@
 #ifndef __GlobalState_h_
 #define __GlobalState_h_
 
+class IRISApplication;
+class MeshOptions;
+class DefaultBehaviorSettings;
+
 #include <vector>
 #include "SNAPCommon.h"
 #include "SnakeParameters.h"
@@ -51,10 +55,6 @@
 #include "itkImageRegion.h"
 #include "PropertyModel.h"
 #include "ColorLabelPropertyModel.h"
-
-class IRISApplication;
-class MeshOptions;
-class DefaultBehaviorSettings;
 
 enum MeshFilterType
 {
