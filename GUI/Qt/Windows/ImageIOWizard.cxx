@@ -351,15 +351,17 @@ void SelectFilePage::on_btnBrowse_pressed()
   // Set the dialog properties
   if(m_Model->IsLoadMode())
     {
-    QFileInfo fi(from_utf8(file));
-    QString sel = QFileDialog::getOpenFileName(this, "Open Image File", fi.path());
+    // Get the file name
+    QString sel =
+        GetOpenFileNameBugFix(this, "Open Image File", m_InFilename->text());
+
     if(sel.length())
       m_InFilename->setText(sel);
     }
   else
     {
     QFileInfo fi(from_utf8(file));
-    QString sel = QFileDialog::getSaveFileName(this, "Save Image File", fi.path());
+    QString sel = QFileDialog::getSaveFileName(this, "Save Image File", fi.absoluteFilePath());
     if(sel.length())
       m_InFilename->setText(sel);
     }

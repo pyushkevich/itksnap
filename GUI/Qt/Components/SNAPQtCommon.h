@@ -140,4 +140,16 @@ inline QString from_utf8(const std::string &input)
   return QString::fromUtf8(input.c_str());
 }
 
+/**
+ * MacOS bug workaround (sort-of, not sure it always helps) for opening a single
+ * file using the native browser. The default implementation QFileDialog::getOpenFileName
+ * does not always set the directory correctly
+ */
+QString GetOpenFileNameBugFix(
+    QWidget *parent,
+    const QString &caption,
+    const QString &user_file = QString(),
+    const QString &filter = QString());
+
+
 #endif // SNAPQTCOMMON_H
