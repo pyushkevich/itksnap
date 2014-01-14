@@ -148,6 +148,12 @@ protected:
   virtual void CallCopyOutputRegionToInputRegion(InputImageRegionType &destRegion,
                               const OutputImageRegionType &srcRegion);
 
+  /*
+  void BeforeThreadedGenerateData();
+  void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
+                            ThreadIdType threadId);
+  void AfterThreadedGenerateData();
+*/
   /** 
    * IRISSlicer is not implemented as a multithreaded filter.
    * \sa ImageToImageFilter::GenerateData()  
