@@ -62,7 +62,10 @@ class GuidedNativeImageIO
 public:
 
   enum FileFormat {
-    FORMAT_ANALYZE=0, FORMAT_DICOM, FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
+    FORMAT_ANALYZE=0,
+    FORMAT_DICOM_DIR,       // A directory containing multiple DICOM files
+    FORMAT_DICOM_FILE,      // A single DICOM file
+    FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
     FORMAT_MHA, FORMAT_NIFTI, FORMAT_NRRD, FORMAT_RAW, FORMAT_SIEMENS,
     FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_COUNT};
 
@@ -327,9 +330,10 @@ private:
                              const gdcm::Tag & aTag,
                              const std::string & astrFileName);
 
-  static long int getTagLongInt(const gdcm::SmartPointer < gdcm::Scanner > apScanner,
-                                const gdcm::Tag & aTag,
-                                const std::string & astrFileName);
+  static bool getTagLongInt(const gdcm::SmartPointer < gdcm::Scanner > apScanner,
+                            const gdcm::Tag & aTag,
+                            const std::string & astrFileName,
+                            long int &out_value);
   
   struct DICOMFileInfo
   {

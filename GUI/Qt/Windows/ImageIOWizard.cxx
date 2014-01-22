@@ -231,7 +231,7 @@ void SelectFilePage::initializePage()
     GuidedNativeImageIO::FileFormatDescriptor fd =
       GuidedNativeImageIO::GetFileFormatDescriptor(fmt);
 
-    std::string text = fd.name + " File";
+    std::string text = fd.name;
 
     QStandardItem *item = new QStandardItem(text.c_str());
     item->setData(QVariant(fmt), Qt::UserRole);
@@ -284,7 +284,7 @@ bool SelectFilePage::validatePage()
     return true;
 
   // If format is DICOM, process the DICOM directory
-  if(fmt == GuidedNativeImageIO::FORMAT_DICOM)
+  if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR)
     {
     // Change cursor until this object moves out of scope
     QtCursorOverride curse(Qt::WaitCursor);
@@ -337,7 +337,7 @@ int SelectFilePage::nextId() const
   // Depending on the format, return the next page
   if(fmt == GuidedNativeImageIO::FORMAT_RAW)
     return ImageIOWizard::Page_Raw;
-  else if(fmt == GuidedNativeImageIO::FORMAT_DICOM)
+  else if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR)
     return ImageIOWizard::Page_DICOM;
   else
     return ImageIOWizard::Page_Summary;
