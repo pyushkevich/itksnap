@@ -60,7 +60,7 @@
 #include "gdcmFile.h"
 #include "gdcmScanner.h"
 #include "gdcmSmartPointer.h"
-#include "gdcmSorter.h"
+#include "gdcmIPPSorter.h"
 
 #include "itkGDCMSeriesFileNames.h"
 #include "itkImageToVectorImageFilter.h"
@@ -297,18 +297,27 @@ GuidedNativeImageIO
   // Read the information about the image
   if(m_FileFormat == FORMAT_DICOM_DIR)
     {
-    // Check if the array of filenames has been provided for us
-    m_DICOMFiles =
-      m_Hints.Folder("DICOM.SeriesFiles").GetArray(std::string("NULL"));
+    // NOTE: for the time being, we are relying on GDCMSeriesFileNames for
+    // proper sorting of the DICOM data. The downside is that this involves
+    // two scanning passes for the data, and loses some of the potential
+    // speed ups in the DICOM scanner code elsewhere in this class.
+    typedef itk::GDCMSeriesFileNames NamesGeneratorType;
+    NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
 
-    // If no filenames were specified, read the first series in the directory
-    if(m_DICOMFiles.size() == 0)
-      {
-      // Create a names generator. The input must be a directory
-      typedef itk::GDCMSeriesFileNames NamesGeneratorType;
-      NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
+    // Check if what was passed in is a directory or a file
+    if(itksys::SystemTools::FileIsDirectory(FileName))
       nameGenerator->SetDirectory(FileName);
+    else
+      nameGenerator->SetDirectory(itksys::SystemTools::GetParentDirectory(FileName));
 
+    // Select which series
+    if(m_Hints.HasEntry("DICOM.SeriesId"))
+      {
+      // Use the series provided by the user
+      m_DICOMFiles = nameGenerator->GetFileNames(m_Hints["DICOM.SeriesId"][""]);
+      }
+    else
+      {
       // Get the list of series in the directory
       const itk::SerieUIDContainer &sids = nameGenerator->GetSeriesUIDs();
 
@@ -327,6 +336,7 @@ GuidedNativeImageIO
       throw IRISException("Error: DICOM series not found. "
                           "Directory '%s' does not appear to contain a "
                           "series of DICOM images.",FileName);
+
     m_IOBase->SetFileName(m_DICOMFiles[0]);
     m_IOBase->ReadImageInformation();
     }
