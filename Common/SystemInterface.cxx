@@ -80,6 +80,9 @@
 using namespace std;
 using namespace itksys;
 
+// Initialize the info delegate to NULL
+SystemInfoDelegate *SystemInterface::m_SystemInfoDelegate = NULL;
+
 #if defined(WIN32)
 
 std::string
@@ -115,21 +118,39 @@ SystemInterface::GetApplicationDataDirectory()
   // std::string appdata = getenv("APPDATA");
 
 
+  std::string path2 = m_SystemInfoDelegate->GetApplicationPermanentDataLocation();
 
   // Append the full information
   std::string strPath = utf8_path + "/itksnap.org/ITK-SNAP";
+
+
   itksys::SystemTools::ConvertToUnixSlashes(strPath);
   // std::cout << "Roaming App Data Path is " << strPath << std::endl;
 
   return strPath;
 }
 
+/*
+std::string
+SystemInterface::GetApplicationDataDirectory()
+{
+  // This old code seems unnecessary - Qt delegate returns the right place for Mac
+  // std::string path("~/Library/Application Support/itksnap.org/ITK-SNAP");
+  std::string path = m_SystemInfoDelegate->GetApplicationPermanentDataLocation();
+  itksys::SystemTools::ConvertToUnixSlashes(path);
+  return path;
+}
+*/
+
+
 #elif defined(__APPLE__)
 
 std::string
 SystemInterface::GetApplicationDataDirectory()
 {
-  std::string path("~/Library/Application Support/itksnap.org/ITK-SNAP");
+  // This old code seems unnecessary - Qt delegate returns the right place for Mac
+  // std::string path("~/Library/Application Support/itksnap.org/ITK-SNAP");
+  std::string path = m_SystemInfoDelegate->GetApplicationPermanentDataLocation();
   itksys::SystemTools::ConvertToUnixSlashes(path);
   return path;
 }
@@ -149,6 +170,10 @@ SystemInterface::GetApplicationDataDirectory()
 SystemInterface
 ::SystemInterface()
 {
+  // Crash if no delegate
+  if(!SystemInterface::m_SystemInfoDelegate)
+    throw IRISException("Creating SystemInterface without a global SystemInfoDelegate set!");
+
   // Initialize the registry
   m_RegistryIO = new SNAPRegistryIO;
 

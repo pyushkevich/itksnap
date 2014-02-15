@@ -74,7 +74,7 @@
 template class SNAPUIFlag<GlobalUIModel, UIState>;
 
 
-GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
+GlobalUIModel::GlobalUIModel()
   : AbstractModel()
 {
   // Create the appearance settings objects
@@ -85,7 +85,6 @@ GlobalUIModel::GlobalUIModel(SystemInfoDelegate *sid)
 
   // Create the IRIS application login
   m_Driver = IRISApplication::New();
-  m_Driver->GetSystemInterface()->SetSystemInfoDelegate(sid);
 
   // Display layout model
   m_DisplayLayoutModel = DisplayLayoutModel::New();
@@ -401,14 +400,6 @@ void GlobalUIModel::AdjustOverlayOpacity(int delta)
   m_LayerGeneralPropertiesModel->SetLayer(curr_layer);
 }
 
-
-GlobalUIModel::Pointer
-GlobalUIModel::New(SystemInfoDelegate *sid)
-{
-  Pointer smartPtr = new GlobalUIModel(sid);
-  smartPtr->UnRegister();
-  return smartPtr;
-}
 
 void GlobalUIModel::SetGlobalDisplaySettings(
     const GlobalDisplaySettings *settings)

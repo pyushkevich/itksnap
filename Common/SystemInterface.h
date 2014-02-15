@@ -63,9 +63,15 @@ public:
 
   /**
    * Set a pointer to the delegate class that can be used to access
-   * system-specific information
+   * system-specific information. This method should be called before
+   * the first time SystemInterface is constructed, otherwise an exception
+   * will be fired.
    */
-  irisGetSetMacro(SystemInfoDelegate, SystemInfoDelegate *)
+  static SystemInfoDelegate * GetSystemInfoDelegate()
+    { return m_SystemInfoDelegate; }
+
+  static void SetSystemInfoDelegate(SystemInfoDelegate *_arg)
+    { m_SystemInfoDelegate = _arg; }
 
   /**
    * Get the full path to executable
@@ -209,7 +215,7 @@ private:
   HistoryManager *m_HistoryManager;
 
   // Delegate
-  SystemInfoDelegate *m_SystemInfoDelegate;
+  static SystemInfoDelegate *m_SystemInfoDelegate;
 
   // Filename encoder
   std::string EncodeFilename(const std::string &src);

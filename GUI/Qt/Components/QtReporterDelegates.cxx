@@ -96,6 +96,12 @@ std::string QtSystemInfoDelegate::GetApplicationFile()
   return to_utf8(QCoreApplication::applicationFilePath());
 }
 
+#include <QDesktopServices>
+std::string QtSystemInfoDelegate::GetApplicationPermanentDataLocation()
+{
+  return to_utf8(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+}
+
 void QtSystemInfoDelegate
 ::LoadResourceAsImage2D(std::string tag, GrayscaleImage *image)
 {

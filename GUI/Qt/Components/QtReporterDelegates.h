@@ -77,6 +77,7 @@ class QtSystemInfoDelegate : public SystemInfoDelegate
 public:
   virtual std::string GetApplicationDirectory();
   virtual std::string GetApplicationFile();
+  virtual std::string GetApplicationPermanentDataLocation();
 
   typedef itk::Image<unsigned char, 2> GrayscaleImage;
 

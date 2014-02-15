@@ -73,6 +73,8 @@ public:
   virtual std::string GetApplicationDirectory() = 0;
   virtual std::string GetApplicationFile() = 0;
 
+  virtual std::string GetApplicationPermanentDataLocation() = 0;
+
   typedef itk::Image<unsigned char, 2> GrayscaleImage;
   virtual void LoadResourceAsImage2D(std::string tag, GrayscaleImage *image) = 0;
   virtual void LoadResourceAsRegistry(std::string tag, Registry &reg) = 0;

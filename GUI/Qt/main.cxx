@@ -22,6 +22,7 @@
 #include "itkEventObject.h"
 #include "itkObject.h"
 #include "itkCommand.h"
+#include "vtkObject.h"
 
 #include <QPlastiqueStyle>
 #include <QWindowsVistaStyle>
@@ -72,7 +73,11 @@ class SNAPQApplication : public QApplication
 {
 public:
   SNAPQApplication(int argc, char **argv) :
-    QApplication(argc, argv) {}
+    QApplication(argc, argv)
+  {
+    this->setApplicationName("ITK-SNAP");
+    this->setOrganizationName("itksnap.org");
+  }
 
   bool notify(QObject *object, QEvent *event)
   {
@@ -178,13 +183,16 @@ void scriptChildren(QScriptEngine &engine, QObject *widget, QString parent)
     }
 }
 
+
 int main(int argc, char *argv[])
 {
   // Setup crash signal handlers
   SetupSignalHandlers();
 
-  // Turn off ITK warning windows
+  // Turn off ITK and VTK warning windows
   itk::Object::GlobalWarningDisplayOff();
+  vtkObject::GlobalWarningDisplayOff();
+
 
   // Connect Qt to the Renderer subsystem
   AbstractRenderer::SetPlatformSupport(new QtRendererPlatformSupport());
@@ -225,9 +233,13 @@ int main(int argc, char *argv[])
 
   app.setStyle(new QPlastiqueStyle);
 
-  // Create the global UI
+  // Before we can create any of the framework classes, we need to get some
+  // platform-specific functionality to the SystemInterface
   QtSystemInfoDelegate siDelegate;
-  SmartPtr<GlobalUIModel> gui = GlobalUIModel::New(&siDelegate);
+  SystemInterface::SetSystemInfoDelegate(&siDelegate);
+
+  // Create the global UI
+  SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
   IRISApplication *driver = gui->GetDriver();
 
   // Load the user preferences

@@ -148,6 +148,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_SnakeWizard = new SnakeWizardPanel(this);
   m_DockRight->setWidget(m_SnakeWizard);
   m_DockRight->setAllowedAreas(Qt::RightDockWidgetArea);
+  m_DockRight->setFeatures(
+        QDockWidget::DockWidgetFloatable |
+        QDockWidget::DockWidgetMovable);
   this->addDockWidget(Qt::RightDockWidgetArea, m_DockRight);
 
   // Set up the recent items panels

@@ -93,11 +93,9 @@ public:
   typedef SmartPtr<Self> Pointer;
   typedef SmartPtr<const Self> ConstPointer;
 
+  itkNewMacro(Self)
   itkTypeMacro(GlobalUIModel, AbstractModel)
 
-  // This class has a custom New function that takes a parameter, because
-  // this parameter is necessary for initialization
-  static Pointer New(SystemInfoDelegate *sid);
 
   // Events fired by this object
   FIRES(CursorUpdateEvent)
@@ -299,7 +297,7 @@ public:
 
 protected:
 
-  GlobalUIModel(SystemInfoDelegate *sid);
+  GlobalUIModel();
   ~GlobalUIModel();
 
   // Callback for reporting progress
