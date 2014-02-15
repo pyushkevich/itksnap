@@ -447,3 +447,34 @@ bool SaveWorkspace(GlobalUIModel *model, bool interactive, QWidget *widget)
     }
 }
 
+#include <QFileDialog>
+#include <QFileInfo>
+
+// MacOS bug workaround (sort-of, not sure it always helps) for opening a single
+// file using the native browser. The default implementation QFileDialog::getOpenFileName
+// does not always set the directory correctly
+QString GetOpenFileNameBugFix(
+    QWidget *parent,
+    const QString &caption,
+    const QString &user_file,
+    const QString &filter)
+{
+  QFileDialog dialog(parent, caption);
+  dialog.setFileMode(QFileDialog::ExistingFile);
+  dialog.setAcceptMode(QFileDialog::AcceptOpen);
+
+  if(user_file.length())
+    {
+    QFileInfo file_info(user_file);
+    dialog.setDirectory(file_info.absolutePath() + "/");
+    dialog.selectFile(file_info.fileName());
+    }
+
+  if(filter.length())
+    dialog.setFilter(filter);
+
+  if(dialog.exec() && dialog.selectedFiles().size())
+    return dialog.selectedFiles().first();
+  else
+    return QString();
+}

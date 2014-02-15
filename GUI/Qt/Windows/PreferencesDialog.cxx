@@ -91,7 +91,7 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   makeCoupling(ui->chkSyncCursor, dbs->GetSyncCursorModel());
   makeCoupling(ui->chkSyncZoom, dbs->GetSyncZoomModel());
   makeCoupling(ui->chkSyncPan, dbs->GetSyncPanModel());
-  makeCoupling(ui->chkCheckForUpdates, dbs->GetCheckForUpdatesModel());
+  makeCoupling(ui->chkCheckForUpdates, m_Model->GetCheckForUpdateModel());
 
   // Hook up the display layout properties
   GlobalDisplaySettings *gds = m_Model->GetGlobalDisplaySettings();
@@ -182,6 +182,7 @@ void PreferencesDialog::ShowDialog()
   if(!this->isVisible())
     {
     m_Model->InitializePreferences();
+    ui->listWidget->setCurrentRow(0);
     this->show();
     }
 

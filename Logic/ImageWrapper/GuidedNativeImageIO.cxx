@@ -60,7 +60,7 @@
 #include "gdcmFile.h"
 #include "gdcmScanner.h"
 #include "gdcmSmartPointer.h"
-#include "gdcmSorter.h"
+#include "gdcmIPPSorter.h"
 
 #include "itkGDCMSeriesFileNames.h"
 #include "itkImageToVectorImageFilter.h"
@@ -82,7 +82,8 @@ const GuidedNativeImageIO::FileFormatDescriptor
 GuidedNativeImageIO
 ::m_FileFormatDescrictorArray[] = {
   {"Analyze", "hdr,img,img.gz",      true,  false, true,  true},
-  {"DICOM", "dcm",                   false, true,  true,  true},
+  {"DICOM Image Series", "",         false, true,  true,  true},
+  {"DICOM Single Image", "dcm",      false, true,  true,  true},
   {"GE Version 4", "ge4",            false, false, true,  true},
   {"GE Version 5", "ge5",            false, false, true,  true},
   {"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
@@ -238,7 +239,8 @@ GuidedNativeImageIO
     case FORMAT_SIEMENS:    m_IOBase = itk::SiemensVisionImageIO::New(); break;
     case FORMAT_VTK:        m_IOBase = itk::VTKImageIO::New();           break;
     case FORMAT_VOXBO_CUB:  m_IOBase = itk::VoxBoCUBImageIO::New();      break;
-    case FORMAT_DICOM:      m_IOBase = itk::GDCMImageIO::New();          break;
+    case FORMAT_DICOM_DIR:
+    case FORMAT_DICOM_FILE: m_IOBase = itk::GDCMImageIO::New();          break;
     case FORMAT_RAW:
       {
       // Get the Raw header sub-folder
@@ -293,20 +295,29 @@ GuidedNativeImageIO
                         FileName, m_Hints["Format"][""]);
 
   // Read the information about the image
-  if(m_FileFormat == FORMAT_DICOM)
+  if(m_FileFormat == FORMAT_DICOM_DIR)
     {
-    // Check if the array of filenames has been provided for us
-    m_DICOMFiles =
-      m_Hints.Folder("DICOM.SeriesFiles").GetArray(std::string("NULL"));
+    // NOTE: for the time being, we are relying on GDCMSeriesFileNames for
+    // proper sorting of the DICOM data. The downside is that this involves
+    // two scanning passes for the data, and loses some of the potential
+    // speed ups in the DICOM scanner code elsewhere in this class.
+    typedef itk::GDCMSeriesFileNames NamesGeneratorType;
+    NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
 
-    // If no filenames were specified, read the first series in the directory
-    if(m_DICOMFiles.size() == 0)
-      {
-      // Create a names generator. The input must be a directory
-      typedef itk::GDCMSeriesFileNames NamesGeneratorType;
-      NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
+    // Check if what was passed in is a directory or a file
+    if(itksys::SystemTools::FileIsDirectory(FileName))
       nameGenerator->SetDirectory(FileName);
+    else
+      nameGenerator->SetDirectory(itksys::SystemTools::GetParentDirectory(FileName));
 
+    // Select which series
+    if(m_Hints.HasEntry("DICOM.SeriesId"))
+      {
+      // Use the series provided by the user
+      m_DICOMFiles = nameGenerator->GetFileNames(m_Hints["DICOM.SeriesId"][""]);
+      }
+    else
+      {
       // Get the list of series in the directory
       const itk::SerieUIDContainer &sids = nameGenerator->GetSeriesUIDs();
 
@@ -325,6 +336,7 @@ GuidedNativeImageIO
       throw IRISException("Error: DICOM series not found. "
                           "Directory '%s' does not appear to contain a "
                           "series of DICOM images.",FileName);
+
     m_IOBase->SetFileName(m_DICOMFiles[0]);
     m_IOBase->ReadImageInformation();
     }
@@ -408,7 +420,7 @@ GuidedNativeImageIO
   typedef itk::VectorImage<TScalar, 3> NativeImageType;
 
   // There is a special handler for the DICOM case!
-  if(m_FileFormat == FORMAT_DICOM && m_DICOMFiles.size() > 1)
+  if(m_FileFormat == FORMAT_DICOM_DIR && m_DICOMFiles.size() > 1)
     {
     // It seems that ITK can't yet read DICOM into a VectorImage. 
     typedef itk::Image<TScalar, 3> GreyImageType;
@@ -986,7 +998,15 @@ GuidedNativeImageIO::GuessFormatForFileName(
 
     // Check for DICOM
     if(havebuff && !strncmp(buffer+128,"DICM",4))
-      return FORMAT_DICOM;
+      {
+      // It's a DICOM file, but we would like to know if it's a series (i.e.
+      // we scan all the files in the directory) or if it's a single DICOM
+      // file (i.e., we just read it)
+      if(itksys::SystemTools::GetFilenameLastExtension(fname) == ".dcm")
+        return FORMAT_DICOM_FILE;
+      else
+        return FORMAT_DICOM_DIR;
+      }
 
     // Check for NIFTI. This is important because .hdr files can be either
     // NIFTI or Analyze, so we have to know what we are dealing with.
@@ -1037,8 +1057,15 @@ const char * GuidedNativeImageIO::tagToValueString(const gdcm::Scanner::TagToVal
                                                    const gdcm::Tag & aTag)
 {
   gdcm::Scanner::TagToValue::const_iterator it =  attv.find( aTag );
-  const char * value = it->second;
-  return(value);
+  if(it != attv.end())
+    {
+    const char * value = it->second;
+    return(value);
+    }
+  else
+    {
+    return NULL;
+    }
 }
 
 int GuidedNativeImageIO::tagToValueInt(const gdcm::Scanner::TagToValue & attv,
@@ -1097,21 +1124,13 @@ const char * GuidedNativeImageIO::getTag(const gdcm::SmartPointer < gdcm::Scanne
 
 }
 
-long int GuidedNativeImageIO::getTagLongInt(const gdcm::SmartPointer < gdcm::Scanner > apScanner,
-                                            const gdcm::Tag & aTag,
-                                            const string & astrFileName)
-{
-  
+bool GuidedNativeImageIO::getTagLongInt(const gdcm::SmartPointer < gdcm::Scanner > apScanner,
+                                        const gdcm::Tag & aTag,
+                                        const string & astrFileName,
+                                        long int &out_value)
+{  
   const char * pchRes = GuidedNativeImageIO::getTag(apScanner, aTag, astrFileName);
-  long int nRes;
-  bool bOk = from_string< long int >(nRes, pchRes);
-  if(bOk == false)
-    {
-      throw IRISException("INFO: file %s  does not contain a requested key or is not a DICOM file",
-                          astrFileName.c_str());
-    }
-  return(nRes);
-  
+  return (pchRes != NULL) && from_string< long int >(out_value, pchRes);
 }
 
 bool GuidedNativeImageIO::DICOMFileInfo::operator<(const GuidedNativeImageIO::DICOMFileInfo & aDICOMFileInfo) const
@@ -1205,10 +1224,9 @@ gdcm::SmartPointer < gdcm::Scanner > GuidedNativeImageIO::Scan(
       
     DICOMFileInfo dfi;
 
-      
-    dfi.m_nTagSeriesNumber = getTagLongInt(pScanner, m_tagSeriesNumber, strFileName);
-    dfi.m_nTagAcquisitionNumber = getTagLongInt(pScanner, m_tagAcquisitionNumber, strFileName);
-    dfi.m_nTagInstanceNumber = getTagLongInt(pScanner, m_tagInstanceNumber, strFileName);
+    getTagLongInt(pScanner, m_tagSeriesNumber, strFileName, dfi.m_nTagSeriesNumber);
+    getTagLongInt(pScanner, m_tagAcquisitionNumber, strFileName, dfi.m_nTagAcquisitionNumber);
+    getTagLongInt(pScanner, m_tagInstanceNumber, strFileName, dfi.m_nTagInstanceNumber);
     
     string strUID = strTagSeriesInstanceUID;
     

@@ -22,7 +22,12 @@ public:
   irisSimplePropertyAccessMacro(SyncPan, bool)
 
   // Permissions
-  irisSimplePropertyAccessMacro(CheckForUpdates, bool)
+  enum UpdateCheckingPermission {
+    UPDATE_YES, UPDATE_NO, UPDATE_UNKNOWN
+  };
+
+  /** Whether we are allowed to check for updates automatically */
+  irisSimplePropertyAccessMacro(CheckForUpdates, UpdateCheckingPermission)
 
   // Default colormap for overlays. Since this can be a user preset, the
   // value is specified as a string. This value may point to a preset that
@@ -44,7 +49,7 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncPanModel;
 
   // Permissions
-  SmartPtr<ConcreteSimpleBooleanProperty> m_CheckForUpdatesModel;
+  SmartPtr<ConcretePropertyModel<UpdateCheckingPermission> > m_CheckForUpdatesModel;
 
   // Overlay behaviors
   SmartPtr<ConcreteSimpleStringProperty> m_OverlayColorMapPresetModel;

@@ -482,6 +482,9 @@ int main(int argc, char *argv[])
     //return(0);
     }
 
+  // Check for updates?
+  mainwin->UpdateAutoCheck();
+
   // Run application
   int rc = app.exec();
 

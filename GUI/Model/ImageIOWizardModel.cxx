@@ -375,7 +375,7 @@ void ImageIOWizardModel
         m_DicomContents[series].Folder("SeriesFiles").GetArray(std::string()));
 
   // Set the format to DICOM
-  SetSelectedFormat(GuidedNativeImageIO::FORMAT_DICOM);
+  SetSelectedFormat(GuidedNativeImageIO::FORMAT_DICOM_DIR);
 
   // Get the directory
   std::string dir = GetBrowseDirectory(filename);

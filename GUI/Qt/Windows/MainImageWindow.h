@@ -28,8 +28,8 @@
 #define MAINIMAGEWINDOW_H
 
 #include <QMainWindow>
-#include "SNAPCommon.h"
 #include "GlobalState.h"
+#include "SNAPCommon.h"
 
 class GenericSliceView;
 class SliceViewPanel;
@@ -102,6 +102,9 @@ public:
 
   // Get the layer inspector
   LayerInspectorDialog *GetLayerInspector();
+
+  /** Check for updates (automatically at regular periods) */
+  void UpdateAutoCheck();
 
 public slots:
 
@@ -245,6 +248,10 @@ private slots:
 
   void on_actionZoom_to_400_triggered();
 
+  void on_actionCheck_for_Updates_triggered();
+
+  void on_actionDocumentation_Home_triggered();
+
 protected:
 
   bool eventFilter(QObject *obj, QEvent *event);
@@ -268,6 +275,9 @@ private:
 
   // Raise a dialog (equivalent to calling show, raise, activateWindow)
   void RaiseDialog(QDialog *dialog);
+
+  // Check for updates (quietly or loudly)
+  void DoUpdateCheck(bool quiet);
 
   // For convenience, an array of the four panels (3 slice/1 3D)
   QWidget *m_ViewPanels[4];

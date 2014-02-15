@@ -231,7 +231,7 @@ void SelectFilePage::initializePage()
     GuidedNativeImageIO::FileFormatDescriptor fd =
       GuidedNativeImageIO::GetFileFormatDescriptor(fmt);
 
-    std::string text = fd.name + " File";
+    std::string text = fd.name;
 
     QStandardItem *item = new QStandardItem(text.c_str());
     item->setData(QVariant(fmt), Qt::UserRole);
@@ -284,7 +284,7 @@ bool SelectFilePage::validatePage()
     return true;
 
   // If format is DICOM, process the DICOM directory
-  if(fmt == GuidedNativeImageIO::FORMAT_DICOM)
+  if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR)
     {
     // Change cursor until this object moves out of scope
     QtCursorOverride curse(Qt::WaitCursor);
@@ -337,7 +337,7 @@ int SelectFilePage::nextId() const
   // Depending on the format, return the next page
   if(fmt == GuidedNativeImageIO::FORMAT_RAW)
     return ImageIOWizard::Page_Raw;
-  else if(fmt == GuidedNativeImageIO::FORMAT_DICOM)
+  else if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR)
     return ImageIOWizard::Page_DICOM;
   else
     return ImageIOWizard::Page_Summary;
@@ -351,15 +351,17 @@ void SelectFilePage::on_btnBrowse_pressed()
   // Set the dialog properties
   if(m_Model->IsLoadMode())
     {
-    QFileInfo fi(from_utf8(file));
-    QString sel = QFileDialog::getOpenFileName(this, "Open Image File", fi.path());
+    // Get the file name
+    QString sel =
+        GetOpenFileNameBugFix(this, "Open Image File", m_InFilename->text());
+
     if(sel.length())
       m_InFilename->setText(sel);
     }
   else
     {
     QFileInfo fi(from_utf8(file));
-    QString sel = QFileDialog::getSaveFileName(this, "Save Image File", fi.path());
+    QString sel = QFileDialog::getSaveFileName(this, "Save Image File", fi.absoluteFilePath());
     if(sel.length())
       m_InFilename->setText(sel);
     }

@@ -853,22 +853,20 @@ SystemInterface
     {
     // Check the last update time stamp
     string lastUpdateTimeStamp = Entry("System.LastUpdateTimeStamp")["00000000"];
+
     // check for update every week
     if (atoi(lastUpdateTimeStamp.c_str()) == 0)
       {
-   	 // std::cout << "initialize auto update" << std::endl;
       Entry("System.LastUpdateTimeStamp") << time(NULL);
-	 }
+      }
     else if (atoi(lastUpdateTimeStamp.c_str()) + 604800 >= time(NULL))
       {
-      // std::cout << "too soon for auto update check" << std::endl;
       return US_TOO_SOON;
       }
     else
       {
-   	 // std::cout << "auto update" << std::endl;
       Entry("System.LastUpdateTimeStamp") << time(NULL);
-  	 }
+      }
     }
 
   int rv = -1, sockfd = -1, n = -1;
@@ -929,7 +927,7 @@ SystemInterface
 
     // Create the HTTP request
     ostringstream oss;
-    oss << "GET /version/" << SNAPArch 
+    oss << "GET /version3/" << SNAPArch
       << ".txt HTTP/1.1\r\nHost: www.itksnap.org\r\n\r\n";
 
     // Create HTTP request
@@ -968,7 +966,8 @@ SystemInterface
 
     // Read the next four values
     unsigned int vmajor = 0, vminor = 0, vpatch = 0;
-    string vqual;
+    string vqual, vdate;
+    iss >> vdate;
     iss >> vmajor;
     iss >> vminor;
     iss >> vpatch;
@@ -976,13 +975,13 @@ SystemInterface
 
     // Format the version in printable format
     ostringstream over;
-    over << vmajor << "." << vminor << "." << vpatch << vqual;
+    over << vmajor << "." << vminor << "." << vpatch;
+    if(vqual.length())
+      over << "-" << vqual;
     newversion = over.str();
 
     // Compare version
-    if(vmajor > SNAPVersionMajor
-      || (vmajor == SNAPVersionMajor && vminor > SNAPVersionMinor)
-      || (vmajor == SNAPVersionMajor && vminor == SNAPVersionMinor && vpatch > SNAPVersionPatch))
+    if(atoi(vdate.c_str()) > atoi(SNAPCurrentVersionReleaseDate))
       us = US_OUT_OF_DATE;
     else 
       us = US_UP_TO_DATE;

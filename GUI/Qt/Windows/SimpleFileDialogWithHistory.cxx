@@ -84,8 +84,9 @@ void SimpleFileDialogWithHistory::on_btnBrowse_clicked()
   QFileInfo file_info(ui->inFilename->text());
   if(m_OpenMode)
     {
-    QString sel = QFileDialog::getOpenFileName(
-          this, this->windowTitle(), file_info.path(), m_FilePattern);
+    QString sel =
+        GetOpenFileNameBugFix(this, this->windowTitle(),
+                              ui->inFilename->text(), m_FilePattern);
     if(sel.length())
       ui->inFilename->setText(sel);
     }

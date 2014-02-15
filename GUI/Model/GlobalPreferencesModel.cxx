@@ -13,6 +13,11 @@ GlobalPreferencesModel::GlobalPreferencesModel()
   m_GlobalDisplaySettings = GlobalDisplaySettings::New();
   m_MeshOptions = MeshOptions::New();
 
+  m_CheckForUpdateModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetCheckForUpdateValue, &Self::SetCheckForUpdateValue);
+  m_CheckForUpdateModel->RebroadcastFromSourceProperty(
+        m_DefaultBehaviorSettings->GetCheckForUpdatesModel());
+
   // Current appearance element
   m_ActiveUIElement = SNAPAppearanceSettings::CROSSHAIRS;
   m_ActiveUIElementModel = wrapGetterSetterPairAsProperty(
@@ -33,6 +38,25 @@ GlobalPreferencesModel::GlobalPreferencesModel()
           m_GlobalDisplaySettings->GetSliceLayoutModel());
     }
 
+}
+
+bool GlobalPreferencesModel::GetCheckForUpdateValue(bool &outValue)
+{
+  switch(m_DefaultBehaviorSettings->GetCheckForUpdates())
+    {
+    case DefaultBehaviorSettings::UPDATE_YES:
+      outValue = true; return true;
+    case DefaultBehaviorSettings::UPDATE_NO:
+      outValue = false; return true;
+    case DefaultBehaviorSettings::UPDATE_UNKNOWN:
+      return false;
+    }
+}
+
+void GlobalPreferencesModel::SetCheckForUpdateValue(bool inValue)
+{
+  m_DefaultBehaviorSettings->SetCheckForUpdates(
+        inValue ? DefaultBehaviorSettings::UPDATE_YES : DefaultBehaviorSettings::UPDATE_NO);
 }
 
 bool GlobalPreferencesModel::GetActiveUIElementValue(GlobalPreferencesModel::UIElement &value)

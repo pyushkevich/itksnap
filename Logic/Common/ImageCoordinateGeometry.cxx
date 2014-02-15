@@ -33,6 +33,7 @@
 
 =========================================================================*/
 #include "ImageCoordinateGeometry.h"
+#include "IRISException.h"
 
 const char ImageCoordinateGeometry::m_RAICodes[3][2] = {
   {'R', 'L'},
@@ -69,6 +70,11 @@ ImageCoordinateGeometry
   // Remap the direction matrix to an RAI code
   std::string imageAnatomyRAICode = 
     ConvertDirectionMatrixToClosestRAICode(m_ImageDirectionCosineMatrix);  
+
+  // Check the code
+  if(!IsRAICodeValid(imageAnatomyRAICode))
+    throw IRISException("Image has an invalid orientation (code %s)",
+                        imageAnatomyRAICode.c_str());
 
   // We can easily compute the image to anatomy transform
   m_ImageToAnatomyTransform.SetTransform(

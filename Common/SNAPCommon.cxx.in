@@ -33,6 +33,20 @@ const char SNAPUISoftVersion[] =
 // Release date of the current version
 const char SNAPCurrentVersionReleaseDate[] = "@SNAP_VERSION_RELEASE_DATE@";
 
+// String describing the current build environment
+const char SNAPBuildInfo[] =
+    "Build date        @SNAP_VERSION_COMPILE_DATE@\n"
+    "Git commit hash   @SNAP_VERSION_GIT_SHA1@\n"
+    "Build site name   @SITE@\n"
+    "Build OS          @CMAKE_HOST_SYSTEM@ @CMAKE_HOST_SYSTEM_PROCESSOR@\n"
+    "Build type        @CMAKE_BUILD_TYPE@\n"
+    "ITK version       @ITK_VERSION_MAJOR@.@ITK_VERSION_MINOR@.@ITK_VERSION_PATCH@\n"
+    "VTK version       @VTK_VERSION_MAJOR@.@VTK_VERSION_MINOR@.@VTK_VERSION_PATCH@\n"
+    "Qt version        @QTVERSION@\n"
+    "CMake version     @CMAKE_VERSION@\n"
+    "C compiler        @CMAKE_C_COMPILER_ID@ @CMAKE_C_COMPILER_VERSION@\n"
+    "C++ compiler      @CMAKE_CXX_COMPILER_ID@ @CMAKE_CXX_COMPILER_VERSION@\n";
+
 // Release date of the latest version whose user preference files are
 // incompatible with the current version and will be erased
 const char SNAPLastIncompatibleReleaseDate[] = "@SNAP_VERSION_LAST_COMPATIBLE_RELEASE_DATE@";

@@ -23,6 +23,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 =========================================================================*/
+#include "MeshOptions.h"
 
 #include "MainImageWindow.h"
 #include "ui_MainImageWindow.h"
@@ -54,6 +55,9 @@
 #include "IRISImageData.h"
 #include "AboutDialog.h"
 #include "HistoryManager.h"
+#include "DefaultBehaviorSettings.h"
+
+
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -78,6 +82,7 @@
 #include <QUrl>
 #include <QFileDialog>
 #include <QGLWidget>
+#include <QDesktopServices>
 #include <SNAPQtCommon.h>
 
 
@@ -1443,4 +1448,83 @@ void MainImageWindow::on_actionResetContrastGlobal_triggered()
   m_Model->ResetContrastAllLayers();
 }
 
+void MainImageWindow::DoUpdateCheck(bool quiet)
+{
+  std::string nver;
 
+  // Check for the update
+  SystemInterface::UpdateStatus  us =
+      m_Model->GetSystemInterface()->CheckUpdate(nver, 1, 0, !quiet);
+
+  // Communicate with the user
+  if(us == SystemInterface::US_OUT_OF_DATE)
+    {
+    QMessageBox mbox(this);
+    QPushButton *downloadButton = mbox.addButton("Open Download Page", QMessageBox::ActionRole);
+    mbox.addButton("Not Now", QMessageBox::RejectRole);
+    mbox.setIcon(QMessageBox::Question);
+    mbox.setText(QString("A newer ITK-SNAP version (%1) is available.").arg(nver.c_str()));
+    mbox.setInformativeText("Do you want to download the latest version?");
+    mbox.setWindowTitle("ITK-SNAP Update Check");
+    mbox.exec();
+
+    if (mbox.clickedButton() == downloadButton)
+      {
+      QDesktopServices::openUrl(QUrl("http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.SNAP3"));
+      }
+    }
+  else if(us == SystemInterface::US_UP_TO_DATE && !quiet)
+    {
+    QMessageBox::information(this, "ITK-SNAP Update Check",
+                             "Your version of ITK-SNAP is up to date!",
+                             QMessageBox::Ok);
+    }
+  else if(us == SystemInterface::US_CONNECTION_FAILED && !quiet)
+    {
+    QMessageBox::warning(this,
+                         "ITK-SNAP Update Check Failed",
+                         "Could not connect to server. Go to itksnap.org to check if a new"
+                         " version is available.");
+    }
+}
+
+void MainImageWindow::UpdateAutoCheck()
+{
+  // Get the update state
+  DefaultBehaviorSettings::UpdateCheckingPermission permission =
+      m_Model->GetGlobalState()->GetDefaultBehaviorSettings()->GetCheckForUpdates();
+
+  // If permission is unknown, prompt and change the setting
+  if(permission == DefaultBehaviorSettings::UPDATE_UNKNOWN)
+    {
+    if(QMessageBox::Yes == QMessageBox::question(
+         this, "Allow Automatic Update Checks?",
+         "ITK-SNAP can check for software updates automatically.\n"
+         "Do you want to enable this feature?",
+         QMessageBox::Yes, QMessageBox::No))
+      {
+      permission = DefaultBehaviorSettings::UPDATE_YES;
+      }
+    else
+      {
+      permission = DefaultBehaviorSettings::UPDATE_NO;
+      }
+    m_Model->GetGlobalState()->GetDefaultBehaviorSettings()->SetCheckForUpdates(permission);
+    }
+
+  // Execute the update check
+  if(permission == DefaultBehaviorSettings::UPDATE_YES)
+    {
+    DoUpdateCheck(true);
+    }
+}
+
+void MainImageWindow::on_actionCheck_for_Updates_triggered()
+{
+  DoUpdateCheck(false);
+}
+
+void MainImageWindow::on_actionDocumentation_Home_triggered()
+{
+  QDesktopServices::openUrl(QUrl("http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP3"));
+}
