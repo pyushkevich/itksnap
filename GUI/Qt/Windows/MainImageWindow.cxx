@@ -738,7 +738,7 @@ void MainImageWindow::LoadDroppedFile(QString file)
 
 void MainImageWindow::dropEvent(QDropEvent *event)
 {
-  QString file = event->mimeData()->urls().first().path();
+  QString file = event->mimeData()->urls().first().toLocalFile();
   LoadDroppedFile(file);
   event->acceptProposedAction();
 }
