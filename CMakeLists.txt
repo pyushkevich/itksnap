@@ -116,6 +116,7 @@ ENDIF(${CPACK_SYSTEM_NAME} MATCHES Windows)
 
 # For Apple, we need to base the filename on the architecture
 IF(CMAKE_SYSTEM_NAME MATCHES Darwin)
+  MESSAGE(STATUS "   INARCH ${CMAKE_OSX_ARCHITECTURES}")
   STRING(REPLACE ";" "-" ARCH ${CMAKE_OSX_ARCHITECTURES})
   SET(CPACK_SYSTEM_NAME "MacOS-${ARCH}")
   MESSAGE(STATUS "   ARCH ${ARCH}")
@@ -957,6 +958,9 @@ ENDFOREACH(DATAFILE)
 MESSAGE(STATUS "=== Installation Section ===")
 MESSAGE(STATUS "   CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR}")
 MESSAGE(STATUS "   CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
+MESSAGE(STATUS "   PACKAGE_DIR ${CPACK_PACKAGE_DIRECTORY}")
+MESSAGE(STATUS "   INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}")
+MESSAGE(STATUS "   DESTDIR $ENV{DESTDIR}")
 
 #--------------------------------------------------------------------------------
 # Install the application
@@ -967,6 +971,28 @@ IF(APPLE)
   # install tree, and on other platforms it'll go into the bin directory.
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} 
       BUNDLE DESTINATION . COMPONENT Runtime)
+
+  # On apple, we put a binary script along with a README file
+  INSTALL(FILES
+          ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap
+          DESTINATION . COMPONENT Runtime
+          PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                      GROUP_EXECUTE GROUP_READ)
+
+  # Try adding a link to /usr/local/bin
+  INSTALL(CODE "EXECUTE_PROCESS(COMMAND ln -sf /usr/local/bin usr_local_bin WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})")
+
+  INSTALL(FILES
+          ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/README.txt
+          DESTINATION . COMPONENT Runtime)
+
+  #INSTALL(FILES
+  #        ${SNAP_BINARY_DIR}/usr_local_bin
+  #        DESTINATION . COMPONENT Runtime)
+
+  # Set the DS STORE
+  SET(CPACK_DMG_DS_STORE ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/dsstore.bin)
+  SET(CPACK_DMG_BACKGROUND_IMAGE ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/background.png)
 
   # Include the qt4 dependent libraries
   include(DeployQt4)

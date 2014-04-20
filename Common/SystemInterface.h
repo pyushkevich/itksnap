@@ -200,9 +200,13 @@ public:
   UpdateStatus CheckUpdate(std::string &newversion, size_t sec, size_t usec, bool force = false);
 
   /**
-   * Launch a child SNAP process with specified command line options
+   * Launch a child SNAP process with specified command line options. The first
+   * option in argv should be the path to the SNAP executable
    */
-  void LaunchChildSNAP(std::list<std::string> args);
+  static void LaunchChildSNAP(int argc, char **argv, bool terminate_parent);
+
+  /** Simplified, non-static version of the above */
+  void LaunchChildSNAPSimple(std::list<std::string> args);
 
 private:
   std::string m_UserPreferenceFile;

@@ -38,6 +38,9 @@ QVariant HistoryQListModel::data(const QModelIndex &index, int role) const
     std::string iconfile = m_Model->GetDriver()->GetSystemInterface()
         ->GetThumbnailAssociatedWithFile(item.c_str());
 
+    // Debug: print thumbnail information
+    std::cerr << "Thumbnail for " << item << " is " << iconfile << std::endl;
+
     // Need to load the icon
     QIcon icon;
     icon.addFile(iconfile.c_str());

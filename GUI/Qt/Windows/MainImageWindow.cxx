@@ -405,6 +405,7 @@ void MainImageWindow::ShowFirstTime()
 
   // Show the window
   this->show();
+  this->raise();
 }
 
 // Slot for model updates
@@ -902,17 +903,20 @@ void MainImageWindow::on_actionRedo_triggered()
   m_Model->GetDriver()->Redo();
 }
 
-/** Filter application-level events */
+/** Filter application-level events
 bool MainImageWindow::eventFilter(QObject *obj, QEvent *event)
 {
   if (event->type() == QEvent::FileOpen)
     {
     QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
-    LoadDroppedFile(openEvent->url().path());
+    QMessageBox::information(this, "test", openEvent->url().path());
+    if(openEvent->url().path() != "NULL")
+      LoadDroppedFile(openEvent->url().path());
     return true;
     }
   else return false;
 }
+*/
 
 void MainImageWindow::on_actionOpenMain_triggered()
 {
