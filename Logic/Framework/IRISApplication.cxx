@@ -1686,9 +1686,16 @@ IRISApplication
   // crosshairs positions did not change from their previous values
   this->GetIRISImageData()->SetCrosshairs(cursor);
 
+  // Save the thumbnail for the current image. This ensures that a thumbnail
+  // is created even if the application crashes or is killed.
+  m_CurrentImageData->GetMain()->WriteThumbnail(
+        m_SystemInterface->GetThumbnailAssociatedWithFile(
+          io->GetFileNameOfNativeImage().c_str()).c_str(), 128);
+
   // Reset the UNDO manager
   m_UndoManager.Clear();
   m_UndoManager.SetCumulativeDelta(NULL);
+
 }
 
 void IRISApplication::LoadMetaDataAssociatedWithLayer(
