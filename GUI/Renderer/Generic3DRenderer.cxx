@@ -312,9 +312,6 @@ void Generic3DRenderer::UpdateAxisRendering()
       m_AxisLineSource[i]->Update();
 
       // Update the visual appearance
-      m_AxisActor[i]->GetProperty()->SetColor(1,0,0);
-      m_AxisActor[i]->GetProperty()->SetLineWidth(4);
-
       vtkProperty *prop = m_AxisActor[i]->GetProperty();
       prop->SetColor(axisapp->GetNormalColor().data_block());
       if(axisapp->GetDashSpacing() > 0)
@@ -322,6 +319,7 @@ void Generic3DRenderer::UpdateAxisRendering()
         prop->SetLineStipplePattern(0x9999);
         prop->SetLineStippleRepeatFactor(static_cast<int>(axisapp->GetDashSpacing()));
         prop->SetLineWidth(axisapp->GetLineThickness());
+        m_AxisActor[i]->SetVisibility(axisapp->GetVisible());
         }
 
       // Update the transform
