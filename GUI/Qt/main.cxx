@@ -239,11 +239,21 @@ int main(int argc, char *argv[])
   SystemInterface::SetSystemInfoDelegate(&siDelegate);
 
   // Create the global UI
-  SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
-  IRISApplication *driver = gui->GetDriver();
+  SmartPtr<GlobalUIModel> gui;
+  IRISApplication *driver;
+  try
+  {
+    gui = GlobalUIModel::New();
+    driver = gui->GetDriver();
 
-  // Load the user preferences
-  gui->LoadUserPreferences();
+    // Load the user preferences
+    gui->LoadUserPreferences();
+  }
+  catch(itk::ExceptionObject &exc)
+  {
+    ReportNonLethalException(NULL, exc, "ITK-SNAP failed to start", "Exception occurred during ITK-SNAP startup");
+    exit(-1);
+  }
 
   // Create the main window
   MainImageWindow *mainwin = new MainImageWindow();

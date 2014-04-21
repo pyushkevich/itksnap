@@ -178,7 +178,7 @@ SystemInterface
   // Make sure we have a preferences directory
   std::string appdir = GetApplicationDataDirectory();
   if(!itksys::SystemTools::MakeDirectory(appdir.c_str()))
-     throw IRISException("Unable to create application data directory %s", appdir.c_str());
+     throw IRISException("Unable to create application data directory %s.", appdir.c_str());
 
   // Set the preferences file
   m_UserPreferenceFile = appdir + "/UserPreferences.xml";
