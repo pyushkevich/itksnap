@@ -261,7 +261,7 @@ void SystemInterface
 ::LaunchChildSNAP(int argc, char **argv, bool terminate_parent)
 {
   // Create new argument list
-  char * newargv[argc+2];
+  char **newargv = new char * [argc + 2];
 
   // Zeroth argument remains
   newargv[0] = argv[0];
