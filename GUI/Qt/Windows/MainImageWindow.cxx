@@ -1554,3 +1554,10 @@ void MainImageWindow::on_actionDocumentation_Home_triggered()
 {
   QDesktopServices::openUrl(QUrl("http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP3"));
 }
+
+void MainImageWindow::on_actionNew_ITK_SNAP_Window_triggered()
+{
+  // Launch a new SNAP
+  std::list<std::string> args;
+  m_Model->GetSystemInterface()->LaunchChildSNAPSimple(args);
+}

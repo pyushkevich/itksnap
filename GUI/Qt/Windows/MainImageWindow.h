@@ -258,6 +258,8 @@ private slots:
 
   void on_actionDocumentation_Home_triggered();
 
+  void on_actionNew_ITK_SNAP_Window_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

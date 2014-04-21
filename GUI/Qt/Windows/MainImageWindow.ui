@@ -356,6 +356,9 @@ color:rgb(103, 103, 103);
     <addaction name="menuExport"/>
     <addaction name="separator"/>
     <addaction name="actionUnload_All"/>
+    <addaction name="separator"/>
+    <addaction name="actionNew_ITK_SNAP_Window"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuSegmentation">
@@ -1286,6 +1289,11 @@ color:rgb(103, 103, 103);
   <action name="actionDocumentation_Home">
    <property name="text">
     <string>Documentation Home ...</string>
+   </property>
+  </action>
+  <action name="actionNew_ITK_SNAP_Window">
+   <property name="text">
+    <string>New ITK-SNAP Window</string>
    </property>
   </action>
  </widget>
