@@ -498,203 +498,204 @@ int main(int argc, char *argv[])
     // Create the main window
     MainImageWindow *mainwin = new MainImageWindow();
     mainwin->Initialize(gui);
+
+    // Start parsing options
+    IRISWarningList warnings;
+
+    // Check if a workspace is being loaded
+    if(argdata.fnWorkspace.size())
+      {
+      // Put a waiting cursor
+      QtCursorOverride curse(Qt::WaitCursor);
+
+      // Load the workspace
+      try
+        {
+        driver->OpenProject(argdata.fnWorkspace, warnings);
+        }
+      catch(std::exception &exc)
+        {
+        ReportNonLethalException(mainwin, exc, "Workspace Error",
+                                 QString("Failed to load workspace %1").arg(
+                                   from_utf8(argdata.fnWorkspace)));
+        }
+      }
+    else
+      {
+      // Load main image file
+      if(argdata.fnMain.size())
+        {
+        // Put a waiting cursor
+        QtCursorOverride curse(Qt::WaitCursor);
+
+        // Try loading the image
+        try
+          {
+          // Load the main image. If that fails, all else should fail too
+          driver->LoadImage(argdata.fnMain.c_str(), MAIN_ROLE, warnings);
+
+          // Load the segmentation
+          if(argdata.fnSegmentation.size())
+            {
+            try
+              {
+              driver->LoadImage(argdata.fnSegmentation.c_str(), LABEL_ROLE, warnings);
+              }
+            catch(std::exception &exc)
+              {
+              ReportNonLethalException(mainwin, exc, "Image IO Error",
+                                       QString("Failed to load segmentation %1").arg(
+                                         from_utf8(argdata.fnSegmentation)));
+              }
+            }
+
+          // Load the overlays
+          if(argdata.fnOverlay.size())
+            {
+            std::string current_overlay;
+            try
+            {
+              for(int i = 0; i < argdata.fnOverlay.size(); i++)
+                {
+                current_overlay = argdata.fnOverlay[i];
+                driver->LoadImage(current_overlay.c_str(), OVERLAY_ROLE, warnings);
+                }
+            }
+            catch(std::exception &exc)
+              {
+              ReportNonLethalException(mainwin, exc, "Overlay IO Error",
+                                       QString("Failed to load overlay %1").arg(
+                                         from_utf8(current_overlay)));
+              }
+            }
+          }
+        catch(std::exception &exc)
+          {
+          ReportNonLethalException(mainwin, exc, "Image IO Error",
+                                   QString("Failed to load image %1").arg(
+                                     from_utf8(argdata.fnMain)));
+          }
+        } // if main image filename supplied
+
+      if(argdata.fnLabelDesc.size())
+        {
+        try
+          {
+          // Load the label file
+          driver->LoadLabelDescriptions(argdata.fnLabelDesc.c_str());
+          }
+        catch(std::exception &exc)
+          {
+          ReportNonLethalException(mainwin, exc, "Label Description IO Error",
+                                   QString("Failed to load labels from %1").arg(
+                                     from_utf8(argdata.fnLabelDesc)));
+          }
+        }
+      } // Not loading workspace
+
+    // Zoom level
+    if(argdata.xZoomFactor > 0)
+      {
+      gui->GetSliceCoordinator()->SetLinkedZoom(true);
+      gui->GetSliceCoordinator()->SetZoomLevelAllWindows(argdata.xZoomFactor);
+      }
+
+    /*
+     * ADD THIS LATER!
+
+    if(parseResult.IsOptionPresent("--compact"))
+      {
+      string slice = parseResult.GetOptionParameter("--compact");
+      if(slice.length() == 0 || !(slice[0] == 'a' || slice[0] == 'c' || slice[0] == 's'))
+        cerr << "Wrong parameter passed for '--compact', ignoring" << endl;
+      else
+        {
+        DisplayLayout dl = ui->GetDisplayLayout();
+        dl.show_main_ui = false;
+        ui->SetDisplayLayout(dl);
+        dl.show_panel_ui = false;
+        ui->SetDisplayLayout(dl);
+        dl.size = HALF_SIZE;
+        ui->SetDisplayLayout(dl);
+        dl.slice_config = slice[0] == 'a' ? AXIAL : (slice[0] == 'c' ? CORONAL : SAGITTAL);
+        ui->SetDisplayLayout(dl);
+        }
+      }
+      */
+
+    // Play with scripting
+    // QScriptEngine engine;
+    // QScriptEngineDebugger bugger;
+    // bugger.attachTo(&engine);
+
+    // Find all the child widgets of mainwin
+    // engine.globalObject().setProperty("snap", engine.newQObject(mainwin));
+
+    // Configure the IPC communications (as a hidden widget)
+    QtIPCManager *ipcman = new QtIPCManager(mainwin);
+    ipcman->hide();
+    ipcman->SetModel(gui->GetSynchronizationModel());
+
+    // Start in cross-hairs mode
+    gui->GetGlobalState()->SetToolbarMode(CROSSHAIRS_MODE);
+
+    // Show the panel
+    mainwin->ShowFirstTime();
+
+    if(argdata.xTestId.size())
+      {
+      SNAPTestQt tester;
+      tester.Initialize(mainwin, gui, argdata.fnTestDir);
+      tester.RunTest(argdata.xTestId);
+      }
+
+    /*
+    if(parseResult.IsOptionPresent("--testQtScript"))
+      {
+      int nIndxTest = atoi(parseResult.GetOptionParameter("--testQtScript"));
+      cout << "Prototype Test with QtScript executed - Test nr " << nIndxTest << endl;
+      cout << "CheckResultQtScript" << endl;
+
+      // Should have one script C++ class, multiple text scripts in QtScript format
+
+      //QtScriptTest1(&eng  ine);
+      //Yes, with memory leak so far
+      QtScriptTest1 * pTest1 = new QtScriptTest1();
+      pTest1->Initialize(mainwin, gui, "");
+      pTest1->Run(&engine);
+
+      //return(0);
+      }
+      */
+
+    // Check for updates?
+    mainwin->UpdateAutoCheck();
+
+    // Assign the main window to the application. We do this right before
+    // starting the event loop.
+    app.setMainWindow(mainwin);
+
+    // Run application
+    int rc = app.exec();
+
+    // If everything cool, save the preferences
+    if(!rc)
+      gui->SaveUserPreferences();
+
+    // Unload the main image before all the destructors start firing
+    driver->UnloadMainImage();
+
+    // Get rid of the main window while the model is still alive
+    delete mainwin;
+
+    // Destroy the model after the GUI is destroyed
+    gui = NULL;
     }
-  catch(itk::ExceptionObject &exc)
+  catch(std::exception &exc)
     {
     ReportNonLethalException(NULL, exc, "ITK-SNAP failed to start", "Exception occurred during ITK-SNAP startup");
     exit(-1);
     }
 
-  // Start parsing options
-  IRISWarningList warnings;
-
-  // Check if a workspace is being loaded
-  if(argdata.fnWorkspace.size())
-    {
-    // Put a waiting cursor
-    QtCursorOverride curse(Qt::WaitCursor);
-
-    // Load the workspace
-    try
-      {
-      driver->OpenProject(argdata.fnWorkspace, warnings);
-      }
-    catch(std::exception &exc)
-      {
-      ReportNonLethalException(mainwin, exc, "Workspace Error",
-                               QString("Failed to load workspace %1").arg(
-                                 from_utf8(argdata.fnWorkspace)));
-      }
-    }
-  else
-    {
-    // Load main image file
-    if(argdata.fnMain.size())
-      {
-      // Put a waiting cursor
-      QtCursorOverride curse(Qt::WaitCursor);
-
-      // Try loading the image
-      try
-        {
-        // Load the main image. If that fails, all else should fail too
-        driver->LoadImage(argdata.fnMain.c_str(), MAIN_ROLE, warnings);
-
-        // Load the segmentation
-        if(argdata.fnSegmentation.size())
-          {
-          try
-            {
-            driver->LoadImage(argdata.fnSegmentation.c_str(), LABEL_ROLE, warnings);
-            }
-          catch(std::exception &exc)
-            {
-            ReportNonLethalException(mainwin, exc, "Image IO Error",
-                                     QString("Failed to load segmentation %1").arg(
-                                       from_utf8(argdata.fnSegmentation)));
-            }
-          }
-
-        // Load the overlays
-        if(argdata.fnOverlay.size())
-          {
-          std::string current_overlay;
-          try
-          {
-            for(int i = 0; i < argdata.fnOverlay.size(); i++)
-              {
-              current_overlay = argdata.fnOverlay[i];
-              driver->LoadImage(current_overlay.c_str(), OVERLAY_ROLE, warnings);
-              }
-          }
-          catch(std::exception &exc)
-            {
-            ReportNonLethalException(mainwin, exc, "Overlay IO Error",
-                                     QString("Failed to load overlay %1").arg(
-                                       from_utf8(current_overlay)));
-            }
-          }
-        }
-      catch(std::exception &exc)
-        {
-        ReportNonLethalException(mainwin, exc, "Image IO Error",
-                                 QString("Failed to load image %1").arg(
-                                   from_utf8(argdata.fnMain)));
-        }
-      } // if main image filename supplied
-
-    if(argdata.fnLabelDesc.size())
-      {
-      try
-        {
-        // Load the label file
-        driver->LoadLabelDescriptions(argdata.fnLabelDesc.c_str());
-        }
-      catch(std::exception &exc)
-        {
-        ReportNonLethalException(mainwin, exc, "Label Description IO Error",
-                                 QString("Failed to load labels from %1").arg(
-                                   from_utf8(argdata.fnLabelDesc)));
-        }
-      }
-    } // Not loading workspace
-
-  // Zoom level
-  if(argdata.xZoomFactor > 0)
-    {
-    gui->GetSliceCoordinator()->SetLinkedZoom(true);
-    gui->GetSliceCoordinator()->SetZoomLevelAllWindows(argdata.xZoomFactor);
-    }
-
-  /*
-   * ADD THIS LATER!
-
-  if(parseResult.IsOptionPresent("--compact"))
-    {
-    string slice = parseResult.GetOptionParameter("--compact");
-    if(slice.length() == 0 || !(slice[0] == 'a' || slice[0] == 'c' || slice[0] == 's'))
-      cerr << "Wrong parameter passed for '--compact', ignoring" << endl;
-    else
-      {
-      DisplayLayout dl = ui->GetDisplayLayout();
-      dl.show_main_ui = false;
-      ui->SetDisplayLayout(dl);
-      dl.show_panel_ui = false;
-      ui->SetDisplayLayout(dl);
-      dl.size = HALF_SIZE;
-      ui->SetDisplayLayout(dl);
-      dl.slice_config = slice[0] == 'a' ? AXIAL : (slice[0] == 'c' ? CORONAL : SAGITTAL);
-      ui->SetDisplayLayout(dl);
-      }
-    }
-    */
-
-  // Play with scripting
-  // QScriptEngine engine;
-  // QScriptEngineDebugger bugger;
-  // bugger.attachTo(&engine);
-
-  // Find all the child widgets of mainwin
-  // engine.globalObject().setProperty("snap", engine.newQObject(mainwin));
-
-  // Configure the IPC communications (as a hidden widget)
-  QtIPCManager *ipcman = new QtIPCManager(mainwin);
-  ipcman->hide();
-  ipcman->SetModel(gui->GetSynchronizationModel());
-
-  // Start in cross-hairs mode
-  gui->GetGlobalState()->SetToolbarMode(CROSSHAIRS_MODE);
-
-  // Show the panel
-  mainwin->ShowFirstTime();
-
-  if(argdata.xTestId.size())
-    {
-    SNAPTestQt tester;
-    tester.Initialize(mainwin, gui, argdata.fnTestDir);
-    tester.RunTest(argdata.xTestId);
-    }
-
-  /*
-  if(parseResult.IsOptionPresent("--testQtScript"))
-    {
-    int nIndxTest = atoi(parseResult.GetOptionParameter("--testQtScript"));
-    cout << "Prototype Test with QtScript executed - Test nr " << nIndxTest << endl;
-    cout << "CheckResultQtScript" << endl;
-
-    // Should have one script C++ class, multiple text scripts in QtScript format
-
-    //QtScriptTest1(&eng  ine);
-    //Yes, with memory leak so far
-    QtScriptTest1 * pTest1 = new QtScriptTest1();
-    pTest1->Initialize(mainwin, gui, "");
-    pTest1->Run(&engine);
-
-    //return(0);
-    }
-    */
-
-  // Check for updates?
-  mainwin->UpdateAutoCheck();
-
-  // Assign the main window to the application. We do this right before
-  // starting the event loop.
-  app.setMainWindow(mainwin);
-
-  // Run application
-  int rc = app.exec();
-
-  // If everything cool, save the preferences
-  if(!rc)
-    gui->SaveUserPreferences();
-
-  // Unload the main image before all the destructors start firing
-  driver->UnloadMainImage();
-
-  // Get rid of the main window while the model is still alive
-  delete mainwin;
-
-  // Destroy the model after the GUI is destroyed
-  gui = NULL;
 }
 

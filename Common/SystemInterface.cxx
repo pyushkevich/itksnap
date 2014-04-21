@@ -94,24 +94,17 @@ SystemInterface::GetApplicationDataDirectory()
   if (!bufferSize)
     throw IRISException("Can not access APPDATA path on WIN32.");
 
-  // Convert to UTF8
-  std::string utf8_path;
-  int nch = WideCharToMultiByte(CP_ACP, 0, path_w, -1, NULL, 0, NULL, NULL);
-  if(nch > 0)
-    {
-    LPSTR pszMBCS = (LPSTR) _alloca ( nch );
-    if ( NULL != pszMBCS )
-      {
-      nch = WideCharToMultiByte ( CP_ACP, 0, path_w, -1, pszMBCS, nch, NULL, NULL );
-      if(nch > 0)
-        {
-        utf8_path=pszMBCS;
-        }
-      }
-    }
+  // Convert to multi-byte
+  int size_needed = WideCharToMultiByte(CP_UTF8, 0, &path_w[0], wcslen(path_w), NULL, 0, NULL, NULL);
+  std::string utf8_path(size_needed, 0);
+  WideCharToMultiByte                  (CP_UTF8, 0, &path_w[0], wcslen(path_w), &utf8_path[0], size_needed, NULL, NULL);
 
   if(utf8_path.length() == 0)
     throw IRISException("Can not convert APPDATA path to multi-byte string");
+
+  // Temporary crap-out
+  if(utf8_path.length() != wcslen(path_w))
+    throw IRISException("ITK-SNAP currently does not support non-ASCII characters in user names on Windows (tm) platforms. This will be fixed in the future.");
 
   // Append the full information
   std::string strPath = utf8_path + "/itksnap.org/ITK-SNAP";
