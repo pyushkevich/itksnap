@@ -588,6 +588,22 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
     return NULL;
 }
 
+void MainImageWindow::closeEvent(QCloseEvent *event)
+{
+  // Prompt for unsaved changes
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
+    event->ignore();
+
+  // Close all the windows that are open
+  QApplication::closeAllWindows();
+
+  // Unload all images (this causes the associations to be saved)
+  m_Model->GetDriver()->Quit();
+
+  // Exit the application
+  QCoreApplication::exit();
+}
+
 void MainImageWindow::on_actionQuit_triggered()
 { 
   // Prompt for unsaved changes

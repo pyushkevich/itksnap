@@ -97,6 +97,9 @@ public:
   void dragEnterEvent(QDragEnterEvent *event);
   void dropEvent(QDropEvent *event);
 
+  // Handle main window being closed
+  void closeEvent(QCloseEvent *);
+
   // Get the action group for the main tool
   QActionGroup *GetMainToolActionGroup();
 

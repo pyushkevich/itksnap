@@ -415,8 +415,16 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
       }
     }
 
-  // Forking behavior
+  // Console flag. On non-Apple UNIX, the console flag is ignored and default
+  // behavior is to fork. On Win/Apple, default behavior is not to fork (assume
+  // launch from OS GUI, ability to respond to open document event on Apple
+#if defined(__UNIX__) && !defined(__APPLE__)
+  argdata.flagConsole = true;
+#else
   argdata.flagConsole = parseResult.IsOptionPresent("--console");
+#endif
+
+  // Forking behavior.
   argdata.flagNoFork = parseResult.IsOptionPresent("--no-fork");
 
   // Testing
