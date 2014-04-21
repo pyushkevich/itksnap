@@ -81,6 +81,9 @@ public:
   // Initiate active contour segmentation
   void OpenSnakeWizard();
 
+  // Load a drag-n-dropped file
+  void LoadDroppedFile(QString file);
+
   // Export a screenshot from one of the panels
   void ExportScreenshot(int panelIndex);
 
@@ -93,6 +96,9 @@ public:
   // Handle drag and drop
   void dragEnterEvent(QDragEnterEvent *event);
   void dropEvent(QDropEvent *event);
+
+  // Handle main window being closed
+  void closeEvent(QCloseEvent *);
 
   // Get the action group for the main tool
   QActionGroup *GetMainToolActionGroup();
@@ -254,9 +260,7 @@ private slots:
 
 protected:
 
-  bool eventFilter(QObject *obj, QEvent *event);
-
-  void LoadDroppedFile(QString file);
+  // bool eventFilter(QObject *obj, QEvent *event);
 
 private:
 

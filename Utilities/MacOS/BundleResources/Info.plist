@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleExecutable</key>
-	<string>ITK-SNAP</string>
+        <string>ITK-SNAP</string>
 	<key>CFBundleIconFile</key>
 	<string>itksnap</string>
 	<key>CFBundleIdentifier</key>

@@ -405,6 +405,7 @@ void MainImageWindow::ShowFirstTime()
 
   // Show the window
   this->show();
+  this->raise();
 }
 
 // Slot for model updates
@@ -585,6 +586,25 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
     return ui->panel2;
   else
     return NULL;
+}
+
+void MainImageWindow::closeEvent(QCloseEvent *event)
+{
+  // Prompt for unsaved changes
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
+    {
+    event->ignore();
+    return;
+    }
+
+  // Close all the windows that are open
+  QApplication::closeAllWindows();
+
+  // Unload all images (this causes the associations to be saved)
+  m_Model->GetDriver()->Quit();
+
+  // Exit the application
+  QCoreApplication::exit();
 }
 
 void MainImageWindow::on_actionQuit_triggered()
@@ -902,17 +922,20 @@ void MainImageWindow::on_actionRedo_triggered()
   m_Model->GetDriver()->Redo();
 }
 
-/** Filter application-level events */
+/** Filter application-level events
 bool MainImageWindow::eventFilter(QObject *obj, QEvent *event)
 {
   if (event->type() == QEvent::FileOpen)
     {
     QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
-    LoadDroppedFile(openEvent->url().path());
+    QMessageBox::information(this, "test", openEvent->url().path());
+    if(openEvent->url().path() != "NULL")
+      LoadDroppedFile(openEvent->url().path());
     return true;
     }
   else return false;
 }
+*/
 
 void MainImageWindow::on_actionOpenMain_triggered()
 {

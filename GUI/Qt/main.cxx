@@ -27,6 +27,7 @@
 #include <QPlastiqueStyle>
 #include <QWindowsVistaStyle>
 #include <QAction>
+#include <QUrl>
 
 #include "ImageIODelegates.h"
 
@@ -34,6 +35,8 @@
 #include "SNAPTestQt.h"
 
 using namespace std;
+
+// Interrupt handler. This will attempt to clean up
 
 // Setup printing of stack trace on segmentation faults. This only
 // works on POSIX systems
@@ -68,6 +71,18 @@ void SetupSignalHandlers()
 
 #endif
 
+
+/*
+ * Code to handle forking the application on startup. Forking is desirable
+ * because many users execute SNAP from command line, and it is annoying to
+ * have SNAP blocking the command line. Also, this reduced the frequency
+ * of users interrupting SNAP or killing it by closing the terminal.
+ */
+
+#include <QFileOpenEvent>
+#include <QTime>
+#include <QMessageBox>
+
 /** Class to handle exceptions in Qt callbacks */
 class SNAPQApplication : public QApplication
 {
@@ -77,6 +92,17 @@ public:
   {
     this->setApplicationName("ITK-SNAP");
     this->setOrganizationName("itksnap.org");
+    m_MainWindow = NULL;
+
+    // Store the command-line arguments
+    for(int i = 1; i < argc; i++)
+      m_Args.push_back(QString::fromUtf8(argv[i]));
+  }
+
+  void setMainWindow(MainImageWindow *mainwin)
+  {
+    m_MainWindow = mainwin;
+    m_StartupTime = QTime::currentTime();
   }
 
   bool notify(QObject *object, QEvent *event)
@@ -94,6 +120,40 @@ public:
       return false;
     }
   }
+
+  virtual bool event(QEvent *event)
+  {
+    if (event->type() == QEvent::FileOpen && m_MainWindow)
+      {
+      QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
+      QString file = openEvent->url().path();
+
+      // MacOS bug - we get these open document events automatically generated
+      // from command-line parameters, and I have no idea why. To avoid this,
+      // if the event occurs at startup (within a second), we will check if
+      // the passed in URL matches the command-line arguments, and ignore it
+      // if it does
+      if(m_StartupTime.secsTo(QTime::currentTime()) < 1)
+        {
+        foreach(const QString &arg, m_Args)
+          {
+          if(arg == file)
+            return true;
+          }
+        }
+
+      // Ok, we passed the check, now it's safe to actually open the file
+      m_MainWindow->raise();
+      m_MainWindow->LoadDroppedFile(file);
+      return true;
+      }
+    else return false;
+  }
+
+private:
+  MainImageWindow *m_MainWindow;
+  QStringList m_Args;
+  QTime m_StartupTime;
 };
 
 
@@ -128,7 +188,70 @@ void usage()
 
 void setupParser(CommandLineArgumentParser &parser)
 {
-  // Parse command line parameters
+}
+
+#include <QScriptEngine>
+#include <QScriptEngineDebugger>
+
+/**
+ * This class describes the command-line options parsed from the command line.
+ */
+struct CommandLineRequest
+{
+public:
+  std::string fnMain;
+  std::vector<std::string> fnOverlay;
+  std::string fnSegmentation;
+  std::string fnLabelDesc;
+  std::string fnWorkspace;
+  double xZoomFactor;
+  bool flagDebugEvents;
+
+  // Whether the console-based application should not fork
+  bool flagNoFork;
+
+  // Whether the application is being launched from the console
+  bool flagConsole;
+
+  // Test-related stuff
+  std::string xTestId;
+  std::string fnTestDir;
+
+  CommandLineRequest()
+    : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0) {}
+};
+
+
+
+void scriptChildren(QScriptEngine &engine, QObject *widget, QString parent)
+{
+  for(int i = 0; i < widget->children().size(); i++)
+    {
+    QObject *c = widget->children()[i];
+
+    if(dynamic_cast<QWidget *>(c) || dynamic_cast<QAction *>(c))
+      {
+      QString name = QString("%1_%2").arg(parent).arg(c->objectName());
+      QScriptValue val = engine.newQObject(c);
+      engine.globalObject().setProperty(name, val);
+      scriptChildren(engine, c, name);
+      }
+
+    }
+}
+
+/**
+ * This function takes the command-line arguments and parses them into the
+ * CommandLineRequest structure. If it returns with a non-zero error code,
+ * the program should exit with that code.
+ */
+int parse(int argc, char *argv[], CommandLineRequest &argdata)
+{
+
+  // Parse command line arguments
+  CommandLineArgumentParser parser;
+
+  // These are all the recognized arguments
   parser.AddOption("--grey",1);
   parser.AddSynonim("--grey","-g");
 
@@ -149,61 +272,36 @@ void setupParser(CommandLineArgumentParser &parser)
   parser.AddOption("--zoom", 1);
   parser.AddSynonim("--zoom", "-z");
 
-  parser.AddOption("--compact", 1);
-  parser.AddSynonim("--compact", "-c");
+  // TO BE ADDED
+  // parser.AddOption("--compact", 1);
+  // parser.AddSynonim("--compact", "-c");
 
   parser.AddOption("--help", 0);
   parser.AddSynonim("--help", "-h");
 
   parser.AddOption("--debug-events", 0);
 
+  parser.AddOption("--no-fork", 0);
+  parser.AddOption("--console", 0);
+
   parser.AddOption("--test", 1);
   parser.AddOption("--testdir", 1);
 
   parser.AddOption("--testQtScript", 1);
-}
 
-#include <QScriptEngine>
-#include <QScriptEngineDebugger>
+  // This dummy option is actually used internally. It's a work-around for
+  // a buggy behavior on MacOS, when execvp actually causes a file
+  // open event to be fired, which causes the drop dialog to open
+  parser.AddOption("--dummy", 1);
 
-void scriptChildren(QScriptEngine &engine, QObject *widget, QString parent)
-{
-  for(int i = 0; i < widget->children().size(); i++)
-    {
-    QObject *c = widget->children()[i];
-
-    if(dynamic_cast<QWidget *>(c) || dynamic_cast<QAction *>(c))
-      {
-      QString name = QString("%1_%2").arg(parent).arg(c->objectName());
-      QScriptValue val = engine.newQObject(c);
-      engine.globalObject().setProperty(name, val);
-      scriptChildren(engine, c, name);
-      }
-
-    }
-}
-
-
-int main(int argc, char *argv[])
-{
-  // Setup crash signal handlers
-  SetupSignalHandlers();
-
-  // Turn off ITK and VTK warning windows
-  itk::Object::GlobalWarningDisplayOff();
-  vtkObject::GlobalWarningDisplayOff();
-
-
-  // Connect Qt to the Renderer subsystem
-  AbstractRenderer::SetPlatformSupport(new QtRendererPlatformSupport());
-
-  // Parse command line arguments
-  CommandLineArgumentParser parser;
+  // Obtain the result
   CommandLineArgumentParseResult parseResult;
+
+  // Number of trailing arguments
   int iTrailing = 0;
 
-  setupParser(parser);
-  if(!parser.TryParseCommandLine(argc,argv,parseResult,false,iTrailing))
+  // Set up the command line parser with all the options
+  if(!parser.TryParseCommandLine(argc, argv, parseResult, false, iTrailing))
     {
     cerr << "Unable to parse command line. Run " << argv[0] << " -h for help" << endl;
     return -1;
@@ -213,65 +311,23 @@ int main(int argc, char *argv[])
   if(parseResult.IsOptionPresent("--help"))
     {
     usage();
-    return 0;
+    return 1;
     }
 
   // Parse this option before anything else!
   if(parseResult.IsOptionPresent("--debug-events"))
     {
 #ifdef SNAP_DEBUG_EVENTS
-    flag_snap_debug_events = true;
+    argdata.flagDebugEvents = true;
 #else
     cerr << "Option --debug-events ignored because ITK-SNAP was compiled "
             "without the SNAP_DEBUG_EVENTS option. Please recompile." << endl;
 #endif
     }
 
-  // Create an application
-  SNAPQApplication app(argc, argv);
-  Q_INIT_RESOURCE(SNAPResources);
-
-  app.setStyle(new QPlastiqueStyle);
-
-  // Before we can create any of the framework classes, we need to get some
-  // platform-specific functionality to the SystemInterface
-  QtSystemInfoDelegate siDelegate;
-  SystemInterface::SetSystemInfoDelegate(&siDelegate);
-
-  // Create the global UI
-  SmartPtr<GlobalUIModel> gui;
-  IRISApplication *driver;
-  try
-  {
-    gui = GlobalUIModel::New();
-    driver = gui->GetDriver();
-
-    // Load the user preferences
-    gui->LoadUserPreferences();
-  }
-  catch(itk::ExceptionObject &exc)
-  {
-    ReportNonLethalException(NULL, exc, "ITK-SNAP failed to start", "Exception occurred during ITK-SNAP startup");
-    exit(-1);
-  }
-
-  // Create the main window
-  MainImageWindow *mainwin = new MainImageWindow();
-  mainwin->Initialize(gui);
-
-  // We let the main window handle events to the application
-  app.installEventFilter(mainwin);
-
-  // Start parsing options
-  const char *fnMain = NULL, *fnWorkspace = NULL;
-  IRISWarningList warnings;
-
   // Check if a workspace is being loaded
   if(parseResult.IsOptionPresent("--workspace"))
     {
-    // Put a waiting cursor
-    QtCursorOverride curse(Qt::WaitCursor);
-
     // Check for incompatible options
     if(parseResult.IsOptionPresent("--grey")
        || parseResult.IsOptionPresent("--overlay")
@@ -283,19 +339,7 @@ int main(int argc, char *argv[])
       }
 
     // Get the workspace filename
-    fnWorkspace = parseResult.GetOptionParameter("--workspace");
-
-    // Load the workspace
-    try
-      {
-      driver->OpenProject(fnWorkspace, warnings);
-      }
-    catch(itk::ExceptionObject &exc)
-      {
-      cerr << "Error loading workspace '" << fnWorkspace << "'" << endl;
-      cerr << "Reason: " << exc << endl;
-      return -1;
-      }
+    argdata.fnWorkspace = parseResult.GetOptionParameter("--workspace");
     }
 
   // No workspace, just images
@@ -307,69 +351,39 @@ int main(int argc, char *argv[])
     // itksnap --gray file1 file2         <- ignore file2
 
     // Check if a main image file is specified
+    bool have_main = false;
     if(parseResult.IsOptionPresent("--grey"))
       {
-      fnMain = parseResult.GetOptionParameter("--grey");
+      argdata.fnMain = parseResult.GetOptionParameter("--grey");
+      have_main = true;
       }
     else if(iTrailing < argc)
       {
-      fnMain = argv[iTrailing];
+      argdata.fnMain = argv[iTrailing];
+      have_main = true;
       }
 
     // If no main, there should be no overlays, segmentation
-    if(!fnMain && parseResult.IsOptionPresent("--segmentation"))
+    if(!have_main && parseResult.IsOptionPresent("--segmentation"))
       {
       cerr << "Error: Option -s must be used together with option -g" << endl;
       return -1;
       }
 
-    if(!fnMain && parseResult.IsOptionPresent("--overlay"))
+    if(!have_main && parseResult.IsOptionPresent("--overlay"))
       {
       cerr << "Error: Option -p must be used together with option -g" << endl;
       return -1;
       }
 
     // Load main image file
-    if(fnMain)
+    if(have_main)
       {
-      // Put a waiting cursor
-      QtCursorOverride curse(Qt::WaitCursor);
-
-      // Update the splash screen
-      // ui->UpdateSplashScreen("Loading image...");
-
-      // Try loading the image
-      try
-        {
-        driver->LoadImage(fnMain, MAIN_ROLE, warnings);
-        }
-      catch(itk::ExceptionObject &exc)
-        {
-        cerr << "Error loading image '" << fnMain << "'" << endl;
-        cerr << "Reason: " << exc << endl;
-        return -1;
-        }
-
       // Load the segmentation if supplied
       if(parseResult.IsOptionPresent("--segmentation"))
         {
         // Get the filename
-        const char *fname = parseResult.GetOptionParameter("--segmentation");
-
-        // Update the splash screen
-        // ui->UpdateSplashScreen("Loading segmentation image...");
-
-        // Try to load the image
-        try
-          {
-          driver->LoadImage(fname, LABEL_ROLE, warnings);
-          }
-        catch(itk::ExceptionObject &exc)
-          {
-          cerr << "Error loading segmentation '" << fname << "'" << endl;
-          cerr << "Reason: " << exc << endl;
-          return -1;
-          }
+        argdata.fnSegmentation = parseResult.GetOptionParameter("--segmentation");
         }
 
       // Load overlay fs supplied
@@ -378,22 +392,7 @@ int main(int argc, char *argv[])
         for(int i = 0; i < parseResult.GetNumberOfOptionParameters("--overlay"); i++)
           {
           // Get the filename
-          const char *fname = parseResult.GetOptionParameter("--overlay", i);
-
-          // Update the splash screen
-          // ui->UpdateSplashScreen("Loading overlay image...");
-
-          // Try to load the image
-          try
-            {
-            driver->LoadImage(fname, OVERLAY_ROLE, warnings);
-            }
-          catch(std::exception &exc)
-            {
-            cerr << "Error loading overlay '" << fname << "'" << endl;
-            cerr << "Reason: " << exc.what() << endl;
-            return -1;
-            }
+          argdata.fnOverlay.push_back(parseResult.GetOptionParameter("--overlay", i));
           }
         }
       } // if main image filename supplied
@@ -402,40 +401,213 @@ int main(int argc, char *argv[])
     if(parseResult.IsOptionPresent("--labels"))
       {
       // Get the filename
-      const char *fname = parseResult.GetOptionParameter("--labels");
-
-      // Update the splash screen
-      // ui->UpdateSplashScreen("Loading label descriptions...");
-
-      try
-        {
-        // Load the label file
-        driver->LoadLabelDescriptions(fname);
-        }
-      catch(itk::ExceptionObject &exc)
-        {
-        cerr << "Error reading label descriptions: " <<
-          exc.GetDescription() << endl;
-        }
+      argdata.fnLabelDesc = parseResult.GetOptionParameter("--labels");
       }
     } // Not loading workspace
 
   // Set initial zoom if specified
   if(parseResult.IsOptionPresent("--zoom"))
     {
-    double zoom = atof(parseResult.GetOptionParameter("--zoom"));
-    if(zoom >= 0.0)
+    argdata.xZoomFactor = atof(parseResult.GetOptionParameter("--zoom"));
+    if(argdata.xZoomFactor <= 0.0)
       {
-      gui->GetSliceCoordinator()->SetLinkedZoom(true);
-      gui->GetSliceCoordinator()->SetZoomLevelAllWindows(zoom);
-      }
-    else
-      {
-      cerr << "Invalid zoom level (" << zoom << ") specified" << endl;
+      cerr << "Invalid zoom level (" << argdata.xZoomFactor << ") specified" << endl;
       }
     }
 
+  // Console flag. On non-Apple UNIX, the console flag is ignored and default
+  // behavior is to fork. On Win/Apple, default behavior is not to fork (assume
+  // launch from OS GUI, ability to respond to open document event on Apple
+#if defined(__UNIX__) && !defined(__APPLE__)
+  argdata.flagConsole = true;
+#else
+  argdata.flagConsole = parseResult.IsOptionPresent("--console");
+#endif
+
+  // Forking behavior.
+  argdata.flagNoFork = parseResult.IsOptionPresent("--no-fork");
+
+  // Testing
+  if(parseResult.IsOptionPresent("--test"))
+    {
+    argdata.xTestId = parseResult.GetOptionParameter("--test");
+    if(parseResult.IsOptionPresent("--testdir"))
+      argdata.fnTestDir = parseResult.GetOptionParameter("--testdir");
+    else
+      argdata.fnTestDir = ".";
+    }
+
+  return 0;
+}
+
+
+int main(int argc, char *argv[])
+{  
+  // Parse the command line
+  CommandLineRequest argdata;
+  int exitcode = parse(argc, argv, argdata);
+  if(exitcode != 0)
+    return exitcode;
+
+  // If the program is executed from the console, we would like it to
+  // background and outlive the console. At this point, we can ditch the
+  // connection with the parent shell, i.e., fork the program.
+  if(argdata.flagConsole && !argdata.flagNoFork)
+    SystemInterface::LaunchChildSNAP(argc, argv, true);
+
+  // Debugging mechanism: if no-fork is on, sleep for 60 secs
+  // if(argdata.flagNoFork)
+  //  sleep(60);
+
+  // Turn off event debugging if needed
+#ifdef SNAP_DEBUG_EVENTS
+  flag_snap_debug_events = argdata.flagDebugEvents;
+#endif
+
+  // Setup crash signal handlers
+  SetupSignalHandlers();
+
+  // Turn off ITK and VTK warning windows
+  itk::Object::GlobalWarningDisplayOff();
+  vtkObject::GlobalWarningDisplayOff();
+
+  // Connect Qt to the Renderer subsystem
+  AbstractRenderer::SetPlatformSupport(new QtRendererPlatformSupport());
+
+  // Create an application
+  SNAPQApplication app(argc, argv);
+  Q_INIT_RESOURCE(SNAPResources);
+
+  // Set the application style
+  app.setStyle(new QPlastiqueStyle);
+
+  // Before we can create any of the framework classes, we need to get some
+  // platform-specific functionality to the SystemInterface
+  QtSystemInfoDelegate siDelegate;
+  SystemInterface::SetSystemInfoDelegate(&siDelegate);
+
+  // Create the global UI
+  try 
+    {
+    SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
+    IRISApplication *driver = gui->GetDriver();
+
+    // Load the user preferences
+    gui->LoadUserPreferences();
+
+    // Create the main window
+    MainImageWindow *mainwin = new MainImageWindow();
+    mainwin->Initialize(gui);
+    }
+  catch(itk::ExceptionObject &exc)
+    {
+    ReportNonLethalException(NULL, exc, "ITK-SNAP failed to start", "Exception occurred during ITK-SNAP startup");
+    exit(-1);
+    }
+
+  // Start parsing options
+  IRISWarningList warnings;
+
+  // Check if a workspace is being loaded
+  if(argdata.fnWorkspace.size())
+    {
+    // Put a waiting cursor
+    QtCursorOverride curse(Qt::WaitCursor);
+
+    // Load the workspace
+    try
+      {
+      driver->OpenProject(argdata.fnWorkspace, warnings);
+      }
+    catch(std::exception &exc)
+      {
+      ReportNonLethalException(mainwin, exc, "Workspace Error",
+                               QString("Failed to load workspace %1").arg(
+                                 from_utf8(argdata.fnWorkspace)));
+      }
+    }
+  else
+    {
+    // Load main image file
+    if(argdata.fnMain.size())
+      {
+      // Put a waiting cursor
+      QtCursorOverride curse(Qt::WaitCursor);
+
+      // Try loading the image
+      try
+        {
+        // Load the main image. If that fails, all else should fail too
+        driver->LoadImage(argdata.fnMain.c_str(), MAIN_ROLE, warnings);
+
+        // Load the segmentation
+        if(argdata.fnSegmentation.size())
+          {
+          try
+            {
+            driver->LoadImage(argdata.fnSegmentation.c_str(), LABEL_ROLE, warnings);
+            }
+          catch(std::exception &exc)
+            {
+            ReportNonLethalException(mainwin, exc, "Image IO Error",
+                                     QString("Failed to load segmentation %1").arg(
+                                       from_utf8(argdata.fnSegmentation)));
+            }
+          }
+
+        // Load the overlays
+        if(argdata.fnOverlay.size())
+          {
+          std::string current_overlay;
+          try
+          {
+            for(int i = 0; i < argdata.fnOverlay.size(); i++)
+              {
+              current_overlay = argdata.fnOverlay[i];
+              driver->LoadImage(current_overlay.c_str(), OVERLAY_ROLE, warnings);
+              }
+          }
+          catch(std::exception &exc)
+            {
+            ReportNonLethalException(mainwin, exc, "Overlay IO Error",
+                                     QString("Failed to load overlay %1").arg(
+                                       from_utf8(current_overlay)));
+            }
+          }
+        }
+      catch(std::exception &exc)
+        {
+        ReportNonLethalException(mainwin, exc, "Image IO Error",
+                                 QString("Failed to load image %1").arg(
+                                   from_utf8(argdata.fnMain)));
+        }
+      } // if main image filename supplied
+
+    if(argdata.fnLabelDesc.size())
+      {
+      try
+        {
+        // Load the label file
+        driver->LoadLabelDescriptions(argdata.fnLabelDesc.c_str());
+        }
+      catch(std::exception &exc)
+        {
+        ReportNonLethalException(mainwin, exc, "Label Description IO Error",
+                                 QString("Failed to load labels from %1").arg(
+                                   from_utf8(argdata.fnLabelDesc)));
+        }
+      }
+    } // Not loading workspace
+
+  // Zoom level
+  if(argdata.xZoomFactor > 0)
+    {
+    gui->GetSliceCoordinator()->SetLinkedZoom(true);
+    gui->GetSliceCoordinator()->SetZoomLevelAllWindows(argdata.xZoomFactor);
+    }
+
   /*
+   * ADD THIS LATER!
 
   if(parseResult.IsOptionPresent("--compact"))
     {
@@ -458,12 +630,12 @@ int main(int argc, char *argv[])
     */
 
   // Play with scripting
-  QScriptEngine engine;
-  QScriptEngineDebugger bugger;
-  bugger.attachTo(&engine);
+  // QScriptEngine engine;
+  // QScriptEngineDebugger bugger;
+  // bugger.attachTo(&engine);
 
   // Find all the child widgets of mainwin
-  engine.globalObject().setProperty("snap", engine.newQObject(mainwin));
+  // engine.globalObject().setProperty("snap", engine.newQObject(mainwin));
 
   // Configure the IPC communications (as a hidden widget)
   QtIPCManager *ipcman = new QtIPCManager(mainwin);
@@ -476,17 +648,14 @@ int main(int argc, char *argv[])
   // Show the panel
   mainwin->ShowFirstTime();
 
-  if(parseResult.IsOptionPresent("--test"))
+  if(argdata.xTestId.size())
     {
-    std::string root = ".";
-    if(parseResult.IsOptionPresent("--testdir"))
-      root = parseResult.GetOptionParameter("--testdir");
-
     SNAPTestQt tester;
-    tester.Initialize(mainwin, gui, root);
-    tester.RunTest(parseResult.GetOptionParameter("--test"));
+    tester.Initialize(mainwin, gui, argdata.fnTestDir);
+    tester.RunTest(argdata.xTestId);
     }
 
+  /*
   if(parseResult.IsOptionPresent("--testQtScript"))
     {
     int nIndxTest = atoi(parseResult.GetOptionParameter("--testQtScript"));
@@ -503,9 +672,14 @@ int main(int argc, char *argv[])
 
     //return(0);
     }
+    */
 
   // Check for updates?
   mainwin->UpdateAutoCheck();
+
+  // Assign the main window to the application. We do this right before
+  // starting the event loop.
+  app.setMainWindow(mainwin);
 
   // Run application
   int rc = app.exec();

@@ -257,10 +257,54 @@ SystemInterface
   m_HistoryManager->LoadGlobalHistory(this->Folder("IOHistory"));
 }
 
+void SystemInterface
+::LaunchChildSNAP(int argc, char **argv, bool terminate_parent)
+{
+  // Create new argument list
+  char **newargv = new char * [argc + 2];
+
+  // Zeroth argument remains
+  newargv[0] = argv[0];
+
+  // First argument is --no-fork
+  newargv[1] = new char[40];
+  strcpy(newargv[1], "--no-fork");
+
+  // Now copy all the other parameters
+  for (int i = 1; i < argc; i++)
+    newargv[i + 1] = argv[i];
+
+  newargv[argc+1] = NULL;
+
+  // Now we have a nice argument list to send to the child SNAP process
+#ifdef WIN32
+  _spawnvp(_P_NOWAIT, argv[0], argv);
+  if(terminate_parent)
+    exit(0);
+#else
+  pid_t pid = fork();
+  if(pid == 0)
+    {
+    /* Make sure we survive our shell */
+    setsid();
+
+    /* Restarts the vim process, will not return. */
+    execvp(argv[0], newargv);
+
+    /* Should never get here! */
+    exit(-1);
+    }
+  else
+    {
+    if(terminate_parent)
+      exit(0);
+    }
+#endif
+}
 
 void 
 SystemInterface
-::LaunchChildSNAP(std::list<std::string> args)
+::LaunchChildSNAPSimple(std::list<std::string> args)
 {
   // Must have a valid path to the EXE
   std::string exefile = this->GetFullPathToExecutable();
@@ -276,16 +320,7 @@ SystemInterface
   argv[iarg++] = NULL;
 
   // Create child process
-#ifdef WIN32
-  _spawnvp(_P_NOWAIT, exefile.c_str(), argv);
-#else
-  int pid;
-  if((pid = fork()) == 0)
-    {
-    if(execvp(exefile.c_str(), argv) < 0)
-      exit(-1);
-    } 
-#endif
+  LaunchChildSNAP(args.size()+1, argv, false);
 }
 
 std::string

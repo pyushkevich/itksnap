@@ -73,7 +73,7 @@ void DropActionDialog::on_btnLoadNew_clicked()
   args.push_back(to_utf8(ui->outFilename->text()));
   try
     {
-    m_Model->GetSystemInterface()->LaunchChildSNAP(args);
+    m_Model->GetSystemInterface()->LaunchChildSNAPSimple(args);
     this->accept();
     }
   catch(exception &exc)
