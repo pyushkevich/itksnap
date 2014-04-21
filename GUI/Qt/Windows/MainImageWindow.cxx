@@ -592,7 +592,10 @@ void MainImageWindow::closeEvent(QCloseEvent *event)
 {
   // Prompt for unsaved changes
   if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
+    {
     event->ignore();
+    return;
+    }
 
   // Close all the windows that are open
   QApplication::closeAllWindows();
