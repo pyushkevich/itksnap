@@ -883,6 +883,14 @@ IF(APPLE)
 
 ENDIF(APPLE)
 
+# On Windows, add the .RC file to the sources
+IF(WIN32)
+
+  # Add the .rc file
+  SET(SNAP_MAIN_SRC ${SNAP_MAIN_SRC} ${SNAP_SOURCE_DIR}/Utilities/Win32/itksnap.rc)
+
+ENDIF(WIN32)
+
 
 # Define the main SNAP executable
 SET(SNAP_BUNDLE_NAME ITK-SNAP)

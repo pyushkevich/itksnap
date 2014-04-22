@@ -143,6 +143,7 @@ protected:
 
   double m_InputImageMinimum, m_InputImageMaximum;
   
+  SmartPtr<ThresholdSettings> m_Parameters;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

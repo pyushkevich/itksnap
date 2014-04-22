@@ -43,6 +43,9 @@ SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
   this->SetNumberOfIndexedInputs(2);
   m_InputImageMaximum = 0;
   m_InputImageMinimum = 0;
+
+  // Set the parameters (second input) to NULL
+  m_Parameters = NULL;
 }
 
 template<typename TInputImage,typename TOutputImage>
@@ -58,10 +61,11 @@ void
 SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 ::SetParameters(ThresholdSettings *settings)
 {
-  if(settings != GetParameters())
+  if(settings != m_Parameters)
     {
     // Store the settings as the second input
-    this->SetNthInput(1, settings);
+	m_Parameters = settings;
+    this->SetNthInput(1, m_Parameters);
     }
 }
 
@@ -70,15 +74,12 @@ void
 SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 ::GenerateData()
 {
-  // Update the functor with the current settings
-  ThresholdSettings *param = GetParameters();
-
   // All inputs must be set!
-  assert(param);
+  assert(m_Parameters);
 
   // Set up the functor
   this->GetFunctor().SetParameters(
-        param, m_InputImageMinimum, m_InputImageMaximum);
+        m_Parameters, m_InputImageMinimum, m_InputImageMaximum);
 
   // Execute the filter
   Superclass::GenerateData();
@@ -89,7 +90,7 @@ ThresholdSettings *
 SmoothBinaryThresholdImageFilter<TInputImage,TOutputImage>
 ::GetParameters()
 {
-  return static_cast<ThresholdSettings*>(this->GetInputs()[1].GetPointer());
+  return m_Parameters;
 }
 
 template<class TPixel>
