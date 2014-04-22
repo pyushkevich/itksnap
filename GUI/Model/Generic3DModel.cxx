@@ -99,6 +99,11 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
       {
       return m_Renderer->IsSavedCameraStateAvailable();
       }
+
+    case UIF_FLIP_ENABLED:
+      {
+      return mode == SCALPEL_MODE && m_ScalpelStatus == SCALPEL_LINE_COMPLETED;
+      }
     }
 
   return false;
@@ -295,6 +300,15 @@ void Generic3DModel::CancelAction()
     // Reset the scalpel state
     m_ScalpelStatus = SCALPEL_LINE_NULL;
     InvokeEvent(ScalpelEvent());
+    }
+}
+
+void Generic3DModel::FlipAction()
+{
+  ToolbarMode3DType mode = m_ParentUI->GetGlobalState()->GetToolbarMode3D();
+  if(mode == SCALPEL_MODE && m_ScalpelStatus == SCALPEL_LINE_COMPLETED)
+    {
+    m_Renderer->FlipScalpelPlaneNormal();
     }
 }
 

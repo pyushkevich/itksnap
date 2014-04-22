@@ -53,6 +53,9 @@ public:
   /** Get the origin of the scalpel plane in world coordinates */
   Vector3d GetScalpelPlaneOrigin() const;
 
+  /** Flip the direction of the cutplane */
+  void FlipScalpelPlaneNormal();
+
   /** Compute the world coordinates of a click and a ray pointing inward (not normalized) */
   void ComputeRayFromClick(int x, int y, Vector3d &m_Point, Vector3d &m_Ray);
 
