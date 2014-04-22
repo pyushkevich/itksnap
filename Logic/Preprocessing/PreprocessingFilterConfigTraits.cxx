@@ -87,17 +87,18 @@ void SmoothBinaryThresholdFilterConfigTraits::SetActiveScalarLayer(
   // Check if we have threshold parameters already associated with this layer
   SmartPtr<ThresholdSettings> ts =
       dynamic_cast<ThresholdSettings *>(layer->GetUserData("ThresholdSettings"));
+
   if(!ts->GetInitialized())
     {
     // Associate threshold settings with this layer
     ts->InitializeToDefaultForImage(layer);
-
-    // Propagate modified events from the threshold settings object as events
-    // from ImageWrapper. These events are further broadcast by GenericImageData
-    // and IRISApplication, making it easy for GUI classes to respond to them
-    Rebroadcaster::Rebroadcast(ts, itk::ModifiedEvent(),
-                               layer, WrapperProcessingSettingsChangeEvent());
     }
+
+  // Propagate modified events from the threshold settings object as events
+  // from ImageWrapper. These events are further broadcast by GenericImageData
+  // and IRISApplication, making it easy for GUI classes to respond to them
+  Rebroadcaster::Rebroadcast(ts, itk::ModifiedEvent(),
+                             layer, WrapperProcessingSettingsChangeEvent());
 
   // Pass the parameters to the filter
   filter->SetParameters(ts);
