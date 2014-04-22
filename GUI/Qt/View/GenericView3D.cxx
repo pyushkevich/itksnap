@@ -109,7 +109,11 @@ public:
     switch(m_Model->GetScalpelStatus())
       {
       case Generic3DModel::SCALPEL_LINE_NULL:
-        m_Model->SetScalpelStartPoint(xevent[0], xevent[1]);
+        // Holding and dragging the LMB acts as a trackball, only clicking
+        // the LMB causes drawing operations
+        m_ClickStart = xevent;
+        vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+        // m_Model->SetScalpelStartPoint(xevent[0], xevent[1]);
         break;
       case Generic3DModel::SCALPEL_LINE_STARTED:
         m_Model->SetScalpelEndPoint(xevent[0], xevent[1], true);
@@ -133,6 +137,23 @@ public:
         break;
       }
  }
+
+  virtual void OnLeftButtonUp()
+  {
+    Vector2i xevent(this->Interactor->GetEventPosition());
+    Vector2i delta = xevent - m_ClickStart;
+
+    // Detect a click, which starts scalpel drawing
+    if(m_Model->GetScalpelStatus() == Generic3DModel::SCALPEL_LINE_NULL)
+      {
+      if(delta.squared_magnitude() < 4)
+        {
+        m_Model->SetScalpelStartPoint(xevent[0], xevent[1]);
+        }
+      }
+
+    vtkInteractorStyleTrackballCamera::OnLeftButtonUp();
+  }
 
   virtual void OnEnter()
   {
@@ -162,6 +183,7 @@ protected:
 
   Generic3DModel *m_Model;
 
+  Vector2i m_ClickStart;
   bool m_Inside;
 };
 
