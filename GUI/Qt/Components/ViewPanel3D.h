@@ -67,6 +67,8 @@ private slots:
 
   void on_btnMenu_pressed();
 
+  void on_btnFlip_clicked();
+
 private:
   Ui::ViewPanel3D *ui;
 

@@ -426,6 +426,27 @@ void Generic3DRenderer::UpdateScalpelPlaneAppearance()
   // Get a color and a brighter color
   // (I'm using http://www.poynton.com/PDFs/ColorFAQ.pdf)
   Vector3d color = cdl.GetRGBAsDoubleVector();
+
+  // Convert the color to HSV
+  Vector3d hsv, hsv_brighter;
+  vtkMath::RGBToHSV(color.data_block(), hsv.data_block());
+
+  // If the value part is below 0.5 (dark color), use default color for the
+  // normal
+  if(hsv[2] < 0.5)
+    {
+    hsv[1] = 0; hsv[2] = 0.9;
+    hsv_brighter = hsv; hsv_brighter[2] = 1.0;
+    }
+  else
+    {
+    hsv_brighter = hsv; hsv_brighter[2] = 1.1 * hsv[2];
+    }
+
+  Vector3d color_main, color_bright;
+  vtkMath::HSVToRGB(hsv.data_block(), color_main.data_block());
+  vtkMath::HSVToRGB(hsv_brighter.data_block(), color_bright.data_block());
+/*
   Vector3d color_xyz, color_brighter, color_darker;
 
   vtkMath::RGBToXYZ(color.data_block(), color_xyz.data_block());
@@ -435,15 +456,15 @@ void Generic3DRenderer::UpdateScalpelPlaneAppearance()
   vtkMath::RGBToXYZ(color.data_block(), color_xyz.data_block());
   color_xyz /= 1.1;
   vtkMath::XYZToRGB(color_xyz.data_block(), color_darker.data_block());
-
+*/
   vtkProperty *p_normal = m_ScalpelPlaneWidget->GetNormalProperty();
-  p_normal->SetColor(color_darker.data_block());
+  p_normal->SetColor(color_main.data_block());
 
   vtkProperty *ps_normal = m_ScalpelPlaneWidget->GetSelectedNormalProperty();
-  ps_normal->SetColor(color_brighter.data_block());
+  ps_normal->SetColor(color_bright.data_block());
 
   vtkProperty *p_edges = m_ScalpelPlaneWidget->GetEdgesProperty();
-  p_edges->SetColor(color_darker.data_block());
+  p_edges->SetColor(color_main.data_block());
 }
 
 void Generic3DRenderer::UpdateSprayGlyphAppearanceAndShape()
@@ -673,6 +694,13 @@ Vector3d Generic3DRenderer::GetScalpelPlaneNormal() const
 Vector3d Generic3DRenderer::GetScalpelPlaneOrigin() const
 {
   return Vector3d(m_ScalpelPlaneWidget->GetOrigin());
+}
+
+void Generic3DRenderer::FlipScalpelPlaneNormal()
+{
+  Vector3d n = this->GetScalpelPlaneNormal();
+  m_ScalpelPlaneWidget->SetNormal(-n[0], -n[1], -n[2]);
+  InvokeEvent(ModelUpdateEvent());
 }
 
 void Generic3DRenderer::ComputeRayFromClick(int x, int y, Vector3d &m_Point, Vector3d &m_Ray)

@@ -41,7 +41,8 @@ public:
   enum UIState {
     UIF_MESH_DIRTY = 0,
     UIF_MESH_ACTION_PENDING,
-    UIF_CAMERA_STATE_SAVED
+    UIF_CAMERA_STATE_SAVED,
+    UIF_FLIP_ENABLED
   };
 
   // State of scalpel drawging
@@ -72,6 +73,9 @@ public:
 
   // Cancel the current drawing operation
   void CancelAction();
+
+  // Flip the direction of the normal for the scalpel operation
+  void FlipAction();
 
   // Position cursor at the screen position under the cursor
   bool PickSegmentationVoxelUnderMouse(int px, int py);

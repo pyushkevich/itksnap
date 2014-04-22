@@ -95,6 +95,7 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
   // Set activations
   activateOnFlag(ui->btnAccept, m_Model, Generic3DModel::UIF_MESH_ACTION_PENDING);
   activateOnFlag(ui->btnCancel, m_Model, Generic3DModel::UIF_MESH_ACTION_PENDING);
+  activateOnFlag(ui->btnFlip, m_Model, Generic3DModel::UIF_FLIP_ENABLED);
   activateOnFlag(ui->btnUpdateMesh, m_Model, Generic3DModel::UIF_MESH_DIRTY);
   activateOnFlag(ui->actionRestore_Viewpoint, m_Model, Generic3DModel::UIF_CAMERA_STATE_SAVED);
 
@@ -234,4 +235,9 @@ void ViewPanel3D::on_btnMenu_pressed()
 {
   m_DropMenu->popup(QCursor::pos());
   ui->btnMenu->setDown(false);
+}
+
+void ViewPanel3D::on_btnFlip_clicked()
+{
+  m_Model->FlipAction();
 }

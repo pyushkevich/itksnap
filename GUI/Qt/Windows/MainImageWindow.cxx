@@ -269,10 +269,12 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Listen for changes to the main image, updating the recent image file
   // menu. TODO: a more direct way would be to listen to changes to the
   // history, but that requires making history an event-firing object
-  LatentITKEventNotifier::connect(model->GetDriver(),
-                                  LayerChangeEvent(),
-                                  this,
-                                  SLOT(onModelUpdate(const EventBucket&)));
+  LatentITKEventNotifier::connect(model->GetDriver(), LayerChangeEvent(),
+                                  this, SLOT(onModelUpdate(const EventBucket&)));
+
+  // Also listen to changes in the image filenames
+  LatentITKEventNotifier::connect(model->GetDriver(), WrapperMetadataChangeEvent(),
+                                  this, SLOT(onModelUpdate(const EventBucket&)));
 
   // Hook up the recent lists
   ui->panelRecentImages->Initialize(m_Model, "MainImage");
