@@ -51,6 +51,7 @@ bool MeshExportModel::CheckState(MeshExportModel::UIState flag)
     case MeshExportModel::UIF_LABEL_SELECTION_ACTIVE:
       return this->GetSaveMode() == SAVE_SINGLE_LABEL;
     }
+  return false;
 }
 
 void MeshExportModel::OnDialogOpen()

@@ -247,8 +247,10 @@ LayerTableRowModel::GetDisplayModeString(const MultiChannelDisplayMode &mode)
       return "Average";
 
     case NUMBER_OF_SCALAR_REPS:
-      return "";
+      break;
     };
+
+  return "";
 }
 
 

@@ -106,8 +106,6 @@ void
 MeshManager
 ::UpdateVTKMeshes(itk::Command *command)
 {
-  unsigned int i;
-
   if(!m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
     return;
 

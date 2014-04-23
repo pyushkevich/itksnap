@@ -126,6 +126,8 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
     case UIF_MULTICOMPONENT:
       return m_Layer->GetNumberOfComponents() > 1;
     }
+
+  return false;
 }
 
 bool LayerGeneralPropertiesModel

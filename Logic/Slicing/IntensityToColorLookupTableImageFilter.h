@@ -43,10 +43,7 @@ public:
   itkTypeMacro(AbstractLookupTableImageFilter, ImageToImageFilter)
 
   /** Set the intensity remapping curve - for contrast adjustment */
-  void SetIntensityCurve(IntensityCurveInterface *curve);
-
-  /** Set the color map - for mapping scalars to RGB space */
-  void SetColorMap(ColorMap *map);
+  virtual void SetIntensityCurve(IntensityCurveInterface *curve) = 0;
 
   /**
     One of the inputs to the filter is an object representing the minimum
@@ -180,7 +177,7 @@ public:
   void SetIntensityCurve(IntensityCurveInterface *curve);
 
   irisGetMacro(IntensityCurve, IntensityCurveInterface *)
-
+	
 protected:
 
   SmartPtr<IntensityCurveInterface> m_IntensityCurve;
