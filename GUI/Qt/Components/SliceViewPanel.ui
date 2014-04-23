@@ -167,6 +167,12 @@ font-size:11px;
             </item>
             <item>
              <widget class="QToolButton" name="btnZoomToFit">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>-1</pointsize>
@@ -216,6 +222,12 @@ font-size:11px;
                 <height>0</height>
                </size>
               </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>-1</pointsize>
@@ -240,6 +252,12 @@ font-size:11px;
                 <height>0</height>
                </size>
               </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>-1</pointsize>
@@ -262,6 +280,12 @@ p, li { white-space: pre-wrap; }
             </item>
             <item>
              <widget class="QToolButton" name="btnClearDrawing">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>-1</pointsize>
@@ -318,6 +342,12 @@ p, li { white-space: pre-wrap; }
                 <height>0</height>
                </size>
               </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>-1</pointsize>
@@ -340,6 +370,12 @@ p, li { white-space: pre-wrap; }
                <size>
                 <width>46</width>
                 <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
                </size>
               </property>
               <property name="font">
@@ -370,6 +406,12 @@ p, li { white-space: pre-wrap; }
                 <height>0</height>
                </size>
               </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>-1</pointsize>
@@ -392,6 +434,12 @@ p, li { white-space: pre-wrap; }
             </item>
             <item>
              <widget class="QToolButton" name="btnDeletePolygon">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>-1</pointsize>
@@ -442,6 +490,12 @@ p, li { white-space: pre-wrap; }
             </item>
             <item>
              <widget class="QToolButton" name="btnPastePolygon">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>-1</pointsize>

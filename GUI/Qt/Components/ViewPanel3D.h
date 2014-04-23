@@ -99,6 +99,8 @@ private:
 
   void UpdateMeshesInBackground();
 
+  void UpdateActionButtons();
+
   void ProgressCallback(itk::Object *source, const itk::EventObject &event);
 };
 

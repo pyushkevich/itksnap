@@ -62,9 +62,15 @@ GenericView3D *ViewPanel3D::Get3DView()
 
 void ViewPanel3D::onModelUpdate(const EventBucket &bucket)
 {
+  GlobalState *gs = m_Model->GetParentUI()->GetGlobalState();
   if(bucket.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent()))
     {
     UpdateExpandViewButton();
+    }
+
+  if(bucket.HasEvent(ValueChangedEvent(), gs->GetToolbarMode3DModel()))
+    {
+    UpdateActionButtons();
     }
 }
 
@@ -102,6 +108,13 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
   // Listen to layout events
   connectITK(m_Model->GetParentUI()->GetDisplayLayoutModel(),
              DisplayLayoutModel::ViewPanelLayoutChangeEvent());
+
+  // Listen to changes in active tool to adjust button visibility
+  connectITK(m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3DModel(),
+             ValueChangedEvent());
+
+  // Set up the buttons
+  this->UpdateActionButtons();
 
   // Start the timer
   m_RenderTimer->start();
@@ -240,4 +253,28 @@ void ViewPanel3D::on_btnMenu_pressed()
 void ViewPanel3D::on_btnFlip_clicked()
 {
   m_Model->FlipAction();
+}
+
+void ViewPanel3D::UpdateActionButtons()
+{
+  ToolbarMode3DType mode = m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3D();
+  switch(mode)
+    {
+    case TRACKBALL_MODE:
+    case CROSSHAIRS_3D_MODE:
+      ui->btnAccept->setVisible(false);
+      ui->btnCancel->setVisible(false);
+      ui->btnFlip->setVisible(false);
+      break;
+    case SPRAYPAINT_MODE:
+      ui->btnAccept->setVisible(true);
+      ui->btnCancel->setVisible(true);
+      ui->btnFlip->setVisible(false);
+      break;
+    case SCALPEL_MODE:
+      ui->btnAccept->setVisible(true);
+      ui->btnCancel->setVisible(true);
+      ui->btnFlip->setVisible(true);
+      break;
+    }
 }
