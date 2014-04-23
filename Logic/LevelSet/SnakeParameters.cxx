@@ -57,7 +57,7 @@ SnakeParameters
   p.m_LaplacianWeight = 0.0f;
   p.m_LaplacianSpeedExponent = 0;
 
-  p.m_AdvectionWeight = 0.5;
+  p.m_AdvectionWeight = 2.0;
   p.m_AdvectionSpeedExponent = 0;       
 
   p.m_Solver = PARALLEL_SPARSE_FIELD_SOLVER;

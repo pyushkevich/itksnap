@@ -1,6 +1,6 @@
 #include "SpeedImageDialog.h"
 #include "ui_SpeedImageDialog.h"
-#include "QtDoubleSliderWithEditorCoupling.h"
+#include "QtSliderCoupling.h"
 #include "QtRadioButtonCoupling.h"
 #include "QtAbstractButtonCoupling.h"
 #include "QtComboBoxCoupling.h"
@@ -10,6 +10,7 @@
 #include "EdgePreprocessingSettingsRenderer.h"
 #include "QtCheckBoxCoupling.h"
 #include "QtSpinBoxCoupling.h"
+#include "QtDoubleSpinBoxCoupling.h"
 #include "QtComboBoxCoupling.h"
 #include <QCloseEvent>
 #include <QTreeView>
@@ -21,6 +22,7 @@
 #include "SNAPQtCommon.h"
 #include "GMMTableModel.h"
 #include "GMMRenderer.h"
+#include "QtDoubleSliderWithEditorCoupling.h"
 
 Q_DECLARE_METATYPE(SnakeWizardModel::LayerScalarRepIndex)
 
@@ -72,8 +74,11 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
 
   // Couple the thresholding widgets
   makeCoupling(ui->inLowerThreshold, model->GetThresholdLowerModel());
+  makeCoupling(ui->inLowerThresholdSpinner, model->GetThresholdLowerModel());
   makeCoupling(ui->inUpperThreshold, model->GetThresholdUpperModel());
+  makeCoupling(ui->inUpperThresholdSpinner, model->GetThresholdUpperModel());
   makeCoupling(ui->inThresholdSmoothness, model->GetThresholdSmoothnessModel());
+  makeCoupling(ui->inThresholdSmoothnessSpinner, model->GetThresholdSmoothnessModel());
 
   makeRadioGroupCoupling(ui->grpThresholdMode, model->GetThresholdModeModel());
 
@@ -94,7 +99,9 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   activateOnFlag(ui->tabThreshold, model, SnakeWizardModel::UIF_THESHOLDING_ENABLED);
   activateOnFlag(ui->tabEdge, model, SnakeWizardModel::UIF_EDGEPROCESSING_ENABLED);
   activateOnFlag(ui->inLowerThreshold, model, SnakeWizardModel::UIF_LOWER_THRESHOLD_ENABLED);
+  activateOnFlag(ui->inLowerThresholdSpinner, model, SnakeWizardModel::UIF_LOWER_THRESHOLD_ENABLED);
   activateOnFlag(ui->inUpperThreshold, model, SnakeWizardModel::UIF_UPPER_THRESHOLD_ENABLED);
+  activateOnFlag(ui->inUpperThresholdSpinner, model, SnakeWizardModel::UIF_UPPER_THRESHOLD_ENABLED);
 }
 
 void SpeedImageDialog::on_btnApply_clicked()

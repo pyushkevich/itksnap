@@ -90,6 +90,9 @@ font-size:11px;
           <height>20</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>Save a screenshot</string>
+        </property>
         <property name="text">
          <string>...</string>
         </property>

@@ -24,8 +24,8 @@
 
 =========================================================================*/
 
-#ifndef QTDOUBLESPINBOXCOUPLING_H
-#define QTDOUBLESPINBOXCOUPLING_H
+#ifndef QTDOUBLESLIDERWITHEDITORCOUPLING_H
+#define QTDOUBLESLIDERWITHEDITORCOUPLING_H
 
 #include <QtWidgetCoupling.h>
 #include <QDoubleSliderWithEditor.h>
@@ -81,4 +81,4 @@ public:
   }
 };
 
-#endif // QTDOUBLESPINBOXCOUPLING_H
+#endif // QTDOUBLESLIDERWITHEDITORCOUPLING_H

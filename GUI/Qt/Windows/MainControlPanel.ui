@@ -166,6 +166,9 @@ QToolButton:hover, QToolButton:checked {
              <height>30</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Cursor Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Examine the voxel under the cursor and enter exact 3D cursor location.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="styleSheet">
             <string notr="true"/>
            </property>
@@ -195,6 +198,9 @@ QToolButton:hover, QToolButton:checked {
              <height>30</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Zoom Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Control zoom factor in all slice views. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="styleSheet">
             <string notr="true"/>
            </property>
@@ -220,6 +226,9 @@ QToolButton:hover, QToolButton:checked {
              <width>25</width>
              <height>27</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Label Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Select the foreground and background labels for segmentation tasks. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="styleSheet">
             <string notr="true"/>
@@ -247,6 +256,9 @@ QToolButton:hover, QToolButton:checked {
              <height>27</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Display Layout Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Control which slice views are shown in the main ITK-SNAP window and how multiple image layers are rendered. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="styleSheet">
             <string notr="true"/>
            </property>
@@ -272,6 +284,9 @@ QToolButton:hover, QToolButton:checked {
              <width>25</width>
              <height>27</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Synchronization Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust synchronization of cursor, zoom and pan across multiple ITK-SNAP sessions running on one computer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="styleSheet">
             <string notr="true"/>
@@ -299,6 +314,9 @@ QToolButton:hover, QToolButton:checked {
              <height>27</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Active Tool Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust parameters and settings specific to the currently selected tool in the main toolbar.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="styleSheet">
             <string notr="true"/>
            </property>
@@ -323,14 +341,25 @@ QToolButton:hover, QToolButton:checked {
       <item>
        <widget class="QStackedWidget" name="stack">
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="CursorInspector" name="pageCursorInspector"/>
         <widget class="ZoomInspector" name="pageZoomInspector"/>
         <widget class="LabelInspector" name="pageLabelInspector"/>
-        <widget class="DisplayLayoutInspector" name="pageDisplayInspector"/>
-        <widget class="SynchronizationInspector" name="pageSyncInspector"/>
+        <widget class="DisplayLayoutInspector" name="pageDisplayInspector">
+         <property name="toolTip">
+          <string/>
+         </property>
+        </widget>
+        <widget class="SynchronizationInspector" name="pageSyncInspector">
+         <property name="toolTip">
+          <string/>
+         </property>
+        </widget>
         <widget class="QWidget" name="pageToolInspector">
+         <property name="toolTip">
+          <string/>
+         </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="spacing">
            <number>0</number>
@@ -341,7 +370,7 @@ QToolButton:hover, QToolButton:checked {
           <item>
            <widget class="QStackedWidget" name="stackToolPage">
             <property name="currentIndex">
-             <number>2</number>
+             <number>1</number>
             </property>
             <widget class="SnakeToolROIPanel" name="pageSnakeTool"/>
             <widget class="PaintbrushToolPanel" name="pagePaintbrushTool"/>

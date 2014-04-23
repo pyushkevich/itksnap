@@ -55,9 +55,10 @@ void
 EdgePreprocessingSettings
 ::InitializeToDefaults()
 {
+  // These seem to be pretty reliable settings
   SetGaussianBlurScale(1.0f);
-  SetRemappingSteepness(0.1f);
-  SetRemappingExponent(2.0f);
+  SetRemappingSteepness(0.04f);
+  SetRemappingExponent(3.0f);
 }
 
 void
