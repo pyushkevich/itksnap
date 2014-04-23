@@ -1126,7 +1126,7 @@ font-size: 12px;
          <string>Ok</string>
         </property>
         <property name="default">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="flat">
          <bool>false</bool>

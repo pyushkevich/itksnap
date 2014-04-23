@@ -16,7 +16,7 @@
   <property name="styleSheet">
    <string notr="true">QGroupBox {
   background-origin: content;
-  margin-top: 2.5ex;
+  margin-top: 15px;
   font-weight: bold;
   font-size: 12px;
   font-family: helvetica;
@@ -203,7 +203,7 @@ QGroupBox::title {
         <property name="styleSheet">
          <string notr="true">QGroupBox {
   background-origin: content;
-  margin-top: 2.5ex;
+  margin-top: 15px;
   font-weight: normal;
   font-size: 12px;
   font-family: helvetica;

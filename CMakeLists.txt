@@ -43,22 +43,16 @@ endforeach()
 # for example, version 1.7.3-beta has major version 1, minor version 7, patch 3
 # and qualifier "-beta". Major, minor and patch must be numbers, but the qualifier
 # is an arbitrary string and may be blank. 
-# 
-# Important:
-#   - The qualifier is just a descriptor. No two version should have the same 
-#     major/minor/patch and different qualifiers. So it's completely wrong to 
-#     release version 1.7.3-beta and then version 1.7.3. The right way to do it
-#     is to have 1.7.3-beta followed by 1.7.5-rc1 followed by 1.8.0 and so on
 
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 3)
 SET(SNAP_VERSION_MINOR 0)
 SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "-beta")
+SET(SNAP_VERSION_QUALIFIER "")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20140108")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Jan 08, 2014")
+SET(SNAP_VERSION_RELEASE_DATE "20140425")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Apr 25, 2014")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way

@@ -86,7 +86,7 @@ const char *qstPlastiqueGroupBox =
 "  padding-bottom: -3px;"
 "  padding-left: 3px;"
 "  padding-right: 3px;"
-"  margin-top: 2.5ex;"
+"  margin-top: 15px;"
 "  font-weight: bold;"
 "}"
 "QGroupBox::title {"

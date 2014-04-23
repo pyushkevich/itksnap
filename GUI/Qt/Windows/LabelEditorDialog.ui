@@ -16,7 +16,7 @@
   <property name="styleSheet">
    <string notr="true">QGroupBox {
   background-origin: content;
-  margin-top: 2.5ex;
+  margin-top: 15px;
   font-weight: bold;
   font-size: 12px;
   color: rgb(30,30,160);
@@ -393,7 +393,7 @@ QGroupBox::title {
         <property name="styleSheet">
          <string notr="true">QGroupBox {
   background-origin: content;
-  margin-top: 2.5ex;
+  margin-top: 15px;
   font-weight: normal;
   color: black;
   background-color: rgb(237,237,237);
@@ -460,7 +460,7 @@ QGroupBox::title {
         <property name="styleSheet">
          <string notr="true">QGroupBox {
   background-origin: content;
-  margin-top: 2.5ex;
+  margin-top: 15px;
   font-weight: normal;
   color: black;
   background-color: rgb(237,237,237);
