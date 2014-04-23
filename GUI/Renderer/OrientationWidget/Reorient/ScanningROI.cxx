@@ -56,8 +56,7 @@ void Pairs_Plane_Pipe::SetVisibility(int anVisibility)
 
   m_p_TubeFilter_WireFrame_Pipe->getActor()->SetVisibility(anVisibility);
 
-  int nI;
-  for(nI = 0; nI < m_arrp_TubeFilter_PlanarGrid_Pipe.size(); nI++)
+  for(size_t nI = 0; nI < m_arrp_TubeFilter_PlanarGrid_Pipe.size(); nI++)
     {
     m_arrp_TubeFilter_PlanarGrid_Pipe[nI]->getActor()->SetVisibility(anVisibility);
     }
@@ -313,8 +312,7 @@ void ScanningROI::changeOrientation3x3(vtkSmartPointer < vtkMatrix4x4 > apvtkMat
 
 void ScanningROI::SetVisibility(int anVisibility)
 {
-  int nI;
-  for(nI = 0; nI < m_arrpPairsPP_Axial.size(); nI++)
+  for(size_t nI = 0; nI < m_arrpPairsPP_Axial.size(); nI++)
   {
   m_arrpPairsPP_Axial[nI].SetVisibility(anVisibility);
   }

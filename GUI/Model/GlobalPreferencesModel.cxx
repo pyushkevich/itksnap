@@ -51,6 +51,7 @@ bool GlobalPreferencesModel::GetCheckForUpdateValue(bool &outValue)
     case DefaultBehaviorSettings::UPDATE_UNKNOWN:
       return false;
     }
+  return false;
 }
 
 void GlobalPreferencesModel::SetCheckForUpdateValue(bool inValue)
@@ -117,9 +118,8 @@ bool GlobalPreferencesModel::CheckState(GlobalPreferencesModel::UIState state)
     {
     case GlobalPreferencesModel::UIF_VALID_UI_ELEMENT_SELECTED:
       return m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT;
-      break;
-
     }
+  return false;
 }
 
 void GlobalPreferencesModel::SetParentModel(GlobalUIModel *parent)
