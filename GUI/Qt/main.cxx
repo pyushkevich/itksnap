@@ -147,7 +147,7 @@ public:
       m_MainWindow->LoadDroppedFile(file);
       return true;
       }
-    else return false;
+    else return QApplication::event(event);
   }
 
 private:

@@ -95,6 +95,9 @@
           <height>20</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>Accept 3D editing operation</string>
+        </property>
         <property name="text">
          <string>accept</string>
         </property>
@@ -108,6 +111,9 @@
           <height>20</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>Flip the direction of the cut plane</string>
+        </property>
         <property name="text">
          <string>flip</string>
         </property>
@@ -120,6 +126,9 @@
           <width>16777215</width>
           <height>20</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>Cancel 3D editing operation</string>
         </property>
         <property name="text">
          <string>cancel</string>
