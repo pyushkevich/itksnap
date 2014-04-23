@@ -271,9 +271,26 @@ void SystemInterface
 
   // Now we have a nice argument list to send to the child SNAP process
 #ifdef WIN32
-  _spawnvp(_P_NOWAIT, argv[0], argv);
-  if(terminate_parent)
-    exit(0);
+
+  // On windows, these functions screw up when arguments contain spaces!
+  // we have to manually add quotes to arguments...
+  char **quoted = new char * [argc + 2];
+  for(int i = 0; i < argc+1; i++)
+    {
+	if(strchr(newargv[i], ' '))
+	  {
+	  quoted[i] = new char(strlen(newargv[i])+3);
+	  sprintf(quoted[i], "\"%s\"", newargv[i]);
+	  }
+	else
+	  {
+	  quoted[i] = newargv[i];
+	  }
+    }
+  quoted[argc+1] = NULL;
+
+  _spawnvp(_P_NOWAIT, newargv[0], quoted);
+
 #else
   pid_t pid = fork();
   if(pid == 0)
