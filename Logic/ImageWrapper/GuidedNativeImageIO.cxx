@@ -1213,9 +1213,14 @@ gdcm::SmartPointer < gdcm::Scanner > GuidedNativeImageIO::Scan(
     {
     string strFileName = *itFN;
     string strTagSeriesInstanceUID;
+
     try
       {
-      strTagSeriesInstanceUID = getTag(pScanner, m_tagSeriesInstanceUID, strFileName);
+      const char *tag = getTag(pScanner, m_tagSeriesInstanceUID, strFileName);
+      if(tag == NULL)
+        continue;
+
+      strTagSeriesInstanceUID = tag;
       }
     catch(IRISException &)
       {
