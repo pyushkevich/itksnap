@@ -611,18 +611,8 @@ void MainImageWindow::closeEvent(QCloseEvent *event)
 
 void MainImageWindow::on_actionQuit_triggered()
 { 
-  // Prompt for unsaved changes
-  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
-    return;
-
-  // Close all the windows that are open
-  QApplication::closeAllWindows();
-
-  // Unload all images (this causes the associations to be saved)
-  m_Model->GetDriver()->Quit();
-
-  // Exit the application
-  QCoreApplication::exit();
+  // Close the main window
+  this->close();
 }
 
 void MainImageWindow::on_actionLoad_from_Image_triggered()
