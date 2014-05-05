@@ -24,16 +24,15 @@ public:
 
 
   double EvaluateLogPDF(double *x);
-  double EvaluateLogPDF(VectorType &x, VectorType &xscratch);
+  double EvaluateLogPDF(VectorType &x, VectorType &xscratch, VectorType &zscratch);
 
   double EvaluatePDF(double *x);
-  double EvaluatePDF(VectorType &x, VectorType &xscratch);
   void PrintParameters();
 
   bool isDeltaFunction();
 
   //To do random number, check SPD
-  
+
 private:
   int m_dimension;
   int m_setMeanFlag;
@@ -48,6 +47,14 @@ private:
 //  MatrixType *m_x_matrix;
   VectorType *m_x_vector;
   VectorType *m_mean_vector;
+
+  // SVD of the covariance matrix
+  MatrixType m_V, m_Vt;
+  vnl_diag_matrix<double> m_Lambda;
+  VectorType m_DiagNormFac;
+
+  // Mean-subtracted and rotated x vector
+  VectorType m_z_vector;
 
 
 };

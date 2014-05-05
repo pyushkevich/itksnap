@@ -138,6 +138,7 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
 
   vnl_vector<double> x(m_MixtureModel->GetNumberOfComponents());
   vnl_vector<double> x_scratch(m_MixtureModel->GetNumberOfComponents());
+  vnl_vector<double> z_scratch(m_MixtureModel->GetNumberOfComponents());
   vnl_vector<double> log_pdf(m_MixtureModel->GetNumberOfGaussians());
   vnl_vector<double> log_w(m_MixtureModel->GetNumberOfGaussians());
   vnl_vector<double> w(m_MixtureModel->GetNumberOfGaussians());
@@ -170,7 +171,7 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
     // Evaluate the posterior probability robustly
     for(int k = 0; k < m_MixtureModel->GetNumberOfGaussians(); k++)
       {
-      log_pdf[k] = m_MixtureModel->EvaluateLogPDF(k, x, x_scratch);
+      log_pdf[k] = m_MixtureModel->EvaluateLogPDF(k, x, x_scratch, z_scratch);
       }
 
     // Evaluate the GMM for each of the clusters

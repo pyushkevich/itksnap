@@ -1,6 +1,7 @@
 #include "Gaussian.h"
 #include <iostream>
 #include <vnl/vnl_math.h>
+#include <vnl/algo/vnl_symmetric_eigensystem.h>
 
 Gaussian::Gaussian(int dimension)
   :m_dimension(dimension), m_setMeanFlag(0), m_setCovarianceFlag(0), m_normalization(0), m_log_normalization(0)
@@ -46,6 +47,16 @@ Gaussian::Gaussian(int dimension, double *mean, double *covariance)
     m_normalization = sqrt(pow(2*vnl_math::pi, m_dimension) * vnl_determinant(*m_covariance_matrix));
     m_log_normalization = log(m_normalization);
     }
+
+  // Perform SVD
+  vnl_symmetric_eigensystem<double> eig(*m_covariance_matrix);
+  m_V = eig.V;
+  m_Vt = eig.V.transpose();
+  m_Lambda = eig.D;
+  m_DiagNormFac = VectorType(m_dimension);
+  for(int i = 0; i < m_dimension; i++)
+    m_DiagNormFac[i] = log(2 * vnl_math::pi * m_Lambda[i]);
+
 
 //  m_x_matrix = new MatrixType(dimension, 1);
   m_x_vector = new VectorType(dimension);
@@ -114,6 +125,7 @@ void Gaussian::SetMean(double *mean)
   m_setMeanFlag = 1;
 }
 
+// TODO: why is this code duplicated from the constructor?
 void Gaussian::SetCovariance(double *covariance)
 {
   m_is_delta = true;
@@ -141,6 +153,16 @@ void Gaussian::SetCovariance(double *covariance)
     {
     // the Gaussian is a delta function. The code should not use the precision matrix or normalization
     }
+
+  // Perform SVD
+  vnl_symmetric_eigensystem<double> eig(*m_covariance_matrix);
+  m_V = eig.V;
+  m_Vt = eig.V.transpose();
+  m_Lambda = eig.D;
+
+  m_DiagNormFac = VectorType(m_dimension);
+  for(int i = 0; i < m_dimension; i++)
+    m_DiagNormFac[i] = log(2 * vnl_math::pi * m_Lambda[i]);
 }
 
 #include <vnl/vnl_math.h>
@@ -179,10 +201,35 @@ double Gaussian::EvaluateLogPDF(double *x)
     (*m_x_vector)(i) = x[i] - (*m_mean_vector)(i);
   }
 
+  // Use SVD to compute the Gaussian value. This requires a matrix operation
+  // so should probably be used sparingly
+  m_z_vector = m_Vt * (*m_x_vector);
+  double logzz = 0;
+  for (int i = 0; i < m_dimension; i++)
+    {
+    if(m_Lambda[i] == 0)
+      {
+      if(m_z_vector[i] != 0)
+        {
+        logzz = -INFINITY;
+        break;
+        }
+      else
+        continue;
+      }
+    else
+      {
+      // TODO: precompute this
+      logzz -= m_DiagNormFac[i] + (m_z_vector[i] * m_z_vector[i] / m_Lambda[i]);
+      }
+    }
+
   if(!m_is_delta)
     {
     double t = dot_product((*m_precision_matrix) * (*m_x_vector), (*m_x_vector));
-    return -0.5 * t - m_log_normalization;
+    double logz = -0.5 * t - m_log_normalization;
+    // return logz;
+    return 0.5 * logzz;
     }
   else
     {
@@ -190,44 +237,55 @@ double Gaussian::EvaluateLogPDF(double *x)
     }
 }
 
-double Gaussian::EvaluateLogPDF(VectorType &x, VectorType &xscratch)
+double Gaussian::EvaluateLogPDF(VectorType &x, VectorType &xscratch, VectorType &zscratch)
 {
   for(int i = 0; i < m_dimension; i++)
   {
     xscratch[i] = x[i] - (*m_mean_vector)(i);
   }
 
+  // Use SVD to compute the Gaussian value. This requires a matrix operation
+  // so should probably be used sparingly
+
+  // Compute z = Vt * x
+  for(int i = 0; i < m_dimension; i++)
+    {
+    zscratch[i] = 0;
+    for(int j = 0; j < m_dimension; j++)
+      zscratch[i] += m_Vt(i,j) * xscratch[j];
+    }
+
+  double logzz = 0;
+  for (int i = 0; i < m_dimension; i++)
+    {
+    if(m_Lambda[i] == 0)
+      {
+      if(zscratch[i] != 0)
+        {
+        logzz = -INFINITY;
+        break;
+        }
+      else
+        continue;
+      }
+    else
+      {
+      // TODO: precompute this
+      logzz -= m_DiagNormFac[i] + (zscratch[i] * zscratch[i] / m_Lambda[i]);
+      }
+    }
+
   if(!m_is_delta)
     {
     double t = dot_product((*m_precision_matrix) * xscratch, xscratch);
-    return -0.5 * t - m_log_normalization;
+    // return -0.5 * t - m_log_normalization;
+    return 0.5 * logzz;
     }
   else
     {
     return xscratch.inf_norm() == 0.0 ? vnl_huge_val(1.0) : -vnl_huge_val(1.0);
     }
 }
-
-double Gaussian::EvaluatePDF(VectorType &x, VectorType &xscratch)
-{
-  for(int i = 0; i < m_dimension; i++)
-  {
-    xscratch[i] = x[i] - (*m_mean_vector)(i);
-  }
-
-  if(!m_is_delta)
-    {
-    double t = dot_product((*m_precision_matrix) * xscratch, xscratch);
-    double z = exp(-0.5 * t) / m_normalization;
-    return z;
-    }
-  else
-    {
-    // Behave like a delta function
-    return m_x_vector->inf_norm() == 0.0 ? vnl_huge_val(1.0) : 0.0;
-    }
-}
-
 
 void Gaussian::PrintParameters()
 {

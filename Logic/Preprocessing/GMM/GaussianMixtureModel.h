@@ -31,10 +31,12 @@ public:
   void SetWeightAndRenormalize(int index, double weight);
 
   double EvaluateLogPDF(int index, double *x);
-  double EvaluateLogPDF(int index, vnl_vector<double> &x, vnl_vector<double> &xscratch);
+  double EvaluateLogPDF(int index, vnl_vector<double> &x,
+                        vnl_vector<double> &xscratch,
+                        vnl_vector<double> &zscratch);
 
   double EvaluatePDF(int index, double *x);
-  double EvaluatePDF(int index, vnl_vector<double> &x, vnl_vector<double> &xscratch);
+
 
   void PrintParameters();
 
