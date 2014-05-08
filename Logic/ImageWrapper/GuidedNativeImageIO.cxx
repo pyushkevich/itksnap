@@ -354,6 +354,9 @@ GuidedNativeImageIO
     m_IOBase->ReadImageInformation();
     }
 
+  // Get the data dimensions
+  int ndim = m_IOBase->GetNumberOfDimensions();
+
   // Set the dimensions (if 2D image, we set last dim to 1)
   m_NativeDimensions.fill(1);
   for(size_t i = 0; i < m_IOBase->GetNumberOfDimensions() && i < 3; i++)

@@ -1,6 +1,6 @@
 #include "ImageWrapperBase.h"
 #include "itkImageBase.h"
-
+#include "IRISException.h"
 
 
 
@@ -52,6 +52,43 @@ ImageWrapperBase
     vtk2vox(i,3) = - v_origin[i] / v_spacing[i];
     }
   return vox2nii * vtk2vox;
+}
+
+
+ScalarRepresentationIterator
+::ScalarRepresentationIterator(const VectorImageWrapperBase *wrapper)
+  : m_Depth(NUMBER_OF_SCALAR_REPS, 1)
+{
+  assert(wrapper->GetNumberOfComponents() > 0);
+
+  m_Depth[SCALAR_REP_COMPONENT] = wrapper->GetNumberOfComponents();
+  m_Current = SCALAR_REP_COMPONENT;
+  m_Index = 0;
+}
+
+ScalarRepresentationIterator &ScalarRepresentationIterator::operator ++()
+{
+  // Once at the end stay at the end
+  if(m_Current == NUMBER_OF_SCALAR_REPS)
+    return *this;
+
+  // If there is room to grow in current rep, do it
+  if(m_Index + 1 < m_Depth[(int) m_Current])
+    {
+    m_Index++;
+    }
+  else
+    {
+    m_Current++;
+    m_Index = 0;
+    }
+
+  return *this;
+}
+
+bool ScalarRepresentationIterator::IsAtEnd() const
+{
+  return m_Current == NUMBER_OF_SCALAR_REPS;
 }
 
 

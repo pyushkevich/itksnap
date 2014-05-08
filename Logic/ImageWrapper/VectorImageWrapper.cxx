@@ -329,6 +329,15 @@ VectorImageWrapper<TTraits,TBase>
 }
 
 template <class TTraits, class TBase>
+inline ScalarImageWrapperBase *
+VectorImageWrapper<TTraits,TBase>
+::GetScalarRepresentation(const ScalarRepresentationIterator &it)
+{
+  assert(!it.IsAtEnd());
+  return this->GetScalarRepresentation(it.GetCurrent(), it.GetIndex());
+}
+
+template <class TTraits, class TBase>
 bool
 VectorImageWrapper<TTraits,TBase>
 ::FindScalarRepresentation(

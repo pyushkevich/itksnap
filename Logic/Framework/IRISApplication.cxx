@@ -1601,9 +1601,8 @@ IRISApplication
     {
     // Call the method recursively for the components
     VectorImageWrapperBase *vec = dynamic_cast<VectorImageWrapperBase *>(wrapper);
-    for(int i = 0; i < vec->GetNumberOfComponents(); i++)
-      CreateSegmentationSettings(
-            vec->GetScalarRepresentation(SCALAR_REP_COMPONENT, i), role);
+    for(ScalarRepresentationIterator it(vec); !it.IsAtEnd(); ++it)
+      CreateSegmentationSettings(vec->GetScalarRepresentation(it), role);
     }
 }
 
@@ -2020,6 +2019,7 @@ void IRISApplication::OpenProject(
 
   // Read all the layers
   std::string key;
+  bool main_loaded = false;
   for(int i = 0;
       preg.HasFolder(key = Registry::Key("Layers.Layer[%03d]", i));
       i++)
@@ -2060,7 +2060,15 @@ void IRISApplication::OpenProject(
 
     // Load the image and its metadata
     LoadImage(layer_file_full.c_str(), role, warn, &folder);
+
+    // Check if the main has been loaded
+    if(role == MAIN_ROLE)
+      main_loaded = true;
     }
+
+  // If main has not been loaded, throw an exception
+  if(!main_loaded)
+    throw IRISException("Empty or invalid project (main image not found in the project file).");
 
   // Save the project filename
   m_GlobalState->SetProjectFilename(proj_file_full.c_str());

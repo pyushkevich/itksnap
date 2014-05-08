@@ -62,15 +62,6 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
   // Nothing to do here, since we are connected to the slices?
 }
 
-template <class TWrapperTraits>
-void
-ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
-::DeriveFromReferenceWrapper(ImageWrapperBase *source)
-{
-  // TODO: add implementation
-}
-
-
 template<class TWrapperTraits>
 typename ColorLabelTableDisplayMappingPolicy<TWrapperTraits>::DisplaySlicePointer
 ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
@@ -193,24 +184,6 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   // Copy the color map and the intensity curve
   this->SetColorMap(reference->m_ColorMap);
   this->SetIntensityCurve(reference->m_IntensityCurveVTK);
-}
-
-template<class TWrapperTraits>
-void
-CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
-::DeriveFromReferenceWrapper(ImageWrapperBase *source)
-{
-  // TODO: Figure out how to do this right...
-
-  /*
-  SetReferenceIntensityRange(srcWrapper->GetImageMinAsDouble(),
-                             srcWrapper->GetImageMaxAsDouble());
-
-  CopyIntensityMap(srcWrapper);
-
-  m_ColorMap->CopyInformation(
-        srcWrapper->GetDisplayMapping()->GetColorMap());
-        */
 }
 
 template<class TWrapperTraits>
@@ -972,22 +945,6 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     this->SetDisplayMode(mode);
     }
 }
-
-
-template <class TWrapperTraits>
-void
-MultiChannelDisplayMappingPolicy<TWrapperTraits>
-::DeriveFromReferenceWrapper(ImageWrapperBase *source)
-{
-  // TODO:
-  // I guess we have to call this method for each of the scalar wrappers
-}
-
-
-
-
-
-
 
 
 template class ColorLabelTableDisplayMappingPolicy<LabelImageWrapperTraits>;

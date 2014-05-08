@@ -95,9 +95,18 @@ public:
    */
   ScalarImageWrapperBase *GetDefaultScalarRepresentation();
 
+  /**
+   * Get a pointer to the given scalar representation of this vector image.
+   */
   ScalarImageWrapperBase *GetScalarRepresentation(
       ScalarRepresentation type,
       int index = 0);
+
+  /**
+   * Access a scalar representation using an iterator
+   */
+  virtual ScalarImageWrapperBase *GetScalarRepresentation(
+      const ScalarRepresentationIterator &it);
 
   /**
    * If scalar_rep is a scalar representation of the vector image wrapper, find

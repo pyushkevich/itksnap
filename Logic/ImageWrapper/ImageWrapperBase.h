@@ -45,6 +45,7 @@ enum ScalarRepresentation
   NUMBER_OF_SCALAR_REPS
 };
 
+
 /**
  \class ImageWrapper
  \brief Abstract parent class for all image wrappers
@@ -457,12 +458,53 @@ public:
 
 
 
+
+/**
+ * A class that can be used to iterate over scalar representations.
+ * Within some of the scalar representations (for now just SCALAR_REP_COMPONENT)
+ * there are multiple indexed scalar components. The iterator iterates over the
+ * components before proceeding to the next component.
+ */
+class ScalarRepresentationIterator
+{
+public:
+  ScalarRepresentationIterator(const VectorImageWrapperBase *wrapper);
+
+  ScalarRepresentationIterator& operator ++();
+  bool IsAtEnd() const;
+
+  irisGetMacro(Index, int)
+  irisGetMacro(Current, ScalarRepresentation)
+
+protected:
+  ScalarRepresentation m_Current;
+  int m_Index;
+
+  // Depth of each scalar representation
+  std::vector<int> m_Depth;
+
+  friend class VectorImageWrapperBase;
+};
+
+/**
+ * A base class for wrappers around vector-valued images
+ */
 class VectorImageWrapperBase : public virtual ImageWrapperBase
 {
 public:
 
+  /**
+   * Get a pointer to the given scalar representation of this vector image.
+   */
   virtual ScalarImageWrapperBase *GetScalarRepresentation(
       ScalarRepresentation type, int index = 0) = 0;
+
+
+  /**
+   * Access a scalar representation using an iterator
+   */
+  virtual ScalarImageWrapperBase *GetScalarRepresentation(
+      const ScalarRepresentationIterator &it) = 0;
 
   /**
    * If scalar_rep is a scalar representation of the vector image wrapper, find

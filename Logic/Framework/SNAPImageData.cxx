@@ -573,9 +573,12 @@ void SNAPImageData::CopyLayerMetadata(
   // Nickname
   target->SetDefaultNickname(source->GetNickname());
 
-  // Display mapping. TODO: this currently does nothing because the Derive
-  // method has not been implemented. Not good.
-  target->GetDisplayMapping()->DeriveFromReferenceWrapper(source);
+  // This is a little bit of overhead, but not enough to be a big deal:
+  // we just save the display mapping to a Registry and then restore it
+  // in the target wrapper.
+  Registry folder;
+  source->GetDisplayMapping()->Save(folder);
+  target->GetDisplayMapping()->Restore(folder);
 
   // Threshold settings. These should be copied for each scalar component
   if(source->IsScalar())
@@ -584,12 +587,14 @@ void SNAPImageData::CopyLayerMetadata(
     }
   else
     {
+    // Copy threshold settings for all the scalar components
     VectorImageWrapperBase *v_source = dynamic_cast<VectorImageWrapperBase *>(source);
     VectorImageWrapperBase *v_target = dynamic_cast<VectorImageWrapperBase *>(target);
-    for(int i = 0; i < v_source->GetNumberOfComponents(); i++)
+
+    for(ScalarRepresentationIterator it(v_source); !it.IsAtEnd(); ++it)
       {
-      ImageWrapperBase *c_source = v_source->GetScalarRepresentation(SCALAR_REP_COMPONENT, i);
-      ImageWrapperBase *c_target = v_target->GetScalarRepresentation(SCALAR_REP_COMPONENT, i);
+      ImageWrapperBase *c_source = v_source->GetScalarRepresentation(it);
+      ImageWrapperBase *c_target = v_target->GetScalarRepresentation(it);
       c_target->SetUserData("ThresholdSettings", c_source->GetUserData("ThresholdSettings"));
       }
     }
