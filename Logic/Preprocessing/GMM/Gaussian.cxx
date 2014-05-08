@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vnl/vnl_math.h>
 #include <vnl/algo/vnl_symmetric_eigensystem.h>
+#include <limits>
 
 Gaussian::Gaussian(int dimension)
   :m_dimension(dimension), m_setMeanFlag(0), m_setCovarianceFlag(0), m_normalization(0), m_log_normalization(0)
@@ -211,7 +212,7 @@ double Gaussian::EvaluateLogPDF(double *x)
       {
       if(m_z_vector[i] != 0)
         {
-        logzz = -INFINITY;
+        logzz = -std::numeric_limits<double>::infinity();
         break;
         }
       else
@@ -262,7 +263,7 @@ double Gaussian::EvaluateLogPDF(VectorType &x, VectorType &xscratch, VectorType 
       {
       if(zscratch[i] != 0)
         {
-        logzz = -INFINITY;
+        logzz = -std::numeric_limits<double>::infinity();
         break;
         }
       else
