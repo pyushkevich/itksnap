@@ -474,10 +474,12 @@ public:
   bool IsAtEnd() const;
 
   irisGetMacro(Index, int)
-  irisGetMacro(Current, ScalarRepresentation)
+
+  ScalarRepresentation GetCurrent() const
+    { return static_cast<ScalarRepresentation>(m_Current); }
 
 protected:
-  ScalarRepresentation m_Current;
+  int m_Current;
   int m_Index;
 
   // Depth of each scalar representation
