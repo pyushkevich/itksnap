@@ -2,7 +2,7 @@
 #include "KMeansPlusPlus.h"
 #include "EMGaussianMixtures.h"
 #include "GaussianMixtureModel.h"
-#include "GenericImageData.h"
+#include "SNAPImageData.h"
 #include "ImageWrapper.h"
 #include "ImageWrapperTraits.h"
 
@@ -37,7 +37,7 @@ UnsupervisedClustering::~UnsupervisedClustering()
 }
 
 
-void UnsupervisedClustering::SetDataSource(GenericImageData *imageData)
+void UnsupervisedClustering::SetDataSource(SNAPImageData *imageData)
 {
   if(m_DataSource != imageData)
     {
@@ -87,11 +87,15 @@ void UnsupervisedClustering::SampleDataSource()
   for(int i = 0; i < nsam; i++, buffer+=nComp)
     m_DataArray[i] = buffer;
 
-  // Create a random walk through the main image
-  typedef AnatomicImageWrapper::ImageType AnatomicImage;
-  AnatomicImage *main = m_DataSource->GetMain()->GetImage();
-  typedef itk::ImageRandomConstIteratorWithIndex<AnatomicImage> RandomIter;
-  RandomIter itRand(main, main->GetBufferedRegion());
+  // Create a random walk through the speed image, which should be initialized
+  // at this point. We iterate over the speed image because we can easily access
+  // its internal image (it's always a scalar image)
+  assert(m_DataSource->IsSpeedLoaded());
+  typedef SpeedImageWrapper::ImageType SpeedImage;
+
+  SpeedImage *speed = m_DataSource->GetSpeed()->GetImage();
+  typedef itk::ImageRandomConstIteratorWithIndex<SpeedImage> RandomIter;
+  RandomIter itRand(speed, speed->GetBufferedRegion());
   itRand.SetNumberOfSamples(nsam);
 
   // Initialize the 'central' samples list
@@ -99,30 +103,24 @@ void UnsupervisedClustering::SampleDataSource()
   m_CenterSamples.reserve(400);
 
   // Define the center region
-  itk::ImageRegion<3> rcenter = main->GetBufferedRegion();
+  itk::ImageRegion<3> rcenter = speed->GetBufferedRegion();
   rcenter.ShrinkByRadius(to_itkSize(Vector3d(rcenter.GetSize()) * 0.2));
 
   // Do the random walk
   int pVoxel = 0;
   for(; !itRand.IsAtEnd(); ++itRand)
     {
+    // Go to the next sample location
     itk::Index<3> idx = itRand.GetIndex();
-    AnatomicImage::OffsetValueType offset = main->ComputeOffset(idx);
 
+    // TODO: this is a really slow way to collect samples!
     int iOffset = 0;
-    for(LayerIterator lit = m_DataSource->GetLayers(
-          MAIN_ROLE | OVERLAY_ROLE);
+    for(LayerIterator lit = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
         !lit.IsAtEnd(); ++lit)
       {
-      AnatomicImageWrapper *aiw = dynamic_cast<AnatomicImageWrapper *>(lit.GetLayer());
-      int iComp = aiw->GetNumberOfComponents();
-      AnatomicImageWrapper::InternalPixelType *pixel =
-          aiw->GetImage()->GetBufferPointer() + offset * iComp;
-
-      for(int j = 0; j < iComp; j++)
-        m_DataArray[pVoxel][iOffset + j] = pixel[j];
-
-      iOffset += iComp;
+      ImageWrapperBase *iw = lit.GetLayer();
+      iw->GetVoxelAsDouble(idx, m_DataArray[pVoxel] + iOffset);
+      iOffset += iw->GetNumberOfComponents();
       }
 
     // Store as a 'central' sample if in the central 60% of the image

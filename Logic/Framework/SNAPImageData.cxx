@@ -316,9 +316,9 @@ SNAPImageData
     m_SpeedWrapper->GetImage()->GetBufferedRegion());
   m_ExternalAdvectionField->Allocate();
   m_ExternalAdvectionField->SetSpacing(
-    m_MainImageWrapper->GetImage()->GetSpacing());
+    m_MainImageWrapper->GetImageBase()->GetSpacing());
   m_ExternalAdvectionField->SetOrigin(
-    m_MainImageWrapper->GetImage()->GetOrigin());
+    m_MainImageWrapper->GetImageBase()->GetOrigin());
 
   typedef itk::ImageRegionConstIterator<FloatImageType> Iterator;
   Iterator itX(imgX,imgX->GetBufferedRegion());
@@ -521,27 +521,14 @@ SNAPImageData
                   const SNAPSegmentationROISettings &roi,
                   itk::Command *progressCommand)
 {
-  // Get the source grey wrapper
-  AnatomicImageWrapper *srcWrapper = source->GetMain();
+  // Get the source main wrapper
+  ImageWrapperBase *srcMain = source->GetMain();
 
-  // Get the roi chunk from the grey image
-  SmartPtr<AnatomicImageType> imgNew =
-      srcWrapper->DeepCopyRegion(roi, progressCommand);
-
-  // Get the size of the region
-  Vector3ui size = imgNew->GetLargestPossibleRegion().GetSize();
-
-  // Compute an image coordinate geometry for the region of interest
-  std::string rai[] = {
-    this->m_Parent->GetDisplayToAnatomyRAI(0),
-    this->m_Parent->GetDisplayToAnatomyRAI(1),
-    this->m_Parent->GetDisplayToAnatomyRAI(2) };
-  ImageCoordinateGeometry icg(
-        source->GetImageGeometry().GetImageDirectionCosineMatrix(),
-        rai, size);
+  // Extract the ROI into a generic type
+  SmartPtr<ImageWrapperBase> roiMain = srcMain->ExtractROI(roi, progressCommand);
 
   // Assign the new wrapper to the target
-  this->SetMainImage(imgNew, icg, srcWrapper->GetNativeMapping());
+  this->SetMainImageInternal(roiMain);
 
   // Copy metadata
   this->CopyLayerMetadata(this->GetMain(), source->GetMain());
@@ -550,20 +537,15 @@ SNAPImageData
   for(LayerIterator lit = source->GetLayers(OVERLAY_ROLE);
       !lit.IsAtEnd(); ++lit)
     {
-    // Cast the layer to anatomic image wrapper type
-    AnatomicImageWrapper *ovlWrapper =
-        dynamic_cast<AnatomicImageWrapper *>(lit.GetLayer());
-
-    assert(ovlWrapper);
-
-    // Create a copy of the layer for the requested ROI
-    SmartPtr<AnatomicImageType> ovlNew = ovlWrapper->DeepCopyRegion(roi, progressCommand);
+    // Do the same for all the anatomic wrappers
+    SmartPtr<ImageWrapperBase> roiOvl =
+        lit.GetLayer()->ExtractROI(roi, progressCommand);
 
     // Add the overlay
-    this->AddOverlay(ovlNew, ovlWrapper->GetNativeMapping());
+    this->AddOverlayInternal(roiOvl);
 
     // Copy metadata
-    this->CopyLayerMetadata(this->GetLastOverlay(), ovlWrapper);
+    this->CopyLayerMetadata(this->GetLastOverlay(), lit.GetLayer());
     }
 }
 

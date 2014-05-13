@@ -192,9 +192,7 @@ public:
 
   virtual void SetSliceIndex(const Vector3ui &cursor);
 
-  virtual void SetImageToDisplayTransform(
-    unsigned int iSlice,const ImageCoordinateTransform &transform);
-
+  virtual void SetImageGeometry(const ImageCoordinateGeometry &geom);
 
   /**
     Compute the image histogram. The histogram is cached inside of the
@@ -264,6 +262,7 @@ protected:
   typedef VectorToScalarMagnitudeFunctor<InternalPixelType,float> MagnitudeFunctor;
   typedef VectorToScalarMaxFunctor<InternalPixelType, float> MaxFunctor;
   typedef VectorToScalarMeanFunctor<InternalPixelType,float> MeanFunctor;
+
 };
 
 #endif // __VectorImageWrapper_h_

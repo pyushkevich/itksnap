@@ -142,8 +142,16 @@ GMMPreprocessingFilterConfigTraits
   for(LayerIterator it = sid->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
       !it.IsAtEnd(); ++it)
     {
-    AnatomicImageWrapper *aiw = dynamic_cast<AnatomicImageWrapper *>(it.GetLayer());
-    filter->PushBackInput(aiw->GetImage());
+    if(it.GetLayerAsScalar())
+      {
+      AnatomicScalarImageWrapper *w = dynamic_cast<AnatomicScalarImageWrapper *>(it.GetLayer());
+      filter->AddScalarImage(w->GetImage());
+      }
+    else if (it.GetLayerAsVector())
+      {
+      AnatomicImageWrapper *w = dynamic_cast<AnatomicImageWrapper *>(it.GetLayer());
+      filter->AddVectorImage(w->GetImage());
+      }
     }
 
   // Set the GMM input

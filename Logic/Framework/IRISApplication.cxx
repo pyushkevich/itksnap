@@ -1548,13 +1548,8 @@ IRISApplication
   assert(m_IRISImageData->IsMainLoaded());
   assert(io->IsNativeImageLoaded());
 
-  // Rescale the image to grey
-  RescaleNativeImageToIntegralType<AnatomyImageType> rescaler;
-  AnatomyImageType::Pointer imgOverlay = rescaler(io);
-  LinearInternalToNativeIntensityMapping mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
-
   // Add the image as the current grayscale overlay
-  m_IRISImageData->AddOverlay(imgOverlay, mapper);
+  m_IRISImageData->AddOverlay(io);
 
   // Set the filename of the overlay
   // TODO: this is cumbersome, could we just initialize the wrapper from the
@@ -1614,21 +1609,8 @@ IRISApplication
   // This has to happen in 'pure' IRIS mode
   assert(!IsSnakeModeActive());
 
-  // Get the size of the image as a vector of uint
-  Vector3ui size = io->GetNativeImage()->GetBufferedRegion().GetSize();
-
-  // Compute the new image geometry for the IRIS data
-  ImageCoordinateGeometry icg(
-        io->GetNativeImage()->GetDirection().GetVnlMatrix(),
-        m_DisplayToAnatomyRAI, size);
-
-  // Rescale the image to desired number of bits
-  RescaleNativeImageToIntegralType<AnatomyImageType> rescaler;
-  AnatomyImageType::Pointer imgMain = rescaler(io);
-  LinearInternalToNativeIntensityMapping mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
-
-  // Set the image as the current main anatomy image
-  m_IRISImageData->SetMainImage(imgMain, icg, mapper);
+  // Load the image into the current image data object
+  m_IRISImageData->SetMainImage(io);
 
   // Set the filename and nickname of the image wrapper
   m_IRISImageData->GetMain()->SetFileName(io->GetFileNameOfNativeImage());
@@ -1654,7 +1636,8 @@ IRISApplication
   InvokeEvent(MainImageDimensionsChangeEvent());
 
   // Update the crosshairs position to the center of the image
-  Vector3ui cursor = size; cursor /= 2;
+  Vector3ui cursor = m_IRISImageData->GetMain()->GetSize();
+  cursor /= 2;
   this->SetCursorPosition(cursor);
 
   // This line forces the cursor to be propagated to the image even if the

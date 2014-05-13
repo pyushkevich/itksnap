@@ -84,7 +84,7 @@ public:
   irisGetMacro(ImageToAnatomyTransform,const ImageCoordinateTransform &);
 
   /** Get the image to anatomy direction matrix */
-  irisGetMacro(ImageDirectionCosineMatrix, DirectionMatrix);
+  irisGetMacro(ImageDirectionCosineMatrix, DirectionMatrix)
 
   /** Get the transform from patient to display coordinate system */
   const ImageCoordinateTransform & GetAnatomyToDisplayTransform(unsigned int i) const
@@ -102,6 +102,12 @@ public:
   const ImageCoordinateTransform & GetDisplayToImageTransform(unsigned int i) const
   {
     return m_DisplayToImageTransform[i];
+  }
+
+  /** Get the display to anatomy RAIs */
+  const std::string & GetDisplayToAnatomyRAI(unsigned int i) const
+  {
+    return m_DisplayToAnatomyRAI[i];
   }
 
   /** Check an RAI orientation code for validity */
@@ -140,6 +146,9 @@ private:
   // Three anatomy to display transforms (for each of the 3D slices)
   ImageCoordinateTransform m_ImageToDisplayTransform[3];
   ImageCoordinateTransform m_DisplayToImageTransform[3];
+
+  // The string representation of the display to anatomy RAI codes
+  std::string m_DisplayToAnatomyRAI[3];
 
   // Image to anatomy direction matrix
   DirectionMatrix m_ImageDirectionCosineMatrix;  

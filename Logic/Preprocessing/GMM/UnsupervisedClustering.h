@@ -8,7 +8,7 @@
 class KMeansPlusPlus;
 class EMGaussianMixtures;
 class GaussianMixtureModel;
-class GenericImageData;
+class SNAPImageData;
 
 class UnsupervisedClustering : public itk::Object
 {
@@ -16,7 +16,7 @@ public:
 
   irisITKObjectMacro(UnsupervisedClustering, itk::Object)
 
-  void SetDataSource(GenericImageData *imageData);
+  void SetDataSource(SNAPImageData *imageData);
 
   irisGetMacro(NumberOfClusters, int)
 
@@ -48,7 +48,7 @@ protected:
   EMGaussianMixtures *m_ClusteringEM;
   KMeansPlusPlus *m_ClusteringInitializer;
   GaussianMixtureModel *m_MixtureModel;
-  GenericImageData *m_DataSource;
+  SNAPImageData *m_DataSource;
 
   int m_NumberOfClusters, m_NumberOfComponents, m_NumberOfVoxels, m_NumberOfSamples;
 

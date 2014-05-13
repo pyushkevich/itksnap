@@ -89,7 +89,7 @@ class SNAPQApplication : public QApplication
 public:
   SNAPQApplication(int argc, char **argv) :
     QApplication(argc, argv)
-  {
+    {
     this->setApplicationName("ITK-SNAP");
     this->setOrganizationName("itksnap.org");
     m_MainWindow = NULL;

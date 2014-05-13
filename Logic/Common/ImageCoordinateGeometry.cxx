@@ -88,6 +88,9 @@ ImageCoordinateGeometry
     {
     // Make sure the code is valid
     assert(IsRAICodeValid(displayAnatomyRAICode[slice].c_str()));
+
+    // Keep a copy of the code
+    m_DisplayToAnatomyRAI[slice] = displayAnatomyRAICode[slice];
     
     m_AnatomyToDisplayTransform[slice].SetTransform(
       InvertMappingVector(

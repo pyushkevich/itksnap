@@ -382,15 +382,15 @@ VectorImageWrapper<TTraits,TBase>
 template <class TTraits, class TBase>
 void
 VectorImageWrapper<TTraits,TBase>
-::SetImageToDisplayTransform(
-    unsigned int iSlice, const ImageCoordinateTransform &transform)
+::SetImageGeometry(const ImageCoordinateGeometry &geom)
 {
-  Superclass::SetImageToDisplayTransform(iSlice, transform);
+  // Set my own geometry
+  Superclass::SetImageGeometry(geom);
 
   // Propagate to owned scalar wrappers
   for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
     {
-    it->second->SetImageToDisplayTransform(iSlice, transform);
+    it->second->SetImageGeometry(geom);
     }
 }
 

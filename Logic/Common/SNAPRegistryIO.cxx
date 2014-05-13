@@ -270,7 +270,7 @@ SNAPRegistryIO
   // Save the intensity mapping curve
   if (app->GetIRISImageData()->IsMainLoaded())
     {
-    VectorImageWrapperBase *main = app->GetCurrentImageData()->GetMain();
+    ImageWrapperBase *main = app->GetCurrentImageData()->GetMain();
     main->GetDisplayMapping()->Save(registry.Folder("IRIS.DisplayMapping"));
     }
 
@@ -316,7 +316,7 @@ SNAPRegistryIO
   GlobalState *gs = app->GetGlobalState();
 
   // Get the main image if it's loaded
-  VectorImageWrapperBase *main =
+  ImageWrapperBase *main =
       app->IsMainImageLoaded()
       ? app->GetCurrentImageData()->GetMain()
       : NULL;

@@ -85,8 +85,14 @@ template class CastingScalarImageWrapperCommonRepresentation<
 template class InPlaceScalarImageWrapperCommonRepresentation<
     GreyType, SpeedImageWrapperTraits >;
 
+template class InPlaceScalarImageWrapperCommonRepresentation<
+    GreyType, GreyAnatomicScalarImageWrapperTraits >;
+
 template class CastingScalarImageWrapperCommonRepresentation<
     GreyType, LevelSetImageWrapperTraits >;
+
+template class CastingScalarImageWrapperCommonRepresentation<
+    GreyType, GreyAnatomicScalarImageWrapperTraits >;
 
 
 

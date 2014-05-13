@@ -4,114 +4,86 @@
 #include "GMMClassifyImageFilter.h"
 #include "itkImageRegionConstIterator.h"
 #include "EMGaussianMixtures.h"
+#include "ImageCollectionToImageFilter.h"
 
-template <class TInputImage, class TOutputImage>
-GMMClassifyImageFilter<TInputImage, TOutputImage>
+template <class TInputImage, class TInputVectorImage, class TOutputImage>
+GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 ::GMMClassifyImageFilter()
 {
   m_MixtureModel = NULL;
 }
 
-template <class TInputImage, class TOutputImage>
-GMMClassifyImageFilter<TInputImage, TOutputImage>
+template <class TInputImage, class TInputVectorImage, class TOutputImage>
+GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 ::~GMMClassifyImageFilter()
 {
 }
 
-template <class TInputImage, class TOutputImage>
+template <class TInputImage, class TInputVectorImage, class TOutputImage>
 void
-GMMClassifyImageFilter<TInputImage, TOutputImage>
+GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 ::SetMixtureModel(GaussianMixtureModel *model)
 {
   m_MixtureModel = model;
   this->Modified();
 }
 
-template <class TInputImage, class TOutputImage>
+template <class TInputImage, class TInputVectorImage, class TOutputImage>
 void
-GMMClassifyImageFilter<TInputImage, TOutputImage>
+GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
+::AddScalarImage(InputImageType *image)
+{
+  this->AddInput(image);
+}
+
+template <class TInputImage, class TInputVectorImage, class TOutputImage>
+void
+GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
+::AddVectorImage(InputVectorImageType *image)
+{
+  this->AddInput(image);
+}
+
+
+template <class TInputImage, class TInputVectorImage, class TOutputImage>
+void
+GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
+::GenerateInputRequestedRegion()
+{
+  itk::ImageSource<TOutputImage>::GenerateInputRequestedRegion();
+
+  for( itk::InputDataObjectIterator it( this ); !it.IsAtEnd(); it++ )
+    {
+    // Check whether the input is an image of the appropriate dimension
+    InputImageType *input = dynamic_cast< InputImageType * >( it.GetInput() );
+    InputVectorImageType *vecInput = dynamic_cast< InputVectorImageType * >( it.GetInput() );
+    if (input)
+      {
+      InputImageRegionType inputRegion;
+      this->CallCopyOutputRegionToInputRegion( inputRegion, this->GetOutput()->GetRequestedRegion() );
+      input->SetRequestedRegion(inputRegion);
+      }
+    else if(vecInput)
+      {
+      InputImageRegionType inputRegion;
+      this->CallCopyOutputRegionToInputRegion( inputRegion, this->GetOutput()->GetRequestedRegion() );
+      vecInput->SetRequestedRegion(inputRegion);
+      }
+    }
+}
+
+
+template <class TInputImage, class TInputVectorImage, class TOutputImage>
+void
+GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 ::PrintSelf(std::ostream &os, itk::Indent indent) const
 {
   os << indent << "GMMClassifyImageFilter" << std::endl;
 }
 
-/*
-template <class TInputImage, class TOutputImage>
+template <class TInputImage, class TInputVectorImage, class TOutputImage>
 void
-GMMClassifyImageFilter<TInputImage, TOutputImage>
-::GenerateData()
-{
-  this->AllocateOutputs();
-
-  // Get the number of inputs
-  assert(m_MixtureModel);
-  int n_input = this->GetNumberOfIndexedInputs();
-  OutputImagePointer outputPtr = this->GetOutput(0);
-
-  // Define n image iterators
-  typedef itk::ImageRegionConstIterator<TInputImage> InputIter;
-  InputIter *it_in = new InputIter[n_input];
-  int *comps = new int[n_input];
-  for(int i = 0; i < n_input; i++)
-    {
-    const InputImageType *input = this->GetInput(i);
-    InputIter test(input, outputPtr->GetRequestedRegion());
-    it_in[i] = test;
-    comps[i] = input->GetNumberOfComponentsPerPixel();
-    }
-
-
-  typedef itk::ImageRegionIterator<TOutputImage> OutputIter;
-  OutputIter it_out(outputPtr, outputPtr->GetRequestedRegion());
-
-  vnl_vector<double> x(m_MixtureModel->GetNumberOfComponents());
-  vnl_vector<double> x_scratch(m_MixtureModel->GetNumberOfComponents());
-  vnl_vector<double> p(m_MixtureModel->GetNumberOfGaussians());
-
-
-  // Iterate through all the voxels
-  while ( !it_out.IsAtEnd() )
-    {
-    bool debug =false;
-    if(it_out.GetIndex()[0] == 30 && it_out.GetIndex()[1] == 22 && it_out.GetIndex()[2] == 7)
-      debug = true;
-
-    // Build up a vector of all the component values (x)
-    int iComp = 0;
-    for(int i = 0; i < n_input; i++)
-      {
-      InputPixelType pix = it_in[i].Get();
-      for(int j = 0; j < comps[i]; j++, iComp++)
-        {
-        x[iComp] = pix[j];
-        }
-      ++it_in[i];
-      }
-
-    // Evaluate the GMM for each of the clusters
-
-    double psum = 0;
-    for(int k = 0; k < m_MixtureModel->GetNumberOfGaussians(); k++)
-      {
-      // TODO: this should be the foreground component
-      p[k] = m_MixtureModel->EvaluatePDF(k, x, x_scratch) * m_MixtureModel->GetWeight(k);
-      psum += p[k];
-      }
-
-
-    double post = (psum == 0) ? 0.0 : p[2] / psum;
-
-
-    // Store the value
-    it_out.Set(post * 0x7fff);
-    ++it_out;
-    }
-}
-*/
-
-template <class TInputImage, class TOutputImage>
-void
-GMMClassifyImageFilter<TInputImage, TOutputImage>
+GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 ::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
                        itk::ThreadIdType threadId)
 {
@@ -120,18 +92,9 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
   int n_input = this->GetNumberOfIndexedInputs();
   OutputImagePointer outputPtr = this->GetOutput(0);
 
-  // Define n image iterators
-  typedef itk::ImageRegionConstIterator<TInputImage> InputIter;
-  InputIter *it_in = new InputIter[n_input];
-  int *comps = new int[n_input];
-  for(int i = 0; i < n_input; i++)
-    {
-    const InputImageType *input = this->GetInput(i);
-    InputIter test(input, outputRegionForThread);
-    it_in[i] = test;
-    comps[i] = input->GetNumberOfComponentsPerPixel();
-    }
-
+  // Create a collection iterator
+  typedef ImageCollectionConstRegionIteratorWithIndex<
+      TInputImage, TInputVectorImage> CollectionIter;
 
   typedef itk::ImageRegionIterator<TOutputImage> OutputIter;
   OutputIter it_out(outputPtr, outputRegionForThread);
@@ -153,19 +116,20 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
     w[i] = m_MixtureModel->GetWeight(i);
     }
 
+  // Configure the input collection iterator
+  CollectionIter cit(outputRegionForThread);
+  for( itk::InputDataObjectIterator it( this ); !it.IsAtEnd(); it++ )
+    cit.AddImage(it.GetInput());
+
+  // Get the number of components
+  int nComp = cit.GetTotalComponents();
+
   // Iterate through all the voxels
   while ( !it_out.IsAtEnd() )
     {
-    // Build up a vector of all the component values (x)
-    int iComp = 0;
-    for(int i = 0; i < n_input; i++)
+    for(int i = 0; i < nComp; i++)
       {
-      InputPixelType pix = it_in[i].Get();
-      for(int j = 0; j < comps[i]; j++, iComp++)
-        {
-        x[iComp] = pix[j];
-        }
-      ++it_in[i];
+      x[i] = cit.Value(i);
       }
 
     // Evaluate the posterior probability robustly
@@ -187,7 +151,9 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
 
     // Store the value
     it_out.Set((OutputPixelType)(pdiff * 0x7fff));
+
     ++it_out;
+    ++cit;
     }
 }
 

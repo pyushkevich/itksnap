@@ -103,6 +103,24 @@ public:
   itkStaticConstMacro(PipelineOutput, bool, true);
 };
 
+/**
+ * This helper traits class is used to select the appropriate common representation
+ * policy depending on the internal pixel type
+ */
+template <class TPixel, class TWrapperTraits>
+class DefaultCommonRepresentationPolicy
+{
+public:
+  typedef CastingScalarImageWrapperCommonRepresentation<GreyType, TWrapperTraits> Policy;
+};
+
+template <class TWrapperTraits>
+class DefaultCommonRepresentationPolicy<GreyType, TWrapperTraits>
+{
+public:
+  typedef InPlaceScalarImageWrapperCommonRepresentation<GreyType, TWrapperTraits> Policy;
+};
+
 template <class TPixel>
 class ComponentImageWrapperTraits
 {
@@ -181,7 +199,35 @@ public:
   itkStaticConstMacro(PipelineOutput, bool, false);
 };
 
+
+template <class TPixel>
+class AnatomicScalarImageWrapperTraits
+{
+public:
+  typedef AnatomicScalarImageWrapperTraits<TPixel> Self;
+
+  typedef ScalarImageWrapper<Self> WrapperType;
+
+  typedef TPixel ComponentType;
+  typedef itk::Image<ComponentType, 3> ImageType;
+
+  typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
+  typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
+  typedef typename DefaultCommonRepresentationPolicy<TPixel, Self>::Policy CommonRepresentationPolicy;
+
+  // Default color map
+  itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_GREY);
+
+  // Whether this image is shown on top of all other layers by default
+  itkStaticConstMacro(StickyByDefault, bool, false);
+
+  // Whether this image is produced from another by a pipeline (e.g., speed image)
+  itkStaticConstMacro(PipelineOutput, bool, false);
+};
+
+
 // Global typedefs for traits with GreyType
+typedef AnatomicScalarImageWrapperTraits<GreyType> GreyAnatomicScalarImageWrapperTraits;
 typedef ComponentImageWrapperTraits<GreyType> GreyComponentImageWrapperTraits;
 typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor>
   GreyVectorMagnitudeImageWrapperTraits;
@@ -192,6 +238,7 @@ typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor>
 
 // Some global typedefs
 typedef AnatomicImageWrapperTraits<GreyType>::WrapperType AnatomicImageWrapper;
+typedef AnatomicScalarImageWrapperTraits<GreyType>::WrapperType AnatomicScalarImageWrapper;
 typedef LabelImageWrapperTraits::WrapperType LabelImageWrapper;
 typedef SpeedImageWrapperTraits::WrapperType SpeedImageWrapper;
 typedef LevelSetImageWrapperTraits::WrapperType LevelSetImageWrapper;

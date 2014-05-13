@@ -954,7 +954,10 @@ template class LinearColorMapDisplayMappingPolicy<SpeedImageWrapperTraits>;
 
 template class MultiChannelDisplayMappingPolicy<AnatomicImageWrapperTraits<GreyType> >;
 
-template class CachingCurveAndColorMapDisplayMappingPolicy<ComponentImageWrapperTraits<GreyType> >;
+template class CachingCurveAndColorMapDisplayMappingPolicy<
+    ComponentImageWrapperTraits<GreyType> >;
+template class CachingCurveAndColorMapDisplayMappingPolicy<
+    AnatomicScalarImageWrapperTraits<GreyType> >;
 template class CachingCurveAndColorMapDisplayMappingPolicy<
     VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor> >;
 template class CachingCurveAndColorMapDisplayMappingPolicy<

@@ -116,18 +116,11 @@ public:
     unsigned int) const = 0;
 
   /**
-   * Set the trasforms from image space to one of the three display slices (be
-   * sure to set all three, or you'll get weird looking slices!
-   */
-  virtual void SetImageToDisplayTransform(
-    unsigned int, const ImageCoordinateTransform &) = 0;
-
-  /**
    * Use a default image-slice transformation, the first slice is along z,
    * the second along y, the third, along x, all directions of traversal are
    * positive.
    */
-  virtual void SetImageToDisplayTransformsToDefault() = 0;
+  virtual void SetImageGeometryToDefault() = 0;
 
   /**
    * Update the image coordinate geometry of the image wrapper. This method
@@ -135,6 +128,11 @@ public:
    * used when the orientation of the image is changed
    */
   virtual void SetImageGeometry(const ImageCoordinateGeometry &geom) = 0;
+
+  /**
+   * Get the image geometry from the wrapper
+   */
+  virtual const ImageCoordinateGeometry &GetImageGeometry() const = 0;
 
   /** Get the current slice index */
   irisVirtualGetMacro(SliceIndex, Vector3ui)
@@ -188,6 +186,13 @@ public:
    * Get the buffered region of the image
    */
   virtual itk::ImageRegion<3> GetBufferedRegion() const = 0;
+
+  /**
+   * Extract a region of interest from the image wrapper, as a new wrapper of
+   * the same type
+   */
+  virtual SmartPtr<ImageWrapperBase> ExtractROI(
+      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const = 0;
 
   /** Transform a voxel index into a spatial position */
   virtual Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const = 0;

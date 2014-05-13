@@ -56,6 +56,7 @@ class IRISApplication;
 class GenericImageData;
 class LayerIterator;
 class Registry;
+class GuidedNativeImageIO;
 
 /**
  * \class GenericImageData
@@ -104,7 +105,7 @@ public:
    when a new image is loaded. This means that downstream objects should
    not make copies of this pointer.
    */
-  AnatomicImageWrapper* GetMain()
+  ImageWrapperBase* GetMain()
   {
     assert(m_MainImageWrapper->IsInitialized());
     return m_MainImageWrapper;
@@ -202,22 +203,10 @@ public:
    * image in which structures are traced. The main image can have multiple
    * components or channels (e.g., red, green, blue).
    *
-   * Note: this method replaces the internal pointer to the grey image
-   * by the pointer that is passed in.  That means that the caller should relinquish
-   * control of this pointer and that the GenericImageData class will dispose of the
-   * pointer properly.
-   *
-   * The second parameter to this method is the new geometry object, which depends
-   * on the size of the grey image and will be updated.
-   *
-   * The third parameter is a functor that maps intensity values in each channel
-   * from the internal type (short) to the native type (float or int, depending
-   * on how the image was stored on disk)
+   * The input is a pointer to the GuidedNativeImageIO class,
+   * which stores the image data in raw native format.
    */
-  virtual void SetMainImage(AnatomicImageType *image,
-                            const ImageCoordinateGeometry &newGeometry,
-                            const LinearInternalToNativeIntensityMapping &native);
-
+  virtual void SetMainImage(GuidedNativeImageIO *io);
 
   /** Unload the main image (and everything else) */
   virtual void UnloadMainImage();
@@ -229,8 +218,7 @@ public:
   virtual void ResetSegmentationImage();
 
   /** Handle overlays */
-  virtual void AddOverlay(AnatomicImageType *image,
-                          const LinearInternalToNativeIntensityMapping &native);
+  virtual void AddOverlay(GuidedNativeImageIO *io);
   virtual void UnloadOverlays();
   virtual void UnloadOverlayLast();
   virtual void UnloadOverlay(ImageWrapperBase *overlay);
@@ -294,7 +282,7 @@ protected:
   // A pointer to the 'main' image, i.e., the image that is treated as the
   // reference for all other images.
   // Equal to m_Wrappers[MAIN].first()
-  AnatomicImageWrapper *m_MainImageWrapper;
+  ImageWrapperBase *m_MainImageWrapper;
 
   // Wrapper around the segmentatoin image.
   // Equal to m_Wrappers[SEGMENTATION].first()
@@ -314,6 +302,13 @@ protected:
 
   friend class SNAPImageData;
   friend class LayerIterator;
+
+  // Create a wrapper (vector or scalar) from native format stored in the IO
+  SmartPtr<ImageWrapperBase> CreateAnatomicWrapper(GuidedNativeImageIO *io);
+
+  // Update the main image
+  virtual void SetMainImageInternal(ImageWrapperBase *wrapper);
+  virtual void AddOverlayInternal(ImageWrapperBase *wrapper);
 
   // Append an image wrapper to a role
   void PushBackImageWrapper(LayerRole role, ImageWrapperBase *wrapper);

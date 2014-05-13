@@ -77,7 +77,7 @@ class EdgePreprocessingFilterConfigTraits;
 class GMMPreprocessingFilterConfigTraits;
 template <typename TIn, typename TOut> class SmoothBinaryThresholdImageFilter;
 template <typename TIn, typename TOut> class EdgePreprocessingImageFilter;
-template <typename TIn, typename TOut> class GMMClassifyImageFilter;
+template <typename TIn, typename TVIn, typename TOut> class GMMClassifyImageFilter;
 
 
 namespace itk {

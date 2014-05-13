@@ -39,7 +39,7 @@
 #include <SNAPImageData.h>
 template <class TInput, class TOutput> class SmoothBinaryThresholdImageFilter;
 template <class TInput, class TOutput> class EdgePreprocessingImageFilter;
-template <class TInput, class TOutput> class GMMClassifyImageFilter;
+template <class TInput, class TVectorInput, class TOutput> class GMMClassifyImageFilter;
 
 class ThresholdSettings;
 class EdgePreprocessingSettings;
@@ -93,11 +93,14 @@ public:
 class GMMPreprocessingFilterConfigTraits {
 public:
 
-  typedef AnatomicImageWrapper::ImageType                             GreyType;
+  typedef AnatomicScalarImageWrapper::ImageType                 GreyScalarType;
+  typedef AnatomicImageWrapper::ImageType                       GreyVectorType;
   typedef SNAPImageData::SpeedImageType                              SpeedType;
   typedef SpeedImageWrapper                                  OutputWrapperType;
 
-  typedef GMMClassifyImageFilter<GreyType, SpeedType>               FilterType;
+  typedef GMMClassifyImageFilter<
+    GreyScalarType, GreyVectorType, SpeedType>                      FilterType;
+
   typedef GaussianMixtureModel                                   ParameterType;
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);

@@ -52,6 +52,7 @@
 #include "GenericImageData.h"
 #include "Rebroadcaster.h"
 #include "LayerIterator.h"
+#include "GuidedNativeImageIO.h"
 
 // System includes
 #include <fstream>
@@ -112,20 +113,13 @@ GenericImageData
 
 void
 GenericImageData
-::SetMainImage(AnatomicImageType *image,
-               const ImageCoordinateGeometry &newGeometry,
-               const LinearInternalToNativeIntensityMapping &native)
+::SetMainImageInternal(ImageWrapperBase *wrapper)
 {
-  // Create a main wrapper of fixed type.
-  SmartPtr<AnatomicImageWrapper> wrapper = AnatomicImageWrapper::New();
-
   // Set properties
-  wrapper->SetImage(image);
-  wrapper->SetNativeMapping(native);
   wrapper->SetDefaultNickname("Main Image");
 
   // Make the wrapper the main image
-  SetSingleImageWrapper(MAIN_ROLE, wrapper.GetPointer());
+  SetSingleImageWrapper(MAIN_ROLE, wrapper);
   m_MainImageWrapper = wrapper;
 
   // Reset the segmentation image
@@ -135,7 +129,72 @@ GenericImageData
   m_MainImageWrapper->SetAlpha(255);
 
   // Pass the coordinate transform to the wrappers
-  SetImageGeometry(newGeometry);
+  SetImageGeometry(wrapper->GetImageGeometry());
+}
+
+
+SmartPtr<ImageWrapperBase>
+GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io)
+{
+  // The output wrapper
+  SmartPtr<ImageWrapperBase> out_wrapper;
+
+  // Split depending on whether the image is scalar or vector
+  if(io->GetNumberOfComponentsInNativeImage() > 1)
+    {
+    // The image will be cast to a vector anatomic image
+    typedef AnatomicImageWrapper::ImageType AnatomicImageType;
+
+    // Rescale the image to desired number of bits
+    RescaleNativeImageToIntegralType<AnatomicImageType> rescaler;
+    AnatomicImageType::Pointer image = rescaler(io);
+
+    // Create a mapper to native intensity
+    LinearInternalToNativeIntensityMapping mapper(
+          rescaler.GetNativeScale(), rescaler.GetNativeShift());
+
+    // Create a main wrapper of fixed type.
+    SmartPtr<AnatomicImageWrapper> wrapper = AnatomicImageWrapper::New();
+
+    // Set properties
+    wrapper->SetImage(image);
+    wrapper->SetNativeMapping(mapper);
+    out_wrapper = wrapper.GetPointer();
+    }
+
+  else
+    {
+    // Rescale the image to desired number of bits
+    typedef AnatomicScalarImageWrapper::ImageType AnatomicImageType;
+
+    // Rescale the image to desired number of bits
+    RescaleNativeImageToIntegralType<AnatomicImageType> rescaler;
+    AnatomicImageType::Pointer image = rescaler(io);
+
+    // Create a mapper to native intensity
+    LinearInternalToNativeIntensityMapping mapper(
+          rescaler.GetNativeScale(), rescaler.GetNativeShift());
+
+    // Create a main wrapper of fixed type.
+    SmartPtr<AnatomicScalarImageWrapper> wrapper = AnatomicScalarImageWrapper::New();
+
+    // Set properties
+    wrapper->SetImage(image);
+    wrapper->SetNativeMapping(mapper);
+    out_wrapper = wrapper.GetPointer();
+    }
+
+  return out_wrapper;
+}
+
+void GenericImageData::SetMainImage(GuidedNativeImageIO *io)
+{
+  // Create the wrapper from the Native IO (the wrapper will either be a scalar
+  // or a vector-valued image, depending on the number of components)
+  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io);
+
+  // Assign this wrapper to the main image
+  this->SetMainImageInternal(wrapper);
 }
 
 void
@@ -169,23 +228,29 @@ GenericImageData
 
 void
 GenericImageData
-::AddOverlay(AnatomicImageType *image,
-             const LinearInternalToNativeIntensityMapping &native)
+::AddOverlay(GuidedNativeImageIO *io)
+{
+  // Create the wrapper from the Native IO (the wrapper will either be a scalar
+  // or a vector-valued image, depending on the number of components)
+  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io);
+
+  // Assign this wrapper to the main image
+  this->AddOverlayInternal(wrapper);
+}
+
+void
+GenericImageData
+::AddOverlayInternal(ImageWrapperBase *overlay)
 {
   // Check that the image matches the size of the main image
-  //Octavian_2012_08_24_16:20: changed assert into this test as a response to:
-  //bug: ID: 3023489: "-o flag size check" 
-  if(m_MainImageWrapper->GetBufferedRegion() != image->GetBufferedRegion())
+  if(m_MainImageWrapper->GetBufferedRegion() != overlay->GetBufferedRegion())
     {
     throw IRISException("Main and overlay data sizes are different");
     }
 
   // Pass the image to a Grey image wrapper
-  SmartPtr<AnatomicImageWrapper> overlay = AnatomicImageWrapper::New();
-  overlay->SetImage(image);
-  overlay->SetNativeMapping(native);
   overlay->SetAlpha(0.5);
-  overlay->SetDefaultNickname("Main Image");
+  overlay->SetDefaultNickname("Overlay Image");
 
   // Sync up spacing between the main and overlay image
   overlay->GetImageBase()->SetSpacing(
@@ -198,14 +263,10 @@ GenericImageData
         m_MainImageWrapper->GetImageBase()->GetDirection());
 
   // Propagate the geometry information to this wrapper
-  for(unsigned int iSlice = 0; iSlice < 3; iSlice ++)
-    {
-    overlay->SetImageToDisplayTransform(
-      iSlice, m_ImageGeometry.GetImageToDisplayTransform(iSlice));
-    }
+  overlay->SetImageGeometry(m_ImageGeometry);
 
   // Add to the overlay wrapper list
-  PushBackImageWrapper(OVERLAY_ROLE, overlay.GetPointer());
+  PushBackImageWrapper(OVERLAY_ROLE, overlay);
 }
 
 void

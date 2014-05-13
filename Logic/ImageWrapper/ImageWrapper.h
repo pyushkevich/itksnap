@@ -37,7 +37,7 @@
 
 // Smart pointers have to be included from ITK, can't forward reference them
 #include "ImageWrapperBase.h"
-#include "ImageCoordinateTransform.h"
+#include "ImageCoordinateGeometry.h"
 #include <itkImageRegionIterator.h>
 #include <itkVectorImage.h>
 #include <itkRGBAPixel.h>
@@ -174,16 +174,19 @@ public:
    * sets the image's direction cosine matrix and updates the slicers. It is
    * used when the orientation of the image is changed
    */
-  void SetImageGeometry(const ImageCoordinateGeometry &geom);
+  virtual void SetImageGeometry(const ImageCoordinateGeometry &geom);
 
-
+  /**
+   * Get the image geometry from the wrapper
+   */
+  irisGetMacro(ImageGeometry, const ImageCoordinateGeometry &)
 
   /**
    * Use a default image-slice transformation, the first slice is along z,
    * the second along y, the third, along x, all directions of traversal are
    * positive.
    */
-  virtual void SetImageToDisplayTransformsToDefault();
+  virtual void SetImageGeometryToDefault();
 
 
   /** Get the current slice index */
@@ -293,13 +296,6 @@ public:
   virtual void SetSliceIndex(const Vector3ui &cursor);
 
   /**
-   * Set the trasforms from image space to one of the three display slices (be
-   * sure to set all three, or you'll get weird looking slices!
-   */
-  virtual void SetImageToDisplayTransform(
-    unsigned int iSlice,const ImageCoordinateTransform &transform);
-
-  /**
    * Get an ITK pipeline object holding the minimum value in the image. For
    * multi-component images, this is the minimum value over all components.
    */
@@ -341,6 +337,13 @@ public:
    * Replace the image internally stored in this wrapper by another image.
    */
   virtual void SetImage(ImagePointer newImage);
+
+  /**
+   * Extract a region of interest from the image wrapper, as a new wrapper of
+   * the same type
+   */
+  virtual SmartPtr<ImageWrapperBase> ExtractROI(
+      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const;
 
 
   /**
@@ -535,11 +538,8 @@ protected:
   // Mapping from native to internal format
   NativeIntensityMapping m_NativeMapping;
 
-  /** Transform from image space to display space */
-  ImageCoordinateTransform m_ImageToDisplayTransform[3];
-
-  /** Transform from image space to display space */
-  ImageCoordinateTransform m_DisplayToImageTransform[3];
+  /** A copy of the passed in image geometry */
+  ImageCoordinateGeometry m_ImageGeometry;
 
   // Transform from image index to NIFTI world coordinates
   TransformType m_NiftiSform, m_NiftiInvSform;
@@ -567,9 +567,6 @@ protected:
 
   /** Common code for the different constructors */
   void CommonInitialization();
-
-  void SetImageGeometry(const itk::Matrix<double,3,3> &directionMatrix,
-                        ImageCoordinateTransform imageToDisplayTransform[3]);
 
   /** Parent wrapper */
   ImageWrapperBase *m_ParentWrapper;
