@@ -45,7 +45,7 @@ void UnsupervisedClustering::SetDataSource(SNAPImageData *imageData)
     m_SamplesDirty = true;
 
     int nvox = m_DataSource->GetMain()->GetNumberOfVoxels();
-    m_NumberOfSamples = (nvox > 100000) ? 100000 : nvox;
+    m_NumberOfSamples = (nvox > 10000) ? 10000 : nvox;
     }
 }
 

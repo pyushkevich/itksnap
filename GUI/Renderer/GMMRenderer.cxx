@@ -137,7 +137,9 @@ void GMMRenderer::UpdatePlotValues()
       // Get the i'th Gaussian as a marginal distribution
       double mean = m_Model->GetClusterNativeMean(i, comp);
       double variance = m_Model->GetClusterNativeCovariance(i, comp, comp);
-      Gaussian g_marginal(1, &mean, &variance);
+      Gaussian g_marginal(1);
+      g_marginal.SetMean(vnl_vector<double>(&mean, 1));
+      g_marginal.SetCovariance(vnl_matrix<double>(&variance, 1, 1));
 
       // Set of plots, one for each mixture in the model
       vtkPlot *plot = m_Chart->AddPlot(vtkChart::LINE);

@@ -10,7 +10,7 @@ public:
   KMeansPlusPlus(double **x, int dataSize, int dataDim, int numOfClusters);
   ~KMeansPlusPlus();
 
-  double Distance(double *x, double *y);
+  double Distance(const double *x, const double *y);
   void Initialize(void);
   GaussianMixtureModel * GetGaussianMixtureModel(void);
 private:

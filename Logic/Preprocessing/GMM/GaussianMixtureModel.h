@@ -18,23 +18,24 @@ public:
   typedef GaussianVector::iterator GaussianVectorIterator;
   typedef WeightVector::iterator WeightVectorIterator;
 
+  typedef Gaussian::VectorType VectorType;
+  typedef Gaussian::MatrixType MatrixType;
+
   void Initialize(int dimOfGaussian, int numOfGaussian);
   
   Gaussian * GetGaussian(int index);
-  double * GetMean(int index);
-  double * GetCovariance(int index);
+  const VectorType &GetMean(int index);
+  const MatrixType &GetCovariance(int index);
   double GetWeight(int index);
-  void SetGaussian(int index, double *mean, double *covariance);
-  void SetMean(int index, double *mean);
-  void SetCovariance(int index, double *covariance);
+
+  void SetGaussian(int index, const VectorType &mean, const MatrixType &cov);
+  void SetMean(int index, const VectorType &mean);
+  void SetCovariance(int index, const MatrixType &cov);
   void SetWeight(int index, double weight);
   void SetWeightAndRenormalize(int index, double weight);
 
   double EvaluateLogPDF(int index, double *x);
-  double EvaluateLogPDF(int index, vnl_vector<double> &x,
-                        vnl_vector<double> &xscratch,
-                        vnl_vector<double> &zscratch);
-
+  double EvaluateLogPDF(int index, vnl_vector<double> &x, VectorType &xscratch);
   double EvaluatePDF(int index, double *x);
 
 

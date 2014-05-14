@@ -66,7 +66,7 @@ void EMGaussianMixtures::SetPrecision(double precision)
   m_precision = precision;
 }
 
-void EMGaussianMixtures::SetParameters(int index, double *mean, double *covariance, double weight)
+void EMGaussianMixtures::SetParameters(int index, const VectorType &mean, const MatrixType &covariance, double weight)
 {
   m_gmm->SetGaussian(index, mean, covariance);
   m_gmm->SetWeight(index, weight);
@@ -352,21 +352,34 @@ void EMGaussianMixtures::UpdateMean(void)
         }
       }
 
-    for (int j = 0; j < m_dimOfGaussian; j++)
+    // This can lead to a possible divide by zero situation. In case the sum
+    // of latent variables for class i is zero, we set the mean of that class
+    // to infinity
+    if(m_sum[i] > 0)
       {
-      m_tmp2[j] = m_tmp2[j] / m_sum[i];
+      for (int j = 0; j < m_dimOfGaussian; j++)
+        {
+        m_tmp2[j] = m_tmp2[j] / m_sum[i];
+        }
+      }
+    else
+      {
+      for (int j = 0; j < m_dimOfGaussian; j++)
+        {
+        m_tmp2[j] = - std::numeric_limits<double>::infinity();
+        }
       }
 
-    m_gmm->SetMean(i, m_tmp2);
+
+    m_gmm->SetMean(i, VectorType(m_tmp2, m_dimOfGaussian));
     }
 }
 
 void EMGaussianMixtures::UpdateCovariance(void)
 {
-  double *current_mean;
   for (int i = 0; i < m_numOfGaussian; i++)
     {
-    current_mean = m_gmm->GetMean(i);
+    const VectorType &current_mean = m_gmm->GetMean(i);
     
     for (int j = 0; j < m_dimOfGaussian; j++)
       {
@@ -391,12 +404,23 @@ void EMGaussianMixtures::UpdateCovariance(void)
         }
       }
 
-    for (int j = 0; j < m_dimOfGaussian*m_dimOfGaussian; j++)
+    if(m_sum[i] > 0)
       {
-      m_tmp3[j] = m_tmp3[j] / m_sum[i];
+      for (int j = 0; j < m_dimOfGaussian*m_dimOfGaussian; j++)
+        {
+        m_tmp3[j] = m_tmp3[j] / m_sum[i];
+        }
+      }
+    else
+      {
+      for (int j = 0; j < m_dimOfGaussian*m_dimOfGaussian; j++)
+        {
+        m_tmp3[j] = 0.0;
+        }
       }
 
-    m_gmm->SetCovariance(i, m_tmp3);
+
+    m_gmm->SetCovariance(i, MatrixType(m_tmp3, m_dimOfGaussian, m_dimOfGaussian));
     }
 }
 
