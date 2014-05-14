@@ -38,107 +38,53 @@ void GaussianMixtureModel::Initialize(int dimOfGaussian, int numOfGaussian)
 
 Gaussian * GaussianMixtureModel::GetGaussian(int index)
 {
-  if (index < m_numOfGaussian)
-  {
-    return m_gaussian[index];
-  }
-  else
-  {
-    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
-    exit(0);
-  }
+  assert(index < m_numOfGaussian);
+  return m_gaussian[index];
 }
 
-double * GaussianMixtureModel::GetMean(int index)
+const GaussianMixtureModel::VectorType &
+GaussianMixtureModel::GetMean(int index)
 {
-  if (index < m_numOfGaussian)
-  {
-    return m_gaussian[index]->GetMean();
-  }
-  else
-  {
-    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
-    exit(0);
-  }
+  assert(index < m_numOfGaussian);
+  return m_gaussian[index]->GetMean();
 }
 
-double * GaussianMixtureModel::GetCovariance(int index)
+const GaussianMixtureModel::MatrixType &
+GaussianMixtureModel::GetCovariance(int index)
 {
-  if (index < m_numOfGaussian)
-  {
-    return m_gaussian[index]->GetCovariance();
-  }
-  else
-  {
-    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
-    exit(0);
-  }
+  assert(index < m_numOfGaussian);
+  return m_gaussian[index]->GetCovariance();
 }
 
 double GaussianMixtureModel::GetWeight(int index)
 {
-  if (index < m_numOfGaussian)
-  {
-    return m_weight[index];
-  }
-  else
-  {
-    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
-    exit(0);
-  }
+  assert(index < m_numOfGaussian);
+  return m_weight[index];
 }
 
-void GaussianMixtureModel::SetGaussian(int index, double *mean, double *covariance)
+void GaussianMixtureModel::SetGaussian(int index, const VectorType &mean, const MatrixType &cov)
 {
-  if (index < m_numOfGaussian)
-  {
-    m_gaussian[index]->SetMean(mean);
-    m_gaussian[index]->SetCovariance(covariance);
-  }
-  else
-  {
-    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
-    exit(0);
-  }
+  assert(index < m_numOfGaussian);
+  m_gaussian[index]->SetMean(mean);
+  m_gaussian[index]->SetCovariance(cov);
 }
 
-void GaussianMixtureModel::SetMean(int index, double *mean)
+void GaussianMixtureModel::SetMean(int index, const VectorType &mean)
 {
-  if (index < m_numOfGaussian)
-  {
-    m_gaussian[index]->SetMean(mean);
-  }
-  else
-  {
-    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
-    exit(0);
-  }
+  assert(index < m_numOfGaussian);
+  m_gaussian[index]->SetMean(mean);
 }
 
-void GaussianMixtureModel::SetCovariance(int index, double *covariance)
+void GaussianMixtureModel::SetCovariance(int index, const MatrixType &cov)
 {
-  if (index < m_numOfGaussian)
-  {
-    m_gaussian[index]->SetCovariance(covariance);
-  }
-  else
-  {
-    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
-    exit(0);
-  }
+  assert(index < m_numOfGaussian);
+  m_gaussian[index]->SetCovariance(cov);
 }
 
 void GaussianMixtureModel::SetWeight(int index, double weight)
 {
-  if (index < m_numOfGaussian)
-    {
-    m_weight[index] = weight;
-    }
-  else
-    {
-    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
-    exit(0);
-    }
+  assert(index < m_numOfGaussian);
+  m_weight[index] = weight;
 }
 
 void GaussianMixtureModel::SetWeightAndRenormalize(int index, double weight)
@@ -193,31 +139,16 @@ double GaussianMixtureModel::EvaluatePDF(int index, double *x)
 
 double GaussianMixtureModel::EvaluateLogPDF(int index, double *x)
 {
-  if (index < m_numOfGaussian)
-  {
-    return m_gaussian[index]->EvaluateLogPDF(x);
-  }
-  else
-  {
-    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
-    exit(0);
-  }
+  assert(index < m_numOfGaussian);
+  return m_gaussian[index]->EvaluateLogPDF(x);
 }
 
 
-double GaussianMixtureModel::EvaluateLogPDF(int index, vnl_vector<double> &x,
-                                            vnl_vector<double> &xscratch,
-                                            vnl_vector<double> &zscratch)
+double GaussianMixtureModel::EvaluateLogPDF(
+    int index, vnl_vector<double> &x, VectorType &xscratch)
 {
-  if (index < m_numOfGaussian)
-  {
-    return m_gaussian[index]->EvaluateLogPDF(x, xscratch, zscratch);
-  }
-  else
-  {
-    std::cout << "index out of boundary at " << __FILE__ << " : " << __LINE__  <<std::endl;
-    exit(0);
-  }
+  assert(index < m_numOfGaussian);
+  return m_gaussian[index]->EvaluateLogPDF(x, xscratch);
 }
 
 

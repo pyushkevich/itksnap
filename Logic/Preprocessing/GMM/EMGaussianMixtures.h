@@ -10,10 +10,16 @@ public:
   EMGaussianMixtures(double **x, int dataSize, int dataDim, int numOfClass);
   ~EMGaussianMixtures();
 
+  typedef Gaussian::MatrixType MatrixType;
+  typedef Gaussian::VectorType VectorType;
+
   void Reset(void);
   void SetMaxIteration(int maxIteration);
   void SetPrecision(double precision);
-  void SetParameters(int index, double *mean, double *covariance, double weight);
+  void SetParameters(int index,
+                     const VectorType &mean,
+                     const MatrixType &covariance,
+                     double weight);
   void SetGaussianMixtureModel(GaussianMixtureModel *gmm);
   void SetPrior(double **prior);
   void RemovePrior(void);

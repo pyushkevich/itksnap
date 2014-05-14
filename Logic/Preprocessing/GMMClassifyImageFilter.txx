@@ -171,7 +171,7 @@ GMMClassifyImageFilter<TInputImage, TOutputImage>
     // Evaluate the posterior probability robustly
     for(int k = 0; k < m_MixtureModel->GetNumberOfGaussians(); k++)
       {
-      log_pdf[k] = m_MixtureModel->EvaluateLogPDF(k, x, x_scratch, z_scratch);
+      log_pdf[k] = m_MixtureModel->EvaluateLogPDF(k, x, x_scratch);
       }
 
     // Evaluate the GMM for each of the clusters

@@ -1250,12 +1250,13 @@ bool SnakeWizardModel::SetClusterNativeMean(int cluster, int component, double x
   GaussianMixtureModel *gmm = uc->GetMixtureModel();
   ImageWrapperBase *aiw = this->GetLayerAndIndexForNthComponent(component).ImageWrapper;
   const AbstractNativeIntensityMapping *nim = aiw->GetNativeIntensityMapping();
-  vnl_vector<double> mean_raw(gmm->GetMean(cluster), gmm->GetNumberOfComponents());
+
+  vnl_vector<double> mean_raw = gmm->GetMean(cluster);
   double mk = nim->MapNativeToInternal(x);
   if(mk != mean_raw[component])
     {
     mean_raw[component] = mk;
-    gmm->SetMean(cluster, mean_raw.data_block());
+    gmm->SetMean(cluster, mean_raw);
 
     TagGMMPreprocessingFilterModified();
     this->InvokeEvent(GMMModifiedEvent());
@@ -1277,7 +1278,7 @@ double SnakeWizardModel::GetClusterNativeCovariance(int cluster, int comp1, int 
   const AbstractNativeIntensityMapping *nim2 =
       this->GetLayerAndIndexForNthComponent(comp2).ImageWrapper->GetNativeIntensityMapping();
 
-  double cov_raw = gmm->GetGaussian(cluster)->GetCovarianceComponent(comp1, comp2);
+  double cov_raw = gmm->GetGaussian(cluster)->GetCovariance()(comp1, comp2);
   return cov_raw * nim1->GetScale() * nim2->GetScale();
 }
 
