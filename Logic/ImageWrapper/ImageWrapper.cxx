@@ -427,11 +427,7 @@ ImageWrapper<TTraits,TBase>
   m_Image->SetDirection(matrix);
 
   // Update the NIFTI/RAS transform
-  m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
-    m_Image->GetDirection().GetVnlMatrix(),
-    m_Image->GetOrigin().GetVnlVector(),
-    m_Image->GetSpacing().GetVnlVector());
-  m_NiftiInvSform = vnl_inverse(m_NiftiSform);
+  this->UpdateNiftiTransforms();
 
   // Update the image geometry
   this->UpdateImageGeometry();
@@ -450,12 +446,8 @@ ImageWrapper<TTraits,TBase>
   m_Image->SetOrigin(source->GetImageBase()->GetOrigin());
   m_Image->SetDirection(source->GetImageBase()->GetDirection());
 
-  // Update the NIFTI/RAS transform
-  m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
-    m_Image->GetDirection().GetVnlMatrix(),
-    m_Image->GetOrigin().GetVnlVector(),
-    m_Image->GetSpacing().GetVnlVector());
-  m_NiftiInvSform = vnl_inverse(m_NiftiSform);
+  // Update NIFTI transforms
+  this->UpdateNiftiTransforms();
 
   // Update the image geometry
   this->UpdateImageGeometry();
@@ -586,7 +578,7 @@ ImageWrapper<TTraits,TBase>
 {
   // Check if the image size or image direction matrix has changed
   bool hasSizeChanged = true, hasDirectionChanged = true;
-  if(m_Image)
+  if(m_Image && m_Image != newImage)
     {
     hasSizeChanged = newImage->GetLargestPossibleRegion().GetSize()
         != m_Image->GetLargestPossibleRegion().GetSize();
@@ -622,11 +614,7 @@ ImageWrapper<TTraits,TBase>
     }
 
   // Update the NIFTI/RAS transform
-  m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
-    m_Image->GetDirection().GetVnlMatrix(),
-    m_Image->GetOrigin().GetVnlVector(),
-    m_Image->GetSpacing().GetVnlVector());
-  m_NiftiInvSform = vnl_inverse(m_NiftiSform);
+  this->UpdateNiftiTransforms();
 
   // We have been initialized
   m_Initialized = true;
@@ -864,6 +852,22 @@ ImageWrapper<TTraits,TBase>
     }
 }
 
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::UpdateNiftiTransforms()
+{
+  assert(m_Image);
+
+  // Update the NIFTI/RAS transform
+  m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
+    m_Image->GetDirection().GetVnlMatrix(),
+    m_Image->GetOrigin().GetVnlVector(),
+    m_Image->GetSpacing().GetVnlVector());
+
+  // Compute the inverse transform
+  m_NiftiInvSform = vnl_inverse(m_NiftiSform);
+}
 
 
 template<class TTraits, class TBase>

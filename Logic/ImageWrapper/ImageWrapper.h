@@ -545,12 +545,18 @@ protected:
   // Mapping between the display coordinates and anatomical coordinates
   IRISDisplayGeometry m_DisplayGeometry;
 
-  // The image coordinate geometry object, which defines the mappings between
-  // image and display coordinates. This variable should not be modified
-  // except in UpdateImageGeometry()
+  // This object encapsulates information about the coordinate mapping between
+  // the image coordinate space, the anatomical coordinate space, and the
+  // display coordinate space. It depends on three parameters: the size of the
+  // image, the Direction cosine matrix of the image, and the DisplayGeometry
+  // (transformation between the display and the anatomy spaces).
+  //
+  // The code should not directly modify this variable. It should only be
+  // modified by the UpdateImageGeometry() method.
   ImageCoordinateGeometry m_ImageGeometry;
 
-  // Transform from image index to NIFTI world coordinates
+  // Transform from image index to NIFTI world coordinates. This is derived
+  // from the origin, spacing, and direction cosine matrix in the image header.
   TransformType m_NiftiSform, m_NiftiInvSform;
 
   // Each layer has a filename, from which it is belived to have come
@@ -579,6 +585,12 @@ protected:
    * information in the m_DisplayGeometry variable)
    */
   virtual void UpdateImageGeometry();
+
+  /**
+   * Update the NIFTI header. This should be called whenever the spacing,
+   * origin, or direction cosine matrix of the image are changed
+   */
+  virtual void UpdateNiftiTransforms();
 
   /** Common code for the different constructors */
   void CommonInitialization();

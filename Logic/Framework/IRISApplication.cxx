@@ -245,25 +245,10 @@ IRISApplication
     m_IRISImageData->SetDisplayGeometry(dispGeom);
     }
 
-  /*
-    // Create the appropriate transform and pass it to the IRIS data
-    m_IRISImageData->SetImageGeometry(
-      ImageCoordinateGeometry(
-        m_IRISImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
-        m_DisplayToAnatomyRAI,
-        m_IRISImageData->GetVolumeExtents()));
-*/
-
   // Create the appropriate transform and pass it to the SNAP data
   if(m_SNAPImageData->IsMainLoaded())
     {
     m_SNAPImageData->SetDisplayGeometry(dispGeom);
-    /*
-    m_SNAPImageData->SetImageGeometry(
-      ImageCoordinateGeometry(
-        m_SNAPImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
-        m_DisplayToAnatomyRAI,
-            m_SNAPImageData->GetVolumeExtents()));*/
     }
 
   // Invoke the corresponding event
