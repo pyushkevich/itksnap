@@ -257,13 +257,18 @@ public:
   virtual void SetCrosshairs(const Vector3ui &crosshairs);
 
   /**
-   * Set the image coordinate geometry for this image set.  Propagates
-   * the transform to the internal image wrappers
+   * Set the display to anatomy coordinate mapping, and propagate it to
+   * all of the loaded layers
    */
-  virtual void SetImageGeometry(const ImageCoordinateGeometry &geometry);
+  virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom);
+
+  /**
+   * Set the direction matrix of all the images
+   */
+  virtual void SetDirectionMatrix(const vnl_matrix<double> &direction);
 
   /** Get the image coordinate geometry */
-  irisGetMacro(ImageGeometry,ImageCoordinateGeometry)
+  const ImageCoordinateGeometry &GetImageGeometry() const;
 
 protected:
 
@@ -296,9 +301,8 @@ protected:
   // Parent object
   IRISApplication *m_Parent;
 
-  // Image coordinate geometry (it's placed here because the transform depends
-  // on image size)
-  ImageCoordinateGeometry m_ImageGeometry;
+  // The display to anatomy transformation, which is stored by this object
+  IRISDisplayGeometry m_DisplayGeometry;
 
   friend class SNAPImageData;
   friend class LayerIterator;

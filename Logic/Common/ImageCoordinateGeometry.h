@@ -36,7 +36,9 @@
 #define __ImageCoordinateGeometry_h_
 
 #include "ImageCoordinateTransform.h"
+#include "IRISDisplayGeometry.h"
 #include <map>
+
 
 /**
  * \class ImageCoordinateGeometry
@@ -67,7 +69,7 @@ public:
 
   /** Constructor that calls GetGeometry */
   ImageCoordinateGeometry(DirectionMatrix imageDirection,
-                          std::string displayAnatomyRAICode[3],
+                          const IRISDisplayGeometry &dispGeom,
                           const Vector3ui &imageSize);
 
   /** Virtual destructor */
@@ -77,11 +79,11 @@ public:
    * RAI codes for the image-anatomy and display-anatomy transforms and the 
    * image size */
   void SetGeometry(DirectionMatrix imageDirection,
-                   std::string displayAnatomyRAICode[3],
+                   const IRISDisplayGeometry &dispGeom,
                    const Vector3ui &imageSize);
 
   /** Get the transform from image to patient coordinate system */
-  irisGetMacro(ImageToAnatomyTransform,const ImageCoordinateTransform &);
+  irisGetMacro(ImageToAnatomyTransform,const ImageCoordinateTransform &)
 
   /** Get the image to anatomy direction matrix */
   irisGetMacro(ImageDirectionCosineMatrix, DirectionMatrix)
@@ -107,7 +109,7 @@ public:
   /** Get the display to anatomy RAIs */
   const std::string & GetDisplayToAnatomyRAI(unsigned int i) const
   {
-    return m_DisplayToAnatomyRAI[i];
+    return m_DisplayGeometry.DisplayToAnatomyRAI[i];
   }
 
   /** Check an RAI orientation code for validity */
@@ -148,7 +150,7 @@ private:
   ImageCoordinateTransform m_DisplayToImageTransform[3];
 
   // The string representation of the display to anatomy RAI codes
-  std::string m_DisplayToAnatomyRAI[3];
+  IRISDisplayGeometry m_DisplayGeometry;
 
   // Image to anatomy direction matrix
   DirectionMatrix m_ImageDirectionCosineMatrix;  

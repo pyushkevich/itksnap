@@ -192,7 +192,11 @@ public:
 
   virtual void SetSliceIndex(const Vector3ui &cursor);
 
-  virtual void SetImageGeometry(const ImageCoordinateGeometry &geom);
+  virtual void SetDisplayGeometry(IRISDisplayGeometry &dispGeom);
+
+  virtual void SetDirectionMatrix(const vnl_matrix<double> &direction);
+
+  virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source);
 
   /**
     Compute the image histogram. The histogram is cached inside of the

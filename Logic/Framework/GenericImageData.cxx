@@ -127,9 +127,6 @@ GenericImageData
 
   // Set opaque
   m_MainImageWrapper->SetAlpha(255);
-
-  // Pass the coordinate transform to the wrappers
-  SetImageGeometry(wrapper->GetImageGeometry());
 }
 
 
@@ -157,6 +154,7 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io)
     SmartPtr<AnatomicImageWrapper> wrapper = AnatomicImageWrapper::New();
 
     // Set properties
+    wrapper->SetDisplayGeometry(m_DisplayGeometry);
     wrapper->SetImage(image);
     wrapper->SetNativeMapping(mapper);
     out_wrapper = wrapper.GetPointer();
@@ -179,11 +177,13 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io)
     SmartPtr<AnatomicScalarImageWrapper> wrapper = AnatomicScalarImageWrapper::New();
 
     // Set properties
+    wrapper->SetDisplayGeometry(m_DisplayGeometry);
     wrapper->SetImage(image);
     wrapper->SetNativeMapping(mapper);
     out_wrapper = wrapper.GetPointer();
     }
 
+  // Create an image coordinate geometry object
   return out_wrapper;
 }
 
@@ -253,17 +253,7 @@ GenericImageData
   overlay->SetDefaultNickname("Overlay Image");
 
   // Sync up spacing between the main and overlay image
-  overlay->GetImageBase()->SetSpacing(
-        m_MainImageWrapper->GetImageBase()->GetSpacing());
-
-  overlay->GetImageBase()->SetOrigin(
-        m_MainImageWrapper->GetImageBase()->GetOrigin());
-
-  overlay->GetImageBase()->SetDirection(
-        m_MainImageWrapper->GetImageBase()->GetDirection());
-
-  // Propagate the geometry information to this wrapper
-  overlay->SetImageGeometry(m_ImageGeometry);
+  overlay->CopyImageCoordinateTransform(m_MainImageWrapper);
 
   // Add to the overlay wrapper list
   PushBackImageWrapper(OVERLAY_ROLE, overlay);
@@ -315,8 +305,7 @@ GenericImageData
   m_LabelWrapper->SetImage(newLabelImage);
 
   // Sync up spacing between the main and label image
-  newLabelImage->SetSpacing(m_MainImageWrapper->GetImageBase()->GetSpacing());
-  newLabelImage->SetOrigin(m_MainImageWrapper->GetImageBase()->GetOrigin());
+  m_LabelWrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
 }
 
 bool
@@ -343,6 +332,33 @@ GenericImageData
       lit.GetLayer()->SetSliceIndex(crosshairs);
 }
 
+void GenericImageData::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
+{
+  m_DisplayGeometry = dispGeom;
+  for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
+    if(lit.GetLayer())
+      {
+      // Set the direction matrix in the image
+      lit.GetLayer()->SetDisplayGeometry(m_DisplayGeometry);
+      }
+}
+
+void GenericImageData::SetDirectionMatrix(const vnl_matrix<double> &direction)
+{
+  for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
+    if(lit.GetLayer())
+      {
+      // Set the direction matrix in the image
+      lit.GetLayer()->SetDirectionMatrix(direction);
+      }
+}
+
+const ImageCoordinateGeometry &GenericImageData::GetImageGeometry() const
+{
+  assert(m_MainImageWrapper->IsInitialized());
+  return m_MainImageWrapper->GetImageGeometry();
+}
+
 GenericImageData::RegionType
 GenericImageData
 ::GetImageRegion() const
@@ -351,18 +367,6 @@ GenericImageData
   return m_MainImageWrapper->GetBufferedRegion();
 }
 
-void
-GenericImageData
-::SetImageGeometry(const ImageCoordinateGeometry &geometry)
-{
-  m_ImageGeometry = geometry;
-  for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
-    if(lit.GetLayer() && lit.GetLayer()->IsInitialized())
-      {
-      // Set the direction matrix in the image
-      lit.GetLayer()->SetImageGeometry(geometry);
-      }
-}
 
 unsigned int GenericImageData::GetNumberOfLayers(int role_filter)
 {

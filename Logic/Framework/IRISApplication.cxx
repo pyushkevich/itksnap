@@ -80,6 +80,7 @@
 #include "DefaultBehaviorSettings.h"
 #include "ColorMapPresetManager.h"
 #include "ImageIODelegates.h"
+#include "IRISDisplayGeometry.h"
 
 
 #include <stdio.h>
@@ -123,11 +124,6 @@ IRISApplication
   m_GlobalState = GlobalState::New();
   m_GlobalState->SetDriver(this);
 
-  // Initialize the display-anatomy transformation with RPI code
-  m_DisplayToAnatomyRAI[0] = "RPS";
-  m_DisplayToAnatomyRAI[1] = "AIR";
-  m_DisplayToAnatomyRAI[2] = "RIP";
-
   // Initialize the preprocessing settings
   // TODO: m_ThresholdSettings = ThresholdSettings::New();
   m_EdgePreprocessingSettings = EdgePreprocessingSettings::New();
@@ -167,15 +163,6 @@ GetImageToAnatomyRAI()
   return ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(
     m_CurrentImageData->GetImageGeometry().GetImageDirectionCosineMatrix());
 }
-
-
-std::string
-IRISApplication::
-GetDisplayToAnatomyRAI(unsigned int slice)
-{
-  return m_DisplayToAnatomyRAI[slice];
-}
-
 
 IRISApplication
 ::~IRISApplication() 
@@ -247,31 +234,36 @@ IRISApplication
 
 void 
 IRISApplication
-::SetDisplayToAnatomyRAI(const char *rai0,const char *rai1,const char *rai2)
+::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
 {
-  // Store the new RAI code
-  m_DisplayToAnatomyRAI[0] = rai0;
-  m_DisplayToAnatomyRAI[1] = rai1;
-  m_DisplayToAnatomyRAI[2] = rai2;
+  // Store the new geometry
+  m_DisplayGeometry = dispGeom;
 
-  if(!m_IRISImageData->IsMainLoaded())
-    return;
+  // If image data are loaded, propagate the geometry to them
+  if(m_IRISImageData->IsMainLoaded())
+    {
+    m_IRISImageData->SetDisplayGeometry(dispGeom);
+    }
 
-  // Create the appropriate transform and pass it to the IRIS data
-  m_IRISImageData->SetImageGeometry(
-    ImageCoordinateGeometry(
-      m_IRISImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
-      m_DisplayToAnatomyRAI,
-      m_IRISImageData->GetVolumeExtents()));
+  /*
+    // Create the appropriate transform and pass it to the IRIS data
+    m_IRISImageData->SetImageGeometry(
+      ImageCoordinateGeometry(
+        m_IRISImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
+        m_DisplayToAnatomyRAI,
+        m_IRISImageData->GetVolumeExtents()));
+*/
 
   // Create the appropriate transform and pass it to the SNAP data
   if(m_SNAPImageData->IsMainLoaded())
     {
+    m_SNAPImageData->SetDisplayGeometry(dispGeom);
+    /*
     m_SNAPImageData->SetImageGeometry(
       ImageCoordinateGeometry(
         m_SNAPImageData->GetImageGeometry().GetImageDirectionCosineMatrix(),
         m_DisplayToAnatomyRAI,
-            m_SNAPImageData->GetVolumeExtents()));
+            m_SNAPImageData->GetVolumeExtents()));*/
     }
 
   // Invoke the corresponding event
@@ -1051,16 +1043,14 @@ void IRISApplication
     }
 }
 
-size_t 
-IRISApplication
-::GetImageDirectionForAnatomicalDirection(AnatomicalDirection iAnat)
+int IRISApplication::GetImageDirectionForAnatomicalDirection(AnatomicalDirection iAnat)
 {
   std::string myrai = this->GetImageToAnatomyRAI();
   
   string rai1 = "SRA", rai2 = "ILP";
   
   char c1 = rai1[iAnat], c2 = rai2[iAnat];
-  for(size_t j = 0; j < 3; j++)
+  for(int j = 0; j < 3; j++)
     if(myrai[j] == c1 || myrai[j] == c2)
       return j;
   
@@ -1068,37 +1058,18 @@ IRISApplication
   return 0;
 }
 
-size_t 
+int
 IRISApplication
 ::GetDisplayWindowForAnatomicalDirection(
   AnatomicalDirection iAnat) const
 {
-  string rai1 = "SRA", rai2 = "ILP";
-  char c1 = rai1[iAnat], c2 = rai2[iAnat];
-  for(size_t j = 0; j < 3; j++)
-    {
-    char sd = m_DisplayToAnatomyRAI[j][2];
-    if(sd == c1 || sd == c2)
-      return j;
-    }
-
-  assert(0);
-  return 0;
+  return m_DisplayGeometry.GetDisplayWindowForAnatomicalDirection(iAnat);
 }
 
 AnatomicalDirection
 IRISApplication::GetAnatomicalDirectionForDisplayWindow(int iWin) const
 {
-  char sd = m_DisplayToAnatomyRAI[iWin][2];
-  if(sd == 'S' || sd == 'I')
-    return ANATOMY_AXIAL;
-  else if (sd == 'R' || sd == 'L')
-    return ANATOMY_SAGITTAL;
-  else if (sd == 'A' || sd == 'P')
-    return ANATOMY_CORONAL;
-
-  assert(0);
-  return(ANATOMY_NONSENSE);
+  return m_DisplayGeometry.GetAnatomicalDirectionForDisplayWindow(iWin);
 }
 
 void
@@ -1601,6 +1572,24 @@ IRISApplication
     }
 }
 
+/*
+ *   // Get the size of the image as a vector of uint
+  Vector3ui size = io->GetNativeImage()->GetBufferedRegion().GetSize();
+
+  // Compute the new image geometry for the IRIS data
+  ImageCoordinateGeometry icg(
+        io->GetNativeImage()->GetDirection().GetVnlMatrix(),
+        m_DisplayToAnatomyRAI, size);
+
+  // Rescale the image to desired number of bits
+  RescaleNativeImageToIntegralType<AnatomyImageType> rescaler;
+  AnatomyImageType::Pointer imgMain = rescaler(io);
+  LinearInternalToNativeIntensityMapping mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
+
+  // Set the image as the current main anatomy image/
+  m_IRISImageData->SetMainImage(imgMain, icg, mapper);
+
+*/
 
 void
 IRISApplication
@@ -2169,13 +2158,19 @@ IRISApplication
   // The main image should be loaded at this point
   assert(m_CurrentImageData->IsMainLoaded());
 
+  // Perform reorientation in the current image data
+  m_CurrentImageData->SetDirectionMatrix(inDirection);
+
+  /*
   // Compute a new coordinate transform object
   ImageCoordinateGeometry icg(
-    inDirection, m_DisplayToAnatomyRAI, 
+    inDirection, m_DisplayToAnatomyRAI,
     m_CurrentImageData->GetMain()->GetSize());
+
 
   // Send this coordinate transform to the image data
   m_CurrentImageData->SetImageGeometry(icg);
+  */
 
   // Fire the pose change event
   InvokeEvent(MainImagePoseChangeEvent());

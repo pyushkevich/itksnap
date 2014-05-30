@@ -170,23 +170,27 @@ public:
     unsigned int) const;
 
   /**
-   * Update the image coordinate geometry of the image wrapper. This method
-   * sets the image's direction cosine matrix and updates the slicers. It is
-   * used when the orientation of the image is changed
+   * Set the coordinate transformation between the display coordinates and
+   * the anatomical coordinates. This affects the behavior of the slicers
    */
-  virtual void SetImageGeometry(const ImageCoordinateGeometry &geom);
+  virtual void SetDisplayGeometry(IRISDisplayGeometry &dispGeom);
+
+  /** Get the display to anatomy coordinate mapping */
+  irisGetMacro(DisplayGeometry, const IRISDisplayGeometry &)
+
+  /** Set the direction matrix of the image */
+  virtual void SetDirectionMatrix(const vnl_matrix<double> &direction);
+
+  /**
+   * Set the image coordinate transform (origin, spacing, direction) to
+   * match those of a reference wrapper
+   */
+  virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source);
 
   /**
    * Get the image geometry from the wrapper
    */
   irisGetMacro(ImageGeometry, const ImageCoordinateGeometry &)
-
-  /**
-   * Use a default image-slice transformation, the first slice is along z,
-   * the second along y, the third, along x, all directions of traversal are
-   * positive.
-   */
-  virtual void SetImageGeometryToDefault();
 
 
   /** Get the current slice index */
@@ -538,7 +542,12 @@ protected:
   // Mapping from native to internal format
   NativeIntensityMapping m_NativeMapping;
 
-  /** A copy of the passed in image geometry */
+  // Mapping between the display coordinates and anatomical coordinates
+  IRISDisplayGeometry m_DisplayGeometry;
+
+  // The image coordinate geometry object, which defines the mappings between
+  // image and display coordinates. This variable should not be modified
+  // except in UpdateImageGeometry()
   ImageCoordinateGeometry m_ImageGeometry;
 
   // Transform from image index to NIFTI world coordinates
@@ -564,6 +573,12 @@ protected:
    * an initialization operation)
    */
   virtual void UpdateImagePointer(ImageType *);
+
+  /**
+   * Update the image geometry (combining the information in the image and the
+   * information in the m_DisplayGeometry variable)
+   */
+  virtual void UpdateImageGeometry();
 
   /** Common code for the different constructors */
   void CommonInitialization();

@@ -95,14 +95,6 @@ enum PaintbrushMode
   PAINTBRUSH_WATERSHED = 2
 };
   
-enum AnatomicalDirection
-{
-  ANATOMY_AXIAL = 0,
-  ANATOMY_SAGITTAL,
-  ANATOMY_CORONAL,
-  ANATOMY_NONSENSE
-};
-
 enum DisplayPanel
 {
   PANEL_AXIAL = 0,

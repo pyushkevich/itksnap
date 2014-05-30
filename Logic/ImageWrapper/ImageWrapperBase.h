@@ -30,6 +30,7 @@ class SNAPSegmentationROISettings;
 class GuidedNativeImageIO;
 class Registry;
 class vtkImageImport;
+class IRISDisplayGeometry;
 
 /**
  * Supported ways of extracting a scalar value from vector-valued data.
@@ -116,21 +117,26 @@ public:
     unsigned int) const = 0;
 
   /**
-   * Use a default image-slice transformation, the first slice is along z,
-   * the second along y, the third, along x, all directions of traversal are
-   * positive.
+   * Set the coordinate transformation between the display coordinates and
+   * the anatomical coordinates. This affects the behavior of the slicers
    */
-  virtual void SetImageGeometryToDefault() = 0;
+  virtual void SetDisplayGeometry(IRISDisplayGeometry &dispGeom) = 0;
+
+  /** Get the display to anatomy coordinate mapping */
+  virtual const IRISDisplayGeometry &GetDisplayGeometry() const = 0;
+
+  /** Set the direction matrix of the image */
+  virtual void SetDirectionMatrix(const vnl_matrix<double> &direction) = 0;
 
   /**
-   * Update the image coordinate geometry of the image wrapper. This method
-   * sets the image's direction cosine matrix and updates the slicers. It is
-   * used when the orientation of the image is changed
+   * Set the image coordinate transform (origin, spacing, direction) to
+   * match those of a reference wrapper
    */
-  virtual void SetImageGeometry(const ImageCoordinateGeometry &geom) = 0;
+  virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source) = 0;
 
   /**
-   * Get the image geometry from the wrapper
+   * Get the image geometry from the wrapper. The image geometry captures
+   * the transforms between each of the display slices and the 3D image.
    */
   virtual const ImageCoordinateGeometry &GetImageGeometry() const = 0;
 

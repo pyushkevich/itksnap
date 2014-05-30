@@ -51,21 +51,24 @@ ImageCoordinateGeometry
 
 ImageCoordinateGeometry
 ::ImageCoordinateGeometry(DirectionMatrix imageDirection,
-                          std::string displayAnatomyRAICode[3],
+                          const IRISDisplayGeometry &dispGeom,
                           const Vector3ui &imageSize)
 {
-  SetGeometry(imageDirection,displayAnatomyRAICode,imageSize);
+  SetGeometry(imageDirection,dispGeom,imageSize);
 }
 
 
 void
 ImageCoordinateGeometry
 ::SetGeometry(DirectionMatrix imageDirection,
-              std::string displayAnatomyRAICode[3],
+              const IRISDisplayGeometry &dispGeom,
               const Vector3ui &imageSize)
 {
   // Store the image direction matrix
   m_ImageDirectionCosineMatrix = imageDirection; 
+
+  // Keep a copy of the display-to-anatomy geometry
+  m_DisplayGeometry = dispGeom;
 
   // Remap the direction matrix to an RAI code
   std::string imageAnatomyRAICode = 
@@ -86,16 +89,15 @@ ImageCoordinateGeometry
   // Compute the anatomy to display transform
   for(unsigned int slice=0;slice < 3;slice++)
     {
-    // Make sure the code is valid
-    assert(IsRAICodeValid(displayAnatomyRAICode[slice].c_str()));
+    // Get the display to anatomy RAI code for this slice
+    const char *displayAnatomyRAICode = m_DisplayGeometry.DisplayToAnatomyRAI[slice].c_str();
 
-    // Keep a copy of the code
-    m_DisplayToAnatomyRAI[slice] = displayAnatomyRAICode[slice];
-    
+    // Make sure the code is valid
+    assert(IsRAICodeValid(displayAnatomyRAICode));
+
     m_AnatomyToDisplayTransform[slice].SetTransform(
-      InvertMappingVector(
-        ConvertRAIToCoordinateMapping(displayAnatomyRAICode[slice].c_str())),
-      szAnatomy);
+          InvertMappingVector(ConvertRAIToCoordinateMapping(displayAnatomyRAICode)),
+          szAnatomy);
 
     // Compute the combined transform
     m_ImageToDisplayTransform[slice] = 

@@ -159,6 +159,7 @@ SET(LOGIC_CXX
   Logic/Common/ColorMapPresetManager.cxx
   Logic/Common/ImageCoordinateGeometry.cxx
   Logic/Common/ImageCoordinateTransform.cxx
+  Logic/Common/IRISDisplayGeometry.cxx
   Logic/Common/MetaDataAccess.cxx
   Logic/Common/SegmentationStatistics.cxx
   Logic/Common/SNAPRegistryIO.cxx
@@ -245,6 +246,7 @@ SET(LOGIC_HEADERS
   Logic/Common/ColorMapPresetManager.h
   Logic/Common/ImageCoordinateGeometry.h
   Logic/Common/ImageCoordinateTransform.h
+  Logic/Common/IRISDisplayGeometry.h
   Logic/Common/SegmentationStatistics.h
   Logic/Common/ImageRayIntersectionFinder.h
   Logic/Common/ImageRayIntersectionFinder.txx

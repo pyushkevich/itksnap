@@ -119,6 +119,16 @@ enum LayerRole
   NO_ROLE = 0x0010
 };
 
+// Cardinal directions in the anatomical space
+enum AnatomicalDirection
+{
+  ANATOMY_AXIAL = 0,
+  ANATOMY_SAGITTAL,
+  ANATOMY_CORONAL,
+  ANATOMY_NONSENSE
+};
+
+
 
 // An atomic data type to represent draw-over state
 struct DrawOverFilter

@@ -37,6 +37,7 @@
 #define __IRISApplication_h_
 
 #include "ImageCoordinateTransform.h"
+#include "IRISDisplayGeometry.h"
 #include "itkImageRegion.h"
 #include "itkExceptionObject.h"
 #include "GlobalState.h"
@@ -65,6 +66,7 @@ class AbstractLoadImageDelegate;
 class AbstractSaveImageDelegate;
 class IRISWarningList;
 class GaussianMixtureModel;
+class IRISDisplayGeometry;
 
 
 template <class TTraits> class PresetManager;
@@ -309,7 +311,10 @@ public:
   void ReleaseSNAPImageData();
   
   /** Update the display-anatomy mapping as an RAI code */
-  void SetDisplayToAnatomyRAI(const char *rai0,const char *rai1,const char *rai2);
+  void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom);
+
+  /** Get the current display-anatomy mapping */
+  irisGetMacro(DisplayGeometry, const IRISDisplayGeometry &)
 
   /** Does the current image have oblique orientation? */
   bool IsImageOrientationOblique();
@@ -317,16 +322,12 @@ public:
   /** Get the current image to anatomy RAI code */
   std::string GetImageToAnatomyRAI();
 
-  /** Get the current display to anatomy RAI code */
-  std::string GetDisplayToAnatomyRAI(unsigned int slice);
-
   /** Get the image axis for a given anatomical direction */
-  size_t GetImageDirectionForAnatomicalDirection(
+  int GetImageDirectionForAnatomicalDirection(
     AnatomicalDirection iAnat);
 
   /** Get the display window corresponding to an anatomical direction */
-  size_t GetDisplayWindowForAnatomicalDirection(
-    AnatomicalDirection iAnat) const;
+  int GetDisplayWindowForAnatomicalDirection(AnatomicalDirection iAnat) const;
 
   /** Get the anatomical direction in the i-th display window */
   AnatomicalDirection GetAnatomicalDirectionForDisplayWindow(int iWin) const;
@@ -576,8 +577,8 @@ protected:
   // History manager
   HistoryManager *m_HistoryManager;
 
-  /** RAI between anatomy space and image space */
-  std::string m_DisplayToAnatomyRAI[3];
+  // Coordinate mapping between display space and anatomical space
+  IRISDisplayGeometry m_DisplayGeometry;
 
   // Undo data manager. Perhaps this should really be in IRISImageData, but
   // there is a lot of stuff here that is ambiguous in this way. The manager

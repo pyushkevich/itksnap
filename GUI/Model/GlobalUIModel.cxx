@@ -416,8 +416,7 @@ void GlobalUIModel::SetGlobalDisplaySettings(
   if(raiOld[0] != raiNew[0] || raiOld[1] != raiNew[1] || raiOld[2] != raiNew[2])
     {
     // Update the RAI codes in all slice views
-    m_Driver->SetDisplayToAnatomyRAI(
-          raiNew[0].c_str(), raiNew[1].c_str(), raiNew[2].c_str());
+    m_Driver->SetDisplayGeometry(IRISDisplayGeometry(raiNew[0], raiNew[1], raiNew[2]));
 
     // Update the cursor location
     if(m_Driver->IsMainImageLoaded())

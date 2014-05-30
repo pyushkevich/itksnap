@@ -382,17 +382,33 @@ VectorImageWrapper<TTraits,TBase>
 template <class TTraits, class TBase>
 void
 VectorImageWrapper<TTraits,TBase>
-::SetImageGeometry(const ImageCoordinateGeometry &geom)
+::SetDisplayGeometry(IRISDisplayGeometry &dispGeom)
 {
-  // Set my own geometry
-  Superclass::SetImageGeometry(geom);
-
-  // Propagate to owned scalar wrappers
+  Superclass::SetDisplayGeometry(dispGeom);
   for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
-    {
-    it->second->SetImageGeometry(geom);
-    }
+    it->second->SetDisplayGeometry(dispGeom);
 }
+
+template <class TTraits, class TBase>
+void
+VectorImageWrapper<TTraits,TBase>
+::SetDirectionMatrix(const vnl_matrix<double> &direction)
+{
+  Superclass::SetDirectionMatrix(direction);
+  for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
+    it->second->SetDirectionMatrix(direction);
+}
+
+template <class TTraits, class TBase>
+void
+VectorImageWrapper<TTraits,TBase>
+::CopyImageCoordinateTransform(const ImageWrapperBase *source)
+{
+  Superclass::CopyImageCoordinateTransform(source);
+  for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
+    it->second->CopyImageCoordinateTransform(source);
+}
+
 
 template<class TTraits, class TBase>
 typename VectorImageWrapper<TTraits,TBase>::ComponentTypeObject *

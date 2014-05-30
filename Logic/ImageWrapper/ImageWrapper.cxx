@@ -344,6 +344,8 @@ void
 ImageWrapper<TTraits,TBase>
 ::CommonInitialization()
 {
+  // This is the code that should be called by all constructors
+
   // Set the unique wrapper id
   m_UniqueId = ++GlobalImageWrapperIndex;
 
@@ -367,9 +369,8 @@ ImageWrapper<TTraits,TBase>
   // that are derived from vector wrappers. See VectorImageWrapper::CreateDerivedWrapper
   m_ParentWrapper = NULL;
 
-  // Set the transform to identity, which will initialize the directions of the
-  // slicers
-  this->SetImageGeometryToDefault();
+  // Update the image geometry to default value
+  this->UpdateImageGeometry();
 }
 
 template<class TTraits, class TBase>
@@ -401,48 +402,63 @@ const ImageCoordinateTransform &
 ImageWrapper<TTraits,TBase>
 ::GetImageToDisplayTransform(unsigned int iSlice) const
 {
-  return m_ImageGeometry.GetDisplayToImageTransform(iSlice);
+  return m_ImageGeometry.GetImageToDisplayTransform(iSlice);
 }
 
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
-::SetImageGeometryToDefault()
+::SetDisplayGeometry(IRISDisplayGeometry &dispGeom)
 {
-  // Default image direction
-  typename ImageType::DirectionType dirmat;
-  dirmat.SetIdentity();
+  // Set the display geometry
+  m_DisplayGeometry = dispGeom;
 
-  // Default display transforms
-  static std::string defrai[] = {
-    std::string("RAI"),
-    std::string("RIA"),
-    std::string("AIR")
-  };
+  // Update the image geometry object and the slicers
+  this->UpdateImageGeometry();
+}
 
-  // Size
-  typename ImageType::SizeType size;
-  if(m_Image)
-    size = m_Image->GetBufferedRegion().GetSize();
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::SetDirectionMatrix(const vnl_matrix<double> &direction)
+{
+  // Update the direction matrix in the image
+  typename ImageType::DirectionType matrix(direction);
+  m_Image->SetDirection(matrix);
 
-  // Define the default geometry
-  ImageCoordinateGeometry geom(dirmat.GetVnlMatrix(), defrai, Vector3ui(size));
+  // Update the NIFTI/RAS transform
+  m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
+    m_Image->GetDirection().GetVnlMatrix(),
+    m_Image->GetOrigin().GetVnlVector(),
+    m_Image->GetSpacing().GetVnlVector());
+  m_NiftiInvSform = vnl_inverse(m_NiftiSform);
 
-  // Create the default geometry
-  this->SetImageGeometry(geom);
+  // Update the image geometry
+  this->UpdateImageGeometry();
+}
 
-  // TODO: Check this!
-  /*
-  ImageCoordinateTransform id[3], test;
-  id[0].SetTransform(Vector3i(1,2,3),Vector3ui(0,0,0));
-  id[1].SetTransform(Vector3i(1,3,2),Vector3ui(0,0,0));
-  id[2].SetTransform(Vector3i(2,3,1),Vector3ui(0,0,0));
-  for(int i = 0; i < 3; i++)
-    {
-    Vector3f x(1.2, 3.2, 0.3);
-    test = this->GetImageToDisplayTransform(i);
-    }
-  */
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::CopyImageCoordinateTransform(const ImageWrapperBase *source)
+{
+  // Better have the image!
+  assert(m_Image && source->GetImageBase());
+
+  // Set the new meta-data on the image
+  m_Image->SetSpacing(source->GetImageBase()->GetSpacing());
+  m_Image->SetOrigin(source->GetImageBase()->GetOrigin());
+  m_Image->SetDirection(source->GetImageBase()->GetDirection());
+
+  // Update the NIFTI/RAS transform
+  m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
+    m_Image->GetDirection().GetVnlMatrix(),
+    m_Image->GetOrigin().GetVnlVector(),
+    m_Image->GetSpacing().GetVnlVector());
+  m_NiftiInvSform = vnl_inverse(m_NiftiSform);
+
+  // Update the image geometry
+  this->UpdateImageGeometry();
 }
 
 template<class TTraits, class TBase>
@@ -566,14 +582,19 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 void 
 ImageWrapper<TTraits,TBase>
-::UpdateImagePointer(ImageType *newImage) 
+::UpdateImagePointer(ImageType *newImage)
 {
-  // Check if the image size has changed
-  bool hasSizeChanged = 
-    (!m_Image) || 
-    (newImage->GetLargestPossibleRegion().GetSize() !=
-     m_Image->GetLargestPossibleRegion().GetSize());
-  
+  // Check if the image size or image direction matrix has changed
+  bool hasSizeChanged = true, hasDirectionChanged = true;
+  if(m_Image)
+    {
+    hasSizeChanged = newImage->GetLargestPossibleRegion().GetSize()
+        != m_Image->GetLargestPossibleRegion().GetSize();
+
+    hasDirectionChanged = newImage->GetDirection()
+        != m_Image->GetDirection();
+    }
+
   // Change the input of the slicers 
   m_Slicer[0]->SetInput(newImage);
   m_Slicer[1]->SetInput(newImage);
@@ -590,17 +611,17 @@ ImageWrapper<TTraits,TBase>
   // Update the image in the display mapping
   m_DisplayMapping->UpdateImagePointer(m_Image);
 
-  // If so, the coordinate transform needs to be reinitialized to identity
-  if(hasSizeChanged)
+  // Update the image coordinate geometry
+  if(hasSizeChanged || hasDirectionChanged)
     {
     // Reset the transform to identity
-    this->SetImageGeometryToDefault();
+    this->UpdateImageGeometry();
 
     // Reset the slice positions to zero
     this->SetSliceIndex(Vector3ui(0,0,0));
     }
 
-  // Set the NIFTI/RAS transform
+  // Update the NIFTI/RAS transform
   m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
     m_Image->GetDirection().GetVnlMatrix(),
     m_Image->GetOrigin().GetVnlVector(),
@@ -619,11 +640,11 @@ void
 ImageWrapper<TTraits,TBase>
 ::InitializeToWrapper(const ImageWrapperBase *source, ImageType *image) 
 {
+  // Update the display geometry from the source wrapper
+  m_DisplayGeometry = source->GetDisplayGeometry();
+
   // Call the common update method
   UpdateImagePointer(image);
-
-  // Update the image-display transforms
-  this->SetImageGeometry(source->GetImageGeometry());
 
   // Update the slice index
   SetSliceIndex(source->GetSliceIndex());
@@ -647,11 +668,11 @@ ImageWrapper<TTraits,TBase>
   newImage->SetSpacing(source->GetImageBase()->GetSpacing());
   newImage->SetDirection(source->GetImageBase()->GetDirection());
 
+  // Update the display geometry from the source wrapper
+  m_DisplayGeometry = source->GetDisplayGeometry();
+
   // Call the common update method
   UpdateImagePointer(newImage);
-
-  // Update the image-display transforms
-  this->SetImageGeometry(source->GetImageGeometry());
 
   // Update the slice index
   SetSliceIndex(source->GetSliceIndex());
@@ -774,33 +795,34 @@ ImageWrapper<TTraits,TBase>
   }
 }
 
+
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
-::SetImageGeometry(const ImageCoordinateGeometry &geom)
+::UpdateImageGeometry()
 {
-  // Store the geometry for future use
-  m_ImageGeometry = geom;
+  // This method updates the internally stored image geometry object and
+  // the image coordinate transforms in all the slicers based on three
+  // pieces of information that are stored in the wrapper:
+  //   1. Image size
+  //   2. Image direction matrix
+  //   3. Display to anatomy transforms (m_DisplayGeometry)
+  // This method must be called whenever one of these parameters changes.
 
-  // Apply the geometry to the image
+  // Create an image coordinate geometry based on the current state
   if(m_Image)
     {
-    // Set the direction matrix in imag 
-    m_Image->SetDirection(geom.GetImageDirectionCosineMatrix());
-
-    // Set the NIFTI/RAS transform
-    m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
+    // Set the geometry based on the current image characteristics
+    m_ImageGeometry.SetGeometry(
           m_Image->GetDirection().GetVnlMatrix(),
-          m_Image->GetOrigin().GetVnlVector(),
-          m_Image->GetSpacing().GetVnlVector());
-
-    m_NiftiInvSform = vnl_inverse(m_NiftiSform);
+          m_DisplayGeometry,
+          m_Image->GetLargestPossibleRegion().GetSize());
 
     // Update the geometry for each slice
     for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
       {
       // Get the transform and its inverse
-      ImageCoordinateTransform tran = geom.GetImageToDisplayTransform(iSlice);
+      ImageCoordinateTransform tran = m_ImageGeometry.GetImageToDisplayTransform(iSlice);
       ImageCoordinateTransform tinv = tran.Inverse();
 
       // Tell slicer in which directions to slice
@@ -828,7 +850,21 @@ ImageWrapper<TTraits,TBase>
     // Cause the axis indices in the slicers to be updated due to reorientation
     this->SetSliceIndex(this->GetSliceIndex());
     }
+  else
+    {
+    // Identity matrix
+    typename ImageType::DirectionType dirmat;
+    dirmat.SetIdentity();
+
+    // Zero size
+    typename ImageType::SizeType size;
+
+    // Set the geometry to default values
+    m_ImageGeometry.SetGeometry(dirmat.GetVnlMatrix(), m_DisplayGeometry, size);
+    }
 }
+
+
 
 template<class TTraits, class TBase>
 inline double
@@ -1262,19 +1298,13 @@ ImageWrapper<TTraits,TBase>
   // Initialize the new wrapper
   typedef typename TTraits::WrapperType WrapperType;
   SmartPtr<WrapperType> newWrapper = WrapperType::New();
+
+  // Copy the display to anatomy geometry to the new wrapper
+  newWrapper->m_DisplayGeometry = m_DisplayGeometry;
+
+  // Assign the new image to the new wrapper
   newWrapper->SetImage(newImage);
   newWrapper->SetNativeMapping(this->GetNativeMapping());
-
-  // Create appropriate geometry
-  std::string rai[] = {
-    this->GetImageGeometry().GetDisplayToAnatomyRAI(0),
-    this->GetImageGeometry().GetDisplayToAnatomyRAI(1),
-    this->GetImageGeometry().GetDisplayToAnatomyRAI(2) };
-
-  newWrapper->SetImageGeometry(
-        ImageCoordinateGeometry(
-          this->GetImageGeometry().GetImageDirectionCosineMatrix(),
-          rai, newImage->GetLargestPossibleRegion().GetSize()));
 
   // Appropriate the default nickname?
   newWrapper->SetDefaultNickname(this->GetDefaultNickname());
