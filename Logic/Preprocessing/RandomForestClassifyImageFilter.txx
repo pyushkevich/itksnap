@@ -122,8 +122,19 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
   typedef MLData<InputPixelType,HistogramType *> TestingDataType;
   TestingDataType testData(1, nComp);
 
+  // Get the number of trees
+  int nTrees = m_Classifier->m_Forest->trees_.size();
+
+  // Create and allocate the test result vector
   typedef Vector<Vector<HistogramType *> > TestingResultType;
   TestingResultType testResult;
+  testResult.Resize(nTrees);
+  for(int i = 0; i < nTrees; i++)
+    testResult[i].Resize(1);
+
+  // Some vectors that are allocated for speed
+  std::vector<size_t> vIndex(1);
+  std::vector<bool> vResult(1);
 
   // Iterate through all the voxels
   for(; !it_out.IsAtEnd(); ++it_out, ++cit)
@@ -133,7 +144,7 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
       testData.data[0][i] = cit.Value(i);
 
     // Perform classification on this data
-    m_Classifier->m_Forest->Apply(testData, testResult);
+    m_Classifier->m_Forest->ApplyFast(testData, testResult, vIndex, vResult);
 
     // Add up the predictions made by each tree for each class
     double p = 0;

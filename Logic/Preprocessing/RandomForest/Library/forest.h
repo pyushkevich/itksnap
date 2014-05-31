@@ -47,6 +47,22 @@ public:
       }
   }
 
+  // Added by Paul. This version of the method allows the same testingResult
+  // vector to be reused. For speed, it does not check that the size of the
+  // testing result is sufficient
+  // This version of the method takes a preallocated vector
+  // index and a preallocated vector response_vec of the same size as
+  // testingData. It does not do allocation to save on computation time
+  void ApplyFast(MLData<dataT, S*>& testingData,
+                 Vector<Vector<S*> >& testingResult,
+                 std::vector<index_t> &index,
+                 std::vector<bool> &response)
+  {
+    size_t treeNum = trees_.size();
+    for (index_t i = 0; i < treeNum; ++i)
+        trees_[i]->ApplyFast(testingData, testingResult[i], index, response);
+  }
+
   void Print(int level)
   {
     for (index_t i = 0; i < trees_.size(); ++i)

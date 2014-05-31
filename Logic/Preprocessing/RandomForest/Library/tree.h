@@ -84,6 +84,23 @@ public:
            index, response);
   }
 
+  // Added by Paul. This version of the method takes a preallocated vector
+  // index and a preallocated vector response_vec of the same size as
+  // testingData. It does not do allocation to save on computation time
+  void ApplyFast(MLData<dataT, S*>& testingData,
+                 Vector<S*>& testingResult,
+                 std::vector<index_t> &index,
+                 std::vector<bool> &response)
+  {
+    for (index_t i = 0; i != testingData.Size(); ++i)
+      {
+        index[i] = i;
+      }
+
+    Travel(nodes_[0], 0, testingData.Size(), testingData, testingResult,
+           index, response);
+  }
+
   // depth first travel
   void Travel(Node* node, index_t begin, index_t end,
               MLData<dataT, S*>& testingData, Vector<S*>& testingResult,
