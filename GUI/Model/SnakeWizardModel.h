@@ -176,6 +176,9 @@ public:
   /** Processing that must take place when the clustering page is shown */
   void OnClusteringPageEnter();
 
+  /** Processing that takes place when the classification page is entered */
+  void OnClassificationPageEnter();
+
   /** Do some cleanup when the preprocessing dialog closes */
   void OnPreprocessingDialogClose();
 
@@ -242,6 +245,14 @@ public:
 
   double EvaluateClusterMarginalUnivariatePDF(int cluster, int component, double x);
 
+  /* ===================================================================
+   * SUPERVISED CLASSIFICATION SUPPORT (RANDOM FORESTS)
+   * =================================================================== */
+
+  /**
+   * Train the random forest classifier when the user hits the 'train' button
+   */
+  void TrainClassifier();
 
 protected:
   SnakeWizardModel();

@@ -40,10 +40,12 @@
 template <class TInput, class TOutput> class SmoothBinaryThresholdImageFilter;
 template <class TInput, class TOutput> class EdgePreprocessingImageFilter;
 template <class TInput, class TVectorInput, class TOutput> class GMMClassifyImageFilter;
+template <class TInput, class TVectorInput, class TOutput> class RandomForestClassifyImageFilter;
 
 class ThresholdSettings;
 class EdgePreprocessingSettings;
 class GaussianMixtureModel;
+class RandomForestClassifier;
 
 class SmoothBinaryThresholdFilterConfigTraits {
 public:
@@ -112,6 +114,32 @@ public:
   static void SetActiveScalarLayer(
       ScalarImageWrapperBase *layer, FilterType *filter, int channel) {}
 };
+
+
+/** Traits class for random forest based preprocessing */
+class RFPreprocessingFilterConfigTraits {
+public:
+
+  typedef AnatomicScalarImageWrapper::ImageType                 GreyScalarType;
+  typedef AnatomicImageWrapper::ImageType                       GreyVectorType;
+  typedef SNAPImageData::SpeedImageType                              SpeedType;
+  typedef SpeedImageWrapper                                  OutputWrapperType;
+
+  typedef RandomForestClassifyImageFilter<
+    GreyScalarType, GreyVectorType, SpeedType>                      FilterType;
+
+  typedef RandomForestClassifier                                 ParameterType;
+
+  static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
+  static void DetachInputs(FilterType *filter);
+  static void SetParameters(ParameterType *p, FilterType *filter, int channel);
+  static bool GetDefaultPreviewMode() { return true; }
+
+  static ScalarImageWrapperBase* GetDefaultScalarLayer(SNAPImageData *sid) { return NULL; }
+  static void SetActiveScalarLayer(
+      ScalarImageWrapperBase *layer, FilterType *filter, int channel) {}
+};
+
 
 
 

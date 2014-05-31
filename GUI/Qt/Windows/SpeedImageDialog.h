@@ -53,6 +53,8 @@ private slots:
 
   void on_btnIterateTen_clicked();
 
+  void on_btnTrain_clicked();
+
 private:
   Ui::SpeedImageDialog *ui;
 

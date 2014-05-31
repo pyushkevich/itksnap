@@ -12,8 +12,7 @@
 #include "UnsupervisedClustering.h"
 #include "PreprocessingFilterConfigTraits.h"
 #include "GMMClassifyImageFilter.h"
-
-
+#include "RFClassificationEngine.h"
 
 SnakeWizardModel::SnakeWizardModel()
 {
@@ -800,6 +799,13 @@ void SnakeWizardModel::OnClusteringPageEnter()
   InvokeEvent(ModelUpdateEvent());
 }
 
+void SnakeWizardModel::OnClassificationPageEnter()
+{
+  m_Driver->EnterPreprocessingMode(PREPROCESS_RF);
+  InvokeEvent(GMMModifiedEvent());
+  InvokeEvent(ModelUpdateEvent());
+}
+
 bool
 SnakeWizardModel
 ::GetActiveBubbleValue(int &value)
@@ -1319,6 +1325,15 @@ SnakeWizardModel::GetLayerAndIndexForNthComponent(int n)
   return m_ComponentInfo[n];
 }
 
+
+void SnakeWizardModel::TrainClassifier()
+{
+  // Get the classification engine
+  RFClassificationEngine *rfengine = m_Driver->GetClassificationEngine();
+
+  // Perform the classification
+  rfengine->TrainClassifier();
+}
 
 
 

@@ -60,6 +60,7 @@ class ThresholdSettings;
 class EdgePreprocessingSettings;
 class AbstractSlicePreviewFilterWrapper;
 class UnsupervisedClustering;
+class RFClassificationEngine;
 class ImageWrapperBase;
 class MeshManager;
 class AbstractLoadImageDelegate;
@@ -77,6 +78,7 @@ template <class TFilterConfigTraits> class SlicePreviewFilterWrapper;
 class SmoothBinaryThresholdFilterConfigTraits;
 class EdgePreprocessingFilterConfigTraits;
 class GMMPreprocessingFilterConfigTraits;
+class RFPreprocessingFilterConfigTraits;
 template <typename TIn, typename TOut> class SmoothBinaryThresholdImageFilter;
 template <typename TIn, typename TOut> class EdgePreprocessingImageFilter;
 template <typename TIn, typename TVIn, typename TOut> class GMMClassifyImageFilter;
@@ -503,6 +505,9 @@ public:
   /** Get the object used to drive the unsupervised clustering */
   irisGetMacro(ClusteringEngine, UnsupervisedClustering *)
 
+  /** Get the object used to drive the supervised classification */
+  irisGetMacro(ClassificationEngine, RFClassificationEngine *)
+
   /** Set the current snake mode. This method should be called instead of the
       method in GlobalState because when the snake mode is set, some changes
       are made to the image data (having to do with setting up the preview
@@ -608,6 +613,10 @@ protected:
   typedef SlicePreviewFilterWrapper<GMMPreprocessingFilterConfigTraits>
                                             GMMPreprocessingPreviewWrapperType;
 
+  // The GMM preview wrapper type
+  typedef SlicePreviewFilterWrapper<RFPreprocessingFilterConfigTraits>
+                                            RFPreprocessingPreviewWrapperType;
+
   // The threshold-based wrapper
   SmartPtr<ThresholdPreviewWrapperType> m_ThresholdPreviewWrapper;
 
@@ -617,8 +626,14 @@ protected:
   // GMM-based preprocessing wrapper
   SmartPtr<GMMPreprocessingPreviewWrapperType> m_GMMPreviewWrapper;
 
-  // The EM classification object (TODO: make it itk::Object derived)
+  // Random forest preprocessing wrapper
+  SmartPtr<RFPreprocessingPreviewWrapperType> m_RandomForestPreviewWrapper;
+
+  // The EM classification object
   SmartPtr<UnsupervisedClustering> m_ClusteringEngine;
+
+  // The Random Foreset classification object
+  SmartPtr<RFClassificationEngine> m_ClassificationEngine;
 
   // Mesh object (used to manage meshes)
   SmartPtr<MeshManager> m_MeshManager;
@@ -648,6 +663,10 @@ protected:
   // Helper functions for GMM mode enter/exit
   void EnterGMMPreprocessingMode();
   void LeaveGMMPreprocessingMode();
+
+  // Helper functions for RF mode enter/exit
+  void EnterRandomForestPreprocessingMode();
+  void LeaveRandomForestPreprocessingMode();
 
   // ----------------------- Project support ------------------------------
 

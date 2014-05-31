@@ -38,6 +38,8 @@
 #include "SlicePreviewFilterWrapper.txx"
 #include "GMMClassifyImageFilter.h"
 #include "GMMClassifyImageFilter.txx"
+#include "RandomForestClassifyImageFilter.h"
+#include "RandomForestClassifyImageFilter.txx"
 #include "IRISApplication.h"
 #include "UnsupervisedClustering.h"
 #include "Rebroadcaster.h"
@@ -178,7 +180,62 @@ GMMPreprocessingFilterConfigTraits
 }
 
 
+
+
+
+
+
+
+void
+RFPreprocessingFilterConfigTraits
+::AttachInputs(SNAPImageData *sid, FilterType *filter, int channel)
+{
+  // Iterate through all of the relevant layers
+  for(LayerIterator it = sid->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+      !it.IsAtEnd(); ++it)
+    {
+    if(it.GetLayerAsScalar())
+      {
+      AnatomicScalarImageWrapper *w = dynamic_cast<AnatomicScalarImageWrapper *>(it.GetLayer());
+      filter->AddScalarImage(w->GetImage());
+      }
+    else if (it.GetLayerAsVector())
+      {
+      AnatomicImageWrapper *w = dynamic_cast<AnatomicImageWrapper *>(it.GetLayer());
+      filter->AddVectorImage(w->GetImage());
+      }
+    }
+
+  // TODO: Set the GMM input
+}
+
+void
+RFPreprocessingFilterConfigTraits
+::DetachInputs(FilterType *filter)
+{
+  while(filter->GetNumberOfInputs())
+    filter->PopBackInput();
+
+  filter->SetClassifier(NULL);
+}
+
+void
+RFPreprocessingFilterConfigTraits
+::SetParameters(ParameterType *p, FilterType *filter, int channel)
+{
+  filter->SetClassifier(p);
+}
+
+
+
+
+
+
+
+
 // Instantiate preview wrappers
 template class SlicePreviewFilterWrapper<SmoothBinaryThresholdFilterConfigTraits>;
 template class SlicePreviewFilterWrapper<EdgePreprocessingFilterConfigTraits>;
 template class SlicePreviewFilterWrapper<GMMPreprocessingFilterConfigTraits>;
+template class SlicePreviewFilterWrapper<RFPreprocessingFilterConfigTraits>;
+

@@ -77,7 +77,8 @@ enum PreprocessingMode
   PREPROCESS_NONE = 0,
   PREPROCESS_THRESHOLD,
   PREPROCESS_EDGE,
-  PREPROCESS_GMM
+  PREPROCESS_GMM,
+  PREPROCESS_RF
 };
 
 enum ConstraintsType 

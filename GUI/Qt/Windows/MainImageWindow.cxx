@@ -363,9 +363,9 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Tool action activations
   activateOnFlag(ui->actionCrosshair, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionZoomPan, m_Model, UIF_BASEIMG_LOADED);
-  activateOnFlag(ui->actionPolygon, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionPolygon, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionSnake, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionPaintbrush, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionPaintbrush, m_Model, UIF_BASEIMG_LOADED);
 
   activateOnFlag(ui->action3DCrosshair, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->action3DTrackball, m_Model, UIF_BASEIMG_LOADED);

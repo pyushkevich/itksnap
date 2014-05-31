@@ -81,6 +81,8 @@
 #include "ColorMapPresetManager.h"
 #include "ImageIODelegates.h"
 #include "IRISDisplayGeometry.h"
+#include "RFClassificationEngine.h"
+#include "RandomForestClassifyImageFilter.h"
 
 
 #include <stdio.h>
@@ -136,6 +138,8 @@ IRISApplication
   m_EdgePreviewWrapper->SetParameters(m_EdgePreprocessingSettings);
 
   m_GMMPreviewWrapper = GMMPreprocessingPreviewWrapperType::New();
+
+  m_RandomForestPreviewWrapper = RFPreprocessingPreviewWrapperType::New();
 
   m_PreprocessingMode = PREPROCESS_NONE;
 
@@ -2306,6 +2310,23 @@ void IRISApplication::EnterGMMPreprocessingMode()
   m_GMMPreviewWrapper->SetParameters(m_ClusteringEngine->GetMixtureModel());
 }
 
+void IRISApplication::EnterRandomForestPreprocessingMode()
+{
+  // Create a random forest classification engine
+  m_ClassificationEngine = RFClassificationEngine::New();
+  m_ClassificationEngine->SetDataSource(m_SNAPImageData);
+
+  // Connect to the preview wrapper
+  m_RandomForestPreviewWrapper->AttachInputs(m_SNAPImageData);
+  m_RandomForestPreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());
+  m_RandomForestPreviewWrapper->SetParameters(m_ClassificationEngine->GetClassifier());
+}
+
+void IRISApplication::LeaveRandomForestPreprocessingMode()
+{
+  m_RandomForestPreviewWrapper->DetachInputsAndOutputs();
+  m_ClassificationEngine = NULL;
+}
 
 void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
 {
@@ -2328,6 +2349,10 @@ void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
       this->LeaveGMMPreprocessingMode();
       break;
 
+    case PREPROCESS_RF:
+      this->LeaveRandomForestPreprocessingMode();
+      break;
+
     default:
       break;
     }
@@ -2347,6 +2372,10 @@ void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
 
     case PREPROCESS_GMM:
       this->EnterGMMPreprocessingMode();
+      break;
+
+    case PREPROCESS_RF:
+      this->EnterRandomForestPreprocessingMode();
       break;
 
     default:
@@ -2373,6 +2402,8 @@ IRISApplication
       return m_EdgePreviewWrapper;
     case PREPROCESS_GMM:
       return m_GMMPreviewWrapper;
+    case PREPROCESS_RF:
+      return m_RandomForestPreviewWrapper;
     default:
       return NULL;
     }

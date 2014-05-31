@@ -169,6 +169,10 @@ void SpeedImageDialog::on_tabWidgetInOut_currentChanged(int index)
     {
     m_Model->OnClusteringPageEnter();
     }
+  else if(ui->tabWidgetInOut->currentWidget() == ui->tabClassify)
+    {
+    m_Model->OnClassificationPageEnter();
+    }
 }
 
 void SpeedImageDialog::on_btnReinitialize_clicked()
@@ -190,13 +194,7 @@ void SpeedImageDialog::on_btnIterateTen_clicked()
 }
 
 
-
-
-
-
-
-
-
-
-
-
+void SpeedImageDialog::on_btnTrain_clicked()
+{
+  m_Model->TrainClassifier();
+}
