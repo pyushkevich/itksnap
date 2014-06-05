@@ -84,6 +84,7 @@
 #include <QGLWidget>
 #include <QDesktopServices>
 #include <SNAPQtCommon.h>
+#include <QMimeData>
 
 
 

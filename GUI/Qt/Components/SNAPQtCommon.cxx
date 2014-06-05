@@ -511,7 +511,7 @@ QString GetOpenFileNameBugFix(
     }
 
   if(filter.length())
-    dialog.setFilter(filter);
+    dialog.setNameFilter(filter);
 
   if(dialog.exec() && dialog.selectedFiles().size())
     return dialog.selectedFiles().first();

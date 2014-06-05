@@ -96,10 +96,10 @@ std::string QtSystemInfoDelegate::GetApplicationFile()
   return to_utf8(QCoreApplication::applicationFilePath());
 }
 
-#include <QDesktopServices>
+#include <QStandardPaths>
 std::string QtSystemInfoDelegate::GetApplicationPermanentDataLocation()
 {
-  return to_utf8(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+  return to_utf8(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
 }
 
 void QtSystemInfoDelegate

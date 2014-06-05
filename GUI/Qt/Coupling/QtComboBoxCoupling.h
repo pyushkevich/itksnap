@@ -55,7 +55,7 @@ public:
   {
     int index = w->currentIndex();
     QVariant id = w->itemData(index);
-    return qVariantValue<TAtomic>(id);
+    return id.value<TAtomic>();
   }
 
   void SetValue(QComboBox *w, const TAtomic &value)
@@ -65,7 +65,7 @@ public:
     // just do our own loop
     for(int i = 0; i < w->count(); i++)
       {
-      if(value == qVariantValue<TAtomic>(w->itemData(i)))
+      if(value == w->itemData(i).value<TAtomic>())
         {
         w->setCurrentIndex(i);
         return;
@@ -102,7 +102,7 @@ public:
 
   static TAtomic getValueInRow(QComboBox *w, int i)
   {
-    return qVariantValue<TAtomic>(w->itemData(i));
+    return w->itemData(i).value<TAtomic>();
   }
 
   static void appendRow(QComboBox *w, TAtomic label, const TDesc &desc)
@@ -124,7 +124,7 @@ public:
   static void updateRowDescription(QComboBox *w, int index, const TDesc &desc)
   {
     // The current value
-    TAtomic label = qVariantValue<TAtomic>(w->itemData(index));
+    TAtomic label = w->itemData(index).value<TAtomic>();
 
     // Get the properies and compare them to the color label
     QVariant currentIconSig = w->itemData(index, Qt::UserRole + 1);

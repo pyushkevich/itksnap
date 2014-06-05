@@ -27,6 +27,7 @@
 #include "QtInteractionDelegateWidget.h"
 #include <QtAbstractOpenGLBox.h>
 #include <QMouseEvent>
+#include <QGestureEvent>
 #include "GenericSliceModel.h"
 #include "SNAPOpenGL.h"
 

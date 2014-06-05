@@ -9,7 +9,7 @@ PROJECT(SNAP)
 #--------------------------------------------------------------------------------
 # CMAKE PRELIMINARIES                       
 #--------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 2.8.12)
 
 #--------------------------------------------------------------------------------
 # MACROS
@@ -777,8 +777,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Testing
     ${SNAP_BINARY_DIR}
     ${OPENGL_INCLUDE_PATH}
-    ${QT_QTSCRIPT_INCLUDE_DIR}
-    ${QT_QTSCRIPTTOOLS_INCLUDE_DIR}
+    ${SNAP_QT5_INCLUDE_DIRS}
   )
 
 ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
@@ -815,14 +814,6 @@ SET(SNAP_VTK_LIBS
   vtkIO
 )
 
-# Qt Libraries
-SET(SNAP_QT_LIBS
-  ${QT_LIBRARIES}
-  ${QT_QTMAIN_LIBRARY}
-  ${QT_QTSCRIPT_LIBRARY}
-  ${QT_QTSCRIPTTOOLS_LIBRARY}
-)
-
 # System libraries
 SET(SNAP_SYSTEM_LIBS
   ${OPENGL_LIBRARIES}
@@ -842,9 +833,9 @@ SET(SNAP_EXTERNAL_LIBS
 #--------------------------------------------------------------------------------
 
 # Wrap the QT input files
-QT4_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
-QT4_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
-QT4_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
+QT5_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
+QT5_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
+QT5_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
 
 # The SNAP logic library
 ADD_LIBRARY(itksnaplogic ${LOGIC_CXX} ${LOGIC_HEADERS})
@@ -862,7 +853,7 @@ ADD_LIBRARY(itksnapui_qt
 # two lines
 TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS})
 TARGET_LINK_LIBRARIES(itksnapui_model itksnaplogic ${SNAP_EXTERNAL_LIBS})
-TARGET_LINK_LIBRARIES(itksnapui_qt ${SNAP_QT_LIBS} ${SNAP_EXTERNAL_LIBS})
+TARGET_LINK_LIBRARIES(itksnapui_qt ${SNAP_QT5_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
 
 # Designate the SNAP internal libraries
 SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
@@ -933,9 +924,9 @@ SET(TEST_ORIENTATION_WIDGET_CXX
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/main.cxx
 )
 
-QT4_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS 
+QT5_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS 
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
-QT4_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS 
+QT5_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS 
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
 
 ADD_EXECUTABLE(Test_OrientationWidget

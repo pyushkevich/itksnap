@@ -71,9 +71,11 @@ void HistoryQListModel::Initialize(
 
 void HistoryQListModel::onModelUpdate(const EventBucket &bucket)
 {
+  this->beginResetModel();
+
   // When history changes, we update
   m_CachedHistory =
       m_Model->GetDriver()->GetHistoryManager()->GetGlobalHistory(m_HistoryName);
 
-  this->reset();
+  this->endResetModel();
 }

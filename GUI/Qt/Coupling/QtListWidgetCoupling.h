@@ -26,7 +26,7 @@
     TAtomic GetValue(QListWidget *w)
     {
       // Get the UserData associated with the current item
-      return qVariantValue<TAtomic>(w->currentItem()->data(Qt::UserRole));
+      return w->currentItem()->data(Qt::UserRole).value<TAtomic>();
     }
 
     void SetValue(QListWidget *w, const TAtomic &value)
@@ -38,7 +38,7 @@
       for(int i = 0; i < w->count(); i++)
         {
         QModelIndex idx = w->model()->index(i, 0);
-        if(qVariantValue<TAtomic>(w->model()->data(idx, Qt::UserRole)) == value)
+        if(w->model()->data(idx, Qt::UserRole).value<TAtomic>() == value)
           {
           row = i;
           break;
@@ -72,7 +72,7 @@
 
     static TAtomic getValueInRow(QListWidget *w, int i)
     {
-      return qVariantValue<TAtomic>(w->item(i)->data(Qt::UserRole));
+      return w->item(i)->data(Qt::UserRole).value<TAtomic>();
     }
   };
 
@@ -109,7 +109,7 @@
       QListWidgetItem *item = w->item(index);
 
       // Get the properies and compare them to the color label
-      QColor currentFill = qVariantValue<QColor>(item->data(Qt::UserRole+1));
+      QColor currentFill = item->data(Qt::UserRole+1).value<QColor>();
       QColor newFill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
 
       if(currentFill != newFill)

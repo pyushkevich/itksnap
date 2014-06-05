@@ -24,8 +24,7 @@
 #include "itkCommand.h"
 #include "vtkObject.h"
 
-#include <QPlastiqueStyle>
-#include <QWindowsVistaStyle>
+#include <QStyleFactory>
 #include <QAction>
 #include <QUrl>
 
@@ -479,7 +478,7 @@ int main(int argc, char *argv[])
   Q_INIT_RESOURCE(SNAPResources);
 
   // Set the application style
-  app.setStyle(new QPlastiqueStyle);
+  app.setStyle(QStyleFactory::create("fusion"));
 
   // Before we can create any of the framework classes, we need to get some
   // platform-specific functionality to the SystemInterface

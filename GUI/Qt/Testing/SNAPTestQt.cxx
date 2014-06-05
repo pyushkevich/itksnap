@@ -44,8 +44,6 @@ SNAPTestQt::ListTests()
 SNAPTestQt::ReturnCode SNAPTestQt::TestSnakeWithThresholding()
 {
   // Use the GUI to open a window
-  qFindChild<QAction *>(m_Window, "actionOpenGrey")->trigger();
-  // qFindChild<QLineEdit *>(m_Window, "inFilename")->setText("test");
-
+  m_Window->findChild<QAction *>("actionOpenGrey")->trigger();
   return SUCCESS;
 }

@@ -46,7 +46,7 @@ public:
     // Get the UserData associated with the current item    
     QModelIndex icur = w->currentIndex();
     QModelIndex irow = w->model()->index(icur.row(), 0, w->currentIndex().parent());
-    return qVariantValue<TAtomic>(irow.data(Qt::UserRole));
+    return irow.data(Qt::UserRole).value<TAtomic>();
   }
 
   bool FindRowRecursive(QAbstractItemView *w, QModelIndex parent, const TAtomic &value)
@@ -210,7 +210,7 @@ public:
 
   static LabelType getItemValue(QStandardItem *item)
   {
-    return qVariantValue<LabelType>(item->data(Qt::UserRole));
+    return item->data(Qt::UserRole).value<LabelType>();
   }
 };
 
@@ -257,7 +257,7 @@ public:
 
   static LabelType getItemValue(QStandardItem *item)
   {
-    return qVariantValue<LabelType>(item->data(Qt::UserRole));
+    return item->data(Qt::UserRole).value<LabelType>();
   }
 };
 

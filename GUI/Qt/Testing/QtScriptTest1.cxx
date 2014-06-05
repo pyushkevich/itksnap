@@ -18,6 +18,9 @@
 
 #include "QtScriptTest1.h"
 
+// TODO: all this code should be ported to use QJSEngine instead of the
+// old Qt4 interface.
+
 using namespace std;
 
 QtScriptTest1::QtScriptTest1()

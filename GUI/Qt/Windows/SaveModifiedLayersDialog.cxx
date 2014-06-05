@@ -38,8 +38,8 @@ SaveModifiedLayersDialog::SaveModifiedLayersDialog(QWidget *parent) :
   ui->setupUi(this);
 
   // Resize the table to contents
-  ui->tableLayers->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
-  ui->tableLayers->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+  ui->tableLayers->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+  ui->tableLayers->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 SaveModifiedLayersDialog::~SaveModifiedLayersDialog()
