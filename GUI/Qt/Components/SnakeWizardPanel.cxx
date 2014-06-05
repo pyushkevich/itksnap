@@ -9,13 +9,19 @@
 #include "QtWidgetActivator.h"
 #include "QtDoubleSliderWithEditorCoupling.h"
 #include <QtAbstractItemViewCoupling.h>
+#include <QtPagedWidgetCoupling.h>
 #include "QtSpinBoxCoupling.h"
+#include "QtDoubleSpinBoxCoupling.h"
+#include "QtSliderCoupling.h"
+#include "QtRadioButtonCoupling.h"
+#include "ColorLabelQuickListWidget.h"
 #include "IRISException.h"
 #include <QMessageBox>
 #include <QTimer>
 #include <IRISApplication.h>
+#include <QToolBar>
 
-Q_DECLARE_METATYPE(SnakeType)
+Q_DECLARE_METATYPE(PreprocessingMode)
 
 /**
  * An item model for editing bubble data
@@ -151,6 +157,10 @@ SnakeWizardPanel::SnakeWizardPanel(QWidget *parent) :
   m_EvolutionTimer = new QTimer(this);
   connect(m_EvolutionTimer, SIGNAL(timeout()), this, SLOT(idleCallback()));
 
+  // Hook up the quick label selector
+  connect(ui->boxLabelQuickList, SIGNAL(actionTriggered(QAction *)),
+          this, SLOT(onClassifyQuickLabelSelection()));
+
   // Adjust the shortcuts for increase/decrease behavior
   ui->actionIncreaseBubbleRadius->setShortcuts(
         ui->actionIncreaseBubbleRadius->shortcuts() << QKeySequence('='));
@@ -170,9 +180,10 @@ SnakeWizardPanel::~SnakeWizardPanel()
 void SnakeWizardPanel::on_btnPreprocess_clicked()
 {
   // Show the appropriately configured preprocessing dialog
-  m_SpeedDialog->SetPageAndShow();
+  m_SpeedDialog->ShowDialog();
 }
 
+#include "QtToolbarCoupling.h"
 
 void SnakeWizardPanel::SetModel(GlobalUIModel *model)
 {
@@ -183,25 +194,46 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
   m_ParameterDialog->SetModel(model->GetSnakeParameterModel());
 
   // Couple widgets to models
-  makeCoupling(ui->inSnakeType, m_Model->GetSnakeTypeModel());
   makeCoupling(ui->inBubbleRadius, m_Model->GetBubbleRadiusModel());
 
-  /*
-  // Couple the table to the active bubble model
-  // TODO: simplify this garbage! this is too complex!
-  typedef TextAndIconTableWidgetRowTraits<
-      int, Bubble, BubbleItemDescriptionTraits> BubbleDomainRowTraits;
 
-  typedef ItemSetWidgetDomainTraits<
-      SnakeWizardModel::BubbleDomain,
-      QTableWidget, BubbleDomainRowTraits> BubbleDomainTraits;
+  // Couple the preprocessing mode combo box
+  makeCoupling(ui->inPreprocessMode, m_Model->GetPreprocessingModeModel());
 
-  typedef DefaultWidgetValueTraits<int, QTableWidget> BubbleValueTraits;
+  // Couple the preprocessing mode stack
+  std::map<PreprocessingMode, QWidget *> preproc_page_map;
+  preproc_page_map[PREPROCESS_THRESHOLD] = ui->pgThreshold;
+  preproc_page_map[PREPROCESS_EDGE] = ui->pgEdge;
+  preproc_page_map[PREPROCESS_GMM] = ui->pgCluster;
+  preproc_page_map[PREPROCESS_RF] = ui->pgClassify;
+  preproc_page_map[PREPROCESS_NONE] = NULL;
+  makePagedWidgetCoupling(ui->stackPreprocess, m_Model->GetPreprocessingModeModel(),
+                          preproc_page_map);
 
-  makeCoupling(ui->tableBubbleList, m_Model->GetActiveBubbleModel(),
-               BubbleValueTraits(), BubbleDomainTraits());
-               */
+  // Couple the thresholding controls
+  makeCoupling(ui->inThreshLowerSlider, m_Model->GetThresholdLowerModel());
+  makeCoupling(ui->inThreshLowerSpin, m_Model->GetThresholdLowerModel());
+  makeCoupling(ui->inThreshUpperSlider, m_Model->GetThresholdUpperModel());
+  makeCoupling(ui->inThreshUpperSpin, m_Model->GetThresholdUpperModel());
+  makeRadioGroupCoupling(ui->grpThreshMode, m_Model->GetThresholdModeModel());
 
+  // Activation of thresholding controls
+  activateOnFlag(ui->inThreshLowerSlider, m_Model, SnakeWizardModel::UIF_LOWER_THRESHOLD_ENABLED);
+  activateOnFlag(ui->inThreshLowerSpin, m_Model, SnakeWizardModel::UIF_LOWER_THRESHOLD_ENABLED);
+  activateOnFlag(ui->inThreshUpperSlider, m_Model, SnakeWizardModel::UIF_UPPER_THRESHOLD_ENABLED);
+  activateOnFlag(ui->inThreshUpperSpin, m_Model, SnakeWizardModel::UIF_UPPER_THRESHOLD_ENABLED);
+
+  // Couple the clustering controls
+  makeCoupling(ui->inClusterCount, m_Model->GetNumberOfClustersModel());
+  makeCoupling(ui->inClusterActive, m_Model->GetForegroundClusterModel());
+
+  // Couple the classification controls
+  makeCoupling(ui->inClassifyForeground, m_Model->GetForegroundClassColorLabelModel());
+
+  // Initialize the label quick list
+  ui->boxLabelQuickList->SetModel(m_Model->GetParent());
+
+  // Set up a model for the bubbles table
   BubbleItemModel *biModel = new BubbleItemModel(this);
   biModel->setSourceModel(m_Model);
   ui->tableBubbleList->setModel(biModel);
@@ -213,11 +245,13 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
   makeCoupling(ui->outIteration, m_Model->GetEvolutionIterationModel());
 
   // Activation flags
+  /*
   activateOnNotFlag(ui->pgPreproc, m_Model,
                     SnakeWizardModel::UIF_PREPROCESSING_ACTIVE);
+                    */
 
   activateOnFlag(ui->btnNextPreproc, m_Model,
-                 SnakeWizardModel::UIF_SPEED_AVAILABLE);
+                 SnakeWizardModel::UIF_CAN_GENERATE_SPEED);
 
   activateOnFlag(ui->btnRemoveBubble, m_Model,
                  SnakeWizardModel::UIF_BUBBLE_SELECTED);
@@ -237,6 +271,12 @@ void SnakeWizardPanel::Initialize()
 
 void SnakeWizardPanel::on_btnNextPreproc_clicked()
 {
+  // Compute the speed image
+  m_Model->ApplyPreprocessing();
+
+  // Finish preprocessing
+  m_Model->CompletePreprocessing();
+
   // Initialize the model
   m_Model->OnBubbleModeEnter();
 
@@ -379,4 +419,46 @@ void SnakeWizardPanel::on_actionIncreaseBubbleRadius_triggered()
 void SnakeWizardPanel::on_actionDecreaseBubbleRadius_triggered()
 {
   ui->inBubbleRadius->stepDown();
+}
+
+void SnakeWizardPanel::on_btnClusterIterate_clicked()
+{
+  m_Model->PerformClusteringIteration();
+}
+
+void SnakeWizardPanel::on_btnClusterIterateMany_clicked()
+{
+  for(int i = 0; i < 10; i++)
+    m_Model->PerformClusteringIteration();
+}
+
+void SnakeWizardPanel::on_btnClusterReinitialize_clicked()
+{
+  m_Model->ReinitializeClustering();
+}
+
+void SnakeWizardPanel::on_btnClassifyTrain_clicked()
+{
+  m_Model->TrainClassifier();
+}
+
+void SnakeWizardPanel::on_btnThreshDetail_clicked()
+{
+  m_SpeedDialog->ShowDialog();
+}
+
+void SnakeWizardPanel::on_btnClusterDetail_clicked()
+{
+  m_SpeedDialog->ShowDialog();
+}
+
+void SnakeWizardPanel::on_btnClassifyClearExamples_clicked()
+{
+  m_Model->ClearSegmentation();
+}
+
+void SnakeWizardPanel::onClassifyQuickLabelSelection()
+{
+  // Enter paintbrush mode - to help the user
+  m_Model->GetParent()->GetGlobalState()->SetToolbarMode(PAINTBRUSH_MODE);
 }

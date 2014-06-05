@@ -64,6 +64,7 @@
 #include "SNAPAppearanceSettings.h"
 #include "ImageIOWizardModel.h"
 #include "IntensityCurveInterface.h"
+#include "ColorLabelQuickListModel.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -179,6 +180,10 @@ GlobalUIModel::GlobalUIModel()
   // Global prefs model
   m_GlobalPreferencesModel = GlobalPreferencesModel::New();
   m_GlobalPreferencesModel->SetParentModel(this);
+
+  // Quick list of color labels
+  m_ColorLabelQuickListModel = ColorLabelQuickListModel::New();
+  m_ColorLabelQuickListModel->SetParentModel(this);
 
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(

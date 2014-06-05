@@ -65,11 +65,12 @@ typedef TextAndIconTableWidgetRowTraits<
   size_t, LayerCurrentVoxelInfo,
   LayerCurrentVoxelInfoRowDescriptionTraits> LayerCurrentVoxelInfoTableWidgetRowTraits;
 
+/*
 typedef ItemSetWidgetDomainTraits<
   CurrentVoxelInfoItemSetDomain,
   QTableWidget,
   LayerCurrentVoxelInfoTableWidgetRowTraits> LayerCurrentVoxelInfoDomainTraits;
-
+*/
 
 
 
@@ -115,10 +116,9 @@ void CursorInspector::SetModel(CursorInspectionModel *model)
   makeArrayCoupling(ui->inCursorX, ui->inCursorY, ui->inCursorZ,
                     m_Model->GetCursorPositionModel());
 
-  makeCoupling(ui->tableVoxelUnderCursor,
-               m_Model->GetVoxelAtCursorModel(),
-               DefaultWidgetValueTraits<int , QTableWidget>(),
-               LayerCurrentVoxelInfoDomainTraits());
+  makeMultiRowCoupling(ui->tableVoxelUnderCursor,
+                       m_Model->GetVoxelAtCursorModel(),
+                       LayerCurrentVoxelInfoTableWidgetRowTraits());
 }
 
 #include "MainImageWindow.h"

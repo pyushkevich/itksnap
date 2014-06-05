@@ -5,9 +5,6 @@
 #include "GlobalState.h"
 #include "IRISApplication.h"
 #include "ColorLabelTable.h"
-#include <QGraphicsItem>
-#include <QGraphicsScene>
-#include <QGraphicsDropShadowEffect>
 #include <QtComboBoxCoupling.h>
 
 #include "SNAPQtCommon.h"
@@ -54,43 +51,14 @@ void LabelSelectionButton::onModelUpdate(const EventBucket &bucket)
 void LabelSelectionButton::UpdateAppearance()
 {
   ColorLabelTable *clt = m_Model->GetDriver()->GetColorLabelTable();
-
-  // TODO: this could be made a little prettier
-  QGraphicsScene scene(0,0,22,22);
-
-  QPixmap pm(22, 22);
-  pm.fill(QColor(0,0,0,0));
-
-  QPainter qp(&pm);
-
   LabelType fg = m_Model->GetGlobalState()->GetDrawingColorLabel();
   DrawOverFilter bg = m_Model->GetGlobalState()->GetDrawOverFilter();
 
-  QBrush brush_fg = GetBrushForColorLabel(fg, clt);
-  QBrush brush_bg = GetBrushForDrawOverFilter(bg, clt);
-
-  QGraphicsItem *item_bg = scene.addRect(7,7,12,12,QPen(Qt::black), brush_bg);
-  scene.addRect(2,2,12,12,QPen(Qt::black), brush_fg);
-
-  QGraphicsDropShadowEffect *eff_bg = new QGraphicsDropShadowEffect(&scene);
-  eff_bg->setBlurRadius(1.0);
-  eff_bg->setOffset(1.0);
-  eff_bg->setColor(QColor(63,63,63,100));
-  item_bg->setGraphicsEffect(eff_bg);
-
-  scene.render(&qp);
-
   // Draw a split button
-  this->setIcon(QIcon(pm));
+  this->setIcon(CreateLabelComboIcon(22, 22, fg, bg, clt));
 
   // Update the tooltip
-  QString tooltip = QString(
-        "<html><head/><body>"
-        "<p>Foreground label:<br><span style=\" font-weight:600;\">%1</span></p>"
-        "<p>Background label:<br><span style=\" font-weight:600;\">%2</span></p>"
-        "</body></html>").
-      arg(GetTitleForColorLabel(fg, clt)).arg(GetTitleForDrawOverFilter(bg, clt));
-  this->setToolTip(tooltip);
+  this->setToolTip(CreateLabelComboTooltip(fg, bg, clt));
 }
 
 
@@ -126,19 +94,61 @@ void LabelSelectionButton::UpdateAppearanceOld()
 }
 */
 
+#include "ColorLabelQuickListWidget.h"
+#include <QWidgetAction>
+#include <QVBoxLayout>
+#include <QLabel>
+
+class ColorLabelQuickListWidgetAction : public QWidgetAction
+{
+public:
+  ColorLabelQuickListWidgetAction(QWidget *parent)
+    : QWidgetAction(parent)
+  {
+    QWidget *topWidget = new QWidget(parent);
+    QVBoxLayout *lo = new QVBoxLayout(topWidget);
+    lo->setContentsMargins(4,4,4,4);
+    lo->setSpacing(2);
+
+    m_Widget = new ColorLabelQuickListWidget(parent);
+
+    lo->addWidget(new QLabel("Quick palette:"),0,Qt::AlignLeft);
+    lo->addWidget(m_Widget, 0, Qt::AlignCenter);
+
+    this->setDefaultWidget(topWidget);
+  }
+
+  irisGetMacro(Widget, ColorLabelQuickListWidget *)
+
+protected:
+  ColorLabelQuickListWidget *m_Widget;
+};
+
 
 LabelSelectionButtonPopupMenu::LabelSelectionButtonPopupMenu(QWidget *parent)
   : QMenu(parent)
 {
+  // Add the foreground and background label selectors
   m_SubForeground = this->addMenu("Foreground Label");
   m_SubBackground = this->addMenu("Background Label");
   this->addSeparator();
+
+  // Create a QAction wrapped around the recent labels menu
+  ColorLabelQuickListWidgetAction *action = new ColorLabelQuickListWidgetAction(this);
+  this->m_Recent = action->GetWidget();
+  this->addAction(action);
+  this->addSeparator();
+
+  // Label editor window
   this->addAction(FindUpstreamAction(this, "actionLabel_Editor"));
 
   this->setStyleSheet("font-size: 12px;");
 
   connect(m_SubForeground, SIGNAL(triggered(QAction*)), SLOT(onForegroundAction(QAction*)));
   connect(m_SubBackground, SIGNAL(triggered(QAction*)), SLOT(onBackgroundAction(QAction*)));
+
+  connect(m_Recent, SIGNAL(actionTriggered(QAction*)), this, SLOT(close()));
+
 }
 
 void LabelSelectionButtonPopupMenu::SetModel(GlobalUIModel *model)
@@ -153,6 +163,9 @@ void LabelSelectionButtonPopupMenu::SetModel(GlobalUIModel *model)
   LatentITKEventNotifier::connect(
         model->GetGlobalState()->GetDrawOverFilterModel(),
         IRISEvent(), this, SLOT(onModelUpdate(const EventBucket &)));
+
+  // Configure the recents menu
+  m_Recent->SetModel(model);
 
   this->UpdateMenu();
 

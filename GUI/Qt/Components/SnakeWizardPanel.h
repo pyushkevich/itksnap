@@ -13,6 +13,7 @@ class GlobalUIModel;
 class SnakeWizardModel;
 class QTimer;
 class SnakeParameterDialog;
+class QToolBar;
 
 class BubbleItemModel : public QAbstractTableModel
 {
@@ -100,6 +101,23 @@ private slots:
   void on_actionIncreaseBubbleRadius_triggered();
 
   void on_actionDecreaseBubbleRadius_triggered();
+
+  void on_btnClusterIterate_clicked();
+
+  void on_btnClusterIterateMany_clicked();
+
+  void on_btnClusterReinitialize_clicked();
+
+  void on_btnClassifyTrain_clicked();
+
+  void on_btnThreshDetail_clicked();
+
+  void on_btnClusterDetail_clicked();
+
+  void on_btnClassifyClearExamples_clicked();
+
+  // Slot called when a quick-label is selected in the classify pane
+  void onClassifyQuickLabelSelection();
 
 private:
 

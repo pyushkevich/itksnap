@@ -219,7 +219,14 @@ public:
 };
 
 
-
+/**
+ * Declare ItemSetWidgetDomainTraits to be the default domain traits for the
+ * QTableWidget, which makes it easy to use with makeMultiRowCoupling
+ */
+template <class TItemDomain, class TRowTraits>
+class DefaultMultiRowWidgetDomainTraits<TItemDomain, QTableWidget, TRowTraits>
+    : public ItemSetWidgetDomainTraits<TItemDomain, QTableWidget, TRowTraits>
+{};
 
 
 

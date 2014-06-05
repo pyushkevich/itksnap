@@ -23,6 +23,7 @@
 #include "GMMTableModel.h"
 #include "GMMRenderer.h"
 #include "QtDoubleSliderWithEditorCoupling.h"
+#include "QtPagedWidgetCoupling.h"
 
 Q_DECLARE_METATYPE(SnakeWizardModel::LayerScalarRepIndex)
 
@@ -95,32 +96,26 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   makeCoupling(ui->inNumSamples, model->GetNumberOfGMMSamplesModel());
   makeCoupling(ui->inClusterXComponent, model->GetClusterPlottedComponentModel());
 
+  // Couple the tab pages to the current mode
+  std::map<PreprocessingMode, QWidget *> preproc_page_map;
+  preproc_page_map[PREPROCESS_THRESHOLD] = ui->tabThreshold;
+  preproc_page_map[PREPROCESS_EDGE] = ui->tabEdgeAttraction;
+  preproc_page_map[PREPROCESS_GMM] = ui->tabCluster;
+  preproc_page_map[PREPROCESS_RF] = ui->tabClassify;
+  preproc_page_map[PREPROCESS_NONE] = NULL;
+  makePagedWidgetCoupling(ui->tabMode, m_Model->GetPreprocessingModeModel(),
+                          preproc_page_map);
+
   // Set up activation
-  activateOnFlag(ui->tabThreshold, model, SnakeWizardModel::UIF_THESHOLDING_ENABLED);
-  activateOnFlag(ui->tabEdge, model, SnakeWizardModel::UIF_EDGEPROCESSING_ENABLED);
   activateOnFlag(ui->inLowerThreshold, model, SnakeWizardModel::UIF_LOWER_THRESHOLD_ENABLED);
   activateOnFlag(ui->inLowerThresholdSpinner, model, SnakeWizardModel::UIF_LOWER_THRESHOLD_ENABLED);
   activateOnFlag(ui->inUpperThreshold, model, SnakeWizardModel::UIF_UPPER_THRESHOLD_ENABLED);
   activateOnFlag(ui->inUpperThresholdSpinner, model, SnakeWizardModel::UIF_UPPER_THRESHOLD_ENABLED);
 }
 
-void SpeedImageDialog::on_btnApply_clicked()
-{
-  // TODO: this should differ based on the selected page
-  m_Model->ApplyThresholdPreprocessing();
-}
-
-void SpeedImageDialog::on_btnOk_clicked()
-{
-  m_Model->ApplyThresholdPreprocessing();
-  m_Model->OnPreprocessingDialogClose();
-  this->accept();
-}
-
 void SpeedImageDialog::on_btnClose_clicked()
 {
-  m_Model->OnPreprocessingDialogClose();
-  this->reject();
+  this->accept();
 }
 
 void SpeedImageDialog::closeEvent(QCloseEvent *event)
@@ -132,47 +127,11 @@ void SpeedImageDialog::closeEvent(QCloseEvent *event)
   event->accept();
 }
 
-void SpeedImageDialog::SetPageAndShow()
+void SpeedImageDialog::ShowDialog()
 {
-  // Select appropriate tab?
-  if(m_Model->GetSnakeTypeModel()->GetValue() == IN_OUT_SNAKE)
-    {
-    ui->stack->setCurrentWidget(ui->pgInOut);
-    this->on_tabWidgetInOut_currentChanged(ui->tabWidgetInOut->currentIndex());
-    }
-  else if(m_Model->GetSnakeTypeModel()->GetValue() == EDGE_SNAKE)
-    {
-    ui->stack->setCurrentWidget(ui->pgEdge);
-    this->on_tabWidgetEdge_currentChanged(ui->tabWidgetEdge->currentIndex());
-    }
-
   this->show();
   this->activateWindow();
   this->raise();
-}
-
-void SpeedImageDialog::on_tabWidgetEdge_currentChanged(int index)
-{
-  if(ui->tabWidgetEdge->currentWidget() == ui->tabEdge)
-    {
-    m_Model->OnEdgePreprocessingPageEnter();
-    }
-}
-
-void SpeedImageDialog::on_tabWidgetInOut_currentChanged(int index)
-{
-  if(ui->tabWidgetInOut->currentWidget() == ui->tabThreshold)
-    {
-    m_Model->OnThresholdingPageEnter();
-    }
-  else if(ui->tabWidgetInOut->currentWidget() == ui->tabCluster)
-    {
-    m_Model->OnClusteringPageEnter();
-    }
-  else if(ui->tabWidgetInOut->currentWidget() == ui->tabClassify)
-    {
-    m_Model->OnClassificationPageEnter();
-    }
 }
 
 void SpeedImageDialog::on_btnReinitialize_clicked()

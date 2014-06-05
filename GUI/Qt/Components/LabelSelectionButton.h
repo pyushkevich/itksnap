@@ -8,6 +8,7 @@
 
 class GlobalUIModel;
 class EventBucket;
+class ColorLabelQuickListWidget;
 
 class LabelSelectionButtonRecentPanel : public QWidgetAction
 {
@@ -34,7 +35,7 @@ protected:
   void UpdateCurrents();
 
   QMenu *m_SubForeground, *m_SubBackground;
-  QWidget *m_Recent;
+  ColorLabelQuickListWidget *m_Recent;
   GlobalUIModel *m_Model;
   itk::TimeStamp m_LastUpdateTime;
 };

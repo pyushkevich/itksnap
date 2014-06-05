@@ -128,7 +128,9 @@ public:
 };
 
 
-
+/**
+ * A simple coupling between a button and a boolean value.
+ */
 template <>
 class DefaultWidgetValueTraits<bool, QAbstractButton>
     : public WidgetValueTraitsBase<bool, QAbstractButton *>

@@ -48,6 +48,7 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 ::SetClassifier(RandomForestClassifier *classifier)
 {
   m_Classifier = classifier;
+  this->Modified();
 }
 
 
@@ -115,7 +116,10 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
   int nComp = cit.GetTotalComponents();
 
   // Get the number of classes
-  int nClass = m_Classifier->m_Mapping.size();
+  int nClass = m_Classifier->GetClassToLabelMapping().size();
+
+  // Get the current class
+  int activeClass = (int) m_Classifier->GetForegroundClass();
 
   // Create the MLdata representing each voxel (?)
   typedef Histogram<InputPixelType,LabelType> HistogramType;
@@ -123,7 +127,7 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
   TestingDataType testData(1, nComp);
 
   // Get the number of trees
-  int nTrees = m_Classifier->m_Forest->trees_.size();
+  int nTrees = m_Classifier->GetForest()->trees_.size();
 
   // Create and allocate the test result vector
   typedef Vector<Vector<HistogramType *> > TestingResultType;
@@ -144,7 +148,7 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
       testData.data[0][i] = cit.Value(i);
 
     // Perform classification on this data
-    m_Classifier->m_Forest->ApplyFast(testData, testResult, vIndex, vResult);
+    m_Classifier->GetForest()->ApplyFast(testData, testResult, vIndex, vResult);
 
     // Add up the predictions made by each tree for each class
     double p = 0;
@@ -152,7 +156,7 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
       {
       for(int j = 0; j < nClass; j++)
         {
-        if(j == 0)
+        if(j == activeClass)
           p += testResult[i][0]->prob_[j];
         else
           p -= testResult[i][0]->prob_[j];

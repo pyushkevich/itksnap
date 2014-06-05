@@ -133,4 +133,14 @@ protected:
   static const size_t m_ColorListSize;
 };
 
+
+
+
+
+
+
+
+
+
+
 #endif

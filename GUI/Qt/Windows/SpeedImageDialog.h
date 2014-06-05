@@ -32,20 +32,13 @@ public:
 
   /** Make the appropriate pages available based on the state of the model
     and show the dialog */
-  void SetPageAndShow();
+  void ShowDialog();
 
   void closeEvent(QCloseEvent *event);
 
 private slots:
-  void on_btnApply_clicked();
-
-  void on_btnOk_clicked();
 
   void on_btnClose_clicked();
-
-  void on_tabWidgetEdge_currentChanged(int index);
-
-  void on_tabWidgetInOut_currentChanged(int index);
 
   void on_btnReinitialize_clicked();
 

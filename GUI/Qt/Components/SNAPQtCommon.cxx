@@ -12,6 +12,9 @@
 #include <QComboBox>
 #include <QStandardItemModel>
 #include <QFileInfo>
+#include <QGraphicsItem>
+#include <QGraphicsScene>
+#include <QGraphicsDropShadowEffect>
 
 
 #include "QtCursorOverride.h"
@@ -217,6 +220,43 @@ QString GetTitleForDrawOverFilter(DrawOverFilter flt, ColorLabelTable *clt)
   return GetTitleForDrawOverFilter(flt, clt->GetColorLabel(flt.DrawOverLabel));
 }
 
+
+QIcon CreateLabelComboIcon(int w, int h, LabelType fg, DrawOverFilter bg, ColorLabelTable *clt)
+{
+  // TODO: this could be made a little prettier
+  QGraphicsScene scene(0,0,w,h);
+
+  QPixmap pm(w, h);
+  pm.fill(QColor(0,0,0,0));
+
+  QPainter qp(&pm);
+
+  QBrush brush_fg = GetBrushForColorLabel(fg, clt);
+  QBrush brush_bg = GetBrushForDrawOverFilter(bg, clt);
+
+  QGraphicsItem *item_bg = scene.addRect(w/3,h/3,w/2+1,h/2+1,QPen(Qt::black), brush_bg);
+  scene.addRect(2,2,w/2+1,h/2+1,QPen(Qt::black), brush_fg);
+
+  QGraphicsDropShadowEffect *eff_bg = new QGraphicsDropShadowEffect(&scene);
+  eff_bg->setBlurRadius(1.0);
+  eff_bg->setOffset(1.0);
+  eff_bg->setColor(QColor(63,63,63,100));
+  item_bg->setGraphicsEffect(eff_bg);
+
+  scene.render(&qp);
+
+  return QIcon(pm);
+}
+
+QString CreateLabelComboTooltip(LabelType fg, DrawOverFilter bg, ColorLabelTable *clt)
+{
+  return QString(
+        "<html><head/><body>"
+        "<p>Foreground label:<br><span style=\" font-weight:600;\">%1</span></p>"
+        "<p>Background label:<br><span style=\" font-weight:600;\">%2</span></p>"
+        "</body></html>").
+      arg(GetTitleForColorLabel(fg, clt)).arg(GetTitleForDrawOverFilter(bg, clt));
+}
 
 
 

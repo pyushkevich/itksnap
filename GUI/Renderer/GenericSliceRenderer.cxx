@@ -185,6 +185,8 @@ GenericSliceRenderer
         // Draw the main layers for this row/column combination
         if(this->DrawImageLayers(nrows, ncols, irow, icol))
           {
+          // We don't want to draw segmentation over the speed image and other
+          // SNAP-mode layers.
           this->DrawSegmentationTexture();
 
           // Draw the overlays

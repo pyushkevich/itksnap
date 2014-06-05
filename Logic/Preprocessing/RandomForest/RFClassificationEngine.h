@@ -3,7 +3,8 @@
 
 #include <itkObject.h>
 #include <itkObjectFactory.h>
-#include <SNAPCommon.h>
+#include "SNAPCommon.h"
+#include "PropertyModel.h"
 
 class SNAPImageData;
 class RandomForestClassifier;
@@ -33,6 +34,7 @@ public:
   /** Access the trained classifier */
   irisGetMacro(Classifier, RandomForestClassifier *)
 
+
 protected:
 
   RFClassificationEngine();
@@ -43,6 +45,9 @@ protected:
 
   // The data source
   SNAPImageData *m_DataSource;
+
+  // The foreground label
+  LabelType m_ForegroundLabel;
 
   // Cached samples used to train the classifier
   typedef MLData<GreyType, LabelType> SampleType;

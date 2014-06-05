@@ -83,6 +83,7 @@
 #include "IRISDisplayGeometry.h"
 #include "RFClassificationEngine.h"
 #include "RandomForestClassifyImageFilter.h"
+#include "LabelUseHistory.h"
 
 
 #include <stdio.h>
@@ -103,6 +104,10 @@ IRISApplication
 
   // Initialize the color table
   m_ColorLabelTable = ColorLabelTable::New();
+
+  // Initialize the label use history
+  m_LabelUseHistory = LabelUseHistory::New();
+  m_LabelUseHistory->Initialize(m_ColorLabelTable);
 
   // Contruct the IRIS and SNAP data objects
   m_IRISImageData = IRISImageData::New();
@@ -333,6 +338,20 @@ IRISApplication
   // Clear the undo buffer
   m_UndoManager.Clear();
   m_UndoManager.SetCumulativeDelta(NULL);
+
+  // Fire the appropriate event
+  InvokeEvent(LayerChangeEvent());
+  InvokeEvent(SegmentationChangeEvent());
+}
+
+void
+IRISApplication
+::ResetSNAPSegmentationImage()
+{
+  assert(m_SNAPImageData);
+
+  // Reset the segmentation image
+  m_SNAPImageData->ResetSegmentationImage();
 
   // Fire the appropriate event
   InvokeEvent(LayerChangeEvent());
@@ -672,42 +691,6 @@ IRISApplication
   return m_GlobalState->GetCrosshairsPosition();
 }
 
-/*
-void 
-IRISApplication
-::StoreUndoPoint(const char *text)
-{
-  // Set the current state as the undo point. We store the difference between
-  // the last 'undo' image and the current segmentation image, and then copy
-  // the current segmentation image into the undo image
-  LabelImageWrapper *undo = m_IRISImageData->GetUndoImage();
-  LabelImageWrapper *seg = m_IRISImageData->GetSegmentation();
-  
-  LabelType *dseg = seg->GetVoxelPointer();
-  LabelType *dundo = undo->GetVoxelPointer();
-  size_t n = seg->GetNumberOfVoxels();
-
-  // Create the Undo delta object
-  UndoManagerType::Delta *delta = new UndoManagerType::Delta();
-
-  // Copy and encode
-  for(size_t i = 0; i < n; i++)
-    {
-    LabelType vSrc = dseg[i], vDst = dundo[i];
-    delta->Encode(vSrc - vDst);
-    dundo[i] = vSrc;
-    }
-
-  // Important last step!
-  delta->FinishEncoding();
-
-  // Set modified flag on the undo image
-  undo->GetImage()->Modified();
-
-  // Add the delta object
-  m_UndoManager.AppendDelta(delta);
-}
-*/
 
 void
 IRISApplication
@@ -764,6 +747,17 @@ IRISApplication
   // Add the delta object
   m_UndoManager.AppendDelta(delta);
   m_UndoManager.SetCumulativeDelta(new_cumulative);
+
+  // TODO: I am not sure this is the best place for this code. I think it's a
+  // good idea to migrate all of the code that deals with updating the
+  // segmentation image into one place, such as the LabelImageWrapper class.
+
+  // Along with the undo point, we would like to store the combination of
+  // the foreground and background label used for this update. This will
+  // help us keep track of the most recently used combinations.
+  m_LabelUseHistory->RecordLabelUse(
+        m_GlobalState->GetDrawingColorLabel(),
+        m_GlobalState->GetDrawOverFilter());
 }
 
 
@@ -1632,6 +1626,9 @@ IRISApplication
   m_UndoManager.Clear();
   m_UndoManager.SetCumulativeDelta(NULL);
 
+  // We also want to reset the label history at this point, as these are
+  // very different labels
+  m_LabelUseHistory->Reset();
 }
 
 void IRISApplication::LoadMetaDataAssociatedWithLayer(
@@ -2177,6 +2174,10 @@ void IRISApplication::LoadLabelDescriptions(const char *file)
   // Update the history
   m_SystemInterface->GetHistoryManager()->
       UpdateHistory("LabelDescriptions", file, true);
+
+  // We also want to reset the label history at this point, as these are
+  // very different labels
+  m_LabelUseHistory->Reset();
 }
 
 void IRISApplication::SaveLabelDescriptions(const char *file)

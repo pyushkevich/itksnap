@@ -29,6 +29,25 @@ public:
   // Reset the classifier
   void Reset();
 
+  // Get the mapping from the class indices to labels
+  irisGetMacro(ClassToLabelMapping, const MappingType &)
+
+  // Get the random forest
+  irisGetMacro(Forest, RandomForestType *)
+
+  // Get the foreground class
+  irisGetMacro(ForegroundClass, size_t)
+
+  // Get the label of the foreground class
+  LabelType GetForegroundClassLabel() const;
+
+  // Set the foreground class by label
+  void SetForegroundClassLabel(LabelType label);
+
+  // Test if the classifier is valid (has 2+ classes)
+  bool IsValidClassifier() const;
+
+protected:
 
   RandomForestClassifier();
   ~RandomForestClassifier();
@@ -40,13 +59,16 @@ public:
   bool m_ValidLabel;
 
   // Mapping of index to label (?)
-  MappingType m_Mapping;
+  MappingType m_ClassToLabelMapping;
+
+  // The class that is currently active
+  size_t m_ForegroundClass;
 
   // Let the engine handle our data
   friend class RFClassificationEngine;
 
   // TODO: make all that protected!
-protected:
+
 
 };
 

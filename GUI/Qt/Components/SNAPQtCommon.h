@@ -53,6 +53,12 @@ QBrush GetBrushForDrawOverFilter(DrawOverFilter flt, ColorLabelTable *clt);
 QString GetTitleForColorLabel(int label, ColorLabelTable *clt);
 QString GetTitleForDrawOverFilter(DrawOverFilter flt, ColorLabelTable *clt);
 
+// Create an icon and tooltip corresponding to a combination of a drawing label
+// and a draw-over label
+QIcon CreateLabelComboIcon(int w, int h, LabelType fg, DrawOverFilter bg, ColorLabelTable *clt);
+QString CreateLabelComboTooltip(LabelType fg, DrawOverFilter bg, ColorLabelTable *clt);
+
+
 // Find an upstream action for a widget
 QAction* FindUpstreamAction(QWidget *w, const QString &targetActionName);
 

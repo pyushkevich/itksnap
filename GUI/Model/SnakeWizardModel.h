@@ -30,6 +30,7 @@ public:
   itkEventMacro(BubbleDefaultRadiusUpdateEvent, IRISEvent)
   itkEventMacro(EvolutionIterationEvent, IRISEvent)
   itkEventMacro(GMMModifiedEvent, IRISEvent)
+  itkEventMacro(RFClassifierModifiedEvent, IRISEvent)
 
   FIRES(ThresholdSettingsUpdateEvent)
   FIRES(EdgePreprocessingSettingsUpdateEvent)
@@ -58,6 +59,7 @@ public:
     UIF_LOWER_THRESHOLD_ENABLED,
     UIF_UPPER_THRESHOLD_ENABLED,
     UIF_EDGEPROCESSING_ENABLED,
+    UIF_CAN_GENERATE_SPEED,
     UIF_SPEED_AVAILABLE,              // Has speed volume been computed?
     UIF_PREPROCESSING_ACTIVE,         // Is the preprocessing dialog open?
     UIF_BUBBLE_SELECTED,
@@ -72,6 +74,10 @@ public:
   // Model for the snake mode
   typedef AbstractPropertyModel<SnakeType, GlobalState::SnakeTypeDomain>
     AbstractSnakeTypeModel;
+
+  // Model describing the current preprocessing mode
+  typedef SimpleItemSetDomain<PreprocessingMode, std::string> PreprocessingModeDomain;
+  typedef AbstractPropertyModel<PreprocessingMode, PreprocessingModeDomain> AbstractPreprocessingModeModel;
 
   // Model for layer selection
   typedef SimpleItemSetDomain<unsigned long, std::string> LayerSelectionDomain;
@@ -127,6 +133,9 @@ public:
   // Get the model for the snake type
   irisGetMacro(SnakeTypeModel, AbstractSnakeTypeModel *)
 
+  // Get the model for the current preprocessing mode
+  irisGetMacro(PreprocessingModeModel, AbstractPreprocessingModeModel *)
+
   // The models for the evolution page
   irisGetMacro(StepSizeModel, AbstractRangedIntProperty *)
   irisGetMacro(EvolutionIterationModel, AbstractSimpleIntProperty *)
@@ -165,22 +174,10 @@ public:
   void EvaluateEdgePreprocessingFunction(unsigned int n, float *x, float *y);
 
   /** Perform the preprocessing based on thresholds */
-  void ApplyThresholdPreprocessing();
-
-  /** Processing that must take place when the thresholding page is shown */
-  void OnThresholdingPageEnter();
-
-  /** Processing that must take place when the thresholding page is shown */
-  void OnEdgePreprocessingPageEnter();
-
-  /** Processing that must take place when the clustering page is shown */
-  void OnClusteringPageEnter();
-
-  /** Processing that takes place when the classification page is entered */
-  void OnClassificationPageEnter();
+  void ApplyPreprocessing();
 
   /** Do some cleanup when the preprocessing dialog closes */
-  void OnPreprocessingDialogClose();
+  void CompletePreprocessing();
 
   /** Called when first displaying the snake wizard */
   void OnSnakeModeEnter();
@@ -218,8 +215,15 @@ public:
   /* ===================================================================
    * CLUSTERING SUPPORT (GMM)
    * =================================================================== */
+
+  /** Model controlling the number of clusters in the GMM */
   irisRangedPropertyAccessMacro(NumberOfClusters, int)
+
+  /** Model controlling the number of sampled for GMM optimization */
   irisRangedPropertyAccessMacro(NumberOfGMMSamples, int)
+
+  /** Model controlling the cluster used for the foreground probability */
+  irisRangedPropertyAccessMacro(ForegroundCluster, int)
 
   typedef SimpleItemSetDomain<int, std::string> ComponentDomain;
   typedef ConcretePropertyModel<int, ComponentDomain> ComponentIndexModel;
@@ -249,10 +253,15 @@ public:
    * SUPERVISED CLASSIFICATION SUPPORT (RANDOM FORESTS)
    * =================================================================== */
 
-  /**
-   * Train the random forest classifier when the user hits the 'train' button
-   */
+  /** Model controlling the class/label used for the foreground probability */
+  typedef STLMapWrapperItemSetDomain<LabelType, ColorLabel> ForegroundClassDomain;
+  irisGenericPropertyAccessMacro(ForegroundClassColorLabel, LabelType, ForegroundClassDomain)
+
+  /** Train the random forest classifier when the user hits the 'train' button */
   void TrainClassifier();
+
+  /** Clear the classification examples (i.e., clear the classification) */
+  void ClearSegmentation();
 
 protected:
   SnakeWizardModel();
@@ -310,6 +319,10 @@ protected:
   bool GetSnakeTypeValueAndRange(SnakeType &value, GlobalState::SnakeTypeDomain *range);
   void SetSnakeTypeValue(SnakeType value);
 
+  SmartPtr<AbstractPreprocessingModeModel> m_PreprocessingModeModel;
+  bool GetPreprocessingModeValueAndRange(PreprocessingMode &value, PreprocessingModeDomain *range);
+  void SetPreprocessingModeValue(PreprocessingMode value);
+
   SmartPtr<AbstractSimpleIntProperty> m_ActiveBubbleModel;
   bool GetActiveBubbleValue(int &value);
   void SetActiveBubbleValue(int value);
@@ -329,6 +342,10 @@ protected:
   // Helper function to check if particular set of models is active
   bool AreThresholdModelsActive();
   bool AreEdgePreprocessingModelsActive();
+
+  // Helper function to check if we can generate a speed image given the
+  // current pre-segmentation settings.
+  bool CanGenerateSpeedVolume();
 
   // For models that work on only a single scalar image layer, report which
   // layer is currently selected as the target layer
@@ -362,6 +379,11 @@ protected:
   bool GetNumberOfGMMSamplesValueAndRange(int &value, NumericValueRange<int> *range);
   void SetNumberOfGMMSamplesValue(int value);
 
+  // Model for the active cluster
+  SmartPtr<AbstractRangedIntProperty> m_ForegroundClusterModel;
+  bool GetForegroundClusterValueAndRange(int &value, NumericValueRange<int> *range);
+  void SetForegroundClusterValue(int value);
+
   // Model for the selected component
   SmartPtr<ComponentIndexModel> m_ClusterPlottedComponentModel;
 
@@ -375,6 +397,35 @@ protected:
 
   // Update the model for component selection
   void UpdateClusterPlottedComponentModel();
+
+
+  /* ===================================================================
+   * SUPERVISED CLASSIFICATION SUPPORT (Random Forest)
+   * =================================================================== */
+
+  // A mapping of currently defined classes to color label descriptors
+  std::map<LabelType, ColorLabel> m_ActiveClasses;
+
+  // Model for the foreground color label
+  typedef AbstractPropertyModel<LabelType, ForegroundClassDomain>
+    AbstractForegroundClassPropertyModel;
+
+  // A list of suggested labels, from which the user can choose one to draw
+  // These labels are the N most recently used labels
+  std::map<LabelType, ColorLabel> m_ClassifyQuickLabels;
+
+  // The size of the suggested label list (static)
+  static unsigned int m_ClassifyQuickLabelsCount;
+
+  // Model for the suggested labels from which the user can choose one to draw
+
+
+  SmartPtr<AbstractForegroundClassPropertyModel> m_ForegroundClassColorLabelModel;
+  bool GetForegroundClassColorLabelValueAndRange(LabelType &value, ForegroundClassDomain *range);
+  void SetForegroundClassColorLabelValue(LabelType value);
+
+  // TODO: this should be handled through the ITK modified mechanism
+  void TagRFPreprocessingFilterModified();
 
   // Parent model
   GlobalUIModel *m_Parent;

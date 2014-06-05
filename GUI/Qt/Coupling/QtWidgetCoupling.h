@@ -258,6 +258,7 @@ class WidgetValueTraitsBase
 {
 public:
   // Get the Qt signal that the widget fires when its value has changed
+  // For example { return SIGNAL(triggered()); }
   virtual const char *GetSignal() { return NULL; }
 
   // Get the widget that generates the signal above. Normally it's the same
@@ -361,6 +362,15 @@ public:
   virtual TrivialDomain GetDomain(TWidget *w)
     { return TrivialDomain(); }
 };
+
+/**
+ * Empty template for default domain traits for widgets that contain
+ * multiple rows. Specialize for different Qt widgets. One way to specialize
+ * is to derive from the class ItenSetWidgetDomainTraits below, although it
+ * is not the only way to specialize.
+ */
+template <class TDomain, class TWidget, class TRowTraits>
+class DefaultMultiRowWidgetDomainTraits {};
 
 /** 
   Domain traits for widgets like combo boxes, list views and tables, which
@@ -648,6 +658,32 @@ void makeCoupling(TWidget *w,
   typedef DefaultWidgetValueTraits<ValueType, TWidget> WidgetValueTraits;
   makeCoupling<TModel, TWidget,WidgetValueTraits>(
         w, model, WidgetValueTraits(), opts);
+}
+
+
+/**
+  Create a coupling between a PropertyModel with some kind of an item set domain
+  and a Qt widget that holds multiple items or rows (QListView, QComboBox,
+  QToolBar, etc.). Unlike simple kinds of couplings (QLineEdit, etc), these
+  more complex couplings are parameterized by the type TRowTraits, which
+  describe the mapping of each item in the PropertyModel to each row in the
+  widget. This version of the coupling method takes TRowTraits as an extra
+  parameter, and creates an appropriate domain
+  */
+template <class TModel, class TWidget, class TRowTraits>
+void makeMultiRowCoupling(TWidget *w,
+                          TModel *model,
+                          TRowTraits rowTraits,
+                          QtCouplingOptions opts = QtCouplingOptions())
+{
+  typedef typename TModel::ValueType ValueType;
+  typedef DefaultWidgetValueTraits<ValueType, TWidget> WidgetValueTraits;
+
+  typedef typename TModel::DomainType DomainType;
+  typedef DefaultMultiRowWidgetDomainTraits<DomainType, TWidget, TRowTraits> WidgetDomainTraits;
+
+  makeCoupling<TModel, TWidget, WidgetValueTraits, WidgetDomainTraits>(
+        w, model, WidgetValueTraits(), WidgetDomainTraits(), opts);
 }
 
 /**

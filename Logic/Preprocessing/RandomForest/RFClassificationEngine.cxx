@@ -124,16 +124,38 @@ void RFClassificationEngine::TrainClassifier()
   typedef Classification<GreyType, LabelType, RFAxisClassifierType> ClassificationType;
   ClassificationType classification;
 
+  // Before resetting the classifier, we want to retain whatever the
+  // foreground label was.
+  bool isOldForegroundLabelValid = m_Classifier->IsValidClassifier();
+  LabelType oldForegroundLabel = 0;
+
+  if(isOldForegroundLabelValid)
+    oldForegroundLabel = m_Classifier->GetForegroundClassLabel();
+
   // Prepare the classifier
   m_Classifier->Reset();
 
+  // Perform classifier training
   classification.Learning(
         params, *m_Sample,
         *m_Classifier->m_Forest,
         m_Classifier->m_ValidLabel,
-        m_Classifier->m_Mapping);
+        m_Classifier->m_ClassToLabelMapping);
 
-  m_Classifier->m_Forest->Print(4);
+  // Assign the foreground index to zero (default)
+  m_Classifier->m_ForegroundClass = 0;
+
+  // Now maybe re-assign the old foreground label
+  if(isOldForegroundLabelValid)
+    {
+    for(RandomForestClassifier::MappingType::const_iterator it =
+        m_Classifier->m_ClassToLabelMapping.begin();
+        it != m_Classifier->m_ClassToLabelMapping.end(); ++it)
+      {
+      if(it->second == oldForegroundLabel)
+        m_Classifier->m_ForegroundClass = it->first;
+      }
+    }
 }
 
 

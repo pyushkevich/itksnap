@@ -69,6 +69,7 @@ class GlobalPreferencesModel;
 class GlobalDisplaySettings;
 class ImageIOWizardModel;
 class ImageWrapperBase;
+class ColorLabelQuickListModel;
 
 namespace itk
 {
@@ -215,6 +216,9 @@ public:
 
   /** Model for the preferences dialog */
   irisGetMacro(GlobalPreferencesModel, GlobalPreferencesModel *)
+
+  /** Model for the list of recently used color labels */
+  irisGetMacro(ColorLabelQuickListModel, ColorLabelQuickListModel *)
 
   /**
     Check the state of the system. This class will issue StateChangeEvent()
@@ -372,6 +376,9 @@ protected:
 
   // Snake resampling model
   SmartPtr<SnakeROIResampleModel> m_SnakeROIResampleModel;
+
+  // Model for the quick list of recently used labels
+  SmartPtr<ColorLabelQuickListModel> m_ColorLabelQuickListModel;
 
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;

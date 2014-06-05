@@ -68,6 +68,7 @@ class AbstractSaveImageDelegate;
 class IRISWarningList;
 class GaussianMixtureModel;
 class IRISDisplayGeometry;
+class LabelUseHistory;
 
 
 template <class TTraits> class PresetManager;
@@ -88,6 +89,7 @@ namespace itk {
   template <class TPixel, unsigned int VDimension> class Image;
   template <class TPixel, unsigned int VDimension> class VectorImage;
 }
+
 
 /**
  * \class IRISApplication
@@ -246,7 +248,12 @@ public:
    */
   void ResetIRISSegmentationImage();
 
-  /** 
+  /**
+   * Clear the SNAP segmentation image (active during pre-segmentation)
+   */
+  void ResetSNAPSegmentationImage();
+
+  /**
    * Update the SNAP image data with an external speed image (e.g., 
    * loaded from a file).
    */
@@ -307,7 +314,12 @@ public:
   /**
    * Get the segmentation label data
    */
-  irisGetMacro(ColorLabelTable, ColorLabelTable *);
+  irisGetMacro(ColorLabelTable, ColorLabelTable *)
+
+  /**
+   * Get the history of recently used color label combos
+   */
+  irisGetMacro(LabelUseHistory, LabelUseHistory *)
 
   /** Release the SNAP Image data */
   void ReleaseSNAPImageData();
@@ -571,6 +583,9 @@ protected:
 
   // Color label data
   SmartPtr<ColorLabelTable> m_ColorLabelTable;
+
+  // Label use history
+  SmartPtr<LabelUseHistory> m_LabelUseHistory;
 
   // Global state object
   // TODO: Incorporate GlobalState into IRISApplication more nicely

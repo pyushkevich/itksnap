@@ -325,10 +325,10 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Set up activations - Edit menu
   activateOnFlag(ui->actionUndo, m_Model, UIF_UNDO_POSSIBLE);
   activateOnFlag(ui->actionRedo, m_Model, UIF_REDO_POSSIBLE);
-  activateOnFlag(ui->actionForegroundLabelNext, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionForegroundLabelPrev, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionBackgroundLabelNext, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionBackgroundLabelPrev, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionForegroundLabelNext, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionForegroundLabelPrev, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionBackgroundLabelNext, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionBackgroundLabelPrev, m_Model, UIF_BASEIMG_LOADED);
 
   // Add actions that are not on the menu
   activateOnFlag(ui->actionZoomToFitInAllViews, m_Model, UIF_BASEIMG_LOADED);
@@ -340,7 +340,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Set up activations - Segmentation menu
   activateOnFlag(ui->actionLoad_from_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionClear, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionClear, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveSegmentationAs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSave_as_Mesh, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
@@ -1217,11 +1217,22 @@ void MainImageWindow::on_actionUnload_Last_Overlay_triggered()
 
 void MainImageWindow::on_actionClear_triggered()
 {
-  // Prompt for unsaved changes
-  if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
-    return;
+  IRISApplication *app = m_Model->GetDriver();
 
-  m_Model->GetDriver()->ResetIRISSegmentationImage();
+  // In snake mode, it is possible to clear the segmentation, but we don't
+  // need to prompt for save
+  if(app->IsSnakeModeActive())
+    {
+    app->ResetSNAPSegmentationImage();
+    }
+  else
+    {
+    // Prompt for unsaved changes
+    if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
+      return;
+
+    app->ResetIRISSegmentationImage();
+    }
 }
 
 void MainImageWindow::on_actionSave_as_Mesh_triggered()

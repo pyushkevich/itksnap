@@ -13,6 +13,8 @@
 #include "PreprocessingFilterConfigTraits.h"
 #include "GMMClassifyImageFilter.h"
 #include "RFClassificationEngine.h"
+#include "RandomForestClassifier.h"
+#include "RandomForestClassifyImageFilter.h"
 
 SnakeWizardModel::SnakeWizardModel()
 {
@@ -106,6 +108,12 @@ SnakeWizardModel::SnakeWizardModel()
         &Self::GetSnakeTypeValueAndRange,
         &Self::SetSnakeTypeValue);
 
+  // Preprocessing mode model initialization
+  m_PreprocessingModeModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetPreprocessingModeValueAndRange,
+        &Self::SetPreprocessingModeValue);
+
   m_ActiveBubbleModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetActiveBubbleValue,
@@ -133,12 +141,34 @@ SnakeWizardModel::SnakeWizardModel()
   m_NumberOfClustersModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetNumberOfClustersValueAndRange,
-        &Self::SetNumberOfClustersValue);
+        &Self::SetNumberOfClustersValue,
+        GMMModifiedEvent(),
+        GMMModifiedEvent());
 
   m_NumberOfGMMSamplesModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetNumberOfGMMSamplesValueAndRange,
-        &Self::SetNumberOfGMMSamplesValue);
+        &Self::SetNumberOfGMMSamplesValue,
+        GMMModifiedEvent(),
+        GMMModifiedEvent());
+
+  m_ForegroundClusterModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetForegroundClusterValueAndRange,
+        &Self::SetForegroundClusterValue,
+        GMMModifiedEvent(),
+        GMMModifiedEvent());
+
+  m_ForegroundClassColorLabelModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetForegroundClassColorLabelValueAndRange,
+        &Self::SetForegroundClassColorLabelValue,
+        RFClassifierModifiedEvent(),
+        RFClassifierModifiedEvent());
+
+  // The domain of the foreground cluster model depends on the number of clusters
+  m_ForegroundClusterModel->Rebroadcast(
+        m_NumberOfClustersModel, ValueChangedEvent(), DomainChangedEvent());
 
   m_ClusterPlottedComponentModel = ComponentIndexModel::New();
   this->UpdateClusterPlottedComponentModel();
@@ -180,6 +210,9 @@ void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
   Rebroadcast(m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_GMM),
               itk::ModifiedEvent(), GMMModifiedEvent());
 
+  Rebroadcast(m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_RF),
+              itk::ModifiedEvent(), RFClassifierModifiedEvent());
+
   // Changes to the snake mode are cast as model update events
   Rebroadcast(m_GlobalState->GetSnakeTypeModel(),
               ValueChangedEvent(), ModelUpdateEvent());
@@ -189,6 +222,7 @@ void SnakeWizardModel::SetParentModel(GlobalUIModel *model)
   Rebroadcast(this, EdgePreprocessingSettingsUpdateEvent(), StateMachineChangeEvent());
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
   Rebroadcast(this, ActiveBubbleUpdateEvent(), StateMachineChangeEvent());
+  Rebroadcast(this, RFClassifierModifiedEvent(), StateMachineChangeEvent());
 
   // The two appearance mode models depend on changes to the color map and
   // the metadata of the speed image wrapper
@@ -215,6 +249,8 @@ bool SnakeWizardModel::CheckState(SnakeWizardModel::UIState state)
       return ts && ts->IsUpperThresholdEnabled();
     case UIF_EDGEPROCESSING_ENABLED:
       return AreEdgePreprocessingModelsActive();
+    case UIF_CAN_GENERATE_SPEED:
+      return CanGenerateSpeedVolume();
     case UIF_SPEED_AVAILABLE:
       return m_GlobalState->GetSpeedValid();
     case UIF_PREPROCESSING_ACTIVE:
@@ -289,12 +325,59 @@ void SnakeWizardModel::UpdateClusterPlottedComponentModel()
   this->m_ClusterPlottedComponentModel->SetDomain(cd);
 }
 
+bool SnakeWizardModel::GetForegroundClassColorLabelValueAndRange(
+    LabelType &value, SnakeWizardModel::ForegroundClassDomain *range)
+{
+  // Must have a classification engine
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  if(!rfe)
+    return false;
+
+  // Must have a classifier
+  RandomForestClassifier *rfc = rfe->GetClassifier();
+  if(!rfc)
+    return false;
+
+  // The classifier must be valid (2 or more classes)
+  if(!rfc->IsValidClassifier())
+    return false;
+
+  // Set the class label to the one stored in the classifier
+  value = rfc->GetForegroundClassLabel();
+
+  // Set the range to the correct range
+  if(range)
+    range->SetWrappedMap(&m_ActiveClasses);
+
+  return true;
+}
+
+void SnakeWizardModel::SetForegroundClassColorLabelValue(LabelType value)
+{
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  assert(rfe);
+
+  RandomForestClassifier *rfc = rfe->GetClassifier();
+  assert(rfc);
+
+  rfc->SetForegroundClassLabel(value);
+
+  InvokeEvent(RFClassifierModifiedEvent());
+
+  // TODO: this is a hack!
+  TagRFPreprocessingFilterModified();
+
+}
+
 void SnakeWizardModel::OnBubbleModeEnter()
 {
   // When entering bubble mode, we should not use the overlay display of the
   // speed image, as tht clashes with bubble placement visually
   if(this->GetRedTransparentSpeedModeModel()->GetValue())
     this->SetBlueWhiteSpeedModeValue(true);
+
+  // In bubble mode, we want the main toolbar to be in crosshairs mode
+  m_GlobalState->SetToolbarMode(CROSSHAIRS_MODE);
 
   // We are in bubble mode
   SetInteractionMode(MODE_BUBBLES);
@@ -311,6 +394,28 @@ bool SnakeWizardModel::AreEdgePreprocessingModelsActive()
 {
   return (m_Driver->IsSnakeModeActive() &&
           m_Driver->GetPreprocessingMode() == PREPROCESS_EDGE);
+}
+
+bool SnakeWizardModel::CanGenerateSpeedVolume()
+{
+  // The answer depends on the proprocessing mode
+  switch(m_Driver->GetPreprocessingMode())
+    {
+    case PREPROCESS_NONE:
+      return false;
+    case PREPROCESS_THRESHOLD:
+      return true;
+    case PREPROCESS_EDGE:
+      return true;
+    case PREPROCESS_GMM:
+      return true;
+    case PREPROCESS_RF:
+      {
+      RFClassificationEngine *cfe = m_Driver->GetClassificationEngine();
+      RandomForestClassifier *rfc = cfe->GetClassifier();
+      return rfc->IsValidClassifier();
+      }
+    }
 }
 
 ScalarImageWrapperBase *SnakeWizardModel::GetSelectedScalarLayer()
@@ -338,7 +443,7 @@ bool SnakeWizardModel
     {
     range->Minimum = iw->GetImageMinNative();
     range->Maximum = iw->GetImageMaxNative();
-    range->StepSize = CalculatePowerOfTenStepSize(range->Minimum, range->Maximum, 100);
+    range->StepSize = CalculatePowerOfTenStepSize(range->Minimum, range->Maximum, 1000);
     }
 
   return true;
@@ -362,7 +467,7 @@ bool SnakeWizardModel
     {
     range->Minimum = iw->GetImageMinNative();
     range->Maximum = iw->GetImageMaxNative();
-    range->StepSize = CalculatePowerOfTenStepSize(range->Minimum, range->Maximum, 100);
+    range->StepSize = CalculatePowerOfTenStepSize(range->Minimum, range->Maximum, 1000);
     }
 
   return true;
@@ -751,7 +856,7 @@ void SnakeWizardModel
     }
 }
 
-void SnakeWizardModel::ApplyThresholdPreprocessing()
+void SnakeWizardModel::ApplyPreprocessing()
 {
   // Compute the speed image
   m_Driver->ApplyCurrentPreprocessingModeToSpeedVolume(m_Parent->GetProgressCommand());
@@ -771,38 +876,36 @@ void SnakeWizardModel::SetSnakeTypeValue(SnakeType value)
   m_Driver->SetSnakeMode(value);
 }
 
-void SnakeWizardModel::OnPreprocessingDialogClose()
+bool SnakeWizardModel::GetPreprocessingModeValueAndRange(PreprocessingMode &value, SnakeWizardModel::PreprocessingModeDomain *range)
+{
+  PreprocessingMode mode = m_Driver->GetPreprocessingMode();
+  if(mode == PREPROCESS_NONE)
+    return false;
+
+  value = mode;
+
+  if(range)
+    {
+    (*range)[PREPROCESS_THRESHOLD] = "Thresholding";
+    (*range)[PREPROCESS_EDGE] = "Edge Attraction";
+    (*range)[PREPROCESS_GMM] = "Clustering";
+    (*range)[PREPROCESS_RF] = "Classification";
+    }
+  return true;
+}
+
+void SnakeWizardModel::SetPreprocessingModeValue(PreprocessingMode value)
+{
+  m_Driver->EnterPreprocessingMode(value);
+  InvokeEvent(ModelUpdateEvent());
+  InvokeEvent(GMMModifiedEvent());
+  InvokeEvent(RFClassifierModifiedEvent());
+}
+
+void SnakeWizardModel::CompletePreprocessing()
 {
   // Disconnect preview pipeline
   m_Driver->EnterPreprocessingMode(PREPROCESS_NONE);
-  InvokeEvent(ModelUpdateEvent());
-}
-
-void SnakeWizardModel::OnThresholdingPageEnter()
-{
-  m_Driver->EnterPreprocessingMode(PREPROCESS_THRESHOLD);
-  InvokeEvent(GMMModifiedEvent());
-  InvokeEvent(ModelUpdateEvent());
-}
-
-void SnakeWizardModel::OnEdgePreprocessingPageEnter()
-{
-  m_Driver->EnterPreprocessingMode(PREPROCESS_EDGE);
-  InvokeEvent(GMMModifiedEvent());
-  InvokeEvent(ModelUpdateEvent());
-}
-
-void SnakeWizardModel::OnClusteringPageEnter()
-{
-  m_Driver->EnterPreprocessingMode(PREPROCESS_GMM);
-  InvokeEvent(GMMModifiedEvent());
-  InvokeEvent(ModelUpdateEvent());
-}
-
-void SnakeWizardModel::OnClassificationPageEnter()
-{
-  m_Driver->EnterPreprocessingMode(PREPROCESS_RF);
-  InvokeEvent(GMMModifiedEvent());
   InvokeEvent(ModelUpdateEvent());
 }
 
@@ -901,6 +1004,11 @@ void SnakeWizardModel::OnSnakeModeEnter()
 
   // We begin in preprocessing mode
   SetInteractionMode(MODE_PREPROCESSING);
+
+  // Set the current preprocessing mode.
+  // TODO: in the future, we should remember what was the last preprocessing
+  // mode used, and reuse it!
+  m_PreprocessingModeModel->SetValue(PREPROCESS_THRESHOLD);
 }
 
 void SnakeWizardModel::ComputeBubbleRadiusDefaultAndRange()
@@ -1089,6 +1197,9 @@ void SnakeWizardModel::OnCancelSegmentation()
   if(m_Driver->GetSNAPImageData()->IsSegmentationActive())
     m_Driver->GetSNAPImageData()->TerminateSegmentation();
 
+  // Leave the preprocessing mode
+  m_PreprocessingModeModel->SetValue(PREPROCESS_NONE);
+
   // Return to IRIS mode
   m_Driver->SetCurrentImageDataToIRIS();
   m_Driver->ReleaseSNAPImageData();
@@ -1162,6 +1273,57 @@ void SnakeWizardModel::SetNumberOfGMMSamplesValue(int value)
   this->InvokeEvent(GMMModifiedEvent());
 }
 
+bool SnakeWizardModel::GetForegroundClusterValueAndRange(int &value, NumericValueRange<int> *range)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  if(!uc)
+    return false;
+
+  // Go through the clusters, and find which cluster is marked as foreground
+  int foreCluster = -1;
+  for(int i = 0; i < uc->GetNumberOfClusters(); i++)
+    {
+    if(uc->GetMixtureModel()->IsForeground(i))
+      {
+      if(foreCluster >= 0)
+        // Oops! more than one foreground cluster!
+        return false;
+      else
+        foreCluster = i;
+      }
+    }
+
+  // Set the value
+  value = foreCluster + 1;
+
+  // Set the range
+  if(range)
+    {
+    range->Set(1, uc->GetNumberOfClusters(), 1);
+    }
+
+  return true;
+}
+
+void SnakeWizardModel::SetForegroundClusterValue(int value)
+{
+  UnsupervisedClustering *uc = m_Driver->GetClusteringEngine();
+  assert(uc);
+
+  // Go through the clusters, and find which cluster is marked as foreground
+  int foreCluster = value - 1;
+  for(int i = 0; i < uc->GetNumberOfClusters(); i++)
+    {
+    if(i == foreCluster)
+      uc->GetMixtureModel()->SetForeground(i);
+    else
+      uc->GetMixtureModel()->SetBackground(i);
+    }
+
+  this->TagGMMPreprocessingFilterModified();
+  InvokeEvent(GMMModifiedEvent());
+}
+
 void SnakeWizardModel::TagGMMPreprocessingFilterModified()
 {
   // TODO: this is not the right way to do this! Make MixtureModel an itkObject
@@ -1173,6 +1335,20 @@ void SnakeWizardModel::TagGMMPreprocessingFilterModified()
   GMMPreprocessingPreviewWrapperType *junk =
       (GMMPreprocessingPreviewWrapperType *) m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_GMM);
   junk->SetParameters(uc->GetMixtureModel());
+}
+
+void SnakeWizardModel::TagRFPreprocessingFilterModified()
+{
+  // TODO: this is not the right way to do this! Make RandomForestClassifier an itkObject
+  // and an inout to the filter, so we don't have to update the filter itself!!
+  // THIS IS HACKY!!!
+  RFClassificationEngine *ce = m_Driver->GetClassificationEngine();
+  typedef SlicePreviewFilterWrapper<RFPreprocessingFilterConfigTraits>
+                                            RFPreprocessingPreviewWrapperType;
+  RFPreprocessingPreviewWrapperType *junk =
+      (RFPreprocessingPreviewWrapperType *) m_Driver->GetPreprocessingFilterPreviewer(PREPROCESS_RF);
+  junk->SetParameters(ce->GetClassifier());
+
 }
 
 
@@ -1325,7 +1501,6 @@ SnakeWizardModel::GetLayerAndIndexForNthComponent(int n)
   return m_ComponentInfo[n];
 }
 
-
 void SnakeWizardModel::TrainClassifier()
 {
   // Get the classification engine
@@ -1333,6 +1508,33 @@ void SnakeWizardModel::TrainClassifier()
 
   // Perform the classification
   rfengine->TrainClassifier();
+
+  // Get the current foreground label
+  LabelType curr_foreground;
+  bool fg_valid =
+      m_ForegroundClassColorLabelModel->GetValueAndDomain(curr_foreground, NULL);
+
+  // Populate the available labels for the foreground label
+  m_ActiveClasses.clear();
+  const RandomForestClassifier::MappingType &mapping =
+      rfengine->GetClassifier()->GetClassToLabelMapping();
+  for(RandomForestClassifier::MappingType::const_iterator it = mapping.begin();
+      it != mapping.end(); ++it)
+    {
+    m_ActiveClasses[it->second] =
+        m_Driver->GetColorLabelTable()->GetColorLabel(it->second);
+    }
+
+  // Fire the appropriate event
+  InvokeEvent(RFClassifierModifiedEvent());
+
+  // TODO: this is a hack!
+  TagRFPreprocessingFilterModified();
+}
+
+void SnakeWizardModel::ClearSegmentation()
+{
+  m_Driver->ResetSNAPSegmentationImage();
 }
 
 

@@ -46,13 +46,13 @@ endforeach()
 
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 3)
-SET(SNAP_VERSION_MINOR 0)
+SET(SNAP_VERSION_MINOR 1)
 SET(SNAP_VERSION_PATCH 0)
 SET(SNAP_VERSION_QUALIFIER "")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20140425")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Apr 25, 2014")
+SET(SNAP_VERSION_RELEASE_DATE "20140604")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Jun 04, 2014")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -160,6 +160,7 @@ SET(LOGIC_CXX
   Logic/Common/ImageCoordinateGeometry.cxx
   Logic/Common/ImageCoordinateTransform.cxx
   Logic/Common/IRISDisplayGeometry.cxx
+  Logic/Common/LabelUseHistory.cxx
   Logic/Common/MetaDataAccess.cxx
   Logic/Common/SegmentationStatistics.cxx
   Logic/Common/SNAPRegistryIO.cxx
@@ -249,6 +250,7 @@ SET(LOGIC_HEADERS
   Logic/Common/ImageCoordinateGeometry.h
   Logic/Common/ImageCoordinateTransform.h
   Logic/Common/IRISDisplayGeometry.h
+  Logic/Common/LabelUseHistory.h
   Logic/Common/SegmentationStatistics.h
   Logic/Common/ImageRayIntersectionFinder.h
   Logic/Common/ImageRayIntersectionFinder.txx
@@ -332,6 +334,7 @@ SET(LOGIC_HEADERS
 
 # These files have the UI model code, which is GUI-TK independent
 SET(UI_GENERIC_CXX
+  GUI/Model/ColorLabelQuickListModel.cxx
   GUI/Model/ColorLabelPropertyModel.cxx
   GUI/Model/ColorMapModel.cxx
   GUI/Model/CursorInspectionModel.cxx
@@ -398,6 +401,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/AbstractLayerAssociatedModel.h
   GUI/Model/AbstractLayerInfoItemSetDomain.h
   GUI/Model/ColorMapModel.h
+  GUI/Model/ColorLabelQuickListModel.h
   GUI/Model/ColorLabelPropertyModel.h
   GUI/Model/CursorInspectionModel.h
   GUI/Model/DisplayLayoutModel.h
@@ -465,8 +469,9 @@ SET(UI_GENERIC_HEADERS
 # These files contain the Qt-specific user interface source code
 SET(UI_QT_CXX
   GUI/Qt/Components/CollapsableGroupBox.cxx
-  GUI/Qt/Components/ContrastInspector.cxx
+  GUI/Qt/Components/ColorLabelQuickListWidget.cxx
   GUI/Qt/Components/ColorMapInspector.cxx
+  GUI/Qt/Components/ContrastInspector.cxx
   GUI/Qt/Components/CursorInspector.cxx
   GUI/Qt/Components/DisplayLayoutInspector.cxx
   GUI/Qt/Components/HistoryQListModel.cxx
@@ -544,8 +549,9 @@ SET(UI_QT_CXX
 # The header files for the UI project
 SET(UI_MOC_HEADERS
   GUI/Qt/Components/CollapsableGroupBox.h
-  GUI/Qt/Components/ContrastInspector.h
+  GUI/Qt/Components/ColorLabelQuickListWidget.h
   GUI/Qt/Components/ColorMapInspector.h
+  GUI/Qt/Components/ContrastInspector.h
   GUI/Qt/Components/CursorInspector.h
   GUI/Qt/Components/DisplayLayoutInspector.h
   GUI/Qt/Components/HistoryQListModel.h

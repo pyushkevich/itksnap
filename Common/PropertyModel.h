@@ -303,6 +303,9 @@ public:
   TDesc GetDescription(const const_iterator &it) const
     { return it->second; }
 
+  unsigned int size() const
+    { return m_Map.size(); }
+
   // Standard stl::map operator
   TDesc & operator [] (const TVal &key) { return m_Map[key]; }
 

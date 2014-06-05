@@ -72,7 +72,7 @@ protected:
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "GMMClassifyImageFilter.txx"
+#include "RandomForestClassifyImageFilter.txx"
 #endif
 
 
