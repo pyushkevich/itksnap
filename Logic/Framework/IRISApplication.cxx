@@ -61,6 +61,7 @@
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkImageFileWriter.h"
 #include "itkFlipImageFilter.h"
+#include "itkConstantBoundaryCondition.h"
 #include <itksys/SystemTools.hxx>
 #include "vtkAppendPolyData.h"
 #include "vtkUnsignedShortArray.h"

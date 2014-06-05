@@ -61,6 +61,7 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
+#include "itkConstantBoundaryCondition.h"
 #include "IRISException.h"
 #include "itkImageAdaptor.h"
 #include "itkVectorImageToImageAdaptor.h"

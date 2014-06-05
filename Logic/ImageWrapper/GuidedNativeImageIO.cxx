@@ -40,7 +40,6 @@
 
 #include "itkImage.h"
 #include "itkImageIOBase.h"
-#include "itkAnalyzeImageIO.h"
 #include "itkGiplImageIO.h"
 #include "itkMetaImageIO.h"
 #include "itkNrrdImageIO.h"
@@ -63,7 +62,6 @@
 #include "gdcmIPPSorter.h"
 
 #include "itkGDCMSeriesFileNames.h"
-#include "itkImageToVectorImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkShiftScaleImageFilter.h"
 #include "itkNumericTraits.h"
@@ -231,7 +229,7 @@ GuidedNativeImageIO
     {
     case FORMAT_MHA:        m_IOBase = itk::MetaImageIO::New();          break;
     case FORMAT_NRRD:       m_IOBase = itk::NrrdImageIO::New();          break;
-    case FORMAT_ANALYZE:    m_IOBase = itk::AnalyzeImageIO::New();       break;
+    case FORMAT_ANALYZE:    m_IOBase = itk::NiftiImageIO::New();       break;
     case FORMAT_GIPL:       m_IOBase = itk::GiplImageIO::New();          break;
     case FORMAT_GE4:        m_IOBase = itk::GE4ImageIO::New();           break;
     case FORMAT_GE5:        m_IOBase = itk::GE5ImageIO::New();           break;

@@ -48,10 +48,8 @@ template <class TInputImage, class TOutputValueType=float>
 class SNAPAdvectionFieldImageFilter: 
   public itk::ImageToImageFilter<
     TInputImage,
-    itk::Image<
-      itk::CovariantVector<TOutputValueType,
-        ::itk::GetImageDimension<TInputImage>::ImageDimension>,
-      ::itk::GetImageDimension<TInputImage>::ImageDimension> >
+    itk::Image<itk::CovariantVector<TOutputValueType, TInputImage::ImageDimension>,
+      TInputImage::ImageDimension> >
 {
 public:
   
