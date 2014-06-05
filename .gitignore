@@ -10,4 +10,5 @@ Thumbs.db
 
 # Qt Creator stuff
 CMakeLists.txt.user*
+CTestConfig.cmake.user*
 *.autosave
