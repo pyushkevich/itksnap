@@ -47,7 +47,7 @@ ThresholdSettingsRenderer::ThresholdSettingsRenderer()
 
   // Set up the plot
   m_Plot = m_Chart->AddPlot(vtkChart::LINE);
-  m_Plot->SetInput(m_PlotTable, 0, 1);
+  m_Plot->SetInputData(m_PlotTable, 0, 1);
   m_Plot->SetColor(1, 0, 0);
   m_Plot->SetWidth(2.0);
   m_Plot->GetYAxis()->SetBehavior(vtkAxis::FIXED);

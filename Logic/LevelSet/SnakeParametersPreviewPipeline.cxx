@@ -204,7 +204,7 @@ public:
 
       // Create and configure the contour filter
       m_VTKContour = vtkContourFilter::New();
-      m_VTKContour->SetInput(m_VTKImporter->GetOutput());    
+      m_VTKContour->SetInputConnection(m_VTKImporter->GetOutputPort());
       m_VTKContour->ReleaseDataFlagOn();
       m_VTKContour->ComputeScalarsOff();
       m_VTKContour->ComputeGradientsOff();

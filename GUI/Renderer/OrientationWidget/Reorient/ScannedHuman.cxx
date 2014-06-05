@@ -23,7 +23,7 @@ ScannedHuman::ScannedHuman()
   m_pPolyDataMouth->SetLines(m_pCellArrayMouthLines);
 
   m_pTubeFilterMouth = vtkSmartPointer < vtkTubeFilter >::New();
-  m_pTubeFilterMouth->SetInput(m_pPolyDataMouth);
+  m_pTubeFilterMouth->SetInputData(m_pPolyDataMouth);
   
   m_pCubeSourceBody = vtkSmartPointer < vtkCubeSource >::New();
     

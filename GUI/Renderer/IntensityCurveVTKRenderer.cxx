@@ -106,9 +106,9 @@ protected:
       {
       this->Texture = vtkImageData::New();
       this->Texture->SetExtent(0, dim-1, 0, 0, 0, 0);
-      this->Texture->SetNumberOfScalarComponents(4);
-      this->Texture->SetScalarTypeToUnsignedChar();
-      this->Texture->AllocateScalars();
+      this->Texture->SetPointDataActiveScalarInfo(
+            this->Texture->GetInformation(), VTK_UNSIGNED_CHAR, 4);
+      this->Texture->AllocateScalars(this->Texture->GetInformation());
       }
 
     // Get the texture array
@@ -195,11 +195,11 @@ protected:
     // Define the texture
     if (this->Texture == 0)
       {
+      vtkInformation *info = this->Texture->GetInformation();
       this->Texture = vtkImageData::New();
       this->Texture->SetExtent(0, 0, 0, 0, 0, dim-1);
-      this->Texture->SetNumberOfScalarComponents(4);
-      this->Texture->SetScalarTypeToUnsignedChar();
-      this->Texture->AllocateScalars();
+      this->Texture->SetPointDataActiveScalarInfo(info, VTK_UNSIGNED_CHAR, 4);
+      this->Texture->AllocateScalars(info);
       }
 
     // Get the texture array
@@ -236,7 +236,7 @@ protected:
 };
 
 
-
+#include "vtkPiecewiseControlPointsItem.h"
 
 
 class IntensityCurveControlPointsContextItem : public vtkControlPointsItem
@@ -246,7 +246,7 @@ public:
 
   static IntensityCurveControlPointsContextItem *New();
 
-  virtual void GetControlPoint(vtkIdType index, double *point)
+  virtual void GetControlPoint(vtkIdType index, double *point) const
   {
     // Return the coordinates of the point, in plot units
     IntensityCurveInterface *curve = m_Model->GetCurve();
@@ -260,12 +260,18 @@ public:
     point[1] = y;
   }
 
-  virtual int GetNumberOfPoints() const
+  virtual vtkIdType GetNumberOfPoints() const
   {
     if(m_Model && m_Model->GetLayer())
       return m_Model->GetCurve()->GetControlPointCount();
     else return 0;
   }
+
+  virtual vtkIdType RemovePoint(double *pos) { return -1; }
+
+  virtual vtkIdType AddPoint(double *newPos) { return -1; }
+
+  virtual void emitEvent(unsigned long event, void* params = 0) {};
 
   virtual void SetControlPoint(vtkIdType index, double *point)
   {
@@ -399,7 +405,7 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
 
   // Set up the curve plot
   m_CurvePlot = m_Chart->AddPlot(vtkChart::LINE);
-  m_CurvePlot->SetInput(m_PlotTable, 0, 1);
+  m_CurvePlot->SetInputData(m_PlotTable, 0, 1);
   m_CurvePlot->SetColor(1, 0, 0);
   m_CurvePlot->SetWidth(1.0);
   m_CurvePlot->GetYAxis()->SetBehavior(vtkAxis::FIXED);

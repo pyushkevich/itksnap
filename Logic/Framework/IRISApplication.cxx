@@ -1190,7 +1190,7 @@ IRISApplication
         scalar->InsertNextTuple1(it->first);
 
       mesh->GetPointData()->SetScalars(scalar);
-      append->AddInput(mesh);
+      append->AddInputData(mesh);
       }
 
     append->Update();

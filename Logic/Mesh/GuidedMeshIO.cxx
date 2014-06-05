@@ -40,7 +40,7 @@ GuidedMeshIO
   if(format == FORMAT_VTK)
     {
     vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
-    writer->SetInput(mesh);
+    writer->SetInputData(mesh);
     writer->SetFileName(FileName);
     writer->Update();
     writer->Delete();
@@ -49,8 +49,8 @@ GuidedMeshIO
     {
     vtkTriangleFilter *tri = vtkTriangleFilter::New();
     vtkSTLWriter *writer = vtkSTLWriter::New();
-    tri->SetInput(mesh);
-    writer->SetInput(tri->GetOutput());
+    tri->SetInputData(mesh);
+    writer->SetInputConnection(tri->GetOutputPort());
     writer->SetFileName(FileName);
     writer->Update();
     writer->Delete();
@@ -60,9 +60,9 @@ GuidedMeshIO
     {
     vtkTriangleFilter *tri = vtkTriangleFilter::New();
     vtkBYUWriter *writer = vtkBYUWriter::New();
-    tri->SetInput(mesh);
-    writer->SetInput(tri->GetOutput());
-    writer->SetFileName(FileName);
+    tri->SetInputData(mesh);
+    writer->SetInputConnection(tri->GetOutputPort());
+    writer->SetGeometryFileName(FileName);
     writer->Update();
     writer->Delete();
     tri->Delete();

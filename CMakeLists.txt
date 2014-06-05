@@ -804,14 +804,22 @@ SET(SNAP_ITK_LIBS ${ITK_LIBRARIES})
 
 # Core VTK libraries
 SET(SNAP_VTK_LIBS
-  vtkCharts
-  vtkCommon
-  vtkRendering
-  vtkFiltering
-  vtkGraphics
-  vtkImaging
-  vtkViews
-  vtkIO
+  vtkChartsCore
+  vtkCommonCore
+  vtkRenderingCore
+  vtkRenderingFreeType
+  vtkRenderingFreeTypeOpenGL
+  vtkRenderingOpenGL
+  vtkRenderingVolume
+  vtkRenderingVolumeOpenGL
+  vtkFiltersCore
+  vtkImagingCore
+  vtkViewsCore
+  vtkViewsContext2D
+  vtkIOCore
+  vtkIOExport
+  vtkIOGeometry
+  vtkIOLegacy
 )
 
 # System libraries

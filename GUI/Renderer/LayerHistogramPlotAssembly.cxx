@@ -26,7 +26,7 @@ LayerHistogramPlotAssembly::LayerHistogramPlotAssembly()
 void LayerHistogramPlotAssembly::AddToChart(vtkChartXY *chart)
 {
   m_HistogramPlot = chart->AddPlot(vtkChart::BAR);
-  m_HistogramPlot->SetInput(m_HistogramTable, 0, 1);
+  m_HistogramPlot->SetInputData(m_HistogramTable, 0, 1);
   m_HistogramPlot->SetColor(0.8, 0.8, 1.0);
 }
 

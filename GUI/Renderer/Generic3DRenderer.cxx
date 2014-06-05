@@ -134,7 +134,7 @@ Generic3DRenderer::Generic3DRenderer()
   m_ImageCubeTransform = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   m_ImageCubeTransform->SetInputConnection(m_ImageCubeSource->GetOutputPort());
   m_ScalpelPlaneWidget = vtkSmartPointer<vtkImplicitPlaneWidget>::New();
-  m_ScalpelPlaneWidget->SetInput(m_ImageCubeTransform->GetOutput());
+  m_ScalpelPlaneWidget->SetInputConnection(m_ImageCubeTransform->GetOutputPort());
 
   m_ScalpelPlaneWidget->SetInteractor(this->GetRenderWindowInteractor());
   m_ScalpelPlaneWidget->SetPlaceFactor(1.0);
@@ -199,7 +199,7 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   this->UpdateCamera(true);
 
   // Hook up the spray pipeline
-  m_SprayGlyphFilter->SetInput(m_Model->GetSprayPoints());
+  m_SprayGlyphFilter->SetInputData(m_Model->GetSprayPoints());
 
   // Set the model in the picker
   Window3DPicker::SafeDownCast(this->GetRenderWindowInteractor()->GetPicker())->SetModel(m_Model);
@@ -240,7 +240,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
         {
         // The mesh has changed, and needs to be fed to the mapper
         vtkPolyDataMapper::SafeDownCast(it_actor->second->GetMapper())
-            ->SetInput(it_mesh->second);
+            ->SetInputData(it_mesh->second);
         }
 
       // Increment the iterator
@@ -258,7 +258,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 
       // Create a mapper
       vtkSmartPointer<vtkPolyDataMapper> pdm = vtkSmartPointer<vtkPolyDataMapper>::New();
-      pdm->SetInput(mesh);
+      pdm->SetInputData(mesh);
 
       // Get the label of that mesh
       const ColorLabel &cl = driver->GetColorLabelTable()->GetColorLabel(it_mesh->first);

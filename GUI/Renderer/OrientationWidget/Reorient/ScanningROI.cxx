@@ -261,7 +261,7 @@ void ScanningROI::Update()
     pPolyData->SetLines(pLines);
 
     vtkSmartPointer < vtkTubeFilter > pTubeFilter = ppp.m_p_TubeFilter_WireFrame;
-    pTubeFilter->SetInput(pPolyData);
+    pTubeFilter->SetInputData(pPolyData);
     pTubeFilter->SetNumberOfSides(100);
     pTubeFilter->SetRadius(0.01 * m_dbGraphicScale);
 
@@ -274,7 +274,7 @@ void ScanningROI::Update()
       pLineSource->SetPoint2(arrdbOrigin[0] + dbDelta * nJ, arrdbP2[1], arrdbOrigin[2]);
       vtkSmartPointer < vtkTubeFilter > pTubeFilter =
         ppp.m_arrp_TubeFilter_PlanarGrid[nJ];
-      pTubeFilter->SetInput(pLineSource->GetOutput());
+      pTubeFilter->SetInputConnection(pLineSource->GetOutputPort());
       pTubeFilter->SetNumberOfSides(100);
       pTubeFilter->SetRadius(0.005 * m_dbGraphicScale);
       }

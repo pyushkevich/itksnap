@@ -143,7 +143,7 @@ void GMMRenderer::UpdatePlotValues()
 
       // Set of plots, one for each mixture in the model
       vtkPlot *plot = m_Chart->AddPlot(vtkChart::LINE);
-      plot->SetInput(table, 0, i+1);
+      plot->SetInputData(table, 0, i+1);
 
       // Compute the mixture's marginal PDF
       for(int k = 0; k < nsam; k++)

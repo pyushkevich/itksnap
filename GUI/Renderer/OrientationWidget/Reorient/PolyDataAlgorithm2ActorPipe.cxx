@@ -19,7 +19,7 @@ PolyDataAlgorithm2ActorPipe::PolyDataAlgorithm2ActorPipe()
 void PolyDataAlgorithm2ActorPipe::setSource(vtkSmartPointer < vtkPolyDataAlgorithm > apvtkPolyDataAlgorithm)
 {
   m_pvtkPolyDataAlgorithm = apvtkPolyDataAlgorithm;
-  m_pvtkPolyDataMapper->SetInput(m_pvtkPolyDataAlgorithm->GetOutput());
+  m_pvtkPolyDataMapper->SetInputConnection(m_pvtkPolyDataAlgorithm->GetOutputPort());
 }
 
 vtkSmartPointer < vtkActor > PolyDataAlgorithm2ActorPipe::getActor()
