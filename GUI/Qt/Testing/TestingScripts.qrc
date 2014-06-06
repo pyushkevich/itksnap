@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/scripts">
+      <file>Scripts/test_OpenImage.js</file>
+    </qresource>
+</RCC>

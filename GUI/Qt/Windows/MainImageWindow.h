@@ -50,6 +50,8 @@ class MainControlPanel;
 class StatisticsDialog;
 class QActionGroup;
 class PreferencesDialog;
+class ImageIOWizard;
+class ImageIOWizardModel;
 
 class QTimer;
 
@@ -308,6 +310,10 @@ private:
   Ui::MainImageWindow *ui;
 
   GlobalUIModel *m_Model;
+
+  SmartPtr<ImageIOWizardModel> m_ImageIOModel;
+
+  ImageIOWizard *m_ImageIOWizard;
 
   LabelEditorDialog *m_LabelEditor;
 

@@ -205,7 +205,7 @@ protected:
 
   // Parent model
   GlobalUIModel *m_Parent;
-  GuidedNativeImageIO* m_GuidedIO;
+  SmartPtr<GuidedNativeImageIO> m_GuidedIO;
 
   // Warnings generated during IO
   IRISWarningList m_Warnings;

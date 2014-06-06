@@ -57,9 +57,11 @@ namespace itk
  * as explicit IO type, and for some types such as raw, the necessary additional
  * information.
  */
-class GuidedNativeImageIO
+class GuidedNativeImageIO : public itk::Object
 {
 public:
+
+  irisITKObjectMacro(GuidedNativeImageIO, itk::Object)
 
   enum FileFormat {
     FORMAT_ANALYZE=0,
@@ -97,10 +99,6 @@ public:
 
   typedef itk::ImageBase<3> ImageBase;
   typedef itk::SmartPointer<ImageBase> ImageBasePointer;
-
-  GuidedNativeImageIO();
-  virtual ~GuidedNativeImageIO()
-    { DeallocateNativeImage(); }
 
   /**
    * This method loads an image from the given filename. A registry can be 
@@ -258,7 +256,12 @@ public:
   // Get the output of the last operation
   // irisGetMacro(IOBase, itk::ImageIOBase *);    
 
-private:
+protected:
+
+  GuidedNativeImageIO();
+  virtual ~GuidedNativeImageIO()
+    { DeallocateNativeImage(); }
+
   /** Templated function to create RAW image IO */
   template <typename TRaw> void CreateRawImageIO(Registry &folder);
 

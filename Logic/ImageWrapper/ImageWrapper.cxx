@@ -138,9 +138,9 @@ public:
 
   static void Write(ImageType *image, const char *fname, Registry &hints)
   {
-    GuidedNativeImageIO io;
-    io.CreateImageIO(fname, hints, false);
-    itk::ImageIOBase *base = io.GetIOBase();
+    SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+    io->CreateImageIO(fname, hints, false);
+    itk::ImageIOBase *base = io->GetIOBase();
 
     typedef itk::ImageFileWriter<TImage> WriterType;
     typename WriterType::Pointer writer = WriterType::New();
@@ -1050,9 +1050,9 @@ ImageWrapper<TTraits, TBase>
 template <class TImage>
 static void DoWriteImage(TImage *image, const char *fname, Registry &hints)
 {
-  GuidedNativeImageIO io;
-  io.CreateImageIO(fname, hints, false);
-  itk::ImageIOBase *base = io.GetIOBase();
+  SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+  io->CreateImageIO(fname, hints, false);
+  itk::ImageIOBase *base = io->GetIOBase();
 
   typedef itk::ImageFileWriter<TImage> WriterType;
   typename WriterType::Pointer writer = WriterType::New();

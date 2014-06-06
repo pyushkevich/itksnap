@@ -798,6 +798,9 @@ using namespace imageiowiz;
 ImageIOWizard::ImageIOWizard(QWidget *parent) :
     QWizard(parent)
 {
+  // Give ourselves a name
+  this->setObjectName("wizImageIO");
+
   // Add pages to the wizard
   setPage(Page_File, new SelectFilePage(this));
   setPage(Page_Summary, new SummaryPage(this));

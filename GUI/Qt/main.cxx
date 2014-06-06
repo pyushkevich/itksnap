@@ -442,6 +442,11 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 
 int main(int argc, char *argv[])
 {  
+  // Test object, which only is allocated if tests are requested. The
+  // reason we declare it here is that the test object allocates a
+  // script engine, which must be deleted at the very end
+  SNAPTestQt *testingEngine = NULL;
+
   // Parse the command line
   CommandLineRequest argdata;
   int exitcode = parse(argc, argv, argdata);
@@ -476,6 +481,7 @@ int main(int argc, char *argv[])
   // Create an application
   SNAPQApplication app(argc, argv);
   Q_INIT_RESOURCE(SNAPResources);
+  Q_INIT_RESOURCE(TestingScripts);
 
   // Set the application style
   app.setStyle(QStyleFactory::create("fusion"));
@@ -641,38 +647,19 @@ int main(int argc, char *argv[])
     // Show the panel
     mainwin->ShowFirstTime();
 
-    if(argdata.xTestId.size())
-      {
-      SNAPTestQt tester;
-      tester.Initialize(mainwin, gui, argdata.fnTestDir);
-      tester.RunTest(argdata.xTestId);
-      }
-
-    /*
-    if(parseResult.IsOptionPresent("--testQtScript"))
-      {
-      int nIndxTest = atoi(parseResult.GetOptionParameter("--testQtScript"));
-      cout << "Prototype Test with QtScript executed - Test nr " << nIndxTest << endl;
-      cout << "CheckResultQtScript" << endl;
-
-      // Should have one script C++ class, multiple text scripts in QtScript format
-
-      //QtScriptTest1(&eng  ine);
-      //Yes, with memory leak so far
-      QtScriptTest1 * pTest1 = new QtScriptTest1();
-      pTest1->Initialize(mainwin, gui, "");
-      pTest1->Run(&engine);
-
-      //return(0);
-      }
-      */
-
     // Check for updates?
     mainwin->UpdateAutoCheck();
 
     // Assign the main window to the application. We do this right before
     // starting the event loop.
     app.setMainWindow(mainwin);
+
+    // Do the test
+    if(argdata.xTestId.size())
+      {
+      testingEngine = new SNAPTestQt(mainwin, argdata.fnTestDir);
+      testingEngine->RunTest(argdata.xTestId);
+      }
 
     // Run application
     int rc = app.exec();
@@ -689,6 +676,10 @@ int main(int argc, char *argv[])
 
     // Destroy the model after the GUI is destroyed
     gui = NULL;
+
+    // Destory the test engine
+    if(testingEngine)
+      delete testingEngine;
     }
   catch(std::exception &exc)
     {

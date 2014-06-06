@@ -31,7 +31,7 @@ ImageIOWizardModel
   m_Mode = SAVE;
   m_HistoryName = delegate->GetHistoryName();
   m_DisplayName = dispName;
-  m_GuidedIO = new GuidedNativeImageIO();
+  m_GuidedIO = GuidedNativeImageIO::New();
   m_LoadDelegate = NULL;
   m_SaveDelegate = delegate;
   m_SuggestedFilename = delegate->GetCurrentFilename();
@@ -48,14 +48,13 @@ ImageIOWizardModel
   m_Mode = LOAD;
   m_HistoryName = name;
   m_DisplayName = dispName;
-  m_GuidedIO = new GuidedNativeImageIO();
+  m_GuidedIO = GuidedNativeImageIO::New();
   m_LoadDelegate = delegate;
   m_SaveDelegate = NULL;
 }
 
 ImageIOWizardModel::~ImageIOWizardModel()
 {
-  delete m_GuidedIO;
 }
 
 std::string

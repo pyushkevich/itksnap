@@ -584,6 +584,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/External/ColorWheel/ColorWheel.h
   GUI/Qt/ModelView/GMMTableModel.h
   GUI/Qt/Testing/QtScriptTest1.h
+  GUI/Qt/Testing/SNAPTestQt.h
   GUI/Qt/View/ColorMapBox.h
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
@@ -645,7 +646,6 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Coupling/QtTableWidgetCoupling.h
   GUI/Qt/Coupling/QtWidgetArrayCoupling.h
   GUI/Qt/Coupling/QtWidgetCoupling.h
-  GUI/Qt/Testing/SNAPTestQt.h
 )
 
 SET(UI_FORMS
@@ -694,6 +694,7 @@ SET(UI_FORMS
 
 SET(UI_RESOURCES
   GUI/Qt/Resources/SNAPResources.qrc
+  GUI/Qt/Testing/TestingScripts.qrc
 )
 
 # The source code for SNAP testing project

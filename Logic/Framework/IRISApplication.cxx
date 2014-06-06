@@ -1776,25 +1776,25 @@ void IRISApplication
   Registry &folder = reg.Folder("Files.Grey");
 
   // Create a native image IO object
-  GuidedNativeImageIO io;
+  SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
 
   // Load the header of the image
-  io.ReadNativeImageHeader(fname, folder);
+  io->ReadNativeImageHeader(fname, folder);
 
   // Validate the header
-  del->ValidateHeader(&io, wl);
+  del->ValidateHeader(io, wl);
 
   // Unload the current image data
   del->UnloadCurrentImage();
 
   // Read the image body
-  io.ReadNativeImageData();
+  io->ReadNativeImageData();
 
   // Validate the image data
-  del->ValidateImage(&io, wl);
+  del->ValidateImage(io, wl);
 
   // Put the image in the right place
-  del->UpdateApplicationWithImage(&io);
+  del->UpdateApplicationWithImage(io);
 }
 
 void IRISApplication

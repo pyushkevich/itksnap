@@ -2,12 +2,21 @@
 #define SNAPTESTQT_H
 
 #include <SNAPCommon.h>
+#include <QObject>
+#include <QTimer>
+#include <QStringList>
 
 class MainImageWindow;
 class GlobalUIModel;
+class QJSEngine;
+class QQmlEngine;
+class QTimer;
+class QStringList;
 
-class SNAPTestQt
+class SNAPTestQt : public QObject
 {
+  Q_OBJECT
+
 public:
 
   enum ReturnCode {
@@ -19,21 +28,38 @@ public:
     };
 
 
-  void Initialize(MainImageWindow *, GlobalUIModel *, std::string datadir);
-
+  SNAPTestQt(MainImageWindow *win, std::string datadir);
+  ~SNAPTestQt();
 
   ReturnCode RunTest(std::string test);
+
+public slots:
+
+  QObject *findChild(QObject *parent, QString child);
+  void print(QString text);
+
+protected slots:
+
+  void onTimeout();
 
 protected:
 
   ReturnCode ListTests();
 
-  ReturnCode TestSnakeWithThresholding();
-
-  MainImageWindow *m_Window;
-  GlobalUIModel *m_Model;
+  // The data directory for testing
   std::string m_DataDir;
 
+  // We own a script engine
+  QJSEngine *m_ScriptEngine;
+
+  // A dummy parent object for this object
+  QObject *m_DummyParent;
+
+  // A timer that will execute blocks of code
+  QTimer m_Timer;
+
+  // The contents of the script
+  QStringList m_ScriptBlocks;
 };
 
 #endif // SNAPTESTQT_H
