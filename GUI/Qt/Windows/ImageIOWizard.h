@@ -1,6 +1,8 @@
 #ifndef IMAGEIOWIZARD_H
 #define IMAGEIOWIZARD_H
 
+#include <QDebug>
+
 #include <QWizard>
 #include "SNAPCommon.h"
 #include "ImageIOWizardModel.h"

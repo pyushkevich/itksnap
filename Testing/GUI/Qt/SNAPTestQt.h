@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QTimer>
 #include <QStringList>
+#include <QThread>
+#include <QVariant>
 
 class MainImageWindow;
 class GlobalUIModel;
@@ -12,6 +14,19 @@ class QJSEngine;
 class QQmlEngine;
 class QTimer;
 class QStringList;
+
+
+class TestWorker : public QThread
+{
+public:
+  TestWorker(QObject *parent, QStringList script, QJSEngine *engine);
+
+  void run();
+
+protected:
+  QStringList m_Script;
+  QJSEngine *m_Engine;
+};
 
 class SNAPTestQt : public QObject
 {
@@ -36,11 +51,15 @@ public:
 public slots:
 
   QObject *findChild(QObject *parent, QString child);
+
+  // Find the contents of an item in a table
+  QVariant tableItemText(QObject *table, int row, int col);
+
   void print(QString text);
 
-protected slots:
+  void printChildren(QObject *parent);
 
-  void onTimeout();
+  void validateValue(QVariant v1, QVariant v2);
 
 protected:
 
@@ -60,6 +79,7 @@ protected:
 
   // The contents of the script
   QStringList m_ScriptBlocks;
+  void printChildrenRecursive(QObject *parent, QString offset);
 };
 
 #endif // SNAPTESTQT_H

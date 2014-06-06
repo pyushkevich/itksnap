@@ -311,10 +311,6 @@ private:
 
   GlobalUIModel *m_Model;
 
-  SmartPtr<ImageIOWizardModel> m_ImageIOModel;
-
-  ImageIOWizard *m_ImageIOWizard;
-
   LabelEditorDialog *m_LabelEditor;
 
   LayerInspectorDialog *m_LayerInspector;

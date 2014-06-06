@@ -119,9 +119,6 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_ViewPanels[3] = ui->panel3D;
 
   // Initialize the dialogs
-  m_ImageIOWizard = new ImageIOWizard(this);
-  m_ImageIOWizard->setModal(true);
-
   m_LabelEditor = new LabelEditorDialog(this);
   m_LabelEditor->setModal(false);
 
@@ -629,12 +626,13 @@ void MainImageWindow::on_actionLoad_from_Image_triggered()
   SmartPtr<LoadSegmentationImageDelegate> delegate = LoadSegmentationImageDelegate::New();
   delegate->Initialize(m_Model->GetDriver());
 
-  m_ImageIOModel = ImageIOWizardModel::New();
-  m_ImageIOModel->InitializeForLoad(m_Model, delegate, "LabelImage", "Segmentation Image");
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model, delegate, "LabelImage", "Segmentation Image");
 
   // Execute the IO wizard
-  m_ImageIOWizard->SetModel(m_ImageIOModel);
-  RaiseDialog(m_ImageIOWizard);
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
 }
 
 
@@ -945,15 +943,10 @@ void MainImageWindow::on_actionOpenMain_triggered()
   model->InitializeForLoad(m_Model, delegate,
                            "AnatomicImage", "Main Image");
 
-  // TODO: you must fix this!
-
   // Execute the IO wizard
-  ImageIOWizard *wiz = new ImageIOWizard(this);
-  wiz->SetModel(model);
-  // wiz->setModal(true);
-  // RaiseDialog(wiz);
-  wiz->exec();
-  delete wiz;
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
 }
 
 void MainImageWindow::on_actionAdd_Overlay_triggered()

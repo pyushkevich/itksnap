@@ -505,8 +505,6 @@ SET(UI_QT_CXX
   GUI/Qt/Components/ZoomInspector.cxx
   GUI/Qt/External/ColorWheel/ColorWheel.cxx
   GUI/Qt/ModelView/GMMTableModel.cxx
-  GUI/Qt/Testing/SNAPTestQt.cxx
-  GUI/Qt/Testing/QtScriptTest1.cxx
   GUI/Qt/View/ColorMapBox.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
   GUI/Qt/View/GenericSliceView.cxx
@@ -544,6 +542,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.cxx
+  Testing/GUI/Qt/SNAPTestQt.cxx
 )
 
 # The header files for the UI project
@@ -583,8 +582,6 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Coupling/QtWidgetCoupling.h
   GUI/Qt/External/ColorWheel/ColorWheel.h
   GUI/Qt/ModelView/GMMTableModel.h
-  GUI/Qt/Testing/QtScriptTest1.h
-  GUI/Qt/Testing/SNAPTestQt.h
   GUI/Qt/View/ColorMapBox.h
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
@@ -620,6 +617,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.h
+  Testing/GUI/Qt/SNAPTestQt.h
 )
 
 # These UI headers don't need to be MOC'd
@@ -694,26 +692,26 @@ SET(UI_FORMS
 
 SET(UI_RESOURCES
   GUI/Qt/Resources/SNAPResources.qrc
-  GUI/Qt/Testing/TestingScripts.qrc
+  Testing/GUI/Qt/TestingScripts.qrc
 )
 
 # The source code for SNAP testing project
 SET(TESTING_CXX
-  Testing/TestMain.cxx
-  Testing/SNAPTestDriver.cxx
+  Testing/Logic/TestMain.cxx
+  Testing/Logic/SNAPTestDriver.cxx
 )
 
 # The source code for the tutorial test
 SET(TESTING_TUTORIAL_CXX
-  Testing/TutorialTest.cxx
+  Testing/Logic/TutorialTest.cxx
 )
 
 # The headers for the testing code
 SET(TESTING_HEADERS
-  Testing/SNAPTestDriver.h
-  Testing/TestBase.h
-  Testing/TestCompareLevelSets.h
-  Testing/TestImageWrapper.h
+  Testing/Logic/SNAPTestDriver.h
+  Testing/Logic/TestBase.h
+  Testing/Logic/TestCompareLevelSets.h
+  Testing/Logic/TestImageWrapper.h
 )
 
 #--------------------------------------------------------------------------------
@@ -775,7 +773,8 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Qt/View
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/MeshExportWizard
-    ${SNAP_SOURCE_DIR}/Testing
+    ${SNAP_SOURCE_DIR}/Testing/Logic
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt
     ${SNAP_BINARY_DIR}
     ${OPENGL_INCLUDE_PATH}
     ${SNAP_QT5_INCLUDE_DIRS}

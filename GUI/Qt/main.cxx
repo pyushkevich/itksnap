@@ -8,7 +8,6 @@
 #include "CommandLineArgumentParser.h"
 #include "SliceWindowCoordinator.h"
 #include "SnakeWizardPanel.h"
-#include "QtScriptTest1.h"
 #include "QtRendererPlatformSupport.h"
 #include "QtIPCManager.h"
 #include "QtCursorOverride.h"
@@ -189,9 +188,6 @@ void setupParser(CommandLineArgumentParser &parser)
 {
 }
 
-#include <QScriptEngine>
-#include <QScriptEngineDebugger>
-
 /**
  * This class describes the command-line options parsed from the command line.
  */
@@ -221,23 +217,6 @@ public:
 };
 
 
-
-void scriptChildren(QScriptEngine &engine, QObject *widget, QString parent)
-{
-  for(int i = 0; i < widget->children().size(); i++)
-    {
-    QObject *c = widget->children()[i];
-
-    if(dynamic_cast<QWidget *>(c) || dynamic_cast<QAction *>(c))
-      {
-      QString name = QString("%1_%2").arg(parent).arg(c->objectName());
-      QScriptValue val = engine.newQObject(c);
-      engine.globalObject().setProperty(name, val);
-      scriptChildren(engine, c, name);
-      }
-
-    }
-}
 
 /**
  * This function takes the command-line arguments and parses them into the
@@ -627,14 +606,6 @@ int main(int argc, char *argv[])
         }
       }
       */
-
-    // Play with scripting
-    // QScriptEngine engine;
-    // QScriptEngineDebugger bugger;
-    // bugger.attachTo(&engine);
-
-    // Find all the child widgets of mainwin
-    // engine.globalObject().setProperty("snap", engine.newQObject(mainwin));
 
     // Configure the IPC communications (as a hidden widget)
     QtIPCManager *ipcman = new QtIPCManager(mainwin);

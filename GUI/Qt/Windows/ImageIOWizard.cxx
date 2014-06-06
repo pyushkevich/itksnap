@@ -367,9 +367,12 @@ void SelectFilePage::on_btnBrowse_pressed()
     }
 }
 
+
 void SelectFilePage::on_inFilename_textChanged(const QString &text)
 {
   bool file_exists = false;
+
+  qDebug() << "on_inFilename_textChanged() " << m_Model;
 
   // The file format for the checkbox
   GuidedNativeImageIO::FileFormat fmt =

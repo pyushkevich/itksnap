@@ -10,6 +10,7 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QThread>
+#include <QCoreApplication>
 #include "SNAPQtCommon.h"
 
 using namespace std;
@@ -50,14 +51,24 @@ SNAPTestQt::~SNAPTestQt()
   delete m_DummyParent;
 }
 
+#include <QFileInfo>
+
 SNAPTestQt::ReturnCode
 SNAPTestQt::RunTest(std::string test)
 {
   if(test == "list")
     return ListTests();
 
+  // The test may be a path to an actual file
+  QString url = from_utf8(test);
+  if(!QFileInfo(url).isReadable())
+    url = QString(":/scripts/Scripts/test_%1.js").arg(from_utf8(test));
+
+  // Report which test we are accessing
+  qDebug() << "Running test " << url;
+
   // Find the script file corresponding to the test
-  QFile file(QString(":/scripts/Scripts/test_%1.js").arg(from_utf8(test)));
+  QFile file(url);
   if(!file.open(QIODevice::ReadOnly))
     return NO_SUCH_TEST;
 
@@ -95,8 +106,10 @@ SNAPTestQt::RunTest(std::string test)
   // Close file
   file.close();
 
-  // Start timer
-  m_Timer.start(1000);
+  // Create and run the thread
+  TestWorker *worker = new TestWorker(this, m_ScriptBlocks, m_ScriptEngine);
+  connect(worker, &TestWorker::finished, worker, &QObject::deleteLater);
+  worker->start();
 
   return SUCCESS;
 
@@ -116,35 +129,57 @@ QObject *SNAPTestQt::findChild(QObject *parent, QString child)
   return parent->findChild<QObject *>(child);
 }
 
+#include <QAbstractItemView>
+
+QVariant SNAPTestQt::tableItemText(QObject *table, int row, int col)
+{
+  QAbstractItemView *view = dynamic_cast<QAbstractItemView *>(table);
+  if(view)
+    {
+    QAbstractItemModel *model = view->model();
+    return model->data(model->index(row, col));
+    }
+
+  return QVariant();
+}
+
 void SNAPTestQt::print(QString text)
 {
   qDebug() << text;
 }
 
-void SNAPTestQt::onTimeout()
+void SNAPTestQt::printChildrenRecursive(QObject *parent, QString offset)
 {
-  // Get the next block
-  QString script = m_ScriptBlocks.front();
-  m_ScriptBlocks.pop_front();
+  QString line = QString("%1%2 : %3").arg(offset,parent->metaObject()->className(),parent->objectName());
+  qDebug() << line;
 
-  // Execute the script
-  if(!script.isNull())
+  foreach (QObject* child, parent->children())
     {
-    QJSValue rc = m_ScriptEngine->evaluate(script);
-    if(rc.isError())
-      {
-      qDebug() << "JavaScript exception:" << rc.toString();
-      m_ScriptBlocks.clear();
-      }
-    }
-  else
-    {
-    qDebug() << "Script is finished!";
+    QWidget *widget = dynamic_cast<QWidget *>(child);
+    if(widget)
+      printChildrenRecursive(child, offset + "  ");
     }
 
-  // Check timer
-  if(!m_ScriptBlocks.size())
-    m_Timer.stop();
+}
+
+void SNAPTestQt::printChildren(QObject *parent)
+{
+  printChildrenRecursive(parent, "");
+}
+
+void SNAPTestQt::validateValue(QVariant v1, QVariant v2)
+{
+  // Validation involves checking if the values are equal. If not,
+  // the program should be halted
+  if(v1 != v2)
+    {
+    // Validation failed!
+    qWarning() << QString("Validation %1 == %2 failed!").arg(v1.toString(),v2.toString());
+
+    // Exit with code corresponding to test failure
+    QCoreApplication::exit(REGRESSION_TEST_FAILURE);
+    }
+
 }
 
 SNAPTestQt::ReturnCode
@@ -153,4 +188,30 @@ SNAPTestQt::ListTests()
   cout << "Available Tests" << endl;
   cout << "  SnakeThreshQt    : Test segmentation with thresholding option" << endl;
   return SUCCESS;
+}
+
+
+TestWorker::TestWorker(QObject *parent, QStringList script, QJSEngine *engine)
+  : QThread(parent)
+{
+  m_Script = script;
+  m_Engine = engine;
+}
+
+void TestWorker::run()
+{
+  for(int i = 0; i < m_Script.size(); i++)
+    {
+    msleep(1000);
+
+    QJSValue rc = m_Engine->evaluate(m_Script[i]);
+    if(rc.isError())
+      {
+      qWarning() << "JavaScript exception:" << rc.toString();
+      QCoreApplication::exit(SNAPTestQt::REGRESSION_TEST_FAILURE);
+      }
+    }
+
+  // Once the test has completed, we can exit the application
+  QCoreApplication::exit(SNAPTestQt::SUCCESS);
 }
