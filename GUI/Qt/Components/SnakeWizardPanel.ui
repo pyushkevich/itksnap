@@ -52,7 +52,16 @@ QGroupBox::title {
    <property name="spacing">
     <number>8</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>5</number>
+   </property>
+   <property name="topMargin">
+    <number>5</number>
+   </property>
+   <property name="rightMargin">
+    <number>5</number>
+   </property>
+   <property name="bottomMargin">
     <number>5</number>
    </property>
    <item>
@@ -67,7 +76,16 @@ QGroupBox::title {
       <string>Current Stage</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <item>
@@ -83,7 +101,16 @@ QGroupBox::title {
         </property>
         <widget class="QWidget" name="pgInfoPreproc">
          <layout class="QVBoxLayout" name="verticalLayout_6">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
@@ -114,7 +141,16 @@ p, li { white-space: pre-wrap; }
         </widget>
         <widget class="QWidget" name="pgInfoBubbles">
          <layout class="QVBoxLayout" name="verticalLayout_8">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
@@ -145,7 +181,16 @@ p, li { white-space: pre-wrap; }
         </widget>
         <widget class="QWidget" name="page">
          <layout class="QVBoxLayout" name="verticalLayout_9">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
@@ -191,7 +236,16 @@ p, li { white-space: pre-wrap; }
       <string>Actions:</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <item>
@@ -210,7 +264,16 @@ p, li { white-space: pre-wrap; }
           <property name="spacing">
            <number>4</number>
           </property>
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
@@ -219,7 +282,16 @@ p, li { white-space: pre-wrap; }
              <property name="spacing">
               <number>12</number>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -303,7 +375,16 @@ p, li { white-space: pre-wrap; }
              <property name="spacing">
               <number>12</number>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
             </layout>
@@ -315,7 +396,7 @@ p, li { white-space: pre-wrap; }
              <string>Lower threshold only</string>
             </property>
             <property name="currentIndex">
-             <number>2</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="pgThreshold">
              <layout class="QGridLayout" name="gridLayout_3">
@@ -353,7 +434,16 @@ p, li { white-space: pre-wrap; }
                  <property name="spacing">
                   <number>4</number>
                  </property>
-                 <property name="margin">
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
                   <number>0</number>
                  </property>
                  <item>
@@ -634,7 +724,16 @@ p, li { white-space: pre-wrap; }
                  <property name="spacing">
                   <number>4</number>
                  </property>
-                 <property name="margin">
+                 <property name="leftMargin">
+                  <number>4</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>4</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>4</number>
+                 </property>
+                 <property name="bottomMargin">
                   <number>4</number>
                  </property>
                  <item>
@@ -1026,11 +1125,20 @@ competition</string>
           <item>
            <widget class="QWidget" name="widget_5" native="true">
             <layout class="QGridLayout" name="gridLayout_2">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <property name="verticalSpacing">
               <number>6</number>
-             </property>
-             <property name="margin">
-              <number>0</number>
              </property>
             </layout>
            </widget>
@@ -1041,7 +1149,16 @@ competition</string>
              <property name="spacing">
               <number>4</number>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -1092,7 +1209,16 @@ competition</string>
         </widget>
         <widget class="QWidget" name="pgBubbles">
          <layout class="QVBoxLayout" name="verticalLayout_4">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
@@ -1127,7 +1253,16 @@ competition</string>
              <property name="spacing">
               <number>0</number>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
             </layout>
@@ -1264,7 +1399,16 @@ p, li { white-space: pre-wrap; }
              <property name="spacing">
               <number>4</number>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -1327,7 +1471,16 @@ p, li { white-space: pre-wrap; }
              <property name="spacing">
               <number>12</number>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
             </layout>
@@ -1337,7 +1490,16 @@ p, li { white-space: pre-wrap; }
         </widget>
         <widget class="QWidget" name="pgEvolution">
          <layout class="QVBoxLayout" name="verticalLayout_5">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
@@ -1346,7 +1508,16 @@ p, li { white-space: pre-wrap; }
              <property name="spacing">
               <number>12</number>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -1375,7 +1546,16 @@ p, li { white-space: pre-wrap; }
           <item>
            <widget class="QWidget" name="widget_15" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout_2">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -1410,7 +1590,16 @@ p, li { white-space: pre-wrap; }
              <property name="spacing">
               <number>12</number>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -1436,7 +1625,16 @@ p, li { white-space: pre-wrap; }
              <property name="spacing">
               <number>4</number>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
               <number>4</number>
              </property>
              <item>
@@ -1540,14 +1738,23 @@ p, li { white-space: pre-wrap; }
              <property name="sizeConstraint">
               <enum>QLayout::SetDefaultConstraint</enum>
              </property>
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>4</number>
+             </property>
              <property name="horizontalSpacing">
               <number>12</number>
              </property>
              <property name="verticalSpacing">
               <number>2</number>
-             </property>
-             <property name="margin">
-              <number>4</number>
              </property>
              <item row="0" column="0">
               <widget class="QLabel" name="label">
@@ -1612,7 +1819,16 @@ p, li { white-space: pre-wrap; }
              <property name="spacing">
               <number>4</number>
              </property>
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>

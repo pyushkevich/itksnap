@@ -19,13 +19,20 @@ class QStringList;
 class TestWorker : public QThread
 {
 public:
-  TestWorker(QObject *parent, QStringList script, QJSEngine *engine);
+  TestWorker(QObject *parent, QString script, QJSEngine *engine, double accel_factor);
 
   void run();
 
 protected:
-  QStringList m_Script;
+  QString m_MainScript;
   QJSEngine *m_Engine;
+
+  // Acceleration factor
+  double m_Acceleration;
+
+  void runScript(QString script_url);
+  void executeScriptlet(QString scriptlet);
+  void processDirective(QString line);
 };
 
 class SNAPTestQt : public QObject
@@ -43,23 +50,31 @@ public:
     };
 
 
-  SNAPTestQt(MainImageWindow *win, std::string datadir);
+  SNAPTestQt(MainImageWindow *win, std::string datadir, double accel_factor);
   ~SNAPTestQt();
 
-  ReturnCode RunTest(std::string test);
+  void LaunchTest(std::string test);
 
 public slots:
 
   QObject *findChild(QObject *parent, QString child);
 
-  // Find the contents of an item in a table
+  // Return the contents of an item in a table
   QVariant tableItemText(QObject *table, int row, int col);
+
+  // Find the index of an item in a widget (combo, list)
+  QVariant findItemRow(QObject *container, QVariant text);
+
+  // Find the index of an item in a widget (combo, list)
+  QVariant findItemColumn(QObject *container, QVariant text);
 
   void print(QString text);
 
   void printChildren(QObject *parent);
 
   void validateValue(QVariant v1, QVariant v2);
+
+  void validateFloatValue(double v1, double v2, double precision);
 
 protected:
 
@@ -74,11 +89,11 @@ protected:
   // A dummy parent object for this object
   QObject *m_DummyParent;
 
-  // A timer that will execute blocks of code
-  QTimer m_Timer;
+  // Acceleration factor
+  double m_Acceleration;
 
-  // The contents of the script
-  QStringList m_ScriptBlocks;
+  // Helper functions
+  QModelIndex findItem(QObject *container, QVariant text);
   void printChildrenRecursive(QObject *parent, QString offset);
 };
 

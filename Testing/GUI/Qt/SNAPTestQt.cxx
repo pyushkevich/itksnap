@@ -10,14 +10,15 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QThread>
+#include <QRegExp>
 #include <QCoreApplication>
 #include "SNAPQtCommon.h"
 
 using namespace std;
 
-SNAPTestQt::SNAPTestQt(
-    MainImageWindow *win,
-    std::string datadir)
+SNAPTestQt::SNAPTestQt(MainImageWindow *win,
+    std::string datadir, double accel_factor)
+  : m_Acceleration(accel_factor)
 {
   // We need a dummy parent to prevent self-deletion
   m_DummyParent = new QObject();
@@ -39,9 +40,6 @@ SNAPTestQt::SNAPTestQt(
 
   // Assign the data directory to the script engine
   m_ScriptEngine->globalObject().setProperty("datadir", from_utf8(datadir));
-
-  // Hook up the timer
-  connect(&m_Timer, SIGNAL(timeout()), this, SLOT(onTimeout()));
 }
 
 SNAPTestQt::~SNAPTestQt()
@@ -53,75 +51,20 @@ SNAPTestQt::~SNAPTestQt()
 
 #include <QFileInfo>
 
-SNAPTestQt::ReturnCode
-SNAPTestQt::RunTest(std::string test)
+void
+SNAPTestQt::LaunchTest(std::string test)
 {
+  // Special case: listing all tests
   if(test == "list")
-    return ListTests();
-
-  // The test may be a path to an actual file
-  QString url = from_utf8(test);
-  if(!QFileInfo(url).isReadable())
-    url = QString(":/scripts/Scripts/test_%1.js").arg(from_utf8(test));
-
-  // Report which test we are accessing
-  qDebug() << "Running test " << url;
-
-  // Find the script file corresponding to the test
-  QFile file(url);
-  if(!file.open(QIODevice::ReadOnly))
-    return NO_SUCH_TEST;
-
-  // Read the script
-  QTextStream stream(&file);
-
-  // Break the script into pieces
-  m_ScriptBlocks.clear();
-
-  while(!stream.atEnd())
     {
-    // Read from the stream until we find a block of code
-    while(!stream.atEnd())
-      {
-      QString line = stream.readLine();
-      if(line.isNull() || line.startsWith("//<--"))
-        break;
-      }
-
-    // Read and execute the lines of code inside the block
-    QString script;
-    while(!stream.atEnd())
-      {
-      QString line = stream.readLine();
-      if(line.isNull() || line.startsWith("//-->"))
-        break;
-      script.append(line);
-      script.append('\n');
-      }
-
-    // Add this block
-    m_ScriptBlocks.append(script);
+    ListTests();
+    QCoreApplication::exit(SUCCESS);
     }
 
-  // Close file
-  file.close();
-
   // Create and run the thread
-  TestWorker *worker = new TestWorker(this, m_ScriptBlocks, m_ScriptEngine);
+  TestWorker *worker = new TestWorker(this, from_utf8(test), m_ScriptEngine, m_Acceleration);
   connect(worker, &TestWorker::finished, worker, &QObject::deleteLater);
   worker->start();
-
-  return SUCCESS;
-
- /*
-  // Run the script
-  // TODO: do this on a timer, one line at a time
-  QJSValue rc = m_ScriptEngine->evaluate(script, fn.fileName());
-  if(rc.isError())
-    qDebug() << "JavaScript exception:" << rc.toString();
-
-  return (rc.toInt() == 0) ? SUCCESS : REGRESSION_TEST_FAILURE;
-  */
 }
 
 QObject *SNAPTestQt::findChild(QObject *parent, QString child)
@@ -142,6 +85,52 @@ QVariant SNAPTestQt::tableItemText(QObject *table, int row, int col)
 
   return QVariant();
 }
+
+#include <QComboBox>
+
+QModelIndex SNAPTestQt::findItem(QObject *container, QVariant text)
+{
+  QAbstractItemModel *model = NULL;
+
+  // Is it a combo box?
+  if(QComboBox *combo = dynamic_cast<QComboBox *>(container))
+    model = combo->model();
+
+  // Is it an item view?
+  else if(QAbstractItemView *itemview = dynamic_cast<QAbstractItemView *>(container))
+    model = itemview->model();
+
+  // Find the item
+  if(model)
+    {
+    QModelIndexList found = model->match(model->index(0,0),Qt::DisplayRole,text);
+    if(found.size())
+      return found.at(0);
+    }
+
+  return QModelIndex();
+}
+
+
+
+QVariant SNAPTestQt::findItemRow(QObject *container, QVariant text)
+{
+  QModelIndex idx = findItem(container, text);
+  if(idx.isValid())
+    return idx.row();
+
+  return QVariant();
+}
+
+QVariant SNAPTestQt::findItemColumn(QObject *container, QVariant text)
+{
+  QModelIndex idx = findItem(container, text);
+  if(idx.isValid())
+    return idx.column();
+
+  return QVariant();
+}
+
 
 void SNAPTestQt::print(QString text)
 {
@@ -182,6 +171,20 @@ void SNAPTestQt::validateValue(QVariant v1, QVariant v2)
 
 }
 
+void SNAPTestQt::validateFloatValue(double v1, double v2, double precision)
+{
+  // Validation involves checking if the values are equal. If not,
+  // the program should be halted
+  if(fabs(v2 - v2) > precision)
+    {
+    // Validation failed!
+    qWarning() << QString("Validation %1 == %2 (with precision %3) failed!").arg(v2,v2,precision);
+
+    // Exit with code corresponding to test failure
+    QCoreApplication::exit(REGRESSION_TEST_FAILURE);
+    }
+}
+
 SNAPTestQt::ReturnCode
 SNAPTestQt::ListTests()
 {
@@ -191,26 +194,113 @@ SNAPTestQt::ListTests()
 }
 
 
-TestWorker::TestWorker(QObject *parent, QStringList script, QJSEngine *engine)
+TestWorker::TestWorker(QObject *parent, QString script, QJSEngine *engine, double accel_factor)
   : QThread(parent)
 {
-  m_Script = script;
+  m_MainScript = script;
   m_Engine = engine;
+  m_Acceleration = accel_factor > 0.0 ? accel_factor : 1.0;
+}
+
+
+
+void TestWorker::processDirective(QString line)
+{
+  // If the line is a command, process the command
+  QRegExp rxSleep("//---\\s+sleep\\s+(\\d+)");
+  QRegExp rxSource("//---\\s+source\\s+(\\w+)");
+
+  if(rxSleep.indexIn(line) >= 0)
+    {
+    // Sleeping
+    int ms = rxSleep.cap(1).toInt() * m_Acceleration;
+    qDebug() << QString("Sleeping for %1 ms").arg(ms);
+    msleep(ms);
+    }
+
+  else if(rxSource.indexIn(line) >= 0)
+    {
+    // Sleeping
+    QString file = rxSource.cap(1);
+    this->runScript(file);
+    }
+
+  else
+    {
+    // Unknown directive
+    qDebug() << "Unknown directive" << line;
+    }
+}
+
+void TestWorker::executeScriptlet(QString scriptlet)
+{
+  QJSValue rc = m_Engine->evaluate(scriptlet);
+  if(rc.isError())
+    {
+    qWarning() << "JavaScript exception:" << rc.toString();
+    QCoreApplication::exit(SNAPTestQt::REGRESSION_TEST_FAILURE);
+    }
+}
+
+
+void TestWorker::runScript(QString script_url)
+{
+  // The test may be a path to an actual file
+  if(!QFileInfo(script_url).isReadable())
+    script_url = QString(":/scripts/Scripts/test_%1.js").arg(script_url);
+
+  // Report which test we are accessing
+  qDebug() << "Running test " << script_url;
+
+  // Find the script file corresponding to the test
+  QFile file(script_url);
+  if(!file.open(QIODevice::ReadOnly))
+    {
+    qWarning() << QString("Unable to read test script %1").arg(script_url);
+    QCoreApplication::exit(SNAPTestQt::NO_SUCH_TEST);
+    }
+
+  // Read the script
+  QTextStream stream(&file);
+
+  // Break the script into pieces that should be sent to the processor
+  QString scriptlet;
+  while(true)
+    {
+    // Read a line of the script
+    QString line = stream.readLine();
+
+    // Is the line an interpreter command or a script line?
+    if(line.isNull() || line.startsWith("//---"))
+      {
+      // The current scriptlet has ended. Time to execute!
+      this->executeScriptlet(scriptlet);
+
+      // Reset the scriptlet
+      scriptlet = QString();
+
+      // If the line is null (eof) break
+      if(line.isNull())
+        break;
+
+      // Otherwise, it's a directive
+      this->processDirective(line);
+      }
+    else
+      {
+      // Append the line to the current scriptlent
+      scriptlet.append(line);
+      scriptlet.append('\n');
+      }
+    }
+
+  // That's it - the script is finished
 }
 
 void TestWorker::run()
 {
-  for(int i = 0; i < m_Script.size(); i++)
-    {
-    msleep(1000);
-
-    QJSValue rc = m_Engine->evaluate(m_Script[i]);
-    if(rc.isError())
-      {
-      qWarning() << "JavaScript exception:" << rc.toString();
-      QCoreApplication::exit(SNAPTestQt::REGRESSION_TEST_FAILURE);
-      }
-    }
+  // Run the top-level script
+  runScript(m_MainScript);
 
   // Once the test has completed, we can exit the application
   QCoreApplication::exit(SNAPTestQt::SUCCESS);

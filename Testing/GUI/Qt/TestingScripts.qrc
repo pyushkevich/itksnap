@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/scripts">
       <file>Scripts/test_OpenImage.js</file>
+      <file>Scripts/test_ProbeIntensity.js</file>
+      <file>Scripts/test_RegionCompetition.js</file>
     </qresource>
 </RCC>

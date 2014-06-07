@@ -918,9 +918,26 @@ ENDIF(APPLE)
 
 ENABLE_TESTING()
 
-# Tavi's qt script test
-ADD_TEST(TestQtScript ${SNAP_EXE} --testQtScript 2)
-SET_TESTS_PROPERTIES(TestQtScript PROPERTIES PASS_REGULAR_EXPRESSION "QtScriptTest1::Run: 71")
+include(BundleUtilities)
+
+# The list of Qt animated GUI tests
+SET(GUI_TESTS
+  ProbeIntensity
+  RegionCompetition)
+
+SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
+
+GET_PROPERTY(GUI_TEST_EXE TARGET ${SNAP_BUNDLE_NAME} PROPERTY LOCATION)
+#SET(GUI_TEST_EXE ${EXECUTABLE_OUTPUT_PATH})
+
+# Set up a test for each GUI test
+FOREACH(GUI_TEST ${GUI_TESTS})
+
+  MESSAGE(STATUS "${GUI_TEST} ${GUI_TEST_EXE} --test ${GUI_TEST} --testdir ${TESTDATA_DIR}")
+
+  ADD_TEST(${GUI_TEST} ${GUI_TEST_EXE} --test ${GUI_TEST} --testdir "${TESTDATA_DIR}")
+
+ENDFOREACH(GUI_TEST)
 
 # Orientation widget test
 SET(TEST_ORIENTATION_WIDGET_HEADERS

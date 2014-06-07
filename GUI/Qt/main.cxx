@@ -181,7 +181,7 @@ void usage()
   cout << "   --test list          : List available tests. " << endl;
   cout << "   --test TESTID        : Execute a test. " << endl;
   cout << "   --testdir DIR        : Set the root directory for tests. " << endl;
-  cout << "   --testQtScript index : Runs QtScript based test indexed by index. " << endl;
+  cout << "   --testacc factor     : Adjust the interval between test commands by factor (e.g., 0.5). " << endl;
 }
 
 void setupParser(CommandLineArgumentParser &parser)
@@ -211,6 +211,7 @@ public:
   // Test-related stuff
   std::string xTestId;
   std::string fnTestDir;
+  double xTestAccel;
 
   CommandLineRequest()
     : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0) {}
@@ -264,8 +265,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   parser.AddOption("--test", 1);
   parser.AddOption("--testdir", 1);
-
-  parser.AddOption("--testQtScript", 1);
+  parser.AddOption("--testacc", 1);
 
   // This dummy option is actually used internally. It's a work-around for
   // a buggy behavior on MacOS, when execvp actually causes a file
@@ -413,6 +413,12 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
       argdata.fnTestDir = parseResult.GetOptionParameter("--testdir");
     else
       argdata.fnTestDir = ".";
+
+    if(parseResult.IsOptionPresent("--testacc"))
+      argdata.xTestAccel = atof(parseResult.GetOptionParameter("--testacc"));
+    else
+      argdata.xTestAccel = 1.0;
+
     }
 
   return 0;
@@ -628,8 +634,8 @@ int main(int argc, char *argv[])
     // Do the test
     if(argdata.xTestId.size())
       {
-      testingEngine = new SNAPTestQt(mainwin, argdata.fnTestDir);
-      testingEngine->RunTest(argdata.xTestId);
+      testingEngine = new SNAPTestQt(mainwin, argdata.fnTestDir, argdata.xTestAccel);
+      testingEngine->LaunchTest(argdata.xTestId);
       }
 
     // Run application
