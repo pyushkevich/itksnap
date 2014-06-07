@@ -299,9 +299,72 @@ void TestWorker::runScript(QString script_url)
 
 void TestWorker::run()
 {
+  // Add ourselves to the engine
+  QJSValue mwin = m_Engine->newQObject(this);
+  m_Engine->globalObject().setProperty("thread", mwin);
+
   // Run the top-level script
-  runScript(m_MainScript);
+  // runScript(m_MainScript);
+  source(m_MainScript);
 
   // Once the test has completed, we can exit the application
   QCoreApplication::exit(SNAPTestQt::SUCCESS);
+}
+
+void TestWorker::wait(unsigned int msec)
+{
+  msleep(msec);
+}
+
+void TestWorker::source(QString script_url)
+{
+  // The test may be a path to an actual file
+  if(!QFileInfo(script_url).isReadable())
+    script_url = QString(":/scripts/Scripts/test_%1.js").arg(script_url);
+
+  // Report which test we are accessing
+  qDebug() << "Running test " << script_url;
+
+  // Find the script file corresponding to the test
+  QFile file(script_url);
+  if(!file.open(QIODevice::ReadOnly))
+    {
+    qWarning() << QString("Unable to read test script %1").arg(script_url);
+    QCoreApplication::exit(SNAPTestQt::NO_SUCH_TEST);
+    }
+
+  // Read the script
+  QTextStream stream(&file);
+  QString script;
+
+  // Read the script line by line, making substitutions
+  while(!stream.atEnd())
+    {
+    QString line = stream.readLine();
+    QRegExp rxSleep("^\\s*$");
+    QRegExp rxComment("//===\\s+(\\w+.*)");
+
+    if(rxSleep.indexIn(line) >= 0)
+      {
+      line = QString("thread.wait(500)");
+      }
+    else if(rxComment.indexIn(line) >= 0)
+      {
+      line = QString("engine.print(\"%1\")").arg(rxComment.cap(1));
+      }
+
+    script += line;
+    script += "\n";
+    }
+
+  // Close the file
+  file.close();
+
+  // Execute it
+  QJSValue rc = m_Engine->evaluate(script);
+  if(rc.isError())
+    {
+    qWarning() << "JavaScript exception:" << rc.toString();
+    QCoreApplication::exit(SNAPTestQt::REGRESSION_TEST_FAILURE);
+    }
 }

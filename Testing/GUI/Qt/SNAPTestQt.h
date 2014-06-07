@@ -18,10 +18,17 @@ class QStringList;
 
 class TestWorker : public QThread
 {
+  Q_OBJECT
+
 public:
   TestWorker(QObject *parent, QString script, QJSEngine *engine, double accel_factor);
 
   void run();
+
+public slots:
+
+  void wait(unsigned int msec);
+  void source(QString script_url);
 
 protected:
   QString m_MainScript;

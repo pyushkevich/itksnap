@@ -1,19 +1,16 @@
 // This script positions the cursor and checks image intensity
 
-//--- source OpenImage
-engine.print("Setting cursor position")
-var cursx = engine.findChild(mainwin, "inCursorX")
-var cursy = engine.findChild(mainwin, "inCursorY")
-var cursz = engine.findChild(mainwin, "inCursorZ")
-cursx.value = 75;
-cursy.value = 6;
-cursz.value = 27;
+// Call the open image script
+thread.source("Library")
 
-//--- sleep 600
-engine.print("Pulling up image information")
-var table = engine.findChild(mainwin, "tableVoxelUnderCursor")
-var value = engine.tableItemText(table, 0, 1)
-engine.print("Result is " + value)
+// Open the test image
+openMainImage("MRIcrop-orig.gipl.gz");
 
-//--- sleep 600
+// Put cursor somewhere
+setCursor(75,6,27);
+
+// Check the image intensity
+var value = readVoxelIntensity(0);
+
+// Validate
 engine.validateValue(value, 54)
