@@ -144,12 +144,14 @@ void SynchronizationModel::ReadIPCState()
       AnatomicalDirection dir = app->GetAnatomicalDirectionForDisplayWindow(i);
 
       if(m_SyncZoomModel->GetValue()
+         && gsm->IsSliceInitialized()
          && gsm->GetViewZoom() != ipcm.zoom_level[dir])
         {
           gsm->SetViewZoom(ipcm.zoom_level[dir]);
         }
 
       if(m_SyncPanModel->GetValue()
+         && gsm->IsSliceInitialized()
          && gsm->GetViewPositionRelativeToCursor() != ipcm.viewPositionRelative[dir])
         {
         gsm->SetViewPositionRelativeToCursor(ipcm.viewPositionRelative[dir]);

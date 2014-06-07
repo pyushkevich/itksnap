@@ -166,7 +166,7 @@ void
 GMMPreprocessingFilterConfigTraits
 ::DetachInputs(FilterType *filter)
 {
-  while(filter->GetNumberOfInputs())
+  while(filter->GetNumberOfValidRequiredInputs())
     filter->PopBackInput();
 
   filter->SetMixtureModel(NULL);
@@ -213,7 +213,7 @@ void
 RFPreprocessingFilterConfigTraits
 ::DetachInputs(FilterType *filter)
 {
-  while(filter->GetNumberOfInputs())
+  while(filter->GetNumberOfValidRequiredInputs())
     filter->PopBackInput();
 
   filter->SetClassifier(NULL);
