@@ -10,6 +10,9 @@ SimpleFileDialogWithHistory::SimpleFileDialogWithHistory(QWidget *parent) :
   QDialog(parent),
   ui(new Ui::SimpleFileDialogWithHistory)
 {
+  // Set an object name for scripting
+  this->setObjectName("dlgSimpleFile");
+
   ui->setupUi(this);
   m_OpenMode = true;
 
@@ -35,13 +38,14 @@ void SimpleFileDialogWithHistory
 
 QString
 SimpleFileDialogWithHistory
-::showOpenDialog(QString window_title,
+::showOpenDialog(QWidget *parent,
+                 QString window_title,
                  QString file_title,
                  QStringList &local_history, QStringList &global_history,
                  QString file_pattern)
 {
   // Configure the dialog
-  SimpleFileDialogWithHistory *dialog = new SimpleFileDialogWithHistory();
+  SimpleFileDialogWithHistory *dialog = new SimpleFileDialogWithHistory(parent);
   dialog->setWindowTitle(window_title);
   dialog->ui->label->setText(file_title);
   dialog->m_OpenMode = true;
@@ -58,13 +62,14 @@ SimpleFileDialogWithHistory
 
 QString
 SimpleFileDialogWithHistory
-::showSaveDialog(QString window_title,
+::showSaveDialog(QWidget *parent,
+                 QString window_title,
                  QString file_title,
                  QStringList &local_history, QStringList &global_history,
                  QString file_pattern)
 {
   // Configure the dialog
-  SimpleFileDialogWithHistory *dialog = new SimpleFileDialogWithHistory();
+  SimpleFileDialogWithHistory *dialog = new SimpleFileDialogWithHistory(parent);
   dialog->setWindowTitle(window_title);
   dialog->ui->label->setText(file_title);
   dialog->m_OpenMode = false;

@@ -331,6 +331,22 @@ bool PaintbrushModel::ProcessMouseLeaveEvent()
   return true;
 }
 
+void PaintbrushModel::AcceptAtCursor()
+{
+  IRISApplication *driver = m_Parent->GetDriver();
+
+  m_MousePosition = m_Parent->GetDriver()->GetCursorPosition();
+  m_MouseInside = true;
+  ApplyBrush(false, false);
+
+  // We need to commit the drawing
+  driver->StoreUndoPoint("Drawing with paintbrush");
+
+  // TODO: this is ugly. The code for applying a brush should really be
+  // placed in the IRISApplication.
+  driver->InvokeEvent(SegmentationChangeEvent());
+}
+
 bool
 PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
 {

@@ -137,23 +137,43 @@ void SNAPTestQt::print(QString text)
   qDebug() << text;
 }
 
-void SNAPTestQt::printChildrenRecursive(QObject *parent, QString offset)
+void SNAPTestQt::printChildrenRecursive(QObject *parent, QString offset, const char *className)
 {
-  QString line = QString("%1%2 : %3").arg(offset,parent->metaObject()->className(),parent->objectName());
-  qDebug() << line;
-
-  foreach (QObject* child, parent->children())
+  if(parent)
     {
-    QWidget *widget = dynamic_cast<QWidget *>(child);
-    if(widget)
-      printChildrenRecursive(child, offset + "  ");
-    }
+    if(!className || parent->inherits(className))
+      {
+      QString line = QString("%1%2 : %3").arg(offset,parent->metaObject()->className(),parent->objectName());
+      qDebug() << line;
+      }
 
+    foreach (QObject* child, parent->children())
+      {
+      QWidget *widget = dynamic_cast<QWidget *>(child);
+      if(widget)
+        printChildrenRecursive(child, offset + "  ", className);
+      }
+    }
+  else
+    {
+    qDebug() << "NULL passed to printChild";
+    }
 }
 
 void SNAPTestQt::printChildren(QObject *parent)
 {
   printChildrenRecursive(parent, "");
+}
+
+void SNAPTestQt::printChildren(QObject *parent, QString className)
+{
+  const char *cn = NULL;
+  if(!className.isNull())
+    {
+    QByteArray ba = className.toLocal8Bit();
+    cn = ba.data();
+    }
+  printChildrenRecursive(parent, "", cn);
 }
 
 void SNAPTestQt::validateValue(QVariant v1, QVariant v2)
@@ -168,6 +188,11 @@ void SNAPTestQt::validateValue(QVariant v1, QVariant v2)
     // Exit with code corresponding to test failure
     QCoreApplication::exit(REGRESSION_TEST_FAILURE);
     }
+  else
+    {
+    // Validation failed!
+    qDebug() << QString("Validation %1 == %2 ok!").arg(v1.toString(),v2.toString());
+    }
 
 }
 
@@ -175,13 +200,81 @@ void SNAPTestQt::validateFloatValue(double v1, double v2, double precision)
 {
   // Validation involves checking if the values are equal. If not,
   // the program should be halted
-  if(fabs(v2 - v2) > precision)
+  if(fabs(v1 - v2) > precision)
     {
     // Validation failed!
-    qWarning() << QString("Validation %1 == %2 (with precision %3) failed!").arg(v2,v2,precision);
+    qWarning() << QString("Validation %1 == %2 (with precision %3) failed!").arg(v1).arg(v2).arg(precision);
 
     // Exit with code corresponding to test failure
     QCoreApplication::exit(REGRESSION_TEST_FAILURE);
+    }
+  else
+    {
+    // Validation failed!
+    qDebug() << QString("Validation %1 == %2 (with precision %3) ok!").arg(v1).arg(v2).arg(precision);
+    }
+}
+
+#include <QMouseEvent>
+#include <QApplication>
+
+void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QString eventType, QString button)
+{
+  // Special case handlers
+  if(eventType == "click")
+    {
+    postMouseEvent(object, rel_x, rel_y, "press", button);
+    postMouseEvent(object, rel_x, rel_y, "release", button);
+    return;
+    }
+
+  QWidget *widget = dynamic_cast<QWidget *>(object);
+  if(widget)
+    {
+    QSize size = widget->size();
+    QPoint point((int)(size.width() * rel_x), (int)(size.height() * rel_y));
+
+    Qt::MouseButton btn = Qt::NoButton;
+    if(button == "left")
+      btn = Qt::LeftButton;
+    else if(button == "right")
+      btn = Qt::RightButton;
+    else if(button == "middle")
+      btn = Qt::MidButton;
+
+    QEvent::Type type = QEvent::None;
+    if(eventType == "press")
+      type = QEvent::MouseButtonPress;
+    else if(eventType == "release")
+      type = QEvent::MouseButtonRelease;
+
+    QMouseEvent *event = new QMouseEvent(QEvent::MouseButtonPress, point, btn, btn, Qt::NoModifier);
+    QApplication::postEvent(widget, event);
+    }
+}
+
+#include <QKeySequence>
+void SNAPTestQt::postKeyEvent(QObject *object, QString key)
+{
+  QWidget *widget = dynamic_cast<QWidget *>(object);
+  if(widget)
+    {
+    QKeySequence seq(key);
+    if(seq.count() == 1)
+      {
+      int code = seq[0];
+      int key = code & 0x01ffffff;
+      int mod = code & 0xfe000000;
+      Qt::KeyboardModifiers mods;
+
+      if(mod & Qt::ShiftModifier)
+        mods |= Qt::ShiftModifier;
+      if(mod & Qt::ControlModifier)
+        mods |= Qt::ControlModifier;
+
+      QKeyEvent *ev = new QKeyEvent(QEvent::KeyPress, key, mods);
+      QApplication::postEvent(widget, ev);
+      }
     }
 }
 

@@ -30,6 +30,8 @@ public:
   void enterEvent(QEvent *);
   void leaveEvent(QEvent *);
 
+  void keyPressEvent(QKeyEvent *ev);
+
 public slots:
 
   void onModelUpdate(const EventBucket &bucket);

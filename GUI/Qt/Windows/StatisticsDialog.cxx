@@ -19,6 +19,7 @@ StatisticsDialog::StatisticsDialog(QWidget *parent) :
   ui(new Ui::StatisticsDialog)
 {
   ui->setupUi(this);
+  this->setObjectName("dlgStatistics");
   m_ItemModel = new QStandardItemModel(this);
   ui->tvVolumes->setModel(m_ItemModel);
   m_Stats = new SegmentationStatistics();
@@ -114,7 +115,7 @@ void StatisticsDialog::on_btnExport_clicked()
 {
   // Ask for a filename
   QString selection = ShowSimpleSaveDialogWithHistory(
-        m_Model, "Statistics",
+        this, m_Model, "Statistics",
         "Export Volumes and Statistics - ITK-SNAP",
         "Volumes and Statistics File",
         "Text Files (*.txt);; Comma Separated Value Files (*.csv);; All Files (*)");

@@ -79,9 +79,15 @@ public slots:
 
   void printChildren(QObject *parent);
 
+  void printChildren(QObject *parent, QString className);
+
   void validateValue(QVariant v1, QVariant v2);
 
   void validateFloatValue(double v1, double v2, double precision);
+
+  void postMouseEvent(QObject *widget, double rel_x, double rel_y, QString eventType, QString button);
+
+  void postKeyEvent(QObject *object, QString key);
 
 protected:
 
@@ -101,7 +107,7 @@ protected:
 
   // Helper functions
   QModelIndex findItem(QObject *container, QVariant text);
-  void printChildrenRecursive(QObject *parent, QString offset);
+  void printChildrenRecursive(QObject *parent, QString offset, const char *className=NULL);
 };
 
 #endif // SNAPTESTQT_H

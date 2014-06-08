@@ -257,7 +257,7 @@ p, li { white-space: pre-wrap; }
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="pgPreproc">
          <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -396,7 +396,7 @@ p, li { white-space: pre-wrap; }
              <string>Lower threshold only</string>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="pgThreshold">
              <layout class="QGridLayout" name="gridLayout_3">

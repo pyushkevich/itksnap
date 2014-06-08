@@ -29,6 +29,8 @@ public:
   bool ProcessMouseMoveEvent(const Vector3f &xSlice);
   bool ProcessMouseLeaveEvent();
 
+  void AcceptAtCursor();
+
   // Get the location in slice coordinates where the center of the paintbrush
   // should be rendered
   Vector3f GetCenterOfPaintbrushInSliceSpace();

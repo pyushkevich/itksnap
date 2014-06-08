@@ -25,7 +25,8 @@ public:
 
   virtual bool SaveProject(GlobalUIModel *model)
   {
-    return ::SaveWorkspace(model, false, NULL);
+    // TODO: passing NULL here makes this dialog unscriptable!
+    return ::SaveWorkspace(NULL, model, false, NULL);
   }
 
 };

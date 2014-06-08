@@ -1105,7 +1105,7 @@ void MainImageWindow::on_actionLoadLabels_triggered()
 {
   // Ask for a filename
   QString selection = ShowSimpleOpenDialogWithHistory(
-        m_Model, "LabelDescriptions",
+        this, m_Model, "LabelDescriptions",
         "Open Label Descriptions - ITK-SNAP",
         "Label Description File",
         "Text Files (*.txt);; Label Files (*.label);; All Files (*)");
@@ -1130,7 +1130,7 @@ void MainImageWindow::on_actionSaveLabels_triggered()
 {
   // Ask for a filename
   QString selection = ShowSimpleSaveDialogWithHistory(
-        m_Model, "LabelDescriptions",
+        this, m_Model, "LabelDescriptions",
         "Save Label Descriptions - ITK-SNAP",
         "Label Description File",
         "Text Files (*.txt);; Label Files (*.label);; All Files (*)");
@@ -1314,7 +1314,7 @@ void MainImageWindow::on_actionOpenWorkspace_triggered()
 
   // Use the dialog with history - to be consistent with other parts of SNAP
   QString file = ShowSimpleOpenDialogWithHistory(
-        m_Model, "Project", "Open Workspace",
+        this, m_Model, "Project", "Open Workspace",
         "Workspace File", "ITK-SNAP Workspace Files (*.itksnap)");
 
   // If user hits cancel, move on
@@ -1355,7 +1355,7 @@ bool MainImageWindow::SaveWorkspace(bool interactive)
     return false;
 
   // Use the global method
-  return ::SaveWorkspace(m_Model, interactive, this);
+  return ::SaveWorkspace(this, m_Model, interactive, this);
 }
 
 void MainImageWindow::on_actionSaveWorkspace_triggered()

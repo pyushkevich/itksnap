@@ -389,6 +389,7 @@ void PopulateHistoryMenu(
 
 /** Show a generic file save dialog with a history dropdown */
 QString ShowSimpleSaveDialogWithHistory(
+    QWidget *parent,
     GlobalUIModel *model, QString hist_category,
     QString window_title, QString file_title, QString file_pattern)
 {
@@ -399,12 +400,12 @@ QString ShowSimpleSaveDialogWithHistory(
   QStringList hg = toQStringList(hm->GetGlobalHistory(hist_category.toStdString()));
 
   return SimpleFileDialogWithHistory::showSaveDialog(
-        window_title, file_title, hl, hg, file_pattern);
+        parent, window_title, file_title, hl, hg, file_pattern);
 }
 
 /** Show a generic file open dialog with a history dropdown */
 QString ShowSimpleOpenDialogWithHistory(
-    GlobalUIModel *model, QString hist_category,
+    QWidget *parent, GlobalUIModel *model, QString hist_category,
     QString window_title, QString file_title, QString file_pattern)
 {
   HistoryManager *hm =
@@ -414,7 +415,7 @@ QString ShowSimpleOpenDialogWithHistory(
   QStringList hg = toQStringList(hm->GetGlobalHistory(hist_category.toStdString()));
 
   return SimpleFileDialogWithHistory::showOpenDialog(
-        window_title, file_title, hl, hg, file_pattern);
+        parent, window_title, file_title, hl, hg, file_pattern);
 }
 
 bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
@@ -452,7 +453,7 @@ bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
   return wiz_model->GetSaveDelegate()->IsSaveSuccessful();
 }
 
-bool SaveWorkspace(GlobalUIModel *model, bool interactive, QWidget *widget)
+bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWidget *widget)
 {
   // Get the currently stored project name
   QString file_abs = from_utf8(model->GetGlobalState()->GetProjectFilename());
@@ -462,7 +463,7 @@ bool SaveWorkspace(GlobalUIModel *model, bool interactive, QWidget *widget)
     {
     // Use the dialog with history - to be consistent with other parts of SNAP
     QString file = ShowSimpleSaveDialogWithHistory(
-          model, "Project", "Save Workspace",
+          parent, model, "Project", "Save Workspace",
           "Workspace File", "ITK-SNAP Workspace Files (*.itksnap)");
 
     // If user hits cancel, move on

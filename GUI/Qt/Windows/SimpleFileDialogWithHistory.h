@@ -14,11 +14,13 @@ class SimpleFileDialogWithHistory : public QDialog
 public:
 
   static QString showOpenDialog(
+      QWidget *parent,
       QString window_title, QString file_title,
       QStringList &local_history, QStringList &global_history,
       QString file_pattern);
   
   static QString showSaveDialog(
+      QWidget *parent,
       QString window_title, QString file_title,
       QStringList &local_history, QStringList &global_history,
       QString file_pattern);

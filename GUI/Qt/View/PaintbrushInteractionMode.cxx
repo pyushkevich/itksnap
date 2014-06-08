@@ -85,6 +85,12 @@ void PaintbrushInteractionMode::leaveEvent(QEvent *)
     m_Model->ProcessMouseLeaveEvent();
 }
 
+void PaintbrushInteractionMode::keyPressEvent(QKeyEvent *ev)
+{
+  if(ev->key() == Qt::Key_Space)
+    m_Model->AcceptAtCursor();
+}
+
 
 void PaintbrushInteractionMode::onModelUpdate(const EventBucket &bucket)
 {

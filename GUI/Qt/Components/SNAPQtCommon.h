@@ -109,12 +109,12 @@ void PopulateHistoryMenu(
 
 /** Show a generic file save dialog with a history dropdown */
 QString ShowSimpleSaveDialogWithHistory(
-    GlobalUIModel *model, QString hist_category,
+    QWidget *parent, GlobalUIModel *model, QString hist_category,
     QString window_title, QString file_title, QString file_pattern);
 
 /** Show a generic file open dialog with a history dropdown */
 QString ShowSimpleOpenDialogWithHistory(
-    GlobalUIModel *model, QString hist_category,
+    QWidget *parent, GlobalUIModel *model, QString hist_category,
     QString window_title, QString file_title, QString file_pattern);
 
 /**
@@ -132,7 +132,7 @@ bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
 /**
  * A static method to save the project/workspace to file
  */
-bool SaveWorkspace(GlobalUIModel *model, bool interactive, QWidget *widget);
+bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWidget *widget);
 
 /** Convert a QString to a std::string using UTF8 encoding */
 inline std::string to_utf8(const QString &qstring)

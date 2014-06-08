@@ -923,7 +923,8 @@ include(BundleUtilities)
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
   ProbeIntensity
-  RegionCompetition)
+  RegionCompetition
+  RandomForest)
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
 
