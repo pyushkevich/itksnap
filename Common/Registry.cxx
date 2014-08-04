@@ -443,7 +443,6 @@ Registry
     {
     // Map the character to positive integer (0..255)
     char c = input[i];
-    int v = static_cast<int>(static_cast<unsigned char>(c));
 
     // There are special characters not allowed in XML
     switch(c)

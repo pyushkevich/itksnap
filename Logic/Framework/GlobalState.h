@@ -249,6 +249,13 @@ public:
   /** Set whether the zero level of the speed image is being displayed */
   irisGetMacro(SpeedViewZero,bool );
 
+  /**
+   * The last 'real' preprocessing mode used in the application. This
+   * is stored so that the preprocessing mode can be remembered next
+   * time that we enter active contour mode.
+   */
+  irisSimplePropertyAccessMacro(LastUsedPreprocessingMode, PreprocessingMode)
+
   /** The domain of values for snake type (edge/region) */
   typedef SimpleItemSetDomain<SnakeType, std::string> SnakeTypeDomain;
 
@@ -420,6 +427,9 @@ private:
   /** The type of the snake being used */
   typedef ConcretePropertyModel<SnakeType, SnakeTypeDomain> SnakeTypeModel;
   SmartPtr<SnakeTypeModel> m_SnakeTypeModel;
+
+  /** The last real preprocessing mode used in the program */
+  SmartPtr<ConcretePropertyModel<PreprocessingMode> > m_LastUsedPreprocessingModeModel;
 
   /** Grey image file extension */
   char * m_GreyFileExtension; 

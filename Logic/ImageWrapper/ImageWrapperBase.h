@@ -30,7 +30,7 @@ class SNAPSegmentationROISettings;
 class GuidedNativeImageIO;
 class Registry;
 class vtkImageImport;
-class IRISDisplayGeometry;
+struct IRISDisplayGeometry;
 
 /**
  * Supported ways of extracting a scalar value from vector-valued data.

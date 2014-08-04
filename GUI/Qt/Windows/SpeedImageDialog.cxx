@@ -102,7 +102,6 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   preproc_page_map[PREPROCESS_EDGE] = ui->tabEdgeAttraction;
   preproc_page_map[PREPROCESS_GMM] = ui->tabCluster;
   preproc_page_map[PREPROCESS_RF] = ui->tabClassify;
-  preproc_page_map[PREPROCESS_NONE] = NULL;
   makePagedWidgetCoupling(ui->tabMode, m_Model->GetPreprocessingModeModel(),
                           preproc_page_map);
 

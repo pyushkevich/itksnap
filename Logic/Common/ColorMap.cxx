@@ -35,6 +35,7 @@
 #include "ColorMap.h"
 #include "IRISException.h"
 #include <algorithm>
+#include <cstdio>
 
 bool
 ColorMap::CMPoint
@@ -276,19 +277,26 @@ ColorMap
 
 void
 ColorMap
-::PrintSelf()
+::PrintSelf(std::ostream & os, itk::Indent indent) const
 {
+  char buffer[256];
   for(size_t i = 0; i < m_CMPoints.size(); i++)
     {
     CMPoint p = m_CMPoints[i];
     if(p.m_Type == CONTINUOUS)
       {
-      printf("%02d-C %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[0][0], p.m_RGBA[0][1], p.m_RGBA[0][2], p.m_RGBA[0][3]);
+      sprintf(buffer,
+              "%02d-C %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[0][0], p.m_RGBA[0][1], p.m_RGBA[0][2], p.m_RGBA[0][3]);
+      os << indent << buffer;
       }
     else
       {
-      printf("%02d-L %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[0][0], p.m_RGBA[0][1], p.m_RGBA[0][2], p.m_RGBA[0][3]);
-      printf("%02d-R %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[1][0], p.m_RGBA[1][1], p.m_RGBA[1][2], p.m_RGBA[1][3]);
+      sprintf(buffer,
+             "%02d-L %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[0][0], p.m_RGBA[0][1], p.m_RGBA[0][2], p.m_RGBA[0][3]);
+      os << indent << buffer;
+      sprintf(buffer,
+              "%02d-R %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[1][0], p.m_RGBA[1][1], p.m_RGBA[1][2], p.m_RGBA[1][3]);
+      os << indent << buffer;
       }
     }
 }
@@ -560,13 +568,14 @@ void ColorMap
     }
  }
 
- void ColorMap::CopyInformation(const ColorMap *source)
- {
-   m_CMPreset = source->m_CMPreset;
-   m_CMPoints = source->m_CMPoints;
-   m_Interpolants = source->m_Interpolants;
-   this->Modified();
- }
+void ColorMap::CopyInformation(const itk::DataObject *source)
+{
+  const ColorMap *cm_source = dynamic_cast<const ColorMap *>(source);
+  m_CMPreset = cm_source->m_CMPreset;
+  m_CMPoints = cm_source->m_CMPoints;
+  m_Interpolants = cm_source->m_Interpolants;
+  this->Modified();
+}
 
  const char * ColorMap::GetPresetName(ColorMap::SystemPreset preset)
  {

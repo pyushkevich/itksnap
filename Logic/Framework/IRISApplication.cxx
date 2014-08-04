@@ -108,7 +108,7 @@ IRISApplication
 
   // Initialize the label use history
   m_LabelUseHistory = LabelUseHistory::New();
-  m_LabelUseHistory->Initialize(m_ColorLabelTable);
+  m_LabelUseHistory->SetColorLabelTable(m_ColorLabelTable);
 
   // Contruct the IRIS and SNAP data objects
   m_IRISImageData = IRISImageData::New();
@@ -230,10 +230,6 @@ IRISApplication
 
   // Remember the ROI object
   m_GlobalState->SetSegmentationROISettings(roi);
-
-  // TODO: unify how mode-specific parameters are set
-  m_GlobalState->SetSnakeParameters(
-        SnakeParameters::GetDefaultInOutParameters());
 
   // Indicate that the speed image is invalid
   m_GlobalState->SetSpeedValid(false);
@@ -2359,25 +2355,33 @@ void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
       break;
     }
 
+  // As we enter the new mode, we also determine what the target snake mode should be
+  // (snake mode is either edge == Casseles or input = Zhu+Yuille)
+  SnakeType target_snake_type = m_GlobalState->GetSnakeType();
+
   // Enter the new mode
   switch(mode)
     {
     case PREPROCESS_THRESHOLD:
       m_ThresholdPreviewWrapper->AttachInputs(m_SNAPImageData);
       m_ThresholdPreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());
+      target_snake_type = IN_OUT_SNAKE;
       break;
 
     case PREPROCESS_EDGE:
       m_EdgePreviewWrapper->AttachInputs(m_SNAPImageData);
       m_EdgePreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());
+      target_snake_type = EDGE_SNAKE;
       break;
 
     case PREPROCESS_GMM:
       this->EnterGMMPreprocessingMode();
+      target_snake_type = IN_OUT_SNAKE;
       break;
 
     case PREPROCESS_RF:
       this->EnterRandomForestPreprocessingMode();
+      target_snake_type = IN_OUT_SNAKE;
       break;
 
     default:
@@ -2385,6 +2389,20 @@ void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
     }
 
   m_PreprocessingMode = mode;
+
+  // Reset the current snake parameters if necessary
+  if(m_GlobalState->GetSnakeType() != target_snake_type)
+    {
+    m_GlobalState->SetSnakeType(target_snake_type);
+    m_GlobalState->SetSnakeParameters(
+          target_snake_type == EDGE_SNAKE
+          ? SnakeParameters::GetDefaultEdgeParameters()
+          : SnakeParameters::GetDefaultInOutParameters());
+    }
+
+  // Record the mode if it's not a bogus mode
+  if(mode != PREPROCESS_NONE)
+    m_GlobalState->SetLastUsedPreprocessingMode(mode);
 }
 
 PreprocessingMode IRISApplication::GetPreprocessingMode() const

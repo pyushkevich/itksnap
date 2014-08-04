@@ -84,7 +84,7 @@ public:
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
   static void DetachInputs(FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
-  static bool GetDefaultPreviewMode() { return false; }
+  static bool GetDefaultPreviewMode() { return true; }
 
   static ScalarImageWrapperBase* GetDefaultScalarLayer(SNAPImageData *sid) { return NULL; }
   static void SetActiveScalarLayer(

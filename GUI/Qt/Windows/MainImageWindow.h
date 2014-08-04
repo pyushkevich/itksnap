@@ -102,6 +102,8 @@ public:
   // Handle main window being closed
   void closeEvent(QCloseEvent *);
 
+  bool event(QEvent *event);
+
   // Get the action group for the main tool
   QActionGroup *GetMainToolActionGroup();
 

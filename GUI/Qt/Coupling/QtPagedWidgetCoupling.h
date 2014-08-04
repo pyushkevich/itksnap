@@ -53,7 +53,7 @@ public:
   void SetValueToNull(TPagedWidget *w)
   {
     // Set all the buttons
-    w->setCurrentWidget(NULL);
+    w->setCurrentIndex(-1);
   }
 
 protected:

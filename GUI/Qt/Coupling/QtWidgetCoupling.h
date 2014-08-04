@@ -527,14 +527,13 @@ struct QtCouplingOptions
     { return m_Options.testFlag(DEACTIVATE_WHEN_INVALID); }
 
   QtCouplingOptions(Options opts = NO_OPTIONS)
-    : m_SignalOverride(NULL), m_Options(opts) {}
+    : m_Options(opts), m_SignalOverride(NULL) {}
 
   QtCouplingOptions(const char *signal, Options opts = NO_OPTIONS)
-    : m_SignalOverride(signal), m_Options(opts) {}
+    : m_Options(opts), m_SignalOverride(signal)  {}
 
   QtCouplingOptions(const QtCouplingOptions &ref)
-    : m_SignalOverride(ref.m_SignalOverride),
-      m_Options(ref.m_Options) {}
+    : m_Options(ref.m_Options), m_SignalOverride(ref.m_SignalOverride) {}
 
 private:
 

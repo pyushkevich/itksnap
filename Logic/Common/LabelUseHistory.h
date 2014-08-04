@@ -24,7 +24,7 @@ public:
   typedef std::pair<LabelType, DrawOverFilter> Entry;
 
   /** Initialize to refer to a label table */
-  void Initialize(ColorLabelTable *clt);
+  void SetColorLabelTable(ColorLabelTable *clt);
 
   /** Record that a pair of labels has been used, i.e., to update segmentation */
   void RecordLabelUse(LabelType fore, DrawOverFilter back);

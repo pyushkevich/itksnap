@@ -119,6 +119,8 @@ private slots:
   // Slot called when a quick-label is selected in the classify pane
   void onClassifyQuickLabelSelection();
 
+  void on_btnEdgeDetail_clicked();
+
 private:
 
   SpeedImageDialog *m_SpeedDialog;

@@ -1006,9 +1006,8 @@ void SnakeWizardModel::OnSnakeModeEnter()
   SetInteractionMode(MODE_PREPROCESSING);
 
   // Set the current preprocessing mode.
-  // TODO: in the future, we should remember what was the last preprocessing
-  // mode used, and reuse it!
-  m_PreprocessingModeModel->SetValue(PREPROCESS_THRESHOLD);
+  PreprocessingMode lastMode = m_GlobalState->GetLastUsedPreprocessingMode();
+  m_PreprocessingModeModel->SetValue(lastMode);
 }
 
 void SnakeWizardModel::ComputeBubbleRadiusDefaultAndRange()

@@ -119,6 +119,7 @@ public:
     }
   }
 
+
   virtual bool event(QEvent *event)
   {
     if (event->type() == QEvent::FileOpen && m_MainWindow)

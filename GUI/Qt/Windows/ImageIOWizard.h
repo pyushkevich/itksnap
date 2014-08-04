@@ -75,7 +75,7 @@ public slots:
 
   void on_btnBrowse_pressed();
   void on_inFilename_textChanged(const QString &text);
-  void onHistorySelection();
+  void onHistorySelection(QAction *action);
 
 private:
   QLineEdit *m_InFilename;

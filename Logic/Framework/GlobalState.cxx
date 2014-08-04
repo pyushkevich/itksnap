@@ -70,6 +70,9 @@ GlobalState
   snakedomain[EDGE_SNAKE] = "Edge Attraction";
   m_SnakeTypeModel->SetDomain(snakedomain);
 
+  // Last used preprocessing mode
+  m_LastUsedPreprocessingModeModel = NewSimpleConcreteProperty(PREPROCESS_THRESHOLD);
+
   // Initialize the property model for the ROI settings
   m_SegmentationROISettingsModel
       = NewSimpleConcreteProperty(SNAPSegmentationROISettings());
@@ -77,7 +80,7 @@ GlobalState
   m_SpeedViewZero = false;
 
   m_SnakeParametersModel = ConcreteSnakeParametersModel::New();
-  m_SnakeParametersModel->SetValue(SnakeParameters::GetDefaultEdgeParameters());
+  m_SnakeParametersModel->SetValue(SnakeParameters::GetDefaultInOutParameters());
 
   // Bubbles
   m_ActiveBubble = -1;

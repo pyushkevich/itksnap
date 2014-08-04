@@ -354,7 +354,7 @@ void PopulateHistoryMenu(
   QStringListIterator itLocal(local_history);
   itLocal.toBack();
   while(itLocal.hasPrevious())
-    menu->addAction(itLocal.previous(), receiver, slot);
+    menu->addAction(itLocal.previous());
 
   int nLocal = menu->actions().size();
 
@@ -364,11 +364,12 @@ void PopulateHistoryMenu(
     {
     QString entry = itGlobal.previous();
     if(local_history.indexOf(entry) == -1)
-      menu->addAction(entry, receiver, slot);
+      menu->addAction(entry);
     }
 
   if(nLocal > 0 && menu->actions().size() > nLocal)
     menu->insertSeparator(menu->actions()[nLocal]);
+
 }
 
 

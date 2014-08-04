@@ -183,6 +183,8 @@ SelectFilePage::SelectFilePage(QWidget *parent)
 
   // Connect slots
   QMetaObject::connectSlotsByName(this);
+
+  connect(m_HistoryMenu, SIGNAL(triggered(QAction*)), this, SLOT(onHistorySelection(QAction*)));
 }
 
 /*
@@ -254,9 +256,8 @@ void SelectFilePage::initializePage()
   m_InFilename->setText(from_utf8(m_Model->GetSuggestedFilename()));
 }
 
-void SelectFilePage::onHistorySelection()
+void SelectFilePage::onHistorySelection(QAction *action)
 {
-  QAction *action = static_cast<QAction *>(this->sender());
   m_InFilename->setText(action->text());
 }
 

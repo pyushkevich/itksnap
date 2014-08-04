@@ -8,7 +8,7 @@ LabelUseHistory::LabelUseHistory()
   m_Counter = 0;
 }
 
-void LabelUseHistory::Initialize(ColorLabelTable *clt)
+void LabelUseHistory::SetColorLabelTable(ColorLabelTable *clt)
 {
   m_ColorLabelTable = clt;
   this->Reset();

@@ -206,7 +206,7 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
   preproc_page_map[PREPROCESS_EDGE] = ui->pgEdge;
   preproc_page_map[PREPROCESS_GMM] = ui->pgCluster;
   preproc_page_map[PREPROCESS_RF] = ui->pgClassify;
-  preproc_page_map[PREPROCESS_NONE] = NULL;
+  preproc_page_map[PREPROCESS_NONE] = ui->pgUserSpeed;
   makePagedWidgetCoupling(ui->stackPreprocess, m_Model->GetPreprocessingModeModel(),
                           preproc_page_map);
 
@@ -461,4 +461,9 @@ void SnakeWizardPanel::onClassifyQuickLabelSelection()
 {
   // Enter paintbrush mode - to help the user
   m_Model->GetParent()->GetGlobalState()->SetToolbarMode(PAINTBRUSH_MODE);
+}
+
+void SnakeWizardPanel::on_btnEdgeDetail_clicked()
+{
+  m_SpeedDialog->ShowDialog();
 }

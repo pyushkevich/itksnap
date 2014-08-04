@@ -67,7 +67,7 @@ class AbstractLoadImageDelegate;
 class AbstractSaveImageDelegate;
 class IRISWarningList;
 class GaussianMixtureModel;
-class IRISDisplayGeometry;
+struct IRISDisplayGeometry;
 class LabelUseHistory;
 
 
