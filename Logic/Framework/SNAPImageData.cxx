@@ -449,12 +449,6 @@ SNAPImageData
   // Pass through to the level set driver
   m_LevelSetDriver->Restart();
 
-  // Update the image pointed to by the snake wrapper
-  m_SnakeWrapper->SetImage(m_LevelSetDriver->GetCurrentState());
-
-  // This makes sure that m_SnakeWrapper->IsDrawable() returns true
-  m_SnakeWrapper->GetImage()->Modified();
-
   // Leave a thread-safe section
   m_LevelSetPipelineMutexLock->Unlock();
 
