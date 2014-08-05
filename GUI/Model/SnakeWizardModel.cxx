@@ -772,7 +772,7 @@ SnakeWizardModel
   EdgePreprocessingSettings *eps = m_Driver->GetEdgePreprocessingSettings();
   x = eps->GetGaussianBlurScale();
   if(range)
-    range->Set(0.1, 3, 0.1);
+    range->Set(0.1, 3, 0.01);
 
   return true;
 }

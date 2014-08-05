@@ -230,6 +230,10 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
   // Couple the classification controls
   makeCoupling(ui->inClassifyForeground, m_Model->GetForegroundClassColorLabelModel());
 
+  // Couple the edge preprocessing controls
+  makeCoupling(ui->inEdgeScale, m_Model->GetEdgePreprocessingSigmaModel());
+  makeCoupling(ui->inEdgeScaleSlider, m_Model->GetEdgePreprocessingSigmaModel());
+
   // Initialize the label quick list
   ui->boxLabelQuickList->SetModel(m_Model->GetParent());
 
