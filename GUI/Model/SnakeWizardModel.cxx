@@ -310,6 +310,10 @@ ScalarImageWrapperBase *SnakeWizardModel::GetActiveScalarLayer(PreprocessingMode
 void SnakeWizardModel::OnBubbleModeBack()
 {
   SetInteractionMode(MODE_PREPROCESSING);
+
+  // Set the current preprocessing mode.
+  PreprocessingMode lastMode = m_GlobalState->GetLastUsedPreprocessingMode();
+  m_PreprocessingModeModel->SetValue(lastMode);
 }
 
 void SnakeWizardModel::UpdateClusterPlottedComponentModel()
