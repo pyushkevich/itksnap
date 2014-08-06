@@ -540,6 +540,7 @@ void Generic3DRenderer::RestoreSavedCameraState()
   if(m_SavedCameraState)
     this->m_Renderer->GetActiveCamera()->DeepCopy(m_SavedCameraState);
   InvokeEvent(ModelUpdateEvent());
+  InvokeEvent(CameraUpdateEvent());
 }
 
 void Generic3DRenderer::DeleteSavedCameraState()
@@ -563,6 +564,7 @@ CameraState Generic3DRenderer::GetCameraState() const
   cs.view_angle = camera->GetViewAngle();
   cs.parallel_projection = camera->GetParallelProjection();
   cs.parallel_scale = camera->GetParallelScale();
+  cs.clipping_range.set(camera->GetClippingRange());
 
   return cs;
 }
@@ -583,6 +585,7 @@ void Generic3DRenderer::SetCameraState(const CameraState &cs)
   camera->SetViewAngle(cs.view_angle);
   camera->SetParallelProjection(cs.parallel_projection);
   camera->SetParallelScale(cs.parallel_scale);
+  camera->SetClippingRange(cs.clipping_range.data_block());
 
   // If the camera really updated, fire an event
   if(camera->GetMTime() > mtime)

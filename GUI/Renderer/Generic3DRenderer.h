@@ -28,6 +28,7 @@ class vtkCamera;
 struct CameraState
 {
   Vector3d position, focal_point, view_up;
+  Vector2d clipping_range;
   double view_angle, parallel_scale;
   int parallel_projection;
 };

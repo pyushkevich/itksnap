@@ -58,7 +58,6 @@
 #include <itksys/Directory.hxx>
 #include <itksys/SystemTools.hxx>
 #include "itkVoxBoCUBImageIOFactory.h"
-#include "vtkCamera.h"
 #include <algorithm>
 #include <ctime>
 #include <cerrno>
@@ -646,68 +645,6 @@ SystemInterface
 }
 
 
-/*
-bool
-SystemInterface
-::IPCBroadcastCursor(Vector3d cursor)
-{
-  // Try reading the current memory
-  IPCMessage mcurr;
-  
-  // This may fail, but that's ok
-  IPCRead(mcurr);
-
-  // Update the message
-  mcurr.cursor = cursor;
-  return IPCBroadcast(mcurr);
-}
-
-bool
-SystemInterface
-::IPCBroadcastCameraState(vtkCamera *camera)
-{
-  // Try reading the current memory
-  IPCMessage mcurr;
-
-  // This may fail, but that's ok
-  IPCRead(mcurr);
-
-  // Update the message
-
-  return IPCBroadcast(mcurr);
-}
-
-bool
-SystemInterface
-::IPCBroadcastZoomLevel(AnatomicalDirection dir, double zoom)
-{
-  // Try reading the current memory
-  IPCMessage mcurr;
-  
-  // This may fail, but that's ok
-  IPCRead(mcurr);
-
-  // Update the message
-  mcurr.zoom_level[dir] = zoom;
-  return IPCBroadcast(mcurr);
-}
-
-bool
-SystemInterface
-::IPCBroadcastViewPosition(AnatomicalDirection dir, Vector2f vec)
-{
-  // Try reading the current memory
-  IPCMessage mcurr;
-  
-  // This may fail, but that's ok
-  IPCRead(mcurr);
-
-  // Update the message
-  mcurr.viewPositionRelative[dir] = vec;
-
-  return IPCBroadcast(mcurr);
-}
-*/
 
 // Socket headers
 #ifdef WIN32
