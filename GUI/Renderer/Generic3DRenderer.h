@@ -21,11 +21,27 @@ class vtkCubeSource;
 class vtkCoordinate;
 class vtkCamera;
 
+/**
+ * A struct representing the state of the VTK camera. This struct
+ * can be used to communicate camera state between ITK-SNAP sessions
+ */
+struct CameraState
+{
+  Vector3d position, focal_point, view_up;
+  double view_angle, parallel_scale;
+  int parallel_projection;
+};
+
 class Generic3DRenderer : public AbstractVTKRenderer
 {
 public:
 
   irisITKObjectMacro(Generic3DRenderer, AbstractVTKRenderer)
+
+  /** An event fired when the camera state updates */
+  itkEventMacro(CameraUpdateEvent, IRISEvent)
+
+  FIRES(CameraUpdateEvent)
 
   void paintGL();
 
@@ -46,6 +62,12 @@ public:
 
   // Restore the camera state from saved
   bool IsSavedCameraStateAvailable();
+
+  /** Access the VTK camera object (used for synchronization) */
+  CameraState GetCameraState() const;
+
+  /** Change the camera state */
+  void SetCameraState(const CameraState &state);
 
   /** Get the normal to the scalpel plane in world coordinates */
   Vector3d GetScalpelPlaneNormal() const;

@@ -37,13 +37,13 @@
 #define __SystemInterface_h_
 
 #include "Registry.h"
-#include "Trackball.h"
 #include "GlobalState.h"
 
 class IRISApplication;
 class SNAPRegistryIO;
 class HistoryManager;
 class SystemInfoDelegate;
+class vtkCamera;
 
 #ifdef WIN32
 #include <windows.h>
@@ -144,49 +144,6 @@ public:
   */
   void LoadPreviousGreyImageFile(const char *filename, Registry *registry);
 
-  /** Structure passed on to IPC */
-  struct IPCMessage 
-    {
-    // Process ID of the sender
-    long sender_pid, message_id;
-
-    // The cursor position in world coordinates
-    Vector3d cursor;
-
-    // The zoom factor (screen pixels / mm)
-    double zoom_level[3];
-
-    // The position of the viewport center relative to cursor
-    // in all three slice views
-    Vector2f viewPositionRelative[3];
-
-    // 3D view settings
-    Trackball trackball;
-    };
-
-  /** Get process ID */
-  long GetProcessID() 
-    { return m_ProcessID; }
-
-  /** Interprocess communication: attach to shared memory */
-  void IPCAttach();
-
-  /** Interprocess communication: read shared memory */
-  bool IPCRead(IPCMessage &mout);
-
-  /** Read IPC message, but only if it's new data */
-  bool IPCReadIfNew(IPCMessage &mout);
-
-  /** Interprocess communication: write shared memory */
-  bool IPCBroadcast(IPCMessage mout);
-  bool IPCBroadcastCursor(Vector3d cursor);
-  bool IPCBroadcastTrackball(Trackball tball);
-  bool IPCBroadcastZoomLevel(AnatomicalDirection dir, double zoom);
-  bool IPCBroadcastViewPosition(AnatomicalDirection dir, Vector2f vec);
-
-  /** Interprocess communication: release shared memory */
-  void IPCClose();
-
   /** Enum for automatic update checking */
   enum UpdateStatus 
     {
@@ -229,27 +186,7 @@ private:
 
   // Get the directory where application data (pref files, etc) should go
   std::string GetApplicationDataDirectory();
-
-  // System-specific IPC related stuff
-#ifdef WIN32
-  HANDLE m_IPCHandle;
-#else
-  int m_IPCHandle;
-#endif
-
-  // The version of the SNAP-IPC protocol. This way, when versions are different
-  // IPC will not work. This is to account for an off chance of a someone running
-  // two different versions of SNAP
-  static const short IPC_VERSION;
-
-  // Generic: shared data for IPC
-  void *m_IPCSharedData;
-
-  // Process ID and other values used by IPC
-  long m_ProcessID, m_MessageID, m_LastSender, m_LastReceivedMessageID;
 };
-
-
 
 
 

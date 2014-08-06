@@ -145,6 +145,7 @@ SET(LOGIC_CXX
   Common/CommandLineArgumentParser.cxx
   Common/EventBucket.cxx
   Common/HistoryManager.cxx
+  Common/IPCHandler.cxx
   Common/IRISException.cxx
   Common/Rebroadcaster.cxx
   Common/Registry.cxx
@@ -215,6 +216,7 @@ SET(LOGIC_HEADERS
   Common/CommandLineArgumentParser.h
   Common/Credits.h
   Common/HistoryManager.h
+  Common/IPCHandler.h
   Common/IRISException.h
   Common/IRISVectorTypes.h
   Common/IRISVectorTypes.txx

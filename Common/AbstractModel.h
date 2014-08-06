@@ -62,7 +62,10 @@ public:
 
   /**
    We can also rebroadcast events from vtk objects. This is handled similar
-   to ITK but events are just unsigned long values.
+   to ITK but events are just unsigned long values. The event bucket will
+   include a VTKEvent() object with NULL caller if an event from VTK occurred.
+   (at the present, EventBucket does not support differentiating between different
+   kinds of VTK events and callers).
    */
   unsigned long Rebroadcast(vtkObject *src, unsigned long srcEvent,
       const itk::EventObject &trgEvent);

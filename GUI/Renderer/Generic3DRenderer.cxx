@@ -146,6 +146,12 @@ Generic3DRenderer::Generic3DRenderer()
   m_ScalpelPlaneWidget->GetPlaneProperty()->SetOpacity(0.5);
   m_ScalpelPlaneWidget->GetOutlineProperty()->SetOpacity(0.2);
   m_ScalpelPlaneWidget->SetTubing(1);
+
+
+
+
+  // Rebroadcast Modified event from the camera object as a CameraUpdateEvent
+  Rebroadcast(m_Renderer->GetActiveCamera(), vtkCommand::ModifiedEvent, CameraUpdateEvent());
 }
 
 void Generic3DRenderer::SetModel(Generic3DModel *model)
@@ -192,7 +198,6 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   // Listen to changes in appearance
   Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings(),
               ChildPropertyChangedEvent(), ModelUpdateEvent());
-
 
   // Update the main components
   this->UpdateAxisRendering();
@@ -545,6 +550,43 @@ void Generic3DRenderer::DeleteSavedCameraState()
 bool Generic3DRenderer::IsSavedCameraStateAvailable()
 {
   return m_SavedCameraState != NULL;
+}
+
+CameraState Generic3DRenderer::GetCameraState() const
+{
+  CameraState cs;
+  vtkCamera *camera = m_Renderer->GetActiveCamera();
+
+  cs.position.set(camera->GetPosition());
+  cs.focal_point.set(camera->GetFocalPoint());
+  cs.view_up.set(camera->GetViewUp());
+  cs.view_angle = camera->GetViewAngle();
+  cs.parallel_projection = camera->GetParallelProjection();
+  cs.parallel_scale = camera->GetParallelScale();
+
+  return cs;
+}
+
+void Generic3DRenderer::SetCameraState(const CameraState &cs)
+{
+  // Update the camera parameters. VTK implementation of the SetXXX methods
+  // will invoke the Modified() event if necessary
+  vtkCamera *camera = m_Renderer->GetActiveCamera();
+
+  // Get the m-time of the camera before updates
+  unsigned long mtime = camera->GetMTime();
+
+  // Update the camera
+  camera->SetPosition(cs.position.data_block());
+  camera->SetFocalPoint(cs.focal_point.data_block());
+  camera->SetViewUp(cs.view_up.data_block());
+  camera->SetViewAngle(cs.view_angle);
+  camera->SetParallelProjection(cs.parallel_projection);
+  camera->SetParallelScale(cs.parallel_scale);
+
+  // If the camera really updated, fire an event
+  if(camera->GetMTime() > mtime)
+    InvokeEvent(ModelUpdateEvent());
 }
 
 void Generic3DRenderer::paintGL()

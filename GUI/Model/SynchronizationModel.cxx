@@ -6,6 +6,32 @@
 #include "GenericImageData.h"
 #include "ImageWrapperBase.h"
 #include "SliceWindowCoordinator.h"
+#include "Generic3DModel.h"
+#include "Generic3DRenderer.h"
+#include "vtkCamera.h"
+#include "vtkCommand.h"
+#include "IPCHandler.h"
+
+/** Structure passed on to IPC */
+struct IPCMessage
+{
+  // The cursor position in world coordinates
+  Vector3d cursor;
+
+  // The zoom factor (screen pixels / mm)
+  double zoom_level[3];
+
+  // The position of the viewport center relative to cursor
+  // in all three slice views
+  Vector2f viewPositionRelative[3];
+
+  // 3D camera state
+  CameraState camera;
+
+  // Version of the data structure
+  enum VersionEnum { VERSION = 0x1005 };
+};
+
 
 SynchronizationModel::SynchronizationModel()
 {
@@ -17,12 +43,49 @@ SynchronizationModel::SynchronizationModel()
   m_SyncCameraModel = NewSimpleConcreteProperty(true);
 
   m_SyncChannelModel = NewRangedConcreteProperty(1, 1, 99, 1);
+
+  // Create an IPC handler
+  m_IPCHandler = new IPCHandler();
 }
 
 SynchronizationModel::~SynchronizationModel()
 {
-
+  if(m_IPCHandler->IsAttached())
+    m_IPCHandler->Close();
+  delete m_IPCHandler;
 }
+
+void SynchronizationModel::SetParentModel(GlobalUIModel *parent)
+{
+  // Set the parent
+  m_Parent = parent;
+  m_SystemInterface = m_Parent->GetDriver()->GetSystemInterface();
+
+  // Initialize the IPC handler
+  m_IPCHandler->Attach(
+        m_SystemInterface->GetUserPreferencesFileName(),
+        (short) IPCMessage::VERSION, sizeof(IPCMessage));
+
+  // TODO: the defaults should be read from global preferences
+
+  // Listen to the events from the parent that correspond to changes that
+  // need to be broadcast, and send them downstream as model update events
+
+  // Cursor changes
+  Rebroadcast(m_Parent->GetDriver(), CursorUpdateEvent(), ModelUpdateEvent());
+
+  // Viewpoint geometry changes
+  for(int i = 0; i < 3; i++)
+    {
+    GenericSliceModel *gsm = m_Parent->GetSliceModel(i);
+    Rebroadcast(gsm, SliceModelGeometryChangeEvent(), ModelUpdateEvent());
+    }
+
+  // Changes to the 3D viewpoint (stored in a vtkCamera object)
+  Rebroadcast(m_Parent->GetModel3D()->GetRenderer(),
+              Generic3DRenderer::CameraUpdateEvent(), ModelUpdateEvent());
+}
+
 
 void SynchronizationModel::OnUpdate()
 {
@@ -46,17 +109,22 @@ void SynchronizationModel::OnUpdate()
        || m_EventBucket->HasEvent(CursorUpdateEvent()))
       && m_SyncPanModel->GetValue();
 
+  bool bc_camera =
+      m_EventBucket->HasEvent(Generic3DRenderer::CameraUpdateEvent())
+      && m_SyncCameraModel->GetValue();
+
+  // Read the contents of shared memory into the local message object
+  IPCMessage message;
+  m_IPCHandler->Read(static_cast<void *>(&message));
+
   // Cursor change
   if(bc_cursor)
     {
     // Map the cursor to NIFTI coordinates
     ImageWrapperBase *iw = app->GetCurrentImageData()->GetMain();
-    Vector3d cursor =
+    message.cursor =
         iw->TransformVoxelIndexToNIFTICoordinates(
           to_double(app->GetCursorPosition()));
-
-    // Write the NIFTI cursor to shared memory
-    m_SystemInterface->IPCBroadcastCursor(cursor);
     }
 
   // Zoom/Pan change
@@ -66,45 +134,21 @@ void SynchronizationModel::OnUpdate()
     AnatomicalDirection dir = app->GetAnatomicalDirectionForDisplayWindow(i);
 
     if(bc_zoom)
-      {
-      m_SystemInterface->IPCBroadcastZoomLevel(dir, gsm->GetViewZoom());
-      }
+      message.zoom_level[dir] = gsm->GetViewZoom();
     if(bc_pan)
-      {
-      m_SystemInterface->IPCBroadcastViewPosition(
-            dir, gsm->GetViewPositionRelativeToCursor());
-      }
+      message.viewPositionRelative[dir] = gsm->GetViewPositionRelativeToCursor();
     }
 
-  // 3D viewpoint ?
-
-}
-
-
-void SynchronizationModel::SetParentModel(GlobalUIModel *parent)
-{
-  // Set the parent
-  m_Parent = parent;
-  m_SystemInterface = m_Parent->GetDriver()->GetSystemInterface();
-
-  // TODO: the defaults should be read from global preferences
-
-  // TODO: establish the channel for the SNAP window by reading IPC
-
-  // Listen to the events from the parent that correspond to changes that
-  // need to be broadcast, and send them downstream as model update events
-
-  // Cursor changes
-  Rebroadcast(m_Parent->GetDriver(), CursorUpdateEvent(), ModelUpdateEvent());
-
-  // Viewpoint geometry changes
-  for(int i = 0; i < 3; i++)
+  // 3D viewpoint
+  if(bc_camera)
     {
-    GenericSliceModel *gsm = m_Parent->GetSliceModel(i);
-    Rebroadcast(gsm, SliceModelGeometryChangeEvent(), ModelUpdateEvent());
+    // Get the camera state
+    CameraState cs = m_Parent->GetModel3D()->GetRenderer()->GetCameraState();
+    message.camera = cs;
     }
 
-  // 3D viewpoint changes (TODO)
+  // Broadcast the new message
+  m_IPCHandler->Broadcast(static_cast<void *>(&message));
 }
 
 void SynchronizationModel::ReadIPCState()
@@ -114,15 +158,15 @@ void SynchronizationModel::ReadIPCState()
     return;
 
   // Read the IPC message
-  SystemInterface::IPCMessage ipcm;
-  if(m_SystemInterface->IPCReadIfNew(ipcm))
+  IPCMessage message;
+  if(m_IPCHandler->ReadIfNew(static_cast<void *>(&message)))
     {
     if(m_SyncCursorModel->GetValue())
       {
       // Map the cursor position to the image coordinates
       GenericImageData *id = app->GetCurrentImageData();
       Vector3d vox =
-          id->GetMain()->TransformNIFTICoordinatesToVoxelIndex(ipcm.cursor);
+          id->GetMain()->TransformNIFTICoordinatesToVoxelIndex(message.cursor);
 
       // Round the cursor to integer value
       itk::Index<3> pos; Vector3ui vpos;
@@ -145,17 +189,25 @@ void SynchronizationModel::ReadIPCState()
 
       if(m_SyncZoomModel->GetValue()
          && gsm->IsSliceInitialized()
-         && gsm->GetViewZoom() != ipcm.zoom_level[dir])
+         && gsm->GetViewZoom() != message.zoom_level[dir])
         {
-          gsm->SetViewZoom(ipcm.zoom_level[dir]);
+          gsm->SetViewZoom(message.zoom_level[dir]);
         }
 
       if(m_SyncPanModel->GetValue()
          && gsm->IsSliceInitialized()
-         && gsm->GetViewPositionRelativeToCursor() != ipcm.viewPositionRelative[dir])
+         && gsm->GetViewPositionRelativeToCursor() != message.viewPositionRelative[dir])
         {
-        gsm->SetViewPositionRelativeToCursor(ipcm.viewPositionRelative[dir]);
+        gsm->SetViewPositionRelativeToCursor(message.viewPositionRelative[dir]);
         }
+      }
+
+    // Set the camera state
+    if(m_SyncCameraModel->GetValue())
+      {
+      // Get the currently used 3D camera
+      CameraState cs = message.camera;
+      m_Parent->GetModel3D()->GetRenderer()->SetCameraState(message.camera);
       }
     }
 }

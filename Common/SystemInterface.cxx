@@ -58,6 +58,7 @@
 #include <itksys/Directory.hxx>
 #include <itksys/SystemTools.hxx>
 #include "itkVoxBoCUBImageIOFactory.h"
+#include "vtkCamera.h"
 #include <algorithm>
 #include <ctime>
 #include <cerrno>
@@ -175,21 +176,6 @@ SystemInterface
 
   // Set the preferences file
   m_UserPreferenceFile = appdir + "/UserPreferences.xml";
-
-  // Get the process ID
-#ifdef WIN32
-  m_ProcessID = _getpid();
-#else
-  m_ProcessID = getpid();
-#endif
-
-  // Set the message ID and last sender/message id values
-  m_LastReceivedMessageID = -1;
-  m_LastSender = -1;
-  m_MessageID = 0;
-
-  // Attach to the shared memory
-  IPCAttach();
 }
 
 SystemInterface
@@ -197,9 +183,6 @@ SystemInterface
 {
   delete m_RegistryIO;
   delete m_HistoryManager;
-
-  // Detach shared memory
-  IPCClose();
 }
 
 string SystemInterface::GetFullPathToExecutable() const
@@ -662,130 +645,8 @@ SystemInterface
     return false;
 }
 
-// We start versioning at 1000. Every time we change
-// the protocol, we should increment the version id
-// 0x1004 - Dec 2013, ITK-SNAP 3.0.0 alpha
-const short SystemInterface::IPC_VERSION = 0x1004;
 
-void
-SystemInterface
-::IPCAttach()
-{
-  // Initialize the data pointer
-  m_IPCSharedData = NULL;
-
-  // Determine size of shared memory
-  size_t msize = sizeof(IPCMessage) + sizeof(short);
-
-#ifdef WIN32
-  // Create a shared memory block (key based on the preferences file)
-  m_IPCHandle = CreateFileMapping(
-    INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, msize, m_UserPreferenceFile.c_str());
-
-  // If the return value is NULL, something failed
-  if(m_IPCHandle)
-    {
-    // Attach to the shared memory block
-    m_IPCSharedData = MapViewOfFile(m_IPCHandle, FILE_MAP_ALL_ACCESS, 0, 0, msize);
-    }
-
-#else
-
-  // Create a unique key for this user 
-  key_t keyid = ftok(m_UserPreferenceFile.c_str(), IPC_VERSION);
-
-  // Get a handle to shared memory
-  m_IPCHandle = shmget(keyid, msize, IPC_CREAT | 0644);
-
-  // There may be an error!
-  if(m_IPCHandle < 0)
-    {
-    cerr << "Shared memory (shmget) error: " << strerror(errno) << endl;
-    cerr << "This error may occur if a user is running two versions of ITK-SNAP" << endl;
-    cerr << "Multisession support is disabled" << endl;
-    m_IPCSharedData = NULL;
-    }
-  else
-    {
-    // Get a pointer to shared data block
-    m_IPCSharedData = shmat(m_IPCHandle, (void *) 0, 0);
-
-    // Check errors again
-    if(!m_IPCSharedData)
-      {
-      cerr << "Shared memory (shmat) error: " << strerror(errno) << endl;
-      cerr << "Multisession support is disabled" << endl;
-      m_IPCSharedData = NULL;
-      }
-    }
-
-#endif
-
-}
-
-bool 
-SystemInterface
-::IPCRead(IPCMessage &msg)
-{
-  // Must have some shared memory
-  if(!m_IPCSharedData) 
-    return false;
-
-  // Read the first short, make sure it's the version number
-  short *vid = static_cast<short *>(m_IPCSharedData);
-  if(*vid != IPC_VERSION)
-    return false;
-
-  // Cast shared memory to the message type
-  IPCMessage *p = reinterpret_cast<IPCMessage *>(vid + 1);
-
-  // Return a copy
-  msg = *p;
-
-  // Store the last sender / id
-  m_LastSender = p->sender_pid;
-  m_LastReceivedMessageID = p->message_id;
-
-  // Success!
-  return true;
-}
-
-
-bool 
-SystemInterface
-::IPCReadIfNew(IPCMessage &msg)
-{
-  // Must have some shared memory
-  if(!m_IPCSharedData) 
-    return false;
-
-  // Read the first short, make sure it's the version number
-  short *vid = static_cast<short *>(m_IPCSharedData);
-  if(*vid != IPC_VERSION)
-    return false;
-
-  // Cast shared memory to the message type
-  IPCMessage *p = reinterpret_cast<IPCMessage *>(vid + 1);
-
-  // If we are the sender, the message should be ignored
-  if(p->sender_pid == this->GetProcessID())
-    return false;
-
-  // If we have already seen this message from this sender, also ignore it
-  if(m_LastSender == p->sender_pid && m_LastReceivedMessageID == p->message_id)
-    return false;
-
-  // Store the last sender / id
-  m_LastSender = p->sender_pid;
-  m_LastReceivedMessageID = p->message_id;
-
-  // Return a copy
-  msg = *p;
-
-  // Success!
-  return true;
-}
-
+/*
 bool
 SystemInterface
 ::IPCBroadcastCursor(Vector3d cursor)
@@ -803,16 +664,16 @@ SystemInterface
 
 bool
 SystemInterface
-::IPCBroadcastTrackball(Trackball tball)
+::IPCBroadcastCameraState(vtkCamera *camera)
 {
   // Try reading the current memory
   IPCMessage mcurr;
-  
+
   // This may fail, but that's ok
   IPCRead(mcurr);
 
   // Update the message
-  mcurr.trackball = tball;
+
   return IPCBroadcast(mcurr);
 }
 
@@ -846,50 +707,7 @@ SystemInterface
 
   return IPCBroadcast(mcurr);
 }
-
-bool
-SystemInterface
-::IPCBroadcast(IPCMessage msg)
-{
-  // Write to the shared memory
-  if(m_IPCSharedData)
-    {
-    // Write version number
-    short *vid = static_cast<short *>(m_IPCSharedData);
-    *vid = IPC_VERSION;
-
-    // Write the process ID
-    msg.sender_pid = this->GetProcessID();
-    msg.message_id = ++m_MessageID;
-
-    // Write message
-    IPCMessage *p = reinterpret_cast<IPCMessage *>(vid + 1);
-    *p = msg;
-
-    // Done
-    return true;
-    }
-  return false;
-}
-
-void 
-SystemInterface
-::IPCClose()
-{
-#ifdef WIN32
-  CloseHandle(m_IPCHandle);
-#else
-  // Detach from the shared memory segment
-  shmdt(m_IPCSharedData);
-
-  // If there is noone attached to the memory segment, destroy it
-  struct shmid_ds dsinfo;
-  shmctl(m_IPCHandle, IPC_STAT, &dsinfo);
-  if(dsinfo.shm_nattch == 0)
-    shmctl(m_IPCHandle, IPC_RMID, NULL);
-#endif
-}
-
+*/
 
 // Socket headers
 #ifdef WIN32

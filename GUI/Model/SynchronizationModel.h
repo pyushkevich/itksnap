@@ -5,6 +5,7 @@
 
 class GlobalUIModel;
 class SystemInterface;
+class IPCHandler;
 
 /**
  * @brief Model that interfaces with the GUI controls that handle
@@ -46,7 +47,7 @@ protected:
   GlobalUIModel *m_Parent;
   SystemInterface *m_SystemInterface;
 
-
+  IPCHandler *m_IPCHandler;
 };
 
 #endif // SYNCHRONIZATIONMODEL_H
