@@ -60,6 +60,9 @@ protected:
   // Pointer to the color label table
   ColorLabelTable *m_ColorLabelTable;
 
+  // Flag to prevent infinite recursion
+  bool m_ReconfigureActive;
+
   // A timestamp counter - updated each time RecordLabelUse is called
   unsigned long m_Counter;
 

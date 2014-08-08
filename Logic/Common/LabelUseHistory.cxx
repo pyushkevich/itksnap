@@ -6,6 +6,7 @@ LabelUseHistory::LabelUseHistory()
 {
   m_History.reserve(this->GetMaximumSize());
   m_Counter = 0;
+  m_ReconfigureActive = false;
 }
 
 void LabelUseHistory::SetColorLabelTable(ColorLabelTable *clt)
@@ -17,7 +18,8 @@ void LabelUseHistory::SetColorLabelTable(ColorLabelTable *clt)
 void LabelUseHistory::RecordLabelUse(LabelType fore, DrawOverFilter back)
 {
   // We always want to make sure we are ahead of the label table
-  if(m_ColorLabelTable->GetTimeStamp() > this->GetTimeStamp())
+  if(m_ColorLabelTable->GetTimeStamp() > this->GetTimeStamp()
+     && !m_ReconfigureActive)
     this->OnLabelTableReconfiguration();
 
   // We should ignore the clear label / draw over all
@@ -73,6 +75,9 @@ void LabelUseHistory::RecordLabelUse(LabelType fore, DrawOverFilter back)
 
 void LabelUseHistory::OnLabelTableReconfiguration()
 {
+  // Avoid recursive calls between this method and RecordLabelUse();
+  m_ReconfigureActive = true;
+
   // Go through all the labels in the history and make sure they still
   // exist. If they don't, delete them
   EntryRecordIter it = m_History.begin();
@@ -98,6 +103,9 @@ void LabelUseHistory::OnLabelTableReconfiguration()
 
   // Modified
   this->Modified();
+
+  // Avoid recursive calls between this method and RecordLabelUse();
+  m_ReconfigureActive = false;
 }
 
 void LabelUseHistory::Reset()
