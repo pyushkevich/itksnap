@@ -60,7 +60,7 @@ protected:
 
   // System-specific IPC related stuff
 #ifdef WIN32
-  HANDLE m_Handle;
+  void *m_Handle;
 #else
   int m_Handle;
 #endif
