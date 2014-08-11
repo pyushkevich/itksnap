@@ -94,6 +94,7 @@ public:
   // never call this function before calling Entropy(weights) to get prob_ set
   double Entropy()
   {
+    static const double ONE_OVER_LOG_2 = 3.3219280945;
     if (sampleNum_ == 0)
       {
         return 0.0;
@@ -105,7 +106,7 @@ public:
           {
             if (prob_[i] != 0)
               {
-                entropy -= prob_[i] * log2(prob_[i]);
+                entropy -= prob_[i] * log(prob_[i]) * ONE_OVER_LOG_2;
               }
           }
         return entropy;
@@ -114,6 +115,7 @@ public:
 
   double Entropy(const std::vector<double>& weights)
   {
+    static const double ONE_OVER_LOG_2 = 3.3219280945;
     if (sampleNum_ == 0)
       {
         return 0.0;
@@ -128,7 +130,7 @@ public:
                 if (bins_[i] != 0)
                   {
                     prob_[i] = Probability(i);
-                    entropy -= prob_[i] * log2(prob_[i]);
+                    entropy -= prob_[i] * log(prob_[i]) * ONE_OVER_LOG_2;
                   }
               }
           }
@@ -147,7 +149,7 @@ public:
                     if (prob_[i] != 0)
                       {
                         prob_[i] = prob_[i] / sum;
-                        entropy -= prob_[i] * log2(prob_[i]);
+                        entropy -= prob_[i] * log(prob_[i]);
                       }
                   }
               }
