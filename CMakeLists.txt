@@ -111,6 +111,9 @@ ENDIF(${CPACK_SYSTEM_NAME} MATCHES Windows)
 # For Apple, we need to base the filename on the architecture
 IF(CMAKE_SYSTEM_NAME MATCHES Darwin)
   MESSAGE(STATUS "   INARCH ${CMAKE_OSX_ARCHITECTURES}")
+
+  # TODO: when CMAKE_OSX_ARCHITECTURES is not set this causes an obscure
+  # CMake error. Should generate a meaningful message instead
   STRING(REPLACE ";" "-" ARCH ${CMAKE_OSX_ARCHITECTURES})
   SET(CPACK_SYSTEM_NAME "MacOS-${ARCH}")
   MESSAGE(STATUS "   ARCH ${ARCH}")
