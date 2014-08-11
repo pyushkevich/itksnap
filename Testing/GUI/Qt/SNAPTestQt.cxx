@@ -58,7 +58,7 @@ SNAPTestQt::LaunchTest(std::string test)
   if(test == "list")
     {
     ListTests();
-    QCoreApplication::exit(SUCCESS);
+    ::exit(SUCCESS);
     }
 
   // Create and run the thread
@@ -186,7 +186,7 @@ void SNAPTestQt::validateValue(QVariant v1, QVariant v2)
     qWarning() << QString("Validation %1 == %2 failed!").arg(v1.toString(),v2.toString());
 
     // Exit with code corresponding to test failure
-    QCoreApplication::exit(REGRESSION_TEST_FAILURE);
+    ::exit(REGRESSION_TEST_FAILURE);
     }
   else
     {
@@ -206,7 +206,7 @@ void SNAPTestQt::validateFloatValue(double v1, double v2, double precision)
     qWarning() << QString("Validation %1 == %2 (with precision %3) failed!").arg(v1).arg(v2).arg(precision);
 
     // Exit with code corresponding to test failure
-    QCoreApplication::exit(REGRESSION_TEST_FAILURE);
+    ::exit(REGRESSION_TEST_FAILURE);
     }
   else
     {
@@ -331,7 +331,7 @@ void TestWorker::executeScriptlet(QString scriptlet)
   if(rc.isError())
     {
     qWarning() << "JavaScript exception:" << rc.toString();
-    QCoreApplication::exit(SNAPTestQt::REGRESSION_TEST_FAILURE);
+    ::exit(SNAPTestQt::REGRESSION_TEST_FAILURE);
     }
 }
 
@@ -350,7 +350,7 @@ void TestWorker::runScript(QString script_url)
   if(!file.open(QIODevice::ReadOnly))
     {
     qWarning() << QString("Unable to read test script %1").arg(script_url);
-    QCoreApplication::exit(SNAPTestQt::NO_SUCH_TEST);
+    ::exit(SNAPTestQt::NO_SUCH_TEST);
     }
 
   // Read the script
@@ -396,12 +396,15 @@ void TestWorker::run()
   QJSValue mwin = m_Engine->newQObject(this);
   m_Engine->globalObject().setProperty("thread", mwin);
 
+  // Make sure full output is captured
+  qDebug() << "CTEST_FULL_OUTPUT";
+
   // Run the top-level script
   // runScript(m_MainScript);
   source(m_MainScript);
 
   // Once the test has completed, we can exit the application
-  QCoreApplication::exit(SNAPTestQt::SUCCESS);
+  ::exit(SNAPTestQt::SUCCESS);
 }
 
 void TestWorker::wait(unsigned int msec)
@@ -423,7 +426,7 @@ void TestWorker::source(QString script_url)
   if(!file.open(QIODevice::ReadOnly))
     {
     qWarning() << QString("Unable to read test script %1").arg(script_url);
-    QCoreApplication::exit(SNAPTestQt::NO_SUCH_TEST);
+    ::exit(SNAPTestQt::NO_SUCH_TEST);
     }
 
   // Read the script
@@ -458,6 +461,6 @@ void TestWorker::source(QString script_url)
   if(rc.isError())
     {
     qWarning() << "JavaScript exception:" << rc.toString();
-    QCoreApplication::exit(SNAPTestQt::REGRESSION_TEST_FAILURE);
+    ::exit(SNAPTestQt::REGRESSION_TEST_FAILURE);
     }
 }
