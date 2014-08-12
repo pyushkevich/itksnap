@@ -14,8 +14,8 @@ var index = engine.findItemRow(combo,"Thresholding");
 combo.setCurrentIndex(index);
 
 //=== Setting thresholds
-engine.findChild(snakepanel,"inThreshLowerSlider").value = 24.0;
-engine.findChild(snakepanel,"inThreshLowerSlider").value = 57.0;
+engine.findChild(snakepanel,"inThreshLowerSpin").value = 24.0;
+engine.findChild(snakepanel,"inThreshUpperSpin").value = 57.0;
 
 //=== Validating speed image
 setCursor(17, 15, 20);

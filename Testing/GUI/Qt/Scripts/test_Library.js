@@ -4,6 +4,7 @@ function setCursor(x, y, z)
   engine.findChild(mainwin, "inCursorX").value = x;
   engine.findChild(mainwin, "inCursorY").value = y;
   engine.findChild(mainwin, "inCursorZ").value = z;
+  thread.wait(200);
 }
 
 function openMainImage(name)
