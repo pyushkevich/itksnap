@@ -576,10 +576,18 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="QDoubleSpinBox" name="inThreshLowerSpin"/>
+               <widget class="QDoubleSpinBox" name="inThreshLowerSpin">
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
+               </widget>
               </item>
               <item row="6" column="1">
-               <widget class="QDoubleSpinBox" name="inThreshUpperSpin"/>
+               <widget class="QDoubleSpinBox" name="inThreshUpperSpin">
+                <property name="keyboardTracking">
+                 <bool>false</bool>
+                </property>
+               </widget>
               </item>
               <item row="6" column="0">
                <widget class="QLabel" name="label_18">

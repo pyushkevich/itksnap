@@ -658,6 +658,10 @@ int main(int argc, char *argv[])
     // Destory the test engine
     if(testingEngine)
       delete testingEngine;
+
+    // Exit with the return code
+    std::cerr << "Return code : " << rc << std::endl;
+    return rc;
     }
   catch(std::exception &exc)
     {
