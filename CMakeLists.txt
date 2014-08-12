@@ -11,6 +11,8 @@ PROJECT(SNAP)
 #--------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 2.8.12)
 
+SET(CMAKE_MODULE_PATH ${SNAP_SOURCE_DIR}/CMake)
+
 #--------------------------------------------------------------------------------
 # MACROS
 #--------------------------------------------------------------------------------
@@ -1032,8 +1034,8 @@ IF(APPLE)
   SET(CPACK_DMG_BACKGROUND_IMAGE ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/background.png)
 
   # Include the qt4 dependent libraries
-  include(DeployQt4)
-  install_qt4_executable(${SNAP_BUNDLE_NAME}.app "qsqlite;qgif")
+  include(DeployQt5)
+  install_qt5_executable(${SNAP_BUNDLE_NAME}.app "qsqlite;qgif")
 
 ELSEIF(WIN32)
 
@@ -1041,8 +1043,8 @@ ELSEIF(WIN32)
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION bin)
 
   # Include the qt4 dependent libraries
-  include(DeployQt4)
-  install_qt4_executable(bin/${SNAP_BUNDLE_NAME}.exe "qsqlite;qgif")
+  include(DeployQt5)
+  install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "qsqlite;qgif")
 
   # On windows, we have to configure NSIS
   SET(CPACK_NSIS_INSTALLED_ICON_NAME "ITK-SNAP.exe")
@@ -1084,8 +1086,8 @@ ELSE()
   SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
 
-  include(DeployQt4)
-  install_qt4_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} "qgif")
+  include(DeployQt5)
+  install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} "qgif")
 
 ENDIF()
 
