@@ -289,6 +289,9 @@ private:
   // Check for updates (quietly or loudly)
   void DoUpdateCheck(bool quiet);
 
+  // Hookup check
+  void HookupShortcutToAction(const QKeySequence &ks, QAction *action);
+
   // For convenience, an array of the four panels (3 slice/1 3D)
   QWidget *m_ViewPanels[4];
 

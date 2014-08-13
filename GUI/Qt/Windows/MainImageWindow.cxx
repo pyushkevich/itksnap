@@ -86,6 +86,7 @@
 #include <SNAPQtCommon.h>
 #include <QMimeData>
 
+#include <QShortcut>
 
 
 MainImageWindow::MainImageWindow(QWidget *parent) :
@@ -234,13 +235,33 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Start the timer (it doesn't cost much...)
   m_AnimateTimer->start();
+
+  // Create keyboard shortcuts for opacity (because there seems to be a bug/feature on MacOS
+  // where keyboard shortcuts require the Fn-key to be pressed in QMenu
+  this->HookupShortcutToAction(QKeySequence("s"), ui->actionSegmentationToggle);
+  this->HookupShortcutToAction(QKeySequence("a"), ui->actionSegmentationDecreaseOpacity);
+  this->HookupShortcutToAction(QKeySequence("d"), ui->actionSegmentationIncreaseOpacity);
+  this->HookupShortcutToAction(QKeySequence("q"), ui->actionOverlayVisibilityDecreaseAll);
+  this->HookupShortcutToAction(QKeySequence("w"), ui->actionOverlayVisibilityToggleAll);
+  this->HookupShortcutToAction(QKeySequence("e"), ui->actionOverlayVisibilityIncreaseAll);
+  this->HookupShortcutToAction(QKeySequence("x"), ui->actionToggle_All_Annotations);
+  this->HookupShortcutToAction(QKeySequence("X"), ui->actionToggle_Crosshair);
+
 }
+
 
 MainImageWindow::~MainImageWindow()
 {
   delete m_ProgressReporterDelegate;
   delete ui;
 }
+
+void MainImageWindow::HookupShortcutToAction(const QKeySequence &ks, QAction *action)
+{
+  QShortcut *short_S = new QShortcut(ks, this);
+  connect(short_S, SIGNAL(activated()), action, SLOT(trigger()));
+}
+
 
 void MainImageWindow::Initialize(GlobalUIModel *model)
 {
@@ -918,11 +939,15 @@ void MainImageWindow::on_actionRedo_triggered()
 #include <QKeyEvent>
 bool MainImageWindow::event(QEvent *event)
 {
+    /*
   if(dynamic_cast<QKeyEvent *>(event))
     {
     QKeyEvent *kevent = dynamic_cast<QKeyEvent *>(event);
     std::cout << "KEY event: " << kevent->text().toStdString() << std::endl;
+    std::cout << "  "
+    std::cout << "MODIFIERS: " << (int) kevent->modifiers() << std::endl;
     }
+    */
   return QWidget::event(event);
 }
 
