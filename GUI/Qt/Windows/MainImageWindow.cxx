@@ -919,7 +919,10 @@ void MainImageWindow::on_actionRedo_triggered()
 bool MainImageWindow::event(QEvent *event)
 {
   if(dynamic_cast<QKeyEvent *>(event))
-    std::cout << "HAHA" << std::endl;
+    {
+    QKeyEvent *kevent = dynamic_cast<QKeyEvent *>(event);
+    std::cout << "KEY event: " << kevent->text().toStdString() << std::endl;
+    }
   return QWidget::event(event);
 }
 
