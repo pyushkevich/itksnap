@@ -1130,7 +1130,7 @@ MARK_AS_ADVANCED(SCP_ARGUMENTS)
 SET(SCP_USERNAME "" CACHE STRING "SourceForge.net account id for uploads")
 MARK_AS_ADVANCED(SCP_USERNAME)
 
-SET(NIGHTLY_TARGET "qtsnap-nightly-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
+SET(NIGHTLY_TARGET "itksnap-3.2-dev-nightly-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 
 SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/i/it/itk-snap/itk-snap")
 
