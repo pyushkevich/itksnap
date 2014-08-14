@@ -244,9 +244,11 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   this->HookupShortcutToAction(QKeySequence("q"), ui->actionOverlayVisibilityDecreaseAll);
   this->HookupShortcutToAction(QKeySequence("w"), ui->actionOverlayVisibilityToggleAll);
   this->HookupShortcutToAction(QKeySequence("e"), ui->actionOverlayVisibilityIncreaseAll);
-  this->HookupShortcutToAction(QKeySequence("x"), ui->actionToggle_All_Annotations);
-  this->HookupShortcutToAction(QKeySequence("X"), ui->actionToggle_Crosshair);
-
+  this->HookupShortcutToAction(QKeySequence(Qt::Key_X), ui->actionToggle_All_Annotations);
+  this->HookupShortcutToAction(QKeySequence(Qt::SHIFT + Qt::Key_X), ui->actionToggle_Crosshair);
+  this->HookupShortcutToAction(QKeySequence("<"), ui->actionForegroundLabelPrev);
+  this->HookupShortcutToAction(QKeySequence(">"), ui->actionForegroundLabelNext);
+  this->HookupShortcutToAction(QKeySequence("C"), ui->actionCenter_on_Cursor);
 }
 
 

@@ -177,12 +177,6 @@ SnakeWizardPanel::~SnakeWizardPanel()
   delete ui;
 }
 
-void SnakeWizardPanel::on_btnPreprocess_clicked()
-{
-  // Show the appropriately configured preprocessing dialog
-  m_SpeedDialog->ShowDialog();
-}
-
 #include "QtToolbarCoupling.h"
 
 void SnakeWizardPanel::SetModel(GlobalUIModel *model)

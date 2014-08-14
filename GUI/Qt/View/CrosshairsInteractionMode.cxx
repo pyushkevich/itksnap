@@ -225,7 +225,8 @@ void CrosshairsInteractionMode::keyPressEvent(QKeyEvent *ev)
     case Qt::Key_PageUp:   dx = Vector3i( 0, 0, 1); break;
     case Qt::Key_PageDown: dx = Vector3i( 0, 0,-1); break;
     default:
-      ev->ignore(); return;
+      SliceWindowInteractionDelegateWidget::keyPressEvent(ev);
+      return;
     }
 
   if(ev->modifiers() & Qt::ShiftModifier)

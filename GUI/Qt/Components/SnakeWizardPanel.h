@@ -67,8 +67,6 @@ signals:
 
 private slots:
 
-  void on_btnPreprocess_clicked();
-
   void on_btnNextPreproc_clicked();
 
   void on_btnAddBubble_clicked();
