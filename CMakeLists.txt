@@ -290,6 +290,8 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/ThreadedHistogramImageFilter.h
   Logic/ImageWrapper/ThreadedHistogramImageFilter.hxx
   Logic/ImageWrapper/VectorImageWrapper.h
+  Logic/ImageWrapper/CPUImageToGPUImageFilter.h
+  Logic/ImageWrapper/CPUImageToGPUImageFilter.hxx
   Logic/LevelSet/LevelSetExtensionFilter.h
   Logic/LevelSet/SnakeParametersPreviewPipeline.h
   Logic/LevelSet/SNAPAdvectionFieldImageFilter.h

@@ -56,18 +56,43 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
   m_CastFilter = CastFilter::New();
   m_CastFilter->ReleaseDataFlagOn();
 
-  m_BlurFilter = BlurFilter::New();
-  m_BlurFilter->SetInput(m_CastFilter->GetOutput());
-  m_BlurFilter->ReleaseDataFlagOn();
+  m_GPUEnabled = true;
+  if (!m_GPUEnabled)
+    {
+    m_BlurFilter = BlurFilter::New();
+    m_BlurFilter->SetInput(m_CastFilter->GetOutput());
+    m_BlurFilter->ReleaseDataFlagOn();
 
-  // Prevent streaming inside the Gaussian filter because we will be streaming
-  // anyway. Too much streaming increases execution time unnecessarilty
-  m_BlurFilter->SetInternalNumberOfStreamDivisions(1);
-  m_BlurFilter->SetMaximumError(0.1);
+    // Prevent streaming inside the Gaussian filter because we will be streaming
+    // anyway. Too much streaming increases execution time unnecessarilty
+    m_BlurFilter->SetInternalNumberOfStreamDivisions(1);
+    m_BlurFilter->SetMaximumError(0.1);
 
-  m_GradMagFilter = GradMagFilter::New();
-  m_GradMagFilter->SetInput(m_BlurFilter->GetOutput());
-  m_GradMagFilter->ReleaseDataFlagOn();
+    m_GradMagFilter = GradMagFilter::New();
+    m_GradMagFilter->SetInput(m_BlurFilter->GetOutput());
+    m_GradMagFilter->ReleaseDataFlagOn();
+    }
+  else
+    {
+    m_GPUImageSource = GPUImageSource::New();
+    m_GPUImageSource->SetInput(m_CastFilter->GetOutput());
+
+    m_GPUBlurFilter = GPUBlurFilter::New();
+    m_GPUBlurFilter->SetInput(m_GPUImageSource->GetOutput());
+    m_GPUBlurFilter->ReleaseDataFlagOn();
+
+    // Prevent streaming inside the Gaussian filter because we will be streaming
+    // anyway. Too much streaming increases execution time unnecessarilty
+    m_GPUBlurFilter->SetInternalNumberOfStreamDivisions(1);
+    m_GPUBlurFilter->SetMaximumError(0.1);
+
+    m_ROIFilter = ROIFilter::New();
+    m_ROIFilter->SetInput(m_GPUBlurFilter->GetOutput());
+
+    m_GradMagFilter = GradMagFilter::New();
+    m_GradMagFilter->SetInput(m_ROIFilter->GetOutput());
+    m_GradMagFilter->ReleaseDataFlagOn();
+    }
 
   m_RemapFilter = RemapFilter::New();
   m_RemapFilter->SetInput(m_GradMagFilter->GetOutput());
@@ -91,16 +116,38 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
 
   itk::ProgressAccumulator::Pointer pac = itk::ProgressAccumulator::New();
   pac->SetMiniPipelineFilter(this);
-  pac->RegisterInternalFilter(m_BlurFilter, 0.8);
+  if (!m_GPUEnabled)
+    {
+    pac->RegisterInternalFilter(m_BlurFilter, 0.8);
+    }
+  else
+    {
+    pac->RegisterInternalFilter(m_GPUBlurFilter, 0.8);
+    }
   pac->RegisterInternalFilter(m_RemapFilter, 0.2);
 
   // Configure the pipeline
   m_CastFilter->SetInput(inputImage);
 
   // Configure the Gaussian
-  m_BlurFilter->SetUseImageSpacingOff();
-  m_BlurFilter->SetVariance(
-        settings->GetGaussianBlurScale() * settings->GetGaussianBlurScale());
+  if (!m_GPUEnabled)
+    {
+    m_BlurFilter->SetUseImageSpacingOff();
+    m_BlurFilter->SetVariance(
+          settings->GetGaussianBlurScale() * settings->GetGaussianBlurScale());
+    }
+  else
+    {
+    m_GPUBlurFilter->SetUseImageSpacingOff();
+    m_GPUBlurFilter->SetVariance(
+          settings->GetGaussianBlurScale() * settings->GetGaussianBlurScale());
+
+    typedef typename GPUInternalImageType::RegionType RegionType;
+    //typename InternalImageType::ConstPointer gradInput = 
+    //  dynamic_cast< const InternalImageType * >( m_GradMagFilter->GetInput(0) );
+    RegionType roi = inputImage->GetRequestedRegion();
+    m_ROIFilter->SetRegionOfInterest(roi);
+    }
 
   // Construct the functor
   // TODO: fixme!

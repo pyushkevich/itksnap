@@ -37,7 +37,11 @@
 
 #include "itkCommand.h"
 #include "itkImageToImageFilter.h"
+#include "CPUImageToGPUImageFilter.h"
 #include "EdgePreprocessingSettings.h"
+//#include <itkGPUImage.h>
+#include <itkGPUDiscreteGaussianImageFilter.h>
+#include <itkRegionOfInterestImageFilter.h>
 
 namespace itk {
   template <class TIn, class TOut> class DiscreteGaussianImageFilter;
@@ -129,6 +133,10 @@ public:
   typedef float                                                RealType;
   typedef itk::Image<RealType,3>                      InternalImageType;
   typedef itk::SmartPointer<InternalImageType>     InternalImagePointer;
+  typedef typename itk::GPUTraits<InternalImageType>::Type
+                                                   GPUInternalImageType;
+  typedef itk::SmartPointer<GPUInternalImageType> 
+                                                GPUInternalImagePointer;
 
   /** Functor type used for thresholding */
   typedef EdgeRemappingFunctor<RealType>                    FunctorType;
@@ -168,12 +176,22 @@ protected:
 
 private:
 
+  bool m_GPUEnabled;
+
   double m_InputImageMaximumGradientMagnitude;
 
   typedef itk::CastImageFilter<InputImageType, InternalImageType>   CastFilter;
 
   typedef itk::DiscreteGaussianImageFilter<InternalImageType,
                                            InternalImageType>       BlurFilter;
+
+  typedef CPUImageToGPUImageFilter<GPUInternalImageType>        GPUImageSource;
+  typedef itk::GPUDiscreteGaussianImageFilter<GPUInternalImageType,
+                                              GPUInternalImageType>
+                                                                 GPUBlurFilter;
+
+  typedef itk::RegionOfInterestImageFilter<GPUInternalImageType, 
+                                           GPUInternalImageType>     ROIFilter;
 
   typedef itk::GradientMagnitudeImageFilter<InternalImageType,
                                             InternalImageType>   GradMagFilter;
@@ -184,6 +202,9 @@ private:
 
   SmartPtr<CastFilter> m_CastFilter;
   SmartPtr<BlurFilter> m_BlurFilter;
+  SmartPtr<GPUImageSource> m_GPUImageSource;
+  SmartPtr<GPUBlurFilter>  m_GPUBlurFilter;
+  SmartPtr<ROIFilter>      m_ROIFilter;
   SmartPtr<GradMagFilter> m_GradMagFilter;
   SmartPtr<RemapFilter> m_RemapFilter;
 };
