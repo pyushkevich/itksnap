@@ -40,6 +40,9 @@ void SliceWindowInteractionDelegateWidget::preprocessEvent(QEvent *ev)
     }
 }
 
+#include <QDebug>
+#include <QWindow>
+
 Vector3d
 SliceWindowInteractionDelegateWidget
 ::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
@@ -48,9 +51,12 @@ SliceWindowInteractionDelegateWidget
   QtAbstractOpenGLBox *parent = this->GetParentGLWidget();
   parent->makeCurrent();
 
-  // Get the x,y coordinates of the event
-  int x = ev->x();
-  int y = (flipY) ? parent->height() - 1 - ev->y() : ev->y();
+  // Get the x,y coordinates of the event in actual pixels (retina)
+  int xpix = (int) ev->x() * parent->windowHandle()->devicePixelRatio();
+  int ypix = (int) ev->y() * parent->windowHandle()->devicePixelRatio();
+  int hpix = (int) parent->height() * parent->windowHandle()->devicePixelRatio();
+  int x = xpix;
+  int y = (flipY) ? hpix - 1 - ypix : ypix;
 
   // Get the cell size and the number of cells
   Vector2ui sz = m_ParentModel->GetSize();

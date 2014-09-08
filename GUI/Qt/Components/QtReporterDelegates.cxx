@@ -6,6 +6,7 @@
 
 #include <QPainter>
 #include <QPixmap>
+#include <QWindow>
 
 #include <QImage>
 #include "itkImage.h"
@@ -51,7 +52,9 @@ bool QtViewportReporter::CanReportSize()
 
 Vector2ui QtViewportReporter::GetViewportSize()
 {
-  return Vector2ui(m_ClientWidget->width(), m_ClientWidget->height());
+  // For retina displays, this method reports size in actual pixels, not abstract pixels
+  return Vector2ui(m_ClientWidget->width() * m_ClientWidget->windowHandle()->devicePixelRatio(),
+                   m_ClientWidget->height() * m_ClientWidget->windowHandle()->devicePixelRatio());
 }
 
 bool

@@ -2,6 +2,7 @@
 #include "vtkRenderWindowInteractor.h"
 #include "QtAbstractOpenGLBox.h"
 #include <QApplication>
+#include <QWindow>
 
 QtVTKInteractionDelegateWidget::QtVTKInteractionDelegateWidget(QWidget *parent) :
     QtInteractionDelegateWidget(parent)
@@ -11,8 +12,11 @@ QtVTKInteractionDelegateWidget::QtVTKInteractionDelegateWidget(QWidget *parent) 
 void QtVTKInteractionDelegateWidget::SetVTKEventState(QMouseEvent *ev)
 {
   Qt::KeyboardModifiers km = QApplication::keyboardModifiers();
-  int x = ev->pos().x();
-  int y = ev->pos().y();
+
+  // Account for Retina displays
+  int x = ev->pos().x() * this->windowHandle()->devicePixelRatio();
+  int y = ev->pos().y() * this->windowHandle()->devicePixelRatio();
+
   m_VTKInteractor->SetEventInformationFlipY(
         x, y, 
         km.testFlag(Qt::ControlModifier),
