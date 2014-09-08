@@ -60,6 +60,10 @@ void AbstractVTKRenderer::paintGL()
     m_Interactor->Enable();
     }
 
+  // Clear the screen
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   // Do the rendering but only when interactor is enabled (from QVTKWidget2)
   m_RenderWindow->Render();
 }

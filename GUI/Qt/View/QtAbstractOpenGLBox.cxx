@@ -27,6 +27,7 @@
 #include "QtAbstractOpenGLBox.h"
 #include <QMouseEvent>
 #include <QStackedLayout>
+#include <QWindow>
 #include <QtInteractionDelegateWidget.h>
 #include "LatentITKEventNotifier.h"
 #include "SNAPOpenGL.h"
@@ -77,10 +78,14 @@ void QtAbstractOpenGLBox::paintGL()
   // based on any events that it has received upstream.
   GetRenderer()->Update();
 
+  // Get width and height in pixels
+  int wp = (int) this->size().width() * this->windowHandle()->devicePixelRatio();
+  int hp = (int) this->size().height() * this->windowHandle()->devicePixelRatio();
+
   // Qt bug workaround
   if(m_NeedResizeOnNextRepaint)
     {
-    GetRenderer()->resizeGL(this->size().width(), this->size().height());
+    GetRenderer()->resizeGL(wp, hp);
     m_NeedResizeOnNextRepaint = false;
     }
 
@@ -93,7 +98,7 @@ void QtAbstractOpenGLBox::paintGL()
     try
       {
       vtkSmartPointer<vtkImageData> image = GLToVTKImageData(
-            (unsigned int) GL_RGB, 0, 0, this->width(), this->height());
+            (unsigned int) GL_RGB, 0, 0, wp, hp);
       std::string fn = to_utf8(m_ScreenshotRequest);
       VTKImageDataToPNG(image, fn.c_str());
       }

@@ -1035,7 +1035,12 @@ IF(APPLE)
 
   # Include the qt4 dependent libraries
   include(DeployQt5)
-  install_qt5_executable(${SNAP_BUNDLE_NAME}.app "qsqlite;qgif")
+
+  # Make sure the GIF plugin is included
+  get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+
+  # Install with the plugin
+  install_qt5_executable(${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
 
 ELSEIF(WIN32)
 
@@ -1044,7 +1049,12 @@ ELSEIF(WIN32)
 
   # Include the qt4 dependent libraries
   include(DeployQt5)
-  install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "qsqlite;qgif")
+
+  # Make sure the GIF plugin is included
+  get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+
+  # Install with the plugin
+  install_qt5_executable(${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
 
   # On windows, we have to configure NSIS
   SET(CPACK_NSIS_INSTALLED_ICON_NAME "ITK-SNAP.exe")
@@ -1087,7 +1097,7 @@ ELSE()
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
 
   include(DeployQt5)
-  install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} "qgif")
+  install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} "qgif;qpng")
 
 ENDIF()
 

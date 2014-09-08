@@ -266,6 +266,7 @@ function(install_qt5_plugin plugin executable copy installed_plugin_path_var)
       set(plugin_debug "${plugin_release}")
     endif()
 
+
     if(CMAKE_CONFIGURATION_TYPES OR CMAKE_BUILD_TYPE)
       install_qt5_plugin_path("${plugin_release}" "${executable}" "${copy}" "${installed_plugin_path_var}_release" "${plugins_dir}" "${component}" "Release|RelWithDebInfo|MinSizeRel")
       install_qt5_plugin_path("${plugin_debug}" "${executable}" "${copy}" "${installed_plugin_path_var}_debug" "${plugins_dir}" "${component}" "Debug")
