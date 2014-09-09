@@ -25,6 +25,10 @@ public:
 
   Vector2ui GetViewportSize();
 
+  float GetViewportPixelRatio();
+
+  Vector2ui GetLogicalViewportSize();
+
 protected:
 
   QtViewportReporter();

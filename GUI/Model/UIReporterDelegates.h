@@ -28,6 +28,13 @@ public:
   virtual bool CanReportSize() = 0;
   virtual Vector2ui GetViewportSize() = 0;
 
+  /** For retina displays, report the ratio of actual GL pixels to logical pixels */
+  virtual float GetViewportPixelRatio() = 0;
+
+  /** Get the viewport size in logical units (for retina-like displays) */
+  virtual Vector2ui GetLogicalViewportSize() = 0;
+
+
 protected:
   virtual ~ViewportSizeReporter() {}
 };

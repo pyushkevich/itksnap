@@ -140,12 +140,17 @@ QtInteractionDelegateWidget
   glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
   glGetIntegerv(GL_VIEWPORT,viewport);
 
-  int x = ev->x();
-  int y = (flipY) ? parent->height() - 1 - ev->y() : ev->y();
+  // For retina displays, these are the 'logical' coordinates of the event
+  int lx = ev->x();
+  int ly = (flipY) ? parent->height() - 1 - ev->y() : ev->y();
+
+  // Scale to actual pixels for the unproject call
+  double px = lx * parent->window()->devicePixelRatio();
+  double py = ly * parent->window()->devicePixelRatio();
 
   // Unproject to get the coordinate of the event
   Vector3d xProjection;
-  gluUnProject(x, y, 0,
+  gluUnProject(px, py, 0,
                modelMatrix,projMatrix,viewport,
                &xProjection[0], &xProjection[1], &xProjection[2]);
   return xProjection;

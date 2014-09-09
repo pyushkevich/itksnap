@@ -2,6 +2,7 @@
 #define QTRENDERERPLATFORMSUPPORT_H
 
 #include "AbstractRenderer.h"
+#include <QRect>
 
 class QtRendererPlatformSupport : public AbstractRendererPlatformSupport
 {
@@ -15,6 +16,8 @@ public:
 
   virtual int MeasureTextWidth(const char *text, FontInfo font);
 
+protected:
+  QRect WorldRectangleToPixelRectangle(const QRect &world);
 };
 
 #endif // QTRENDERERPLATFORMSUPPORT_H

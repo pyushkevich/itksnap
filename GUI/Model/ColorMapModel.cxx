@@ -149,7 +149,7 @@ void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer, bool being_dele
 bool ColorMapModel::ProcessMousePressEvent(const Vector3d &x)
 {
   assert(m_ViewportReporter && m_ViewportReporter->CanReportSize());
-  Vector2ui vp = m_ViewportReporter->GetViewportSize();
+  Vector2ui vp = m_ViewportReporter->GetLogicalViewportSize();
 
   // Reference to the color map
   ColorMap *cm = this->GetColorMap();

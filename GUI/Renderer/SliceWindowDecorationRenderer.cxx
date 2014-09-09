@@ -60,9 +60,13 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
     labels[i][1] = letters[anatomyAxis][letterIndex];
     }
 
+  double vppr = parentModel->GetSizeReporter()->GetViewportPixelRatio();
+  Vector2ui vp = parentModel->GetSizeReporter()->GetLogicalViewportSize();
+
   glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT);
   glPushMatrix();
   glLoadIdentity();
+  glScaled(vppr, vppr, 1.0);
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -70,12 +74,13 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
   // Get the various sizes and offsets
   int offset = 4 + elt->GetFontSize();
   int margin = elt->GetFontSize() / 3;
-  Vector2ui vp = parentModel->GetSizeReporter()->GetViewportSize();
   int w = vp[0], h = vp[1];
+
+  std::cout << "I see width as " << w << std::endl;
 
   // Create the font info
   AbstractRendererPlatformSupport::FontInfo font_info =
-        { AbstractRendererPlatformSupport::TYPEWRITER, elt->GetFontSize(), true };
+        { AbstractRendererPlatformSupport::TYPEWRITER, elt->GetFontSize() * vppr, true };
 
   // Use the delegate to draw text
   this->m_PlatformSupport->RenderTextInOpenGL(
@@ -116,21 +121,24 @@ void SliceWindowDecorationRenderer::DrawNicknames()
   // Leave if the labels are disabled
   if(!elt->GetVisible()) return;
 
+  // Viewport properties (retina-related)
+  double vppr = parentModel->GetSizeReporter()->GetViewportPixelRatio();
+  Vector2ui vp = parentModel->GetSizeReporter()->GetLogicalViewportSize();
+
   // Apply the label properties
   glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT);
   glPushMatrix();
   glLoadIdentity();
+  glScaled(vppr, vppr, 1.0);
 
   elt->ApplyLineSettings();
   glColor4d( elt->GetNormalColor()[0], elt->GetNormalColor()[1], elt->GetNormalColor()[2], 1.0 );
 
   // Get the viewport size
-  Vector2ui vp = parentModel->GetSizeReporter()->GetViewportSize();
   int w = vp[0] / ncols, h = vp[1] / nrows;
 
-  // Adjust the font size
   AbstractRendererPlatformSupport::FontInfo font_info =
-        { AbstractRendererPlatformSupport::SANS, elt->GetFontSize(), false };
+        { AbstractRendererPlatformSupport::SANS, elt->GetFontSize() * vppr, false };
 
   // Find the longest nickname
   int maxwidth = 0;
@@ -196,15 +204,17 @@ void SliceWindowDecorationRenderer::DrawRulers()
   // Leave if the labels are disabled
   if(!elt->GetVisible()) return;
 
+  // Get the viewport properties (retina-capable)
+  float vppr = parentModel->GetSizeReporter()->GetViewportPixelRatio();
+  Vector2ui vp = parentModel->GetSizeReporter()->GetLogicalViewportSize();
+
   glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT);
   glPushMatrix();
   glLoadIdentity();
+  glScaled(vppr, vppr, 1.0);
 
   elt->ApplyLineSettings();
   glColor4d( elt->GetNormalColor()[0], elt->GetNormalColor()[1], elt->GetNormalColor()[2], 1.0 );
-
-  // Pick the scale of the ruler
-  Vector2ui vp = parentModel->GetSizeReporter()->GetViewportSize();
 
   // The ruler bar should be as large as possible but less than one half
   // of the screen width (not to go over the markers)
@@ -243,23 +253,27 @@ void SliceWindowDecorationRenderer::DrawRulers()
   std::ostringstream oss;
   oss << scale << " " << unit;
 
+  // Get the fontsize in GL pixels
+  int font_size = elt->GetFontSize();
+
   // Create the font info
   AbstractRendererPlatformSupport::FontInfo font_info =
-        { AbstractRendererPlatformSupport::SANS, elt->GetFontSize(), false };
+        { AbstractRendererPlatformSupport::SANS, font_size * vppr, false };
 
   // See if we can squeeze the label under the ruler
-  if(bw > elt->GetFontSize() * 4)
+  if(bw > font_size * 4)
     {
     this->m_PlatformSupport->RenderTextInOpenGL(
         oss.str().c_str(),
-        vp[0]-(bw+10), 12, (int) bw, 20,
+        vp[0]-(bw+10), 12, (int) bw, font_size+8,
         font_info, 0, -1, elt->GetNormalColor());
     }
   else
     {
     this->m_PlatformSupport->RenderTextInOpenGL(
           oss.str().c_str(),
-          vp[0] - (int) (2 * bw + elt->GetFontSize() * 4 + 20), 5, (int) (bw + elt->GetFontSize() * 4+10), 10,
+          vp[0] - (int) (2 * bw + font_size * 4 + 20), 5,
+          (int) (bw + font_size * 4+10), font_size,
           font_info, 1, 0, elt->GetNormalColor());
     }
 

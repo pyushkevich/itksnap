@@ -300,7 +300,10 @@ public:
     painter->GetPen()->SetWidth(1.2);
     painter->GetPen()->SetColor(0, 0, 0, 128);
 
-    this->ScreenPointRadius = 5;
+    // When expressing anything in screen pixel units, we need to watch out
+    // for retina displays
+    float vppr = m_Model->GetViewportReporter()->GetViewportPixelRatio();
+    this->ScreenPointRadius = 5 * vppr;
     this->DrawUnselectedPoints(painter);
 
     if (this->CurrentPoint != -1)
@@ -309,7 +312,7 @@ public:
       painter->GetBrush()->SetColor(255, 255, 0, 255);
       painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
 
-      this->ScreenPointRadius = 6;
+      this->ScreenPointRadius = 6 * vppr;
       this->DrawPoint(painter, this->CurrentPoint);
       }
 

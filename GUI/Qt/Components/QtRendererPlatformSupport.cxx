@@ -4,6 +4,44 @@
 #include <QPixmap>
 #include <QFontMetrics>
 #include "SNAPQtCommon.h"
+#include <QDebug>
+#include <iostream>
+
+QRect
+QtRendererPlatformSupport::WorldRectangleToPixelRectangle(const QRect &world)
+{
+  // Viewport and such
+  vnl_vector<int> viewport(4);
+  vnl_matrix<double> model_view(4,4), projection(4,4);
+
+  // Map the rectangle to viewport coordinates
+  glGetIntegerv(GL_VIEWPORT, viewport.data_block());
+  glGetDoublev(GL_PROJECTION_MATRIX, projection.data_block());
+  glGetDoublev(GL_MODELVIEW_MATRIX, model_view.data_block());
+
+  vnl_vector<double> xw1(4), xs1, xw2(4), xs2;
+  xw1[0] = world.x(); xw1[1] = world.y();
+  xw1[2] = 0.0; xw1[3] = 1.0;
+  xs1 = projection.transpose() * (model_view.transpose() * xw1);
+
+  xw2[0] = world.x() + world.width(); xw2[1] = world.y() + world.height();
+  xw2[2] = 0.0; xw2[3] = 1.0;
+  xs2 = projection.transpose() * (model_view.transpose() * xw2);
+
+  double x = std::min(xs1[0] / xs1[3], xs2[0] / xs2[3]);
+  double y = std::min(xs1[1] / xs1[3], xs2[1] / xs2[3]);
+  double w = fabs(xs1[0] / xs1[3] - xs2[0] / xs2[3]);
+  double h = fabs(xs1[1] / xs1[3] - xs2[1] / xs2[3]);
+
+  x = (x + 1) / 2;  y = (y + 1) / 2;
+  w = w / 2;  h = h / 2;
+
+
+  return QRect(
+      QPoint((int)(x * viewport[2] + viewport[0]), (int)(y * viewport[3] + viewport[1])),
+      QSize((int)(w * viewport[2]),(int)(h * viewport[3])));
+}
+
 
 void QtRendererPlatformSupport
 ::RenderTextInOpenGL(const char *text,
@@ -12,8 +50,15 @@ void QtRendererPlatformSupport
                      int align_horiz, int align_vert,
                      const Vector3d &rgbf)
 {
+  // Map the coordinates to screen coordinates
+  QRect rWorld(QPoint(x, y), QSize(w, h));
+  QRect rScreen = this->WorldRectangleToPixelRectangle(rWorld);
+
+  std::cout << "requested " << x << " " << y << " " << w << " " << h << std::endl;
+  std::cout << "mapped to " << rScreen.x() << " " << rScreen.y() << " " << rScreen.width() << " " << rScreen.height() << std::endl;
+
   // Create a pixmap to render the text
-  QImage canvas(w, h, QImage::Format_ARGB32);
+  QImage canvas(rScreen.width(), rScreen.height(), QImage::Format_ARGB32);
   canvas.fill(QColor(0,0,0,0));
 
   // Paint the text onto the canvas
@@ -52,15 +97,15 @@ void QtRendererPlatformSupport
   qfont.setBold(font.bold);
   painter.setFont(qfont);
 
-  painter.drawText(QRectF(0,0,w,h), ah | av, QString::fromUtf8(text));
+  painter.drawText(QRectF(0,0,rScreen.width(),rScreen.height()), ah | av, QString::fromUtf8(text));
 
   QImage gl = QGLWidget::convertToGLFormat(canvas);
 
   glPushAttrib(GL_COLOR_BUFFER_BIT);
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-  glRasterPos2i(x, y);
-  glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, gl.bits());
+  glRasterPos2i(x,y);
+  glDrawPixels(rScreen.width(),rScreen.height(), GL_RGBA, GL_UNSIGNED_BYTE, gl.bits());
   glPopAttrib();
 }
 

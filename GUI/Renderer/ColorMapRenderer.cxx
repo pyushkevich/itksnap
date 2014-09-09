@@ -199,17 +199,25 @@ void ColorMapRenderer::paintGL()
 
 void ColorMapRenderer::resizeGL(int w, int h)
 {
+  // Instead of using the w/h passed in here, which are in physical pixel units,
+  // we will use 'logical' pixel units on Retina-type displays. This makes the
+  // sizes of all circles and such consistent between Retina and normal displays
+
+  if(!m_Model) return;
+
+  Vector2ui vpl = m_Model->GetViewportReporter()->GetLogicalViewportSize();
+
   // Set up the basic projection with a small margin
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluOrtho2D(-0.1,1.1,-0.1,1.1);
-  glViewport(0,0,w,h);
+  glViewport(0,0,vpl[0],vpl[1]);
 
   // Establish the model view matrix
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
   // Store the dimensions
-  m_Width = w;
-  m_Height = h;
+  m_Width = vpl[0];
+  m_Height = vpl[1];
 }

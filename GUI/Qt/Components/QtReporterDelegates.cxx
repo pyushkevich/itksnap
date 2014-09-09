@@ -57,6 +57,16 @@ Vector2ui QtViewportReporter::GetViewportSize()
                    m_ClientWidget->height() * m_ClientWidget->windowHandle()->devicePixelRatio());
 }
 
+float QtViewportReporter::GetViewportPixelRatio()
+{
+  return m_ClientWidget->windowHandle()->devicePixelRatio();
+}
+
+Vector2ui QtViewportReporter::GetLogicalViewportSize()
+{
+  return Vector2ui(m_ClientWidget->width(), m_ClientWidget->height());
+}
+
 bool
 QtViewportReporter::EventFilter
 ::eventFilter(QObject *object, QEvent *event)
