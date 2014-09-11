@@ -1080,13 +1080,13 @@ ELSEIF(WIN32)
 
   # On Win32, we must include the redistributable
   IF(MSVC_VERSION GREATER 1399)
-    FIND_PROGRAM(VCREDIST_X86 vcredist_x86.exe)
-    IF(VCREDIST_X86)
-      INSTALL(FILES ${VCREDIST_X86} DESTINATION bin)
+    FIND_PROGRAM(VCREDIST_EXE vcredist_x86.exe vcredist_x64.exe)
+    IF(VCREDIST_EXE)
+      GET_FILENAME_COMPONENT(VCREDIST_NAME ${VCREDIST_EXE} NAME)
+      INSTALL(FILES ${VCREDIST_EXE} DESTINATION bin)
       SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
-        "ExecWait '\\\"$INSTDIR\\\\bin\\\\vcredist_x86.exe\\\" /passive'"
-        "CreateShortCut 'c:\\\\Windows\\\\system32\\\\cmd.exe' '$INSTDIR\\\\c3dshell.lnk'")
-    ENDIF(VCREDIST_X86)
+        "ExecWait '\\\"$INSTDIR\\\\bin\\\\${VCREDIST_NAME}\\\" /passive'")
+    ENDIF(VCREDIST_EXE)
   ENDIF(MSVC_VERSION GREATER 1399)
 
 ELSE()
