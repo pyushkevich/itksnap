@@ -32,7 +32,9 @@ SET(SNAP_QT5_LIBRARIES
   Qt5::Qml
 )
 
-
+# Set vars for the QT binary and library directories
+GET_FILENAME_COMPONENT(QT_BINARY_DIR "${Qt5Core_DIR}/../../../bin" ABSOLUTE)
+GET_FILENAME_COMPONENT(QT_LIBRARY_DIR "${Qt5Core_DIR}/../../" ABSOLUTE)
 
 # Look for OpenGL.
 FIND_PACKAGE(OpenGL REQUIRED)
