@@ -364,11 +364,15 @@ void PopulateHistoryMenu(
     {
     QString entry = itGlobal.previous();
     if(local_history.indexOf(entry) == -1)
-      menu->addAction(entry);
+      {
+      QAction *action = menu->addAction(entry);
+      QObject::connect(action, SIGNAL(triggered()), receiver, slot);
+      }
     }
 
   if(nLocal > 0 && menu->actions().size() > nLocal)
     menu->insertSeparator(menu->actions()[nLocal]);
+
 
 }
 
