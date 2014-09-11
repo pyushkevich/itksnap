@@ -1044,6 +1044,10 @@ IF(APPLE)
 
 ELSEIF(WIN32)
 
+  # Set the PATH to include Qt libraries
+  GET_FILENAME_COMPONENT(QT_BINARY_DIR "${Qt5Core_DIR}/../../../bin" ABSOLUTE)
+  GET_FILENAME_COMPONENT(QT_LIBRARY_DIR "${Qt5Core_DIR}/../../" ABSOLUTE)
+
   # Install to the bin directory
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION bin)
 
@@ -1054,7 +1058,7 @@ ELSEIF(WIN32)
   get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
 
   # Install with the plugin
-  install_qt5_executable(${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
+  install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN}")
 
   # On windows, we have to configure NSIS
   SET(CPACK_NSIS_INSTALLED_ICON_NAME "ITK-SNAP.exe")
@@ -1075,15 +1079,15 @@ ELSEIF(WIN32)
   SET(CPACK_PACKAGE_EXECUTABLES ITK-SNAP "ITK-SNAP")
 
   # On Win32, we must include the redistributable
-  IF(MSVC80 OR MSVC90 OR MSVC10)
-	  FIND_PROGRAM(VCREDIST_EXE vcredist_x86.exe vcredist_x64.exe)
-	  IF(VCREDIST_EXE)
-	  GET_FILENAME_COMPONENT(VCREDIST_NAME ${VCREDIST_EXE} NAME)
-	  INSTALL(FILES ${VCREDIST_EXE} DESTINATION bin)
-	  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
-		  "ExecWait '\\\"$INSTDIR\\\\bin\\\\${VCREDIST_NAME}\\\" /q:a'")
-	  ENDIF(VCREDIST_EXE)
-  ENDIF(MSVC80 OR MSVC90 OR MSVC10)
+  IF(MSVC_VERSION GREATER 1399)
+    FIND_PROGRAM(VCREDIST_X86 vcredist_x86.exe)
+    IF(VCREDIST_X86)
+      INSTALL(FILES ${VCREDIST_X86} DESTINATION bin)
+      SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
+        "ExecWait '\\\"$INSTDIR\\\\bin\\\\vcredist_x86.exe\\\" /passive'"
+        "CreateShortCut 'c:\\\\Windows\\\\system32\\\\cmd.exe' '$INSTDIR\\\\c3dshell.lnk'")
+    ENDIF(VCREDIST_X86)
+  ENDIF(MSVC_VERSION GREATER 1399)
 
 ELSE()
 
