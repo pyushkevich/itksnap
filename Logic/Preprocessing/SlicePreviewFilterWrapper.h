@@ -180,6 +180,8 @@ protected:
   ScalarImageWrapperBase *m_ActiveScalarLayer;
 
   bool m_PreviewMode;
+
+  void UpdateOutputPipelineReadyStatus();
 };
 
 

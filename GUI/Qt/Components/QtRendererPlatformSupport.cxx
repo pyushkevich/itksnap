@@ -54,9 +54,6 @@ void QtRendererPlatformSupport
   QRect rWorld(QPoint(x, y), QSize(w, h));
   QRect rScreen = this->WorldRectangleToPixelRectangle(rWorld);
 
-  std::cout << "requested " << x << " " << y << " " << w << " " << h << std::endl;
-  std::cout << "mapped to " << rScreen.x() << " " << rScreen.y() << " " << rScreen.width() << " " << rScreen.height() << std::endl;
-
   // Create a pixmap to render the text
   QImage canvas(rScreen.width(), rScreen.height(), QImage::Format_ARGB32);
   canvas.fill(QColor(0,0,0,0));

@@ -76,8 +76,6 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
   int margin = elt->GetFontSize() / 3;
   int w = vp[0], h = vp[1];
 
-  std::cout << "I see width as " << w << std::endl;
-
   // Create the font info
   AbstractRendererPlatformSupport::FontInfo font_info =
         { AbstractRendererPlatformSupport::TYPEWRITER, elt->GetFontSize() * vppr, true };

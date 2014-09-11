@@ -118,6 +118,7 @@ public:
   irisGetMacro(EdgePreprocessingKappaModel, AbstractRangedDoubleProperty *)
   irisGetMacro(EdgePreprocessingExponentModel, AbstractRangedDoubleProperty *)
 
+
   // Called when entering proprocessing mode (i.e., back from button page)
   void OnBubbleModeBack();
 
@@ -256,6 +257,9 @@ public:
   /** Model controlling the class/label used for the foreground probability */
   typedef STLMapWrapperItemSetDomain<LabelType, ColorLabel> ForegroundClassDomain;
   irisGenericPropertyAccessMacro(ForegroundClassColorLabel, LabelType, ForegroundClassDomain)
+
+  /** Model for the forest size */
+  irisRangedPropertyAccessMacro(ForestSize, int)
 
   /** Train the random forest classifier when the user hits the 'train' button */
   void TrainClassifier();
@@ -423,6 +427,10 @@ protected:
   SmartPtr<AbstractForegroundClassPropertyModel> m_ForegroundClassColorLabelModel;
   bool GetForegroundClassColorLabelValueAndRange(LabelType &value, ForegroundClassDomain *range);
   void SetForegroundClassColorLabelValue(LabelType value);
+
+  SmartPtr<AbstractRangedIntProperty> m_ForestSizeModel;
+  bool GetForestSizeValueAndRange(int &value, NumericValueRange<int> *range);
+  void SetForestSizeValue(int value);
 
   // TODO: this should be handled through the ITK modified mechanism
   void TagRFPreprocessingFilterModified();

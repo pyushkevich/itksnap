@@ -66,6 +66,9 @@ public:
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
 
+  // This filter always has preview ready
+  static bool IsPreviewable(FilterType *filter[]) { return true; }
+
   static ScalarImageWrapperBase* GetDefaultScalarLayer(SNAPImageData *sid);
   static void SetActiveScalarLayer(
       ScalarImageWrapperBase *layer, FilterType *filter, int channel);
@@ -85,6 +88,9 @@ public:
   static void DetachInputs(FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
+
+  // This filter always has preview ready
+  static bool IsPreviewable(FilterType *filter[]) { return true; }
 
   static ScalarImageWrapperBase* GetDefaultScalarLayer(SNAPImageData *sid) { return NULL; }
   static void SetActiveScalarLayer(
@@ -110,6 +116,9 @@ public:
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
 
+  // This filter always has preview ready
+  static bool IsPreviewable(FilterType *filter[]) { return true; }
+
   static ScalarImageWrapperBase* GetDefaultScalarLayer(SNAPImageData *sid) { return NULL; }
   static void SetActiveScalarLayer(
       ScalarImageWrapperBase *layer, FilterType *filter, int channel) {}
@@ -134,6 +143,9 @@ public:
   static void DetachInputs(FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
+
+  // This filter always has preview ready
+  static bool IsPreviewable(FilterType *filter[]);
 
   static ScalarImageWrapperBase* GetDefaultScalarLayer(SNAPImageData *sid) { return NULL; }
   static void SetActiveScalarLayer(

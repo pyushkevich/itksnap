@@ -205,8 +205,6 @@ RFPreprocessingFilterConfigTraits
       filter->AddVectorImage(w->GetImage());
       }
     }
-
-  // TODO: Set the GMM input
 }
 
 void
@@ -224,6 +222,13 @@ RFPreprocessingFilterConfigTraits
 ::SetParameters(ParameterType *p, FilterType *filter, int channel)
 {
   filter->SetClassifier(p);
+}
+
+bool
+RFPreprocessingFilterConfigTraits
+::IsPreviewable(FilterType *filter[])
+{
+  return (filter[0]->GetClassifier() != NULL && filter[0]->GetClassifier()->IsValidClassifier());
 }
 
 

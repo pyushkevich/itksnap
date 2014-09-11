@@ -40,7 +40,22 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
   // Set the parameters of all the filters
   for(int i = 0; i < 4; i++)
     Traits::SetParameters(param, this->GetNthFilter(i), i);
+
+  // After updates to the parameters/filters update the pipeline readiness
+  // status in the output wrapper
+  this->UpdateOutputPipelineReadyStatus();
 }
+
+template <class TFilterConfigTraits>
+void
+SlicePreviewFilterWrapper<TFilterConfigTraits>
+::UpdateOutputPipelineReadyStatus()
+{
+  FilterType *array[] = {m_PreviewFilter[0], m_PreviewFilter[1], m_PreviewFilter[2]};
+  if(m_OutputWrapper)
+    m_OutputWrapper->SetPipelineReady(Traits::IsPreviewable(array));
+}
+
 
 template <class TFilterConfigTraits>
 void
@@ -114,12 +129,14 @@ void
 SlicePreviewFilterWrapper<TFilterConfigTraits>
 ::UpdatePipeline()
 {
-  if(m_OutputWrapper)
+    if(m_OutputWrapper)
     {
     if(m_PreviewMode)
       {
       m_OutputWrapper->AttachPreviewPipeline(
             m_PreviewFilter[0], m_PreviewFilter[1], m_PreviewFilter[2]);
+
+      this->UpdateOutputPipelineReadyStatus();
       }
     else
       {

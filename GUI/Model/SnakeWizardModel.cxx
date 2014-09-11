@@ -166,6 +166,13 @@ SnakeWizardModel::SnakeWizardModel()
         RFClassifierModifiedEvent(),
         RFClassifierModifiedEvent());
 
+  m_ForestSizeModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetForestSizeValueAndRange,
+        &Self::SetForestSizeValue,
+        RFClassifierModifiedEvent(),
+        RFClassifierModifiedEvent());
+
   // The domain of the foreground cluster model depends on the number of clusters
   m_ForegroundClusterModel->Rebroadcast(
         m_NumberOfClustersModel, ValueChangedEvent(), DomainChangedEvent());
@@ -371,6 +378,28 @@ void SnakeWizardModel::SetForegroundClassColorLabelValue(LabelType value)
   // TODO: this is a hack!
   TagRFPreprocessingFilterModified();
 
+}
+
+bool SnakeWizardModel::GetForestSizeValueAndRange(int &value, NumericValueRange<int> *range)
+{
+  // Must have a classification engine
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  if(!rfe)
+    return false;
+
+  value = rfe->GetForestSize();
+  if(range)
+    range->Set(10, 500, 10);
+
+  return true;
+}
+
+void SnakeWizardModel::SetForestSizeValue(int value)
+{
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  assert(rfe);
+
+  rfe->SetForestSize(value);
 }
 
 void SnakeWizardModel::OnBubbleModeEnter()

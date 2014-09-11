@@ -409,6 +409,14 @@ public:
     */
   virtual bool IsPreviewPipelineAttached() const;
 
+  /**
+   * A flag governing whether the preview pipeline is ready or not. This is
+   * used to determine whether the layer is drawable (only relevant if the
+   * pipeline is attached)
+   */
+  irisIsMacro(PipelineReady)
+  irisSetMacro(PipelineReady, bool)
+
 
   virtual void* GetVoxelVoidPointer() const;
 
@@ -526,6 +534,9 @@ protected:
    * operations.
    */
   bool m_Initialized;
+
+  /** Pipeline readiness */
+  bool m_PipelineReady;
 
   /** Transparency */
   double m_Alpha;

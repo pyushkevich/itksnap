@@ -158,6 +158,12 @@ public:
    */
   irisVirtualIsMacro(Initialized)
 
+  /**
+   * If the image wrapper is an output of a preview pipeline, is the pipeline ready?
+   */
+  irisVirtualIsMacro(PipelineReady)
+  irisVirtualSetMacro(PipelineReady, bool)
+
   /** Is this image of scalar type? */
   virtual bool IsScalar() const = 0;
 

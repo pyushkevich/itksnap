@@ -223,6 +223,7 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
 
   // Couple the classification controls
   makeCoupling(ui->inClassifyForeground, m_Model->GetForegroundClassColorLabelModel());
+  makeCoupling(ui->inClassifyTrees, m_Model->GetForestSizeModel());
 
   // Couple the edge preprocessing controls
   makeCoupling(ui->inEdgeScale, m_Model->GetEdgePreprocessingSigmaModel());

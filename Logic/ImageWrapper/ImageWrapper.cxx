@@ -352,6 +352,7 @@ ImageWrapper<TTraits,TBase>
 
   // Set initial state    
   m_Initialized = false;
+  m_PipelineReady = false;
 
   // Create slicer objects
   m_Slicer[0] = SlicerType::New();
@@ -481,7 +482,8 @@ ImageWrapper<TTraits,TBase>
   // been modified.
   if(TTraits::PipelineOutput)
     {
-    return IsPreviewPipelineAttached() || m_Image->GetMTime() > m_ImageAssignTime;
+    return (IsPreviewPipelineAttached() && IsPipelineReady())
+        || m_Image->GetMTime() > m_ImageAssignTime;
     }
 
   // Otherwise, it's drawable

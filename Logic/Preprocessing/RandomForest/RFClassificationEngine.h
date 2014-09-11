@@ -34,6 +34,9 @@ public:
   /** Access the trained classifier */
   irisGetMacro(Classifier, RandomForestClassifier *)
 
+  /** Size of the random forest (main parameter) */
+  irisGetSetMacro(ForestSize, int)
+
 
 protected:
 
@@ -48,6 +51,9 @@ protected:
 
   // The foreground label
   LabelType m_ForegroundLabel;
+
+  // Number of trees
+  int m_ForestSize;
 
   // Cached samples used to train the classifier
   typedef MLData<GreyType, LabelType> SampleType;

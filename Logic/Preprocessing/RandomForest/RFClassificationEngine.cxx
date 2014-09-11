@@ -18,6 +18,7 @@ RFClassificationEngine::RFClassificationEngine()
   m_DataSource = NULL;
   m_Sample = NULL;
   m_Classifier = RandomForestClassifier::New();
+  m_ForestSize = 50;
 }
 
 RFClassificationEngine::~RFClassificationEngine()
@@ -111,7 +112,7 @@ void RFClassificationEngine::TrainClassifier()
   // Set up the classifier parameters
   TrainingParameters params;
   params.treeDepth = 10;
-  params.treeNum = 10;
+  params.treeNum = m_ForestSize;
   params.candidateNodeClassifierNum = 10;
   params.candidateClassifierThresholdNum = 10;
   params.subSamplePercent = 0;

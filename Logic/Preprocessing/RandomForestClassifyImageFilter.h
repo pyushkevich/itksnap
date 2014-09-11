@@ -55,6 +55,9 @@ public:
   /** Set the mixture model */
   void SetClassifier(RandomForestClassifier *classifier);
 
+  /** Get the current classifier */
+  irisGetMacro(Classifier, RandomForestClassifier *);
+
   /** We need to override this method because of multiple input types */
   void GenerateInputRequestedRegion();
 
