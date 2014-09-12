@@ -1060,7 +1060,8 @@ ELSEIF(WIN32)
   include(DeployQt5)
 
   # Make sure the GIF plugin is included
-  get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+  get_property(QT_GIF_PLUGIN TARGET Qt5::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
+  get_property(QT_WIN_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
 
   # Install with the plugin
   install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN}")
