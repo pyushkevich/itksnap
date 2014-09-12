@@ -1166,7 +1166,8 @@ ADD_CUSTOM_TARGET(upload_nightly
   COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${NIGHTLY_TARGET}")
 
 ADD_CUSTOM_TARGET(upload_experimental 
-  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} ${PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental
+  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} 
+    ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental/
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
   COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net to Experimental directory")
