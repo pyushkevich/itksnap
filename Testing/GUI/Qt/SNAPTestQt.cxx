@@ -11,7 +11,7 @@
 #include <QTimer>
 #include <QThread>
 #include <QRegExp>
-#include <QCoreApplication>
+#include <QApplication>
 #include "SNAPQtCommon.h"
 
 using namespace std;
@@ -70,6 +70,15 @@ SNAPTestQt::LaunchTest(std::string test)
 QObject *SNAPTestQt::findChild(QObject *parent, QString child)
 {
   return parent->findChild<QObject *>(child);
+}
+
+QWidget *SNAPTestQt::findWidget(QString widgetName)
+{
+  foreach(QWidget *w, QApplication::allWidgets())
+    if(w->objectName() == widgetName)
+      return w;
+
+  return NULL;
 }
 
 #include <QAbstractItemView>
@@ -213,6 +222,12 @@ void SNAPTestQt::validateFloatValue(double v1, double v2, double precision)
     // Validation failed!
     qDebug() << QString("Validation %1 == %2 (with precision %3) ok!").arg(v1).arg(v2).arg(precision);
     }
+}
+
+void SNAPTestQt::testFailed(QString reason)
+{
+  qWarning() << reason;
+  ::exit(REGRESSION_TEST_FAILURE);
 }
 
 #include <QMouseEvent>

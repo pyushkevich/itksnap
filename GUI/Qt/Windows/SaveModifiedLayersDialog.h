@@ -2,6 +2,7 @@
 #define SAVEMODIFIEDLAYERSDIALOG_H
 
 #include <QDialog>
+#include "SNAPCommon.h"
 
 namespace Ui {
 class SaveModifiedLayersDialog;
@@ -40,8 +41,7 @@ public:
   /**
    * This static method prompts user to save unsaved changes to all the layers,
    * and return true if the user indicated that he/she wishes to proceed with
-   * the subsequent operation. It is also possible to request the dialog for a
-   * single image layer (e.g. segmentation)
+   * the subsequent operation.
    *
    * With only the first parameter passed (the model), the function creates a
    * dialog appropriate when the main layer is being closed, i.e., when the
@@ -49,11 +49,27 @@ public:
    * if it exists and is unsaved.
    */
   static bool PromptForUnsavedChanges(GlobalUIModel *model,
-                                      ImageWrapperBase *singleLayer = NULL,
                                       PromptOptions opts = NoOption,
                                       QWidget *parent = NULL);
 
+  /**
+   * This version of the method requests changes to a specific set of layers,
+   * e.g., to save all overlays
+   */
+  static bool PromptForUnsavedChanges(GlobalUIModel *model,
+                                      int role_filter,
+                                      PromptOptions opts = NoOption,
+                                      QWidget *parent = NULL);
+
+  /** A version of the method that takes a single specific image layer */
+  static bool PromptForUnsavedChanges(GlobalUIModel *model,
+                                      ImageWrapperBase *singleLayer,
+                                      PromptOptions opts = NoOption,
+                                      QWidget *parent = NULL);
+
+
   static bool PromptForUnsavedSegmentationChanges(GlobalUIModel *model);
+
 
 
 private slots:
@@ -68,6 +84,11 @@ private:
   SaveModifiedLayersModel *m_Model;
 
   void UpdateUnsavedTable();
+
+  static bool PromptForUnsavedChangesInternal(GlobalUIModel *model,
+                                              std::list<ImageWrapperBase *> layers,
+                                              PromptOptions opts = NoOption,
+                                              QWidget *parent = NULL);
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(SaveModifiedLayersDialog::PromptOptions)

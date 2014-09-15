@@ -22,7 +22,7 @@ public:
 
   /** Initializes domain that iterates through layers based on the filter */
   AbstractLayerInfoItemSetDomain(IRISApplication *app = NULL,
-                                 int role_filter = 0xffffffff)
+                                 int role_filter = ALL_ROLES)
     { m_Driver = app; m_RoleFilter = role_filter; }
 
   LayerIterator begin() const

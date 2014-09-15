@@ -36,7 +36,6 @@ public:
   ImageWrapperBase *GetLayer() const;
 
   bool selected() const { return m_Selected; }
-  void setSelected(bool value);
 
   // Access the actions for this item
   QAction * saveAction() const;
@@ -56,6 +55,9 @@ public:
   bool eventFilter(QObject *, QEvent *);
 
 public slots:
+
+  void setSelected(bool value);
+
   virtual void onModelUpdate(const EventBucket &bucket);
 
 signals:

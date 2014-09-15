@@ -64,7 +64,11 @@ public:
 
 public slots:
 
+  // Find a child of an object visible to the script
   QObject *findChild(QObject *parent, QString child);
+
+  // Find a widget by name globally
+  QWidget *findWidget(QString widgetName);
 
   // Return the contents of an item in a table
   QVariant tableItemText(QObject *table, int row, int col);
@@ -81,6 +85,8 @@ public slots:
 
   void printChildren(QObject *parent, QString className);
 
+  void testFailed(QString reason);
+
   void validateValue(QVariant v1, QVariant v2);
 
   void validateFloatValue(double v1, double v2, double precision);
@@ -88,7 +94,6 @@ public slots:
   void postMouseEvent(QObject *widget, double rel_x, double rel_y, QString eventType, QString button);
 
   void postKeyEvent(QObject *object, QString key);
-
 protected:
 
   ReturnCode ListTests();

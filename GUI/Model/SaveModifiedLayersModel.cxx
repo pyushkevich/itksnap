@@ -125,7 +125,7 @@ void SaveModifiedLayersModel::SetCurrentItemValue(int value)
   InvokeEvent(StateMachineChangeEvent());
 }
 
-void SaveModifiedLayersModel::BuildUnsavedItemsList(ImageWrapperBase *singleLayer)
+void SaveModifiedLayersModel::BuildUnsavedItemsList(std::list<ImageWrapperBase *> layers)
 {
   // Clear the list
   m_UnsavedItems.clear();
@@ -138,6 +138,9 @@ void SaveModifiedLayersModel::BuildUnsavedItemsList(ImageWrapperBase *singleLaye
   // Are there any layers without filenames
   bool flag_unnamed_layers = false;
 
+  // Is the main image layer included (i.e., the workspace is being closed)
+  bool flag_main_included = false;
+
   // For each layer, check if it needs saving
   // These are the types of layers that we consider "worth saving".
   // TODO: this should be a parameter of the class, probably
@@ -146,8 +149,12 @@ void SaveModifiedLayersModel::BuildUnsavedItemsList(ImageWrapperBase *singleLaye
     {
     ImageWrapperBase *w = lit.GetLayer();
 
-    if(!singleLayer || w == singleLayer)
+    if(layers.size() == 0 || std::find(layers.begin(), layers.end(), w) != layers.end())
       {
+      // Is the main layer being included in what's discarded?
+      if(w == gid->GetMain())
+        flag_main_included = true;
+
       if(w->HasUnsavedChanges())
         {
         // Add a new item
@@ -162,29 +169,35 @@ void SaveModifiedLayersModel::BuildUnsavedItemsList(ImageWrapperBase *singleLaye
       }
     }
 
-  // Check if the project exists and requires saving. In case any of the image
-  // layers that has been modified is without a name, we automatically show the
-  // project because saving the layer would cause the project to be modified.
-  if(m_ParentModel->GetGlobalState()->GetProjectFilename().size()
-     && !singleLayer
-     && (flag_unnamed_layers || m_ParentModel->GetDriver()->IsProjectUnsaved()))
+  // The workspace should only be included in the list if the main image is being
+  // unloaded. Otherwise, any changes (loading/unloading) should be considered as
+  // part of editing the workspace, and thus we should not be prompting to save the
+  // workspace. Also, the workspace must already exist.
+  if(flag_main_included && m_ParentModel->GetGlobalState()->GetProjectFilename().size())
     {
-    SmartPtr<WorkspaceSaveableItem> item = WorkspaceSaveableItem::New();
-    item->Initialize(this);
-    item->SetId(m_UnsavedItems.size());
+    // Additional conditions are that either the project has unsaved changes, or one of
+    // the items proposed for saving does not have a filename yet (and so saving it would
+    // cause a modification to the workspace)
+    if(flag_unnamed_layers | m_ParentModel->GetDriver()->IsProjectUnsaved())
+      {
+      SmartPtr<WorkspaceSaveableItem> item = WorkspaceSaveableItem::New();
+      item->Initialize(this);
+      item->SetId(m_UnsavedItems.size());
 
-    // Add all of the other unsaved items as dependencies
-    for(int i = 0; i < m_UnsavedItems.size(); i++)
-      item->AddDependency(m_UnsavedItems[i]);
+      // Add all of the other unsaved items as dependencies
+      for(int i = 0; i < m_UnsavedItems.size(); i++)
+        item->AddDependency(m_UnsavedItems[i]);
 
-    m_UnsavedItems.push_back(item.GetPointer());
+      m_UnsavedItems.push_back(item.GetPointer());
+      }
+
     }
 
   // Adjust the current item
   m_CurrentItem = 0;
 }
 
-void SaveModifiedLayersModel::Initialize(GlobalUIModel *parent, ImageWrapperBase *singleLayer)
+void SaveModifiedLayersModel::Initialize(GlobalUIModel *parent, std::list<ImageWrapperBase *> layers)
 {
   m_ParentModel = parent;
 
@@ -192,7 +205,7 @@ void SaveModifiedLayersModel::Initialize(GlobalUIModel *parent, ImageWrapperBase
   // it supports is meant to be modal, i.e. the user can't make changes.
 
   // Update the list of unsaved items
-  BuildUnsavedItemsList(singleLayer);
+  BuildUnsavedItemsList(layers);
 }
 
 bool SaveModifiedLayersModel::CheckState(SaveModifiedLayersModel::UIState state)

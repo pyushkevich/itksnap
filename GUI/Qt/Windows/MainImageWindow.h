@@ -266,6 +266,8 @@ private slots:
 
   void on_actionNew_ITK_SNAP_Window_triggered();
 
+  void on_actionUnload_All_Overlays_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

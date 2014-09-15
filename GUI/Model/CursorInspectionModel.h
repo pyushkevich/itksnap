@@ -33,7 +33,7 @@ public:
 
   // Define the domain with the specificed filter
   CurrentVoxelInfoItemSetDomain(
-      IRISApplication *app = NULL, int role_filter = 0xffffffff);
+      IRISApplication *app = NULL, int role_filter = ALL_ROLES);
 
   // Define the description method
   LayerCurrentVoxelInfo GetDescription(const LayerIterator &it) const;

@@ -375,8 +375,8 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Overlay action activations
   activateOnFlag(ui->actionAdd_Overlay, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionUnload_Last_Overlay, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionUnload_All_Overlays, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnAllFlags(ui->actionUnload_Last_Overlay, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED, UIF_OVERLAY_LOADED);
+  activateOnAllFlags(ui->actionUnload_All_Overlays, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED, UIF_OVERLAY_LOADED);
   activateOnFlag(ui->menuOverlayAppearance, m_Model, UIF_OVERLAY_LOADED);
 
   // Workspace menu
@@ -1233,10 +1233,7 @@ void MainImageWindow::on_actionAbout_triggered()
 
 
 
-void MainImageWindow::on_actionUnload_Last_Overlay_triggered()
-{
 
-}
 
 void MainImageWindow::on_actionClear_triggered()
 {
@@ -1372,7 +1369,7 @@ bool MainImageWindow::SaveWorkspace(bool interactive)
   // dialog is to make sure each layer is assigned a name before saving the
   // workspace
   if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(
-       m_Model, NULL,
+       m_Model, ALL_ROLES,
        SaveModifiedLayersDialog::DiscardDisabled
        | SaveModifiedLayersDialog::ProjectsDisabled))
     return false;
@@ -1586,4 +1583,25 @@ void MainImageWindow::on_actionNew_ITK_SNAP_Window_triggered()
   // Launch a new SNAP
   std::list<std::string> args;
   m_Model->GetSystemInterface()->LaunchChildSNAPSimple(args);
+}
+
+void MainImageWindow::on_actionUnload_All_Overlays_triggered()
+{
+  // Prompt for changes to the overlays
+  if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model, OVERLAY_ROLE))
+    {
+    m_Model->GetDriver()->UnloadAllOverlays();
+    }
+}
+
+void MainImageWindow::on_actionUnload_Last_Overlay_triggered()
+{
+  // What is the last overlay?
+  ImageWrapperBase *last = m_Model->GetDriver()->GetIRISImageData()->GetLastOverlay();
+
+  if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model, OVERLAY_ROLE))
+    {
+    m_Model->GetDriver()->UnloadOverlay(last);
+    }
+
 }

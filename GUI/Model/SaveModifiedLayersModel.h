@@ -144,7 +144,7 @@ public:
 
   irisITKObjectMacro(SaveModifiedLayersModel, AbstractModel)
 
-  void Initialize(GlobalUIModel *parent, ImageWrapperBase *singleLayer = NULL);
+  void Initialize(GlobalUIModel *parent, std::list<ImageWrapperBase *> layers);
 
   irisGetMacro(ParentModel, GlobalUIModel *)
 
@@ -198,7 +198,7 @@ protected:
   void SetCurrentItemValue(int value);
 
   // Update the list of unsaved items
-  void BuildUnsavedItemsList(ImageWrapperBase *singleLayer = NULL);
+  void BuildUnsavedItemsList(std::list<ImageWrapperBase *> layers);
 
   // Update the current imate
   void UpdateCurrentItem();

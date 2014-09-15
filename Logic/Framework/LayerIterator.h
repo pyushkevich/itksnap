@@ -17,7 +17,7 @@ class LayerIterator
 {
 public:
 
-  LayerIterator(GenericImageData *data, int role_filter = 0xffffffff);
+  LayerIterator(GenericImageData *data, int role_filter = ALL_ROLES);
 
   bool IsAtEnd() const;
 

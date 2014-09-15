@@ -37,6 +37,9 @@ LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
 {
   ui->setupUi(this);
 
+  // Give the dialog a name for scripting
+  this->setObjectName("dlgLayerInspector");
+
   // Create a toolbar under the layer list
   QToolBar *tb = new QToolBar(this);
   ui->loToolbar->addWidget(tb);
@@ -265,6 +268,9 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
 
     // Set the model
     w->SetModel(model);
+
+    // Set a name for this widget for debugging purposes
+    w->setObjectName(QString().sprintf("wgtRowDelegate_%04d", m_Delegates.size()));
 
     // Listen to select signals from widget
     connect(w, SIGNAL(selectionChanged(bool)), this, SLOT(layerSelected(bool)));

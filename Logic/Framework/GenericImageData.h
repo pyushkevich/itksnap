@@ -121,13 +121,13 @@ public:
     as calling GetLayers(role).size(), but you can query for combinations
     of roles, i.e., MAIN_ROLE | OVERLAY_ROLE
     */
-  virtual unsigned int GetNumberOfLayers(int role_filter = 0xffffffff);
+  virtual unsigned int GetNumberOfLayers(int role_filter = ALL_ROLES);
 
 
   /**
     Get an iterator that iterates throught the layers in certain roles
     */
-  LayerIterator GetLayers(int role_filter = 0xffffffff)
+  LayerIterator GetLayers(int role_filter = ALL_ROLES)
   {
     return LayerIterator(this, role_filter);
   }
@@ -137,7 +137,7 @@ public:
     calling GetLayers(role_filter) and then iterating n-times. Throws an
     exception if n exceeds the number of layers.
     */
-  ImageWrapperBase *GetNthLayer(int n, int role_filter = 0xffffffff)
+  ImageWrapperBase *GetNthLayer(int n, int role_filter = ALL_ROLES)
   {
     LayerIterator it(this, role_filter);
     for(int i = 0; i < n && !it.IsAtEnd(); i++)
@@ -154,7 +154,7 @@ public:
     among the derived (component, mean) wrappers in vector wrappers.
     */
   ImageWrapperBase *FindLayer(unsigned long unique_id, bool search_derived,
-                              int role_filter = 0xffffffff);
+                              int role_filter = ALL_ROLES);
 
 
   int GetNumberOfOverlays();

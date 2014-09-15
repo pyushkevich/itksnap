@@ -929,6 +929,7 @@ include(BundleUtilities)
 
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
+  Workspace
   ProbeIntensity
   RegionCompetition
   RandomForest)

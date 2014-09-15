@@ -38,6 +38,9 @@ SaveModifiedLayersDialog::SaveModifiedLayersDialog(QWidget *parent) :
 {
   ui->setupUi(this);
 
+  // Give the dialog a name
+  this->setObjectName("dlgSaveModified");
+
   // Resize the table to contents
   ui->tableLayers->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   ui->tableLayers->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -79,18 +82,40 @@ void SaveModifiedLayersDialog::SetOptions(PromptOptions opts)
         !opts.testFlag(DiscardDisabled));
 }
 
+bool SaveModifiedLayersDialog
+::PromptForUnsavedChanges(GlobalUIModel *model, PromptOptions opts, QWidget *parent)
+{
+  // Call internal method with empty list
+  std::list<ImageWrapperBase *> layerlist;
+  return PromptForUnsavedChangesInternal(model, layerlist, opts, parent);
+}
+
 bool
 SaveModifiedLayersDialog
 ::PromptForUnsavedChanges(
     GlobalUIModel *model, ImageWrapperBase *singleLayer,
     PromptOptions opts, QWidget *parent)
 {
+  std::list<ImageWrapperBase *> layerlist;
+  layerlist.push_back(singleLayer);
+
+  // Show the dialog
+  return PromptForUnsavedChangesInternal(model, layerlist, opts, parent);
+}
+
+bool SaveModifiedLayersDialog
+::PromptForUnsavedChangesInternal(
+    GlobalUIModel *model,
+    std::list<ImageWrapperBase *> layers,
+    PromptOptions opts,
+    QWidget *parent)
+{
   // Create a callback delegate
   QtSaveModifiedLayersInteractionDelegate cb_delegate;
 
   // Create and configure the model
   SmartPtr<SaveModifiedLayersModel> saveModel = SaveModifiedLayersModel::New();
-  saveModel->Initialize(model, singleLayer);
+  saveModel->Initialize(model, layers);
   saveModel->SetUIDelegate(&cb_delegate);
 
   // Check if there is anything to save
@@ -105,6 +130,17 @@ SaveModifiedLayersDialog
 
   // Show the dialog
   return (dialog->exec() == QDialog::Accepted);
+}
+
+bool SaveModifiedLayersDialog
+::PromptForUnsavedChanges(GlobalUIModel *model, int role_filter, PromptOptions opts, QWidget *parent)
+{
+  LayerIterator it = model->GetDriver()->GetIRISImageData()->GetLayers(role_filter);
+  std::list<ImageWrapperBase *> layers;
+  for(; !it.IsAtEnd(); ++it)
+    layers.push_back(it.GetLayer());
+
+  return PromptForUnsavedChangesInternal(model, layers, opts, parent);
 }
 
 bool

@@ -222,6 +222,15 @@ public:
    * Remove a specific overlay
    */
   void UnloadOverlay(ImageWrapperBase *ovl);
+
+  /**
+   * Remove all overlays
+   */
+  void UnloadAllOverlays();
+
+  /**
+   * Unload the main image layer
+   */
   void UnloadMainImage();
 
   /**
