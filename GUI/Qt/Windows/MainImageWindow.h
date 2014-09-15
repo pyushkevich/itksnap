@@ -57,6 +57,8 @@ class QTimer;
 
 class SplashPanel;
 
+#include <QDebug>
+
 namespace Ui {
 class MainImageWindow;
 }

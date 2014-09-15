@@ -88,14 +88,21 @@ void QtProgressReporterDelegate::SetProgressDialog(QProgressDialog *dialog)
   m_Dialog = dialog;
   m_Dialog->setMinimum(0);
   m_Dialog->setMaximum(1000);
-  m_Dialog->setWindowModality(Qt::ApplicationModal);
+  m_Dialog->setWindowModality(Qt::WindowModal);
   m_Dialog->setLabelText("ITK-SNAP progress");
 }
 
+#include <QDebug>
+#include <QAction>
 void QtProgressReporterDelegate::SetProgressValue(double value)
 {
   m_Dialog->setValue((int) (1000 * value));
-  QCoreApplication::processEvents();
+  QAction *action = FindUpstreamAction(m_Dialog, "actionOpenMain");
+  QWidget *fuckme = action->parentWidget();
+  bool enabled = fuckme->isEnabled();
+  qDebug() << "My parent is " << enabled;
+  // qDebug() << "Progress: " << value;
+  // QCoreApplication::processEvents();
 }
 
 
