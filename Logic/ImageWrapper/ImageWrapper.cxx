@@ -1133,6 +1133,9 @@ ImageWrapper<TTraits,TBase>
     // is going to use it. TODO: is this really needed?
     filter[i]->Modified();
     }
+
+  // This is so that IsDrawable() behaves correctly
+  m_ImageAssignTime = m_Image->GetTimeStamp();
 }
 
 template<class TTraits, class TBase>

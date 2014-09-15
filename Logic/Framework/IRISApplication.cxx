@@ -2322,6 +2322,7 @@ void IRISApplication::EnterRandomForestPreprocessingMode()
 
 void IRISApplication::LeaveRandomForestPreprocessingMode()
 {
+  m_RandomForestPreviewWrapper->SetParameters(NULL);
   m_RandomForestPreviewWrapper->DetachInputsAndOutputs();
   m_ClassificationEngine = NULL;
 }

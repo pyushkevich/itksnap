@@ -133,6 +133,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
     {
     if(m_PreviewMode)
       {
+      // Attach the pipeline filters
       m_OutputWrapper->AttachPreviewPipeline(
             m_PreviewFilter[0], m_PreviewFilter[1], m_PreviewFilter[2]);
 
