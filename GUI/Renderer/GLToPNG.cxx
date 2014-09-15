@@ -65,20 +65,9 @@ vtkImageData* GLToVTKImageData(unsigned int format, int x, int y, int w, int h)
 
   // convert to vtkImageData
   vtkImageData* img = vtkImageData::New();
-  vtkInformation* imgInfo = img->GetInformation();
+  img->SetDimensions(w, h, 1);
+  img->AllocateScalars(VTK_UNSIGNED_CHAR, GL_comps);
 
-
-  if (format == GL_RGBA) 
-    {
-    img->SetExtent(0, w-1, 0, h-1, 0, 0);
-    } 
-  else if (format == GL_RGB) 
-    {
-    img->SetExtent(0, w-1, 0, h-1, 0, 0);
-    }
-  img->SetSpacing(1.0, 1.0, 1.0);
-  img->SetOrigin(0.0, 0.0, 0.0);
-  img->SetPointDataActiveScalarInfo(imgInfo, VTK_UNSIGNED_CHAR, GL_comps);
   int rowSize = w*GL_comps;
   unsigned char* pixmap2 = pixmap;
   unsigned char* imgPtr = (unsigned char*) img->GetScalarPointer(0, 0, 0);
