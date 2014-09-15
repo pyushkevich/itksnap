@@ -30,6 +30,9 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
 
   // No active layer by default
   m_ActiveScalarLayer = NULL;
+
+  // Set the output wrapper to NULL
+  m_OutputWrapper = NULL;
 }
 
 template <class TFilterConfigTraits>
