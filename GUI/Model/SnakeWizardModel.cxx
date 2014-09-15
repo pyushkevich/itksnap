@@ -937,6 +937,12 @@ void SnakeWizardModel::SetPreprocessingModeValue(PreprocessingMode value)
 
 void SnakeWizardModel::CompletePreprocessing()
 {
+  // If we are in classification pre-segmentation mode, set the active drawing label
+  // to match the foreground class - otherwise it's confusing to the user
+  if(m_Driver->GetPreprocessingMode() == PREPROCESS_RF)
+    m_Parent->GetGlobalState()->SetDrawingColorLabel(
+          this->GetForegroundClassColorLabel());
+
   // Disconnect preview pipeline
   m_Driver->EnterPreprocessingMode(PREPROCESS_NONE);
   InvokeEvent(ModelUpdateEvent());

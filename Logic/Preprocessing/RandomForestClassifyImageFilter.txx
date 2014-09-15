@@ -5,6 +5,7 @@
 #include "itkImageRegionConstIterator.h"
 #include "RandomForestClassifier.h"
 #include "ImageCollectionToImageFilter.h"
+#include <itkProgressReporter.h>
 
 #include "Library/data.h"
 #include "Library/forest.h"
@@ -140,6 +141,9 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
   std::vector<size_t> vIndex(1);
   std::vector<bool> vResult(1);
 
+  // Create a progress reporter
+  itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
+
   // Iterate through all the voxels
   for(; !it_out.IsAtEnd(); ++it_out, ++cit)
     {
@@ -166,6 +170,9 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 
     // Presumably, at this point p stores the (p_fore - p_back) value
     it_out.Set((OutputPixelType)(p * 0x7fff));
+
+    // Report some progress
+    progress.CompletedPixel();
     }
 }
 

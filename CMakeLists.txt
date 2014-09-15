@@ -48,13 +48,13 @@ endforeach()
 
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 3)
-SET(SNAP_VERSION_MINOR 1)
+SET(SNAP_VERSION_MINOR 2)
 SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "")
+SET(SNAP_VERSION_QUALIFIER "-rc1")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20140604")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Jun 04, 2014")
+SET(SNAP_VERSION_RELEASE_DATE "20140912")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Sep 12, 2014")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -1065,10 +1065,11 @@ ELSEIF(WIN32)
   include(DeployQt5)
 
   # Make sure the GIF plugin is included
+  get_property(QT_WIN_PLUGIN TARGET Qt5::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
   get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
 
   # Install with the plugin
-  install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN}")
+  install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}")
 
   # On windows, we have to configure NSIS
   SET(CPACK_NSIS_INSTALLED_ICON_NAME "ITK-SNAP.exe")
@@ -1171,7 +1172,8 @@ ADD_CUSTOM_TARGET(upload_nightly
   COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${NIGHTLY_TARGET}")
 
 ADD_CUSTOM_TARGET(upload_experimental 
-  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} ${PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental
+  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} 
+    ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental/
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
   COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net to Experimental directory")
