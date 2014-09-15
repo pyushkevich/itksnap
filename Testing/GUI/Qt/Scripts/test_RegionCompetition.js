@@ -46,7 +46,7 @@ engine.findChild(snakepanel,"btnSingleStep").click();
 
 //=== Validating level set image
 setCursor(16, 15, 20);
-engine.validateFloatValue(readVoxelIntensity(2), -0.9371, 0.05)
+engine.validateFloatValue(readVoxelIntensity(2), -0.9371, 0.2)
 
 //=== Finish snake mode
 engine.findChild(snakepanel,"btnEvolutionNext").click()
