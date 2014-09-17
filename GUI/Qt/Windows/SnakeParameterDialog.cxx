@@ -199,7 +199,8 @@ void SnakeParameterDialog::on_btnSave_clicked()
         this, m_Model->GetParentModel(), "SnakeParameters",
         "Save Active Contour Evolution Parameters - ITK-SNAP",
         "Parameter File",
-        "Text Files (*.txt);; All Files (*)");
+        "Text Files (*.txt);; All Files (*)",
+        "txt");
 
   // Open the labels from the selection
   if(selection.length())

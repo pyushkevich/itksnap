@@ -49,6 +49,8 @@ public slots:
 
   void layerSelected(bool);
 
+  void advanceTab();
+
 signals:
 
   void layerListHover(bool);

@@ -396,7 +396,8 @@ void PopulateHistoryMenu(
 QString ShowSimpleSaveDialogWithHistory(
     QWidget *parent,
     GlobalUIModel *model, QString hist_category,
-    QString window_title, QString file_title, QString file_pattern)
+    QString window_title, QString file_title,
+    QString file_pattern, QString force_extension)
 {
   HistoryManager *hm =
       model->GetDriver()->GetSystemInterface()->GetHistoryManager();
@@ -405,7 +406,7 @@ QString ShowSimpleSaveDialogWithHistory(
   QStringList hg = toQStringList(hm->GetGlobalHistory(hist_category.toStdString()));
 
   return SimpleFileDialogWithHistory::showSaveDialog(
-        parent, window_title, file_title, hl, hg, file_pattern);
+        parent, window_title, file_title, hl, hg, file_pattern, force_extension);
 }
 
 /** Show a generic file open dialog with a history dropdown */
@@ -469,7 +470,8 @@ bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWid
     // Use the dialog with history - to be consistent with other parts of SNAP
     QString file = ShowSimpleSaveDialogWithHistory(
           parent, model, "Project", "Save Workspace",
-          "Workspace File", "ITK-SNAP Workspace Files (*.itksnap)");
+          "Workspace File", "ITK-SNAP Workspace Files (*.itksnap)",
+          "itksnap");
 
     // If user hits cancel, move on
     if(file.isNull())

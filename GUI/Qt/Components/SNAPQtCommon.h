@@ -110,7 +110,8 @@ void PopulateHistoryMenu(
 /** Show a generic file save dialog with a history dropdown */
 QString ShowSimpleSaveDialogWithHistory(
     QWidget *parent, GlobalUIModel *model, QString hist_category,
-    QString window_title, QString file_title, QString file_pattern);
+    QString window_title, QString file_title, QString file_pattern,
+    QString force_extension);
 
 /** Show a generic file open dialog with a history dropdown */
 QString ShowSimpleOpenDialogWithHistory(

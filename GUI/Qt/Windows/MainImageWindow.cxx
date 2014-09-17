@@ -1156,7 +1156,8 @@ void MainImageWindow::on_actionSaveLabels_triggered()
         this, m_Model, "LabelDescriptions",
         "Save Label Descriptions - ITK-SNAP",
         "Label Description File",
-        "Text Files (*.txt);; Label Files (*.label);; All Files (*)");
+        "Text Files (*.txt);; Label Files (*.label);; All Files (*)",
+        "txt");
 
   // Open the labels from the selection
   if(selection.length())
@@ -1222,7 +1223,10 @@ void MainImageWindow::on_actionOverlayVisibilityDecreaseAll_triggered()
 void MainImageWindow::on_actionLayerInspector_triggered()
 {
   // Show the dialog
-  RaiseDialog(m_LayerInspector);
+  if(m_LayerInspector->isVisible() && m_LayerInspector->isActiveWindow())
+    m_LayerInspector->advanceTab();
+  else
+    RaiseDialog(m_LayerInspector);
 }
 
 void MainImageWindow::on_actionAbout_triggered()

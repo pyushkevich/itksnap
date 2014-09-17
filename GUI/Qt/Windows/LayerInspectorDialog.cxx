@@ -415,3 +415,10 @@ void LayerInspectorDialog::on_buttonBox_rejected()
 {
   this->close();
 }
+
+void LayerInspectorDialog::advanceTab()
+{
+  int pos = ui->tabWidget->currentIndex();
+  int ntab = ui->tabWidget->count();
+  ui->tabWidget->setCurrentIndex((pos + 1) % ntab);
+}

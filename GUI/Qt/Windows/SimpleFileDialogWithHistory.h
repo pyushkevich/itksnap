@@ -23,12 +23,14 @@ public:
       QWidget *parent,
       QString window_title, QString file_title,
       QStringList &local_history, QStringList &global_history,
-      QString file_pattern);
+      QString file_pattern, QString force_extension);
 
 private slots:
   void on_btnBrowse_clicked();
 
   void onHistorySelection();
+
+  void on_inFilename_textChanged(const QString &arg1);
 
 protected:
 
@@ -45,6 +47,14 @@ protected:
 
   // Default file pattern
   QString m_FilePattern;
+
+  // Default extension to use if user does not give one
+  QString m_DefaultSuffix;
+
+  // Fix the extension of the file in the dialog
+  QString fixExtension();
+
+  virtual bool eventFilter(QObject *obj, QEvent *ev);
 
 private:
   Ui::SimpleFileDialogWithHistory *ui;
