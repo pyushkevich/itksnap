@@ -7,6 +7,8 @@ namespace Ui {
 class SimpleFileDialogWithHistory;
 }
 
+class GlobalUIModel;
+
 class SimpleFileDialogWithHistory : public QDialog
 {
   Q_OBJECT
@@ -15,14 +17,17 @@ public:
 
   static QString showOpenDialog(
       QWidget *parent,
-      QString window_title, QString file_title,
-      QStringList &local_history, QStringList &global_history,
+      GlobalUIModel *model,
+      QString window_title,
+      QString file_title,
+      QString history_name,
       QString file_pattern);
   
   static QString showSaveDialog(
       QWidget *parent,
+      GlobalUIModel *model,
       QString window_title, QString file_title,
-      QStringList &local_history, QStringList &global_history,
+      QString history_name,
       QString file_pattern, QString force_extension);
 
 private slots:
@@ -45,8 +50,11 @@ protected:
   // Mode of operation (Save/Open)
   bool m_OpenMode;
 
+  // Parent model
+  GlobalUIModel *m_Model;
+
   // Default file pattern
-  QString m_FilePattern;
+  QString m_FilePattern, m_HistoryName;
 
   // Default extension to use if user does not give one
   QString m_DefaultSuffix;

@@ -399,14 +399,8 @@ QString ShowSimpleSaveDialogWithHistory(
     QString window_title, QString file_title,
     QString file_pattern, QString force_extension)
 {
-  HistoryManager *hm =
-      model->GetDriver()->GetSystemInterface()->GetHistoryManager();
-
-  QStringList hl = toQStringList(hm->GetLocalHistory(hist_category.toStdString()));
-  QStringList hg = toQStringList(hm->GetGlobalHistory(hist_category.toStdString()));
-
   return SimpleFileDialogWithHistory::showSaveDialog(
-        parent, window_title, file_title, hl, hg, file_pattern, force_extension);
+        parent, model, window_title, file_title, hist_category, file_pattern, force_extension);
 }
 
 /** Show a generic file open dialog with a history dropdown */
@@ -414,14 +408,8 @@ QString ShowSimpleOpenDialogWithHistory(
     QWidget *parent, GlobalUIModel *model, QString hist_category,
     QString window_title, QString file_title, QString file_pattern)
 {
-  HistoryManager *hm =
-      model->GetDriver()->GetSystemInterface()->GetHistoryManager();
-
-  QStringList hl = toQStringList(hm->GetLocalHistory(hist_category.toStdString()));
-  QStringList hg = toQStringList(hm->GetGlobalHistory(hist_category.toStdString()));
-
   return SimpleFileDialogWithHistory::showOpenDialog(
-        parent, window_title, file_title, hl, hg, file_pattern);
+        parent, model, window_title, file_title, hist_category, file_pattern);
 }
 
 bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
@@ -525,4 +513,35 @@ QString GetOpenFileNameBugFix(
     return dialog.selectedFiles().first();
   else
     return QString();
+}
+
+// TODO: this is so f***ng lame! Global variable!!! Put this inside of
+// a class!!!!
+#include <QMap>
+#include <QDir>
+#include <GenericImageData.h>
+#include <QStandardPaths>
+
+QMap<QString, QDir> g_CategoryToLastPathMap;
+
+QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName)
+{
+  // Already have something for this category? Then use it
+  if(g_CategoryToLastPathMap.find(HistoryName) != g_CategoryToLastPathMap.end())
+    return g_CategoryToLastPathMap[HistoryName].absolutePath();
+
+  // Is there a main image loaded
+  if(model->GetDriver()->IsMainImageLoaded())
+    {
+    QString fn = from_utf8(model->GetDriver()->GetCurrentImageData()->GetMain()->GetFileName());
+    return QFileInfo(fn).absolutePath();
+    }
+
+  // Use home directory
+  return QStandardPaths::standardLocations(QStandardPaths::HomeLocation).first();
+}
+
+void UpdateFileDialogPathForCategory(const char *HistoryName, QString dir)
+{
+  g_CategoryToLastPathMap[HistoryName] = QDir(dir);
 }

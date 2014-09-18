@@ -346,25 +346,31 @@ int SelectFilePage::nextId() const
 
 void SelectFilePage::on_btnBrowse_pressed()
 {
-  // Initialize the dialog with what's in the filebox
-  std::string file = to_utf8(m_InFilename->text());
+  // Get the file name
+  QString browsePath =
+      m_InFilename->text().length() > 0
+      ? QFileInfo(m_InFilename->text()).absoluteFilePath()
+      : GetFileDialogPath(m_Model->GetParent(), m_Model->GetHistoryName().c_str());
+
+  QString sel;
 
   // Set the dialog properties
   if(m_Model->IsLoadMode())
     {
-    // Get the file name
-    QString sel =
-        GetOpenFileNameBugFix(this, "Open Image File", m_InFilename->text());
-
-    if(sel.length())
-      m_InFilename->setText(sel);
+    sel = GetOpenFileNameBugFix(this, "Open Image File", browsePath);
     }
   else
     {
-    QFileInfo fi(from_utf8(file));
-    QString sel = QFileDialog::getSaveFileName(this, "Save Image File", fi.absoluteFilePath());
-    if(sel.length())
-      m_InFilename->setText(sel);
+    sel = QFileDialog::getSaveFileName(this, "Save Image File", browsePath);
+    }
+
+  if(sel.length())
+    {
+    // Update the selection
+    UpdateFileDialogPathForCategory(m_Model->GetHistoryName().c_str(), sel);
+
+    // Use the filename
+    m_InFilename->setText(sel);
     }
 }
 

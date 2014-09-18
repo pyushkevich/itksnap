@@ -5,6 +5,9 @@
 #include <QMenu>
 #include <QCompleter>
 #include <QFileSystemModel>
+#include <GlobalUIModel.h>
+#include <HistoryManager.h>
+#include <IRISApplication.h>
 
 #include "SNAPQtCommon.h"
 
@@ -104,9 +107,10 @@ bool SimpleFileDialogWithHistory::eventFilter(QObject *obj, QEvent *ev)
 QString
 SimpleFileDialogWithHistory
 ::showOpenDialog(QWidget *parent,
+                 GlobalUIModel *model,
                  QString window_title,
                  QString file_title,
-                 QStringList &local_history, QStringList &global_history,
+                 QString history_name,
                  QString file_pattern)
 {
   // Configure the dialog
@@ -115,7 +119,15 @@ SimpleFileDialogWithHistory
   dialog->ui->label->setText(file_title);
   dialog->m_OpenMode = true;
   dialog->m_FilePattern = file_pattern;
-  dialog->populateHistory(local_history, global_history);
+
+  dialog->m_Model = model;
+
+  HistoryManager *hm =
+      model->GetDriver()->GetSystemInterface()->GetHistoryManager();
+
+  QStringList hl = toQStringList(hm->GetLocalHistory(history_name.toStdString()));
+  QStringList hg = toQStringList(hm->GetGlobalHistory(history_name.toStdString()));
+  dialog->populateHistory(hl, hg);
 
   dialog->ui->outError->clear();
   dialog->ui->outSavePath->clear();
@@ -132,10 +144,10 @@ SimpleFileDialogWithHistory
 
 QString
 SimpleFileDialogWithHistory
-::showSaveDialog(QWidget *parent,
+::showSaveDialog(QWidget *parent, GlobalUIModel *model,
                  QString window_title,
                  QString file_title,
-                 QStringList &local_history, QStringList &global_history,
+                 QString history_name,
                  QString file_pattern, QString force_extension)
 {
   // Configure the dialog
@@ -145,7 +157,16 @@ SimpleFileDialogWithHistory
   dialog->m_OpenMode = false;
   dialog->m_FilePattern = file_pattern;
   dialog->m_DefaultSuffix = force_extension;
-  dialog->populateHistory(local_history, global_history);
+  dialog->m_HistoryName = history_name;
+
+  dialog->m_Model = model;
+
+  HistoryManager *hm =
+      model->GetDriver()->GetSystemInterface()->GetHistoryManager();
+
+  QStringList hl = toQStringList(hm->GetLocalHistory(history_name.toStdString()));
+  QStringList hg = toQStringList(hm->GetGlobalHistory(history_name.toStdString()));
+  dialog->populateHistory(hl, hg);
 
   dialog->ui->outError->clear();
   dialog->ui->outSavePath->clear();
@@ -166,24 +187,35 @@ SimpleFileDialogWithHistory
 
 void SimpleFileDialogWithHistory::on_btnBrowse_clicked()
 {
-  QFileInfo file_info(ui->inFilename->text());
+  // Get the file name
+  QString browsePath =
+      ui->inFilename->text().length() > 0
+      ? QFileInfo(ui->inFilename->text()).absoluteFilePath()
+      : GetFileDialogPath(m_Model, m_HistoryName.toStdString().c_str());
+
+  QString sel;
+
   if(m_OpenMode)
     {
-    QString sel =
+    sel =
         GetOpenFileNameBugFix(this, this->windowTitle(),
-                              ui->inFilename->text(), m_FilePattern);
-    if(sel.length())
-      ui->inFilename->setText(sel);
+                              browsePath, m_FilePattern);
     }
   else
     {
-    QString sel = QFileDialog::getSaveFileName(
+    sel = QFileDialog::getSaveFileName(
           this,
           this->windowTitle(),
-          file_info.absoluteFilePath(),
+          browsePath,
           m_FilePattern);
-    if(sel.length())
-      ui->inFilename->setText(sel);
+    }
+
+  if(sel.length())
+    {
+    // Update the selection
+    UpdateFileDialogPathForCategory(m_HistoryName.toStdString().c_str(), sel);
+
+    ui->inFilename->setText(sel);
     }
 }
 
