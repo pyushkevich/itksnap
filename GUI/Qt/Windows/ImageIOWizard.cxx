@@ -26,6 +26,7 @@
 #include "ImageIOWizardModel.h"
 #include "MetaDataAccess.h"
 #include "SNAPQtCommon.h"
+#include "FileChooserPanelWithHistory.h"
 
 namespace imageiowiz {
 
@@ -111,49 +112,8 @@ SelectFilePage::SelectFilePage(QWidget *parent)
   QVBoxLayout *lo = new QVBoxLayout(this);
 
   // File input
-  QLabel *label = new QLabel("Image file &name:");
-  m_InFilename = new QLineEdit();
-  m_InFilename->setObjectName("inFilename");
-
-  // Set up completer (why does it not work?)
-  QCompleter *completer = new QCompleter(this);
-  QFileSystemModel *fsm = new QFileSystemModel(completer);
-  fsm->setResolveSymlinks(true);
-  completer->setModel(fsm);
-  completer->setCompletionMode(QCompleter::InlineCompletion);
-
-  m_InFilename->setCompleter(completer);
-  label->setBuddy(m_InFilename);
-
-  lo->addWidget(label);
-  lo->addWidget(m_InFilename);
-
-  // Label for filename error messages
-  m_OutFilenameError = new QLabel("");
-  m_OutFilenameError->setStyleSheet("font-size:10px; color: #7f0000;");
-  m_OutFilenameError->setWordWrap(true);
-
-  // A couple of buttons
-  QWidget *btnPanel = new QWidget();
-  QHBoxLayout *lobtn = new QHBoxLayout(btnPanel);
-  lobtn->setContentsMargins(0,0,0,0);
-
-  m_BtnBrowse = new QPushButton("&Browse...");
-  m_BtnBrowse->setObjectName("btnBrowse");
-
-  m_BtnHistory = new QPushButton("&History");
-  m_BtnHistory->setObjectName("btnHistory");
-
-  m_HistoryMenu = new QMenu("History", m_BtnHistory);
-  m_HistoryMenu->setStyleSheet("font-size: 12px;");
-  m_BtnHistory->setMenu(m_HistoryMenu);
-
-  lobtn->addWidget(m_OutFilenameError,1,Qt::AlignLeft);
-  lobtn->addSpacing(10);
-  lobtn->addWidget(m_BtnBrowse);
-  lobtn->addWidget(m_BtnHistory);
-
-  lo->addWidget(btnPanel);
+  m_FilePanel = new FileChooserPanelWithHistory(this);
+  lo->addWidget(m_FilePanel);
   lo->addSpacing(15);
 
   // The format combo box
@@ -175,16 +135,16 @@ SelectFilePage::SelectFilePage(QWidget *parent)
   m_InFormat->setModel(m_FormatModel);
 
   // Register the fields
-  this->registerField("Filename*", m_InFilename);
+  this->registerField("Filename*", m_FilePanel, "absoluteFilename", SIGNAL(absoluteFilenameChanged(QString)));
   this->registerField("Format*", m_InFormat);
-
-  // Create the browse dialog
-  m_BrowseDialog = new QFileDialog(this);
 
   // Connect slots
   QMetaObject::connectSlotsByName(this);
 
-  connect(m_HistoryMenu, SIGNAL(triggered(QAction*)), this, SLOT(onHistorySelection(QAction*)));
+  connect(m_FilePanel, SIGNAL(absoluteFilenameChanged(QString)), this, SLOT(onFilenameChanged(QString)));
+
+  QWizard *wiz = dynamic_cast<QWizard *>(parent);
+  connect(wiz, SIGNAL(accepted()), m_FilePanel, SLOT(onFilenameAccept()));
 }
 
 /*
@@ -246,21 +206,20 @@ void SelectFilePage::initializePage()
   m_InFormat->setCurrentIndex(
         m_InFormat->findData(QVariant(m_Model->GetSelectedFormat())));
 
-  // Populate the history button
-  PopulateHistoryMenu(m_HistoryMenu, this, SLOT(onHistorySelection()),
-                      m_Model->GetParent(),
-                      from_utf8(m_Model->GetHistoryName()));
-  m_BtnHistory->setEnabled(m_HistoryMenu->actions().size() > 0);
-
-  // Start with the suggested filename
-  m_InFilename->setText(from_utf8(m_Model->GetSuggestedFilename()));
+  // Initialize the file panel
+  if(m_Model->IsLoadMode())
+    {
+    m_FilePanel->initializeForOpenFile(
+          m_Model->GetParent(), "Image Filename:", from_utf8(m_Model->GetHistoryName()),
+          QString(), from_utf8(m_Model->GetSuggestedFilename()));
+    }
+  else
+    {
+    m_FilePanel->initializeForSaveFile(
+          m_Model->GetParent(), "Image Filename:", from_utf8(m_Model->GetHistoryName()),
+          QString(), false, from_utf8(m_Model->GetSuggestedFilename()));
+    }
 }
-
-void SelectFilePage::onHistorySelection(QAction *action)
-{
-  m_InFilename->setText(action->text());
-}
-
 
 
 bool SelectFilePage::validatePage()
@@ -291,7 +250,7 @@ bool SelectFilePage::validatePage()
     QtCursorOverride curse(Qt::WaitCursor);
     try
       {
-      m_Model->ProcessDicomDirectory(to_utf8(m_InFilename->text()));
+      m_Model->ProcessDicomDirectory(to_utf8(m_FilePanel->absoluteFilename()));
       return true;
       }
     catch(IRISException &exc)
@@ -307,11 +266,11 @@ bool SelectFilePage::validatePage()
     m_Model->SetSelectedFormat(fmt);
     if(m_Model->IsLoadMode())
       {
-      m_Model->LoadImage(to_utf8(m_InFilename->text()));
+      m_Model->LoadImage(to_utf8(m_FilePanel->absoluteFilename()));
       }
     else
       {
-      m_Model->SaveImage(to_utf8(m_InFilename->text()));
+      m_Model->SaveImage(to_utf8(m_FilePanel->absoluteFilename()));
       }
     }
   catch(IRISException &exc)
@@ -344,62 +303,31 @@ int SelectFilePage::nextId() const
     return ImageIOWizard::Page_Summary;
 }
 
-void SelectFilePage::on_btnBrowse_pressed()
-{
-  // Initialize the dialog with what's in the filebox
-  std::string file = to_utf8(m_InFilename->text());
-
-  // Set the dialog properties
-  if(m_Model->IsLoadMode())
-    {
-    // Get the file name
-    QString sel =
-        GetOpenFileNameBugFix(this, "Open Image File", m_InFilename->text());
-
-    if(sel.length())
-      m_InFilename->setText(sel);
-    }
-  else
-    {
-    QFileInfo fi(from_utf8(file));
-    QString sel = QFileDialog::getSaveFileName(this, "Save Image File", fi.absoluteFilePath());
-    if(sel.length())
-      m_InFilename->setText(sel);
-    }
-}
-
-
-void SelectFilePage::on_inFilename_textChanged(const QString &text)
+void SelectFilePage::onFilenameChanged(QString absoluteFilename)
 {
   bool file_exists = false;
 
   // The file format for the checkbox
   GuidedNativeImageIO::FileFormat fmt =
-      m_Model->GuessFileFormat(to_utf8(text), file_exists);
+      m_Model->GuessFileFormat(to_utf8(absoluteFilename), file_exists);
 
   // Select the appropriate entry in the combo box
   m_InFormat->setCurrentIndex(m_InFormat->findData(QVariant(fmt)));
 
+  // Is it a directory?
+  if(QFileInfo(absoluteFilename).isDir())
+    return;
+
   // Add some messages to help the user
-  if(text.length() == 0)
+  if(fmt == GuidedNativeImageIO::FORMAT_COUNT)
     {
-    m_OutFilenameError->setText(tr(""));
-    }
-  else if(m_Model->IsLoadMode() && !file_exists)
-    {
-    m_OutFilenameError->setText(tr("The file does not exist."));
-    }
-  else if(fmt == GuidedNativeImageIO::FORMAT_COUNT)
-    {
-    m_OutFilenameError->setText(tr("The format can not be determined from the file name."));
+    if(!m_FilePanel->errorText().length())
+      m_FilePanel->setErrorText("The format can not be determined from the file name.");
     }
   else if(!m_Model->CanHandleFileFormat(fmt))
     {
-    m_OutFilenameError->setText(tr("The format is not supported for this operation."));
-    }
-  else
-    {
-    m_OutFilenameError->setText(tr(""));
+    if(!m_FilePanel->errorText().length())
+      m_FilePanel->setErrorText("The format is not supported for this operation.");
     }
 }
 

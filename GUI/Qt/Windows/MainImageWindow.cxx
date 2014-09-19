@@ -995,11 +995,12 @@ void MainImageWindow::ExportScreenshot(int panelIndex)
   std::string finput = m_Model->GenerateScreenshotFilename();
 
   // Open a file browser and have the user select something
-  QString fuser = QFileDialog::getSaveFileName(
-        this,
-        "Save Snapshot As",
-        finput.c_str(),
-        "PNG Images (*.png)");
+  QString fuser = ShowSimpleSaveDialogWithHistory(
+        this, m_Model, "Snapshots",
+        "Save Snapshot - ITK-SNAP",
+        "Snapshot File",
+        "Images (*.png *.tiff *.jpg)", true,
+        from_utf8(finput));
 
   // If nothing selected, exit
   if(fuser.length() == 0)
@@ -1160,7 +1161,7 @@ void MainImageWindow::on_actionSaveLabels_triggered()
         "Save Label Descriptions - ITK-SNAP",
         "Label Description File",
         "Text Files (*.txt);; Label Files (*.label);; All Files (*)",
-        "txt");
+        true);
 
   // Open the labels from the selection
   if(selection.length())
@@ -1409,10 +1410,12 @@ void MainImageWindow::ExportSlice(AnatomicalDirection direction)
   sprintf(deffn,"%s_slice_%04d.png", defpref[direction],
     m_Model->GetDriver()->GetCursorPosition()[iSliceImg] + 1);
 
-  // We need to get a filename for the export
-  std::string fuser = to_utf8(
-        QFileDialog::getSaveFileName(
-          this, "Save Slice As", deffn,"Images (*.png *.jpg *.tiff)"));
+  // Open a file browser and have the user select something
+  std::string fuser = to_utf8(ShowSimpleSaveDialogWithHistory(
+        this, m_Model, "Slices",
+        "Save Slice - ITK-SNAP",
+        "Slice Image File",
+        "Images (*.png *.jpg *.tiff)", true));
 
   if(fuser.length())
     m_Model->GetDriver()->ExportSlice(direction, fuser.c_str());

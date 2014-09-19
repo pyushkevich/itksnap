@@ -75,6 +75,9 @@ public:
   void DeleteHistoryItem(const std::string &category,
                          const std::string &file);
 
+  /** Clear the local history - should be done when the main image is unloaded */
+  void ClearLocalHistory();
+
   /** Get the model encapsulating local history */
   AbstractHistoryModel *GetLocalHistoryModel(const std::string &category);
 

@@ -18,6 +18,7 @@ class QTreeWidget;
 class QTreeWidgetItem;
 class QTableWidget;
 class QSpinBox;
+class FileChooserPanelWithHistory;
 
 // Helper classes in their own namespace, so I can use simple class names
 namespace imageiowiz
@@ -73,18 +74,12 @@ public:
 
 public slots:
 
-  void on_btnBrowse_pressed();
-  void on_inFilename_textChanged(const QString &text);
-  void onHistorySelection(QAction *action);
+  void onFilenameChanged(QString absoluteFilename);
 
 private:
-  QLineEdit *m_InFilename;
-  QPushButton *m_BtnBrowse, *m_BtnHistory;
+  FileChooserPanelWithHistory *m_FilePanel;
   QComboBox *m_InFormat;
-  QLabel *m_OutFilenameError;
-  QFileDialog *m_BrowseDialog;
   QStandardItemModel *m_FormatModel;
-  QMenu *m_HistoryMenu;
 };
 
 class SummaryPage : public AbstractPage

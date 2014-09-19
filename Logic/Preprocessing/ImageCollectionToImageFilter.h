@@ -155,7 +155,7 @@ public:
   InternalPixelType &Value(unsigned int comp)
   {
     OffsetValueType offset = m_InternalIter.GetOffset();
-    InternalPixelType *dataPtr = m_Start[comp] + offset;
+    InternalPixelType *dataPtr = m_Start[comp] + offset * m_OffsetScaling[comp];
     return *(dataPtr);
   }
 
@@ -169,6 +169,9 @@ protected:
 
   // An array of start pointers for each component
   std::vector<InternalPixelType *> m_Start;
+
+  // The scaling of offsets for each component
+  std::vector<int> m_OffsetScaling;
 
   // A dummy image used to create an internal iterator. Instead of replicating
   // all of the iterator mechanics code in this class, we defer to the internal
@@ -215,6 +218,7 @@ ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
   m_TotalComponents++;
 
   m_Start.push_back(image->GetBufferPointer());
+  m_OffsetScaling.push_back(1);
 }
 
 template <class TImage, class TVectorImage>
@@ -232,7 +236,10 @@ ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
   m_TotalComponents += image->GetVectorLength();
 
   for(int i = 0; i < image->GetVectorLength(); i++)
+    {
     m_Start.push_back(image->GetBufferPointer() + i);
+    m_OffsetScaling.push_back(image->GetVectorLength());
+    }
 }
 
 template <class TImage, class TVectorImage>

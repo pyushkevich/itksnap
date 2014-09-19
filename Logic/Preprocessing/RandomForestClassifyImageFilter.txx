@@ -97,8 +97,6 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 {
   assert(m_Classifier);
 
-  int n_input = this->GetNumberOfIndexedInputs();
-
   // Create an iterator for the output
   OutputImagePointer outputPtr = this->GetOutput(0);
   typedef itk::ImageRegionIterator<TOutputImage> OutputIter;

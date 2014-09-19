@@ -1772,6 +1772,9 @@ IRISApplication
   // Reset the project registry
   m_LastSavedProjectState = Registry();
 
+  // Reset the local history
+  m_HistoryManager->ClearLocalHistory();
+
   // Let everyone know that the main image is gone!
   InvokeEvent(MainImageDimensionsChangeEvent());
 }

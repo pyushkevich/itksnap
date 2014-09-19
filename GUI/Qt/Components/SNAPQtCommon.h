@@ -107,16 +107,20 @@ void PopulateHistoryMenu(
     QMenu *menu, QObject *receiver, const char *slot,
     const QStringList &local_history, const QStringList &global_history);
 
+/** Get the path in which to open a file dialog */
+QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName);
+
+/** Save the path where something was saved */
+void UpdateFileDialogPathForCategory(const char *HistoryName, QString dir);
+
 /** Show a generic file save dialog with a history dropdown */
-QString ShowSimpleSaveDialogWithHistory(
-    QWidget *parent, GlobalUIModel *model, QString hist_category,
+QString ShowSimpleSaveDialogWithHistory(QWidget *parent, GlobalUIModel *model, QString hist_category,
     QString window_title, QString file_title, QString file_pattern,
-    QString force_extension);
+    bool force_extension, QString init_file = QString());
 
 /** Show a generic file open dialog with a history dropdown */
-QString ShowSimpleOpenDialogWithHistory(
-    QWidget *parent, GlobalUIModel *model, QString hist_category,
-    QString window_title, QString file_title, QString file_pattern);
+QString ShowSimpleOpenDialogWithHistory(QWidget *parent, GlobalUIModel *model, QString hist_category,
+    QString window_title, QString file_title, QString file_pattern, QString init_file = QString());
 
 /**
  * This static save method provides a simple interface for saving an
