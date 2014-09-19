@@ -354,7 +354,11 @@ void PopulateHistoryMenu(
   QStringListIterator itLocal(local_history);
   itLocal.toBack();
   while(itLocal.hasPrevious())
-    menu->addAction(itLocal.previous());
+    {
+    QString entry = itLocal.previous();
+    QAction *action = menu->addAction(entry);
+    QObject::connect(action, SIGNAL(triggered()), receiver, slot);
+    }
 
   int nLocal = menu->actions().size();
 
@@ -397,19 +401,21 @@ QString ShowSimpleSaveDialogWithHistory(
     QWidget *parent,
     GlobalUIModel *model, QString hist_category,
     QString window_title, QString file_title,
-    QString file_pattern, QString force_extension)
+    QString file_pattern, bool force_extension,
+    QString init_file)
 {
   return SimpleFileDialogWithHistory::showSaveDialog(
-        parent, model, window_title, file_title, hist_category, file_pattern, force_extension);
+        parent, model, window_title, file_title, hist_category, file_pattern, force_extension,init_file);
 }
 
 /** Show a generic file open dialog with a history dropdown */
 QString ShowSimpleOpenDialogWithHistory(
     QWidget *parent, GlobalUIModel *model, QString hist_category,
-    QString window_title, QString file_title, QString file_pattern)
+    QString window_title, QString file_title, QString file_pattern,
+    QString init_file)
 {
   return SimpleFileDialogWithHistory::showOpenDialog(
-        parent, model, window_title, file_title, hist_category, file_pattern);
+        parent, model, window_title, file_title, hist_category, file_pattern, init_file);
 }
 
 bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
@@ -502,8 +508,15 @@ QString GetOpenFileNameBugFix(
   if(user_file.length())
     {
     QFileInfo file_info(user_file);
-    dialog.setDirectory(file_info.absolutePath() + "/");
-    dialog.selectFile(file_info.fileName());
+    if(file_info.isDir())
+      {
+      dialog.setDirectory(file_info.absoluteFilePath() + "/");
+      }
+    else
+      {
+      dialog.setDirectory(file_info.absolutePath() + "/");
+      dialog.selectFile(file_info.fileName());
+      }
     }
 
   if(filter.length())

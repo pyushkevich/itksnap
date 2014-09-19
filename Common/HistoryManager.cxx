@@ -103,6 +103,11 @@ void HistoryManager::DeleteHistoryItem(
   model->SetValue(hist);
 }
 
+void HistoryManager::ClearLocalHistory()
+{
+  m_LocalHistory.clear();
+}
+
 HistoryManager::AbstractHistoryModel *
 HistoryManager::GetLocalHistoryModel(const std::string &category)
 {

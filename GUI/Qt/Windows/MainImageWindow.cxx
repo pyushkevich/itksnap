@@ -996,7 +996,8 @@ void MainImageWindow::ExportScreenshot(int panelIndex)
         this, m_Model, "Snapshots",
         "Save Snapshot - ITK-SNAP",
         "Snapshot File",
-        "Images (*.png *.tiff *.jpg)", "png");
+        "Images (*.png *.tiff *.jpg)", true,
+        from_utf8(finput));
 
   // If nothing selected, exit
   if(fuser.length() == 0)
@@ -1157,7 +1158,7 @@ void MainImageWindow::on_actionSaveLabels_triggered()
         "Save Label Descriptions - ITK-SNAP",
         "Label Description File",
         "Text Files (*.txt);; Label Files (*.label);; All Files (*)",
-        "txt");
+        true);
 
   // Open the labels from the selection
   if(selection.length())
@@ -1411,7 +1412,7 @@ void MainImageWindow::ExportSlice(AnatomicalDirection direction)
         this, m_Model, "Slices",
         "Save Slice - ITK-SNAP",
         "Slice Image File",
-        "Images (*.png *.jpg *.tiff)", "png"));
+        "Images (*.png *.jpg *.tiff)", true));
 
   if(fuser.length())
     m_Model->GetDriver()->ExportSlice(direction, fuser.c_str());

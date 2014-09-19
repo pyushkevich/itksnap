@@ -200,7 +200,7 @@ void SnakeParameterDialog::on_btnSave_clicked()
         "Save Active Contour Evolution Parameters - ITK-SNAP",
         "Parameter File",
         "Text Files (*.txt);; All Files (*)",
-        "txt");
+        true);
 
   // Open the labels from the selection
   if(selection.length())

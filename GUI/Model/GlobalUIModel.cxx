@@ -764,6 +764,7 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
       category = "Segmentation Image";
       break;
     case NO_ROLE:
+    case ALL_ROLES:
       break;
     }
 

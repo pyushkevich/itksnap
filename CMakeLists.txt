@@ -481,6 +481,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/ContrastInspector.cxx
   GUI/Qt/Components/CursorInspector.cxx
   GUI/Qt/Components/DisplayLayoutInspector.cxx
+  GUI/Qt/Components/FileChooserPanelWithHistory.cxx
   GUI/Qt/Components/HistoryQListModel.cxx
   GUI/Qt/Components/ImageInfoInspector.cxx
   GUI/Qt/Components/LabelInspector.cxx
@@ -560,6 +561,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/ContrastInspector.h
   GUI/Qt/Components/CursorInspector.h
   GUI/Qt/Components/DisplayLayoutInspector.h
+  GUI/Qt/Components/FileChooserPanelWithHistory.h
   GUI/Qt/Components/HistoryQListModel.h
   GUI/Qt/Components/ImageInfoInspector.h
   GUI/Qt/Components/LabelInspector.h
@@ -659,6 +661,7 @@ SET(UI_FORMS
   GUI/Qt/Components/ContrastInspector.ui
   GUI/Qt/Components/CursorInspector.ui
   GUI/Qt/Components/DisplayLayoutInspector.ui
+  GUI/Qt/Components/FileChooserPanelWithHistory.ui
   GUI/Qt/Components/ImageInfoInspector.ui
   GUI/Qt/Components/LabelInspector.ui
   GUI/Qt/Components/LabelMiniInspector.ui
