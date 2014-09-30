@@ -50,17 +50,28 @@ void StatisticsDialog::FillTable()
   // Compute the segmentation statistics
   m_Stats->Compute(m_Model->GetDriver()->GetCurrentImageData());
 
+  // Fill out the item model
+  m_ItemModel->clear();
+
   // Set the column names
   QStringList header;
   header << "Label Name" << "Voxel Count" << "Volume (mm3)";
+  m_ItemModel->setHorizontalHeaderLabels(header);
 
   const std::vector<std::string> &cols = m_Stats->GetImageStatisticsColumns();
   for(int j = 0; j < cols.size(); j++)
-    header << from_utf8(cols[j]);
+    {
+    QString label = (cols.size() == 1)
+        ? "Intensity Stats"
+        : QString("Intensity Stats [%1]").arg(j+1);
 
-  // Fill out the item model
-  m_ItemModel->clear();
-  m_ItemModel->setHorizontalHeaderLabels(header);
+    QStandardItem *item = new QStandardItem();
+    item->setText(label);
+    item->setToolTip(
+          QString("Mean intensity and standard deviation for layer %1").arg(from_utf8(cols[j])));
+
+    m_ItemModel->setHorizontalHeaderItem(j+3, item);
+    }
 
   // Add all the rows
   for(SegmentationStatistics::EntryMap::const_iterator it = m_Stats->GetStats().begin();
@@ -90,6 +101,8 @@ void StatisticsDialog::FillTable()
                                          new QStandardItem(QString("%1").arg(i)));
       }
     }
+
+  ui->tvVolumes->resizeColumnsToContents();
 }
 
 void StatisticsDialog::on_btnUpdate_clicked()

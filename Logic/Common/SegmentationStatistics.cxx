@@ -87,31 +87,41 @@ SegmentationStatistics
   // Clear and initialize the statistics table
   m_Stats.clear();
 
+  // Cache the entry to avoid many calls to std::map
+  LabelType cachedLabel = 0;
+  Entry *cachedEntry = &m_Stats[cachedLabel];
+  cachedEntry->gray.resize(ngray);
+
   // Aggregate the statistical data
   for(LabelImageWrapper::ConstIterator itLabel =
     id->GetSegmentation()->GetImageConstIterator();
     !itLabel.IsAtEnd(); ++itLabel)
     {
-    // Get the label and the corresponding entry
+    // Get the label and the corresponding entry (use cache to reduce time wasted in std::map)
     LabelType label = itLabel.Value();
-    Entry &entry = m_Stats[label];
-    if(entry.count == 0)
+    if(label != cachedLabel)
       {
-      entry.gray.resize(ngray);
+      cachedLabel = label;
+      cachedEntry = &m_Stats[cachedLabel];
+
+      if(cachedEntry->count == 0)
+        cachedEntry->gray.resize(ngray);
       }
 
     // Increase the count
-    entry.count++;
+    cachedEntry->count++;
 
     // Integrate the image data
     itk::Index<3> idx = itLabel.GetIndex();
     for(size_t j = 0; j < ngray; j++)
       {
       double v = layers[j]->GetVoxelMappedToNative(idx);
-      entry.gray[j].sum += v;
-      entry.gray[j].sumsq += v * v;
+      cachedEntry->gray[j].sum += v;
+      cachedEntry->gray[j].sumsq += v * v;
       }
     }
+
+  std::cout << m_Stats[1].gray.size() << std::endl;
 
   // Compute the size of a voxel, in mm^3
   const double *spacing = 
