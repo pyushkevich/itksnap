@@ -12,6 +12,8 @@ DefaultBehaviorSettings::DefaultBehaviorSettings()
   m_SyncZoomModel = NewSimpleProperty("SyncZoom", true);
   m_SyncPanModel = NewSimpleProperty("SyncPan", true);
 
+  m_AutoContrastModel = NewSimpleProperty("AutoContrast", false);
+
   // Permissions
   RegistryEnumMap<UpdateCheckingPermission> remUpdate;
   remUpdate.AddPair(UPDATE_NO, "No");

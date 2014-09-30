@@ -1545,8 +1545,33 @@ IRISApplication
   LoadMetaDataAssociatedWithLayer(
         m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE, metadata);
 
+  // If the default is to auto-contrast, perform the contrast adjustment
+  // operation on the image
+  if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
+    {
+    AutoContrastLayerOnLoad(m_IRISImageData->GetLastOverlay());
+    }
+
   // Fire event
   InvokeEvent(LayerChangeEvent());
+}
+
+void
+IRISApplication
+::AutoContrastLayerOnLoad(ImageWrapperBase *layer)
+{
+  // Get a pointer to the policy for this layer
+  AbstractContinuousImageDisplayMappingPolicy *policy =
+      dynamic_cast<AbstractContinuousImageDisplayMappingPolicy *>(
+        m_IRISImageData->GetMain()->GetDisplayMapping());
+
+  // The policy must be of the right type to proceed
+  if(policy)
+    {
+    // Check if the image contrast is already set by the user
+    if(policy->IsContrastInDefaultState())
+      policy->AutoFitContrast();
+    }
 }
 
 void
@@ -1629,6 +1654,13 @@ IRISApplication
   // This line forces the cursor to be propagated to the image even if the
   // crosshairs positions did not change from their previous values
   this->GetIRISImageData()->SetCrosshairs(cursor);
+
+  // If the default is to auto-contrast, perform the contrast adjustment
+  // operation on the image
+  if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
+    {
+    AutoContrastLayerOnLoad(m_IRISImageData->GetMain());
+    }
 
   // Save the thumbnail for the current image. This ensures that a thumbnail
   // is created even if the application crashes or is killed.

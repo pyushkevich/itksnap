@@ -68,6 +68,9 @@ public:
    */
   virtual void Reset() { this->Initialize(this->GetControlPointCount()); }
 
+  // Check if the curve is in default state (linear from 0 to 1)
+  virtual bool IsInDefaultState() = 0;
+
   /**
    * Get the value of a control point
    */

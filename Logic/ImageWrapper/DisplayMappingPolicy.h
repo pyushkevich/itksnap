@@ -145,6 +145,11 @@ public:
    */
   virtual void AutoFitContrast();
 
+  /**
+   * Has the intensity curve been adjusted from its default (reset) state?
+   */
+  virtual bool IsContrastInDefaultState();
+
 };
 
 class AbstractCachingAndColorMapDisplayMappingPolicy

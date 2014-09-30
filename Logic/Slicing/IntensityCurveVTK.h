@@ -86,6 +86,9 @@ public:
   // Save the curve to a registry
   void SaveToRegistry(Registry &registry) const;
 
+  // Check if the curve is in default state (linear from 0 to 1)
+  bool IsInDefaultState();
+
 protected:
   IntensityCurveVTK();
   virtual ~IntensityCurveVTK();
