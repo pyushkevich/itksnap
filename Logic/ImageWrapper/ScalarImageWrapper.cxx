@@ -205,6 +205,29 @@ ScalarImageWrapper<TTraits,TBase>
   return m_ImageScaleFactor;
 }
 
+/** Compute statistics over a run of voxels in the image starting at the index
+ * startIdx. Appends the statistics to a running sum and sum of squared. The
+ * statistics are returned in internal (not native mapped) format */
+template<class TTraits, class TBase>
+void
+ScalarImageWrapper<TTraits, TBase>
+::GetRunLengthIntensityStatistics(
+    const itk::ImageRegion<3> &region,
+    const itk::Index<3> &startIdx, long runlength,
+    double *out_sum, double *out_sumsq) const
+{
+  ConstIterator it(this->m_Image, region);
+  it.SetIndex(startIdx);
+
+  // Perform the integration
+  for(long q = 0; q < runlength; q++, ++it)
+    {
+    double p = (double) it.Get();
+    *out_sum += p;
+    *out_sumsq += p * p;
+    }
+}
+
 /**
   Get the RGBA apperance of the voxel at the intersection of the three
   display slices.

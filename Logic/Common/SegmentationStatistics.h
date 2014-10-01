@@ -43,6 +43,12 @@
 
 class GenericImageData;
 class ColorLabelTable;
+class ScalarImageWrapperBase;
+
+namespace itk {
+  template <unsigned int VDim> class ImageRegion;
+  template <unsigned int VDim> class Index;
+}
 
 class SegmentationStatistics
 {
@@ -59,8 +65,14 @@ public:
   struct Entry {
     unsigned long int count;
     double volume_mm3;
-    std::vector<GrayStats> gray;
+    vnl_vector<double> sum, sumsq, mean, stdev;
     Entry() : count(0),volume_mm3(0) {}
+    void resize(int n) {
+      sum.set_size(n); sum.fill(0);
+      sumsq.set_size(n); sumsq.fill(0);
+      mean.set_size(n); mean.fill(0);
+      stdev.set_size(n); stdev.fill(0);
+    }
   };
 
   typedef std::map<LabelType, Entry> EntryMap;
@@ -88,6 +100,13 @@ private:
   // Column information
   std::vector<std::string> m_ImageStatisticsColumnNames;
   
+  void RecordRunLength(
+      size_t ngray,
+      std::vector<ScalarImageWrapperBase *> &layers,
+      itk::ImageRegion<3> &region,
+      itk::Index<3> &runStart,
+      long runLength,
+      Entry *cachedEntry);
 };
 
 #endif

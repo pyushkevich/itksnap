@@ -34,6 +34,7 @@
 =========================================================================*/
 #include "SegmentationStatistics.h"
 #include "GenericImageData.h"
+#include "ImageCollectionToImageFilter.h"
 
 #include <iostream>
 #include <iomanip>
@@ -87,41 +88,40 @@ SegmentationStatistics
   // Clear and initialize the statistics table
   m_Stats.clear();
 
+  // Start the label image iteration
+  LabelImageWrapper::ConstIterator itLabel = id->GetSegmentation()->GetImageConstIterator();
+  itk::ImageRegion<3> region = itLabel.GetRegion();
+
   // Cache the entry to avoid many calls to std::map
-  LabelType cachedLabel = 0;
-  Entry *cachedEntry = &m_Stats[cachedLabel];
-  cachedEntry->gray.resize(ngray);
+  LabelType runLabel = 0;
+  Entry *cachedEntry = &m_Stats[runLabel];
+  cachedEntry->resize(ngray);
+  itk::Index<3> runStart = itLabel.GetIndex();
+  long runLength = 0;
 
   // Aggregate the statistical data
-  for(LabelImageWrapper::ConstIterator itLabel =
-    id->GetSegmentation()->GetImageConstIterator();
-    !itLabel.IsAtEnd(); ++itLabel)
+  for( ; !itLabel.IsAtEnd(); ++itLabel, ++runLength)
     {
     // Get the label and the corresponding entry (use cache to reduce time wasted in std::map)
     LabelType label = itLabel.Value();
-    if(label != cachedLabel)
+    if(label != runLabel)
       {
-      cachedLabel = label;
-      cachedEntry = &m_Stats[cachedLabel];
+      // Record the statistics from the last run
+      this->RecordRunLength(ngray, layers, region, runStart, runLength, cachedEntry);
 
+      // Change the cached entry
+      runLabel = label;
+      cachedEntry = &m_Stats[runLabel];
       if(cachedEntry->count == 0)
-        cachedEntry->gray.resize(ngray);
-      }
+        cachedEntry->resize(ngray);
 
-    // Increase the count
-    cachedEntry->count++;
-
-    // Integrate the image data
-    itk::Index<3> idx = itLabel.GetIndex();
-    for(size_t j = 0; j < ngray; j++)
-      {
-      double v = layers[j]->GetVoxelMappedToNative(idx);
-      cachedEntry->gray[j].sum += v;
-      cachedEntry->gray[j].sumsq += v * v;
+      runStart = itLabel.GetIndex();
+      runLength = 0;
       }
     }
 
-  std::cout << m_Stats[1].gray.size() << std::endl;
+  // Record the statistics from the last run
+  this->RecordRunLength(ngray, layers, region, runStart, runLength, cachedEntry);
 
   // Compute the size of a voxel, in mm^3
   const double *spacing = 
@@ -134,13 +134,35 @@ SegmentationStatistics
     Entry &entry = it->second;
     for(size_t j = 0; j < ngray; j++)
       {
-      entry.gray[j].mean = entry.gray[j].sum / entry.count;
-      entry.gray[j].sd = sqrt(
-        (entry.gray[j].sumsq - entry.gray[j].sum * entry.gray[j].mean) 
-        / (entry.count - 1));
+      // Map to native format
+      double mean = entry.sum[j] / entry.count;
+      double stdev = sqrt((entry.sumsq[j] - entry.sum[j] * mean) / (entry.count - 1));
+
+      // Map with scale and shift
+      entry.mean[j] = layers[j]->GetNativeIntensityMapping()->MapInternalToNative(mean);
+
+      // Map with just shift
+      entry.stdev[j] = layers[j]->GetNativeIntensityMapping()->MapGradientMagnitudeToNative(stdev);
       }
     entry.volume_mm3 = entry.count * volVoxel;
     }
+}
+
+void SegmentationStatistics
+::RecordRunLength(size_t ngray, vector<ScalarImageWrapperBase *> &layers,
+                  itk::ImageRegion<3> &region, itk::Index<3> &runStart,
+                  long runLength, Entry *cachedEntry)
+{
+  // Record the statistics from the last run
+  for(size_t j = 0; j < ngray; j++)
+    {
+    layers[j]->GetRunLengthIntensityStatistics(
+          region, runStart, runLength,
+          cachedEntry->sum.data_block() + j,
+          cachedEntry->sumsq.data_block() + j);
+    }
+
+  cachedEntry->count += runLength;
 }
 
 void 
@@ -173,11 +195,11 @@ SegmentationStatistics
       fout << std::right << std::setw(10) << m_Stats[i].count << " / ";
       fout << std::setw(10) << (m_Stats[i].volume_mm3);
      
-      for(size_t j = 0; j < m_Stats[i].gray.size(); j++)
+      for(size_t j = 0; j < m_Stats[i].mean.size(); j++)
         {
         fout << " / " << std::internal << std::setw(10) 
-          << m_Stats[i].gray[j].mean << " / " << std::setw(10) 
-          << m_Stats[i].gray[j].sd;
+          << m_Stats[i].mean[j] << " / " << std::setw(10)
+          << m_Stats[i].stdev[j];
         }
 
       fout << endl;
@@ -223,10 +245,10 @@ void SegmentationStatistics
     oss << entry.count << colsep;
     oss << entry.volume_mm3;
 
-    for(int j = 0; j < entry.gray.size(); j++)
+    for(int j = 0; j < entry.mean.size(); j++)
       {
-      oss << colsep << entry.gray[j].mean;
-      oss << colsep << entry.gray[j].sd;
+      oss << colsep << entry.mean[j];
+      oss << colsep << entry.stdev[j];
       }
 
     oss << std::endl;

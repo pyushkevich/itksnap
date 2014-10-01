@@ -66,6 +66,31 @@ VectorImageWrapper<TTraits,TBase>
 
 template<class TTraits, class TBase>
 void
+VectorImageWrapper<TTraits, TBase>
+::GetRunLengthIntensityStatistics(
+    const itk::ImageRegion<3> &region,
+    const itk::Index<3> &startIdx, long runlength,
+    double *out_sum, double *out_sumsq) const
+{
+  ConstIterator it(this->m_Image, region);
+  it.SetIndex(startIdx);
+  size_t nc = this->GetNumberOfComponents();
+
+  // Perform the integration
+  for(long q = 0; q < runlength; q++, ++it)
+    {
+    PixelType p = it.Get();
+    for(size_t c = 0; c < nc; c++)
+      {
+      double v = (double) p[c];
+      out_sum[c] += v;
+      out_sumsq[c] += v * v;
+      }
+    }
+}
+
+template<class TTraits, class TBase>
+void
 VectorImageWrapper<TTraits,TBase>
 ::GetVoxelUnderCursorDisplayedValueAndAppearance(
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)

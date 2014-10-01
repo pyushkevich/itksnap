@@ -22,6 +22,9 @@
      <property name="gridStyle">
       <enum>Qt::DotLine</enum>
      </property>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>false</bool>
+     </attribute>
      <attribute name="verticalHeaderDefaultSectionSize">
       <number>24</number>
      </attribute>

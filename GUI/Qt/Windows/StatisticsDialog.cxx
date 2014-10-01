@@ -61,9 +61,7 @@ void StatisticsDialog::FillTable()
   const std::vector<std::string> &cols = m_Stats->GetImageStatisticsColumns();
   for(int j = 0; j < cols.size(); j++)
     {
-    QString label = (cols.size() == 1)
-        ? "Intensity Stats"
-        : QString("Intensity Stats [%1]").arg(j+1);
+    QString label = QString("Intensity Mean %1 SD\n(%2)").arg(QChar(0x00B1)).arg(from_utf8(cols[j]));
 
     QStandardItem *item = new QStandardItem();
     item->setText(label);
@@ -87,13 +85,12 @@ void StatisticsDialog::FillTable()
       qsi.append(new QStandardItem(icon, cl.GetLabel()));
       qsi.append(new QStandardItem(QString("%1").arg(row.count)));
       qsi.append(new QStandardItem(QString("%1").arg(row.volume_mm3,0,'g',4)));
-      for(int j = 0; j < row.gray.size(); j++)
+      for(int j = 0; j < row.mean.size(); j++)
         {
-        const SegmentationStatistics::GrayStats &sj = row.gray[j];
         QString text = QString("%1%2%3")
-            .arg(sj.mean,0,'f',4)
-            .arg(QString::fromUtf8("\u00B1"))
-            .arg(sj.sd,0,'f',4);
+            .arg(row.mean[j],0,'f',4)
+            .arg(QChar(0x00B1))
+            .arg(row.stdev[j],0,'f',4);
         qsi.append(new QStandardItem(text));
         }
       m_ItemModel->appendRow(qsi);
@@ -102,7 +99,13 @@ void StatisticsDialog::FillTable()
       }
     }
 
+  // Perform a smart resize of the column widts
   ui->tvVolumes->resizeColumnsToContents();
+  for(int col = 0; col < ui->tvVolumes->horizontalHeader()->count(); col++)
+    {
+    if(ui->tvVolumes->horizontalHeader()->sectionSize(col) > 150)
+      ui->tvVolumes->horizontalHeader()->resizeSection(col, 150);
+    }
 }
 
 void StatisticsDialog::on_btnUpdate_clicked()
