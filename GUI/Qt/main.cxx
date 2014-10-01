@@ -218,6 +218,31 @@ public:
     : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0) {}
 };
 
+/**
+ This function decodes filenames in "SHORT" DOS format. It does nothing
+ on non-Windows platforms
+*/
+std::string DecodeFilename(const std::string &in_string)
+{
+#ifdef WIN32
+  int bufsize = GetLongPathName(in_string.c_str(), NULL, 0);
+  if (bufsize == 0)
+    throw IRISException("Unable to decode parameter %s", in_string.c_str());
+
+  char *buffer = new char[bufsize];
+  int rc = GetLongPathName(in_string.c_str(), buffer, bufsize);
+  
+  if (rc == 0)
+    throw IRISException("Unable to decode parameter %s", in_string.c_str());
+
+  return std::string(buffer);
+
+#else
+  return in_string;
+
+#endif
+
+}
 
 
 /**
@@ -318,7 +343,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
       }
 
     // Get the workspace filename
-    argdata.fnWorkspace = parseResult.GetOptionParameter("--workspace");
+    argdata.fnWorkspace = DecodeFilename(parseResult.GetOptionParameter("--workspace"));
     }
 
   // No workspace, just images
@@ -333,12 +358,12 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
     bool have_main = false;
     if(parseResult.IsOptionPresent("--grey"))
       {
-      argdata.fnMain = parseResult.GetOptionParameter("--grey");
+      argdata.fnMain = DecodeFilename(parseResult.GetOptionParameter("--grey"));
       have_main = true;
       }
     else if(iTrailing < argc)
       {
-      argdata.fnMain = argv[iTrailing];
+      argdata.fnMain = DecodeFilename(argv[iTrailing]);
       have_main = true;
       }
 
@@ -362,7 +387,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
       if(parseResult.IsOptionPresent("--segmentation"))
         {
         // Get the filename
-        argdata.fnSegmentation = parseResult.GetOptionParameter("--segmentation");
+        argdata.fnSegmentation = DecodeFilename(parseResult.GetOptionParameter("--segmentation"));
         }
 
       // Load overlay fs supplied
@@ -371,7 +396,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
         for(int i = 0; i < parseResult.GetNumberOfOptionParameters("--overlay"); i++)
           {
           // Get the filename
-          argdata.fnOverlay.push_back(parseResult.GetOptionParameter("--overlay", i));
+          argdata.fnOverlay.push_back(DecodeFilename(parseResult.GetOptionParameter("--overlay", i)));
           }
         }
       } // if main image filename supplied
@@ -380,7 +405,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
     if(parseResult.IsOptionPresent("--labels"))
       {
       // Get the filename
-      argdata.fnLabelDesc = parseResult.GetOptionParameter("--labels");
+      argdata.fnLabelDesc = DecodeFilename(parseResult.GetOptionParameter("--labels"));
       }
     } // Not loading workspace
 
@@ -411,7 +436,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
     {
     argdata.xTestId = parseResult.GetOptionParameter("--test");
     if(parseResult.IsOptionPresent("--testdir"))
-      argdata.fnTestDir = parseResult.GetOptionParameter("--testdir");
+      argdata.fnTestDir = DecodeFilename(parseResult.GetOptionParameter("--testdir"));
     else
       argdata.fnTestDir = ".";
 

@@ -249,27 +249,42 @@ void SystemInterface
   for (int i = 1; i < argc; i++)
     newargv[i + 1] = argv[i];
 
-  newargv[argc+1] = NULL;
+  newargv[argc + 1] = NULL;
 
   // Now we have a nice argument list to send to the child SNAP process
 #ifdef WIN32
 
   // On windows, these functions screw up when arguments contain spaces!
-  // we have to manually add quotes to arguments...
   char **quoted = new char * [argc + 2];
-  for(int i = 0; i < argc+1; i++)
+  for (int i = 0; i < argc + 1; i++)
     {
-	if(strchr(newargv[i], ' '))
-	  {
-	  quoted[i] = new char(strlen(newargv[i])+3);
-	  sprintf(quoted[i], "\"%s\"", newargv[i]);
-	  }
-	else
-	  {
-	  quoted[i] = newargv[i];
-	  }
+    if (strchr(newargv[i], '  '))
+      {
+      //  On  windows,  try  to  get  the  short  path  instead
+      long length = 0;
+
+      //  First  obtain  the  size  needed  by  passing  NULL  and  0.
+      length = GetShortPathName(newargv[i], NULL, 0);
+      if (length == 0)
+        throw  IRISException("Unable  to  obtain  short  filename  for  %s", newargv[i]);
+
+      //  Dynamically  allocate  the  correct  size  
+      //  (terminating  null  char  was  included  in  length)
+      quoted[i] = new char[length];
+
+      //  Now  simply  call  again  using  same  long  path.
+      length = GetShortPathName(newargv[i], quoted[i], length);
+      if (length == 0)
+        throw  IRISException("Unable  to  obtain  short  filename  for  %s", newargv[i]);
+      }
+    else
+      {
+      quoted[i] = new char[strlen(newargv[i]) + 1];
+      strcpy(quoted[i], newargv[i]);
+      }
     }
-  quoted[argc+1] = NULL;
+
+  quoted[argc + 1] = NULL;
 
   _spawnvp(_P_NOWAIT, newargv[0], quoted);
 

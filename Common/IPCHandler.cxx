@@ -39,6 +39,10 @@ void IPCHandler::Attach(const char *path, short version, size_t message_size)
   // Determine size of shared memory
   size_t msize = message_size + sizeof(Header);
 
+  std::cout << "ATTACH: " << path << std::endl;
+  std::cout << "ATTACH: " << strlen(path) << std::endl;
+
+
 #ifdef WIN32
   // Create a shared memory block (key based on the preferences file)
   m_Handle = CreateFileMapping(

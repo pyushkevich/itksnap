@@ -248,7 +248,7 @@ protected:
     SmartPtr<HolderType> holder = HolderType::New();
     holder->SetProperty(model);
     holder->SetRegistryKey(key);
-    m_Properties.insert(std::make_pair(key, holder));
+	m_Properties.insert(std::make_pair(key, holder.GetPointer()));
 
     // Propagate the modification events from the property
     Rebroadcast(model, ValueChangedEvent(), ChildPropertyChangedEvent());
@@ -274,7 +274,7 @@ protected:
     holder->SetRegistryKey(key);
     holder->SetTraits(traits);
 
-    m_Properties.insert(std::make_pair(key, holder));
+    m_Properties.insert(std::make_pair(key, holder.GetPointer()));
 
     // Propagate the modification events from the property
     Rebroadcast(model, ValueChangedEvent(), ChildPropertyChangedEvent());
