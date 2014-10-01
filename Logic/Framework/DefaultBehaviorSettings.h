@@ -20,6 +20,7 @@ public:
   irisSimplePropertyAccessMacro(SyncCursor, bool)
   irisSimplePropertyAccessMacro(SyncZoom, bool)
   irisSimplePropertyAccessMacro(SyncPan, bool)
+  irisSimplePropertyAccessMacro(AutoContrast, bool)
 
   // Permissions
   enum UpdateCheckingPermission {
@@ -47,6 +48,7 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncCursorModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncZoomModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncPanModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_AutoContrastModel;
 
   // Permissions
   SmartPtr<ConcretePropertyModel<UpdateCheckingPermission> > m_CheckForUpdatesModel;

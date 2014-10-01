@@ -701,6 +701,8 @@ protected:
   // Internal method used by the project IO code
   void SaveProjectToRegistry(Registry &preg, const std::string proj_file_full);
 
+  // Auto-adjust contrast of a layer on load
+  void AutoContrastLayerOnLoad(ImageWrapperBase *layer);
 };
 
 #endif // __IRISApplication_h_

@@ -169,6 +169,7 @@ SET(LOGIC_CXX
   Logic/Common/LabelUseHistory.cxx
   Logic/Common/MetaDataAccess.cxx
   Logic/Common/SegmentationStatistics.cxx
+  Logic/Common/SNAPAppearanceSettings.cxx
   Logic/Common/SNAPRegistryIO.cxx
   Logic/Common/SNAPSegmentationROISettings.cxx
   Logic/Framework/DefaultBehaviorSettings.cxx
@@ -262,6 +263,7 @@ SET(LOGIC_HEADERS
   Logic/Common/ImageRayIntersectionFinder.h
   Logic/Common/ImageRayIntersectionFinder.txx
   Logic/Common/MetaDataAccess.h
+  Logic/Common/SNAPAppearanceSettings.h
   Logic/Common/SNAPRegistryIO.h
   Logic/Common/SNAPSegmentationROISettings.h
   Logic/Framework/DefaultBehaviorSettings.h
@@ -365,7 +367,6 @@ SET(UI_GENERIC_CXX
   GUI/Model/ReorientImageModel.cxx
   GUI/Model/SaveModifiedLayersModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
-  GUI/Model/SNAPAppearanceSettings.cxx
   GUI/Model/SnakeParameterModel.cxx
   GUI/Model/SnakeROIModel.cxx
   GUI/Model/SnakeROIResampleModel.cxx
@@ -430,7 +431,6 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/PolygonDrawingModel.h
   GUI/Model/ReorientImageModel.h
   GUI/Model/SaveModifiedLayersModel.h
-  GUI/Model/SNAPAppearanceSettings.h
   GUI/Model/SNAPUIFlag.h
   GUI/Model/SNAPUIFlag.txx
   GUI/Model/SliceWindowCoordinator.h

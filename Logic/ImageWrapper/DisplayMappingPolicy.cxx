@@ -371,6 +371,11 @@ AbstractContinuousImageDisplayMappingPolicy
   this->GetIntensityCurve()->ScaleControlPointsToWindow((float) t0, (float) t1);
 }
 
+bool AbstractContinuousImageDisplayMappingPolicy::IsContrastInDefaultState()
+{
+  return this->GetIntensityCurve()->IsInDefaultState();
+}
+
 /* ===============================================================
     LinearColorMapDisplayMappingPolicy implementation
    =============================================================== */

@@ -50,17 +50,26 @@ void StatisticsDialog::FillTable()
   // Compute the segmentation statistics
   m_Stats->Compute(m_Model->GetDriver()->GetCurrentImageData());
 
+  // Fill out the item model
+  m_ItemModel->clear();
+
   // Set the column names
   QStringList header;
   header << "Label Name" << "Voxel Count" << "Volume (mm3)";
+  m_ItemModel->setHorizontalHeaderLabels(header);
 
   const std::vector<std::string> &cols = m_Stats->GetImageStatisticsColumns();
   for(int j = 0; j < cols.size(); j++)
-    header << from_utf8(cols[j]);
+    {
+    QString label = QString("Intensity Mean %1 SD\n(%2)").arg(QChar(0x00B1)).arg(from_utf8(cols[j]));
 
-  // Fill out the item model
-  m_ItemModel->clear();
-  m_ItemModel->setHorizontalHeaderLabels(header);
+    QStandardItem *item = new QStandardItem();
+    item->setText(label);
+    item->setToolTip(
+          QString("Mean intensity and standard deviation for layer %1").arg(from_utf8(cols[j])));
+
+    m_ItemModel->setHorizontalHeaderItem(j+3, item);
+    }
 
   // Add all the rows
   for(SegmentationStatistics::EntryMap::const_iterator it = m_Stats->GetStats().begin();
@@ -76,19 +85,26 @@ void StatisticsDialog::FillTable()
       qsi.append(new QStandardItem(icon, cl.GetLabel()));
       qsi.append(new QStandardItem(QString("%1").arg(row.count)));
       qsi.append(new QStandardItem(QString("%1").arg(row.volume_mm3,0,'g',4)));
-      for(int j = 0; j < row.gray.size(); j++)
+      for(int j = 0; j < row.mean.size(); j++)
         {
-        const SegmentationStatistics::GrayStats &sj = row.gray[j];
         QString text = QString("%1%2%3")
-            .arg(sj.mean,0,'f',4)
-            .arg(QString::fromUtf8("\u00B1"))
-            .arg(sj.sd,0,'f',4);
+            .arg(row.mean[j],0,'f',4)
+            .arg(QChar(0x00B1))
+            .arg(row.stdev[j],0,'f',4);
         qsi.append(new QStandardItem(text));
         }
       m_ItemModel->appendRow(qsi);
       m_ItemModel->setVerticalHeaderItem(m_ItemModel->rowCount()-1,
                                          new QStandardItem(QString("%1").arg(i)));
       }
+    }
+
+  // Perform a smart resize of the column widts
+  ui->tvVolumes->resizeColumnsToContents();
+  for(int col = 0; col < ui->tvVolumes->horizontalHeader()->count(); col++)
+    {
+    if(ui->tvVolumes->horizontalHeader()->sectionSize(col) > 150)
+      ui->tvVolumes->horizontalHeader()->resizeSection(col, 150);
     }
 }
 

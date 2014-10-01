@@ -79,6 +79,24 @@ IntensityCurveVTK
   this->Modified();
 }
 
+bool
+IntensityCurveVTK
+::IsInDefaultState()
+{
+  // Set up the intervals for the control points
+  float interval = 1.0 / (m_ControlPoints.size() - 1);
+  float t = 0;
+
+  for(unsigned int i=0;i<m_ControlPoints.size();i++,t+=interval)
+    {
+    const ControlPoint &cp = m_ControlPoints[i];
+    if(cp.t != t || cp.x != t)
+      return false;
+    }
+
+  return true;
+}
+
 void 
 IntensityCurveVTK
 ::GetControlPoint(unsigned int iControlPoint,float &t,float &x)  const
