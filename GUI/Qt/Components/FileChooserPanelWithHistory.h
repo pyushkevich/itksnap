@@ -2,6 +2,7 @@
 #define FILECHOOSERPANELWITHHISTORY_H
 
 #include <QWidget>
+#include <QMap>
 
 namespace Ui {
   class FileChooserPanelWithHistory;
@@ -40,7 +41,8 @@ public:
       const QString &historyCategory,
       const QString &filePattern,
       bool force_extension,
-      const QString &initialFile = QString());
+      const QString &initialFile = QString(),
+      const QString &activeFormat = QString());
 
   // Add a button to the button panel (customization)
   void addButton(QWidget *button);
@@ -63,6 +65,8 @@ public slots:
   // same path will be used
   void onFilenameAccept();
 
+  void setActiveFormat(QString format);
+
 private slots:
   void on_btnBrowse_clicked();
 
@@ -77,9 +81,6 @@ protected:
 
   // Fix the extension of the file in the dialog
   QString fixExtension() const;
-
-  // Compute the default suffix
-  void initDefaultSuffix();
 
   virtual bool eventFilter(QObject *obj, QEvent *ev);
 
@@ -96,9 +97,13 @@ private:
   QString m_historyCategory;
   QString m_filePattern;
   QString m_workingDir;
-  QString m_defaultSuffix;
+  QString m_defaultFormat;
+
+  QMap<QString, QStringList> m_Filter;
 
   GlobalUIModel *m_Model;
+  void parseFilters(const QString &activeFormat = QString());
+  void highlightFilename();
 };
 
 #endif // FILECHOOSERPANELWITHHISTORY_H

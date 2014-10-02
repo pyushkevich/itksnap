@@ -70,8 +70,8 @@ public:
   virtual bool CheckImageValidity();
 
   // Default extension for saving files
-  virtual std::string GetDefaultExtensionForSave() const
-    { return std::string("nii.gz"); }
+  virtual std::string GetDefaultFormatForSave() const
+    { return std::string("NiFTI"); }
 
   /**
     Create a filter string for file IO dialogs. The lineEntry is in the

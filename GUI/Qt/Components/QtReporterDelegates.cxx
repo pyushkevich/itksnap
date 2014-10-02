@@ -97,10 +97,6 @@ void QtProgressReporterDelegate::SetProgressDialog(QProgressDialog *dialog)
 void QtProgressReporterDelegate::SetProgressValue(double value)
 {
   m_Dialog->setValue((int) (1000 * value));
-  QAction *action = FindUpstreamAction(m_Dialog, "actionOpenMain");
-  QWidget *fuckme = action->parentWidget();
-  bool enabled = fuckme->isEnabled();
-  qDebug() << "My parent is " << enabled;
   // qDebug() << "Progress: " << value;
   // QCoreApplication::processEvents();
 }

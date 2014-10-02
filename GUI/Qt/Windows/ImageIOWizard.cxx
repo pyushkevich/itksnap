@@ -142,6 +142,7 @@ SelectFilePage::SelectFilePage(QWidget *parent)
   QMetaObject::connectSlotsByName(this);
 
   connect(m_FilePanel, SIGNAL(absoluteFilenameChanged(QString)), this, SLOT(onFilenameChanged(QString)));
+  connect(m_InFormat, SIGNAL(activated(QString)), m_FilePanel, SLOT(setActiveFormat(QString)));
 
   QWizard *wiz = dynamic_cast<QWizard *>(parent);
   connect(wiz, SIGNAL(accepted()), m_FilePanel, SLOT(onFilenameAccept()));
@@ -215,9 +216,22 @@ void SelectFilePage::initializePage()
     }
   else
     {
+    // Get the appropriate filter for the filenames
+    std::string filter = m_Model->GetFilter("%s (%s)", ".%s", " ", ";;");
+
+    // Get the default format to use
+    std::string def_format= m_Model->GetDefaultFormatForSave();
+    if(m_Model->GetSuggestedFilename().size())
+      {
+      bool dummy;
+      GuidedNativeImageIO::FileFormat fmt = m_Model->GuessFileFormat(m_Model->GetSuggestedFilename(), dummy);
+      if(fmt < GuidedNativeImageIO::FORMAT_COUNT)
+        def_format = m_Model->GetGuidedIO()->GetFileFormatDescriptor(fmt).name;
+      }
+
     m_FilePanel->initializeForSaveFile(
           m_Model->GetParent(), "Image Filename:", from_utf8(m_Model->GetHistoryName()),
-          QString(), false, from_utf8(m_Model->GetSuggestedFilename()));
+          from_utf8(filter), false, from_utf8(m_Model->GetSuggestedFilename()), from_utf8(def_format));
     }
 }
 
@@ -313,6 +327,9 @@ void SelectFilePage::onFilenameChanged(QString absoluteFilename)
 
   // Select the appropriate entry in the combo box
   m_InFormat->setCurrentIndex(m_InFormat->findData(QVariant(fmt)));
+
+  if(fmt != GuidedNativeImageIO::FORMAT_COUNT)
+    m_FilePanel->setActiveFormat(m_InFormat->currentText());
 
   // Is it a directory?
   if(QFileInfo(absoluteFilename).isDir())

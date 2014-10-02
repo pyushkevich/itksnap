@@ -52,53 +52,69 @@ void FileChooserPanelWithHistory::populateHistory()
   ui->btnHistory->setEnabled(menu->actions().size() > 0);
 }
 
-void FileChooserPanelWithHistory::initDefaultSuffix()
+void FileChooserPanelWithHistory::parseFilters(const QString &activeFormat)
 {
-  QStringList pats = m_filePattern.split(";;", QString::SkipEmptyParts);
-  if(pats.size())
-    {
-    QString pat = pats.front();
+  // Clear the filters
+  m_Filter.clear();
+  m_defaultFormat = activeFormat;
 
+  // Split the pattern into pieces
+  QStringList pats = m_filePattern.split(";;", QString::SkipEmptyParts);
+
+  // Split each piece
+  foreach(QString pat, pats)
+    {
     // Handle patterns in parentheses
-    QRegExp rx("\\((.*)\\)");
+    QRegExp rx("(.*)\\((.*)\\)");
     int pos = rx.indexIn(pat);
     if(pos >= 0)
-      pat = rx.cap(1);
-
-    // Split on space
-    QStringList extlist = pat.split(" ");
-    if(extlist.length())
       {
-      // Get the suffix of the extension
-      QString myext = extlist.first();
-      pos = myext.indexOf(".");
-      if(pos >= 0)
+      // Split into title and list of extensions
+      QString title = rx.cap(1).trimmed();
+      QString extliststr = rx.cap(2).trimmed();
+
+      // Store the extension
+      QStringList extlist = extliststr.split(" ");
+      QStringList extlistclean;
+
+      foreach (QString myext, extlist)
         {
-        m_defaultSuffix = myext.mid(pos+1);
-        return;
+        pos = myext.indexOf(".");
+        if(pos >= 0)
+          extlistclean.push_back(myext.mid(pos+1));
         }
+
+      // Make sure every title has somethign!
+      if(extlistclean.size() == 0)
+        extlistclean.push_back(QString());
+
+      // Append this info
+      m_Filter[title] = extlistclean;
+
+      // Use this filter
+      if(m_defaultFormat.length() == 0)
+        m_defaultFormat = title;
       }
     }
-
-  m_defaultSuffix = QString();
 }
+
 
 QString FileChooserPanelWithHistory::fixExtension() const
 {
   QString filename = ui->inFilename->text();
-  if(filename.length() == 0 || m_defaultSuffix.length() == 0)
+  if(filename.length() == 0 || m_defaultFormat.length() == 0 || m_Filter[m_defaultFormat].length() == 0)
     return filename;
+
+  // Default extension is the first extension in the accepted list
+  QString defaultExt = m_Filter[m_defaultFormat].front();
 
   QFileInfo fi(filename);
 
-  if(QString::compare(fi.suffix(), m_defaultSuffix, Qt::CaseInsensitive) == 0)
+  if(QString::compare(fi.suffix(), defaultExt, Qt::CaseInsensitive) == 0 || !m_forceExtension)
     {
     // The suffix is the same as the default suffix
     return filename;
     }
-
-  // At this point, the user might have typed whatever partial string. We need
-  // to make sure that what the user has typed is actually a part of the filename
 
   // Is the text that the user typed in referring to a directory? Then there is no
   // sense to add an extension to it!
@@ -107,11 +123,11 @@ QString FileChooserPanelWithHistory::fixExtension() const
 
   // Is the thing the user typed in ending with a dot?
   if(filename.endsWith("."))
-    return filename + m_defaultSuffix;
+    return filename + defaultExt;
 
   // Otherwise, return the filename with the default extension
   else
-    return filename + "." + m_defaultSuffix;
+    return filename + "." + defaultExt;
 
 }
 
@@ -130,7 +146,7 @@ void FileChooserPanelWithHistory::initializeForOpenFile(
   m_historyCategory = historyCategory;
 
   // Compute the suffix
-  initDefaultSuffix();
+  parseFilters();
 
   // Initial UI values
   ui->label->setText(labelText);
@@ -161,7 +177,8 @@ void FileChooserPanelWithHistory::initializeForSaveFile(
     const QString &historyCategory,
     const QString &filePattern,
     bool force_extension,
-    const QString &initialFile)
+    const QString &initialFile,
+    const QString &activeFormat)
 {
   // State
   m_Model = model;
@@ -172,7 +189,7 @@ void FileChooserPanelWithHistory::initializeForSaveFile(
   m_forceExtension = force_extension;
 
   // Compute the suffix
-  initDefaultSuffix();
+  parseFilters(activeFormat);
 
   // Initial UI values
   ui->label->setText(labelText);
@@ -191,18 +208,34 @@ void FileChooserPanelWithHistory::initializeForSaveFile(
   if(initialFile.length())
     {
     // Update the filename and working directory based on the initial file
-    this->updateFilename(initialFile);
+    this->updateFilename(initialFile);    
     }
   else
     {
     // Initialize the dialog with a default filename
     QString default_basename = "Untitled";
-    ui->inFilename->setText(QString("%1.%2").arg(default_basename, m_defaultSuffix));
-    ui->inFilename->setSelection(0, default_basename.length());
+    ui->inFilename->setText(QString("%1.%2").arg(default_basename, m_Filter[m_defaultFormat].front()));
     }
+
+  // Highlight just the filename
+  highlightFilename();
 
   // Update the display
   on_inFilename_textChanged(ui->inFilename->text());
+}
+
+void FileChooserPanelWithHistory::highlightFilename()
+{
+  // Select the part of the filename minus the extension
+  QString text = ui->inFilename->text();
+  foreach(QString ext, m_Filter[m_defaultFormat])
+    {
+    if(text.endsWith(ext, Qt::CaseInsensitive))
+      {
+      ui->inFilename->setSelection(0, text.length() - (1+ext.length()));
+      return;
+      }
+    }
 }
 
 void FileChooserPanelWithHistory::addButton(QWidget *button)
@@ -274,6 +307,43 @@ void FileChooserPanelWithHistory::onFilenameAccept()
                                     myDir.absolutePath());
 }
 
+void FileChooserPanelWithHistory::setActiveFormat(QString format)
+{
+  if(format == m_defaultFormat)
+    return;
+
+  // Change the format
+  QString oldFormat = m_defaultFormat;
+  m_defaultFormat = format;
+
+  // In open mode, we don't tweak the extension
+  if(m_openMode)
+    return;
+
+  // Get the default new suffix
+  QString newSuffix = m_Filter[format].front();
+
+  // If the one of the recognized extensions is currently selected, replace it
+  QString fn = ui->inFilename->text();
+  foreach (QString ext, m_Filter[oldFormat])
+    {
+    if(fn.endsWith(ext, Qt::CaseInsensitive))
+      {
+      fn = fn.mid(0, fn.length() - ext.length()) + newSuffix;
+      break;
+      }
+    }
+
+  // Modify the extension if it was not overridden
+  if(fn != ui->inFilename->text())
+    {
+    ui->inFilename->setText(fn);
+    }
+
+  // Highlight the filename
+  highlightFilename();
+}
+
 void FileChooserPanelWithHistory::on_btnBrowse_clicked()
 {
   // Get the file name
@@ -305,7 +375,7 @@ void FileChooserPanelWithHistory::on_btnBrowse_clicked()
 void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
 {
   // Get the fileinfo for this file
-    QString file_ext = this->fixExtension();
+  QString file_ext = this->fixExtension();
   QFileInfo fi(file_ext), fiwd;
   if(fi.isRelative())
     fiwd = QFileInfo(m_workingDir, file_ext);

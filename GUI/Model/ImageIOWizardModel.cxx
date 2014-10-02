@@ -145,7 +145,7 @@ ImageIOWizardModel::GuessFileFormat(
 
   // If there is no prior knowledge determine the format using magic
   // numbers and extension information
-  return GuidedNativeImageIO::GuessFormatForFileName(fname, m_Mode==LOAD);
+ return GuidedNativeImageIO::GuessFormatForFileName(fname, m_Mode==LOAD);
 }
 
 bool ImageIOWizardModel

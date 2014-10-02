@@ -24,8 +24,8 @@ public:
   virtual bool isComplete();
 
 private slots:
-  void on_btnBrowse_clicked();
-  void on_historySelection();
+
+  void onFilenameChange(const QString &filename);
 
 private:
   Ui::MeshExportBrowsePage *ui;

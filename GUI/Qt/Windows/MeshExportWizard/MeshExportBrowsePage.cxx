@@ -18,13 +18,13 @@ MeshExportBrowsePage::MeshExportBrowsePage(QWidget *parent) :
 {
   ui->setupUi(this);
 
-  // Create a menu for the history button
-  QMenu *history_menu = new QMenu("History");
-  history_menu->setStyleSheet("font-size: 12px;");
-  ui->btnHistory->setMenu(history_menu);
+  // Connect changes to the filename
+  QObject::connect(ui->filePanel, SIGNAL(absoluteFilenameChanged(QString)),
+                   this, SLOT(onFilenameChange(QString)));
 
-  // Completion signals
-  QObject::connect(ui->inFilename, SIGNAL(textChanged(QString)), this, SIGNAL(completeChanged()));
+  QObject::connect(ui->inFormat, SIGNAL(activated(QString)),
+                   ui->filePanel, SLOT(setActiveFormat(QString)));
+
 }
 
 MeshExportBrowsePage::~MeshExportBrowsePage()
@@ -37,19 +37,41 @@ void MeshExportBrowsePage::SetModel(MeshExportModel *model)
   // Store the model
   m_Model = model;
 
-  // Make a coupling for the filename field
-  makeCoupling(ui->inFilename, m_Model->GetExportFileNameModel());
+  // Make a coupling for the format field
   makeCoupling(ui->inFormat, m_Model->GetExportFormatModel());
 }
 
 void MeshExportBrowsePage::initializePage()
 {
-  // Fill out the history menu
-  PopulateHistoryMenu(ui->btnHistory->menu(),
-                      this, SLOT(on_historySelection()),
-                      m_Model->GetParentModel(),
-                      from_utf8(m_Model->GetHistoryName()));
-  ui->btnHistory->setEnabled(ui->btnHistory->menu()->actions().size() > 0);
+  // Filter string (generate by hand...)
+  QString filter;
+
+  // Get the domain
+  MeshExportModel::FileFormat dummy;
+  MeshExportModel::FileFormatDomain domain;
+  m_Model->GetExportFormatModel()->GetValueAndDomain(dummy, &domain);
+
+  if(m_Model->GetSaveMode() == MeshExportModel::SAVE_SCENE)
+    {
+    filter = QString("%1 (.vtk);; %2 (.vrml)")
+        .arg(from_utf8(domain[GuidedMeshIO::FORMAT_VTK]))
+        .arg(from_utf8(domain[GuidedMeshIO::FORMAT_VRML]));
+    }
+  else
+    {
+    filter = QString("%1 (.vtk);; %2 (.stl);; %3 (.byu .y)")
+        .arg(from_utf8(domain[GuidedMeshIO::FORMAT_VTK]))
+        .arg(from_utf8(domain[GuidedMeshIO::FORMAT_STL]))
+        .arg(from_utf8(domain[GuidedMeshIO::FORMAT_BYU]));
+    }
+
+  // Create the file panel
+  ui->filePanel->initializeForSaveFile(
+        m_Model->GetParentModel(),
+        "Mesh file name:",
+        from_utf8(m_Model->GetHistoryName()),
+        filter, false,
+        QString(), from_utf8(domain[GuidedMeshIO::FORMAT_VTK]));
 }
 
 bool MeshExportBrowsePage::validatePage()
@@ -59,6 +81,7 @@ bool MeshExportBrowsePage::validatePage()
 
   try
   {
+    m_Model->SetExportFileName(to_utf8(ui->filePanel->absoluteFilename()));
     m_Model->SaveMesh();
     return true;
   }
@@ -81,28 +104,17 @@ bool MeshExportBrowsePage::validatePage()
   }
 }
 
-void MeshExportBrowsePage::on_btnBrowse_clicked()
-{
-  // Initialize the dialog with what's in the filebox
-  QString filename = ui->inFilename->text();
-
-  // Set the dialog properties
-  QFileInfo fi(filename);
-
-  // Run the dialog
-  QString sel = QFileDialog::getSaveFileName(this, "Export Mesh As", fi.path());
-
-  if(sel.length())
-    ui->inFilename->setText(sel);
-}
-
-void MeshExportBrowsePage::on_historySelection()
-{
-  QAction *action = static_cast<QAction *>(this->sender());
-  ui->inFilename->setText(action->text());
-}
-
 bool MeshExportBrowsePage::isComplete()
 {
-  return ui->inFilename->text().size() > 0;
+  return ui->filePanel->absoluteFilename().length() > 0;
+}
+
+void MeshExportBrowsePage::onFilenameChange(const QString &filename)
+{
+  // Update the model when the file panel filename changes
+  std::string fnstl = to_utf8(filename);
+  if(fnstl != m_Model->GetExportFileName())
+    m_Model->SetExportFileName(fnstl);
+
+  emit completeChanged();
 }

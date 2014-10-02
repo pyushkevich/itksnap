@@ -79,14 +79,14 @@ RegistryEnumMap<GuidedNativeImageIO::RawPixelType> GuidedNativeImageIO::m_EnumRa
 const GuidedNativeImageIO::FileFormatDescriptor 
 GuidedNativeImageIO
 ::m_FileFormatDescrictorArray[] = {
-  {"Analyze", "hdr,img,img.gz",      true,  false, true,  true},
+  {"Analyze", "img.gz,hdr,img",      true,  false, true,  true},
   {"DICOM Image Series", "",         false, true,  true,  true},
   {"DICOM Single Image", "dcm",      false, true,  true,  true},
   {"GE Version 4", "ge4",            false, false, true,  true},
   {"GE Version 5", "ge5",            false, false, true,  true},
   {"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
   {"MetaImage", "mha,mhd",           true,  true,  true,  true},
-  {"NiFTI", "nii,nia,nii.gz,nia.gz", true,  true,  true,  true},
+  {"NiFTI", "nii.gz,nii,nia,nia.gz", true,  true,  true,  true},
   {"NRRD", "nrrd,nhdr",              true,  true,  true,  true},
   {"Raw Binary", "raw",              false, false, true,  true},
   {"Siemens Vision", "ima",          false, false, true,  true},
@@ -99,13 +99,20 @@ GuidedNativeImageIO
 bool GuidedNativeImageIO::FileFormatDescriptor
 ::TestFilename(std::string fname)
 {
+  if(fname.length() == 0)
+    return false;
+
   // Check if the filename matches the pattern
   for(size_t i = 0; i < pattern.length(); )
     {
     size_t j = pattern.find(',', i);
     string ext = "." + pattern.substr(i, j-i);
     i+=ext.length();
-    if(fname.rfind(ext) == fname.length()-ext.length())
+    size_t pos = fname.rfind(ext);
+    if(pos == std::string::npos)
+      continue;
+
+    if(pos == fname.length() - ext.length())
       return true;
     }
   return false;
@@ -1030,7 +1037,10 @@ GuidedNativeImageIO::GuessFormatForFileName(
 
     // Check if there is a filename match
     if(fd.TestFilename(fname))
+      {
+      std::cout << "Decided that " << fname << " is " << fd.name << std::endl;
       return fmt;
+      }
     }
 
   // Nothing matched
