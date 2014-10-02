@@ -492,42 +492,6 @@ bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWid
 #include <QFileDialog>
 #include <QFileInfo>
 
-// MacOS bug workaround (sort-of, not sure it always helps) for opening a single
-// file using the native browser. The default implementation QFileDialog::getOpenFileName
-// does not always set the directory correctly
-QString GetOpenFileNameBugFix(
-    QWidget *parent,
-    const QString &caption,
-    const QString &user_file,
-    const QString &filter)
-{
-  QFileDialog dialog(parent, caption);
-  dialog.setFileMode(QFileDialog::ExistingFile);
-  dialog.setAcceptMode(QFileDialog::AcceptOpen);
-
-  if(user_file.length())
-    {
-    QFileInfo file_info(user_file);
-    if(file_info.isDir())
-      {
-      dialog.setDirectory(file_info.absoluteFilePath() + "/");
-      }
-    else
-      {
-      dialog.setDirectory(file_info.absolutePath() + "/");
-      dialog.selectFile(file_info.fileName());
-      }
-    }
-
-  if(filter.length())
-    dialog.setNameFilter(filter);
-
-  if(dialog.exec() && dialog.selectedFiles().size())
-    return dialog.selectedFiles().first();
-  else
-    return QString();
-}
-
 // TODO: this is so f***ng lame! Global variable!!! Put this inside of
 // a class!!!!
 #include <QMap>

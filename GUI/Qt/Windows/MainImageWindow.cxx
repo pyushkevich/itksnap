@@ -998,8 +998,9 @@ void MainImageWindow::ExportScreenshot(int panelIndex)
   QString fuser = ShowSimpleSaveDialogWithHistory(
         this, m_Model, "Snapshots",
         "Save Snapshot - ITK-SNAP",
-        "Snapshot File",
-        "Images (*.png *.tiff *.jpg)", true,
+        "Snapshot File:",
+        "PNG Image (*.png);;TIFF Image (*.tiff *.tif);;JPEG Image (*.jpg *.jpeg)",
+        true,
         from_utf8(finput));
 
   // If nothing selected, exit
@@ -1135,7 +1136,7 @@ void MainImageWindow::on_actionLoadLabels_triggered()
         this, m_Model, "LabelDescriptions",
         "Open Label Descriptions - ITK-SNAP",
         "Label Description File",
-        "Text Files (*.txt);; Label Files (*.label);; All Files (*)");
+        "Text Files (*.txt);; Label Files (*.label)");
 
   // Open the labels from the selection
   if(selection.length())
@@ -1160,7 +1161,7 @@ void MainImageWindow::on_actionSaveLabels_triggered()
         this, m_Model, "LabelDescriptions",
         "Save Label Descriptions - ITK-SNAP",
         "Label Description File",
-        "Text Files (*.txt);; Label Files (*.label);; All Files (*)",
+        "Text Files (*.txt);; Label Files (*.label)",
         true);
 
   // Open the labels from the selection
@@ -1415,7 +1416,7 @@ void MainImageWindow::ExportSlice(AnatomicalDirection direction)
         this, m_Model, "Slices",
         "Save Slice - ITK-SNAP",
         "Slice Image File",
-        "Images (*.png *.jpg *.tiff)", true));
+        "PNG Image (*.png);;TIFF Image (*.tiff *.tif);;JPEG Image (*.jpg *.jpeg)",true));
 
   if(fuser.length())
     m_Model->GetDriver()->ExportSlice(direction, fuser.c_str());

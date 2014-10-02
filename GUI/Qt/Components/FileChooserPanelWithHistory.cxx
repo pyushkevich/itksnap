@@ -20,6 +20,7 @@ FileChooserPanelWithHistory::FileChooserPanelWithHistory(QWidget *parent) :
 
   // INitialize vars
   m_Model = NULL;
+  m_oracleTarget = NULL;
 
   // History menu
   QMenu *history = new QMenu("History", ui->btnHistory);
@@ -27,6 +28,9 @@ FileChooserPanelWithHistory::FileChooserPanelWithHistory(QWidget *parent) :
 
   // Set up an event filter
   ui->inFilename->installEventFilter(this);
+
+  // Connect up the format selector to the filename
+  connect(ui->inFormat, SIGNAL(activated(QString)), this, SLOT(setActiveFormat(QString)));
 }
 
 FileChooserPanelWithHistory::~FileChooserPanelWithHistory()
@@ -56,6 +60,8 @@ void FileChooserPanelWithHistory::parseFilters(const QString &activeFormat)
 {
   // Clear the filters
   m_Filter.clear();
+  ui->inFormat->clear();
+
   m_defaultFormat = activeFormat;
 
   // Split the pattern into pieces
@@ -91,44 +97,59 @@ void FileChooserPanelWithHistory::parseFilters(const QString &activeFormat)
       // Append this info
       m_Filter[title] = extlistclean;
 
+      // Add the title to the format dropbox
+      ui->inFormat->addItem(title);
+
       // Use this filter
       if(m_defaultFormat.length() == 0)
         m_defaultFormat = title;
       }
     }
+
+  // Update the combo box
+  ui->inFormat->setCurrentText(m_defaultFormat);
+
+  // Show or hide the format panel depending on the number of formats available
+  ui->panelFormat->setVisible(m_Filter.size() > 1);
 }
 
 
 QString FileChooserPanelWithHistory::fixExtension() const
 {
+  // This method appends the extension to the currently entered filename if the
+  // currently entered filename does not have an extension already. This is so
+  // that we can type in test and it gets saved as test.png
   QString filename = ui->inFilename->text();
-  if(filename.length() == 0 || m_defaultFormat.length() == 0 || m_Filter[m_defaultFormat].length() == 0)
+  QString filenameAbs = this->absoluteFilenameKeepExtension();
+
+  // Cases when we don't append the extension
+  if(filename.length() == 0 ||                  // No filename entered
+     m_defaultFormat.length() == 0 ||           // No current format selected
+     m_Filter[m_defaultFormat].size() == 0 ||   // Current format does not have any extensions
+     QFileInfo(filenameAbs).isDir() ||          // Selected filename is a directory
+     m_forceExtension == false)                 // User asked not to do this
     return filename;
+
+  // Check if the filename already has one of the extensions for the selected format
+  foreach(QString ext, m_Filter[m_defaultFormat])
+    {
+    if(ext.length())
+      {
+      QString eext = QString(".%1").arg(ext);
+      if(filename.endsWith(eext))
+        return filename;
+      }
+    }
 
   // Default extension is the first extension in the accepted list
   QString defaultExt = m_Filter[m_defaultFormat].front();
 
-  QFileInfo fi(filename);
-
-  if(QString::compare(fi.suffix(), defaultExt, Qt::CaseInsensitive) == 0 || !m_forceExtension)
-    {
-    // The suffix is the same as the default suffix
-    return filename;
-    }
-
-  // Is the text that the user typed in referring to a directory? Then there is no
-  // sense to add an extension to it!
-  if(fi.isDir())
-    return filename;
-
-  // Is the thing the user typed in ending with a dot?
+  // Is the thing the user typed in ending with a dot? Avoid having two dots
   if(filename.endsWith("."))
     return filename + defaultExt;
 
   // Otherwise, return the filename with the default extension
-  else
-    return filename + "." + defaultExt;
-
+  return filename + "." + defaultExt;
 }
 
 void FileChooserPanelWithHistory::initializeForOpenFile(
@@ -136,7 +157,8 @@ void FileChooserPanelWithHistory::initializeForOpenFile(
     const QString &labelText,
     const QString &historyCategory,
     const QString &filePattern,
-    const QString &initialFile)
+    const QString &initialFile,
+    const QString &activeFormat)
 {
   // State
   m_Model = model;
@@ -144,9 +166,10 @@ void FileChooserPanelWithHistory::initializeForOpenFile(
   m_directoryMode = false;
   m_filePattern = filePattern;
   m_historyCategory = historyCategory;
+  m_forceExtension = false;
 
   // Compute the suffix
-  parseFilters();
+  parseFilters(activeFormat);
 
   // Initial UI values
   ui->label->setText(labelText);
@@ -243,6 +266,12 @@ void FileChooserPanelWithHistory::addButton(QWidget *button)
   ui->wButtonPanel->layout()->addWidget(button);
 }
 
+void FileChooserPanelWithHistory::setCustomFormatOracle(QObject *target, const char *slot)
+{
+  m_oracleTarget = target;
+  m_oracleSlot = slot;
+}
+
 void FileChooserPanelWithHistory::onHistorySelection()
 {
   // Get the absolute filename
@@ -289,6 +318,21 @@ QString FileChooserPanelWithHistory::absoluteFilename() const
   return fi2.absoluteFilePath();
 }
 
+QString FileChooserPanelWithHistory::absoluteFilenameKeepExtension() const
+{
+  QFileInfo fi(ui->inFilename->text());
+  if(fi.isAbsolute())
+    return fi.absoluteFilePath();
+
+  QFileInfo fi2(QDir(m_workingDir), ui->inFilename->text());
+  return fi2.absoluteFilePath();
+}
+
+QString FileChooserPanelWithHistory::activeFormat() const
+{
+  return m_defaultFormat;
+}
+
 QString FileChooserPanelWithHistory::errorText() const
 {
   return ui->outError->text();
@@ -327,7 +371,8 @@ void FileChooserPanelWithHistory::setActiveFormat(QString format)
   QString fn = ui->inFilename->text();
   foreach (QString ext, m_Filter[oldFormat])
     {
-    if(fn.endsWith(ext, Qt::CaseInsensitive))
+    QString eext = QString(".%1").arg(ext);
+    if(fn.endsWith(eext, Qt::CaseInsensitive))
       {
       fn = fn.mid(0, fn.length() - ext.length()) + newSuffix;
       break;
@@ -356,14 +401,66 @@ void FileChooserPanelWithHistory::on_btnBrowse_clicked()
 
   QString browseDir = bfi.absoluteFilePath();
 
+  // Create a file dialog
+  QFileDialog dialog(this, ui->label->text());
+
   if(m_openMode)
     {
-    sel = GetOpenFileNameBugFix(this, ui->label->text(), browseDir, m_filePattern);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
     }
   else
     {
-    sel = QFileDialog::getSaveFileName(this, ui->label->text(), browseDir, m_filePattern);
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
     }
+
+  if(browseDir.length())
+    {
+    QFileInfo file_info(browseDir);
+    if(file_info.isDir())
+      {
+      dialog.setDirectory(file_info.absoluteFilePath() + "/");
+      }
+    else
+      {
+      dialog.setDirectory(file_info.absolutePath() + "/");
+      dialog.selectFile(file_info.fileName());
+      }
+    }
+
+  // Create a single filter that combines all of the extensions for all image types
+  // If any of the extensions is missing, there will be no filter at all
+  QStringList extensionList;
+  bool have_empty = false;
+  foreach(QString format, m_Filter.keys())
+    {
+    foreach(QString ext, m_Filter[format])
+      {
+#ifdef __APPLE__
+      // On MacOS, compound extensions are a problem
+      int pos = ext.lastIndexOf(".");
+      if(pos >= 0)
+        ext = ext.mid(pos + 1);
+#endif
+      if(ext.length())
+        {
+        QString eext = QString("*.%1").arg(ext);
+        extensionList << eext;
+        }
+      else
+        have_empty = true;
+      }
+    }
+
+  QString allext = extensionList.join(" ");
+  if(!have_empty && allext.length())
+    {
+    dialog.setNameFilter(allext);
+    }
+
+  if(dialog.exec() && dialog.selectedFiles().size())
+    sel = dialog.selectedFiles().first();
 
   if(sel.length())
     {
@@ -372,8 +469,57 @@ void FileChooserPanelWithHistory::on_btnBrowse_clicked()
     }
 }
 
+QString FileChooserPanelWithHistory::guessFormat(const QString &text)
+{
+  QString newFormat;
+
+  // Try using the oracle
+  if(m_oracleTarget)
+    {
+    QMetaObject::invokeMethod(m_oracleTarget, m_oracleSlot, Qt::DirectConnection,
+                              Q_RETURN_ARG(QString, newFormat),
+                              Q_ARG(QString, text));
+    }
+
+  // If the oracle failed, try to guess
+  if(newFormat.isNull())
+    {
+    foreach(QString format, m_Filter.keys())
+      {
+      foreach(QString ext, m_Filter[format])
+        {
+        QString eext = QString(".%1").arg(ext);
+        if(ext.length() && text.endsWith(eext))
+          {
+          newFormat = format;
+          break;
+          }
+        }
+      }
+    }
+
+  return newFormat;
+}
+
 void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
 {
+  // The filename has changed. The first thing we do is to see if the filename has
+  // an extension that matches one of our supported extensions. If it does, then
+  // we change the active format to be that format
+  QString format = guessFormat(absoluteFilenameKeepExtension());
+  if(format.length())
+    {
+    m_defaultFormat = format;
+    ui->inFormat->setCurrentText(format);
+    emit activeFormatChanged(format);
+    }
+
+  else if(m_openMode)
+    {
+    ui->inFormat->setCurrentIndex(-1);
+    }
+
+  // At this point the format might have been changed to match the filename
   // Get the fileinfo for this file
   QString file_ext = this->fixExtension();
   QFileInfo fi(file_ext), fiwd;
@@ -394,6 +540,8 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
       ui->outError->setText("The file does not exist");
     else if(text.length() && !fiwd.isReadable())
       ui->outError->setText("The file is not readable");
+    else if(ui->inFormat->currentIndex() == -1 && ui->inFilename->text().length())
+      ui->outError->setText("Unable to recognize file format");
     else
       ui->outError->setText("");
 

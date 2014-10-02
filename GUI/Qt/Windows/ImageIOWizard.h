@@ -76,10 +76,10 @@ public slots:
 
   void onFilenameChanged(QString absoluteFilename);
 
+  QString customFormatOracle(QString filename);
+
 private:
   FileChooserPanelWithHistory *m_FilePanel;
-  QComboBox *m_InFormat;
-  QStandardItemModel *m_FormatModel;
 };
 
 class SummaryPage : public AbstractPage

@@ -134,7 +134,7 @@ void StatisticsDialog::on_btnExport_clicked()
         this, m_Model, "Statistics",
         "Export Volumes and Statistics - ITK-SNAP",
         "Volumes and Statistics File",
-        "Text Files (*.txt);; Comma Separated Value Files (*.csv);; All Files (*)",
+        "Text Files (*.txt);; Comma Separated Value Files (*.csv)",
         true);
 
   // Open the labels from the selection

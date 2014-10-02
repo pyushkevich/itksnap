@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>159</height>
+    <height>208</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -51,7 +51,7 @@ font-size:12px;
   <customwidget>
    <class>FileChooserPanelWithHistory</class>
    <extends>QWidget</extends>
-   <header location="global">FileChooserPanelWithHistory.h</header>
+   <header>FileChooserPanelWithHistory.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

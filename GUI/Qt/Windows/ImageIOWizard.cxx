@@ -116,33 +116,18 @@ SelectFilePage::SelectFilePage(QWidget *parent)
   lo->addWidget(m_FilePanel);
   lo->addSpacing(15);
 
-  // The format combo box
-  m_InFormat = new QComboBox();
-  m_InFormat->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-  m_InFormat->setMaxVisibleItems(16);
-  m_InFormat->setObjectName("inFormat");
-
-  QLabel *label2 = new QLabel("Image file &format:");
-  label2->setBuddy(m_InFormat);
-
-  lo->addWidget(label2);
-  lo->addWidget(m_InFormat);
+  // The output message
   lo->addStretch(1);
   lo->addWidget(m_OutMessage);
 
-  // Initialize the format model
-  m_FormatModel = new QStandardItemModel(m_InFormat);
-  m_InFormat->setModel(m_FormatModel);
-
   // Register the fields
   this->registerField("Filename*", m_FilePanel, "absoluteFilename", SIGNAL(absoluteFilenameChanged(QString)));
-  this->registerField("Format*", m_InFormat);
+  this->registerField("Format*", m_FilePanel, "activeFormat", SIGNAL(activeFormatChanged(QString)));
 
   // Connect slots
   QMetaObject::connectSlotsByName(this);
 
   connect(m_FilePanel, SIGNAL(absoluteFilenameChanged(QString)), this, SLOT(onFilenameChanged(QString)));
-  connect(m_InFormat, SIGNAL(activated(QString)), m_FilePanel, SLOT(setActiveFormat(QString)));
 
   QWizard *wiz = dynamic_cast<QWizard *>(parent);
   connect(wiz, SIGNAL(accepted()), m_FilePanel, SLOT(onFilenameAccept()));
@@ -183,57 +168,44 @@ void SelectFilePage::initializePage()
   else
     setTitle(QString("Save %1").arg(m_Model->GetDisplayName().c_str()));
 
-  // Clear the combo box model
-  m_FormatModel->clear();
+  // Create a filter for the filename panel
+  std::string filter = m_Model->GetFilter("%s (%s)", "*.%s", " ", ";;");
 
-  // Populate the combo box
-  for(unsigned int i = 0; i < GuidedNativeImageIO::FORMAT_COUNT; i++)
-    {
-    // Create an appropriate description
-    GuidedNativeImageIO::FileFormat fmt = static_cast<GuidedNativeImageIO::FileFormat>(i);
-    GuidedNativeImageIO::FileFormatDescriptor fd =
-      GuidedNativeImageIO::GetFileFormatDescriptor(fmt);
-
-    std::string text = fd.name;
-
-    QStandardItem *item = new QStandardItem(text.c_str());
-    item->setData(QVariant(fmt), Qt::UserRole);
-    if(!m_Model->CanHandleFileFormat(fmt))
-      item->setEnabled(false);
-    m_FormatModel->appendRow(item);
-    }
-
-  // Initialize the combo box based on the current selection
-  m_InFormat->setCurrentIndex(
-        m_InFormat->findData(QVariant(m_Model->GetSelectedFormat())));
+  // Determine the active format to use
+  QString activeFormat;
+  if(m_Model->IsSaveMode())
+    activeFormat = from_utf8(m_Model->GetDefaultFormatForSave());
+  if(m_Model->GetSelectedFormat() < GuidedNativeImageIO::FORMAT_COUNT)
+    activeFormat = from_utf8(m_Model->GetFileFormatName(m_Model->GetSelectedFormat()));
 
   // Initialize the file panel
   if(m_Model->IsLoadMode())
     {
     m_FilePanel->initializeForOpenFile(
-          m_Model->GetParent(), "Image Filename:", from_utf8(m_Model->GetHistoryName()),
-          QString(), from_utf8(m_Model->GetSuggestedFilename()));
+          m_Model->GetParent(),
+          "Image Filename:",
+          from_utf8(m_Model->GetHistoryName()),
+          from_utf8(filter),
+          from_utf8(m_Model->GetSuggestedFilename()),
+          activeFormat);
     }
   else
     {
-    // Get the appropriate filter for the filenames
-    std::string filter = m_Model->GetFilter("%s (%s)", ".%s", " ", ";;");
-
-    // Get the default format to use
-    std::string def_format= m_Model->GetDefaultFormatForSave();
-    if(m_Model->GetSuggestedFilename().size())
-      {
-      bool dummy;
-      GuidedNativeImageIO::FileFormat fmt = m_Model->GuessFileFormat(m_Model->GetSuggestedFilename(), dummy);
-      if(fmt < GuidedNativeImageIO::FORMAT_COUNT)
-        def_format = m_Model->GetGuidedIO()->GetFileFormatDescriptor(fmt).name;
-      }
-
     m_FilePanel->initializeForSaveFile(
-          m_Model->GetParent(), "Image Filename:", from_utf8(m_Model->GetHistoryName()),
-          from_utf8(filter), false, from_utf8(m_Model->GetSuggestedFilename()), from_utf8(def_format));
+          m_Model->GetParent(),
+          "Image Filename:",
+          from_utf8(m_Model->GetHistoryName()),
+          from_utf8(filter),
+          false,
+          from_utf8(m_Model->GetSuggestedFilename()),
+          activeFormat);
     }
+
+  // Provide a callback for determining format from filename
+  m_FilePanel->setCustomFormatOracle(this, "customFormatOracle");
 }
+
+
 
 
 bool SelectFilePage::validatePage()
@@ -241,11 +213,9 @@ bool SelectFilePage::validatePage()
   // Clear error state
   m_OutMessage->clear();
 
-  // This is where the work of the page gets done
-  assert(m_InFormat->currentIndex() >= 0);
-  ImageIOWizardModel::FileFormat fmt =
-      static_cast<ImageIOWizardModel::FileFormat>(
-        m_InFormat->itemData(m_InFormat->currentIndex()).toInt());
+  // Get the selected format
+  QString format = m_FilePanel->activeFormat();
+  ImageIOWizardModel::FileFormat fmt = m_Model->GetFileFormatByName(to_utf8(format));
 
   // If can't handle the format, return false
   if(!m_Model->CanHandleFileFormat(fmt))
@@ -300,13 +270,9 @@ int SelectFilePage::nextId() const
   if(m_Model->IsSaveMode())
     return -1;
 
-  if(m_InFormat->currentIndex() < 0)
-    return ImageIOWizard::Page_Summary;
-
-  // Get the currently selected format
-  ImageIOWizardModel::FileFormat fmt =
-      static_cast<ImageIOWizardModel::FileFormat>(
-        m_InFormat->itemData(m_InFormat->currentIndex()).toInt());
+  // Get the selected format
+  QString format = m_FilePanel->activeFormat();
+  ImageIOWizardModel::FileFormat fmt = m_Model->GetFileFormatByName(to_utf8(format));
 
   // Depending on the format, return the next page
   if(fmt == GuidedNativeImageIO::FORMAT_RAW)
@@ -322,19 +288,18 @@ void SelectFilePage::onFilenameChanged(QString absoluteFilename)
   bool file_exists = false;
 
   // The file format for the checkbox
+  /*
   GuidedNativeImageIO::FileFormat fmt =
       m_Model->GuessFileFormat(to_utf8(absoluteFilename), file_exists);
 
-  // Select the appropriate entry in the combo box
-  m_InFormat->setCurrentIndex(m_InFormat->findData(QVariant(fmt)));
-
   if(fmt != GuidedNativeImageIO::FORMAT_COUNT)
     m_FilePanel->setActiveFormat(m_InFormat->currentText());
+    */
 
   // Is it a directory?
   if(QFileInfo(absoluteFilename).isDir())
     return;
-
+/*
   // Add some messages to help the user
   if(fmt == GuidedNativeImageIO::FORMAT_COUNT)
     {
@@ -345,7 +310,24 @@ void SelectFilePage::onFilenameChanged(QString absoluteFilename)
     {
     if(!m_FilePanel->errorText().length())
       m_FilePanel->setErrorText("The format is not supported for this operation.");
-    }
+    }*/
+
+  emit completeChanged();
+}
+
+QString SelectFilePage::customFormatOracle(QString filename)
+{
+  // Guess the file format using history information
+  bool file_exists;
+  GuidedNativeImageIO::FileFormat fmt =
+      m_Model->GuessFileFormat(to_utf8(filename), file_exists);
+
+  // Return the stinr
+  if(fmt != GuidedNativeImageIO::FORMAT_COUNT)
+    return from_utf8(m_Model->GetFileFormatName(fmt));
+
+  // Return empty string - we failed
+  return QString();
 }
 
 

@@ -97,6 +97,12 @@ public:
     */
   FileFormat GuessFileFormat(const std::string &fname, bool &fileExists);
 
+  /** Get the file format from file format name */
+  FileFormat GetFileFormatByName(const std::string &formatName) const;
+
+  /** Get the name of a file format */
+  std::string GetFileFormatName(FileFormat fmt) const;
+
   /**
     Get the directory where to browse, given a currently entered file
     */

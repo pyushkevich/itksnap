@@ -20,11 +20,7 @@ MeshExportBrowsePage::MeshExportBrowsePage(QWidget *parent) :
 
   // Connect changes to the filename
   QObject::connect(ui->filePanel, SIGNAL(absoluteFilenameChanged(QString)),
-                   this, SLOT(onFilenameChange(QString)));
-
-  QObject::connect(ui->inFormat, SIGNAL(activated(QString)),
-                   ui->filePanel, SLOT(setActiveFormat(QString)));
-
+                   this, SIGNAL(completeChanged()));
 }
 
 MeshExportBrowsePage::~MeshExportBrowsePage()
@@ -36,9 +32,6 @@ void MeshExportBrowsePage::SetModel(MeshExportModel *model)
 {
   // Store the model
   m_Model = model;
-
-  // Make a coupling for the format field
-  makeCoupling(ui->inFormat, m_Model->GetExportFormatModel());
 }
 
 void MeshExportBrowsePage::initializePage()
@@ -82,6 +75,7 @@ bool MeshExportBrowsePage::validatePage()
   try
   {
     m_Model->SetExportFileName(to_utf8(ui->filePanel->absoluteFilename()));
+    m_Model->SetExportFormat(m_Model->GetFileFormatByName(to_utf8(ui->filePanel->activeFormat())));
     m_Model->SaveMesh();
     return true;
   }
@@ -107,14 +101,4 @@ bool MeshExportBrowsePage::validatePage()
 bool MeshExportBrowsePage::isComplete()
 {
   return ui->filePanel->absoluteFilename().length() > 0;
-}
-
-void MeshExportBrowsePage::onFilenameChange(const QString &filename)
-{
-  // Update the model when the file panel filename changes
-  std::string fnstl = to_utf8(filename);
-  if(fnstl != m_Model->GetExportFileName())
-    m_Model->SetExportFileName(fnstl);
-
-  emit completeChanged();
 }

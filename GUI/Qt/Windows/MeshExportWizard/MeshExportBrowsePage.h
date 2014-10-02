@@ -23,10 +23,6 @@ public:
   virtual bool validatePage();
   virtual bool isComplete();
 
-private slots:
-
-  void onFilenameChange(const QString &filename);
-
 private:
   Ui::MeshExportBrowsePage *ui;
 

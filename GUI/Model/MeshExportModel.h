@@ -57,6 +57,9 @@ public:
   /** Perform the actual save */
   void SaveMesh();
 
+  /** Get the file format corresponding to a name */
+  FileFormat GetFileFormatByName(const std::string &name) const;
+
 protected:
 
   MeshExportModel();

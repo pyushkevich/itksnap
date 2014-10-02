@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>432</width>
-    <height>153</height>
+    <width>444</width>
+    <height>155</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -173,8 +173,52 @@ font-size:12px;
      </layout>
     </widget>
    </item>
+   <item>
+    <widget class="QWidget" name="panelFormat" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="labelFormat">
+        <property name="text">
+         <string>File Format:</string>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignLeft">
+       <widget class="QComboBox" name="inFormat">
+        <property name="minimumSize">
+         <size>
+          <width>160</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>inFilename</tabstop>
+  <tabstop>btnBrowse</tabstop>
+  <tabstop>btnHistory</tabstop>
+  <tabstop>inFormat</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

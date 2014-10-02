@@ -108,6 +108,22 @@ void MeshExportModel::SaveMesh()
         this->GetHistoryName(), m_ExportFileName, true);
 }
 
+MeshExportModel::FileFormat MeshExportModel::GetFileFormatByName(const std::string &name) const
+{
+  FileFormatDomain dom;
+  FileFormat dummy;
+  m_ExportFormatModel->GetValueAndDomain(dummy, &dom);
+
+  for(int i = 0; i < GuidedMeshIO::FORMAT_COUNT; i++)
+    {
+    FileFormat fmt = (FileFormat) i;
+    if(dom[fmt] == name)
+      return fmt;
+    }
+
+  return GuidedMeshIO::FORMAT_COUNT;
+}
+
 void MeshExportModel::UpdateFormatDomain()
 {
   FileFormatDomain format_domain;

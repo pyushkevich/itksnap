@@ -20,6 +20,7 @@ class FileChooserPanelWithHistory : public QWidget
   Q_OBJECT
 
   Q_PROPERTY(QString absoluteFilename READ absoluteFilename NOTIFY absoluteFilenameChanged)
+  Q_PROPERTY(QString activeFormat READ activeFormat NOTIFY activeFormatChanged)
   Q_PROPERTY(QString errorTest READ errorText WRITE setErrorText)
 
 public:
@@ -32,7 +33,8 @@ public:
       const QString &labelText,
       const QString &historyCategory,
       const QString &filePattern,
-      const QString &initialFile = QString());
+      const QString &initialFile = QString(),
+      const QString &activeFormat = QString());
 
   // Initialize the panel for opening a file
   void initializeForSaveFile(
@@ -47,8 +49,14 @@ public:
   // Add a button to the button panel (customization)
   void addButton(QWidget *button);
 
+  // Provide a custom "oracle" to determine file format from filename
+  void setCustomFormatOracle(QObject *target, const char *slot);
+
   // Get the filename selected
   QString absoluteFilename() const;
+
+  // Get teh active format
+  QString activeFormat() const;
 
   QString errorText() const;
   void setErrorText(const QString &text);
@@ -56,6 +64,7 @@ public:
 signals:
 
   void absoluteFilenameChanged(QString text);
+  void activeFormatChanged(QString text);
 
 public slots:
 
@@ -104,6 +113,13 @@ private:
   GlobalUIModel *m_Model;
   void parseFilters(const QString &activeFormat = QString());
   void highlightFilename();
+
+  // Get the filename selected
+  QString absoluteFilenameKeepExtension() const;
+
+  QObject *m_oracleTarget;
+  const char *m_oracleSlot;
+  QString guessFormat(const QString &text);
 };
 
 #endif // FILECHOOSERPANELWITHHISTORY_H

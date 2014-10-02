@@ -64,7 +64,7 @@ ImageIOWizardModel
             const char *extSeparator,
             const char *rowSeparator)
 {
-  std::ostringstream ossMain, ossAllImageFiles;
+  std::ostringstream ossMain;
   char buffer[1024];
 
   // Go through all supported formats
@@ -92,27 +92,12 @@ ImageIOWizardModel
         pos = (pend == std::string::npos) ? pend : pend+1;
         }
 
-      // Append the extension to 'All image files'
-      if(ossAllImageFiles.tellp())
-        ossAllImageFiles << extSeparator;
-      ossAllImageFiles << ossLine.str();
-
       // Append a row to the format list
       sprintf(buffer, lineEntry, fd.name.c_str(), ossLine.str().c_str());
       ossMain << buffer;
       ossMain << rowSeparator;
       }
     }
-
-  // Add global selectors
-  sprintf(buffer, lineEntry, "All 3D Image Files",
-          ossAllImageFiles.str().c_str());
-  ossMain << buffer;
-  ossMain << rowSeparator;
-
-  // Add global selectors
-  sprintf(buffer, lineEntry, "All Files", "*");
-  ossMain << buffer;
 
   return ossMain.str();
 }
@@ -145,7 +130,25 @@ ImageIOWizardModel::GuessFileFormat(
 
   // If there is no prior knowledge determine the format using magic
   // numbers and extension information
- return GuidedNativeImageIO::GuessFormatForFileName(fname, m_Mode==LOAD);
+  return GuidedNativeImageIO::GuessFormatForFileName(fname, m_Mode==LOAD);
+}
+
+ImageIOWizardModel::FileFormat
+ImageIOWizardModel::GetFileFormatByName(const std::string &formatName) const
+{
+  for(int i = 0; i < GuidedNativeImageIO::FORMAT_COUNT; i++)
+    {
+    FileFormat fmt = (FileFormat) i;
+    if(GuidedNativeImageIO::GetFileFormatDescriptor(fmt).name == formatName)
+      return fmt;
+    }
+
+  return GuidedNativeImageIO::FORMAT_COUNT;
+}
+
+std::string ImageIOWizardModel::GetFileFormatName(ImageIOWizardModel::FileFormat fmt) const
+{
+  return GuidedNativeImageIO::GetFileFormatDescriptor(fmt).name;
 }
 
 bool ImageIOWizardModel
