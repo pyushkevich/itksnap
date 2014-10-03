@@ -69,6 +69,8 @@ private slots:
 
   void on_btnFlip_clicked();
 
+  void on_actionClear_Rendering_triggered();
+
 private:
   Ui::ViewPanel3D *ui;
 

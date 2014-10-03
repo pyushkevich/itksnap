@@ -287,6 +287,19 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
     }
 }
 
+void Generic3DRenderer::ResetSegmentationMeshAssembly()
+{
+  if(m_Model->IsMeshUpdating())
+    return;
+
+  for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); it_actor++)
+    this->m_Renderer->RemoveActor(it_actor->second);
+
+  m_ActorMap.clear();
+
+  InvokeEvent(ModelUpdateEvent());
+}
+
 
 void Generic3DRenderer::UpdateAxisRendering()
 {
@@ -533,6 +546,11 @@ void Generic3DRenderer::SaveCameraState()
 {
   m_SavedCameraState = vtkSmartPointer<vtkCamera>::New();
   m_SavedCameraState->DeepCopy(this->m_Renderer->GetActiveCamera());
+}
+
+void Generic3DRenderer::ClearRendering()
+{
+  this->ResetSegmentationMeshAssembly();
 }
 
 void Generic3DRenderer::RestoreSavedCameraState()

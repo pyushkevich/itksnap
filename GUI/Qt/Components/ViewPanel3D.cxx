@@ -45,6 +45,8 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   m_DropMenu->addAction(ui->actionRestore_Viewpoint);
   m_DropMenu->addSeparator();
   m_DropMenu->addAction(ui->actionContinuous_Update);
+  m_DropMenu->addSeparator();
+  m_DropMenu->addAction(ui->actionClear_Rendering);
 
   // Make the actions globally accessible
   this->addActions(m_DropMenu->actions());
@@ -277,4 +279,10 @@ void ViewPanel3D::UpdateActionButtons()
       ui->btnFlip->setVisible(true);
       break;
     }
+}
+
+void ViewPanel3D::on_actionClear_Rendering_triggered()
+{
+  m_Model->ClearRenderingAction();
+
 }

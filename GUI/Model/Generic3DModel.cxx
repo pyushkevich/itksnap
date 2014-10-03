@@ -37,6 +37,9 @@ Generic3DModel::Generic3DModel()
 
   // Scalpel
   m_ScalpelStatus = SCALPEL_LINE_NULL;
+
+  // Reset clear time
+  m_ClearTime = 0;
 }
 
 #include "itkImage.h"
@@ -81,7 +84,13 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
     {
     case UIF_MESH_DIRTY:
       {
-      return m_Driver->GetMeshManager()->IsMeshDirty();
+      if(m_Driver->GetMeshManager()->IsMeshDirty())
+        return true;
+
+      if(m_Driver->GetMeshManager()->GetBuildTime() <= this->m_ClearTime)
+        return true;
+
+      return false;
       }
 
     case UIF_MESH_ACTION_PENDING:
@@ -315,6 +324,13 @@ void Generic3DModel::FlipAction()
     {
     m_Renderer->FlipScalpelPlaneNormal();
     }
+}
+
+void Generic3DModel::ClearRenderingAction()
+{
+  m_Renderer->ClearRendering();
+  m_ClearTime = m_Driver->GetMeshManager()->GetBuildTime();
+  InvokeEvent(ModelUpdateEvent());
 }
 
 #include "ImageRayIntersectionFinder.h"

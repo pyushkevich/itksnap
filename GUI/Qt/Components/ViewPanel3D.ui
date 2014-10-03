@@ -17,7 +17,16 @@
    <property name="spacing">
     <number>2</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <item>
@@ -274,6 +283,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+K, C</string>
+   </property>
+  </action>
+  <action name="actionClear_Rendering">
+   <property name="text">
+    <string>Clear 3D Display</string>
+   </property>
+   <property name="toolTip">
+    <string>Clears the meshes rendered in the 3D display</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K, X</string>
    </property>
   </action>
  </widget>
