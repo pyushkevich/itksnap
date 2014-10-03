@@ -55,6 +55,9 @@ public:
   // Save the camera state
   void SaveCameraState();
 
+  // Clear the rendering
+  void ClearRendering();
+
   // Restore the camera state from saved
   void RestoreSavedCameraState();
 
@@ -91,6 +94,9 @@ protected:
   // Update the actors and mappings for the renderer
   void UpdateSegmentationMeshAssembly();
   void UpdateSegmentationMeshAppearance();
+
+  // Clear all the meshes being rendered
+  void ResetSegmentationMeshAssembly();
 
   // Update the actors representing the axes
   void UpdateAxisRendering();

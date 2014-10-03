@@ -37,6 +37,9 @@ Generic3DModel::Generic3DModel()
 
   // Scalpel
   m_ScalpelStatus = SCALPEL_LINE_NULL;
+
+  // Reset clear time
+  m_ClearTime = 0;
 }
 
 #include "itkImage.h"
@@ -81,7 +84,13 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
     {
     case UIF_MESH_DIRTY:
       {
-      return m_Driver->GetMeshManager()->IsMeshDirty();
+      if(m_Driver->GetMeshManager()->IsMeshDirty())
+        return true;
+
+      if(m_Driver->GetMeshManager()->GetBuildTime() <= this->m_ClearTime)
+        return true;
+
+      return false;
       }
 
     case UIF_MESH_ACTION_PENDING:
@@ -273,14 +282,19 @@ bool Generic3DModel::AcceptAction()
     Vector3d xi = affine_transform_point(m_WorldMatrixInverse, xw);
     Vector3d ni = affine_transform_vector(m_WorldMatrixInverse, nw);
 
-    // Reset the scalpel state
-    m_ScalpelStatus = SCALPEL_LINE_NULL;
-    InvokeEvent(ScalpelEvent());
-
     // Use the driver to relabel the plane
     app->BeginSegmentationUpdate("3D scalpel");
     app->RelabelSegmentationWithCutPlane(ni, dot_product(xi, ni));
-    return app->EndSegmentationUpdate() > 0;
+    int nMod = app->EndSegmentationUpdate();
+
+    // Reset the scalpel state, but only if the operation was successful
+    if(nMod > 0)
+      {
+      m_ScalpelStatus = SCALPEL_LINE_NULL;
+      InvokeEvent(ScalpelEvent());
+      return true;
+      }
+    else return false;
     }
   return true;
 }
@@ -310,6 +324,13 @@ void Generic3DModel::FlipAction()
     {
     m_Renderer->FlipScalpelPlaneNormal();
     }
+}
+
+void Generic3DModel::ClearRenderingAction()
+{
+  m_Renderer->ClearRendering();
+  m_ClearTime = m_Driver->GetMeshManager()->GetBuildTime();
+  InvokeEvent(ModelUpdateEvent());
 }
 
 #include "ImageRayIntersectionFinder.h"

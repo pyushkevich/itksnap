@@ -92,6 +92,10 @@ public:
    */
   bool IsMeshDirty();
 
+  /**
+    Get the time that the mesh was built
+    */
+  irisGetMacro(BuildTime, unsigned long)
 
 protected:
 

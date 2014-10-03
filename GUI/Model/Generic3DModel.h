@@ -77,6 +77,9 @@ public:
   // Flip the direction of the normal for the scalpel operation
   void FlipAction();
 
+  // Clear the rendering
+  void ClearRenderingAction();
+
   // Position cursor at the screen position under the cursor
   bool PickSegmentationVoxelUnderMouse(int px, int py);
 
@@ -158,6 +161,9 @@ protected:
 
   // Is the mesh updating
   bool m_MeshUpdating;
+
+  // Time of the last mesh clear operation
+  unsigned long m_ClearTime;
 
   // A mutex lock to allow background processing of mesh updates
   itk::SimpleFastMutexLock m_MutexLock;
