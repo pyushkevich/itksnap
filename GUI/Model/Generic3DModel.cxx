@@ -273,14 +273,19 @@ bool Generic3DModel::AcceptAction()
     Vector3d xi = affine_transform_point(m_WorldMatrixInverse, xw);
     Vector3d ni = affine_transform_vector(m_WorldMatrixInverse, nw);
 
-    // Reset the scalpel state
-    m_ScalpelStatus = SCALPEL_LINE_NULL;
-    InvokeEvent(ScalpelEvent());
-
     // Use the driver to relabel the plane
     app->BeginSegmentationUpdate("3D scalpel");
     app->RelabelSegmentationWithCutPlane(ni, dot_product(xi, ni));
-    return app->EndSegmentationUpdate() > 0;
+    int nMod = app->EndSegmentationUpdate();
+
+    // Reset the scalpel state, but only if the operation was successful
+    if(nMod > 0)
+      {
+      m_ScalpelStatus = SCALPEL_LINE_NULL;
+      InvokeEvent(ScalpelEvent());
+      return true;
+      }
+    else return false;
     }
   return true;
 }
