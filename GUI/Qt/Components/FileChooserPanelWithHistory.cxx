@@ -431,32 +431,56 @@ void FileChooserPanelWithHistory::on_btnBrowse_clicked()
 
   // Create a single filter that combines all of the extensions for all image types
   // If any of the extensions is missing, there will be no filter at all
-  QStringList extensionList;
+  QStringList flatExtensionList;
+  QStringList formatList;
+  QString formatEntry;
   bool have_empty = false;
   foreach(QString format, m_Filter.keys())
     {
+    QStringList formatExtensionList;
     foreach(QString ext, m_Filter[format])
       {
 #ifdef __APPLE__
       // On MacOS, compound extensions are a problem
       int pos = ext.lastIndexOf(".");
       if(pos >= 0)
-        ext = ext.mid(pos + 1);
+        {
+        if(m_openMode)
+          ext = ext.replace('.','*');
+        }
 #endif
       if(ext.length())
         {
         QString eext = QString("*.%1").arg(ext);
-        extensionList << eext;
+        flatExtensionList << eext;
+        formatExtensionList << eext;
         }
       else
+        {
         have_empty = true;
+        formatExtensionList << "*";
+        }
       }
+
+    QString line = QString("%1 (%2)").arg(format).arg(formatExtensionList.join(" "));
+    formatList << line;
+
+    if(m_defaultFormat == format)
+      formatEntry = line;
     }
 
-  QString allext = extensionList.join(" ");
-  if(!have_empty && allext.length())
+  if(m_openMode)
     {
-    dialog.setNameFilter(allext);
+    QString allext = flatExtensionList.join(" ");
+    if(!have_empty && allext.length())
+      {
+      dialog.setNameFilter(allext);
+      }
+    }
+  else
+    {
+    dialog.setNameFilters(formatList);
+    dialog.selectNameFilter(formatEntry);
     }
 
   if(dialog.exec() && dialog.selectedFiles().size())
@@ -516,7 +540,9 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
 
   else if(m_openMode)
     {
+    m_defaultFormat = QString();
     ui->inFormat->setCurrentIndex(-1);
+    emit activeFormatChanged(format);
     }
 
   // At this point the format might have been changed to match the filename

@@ -1038,7 +1038,6 @@ GuidedNativeImageIO::GuessFormatForFileName(
     // Check if there is a filename match
     if(fd.TestFilename(fname))
       {
-      std::cout << "Decided that " << fname << " is " << fd.name << std::endl;
       return fmt;
       }
     }
