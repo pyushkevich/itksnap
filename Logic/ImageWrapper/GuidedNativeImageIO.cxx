@@ -95,6 +95,152 @@ GuidedNativeImageIO
   {"INVALID FORMAT", "",             false, false, false, false}};
 
 
+/*************************************************************************/
+/* THE FOLLOWING CODE IS TAKEN FROM FFTW */
+
+/* In-place transpose routine from TOMS, which follows the cycles of
+   the permutation so that it writes to each location only once.
+   Because of cache-line and other issues, however, this routine is
+   typically much slower than transpose-gcd or transpose-cut, even
+   though the latter do some extra writes.  On the other hand, if the
+   vector length is large then the TOMS routine is best.
+
+   The TOMS routine also has the advantage of requiring less buffer
+   space for the case of gcd(nx,ny) small.  However, in this case it
+   has been superseded by the combination of the generalized
+   transpose-cut method with the transpose-gcd method, which can
+   always transpose with buffers a small fraction of the array size
+   regardless of gcd(nx,ny). */
+
+/*
+ * TOMS Transpose.  Algorithm 513 (Revised version of algorithm 380).
+ *
+ * These routines do in-place transposes of arrays.
+ *
+ * [ Cate, E.G. and Twigg, D.W., ACM Transactions on Mathematical Software,
+ *   vol. 3, no. 1, 104-110 (1977) ]
+ *
+ * C version by Steven G. Johnson (February 1997).
+ */
+
+/*
+ * "a" is a 1D array of length ny*nx*N which constains the nx x ny
+ * matrix of N-tuples to be transposed.  "a" is stored in row-major
+ * order (last index varies fastest).  move is a 1D array of length
+ * move_size used to store information to speed up the process.  The
+ * value move_size=(ny+nx)/2 is recommended.  buf should be an array
+ * of length 2*N.
+ *
+ */
+
+template <typename INT>
+INT gcd(INT a, INT b)
+{
+  INT r;
+  do {
+    r = a % b;
+    a = b;
+    b = r;
+    } while (r != 0);
+
+  return a;
+}
+
+template <typename R, typename INT>
+void transpose_toms513(R *a, INT nx, INT ny, char *move, INT move_size, R *buf)
+{
+  INT i, im, mn;
+  R *b, *c, *d;
+  INT ncount;
+  INT k;
+
+  /* check arguments and initialize: */
+  assert(ny > 0 && nx > 0 && move_size > 0);
+
+  b = buf;
+
+  /* Cate & Twigg have a special case for nx == ny, but we don't
+  bother, since we already have special code for this case elsewhere. */
+
+  c = buf + 1;
+  ncount = 2;		/* always at least 2 fixed points */
+  k = (mn = ny * nx) - 1;
+
+  for (i = 0; i < move_size; ++i)
+    move[i] = 0;
+
+  if (ny >= 3 && nx >= 3)
+    ncount += gcd(ny - 1, nx - 1) - 1;	/* # fixed points */
+
+  i = 1;
+  im = ny;
+
+  while (1) {
+    INT i1, i2, i1c, i2c;
+    INT kmi;
+
+    /** Rearrange the elements of a loop
+        and its companion loop: **/
+
+    i1 = i;
+    kmi = k - i;
+    i1c = kmi;
+    b[0] = a[i1];
+    c[0] = a[i1c];
+
+    while (1) {
+      i2 = ny * i1 - k * (i1 / nx);
+      i2c = k - i2;
+      if (i1 < move_size)
+        move[i1] = 1;
+      if (i1c < move_size)
+        move[i1c] = 1;
+      ncount += 2;
+      if (i2 == i)
+        break;
+      if (i2 == kmi) {
+        d = b;
+        b = c;
+        c = d;
+        break;
+        }
+      a[i1] = a[i2];
+      a[i1c] = a[i2c];
+      i1 = i2;
+      i1c = i2c;
+      }
+
+    a[i1] = b[0];
+    a[i1c] = c[0];
+
+    if (ncount >= mn)
+      break;	/* we've moved all elements */
+
+    /** Search for loops to rearrange: **/
+
+    while (1) {
+      INT max = k - i;
+      ++i;
+//      assert(i <= max);
+      im += ny;
+      if (im > k)
+        im -= k;
+      i2 = im;
+      if (i == i2)
+        continue;
+      if (i >= move_size) {
+        while (i2 > i && i2 < max) {
+          i1 = i2;
+          i2 = ny * i1 - k * (i1 / nx);
+          }
+        if (i2 == i)
+          break;
+        } else if (!move[i])
+        break;
+      }
+    }
+}
+
 
 bool GuidedNativeImageIO::FileFormatDescriptor
 ::TestFilename(std::string fname)
@@ -360,18 +506,21 @@ GuidedNativeImageIO
     }
 
   // Get the data dimensions
-  int ndim = m_IOBase->GetNumberOfDimensions();
+  int ncomp = m_IOBase->GetNumberOfComponents();
 
   // Set the dimensions (if 2D image, we set last dim to 1)
   m_NativeDimensions.fill(1);
-  for(size_t i = 0; i < m_IOBase->GetNumberOfDimensions() && i < 3; i++)
+  for(size_t i = 0; i < m_IOBase->GetNumberOfDimensions(); i++)
     {
-    m_NativeDimensions[i] = m_IOBase->GetDimensions(i);
+    if(i < 3)
+      m_NativeDimensions[i] = m_IOBase->GetDimensions(i);
+    else
+      ncomp *= m_IOBase->GetDimensions(i);
     }
 
   // Extract properties from IO base
   m_NativeType = m_IOBase->GetComponentType();
-  m_NativeComponents = m_IOBase->GetNumberOfComponents();
+  m_NativeComponents = ncomp;
   m_NativeTypeString = m_IOBase->GetComponentTypeAsString(m_NativeType);
   m_NativeFileName = m_IOBase->GetFileName();
   m_NativeByteOrder = m_IOBase->GetByteOrder();
@@ -418,6 +567,8 @@ GuidedNativeImageIO
   this->ReadNativeImageHeader(FileName, folder);
   this->ReadNativeImageData();
 }
+
+#include <itkTimeProbe.h>
 
 template<class TScalar>
 void
@@ -491,8 +642,8 @@ GuidedNativeImageIO
     typename NativeImageType::SpacingType spc;   spc.Fill(1.0);
     typename NativeImageType::DirectionType dir; dir.SetIdentity();    
     
-    size_t nd = m_IOBase->GetNumberOfDimensions(); 
-    if(nd > 3) nd = 3;
+    size_t nd_actual = m_IOBase->GetNumberOfDimensions();
+    size_t nd = (nd_actual > 3) ? 3 : nd;
     
     for(unsigned int i = 0; i < nd; i++)
       {
@@ -508,23 +659,74 @@ GuidedNativeImageIO
     image->SetDirection(dir);
     image->SetMetaDataDictionary(m_IOBase->GetMetaDataDictionary());
 
+    // Fold in any higher number of dimensions as additional components.
+    int ncomp = m_IOBase->GetNumberOfComponents();
+    if(nd_actual > nd)
+      {
+      for(int i = nd; i < nd_actual; i++)
+        ncomp *= m_IOBase->GetDimensions(i);
+      }
+
     // Set the regions and allocate
     typename NativeImageType::RegionType region;
     typename NativeImageType::IndexType index = {{0, 0, 0}};
     region.SetIndex(index);
     region.SetSize(dim);
     image->SetRegions(region);
-    image->SetVectorLength(m_IOBase->GetNumberOfComponents());
+    image->SetVectorLength(ncomp);
     image->Allocate();
 
     // Set the IO region
-    itk::ImageIORegion ioRegion(3);
-    itk::ImageIORegionAdaptor<3>::Convert(region, ioRegion, index);
-    m_IOBase->SetIORegion(ioRegion);
+    if(nd_actual <= 3)
+      {
+      // This is the old code, which we preserve
+      itk::ImageIORegion ioRegion(3);
+      itk::ImageIORegionAdaptor<3>::Convert(region, ioRegion, index);
+      m_IOBase->SetIORegion(ioRegion);
+      }
+    else
+      {
+      itk::ImageIORegion ioRegion(nd_actual);
+      itk::ImageIORegion::IndexType ioIndex;
+      itk::ImageIORegion::SizeType ioSize;
+      for(int i = 0; i < nd_actual; i++)
+        {
+        ioIndex.push_back(0);
+        ioSize.push_back(m_IOBase->GetDimensions(i));
+        }
+      ioRegion.SetIndex(ioIndex);
+      ioRegion.SetSize(ioSize);
+      m_IOBase->SetIORegion(ioRegion);
+      }
 
     // Read the image into the buffer
     m_IOBase->Read(image->GetBufferPointer());
     m_NativeImage = image;
+
+    // If the image is 4-dimensional or more, we must perform an in-place transpose
+    // of the image. The fourth dimension is the one that varies fastest, and in our
+    // representation, the image is represented as a VectorImage, where the components
+    // of each voxel are the thing that moves fastest. The problem can be represented as
+    // a transpose of a N x M array, where N = dimX*dimY*dimZ and M = dimW
+    if(nd_actual > 3)
+      {
+      long N = dim[0] * dim[1] * dim[2];
+      long M = ncomp;
+      long move_size = (2 * M) * sizeof(TScalar);
+      char *move = new char[move_size];
+      TScalar buffer[2];
+
+      // TODO: this is a pretty slow routine. It would be nice to find somehting a little
+      // faster than this. But at least we can read 4D data now
+      itk::TimeProbe probe;
+      probe.Start();
+      transpose_toms513(image->GetBufferPointer(), M, N, move, move_size, buffer);
+      probe.Stop();
+
+      std::cout << "Transpose of " << N << " by " << M << " matrix computed in " << probe.GetTotal() << " sec." << std::endl;
+      delete move;
+      }
+
     
     /*
     typedef ImageFileReader<NativeImageType> ReaderType;
