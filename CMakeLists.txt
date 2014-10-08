@@ -1115,8 +1115,15 @@ ELSE()
   SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
 
+  # Include the qt4 dependent libraries
   include(DeployQt5)
-  install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} "qgif;qpng")
+
+  # Get the necessary plugins
+  get_property(QT_XCB_PLUGIN TARGET Qt5::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
+  get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+
+  # Install the plugin
+  install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} "${QT_XCB_PLUGIN};${QT_GIF_PLUGIN}")
 
 ENDIF()
 
