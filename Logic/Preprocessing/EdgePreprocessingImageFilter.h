@@ -39,6 +39,12 @@
 #include "itkImageToImageFilter.h"
 #include "EdgePreprocessingSettings.h"
 
+#include "GPUSettings.h"
+#ifdef SNAP_USE_GPU
+#include "CPUImageToGPUImageFilter.h"
+#include <itkGPUDiscreteGaussianImageFilter.h>
+#endif
+
 namespace itk {
   template <class TIn, class TOut> class DiscreteGaussianImageFilter;
   template <class TIn, class TOut> class GradientMagnitudeImageFilter;
@@ -130,6 +136,13 @@ public:
   typedef itk::Image<RealType,3>                      InternalImageType;
   typedef itk::SmartPointer<InternalImageType>     InternalImagePointer;
 
+#ifdef SNAP_USE_GPU
+  typedef typename itk::GPUTraits<InternalImageType>::Type
+                                                   GPUInternalImageType;
+  typedef itk::SmartPointer<GPUInternalImageType> 
+                                                GPUInternalImagePointer;
+#endif
+
   /** Functor type used for thresholding */
   typedef EdgeRemappingFunctor<RealType>                    FunctorType;
 
@@ -175,6 +188,13 @@ private:
   typedef itk::DiscreteGaussianImageFilter<InternalImageType,
                                            InternalImageType>       BlurFilter;
 
+#ifdef SNAP_USE_GPU
+  typedef CPUImageToGPUImageFilter<GPUInternalImageType>        GPUImageSource;
+  typedef itk::GPUDiscreteGaussianImageFilter<GPUInternalImageType,
+                                              GPUInternalImageType>
+                                                                 GPUBlurFilter;
+#endif
+
   typedef itk::GradientMagnitudeImageFilter<InternalImageType,
                                             InternalImageType>   GradMagFilter;
 
@@ -186,6 +206,12 @@ private:
   SmartPtr<BlurFilter> m_BlurFilter;
   SmartPtr<GradMagFilter> m_GradMagFilter;
   SmartPtr<RemapFilter> m_RemapFilter;
+
+#ifdef SNAP_USE_GPU
+  SmartPtr<GPUImageSource> m_GPUImageSource;
+  SmartPtr<GPUBlurFilter>  m_GPUBlurFilter;
+#endif
+
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

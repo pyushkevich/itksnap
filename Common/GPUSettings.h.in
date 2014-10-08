@@ -1,0 +1,2 @@
+#cmakedefine SNAP_USE_GPU
+
