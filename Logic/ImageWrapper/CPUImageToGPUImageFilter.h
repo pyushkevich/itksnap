@@ -71,11 +71,6 @@ public:
   using Superclass::SetInput;
   virtual void SetInput(const InputImageType *image);
 
-  // macro to set if GPU is used
-  itkSetMacro(GPUEnabled, bool);
-  itkGetConstMacro(GPUEnabled, bool);
-  itkBooleanMacro(GPUEnabled);
-
   void GenerateData();
 
   virtual void GraftOutput(itk::DataObject *output);
@@ -101,7 +96,6 @@ private:
   CPUImageToGPUImageFilter(const Self &); //purposely not implemented
   void operator=(const Self &);        //purposely not implemented
 
-  bool m_GPUEnabled;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

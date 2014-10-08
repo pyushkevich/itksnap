@@ -141,6 +141,14 @@ CONFIGURE_FILE(
   ${SNAP_SOURCE_DIR}/Common/SNAPCommon.cxx.in
   ${SNAP_BINARY_DIR}/SNAPCommon.cxx @ONLY IMMEDIATE)
 
+# Option to use GPU for SNAP
+OPTION(SNAP_USE_GPU "Use GPU in SNAP" OFF) 
+
+# Pass the option SNAP_USE_GPU to a header file
+CONFIGURE_FILE(
+  ${SNAP_SOURCE_DIR}/Common/GPUSettings.h.in
+  ${SNAP_BINARY_DIR}/GPUSettings.h @ONLY IMMEDIATE)
+
 # The part of the source code devoted to the SNAP application logic
 # is organized into a separate library
 SET(LOGIC_CXX
@@ -216,6 +224,7 @@ SET(LOGIC_CXX
 
 # The headers for the Logic code
 SET(LOGIC_HEADERS
+  ${SNAP_BINARY_DIR}/GPUSettings.h
   Common/AbstractModel.h
   Common/AbstractPropertyContainerModel.h
   Common/CommandLineArgumentParser.h

@@ -22,7 +22,7 @@
 #include "itkImageAlgorithm.h"
 
 template< class TGPUOutputImage >
-CPUImageToGPUImageFilter< TGPUOutputImage >::CPUImageToGPUImageFilter() : m_GPUEnabled(true)
+CPUImageToGPUImageFilter< TGPUOutputImage >::CPUImageToGPUImageFilter()
 {
   m_GPUKernelManager = itk::GPUKernelManager::New();
 }
@@ -38,7 +38,7 @@ CPUImageToGPUImageFilter< TGPUOutputImage >::PrintSelf(std::ostream & os,
   itk::Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
-  os << indent << "GPU: " << ( m_GPUEnabled ? "Enabled" : "Disabled" ) << std::endl;
+  os << indent << "CPUImageToGPUImageFilter " << std::endl;
 }
 
 /**
@@ -62,16 +62,17 @@ CPUImageToGPUImageFilter< TGPUOutputImage >::GenerateData()
   InputImagePointer input = dynamic_cast< InputImageType * >( this->GetPrimaryInput() );
 
   //output = OutputImageType::New();
-  //output->CopyInformation( input );
+  output->CopyInformation( input );
+
   //output->SetLargestPossibleRegion( input->GetLargestPossibleRegion() );
   //output->SetRequestedRegion( input->GetRequestedRegion() );
+  //output->SetBufferedRegion( input->GetBufferedRegion() );
+  //output->Allocate();
+  //output->OutputImageType::Superclass::Graft(input);
+
   output->SetBufferedRegion( output->GetRequestedRegion() );
   output->Allocate();
-
-  itk::ImageAlgorithm::Copy(input.GetPointer(), output.GetPointer(),output->GetBufferedRegion(),output->GetBufferedRegion());
-
-  //Graft the cpu image buffer
-  //output->OutputImageType::Superclass::Graft(input);
+  itk::ImageAlgorithm::Copy(input.GetPointer(), output.GetPointer(), output->GetBufferedRegion(), output->GetBufferedRegion());
 }
 
 template< class TGPUOutputImage >

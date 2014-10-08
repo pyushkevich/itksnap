@@ -37,11 +37,13 @@
 
 #include "itkCommand.h"
 #include "itkImageToImageFilter.h"
-#include "CPUImageToGPUImageFilter.h"
 #include "EdgePreprocessingSettings.h"
-//#include <itkGPUImage.h>
+
+#include "GPUSettings.h"
+#ifdef SNAP_USE_GPU
+#include "CPUImageToGPUImageFilter.h"
 #include <itkGPUDiscreteGaussianImageFilter.h>
-#include <itkRegionOfInterestImageFilter.h>
+#endif
 
 namespace itk {
   template <class TIn, class TOut> class DiscreteGaussianImageFilter;
@@ -133,10 +135,13 @@ public:
   typedef float                                                RealType;
   typedef itk::Image<RealType,3>                      InternalImageType;
   typedef itk::SmartPointer<InternalImageType>     InternalImagePointer;
+
+#ifdef SNAP_USE_GPU
   typedef typename itk::GPUTraits<InternalImageType>::Type
                                                    GPUInternalImageType;
   typedef itk::SmartPointer<GPUInternalImageType> 
                                                 GPUInternalImagePointer;
+#endif
 
   /** Functor type used for thresholding */
   typedef EdgeRemappingFunctor<RealType>                    FunctorType;
@@ -176,8 +181,6 @@ protected:
 
 private:
 
-  bool m_GPUEnabled;
-
   double m_InputImageMaximumGradientMagnitude;
 
   typedef itk::CastImageFilter<InputImageType, InternalImageType>   CastFilter;
@@ -185,13 +188,12 @@ private:
   typedef itk::DiscreteGaussianImageFilter<InternalImageType,
                                            InternalImageType>       BlurFilter;
 
+#ifdef SNAP_USE_GPU
   typedef CPUImageToGPUImageFilter<GPUInternalImageType>        GPUImageSource;
   typedef itk::GPUDiscreteGaussianImageFilter<GPUInternalImageType,
                                               GPUInternalImageType>
                                                                  GPUBlurFilter;
-
-  typedef itk::RegionOfInterestImageFilter<GPUInternalImageType, 
-                                           GPUInternalImageType>     ROIFilter;
+#endif
 
   typedef itk::GradientMagnitudeImageFilter<InternalImageType,
                                             InternalImageType>   GradMagFilter;
@@ -202,11 +204,14 @@ private:
 
   SmartPtr<CastFilter> m_CastFilter;
   SmartPtr<BlurFilter> m_BlurFilter;
-  SmartPtr<GPUImageSource> m_GPUImageSource;
-  SmartPtr<GPUBlurFilter>  m_GPUBlurFilter;
-  SmartPtr<ROIFilter>      m_ROIFilter;
   SmartPtr<GradMagFilter> m_GradMagFilter;
   SmartPtr<RemapFilter> m_RemapFilter;
+
+#ifdef SNAP_USE_GPU
+  SmartPtr<GPUImageSource> m_GPUImageSource;
+  SmartPtr<GPUBlurFilter>  m_GPUBlurFilter;
+#endif
+
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

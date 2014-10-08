@@ -2,6 +2,7 @@
 #define EVENTBUCKET_H
 
 #include "SNAPEvents.h"
+#include "itkSimpleFastMutexLock.h"
 #include <set>
 #include <iostream>
 
@@ -58,6 +59,7 @@ protected:
   typedef BucketType::iterator BucketIt;
 
   BucketType m_Bucket;
+  itk::SimpleFastMutexLock m_Lock;
 
   /** Each bucket has a unique id. This allows code to check whether or not
    * it has already handled a bucket or not. This should not really be needed
