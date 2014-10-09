@@ -12,11 +12,13 @@
 #include "PaintbrushRenderer.h"
 #include "SnakeROIRenderer.h"
 #include "SnakeROIModel.h"
+#include "JoinModel.h"
 #include "SliceWindowCoordinator.h"
 #include "PolygonDrawingModel.h"
 #include "QtWidgetActivator.h"
 #include "SnakeModeRenderer.h"
 #include "SnakeWizardModel.h"
+#include "GlobalWSWizardModel.h"
 #include "DisplayLayoutModel.h"
 #include "PaintbrushModel.h"
 #include "SliceWindowDecorationRenderer.h"
@@ -153,6 +155,7 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   ui->imThumbnail->SetModel(m_GlobalUI->GetCursorNavigationModel(index));
   ui->imPolygon->SetModel(m_GlobalUI->GetPolygonDrawingModel(index));
   ui->imSnakeROI->SetModel(m_GlobalUI->GetSnakeROIModel(index));
+  ui->imJoin->SetModel(m_GlobalUI->GetJoinModel(index));
   ui->imPaintbrush->SetModel(m_GlobalUI->GetPaintbrushModel(index));
 
   // Initialize the 'orphan' renderers (without a custom widget)
@@ -181,12 +184,19 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   connectITK(m_GlobalUI->GetSnakeROIModel(index),
              ModelUpdateEvent());
 
+  // Listen to the join model too
+  connectITK(m_GlobalUI->GetJoinModel(index),
+             ModelUpdateEvent());
+
   // Listen to paintbrush motion
   connectITK(m_GlobalUI->GetPaintbrushModel(index),
              PaintbrushModel::PaintbrushMovedEvent());
 
   // Listen to all (?) events from the snake wizard as well
   connectITK(m_GlobalUI->GetSnakeWizardModel(), IRISEvent());
+
+  // Listen to all (?) events from the GlobalWS wizard as well
+  connectITK(m_GlobalUI->GetGlobalWSWizardModel(), IRISEvent());
 
   // Widget coupling
   makeCoupling(ui->inSlicePosition, m_SliceModel->GetSliceIndexModel());
@@ -341,7 +351,12 @@ void SliceViewPanel::OnToolbarModeChange()
       break;
     case ANNOTATION_MODE:
       break;
-    case ROI_MODE:
+    case JOIN_MODE:
+    case GWSJOIN_MODE:
+      ConfigureEventChain(ui->imJoin);
+      break;
+    case GLOBALWS_ROI_MODE:
+    case SNAKE_ROI_MODE:
       ConfigureEventChain(ui->imSnakeROI);
       ovTiled.push_back(ui->imSnakeROI->GetRenderer());
       break;

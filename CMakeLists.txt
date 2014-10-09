@@ -171,6 +171,7 @@ SET(LOGIC_CXX
   Logic/Framework/IRISImageData.cxx
   Logic/Framework/LayerIterator.cxx
   Logic/Framework/SNAPImageData.cxx
+  Logic/Framework/JOINImageData.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
   Logic/ImageWrapper/CommonRepresentationPolicy.cxx
   Logic/ImageWrapper/DisplayMappingPolicy.cxx
@@ -261,6 +262,7 @@ SET(LOGIC_HEADERS
   Logic/Framework/LayerAssociation.txx
   Logic/Framework/LayerIterator.h
   Logic/Framework/SNAPImageData.h
+  Logic/Framework/JOINImageData.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
   Logic/ImageWrapper/CommonRepresentationPolicy.h
@@ -352,6 +354,8 @@ SET(UI_GENERIC_CXX
   GUI/Model/SnakeROIModel.cxx
   GUI/Model/SnakeROIResampleModel.cxx
   GUI/Model/SnakeWizardModel.cxx
+  GUI/Model/JoinModel.cxx
+  GUI/Model/GlobalWSWizardModel.cxx
   GUI/Model/StateManagement.cxx
   GUI/Model/SynchronizationModel.cxx
   GUI/Model/UIAction.cxx
@@ -419,6 +423,8 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/SnakeROIModel.h
   GUI/Model/SnakeROIResampleModel.h
   GUI/Model/SnakeWizardModel.h
+  GUI/Model/JoinModel.h
+  GUI/Model/GlobalWSWizardModel.h
   GUI/Model/StateManagement.h
   GUI/Model/SynchronizationModel.h
   GUI/Model/UIAction.h
@@ -483,6 +489,8 @@ SET(UI_QT_CXX
   GUI/Qt/Components/RecentHistoryItemsView.cxx
   GUI/Qt/Components/SnakeToolROIPanel.cxx
   GUI/Qt/Components/SnakeWizardPanel.cxx
+  GUI/Qt/Components/JoinDataPanel.cxx
+  GUI/Qt/Components/GlobalWSWizardPanel.cxx
   GUI/Qt/Components/SNAPComponent.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
@@ -508,6 +516,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/PolygonDrawingInteractionMode.cxx
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
   GUI/Qt/View/SnakeROIInteractionMode.cxx
+  GUI/Qt/View/JoinInteractionMode.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx
   GUI/Qt/Windows/AboutDialog.cxx
   GUI/Qt/Windows/DropActionDialog.cxx
@@ -560,6 +569,8 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/RecentHistoryItemsView.h
   GUI/Qt/Components/SnakeToolROIPanel.h
   GUI/Qt/Components/SnakeWizardPanel.h
+  GUI/Qt/Components/JoinDataPanel.h
+  GUI/Qt/Components/GlobalWSWizardPanel.h
   GUI/Qt/Components/SNAPComponent.h
   GUI/Qt/Components/SliceViewPanel.h
   GUI/Qt/Components/SynchronizationInspector.h
@@ -583,6 +594,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/PolygonDrawingInteractionMode.h
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SnakeROIInteractionMode.h
+  GUI/Qt/View/JoinInteractionMode.h
   GUI/Qt/View/ThumbnailInteractionMode.h
   GUI/Qt/Windows/AboutDialog.h
   GUI/Qt/Windows/DropActionDialog.h
@@ -653,6 +665,8 @@ SET(UI_FORMS
   GUI/Qt/Components/SliceViewPanel.ui
   GUI/Qt/Components/SnakeToolROIPanel.ui
   GUI/Qt/Components/SnakeWizardPanel.ui
+  GUI/Qt/Components/JoinDataPanel.ui
+  GUI/Qt/Components/GlobalWSWizardPanel.ui
   GUI/Qt/Components/SynchronizationInspector.ui
   GUI/Qt/Components/ViewPanel3D.ui
   GUI/Qt/Components/ZoomInspector.ui

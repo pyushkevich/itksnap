@@ -39,6 +39,7 @@
 #include "ColorMapModel.h"
 #include "ViewPanel3D.h"
 #include "SnakeWizardPanel.h"
+#include "GlobalWSWizardPanel.h"
 #include "LatentITKEventNotifier.h"
 #include <QProgressDialog>
 #include "QtReporterDelegates.h"
@@ -101,6 +102,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   ui->actionPolygon->setActionGroup(grpToolbarMain);
   ui->actionPaintbrush->setActionGroup(grpToolbarMain);
   ui->actionSnake->setActionGroup(grpToolbarMain);
+  ui->actionJoin->setActionGroup(grpToolbarMain);
 
   QActionGroup *grpToolbar3D = new QActionGroup(this);
   ui->action3DTrackball->setActionGroup(grpToolbar3D);
@@ -153,6 +155,15 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
         QDockWidget::DockWidgetMovable);
   this->addDockWidget(Qt::RightDockWidgetArea, m_DockRight);
 
+  m_DockRight2 = new QDockWidget("Global Watershed", this);
+  m_GlobalWSWizard = new GlobalWSWizardPanel(this);
+  m_DockRight2->setWidget(m_GlobalWSWizard);
+  m_DockRight2->setAllowedAreas(Qt::RightDockWidgetArea);
+  m_DockRight2->setFeatures(
+        QDockWidget::DockWidgetFloatable |
+        QDockWidget::DockWidgetMovable);
+  this->addDockWidget(Qt::RightDockWidgetArea, m_DockRight2);
+
   // Set up the recent items panels
   connect(ui->panelRecentImages, SIGNAL(RecentItemSelected(QString)),
           SLOT(LoadMainImage(QString)));
@@ -172,10 +183,15 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Hide the right dock for now
   m_DockRight->setVisible(false);
+  m_DockRight2->setVisible(false);
 
   // Hide the dock when the wizard finishes
   connect(m_SnakeWizard, SIGNAL(wizardFinished()),
           this, SLOT(onSnakeWizardFinished()));
+
+  // Hide the dock when the wizard finishes
+  connect(m_GlobalWSWizard, SIGNAL(wizardFinished()),
+          this, SLOT(onGlobalWSWizardFinished()));
 
   // Make the margins adjust when the docks are attached
   connect(m_DockLeft, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)),
@@ -255,6 +271,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_LabelEditor->SetModel(model->GetLabelEditorModel());
   m_LayerInspector->SetModel(model);
   m_SnakeWizard->SetModel(model);
+  m_GlobalWSWizard->SetModel(model);
   m_ReorientImageDialog->SetModel(model->GetReorientImageModel());
   m_DropDialog->SetModel(model);
   m_StatisticsDialog->SetModel(model);
@@ -354,6 +371,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionUnload_Last_Overlay, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionUnload_All_Overlays, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->menuOverlayAppearance, m_Model, UIF_OVERLAY_LOADED);
+  activateOnFlag(ui->actionToggleJsrcVis, m_Model, UIF_JOIN_MODE);
 
   // Workspace menu
   activateOnFlag(ui->actionOpenWorkspace, m_Model, UIF_IRIS_MODE);
@@ -361,11 +379,12 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionSaveWorkspaceAs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
   // Tool action activations
-  activateOnFlag(ui->actionCrosshair, m_Model, UIF_BASEIMG_LOADED);
-  activateOnFlag(ui->actionZoomPan, m_Model, UIF_BASEIMG_LOADED);
-  activateOnFlag(ui->actionPolygon, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionSnake, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionPaintbrush, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionCrosshair, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
+  activateOnFlag(ui->actionZoomPan, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
+  activateOnFlag(ui->actionPolygon, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
+  activateOnFlag(ui->actionSnake, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
+  activateOnFlag(ui->actionPaintbrush, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
+  activateOnFlag(ui->actionJoin, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
 
   activateOnFlag(ui->action3DCrosshair, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->action3DTrackball, m_Model, UIF_BASEIMG_LOADED);
@@ -680,6 +699,18 @@ void MainImageWindow::OpenSnakeWizard()
   m_DockRight->setVisible(true);
 }
 
+void MainImageWindow::OpenGlobalWSWizard()
+{
+  // Initialize the GlobalWS wizard
+  this->m_GlobalWSWizard->Initialize();
+
+  // Remember the size of the window before the right dock was shown
+  m_SizeWithoutRightDock = this->size();
+
+  // Make the dock containing the wizard visible
+  m_DockRight2->setVisible(true);
+}
+
 void MainImageWindow::AdjustMarginsForDocks()
 {
   // Get the current margins
@@ -851,6 +882,20 @@ void MainImageWindow::onSnakeWizardFinished()
 {
   // Make the dock containing the wizard visible
   m_DockRight->setVisible(false);
+
+  // TODO: this way of handling the size of the main window after the right
+  // dock is hidden is rudimentary. I should learn how to use sizePolicy and
+  // sizeHint fields more effectively.
+
+  // Return to previous size
+  this->layout()->activate();
+  resize(m_SizeWithoutRightDock.width(), m_SizeWithoutRightDock.height());
+}
+
+void MainImageWindow::onGlobalWSWizardFinished()
+{
+  // Make the dock containing the wizard visible
+  m_DockRight2->setVisible(false);
 
   // TODO: this way of handling the size of the main window after the right
   // dock is hidden is rudimentary. I should learn how to use sizePolicy and
@@ -1552,4 +1597,9 @@ void MainImageWindow::on_actionNew_ITK_SNAP_Window_triggered()
   // Launch a new SNAP
   std::list<std::string> args;
   m_Model->GetSystemInterface()->LaunchChildSNAPSimple(args);
+}
+
+void MainImageWindow::on_actionToggleJsrcVis_triggered()
+{
+    m_Model->ToggleJsrcVisibility();
 }

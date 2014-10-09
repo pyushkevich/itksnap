@@ -322,6 +322,7 @@ ScalarImageWrapper<TTraits,TBase>
 template class ScalarImageWrapper<LabelImageWrapperTraits>;
 template class ScalarImageWrapper<SpeedImageWrapperTraits>;
 template class ScalarImageWrapper<LevelSetImageWrapperTraits>;
+template class ScalarImageWrapper<JsrcImageWrapperTraits>;
 template class ScalarImageWrapper< ComponentImageWrapperTraits<GreyType> >;
 
 typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor> MagTraits;

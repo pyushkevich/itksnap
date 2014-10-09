@@ -1273,6 +1273,7 @@ ImageWrapper<TTraits,TBase>
 template class ImageWrapper<SpeedImageWrapperTraits, ScalarImageWrapperBase>;
 template class ImageWrapper<LabelImageWrapperTraits, ScalarImageWrapperBase>;
 template class ImageWrapper<LevelSetImageWrapperTraits, ScalarImageWrapperBase>;
+template class ImageWrapper<JsrcImageWrapperTraits, ScalarImageWrapperBase>;
 
 template class ImageWrapper<AnatomicImageWrapperTraits<GreyType>, VectorImageWrapperBase>;
 template class ImageWrapper<ComponentImageWrapperTraits<GreyType>, ScalarImageWrapperBase>;

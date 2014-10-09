@@ -33,6 +33,7 @@
 #include <OrthogonalSliceCursorNavigationModel.h>
 #include <PolygonDrawingModel.h>
 #include <SnakeROIModel.h>
+#include <JoinModel.h>
 #include <SliceWindowCoordinator.h>
 #include <GenericImageData.h>
 #include <GuidedNativeImageIO.h>
@@ -46,6 +47,7 @@
 #include <LabelEditorModel.h>
 #include <CursorInspectionModel.h>
 #include <SnakeWizardModel.h>
+#include <GlobalWSWizardModel.h>
 #include <RandomAccessCollectionModel.h>
 #include <UIReporterDelegates.h>
 #include <ReorientImageModel.h>
@@ -109,6 +111,9 @@ GlobalUIModel::GlobalUIModel()
     m_SnakeROIModel[i] = SnakeROIModel::New();
     m_SnakeROIModel[i]->SetParent(m_SliceModel[i]);
 
+    m_JoinModel[i] = JoinModel::New();
+    m_JoinModel[i]->SetParent(m_SliceModel[i]);
+
     m_PaintbrushModel[i] = PaintbrushModel::New();
     m_PaintbrushModel[i]->SetParent(m_SliceModel[i]);
     }
@@ -138,7 +143,7 @@ GlobalUIModel::GlobalUIModel()
   m_LoadedLayersSelectionModel->SetParentModel(this);
   m_LoadedLayersSelectionModel->SetRoleFilter(
         MAIN_ROLE | OVERLAY_ROLE |
-        SNAP_ROLE);
+        SNAP_ROLE | JOIN_ROLE);
 
   // 3D model
   m_Model3D = Generic3DModel::New();
@@ -163,6 +168,10 @@ GlobalUIModel::GlobalUIModel()
   // Snake ROI resampling model
   m_SnakeROIResampleModel = SnakeROIResampleModel::New();
   m_SnakeROIResampleModel->SetParentModel(this);
+
+  // GlobalWS model
+  m_GlobalWSWizardModel = GlobalWSWizardModel::New();
+  m_GlobalWSWizardModel->SetParentModel(this);
 
   // Synchronization model
   m_SynchronizationModel = SynchronizationModel::New();
@@ -288,11 +297,12 @@ bool GlobalUIModel::CheckState(UIState state)
     case UIF_BASEIMG_LOADED:
       return m_Driver->IsMainImageLoaded();
     case UIF_IRIS_WITH_BASEIMG_LOADED:
-      return m_Driver->IsMainImageLoaded() && !m_Driver->IsSnakeModeActive();
+	return m_Driver->IsMainImageLoaded() && !m_Driver->IsSnakeModeActive();// && !m_Driver->IsJoinModeActive(); ///adding this will disable lablel change in Join mode: Bad!
     case UIF_IRIS_MODE:
-      return !m_Driver->IsSnakeModeActive();
+	return !m_Driver->IsSnakeModeActive() && !m_Driver->IsJoinModeActive();//not sure if Join extension here has any effect
     case UIF_IRIS_WITH_OVERLAY_LOADED:
       return m_Driver->IsMainImageLoaded() && !m_Driver->IsSnakeModeActive()
+	  && !m_Driver->IsJoinModeActive()
           && m_Driver->GetCurrentImageData()->GetNumberOfOverlays() > 0;
     case UIF_ROI_VALID:
       break;
@@ -310,6 +320,10 @@ bool GlobalUIModel::CheckState(UIState state)
       return m_Driver->GetCurrentImageData()->IsOverlayLoaded();
     case UIF_SNAKE_MODE:
       return m_Driver->IsSnakeModeActive();
+    case UIF_JOIN_MODE:
+      return m_Driver->IsJoinModeActive();
+    case UIF_NOT_SNAKE_OR_JOIN_MODE:
+	return m_Driver->IsMainImageLoaded() && !m_Driver->IsSnakeModeActive() && !m_Driver->IsJoinModeActive();
     case UIF_LEVEL_SET_ACTIVE:
       return m_Driver->IsSnakeModeLevelSetActive();
     }
@@ -369,6 +383,30 @@ void GlobalUIModel::ToggleOverlayVisibility()
 
   // Restore the active layer
   m_LayerGeneralPropertiesModel->SetLayer(curr_layer);
+}
+
+void GlobalUIModel::ToggleJsrcVisibility()
+{
+  // Are we in JOIN mode?
+  if(CheckState(UIF_JOIN_MODE)){
+      GenericImageData *id = m_Driver->GetCurrentImageData();
+
+      // Remember what layer is current in the general properties model
+      ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
+      
+      // Apply the toggle for all overlays
+      for(LayerIterator it = id->GetLayers(JOIN_ROLE); !it.IsAtEnd(); ++it){
+	  //if(dynamic_cast<JsrcImageWrapper *>(it.GetLayer())){//does not work as currently JsrcImageWrapper == JdstImageWrapper == LabelImageWrapper
+	  if(strcmp(it.GetLayer()->GetNickname().c_str(), "Join Source Image") == 0){
+	      m_LayerGeneralPropertiesModel->SetLayer(it.GetLayer());
+	      m_LayerGeneralPropertiesModel->GetLayerVisibilityModel()->SetValue(
+		  !m_LayerGeneralPropertiesModel->GetLayerVisibilityModel()->GetValue());
+	      }
+	  }
+      
+      // Restore the active layer
+      m_LayerGeneralPropertiesModel->SetLayer(curr_layer);
+  }
 }
 
 void GlobalUIModel::AdjustOverlayOpacity(int delta)
@@ -755,6 +793,12 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
         category = "Speed Image";
       else if(dynamic_cast<LevelSetImageWrapper *>(layer))
         category = "Level Set Image";
+      break;
+    case JOIN_ROLE:
+      if(dynamic_cast<JsrcImageWrapper *>(layer))
+        category = "Join Source Image";
+      else if(dynamic_cast<JdstImageWrapper *>(layer))
+        category = "Join Destination Image";
       break;
     case LABEL_ROLE:
       category = "Segmentation Image";

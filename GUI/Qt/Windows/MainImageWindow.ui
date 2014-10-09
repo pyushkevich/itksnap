@@ -402,6 +402,7 @@ color:rgb(103, 103, 103);
      <addaction name="separator"/>
      <addaction name="actionOverlayVisibilityIncreaseAll"/>
      <addaction name="actionOverlayVisibilityDecreaseAll"/>
+     <addaction name="actionToggleJsrcVis"/>
     </widget>
     <addaction name="actionAdd_Overlay"/>
     <addaction name="separator"/>
@@ -423,6 +424,7 @@ color:rgb(103, 103, 103);
      <addaction name="actionPolygon"/>
      <addaction name="actionPaintbrush"/>
      <addaction name="actionSnake"/>
+     <addaction name="actionJoin"/>
     </widget>
     <widget class="QMenu" name="menuActive_3D_Tool">
      <property name="title">
@@ -1294,6 +1296,35 @@ color:rgb(103, 103, 103);
   <action name="actionNew_ITK_SNAP_Window">
    <property name="text">
     <string>New ITK-SNAP Window</string>
+   </property>
+  </action>
+  <action name="actionJoin">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/globalWS.gif</normaloff>:/root/globalWS.gif</iconset>
+   </property>
+   <property name="text">
+    <string>Click 'n' Join Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Click 'n' Join Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Join labeled regions by clicking.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>6</string>
+   </property>
+  </action>
+  <action name="actionToggleJsrcVis">
+   <property name="text">
+    <string>ToggleJsrcVis</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle Join source image visibility</string>
+   </property>
+   <property name="shortcut">
+    <string>T</string>
    </property>
   </action>
  </widget>

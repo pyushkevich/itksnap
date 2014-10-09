@@ -450,6 +450,7 @@ void SNAPRegistryIO::BuildEnums()
   m_EnumMapLayerRole.AddPair(LABEL_ROLE, "SegmentationRole");
   m_EnumMapLayerRole.AddPair(SNAP_ROLE, "SnakeModeRole");
   m_EnumMapLayerRole.AddPair(NO_ROLE, "InvalidRole");
+  m_EnumMapLayerRole.AddPair(JOIN_ROLE, "JoinModeRole");
 
   m_EnumMapLayerLayout.AddPair(LAYOUT_STACKED, "Stacked");
   m_EnumMapLayerLayout.AddPair(LAYOUT_TILED, "Tiled");

@@ -54,7 +54,8 @@ void SnakeToolROIPanel::on_btnAuto_clicked()
   // TODO: Check that the label configuration is valid
 
   // Handle resampling if requested
-  if(ui->chkResample->isChecked())
+  if(ui->chkResample->isChecked()
+    && m_Model->GetGlobalState()->GetToolbarMode() != GLOBALWS_ROI_MODE) //hack to not resample for GWS (better would be to disable chkResample
     {
     if(m_ResampleDialog->exec() != QDialog::Accepted)
       return;
@@ -66,10 +67,19 @@ void SnakeToolROIPanel::on_btnAuto_clicked()
     m_Model->GetSnakeROIResampleModel()->Accept();
     }
 
-  // Switch to crosshairs mode
-  m_Model->GetGlobalState()->SetToolbarMode(CROSSHAIRS_MODE);
-
   // Show the snake panel
   MainImageWindow *main = findParentWidget<MainImageWindow>(this);
+
+  switch(m_Model->GetGlobalState()->GetToolbarMode()){
+  case SNAKE_ROI_MODE:
   main->OpenSnakeWizard();
+      break;
+  case GLOBALWS_ROI_MODE:
+      main->OpenGlobalWSWizard();
+      break;
+  default: 
+      // Switch to crosshairs mode
+      m_Model->GetGlobalState()->SetToolbarMode(CROSSHAIRS_MODE);
+    break;
+  }
 }

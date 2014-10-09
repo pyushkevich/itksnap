@@ -313,6 +313,7 @@ protected:
   ImageCoordinateGeometry m_ImageGeometry;
 
   friend class SNAPImageData;
+  friend class JOINImageData;
   friend class LayerIterator;
 
   // Append an image wrapper to a role

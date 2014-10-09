@@ -132,6 +132,7 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
   ui->pageSyncInspector->SetModel(m_Model->GetSynchronizationModel());
   ui->pagePaintbrushTool->SetModel(m_Model->GetPaintbrushSettingsModel());
   ui->pageSnakeTool->SetModel(m_Model);
+  ui->pageJoinTool->SetModel(m_Model);
 
   m_LabelSelectionButton->SetModel(model);
   m_LabelSelectionPopup->SetModel(model);
@@ -147,12 +148,16 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
 void MainControlPanel::onModelUpdate(const EventBucket &bucket)
 {
   // A static array of widget/mode mappings
+  //// mode_inspector_btn, mode_tool_pages and ToolbarModeType should have the same amount of entries!
   static QToolButton *mode_inspector_btn[] = {
     ui->btnCursorInspector,
     ui->btnZoomInspector,
     ui->btnLabelInspector,
     ui->btnToolInspector,
     ui->btnToolInspector,
+    ui->btnToolInspector,
+    ui->btnToolInspector,
+    ui->btnCursorInspector, //little hack to get the Cursor inspector panel without SetToolbarMode(CROSSHAIRS_MODE)
     ui->btnToolInspector };
 
   static QWidget *mode_tool_pages[] = {
@@ -161,6 +166,9 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     ui->pageBlank,
     ui->pagePaintbrushTool,
     ui->pageSnakeTool,
+    ui->pageJoinTool,
+    ui->pageSnakeTool,
+    ui->pageBlank,
     ui->pageBlank};
 
   // Respond to changes in toolbar mode

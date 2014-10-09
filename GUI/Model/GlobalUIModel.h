@@ -56,6 +56,8 @@ class CursorInspectionModel;
 class SnakeROIModel;
 class SnakeWizardModel;
 class SnakeROIResampleModel;
+class JoinModel;
+class GlobalWSWizardModel;
 class ProgressReporterDelegate;
 class ReorientImageModel;
 class DisplayLayoutModel;
@@ -154,10 +156,16 @@ public:
     return m_PolygonDrawingModel[i];
   }
 
-  /** Get the polygon drawing model for each slice */
+  /** Get the snake drawing model for each slice */
   SnakeROIModel *GetSnakeROIModel(unsigned int i) const
   {
     return m_SnakeROIModel[i];
+  }
+
+  /** Get the join drawing model for each slice */
+  JoinModel *GetJoinModel(unsigned int i) const
+  {
+    return m_JoinModel[i];
   }
 
   PaintbrushModel *GetPaintbrushModel(unsigned int i) const
@@ -194,6 +202,9 @@ public:
 
   /** The model that handles snake wizard interaction */
   irisGetMacro(SnakeWizardModel, SnakeWizardModel *)
+
+  /** The model that handles GlobalWS wizard interaction */
+  irisGetMacro(GlobalWSWizardModel, GlobalWSWizardModel *)
 
   /** The model handling display layout properties */
   irisGetMacro(DisplayLayoutModel, DisplayLayoutModel *)
@@ -241,6 +252,9 @@ public:
 
   /** Method to toggle overlay visibility (all or selected overlays) */
   void ToggleOverlayVisibility();
+
+  /** Method to toggle Jsrc visibility */
+  void ToggleJsrcVisibility();
 
   /** Method to adjust overlay opacity (all or selected overlays) */
   void AdjustOverlayOpacity(int delta);
@@ -322,6 +336,9 @@ protected:
   // Models for snake ROI drawing
   SmartPtr<SnakeROIModel> m_SnakeROIModel[3];
 
+  // Models for Click'n'Join
+  SmartPtr<JoinModel> m_JoinModel[3];
+
   // Models for paintbrush drawing
   SmartPtr<PaintbrushModel> m_PaintbrushModel[3];
 
@@ -357,6 +374,9 @@ protected:
 
   // The snake wizard model
   SmartPtr<SnakeWizardModel> m_SnakeWizardModel;
+
+  // The GlobalWS wizard model
+  SmartPtr<GlobalWSWizardModel> m_GlobalWSWizardModel;
 
   // Display layout model
   SmartPtr<DisplayLayoutModel> m_DisplayLayoutModel;

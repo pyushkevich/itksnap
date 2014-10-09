@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>184</width>
+    <width>215</width>
     <height>588</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>184</width>
+    <width>215</width>
     <height>0</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>184</width>
+    <width>215</width>
     <height>16777215</height>
    </size>
   </property>
@@ -373,6 +373,7 @@ QToolButton:hover, QToolButton:checked {
              <number>1</number>
             </property>
             <widget class="SnakeToolROIPanel" name="pageSnakeTool"/>
+            <widget class="JoinDataPanel" name="pageJoinTool"/>
             <widget class="PaintbrushToolPanel" name="pagePaintbrushTool"/>
             <widget class="QWidget" name="pageBlank"/>
            </widget>
@@ -466,6 +467,12 @@ QToolBar {
    <class>SynchronizationInspector</class>
    <extends>QWidget</extends>
    <header>SynchronizationInspector.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>JoinDataPanel</class>
+   <extends>QWidget</extends>
+   <header>JoinDataPanel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
