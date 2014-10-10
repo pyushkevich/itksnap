@@ -396,19 +396,6 @@ p, li { white-space: pre-wrap; }
             </layout>
            </widget>
           </item>
-          <item>
-           <spacer name="verticalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
          </layout>
         </widget>
         <widget class="QWidget" name="pgWSRange">
@@ -735,6 +722,20 @@ p, li { white-space: pre-wrap; }
        </widget>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnCopySeg">
+     <property name="text">
+      <string>Copy Segmentation</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnClearSeg">
+     <property name="text">
+      <string>Clear Segmentation</string>
+     </property>
     </widget>
    </item>
    <item>

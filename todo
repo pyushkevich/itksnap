@@ -1,0 +1,12 @@
+TODOs for GWS:
+
+- add copy/clear segmentation for GWS
+- add image+layer for adf output
+- add relabeller if itk::watershed::Relabeler does not relabel consecutively
+- add 'n' for next smallest unused label
+- make UnDo possible
+- impl. connected component relabeling
+- make long long for GWS possible
+- """ for image from file
+- make GUI parts more fool prove
+- add an invert option for direct mode, see e.g. InvertFunctor in SNAPImageData

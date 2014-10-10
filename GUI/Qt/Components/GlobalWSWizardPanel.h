@@ -56,6 +56,10 @@ private slots:
 
   void on_actionDecreaseWSLevel_triggered();
 
+  void on_btnCopySeg_clicked();
+
+  void on_btnClearSeg_clicked();
+
 private:
 
   GlobalUIModel *m_ParentModel;

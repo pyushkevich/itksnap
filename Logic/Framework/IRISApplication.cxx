@@ -313,9 +313,9 @@ IRISApplication
   // Create iterators for copying from one to the other
   typedef itk::ImageRegionConstIterator<SourceImageType> SourceIteratorType;
   typedef itk::ImageRegionIterator<TargetImageType> TargetIteratorType;
-  SourceIteratorType itSource(source,source->GetBufferedRegion());
-  TargetIteratorType itTarget(target,source->GetBufferedRegion());
-  //SourceIteratorType itSource(source,roi.GetROI());
+  //SourceIteratorType itSource(source,source->GetBufferedRegion());
+  TargetIteratorType itTarget(target,target->GetBufferedRegion());
+  SourceIteratorType itSource(source,roi.GetROI());
   //TargetIteratorType itTarget(target,roi.GetROI());
 
   // Go through both iterators, copy the new over the old

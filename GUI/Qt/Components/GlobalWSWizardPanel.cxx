@@ -102,6 +102,9 @@ void GlobalWSWizardPanel::SetModel(GlobalUIModel *model){
     // Store and pass on the models
     m_ParentModel = model;
     m_Model = model->GetGlobalWSWizardModel();
+
+    activateOnFlag(ui->btnCopySeg, m_ParentModel, UIF_JOIN_MODE);
+    activateOnFlag(ui->btnClearSeg, m_ParentModel, UIF_JOIN_MODE);
     }
 
 void GlobalWSWizardPanel::Initialize(){
@@ -218,4 +221,20 @@ void GlobalWSWizardPanel::on_actionDecreaseWSLevel_triggered(){
     double value= ui->inWSLevel->value() - 0.1;
     ui->inWSLevel->setValue(value);
     emit ui->inWSLevel->spinnerValueChanged(value);
+    }
+
+void GlobalWSWizardPanel::on_btnCopySeg_clicked(){
+    IRISApplication *driver = m_ParentModel->GetDriver();
+    driver->CopySegementationToJdst(
+	driver->GetGlobalState()->GetSegmentationROISettings(),
+	m_ParentModel->GetProgressCommand());
+
+    driver->InvokeEvent(SegmentationChangeEvent());
+    }
+
+void GlobalWSWizardPanel::on_btnClearSeg_clicked(){
+    IRISApplication *driver = m_ParentModel->GetDriver();
+    driver->ClearJdst();
+
+    driver->InvokeEvent(SegmentationChangeEvent());
     }
