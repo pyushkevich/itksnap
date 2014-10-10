@@ -19,6 +19,7 @@
 #define __CPUImageToGPUImageFilter_h
 
 #include "itkGPUImage.h"
+#include "itkGPUKernelManager.h"
 #include "itkImageSource.h"
 
 /** \class CPUImageToGPUImageFilter
@@ -54,7 +55,7 @@ public:
   typedef typename Superclass::OutputImagePixelType     OutputImagePixelType;
 
   /** Some convenient typedefs. */
-  typedef typename TGPUOutputImage              OutputImageType;
+  typedef TGPUOutputImage                       OutputImageType;
   typedef typename TGPUOutputImage::Pointer     OutputImagePointer;
 
   typedef typename TGPUOutputImage::Superclass  InputImageType;
