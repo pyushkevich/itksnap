@@ -13,6 +13,7 @@ part of Click'n'Join mode, which was contributed by Roman Grothausmann
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "JOINImageData.h"
+#include "DisplayLayoutModel.h" //access tiled/stacked view mode
 
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
@@ -110,6 +111,9 @@ void GlobalWSWizardPanel::SetModel(GlobalUIModel *model){
 void GlobalWSWizardPanel::Initialize(){
     // Initialize the model
     m_Model->OnGlobalWSModeEnter();
+
+    // set tiled layout to ease understanding the interaction mode
+    m_ParentModel->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
 
     // Go to the right page
     ui->stack->setCurrentWidget(ui->pgPreproc);

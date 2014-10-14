@@ -12,6 +12,7 @@ part of Click'n'Join mode, which was contributed by Roman Grothausmann
 #include "IRISApplication.h"
 #include "GenericImageData.h" //GetCurrentImageData()->GetImageRegion();
 #include "QtWidgetActivator.h" //activateOnFlag
+#include "DisplayLayoutModel.h" //access tiled/stacked view mode
 
 
 JoinDataPanel::JoinDataPanel(QWidget *parent) :
@@ -64,6 +65,9 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 	    driver->GetGlobalState()->GetSegmentationROISettings(),
 	    m_Model->GetProgressCommand());
 	driver->SetCurrentImageDataToJOIN();
+
+	// set tiled layout to ease understanding the interaction mode
+	m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
 	} break;
     case 1:{
 	////panel will be hidden in GWSJOIN_MODE
