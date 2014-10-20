@@ -70,8 +70,8 @@ SliceWindowInteractionDelegateWidget
   if(!this->isDragging())
     {
     // Which cell did the event fall in?
-    icol = ev->x() / sz[0];
-    irow = ev->y() / sz[1];
+    icol = xpix / sz[0];
+    irow = ypix / sz[1];
 
     // Ensure the column and row are valid, otherwise default to the first cell
     if(icol < 0 || icol >= ncols || irow < 0 || irow > nrows)
