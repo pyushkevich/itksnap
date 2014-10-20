@@ -144,6 +144,29 @@ private:
   unsigned long m_FileSize;
 };
 
+
+class RegistrationPage : public AbstractPage
+{
+  Q_OBJECT
+
+public:
+
+  explicit RegistrationPage(QWidget *parent = 0);
+  int nextId() const;
+  void initializePage();
+  bool validatePage();
+  virtual bool isComplete() const;
+
+public slots:
+
+  void onRunRegistration();
+
+private:
+
+  QComboBox *m_InTransform, *m_InMetric;
+  QPushButton *m_Run;
+};
+
 } // end namespace
 
 

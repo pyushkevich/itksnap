@@ -719,6 +719,58 @@ bool RawPage::validatePage()
   return true;
 }
 
+RegistrationPage::RegistrationPage(QWidget *parent)
+{
+  // Create a new layout
+  QGridLayout *lo = new QGridLayout(this);
+
+  // Create the header input
+  m_InTransform = new QComboBox();
+  m_InMetric = new QComboBox();
+
+  lo->addWidget(new QLabel("Registration Mode:"), 0, 0, 1, 1);
+  lo->addWidget(m_InTransform, 1, 0, 1, 1);
+  lo->addWidget(new QLabel("Similarity Metric:"), 0, 1, 1, 1);
+  lo->addWidget(m_InMetric, 1, 1, 1, 1);
+
+  m_Run = new QPushButton();
+  lo->addWidget(m_Run, 0, 2, 1, 1);
+
+  m_InTransform->addItem("Align based on image headers");
+  m_InTransform->addItem("Rigid registration");
+  m_InTransform->addItem("Affine registration");
+
+  m_InMetric->addItem("Mutual information");
+  m_InMetric->addItem("Cross-correlation");
+
+  connect(m_Run, SIGNAL(clicked()), this, SLOT(onRunRegistration()));
+}
+
+int RegistrationPage::nextId() const
+{
+  return ImageIOWizard::Page_Summary;
+}
+
+void RegistrationPage::initializePage()
+{
+  this->setTitle("Image Registration");
+}
+
+bool RegistrationPage::validatePage()
+{
+  return true;
+}
+
+bool RegistrationPage::isComplete() const
+{
+  return true;
+}
+
+void RegistrationPage::onRunRegistration()
+{
+
+}
+
 
 } // namespace
 
