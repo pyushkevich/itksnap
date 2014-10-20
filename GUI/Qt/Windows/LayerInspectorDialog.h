@@ -64,6 +64,8 @@ private slots:
 
   void on_buttonBox_rejected();
 
+  void on_actionOpenLayer_triggered();
+
 private:
   Ui::LayerInspectorDialog *ui;
   GlobalUIModel *m_Model;

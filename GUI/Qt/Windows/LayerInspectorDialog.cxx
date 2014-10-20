@@ -47,6 +47,7 @@ LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
 
   m_SaveSelectedButton = new QToolButton(this);
 
+  tb->addAction(ui->actionOpenLayer);
   tb->addWidget(m_SaveSelectedButton);
   tb->addAction(ui->actionEditVisibility);
   tb->addAction(ui->actionLayoutToggle);
@@ -111,6 +112,9 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
   makeCoupling(
         ui->actionEditVisibility,
         model->GetLayerVisibilityEditableModel());
+
+  // Set up the activation on the open layer button
+  activateOnFlag(ui->actionOpenLayer, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 }
 
 void LayerInspectorDialog::SetPageToContrastAdjustment()
@@ -421,4 +425,9 @@ void LayerInspectorDialog::advanceTab()
   int pos = ui->tabWidget->currentIndex();
   int ntab = ui->tabWidget->count();
   ui->tabWidget->setCurrentIndex((pos + 1) % ntab);
+}
+
+void LayerInspectorDialog::on_actionOpenLayer_triggered()
+{
+  FindUpstreamAction(this, "actionAdd_Overlay")->trigger();
 }

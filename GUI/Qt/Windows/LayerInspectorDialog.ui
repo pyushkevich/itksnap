@@ -236,6 +236,21 @@
     <string>Toggle layout between tiled and stacked</string>
    </property>
   </action>
+  <action name="actionOpenLayer">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/open_22.png</normaloff>:/root/open_22.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open Layer</string>
+   </property>
+   <property name="toolTip">
+    <string>Open an additional image layer</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+G</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

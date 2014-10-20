@@ -103,6 +103,7 @@
         <file>view-refresh-4.png</file>
         <file>media-playback-start-1x-4.png</file>
         <file>media-playback-start-10x-4.png</file>
+        <file>open_22.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>
