@@ -355,7 +355,7 @@ void ImageIOWizardModel::ProcessDicomDirectory(const std::string &filename)
   // Get the registry
   try
   {
-    GuidedNativeImageIO::ParseDicomDirectory(dir, m_DicomContents, req);
+    m_GuidedIO->ParseDicomDirectory(dir, m_DicomContents, req);
   }
   catch (IRISException &ei)
   {
