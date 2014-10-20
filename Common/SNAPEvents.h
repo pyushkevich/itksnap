@@ -121,6 +121,9 @@ itkEventMacro(WrapperChangeEvent, IRISEvent)
 /** A change to a image wrapper property (e.g., nickname) */
 itkEventMacro(WrapperMetadataChangeEvent, WrapperChangeEvent)
 
+/** A change to the visibility of a layer (stickiness, visibility) */
+itkEventMacro(WrapperVisibilityChangeEvent, WrapperMetadataChangeEvent)
+
 /** A change to the display mapping of an image wrapper (e.g. color map) */
 itkEventMacro(WrapperDisplayMappingChangeEvent, WrapperChangeEvent)
 

@@ -66,7 +66,7 @@ void DisplayLayoutModel::SetParentModel(GlobalUIModel *parentModel)
 
   // We also need notification when the layer stickiness changes
   Rebroadcast(m_ParentModel->GetDriver(),
-              WrapperMetadataChangeEvent(), LayerLayoutChangeEvent());
+              WrapperVisibilityChangeEvent(), LayerLayoutChangeEvent());
 
 }
 
@@ -202,7 +202,9 @@ void DisplayLayoutModel::OnUpdate()
   // model
   if(m_EventBucket->HasEvent(LayerChangeEvent())
      || m_EventBucket->HasEvent(ValueChangedEvent(),
-                                m_ParentModel->GetGlobalState()->GetSliceViewLayerLayoutModel()))
+                                m_ParentModel->GetGlobalState()->GetSliceViewLayerLayoutModel())
+     || m_EventBucket->HasEvent(WrapperVisibilityChangeEvent())
+     )
     {
     this->UpdateSliceViewTiling();
     }
