@@ -268,6 +268,8 @@ private slots:
 
   void on_actionUnload_All_Overlays_triggered();
 
+  void on_actionCoregister_Overlay_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

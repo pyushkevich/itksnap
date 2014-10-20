@@ -191,6 +191,11 @@ public:
     */
   virtual void Finalize();
 
+  /**
+   * Set whether the IO module should use registration
+   */
+  irisGetSetMacro(UseRegistration, bool)
+
 protected:
 
   // Standard ITK protected constructors
@@ -218,6 +223,9 @@ protected:
 
   // Registry containing auxiliary info
   Registry m_Registry;
+
+  // Whether registration should be used to load this image
+  bool m_UseRegistration;
 
   // Suggested filename
   std::string m_SuggestedFilename;

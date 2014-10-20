@@ -35,6 +35,7 @@ ImageIOWizardModel
   m_LoadDelegate = NULL;
   m_SaveDelegate = delegate;
   m_SuggestedFilename = delegate->GetCurrentFilename();
+  m_UseRegistration = false;
 }
 
 void
@@ -51,6 +52,7 @@ ImageIOWizardModel
   m_GuidedIO = GuidedNativeImageIO::New();
   m_LoadDelegate = delegate;
   m_SaveDelegate = NULL;
+  m_UseRegistration = false;
 }
 
 ImageIOWizardModel::~ImageIOWizardModel()
@@ -271,6 +273,7 @@ ImageIOWizardModel::FileFormat ImageIOWizardModel::GetSelectedFormat()
 }
 
 
+
 void ImageIOWizardModel::LoadImage(std::string filename)
 {
   try
@@ -289,6 +292,10 @@ void ImageIOWizardModel::LoadImage(std::string filename)
 
     // Load the data from the image
     m_GuidedIO->ReadNativeImageData();
+
+    // That's it if we are doing registration
+    if(m_UseRegistration)
+      return;
 
     // Validate the image data
     m_LoadDelegate->ValidateImage(m_GuidedIO, m_Warnings);

@@ -88,13 +88,17 @@ public:
 
   irisITKObjectMacro(LoadOverlayImageDelegate, LoadAnatomicImageDelegate)
 
+  irisGetSetMacro(UseRegistration, bool)
+
   void UnloadCurrentImage();
   void UpdateApplicationWithImage(GuidedNativeImageIO *io);
   void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
 
 protected:
-  LoadOverlayImageDelegate() {}
+  LoadOverlayImageDelegate() { m_UseRegistration = false; }
   virtual ~LoadOverlayImageDelegate() {}
+
+  bool m_UseRegistration;
 };
 
 class LoadSegmentationImageDelegate : public AbstractLoadImageDelegate

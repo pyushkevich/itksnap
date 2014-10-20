@@ -431,6 +431,7 @@ color:rgb(103, 103, 103);
      <addaction name="actionOverlayVisibilityDecreaseAll"/>
     </widget>
     <addaction name="actionAdd_Overlay"/>
+    <addaction name="actionCoregister_Overlay"/>
     <addaction name="separator"/>
     <addaction name="actionUnload_Last_Overlay"/>
     <addaction name="actionUnload_All_Overlays"/>
@@ -1327,6 +1328,14 @@ color:rgb(103, 103, 103);
   <action name="actionNew_ITK_SNAP_Window">
    <property name="text">
     <string>New ITK-SNAP Window</string>
+   </property>
+  </action>
+  <action name="actionCoregister_Overlay">
+   <property name="text">
+    <string>Coregister Overlay ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Co-register an image with the main image currently loaded into ITK-SNAP</string>
    </property>
   </action>
  </widget>

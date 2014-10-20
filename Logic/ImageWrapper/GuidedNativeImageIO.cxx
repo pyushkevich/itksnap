@@ -1496,77 +1496,106 @@ void GuidedNativeImageIO::ParseDicomDirectory(
   map < string, vector< DICOMFileInfo > >::iterator it_UID_DFI;
   for(it_UID_DFI = map_UID_FileNames.begin(); it_UID_DFI != map_UID_FileNames.end(); it_UID_DFI++)
     {
-    vector< DICOMFileInfo > & arrDFIs = it_UID_DFI->second;
-    int nFilesNr = arrDFIs.size();
+    // vector< DICOMFileInfo > & arrDFIs = it_UID_DFI->second;
+    // int nFilesNr = arrDFIs.size();
 
-    if(nFilesNr > 0)
+    vector< DICOMFileInfo > & arrAllDFIs = it_UID_DFI->second;
+
+    // At this point, we have a list of files for each UID. But on some scanners, one UID can
+    // actually include files that are of different dimensions. This is no good for ITK-SNAP, so
+    // we have to split further. So as the first pass, we are going to split this array int an a
+    // array of files with same dimensions
+    vector < vector <DICOMFileInfo> > arrDFIByDim;
+    for(int i = 0; i < arrAllDFIs.size(); i++)
       {
-      
-      int nSzZ = nFilesNr;
-
-      DICOMFileInfo & dfi0 = arrDFIs[0];
-
-      string strFileName0 = dfi0.m_strFileName;
-      int nSzX0 = dfi0.m_arrnDims[0], nSzY0 = dfi0.m_arrnDims[1];
-      bool same_dims = true;
-
-      int nIndxFiles;
-      for(nIndxFiles = 0; nIndxFiles < nFilesNr; nIndxFiles++)
+      if(i == 0 ||
+         arrDFIByDim.back().back().m_arrnDims[0] != arrAllDFIs[i].m_arrnDims[0] ||
+         arrDFIByDim.back().back().m_arrnDims[1] != arrAllDFIs[i].m_arrnDims[1])
         {
-        DICOMFileInfo & dfi = arrDFIs[nIndxFiles];
-        string strFileName = dfi.m_strFileName;
-        int nSzX = dfi.m_arrnDims[0], nSzY = dfi.m_arrnDims[1];
-        if((nSzX0 != nSzX) || (nSzY0 != nSzY))
-          {
-          same_dims = false;
-          }
-        }
-
-      // Create a registry entryx
-      Registry r;
-
-      // Create its unique series ID
-      r["SeriesId"] << it_UID_DFI->first;
-
-      // Also store the files
-      vector < string > arrstrFileNames = DICOMFileInfo::compArrayFileNames(arrDFIs);
-      r.Folder("SeriesFiles").PutArray(arrstrFileNames);
-
-      // Get textual description
-      const char * pchValue = getTag(pScanner, m_tagDesc, strFileName0);
-      if(pchValue)
-        {
-        r["SeriesDescription"] << pchValue;;
-        }
-
-      // Get dimensions
-      std::ostringstream oss;
-      if(same_dims)
-        {
-        oss << nSzX0 << " x " << nSzY0;
-        if(nSzZ != 1)
-          oss << " x " << nSzZ;
+        arrDFIByDim.push_back(vector<DICOMFileInfo>());
+        arrDFIByDim.back().push_back(arrAllDFIs[i]);
         }
       else
         {
-        oss << "Variable";
+        arrDFIByDim.back().push_back(arrAllDFIs[i]);
         }
-      r["Dimensions"] << oss.str();
+      }
 
-      // Get the number of images
-      r["NumberOfImages"] << nSzZ;
+    // Now, go through all of the pieces
+    for(int iDim = 0; iDim < arrDFIByDim.size(); iDim++)
+      {
+      vector< DICOMFileInfo > &arrDFIs = arrDFIByDim[iDim];
+      int nFilesNr = arrDFIs.size();
 
-      // Get all other fields that the user wants
-      for(DicomRequest::const_iterator it = req.begin(); it != req.end(); ++it)
+      if(nFilesNr > 0)
         {
-        pchValue = getTag(pScanner, gdcm::Tag(it->group, it->elem), strFileName0);
+
+        int nSzZ = nFilesNr;
+
+        DICOMFileInfo & dfi0 = arrDFIs[0];
+
+        string strFileName0 = dfi0.m_strFileName;
+        int nSzX0 = dfi0.m_arrnDims[0], nSzY0 = dfi0.m_arrnDims[1];
+        bool same_dims = true;
+
+        int nIndxFiles;
+        for(nIndxFiles = 0; nIndxFiles < nFilesNr; nIndxFiles++)
+          {
+          DICOMFileInfo & dfi = arrDFIs[nIndxFiles];
+          string strFileName = dfi.m_strFileName;
+          int nSzX = dfi.m_arrnDims[0], nSzY = dfi.m_arrnDims[1];
+          if((nSzX0 != nSzX) || (nSzY0 != nSzY))
+            {
+            same_dims = false;
+            }
+          }
+
+        // Create a registry entryx
+        Registry r;
+
+        // Create its unique series ID
+        r["SeriesId"] << it_UID_DFI->first;
+
+        // Also store the files
+        vector < string > arrstrFileNames = DICOMFileInfo::compArrayFileNames(arrDFIs);
+        r.Folder("SeriesFiles").PutArray(arrstrFileNames);
+
+        // Get textual description
+        const char * pchValue = getTag(pScanner, m_tagDesc, strFileName0);
         if(pchValue)
           {
-          r[it->code] << pchValue;
+          r["SeriesDescription"] << pchValue;;
           }
-        }
 
-      reg.push_back( r );
+        // Get dimensions
+        std::ostringstream oss;
+        if(same_dims)
+          {
+          oss << nSzX0 << " x " << nSzY0;
+          if(nSzZ != 1)
+            oss << " x " << nSzZ;
+          }
+        else
+          {
+          oss << "Variable";
+          }
+        r["Dimensions"] << oss.str();
+
+        // Get the number of images
+        r["NumberOfImages"] << nSzZ;
+
+        // Get all other fields that the user wants
+        for(DicomRequest::const_iterator it = req.begin(); it != req.end(); ++it)
+          {
+          pchValue = getTag(pScanner, gdcm::Tag(it->group, it->elem), strFileName0);
+          if(pchValue)
+            {
+            r[it->code] << pchValue;
+            }
+          }
+
+        reg.push_back( r );
+        }
       }
     }
   
