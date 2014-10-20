@@ -643,7 +643,7 @@ GuidedNativeImageIO
     typename NativeImageType::DirectionType dir; dir.SetIdentity();    
     
     size_t nd_actual = m_IOBase->GetNumberOfDimensions();
-    size_t nd = (nd_actual > 3) ? 3 : nd;
+    size_t nd = (nd_actual > 3) ? 3 : nd_actual;
     
     for(unsigned int i = 0; i < nd; i++)
       {
