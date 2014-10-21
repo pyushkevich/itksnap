@@ -105,6 +105,7 @@ public:
       }
   }
 
+  int GetForestSize() { return trees_.size(); }
 
   std::vector<DecisionTreeT*> trees_;
   bool verbose_;

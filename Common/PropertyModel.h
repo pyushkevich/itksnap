@@ -497,9 +497,7 @@ public:
 protected:
 
   ConcretePropertyModel()
-  {
-    m_IsValid = true;
-  }
+    : m_Value(TVal()), m_Domain(TDomain()), m_IsValid(true) {}
 
   virtual ~ConcretePropertyModel() {}
 

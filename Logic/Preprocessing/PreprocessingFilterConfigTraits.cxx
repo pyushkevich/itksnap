@@ -42,6 +42,7 @@
 #include "RandomForestClassifyImageFilter.txx"
 #include "IRISApplication.h"
 #include "UnsupervisedClustering.h"
+#include "RFClassificationEngine.h"
 #include "Rebroadcaster.h"
 
 void
@@ -205,6 +206,11 @@ RFPreprocessingFilterConfigTraits
       filter->AddVectorImage(w->GetImage());
       }
     }
+
+  // Set the classifier input
+  RFClassificationEngine *rfe = sid->GetParent()->GetClassificationEngine();
+  assert(rfe);
+  filter->SetClassifier(rfe->GetClassifier());
 }
 
 void

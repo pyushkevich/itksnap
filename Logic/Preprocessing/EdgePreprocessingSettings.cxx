@@ -46,7 +46,10 @@ EdgePreprocessingSettings
 }
 
 EdgePreprocessingSettings::
-EdgePreprocessingSettings()
+EdgePreprocessingSettings():
+        m_GaussianBlurScale(1.0f), 
+        m_RemappingSteepness(0.04f),  
+        m_RemappingExponent(3.0f) 
 {
   this->InitializeToDefaults();
 }

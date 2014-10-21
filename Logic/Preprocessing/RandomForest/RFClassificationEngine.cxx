@@ -44,7 +44,7 @@ void RFClassificationEngine::ResetClassifier()
   m_Classifier->Reset();
 }
 
-void RFClassificationEngine::TrainClassifier()
+void RFClassificationEngine:: TrainClassifier()
 {
   assert(m_DataSource && m_DataSource->IsMainLoaded());
 
@@ -157,6 +157,28 @@ void RFClassificationEngine::TrainClassifier()
         m_Classifier->m_ForegroundClass = it->first;
       }
     }
+}
+
+void RFClassificationEngine::SetClassifier(RandomForestClassifier *rf)
+{
+  // Set the classifier
+  m_Classifier = rf;
+
+  // Update the forest size
+  m_ForestSize = m_Classifier->GetForest()->GetForestSize();
+}
+
+int RFClassificationEngine::GetNumberOfComponents() const
+{
+  assert(m_DataSource);
+
+  int ncomp = 0;
+
+  for(LayerIterator it = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+      !it.IsAtEnd(); ++it)
+    ncomp += it.GetLayer()->GetNumberOfComponents();
+
+  return ncomp;
 }
 
 

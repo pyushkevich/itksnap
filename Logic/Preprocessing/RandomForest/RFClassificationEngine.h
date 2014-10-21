@@ -31,11 +31,17 @@ public:
   /** Train the classifier */
   void TrainClassifier();
 
+  /** Set the classifier */
+  void SetClassifier(RandomForestClassifier *rf);
+
   /** Access the trained classifier */
   irisGetMacro(Classifier, RandomForestClassifier *)
 
   /** Size of the random forest (main parameter) */
   irisGetSetMacro(ForestSize, int)
+
+  /** Get the number of components passed to the classifier */
+  int GetNumberOfComponents() const;
 
 
 protected:
