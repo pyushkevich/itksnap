@@ -107,7 +107,17 @@ void RFClassificationEngine:: TrainClassifier()
       }
     }
 
+  // Check that the sample has at least two distinct labels
+  bool isValidSample = false;
+  for(int iSample = 1; iSample < m_Sample->Size(); iSample++)
+    if(m_Sample->label[iSample] != m_Sample->label[iSample-1])
+      { isValidSample = true; break; }
+
   // Now there is a valid sample. The text task is to train the classifier
+  if(!isValidSample)
+    throw IRISException("A classifier cannot be trained because the training "
+                        "data contain fewer than two classes. Please label "
+                        "examples of two or more tissue classes in the image.");
 
   // Set up the classifier parameters
   TrainingParameters params;
