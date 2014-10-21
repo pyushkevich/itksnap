@@ -13,16 +13,61 @@
 The main new feature introduced in this release is supervised classification.
 The release also is built against Qt5 (3.0 used Qt4.8), which resulted in a lot
 of changes to compilation and packaging. Quite a few bugs have been fixed and
-the release should be more stable than 3.0
+the release should be more stable than 3.0.
 
 1.1.1. New functionality in this release
 
+ -  Added a supervised classification presegmentation mode. This mode allows
+    the user to compute the speed image by marking examples of two or more
+    tissue classes in an image with the paintbrush or polygon tools. The mode
+    works with multi-component data and multiple image layers.
+
+ -  Redesigned the semi-automatic segmentation GUI to be simpler to use. Now
+    the presegmentation can be done without bringing up a separate dialog.
+    Also the speed image is immediately computed for most presegmentation
+    modes. Overall, semi-automatic segmentation should be much easier to use
+    than in the past.
+
+ -  ITK-SNAP can now read 4D datasets. Previously such datasets would have to
+    be converted to a multi-component 3D dataset by the user. Now working with
+    dynamic datasets is much easier.
+
+ -  Added a label palette control for faster selection of labels
+
+ -  Added a 'flip' button for the 3D scalpel tool
+
+ -  Added support for syncing camera state between multiple SNAP sessions
+
+ -  Significantly improved behavior of open/save dialogs throughout the code.
+    All dialogs now use the same code and open in a sensible place.
+
+ -  Added option to auto-adjust image contrast on load
+
+ -  Improved volumes & statistics computation speed and display formatting
 
 
 1.1.2. Bug Fixes
+ 
+ -  Fixed a bug with small bubbles not growing in snake mode.
+
+ -  Refactored the DICOM input code and fixed several errors in the process.
+
+ -  Fixed numerous problems on Retina displays
+
+ -  Modified the clustering code to use Eigendecomposition for increased
+    robusness, particularly when applied to binary and multi-label images.
+
+ -  Fixed several dozen smaller bugs
 
 
+1.1.3. Programmatic Improvements
 
+ -  Migrated to Qt5 as well as up to date versions of ITK (4.5) and VTK (6.1)
+
+ -  Added scripted GUI testing functionality. This allows interactions to be
+    recorded and played back on different platforms and is great for
+    regression testing. Four tests are in this release, and more will be
+    developed soon.
 
 
 
