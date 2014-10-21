@@ -28,6 +28,8 @@ MACRO (TODAY RESULT)
         MESSAGE(SEND_ERROR "date not implemented")
         SET(${RESULT} 000000)
     ENDIF (WIN32)
+	string(REPLACE "\n" "" ${RESULT} ${${RESULT}})
+	string(REPLACE " " "" ${RESULT} ${${RESULT}})
 ENDMACRO (TODAY)
 
 get_cmake_property(_variableNames VARIABLES)
