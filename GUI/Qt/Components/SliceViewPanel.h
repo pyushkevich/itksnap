@@ -10,6 +10,7 @@ class QtInteractionDelegateWidget;
 class SnakeModeRenderer;
 class SliceWindowDecorationRenderer;
 class GenericSliceModel;
+class QCursor;
 
 namespace Ui {
     class SliceViewPanel;
@@ -70,6 +71,9 @@ private:
 
   // Slice model
   GenericSliceModel *m_SliceModel;
+
+  // Custom cursor for drawing operations
+  QCursor *m_DrawingCrosshairCursor;
 
   // Some renderers don't require a separate widget (no user interaction)
   // and so they are owned by this panel.

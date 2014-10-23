@@ -26,6 +26,11 @@ public:
   irisSimplePropertyAccessMacro(SyncPan, bool)
   irisSimplePropertyAccessMacro(SyncCamera, bool)
 
+  /**
+   * Whether the model should be broadcasting. The GUI should toggle this
+   * flag depending on whether the window is active or not */
+  irisGetSetMacro(CanBroadcast, bool)
+
   /** This method should be called by UI at regular intervals to read IPC state */
   void ReadIPCState();
 
@@ -48,6 +53,8 @@ protected:
   SystemInterface *m_SystemInterface;
 
   IPCHandler *m_IPCHandler;
+
+  bool m_CanBroadcast;
 };
 
 #endif // SYNCHRONIZATIONMODEL_H

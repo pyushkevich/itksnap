@@ -272,6 +272,9 @@ protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);
 
+  // Change event (for tracking active / non-active window)
+  virtual void changeEvent(QEvent *);
+
 private:
 
   void UpdateRecentMenu();
@@ -295,6 +298,7 @@ private:
 
   // Hookup check
   void HookupShortcutToAction(const QKeySequence &ks, QAction *action);
+  void HookupSecondaryShortcutToAction(const QKeySequence &ks, QAction *action);
 
   // For convenience, an array of the four panels (3 slice/1 3D)
   QWidget *m_ViewPanels[4];

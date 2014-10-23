@@ -56,6 +56,7 @@
 #include "AboutDialog.h"
 #include "HistoryManager.h"
 #include "DefaultBehaviorSettings.h"
+#include "SynchronizationModel.h"
 
 
 
@@ -248,6 +249,8 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   this->HookupShortcutToAction(QKeySequence(Qt::SHIFT + Qt::Key_X), ui->actionToggle_Crosshair);
   this->HookupShortcutToAction(QKeySequence("<"), ui->actionForegroundLabelPrev);
   this->HookupShortcutToAction(QKeySequence(">"), ui->actionForegroundLabelNext);
+  this->HookupSecondaryShortcutToAction(QKeySequence(","), ui->actionForegroundLabelPrev);
+  this->HookupSecondaryShortcutToAction(QKeySequence("."), ui->actionForegroundLabelNext);
   this->HookupShortcutToAction(QKeySequence("C"), ui->actionCenter_on_Cursor);
 }
 
@@ -265,6 +268,12 @@ void MainImageWindow::HookupShortcutToAction(const QKeySequence &ks, QAction *ac
   QShortcut *short_S = new QShortcut(ks, this);
   connect(short_S, SIGNAL(activated()), action, SLOT(trigger()));
 #endif
+}
+
+void MainImageWindow::HookupSecondaryShortcutToAction(const QKeySequence &ks, QAction *action)
+{
+  QShortcut *short_S = new QShortcut(ks, this);
+  connect(short_S, SIGNAL(activated()), action, SLOT(trigger()));
 }
 
 
@@ -417,7 +426,8 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   makeActionGroupCoupling(this->Get3DToolActionGroup(),
                           m_Model->GetGlobalState()->GetToolbarMode3DModel());
 
-
+  // Set the synchronization state
+  m_Model->GetSynchronizationModel()->SetCanBroadcast(this->isActiveWindow());
 }
 
 void MainImageWindow::ShowFirstTime()
@@ -1603,6 +1613,12 @@ void MainImageWindow::on_actionUnload_All_Overlays_triggered()
     {
     m_Model->GetDriver()->UnloadAllOverlays();
     }
+}
+
+void MainImageWindow::changeEvent(QEvent *)
+{
+  if(m_Model)
+    m_Model->GetSynchronizationModel()->SetCanBroadcast(this->isActiveWindow());
 }
 
 void MainImageWindow::on_actionUnload_Last_Overlay_triggered()
