@@ -1131,12 +1131,26 @@ ELSE()
   # Include the qt4 dependent libraries
   include(DeployQt5)
 
-  # Get the necessary plugins
-  get_property(QT_XCB_PLUGIN TARGET Qt5::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
-  get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+  # Add an option to not package QT plugins. This is needed for some special builds,
+  # for example on Debian
+  OPTION(SNAP_PACKAGE_QT_PLUGINS "Try to package Qt5 plugins with the executable" ON)
+  MARK_AS_ADVANCED(SNAP_PACKAGE_QT_PLUGINS)
 
-  # Install the plugin
-  install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} "${QT_XCB_PLUGIN};${QT_GIF_PLUGIN}")
+  # Get the necessary plugins
+  IF(SNAP_PACKAGE_QT_PLUGINS)
+
+    get_property(QT_XCB_PLUGIN TARGET Qt5::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+
+    # Install the plugin
+    install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} "${QT_XCB_PLUGIN};${QT_GIF_PLUGIN}")
+
+  ELSE(SNAP_PACKAGE_QT_PLUGINS)
+
+    # Install the exe without plugins
+    install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE})
+
+  ENDIF(SNAP_PACKAGE_QT_PLUGINS)
 
 ENDIF()
 
