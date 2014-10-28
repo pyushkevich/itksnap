@@ -129,12 +129,24 @@ GenericImageData
   m_MainImageWrapper->SetAlpha(255);
 }
 
+#include "itkIdentityTransform.h"
 
 SmartPtr<ImageWrapperBase>
-GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io)
+GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, bool sameSpaceAsMainWrapper)
 {
   // The output wrapper
   SmartPtr<ImageWrapperBase> out_wrapper;
+
+  // Determine the reference image and transform
+  ImageBaseType *refSpace = NULL;
+  typedef itk::IdentityTransform<double, 3> TransformType;
+  SmartPtr<TransformType> transform = NULL;
+
+  if(!sameSpaceAsMainWrapper)
+    {
+    refSpace = this->GetMain()->GetImageBase();
+    transform = TransformType::New();
+    }
 
   // Split depending on whether the image is scalar or vector
   if(io->GetNumberOfComponentsInNativeImage() > 1)
@@ -155,7 +167,7 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io)
 
     // Set properties
     wrapper->SetDisplayGeometry(m_DisplayGeometry);
-    wrapper->SetImage(image);
+    wrapper->SetImage(image, refSpace, transform);
     wrapper->SetNativeMapping(mapper);
     out_wrapper = wrapper.GetPointer();
     }
@@ -178,7 +190,7 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io)
 
     // Set properties
     wrapper->SetDisplayGeometry(m_DisplayGeometry);
-    wrapper->SetImage(image);
+    wrapper->SetImage(image, refSpace, transform);
     wrapper->SetNativeMapping(mapper);
     out_wrapper = wrapper.GetPointer();
     }
@@ -191,7 +203,7 @@ void GenericImageData::SetMainImage(GuidedNativeImageIO *io)
 {
   // Create the wrapper from the Native IO (the wrapper will either be a scalar
   // or a vector-valued image, depending on the number of components)
-  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io);
+  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, true);
 
   // Assign this wrapper to the main image
   this->SetMainImageInternal(wrapper);
@@ -232,7 +244,7 @@ GenericImageData
 {
   // Create the wrapper from the Native IO (the wrapper will either be a scalar
   // or a vector-valued image, depending on the number of components)
-  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io);
+  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, true);
 
   // Assign this wrapper to the main image
   this->AddOverlayInternal(wrapper);
@@ -240,10 +252,22 @@ GenericImageData
 
 void
 GenericImageData
-::AddOverlayInternal(ImageWrapperBase *overlay)
+::AddCoregOverlay(GuidedNativeImageIO *io)
+{
+  // Create the wrapper from the Native IO (the wrapper will either be a scalar
+  // or a vector-valued image, depending on the number of components)
+  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, false);
+
+  // Assign this wrapper to the main image
+  this->AddOverlayInternal(wrapper, false);
+}
+
+void
+GenericImageData
+::AddOverlayInternal(ImageWrapperBase *overlay, bool checkSpace)
 {
   // Check that the image matches the size of the main image
-  if(m_MainImageWrapper->GetBufferedRegion() != overlay->GetBufferedRegion())
+  if(checkSpace && m_MainImageWrapper->GetBufferedRegion() != overlay->GetBufferedRegion())
     {
     throw IRISException("Main and overlay data sizes are different");
     }
@@ -253,7 +277,8 @@ GenericImageData
   overlay->SetDefaultNickname("Overlay Image");
 
   // Sync up spacing between the main and overlay image
-  overlay->CopyImageCoordinateTransform(m_MainImageWrapper);
+  if(checkSpace)
+    overlay->CopyImageCoordinateTransform(m_MainImageWrapper);
 
   // Add to the overlay wrapper list
   PushBackImageWrapper(OVERLAY_ROLE, overlay);

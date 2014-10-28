@@ -181,7 +181,7 @@ class ImageIOWizard : public QWizard
 
 public:
 
-  enum { Page_File, Page_Raw, Page_DICOM, Page_Summary };
+  enum { Page_File, Page_Raw, Page_DICOM, Page_Coreg, Page_Summary };
 
   explicit ImageIOWizard(QWidget *parent = 0);
 

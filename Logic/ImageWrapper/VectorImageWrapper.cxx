@@ -195,7 +195,7 @@ template <class TTraits, class TBase>
 template <class TFunctor>
 SmartPtr<ScalarImageWrapperBase>
 VectorImageWrapper<TTraits,TBase>
-::CreateDerivedWrapper(ImageType *image)
+::CreateDerivedWrapper(ImageType *image, ImageBaseType *refSpace, ITKTransformType *transform)
 {
   typedef VectorDerivedQuantityImageWrapperTraits<TFunctor> WrapperTraits;
   typedef typename WrapperTraits::WrapperType DerivedWrapper;
@@ -205,7 +205,7 @@ VectorImageWrapper<TTraits,TBase>
   adaptor->SetImage(image);
 
   SmartPtr<DerivedWrapper> wrapper = DerivedWrapper::New();
-  wrapper->InitializeToWrapper(this, adaptor);
+  wrapper->InitializeToWrapper(this, adaptor, refSpace, transform);
 
   // Assign a parent wrapper to the derived wrapper
   wrapper->SetParentWrapper(this);
@@ -222,7 +222,7 @@ VectorImageWrapper<TTraits,TBase>
 template <class TTraits, class TBase>
 void
 VectorImageWrapper<TTraits,TBase>
-::UpdateImagePointer(ImageType *newImage)
+::UpdateImagePointer(ImageType *newImage, ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
   // Create the component wrappers before calling the parent's method.
   int nc = newImage->GetNumberOfComponentsPerPixel();
@@ -241,7 +241,7 @@ VectorImageWrapper<TTraits,TBase>
 
     // Create a wrapper for this image and assign the component image
     SmartPtr<ComponentWrapperType> cw = ComponentWrapperType::New();
-    cw->InitializeToWrapper(this, comp);
+    cw->InitializeToWrapper(this, comp, referenceSpace, transform);
 
     // Assign a parent wrapper to the derived wrapper
     cw->SetParentWrapper(this);
@@ -255,13 +255,13 @@ VectorImageWrapper<TTraits,TBase>
     }
 
   m_ScalarReps[std::make_pair(SCALAR_REP_MAGNITUDE, 0)]
-      = this->template CreateDerivedWrapper<MagnitudeFunctor>(newImage);
+      = this->template CreateDerivedWrapper<MagnitudeFunctor>(newImage, referenceSpace, transform);
 
   m_ScalarReps[std::make_pair(SCALAR_REP_MAX, 0)]
-      = this->template CreateDerivedWrapper<MaxFunctor>(newImage);
+      = this->template CreateDerivedWrapper<MaxFunctor>(newImage, referenceSpace, transform);
 
   m_ScalarReps[std::make_pair(SCALAR_REP_AVERAGE, 0)]
-      = this->template CreateDerivedWrapper<MeanFunctor>(newImage);
+      = this->template CreateDerivedWrapper<MeanFunctor>(newImage, referenceSpace, transform);
 
   // Create a flat representation of the image
   m_FlatImage = FlatImageType::New();
@@ -309,7 +309,7 @@ VectorImageWrapper<TTraits,TBase>
   ColorMap *cm = cref->GetDisplayMapping()->GetColorMap(); */
 
   // Call the parent's method = this will initialize the display mapping
-  Superclass::UpdateImagePointer(newImage);
+  Superclass::UpdateImagePointer(newImage, referenceSpace, transform);
 
 }
 

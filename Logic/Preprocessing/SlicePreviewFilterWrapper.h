@@ -124,6 +124,8 @@ public:
   typedef typename FilterType::OutputImageType              OutputImageType;
   typedef typename OutputImageType::PixelType               OutputPixelType;
 
+  typedef typename TFilterConfigTraits::InputDataType         InputDataType;
+
   typedef typename TFilterConfigTraits::OutputWrapperType OutputWrapperType;
   typedef IRISSlicer<OutputImageType, itk::Image<OutputPixelType, 2> >
                                                                  SlicerType;
@@ -137,7 +139,7 @@ public:
   void SetPreviewMode(bool mode);
 
   /** Set the input image, etc */
-  void AttachInputs(SNAPImageData *sid);
+  void AttachInputs(InputDataType *sid);
 
   /** Set the output volume */
   void AttachOutputWrapper(OutputWrapperType *wrapper);

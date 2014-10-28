@@ -1557,6 +1557,55 @@ IRISApplication
   InvokeEvent(LayerChangeEvent());
 }
 
+// TODO: this code is 99% same as above - fix it!
+void
+IRISApplication
+::AddIRISCoregOverlayImage(GuidedNativeImageIO *io, Registry *metadata)
+{
+  assert(!IsSnakeModeActive());
+  assert(m_IRISImageData->IsMainLoaded());
+  assert(io->IsNativeImageLoaded());
+
+  // Add the image as the current grayscale overlay
+  m_IRISImageData->AddCoregOverlay(io);
+
+  // Set the filename of the overlay
+  // TODO: this is cumbersome, could we just initialize the wrapper from the
+  // GuidedNativeImageIO without passing all this junk around?
+  m_IRISImageData->GetLastOverlay()->SetFileName(io->GetFileNameOfNativeImage());
+
+  // Add the overlay to the history
+  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), true);
+
+  // for overlay, we don't want to change the cursor location
+  // just force the IRISSlicer to update
+  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // Apply the default color map for overlays
+  std::string deflt_preset =
+      m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
+  m_ColorMapPresetManager->SetToPreset(
+        m_IRISImageData->GetLastOverlay()->GetDisplayMapping()->GetColorMap(),
+        deflt_preset);
+
+  // Initialize the layer-specific segmentation parameters
+  CreateSegmentationSettings(m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE);
+
+  // Read and apply the project-level settings associated with the main image
+  LoadMetaDataAssociatedWithLayer(
+        m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE, metadata);
+
+  // If the default is to auto-contrast, perform the contrast adjustment
+  // operation on the image
+  if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
+    {
+    AutoContrastLayerOnLoad(m_IRISImageData->GetLastOverlay());
+    }
+
+  // Fire event
+  InvokeEvent(LayerChangeEvent());
+}
+
 void
 IRISApplication
 ::AutoContrastLayerOnLoad(ImageWrapperBase *layer)

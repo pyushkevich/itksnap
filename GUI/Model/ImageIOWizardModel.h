@@ -194,7 +194,7 @@ public:
   /**
    * Set whether the IO module should use registration
    */
-  irisGetSetMacro(UseRegistration, bool)
+  irisGetMacro(UseRegistration, bool)
 
 protected:
 

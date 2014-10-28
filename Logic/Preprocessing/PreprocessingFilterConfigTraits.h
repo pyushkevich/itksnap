@@ -50,6 +50,8 @@ class RandomForestClassifier;
 class SmoothBinaryThresholdFilterConfigTraits {
 public:
 
+  typedef SNAPImageData                                          InputDataType;
+
   typedef ScalarImageWrapperBase::CommonFormatImageType               GreyType;
   typedef SNAPImageData::SpeedImageType                              SpeedType;
   typedef SpeedImageWrapper                                  OutputWrapperType;
@@ -77,6 +79,8 @@ public:
 class EdgePreprocessingFilterConfigTraits {
 public:
 
+  typedef SNAPImageData                                          InputDataType;
+
   typedef ScalarImageWrapperBase::CommonFormatImageType               GreyType;
   typedef SNAPImageData::SpeedImageType                              SpeedType;
   typedef SpeedImageWrapper                                  OutputWrapperType;
@@ -100,6 +104,8 @@ public:
 
 class GMMPreprocessingFilterConfigTraits {
 public:
+
+  typedef SNAPImageData                                          InputDataType;
 
   typedef AnatomicScalarImageWrapper::ImageType                 GreyScalarType;
   typedef AnatomicImageWrapper::ImageType                       GreyVectorType;
@@ -128,6 +134,8 @@ public:
 /** Traits class for random forest based preprocessing */
 class RFPreprocessingFilterConfigTraits {
 public:
+
+  typedef SNAPImageData                                          InputDataType;
 
   typedef AnatomicScalarImageWrapper::ImageType                 GreyScalarType;
   typedef AnatomicImageWrapper::ImageType                       GreyVectorType;

@@ -52,6 +52,7 @@ public:
   itkNewMacro(Self)
 
   // Image Types
+  typedef typename Superclass::ImageBaseType                     ImageBaseType;
   typedef typename Superclass::ImageType                             ImageType;
   typedef typename Superclass::ImagePointer                       ImagePointer;
 
@@ -82,6 +83,8 @@ public:
 
   // Pipeline objects wrapped around values
   typedef typename Superclass::ComponentTypeObject         ComponentTypeObject;
+
+  typedef typename Superclass::ITKTransformType               ITKTransformType;
 
   virtual bool IsScalar() const { return false; }
 
@@ -233,14 +236,17 @@ protected:
    */
   VectorImageWrapper(const Self &copy) : Superclass(copy) {}
 
-  virtual void UpdateImagePointer(ImageType *newImage);
+  virtual void UpdateImagePointer(ImageType *image,
+                                  ImageBaseType *refSpace = NULL,
+                                  ITKTransformType *tran = NULL);
 
   /** Destructor */
   virtual ~VectorImageWrapper();
 
   /** Create a derived wrapper of a certain type */
   template <class TFunctor>
-  SmartPtr<ScalarImageWrapperBase> CreateDerivedWrapper(ImageType *image);
+  SmartPtr<ScalarImageWrapperBase> CreateDerivedWrapper(
+      ImageType *image, ImageBaseType *refSpace, ITKTransformType *transform);
 
   template <class TFunctor>
   void SetNativeMappingInDerivedWrapper(

@@ -52,6 +52,11 @@ class SNAPSegmentationROISettings;
 namespace itk {
   template <unsigned int VDimension> class ImageBase;
   template <class TImage> class ImageSource;
+  template <typename TScalar, unsigned int V1, unsigned int V2> class Transform;
+  template<typename TInputImage,
+           typename TOutputImage,
+           typename TInterpolatorPrecisionType,
+           typename TTransformPrecisionType> class ResampleImageFilter;
 }
 
 #include <itkImageSource.h>
@@ -128,6 +133,10 @@ public:
   typedef itk::SimpleDataObjectDecorator<ComponentType>    ComponentTypeObject;
   typedef itk::SimpleDataObjectDecorator<double>                  DoubleObject;
 
+  // ITK's coordinate transform (rigid, affine, etc)
+  typedef itk::Transform<double, 3, 3>                        ITKTransformType;
+
+
   /**
    * Get the parent wrapper for this wrapper. For 'normal' wrappers, this method
    * returns NULL, indicating that the wrapper is a top-level wrapper. For derived
@@ -152,7 +161,7 @@ public:
    * source wrapper, otherwise, it's equivalent to SetImage()
    */ 
   virtual void InitializeToWrapper(
-    const ImageWrapperBase *source, ImageType *image);
+    const ImageWrapperBase *source, ImageType *image, ImageBaseType *refSpace, ITKTransformType *tran);
 
   /**
     Get a unique id for this wrapper. All wrappers ever created have
@@ -343,6 +352,12 @@ public:
   virtual void SetImage(ImagePointer newImage);
 
   /**
+   * Set the wrapper to hold an image that is in a coordinate space that is
+   * different from the program's main reference space
+   */
+  virtual void SetImage(ImagePointer newImage, ImageBaseType *refSpace, ITKTransformType *transform);
+
+  /**
    * Extract a region of interest from the image wrapper, as a new wrapper of
    * the same type
    */
@@ -526,6 +541,9 @@ protected:
   /** The wrapped image */
   SmartPtr<ImageBaseType> m_ImageBase;
 
+  /** The reference space - this is the space into which the image is sliced */
+  SmartPtr<ImageBaseType> m_ReferenceSpace;
+
   /** The current cursor position (slice index) in image dimensions */
   Vector3ui m_SliceIndex;
 
@@ -585,11 +603,18 @@ protected:
   typedef std::map<std::string, SmartPtr<itk::Object> > UserDataMapType;
   UserDataMapType m_UserDataMap;
 
+
   /**
    * Handle a change in the image pointer (i.e., a load operation on the image or 
-   * an initialization operation)
+   * an initialization operation). This function can take two optional parameters:
+   * the reference space and a transform. If these parameters are not NULL, then the
+   * wrapper represents a spatially transformed image. The slicers in the wrapper will
+   * slice not along the orthogonal directions in the image, but along directions in
+   * the reference space.
    */
-  virtual void UpdateImagePointer(ImageType *);
+  virtual void UpdateImagePointer(ImageType *image,
+                                  ImageBaseType *refSpace = NULL,
+                                  ITKTransformType *tran = NULL);
 
   /**
    * Update the image geometry (combining the information in the image and the
@@ -609,6 +634,9 @@ protected:
   /** Parent wrapper */
   ImageWrapperBase *m_ParentWrapper;
 
+
+  typedef itk::ResampleImageFilter<ImageType, ImageType, double, double> ResampleFilter;
+  SmartPtr<ResampleFilter> m_ResampleFilter[3];
 };
 
 #endif // __ImageWrapper_h_

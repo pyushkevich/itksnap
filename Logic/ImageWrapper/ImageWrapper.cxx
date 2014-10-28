@@ -68,6 +68,7 @@
 #include "UnaryValueToValueFilter.h"
 #include "ScalarImageHistogram.h"
 #include "GuidedNativeImageIO.h"
+#include "itkTransform.h"
 
 
 #include <vnl/vnl_inverse.h>
@@ -426,7 +427,7 @@ ImageWrapper<TTraits,TBase>
 {
   // Update the direction matrix in the image
   typename ImageType::DirectionType matrix(direction);
-  m_Image->SetDirection(matrix);
+  m_ReferenceSpace->SetDirection(matrix);
 
   // Update the NIFTI/RAS transform
   this->UpdateNiftiTransforms();
@@ -517,7 +518,7 @@ ImageWrapper<TTraits,TBase>
   for(size_t d = 0; d < 3; d++) xIndex[d] = iVoxel[d];
 
   itk::Point<double, 3> xPoint;
-  m_ImageBase->TransformIndexToPhysicalPoint(xIndex, xPoint);
+  m_ReferenceSpace->TransformIndexToPhysicalPoint(xIndex, xPoint);
 
   Vector3d xOut;
   for(unsigned int q = 0; q < 3; q++) xOut[q] = xPoint[q];
@@ -577,27 +578,61 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 void 
 ImageWrapper<TTraits,TBase>
-::UpdateImagePointer(ImageType *newImage)
+::UpdateImagePointer(ImageType *newImage, ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
+  // If there is no reference space, we assume that the reference space is the same as the image
+  referenceSpace = referenceSpace ? referenceSpace : newImage;
+
   // Check if the image size or image direction matrix has changed
   bool hasSizeChanged = true, hasDirectionChanged = true;
-  if(m_Image && m_Image != newImage)
+  if(m_ReferenceSpace && m_ReferenceSpace != referenceSpace)
     {
-    hasSizeChanged = newImage->GetLargestPossibleRegion().GetSize()
-        != m_Image->GetLargestPossibleRegion().GetSize();
+    hasSizeChanged = referenceSpace->GetLargestPossibleRegion().GetSize()
+        != m_ReferenceSpace->GetLargestPossibleRegion().GetSize();
 
-    hasDirectionChanged = newImage->GetDirection()
-        != m_Image->GetDirection();
+    hasDirectionChanged = referenceSpace->GetDirection()
+        != m_ReferenceSpace->GetDirection();
     }
 
-  // Change the input of the slicers 
-  m_Slicer[0]->SetInput(newImage);
-  m_Slicer[1]->SetInput(newImage);
-  m_Slicer[2]->SetInput(newImage);
+  // Set the input of the slicers, depending on whether the image is subject to transformation
+  if(transform == NULL)
+    {
+    // Slicers take their input directly from the new image
+    for(int i = 0; i < 3; i++)
+      {
+      m_Slicer[i]->SetInput(newImage);
+      m_Slicer[i]->SetPreviewInput(NULL);
+      m_Slicer[i]->SetBypassMainInput(false);
+      }
+    }
+  else
+    {
+    // Create a dummy image to serve as the nominal input to the slicers
+    // We purposely do not allocate this dummy image!
+    SmartPtr<ImageType> dummy = ImageType::New();
+    dummy->CopyInformation(referenceSpace);
+    dummy->SetLargestPossibleRegion(referenceSpace->GetBufferedRegion());
+
+    // Each slicer is attached to a preview filter
+    for(int i = 0; i < 3; i++)
+      {
+      // Set the input to the dummy image
+      m_Slicer[i]->SetInput(dummy);
+
+      // Create an itk reslicing filter
+      m_ResampleFilter[i] = ResampleFilter::New();
+      m_ResampleFilter[i]->SetInput(newImage);
+      m_ResampleFilter[i]->SetTransform(transform);
+      m_ResampleFilter[i]->SetOutputParametersFromImage(referenceSpace);
+      m_Slicer[i]->SetPreviewInput(m_ResampleFilter[i]->GetOutput());
+      m_Slicer[i]->SetBypassMainInput(true);
+      }
+    }
 
   // Update the image
+  this->m_ReferenceSpace = referenceSpace;
   this->m_ImageBase = newImage;
-  m_Image = newImage;
+  this->m_Image = newImage;
 
   // Mark the image as Modified to enforce correct sequence of
   // operations with MinMaxCalc
@@ -629,13 +664,14 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 void 
 ImageWrapper<TTraits,TBase>
-::InitializeToWrapper(const ImageWrapperBase *source, ImageType *image) 
+::InitializeToWrapper(const ImageWrapperBase *source,
+                      ImageType *image, ImageBaseType *refSpace, ITKTransformType *tran)
 {
   // Update the display geometry from the source wrapper
   m_DisplayGeometry = source->GetDisplayGeometry();
 
   // Call the common update method
-  UpdateImagePointer(image);
+  UpdateImagePointer(image, refSpace, tran);
 
   // Update the slice index
   SetSliceIndex(source->GetSliceIndex());
@@ -675,6 +711,15 @@ ImageWrapper<TTraits,TBase>
 ::SetImage(ImagePointer newImage) 
 {
   UpdateImagePointer(newImage);
+}
+
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::SetImage(ImagePointer newImage, ImageBaseType *refSpace, ITKTransformType *transform)
+{
+  UpdateImagePointer(newImage, refSpace, transform);
 }
 
 
@@ -801,13 +846,13 @@ ImageWrapper<TTraits,TBase>
   // This method must be called whenever one of these parameters changes.
 
   // Create an image coordinate geometry based on the current state
-  if(m_Image)
+  if(m_ReferenceSpace)
     {
     // Set the geometry based on the current image characteristics
     m_ImageGeometry.SetGeometry(
-          m_Image->GetDirection().GetVnlMatrix(),
+          m_ReferenceSpace->GetDirection().GetVnlMatrix(),
           m_DisplayGeometry,
-          m_Image->GetLargestPossibleRegion().GetSize());
+          m_ReferenceSpace->GetLargestPossibleRegion().GetSize());
 
     // Update the geometry for each slice
     for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
@@ -860,13 +905,13 @@ void
 ImageWrapper<TTraits,TBase>
 ::UpdateNiftiTransforms()
 {
-  assert(m_Image);
+  assert(m_ReferenceSpace);
 
   // Update the NIFTI/RAS transform
   m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
-    m_Image->GetDirection().GetVnlMatrix(),
-    m_Image->GetOrigin().GetVnlVector(),
-    m_Image->GetSpacing().GetVnlVector());
+    m_ReferenceSpace->GetDirection().GetVnlMatrix(),
+    m_ReferenceSpace->GetOrigin().GetVnlVector(),
+    m_ReferenceSpace->GetSpacing().GetVnlVector());
 
   // Compute the inverse transform
   m_NiftiInvSform = vnl_inverse(m_NiftiSform);

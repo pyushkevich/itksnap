@@ -44,6 +44,8 @@ public:
   virtual void UnloadCurrentImage() = 0;
   virtual void UpdateApplicationWithImage(GuidedNativeImageIO *io) = 0;
 
+  virtual bool GetUseRegistration() const { return false; }
+
 protected:
   AbstractLoadImageDelegate() : m_MetaDataRegistry(NULL) {}
   virtual ~AbstractLoadImageDelegate() {}
@@ -88,18 +90,35 @@ public:
 
   irisITKObjectMacro(LoadOverlayImageDelegate, LoadAnatomicImageDelegate)
 
-  irisGetSetMacro(UseRegistration, bool)
-
   void UnloadCurrentImage();
   void UpdateApplicationWithImage(GuidedNativeImageIO *io);
   void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
 
 protected:
-  LoadOverlayImageDelegate() { m_UseRegistration = false; }
+  LoadOverlayImageDelegate() { }
   virtual ~LoadOverlayImageDelegate() {}
-
-  bool m_UseRegistration;
 };
+
+
+class LoadCoregisteredOverlayImageDelegate : public LoadAnatomicImageDelegate
+{
+public:
+
+  irisITKObjectMacro(LoadCoregisteredOverlayImageDelegate, LoadAnatomicImageDelegate)
+
+  void UnloadCurrentImage();
+  void UpdateApplicationWithImage(GuidedNativeImageIO *io);
+  void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
+
+  virtual bool GetUseRegistration() const { return true; }
+
+
+protected:
+  LoadCoregisteredOverlayImageDelegate() { }
+  virtual ~LoadCoregisteredOverlayImageDelegate() {}
+};
+
+
 
 class LoadSegmentationImageDelegate : public AbstractLoadImageDelegate
 {

@@ -279,6 +279,8 @@ int SelectFilePage::nextId() const
     return ImageIOWizard::Page_Raw;
   else if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR)
     return ImageIOWizard::Page_DICOM;
+  else if(m_Model->GetUseRegistration())
+    return ImageIOWizard::Page_Coreg;
   else
     return ImageIOWizard::Page_Summary;
 }
@@ -513,7 +515,10 @@ bool DICOMPage::validatePage()
 
 int DICOMPage::nextId() const
 {
-  return ImageIOWizard::Page_Summary;
+  if(m_Model->GetUseRegistration())
+    return ImageIOWizard::Page_Coreg;
+  else
+    return ImageIOWizard::Page_Summary;
 }
 
 bool DICOMPage::isComplete() const
@@ -677,7 +682,10 @@ void RawPage::initializePage()
 
 int RawPage::nextId() const
 {
-  return ImageIOWizard::Page_Summary;
+  if(m_Model->GetUseRegistration())
+    return ImageIOWizard::Page_Coreg;
+  else
+    return ImageIOWizard::Page_Summary;
 }
 
 bool RawPage::validatePage()
@@ -787,6 +795,7 @@ ImageIOWizard::ImageIOWizard(QWidget *parent) :
   setPage(Page_Summary, new SummaryPage(this));
   setPage(Page_DICOM, new DICOMPage(this));
   setPage(Page_Raw, new RawPage(this));
+  setPage(Page_Coreg, new RegistrationPage(this));
 
 }
 

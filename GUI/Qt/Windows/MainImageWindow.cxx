@@ -999,6 +999,22 @@ void MainImageWindow::on_actionAdd_Overlay_triggered()
   wiz.exec();
 }
 
+
+void MainImageWindow::on_actionCoregister_Overlay_triggered()
+{
+  SmartPtr<LoadCoregisteredOverlayImageDelegate> delegate = LoadCoregisteredOverlayImageDelegate::New();
+  delegate->Initialize(m_Model->GetDriver());
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model, delegate,
+                           "AnatomicImage", "Coregistered Overlay Image");
+
+  // Execute the IO wizard
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
+}
+
+
 void MainImageWindow::ExportScreenshot(int panelIndex)
 {
   // Generate a filename for the screenshot
@@ -1613,11 +1629,6 @@ void MainImageWindow::on_actionUnload_All_Overlays_triggered()
     {
     m_Model->GetDriver()->UnloadAllOverlays();
     }
-}
-
-void MainImageWindow::on_actionCoregister_Overlay_triggered()
-{
-  // Do nothing!
 }
 
 void MainImageWindow::changeEvent(QEvent *)

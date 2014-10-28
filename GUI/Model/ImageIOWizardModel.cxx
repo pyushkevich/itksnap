@@ -52,7 +52,7 @@ ImageIOWizardModel
   m_GuidedIO = GuidedNativeImageIO::New();
   m_LoadDelegate = delegate;
   m_SaveDelegate = NULL;
-  m_UseRegistration = false;
+  m_UseRegistration = delegate->GetUseRegistration();
 }
 
 ImageIOWizardModel::~ImageIOWizardModel()
@@ -292,10 +292,6 @@ void ImageIOWizardModel::LoadImage(std::string filename)
 
     // Load the data from the image
     m_GuidedIO->ReadNativeImageData();
-
-    // That's it if we are doing registration
-    if(m_UseRegistration)
-      return;
 
     // Validate the image data
     m_LoadDelegate->ValidateImage(m_GuidedIO, m_Warnings);

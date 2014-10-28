@@ -63,6 +63,8 @@ IRISSlicer<TInputImage, TOutputImage>
 
   // Initialize to a zero slice index
   m_SliceIndex = 0;
+
+  m_BypassMainInput = false;
 }
 
 template <class TInputImage, class TOutputImage>
@@ -179,7 +181,7 @@ IRISSlicer<TInputImage, TOutputImage>
 
   if(preview)
     {
-    if(preview->GetPipelineMTime() > main->GetMTime())
+    if(m_BypassMainInput || preview->GetPipelineMTime() > main->GetMTime())
       {
       // We want the preview to be updated
       preview->SetRequestedRegion(inputRegion);
@@ -321,10 +323,9 @@ void IRISSlicer<TInputImage, TOutputImage>
   const InputImageType *preview =
       (InputImageType *) this->GetInputs()[1].GetPointer();
 
-  if(preview && preview->GetMTime() > inputPtr->GetMTime())
-    {
-    inputPtr = preview;
-    }
+  if(preview)
+    if(m_BypassMainInput || preview->GetMTime() > inputPtr->GetMTime())
+      inputPtr = preview;
   
   // Allocate (why is this necessary?)
   this->AllocateOutputs();

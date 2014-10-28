@@ -77,25 +77,49 @@ LoadOverlayImageDelegate
   LoadAnatomicImageDelegate::ValidateHeader(io, wl);
 
   // Now check for dimensions mismatch
-  if(!m_UseRegistration)
-    {
-    GenericImageData *id = m_Driver->GetCurrentImageData();
+  GenericImageData *id = m_Driver->GetCurrentImageData();
 
-    // Check the dimensions, throw exception
-    Vector3ui szSeg = io->GetDimensionsOfNativeImage();
-    Vector3ui szMain = id->GetMain()->GetSize();
-    if(szSeg != szMain)
-      {
-      throw IRISException("Error: Mismatched Dimensions. "
-                          "The size of the overlay image (%d x %d x %d) "
-                          "does not match the size of the main image "
-                          "(%d x %d x %d). Images must have the same dimensions.",
-                          szSeg[0], szSeg[1], szSeg[2],
-                          szMain[0], szMain[1], szMain[2]);
-      }
+  // Check the dimensions, throw exception
+  Vector3ui szSeg = io->GetDimensionsOfNativeImage();
+  Vector3ui szMain = id->GetMain()->GetSize();
+  if(szSeg != szMain)
+    {
+    throw IRISException("Error: Mismatched Dimensions. "
+                        "The size of the overlay image (%d x %d x %d) "
+                        "does not match the size of the main image "
+                        "(%d x %d x %d). Images must have the same dimensions.",
+                        szSeg[0], szSeg[1], szSeg[2],
+        szMain[0], szMain[1], szMain[2]);
     }
 }
 
+
+
+/* =============================
+   Co-Registered Overlay Image
+   ============================= */
+
+void
+LoadCoregisteredOverlayImageDelegate
+::UnloadCurrentImage()
+{
+}
+
+void
+LoadCoregisteredOverlayImageDelegate
+::UpdateApplicationWithImage(GuidedNativeImageIO *io)
+{
+  m_Driver->AddIRISCoregOverlayImage(io, this->GetMetaDataRegistry());
+}
+
+
+void
+LoadCoregisteredOverlayImageDelegate
+::ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl)
+{
+  // Do the parent's check
+  LoadAnatomicImageDelegate::ValidateHeader(io, wl);
+}
 
 /* =============================
    SEGMENTATION Image

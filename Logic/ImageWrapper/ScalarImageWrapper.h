@@ -72,6 +72,7 @@ public:
 
 
   // Image Types
+  typedef typename Superclass::ImageBaseType                     ImageBaseType;
   typedef typename Superclass::ImageType                             ImageType;
   typedef typename Superclass::ImagePointer                       ImagePointer;
   typedef typename Superclass::PixelType                             PixelType;
@@ -106,6 +107,8 @@ public:
   typedef typename Superclass::ComponentTypeObject         ComponentTypeObject;
 
   typedef typename Superclass::NativeIntensityMapping   NativeIntensityMapping;
+
+  typedef typename Superclass::ITKTransformType               ITKTransformType;
 
 
   virtual bool IsScalar() const { return true; }
@@ -284,7 +287,9 @@ protected:
    * Handle a change in the image pointer (i.e., a load operation on the image or 
    * an initialization operation)
    */
-  virtual void UpdateImagePointer(ImageType *);
+  virtual void UpdateImagePointer(ImageType *image,
+                                  ImageBaseType *refSpace = NULL,
+                                  ITKTransformType *tran = NULL);
 
 
   typedef itk::VTKImageExport<ImageType> VTKExporter;

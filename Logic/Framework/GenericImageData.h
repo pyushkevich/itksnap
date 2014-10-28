@@ -224,6 +224,12 @@ public:
   virtual void UnloadOverlay(ImageWrapperBase *overlay);
 
   /**
+   * Add an overlay that is obtained from the image referenced by *io by applying
+   * a spatial transformation.
+   */
+  void AddCoregOverlay(GuidedNativeImageIO *io);
+
+  /**
    * Change the ordering of the layers within a particular role (for now just
    * overlays are supported in the GUI) by moving the specified layer up or
    * down one spot. The sign of the direction determines whether the layer is
@@ -308,11 +314,11 @@ protected:
   friend class LayerIterator;
 
   // Create a wrapper (vector or scalar) from native format stored in the IO
-  SmartPtr<ImageWrapperBase> CreateAnatomicWrapper(GuidedNativeImageIO *io);
+  SmartPtr<ImageWrapperBase> CreateAnatomicWrapper(GuidedNativeImageIO *io, bool sameSpaceAsMainWrapper);
 
   // Update the main image
   virtual void SetMainImageInternal(ImageWrapperBase *wrapper);
-  virtual void AddOverlayInternal(ImageWrapperBase *wrapper);
+  virtual void AddOverlayInternal(ImageWrapperBase *wrapper, bool checkSpace = true);
 
   // Append an image wrapper to a role
   void PushBackImageWrapper(LayerRole role, ImageWrapperBase *wrapper);

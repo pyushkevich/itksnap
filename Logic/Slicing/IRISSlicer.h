@@ -124,6 +124,13 @@ public:
     */
   InputImageType *GetPreviewInput();
 
+  /**
+   * Indicate whether the main input should always be bypassed when the preview
+   * input is present. If not, the slicer will use whichever input is newer.
+   */
+  itkGetMacro(BypassMainInput, bool)
+  itkSetMacro(BypassMainInput, bool)
+
 protected:
   IRISSlicer();
   virtual ~IRISSlicer() {};
@@ -181,6 +188,9 @@ private:
 
   // Whether the pixel direction is reversed
   bool m_PixelTraverseForward;
+
+  // Whether the main input should always be bypassed
+  bool m_BypassMainInput;
   
   // The worker methods in this filter
   // void CopySliceLineForwardPixelForward(InputIteratorType, OutputImageType *);

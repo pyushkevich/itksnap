@@ -104,10 +104,10 @@ ScalarImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 void 
 ScalarImageWrapper<TTraits,TBase>
-::UpdateImagePointer(ImageType *newImage) 
+::UpdateImagePointer(ImageType *newImage, ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
   // Call the parent
-  Superclass::UpdateImagePointer(newImage);
+  Superclass::UpdateImagePointer(newImage, referenceSpace, transform);
 
   // Update the max-min pipeline once we have one setup
   m_MinMaxFilter->SetInput(newImage);
@@ -245,9 +245,18 @@ ScalarImageWrapper<TTraits,TBase>
   Vector3ui idxDisp =
       this->GetImageToDisplayTransform(0).TransformVoxelIndex(this->GetSliceIndex());
 
+  DisplaySliceType *slice = this->GetDisplaySlice(0);
+  ImageType *source = this->m_Slicer[0]->GetPreviewInput();
+
+  itk::ImageRegion<3> rgnSource;
+  if(source)
+    {
+    rgnSource = source->GetBufferedRegion();
+    }
+
   // Get the RGB value
   typename DisplaySliceType::IndexType idx2D = {{idxDisp[0], idxDisp[1]}};
-  out_appearance = this->GetDisplaySlice(0)->GetPixel(idx2D);
+  out_appearance = slice->GetPixel(idx2D);
 
   // Get the numerical value
   PixelType val_raw = this->GetSlicer(0)->GetOutput()->GetPixel(idx2D);

@@ -63,7 +63,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
 template <class TFilterConfigTraits>
 void
 SlicePreviewFilterWrapper<TFilterConfigTraits>
-::AttachInputs(SNAPImageData *sid)
+::AttachInputs(InputDataType *sid)
 {
   // Get the default scalar layer for the traits. If this is NULL, the method
   // does not expect an active layer to be specified (acts on all inputs)

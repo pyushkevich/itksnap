@@ -220,6 +220,13 @@ public:
   void AddIRISOverlayImage(GuidedNativeImageIO *nativeIO, Registry *metadata = NULL);
 
   /**
+   * Add an overlay image that resides in its native space, but is transformed into
+   * the space of the main image using a set of transformation parameters (e.g., rigid
+   * transform)
+   */
+  void AddIRISCoregOverlayImage(GuidedNativeImageIO *io, Registry *metadata);
+
+  /**
    * Remove a specific overlay
    */
   void UnloadOverlay(ImageWrapperBase *ovl);
