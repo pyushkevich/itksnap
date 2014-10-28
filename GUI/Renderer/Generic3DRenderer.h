@@ -31,7 +31,12 @@ struct CameraState
   Vector2d clipping_range;
   double view_angle, parallel_scale;
   int parallel_projection;
+
 };
+
+bool operator == (const CameraState &c1, const CameraState &c2);
+bool operator != (const CameraState &c1, const CameraState &c2);
+
 
 class Generic3DRenderer : public AbstractVTKRenderer
 {

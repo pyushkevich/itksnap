@@ -23,6 +23,8 @@
 #include "MainImageWindow.h"
 #include "SNAPQtCommon.h"
 #include "QtScrollbarCoupling.h"
+#include <QCursor>
+#include <QBitmap>
 
 #include <QStackedLayout>
 #include <QMenu>
@@ -122,11 +124,17 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
 
   // Set page size on the slice position widget
   ui->inSlicePosition->setPageStep(5);
+
+  // Set up the drawing cursor
+  QBitmap bmBitmap(":/root/crosshair_cursor_bitmap.png");
+  QBitmap bmMask(":/root/crosshair_cursor_mask.png");
+  m_DrawingCrosshairCursor = new QCursor(bmBitmap, bmMask, 7, 7);
 }
 
 SliceViewPanel::~SliceViewPanel()
 {
   delete ui;
+  delete m_DrawingCrosshairCursor;
 }
 
 GenericSliceView * SliceViewPanel::GetSliceView()
@@ -403,6 +411,13 @@ void SliceViewPanel::onContextMenu()
 void SliceViewPanel::SetMouseMotionTracking(bool enable)
 {
   ui->sliceView->setMouseTracking(enable);
+  // TODO: in the future, consider using a better cursor for polygon drawing operations
+  /*
+  if(enable)
+    this->setCursor(*m_DrawingCrosshairCursor);
+  else
+    this->setCursor(QCursor(Qt::ArrowCursor));
+    */
 }
 
 void SliceViewPanel::on_btnExpand_clicked()

@@ -146,6 +146,7 @@ IRISApplication
   m_GMMPreviewWrapper = GMMPreprocessingPreviewWrapperType::New();
 
   m_RandomForestPreviewWrapper = RFPreprocessingPreviewWrapperType::New();
+  m_LastUsedRFClassifierComponents = 0;
 
   m_PreprocessingMode = PREPROCESS_NONE;
 
@@ -2366,16 +2367,58 @@ void IRISApplication::EnterRandomForestPreprocessingMode()
   m_ClassificationEngine = RFClassificationEngine::New();
   m_ClassificationEngine->SetDataSource(m_SNAPImageData);
 
+  // Check if we can reuse the classifier from the last run
+  bool can_use_saved_classifier =
+      (m_LastUsedRFClassifier &&
+       m_LastUsedRFClassifierComponents ==
+       m_ClassificationEngine->GetNumberOfComponents());
+
+  if(can_use_saved_classifier)
+    {
+    // Check if the m-time on any of the images in IRISImageData has been
+    // updated, indicating that this is new/different data
+    for(LayerIterator lit = m_IRISImageData->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+        !lit.IsAtEnd(); ++lit)
+      {
+      if(lit.GetLayer()->GetImageBase()->GetMTime() > m_LastUsedRFClassifier->GetMTime())
+        {
+        can_use_saved_classifier = false;
+        break;
+        }
+      }
+
+    if(can_use_saved_classifier)
+      {
+      m_ClassificationEngine->SetClassifier(m_LastUsedRFClassifier);
+      }
+    }
+
   // Connect to the preview wrapper
   m_RandomForestPreviewWrapper->AttachInputs(m_SNAPImageData);
   m_RandomForestPreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());
   m_RandomForestPreviewWrapper->SetParameters(m_ClassificationEngine->GetClassifier());
 }
 
+#include "RandomForestClassifier.h"
+
 void IRISApplication::LeaveRandomForestPreprocessingMode()
 {
-  m_RandomForestPreviewWrapper->SetParameters(NULL);
   m_RandomForestPreviewWrapper->DetachInputsAndOutputs();
+
+  // Before deleting the classification engine, we store the classifier
+  // The smart pointer mechanism makes sure the classifier lives on
+  // even if the engine is deleted
+  m_LastUsedRFClassifier = m_ClassificationEngine->GetClassifier();
+  m_LastUsedRFClassifierComponents = m_ClassificationEngine->GetNumberOfComponents();
+
+  // Update the m_time on the classifier, so in the future we can test
+  // if it is current
+  m_LastUsedRFClassifier->Modified();
+
+  // TODO: delete this code
+  // m_RandomForestPreviewWrapper->SetParameters(NULL);
+
+  // Clear the classification engine
   m_ClassificationEngine = NULL;
 }
 

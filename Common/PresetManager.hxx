@@ -34,12 +34,12 @@ PresetManager<TManagedObjectTraits>
     }
 
   // Load all the user preset names
-  m_PresetUser = m_System->GetSavedObjectNames(m_Category);
+  m_PresetUser = m_System->GetSavedObjectNames(m_Category.c_str());
 
   // Load each of the presets from the registry
   for(int j = 0; j < m_PresetUser.size(); j++)
     {
-    Registry reg = m_System->ReadSavedObject(m_Category, m_PresetUser[j].c_str());
+    Registry reg = m_System->ReadSavedObject(m_Category.c_str(), m_PresetUser[j].c_str());
     ManagedTypePtr mtp = ManagedType::New();
     TManagedObjectTraits::ReadFromRegistry(mtp, reg);
     m_PresetMap[m_PresetUser[j]] = mtp;
@@ -80,7 +80,7 @@ PresetManager<TManagedObjectTraits>
   typename PresetMap::iterator it = m_PresetMap.find(preset);
   if(it == m_PresetMap.end())
     throw IRISException("Preset %s not found in category %s", preset.c_str(),
-                        m_Category);
+                        m_Category.c_str());
   instance->CopyInformation(it->second);
 }
 
@@ -107,7 +107,7 @@ PresetManager<TManagedObjectTraits>
   // Write the preset to disk
   Registry reg;
   TManagedObjectTraits::WriteToRegistry(instance, reg);
-  m_System->UpdateSavedObject(m_Category, preset.c_str(), reg);
+  m_System->UpdateSavedObject(m_Category.c_str(), preset.c_str(), reg);
 
   this->Modified();
 }
@@ -124,7 +124,7 @@ PresetManager<TManagedObjectTraits>
   if(it != m_PresetUser.end())
     {
     // Delete the preset from the file system
-    m_System->DeleteSavedObject(m_Category, preset.c_str());
+    m_System->DeleteSavedObject(m_Category.c_str(), preset.c_str());
 
     // Also delete it from the list of user presets
     m_PresetUser.erase(it);

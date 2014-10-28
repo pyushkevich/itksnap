@@ -46,6 +46,9 @@ SynchronizationModel::SynchronizationModel()
 
   // Create an IPC handler
   m_IPCHandler = new IPCHandler();
+
+  // Broadcast state
+  m_CanBroadcast = false;
 }
 
 SynchronizationModel::~SynchronizationModel()
@@ -92,7 +95,8 @@ void SynchronizationModel::OnUpdate()
   // If there is no synchronization or no image, get out
   IRISApplication *app = m_Parent->GetDriver();
   if(!app->IsMainImageLoaded()
-     || !m_SyncEnabledModel->GetValue())
+     || !m_SyncEnabledModel->GetValue()
+     || !m_CanBroadcast)
     return;
 
   // Figure out what to broadcast

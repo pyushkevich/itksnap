@@ -85,7 +85,7 @@ void SetupSignalHandlers()
 class SNAPQApplication : public QApplication
 {
 public:
-  SNAPQApplication(int argc, char **argv) :
+  SNAPQApplication(int &argc, char **argv) :
     QApplication(argc, argv)
     {
     this->setApplicationName("ITK-SNAP");

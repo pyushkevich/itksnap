@@ -67,6 +67,7 @@ class AbstractLoadImageDelegate;
 class AbstractSaveImageDelegate;
 class IRISWarningList;
 class GaussianMixtureModel;
+class RandomForestClassifier;
 struct IRISDisplayGeometry;
 class LabelUseHistory;
 
@@ -658,6 +659,14 @@ protected:
 
   // The Random Foreset classification object
   SmartPtr<RFClassificationEngine> m_ClassificationEngine;
+
+  // The last classifier used for random forest segmentation. This is reused during
+  // repeated calls to the active contour segmentation, as long as the layers haven't
+  // been updated.
+  SmartPtr<RandomForestClassifier> m_LastUsedRFClassifier;
+
+  // The number of components for the last used RF classifier
+  int m_LastUsedRFClassifierComponents;
 
   // Mesh object (used to manage meshes)
   SmartPtr<MeshManager> m_MeshManager;

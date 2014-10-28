@@ -94,7 +94,7 @@ protected:
   SystemInterface *m_System;
 
   // The name of the category
-  const char *m_Category;
+  std::string m_Category;
 
   // Map of presets to instances
   typedef std::map<std::string, ManagedTypePtr> PresetMap;

@@ -52,6 +52,24 @@
 #include <vnl/vnl_cross.h>
 
 
+bool operator == (const CameraState &c1, const CameraState &c2)
+{
+  return
+      c1.position == c2.position &&
+      c1.focal_point == c2.focal_point &&
+      c1.view_up == c2.view_up &&
+      c1.clipping_range == c2.clipping_range &&
+      c1.view_angle == c2.view_angle &&
+      c1.parallel_scale == c2.parallel_scale &&
+      c1.parallel_projection == c2.parallel_projection;
+}
+
+bool operator != (const CameraState &c1, const CameraState &c2)
+{
+  return !(c1==c2);
+}
+
+
 Generic3DRenderer::Generic3DRenderer()
 {
   // Why is this necessary?

@@ -438,7 +438,14 @@ void SnakeWizardPanel::on_btnClusterReinitialize_clicked()
 
 void SnakeWizardPanel::on_btnClassifyTrain_clicked()
 {
-  m_Model->TrainClassifier();
+  try
+  {
+    m_Model->TrainClassifier();
+  }
+  catch (IRISException &exc)
+  {
+    ReportNonLethalException(this, exc, "Classification Failed");
+  }
 }
 
 void SnakeWizardPanel::on_btnThreshDetail_clicked()

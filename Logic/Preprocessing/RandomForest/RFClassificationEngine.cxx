@@ -44,7 +44,7 @@ void RFClassificationEngine::ResetClassifier()
   m_Classifier->Reset();
 }
 
-void RFClassificationEngine::TrainClassifier()
+void RFClassificationEngine:: TrainClassifier()
 {
   assert(m_DataSource && m_DataSource->IsMainLoaded());
 
@@ -107,7 +107,17 @@ void RFClassificationEngine::TrainClassifier()
       }
     }
 
+  // Check that the sample has at least two distinct labels
+  bool isValidSample = false;
+  for(int iSample = 1; iSample < m_Sample->Size(); iSample++)
+    if(m_Sample->label[iSample] != m_Sample->label[iSample-1])
+      { isValidSample = true; break; }
+
   // Now there is a valid sample. The text task is to train the classifier
+  if(!isValidSample)
+    throw IRISException("A classifier cannot be trained because the training "
+                        "data contain fewer than two classes. Please label "
+                        "examples of two or more tissue classes in the image.");
 
   // Set up the classifier parameters
   TrainingParameters params;
@@ -157,6 +167,28 @@ void RFClassificationEngine::TrainClassifier()
         m_Classifier->m_ForegroundClass = it->first;
       }
     }
+}
+
+void RFClassificationEngine::SetClassifier(RandomForestClassifier *rf)
+{
+  // Set the classifier
+  m_Classifier = rf;
+
+  // Update the forest size
+  m_ForestSize = m_Classifier->GetForest()->GetForestSize();
+}
+
+int RFClassificationEngine::GetNumberOfComponents() const
+{
+  assert(m_DataSource);
+
+  int ncomp = 0;
+
+  for(LayerIterator it = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+      !it.IsAtEnd(); ++it)
+    ncomp += it.GetLayer()->GetNumberOfComponents();
+
+  return ncomp;
 }
 
 

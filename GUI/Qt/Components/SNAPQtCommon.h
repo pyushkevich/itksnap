@@ -96,7 +96,7 @@ TWidget *findParentWidget(QObject *w)
 void ReportNonLethalException(QWidget *parent,
                               std::exception &exc,
                               QString windowTitleText,
-                              QString mainErrorText);
+                              QString mainErrorText = QString());
 
 /** Populate a menu with history items */
 void PopulateHistoryMenu(
