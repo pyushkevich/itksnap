@@ -1,0 +1,15 @@
+# VIM swap files
+.*.sw?
+*.un~
+
+# MACOS files
+.DS_Store*
+Thumbs.db
+
+# Backup files
+*.bak
+
+# Qt Creator stuff
+CMakeLists.txt.user*
+CTestConfig.cmake.user*
+*.autosave
