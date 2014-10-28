@@ -1615,6 +1615,11 @@ void MainImageWindow::on_actionUnload_All_Overlays_triggered()
     }
 }
 
+void MainImageWindow::on_actionCoregister_Overlay_triggered()
+{
+  // Do nothing!
+}
+
 void MainImageWindow::changeEvent(QEvent *)
 {
   if(m_Model)
