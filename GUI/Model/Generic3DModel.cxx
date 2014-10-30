@@ -229,7 +229,7 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
 
     InvokeEvent(ModelUpdateEvent());
   }
-  catch(vtkstd::bad_alloc &)
+  catch(std::bad_alloc &)
   {
     throw IRISException("Out of memory during mesh computation");
   }

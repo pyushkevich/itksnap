@@ -11,7 +11,7 @@ class Window3DPicker : public vtkPicker
 public:
   static Window3DPicker *New();
 
-  vtkTypeRevisionMacro(Window3DPicker, vtkPicker)
+  vtkTypeMacro(Window3DPicker, vtkPicker)
 
   irisGetSetMacro(Model, Generic3DModel *)
 

@@ -6,8 +6,8 @@
   Date:      $Date: 2010/10/19 19:15:14 $
   Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
-  
-  This file is part of ITK-SNAP 
+
+  This file is part of ITK-SNAP
 
   ITK-SNAP is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
- 
+
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -29,7 +29,7 @@
 
   This software is distributed WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-  PURPOSE.  See the above copyright notices for more information. 
+  PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 #include "SnakeParametersPreviewPipeline.h"
@@ -55,7 +55,7 @@
 #include "PolygonScanConvert.h"
 
 #ifndef vtkFloatingPointType
-#define vtkFloatingPointType float
+#define vtkFloatingPointType double
 #endif
 
 using namespace std;
@@ -90,8 +90,8 @@ public:
 
   // Destructor
   ~LevelSetPreview2d()
-    { 
-    if(m_Driver) delete m_Driver; 
+    {
+    if(m_Driver) delete m_Driver;
     }
 
   // Timer callback, used to regenerate the current contour
@@ -102,7 +102,7 @@ public:
 
     // If the driver is dirty, we need to create a new one
     if(m_DriverDirty && m_Driver != NULL)
-      { 
+      {
       delete m_Driver;
       m_Driver = NULL;
       }
@@ -111,7 +111,7 @@ public:
     if(m_Driver == NULL && m_SpeedImage.IsNotNull() && m_Curve.size() > 0)
       {
       // Check if we need to allocate the level set image
-      if(m_LevelSetImage.IsNull() || m_LevelSetImage->GetBufferedRegion() != 
+      if(m_LevelSetImage.IsNull() || m_LevelSetImage->GetBufferedRegion() !=
           m_SpeedImage->GetBufferedRegion())
         {
         m_LevelSetImage = FloatImageType::New();
@@ -128,7 +128,7 @@ public:
         for(CurveType::iterator it = m_Curve.begin(); it != m_Curve.end(); ++it)
           {
           points.push_back(Vector2d(
-            it->x[0] *  m_LevelSetImage->GetBufferedRegion().GetSize()[0], 
+            it->x[0] *  m_LevelSetImage->GetBufferedRegion().GetSize()[0],
             it->x[1] *  m_LevelSetImage->GetBufferedRegion().GetSize()[1]));
           }
 
@@ -198,9 +198,9 @@ public:
       m_VTKImporter->SetDataExtentCallback(
         m_VTKExporter->GetDataExtentCallback());
       m_VTKImporter->SetBufferPointerCallback(
-        m_VTKExporter->GetBufferPointerCallback());  
+        m_VTKExporter->GetBufferPointerCallback());
       m_VTKImporter->SetCallbackUserData(
-        m_VTKExporter->GetCallbackUserData());  
+        m_VTKExporter->GetCallbackUserData());
 
       // Create and configure the contour filter
       m_VTKContour = vtkContourFilter::New();
@@ -316,7 +316,7 @@ private:
 
 
 
-void 
+void
 SnakeParametersPreviewPipeline
 ::AnimationCallback()
 {
@@ -366,7 +366,7 @@ SnakeParametersPreviewPipeline
 ::SetControlPoints(const std::vector<Vector2d> &points)
 {
   if(m_ControlPoints != points)
-    {  
+    {
     // Save the points
     m_ControlPoints = points;
 
@@ -376,7 +376,7 @@ SnakeParametersPreviewPipeline
     }
 }
 
-void 
+void
 SnakeParametersPreviewPipeline
 ::ChangeControlPoint(
   unsigned int index, const Vector2d &point, bool quickUpdate)
@@ -441,7 +441,7 @@ SnakeParametersPreviewPipeline
 
   // Don't waste time on nonsense
   if(m_Parameters == clean) return;
-    
+
   // Save the parameters
   m_Parameters = clean;
   m_ParametersModified = true;
@@ -450,7 +450,7 @@ SnakeParametersPreviewPipeline
   m_DemoLoop->SetSnakeParameters(m_Parameters);
 }
 
-void 
+void
 SnakeParametersPreviewPipeline
 ::SetNumberOfSampledPoints(unsigned int number)
 {
@@ -491,7 +491,7 @@ SnakeParametersPreviewPipeline
   // TODO: the colormap from the current speed image should be used!
 }
 
-void 
+void
 SnakeParametersPreviewPipeline
 ::UpdateContour()
 {
@@ -507,12 +507,12 @@ SnakeParametersPreviewPipeline
   // Initialize the sampled point array
   m_SampledPoints.clear();
   m_SampledPoints.reserve(m_NumberOfSampledPoints);
-  
-  int uMax = m_ControlPoints.size() - 3; 
+
+  int uMax = m_ControlPoints.size() - 3;
   for(double t = 0; t < 1.0; t += 0.005)
     {
     double s = t * uMax;
-    
+
     // The starting index
     // int si = ((int)(t * uMax)) - 1;
     int sidx = (int) floor(s - 1);
@@ -523,7 +523,7 @@ SnakeParametersPreviewPipeline
     Vector2d xu(0.0f,0.0f);
     Vector2d xuu(0.0f,0.0f);
     for(int k=0; k < 4; k++)
-      {      
+      {
       double w = kf3->Evaluate(u);
       double wu = kf2->Evaluate(u+0.5) - kf2->Evaluate(u-0.5);
       double wuu = kf1->Evaluate(u+1) + kf1->Evaluate(u-1) - 2 * kf1->Evaluate(u);
@@ -540,9 +540,9 @@ SnakeParametersPreviewPipeline
     pt.x = x;
     pt.t = t;
     xu.normalize();
-    pt.n = Vector2d(-xu[1],xu[0]);    
+    pt.n = Vector2d(-xu[1],xu[0]);
     pt.PropagationForce = pt.CurvatureForce = pt.AdvectionForce = 0.0;
-    pt.kappa 
+    pt.kappa
       = (xu[0] * xuu[1] - xu[1] * xuu[0]) / pow(xu[0]*xu[0] + xu[1]*xu[1],1.5);
 
     m_SampledPoints.push_back(pt);
@@ -570,7 +570,7 @@ SnakeParametersPreviewPipeline
     ShortImageType,double> LerpType;
   typedef itk::VectorLinearInterpolateImageFunction<
     VectorImageType,double> VectorLerpType;
-  
+
   // Create the speed image interpolator
   LerpType::Pointer sLerp = LerpType::New();
   sLerp->SetInputImage(m_SpeedImage);
@@ -581,13 +581,13 @@ SnakeParametersPreviewPipeline
 
   // Get the image dimensions
   itk::Size<2> idim = m_SpeedImage->GetBufferedRegion().GetSize();
-  
+
   // Compute the geometry of each point
   for(unsigned int i = 0; i < m_SampledPoints.size(); i++)
     {
     // A reference so we can access the point in shorthand
     SampledPoint &p = m_SampledPoints[i];
-    
+
     // We're done computing the geometric properties of the curve.  Now, let's
     // compute the image-related quantities.  First, convert the point to image
     // coordinates
@@ -604,9 +604,9 @@ SnakeParametersPreviewPipeline
     // Get the value of the gradient
     VectorLerpType::OutputType gradG = gLerp->EvaluateAtContinuousIndex(idx);
     gradG /= 0x7fff;
-    
+
     // Compute the propagation force component of the curve evolution
-    p.PropagationForce = m_Parameters.GetPropagationWeight() 
+    p.PropagationForce = m_Parameters.GetPropagationWeight()
       * pow(g,m_Parameters.GetPropagationSpeedExponent());
 
     // Compute the curvature force component of the curve evolution
@@ -616,7 +616,7 @@ SnakeParametersPreviewPipeline
     // Compute the advection force component of the curve evolution
     p.AdvectionForce = - m_Parameters.GetAdvectionWeight()
       * (p.n[0] * gradG[0] + p.n[1] * gradG[1])
-      * pow(g,m_Parameters.GetAdvectionSpeedExponent());    
+      * pow(g,m_Parameters.GetAdvectionSpeedExponent());
     }
 }
 
