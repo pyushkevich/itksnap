@@ -1337,7 +1337,7 @@ IRISApplication
   while(!it.IsAtEnd())
     {
     // Compute the distance to the plane
-    const long *index = it.GetIndex().GetIndex();
+	const IteratorType::IndexValueType *index = it.GetIndex().GetIndex();
     double distance = 
       index[0]*normal[0] + 
       index[1]*normal[1] + 

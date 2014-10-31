@@ -18,7 +18,7 @@ public:
   typedef itk::Image<GreyType, 3> GreyImageType;
   typedef itk::Image<LabelType, 3> LabelImageType;
   typedef itk::Image<float, 3> FloatImageType;
-  typedef itk::Image<unsigned long, 3> WatershedImageType;
+  typedef itk::Image<itk::IdentifierType, 3> WatershedImageType;
   typedef WatershedImageType::IndexType IndexType;
 
   BrushWatershedPipeline()

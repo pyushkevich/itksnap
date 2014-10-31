@@ -4,7 +4,7 @@
 ## # The following are required to uses Dart and the Cdash dashboard
 ##   ENABLE_TESTING()
 ##   INCLUDE(Dart)
-set(CTEST_PROJECT_NAME "ITK-SNAP 3.2")
+set(CTEST_PROJECT_NAME "ITK-SNAP 3.5")
 set(CTEST_NIGHTLY_START_TIME "00:00:00 EST")
 
 set(CTEST_DROP_METHOD "http")
