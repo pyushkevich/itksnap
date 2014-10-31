@@ -23,7 +23,7 @@ class CursorPlacementInteractorStyle : public vtkInteractorStyleTrackballCamera
 {
 public:
   static CursorPlacementInteractorStyle* New();
-  vtkTypeRevisionMacro(CursorPlacementInteractorStyle, vtkInteractorStyleTrackballCamera)
+  vtkTypeMacro(CursorPlacementInteractorStyle, vtkInteractorStyleTrackballCamera)
 
   irisGetSetMacro(Model, Generic3DModel *)
 
@@ -46,7 +46,7 @@ class SpraycanInteractorStyle : public vtkInteractorStyleTrackballCamera
 {
 public:
   static SpraycanInteractorStyle* New();
-  vtkTypeRevisionMacro(SpraycanInteractorStyle, vtkInteractorStyleTrackballCamera)
+  vtkTypeMacro(SpraycanInteractorStyle, vtkInteractorStyleTrackballCamera)
 
   irisGetSetMacro(Model, Generic3DModel *)
 
@@ -99,7 +99,7 @@ class ScalpelInteractorStyle : public vtkInteractorStyleTrackballCamera
 {
 public:
   static ScalpelInteractorStyle* New();
-  vtkTypeRevisionMacro(ScalpelInteractorStyle, vtkInteractorStyleTrackballCamera)
+  vtkTypeMacro(ScalpelInteractorStyle, vtkInteractorStyleTrackballCamera)
 
   irisGetSetMacro(Model, Generic3DModel *)
 
@@ -189,13 +189,10 @@ protected:
 
 
 
-vtkCxxRevisionMacro(CursorPlacementInteractorStyle, "$Revision: 1.1 $")
 vtkStandardNewMacro(CursorPlacementInteractorStyle)
 
-vtkCxxRevisionMacro(SpraycanInteractorStyle, "$Revision: 1.1 $")
 vtkStandardNewMacro(SpraycanInteractorStyle)
 
-vtkCxxRevisionMacro(ScalpelInteractorStyle, "$Revision: 1.1 $")
 vtkStandardNewMacro(ScalpelInteractorStyle)
 
 
