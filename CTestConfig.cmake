@@ -9,5 +9,5 @@ set(CTEST_NIGHTLY_START_TIME "00:00:00 EST")
 
 set(CTEST_DROP_METHOD "http")
 set(CTEST_DROP_SITE "itksnap.org")
-set(CTEST_DROP_LOCATION "/cdash/submit.php?project=ITK-SNAP+3.2")
+set(CTEST_DROP_LOCATION "/cdash/submit.php?project=ITK-SNAP+3.5")
 set(CTEST_DROP_SITE_CDASH TRUE)
