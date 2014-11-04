@@ -26,6 +26,10 @@ PaintbrushSettingsModel::PaintbrushSettingsModel()
       wrapStructMemberAsSimpleProperty<PaintbrushSettings, bool>(
         m_PaintbrushSettingsModel, offsetof(PaintbrushSettings, chase));
 
+  m_DirecWSModel =
+      wrapStructMemberAsSimpleProperty<PaintbrushSettings, bool>(
+        m_PaintbrushSettingsModel, offsetof(PaintbrushSettings, direct));
+
   // The paintbrush size model requires special processing, so it is implemeted
   // using a getter/setter pair
   m_BrushSizeModel = wrapGetterSetterPairAsProperty(
@@ -70,7 +74,7 @@ bool PaintbrushSettingsModel
   // Round just in case
   value = (int) (pbs.radius * 2 + 0.5);
   if(domain)
-    domain->Set(1, 40, 1);
+    domain->Set(1, 1000, 1);
   return true;
 }
 

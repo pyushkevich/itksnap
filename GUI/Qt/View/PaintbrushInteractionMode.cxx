@@ -27,6 +27,20 @@ PaintbrushInteractionMode
   SetParentModel(model->GetParent());
 }
 
+void PaintbrushInteractionMode::wheelEvent(QWheelEvent  *ev)
+    {
+    ////catch wheel event if CTRL is pressed, otherwise pass it to slice scroll 
+    Qt::KeyboardModifiers modifiers  = ev->modifiers();
+    if(modifiers.testFlag( Qt::ControlModifier )){
+	///accept event even if no voxel changed (i.e. not every level causes a WS change!)
+	//if(m_Model->ProcessWheelEvent(ev->delta())){
+	m_Model->ProcessWheelEvent(ev->delta());
+	////do not pass event to cursor chasing
+	ev->accept();
+	//}
+	}
+    }
+
 void PaintbrushInteractionMode::mousePressEvent(QMouseEvent *ev)
 {
   bool isleft = (ev->button() == Qt::LeftButton);
@@ -73,6 +87,7 @@ void PaintbrushInteractionMode::enterEvent(QEvent *)
   // TODO: this is hideous!
   SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
   panel->SetMouseMotionTracking(true);
+  //m_Model->ProcessMouseEnterEvent();
 }
 
 void PaintbrushInteractionMode::leaveEvent(QEvent *)
