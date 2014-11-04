@@ -156,6 +156,7 @@ struct PaintbrushSettings
   bool volumetric;
   bool isotropic;
   bool chase;
+  bool direct;
 
   PaintbrushWatershedSettings watershed;
 };

@@ -55,4 +55,5 @@ void PaintbrushToolPanel::SetModel(PaintbrushSettingsModel *model)
 
   makeCoupling(ui->inGranularity, model->GetThresholdLevelModel());
   makeCoupling(ui->inSmoothness, model->GetSmoothingIterationsModel());
+  makeCoupling(ui->chkDirect, model->GetDirecWSModel());
 }

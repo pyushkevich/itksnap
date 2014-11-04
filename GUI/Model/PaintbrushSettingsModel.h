@@ -25,6 +25,7 @@ public:
   irisGetMacro(ChaseCursorModel, AbstractSimpleBooleanProperty *)
 
   irisGetMacro(AdaptiveModeModel, AbstractSimpleBooleanProperty *)
+  irisGetMacro(DirecWSModel, AbstractSimpleBooleanProperty *)
   irisGetMacro(ThresholdLevelModel, AbstractRangedDoubleProperty *)
   irisGetMacro(SmoothingIterationsModel, AbstractRangedIntProperty *)
 
@@ -52,6 +53,8 @@ protected:
 
   SmartPtr<AbstractSimpleBooleanProperty> m_AdaptiveModeModel;
   bool GetAdaptiveModeValue(bool &value);
+
+  SmartPtr<AbstractSimpleBooleanProperty> m_DirecWSModel;
 
   SmartPtr<AbstractRangedDoubleProperty> m_ThresholdLevelModel;
   bool GetThresholdLevelValueAndRange(double &value, NumericValueRange<double> *domain);
