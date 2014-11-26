@@ -214,8 +214,14 @@ public:
   std::string fnTestDir;
   double xTestAccel;
 
+  // GUI related
+  std::string style;
+
   CommandLineRequest()
-    : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0) {}
+    : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0) 
+    {
+    style = "fusion";
+    }
 };
 
 /**
@@ -297,6 +303,9 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   // a buggy behavior on MacOS, when execvp actually causes a file
   // open event to be fired, which causes the drop dialog to open
   parser.AddOption("--dummy", 1);
+
+  // Some qt stuff
+  parser.AddOption("--style", 1);
 
   // Obtain the result
   CommandLineArgumentParseResult parseResult;
@@ -447,6 +456,10 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 
     }
 
+  // GUI stuff
+  if(parseResult.IsOptionPresent("--style"))
+    argdata.style = parseResult.GetOptionParameter("--style");
+
   return 0;
 }
 
@@ -495,7 +508,7 @@ int main(int argc, char *argv[])
   Q_INIT_RESOURCE(TestingScripts);
 
   // Set the application style
-  app.setStyle(QStyleFactory::create("fusion"));
+  app.setStyle(QStyleFactory::create(argdata.style.c_str()));
 
   // Before we can create any of the framework classes, we need to get some
   // platform-specific functionality to the SystemInterface
