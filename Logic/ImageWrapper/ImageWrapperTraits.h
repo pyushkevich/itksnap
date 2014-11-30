@@ -217,8 +217,7 @@ typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor>
 typedef AnatomicImageWrapperTraits<GreyType>::WrapperType AnatomicImageWrapper;
 typedef LabelImageWrapperTraits::WrapperType LabelImageWrapper;
 typedef SpeedImageWrapperTraits::WrapperType SpeedImageWrapper;
-//typedef JsrcImageWrapperTraits::WrapperType JsrcImageWrapper;
-typedef LabelImageWrapperTraits::WrapperType JsrcImageWrapper;
+typedef JsrcImageWrapperTraits::WrapperType JsrcImageWrapper;
 typedef LabelImageWrapperTraits::WrapperType JdstImageWrapper;
 typedef LevelSetImageWrapperTraits::WrapperType LevelSetImageWrapper;
 

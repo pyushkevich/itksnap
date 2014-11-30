@@ -24,7 +24,7 @@ part of Click'n'Join mode, which was contributed by Roman Grothausmann
 class WatershedPipeline{
 public:
     typedef itk::Image<GreyType, 3> GreyImageType;
-    typedef itk::Image<LabelType, 3> LabelImageType;
+    typedef itk::Image<JSRType, 3> JsrcImageType;
     typedef itk::Image<float, 3> FloatImageType;
     typedef itk::Image<GWSType, 3> WatershedImageType;
 
@@ -37,7 +37,7 @@ public:
 	cif->SetInput(wf->GetOutput());
 	}
 
-    LabelImageType* PrecomputeWatersheds(
+    JsrcImageType* PrecomputeWatersheds(
 	GreyImageType *grey,
 	double cParam, size_t sIter,
 	double iThr, double iLevel, 
@@ -70,7 +70,7 @@ private:
     typedef itk::GradientAnisotropicDiffusionImageFilter<GreyImageType,FloatImageType> ADFType;
     typedef itk::GradientMagnitudeImageFilter<FloatImageType, FloatImageType> GMFType;
     typedef itk::WatershedImageFilter<FloatImageType> WFType;
-    typedef itk::CastImageFilter<WatershedImageType, LabelImageType> CIFType;
+    typedef itk::CastImageFilter<WatershedImageType, JsrcImageType> CIFType;
 
     ADFType::Pointer adf;
     GMFType::Pointer gmf;
@@ -159,7 +159,7 @@ void GlobalWSWizardPanel::on_btnWSRangeNext_clicked(){
 	// Handle cursor
 	QtCursorOverride curse(Qt::WaitCursor);
 
-	driver->GetJOINImageData()->GetJsrc()->SetImage(
+	driver->GetJOINImageData()->SetJsrc(
 	    m_Watershed->PrecomputeWatersheds(
 		driver->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation()->GetCommonFormatImage(),
 		ui->inConductance->value()/100.0, ui->inSmoothingIter->value(),

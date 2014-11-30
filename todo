@@ -2,7 +2,7 @@ TODOs for GWS:
 
 - add image+layer for adf output
 - add relabeller if itk::watershed::Relabeler does not relabel consecutively
-- add 'n' for next smallest unused label
+- add 'n' for next smallest unused label see eg m_Wrapper->GetHistogram(nBins) in ./Logic/ImageWrapper/DisplayMappingPolicy.cxx
 - make UnDo possible
 - add functionality to all buttons, e.g. back
 - destinguish RMB click from RMB drag (zoom)
@@ -12,8 +12,4 @@ TODOs for GWS:
 - make GUI parts more fool prove
 - add an invert option for direct mode, see e.g. InvertFunctor in SNAPImageData
 
-
-
-done:
-
-- add copy/clear segmentation for GWS
+- add MorphlogicalWS from all Labels into PB and/or CnJ

@@ -281,16 +281,37 @@ IRISApplication
 {
   assert(m_JOINImageData->IsJsrcLoaded());
 
-  ////creating deep copy, should only be used for initialization of CnJ (GWS fills its Jsrc with WS)
+  ////creating (shallow) copy, should only be used for initialization of CnJ (GWS fills its Jsrc with WS)
+  ////avoids m_IRISImageData->GetSegmentation()->DeepCopyRegion in case JSRType != LabelType
 
-  SNAPSegmentationROISettings roiLabel = roi;
-  roiLabel.SetInterpolationMethod(SNAPSegmentationROISettings::NEAREST_NEIGHBOR);
-  // Get chunk of the label image
-  JsrcImageType::Pointer imgNewLabel = 
-    m_IRISImageData->GetSegmentation()->DeepCopyRegion(roiLabel,progressCommand);
+  typedef LabelImageWrapper::ImageType SourceImageType;
+  typedef JsrcImageWrapper::ImageType TargetImageType;
 
-  // Pass the cleaned up segmentation image to JOIN
-  m_JOINImageData->SetJsrc(imgNewLabel);
+  SourceImageType::Pointer source = m_IRISImageData->GetSegmentation()->GetImage();
+  TargetImageType::Pointer target = m_JOINImageData->GetJsrc()->GetImage();
+
+  // Create iterators for copying from one to the other
+  typedef itk::ImageRegionConstIterator<SourceImageType> SourceIteratorType;
+  typedef itk::ImageRegionIterator<TargetImageType> TargetIteratorType;
+  //SourceIteratorType itSource(source,source->GetBufferedRegion());
+  TargetIteratorType itTarget(target,target->GetBufferedRegion());
+  SourceIteratorType itSource(source,roi.GetROI());
+  //TargetIteratorType itTarget(target,roi.GetROI());
+
+  // Go through both iterators, copy the new over the old
+  itSource.GoToBegin();
+  itTarget.GoToBegin();
+  while(!itSource.IsAtEnd())
+    {
+    itTarget.Set(itSource.Get());//needs no cast as JSRType >= LabelType
+
+    ++itSource;
+    ++itTarget;
+    }
+
+  // The target has been modified
+  target->Modified();
+
 
   InvokeEvent(LayerChangeEvent());
 }
