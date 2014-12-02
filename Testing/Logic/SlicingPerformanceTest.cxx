@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
   SegWriterType::Pointer wr = SegWriterType::New();
   wr->SetInput(ei->GetOutput());
   wr->SetFileName(argv[2]);
+  wr->SetUseCompression(true);
   wr->Update();
   return 0;
 }

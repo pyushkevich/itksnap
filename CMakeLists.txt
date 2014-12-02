@@ -951,6 +951,58 @@ SET(GUI_TESTS
   RandomForest)
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
+set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)
+
+ADD_EXECUTABLE(SlicingPerformanceTest Testing/Logic/SlicingPerformanceTest.cxx)
+TARGET_LINK_LIBRARIES(SlicingPerformanceTest ${ITK_LIBRARIES})
+                       
+add_test(NAME BasicSlicingTestX39 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/X39.nii.gz ${TEMP}/X39.nii.gz
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz
+        ${TEMP}/X39.nii.gz
+        X 39
+)
+
+add_test(NAME BasicSlicingTestY55 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/Y55.nii.gz ${TEMP}/Y55.nii.gz
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz
+        ${TEMP}/Y55.nii.gz
+        Y 55
+)
+
+add_test(NAME BasicSlicingTestZ32 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/Z32.nii.gz ${TEMP}/Z32.nii.gz
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz
+        ${TEMP}/Z32.nii.gz
+        Z 32
+)
+
+add_test(NAME SlicingPerformanceTestX300 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/X300.mha ${TEMP}/X300.mha
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/vb-seg.mha
+        ${TEMP}/X300.mha
+        X 300
+)
+
+add_test(NAME SlicingPerformanceTestY300 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/Y300.mha ${TEMP}/Y300.mha
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/vb-seg.mha
+        ${TEMP}/Y300.mha
+        Y 300
+)
+
+add_test(NAME SlicingPerformanceTestZ150 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/Z150.mha ${TEMP}/Z150.mha
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/vb-seg.mha
+        ${TEMP}/Z150.mha
+        Z 150
+)
 
 # Set up a test for each GUI test
 FOREACH(GUI_TEST ${GUI_TESTS})
