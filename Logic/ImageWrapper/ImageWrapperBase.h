@@ -11,6 +11,8 @@ namespace itk {
   template <unsigned int VDim> class ImageBase;
   template <class TPixel, unsigned int VDim> class Image;
   template <class TPixel> class RGBAPixel;
+  template <class TOutputImage> class ImageSource;
+  template <class TScalar, unsigned int V1, unsigned int V2> class Transform;
 
   namespace Statistics {
     class DenseFrequencyContainer;
@@ -48,7 +50,7 @@ enum ScalarRepresentation
 
 
 /**
- \class ImageWrapper
+ \class ImageWrapperBase
  \brief Abstract parent class for all image wrappers
 
  This class is at the head of the ImageWrapper hierarchy. In fact, there are
@@ -65,15 +67,18 @@ class ImageWrapperBase : public itk::Object
 public:
 
   // Definition for the display slice type
-  typedef itk::RGBAPixel<unsigned char> DisplayPixelType;
-  typedef itk::Image<DisplayPixelType,2> DisplaySliceType;
-  typedef SmartPtr<DisplaySliceType> DisplaySlicePointer;
+  typedef itk::RGBAPixel<unsigned char>                       DisplayPixelType;
+  typedef itk::Image<DisplayPixelType,2>                      DisplaySliceType;
+  typedef SmartPtr<DisplaySliceType>                       DisplaySlicePointer;
 
   // Image base
   typedef itk::ImageBase<3> ImageBaseType;
 
   // Transform matrices
-  typedef vnl_matrix_fixed<double, 4, 4> TransformType;
+  typedef vnl_matrix_fixed<double, 4, 4>                         TransformType;
+
+  // ITK's coordinate transform (rigid, affine, etc)
+  typedef itk::Transform<double, 3, 3>                        ITKTransformType;
 
   /**
    * The image wrapper fires a WrapperMetadataChangeEvent when properties
@@ -389,6 +394,13 @@ public:
    */
   virtual itk::Object* GetUserData(const std::string &role) const = 0;
 
+  //
+
+  /**
+   * Set an ITK transform between this image and a reference image.
+   */
+  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) = 0;
+
 protected:
 
 };
@@ -400,6 +412,8 @@ public:
   // A common image format to which the contents of the scalar image wrapper
   // may be cast for downstream processing
   typedef itk::Image<GreyType, 3>                      CommonFormatImageType;
+  typedef itk::Image<float, 3>                                FloatImageType;
+  typedef itk::ImageSource<FloatImageType>                  FloatImageSource;
 
   /**
    * An enum of export channel types. Export channels are used to present the
@@ -464,6 +478,25 @@ public:
    */
   virtual CommonFormatImageType* GetCommonFormatImage(
       ExportChannel channel = WHOLE_IMAGE) = 0;
+
+  /**
+    Cast the internally stored image to a floating point image. The returned
+    image is connected to the internally stored image by a mini-pipeline that
+    may include a cast filter or a scale/shift filter, depending on the internal
+    format of the image and the internal-to-native intensity mapping. This mini
+    pipeline is not memory managed by the wrapper, and as soon as the returned
+    image smartpointer goes out of scope, the mini-pipeline is deallocated.
+
+    The method is intended for use with external pipelines that don't know what
+    the internal data representation is for the image. There is a cost with using
+    this method in terms of memory, so the recommended use is in conjunction with
+    streaming filters, so that the cast mini-pipeline does not allocate the whole
+    floating point image all at once.
+
+    The mini-pipeline should not be kept around in memory after it's used. This would
+    result in unnecessary duplication of memory.
+    */
+  virtual SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const = 0;
 
   /**
    * Get the intensity curve used to map raw intensities to color map inputs.

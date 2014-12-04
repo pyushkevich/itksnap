@@ -2,8 +2,9 @@
 #define IMAGEIOWIZARD_H
 
 #include <QDebug>
-
 #include <QWizard>
+#include <QThread>
+
 #include "SNAPCommon.h"
 #include "ImageIOWizardModel.h"
 
@@ -19,6 +20,8 @@ class QTreeWidgetItem;
 class QTableWidget;
 class QSpinBox;
 class FileChooserPanelWithHistory;
+class OptimizationProgressRenderer;
+class QtVTKRenderWindowBox;
 
 // Helper classes in their own namespace, so I can use simple class names
 namespace imageiowiz
@@ -145,6 +148,27 @@ private:
 };
 
 
+class RegistrationWorkerThread : public QThread
+{
+  Q_OBJECT
+
+public:
+
+  void Initialize(ImageIOWizardModel *model);
+  void run();
+  void OnProgressEvent();
+
+signals:
+
+  void registrationProgress();
+
+private:
+
+  ImageIOWizardModel *m_Model;
+};
+
+
+
 class RegistrationPage : public AbstractPage
 {
   Q_OBJECT
@@ -160,11 +184,15 @@ public:
 public slots:
 
   void onRunRegistration();
+  void onRegistrationProgress();
 
 private:
 
-  QComboBox *m_InTransform, *m_InMetric;
+  QComboBox *m_InTransform, *m_InMetric, *m_InAlignment;
   QPushButton *m_Run;
+
+  SmartPtr<OptimizationProgressRenderer> m_ProgressRenderer;
+  QtVTKRenderWindowBox *m_ProgressPlot;
 };
 
 } // end namespace

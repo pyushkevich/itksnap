@@ -42,8 +42,8 @@
 template<class TIn> class ThreadedHistogramImageFilter;
 namespace itk {
   template<class TIn> class MinimumMaximumImageFilter;
-  template<class TIn, class TOut> class GradientMagnitudeImageFilter;
   template<class TInputImage> class VTKImageExport;
+  template<class TOut> class ImageSource;
 }
 
 class vtkImageImport;
@@ -77,6 +77,10 @@ public:
   typedef typename Superclass::ImagePointer                       ImagePointer;
   typedef typename Superclass::PixelType                             PixelType;
   typedef typename Superclass::CommonFormatImageType     CommonFormatImageType;
+
+  // Floating point image type
+  typedef itk::Image<float, 3>                                  FloatImageType;
+  typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
 
   // Slice image type
   typedef typename Superclass::SliceType                             SliceType;
@@ -213,6 +217,20 @@ public:
     */
   double GetImageGradientMagnitudeUpperLimitNative();
 
+
+  /**
+    This method creates an ITK mini-pipeline that can be used to cast the internal
+    image to a floating point image. The ownership of the mini-pipeline is passed
+    to the caller of this method. This method should be used with caution, since
+    there is potential to create duplicates of the internally stored image without
+    need. The best practice is to use this method with filters that only access a
+    portion of the casted image at a time, such as streaming filters.
+
+    When you call Update() on the returned mini-pipeline, the data will be cast to
+    floating point, and if necessary, converted to the native intensity range.
+    */
+  SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const;
+
   /**
    * Get an image cast to a common representation.
    * @see ScalarImageWrapperBase::GetCommonFormatImage()
@@ -262,17 +280,6 @@ protected:
   // The policy used to extract a common representation image
   typedef typename TTraits::CommonRepresentationPolicy CommonRepresentationPolicy;
   CommonRepresentationPolicy m_CommonRepresentationPolicy;
-
-  /**
-    A mini-pipeline to compute the maximum value of the gradient of
-    the input image on demand.
-    */
-  typedef itk::Image<float ,3> FloatImageType;
-  typedef itk::GradientMagnitudeImageFilter<CommonFormatImageType, FloatImageType> GradMagFilter;
-  typedef itk::MinimumMaximumImageFilter<FloatImageType> GradMagMaxFilter;
-
-  SmartPtr<GradMagFilter> m_GradientMagnitudeFilter;
-  SmartPtr<GradMagMaxFilter> m_GradientMagnitudeMaximumFilter;
 
   /** The intensity scaling factor */
   double m_ImageScaleFactor;

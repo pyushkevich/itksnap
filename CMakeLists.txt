@@ -367,6 +367,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/GlobalUIModel.cxx
   GUI/Model/ImageIOWizardModel.cxx
   GUI/Model/ImageInfoModel.cxx
+  GUI/Model/ImageRegistrationManager.cxx
   GUI/Model/IntensityCurveModel.cxx
   GUI/Model/LabelEditorModel.cxx
   GUI/Model/LayerGeneralPropertiesModel.cxx
@@ -400,6 +401,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/IntensityCurveVTKRenderer.cxx
   GUI/Renderer/LayerHistogramPlotAssembly.cxx
   GUI/Renderer/OpenGLSliceTexture.cxx
+  GUI/Renderer/OptimizationProgressRenderer.cxx
   GUI/Renderer/OrientationGraphicRenderer.cxx
   GUI/Renderer/PaintbrushRenderer.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
@@ -432,6 +434,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/GlobalUIModel.h
   GUI/Model/ImageInfoModel.h
   GUI/Model/ImageIOWizardModel.h
+  GUI/Model/ImageRegistrationManager.h
   GUI/Model/IntensityCurveModel.h
   GUI/Model/LabelEditorModel.h
   GUI/Model/LayerGeneralPropertiesModel.h
@@ -468,6 +471,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/GMMRenderer.h
   GUI/Renderer/IntensityCurveVTKRenderer.h
   GUI/Renderer/LayerHistogramPlotAssembly.h
+  GUI/Renderer/OptimizationProgressRenderer.h
   GUI/Renderer/OrientationGraphicRenderer.h
   GUI/Renderer/PaintbrushRenderer.h
   GUI/Renderer/PolygonDrawingRenderer.h

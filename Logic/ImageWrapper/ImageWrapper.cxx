@@ -722,6 +722,20 @@ ImageWrapper<TTraits,TBase>
   UpdateImagePointer(newImage, refSpace, transform);
 }
 
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::SetITKTransform(ImageBaseType *refSpace, ITKTransformType *transform)
+{
+  // TODO: this is a hack, to get around the display slices not updating...
+  Vector3ui index = this->GetSliceIndex();
+  UpdateImagePointer(m_Image, refSpace, transform);
+  this->SetSliceIndex(Vector3ui(0u));
+  this->SetSliceIndex(index);
+  this->InvokeEvent(WrapperDisplayMappingChangeEvent());
+}
+
+
 
 template<class TTraits, class TBase>
 void 

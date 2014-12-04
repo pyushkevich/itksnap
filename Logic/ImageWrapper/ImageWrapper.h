@@ -134,7 +134,7 @@ public:
   typedef itk::SimpleDataObjectDecorator<double>                  DoubleObject;
 
   // ITK's coordinate transform (rigid, affine, etc)
-  typedef itk::Transform<double, 3, 3>                        ITKTransformType;
+  typedef typename Superclass::ITKTransformType               ITKTransformType;
 
 
   /**
@@ -356,6 +356,12 @@ public:
    * different from the program's main reference space
    */
   virtual void SetImage(ImagePointer newImage, ImageBaseType *refSpace, ITKTransformType *transform);
+
+  /**
+   * Update the transform between the coordinate space of this image and the program's
+   * main reference space
+   */
+  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform);
 
   /**
    * Extract a region of interest from the image wrapper, as a new wrapper of

@@ -554,6 +554,17 @@ NewSimpleConcreteProperty(TVal val)
   return p;
 }
 
+template <class TVal, class TDomain>
+SmartPtr< ConcretePropertyModel<TVal, TDomain> >
+NewConcreteProperty(TVal val, TDomain domain)
+{
+  typedef ConcretePropertyModel<TVal, TDomain> Prop;
+  SmartPtr<Prop> p = Prop::New();
+  p->SetValue(val);
+  p->SetDomain(domain);
+  return p;
+}
+
 
 
 /**

@@ -332,6 +332,13 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
         model->GetGlobalState()->GetProjectFilenameModel(), ValueChangedEvent(),
         this, SLOT(onModelUpdate(EventBucket)));
 
+  // Listen to changes in the display layout to adjust the dimensions of the main
+  // window in response.
+  LatentITKEventNotifier::connect(
+        model->GetDisplayLayoutModel(), DisplayLayoutModel::DisplayLayoutChangeEvent(),
+        this, SLOT(onModelUpdate(EventBucket)));
+
+
   // Couple the visibility of each view panel to the correponding property
   // model in DisplayLayoutModel
   DisplayLayoutModel *layoutModel = m_Model->GetDisplayLayoutModel();
@@ -478,6 +485,11 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     {
     this->UpdateProjectMenuItems();
     }
+
+  if(b.HasEvent(DisplayLayoutModel::DisplayLayoutChangeEvent()))
+    {
+    this->UpdateCanvasDimensions();
+    }
 }
 
 void MainImageWindow::UpdateMainLayout()
@@ -502,6 +514,18 @@ void MainImageWindow::UpdateMainLayout()
     else if(ui->tabSplash->currentWidget() == ui->tabGettingStarted)
       ui->tabSplash->setCurrentWidget(ui->tabRecent);
     }
+}
+
+void MainImageWindow::UpdateCanvasDimensions()
+{
+  // Get the current aspect ratio
+  Vector2ui tiling =
+      m_Model->GetDisplayLayoutModel()->GetSliceViewLayerTilingModel()->GetValue();
+
+  // Adjust the width of the screen to achieve desired aspect ratio
+  int cw_width = (int) ( tiling(1) * (1.0 * ui->centralwidget->height()) / tiling(0));
+  int mw_width = this->width() + (cw_width - ui->centralwidget->width());
+  this->resize(QSize(mw_width, this->height()));
 }
 
 

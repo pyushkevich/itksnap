@@ -7,11 +7,14 @@
 #include "GuidedNativeImageIO.h"
 #include "Registry.h"
 #include "ImageIODelegates.h"
+#include "ImageRegistrationManager.h"
+#include "OptimizationProgressRenderer.h"
 
 class GlobalUIModel;
 
 namespace itk {
   class GDCMSeriesFileNames;
+  class FastMutexLock;
 }
 
 /**
@@ -27,6 +30,10 @@ class ImageIOWizardModel : public AbstractModel
 public:
 
   irisITKObjectMacro(ImageIOWizardModel, AbstractModel)
+
+  itkEventMacro(RegistrationProgressEvent, IRISEvent)
+
+  FIRES(RegistrationProgressEvent)
 
   typedef GuidedNativeImageIO::FileFormat FileFormat;
   enum Mode { LOAD, SAVE };
@@ -196,6 +203,41 @@ public:
    */
   irisGetMacro(UseRegistration, bool)
 
+  // Registration mode typedefs
+  typedef ImageRegistrationManager::RegistrationMode RegistrationMode;
+  typedef ImageRegistrationManager::RegistrationMetric RegistrationMetric;
+  typedef ImageRegistrationManager::RegistrationInit RegistrationInit;
+
+  // Registration domains
+  typedef SimpleItemSetDomain<RegistrationMode, std::string> RegistrationModeDomain;
+  typedef SimpleItemSetDomain<RegistrationMetric, std::string> RegistrationMetricDomain;
+  typedef SimpleItemSetDomain<RegistrationInit, std::string> RegistrationInitDomain;
+
+  // Access to registration models
+  irisGenericPropertyAccessMacro(RegistrationMode, RegistrationMode, RegistrationModeDomain)
+  irisGenericPropertyAccessMacro(RegistrationMetric, RegistrationMetric, RegistrationMetricDomain)
+  irisGenericPropertyAccessMacro(RegistrationInit, RegistrationInit, RegistrationInitDomain)
+
+  /**
+   * Perform registration between loaded overlay and main image. This operation is meant to
+   * be executed in a separate thread. From time to time, it will place the registration
+   * results into a thread-safe variable and fire a progress event. Use the method
+   * UpdateImageTransformFromRegistration() to apply registration results to the displayed image
+   */
+  void PerformRegistration();
+
+  /**
+   * Apply the currently computed transform to the image being loaded - allowing the user to
+   * see the registration results on the fly
+   */
+  void UpdateImageTransformFromRegistration();
+
+  /** Get the value of the registration objective function */
+  double GetRegistrationObjective();
+
+  /** Get the progress renderer object */
+  irisGetMacro(RegistrationProgressRenderer, OptimizationProgressRenderer *)
+
 protected:
 
   // Standard ITK protected constructors
@@ -232,6 +274,21 @@ protected:
 
   // DICOM support
   GuidedNativeImageIO::RegistryArray m_DicomContents;
+
+  // Registration models
+  typedef ConcretePropertyModel<RegistrationMode, RegistrationModeDomain> RegistrationModeModel;
+  typedef ConcretePropertyModel<RegistrationMetric, RegistrationMetricDomain> RegistrationMetricModel;
+  typedef ConcretePropertyModel<RegistrationInit, RegistrationInitDomain> RegistrationInitModel;
+
+  SmartPtr<RegistrationModeModel> m_RegistrationModeModel;
+  SmartPtr<RegistrationMetricModel> m_RegistrationMetricModel;
+  SmartPtr<RegistrationInitModel> m_RegistrationInitModel;
+
+  // Registration manager
+  SmartPtr<ImageRegistrationManager> m_RegistrationManager;
+
+  // Renderer used to plot the metric
+  SmartPtr<OptimizationProgressRenderer> m_RegistrationProgressRenderer;
 };
 
 #endif // IMAGEIOWIZARDMODEL_H

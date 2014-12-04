@@ -22,7 +22,8 @@ unsigned long AddListener(itk::Object *sender,
 }
 
 template <class TObserver>
-unsigned long AddListener(itk::Object *sender,
+unsigned long
+AddListener(itk::Object *sender,
                  const itk::EventObject &event,
                  TObserver *observer,
                  void (TObserver::*memberFunction)(itk::Object*, const itk::EventObject &))

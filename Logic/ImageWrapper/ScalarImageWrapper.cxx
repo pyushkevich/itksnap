@@ -33,8 +33,8 @@
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
 #include "itkMinimumMaximumImageFilter.h"
-#include "itkGradientMagnitudeImageFilter.h"
 #include "itkVectorImageToImageAdaptor.h"
+#include "itkCastImageFilter.h"
 #include "IRISException.h"
 #include "VectorImageWrapper.h"
 #include "ScalarImageHistogram.h"
@@ -50,19 +50,6 @@ ScalarImageWrapper<TTraits,TBase>
 {
   m_MinMaxFilter = MinMaxFilter::New();
   m_HistogramFilter = HistogramFilterType::New();
-
-  m_GradientMagnitudeFilter = GradMagFilter::New();
-  m_GradientMagnitudeFilter->ReleaseDataFlagOn();
-
-  // TODO: This filter is a huge waste of memory because it computes the
-  // gradient of the image just to obtain a maximum value. Not only that,
-  // the filter is applied to the common representation (float) image, so
-  // it requires another intermediate volume. The right thing to do would
-  // be to implement a filter that computes the maximum possible gradient
-  // magnitude of the image using a streaming implementation, and without
-  // having to cast to float.
-  m_GradientMagnitudeMaximumFilter = GradMagMaxFilter::New();
-  m_GradientMagnitudeMaximumFilter->SetInput(m_GradientMagnitudeFilter->GetOutput());
 
   // Set up VTK export pipeline
   this->SetupVTKImportExport();
@@ -123,12 +110,7 @@ ScalarImageWrapper<TTraits,TBase>
   // Update the common representation policy
   m_CommonRepresentationPolicy.UpdateInputImage(newImage);
 
-  // Also update the grad max range pipeline
-  CommonFormatImageType *imgCommon =
-      m_CommonRepresentationPolicy.GetOutput(ScalarImageWrapperBase::WHOLE_IMAGE);
-
-  m_GradientMagnitudeFilter->SetInput(imgCommon);
-
+  // Update the VTK export pipeline
   m_VTKExporter->SetInput(newImage);
 }
 
@@ -179,8 +161,13 @@ double
 ScalarImageWrapper<TTraits,TBase>
 ::GetImageGradientMagnitudeUpperLimit()
 {
-  m_GradientMagnitudeMaximumFilter->Update();
-  return m_GradientMagnitudeMaximumFilter->GetMaximum();
+  // Paul - 12/1/2014: I have modified this code to not compute the gradient magnitude
+  // on the whole image, but instead, to compute just the difference between the max and
+  // min values. I think this is much more efficient, and this removes some problems with
+  // wrappers that wrap around ImageAdapter objects.
+  //
+  // I hope this does not cause too much trouble...
+  return m_MinMaxFilter->GetMaximum() - m_MinMaxFilter->GetMinimum();
 }
 
 template<class TTraits, class TBase>
@@ -190,6 +177,24 @@ ScalarImageWrapper<TTraits,TBase>
 {
   return this->m_NativeMapping.MapGradientMagnitudeToNative(
         this->GetImageGradientMagnitudeUpperLimit());
+}
+
+
+template<class TTraits, class TBase>
+SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::FloatImageSource>
+ScalarImageWrapper<TTraits, TBase>::CreateCastToFloatPipeline() const
+{
+  // The kind of mini-pipeline that is created here depends on whether the
+  // internal image is a floating point image or not, and whether the native
+  // to intensity mapping is identity or not. We use template specialization to
+  // select the right behavior
+  typedef itk::UnaryFunctorImageFilter<ImageType, FloatImageType, NativeIntensityMapping> FilterType;
+  SmartPtr<FilterType> filter = FilterType::New();
+  filter->SetInput(this->m_Image);
+  filter->SetFunctor(this->m_NativeMapping);
+
+  SmartPtr<FloatImageSource> output = filter.GetPointer();
+  return output;
 }
 
 

@@ -20,13 +20,22 @@
 #include <QGridLayout>
 #include <QSpinBox>
 
+
 #include <QtCursorOverride.h>
+
+#include <QtComboBoxCoupling.h>
+#include <QtWidgetCoupling.h>
+#include "QtVTKRenderWindowBox.h"
 
 #include "IRISException.h"
 #include "ImageIOWizardModel.h"
 #include "MetaDataAccess.h"
 #include "SNAPQtCommon.h"
 #include "FileChooserPanelWithHistory.h"
+
+Q_DECLARE_METATYPE(ImageIOWizardModel::RegistrationMode)
+Q_DECLARE_METATYPE(ImageIOWizardModel::RegistrationMetric)
+Q_DECLARE_METATYPE(ImageIOWizardModel::RegistrationInit)
 
 namespace imageiowiz {
 
@@ -727,6 +736,33 @@ bool RawPage::validatePage()
   return true;
 }
 
+
+
+
+
+void RegistrationWorkerThread::Initialize(ImageIOWizardModel *model)
+{
+  // Connect the model
+  m_Model = model;
+
+  // Respond to events from the model
+  AddListener<RegistrationWorkerThread>(
+        m_Model, ImageIOWizardModel::RegistrationProgressEvent(),
+        this, &RegistrationWorkerThread::OnProgressEvent);
+}
+
+void RegistrationWorkerThread::run()
+{
+  // This method executes the run registration code
+  m_Model->PerformRegistration();
+}
+
+void RegistrationWorkerThread::OnProgressEvent()
+{
+  emit registrationProgress();
+}
+
+
 RegistrationPage::RegistrationPage(QWidget *parent)
 {
   // Create a new layout
@@ -734,22 +770,30 @@ RegistrationPage::RegistrationPage(QWidget *parent)
 
   // Create the header input
   m_InTransform = new QComboBox();
+  m_InAlignment = new QComboBox();
   m_InMetric = new QComboBox();
 
-  lo->addWidget(new QLabel("Registration Mode:"), 0, 0, 1, 1);
-  lo->addWidget(m_InTransform, 1, 0, 1, 1);
-  lo->addWidget(new QLabel("Similarity Metric:"), 0, 1, 1, 1);
-  lo->addWidget(m_InMetric, 1, 1, 1, 1);
+  lo->addWidget(new QLabel("Registration mode:"), 0, 0, 1, 1);
+  lo->addWidget(m_InTransform, 0, 1, 1, 1);
 
-  m_Run = new QPushButton();
-  lo->addWidget(m_Run, 0, 2, 1, 1);
+  lo->addWidget(new QLabel("Initial alignment:"), 1, 0, 1, 1);
+  lo->addWidget(m_InAlignment, 1, 1, 1, 1);
 
-  m_InTransform->addItem("Align based on image headers");
-  m_InTransform->addItem("Rigid registration");
-  m_InTransform->addItem("Affine registration");
+  lo->addWidget(new QLabel("Similarity metric:"), 2, 0, 1, 1);
+  lo->addWidget(m_InMetric, 2, 1, 1, 1);
 
-  m_InMetric->addItem("Mutual information");
-  m_InMetric->addItem("Cross-correlation");
+  // Create a button panel
+  QHBoxLayout *loBtn = new QHBoxLayout(this);
+  lo->addLayout(loBtn, 3, 0, 1, 2);
+
+  m_Run = new QPushButton("Run");
+  loBtn->addStretch();
+  loBtn->addWidget(m_Run, 0, Qt::AlignRight);
+
+  // Create the plot
+  m_ProgressPlot = new QtVTKRenderWindowBox(this);
+  m_ProgressPlot->setMinimumHeight(140);
+  lo->addWidget(m_ProgressPlot, 4, 0, 1, 2);
 
   connect(m_Run, SIGNAL(clicked()), this, SLOT(onRunRegistration()));
 }
@@ -762,6 +806,15 @@ int RegistrationPage::nextId() const
 void RegistrationPage::initializePage()
 {
   this->setTitle("Image Registration");
+
+  // Connect widgets to the model
+  makeCoupling(m_InTransform, m_Model->GetRegistrationModeModel());
+  makeCoupling(m_InMetric, m_Model->GetRegistrationMetricModel());
+  makeCoupling(m_InAlignment, m_Model->GetRegistrationInitModel());
+
+  // Get the progress renderer and attach it to the widget
+  m_ProgressRenderer = m_Model->GetRegistrationProgressRenderer();
+  m_ProgressPlot->SetRenderer(m_ProgressRenderer);
 }
 
 bool RegistrationPage::validatePage()
@@ -776,7 +829,17 @@ bool RegistrationPage::isComplete() const
 
 void RegistrationPage::onRunRegistration()
 {
+  RegistrationWorkerThread *workerThread = new RegistrationWorkerThread();
+  workerThread->Initialize(m_Model);
+  connect(workerThread, SIGNAL(registrationProgress()), this, SLOT(onRegistrationProgress()));
+  connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+  workerThread->start();
+}
 
+void RegistrationPage::onRegistrationProgress()
+{
+  m_Model->UpdateImageTransformFromRegistration();
+  this->setTitle(QString("Metric %1").arg(m_Model->GetRegistrationObjective()));
 }
 
 

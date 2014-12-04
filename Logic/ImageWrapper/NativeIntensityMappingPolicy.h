@@ -22,6 +22,8 @@ public:
 class LinearInternalToNativeIntensityMapping : public AbstractNativeIntensityMapping
 {
 public:
+  typedef LinearInternalToNativeIntensityMapping Self;
+
   double operator() (double g) const
     { return MapInternalToNative(g); }
 
@@ -40,6 +42,9 @@ public:
   LinearInternalToNativeIntensityMapping() : scale(1.0), shift(0.0) {}
   LinearInternalToNativeIntensityMapping(double a, double b) : scale(a), shift(b) {}
 
+  bool operator != (const Self &other) const
+    { return scale != other.scale || shift != other.shift; }
+
 protected:
   double scale;
   double shift;
@@ -49,6 +54,9 @@ class SpeedImageInternalToNativeIntensityMapping
     : public LinearInternalToNativeIntensityMapping
 {
 public:
+
+  typedef SpeedImageInternalToNativeIntensityMapping Self;
+
   SpeedImageInternalToNativeIntensityMapping()
   {
     // Map the range of short to -1 : 1
@@ -56,11 +64,17 @@ public:
     this->scale = 2.0 / ((int) smax - (int) smin);
     this->shift = 0.0;
   }
+
+  bool operator != (const Self &other) const { return false; }
+
 };
 
 class IdentityInternalToNativeIntensityMapping : public AbstractNativeIntensityMapping
 {
 public:
+
+  typedef IdentityInternalToNativeIntensityMapping Self;
+
   double operator() (double g) const
     { return g; }
 
@@ -76,6 +90,7 @@ public:
   virtual double GetScale() const { return 1; }
   virtual double GetShift() const { return 0; }
 
+  bool operator != (const Self &other) const { return false; }
 };
 
 

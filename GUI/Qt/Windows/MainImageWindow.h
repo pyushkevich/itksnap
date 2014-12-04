@@ -216,6 +216,8 @@ private slots:
 
   void UpdateMainLayout();
 
+  void UpdateCanvasDimensions();
+
   // Load image without interaction (used for recent/drop action).
   void LoadMainImage(const QString &file);
 

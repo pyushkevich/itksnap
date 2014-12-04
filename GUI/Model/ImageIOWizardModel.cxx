@@ -18,6 +18,37 @@ ImageIOWizardModel::ImageIOWizardModel()
   m_GuidedIO = NULL;
   m_LoadDelegate = NULL;
   m_SaveDelegate = NULL;
+
+  // Initialize the registration models
+
+  // Registration mode
+  RegistrationModeDomain reg_mode_domain;
+  reg_mode_domain[ImageRegistrationManager::RIGID] = "Rigid";
+  reg_mode_domain[ImageRegistrationManager::SIMILARITY] = "Rigid with uniform scaling";
+  reg_mode_domain[ImageRegistrationManager::AFFINE] = "Affine";
+  reg_mode_domain[ImageRegistrationManager::INITONLY] = "Initial alignment only";
+  m_RegistrationModeModel = NewConcreteProperty(ImageRegistrationManager::RIGID, reg_mode_domain);
+
+  // Registration metric
+  RegistrationMetricDomain reg_metric_domain;
+  reg_metric_domain[ImageRegistrationManager::NMI] = "Normalized mutual information";
+  reg_metric_domain[ImageRegistrationManager::NCC] = "Normalized cross-correlation";
+  reg_metric_domain[ImageRegistrationManager::SSD] = "Squared intensity difference";
+  m_RegistrationMetricModel = NewConcreteProperty(ImageRegistrationManager::NMI, reg_metric_domain);
+
+  // Registration initialization
+  RegistrationInitDomain reg_init_domain;
+  reg_init_domain[ImageRegistrationManager::HEADERS] = "Align based on image headers";
+  reg_init_domain[ImageRegistrationManager::CENTERS] = "Align image centers";
+  m_RegistrationInitModel = NewConcreteProperty(ImageRegistrationManager::HEADERS, reg_init_domain);
+
+  // Registration manager
+  m_RegistrationManager = ImageRegistrationManager::New();
+  Rebroadcast(m_RegistrationManager, itk::IterationEvent(), RegistrationProgressEvent());
+
+  // Optimization progress renderer
+  m_RegistrationProgressRenderer = OptimizationProgressRenderer::New();
+  m_RegistrationProgressRenderer->SetModel(this);
 }
 
 
@@ -402,6 +433,26 @@ bool ImageIOWizardModel::IsImageLoaded() const
 
 void ImageIOWizardModel::Finalize()
 {
+}
+
+void ImageIOWizardModel::PerformRegistration()
+{
+  m_RegistrationManager->PerformRegistration(m_Parent->GetDriver()->GetCurrentImageData(),
+                                             this->GetRegistrationMode(),
+                                             this->GetRegistrationMetric(),
+                                             this->GetRegistrationInit());
+}
+
+
+void ImageIOWizardModel::UpdateImageTransformFromRegistration()
+{
+  m_RegistrationManager->UpdateImageTransformFromRegistration(
+        m_Parent->GetDriver()->GetCurrentImageData());
+}
+
+double ImageIOWizardModel::GetRegistrationObjective()
+{
+  return m_RegistrationManager->GetRegistrationObjective();
 }
 
 
