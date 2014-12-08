@@ -86,7 +86,7 @@
 #include <QDesktopServices>
 #include <SNAPQtCommon.h>
 #include <QMimeData>
-
+#include <QDesktopWidget>
 #include <QShortcut>
 
 
@@ -516,16 +516,40 @@ void MainImageWindow::UpdateMainLayout()
     }
 }
 
+
 void MainImageWindow::UpdateCanvasDimensions()
 {
   // Get the current aspect ratio
   Vector2ui tiling =
       m_Model->GetDisplayLayoutModel()->GetSliceViewLayerTilingModel()->GetValue();
 
+  // Compute the tiling aspect ratio
+  double tilingAR = tiling(1) * 1.0 / tiling(0);
+
+  // The tiling aspect ratio should not be mapped directly to the screen aspect ratio -
+  // this creates configurations that are too wide. Instead, we will use a scaling factor
+  double windowAR = (tilingAR - 1.0) * 0.6 + 1.0;
+
   // Adjust the width of the screen to achieve desired aspect ratio
-  int cw_width = (int) ( tiling(1) * (1.0 * ui->centralwidget->height()) / tiling(0));
+  int cw_width = static_cast<int>(windowAR * ui->centralwidget->height());
   int mw_width = this->width() + (cw_width - ui->centralwidget->width());
+
+  // Get the current desktop dimensions
+  QRect desktop = QApplication::desktop()->availableGeometry(this);
+
+  // Adjust the width to be within the desktop dimensions
+  mw_width = std::min(desktop.width(), mw_width);
+
+  // Deterimine the left point
+  int left = std::max(0, this->pos().x() + this->width() / 2 - mw_width / 2);
+
+  // Adjust the left point if necessary
+  if(left + mw_width > desktop.right())
+    left = std::max(0, desktop.right() - mw_width);
+
+  // Now we want to position the window nicely.
   this->resize(QSize(mw_width, this->height()));
+  this->move(left, this->pos().y());
 }
 
 

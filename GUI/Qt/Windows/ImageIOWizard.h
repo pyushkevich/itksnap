@@ -148,52 +148,6 @@ private:
 };
 
 
-class RegistrationWorkerThread : public QThread
-{
-  Q_OBJECT
-
-public:
-
-  void Initialize(ImageIOWizardModel *model);
-  void run();
-  void OnProgressEvent();
-
-signals:
-
-  void registrationProgress();
-
-private:
-
-  ImageIOWizardModel *m_Model;
-};
-
-
-
-class RegistrationPage : public AbstractPage
-{
-  Q_OBJECT
-
-public:
-
-  explicit RegistrationPage(QWidget *parent = 0);
-  int nextId() const;
-  void initializePage();
-  bool validatePage();
-  virtual bool isComplete() const;
-
-public slots:
-
-  void onRunRegistration();
-  void onRegistrationProgress();
-
-private:
-
-  QComboBox *m_InTransform, *m_InMetric, *m_InAlignment;
-  QPushButton *m_Run;
-
-  SmartPtr<OptimizationProgressRenderer> m_ProgressRenderer;
-  QtVTKRenderWindowBox *m_ProgressPlot;
-};
 
 } // end namespace
 

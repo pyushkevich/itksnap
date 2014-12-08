@@ -22,7 +22,7 @@ font-size: 12px;
    <item>
     <widget class="QTabWidget" name="tabMode">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabThreshold">
       <attribute name="title">

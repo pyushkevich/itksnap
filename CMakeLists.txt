@@ -549,6 +549,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/DropActionDialog.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
+  GUI/Qt/Windows/ImageIOWizard/RegistrationPage.cxx
   GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
   GUI/Qt/Windows/LabelSelectionPopup.cxx
@@ -626,6 +627,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/DropActionDialog.h
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
+  GUI/Qt/Windows/ImageIOWizard/RegistrationPage.h
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
   GUI/Qt/Windows/LabelSelectionPopup.h
@@ -698,6 +700,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/AboutDialog.ui
   GUI/Qt/Windows/DropActionDialog.ui
   GUI/Qt/Windows/ImageIODialog.ui
+  GUI/Qt/Windows/ImageIOWizard/RegistrationPage.ui
   GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui
   GUI/Qt/Windows/LabelSelectionPopup.ui

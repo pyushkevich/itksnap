@@ -36,6 +36,7 @@ OptimizationProgressRenderer::OptimizationProgressRenderer()
   m_PlotTable = vtkSmartPointer<vtkTable>::New();
   m_PlotTable->AddColumn(m_DataX);
   m_PlotTable->AddColumn(m_DataY);
+  m_PlotTable->SetNumberOfRows(0);
 
   // Set up the plot
   m_Plot = m_Chart->AddPlot(vtkChart::LINE);
