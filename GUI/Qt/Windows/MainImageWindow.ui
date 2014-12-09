@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
@@ -38,13 +41,13 @@
       <widget class="QWidget" name="pageMain">
        <layout class="QGridLayout" name="gridLayout_2">
         <property name="leftMargin">
-         <number>4</number>
+         <number>0</number>
         </property>
         <property name="topMargin">
          <number>4</number>
         </property>
         <property name="rightMargin">
-         <number>4</number>
+         <number>0</number>
         </property>
         <property name="bottomMargin">
          <number>4</number>
@@ -766,7 +769,7 @@ color:rgb(103, 103, 103);
   <action name="actionUndo">
    <property name="icon">
     <iconset resource="../Resources/SNAPResources.qrc">
-     <normaloff>:/root/undo_22.png</normaloff>:/root/undo_22.png</iconset>
+     <normaloff>:/root/icons8_undo-48.png</normaloff>:/root/icons8_undo-48.png</iconset>
    </property>
    <property name="text">
     <string>Undo</string>
@@ -778,7 +781,7 @@ color:rgb(103, 103, 103);
   <action name="actionRedo">
    <property name="icon">
     <iconset resource="../Resources/SNAPResources.qrc">
-     <normaloff>:/root/redo_22.png</normaloff>:/root/redo_22.png</iconset>
+     <normaloff>:/root/icons8_redo-48.png</normaloff>:/root/icons8_redo-48.png</iconset>
    </property>
    <property name="text">
     <string>Redo</string>

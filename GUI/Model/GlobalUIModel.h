@@ -61,6 +61,7 @@ class ReorientImageModel;
 class DisplayLayoutModel;
 class PaintbrushModel;
 class PaintbrushSettingsModel;
+class PolygonSettingsModel;
 class LayerGeneralPropertiesModel;
 class SynchronizationModel;
 class SnakeParameterModel;
@@ -201,6 +202,9 @@ public:
 
   /** Model for managing paintbrush settings */
   irisGetMacro(PaintbrushSettingsModel, PaintbrushSettingsModel *)
+
+  /** Model for managing polygon settings */
+  irisGetMacro(PolygonSettingsModel, PolygonSettingsModel *)
 
   /** Model for multi-session sync */
   irisGetMacro(SynchronizationModel, SynchronizationModel *)
@@ -367,6 +371,9 @@ protected:
 
   // Paintbrush settings
   SmartPtr<PaintbrushSettingsModel> m_PaintbrushSettingsModel;
+
+  // Polygon settings
+  SmartPtr<PolygonSettingsModel> m_PolygonSettingsModel;
 
   // Synchronization
   SmartPtr<SynchronizationModel> m_SynchronizationModel;

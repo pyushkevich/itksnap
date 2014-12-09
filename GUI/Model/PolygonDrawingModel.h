@@ -2,6 +2,7 @@
 #define POLYGONDRAWINGMODEL_H
 
 #include "AbstractModel.h"
+#include "PropertyModel.h"
 #include <SNAPCommon.h>
 #include <IRISException.h>
 
@@ -96,8 +97,7 @@ public:
   irisGetMacro(CachedPolygon,bool)
 
   /** Set the accuracy of freehand curve fitting */
-  irisGetMacro(FreehandFittingRate, double)
-  irisSetMacro(FreehandFittingRate, double)
+  irisRangedPropertyAccessMacro(FreehandFittingRate, double)
 
   /** Access to the vertices */
   irisGetMacro(Vertices, const VertexList &)
@@ -179,7 +179,8 @@ protected:
 
   void SetState(PolygonState state);
 
-  double m_FreehandFittingRate;
+  // Freehand fitting rate
+  SmartPtr<ConcreteRangedDoubleProperty> m_FreehandFittingRateModel;
 
   // Type definition for the slice used for polygon rendering
   typedef itk::Image<unsigned char,2> PolygonSliceType;

@@ -100,7 +100,14 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
 
   // The action toolbar
   QToolBar *toolCmd = new QToolBar(this);
+  toolCmd->setIconSize(QSize(20,20));
   ui->panelToolbarAction->layout()->addWidget(toolCmd);
+
+  // Hide the buttons that show up and disappear
+  ui->btnPaintbrushInspector->setVisible(false);
+  ui->btnPolygonInspector->setVisible(false);
+  ui->btnSnakeInspector->setVisible(false);
+
 
   // Label selection button
   m_LabelSelectionButton = new LabelSelectionButton(this);
@@ -127,14 +134,16 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
   m_Model = model;
   ui->pageCursorInspector->SetModel(m_Model->GetCursorInspectionModel());
   ui->pageZoomInspector->SetModel(m_Model);
-  ui->pageLabelInspector->SetModel(m_Model);
   ui->pageDisplayInspector->SetModel(m_Model->GetDisplayLayoutModel());
   ui->pageSyncInspector->SetModel(m_Model->GetSynchronizationModel());
   ui->pagePaintbrushTool->SetModel(m_Model->GetPaintbrushSettingsModel());
   ui->pageSnakeTool->SetModel(m_Model);
+  ui->pagePolygonTool->SetModel(m_Model);
 
   m_LabelSelectionButton->SetModel(model);
   m_LabelSelectionPopup->SetModel(model);
+
+  ui->labelInspector->SetModel(m_Model);
 
   // Set up state machine
   activateOnFlag(this, m_Model, UIF_BASEIMG_LOADED);
@@ -150,26 +159,25 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
   static QToolButton *mode_inspector_btn[] = {
     ui->btnCursorInspector,
     ui->btnZoomInspector,
-    ui->btnLabelInspector,
-    ui->btnToolInspector,
-    ui->btnToolInspector,
-    ui->btnToolInspector };
+    ui->btnPolygonInspector,
+    ui->btnPaintbrushInspector,
+    ui->btnSnakeInspector,
+    ui->btnSnakeInspector
+  };
 
-  static QWidget *mode_tool_pages[] = {
-    ui->pageBlank,
-    ui->pageBlank,
-    ui->pageBlank,
-    ui->pagePaintbrushTool,
-    ui->pageSnakeTool,
-    ui->pageBlank};
 
   // Respond to changes in toolbar mode
   GlobalState *gs = m_Model->GetGlobalState();
   if(bucket.HasEvent(ValueChangedEvent(), gs->GetToolbarModeModel()))
     {
-    int mode = (int) gs->GetToolbarMode();
+    // Update the list of displayed buttons
+    ToolbarModeType mode = gs->GetToolbarMode();
+    ui->btnPaintbrushInspector->setVisible(mode == PAINTBRUSH_MODE);
+    ui->btnPolygonInspector->setVisible(mode == POLYGON_DRAWING_MODE);
+    ui->btnSnakeInspector->setVisible(mode == ROI_MODE);
+
+    // Click the button corresponding to the mode
     mode_inspector_btn[mode]->click();
-    ui->stackToolPage->setCurrentWidget(mode_tool_pages[mode]);
     }
 }
 
@@ -198,15 +206,6 @@ void MainControlPanel::on_btnZoomInspector_clicked(bool checked)
     }
 }
 
-void MainControlPanel::on_btnLabelInspector_clicked(bool checked)
-{
-  if(checked)
-    {
-    ui->stack->setCurrentWidget(ui->pageLabelInspector);
-    ui->grpInspector->setTitle("Label Inspector");
-    }
-}
-
 void MainControlPanel::on_btnDisplayInspector_clicked(bool checked)
 {
   if(checked)
@@ -225,14 +224,35 @@ void MainControlPanel::on_btnSyncInspector_clicked(bool checked)
     }
 }
 
-void MainControlPanel::on_btnToolInspector_clicked(bool checked)
+
+
+
+void MainControlPanel::on_btnPolygonInspector_clicked(bool checked)
 {
   if(checked)
     {
-    ui->stack->setCurrentWidget(ui->pageToolInspector);
-    ui->grpInspector->setTitle("Active Tool Inspector");
+    ui->stack->setCurrentWidget(ui->pagePolygonTool);
+    ui->grpInspector->setTitle("Polygon Inspector");
     }
+
 }
 
+void MainControlPanel::on_btnPaintbrushInspector_clicked(bool checked)
+{
+  if(checked)
+    {
+    ui->stack->setCurrentWidget(ui->pagePaintbrushTool);
+    ui->grpInspector->setTitle("Paintbrush Inspector");
+    }
 
+}
 
+void MainControlPanel::on_btnSnakeInspector_clicked(bool checked)
+{
+  if(checked)
+    {
+    ui->stack->setCurrentWidget(ui->pageSnakeTool);
+    ui->grpInspector->setTitle("Snake Inspector");
+    }
+
+}

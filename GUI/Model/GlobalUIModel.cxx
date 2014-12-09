@@ -52,6 +52,7 @@
 #include <DisplayLayoutModel.h>
 #include <PaintbrushModel.h>
 #include <PaintbrushSettingsModel.h>
+#include "PolygonSettingsModel.h"
 #include <SynchronizationModel.h>
 #include <SnakeParameterModel.h>
 #include <SnakeROIResampleModel.h>
@@ -91,10 +92,6 @@ GlobalUIModel::GlobalUIModel()
   m_DisplayLayoutModel = DisplayLayoutModel::New();
   m_DisplayLayoutModel->SetParentModel(this);
 
-  // Paintbrush settings
-  m_PaintbrushSettingsModel = PaintbrushSettingsModel::New();
-  m_PaintbrushSettingsModel->SetParentModel(this);
-
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)
     {
@@ -113,6 +110,15 @@ GlobalUIModel::GlobalUIModel()
     m_PaintbrushModel[i] = PaintbrushModel::New();
     m_PaintbrushModel[i]->SetParent(m_SliceModel[i]);
     }
+
+
+  // Paintbrush settings
+  m_PaintbrushSettingsModel = PaintbrushSettingsModel::New();
+  m_PaintbrushSettingsModel->SetParentModel(this);
+
+  // Polygon settings
+  m_PolygonSettingsModel = PolygonSettingsModel::New();
+  m_PolygonSettingsModel->SetParentModel(this);
 
   // Connect them together with the coordinator
   m_SliceCoordinator = SliceWindowCoordinator::New();

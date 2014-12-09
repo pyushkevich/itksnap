@@ -33,9 +33,4 @@ void SynchronizationInspector::SetModel(SynchronizationModel *model)
   // The checkboxes should be deactivated when the sync model is off
   makeBooleanNamedPropertyCoupling(ui->panelProperties, "enabled",
                                    model->GetSyncEnabledModel());
-
-  // The checkboxes should be deactivated when the sync model is off
-  makeBooleanNamedPropertyCoupling(ui->inChannel, "enabled",
-                                   model->GetSyncEnabledModel());
-
 }

@@ -51,12 +51,12 @@ CurrentVoxelInfoItemSetDomain
     // Print with varying degrees of precision
     if(v.size() == 1)
       {
-      oss << std::setprecision(4);
+      oss << std::setprecision(6);
       oss << v[0];
       }
     else if(v.size() == 3)
       {
-      oss << std::setprecision(2);
+      oss << std::setprecision(4);
       oss << v[0] << "," << v[1] << "," << v[2];
       }
 

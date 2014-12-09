@@ -33,14 +33,16 @@ private slots:
 
   void on_btnZoomInspector_clicked(bool checked);
 
-  void on_btnLabelInspector_clicked(bool checked);
-
   void on_btnDisplayInspector_clicked(bool checked);
 
   void on_btnSyncInspector_clicked(bool checked);
 
-  void on_btnToolInspector_clicked(bool checked);
 
+  void on_btnPolygonInspector_clicked(bool checked);
+
+  void on_btnPaintbrushInspector_clicked(bool checked);
+
+  void on_btnSnakeInspector_clicked(bool checked);
 
 private:
   Ui::MainControlPanel *ui;

@@ -106,6 +106,9 @@
         <file>open_22.png</file>
         <file>crosshair_cursor_bitmap.png</file>
         <file>crosshair_cursor_mask.png</file>
+        <file>icons8_undo-48.png</file>
+        <file>icons8_redo-48.png</file>
+        <file>icons8_refresh-48.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

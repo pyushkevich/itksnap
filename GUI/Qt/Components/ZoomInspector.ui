@@ -23,10 +23,25 @@
    <string notr="true">*  {
 font-size: 12px;
 }
+QSpinBox {
+font-size: 11px;
+}
 </string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="margin">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <item>
@@ -34,8 +49,8 @@ font-size: 12px;
      <property name="font">
       <font>
        <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="focusPolicy">
@@ -45,37 +60,6 @@ font-size: 12px;
       <string>Linked zoom</string>
      </property>
     </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <property name="spacing">
-      <number>0</number>
-     </property>
-     <property name="leftMargin">
-      <number>20</number>
-     </property>
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="font">
-        <font>
-         <pointsize>-1</pointsize>
-        </font>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">font-size:10px;</string>
-       </property>
-       <property name="text">
-        <string>Maintains a common zoom factor in all slice views.</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
    </item>
    <item>
     <spacer name="verticalSpacer_2">
@@ -88,51 +72,16 @@ font-size: 12px;
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>10</height>
+       <height>5</height>
       </size>
      </property>
     </spacer>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_4">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="text">
-      <string>Common zoom factor:</string>
-     </property>
-     <property name="margin">
-      <number>0</number>
-     </property>
-     <property name="indent">
-      <number>0</number>
-     </property>
-     <property name="buddy">
-      <cstring>inZoom</cstring>
-     </property>
-    </widget>
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout">
      <property name="spacing">
       <number>4</number>
      </property>
-     <item row="0" column="0">
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
      <item row="0" column="1" colspan="3">
       <widget class="QDoubleSpinBox" name="inZoom">
        <property name="sizePolicy">
@@ -143,7 +92,7 @@ font-size: 12px;
        </property>
        <property name="minimumSize">
         <size>
-         <width>120</width>
+         <width>60</width>
          <height>0</height>
         </size>
        </property>
@@ -159,14 +108,55 @@ font-size: 12px;
         <string/>
        </property>
        <property name="suffix">
-        <string> px/mm</string>
+        <string/>
        </property>
        <property name="decimals">
         <number>3</number>
        </property>
       </widget>
      </item>
-     <item row="1" column="1" colspan="3">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Zoom:</string>
+       </property>
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <property name="indent">
+        <number>0</number>
+       </property>
+       <property name="buddy">
+        <cstring>inZoom</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="4">
+      <widget class="QLabel" name="label_5">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-size:9pt;</string>
+       </property>
+       <property name="text">
+        <string> px/mm</string>
+       </property>
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <property name="indent">
+        <number>0</number>
+       </property>
+       <property name="buddy">
+        <cstring>inZoom</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" colspan="4">
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <property name="spacing">
         <number>4</number>
@@ -280,34 +270,39 @@ font-size: 12px;
       <property name="spacing">
        <number>2</number>
       </property>
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
      </layout>
     </widget>
    </item>
    <item>
-    <widget class="Line" name="line">
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="lineWidth">
-      <number>1</number>
-     </property>
-     <property name="midLineWidth">
-      <number>1</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QVBoxLayout" name="verticalLayout_3"/>
-   </item>
-   <item>
     <widget class="QWidget" name="widget_2" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_5">
+      <property name="spacing">
+       <number>8</number>
+      </property>
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
       <item>
        <widget class="QActionButton" name="btnResetViews">
         <property name="sizePolicy">

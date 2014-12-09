@@ -142,6 +142,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
         QDockWidget::DockWidgetFloatable |
         QDockWidget::DockWidgetMovable);
   m_DockLeft->setWindowTitle("ITK-SNAP Toolbox");
+  // m_DockLeft->setTitleBarWidget(new QWidget());
   this->addDockWidget(Qt::LeftDockWidgetArea, m_DockLeft);
 
   m_ControlPanel = new MainControlPanel(this);

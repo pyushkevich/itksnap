@@ -1074,7 +1074,8 @@ ImageWrapper<TTraits, TBase>
 ::SetFileName(const std::string &name)
 {
   m_FileName = name;
-  m_FileNameShort = itksys::SystemTools::GetFilenameName(name);
+  m_FileNameShort = itksys::SystemTools::GetFilenameWithoutExtension(
+        itksys::SystemTools::GetFilenameName(name));
   this->InvokeEvent(WrapperMetadataChangeEvent());
 }
 

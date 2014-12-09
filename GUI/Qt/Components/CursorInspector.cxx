@@ -88,6 +88,10 @@ CursorInspector::CursorInspector(QWidget *parent) :
   ui->tableVoxelUnderCursor->setFixedHeight(120);
   ui->tableVoxelUnderCursor->setContextMenuPolicy(Qt::CustomContextMenu);
 
+  ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+  ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+  ui->tableVoxelUnderCursor->horizontalHeader()->setMinimumSectionSize(60);
+
   m_ContextMenu = new QMenu(ui->tableVoxelUnderCursor);
   m_ContextMenu->addAction(ui->actionAutoContrast);
 

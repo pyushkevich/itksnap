@@ -18,7 +18,7 @@ LabelInspector::LabelInspector(QWidget *parent) :
   ui->inBackLabel->setIconSize(QSize(16,16));
 
   // Connect to the action in the menubar
-  ui->btnEdit->setAction("actionLabel_Editor");
+  // ui->btnEdit->setAction("actionLabel_Editor");
 }
 
 LabelInspector::~LabelInspector()
@@ -32,10 +32,13 @@ void LabelInspector
   // Get the model
   m_Model = model;
 
+  // Attach to quick list
+  // ui->quickList->SetModel(model);
+
   // Use couplings where we can
   makeCoupling(ui->inOpacity, m_Model->GetSegmentationOpacityModel());
   makeCoupling(ui->inOpacityValue, m_Model->GetSegmentationOpacityModel());
-  makeCoupling(ui->chkVisible, m_Model->GetSegmentationVisibilityModel());
+  // makeCoupling(ui->chkVisible, m_Model->GetSegmentationVisibilityModel());
 
   // Couple the color label combo box. The actual logic for how the labels are
   // mapped to color labels is handled in QtComboBoxCoupling.h
@@ -46,9 +49,6 @@ void LabelInspector
   makeCoupling(ui->inBackLabel,
                m_Model->GetGlobalState()->GetDrawOverFilterModel());
 
-  // Couple the inversion checkbox
-  makeCoupling(ui->cbInvert,
-               m_Model->GetGlobalState()->GetPolygonInvertModel());
 }
 
 

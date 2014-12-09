@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>184</width>
-    <height>588</height>
+    <height>715</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -26,7 +26,8 @@
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QGroupBox {
+   <string notr="true">/*
+QGroupBox {
   background-origin: content;
   margin-top: 15px;
   font-weight: bold;
@@ -40,383 +41,600 @@
 QGroupBox::title {
   subcontrol-origin: 	margin;
   subcontrol-position: top left;
-}</string>
+} */
+
+QGroupBox {
+  background-origin: content;
+  margin-top: 15px;
+  font-weight: bold;
+  font-size: 12px;
+  text-shadow:1px 1px 0 white;
+  color: rgb(30,30,160);
+  background-color: rgb(222,222,222);
+  padding: 5px;
+  border-radius: 2px;
+  border: 1px solid rgb(168,168,168);
+}
+QGroupBox::title {
+  subcontrol-origin: 	margin;
+  subcontrol-position: top left;
+}
+
+QToolButton::checked {
+  background-color:rgb(210, 210, 210);
+}
+
+QToolButton::pressed {
+  background-color:rgb(210, 210, 210);
+}
+</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
    <property name="spacing">
-    <number>8</number>
+    <number>0</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>5</number>
+   </property>
+   <property name="topMargin">
+    <number>5</number>
+   </property>
+   <property name="rightMargin">
+    <number>5</number>
+   </property>
+   <property name="bottomMargin">
     <number>5</number>
    </property>
    <item>
-    <widget class="QGroupBox" name="grpToolbox">
+    <widget class="QWidget" name="widgetMain" native="true">
      <property name="styleSheet">
-      <string notr="true">
-
-QToolBar {
-	padding: 0px;
-}</string>
+      <string notr="true"/>
      </property>
-     <property name="title">
-      <string>Main Toolbar</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4">
+     <layout class="QVBoxLayout" name="verticalLayout_15">
       <property name="spacing">
-       <number>2</number>
+       <number>12</number>
       </property>
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <item>
-       <widget class="QWidget" name="panelToolbarMode" native="true">
+       <widget class="QGroupBox" name="grpToolbox">
         <property name="styleSheet">
-         <string notr="true">QToolButton {
+         <string notr="true">
+QToolBar {
+	padding: 0px;
+}</string>
+        </property>
+        <property name="title">
+         <string>Main Toolbar</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QWidget" name="panelToolbarMode" native="true">
+           <property name="styleSheet">
+            <string notr="true">QToolButton {
 	width: 22px;
 	height: 22px;
 	icon-size: 22px;
 	padding: 1px;
 }</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_5">
-         <property name="margin">
-          <number>0</number>
-         </property>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="Line" name="line">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QWidget" name="panelToolbarAction" native="true">
-        <property name="styleSheet">
-         <string notr="true">QToolButton {
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="Line" name="line">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="panelToolbarAction" native="true">
+           <property name="styleSheet">
+            <string notr="true">QToolButton {
 	width: 16px;
 	height: 16px;
 	icon-size: 16px;
 	padding: 1px;
 }</string>
-        </property>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <property name="margin">
-          <number>0</number>
-         </property>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+           </layout>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="grpInspector">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>1</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="title">
-      <string>Cursor Inspector</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <property name="spacing">
-       <number>5</number>
-      </property>
-      <property name="margin">
-       <number>0</number>
-      </property>
       <item>
-       <widget class="QWidget" name="widget" native="true">
+       <widget class="QGroupBox" name="grpInspector">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>1</verstretch>
+         </sizepolicy>
+        </property>
         <property name="styleSheet">
-         <string notr="true">QToolButton {
+         <string notr="true"/>
+        </property>
+        <property name="title">
+         <string>Cursor Inspector</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QWidget" name="widget" native="true">
+           <property name="styleSheet">
+            <string notr="true">QToolButton {
   icon-size: 22px;
   min-width: 1ex;
-  border-top: 1px solid rgb(108, 108, 108);
-  border-bottom: 1px solid rgb(108, 108, 108);
+  border-top: 1px solid rgb(192, 192, 192);
+  border-bottom: 1px solid rgb(192, 192, 192);
   border-left: 1px;
   border-right: 1px;
-  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(245, 245, 245, 255), stop:0.487685 rgba(226, 226, 226, 255), stop:0.502463 rgba(215, 215, 215, 255), stop:1 rgba(245, 245, 245, 255));
+  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(235, 235, 235, 255), stop:0.487685 rgba(216, 216, 216, 255), stop:0.502463 rgba(205, 205, 205, 255), stop:1 rgba(235, 235, 235, 255));
   width: 25px;
   height: 25px;
 }
 QToolButton:hover, QToolButton:checked {
   background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(214, 228, 245, 255), stop:0.487685 rgba(193, 205, 221, 255), stop:0.502463 rgba(182, 193, 207, 255), stop:1 rgba(215, 228, 245, 255));
   padding:0px;
-  
+}
+QWidget#widget {
+  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(235, 235, 235, 255), stop:0.487685 rgba(216, 216, 216, 255), stop:0.502463 rgba(205, 205, 205, 255), stop:1 rgba(235, 235, 235, 255));
+  border-top: 1px solid rgb(192, 192, 192);
+  border-bottom: 1px solid rgb(192, 192, 192);
 }
 </string>
-        </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="margin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QToolButton" name="btnCursorInspector">
-           <property name="minimumSize">
-            <size>
-             <width>25</width>
-             <height>30</height>
-            </size>
            </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Cursor Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Examine the voxel under the cursor and enter exact 3D cursor location.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../Resources/SNAPResources.qrc">
-             <normaloff>:/root/crosshair.gif</normaloff>:/root/crosshair.gif</iconset>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="btnCursorInspector">
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Cursor Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Examine the voxel under the cursor and enter exact 3D cursor location.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/crosshair.gif</normaloff>:/root/crosshair.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <property name="autoExclusive">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnZoomInspector">
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Zoom Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Control zoom factor in all slice views. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/zoom.gif</normaloff>:/root/zoom.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="autoExclusive">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnDisplayInspector">
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>27</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Display Layout Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Control which slice views are shown in the main ITK-SNAP window and how multiple image layers are rendered. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/dl_toolbox.png</normaloff>:/root/dl_toolbox.png</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="autoExclusive">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnSyncInspector">
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>27</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Synchronization Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust synchronization of cursor, zoom and pan across multiple ITK-SNAP sessions running on one computer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/network-wireless.png</normaloff>:/root/network-wireless.png</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="autoExclusive">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnPolygonInspector">
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>27</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Synchronization Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust synchronization of cursor, zoom and pan across multiple ITK-SNAP sessions running on one computer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/poly.gif</normaloff>:/root/poly.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="autoExclusive">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnPaintbrushInspector">
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>27</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Synchronization Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust synchronization of cursor, zoom and pan across multiple ITK-SNAP sessions running on one computer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/paintbrush.gif</normaloff>:/root/paintbrush.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="autoExclusive">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnSnakeInspector">
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>27</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Synchronization Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust synchronization of cursor, zoom and pan across multiple ITK-SNAP sessions running on one computer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/snake.gif</normaloff>:/root/snake.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="autoExclusive">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>5</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="btnZoomInspector">
-           <property name="minimumSize">
-            <size>
-             <width>25</width>
-             <height>30</height>
-            </size>
+          <widget class="QStackedWidget" name="stack">
+           <property name="currentIndex">
+            <number>0</number>
            </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Zoom Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Control zoom factor in all slice views. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../Resources/SNAPResources.qrc">
-             <normaloff>:/root/zoom.gif</normaloff>:/root/zoom.gif</iconset>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QToolButton" name="btnLabelInspector">
-           <property name="minimumSize">
-            <size>
-             <width>25</width>
-             <height>27</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Label Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Select the foreground and background labels for segmentation tasks. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../Resources/SNAPResources.qrc">
-             <normaloff>:/root/paintbrush.gif</normaloff>:/root/paintbrush.gif</iconset>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QToolButton" name="btnDisplayInspector">
-           <property name="minimumSize">
-            <size>
-             <width>25</width>
-             <height>27</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Display Layout Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Control which slice views are shown in the main ITK-SNAP window and how multiple image layers are rendered. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../Resources/SNAPResources.qrc">
-             <normaloff>:/root/dl_toolbox.png</normaloff>:/root/dl_toolbox.png</iconset>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QToolButton" name="btnSyncInspector">
-           <property name="minimumSize">
-            <size>
-             <width>25</width>
-             <height>27</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Synchronization Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust synchronization of cursor, zoom and pan across multiple ITK-SNAP sessions running on one computer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../Resources/SNAPResources.qrc">
-             <normaloff>:/root/network-wireless.png</normaloff>:/root/network-wireless.png</iconset>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QToolButton" name="btnToolInspector">
-           <property name="minimumSize">
-            <size>
-             <width>25</width>
-             <height>27</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Active Tool Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust parameters and settings specific to the currently selected tool in the main toolbar.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../Resources/SNAPResources.qrc">
-             <normaloff>:/root/tools.png</normaloff>:/root/tools.png</iconset>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
+           <widget class="CursorInspector" name="pageCursorInspector"/>
+           <widget class="ZoomInspector" name="pageZoomInspector"/>
+           <widget class="LabelInspector" name="pageLabelInspector"/>
+           <widget class="DisplayLayoutInspector" name="pageDisplayInspector">
+            <property name="toolTip">
+             <string/>
+            </property>
+           </widget>
+           <widget class="SynchronizationInspector" name="pageSyncInspector">
+            <property name="toolTip">
+             <string/>
+            </property>
+           </widget>
+           <widget class="SnakeToolROIPanel" name="pageSnakeTool"/>
+           <widget class="PaintbrushToolPanel" name="pagePaintbrushTool"/>
+           <widget class="PolygonToolPanel" name="pagePolygonTool"/>
+           <widget class="QWidget" name="pageBlank"/>
           </widget>
          </item>
         </layout>
        </widget>
       </item>
       <item>
-       <widget class="QStackedWidget" name="stack">
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="CursorInspector" name="pageCursorInspector"/>
-        <widget class="ZoomInspector" name="pageZoomInspector"/>
-        <widget class="LabelInspector" name="pageLabelInspector"/>
-        <widget class="DisplayLayoutInspector" name="pageDisplayInspector">
-         <property name="toolTip">
-          <string/>
-         </property>
-        </widget>
-        <widget class="SynchronizationInspector" name="pageSyncInspector">
-         <property name="toolTip">
-          <string/>
-         </property>
-        </widget>
-        <widget class="QWidget" name="pageToolInspector">
-         <property name="toolTip">
-          <string/>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QStackedWidget" name="stackToolPage">
-            <property name="currentIndex">
-             <number>1</number>
-            </property>
-            <widget class="SnakeToolROIPanel" name="pageSnakeTool"/>
-            <widget class="PaintbrushToolPanel" name="pagePaintbrushTool"/>
-            <widget class="QWidget" name="pageBlank"/>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="grpToolbox3D">
-     <property name="styleSheet">
-      <string notr="true">
+       <widget class="QGroupBox" name="grpToolbox3D_2">
+        <property name="styleSheet">
+         <string notr="true">
 
 QToolBar {
 	padding: 0px;
 }</string>
-     </property>
-     <property name="title">
-      <string>3D Toolbar</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_6">
-      <property name="spacing">
-       <number>2</number>
-      </property>
-      <property name="margin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QWidget" name="panelToolbarMode3D" native="true">
-        <property name="styleSheet">
-         <string notr="true">QToolButton {
+        </property>
+        <property name="title">
+         <string>Segmentation Labels</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="LabelInspector" name="labelInspector" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QToolButton {
 	width: 22px;
 	height: 22px;
 	icon-size: 22px;
 	padding: 1px;
 }</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_16">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="grpToolbox3D">
+        <property name="styleSheet">
+         <string notr="true">
+
+QToolBar {
+	padding: 0px;
+}</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_7">
-         <property name="margin">
+        <property name="title">
+         <string>3D Toolbar</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
           <number>0</number>
          </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QWidget" name="panelToolbarMode3D" native="true">
+           <property name="styleSheet">
+            <string notr="true">QToolButton {
+	width: 22px;
+	height: 22px;
+	icon-size: 22px;
+	padding: 1px;
+}</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_7">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+           </layout>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
@@ -466,6 +684,12 @@ QToolBar {
    <class>SynchronizationInspector</class>
    <extends>QWidget</extends>
    <header>SynchronizationInspector.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PolygonToolPanel</class>
+   <extends>QWidget</extends>
+   <header>PolygonToolPanel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

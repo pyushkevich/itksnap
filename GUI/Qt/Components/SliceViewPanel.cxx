@@ -163,6 +163,8 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   ui->imSnakeROI->SetModel(m_GlobalUI->GetSnakeROIModel(index));
   ui->imPaintbrush->SetModel(m_GlobalUI->GetPaintbrushModel(index));
 
+  // ui->labelQuickList->SetModel(m_GlobalUI);
+
   // Initialize the 'orphan' renderers (without a custom widget)
   GenericSliceRenderer *parentRenderer =
       static_cast<GenericSliceRenderer *>(ui->sliceView->GetRenderer());

@@ -29,10 +29,12 @@ PolygonDrawingModel
   m_State = INACTIVE_STATE;
   m_SelectedVertices = false;
   m_DraggingPickBox = false;
-  m_FreehandFittingRate = 8;
   m_StartX = 0; m_StartY = 0;
   m_PolygonSlice = PolygonSliceType::New();
   m_HoverOverFirstVertex = false;
+
+  m_FreehandFittingRateModel = NewRangedConcreteProperty(8.0, 0.0, 100.0, 1.0);
+
 }
 
 PolygonDrawingModel
@@ -196,7 +198,7 @@ PolygonDrawingModel
       ProcessMouseMoveEvent(x, y);
 
       // Check if a point should be added here
-      if(m_FreehandFittingRate == 0)
+      if(this->GetFreehandFittingRate() == 0)
         {
         m_Vertices.push_back(Vertex(x,y,false,false));
         }
@@ -207,7 +209,7 @@ PolygonDrawingModel
         double dx = (v.x-x) / pxsize[0];
         double dy = (v.y-y) / pxsize[1];
         double d = dx*dx+dy*dy;
-        if(d >= m_FreehandFittingRate * m_FreehandFittingRate)
+        if(d >= this->GetFreehandFittingRate() * this->GetFreehandFittingRate())
           m_Vertices.push_back(Vertex(x,y,false,true));
         }
       }
@@ -489,7 +491,7 @@ PolygonDrawingModel
 ::ProcessFreehandCurve()
 {
   // Special case: no fitting
-  if(m_FreehandFittingRate == 0.0)
+  if(this->GetFreehandFittingRate() == 0.0)
     {
     for(VertexIterator it = m_DragVertices.begin();
       it != m_DragVertices.end(); ++it)
@@ -538,7 +540,7 @@ PolygonDrawingModel
     }
 
   // Compute the number of control points
-  size_t nctl = (size_t)ceil(len / m_FreehandFittingRate);
+  size_t nctl = (size_t)ceil(len / this->GetFreehandFittingRate());
   if(nctl < 3)
     nctl = 3;
 

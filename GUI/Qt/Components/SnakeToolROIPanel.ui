@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>215</width>
+    <width>172</width>
     <height>439</height>
    </rect>
   </property>
@@ -24,7 +24,19 @@ font-size: 11px;
 </string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="margin">
+   <property name="spacing">
+    <number>6</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <item>
@@ -62,30 +74,24 @@ font-size: 11px;
    </item>
    <item>
     <widget class="Line" name="line_2">
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_4">
-     <property name="font">
-      <font>
-       <pointsize>-1</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>ROI Dimensions</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QWidget" name="widget_6" native="true">
      <layout class="QGridLayout" name="gridLayout_3">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <property name="spacing">
@@ -99,7 +105,7 @@ font-size: 11px;
          </font>
         </property>
         <property name="text">
-         <string>Corner position (x,y,z):</string>
+         <string>ROI corner position (x,y,z):</string>
         </property>
        </widget>
       </item>
@@ -148,7 +154,16 @@ font-size: 11px;
    <item>
     <widget class="QWidget" name="widget_7" native="true">
      <layout class="QGridLayout" name="gridLayout_4">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <property name="spacing">
@@ -162,7 +177,7 @@ font-size: 11px;
          </font>
         </property>
         <property name="text">
-         <string>Size (x,y,z):</string>
+         <string>ROI size (x,y,z):</string>
         </property>
        </widget>
       </item>
@@ -214,7 +229,16 @@ font-size: 11px;
       <property name="spacing">
        <number>0</number>
       </property>
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <item>
@@ -246,9 +270,6 @@ font-size: 11px;
    </item>
    <item>
     <widget class="Line" name="line">
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -257,7 +278,16 @@ font-size: 11px;
    <item>
     <widget class="QWidget" name="widget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <item>
@@ -292,7 +322,16 @@ font-size: 11px;
       <property name="spacing">
        <number>0</number>
       </property>
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <item>

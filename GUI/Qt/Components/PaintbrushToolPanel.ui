@@ -13,53 +13,30 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">* {
+font-size:12px;
+}
+QSpinBox {
+font-size:11px;
+}</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="margin">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="leftMargin">
     <number>0</number>
    </property>
-   <item>
-    <widget class="QLabel" name="label">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>160</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>-1</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">* {
-font-size: 11px;
-}
-</string>
-     </property>
-     <property name="text">
-      <string>Paint with the selected label by clicking and dragging the left mouse button</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Line" name="line_2">
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
@@ -180,6 +157,22 @@ font-size: 11px;
     </widget>
    </item>
    <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>4</width>
+       <height>4</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
     <widget class="QLabel" name="label_3">
      <property name="text">
       <string>Brush Size:</string>
@@ -190,7 +183,7 @@ font-size: 11px;
     <widget class="QWidget" name="widget_2" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
-       <number>12</number>
+       <number>6</number>
       </property>
       <property name="topMargin">
        <number>0</number>
@@ -202,7 +195,14 @@ font-size: 11px;
        <number>0</number>
       </property>
       <item>
-       <widget class="QSpinBox" name="inBrushSizeSpinbox"/>
+       <widget class="QSpinBox" name="inBrushSizeSpinbox">
+        <property name="minimumSize">
+         <size>
+          <width>48</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QSlider" name="inBrushSizeSlider">
@@ -215,6 +215,22 @@ font-size: 11px;
     </widget>
    </item>
    <item>
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>4</width>
+       <height>4</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
     <widget class="QLabel" name="label_4">
      <property name="text">
       <string>Brush Options:</string>
@@ -223,7 +239,12 @@ font-size: 11px;
    </item>
    <item>
     <widget class="QWidget" name="widget" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_2">
+     <property name="styleSheet">
+      <string notr="true">QCheckBox {
+  padding:0px;
+}</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
       <property name="topMargin">
        <number>0</number>
       </property>
@@ -233,17 +254,23 @@ font-size: 11px;
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <item>
+      <property name="horizontalSpacing">
+       <number>0</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>8</number>
+      </property>
+      <item row="0" column="0">
        <widget class="QCheckBox" name="chkVolumetric">
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When checked, the brush is applied in all three dimensions: a rectangular brush creates a cube in the segmentation, and a round brush creates a sphere.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>Volumetric</string>
+         <string>3D</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="0" column="1">
        <widget class="QCheckBox" name="chkIsotropic">
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This option is relevant for images with anisotropic voxels (voxels with different x,y and z dimensions). When checked, the physical dimensions of the brush are kept as close to equal as possible. When not checked, the brush size is K x K voxels, regardless of the dimensions of the voxel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -253,7 +280,7 @@ font-size: 11px;
         </property>
        </widget>
       </item>
-      <item>
+      <item row="3" column="0" colspan="2">
        <widget class="QCheckBox" name="chkChase">
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When checked, at the end of each paintbrush stroke, the position of the 3D image cursor is reset to the endpoint of the stroke.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -267,16 +294,41 @@ font-size: 11px;
     </widget>
    </item>
    <item>
+    <spacer name="verticalSpacer_4">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>4</width>
+       <height>4</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
     <widget class="QWidget" name="grpAdaptive" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_3">
-      <property name="margin">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <item>
-       <widget class="Line" name="line_3">
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
+       <widget class="Line" name="line">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
