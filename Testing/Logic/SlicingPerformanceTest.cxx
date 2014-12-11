@@ -1,10 +1,7 @@
 #include <iostream>
-#include <chrono>
-#include <thread>
 #include <stdexcept>
 
 using namespace std;
-using namespace std::chrono;
 
 #include <itkImage.h>
 #include <itkImageFileReader.h>
@@ -17,6 +14,8 @@ using namespace std::chrono;
 #include <itkChangeRegionLabelMapFilter.h>
 #include <itkTestingComparisonImageFilter.h>
 #include <itkExtractImageFilter.h>
+#include <itkTimeProbe.h>
+#include <itkMemoryProbe.h>
 
 typedef itk::Image<unsigned short, 3> Seg3DImageType;
 typedef itk::Image<unsigned short, 2> Seg2DImageType;
@@ -62,38 +61,45 @@ int main(int argc, char *argv[])
     reg.SetIndex(axis, slice);
     reg.SetSize(axis, 1);
 
-    auto start = steady_clock::now();
-
+    itk::TimeProbe tp0, tp1, tp2;
+    itk::MemoryProbe mp0, mp1, mp2;
+    
+    mp0.Start();
+    tp0.Start();
     typedef itk::RegionOfInterestImageFilter<Seg3DImageType, Seg3DImageType> roiType;
     roiType::Pointer roi = roiType::New();
     roi->SetInput(inImage);
     roi->SetRegionOfInterest(reg);
     roi->Update();
     croppedI = roi->GetOutput();
+    tp0.Stop();
+    mp0.Stop();
 
-    auto end1 = steady_clock::now();
-
+    mp1.Start();
+    tp1.Start();
     typedef itk::ChangeRegionLabelMapFilter<Label3DType> roiLMType;
     roiLMType::Pointer roiLM = roiLMType::New();
     roiLM->SetInput(inLabelMap);
     roiLM->SetRegion(reg);
     roiLM->Update();
     croppedLM = roiLM->GetOutput();
+    tp1.Stop();
+    mp1.Stop();
 
-    auto end2 = steady_clock::now();
-
+    mp2.Start();
+    tp2.Start();
     typedef itk::LabelMapToLabelImageFilter<Label3DType, Seg3DImageType> lm2liType;
     lm2liType::Pointer lm2li = lm2liType::New();
     lm2li->SetInput(croppedLM);
     lm2li->Update();
     Seg3DImageType::Pointer croppedL = lm2li->GetOutput();
+    tp2.Stop();
+    mp2.Stop();
 
-    auto end3 = steady_clock::now();
-    auto end4 = steady_clock::now();
-
-    cout << "ImageSlicing: " << chrono::duration <double, milli>(end1 - start).count() << " ms" << endl;
-    cout << "LabelMapSlicing: " << chrono::duration <double, milli>(end2 - end1).count() << " ms" << endl;
-    cout << "LabelMap to LabelImage conversion: " << chrono::duration <double, milli>(end3 - end2).count() << " ms" << endl;
+    cout << "ImageSlicing: " << tp0.GetMean() * 1000 << " ms & " << mp0.GetMean() << mp0.GetUnit() << endl;
+    cout << "LabelMapSlicing: " << tp1.GetMean() * 1000 << " ms & " << mp0.GetMean() << mp0.GetUnit() << endl;
+    cout << "LabelMap to LabelImage conversion: " << tp2.GetMean() * 1000
+        << " ms & " << mp0.GetMean() << mp0.GetUnit() << endl;
 
     typedef itk::ExtractImageFilter<Seg3DImageType, Seg2DImageType> eiType;
     eiType::Pointer ei = eiType::New();
