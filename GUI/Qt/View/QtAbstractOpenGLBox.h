@@ -27,7 +27,7 @@
 #ifndef QTABSTRACTOPENGLBOX_H
 #define QTABSTRACTOPENGLBOX_H
 
-#include <QGLWidget>
+#include <QOpenGLWidget>
 #include <SNAPCommon.h>
 #include <SNAPEvents.h>
 
@@ -38,7 +38,7 @@ class AbstractRenderer;
 
 namespace itk { class Object; }
 
-class QtAbstractOpenGLBox : public QGLWidget
+class QtAbstractOpenGLBox : public QOpenGLWidget
 {
   Q_OBJECT
 

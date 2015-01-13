@@ -40,7 +40,7 @@
 #include "GLToPNG.h"
 
 QtAbstractOpenGLBox::QtAbstractOpenGLBox(QWidget *parent) :
-    QGLWidget(parent)
+    QOpenGLWidget(parent)
 {
   m_NeedResizeOnNextRepaint = false;
   m_GrabFocusOnEntry = false;
