@@ -79,8 +79,8 @@ void QtAbstractOpenGLBox::paintGL()
   GetRenderer()->Update();
 
   // Get width and height in pixels
-  int wp = (int) this->size().width() * this->windowHandle()->devicePixelRatio();
-  int hp = (int) this->size().height() * this->windowHandle()->devicePixelRatio();
+  int wp = (int) this->size().width() * this->devicePixelRatio();
+  int hp = (int) this->size().height() * this->devicePixelRatio();
 
   // Qt bug workaround
   if(m_NeedResizeOnNextRepaint)
@@ -112,8 +112,11 @@ void QtAbstractOpenGLBox::paintGL()
 
 void QtAbstractOpenGLBox::resizeGL(int w, int h)
 {
+  int wp = (int) this->size().width() * this->devicePixelRatio();
+  int hp = (int) this->size().height() * this->devicePixelRatio();
+
   GetRenderer()->Update();
-  GetRenderer()->resizeGL(w, h);
+  GetRenderer()->resizeGL(wp, hp);
 }
 
 void QtAbstractOpenGLBox::initializeGL()
@@ -122,6 +125,7 @@ void QtAbstractOpenGLBox::initializeGL()
   GetRenderer()->initializeGL();
 }
 
+/*
 void QtAbstractOpenGLBox::resizeEvent(QResizeEvent *)
 {
   // This is a workaround for a Qt bug. It didn't take long to find bugs
@@ -133,7 +137,7 @@ void QtAbstractOpenGLBox::resizeEvent(QResizeEvent *)
   for(int i = 0; i < kids.size(); i++)
     kids.at(i)->setGeometry(this->geometry());
 }
-
+*/
 
 void QtAbstractOpenGLBox::enterEvent(QEvent *)
 {

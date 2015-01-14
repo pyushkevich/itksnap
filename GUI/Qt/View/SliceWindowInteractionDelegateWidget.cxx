@@ -52,9 +52,9 @@ SliceWindowInteractionDelegateWidget
   parent->makeCurrent();
 
   // Get the x,y coordinates of the event in actual pixels (retina)
-  int xpix = (int) ev->x() * parent->windowHandle()->devicePixelRatio();
-  int ypix = (int) ev->y() * parent->windowHandle()->devicePixelRatio();
-  int hpix = (int) parent->height() * parent->windowHandle()->devicePixelRatio();
+  int xpix = (int) ev->x() * this->devicePixelRatio();
+  int ypix = (int) ev->y() * this->devicePixelRatio();
+  int hpix = (int) parent->height() * this->devicePixelRatio();
   int x = xpix;
   int y = (flipY) ? hpix - 1 - ypix : ypix;
 

@@ -14,8 +14,8 @@ void QtVTKInteractionDelegateWidget::SetVTKEventState(QMouseEvent *ev)
   Qt::KeyboardModifiers km = QApplication::keyboardModifiers();
 
   // Account for Retina displays
-  int x = ev->pos().x() * this->windowHandle()->devicePixelRatio();
-  int y = ev->pos().y() * this->windowHandle()->devicePixelRatio();
+  int x = ev->pos().x() * this->devicePixelRatio();
+  int y = ev->pos().y() * this->devicePixelRatio();
 
   m_VTKInteractor->SetEventInformationFlipY(
         x, y, 

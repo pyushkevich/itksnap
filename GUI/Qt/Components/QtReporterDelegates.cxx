@@ -53,13 +53,13 @@ bool QtViewportReporter::CanReportSize()
 Vector2ui QtViewportReporter::GetViewportSize()
 {
   // For retina displays, this method reports size in actual pixels, not abstract pixels
-  return Vector2ui(m_ClientWidget->width() * m_ClientWidget->windowHandle()->devicePixelRatio(),
-                   m_ClientWidget->height() * m_ClientWidget->windowHandle()->devicePixelRatio());
+  return Vector2ui(m_ClientWidget->width() * m_ClientWidget->devicePixelRatio(),
+                   m_ClientWidget->height() * m_ClientWidget->devicePixelRatio());
 }
 
 float QtViewportReporter::GetViewportPixelRatio()
 {
-  return m_ClientWidget->windowHandle()->devicePixelRatio();
+  return m_ClientWidget->devicePixelRatio();
 }
 
 Vector2ui QtViewportReporter::GetLogicalViewportSize()

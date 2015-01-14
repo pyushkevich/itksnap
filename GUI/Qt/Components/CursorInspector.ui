@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>179</width>
+    <width>256</width>
     <height>527</height>
    </rect>
   </property>
@@ -46,8 +46,6 @@ font-size: 11px;
      <property name="font">
       <font>
        <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
       </font>
      </property>
      <property name="styleSheet">
@@ -149,8 +147,6 @@ font-size: 11px;
      <property name="font">
       <font>
        <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
       </font>
      </property>
      <property name="styleSheet">
@@ -250,8 +246,6 @@ font-size: 11px;
      <property name="font">
       <font>
        <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
       </font>
      </property>
      <property name="styleSheet">

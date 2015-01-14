@@ -129,8 +129,8 @@ LabelSelectionButtonPopupMenu::LabelSelectionButtonPopupMenu(QWidget *parent)
   : QMenu(parent)
 {
   // Add the foreground and background label selectors
-  m_SubForeground = this->addMenu("Foreground Label");
-  m_SubBackground = this->addMenu("Background Label");
+  m_SubForeground = this->addMenu("Active label:");
+  m_SubBackground = this->addMenu("Draw over:");
   this->addSeparator();
 
   // Create a QAction wrapped around the recent labels menu

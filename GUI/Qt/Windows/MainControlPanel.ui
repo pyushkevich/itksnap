@@ -495,7 +495,6 @@ QWidget#widget {
            </property>
            <widget class="CursorInspector" name="pageCursorInspector"/>
            <widget class="ZoomInspector" name="pageZoomInspector"/>
-           <widget class="LabelInspector" name="pageLabelInspector"/>
            <widget class="DisplayLayoutInspector" name="pageDisplayInspector">
             <property name="toolTip">
              <string/>

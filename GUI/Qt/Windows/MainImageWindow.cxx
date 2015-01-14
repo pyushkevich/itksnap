@@ -1165,7 +1165,7 @@ void MainImageWindow::ExportScreenshotSeries(AnatomicalDirection direction)
 
     // Repaint the GL window and save screenshot
     target->SaveScreenshot(filename);
-    target->updateGL();
+    target->update();
     // QCoreApplication::processEvents();
 
     // Go to the next slice

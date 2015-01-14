@@ -34,6 +34,8 @@ void QtVTKRenderWindowBox::SetRenderer(AbstractRenderer *renderer)
   QtSimpleOpenGLBox::SetRenderer(renderer);
 }
 
+#include <QOpenGLContext>
+
 void
 QtVTKRenderWindowBox
 ::RendererCallback(
@@ -46,7 +48,7 @@ QtVTKRenderWindowBox
   else if(event == vtkCommand::WindowIsCurrentEvent)
     {
     bool *result = static_cast<bool *>(data);
-    *result = QGLContext::currentContext() == this->context();
+    *result = QOpenGLContext::currentContext() == this->context();
     }
 }
 

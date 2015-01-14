@@ -145,8 +145,8 @@ QtInteractionDelegateWidget
   int ly = (flipY) ? parent->height() - 1 - ev->y() : ev->y();
 
   // Scale to actual pixels for the unproject call
-  double px = lx * parent->window()->devicePixelRatio();
-  double py = ly * parent->window()->devicePixelRatio();
+  double px = lx * this->devicePixelRatio();
+  double py = ly * this->devicePixelRatio();
 
   // Unproject to get the coordinate of the event
   Vector3d xProjection;

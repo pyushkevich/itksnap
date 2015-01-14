@@ -83,7 +83,7 @@ protected:
   virtual void initializeGL();
 
   // Resize event
-  virtual void resizeEvent(QResizeEvent *);
+  // virtual void resizeEvent(QResizeEvent *);
   virtual void enterEvent(QEvent *);
   virtual void leaveEvent(QEvent *);
 
