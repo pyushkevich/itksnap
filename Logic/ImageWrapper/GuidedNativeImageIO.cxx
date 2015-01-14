@@ -930,7 +930,9 @@ RescaleNativeImageToIntegralType<TOutputImage>
   typedef itk::VectorImage<TNative, 3> InputImageType;
   typedef itk::ImageRegionConstIterator<InputImageType> InputIterator;
   SmartPtr<InputImageType> input = dynamic_cast<InputImageType *>(native);
+
   assert(input);
+  assert(input->GetPixelContainer()->Size() > 0);
 
   // Get the number of components in the native image
   size_t ncomp = input->GetNumberOfComponentsPerPixel();
@@ -945,23 +947,27 @@ RescaleNativeImageToIntegralType<TOutputImage>
   // Only bother with computing the scale and shift if the types are different
   if(typeid(OutputComponentType) != typeid(TNative))
     {
-    // We must compute the range of the input data
-    double imin = itk::NumericTraits<double>::max();
-    double imax = -itk::NumericTraits<double>::max();
+    // We must compute the range of the input data    
     OutputComponentType omax = itk::NumericTraits<OutputComponentType>::max();
     OutputComponentType omin = itk::NumericTraits<OutputComponentType>::min();
 
+    // Scan over all the image components. Avoid using iterators here because of
+    // unnecessary overhead for vector images.
+    TNative *ib_begin = input->GetBufferPointer();
+    TNative *ib_end = ib_begin + input->GetPixelContainer()->Size();
+
+    TNative imin_nat = *ib_begin, imax_nat = *ib_begin;
+
     // Iterate over all the components in the input image
-    for(InputIterator it(input, input->GetBufferedRegion()); !it.IsAtEnd(); ++it)
+    for(TNative *buffer = ib_begin + 1; buffer < ib_end; ++buffer)
       {
-      typename InputImageType::PixelType pix = it.Get();
-      for(int i = 0; i < ncomp; i++)
-        {
-        double val = static_cast<double>(pix[i]);
-        if(val < imin) imin = val;
-        if(val > imax) imax = val;
-        }
+      TNative val = *buffer;
+      if(val < imin_nat) imin_nat = val;
+      if(val > imax_nat) imax_nat = val;
       }
+
+    // Cast the values to double
+    double imin = static_cast<double>(imin_nat), imax = static_cast<double>(imax_nat);
 
     // Now we have to be careful, depending on the type of the input voxel
     // For float and double, we map the input range into the output range
@@ -974,16 +980,13 @@ RescaleNativeImageToIntegralType<TOutputImage>
         {
         isint = true;
 
-        for(InputIterator it(input, input->GetBufferedRegion()); !it.IsAtEnd(); ++it)
+        // Another pass through the image? Why is this necessary?
+        for(TNative *buffer = ib_begin; buffer < ib_end; ++buffer)
           {
-          typename InputImageType::PixelType pix = it.Get();
-          for(int i = 0; i < ncomp; i++)
-            {
-            TNative vin = pix[i];
-            TNative vcmp = static_cast<TNative>(static_cast<OutputComponentType>(vin + 0.5));
-            if(vin != vcmp)
-              { isint = false; break; }
-            }
+          TNative vin = *buffer;
+          TNative vcmp = static_cast<TNative>(static_cast<OutputComponentType>(vin + 0.5));
+          if(vin != vcmp)
+            { isint = false; break; }
           }
         }
 
@@ -1003,8 +1006,21 @@ RescaleNativeImageToIntegralType<TOutputImage>
       else
         {
         // Compute the scaling factor to map image into output range
-        scale = (1.0 * omax - 1.0 * omin) / (imax - imin);
-        shift = omin / scale - imin;
+
+        // Does the input range include zero?
+        if(imin <= 0 && imax >= 0)
+          {
+          // If so, there will be no shift, allowing zero to map to zero
+          scale = std::min((double) omax, -1.0 * (double) omin) * 1.0 / std::max(imax, -imin);
+          shift = 0.0;
+          }
+
+        else
+          {
+          // Zero is not in the range, so just use the complete range
+          scale = (1.0 * omax - 1.0 * omin) / (imax - imin);
+          shift = omin / scale - imin;
+          }
         }
       }
 

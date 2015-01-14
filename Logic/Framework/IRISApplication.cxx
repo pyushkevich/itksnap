@@ -1644,25 +1644,6 @@ IRISApplication
     }
 }
 
-/*
- *   // Get the size of the image as a vector of uint
-  Vector3ui size = io->GetNativeImage()->GetBufferedRegion().GetSize();
-
-  // Compute the new image geometry for the IRIS data
-  ImageCoordinateGeometry icg(
-        io->GetNativeImage()->GetDirection().GetVnlMatrix(),
-        m_DisplayToAnatomyRAI, size);
-
-  // Rescale the image to desired number of bits
-  RescaleNativeImageToIntegralType<AnatomyImageType> rescaler;
-  AnatomyImageType::Pointer imgMain = rescaler(io);
-  LinearInternalToNativeIntensityMapping mapper(rescaler.GetNativeScale(), rescaler.GetNativeShift());
-
-  // Set the image as the current main anatomy image/
-  m_IRISImageData->SetMainImage(imgMain, icg, mapper);
-
-*/
-
 void
 IRISApplication
 ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadata)

@@ -37,9 +37,26 @@ CurrentVoxelInfoItemSetDomain
   // Make sure that the layer is initialized
   if(it.GetLayer()->IsInitialized())
     {
-    // Get the cursor position
-    Vector3ui cursor = m_Driver->GetCursorPosition();
+    // Get the intensity under the cursor for this layer
+    vnl_vector<double> v;
+    ImageWrapperBase::DisplayPixelType disprgb;
+    it.GetLayer()->GetVoxelUnderCursorDisplayedValueAndAppearance(v, disprgb);
 
+    // Use good old sprintf!
+    char buffer[64];
+
+    if(v.size() == 1)
+      {
+      sprintf(buffer, "%.4g", v[0]);
+      }
+    else if(v.size() == 3)
+      {
+      sprintf(buffer, "%.4g,%.4g,%.4g", v[0], v[1], v[2]);
+      }
+
+    vox.IntensityValue = buffer;
+
+    /*
     // Create a string output
     std::ostringstream oss;
 
@@ -61,6 +78,7 @@ CurrentVoxelInfoItemSetDomain
       }
 
     vox.IntensityValue = oss.str();
+    */
 
     // Get the displayed color
     vox.Color = Vector3ui(disprgb[0], disprgb[1], disprgb[2]);
