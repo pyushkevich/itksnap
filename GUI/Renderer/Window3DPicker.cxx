@@ -114,6 +114,5 @@ Window3DPicker::Window3DPicker()
   m_Model = NULL;
 }
 
-vtkCxxRevisionMacro(Window3DPicker, "$Revision: 1.1 $")
 vtkStandardNewMacro(Window3DPicker)
 
