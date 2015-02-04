@@ -44,36 +44,36 @@ Label3DType::Pointer toLabelMap(Seg3DImageType::Pointer image)
 
 typedef std::pair<short, short> RLSegment;
 typedef std::vector<RLSegment> RLLine;
-typedef std::vector<std::vector<RLLine> > RLImage; //RLE along z axis
+typedef std::vector<std::vector<RLLine> > RLImage;
 
 RLImage toRLImage(Seg3DImageType::Pointer image)
 {
     itk::Size<3> iSize = image->GetLargestPossibleRegion().GetSize();
-    RLImage result(iSize[0]);
-    for (int i = 0; i < iSize[0]; i++)
-        result[i].resize(iSize[1]);
+    RLImage result(iSize[2]);
+    for (int z = 0; z < iSize[2]; z++)
+        result[z].resize(iSize[1]);
     itk::Index<3> ind;
-    for (int i = 0; i < iSize[0]; i++)
+    for (int z = 0; z < iSize[2]; z++)
     {
-        ind[0] = i;
-        for (int j = 0; j < iSize[1]; j++)
+        ind[2] = z;
+        for (int y = 0; y < iSize[1]; y++)
         {
-            ind[1] = j;
-            ind[2] = 0;
-            int k = 0;
+            ind[1] = y;
+            ind[0] = 0;
+            int x = 0;
             RLLine l;         
-            while (k < iSize[2])
+            while (x < iSize[0])
             {
                 RLSegment s(0, image->GetPixel(ind));
-                while (k < iSize[2] && image->GetPixel(ind) == s.second)
+                while (x < iSize[0] && image->GetPixel(ind) == s.second)
                 {
-                    k++;
+                    x++;
                     s.first++;
-                    ind[2] = k;
+                    ind[0] = x;
                 }
                 l.push_back(s);
             }
-            result[i][j] = l;
+            result[z][y] = l;
         }
     }
     return result;
@@ -82,61 +82,43 @@ RLImage toRLImage(Seg3DImageType::Pointer image)
 int sliceIndex, axis;
 Seg3DImageType::RegionType reg;
 
-inline std::vector<short> uncompressLine(RLLine line, int len)
+void uncompressLine(RLLine line, short *out)
 {
-    std::vector<short> res(len);
-    int i = 0;
-    for (int k = 0; k < line.size(); k++)
-        for (int r = 0; r < line[k].first; r++)
-            res[i++] = line[k].second;
-    return res;
+    for (int x = 0; x < line.size(); x++)
+        for (int r = 0; r < line[x].first; r++)
+            *(out++) = line[x].second;
 }
 
-std::vector<std::vector<short> > cropRLI(RLImage image)
+void cropRLI(RLImage image, short *outSlice)
 {
     itk::Size<3> size;
-    size[0] = image.size();
+    size[2] = image.size();
     size[1] = image[0].size();
-    size[2] = 0;
-    for (int k = 0; k < image[0][0].size(); k++)
-        size[2] += image[0][0][k].first;
+    size[0] = 0;
+    for (int x = 0; x < image[0][0].size(); x++)
+        size[0] += image[0][0][x].first;
 
-    std::vector<std::vector<short> > result;
-    if (axis == 0) //slicing along x
-    {
-        result.resize(size[1]);
-        for (int j = 0; j < size[1]; j++)
-            result[j] = uncompressLine(image[sliceIndex][j], size[2]);
-    }
+    if (axis == 2) //slicing along z
+        for (int y = 0; y < size[1]; y++)
+            uncompressLine(image[sliceIndex][y], outSlice + y*size[0]);
     else if (axis == 1) //slicing along y
-    {
-        result.resize(size[0]);
-        for (int i = 0; i < size[0]; i++)
-            result[i] = uncompressLine(image[i][sliceIndex], size[2]);
-    }
-    else //slicing along z, the low-preformance case
-    {
-        result.resize(size[0]);
-        for (int i = 0; i < size[0]; i++)
-        {
-            result[i].resize(size[1]);
-            for (int j = 0; j < size[1]; j++)
+        for (int z = 0; z < size[2]; z++)
+            uncompressLine(image[z][sliceIndex], outSlice + z*size[0]);
+    else //slicing along x, the low-preformance case
+        for (int z = 0; z < size[2]; z++)
+            for (int y = 0; y < size[1]; y++)
             {
                 int t = 0;
-                for (int k = 0; k < image[i][j].size(); k++)
+                for (int x = 0; x < image[z][y].size(); x++)
                 {
-                    t += image[i][j][k].first;
+                    t += image[z][y][x].first;
                     if (t >= sliceIndex)
                     {
-                        result[i][j] = image[i][j][k].second;
+                        *(outSlice++) = image[z][y][x].second;
                         break;
                     }
                 }
             }
-        }
-    }
-
-    return result;
 }
 
 Seg3DImageType::Pointer cropNormal(Seg3DImageType::Pointer image)
@@ -205,6 +187,8 @@ int main(int argc, char *argv[])
     reg = inImage->GetLargestPossibleRegion();
     reg.SetIndex(axis, sliceIndex);
     reg.SetSize(axis, 1);
+    cropped = cropNormal(inImage); //pre-allocate output
+
     if (rle)
     {
         inLabelMap = toLabelMap(inImage);
@@ -214,6 +198,8 @@ int main(int argc, char *argv[])
     {
         rlImage = toRLImage(inImage);
         inImage = Seg3DImageType::New(); //effectively deletes the image
+        memset(cropped->GetBufferPointer(), 0, sizeof(short)*cropped->GetOffsetTable()[3]); //clear buffer
+
     }
     if (memCheck)
     {
@@ -221,13 +207,12 @@ int main(int argc, char *argv[])
         getchar();
     }
 
-    std::vector<std::vector<short> > rlS;
     itk::TimeProbe tp;
     tp.Start();
     if (rle)
         cropped = cropRLE(inLabelMap);
     else if (rli)
-        rlS = cropRLI(rlImage);
+        cropRLI(rlImage, cropped->GetBufferPointer());
     else
         cropped = cropNormal(inImage);
     tp.Stop();
@@ -241,22 +226,6 @@ int main(int argc, char *argv[])
 
     cout << " slicing took: " << tp.GetMean() * 1000 << " ms " << endl;
 
-    if (rli) //now convert rlS into cropped
-    {
-        //first make cropped the normal way
-        inImage = loadImage(argv[1]);
-        cropped = cropNormal(inImage);
-        inImage = Seg3DImageType::New(); //effectively deletes the image
-
-        memset(cropped->GetBufferPointer(), 0, sizeof(short)*cropped->GetOffsetTable()[3]); //clear buffer
-        //now overwrite it with data from rlS
-        short *p = cropped->GetBufferPointer();
-        for (int i = 0; i < rlS.size(); i++)
-        {
-            memcpy(p, &rlS[i][0], sizeof(short)*rlS[i].size());
-            p += rlS[i].size();
-        }
-    }
 
     typedef itk::ExtractImageFilter<Seg3DImageType, Seg2DImageType> eiType;
     eiType::Pointer ei = eiType::New();

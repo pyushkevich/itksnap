@@ -961,7 +961,7 @@ add_test(NAME BasicSlicingTestX39 COMMAND itkTestDriver
   $<TARGET_FILE:SlicingPerformanceTest>
         ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz
         ${TEMP}/X39.nii.gz
-        X 39
+        X 39 RLI
 )
 
 add_test(NAME BasicSlicingTestY55 COMMAND itkTestDriver
@@ -969,7 +969,7 @@ add_test(NAME BasicSlicingTestY55 COMMAND itkTestDriver
   $<TARGET_FILE:SlicingPerformanceTest>
         ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz
         ${TEMP}/Y55.nii.gz
-        Y 55
+        Y 55 RLI
 )
 
 add_test(NAME BasicSlicingTestZ32 COMMAND itkTestDriver
@@ -977,7 +977,7 @@ add_test(NAME BasicSlicingTestZ32 COMMAND itkTestDriver
   $<TARGET_FILE:SlicingPerformanceTest>
         ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz
         ${TEMP}/Z32.nii.gz
-        Z 32
+        Z 32 RLI
 )
 
 add_test(NAME SlicingPerformanceTestX300 COMMAND itkTestDriver
@@ -985,7 +985,7 @@ add_test(NAME SlicingPerformanceTestX300 COMMAND itkTestDriver
   $<TARGET_FILE:SlicingPerformanceTest>
         ${TESTDATA_DIR}/vb-seg.mha
         ${TEMP}/X300.mha
-        X 300
+        X 300 RLI
 )
 
 add_test(NAME SlicingPerformanceTestY300 COMMAND itkTestDriver
@@ -993,7 +993,7 @@ add_test(NAME SlicingPerformanceTestY300 COMMAND itkTestDriver
   $<TARGET_FILE:SlicingPerformanceTest>
         ${TESTDATA_DIR}/vb-seg.mha
         ${TEMP}/Y300.mha
-        Y 300
+        Y 300 RLI
 )
 
 add_test(NAME SlicingPerformanceTestZ150 COMMAND itkTestDriver
@@ -1001,7 +1001,7 @@ add_test(NAME SlicingPerformanceTestZ150 COMMAND itkTestDriver
   $<TARGET_FILE:SlicingPerformanceTest>
         ${TESTDATA_DIR}/vb-seg.mha
         ${TEMP}/Z150.mha
-        Z 150
+        Z 150 RLI
 )
 
 # Set up a test for each GUI test
