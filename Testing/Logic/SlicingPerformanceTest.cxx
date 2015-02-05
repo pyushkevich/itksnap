@@ -112,7 +112,7 @@ void cropRLI(RLImage image, short *outSlice)
                 for (int x = 0; x < image[z][y].size(); x++)
                 {
                     t += image[z][y][x].first;
-                    if (t >= sliceIndex)
+                    if (t > sliceIndex)
                     {
                         *(outSlice++) = image[z][y][x].second;
                         break;
