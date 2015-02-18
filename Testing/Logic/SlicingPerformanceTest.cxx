@@ -15,6 +15,7 @@ using namespace std;
 #include <itkChangeRegionLabelMapFilter.h>
 #include <itkTestingComparisonImageFilter.h>
 #include <itkExtractImageFilter.h>
+#include "../../Logic/Slicing/IRISSlicer.h"
 #include <itkTimeProbe.h>
 
 typedef itk::Image<short, 3> Seg3DImageType;
@@ -131,6 +132,32 @@ Seg3DImageType::Pointer cropNormal(Seg3DImageType::Pointer image)
     return roi->GetOutput();
 }
 
+Seg2DImageType::Pointer cropIRIS(Seg3DImageType::Pointer image)
+{
+    typedef IRISSlicer<Seg3DImageType, Seg2DImageType> roiType;
+    roiType::Pointer roi = roiType::New();
+    roi->SetInput(image);
+    roi->SetSliceIndex(sliceIndex);
+    roi->SetSliceDirectionImageAxis(axis);
+    if (axis == 0) //x
+    {
+        roi->SetLineDirectionImageAxis(2);
+        roi->SetPixelDirectionImageAxis(1);
+    }
+    else if (axis==1) //y
+    {
+        roi->SetLineDirectionImageAxis(2);
+        roi->SetPixelDirectionImageAxis(0);
+    }
+    else //z
+    {
+        roi->SetLineDirectionImageAxis(1);
+        roi->SetPixelDirectionImageAxis(0);
+    }
+    roi->Update();
+    return roi->GetOutput();
+}
+
 Seg3DImageType::Pointer cropRLE(Label3DType::Pointer image)
 {
     typedef itk::ChangeRegionLabelMapFilter<Label3DType> roiLMType;
@@ -152,7 +179,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 5)
     {
-        cout << "Usage:\n" << argv[0] << " InputImage3D.ext OutputSlice2D.ext X|Y|Z SliceNumber [RLE|RLI|Normal]" << endl;
+        cout << "Usage:\n" << argv[0] << " InputImage3D.ext OutputSlice2D.ext X|Y|Z SliceNumber [RLE|RLI|IRIS|Normal]" << endl;
         return 1;
     }
 
@@ -176,6 +203,10 @@ int main(int argc, char *argv[])
     if (argc>5)
         if (strcmp(argv[5], "RLI") == 0 || strcmp(argv[5], "rli") == 0)
             rli = true;
+    bool iris = false;
+    if (argc>5)
+        if (strcmp(argv[5], "IRIS") == 0 || strcmp(argv[5], "iris") == 0)
+            iris = true;
     bool memCheck = false;
     if (argc>6)
         if (strcmp(argv[6], "MEM") == 0 || strcmp(argv[6], "mem") == 0)
@@ -187,7 +218,7 @@ int main(int argc, char *argv[])
     reg = inImage->GetLargestPossibleRegion();
     reg.SetIndex(axis, sliceIndex);
     reg.SetSize(axis, 1);
-    cropped = cropNormal(inImage); //pre-allocate output
+    Seg2DImageType::Pointer cropped2D = cropIRIS(inImage); //pre-allocate slice
 
     if (rle)
     {
@@ -198,8 +229,7 @@ int main(int argc, char *argv[])
     {
         rlImage = toRLImage(inImage);
         inImage = Seg3DImageType::New(); //effectively deletes the image
-        memset(cropped->GetBufferPointer(), 0, sizeof(short)*cropped->GetOffsetTable()[3]); //clear buffer
-
+        memset(cropped2D->GetBufferPointer(), 0, sizeof(short)*cropped2D->GetOffsetTable()[2]); //clear buffer
     }
     if (memCheck)
     {
@@ -212,7 +242,9 @@ int main(int argc, char *argv[])
     if (rle)
         cropped = cropRLE(inLabelMap);
     else if (rli)
-        cropRLI(rlImage, cropped->GetBufferPointer());
+        cropRLI(rlImage, cropped2D->GetBufferPointer());
+    else if (iris)
+        cropped2D = cropIRIS(inImage);
     else
         cropped = cropNormal(inImage);
     tp.Stop();
@@ -221,24 +253,30 @@ int main(int argc, char *argv[])
         cout << "RLE";
     else if (rli)
         cout << "RLI";
+    else if (iris)
+        cout << "IRIS";
     else
         cout << "Normal";
 
     cout << " slicing took: " << tp.GetMean() * 1000 << " ms " << endl;
 
 
-    typedef itk::ExtractImageFilter<Seg3DImageType, Seg2DImageType> eiType;
-    eiType::Pointer ei = eiType::New();
-    ei->SetDirectionCollapseToIdentity();
-    ei->SetInput(cropped);
-    reg.SetIndex(axis, 0);
-    cropped->SetRegions(reg);
-    reg.SetSize(axis, 0);
-    ei->SetExtractionRegion(reg);
-    ei->Update();
+    if (!iris && !rli)
+    {
+        typedef itk::ExtractImageFilter<Seg3DImageType, Seg2DImageType> eiType;
+        eiType::Pointer ei = eiType::New();
+        ei->SetDirectionCollapseToIdentity();
+        ei->SetInput(cropped);
+        reg.SetIndex(axis, 0);
+        cropped->SetRegions(reg);
+        reg.SetSize(axis, 0);
+        ei->SetExtractionRegion(reg);
+        ei->Update();
+        cropped2D = ei->GetOutput();
+    }
 
     SegWriterType::Pointer wr = SegWriterType::New();
-    wr->SetInput(ei->GetOutput());
+    wr->SetInput(cropped2D);
     wr->SetFileName(argv[2]);
     wr->SetUseCompression(true);
     wr->Update();
