@@ -297,6 +297,8 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/ImageWrapperTraits.h
   Logic/ImageWrapper/RLEImage.h
   Logic/ImageWrapper/RLEImage.txx
+#  Logic/ImageWrapper/itkImageToRLEImageFilter.h
+#  Logic/ImageWrapper/itkImageToRLEImageFilter.txx
   Logic/ImageWrapper/InputSelectionImageFilter.h
   Logic/ImageWrapper/LabelToRGBAFilter.h
   Logic/ImageWrapper/NativeIntensityMappingPolicy.h
@@ -957,6 +959,10 @@ set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)
 
 ADD_EXECUTABLE(SlicingPerformanceTest Testing/Logic/SlicingPerformanceTest.cxx)
 TARGET_LINK_LIBRARIES(SlicingPerformanceTest ${ITK_LIBRARIES})
+
+ADD_EXECUTABLE(testRLE Logic/ImageWrapper/testRLE.cxx)
+TARGET_LINK_LIBRARIES(testRLE ${ITK_LIBRARIES})
+
                        
 add_test(NAME BasicSlicingTestX39 COMMAND itkTestDriver
   --compare ${TESTDATA_DIR}/X39.nii.gz ${TEMP}/X39.nii.gz

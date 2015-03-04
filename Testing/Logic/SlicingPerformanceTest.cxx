@@ -16,7 +16,6 @@ using namespace std;
 #include <itkTestingComparisonImageFilter.h>
 #include <itkExtractImageFilter.h>
 #include "../../Logic/Slicing/IRISSlicer.h"
-#include "../../Logic/ImageWrapper/RLEImage.h"
 #include <itkTimeProbe.h>
 
 typedef itk::Image<short, 3> Seg3DImageType;
@@ -220,20 +219,6 @@ int main(int argc, char *argv[])
     reg.SetIndex(axis, sliceIndex);
     reg.SetSize(axis, 1);
     Seg2DImageType::Pointer cropped2D = cropIRIS(inImage); //pre-allocate slice
-
-    typedef RLEImage<short> shortRLEImage;
-    shortRLEImage::Pointer test = shortRLEImage::New();
-    test->CopyInformation(inImage);
-    test->SetRegions(inImage->GetLargestPossibleRegion());
-    test->Allocate();
-    test->FillBuffer(1983);
-    shortRLEImage::IndexType ind;
-    ind[0] = 2;
-    ind[1] = 5;
-    ind[2] = 7;
-    test->SetPixel(ind, 100);
-    short val = test->GetPixel(ind);
-    test->Print(cout);
 
     if (rle)
     {

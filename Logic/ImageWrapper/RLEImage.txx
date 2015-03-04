@@ -138,6 +138,56 @@ GetPixel(const IndexType & index)
     }
 }
 
+template< typename TPixel, typename RunLengthCounterType = unsigned short >
+void
+RLEImage< TPixel, RunLengthCounterType >::
+fromITKImage(typename itk::Image<TPixel, 3>::Pointer image)
+{
+    this->CopyInformation(image);
+    this->SetRegions(image->GetLargestPossibleRegion());
+
+    itk::Size<3> iSize = image->GetLargestPossibleRegion().GetSize();
+    myBuffer.clear(); //in case it wasn't already
+    myBuffer.resize(iSize[2]);
+    for (itk::SizeValueType z = 0; z < iSize[2]; z++)
+        myBuffer[z].resize(iSize[1]);
+
+    itk::Index<3> ind;
+    for (SizeValueType z = 0; z < iSize[2]; z++)
+    {
+        ind[2] = z;
+        for (SizeValueType y = 0; y < iSize[1]; y++)
+        {
+            ind[1] = y;
+            ind[0] = 0;
+            SizeValueType x = 0;
+            RLLine & l = myBuffer[z][y];            
+            TPixel * p = image->GetBufferPointer();
+            p+=image->ComputeOffset(ind);
+            while (x < iSize[0])
+            {
+                RLSegment s(0, *p);
+                while (x < iSize[0] && *p == s.second)
+                {
+                    x++;
+                    s.first++;
+                    p++;
+                }
+                l.push_back(s);
+            }
+        }
+    }
+}
+
+template< typename TPixel, typename RunLengthCounterType = unsigned short >
+typename itk::Image<TPixel, 3>::Pointer
+RLEImage< TPixel, RunLengthCounterType >::
+toITKImage()
+{
+    itk::Image<TPixel, 3>::Pointer out = itk::Image<TPixel, 3>::New();
+    return out;
+}
+
 //template< typename TPixel, typename RunLengthCounterType = unsigned short >
 //void
 //RLEImage< TPixel, RunLengthCounterType >
@@ -226,4 +276,4 @@ RLEImage< TPixel, RunLengthCounterType >
     // m_Origin and m_Spacing are printed in the Superclass
 }
 
-#endif RLEImage_txx
+#endif //RLEImage_txx

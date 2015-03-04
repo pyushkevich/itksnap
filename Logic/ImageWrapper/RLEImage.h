@@ -4,6 +4,7 @@
 #include <utility> //std::pair
 #include <vector>
 #include <itkImageBase.h>
+#include <itkImage.h>
 
 /**
 * It is best if pixel type and counter type have the same byte size
@@ -207,6 +208,12 @@ public:
     //    return m_Buffer.GetPointer();
     //}
 
+    /** Construct this RLEImage from a regular itk::Image. */
+    void fromITKImage(typename itk::Image<TPixel, 3>::Pointer image);
+    
+    /** Convert this RLEImage to a regular itk::Image. */
+    typename itk::Image<TPixel, 3>::Pointer toITKImage();
+
 protected:
     RLEImage();
     void PrintSelf(std::ostream & os, itk::Indent indent) const;
@@ -234,4 +241,4 @@ private:
 #include "RLEImage.txx"
 #endif
 
-#endif RLEImage_h
+#endif //RLEImage_h
