@@ -19,6 +19,19 @@ part of Click'n'Join mode, which was contributed by Roman Grothausmann
 #include <itkGradientMagnitudeImageFilter.h>
 #include <itkWatershedImageFilter.h>
 #include <itkCastImageFilter.h>
+#include <itkCommand.h>
+
+
+void FilterEventHandlerITK(itk::Object *caller, const itk::EventObject &event, void*){
+
+    const itk::ProcessObject* filter = static_cast<const itk::ProcessObject*>(caller);
+
+    if(itk::ProgressEvent().CheckEvent(&event))
+	fprintf(stderr, "\r%s progress: %5.1f%%", filter->GetNameOfClass(), 100.0 * filter->GetProgress());//stderr is flushed directly
+    else if(itk::EndEvent().CheckEvent(&event))
+	std::cerr << std::endl << std::flush;
+    }
+
 
 // TODO: move this into a separate file!!!!
 class WatershedPipeline{
@@ -29,10 +42,21 @@ public:
     typedef itk::Image<GWSType, 3> WatershedImageType;
 
     WatershedPipeline(){
+
+	itk::CStyleCommand::Pointer eventCallbackITK;
+	eventCallbackITK = itk::CStyleCommand::New();
+	eventCallbackITK->SetCallback(FilterEventHandlerITK);
+
 	adf = ADFType::New();
+	adf->AddObserver(itk::ProgressEvent(), eventCallbackITK);
+	adf->AddObserver(itk::EndEvent(), eventCallbackITK);
 	gmf = GMFType::New();
+	gmf->AddObserver(itk::ProgressEvent(), eventCallbackITK);
+	gmf->AddObserver(itk::EndEvent(), eventCallbackITK);
 	gmf->SetInput(adf->GetOutput());
 	wf = WFType::New();
+	wf->AddObserver(itk::ProgressEvent(), eventCallbackITK);
+	wf->AddObserver(itk::EndEvent(), eventCallbackITK);
 	cif = CIFType::New();
 	cif->SetInput(wf->GetOutput());
 	}
