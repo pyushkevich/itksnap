@@ -295,6 +295,8 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
   Logic/ImageWrapper/ImageWrapperTraits.h
+  Logic/ImageWrapper/RLEImage.h
+  Logic/ImageWrapper/RLEImage.txx
   Logic/ImageWrapper/InputSelectionImageFilter.h
   Logic/ImageWrapper/LabelToRGBAFilter.h
   Logic/ImageWrapper/NativeIntensityMappingPolicy.h
