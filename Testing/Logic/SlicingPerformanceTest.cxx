@@ -227,6 +227,12 @@ int main(int argc, char *argv[])
     test->SetRegions(inImage->GetLargestPossibleRegion());
     test->Allocate();
     test->FillBuffer(1983);
+    shortRLEImage::IndexType ind;
+    ind[0] = 2;
+    ind[1] = 5;
+    ind[2] = 7;
+    test->SetPixel(ind, 100);
+    short val = test->GetPixel(ind);
     test->Print(cout);
 
     if (rle)

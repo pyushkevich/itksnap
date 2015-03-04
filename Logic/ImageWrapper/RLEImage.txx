@@ -14,7 +14,7 @@ RLEImage< TPixel, RunLengthCounterType >
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 void
 RLEImage< TPixel, RunLengthCounterType >
-::Allocate(bool initializePixels)
+::Allocate()
 {
     myBuffer.resize(this->GetLargestPossibleRegion().GetSize(2));
     for (int z = 0; z < this->GetLargestPossibleRegion().GetSize(2); z++)
@@ -63,15 +63,92 @@ RLEImage< TPixel, RunLengthCounterType >
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 void
-RLEImage< TPixel, RunLengthCounterType >
-::SetPixelContainer(PixelContainer *container)
+RLEImage< TPixel, RunLengthCounterType >::
+SetPixel(const IndexType & index, const TPixel & value)
 {
-    if (m_Buffer != container)
+    RLLine & line = myBuffer[index[2]][index[1]];
+    RunLengthCounterType t = 0;
+    for (int x = 0; x < line.size(); x++)
     {
-        m_Buffer = container;
-        this->Modified();
+        t += line[x].first;
+        if (t > index[0])
+        {
+            if (line[x].second == value) //already correct value
+                return;
+            else if (line[x].first == 1) //single pixel block
+                line[x].second = value;
+            else if (t == index[0] && x < line.size() - 1 && line[x + 1].second == value)
+            {
+                //shift this pixel to next block
+                line[x].first--;
+                line[x + 1].first++;
+            }
+            else if (t == index[0] + 1) //insert after
+            {
+                line[x].first--;
+                line.insert(line.begin() + x + 1, RLSegment(1, value));
+            }
+            else if (t == index[0] + line[x].first) //insert before
+            {
+                line[x].first--;
+                line.insert(line.begin() + x, RLSegment(1, value));
+            }
+            else //general case: split a block into 3 blocks
+            {
+                //first take care of values
+                line.insert(line.begin() + x + 1, 2, RLSegment(1, value));
+                line[x + 2].second = line[x].second;
+
+                //now take care of counts
+                line[x].first += index[0] - t;
+                line[x + 2].first = t - index[0] - 1;
+            }
+            return;
+        }
     }
 }
+
+template< typename TPixel, typename RunLengthCounterType = unsigned short >
+const TPixel &
+RLEImage< TPixel, RunLengthCounterType >::
+GetPixel(const IndexType & index) const
+{
+    RLLine & line = myBuffer[index[2]][index[1]];
+    RunLengthCounterType t = 0;
+    for (int x = 0; x < line.size(); x++)
+    {
+        t += line[x].first;
+        if (t > index[0])
+            return line[x].second;
+    }
+}
+
+template< typename TPixel, typename RunLengthCounterType = unsigned short >
+TPixel &
+RLEImage< TPixel, RunLengthCounterType >::
+GetPixel(const IndexType & index)
+{
+    RLLine & line = myBuffer[index[2]][index[1]];
+    RunLengthCounterType t = 0;
+    for (int x = 0; x < line.size(); x++)
+    {
+        t += line[x].first;
+        if (t > index[0])
+            return line[x].second;
+    }
+}
+
+//template< typename TPixel, typename RunLengthCounterType = unsigned short >
+//void
+//RLEImage< TPixel, RunLengthCounterType >
+//::SetPixelContainer(PixelContainer *container)
+//{
+//    if (m_Buffer != container)
+//    {
+//        m_Buffer = container;
+//        this->Modified();
+//    }
+//}
 
 //----------------------------------------------------------------------------
 //template< typename TPixel, typename RunLengthCounterType = unsigned short >
@@ -136,11 +213,14 @@ RLEImage< TPixel, RunLengthCounterType >
     for (int z = 0; z < myBuffer.size(); z++)
         for (int y = 0; y < this->GetLargestPossibleRegion().GetSize(1); y++)
             c+=myBuffer[z][y].size();
-    double cr = double(c*(sizeof(PixelType) + sizeof(RunLengthCounterType)))
+
+    double cr = double(c*(sizeof(PixelType) + sizeof(RunLengthCounterType))
+        + sizeof(std::vector<RLLine>) * this->GetOffsetTable()[3] / this->GetOffsetTable()[1])
         / (this->GetOffsetTable()[3] * sizeof(PixelType));
+
     os << indent << "RLEImage compressed pixel count: " << c << std::endl;
-    int prec = os.precision(2);
-    os << indent << "Compression ratio: "<< cr << std::endl;
+    int prec = os.precision(3);
+    os << indent << "Compressed size in relation to original size: "<< cr*100 <<"%" << std::endl;
     os.precision(prec);
 
     // m_Origin and m_Spacing are printed in the Superclass
