@@ -75,11 +75,11 @@ SetPixel(const IndexType & index, const TPixel & value)
         {
             if (line[x].second == value) //already correct value
                 return;
-            else if (line[x].first == 1) //single pixel block
+            else if (line[x].first == 1) //single pixel segment
                 line[x].second = value;
             else if (t == index[0] && x < line.size() - 1 && line[x + 1].second == value)
             {
-                //shift this pixel to next block
+                //shift this pixel to next segment
                 line[x].first--;
                 line[x + 1].first++;
             }
@@ -93,7 +93,7 @@ SetPixel(const IndexType & index, const TPixel & value)
                 line[x].first--;
                 line.insert(line.begin() + x, RLSegment(1, value));
             }
-            else //general case: split a block into 3 blocks
+            else //general case: split a segment into 3 segments
             {
                 //first take care of values
                 line.insert(line.begin() + x + 1, 2, RLSegment(1, value));
@@ -146,34 +146,33 @@ fromITKImage(typename itk::Image<TPixel, 3>::Pointer image)
     this->CopyInformation(image);
     this->SetRegions(image->GetLargestPossibleRegion());
 
-    itk::Size<3> iSize = image->GetLargestPossibleRegion().GetSize();
+    itk::Size<3> size = image->GetLargestPossibleRegion().GetSize();
     myBuffer.clear(); //in case it wasn't already
-    myBuffer.resize(iSize[2]);
-    for (itk::SizeValueType z = 0; z < iSize[2]; z++)
-        myBuffer[z].resize(iSize[1]);
+    myBuffer.resize(size[2]);
+    for (itk::SizeValueType z = 0; z < size[2]; z++)
+        myBuffer[z].resize(size[1]);
 
     itk::Index<3> ind;
-    for (SizeValueType z = 0; z < iSize[2]; z++)
+    ind[0] = 0;
+    for (SizeValueType z = 0; z < size[2]; z++)
     {
         ind[2] = z;
-        for (SizeValueType y = 0; y < iSize[1]; y++)
+        for (SizeValueType y = 0; y < size[1]; y++)
         {
             ind[1] = y;
-            ind[0] = 0;
-            SizeValueType x = 0;
-            RLLine & l = myBuffer[z][y];            
+            SizeValueType x = 0;       
             TPixel * p = image->GetBufferPointer();
             p+=image->ComputeOffset(ind);
-            while (x < iSize[0])
+            while (x < size[0])
             {
                 RLSegment s(0, *p);
-                while (x < iSize[0] && *p == s.second)
+                while (x < size[0] && *p == s.second)
                 {
                     x++;
                     s.first++;
                     p++;
                 }
-                l.push_back(s);
+                myBuffer[z][y].push_back(s);
             }
         }
     }
@@ -182,11 +181,73 @@ fromITKImage(typename itk::Image<TPixel, 3>::Pointer image)
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 typename itk::Image<TPixel, 3>::Pointer
 RLEImage< TPixel, RunLengthCounterType >::
-toITKImage()
+toITKImage() const
 {
     itk::Image<TPixel, 3>::Pointer out = itk::Image<TPixel, 3>::New();
+    out->CopyInformation(this);
+    out->SetRegions(this->GetLargestPossibleRegion());
+    out->Allocate(false);
+
+    itk::Size<3> size;
+    size[2] = myBuffer.size(); //this->GetLargestPossibleRegion().GetSize(2);
+    size[1] = myBuffer[0].size(); //this->GetLargestPossibleRegion().GetSize(1);
+    //size[0] = 0;
+    //for (int x = 0; x < myBuffer[0][0].size(); x++)
+    //    size[0] += myBuffer[0][0][x].first;
+    size[0] = this->GetLargestPossibleRegion().GetSize(0);
+
+    TPixel * p = out->GetBufferPointer();
+    itk::Index<3> ind;
+    ind[0] = 0;
+    for (SizeValueType z = 0; z < size[2]; z++)
+    {
+        ind[2] = z;
+        for (SizeValueType y = 0; y < size[1]; y++)
+        {
+            ind[1] = y;
+            SizeValueType x = 0;
+            SizeValueType offset = out->ComputeOffset(ind);
+            uncompressLine(myBuffer[z][y], p + offset);
+        }
+    }
     return out;
 }
+
+
+//int sliceIndex, axis;
+//Seg3DImageType::RegionType reg;
+//
+//void cropRLI(RLImage image, short *outSlice)
+//{
+//    itk::Size<3> size;
+//    size[2] = image.size();
+//    size[1] = image[0].size();
+//    size[0] = 0;
+//    for (int x = 0; x < image[0][0].size(); x++)
+//        size[0] += image[0][0][x].first;
+//
+//    if (axis == 2) //slicing along z
+//        for (int y = 0; y < size[1]; y++)
+//            uncompressLine(image[sliceIndex][y], outSlice + y*size[0]);
+//    else if (axis == 1) //slicing along y
+//        for (int z = 0; z < size[2]; z++)
+//            uncompressLine(image[z][sliceIndex], outSlice + z*size[0]);
+//    else //slicing along x, the low-preformance case
+//        for (int z = 0; z < size[2]; z++)
+//            for (int y = 0; y < size[1]; y++)
+//            {
+//                int t = 0;
+//                for (int x = 0; x < image[z][y].size(); x++)
+//                {
+//                    t += image[z][y][x].first;
+//                    if (t > sliceIndex)
+//                    {
+//                        *(outSlice++) = image[z][y][x].second;
+//                        break;
+//                    }
+//                }
+//            }
+//}
 
 //template< typename TPixel, typename RunLengthCounterType = unsigned short >
 //void

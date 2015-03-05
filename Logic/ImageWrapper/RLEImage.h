@@ -212,7 +212,7 @@ public:
     void fromITKImage(typename itk::Image<TPixel, 3>::Pointer image);
     
     /** Convert this RLEImage to a regular itk::Image. */
-    typename itk::Image<TPixel, 3>::Pointer toITKImage();
+    typename itk::Image<TPixel, 3>::Pointer toITKImage() const;
 
 protected:
     RLEImage();
@@ -226,6 +226,16 @@ protected:
     * behavior in classes that did not used to take image orientation into
     * account.  */
     virtual void ComputeIndexToPhysicalPointMatrices();
+
+    /** Uncompresses a RLE line into a buffer pointed by out.
+    * The buffer needs to have enough room.
+    * No error checking is conducted. */
+    static void uncompressLine(const RLLine & line, TPixel *out)
+    {
+        for (int x = 0; x < line.size(); x++)
+            for (int r = 0; r < line[x].first; r++)
+                *(out++) = line[x].second;
+    }
 
 
 private:
