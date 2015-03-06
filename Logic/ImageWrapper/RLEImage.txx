@@ -68,7 +68,7 @@ SetPixel(const IndexType & index, const TPixel & value)
 {
     RLLine & line = myBuffer[index[2]][index[1]];
     RunLengthCounterType t = 0;
-    for (int x = 0; x < line.size(); x++)
+    for (itk::SizeValueType x = 0; x < line.size(); x++)
     {
         t += line[x].first;
         if (t > index[0])
@@ -152,6 +152,8 @@ fromITKImage(typename itk::Image<TPixel, 3>::Pointer image)
     for (itk::SizeValueType z = 0; z < size[2]; z++)
         myBuffer[z].resize(size[1]);
 
+    RLLine temp;
+    temp.reserve(size[0]); //pessimistically preallocate buffer, otherwise reallocations can occur
     itk::Index<3> ind;
     ind[0] = 0;
     for (SizeValueType z = 0; z < size[2]; z++)
@@ -163,6 +165,7 @@ fromITKImage(typename itk::Image<TPixel, 3>::Pointer image)
             SizeValueType x = 0;       
             TPixel * p = image->GetBufferPointer();
             p+=image->ComputeOffset(ind);
+            temp.clear();
             while (x < size[0])
             {
                 RLSegment s(0, *p);
@@ -172,8 +175,9 @@ fromITKImage(typename itk::Image<TPixel, 3>::Pointer image)
                     s.first++;
                     p++;
                 }
-                myBuffer[z][y].push_back(s);
+                temp.push_back(s);
             }
+            myBuffer[z][y] = temp;
         }
     }
 }

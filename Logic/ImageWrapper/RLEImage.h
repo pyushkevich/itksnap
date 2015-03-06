@@ -11,6 +11,7 @@
 * (for memory alignment purposes).
 * 
 * Copied and adapted from itk::Image.
+* Assumes BufferedRegion == LargestPossibleRegion
 */
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 class RLEImage : public itk::ImageBase < 3 >
@@ -87,16 +88,7 @@ public:
     /** Offset typedef (relative position between indices) */
     typedef typename Superclass::OffsetValueType OffsetValueType;
 
-    /**
-    * example usage:
-    * typedef typename ImageType::template Rebind< float >::Type OutputImageType;
-    *
-    */
-    template <typename UPixelType, unsigned int UImageDimension = VImageDimension>
-    struct Rebind
-    {
-        typedef itk::Image<UPixelType, UImageDimension>  Type;
-    };
+
 
 
     /** Allocate the image memory. The size of the image must
@@ -214,6 +206,15 @@ public:
     /** Convert this RLEImage to a regular itk::Image. */
     typename itk::Image<TPixel, 3>::Pointer toITKImage() const;
 
+    /** Typedef for the internally used buffer. */
+    typedef std::vector<std::vector<RLLine> > BufferType;
+
+    /** We need to allow itk-style iterators to be constructed. */
+    BufferType & GetBuffer() { return myBuffer; }
+
+    /** We need to allow itk-style const iterators to be constructed. */
+    const BufferType & GetBuffer() const { return myBuffer; }
+
 protected:
     RLEImage();
     void PrintSelf(std::ostream & os, itk::Indent indent) const;
@@ -243,7 +244,7 @@ private:
     void operator=(const Self &); //purposely not implemented
 
     /** Memory for the current buffer. */
-    std::vector<std::vector<RLLine> > myBuffer;
+    BufferType myBuffer;
 };
 
 
