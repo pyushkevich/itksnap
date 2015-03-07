@@ -24,7 +24,7 @@ RLEImage< TPixel, RunLengthCounterType >
         {
             assert(this->GetLargestPossibleRegion().GetSize(0) <= std::numeric_limits<RunLengthCounterType>::max());
             //since we have to initialize pixel values to something, we initialize to 0
-            myBuffer[z][y].push_back(RLSegment(this->GetLargestPossibleRegion().GetSize(0), 0));
+            myBuffer[z][y].push_back(RLSegment(RunLengthCounterType(this->GetLargestPossibleRegion().GetSize(0)), TPixel(0)));
         }
     }
     this->ComputeOffsetTable(); //needed in PrintSelf
@@ -57,7 +57,7 @@ RLEImage< TPixel, RunLengthCounterType >
         for (int y = 0; y < this->GetLargestPossibleRegion().GetSize(1); y++)
         {
             myBuffer[z][y].resize(1);
-            myBuffer[z][y][0] = RLSegment(this->GetLargestPossibleRegion().GetSize(0), value);
+            myBuffer[z][y][0] = RLSegment(RunLengthCounterType(this->GetLargestPossibleRegion().GetSize(0)), value);
         }
 }
 
@@ -136,6 +136,7 @@ GetPixel(const IndexType & index)
         if (t > index[0])
             return line[x].second;
     }
+    throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
 }
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >

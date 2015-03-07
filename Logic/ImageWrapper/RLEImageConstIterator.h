@@ -6,6 +6,7 @@
 #include "itkNumericTraits.h"
 #include "RLEImage.h"
 #include "itkImageConstIterator.h"
+#include "itkImageConstIteratorWithIndex.h"
 
 namespace itk
 {
@@ -31,6 +32,9 @@ public:
 
   /** Image typedef support. */
   typedef RLEImage<TPixel, RunLengthCounterType> ImageType;
+
+  /** Run-Length Line (we iterate along it). */
+  typedef typename ImageType::RLLine RLLine;
 
   /** Index typedef support. */
   typedef typename ImageType::IndexType      IndexType;
@@ -73,6 +77,7 @@ public:
   ImageConstIterator(const Self & it)
   {
     myBuffer = it.myBuffer;
+    rlLine = it.rlLine;
     m_Image = it.m_Image;     // copy the smart pointer
     m_Region = it.m_Region;
     m_Index = it.m_Index;
@@ -88,9 +93,8 @@ public:
 
   /** Constructor establishes an iterator to walk a particular image and a
    * particular region of that image. */
-  ImageConstIterator(const ImageType *ptr,
-                     const RegionType & region)
-                     :myBuffer(ptr->GetBuffer())
+  ImageConstIterator(const ImageType *ptr, const RegionType & region)
+      :myBuffer(ptr->GetBuffer()), rlLine(const_cast<RLLine &>(ptr->GetBuffer()[0][0]))
   {
     m_Image = ptr;
     SetRegion(region);
@@ -103,6 +107,7 @@ public:
     if(this != &it)
       {
           myBuffer = it.myBuffer;
+          rlLine = it.rlLine;
           m_Image = it.m_Image;     // copy the smart pointer
           m_Region = it.m_Region;
           m_Index = it.m_Index;
@@ -186,17 +191,17 @@ public:
   { 
       m_Index = ind;
       realIndex = 0;
-      segmentRemainder = myBuffer[m_Index[2]][m_Index[1]][realIndex].first;
+      rlLine = myBuffer[m_Index[2]][m_Index[1]];
+      segmentRemainder = rlLine[realIndex].first;
 
-      const typename ImageType::RLLine & line = myBuffer[m_Index[2]][m_Index[1]];
       RunLengthCounterType t = 0;
       SizeValueType x = 0;
       if (m_BeginIndex[0] == 0)
           m_LineBegin = 0;
       else
-          for ( ; x < line.size(); x++)
+          for (; x < rlLine.size(); x++)
           {
-              t += line[x].first;
+              t += rlLine[x].first;
               if (t > m_BeginIndex[0])
               {
                   m_LineBegin = x;
@@ -206,9 +211,9 @@ public:
       if (m_EndIndex[0] == m_Image->GetLargestPossibleRegion().GetSize(0))
           m_LineBegin = myBuffer[0][0].size();
       else
-          for (; x < line.size(); x++)
+          for (; x < rlLine.size(); x++)
           {
-              t += line[x].first;
+              t += rlLine[x].first;
               if (t > m_EndIndex[0])
               {
                   m_LineEnd = x;
@@ -276,6 +281,8 @@ protected: //made protected so other iterators can access
 
   IndexValueType m_LineBegin; // index to first pixel in currently iterated line
   IndexValueType m_LineEnd;   // index to one pixel past last pixel in currently iterated line
+  
+  RLLine & rlLine;
 
   IndexValueType realIndex; // index into line's segment
   IndexValueType segmentRemainder; // how many pixels remain in current segment
@@ -285,6 +292,31 @@ protected: //made protected so other iterators can access
 
   const typename ImageType::BufferType & myBuffer;
 };
+
+template< typename TPixel, typename RunLengthCounterType>
+class ImageConstIteratorWithIndex<RLEImage<TPixel, RunLengthCounterType> >
+    :public ImageConstIterator < RLEImage<TPixel, RunLengthCounterType> >
+{
+    //just inherit constructors
+public:
+    /** Default Constructor. Need to provide a default constructor since we
+    * provide a copy constructor. */
+    ImageConstIteratorWithIndex() :ImageConstIterator< ImageType >(){ }
+
+
+    /** Copy Constructor. The copy constructor is provided to make sure the
+    * handle to the image is properly reference counted. */
+    ImageConstIteratorWithIndex(const Self & it)
+    {
+        this->ImageConstIterator< ImageType >::operator=(it);
+    }
+
+    /** Constructor establishes an iterator to walk a particular image and a
+    * particular region of that image. */
+    ImageConstIteratorWithIndex(const ImageType *ptr, const RegionType & region)
+        :ImageConstIterator< ImageType >(ptr, region) { }
+}; //no additional implementation required
+
 } // end namespace itk
 
 #endif //RLEImageConstIterator_h

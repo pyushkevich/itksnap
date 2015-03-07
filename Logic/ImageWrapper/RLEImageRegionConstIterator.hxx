@@ -31,47 +31,14 @@ void
 ImageRegionConstIterator< RLEImage<TPixel, RunLengthCounterType> >
 ::Increment()
 {
-  // We have reached the end of the span (row), need to wrap around.
-
-  // First back up one pixel, because we are going to use a different
-  // algorithm to compute the next pixel
-  --this->m_Offset;
-
-  // Get the index of the last pixel on the span (row)
-  typename ImageIterator< TImage >::IndexType
-  ind = this->m_Image->ComputeIndex( static_cast< OffsetValueType >( this->m_Offset ) );
-
-  const typename ImageIterator< TImage >::IndexType &
-  startIndex = this->m_Region.GetIndex();
-  const typename ImageIterator< TImage >::SizeType &
-  size = this->m_Region.GetSize();
-
-  // Increment along a row, then wrap at the end of the region row.
-
-  // Check to see if we are past the last pixel in the region
-  // Note that ++ind[0] moves to the next pixel along the row.
-  ++ind[0];
-  bool done = ( ind[0] == startIndex[0] + static_cast< IndexValueType >( size[0] ) );
-  for ( unsigned int i = 1; done && i < ImageIteratorDimension; i++ )
+    // We have reached the end of the line (row), need to wrap around.
+    m_Index[0] = m_BeginIndex[0];
+    if (++m_Index[1] == m_BeginIndex[1] + m_Region.GetSize(1))
     {
-    done = ( ind[i] == startIndex[i] + static_cast< IndexValueType >( size[i] ) - 1 );
+        m_Index[1] = m_BeginIndex[1];
+        m_Index[2]++;
     }
-
-  // if the iterator is outside the region (but not past region end) then
-  // we need to wrap around the region
-  unsigned int d = 0;
-  if ( !done )
-    {
-    while ( ( ( d + 1 ) < ImageIteratorDimension )
-            &&  static_cast< SizeValueType >( ind[d] - startIndex[d] ) >= size[d] )
-      {
-      ind[d] = startIndex[d];
-      ind[++d]++;
-      }
-    }
-  this->m_Offset = this->m_Image->ComputeOffset(ind);
-  m_SpanEndOffset = this->m_Offset + static_cast< OffsetValueType >( size[0] );
-  m_SpanBeginOffset = this->m_Offset;
+    SetIndex(m_Index);
 }
 
 //----------------------------------------------------------------------------
@@ -82,46 +49,14 @@ void
 ImageRegionConstIterator< RLEImage<TPixel, RunLengthCounterType> >
 ::Decrement()
 {
-  // We have pasted the beginning of the span (row), need to wrap around.
-
-  // First move forward one pixel, because we are going to use a different
-  // algorithm to compute the next pixel
-  this->m_Offset++;
-
-  // Get the index of the first pixel on the span (row)
-  typename ImageIterator< TImage >::IndexType
-  ind = this->m_Image->ComputeIndex( static_cast< IndexValueType >( this->m_Offset ) );
-
-  const typename ImageIterator< TImage >::IndexType &
-  startIndex = this->m_Region.GetIndex();
-  const typename ImageIterator< TImage >::SizeType &
-  size = this->m_Region.GetSize();
-
-  // Deccrement along a row, then wrap at the beginning of the region row.
-
-  // Check to see if we are past the first pixel in the region
-  // Note that --ind[0] moves to the previous pixel along the row.
-  bool done = ( --ind[0] == startIndex[0] - 1 );
-  for ( unsigned int i = 1; done && i < ImageIteratorDimension; i++ )
+    // We have reached the beginning of the line (row), need to wrap around.
+    m_Index[0] = m_EndIndex[0];
+    if (--m_Index[1] < m_BeginIndex[1])
     {
-    done = ( ind[i] == startIndex[i] );
+        m_Index[1] = m_EndIndex[1];
+        m_Index[2]--;
     }
-
-  // if the iterator is outside the region (but not past region begin) then
-  // we need to wrap around the region
-  unsigned int dim = 0;
-  if ( !done )
-    {
-    while ( ( ( dim + 1 ) < ImageIteratorDimension )
-            && ( ind[dim] < startIndex[dim] ) )
-      {
-      ind[dim] = startIndex[dim] + static_cast< IndexValueType >( size[dim] ) - 1;
-      ind[++dim]--;
-      }
-    }
-  this->m_Offset = this->m_Image->ComputeOffset(ind);
-  m_SpanEndOffset = this->m_Offset + 1;
-  m_SpanBeginOffset = m_SpanEndOffset - static_cast< OffsetValueType >( size[0] );
+    SetIndex(m_Index);
 }
 
 } // end namespace itk
