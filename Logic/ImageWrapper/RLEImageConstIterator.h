@@ -75,8 +75,8 @@ public:
   /** Copy Constructor. The copy constructor is provided to make sure the
    * handle to the image is properly reference counted. */
   ImageConstIterator(const Self & it)
+      :myBuffer(it.GetImage()->GetBuffer()), rlLine(const_cast<RLLine &>(it.GetImage()->GetBuffer()[0][0]))
   {
-    myBuffer = it.myBuffer;
     rlLine = it.rlLine;
     m_Image = it.m_Image;     // copy the smart pointer
     m_Region = it.m_Region;
@@ -234,7 +234,7 @@ public:
   /** Get the pixel value */
   PixelType Get(void) const
   {
-      return myBuffer[m_Index[2]][m_Index[1]][realIndex].second;
+      return Value();
   }
 
   /** Return a const reference to the pixel
@@ -249,7 +249,7 @@ public:
    * defined as the first pixel in the region. */
   void GoToBegin()
   {
-    
+      SetIndex(m_BeginIndex);
   }
 
   /** Move an iterator to the end of the region. "End" is defined as

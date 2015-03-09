@@ -94,39 +94,6 @@ public:
     this->ImageConstIterator< ImageType >::operator=(it);
   }
 
-  ///** Move an iterator to the beginning of the region. "Begin" is
-  // * defined as the first pixel in the region. */
-  //void GoToBegin()
-  //{
-  //  Superclass::GoToBegin();
-
-  //  // reset the span offsets
-  //  m_SpanBeginOffset = this->m_BeginOffset;
-  //  m_SpanEndOffset   = this->m_BeginOffset + static_cast< OffsetValueType >( this->m_Region.GetSize()[0] );
-  //}
-
-  ///** Move an iterator to the end of the region. "End" is defined as
-  // * one pixel past the last pixel of the region. */
-  //void GoToEnd()
-  //{
-  //  Superclass::GoToEnd();
-
-  //  // reset the span offsets
-  //  m_SpanEndOffset = this->m_EndOffset;
-  //  m_SpanBeginOffset = m_SpanEndOffset - static_cast< OffsetValueType >( this->m_Region.GetSize()[0] );
-  //}
-
-  ///** Set the index. No bounds checking is performed. This is overridden
-  // * from the parent because we have an extra ivar.
-  // * \sa GetIndex */
-  //void SetIndex(const IndexType & ind)
-  //{
-  //  Superclass::SetIndex(ind);
-  //  m_SpanEndOffset = this->m_Offset + static_cast< OffsetValueType >( this->m_Region.GetSize()[0] )
-  //                    - ( ind[0] - this->m_Region.GetIndex()[0] );
-  //  m_SpanBeginOffset = m_SpanEndOffset - static_cast< OffsetValueType >( this->m_Region.GetSize()[0] );
-  //}
-
   /** Increment (prefix) the fastest moving dimension of the iterator's index.
    * This operator will constrain the iterator within the region (i.e. the
    * iterator will automatically wrap from the end of the row of the region
@@ -141,14 +108,14 @@ public:
     if (segmentRemainder > 0)
     {
         segmentRemainder--;
-        return;
+        return *this;
     }
       
     realIndex++;
     segmentRemainder = rlLine[realIndex].first;
       
     if (realIndex < m_LineEnd)
-    return;
+    return *this;
 
     this->Increment();
     return *this;
@@ -166,22 +133,42 @@ public:
       m_Index[0]--;
       segmentRemainder++;
       if (segmentRemainder <= rlLine[realIndex].first)
-          return;
+          return *this;
 
       realIndex--;
       segmentRemainder = 0;
 
       if (realIndex >= m_LineBegin)
-          return;
+          return *this;
 
       this->Decrement();
       return *this;
   }
 
 private:
-  void Increment(); // advance in a direction other than the fastest moving
+  void Increment() // advance in a direction other than the fastest moving
+  {
+      // We have reached the end of the line (row), need to wrap around.
+      m_Index[0] = m_BeginIndex[0];
+      if (++m_Index[1] == m_BeginIndex[1] + m_Region.GetSize(1))
+      {
+          m_Index[1] = m_BeginIndex[1];
+          m_Index[2]++;
+      }
+      SetIndex(m_Index);
+  }
 
-  void Decrement(); // go back in a direction other than the fastest moving
+  void Decrement() // go back in a direction other than the fastest moving
+  {
+      // We have reached the beginning of the line (row), need to wrap around.
+      m_Index[0] = m_EndIndex[0];
+      if (--m_Index[1] < m_BeginIndex[1])
+      {
+          m_Index[1] = m_EndIndex[1];
+          m_Index[2]--;
+      }
+      SetIndex(m_Index);
+  }
 };
 
 template< typename TPixel, typename RunLengthCounterType>
@@ -207,26 +194,10 @@ public:
     ImageRegionConstIteratorWithIndex(const ImageIterator< ImageType > & it)
     {
         this->ImageRegionConstIterator< ImageType >::operator=(it);
-        //this->ImageRegionConstIterator< ImageType >::operator=(static_cast<const ImageConstIterator<ImageType> >(it));
-    }
-
-    /** Constructor that can be used to cast from an ImageConstIterator to an
-    * ImageRegionConstIterator. Many routines return an ImageIterator, but for a
-    * particular task, you may want an ImageRegionConstIterator.  Rather than
-    * provide overloaded APIs that return different types of Iterators, itk
-    * returns ImageIterators and uses constructors to cast from an
-    * ImageIterator to a ImageRegionConstIterator. */
-    ImageRegionConstIteratorWithIndex(const ImageConstIterator< ImageType > & it)
-    {
-        this->ImageRegionConstIterator< ImageType >::operator=(it);
     }
 
 }; //no additional implementation required
 
 } // end namespace itk
-
-#ifndef ITK_MANUAL_INSTANTIATION
-#include "RLEImageRegionConstIterator.hxx"
-#endif
 
 #endif //RLEImageRegionConstIterator_h

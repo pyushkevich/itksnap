@@ -12,9 +12,7 @@ RLEImage< TPixel, RunLengthCounterType >
 }
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
-void
-RLEImage< TPixel, RunLengthCounterType >
-::Allocate()
+void RLEImage< TPixel, RunLengthCounterType >::Allocate()
 {
     myBuffer.resize(this->GetLargestPossibleRegion().GetSize(2));
     for (int z = 0; z < this->GetLargestPossibleRegion().GetSize(2); z++)
@@ -31,9 +29,7 @@ RLEImage< TPixel, RunLengthCounterType >
 }
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
-void
-RLEImage< TPixel, RunLengthCounterType >
-::Initialize()
+void RLEImage< TPixel, RunLengthCounterType >::Initialize()
 {
     //
     // We don't modify ourselves because the "ReleaseData" methods depend upon
@@ -47,8 +43,7 @@ RLEImage< TPixel, RunLengthCounterType >
 }
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
-void
-RLEImage< TPixel, RunLengthCounterType >
+void RLEImage< TPixel, RunLengthCounterType >
 ::FillBuffer(const TPixel & value)
 {
     assert(!myBuffer.empty());
@@ -62,8 +57,43 @@ RLEImage< TPixel, RunLengthCounterType >
 }
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
-void
-RLEImage< TPixel, RunLengthCounterType >::
+void RLEImage< TPixel, RunLengthCounterType >::
+SetPixel(RLLine & line, const SizeValueType segmentRemainder, const SizeValueType realIndex, const TPixel & value)
+{
+    if (line[realIndex].second == value) //already correct value
+        return;
+    else if (line[realIndex].first == 1) //single pixel segment
+        line[realIndex].second = value;
+    else if (segmentRemainder==0 && realIndex < line.size() - 1 && line[realIndex + 1].second == value)
+    {
+        //shift this pixel to next segment
+        line[realIndex].first--;
+        line[realIndex + 1].first++;
+    }
+    else if (segmentRemainder == 0) //insert after
+    {
+        line[realIndex].first--;
+        line.insert(line.begin() + realIndex + 1, RLSegment(1, value));
+    }
+    else if (segmentRemainder == line[realIndex].first) //insert before
+    {
+        line[realIndex].first--;
+        line.insert(line.begin() + realIndex, RLSegment(1, value));
+    }
+    else //general case: split a segment into 3 segments
+    {
+        //first take care of values
+        line.insert(line.begin() + realIndex + 1, 2, RLSegment(1, value));
+        line[realIndex + 2].second = line[realIndex].second;
+
+        //now take care of counts
+        line[realIndex].first += line[realIndex].first-segmentRemainder;
+        line[realIndex + 2].first = segmentRemainder - 1;
+    }
+    return;
+}
+template< typename TPixel, typename RunLengthCounterType = unsigned short >
+void RLEImage< TPixel, RunLengthCounterType >::
 SetPixel(const IndexType & index, const TPixel & value)
 {
     RLLine & line = myBuffer[index[2]][index[1]];
@@ -73,44 +103,15 @@ SetPixel(const IndexType & index, const TPixel & value)
         t += line[x].first;
         if (t > index[0])
         {
-            if (line[x].second == value) //already correct value
-                return;
-            else if (line[x].first == 1) //single pixel segment
-                line[x].second = value;
-            else if (t == index[0] && x < line.size() - 1 && line[x + 1].second == value)
-            {
-                //shift this pixel to next segment
-                line[x].first--;
-                line[x + 1].first++;
-            }
-            else if (t == index[0] + 1) //insert after
-            {
-                line[x].first--;
-                line.insert(line.begin() + x + 1, RLSegment(1, value));
-            }
-            else if (t == index[0] + line[x].first) //insert before
-            {
-                line[x].first--;
-                line.insert(line.begin() + x, RLSegment(1, value));
-            }
-            else //general case: split a segment into 3 segments
-            {
-                //first take care of values
-                line.insert(line.begin() + x + 1, 2, RLSegment(1, value));
-                line[x + 2].second = line[x].second;
-
-                //now take care of counts
-                line[x].first += index[0] - t;
-                line[x + 2].first = t - index[0] - 1;
-            }
+            SetPixel(line, t - index[0], x, value);
             return;
         }
     }
+    throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
 }
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
-const TPixel &
-RLEImage< TPixel, RunLengthCounterType >::
+const TPixel & RLEImage< TPixel, RunLengthCounterType >::
 GetPixel(const IndexType & index) const
 {
     RLLine & line = myBuffer[index[2]][index[1]];
@@ -124,8 +125,7 @@ GetPixel(const IndexType & index) const
 }
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
-TPixel &
-RLEImage< TPixel, RunLengthCounterType >::
+TPixel & RLEImage< TPixel, RunLengthCounterType >::
 GetPixel(const IndexType & index)
 {
     RLLine & line = myBuffer[index[2]][index[1]];
@@ -140,8 +140,7 @@ GetPixel(const IndexType & index)
 }
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
-void
-RLEImage< TPixel, RunLengthCounterType >::
+void RLEImage< TPixel, RunLengthCounterType >::
 fromITKImage(typename itk::Image<TPixel, 3>::Pointer image)
 {
     this->CopyInformation(image);
@@ -185,8 +184,7 @@ fromITKImage(typename itk::Image<TPixel, 3>::Pointer image)
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 typename itk::Image<TPixel, 3>::Pointer
-RLEImage< TPixel, RunLengthCounterType >::
-toITKImage() const
+RLEImage< TPixel, RunLengthCounterType >::toITKImage() const
 {
     itk::Image<TPixel, 3>::Pointer out = itk::Image<TPixel, 3>::New();
     out->CopyInformation(this);
@@ -254,18 +252,6 @@ toITKImage() const
 //            }
 //}
 
-//template< typename TPixel, typename RunLengthCounterType = unsigned short >
-//void
-//RLEImage< TPixel, RunLengthCounterType >
-//::SetPixelContainer(PixelContainer *container)
-//{
-//    if (m_Buffer != container)
-//    {
-//        m_Buffer = container;
-//        this->Modified();
-//    }
-//}
-
 //----------------------------------------------------------------------------
 //template< typename TPixel, typename RunLengthCounterType = unsigned short >
 //void
@@ -306,8 +292,7 @@ RLEImage< TPixel, RunLengthCounterType >
 }
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
-unsigned int
-RLEImage< TPixel, RunLengthCounterType >
+unsigned int RLEImage< TPixel, RunLengthCounterType >
 ::GetNumberOfComponentsPerPixel() const
 {
     // use the GetLength() method which works with variable length arrays,
@@ -320,8 +305,7 @@ RLEImage< TPixel, RunLengthCounterType >
 *
 */
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
-void
-RLEImage< TPixel, RunLengthCounterType >
+void RLEImage< TPixel, RunLengthCounterType >
 ::PrintSelf(std::ostream & os, itk::Indent indent) const
 {
     Superclass::PrintSelf(os, indent);

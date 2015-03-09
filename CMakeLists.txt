@@ -297,11 +297,10 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/ImageWrapperTraits.h
   Logic/ImageWrapper/RLEImage.h
   Logic/ImageWrapper/RLEImage.txx
-#  Logic/ImageWrapper/itkImageToRLEImageFilter.h
-#  Logic/ImageWrapper/itkImageToRLEImageFilter.txx
   Logic/ImageWrapper/RLEImageConstIterator.h
+  Logic/ImageWrapper/RLEImageIterator.h
   Logic/ImageWrapper/RLEImageRegionConstIterator.h
-  Logic/ImageWrapper/RLEImageRegionConstIterator.hxx
+  Logic/ImageWrapper/RLEImageRegionIterator.h
   Logic/ImageWrapper/InputSelectionImageFilter.h
   Logic/ImageWrapper/LabelToRGBAFilter.h
   Logic/ImageWrapper/NativeIntensityMappingPolicy.h

@@ -88,9 +88,6 @@ public:
     /** Offset typedef (relative position between indices) */
     typedef typename Superclass::OffsetValueType OffsetValueType;
 
-
-
-
     /** Allocate the image memory. The size of the image must
     * already be set, e.g. by calling SetRegions().
     * Pixel values are initialized to zero. */
@@ -108,7 +105,7 @@ public:
     *
     * Allocate() needs to have been called first -- for efficiency,
     * this function does not check that the image has actually been
-    * allocated yet. HORRIBLY SLOW! */
+    * allocated yet. SLOW! */
     void SetPixel(const IndexType & index, const TPixel & value);
 
     /** \brief Get a pixel (read only version). SLOW! */
@@ -131,17 +128,6 @@ public:
 
     virtual unsigned int GetNumberOfComponentsPerPixel() const;
 
-    ///** Return a pointer to the beginning of the buffer.  This is used by
-    //* the image iterator class. */
-    //virtual TPixel * GetBufferPointer()
-    //{
-    //    return m_Buffer ? m_Buffer->GetBufferPointer() : ITK_NULLPTR;
-    //}
-    //virtual const TPixel * GetBufferPointer() const
-    //{
-    //    return m_Buffer ? m_Buffer->GetBufferPointer() : ITK_NULLPTR;
-    //}
-
     /** Graft the data and information from one image to another. This
     * is a convenience method to setup a second image with all the meta
     * information of another image and use the same pixel
@@ -153,52 +139,6 @@ public:
     * The implementation here refers to the superclass' implementation
     * and then copies over the pixel container. */
     //virtual void Graft(const DataObject *data);
-
-    ///** Return the Pixel Accessor object */
-    //AccessorType GetPixelAccessor(void)
-    //{
-    //    return AccessorType();
-    //}
-
-    ///** Return the Pixel Accesor object */
-    //const AccessorType GetPixelAccessor(void) const
-    //{
-    //    return AccessorType();
-    //}
-
-    /** Return the NeighborhoodAccessor functor */
-    //NeighborhoodAccessorFunctorType GetNeighborhoodAccessor()
-    //{
-    //    return NeighborhoodAccessorFunctorType();
-    //}
-
-    /** Return the NeighborhoodAccessor functor */
-    //const NeighborhoodAccessorFunctorType GetNeighborhoodAccessor() const
-    //{
-    //    return NeighborhoodAccessorFunctorType();
-    //}
-
-
-    ///** Container used to store pixels in the image. */
-    //typedef itk::ImportImageContainer<itk::SizeValueType, RLLine> PixelContainer;
-
-    ///** A pointer to the pixel container. */
-    //typedef typename PixelContainer::Pointer      PixelContainerPointer;
-    //typedef typename PixelContainer::ConstPointer PixelContainerConstPointer;
-
-    ///** Set the container to use. Note that this does not cause the
-    //* DataObject to be modified. */
-    //void SetPixelContainer(PixelContainer *container);
-
-    ///** Return a pointer to the container. */
-    //PixelContainer * GetPixelContainer()
-    //{
-    //    return m_Buffer.GetPointer();
-    //}
-    //const PixelContainer * GetPixelContainer() const
-    //{
-    //    return m_Buffer.GetPointer();
-    //}
 
     /** Construct this RLEImage from a regular itk::Image. */
     void fromITKImage(typename itk::Image<TPixel, 3>::Pointer image);
@@ -238,6 +178,8 @@ protected:
                 *(out++) = line[x].second;
     }
 
+    /** Set a pixel value in the given line. */
+    void SetPixel(RLLine & line, const SizeValueType index, const SizeValueType realIndex, const TPixel & value);
 
 private:
     RLEImage(const Self &);          //purposely not implemented
