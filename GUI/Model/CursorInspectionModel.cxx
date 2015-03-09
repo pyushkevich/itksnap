@@ -120,6 +120,7 @@ void CursorInspectionModel::SetParentModel(GlobalUIModel *parent)
   int role =
       MAIN_ROLE |
       OVERLAY_ROLE |
+      JOIN_ROLE |
       SNAP_ROLE;
 
   CurrentVoxelInfoItemSetDomain dom(app, role);

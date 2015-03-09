@@ -91,6 +91,7 @@ GlobalState
   m_PaintbrushSettings.volumetric = false;
   m_PaintbrushSettings.isotropic = false;
   m_PaintbrushSettings.chase = false;
+  m_PaintbrushSettings.direct = false;
   m_PaintbrushSettings.watershed.level = 0.2;
   m_PaintbrushSettings.watershed.smooth_iterations = 15;
 

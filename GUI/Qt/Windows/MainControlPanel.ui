@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>184</width>
+    <width>191</width>
     <height>715</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>184</width>
+    <width>191</width>
     <height>0</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>184</width>
+    <width>191</width>
     <height>16777215</height>
    </size>
   </property>
@@ -473,6 +473,35 @@ QWidget#widget {
              </widget>
             </item>
             <item>
+             <widget class="QToolButton" name="btnJoinInspector">
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>27</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Join Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Choose mode for Join tool.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/globalWS.gif</normaloff>:/root/globalWS.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="autoExclusive">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -506,6 +535,7 @@ QWidget#widget {
             </property>
            </widget>
            <widget class="SnakeToolROIPanel" name="pageSnakeTool"/>
+	   <widget class="JoinDataPanel" name="pageJoinTool"/>
            <widget class="PaintbrushToolPanel" name="pagePaintbrushTool"/>
            <widget class="PolygonToolPanel" name="pagePolygonTool"/>
            <widget class="QWidget" name="pageBlank"/>
@@ -683,6 +713,12 @@ QToolBar {
    <class>SynchronizationInspector</class>
    <extends>QWidget</extends>
    <header>SynchronizationInspector.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>JoinDataPanel</class>
+   <extends>QWidget</extends>
+   <header>JoinDataPanel.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

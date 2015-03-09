@@ -311,6 +311,7 @@ protected:
   IRISDisplayGeometry m_DisplayGeometry;
 
   friend class SNAPImageData;
+  friend class JOINImageData;
   friend class LayerIterator;
 
   // Create a wrapper (vector or scalar) from native format stored in the IO

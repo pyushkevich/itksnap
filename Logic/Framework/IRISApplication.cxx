@@ -45,6 +45,7 @@
 #include "IRISImageData.h"
 #include "IRISVectorTypesToITKConversion.h"
 #include "SNAPImageData.h"
+#include "JOINImageData.h"
 #include "MeshManager.h"
 #include "MeshExportSettings.h"
 #include "SegmentationStatistics.h"
@@ -117,6 +118,9 @@ IRISApplication
   m_SNAPImageData = SNAPImageData::New();
   m_SNAPImageData->SetParent(this);
 
+  m_JOINImageData = JOINImageData::New();
+  m_JOINImageData->SetParent(this);
+
   // Set the current IRIS pointer
   m_CurrentImageData = m_IRISImageData.GetPointer();
 
@@ -124,6 +128,7 @@ IRISApplication
   // as our own events.
   Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, WrapperChangeEvent(), this);
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, WrapperChangeEvent(), this);
+  Rebroadcaster::RebroadcastAsSourceEvent(m_JOINImageData, WrapperChangeEvent(), this);
 
   // TODO: should this also be a generic Wrapper Image Data change event?
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LevelSetImageChangeEvent(), this);
@@ -236,6 +241,140 @@ IRISApplication
   m_GlobalState->SetSpeedValid(false);
 
   // The set of layers has changed
+  InvokeEvent(LayerChangeEvent());
+}
+
+void 
+IRISApplication
+::InitializeJOINImageData(const SNAPSegmentationROISettings &roi,
+                          CommandType *progressCommand)
+{
+  assert(m_IRISImageData->IsMainLoaded());
+
+  // Create the JOIN image data object
+  m_JOINImageData->InitializeToROI(m_IRISImageData, roi, progressCommand);
+  
+  // Initialize the source and destination images of the JOIN image data
+  m_JOINImageData->InitializeJsrc();
+  m_JOINImageData->InitializeJdst();
+
+  // Pass the cleaned up segmentation image to SNAP
+  m_JOINImageData->SetSegmentationImage(m_JOINImageData->GetJdst()->GetImage());
+
+  // Remember the ROI object
+  m_GlobalState->SetSegmentationROISettings(roi);
+
+  // The set of layers has changed
+  InvokeEvent(LayerChangeEvent());
+}
+
+void 
+IRISApplication
+::CopySegementationToJsrc(const SNAPSegmentationROISettings &roi,
+                          CommandType *progressCommand)
+{
+  assert(m_JOINImageData->IsJsrcLoaded());
+
+  ////creating (shallow) copy, should only be used for initialization of CnJ (GWS fills its Jsrc with WS)
+  ////avoids m_IRISImageData->GetSegmentation()->DeepCopyRegion in case JSRType != LabelType
+
+  typedef LabelImageWrapper::ImageType SourceImageType;
+  typedef JsrcImageWrapper::ImageType TargetImageType;
+
+  SourceImageType::Pointer source = m_IRISImageData->GetSegmentation()->GetImage();
+  TargetImageType::Pointer target = m_JOINImageData->GetJsrc()->GetImage();
+
+  // Create iterators for copying from one to the other
+  typedef itk::ImageRegionConstIterator<SourceImageType> SourceIteratorType;
+  typedef itk::ImageRegionIterator<TargetImageType> TargetIteratorType;
+  //SourceIteratorType itSource(source,source->GetBufferedRegion());
+  TargetIteratorType itTarget(target,target->GetBufferedRegion());
+  SourceIteratorType itSource(source,roi.GetROI());
+  //TargetIteratorType itTarget(target,roi.GetROI());
+
+  // Go through both iterators, copy the new over the old
+  itSource.GoToBegin();
+  itTarget.GoToBegin();
+  while(!itSource.IsAtEnd())
+    {
+    itTarget.Set(itSource.Get());//needs no cast as JSRType >= LabelType
+
+    ++itSource;
+    ++itTarget;
+    }
+
+  // The target has been modified
+  target->Modified();
+
+
+  InvokeEvent(LayerChangeEvent());
+}
+
+void 
+IRISApplication
+::CopySegementationToJdst(const SNAPSegmentationROISettings &roi,
+                          CommandType *progressCommand)
+{
+  assert(m_JOINImageData->IsJdstLoaded());
+
+  ////creating shallow copy since Jdst already is initialized and points to m_LabelImage set by m_JOINImageData->SetSegmentationImage in InitializeJOINImageData
+
+  typedef LabelImageWrapper::ImageType SourceImageType;
+  typedef JdstImageWrapper::ImageType TargetImageType;
+
+  SourceImageType::Pointer source = m_IRISImageData->GetSegmentation()->GetImage();
+  TargetImageType::Pointer target = m_JOINImageData->GetJdst()->GetImage();
+
+  // Create iterators for copying from one to the other
+  typedef itk::ImageRegionConstIterator<SourceImageType> SourceIteratorType;
+  typedef itk::ImageRegionIterator<TargetImageType> TargetIteratorType;
+  //SourceIteratorType itSource(source,source->GetBufferedRegion());
+  TargetIteratorType itTarget(target,target->GetBufferedRegion());
+  SourceIteratorType itSource(source,roi.GetROI());
+  //TargetIteratorType itTarget(target,roi.GetROI());
+
+  // Go through both iterators, copy the new over the old
+  itSource.GoToBegin();
+  itTarget.GoToBegin();
+  while(!itSource.IsAtEnd())
+    {
+    itTarget.Set(itSource.Get());
+
+    ++itSource;
+    ++itTarget;
+    }
+
+  // The target has been modified
+  target->Modified();
+
+
+  InvokeEvent(LayerChangeEvent());
+}
+
+void 
+IRISApplication
+::ClearJdst()
+{
+  assert(m_JOINImageData->IsJdstLoaded());
+
+  ////clear Jdst manually
+  typedef JdstImageWrapper::ImageType TargetImageType;
+
+  TargetImageType::Pointer target = m_JOINImageData->GetJdst()->GetImage();
+
+  typedef itk::ImageRegionIterator<TargetImageType> TargetIteratorType;
+  TargetIteratorType itTarget(target,target->GetLargestPossibleRegion());
+
+  itTarget.GoToBegin();
+  while(!itTarget.IsAtEnd())
+    {
+    itTarget.Set((LabelType) 0);
+    ++itTarget;
+    }
+
+  // The target has been modified
+  target->Modified();
+
   InvokeEvent(LayerChangeEvent());
 }
 
@@ -687,6 +826,57 @@ IRISApplication
 
 void
 IRISApplication
+::UpdateIRISWithJOINImageData(CommandType *progressCommand)
+{
+  assert(IsJoinModeActive());
+
+  ////exchanging pointers (only works if UnloadAll does not unload Join layers)
+  //m_IRISImageData->SetSegmentationImage(m_JOINImageData->GetJdst()->GetImage());
+  ////full copy
+  // Get pointers to the source and destination images
+  typedef JdstImageWrapper::ImageType SourceImageType;
+  typedef LabelImageWrapper::ImageType TargetImageType;
+
+  // If the voxel size of the image does not match the voxel size of the 
+  // main image, we need to resample the region  
+  SourceImageType::Pointer source = m_JOINImageData->GetJdst()->GetImage();
+  TargetImageType::Pointer target = m_IRISImageData->GetSegmentation()->GetImage();
+
+  // Construct are region of interest into which the result will be pasted
+  SNAPSegmentationROISettings roi = m_GlobalState->GetSegmentationROISettings();
+
+  // Create iterators for copying from one to the other
+  typedef itk::ImageRegionConstIterator<SourceImageType> SourceIteratorType;
+  typedef itk::ImageRegionIterator<TargetImageType> TargetIteratorType;
+  SourceIteratorType itSource(source,source->GetLargestPossibleRegion());
+  //SourceIteratorType itSource(source,roi.GetROI());
+  TargetIteratorType itTarget(target,roi.GetROI());
+  //TargetIteratorType itTarget(target,source->GetLargestPossibleRegion());
+
+  DrawOverFilter drawover = m_GlobalState->GetDrawOverFilter();
+
+  // Go through both iterators, copy the new over the old
+  itSource.GoToBegin();
+  itTarget.GoToBegin();
+  while(!itSource.IsAtEnd()){
+      LabelType pxLabel= itTarget.Get();
+      if(drawover.CoverageMode == PAINT_OVER_ALL ||
+        (drawover.CoverageMode == PAINT_OVER_ONE && pxLabel == drawover.DrawOverLabel) ||
+        (drawover.CoverageMode == PAINT_OVER_VISIBLE && pxLabel != 0))
+        {
+	itTarget.Set(itSource.Get());
+        }
+
+    ++itSource;
+    ++itTarget;
+    }
+
+  // The target has been modified
+  target->Modified();
+}
+
+void
+IRISApplication
 ::SetCursorPosition(const Vector3ui cursor, bool force)
 {
   if(cursor != this->GetCursorPosition() || force)
@@ -968,9 +1158,6 @@ IRISApplication
   InvokeEvent(SegmentationChangeEvent());
 }
 
-
-
-
 void 
 IRISApplication
 ::ReleaseSNAPImageData() 
@@ -979,6 +1166,16 @@ IRISApplication
          m_CurrentImageData != m_SNAPImageData);
 
   m_SNAPImageData->UnloadAll();
+}
+
+void
+IRISApplication
+::ReleaseJOINImageData() 
+{
+  assert(m_JOINImageData->IsMainLoaded() &&
+         m_CurrentImageData != m_JOINImageData);
+
+  m_JOINImageData->UnloadAll();
 }
 
 void
@@ -1013,8 +1210,14 @@ IRISApplication
   assert(m_IRISImageData);
   if(m_CurrentImageData != m_IRISImageData)
     {
+    if(m_CurrentImageData == m_JOINImageData){
+	m_CurrentImageData = m_IRISImageData;
+        TransferCursor(m_JOINImageData, m_IRISImageData);
+    }
+    else{
     m_CurrentImageData = m_IRISImageData;
     TransferCursor(m_SNAPImageData, m_IRISImageData);
+    }
     InvokeEvent(MainImageDimensionsChangeEvent());
     }
 }
@@ -1040,6 +1243,28 @@ void IRISApplication
     m_GlobalState->SetToolbarMode3D(TRACKBALL_MODE);
     }
 }
+
+void IRISApplication
+::SetCurrentImageDataToJOIN() 
+{
+  assert(m_JOINImageData->IsMainLoaded());
+  if(m_CurrentImageData != m_JOINImageData)
+    {
+    // The cursor needs to be modified to point to the same location
+    // as before, or to the center of the image
+    TransferCursor(m_IRISImageData, m_JOINImageData);
+
+    // Set the image data
+    m_CurrentImageData = m_JOINImageData;
+
+    // Fire the event
+    InvokeEvent(MainImageDimensionsChangeEvent());
+
+    // Upon entering this mode, we need set the active tools
+    m_GlobalState->SetToolbarMode(JOIN_MODE);
+    m_GlobalState->SetToolbarMode3D(TRACKBALL_MODE);
+    }
+} 
 
 int IRISApplication::GetImageDirectionForAnatomicalDirection(AnatomicalDirection iAnat)
 {
@@ -1947,6 +2172,20 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
       category = "Level Set Image";
       }
     }
+  else if(role == JOIN_ROLE)
+    {
+    if(dynamic_cast<JsrcImageWrapper *>(layer))
+      {
+      history = "JsrcImage";
+      category = "Join Source Image";
+      }
+
+    else if(dynamic_cast<JdstImageWrapper *>(layer))
+      {
+      history = "JdstImage";
+      category = "Join Destination Image";
+      }
+    }
 
   // Create delegate
   SmartPtr<DefaultSaveImageDelegate> delegate = DefaultSaveImageDelegate::New();
@@ -2270,6 +2509,11 @@ void IRISApplication::SaveLabelDescriptions(const char *file)
 bool IRISApplication::IsSnakeModeActive() const
 {
   return (m_CurrentImageData == m_SNAPImageData);
+}
+
+bool IRISApplication::IsJoinModeActive() const
+{
+  return (m_CurrentImageData == m_JOINImageData);
 }
 
 bool IRISApplication::IsSnakeModeLevelSetActive() const

@@ -107,6 +107,7 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   ui->btnPaintbrushInspector->setVisible(false);
   ui->btnPolygonInspector->setVisible(false);
   ui->btnSnakeInspector->setVisible(false);
+  ui->btnJoinInspector->setVisible(false);
 
 
   // Label selection button
@@ -139,6 +140,7 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
   ui->pagePaintbrushTool->SetModel(m_Model->GetPaintbrushSettingsModel());
   ui->pageSnakeTool->SetModel(m_Model);
   ui->pagePolygonTool->SetModel(m_Model);
+  ui->pageJoinTool->SetModel(m_Model);
 
   m_LabelSelectionButton->SetModel(model);
   m_LabelSelectionPopup->SetModel(model);
@@ -156,12 +158,16 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
 void MainControlPanel::onModelUpdate(const EventBucket &bucket)
 {
   // A static array of widget/mode mappings
+  //// mode_inspector_btn, mode_tool_pages and ToolbarModeType should have the same amount of entries!
   static QToolButton *mode_inspector_btn[] = {
     ui->btnCursorInspector,
     ui->btnZoomInspector,
     ui->btnPolygonInspector,
     ui->btnPaintbrushInspector,
     ui->btnSnakeInspector,
+    ui->btnJoinInspector,
+    ui->btnSnakeInspector,
+    ui->btnCursorInspector,
     ui->btnSnakeInspector
   };
 
@@ -174,7 +180,8 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     ToolbarModeType mode = gs->GetToolbarMode();
     ui->btnPaintbrushInspector->setVisible(mode == PAINTBRUSH_MODE);
     ui->btnPolygonInspector->setVisible(mode == POLYGON_DRAWING_MODE);
-    ui->btnSnakeInspector->setVisible(mode == ROI_MODE);
+    ui->btnSnakeInspector->setVisible(mode == SNAKE_ROI_MODE || mode == GLOBALWS_ROI_MODE);
+    ui->btnJoinInspector->setVisible(mode == JOIN_MODE);
 
     // Click the button corresponding to the mode
     mode_inspector_btn[mode]->click();
@@ -253,6 +260,16 @@ void MainControlPanel::on_btnSnakeInspector_clicked(bool checked)
     {
     ui->stack->setCurrentWidget(ui->pageSnakeTool);
     ui->grpInspector->setTitle("Snake Inspector");
+    }
+
+}
+
+void MainControlPanel::on_btnJoinInspector_clicked(bool checked)
+{
+  if(checked)
+    {
+    ui->stack->setCurrentWidget(ui->pageJoinTool);
+    ui->grpInspector->setTitle("Join Inspector");
     }
 
 }

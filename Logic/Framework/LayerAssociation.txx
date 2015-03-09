@@ -6,6 +6,7 @@
 #include "GenericImageData.h"
 #include "IRISImageData.h"
 #include "SNAPImageData.h"
+#include "JOINImageData.h"
 #include "ImageWrapperBase.h"
 
 template<class TObject, class TFilter, class TFactoryDelegate>
@@ -36,9 +37,10 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
     {
     // Iterate over all of the image data objects in IRISApplication
     GenericImageData *id[] = {m_Source->GetIRISImageData(),
+                              m_Source->GetJOINImageData(),
                               m_Source->GetSNAPImageData()};
 
-    for(int k = 0; k < 2; k++)
+    for(int k = 0; k < 3; k++)
       {
       if(id[k])
         {

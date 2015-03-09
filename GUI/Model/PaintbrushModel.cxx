@@ -30,7 +30,6 @@ public:
     gmf = GMFType::New();
     gmf->SetInput(adf->GetOutput());
     wf = WFType::New();
-    wf->SetInput(gmf->GetOutput());
     }
 
   void PrecomputeWatersheds(
@@ -38,39 +37,55 @@ public:
     LabelImageType *label,
     itk::ImageRegion<3> region,
     itk::Index<3> vcenter,
-    size_t smoothing_iter)
+    size_t smoothing_iter,
+    bool direct)
     {
-    this->region = region;
+    this->m_region = region;
 
     // Get the offset of vcenter in the region
-    if(region.IsInside(vcenter))
+    // if(m_region.IsInside(vcenter))
+    //   for(size_t d = 0; d < 3; d++)
+    //     this->vcenter[d] = vcenter[d] - m_region.GetIndex()[d];
+    // else
       for(size_t d = 0; d < 3; d++)
-        this->vcenter[d] = vcenter[d] - region.GetIndex()[d];
-    else
-      for(size_t d = 0; d < 3; d++)
-        this->vcenter[d] = region.GetSize()[d] / 2;
+        this->vcenter[d] = m_region.GetSize()[d] / 2;
 
     // Create a backup of the label image
     LROIType::Pointer lroi = LROIType::New();
     lroi->SetInput(label);
-    lroi->SetRegionOfInterest(region);
+    lroi->SetRegionOfInterest(m_region);
     lroi->Update();
-    lsrc = lroi->GetOutput();
+    lsrc= lroi->GetOutput();
     lsrc->DisconnectPipeline();
 
     // Initialize the watershed pipeline
     roi->SetInput(grey);
-    roi->SetRegionOfInterest(region);
+    roi->SetRegionOfInterest(m_region);
     adf->SetNumberOfIterations(smoothing_iter);
 
+    if(direct)
+	wf->SetInput(adf->GetOutput());
+    else
+	wf->SetInput(gmf->GetOutput());
     // Set the initial level to lowest possible - to get all watersheds
     wf->SetLevel(1.0);
     wf->Update();
     }
 
+void RecomputeLabelBackup(LabelImageType *label)//, itk::ImageRegion<3> region)
+    {
+   // Create a backup of the label image
+    LROIType::Pointer lroi = LROIType::New();
+    lroi->SetInput(label);
+    lroi->SetRegionOfInterest(m_region);
+    lroi->Update();
+    lsrc= lroi->GetOutput();
+    lsrc->DisconnectPipeline();
+    }
+
   void RecomputeWatersheds(double level)
     {
-    // Reupdate the filter with new level
+    // Reupdate the filter with new level if a precomputed input already exists for this view
     wf->SetLevel(level);
     wf->Update();
     }
@@ -100,7 +115,7 @@ public:
     typedef itk::ImageRegionIterator<LabelImageType> LIter;
     WIter wit(wf->GetOutput(), wf->GetOutput()->GetBufferedRegion());
     LIter sit(lsrc, lsrc->GetBufferedRegion());
-    LIter tit(ltrg, region);
+    LIter tit(ltrg, m_region);
     for(; !wit.IsAtEnd(); ++sit,++tit,++wit)
       {
       LabelType pxLabel = sit.Get();
@@ -138,7 +153,7 @@ private:
   GMFType::Pointer gmf;
   WFType::Pointer wf;
 
-  itk::ImageRegion<3> region;
+  itk::ImageRegion<3> m_region;
   LabelImageType::Pointer lsrc;
   itk::Index<3> vcenter;
 };
@@ -152,6 +167,7 @@ PaintbrushModel::PaintbrushModel()
 {
   m_ReverseMode = false;
   m_Watershed = new BrushWatershedPipeline();
+  m_PrecomputedWS= false;
 }
 
 PaintbrushModel::~PaintbrushModel()
@@ -239,6 +255,49 @@ bool PaintbrushModel::TestInside(const Vector3d &x, const PaintbrushSettings &ps
     }
 }
 
+bool //returns false if no voxel changed, this should not be used to accept the wheel event!
+PaintbrushModel
+::ProcessWheelEvent(int delta)
+    {
+
+    ////Event is only issued if mouse is inside the view, however each view has its own watershed pipeline! The region is only needed in PrecomputeWatersheds for the WS input. So just keep the input for any reordering and do nothing if there is no precomputed input.
+ 
+    ////return if there is no precomp WS
+    if(!m_PrecomputedWS)
+	return false;
+
+    // Get the paintbrush properties (TODO: should we own them?)
+    PaintbrushSettings pbs =
+	m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
+
+    ////inc./dec. level by 1% depending on wheel direction
+    if(delta > 0){
+	m_level+= 0.01;
+	if(m_level > 1)
+	    m_level= 1.0;
+    }
+    else{
+	m_level-= 0.01;
+	if(m_level < 0)
+	    m_level= 0.0;
+    }
+    m_Parent->GetDriver()->GetGlobalState()->SetPaintbrushSettings(pbs);
+
+    if(pbs.mode == PAINTBRUSH_WATERSHED)
+	{
+	fprintf(stderr, "Regrouping watersheds! (view %d, level %f)\n", m_Parent->GetId(), m_level);
+	////Update the brush state
+	if(UpdateBrush()){
+	    ////tell the GUI to repaint the segmentation and that the 3D view can be updated
+	    m_Parent->GetDriver()->StoreUndoPoint("Dynamic Granularity change");
+	    m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
+	    return true;
+	    }
+	}
+    ////do not use event for cursor chasing, but for GUI hint
+    return false;
+    }
+
 bool
 PaintbrushModel
 ::ProcessPushEvent(const Vector3f &xSlice, bool reverse_mode)
@@ -249,6 +308,7 @@ PaintbrushModel
 
   // Compute the mouse position
   ComputeMousePosition(xSlice);
+  m_level= pbs.watershed.level;
 
   // Check if the right button was pressed
   ApplyBrush(reverse_mode, false);
@@ -323,6 +383,13 @@ bool PaintbrushModel::ProcessMouseMoveEvent(const Vector3f &xSlice)
   return true;
 }
 
+// bool PaintbrushModel::ProcessMouseEnterEvent()
+// {
+//   if(m_PrecomputedWS == false)
+//       return false;
+//   m_Watershed->RecomputeLabelBackup(m_Parent->GetDriver()->GetCurrentImageData()->GetSegmentation()->GetImage());
+//   return true;
+// }
 
 bool PaintbrushModel::ProcessMouseLeaveEvent()
 {
@@ -390,6 +457,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
 
   // Crop the region by the buffered region
   xTestRegion.Crop(imgLabel->GetImage()->GetBufferedRegion());
+  m_OldxTestRegion= xTestRegion;
 
   // Flag to see if anything was changed
   bool flagUpdate = false;
@@ -399,13 +467,17 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
     {
     GenericImageData *gid = driver->GetCurrentImageData();
 
+    fprintf(stderr, "Precomputing watersheds! (view %d, level %f)\n", m_Parent->GetId(), m_level);
     // Precompute the watersheds
     m_Watershed->PrecomputeWatersheds(
           gid->GetMain()->GetDefaultScalarRepresentation()->GetCommonFormatImage(),
-          driver->GetCurrentImageData()->GetSegmentation()->GetImage(),
-          xTestRegion, to_itkIndex(m_MousePosition), pbs.watershed.smooth_iterations);
+          imgLabel->GetImage(),
+          xTestRegion, to_itkIndex(m_MousePosition), pbs.watershed.smooth_iterations, pbs.direct);
 
-    m_Watershed->RecomputeWatersheds(pbs.watershed.level);
+    m_Watershed->RecomputeWatersheds(m_level);
+    m_PrecomputedWS= true;
+    return m_Watershed->UpdateLabelImage(imgLabel->GetImage(), gs->GetDrawOverFilter().CoverageMode, gs->GetDrawingColorLabel(), gs->GetDrawOverFilter().DrawOverLabel);   
+
     }
 
   // Shift vector (different depending on whether the brush has odd/even diameter
@@ -430,13 +502,13 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
       continue;
 
     // Check if the pixel is in the watershed
-    if(flagWatershed)
-      {
-      LabelImageWrapper::ImageType::IndexType idxoff = to_itkIndex(
-        Vector3l(idx.GetIndex()) - Vector3l(xTestRegion.GetIndex().GetIndex()));
-      if(!m_Watershed->IsPixelInSegmentation(idxoff))
-        continue;
-      }
+    // if(flagWatershed)
+    //   {
+    //   LabelImageWrapper::ImageType::IndexType idxoff = to_itkIndex(
+    //     Vector3l(idx.GetIndex()) - Vector3l(xTestRegion.GetIndex().GetIndex()));
+    //   if(!m_Watershed->IsPixelInSegmentation(idxoff))
+    //     continue;
+    //   }
 
     // Paint the pixel
     LabelType pxLabel = it.Get();
@@ -477,6 +549,23 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
   return flagUpdate;
 }
 
+bool
+PaintbrushModel::UpdateBrush()
+    {
+    // Get the global objects
+    IRISApplication *driver = m_Parent->GetDriver();
+    GlobalState *gs = driver->GetGlobalState();
+
+    // Get the segmentation image
+    LabelImageWrapper *imgLabel = driver->GetCurrentImageData()->GetSegmentation();
+
+    // Get the paintbrush properties
+    PaintbrushSettings pbs = gs->GetPaintbrushSettings();
+ 
+    m_Watershed->RecomputeWatersheds(m_level);
+
+    return m_Watershed->UpdateLabelImage(imgLabel->GetImage(), gs->GetDrawOverFilter().CoverageMode, gs->GetDrawingColorLabel(), gs->GetDrawOverFilter().DrawOverLabel);
+    }
 
 Vector3f PaintbrushModel::GetCenterOfPaintbrushInSliceSpace()
 {

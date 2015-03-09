@@ -54,6 +54,7 @@ class GenericImageData;
 class IRISException;
 class IRISImageData;
 class SNAPImageData;
+class JOINImageData;
 class MeshExportSettings;
 class GuidedNativeImageIO;
 class ThresholdSettings;
@@ -124,6 +125,8 @@ public:
 
   typedef itk::Image<LabelType,3> LabelImageType;
   typedef itk::Image<short ,3> SpeedImageType;
+  typedef itk::Image<JSRType,3> JsrcImageType;//why not by #include "JOINImageData.h" ???
+  typedef itk::Image<LabelType,3> JdstImageType;//why not by #include "JOINImageData.h" ???
   typedef itk::Command CommandType;
   typedef UndoDataManager<LabelType> UndoManagerType;
 
@@ -154,6 +157,11 @@ public:
   irisGetMacro(SNAPImageData,SNAPImageData *);
 
   /**
+   * Get image data related to Join operations
+   */
+  irisGetMacro(JOINImageData,JOINImageData *);
+
+  /**
    * Get the image data currently used
    */
   irisGetMacro(CurrentImageData,GenericImageData *);
@@ -169,9 +177,19 @@ public:
   void SetCurrentImageDataToSNAP();
 
   /**
+   * Enter the JOIN mode
+   */
+  void SetCurrentImageDataToJOIN();
+
+  /**
     Whether we are currently in active contour mode or not
     */
   bool IsSnakeModeActive() const;
+
+  /**
+    Whether we are currently in Join mode or not
+    */
+  bool IsJoinModeActive() const;
 
   /**
    * Whether there is currently a valid level set function
@@ -284,6 +302,29 @@ public:
                                CommandType *progressCommand = NULL);
 
   /**
+   * Initialize JOIN Image data using region of interest extents
+   */
+  void InitializeJOINImageData(const SNAPSegmentationROISettings &roi,
+                               CommandType *progressCommand = NULL);
+
+  /**
+   * Copy Segmentation to Jsrc for JOIN-mode 0
+   */
+  void CopySegementationToJsrc(const SNAPSegmentationROISettings &roi,
+                               CommandType *progressCommand = NULL);
+
+  /**
+   * Copy Segmentation to Jsrc for JOIN-mode 0
+   */
+  void CopySegementationToJdst(const SNAPSegmentationROISettings &roi,
+                               CommandType *progressCommand = NULL);
+
+  /**
+   * Clear Jdst for JOIN-mode 0
+   */
+  void ClearJdst();
+
+  /**
     Enter given preprocessing mode. This activates the pipeline that can be
     used to provide automatic on-the-fly preview of the preprocessing result
     as the user moves the cursor or changes preprocessing parameters. When
@@ -329,6 +370,12 @@ public:
   void UpdateIRISWithSnapImageData(CommandType *progressCommand = NULL);
 
   /**
+   * Update IRIS image data with the segmentation contained in the JOIN image
+   * data.
+   */
+  void UpdateIRISWithJOINImageData(CommandType *progressCommand = NULL);
+
+  /**
    * Get the segmentation label data
    */
   irisGetMacro(ColorLabelTable, ColorLabelTable *)
@@ -340,6 +387,9 @@ public:
 
   /** Release the SNAP Image data */
   void ReleaseSNAPImageData();
+  
+  /** Release the JOIN Image data */
+  void ReleaseJOINImageData();
   
   /** Update the display-anatomy mapping as an RAI code */
   void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom);
@@ -597,6 +647,7 @@ protected:
   GenericImageData *m_CurrentImageData;
   SmartPtr<IRISImageData> m_IRISImageData;
   SmartPtr<SNAPImageData> m_SNAPImageData;
+  SmartPtr<JOINImageData> m_JOINImageData;
 
   // Color label data
   SmartPtr<ColorLabelTable> m_ColorLabelTable;

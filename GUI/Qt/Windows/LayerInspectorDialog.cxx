@@ -173,6 +173,7 @@ void LayerInspectorDialog::GenerateModelsForLayers()
   LayerIterator it = m_Model->GetDriver()->GetCurrentImageData()->GetLayers(
         MAIN_ROLE |
         OVERLAY_ROLE |
+        JOIN_ROLE |
         SNAP_ROLE);
 
   for(; !it.IsAtEnd(); ++it)
@@ -201,6 +202,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
     mapRoleNames[MAIN_ROLE] = "Main Image";
     mapRoleNames[OVERLAY_ROLE] = "Overlays";
     mapRoleNames[SNAP_ROLE] = "Snake Mode Layers";
+    mapRoleNames[JOIN_ROLE] = "Join Mode Layers";
     }
 
   // Get the top-level layout in the pane
@@ -236,7 +238,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
 
   // Iterate over the layers for each class of displayed layers
   LayerIterator it = m_Model->GetDriver()->GetCurrentImageData()->GetLayers(
-        MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE);
+        MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE | JOIN_ROLE);
 
   // The current role and associated group box
   LayerRole currentRole = NO_ROLE;

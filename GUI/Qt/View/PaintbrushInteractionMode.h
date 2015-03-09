@@ -3,6 +3,7 @@
 
 #include <SliceWindowInteractionDelegateWidget.h>
 #include <SNAPCommon.h>
+#include <QWheelEvent>
 
 class GenericSliceModel;
 class GenericSliceView;
@@ -23,6 +24,7 @@ public:
   irisGetMacro(Renderer, PaintbrushRenderer *)
 
 
+  void wheelEvent(QWheelEvent *ev);
   void mousePressEvent(QMouseEvent *ev);
   void mouseMoveEvent(QMouseEvent *ev);
   void mouseReleaseEvent(QMouseEvent *ev);
