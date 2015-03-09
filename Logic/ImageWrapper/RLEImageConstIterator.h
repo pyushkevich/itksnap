@@ -36,6 +36,9 @@ public:
   /** Run-Length Line (we iterate along it). */
   typedef typename ImageType::RLLine RLLine;
 
+  /** Buffer Type used. */
+  typedef typename ImageType::BufferType BufferType;
+
   /** Index typedef support. */
   typedef typename ImageType::IndexType      IndexType;
 
@@ -75,7 +78,7 @@ public:
   /** Copy Constructor. The copy constructor is provided to make sure the
    * handle to the image is properly reference counted. */
   ImageConstIterator(const Self & it)
-      :myBuffer(it.GetImage()->GetBuffer()), rlLine(const_cast<RLLine &>(it.GetImage()->GetBuffer()[0][0]))
+      :myBuffer(it.GetImage()->GetBuffer())
   {
     rlLine = it.rlLine;
     m_Image = it.m_Image;     // copy the smart pointer
@@ -94,7 +97,7 @@ public:
   /** Constructor establishes an iterator to walk a particular image and a
    * particular region of that image. */
   ImageConstIterator(const ImageType *ptr, const RegionType & region)
-      :myBuffer(ptr->GetBuffer()), rlLine(const_cast<RLLine &>(ptr->GetBuffer()[0][0]))
+      :myBuffer(ptr->GetBuffer())
   {
     m_Image = ptr;
     SetRegion(region);
@@ -138,19 +141,10 @@ public:
     m_Index = m_Region.GetIndex();
     m_BeginIndex = m_Index;
 
-    if ( m_Region.GetNumberOfPixels() == 0 )
-      {
-      // region is empty, probably has a size of 0 along one dimension
-      m_EndIndex = m_BeginIndex;
-      segmentRemainder = 0;
-      }
-    else
-      {
-          m_EndIndex[0] = m_Index[0] + m_Region.GetSize(0);
-          m_EndIndex[1] = m_Index[1] + m_Region.GetSize(1) - 1;
-          m_EndIndex[2] = m_Index[2] + m_Region.GetSize(2) - 1;
-          SetIndex(m_Index); //sets realIndex, segmentRemainder, m_LineBegin and m_LineEnd
-      }
+    m_EndIndex[0] = m_BeginIndex[0] + m_Region.GetSize(0);
+    m_EndIndex[1] = m_BeginIndex[1] + m_Region.GetSize(1);
+    m_EndIndex[2] = m_BeginIndex[2] + m_Region.GetSize(2);
+    SetIndex(m_Index); //sets realIndex, segmentRemainder, m_LineBegin and m_LineEnd
   }
 
   /** Get the dimension (size) of the index. */
@@ -177,10 +171,7 @@ public:
           &it.myBuffer[it.m_Index[2]][it.m_Index[1]][it.realIndex].second;
   }
 
-  /** Get the index. This provides a read only reference to the index.
-   * This causes the index to be calculated from pointer arithmetic and is
-   * therefore an expensive operation.
-   * \sa SetIndex */
+  /** Get the index. This provides a read only reference to the index. */
   const IndexType GetIndex() const
   { return m_Index; }
 
@@ -190,30 +181,40 @@ public:
   virtual void SetIndex(const IndexType & ind)
   { 
       m_Index = ind;
-      realIndex = 0;
-      rlLine = myBuffer[m_Index[2]][m_Index[1]];
-      segmentRemainder = rlLine[realIndex].first;
+      rlLine = &myBuffer[m_Index[2]][m_Index[1]];
 
       RunLengthCounterType t = 0;
       SizeValueType x = 0;
       if (m_BeginIndex[0] == 0)
           m_LineBegin = 0;
       else
-          for (; x < rlLine.size(); x++)
+          for (; x < (*rlLine).size(); x++)
           {
-              t += rlLine[x].first;
+              t += (*rlLine)[x].first;
               if (t > m_BeginIndex[0])
               {
                   m_LineBegin = x;
                   break;
               }
           }
-      if (m_EndIndex[0] == m_Image->GetLargestPossibleRegion().GetSize(0))
-          m_LineBegin = myBuffer[0][0].size();
-      else
-          for (; x < rlLine.size(); x++)
+
+      for (; x < (*rlLine).size(); x++)
+      {
+          t += (*rlLine)[x].first;
+          if (t > m_Index[0])
           {
-              t += rlLine[x].first;
+              realIndex = x;
+              break;
+          }
+      }
+      segmentRemainder = t - m_Index[0];
+
+      if (m_EndIndex[0] == m_Image->GetLargestPossibleRegion().GetSize(0))
+          m_LineEnd = myBuffer[m_Index[2]][m_Index[1]].size();
+      else
+          for (; x < (*rlLine).size(); x++)
+          {
+              t += (*rlLine)[x].first;
               if (t > m_EndIndex[0])
               {
                   m_LineEnd = x;
@@ -256,21 +257,31 @@ public:
    * one pixel past the last pixel of the region. */
   void GoToEnd()
   {
-      SetIndex(m_EndIndex);
+      m_Index = m_EndIndex;
+      m_Index[0]--;
+      m_Index[1]--;
+      m_Index[2]--;
+      SetIndex(m_Index); //first set to the last pixel so we have valid member variables
+      m_Index.Fill(0);
+      m_Index[2] = m_EndIndex[2];
   }
 
   /** Is the iterator at the beginning of the region? "Begin" is defined
    * as the first pixel in the region. */
   bool IsAtBegin(void) const
   {
-    return ( m_Index == m_BeginIndex );
+      return (m_Index == m_BeginIndex);
   }
 
   /** Is the iterator at the end of the region? "End" is defined as one
    * pixel past the last pixel of the region. */
   bool IsAtEnd(void) const
   {
-    return ( m_Index == m_EndIndex );
+      IndexType ind;
+      ind[0] = m_Region.GetIndex(0);
+      ind[1] = m_Region.GetIndex(1);
+      ind[2] = m_EndIndex[2];
+      return (m_Index == ind);
   }
 
 protected: //made protected so other iterators can access
@@ -282,7 +293,7 @@ protected: //made protected so other iterators can access
   IndexValueType m_LineBegin; // index to first pixel in currently iterated line
   IndexValueType m_LineEnd;   // index to one pixel past last pixel in currently iterated line
   
-  RLLine & rlLine;
+  const RLLine * rlLine;
 
   IndexValueType realIndex; // index into line's segment
   IndexValueType segmentRemainder; // how many pixels remain in current segment
@@ -290,7 +301,7 @@ protected: //made protected so other iterators can access
   IndexType m_BeginIndex; // index to first pixel in region
   IndexType m_EndIndex;   // index to one pixel past last pixel in region
 
-  const typename ImageType::BufferType & myBuffer;
+  const BufferType & myBuffer;
 };
 
 template< typename TPixel, typename RunLengthCounterType>

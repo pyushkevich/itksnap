@@ -64,13 +64,13 @@ SetPixel(RLLine & line, const SizeValueType segmentRemainder, const SizeValueTyp
         return;
     else if (line[realIndex].first == 1) //single pixel segment
         line[realIndex].second = value;
-    else if (segmentRemainder==0 && realIndex < line.size() - 1 && line[realIndex + 1].second == value)
+    else if (segmentRemainder==1 && realIndex < line.size() - 1 && line[realIndex + 1].second == value)
     {
         //shift this pixel to next segment
         line[realIndex].first--;
         line[realIndex + 1].first++;
     }
-    else if (segmentRemainder == 0) //insert after
+    else if (segmentRemainder == 1) //insert after
     {
         line[realIndex].first--;
         line.insert(line.begin() + realIndex + 1, RLSegment(1, value));

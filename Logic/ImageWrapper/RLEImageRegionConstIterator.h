@@ -1,20 +1,3 @@
-/*=========================================================================
- *
- *  Copyright Insight Software Consortium
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0.txt
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- *=========================================================================*/
 #ifndef RLEImageRegionConstIterator_h
 #define RLEImageRegionConstIterator_h
 
@@ -32,6 +15,7 @@ namespace itk
  * base class for the read/write access ImageRegionIterator.
  *
  */
+
 template< typename TPixel, typename RunLengthCounterType>
 class ImageRegionConstIterator<RLEImage<TPixel, RunLengthCounterType> >
     :public ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >
@@ -105,17 +89,18 @@ public:
   operator++()
   {
     m_Index[0]++;
-    if (segmentRemainder > 0)
+    if (segmentRemainder > 1)
     {
         segmentRemainder--;
         return *this;
     }
       
     realIndex++;
-    segmentRemainder = rlLine[realIndex].first;
-      
     if (realIndex < m_LineEnd)
-    return *this;
+    {
+        segmentRemainder = (*rlLine)[realIndex].first;
+        return *this;
+    }
 
     this->Increment();
     return *this;
@@ -131,12 +116,20 @@ public:
   Self & operator--()
   {
       m_Index[0]--;
+
+      //safeguard for going from the end to the last real pixel
+      if (m_Index[0] < m_BeginIndex[0])
+      {
+          this->Decrement();
+          return *this;
+      }
+
       segmentRemainder++;
-      if (segmentRemainder <= rlLine[realIndex].first)
+      if (segmentRemainder <= (*rlLine)[realIndex].first)
           return *this;
 
       realIndex--;
-      segmentRemainder = 0;
+      segmentRemainder = 1;
 
       if (realIndex >= m_LineBegin)
           return *this;
@@ -155,16 +148,18 @@ private:
           m_Index[1] = m_BeginIndex[1];
           m_Index[2]++;
       }
+      if (IsAtEnd())
+          return;
       SetIndex(m_Index);
   }
 
   void Decrement() // go back in a direction other than the fastest moving
   {
       // We have reached the beginning of the line (row), need to wrap around.
-      m_Index[0] = m_EndIndex[0];
+      m_Index[0] = m_EndIndex[0] - 1;
       if (--m_Index[1] < m_BeginIndex[1])
       {
-          m_Index[1] = m_EndIndex[1];
+          m_Index[1] = m_EndIndex[1] - 1;
           m_Index[2]--;
       }
       SetIndex(m_Index);

@@ -69,7 +69,7 @@ public:
   /** Set the pixel value */
   void Set(const PixelType & value) const
   {
-      m_Image->SetPixel(myBuffer[m_Index[2]][m_Index[1]], segmentRemainder, realIndex, value);
+      m_Image->SetPixel(*rlLine, segmentRemainder, realIndex, value);
   }
 
   ///** Return a reference to the pixel

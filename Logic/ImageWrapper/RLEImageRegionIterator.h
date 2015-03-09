@@ -2,7 +2,9 @@
 #define RLEImageRegionIterator_h
 
 #include "RLEImageRegionConstIterator.h"
+#include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "RLEImageIterator.h"
 
 namespace itk
 {
@@ -22,6 +24,7 @@ namespace itk
 * Most of the functionality is inherited from the ImageRegionConstIterator.
 * The current class only adds write access to image pixels.
 */
+
 template< typename TPixel, typename RunLengthCounterType>
 class ImageRegionIterator<RLEImage<TPixel, RunLengthCounterType> >
     :public ImageRegionConstIterator<RLEImage<TPixel, RunLengthCounterType> >
@@ -29,7 +32,7 @@ class ImageRegionIterator<RLEImage<TPixel, RunLengthCounterType> >
 public:
     /** Standard class typedefs. */
     typedef ImageRegionIterator                Self;
-    typedef ImageRegionConstIterator< RLEImage<TPixel, RunLengthCounterType> > Superclass;
+    typedef ImageRegionConstIterator<RLEImage<TPixel, RunLengthCounterType> > Superclass;
 
     /** Types inherited from the Superclass */
     typedef typename Superclass::IndexType             IndexType;
@@ -59,6 +62,12 @@ public:
         this->ImageConstIterator< ImageType >::operator=(it);
     }
 
+    /** Set the pixel value */
+    void Set(const PixelType & value) const
+    {
+        m_Image->SetPixel(*rlLine, segmentRemainder, realIndex, value);
+    }
+
 protected:
     /** the construction from a const iterator is declared protected
     in order to enforce const correctness. */
@@ -83,7 +92,7 @@ public:
 
     /** Constructor establishes an iterator to walk a particular image and a
     * particular region of that image. */
-    ImageRegionIteratorWithIndex(const ImageType *ptr, const RegionType & region) :
+    ImageRegionIteratorWithIndex(ImageType *ptr, const RegionType & region) :
         ImageRegionIterator< ImageType >(ptr, region) { }
 
     /** Constructor that can be used to cast from an ImageIterator to an
