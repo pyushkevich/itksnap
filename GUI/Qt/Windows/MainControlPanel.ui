@@ -462,7 +462,7 @@ QWidget#widget {
               </property>
               <property name="icon">
                <iconset resource="../Resources/SNAPResources.qrc">
-                <normaloff>:/root/snake.gif</normaloff>:/root/snake.gif</iconset>
+                <normaloff>:/root/roi.gif</normaloff>:/root/roi.gif</iconset>
               </property>
               <property name="checkable">
                <bool>true</bool>
