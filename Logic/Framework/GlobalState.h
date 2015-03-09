@@ -106,15 +106,15 @@ enum DisplayPanel
 
 enum ToolbarModeType
 {
-  CROSSHAIRS_MODE = 0,
-  NAVIGATION_MODE,
-  POLYGON_DRAWING_MODE,
-  PAINTBRUSH_MODE,
-  SNAKE_ROI_MODE,
-  JOIN_MODE,
-  GLOBALWS_ROI_MODE,
-  GWSJOIN_MODE,
-  ANNOTATION_MODE
+  CROSSHAIRS_MODE = 0,    //0: btnCursorInspector
+  NAVIGATION_MODE,        //1: btnZoomInspector
+  POLYGON_DRAWING_MODE,   //2: btnPolygonInspector
+  PAINTBRUSH_MODE,        //3: btnPaintbrushInspector
+  SNAKE_ROI_MODE,         //4: btnSnakeInspector
+  JOIN_MODE,              //5: btnJoinInspector
+  GLOBALWS_ROI_MODE,      //6: btnSnakeInspector
+  GWSJOIN_MODE,           //7: btnCursorInspector
+  ANNOTATION_MODE         //8: btnSnakeInspector
 };
 
 enum ToolbarMode3DType

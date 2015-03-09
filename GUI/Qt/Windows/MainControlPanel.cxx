@@ -160,15 +160,15 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
   // A static array of widget/mode mappings
   //// mode_inspector_btn, mode_tool_pages and ToolbarModeType should have the same amount of entries!
   static QToolButton *mode_inspector_btn[] = {
-    ui->btnCursorInspector,
-    ui->btnZoomInspector,
-    ui->btnPolygonInspector,
-    ui->btnPaintbrushInspector,
-    ui->btnSnakeInspector,
-    ui->btnJoinInspector,
-    ui->btnSnakeInspector,
-    ui->btnCursorInspector,
-    ui->btnSnakeInspector
+    ui->btnCursorInspector,       //0: CROSSHAIRS_MODE
+    ui->btnZoomInspector,         //1: NAVIGATION_MODE
+    ui->btnPolygonInspector,      //2: POLYGON_DRAWING_MODE
+    ui->btnPaintbrushInspector,   //3: PAINTBRUSH_MODE
+    ui->btnSnakeInspector,        //4: SNAKE_ROI_MODE
+    ui->btnJoinInspector,         //5: JOIN_MODE
+    ui->btnSnakeInspector,        //6: GLOBALWS_ROI_MODE
+    ui->btnCursorInspector,       //7: GWSJOIN_MODE
+    ui->btnSnakeInspector         //8: ANNOTATION_MODE
   };
 
 
