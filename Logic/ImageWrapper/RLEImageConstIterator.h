@@ -201,26 +201,27 @@ public:
       for (; x < (*rlLine).size(); x++)
       {
           if (t > m_Index[0])
-          {
-              realIndex = x;
               break;
-          }
-          t += (*rlLine)[x].first;
+          else
+            t += (*rlLine)[x].first;
       }
+      realIndex = x;
       segmentRemainder = t - m_Index[0];
 
       if (m_EndIndex[0] == m_Image->GetLargestPossibleRegion().GetSize(0))
-          m_LineEnd = myBuffer[m_Index[2]][m_Index[1]].size();
+          m_LineEnd = (*rlLine).size();
       else
+      {
           for (; x < (*rlLine).size(); x++)
           {
-              t += (*rlLine)[x].first;
               if (t > m_EndIndex[0])
-              {
-                  m_LineEnd = x;
                   break;
-              }
+              else
+                  t += (*rlLine)[x].first;
           }
+          m_LineEnd = x + 1; assert(x < (*rlLine).size());
+          //m_LineEnd = std::min(x + 1, (*rlLine).size());
+      }
   }
 
   /** Get the region that this iterator walks. ImageConstIterators know the

@@ -1,5 +1,3 @@
-#include "RLEImage.h"
-#include "RLEImageRegionConstIterator.h"
 #include "RLEImageRegionIterator.h"
 #include <iostream>
 #include <string>
@@ -64,18 +62,18 @@ int main(int argc, char* argv[])
     }
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
     
-    test->fromITKImage(inImage); //reload image
-    std::cout << "OnTheFlyCleanup=Off + 1xCleanUp(): "; tp.Start();
-    test->SetOnTheFlyCleanup(false);
-    it.GoToBegin();
-    while (!it.IsAtEnd())
-    {
-        //cout << it.GetIndex() << ": " << it.Value() << endl;
-        it.Set(0);
-        ++it;
-    }
-    test->SetOnTheFlyCleanup(true); //calls CleanUp()
-    tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
+    //test->fromITKImage(inImage); //reload image
+    //std::cout << "OnTheFlyCleanup=Off + 1xCleanUp(): "; tp.Start();
+    //test->SetOnTheFlyCleanup(false);
+    //it.GoToBegin();
+    //while (!it.IsAtEnd())
+    //{
+    //    //cout << it.GetIndex() << ": " << it.Value() << endl;
+    //    it.Set(0);
+    //    ++it;
+    //}
+    //test->SetOnTheFlyCleanup(true); //calls CleanUp()
+    //tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
 
     //cout << "Reverse iteration:" << endl;
     //do
