@@ -175,7 +175,7 @@ public:
   const IndexType GetIndex() const
   { return m_Index; }
 
-  /** Set the realIndex, segmentRemainder, m_LineBegin and m_LineEnd.
+  /** Set the realIndex and segmentRemainder
    * No bounds checking is performed.
    * \sa GetIndex */
   virtual void SetIndex(const IndexType & ind)
@@ -185,43 +185,15 @@ public:
 
       RunLengthCounterType t = 0;
       SizeValueType x = 0;
-      if (m_BeginIndex[0] == 0)
-          m_LineBegin = 0;
-      else
-          for (; x < (*rlLine).size(); x++)
-          {
-              t += (*rlLine)[x].first;
-              if (t > m_BeginIndex[0])
-              {
-                  m_LineBegin = x;
-                  break;
-              }
-          }
 
       for (; x < (*rlLine).size(); x++)
       {
+          t += (*rlLine)[x].first;
           if (t > m_Index[0])
               break;
-          else
-            t += (*rlLine)[x].first;
       }
       realIndex = x;
       segmentRemainder = t - m_Index[0];
-
-      if (m_EndIndex[0] == m_Image->GetLargestPossibleRegion().GetSize(0))
-          m_LineEnd = (*rlLine).size();
-      else
-      {
-          for (; x < (*rlLine).size(); x++)
-          {
-              if (t > m_EndIndex[0])
-                  break;
-              else
-                  t += (*rlLine)[x].first;
-          }
-          m_LineEnd = x + 1; assert(x < (*rlLine).size());
-          //m_LineEnd = std::min(x + 1, (*rlLine).size());
-      }
   }
 
   /** Get the region that this iterator walks. ImageConstIterators know the
@@ -291,9 +263,6 @@ protected: //made protected so other iterators can access
   RegionType m_Region; // region to iterate over
   IndexType m_Index;   // current index
 
-  IndexValueType m_LineBegin; // index to first pixel in currently iterated line
-  mutable IndexValueType m_LineEnd; // index to one pixel past last pixel in currently iterated line
-  
   const RLLine * rlLine;
 
   mutable IndexValueType realIndex; // index into line's segment

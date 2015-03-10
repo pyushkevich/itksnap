@@ -96,7 +96,7 @@ public:
     }
       
     realIndex++;
-    if (realIndex < m_LineEnd)
+    if (m_Index[0] < m_EndIndex[0])
     {
         segmentRemainder = (*rlLine)[realIndex].first;
         return *this;

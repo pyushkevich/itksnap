@@ -65,9 +65,8 @@ public:
     /** Set the pixel value */
     void Set(const PixelType & value) const
     {
-        int diff = const_cast<ImageType *>(m_Image.GetPointer())->
+        const_cast<ImageType *>(m_Image.GetPointer())->
             SetPixel(*const_cast<ImageType::RLLine *>(rlLine), segmentRemainder, realIndex, value);
-        m_LineEnd += diff;
     }
 
 protected:
