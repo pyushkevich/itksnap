@@ -108,11 +108,17 @@ public:
     * allocated yet. SLOW! */
     void SetPixel(const IndexType & index, const TPixel & value);
 
-    /** \brief Get a pixel (read only version). SLOW! */
+    /** Set a pixel value in the given line and updates segmentRemainder
+    * and realIndex to refer to the same pixel.
+    * Returns difference in line length which happens due to merging or splitting segments.
+    * This method is used by iterators directly. */
+    int SetPixel(RLLine & line, IndexValueType & segmentRemainder, IndexValueType & realIndex, const TPixel & value);
+
+    /** \brief Get a pixel. SLOW! Better use iterators for pixel access. */
     const TPixel & GetPixel(const IndexType & index) const;
 
-    /** Get a reference to a pixel (e.g. for editing). SLOW! */
-    TPixel & GetPixel(const IndexType & index);
+    /** Get a reference to a pixel. Chaning it changes the whole segment! */
+    //TPixel & GetPixel(const IndexType & index);
 
     /** \brief Access a pixel. This version can be an lvalue. SLOW! */
     TPixel & operator[](const IndexType & index)
@@ -155,6 +161,23 @@ public:
     /** We need to allow itk-style const iterators to be constructed. */
     const BufferType & GetBuffer() const { return myBuffer; }
 
+    /** Merges adjacent segments with duplicate values.
+    * Automatically called when turning on OnTheFlyCleanup. */
+    void CleanUp() const;
+    
+    /** Should same-valued segments be merged on the fly? */
+    bool GetOnTheFlyCleanup() const { return m_OnTheFlyCleanup; }
+
+    /** Should same-valued segments be merged on the fly? */
+    void SetOnTheFlyCleanup(bool value)
+    {
+        if (value == m_OnTheFlyCleanup)
+            return;
+        m_OnTheFlyCleanup = value;
+        if (m_OnTheFlyCleanup)
+            CleanUp(); //put the image into a clean state
+    }
+
 protected:
     RLEImage();
     void PrintSelf(std::ostream & os, itk::Indent indent) const;
@@ -178,15 +201,17 @@ protected:
                 *(out++) = line[x].second;
     }
 
-    /** Set a pixel value in the given line. */
-    void SetPixel(RLLine & line, const SizeValueType index, const SizeValueType realIndex, const TPixel & value);
+    /** Merges adjacent segments with duplicate values in a single line. */
+    void CleanUpLine(RLLine & line) const;
 
 private:
+    bool m_OnTheFlyCleanup; //should same-valued segments be merged on the fly
+
     RLEImage(const Self &);          //purposely not implemented
     void operator=(const Self &); //purposely not implemented
 
     /** Memory for the current buffer. */
-    BufferType myBuffer;
+    mutable BufferType myBuffer;
 };
 
 

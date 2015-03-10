@@ -200,12 +200,12 @@ public:
 
       for (; x < (*rlLine).size(); x++)
       {
-          t += (*rlLine)[x].first;
           if (t > m_Index[0])
           {
               realIndex = x;
               break;
           }
+          t += (*rlLine)[x].first;
       }
       segmentRemainder = t - m_Index[0];
 
@@ -291,12 +291,12 @@ protected: //made protected so other iterators can access
   IndexType m_Index;   // current index
 
   IndexValueType m_LineBegin; // index to first pixel in currently iterated line
-  IndexValueType m_LineEnd;   // index to one pixel past last pixel in currently iterated line
+  mutable IndexValueType m_LineEnd; // index to one pixel past last pixel in currently iterated line
   
   const RLLine * rlLine;
 
-  IndexValueType realIndex; // index into line's segment
-  IndexValueType segmentRemainder; // how many pixels remain in current segment
+  mutable IndexValueType realIndex; // index into line's segment
+  mutable IndexValueType segmentRemainder; // how many pixels remain in current segment
 
   IndexType m_BeginIndex; // index to first pixel in region
   IndexType m_EndIndex;   // index to one pixel past last pixel in region

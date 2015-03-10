@@ -43,47 +43,67 @@ int main(int argc, char* argv[])
     shortRLEImage::Pointer test = shortRLEImage::New();
     test->fromITKImage(inImage);
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
+    test->Print(std::cout);
 
+    cout << "Blanking middle of the image using iterators" << endl;
+    shortRLEImage::RegionType r = test->GetLargestPossibleRegion();
+    for (int i = 0; i < 3; i++)
+    {
+        r.SetIndex(i, r.GetIndex(i) + r.GetSize(i) / 4);
+        r.SetSize(i, r.GetSize(i) / 2);
+    }
     typedef itk::ImageRegionIterator<shortRLEImage> itType;
-    itType itNoI(test, test->GetLargestPossibleRegion());
-    typedef itk::ImageRegionIteratorWithIndex<shortRLEImage> itTypeWI;
-    itTypeWI itWI(test, test->GetLargestPossibleRegion());
-
-    auto it = itWI;
-    it.GoToEnd();
-    if (it.IsAtEnd())
-        it.GoToBegin();
+    itType it(test, r);
+   
+    std::cout << "OnTheFlyCleanup=On: "; tp.Start();
     while (!it.IsAtEnd())
     {
-        cout << it.GetIndex() << ": " << it.Value() << endl;
+        //cout << it.GetIndex() << ": " << it.Value() << endl;
+        it.Set(0);
         ++it;
     }
-
-    cout << "Reverse iteration:" << endl;
-
-    do
+    tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
+    
+    test->fromITKImage(inImage); //reload image
+    std::cout << "OnTheFlyCleanup=Off + 1xCleanUp(): "; tp.Start();
+    test->SetOnTheFlyCleanup(false);
+    it.GoToBegin();
+    while (!it.IsAtEnd())
     {
-        --it; //not working properly
-        cout << it.GetIndex() << ": " << it.Value() << endl;
-    } while (!it.IsAtBegin());
+        //cout << it.GetIndex() << ": " << it.Value() << endl;
+        it.Set(0);
+        ++it;
+    }
+    test->SetOnTheFlyCleanup(true); //calls CleanUp()
+    tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
 
-    std::cout << "Allocating RLEimage: "; tp.Start();
-    test->Allocate();
-    tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
-    std::cout << "Filling buffer: "; tp.Start();
-    test->FillBuffer(1983);
-    tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
-    shortRLEImage::IndexType ind;
-    ind[0] = 1;
-    ind[1] = 2;
-    ind[2] = 1;
-    std::cout << "Setting a pixel: "; tp.Start();
-    test->SetPixel(ind, 100);
-    tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
-    std::cout << "Getting a pixel: "; tp.Start();
-    short val = test->GetPixel(ind);
-    tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
-    test->Print(std::cout);
+    //cout << "Reverse iteration:" << endl;
+    //do
+    //{
+    //    --it;
+    //    cout << it.GetIndex() << ": " << it.Value() << endl;
+    //} while (!it.IsAtBegin());
+
+    //it.GoToEnd();
+    //if (it.IsAtEnd())
+    //    it.GoToBegin();
+    //std::cout << "Allocating RLEimage: "; tp.Start();
+    //test->Allocate();
+    //tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
+    //std::cout << "Filling buffer: "; tp.Start();
+    //test->FillBuffer(1983);
+    //tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
+    //shortRLEImage::IndexType ind;
+    //ind[0] = 1;
+    //ind[1] = 2;
+    //ind[2] = 1;
+    //std::cout << "Setting a pixel: "; tp.Start();
+    //test->SetPixel(ind, 100);
+    //tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
+    //std::cout << "Getting a pixel: "; tp.Start();
+    //short val = test->GetPixel(ind);
+    //tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
+    //test->Print(std::cout);
 
     std::cout << "RLE->itk conversion: "; tp.Start();
     inImage = test->toITKImage();

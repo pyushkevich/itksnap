@@ -8,6 +8,7 @@ template< typename TPixel, typename RunLengthCounterType = unsigned short >
 RLEImage< TPixel, RunLengthCounterType >
 ::RLEImage()
 {
+    m_OnTheFlyCleanup = true;
     //myBuffer managed automatically by STL
 }
 
@@ -15,6 +16,7 @@ template< typename TPixel, typename RunLengthCounterType = unsigned short >
 void RLEImage< TPixel, RunLengthCounterType >::Allocate()
 {
     myBuffer.resize(this->GetLargestPossibleRegion().GetSize(2));
+#pragma omp parallel for
     for (int z = 0; z < this->GetLargestPossibleRegion().GetSize(2); z++)
     {
         myBuffer[z].resize(this->GetLargestPossibleRegion().GetSize(1));
@@ -38,7 +40,7 @@ void RLEImage< TPixel, RunLengthCounterType >::Initialize()
 
     // Call the superclass which should initialize the BufferedRegion ivar.
     Superclass::Initialize();
-
+    m_OnTheFlyCleanup = true;
     myBuffer.clear();
 }
 
@@ -47,7 +49,7 @@ void RLEImage< TPixel, RunLengthCounterType >
 ::FillBuffer(const TPixel & value)
 {
     assert(!myBuffer.empty());
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int z = 0; z < myBuffer.size(); z++)
         for (int y = 0; y < this->GetLargestPossibleRegion().GetSize(1); y++)
         {
@@ -57,28 +59,101 @@ void RLEImage< TPixel, RunLengthCounterType >
 }
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
-void RLEImage< TPixel, RunLengthCounterType >::
-SetPixel(RLLine & line, const SizeValueType segmentRemainder, const SizeValueType realIndex, const TPixel & value)
+void RLEImage< TPixel, RunLengthCounterType >::CleanUpLine(RLLine & line) const
+{
+    RunLengthCounterType x = 0;
+    RLLine out;
+    out.reserve(this->GetLargestPossibleRegion().GetSize(0));
+    do
+    {
+        out.push_back(line[x]);
+        while (++x < line.size() && line[x].second == line[x - 1].second)
+            out.back().first += line[x].first;
+    } while (x < line.size());
+    out.swap(line);
+}
+
+template< typename TPixel, typename RunLengthCounterType = unsigned short >
+void RLEImage< TPixel, RunLengthCounterType >::CleanUp() const
+{
+    assert(!myBuffer.empty());
+    if (this->GetLargestPossibleRegion().GetSize(0) == 0)
+        return;
+#pragma omp parallel for
+    for (RunLengthCounterType z = 0; z < myBuffer.size(); z++)
+        for (RunLengthCounterType y = 0; y < myBuffer[0].size(); y++)
+            CleanUpLine(myBuffer[z][y]);
+}
+
+template< typename TPixel, typename RunLengthCounterType = unsigned short >
+int RLEImage< TPixel, RunLengthCounterType >::
+SetPixel(RLLine & line, IndexValueType & segmentRemainder, IndexValueType & realIndex, const TPixel & value)
 {
     if (line[realIndex].second == value) //already correct value
-        return;
+        return 0;
     else if (line[realIndex].first == 1) //single pixel segment
+    {
         line[realIndex].second = value;
+        if (m_OnTheFlyCleanup)//now see if we can merge it into adjacent segments
+        {
+            if (realIndex>0 && realIndex < line.size() - 1 &&
+                line[realIndex + 1].second == value && line[realIndex - 1].second == value)
+            {
+                //merge these 3 segments
+                line[realIndex - 1].first += 1 + line[realIndex + 1].first;
+                segmentRemainder += line[realIndex + 1].first;
+                line.erase(line.begin() + realIndex, line.begin() + realIndex + 2);
+                realIndex--;
+                return -2;
+            }
+            if (realIndex>0 && line[realIndex - 1].second == value)
+            {
+                //merge into previous
+                line[realIndex - 1].first++;
+                line.erase(line.begin() + realIndex);
+                realIndex--; assert(segmentRemainder == 1);
+                return -1;
+            }
+            else if (realIndex < line.size() - 1 && line[realIndex + 1].second == value)
+            {
+                //merge into next
+                segmentRemainder = ++(line[realIndex + 1].first);
+                line.erase(line.begin() + realIndex);
+                return -1;
+            }
+        }
+        return 0;
+    }
     else if (segmentRemainder==1 && realIndex < line.size() - 1 && line[realIndex + 1].second == value)
     {
         //shift this pixel to next segment
         line[realIndex].first--;
-        line[realIndex + 1].first++;
+        segmentRemainder = ++(line[realIndex + 1].first);
+        realIndex++;
+        return 0;
+    }
+    else if (realIndex>0 && segmentRemainder == line[realIndex].first && line[realIndex - 1].second == value)
+    {
+        //shift this pixel to previous segment
+        line[realIndex].first--;
+        line[realIndex - 1].first++;
+        realIndex--;
+        segmentRemainder = 1;
+        return 0;
     }
     else if (segmentRemainder == 1) //insert after
     {
         line[realIndex].first--;
         line.insert(line.begin() + realIndex + 1, RLSegment(1, value));
+        realIndex++;
+        return +1;
     }
     else if (segmentRemainder == line[realIndex].first) //insert before
     {
         line[realIndex].first--;
         line.insert(line.begin() + realIndex, RLSegment(1, value));
+        segmentRemainder = 1;
+        return +1;
     }
     else //general case: split a segment into 3 segments
     {
@@ -89,9 +164,12 @@ SetPixel(RLLine & line, const SizeValueType segmentRemainder, const SizeValueTyp
         //now take care of counts
         line[realIndex].first += line[realIndex].first-segmentRemainder;
         line[realIndex + 2].first = segmentRemainder - 1;
+        realIndex++;
+        segmentRemainder = 1;
+        return +2;
     }
-    return;
 }
+
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 void RLEImage< TPixel, RunLengthCounterType >::
 SetPixel(const IndexType & index, const TPixel & value)
@@ -103,7 +181,8 @@ SetPixel(const IndexType & index, const TPixel & value)
         t += line[x].first;
         if (t > index[0])
         {
-            SetPixel(line, t - index[0], x, value);
+            t -= index[0]; //we need to supply a reference
+            SetPixel(line, t, x, value);
             return;
         }
     }
@@ -122,22 +201,23 @@ GetPixel(const IndexType & index) const
         if (t > index[0])
             return line[x].second;
     }
-}
-
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
-TPixel & RLEImage< TPixel, RunLengthCounterType >::
-GetPixel(const IndexType & index)
-{
-    RLLine & line = myBuffer[index[2]][index[1]];
-    RunLengthCounterType t = 0;
-    for (int x = 0; x < line.size(); x++)
-    {
-        t += line[x].first;
-        if (t > index[0])
-            return line[x].second;
-    }
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
 }
+
+//template< typename TPixel, typename RunLengthCounterType = unsigned short >
+//TPixel & RLEImage< TPixel, RunLengthCounterType >::
+//GetPixel(const IndexType & index)
+//{
+//    RLLine & line = myBuffer[index[2]][index[1]];
+//    RunLengthCounterType t = 0;
+//    for (int x = 0; x < line.size(); x++)
+//    {
+//        t += line[x].first;
+//        if (t > index[0])
+//            return line[x].second;
+//    }
+//    throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
+//}
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 void RLEImage< TPixel, RunLengthCounterType >::
@@ -156,6 +236,7 @@ fromITKImage(typename itk::Image<TPixel, 3>::Pointer image)
     temp.reserve(size[0]); //pessimistically preallocate buffer, otherwise reallocations can occur
     itk::Index<3> ind;
     ind[0] = 0;
+#pragma omp parallel for
     for (SizeValueType z = 0; z < size[2]; z++)
     {
         ind[2] = z;
@@ -202,6 +283,7 @@ RLEImage< TPixel, RunLengthCounterType >::toITKImage() const
     TPixel * p = out->GetBufferPointer();
     itk::Index<3> ind;
     ind[0] = 0;
+#pragma omp parallel for
     for (SizeValueType z = 0; z < size[2]; z++)
     {
         ind[2] = z;
@@ -318,6 +400,7 @@ void RLEImage< TPixel, RunLengthCounterType >
         + sizeof(std::vector<RLLine>) * this->GetOffsetTable()[3] / this->GetOffsetTable()[1])
         / (this->GetOffsetTable()[3] * sizeof(PixelType));
 
+    os << indent << "OnTheFlyCleanup: " << (m_OnTheFlyCleanup ? "On" : "Off") << endl;
     os << indent << "RLEImage compressed pixel count: " << c << std::endl;
     int prec = os.precision(3);
     os << indent << "Compressed size in relation to original size: "<< cr*100 <<"%" << std::endl;
