@@ -105,6 +105,76 @@ protected:
   WrapperType *m_Wrapper;
 };
 
+  /**
+   * JsrcDisplayMappingPolicy is based on 
+   * ColorLabelTableDisplayMappingPolicy and LinearColorMapDisplayMappingPolicy
+   */
+class AbstractJsrcDisplayMappingPolicy : public AbstractDisplayMappingPolicy
+{
+public:
+
+  irisITKAbstractObjectMacro(AbstractJsrcDisplayMappingPolicy,
+                             AbstractDisplayMappingPolicy)
+};
+
+namespace itk {
+  template <class TInput,class TOutput,class TFunctor>
+    class UnaryFunctorImageFilter;
+}
+
+template <class TWrapperTraits>
+class JsrcDisplayMappingPolicy
+    : public AbstractJsrcDisplayMappingPolicy
+{
+public:
+
+  irisITKObjectMacro(JsrcDisplayMappingPolicy<TWrapperTraits>,
+                     AbstractJsrcDisplayMappingPolicy)
+
+  typedef typename TWrapperTraits::WrapperType WrapperType;
+  typedef typename TWrapperTraits::ImageType ImageType;
+  typedef typename ImageType::PixelType PixelType;
+
+  typedef itk::Image<PixelType, 2> InputSliceType;
+  typedef ImageWrapperBase::DisplaySliceType DisplaySliceType;
+  typedef ImageWrapperBase::DisplaySlicePointer DisplaySlicePointer;
+  typedef ImageWrapperBase::DisplayPixelType DisplayPixelType;
+
+  void Initialize(WrapperType *wrapper);
+  void UpdateImagePointer(ImageType *image);
+
+  DisplaySlicePointer GetDisplaySlice(unsigned int slice);
+
+  virtual IntensityCurveInterface *GetIntensityCurve() const { return NULL; }
+  virtual ColorMap *GetColorMap() const { return NULL; }
+
+  virtual void Save(Registry &folder) {}
+  virtual void Restore(Registry &folder) {}
+
+protected:
+
+  JsrcDisplayMappingPolicy();
+  ~JsrcDisplayMappingPolicy();
+
+  class MappingFunctor
+  {
+  public:
+    DisplayPixelType operator()(PixelType in);
+    bool operator != (const MappingFunctor &f) const {return false;} //needed by UnaryFunctorImageFilter even tough ScalarToRGBPixelFunctor does not have this operator
+  };
+
+  // it is not possible to use ScalarToRGBPixelFunctor directly here 
+  // because the expected output of MappingFunctor is RGBA
+  typedef itk::UnaryFunctorImageFilter
+    <InputSliceType, DisplaySliceType, MappingFunctor> RGBAFilterType;
+  typedef SmartPtr<RGBAFilterType> RGBAFilterPointer;
+
+  RGBAFilterPointer m_RGBAFilter[3];
+  MappingFunctor m_Functor;
+
+  WrapperType *m_Wrapper;
+};
+
 /**
  * @brief The parent class for the policies that involve curve-based mappings,
  * for both scalar and vector images.

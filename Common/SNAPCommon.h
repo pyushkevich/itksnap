@@ -93,7 +93,7 @@ extern const char SNAPBuildInfo[];
 // 0 to MAXGREYVAL are used in a cache table, which would be too big with int
 typedef unsigned short LabelType;
 typedef itk::IdentifierType GWSType;
-typedef LabelType JSRType;
+typedef GWSType JSRType;
 typedef short GreyType;
 extern const GreyType MAXGREYVAL;
 extern const GreyType MINGREYVAL;

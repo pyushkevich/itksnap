@@ -59,10 +59,9 @@ JOINImageData
 	PushBackImageWrapper(JOIN_ROLE, m_JsrcWrapper.GetPointer());
 	}
 
-    m_JsrcWrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
     m_JsrcWrapper->InitializeToWrapper(m_MainImageWrapper, (JSRType) 0);
     m_JsrcWrapper->SetSticky(true); //overlay, ie no separate tile
-    m_JsrcWrapper->SetAlpha(0.3);
+    m_JsrcWrapper->SetAlpha(0.5);
 
     InvokeEvent(LayerChangeEvent());
     }
