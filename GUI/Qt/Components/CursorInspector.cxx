@@ -84,7 +84,7 @@ CursorInspector::CursorInspector(QWidget *parent) :
   ui->setupUi(this);
 
   ui->tableVoxelUnderCursor->setAlternatingRowColors(true);
-  ui->tableVoxelUnderCursor->setFixedWidth(160);
+  //ui->tableVoxelUnderCursor->setFixedWidth(160);//let table expand 
   ui->tableVoxelUnderCursor->setFixedHeight(120);
   ui->tableVoxelUnderCursor->setContextMenuPolicy(Qt::CustomContextMenu);
 

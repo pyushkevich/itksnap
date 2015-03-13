@@ -15,6 +15,7 @@
 #include "itkUnaryFunctorImageFilter.h"
 #include "InputSelectionImageFilter.h"
 #include "Rebroadcaster.h"
+#include <itkScalarToRGBPixelFunctor.h>
 
 
 /* ===============================================================
@@ -93,6 +94,79 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
 ::GetLabelColorTable() const
 {
   return m_RGBAFilter[0]->GetColorTable();
+}
+
+
+/* ===============================================================
+    JsrcDisplayMappingPolicy implementation
+   =============================================================== */
+
+template<class TWrapperTraits>
+JsrcDisplayMappingPolicy<TWrapperTraits>
+::JsrcDisplayMappingPolicy()
+{
+  m_Wrapper = NULL;
+
+  for(int i = 0; i < 3; i++)
+    {
+    m_RGBAFilter[i] = RGBAFilterType::New();
+    m_RGBAFilter[i]->SetFunctor(m_Functor);
+    }
+}
+
+template<class TWrapperTraits>
+JsrcDisplayMappingPolicy<TWrapperTraits>
+::~JsrcDisplayMappingPolicy()
+{
+
+}
+
+template<class TWrapperTraits>
+void
+JsrcDisplayMappingPolicy<TWrapperTraits>
+::Initialize(WrapperType *wrapper)
+{
+  // Initialize the wrapper
+  m_Wrapper = wrapper;
+
+  for(int i = 0; i < 3; i++)
+    {
+    m_RGBAFilter[i]->SetInput(wrapper->GetSlice(i));
+    }
+}
+
+template <class TWrapperTraits>
+void
+JsrcDisplayMappingPolicy<TWrapperTraits>
+::UpdateImagePointer(ImageType *image)
+{
+  // Nothing to do here, since we are connected to the slices?
+}
+
+template<class TWrapperTraits>
+typename JsrcDisplayMappingPolicy<TWrapperTraits>::DisplaySlicePointer
+JsrcDisplayMappingPolicy<TWrapperTraits>
+::GetDisplaySlice(unsigned int slice)
+{
+  return m_RGBAFilter[slice]->GetOutput();
+}
+
+template <class TWrapperTraits>
+inline typename JsrcDisplayMappingPolicy<TWrapperTraits>::DisplayPixelType
+JsrcDisplayMappingPolicy<TWrapperTraits>::MappingFunctor
+::operator()(PixelType in)
+{
+  itk::RGBPixel<DisplayPixelType::ComponentType> RGBp;
+  DisplayPixelType RGBAp;
+  itk::Functor::ScalarToRGBPixelFunctor<JSRType> mFunctor;
+
+  RGBp= mFunctor(in);
+  RGBAp[0]= RGBp[0];
+  RGBAp[1]= RGBp[1];
+  RGBAp[2]= RGBp[2];
+  RGBAp[3]= (in == 0) ? 0 : itk::NumericTraits<DisplayPixelType::ComponentType>::max(); //make label 0 fully transparent
+
+  return  RGBAp;
 }
 
 
@@ -953,7 +1027,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 
 
 template class ColorLabelTableDisplayMappingPolicy<LabelImageWrapperTraits>;
-template class ColorLabelTableDisplayMappingPolicy<JsrcImageWrapperTraits>;
+template class JsrcDisplayMappingPolicy<JsrcImageWrapperTraits>;
 
 template class LinearColorMapDisplayMappingPolicy<LevelSetImageWrapperTraits>;
 template class LinearColorMapDisplayMappingPolicy<SpeedImageWrapperTraits>;

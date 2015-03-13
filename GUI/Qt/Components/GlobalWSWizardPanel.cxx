@@ -14,6 +14,9 @@ part of Click'n'Join mode, which was contributed by Roman Grothausmann
 #include "GenericImageData.h"
 #include "JOINImageData.h"
 #include "DisplayLayoutModel.h" //access tiled/stacked view mode
+#include "ImageIODelegates.h"
+#include "ImageIOWizard.h"
+#include "ImageIOWizardModel.h"
 
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
@@ -266,3 +269,19 @@ void GlobalWSWizardPanel::on_btnClearSeg_clicked(){
 
     driver->InvokeEvent(SegmentationChangeEvent());
     }
+
+void GlobalWSWizardPanel::on_btnLoadFromFile_clicked()
+{
+    // not working yet
+    // Create a model for IO
+    SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
+    delegate->Initialize(m_ParentModel->GetDriver());
+    SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+    model->InitializeForLoad(m_ParentModel, delegate,
+                             "GWSImage", "GWS Source Image");
+
+    // Execute the IO wizard
+    ImageIOWizard wiz(this);
+    wiz.SetModel(model);
+    wiz.exec();
+}
