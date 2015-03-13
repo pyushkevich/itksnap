@@ -13,6 +13,9 @@ part of Click'n'Join mode, which was contributed by Roman Grothausmann
 #include "GenericImageData.h" //GetCurrentImageData()->GetImageRegion();
 #include "QtWidgetActivator.h" //activateOnFlag
 #include "DisplayLayoutModel.h" //access tiled/stacked view mode
+#include "ImageIODelegates.h"
+#include "ImageIOWizard.h"
+#include "ImageIOWizardModel.h"
 
 
 JoinDataPanel::JoinDataPanel(QWidget *parent) :
@@ -72,6 +75,46 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
     case 1:{
 	////panel will be hidden in GWSJOIN_MODE
 	m_Model->GetGlobalState()->SetToolbarMode(GLOBALWS_ROI_MODE);
+	} break;
+    case 2:{
+	// Create a model for IO
+	SmartPtr<LoadSegmentationImageDelegate> delegate = LoadSegmentationImageDelegate::New();
+	delegate->Initialize(m_Model->GetDriver());
+	SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+	model->InitializeForLoad(m_Model, delegate,
+	    "JsrImage", "Join Source Image");
+	
+	// Execute the IO wizard
+	ImageIOWizard wiz(this);
+	wiz.SetModel(model);
+	wiz.exec();
+
+	//todo check for cancel in wizard and return from JOIN_MODE
+
+	IRISApplication *driver = m_Model->GetDriver();
+
+	//reset ROI from the main image
+	GlobalState::RegionType roi =
+	    driver->GetCurrentImageData()->GetImageRegion();
+      
+	// Can't be empty!
+	assert(roi.GetNumberOfPixels());
+      
+	// Update
+	driver->GetGlobalState()->SetSegmentationROI(roi);
+
+	//// Initialize the image data
+	driver->InitializeJOINImageData(
+	    driver->GetGlobalState()->GetSegmentationROISettings(),
+	    m_Model->GetProgressCommand());
+
+	driver->CopySegementationToJsrc(
+	    driver->GetGlobalState()->GetSegmentationROISettings(),
+	    m_Model->GetProgressCommand());
+	driver->SetCurrentImageDataToJOIN();
+
+	// set tiled layout to ease understanding the interaction mode
+	m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
 	} break;
     default:
 	////Switch to crosshairs mode

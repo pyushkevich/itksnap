@@ -173,12 +173,6 @@ font-size: 11px;
        <height>0</height>
       </size>
      </property>
-     <property name="maximumSize">
-      <size>
-       <width>185</width>
-       <height>120</height>
-      </size>
-     </property>
      <property name="contextMenuPolicy">
       <enum>Qt::CustomContextMenu</enum>
      </property>

@@ -60,6 +60,8 @@ private slots:
 
   void on_btnClearSeg_clicked();
 
+  void on_btnLoadFromFile_clicked();
+
 private:
 
   GlobalUIModel *m_ParentModel;
