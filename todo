@@ -1,14 +1,11 @@
 TODOs for GWS:
 
 - add image+layer for adf output
-- add relabeller if itk::watershed::Relabeler does not relabel consecutively
 - add 'n' for next smallest unused label see eg m_Wrapper->GetHistogram(nBins) in ./Logic/ImageWrapper/DisplayMappingPolicy.cxx
 - make UnDo possible
 - add functionality to all buttons, e.g. back
 - destinguish RMB click from RMB drag (zoom)
-- impl. connected component relabeling
-- make long long for GWS possible
-- """ for image from file
+- would be nice to let user choose which color representation should be used for Jsrc
 - make GUI parts more fool prove
 - add an invert option for direct mode, see e.g. InvertFunctor in SNAPImageData
 

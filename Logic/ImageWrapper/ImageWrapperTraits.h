@@ -63,7 +63,7 @@ public:
 
   //typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
-  typedef LinearColorMapDisplayMappingPolicy<Self> DisplayMapping;
+  typedef JsrcDisplayMappingPolicy<Self> DisplayMapping;
   typedef NullScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
   static void GetFixedIntensityRange(float &min, float &max) 
       { min = 0; max = 65535; }
