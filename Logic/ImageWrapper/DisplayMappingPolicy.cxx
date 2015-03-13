@@ -164,7 +164,7 @@ JsrcDisplayMappingPolicy<TWrapperTraits>::MappingFunctor
   RGBAp[0]= RGBp[0];
   RGBAp[1]= RGBp[1];
   RGBAp[2]= RGBp[2];
-  RGBAp[3]= itk::NumericTraits<DisplayPixelType::ComponentType>::max();
+  RGBAp[3]= (in == 0) ? 0 : itk::NumericTraits<DisplayPixelType::ComponentType>::max(); //make label 0 fully transparent
 
   return  RGBAp;
 }
