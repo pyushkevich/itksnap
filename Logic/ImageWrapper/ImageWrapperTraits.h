@@ -61,14 +61,9 @@ public:
   typedef JSRType ComponentType;
   typedef itk::Image<ComponentType, 3> ImageType;
 
-  //typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef JsrcDisplayMappingPolicy<Self> DisplayMapping;
   typedef NullScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
-  static void GetFixedIntensityRange(float &min, float &max) 
-      { min = 0; max = 65535; }
-
-  itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_JET);
 
   // Whether this image is shown on top of all other layers by default
   itkStaticConstMacro(StickyByDefault, bool, false);
