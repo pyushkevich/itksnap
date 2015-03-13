@@ -89,20 +89,19 @@ public:
   operator++()
   {
     m_Index[0]++;
-    if (segmentRemainder > 1)
+
+    if (m_Index[0] >= m_EndIndex[0])
     {
-        segmentRemainder--;
-        return *this;
-    }
-      
-    realIndex++;
-    if (m_Index[0] < m_EndIndex[0])
-    {
-        segmentRemainder = (*rlLine)[realIndex].first;
+        this->Increment();
         return *this;
     }
 
-    this->Increment();
+    segmentRemainder--;
+    if (segmentRemainder > 0)
+        return *this;
+      
+    realIndex++;
+    segmentRemainder = (*rlLine)[realIndex].first;
     return *this;
   }
 
@@ -117,7 +116,6 @@ public:
   {
       m_Index[0]--;
 
-      //safeguard for going from the end to the last real pixel
       if (m_Index[0] < m_BeginIndex[0])
       {
           this->Decrement();
@@ -130,11 +128,6 @@ public:
 
       realIndex--;
       segmentRemainder = 1;
-
-      if (realIndex >= m_LineBegin)
-          return *this;
-
-      this->Decrement();
       return *this;
   }
 

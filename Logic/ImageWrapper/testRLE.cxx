@@ -53,55 +53,21 @@ int main(int argc, char* argv[])
     typedef itk::ImageRegionIterator<shortRLEImage> itType;
     itType it(test, r);
    
-    std::cout << "OnTheFlyCleanup=On: "; tp.Start();
-    while (!it.IsAtEnd())
+    std::cout << "Reverse iteration:"; tp.Start();
+    it.GoToEnd();
+    do
     {
-        //cout << it.GetIndex() << ": " << it.Value() << endl;
+        --it;
         it.Set(0);
-        ++it;
-    }
-    tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
-    
-    //test->fromITKImage(inImage); //reload image
-    //std::cout << "OnTheFlyCleanup=Off + 1xCleanUp(): "; tp.Start();
-    //test->SetOnTheFlyCleanup(false);
-    //it.GoToBegin();
+        //cout << it.GetIndex() << ": " << it.Value() << endl;
+    } while (!it.IsAtBegin());
     //while (!it.IsAtEnd())
     //{
     //    //cout << it.GetIndex() << ": " << it.Value() << endl;
     //    it.Set(0);
     //    ++it;
     //}
-    //test->SetOnTheFlyCleanup(true); //calls CleanUp()
-    //tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
-
-    //cout << "Reverse iteration:" << endl;
-    //do
-    //{
-    //    --it;
-    //    cout << it.GetIndex() << ": " << it.Value() << endl;
-    //} while (!it.IsAtBegin());
-
-    //it.GoToEnd();
-    //if (it.IsAtEnd())
-    //    it.GoToBegin();
-    //std::cout << "Allocating RLEimage: "; tp.Start();
-    //test->Allocate();
-    //tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
-    //std::cout << "Filling buffer: "; tp.Start();
-    //test->FillBuffer(1983);
-    //tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
-    //shortRLEImage::IndexType ind;
-    //ind[0] = 1;
-    //ind[1] = 2;
-    //ind[2] = 1;
-    //std::cout << "Setting a pixel: "; tp.Start();
-    //test->SetPixel(ind, 100);
-    //tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
-    //std::cout << "Getting a pixel: "; tp.Start();
-    //short val = test->GetPixel(ind);
-    //tp.Stop(); cout << tp.GetMean() << " us " << endl; tp.Reset();
-    //test->Print(std::cout);
+    tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
 
     std::cout << "RLE->itk conversion: "; tp.Start();
     inImage = test->toITKImage();
