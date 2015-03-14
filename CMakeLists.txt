@@ -962,7 +962,7 @@ set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)
 ADD_EXECUTABLE(SlicingPerformanceTest Testing/Logic/SlicingPerformanceTest.cxx)
 TARGET_LINK_LIBRARIES(SlicingPerformanceTest ${ITK_LIBRARIES})
 
-ADD_EXECUTABLE(testRLE Logic/ImageWrapper/testRLE.cxx)
+ADD_EXECUTABLE(testRLE Testing/Logic/testRLE.cxx)
 TARGET_LINK_LIBRARIES(testRLE ${ITK_LIBRARIES})
 
                        
