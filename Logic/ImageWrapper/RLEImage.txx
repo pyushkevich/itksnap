@@ -23,8 +23,8 @@ void RLEImage< TPixel, RunLengthCounterType >::Allocate()
         for (int y = 0; y < this->GetLargestPossibleRegion().GetSize(1); y++)
         {
             assert(this->GetLargestPossibleRegion().GetSize(0) <= std::numeric_limits<RunLengthCounterType>::max());
-            //since we have to initialize pixel values to something, we initialize to 0
-            myBuffer[z][y].push_back(RLSegment(RunLengthCounterType(this->GetLargestPossibleRegion().GetSize(0)), TPixel(0)));
+            //since we have to initialize pixel values to something, we initialize using default constructor
+            myBuffer[z][y].push_back(RLSegment(RunLengthCounterType(this->GetLargestPossibleRegion().GetSize(0)), TPixel()));
         }
     }
     this->ComputeOffsetTable(); //needed in PrintSelf
@@ -204,20 +204,20 @@ GetPixel(const IndexType & index) const
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
 }
 
-//template< typename TPixel, typename RunLengthCounterType = unsigned short >
-//TPixel & RLEImage< TPixel, RunLengthCounterType >::
-//GetPixel(const IndexType & index)
-//{
-//    RLLine & line = myBuffer[index[2]][index[1]];
-//    RunLengthCounterType t = 0;
-//    for (int x = 0; x < line.size(); x++)
-//    {
-//        t += line[x].first;
-//        if (t > index[0])
-//            return line[x].second;
-//    }
-//    throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
-//}
+template< typename TPixel, typename RunLengthCounterType = unsigned short >
+TPixel & RLEImage< TPixel, RunLengthCounterType >::
+GetPixel(const IndexType & index)
+{
+    RLLine & line = myBuffer[index[2]][index[1]];
+    RunLengthCounterType t = 0;
+    for (int x = 0; x < line.size(); x++)
+    {
+        t += line[x].first;
+        if (t > index[0])
+            return line[x].second;
+    }
+    throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
+}
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 void RLEImage< TPixel, RunLengthCounterType >::
@@ -400,7 +400,7 @@ void RLEImage< TPixel, RunLengthCounterType >
         + sizeof(std::vector<RLLine>) * this->GetOffsetTable()[3] / this->GetOffsetTable()[1])
         / (this->GetOffsetTable()[3] * sizeof(PixelType));
 
-    os << indent << "OnTheFlyCleanup: " << (m_OnTheFlyCleanup ? "On" : "Off") << endl;
+    os << indent << "OnTheFlyCleanup: " << (m_OnTheFlyCleanup ? "On" : "Off") << std::endl;
     os << indent << "RLEImage compressed pixel count: " << c << std::endl;
     int prec = os.precision(3);
     os << indent << "Compressed size in relation to original size: "<< cr*100 <<"%" << std::endl;

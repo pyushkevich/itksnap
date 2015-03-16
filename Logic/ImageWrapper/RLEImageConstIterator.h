@@ -7,6 +7,7 @@
 #include "RLEImage.h"
 #include "itkImageConstIterator.h"
 #include "itkImageConstIteratorWithIndex.h"
+#include "itkImageConstIteratorWithOnlyIndex.h"
 
 namespace itk
 {
@@ -60,14 +61,12 @@ public:
   /** Default Constructor. Need to provide a default constructor since we
    * provide a copy constructor. */
   ImageConstIterator():
-    m_Region()
+      m_Region(), myBuffer(0), rlLine(0)
   {
     m_Image = ITK_NULLPTR;
-    m_Index.fill(0);
-    m_BeginIndex.fill(0);
-    m_EndIndex.fill(0);
-    m_LineBegin = 0;
-    m_LineEnd = 0;
+    m_Index.Fill(0);
+    m_BeginIndex.Fill(0);
+    m_EndIndex.Fill(0);
     realIndex = 0;
     segmentRemainder = 0;
   }
@@ -78,15 +77,12 @@ public:
   /** Copy Constructor. The copy constructor is provided to make sure the
    * handle to the image is properly reference counted. */
   ImageConstIterator(const Self & it)
-      :myBuffer(it.GetImage()->GetBuffer())
+      :myBuffer(const_cast<BufferType *>(it.GetImage()->GetBuffer()))
   {
     rlLine = it.rlLine;
     m_Image = it.m_Image;     // copy the smart pointer
     m_Region = it.m_Region;
     m_Index = it.m_Index;
-    
-    m_LineBegin = it.m_LineBegin;
-    m_LineEnd = it.m_LineEnd;
 
     realIndex = it.realIndex;
     segmentRemainder = it.segmentRemainder;
@@ -97,7 +93,7 @@ public:
   /** Constructor establishes an iterator to walk a particular image and a
    * particular region of that image. */
   ImageConstIterator(const ImageType *ptr, const RegionType & region)
-      :myBuffer(ptr->GetBuffer())
+      :myBuffer(const_cast<BufferType *>(ptr->GetBuffer()))
   {
     m_Image = ptr;
     SetRegion(region);
@@ -109,14 +105,11 @@ public:
   {
     if(this != &it)
       {
-          myBuffer = it.myBuffer;
+          myBuffer == it.myBuffer;
           rlLine = it.rlLine;
           m_Image = it.m_Image;     // copy the smart pointer
           m_Region = it.m_Region;
           m_Index = it.m_Index;
-
-          m_LineBegin = it.m_LineBegin;
-          m_LineEnd = it.m_LineEnd;
 
           realIndex = it.realIndex;
           segmentRemainder = it.segmentRemainder;
@@ -144,7 +137,7 @@ public:
     m_EndIndex[0] = m_BeginIndex[0] + m_Region.GetSize(0);
     m_EndIndex[1] = m_BeginIndex[1] + m_Region.GetSize(1);
     m_EndIndex[2] = m_BeginIndex[2] + m_Region.GetSize(2);
-    SetIndex(m_Index); //sets realIndex, segmentRemainder, m_LineBegin and m_LineEnd
+    SetIndex(m_Index); //sets realIndex and segmentRemainder
   }
 
   /** Get the dimension (size) of the index. */
@@ -153,22 +146,106 @@ public:
 
   /** Comparison operator. Two iterators are the same if they "point to" the
    * same memory location */
-  bool
-  operator!=(const Self & it) const
+  bool operator!=(const Self & it) const
   {
       // two iterators are the same if they "point to" the same memory location
-      return &myBuffer[m_Index[2]][m_Index[1]][realIndex].second !=
-          &it.myBuffer[it.m_Index[2]][it.m_Index[1]][it.realIndex].second;
+      return myBuffer!=it.myBuffer || m_Index!=it.m_Index;
   }
 
   /** Comparison operator. Two iterators are the same if they "point to" the
    * same memory location */
-  bool
-  operator==(const Self & it) const
+  bool operator==(const Self & it) const
   {
       // two iterators are the same if they "point to" the same memory location
-      return &myBuffer[m_Index[2]][m_Index[1]][realIndex].second ==
-          &it.myBuffer[it.m_Index[2]][it.m_Index[1]][it.realIndex].second;
+      return myBuffer == it.myBuffer && m_Index == it.m_Index;
+  }
+
+  /** Comparison operator. An iterator is "less than" another if it "points to"
+  * a lower memory location. */
+  bool operator<=(const Self & it) const
+  {
+      // an iterator is "less than" another if it "points to" a lower
+      // memory location
+      if (myBuffer != it.myBuffer)
+          return false;
+      if (m_Index[2] < it.m_Index[2])
+          return true;
+      else if ((m_Index[2] > it.m_Index[2]))
+          return false;
+      else if (m_Index[1] < it.m_Index[1])
+          return true;
+      else if ((m_Index[1] > it.m_Index[1]))
+          return false;
+      else if (m_Index[0] <= it.m_Index[0])
+          return true;
+      else
+          return false;
+  }
+
+  /** Comparison operator. An iterator is "less than" another if it "points to"
+  * a lower memory location. */
+  bool operator<(const Self & it) const
+  {
+      // an iterator is "less than" another if it "points to" a lower
+      // memory location
+      if (myBuffer != it.myBuffer)
+          return false; //not the same image, incomparable
+      if (m_Index[2] < it.m_Index[2])
+          return true;
+      else if ((m_Index[2] > it.m_Index[2]))
+          return false;
+      else if (m_Index[1] < it.m_Index[1])
+          return true;
+      else if ((m_Index[1] > it.m_Index[1]))
+          return false;
+      else if (m_Index[0] < it.m_Index[0])
+          return true;
+      else
+          return false;
+  }
+
+  /** Comparison operator. An iterator is "greater than" another if it
+  * "points to" a higher location. */
+  bool operator>=(const Self & it) const
+  {
+      // an iterator is "greater than" another if it "points to" a higher
+      // memory location
+      if (myBuffer != it.myBuffer)
+          return false; //not the same image, incomparable
+      if (m_Index[2] > it.m_Index[2])
+          return true;
+      else if ((m_Index[2] < it.m_Index[2]))
+          return false;
+      else if (m_Index[1] > it.m_Index[1])
+          return true;
+      else if ((m_Index[1] < it.m_Index[1]))
+          return false;
+      else if (m_Index[0] >= it.m_Index[0])
+          return true;
+      else
+          return false;
+  }
+
+  /** Comparison operator. An iterator is "greater than" another if it
+  * "points to" a higher location. */
+  bool operator>(const Self & it) const
+  {
+      // an iterator is "greater than" another if it "points to" a higher
+      // memory location
+      if (myBuffer != it.myBuffer)
+          return false; //not the same image, incomparable
+      if (m_Index[2] > it.m_Index[2])
+          return true;
+      else if ((m_Index[2] < it.m_Index[2]))
+          return false;
+      else if (m_Index[1] > it.m_Index[1])
+          return true;
+      else if ((m_Index[1] < it.m_Index[1]))
+          return false;
+      else if (m_Index[0] > it.m_Index[0])
+          return true;
+      else
+          return false;
   }
 
   /** Get the index. This provides a read only reference to the index. */
@@ -181,7 +258,7 @@ public:
   virtual void SetIndex(const IndexType & ind)
   { 
       m_Index = ind;
-      rlLine = &myBuffer[m_Index[2]][m_Index[1]];
+      rlLine = &(*myBuffer)[m_Index[2]][m_Index[1]];
 
       RunLengthCounterType t = 0;
       SizeValueType x = 0;
@@ -216,7 +293,7 @@ public:
    * data, but it will NOT support ImageAdaptors. */
   const PixelType & Value(void) const
   {
-      return myBuffer[m_Index[2]][m_Index[1]][realIndex].second;
+      return (*myBuffer)[m_Index[2]][m_Index[1]][realIndex].second;
   }
 
   /** Move an iterator to the beginning of the region. "Begin" is
@@ -271,7 +348,7 @@ protected: //made protected so other iterators can access
   IndexType m_BeginIndex; // index to first pixel in region
   IndexType m_EndIndex;   // index to one pixel past last pixel in region
 
-  const BufferType & myBuffer;
+  BufferType * myBuffer;
 };
 
 template< typename TPixel, typename RunLengthCounterType>
@@ -295,6 +372,30 @@ public:
     /** Constructor establishes an iterator to walk a particular image and a
     * particular region of that image. */
     ImageConstIteratorWithIndex(const ImageType *ptr, const RegionType & region)
+        :ImageConstIterator< ImageType >(ptr, region) { }
+}; //no additional implementation required
+
+template< typename TPixel, typename RunLengthCounterType>
+class itk::ImageConstIteratorWithOnlyIndex<RLEImage<TPixel, RunLengthCounterType> >
+    :public ImageConstIterator < RLEImage<TPixel, RunLengthCounterType> >
+{
+    //just inherit constructors
+public:
+    /** Default Constructor. Need to provide a default constructor since we
+    * provide a copy constructor. */
+    ImageConstIteratorWithOnlyIndex() :ImageConstIterator< ImageType >(){ }
+
+
+    /** Copy Constructor. The copy constructor is provided to make sure the
+    * handle to the image is properly reference counted. */
+    ImageConstIteratorWithOnlyIndex(const Self & it)
+    {
+        this->ImageConstIterator< ImageType >::operator=(it);
+    }
+
+    /** Constructor establishes an iterator to walk a particular image and a
+    * particular region of that image. */
+    ImageConstIteratorWithOnlyIndex(const ImageType *ptr, const RegionType & region)
         :ImageConstIterator< ImageType >(ptr, region) { }
 }; //no additional implementation required
 

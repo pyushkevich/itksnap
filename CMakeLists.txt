@@ -965,7 +965,24 @@ TARGET_LINK_LIBRARIES(SlicingPerformanceTest ${ITK_LIBRARIES})
 ADD_EXECUTABLE(testRLE Testing/Logic/testRLE.cxx)
 TARGET_LINK_LIBRARIES(testRLE ${ITK_LIBRARIES})
 
-                       
+ADD_EXECUTABLE(itkIteratorTests Testing/Logic/itkIteratorTests.cxx)
+TARGET_LINK_LIBRARIES(itkIteratorTests ${ITK_LIBRARIES})
+
+ADD_EXECUTABLE(itkImageIteratorsForwardBackwardTest Testing/Logic/itkImageIteratorsForwardBackwardTest.cxx)
+TARGET_LINK_LIBRARIES(itkImageIteratorsForwardBackwardTest ${ITK_LIBRARIES})
+
+ADD_EXECUTABLE(itkImageIteratorTest Testing/Logic/itkImageIteratorTest.cxx)
+TARGET_LINK_LIBRARIES(itkImageIteratorTest ${ITK_LIBRARIES})
+
+ADD_EXECUTABLE(itkImageIteratorWithIndexTest Testing/Logic/itkImageIteratorWithIndexTest.cxx)
+TARGET_LINK_LIBRARIES(itkImageIteratorWithIndexTest ${ITK_LIBRARIES})
+
+ADD_EXECUTABLE(itkImageRegionConstIteratorWithOnlyIndexTest Testing/Logic/itkImageRegionConstIteratorWithOnlyIndexTest.cxx)
+TARGET_LINK_LIBRARIES(itkImageRegionConstIteratorWithOnlyIndexTest ${ITK_LIBRARIES})
+
+ADD_EXECUTABLE(itkImageRegionIteratorTest Testing/Logic/itkImageRegionIteratorTest.cxx)
+TARGET_LINK_LIBRARIES(itkImageRegionIteratorTest ${ITK_LIBRARIES})
+
 add_test(NAME BasicSlicingTestX39 COMMAND itkTestDriver
   --compare ${TESTDATA_DIR}/X39.nii.gz ${TEMP}/X39.nii.gz
   $<TARGET_FILE:SlicingPerformanceTest>

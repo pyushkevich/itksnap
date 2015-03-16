@@ -105,7 +105,7 @@ public:
     *
     * Allocate() needs to have been called first -- for efficiency,
     * this function does not check that the image has actually been
-    * allocated yet. SLOW! */
+    * allocated yet. SLOW -> Use iterators instead. */
     void SetPixel(const IndexType & index, const TPixel & value);
 
     /** Set a pixel value in the given line and updates segmentRemainder
@@ -117,16 +117,17 @@ public:
     /** \brief Get a pixel. SLOW! Better use iterators for pixel access. */
     const TPixel & GetPixel(const IndexType & index) const;
 
-    /** Get a reference to a pixel. Chaning it changes the whole segment! */
-    //TPixel & GetPixel(const IndexType & index);
+    /** Get a reference to a pixel. Chaning it changes the whole RLE segment! */
+    TPixel & GetPixel(const IndexType & index);
 
-    /** \brief Access a pixel. This version can be an lvalue. SLOW! */
+    /** \brief Access a pixel. Chaning it changes the whole RLE segment! */
     TPixel & operator[](const IndexType & index)
     {
         return this->GetPixel(index);
     }
 
-    /** \brief Access a pixel. This version can only be an rvalue. SLOW! */
+    /** \brief Access a pixel. This version can only be an rvalue.
+    * SLOW -> Use iterators instead. */
     const TPixel & operator[](const IndexType & index) const
     {
         return this->GetPixel(index);
@@ -156,10 +157,10 @@ public:
     typedef std::vector<std::vector<RLLine> > BufferType;
 
     /** We need to allow itk-style iterators to be constructed. */
-    BufferType & GetBuffer() { return myBuffer; }
+    BufferType * GetBuffer() { return &myBuffer; }
 
     /** We need to allow itk-style const iterators to be constructed. */
-    const BufferType & GetBuffer() const { return myBuffer; }
+    const BufferType * GetBuffer() const { return &myBuffer; }
 
     /** Merges adjacent segments with duplicate values.
     * Automatically called when turning on OnTheFlyCleanup. */

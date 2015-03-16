@@ -66,12 +66,12 @@ public:
       return *this;
   }
 
-  ///** Set the pixel value */
-  //void Set(const PixelType & value) const
-  //{
-  //    throw itk::ExceptionObject(__FILE__, __LINE__, "Set method should be reimplemented in child classes.", __FUNCTION__);
-  //    m_Image->SetPixel(*rlLine, segmentRemainder, realIndex, value);
-  //}
+  /** Set the pixel value */
+  void Set(const PixelType & value) const
+  {
+      const_cast<ImageType *>(m_Image.GetPointer())->
+          SetPixel(*const_cast<ImageType::RLLine *>(rlLine), segmentRemainder, realIndex, value);
+  }
 
   ///** Return a reference to the pixel
   // * Setting this value would change value of the whole run-length segment.

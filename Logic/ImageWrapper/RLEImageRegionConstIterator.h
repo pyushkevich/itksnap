@@ -4,6 +4,7 @@
 #include "RLEImageConstIterator.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
+#include "itkImageRegionConstIteratorWithOnlyIndex.h"
 
 namespace itk
 {
@@ -180,6 +181,33 @@ public:
     * returns ImageIterators and uses constructors to cast from an
     * ImageIterator to a ImageRegionConstIterator. */
     ImageRegionConstIteratorWithIndex(const ImageIterator< ImageType > & it)
+    {
+        this->ImageRegionConstIterator< ImageType >::operator=(it);
+    }
+
+}; //no additional implementation required
+
+template< typename TPixel, typename RunLengthCounterType>
+class ImageRegionConstIteratorWithOnlyIndex<RLEImage<TPixel, RunLengthCounterType> >
+    :public ImageRegionConstIterator < RLEImage<TPixel, RunLengthCounterType> >
+{
+    //just inherit constructors
+public:
+    /** Default constructor. Needed since we provide a cast constructor. */
+    ImageRegionConstIteratorWithOnlyIndex() :ImageRegionConstIterator< ImageType >(){ }
+
+    /** Constructor establishes an iterator to walk a particular image and a
+    * particular region of that image. */
+    ImageRegionConstIteratorWithOnlyIndex(const ImageType *ptr, const RegionType & region) :
+        ImageRegionConstIterator< ImageType >(ptr, region) { }
+
+    /** Constructor that can be used to cast from an ImageIterator to an
+    * ImageRegionConstIterator. Many routines return an ImageIterator, but for a
+    * particular task, you may want an ImageRegionConstIterator.  Rather than
+    * provide overloaded APIs that return different types of Iterators, itk
+    * returns ImageIterators and uses constructors to cast from an
+    * ImageIterator to a ImageRegionConstIterator. */
+    ImageRegionConstIteratorWithOnlyIndex(const ImageIterator< ImageType > & it)
     {
         this->ImageRegionConstIterator< ImageType >::operator=(it);
     }
