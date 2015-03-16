@@ -23,7 +23,7 @@
 #include "RLEImageRegionIterator.h"
 #include <time.h>
 
-int main(int, char* [] )
+int itkIteratorTests(int, char* [] )
 {
   std::cout << "Creating an image" << std::endl;
   typedef RLEImage<unsigned short> ScalarImage;

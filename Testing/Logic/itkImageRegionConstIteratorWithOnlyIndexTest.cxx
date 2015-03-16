@@ -183,7 +183,7 @@ class itkImageRegionConstIteratorWithOnlyIndexTestIteratorTester
 
 };
 
-int main(int, char* [] )
+int itkImageRegionConstIteratorWithOnlyIndexTest(int, char* [] )
 {
   bool testPassed = true; // let's be optimistic
 

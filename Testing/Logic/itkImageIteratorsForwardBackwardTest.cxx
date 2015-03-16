@@ -20,7 +20,7 @@
 
 #include "RLEImageRegionIterator.h"
 
-int main(int, char* [] )
+int itkImageIteratorsForwardBackwardTest(int, char* [] )
 {
 
   std::cout << "Creating an image" << std::endl;

@@ -97,7 +97,7 @@ class itkImageIteratorWithIndexTestIteratorTester
 
 };
 
-int main(int, char* [] )
+int itkImageIteratorWithIndexTest(int, char* [] )
 {
 
   bool testPassed = true; // let's be optimistic
