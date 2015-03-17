@@ -151,14 +151,15 @@ template< typename TPixel, typename RunLengthCounterType = unsigned short >
 void RLEImage< TPixel, RunLengthCounterType >::
 SetPixel(const IndexType & index, const TPixel & value)
 {
-    RLLine & line = myBuffer[index[2]][index[1]];
+    IndexType lpri = GetLargestPossibleRegion().GetIndex();
+    RLLine & line = myBuffer[index[2] - lpri[2]][index[1] - lpri[1]];
     RunLengthCounterType t = 0;
     for (itk::SizeValueType x = 0; x < line.size(); x++)
     {
         t += line[x].first;
-        if (t > index[0])
+        if (t > index[0] - lpri[0])
         {
-            t -= index[0]; //we need to supply a reference
+            t -= index[0] - lpri[0]; //we need to supply a reference
             SetPixel(line, t, x, value);
             return;
         }
@@ -170,12 +171,13 @@ template< typename TPixel, typename RunLengthCounterType = unsigned short >
 const TPixel & RLEImage< TPixel, RunLengthCounterType >::
 GetPixel(const IndexType & index) const
 {
-    RLLine & line = myBuffer[index[2]][index[1]];
+    IndexType lpri = GetLargestPossibleRegion().GetIndex();
+    RLLine & line = myBuffer[index[2] - lpri[2]][index[1] - lpri[1]];
     RunLengthCounterType t = 0;
     for (int x = 0; x < line.size(); x++)
     {
         t += line[x].first;
-        if (t > index[0])
+        if (t > index[0] - lpri[0])
             return line[x].second;
     }
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
@@ -185,12 +187,13 @@ template< typename TPixel, typename RunLengthCounterType = unsigned short >
 TPixel & RLEImage< TPixel, RunLengthCounterType >::
 GetPixel(const IndexType & index)
 {
-    RLLine & line = myBuffer[index[2]][index[1]];
+    IndexType lpri = GetLargestPossibleRegion().GetIndex();
+    RLLine & line = myBuffer[index[2] - lpri[2]][index[1] - lpri[1]];
     RunLengthCounterType t = 0;
     for (int x = 0; x < line.size(); x++)
     {
         t += line[x].first;
-        if (t > index[0])
+        if (t > index[0] - lpri[0])
             return line[x].second;
     }
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);

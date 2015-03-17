@@ -11,7 +11,7 @@
 * (for memory alignment purposes).
 * 
 * Copied and adapted from itk::Image.
-* Assumes BufferedRegion == LargestPossibleRegion
+* Assumes BufferedRegion == RequestedRegion == LargestPossibleRegion
 */
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 class RLEImage : public itk::ImageBase < 3 >

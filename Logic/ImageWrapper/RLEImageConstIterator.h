@@ -132,12 +132,15 @@ public:
       }
 
     m_Index = m_Region.GetIndex();
-    m_BeginIndex = m_Index;
+    IndexType indR(m_Image->GetLargestPossibleRegion().GetIndex());
+    m_BeginIndex[0] = m_Index[0] - indR[0];
+    m_BeginIndex[1] = m_Index[1] - indR[1];
+    m_BeginIndex[2] = m_Index[2] - indR[2];
 
     m_EndIndex[0] = m_BeginIndex[0] + m_Region.GetSize(0);
     m_EndIndex[1] = m_BeginIndex[1] + m_Region.GetSize(1);
     m_EndIndex[2] = m_BeginIndex[2] + m_Region.GetSize(2);
-    SetIndex(m_Index); //sets realIndex and segmentRemainder
+    SetIndexInternal(m_BeginIndex); //sets realIndex and segmentRemainder
   }
 
   /** Get the dimension (size) of the index. */
@@ -147,18 +150,12 @@ public:
   /** Comparison operator. Two iterators are the same if they "point to" the
    * same memory location */
   bool operator!=(const Self & it) const
-  {
-      // two iterators are the same if they "point to" the same memory location
-      return myBuffer!=it.myBuffer || m_Index!=it.m_Index;
-  }
+  { return myBuffer!=it.myBuffer || m_Index!=it.m_Index; }
 
   /** Comparison operator. Two iterators are the same if they "point to" the
    * same memory location */
   bool operator==(const Self & it) const
-  {
-      // two iterators are the same if they "point to" the same memory location
-      return myBuffer == it.myBuffer && m_Index == it.m_Index;
-  }
+  { return myBuffer == it.myBuffer && m_Index == it.m_Index; }
 
   /** Comparison operator. An iterator is "less than" another if it "points to"
   * a lower memory location. */
@@ -250,13 +247,82 @@ public:
 
   /** Get the index. This provides a read only reference to the index. */
   const IndexType GetIndex() const
-  { return m_Index; }
-
-  /** Set the realIndex and segmentRemainder
-   * No bounds checking is performed.
-   * \sa GetIndex */
-  virtual void SetIndex(const IndexType & ind)
   { 
+      IndexType indR(m_Image->GetLargestPossibleRegion().GetIndex());
+      indR[0] += m_Index[0];
+      indR[1] += m_Index[1];
+      indR[2] += m_Index[2];
+      return indR;
+  }
+
+  /** Sets the image index. No bounds checking is performed. */
+  virtual void SetIndex(const IndexType & ind)
+  {
+      IndexType indR(m_Image->GetLargestPossibleRegion().GetIndex());
+      indR[0] = ind[0] - indR[0];
+      indR[1] = ind[1] - indR[1];
+      indR[2] = ind[2] - indR[2];
+      SetIndexInternal(indR);
+  }
+
+  /** Get the region that this iterator walks. ImageConstIterators know the
+   * beginning and the end of the region of the image to iterate over. */
+  const RegionType & GetRegion() const
+  { return m_Region; }
+
+  /** Get the image that this iterator walks. */
+  const ImageType * GetImage() const
+  { return m_Image.GetPointer(); }
+
+  /** Get the pixel value */
+  PixelType Get(void) const
+  { return Value(); }
+
+  /** Return a const reference to the pixel
+   * This method will provide the fastest access to pixel
+   * data, but it will NOT support ImageAdaptors. */
+  const PixelType & Value(void) const
+  { return (*myBuffer)[m_Index[2]][m_Index[1]][realIndex].second; }
+
+  /** Move an iterator to the beginning of the region. "Begin" is
+   * defined as the first pixel in the region. */
+  void GoToBegin()
+  { SetIndexInternal(m_BeginIndex); }
+
+  /** Move an iterator to the end of the region. "End" is defined as
+   * one pixel past the last pixel of the region. */
+  void GoToEnd()
+  {
+      m_Index[0] = m_EndIndex[0] - 1;
+      m_Index[1] = m_EndIndex[1] - 1;
+      m_Index[2] = m_EndIndex[2] - 1;
+      SetIndexInternal(m_Index); //first set to the last pixel so we have valid member variables
+      m_Index[0] = m_BeginIndex[0];
+      m_Index[1] = m_BeginIndex[1];
+      m_Index[2] = m_EndIndex[2];
+  }
+
+  /** Is the iterator at the beginning of the region? "Begin" is defined
+   * as the first pixel in the region. */
+  bool IsAtBegin(void) const
+  { return (m_Index == m_BeginIndex); }
+
+  /** Is the iterator at the end of the region? "End" is defined as one
+   * pixel past the last pixel of the region. */
+  bool IsAtEnd(void) const
+  {
+      IndexType ind;
+      ind[0] = m_BeginIndex[0];
+      ind[1] = m_BeginIndex[1];
+      ind[2] = m_EndIndex[2];
+      return (m_Index == ind);
+  }
+
+protected: //made protected so other iterators can access
+
+  /** Set the internal index, realIndex and segmentRemainder. */
+  virtual void SetIndexInternal(const IndexType & ind)
+  {
       m_Index = ind;
       rlLine = &(*myBuffer)[m_Index[2]][m_Index[1]];
 
@@ -273,80 +339,18 @@ public:
       segmentRemainder = t - m_Index[0];
   }
 
-  /** Get the region that this iterator walks. ImageConstIterators know the
-   * beginning and the end of the region of the image to iterate over. */
-  const RegionType & GetRegion() const
-  { return m_Region; }
-
-  /** Get the image that this iterator walks. */
-  const ImageType * GetImage() const
-  { return m_Image.GetPointer(); }
-
-  /** Get the pixel value */
-  PixelType Get(void) const
-  {
-      return Value();
-  }
-
-  /** Return a const reference to the pixel
-   * This method will provide the fastest access to pixel
-   * data, but it will NOT support ImageAdaptors. */
-  const PixelType & Value(void) const
-  {
-      return (*myBuffer)[m_Index[2]][m_Index[1]][realIndex].second;
-  }
-
-  /** Move an iterator to the beginning of the region. "Begin" is
-   * defined as the first pixel in the region. */
-  void GoToBegin()
-  {
-      SetIndex(m_BeginIndex);
-  }
-
-  /** Move an iterator to the end of the region. "End" is defined as
-   * one pixel past the last pixel of the region. */
-  void GoToEnd()
-  {
-      m_Index = m_EndIndex;
-      m_Index[0]--;
-      m_Index[1]--;
-      m_Index[2]--;
-      SetIndex(m_Index); //first set to the last pixel so we have valid member variables
-      m_Index.Fill(0);
-      m_Index[2] = m_EndIndex[2];
-  }
-
-  /** Is the iterator at the beginning of the region? "Begin" is defined
-   * as the first pixel in the region. */
-  bool IsAtBegin(void) const
-  {
-      return (m_Index == m_BeginIndex);
-  }
-
-  /** Is the iterator at the end of the region? "End" is defined as one
-   * pixel past the last pixel of the region. */
-  bool IsAtEnd(void) const
-  {
-      IndexType ind;
-      ind[0] = m_Region.GetIndex(0);
-      ind[1] = m_Region.GetIndex(1);
-      ind[2] = m_EndIndex[2];
-      return (m_Index == ind);
-  }
-
-protected: //made protected so other iterators can access
   typename ImageType::ConstWeakPointer m_Image;
 
   RegionType m_Region; // region to iterate over
-  IndexType m_Index;   // current index
+  IndexType m_Index;   // current index in relation to buffer start (index-region.index)
 
   const RLLine * rlLine;
 
   mutable IndexValueType realIndex; // index into line's segment
   mutable IndexValueType segmentRemainder; // how many pixels remain in current segment
 
-  IndexType m_BeginIndex; // index to first pixel in region
-  IndexType m_EndIndex;   // index to one pixel past last pixel in region
+  IndexType m_BeginIndex; // index to first pixel in region in relation to buffer start
+  IndexType m_EndIndex;   // index to one pixel past last pixel in region in relation to buffer start
 
   BufferType * myBuffer;
 };

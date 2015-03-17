@@ -137,14 +137,14 @@ private:
   {
       // We have reached the end of the line (row), need to wrap around.
       m_Index[0] = m_BeginIndex[0];
-      if (++m_Index[1] == m_BeginIndex[1] + m_Region.GetSize(1))
+      if (++m_Index[1] == m_EndIndex[1])
       {
           m_Index[1] = m_BeginIndex[1];
           m_Index[2]++;
       }
       if (IsAtEnd())
           return;
-      SetIndex(m_Index);
+      SetIndexInternal(m_Index);
   }
 
   void Decrement() // go back in a direction other than the fastest moving
@@ -156,7 +156,7 @@ private:
           m_Index[1] = m_EndIndex[1] - 1;
           m_Index[2]--;
       }
-      SetIndex(m_Index);
+      SetIndexInternal(m_Index);
   }
 };
 

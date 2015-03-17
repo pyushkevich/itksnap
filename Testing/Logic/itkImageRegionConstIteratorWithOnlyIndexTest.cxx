@@ -45,6 +45,7 @@ class itkImageRegionConstIteratorWithOnlyIndexTestIteratorTester
       region.SetIndex( start );
 
       m_Image->SetRegions( region );
+      m_Image->Allocate();
 
       // Setup a smaller requested region
       size.Fill( 50 );
