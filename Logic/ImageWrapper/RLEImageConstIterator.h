@@ -105,7 +105,7 @@ public:
   {
     if(this != &it)
       {
-          myBuffer == it.myBuffer;
+          myBuffer = it.myBuffer;
           rlLine = it.rlLine;
           m_Image = it.m_Image;     // copy the smart pointer
           m_Region = it.m_Region;

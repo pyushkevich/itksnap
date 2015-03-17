@@ -66,7 +66,8 @@ public:
       return *this;
   }
 
-  /** Set the pixel value */
+  /** Set the pixel value.
+  * Changing the RLE structure invalidates all other iterators (except this one). */
   void Set(const PixelType & value) const
   {
       const_cast<ImageType *>(m_Image.GetPointer())->

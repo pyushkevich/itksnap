@@ -62,7 +62,8 @@ public:
         this->ImageConstIterator< ImageType >::operator=(it);
     }
 
-    /** Set the pixel value */
+    /** Set the pixel value.
+    * Changing the RLE structure invalidates all other iterators (except this one). */
     void Set(const PixelType & value) const
     {
         const_cast<ImageType *>(m_Image.GetPointer())->

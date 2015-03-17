@@ -162,7 +162,7 @@ SetPixel(RLLine & line, IndexValueType & segmentRemainder, IndexValueType & real
         line[realIndex + 2].second = line[realIndex].second;
 
         //now take care of counts
-        line[realIndex].first += line[realIndex].first-segmentRemainder;
+        line[realIndex].first -= segmentRemainder;
         line[realIndex + 2].first = segmentRemainder - 1;
         realIndex++;
         segmentRemainder = 1;
