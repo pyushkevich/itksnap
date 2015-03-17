@@ -95,7 +95,13 @@ public:
 
     /** Restore the data object to its initial state. This means releasing
     * memory. */
-    virtual void Initialize();
+    virtual void Initialize()
+    {
+        // Call the superclass which should initialize the BufferedRegion ivar.
+        Superclass::Initialize();
+        m_OnTheFlyCleanup = true;
+        myBuffer.clear();
+    }
 
     /** Fill the image buffer with a value.  Be sure to call Allocate()
     * first. */
@@ -133,19 +139,13 @@ public:
         return this->GetPixel(index);
     }
 
-    virtual unsigned int GetNumberOfComponentsPerPixel() const;
-
-    /** Graft the data and information from one image to another. This
-    * is a convenience method to setup a second image with all the meta
-    * information of another image and use the same pixel
-    * container. Note that this method is different than just using two
-    * SmartPointers to the same image since separate DataObjects are
-    * still maintained. This method is similar to
-    * ImageSource::GraftOutput(). The implementation in ImageBase
-    * simply calls CopyInformation() and copies the region ivars.
-    * The implementation here refers to the superclass' implementation
-    * and then copies over the pixel container. */
-    //virtual void Graft(const DataObject *data);
+    virtual unsigned int GetNumberOfComponentsPerPixel() const
+    {
+        // use the GetLength() method which works with variable length arrays,
+        // to make it work with as much pixel types as possible
+        PixelType p;
+        return itk::NumericTraits< PixelType >::GetLength(p);
+    }
 
     /** Construct this RLEImage from a regular itk::Image. */
     void fromITKImage(typename itk::Image<TPixel, 3>::Pointer image);
@@ -180,7 +180,11 @@ public:
     }
 
 protected:
-    RLEImage();
+    RLEImage() : itk::ImageBase < 3 >()
+    {
+        m_OnTheFlyCleanup = true;
+        //myBuffer managed automatically by STL
+    }
     void PrintSelf(std::ostream & os, itk::Indent indent) const;
 
     virtual ~RLEImage() {}
@@ -190,7 +194,10 @@ protected:
     * overloaded in derived classes in order to provide backward compatibility
     * behavior in classes that did not used to take image orientation into
     * account.  */
-    virtual void ComputeIndexToPhysicalPointMatrices();
+    virtual void ComputeIndexToPhysicalPointMatrices()
+    {
+        this->Superclass::ComputeIndexToPhysicalPointMatrices();
+    }
 
     /** Uncompresses a RLE line into a buffer pointed by out.
     * The buffer needs to have enough room.

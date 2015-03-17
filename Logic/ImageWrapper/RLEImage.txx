@@ -2,15 +2,6 @@
 #define RLEImage_txx
 
 #include "RLEImage.h"
-#include <limits>
-
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
-RLEImage< TPixel, RunLengthCounterType >
-::RLEImage()
-{
-    m_OnTheFlyCleanup = true;
-    //myBuffer managed automatically by STL
-}
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 void RLEImage< TPixel, RunLengthCounterType >::Allocate()
@@ -28,20 +19,6 @@ void RLEImage< TPixel, RunLengthCounterType >::Allocate()
         }
     }
     this->ComputeOffsetTable(); //needed in PrintSelf
-}
-
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
-void RLEImage< TPixel, RunLengthCounterType >::Initialize()
-{
-    //
-    // We don't modify ourselves because the "ReleaseData" methods depend upon
-    // no modification when initialized.
-    //
-
-    // Call the superclass which should initialize the BufferedRegion ivar.
-    Superclass::Initialize();
-    m_OnTheFlyCleanup = true;
-    myBuffer.clear();
 }
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
@@ -334,58 +311,6 @@ RLEImage< TPixel, RunLengthCounterType >::toITKImage() const
 //            }
 //}
 
-//----------------------------------------------------------------------------
-//template< typename TPixel, typename RunLengthCounterType = unsigned short >
-//void
-//RLEImage< TPixel, RunLengthCounterType >
-//::Graft(const DataObject *data)
-//{
-//    // call the superclass' implementation
-//    Superclass::Graft(data);
-//
-//    if (data)
-//    {
-//        // Attempt to cast data to an RLEImage
-//        const Self * const imgData = dynamic_cast< const Self * >(data);
-//
-//        if (imgData)
-//        {
-//            // Now copy anything remaining that is needed
-//            this->SetPixelContainer(const_cast< PixelContainer * >
-//                (imgData->GetPixelContainer()));
-//        }
-//        else
-//        {
-//            // pointer could not be cast back down
-//            itkExceptionMacro(<< "itk::RLEImage::Graft() cannot cast "
-//                << typeid(data).name() << " to "
-//                << typeid(const Self *).name());
-//        }
-//    }
-//}
-
-//----------------------------------------------------------------------------
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
-void
-RLEImage< TPixel, RunLengthCounterType >
-::ComputeIndexToPhysicalPointMatrices()
-{
-    this->Superclass::ComputeIndexToPhysicalPointMatrices();
-}
-
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
-unsigned int RLEImage< TPixel, RunLengthCounterType >
-::GetNumberOfComponentsPerPixel() const
-{
-    // use the GetLength() method which works with variable length arrays,
-    // to make it work with as much pixel types as possible
-    PixelType p;
-    return itk::NumericTraits< PixelType >::GetLength(p);
-}
-
-/**
-*
-*/
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 void RLEImage< TPixel, RunLengthCounterType >
 ::PrintSelf(std::ostream & os, itk::Indent indent) const

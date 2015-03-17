@@ -214,6 +214,7 @@ int itkImageIteratorTest(int, char* [] )
   // verify that the value can be modified
   vp1[0]++;
   itr1.Set( vp1 );
+  itr2 = itr1; //we need to do this because Set invalidates other itarators
   vp2 = itr2.Get();
   if( vp1 != vp2 )
     {
