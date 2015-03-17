@@ -270,18 +270,47 @@ void GlobalWSWizardPanel::on_btnClearSeg_clicked(){
     driver->InvokeEvent(SegmentationChangeEvent());
     }
 
-void GlobalWSWizardPanel::on_btnLoadFromFile_clicked()
-{
+void GlobalWSWizardPanel::on_btnLoadFromFile_clicked(){
     // not working yet
     // Create a model for IO
     SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
     delegate->Initialize(m_ParentModel->GetDriver());
     SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
     model->InitializeForLoad(m_ParentModel, delegate,
-                             "GWSImage", "GWS Source Image");
+	"GWSImage", "GWS Source Image");
 
     // Execute the IO wizard
     ImageIOWizard wiz(this);
     wiz.SetModel(model);
     wiz.exec();
-}
+    }
+
+void GlobalWSWizardPanel::on_btnWSRangeBack_clicked(){
+    try
+	{
+	// Handle cursor
+	QtCursorOverride curse(Qt::WaitCursor);
+
+	// Move to the range page
+	ui->stack->setCurrentWidget(ui->pgPreproc);
+	}
+    catch(IRISException &exc)
+	{
+	QMessageBox::warning(this, "ITK-SNAP", exc.what(), QMessageBox::Ok);
+	}
+    }
+
+void GlobalWSWizardPanel::on_btnJoinBack_clicked(){
+    try
+	{
+	// Handle cursor
+	QtCursorOverride curse(Qt::WaitCursor);
+
+	// Move to the range page
+	ui->stack->setCurrentWidget(ui->pgWSRange);
+	}
+    catch(IRISException &exc)
+	{
+	QMessageBox::warning(this, "ITK-SNAP", exc.what(), QMessageBox::Ok);
+	}    
+    }
