@@ -1,5 +1,5 @@
 #include "LookupTableIntensityMappingFilter.h"
-#include <itkImageRegionIterator.h>
+#include "RLEImageRegionIterator.h"
 #include <itkRGBAPixel.h>
 #include "LookupTableTraits.h"
 

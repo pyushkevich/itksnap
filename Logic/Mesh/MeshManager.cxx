@@ -163,7 +163,7 @@ MeshManager
     pipeline->SetMeshOptions(m_GlobalState->GetMeshOptions());
 
     // Update the meshes
-    pipeline->UpdateMeshes(command);
+    pipeline->UpdateMeshes(command); //TODO: improve this procedure
     }
 
   // Invoke a modified event (?)

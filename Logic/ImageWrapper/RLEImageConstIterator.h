@@ -43,6 +43,9 @@ public:
   /** Index typedef support. */
   typedef typename ImageType::IndexType      IndexType;
 
+  /** Index typedef support. */
+  typedef typename ImageType::IndexValueType      IndexValueType;
+
   /** Size typedef support. */
   typedef typename ImageType::SizeType      SizeType;
 

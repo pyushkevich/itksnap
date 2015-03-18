@@ -4,6 +4,7 @@
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
+#include "ImageWrapperTraits.h"
 
 #include "itkRegionOfInterestImageFilter.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
@@ -16,7 +17,7 @@ class BrushWatershedPipeline
 {
 public:
   typedef itk::Image<GreyType, 3> GreyImageType;
-  typedef itk::Image<LabelType, 3> LabelImageType;
+  typedef LabelImageWrapperTraits::ImageType LabelImageType;
   typedef itk::Image<float, 3> FloatImageType;
   typedef itk::Image<itk::IdentifierType, 3> WatershedImageType;
   typedef WatershedImageType::IndexType IndexType;
@@ -128,7 +129,7 @@ public:
 
 private:
   typedef itk::RegionOfInterestImageFilter<GreyImageType, FloatImageType> ROIType;
-  typedef itk::RegionOfInterestImageFilter<LabelImageType, LabelImageType> LROIType;
+  typedef itk::RegionOfInterestImageFilter<LabelImageType, LabelImageType> LROIType; //TODO: specialize
   typedef itk::GradientAnisotropicDiffusionImageFilter<FloatImageType,FloatImageType> ADFType;
   typedef itk::GradientMagnitudeImageFilter<FloatImageType, FloatImageType> GMFType;
   typedef itk::WatershedImageFilter<FloatImageType> WFType;

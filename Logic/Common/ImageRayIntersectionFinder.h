@@ -45,13 +45,13 @@
  * hit tester (a functor with operator () which returns 0 for no-hit and 
  * 1 for hit).
  */
-template <class TPixel, class THitTester>
+template <class TImage, class THitTester>
 class ImageRayIntersectionFinder
 {
 public:
     virtual ~ImageRayIntersectionFinder() {}
   /** Image type */
-  typedef itk::Image<TPixel,3> ImageType;
+  typedef typename TImage ImageType;
 
   /** Set the hit-test functor to evaluate for hits */
   irisSetMacro(HitTester,THitTester);

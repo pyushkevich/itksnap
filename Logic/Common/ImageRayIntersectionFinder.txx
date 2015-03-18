@@ -35,10 +35,10 @@
 
 #include "itkImage.h"
 
-template <class TPixel, class THitTester>
+template <class TImage, class THitTester>
 int
-ImageRayIntersectionFinder<TPixel,THitTester>    
-::FindIntersection(ImageType *image,Vector3d point,
+ImageRayIntersectionFinder<TImage, THitTester>
+::FindIntersection(TImage *image, Vector3d point,
                    Vector3d ray,Vector3i &hit) const
 {
   typename ImageType::IndexType lIndex;
@@ -99,7 +99,7 @@ ImageRayIntersectionFinder<TPixel,THitTester>
     lIndex[2] = (int)pz;
 
     // Get the pixel
-    TPixel hitPixel = image->GetPixel(lIndex);
+    ImageType::PixelType hitPixel = image->GetPixel(lIndex);
     
     // Test if the pixel is a hit
     if(m_HitTester(hitPixel))

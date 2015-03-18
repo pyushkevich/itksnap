@@ -36,6 +36,7 @@
 #ifndef __IRISApplication_h_
 #define __IRISApplication_h_
 
+#include "ImageWrapperTraits.h"
 #include "ImageCoordinateTransform.h"
 #include "IRISDisplayGeometry.h"
 #include "itkImageRegion.h"
@@ -122,7 +123,10 @@ public:
   // The internal representation of anatomical images
   typedef itk::VectorImage<GreyType, 3> AnatomyImageType;
 
-  typedef itk::Image<LabelType,3> LabelImageType;
+  //typedef RLEImage<LabelType> LabelImageType;
+  //avoid duplicating definition of LabelImageType, like this:
+  typedef LabelImageWrapperTraits::ImageType LabelImageType;
+
   typedef itk::Image<short ,3> SpeedImageType;
   typedef itk::Command CommandType;
   typedef UndoDataManager<LabelType> UndoManagerType;

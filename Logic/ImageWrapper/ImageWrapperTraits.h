@@ -3,7 +3,7 @@
 
 #include "SNAPCommon.h"
 #include "ImageWrapperBase.h"
-#include "RLEImage.h"
+#include "RLEImageRegionIterator.h"
 
 #include "CommonRepresentationPolicy.h"
 #include "DisplayMappingPolicy.h"

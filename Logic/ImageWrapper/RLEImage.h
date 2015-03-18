@@ -179,6 +179,14 @@ public:
             CleanUp(); //put the image into a clean state
     }
 
+    /** Make a deep copy of the source image. */
+    void DeepCopy(const Self& source)
+    {
+        this->SetRegions(source.GetLargestPossibleRegion());
+        this->myBuffer = source.myBuffer;
+        this->Modified();
+    }
+
 protected:
     RLEImage() : itk::ImageBase < 3 >()
     {
