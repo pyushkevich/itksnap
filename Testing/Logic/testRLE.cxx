@@ -1,4 +1,5 @@
 #include "RLEImageRegionIterator.h"
+#include "RLERegionOfInterestImageFilter.h"
 #include <iostream>
 #include <string>
 #include <itkImageFileReader.h>
@@ -43,30 +44,23 @@ int main(int argc, char* argv[])
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
     test->Print(std::cout);
 
-    cout << "Blanking middle of the image using iterators" << endl;
+    cout << "Invoking RegionOfInterest filter:"; tp.Start();
     shortRLEImage::RegionType r = test->GetLargestPossibleRegion();
     for (int i = 0; i < 3; i++)
     {
         r.SetIndex(i, r.GetIndex(i) + r.GetSize(i) / 4);
         r.SetSize(i, r.GetSize(i) / 2);
     }
-    typedef itk::ImageRegionIterator<shortRLEImage> itType;
-    itType it(test, r);
-   
-    std::cout << "Reverse iteration:"; tp.Start();
-    it.GoToEnd();
-    do
-    {
-        --it;
-        it.Set(0);
-        //cout << it.GetIndex() << ": " << it.Value() << endl;
-    } while (!it.IsAtBegin());
-    //while (!it.IsAtEnd())
-    //{
-    //    //cout << it.GetIndex() << ": " << it.Value() << endl;
-    //    it.Set(0);
-    //    ++it;
-    //}
+    typedef itk::RegionOfInterestImageFilter<shortRLEImage, shortRLEImage> roiType;
+    roiType::Pointer roi = roiType::New();
+    roi->SetInput(test);
+    roi->SetRegionOfInterest(r);
+    roi->SetNumberOfThreads(1);
+    roi->Update();
+    tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
+    
+    cout << "Assignment operator:"; tp.Start();
+    test = roi->GetOutput();
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
 
     std::cout << "RLE->itk conversion: "; tp.Start();

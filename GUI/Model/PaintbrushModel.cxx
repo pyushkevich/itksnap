@@ -129,7 +129,7 @@ public:
 
 private:
   typedef itk::RegionOfInterestImageFilter<GreyImageType, FloatImageType> ROIType;
-  typedef itk::RegionOfInterestImageFilter<LabelImageType, LabelImageType> LROIType; //TODO: specialize
+  typedef itk::RegionOfInterestImageFilter<LabelImageType, LabelImageType> LROIType;
   typedef itk::GradientAnisotropicDiffusionImageFilter<FloatImageType,FloatImageType> ADFType;
   typedef itk::GradientMagnitudeImageFilter<FloatImageType, FloatImageType> GMFType;
   typedef itk::WatershedImageFilter<FloatImageType> WFType;

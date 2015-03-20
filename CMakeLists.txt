@@ -295,12 +295,14 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
   Logic/ImageWrapper/ImageWrapperTraits.h
-  Logic/ImageWrapper/RLEImage.h
-  Logic/ImageWrapper/RLEImage.txx
-  Logic/ImageWrapper/RLEImageConstIterator.h
-  Logic/ImageWrapper/RLEImageIterator.h
-  Logic/ImageWrapper/RLEImageRegionConstIterator.h
-  Logic/ImageWrapper/RLEImageRegionIterator.h
+  Logic/RLEImage/RLEImage.h
+  Logic/RLEImage/RLEImage.txx
+  Logic/RLEImage/RLEImageConstIterator.h
+  Logic/RLEImage/RLEImageIterator.h
+  Logic/RLEImage/RLEImageRegionConstIterator.h
+  Logic/RLEImage/RLEImageRegionIterator.h
+  Logic/RLEImage/RLERegionOfInterestImageFilter.h
+  Logic/RLEImage/RLERegionOfInterestImageFilter.txx
   Logic/ImageWrapper/InputSelectionImageFilter.h
   Logic/ImageWrapper/LabelToRGBAFilter.h
   Logic/ImageWrapper/NativeIntensityMappingPolicy.h
@@ -787,6 +789,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/GMM
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/RandomForest
+    ${SNAP_SOURCE_DIR}/Logic/RLEImage
     ${SNAP_SOURCE_DIR}/Logic/Slicing
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
@@ -966,6 +969,7 @@ ADD_EXECUTABLE(testRLE Testing/Logic/testRLE.cxx)
 TARGET_LINK_LIBRARIES(testRLE ${ITK_LIBRARIES})
 
 ADD_EXECUTABLE(iteratorTests
+    Testing/Logic/itkRegionOfInterestImageFilterTest.cxx
     Testing/Logic/itkIteratorTests.cxx
     Testing/Logic/itkImageIteratorsForwardBackwardTest.cxx
     Testing/Logic/itkImageIteratorTest.cxx

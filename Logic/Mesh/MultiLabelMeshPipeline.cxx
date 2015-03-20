@@ -46,9 +46,8 @@
 #include "MeshOptions.h"
 
 // ITK includes
-#include "itkRegionOfInterestImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
-#include "itkImageRegionConstIteratorWithIndex.h"
+#include "RLEImageRegionConstIterator.h"
 
 using namespace std;
 

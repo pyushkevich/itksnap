@@ -4,7 +4,7 @@
 #include "RLEImage.h"
 
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
-void RLEImage< TPixel, RunLengthCounterType >::Allocate()
+void RLEImage< TPixel, RunLengthCounterType >::Allocate(bool initialize)
 {
     myBuffer.resize(this->GetLargestPossibleRegion().GetSize(2));
 #pragma omp parallel for

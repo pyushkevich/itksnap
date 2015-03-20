@@ -6,6 +6,12 @@
 #include <itkImageBase.h>
 #include <itkImage.h>
 
+namespace itk //otherwise we run into circular including/referencing
+{
+    template<typename TI, typename TO>
+    class RegionOfInterestImageFilter;
+}
+
 /**
 * It is best if pixel type and counter type have the same byte size
 * (for memory alignment purposes).
@@ -16,6 +22,10 @@
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 class RLEImage : public itk::ImageBase < 3 >
 {
+    template<typename TI, typename TO>
+    friend class itk::RegionOfInterestImageFilter;
+    //both general and specialized versions are our friends
+
 public:
     /** Standard class typedefs */
     typedef RLEImage                        Self;
@@ -90,8 +100,8 @@ public:
 
     /** Allocate the image memory. The size of the image must
     * already be set, e.g. by calling SetRegions().
-    * Pixel values are initialized to zero. */
-    virtual void Allocate();
+    * Pixel values are initialized using default constructor. */
+    virtual void Allocate(bool initialize = false) override;
 
     /** Restore the data object to its initial state. This means releasing
     * memory. */
