@@ -91,6 +91,7 @@ JOINImageData
 
     // Pass the image to the wrapper
     m_JsrcWrapper->SetImage(newJsrcImage);
+    m_JsrcWrapper->GetImage()->Modified();// This makes sure that the IsDrawable() of the wrapper returns true, essential for showing up in the the SliceView (l.284 GenericSliceRenderer.cxx)
 
     // Sync up spacing between the main and label image
     newJsrcImage->SetSpacing(m_MainImageWrapper->GetImageBase()->GetSpacing());
@@ -189,6 +190,7 @@ JOINImageData
 
     // Pass the image to the wrapper
     m_WsrcWrapper->SetImage(newWsrcImage);
+    m_WsrcWrapper->GetImage()->Modified();// This makes sure that the IsDrawable() of the wrapper returns true, essential for showing up in the the SliceView (l.284 GenericSliceRenderer.cxx)
 
     // Sync up spacing between the main and label image
     newWsrcImage->SetSpacing(m_MainImageWrapper->GetImageBase()->GetSpacing());
