@@ -61,7 +61,7 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 
 	//// Initialize the image data
 	driver->InitializeJOINImageData(
-	    driver->GetGlobalState()->GetSegmentationROISettings(),
+	    driver->GetGlobalState()->GetSegmentationROISettings(), sel,
 	    m_Model->GetProgressCommand());
 
 	driver->CopySegementationToJsrc(
@@ -105,7 +105,7 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 
 	//// Initialize the image data
 	driver->InitializeJOINImageData(
-	    driver->GetGlobalState()->GetSegmentationROISettings(),
+	    driver->GetGlobalState()->GetSegmentationROISettings(), sel,
 	    m_Model->GetProgressCommand());
 
 	driver->CopySegementationToJsrc(

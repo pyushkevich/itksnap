@@ -1,6 +1,6 @@
 TODOs for GWS:
 
-- add layer for adf output
+- make Wsrc-layer visible in Slice-view
 - add 'n' for next smallest unused label see eg m_Wrapper->GetHistogram(nBins) in ./Logic/ImageWrapper/DisplayMappingPolicy.cxx
 - make UnDo possible
 - destinguish RMB click from RMB drag (zoom)

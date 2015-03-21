@@ -1023,6 +1023,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 
 template class ColorLabelTableDisplayMappingPolicy<LabelImageWrapperTraits>;
 template class JsrcDisplayMappingPolicy<JsrcImageWrapperTraits>;
+template class LinearColorMapDisplayMappingPolicy<WsrcImageWrapperTraits>;
 
 template class LinearColorMapDisplayMappingPolicy<LevelSetImageWrapperTraits>;
 template class LinearColorMapDisplayMappingPolicy<SpeedImageWrapperTraits>;

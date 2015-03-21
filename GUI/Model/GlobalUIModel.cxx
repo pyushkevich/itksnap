@@ -799,6 +799,8 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
         category = "Join Source Image";
       else if(dynamic_cast<JdstImageWrapper *>(layer))
         category = "Join Destination Image";
+      else if(dynamic_cast<WsrcImageWrapper *>(layer))
+        category = "GWS Source Image";
       break;
     case LABEL_ROLE:
       category = "Segmentation Image";

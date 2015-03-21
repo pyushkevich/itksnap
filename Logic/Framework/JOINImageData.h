@@ -55,6 +55,7 @@ public:
   typedef Superclass::AnatomicImageType               AnatomicImageType;
   typedef JsrcImageWrapper::ImageType                     JsrcImageType;
   typedef JdstImageWrapper::ImageType                     JdstImageType;
+  typedef WsrcImageWrapper::ImageType                     WsrcImageType;
 
   /** Initialize to a ROI from another image data object */
   void InitializeToROI(GenericImageData *source,
@@ -76,21 +77,29 @@ public:
   void SetJsrc(JsrcImageType *newJsrcImage);
   bool IsJsrcLoaded();
   
-
   void InitializeJdst();
   JdstImageWrapper* GetJdst();
   bool IsJdstLoaded();
+
+  void InitializeWsrc();
+  WsrcImageWrapper* GetWsrc();
+  void SetWsrc(WsrcImageType *newWsrcImage);
+  bool IsWsrcLoaded();
+  
   
 protected:
 
   JOINImageData();
   ~JOINImageData();
 
-  // Speed image adata
+  // Join source image
   SmartPtr<JsrcImageWrapper> m_JsrcWrapper;
 
-  // Wrapper around the level set image
+  // Join destination image
   SmartPtr<JdstImageWrapper> m_JdstWrapper;
+
+  // GWS source image
+  SmartPtr<WsrcImageWrapper> m_WsrcWrapper;
 };
 
 

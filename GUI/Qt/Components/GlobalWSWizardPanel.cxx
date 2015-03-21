@@ -180,10 +180,12 @@ void GlobalWSWizardPanel::on_btnNextPreproc_clicked(){
 	// Handle cursor
 	QtCursorOverride curse(Qt::WaitCursor);
                 
+	driver->GetJOINImageData()->SetWsrc(
 	    m_Watershed->ComputeWSImage(
 		driver->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation()->GetCommonFormatImage(),
 		ui->inConductance->value()/100.0, ui->inSmoothingIter->value(),
 		ui->chkGlobalWSDirect->isChecked()
+		)
 	    );
 
         // Move to the range page

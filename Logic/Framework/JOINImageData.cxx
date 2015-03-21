@@ -45,6 +45,11 @@ JOINImageData
 ::~JOINImageData(){
     }
 
+
+/* =============================
+   Join source Image
+   ============================= */
+
 void 
 JOINImageData
 ::InitializeJsrc(){
@@ -56,7 +61,7 @@ JOINImageData
 	{
 	m_JsrcWrapper = JsrcImageWrapper::New();
 	m_JsrcWrapper->SetDefaultNickname("Join Source Image");
-	PushBackImageWrapper(JOIN_ROLE, m_JsrcWrapper.GetPointer());
+        PushBackImageWrapper(JOIN_ROLE, m_JsrcWrapper.GetPointer());
 	}
 
     m_JsrcWrapper->InitializeToWrapper(m_MainImageWrapper, (JSRType) 0);
@@ -98,6 +103,11 @@ JOINImageData
     return m_JsrcWrapper && m_JsrcWrapper->IsInitialized();
     }
 
+
+/* =============================
+   Join destination Image
+   ============================= */
+
 void
 JOINImageData
 ::InitializeJdst(){
@@ -132,6 +142,66 @@ JOINImageData
 {
   return (m_JdstWrapper && m_JdstWrapper->IsInitialized());
 }
+
+
+/* =============================
+   GWS source Image
+   ============================= */
+
+void 
+JOINImageData
+::InitializeWsrc(){
+    // The Grey image wrapper should be present
+    assert(m_MainImageWrapper->IsInitialized());
+
+    // Intialize Wsrc based on the current grey image
+    if(m_WsrcWrapper.IsNull())
+	{
+	m_WsrcWrapper = WsrcImageWrapper::New();
+	m_WsrcWrapper->SetDefaultNickname("GWS Source Image");
+	PushBackImageWrapper(JOIN_ROLE, m_WsrcWrapper.GetPointer());
+	}
+
+    m_WsrcWrapper->InitializeToWrapper(m_MainImageWrapper, (WSRType) 0);
+    m_WsrcWrapper->SetSticky(true); //overlay, ie no separate tile
+    m_WsrcWrapper->SetAlpha(0.5);
+
+    InvokeEvent(LayerChangeEvent());
+    }
+
+WsrcImageWrapper* 
+JOINImageData
+::GetWsrc(){
+    // Make sure it exists
+    assert(IsWsrcLoaded());
+    return m_WsrcWrapper;
+    }
+
+void
+JOINImageData
+::SetWsrc(WsrcImageType *newWsrcImage){
+    ////from ./Logic/Framework/GenericImageData.cxx:244:::SetSegmentationImage
+    // Check that the image matches the size of the grey image
+    assert(m_MainImageWrapper->IsInitialized());
+
+    assert(m_MainImageWrapper->GetBufferedRegion() ==
+	newWsrcImage->GetBufferedRegion());
+
+    // Pass the image to the wrapper
+    m_WsrcWrapper->SetImage(newWsrcImage);
+
+    // Sync up spacing between the main and label image
+    newWsrcImage->SetSpacing(m_MainImageWrapper->GetImageBase()->GetSpacing());
+    newWsrcImage->SetOrigin(m_MainImageWrapper->GetImageBase()->GetOrigin());
+    }
+
+bool 
+JOINImageData
+::IsWsrcLoaded(){
+    return m_WsrcWrapper && m_WsrcWrapper->IsInitialized();
+    }
+
+/**********************************/
 
 void
 JOINImageData
@@ -229,6 +299,7 @@ void JOINImageData::UnloadAll(){
 	PopBackImageWrapper(JOIN_ROLE);
     m_JsrcWrapper = NULL;
     m_JdstWrapper = NULL;
+    m_WsrcWrapper = NULL;
 
     InvokeEvent(LayerChangeEvent());
     }

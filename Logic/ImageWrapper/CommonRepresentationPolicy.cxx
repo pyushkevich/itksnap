@@ -88,6 +88,9 @@ template class InPlaceScalarImageWrapperCommonRepresentation<
 template class CastingScalarImageWrapperCommonRepresentation<
     GreyType, LevelSetImageWrapperTraits >;
 
+template class CastingScalarImageWrapperCommonRepresentation<
+    GreyType, WsrcImageWrapperTraits >;
+
 
 
 
