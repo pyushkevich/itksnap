@@ -1,12 +1,12 @@
 TODOs for GWS:
 
-- add image+layer for adf output
+- add layer for adf output
 - add 'n' for next smallest unused label see eg m_Wrapper->GetHistogram(nBins) in ./Logic/ImageWrapper/DisplayMappingPolicy.cxx
 - make UnDo possible
-- add functionality to all buttons, e.g. back
 - destinguish RMB click from RMB drag (zoom)
 - would be nice to let user choose which color representation should be used for Jsrc
 - make GUI parts more fool prove
 - add an invert option for direct mode, see e.g. InvertFunctor in SNAPImageData
 
-- add MorphlogicalWS from all Labels into PB and/or CnJ
+- add MorphlogicalWS from all Labels into PB, result as overlay
+- change "load from file" to "load from overlay" in CnJ and gWS

@@ -41,7 +41,7 @@ class WatershedPipeline{
 public:
     typedef itk::Image<GreyType, 3> GreyImageType;
     typedef itk::Image<JSRType, 3> JsrcImageType;
-    typedef itk::Image<float, 3> FloatImageType;
+    typedef itk::Image<WSRType, 3> WsrcImageType;
     typedef itk::Image<GWSType, 3> WatershedImageType;
 
     WatershedPipeline(){
@@ -64,10 +64,9 @@ public:
 	cif->SetInput(wf->GetOutput());
 	}
 
-    JsrcImageType* PrecomputeWatersheds(
+    WsrcImageType* ComputeWSImage(
 	GreyImageType *grey,
 	double cParam, size_t sIter,
-	double iThr, double iLevel, 
 	bool direct){
 
 	//// Initialize the watershed pipeline
@@ -75,10 +74,22 @@ public:
 	adf->SetNumberOfIterations(sIter);
 	adf->SetConductanceParameter(cParam);
 
-	if(direct)
-	    wf->SetInput(adf->GetOutput());
-	else
-	    wf->SetInput(gmf->GetOutput());
+        WsrcImageType* wsImage;
+        
+	if(direct){
+            adf->UpdateLargestPossibleRegion();
+	    wsImage= adf->GetOutput();
+            }
+	else{
+            gmf->UpdateLargestPossibleRegion();
+            wsImage= gmf->GetOutput();
+            }
+        
+        wf->SetInput(wsImage);
+	return(wsImage);
+	}
+
+    JsrcImageType* PrecomputeWatersheds(double iThr, double iLevel){
 
 	wf->SetThreshold(iThr);
 	wf->SetLevel(iLevel);
@@ -94,9 +105,9 @@ public:
 	}
 
 private:
-    typedef itk::GradientAnisotropicDiffusionImageFilter<GreyImageType,FloatImageType> ADFType;
-    typedef itk::GradientMagnitudeImageFilter<FloatImageType, FloatImageType> GMFType;
-    typedef itk::WatershedImageFilter<FloatImageType> WFType;
+    typedef itk::GradientAnisotropicDiffusionImageFilter<GreyImageType,WsrcImageType> ADFType;
+    typedef itk::GradientMagnitudeImageFilter<WsrcImageType, WsrcImageType> GMFType;
+    typedef itk::WatershedImageFilter<WsrcImageType> WFType;
     typedef itk::CastImageFilter<WatershedImageType, JsrcImageType> CIFType;
 
     ADFType::Pointer adf;
@@ -160,13 +171,22 @@ void GlobalWSWizardPanel::on_btnCancel_clicked(){
     }
 
 void GlobalWSWizardPanel::on_btnNextPreproc_clicked(){
-    // Call the initialization code
+    // Get the global objects
+    IRISApplication *driver = m_ParentModel->GetDriver();
+    GlobalState *gs = driver->GetGlobalState();
+
     try
 	{
 	// Handle cursor
 	QtCursorOverride curse(Qt::WaitCursor);
+                
+	    m_Watershed->ComputeWSImage(
+		driver->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation()->GetCommonFormatImage(),
+		ui->inConductance->value()/100.0, ui->inSmoothingIter->value(),
+		ui->chkGlobalWSDirect->isChecked()
+	    );
 
-	// Move to the range page
+        // Move to the range page
 	ui->stack->setCurrentWidget(ui->pgWSRange);
 	}
     catch(IRISException &exc)
@@ -187,12 +207,7 @@ void GlobalWSWizardPanel::on_btnWSRangeNext_clicked(){
 	QtCursorOverride curse(Qt::WaitCursor);
 
 	driver->GetJOINImageData()->SetJsrc(
-	    m_Watershed->PrecomputeWatersheds(
-		driver->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation()->GetCommonFormatImage(),
-		ui->inConductance->value()/100.0, ui->inSmoothingIter->value(),
-		ui->inWSMin->value()/100.0, ui->inWSMax->value()/100.0,
-		ui->chkGlobalWSDirect->isChecked()
-		)
+	    m_Watershed->PrecomputeWatersheds(ui->inWSMin->value()/100.0, ui->inWSMax->value()/100.0)
 	    );
 
 	std::cerr << "Changing WS to level: " << ui->inWSLevel->value()/100.0 << std::flush;
@@ -270,10 +285,10 @@ void GlobalWSWizardPanel::on_btnClearSeg_clicked(){
     driver->InvokeEvent(SegmentationChangeEvent());
     }
 
-void GlobalWSWizardPanel::on_btnLoadFromFile_clicked(){
+void GlobalWSWizardPanel::on_btnLoadFromFile_clicked(){///better make it a choose overlay button as ROI cropping has already happend
     // not working yet
     // Create a model for IO
-    SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
+    SmartPtr<LoadOverlayImageDelegate> delegate = LoadOverlayImageDelegate::New();
     delegate->Initialize(m_ParentModel->GetDriver());
     SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
     model->InitializeForLoad(m_ParentModel, delegate,
