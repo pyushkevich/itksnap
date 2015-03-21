@@ -85,7 +85,7 @@ public:
             wsImage= gmf->GetOutput();
             }
         
-        wf->SetInput(wsImage);
+        wf->SetInput(wsImage);//causes recomp even when no params were chanaged -> todo: optimize by setting input only if it changed
 	return(wsImage);
 	}
 
@@ -150,9 +150,6 @@ void GlobalWSWizardPanel::Initialize(){
     // Initialize the model
     m_Model->OnGlobalWSModeEnter();
 
-    // set tiled layout to ease understanding the interaction mode
-    m_ParentModel->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
-
     // Go to the right page
     ui->stack->setCurrentWidget(ui->pgPreproc);
     }
@@ -187,6 +184,13 @@ void GlobalWSWizardPanel::on_btnNextPreproc_clicked(){
 		ui->chkGlobalWSDirect->isChecked()
 		)
 	    );
+        // set tiled layout to ease understanding the interaction mode
+	driver->GetJOINImageData()->SetWsrcSticky(false);
+	m_ParentModel->SetWsrcVisibility(true);
+	//m_ParentModel->SetJsrcVisibility(false);//let user decide
+	//m_ParentModel->SetJdstVisibility(false);//let user decide
+	m_ParentModel->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_STACKED);//only when coming from stacked view will the tiled view get reorganized
+	m_ParentModel->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
 
         // Move to the range page
 	ui->stack->setCurrentWidget(ui->pgWSRange);
@@ -211,6 +215,14 @@ void GlobalWSWizardPanel::on_btnWSRangeNext_clicked(){
 	driver->GetJOINImageData()->SetJsrc(
 	    m_Watershed->PrecomputeWatersheds(ui->inWSMin->value()/100.0, ui->inWSMax->value()/100.0)
 	    );
+        // set tiled layout to ease understanding the interaction mode
+	driver->GetJOINImageData()->SetJdstSticky(false);
+	driver->GetJOINImageData()->SetWsrcSticky(true);
+	m_ParentModel->SetWsrcVisibility(false);
+	m_ParentModel->SetJsrcVisibility(true);//make sure Jsrc is visible
+	m_ParentModel->SetJdstVisibility(true);//make sure Jdst is visible
+	m_ParentModel->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_STACKED);//only when coming from stacked view will the tiled view get reorganized
+	m_ParentModel->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
 
 	std::cerr << "Changing WS to level: " << ui->inWSLevel->value()/100.0 << std::flush;
 	m_Watershed->RecomputeWatersheds(ui->inWSLevel->value()/100.0);
@@ -310,6 +322,13 @@ void GlobalWSWizardPanel::on_btnWSRangeBack_clicked(){
 
 	// Move to the range page
 	ui->stack->setCurrentWidget(ui->pgPreproc);
+
+        // reset tiled layout
+	m_ParentModel->GetDriver()->GetJOINImageData()->SetWsrcSticky(true);
+	m_ParentModel->SetWsrcVisibility(false);
+	//m_ParentModel->SetJsrcVisibility(false);//let user decide
+	//m_ParentModel->SetJdstVisibility(false);//let user decide
+	m_ParentModel->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_STACKED);
 	}
     catch(IRISException &exc)
 	{
@@ -325,6 +344,15 @@ void GlobalWSWizardPanel::on_btnJoinBack_clicked(){
 
 	// Move to the range page
 	ui->stack->setCurrentWidget(ui->pgWSRange);
+
+	// reset tiled layout
+	m_ParentModel->GetDriver()->GetJOINImageData()->SetJdstSticky(true);
+	m_ParentModel->GetDriver()->GetJOINImageData()->SetWsrcSticky(false);
+	m_ParentModel->SetWsrcVisibility(true);
+	//m_ParentModel->SetJsrcVisibility(false);//let user decide
+	//m_ParentModel->SetJdstVisibility(false);//let user decide
+	m_ParentModel->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_STACKED);//only when coming from stacked view will the tiled view get reorganized
+	m_ParentModel->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
 	}
     catch(IRISException &exc)
 	{

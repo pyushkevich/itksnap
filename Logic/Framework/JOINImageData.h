@@ -80,11 +80,13 @@ public:
   void InitializeJdst();
   JdstImageWrapper* GetJdst();
   bool IsJdstLoaded();
+  void SetJdstSticky(bool sticky);
 
   void InitializeWsrc();
   WsrcImageWrapper* GetWsrc();
   void SetWsrc(WsrcImageType *newWsrcImage);
   bool IsWsrcLoaded();
+  void SetWsrcSticky(bool sticky);
   
   
 protected:

@@ -256,6 +256,15 @@ public:
   /** Method to toggle Jsrc visibility */
   void ToggleJsrcVisibility();
 
+  /** Method to set Jsrc visibility */
+  void SetJsrcVisibility(bool set);
+
+  /** Method to set Jdst visibility */
+  void SetJdstVisibility(bool set);
+
+  /** Method to set Wsrc visibility */
+  void SetWsrcVisibility(bool set);
+
   /** Method to adjust overlay opacity (all or selected overlays) */
   void AdjustOverlayOpacity(int delta);
 

@@ -89,7 +89,7 @@ public:
   static void GetFixedIntensityRange(float &min, float &max)
     { min = -100.0; max = 100.0; }
 
-  itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_JET);
+  itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_RWB);
 
   // Whether this image is shown on top of all other layers by default
   itkStaticConstMacro(StickyByDefault, bool, true);

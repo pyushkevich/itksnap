@@ -124,7 +124,7 @@ JOINImageData
 
     m_JdstWrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
     m_JdstWrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
-    m_JdstWrapper->SetSticky(false);
+    m_JdstWrapper->SetSticky(true);//sticky is set with SetJdstSticky
     m_JdstWrapper->SetAlpha(0.5);
 
     InvokeEvent(LayerChangeEvent());
@@ -144,6 +144,11 @@ JOINImageData
   return (m_JdstWrapper && m_JdstWrapper->IsInitialized());
 }
 
+void 
+JOINImageData
+::SetJdstSticky(bool sticky){
+    m_JdstWrapper->SetSticky(sticky);
+    }
 
 /* =============================
    GWS source Image
@@ -164,7 +169,7 @@ JOINImageData
 	}
 
     m_WsrcWrapper->InitializeToWrapper(m_MainImageWrapper, (WSRType) 0);
-    m_WsrcWrapper->SetSticky(true); //overlay, ie no separate tile
+    m_WsrcWrapper->SetSticky(true); //sticky is set with SetWsrcSticky
     m_WsrcWrapper->SetAlpha(0.5);
 
     InvokeEvent(LayerChangeEvent());
@@ -201,6 +206,12 @@ bool
 JOINImageData
 ::IsWsrcLoaded(){
     return m_WsrcWrapper && m_WsrcWrapper->IsInitialized();
+    }
+
+void 
+JOINImageData
+::SetWsrcSticky(bool sticky){
+    m_WsrcWrapper->SetSticky(sticky);
     }
 
 /**********************************/
