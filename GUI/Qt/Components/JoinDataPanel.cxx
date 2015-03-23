@@ -76,6 +76,7 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 	//m_Model->SetJdstVisibility(true);//crashes, seems to be default anyway
 	m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_STACKED);//only when coming from stacked view will the tiled view get reorganized
 	m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
+	m_Model->SetSegmentationVisibility(true);
 	} break;
     case 1:{
 	////panel will be hidden in GWSJOIN_MODE
@@ -120,6 +121,7 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 
 	// set tiled layout to ease understanding the interaction mode
 	m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
+	m_Model->SetSegmentationVisibility(true);
 	} break;
     default:
 	////Switch to crosshairs mode
@@ -148,6 +150,7 @@ void JoinDataPanel::on_btnFinishCnJ_clicked(){
     ui->btnFinishCnJ->setEnabled(false);
     ui->inJoinType->setEnabled(true);
     m_Model->GetGlobalState()->SetToolbarMode(CROSSHAIRS_MODE); //disables JoinInteraction
+    m_Model->SetSegmentationVisibility(true);
     }
 
 void JoinDataPanel::on_btnCancel_clicked(){
@@ -163,6 +166,7 @@ void JoinDataPanel::on_btnCancel_clicked(){
     ui->btnFinishCnJ->setEnabled(false);
     ui->inJoinType->setEnabled(true);
     m_Model->GetGlobalState()->SetToolbarMode(CROSSHAIRS_MODE); //disables JoinInteraction
+    m_Model->SetSegmentationVisibility(true);
     }
 
 
@@ -173,7 +177,7 @@ void JoinDataPanel::on_btnCopySeg_clicked(){
 	m_Model->GetProgressCommand());
 
     driver->InvokeEvent(SegmentationChangeEvent());
-
+    m_Model->SetSegmentationVisibility(true);
     }
 
 void JoinDataPanel::on_btnClearSeg_clicked(){
@@ -181,4 +185,5 @@ void JoinDataPanel::on_btnClearSeg_clicked(){
     driver->ClearJdst();
 
     driver->InvokeEvent(SegmentationChangeEvent());
+    m_Model->SetSegmentationVisibility(true);
     }

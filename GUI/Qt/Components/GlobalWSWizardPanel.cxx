@@ -290,6 +290,7 @@ void GlobalWSWizardPanel::on_btnCopySeg_clicked(){
 	m_ParentModel->GetProgressCommand());
 
     driver->InvokeEvent(SegmentationChangeEvent());
+    m_ParentModel->SetSegmentationVisibility(true);
     }
 
 void GlobalWSWizardPanel::on_btnClearSeg_clicked(){
@@ -297,6 +298,7 @@ void GlobalWSWizardPanel::on_btnClearSeg_clicked(){
     driver->ClearJdst();
 
     driver->InvokeEvent(SegmentationChangeEvent());
+    m_ParentModel->SetSegmentationVisibility(true);
     }
 
 void GlobalWSWizardPanel::on_btnLoadFromFile_clicked(){///better make it a choose overlay button as ROI cropping has already happend
