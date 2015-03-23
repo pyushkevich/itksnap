@@ -246,7 +246,7 @@ IRISApplication
 
 void 
 IRISApplication
-::InitializeJOINImageData(const SNAPSegmentationROISettings &roi,
+::InitializeJOINImageData(const SNAPSegmentationROISettings &roi, int CnJMode,
                           CommandType *progressCommand)
 {
   assert(m_IRISImageData->IsMainLoaded());
@@ -254,6 +254,9 @@ IRISApplication
   // Create the JOIN image data object
   m_JOINImageData->InitializeToROI(m_IRISImageData, roi, progressCommand);
   
+  if(CnJMode == 1)//GWS
+        m_JOINImageData->InitializeWsrc();
+
   // Initialize the source and destination images of the JOIN image data
   m_JOINImageData->InitializeJsrc();
   m_JOINImageData->InitializeJdst();
@@ -2184,6 +2187,12 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
       {
       history = "JdstImage";
       category = "Join Destination Image";
+      }
+
+    else if(dynamic_cast<WsrcImageWrapper *>(layer))
+      {
+      history = "WsrcImage";
+      category = "GWS Source Image";
       }
     }
 

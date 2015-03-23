@@ -72,6 +72,32 @@ public:
   itkStaticConstMacro(PipelineOutput, bool, true);
 };
 
+class WsrcImageWrapperTraits
+{
+public:
+  typedef WsrcImageWrapperTraits Self;
+
+  typedef ScalarImageWrapper<WsrcImageWrapperTraits> WrapperType;
+
+  typedef WSRType ComponentType;
+  typedef itk::Image<ComponentType, 3> ImageType;
+
+  typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
+  typedef LinearColorMapDisplayMappingPolicy<Self> DisplayMapping;
+  typedef NullScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
+
+  static void GetFixedIntensityRange(float &min, float &max)
+    { min = -100.0; max = 100.0; }
+
+  itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_RWB);
+
+  // Whether this image is shown on top of all other layers by default
+  itkStaticConstMacro(StickyByDefault, bool, true);
+
+  // Whether this image is produced from another by a pipeline (e.g., speed image)
+  itkStaticConstMacro(PipelineOutput, bool, true);
+};
+
 class SpeedImageWrapperTraits
 {
 public:
@@ -264,6 +290,7 @@ typedef LabelImageWrapperTraits::WrapperType LabelImageWrapper;
 typedef SpeedImageWrapperTraits::WrapperType SpeedImageWrapper;
 typedef JsrcImageWrapperTraits::WrapperType JsrcImageWrapper;
 typedef LabelImageWrapperTraits::WrapperType JdstImageWrapper;
+typedef WsrcImageWrapperTraits::WrapperType WsrcImageWrapper;
 typedef LevelSetImageWrapperTraits::WrapperType LevelSetImageWrapper;
 
 

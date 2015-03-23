@@ -94,6 +94,7 @@ extern const char SNAPBuildInfo[];
 typedef unsigned short LabelType;
 typedef itk::IdentifierType GWSType;
 typedef GWSType JSRType;
+typedef float WSRType;
 typedef short GreyType;
 extern const GreyType MAXGREYVAL;
 extern const GreyType MINGREYVAL;

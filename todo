@@ -1,12 +1,19 @@
 TODOs for GWS:
 
-- add image+layer for adf output
 - add 'n' for next smallest unused label see eg m_Wrapper->GetHistogram(nBins) in ./Logic/ImageWrapper/DisplayMappingPolicy.cxx
-- make UnDo possible
-- add functionality to all buttons, e.g. back
+- adjust GUI: 
+-- text on gWS range: max available but causes recompute
+-- gWS move use file/overlay to bottom
+- set gWS input only if it changed on prepro. page
+- make UnDo for CnJ/gWS possible
+- parallelize iterators in CnJ and gWS, e.g. in CopySegementationToJsrc and on LMB/RMB
 - destinguish RMB click from RMB drag (zoom)
 - would be nice to let user choose which color representation should be used for Jsrc
 - make GUI parts more fool prove
+- add a GUI progress for current stderr progress
 - add an invert option for direct mode, see e.g. InvertFunctor in SNAPImageData
+- make contrast and LUT adjustment possible for e.g. GWS Source Image
+- make it possible to "save" gWS state, e.g. WS regions and hirarchy such that no recomp. is necessary when gWS state is loaded (difficult, possibly not possible)
 
-- add MorphlogicalWS from all Labels into PB and/or CnJ
+- add MorphlogicalWS from all Labels into PB, result as overlay
+- change "load from file" to "load from overlay" in CnJ and gWS

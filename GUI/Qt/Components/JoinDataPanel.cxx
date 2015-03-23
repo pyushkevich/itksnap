@@ -16,6 +16,7 @@ part of Click'n'Join mode, which was contributed by Roman Grothausmann
 #include "ImageIODelegates.h"
 #include "ImageIOWizard.h"
 #include "ImageIOWizardModel.h"
+#include "JOINImageData.h"
 
 
 JoinDataPanel::JoinDataPanel(QWidget *parent) :
@@ -61,7 +62,7 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 
 	//// Initialize the image data
 	driver->InitializeJOINImageData(
-	    driver->GetGlobalState()->GetSegmentationROISettings(),
+	    driver->GetGlobalState()->GetSegmentationROISettings(), sel,
 	    m_Model->GetProgressCommand());
 
 	driver->CopySegementationToJsrc(
@@ -70,6 +71,10 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 	driver->SetCurrentImageDataToJOIN();
 
 	// set tiled layout to ease understanding the interaction mode
+	driver->GetJOINImageData()->SetJdstSticky(false);
+	//m_Model->SetJsrcVisibility(true);//crashes, seems to be default anyway
+	//m_Model->SetJdstVisibility(true);//crashes, seems to be default anyway
+	m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_STACKED);//only when coming from stacked view will the tiled view get reorganized
 	m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
 	} break;
     case 1:{
@@ -107,7 +112,7 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 
 	//// Initialize the image data
 	driver->InitializeJOINImageData(
-	    driver->GetGlobalState()->GetSegmentationROISettings(),
+	    driver->GetGlobalState()->GetSegmentationROISettings(), sel,
 	    m_Model->GetProgressCommand());
 
 	driver->CopySegementationToJsrc(

@@ -94,6 +94,8 @@ template class CastingScalarImageWrapperCommonRepresentation<
 template class CastingScalarImageWrapperCommonRepresentation<
     GreyType, GreyAnatomicScalarImageWrapperTraits >;
 
+template class CastingScalarImageWrapperCommonRepresentation<
+    GreyType, WsrcImageWrapperTraits >;
 
 
 

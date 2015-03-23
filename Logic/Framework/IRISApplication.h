@@ -125,8 +125,6 @@ public:
 
   typedef itk::Image<LabelType,3> LabelImageType;
   typedef itk::Image<short ,3> SpeedImageType;
-  typedef itk::Image<JSRType,3> JsrcImageType;//why not by #include "JOINImageData.h" ???
-  typedef itk::Image<LabelType,3> JdstImageType;//why not by #include "JOINImageData.h" ???
   typedef itk::Command CommandType;
   typedef UndoDataManager<LabelType> UndoManagerType;
 
@@ -304,7 +302,7 @@ public:
   /**
    * Initialize JOIN Image data using region of interest extents
    */
-  void InitializeJOINImageData(const SNAPSegmentationROISettings &roi,
+  void InitializeJOINImageData(const SNAPSegmentationROISettings &roi, int CnJMode,
                                CommandType *progressCommand = NULL);
 
   /**

@@ -407,11 +407,80 @@ void GlobalUIModel::ToggleJsrcVisibility()
       
       // Apply the toggle for all overlays
       for(LayerIterator it = id->GetLayers(JOIN_ROLE); !it.IsAtEnd(); ++it){
-	  //if(dynamic_cast<JsrcImageWrapper *>(it.GetLayer())){//does not work as currently JsrcImageWrapper == JdstImageWrapper == LabelImageWrapper
+	  //if(dynamic_cast<JsrcImageWrapper *>(it.GetLayer())){//not tested
 	  if(strcmp(it.GetLayer()->GetNickname().c_str(), "Join Source Image") == 0){
 	      m_LayerGeneralPropertiesModel->SetLayer(it.GetLayer());
 	      m_LayerGeneralPropertiesModel->GetLayerVisibilityModel()->SetValue(
 		  !m_LayerGeneralPropertiesModel->GetLayerVisibilityModel()->GetValue());
+	      }
+	  }
+      
+      // Restore the active layer
+      m_LayerGeneralPropertiesModel->SetLayer(curr_layer);
+  }
+}
+
+void GlobalUIModel::SetJsrcVisibility(bool set)
+{
+  // Are we in JOIN mode?
+  if(CheckState(UIF_JOIN_MODE)){
+      GenericImageData *id = m_Driver->GetCurrentImageData();
+
+      // Remember what layer is current in the general properties model
+      ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
+      
+      // Apply the toggle for all overlays
+      for(LayerIterator it = id->GetLayers(JOIN_ROLE); !it.IsAtEnd(); ++it){
+	  //if(dynamic_cast<JsrcImageWrapper *>(it.GetLayer())){//not tested
+	  if(strcmp(it.GetLayer()->GetNickname().c_str(), "Join Source Image") == 0){
+	      m_LayerGeneralPropertiesModel->SetLayer(it.GetLayer());
+	      m_LayerGeneralPropertiesModel->GetLayerVisibilityModel()->SetValue(set);
+	      }
+	  }
+      
+      // Restore the active layer
+      m_LayerGeneralPropertiesModel->SetLayer(curr_layer);
+  }
+}
+
+void GlobalUIModel::SetJdstVisibility(bool set)
+{
+  // Are we in JOIN mode?
+  if(CheckState(UIF_JOIN_MODE)){
+      GenericImageData *id = m_Driver->GetCurrentImageData();
+
+      // Remember what layer is current in the general properties model
+      ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
+      
+      // Apply the toggle for all overlays
+      for(LayerIterator it = id->GetLayers(JOIN_ROLE); !it.IsAtEnd(); ++it){
+	  //if(dynamic_cast<JdstImageWrapper *>(it.GetLayer())){//not tested
+	  if(strcmp(it.GetLayer()->GetNickname().c_str(), "Join Destination Image") == 0){
+	      m_LayerGeneralPropertiesModel->SetLayer(it.GetLayer());
+	      m_LayerGeneralPropertiesModel->GetLayerVisibilityModel()->SetValue(set);
+	      }
+	  }
+      
+      // Restore the active layer
+      m_LayerGeneralPropertiesModel->SetLayer(curr_layer);
+  }
+}
+
+void GlobalUIModel::SetWsrcVisibility(bool set)
+{
+  // Are we in JOIN mode?
+  if(CheckState(UIF_JOIN_MODE)){
+      GenericImageData *id = m_Driver->GetCurrentImageData();
+
+      // Remember what layer is current in the general properties model
+      ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
+      
+      // Apply the toggle for all overlays
+      for(LayerIterator it = id->GetLayers(JOIN_ROLE); !it.IsAtEnd(); ++it){
+	  //if(dynamic_cast<WsrcImageWrapper *>(it.GetLayer())){//not tested
+	  if(strcmp(it.GetLayer()->GetNickname().c_str(), "GWS Source Image") == 0){
+	      m_LayerGeneralPropertiesModel->SetLayer(it.GetLayer());
+	      m_LayerGeneralPropertiesModel->GetLayerVisibilityModel()->SetValue(set);
 	      }
 	  }
       
@@ -809,6 +878,8 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
         category = "Join Source Image";
       else if(dynamic_cast<JdstImageWrapper *>(layer))
         category = "Join Destination Image";
+      else if(dynamic_cast<WsrcImageWrapper *>(layer))
+        category = "GWS Source Image";
       break;
     case LABEL_ROLE:
       category = "Segmentation Image";
