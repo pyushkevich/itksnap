@@ -22,12 +22,12 @@ Seg3DImageType::Pointer loadImage(const std::string filename)
     return sr->GetOutput();
 }
 
-void writeImage(Seg3DImageType::Pointer image, const std::string filename)
+void writeImage(Seg3DImageType::Pointer image, const std::string filename, bool compress = true)
 {
     SegWriterType::Pointer sw = SegWriterType::New();
     sw->SetInput(image);
     sw->SetFileName(filename);
-    sw->SetUseCompression(true);
+    sw->SetUseCompression(compress);
     sw->Update();
 }
 
@@ -67,5 +67,5 @@ int main(int argc, char* argv[])
     inImage = test->toITKImage();
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
     std::cout << " writing image" << endl;
-    writeImage(inImage, "test.mha");
+    writeImage(inImage, "test.mha", true);
 }

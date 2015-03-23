@@ -98,10 +98,10 @@ int itkRegionOfInterestImageFilterTest(int, char* [] )
   regionOfInterest.SetIndex( roiStart );
   regionOfInterest.SetSize(  roiSize  );
 
-  itk::SimpleFilterWatcher watcher(filter);
+  //itk::SimpleFilterWatcher watcher(filter);
   filter->SetRegionOfInterest( regionOfInterest );
 
-
+  filter->SetNumberOfThreads(1);
   filter->Update();
   filter->GetOutput()->Print(std::cout);
 

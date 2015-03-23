@@ -253,11 +253,16 @@ RLEImage< TPixel, RunLengthCounterType >::toITKImage() const
     out->Allocate(false);
 
     itk::Size<3> size;
-    size[2] = myBuffer.size(); //this->GetLargestPossibleRegion().GetSize(2);
-    size[1] = myBuffer[0].size(); //this->GetLargestPossibleRegion().GetSize(1);
-    //size[0] = 0;
-    //for (int x = 0; x < myBuffer[0][0].size(); x++)
-    //    size[0] += myBuffer[0][0][x].first;
+    size[2] = myBuffer.size();
+    assert(size[2] == this->GetLargestPossibleRegion().GetSize(2));
+    size[1] = myBuffer[0].size();
+    assert(size[1] == this->GetLargestPossibleRegion().GetSize(1));
+    #ifdef _DEBUG
+    size[0] = 0;
+    for (int x = 0; x < myBuffer[0][0].size(); x++)
+        size[0] += myBuffer[0][0][x].first;
+    assert(size[0] == this->GetLargestPossibleRegion().GetSize(0));
+    #endif
     size[0] = this->GetLargestPossibleRegion().GetSize(0);
 
     TPixel * p = out->GetBufferPointer();

@@ -138,11 +138,11 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
   {
       for (SizeValueType y = 0; y < outputRegionForThread.GetSize(1); y++)
       {
-          RLEImageType::RLLine &oLine = out->myBuffer[z][y];
           if (copyLines)
-              oLine = in->myBuffer[z + start[2]][y + start[1]];
+              out->myBuffer[z][y] = in->myBuffer[z + start[2]][y + start[1]];
           else //determine begin and end iterator and copy range
           {
+              RLEImageType::RLLine &oLine = out->myBuffer[z][y];
               oLine.clear();
               const RLEImageType::RLLine &iLine = in->myBuffer[z + start[2]][y + start[1]];
               RunLengthCounterType t = 0;
@@ -157,24 +157,30 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
               assert(x < iLine.size());
 
               SizeValueType begin = x;
-              if (t - start[0] < iLine[x].first) //not the first pixel in segment
+              if (t >= end[0]) //both begin and end are in this segment
+              {
+                  oLine.push_back(
+                      RLEImageType::RLSegment(end[0] - start[0], iLine[x].second));
+                  continue; //next line
+              }
+              else if (t - start[0] < iLine[x].first) //not the first pixel in segment
               {
                   oLine.push_back(RLEImageType::RLSegment(t - start[0], iLine[x].second));
                   begin++; //start copying from next segment
               }
 
-              //find end
-              for (; x < iLine.size(); x++)
-              {
-                  t += iLine[x].first;
-                  if (t >= end[0])
-                      break;
-              }
+              if (t < end[0])
+                  for (x++; x < iLine.size(); x++)
+                  {
+                      t += iLine[x].first;
+                      if (t >= end[0])
+                          break;
+                  }
               if (t == end[0])
-                  oLine.insert(oLine.end(), iLine.begin() + begin, iLine.begin() + x + 2);
+                  oLine.insert(oLine.end(), iLine.begin() + begin, iLine.begin() + x + 1);
               else //we need to take special care of the last segment
               {
-                  oLine.insert(oLine.end(), iLine.begin() + begin, iLine.begin() + x + 1);
+                  oLine.insert(oLine.end(), iLine.begin() + begin, iLine.begin() + x);
                   oLine.push_back(
                       RLEImageType::RLSegment(end[0] + iLine[x].first - t, iLine[x].second));
               }
