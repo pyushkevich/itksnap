@@ -147,6 +147,8 @@ public:
     if(base)
       writer->SetImageIO(base);
     writer->SetInput(image);
+    writer->UseCompressionOn();  //would be nice if made dependent on type=="segmentation" in UserInterface/ImageIOWizard/ImageIOWizardLogic.cxx @ 978
+    std::cerr << "Saving image compressed! " << fname << std::endl;
     writer->Update();
   }
 
