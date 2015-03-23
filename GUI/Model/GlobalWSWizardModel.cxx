@@ -29,7 +29,7 @@ void GlobalWSWizardModel::OnGlobalWSModeEnter()
   m_Driver->SetCurrentImageDataToJOIN();
   //m_GlobalState->SetToolbarMode(CROSSHAIRS_MODE); //disables JoinDataPanel AND JoinInteraction
   m_GlobalState->SetToolbarMode(GWSJOIN_MODE); //only disables JoinDataPanel
-
+  m_Parent->SetSegmentationVisibility(true);
 }
 
 void GlobalWSWizardModel::OnCancelSegmentation()
@@ -39,6 +39,7 @@ void GlobalWSWizardModel::OnCancelSegmentation()
   m_Driver->ReleaseJOINImageData();
 
   m_GlobalState->SetToolbarMode(CROSSHAIRS_MODE); //disables JoinInteraction
+  m_Parent->SetSegmentationVisibility(true);
 }
 
 void GlobalWSWizardModel::OnFinishGWS()
@@ -54,6 +55,8 @@ void GlobalWSWizardModel::OnFinishGWS()
   m_Driver->ReleaseJOINImageData();
 
   m_GlobalState->SetToolbarMode(CROSSHAIRS_MODE); //disables JoinInteraction
+  m_Parent->SetSegmentationVisibility(true);
 }
+
 
 
