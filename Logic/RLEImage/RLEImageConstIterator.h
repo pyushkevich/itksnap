@@ -364,14 +364,19 @@ class ImageConstIteratorWithIndex<RLEImage<TPixel, RunLengthCounterType> >
 {
     //just inherit constructors
 public:
+
+    /** Image typedef support. */
+    typedef RLEImage<TPixel, RunLengthCounterType> ImageType;
+
+    typedef typename itk::ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >::RegionType RegionType;
+
     /** Default Constructor. Need to provide a default constructor since we
     * provide a copy constructor. */
     ImageConstIteratorWithIndex() :ImageConstIterator< ImageType >(){ }
 
-
     /** Copy Constructor. The copy constructor is provided to make sure the
     * handle to the image is properly reference counted. */
-    ImageConstIteratorWithIndex(const Self & it)
+    ImageConstIteratorWithIndex(const ImageConstIteratorWithIndex & it)
     {
         this->ImageConstIterator< ImageType >::operator=(it);
     }
@@ -383,11 +388,17 @@ public:
 }; //no additional implementation required
 
 template< typename TPixel, typename RunLengthCounterType>
-class itk::ImageConstIteratorWithOnlyIndex<RLEImage<TPixel, RunLengthCounterType> >
+class ImageConstIteratorWithOnlyIndex<RLEImage<TPixel, RunLengthCounterType> >
     :public ImageConstIterator < RLEImage<TPixel, RunLengthCounterType> >
 {
     //just inherit constructors
 public:
+
+    /** Image typedef support. */
+    typedef RLEImage<TPixel, RunLengthCounterType> ImageType;
+    
+    typedef typename itk::ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >::RegionType RegionType;
+    
     /** Default Constructor. Need to provide a default constructor since we
     * provide a copy constructor. */
     ImageConstIteratorWithOnlyIndex() :ImageConstIterator< ImageType >(){ }
@@ -395,7 +406,7 @@ public:
 
     /** Copy Constructor. The copy constructor is provided to make sure the
     * handle to the image is properly reference counted. */
-    ImageConstIteratorWithOnlyIndex(const Self & it)
+    ImageConstIteratorWithOnlyIndex(const ImageConstIteratorWithOnlyIndex & it)
     {
         this->ImageConstIterator< ImageType >::operator=(it);
     }

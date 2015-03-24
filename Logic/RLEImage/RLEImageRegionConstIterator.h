@@ -89,20 +89,20 @@ public:
   Self &
   operator++()
   {
-    m_Index[0]++;
+    this->m_Index[0]++;
 
-    if (m_Index[0] >= m_EndIndex[0])
+    if (this->m_Index[0] >= this->m_EndIndex[0])
     {
         this->Increment();
         return *this;
     }
 
-    segmentRemainder--;
-    if (segmentRemainder > 0)
+    this->segmentRemainder--;
+    if (this->segmentRemainder > 0)
         return *this;
       
-    realIndex++;
-    segmentRemainder = (*rlLine)[realIndex].first;
+    this->realIndex++;
+    this->segmentRemainder = (*this->rlLine)[this->realIndex].first;
     return *this;
   }
 
@@ -115,20 +115,20 @@ public:
    * \sa operator--(int) */
   Self & operator--()
   {
-      m_Index[0]--;
+      this->m_Index[0]--;
 
-      if (m_Index[0] < m_BeginIndex[0])
+      if (this->m_Index[0] < this->m_BeginIndex[0])
       {
           this->Decrement();
           return *this;
       }
 
-      segmentRemainder++;
-      if (segmentRemainder <= (*rlLine)[realIndex].first)
+      this->segmentRemainder++;
+      if (this->segmentRemainder <= (*this->rlLine)[this->realIndex].first)
           return *this;
 
-      realIndex--;
-      segmentRemainder = 1;
+      this->realIndex--;
+      this->segmentRemainder = 1;
       return *this;
   }
 
@@ -136,27 +136,27 @@ private:
   void Increment() // advance in a direction other than the fastest moving
   {
       // We have reached the end of the line (row), need to wrap around.
-      m_Index[0] = m_BeginIndex[0];
-      if (++m_Index[1] == m_EndIndex[1])
+      this->m_Index[0] = this->m_BeginIndex[0];
+      if (++this->m_Index[1] == this->m_EndIndex[1])
       {
-          m_Index[1] = m_BeginIndex[1];
-          m_Index[2]++;
+          this->m_Index[1] = this->m_BeginIndex[1];
+          this->m_Index[2]++;
       }
       if (IsAtEnd())
           return;
-      SetIndexInternal(m_Index);
+      SetIndexInternal(this->m_Index);
   }
 
   void Decrement() // go back in a direction other than the fastest moving
   {
       // We have reached the beginning of the line (row), need to wrap around.
-      m_Index[0] = m_EndIndex[0] - 1;
-      if (--m_Index[1] < m_BeginIndex[1])
+      this->m_Index[0] = this->m_EndIndex[0] - 1;
+      if (--this->m_Index[1] < this->m_BeginIndex[1])
       {
-          m_Index[1] = m_EndIndex[1] - 1;
-          m_Index[2]--;
+          this->m_Index[1] = this->m_EndIndex[1] - 1;
+          this->m_Index[2]--;
       }
-      SetIndexInternal(m_Index);
+      SetIndexInternal(this->m_Index);
   }
 };
 
@@ -166,6 +166,10 @@ class ImageRegionConstIteratorWithIndex<RLEImage<TPixel, RunLengthCounterType> >
 {
     //just inherit constructors
 public:
+    typedef RLEImage<TPixel, RunLengthCounterType> ImageType;
+    
+    typedef typename itk::ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >::RegionType RegionType;
+
     /** Default constructor. Needed since we provide a cast constructor. */
     ImageRegionConstIteratorWithIndex() :ImageRegionConstIterator< ImageType >(){ }
 
@@ -193,6 +197,11 @@ class ImageRegionConstIteratorWithOnlyIndex<RLEImage<TPixel, RunLengthCounterTyp
 {
     //just inherit constructors
 public:
+
+    typedef RLEImage<TPixel, RunLengthCounterType> ImageType;
+    
+    typedef typename itk::ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >::RegionType RegionType;
+
     /** Default constructor. Needed since we provide a cast constructor. */
     ImageRegionConstIteratorWithOnlyIndex() :ImageRegionConstIterator< ImageType >(){ }
 

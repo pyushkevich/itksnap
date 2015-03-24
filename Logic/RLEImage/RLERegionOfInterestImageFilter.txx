@@ -1,5 +1,5 @@
-#ifndef RLERegionOfInterestImageFilter_hxx
-#define RLERegionOfInterestImageFilter_hxx
+#ifndef RLERegionOfInterestImageFilter_txx
+#define RLERegionOfInterestImageFilter_txx
 
 #include "itkRegionOfInterestImageFilter.h"
 #include "itkImageAlgorithm.h"
@@ -142,9 +142,9 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
               out->myBuffer[z][y] = in->myBuffer[z + start[2]][y + start[1]];
           else //determine begin and end iterator and copy range
           {
-              RLEImageType::RLLine &oLine = out->myBuffer[z][y];
+              typename RLEImageType::RLLine &oLine = out->myBuffer[z][y];
               oLine.clear();
-              const RLEImageType::RLLine &iLine = in->myBuffer[z + start[2]][y + start[1]];
+              const typename RLEImageType::RLLine &iLine = in->myBuffer[z + start[2]][y + start[1]];
               RunLengthCounterType t = 0;
               SizeValueType x = 0;
               //find start
@@ -160,12 +160,12 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
               if (t >= end[0]) //both begin and end are in this segment
               {
                   oLine.push_back(
-                      RLEImageType::RLSegment(end[0] - start[0], iLine[x].second));
+                      typename RLEImageType::RLSegment(end[0] - start[0], iLine[x].second));
                   continue; //next line
               }
               else if (t - start[0] < iLine[x].first) //not the first pixel in segment
               {
-                  oLine.push_back(RLEImageType::RLSegment(t - start[0], iLine[x].second));
+                  oLine.push_back(typename RLEImageType::RLSegment(t - start[0], iLine[x].second));
                   begin++; //start copying from next segment
               }
 
@@ -182,7 +182,7 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
               {
                   oLine.insert(oLine.end(), iLine.begin() + begin, iLine.begin() + x);
                   oLine.push_back(
-                      RLEImageType::RLSegment(end[0] + iLine[x].first - t, iLine[x].second));
+                      typename RLEImageType::RLSegment(end[0] + iLine[x].first - t, iLine[x].second));
               }
           }
       }
@@ -190,4 +190,4 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
 }
 } // end namespace itk
 
-#endif //RLERegionOfInterestImageFilter_hxx
+#endif //RLERegionOfInterestImageFilter_txx

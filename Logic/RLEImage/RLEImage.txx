@@ -3,7 +3,7 @@
 
 #include "RLEImage.h"
 
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
+template< typename TPixel, typename RunLengthCounterType >
 void RLEImage< TPixel, RunLengthCounterType >::Allocate(bool initialize)
 {
     myBuffer.resize(this->GetLargestPossibleRegion().GetSize(2));
@@ -21,7 +21,7 @@ void RLEImage< TPixel, RunLengthCounterType >::Allocate(bool initialize)
     this->ComputeOffsetTable(); //needed in PrintSelf
 }
 
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
+template< typename TPixel, typename RunLengthCounterType >
 void RLEImage< TPixel, RunLengthCounterType >
 ::FillBuffer(const TPixel & value)
 {
@@ -35,7 +35,7 @@ void RLEImage< TPixel, RunLengthCounterType >
         }
 }
 
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
+template< typename TPixel, typename RunLengthCounterType >
 void RLEImage< TPixel, RunLengthCounterType >::CleanUpLine(RLLine & line) const
 {
     RunLengthCounterType x = 0;
@@ -50,7 +50,7 @@ void RLEImage< TPixel, RunLengthCounterType >::CleanUpLine(RLLine & line) const
     out.swap(line);
 }
 
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
+template< typename TPixel, typename RunLengthCounterType >
 void RLEImage< TPixel, RunLengthCounterType >::CleanUp() const
 {
     assert(!myBuffer.empty());
@@ -62,7 +62,7 @@ void RLEImage< TPixel, RunLengthCounterType >::CleanUp() const
             CleanUpLine(myBuffer[z][y]);
 }
 
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
+template< typename TPixel, typename RunLengthCounterType >
 int RLEImage< TPixel, RunLengthCounterType >::
 SetPixel(RLLine & line, IndexValueType & segmentRemainder, IndexValueType & realIndex, const TPixel & value)
 {
@@ -147,7 +147,7 @@ SetPixel(RLLine & line, IndexValueType & segmentRemainder, IndexValueType & real
     }
 }
 
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
+template< typename TPixel, typename RunLengthCounterType >
 void RLEImage< TPixel, RunLengthCounterType >::
 SetPixel(const IndexType & index, const TPixel & value)
 {
@@ -167,7 +167,7 @@ SetPixel(const IndexType & index, const TPixel & value)
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
 }
 
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
+template< typename TPixel, typename RunLengthCounterType >
 const TPixel & RLEImage< TPixel, RunLengthCounterType >::
 GetPixel(const IndexType & index) const
 {
@@ -183,7 +183,7 @@ GetPixel(const IndexType & index) const
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
 }
 
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
+template< typename TPixel, typename RunLengthCounterType >
 TPixel & RLEImage< TPixel, RunLengthCounterType >::
 GetPixel(const IndexType & index)
 {
@@ -199,7 +199,7 @@ GetPixel(const IndexType & index)
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
 }
 
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
+template< typename TPixel, typename RunLengthCounterType >
 void RLEImage< TPixel, RunLengthCounterType >::
 fromITKImage(typename itk::Image<TPixel, 3>::Pointer image)
 {
@@ -243,11 +243,11 @@ fromITKImage(typename itk::Image<TPixel, 3>::Pointer image)
     }
 }
 
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
+template< typename TPixel, typename RunLengthCounterType >
 typename itk::Image<TPixel, 3>::Pointer
 RLEImage< TPixel, RunLengthCounterType >::toITKImage() const
 {
-    itk::Image<TPixel, 3>::Pointer out = itk::Image<TPixel, 3>::New();
+    typename itk::Image<TPixel, 3>::Pointer out = itk::Image<TPixel, 3>::New();
     out->CopyInformation(this);
     out->SetRegions(this->GetLargestPossibleRegion());
     out->Allocate(false);
@@ -319,7 +319,7 @@ RLEImage< TPixel, RunLengthCounterType >::toITKImage() const
 //            }
 //}
 
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
+template< typename TPixel, typename RunLengthCounterType >
 void RLEImage< TPixel, RunLengthCounterType >
 ::PrintSelf(std::ostream & os, itk::Indent indent) const
 {

@@ -66,8 +66,9 @@ public:
     * Changing the RLE structure invalidates all other iterators (except this one). */
     void Set(const PixelType & value) const
     {
-        const_cast<ImageType *>(m_Image.GetPointer())->
-            SetPixel(*const_cast<ImageType::RLLine *>(rlLine), segmentRemainder, realIndex, value);
+        const_cast<ImageType *>(this->m_Image.GetPointer())->
+            SetPixel(*const_cast<typename ImageType::RLLine *>(this->rlLine),
+            this->segmentRemainder, this->realIndex, value);
     }
 
 protected:
@@ -89,6 +90,11 @@ class ImageRegionIteratorWithIndex<RLEImage<TPixel, RunLengthCounterType> >
 {
     //just inherit constructors
 public:
+
+    typedef RLEImage<TPixel, RunLengthCounterType> ImageType;
+    
+    typedef typename itk::ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >::RegionType RegionType;
+
     /** Default constructor. Needed since we provide a cast constructor. */
     ImageRegionIteratorWithIndex() :ImageRegionIterator< ImageType >(){ }
 
