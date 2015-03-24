@@ -43,6 +43,8 @@
 #include "itkObjectFactory.h"
 #include "ImageWrapperTraits.h"
 #include "RLERegionOfInterestImageFilter.h"
+#include "RLEImageScanlineIterator.h"
+
 
 // Forward reference to itk classes
 namespace itk {
@@ -181,7 +183,7 @@ private:
   void UpdateMeshInfoHelper(
       MeshInfo *current_meshinfo,
       const itk::Index<3> &run_start,
-      itk::ImageLinearConstIteratorWithIndex<InputImageType> &it,
+      itk::ImageRegionConstIteratorWithIndex<InputImageType> &it,
       unsigned long pos);
 };
 

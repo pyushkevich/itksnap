@@ -9,6 +9,8 @@
 #include "itkImageConstIteratorWithIndex.h"
 #include "itkImageConstIteratorWithOnlyIndex.h"
 
+class MultiLabelMeshPipeline;
+
 namespace itk
 {
 /** \class ImageConstIterator
@@ -18,6 +20,7 @@ namespace itk
 template< typename TPixel, typename RunLengthCounterType>
 class ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >
 {
+    friend class ::MultiLabelMeshPipeline;
 public:
   /** Standard class typedefs. */
   typedef ImageConstIterator Self;

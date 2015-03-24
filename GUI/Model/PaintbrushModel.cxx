@@ -6,7 +6,7 @@
 #include "GenericImageData.h"
 #include "ImageWrapperTraits.h"
 
-#include "itkRegionOfInterestImageFilter.h"
+#include "RLERegionOfInterestImageFilter.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkGradientMagnitudeImageFilter.h"
 #include "itkWatershedImageFilter.h"

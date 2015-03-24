@@ -301,6 +301,8 @@ SET(LOGIC_HEADERS
   Logic/RLEImage/RLEImageIterator.h
   Logic/RLEImage/RLEImageRegionConstIterator.h
   Logic/RLEImage/RLEImageRegionIterator.h
+  Logic/RLEImage/RLEImageScanlineConstIterator.h
+  Logic/RLEImage/RLEImageScanlineIterator.h
   Logic/RLEImage/RLERegionOfInterestImageFilter.h
   Logic/RLEImage/RLERegionOfInterestImageFilter.txx
   Logic/ImageWrapper/InputSelectionImageFilter.h
@@ -976,6 +978,7 @@ ADD_EXECUTABLE(iteratorTests
     Testing/Logic/itkImageIteratorWithIndexTest.cxx
     Testing/Logic/itkImageRegionConstIteratorWithOnlyIndexTest.cxx
     Testing/Logic/itkImageRegionIteratorTest.cxx
+    Testing/Logic/itkImageScanlineIteratorTest1.cxx
     Testing/Logic/iteratorTests.cxx)
 TARGET_LINK_LIBRARIES(iteratorTests ${ITK_LIBRARIES})
 

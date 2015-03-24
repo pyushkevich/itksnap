@@ -6,6 +6,8 @@
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionConstIteratorWithOnlyIndex.h"
 
+class MultiLabelMeshPipeline;
+
 namespace itk
 {
 /** \class ImageRegionConstIterator
@@ -16,11 +18,11 @@ namespace itk
  * base class for the read/write access ImageRegionIterator.
  *
  */
-
 template< typename TPixel, typename RunLengthCounterType>
 class ImageRegionConstIterator<RLEImage<TPixel, RunLengthCounterType> >
     :public ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >
 {
+    friend class ::MultiLabelMeshPipeline;
 public:
   /** Standard class typedef. */
   typedef ImageRegionConstIterator<RLEImage<TPixel, RunLengthCounterType> >     Self;
@@ -132,7 +134,7 @@ public:
       return *this;
   }
 
-private:
+protected:
   void Increment() // advance in a direction other than the fastest moving
   {
       // We have reached the end of the line (row), need to wrap around.
