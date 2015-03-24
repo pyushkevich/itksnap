@@ -101,7 +101,7 @@ int itkRegionOfInterestImageFilterTest(int, char* [] )
   //itk::SimpleFilterWatcher watcher(filter);
   filter->SetRegionOfInterest( regionOfInterest );
 
-  filter->SetNumberOfThreads(1);
+  //filter->SetNumberOfThreads(1);
   filter->Update();
   filter->GetOutput()->Print(std::cout);
 

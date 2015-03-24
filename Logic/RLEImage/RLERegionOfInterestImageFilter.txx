@@ -142,7 +142,7 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
               out->myBuffer[z][y] = in->myBuffer[z + start[2]][y + start[1]];
           else //determine begin and end iterator and copy range
           {
-              typename RLEImageType::RLLine &oLine = out->myBuffer[z][y];
+              typename RLEImageType::RLLine &oLine = out->myBuffer[z + threadStart[2]][y + threadStart[1]];
               oLine.clear();
               const typename RLEImageType::RLLine &iLine = in->myBuffer[z + start[2]][y + start[1]];
               RunLengthCounterType t = 0;

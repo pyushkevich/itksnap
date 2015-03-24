@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
     roiType::Pointer roi = roiType::New();
     roi->SetInput(test);
     roi->SetRegionOfInterest(r);
-    roi->SetNumberOfThreads(1);
+    //roi->SetNumberOfThreads(1);
     roi->Update();
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
     
