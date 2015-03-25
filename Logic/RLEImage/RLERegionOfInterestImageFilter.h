@@ -21,14 +21,14 @@ namespace itk
  *
  *  The region to extract is set using the method SetRegionOfInterest.
  */
-template< typename TPixel, typename RunLengthCounterType>
-class RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>, RLEImage<TPixel, RunLengthCounterType> >:
-  public ImageToImageFilter< RLEImage<TPixel, RunLengthCounterType>, RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+class RegionOfInterestImageFilter<RLEImage<TPixel, VImageDimension, CounterType>, RLEImage<TPixel, VImageDimension, CounterType> >:
+  public ImageToImageFilter< RLEImage<TPixel, VImageDimension, CounterType>, RLEImage<TPixel, VImageDimension, CounterType> >
 {
 public:
   /** Standard class typedefs. */
   typedef RegionOfInterestImageFilter                      Self;
-  typedef RLEImage<TPixel, RunLengthCounterType>           RLEImageType;
+  typedef RLEImage<TPixel, VImageDimension, CounterType>           RLEImageType;
   typedef ImageToImageFilter< RLEImageType, RLEImageType > Superclass;
   typedef SmartPointer< Self >                             Pointer;
   typedef SmartPointer< const Self >                       ConstPointer;

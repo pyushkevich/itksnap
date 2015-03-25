@@ -9,9 +9,9 @@
 
 namespace itk
 {
-template< typename TPixel, typename RunLengthCounterType>
-void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
-    RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+void RegionOfInterestImageFilter<RLEImage<TPixel, VImageDimension, CounterType>,
+    RLEImage<TPixel, VImageDimension, CounterType> >
 ::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
@@ -19,9 +19,9 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
   os << indent << "RegionOfInterest: " << m_RegionOfInterest << std::endl;
 }
 
-template< typename TPixel, typename RunLengthCounterType>
-void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
-    RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+void RegionOfInterestImageFilter<RLEImage<TPixel, VImageDimension, CounterType>,
+    RLEImage<TPixel, VImageDimension, CounterType> >
 ::GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method
@@ -38,9 +38,9 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
     }
 }
 
-template< typename TPixel, typename RunLengthCounterType>
-void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
-    RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+void RegionOfInterestImageFilter<RLEImage<TPixel, VImageDimension, CounterType>,
+    RLEImage<TPixel, VImageDimension, CounterType> >
 ::EnlargeOutputRequestedRegion(DataObject *output)
 {
   // call the superclass' implementation of this method
@@ -59,9 +59,9 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
  *
  * \sa ProcessObject::GenerateOutputInformaton()
  */
-template< typename TPixel, typename RunLengthCounterType>
-void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
-    RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+void RegionOfInterestImageFilter<RLEImage<TPixel, VImageDimension, CounterType>,
+    RLEImage<TPixel, VImageDimension, CounterType> >
 ::GenerateOutputInformation()
 {
   // do not call the superclass' implementation of this method since
@@ -109,9 +109,9 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData()
    */
-template< typename TPixel, typename RunLengthCounterType>
-void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
-    RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+void RegionOfInterestImageFilter<RLEImage<TPixel, VImageDimension, CounterType>,
+    RLEImage<TPixel, VImageDimension, CounterType> >
 ::ThreadedGenerateData(const RegionType & outputRegionForThread,
                        ThreadIdType threadId)
 {
@@ -145,7 +145,7 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, RunLengthCounterType>,
               typename RLEImageType::RLLine &oLine = out->myBuffer[z + threadStart[2]][y + threadStart[1]];
               oLine.clear();
               const typename RLEImageType::RLLine &iLine = in->myBuffer[z + start[2]][y + start[1]];
-              RunLengthCounterType t = 0;
+              CounterType t = 0;
               SizeValueType x = 0;
               //find start
               for (; x < iLine.size(); x++)

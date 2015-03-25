@@ -18,15 +18,15 @@ namespace itk
  * base class for the read/write access ImageRegionIterator.
  *
  */
-template< typename TPixel, typename RunLengthCounterType>
-class ImageRegionConstIterator<RLEImage<TPixel, RunLengthCounterType> >
-    :public ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+class ImageRegionConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >
+    :public ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >
 {
     friend class ::MultiLabelMeshPipeline;
 public:
   /** Standard class typedef. */
-  typedef ImageRegionConstIterator<RLEImage<TPixel, RunLengthCounterType> >     Self;
-  typedef ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> > Superclass;
+  typedef ImageRegionConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >     Self;
+  typedef ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> > Superclass;
 
   /** Dimension of the image that the iterator walks.  This constant is needed so
    * functions that are templated over image iterator type (as opposed to
@@ -162,15 +162,15 @@ protected:
   }
 };
 
-template< typename TPixel, typename RunLengthCounterType>
-class ImageRegionConstIteratorWithIndex<RLEImage<TPixel, RunLengthCounterType> >
-    :public ImageRegionConstIterator < RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+class ImageRegionConstIteratorWithIndex<RLEImage<TPixel, VImageDimension, CounterType> >
+    :public ImageRegionConstIterator < RLEImage<TPixel, VImageDimension, CounterType> >
 {
     //just inherit constructors
 public:
-    typedef RLEImage<TPixel, RunLengthCounterType> ImageType;
+    typedef RLEImage<TPixel, VImageDimension, CounterType> ImageType;
     
-    typedef typename itk::ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >::RegionType RegionType;
+    typedef typename itk::ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >::RegionType RegionType;
 
     /** Default constructor. Needed since we provide a cast constructor. */
     ImageRegionConstIteratorWithIndex() :ImageRegionConstIterator< ImageType >(){ }
@@ -193,16 +193,16 @@ public:
 
 }; //no additional implementation required
 
-template< typename TPixel, typename RunLengthCounterType>
-class ImageRegionConstIteratorWithOnlyIndex<RLEImage<TPixel, RunLengthCounterType> >
-    :public ImageRegionConstIterator < RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+class ImageRegionConstIteratorWithOnlyIndex<RLEImage<TPixel, VImageDimension, CounterType> >
+    :public ImageRegionConstIterator < RLEImage<TPixel, VImageDimension, CounterType> >
 {
     //just inherit constructors
 public:
 
-    typedef RLEImage<TPixel, RunLengthCounterType> ImageType;
+    typedef RLEImage<TPixel, VImageDimension, CounterType> ImageType;
     
-    typedef typename itk::ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >::RegionType RegionType;
+    typedef typename itk::ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >::RegionType RegionType;
 
     /** Default constructor. Needed since we provide a cast constructor. */
     ImageRegionConstIteratorWithOnlyIndex() :ImageRegionConstIterator< ImageType >(){ }

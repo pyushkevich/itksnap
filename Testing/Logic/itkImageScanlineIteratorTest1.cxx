@@ -5,12 +5,12 @@
 
 // This routine is used to make sure that we call the "const" version
 // of GetPixel() (via the operator[])
-template< typename TPixel, typename RunLengthCounterType>
-void TestConstPixelAccess(const RLEImage<TPixel, RunLengthCounterType> &in,
-                          RLEImage<TPixel, RunLengthCounterType> &out)
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+void TestConstPixelAccess(const RLEImage<TPixel, VImageDimension, CounterType> &in,
+                          RLEImage<TPixel, VImageDimension, CounterType> &out)
 {
-  typename RLEImage<TPixel, RunLengthCounterType>::IndexType regionStartIndex3D = { { 5, 10, 15 } };
-  typename RLEImage<TPixel, RunLengthCounterType>::IndexType regionEndIndex3D = { { 8, 15, 17 } };
+  typename RLEImage<TPixel, VImageDimension, CounterType>::IndexType regionStartIndex3D = { { 5, 10, 15 } };
+  typename RLEImage<TPixel, VImageDimension, CounterType>::IndexType regionEndIndex3D = { { 8, 15, 17 } };
 
   TPixel vec;
 
@@ -38,11 +38,11 @@ int itkImageScanlineIteratorTest1(int, char* [] )
   typedef RLEImage<itk::Vector<unsigned short, 5> > ImageType;
 
   ImageType::SizeType imageSize3D = {{ 20, 40, 60 }};
-  ImageType::SizeType bufferSize3D = {{ 8, 20, 14 }};
+  ImageType::SizeType bufferSize3D = {{ 20, 20, 14 }};
   ImageType::SizeType regionSize3D = {{ 4,  6,  6 }};
 
   ImageType::IndexType startIndex3D = {{5, 4, 1}};
-  ImageType::IndexType bufferStartIndex3D = {{2, 3, 5}};
+  ImageType::IndexType bufferStartIndex3D = {{5, 3, 5}};
   ImageType::IndexType regionStartIndex3D = {{5, 10, 12}};
   ImageType::IndexType regionEndIndex3D = {{8, 15, 17}};
 

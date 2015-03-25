@@ -11,14 +11,14 @@ namespace itk
 * region of pixels, scanline by scanline or in the direction of the
 * fastest axis.
 */
-template< typename TPixel, typename RunLengthCounterType>
-class ImageScanlineConstIterator<RLEImage<TPixel, RunLengthCounterType> >
-    :public ImageRegionConstIterator<RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+class ImageScanlineConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >
+    :public ImageRegionConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >
 {
 public:
     /** Standard class typedef. */
     typedef ImageScanlineConstIterator   Self;
-    typedef ImageRegionConstIterator< RLEImage<TPixel, RunLengthCounterType> > Superclass;
+    typedef ImageRegionConstIterator< RLEImage<TPixel, VImageDimension, CounterType> > Superclass;
 
     /** Dimension of the image that the iterator walks.  This constant is needed so
     * functions that are templated over image iterator type (as opposed to

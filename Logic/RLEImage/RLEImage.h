@@ -24,8 +24,8 @@ namespace itk //otherwise we run into circular including/referencing
 *
 * Copied and adapted from itk::Image.
 */
-template< typename TPixel, typename RunLengthCounterType = unsigned short >
-class RLEImage : public itk::ImageBase < 3 >
+template< typename TPixel, unsigned int VImageDimension = 3, typename CounterType = unsigned short >
+class RLEImage : public itk::ImageBase < VImageDimension >
 {
     template<typename TI, typename TO>
     friend class itk::RegionOfInterestImageFilter;
@@ -33,11 +33,11 @@ class RLEImage : public itk::ImageBase < 3 >
 
 public:
     /** Standard class typedefs */
-    typedef RLEImage                        Self;
-    typedef itk::ImageBase < 3 >            Superclass;
-    typedef itk::SmartPointer< Self >       Pointer;
-    typedef itk::SmartPointer< const Self > ConstPointer;
-    typedef itk::WeakPointer< const Self >  ConstWeakPointer;
+    typedef RLEImage                            Self;
+    typedef itk::ImageBase < VImageDimension >  Superclass;
+    typedef itk::SmartPointer< Self >           Pointer;
+    typedef itk::SmartPointer< const Self >     ConstPointer;
+    typedef itk::WeakPointer< const Self >      ConstWeakPointer;
 
     /** Method for creation through the object factory. */
     itkNewMacro(Self);
@@ -54,7 +54,7 @@ public:
 
     /** First element is count of repetitions,
     * second element is the pixel value. */
-    typedef std::pair<RunLengthCounterType, PixelType> RLSegment;
+    typedef std::pair<CounterType, PixelType> RLSegment;
 
     /** A Run-Length encoded line of pixels. */
     typedef std::vector<RLSegment> RLLine;
@@ -71,7 +71,7 @@ public:
     * templated over image type (as opposed to being templated over pixel type
     * and dimension) when they need compile time access to the dimension of
     * the image. */
-    itkStaticConstMacro(ImageDimension, unsigned int, 3);
+    itkStaticConstMacro(ImageDimension, unsigned int, VImageDimension);
 
     /** Index typedef support. An index is used to access pixel values. */
     typedef typename Superclass::IndexType      IndexType;
@@ -163,10 +163,10 @@ public:
     }
 
     /** Construct this RLEImage from a regular itk::Image. */
-    void fromITKImage(typename itk::Image<TPixel, 3>::Pointer image);
+    void fromITKImage(typename itk::Image<TPixel, VImageDimension>::Pointer image);
     
     /** Convert this RLEImage to a regular itk::Image. */
-    typename itk::Image<TPixel, 3>::Pointer toITKImage() const;
+    typename itk::Image<TPixel, VImageDimension>::Pointer toITKImage() const;
 
     /** Typedef for the internally used buffer. */
     typedef std::vector<std::vector<RLLine> > BufferType;
@@ -230,14 +230,14 @@ protected:
     void uncompressLine(const RLLine & line, TPixel *out) const
     {
         //complete Run-Length Lines have to be buffered
-        itkAssertInDebugOrThrowInReleaseMacro(
-            this->GetBufferedRegion().GetSize(0)
-            ==this->GetLargestPossibleRegion().GetSize(0));
+        itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
+            == this->GetLargestPossibleRegion().GetSize(0),
+            "BufferedRegion must contain complete run-length lines!");
         #ifdef _DEBUG
         int debugCount = 0;
         #endif
         for (int x = 0; x < line.size(); x++)
-            for (RunLengthCounterType r = 0; r < line[x].first; r++)
+            for (CounterType r = 0; r < line[x].first; r++)
             {
                 #ifdef _DEBUG
                 debugCount++;

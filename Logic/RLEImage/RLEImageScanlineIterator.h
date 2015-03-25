@@ -12,14 +12,14 @@ namespace itk
 * region of pixels, scanline by scanline or in the direction of the
 * fastest axis.
 */
-template< typename TPixel, typename RunLengthCounterType>
-class ImageScanlineIterator<RLEImage<TPixel, RunLengthCounterType> >
-    :public ImageScanlineConstIterator<RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+class ImageScanlineIterator<RLEImage<TPixel, VImageDimension, CounterType> >
+    :public ImageScanlineConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >
 {
 public:
     /** Standard class typedefs. */
     typedef ImageScanlineIterator                Self;
-    typedef ImageScanlineConstIterator<RLEImage<TPixel, RunLengthCounterType> > Superclass;
+    typedef ImageScanlineConstIterator<RLEImage<TPixel, VImageDimension, CounterType> > Superclass;
 
     /** Types inherited from the Superclass */
     typedef typename Superclass::IndexType             IndexType;

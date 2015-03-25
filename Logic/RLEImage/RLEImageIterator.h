@@ -15,9 +15,9 @@ namespace itk
  *
  */
 
-template< typename TPixel, typename RunLengthCounterType>
-class ImageIterator<RLEImage<TPixel, RunLengthCounterType> >
-    :public ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+class ImageIterator<RLEImage<TPixel, VImageDimension, CounterType> >
+    :public ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >
 {
 public:
   /** Standard class typedefs. */
@@ -30,7 +30,7 @@ public:
   itkStaticConstMacro(ImageIteratorDimension, unsigned int, 3);
 
   /** Define the superclass */
-  typedef ImageConstIterator< RLEImage<TPixel, RunLengthCounterType> > Superclass;
+  typedef ImageConstIterator< RLEImage<TPixel, VImageDimension, CounterType> > Superclass;
 
   /** Inherit types from the superclass */
   typedef typename Superclass::IndexType             IndexType;
@@ -105,16 +105,16 @@ protected:
   }
 };
 
-template< typename TPixel, typename RunLengthCounterType>
-class ImageIteratorWithIndex<RLEImage<TPixel, RunLengthCounterType> >
-    :public ImageIterator < RLEImage<TPixel, RunLengthCounterType> >
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+class ImageIteratorWithIndex<RLEImage<TPixel, VImageDimension, CounterType> >
+    :public ImageIterator < RLEImage<TPixel, VImageDimension, CounterType> >
 {
     //just inherit constructors
 public:
 
-    typedef RLEImage<TPixel, RunLengthCounterType> ImageType;
+    typedef RLEImage<TPixel, VImageDimension, CounterType> ImageType;
     
-    typedef typename itk::ImageConstIterator<RLEImage<TPixel, RunLengthCounterType> >::RegionType RegionType;
+    typedef typename itk::ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >::RegionType RegionType;
 
     /** Default Constructor. Need to provide a default constructor since we
     * provide a copy constructor. */
