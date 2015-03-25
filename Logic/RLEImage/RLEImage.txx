@@ -66,6 +66,10 @@ template< typename TPixel, typename RunLengthCounterType >
 int RLEImage< TPixel, RunLengthCounterType >::
 SetPixel(RLLine & line, IndexValueType & segmentRemainder, IndexValueType & realIndex, const TPixel & value)
 {
+    //complete Run-Length Lines have to be buffered
+    itkAssertInDebugOrThrowInReleaseMacro(
+        this->GetBufferedRegion().GetSize(0)
+        == this->GetLargestPossibleRegion().GetSize(0));
     if (line[realIndex].second == value) //already correct value
         return 0;
     else if (line[realIndex].first == 1) //single pixel segment
@@ -171,6 +175,10 @@ template< typename TPixel, typename RunLengthCounterType >
 const TPixel & RLEImage< TPixel, RunLengthCounterType >::
 GetPixel(const IndexType & index) const
 {
+    //complete Run-Length Lines have to be buffered
+    itkAssertInDebugOrThrowInReleaseMacro(
+        this->GetBufferedRegion().GetSize(0)
+        == this->GetLargestPossibleRegion().GetSize(0));
     IndexType lpri = GetLargestPossibleRegion().GetIndex();
     RLLine & line = myBuffer[index[2] - lpri[2]][index[1] - lpri[1]];
     RunLengthCounterType t = 0;
@@ -187,6 +195,10 @@ template< typename TPixel, typename RunLengthCounterType >
 TPixel & RLEImage< TPixel, RunLengthCounterType >::
 GetPixel(const IndexType & index)
 {
+    //complete Run-Length Lines have to be buffered
+    itkAssertInDebugOrThrowInReleaseMacro(
+        this->GetBufferedRegion().GetSize(0)
+        == this->GetLargestPossibleRegion().GetSize(0));
     IndexType lpri = GetLargestPossibleRegion().GetIndex();
     RLLine & line = myBuffer[index[2] - lpri[2]][index[1] - lpri[1]];
     RunLengthCounterType t = 0;

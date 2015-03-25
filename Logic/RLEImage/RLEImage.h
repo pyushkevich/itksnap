@@ -12,12 +12,17 @@ namespace itk //otherwise we run into circular including/referencing
     class RegionOfInterestImageFilter;
 }
 
-/**
+/** Run-Length Encoded image.
+* It saves memory for label images at the expense of processing times.
+* Unsuitable for ordinary images (in which case it is counterproductive).
+*
+* BufferedRegion must include complete run-length lines (along X index axis).
+* BufferedRegion can be smaller than LargestPossibleRegion along other axes.
+*
 * It is best if pixel type and counter type have the same byte size
 * (for memory alignment purposes).
-* 
+*
 * Copied and adapted from itk::Image.
-* Assumes BufferedRegion == RequestedRegion == LargestPossibleRegion
 */
 template< typename TPixel, typename RunLengthCounterType = unsigned short >
 class RLEImage : public itk::ImageBase < 3 >
@@ -176,10 +181,12 @@ public:
     * Automatically called when turning on OnTheFlyCleanup. */
     void CleanUp() const;
     
-    /** Should same-valued segments be merged on the fly? */
+    /** Should same-valued segments be merged on the fly?
+    * On the fly merging usually provides better performance. */
     bool GetOnTheFlyCleanup() const { return m_OnTheFlyCleanup; }
 
-    /** Should same-valued segments be merged on the fly? */
+    /** Should same-valued segments be merged on the fly?
+    * On the fly merging usually provides better performance. */
     void SetOnTheFlyCleanup(bool value)
     {
         if (value == m_OnTheFlyCleanup)
@@ -222,6 +229,10 @@ protected:
     * No error checking is conducted. */
     void uncompressLine(const RLLine & line, TPixel *out) const
     {
+        //complete Run-Length Lines have to be buffered
+        itkAssertInDebugOrThrowInReleaseMacro(
+            this->GetBufferedRegion().GetSize(0)
+            ==this->GetLargestPossibleRegion().GetSize(0));
         #ifdef _DEBUG
         int debugCount = 0;
         #endif
