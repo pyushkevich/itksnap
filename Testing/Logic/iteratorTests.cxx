@@ -1,3 +1,5 @@
+#include "RLEImageScanlineIterator.h"
+
 extern int itkImageScanlineIteratorTest1(int argc, char *argv[]);
 extern int itkIteratorTests(int argc, char *argv[]);
 extern int itkImageIteratorTest(int argc, char *argv[]);
@@ -16,5 +18,8 @@ int main(int argc, char *argv[])
     itkImageIteratorWithIndexTest(argc, argv);
     itkImageRegionConstIteratorWithOnlyIndexTest(argc, argv);
     itkRegionOfInterestImageFilterTest(argc, argv);
-    //itkImageRegionIteratorTest(argc, argv); //RLEImage assumes buffered==requested==largest
+    itkImageRegionIteratorTest(argc, argv);
+    typedef RLEImage<char, 2, char> charred2dType;
+    //test size 256
+    typedef RLEImage<char, 4> charred4dType; //test size 65536
 }

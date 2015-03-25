@@ -115,12 +115,39 @@ public:
         // Call the superclass which should initialize the BufferedRegion ivar.
         Superclass::Initialize();
         m_OnTheFlyCleanup = true;
-        myBuffer.clear();
+        myBuffer = BufferType::New();
     }
 
     /** Fill the image buffer with a value.  Be sure to call Allocate()
     * first. */
     void FillBuffer(const TPixel & value);
+
+    virtual void SetLargestPossibleRegion(const RegionType & region)
+    {
+        Superclass::SetLargestPossibleRegion(region);
+        BufferType::RegionType r;
+        r.SetSize(truncateSize(region.GetSize()));
+        r.SetIndex(truncateIndex(region.GetIndex()));
+        myBuffer->SetLargestPossibleRegion(r);
+    }
+
+    virtual void SetBufferedRegion(const RegionType & region)
+    {
+        Superclass::SetBufferedRegion(region);
+        BufferType::RegionType r;
+        r.SetSize(truncateSize(region.GetSize()));
+        r.SetIndex(truncateIndex(region.GetIndex()));
+        myBuffer->SetBufferedRegion(r);
+    }
+
+    virtual void SetRequestedRegion(const RegionType & region)
+    {
+        Superclass::SetRequestedRegion(region);
+        BufferType::RegionType r;
+        r.SetSize(truncateSize(region.GetSize()));
+        r.SetIndex(truncateIndex(region.GetIndex()));
+        myBuffer->SetRequestedRegion(r);
+    }
 
     /** \brief Set a pixel value.
     *
@@ -169,13 +196,21 @@ public:
     typename itk::Image<TPixel, VImageDimension>::Pointer toITKImage() const;
 
     /** Typedef for the internally used buffer. */
-    typedef std::vector<std::vector<RLLine> > BufferType;
+    typedef typename itk::Image<RLLine, VImageDimension - 1> BufferType;
 
     /** We need to allow itk-style iterators to be constructed. */
-    BufferType * GetBuffer() { return &myBuffer; }
+    typename BufferType::Pointer GetBuffer() { return myBuffer; }
 
     /** We need to allow itk-style const iterators to be constructed. */
-    const BufferType * GetBuffer() const { return &myBuffer; }
+    typename BufferType::ConstPointer GetBuffer() const { return myBuffer; }
+
+    /** Returns N-1-dimensional index, the remainder after 0-index is removed. */
+    static inline typename BufferType::IndexType
+        truncateIndex(const typename IndexType & index);
+
+    /** Returns N-1-dimensional size, the remainder after 0-size is removed. */
+    static inline typename BufferType::SizeType
+        truncateSize(const typename SizeType & size);
 
     /** Merges adjacent segments with duplicate values.
     * Automatically called when turning on OnTheFlyCleanup. */
@@ -196,19 +231,19 @@ public:
             CleanUp(); //put the image into a clean state
     }
 
-    /** Make a deep copy of the source image. */
-    void DeepCopy(const Self& source)
-    {
-        this->SetRegions(source.GetLargestPossibleRegion());
-        this->myBuffer = source.myBuffer;
-        this->Modified();
-    }
+    ///** Make a deep copy of the source image. */
+    //void DeepCopy(const Self& source)
+    //{
+    //    this->SetRegions(source.GetLargestPossibleRegion());
+    //    this->myBuffer = source.myBuffer;
+    //    this->Modified();
+    //}
 
 protected:
-    RLEImage() : itk::ImageBase < 3 >()
+    RLEImage() : itk::ImageBase < VImageDimension >()
     {
         m_OnTheFlyCleanup = true;
-        //myBuffer managed automatically by STL
+        myBuffer = BufferType::New();
     }
     void PrintSelf(std::ostream & os, itk::Indent indent) const;
 
@@ -257,7 +292,7 @@ private:
     void operator=(const Self &); //purposely not implemented
 
     /** Memory for the current buffer. */
-    mutable BufferType myBuffer;
+    mutable typename BufferType::Pointer myBuffer;
 };
 
 

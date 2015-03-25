@@ -33,39 +33,50 @@ void writeImage(Seg3DImageType::Pointer image, const std::string filename, bool 
 
 int main(int argc, char* argv[])
 {
-    typedef RLEImage<short> shortRLEImage;
     itk::TimeProbe tp;
     std::cout << "Loading image: "; tp.Start();
     Seg3DImageType::Pointer inImage = loadImage(argv[1]);
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
-    std::cout << "itk->RLE conversion: "; tp.Start();
-    shortRLEImage::Pointer test = shortRLEImage::New();
-    test->fromITKImage(inImage);
-    tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
-    test->Print(std::cout);
 
-    cout << "Invoking RegionOfInterest filter:"; tp.Start();
-    shortRLEImage::RegionType r = test->GetLargestPossibleRegion();
+    typedef RLEImage<short> shortRLEImage;
+    shortRLEImage::Pointer dt = shortRLEImage::New();
+    shortRLEImage::RegionType r = inImage->GetBufferedRegion();
+    dt->SetRegions(r);
+    dt->Allocate(true);
+    dt->FillBuffer(1983);
+
     for (int i = 0; i < 3; i++)
     {
         r.SetIndex(i, r.GetIndex(i) + r.GetSize(i) / 4);
         r.SetSize(i, r.GetSize(i) / 2);
     }
-    typedef itk::RegionOfInterestImageFilter<shortRLEImage, shortRLEImage> roiType;
-    roiType::Pointer roi = roiType::New();
-    roi->SetInput(test);
-    roi->SetRegionOfInterest(r);
-    //roi->SetNumberOfThreads(1);
-    roi->Update();
-    tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
-    
-    cout << "Assignment operator:"; tp.Start();
-    test = roi->GetOutput();
-    tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
+    shortRLEImage::IndexType i1=r.GetIndex();
+    short v1 = dt->GetPixel(i1);
+    v1 = v1 + 42;
+    dt->SetPixel(i1, v1);
+        
+    //std::cout << "itk->RLE conversion: "; tp.Start();
+    //shortRLEImage::Pointer test = shortRLEImage::New();
+    //test->fromITKImage(inImage);
+    //tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
+    //test->Print(std::cout);
 
-    std::cout << "RLE->itk conversion: "; tp.Start();
-    inImage = test->toITKImage();
-    tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
-    std::cout << " writing image" << endl;
-    writeImage(inImage, "test.mha", true);
+    //cout << "Invoking RegionOfInterest filter:"; tp.Start();
+    //typedef itk::RegionOfInterestImageFilter<shortRLEImage, shortRLEImage> roiType;
+    //roiType::Pointer roi = roiType::New();
+    //roi->SetInput(test);
+    //roi->SetRegionOfInterest(r);
+    ////roi->SetNumberOfThreads(1);
+    //roi->Update();
+    //tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
+    //
+    //cout << "Assignment operator:"; tp.Start();
+    //test = roi->GetOutput();
+    //tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
+
+    //std::cout << "RLE->itk conversion: "; tp.Start();
+    //inImage = test->toITKImage();
+    //tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
+    //std::cout << " writing image" << endl;
+    //writeImage(inImage, "test.mha", true);
 }

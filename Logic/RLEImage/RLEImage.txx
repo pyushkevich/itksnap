@@ -4,63 +4,84 @@
 #include "RLEImage.h"
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+inline typename RLEImage<TPixel, VImageDimension, CounterType>::BufferType::IndexType
+RLEImage<TPixel, VImageDimension, CounterType>
+::truncateIndex(const typename IndexType & index)
+{
+    typename BufferType::IndexType result;
+    for (IndexValueType i = 0; i < VImageDimension - 1; i++)
+        result[i] = index[i + 1];
+    return result;
+}
+
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+inline typename RLEImage<TPixel, VImageDimension, CounterType>::BufferType::SizeType
+RLEImage<TPixel, VImageDimension, CounterType>
+::truncateSize(const typename SizeType & size)
+{
+    typename BufferType::SizeType result;
+    for (IndexValueType i = 0; i < VImageDimension - 1; i++)
+        result[i] = size[i + 1];
+    return result;
+}
+
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 void RLEImage<TPixel, VImageDimension, CounterType>::Allocate(bool initialize)
 {
-    myBuffer.resize(this->GetLargestPossibleRegion().GetSize(2));
-#pragma omp parallel for
-    for (int z = 0; z < this->GetLargestPossibleRegion().GetSize(2); z++)
+    itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
+        == this->GetLargestPossibleRegion().GetSize(0),
+        "BufferedRegion must contain complete run-length lines!"); 
+    itkAssertOrThrowMacro(this->GetLargestPossibleRegion().GetSize(0)
+        <= std::numeric_limits<CounterType>::max(),
+        "CounterType is not large enough to support image's X dimension!");
+    this->ComputeOffsetTable();
+    SizeValueType num = static_cast<SizeValueType>(this->GetOffsetTable()[VImageDimension]);
+    myBuffer->Allocate(false);
+    if (initialize)
     {
-        myBuffer[z].resize(this->GetLargestPossibleRegion().GetSize(1));
-        for (int y = 0; y < this->GetLargestPossibleRegion().GetSize(1); y++)
-        {
-            assert(this->GetLargestPossibleRegion().GetSize(0) <= std::numeric_limits<CounterType>::max());
-            //since we have to initialize pixel values to something, we initialize using default constructor
-            myBuffer[z][y].push_back(RLSegment(CounterType(this->GetLargestPossibleRegion().GetSize(0)), TPixel()));
-        }
+        RLSegment segment(CounterType(this->GetBufferedRegion().GetSize(0)), TPixel());
+        RLLine line(1);
+        line[0] = segment;
+        myBuffer->FillBuffer(line);
     }
-    this->ComputeOffsetTable(); //needed in PrintSelf
 }
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 void RLEImage<TPixel, VImageDimension, CounterType>
 ::FillBuffer(const TPixel & value)
 {
-    assert(!myBuffer.empty());
-#pragma omp parallel for
-    for (int z = 0; z < myBuffer.size(); z++)
-        for (int y = 0; y < this->GetLargestPossibleRegion().GetSize(1); y++)
-        {
-            myBuffer[z][y].resize(1);
-            myBuffer[z][y][0] = RLSegment(CounterType(this->GetLargestPossibleRegion().GetSize(0)), value);
-        }
+    RLSegment segment(CounterType(this->GetBufferedRegion().GetSize(0)), value);
+    RLLine line(1);
+    line[0] = segment;
+    myBuffer->FillBuffer(line);
 }
 
-template< typename TPixel, unsigned int VImageDimension, typename CounterType >
-void RLEImage<TPixel, VImageDimension, CounterType>::CleanUpLine(RLLine & line) const
-{
-    CounterType x = 0;
-    RLLine out;
-    out.reserve(this->GetLargestPossibleRegion().GetSize(0));
-    do
-    {
-        out.push_back(line[x]);
-        while (++x < line.size() && line[x].second == line[x - 1].second)
-            out.back().first += line[x].first;
-    } while (x < line.size());
-    out.swap(line);
-}
-
-template< typename TPixel, unsigned int VImageDimension, typename CounterType >
-void RLEImage<TPixel, VImageDimension, CounterType>::CleanUp() const
-{
-    assert(!myBuffer.empty());
-    if (this->GetLargestPossibleRegion().GetSize(0) == 0)
-        return;
-#pragma omp parallel for
-    for (CounterType z = 0; z < myBuffer.size(); z++)
-        for (CounterType y = 0; y < myBuffer[0].size(); y++)
-            CleanUpLine(myBuffer[z][y]);
-}
+//template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+//void RLEImage<TPixel, VImageDimension, CounterType>::CleanUpLine(RLLine & line) const
+//{
+//    CounterType x = 0;
+//    RLLine out;
+//    out.reserve(this->GetLargestPossibleRegion().GetSize(0));
+//    do
+//    {
+//        out.push_back(line[x]);
+//        while (++x < line.size() && line[x].second == line[x - 1].second)
+//            out.back().first += line[x].first;
+//    } while (x < line.size());
+//    out.swap(line);
+//}
+//
+//template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+//void RLEImage<TPixel, VImageDimension, CounterType>::CleanUp() const
+//{
+//    assert(!myBuffer.empty());
+//    if (this->GetLargestPossibleRegion().GetSize(0) == 0)
+//        return;
+//#pragma omp parallel for
+//    for (CounterType z = 0; z < myBuffer.size(); z++)
+//        for (CounterType y = 0; y < myBuffer[0].size(); y++)
+//            CleanUpLine(myBuffer[z][y]);
+//}
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 int RLEImage<TPixel, VImageDimension, CounterType>::
@@ -155,15 +176,20 @@ template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 void RLEImage<TPixel, VImageDimension, CounterType>::
 SetPixel(const IndexType & index, const TPixel & value)
 {
-    IndexType lpri = GetLargestPossibleRegion().GetIndex();
-    RLLine & line = myBuffer[index[2] - lpri[2]][index[1] - lpri[1]];
-    CounterType t = 0;
-    for (itk::SizeValueType x = 0; x < line.size(); x++)
+    //complete Run-Length Lines have to be buffered
+    itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
+        == this->GetLargestPossibleRegion().GetSize(0),
+        "BufferedRegion must contain complete run-length lines!");
+    IndexValueType bri0 = GetBufferedRegion().GetIndex(0);
+    BufferType::IndexType bi = truncateIndex(index);
+    RLLine & line = myBuffer->GetPixel(bi);
+    IndexValueType t = 0;
+    for (IndexValueType x = 0; x < line.size(); x++)
     {
         t += line[x].first;
-        if (t > index[0] - lpri[0])
+        if (t > index[0] - bri0)
         {
-            t -= index[0] - lpri[0]; //we need to supply a reference
+            t -= index[0] - bri0; //we need to supply a reference
             SetPixel(line, t, x, value);
             return;
         }
@@ -179,13 +205,14 @@ GetPixel(const IndexType & index) const
     itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
         == this->GetLargestPossibleRegion().GetSize(0),
         "BufferedRegion must contain complete run-length lines!");
-    IndexType lpri = GetLargestPossibleRegion().GetIndex();
-    RLLine & line = myBuffer[index[2] - lpri[2]][index[1] - lpri[1]];
-    CounterType t = 0;
-    for (int x = 0; x < line.size(); x++)
+    IndexValueType bri0 = GetBufferedRegion().GetIndex(0);
+    BufferType::IndexType bi = truncateIndex(index);
+    RLLine & line = myBuffer->GetPixel(bi);
+    IndexValueType t = 0;
+    for (IndexValueType x = 0; x < line.size(); x++)
     {
         t += line[x].first;
-        if (t > index[0] - lpri[0])
+        if (t > index[0] - bri0)
             return line[x].second;
     }
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
@@ -199,102 +226,102 @@ GetPixel(const IndexType & index)
     itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
         == this->GetLargestPossibleRegion().GetSize(0),
         "BufferedRegion must contain complete run-length lines!");
-    IndexType lpri = GetLargestPossibleRegion().GetIndex();
-    RLLine & line = myBuffer[index[2] - lpri[2]][index[1] - lpri[1]];
-    CounterType t = 0;
-    for (int x = 0; x < line.size(); x++)
+    IndexValueType bri0 = GetBufferedRegion().GetIndex(0);
+    BufferType::IndexType bi = truncateIndex(index);
+    RLLine & line = myBuffer->GetPixel(bi);
+    IndexValueType t = 0;
+    for (IndexValueType x = 0; x < line.size(); x++)
     {
         t += line[x].first;
-        if (t > index[0] - lpri[0])
+        if (t > index[0] - bri0)
             return line[x].second;
     }
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
 }
 
-template< typename TPixel, unsigned int VImageDimension, typename CounterType >
-void RLEImage<TPixel, VImageDimension, CounterType>::
-fromITKImage(typename itk::Image<TPixel, VImageDimension>::Pointer image)
-{
-    this->CopyInformation(image);
-    this->SetRegions(image->GetLargestPossibleRegion());
+//template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+//void RLEImage<TPixel, VImageDimension, CounterType>::
+//fromITKImage(typename itk::Image<TPixel, VImageDimension>::Pointer image)
+//{
+//    this->CopyInformation(image);
+//    this->SetRegions(image->GetLargestPossibleRegion());
+//
+//    itk::Size<3> size = image->GetLargestPossibleRegion().GetSize();
+//    myBuffer.clear(); //in case it wasn't already
+//    myBuffer.resize(size[2]);
+//    for (itk::SizeValueType z = 0; z < size[2]; z++)
+//        myBuffer[z].resize(size[1]);
+//
+//    RLLine temp;
+//    temp.reserve(size[0]); //pessimistically preallocate buffer, otherwise reallocations can occur
+//    itk::Index<3> ind;
+//    ind[0] = 0;
+//#pragma omp parallel for
+//    for (SizeValueType z = 0; z < size[2]; z++)
+//    {
+//        ind[2] = z;
+//        for (SizeValueType y = 0; y < size[1]; y++)
+//        {
+//            ind[1] = y;
+//            SizeValueType x = 0;       
+//            TPixel * p = image->GetBufferPointer();
+//            p+=image->ComputeOffset(ind);
+//            temp.clear();
+//            while (x < size[0])
+//            {
+//                RLSegment s(0, *p);
+//                while (x < size[0] && *p == s.second)
+//                {
+//                    x++;
+//                    s.first++;
+//                    p++;
+//                }
+//                temp.push_back(s);
+//            }
+//            myBuffer[z][y] = temp;
+//        }
+//    }
+//}
 
-    itk::Size<3> size = image->GetLargestPossibleRegion().GetSize();
-    myBuffer.clear(); //in case it wasn't already
-    myBuffer.resize(size[2]);
-    for (itk::SizeValueType z = 0; z < size[2]; z++)
-        myBuffer[z].resize(size[1]);
-
-    RLLine temp;
-    temp.reserve(size[0]); //pessimistically preallocate buffer, otherwise reallocations can occur
-    itk::Index<3> ind;
-    ind[0] = 0;
-#pragma omp parallel for
-    for (SizeValueType z = 0; z < size[2]; z++)
-    {
-        ind[2] = z;
-        for (SizeValueType y = 0; y < size[1]; y++)
-        {
-            ind[1] = y;
-            SizeValueType x = 0;       
-            TPixel * p = image->GetBufferPointer();
-            p+=image->ComputeOffset(ind);
-            temp.clear();
-            while (x < size[0])
-            {
-                RLSegment s(0, *p);
-                while (x < size[0] && *p == s.second)
-                {
-                    x++;
-                    s.first++;
-                    p++;
-                }
-                temp.push_back(s);
-            }
-            myBuffer[z][y] = temp;
-        }
-    }
-}
-
-template< typename TPixel, unsigned int VImageDimension, typename CounterType >
-typename itk::Image<TPixel, VImageDimension>::Pointer
-RLEImage<TPixel, VImageDimension, CounterType>::toITKImage() const
-{
-    typename itk::Image<TPixel, 3>::Pointer out = itk::Image<TPixel, 3>::New();
-    out->CopyInformation(this);
-    out->SetRegions(this->GetLargestPossibleRegion());
-    out->Allocate(false);
-
-    itk::Size<3> size;
-    size[2] = myBuffer.size();
-    assert(size[2] == this->GetLargestPossibleRegion().GetSize(2));
-    size[1] = myBuffer[0].size();
-    assert(size[1] == this->GetLargestPossibleRegion().GetSize(1));
-    #ifdef _DEBUG
-    size[0] = 0;
-    for (int x = 0; x < myBuffer[0][0].size(); x++)
-        size[0] += myBuffer[0][0][x].first;
-    assert(size[0] == this->GetLargestPossibleRegion().GetSize(0));
-    #endif
-    size[0] = this->GetLargestPossibleRegion().GetSize(0);
-
-    TPixel * p = out->GetBufferPointer();
-    itk::Index<3> ind;
-    ind[0] = 0;
-#pragma omp parallel for
-    for (SizeValueType z = 0; z < size[2]; z++)
-    {
-        ind[2] = z;
-        for (SizeValueType y = 0; y < size[1]; y++)
-        {
-            ind[1] = y;
-            SizeValueType x = 0;
-            SizeValueType offset = out->ComputeOffset(ind);
-            uncompressLine(myBuffer[z][y], p + offset);
-        }
-    }
-    return out;
-}
-
+//template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+//typename itk::Image<TPixel, VImageDimension>::Pointer
+//RLEImage<TPixel, VImageDimension, CounterType>::toITKImage() const
+//{
+//    typename itk::Image<TPixel, 3>::Pointer out = itk::Image<TPixel, 3>::New();
+//    out->CopyInformation(this);
+//    out->SetRegions(this->GetLargestPossibleRegion());
+//    out->Allocate(false);
+//
+//    itk::Size<3> size;
+//    size[2] = myBuffer.size();
+//    assert(size[2] == this->GetLargestPossibleRegion().GetSize(2));
+//    size[1] = myBuffer[0].size();
+//    assert(size[1] == this->GetLargestPossibleRegion().GetSize(1));
+//    #ifdef _DEBUG
+//    size[0] = 0;
+//    for (int x = 0; x < myBuffer[0][0].size(); x++)
+//        size[0] += myBuffer[0][0][x].first;
+//    assert(size[0] == this->GetLargestPossibleRegion().GetSize(0));
+//    #endif
+//    size[0] = this->GetLargestPossibleRegion().GetSize(0);
+//
+//    TPixel * p = out->GetBufferPointer();
+//    itk::Index<3> ind;
+//    ind[0] = 0;
+//#pragma omp parallel for
+//    for (SizeValueType z = 0; z < size[2]; z++)
+//    {
+//        ind[2] = z;
+//        for (SizeValueType y = 0; y < size[1]; y++)
+//        {
+//            ind[1] = y;
+//            SizeValueType x = 0;
+//            SizeValueType offset = out->ComputeOffset(ind);
+//            uncompressLine(myBuffer[z][y], p + offset);
+//        }
+//    }
+//    return out;
+//}
 
 //int sliceIndex, axis;
 //Seg3DImageType::RegionType reg;
@@ -335,23 +362,25 @@ template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 void RLEImage<TPixel, VImageDimension, CounterType>
 ::PrintSelf(std::ostream & os, itk::Indent indent) const
 {
-    Superclass::PrintSelf(os, indent);
-    itk::SizeValueType c = 0;
-    for (int z = 0; z < myBuffer.size(); z++)
-        for (int y = 0; y < this->GetLargestPossibleRegion().GetSize(1); y++)
-            c+=myBuffer[z][y].size();
+    //Superclass::PrintSelf(os, indent);
+    //itk::SizeValueType c = 0;
+    //for (int z = 0; z < myBuffer.size(); z++)
+    //    for (int y = 0; y < this->GetLargestPossibleRegion().GetSize(1); y++)
+    //        c+=myBuffer[z][y].size();
 
-    double cr = double(c*(sizeof(PixelType) + sizeof(CounterType))
-        + sizeof(std::vector<RLLine>) * this->GetOffsetTable()[3] / this->GetOffsetTable()[1])
-        / (this->GetOffsetTable()[3] * sizeof(PixelType));
+    //TODO: count reserved sizes!
+    //double cr = double(c*(sizeof(PixelType) + sizeof(CounterType))
+    //    + sizeof(std::vector<RLLine>) * this->GetOffsetTable()[VImageDimension] / this->GetOffsetTable()[1])
+    //    / (this->GetOffsetTable()[VImageDimension] * sizeof(PixelType));
 
-    os << indent << "OnTheFlyCleanup: " << (m_OnTheFlyCleanup ? "On" : "Off") << std::endl;
-    os << indent << "RLEImage compressed pixel count: " << c << std::endl;
-    int prec = os.precision(3);
-    os << indent << "Compressed size in relation to original size: "<< cr*100 <<"%" << std::endl;
-    os.precision(prec);
+    //os << indent << "OnTheFlyCleanup: " << (m_OnTheFlyCleanup ? "On" : "Off") << std::endl;
+    //os << indent << "RLEImage compressed pixel count: " << c << std::endl;
+    //int prec = os.precision(3);
+    //os << indent << "Compressed size in relation to original size: "<< cr*100 <<"%" << std::endl;
+    //os.precision(prec);
 
-    // m_Origin and m_Spacing are printed in the Superclass
+    //os << indent << "PixelContainer: " << std::endl;
+    //myBuffer->GetBuffer()->Print(os, indent.GetNextIndent());
 }
 
 #endif //RLEImage_txx
