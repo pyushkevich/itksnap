@@ -8,6 +8,7 @@
 #include "itkImageConstIterator.h"
 #include "itkImageConstIteratorWithIndex.h"
 #include "itkImageConstIteratorWithOnlyIndex.h"
+#include "itkImageRegionIteratorWithIndex.h"
 
 class MultiLabelMeshPipeline;
 
@@ -29,7 +30,7 @@ public:
    * functions that are templated over image iterator type (as opposed to
    * being templated over pixel type and dimension) can have compile time
    * access to the dimension of the image that the iterator walks. */
-  itkStaticConstMacro(ImageIteratorDimension, unsigned int, 3);
+  itkStaticConstMacro(ImageIteratorDimension, unsigned int, VImageDimension);
 
   /** Run-time type information (and related methods). */
   itkTypeMacroNoParent(ImageConstIterator);
@@ -42,6 +43,9 @@ public:
 
   /** Buffer Type used. */
   typedef typename ImageType::BufferType BufferType;
+
+  /** Type for the internal buffer iterator. */
+  typedef typename ImageRegionIteratorWithIndex<BufferType> BufferIterator;
 
   /** Index typedef support. */
   typedef typename ImageType::IndexType      IndexType;
@@ -70,9 +74,9 @@ public:
       m_Region(), myBuffer(0), rlLine(0)
   {
     m_Image = ITK_NULLPTR;
-    m_Index.Fill(0);
-    m_BeginIndex.Fill(0);
-    m_EndIndex.Fill(0);
+    m_Index0 = 0;
+    m_BeginIndex0 = 0;
+    m_EndIndex0 = 0;
     realIndex = 0;
     segmentRemainder = 0;
   }
@@ -88,18 +92,19 @@ public:
     rlLine = it.rlLine;
     m_Image = it.m_Image;     // copy the smart pointer
     m_Region = it.m_Region;
-    m_Index = it.m_Index;
+    m_Index0 = it.m_Index0;
+    bi = it.bi;
 
     realIndex = it.realIndex;
     segmentRemainder = it.segmentRemainder;
-    m_BeginIndex = it.m_BeginIndex;
-    m_EndIndex = it.m_EndIndex;
+    m_BeginIndex0 = it.m_BeginIndex0;
+    m_EndIndex0 = it.m_EndIndex0;
   }
 
   /** Constructor establishes an iterator to walk a particular image and a
    * particular region of that image. */
   ImageConstIterator(const ImageType *ptr, const RegionType & region)
-      :myBuffer(const_cast<BufferType *>(ptr->GetBuffer()))
+      :myBuffer(const_cast<ImageType *>(ptr)->GetBuffer())
   {
     m_Image = ptr;
     SetRegion(region);
@@ -114,13 +119,13 @@ public:
           myBuffer = it.myBuffer;
           rlLine = it.rlLine;
           m_Image = it.m_Image;     // copy the smart pointer
-          m_Region = it.m_Region;
-          m_Index = it.m_Index;
+          m_Index0 = it.m_Index0;
+          bi = it.bi;
 
           realIndex = it.realIndex;
           segmentRemainder = it.segmentRemainder;
-          m_BeginIndex = it.m_BeginIndex;
-          m_EndIndex = it.m_EndIndex;
+          m_BeginIndex0 = it.m_BeginIndex0;
+          m_EndIndex0 = it.m_EndIndex0;
       }
     return *this;
   }
@@ -128,153 +133,125 @@ public:
   /** Set the region of the image to iterate over. */
   virtual void SetRegion(const RegionType & region)
   {
-    m_Region = region;
+    //m_Region = region;
 
     if ( region.GetNumberOfPixels() > 0 ) // If region is non-empty
       {
       const RegionType & bufferedRegion = m_Image->GetBufferedRegion();
-      itkAssertOrThrowMacro( ( bufferedRegion.IsInside(m_Region) ),
-                             "Region " << m_Region << " is outside of buffered region " << bufferedRegion );
+      itkAssertOrThrowMacro( ( bufferedRegion.IsInside(region) ),
+          "Region " << region << " is outside of buffered region " << bufferedRegion);
       }
 
-    m_Index = m_Region.GetIndex();
-    IndexType indR(m_Image->GetLargestPossibleRegion().GetIndex());
-    m_BeginIndex[0] = m_Index[0] - indR[0];
-    m_BeginIndex[1] = m_Index[1] - indR[1];
-    m_BeginIndex[2] = m_Index[2] - indR[2];
-
-    m_EndIndex[0] = m_BeginIndex[0] + m_Region.GetSize(0);
-    m_EndIndex[1] = m_BeginIndex[1] + m_Region.GetSize(1);
-    m_EndIndex[2] = m_BeginIndex[2] + m_Region.GetSize(2);
-    SetIndexInternal(m_BeginIndex); //sets realIndex and segmentRemainder
+    BufferType::RegionType r;
+    r.SetIndex(ImageType::truncateIndex(region.GetIndex()));
+    r.SetSize(ImageType::truncateSize(region.GetSize()));
+    bi = BufferIterator(myBuffer, r);
+    m_Index0 = region.GetIndex(0);
+    m_BeginIndex0 = m_Index0 - m_Image->GetBufferedRegion().GetIndex(0);
+    m_EndIndex0 = m_BeginIndex0 + region.GetSize(0);
+    SetIndexInternal(m_BeginIndex0); //sets realIndex and segmentRemainder
   }
 
   /** Get the dimension (size) of the index. */
   static unsigned int GetImageIteratorDimension()
-  { return 3; }
+  { return VImageDimension; }
 
   /** Comparison operator. Two iterators are the same if they "point to" the
    * same memory location */
   bool operator!=(const Self & it) const
-  { return myBuffer!=it.myBuffer || m_Index!=it.m_Index; }
+  { 
+      return bi != it.bi || 
+          m_Index0 + m_BeginIndex0 != it.m_Index0 + it.m_BeginIndex0;
+  }
 
   /** Comparison operator. Two iterators are the same if they "point to" the
    * same memory location */
   bool operator==(const Self & it) const
-  { return myBuffer == it.myBuffer && m_Index == it.m_Index; }
+  { 
+      return bi == it.bi && 
+          m_Index0 + m_BeginIndex0 == it.m_Index0 + it.m_BeginIndex0;
+  }
 
   /** Comparison operator. An iterator is "less than" another if it "points to"
   * a lower memory location. */
   bool operator<=(const Self & it) const
   {
-      // an iterator is "less than" another if it "points to" a lower
-      // memory location
-      if (myBuffer != it.myBuffer)
-          return false;
-      if (m_Index[2] < it.m_Index[2])
+      if (bi < it.bi)
           return true;
-      else if ((m_Index[2] > it.m_Index[2]))
+      else if (bi > it.bi)
           return false;
-      else if (m_Index[1] < it.m_Index[1])
-          return true;
-      else if ((m_Index[1] > it.m_Index[1]))
-          return false;
-      else if (m_Index[0] <= it.m_Index[0])
-          return true;
-      else
-          return false;
+      return m_Index0 + m_BeginIndex0 <= it.m_Index0 + it.m_BeginIndex0;
   }
 
   /** Comparison operator. An iterator is "less than" another if it "points to"
   * a lower memory location. */
   bool operator<(const Self & it) const
   {
-      // an iterator is "less than" another if it "points to" a lower
-      // memory location
-      if (myBuffer != it.myBuffer)
-          return false; //not the same image, incomparable
-      if (m_Index[2] < it.m_Index[2])
+      if (bi < it.bi)
           return true;
-      else if ((m_Index[2] > it.m_Index[2]))
+      else if (bi > it.bi)
           return false;
-      else if (m_Index[1] < it.m_Index[1])
-          return true;
-      else if ((m_Index[1] > it.m_Index[1]))
-          return false;
-      else if (m_Index[0] < it.m_Index[0])
-          return true;
-      else
-          return false;
+      return m_Index0 + m_BeginIndex0 < it.m_Index0 + it.m_BeginIndex0;
   }
 
   /** Comparison operator. An iterator is "greater than" another if it
   * "points to" a higher location. */
   bool operator>=(const Self & it) const
   {
-      // an iterator is "greater than" another if it "points to" a higher
-      // memory location
-      if (myBuffer != it.myBuffer)
-          return false; //not the same image, incomparable
-      if (m_Index[2] > it.m_Index[2])
+      if (bi > it.bi)
           return true;
-      else if ((m_Index[2] < it.m_Index[2]))
+      else if (bi < it.bi)
           return false;
-      else if (m_Index[1] > it.m_Index[1])
-          return true;
-      else if ((m_Index[1] < it.m_Index[1]))
-          return false;
-      else if (m_Index[0] >= it.m_Index[0])
-          return true;
-      else
-          return false;
+      return m_Index0 + m_BeginIndex0 >= it.m_Index0 + it.m_BeginIndex0;
   }
 
   /** Comparison operator. An iterator is "greater than" another if it
   * "points to" a higher location. */
   bool operator>(const Self & it) const
   {
-      // an iterator is "greater than" another if it "points to" a higher
-      // memory location
-      if (myBuffer != it.myBuffer)
-          return false; //not the same image, incomparable
-      if (m_Index[2] > it.m_Index[2])
+      if (bi > it.bi)
           return true;
-      else if ((m_Index[2] < it.m_Index[2]))
+      else if (bi < it.bi)
           return false;
-      else if (m_Index[1] > it.m_Index[1])
-          return true;
-      else if ((m_Index[1] < it.m_Index[1]))
-          return false;
-      else if (m_Index[0] > it.m_Index[0])
-          return true;
-      else
-          return false;
+      return m_Index0 + m_BeginIndex0 > it.m_Index0 + it.m_BeginIndex0;
   }
 
-  /** Get the index. This provides a read only reference to the index. */
+  /** Get the index. This provides a read only copy of the index. */
   const IndexType GetIndex() const
   { 
-      IndexType indR(m_Image->GetLargestPossibleRegion().GetIndex());
-      indR[0] += m_Index[0];
-      indR[1] += m_Index[1];
-      indR[2] += m_Index[2];
+      IndexType indR(m_Image->GetBufferedRegion().GetIndex());
+      indR[0] += m_Index0;
+      BufferType::IndexType bufInd = bi.GetIndex();
+      for (IndexValueType i = 1; i < VImageDimension; i++)
+          indR[i] = bufInd[i];
       return indR;
   }
 
   /** Sets the image index. No bounds checking is performed. */
   virtual void SetIndex(const IndexType & ind)
   {
-      IndexType indR(m_Image->GetLargestPossibleRegion().GetIndex());
-      indR[0] = ind[0] - indR[0];
-      indR[1] = ind[1] - indR[1];
-      indR[2] = ind[2] - indR[2];
-      SetIndexInternal(indR);
+      BufferType::IndexType bufInd;
+      for (IndexValueType i = 1; i < VImageDimension; i++)
+          bufInd[i] = ind[i];
+      bi.SetIndex(bufInd);
+      SetIndexInternal(ind[0] - m_Image->GetBufferedRegion().GetIndex(0));
   }
 
   /** Get the region that this iterator walks. ImageConstIterators know the
    * beginning and the end of the region of the image to iterate over. */
-  const RegionType & GetRegion() const
-  { return m_Region; }
+  const RegionType GetRegion() const
+  {
+      RegionType r;
+      r.SetIndex(0, m_BeginIndex0 + m_Image->GetBufferedRegion().GetIndex(0));
+      r.SetSize(0, m_EndIndex0 - m_BeginIndex0);
+      BufferType::RegionType ir = bi.GetRegion();
+      for (IndexValueType i = 1; i < VImageDimension; i++)
+      {
+          r.SetIndex(i, ir.GetIndex(i - 1));
+          r.SetSize(i, ir.GetSize(i - 1));
+      }
+      return r;
+  }
 
   /** Get the image that this iterator walks. */
   const ImageType * GetImage() const
@@ -288,49 +265,38 @@ public:
    * This method will provide the fastest access to pixel
    * data, but it will NOT support ImageAdaptors. */
   const PixelType & Value(void) const
-  { return (*myBuffer)[m_Index[2]][m_Index[1]][realIndex].second; }
+  { return bi.Get()[realIndex].second; }
 
   /** Move an iterator to the beginning of the region. "Begin" is
    * defined as the first pixel in the region. */
   void GoToBegin()
-  { SetIndexInternal(m_BeginIndex); }
+  {
+      bi.GoToBegin();
+      SetIndexInternal(m_BeginIndex0);
+  }
 
   /** Move an iterator to the end of the region. "End" is defined as
    * one pixel past the last pixel of the region. */
   void GoToEnd()
-  {
-      m_Index[0] = m_EndIndex[0] - 1;
-      m_Index[1] = m_EndIndex[1] - 1;
-      m_Index[2] = m_EndIndex[2] - 1;
-      SetIndexInternal(m_Index); //first set to the last pixel so we have valid member variables
-      m_Index[0] = m_BeginIndex[0];
-      m_Index[1] = m_BeginIndex[1];
-      m_Index[2] = m_EndIndex[2];
-  }
+  { bi.GoToEnd(); }
 
   /** Is the iterator at the beginning of the region? "Begin" is defined
    * as the first pixel in the region. */
   bool IsAtBegin(void) const
-  { return (m_Index == m_BeginIndex); }
+  { return bi.IsAtBegin(); }
 
   /** Is the iterator at the end of the region? "End" is defined as one
    * pixel past the last pixel of the region. */
   bool IsAtEnd(void) const
-  {
-      IndexType ind;
-      ind[0] = m_BeginIndex[0];
-      ind[1] = m_BeginIndex[1];
-      ind[2] = m_EndIndex[2];
-      return (m_Index == ind);
-  }
+  { return bi.IsAtEnd(); }
 
 protected: //made protected so other iterators can access
 
   /** Set the internal index, realIndex and segmentRemainder. */
-  virtual void SetIndexInternal(const IndexType & ind)
+  virtual void SetIndexInternal(const IndexValueType ind0)
   {
-      m_Index = ind;
-      rlLine = &(*myBuffer)[m_Index[2]][m_Index[1]];
+      m_Index0 = ind0;
+      rlLine = &bi.Get();//&(*myBuffer)[m_Index[2]][m_Index[1]];
 
       CounterType t = 0;
       SizeValueType x = 0;
@@ -338,27 +304,27 @@ protected: //made protected so other iterators can access
       for (; x < (*rlLine).size(); x++)
       {
           t += (*rlLine)[x].first;
-          if (t > m_Index[0])
+          if (t > m_Index0)
               break;
       }
       realIndex = x;
-      segmentRemainder = t - m_Index[0];
+      segmentRemainder = t - m_Index0;
   }
 
   typename ImageType::ConstWeakPointer m_Image;
 
-  RegionType m_Region; // region to iterate over
-  IndexType m_Index;   // current index in relation to buffer start (index-region.index)
+  IndexValueType m_Index0; //index into the RLLine
 
   const RLLine * rlLine;
 
   mutable IndexValueType realIndex; // index into line's segment
   mutable IndexValueType segmentRemainder; // how many pixels remain in current segment
 
-  IndexType m_BeginIndex; // index to first pixel in region in relation to buffer start
-  IndexType m_EndIndex;   // index to one pixel past last pixel in region in relation to buffer start
+  IndexValueType m_BeginIndex0; // index to first pixel in region in relation to buffer start
+  IndexValueType m_EndIndex0;   // index to one pixel past last pixel in region in relation to buffer start
 
-  BufferType * myBuffer;
+  BufferIterator bi; //iterator over internal buffer image
+  typename BufferType::Pointer myBuffer;
 };
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >

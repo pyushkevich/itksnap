@@ -24,8 +24,7 @@ public:
     * functions that are templated over image iterator type (as opposed to
     * being templated over pixel type and dimension) can have compile time
     * access to the dimension of the image that the iterator walks. */
-    itkStaticConstMacro(ImageIteratorDimension, unsigned int,
-        Superclass::ImageIteratorDimension);
+    itkStaticConstMacro(ImageIteratorDimension, unsigned int, VImageDimension);
 
     /**
     * Index typedef support. While these were already typdef'ed in the superclass,
