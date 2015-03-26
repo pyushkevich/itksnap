@@ -832,6 +832,9 @@ IRISApplication
 
   // Construct are region of interest into which the result will be pasted
   SNAPSegmentationROISettings roi = m_GlobalState->GetSegmentationROISettings();
+  // the roi above can be wrong if a segmentation was loaded while itksnap is in a ROI-mode (e.g. Snake or gWS)
+  // the mismatch in the ROI-region index then causes the program to crash when the interators are initialized down below
+  // therefore disabled loading of segmentations during ROI-modes in MainImageWindow.cxx 
 
   // Create iterators for copying from one to the other
   typedef itk::ImageRegionConstIterator<SourceImageType> SourceIteratorType;

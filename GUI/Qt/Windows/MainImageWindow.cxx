@@ -332,12 +332,12 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Set up activations - File menu
   activateOnFlag(ui->actionOpenMain, m_Model, UIF_IRIS_MODE);
   activateOnFlag(ui->menuRecent_Images, m_Model, UIF_IRIS_MODE);
-  activateOnFlag(ui->actionSaveMain, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSaveMain, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);//CnJ: Main(ROI) can be saved with RMB on layer in cursor inspector
   activateOnFlag(ui->actionSaveSpeed, m_Model, UIF_SNAKE_MODE);
   activateOnFlag(ui->actionSaveLevelSet, m_Model, UIF_LEVEL_SET_ACTIVE);
   activateOnFlag(ui->actionSaveMainROI, m_Model, UIF_SNAKE_MODE);
   activateOnFlag(ui->menuExport, m_Model, UIF_BASEIMG_LOADED);
-  activateOnFlag(ui->actionUnload_All, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionUnload_All, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
 
   // Set up activations - Edit menu
   activateOnFlag(ui->actionUndo, m_Model, UIF_UNDO_POSSIBLE);
@@ -356,9 +356,9 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
 
   // Set up activations - Segmentation menu
-  activateOnFlag(ui->actionLoad_from_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionClear, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionSaveSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionLoad_from_Image, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
+  activateOnFlag(ui->actionClear, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
+  activateOnFlag(ui->actionSaveSegmentation, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
   activateOnFlag(ui->actionSaveSegmentationAs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSave_as_Mesh, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionLoadLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
@@ -367,16 +367,16 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->menuAppearance, m_Model, UIF_BASEIMG_LOADED);
 
   // Overlay action activations
-  activateOnFlag(ui->actionAdd_Overlay, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionUnload_Last_Overlay, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionUnload_All_Overlays, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionAdd_Overlay, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
+  activateOnFlag(ui->actionUnload_Last_Overlay, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
+  activateOnFlag(ui->actionUnload_All_Overlays, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
   activateOnFlag(ui->menuOverlayAppearance, m_Model, UIF_OVERLAY_LOADED);
   activateOnFlag(ui->actionToggleJsrcVis, m_Model, UIF_JOIN_MODE);
 
   // Workspace menu
   activateOnFlag(ui->actionOpenWorkspace, m_Model, UIF_IRIS_MODE);
-  activateOnFlag(ui->actionSaveWorkspace, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionSaveWorkspaceAs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSaveWorkspace, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
+  activateOnFlag(ui->actionSaveWorkspaceAs, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
 
   // Tool action activations
   activateOnFlag(ui->actionCrosshair, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
@@ -388,8 +388,8 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   activateOnFlag(ui->action3DCrosshair, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->action3DTrackball, m_Model, UIF_BASEIMG_LOADED);
-  activateOnFlag(ui->action3DScalpel, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->action3DSpray, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->action3DScalpel, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
+  activateOnFlag(ui->action3DSpray, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
 
   activateOnFlag(ui->actionLayerInspector, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionImage_Contrast, m_Model, UIF_BASEIMG_LOADED);
@@ -400,7 +400,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionImage_Information, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionLabel_Editor, m_Model, UIF_BASEIMG_LOADED);
 
-  activateOnFlag(ui->actionReorient_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionReorient_Image, m_Model, UIF_NOT_SNAKE_OR_JOIN_MODE);
 
   // Hook up toolbar actions to the toolbar
   makeActionGroupCoupling(this->GetMainToolActionGroup(),
