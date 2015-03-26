@@ -125,28 +125,19 @@ public:
     virtual void SetLargestPossibleRegion(const RegionType & region)
     {
         Superclass::SetLargestPossibleRegion(region);
-        BufferType::RegionType r;
-        r.SetSize(truncateSize(region.GetSize()));
-        r.SetIndex(truncateIndex(region.GetIndex()));
-        myBuffer->SetLargestPossibleRegion(r);
+        myBuffer->SetLargestPossibleRegion(truncateRegion(region));
     }
 
     virtual void SetBufferedRegion(const RegionType & region)
     {
         Superclass::SetBufferedRegion(region);
-        BufferType::RegionType r;
-        r.SetSize(truncateSize(region.GetSize()));
-        r.SetIndex(truncateIndex(region.GetIndex()));
-        myBuffer->SetBufferedRegion(r);
+        myBuffer->SetBufferedRegion(truncateRegion(region));
     }
 
     virtual void SetRequestedRegion(const RegionType & region)
     {
         Superclass::SetRequestedRegion(region);
-        BufferType::RegionType r;
-        r.SetSize(truncateSize(region.GetSize()));
-        r.SetIndex(truncateIndex(region.GetIndex()));
-        myBuffer->SetRequestedRegion(r);
+        myBuffer->SetRequestedRegion(truncateRegion(region));
     }
 
     /** \brief Set a pixel value.
@@ -211,6 +202,10 @@ public:
     /** Returns N-1-dimensional size, the remainder after 0-size is removed. */
     static inline typename BufferType::SizeType
         truncateSize(const typename SizeType & size);
+
+    /** Returns N-1-dimensional region, the remainder after 0-index and size are removed. */
+    static typename BufferType::RegionType
+        truncateRegion(const typename RegionType & region);
 
     /** Merges adjacent segments with duplicate values.
     * Automatically called when turning on OnTheFlyCleanup. */

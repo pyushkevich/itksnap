@@ -222,7 +222,7 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
   InputIterator it(m_InputImage, m_InputImage->GetLargestPossibleRegion());
   while( !it.IsAtEnd() )
     {
-    run_start = it.m_Index;
+    run_start = it.GetIndex();
     const InputIterator::RLLine &line=*(it.rlLine);
     int t = 0;
     // Iterate through the line
@@ -239,7 +239,7 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
         current_meshinfo = &meshmap[current_label];
         }
       }
-    it.Increment();
+    it.bi++;
     }
 
   // At this point, meshmap has the number of voxels for every label, as well

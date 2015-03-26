@@ -126,66 +126,70 @@ void RegionOfInterestImageFilter<RLEImage<TPixel, VImageDimension, CounterType>,
   IndexType start, end;
   IndexType roiStart( m_RegionOfInterest.GetIndex() );
   IndexType threadStart( outputRegionForThread.GetIndex() );
-  for (unsigned int i = 0; i < ImageDimension; i++)
+  for (unsigned int i = 0; i < VImageDimension; i++)
   {
       start[i] = roiStart[i] + threadStart[i];
       end[i] = roiStart[i] + threadStart[i] + outputRegionForThread.GetSize(i);
   }
   inputRegionForThread.SetIndex(start);
+
   bool copyLines = (in->GetLargestPossibleRegion().GetSize(0) == outputRegionForThread.GetSize(0));
-  
-  for (SizeValueType z = 0; z < outputRegionForThread.GetSize(2); z++)
+  ImageType::BufferType::RegionType oReg = ImageType::truncateRegion(outputRegionForThread),
+      iReg = ImageType::truncateRegion(inputRegionForThread);
+  ImageRegionConstIterator<ImageType::BufferType> iIt(in->GetBuffer(), iReg);
+  ImageRegionIterator<ImageType::BufferType> oIt(out->GetBuffer(), oReg);
+
+  while (!oIt.IsAtEnd())
   {
-      for (SizeValueType y = 0; y < outputRegionForThread.GetSize(1); y++)
+      if (copyLines)
+          oIt.Set(iIt.Get());
+      else //determine begin and end iterator and copy range
       {
-          if (copyLines)
-              out->myBuffer[z][y] = in->myBuffer[z + start[2]][y + start[1]];
-          else //determine begin and end iterator and copy range
+          typename RLEImageType::RLLine &oLine = oIt.Value();
+          oLine.clear();
+          const typename RLEImageType::RLLine &iLine = iIt.Value();
+          CounterType t = 0;
+          SizeValueType x = 0;
+          //find start
+          for (; x < iLine.size(); x++)
           {
-              typename RLEImageType::RLLine &oLine = out->myBuffer[z + threadStart[2]][y + threadStart[1]];
-              oLine.clear();
-              const typename RLEImageType::RLLine &iLine = in->myBuffer[z + start[2]][y + start[1]];
-              CounterType t = 0;
-              SizeValueType x = 0;
-              //find start
-              for (; x < iLine.size(); x++)
+              t += iLine[x].first;
+              if (t > start[0])
+                  break;
+          }
+          assert(x < iLine.size());
+
+          SizeValueType begin = x;
+          if (t >= end[0]) //both begin and end are in this segment
+          {
+              oLine.push_back(
+                  typename RLEImageType::RLSegment(end[0] - start[0], iLine[x].second));
+              continue; //next line
+          }
+          else if (t - start[0] < iLine[x].first) //not the first pixel in segment
+          {
+              oLine.push_back(typename RLEImageType::RLSegment(t - start[0], iLine[x].second));
+              begin++; //start copying from next segment
+          }
+
+          if (t < end[0])
+              for (x++; x < iLine.size(); x++)
               {
                   t += iLine[x].first;
-                  if (t > start[0])
+                  if (t >= end[0])
                       break;
               }
-              assert(x < iLine.size());
-
-              SizeValueType begin = x;
-              if (t >= end[0]) //both begin and end are in this segment
-              {
-                  oLine.push_back(
-                      typename RLEImageType::RLSegment(end[0] - start[0], iLine[x].second));
-                  continue; //next line
-              }
-              else if (t - start[0] < iLine[x].first) //not the first pixel in segment
-              {
-                  oLine.push_back(typename RLEImageType::RLSegment(t - start[0], iLine[x].second));
-                  begin++; //start copying from next segment
-              }
-
-              if (t < end[0])
-                  for (x++; x < iLine.size(); x++)
-                  {
-                      t += iLine[x].first;
-                      if (t >= end[0])
-                          break;
-                  }
-              if (t == end[0])
-                  oLine.insert(oLine.end(), iLine.begin() + begin, iLine.begin() + x + 1);
-              else //we need to take special care of the last segment
-              {
-                  oLine.insert(oLine.end(), iLine.begin() + begin, iLine.begin() + x);
-                  oLine.push_back(
-                      typename RLEImageType::RLSegment(end[0] + iLine[x].first - t, iLine[x].second));
-              }
+          if (t == end[0])
+              oLine.insert(oLine.end(), iLine.begin() + begin, iLine.begin() + x + 1);
+          else //we need to take special care of the last segment
+          {
+              oLine.insert(oLine.end(), iLine.begin() + begin, iLine.begin() + x);
+              oLine.push_back(
+                  typename RLEImageType::RLSegment(end[0] + iLine[x].first - t, iLine[x].second));
           }
       }
+      ++iIt;
+      ++oIt;
   }
 }
 } // end namespace itk

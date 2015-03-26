@@ -79,7 +79,7 @@ public:
     */
     void GoToBeginOfLine(void)
     {
-        this->m_Index[0] = this->m_BeginIndex[0];
+        this->m_Index0 = this->m_BeginIndex0;
         this->realIndex = 0;
         this->segmentRemainder = (*this->rlLine)[this->realIndex].first;
     }
@@ -94,7 +94,7 @@ public:
     */
     void GoToEndOfLine(void)
     {
-        this->m_Index[0] = this->m_EndIndex[0];
+        this->m_Index0 = this->m_EndIndex0;
         this->realIndex = this->rlLine->size() - 1;
         this->segmentRemainder = 0;
     }
@@ -102,7 +102,7 @@ public:
     /** Test if the index is at the end of line
     */
     inline bool IsAtEndOfLine(void)
-    { return this->m_Index[0] == this->m_EndIndex[0]; }
+    { return this->m_Index0 == this->m_EndIndex0; }
 
     /** Go to the next line.
     *
@@ -113,7 +113,7 @@ public:
     * \sa IsAtEndOfLine
     */
     inline void NextLine(void)
-    { this->Increment(); }
+    { ++bi; }
 
     /** Increment (prefix) along the scanline the iterator's index.
     *
@@ -125,7 +125,7 @@ public:
     Self& operator++()
     {
         itkAssertInDebugAndIgnoreInReleaseMacro(!this->IsAtEndOfLine());
-        this->m_Index[0]++;
+        this->m_Index0++;
         this->segmentRemainder--;
         if (this->segmentRemainder > 0)
             return *this;
@@ -141,7 +141,7 @@ public:
     Self& operator--()
     {
         itkAssertInDebugAndIgnoreInReleaseMacro(!this->IsAtEndOfLine());
-        this->m_Index[0]--;
+        this->m_Index0--;
         this->segmentRemainder++;
         if (this->segmentRemainder <= (*this->rlLine)[this->realIndex].first)
             return *this;

@@ -91,11 +91,13 @@ public:
   Self &
   operator++()
   {
-    this->m_Index[0]++;
+    this->m_Index0++;
 
-    if (this->m_Index[0] >= this->m_EndIndex[0])
+    if (this->m_Index0 >= this->m_EndIndex0)
     {
-        this->Increment();
+        ++bi;
+        if (!bi.IsAtEnd())
+            SetIndexInternal(m_BeginIndex0);
         return *this;
     }
 
@@ -117,11 +119,12 @@ public:
    * \sa operator--(int) */
   Self & operator--()
   {
-      this->m_Index[0]--;
+      this->m_Index0--;
 
-      if (this->m_Index[0] < this->m_BeginIndex[0])
+      if (this->m_Index0 < this->m_BeginIndex0)
       {
-          this->Decrement();
+          --bi;
+          SetIndexInternal(m_EndIndex0 - 1);
           return *this;
       }
 
@@ -132,33 +135,6 @@ public:
       this->realIndex--;
       this->segmentRemainder = 1;
       return *this;
-  }
-
-protected:
-  void Increment() // advance in a direction other than the fastest moving
-  {
-      // We have reached the end of the line (row), need to wrap around.
-      this->m_Index[0] = this->m_BeginIndex[0];
-      if (++this->m_Index[1] == this->m_EndIndex[1])
-      {
-          this->m_Index[1] = this->m_BeginIndex[1];
-          this->m_Index[2]++;
-      }
-      if (IsAtEnd())
-          return;
-      SetIndexInternal(this->m_Index);
-  }
-
-  void Decrement() // go back in a direction other than the fastest moving
-  {
-      // We have reached the beginning of the line (row), need to wrap around.
-      this->m_Index[0] = this->m_EndIndex[0] - 1;
-      if (--this->m_Index[1] < this->m_BeginIndex[1])
-      {
-          this->m_Index[1] = this->m_EndIndex[1] - 1;
-          this->m_Index[2]--;
-      }
-      SetIndexInternal(this->m_Index);
   }
 };
 

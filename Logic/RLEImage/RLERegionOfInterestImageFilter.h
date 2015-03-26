@@ -29,6 +29,7 @@ public:
   /** Standard class typedefs. */
   typedef RegionOfInterestImageFilter                      Self;
   typedef RLEImage<TPixel, VImageDimension, CounterType>           RLEImageType;
+  typedef typename RLEImageType ImageType;
   typedef ImageToImageFilter< RLEImageType, RLEImageType > Superclass;
   typedef SmartPointer< Self >                             Pointer;
   typedef SmartPointer< const Self >                       ConstPointer;
@@ -54,8 +55,8 @@ public:
   itkGetConstMacro(RegionOfInterest, RegionType);
 
   /** ImageDimension enumeration */
-  itkStaticConstMacro(ImageDimension, unsigned int, 3);
-  itkStaticConstMacro(OutputImageDimension, unsigned int, 3);
+  itkStaticConstMacro(ImageDimension, unsigned int, VImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, VImageDimension);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   // Begin concept checking

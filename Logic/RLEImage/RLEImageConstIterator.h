@@ -71,7 +71,7 @@ public:
   /** Default Constructor. Need to provide a default constructor since we
    * provide a copy constructor. */
   ImageConstIterator():
-      m_Region(), myBuffer(0), rlLine(0)
+    myBuffer(0), rlLine(0)
   {
     m_Image = ITK_NULLPTR;
     m_Index0 = 0;
@@ -87,11 +87,10 @@ public:
   /** Copy Constructor. The copy constructor is provided to make sure the
    * handle to the image is properly reference counted. */
   ImageConstIterator(const Self & it)
-      :myBuffer(const_cast<BufferType *>(it.GetImage()->GetBuffer()))
+      :myBuffer(const_cast<ImageType *>(it.GetImage())->GetBuffer())
   {
     rlLine = it.rlLine;
     m_Image = it.m_Image;     // copy the smart pointer
-    m_Region = it.m_Region;
     m_Index0 = it.m_Index0;
     bi = it.bi;
 
@@ -142,10 +141,7 @@ public:
           "Region " << region << " is outside of buffered region " << bufferedRegion);
       }
 
-    BufferType::RegionType r;
-    r.SetIndex(ImageType::truncateIndex(region.GetIndex()));
-    r.SetSize(ImageType::truncateSize(region.GetSize()));
-    bi = BufferIterator(myBuffer, r);
+    bi = BufferIterator(myBuffer, ImageType::truncateRegion(region));
     m_Index0 = region.GetIndex(0);
     m_BeginIndex0 = m_Index0 - m_Image->GetBufferedRegion().GetIndex(0);
     m_EndIndex0 = m_BeginIndex0 + region.GetSize(0);
@@ -278,12 +274,23 @@ public:
   /** Move an iterator to the end of the region. "End" is defined as
    * one pixel past the last pixel of the region. */
   void GoToEnd()
-  { bi.GoToEnd(); }
+  {
+      bi.GoToReverseBegin();
+      //BufferType::IndexType ind;
+      //for (IndexValueType i = 0; i < VImageDimension - 1; i++)
+      //    ind.SetElement(i, m_Image->GetBufferedRegion().GetIndex(i + 1)
+      //      + m_Image->GetBufferedRegion().GetSize(i + 1) - 1);
+      //bi.SetIndex(ind);
+      m_Index0 = m_EndIndex0 - 1;
+      SetIndexInternal(m_Index0);
+      m_Index0++;
+      ++bi;
+  }
 
   /** Is the iterator at the beginning of the region? "Begin" is defined
    * as the first pixel in the region. */
   bool IsAtBegin(void) const
-  { return bi.IsAtBegin(); }
+  { return bi.IsAtReverseEnd(); }
 
   /** Is the iterator at the end of the region? "End" is defined as one
    * pixel past the last pixel of the region. */

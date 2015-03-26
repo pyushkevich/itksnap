@@ -26,6 +26,17 @@ RLEImage<TPixel, VImageDimension, CounterType>
 }
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+typename RLEImage<TPixel, VImageDimension, CounterType>::BufferType::RegionType
+RLEImage<TPixel, VImageDimension, CounterType>
+::truncateRegion(const typename RegionType & region)
+{
+    typename BufferType::RegionType result;
+    result.SetIndex(truncateIndex(region.GetIndex()));
+    result.SetSize(truncateSize(region.GetSize()));
+    return result;
+}
+
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 void RLEImage<TPixel, VImageDimension, CounterType>::Allocate(bool initialize)
 {
     itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)

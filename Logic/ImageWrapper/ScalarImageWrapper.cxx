@@ -102,8 +102,11 @@ ScalarImageWrapper<LabelImageWrapperTraits, ScalarImageWrapperBase>
     // If the source contains an image, make a copy of that image
     if (copy.IsInitialized() && copy.GetImage())
     {
-        ImagePointer newImage = ImageType::New();
-        newImage->DeepCopy(*copy.GetImage());
+        typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> roiType;
+        roiType::Pointer roi = roiType::New();
+        roi->SetInput(copy.GetImage());
+        roi->Update();
+        ImagePointer newImage = roi->GetOutput();
         UpdateImagePointer(newImage);
     }
 }
