@@ -32,9 +32,9 @@ int itkIteratorTests(int, char* [] )
   double origin3D[3] = { 5, 2.1, 8.1};
   double spacing3D[3] = { 1.5, 2.1, 1};
 
-  ScalarImage::SizeType imageSize3D = {{ 200, 200, 200 }};
-  ScalarImage::SizeType bufferSize3D = {{ 200, 200, 200 }};
-  ScalarImage::SizeType regionSize3D = {{ 190, 190, 190 }};
+  ScalarImage::SizeType imageSize3D = {{ 100, 100, 100 }};
+  ScalarImage::SizeType bufferSize3D = {{ 100, 100, 100 }};
+  ScalarImage::SizeType regionSize3D = {{ 91, 93, 87 }};
 
   ScalarImage::IndexType startIndex3D = {{0, 0, 0}};
   ScalarImage::IndexType bufferStartIndex3D = {{0, 0, 0}};
@@ -60,65 +60,9 @@ int itkIteratorTests(int, char* [] )
   // extra variables
   double elapsedTime;
   clock_t start, end;
-  unsigned long num = 190*190*190;
+  unsigned long num = regionSize3D[0] * regionSize3D[1] * regionSize3D[2];
   unsigned long i;
   bool passed = true;
-
-  //// memset
-  //start = clock();
-  //unsigned short *ptr = o3->GetBufferPointer();
-  //memset(ptr, 0, num*sizeof(unsigned short));
-  //end = clock();
-  //elapsedTime = (end - start) / (double) CLOCKS_PER_SEC;
-
-  //std::cout << "Raw pointer using memset" << std::endl;
-  //std::cout << "\tTime   = " << elapsedTime << std::endl;
-  //std::cout << "\tPixels = " << num << std::endl;
-
-  //// 1D array
-  //start = clock();
-  //ptr = o3->GetBufferPointer();
-  //for (i=0; i < num; ++i)
-  //  {
-  //  ++ptr;
-  //  }
-  //end = clock();
-  //*ptr = 0;
-  //elapsedTime = (end - start) / (double) CLOCKS_PER_SEC;
-
-  //std::cout << "Raw pointer as a 1D array" << std::endl;
-  //std::cout << "\tTime   = " << elapsedTime << std::endl;
-  //std::cout << "\tPixels = " << i << std::endl;
-
-  //if (i != num)
-  //  {
-  //  passed = false;
-  //  }
-
-  //// 3 nested loops
-  //unsigned long ii, jj, kk, len=190;
-  //start = clock();
-  //i = 0;
-  //ptr = o3->GetBufferPointer();
-  //for (ii=0; ii < len; ++ii)
-  //  for (jj=0; jj < len; ++jj)
-  //    for (kk=0; kk < len; ++kk)
-  //      {
-  //      *ptr = 5;
-  //      ++ptr;
-  //      ++i;
-  //      }
-  //end = clock();
-  //elapsedTime = (end - start) / (double) CLOCKS_PER_SEC;
-
-  //std::cout << "Raw pointer in 3 nested loops" << std::endl;
-  //std::cout << "\tTime   = " << elapsedTime << std::endl;
-  //std::cout << "\tPixels = " << i << std::endl;
-
-  //if (i != num)
-  //  {
-  //  passed = false;
-  //  }
 
   // ImageRegionIterator
   start = clock();

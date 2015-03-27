@@ -48,7 +48,7 @@ void RLEImage<TPixel, VImageDimension, CounterType>::Allocate(bool initialize)
     this->ComputeOffsetTable();
     SizeValueType num = static_cast<SizeValueType>(this->GetOffsetTable()[VImageDimension]);
     myBuffer->Allocate(false);
-    if (initialize)
+    //if (initialize) //there is assumption that the image is fully formed after a call to allocate
     {
         RLSegment segment(CounterType(this->GetBufferedRegion().GetSize(0)), TPixel());
         RLLine line(1);
@@ -229,26 +229,26 @@ GetPixel(const IndexType & index) const
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
 }
 
-template< typename TPixel, unsigned int VImageDimension, typename CounterType >
-TPixel & RLEImage<TPixel, VImageDimension, CounterType>::
-GetPixel(const IndexType & index)
-{
-    //complete Run-Length Lines have to be buffered
-    itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
-        == this->GetLargestPossibleRegion().GetSize(0),
-        "BufferedRegion must contain complete run-length lines!");
-    IndexValueType bri0 = GetBufferedRegion().GetIndex(0);
-    BufferType::IndexType bi = truncateIndex(index);
-    RLLine & line = myBuffer->GetPixel(bi);
-    IndexValueType t = 0;
-    for (IndexValueType x = 0; x < line.size(); x++)
-    {
-        t += line[x].first;
-        if (t > index[0] - bri0)
-            return line[x].second;
-    }
-    throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
-}
+//template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+//TPixel & RLEImage<TPixel, VImageDimension, CounterType>::
+//GetPixel(const IndexType & index)
+//{
+//    //complete Run-Length Lines have to be buffered
+//    itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
+//        == this->GetLargestPossibleRegion().GetSize(0),
+//        "BufferedRegion must contain complete run-length lines!");
+//    IndexValueType bri0 = GetBufferedRegion().GetIndex(0);
+//    BufferType::IndexType bi = truncateIndex(index);
+//    RLLine & line = myBuffer->GetPixel(bi);
+//    IndexValueType t = 0;
+//    for (IndexValueType x = 0; x < line.size(); x++)
+//    {
+//        t += line[x].first;
+//        if (t > index[0] - bri0)
+//            return line[x].second;
+//    }
+//    throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
+//}
 
 //template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 //void RLEImage<TPixel, VImageDimension, CounterType>::

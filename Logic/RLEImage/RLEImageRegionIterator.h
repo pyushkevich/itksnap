@@ -86,9 +86,8 @@ protected:
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 class ImageRegionIteratorWithIndex<RLEImage<TPixel, VImageDimension, CounterType> >
-    :public ImageRegionIterator < RLEImage<TPixel, VImageDimension, CounterType> >
+    :public ImageRegionConstIteratorWithIndex<RLEImage<TPixel, VImageDimension, CounterType> >
 {
-    //just inherit constructors
 public:
 
     typedef RLEImage<TPixel, VImageDimension, CounterType> ImageType;
@@ -96,12 +95,21 @@ public:
     typedef typename itk::ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >::RegionType RegionType;
 
     /** Default constructor. Needed since we provide a cast constructor. */
-    ImageRegionIteratorWithIndex() :ImageRegionIterator< ImageType >(){ }
+    ImageRegionIteratorWithIndex() :ImageRegionConstIteratorWithIndex< ImageType >(){ }
 
     /** Constructor establishes an iterator to walk a particular image and a
     * particular region of that image. */
     ImageRegionIteratorWithIndex(ImageType *ptr, const RegionType & region) :
-        ImageRegionIterator< ImageType >(ptr, region) { }
+        ImageRegionConstIteratorWithIndex< ImageType >(ptr, region) { }
+
+    /** Set the pixel value.
+    * Changing the RLE structure invalidates all other iterators (except this one). */
+    void Set(const PixelType & value) const
+    {
+        const_cast<ImageType *>(this->m_Image.GetPointer())->
+            SetPixel(*const_cast<typename ImageType::RLLine *>(this->rlLine),
+            this->segmentRemainder, this->realIndex, value);
+    }
 
     /** Constructor that can be used to cast from an ImageIterator to an
     * ImageRegionIteratorWithIndex. Many routines return an ImageIterator, but for a
@@ -111,8 +119,7 @@ public:
     * ImageIterator to a ImageRegionConstIterator. */
     ImageRegionIteratorWithIndex(const ImageIterator< ImageType > & it)
     {
-        this->ImageRegionConstIterator< ImageType >::operator=(it);
-        //this->ImageRegionConstIterator< ImageType >::operator=(static_cast<const ImageConstIterator<ImageType> >(it));
+        this->ImageRegionConstIteratorWithIndex< ImageType >::operator=(it);
     }
 
     /** Constructor that can be used to cast from an ImageConstIterator to an

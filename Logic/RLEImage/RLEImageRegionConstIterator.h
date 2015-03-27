@@ -142,7 +142,6 @@ template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 class ImageRegionConstIteratorWithIndex<RLEImage<TPixel, VImageDimension, CounterType> >
     :public ImageRegionConstIterator < RLEImage<TPixel, VImageDimension, CounterType> >
 {
-    //just inherit constructors
 public:
     typedef RLEImage<TPixel, VImageDimension, CounterType> ImageType;
     
@@ -155,6 +154,18 @@ public:
     * particular region of that image. */
     ImageRegionConstIteratorWithIndex(const ImageType *ptr, const RegionType & region) :
         ImageRegionConstIterator< ImageType >(ptr, region) { }
+
+    void GoToReverseBegin()
+    {
+        this->bi.GoToReverseBegin();
+        this->m_Index0 = this->m_EndIndex0 - 1;
+        SetIndexInternal(this->m_Index0);
+    }
+
+    bool IsAtReverseEnd()
+    {
+        return this->bi.IsAtReverseEnd();
+    }
 
     /** Constructor that can be used to cast from an ImageIterator to an
     * ImageRegionConstIterator. Many routines return an ImageIterator, but for a
@@ -171,7 +182,7 @@ public:
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 class ImageRegionConstIteratorWithOnlyIndex<RLEImage<TPixel, VImageDimension, CounterType> >
-    :public ImageRegionConstIterator < RLEImage<TPixel, VImageDimension, CounterType> >
+    :public ImageRegionConstIteratorWithIndex < RLEImage<TPixel, VImageDimension, CounterType> >
 {
     //just inherit constructors
 public:
@@ -186,7 +197,7 @@ public:
     /** Constructor establishes an iterator to walk a particular image and a
     * particular region of that image. */
     ImageRegionConstIteratorWithOnlyIndex(const ImageType *ptr, const RegionType & region) :
-        ImageRegionConstIterator< ImageType >(ptr, region) { }
+        ImageRegionConstIteratorWithIndex< ImageType >(ptr, region) { }
 
     /** Constructor that can be used to cast from an ImageIterator to an
     * ImageRegionConstIterator. Many routines return an ImageIterator, but for a

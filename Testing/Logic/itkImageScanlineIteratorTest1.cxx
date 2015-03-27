@@ -20,8 +20,10 @@ void TestConstPixelAccess(const RLEImage<TPixel, VImageDimension, CounterType> &
   vec[3] = 2;
   vec[4] = 1;
 
-  out[regionStartIndex3D] = vec;
-  out[regionEndIndex3D] = in[regionStartIndex3D];
+  out.SetPixel(regionStartIndex3D, vec);
+  out.SetPixel(regionEndIndex3D, in[regionStartIndex3D]);
+  //out[regionStartIndex3D] = vec;
+  //out[regionEndIndex3D] = in[regionStartIndex3D];
 }
 
 
@@ -72,8 +74,8 @@ int itkImageScanlineIteratorTest1(int, char* [] )
   vec[3] = 2;
   vec[4] = 1;
 
-  (*o3)[regionStartIndex3D] = vec;
-  (*o3)[regionEndIndex3D] = (*o3)[regionStartIndex3D];
+  (*o3).SetPixel(regionStartIndex3D, vec);
+  (*o3).SetPixel(regionEndIndex3D, (*o3)[regionStartIndex3D]);
   TestConstPixelAccess(*o3, *o3);
 
 

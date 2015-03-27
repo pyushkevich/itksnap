@@ -219,7 +219,7 @@ public:
       indR[0] += m_Index0;
       BufferType::IndexType bufInd = bi.GetIndex();
       for (IndexValueType i = 1; i < VImageDimension; i++)
-          indR[i] = bufInd[i];
+          indR[i] = bufInd[i - 1];
       return indR;
   }
 
@@ -228,7 +228,7 @@ public:
   {
       BufferType::IndexType bufInd;
       for (IndexValueType i = 1; i < VImageDimension; i++)
-          bufInd[i] = ind[i];
+          bufInd[i - 1] = ind[i];
       bi.SetIndex(bufInd);
       SetIndexInternal(ind[0] - m_Image->GetBufferedRegion().GetIndex(0));
   }
@@ -261,7 +261,7 @@ public:
    * This method will provide the fastest access to pixel
    * data, but it will NOT support ImageAdaptors. */
   const PixelType & Value(void) const
-  { return bi.Get()[realIndex].second; }
+  { return const_cast<Self *>(this)->bi.Value()[realIndex].second; }
 
   /** Move an iterator to the beginning of the region. "Begin" is
    * defined as the first pixel in the region. */
@@ -303,7 +303,7 @@ protected: //made protected so other iterators can access
   virtual void SetIndexInternal(const IndexValueType ind0)
   {
       m_Index0 = ind0;
-      rlLine = &bi.Get();//&(*myBuffer)[m_Index[2]][m_Index[1]];
+      rlLine = &bi.Value();
 
       CounterType t = 0;
       SizeValueType x = 0;
@@ -346,6 +346,16 @@ public:
 
     typedef typename itk::ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >::RegionType RegionType;
 
+    void GoToReverseBegin()
+    {
+        this->bi.GoToReverseBegin();
+        this->m_Index0 = this->m_EndIndex0 - 1;
+        SetIndexInternal(this->m_Index0);
+    }
+
+    bool IsAtReverseEnd()
+    { return this->bi.IsAtReverseEnd(); }
+
     /** Default Constructor. Need to provide a default constructor since we
     * provide a copy constructor. */
     ImageConstIteratorWithIndex() :ImageConstIterator< ImageType >(){ }
@@ -365,7 +375,7 @@ public:
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 class ImageConstIteratorWithOnlyIndex<RLEImage<TPixel, VImageDimension, CounterType> >
-    :public ImageConstIterator < RLEImage<TPixel, VImageDimension, CounterType> >
+    :public ImageConstIteratorWithIndex < RLEImage<TPixel, VImageDimension, CounterType> >
 {
     //just inherit constructors
 public:

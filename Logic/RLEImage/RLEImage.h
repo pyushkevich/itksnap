@@ -156,14 +156,14 @@ public:
     /** \brief Get a pixel. SLOW! Better use iterators for pixel access. */
     const TPixel & GetPixel(const IndexType & index) const;
 
-    /** Get a reference to a pixel. Chaning it changes the whole RLE segment! */
-    TPixel & GetPixel(const IndexType & index);
+    ///** Get a reference to a pixel. Chaning it changes the whole RLE segment! */
+    //TPixel & GetPixel(const IndexType & index);
 
-    /** \brief Access a pixel. Chaning it changes the whole RLE segment! */
-    TPixel & operator[](const IndexType & index)
-    {
-        return this->GetPixel(index);
-    }
+    ///** \brief Access a pixel. Chaning it changes the whole RLE segment! */
+    //TPixel & operator[](const IndexType & index)
+    //{
+    //    return this->GetPixel(index);
+    //}
 
     /** \brief Access a pixel. This version can only be an rvalue.
     * SLOW -> Use iterators instead. */
@@ -226,13 +226,6 @@ public:
             CleanUp(); //put the image into a clean state
     }
 
-    ///** Make a deep copy of the source image. */
-    //void DeepCopy(const Self& source)
-    //{
-    //    this->SetRegions(source.GetLargestPossibleRegion());
-    //    this->myBuffer = source.myBuffer;
-    //    this->Modified();
-    //}
 
 protected:
     RLEImage() : itk::ImageBase < VImageDimension >()

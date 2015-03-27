@@ -107,9 +107,8 @@ protected:
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 class ImageIteratorWithIndex<RLEImage<TPixel, VImageDimension, CounterType> >
-    :public ImageIterator < RLEImage<TPixel, VImageDimension, CounterType> >
+    :public ImageConstIteratorWithIndex<RLEImage<TPixel, VImageDimension, CounterType> >
 {
-    //just inherit constructors
 public:
 
     typedef RLEImage<TPixel, VImageDimension, CounterType> ImageType;
@@ -118,7 +117,7 @@ public:
 
     /** Default Constructor. Need to provide a default constructor since we
     * provide a copy constructor. */
-    ImageIteratorWithIndex() :ImageIterator< ImageType >(){ }
+    ImageIteratorWithIndex() :ImageConstIteratorWithIndex< ImageType >(){ }
 
 
     /** Copy Constructor. The copy constructor is provided to make sure the
@@ -131,7 +130,24 @@ public:
     /** Constructor establishes an iterator to walk a particular image and a
     * particular region of that image. */
     ImageIteratorWithIndex(const ImageType *ptr, const RegionType & region)
-        :ImageIterator< ImageType >(ptr, region) { }
+        :ImageConstIteratorWithIndex< ImageType >(ptr, region) { }
+
+    /** Set the pixel value.
+    * Changing the RLE structure invalidates all other iterators (except this one). */
+    void Set(const PixelType & value) const
+    {
+        const_cast<ImageType *>(this->m_Image.GetPointer())->
+            SetPixel(*const_cast<typename ImageType::RLLine *>(this->rlLine),
+            this->segmentRemainder, this->realIndex, value);
+    }
+
+    /** Get the image that this iterator walks. */
+    ImageType * GetImage() const
+    {
+        // const_cast is needed here because m_Image is declared as a const pointer
+        // in the base class which is the ConstIterator.
+        return const_cast< ImageType * >(this->m_Image.GetPointer());
+    }
 }; //no additional implementation required
 } // end namespace itk
 

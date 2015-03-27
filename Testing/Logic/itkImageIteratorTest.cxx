@@ -38,8 +38,8 @@ void TestConstPixelAccess(const RLEImage<T> &in,
   vec[3] = 2;
   vec[4] = 1;
 
-  out[regionStartIndex3D] = vec;
-  out[regionEndIndex3D] = in[regionStartIndex3D];
+  out.SetPixel(regionStartIndex3D, vec);
+  out.SetPixel(regionEndIndex3D, in[regionStartIndex3D]);
 }
 
 
@@ -57,7 +57,7 @@ int itkImageIteratorTest(int, char* [] )
   RLEImage<itk::Vector<unsigned short, 5>>::SizeType imageSize3D = {{ 20, 40, 60 }};
 
   RLEImage<itk::Vector<unsigned short, 5>>::IndexType startIndex3D = {{5, 4, 1}};
-  RLEImage<itk::Vector<unsigned short, 5>>::IndexType regionStartIndex3D = {{5, 10, 12}};
+  RLEImage<itk::Vector<unsigned short, 5>>::IndexType regionStartIndex3D = {{6, 10, 12}};
   RLEImage<itk::Vector<unsigned short, 5>>::IndexType regionEndIndex3D = {{8, 15, 17}};
 
 
@@ -82,8 +82,8 @@ int itkImageIteratorTest(int, char* [] )
   vec[3] = 2;
   vec[4] = 1;
 
-  (*o3)[regionStartIndex3D] = vec;
-  (*o3)[regionEndIndex3D] = (*o3)[regionStartIndex3D];
+  (*o3).SetPixel(regionStartIndex3D, vec);
+  (*o3).SetPixel(regionEndIndex3D, (*o3)[regionStartIndex3D]);
   TestConstPixelAccess(*o3, *o3);
 
   typedef itk::Vector< unsigned short, 5 >               VectorPixelType;

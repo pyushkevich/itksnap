@@ -90,6 +90,23 @@ class itkImageIteratorWithIndexTestIteratorTester
        }
      return true;
     }
+    
+    bool TestReverseIteration()
+    {
+     ConstIteratorType it( m_Image, m_Image->GetBufferedRegion() );
+     it.GoToReverseBegin();
+     while( !it.IsAtReverseEnd() )
+       {
+       PixelType value = it.Get();
+       if( value != it.Get() ) // check repeatibility
+         {
+         std::cerr << "TestReverseIteration failed!" << std::endl;
+         return false;
+         }
+       --it;
+       }
+     return true;
+    }    
 
   private:
 
@@ -115,6 +132,11 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     {
     testPassed = false;
     }
+  if( TesterC.TestReverseIteration() == false )
+    {
+    testPassed = false;
+    }
+
 
   std::cout << "Testing with Image< unsigned char, 3 > " << std::endl;
   itkImageIteratorWithIndexTestIteratorTester< unsigned char > TesterUC( 10 );
@@ -123,6 +145,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     testPassed = false;
     }
   if( TesterUC.TestConstIterator() == false )
+    {
+    testPassed = false;
+    }
+  if( TesterUC.TestReverseIteration() == false )
     {
     testPassed = false;
     }
@@ -137,6 +163,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     {
     testPassed = false;
     }
+  if( TesterS.TestReverseIteration() == false )
+    {
+    testPassed = false;
+    }
 
   std::cout << "Testing with Image< unsigned short, 3 > " << std::endl;
   itkImageIteratorWithIndexTestIteratorTester< unsigned short > TesterUS( 10 );
@@ -145,6 +175,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     testPassed = false;
     }
   if( TesterUS.TestConstIterator() == false )
+    {
+    testPassed = false;
+    }
+  if( TesterUS.TestReverseIteration() == false )
     {
     testPassed = false;
     }
@@ -159,6 +193,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     {
     testPassed = false;
     }
+  if( TesterI.TestReverseIteration() == false )
+    {
+    testPassed = false;
+    }
 
   std::cout << "Testing with Image< unsigned int, 3 > " << std::endl;
   itkImageIteratorWithIndexTestIteratorTester< unsigned int > TesterUI( 10 );
@@ -167,6 +205,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     testPassed = false;
     }
   if( TesterUI.TestConstIterator() == false )
+    {
+    testPassed = false;
+    }
+  if( TesterUI.TestReverseIteration() == false )
     {
     testPassed = false;
     }
@@ -181,6 +223,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     {
     testPassed = false;
     }
+  if( TesterF.TestReverseIteration() == false )
+    {
+    testPassed = false;
+    }
 
   std::cout << "Testing with Image< double, 3 > " << std::endl;
   itkImageIteratorWithIndexTestIteratorTester< double > TesterD( 10.0 );
@@ -189,6 +235,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     testPassed = false;
     }
   if( TesterD.TestConstIterator() == false )
+    {
+    testPassed = false;
+    }
+  if( TesterD.TestReverseIteration() == false )
     {
     testPassed = false;
     }
@@ -206,6 +256,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     {
     testPassed = false;
     }
+  if( TesterVC.TestReverseIteration() == false )
+    {
+    testPassed = false;
+    }
 
   std::cout << "Testing with Image< itk::Vector<unsigned char,4>, 3 > " << std::endl;
   typedef itk::Vector<unsigned char,4> VUC;
@@ -217,6 +271,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     testPassed = false;
     }
   if( TesterVUC.TestConstIterator() == false )
+    {
+    testPassed = false;
+    }
+  if( TesterVUC.TestReverseIteration() == false )
     {
     testPassed = false;
     }
@@ -234,6 +292,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     {
     testPassed = false;
     }
+  if( TesterVS.TestReverseIteration() == false )
+    {
+    testPassed = false;
+    }
 
   std::cout << "Testing with Image< itk::Vector<unsigned short,4>, 3 > " << std::endl;
   typedef itk::Vector<unsigned short,4> VUS;
@@ -245,6 +307,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     testPassed = false;
     }
   if( TesterVUS.TestConstIterator() == false )
+    {
+    testPassed = false;
+    }
+  if( TesterVUS.TestReverseIteration() == false )
     {
     testPassed = false;
     }
@@ -262,6 +328,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     {
     testPassed = false;
     }
+  if( TesterVI.TestReverseIteration() == false )
+    {
+    testPassed = false;
+    }
 
   std::cout << "Testing with Image< itk::Vector<unsigned int,4>, 3 > " << std::endl;
   typedef itk::Vector<unsigned int,4> VUI;
@@ -273,6 +343,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     testPassed = false;
     }
   if( TesterVUI.TestConstIterator() == false )
+    {
+    testPassed = false;
+    }
+  if( TesterVUI.TestReverseIteration() == false )
     {
     testPassed = false;
     }
@@ -290,6 +364,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     {
     testPassed = false;
     }
+  if( TesterVF.TestReverseIteration() == false )
+    {
+    testPassed = false;
+    }
 
   std::cout << "Testing with Image< itk::Vector<double,4>, 3 > " << std::endl;
   typedef itk::Vector<double,4> VD;
@@ -301,6 +379,10 @@ int itkImageIteratorWithIndexTest(int, char* [] )
     testPassed = false;
     }
   if( TesterVD.TestConstIterator() == false )
+    {
+    testPassed = false;
+    }
+  if( TesterVD.TestReverseIteration() == false )
     {
     testPassed = false;
     }
