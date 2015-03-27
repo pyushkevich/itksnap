@@ -456,11 +456,12 @@ void IRISApplication::UpdateSegmentationVoxel(const Vector3ui &pos)
 {
   // Get the segmentation image
   LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
-  LabelType &label = seg->GetPixel(to_itkIndex(pos));
+  itk::Index<3> iseg = to_itkIndex(pos);
+  const LabelType &label = seg->GetPixel(iseg);
   LabelType newlabel = DrawOverLabel(label);
   if(label != newlabel)
     {
-    label = newlabel;
+    seg->SetPixel(iseg, newlabel);
     m_SegmentationChangeCount++;
     }
 }
@@ -518,7 +519,7 @@ IRISApplication
       itk::Index<3> iseg = to_itkIndex(to_unsigned_int(idxImageFloat));
 
       // Access the voxel in the segmentation
-      LabelType &voxel = seg->GetPixel(iseg);
+      const LabelType &voxel = seg->GetPixel(iseg);
 
       // Apply the label to the voxel
       if(iMode == PAINT_OVER_ALL ||
@@ -528,7 +529,7 @@ IRISApplication
         {
         if(voxel != iDrawing)
           {
-          voxel = iDrawing;
+          seg->SetPixel(iseg, iDrawing);
           nUpdates++;
           }
         }

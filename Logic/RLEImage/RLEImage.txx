@@ -229,111 +229,6 @@ GetPixel(const IndexType & index) const
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
 }
 
-//template< typename TPixel, unsigned int VImageDimension, typename CounterType >
-//TPixel & RLEImage<TPixel, VImageDimension, CounterType>::
-//GetPixel(const IndexType & index)
-//{
-//    //complete Run-Length Lines have to be buffered
-//    itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
-//        == this->GetLargestPossibleRegion().GetSize(0),
-//        "BufferedRegion must contain complete run-length lines!");
-//    IndexValueType bri0 = GetBufferedRegion().GetIndex(0);
-//    BufferType::IndexType bi = truncateIndex(index);
-//    RLLine & line = myBuffer->GetPixel(bi);
-//    IndexValueType t = 0;
-//    for (IndexValueType x = 0; x < line.size(); x++)
-//    {
-//        t += line[x].first;
-//        if (t > index[0] - bri0)
-//            return line[x].second;
-//    }
-//    throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
-//}
-
-//template< typename TPixel, unsigned int VImageDimension, typename CounterType >
-//void RLEImage<TPixel, VImageDimension, CounterType>::
-//fromITKImage(typename itk::Image<TPixel, VImageDimension>::Pointer image)
-//{
-//    this->CopyInformation(image);
-//    this->SetRegions(image->GetLargestPossibleRegion());
-//
-//    itk::Size<3> size = image->GetLargestPossibleRegion().GetSize();
-//    myBuffer.clear(); //in case it wasn't already
-//    myBuffer.resize(size[2]);
-//    for (itk::SizeValueType z = 0; z < size[2]; z++)
-//        myBuffer[z].resize(size[1]);
-//
-//    RLLine temp;
-//    temp.reserve(size[0]); //pessimistically preallocate buffer, otherwise reallocations can occur
-//    itk::Index<3> ind;
-//    ind[0] = 0;
-//#pragma omp parallel for
-//    for (SizeValueType z = 0; z < size[2]; z++)
-//    {
-//        ind[2] = z;
-//        for (SizeValueType y = 0; y < size[1]; y++)
-//        {
-//            ind[1] = y;
-//            SizeValueType x = 0;       
-//            TPixel * p = image->GetBufferPointer();
-//            p+=image->ComputeOffset(ind);
-//            temp.clear();
-//            while (x < size[0])
-//            {
-//                RLSegment s(0, *p);
-//                while (x < size[0] && *p == s.second)
-//                {
-//                    x++;
-//                    s.first++;
-//                    p++;
-//                }
-//                temp.push_back(s);
-//            }
-//            myBuffer[z][y] = temp;
-//        }
-//    }
-//}
-
-//template< typename TPixel, unsigned int VImageDimension, typename CounterType >
-//typename itk::Image<TPixel, VImageDimension>::Pointer
-//RLEImage<TPixel, VImageDimension, CounterType>::toITKImage() const
-//{
-//    typename itk::Image<TPixel, 3>::Pointer out = itk::Image<TPixel, 3>::New();
-//    out->CopyInformation(this);
-//    out->SetRegions(this->GetLargestPossibleRegion());
-//    out->Allocate(false);
-//
-//    itk::Size<3> size;
-//    size[2] = myBuffer.size();
-//    assert(size[2] == this->GetLargestPossibleRegion().GetSize(2));
-//    size[1] = myBuffer[0].size();
-//    assert(size[1] == this->GetLargestPossibleRegion().GetSize(1));
-//    #ifdef _DEBUG
-//    size[0] = 0;
-//    for (int x = 0; x < myBuffer[0][0].size(); x++)
-//        size[0] += myBuffer[0][0][x].first;
-//    assert(size[0] == this->GetLargestPossibleRegion().GetSize(0));
-//    #endif
-//    size[0] = this->GetLargestPossibleRegion().GetSize(0);
-//
-//    TPixel * p = out->GetBufferPointer();
-//    itk::Index<3> ind;
-//    ind[0] = 0;
-//#pragma omp parallel for
-//    for (SizeValueType z = 0; z < size[2]; z++)
-//    {
-//        ind[2] = z;
-//        for (SizeValueType y = 0; y < size[1]; y++)
-//        {
-//            ind[1] = y;
-//            SizeValueType x = 0;
-//            SizeValueType offset = out->ComputeOffset(ind);
-//            uncompressLine(myBuffer[z][y], p + offset);
-//        }
-//    }
-//    return out;
-//}
-
 //int sliceIndex, axis;
 //Seg3DImageType::RegionType reg;
 //
@@ -374,6 +269,9 @@ void RLEImage<TPixel, VImageDimension, CounterType>
 ::PrintSelf(std::ostream & os, itk::Indent indent) const
 {
     Superclass::PrintSelf(os, indent);
+    os << indent << "Internal image (for storage of RLLine-s): " << std::endl;
+    myBuffer->Print(os, indent.GetNextIndent());
+
     itk::SizeValueType c = 0;
     itk::ImageRegionConstIterator<BufferType> it(myBuffer, myBuffer->GetBufferedRegion());
     while (!it.IsAtEnd())
@@ -391,9 +289,6 @@ void RLEImage<TPixel, VImageDimension, CounterType>
     int prec = os.precision(3);
     os << indent << "Compressed size in relation to original size: "<< cr*100 <<"%" << std::endl;
     os.precision(prec);
-
-    os << indent << "Internal image (for storage of RLLine-s): " << std::endl;
-    myBuffer->Print(os, indent.GetNextIndent());
 }
 
 #endif //RLEImage_txx

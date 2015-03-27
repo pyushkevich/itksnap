@@ -6,12 +6,6 @@
 #include <itkImageBase.h>
 #include <itkImage.h>
 
-namespace itk //otherwise we run into circular including/referencing
-{
-    template<typename TI, typename TO>
-    class RegionOfInterestImageFilter;
-}
-
 /** Run-Length Encoded image.
 * It saves memory for label images at the expense of processing times.
 * Unsuitable for ordinary images (in which case it is counterproductive).
@@ -27,9 +21,6 @@ namespace itk //otherwise we run into circular including/referencing
 template< typename TPixel, unsigned int VImageDimension = 3, typename CounterType = unsigned short >
 class RLEImage : public itk::ImageBase < VImageDimension >
 {
-    template<typename TI, typename TO>
-    friend class itk::RegionOfInterestImageFilter;
-    //both general and specialized versions are our friends
 
 public:
     /** Standard class typedefs */
@@ -180,12 +171,6 @@ public:
         return itk::NumericTraits< PixelType >::GetLength(p);
     }
 
-    /** Construct this RLEImage from a regular itk::Image. */
-    void fromITKImage(typename itk::Image<TPixel, VImageDimension>::Pointer image);
-    
-    /** Convert this RLEImage to a regular itk::Image. */
-    typename itk::Image<TPixel, VImageDimension>::Pointer toITKImage() const;
-
     /** Typedef for the internally used buffer. */
     typedef typename itk::Image<RLLine, VImageDimension - 1> BufferType;
 
@@ -247,28 +232,28 @@ protected:
         this->Superclass::ComputeIndexToPhysicalPointMatrices();
     }
 
-    /** Uncompresses a RLE line into a buffer pointed by out.
-    * The buffer needs to have enough room.
-    * No error checking is conducted. */
-    void uncompressLine(const RLLine & line, TPixel *out) const
-    {
-        //complete Run-Length Lines have to be buffered
-        itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
-            == this->GetLargestPossibleRegion().GetSize(0),
-            "BufferedRegion must contain complete run-length lines!");
-        #ifdef _DEBUG
-        int debugCount = 0;
-        #endif
-        for (int x = 0; x < line.size(); x++)
-            for (CounterType r = 0; r < line[x].first; r++)
-            {
-                #ifdef _DEBUG
-                debugCount++;
-                assert(debugCount<=this->GetLargestPossibleRegion().GetSize(0));
-                #endif
-                *(out++) = line[x].second;
-            }
-    }
+    ///** Uncompresses a RLE line into a buffer pointed by out.
+    //* The buffer needs to have enough room.
+    //* No error checking is conducted. */
+    //void uncompressLine(const RLLine & line, TPixel *out) const
+    //{
+    //    //complete Run-Length Lines have to be buffered
+    //    itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
+    //        == this->GetLargestPossibleRegion().GetSize(0),
+    //        "BufferedRegion must contain complete run-length lines!");
+    //    #ifdef _DEBUG
+    //    int debugCount = 0;
+    //    #endif
+    //    for (int x = 0; x < line.size(); x++)
+    //        for (CounterType r = 0; r < line[x].first; r++)
+    //        {
+    //            #ifdef _DEBUG
+    //            debugCount++;
+    //            assert(debugCount<=this->GetLargestPossibleRegion().GetSize(0));
+    //            #endif
+    //            *(out++) = line[x].second;
+    //        }
+    //}
 
     /** Merges adjacent segments with duplicate values in a single line. */
     void CleanUpLine(RLLine & line) const;

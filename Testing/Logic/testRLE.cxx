@@ -14,6 +14,9 @@ typedef itk::Image<short, 2> Seg2DImageType;
 typedef itk::ImageFileReader<Seg3DImageType> SegReaderType;
 typedef itk::ImageFileWriter<Seg3DImageType> SegWriterType;
 
+typedef RLEImage<short> shortRLEImage;
+typedef itk::RegionOfInterestImageFilter<shortRLEImage, shortRLEImage> roiType;
+
 Seg3DImageType::Pointer loadImage(const std::string filename)
 {
     SegReaderType::Pointer sr = SegReaderType::New();
@@ -38,7 +41,6 @@ int main(int argc, char* argv[])
     Seg3DImageType::Pointer inImage = loadImage(argv[1]);
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
 
-    typedef RLEImage<short> shortRLEImage;
     shortRLEImage::Pointer dt = shortRLEImage::New();
     shortRLEImage::RegionType r = inImage->GetBufferedRegion();
     dt->SetRegions(r);
@@ -57,16 +59,26 @@ int main(int argc, char* argv[])
         
     std::cout << "itk->RLE conversion: "; tp.Start();
     shortRLEImage::Pointer test = shortRLEImage::New();
-    test->fromITKImage(inImage);
+    typedef itk::RegionOfInterestImageFilter<Seg3DImageType, shortRLEImage> inConverterType;
+    inConverterType::Pointer inConv = inConverterType::New();
+    inConv->SetInput(inImage);
+    inConv->SetRegionOfInterest(inImage->GetLargestPossibleRegion());
+    inConv->Update();
+    test = inConv->GetOutput();
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
     test->Print(std::cout);
 
+    cout << "Duplicating the image using RegionOfInterest filter:"; tp.Start();
+    roiType::Pointer dup = roiType::New();
+    dup->SetInput(test);
+    dup->SetRegionOfInterest(test->GetLargestPossibleRegion());
+    dup->Update();
+    tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
+
     cout << "Invoking RegionOfInterest filter:"; tp.Start();
-    typedef itk::RegionOfInterestImageFilter<shortRLEImage, shortRLEImage> roiType;
     roiType::Pointer roi = roiType::New();
     roi->SetInput(test);
     roi->SetRegionOfInterest(r);
-    //roi->SetNumberOfThreads(1);
     roi->Update();
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
     
@@ -75,7 +87,12 @@ int main(int argc, char* argv[])
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
 
     std::cout << "RLE->itk conversion: "; tp.Start();
-    inImage = test->toITKImage();
+    typedef itk::RegionOfInterestImageFilter<shortRLEImage, Seg3DImageType> outConverterType;
+    outConverterType::Pointer outConv = outConverterType::New();
+    outConv->SetInput(test);
+    outConv->SetRegionOfInterest(test->GetLargestPossibleRegion());
+    outConv->Update();
+    inImage = outConv->GetOutput();
     tp.Stop(); cout << tp.GetMean() * 1000 << " ms " << endl; tp.Reset();
     std::cout << " writing image" << endl;
     writeImage(inImage, "test.mha", true);
