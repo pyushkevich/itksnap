@@ -373,25 +373,27 @@ template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 void RLEImage<TPixel, VImageDimension, CounterType>
 ::PrintSelf(std::ostream & os, itk::Indent indent) const
 {
-    //Superclass::PrintSelf(os, indent);
-    //itk::SizeValueType c = 0;
-    //for (int z = 0; z < myBuffer.size(); z++)
-    //    for (int y = 0; y < this->GetLargestPossibleRegion().GetSize(1); y++)
-    //        c+=myBuffer[z][y].size();
+    Superclass::PrintSelf(os, indent);
+    itk::SizeValueType c = 0;
+    itk::ImageRegionConstIterator<BufferType> it(myBuffer, myBuffer->GetBufferedRegion());
+    while (!it.IsAtEnd())
+    {
+        c += it.Get().capacity();
+        ++it;
+    }
 
-    //TODO: count reserved sizes!
-    //double cr = double(c*(sizeof(PixelType) + sizeof(CounterType))
-    //    + sizeof(std::vector<RLLine>) * this->GetOffsetTable()[VImageDimension] / this->GetOffsetTable()[1])
-    //    / (this->GetOffsetTable()[VImageDimension] * sizeof(PixelType));
+    double cr = double(c*(sizeof(PixelType) + sizeof(CounterType))
+        + sizeof(std::vector<RLLine>) * this->GetOffsetTable()[VImageDimension] / this->GetOffsetTable()[1])
+        / (this->GetOffsetTable()[VImageDimension] * sizeof(PixelType));
 
-    //os << indent << "OnTheFlyCleanup: " << (m_OnTheFlyCleanup ? "On" : "Off") << std::endl;
-    //os << indent << "RLEImage compressed pixel count: " << c << std::endl;
-    //int prec = os.precision(3);
-    //os << indent << "Compressed size in relation to original size: "<< cr*100 <<"%" << std::endl;
-    //os.precision(prec);
+    os << indent << "OnTheFlyCleanup: " << (m_OnTheFlyCleanup ? "On" : "Off") << std::endl;
+    os << indent << "RLEImage compressed pixel count: " << c << std::endl;
+    int prec = os.precision(3);
+    os << indent << "Compressed size in relation to original size: "<< cr*100 <<"%" << std::endl;
+    os.precision(prec);
 
-    //os << indent << "PixelContainer: " << std::endl;
-    //myBuffer->GetBuffer()->Print(os, indent.GetNextIndent());
+    os << indent << "Internal image (for storage of RLLine-s): " << std::endl;
+    myBuffer->Print(os, indent.GetNextIndent());
 }
 
 #endif //RLEImage_txx

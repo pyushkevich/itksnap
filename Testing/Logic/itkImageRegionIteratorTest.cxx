@@ -57,11 +57,11 @@ int itkImageRegionIteratorTest(int, char* [] )
   float spacing3D[3] = { 1.5, 2.1, 1};
 
   RLEImage<itk::Vector<unsigned short, 5>>::SizeType imageSize3D = {{ 20, 40, 60 }};
-  RLEImage<itk::Vector<unsigned short, 5>>::SizeType bufferSize3D = {{ 20, 20, 14 }};
-  RLEImage<itk::Vector<unsigned short, 5>>::SizeType regionSize3D = {{ 4,  6,  6 }};
+  RLEImage<itk::Vector<unsigned short, 5>>::SizeType bufferSize3D = {{ 20, 20, 17 }};
+  RLEImage<itk::Vector<unsigned short, 5>>::SizeType regionSize3D = {{ 4,  6,  8 }};
 
   RLEImage<itk::Vector<unsigned short, 5>>::IndexType startIndex3D = {{5, 4, 1}};
-  RLEImage<itk::Vector<unsigned short, 5>>::IndexType bufferStartIndex3D = {{5, 5}};
+  RLEImage<itk::Vector<unsigned short, 5>>::IndexType bufferStartIndex3D = {{5, 5, 1}};
   RLEImage<itk::Vector<unsigned short, 5>>::IndexType regionStartIndex3D = {{5, 10, 12}};
   RLEImage<itk::Vector<unsigned short, 5>>::IndexType regionEndIndex3D = {{8, 15, 17}};
 

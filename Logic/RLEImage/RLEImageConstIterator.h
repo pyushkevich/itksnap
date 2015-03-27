@@ -8,7 +8,7 @@
 #include "itkImageConstIterator.h"
 #include "itkImageConstIteratorWithIndex.h"
 #include "itkImageConstIteratorWithOnlyIndex.h"
-#include "itkImageRegionIteratorWithIndex.h"
+#include "itkImageRegionIterator.h"
 
 class MultiLabelMeshPipeline;
 
@@ -45,7 +45,7 @@ public:
   typedef typename ImageType::BufferType BufferType;
 
   /** Type for the internal buffer iterator. */
-  typedef typename ImageRegionIteratorWithIndex<BufferType> BufferIterator;
+  typedef typename ImageRegionIterator<BufferType> BufferIterator;
 
   /** Index typedef support. */
   typedef typename ImageType::IndexType      IndexType;
@@ -261,7 +261,10 @@ public:
    * This method will provide the fastest access to pixel
    * data, but it will NOT support ImageAdaptors. */
   const PixelType & Value(void) const
-  { return const_cast<Self *>(this)->bi.Value()[realIndex].second; }
+  {
+      RLLine & line = const_cast<Self *>(this)->bi.Value();
+      return line[realIndex].second;
+  }
 
   /** Move an iterator to the beginning of the region. "Begin" is
    * defined as the first pixel in the region. */
@@ -275,27 +278,23 @@ public:
    * one pixel past the last pixel of the region. */
   void GoToEnd()
   {
-      bi.GoToReverseBegin();
-      //BufferType::IndexType ind;
-      //for (IndexValueType i = 0; i < VImageDimension - 1; i++)
-      //    ind.SetElement(i, m_Image->GetBufferedRegion().GetIndex(i + 1)
-      //      + m_Image->GetBufferedRegion().GetSize(i + 1) - 1);
-      //bi.SetIndex(ind);
-      m_Index0 = m_EndIndex0 - 1;
-      SetIndexInternal(m_Index0);
-      m_Index0++;
-      ++bi;
+      bi.GoToEnd();
+      m_Index0 = m_BeginIndex0;
   }
 
   /** Is the iterator at the beginning of the region? "Begin" is defined
    * as the first pixel in the region. */
   bool IsAtBegin(void) const
-  { return bi.IsAtReverseEnd(); }
+  {
+      return m_Index0 == m_BeginIndex0 && bi.IsAtBegin();
+  }
 
   /** Is the iterator at the end of the region? "End" is defined as one
    * pixel past the last pixel of the region. */
   bool IsAtEnd(void) const
-  { return bi.IsAtEnd(); }
+  {
+      return m_Index0 == m_BeginIndex0 && bi.IsAtEnd();
+  }
 
 protected: //made protected so other iterators can access
 

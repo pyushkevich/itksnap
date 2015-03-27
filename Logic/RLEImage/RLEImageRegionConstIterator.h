@@ -98,6 +98,8 @@ public:
         ++bi;
         if (!bi.IsAtEnd())
             SetIndexInternal(m_BeginIndex0);
+        else
+            m_Index0 = m_BeginIndex0;
         return *this;
     }
 
@@ -157,14 +159,15 @@ public:
 
     void GoToReverseBegin()
     {
-        this->bi.GoToReverseBegin();
-        this->m_Index0 = this->m_EndIndex0 - 1;
-        SetIndexInternal(this->m_Index0);
+        bi.GoToEnd(); //after last pixel
+        --bi; //go to last valid pixel
+        m_Index0 = m_EndIndex0 - 1;
+        SetIndexInternal(m_Index0); //valid index required
     }
 
     bool IsAtReverseEnd()
     {
-        return this->bi.IsAtReverseEnd();
+        return (m_Index0 == m_BeginIndex0) && bi.IsAtBegin();
     }
 
     /** Constructor that can be used to cast from an ImageIterator to an

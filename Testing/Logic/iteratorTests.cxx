@@ -11,6 +11,7 @@ extern int itkRegionOfInterestImageFilterTest(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
 {
+    //itkImageRegionIteratorTest(argc, argv);
     itkImageScanlineIteratorTest1(argc, argv);
     itkIteratorTests(argc, argv);
     itkImageIteratorTest(argc, argv);
@@ -18,7 +19,6 @@ int main(int argc, char *argv[])
     itkImageIteratorWithIndexTest(argc, argv);
     itkImageRegionConstIteratorWithOnlyIndexTest(argc, argv);
     itkRegionOfInterestImageFilterTest(argc, argv);
-    itkImageRegionIteratorTest(argc, argv);
     typedef RLEImage<char, 2, char> charred2dType;
     //test size 256
     typedef RLEImage<char, 4> charred4dType; //test size 65536

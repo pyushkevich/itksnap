@@ -70,13 +70,7 @@ public:
     { this->ImageRegionConstIterator< ImageType >::operator=(it); }
 
 
-    /** Go to the beginning pixel of the current line.
-    *
-    * \sa operator++
-    * \sa operator--
-    * \sa NextLine
-    * \sa IsAtEndOfLine
-    */
+    /** Go to the beginning pixel of the current line. */
     void GoToBeginOfLine(void)
     {
         this->m_Index0 = this->m_BeginIndex0;
@@ -84,14 +78,7 @@ public:
         this->segmentRemainder = (*this->rlLine)[this->realIndex].first;
     }
 
-    /** Go to the past end pixel of the current line.
-    *
-    * \sa GoToBeginOfLine
-    * \sa operator++
-    * \sa operator--
-    * \sa NextLine
-    * \sa IsAtEndOfLine
-    */
+    /** Go to the past end pixel of the current line. */
     void GoToEndOfLine(void)
     {
         this->m_Index0 = this->m_EndIndex0;
@@ -99,21 +86,19 @@ public:
         this->segmentRemainder = 0;
     }
 
-    /** Test if the index is at the end of line
-    */
+    /** Test if the index is at the end of line. */
     inline bool IsAtEndOfLine(void)
     { return this->m_Index0 == this->m_EndIndex0; }
 
-    /** Go to the next line.
-    *
-    * The iterator always moves to the beginning of the next line. If
-    * the iterator is on the last scanline then no action is performed.
-    *
-    * \sa operator++
-    * \sa IsAtEndOfLine
-    */
+    /** Go to the next line. */
     inline void NextLine(void)
-    { ++bi; }
+    {
+        ++bi;
+        if (!bi.IsAtEnd())
+            SetIndexInternal(m_BeginIndex0);
+        else
+            m_Index0 = m_BeginIndex0; //make this iterator at end too
+    }
 
     /** Increment (prefix) along the scanline the iterator's index.
     *
