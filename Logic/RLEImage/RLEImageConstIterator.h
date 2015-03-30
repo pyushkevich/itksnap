@@ -45,7 +45,7 @@ public:
   typedef typename ImageType::BufferType BufferType;
 
   /** Type for the internal buffer iterator. */
-  typedef typename ImageRegionIterator<BufferType> BufferIterator;
+  typedef ImageRegionIterator<BufferType> BufferIterator;
 
   /** Index typedef support. */
   typedef typename ImageType::IndexType      IndexType;
@@ -92,7 +92,7 @@ public:
     rlLine = it.rlLine;
     m_Image = it.m_Image;     // copy the smart pointer
     m_Index0 = it.m_Index0;
-    bi = it.bi;
+    this->bi = it.bi;
 
     realIndex = it.realIndex;
     segmentRemainder = it.segmentRemainder;
@@ -155,16 +155,16 @@ public:
   /** Comparison operator. Two iterators are the same if they "point to" the
    * same memory location */
   bool operator!=(const Self & it) const
-  { 
-      return bi != it.bi || 
+  {
+      return bi != it.bi ||
           m_Index0 + m_BeginIndex0 != it.m_Index0 + it.m_BeginIndex0;
   }
 
   /** Comparison operator. Two iterators are the same if they "point to" the
    * same memory location */
   bool operator==(const Self & it) const
-  { 
-      return bi == it.bi && 
+  {
+      return bi == it.bi &&
           m_Index0 + m_BeginIndex0 == it.m_Index0 + it.m_BeginIndex0;
   }
 
@@ -214,10 +214,10 @@ public:
 
   /** Get the index. This provides a read only copy of the index. */
   const IndexType GetIndex() const
-  { 
+  {
       IndexType indR(m_Image->GetBufferedRegion().GetIndex());
       indR[0] += m_Index0;
-      BufferType::IndexType bufInd = bi.GetIndex();
+      typename BufferType::IndexType bufInd = bi.GetIndex();
       for (IndexValueType i = 1; i < VImageDimension; i++)
           indR[i] = bufInd[i - 1];
       return indR;
@@ -226,7 +226,7 @@ public:
   /** Sets the image index. No bounds checking is performed. */
   virtual void SetIndex(const IndexType & ind)
   {
-      BufferType::IndexType bufInd;
+      typename BufferType::IndexType bufInd;
       for (IndexValueType i = 1; i < VImageDimension; i++)
           bufInd[i - 1] = ind[i];
       bi.SetIndex(bufInd);
@@ -240,7 +240,7 @@ public:
       RegionType r;
       r.SetIndex(0, m_BeginIndex0 + m_Image->GetBufferedRegion().GetIndex(0));
       r.SetSize(0, m_EndIndex0 - m_BeginIndex0);
-      BufferType::RegionType ir = bi.GetRegion();
+      typename BufferType::RegionType ir = bi.GetRegion();
       for (IndexValueType i = 1; i < VImageDimension; i++)
       {
           r.SetIndex(i, ir.GetIndex(i - 1));
@@ -381,9 +381,9 @@ public:
 
     /** Image typedef support. */
     typedef RLEImage<TPixel, VImageDimension, CounterType> ImageType;
-    
+
     typedef typename itk::ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >::RegionType RegionType;
-    
+
     /** Default Constructor. Need to provide a default constructor since we
     * provide a copy constructor. */
     ImageConstIteratorWithOnlyIndex() :ImageConstIterator< ImageType >(){ }

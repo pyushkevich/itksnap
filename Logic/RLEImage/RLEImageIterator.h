@@ -112,7 +112,7 @@ class ImageIteratorWithIndex<RLEImage<TPixel, VImageDimension, CounterType> >
 public:
 
     typedef RLEImage<TPixel, VImageDimension, CounterType> ImageType;
-    
+
     typedef typename itk::ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >::RegionType RegionType;
 
     /** Default Constructor. Need to provide a default constructor since we
@@ -134,7 +134,7 @@ public:
 
     /** Set the pixel value.
     * Changing the RLE structure invalidates all other iterators (except this one). */
-    void Set(const PixelType & value) const
+    void Set(const TPixel & value) const
     {
         const_cast<ImageType *>(this->m_Image.GetPointer())->
             SetPixel(*const_cast<typename ImageType::RLLine *>(this->rlLine),

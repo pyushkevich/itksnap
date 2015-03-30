@@ -178,24 +178,24 @@ public:
     typename BufferType::Pointer GetBuffer() { return myBuffer; }
 
     /** We need to allow itk-style const iterators to be constructed. */
-    typename BufferType::ConstPointer GetBuffer() const { return myBuffer; }
+    typename BufferType::Pointer GetBuffer() const { return myBuffer; }
 
     /** Returns N-1-dimensional index, the remainder after 0-index is removed. */
     static inline typename BufferType::IndexType
-        truncateIndex(const typename IndexType & index);
+        truncateIndex(const IndexType & index);
 
     /** Returns N-1-dimensional size, the remainder after 0-size is removed. */
     static inline typename BufferType::SizeType
-        truncateSize(const typename SizeType & size);
+        truncateSize(const SizeType & size);
 
     /** Returns N-1-dimensional region, the remainder after 0-index and size are removed. */
     static typename BufferType::RegionType
-        truncateRegion(const typename RegionType & region);
+        truncateRegion(const RegionType & region);
 
     /** Merges adjacent segments with duplicate values.
     * Automatically called when turning on OnTheFlyCleanup. */
     void CleanUp() const;
-    
+
     /** Should same-valued segments be merged on the fly?
     * On the fly merging usually provides better performance. */
     bool GetOnTheFlyCleanup() const { return m_OnTheFlyCleanup; }

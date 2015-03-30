@@ -30,7 +30,7 @@ public:
   /** Standard class typedefs. */
   typedef RegionOfInterestImageFilter                      Self;
   typedef RLEImage<TPixel, VImageDimension, CounterType>   RLEImageType;
-  typedef typename RLEImageType                            ImageType;
+  typedef RLEImageType                                     ImageType;
   typedef ImageToImageFilter< RLEImageType, RLEImageType > Superclass;
   typedef SmartPointer< Self >                             Pointer;
   typedef SmartPointer< const Self >                       ConstPointer;

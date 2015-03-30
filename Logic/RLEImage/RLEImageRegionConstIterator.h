@@ -95,18 +95,18 @@ public:
 
     if (this->m_Index0 >= this->m_EndIndex0)
     {
-        ++bi;
-        if (!bi.IsAtEnd())
-            SetIndexInternal(m_BeginIndex0);
+        this->bi++;
+        if (!this->bi.IsAtEnd())
+            SetIndexInternal(this->m_BeginIndex0);
         else
-            m_Index0 = m_BeginIndex0;
+            this->m_Index0 = this->m_BeginIndex0;
         return *this;
     }
 
     this->segmentRemainder--;
     if (this->segmentRemainder > 0)
         return *this;
-      
+
     this->realIndex++;
     this->segmentRemainder = (*this->rlLine)[this->realIndex].first;
     return *this;
@@ -125,8 +125,8 @@ public:
 
       if (this->m_Index0 < this->m_BeginIndex0)
       {
-          --bi;
-          SetIndexInternal(m_EndIndex0 - 1);
+          this->bi--;
+          SetIndexInternal(this->m_EndIndex0 - 1);
           return *this;
       }
 
@@ -146,7 +146,7 @@ class ImageRegionConstIteratorWithIndex<RLEImage<TPixel, VImageDimension, Counte
 {
 public:
     typedef RLEImage<TPixel, VImageDimension, CounterType> ImageType;
-    
+
     typedef typename itk::ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >::RegionType RegionType;
 
     /** Default constructor. Needed since we provide a cast constructor. */
@@ -159,15 +159,15 @@ public:
 
     void GoToReverseBegin()
     {
-        bi.GoToEnd(); //after last pixel
-        --bi; //go to last valid pixel
-        m_Index0 = m_EndIndex0 - 1;
-        SetIndexInternal(m_Index0); //valid index required
+        this->bi.GoToEnd(); //after last pixel
+        this->bi--; //go to last valid pixel
+        this->m_Index0 = this->m_EndIndex0 - 1;
+        SetIndexInternal(this->m_Index0); //valid index required
     }
 
     bool IsAtReverseEnd()
     {
-        return (m_Index0 == m_BeginIndex0) && bi.IsAtBegin();
+        return (this->m_Index0 == this->m_BeginIndex0) && this->bi.IsAtBegin();
     }
 
     /** Constructor that can be used to cast from an ImageIterator to an
@@ -191,7 +191,7 @@ class ImageRegionConstIteratorWithOnlyIndex<RLEImage<TPixel, VImageDimension, Co
 public:
 
     typedef RLEImage<TPixel, VImageDimension, CounterType> ImageType;
-    
+
     typedef typename itk::ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >::RegionType RegionType;
 
     /** Default constructor. Needed since we provide a cast constructor. */

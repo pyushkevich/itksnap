@@ -2,11 +2,12 @@
 #define RLEImage_txx
 
 #include "RLEImage.h"
+#include "itkImageRegionConstIterator.h"
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 inline typename RLEImage<TPixel, VImageDimension, CounterType>::BufferType::IndexType
 RLEImage<TPixel, VImageDimension, CounterType>
-::truncateIndex(const typename IndexType & index)
+::truncateIndex(const IndexType & index)
 {
     typename BufferType::IndexType result;
     for (IndexValueType i = 0; i < VImageDimension - 1; i++)
@@ -17,7 +18,7 @@ RLEImage<TPixel, VImageDimension, CounterType>
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 inline typename RLEImage<TPixel, VImageDimension, CounterType>::BufferType::SizeType
 RLEImage<TPixel, VImageDimension, CounterType>
-::truncateSize(const typename SizeType & size)
+::truncateSize(const SizeType & size)
 {
     typename BufferType::SizeType result;
     for (IndexValueType i = 0; i < VImageDimension - 1; i++)
@@ -28,7 +29,7 @@ RLEImage<TPixel, VImageDimension, CounterType>
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 typename RLEImage<TPixel, VImageDimension, CounterType>::BufferType::RegionType
 RLEImage<TPixel, VImageDimension, CounterType>
-::truncateRegion(const typename RegionType & region)
+::truncateRegion(const RegionType & region)
 {
     typename BufferType::RegionType result;
     result.SetIndex(truncateIndex(region.GetIndex()));
@@ -41,7 +42,7 @@ void RLEImage<TPixel, VImageDimension, CounterType>::Allocate(bool initialize)
 {
     itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
         == this->GetLargestPossibleRegion().GetSize(0),
-        "BufferedRegion must contain complete run-length lines!"); 
+        "BufferedRegion must contain complete run-length lines!");
     itkAssertOrThrowMacro(this->GetLargestPossibleRegion().GetSize(0)
         <= std::numeric_limits<CounterType>::max(),
         "CounterType is not large enough to support image's X dimension!");
@@ -191,8 +192,8 @@ SetPixel(const IndexType & index, const TPixel & value)
     itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
         == this->GetLargestPossibleRegion().GetSize(0),
         "BufferedRegion must contain complete run-length lines!");
-    IndexValueType bri0 = GetBufferedRegion().GetIndex(0);
-    BufferType::IndexType bi = truncateIndex(index);
+    IndexValueType bri0 = this->GetBufferedRegion().GetIndex(0);
+    typename BufferType::IndexType bi = truncateIndex(index);
     RLLine & line = myBuffer->GetPixel(bi);
     IndexValueType t = 0;
     for (IndexValueType x = 0; x < line.size(); x++)
@@ -216,8 +217,8 @@ GetPixel(const IndexType & index) const
     itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
         == this->GetLargestPossibleRegion().GetSize(0),
         "BufferedRegion must contain complete run-length lines!");
-    IndexValueType bri0 = GetBufferedRegion().GetIndex(0);
-    BufferType::IndexType bi = truncateIndex(index);
+    IndexValueType bri0 = this->GetBufferedRegion().GetIndex(0);
+    typename BufferType::IndexType bi = truncateIndex(index);
     RLLine & line = myBuffer->GetPixel(bi);
     IndexValueType t = 0;
     for (IndexValueType x = 0; x < line.size(); x++)
