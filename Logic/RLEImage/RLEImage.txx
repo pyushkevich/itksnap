@@ -230,41 +230,6 @@ GetPixel(const IndexType & index) const
     throw itk::ExceptionObject(__FILE__, __LINE__, "Reached past the end of Run-Length line!", __FUNCTION__);
 }
 
-//int sliceIndex, axis;
-//Seg3DImageType::RegionType reg;
-//
-//void cropRLI(RLImage image, short *outSlice)
-//{
-//    itk::Size<3> size;
-//    size[2] = image.size();
-//    size[1] = image[0].size();
-//    size[0] = 0;
-//    for (int x = 0; x < image[0][0].size(); x++)
-//        size[0] += image[0][0][x].first;
-//
-//    if (axis == 2) //slicing along z
-//        for (int y = 0; y < size[1]; y++)
-//            uncompressLine(image[sliceIndex][y], outSlice + y*size[0]);
-//    else if (axis == 1) //slicing along y
-//        for (int z = 0; z < size[2]; z++)
-//            uncompressLine(image[z][sliceIndex], outSlice + z*size[0]);
-//    else //slicing along x, the low-preformance case
-//        for (int z = 0; z < size[2]; z++)
-//            for (int y = 0; y < size[1]; y++)
-//            {
-//                int t = 0;
-//                for (int x = 0; x < image[z][y].size(); x++)
-//                {
-//                    t += image[z][y][x].first;
-//                    if (t > sliceIndex)
-//                    {
-//                        *(outSlice++) = image[z][y][x].second;
-//                        break;
-//                    }
-//                }
-//            }
-//}
-
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 void RLEImage<TPixel, VImageDimension, CounterType>
 ::PrintSelf(std::ostream & os, itk::Indent indent) const

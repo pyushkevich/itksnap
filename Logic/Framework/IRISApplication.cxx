@@ -49,6 +49,7 @@
 #include "MeshExportSettings.h"
 #include "SegmentationStatistics.h"
 #include "RLEImageRegionIterator.h"
+#include "RLERegionOfInterestImageFilter.h"
 #include "itkPasteImageFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkResampleImageFilter.h"
@@ -377,9 +378,21 @@ IRISApplication
   // This has to happen in 'pure' IRIS mode
   assert(!IsSnakeModeActive());
 
-  // Cast the image to label type
-  CastNativeImage<LabelImageType> caster;
-  LabelImageType::Pointer imgLabel = caster(io);
+  typedef itk::Image<LabelType, 3> UncompressedImageType;
+
+  // Cast the native to label type
+  CastNativeImage<UncompressedImageType> caster;
+  UncompressedImageType::Pointer imgUncompressed = caster(io);
+  io->DeallocateNativeImage(); //we no longer need it, save memory
+
+  //use specialized RoI filter to convert to RLEImage
+  typedef itk::RegionOfInterestImageFilter<UncompressedImageType, LabelImageType> inConverterType;
+  inConverterType::Pointer inConv = inConverterType::New();
+  inConv->SetInput(imgUncompressed);
+  inConv->SetRegionOfInterest(imgUncompressed->GetLargestPossibleRegion());
+  inConv->Update();
+  LabelImageType::Pointer imgLabel = inConv->GetOutput();
+  imgUncompressed = NULL; //deallocate intermediate image to save memory
   
   // The header of the label image is made to match that of the grey image
   imgLabel->SetOrigin(m_CurrentImageData->GetMain()->GetImageBase()->GetOrigin());

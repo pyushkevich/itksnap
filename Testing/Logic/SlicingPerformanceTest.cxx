@@ -15,7 +15,8 @@ using namespace std;
 #include <itkChangeRegionLabelMapFilter.h>
 #include <itkTestingComparisonImageFilter.h>
 #include <itkExtractImageFilter.h>
-#include "../../Logic/Slicing/IRISSlicer.h"
+#include "IRISSlicer.h"
+#include "RLERegionOfInterestImageFilter.h"
 #include <itkTimeProbe.h>
 
 typedef itk::Image<short, 3> Seg3DImageType;
@@ -43,6 +44,7 @@ Label3DType::Pointer toLabelMap(Seg3DImageType::Pointer image)
     return i2l->GetOutput();
 }
 
+typedef RLEImage<short> RLEImage3D;
 typedef std::pair<short, short> RLSegment;
 typedef std::vector<RLSegment> RLLine;
 typedef std::vector<std::vector<RLLine> > RLImage;
@@ -158,6 +160,32 @@ Seg2DImageType::Pointer cropIRIS(Seg3DImageType::Pointer image)
     return roi->GetOutput();
 }
 
+Seg2DImageType::Pointer cropRLEiris(RLEImage3D::Pointer image)
+{
+    typedef IRISSlicer<RLEImage3D, Seg2DImageType> roiType;
+    roiType::Pointer roi = roiType::New();
+    roi->SetInput(image);
+    roi->SetSliceIndex(sliceIndex);
+    roi->SetSliceDirectionImageAxis(axis);
+    if (axis == 0) //x
+    {
+        roi->SetLineDirectionImageAxis(2);
+        roi->SetPixelDirectionImageAxis(1);
+    }
+    else if (axis == 1) //y
+    {
+        roi->SetLineDirectionImageAxis(2);
+        roi->SetPixelDirectionImageAxis(0);
+    }
+    else //z
+    {
+        roi->SetLineDirectionImageAxis(1);
+        roi->SetPixelDirectionImageAxis(0);
+    }
+    roi->Update();
+    return roi->GetOutput();
+}
+
 Seg3DImageType::Pointer cropRLE(Label3DType::Pointer image)
 {
     typedef itk::ChangeRegionLabelMapFilter<Label3DType> roiLMType;
@@ -207,6 +235,10 @@ int main(int argc, char *argv[])
     if (argc>5)
         if (strcmp(argv[5], "IRIS") == 0 || strcmp(argv[5], "iris") == 0)
             iris = true;
+    bool irisRLE = false;
+    if (argc>5)
+        if (strcmp(argv[5], "irisRLE") == 0 || strcmp(argv[5], "irisrle") == 0)
+            irisRLE = true;
     bool memCheck = false;
     if (argc>6)
         if (strcmp(argv[6], "MEM") == 0 || strcmp(argv[6], "mem") == 0)
@@ -214,6 +246,7 @@ int main(int argc, char *argv[])
 
     Seg3DImageType::Pointer cropped, inImage = loadImage(argv[1]);
     Label3DType::Pointer inLabelMap;
+    RLEImage3D::Pointer rleImage;
     RLImage rlImage;
     reg = inImage->GetLargestPossibleRegion();
     reg.SetIndex(axis, sliceIndex);
@@ -231,6 +264,16 @@ int main(int argc, char *argv[])
         inImage = Seg3DImageType::New(); //effectively deletes the image
         memset(cropped2D->GetBufferPointer(), 0, sizeof(short)*cropped2D->GetOffsetTable()[2]); //clear buffer
     }
+    if (irisRLE)
+    {
+        typedef itk::RegionOfInterestImageFilter<Seg3DImageType, RLEImage3D> inConverterType;
+        inConverterType::Pointer inConv = inConverterType::New();
+        inConv->SetInput(inImage);
+        inConv->SetRegionOfInterest(inImage->GetLargestPossibleRegion());
+        inConv->Update();
+        rleImage = inConv->GetOutput();
+        inImage = Seg3DImageType::New(); //effectively deletes the image
+    }
     if (memCheck)
     {
         cout << "Now check memory consumption";
@@ -245,6 +288,8 @@ int main(int argc, char *argv[])
         cropRLI(rlImage, cropped2D->GetBufferPointer());
     else if (iris)
         cropped2D = cropIRIS(inImage);
+    else if (irisRLE)
+        cropped2D = cropRLEiris(rleImage);
     else
         cropped = cropNormal(inImage);
     tp.Stop();
@@ -255,13 +300,15 @@ int main(int argc, char *argv[])
         cout << "RLI";
     else if (iris)
         cout << "IRIS";
+    else if (irisRLE)
+        cout << "irisRLE";
     else
         cout << "Normal";
 
     cout << " slicing took: " << tp.GetMean() * 1000 << " ms " << endl;
 
 
-    if (!iris && !rli)
+    if (!iris && !rli && !irisRLE)
     {
         typedef itk::ExtractImageFilter<Seg3DImageType, Seg2DImageType> eiType;
         eiType::Pointer ei = eiType::New();

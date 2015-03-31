@@ -232,28 +232,28 @@ protected:
         this->Superclass::ComputeIndexToPhysicalPointMatrices();
     }
 
-    ///** Uncompresses a RLE line into a buffer pointed by out.
-    //* The buffer needs to have enough room.
-    //* No error checking is conducted. */
-    //void uncompressLine(const RLLine & line, TPixel *out) const
-    //{
-    //    //complete Run-Length Lines have to be buffered
-    //    itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
-    //        == this->GetLargestPossibleRegion().GetSize(0),
-    //        "BufferedRegion must contain complete run-length lines!");
-    //    #ifdef _DEBUG
-    //    int debugCount = 0;
-    //    #endif
-    //    for (int x = 0; x < line.size(); x++)
-    //        for (CounterType r = 0; r < line[x].first; r++)
-    //        {
-    //            #ifdef _DEBUG
-    //            debugCount++;
-    //            assert(debugCount<=this->GetLargestPossibleRegion().GetSize(0));
-    //            #endif
-    //            *(out++) = line[x].second;
-    //        }
-    //}
+    /** Uncompresses a RLE line into a buffer pointed by out.
+    * The buffer needs to have enough room.
+    * No error checking is conducted. */
+    void uncompressLine(const RLLine & line, TPixel *out) const
+    {
+        //complete Run-Length Lines have to be buffered
+        itkAssertOrThrowMacro(this->GetBufferedRegion().GetSize(0)
+            == this->GetLargestPossibleRegion().GetSize(0),
+            "BufferedRegion must contain complete run-length lines!");
+        #ifdef _DEBUG
+        int debugCount = 0;
+        #endif
+        for (int x = 0; x < line.size(); x++)
+            for (CounterType r = 0; r < line[x].first; r++)
+            {
+                #ifdef _DEBUG
+                debugCount++;
+                assert(debugCount<=this->GetLargestPossibleRegion().GetSize(0));
+                #endif
+                *(out++) = line[x].second;
+            }
+    }
 
     /** Merges adjacent segments with duplicate values in a single line. */
     void CleanUpLine(RLLine & line) const;

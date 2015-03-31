@@ -58,7 +58,7 @@ public:
     * returns ImageIterators and uses constructors to cast from an
     * ImageIterator to a ImageScanlineConstIterator. */
     ImageScanlineConstIterator(const ImageIterator< ImageType > & it)
-        :ImageRegionConstIterator(it) {}
+        :ImageRegionConstIterator< ImageType >(it) {}
 
     /** Constructor that can be used to cast from an ImageConstIterator to an
     * ImageScanlineConstIterator. Many routines return an ImageIterator, but for a
@@ -93,11 +93,11 @@ public:
     /** Go to the next line. */
     inline void NextLine(void)
     {
-        ++bi;
-        if (!bi.IsAtEnd())
-            SetIndexInternal(m_BeginIndex0);
+        this->bi++;
+        if (!this->bi.IsAtEnd())
+            SetIndexInternal(this->m_BeginIndex0);
         else
-            m_Index0 = m_BeginIndex0; //make this iterator at end too
+            this->m_Index0 = this->m_BeginIndex0; //make this iterator at end too
     }
 
     /** Increment (prefix) along the scanline the iterator's index.

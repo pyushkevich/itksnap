@@ -25,7 +25,7 @@ class itkImageRegionConstIteratorWithOnlyIndexTestIteratorTester
 {
 
   public:
-    typedef typename TImage                          ImageType;
+    typedef TImage                          ImageType;
     typedef typename ImageType::IndexType   IndexType;
 
     typedef itk::ImageRegionConstIteratorWithOnlyIndex<ImageType > ConstIteratorType;

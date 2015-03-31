@@ -18,7 +18,7 @@
 #include "RLEImageRegionIterator.h"
 #include "itkImageSliceConstIteratorWithIndex.h"
 #include "itkNumericTraits.h"
-#include "itkRegionOfInterestImageFilter.h"
+#include "RLERegionOfInterestImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkResampleImageFilter.h"
