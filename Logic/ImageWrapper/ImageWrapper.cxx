@@ -362,8 +362,8 @@ ImageWrapper<TTraits,TBase>
 
   // Initialize the display mapping
   m_DisplayMapping = DisplayMapping::New();
-  m_DisplayMapping->Initialize(
-        dynamic_cast<typename TTraits::WrapperType *>(this));
+  typename TTraits::WrapperType *me = dynamic_cast<typename TTraits::WrapperType *>(this);
+  m_DisplayMapping->Initialize(me);
 
   // Set sticky flag
   m_Sticky = TTraits::StickyByDefault;

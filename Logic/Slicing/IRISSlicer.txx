@@ -491,26 +491,8 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage>
 
 #include "RLEImageRegionConstIterator.h"
 
-/** Uncompresses a RLE line into a buffer pointed by out.
-* The buffer needs to have enough room.
-* No error checking is conducted. */
-template< typename TPixel, typename CounterType>
-void uncompressLine(const typename RLEImage<TPixel, 3, CounterType>::RLLine & line, TPixel *out)
-{
-    for (int x = 0; x < line.size(); x++)
-        for (CounterType r = 0; r < line[x].first; r++)
-        {
-            *(out++) = line[x].second;
-        }
-}
+#define sign(forward) (forward ? 1 : -1)
 
-//int sliceIndex, axis;
-//Seg3DImageType::RegionType reg;
-//
-//void cropRLI(RLImage image, short *outSlice)
-//{
-//
-//}
 template< typename TPixel, typename CounterType, class TOutputImage>
 void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage>
 ::GenerateData()
@@ -531,31 +513,68 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage>
     this->AllocateOutputs();
 
     typename InputImageType::SizeType szVol = inputPtr->GetBufferedRegion().GetSize();
-    typename OutputImageType::PixelType *outSlice = outputPtr->GetBufferPointer();
+
+    typename TOutputImage::IndexType oStartInd;
+    if (m_LineTraverseForward)
+        oStartInd[1] = 0;
+    else
+        oStartInd[1] = outputPtr->GetBufferedRegion().GetSize(1) - 1;
+    if (m_PixelTraverseForward)
+        oStartInd[0] = 0;
+    else
+        oStartInd[0] = outputPtr->GetBufferedRegion().GetSize(0) - 1;
+    typename OutputImageType::PixelType *outSlice = &outputPtr->GetPixel(oStartInd);
 
     if (m_SliceDirectionImageAxis == 2) //slicing along z
     {
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int y = 0; y < szVol[1]; y++)
         {
             typename InputImageType::BufferType::IndexType lineIndex = { { y, m_SliceIndex } };
             const typename InputImageType::RLLine & line = inputPtr->GetBuffer()->GetPixel(lineIndex);
-            uncompressLine<TPixel,CounterType>(line, outSlice + y*szVol[0]);
+            if (m_LineDirectionImageAxis == 1) //y is line coordinate
+            {
+                assert(m_PixelDirectionImageAxis == 0); //x is pixel coordinate
+                uncompressLine(line, outSlice + sign(m_LineTraverseForward)*y*szVol[0],
+                    sign(m_PixelTraverseForward) * 1);
+            }
+            else if (m_LineDirectionImageAxis == 0) //x is line coordinate
+            {
+                assert(m_PixelDirectionImageAxis == 1); //y is pixel coordinate
+                uncompressLine(line, outSlice + sign(m_PixelTraverseForward)*y,
+                    sign(m_LineTraverseForward)*szVol[1]);
+            }
+            else
+                throw itk::ExceptionObject(__FILE__, __LINE__, "SliceDirectionImageAxis and SliceDirectionImageAxis cannot both have a value of 2!", __FUNCTION__);
         }
     }
     else if (m_SliceDirectionImageAxis == 1) //slicing along y
     {
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int z = 0; z < szVol[2]; z++)
         {
             typename InputImageType::BufferType::IndexType lineIndex = { { m_SliceIndex, z } };
             const typename InputImageType::RLLine & line = inputPtr->GetBuffer()->GetPixel(lineIndex);
-            uncompressLine<TPixel, CounterType>(line, outSlice + z*szVol[0]);
+            if (m_LineDirectionImageAxis == 2) //z is line coordinate
+            {
+                assert(m_PixelDirectionImageAxis == 0); //x is pixel coordinate
+                uncompressLine(line, outSlice + sign(m_LineTraverseForward)*z*szVol[0],
+                sign(m_PixelTraverseForward) * 1);
+            }
+            else if (m_LineDirectionImageAxis == 0) //x is line coordinate
+            {
+                assert(m_PixelDirectionImageAxis == 2); //z is pixel coordinate
+                uncompressLine(line, outSlice + sign(m_PixelTraverseForward)*z,
+                    sign(m_LineTraverseForward)*szVol[2]);
+            }
+            else
+                throw itk::ExceptionObject(__FILE__, __LINE__, "SliceDirectionImageAxis and SliceDirectionImageAxis cannot both have a value of 1!", __FUNCTION__);
         }
     }
     else //slicing along x, the low-preformance case
     {
-        #pragma omp parallel for
+        assert(m_SliceDirectionImageAxis == 0);
+#pragma omp parallel for
         for (int z = 0; z < szVol[2]; z++)
             for (int y = 0; y < szVol[1]; y++)
             {
@@ -567,14 +586,25 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage>
                     t += line[x].first;
                     if (t > m_SliceIndex)
                     {
-                        *(outSlice + y + z*szVol[1]) = line[x].second;
+                        if (m_LineDirectionImageAxis == 2) //z is line coordinate
+                        {
+                            assert(m_PixelDirectionImageAxis == 1); //y is pixel coordinate
+                            *(outSlice + sign(m_LineTraverseForward)*z*szVol[1]
+                                + sign(m_PixelTraverseForward) *y) = line[x].second;
+                        }
+                        else if (m_LineDirectionImageAxis == 1) //y is line coordinate
+                        {
+                            assert(m_PixelDirectionImageAxis == 2); //z is pixel coordinate
+                            *(outSlice + sign(m_PixelTraverseForward)*z
+                                + sign(m_LineTraverseForward) *y*szVol[2]) = line[x].second;
+                        }
+                        else
+                            throw itk::ExceptionObject(__FILE__, __LINE__, "SliceDirectionImageAxis and SliceDirectionImageAxis cannot both have a value of 0!", __FUNCTION__);
                         break;
                     }
                 }
             }
     }
-
-    //TODO:invert if needed
 }
 
 //template< typename TPixel, typename CounterType, class TOutputImage>

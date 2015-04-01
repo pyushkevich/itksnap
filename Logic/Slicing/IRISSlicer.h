@@ -289,6 +289,32 @@ protected:
     //void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
     //    itk::ThreadIdType threadId);
 
+    /** Uncompresses a RLE line into a buffer pointed by out.
+    * After each pixel is written, adds stride to the pointer.
+    * The buffer needs to have enough room.
+    * No error checking is conducted. */
+    inline void uncompressLine(const typename InputImageType::RLLine & line,
+        TPixel *out, itk::SizeValueType stride)
+    {
+        //complete Run-Length Lines have to be buffered
+        itkAssertOrThrowMacro(this->GetInput()->GetBufferedRegion().GetSize(0)
+            == this->GetInput()->GetLargestPossibleRegion().GetSize(0),
+            "BufferedRegion must contain complete run-length lines!");
+        #ifdef _DEBUG
+        int debugCount = 0;
+        #endif
+        for (int x = 0; x < line.size(); x++)
+            for (CounterType r = 0; r < line[x].first; r++)
+            {
+                #ifdef _DEBUG
+                debugCount++;
+                assert(debugCount <= this->GetInput()->GetLargestPossibleRegion().GetSize(0));
+                #endif
+                *out = line[x].second;
+                out += stride;
+            }
+    }
+
 private:
     IRISSlicer(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented

@@ -820,10 +820,12 @@ ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 # Compiler-specific warinings
 #--------------------------------------------------------------------------------
 
-# Get rid of this ridiculous warning in VS8
-IF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Visual Studio 9" OR CMAKE_GENERATOR MATCHES "Visual Studio 10" )
+# Get rid of this ridiculous warning in VS8+
+IF( MSVC )
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
-ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Visual Studio 9" OR CMAKE_GENERATOR MATCHES "Visual Studio 10" )
+  ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
+  ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
+ENDIF( MSVC )
   
 IF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Studio" )
   ADD_DEFINITIONS(-DNOMINMAX)

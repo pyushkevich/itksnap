@@ -68,32 +68,32 @@ void RLEImage<TPixel, VImageDimension, CounterType>
     myBuffer->FillBuffer(line);
 }
 
-//template< typename TPixel, unsigned int VImageDimension, typename CounterType >
-//void RLEImage<TPixel, VImageDimension, CounterType>::CleanUpLine(RLLine & line) const
-//{
-//    CounterType x = 0;
-//    RLLine out;
-//    out.reserve(this->GetLargestPossibleRegion().GetSize(0));
-//    do
-//    {
-//        out.push_back(line[x]);
-//        while (++x < line.size() && line[x].second == line[x - 1].second)
-//            out.back().first += line[x].first;
-//    } while (x < line.size());
-//    out.swap(line);
-//}
-//
-//template< typename TPixel, unsigned int VImageDimension, typename CounterType >
-//void RLEImage<TPixel, VImageDimension, CounterType>::CleanUp() const
-//{
-//    assert(!myBuffer.empty());
-//    if (this->GetLargestPossibleRegion().GetSize(0) == 0)
-//        return;
-//#pragma omp parallel for
-//    for (CounterType z = 0; z < myBuffer.size(); z++)
-//        for (CounterType y = 0; y < myBuffer[0].size(); y++)
-//            CleanUpLine(myBuffer[z][y]);
-//}
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+void RLEImage<TPixel, VImageDimension, CounterType>::CleanUpLine(RLLine & line) const
+{
+    CounterType x = 0;
+    RLLine out;
+    out.reserve(this->GetLargestPossibleRegion().GetSize(0));
+    do
+    {
+        out.push_back(line[x]);
+        while (++x < line.size() && line[x].second == line[x - 1].second)
+            out.back().first += line[x].first;
+    } while (x < line.size());
+    out.swap(line);
+}
+
+template< typename TPixel, unsigned int VImageDimension, typename CounterType >
+void RLEImage<TPixel, VImageDimension, CounterType>::CleanUp() const
+{
+    assert(!myBuffer.empty());
+    if (this->GetLargestPossibleRegion().GetSize(0) == 0)
+        return;
+#pragma omp parallel for
+    for (CounterType z = 0; z < myBuffer.size(); z++)
+        for (CounterType y = 0; y < myBuffer[0].size(); y++)
+            CleanUpLine(myBuffer[z][y]);
+}
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 int RLEImage<TPixel, VImageDimension, CounterType>::
