@@ -78,6 +78,8 @@ private slots:
 
   void on_actionAutoContrast_triggered();
 
+  void on_actionTextureFeatures_triggered();
+
 private:
   Ui::LayerInspectorRowDelegate *ui;
 

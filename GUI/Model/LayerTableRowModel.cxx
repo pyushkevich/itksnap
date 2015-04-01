@@ -221,6 +221,35 @@ void LayerTableRowModel::AutoAdjustContrast()
     }
 }
 
+#include "MomentTextures.h"
+
+void LayerTableRowModel::GenerateTextureFeatures()
+{
+  ScalarImageWrapperBase *scalar = dynamic_cast<ScalarImageWrapperBase *>(m_Layer);
+  if(scalar)
+    {
+    // Get the image out
+    SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> common_rep =
+        scalar->GetCommonFormatImage();
+
+    SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> texture_image =
+        ScalarImageWrapperBase::CommonFormatImageType::New();
+
+    texture_image->CopyInformation(common_rep);
+    texture_image->SetRegions(common_rep->GetBufferedRegion());
+    texture_image->Allocate();
+
+    // Call generate textures
+    bilwaj::MomentTexture(common_rep, texture_image, 2, 1);
+
+    // Create a new image wrapper
+    SmartPtr<AnatomicScalarImageWrapper> newWrapper = AnatomicScalarImageWrapper::New();
+    newWrapper->InitializeToWrapper(m_Layer, 0);
+    newWrapper->SetImage(texture_image);
+    this->GetParentModel()->GetDriver()->GetCurrentImageData()->AddOverlay(newWrapper);
+    }
+}
+
 std::string
 LayerTableRowModel::GetDisplayModeString(const MultiChannelDisplayMode &mode)
 {

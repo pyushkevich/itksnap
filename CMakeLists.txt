@@ -219,6 +219,7 @@ SET(LOGIC_CXX
   Logic/Preprocessing/GMM/UnsupervisedClustering.cxx
   Logic/Preprocessing/RandomForest/RFClassificationEngine.cxx
   Logic/Preprocessing/RandomForest/RandomForestClassifier.cxx
+  Logic/Preprocessing/Texture/MomentTextures.cxx
   Logic/Slicing/IntensityCurveVTK.cxx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
   Logic/Slicing/LookupTableIntensityMappingFilter.cxx
@@ -345,6 +346,7 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/GMM/UnsupervisedClustering.h
   Logic/Preprocessing/RandomForest/RFClassificationEngine.h
   Logic/Preprocessing/RandomForest/RandomForestClassifier.h
+  Logic/Preprocessing/Texture/MomentTextures.h
   Logic/Slicing/IRISSlicer.h
   Logic/Slicing/IRISSlicer.txx
   Logic/Slicing/IntensityCurveInterface.h
@@ -793,6 +795,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/GMM
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/RandomForest
+    ${SNAP_SOURCE_DIR}/Logic/Preprocessing/Texture
     ${SNAP_SOURCE_DIR}/Logic/Slicing
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
