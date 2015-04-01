@@ -116,9 +116,67 @@ GenericSliceRenderer
   int nrows = (int) layout[0];
   int ncols = (int) layout[1];
 
+  // Number of ground-level layers - together with the tiling, this determines
+  // the behavior of the display
+  int n_base_layers = dlm->GetNumberOfGroundLevelLayersModel()->GetValue();
+
   // Get the dimensions of the cells
   unsigned int cell_w = m_Model->GetSize()[0];
   unsigned int cell_h = m_Model->GetSize()[1];
+
+  // For each base layer, set up its viewport
+  typedef std::pair<Vector2ui, Vector2ui> Viewport;
+  std::vector<Viewport> vp;
+
+  // Is tiling being used
+  if(nrows == 1 && ncols == 1)
+    {
+    // There is no tiling. One base layer is emphasized
+    if(n_base_layers == 1)
+      {
+      // There is only one base layer. It's viewport occupies the whole screen
+      vp.push_back(std::make_pair(Vector2ui(0, 0), Vector2ui(cell_w, cell_h)));
+      }
+    else
+      {
+      // The selected layer has a big viewport and the other layers have smaller
+      // thumbnail viewports on the right hand side
+
+      // Determine how wide the thumbnail strip should be. All the cells scaled by
+      // the thumbnail scale factor should fit in vertically.
+      double margin_fraction = std::min(0.2, 1.0 / (n_base_layers - 1.0));
+
+      GenericImageData *id = m_ParentModel->GetDriver()->GetCurrentImageData();
+      unsigned int height = 0.0;
+      for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+        {
+        if(it.GetRole() == MAIN_ROLE || !it.GetLayer()->IsSticky())
+          {
+          // Is this the visible layer?
+          if(m_Model->GetParentUI()->GetSelectedLayerId() == it.GetLayer()->GetUniqueId())
+            {
+            vp.push_back(std::make_pair(Vector2ui(0, 0), Vector2ui(cell_w * (1.0 - margin_fraction), cell_h)));
+            }
+
+          // Otherwise add the layer to the thumbnail region
+          else
+            {
+            vp.push_back(std::make_pair(Vector2ui(cell_w * (1.0 - margin_fraction), height),
+                                        Vector2ui(margin_fraction * cell_w, margin_fraction * cell_h)));
+            height += margin_fraction * cell_h;
+            }
+          }
+        }
+      }
+    }
+  else
+    {
+    for(int irow = 0; irow < nrows; irow++)
+      for(int icol = 0; icol < ncols; icol++)
+        if(vp.size() < n_base_layers)
+          vp.push_back(std::make_pair(Vector2ui(icol * cell_w, (nrows - 1 - irow) * cell_h),
+                                      Vector2ui(cell_w, cell_h)));
+    }
 
   // Get the appearance settings pointer since we use it a lot
   SNAPAppearanceSettings *as =
@@ -137,70 +195,72 @@ GenericSliceRenderer
   glClearColor(clrBack[0], clrBack[1], clrBack[2], 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  // Set up the viewports for individual 'cells' in the display. Each cell constitutes one
+  // image with its various overlays.
+
   // Slice should be initialized before display
   if (m_Model->IsSliceInitialized())
     {
     // Draw each cell in the nrows by ncols table of images. Usually, there
     // will only be one column, but the new SNAP supports side-by-side drawing
     // of layers for when there are overlays
-    for(int irow = 0; irow < nrows; irow++)
-      for(int icol = 0; icol < ncols; icol++)
+    for(int bl = 0; bl < n_base_layers; bl++)
+      {
+      // Set up the viewport for the current cell
+      Vector2ui vp_pos = vp[bl].first, vp_size = vp[bl].second;
+      glViewport(vp_pos[0], vp_pos[1], vp_size[0], vp_size[1]);
+
+      // Set up the projection
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      gluOrtho2D(0.0, vp_size[0], 0.0, vp_size[1]);
+
+      // Establish the model view matrix
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+
+      // Scale to account for multiple rows and columns
+      // glScaled(1.0 / ncols, 1.0 / nrows, 1.0);
+
+      // Prepare for overlay drawing.  The model view is set up to correspond
+      // to pixel coordinates of the slice
+      glPushMatrix();
+
+      // First set of transforms
+      glTranslated(0.5 * vp_size[0], 0.5 * vp_size[1], 0.0);
+
+      // Zoom by display zoom
+      glScalef(m_Model->GetViewZoom(), m_Model->GetViewZoom(), 1.0);
+
+      // Panning
+      glTranslated(-m_Model->GetViewPosition()[0],
+          -m_Model->GetViewPosition()[1],
+          0.0);
+
+      // Convert from voxel space to physical units
+      glScalef(m_Model->GetSliceSpacing()[0],
+          m_Model->GetSliceSpacing()[1],
+          1.0);
+
+      // Draw the main layers for this row/column combination
+      if(this->DrawImageLayers(nrows, ncols, irow, icol))
         {
-        // Set up the viewport for the current cell
-        glViewport(icol * cell_w, (nrows - 1 - irow) * cell_h,
-                   cell_w, cell_h);
+        // We don't want to draw segmentation over the speed image and other
+        // SNAP-mode layers.
+        this->DrawSegmentationTexture();
 
-        // Set up the projection
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        gluOrtho2D(0.0, cell_w, 0.0, cell_h);
-
-        // Establish the model view matrix
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        // Scale to account for multiple rows and columns
-        // glScaled(1.0 / ncols, 1.0 / nrows, 1.0);
-
-        // Prepare for overlay drawing.  The model view is set up to correspond
-        // to pixel coordinates of the slice
-        glPushMatrix();
-
-        // First set of transforms
-        glTranslated(0.5 * cell_w, 0.5 * cell_h, 0.0);
-
-        // Zoom by display zoom
-        glScalef(m_Model->GetViewZoom(), m_Model->GetViewZoom(), 1.0);
-
-        // Panning
-        glTranslated(-m_Model->GetViewPosition()[0],
-                     -m_Model->GetViewPosition()[1],
-                     0.0);
-
-        // Convert from voxel space to physical units
-        glScalef(m_Model->GetSliceSpacing()[0],
-                 m_Model->GetSliceSpacing()[1],
-                 1.0);
-
-        // Draw the main layers for this row/column combination
-        if(this->DrawImageLayers(nrows, ncols, irow, icol))
+        // Draw the overlays
+        if(as->GetOverallVisibility())
           {
-          // We don't want to draw segmentation over the speed image and other
-          // SNAP-mode layers.
-          this->DrawSegmentationTexture();
+          // Draw all the overlays added to this object
+          this->DrawTiledOverlays();
 
-          // Draw the overlays
-          if(as->GetOverallVisibility())
-            {
-            // Draw all the overlays added to this object
-            this->DrawTiledOverlays();
-
-            }
           }
-
-        // Clean up the GL state
-        glPopMatrix();
         }
+
+      // Clean up the GL state
+      glPopMatrix();
+      }
 
     // Set the viewport and projection to original dimensions
     Vector2ui vp = m_Model->GetSizeReporter()->GetViewportSize();
@@ -273,19 +333,37 @@ bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int i
   // Is the display partitioned into rows and columns?
   if(nrows == 1 && ncols == 1)
     {
-    // Draw all the layers that are visible except segmentation, which is handled
-    // separately (last)
+    // New behavior: only draw the layer that is currently selected and the layers
+    // that are pinned. Unpinned layers are not drawn
+    unsigned long selected_id = m_Model->GetParentUI()->GetSelectedLayerId();
+
+    // First pass - find the selected layer and draw it. If no layer is selected
+    // then draw the main layer
+    ImageWrapperBase *base_layer = id->GetMain();
+    for(LayerIterator it(id); !it.IsAtEnd(); ++it)
+      {
+      // If a sticky layer is selected, we default to main - although the logic of
+      // selection should be handled so that this is never the case anyway
+      if(selected_id == it.GetLayer()->GetUniqueId() && !it.GetLayer()->IsSticky())
+        {
+        base_layer = it.GetLayer();
+        break;
+        }
+      }
+
+    // Draw the base layer without transparency
+    DrawTextureForLayer(base_layer, false);
+
+    // Now draw all the sticky layers on top
     for(LayerIterator it(id); !it.IsAtEnd(); ++it)
       {
       ImageWrapperBase *layer = it.GetLayer();
-      if(it.GetRole() == MAIN_ROLE)
+      if(it.GetRole() != LABEL_ROLE
+         && layer->IsDrawable()
+         && layer->IsSticky()
+         && layer->GetAlpha() > 0)
         {
-        DrawTextureForLayer(layer, false);
-        }
-      else if(it.GetRole() != LABEL_ROLE
-              && layer->IsDrawable() && layer->GetAlpha() > 0)
-        {
-        DrawTextureForLayer(it.GetLayer(), true);
+        DrawTextureForLayer(layer, true);
         }
       }
 

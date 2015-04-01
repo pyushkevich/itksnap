@@ -6,6 +6,7 @@
 #include "ImageCoordinateGeometry.h"
 #include <itksys/SystemTools.hxx>
 #include "HistoryManager.h"
+#include "ColorMap.h"
 
 #include "IRISException.h"
 #include <sstream>
@@ -18,6 +19,15 @@ ImageIOWizardModel::ImageIOWizardModel()
   m_GuidedIO = NULL;
   m_LoadDelegate = NULL;
   m_SaveDelegate = NULL;
+  m_Overlay = false;
+  m_UseRegistration = false;
+
+  // Initialize various property models
+  m_StickyOverlayModel = NewSimpleConcreteProperty(false);
+
+  m_StickyOverlayColorMapModel =
+      NewSimpleConcreteProperty(
+        std::string(ColorMap::GetPresetName(ColorMap::COLORMAP_JET)));
 
   // Initialize the registration models
 
@@ -67,6 +77,7 @@ ImageIOWizardModel
   m_SaveDelegate = delegate;
   m_SuggestedFilename = delegate->GetCurrentFilename();
   m_UseRegistration = false;
+  m_Overlay = false;
 }
 
 void
@@ -84,6 +95,7 @@ ImageIOWizardModel
   m_LoadDelegate = delegate;
   m_SaveDelegate = NULL;
   m_UseRegistration = delegate->GetUseRegistration();
+  m_Overlay = delegate->IsOverlay();
 }
 
 ImageIOWizardModel::~ImageIOWizardModel()

@@ -45,6 +45,7 @@ public:
   virtual void UpdateApplicationWithImage(GuidedNativeImageIO *io) = 0;
 
   virtual bool GetUseRegistration() const { return false; }
+  virtual bool IsOverlay() const { return false; }
 
 protected:
   AbstractLoadImageDelegate() : m_MetaDataRegistry(NULL) {}
@@ -93,6 +94,7 @@ public:
   void UnloadCurrentImage();
   void UpdateApplicationWithImage(GuidedNativeImageIO *io);
   void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
+  virtual bool IsOverlay() const { return true; }
 
 protected:
   LoadOverlayImageDelegate() { }
@@ -111,6 +113,7 @@ public:
   void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
 
   virtual bool GetUseRegistration() const { return true; }
+  virtual bool IsOverlay() const { return true; }
 
 
 protected:

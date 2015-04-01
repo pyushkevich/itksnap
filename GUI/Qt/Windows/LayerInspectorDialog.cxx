@@ -199,7 +199,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
   if(mapRoleNames.size() == 0)
     {
     mapRoleNames[MAIN_ROLE] = "Main Image";
-    mapRoleNames[OVERLAY_ROLE] = "Overlays";
+    mapRoleNames[OVERLAY_ROLE] = "Additional Images";
     mapRoleNames[SNAP_ROLE] = "Snake Mode Layers";
     }
 

@@ -614,6 +614,8 @@ Make some typedefs. The macros below define types
 // Macros for standard types that support ranges
 MAKE_TYPEDEF_PM_RANGED(double,          Double)
 MAKE_TYPEDEF_PM_RANGED(float,           Float)
+MAKE_TYPEDEF_PM_RANGED(long,            Long)
+MAKE_TYPEDEF_PM_RANGED(unsigned long,   ULong)
 MAKE_TYPEDEF_PM_RANGED(int,             Int)
 MAKE_TYPEDEF_PM_RANGED(unsigned int,    UInt)
 MAKE_TYPEDEF_PM_RANGED(short,           Short)

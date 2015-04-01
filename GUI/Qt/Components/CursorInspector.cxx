@@ -165,3 +165,18 @@ void CursorInspector::on_actionAutoContrast_triggered()
     m_Model->GetParent()->GetIntensityCurveModel()->OnAutoFitWindow();
     }
 }
+
+void CursorInspector::on_tableVoxelUnderCursor_itemClicked(QTableWidgetItem *item)
+{
+  // When the user clicks on an item, that item will become the visible one
+  int item_row = item->row();
+  if(item_row > 0)
+    {
+    // Find the corresponding layer
+    LayerIterator it =
+        m_Model->GetParent()->GetLoadedLayersSelectionModel()->GetNthLayer(item_row);
+
+    if(!it.GetLayer()->IsSticky())
+      m_Model->GetParent()->SetSelectedLayerId(it.GetLayer()->GetUniqueId());
+    }
+}

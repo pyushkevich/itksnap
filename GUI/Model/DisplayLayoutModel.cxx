@@ -43,6 +43,13 @@ DisplayLayoutModel::DisplayLayoutModel()
   m_SliceViewLayerTilingModel->Rebroadcast(
         this, LayerLayoutChangeEvent(), ValueChangedEvent());
 
+  // The number of ground levels model
+  m_NumberOfGroundLevelLayersModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetNumberOfGroundLevelLayersValue);
+
+  // The derived model must react to changes to the internal values
+  m_NumberOfGroundLevelLayersModel->Rebroadcast(
+        this, LayerLayoutChangeEvent(), ValueChangedEvent());
 }
 
 void DisplayLayoutModel::SetParentModel(GlobalUIModel *parentModel)
@@ -194,6 +201,22 @@ void DisplayLayoutModel::UpdateSliceViewTiling()
         }
       }
     }
+}
+
+bool DisplayLayoutModel::GetNumberOfGroundLevelLayersValue(int &value)
+{
+  if(!m_ParentModel->GetDriver()->IsMainImageLoaded())
+    return false;
+
+  value = 0;
+  GenericImageData *id = m_ParentModel->GetDriver()->GetCurrentImageData();
+  for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    if(it.GetRole() == MAIN_ROLE || !it.GetLayer()->IsSticky())
+      value++;
+    }
+
+  return true;
 }
 
 void DisplayLayoutModel::OnUpdate()

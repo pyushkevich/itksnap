@@ -281,6 +281,9 @@ GlobalUIModel::GlobalUIModel()
   progcmd->SetCallbackFunction(this, &GlobalUIModel::ProgressCallback);
   m_ProgressCommand = progcmd.GetPointer();
 
+  // Selected layer model
+  m_SelectedLayerIdModel = NewSimpleConcreteProperty((unsigned long) -1);
+
 }
 
 GlobalUIModel::~GlobalUIModel()

@@ -345,7 +345,23 @@ bool LayerTableRowModel::GetLayerOpacityValueAndRange(int &value, NumericValueRa
 {
   if(!m_Layer) return false;
 
-  value = (int)(100.0 * m_Layer->GetAlpha());
+  // Meaning of 'visible' is different for sticky and non-sticky layers
+  if(m_Layer->IsSticky())
+    {
+    value = (int)(100.0 * m_Layer->GetAlpha());
+    }
+
+  else if(m_Layer->GetUniqueId() == m_ParentModel->GetSelectedLayerId())
+    {
+    value = 100;
+    }
+
+  else
+    {
+    value = 0;
+    }
+
+
   if(domain)
     domain->Set(0, 100, 5);
   return true;
@@ -353,7 +369,24 @@ bool LayerTableRowModel::GetLayerOpacityValueAndRange(int &value, NumericValueRa
 
 void LayerTableRowModel::SetLayerOpacityValue(int value)
 {
-  m_Layer->SetAlpha(value / 100.0);
+  // This gets called in response to the visibility flag being set too.
+  // We handle it in a tricky way, because visibility means different things for
+  // the sticky and non-sticky layers
+  if(m_Layer->IsSticky())
+    {
+    // For a stickly layer, just set it's alpha value as prompted
+    m_Layer->SetAlpha(value / 100.0);
+    }
+  else
+    {
+    // For a non-sticky layer, toggling its visibility makes it the only visible
+    // or non-visible layer
+    if(value > 0)
+      {
+      m_ParentModel->SetSelectedLayerId(m_Layer->GetUniqueId());
+      }
+    }
+
 }
 
 bool LayerTableRowModel::GetStickyValue(bool &value)

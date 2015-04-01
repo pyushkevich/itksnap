@@ -64,6 +64,12 @@ public:
   irisGetMacro(SliceViewLayerTilingModel, AbstractSimpleUIntVec2Property *)
 
   /**
+   * Model describing the number of 'ground-level' layers, i.e. layers that
+   * are drawn on their own, rather than overlayed on other layers
+   */
+  irisGetMacro(NumberOfGroundLevelLayersModel, AbstractSimpleIntProperty *)
+
+  /**
    * A model for the layout of the layers in a slice view. This model sets
    * the stacked/tiled state. If the state is set to tiled, the number of
    * tiles will be updated as the number of loaded images changes. This model
@@ -103,6 +109,11 @@ protected:
 
   // The current tiling dimensons
   Vector2ui m_LayerTiling;
+
+  // The number of 'ground-level' layers, i.e. layers that are drawn on their own
+  // than overlayed on other layers
+  SmartPtr<AbstractSimpleIntProperty> m_NumberOfGroundLevelLayersModel;
+  bool GetNumberOfGroundLevelLayersValue(int &value);
 
   virtual void OnUpdate();
 

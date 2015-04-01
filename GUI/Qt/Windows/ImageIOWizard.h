@@ -70,7 +70,6 @@ class SelectFilePage : public AbstractPage
 public:
   explicit SelectFilePage(QWidget *parent = 0);
 
-  int nextId() const;
   void initializePage();
   bool validatePage();
   // bool isComplete() const;
@@ -92,7 +91,6 @@ class SummaryPage : public AbstractPage
 public:
   explicit SummaryPage(QWidget *parent = 0);
 
-  int nextId() const { return -1; }
   void initializePage();
 
   bool validatePage();
@@ -115,7 +113,6 @@ class DICOMPage : public AbstractPage
 public:
 
   explicit DICOMPage(QWidget *parent = 0);
-  int nextId() const;
   void initializePage();
   bool validatePage();
 
@@ -132,7 +129,6 @@ class RawPage : public AbstractPage
 public:
 
   explicit RawPage(QWidget *parent = 0);
-  int nextId() const;
   void initializePage();
   bool validatePage();
   virtual bool isComplete() const;
@@ -163,11 +159,17 @@ class ImageIOWizard : public QWizard
 
 public:
 
-  enum { Page_File, Page_Raw, Page_DICOM, Page_Coreg, Page_Summary };
+  enum { Page_File, Page_Raw, Page_DICOM, Page_Coreg, Page_OverlayRole, Page_Summary };
 
   explicit ImageIOWizard(QWidget *parent = 0);
 
   void SetModel(ImageIOWizardModel *model);
+
+  virtual int nextId() const;
+
+  /** Helper function to get the next page that should be opened after the image has
+      been loaded */
+  int nextPageAfterLoad();
 
 signals:
 

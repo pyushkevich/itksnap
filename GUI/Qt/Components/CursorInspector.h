@@ -7,6 +7,7 @@
 class QMenu;
 class CursorInspectionModel;
 class QtScriptTest1;
+class QTableWidgetItem;
 
 namespace Ui {
     class CursorInspector;
@@ -32,6 +33,8 @@ protected:
 
 private slots:
   void on_actionAutoContrast_triggered();
+
+  void on_tableVoxelUnderCursor_itemClicked(QTableWidgetItem *item);
 
 private:
   Ui::CursorInspector *ui;
