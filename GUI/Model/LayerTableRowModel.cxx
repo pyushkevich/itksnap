@@ -246,7 +246,8 @@ void LayerTableRowModel::GenerateTextureFeatures()
     SmartPtr<AnatomicScalarImageWrapper> newWrapper = AnatomicScalarImageWrapper::New();
     newWrapper->InitializeToWrapper(m_Layer, 0);
     newWrapper->SetImage(texture_image);
-    this->GetParentModel()->GetDriver()->GetCurrentImageData()->AddOverlay(newWrapper);
+    newWrapper->SetDefaultNickname("Textures");
+    this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(newWrapper);
     }
 }
 
