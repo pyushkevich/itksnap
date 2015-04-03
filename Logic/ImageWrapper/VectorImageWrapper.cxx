@@ -14,7 +14,7 @@
 =========================================================================*/
 
 #include "VectorImageWrapper.h"
-#include "itkImageRegionIterator.h"
+#include "RLEImageRegionIterator.h"
 #include "itkImageSliceConstIteratorWithIndex.h"
 #include "itkNumericTraits.h"
 #include "itkRegionOfInterestImageFilter.h"

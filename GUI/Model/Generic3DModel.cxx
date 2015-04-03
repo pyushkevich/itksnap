@@ -13,6 +13,7 @@
 #include "vtkPointData.h"
 #include "itkMutexLockHolder.h"
 #include "MeshOptions.h"
+#include "ImageWrapperTraits.h"
 
 // All the VTK stuff
 #include "vtkPolyData.h"
@@ -375,7 +376,7 @@ bool Generic3DModel::IntersectSegmentation(int vx, int vy, Vector3i &hit)
   int result = 0;
   if(m_Driver->IsSnakeModeLevelSetActive())
     {
-    typedef ImageRayIntersectionFinder<float, SnakeImageHitTester> RayCasterType;
+    typedef ImageRayIntersectionFinder<itk::Image<float, 3>, SnakeImageHitTester> RayCasterType;
     RayCasterType caster;
     result = caster.FindIntersection(
           m_ParentUI->GetDriver()->GetSNAPImageData()->GetSnake()->GetImage(),
@@ -383,7 +384,7 @@ bool Generic3DModel::IntersectSegmentation(int vx, int vy, Vector3i &hit)
     }
   else
     {
-    typedef ImageRayIntersectionFinder<LabelType, LabelImageHitTester> RayCasterType;
+    typedef ImageRayIntersectionFinder<LabelImageWrapperTraits::ImageType, LabelImageHitTester> RayCasterType;
     RayCasterType caster;
     LabelImageHitTester tester(m_ParentUI->GetDriver()->GetColorLabelTable());
     caster.SetHitTester(tester);

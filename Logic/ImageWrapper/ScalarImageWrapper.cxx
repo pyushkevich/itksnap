@@ -15,10 +15,10 @@
 
 #include "ScalarImageWrapper.h"
 #include "ImageWrapperTraits.h"
-#include "itkImageRegionIterator.h"
+#include "RLEImageRegionIterator.h"
 #include "itkImageSliceConstIteratorWithIndex.h"
 #include "itkNumericTraits.h"
-#include "itkRegionOfInterestImageFilter.h"
+#include "RLERegionOfInterestImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkResampleImageFilter.h"
@@ -65,7 +65,7 @@ ScalarImageWrapper<TTraits,TBase>
   m_GradientMagnitudeMaximumFilter->SetInput(m_GradientMagnitudeFilter->GetOutput());
 
   // Set up VTK export pipeline
-  this->SetupVTKImportExport();
+  //this->SetupVTKImportExport();
 }
 
 template<class TTraits, class TBase>
@@ -90,6 +90,24 @@ ScalarImageWrapper<TTraits,TBase>
            sizeof(InternalPixelType) * newImage->GetBufferedRegion().GetNumberOfPixels());
     
     UpdateImagePointer(newImage);
+    }
+}
+
+template<>
+ScalarImageWrapper<LabelImageWrapperTraits, ScalarImageWrapperBase>
+::ScalarImageWrapper(const Self &copy)
+{
+    CommonInitialization();
+
+    // If the source contains an image, make a copy of that image
+    if (copy.IsInitialized() && copy.GetImage())
+    {
+        typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> roiType;
+        roiType::Pointer roi = roiType::New();
+        roi->SetInput(copy.GetImage());
+        roi->Update();
+        ImagePointer newImage = roi->GetOutput();
+        UpdateImagePointer(newImage);
     }
 }
 
@@ -129,7 +147,7 @@ ScalarImageWrapper<TTraits,TBase>
 
   m_GradientMagnitudeFilter->SetInput(imgCommon);
 
-  m_VTKExporter->SetInput(newImage);
+  //m_VTKExporter->SetInput(newImage);
 }
 
 template <class TTraits, class TBase>
@@ -255,45 +273,45 @@ ScalarImageWrapper<TTraits,TBase>
   out_value[0] = this->m_NativeMapping(val_raw);
 }
 
-template<class TTraits, class TBase>
-void
-ScalarImageWrapper<TTraits,TBase>
-::SetupVTKImportExport()
-{
-  // Initialize the VTK Exporter
-  m_VTKExporter = VTKExporter::New();
-  m_VTKExporter->ReleaseDataFlagOn();
-
-  // Initialize the VTK Importer
-  m_VTKImporter = vtkImageImport::New();
-  m_VTKImporter->ReleaseDataFlagOn();
-
-  // Pipe the importer into the exporter (that's a lot of code)
-  m_VTKImporter->SetUpdateInformationCallback(
-        m_VTKExporter->GetUpdateInformationCallback());
-  m_VTKImporter->SetPipelineModifiedCallback(
-        m_VTKExporter->GetPipelineModifiedCallback());
-  m_VTKImporter->SetWholeExtentCallback(
-        m_VTKExporter->GetWholeExtentCallback());
-  m_VTKImporter->SetSpacingCallback(
-        m_VTKExporter->GetSpacingCallback());
-  m_VTKImporter->SetOriginCallback(
-        m_VTKExporter->GetOriginCallback());
-  m_VTKImporter->SetScalarTypeCallback(
-        m_VTKExporter->GetScalarTypeCallback());
-  m_VTKImporter->SetNumberOfComponentsCallback(
-        m_VTKExporter->GetNumberOfComponentsCallback());
-  m_VTKImporter->SetPropagateUpdateExtentCallback(
-        m_VTKExporter->GetPropagateUpdateExtentCallback());
-  m_VTKImporter->SetUpdateDataCallback(
-        m_VTKExporter->GetUpdateDataCallback());
-  m_VTKImporter->SetDataExtentCallback(
-        m_VTKExporter->GetDataExtentCallback());
-  m_VTKImporter->SetBufferPointerCallback(
-        m_VTKExporter->GetBufferPointerCallback());
-  m_VTKImporter->SetCallbackUserData(
-        m_VTKExporter->GetCallbackUserData());
-}
+//template<class TTraits, class TBase>
+//void
+//ScalarImageWrapper<TTraits,TBase>
+//::SetupVTKImportExport()
+//{
+//  // Initialize the VTK Exporter
+//  m_VTKExporter = VTKExporter::New();
+//  m_VTKExporter->ReleaseDataFlagOn();
+//
+//  // Initialize the VTK Importer
+//  m_VTKImporter = vtkImageImport::New();
+//  m_VTKImporter->ReleaseDataFlagOn();
+//
+//  // Pipe the importer into the exporter (that's a lot of code)
+//  m_VTKImporter->SetUpdateInformationCallback(
+//        m_VTKExporter->GetUpdateInformationCallback());
+//  m_VTKImporter->SetPipelineModifiedCallback(
+//        m_VTKExporter->GetPipelineModifiedCallback());
+//  m_VTKImporter->SetWholeExtentCallback(
+//        m_VTKExporter->GetWholeExtentCallback());
+//  m_VTKImporter->SetSpacingCallback(
+//        m_VTKExporter->GetSpacingCallback());
+//  m_VTKImporter->SetOriginCallback(
+//        m_VTKExporter->GetOriginCallback());
+//  m_VTKImporter->SetScalarTypeCallback(
+//        m_VTKExporter->GetScalarTypeCallback());
+//  m_VTKImporter->SetNumberOfComponentsCallback(
+//        m_VTKExporter->GetNumberOfComponentsCallback());
+//  m_VTKImporter->SetPropagateUpdateExtentCallback(
+//        m_VTKExporter->GetPropagateUpdateExtentCallback());
+//  m_VTKImporter->SetUpdateDataCallback(
+//        m_VTKExporter->GetUpdateDataCallback());
+//  m_VTKImporter->SetDataExtentCallback(
+//        m_VTKExporter->GetDataExtentCallback());
+//  m_VTKImporter->SetBufferPointerCallback(
+//        m_VTKExporter->GetBufferPointerCallback());
+//  m_VTKImporter->SetCallbackUserData(
+//        m_VTKExporter->GetCallbackUserData());
+//}
 
 template<class TTraits, class TBase>
 vtkImageImport *

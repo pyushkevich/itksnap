@@ -42,7 +42,8 @@
 =========================================================================*/
 
 #include "ImageWrapper.h"
-#include "itkImageRegionIterator.h"
+#include "RLEImageRegionIterator.h"
+#include "RLERegionOfInterestImageFilter.h"
 #include "itkImageSliceConstIteratorWithIndex.h"
 #include "itkNumericTraits.h"
 #include "itkRegionOfInterestImageFilter.h"
@@ -361,8 +362,8 @@ ImageWrapper<TTraits,TBase>
 
   // Initialize the display mapping
   m_DisplayMapping = DisplayMapping::New();
-  m_DisplayMapping->Initialize(
-        static_cast<typename TTraits::WrapperType *>(this));
+  typename TTraits::WrapperType *me = dynamic_cast<typename TTraits::WrapperType *>(this);
+  m_DisplayMapping->Initialize(me);
 
   // Set sticky flag
   m_Sticky = TTraits::StickyByDefault;
@@ -396,6 +397,42 @@ ImageWrapper<TTraits,TBase>
            sizeof(PixelType) * newImage->GetPixelContainer()->Size());
 
     UpdateImagePointer(newImage);
+    }
+}
+
+template<>
+ImageWrapper<LabelImageWrapperTraits, ImageWrapperBase>
+::ImageWrapper(const Self &copy)
+{
+    CommonInitialization();
+
+    // If the source contains an image, make a copy of that image
+    if (copy.IsInitialized() && copy.GetImage())
+    {
+        typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> roiType;
+        roiType::Pointer roi = roiType::New();
+        roi->SetInput(copy.GetImage());
+        roi->Update();
+        ImagePointer newImage = roi->GetOutput();
+        UpdateImagePointer(newImage);
+    }
+}
+
+template<>
+ImageWrapper<LabelImageWrapperTraits, ScalarImageWrapperBase>
+::ImageWrapper(const Self &copy)
+{
+    CommonInitialization();
+
+    // If the source contains an image, make a copy of that image
+    if (copy.IsInitialized() && copy.GetImage())
+    {
+        typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> roiType;
+        roiType::Pointer roi = roiType::New();
+        roi->SetInput(copy.GetImage());
+        roi->Update();
+        ImagePointer newImage = roi->GetOutput();
+        UpdateImagePointer(newImage);
     }
 }
 
@@ -928,13 +965,13 @@ ImageWrapper<TTraits,TBase>
   return m_Slicer[dimension]->GetOutput();
 }
 
-template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::InternalPixelType *
-ImageWrapper<TTraits,TBase>
-::GetVoxelPointer() const
-{
-  return m_Image->GetBufferPointer();
-}
+// template<class TTraits, class TBase>
+// typename ImageWrapper<TTraits,TBase>::InternalPixelType *
+// ImageWrapper<TTraits,TBase>
+// ::GetVoxelPointer() const
+// {
+  // return m_Image->GetBufferPointer();
+// }
 
 
 // TODO: this should take advantage of an in-place filter!
@@ -999,14 +1036,6 @@ typename ImageWrapper<TTraits,TBase>::DisplaySlicePointer
 ImageWrapper<TTraits,TBase>::GetDisplaySlice(unsigned int dim)
 {
   return m_DisplayMapping->GetDisplaySlice(dim);
-}
-
-template<class TTraits, class TBase>
-void *
-ImageWrapper<TTraits,TBase>
-::GetVoxelVoidPointer() const
-{
-  return (void *) m_Image->GetBufferPointer();
 }
 
 template<class TTraits, class TBase>
@@ -1310,7 +1339,8 @@ ImageWrapper<TTraits,TBase>
   SmartPtr<WrapperType> newWrapper = WrapperType::New();
 
   // Copy the display to anatomy geometry to the new wrapper
-  newWrapper->m_DisplayGeometry = m_DisplayGeometry;
+  IRISDisplayGeometry temp = m_DisplayGeometry;
+  newWrapper->SetDisplayGeometry(temp);
 
   // Assign the new image to the new wrapper
   newWrapper->SetImage(newImage);

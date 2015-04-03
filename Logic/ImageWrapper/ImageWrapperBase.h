@@ -291,9 +291,6 @@ public:
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
       vnl_vector<double> &out_value, DisplayPixelType &out_appearance) = 0;
 
-  /** Get the voxel array, as void pointer */
-  virtual void *GetVoxelVoidPointer() const = 0;
-
   /** Clear the data associated with storing an image */
   virtual void Reset() = 0;
 

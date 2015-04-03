@@ -1,5 +1,5 @@
 #include "RGBALookupTableIntensityMappingFilter.h"
-#include "itkImageRegionIterator.h"
+#include "RLEImageRegionIterator.h"
 
 template<class TInputImage>
 RGBALookupTableIntensityMappingFilter<TInputImage>
