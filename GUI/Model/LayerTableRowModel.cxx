@@ -232,20 +232,32 @@ void LayerTableRowModel::GenerateTextureFeatures()
     SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> common_rep =
         scalar->GetCommonFormatImage();
 
+    /*
     SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> texture_image =
         ScalarImageWrapperBase::CommonFormatImageType::New();
 
     texture_image->CopyInformation(common_rep);
     texture_image->SetRegions(common_rep->GetBufferedRegion());
-    texture_image->Allocate();
+    texture_image->Allocate();*/
 
-    // Call generate textures
-    bilwaj::MomentTexture(common_rep, texture_image, 2, 1);
+    // Create a radius - hard-coded for now
+    itk::Size<3> radius; radius.Fill(2);
+
+    // Create a filter to generate textures
+    typedef AnatomicImageWrapperTraits<GreyType>::ImageType TextureImageType;
+    typedef bilwaj::MomentTextureFilter<
+        ScalarImageWrapperBase::CommonFormatImageType,
+        TextureImageType> MomentFilterType;
+
+    MomentFilterType::Pointer filter = MomentFilterType::New();
+    filter->SetInput(common_rep);
+    filter->SetRadius(radius);
+    filter->SetHighestDegree(3);
+    filter->Update();
 
     // Create a new image wrapper
-    SmartPtr<AnatomicScalarImageWrapper> newWrapper = AnatomicScalarImageWrapper::New();
-    newWrapper->InitializeToWrapper(m_Layer, 0);
-    newWrapper->SetImage(texture_image);
+    SmartPtr<AnatomicImageWrapper> newWrapper = AnatomicImageWrapper::New();
+    newWrapper->InitializeToWrapper(m_Layer, filter->GetOutput(), NULL, NULL);
     newWrapper->SetDefaultNickname("Textures");
     this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(newWrapper);
     }

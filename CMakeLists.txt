@@ -11,6 +11,8 @@ PROJECT(SNAP)
 #--------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 2.8.12)
 
+cmake_policy(SET CMP0026 OLD)
+
 SET(CMAKE_MODULE_PATH ${SNAP_SOURCE_DIR}/CMake)
 
 #--------------------------------------------------------------------------------

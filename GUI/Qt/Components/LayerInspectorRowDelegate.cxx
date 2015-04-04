@@ -14,6 +14,7 @@
 #include <QMenu>
 #include <QContextMenuEvent>
 #include "QtWidgetActivator.h"
+#include "QtCursorOverride.h"
 #include "GlobalUIModel.h"
 #include "ImageIODelegates.h"
 #include "ImageIOWizard.h"
@@ -478,5 +479,6 @@ void LayerInspectorRowDelegate::on_actionAutoContrast_triggered()
 
 void LayerInspectorRowDelegate::on_actionTextureFeatures_triggered()
 {
+  QtCursorOverride c(Qt::WaitCursor);
   m_Model->GenerateTextureFeatures();
 }
