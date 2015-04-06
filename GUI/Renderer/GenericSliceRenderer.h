@@ -114,7 +114,9 @@ protected:
   // Draw the image and overlays either on top of each other or separately
   // in individual cells. Returns true if a layer was drawn, false if not,
   // i.e., the cell is outside of the range of available layers
-  bool DrawImageLayers(int nrows, int ncols, int irow, int icol);
+  bool DrawImageLayers(ImageWrapperBase *base_layer);
+
+  bool IsTiledMode() const;
 
   GenericSliceModel *m_Model;
 

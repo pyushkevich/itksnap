@@ -127,6 +127,9 @@ GenericSliceRenderer
   // For each base layer, set up its viewport
   typedef std::pair<Vector2ui, Vector2ui> Viewport;
   std::vector<Viewport> vp;
+  std::vector<ImageWrapperBase *> vp_layers;
+
+  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
 
   // Is tiling being used
   if(nrows == 1 && ncols == 1)
@@ -136,6 +139,7 @@ GenericSliceRenderer
       {
       // There is only one base layer. It's viewport occupies the whole screen
       vp.push_back(std::make_pair(Vector2ui(0, 0), Vector2ui(cell_w, cell_h)));
+      vp_layers.push_back(id->GetMain());
       }
     else
       {
@@ -146,7 +150,6 @@ GenericSliceRenderer
       // the thumbnail scale factor should fit in vertically.
       double margin_fraction = std::min(0.2, 1.0 / (n_base_layers - 1.0));
 
-      GenericImageData *id = m_ParentModel->GetDriver()->GetCurrentImageData();
       unsigned int height = 0.0;
       for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
         {
@@ -165,6 +168,8 @@ GenericSliceRenderer
                                         Vector2ui(margin_fraction * cell_w, margin_fraction * cell_h)));
             height += margin_fraction * cell_h;
             }
+
+          vp_layers.push_back(it.GetLayer());
           }
         }
       }
@@ -174,8 +179,11 @@ GenericSliceRenderer
     for(int irow = 0; irow < nrows; irow++)
       for(int icol = 0; icol < ncols; icol++)
         if(vp.size() < n_base_layers)
+          {
           vp.push_back(std::make_pair(Vector2ui(icol * cell_w, (nrows - 1 - irow) * cell_h),
                                       Vector2ui(cell_w, cell_h)));
+          vp_layers.push_back(this->GetLayerForNthTile(irow, icol));
+          }
     }
 
   // Get the appearance settings pointer since we use it a lot
@@ -243,7 +251,7 @@ GenericSliceRenderer
           1.0);
 
       // Draw the main layers for this row/column combination
-      if(this->DrawImageLayers(nrows, ncols, irow, icol))
+      if(this->DrawImageLayers(vp_layers[bl]))
         {
         // We don't want to draw segmentation over the speed image and other
         // SNAP-mode layers.
@@ -318,7 +326,7 @@ GenericSliceRenderer
   glLoadIdentity();
 }
 
-bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int icol)
+bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer)
 {
   // Get the image data
   GenericImageData *id = m_Model->GetImageData();
@@ -326,31 +334,13 @@ bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int i
   // If drawing the thumbnail, only draw the main layer
   if(m_ThumbnailDrawing)
     {
-    DrawTextureForLayer(id->GetMain(), false);
+    DrawTextureForLayer(base_layer, false);
     return true;
     }
 
   // Is the display partitioned into rows and columns?
-  if(nrows == 1 && ncols == 1)
+  if(!this->IsTiledMode())
     {
-    // New behavior: only draw the layer that is currently selected and the layers
-    // that are pinned. Unpinned layers are not drawn
-    unsigned long selected_id = m_Model->GetParentUI()->GetSelectedLayerId();
-
-    // First pass - find the selected layer and draw it. If no layer is selected
-    // then draw the main layer
-    ImageWrapperBase *base_layer = id->GetMain();
-    for(LayerIterator it(id); !it.IsAtEnd(); ++it)
-      {
-      // If a sticky layer is selected, we default to main - although the logic of
-      // selection should be handled so that this is never the case anyway
-      if(selected_id == it.GetLayer()->GetUniqueId() && !it.GetLayer()->IsSticky())
-        {
-        base_layer = it.GetLayer();
-        break;
-        }
-      }
-
     // Draw the base layer without transparency
     DrawTextureForLayer(base_layer, false);
 
@@ -371,15 +361,8 @@ bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int i
     }
   else
     {
-    // Geth the n-th layer
-    ImageWrapperBase *layer = GetLayerForNthTile(irow, icol);
-
-    // Check if the layer is in drawable condition. If not, draw nothing.
-    if(!layer)
-      return false;
-
     // Draw the particular layer
-    DrawTextureForLayer(layer, false);
+    DrawTextureForLayer(base_layer, false);
 
     // Now draw all the non-sticky layers
     for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
@@ -394,7 +377,14 @@ bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int i
       }
 
     return true;
-    }
+  }
+}
+
+bool GenericSliceRenderer::IsTiledMode() const
+{
+  DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
+  Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
+  return layout[0] > 1 || layout[1] > 1;
 }
 
 
