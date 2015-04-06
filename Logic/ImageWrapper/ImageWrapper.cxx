@@ -327,6 +327,69 @@ public:
 };
 
 
+
+
+
+template<class TPixel, unsigned int VDim>
+class ImageWrapperPartialSpecializationTraits< RLEImage<TPixel, VDim> >
+{
+public:
+  typedef RLEImage<TPixel, VDim> ImageType;
+  typedef typename ImageType::PixelType PixelType;
+
+  static void FillBuffer(ImageType *image, PixelType p)
+  {
+    image->FillBuffer(p);
+  }
+
+  static void Write(ImageType *image, const char *fname, Registry &hints)
+  {
+    // TODO: write an implementation of the IO methods for RLEImage
+    throw IRISException("Write not supported for RLE Image");
+  }
+
+  template <class TInterpolateFunction>
+  static SmartPtr<ImageType> DeepCopyImageRegion(
+      ImageType *image,
+      TInterpolateFunction *interp,
+      const SNAPSegmentationROISettings &roi,
+      itk::Command *progressCommand)
+  {
+    // TODO: write an implementation of region extraction for RLEImage
+    throw IRISException("Region copy not supported for RLE Image");
+  }
+
+  static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        const SNAPSegmentationROISettings &roi,
+                                        itk::Command *progressCommand)
+  {
+    // TODO: make region copying possible for RLE images
+    throw IRISException("Interpolation for RLE images is currently unsupported.");
+    return NULL;
+
+    /*
+    typedef itk::InterpolateImageFunction<ImageType> Interpolator;
+    SmartPtr<Interpolator> interp = NULL;
+
+    // Choose the interpolator
+    switch(roi.GetInterpolationMethod())
+      {
+      case SNAPSegmentationROISettings::NEAREST_NEIGHBOR :
+        typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double> NNInterpolatorType;
+        interp = NNInterpolatorType::New().GetPointer();
+        break;
+
+      default:
+        throw IRISException("Higher-order interpolation for RLE images is unsupported.");
+      };
+
+    return Superclass::template DeepCopyImageRegion<Interpolator>(image,interp,roi,progressCommand);
+    */
+  }
+};
+
+
+
 template<class TTraits, class TBase>
 ImageWrapper<TTraits,TBase>
 ::ImageWrapper() 
@@ -362,8 +425,7 @@ ImageWrapper<TTraits,TBase>
 
   // Initialize the display mapping
   m_DisplayMapping = DisplayMapping::New();
-  typename TTraits::WrapperType *me = dynamic_cast<typename TTraits::WrapperType *>(this);
-  m_DisplayMapping->Initialize(me);
+  m_DisplayMapping->Initialize(static_cast<typename DisplayMapping::WrapperType *>(this));
 
   // Set sticky flag
   m_Sticky = TTraits::StickyByDefault;
@@ -385,39 +447,16 @@ ImageWrapper<TTraits,TBase>
   // If the source contains an image, make a copy of that image
   if (copy.IsInitialized() && copy.GetImage())
     {
-    // Create and allocate the image
-    ImagePointer newImage = ImageType::New();
-    newImage->SetRegions(copy.GetImage()->GetBufferedRegion());
-    newImage->Allocate();
-
-    // Copy the image contents
-    InternalPixelType *ptrTarget = newImage->GetBufferPointer();
-    InternalPixelType *ptrSource = copy.GetImage()->GetBufferPointer();
-    memcpy(ptrTarget,ptrSource,
-           sizeof(PixelType) * newImage->GetPixelContainer()->Size());
-
+    typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> roiType;
+    typename roiType::Pointer roi = roiType::New();
+    roi->SetInput(copy.GetImage());
+    roi->Update();
+    ImagePointer newImage = roi->GetOutput();
     UpdateImagePointer(newImage);
     }
 }
 
-template<>
-ImageWrapper<LabelImageWrapperTraits, ImageWrapperBase>
-::ImageWrapper(const Self &copy)
-{
-    CommonInitialization();
-
-    // If the source contains an image, make a copy of that image
-    if (copy.IsInitialized() && copy.GetImage())
-    {
-        typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> roiType;
-        roiType::Pointer roi = roiType::New();
-        roi->SetInput(copy.GetImage());
-        roi->Update();
-        ImagePointer newImage = roi->GetOutput();
-        UpdateImagePointer(newImage);
-    }
-}
-
+/*
 template<>
 ImageWrapper<LabelImageWrapperTraits, ScalarImageWrapperBase>
 ::ImageWrapper(const Self &copy)
@@ -435,6 +474,7 @@ ImageWrapper<LabelImageWrapperTraits, ScalarImageWrapperBase>
         UpdateImagePointer(newImage);
     }
 }
+*/
 
 template<class TTraits, class TBase>
 const ImageCoordinateTransform &
