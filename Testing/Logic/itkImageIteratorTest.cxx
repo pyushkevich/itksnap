@@ -17,7 +17,7 @@
  *=========================================================================*/
 
 #include <iostream>
-
+#include "RLEImage.h"
 #include "RLEImageRegionIterator.h"
 
 
@@ -48,20 +48,20 @@ int itkImageIteratorTest(int, char* [] )
   const unsigned int ImageDimension = 3;
 
   std::cout << "Creating an image" << std::endl;
-  RLEImage<itk::Vector<unsigned short, 5>>::Pointer
-    o3 = RLEImage<itk::Vector<unsigned short, 5>>::New();
+  RLEImage<itk::Vector<unsigned short, 5> >::Pointer
+    o3 = RLEImage<itk::Vector<unsigned short, 5> >::New();
 
   float origin3D[ImageDimension] = { 5, 2.1, 8.1};
   float spacing3D[ImageDimension] = { 1.5, 2.1, 1};
 
-  RLEImage<itk::Vector<unsigned short, 5>>::SizeType imageSize3D = {{ 20, 40, 60 }};
+  RLEImage<itk::Vector<unsigned short, 5> >::SizeType imageSize3D = {{ 20, 40, 60 }};
 
-  RLEImage<itk::Vector<unsigned short, 5>>::IndexType startIndex3D = {{5, 4, 1}};
-  RLEImage<itk::Vector<unsigned short, 5>>::IndexType regionStartIndex3D = {{6, 10, 12}};
-  RLEImage<itk::Vector<unsigned short, 5>>::IndexType regionEndIndex3D = {{8, 15, 17}};
+  RLEImage<itk::Vector<unsigned short, 5> >::IndexType startIndex3D = {{5, 4, 1}};
+  RLEImage<itk::Vector<unsigned short, 5> >::IndexType regionStartIndex3D = {{6, 10, 12}};
+  RLEImage<itk::Vector<unsigned short, 5> >::IndexType regionEndIndex3D = {{8, 15, 17}};
 
 
-  RLEImage<itk::Vector<unsigned short, 5>>::RegionType region;
+  RLEImage<itk::Vector<unsigned short, 5> >::RegionType region;
   region.SetSize(imageSize3D);
   region.SetIndex(startIndex3D);
   o3->SetRegions( region );

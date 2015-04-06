@@ -338,7 +338,7 @@ void RegionOfInterestImageFilter<Image<TPixel, VImageDimension>,
             {
                 x++;
                 s.first++;
-                iIt++;
+                ++(iIt);
             }
             temp.push_back(s);
         }

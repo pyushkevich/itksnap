@@ -93,9 +93,9 @@ public:
     /** Go to the next line. */
     inline void NextLine(void)
     {
-        this->bi++;
+        ++(this->bi);
         if (!this->bi.IsAtEnd())
-            SetIndexInternal(this->m_BeginIndex0);
+            this->SetIndexInternal(this->m_BeginIndex0);
         else
             this->m_Index0 = this->m_BeginIndex0; //make this iterator at end too
     }
