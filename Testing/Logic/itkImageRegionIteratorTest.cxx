@@ -48,25 +48,25 @@ void TestConstPixelAccess(const RLEImage<T> &in,
 int itkImageRegionIteratorTest(int, char* [] )
 {
   std::cout << "Creating an image" << std::endl;
-  RLEImage<itk::Vector<unsigned short, 5>>::Pointer
-    o3 = RLEImage<itk::Vector<unsigned short, 5>>::New();
+  RLEImage<itk::Vector<unsigned short, 5> >::Pointer
+    o3 = RLEImage<itk::Vector<unsigned short, 5> >::New();
 
   int status = 0;
 
   float origin3D[3] = { 5, 2.1, 8.1};
   float spacing3D[3] = { 1.5, 2.1, 1};
 
-  RLEImage<itk::Vector<unsigned short, 5>>::SizeType imageSize3D = {{ 20, 40, 60 }};
-  RLEImage<itk::Vector<unsigned short, 5>>::SizeType bufferSize3D = {{ 20, 20, 17 }};
-  RLEImage<itk::Vector<unsigned short, 5>>::SizeType regionSize3D = {{ 4,  6,  8 }};
+  RLEImage<itk::Vector<unsigned short, 5> >::SizeType imageSize3D = {{ 20, 40, 60 }};
+  RLEImage<itk::Vector<unsigned short, 5> >::SizeType bufferSize3D = {{ 20, 20, 17 }};
+  RLEImage<itk::Vector<unsigned short, 5> >::SizeType regionSize3D = {{ 4,  6,  8 }};
 
-  RLEImage<itk::Vector<unsigned short, 5>>::IndexType startIndex3D = {{5, 4, 1}};
-  RLEImage<itk::Vector<unsigned short, 5>>::IndexType bufferStartIndex3D = {{5, 5, 1}};
-  RLEImage<itk::Vector<unsigned short, 5>>::IndexType regionStartIndex3D = {{5, 10, 12}};
-  RLEImage<itk::Vector<unsigned short, 5>>::IndexType regionEndIndex3D = {{8, 15, 17}};
+  RLEImage<itk::Vector<unsigned short, 5> >::IndexType startIndex3D = {{5, 4, 1}};
+  RLEImage<itk::Vector<unsigned short, 5> >::IndexType bufferStartIndex3D = {{5, 5, 1}};
+  RLEImage<itk::Vector<unsigned short, 5> >::IndexType regionStartIndex3D = {{5, 10, 12}};
+  RLEImage<itk::Vector<unsigned short, 5> >::IndexType regionEndIndex3D = {{8, 15, 17}};
 
 
-  RLEImage<itk::Vector<unsigned short, 5>>::RegionType region;
+  RLEImage<itk::Vector<unsigned short, 5> >::RegionType region;
   region.SetSize(imageSize3D);
   region.SetIndex(startIndex3D);
   o3->SetLargestPossibleRegion( region );
@@ -96,40 +96,40 @@ int itkImageRegionIteratorTest(int, char* [] )
   TestConstPixelAccess(*o3, *o3);
 
 
-  itk::ImageIterator<RLEImage<itk::Vector<unsigned short, 5>> > standardIt(o3, region);
+  itk::ImageIterator<RLEImage<itk::Vector<unsigned short, 5> > > standardIt(o3, region);
 
   // Iterate over a region using a simple for loop
-  itk::ImageRegionIterator<RLEImage<itk::Vector<unsigned short, 5>> > it(o3, region);
+  itk::ImageRegionIterator<RLEImage<itk::Vector<unsigned short, 5> > > it(o3, region);
 
   std::cout << "Simple iterator loop: ";
   for (; !it.IsAtEnd(); ++it)
     {
-    RLEImage<itk::Vector<unsigned short, 5>>::IndexType index = it.GetIndex();
+    RLEImage<itk::Vector<unsigned short, 5> >::IndexType index = it.GetIndex();
     std::cout << index << std::endl;
     }
 
-  itk::ImageRegionConstIterator<RLEImage<itk::Vector<unsigned short, 5>> > standardCIt(o3, region);
+  itk::ImageRegionConstIterator<RLEImage<itk::Vector<unsigned short, 5> > > standardCIt(o3, region);
 
   // Iterate over a region using a simple for loop and a const iterator
-  itk::ImageRegionConstIterator<RLEImage<itk::Vector<unsigned short, 5>> > cit(o3, region);
+  itk::ImageRegionConstIterator<RLEImage<itk::Vector<unsigned short, 5> > > cit(o3, region);
 
   std::cout << "Simple const iterator loop: ";
   for (; !cit.IsAtEnd(); ++cit)
     {
-    RLEImage<itk::Vector<unsigned short, 5>>::IndexType index = cit.GetIndex();
+    RLEImage<itk::Vector<unsigned short, 5> >::IndexType index = cit.GetIndex();
     std::cout << index << std::endl;
     }
 
 
   // Iterator over the region backwards using a simple for loop
-  itk::ImageRegionIterator<RLEImage<itk::Vector<unsigned short, 5>> > backIt(o3, region);
+  itk::ImageRegionIterator<RLEImage<itk::Vector<unsigned short, 5> > > backIt(o3, region);
 
   backIt.GoToEnd(); // one pixel past the end of the region
   do
     {
     --backIt;
 
-    RLEImage<itk::Vector<unsigned short, 5>>::IndexType index = backIt.GetIndex();
+    RLEImage<itk::Vector<unsigned short, 5> >::IndexType index = backIt.GetIndex();
     std::cout << "Simple iterator backwards loop: ";
     for (unsigned int i=0; i < index.GetIndexDimension(); i++)
       {

@@ -47,7 +47,7 @@ void RLEImage<TPixel, VImageDimension, CounterType>::Allocate(bool initialize)
         <= std::numeric_limits<CounterType>::max(),
         "CounterType is not large enough to support image's X dimension!");
     this->ComputeOffsetTable();
-    SizeValueType num = static_cast<SizeValueType>(this->GetOffsetTable()[VImageDimension]);
+    //SizeValueType num = static_cast<SizeValueType>(this->GetOffsetTable()[VImageDimension]);
     myBuffer->Allocate(false);
     //if (initialize) //there is assumption that the image is fully formed after a call to allocate
     {

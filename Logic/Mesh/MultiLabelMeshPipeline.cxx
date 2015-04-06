@@ -239,7 +239,7 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
         current_meshinfo = &meshmap[current_label];
         }
       }
-    it.bi++;
+    ++(it.bi);
     }
 
   // At this point, meshmap has the number of voxels for every label, as well

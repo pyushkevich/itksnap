@@ -95,9 +95,9 @@ public:
 
     if (this->m_Index0 >= this->m_EndIndex0)
     {
-        this->bi++;
+        ++(this->bi);
         if (!this->bi.IsAtEnd())
-            SetIndexInternal(this->m_BeginIndex0);
+            this->SetIndexInternal(this->m_BeginIndex0);
         else
             this->m_Index0 = this->m_BeginIndex0;
         return *this;
@@ -125,8 +125,8 @@ public:
 
       if (this->m_Index0 < this->m_BeginIndex0)
       {
-          this->bi--;
-          SetIndexInternal(this->m_EndIndex0 - 1);
+          --(this->bi);
+          this->SetIndexInternal(this->m_EndIndex0 - 1);
           return *this;
       }
 
@@ -160,9 +160,9 @@ public:
     void GoToReverseBegin()
     {
         this->bi.GoToEnd(); //after last pixel
-        this->bi--; //go to last valid pixel
+        --(this->bi); //go to last valid pixel
         this->m_Index0 = this->m_EndIndex0 - 1;
-        SetIndexInternal(this->m_Index0); //valid index required
+        this->SetIndexInternal(this->m_Index0); //valid index required
     }
 
     bool IsAtReverseEnd()
