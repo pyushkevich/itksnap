@@ -86,6 +86,10 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   PaintbrushSettingsModel *psm = m_Model->GetParentUI()->GetPaintbrushSettingsModel();
   Rebroadcast(psm->GetBrushSizeModel(), ValueChangedEvent(), AppearanceUpdateEvent());
 
+  // Which layer is currently selected
+  Rebroadcast(m_Model->GetParentUI()->GetSelectedLayerIdModel(),
+              ValueChangedEvent(), AppearanceUpdateEvent());
+
 }
 
 void GenericSliceRenderer::OnUpdate()
@@ -104,13 +108,14 @@ void GenericSliceRenderer::OnUpdate()
     {
     this->UpdateTextureMap();
     }
+
+  // Update the viewport layout
+  this->UpdateViewportLayout();
 }
 
-void
-GenericSliceRenderer
-::paintGL()
+void GenericSliceRenderer::UpdateViewportLayout()
 {
-  // Number of divisions
+  // Get the information about how the viewport is split into sub-viewports
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
   Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
   int nrows = (int) layout[0];
@@ -124,12 +129,11 @@ GenericSliceRenderer
   unsigned int cell_w = m_Model->GetSize()[0];
   unsigned int cell_h = m_Model->GetSize()[1];
 
-  // For each base layer, set up its viewport
-  typedef std::pair<Vector2ui, Vector2ui> Viewport;
-  std::vector<Viewport> vp;
-  std::vector<ImageWrapperBase *> vp_layers;
-
+  // Get the current image data
   GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
+
+  // Clear the viewport array
+  m_ViewportLayout.clear();
 
   // Is tiling being used
   if(nrows == 1 && ncols == 1)
@@ -137,9 +141,13 @@ GenericSliceRenderer
     // There is no tiling. One base layer is emphasized
     if(n_base_layers == 1)
       {
-      // There is only one base layer. It's viewport occupies the whole screen
-      vp.push_back(std::make_pair(Vector2ui(0, 0), Vector2ui(cell_w, cell_h)));
-      vp_layers.push_back(id->GetMain());
+      // There is only one base layer (main). It's viewport occupies the whole screen
+      SubViewPort vp;
+      vp.pos = Vector2i(0, 0);
+      vp.size = Vector2i(cell_w, cell_h);
+      vp.z = 0;
+      vp.layer_id = id->GetMain()->GetUniqueId();
+      m_ViewportLayout.push_back(vp);
       }
     else
       {
@@ -150,26 +158,35 @@ GenericSliceRenderer
       // the thumbnail scale factor should fit in vertically.
       double margin_fraction = std::min(0.2, 1.0 / (n_base_layers - 1.0));
 
-      unsigned int height = 0.0;
+      unsigned int offset = 5 * this->GetModel()->GetSizeReporter()->GetViewportPixelRatio();
+      unsigned int height = (1.0 - margin_fraction) * cell_h - offset;
+
+      // Go through eligible layers
       for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
         {
         if(it.GetRole() == MAIN_ROLE || !it.GetLayer()->IsSticky())
           {
+          SubViewPort vp;
+          vp.layer_id = it.GetLayer()->GetUniqueId();
+
           // Is this the visible layer?
           if(m_Model->GetParentUI()->GetSelectedLayerId() == it.GetLayer()->GetUniqueId())
             {
-            vp.push_back(std::make_pair(Vector2ui(0, 0), Vector2ui(cell_w * (1.0 - margin_fraction), cell_h)));
+            vp.pos = Vector2i(0, 0);
+            vp.size = Vector2i(cell_w, cell_h);
+            vp.z = 0;
             }
 
           // Otherwise add the layer to the thumbnail region
           else
             {
-            vp.push_back(std::make_pair(Vector2ui(cell_w * (1.0 - margin_fraction), height),
-                                        Vector2ui(margin_fraction * cell_w, margin_fraction * cell_h)));
-            height += margin_fraction * cell_h;
+            vp.pos = Vector2i(cell_w * (1.0 - margin_fraction), height + offset);
+            vp.size = Vector2i(margin_fraction * cell_w - offset, margin_fraction * cell_h - offset);
+            vp.z = 1;
+            height -= margin_fraction * cell_h;
             }
 
-          vp_layers.push_back(it.GetLayer());
+          m_ViewportLayout.push_back(vp);
           }
         }
       }
@@ -178,13 +195,24 @@ GenericSliceRenderer
     {
     for(int irow = 0; irow < nrows; irow++)
       for(int icol = 0; icol < ncols; icol++)
-        if(vp.size() < n_base_layers)
+        if(m_ViewportLayout.size() < n_base_layers)
           {
-          vp.push_back(std::make_pair(Vector2ui(icol * cell_w, (nrows - 1 - irow) * cell_h),
-                                      Vector2ui(cell_w, cell_h)));
-          vp_layers.push_back(this->GetLayerForNthTile(irow, icol));
+          SubViewPort vp;
+          vp.pos = Vector2i(icol * cell_w, (nrows - 1 - irow) * cell_h);
+          vp.size = Vector2i(cell_w, cell_h);
+          vp.z = 0;
+          vp.layer_id = this->GetLayerForNthTile(irow, icol)->GetUniqueId();
+          m_ViewportLayout.push_back(vp);
           }
     }
+}
+
+void
+GenericSliceRenderer
+::paintGL()
+{
+  // Get the current image data
+  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
 
   // Get the appearance settings pointer since we use it a lot
   SNAPAppearanceSettings *as =
@@ -193,6 +221,9 @@ GenericSliceRenderer
   // Get the properties for the background color
   Vector3d clrBack = as->GetUIElement(
       SNAPAppearanceSettings::BACKGROUND_2D)->GetNormalColor();
+
+  // Get the overall viewport
+  Vector2ui vp_full = m_Model->GetSizeReporter()->GetViewportSize();
 
   // Set up lighting attributes
   glPushAttrib(GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT |
@@ -209,77 +240,95 @@ GenericSliceRenderer
   // Slice should be initialized before display
   if (m_Model->IsSliceInitialized())
     {
-    // Draw each cell in the nrows by ncols table of images. Usually, there
-    // will only be one column, but the new SNAP supports side-by-side drawing
-    // of layers for when there are overlays
-    for(int bl = 0; bl < n_base_layers; bl++)
+    // Draw each viewport in turn. For now, the number of z-layers is hard-coded at 2
+    for(int z = 0; z < 1; z++)
       {
-      // Set up the viewport for the current cell
-      Vector2ui vp_pos = vp[bl].first, vp_size = vp[bl].second;
-      glViewport(vp_pos[0], vp_pos[1], vp_size[0], vp_size[1]);
-
-      // Set up the projection
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      gluOrtho2D(0.0, vp_size[0], 0.0, vp_size[1]);
-
-      // Establish the model view matrix
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-
-      // Scale to account for multiple rows and columns
-      // glScaled(1.0 / ncols, 1.0 / nrows, 1.0);
-
-      // Prepare for overlay drawing.  The model view is set up to correspond
-      // to pixel coordinates of the slice
-      glPushMatrix();
-
-      // First set of transforms
-      glTranslated(0.5 * vp_size[0], 0.5 * vp_size[1], 0.0);
-
-      // Zoom by display zoom
-      glScalef(m_Model->GetViewZoom(), m_Model->GetViewZoom(), 1.0);
-
-      // Panning
-      glTranslated(-m_Model->GetViewPosition()[0],
-          -m_Model->GetViewPosition()[1],
-          0.0);
-
-      // Convert from voxel space to physical units
-      glScalef(m_Model->GetSliceSpacing()[0],
-          m_Model->GetSliceSpacing()[1],
-          1.0);
-
-      // Draw the main layers for this row/column combination
-      if(this->DrawImageLayers(vp_layers[bl]))
+      for(int k = 0; k < m_ViewportLayout.size(); k++)
         {
-        // We don't want to draw segmentation over the speed image and other
-        // SNAP-mode layers.
-        this->DrawSegmentationTexture();
-
-        // Draw the overlays
-        if(as->GetOverallVisibility())
+        const SubViewPort &vp = m_ViewportLayout[k];
+        if(vp.z == z)
           {
-          // Draw all the overlays added to this object
-          this->DrawTiledOverlays();
+          // Set up the viewport for the current cell
+          glViewport(vp.pos[0], vp.pos[1], vp.size[0], vp.size[1]);
 
+          // Set up the projection
+          glMatrixMode(GL_PROJECTION);
+          glPushMatrix();
+          glLoadIdentity();
+          gluOrtho2D(0.0, vp.size[0], 0.0, vp.size[1]);
+
+          // Establish the model view matrix
+          glMatrixMode(GL_MODELVIEW);
+          glPushMatrix();
+          glLoadIdentity();
+          glPushMatrix();
+
+          // First set of transforms
+          glTranslated(0.5 * vp.size[0], 0.5 * vp.size[1], 0.0);
+
+          // Zoom by display zoom
+          // double newzoom = std::max(vp.size[0] * m_Model->GetViewZoom() / vp_full[0],
+          //                           vp.size[1] * m_Model->GetViewZoom() / vp_full[1]);
+
+          glScalef(m_Model->GetViewZoom(), m_Model->GetViewZoom(), 1.0);
+
+          // Panning
+          glTranslated(-m_Model->GetViewPosition()[0], -m_Model->GetViewPosition()[1], 0.0);
+
+          // Convert from voxel space to physical units
+          glScalef(m_Model->GetSliceSpacing()[0], m_Model->GetSliceSpacing()[1], 1.0);
+
+          // Draw the main layers for this row/column combination
+          ImageWrapperBase *layer = id->FindLayer(vp.layer_id, false);
+          if(layer && this->DrawImageLayers(layer))
+            {
+            // We don't want to draw segmentation over the speed image and other
+            // SNAP-mode layers.
+            this->DrawSegmentationTexture();
+
+            // Draw the overlays
+            if(as->GetOverallVisibility())
+              {
+              // Draw all the overlays added to this object
+              this->DrawTiledOverlays();
+              }
+
+            glPopMatrix();
+
+            // If the layer has positive z, draw a line
+            if(z > 0)
+              {
+              glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+              as->GetUIElement(SNAPAppearanceSettings::RULER)->ApplyLineSettings();
+              glColor3d(0.0, 1.0, 0.0);
+
+              glBegin(GL_LINE_LOOP);
+              glVertex2i(0,0);
+              glVertex2i(0,vp.size[1]);
+              glVertex2i(vp.size[0], vp.size[1]);
+              glVertex2i(vp.size[0], 0);
+              glEnd();
+
+              glPopAttrib();
+              }
+
+            glPopMatrix();
+
+            glMatrixMode(GL_PROJECTION);
+            glPopMatrix();
+            }
           }
         }
-
-      // Clean up the GL state
-      glPopMatrix();
       }
 
     // Set the viewport and projection to original dimensions
-    Vector2ui vp = m_Model->GetSizeReporter()->GetViewportSize();
-
-    glViewport(0, 0, vp[0], vp[1]);
+    glViewport(0, 0, vp_full[0], vp_full[1]);
 
     // Set up the projection
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
-    gluOrtho2D(0.0, vp[0], 0.0, vp[1]);
+    gluOrtho2D(0.0, vp_full[0], 0.0, vp_full[1]);
 
     // Establish the model view matrix
     glMatrixMode(GL_MODELVIEW);
@@ -301,7 +350,6 @@ GenericSliceRenderer
 
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
-
     }
 
   // Draw the various decorations

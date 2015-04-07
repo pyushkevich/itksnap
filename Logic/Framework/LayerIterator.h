@@ -30,6 +30,8 @@ public:
   // Move to a specific layer, or end if the layer is not found
   LayerIterator &Find(ImageWrapperBase *value);
 
+  LayerIterator &Find(unsigned long layer_id);
+
   LayerIterator & operator++();
 
   LayerIterator & operator+=(int k);

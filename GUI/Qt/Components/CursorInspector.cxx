@@ -170,7 +170,7 @@ void CursorInspector::on_tableVoxelUnderCursor_itemClicked(QTableWidgetItem *ite
 {
   // When the user clicks on an item, that item will become the visible one
   int item_row = item->row();
-  if(item_row > 0)
+  if(item_row >= 0)
     {
     // Find the corresponding layer
     LayerIterator it =

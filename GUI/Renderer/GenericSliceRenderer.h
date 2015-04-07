@@ -97,12 +97,29 @@ public:
   // A callback for when the model is reinitialized
   // void OnModelReinitialize();
 
+  // A representation of a slice viewport in ITK-SNAP
+  struct SubViewPort {
+
+    // Size and position of the viewport
+    Vector2i pos, size;
+
+    // Index of the associated image layer
+    unsigned long layer_id;
+
+    // Z index of the viewport - order in which the mouse events are processed
+    int z;
+  };
+
+
+
 protected:
 
   GenericSliceRenderer();
   virtual ~GenericSliceRenderer() {}
 
   void OnUpdate();
+
+  void UpdateViewportLayout();
 
   void DrawMainTexture();
   void DrawSegmentationTexture();
@@ -132,6 +149,9 @@ protected:
 
   // A list of overlays that the user can configure
   RendererDelegateList m_TiledOverlays, m_GlobalOverlays;
+
+  // Viewport layout in the slice
+  std::vector<SubViewPort> m_ViewportLayout;
 
   // Internal method used by UpdateTextureMap()
   // void AssociateTexture(ImageWrapperBase *iw, TextureMap &src, TextureMap &trg);

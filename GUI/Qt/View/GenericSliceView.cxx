@@ -29,6 +29,8 @@
 #include "LatentITKEventNotifier.h"
 #include "QtReporterDelegates.h"
 
+#include "QSplitter"
+
 GenericSliceView::GenericSliceView(QWidget *parent) :
   QtAbstractOpenGLBox(parent)
 {
@@ -40,6 +42,8 @@ GenericSliceView::GenericSliceView(QWidget *parent) :
 
   // We need to grab keyboard focus
   this->SetGrabFocusOnEntry(true);
+
+  QSplitter *split;
 }
 
 void GenericSliceView::SetModel(GenericSliceModel *model)
