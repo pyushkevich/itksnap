@@ -97,6 +97,12 @@ public:
   /** Auto-adjust contrast (via the IntensityCurveModel) */
   void AutoAdjustContrast();
 
+  /**
+   * Generate texture features from this layer
+   * TODO: this is a placeholder for the future more complex functionality
+   */
+  void GenerateTextureFeatures();
+
 
   typedef std::list<MultiChannelDisplayMode> DisplayModeList;
 

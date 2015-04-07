@@ -1557,6 +1557,41 @@ IRISApplication
   InvokeEvent(LayerChangeEvent());
 }
 
+void
+IRISApplication
+::AddDerivedOverlayImage(ImageWrapperBase *overlay)
+{
+  assert(this->IsMainImageLoaded());
+
+  // Add the image as the current grayscale overlay
+  m_CurrentImageData->AddOverlay(overlay);
+
+  // for overlay, we don't want to change the cursor location
+  // just force the IRISSlicer to update
+  m_CurrentImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // Apply the default color map for overlays
+  std::string deflt_preset =
+      m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
+  m_ColorMapPresetManager->SetToPreset(
+        m_CurrentImageData->GetLastOverlay()->GetDisplayMapping()->GetColorMap(),
+        deflt_preset);
+
+  // Initialize the layer-specific segmentation parameters
+  CreateSegmentationSettings(m_CurrentImageData->GetLastOverlay(), OVERLAY_ROLE);
+
+  // If the default is to auto-contrast, perform the contrast adjustment
+  // operation on the image
+  if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
+    {
+    AutoContrastLayerOnLoad(m_CurrentImageData->GetLastOverlay());
+    }
+
+  // Fire event
+  InvokeEvent(LayerChangeEvent());
+
+}
+
 // TODO: this code is 99% same as above - fix it!
 void
 IRISApplication

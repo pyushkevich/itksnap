@@ -219,6 +219,7 @@ public:
 
   /** Handle overlays */
   virtual void AddOverlay(GuidedNativeImageIO *io);
+  virtual void AddOverlay(ImageWrapperBase *new_layer);
   virtual void UnloadOverlays();
   virtual void UnloadOverlayLast();
   virtual void UnloadOverlay(ImageWrapperBase *overlay);

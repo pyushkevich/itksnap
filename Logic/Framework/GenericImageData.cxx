@@ -512,3 +512,9 @@ void GenericImageData::RemoveSingleImageWrapper(LayerRole role)
 
 
 
+
+
+void GenericImageData::AddOverlay(ImageWrapperBase *new_layer)
+{
+  this->AddOverlayInternal(new_layer, true);
+}

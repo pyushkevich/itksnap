@@ -221,6 +221,48 @@ void LayerTableRowModel::AutoAdjustContrast()
     }
 }
 
+#include "MomentTextures.h"
+
+void LayerTableRowModel::GenerateTextureFeatures()
+{
+  ScalarImageWrapperBase *scalar = dynamic_cast<ScalarImageWrapperBase *>(m_Layer);
+  if(scalar)
+    {
+    // Get the image out
+    SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> common_rep =
+        scalar->GetCommonFormatImage();
+
+    /*
+    SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> texture_image =
+        ScalarImageWrapperBase::CommonFormatImageType::New();
+
+    texture_image->CopyInformation(common_rep);
+    texture_image->SetRegions(common_rep->GetBufferedRegion());
+    texture_image->Allocate();*/
+
+    // Create a radius - hard-coded for now
+    itk::Size<3> radius; radius.Fill(2);
+
+    // Create a filter to generate textures
+    typedef AnatomicImageWrapperTraits<GreyType>::ImageType TextureImageType;
+    typedef bilwaj::MomentTextureFilter<
+        ScalarImageWrapperBase::CommonFormatImageType,
+        TextureImageType> MomentFilterType;
+
+    MomentFilterType::Pointer filter = MomentFilterType::New();
+    filter->SetInput(common_rep);
+    filter->SetRadius(radius);
+    filter->SetHighestDegree(3);
+    filter->Update();
+
+    // Create a new image wrapper
+    SmartPtr<AnatomicImageWrapper> newWrapper = AnatomicImageWrapper::New();
+    newWrapper->InitializeToWrapper(m_Layer, filter->GetOutput(), NULL, NULL);
+    newWrapper->SetDefaultNickname("Textures");
+    this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(newWrapper);
+    }
+}
+
 std::string
 LayerTableRowModel::GetDisplayModeString(const MultiChannelDisplayMode &mode)
 {

@@ -227,6 +227,12 @@ public:
   void AddIRISCoregOverlayImage(GuidedNativeImageIO *io, Registry *metadata);
 
   /**
+   * Add a 'derived' overlay, i.e., an overlay generated using image processing from one
+   * of the existing image layers
+   */
+  void AddDerivedOverlayImage(ImageWrapperBase *overlay);
+
+  /**
    * Remove a specific overlay
    */
   void UnloadOverlay(ImageWrapperBase *ovl);

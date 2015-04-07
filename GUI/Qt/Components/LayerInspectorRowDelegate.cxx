@@ -14,6 +14,7 @@
 #include <QMenu>
 #include <QContextMenuEvent>
 #include "QtWidgetActivator.h"
+#include "QtCursorOverride.h"
 #include "GlobalUIModel.h"
 #include "ImageIODelegates.h"
 #include "ImageIOWizard.h"
@@ -51,6 +52,10 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   // Add the component selection menu
   m_DisplayModeMenu = m_PopupMenu->addMenu("Multi-Component Display");
   m_DisplayModeActionGroup = NULL;
+
+  // Placeholder for image processing commands
+  QMenu *processMenu = m_PopupMenu->addMenu("Image Processing");
+  processMenu->addAction(ui->actionTextureFeatures);
 
   // set up an event filter
   ui->inLayerOpacity->installEventFilter(this);
@@ -470,4 +475,10 @@ void LayerInspectorRowDelegate::onColorMapPresetSelected()
 void LayerInspectorRowDelegate::on_actionAutoContrast_triggered()
 {
   m_Model->AutoAdjustContrast();
+}
+
+void LayerInspectorRowDelegate::on_actionTextureFeatures_triggered()
+{
+  QtCursorOverride c(Qt::WaitCursor);
+  m_Model->GenerateTextureFeatures();
 }
