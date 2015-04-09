@@ -88,7 +88,9 @@ public:
 
     /** Test if the index is at the end of line. */
     inline bool IsAtEndOfLine(void)
-    { return this->m_Index0 == this->m_EndIndex0; }
+    { 
+        return this->m_Index0 == this->m_EndIndex0;
+    }
 
     /** Go to the next line. */
     inline void NextLine(void)
@@ -100,7 +102,7 @@ public:
             this->m_Index0 = this->m_BeginIndex0; //make this iterator at end too
     }
 
-    /** Increment (prefix) along the scanline the iterator's index.
+    /** Increment (prefix) along the scanline.
     *
     * If the iterator is at the end of the scanline ( one past the last
     * valid element in the row ), then the results are undefined. Which
@@ -115,17 +117,18 @@ public:
         if (this->segmentRemainder > 0)
             return *this;
 
+        if (this->IsAtEndOfLine())
+            return *this;
         this->realIndex++;
         this->segmentRemainder = (*this->rlLine)[this->realIndex].first;
         return *this;
     }
 
-    /** decrement (prefix) along the scanline the iterator's index.
+    /** Decrement (prefix) along the scanline.
     *
     */
     Self& operator--()
     {
-        itkAssertInDebugAndIgnoreInReleaseMacro(!this->IsAtEndOfLine());
         this->m_Index0--;
         this->segmentRemainder++;
         if (this->segmentRemainder <= (*this->rlLine)[this->realIndex].first)

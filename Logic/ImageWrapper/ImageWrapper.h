@@ -36,9 +36,9 @@
 #define __ImageWrapper_h_
 
 // Smart pointers have to be included from ITK, can't forward reference them
+#include "RLEImageScanlineIterator.h"
 #include "ImageWrapperBase.h"
 #include "ImageCoordinateGeometry.h"
-#include "RLEImageRegionIterator.h"
 #include <itkVectorImage.h>
 #include <itkRGBAPixel.h>
 #include <DisplayMappingPolicy.h>

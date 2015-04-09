@@ -231,15 +231,16 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
       run_start[0] = t;
       current_label = line[x].second;
       t += line[x].first;
-      // If the label does not match the current label, do the same deal
       if (current_label != 0)
         {
+        current_meshinfo = &meshmap[current_label];
         // Update the current mesh info
         UpdateMeshInfoHelper(current_meshinfo, run_start, it, t);
         current_meshinfo = &meshmap[current_label];
         }
       }
     ++(it.bi);
+    it.rlLine = &it.bi.Value();
     }
 
   // At this point, meshmap has the number of voxels for every label, as well

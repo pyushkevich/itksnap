@@ -383,7 +383,6 @@ IRISApplication
   // Cast the native to label type
   CastNativeImage<UncompressedImageType> caster;
   UncompressedImageType::Pointer imgUncompressed = caster(io);
-  io->DeallocateNativeImage(); //we no longer need it, save memory
 
   //use specialized RoI filter to convert to RLEImage
   typedef itk::RegionOfInterestImageFilter<UncompressedImageType, LabelImageType> inConverterType;

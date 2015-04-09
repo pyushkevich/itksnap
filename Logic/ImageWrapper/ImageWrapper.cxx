@@ -6,8 +6,8 @@
   Date:      $Date: 2010/10/14 16:21:04 $
   Version:   $Revision: 1.11 $
   Copyright (c) 2007 Paul A. Yushkevich
-  
-  This file is part of ITK-SNAP 
+
+  This file is part of ITK-SNAP
 
   ITK-SNAP is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details. 
+  GNU General Public License for more details.
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -37,7 +37,7 @@
 
   This software is distributed WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-  PURPOSE.  See the above copyright notices for more information. 
+  PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 
@@ -327,14 +327,13 @@ public:
 };
 
 
-
-
-
-template<class TPixel, unsigned int VDim>
-class ImageWrapperPartialSpecializationTraits< RLEImage<TPixel, VDim> >
+template<class TPixel, unsigned int VDim, class CounterType>
+class ImageWrapperPartialSpecializationTraits< RLEImage<TPixel, VDim, CounterType> >
 {
 public:
-  typedef RLEImage<TPixel, VDim> ImageType;
+  typedef ImageWrapperPartialSpecializationTraits Self;
+  typedef RLEImage<TPixel, VDim, CounterType> ImageType;
+  typedef itk::Image<TPixel, VDim> UncompressedType;
   typedef typename ImageType::PixelType PixelType;
 
   static void FillBuffer(ImageType *image, PixelType p)
@@ -344,8 +343,25 @@ public:
 
   static void Write(ImageType *image, const char *fname, Registry &hints)
   {
-    // TODO: write an implementation of the IO methods for RLEImage
-    throw IRISException("Write not supported for RLE Image");
+    //use specialized RoI filter to convert to itk::Image
+    typedef itk::RegionOfInterestImageFilter<ImageType, UncompressedType> outConverterType;
+    typename outConverterType::Pointer outConv = outConverterType::New();
+    outConv->SetInput(image);
+    outConv->SetRegionOfInterest(image->GetLargestPossibleRegion());
+    outConv->Update();
+    typename UncompressedType::Pointer imgUncompressed = outConv->GetOutput();
+
+    SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+    io->CreateImageIO(fname, hints, false);
+    itk::ImageIOBase *base = io->GetIOBase();
+
+    typedef itk::ImageFileWriter<UncompressedType> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName(fname);
+    if (base)
+        writer->SetImageIO(base);
+    writer->SetInput(imgUncompressed);
+    writer->Update();
   }
 
   template <class TInterpolateFunction>
@@ -355,36 +371,123 @@ public:
       const SNAPSegmentationROISettings &roi,
       itk::Command *progressCommand)
   {
-    // TODO: write an implementation of region extraction for RLEImage
-    throw IRISException("Region copy not supported for RLE Image");
+      // Check if there is a difference in voxel size, i.e., user wants resampling
+      Vector3d vOldSpacing = image->GetSpacing();
+      Vector3d vOldOrigin = image->GetOrigin();
+      Vector3i vROIIndex(roi.GetROI().GetIndex());
+      Vector3ui vROISize(roi.GetROI().GetSize());
+
+      if (roi.IsResampling())
+      {
+          // Compute the number of voxels in the output
+          typedef typename itk::ImageRegion<3> RegionType;
+          typedef typename itk::Size<3> SizeType;
+
+          // We need to compute the new spacing and origin of the resampled
+          // ROI piece. To do this, we need the direction matrix
+          typedef typename ImageType::DirectionType DirectionType;
+          const DirectionType &dm = image->GetDirection();
+
+          // The spacing of the new ROI
+          Vector3d vNewSpacing =
+              element_quotient(element_product(vOldSpacing, to_double(vROISize)),
+              to_double(roi.GetResampleDimensions()));
+
+          // The origin of the new ROI
+          Vector3d vNewOrigin =
+              vOldOrigin + dm.GetVnlMatrix() * (
+              element_product((to_double(vROIIndex) - 0.5), vOldSpacing) +
+              vNewSpacing * 0.5);
+
+          //use specialized RoI filter to convert the region to be resampled to itk::Image
+          typedef itk::RegionOfInterestImageFilter<ImageType, UncompressedType> outConverterType;
+          typename outConverterType::Pointer outConv = outConverterType::New();
+          outConv->SetInput(image);
+          outConv->SetRegionOfInterest(roi.GetROI());
+          outConv->Update();
+          typename UncompressedType::Pointer imgUncompressed = outConv->GetOutput();
+
+          // Create a filter for resampling the image
+          typedef itk::ResampleImageFilter<UncompressedType, ImageType> ResampleFilterType;
+          typename ResampleFilterType::Pointer fltSample = ResampleFilterType::New();
+
+          // Initialize the resampling filter
+          fltSample->SetInput(imgUncompressed);
+          fltSample->SetTransform(itk::IdentityTransform<double, 3>::New());
+          fltSample->SetInterpolator(interp);
+
+          // Set the image sizes and spacing
+          fltSample->SetSize(to_itkSize(roi.GetResampleDimensions()));
+          fltSample->SetOutputSpacing(vNewSpacing.data_block());
+          fltSample->SetOutputOrigin(vNewOrigin.data_block());
+          fltSample->SetOutputDirection(image->GetDirection());
+
+          // Set the progress bar
+          if (progressCommand)
+              fltSample->AddObserver(itk::AnyEvent(), progressCommand);
+
+          fltSample->Update();
+
+          return fltSample->GetOutput();
+      }
+      else
+      {
+          // The filter used to chop off the region of interest
+          typedef itk::RegionOfInterestImageFilter <ImageType, ImageType> ChopFilterType;
+          typename ChopFilterType::Pointer fltChop = ChopFilterType::New();
+
+          // Pipe image into the chopper
+          fltChop->SetInput(image);
+
+          // Set the region of interest
+          fltChop->SetRegionOfInterest(roi.GetROI());
+
+          // Update the pipeline
+          fltChop->Update();
+
+          // Return the resulting image
+          return fltChop->GetOutput();
+      }
   }
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
                                         const SNAPSegmentationROISettings &roi,
                                         itk::Command *progressCommand)
   {
-    // TODO: make region copying possible for RLE images
-    throw IRISException("Interpolation for RLE images is currently unsupported.");
-    return NULL;
-
-    /*
-    typedef itk::InterpolateImageFunction<ImageType> Interpolator;
+    //the interpolator will operate on uncompressed region
+    typedef itk::InterpolateImageFunction<UncompressedType> Interpolator;
     SmartPtr<Interpolator> interp = NULL;
 
     // Choose the interpolator
     switch(roi.GetInterpolationMethod())
       {
       case SNAPSegmentationROISettings::NEAREST_NEIGHBOR :
-        typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double> NNInterpolatorType;
+        typedef itk::NearestNeighborInterpolateImageFunction<UncompressedType, double> NNInterpolatorType;
         interp = NNInterpolatorType::New().GetPointer();
         break;
 
-      default:
-        throw IRISException("Higher-order interpolation for RLE images is unsupported.");
+      case SNAPSegmentationROISettings::TRILINEAR:
+          typedef itk::LinearInterpolateImageFunction<UncompressedType, double> LinearInterpolatorType;
+          interp = LinearInterpolatorType::New().GetPointer();
+          break;
+
+      case SNAPSegmentationROISettings::TRICUBIC:
+          typedef itk::BSplineInterpolateImageFunction<UncompressedType, double> CubicInterpolatorType;
+          interp = CubicInterpolatorType::New().GetPointer();
+          break;
+
+      case SNAPSegmentationROISettings::SINC_WINDOW_05:
+          // More typedefs are needed for the sinc interpolator
+          static const unsigned int VRadius = 5;
+          typedef itk::Function::HammingWindowFunction<VRadius> WindowFunction;
+          typedef itk::ConstantBoundaryCondition<UncompressedType> Condition;
+          typedef itk::WindowedSincInterpolateImageFunction<
+              UncompressedType, VRadius, WindowFunction, Condition, double> SincInterpolatorType;
+          interp = SincInterpolatorType::New().GetPointer();
+          break;
       };
 
-    return Superclass::template DeepCopyImageRegion<Interpolator>(image,interp,roi,progressCommand);
-    */
+    return Self::template DeepCopyImageRegion<Interpolator>(image, interp, roi, progressCommand);
   }
 };
 
@@ -392,20 +495,20 @@ public:
 
 template<class TTraits, class TBase>
 ImageWrapper<TTraits,TBase>
-::ImageWrapper() 
+::ImageWrapper()
 {
   CommonInitialization();
 }
 
 template<class TTraits, class TBase>
 ImageWrapper<TTraits,TBase>
-::~ImageWrapper() 
+::~ImageWrapper()
 {
   Reset();
 }
 
 template<class TTraits, class TBase>
-void 
+void
 ImageWrapper<TTraits,TBase>
 ::CommonInitialization()
 {
@@ -414,7 +517,7 @@ ImageWrapper<TTraits,TBase>
   // Set the unique wrapper id
   m_UniqueId = ++GlobalImageWrapperIndex;
 
-  // Set initial state    
+  // Set initial state
   m_Initialized = false;
   m_PipelineReady = false;
 
@@ -455,26 +558,6 @@ ImageWrapper<TTraits,TBase>
     UpdateImagePointer(newImage);
     }
 }
-
-/*
-template<>
-ImageWrapper<LabelImageWrapperTraits, ScalarImageWrapperBase>
-::ImageWrapper(const Self &copy)
-{
-    CommonInitialization();
-
-    // If the source contains an image, make a copy of that image
-    if (copy.IsInitialized() && copy.GetImage())
-    {
-        typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> roiType;
-        roiType::Pointer roi = roiType::New();
-        roi->SetInput(copy.GetImage());
-        roi->Update();
-        ImagePointer newImage = roi->GetOutput();
-        UpdateImagePointer(newImage);
-    }
-}
-*/
 
 template<class TTraits, class TBase>
 const ImageCoordinateTransform &
@@ -640,9 +723,9 @@ ImageWrapper<TTraits,TBase>
 
 
 template<class TTraits, class TBase>
-void 
+void
 ImageWrapper<TTraits,TBase>
-::PrintDebugInformation() 
+::PrintDebugInformation()
 {
   std::cout << "=== Image Properties ===" << std::endl;
   std::cout << "   Dimensions         : " << m_Image->GetLargestPossibleRegion().GetSize() << std::endl;
@@ -652,7 +735,7 @@ ImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-void 
+void
 ImageWrapper<TTraits,TBase>
 ::UpdateImagePointer(ImageType *newImage)
 {
@@ -667,7 +750,7 @@ ImageWrapper<TTraits,TBase>
         != m_Image->GetDirection();
     }
 
-  // Change the input of the slicers 
+  // Change the input of the slicers
   m_Slicer[0]->SetInput(newImage);
   m_Slicer[1]->SetInput(newImage);
   m_Slicer[2]->SetInput(newImage);
@@ -704,9 +787,9 @@ ImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-void 
+void
 ImageWrapper<TTraits,TBase>
-::InitializeToWrapper(const ImageWrapperBase *source, ImageType *image) 
+::InitializeToWrapper(const ImageWrapperBase *source, ImageType *image)
 {
   // Update the display geometry from the source wrapper
   m_DisplayGeometry = source->GetDisplayGeometry();
@@ -721,7 +804,7 @@ ImageWrapper<TTraits,TBase>
 
 
 template<class TTraits, class TBase>
-void 
+void
 ImageWrapper<TTraits,TBase>
 ::InitializeToWrapper(const ImageWrapperBase *source, const PixelType &value)
 {
@@ -747,18 +830,18 @@ ImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-void 
+void
 ImageWrapper<TTraits,TBase>
-::SetImage(ImagePointer newImage) 
+::SetImage(ImagePointer newImage)
 {
   UpdateImagePointer(newImage);
 }
 
 
 template<class TTraits, class TBase>
-void 
+void
 ImageWrapper<TTraits,TBase>
-::Reset() 
+::Reset()
 {
   if (m_Initialized)
     {
@@ -774,7 +857,7 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 inline typename ImageWrapper<TTraits,TBase>::PixelType
 ImageWrapper<TTraits,TBase>
-::GetVoxel(const Vector3ui &index) const 
+::GetVoxel(const Vector3ui &index) const
 {
   return GetVoxel(index[0],index[1],index[2]);
 }
@@ -827,7 +910,7 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 typename ImageWrapper<TTraits,TBase>::ConstIterator
 ImageWrapper<TTraits,TBase>
-::GetImageConstIterator() const 
+::GetImageConstIterator() const
 {
   ConstIterator it(m_Image,m_Image->GetLargestPossibleRegion());
   it.GoToBegin();
@@ -837,7 +920,7 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 typename ImageWrapper<TTraits,TBase>::Iterator
 ImageWrapper<TTraits,TBase>
-::GetImageIterator() 
+::GetImageIterator()
 {
   Iterator it(m_Image,m_Image->GetLargestPossibleRegion());
   it.GoToBegin();
@@ -845,7 +928,7 @@ ImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-void 
+void
 ImageWrapper<TTraits,TBase>
 ::SetSliceIndex(const Vector3ui &cursor)
 {
@@ -990,7 +1073,7 @@ ImageWrapper<TTraits,TBase>
 
 /** For each slicer, find out which image dimension does is slice along */
 template<class TTraits, class TBase>
-unsigned int 
+unsigned int
 ImageWrapper<TTraits,TBase>
 ::GetDisplaySliceImageAxis(unsigned int iSlice)
 {
@@ -1016,7 +1099,7 @@ ImageWrapper<TTraits,TBase>
 
 // TODO: this should take advantage of an in-place filter!
 template<class TTraits, class TBase>
-unsigned int 
+unsigned int
 ImageWrapper<TTraits,TBase>
 ::ReplaceIntensity(PixelType iOld, PixelType iNew)
 {
@@ -1040,7 +1123,7 @@ ImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-unsigned int 
+unsigned int
 ImageWrapper<TTraits,TBase>
 ::SwapIntensities(PixelType iFirst, PixelType iSecond)
 {

@@ -599,7 +599,7 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
 
       // Does the file exist?
       if(fiwd.exists())
-        ui->outError->setText("Existing file will be overridden!");
+        ui->outError->setText("Existing file will be overwritten!");
       }
     }
 

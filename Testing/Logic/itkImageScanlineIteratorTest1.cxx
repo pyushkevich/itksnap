@@ -94,6 +94,17 @@ int itkImageScanlineIteratorTest1(int, char* [] )
     it.NextLine();
     }
 
+  itk::ImageScanlineIterator<ImageType > it2(o3, o3->GetBufferedRegion());
+  std::cout << "Simple iterator loop 1bis\n";
+  while (!it2.IsAtEnd())
+  {
+      while (!it2.IsAtEndOfLine())
+      {
+          ++it2;
+      }
+      it2.NextLine();
+  }
+
   itk::ImageScanlineConstIterator<ImageType > testBeginEnd(o3, region);
   testBeginEnd.GoToBeginOfLine();
   testBeginEnd.GoToEndOfLine();
