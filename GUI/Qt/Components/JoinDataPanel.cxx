@@ -83,19 +83,7 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 	m_Model->GetGlobalState()->SetToolbarMode(GLOBALWS_ROI_MODE);
 	} break;
     case 2:{
-	// Create a model for IO
-	SmartPtr<LoadSegmentationImageDelegate> delegate = LoadSegmentationImageDelegate::New();
-	delegate->Initialize(m_Model->GetDriver());
-	SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-	model->InitializeForLoad(m_Model, delegate,
-	    "JsrImage", "Join Source Image");
-	
-	// Execute the IO wizard
-	ImageIOWizard wiz(this);
-	wiz.SetModel(model);
-	wiz.exec();
-
-	//todo check for cancel in wizard and return from JOIN_MODE
+	////todo: implement use of ITK-Snap file-chooser for setting file name
 
 	IRISApplication *driver = m_Model->GetDriver();
 
@@ -114,7 +102,7 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 	    driver->GetGlobalState()->GetSegmentationROISettings(), sel,
 	    m_Model->GetProgressCommand());
 
-	driver->CopySegementationToJsrc(
+	driver->LoadImageToJsrc(ui->JsrcInputFileName->text().toUtf8().constData(),
 	    driver->GetGlobalState()->GetSegmentationROISettings(),
 	    m_Model->GetProgressCommand());
 	driver->SetCurrentImageDataToJOIN();

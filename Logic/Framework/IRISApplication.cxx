@@ -60,6 +60,7 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
+#include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkFlipImageFilter.h"
 #include <itksys/SystemTools.hxx>
@@ -315,6 +316,29 @@ IRISApplication
   // The target has been modified
   target->Modified();
 
+
+  InvokeEvent(LayerChangeEvent());
+}
+
+void 
+IRISApplication
+::LoadImageToJsrc(const char* FileName, const SNAPSegmentationROISettings &roi, CommandType *progressCommand)
+{
+  assert(m_JOINImageData->IsJsrcLoaded());
+
+  typedef JsrcImageWrapper::ImageType TargetImageType;
+  TargetImageType::Pointer target = m_JOINImageData->GetJsrc()->GetImage();
+
+  typedef itk::ImageFileReader<JsrcImageWrapper::ImageType> ReaderType;
+  typename ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName(FileName);
+  reader->Update();
+  // target= reader->GetOutput();
+  // target->DisconnectPipeline();
+
+  // // The target has been modified
+  // target->Modified();
+  m_JOINImageData->SetJsrc(reader->GetOutput());
 
   InvokeEvent(LayerChangeEvent());
 }
