@@ -312,6 +312,11 @@ public:
                                CommandType *progressCommand = NULL);
 
   /**
+   * Load external Segmentation to Jsrc for JOIN-mode 2
+   */
+  void LoadImageToJsrc(const char* FileName, const SNAPSegmentationROISettings &roi, CommandType *progressCommand);
+
+  /**
    * Copy Segmentation to Jsrc for JOIN-mode 0
    */
   void CopySegementationToJdst(const SNAPSegmentationROISettings &roi,

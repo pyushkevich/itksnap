@@ -1,5 +1,7 @@
 TODOs for GWS:
 
+- combine mode 2 with mode 0 and add extra button for "LoadImageToJsrc"
+-- restructure JoinDataPanel to have two main buttons: CnJ from Seg. or File OR CnJ from gWS
 - add 'n' for next smallest unused label see eg m_Wrapper->GetHistogram(nBins) in ./Logic/ImageWrapper/DisplayMappingPolicy.cxx
 - adjust GUI: 
 -- text on gWS range: max available but causes recompute

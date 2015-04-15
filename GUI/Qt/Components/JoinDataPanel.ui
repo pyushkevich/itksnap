@@ -143,6 +143,9 @@ QGroupBox::title {
            </widget>
           </item>
           <item>
+           <widget class="QLineEdit" name="JsrcInputFileName"/>
+          </item>
+          <item>
            <widget class="QWidget" name="widget_9" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout_9">
              <property name="spacing">

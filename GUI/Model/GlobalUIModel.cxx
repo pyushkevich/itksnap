@@ -308,7 +308,7 @@ bool GlobalUIModel::CheckState(UIState state)
     case UIF_BASEIMG_LOADED:
       return m_Driver->IsMainImageLoaded();
     case UIF_IRIS_WITH_BASEIMG_LOADED:
-	return m_Driver->IsMainImageLoaded() && !m_Driver->IsSnakeModeActive();// && !m_Driver->IsJoinModeActive(); ///adding this will disable lablel change in Join mode: Bad!
+	return m_Driver->IsMainImageLoaded() && !m_Driver->IsSnakeModeActive();// && !m_Driver->IsJoinModeActive(); ///adding this will disable lablel change in Join mode, use UIF_NOT_SNAKE_OR_JOIN_MODE if needed.
     case UIF_IRIS_MODE:
 	return !m_Driver->IsSnakeModeActive() && !m_Driver->IsJoinModeActive();//not sure if Join extension here has any effect
     case UIF_IRIS_WITH_OVERLAY_LOADED:

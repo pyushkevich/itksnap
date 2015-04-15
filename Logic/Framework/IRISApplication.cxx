@@ -60,6 +60,7 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
+#include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkFlipImageFilter.h"
 #include "itkConstantBoundaryCondition.h"
@@ -309,6 +310,29 @@ IRISApplication
   // The target has been modified
   target->Modified();
 
+
+  InvokeEvent(LayerChangeEvent());
+}
+
+void 
+IRISApplication
+::LoadImageToJsrc(const char* FileName, const SNAPSegmentationROISettings &roi, CommandType *progressCommand)
+{
+  assert(m_JOINImageData->IsJsrcLoaded());
+
+  typedef JsrcImageWrapper::ImageType TargetImageType;
+  TargetImageType::Pointer target = m_JOINImageData->GetJsrc()->GetImage();
+
+  typedef itk::ImageFileReader<JsrcImageWrapper::ImageType> ReaderType;
+  typename ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName(FileName);
+  reader->Update();
+  // target= reader->GetOutput();
+  // target->DisconnectPipeline();
+
+  // // The target has been modified
+  // target->Modified();
+  m_JOINImageData->SetJsrc(reader->GetOutput());
 
   InvokeEvent(LayerChangeEvent());
 }
@@ -847,6 +871,9 @@ IRISApplication
 
   // Construct are region of interest into which the result will be pasted
   SNAPSegmentationROISettings roi = m_GlobalState->GetSegmentationROISettings();
+  // the roi above can be wrong if a segmentation was loaded while itksnap is in a ROI-mode (e.g. Snake or gWS)
+  // the mismatch in the ROI-region index then causes the program to crash when the interators are initialized down below
+  // therefore disabled loading of segmentations during ROI-modes in MainImageWindow.cxx 
 
   // Create iterators for copying from one to the other
   typedef itk::ImageRegionConstIterator<SourceImageType> SourceIteratorType;
