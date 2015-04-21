@@ -32,31 +32,11 @@ font-size: 12px;
 QSpinBox {
 font-size: 11px;
 }
-/*
 QGroupBox {
   background-origin: content;
   margin-top: 15px;
   font-weight: bold;
   font-size: 12px;
-  font-family: helvetica;
-  color: rgb(30,30,160);
-  background-color: rgb(237,237,237);
-  padding: 5px;
-  border-radius: 4px;
-  border: 1px solid rgb(130,130,130);
-}
-QGroupBox::title {
-  subcontrol-origin: 	margin;
-  subcontrol-position: top left;
-}
-*/
-
-QGroupBox {
-  background-origin: content;
-  margin-top: 15px;
-  font-weight: bold;
-  font-size: 12px;
-  text-shadow:1px 1px 0 white;
   color: rgb(30,30,160);
   background-color: rgb(222,222,222);
   padding: 5px;

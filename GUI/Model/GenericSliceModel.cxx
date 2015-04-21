@@ -773,7 +773,7 @@ ImageWrapperBase *GenericSliceModel::GetLayerForNthTile(int row, int col)
   int nrows = (int) layout[0], ncols = (int) layout[1];
 
   // This code is used if the layout is actually tiled
-  if(ncols > 1 && nrows > 1)
+  if(ncols > 1 || nrows > 1)
     {
     // How many layers to go until we get to the one we want to paint?
     int togo = row * ncols + col;
