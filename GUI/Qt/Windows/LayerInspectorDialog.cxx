@@ -278,6 +278,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
 
     // Listen to select signals from widget
     connect(w, SIGNAL(selectionChanged(bool)), this, SLOT(layerSelected(bool)));
+    connect(w, SIGNAL(contrastInspectorRequested()), this, SLOT(onContrastInspectorRequested()));
 
     // Select the layer if it was previously selected or nothing was previously
     // selected and the layer is the main layer
@@ -352,6 +353,13 @@ void LayerInspectorDialog::layerSelected(bool flag)
     // Put this layer's actions on the menu
     m_SaveSelectedButton->setDefaultAction(wsel->saveAction());
     }
+}
+
+void LayerInspectorDialog::onContrastInspectorRequested()
+{
+  // Make sure the layer is selected
+  this->layerSelected(true);
+  ui->tabWidget->setCurrentWidget(ui->cmpContrast);
 }
 
 void LayerInspectorDialog::SetActiveLayer(ImageWrapperBase *layer)

@@ -43,6 +43,11 @@ public:
   void mousePressEvent(QMouseEvent *ev);
   void mouseMoveEvent(QMouseEvent *);
   void mouseReleaseEvent(QMouseEvent *);
+  void contextMenuEvent(QContextMenuEvent *ev);
+
+public slots:
+
+  void onContextMenuRequested(const QPoint &pt);
 
 private:
 

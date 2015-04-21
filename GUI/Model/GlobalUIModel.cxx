@@ -92,6 +92,10 @@ GlobalUIModel::GlobalUIModel()
   m_DisplayLayoutModel = DisplayLayoutModel::New();
   m_DisplayLayoutModel->SetParentModel(this);
 
+  // Paintbrush settings
+  m_PaintbrushSettingsModel = PaintbrushSettingsModel::New();
+  m_PaintbrushSettingsModel->SetParentModel(this);
+
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)
     {
@@ -111,10 +115,6 @@ GlobalUIModel::GlobalUIModel()
     m_PaintbrushModel[i]->SetParent(m_SliceModel[i]);
     }
 
-
-  // Paintbrush settings
-  m_PaintbrushSettingsModel = PaintbrushSettingsModel::New();
-  m_PaintbrushSettingsModel->SetParentModel(this);
 
   // Polygon settings
   m_PolygonSettingsModel = PolygonSettingsModel::New();
@@ -281,8 +281,6 @@ GlobalUIModel::GlobalUIModel()
   progcmd->SetCallbackFunction(this, &GlobalUIModel::ProgressCallback);
   m_ProgressCommand = progcmd.GetPointer();
 
-  // Selected layer model
-  m_SelectedLayerIdModel = NewSimpleConcreteProperty((unsigned long) -1);
 
 }
 
@@ -674,11 +672,13 @@ void GlobalUIModel::SetSegmentationOpacityValue(int value)
 
 
 std::vector<std::string>
-GlobalUIModel::GetRecentHistoryItems(const char *historyCategory, unsigned int k)
+GlobalUIModel::GetRecentHistoryItems(const char *historyCategory, unsigned int k, bool global_history)
 {
   // Load the list of recent files from the history file
   const HistoryManager::HistoryListType &history =
-      this->GetSystemInterface()->GetHistoryManager()->GetGlobalHistory(historyCategory);
+      global_history
+      ? this->GetSystemInterface()->GetHistoryManager()->GetGlobalHistory(historyCategory)
+      : this->GetSystemInterface()->GetHistoryManager()->GetLocalHistory(historyCategory);
 
   std::vector<std::string> recent;
 

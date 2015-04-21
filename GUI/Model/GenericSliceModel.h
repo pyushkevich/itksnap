@@ -47,6 +47,31 @@ itkEventMacro(SliceModelImageDimensionsChangeEvent, IRISEvent)
 itkEventMacro(SliceModelGeometryChangeEvent, IRISEvent)
 
 
+/**
+ * A structure describing viewport organization in a SNAP slice view.
+ * The viewport can be in a tiled state or in a main/thumbnail state.
+ *
+ * This class contains a list of viewports with corresponding IDs, as
+ * well as the 'primary' viewport, based on which zoom computations are
+ * made. The primary viewport is always the first viewport in the list
+ */
+struct SliceViewportLayout
+{
+public:
+  struct SubViewport {
+    // Size and position of the viewport
+    Vector2ui pos, size;
+
+    // Index of the associated image layer
+    unsigned long layer_id;
+
+    // Whether this is a thumbnail sub-view or a primary view
+    bool isThumbnail;
+  };
+
+  // List of subviewports
+  std::vector<SubViewport> vpList;
+};
 
 /**
   \class GenericSliceModel
@@ -226,6 +251,13 @@ public:
   /** Get the physical size of the window (updated from widget via events) */
   Vector2ui GetSize();
 
+  /**
+   * Get the size of the canvas on which the slice will be rendered. When the
+   * view is in tiled mode, this reports the size of one of the tiles. When the
+   * new is in main/thumbnail mode, this reports the size of the main view
+   */
+  Vector2ui GetCanvasSize();
+
   /** Has the slice model been initialized with image data? */
   irisIsMacro(SliceInitialized)
 
@@ -234,13 +266,32 @@ public:
 
   irisGetMacro(ImageData, GenericImageData *)
 
-  irisGetMacro(ThumbnailPosition, Vector2i)
-  irisGetMacro(ThumbnailSize, Vector2i)
+  irisGetMacro(ZoomThumbnailPosition, Vector2i)
+  irisGetMacro(ZoomThumbnailSize, Vector2i)
   irisGetMacro(ThumbnailZoom, float)
 
   irisGetMacro(ImageToDisplayTransform, const ImageCoordinateTransform &)
   irisGetMacro(DisplayToAnatomyTransform, const ImageCoordinateTransform &)
   irisGetMacro(DisplayToImageTransform, const ImageCoordinateTransform &)
+
+  irisGetMacro(ViewportLayout, const SliceViewportLayout &)
+
+  /**
+   * Get the viewport for decoration. This is either the entire viewport,
+   * or when the viewport is broken into thumbnail part and main part, the
+   * main part
+   */
+  void GetNonThumbnailViewport(Vector2ui &pos, Vector2ui &size);
+
+  /**
+   * Get the image layer for a context menu request, or NULL if requesting a
+   * context menu at a position should not be possible. TODO: this is kind of
+   * a weird place to house this code.
+   */
+  ImageWrapperBase *GetThumbnailedLayerAtPosition(int x, int y);
+
+  /** Get the layer in a given tile, when using tiled views */
+  ImageWrapperBase *GetLayerForNthTile(int row, int col);
 
   /** Compute the canvas size needed to display slice at current zoom factor */
   Vector2i GetOptimalCanvasSize();
@@ -274,8 +325,11 @@ protected:
   // Pointer to the image data
   GenericImageData *m_ImageData;
 
-  // Viewport size reporter
+  // Viewport size reporter (communicates with the UI about viewport size)
   ViewportSizeReporter *m_SizeReporter;
+
+  // Description of how the main viewport is divided into parts
+  SliceViewportLayout m_ViewportLayout;
 
   // Window id, equal to the direction in display space along which the
   // window shows slices
@@ -323,7 +377,7 @@ protected:
   unsigned int m_Margin;
 
   // The position and size of the zoom thumbnail
-  Vector2i m_ThumbnailPosition, m_ThumbnailSize;
+  Vector2i m_ZoomThumbnailPosition, m_ZoomThumbnailSize;
 
   // The zoom level in the thumbnail
   double m_ThumbnailZoom;
@@ -338,6 +392,8 @@ protected:
   bool GetSliceIndexValueAndDomain(int &value, NumericValueRange<int> *domain);
   void SetSlideIndexValue(int value);
 
+  /** Update the state of the viewport based on current layout settings */
+  void UpdateViewportLayout();
 };
 
 #endif // GENERICSLICEMODEL_H

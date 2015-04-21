@@ -8,6 +8,7 @@
 #include "QtLabelCoupling.h"
 #include "QtSliderCoupling.h"
 #include "QtActionGroupCoupling.h"
+#include "QtActionCoupling.h"
 #include <QGraphicsOpacityEffect>
 #include <QPropertyAnimation>
 #include <QFile>
@@ -44,6 +45,8 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_PopupMenu->addAction(ui->actionClose);
   m_PopupMenu->addSeparator();
   m_PopupMenu->addAction(ui->actionAutoContrast);
+  m_PopupMenu->addAction(ui->actionContrast_Inspector);
+  m_PopupMenu->addSeparator();
 
   // Add the color map menu
   m_ColorMapMenu = m_PopupMenu->addMenu("Color Map");
@@ -53,7 +56,12 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_DisplayModeMenu = m_PopupMenu->addMenu("Multi-Component Display");
   m_DisplayModeActionGroup = NULL;
 
+  m_PopupMenu->addSeparator();
+  m_PopupMenu->addAction(ui->actionPin_layer);
+  m_PopupMenu->addAction(ui->actionUnpin_layer);
+
   // Placeholder for image processing commands
+  m_PopupMenu->addSeparator();
   QMenu *processMenu = m_PopupMenu->addMenu("Image Processing");
   processMenu->addAction(ui->actionTextureFeatures);
 
@@ -92,6 +100,9 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
 
   makeCoupling((QAbstractButton *) ui->btnSticky, model->GetStickyModel());
   makeCoupling((QAbstractButton *) ui->btnVisible, model->GetVisibilityToggleModel());
+
+  makeActionVisibilityCoupling(ui->actionUnpin_layer, model->GetStickyModel());
+  makeActionVisibilityCoupling(ui->actionPin_layer, model->GetStickyModel(), true);
 
   // Hook up some activations
   activateOnFlag(ui->btnVisible, model, LayerTableRowModel::UIF_OPACITY_EDITABLE);
@@ -481,4 +492,19 @@ void LayerInspectorRowDelegate::on_actionTextureFeatures_triggered()
 {
   QtCursorOverride c(Qt::WaitCursor);
   m_Model->GenerateTextureFeatures();
+}
+
+void LayerInspectorRowDelegate::on_actionPin_layer_triggered()
+{
+  m_Model->SetSticky(true);
+}
+
+void LayerInspectorRowDelegate::on_actionUnpin_layer_triggered()
+{
+  m_Model->SetSticky(false);
+}
+
+void LayerInspectorRowDelegate::on_actionContrast_Inspector_triggered()
+{
+  emit contrastInspectorRequested();
 }

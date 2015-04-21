@@ -224,6 +224,11 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   connect(ui->actionRecent_3, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
   connect(ui->actionRecent_4, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
   connect(ui->actionRecent_5, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
+  connect(ui->actionRecentOverlay_1, SIGNAL(triggered()), SLOT(LoadRecentOverlayActionTriggered()));
+  connect(ui->actionRecentOverlay_2, SIGNAL(triggered()), SLOT(LoadRecentOverlayActionTriggered()));
+  connect(ui->actionRecentOverlay_3, SIGNAL(triggered()), SLOT(LoadRecentOverlayActionTriggered()));
+  connect(ui->actionRecentOverlay_4, SIGNAL(triggered()), SLOT(LoadRecentOverlayActionTriggered()));
+  connect(ui->actionRecentOverlay_5, SIGNAL(triggered()), SLOT(LoadRecentOverlayActionTriggered()));
   connect(ui->actionRecentWorkspace1, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
   connect(ui->actionRecentWorkspace2, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
   connect(ui->actionRecentWorkspace3, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
@@ -472,7 +477,8 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     this->UpdateWindowTitle();
     }
 
-  if(b.HasEvent(ValueChangedEvent(), m_Model->GetHistoryModel("MainImage")))
+  if(b.HasEvent(LayerChangeEvent()) ||
+     b.HasEvent(ValueChangedEvent(), m_Model->GetHistoryModel("MainImage")))
     {
     this->UpdateRecentMenu();
     }
@@ -520,16 +526,26 @@ void MainImageWindow::UpdateMainLayout()
 
 void MainImageWindow::UpdateCanvasDimensions()
 {
+  // The desired window aspect ratio
+  double windowAR = 1.0;
+
   // Get the current aspect ratio
-  Vector2ui tiling =
-      m_Model->GetDisplayLayoutModel()->GetSliceViewLayerTilingModel()->GetValue();
+  if(m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->GetValue() == LAYOUT_TILED)
+    {
+    Vector2ui tiling =
+        m_Model->GetDisplayLayoutModel()->GetSliceViewLayerTilingModel()->GetValue();
 
-  // Compute the tiling aspect ratio
-  double tilingAR = tiling(1) * 1.0 / tiling(0);
+    // Compute the tiling aspect ratio
+    double tilingAR = tiling(1) * 1.0 / tiling(0);
 
-  // The tiling aspect ratio should not be mapped directly to the screen aspect ratio -
-  // this creates configurations that are too wide. Instead, we will use a scaling factor
-  double windowAR = (tilingAR - 1.0) * 0.6 + 1.0;
+    // The tiling aspect ratio should not be mapped directly to the screen aspect ratio -
+    // this creates configurations that are too wide. Instead, we will use a scaling factor
+    windowAR = (tilingAR - 1.0) * 0.6 + 1.0;
+    }
+  else if(m_Model->GetDisplayLayoutModel()->GetNumberOfGroundLevelLayers() > 1)
+    {
+    windowAR = 1.0 / 0.88;
+    }
 
   // Adjust the width of the screen to achieve desired aspect ratio
   int cw_width = static_cast<int>(windowAR * ui->centralwidget->height());
@@ -581,6 +597,33 @@ void MainImageWindow::UpdateRecentMenu()
       menus[i]->setEnabled(false);
       }
     }
+
+  // Do the same for the overlay menus
+  QAction *omenus[] = {
+    ui->actionRecentOverlay_1,
+    ui->actionRecentOverlay_2,
+    ui->actionRecentOverlay_3,
+    ui->actionRecentOverlay_4,
+    ui->actionRecentOverlay_5};
+
+  // List of filenames - from local history
+  recent = m_Model->GetRecentHistoryItems("AnatomicImage", 5, false);
+
+  // Toggle the state of each menu item
+  for(int i = 0; i < 5; i++)
+    {
+    if(i < recent.size())
+      {
+      omenus[i]->setText(from_utf8(recent[i]));
+      omenus[i]->setEnabled(true);
+      }
+    else
+      {
+      omenus[i]->setText("Not available");
+      omenus[i]->setEnabled(false);
+      }
+    }
+
 }
 
 void MainImageWindow::UpdateRecentProjectsMenu()
@@ -617,32 +660,49 @@ void MainImageWindow::UpdateRecentProjectsMenu()
 void MainImageWindow::UpdateWindowTitle()
 {
   GenericImageData *gid = m_Model->GetDriver()->GetIRISImageData();
-  QString mainfile, segfile;
+  QString mainfile, segfile, projfile;
   if(gid && gid->IsMainLoaded())
     {
     mainfile = QFileInfo(from_utf8(gid->GetMain()->GetFileName())).fileName();
     segfile = QFileInfo(from_utf8(gid->GetSegmentation()->GetFileName())).fileName();
     }
 
-  if(mainfile.length())
+  // If a project is loaded, we display the project title
+  if(m_Model->GetGlobalState()->GetProjectFilename().length())
+    projfile = QFileInfo(from_utf8(m_Model->GetGlobalState()->GetProjectFilename())).fileName();
+
+  // Set up the window title
+  if(projfile.length())
     {
-    if(segfile.length())
-      {
-      this->setWindowTitle(QString("%1 - %2 - ITK-SNAP").arg(mainfile).arg(segfile));
-      ui->actionSaveSegmentation->setText(QString("Save \"%1\"").arg(segfile));
-      ui->actionSaveSegmentationAs->setText(QString("Save \"%1\" as...").arg(segfile));
-      ui->actionSaveSegmentationAs->setVisible(true);
-      }
-    else
-      {
-      this->setWindowTitle(QString("%1 - New Segmentation - ITK-SNAP").arg(mainfile));
-      ui->actionSaveSegmentation->setText(QString("Save Segmentation Image ..."));
-      ui->actionSaveSegmentationAs->setVisible(false);
-      }
+    this->setWindowTitle(QString("%1 - ITK-SNAP").arg(projfile));
+    }
+  else if(mainfile.length() && segfile.length())
+    {
+    this->setWindowTitle(QString("%1 - %2 - ITK-SNAP").arg(mainfile).arg(segfile));
+    }
+  else if(mainfile.length())
+    {
+    this->setWindowTitle(QString("%1 - New Segmentation - ITK-SNAP").arg(mainfile));
     }
   else
     {
     this->setWindowTitle("ITK-SNAP");
+    }
+
+  // Set up the save segmentation menu items
+  if(segfile.length())
+    {
+    ui->actionSaveSegmentation->setText(QString("Save \"%1\"").arg(segfile));
+    ui->actionSaveSegmentationAs->setText(QString("Save \"%1\" as...").arg(segfile));
+    ui->actionSaveSegmentationAs->setVisible(true);
+    }
+  else if(mainfile.length())
+    {
+    ui->actionSaveSegmentation->setText(QString("Save Segmentation Image ..."));
+    ui->actionSaveSegmentationAs->setVisible(false);
+    }
+  else
+    {
     ui->actionSaveSegmentation->setText(QString("Save"));
     ui->actionSaveSegmentationAs->setText(QString("Save as..."));
     }
@@ -884,6 +944,7 @@ void MainImageWindow::LoadMainImage(const QString &file)
     {
     ReportNonLethalException(this, exc, "Image IO Error",
                              QString("Failed to load image %1").arg(file));
+
     }
 }
 
@@ -893,6 +954,29 @@ void MainImageWindow::LoadRecentActionTriggered()
   QAction *action = qobject_cast<QAction *>(sender());
   QString file = action->text();
   LoadMainImage(file);
+}
+
+void MainImageWindow::LoadRecentOverlayActionTriggered()
+{
+  // Get the filename that wants to be loaded
+  QAction *action = qobject_cast<QAction *>(sender());
+  QString file = action->text();
+
+  // Try loading the image
+  try
+    {
+    // Change cursor for this operation
+    QtCursorOverride c(Qt::WaitCursor);
+    IRISWarningList warnings;
+    SmartPtr<LoadOverlayImageDelegate> del = LoadOverlayImageDelegate::New();
+    del->Initialize(m_Model->GetDriver());
+    m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings);
+    }
+  catch(exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Image IO Error",
+                             QString("Failed to load overlay image %1").arg(file));
+    }
 }
 
 void MainImageWindow::LoadProject(const QString &file)

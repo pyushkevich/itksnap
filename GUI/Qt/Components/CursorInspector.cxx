@@ -177,6 +177,7 @@ void CursorInspector::on_tableVoxelUnderCursor_itemClicked(QTableWidgetItem *ite
         m_Model->GetParent()->GetLoadedLayersSelectionModel()->GetNthLayer(item_row);
 
     if(!it.GetLayer()->IsSticky())
-      m_Model->GetParent()->SetSelectedLayerId(it.GetLayer()->GetUniqueId());
+      m_Model->GetParent()->GetDriver()->GetGlobalState()->SetSelectedLayerId(
+            it.GetLayer()->GetUniqueId());
     }
 }

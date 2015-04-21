@@ -45,7 +45,7 @@ public:
   void SetParentModel(GlobalUIModel *parentModel);
 
   /** Model managing the view panel layouts */
-  irisGetMacro(ViewPanelLayoutModel, AbstractViewPanelLayoutProperty *)
+  irisSimplePropertyAccessMacro(ViewPanelLayout, ViewPanelLayout)
 
   /**
    * Read-only boolean property models for the visibility of any specific
@@ -61,13 +61,13 @@ public:
    * on top of each other using transparency. Otherwise, each overlay is shown
    * in its own cell.
    */
-  irisGetMacro(SliceViewLayerTilingModel, AbstractSimpleUIntVec2Property *)
+  irisSimplePropertyAccessMacro(SliceViewLayerTiling, Vector2ui)
 
   /**
    * Model describing the number of 'ground-level' layers, i.e. layers that
    * are drawn on their own, rather than overlayed on other layers
    */
-  irisGetMacro(NumberOfGroundLevelLayersModel, AbstractSimpleIntProperty *)
+  irisSimplePropertyAccessMacro(NumberOfGroundLevelLayers, int)
 
   /**
    * A model for the layout of the layers in a slice view. This model sets

@@ -124,6 +124,8 @@ GlobalState
   m_ToolbarMode3DModel = NewSimpleConcreteProperty(TRACKBALL_MODE);
 
   m_SliceViewLayerLayoutModel = NewSimpleConcreteProperty(LAYOUT_STACKED);
+
+  m_SelectedLayerIdModel = NewSimpleConcreteProperty(0ul);
 }
 
 void GlobalState::SetDriver(IRISApplication *parent)

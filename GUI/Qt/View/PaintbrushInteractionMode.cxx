@@ -33,7 +33,7 @@ void PaintbrushInteractionMode::mousePressEvent(QMouseEvent *ev)
   bool isright = (ev->button() == Qt::RightButton);
   if(isleft || isright)
     {
-    if(m_Model->ProcessPushEvent(to_float(m_XSlice),isright))
+    if(m_Model->ProcessPushEvent(to_float(m_XSlice),this->m_LastPressLayoutCell, isright))
       ev->accept();
     }
 }

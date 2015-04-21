@@ -306,11 +306,16 @@ void IRISApplication::UnloadOverlay(ImageWrapperBase *ovl)
   SaveMetaDataAssociatedWithLayer(ovl, OVERLAY_ROLE);
 
   // Unload this overlay
+  unsigned long ovl_id = ovl->GetUniqueId();
   m_IRISImageData->UnloadOverlay(ovl);
 
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
   m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // Check if the selected layer needs to be updated (default to main)
+  if(m_GlobalState->GetSelectedLayerId() == ovl_id)
+    m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
@@ -327,6 +332,9 @@ void IRISApplication::UnloadAllOverlays()
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
   m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // The selected layer should revert to main
+  m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
@@ -1016,6 +1024,9 @@ IRISApplication
     m_CurrentImageData = m_IRISImageData;
     TransferCursor(m_SNAPImageData, m_IRISImageData);
     InvokeEvent(MainImageDimensionsChangeEvent());
+
+    // Set the selected layer ID to the main image
+    m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
     }
 }
 
@@ -1038,6 +1049,9 @@ void IRISApplication
     // Upon entering this mode, we need reset the active tools
     m_GlobalState->SetToolbarMode(CROSSHAIRS_MODE);
     m_GlobalState->SetToolbarMode3D(TRACKBALL_MODE);
+
+    // Set the selected layer ID to the main image
+    m_GlobalState->SetSelectedLayerId(m_SNAPImageData->GetMain()->GetUniqueId());
     }
 }
 
@@ -1519,11 +1533,12 @@ IRISApplication
 
   // Add the image as the current grayscale overlay
   m_IRISImageData->AddOverlay(io);
+  ImageWrapperBase *layer = m_IRISImageData->GetLastOverlay();
 
   // Set the filename of the overlay
   // TODO: this is cumbersome, could we just initialize the wrapper from the
   // GuidedNativeImageIO without passing all this junk around?
-  m_IRISImageData->GetLastOverlay()->SetFileName(io->GetFileNameOfNativeImage());
+  layer->SetFileName(io->GetFileNameOfNativeImage());
 
   // Add the overlay to the history
   m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), true);
@@ -1535,23 +1550,22 @@ IRISApplication
   // Apply the default color map for overlays
   std::string deflt_preset =
       m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
-  m_ColorMapPresetManager->SetToPreset(
-        m_IRISImageData->GetLastOverlay()->GetDisplayMapping()->GetColorMap(),
-        deflt_preset);
+  m_ColorMapPresetManager->SetToPreset(layer->GetDisplayMapping()->GetColorMap(),
+                                       deflt_preset);
 
   // Initialize the layer-specific segmentation parameters
-  CreateSegmentationSettings(m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE);
+  CreateSegmentationSettings(layer, OVERLAY_ROLE);
 
   // Read and apply the project-level settings associated with the main image
-  LoadMetaDataAssociatedWithLayer(
-        m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE, metadata);
+  LoadMetaDataAssociatedWithLayer(layer, OVERLAY_ROLE, metadata);
 
   // If the default is to auto-contrast, perform the contrast adjustment
   // operation on the image
   if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
-    {
-    AutoContrastLayerOnLoad(m_IRISImageData->GetLastOverlay());
-    }
+    AutoContrastLayerOnLoad(layer);
+
+  // Set the selected layer ID to be the new overlay
+  m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
@@ -1562,6 +1576,7 @@ IRISApplication
 ::AddDerivedOverlayImage(ImageWrapperBase *overlay)
 {
   assert(this->IsMainImageLoaded());
+  ImageWrapperBase *layer = m_CurrentImageData->GetLastOverlay();
 
   // Add the image as the current grayscale overlay
   m_CurrentImageData->AddOverlay(overlay);
@@ -1573,23 +1588,22 @@ IRISApplication
   // Apply the default color map for overlays
   std::string deflt_preset =
       m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
-  m_ColorMapPresetManager->SetToPreset(
-        m_CurrentImageData->GetLastOverlay()->GetDisplayMapping()->GetColorMap(),
-        deflt_preset);
+  m_ColorMapPresetManager->SetToPreset(layer->GetDisplayMapping()->GetColorMap(),
+                                       deflt_preset);
 
   // Initialize the layer-specific segmentation parameters
-  CreateSegmentationSettings(m_CurrentImageData->GetLastOverlay(), OVERLAY_ROLE);
+  CreateSegmentationSettings(layer, OVERLAY_ROLE);
 
   // If the default is to auto-contrast, perform the contrast adjustment
   // operation on the image
   if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
-    {
-    AutoContrastLayerOnLoad(m_CurrentImageData->GetLastOverlay());
-    }
+    AutoContrastLayerOnLoad(layer);
+
+  // Set the selected layer ID to be the new overlay
+  m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
-
 }
 
 // TODO: this code is 99% same as above - fix it!
@@ -1689,14 +1703,17 @@ IRISApplication
   // Load the image into the current image data object
   m_IRISImageData->SetMainImage(io);
 
+  // Get a pointer to the resulting wrapper
+  ImageWrapperBase *layer = m_IRISImageData->GetMain();
+
   // Set the filename and nickname of the image wrapper
-  m_IRISImageData->GetMain()->SetFileName(io->GetFileNameOfNativeImage());
+  layer->SetFileName(io->GetFileNameOfNativeImage());
 
   // Update the preprocessing settings to defaults.
   m_EdgePreprocessingSettings->InitializeToDefaults();
 
   // Initialize the layer-specific segmentation parameters
-  CreateSegmentationSettings(m_IRISImageData->GetMain(), MAIN_ROLE);
+  CreateSegmentationSettings(layer, MAIN_ROLE);
 
   // Update the system's history list
   m_HistoryManager->UpdateHistory("MainImage", io->GetFileNameOfNativeImage(), false);
@@ -1706,31 +1723,26 @@ IRISApplication
   m_GlobalState->SetSegmentationROI(io->GetNativeImage()->GetBufferedRegion());
 
   // Read and apply the project-level settings associated with the main image
-  LoadMetaDataAssociatedWithLayer(
-        m_IRISImageData->GetMain(), MAIN_ROLE, metadata);
+  LoadMetaDataAssociatedWithLayer(layer, MAIN_ROLE, metadata);
 
   // Fire the dimensions change event
   InvokeEvent(MainImageDimensionsChangeEvent());
 
   // Update the crosshairs position to the center of the image
-  Vector3ui cursor = m_IRISImageData->GetMain()->GetSize();
-  cursor /= 2;
-  this->SetCursorPosition(cursor);
+  this->SetCursorPosition(layer->GetSize() / 2u);
 
   // This line forces the cursor to be propagated to the image even if the
   // crosshairs positions did not change from their previous values
-  this->GetIRISImageData()->SetCrosshairs(cursor);
+  this->GetIRISImageData()->SetCrosshairs(layer->GetSize() / 2u);
 
   // If the default is to auto-contrast, perform the contrast adjustment
   // operation on the image
   if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
-    {
-    AutoContrastLayerOnLoad(m_IRISImageData->GetMain());
-    }
+    AutoContrastLayerOnLoad(layer);
 
   // Save the thumbnail for the current image. This ensures that a thumbnail
   // is created even if the application crashes or is killed.
-  m_CurrentImageData->GetMain()->WriteThumbnail(
+  layer->WriteThumbnail(
         m_SystemInterface->GetThumbnailAssociatedWithFile(
           io->GetFileNameOfNativeImage().c_str()).c_str(), 128);
 
@@ -1741,6 +1753,9 @@ IRISApplication
   // We also want to reset the label history at this point, as these are
   // very different labels
   m_LabelUseHistory->Reset();
+
+  // Make the main image 'selected'
+  m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
 }
 
 void IRISApplication::LoadMetaDataAssociatedWithLayer(

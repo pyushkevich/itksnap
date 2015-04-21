@@ -393,7 +393,8 @@ bool LayerTableRowModel::GetLayerOpacityValueAndRange(int &value, NumericValueRa
     value = (int)(100.0 * m_Layer->GetAlpha());
     }
 
-  else if(m_Layer->GetUniqueId() == m_ParentModel->GetSelectedLayerId())
+  else if(m_Layer->GetUniqueId()
+          == m_ParentModel->GetDriver()->GetGlobalState()->GetSelectedLayerId())
     {
     value = 100;
     }
@@ -425,7 +426,7 @@ void LayerTableRowModel::SetLayerOpacityValue(int value)
     // or non-visible layer
     if(value > 0)
       {
-      m_ParentModel->SetSelectedLayerId(m_Layer->GetUniqueId());
+      m_ParentModel->GetDriver()->GetGlobalState()->SetSelectedLayerId(m_Layer->GetUniqueId());
       }
     }
 
@@ -441,6 +442,12 @@ bool LayerTableRowModel::GetStickyValue(bool &value)
 
 void LayerTableRowModel::SetSticklyValue(bool value)
 {
+  // Make sure the selected ID is legitimate
+  if(m_ParentModel->GetGlobalState()->GetSelectedLayerId() == m_Layer->GetUniqueId())
+    {
+    m_ParentModel->GetGlobalState()->SetSelectedLayerId(
+          m_ParentModel->GetDriver()->GetCurrentImageData()->GetMain()->GetUniqueId());
+    }
   m_Layer->SetSticky(value);
 }
 

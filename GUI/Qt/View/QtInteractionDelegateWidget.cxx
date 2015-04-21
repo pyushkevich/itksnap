@@ -45,6 +45,8 @@ QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
 
 bool QtInteractionDelegateWidget::event(QEvent *ev)
 {
+  bool result;
+
   // If the event was sent to the widget itself, ignore it. The delegate
   // only should receive events through the sender
   if(!m_Filtering)
@@ -55,8 +57,14 @@ bool QtInteractionDelegateWidget::event(QEvent *ev)
 
   // Deal with gesture events
   if(ev->type() == QEvent::Gesture)
-    return gestureEvent(static_cast<QGestureEvent*>(ev));
-  else return QWidget::event(ev);
+    result = gestureEvent(static_cast<QGestureEvent*>(ev));
+  else
+    result = QWidget::event(ev);
+
+  // Set the dragging information
+  postprocessEvent(ev);
+
+  return result;
 }
 
 QtAbstractOpenGLBox * QtInteractionDelegateWidget::GetParentGLWidget() const
@@ -95,33 +103,38 @@ void QtInteractionDelegateWidget::preprocessEvent(QEvent *ev)
     // Compute the spatial location of the event
     QMouseEvent *emouse = static_cast<QMouseEvent *>(ev);
     m_XSpace = this->GetEventWorldCoordinates(emouse, true);
+    }
+}
 
-    // If a mouse press, back up this info for drag tracking
-    if(ev->type() == QEvent::MouseButtonPress)
-      {
-      m_LastPressPos = emouse->pos();
-      m_LastPressGlobalPos = emouse->globalPos();
-      m_LastPressButton = emouse->button();
-      m_LastPressXSpace = m_XSpace;
+void QtInteractionDelegateWidget::postprocessEvent(QEvent *ev)
+{
+  QMouseEvent *emouse = static_cast<QMouseEvent *>(ev);
 
-      // Store what buttons are up or down
-      if(emouse->button() == Qt::LeftButton)
-        m_LeftDown = true;
-      if(emouse->button() == Qt::RightButton)
-        m_RightDown = true;
-      if(emouse->button() == Qt::MiddleButton)
-        m_MiddleDown = true;
-      }
-    else if(ev->type() == QEvent::MouseButtonRelease)
-      {
-      // Store what buttons are up or down
-      if(emouse->button() == Qt::LeftButton)
-        m_LeftDown = false;
-      if(emouse->button() == Qt::RightButton)
-        m_RightDown = false;
-      if(emouse->button() == Qt::MiddleButton)
-        m_MiddleDown = false;
-      }
+  if(ev->isAccepted() && ev->type() == QEvent::MouseButtonPress)
+    {
+    m_LastPressPos = emouse->pos();
+    m_LastPressGlobalPos = emouse->globalPos();
+    m_LastPressButton = emouse->button();
+    m_LastPressXSpace = m_XSpace;
+
+    // Store what buttons are up or down
+    if(emouse->button() == Qt::LeftButton)
+      m_LeftDown = true;
+    if(emouse->button() == Qt::RightButton)
+      m_RightDown = true;
+    if(emouse->button() == Qt::MiddleButton)
+      m_MiddleDown = true;
+    }
+
+  else if (ev->type() == QEvent::MouseButtonRelease)
+    {
+    // Store what buttons are up or down
+    if(emouse->button() == Qt::LeftButton)
+      m_LeftDown = false;
+    if(emouse->button() == Qt::RightButton)
+      m_RightDown = false;
+    if(emouse->button() == Qt::MiddleButton)
+      m_MiddleDown = false;
     }
 }
 

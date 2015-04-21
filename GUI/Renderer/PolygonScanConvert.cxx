@@ -119,7 +119,7 @@ PolygonScanConvertBase
       glMatrixMode(GL_PROJECTION);
       glPushMatrix();
       glLoadIdentity();
-      gluOrtho2D(xTile, xTile + wTile, yTile, yTile + hTile);
+      irisOrtho2D(xTile, xTile + wTile, yTile, yTile + hTile);
 
       // Set the model view matrix
       glMatrixMode(GL_MODELVIEW);

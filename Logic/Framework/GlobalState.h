@@ -363,6 +363,9 @@ public:
   /** Set/Get the layout of multiple layers in slice views */
   irisSimplePropertyAccessMacro(SliceViewLayerLayout, LayerLayout)
 
+  /** Set/Get selected layer id */
+  irisSimplePropertyAccessMacro(SelectedLayerId, unsigned long)
+
   // ----------------------- Project support ------------------------------
 
   /**
@@ -489,6 +492,9 @@ private:
   AnnotationSettings m_AnnotationSettings;
 
   IRISApplication *m_Driver;
+
+  // ------------------- Selected Image ID ---------------------------------
+  SmartPtr<ConcreteSimpleULongProperty> m_SelectedLayerIdModel;
 
   // ------------------- Project Related -----------------------------------
   SmartPtr<ConcreteSimpleStringProperty> m_ProjectFilenameModel;

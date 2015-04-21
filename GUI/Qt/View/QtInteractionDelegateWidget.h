@@ -59,6 +59,8 @@ protected:
   // but should call QtInteractionDelegateWidget::preprocessEvent in there.
   virtual void preprocessEvent(QEvent *);
 
+  virtual void postprocessEvent(QEvent *);
+
   // Get the world coordinates of the Qt event. The default implementation uses
   // the current GL viewport, projection and model matrices of the parent GL
   // widget.

@@ -121,6 +121,7 @@ public:
 public slots:
 
   void LoadRecentActionTriggered();
+  void LoadRecentOverlayActionTriggered();
   void LoadRecentProjectActionTriggered();
 
   void AdjustMarginsForDocks();

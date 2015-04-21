@@ -27,9 +27,14 @@
 #include "GenericSliceView.h"
 #include "CrosshairsInteractionMode.h"
 #include "LatentITKEventNotifier.h"
+#include <MainImageWindow.h>
+#include <LayerInspectorDialog.h>
+#include <GenericImageData.h>
+#include <QMenu>
+#include <SNAPQtCommon.h>
+#include <GlobalUIModel.h>
+#include <LayerSelectionModel.h>
 #include "QtReporterDelegates.h"
-
-#include "QSplitter"
 
 GenericSliceView::GenericSliceView(QWidget *parent) :
   QtAbstractOpenGLBox(parent)
@@ -42,8 +47,6 @@ GenericSliceView::GenericSliceView(QWidget *parent) :
 
   // We need to grab keyboard focus
   this->SetGrabFocusOnEntry(true);
-
-  QSplitter *split;
 }
 
 void GenericSliceView::SetModel(GenericSliceModel *model)

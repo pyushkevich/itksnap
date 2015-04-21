@@ -62,6 +62,7 @@ public slots:
 
 signals:
   void selectionChanged(bool);
+  void contrastInspectorRequested();
   
 private slots:
   void on_btnMenu_pressed();
@@ -79,6 +80,12 @@ private slots:
   void on_actionAutoContrast_triggered();
 
   void on_actionTextureFeatures_triggered();
+
+  void on_actionPin_layer_triggered();
+
+  void on_actionUnpin_layer_triggered();
+
+  void on_actionContrast_Inspector_triggered();
 
 private:
   Ui::LayerInspectorRowDelegate *ui;

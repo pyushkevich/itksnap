@@ -342,9 +342,6 @@ void ImageIOWizardModel::LoadImage(std::string filename)
     // Update the application
     m_LoadDelegate->UpdateApplicationWithImage(m_GuidedIO);
 
-    // TODO: THIS IS THE WRONG PLACE FOR THIS
-    m_Parent->SetSelectedLayerId(m_Parent->GetDriver()->GetCurrentImageData()->GetLastOverlay()->GetUniqueId());
-
     // Save the IO hints to the registry
     Registry regAssoc;
     SystemInterface *si = m_Parent->GetDriver()->GetSystemInterface();

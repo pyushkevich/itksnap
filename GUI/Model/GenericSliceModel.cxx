@@ -87,6 +87,9 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
   // Listen to cursor update events and rebroadcast them for the child model
   m_SliceIndexModel->Rebroadcast(model, CursorUpdateEvent(), ValueChangedEvent());
 
+  // Also listen for changes in the selected layer
+  Rebroadcast(m_Driver->GetGlobalState()->GetSelectedLayerIdModel(),
+              ValueChangedEvent(), ModelUpdateEvent());
 }
 
 void GenericSliceModel
@@ -121,6 +124,8 @@ void GenericSliceModel::OnUpdate()
           || m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent())
           || m_EventBucket->HasEvent(ValueChangedEvent()))
     {
+    // Recompute the viewport layout and dimensions
+    this->UpdateViewportLayout();
 
     // We only react to the viewport resize if the zoom is not managed by the
     // coordinator. When zoom is managed, the coordinator will take care of
@@ -157,9 +162,7 @@ void GenericSliceModel::ComputeOptimalZoom()
   m_OptimalViewPosition = worldSize * 0.5f;
 
   // Reduce the width and height of the slice by the margin
-  Vector2ui size = this->GetSize();
-  Vector2i szCanvas =
-      Vector2i(size[0], size[1]) - Vector2i(2 * m_Margin);
+  Vector2ui szCanvas = this->GetCanvasSize();
 
   // Compute the ratios of window size to slice size
   Vector2f ratios(
@@ -219,6 +222,9 @@ GenericSliceModel
 
   // We have been initialized
   m_SliceInitialized = true;
+
+  // Update the viewport dimensions
+  UpdateViewportLayout();
 
   // Compute the optimal zoom for this slice
   ComputeOptimalZoom();
@@ -286,10 +292,10 @@ GenericSliceModel
     xSlice(0) * m_SliceSpacing(0),xSlice(1) * m_SliceSpacing(1));
 
   // Compute the window coordinates
-  Vector2ui size = this->GetSize();
+  Vector2ui size = this->GetCanvasSize();
   Vector2f uvWindow =
     m_ViewZoom * (uvScaled - m_ViewPosition) +
-      Vector2f(0.5f * size[0],0.5f * size[1]);
+      Vector2f(0.5f * size[0], 0.5f * size[1]);
 
   // That's it, the projection matrix is set up in the scaled-slice coordinates
   return uvWindow;
@@ -302,7 +308,7 @@ GenericSliceModel
   assert(IsSliceInitialized() && m_ViewZoom > 0);
 
   // Compute the scaled slice coordinates
-  Vector2ui size = this->GetSize();
+  Vector2ui size = this->GetCanvasSize();
   Vector2f winCenter(0.5f * size[0],0.5f * size[1]);
   Vector2f uvScaled =
     m_ViewPosition + (uvWindow - winCenter) / m_ViewZoom;
@@ -481,7 +487,7 @@ void GenericSliceModel::ComputeThumbnailProperties()
   float xThumbMax = gds->GetZoomThumbnailMaximumSize();
 
   // Recompute the fraction based on maximum size restriction
-  Vector2ui size = this->GetSize();
+  Vector2ui size = this->GetCanvasSize();
   float xNewFraction = xFraction;
   if( size[0] * xNewFraction > xThumbMax )
     xNewFraction = xThumbMax * 1.0f / size[0];
@@ -490,10 +496,10 @@ void GenericSliceModel::ComputeThumbnailProperties()
 
   // Set the position and size of the thumbnail, in pixels
   m_ThumbnailZoom = xNewFraction * m_OptimalZoom;
-  m_ThumbnailPosition.fill(5);
-  m_ThumbnailSize[0] =
+  m_ZoomThumbnailPosition.fill(5);
+  m_ZoomThumbnailSize[0] =
       (int)(m_SliceSize[0] * m_SliceSpacing[0] * m_ThumbnailZoom);
-  m_ThumbnailSize[1] =
+  m_ZoomThumbnailSize[1] =
       (int)(m_SliceSize[1] * m_SliceSpacing[1] * m_ThumbnailZoom);
 }
 
@@ -576,6 +582,56 @@ Vector2ui GenericSliceModel::GetSize()
   return Vector2ui(viewport[0] / cols, viewport[1] / rows);
 }
 
+Vector2ui GenericSliceModel::GetCanvasSize()
+{
+  assert(m_ViewportLayout.vpList.size() > 0);
+  assert(!m_ViewportLayout.vpList.front().isThumbnail);
+  return m_ViewportLayout.vpList.front().size;
+}
+
+void GenericSliceModel::GetNonThumbnailViewport(Vector2ui &pos, Vector2ui &size)
+{
+  // Initialize to the entire view
+  pos.fill(0);
+  size = m_SizeReporter->GetViewportSize();
+
+  DisplayLayoutModel *dlm = this->GetParentUI()->GetDisplayLayoutModel();
+  LayerLayout tiling = dlm->GetSliceViewLayerLayoutModel()->GetValue();
+
+  // Are thumbnails being used?
+  // TODO: this should be done through a state variable
+  if(tiling == LAYOUT_STACKED && dlm->GetNumberOfGroundLevelLayersModel()->GetValue() > 1)
+    {
+    for(int i = 0; i < m_ViewportLayout.vpList.size(); i++)
+      {
+      const SliceViewportLayout::SubViewport &sv = m_ViewportLayout.vpList[i];
+      if(!sv.isThumbnail)
+        {
+        pos = sv.pos;
+        size = sv.size;
+        break;
+        }
+      }
+    }
+}
+
+ImageWrapperBase *GenericSliceModel::GetThumbnailedLayerAtPosition(int x, int y)
+{
+  x *= m_SizeReporter->GetViewportPixelRatio();
+  y *= m_SizeReporter->GetViewportPixelRatio();
+  for(int i = 0; i < m_ViewportLayout.vpList.size(); i++)
+    {
+    const SliceViewportLayout::SubViewport &sv = m_ViewportLayout.vpList[i];
+    if(sv.isThumbnail
+       && x >= sv.pos[0] && y >= sv.pos[1]
+       && x < sv.pos[0] + sv.size[0] && y < sv.pos[1] + sv.size[1])
+      {
+      return m_Driver->GetCurrentImageData()->FindLayer(sv.layer_id, false);
+      }
+    }
+  return NULL;
+}
+
 
 bool GenericSliceModel
 ::GetSliceIndexValueAndDomain(int &value, NumericValueRange<int> *domain)
@@ -596,3 +652,154 @@ void GenericSliceModel::SetSlideIndexValue(int value)
   this->UpdateSliceIndex(value);
 }
 
+void GenericSliceModel::UpdateViewportLayout()
+{
+  // Get the information about how the viewport is split into sub-viewports
+  DisplayLayoutModel *dlm = this->GetParentUI()->GetDisplayLayoutModel();
+  Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
+  int nrows = (int) layout[0];
+  int ncols = (int) layout[1];
+
+  // Number of ground-level layers - together with the tiling, this determines
+  // the behavior of the display
+  int n_base_layers = dlm->GetNumberOfGroundLevelLayersModel()->GetValue();
+
+  // Get the dimensions of the main viewport
+  unsigned int w = m_SizeReporter->GetViewportSize()[0];
+  unsigned int h = m_SizeReporter->GetViewportSize()[1];
+
+  // Get the current image data
+  GenericImageData *id = this->GetDriver()->GetCurrentImageData();
+
+  // Clear the viewport array
+  m_ViewportLayout.vpList.clear();
+
+  // Is there anything to do?
+  if(!this->GetDriver()->IsMainImageLoaded())
+    return;
+
+  // Is tiling being used
+  if(nrows == 1 && ncols == 1)
+    {
+    // There is no tiling. One base layer is emphasized
+    if(n_base_layers == 1)
+      {
+      // There is only one base layer (main). It's viewport occupies the whole screen
+      SliceViewportLayout::SubViewport vp;
+      vp.pos = Vector2ui(0, 0);
+      vp.size = Vector2ui(w, h);
+      vp.isThumbnail = false;
+      vp.layer_id = id->GetMain()->GetUniqueId();
+      m_ViewportLayout.vpList.push_back(vp);
+      }
+    else
+      {
+      // We are in thumbnail mode. Draw the selected layer big and all the ground-level
+      // layers small, as thumbnails.
+      unsigned int margin = 4;
+
+      // The preferred width of the thumbnails (without margin)
+      int k = n_base_layers;
+
+      // This is a complicated calculation to make sure it all fits
+      double thumb_wd =
+          std::min(0.16 * w - 2 * margin,
+                   (h - (1.0 + k) * margin) * (w - 2.0 * margin) / ((h - margin) * (1.0 + k)));
+
+      double thumb_hd = h * thumb_wd / (w - thumb_wd - 2.0 * margin);
+
+      // Round down the thumb sizes
+      unsigned int thumb_w = (unsigned int) thumb_wd;
+      unsigned int thumb_h = (unsigned int) thumb_hd;
+
+      // Set the bottom of the first thumbnail
+      unsigned int thumb_y = h - thumb_h - margin + 1;
+
+      // Go through eligible layers
+      for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+        {
+        if(it.GetRole() == MAIN_ROLE || !it.GetLayer()->IsSticky())
+          {
+          // Is this the visible layer?
+          if(this->GetDriver()->GetGlobalState()->GetSelectedLayerId()
+             == it.GetLayer()->GetUniqueId())
+            {
+            SliceViewportLayout::SubViewport vp;
+            vp.layer_id = it.GetLayer()->GetUniqueId();
+            vp.pos = Vector2ui(0, 0);
+            vp.size = Vector2ui(w - thumb_w - 2 * margin, h);
+            vp.isThumbnail = false;
+
+            // Notice we are sticking this viewport in the beginning! It's primary.
+            m_ViewportLayout.vpList.insert(m_ViewportLayout.vpList.begin(), vp);
+            }
+
+          // Either way, add the layer to the thumbnail region
+          SliceViewportLayout::SubViewport vp;
+          vp.layer_id = it.GetLayer()->GetUniqueId();
+          vp.pos = Vector2ui(w - thumb_w - margin, thumb_y);
+          vp.size = Vector2ui(thumb_w, thumb_h);
+          vp.isThumbnail = true;
+          m_ViewportLayout.vpList.push_back(vp);
+
+          thumb_y -= thumb_h + margin;
+          }
+        }
+      }
+    }
+  else
+    {
+    float cell_w = w / ncols;
+    float cell_h = h / nrows;
+    for(int irow = 0; irow < nrows; irow++)
+      for(int icol = 0; icol < ncols; icol++)
+        if(m_ViewportLayout.vpList.size() < n_base_layers)
+          {
+          SliceViewportLayout::SubViewport vp;
+          vp.pos = Vector2ui(icol * cell_w, (nrows - 1 - irow) * cell_h);
+          vp.size = Vector2ui(cell_w, cell_h);
+          vp.isThumbnail = false;
+          vp.layer_id = this->GetLayerForNthTile(irow, icol)->GetUniqueId();
+          m_ViewportLayout.vpList.push_back(vp);
+          }
+    }
+}
+
+ImageWrapperBase *GenericSliceModel::GetLayerForNthTile(int row, int col)
+{
+  // Number of divisions
+  DisplayLayoutModel *dlm = this->GetParentUI()->GetDisplayLayoutModel();
+  Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
+  int nrows = (int) layout[0], ncols = (int) layout[1];
+
+  // This code is used if the layout is actually tiled
+  if(ncols > 1 && nrows > 1)
+    {
+    // How many layers to go until we get to the one we want to paint?
+    int togo = row * ncols + col;
+
+    // Skip all layers until we get to the sticky layer we want to paint
+    for(LayerIterator it(this->GetImageData()); !it.IsAtEnd(); ++it)
+      {
+      if(it.GetRole() == MAIN_ROLE || !it.GetLayer()->IsSticky())
+        {
+        if(togo == 0)
+          return it.GetLayer()->IsDrawable() ? it.GetLayer() : NULL;
+        togo--;
+        }
+      }
+    }
+  else
+    {
+    for(LayerIterator it(this->GetImageData()); !it.IsAtEnd(); ++it)
+      {
+      if(it.GetLayer() && it.GetLayer()->GetUniqueId() ==
+         this->GetDriver()->GetGlobalState()->GetSelectedLayerId())
+        {
+        return it.GetLayer();
+        }
+      }
+    }
+
+  return NULL;
+}

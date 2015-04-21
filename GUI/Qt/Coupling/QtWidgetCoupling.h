@@ -291,20 +291,27 @@ class WidgetBooleanNamedPropertyTraits
     : public WidgetValueTraitsBase<TAtomic, QObject *>
 {
 public:
-  WidgetBooleanNamedPropertyTraits(const char *propertyName)
-    : m_Property(propertyName) {}
+  WidgetBooleanNamedPropertyTraits(const char *propertyName, bool reverse)
+    : m_Property(propertyName), m_Reverse(reverse) {}
 
   virtual TAtomic GetValue(QObject *w)
   {
-    return qvariant_cast<TAtomic>(w->property(m_Property.c_str()));
+    if(m_Reverse)
+      return !qvariant_cast<TAtomic>(w->property(m_Property.c_str()));
+    else
+      return qvariant_cast<TAtomic>(w->property(m_Property.c_str()));
   }
   virtual void SetValue(QObject *w, const TAtomic &value)
   {
-    w->setProperty(m_Property.c_str(), value);
+    if(m_Reverse)
+      w->setProperty(m_Property.c_str(), !value);
+    else
+      w->setProperty(m_Property.c_str(), value);
   }
 
 protected:
   std::string m_Property;
+  bool m_Reverse;
 };
 
 
@@ -693,13 +700,13 @@ void makeMultiRowCoupling(TWidget *w,
 template <class TModel>
 void makeBooleanNamedPropertyCoupling(
     QObject *w, const char *propertyName,
-    TModel *model,
+    TModel *model, bool reverse = false,
     QtCouplingOptions opts = QtCouplingOptions())
 {
   // Create the traits for the property
   typedef typename TModel::ValueType ValueType;
   typedef WidgetBooleanNamedPropertyTraits<ValueType> TraitsType;
-  TraitsType traits(propertyName);
+  TraitsType traits(propertyName, reverse);
 
   // Call the main coupling method
   makeCoupling<TModel, QObject, TraitsType>(w, model, traits, opts);
@@ -710,10 +717,22 @@ void makeBooleanNamedPropertyCoupling(
  */
 template <class TModel>
 void makeWidgetVisibilityCoupling(
-    QWidget *w, TModel *model,
+    QWidget *w, TModel *model, bool reverse = false,
     QtCouplingOptions opts = QtCouplingOptions())
 {
-  makeBooleanNamedPropertyCoupling(w, "visible", model, opts);
+  makeBooleanNamedPropertyCoupling(w, "visible", model, reverse, opts);
+}
+
+
+/**
+ * Couple the visibility of a widget to a boolean or integer-valued model
+ */
+template <class TModel>
+void makeActionVisibilityCoupling(
+    QAction *w, TModel *model, bool reverse = false,
+    QtCouplingOptions opts = QtCouplingOptions())
+{
+  makeBooleanNamedPropertyCoupling(w, "visible", model, reverse, opts);
 }
 
 #endif // QTWIDGETCOUPLING_H

@@ -39,7 +39,7 @@ CrosshairsInteractionMode::CrosshairsInteractionMode(GenericSliceView *parent) :
   // Create the renderer
   m_Renderer = CrosshairsRenderer::New();
   m_Renderer->SetParentRenderer(
-        static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
+          static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
 
 
   m_WheelEventTarget = NULL;
@@ -80,21 +80,27 @@ void CrosshairsInteractionMode
 
 void CrosshairsInteractionMode::mousePressEvent(QMouseEvent *ev)
 {
-  // Use model to envoke event
-  if(ev->button() == m_BtnCursor)
+  // We have to be careful to check that the event landed in the
+  // region corresponding to an image view and not to a thumbnail
+  if(!m_ThumbnailLayer)
     {
-    m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
+    // Use model to envoke event
+    if(ev->button() == m_BtnCursor)
+      {
+      m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
+      }
+    else if(ev->button() == m_BtnZoom)
+      {
+      m_Model->BeginZoom();
+      }
+    else if(ev->button() == m_BtnPan)
+      {
+      m_Model->BeginPan();
+      }
+
+    // Eat this event
+    ev->accept();
     }
-  else if(ev->button() == m_BtnZoom)
-    {
-    m_Model->BeginZoom();
-    }
-  else if(ev->button() == m_BtnPan)
-    {
-    m_Model->BeginPan();
-    }
-  // Eat this event
-  ev->accept();
 }
 
 void CrosshairsInteractionMode::mouseMoveEvent(QMouseEvent *ev)
@@ -129,21 +135,28 @@ void CrosshairsInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 
 void CrosshairsInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
 {
+  if(isDragging())
+    {
+      if(ev->button() == m_BtnCursor)
+      {
+      m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
+      }
+    else if(ev->button() == m_BtnZoom)
+      {
+      m_Model->EndZoom();
+      }
+    else if(ev->button() == m_BtnPan)
+      {
+      m_Model->EndPan();
+      }
 
-  if(ev->button() == m_BtnCursor)
-    {
-    m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
+    // Eat this event
+    ev->accept();
     }
-  else if(ev->button() == m_BtnZoom)
+  else
     {
-    m_Model->EndZoom();
+    ev->ignore();
     }
-  else if(ev->button() == m_BtnPan)
-    {
-    m_Model->EndPan();
-    }
-  // Eat this event
-  ev->accept();
 }
 
 bool CrosshairsInteractionMode::gestureEvent(QGestureEvent *ev)

@@ -469,6 +469,39 @@ color: rgb(120, 120, 120)</string>
     <string>Create texture features derived from this image</string>
    </property>
   </action>
+  <action name="actionPin_layer">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/icons8_pin_16.png</normaloff>
+     <normalon>:/root/icons8_pin_16.png</normalon>:/root/icons8_pin_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Display as ovelay</string>
+   </property>
+   <property name="toolTip">
+    <string>Display the layer as a semi-transparent overlay on top of other image layers</string>
+   </property>
+  </action>
+  <action name="actionUnpin_layer">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/icons8_unpin_16.png</normaloff>:/root/icons8_unpin_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Display as base layer</string>
+   </property>
+   <property name="toolTip">
+    <string>Display the layer side by side with other layers</string>
+   </property>
+  </action>
+  <action name="actionContrast_Inspector">
+   <property name="text">
+    <string>Contrast Inspector ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Open the contrast inspector to adjust image contrast for this layer</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../Resources/SNAPResources.qrc"/>

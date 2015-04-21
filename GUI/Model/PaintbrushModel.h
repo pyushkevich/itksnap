@@ -22,7 +22,7 @@ public:
 
   FIRES(PaintbrushMovedEvent)
 
-  bool ProcessPushEvent(const Vector3f &xSlice, bool reverse_mode);
+  bool ProcessPushEvent(const Vector3f &xSlice, const Vector2ui &gridCell, bool reverse_mode);
   bool ProcessDragEvent(const Vector3f &xSlice, const Vector3f &xSliceLast,
                         double pixelsMoved, bool release);
 
@@ -48,6 +48,12 @@ protected:
   // Mouse position in slice coordinates from which we need to draw the
   // next segment
   Vector3f m_LastApplyX;
+
+  // Layer over which the drawing operation started
+  unsigned long m_ContextLayerId;
+
+  // Whether the push operation was in a paintable location
+  bool m_IsEngaged;
 
   PaintbrushModel();
   virtual ~PaintbrushModel();

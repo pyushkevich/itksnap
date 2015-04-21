@@ -182,9 +182,6 @@ public:
   /** Get the model encapsulating the main images and all overlays */
   irisGetMacro(LoadedLayersSelectionModel, LayerSelectionModel *)
 
-  /** Get the unique ID of the layer selected for display */
-  irisSimplePropertyAccessMacro(SelectedLayerId, unsigned long)
-
   /** Get the model for 3D window interaction */
   irisGetMacro(Model3D, Generic3DModel *)
 
@@ -257,8 +254,8 @@ public:
   void AdjustOverlayOpacity(int delta);
 
   /** Get a list of k recent "things" that are tracked in history */
-  std::vector<std::string> GetRecentHistoryItems(
-      const char *historyCategory, unsigned int k = 5);
+  std::vector<std::string> GetRecentHistoryItems(const char *historyCategory,
+                                                 unsigned int k = 5, bool global_history = true);
 
   /** Check if a particular history is empty */
   bool IsHistoryEmpty(const char *historyCategory);
@@ -353,11 +350,6 @@ protected:
 
   // Layer selection model encapsulating the main image and overlays
   SmartPtr<LayerSelectionModel> m_LoadedLayersSelectionModel;
-
-  // The unique id of the layer that is currently being interacted with by
-  // the user. This layer should be the one that is visible in the ITK-SNAP
-  // windows.
-  SmartPtr<ConcreteSimpleULongProperty> m_SelectedLayerIdModel;
 
   // Label editor model
   SmartPtr<LabelEditorModel> m_LabelEditorModel;

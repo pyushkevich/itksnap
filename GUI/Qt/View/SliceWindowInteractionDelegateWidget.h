@@ -4,6 +4,7 @@
 #include <QtInteractionDelegateWidget.h>
 
 class GenericSliceView;
+class ImageWrapperBase;
 
 class SliceWindowInteractionDelegateWidget : public QtInteractionDelegateWidget
 {
@@ -26,6 +27,9 @@ protected:
   // The cell in which the last press was generated
   Vector2ui m_LastPressLayoutCell;
 
+  // Whether the current position of the mouse corresponds to a thumbnail
+  ImageWrapperBase *m_ThumbnailLayer;
+
   // Parent model
   GenericSliceModel *m_ParentModel;
 
@@ -33,6 +37,7 @@ protected:
   GenericSliceView *m_ParentView;
 
   void preprocessEvent(QEvent *ev);
+  void postprocessEvent(QEvent *ev);
 
 };
 

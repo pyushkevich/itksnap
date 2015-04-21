@@ -152,6 +152,8 @@ PaintbrushModel::PaintbrushModel()
 {
   m_ReverseMode = false;
   m_Watershed = new BrushWatershedPipeline();
+  m_ContextLayerId = (unsigned long) -1;
+  m_IsEngaged = false;
 }
 
 PaintbrushModel::~PaintbrushModel()
@@ -241,26 +243,41 @@ bool PaintbrushModel::TestInside(const Vector3d &x, const PaintbrushSettings &ps
 
 bool
 PaintbrushModel
-::ProcessPushEvent(const Vector3f &xSlice, bool reverse_mode)
+::ProcessPushEvent(const Vector3f &xSlice, const Vector2ui &gridCell, bool reverse_mode)
 {
   // Get the paintbrush properties (TODO: should we own them?)
   PaintbrushSettings pbs =
       m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
 
-  // Compute the mouse position
-  ComputeMousePosition(xSlice);
+  // Store the unique ID of the layer in context
+  ImageWrapperBase *layer = m_Parent->GetLayerForNthTile(gridCell[0], gridCell[1]);
+  if(layer)
+    {
+    // Set the layer
+    m_ContextLayerId = layer->GetUniqueId();
+    m_IsEngaged = true;
 
-  // Check if the right button was pressed
-  ApplyBrush(reverse_mode, false);
+    // Compute the mouse position
+    ComputeMousePosition(xSlice);
 
-  // Store the reverse mode
-  m_ReverseMode = reverse_mode;
+    // Check if the right button was pressed
+    ApplyBrush(reverse_mode, false);
 
-  // Store this as the last apply position
-  m_LastApplyX = xSlice;
+    // Store the reverse mode
+    m_ReverseMode = reverse_mode;
 
-  // Eat the event unless cursor chasing is enabled
-  return pbs.chase ? 0 : 1;
+    // Store this as the last apply position
+    m_LastApplyX = xSlice;
+
+    // Eat the event unless cursor chasing is enabled
+    return pbs.chase ? 0 : 1;
+    }
+  else
+    {
+    m_ContextLayerId = (unsigned long) -1;
+    m_IsEngaged = false;
+    return 0;
+    }
 }
 
 bool
@@ -271,50 +288,59 @@ PaintbrushModel
   IRISApplication *driver = m_Parent->GetDriver();
   PaintbrushSettings pbs = driver->GetGlobalState()->GetPaintbrushSettings();
 
-  // The behavior is different for 'fast' regular brushes and adaptive brush. For the
-  // adaptive brush, dragging is disabled.
-  if(pbs.mode != PAINTBRUSH_WATERSHED || m_ReverseMode)
+  if(m_IsEngaged)
     {
-    // See how much we have moved since the last event. If we moved more than
-    // the value of the radius, we interpolate the path and place brush strokes
-    // along the path
-    if(pixelsMoved > pbs.radius)
+    // The behavior is different for 'fast' regular brushes and adaptive brush. For the
+    // adaptive brush, dragging is disabled.
+    if(pbs.mode != PAINTBRUSH_WATERSHED || m_ReverseMode)
       {
-      // Break up the path into steps
-      size_t nSteps = (int) ceil(pixelsMoved / pbs.radius);
-      for(size_t i = 0; i < nSteps; i++)
+      // See how much we have moved since the last event. If we moved more than
+      // the value of the radius, we interpolate the path and place brush strokes
+      // along the path
+      if(pixelsMoved > pbs.radius)
         {
-        float t = (1.0 + i) / nSteps;
-        Vector3f X = t * m_LastApplyX + (1.0f - t) * xSlice;
-        ComputeMousePosition(X);
+        // Break up the path into steps
+        size_t nSteps = (int) ceil(pixelsMoved / pbs.radius);
+        for(size_t i = 0; i < nSteps; i++)
+          {
+          float t = (1.0 + i) / nSteps;
+          Vector3f X = t * m_LastApplyX + (1.0f - t) * xSlice;
+          ComputeMousePosition(X);
+          ApplyBrush(m_ReverseMode, true);
+          }
+        }
+      else
+        {
+        // Find the pixel under the mouse
+        ComputeMousePosition(xSlice);
+
+        // Scan convert the points into the slice
         ApplyBrush(m_ReverseMode, true);
         }
+
+      // Store this as the last apply position
+      m_LastApplyX = xSlice;
       }
-    else
+
+    // If the mouse is being released, we need to commit the drawing
+    if(release)
       {
-      // Find the pixel under the mouse
-      ComputeMousePosition(xSlice);
+      driver->StoreUndoPoint("Drawing with paintbrush");
 
-      // Scan convert the points into the slice
-      ApplyBrush(m_ReverseMode, true);
+      // TODO: this is ugly. The code for applying a brush should really be
+      // placed in the IRISApplication.
+      driver->InvokeEvent(SegmentationChangeEvent());
+
+      m_IsEngaged = false;
+      m_ContextLayerId = (unsigned long) -1;
       }
 
-    // Store this as the last apply position
-    m_LastApplyX = xSlice;
+    // Eat the event unless cursor chasing is enabled
+    return pbs.chase ? 0 : 1;
     }
 
-  // If the mouse is being released, we need to commit the drawing
-  if(release)
-    {
-    driver->StoreUndoPoint("Drawing with paintbrush");
-
-    // TODO: this is ugly. The code for applying a brush should really be
-    // placed in the IRISApplication.
-    driver->InvokeEvent(SegmentationChangeEvent());
-    }
-
-  // Eat the event unless cursor chasing is enabled
-  return pbs.chase ? 0 : 1;
+  else
+    return 0;
 }
 
 bool PaintbrushModel::ProcessMouseMoveEvent(const Vector3f &xSlice)
@@ -399,9 +425,14 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
     {
     GenericImageData *gid = driver->GetCurrentImageData();
 
+    // Get the currently engaged layer
+    ImageWrapperBase *context_layer = gid->FindLayer(m_ContextLayerId, false);
+    if(!context_layer)
+      context_layer = gid->GetMain();
+
     // Precompute the watersheds
     m_Watershed->PrecomputeWatersheds(
-          gid->GetMain()->GetDefaultScalarRepresentation()->GetCommonFormatImage(),
+          context_layer->GetDefaultScalarRepresentation()->GetCommonFormatImage(),
           driver->GetCurrentImageData()->GetSegmentation()->GetImage(),
           xTestRegion, to_itkIndex(m_MousePosition), pbs.watershed.smooth_iterations);
 

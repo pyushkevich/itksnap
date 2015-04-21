@@ -26,18 +26,34 @@ void SliceWindowInteractionDelegateWidget::preprocessEvent(QEvent *ev)
   if(ev->type() == QEvent::MouseButtonPress ||
      ev->type() == QEvent::MouseButtonRelease ||
      ev->type() == QEvent::MouseMove ||
-     ev->type() == QEvent::MouseButtonDblClick)
+     ev->type() == QEvent::MouseButtonDblClick ||
+     ev->type() == QEvent::ContextMenu)
     {
     // Compute the spatial location of the event
     m_XSlice = to_double(m_ParentModel->MapWindowToSlice(
                            to_float(Vector2d(m_XSpace.extract(2)))));
 
-    // If a mouse press, back up this info for drag tracking
-    if(ev->type() == QEvent::MouseButtonPress)
-      {
-      m_LastPressXSlice = m_XSlice;
-      }
+    // Check for thumbnail
+    QPoint pos;
+    if(dynamic_cast<QMouseEvent *>(ev))
+      pos = dynamic_cast<QMouseEvent *>(ev)->pos();
+    else if(dynamic_cast<QContextMenuEvent *>(ev))
+      pos = dynamic_cast<QContextMenuEvent *>(ev)->pos();
+
+    Vector2i x(pos.x(),
+               m_ParentModel->GetSizeReporter()->GetLogicalViewportSize()[1] - pos.y());
+    m_ThumbnailLayer = m_ParentModel->GetThumbnailedLayerAtPosition(x[0], x[1]);
     }
+}
+
+void SliceWindowInteractionDelegateWidget::postprocessEvent(QEvent *ev)
+{
+  QtInteractionDelegateWidget::postprocessEvent(ev);
+  if(ev->type() == QEvent::MouseButtonPress && ev->isAccepted())
+    {
+    m_LastPressXSlice = m_XSlice;
+    }
+  m_ThumbnailLayer = NULL;
 }
 
 #include <QDebug>
@@ -91,7 +107,8 @@ SliceWindowInteractionDelegateWidget
 
   // Convert the event coordinates into the model view coordinates
   double modelMatrix[16], projMatrix[16];
-  GLint viewport[] = { icol * sz[0], (nrows - 1 - irow) * sz[1], sz[0], sz[1] };
+  // GLint viewport[] = { icol * sz[0], (nrows - 1 - irow) * sz[1], sz[0], sz[1] };
+  GLint viewport[] = { 0, 0, ncols * sz[0], nrows * sz[1] };
   glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
   glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 
@@ -101,5 +118,8 @@ SliceWindowInteractionDelegateWidget
                modelMatrix,projMatrix,viewport,
                &xProjection[0], &xProjection[1], &xProjection[2]);
 
+  // Get the within-cell coordinates
+  xProjection[0] = fmod(xProjection[0], (double) m_ParentModel->GetSize()[0]);
+  xProjection[1] = fmod(xProjection[1], (double) m_ParentModel->GetSize()[1]);
   return xProjection;
 }

@@ -49,6 +49,8 @@ public slots:
 
   void layerSelected(bool);
 
+  void onContrastInspectorRequested();
+
   void advanceTab();
 
 signals:

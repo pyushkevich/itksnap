@@ -26,12 +26,22 @@
 
 #include "OrthogonalSliceCursorNavigationModel.h"
 #include "ThumbnailInteractionMode.h"
+#include "GenericSliceModel.h"
+#include "IRISApplication.h"
+#include "GlobalState.h"
 #include <QMouseEvent>
+#include <MainImageWindow.h>
+#include <LayerInspectorDialog.h>
+#include <GenericImageData.h>
+#include <QMenu>
+#include <SNAPQtCommon.h>
+
 
 ThumbnailInteractionMode::ThumbnailInteractionMode(GenericSliceView *parent) :
     SliceWindowInteractionDelegateWidget(parent)
 {
-
+  connect(this, SIGNAL(customContextMenuRequested(QPoint)),
+          this, SLOT(onContextMenuRequested(QPoint)));
 }
 
 void ThumbnailInteractionMode
@@ -46,13 +56,22 @@ void ThumbnailInteractionMode
 void ThumbnailInteractionMode::mousePressEvent(QMouseEvent *ev)
 {
   // Press position in screen pixels
-  Vector2i x(ev->pos().x(), this->height() - ev->pos().y());
+  Vector2i x(ev->pos().x(),
+             m_ParentModel->GetSizeReporter()->GetLogicalViewportSize()[1] - ev->pos().y());
 
   // Only react to left mouse button presses
-  if(ev->button() == Qt::LeftButton && m_Model->CheckThumbnail(x))
+  if(ev->button() == Qt::LeftButton && m_Model->CheckZoomThumbnail(x))
     {
     m_PanFlag = true;
     m_Model->BeginPan();
+    ev->accept();
+    }
+
+  // Check for layer thumbnail hit.
+  else if(this->m_ThumbnailLayer && ev->button() == Qt::LeftButton)
+    {
+    m_ParentModel->GetDriver()->GetGlobalState()->SetSelectedLayerId(
+          m_ThumbnailLayer->GetUniqueId());
     ev->accept();
     }
 }
@@ -60,7 +79,8 @@ void ThumbnailInteractionMode::mousePressEvent(QMouseEvent *ev)
 void ThumbnailInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
   // Press position in screen pixels
-  Vector2i x(ev->pos().x(), this->height() - ev->pos().y());
+  Vector2i x(ev->pos().x(),
+             m_ParentModel->GetSizeReporter()->GetLogicalViewportSize()[1] - ev->pos().y());
 
   ev->ignore();
   if(m_PanFlag)
@@ -68,13 +88,6 @@ void ThumbnailInteractionMode::mouseMoveEvent(QMouseEvent *ev)
     Vector2i dx(ev->pos().x() - m_LastPressPos.x(),
                 - (ev->pos().y() - m_LastPressPos.y()));
     m_Model->ProcessThumbnailPanGesture(-dx);
-    ev->accept();
-    }
-  else if(!isDragging() && m_Model->CheckThumbnail(x))
-    {
-    // When the view is responding to hover events, we want to consume
-    // mouse hovering that occurs over the thumbnail. Otherwise the user
-    // would not see the effect of the hovering
     ev->accept();
     }
 }
@@ -85,6 +98,33 @@ void ThumbnailInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
   if(m_PanFlag)
     m_Model->EndPan();
   m_PanFlag = false;
+}
+
+void ThumbnailInteractionMode::contextMenuEvent(QContextMenuEvent *ev)
+{
+  if(this->m_ThumbnailLayer)
+    {
+    emit customContextMenuRequested(ev->pos());
+    ev->accept();
+    }
+}
+
+void ThumbnailInteractionMode::onContextMenuRequested(const QPoint &pt)
+{
+  if(this->m_ThumbnailLayer)
+    {
+    // Instead of creating a separate context menu here, we use a context menu
+    // from the corresponding row in the LayerInspector.
+    MainImageWindow *winmain = findParentWidget<MainImageWindow>(this);
+    LayerInspectorDialog *inspector = winmain->GetLayerInspector();
+
+    // Get the menu
+    QMenu *menu = inspector->GetLayerContextMenu(this->m_ThumbnailLayer);
+
+    // Show the menu
+    if(menu)
+      menu->popup(QCursor::pos());
+    }
 }
 
 
