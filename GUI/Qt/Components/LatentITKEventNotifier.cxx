@@ -98,11 +98,13 @@ LatentITKEventNotifierHelper
   if(!m_Bucket.IsEmpty())
     {
 #ifdef SNAP_DEBUG_EVENTS
+    std::string class_name = parent()->metaObject()->className();
+    std::string object_name = qPrintable(parent()->objectName());
     if(flag_snap_debug_events)
       {
       std::cout << "SEND " << m_Bucket
-                << " to " << parent()->metaObject()->className()
-                << " named '" << qPrintable(parent()->objectName())
+                << " to " << class_name
+                << " named '" << object_name
                 << "'" << std::endl << std::flush;
       }
 #endif

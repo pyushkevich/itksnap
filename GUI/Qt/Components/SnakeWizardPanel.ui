@@ -407,7 +407,7 @@ p, li { white-space: pre-wrap; }
              <string>Lower threshold only</string>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>3</number>
             </property>
             <widget class="QWidget" name="pgThreshold">
              <layout class="QGridLayout" name="gridLayout_3">
@@ -1143,7 +1143,7 @@ competition</string>
               <item row="0" column="0" colspan="2">
                <widget class="QLabel" name="label_21">
                 <property name="styleSheet">
-                 <string notr="true">text-size:11px;</string>
+                 <string notr="true"/>
                 </property>
                 <property name="text">
                  <string>Use this mode to perform segmentation using a speed image  computed outside of ITK-SNAP.</string>

@@ -354,13 +354,6 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
                                  layoutModel->GetViewPanelVisibilityModel(i));
     }
 
-  // Populate the recent file menu
-  this->UpdateRecentMenu();
-  this->UpdateRecentProjectsMenu();
-
-  // Update which page is shown
-  this->UpdateMainLayout();
-
   // Set up activations - File menu
   activateOnFlag(ui->actionOpenMain, m_Model, UIF_IRIS_MODE);
   activateOnFlag(ui->menuRecent_Images, m_Model, UIF_IRIS_MODE);
@@ -465,10 +458,19 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
 {
   if(b.HasEvent(MainImageDimensionsChangeEvent()))
     {
+    // Where is this coming from
+    QString sender = this->sender()->objectName();
+    QString sender_class(this->sender()->metaObject()->className());
+    QString parent = this->sender()->parent()->objectName();
+    QString parent_class(this->sender()->parent()->metaObject()->className());
+
+    qDebug() << QString("onModelUpdate called from %1, %2").arg(sender, sender_class);
+
     // Delaying the relayout of the main window seems to reduce the amount of
     // flashing that occurs when loading images.
     // TODO: figure out if we can avoid flashing altogether
-    QTimer::singleShot(200, this, SLOT(UpdateMainLayout()));
+    // QTimer::singleShot(200, this, SLOT(UpdateMainLayout()));
+    this->UpdateMainLayout();
     }
 
   if(b.HasEvent(LayerChangeEvent()) || b.HasEvent(WrapperMetadataChangeEvent()))
@@ -501,6 +503,9 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
 
 void MainImageWindow::UpdateMainLayout()
 {
+  // Update the image dimensions
+  this->UpdateCanvasDimensions();
+
   // Choose what page to show depending on if an image has been loaded
   if(m_Model->GetDriver()->IsMainImageLoaded())
     {
@@ -530,21 +535,24 @@ void MainImageWindow::UpdateCanvasDimensions()
   double windowAR = 1.0;
 
   // Get the current aspect ratio
-  if(m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->GetValue() == LAYOUT_TILED)
+  if(m_Model->GetDriver()->IsMainImageLoaded())
     {
-    Vector2ui tiling =
-        m_Model->GetDisplayLayoutModel()->GetSliceViewLayerTilingModel()->GetValue();
+    if(m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->GetValue() == LAYOUT_TILED)
+      {
+      Vector2ui tiling =
+          m_Model->GetDisplayLayoutModel()->GetSliceViewLayerTilingModel()->GetValue();
 
-    // Compute the tiling aspect ratio
-    double tilingAR = tiling(1) * 1.0 / tiling(0);
+      // Compute the tiling aspect ratio
+      double tilingAR = tiling(1) * 1.0 / tiling(0);
 
-    // The tiling aspect ratio should not be mapped directly to the screen aspect ratio -
-    // this creates configurations that are too wide. Instead, we will use a scaling factor
-    windowAR = (tilingAR - 1.0) * 0.6 + 1.0;
-    }
-  else if(m_Model->GetDisplayLayoutModel()->GetNumberOfGroundLevelLayers() > 1)
-    {
-    windowAR = 1.0 / 0.88;
+      // The tiling aspect ratio should not be mapped directly to the screen aspect ratio -
+      // this creates configurations that are too wide. Instead, we will use a scaling factor
+      windowAR = (tilingAR - 1.0) * 0.6 + 1.0;
+      }
+    else if(m_Model->GetDisplayLayoutModel()->GetNumberOfGroundLevelLayers() > 1)
+      {
+      windowAR = 1.0 / 0.88;
+      }
     }
 
   // Adjust the width of the screen to achieve desired aspect ratio

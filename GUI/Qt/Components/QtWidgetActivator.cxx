@@ -46,17 +46,18 @@ QtWidgetActivator
 
   // React to events after control returns to the main UI loop
   LatentITKEventNotifier::connect(
-        cond, StateMachineChangeEvent(), this, SLOT(OnStateChange()));
+        cond, StateMachineChangeEvent(), this, SLOT(OnStateChange(const EventBucket &)));
 
   // Update the state of the widget
-  this->OnStateChange();
+  EventBucket dummy;
+  this->OnStateChange(dummy);
 }
 
 QtWidgetActivator::~QtWidgetActivator()
 {
 }
 
-void QtWidgetActivator::OnStateChange()
+void QtWidgetActivator::OnStateChange(const EventBucket &)
 {
   // Update the state of the widget based on the condition
   bool active = (*m_Condition)();

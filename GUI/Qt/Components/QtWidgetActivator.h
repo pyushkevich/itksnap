@@ -33,6 +33,7 @@
 
 class BooleanCondition;
 class QAction;
+class EventBucket;
 
 class QtWidgetActivator : public QObject
 {
@@ -50,7 +51,7 @@ public:
 
 public slots:
 
-  void OnStateChange();
+  void OnStateChange(const EventBucket &);
 
 private:
   QWidget *m_TargetWidget;
