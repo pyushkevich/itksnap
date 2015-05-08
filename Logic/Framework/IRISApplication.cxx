@@ -289,8 +289,32 @@ IRISApplication
   // Remember the ROI object
   m_GlobalState->SetSegmentationROISettings(roi);
 
+  // Initialize JoinCopyFilter
+  m_JOINImageData->InitializeJoinCF();
+
   // The set of layers has changed
   InvokeEvent(LayerChangeEvent());
+}
+
+bool 
+IRISApplication
+::ExecuteCnJCopy(JsrcImageWrapper::ImageType::IndexType SeedIndex)
+{
+  assert(m_JOINImageData->IsJsrcLoaded());
+
+  GlobalState *gs = GetGlobalState();
+
+  // Get the paint properties
+  LabelType drawing_color = gs->GetDrawingColorLabel();
+  DrawOverFilter drawover = gs->GetDrawOverFilter();
+
+  m_JOINImageData->GetJoinCF()->SetSeedIndex(SeedIndex);
+  m_JOINImageData->GetJoinCF()->SetDrawingColor(drawing_color);
+  m_JOINImageData->GetJoinCF()->SetSeedActive(true);
+  m_JOINImageData->GetJoinCF()->Update();
+
+  InvokeEvent(LayerChangeEvent());
+  return m_JOINImageData->GetJoinCF()->GetUpdateFlag();
 }
 
 void 

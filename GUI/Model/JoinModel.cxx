@@ -94,75 +94,9 @@ bool
 JoinModel::processCnJ(bool reverse_mode){
     // Get the global objects
     IRISApplication *driver = m_Parent->GetDriver();
-    GlobalState *gs = driver->GetGlobalState();
-
-    // Get Join source image
-    JsrcImageWrapper *jsrc = driver->GetJOINImageData()->GetJsrc();
-
-    // Get Join destination image
-    JdstImageWrapper *jdst = driver->GetJOINImageData()->GetJdst();
-
-    // Get the segmentation image
-    //LabelImageWrapper *imgLabel = driver->GetCurrentImageData()->GetSegmentation();
-
-    // Get the paint properties
-    LabelType drawing_color = gs->GetDrawingColorLabel();
-    DrawOverFilter drawover = gs->GetDrawOverFilter();
-
-    // Define a region of interest
-    //LabelImageWrapper::ImageType::RegionType xTestRegion= jsrc->GetImage()->GetBufferedRegion();
-    JsrcImageWrapper::ImageType::RegionType xTestRegion= jsrc->GetImage()->GetLargestPossibleRegion();
 
     // Flag to see if anything was changed
-    bool flagUpdate = false;
-
-    JsrcImageWrapper::ImageType::ValueType JsrcClickPV= jsrc->GetImage()->GetPixel(to_itkIndex(m_MousePosition));
-    // JdstImageWrapper::ImageType::ValueType JdstClickPV= jdst->GetImage()->GetPixel(to_itkIndex(m_MousePosition));
-
-
-    // Iterate over the region
-    JsrcImageWrapper::Iterator  sit(jsrc->GetImage(), xTestRegion);
-    LabelImageWrapper::Iterator dit(jdst->GetImage(), xTestRegion);
-    for(; !sit.IsAtEnd(); ++sit, ++dit){
-
-	if(sit.Get() != JsrcClickPV)
-	    continue;
-
-	LabelType pxLabel = dit.Get();
-
-	// Standard paint mode
-	if(!reverse_mode)
-	    {
-	    if(drawover.CoverageMode == PAINT_OVER_ALL ||
-		(drawover.CoverageMode == PAINT_OVER_ONE && pxLabel == drawover.DrawOverLabel) ||
-		(drawover.CoverageMode == PAINT_OVER_VISIBLE && pxLabel != 0))
-		{
-		dit.Set(drawing_color);
-		if(pxLabel != drawing_color) flagUpdate = true;
-		}
-	    }
-	// Background paint mode (clear label over current label)
-	else
-	    {
-	    if(drawing_color != 0 && pxLabel == drawing_color)
-		{
-		dit.Set(0);
-		if(pxLabel != 0) flagUpdate = true;
-		}
-	    else if(drawing_color == 0 && drawover.CoverageMode == PAINT_OVER_ONE)
-		{
-		dit.Set(drawover.DrawOverLabel);
-		if(pxLabel != drawover.DrawOverLabel) flagUpdate = true;
-		}
-	    }
-	}
-
-    // Image has been updated
-    if(flagUpdate)
-	{
-	jdst->GetImage()->Modified();
-	//imgLabel->GetImage()->Modified();
-	}
+    bool flagUpdate= driver->ExecuteCnJCopy(to_itkIndex(m_MousePosition));
 
     return flagUpdate;
     }

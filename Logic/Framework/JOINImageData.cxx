@@ -301,4 +301,26 @@ void JOINImageData::UnloadAll(){
 
     InvokeEvent(LayerChangeEvent());
     }
+  
+void 
+JOINImageData
+::InitializeJoinCF(){
+    ////make sure Jsrc and Jdst exist
+    assert(IsJsrcLoaded());
+    assert(IsJdstLoaded());
+
+    ////Initialize JoinCopyFilter
+    m_JoinCF= JoinCopyFilterType::New();
+    m_JoinCF->SetJsrc(m_JsrcWrapper->GetImage());
+    m_JoinCF->SetJdst(m_JdstWrapper->GetImage());
+    m_JdstWrapper->SetImage(m_JoinCF->GetOutput());
+    m_JdstWrapper->GetImage()->Modified();
+    m_JoinCF->InPlaceOn(); //adjust Jdst directly
+    }
+
+JOINImageData::JoinCopyFilterPointer
+JOINImageData::GetJoinCF(){
+    ////todo: introduce check if m_JoinCF was initialized
+    return m_JoinCF;
+    }
 

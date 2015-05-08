@@ -39,6 +39,7 @@
 
 #include "GenericImageData.h"
 #include "itkImageAdaptor.h"
+#include "itkJoinCopyFilter.h"
 
 /**
  * \class JOINImageData
@@ -56,6 +57,9 @@ public:
   typedef JsrcImageWrapper::ImageType                     JsrcImageType;
   typedef JdstImageWrapper::ImageType                     JdstImageType;
   typedef WsrcImageWrapper::ImageType                     WsrcImageType;
+
+  typedef itk::JoinCopyFilter<JsrcImageType, JdstImageType, JdstImageType> JoinCopyFilterType;
+  typedef JoinCopyFilterType::Pointer JoinCopyFilterPointer;
 
   /** Initialize to a ROI from another image data object */
   void InitializeToROI(GenericImageData *source,
@@ -88,6 +92,8 @@ public:
   bool IsWsrcLoaded();
   void SetWsrcSticky(bool sticky);
   
+  void InitializeJoinCF();
+  JoinCopyFilterType::Pointer GetJoinCF();
   
 protected:
 
@@ -102,6 +108,9 @@ protected:
 
   // GWS source image
   SmartPtr<WsrcImageWrapper> m_WsrcWrapper;
+
+  JoinCopyFilterPointer m_JoinCF;
+
 };
 
 

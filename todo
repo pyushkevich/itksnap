@@ -1,5 +1,12 @@
 TODOs for GWS:
 
+- implement JoinCopyFilter (templated over dimension)
+-- multi-threaded ImageRegionIterator
+-- multi-threaded ImageScanlineIterator
+-- FloodFilledImageFunctionConditionalIterator (Modules/Segmentation/RegionGrowing/include/itkConnectedThresholdImageFilter.hxx)
+--- add 2D/3D option to GUI + implementation
+- optimize CopySegementationToJdst and CopySegementationToJsrc
+
 - combine mode 2 with mode 0 and add extra button for "LoadImageToJsrc"
 -- restructure JoinDataPanel to have two main buttons: CnJ from Seg. or File OR CnJ from gWS
 - add 'n' for next smallest unused label see eg m_Wrapper->GetHistogram(nBins) in ./Logic/ImageWrapper/DisplayMappingPolicy.cxx
