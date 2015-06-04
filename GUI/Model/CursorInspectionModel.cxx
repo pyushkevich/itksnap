@@ -5,6 +5,7 @@
 #include "ColorLabelTable.h"
 #include "IntensityCurveModel.h"
 #include "ColorMapModel.h"
+#include "DisplayLayoutModel.h"
 
 #include <QtTableWidgetCoupling.h>
 
@@ -18,9 +19,8 @@
   data, so that we can see the values of all components at once.
   */
 CurrentVoxelInfoItemSetDomain
-::CurrentVoxelInfoItemSetDomain(
-    IRISApplication *app, int role_filter)
-  : Superclass(app, role_filter), m_Driver(app)
+::CurrentVoxelInfoItemSetDomain(GlobalUIModel *model, int role_filter)
+  : Superclass(model ? model->GetDriver() : NULL, role_filter), m_Model(model)
 {
 }
 
@@ -56,32 +56,18 @@ CurrentVoxelInfoItemSetDomain
 
     vox.IntensityValue = buffer;
 
-    /*
-    // Create a string output
-    std::ostringstream oss;
-
-    // Get the intensity or intensities that the user is seeing and the RGB
-    vnl_vector<double> v;
-    ImageWrapperBase::DisplayPixelType disprgb;
-    it.GetLayer()->GetVoxelUnderCursorDisplayedValueAndAppearance(v, disprgb);
-
-    // Print with varying degrees of precision
-    if(v.size() == 1)
-      {
-      oss << std::setprecision(6);
-      oss << v[0];
-      }
-    else if(v.size() == 3)
-      {
-      oss << std::setprecision(4);
-      oss << v[0] << "," << v[1] << "," << v[2];
-      }
-
-    vox.IntensityValue = oss.str();
-    */
-
     // Get the displayed color
     vox.Color = Vector3ui(disprgb[0], disprgb[1], disprgb[2]);
+
+    // Is the layer selected?
+    bool stacked = m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->GetValue() == LAYOUT_STACKED;
+    vox.isSelectedGroundLayer =
+        stacked && (
+          it.GetLayer()->GetUniqueId() ==
+          m_Driver->GetGlobalState()->GetSelectedLayerId());
+
+    // Is the layer sticky?
+    vox.isSticky = it.GetLayer()->IsSticky();
 
     // Return the description
     return vox;
@@ -90,6 +76,8 @@ CurrentVoxelInfoItemSetDomain
     {
     vox.IntensityValue = "";
     vox.Color = Vector3ui(0);
+    vox.isSelectedGroundLayer = false;
+    vox.isSticky = false;
     }
 
   return vox;
@@ -122,7 +110,7 @@ void CursorInspectionModel::SetParentModel(GlobalUIModel *parent)
       OVERLAY_ROLE |
       SNAP_ROLE;
 
-  CurrentVoxelInfoItemSetDomain dom(app, role);
+  CurrentVoxelInfoItemSetDomain dom(parent, role);
   m_VoxelAtCursorModel->SetDomain(dom);
 
   // Make this model listen to events that affect its domain
@@ -134,6 +122,14 @@ void CursorInspectionModel::SetParentModel(GlobalUIModel *parent)
         app, WrapperDisplayMappingChangeEvent(), DomainDescriptionChangedEvent());
   m_VoxelAtCursorModel->Rebroadcast(
         app, WrapperMetadataChangeEvent(), DomainDescriptionChangedEvent());
+
+  m_VoxelAtCursorModel->Rebroadcast(
+        app->GetGlobalState()->GetSelectedLayerIdModel(),
+        ValueChangedEvent(), DomainDescriptionChangedEvent());
+
+  m_VoxelAtCursorModel->Rebroadcast(
+        m_Parent->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel(),
+        ValueChangedEvent(), DomainDescriptionChangedEvent());
 
   // Rebroadcast events from the parent as model update events. This could
   // have a little more granularity, but for the moment, mapping all these

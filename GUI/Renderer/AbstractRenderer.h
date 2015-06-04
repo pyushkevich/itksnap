@@ -2,6 +2,7 @@
 #define ABSTRACTRENDERER_H
 
 #include "AbstractModel.h"
+#include "SNAPOpenGL.h"
 
 /**
  * @brief The RendererPlatformSupport class
@@ -32,6 +33,8 @@ public:
       const Vector3d &rgbf) = 0;
 
   virtual int MeasureTextWidth(const char *text, FontInfo font) = 0;
+
+  virtual void LoadTexture(const char *url, GLuint &texture_id, Vector2ui &tex_size) = 0;
 };
 
 

@@ -18,6 +18,8 @@ struct LayerCurrentVoxelInfo
   std::string LayerName;
   std::string IntensityValue;
   Vector3ui Color;
+  bool isSelectedGroundLayer;
+  bool isSticky;
 };
 
 /**
@@ -33,13 +35,13 @@ public:
 
   // Define the domain with the specificed filter
   CurrentVoxelInfoItemSetDomain(
-      IRISApplication *app = NULL, int role_filter = ALL_ROLES);
+      GlobalUIModel *model = NULL, int role_filter = ALL_ROLES);
 
   // Define the description method
   LayerCurrentVoxelInfo GetDescription(const LayerIterator &it) const;
 
 protected:
-  IRISApplication *m_Driver;
+  GlobalUIModel *m_Model;
 };
 
 // A concrete model encapsulating the above domain

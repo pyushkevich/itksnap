@@ -16,6 +16,8 @@ public:
 
   virtual int MeasureTextWidth(const char *text, FontInfo font);
 
+  virtual void LoadTexture(const char *url, GLuint &texture_id, Vector2ui &tex_size);
+
 protected:
   QRect WorldRectangleToPixelRectangle(const QRect &world);
 };

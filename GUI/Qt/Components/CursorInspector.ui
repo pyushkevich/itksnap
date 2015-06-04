@@ -158,28 +158,23 @@ font-size: 11px;
     </widget>
    </item>
    <item>
-    <widget class="QTableWidget" name="tableVoxelUnderCursor">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
      </property>
-     <property name="minimumSize">
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
       <size>
-       <width>0</width>
-       <height>0</height>
+       <width>20</width>
+       <height>6</height>
       </size>
      </property>
-     <property name="maximumSize">
-      <size>
-       <width>400</width>
-       <height>120</height>
-      </size>
-     </property>
-     <property name="contextMenuPolicy">
-      <enum>Qt::CustomContextMenu</enum>
-     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QTableView" name="tableVoxelUnderCursor">
      <property name="styleSheet">
       <string notr="true">font-size:10px;</string>
      </property>
@@ -195,17 +190,20 @@ font-size: 11px;
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
-     <property name="textElideMode">
-      <enum>Qt::ElideMiddle</enum>
+     <property name="iconSize">
+      <size>
+       <width>12</width>
+       <height>12</height>
+      </size>
      </property>
-     <attribute name="horizontalHeaderCascadingSectionResizes">
+     <property name="textElideMode">
+      <enum>Qt::ElideRight</enum>
+     </property>
+     <attribute name="horizontalHeaderHighlightSections">
       <bool>false</bool>
      </attribute>
-     <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>75</number>
-     </attribute>
-     <attribute name="horizontalHeaderStretchLastSection">
-      <bool>false</bool>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>48</number>
      </attribute>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -213,33 +211,10 @@ font-size: 11px;
      <attribute name="verticalHeaderDefaultSectionSize">
       <number>16</number>
      </attribute>
-     <column>
-      <property name="text">
-       <string>Layer</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Intensity</string>
-      </property>
-     </column>
+     <attribute name="verticalHeaderMinimumSectionSize">
+      <number>16</number>
+     </attribute>
     </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer_3">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>6</height>
-      </size>
-     </property>
-    </spacer>
    </item>
    <item>
     <widget class="QLabel" name="label_6">
@@ -300,14 +275,6 @@ font-size: 11px;
     </spacer>
    </item>
   </layout>
-  <action name="actionAutoContrast">
-   <property name="text">
-    <string>Auto-Adjust Contrast</string>
-   </property>
-   <property name="toolTip">
-    <string>Sets the contrast of a grayscale image automatically.</string>
-   </property>
-  </action>
  </widget>
  <tabstops>
   <tabstop>inCursorX</tabstop>

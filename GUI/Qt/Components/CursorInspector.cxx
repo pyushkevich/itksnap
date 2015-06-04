@@ -25,6 +25,9 @@
 #include <QtTableWidgetCoupling.h>
 #include <QtWidgetArrayCoupling.h>
 
+#include <QStandardItemModel>
+#include <QPixmapCache>
+
 /**
   This class provide the coupling properties for coupling the table of
   voxel intensities to QTableWidget
@@ -47,8 +50,8 @@ public:
                        const LayerCurrentVoxelInfo &desc, int col)
   {
     return (col == 0)
-        ? QIcon()
-        : CreateColorBoxIcon(16, 16, desc.Color);
+        ? QIcon(":/root/icons8_pin_16.png")
+        : CreateColorBoxIcon(12, 12, desc.Color);
   }
 
   static QVariant GetIconSignature(ValueType value,
@@ -83,22 +86,30 @@ CursorInspector::CursorInspector(QWidget *parent) :
 {
   ui->setupUi(this);
 
+  // Create an empty standard item model
+  m_CurrentVoxelItemModel = new QStandardItemModel(this);
+  m_CurrentVoxelItemModel->setColumnCount(2);
+  m_CurrentVoxelItemModel->setRowCount(1);
+
+  // Set the header labels
+  QStringList header;
+  header << "Layer" << "Intensity";
+  m_CurrentVoxelItemModel->setHorizontalHeaderLabels(header);
+
+  ui->tableVoxelUnderCursor->setModel(m_CurrentVoxelItemModel);
   ui->tableVoxelUnderCursor->setAlternatingRowColors(true);
   ui->tableVoxelUnderCursor->setFixedWidth(160);
   ui->tableVoxelUnderCursor->setFixedHeight(120);
   ui->tableVoxelUnderCursor->setContextMenuPolicy(Qt::CustomContextMenu);
 
-  ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-  ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-  ui->tableVoxelUnderCursor->horizontalHeader()->setMinimumSectionSize(60);
-
-  m_ContextMenu = new QMenu(ui->tableVoxelUnderCursor);
-  m_ContextMenu->addAction(ui->actionAutoContrast);
+  ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
+  ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+  ui->tableVoxelUnderCursor->setColumnWidth(0, 92);
+  // ui->tableVoxelUnderCursor->setColumnWidth(1, 68);
 
   // Hook up the context menu
   connect(ui->tableVoxelUnderCursor, SIGNAL(customContextMenuRequested(QPoint)),
           SLOT(onContextMenuRequested(QPoint)));
-
 }
 
 CursorInspector::~CursorInspector()
@@ -120,9 +131,8 @@ void CursorInspector::SetModel(CursorInspectionModel *model)
   makeArrayCoupling(ui->inCursorX, ui->inCursorY, ui->inCursorZ,
                     m_Model->GetCursorPositionModel());
 
-  makeMultiRowCoupling(ui->tableVoxelUnderCursor,
-                       m_Model->GetVoxelAtCursorModel(),
-                       LayerCurrentVoxelInfoTableWidgetRowTraits());
+  connectITK(m_Model->GetVoxelAtCursorModel(), DomainChangedEvent());
+  connectITK(m_Model->GetVoxelAtCursorModel(), DomainDescriptionChangedEvent());
 }
 
 #include "MainImageWindow.h"
@@ -151,25 +161,106 @@ void CursorInspector::onContextMenuRequested(QPoint pos)
     }
 }
 
-void CursorInspector::on_actionAutoContrast_triggered()
+void CursorInspector::UpdateVoxelTableRow(int i, const LayerCurrentVoxelInfo &vi)
 {
-  LayerIterator it =
-      m_Model->GetParent()->GetLoadedLayersSelectionModel()->GetNthLayer(m_PopupRow);
+  // Get the two items to update
+  QStandardItem *item_layer = m_CurrentVoxelItemModel->item(i, 0);
+  QStandardItem *item_intensity = m_CurrentVoxelItemModel->item(i, 1);
 
-  if(it.GetLayer()->GetDisplayMapping()->GetIntensityCurve())
+  item_layer->setText(from_utf8(vi.LayerName));
+  item_layer->setToolTip(from_utf8(vi.LayerName));
+
+  item_intensity->setText(from_utf8(vi.IntensityValue));
+  item_intensity->setToolTip(from_utf8(vi.IntensityValue));
+
+  // item_layer->setForeground(QBrush(QColor(Qt::darkGray)));
+  // item_intensity->setForeground(QBrush(QColor(Qt::darkGray)));
+  if(vi.isSelectedGroundLayer)
     {
-    // Select the currently highlighted layer
-    m_Model->GetParent()->GetIntensityCurveModel()->SetLayer(it.GetLayer());
+    // item_layer->setIcon(QIcon(":/root/icons8_star_8.png"));
+    QFont font = item_layer->font(); font.setBold(true);
+    item_layer->setFont(font);
+    item_layer->setIcon(QIcon());
+    }
+  else if(vi.isSticky)
+    {
+    item_layer->setIcon(QIcon(":/root/icons8_pin_10.png"));
+    QFont font = item_layer->font(); font.setBold(false);
+    item_layer->setFont(font);
+    }
+  else
+    {
+    item_layer->setIcon(QIcon());
+    QFont font = item_layer->font(); font.setBold(false);
+    item_layer->setFont(font);
+    }
 
-    // Auto-adjust intensity in the selected layer
-    m_Model->GetParent()->GetIntensityCurveModel()->OnAutoFitWindow();
+  // Set the color icon
+  QColor stored_color = qvariant_cast<QColor>(item_intensity->data(Qt::UserRole));
+  QColor new_color = QColor(vi.Color[0], vi.Color[1], vi.Color[2]);
+  if(new_color != stored_color)
+    {
+    item_intensity->setIcon(CreateColorBoxIcon(12, 12, vi.Color));
+    item_intensity->setData(new_color, Qt::UserRole);
     }
 }
 
-void CursorInspector::on_tableVoxelUnderCursor_itemClicked(QTableWidgetItem *item)
+void CursorInspector::RebuildVoxelTable()
+{
+  // Initialize the model
+  m_CurrentVoxelItemModel->removeRows(0, m_CurrentVoxelItemModel->rowCount());
+
+  // Get the domain from which we are building this model
+  int dummy;
+  CurrentVoxelInfoItemSetDomain domain;
+  if(m_Model->GetVoxelAtCursorModel()->GetValueAndDomain(dummy, &domain))
+    {
+    // Add the rows
+    for(LayerIterator it = domain.begin(); it != domain.end(); ++it)
+      {
+      QList<QStandardItem *> items;
+      items.push_back(new QStandardItem());
+      items.push_back(new QStandardItem());
+      m_CurrentVoxelItemModel->appendRow(items);
+      this->UpdateVoxelTableRow(m_CurrentVoxelItemModel->rowCount()-1, domain.GetDescription(it));
+      }
+    }
+}
+
+void CursorInspector::UpdateVoxelTable()
+{
+  // Get the domain from which we are building this model
+  int dummy;
+  CurrentVoxelInfoItemSetDomain domain;
+  if(m_Model->GetVoxelAtCursorModel()->GetValueAndDomain(dummy, &domain))
+    {
+    // Update the rows
+    int row = 0;
+    for(LayerIterator it = domain.begin(); it != domain.end(); ++it, ++row)
+      {
+      this->UpdateVoxelTableRow(row, domain.GetDescription(it));
+      }
+    }
+}
+
+void CursorInspector::onModelUpdate(const EventBucket &bucket)
+{
+  m_Model->Update();
+
+  if(bucket.HasEvent(DomainChangedEvent(), m_Model->GetVoxelAtCursorModel()))
+    {
+    this->RebuildVoxelTable();
+    }
+  else if(bucket.HasEvent(DomainDescriptionChangedEvent(), m_Model->GetVoxelAtCursorModel()))
+    {
+    this->UpdateVoxelTable();
+    }
+}
+
+void CursorInspector::on_tableVoxelUnderCursor_clicked(const QModelIndex &index)
 {
   // When the user clicks on an item, that item will become the visible one
-  int item_row = item->row();
+  int item_row = index.row();
   if(item_row >= 0)
     {
     // Find the corresponding layer
@@ -180,4 +271,5 @@ void CursorInspector::on_tableVoxelUnderCursor_itemClicked(QTableWidgetItem *ite
       m_Model->GetParent()->GetDriver()->GetGlobalState()->SetSelectedLayerId(
             it.GetLayer()->GetUniqueId());
     }
+
 }

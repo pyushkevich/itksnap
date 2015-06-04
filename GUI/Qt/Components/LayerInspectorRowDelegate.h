@@ -4,12 +4,29 @@
 #include <QWidget>
 #include <SNAPComponent.h>
 #include "SNAPCommon.h"
+#include <QWidgetAction>
 
 class LayerTableRowModel;
 class ImageWrapperBase;
 class QMenu;
 class QActionGroup;
 class QContextMenuEvent;
+class QSlider;
+
+class OpacitySliderAction : public QWidgetAction
+{
+  Q_OBJECT
+public:
+  OpacitySliderAction(QWidget *parent = 0);
+  QSlider *GetSlider() { return m_Slider; }
+  QWidget *GetContainer() { return m_Container; }
+
+protected:
+  virtual QWidget *createWidget(QWidget *parent);
+  QSlider *m_Slider;
+  QWidget *m_Container;
+};
+
 
 namespace Ui {
 class LayerInspectorRowDelegate;
@@ -105,6 +122,10 @@ private:
 
   // A submenu for the color maps
   QMenu *m_ColorMapMenu, *m_DisplayModeMenu;
+
+  // Slider for opacity that lives in the menu
+  QSlider *m_OverlayOpacitySlider;
+  OpacitySliderAction *m_OverlayOpacitySliderAction;
 
   // An action group for the system presets
   QActionGroup* m_SystemPresetActionGroup, *m_DisplayModeActionGroup;

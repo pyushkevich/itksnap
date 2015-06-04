@@ -9,11 +9,13 @@
 #include "QtSliderCoupling.h"
 #include "QtActionGroupCoupling.h"
 #include "QtActionCoupling.h"
+#include "QtSliderCoupling.h"
 #include <QGraphicsOpacityEffect>
 #include <QPropertyAnimation>
 #include <QFile>
 #include <QMenu>
 #include <QContextMenuEvent>
+#include <QWidgetAction>
 #include "QtWidgetActivator.h"
 #include "QtCursorOverride.h"
 #include "GlobalUIModel.h"
@@ -27,6 +29,36 @@
 #include "ColorMapModel.h"
 
 class QAction;
+
+
+
+OpacitySliderAction::OpacitySliderAction(QWidget *parent)
+  : QWidgetAction(parent)
+{
+}
+
+QWidget *OpacitySliderAction::createWidget(QWidget *parent)
+{
+  m_Container = new QWidget(parent);
+
+  m_Slider = new QSlider();
+  m_Slider->setOrientation(Qt::Horizontal);
+
+  QHBoxLayout *lo = new QHBoxLayout();
+  lo->setContentsMargins(27, 4, 4, 4);
+  lo->setSpacing(10);
+  lo->addWidget(new QLabel("Opacity:"));
+  lo->addWidget(m_Slider);
+  m_Container->setLayout(lo);
+
+  return m_Container;
+}
+
+
+
+
+
+
 
 QString LayerInspectorRowDelegate::m_SliderStyleSheetTemplate;
 
@@ -59,6 +91,13 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_PopupMenu->addSeparator();
   m_PopupMenu->addAction(ui->actionPin_layer);
   m_PopupMenu->addAction(ui->actionUnpin_layer);
+
+  // Create a slider for the layer opacity in the context menu
+  //m_OverlayOpacitySlider = new QSlider(m_PopupMenu);
+  //m_OverlayOpacitySlider->setOrientation(Qt::Horizontal);
+  m_OverlayOpacitySliderAction = new OpacitySliderAction(m_PopupMenu);
+  // m_OverlayOpacitySliderAction->setDefaultWidget(m_OverlayOpacitySlider);
+  m_PopupMenu->addAction(m_OverlayOpacitySliderAction);
 
   // Placeholder for image processing commands
   m_PopupMenu->addSeparator();
@@ -97,12 +136,14 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   makeCoupling(ui->inLayerOpacity, model->GetLayerOpacityModel());
   makeCoupling(ui->outLayerNickname, model->GetNicknameModel());
   makeCoupling(ui->outComponent, model->GetComponentNameModel());
+  makeCoupling(m_OverlayOpacitySliderAction->GetSlider(), model->GetLayerOpacityModel());
 
   makeCoupling((QAbstractButton *) ui->btnSticky, model->GetStickyModel());
   makeCoupling((QAbstractButton *) ui->btnVisible, model->GetVisibilityToggleModel());
 
   makeActionVisibilityCoupling(ui->actionUnpin_layer, model->GetStickyModel());
   makeActionVisibilityCoupling(ui->actionPin_layer, model->GetStickyModel(), true);
+  // makeActionVisibilityCoupling(m_OverlayOpacitySliderAction, model->GetStickyModel());
 
   // Hook up some activations
   activateOnFlag(ui->btnVisible, model, LayerTableRowModel::UIF_OPACITY_EDITABLE);
@@ -114,6 +155,7 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   activateOnFlag(ui->actionAutoContrast, model, LayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
   activateOnFlag(m_ColorMapMenu, model, LayerTableRowModel::UIF_COLORMAP_ADJUSTABLE);
   activateOnFlag(m_DisplayModeMenu, model, LayerTableRowModel::UIF_MULTICOMPONENT);
+  activateOnFlag(m_OverlayOpacitySliderAction->GetContainer(), model, LayerTableRowModel::UIF_OPACITY_EDITABLE);
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());
@@ -508,3 +550,4 @@ void LayerInspectorRowDelegate::on_actionContrast_Inspector_triggered()
 {
   emit contrastInspectorRequested();
 }
+

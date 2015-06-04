@@ -3,11 +3,10 @@
 
 #include "SNAPComponent.h"
 
-
-class QMenu;
 class CursorInspectionModel;
-class QtScriptTest1;
 class QTableWidgetItem;
+class QStandardItemModel;
+struct LayerCurrentVoxelInfo;
 
 namespace Ui {
     class CursorInspector;
@@ -30,19 +29,22 @@ public slots:
 
 protected:
 
+  void RebuildVoxelTable();
+  void UpdateVoxelTable();
 
+  void UpdateVoxelTableRow(int i, const LayerCurrentVoxelInfo &vi);
 private slots:
-  void on_actionAutoContrast_triggered();
 
-  void on_tableVoxelUnderCursor_itemClicked(QTableWidgetItem *item);
+  void onModelUpdate(const EventBucket &bucket);
+
+  void on_tableVoxelUnderCursor_clicked(const QModelIndex &index);
 
 private:
   Ui::CursorInspector *ui;
-  friend class QtScriptTest1;
-
 
   CursorInspectionModel *m_Model;
-  QMenu *m_ContextMenu;
+
+  QStandardItemModel *m_CurrentVoxelItemModel;
 
   int m_PopupRow;
 };

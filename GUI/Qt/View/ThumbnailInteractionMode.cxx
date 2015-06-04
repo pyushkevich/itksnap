@@ -35,6 +35,8 @@
 #include <GenericImageData.h>
 #include <QMenu>
 #include <SNAPQtCommon.h>
+#include "GenericSliceView.h"
+#include "SliceViewPanel.h"
 
 
 ThumbnailInteractionMode::ThumbnailInteractionMode(GenericSliceView *parent) :
@@ -70,8 +72,9 @@ void ThumbnailInteractionMode::mousePressEvent(QMouseEvent *ev)
   // Check for layer thumbnail hit.
   else if(this->m_ThumbnailLayer && ev->button() == Qt::LeftButton)
     {
-    m_ParentModel->GetDriver()->GetGlobalState()->SetSelectedLayerId(
-          m_ThumbnailLayer->GetUniqueId());
+    if(!m_ThumbnailLayer->IsSticky())
+      m_Model->GetParent()->GetDriver()->GetGlobalState()->SetSelectedLayerId(
+            m_ThumbnailLayer->GetUniqueId());
     ev->accept();
     }
 }
@@ -81,6 +84,17 @@ void ThumbnailInteractionMode::mouseMoveEvent(QMouseEvent *ev)
   // Press position in screen pixels
   Vector2i x(ev->pos().x(),
              m_ParentModel->GetSizeReporter()->GetLogicalViewportSize()[1] - ev->pos().y());
+
+  // If we are hovering over the thumbnail, it nice to indicate that to the user by
+  // highlighting the thumbnail.
+  if(m_ThumbnailLayer)
+    {
+    m_Model->GetParent()->SetHoveredThumbnailLayerId(m_ThumbnailLayer->GetUniqueId());
+    }
+  else
+    {
+    m_Model->GetParent()->SetHoveredThumbnailLayerId(-1ul);
+    }
 
   ev->ignore();
   if(m_PanFlag)
@@ -126,5 +140,20 @@ void ThumbnailInteractionMode::onContextMenuRequested(const QPoint &pt)
       menu->popup(QCursor::pos());
     }
 }
+
+void ThumbnailInteractionMode::enterEvent(QEvent *)
+{
+  // TODO: this is hideous!
+  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  panel->SetMouseMotionTracking(true);
+}
+
+void ThumbnailInteractionMode::leaveEvent(QEvent *)
+{
+  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  panel->SetMouseMotionTracking(false);
+  m_Model->GetParent()->SetHoveredThumbnailLayerId(-1ul);
+}
+
 
 

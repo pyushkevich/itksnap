@@ -126,3 +126,19 @@ QtRendererPlatformSupport
   QFontMetrics fm(qfont);
   return fm.width(QString::fromUtf8(text));
 }
+
+#include <QOpenGLTexture>
+
+void QtRendererPlatformSupport::LoadTexture(const char *url, GLuint &texture_id, Vector2ui &tex_size)
+{
+  // Get the icon corresponding to the URL
+  QImage myimage(QString(":/root/%1.png").arg(url));
+
+  // Create an opengl texture object
+  QOpenGLTexture *texture = new QOpenGLTexture(myimage);
+  texture_id = texture->textureId();
+
+  // Set the texture size
+  tex_size[0] = texture->width();
+  tex_size[1] = texture->height();
+}

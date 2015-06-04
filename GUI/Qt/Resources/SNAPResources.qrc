@@ -109,6 +109,13 @@
         <file>icons8_undo-48.png</file>
         <file>icons8_redo-48.png</file>
         <file>icons8_refresh-48.png</file>
+        <file>icons8_pin-48.png</file>
+        <file>icons8_star-48.png</file>
+        <file>icons8_pin_12.png</file>
+        <file>icons8_star_12.png</file>
+        <file>icons8_pin_10.png</file>
+        <file>icons8_star_8.png</file>
+        <file>icons8_whitepin_16.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

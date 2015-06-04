@@ -172,8 +172,12 @@ LatentITKEventNotifier
     c = new LatentITKEventNotifierHelper(target);
     }
 
-  // Connect to the target qobject
-  QObject::connect(c, SIGNAL(dispatchEvent(const EventBucket &)), target, slot);
+  // Connect to the target qobject.
+  // VERY IMPORTANT: this uses Qt::UniqueConnection, otherwise the slot will get
+  // called every time that an event is hooked up to the slot, making the slot be
+  // called sometimes as many as six times per event. This may have been a factor in
+  // the laggy GUI performance before
+  QObject::connect(c, SIGNAL(dispatchEvent(const EventBucket &)), target, slot, Qt::UniqueConnection);
 
   return c;
 }

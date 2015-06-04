@@ -66,7 +66,7 @@ bool LayerTableRowModel::CheckState(UIState state)
     {
     // Opacity can be edited for all layers except the main image layer
     case LayerTableRowModel::UIF_OPACITY_EDITABLE:
-      return (m_LayerRole != MAIN_ROLE);
+      return (m_Layer->IsSticky());
 
     case LayerTableRowModel::UIF_PINNABLE:
       return (m_LayerRole != MAIN_ROLE && tiling);
@@ -166,6 +166,8 @@ void LayerTableRowModel::Initialize(GlobalUIModel *parentModel, ImageWrapperBase
   Rebroadcast(m_ParentModel->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel(),
               ValueChangedEvent(),
               StateMachineChangeEvent());
+
+  Rebroadcast(layer, WrapperMetadataChangeEvent(), StateMachineChangeEvent());
 
 }
 

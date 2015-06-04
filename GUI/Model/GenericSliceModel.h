@@ -302,6 +302,9 @@ public:
   // Check whether the thumbnail should be drawn or not
   bool IsThumbnailOn();
 
+  /** Access a model that stores the current hovered-over layer */
+  irisSimplePropertyAccessMacro(HoveredThumbnailLayerId, unsigned long)
+
   /**
     Merges a binary segmentation drawn on a slice into the main
     segmentation in SNAP. Returns the number of voxels changed.
@@ -384,6 +387,9 @@ protected:
 
   // State of the model (whether it's been initialized)
   bool m_SliceInitialized;
+
+  /** Hovered over layer id */
+  SmartPtr<ConcreteSimpleULongProperty> m_HoveredThumbnailLayerIdModel;
 
   /** Access the next window in the slice pipeline */
   GenericSliceModel *GetNextSliceWindow();

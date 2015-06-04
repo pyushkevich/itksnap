@@ -312,11 +312,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // menu. TODO: a more direct way would be to listen to changes to the
   // history, but that requires making history an event-firing object
   LatentITKEventNotifier::connect(model->GetDriver(), LayerChangeEvent(),
-                                  this, SLOT(onModelUpdate(const EventBucket&)));
+                                  this, SLOT(onModelUpdate(EventBucket)));
 
   // Also listen to changes in the image filenames
   LatentITKEventNotifier::connect(model->GetDriver(), WrapperMetadataChangeEvent(),
-                                  this, SLOT(onModelUpdate(const EventBucket&)));
+                                  this, SLOT(onModelUpdate(EventBucket)));
 
   // Hook up the recent lists
   ui->panelRecentImages->Initialize(m_Model, "MainImage");
@@ -458,14 +458,6 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
 {
   if(b.HasEvent(MainImageDimensionsChangeEvent()))
     {
-    // Where is this coming from
-    QString sender = this->sender()->objectName();
-    QString sender_class(this->sender()->metaObject()->className());
-    QString parent = this->sender()->parent()->objectName();
-    QString parent_class(this->sender()->parent()->metaObject()->className());
-
-    qDebug() << QString("onModelUpdate called from %1, %2").arg(sender, sender_class);
-
     // Delaying the relayout of the main window seems to reduce the amount of
     // flashing that occurs when loading images.
     // TODO: figure out if we can avoid flashing altogether

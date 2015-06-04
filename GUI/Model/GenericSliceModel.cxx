@@ -62,6 +62,8 @@ GenericSliceModel::GenericSliceModel()
         &Self::GetSliceIndexValueAndDomain,
         &Self::SetSlideIndexValue);
 
+  // Nothing is hovered over
+  m_HoveredThumbnailLayerIdModel = NewSimpleConcreteProperty(-1ul);
 }
 
 void GenericSliceModel::Initialize(GlobalUIModel *model, int index)

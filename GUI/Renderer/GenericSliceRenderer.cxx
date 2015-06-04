@@ -90,6 +90,8 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel(),
               ValueChangedEvent(), AppearanceUpdateEvent());
 
+  Rebroadcast(m_Model->GetHoveredThumbnailLayerIdModel(), ValueChangedEvent(), AppearanceUpdateEvent());
+
 }
 
 void GenericSliceRenderer::OnUpdate()
@@ -187,7 +189,7 @@ GenericSliceRenderer
 
       // Draw the main layers for this row/column combination
       ImageWrapperBase *layer = id->FindLayer(vp.layer_id, false);
-      if(layer && this->DrawImageLayers(layer))
+      if(layer && this->DrawImageLayers(layer, !vp.isThumbnail))
         {
         // We don't want to draw segmentation over the speed image and other
         // SNAP-mode layers.
@@ -202,27 +204,41 @@ GenericSliceRenderer
 
         glPopMatrix();
 
-        if(layer->GetUniqueId() == m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId() && vp.isThumbnail)
+        // Draw decoration around layer thumbnail. This is done when the thumbnail is hovered over
+        // or currently selected
+        if(vp.isThumbnail && (
+             layer->GetUniqueId() == m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId()
+             || layer->GetUniqueId() == m_Model->GetHoveredThumbnailLayerId()))
           {
           // If the layer has positive z, draw a line
           glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
+          // The element used for highlighting thumbnails
           SmartPtr<OpenGLAppearanceElement> elt = OpenGLAppearanceElement::New();
-          elt->SetNormalColor(Vector3d(0.0, 1.0, 0.0));
+          elt->SetNormalColor(Vector3d(0.6, 0.54, 0.46));
           elt->SetActiveColor(Vector3d(1.0, 0.9, 0.1));
           elt->SetLineThickness(3.0);
           elt->SetVisible(true);
           elt->SetAlphaBlending(false);
 
-
           elt->ApplyLineSettings();
 
-          if(layer->GetUniqueId() == m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId()
-             && vp.isThumbnail)
+          // Determine the colors
+          bool is_selected = layer->GetUniqueId() == m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId();
+          bool is_hover = layer->GetUniqueId() == m_Model->GetHoveredThumbnailLayerId();
+
+          if(is_selected && is_hover)
+            {
+            Vector3d clr = elt->GetActiveColor();
+            clr += 0.4;
+            clr = clr.clamp(Vector3d(0.0), Vector3d(1.0));
+            glColor3dv(clr.data_block());
+            }
+          else if(is_selected)
             {
             glColor3dv(elt->GetActiveColor().data_block());
             }
-          else
+          else if(is_hover)
             {
             glColor3dv(elt->GetNormalColor().data_block());
             }
@@ -296,7 +312,7 @@ GenericSliceRenderer
   glLoadIdentity();
 }
 
-bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer)
+bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool drawStickies)
 {
   // Get the image data
   GenericImageData *id = m_Model->GetImageData();
@@ -315,15 +331,18 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer)
     DrawTextureForLayer(base_layer, false);
 
     // Now draw all the sticky layers on top
-    for(LayerIterator it(id); !it.IsAtEnd(); ++it)
+    if(drawStickies)
       {
-      ImageWrapperBase *layer = it.GetLayer();
-      if(it.GetRole() != LABEL_ROLE
-         && layer->IsDrawable()
-         && layer->IsSticky()
-         && layer->GetAlpha() > 0)
+        for(LayerIterator it(id); !it.IsAtEnd(); ++it)
         {
-        DrawTextureForLayer(layer, true);
+        ImageWrapperBase *layer = it.GetLayer();
+        if(it.GetRole() != LABEL_ROLE
+           && layer->IsDrawable()
+           && layer->IsSticky()
+           && layer->GetAlpha() > 0)
+          {
+          DrawTextureForLayer(layer, true);
+          }
         }
       }
 
@@ -335,14 +354,17 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer)
     DrawTextureForLayer(base_layer, false);
 
     // Now draw all the non-sticky layers
-    for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
+    if(drawStickies)
       {
-      if(itov.GetRole() != MAIN_ROLE
-         && itov.GetLayer()->IsSticky()
-         && itov.GetLayer()->IsDrawable()
-         && itov.GetLayer()->GetAlpha() > 0)
+      for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
         {
-        DrawTextureForLayer(itov.GetLayer(), true);
+        if(itov.GetRole() != MAIN_ROLE
+           && itov.GetLayer()->IsSticky()
+           && itov.GetLayer()->IsDrawable()
+           && itov.GetLayer()->GetAlpha() > 0)
+          {
+          DrawTextureForLayer(itov.GetLayer(), true);
+          }
         }
       }
 
