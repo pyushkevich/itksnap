@@ -62,8 +62,15 @@ GenericSliceModel::GenericSliceModel()
         &Self::GetSliceIndexValueAndDomain,
         &Self::SetSlideIndexValue);
 
+  m_CurrentComponentInSelectedLayerModel =
+      wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetCurrentComponentInSelectedLayerValueAndDomain,
+        &Self::SetCurrentComponentInSelectedLayerValue);
+
   // Nothing is hovered over
-  m_HoveredThumbnailLayerIdModel = NewSimpleConcreteProperty(-1ul);
+  m_HoveredImageLayerIdModel = NewSimpleConcreteProperty(-1ul);
+  m_HoveredImageIsThumbnailModel = NewSimpleConcreteProperty(false);
 }
 
 void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
@@ -90,8 +97,14 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
   m_SliceIndexModel->Rebroadcast(model, CursorUpdateEvent(), ValueChangedEvent());
 
   // Also listen for changes in the selected layer
-  Rebroadcast(m_Driver->GetGlobalState()->GetSelectedLayerIdModel(),
-              ValueChangedEvent(), ModelUpdateEvent());
+  AbstractSimpleULongProperty *selLayerModel = m_Driver->GetGlobalState()->GetSelectedLayerIdModel();
+  Rebroadcast(selLayerModel, ValueChangedEvent(), ModelUpdateEvent());
+
+  // The current component in selected layer model depends both on the selected model
+  // and on the layer metadata changes
+  m_CurrentComponentInSelectedLayerModel->Rebroadcast(selLayerModel, ValueChangedEvent(), DomainChangedEvent());
+  m_CurrentComponentInSelectedLayerModel->Rebroadcast(m_Driver, WrapperMetadataChangeEvent(), DomainChangedEvent());
+  m_CurrentComponentInSelectedLayerModel->Rebroadcast(model, LayerChangeEvent(), DomainChangedEvent());
 }
 
 void GenericSliceModel
@@ -454,6 +467,19 @@ GenericSliceModel
   return gds->GetFlagDisplayZoomThumbnail() && (m_ViewZoom > m_OptimalZoom);
 }
 
+const SliceViewportLayout::SubViewport *GenericSliceModel::GetHoveredViewport()
+{
+  for(int i = 0; i < m_ViewportLayout.vpList.size(); i++)
+    {
+    const SliceViewportLayout::SubViewport *vpcand = &m_ViewportLayout.vpList[i];
+    if(vpcand->layer_id == this->GetHoveredImageLayerId()
+       && (vpcand->isThumbnail == this->GetHoveredImageIsThumbnail()))
+      return vpcand;
+    }
+
+  return NULL;
+}
+
 Vector3f GenericSliceModel::GetCursorPositionInSliceCoordinates()
 {
   Vector3ui cursorImageSpace = m_Driver->GetCursorPosition();
@@ -617,17 +643,25 @@ void GenericSliceModel::GetNonThumbnailViewport(Vector2ui &pos, Vector2ui &size)
     }
 }
 
+
 ImageWrapperBase *GenericSliceModel::GetThumbnailedLayerAtPosition(int x, int y)
+{
+  bool isThumb;
+  ImageWrapperBase *layer = this->GetContextLayerAtPosition(x, y, isThumb);
+  return isThumb ? layer : NULL;
+}
+
+ImageWrapperBase *GenericSliceModel::GetContextLayerAtPosition(int x, int y, bool &outIsThumbnail)
 {
   x *= m_SizeReporter->GetViewportPixelRatio();
   y *= m_SizeReporter->GetViewportPixelRatio();
   for(int i = 0; i < m_ViewportLayout.vpList.size(); i++)
     {
     const SliceViewportLayout::SubViewport &sv = m_ViewportLayout.vpList[i];
-    if(sv.isThumbnail
-       && x >= sv.pos[0] && y >= sv.pos[1]
+    if(x >= sv.pos[0] && y >= sv.pos[1]
        && x < sv.pos[0] + sv.size[0] && y < sv.pos[1] + sv.size[1])
       {
+      outIsThumbnail = sv.isThumbnail;
       return m_Driver->GetCurrentImageData()->FindLayer(sv.layer_id, false);
       }
     }
@@ -652,6 +686,62 @@ bool GenericSliceModel
 void GenericSliceModel::SetSlideIndexValue(int value)
 {
   this->UpdateSliceIndex(value);
+}
+
+bool
+GenericSliceModel
+::GetCurrentComponentInSelectedLayerValueAndDomain(
+    unsigned int &value, NumericValueRange<unsigned int> *domain)
+{
+  // Make sure there is a layer selected and it's a multi-component layer
+  if(!m_Driver->IsMainImageLoaded())
+    return false;
+
+  ImageWrapperBase *layer =
+      m_Driver->GetCurrentImageData()->FindLayer(
+        m_Driver->GetGlobalState()->GetSelectedLayerId(), false);
+
+  if(!layer || layer->GetNumberOfComponents() <= 1)
+    return false;
+
+  // Make sure the display mode is to scroll through components
+  AbstractMultiChannelDisplayMappingPolicy *dpolicy =
+      static_cast<AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
+
+  // Get the current display mode
+  MultiChannelDisplayMode mode = dpolicy->GetDisplayMode();
+
+  // Mode must be single component
+  if(!mode.IsSingleComponent())
+    return false;
+
+  // Finally we can return a value and range
+  value = mode.SelectedComponent;
+  if(domain)
+    domain->Set(0, layer->GetNumberOfComponents()-1, 1);
+
+  return true;
+}
+
+void GenericSliceModel::SetCurrentComponentInSelectedLayerValue(unsigned int value)
+{
+  // Get the target layer
+  ImageWrapperBase *layer =
+      m_Driver->GetCurrentImageData()->FindLayer(
+        m_Driver->GetGlobalState()->GetSelectedLayerId(), false);
+
+  assert(layer);
+
+  // Get the target policy
+  AbstractMultiChannelDisplayMappingPolicy *dpolicy =
+      static_cast<AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
+  MultiChannelDisplayMode mode = dpolicy->GetDisplayMode();
+
+  assert(mode.IsSingleComponent());
+
+  // Update the mode
+  mode.SelectedComponent = value;
+  dpolicy->SetDisplayMode(mode);
 }
 
 void GenericSliceModel::UpdateViewportLayout()

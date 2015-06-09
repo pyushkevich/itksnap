@@ -522,6 +522,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QColorButtonWidget.cxx
   GUI/Qt/Components/QDoubleSlider.cxx
   GUI/Qt/Components/QDoubleSliderWithEditor.cxx
+  GUI/Qt/Components/QtHideOnDeactivateContainer.cxx
   GUI/Qt/Components/QtIPCManager.cxx
   GUI/Qt/Components/QtRendererPlatformSupport.cxx
   GUI/Qt/Components/QtReporterDelegates.cxx
@@ -605,6 +606,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QColorButtonWidget.h
   GUI/Qt/Components/QDoubleSlider.h
   GUI/Qt/Components/QDoubleSliderWithEditor.h
+  GUI/Qt/Components/QtHideOnDeactivateContainer.h
   GUI/Qt/Components/QtIPCManager.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h

@@ -442,6 +442,7 @@ protected:
   AbstractPropertyModel()
   {
     Rebroadcast(this, ValueChangedEvent(), StateMachineChangeEvent());
+    Rebroadcast(this, DomainChangedEvent(), StateMachineChangeEvent());
   }
 };
 

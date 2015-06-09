@@ -99,11 +99,13 @@ void HistoryQListModel::rebuildModel()
 
   this->setColumnCount(1);
   this->setRowCount(history.size());
+
+  // We need to parse the history in reverse order (but why?)
   for(int i = 0; i < history.size(); i++)
     {
     // Create a standard item to hold this
     HistoryQListItem *si = new HistoryQListItem();
-    si->setItem(m_Model, from_utf8(history[i]));
+    si->setItem(m_Model, from_utf8(history[history.size() - 1 - i]));
     this->setItem(i, 0, si);
     }
 }

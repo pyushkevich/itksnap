@@ -90,7 +90,8 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel(),
               ValueChangedEvent(), AppearanceUpdateEvent());
 
-  Rebroadcast(m_Model->GetHoveredThumbnailLayerIdModel(), ValueChangedEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), AppearanceUpdateEvent());
 
 }
 
@@ -204,11 +205,14 @@ GenericSliceRenderer
 
         glPopMatrix();
 
+        // Determine if the current layer is hovered over by the mouse
+        bool is_hover = layer->GetUniqueId() == m_Model->GetHoveredImageLayerId();
+        bool is_thumb = vp.isThumbnail;
+        bool is_selected = layer->GetUniqueId() == m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId();
+
         // Draw decoration around layer thumbnail. This is done when the thumbnail is hovered over
         // or currently selected
-        if(vp.isThumbnail && (
-             layer->GetUniqueId() == m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId()
-             || layer->GetUniqueId() == m_Model->GetHoveredThumbnailLayerId()))
+        if(is_thumb && (is_hover || is_selected))
           {
           // If the layer has positive z, draw a line
           glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
@@ -224,9 +228,6 @@ GenericSliceRenderer
           elt->ApplyLineSettings();
 
           // Determine the colors
-          bool is_selected = layer->GetUniqueId() == m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId();
-          bool is_hover = layer->GetUniqueId() == m_Model->GetHoveredThumbnailLayerId();
-
           if(is_selected && is_hover)
             {
             Vector3d clr = elt->GetActiveColor();
@@ -252,6 +253,43 @@ GenericSliceRenderer
 
           glPopAttrib();
           }
+
+        // Draw context menu indicator for the layer being hovered
+        /*
+         * // NOTE - this is now being done in the Qt code instead
+        if(is_hover && is_thumb == m_Model->GetHoveredImageIsThumbnail())
+          {
+          // Load the texture for the icon
+          static GLuint icon_texture_id = -1u;
+          static Vector2ui icon_size;
+          int vpratio = m_Model->GetSizeReporter()->GetViewportPixelRatio();
+          if(icon_texture_id == -1u)
+            {
+            m_PlatformSupport->LoadTexture("context_gray_12", icon_texture_id, icon_size);
+            }
+
+          // Draw the icon in the corner of the view
+          glPushAttrib(GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
+          glEnable(GL_TEXTURE_2D);
+          glEnable(GL_BLEND);
+          glBindTexture(GL_TEXTURE_2D, icon_texture_id);
+          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+          glColor3d(1.0, 1.0, 1.0);
+          glBegin(GL_QUADS);
+          int margin = 4 * vpratio;
+          int x0 = vp.size[0] - margin - icon_size[0], x1 = vp.size[0] - margin;
+          int y1 = vp.size[1] - margin - icon_size[1], y0 = vp.size[1] - margin;
+          glTexCoord2d(0.0, 0.0); glVertex2i(x0,y0);
+          glTexCoord2d(0.0, 1.0); glVertex2i(x0,y1);
+          glTexCoord2d(1.0, 1.0); glVertex2i(x1,y1);
+          glTexCoord2d(1.0, 0.0); glVertex2i(x1,y0);
+          glEnd();
+
+          glPopAttrib();
+          }
+          */
+
 
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);

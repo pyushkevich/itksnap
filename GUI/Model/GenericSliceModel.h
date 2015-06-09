@@ -182,6 +182,12 @@ public:
   irisGetMacro(SliceIndexModel, AbstractRangedIntProperty *)
 
   /**
+   * Get the model than handles the selected component (timepoint) in the
+   * currently selected image
+   */
+  irisRangedPropertyAccessMacro(CurrentComponentInSelectedLayer, unsigned int)
+
+  /**
    * Set the index of the slice in the current view. This method will
    * update the cursor in the IRISApplication object
    */
@@ -290,6 +296,13 @@ public:
    */
   ImageWrapperBase *GetThumbnailedLayerAtPosition(int x, int y);
 
+  /**
+   * Get the layer that is in context for a position in the window. This can be
+   * a thumbnail layer or a regular layer. The third parameter is a boolean flag
+   * indicating whether the layer is a thumbnail or not.
+   */
+  ImageWrapperBase *GetContextLayerAtPosition(int x, int y, bool &outIsThumbnail);
+
   /** Get the layer in a given tile, when using tiled views */
   ImageWrapperBase *GetLayerForNthTile(int row, int col);
 
@@ -302,8 +315,14 @@ public:
   // Check whether the thumbnail should be drawn or not
   bool IsThumbnailOn();
 
-  /** Access a model that stores the current hovered-over layer */
-  irisSimplePropertyAccessMacro(HoveredThumbnailLayerId, unsigned long)
+  /** A model representing the ID of the layer over which the mouse is hovering */
+  irisSimplePropertyAccessMacro(HoveredImageLayerId, unsigned long)
+
+  /** Whether the hovered image layer id is shown in thumbnail mode */
+  irisSimplePropertyAccessMacro(HoveredImageIsThumbnail, bool)
+
+  /** Get the viewport corresponding to the hovered layer */
+  const SliceViewportLayout::SubViewport *GetHoveredViewport();
 
   /**
     Merges a binary segmentation drawn on a slice into the main
@@ -389,7 +408,8 @@ protected:
   bool m_SliceInitialized;
 
   /** Hovered over layer id */
-  SmartPtr<ConcreteSimpleULongProperty> m_HoveredThumbnailLayerIdModel;
+  SmartPtr<ConcreteSimpleULongProperty> m_HoveredImageLayerIdModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_HoveredImageIsThumbnailModel;
 
   /** Access the next window in the slice pipeline */
   GenericSliceModel *GetNextSliceWindow();
@@ -397,6 +417,12 @@ protected:
   SmartPtr<AbstractRangedIntProperty> m_SliceIndexModel;
   bool GetSliceIndexValueAndDomain(int &value, NumericValueRange<int> *domain);
   void SetSlideIndexValue(int value);
+
+  SmartPtr<AbstractRangedUIntProperty> m_CurrentComponentInSelectedLayerModel;
+  bool GetCurrentComponentInSelectedLayerValueAndDomain(unsigned int &value, NumericValueRange<unsigned int> *domain);
+  void SetCurrentComponentInSelectedLayerValue(unsigned int value);
+
+
 
   /** Update the state of the viewport based on current layout settings */
   void UpdateViewportLayout();

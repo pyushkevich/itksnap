@@ -27,8 +27,11 @@ protected:
   // The cell in which the last press was generated
   Vector2ui m_LastPressLayoutCell;
 
-  // Whether the current position of the mouse corresponds to a thumbnail
-  ImageWrapperBase *m_ThumbnailLayer;
+  // Whether the current position of the mouse corresponds to a layer
+  ImageWrapperBase *m_HoverOverLayer;
+
+  // Whether the layer that is hovered over is displayed as a thumbnail
+  bool m_HoverOverLayerIsThumbnail;
 
   // Parent model
   GenericSliceModel *m_ParentModel;
@@ -39,6 +42,8 @@ protected:
   void preprocessEvent(QEvent *ev);
   void postprocessEvent(QEvent *ev);
 
+  bool IsMouseOverLayerThumbnail();
+  bool IsMouseOverFullLayer();
 };
 
 #endif // SLICEWINDOWINTERACTIONDELEGATEWIDGET_H

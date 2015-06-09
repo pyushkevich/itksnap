@@ -20,11 +20,14 @@
 #include "DisplayLayoutModel.h"
 #include "PaintbrushModel.h"
 #include "SliceWindowDecorationRenderer.h"
+#include "LayerInspectorDialog.h"
 #include "MainImageWindow.h"
 #include "SNAPQtCommon.h"
 #include "QtScrollbarCoupling.h"
+#include "QtSliderCoupling.h"
 #include <QCursor>
 #include <QBitmap>
+#include <QToolButton>
 
 #include <QStackedLayout>
 #include <QMenu>
@@ -129,6 +132,17 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   QBitmap bmBitmap(":/root/crosshair_cursor_bitmap.png");
   QBitmap bmMask(":/root/crosshair_cursor_mask.png");
   m_DrawingCrosshairCursor = new QCursor(bmBitmap, bmMask, 7, 7);
+
+  // Configure the context tool button
+  m_ContextToolButton = new QToolButton(ui->sliceView);
+  m_ContextToolButton->setIcon(QIcon(":/root/context_gray_10.png"));
+  m_ContextToolButton->setVisible(false);
+  m_ContextToolButton->setAutoRaise(true);
+  m_ContextToolButton->setIconSize(QSize(10,10));
+  m_ContextToolButton->setMinimumSize(QSize(16,16));
+  m_ContextToolButton->setMaximumSize(QSize(16,16));
+  m_ContextToolButton->setPopupMode(QToolButton::InstantPopup);
+  m_ContextToolButton->setStyleSheet("QToolButton::menu-indicator { image: none; }");
 }
 
 SliceViewPanel::~SliceViewPanel()
@@ -199,7 +213,7 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   connectITK(m_GlobalUI->GetSnakeWizardModel(), IRISEvent());
 
   // Widget coupling
-  makeCoupling(ui->inSlicePosition, m_SliceModel->GetSliceIndexModel());
+  makeCoupling(ui->inSlicePosition, m_SliceModel->GetSliceIndexModel());  
 
   // Activation
   activateOnFlag(this, m_GlobalUI, UIF_BASEIMG_LOADED);
@@ -227,6 +241,13 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   // Arrange the rendering overlays and widgets based on current mode
   this->OnToolbarModeChange();
+
+  // Listen for hover changes to move and activate widgets
+  connectITK(m_SliceModel->GetHoveredImageLayerIdModel(), ValueChangedEvent(),
+             SLOT(OnHoveredLayerChange(const EventBucket &)));
+
+  connectITK(m_SliceModel->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(),
+             SLOT(OnHoveredLayerChange(const EventBucket &)));
 }
 
 void SliceViewPanel::onModelUpdate(const EventBucket &eb)
@@ -503,3 +524,40 @@ void SliceViewPanel::on_actionZoom_Out_triggered()
   // Zoom out
   m_GlobalUI->GetSliceCoordinator()->ZoomInOrOutInOneWindow(m_Index, 1.0 / 1.1);
 }
+
+void SliceViewPanel::OnHoveredLayerChange(const EventBucket &eb)
+{
+  // Determine the position where to draw the button
+  const SliceViewportLayout::SubViewport *vp = m_SliceModel->GetHoveredViewport();
+  if(vp)
+    {
+    // Set up the location of the button
+    int vppr = m_SliceModel->GetSizeReporter()->GetViewportPixelRatio();
+    int x = (vp->pos[0] + vp->size[0]) / vppr - m_ContextToolButton->width();
+    int y = (ui->sliceView->height() - 1) - (vp->pos[1] + vp->size[1]) / vppr;
+    m_ContextToolButton->setVisible(true);
+    m_ContextToolButton->move(x, y);
+
+    // Set up the context menu on the button
+    MainImageWindow *winmain = findParentWidget<MainImageWindow>(this);
+    LayerInspectorDialog *inspector = winmain->GetLayerInspector();
+
+    // Get the corresponding context menu
+    QMenu *menu = inspector->GetLayerContextMenu(
+                    m_SliceModel->GetDriver()->GetCurrentImageData()->FindLayer(
+                      m_SliceModel->GetHoveredImageLayerId(), false, ALL_ROLES));
+
+    // Show the menu
+    m_ContextToolButton->setMenu(menu);
+    }
+  else
+    {
+    m_ContextToolButton->setVisible(false);
+    m_ContextToolButton->setMenu(NULL);
+    }
+}
+
+
+
+
+

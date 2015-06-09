@@ -99,6 +99,33 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
   glPopAttrib();
 }
 
+std::string SliceWindowDecorationRenderer::GetDisplayText(ImageWrapperBase *layer)
+{
+  std::string nickname = layer->GetNickname();
+  if(layer->GetNumberOfComponents() > 1)
+    {
+    AbstractMultiChannelDisplayMappingPolicy *policy =
+        static_cast<AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
+    MultiChannelDisplayMode mode = policy->GetDisplayMode();
+    if(mode.UseRGB)
+      nickname += " [RGB]";
+    else if(mode.SelectedScalarRep == SCALAR_REP_MAGNITUDE)
+      nickname += " [Mag]";
+    else if(mode.SelectedScalarRep == SCALAR_REP_MAX)
+      nickname += " [Max]";
+    else if(mode.SelectedScalarRep == SCALAR_REP_AVERAGE)
+      nickname += " [Avg]";
+    else
+      {
+      std::ostringstream oss;
+      oss << " [" << mode.SelectedComponent + 1 << "/" << layer->GetNumberOfComponents() <<  "]";
+      nickname += oss.str();
+      }
+    }
+
+  return nickname;
+}
+
 void SliceWindowDecorationRenderer::DrawNicknames()
 {
   // Draw the nicknames
@@ -116,7 +143,11 @@ void SliceWindowDecorationRenderer::DrawNicknames()
       as->GetUIElement(SNAPAppearanceSettings::RULER);
 
   // Leave if the labels are disabled
-  if(!elt->GetVisible() || dlm->GetNumberOfGroundLevelLayers() < 2) return;
+  if(!elt->GetVisible())
+    return;
+
+  // Leave if there is trivial information to show
+  // ### if(dlm->GetNumberOfGroundLevelLayers() < 2) return;
 
   // Viewport properties (retina-related)
   double vppr = parentModel->GetSizeReporter()->GetViewportPixelRatio();
@@ -164,8 +195,9 @@ void SliceWindowDecorationRenderer::DrawNicknames()
 
       if(layer)
         {
+        std::string nick_text = this->GetDisplayText(layer);
         int fw = this->m_PlatformSupport->MeasureTextWidth(
-              layer->GetNickname().c_str(), font_info) / vppr;
+              nick_text.c_str(), font_info) / vppr;
         if(fw > maxwidth)
           maxwidth = fw;
         }
@@ -188,11 +220,13 @@ void SliceWindowDecorationRenderer::DrawNicknames()
           parentModel->GetLayerForNthTile(i, j);
       if(layer)
         {
+        std::string nick_text = this->GetDisplayText(layer);
+
         // If there is only one column, we render the text on the left
         if(ncols == 1)
           {
           this->m_PlatformSupport->RenderTextInOpenGL(
-                layer->GetNickname().c_str(),
+                nick_text.c_str(),
                 left_margin, h * (nrows - i) - 18, w, 15, font_info,
                 AbstractRendererPlatformSupport::LEFT,
                 AbstractRendererPlatformSupport::TOP,
@@ -201,7 +235,7 @@ void SliceWindowDecorationRenderer::DrawNicknames()
         else
           {
           this->m_PlatformSupport->RenderTextInOpenGL(
-                layer->GetNickname().c_str(),
+                nick_text.c_str(),
                 w * j, h * (nrows - i) - 20, w, 15, font_info,
                 AbstractRendererPlatformSupport::HCENTER,
                 AbstractRendererPlatformSupport::TOP,

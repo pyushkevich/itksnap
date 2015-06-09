@@ -82,7 +82,7 @@ void CrosshairsInteractionMode::mousePressEvent(QMouseEvent *ev)
 {
   // We have to be careful to check that the event landed in the
   // region corresponding to an image view and not to a thumbnail
-  if(!m_ThumbnailLayer)
+  if(this->IsMouseOverFullLayer())
     {
     // Use model to envoke event
     if(ev->button() == m_BtnCursor)
@@ -269,7 +269,47 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
   int scrollLines = QApplication::wheelScrollLines();
   QApplication::setWheelScrollLines(1);
 
-  if(m_WheelEventTarget)
+  // Special case - when the user uses shift, we scroll in time, not in Z!
+  if(event->modifiers() == Qt::ShiftModifier)
+    {
+    bool isThumb;
+    ImageWrapperBase *layer =
+        m_Model->GetParent()->GetContextLayerAtPosition(
+          event->pos().x(),
+          m_Model->GetParent()->GetSizeReporter()->GetLogicalViewportSize()[1] - event->pos().y(),
+        isThumb);
+
+    if(layer && layer->GetNumberOfComponents() > 1)
+      {
+      AbstractMultiChannelDisplayMappingPolicy *dpolicy =
+          static_cast<AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
+
+      // Get the current display mode
+      MultiChannelDisplayMode mode = dpolicy->GetDisplayMode();
+
+      // Mode must be single component
+      if(!mode.UseRGB && mode.SelectedScalarRep == SCALAR_REP_COMPONENT)
+        {
+        static double delta_accum = 0.0;
+        delta_accum += event->angleDelta().x() + event->angleDelta().y();
+
+        if(delta_accum <= -120.0 || delta_accum >= 120.0)
+          {
+          mode.SelectedComponent += (int) (delta_accum / 120.0);
+          delta_accum = 0.0;
+          }
+
+        if(mode.SelectedComponent < 0)
+          mode.SelectedComponent = 0;
+        else if(mode.SelectedComponent >= layer->GetNumberOfComponents())
+          mode.SelectedComponent = layer->GetNumberOfComponents()-1;
+        dpolicy->SetDisplayMode(mode);
+        }
+      event->accept();
+      }
+    }
+
+  else if(m_WheelEventTarget)
     {
     QWheelEvent evnew(
           event->pos(), event->globalPos(), event->delta(),

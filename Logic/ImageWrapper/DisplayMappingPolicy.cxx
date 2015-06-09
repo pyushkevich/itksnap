@@ -582,6 +582,11 @@ int MultiChannelDisplayMode::GetHashValue() const
   return SelectedComponent;
 }
 
+bool MultiChannelDisplayMode::IsSingleComponent()
+{
+  return !UseRGB && (SelectedScalarRep == SCALAR_REP_COMPONENT);
+}
+
 bool operator < (const MultiChannelDisplayMode &a, const MultiChannelDisplayMode &b)
 {
   return a.GetHashValue() < b.GetHashValue();

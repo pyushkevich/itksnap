@@ -363,6 +363,12 @@ struct MultiChannelDisplayMode
   /** Get a hash value for this struct - for ordering purposes */
   int GetHashValue() const;
 
+  /**
+   * Whether the mode is a single-component mode: i.e., non-RGB and the
+   * ScalarRepresentation is single component
+   */
+  bool IsSingleComponent();
+
   /** Comparison operators */
   bool operator == (const MultiChannelDisplayMode &mode) const
     { return GetHashValue() == mode.GetHashValue(); }

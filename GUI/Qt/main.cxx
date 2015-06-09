@@ -90,6 +90,7 @@ public:
     {
     this->setApplicationName("ITK-SNAP");
     this->setOrganizationName("itksnap.org");
+    this->setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     m_MainWindow = NULL;
 
     // Store the command-line arguments

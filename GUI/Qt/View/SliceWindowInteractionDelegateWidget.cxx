@@ -33,7 +33,8 @@ void SliceWindowInteractionDelegateWidget::preprocessEvent(QEvent *ev)
     m_XSlice = to_double(m_ParentModel->MapWindowToSlice(
                            to_float(Vector2d(m_XSpace.extract(2)))));
 
-    // Check for thumbnail
+    // Determine whether the mouse is over a layer, and if so what layer it is, and
+    // whether the layer is shown as a thumbnail or not
     QPoint pos;
     if(dynamic_cast<QMouseEvent *>(ev))
       pos = dynamic_cast<QMouseEvent *>(ev)->pos();
@@ -42,7 +43,10 @@ void SliceWindowInteractionDelegateWidget::preprocessEvent(QEvent *ev)
 
     Vector2i x(pos.x(),
                m_ParentModel->GetSizeReporter()->GetLogicalViewportSize()[1] - pos.y());
-    m_ThumbnailLayer = m_ParentModel->GetThumbnailedLayerAtPosition(x[0], x[1]);
+
+    // The hovered over layer is stored in m_HoverOverLayer
+    m_HoverOverLayer =
+        m_ParentModel->GetContextLayerAtPosition(x[0], x[1], m_HoverOverLayerIsThumbnail);
     }
 }
 
@@ -53,8 +57,20 @@ void SliceWindowInteractionDelegateWidget::postprocessEvent(QEvent *ev)
     {
     m_LastPressXSlice = m_XSlice;
     }
-  m_ThumbnailLayer = NULL;
+  m_HoverOverLayer = NULL;
 }
+
+bool SliceWindowInteractionDelegateWidget::IsMouseOverLayerThumbnail()
+{
+  return m_HoverOverLayer != NULL && m_HoverOverLayerIsThumbnail;
+}
+
+bool SliceWindowInteractionDelegateWidget::IsMouseOverFullLayer()
+{
+  return m_HoverOverLayer != NULL && !m_HoverOverLayerIsThumbnail;
+}
+
+
 
 #include <QDebug>
 #include <QWindow>

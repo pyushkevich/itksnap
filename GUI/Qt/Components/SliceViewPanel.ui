@@ -129,6 +129,9 @@ font-size:11px;
         <property name="enabled">
          <bool>true</bool>
         </property>
+        <property name="toolTip">
+         <string>Slice selection</string>
+        </property>
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>

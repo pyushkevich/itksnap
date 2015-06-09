@@ -70,30 +70,28 @@ void ThumbnailInteractionMode::mousePressEvent(QMouseEvent *ev)
     }
 
   // Check for layer thumbnail hit.
-  else if(this->m_ThumbnailLayer && ev->button() == Qt::LeftButton)
+  else if(this->IsMouseOverLayerThumbnail() && ev->button() == Qt::LeftButton)
     {
-    if(!m_ThumbnailLayer->IsSticky())
+    if(!this->m_HoverOverLayer->IsSticky())
       m_Model->GetParent()->GetDriver()->GetGlobalState()->SetSelectedLayerId(
-            m_ThumbnailLayer->GetUniqueId());
+            this->m_HoverOverLayer->GetUniqueId());
     ev->accept();
     }
 }
 
 void ThumbnailInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
-  // Press position in screen pixels
-  Vector2i x(ev->pos().x(),
-             m_ParentModel->GetSizeReporter()->GetLogicalViewportSize()[1] - ev->pos().y());
-
-  // If we are hovering over the thumbnail, it nice to indicate that to the user by
-  // highlighting the thumbnail.
-  if(m_ThumbnailLayer)
+  // If we are hovering over an image, it nice to indicate that to the user by
+  // highlighting the image.
+  if(this->m_HoverOverLayer != NULL)
     {
-    m_Model->GetParent()->SetHoveredThumbnailLayerId(m_ThumbnailLayer->GetUniqueId());
+    m_Model->GetParent()->SetHoveredImageLayerId(this->m_HoverOverLayer->GetUniqueId());
+    m_Model->GetParent()->SetHoveredImageIsThumbnail(this->m_HoverOverLayerIsThumbnail);
     }
   else
     {
-    m_Model->GetParent()->SetHoveredThumbnailLayerId(-1ul);
+    m_Model->GetParent()->SetHoveredImageLayerId(-1ul);
+    m_Model->GetParent()->SetHoveredImageIsThumbnail(false);
     }
 
   ev->ignore();
@@ -116,7 +114,7 @@ void ThumbnailInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
 
 void ThumbnailInteractionMode::contextMenuEvent(QContextMenuEvent *ev)
 {
-  if(this->m_ThumbnailLayer)
+  if(this->IsMouseOverLayerThumbnail())
     {
     emit customContextMenuRequested(ev->pos());
     ev->accept();
@@ -125,7 +123,7 @@ void ThumbnailInteractionMode::contextMenuEvent(QContextMenuEvent *ev)
 
 void ThumbnailInteractionMode::onContextMenuRequested(const QPoint &pt)
 {
-  if(this->m_ThumbnailLayer)
+  if(this->IsMouseOverLayerThumbnail())
     {
     // Instead of creating a separate context menu here, we use a context menu
     // from the corresponding row in the LayerInspector.
@@ -133,7 +131,7 @@ void ThumbnailInteractionMode::onContextMenuRequested(const QPoint &pt)
     LayerInspectorDialog *inspector = winmain->GetLayerInspector();
 
     // Get the menu
-    QMenu *menu = inspector->GetLayerContextMenu(this->m_ThumbnailLayer);
+    QMenu *menu = inspector->GetLayerContextMenu(this->m_HoverOverLayer);
 
     // Show the menu
     if(menu)
@@ -152,7 +150,9 @@ void ThumbnailInteractionMode::leaveEvent(QEvent *)
 {
   SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
   panel->SetMouseMotionTracking(false);
-  m_Model->GetParent()->SetHoveredThumbnailLayerId(-1ul);
+
+  m_Model->GetParent()->SetHoveredImageLayerId(-1ul);
+  m_Model->GetParent()->SetHoveredImageIsThumbnail(false);
 }
 
 
