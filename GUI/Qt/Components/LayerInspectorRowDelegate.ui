@@ -402,7 +402,13 @@ color: rgb(120, 120, 120)</string>
               </property>
               <property name="icon">
                <iconset resource="../Resources/SNAPResources.qrc">
-                <normaloff>:/root/open_popup_16.png</normaloff>:/root/open_popup_16.png</iconset>
+                <normaloff>:/root/context_gray_10.png</normaloff>:/root/context_gray_10.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>10</width>
+                <height>10</height>
+               </size>
               </property>
               <property name="checkable">
                <bool>false</bool>

@@ -348,6 +348,8 @@ void LayerInspectorDialog::layerSelected(bool flag)
 
     // Switch the current layer in all the right-pane models
     LayerInspectorRowDelegate *wsel = (LayerInspectorRowDelegate *) this->sender();
+    if(!wsel->selected())
+      wsel->setSelected(true);
     this->SetActiveLayer(wsel->GetLayer());
 
     // Put this layer's actions on the menu
@@ -360,6 +362,11 @@ void LayerInspectorDialog::onContrastInspectorRequested()
   // Make sure the layer is selected
   this->layerSelected(true);
   ui->tabWidget->setCurrentWidget(ui->cmpContrast);
+
+  // Make sure to show the dialog
+  this->show();
+  this->activateWindow();
+  this->raise();
 }
 
 void LayerInspectorDialog::SetActiveLayer(ImageWrapperBase *layer)

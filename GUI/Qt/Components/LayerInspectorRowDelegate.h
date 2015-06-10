@@ -12,6 +12,7 @@ class QMenu;
 class QActionGroup;
 class QContextMenuEvent;
 class QSlider;
+class QLabel;
 
 class OpacitySliderAction : public QWidgetAction
 {
@@ -27,6 +28,24 @@ protected:
   QWidget *m_Container;
 };
 
+
+class WidgetWithLabelAction : public QWidgetAction
+{
+  Q_OBJECT
+public:
+  WidgetWithLabelAction(QWidget *parent = 0);
+  void setWidget(QWidget *widget);
+  virtual void setLabelText(const QString &text);
+
+protected slots:
+
+  void onChanged();
+
+protected:
+
+  QWidget *m_Container;
+  QLabel *m_Label;
+};
 
 namespace Ui {
 class LayerInspectorRowDelegate;
@@ -121,11 +140,11 @@ private:
   QMenu *m_PopupMenu;
 
   // A submenu for the color maps
-  QMenu *m_ColorMapMenu, *m_DisplayModeMenu;
+  QMenu *m_ColorMapMenu, *m_DisplayModeMenu, *m_OverlaysMenu;
 
   // Slider for opacity that lives in the menu
   QSlider *m_OverlayOpacitySlider;
-  OpacitySliderAction *m_OverlayOpacitySliderAction;
+  WidgetWithLabelAction *m_OverlayOpacitySliderAction;
 
   // An action group for the system presets
   QActionGroup* m_SystemPresetActionGroup, *m_DisplayModeActionGroup;
@@ -135,6 +154,7 @@ private:
   void UpdateVisibilityControls();
   void UpdateColorMapMenu();
   void UpdateComponentMenu();
+  void UpdateOverlaysMenu();
   void OnNicknameUpdate();
 };
 

@@ -68,8 +68,13 @@ bool LayerTableRowModel::CheckState(UIState state)
     case LayerTableRowModel::UIF_OPACITY_EDITABLE:
       return (m_Layer->IsSticky());
 
+    // Pinnable means it's not sticky and may be overlayed (i.e., not main)
     case LayerTableRowModel::UIF_PINNABLE:
-      return (m_LayerRole != MAIN_ROLE && tiling);
+      return (m_LayerRole != MAIN_ROLE && !m_Layer->IsSticky());
+
+    // Unpinnable means it's not sticky and may be overlayed (i.e., not main)
+    case LayerTableRowModel::UIF_UNPINNABLE:
+      return (m_LayerRole != MAIN_ROLE && m_Layer->IsSticky());
 
     case LayerTableRowModel::UIF_MOVABLE_UP:
       return (m_LayerRole == OVERLAY_ROLE
