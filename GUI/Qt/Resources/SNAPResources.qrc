@@ -122,6 +122,13 @@
         <file>context_gray_12@2x.png</file>
         <file>context_gray_10@2x.png</file>
         <file>context_gray_10.png</file>
+        <file>icons8_pin_12@2x.png</file>
+        <file>icons8_unpin_12.png</file>
+        <file>icons8_unpin_12@2x.png</file>
+        <file>icons8_up_12@x2.png</file>
+        <file>icons8_up_12.png</file>
+        <file>icons8_down_12@x2.png</file>
+        <file>icons8_down_12.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

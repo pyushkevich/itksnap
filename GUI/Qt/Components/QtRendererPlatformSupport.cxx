@@ -94,6 +94,7 @@ void QtRendererPlatformSupport
   qfont.setBold(font.bold);
   painter.setFont(qfont);
 
+  // painter.fillRect(QRectF(0,0,rScreen.width(),rScreen.height()), QColor(64,64,64,64));
   painter.drawText(QRectF(0,0,rScreen.width(),rScreen.height()), ah | av, QString::fromUtf8(text));
 
   QImage gl = QGLWidget::convertToGLFormat(canvas);

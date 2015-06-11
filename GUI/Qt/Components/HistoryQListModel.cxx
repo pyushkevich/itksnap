@@ -41,7 +41,10 @@ void HistoryQListItem::setItem(
   this->setData(history_entry, Qt::UserRole);
   QPixmap dummy(128, 128);
   dummy.fill(Qt::gray);
-  this->setIcon(QIcon(dummy)) ;
+  this->setIcon(QIcon(dummy));
+
+  // At the moment, these are hard-coded
+  this->setSizeHint(QSize(188,144));
 
   // Deal with the icon later
   std::string hist_str = to_utf8(history_entry);
@@ -50,6 +53,7 @@ void HistoryQListItem::setItem(
 
   m_IconFilename = from_utf8(thumbnail);
 
+  // TODO: for debugging change 0 to a random number
   QTimer::singleShot(0, this, SLOT(onTimer()));
 }
 
@@ -117,13 +121,8 @@ void HistoryQListModel::Initialize(
   m_HistoryName = category;
 
   // Get the property models for the local and global histories
-  HistoryManager::AbstractHistoryModel *hmodel =
-      m_Model->GetDriver()->GetHistoryManager()->GetGlobalHistoryModel(category);
-
-  // Listen for updates from the history model
-  LatentITKEventNotifier::connect(hmodel, ValueChangedEvent(),
+  LatentITKEventNotifier::connect(model->GetDriver(), MainImageDimensionsChangeEvent(),
                                   this, SLOT(onModelUpdate(EventBucket)));
-
   // Cache the history
   this->rebuildModel();
 }
@@ -131,10 +130,12 @@ void HistoryQListModel::Initialize(
 
 void HistoryQListModel::onModelUpdate(const EventBucket &bucket)
 {
-  this->beginResetModel();
-
-  // When history changes, we update
-  this->rebuildModel();
-
-  this->endResetModel();
+  // We only perform an update when the main image has been unloaded
+  // to reduce unnecessary work during image loading
+  if(!m_Model->GetDriver()->IsMainImageLoaded())
+    {
+    this->beginResetModel();
+    this->rebuildModel();
+    this->endResetModel();
+    }
 }

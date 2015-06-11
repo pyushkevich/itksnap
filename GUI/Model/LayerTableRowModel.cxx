@@ -282,18 +282,17 @@ LayerTableRowModel::GetDisplayModeString(const MultiChannelDisplayMode &mode)
   switch(mode.SelectedScalarRep)
     {
     case SCALAR_REP_COMPONENT:
-      oss << "Component ";
-      oss << (1 + mode.SelectedComponent);
+      oss << (1 + mode.SelectedComponent) << "/" << m_Layer->GetNumberOfComponents();
       return oss.str();
 
     case SCALAR_REP_MAGNITUDE:
-      return "Magnitude";
+      return "Mag";
 
     case SCALAR_REP_MAX:
-      return "Maximum";
+      return "Max";
 
     case SCALAR_REP_AVERAGE:
-      return "Average";
+      return "Avg";
 
     case NUMBER_OF_SCALAR_REPS:
       break;
@@ -392,51 +391,22 @@ void LayerTableRowModel::OnUpdate()
 
 bool LayerTableRowModel::GetLayerOpacityValueAndRange(int &value, NumericValueRange<int> *domain)
 {
-  if(!m_Layer) return false;
+  // For opacity to be defined, the layer must be sticky
+  if(!m_Layer || !m_Layer->IsSticky()) return false;
 
   // Meaning of 'visible' is different for sticky and non-sticky layers
-  if(m_Layer->IsSticky())
-    {
-    value = (int)(100.0 * m_Layer->GetAlpha());
-    }
-
-  else if(m_Layer->GetUniqueId()
-          == m_ParentModel->GetDriver()->GetGlobalState()->GetSelectedLayerId())
-    {
-    value = 100;
-    }
-
-  else
-    {
-    value = 0;
-    }
-
+  value = (int)(100.0 * m_Layer->GetAlpha());
 
   if(domain)
     domain->Set(0, 100, 5);
+
   return true;
 }
 
 void LayerTableRowModel::SetLayerOpacityValue(int value)
 {
-  // This gets called in response to the visibility flag being set too.
-  // We handle it in a tricky way, because visibility means different things for
-  // the sticky and non-sticky layers
-  if(m_Layer->IsSticky())
-    {
-    // For a stickly layer, just set it's alpha value as prompted
-    m_Layer->SetAlpha(value / 100.0);
-    }
-  else
-    {
-    // For a non-sticky layer, toggling its visibility makes it the only visible
-    // or non-visible layer
-    if(value > 0)
-      {
-      m_ParentModel->GetDriver()->GetGlobalState()->SetSelectedLayerId(m_Layer->GetUniqueId());
-      }
-    }
-
+  assert(m_Layer && m_Layer->IsSticky());
+  m_Layer->SetAlpha(value / 100.0);
 }
 
 bool LayerTableRowModel::GetStickyValue(bool &value)

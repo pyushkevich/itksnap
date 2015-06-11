@@ -549,11 +549,13 @@ void SliceViewPanel::OnHoveredLayerChange(const EventBucket &eb)
 
     // Show the menu
     m_ContextToolButton->setMenu(menu);
+    m_ContextToolButton->setDown(false);
     }
   else
     {
     m_ContextToolButton->setVisible(false);
     m_ContextToolButton->setMenu(NULL);
+    m_ContextToolButton->setDown(false);
     }
 }
 

@@ -45,6 +45,11 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         &Self::GetNicknameValue,
         &Self::SetNicknameValue);
 
+  m_IsStickyModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetIsStickyValue,
+        &Self::SetIsStickyValue);
+
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -125,6 +130,19 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
       }
     case UIF_MULTICOMPONENT:
       return m_Layer->GetNumberOfComponents() > 1;
+
+    case UIF_IS_STICKINESS_EDITABLE:
+      // TODO: this is not a very good way of checking whether the layer can be made
+      // sticky or not. Really, we should be aware of the role of the layer, and base
+      // this decision on the role.
+      return m_ParentModel->GetDriver()->GetCurrentImageData()->GetMain() != m_Layer;
+
+    case UIF_IS_OPACITY_EDITABLE:
+      // TODO: this is not a very good way of checking whether the layer can be made
+      // sticky or not. Really, we should be aware of the role of the layer, and base
+      // this decision on the role.
+      return m_ParentModel->GetDriver()->GetCurrentImageData()->GetMain() != m_Layer
+             && m_Layer->IsSticky();
     }
 
   return false;
@@ -337,6 +355,23 @@ VectorImageWrapperBase *
 LayerGeneralPropertiesModel::GetLayerAsVector()
 {
   return dynamic_cast<VectorImageWrapperBase *>(this->GetLayer());
+}
+
+
+bool LayerGeneralPropertiesModel::GetIsStickyValue(bool &value)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  if(layer)
+    {
+    value = layer->IsSticky();
+    return true;
+    }
+  return false;
+}
+
+void LayerGeneralPropertiesModel::SetIsStickyValue(bool value)
+{
+  this->GetLayer()->SetSticky(value);
 }
 
 

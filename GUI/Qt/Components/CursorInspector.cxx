@@ -168,32 +168,45 @@ void CursorInspector::UpdateVoxelTableRow(int i, const LayerCurrentVoxelInfo &vi
   QStandardItem *item_intensity = m_CurrentVoxelItemModel->item(i, 1);
 
   item_layer->setText(from_utf8(vi.LayerName));
-  item_layer->setToolTip(from_utf8(vi.LayerName));
-
   item_intensity->setText(from_utf8(vi.IntensityValue));
   item_intensity->setToolTip(from_utf8(vi.IntensityValue));
 
   // item_layer->setForeground(QBrush(QColor(Qt::darkGray)));
   // item_intensity->setForeground(QBrush(QColor(Qt::darkGray)));
+
+  QString tooltip_annot;
+
+  // By default the color of the items is black
+  item_layer->setForeground(QBrush(QColor(Qt::black)));
+  item_intensity->setForeground(QBrush(QColor(Qt::black)));
+  item_layer->setIcon(QIcon());
+
   if(vi.isSelectedGroundLayer)
     {
     // item_layer->setIcon(QIcon(":/root/icons8_star_8.png"));
     QFont font = item_layer->font(); font.setBold(true);
     item_layer->setFont(font);
-    item_layer->setIcon(QIcon());
+    item_layer->setToolTip(from_utf8(vi.LayerName));
     }
   else if(vi.isSticky)
     {
-    item_layer->setIcon(QIcon(":/root/icons8_pin_10.png"));
-    QFont font = item_layer->font(); font.setBold(false);
+    // item_layer->setIcon(QIcon(":/root/icons8_pin_10.png"));
+    QFont font = item_layer->font(); font.setBold(false); font.setItalic(true);
     item_layer->setFont(font);
+    item_layer->setToolTip(QString("<p>%1</p><p>%2</p>").arg(
+                             from_utf8(vi.LayerName)).arg(
+                             "This layer is rendered as an overlay on top of other layers."));
     }
   else
     {
-    item_layer->setIcon(QIcon());
     QFont font = item_layer->font(); font.setBold(false);
     item_layer->setFont(font);
+    item_layer->setToolTip(from_utf8(vi.LayerName));
     }
+
+  // Set the tooltip
+  item_layer->setToolTip(
+        QString("<p>%1</p><p>%2</p>").arg(from_utf8(vi.LayerName)).arg(tooltip_annot));
 
   // Set the color icon
   QColor stored_color = qvariant_cast<QColor>(item_intensity->data(Qt::UserRole));

@@ -50,6 +50,11 @@ public:
   {
     w->setValue(static_cast<int>(value));
   }
+
+  virtual void SetValueToNull(QSlider *w)
+  {
+    w->setValue(w->minimum());
+  }
 };
 
 template <class TAtomic>

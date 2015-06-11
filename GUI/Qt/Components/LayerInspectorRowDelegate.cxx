@@ -124,7 +124,6 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   // Initialize the state
   m_Selected = false;
   m_Hover = false;
-  ui->stack->setCurrentWidget(ui->pageBlank);
   UpdateBackgroundPalette();
 }
 
@@ -141,29 +140,30 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   makeCoupling(ui->outLayerNickname, model->GetNicknameModel());
   makeCoupling(ui->outComponent, model->GetComponentNameModel());
   makeCoupling(m_OverlayOpacitySlider, model->GetLayerOpacityModel());
-
-  makeCoupling((QAbstractButton *) ui->btnSticky, model->GetStickyModel());
   makeCoupling((QAbstractButton *) ui->btnVisible, model->GetVisibilityToggleModel());
+  makeCoupling((QAbstractButton *) ui->btnSticky, model->GetStickyModel());
 
   const QtWidgetActivator::Options opt_hide = QtWidgetActivator::HideInactive;
   activateOnFlag(ui->actionUnpin_layer, model, LayerTableRowModel::UIF_UNPINNABLE, opt_hide);
   activateOnFlag(ui->actionPin_layer, model, LayerTableRowModel::UIF_PINNABLE, opt_hide);
+  activateOnAnyFlags(ui->btnSticky, model, LayerTableRowModel::UIF_UNPINNABLE, LayerTableRowModel::UIF_PINNABLE, opt_hide);
   activateOnFlag(m_OverlayOpacitySliderAction, model, LayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
   activateOnFlag(m_ColorMapMenu, model, LayerTableRowModel::UIF_COLORMAP_ADJUSTABLE, opt_hide);
   activateOnFlag(m_DisplayModeMenu, model, LayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
+  activateOnFlag(ui->outComponent, model, LayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
 
   // makeActionVisibilityCoupling(ui->actionUnpin_layer, model->GetStickyModel());
   // makeActionVisibilityCoupling(ui->actionPin_layer, model->GetStickyModel(), true);
   // makeActionVisibilityCoupling(m_OverlayOpacitySliderAction, model->GetStickyModel());
 
   // Hook up some activations
-  activateOnFlag(ui->btnVisible, model, LayerTableRowModel::UIF_OPACITY_EDITABLE);
-  activateOnFlag(ui->inLayerOpacity, model, LayerTableRowModel::UIF_OPACITY_EDITABLE);
-  activateOnFlag(ui->btnSticky, model, LayerTableRowModel::UIF_PINNABLE);
-  activateOnFlag(ui->btnMoveUp, model, LayerTableRowModel::UIF_MOVABLE_UP);
-  activateOnFlag(ui->btnMoveDown, model, LayerTableRowModel::UIF_MOVABLE_DOWN);
+  activateOnFlag(ui->btnVisible, model, LayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
+  activateOnFlag(ui->inLayerOpacity, model, LayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
+  // activateOnFlag(ui->btnMoveUp, model, LayerTableRowModel::UIF_MOVABLE_UP);
+  // activateOnFlag(ui->btnMoveDown, model, LayerTableRowModel::UIF_MOVABLE_DOWN);
   activateOnFlag(ui->actionClose, model, LayerTableRowModel::UIF_CLOSABLE);
   activateOnFlag(ui->actionAutoContrast, model, LayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
+
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());
@@ -324,14 +324,6 @@ bool LayerInspectorRowDelegate::eventFilter(QObject *, QEvent *evt)
 
 void LayerInspectorRowDelegate::UpdateVisibilityControls()
 {  
-  if(m_Model->GetParentModel()->GetLayerVisibilityEditable())
-    {
-    ui->stack->setCurrentWidget(ui->pageControls);
-    }
-  else
-    {
-    ui->stack->setCurrentWidget(ui->pageBlank);
-    }
 }
 
 void LayerInspectorRowDelegate::UpdateColorMapMenu()
@@ -384,6 +376,10 @@ void LayerInspectorRowDelegate::UpdateColorMapMenu()
 
   // Add the action group to the menu
   m_ColorMapMenu->addActions(m_SystemPresetActionGroup->actions());
+
+  // Add the link to color map editor
+  m_ColorMapMenu->addSeparator();
+  m_ColorMapMenu->addAction(ui->actionColor_Map_Editor);
 }
 
 void LayerInspectorRowDelegate::UpdateComponentMenu()
@@ -644,4 +640,9 @@ void WidgetWithLabelAction::onChanged()
 {
   m_Container->setVisible(this->isVisible());
   m_Container->setEnabled(this->isEnabled());
+}
+
+void LayerInspectorRowDelegate::on_actionColor_Map_Editor_triggered()
+{
+  emit colorMapInspectorRequested();
 }

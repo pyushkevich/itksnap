@@ -99,6 +99,7 @@ public slots:
 signals:
   void selectionChanged(bool);
   void contrastInspectorRequested();
+  void colorMapInspectorRequested();
   
 private slots:
   void on_btnMenu_pressed();
@@ -122,6 +123,8 @@ private slots:
   void on_actionUnpin_layer_triggered();
 
   void on_actionContrast_Inspector_triggered();
+
+  void on_actionColor_Map_Editor_triggered();
 
 private:
   Ui::LayerInspectorRowDelegate *ui;

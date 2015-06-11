@@ -53,7 +53,9 @@ public:
   /** States for this model */
   enum UIState {
     UIF_MULTICOMPONENT,
-    UIF_CAN_SWITCH_COMPONENTS
+    UIF_CAN_SWITCH_COMPONENTS,
+    UIF_IS_STICKINESS_EDITABLE,
+    UIF_IS_OPACITY_EDITABLE
   };
 
   // Implementation of virtual functions from parent class
@@ -83,6 +85,9 @@ public:
 
   /** A model for the layer visibility on/off state */
   irisSimplePropertyAccessMacro(LayerVisibility, bool)
+
+  /** A model for the stickiness */
+  irisSimplePropertyAccessMacro(IsSticky, bool)
 
   /** A model for the filename */
   irisSimplePropertyAccessMacro(Filename, std::string)
@@ -127,6 +132,11 @@ protected:
 
   bool GetNicknameValue(std::string &value);
   void SetNicknameValue(std::string value);
+
+  // Stickiness
+  SmartPtr<AbstractSimpleBooleanProperty> m_IsStickyModel;
+  bool GetIsStickyValue(bool &value);
+  void SetIsStickyValue(bool value);
 
   // Get the current display settings
   VectorImageWrapperBase *GetLayerAsVector();

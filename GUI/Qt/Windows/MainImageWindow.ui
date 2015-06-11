@@ -36,7 +36,7 @@
     <item>
      <widget class="QStackedWidget" name="stackMain">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="pageMain">
        <layout class="QGridLayout" name="gridLayout_2">
@@ -106,7 +106,7 @@ QTabWidget::tab-bar {
 QTabBar:tab {
 	border:none;
 	margin-left: 20px;
-	margin-top: 12px;
+	margin-top: 6px;
 	padding-left: 5px;
 	padding-right: 5px;
 	min-width: 132px;
@@ -136,11 +136,14 @@ QTabBar:tab:hover {
             <property name="leftMargin">
              <number>12</number>
             </property>
+            <property name="topMargin">
+             <number>6</number>
+            </property>
             <property name="rightMargin">
              <number>12</number>
             </property>
             <property name="bottomMargin">
-             <number>12</number>
+             <number>4</number>
             </property>
             <item>
              <widget class="QFrame" name="frame">
@@ -241,14 +244,20 @@ color:rgb(103, 103, 103);
             <string>Recent Images</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="spacing">
+             <number>4</number>
+            </property>
             <property name="leftMargin">
              <number>12</number>
+            </property>
+            <property name="topMargin">
+             <number>6</number>
             </property>
             <property name="rightMargin">
              <number>12</number>
             </property>
             <property name="bottomMargin">
-             <number>12</number>
+             <number>4</number>
             </property>
             <item>
              <widget class="RecentHistoryItemsView" name="panelRecentImages" native="true"/>
@@ -260,14 +269,20 @@ color:rgb(103, 103, 103);
             <string>Recent Workspaces</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_5">
+            <property name="spacing">
+             <number>4</number>
+            </property>
             <property name="leftMargin">
              <number>12</number>
+            </property>
+            <property name="topMargin">
+             <number>6</number>
             </property>
             <property name="rightMargin">
              <number>12</number>
             </property>
             <property name="bottomMargin">
-             <number>12</number>
+             <number>4</number>
             </property>
             <item>
              <widget class="RecentHistoryItemsView" name="panelRecentWorkspaces" native="true"/>
@@ -279,6 +294,12 @@ color:rgb(103, 103, 103);
         <item>
          <widget class="QWidget" name="widget" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout">
+           <property name="topMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>6</number>
+           </property>
            <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
