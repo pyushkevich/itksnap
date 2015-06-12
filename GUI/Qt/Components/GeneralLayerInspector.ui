@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>429</width>
-    <height>449</height>
+    <width>448</width>
+    <height>612</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -55,10 +55,15 @@ QGroupBox::title {
      <property name="enabled">
       <bool>true</bool>
      </property>
-     <property name="title">
-      <string>General Information:</string>
+     <property name="styleSheet">
+      <string notr="true">QToolButton {
+font-size:11px;
+}</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0">
+     <property name="title">
+      <string>General Image Layer Properties:</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3" rowstretch="0,0">
       <property name="leftMargin">
        <number>6</number>
       </property>
@@ -71,11 +76,21 @@ QGroupBox::title {
       <property name="bottomMargin">
        <number>4</number>
       </property>
-      <property name="verticalSpacing">
+      <property name="horizontalSpacing">
        <number>6</number>
       </property>
+      <property name="verticalSpacing">
+       <number>8</number>
+      </property>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="inNickname">
+        <property name="toolTip">
+         <string>This is the name that is used when referring to the image in ITK-SNAP.</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
-       <widget class="QLabel" name="label_3">
+       <widget class="QLabel" name="label_5">
         <property name="text">
          <string>Filename:</string>
         </property>
@@ -89,16 +104,9 @@ QGroupBox::title {
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="label_4">
+       <widget class="QLabel" name="label_6">
         <property name="text">
          <string>Nickname:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="inNickname">
-        <property name="toolTip">
-         <string>This is the name that is used when referring to the image in ITK-SNAP.</string>
         </property>
        </widget>
       </item>
@@ -106,11 +114,19 @@ QGroupBox::title {
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="grpOverlay">
-     <property name="title">
-      <string>Display Preferences:</string>
+    <widget class="QGroupBox" name="grpSecondary">
+     <property name="enabled">
+      <bool>true</bool>
      </property>
-     <layout class="QGridLayout" name="gridLayout_3" columnstretch="0,1,0">
+     <property name="styleSheet">
+      <string notr="true">QToolButton {
+font-size:11px;
+}</string>
+     </property>
+     <property name="title">
+      <string>Secondary Image Display:</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0,0,0">
       <property name="leftMargin">
        <number>6</number>
       </property>
@@ -123,72 +139,17 @@ QGroupBox::title {
       <property name="bottomMargin">
        <number>4</number>
       </property>
-      <property name="verticalSpacing">
+      <property name="horizontalSpacing">
        <number>6</number>
       </property>
-      <item row="0" column="1" colspan="2">
-       <widget class="QWidget" name="grpOverlayChecks" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <property name="spacing">
-          <number>4</number>
-         </property>
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QRadioButton" name="btnUnpin">
-           <property name="toolTip">
-            <string>Render the image side by side with other image layers. This setting is best when working with multiple anatomical images at once.</string>
-           </property>
-           <property name="text">
-            <string>Base layer</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../Resources/SNAPResources.qrc">
-             <normaloff>:/root/icons8_unpin_12.png</normaloff>:/root/icons8_unpin_12.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>12</width>
-             <height>12</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="btnPin">
-           <property name="toolTip">
-            <string>Render the image as a semi-transparent overlay on top of other images. This setting is best for statistical maps.</string>
-           </property>
-           <property name="text">
-            <string>Overlay</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../Resources/SNAPResources.qrc">
-             <normaloff>:/root/icons8_pin_12.png</normaloff>:/root/icons8_pin_12.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>12</width>
-             <height>12</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="1" column="1" colspan="2">
+      <property name="verticalSpacing">
+       <number>8</number>
+      </property>
+      <item row="1" column="1">
        <widget class="QWidget" name="grpOpacity" native="true">
+        <property name="styleSheet">
+         <string notr="true">font-size:12pt;</string>
+        </property>
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <property name="spacing">
           <number>4</number>
@@ -235,43 +196,143 @@ QGroupBox::title {
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="chkVisible">
+          <widget class="QToolButton" name="btnVisible">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle the visibility of the overlay&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
-            <string>Visible</string>
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../Resources/SNAPResources.qrc">
+             <normaloff>:/root/icons8_invisible_12.png</normaloff>
+             <normalon>:/root/icons8_visible_12.png</normalon>:/root/icons8_invisible_12.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>12</width>
+             <height>12</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+           <property name="autoRaise">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
         </layout>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Render image as:</string>
+      <item row="0" column="1">
+       <widget class="QWidget" name="grpOverlayChecks" native="true">
+        <property name="styleSheet">
+         <string notr="true"/>
         </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,1,1">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>2</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QToolButton" name="btnUnpin">
+           <property name="toolTip">
+            <string>Place this image layer earlier in the workspace. This affects the order in which the layers are layed out and rendered.</string>
+           </property>
+           <property name="text">
+            <string>Separate image</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../Resources/SNAPResources.qrc">
+             <normaloff>:/root/icons8_unpin_12.png</normaloff>:/root/icons8_unpin_12.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>12</width>
+             <height>12</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextBesideIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="btnPin">
+           <property name="toolTip">
+            <string>Place this image layer earlier in the workspace. This affects the order in which the layers are layed out and rendered.</string>
+           </property>
+           <property name="text">
+            <string>Semi-transparent overlay</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../Resources/SNAPResources.qrc">
+             <normaloff>:/root/icons8_pin_12.png</normaloff>:/root/icons8_pin_12.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>12</width>
+             <height>12</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextBesideIcon</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lblOpacity">
-        <property name="text">
-         <string>Overlay opacity:</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_9">
-        <property name="text">
-         <string>Display order:</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1" colspan="2">
+      <item row="3" column="1">
        <widget class="QWidget" name="widget" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout">
          <property name="leftMargin">
@@ -348,15 +409,61 @@ QGroupBox::title {
         </layout>
        </widget>
       </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="lblOverlayMode">
+        <property name="text">
+         <string>Display as:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <spacer name="verticalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>10</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Display order:</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lblOpacity">
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>Overlay opacity:</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="grpMulticomponent">
      <property name="title">
-      <string>Multi-component Display:</string>
+      <string>Multi-component Visualization:</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout" columnminimumwidth="110,0,0,0">
+     <layout class="QGridLayout" name="gridLayout" columnminimumwidth="104,0">
       <property name="leftMargin">
        <number>6</number>
       </property>
@@ -369,51 +476,112 @@ QGroupBox::title {
       <property name="bottomMargin">
        <number>4</number>
       </property>
+      <property name="horizontalSpacing">
+       <number>6</number>
+      </property>
       <property name="verticalSpacing">
-       <number>4</number>
+       <number>8</number>
       </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Display Mode:</string>
+         <string>Display mode:</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="1" colspan="3">
+      <item row="0" column="1">
        <widget class="QComboBox" name="inMode">
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Multi-component images have more than one value for each voxel. These values may represent measurements taken at different time points, different chromatic components, etc. ITK-SNAP offers multiple ways to visualize this multi-dimensional information. You can choose to visualize just one component, or a summary function of the components, such as magnitude, average, or maximum. In the special case of three-component images, the components can be rendered as red, green and blue channels (RGB).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="3" alignment="Qt::AlignRight">
-       <widget class="QCheckBox" name="chkAnimate">
-        <property name="text">
-         <string>Animate</string>
+      <item row="1" column="1">
+       <widget class="QWidget" name="grpComponent" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>20</height>
+         </size>
         </property>
+        <property name="styleSheet">
+         <string notr="true">font-size:12pt;</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QSpinBox" name="inComponent">
+           <property name="minimumSize">
+            <size>
+             <width>60</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSlider" name="inComponentSlider">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="btnAnimate">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle the visibility of the overlay&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../Resources/SNAPResources.qrc">
+             <normaloff>:/root/icons8_film_reel_12.png</normaloff>:/root/icons8_film_reel_12.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>12</width>
+             <height>12</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="lblComponent">
         <property name="text">
          <string>Component:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="inComponent">
-        <property name="minimumSize">
-         <size>
-          <width>60</width>
-          <height>0</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QSlider" name="inComponentSlider">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
         </property>
        </widget>
       </item>

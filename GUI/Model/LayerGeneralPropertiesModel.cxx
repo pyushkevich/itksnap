@@ -119,6 +119,9 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
   if(!m_Layer)
     return false;
 
+  // Defer to the row model when we can
+  LayerTableRowModel *row_model = this->GetSelectedLayerTableRowModel();
+
   switch(state)
     {
     case UIF_CAN_SWITCH_COMPONENTS:
@@ -132,20 +135,30 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
       return m_Layer->GetNumberOfComponents() > 1;
 
     case UIF_IS_STICKINESS_EDITABLE:
-      // TODO: this is not a very good way of checking whether the layer can be made
-      // sticky or not. Really, we should be aware of the role of the layer, and base
-      // this decision on the role.
-      return m_ParentModel->GetDriver()->GetCurrentImageData()->GetMain() != m_Layer;
+      return row_model->CheckState(LayerTableRowModel::UIF_PINNABLE)
+          || row_model->CheckState(LayerTableRowModel::UIF_UNPINNABLE);
 
     case UIF_IS_OPACITY_EDITABLE:
-      // TODO: this is not a very good way of checking whether the layer can be made
-      // sticky or not. Really, we should be aware of the role of the layer, and base
-      // this decision on the role.
-      return m_ParentModel->GetDriver()->GetCurrentImageData()->GetMain() != m_Layer
-             && m_Layer->IsSticky();
+      return row_model->CheckState(LayerTableRowModel::UIF_OPACITY_EDITABLE);
+
+    case UIF_MOVABLE_UP:
+      return row_model->CheckState(LayerTableRowModel::UIF_MOVABLE_UP);
+
+    case UIF_MOVABLE_DOWN:
+      return row_model->CheckState(LayerTableRowModel::UIF_MOVABLE_DOWN);
     }
 
   return false;
+}
+
+void LayerGeneralPropertiesModel::MoveLayerUp()
+{
+  this->GetSelectedLayerTableRowModel()->MoveLayerUp();
+}
+
+void LayerGeneralPropertiesModel::MoveLayerDown()
+{
+  this->GetSelectedLayerTableRowModel()->MoveLayerDown();
 }
 
 bool LayerGeneralPropertiesModel

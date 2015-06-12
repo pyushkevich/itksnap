@@ -40,7 +40,7 @@ void HistoryQListItem::setItem(
   this->setToolTip(history_entry);
   this->setData(history_entry, Qt::UserRole);
   QPixmap dummy(128, 128);
-  dummy.fill(Qt::gray);
+  dummy.fill(Qt::black);
   this->setIcon(QIcon(dummy));
 
   // At the moment, these are hard-coded

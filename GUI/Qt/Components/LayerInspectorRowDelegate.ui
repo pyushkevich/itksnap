@@ -208,8 +208,14 @@ QMenu::item
           </property>
           <property name="icon">
            <iconset resource="../Resources/SNAPResources.qrc">
-            <normaloff>:/root/icons8_invisible_16.png</normaloff>
-            <normalon>:/root/icons8_visible_16.png</normalon>:/root/icons8_invisible_16.png</iconset>
+            <normaloff>:/root/icons8_invisible_12.png</normaloff>
+            <normalon>:/root/icons8_visible_12.png</normalon>:/root/icons8_invisible_12.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>12</width>
+            <height>12</height>
+           </size>
           </property>
           <property name="checkable">
            <bool>true</bool>

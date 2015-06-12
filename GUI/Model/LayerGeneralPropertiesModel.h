@@ -55,7 +55,9 @@ public:
     UIF_MULTICOMPONENT,
     UIF_CAN_SWITCH_COMPONENTS,
     UIF_IS_STICKINESS_EDITABLE,
-    UIF_IS_OPACITY_EDITABLE
+    UIF_IS_OPACITY_EDITABLE,
+    UIF_MOVABLE_UP,
+    UIF_MOVABLE_DOWN
   };
 
   // Implementation of virtual functions from parent class
@@ -94,6 +96,10 @@ public:
 
   /** A model for the nickname */
   irisSimplePropertyAccessMacro(Nickname, std::string)
+
+  /** Move the layer up in the list */
+  void MoveLayerUp();
+  void MoveLayerDown();
 
 protected:
 
