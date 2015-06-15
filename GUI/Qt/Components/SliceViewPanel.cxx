@@ -14,6 +14,8 @@
 #include "SnakeROIModel.h"
 #include "SliceWindowCoordinator.h"
 #include "PolygonDrawingModel.h"
+#include "AnnotationModel.h"
+#include "AnnotationRenderer.h"
 #include "QtWidgetActivator.h"
 #include "SnakeModeRenderer.h"
 #include "SnakeWizardModel.h"
@@ -176,6 +178,7 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   ui->imPolygon->SetModel(m_GlobalUI->GetPolygonDrawingModel(index));
   ui->imSnakeROI->SetModel(m_GlobalUI->GetSnakeROIModel(index));
   ui->imPaintbrush->SetModel(m_GlobalUI->GetPaintbrushModel(index));
+  ui->imAnnotation->SetModel(m_GlobalUI->GetAnnotationModel(index));
 
   // ui->labelQuickList->SetModel(m_GlobalUI);
 
@@ -208,6 +211,9 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   // Listen to paintbrush motion
   connectITK(m_GlobalUI->GetPaintbrushModel(index),
              PaintbrushModel::PaintbrushMovedEvent());
+
+  // Listen to annotation changes
+  connectITK(m_GlobalUI->GetAnnotationModel(index), ModelUpdateEvent());
 
   // Listen to all (?) events from the snake wizard as well
   connectITK(m_GlobalUI->GetSnakeWizardModel(), IRISEvent());
@@ -375,6 +381,8 @@ void SliceViewPanel::OnToolbarModeChange()
       ovTiled.push_back(ui->imPaintbrush->GetRenderer());
       break;
     case ANNOTATION_MODE:
+      ConfigureEventChain(ui->imAnnotation);
+      ovTiled.push_back(ui->imAnnotation->GetRenderer());
       break;
     case ROI_MODE:
       ConfigureEventChain(ui->imSnakeROI);

@@ -32,6 +32,7 @@
 #include <GenericSliceModel.h>
 #include <OrthogonalSliceCursorNavigationModel.h>
 #include <PolygonDrawingModel.h>
+#include <AnnotationModel.h>
 #include <SnakeROIModel.h>
 #include <SliceWindowCoordinator.h>
 #include <GenericImageData.h>
@@ -113,6 +114,9 @@ GlobalUIModel::GlobalUIModel()
 
     m_PaintbrushModel[i] = PaintbrushModel::New();
     m_PaintbrushModel[i]->SetParent(m_SliceModel[i]);
+
+    m_AnnotationModel[i] = AnnotationModel::New();
+    m_AnnotationModel[i]->SetParent(m_SliceModel[i]);
     }
 
 

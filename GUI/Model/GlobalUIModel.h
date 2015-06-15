@@ -39,6 +39,7 @@ class SNAPAppearanceSettings;
 class GenericSliceModel;
 class OrthogonalSliceCursorNavigationModel;
 class PolygonDrawingModel;
+class AnnotationModel;
 class SliceWindowCoordinator;
 class GuidedNativeImageIO;
 class SystemInterface;
@@ -165,6 +166,12 @@ public:
   PaintbrushModel *GetPaintbrushModel(unsigned int i) const
   {
     return m_PaintbrushModel[i];
+  }
+
+  /** Get the annotation model for each slice */
+  AnnotationModel *GetAnnotationModel(unsigned int i) const
+  {
+    return m_AnnotationModel[i];
   }
 
   /** Get the model for intensity curve navigation */
@@ -329,6 +336,9 @@ protected:
 
   // Models for paintbrush drawing
   SmartPtr<PaintbrushModel> m_PaintbrushModel[3];
+
+  // Models for annotation
+  SmartPtr<AnnotationModel> m_AnnotationModel[3];
 
   // Window coordinator
   SmartPtr<SliceWindowCoordinator> m_SliceCoordinator;

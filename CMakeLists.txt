@@ -362,6 +362,7 @@ SET(LOGIC_HEADERS
 
 # These files have the UI model code, which is GUI-TK independent
 SET(UI_GENERIC_CXX
+  GUI/Model/AnnotationModel.cxx
   GUI/Model/ColorLabelQuickListModel.cxx
   GUI/Model/ColorLabelPropertyModel.cxx
   GUI/Model/ColorMapModel.cxx
@@ -398,6 +399,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/AbstractRenderer.cxx
   GUI/Renderer/AbstractVTKRenderer.cxx
   GUI/Renderer/AbstractVTKSceneRenderer.cxx
+  GUI/Renderer/AnnotationRenderer.cxx
   GUI/Renderer/ColorMapRenderer.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/EdgePreprocessingSettingsRenderer.cxx
@@ -430,6 +432,7 @@ SET(UI_GENERIC_CXX
 SET(UI_GENERIC_HEADERS
   GUI/Model/AbstractLayerAssociatedModel.h
   GUI/Model/AbstractLayerInfoItemSetDomain.h
+  GUI/Model/AnnotationModel.h
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelQuickListModel.h
   GUI/Model/ColorLabelPropertyModel.h
@@ -470,6 +473,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/AbstractRenderer.h
   GUI/Renderer/AbstractVTKRenderer.h
   GUI/Renderer/AbstractVTKSceneRenderer.h
+  GUI/Renderer/AnnotationRenderer.h
   GUI/Renderer/ColorMapRenderer.h
   GUI/Renderer/CrosshairsRenderer.h
   GUI/Renderer/EdgePreprocessingSettingsRenderer.h
@@ -500,6 +504,7 @@ SET(UI_GENERIC_HEADERS
 
 # These files contain the Qt-specific user interface source code
 SET(UI_QT_CXX
+  GUI/Qt/Components/AnnotationToolPanel.cxx
   GUI/Qt/Components/CollapsableGroupBox.cxx
   GUI/Qt/Components/ColorLabelQuickListWidget.cxx
   GUI/Qt/Components/ColorMapInspector.cxx
@@ -540,6 +545,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/ZoomInspector.cxx
   GUI/Qt/External/ColorWheel/ColorWheel.cxx
   GUI/Qt/ModelView/GMMTableModel.cxx
+  GUI/Qt/View/AnnotationInteractionMode.cxx
   GUI/Qt/View/ColorMapBox.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
   GUI/Qt/View/GenericSliceView.cxx
@@ -584,6 +590,7 @@ SET(UI_QT_CXX
 
 # The header files for the UI project
 SET(UI_MOC_HEADERS
+  GUI/Qt/Components/AnnotationToolPanel.h
   GUI/Qt/Components/CollapsableGroupBox.h
   GUI/Qt/Components/ColorLabelQuickListWidget.h
   GUI/Qt/Components/ColorMapInspector.h
@@ -622,6 +629,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Coupling/QtWidgetCoupling.h
   GUI/Qt/External/ColorWheel/ColorWheel.h
   GUI/Qt/ModelView/GMMTableModel.h
+  GUI/Qt/View/AnnotationInteractionMode.h
   GUI/Qt/View/ColorMapBox.h
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
@@ -689,6 +697,7 @@ SET(UI_NONMOC_HEADERS
 )
 
 SET(UI_FORMS
+  GUI/Qt/Components/AnnotationToolPanel.ui
   GUI/Qt/Components/CollapsableGroupBox.ui
   GUI/Qt/Components/ColorMapInspector.ui
   GUI/Qt/Components/ContrastInspector.ui

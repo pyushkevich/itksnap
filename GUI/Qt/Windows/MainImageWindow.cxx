@@ -104,6 +104,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   ui->actionPolygon->setActionGroup(grpToolbarMain);
   ui->actionPaintbrush->setActionGroup(grpToolbarMain);
   ui->actionSnake->setActionGroup(grpToolbarMain);
+  ui->actionAnnotation->setActionGroup(grpToolbarMain);
 
   QActionGroup *grpToolbar3D = new QActionGroup(this);
   ui->action3DTrackball->setActionGroup(grpToolbar3D);
@@ -408,6 +409,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionPolygon, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionSnake, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionPaintbrush, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionAnnotation, m_Model, UIF_BASEIMG_LOADED);
 
   activateOnFlag(ui->action3DCrosshair, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->action3DTrackball, m_Model, UIF_BASEIMG_LOADED);
@@ -1781,3 +1783,4 @@ void MainImageWindow::on_actionUnload_Last_Overlay_triggered()
     }
 
 }
+

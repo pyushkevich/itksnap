@@ -623,6 +623,9 @@ p, li { white-space: pre-wrap; }
       <item>
        <widget class="PaintbrushInteractionMode" name="imPaintbrush" native="true"/>
       </item>
+      <item>
+       <widget class="AnnotationInteractionMode" name="imAnnotation" native="true"/>
+      </item>
      </layout>
     </widget>
    </item>
@@ -866,6 +869,12 @@ p, li { white-space: pre-wrap; }
    <class>PaintbrushInteractionMode</class>
    <extends>QWidget</extends>
    <header>PaintbrushInteractionMode.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AnnotationInteractionMode</class>
+   <extends>QWidget</extends>
+   <header>AnnotationInteractionMode.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

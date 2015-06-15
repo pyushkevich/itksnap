@@ -488,6 +488,7 @@ color:rgb(103, 103, 103);
      <addaction name="actionPolygon"/>
      <addaction name="actionPaintbrush"/>
      <addaction name="actionSnake"/>
+     <addaction name="actionAnnotation"/>
     </widget>
     <widget class="QMenu" name="menuActive_3D_Tool">
      <property name="title">
@@ -1398,6 +1399,17 @@ color:rgb(103, 103, 103);
   <action name="actionRecentOverlay_5">
    <property name="text">
     <string>Recent 5</string>
+   </property>
+  </action>
+  <action name="actionAnnotation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Annotation Tool</string>
+   </property>
+   <property name="shortcut">
+    <string>6</string>
    </property>
   </action>
  </widget>

@@ -286,7 +286,7 @@ void SliceWindowDecorationRenderer::DrawRulers()
   double maxw = 0.5 * vp[0] - 20.0;
   maxw = maxw < 5 ? 5 : maxw;
 
-  double zoom = parentModel->GetViewZoom();
+  double zoom = parentModel->GetViewZoom() / vppr;
   double scale = 1.0;
   while(zoom * scale > maxw) scale /= 10.0;
   while(zoom * scale < 0.1 * maxw) scale *= 10.0;

@@ -473,7 +473,7 @@ QWidget#widget {
          <item>
           <widget class="QStackedWidget" name="stack">
            <property name="currentIndex">
-            <number>0</number>
+            <number>7</number>
            </property>
            <widget class="CursorInspector" name="pageCursorInspector"/>
            <widget class="ZoomInspector" name="pageZoomInspector"/>
@@ -490,6 +490,7 @@ QWidget#widget {
            <widget class="SnakeToolROIPanel" name="pageSnakeTool"/>
            <widget class="PaintbrushToolPanel" name="pagePaintbrushTool"/>
            <widget class="PolygonToolPanel" name="pagePolygonTool"/>
+           <widget class="AnnotationToolPanel" name="pageAnnotationTool"/>
            <widget class="QWidget" name="pageBlank"/>
           </widget>
          </item>
@@ -654,6 +655,12 @@ QToolBar {
    <class>PolygonToolPanel</class>
    <extends>QWidget</extends>
    <header>PolygonToolPanel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AnnotationToolPanel</class>
+   <extends>QWidget</extends>
+   <header>AnnotationToolPanel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

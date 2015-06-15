@@ -140,6 +140,10 @@
         <file>icons8_slr_camera_16.png</file>
         <file>icons8_slr_camera_12@2x.png</file>
         <file>icons8_slr_camera_12.png</file>
+        <file>icons8_cursor_16@2x.png</file>
+        <file>icons8_cursor_16.png</file>
+        <file>icons8_ruler_16.png</file>
+        <file>icons8_ruler_16@2x.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

@@ -66,8 +66,8 @@ public:
   void SetModel(GenericSliceModel *model);
 
   void initializeGL();
-  void resizeGL(int w, int h, int device_pixel_ratio);
-  void paintGL();
+  virtual void resizeGL(int w, int h, int device_pixel_ratio);
+  virtual void paintGL();
 
   irisGetMacro(Model, GenericSliceModel *)
   irisIsMacro(ThumbnailDrawing)
