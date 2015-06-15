@@ -22,6 +22,8 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkContextMouseEvent.h"
 #include "vtkChartLegend.h"
+#include <vtkTextProperty.h>
+
 
 #include "IntensityCurveModel.h"
 #include "IntensityCurveInterface.h"
@@ -415,8 +417,7 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   m_CurvePlot->GetYAxis()->SetMinimumLimit(-0.1);
   m_CurvePlot->GetYAxis()->SetMinimum(-0.1);
   m_CurvePlot->GetYAxis()->SetMaximumLimit(1.1);
-  m_CurvePlot->GetYAxis()->SetMaximum(1.1);
-
+  m_CurvePlot->GetYAxis()->SetMaximum(1.1);  
   m_CurvePlot->GetXAxis()->SetTitle("Image Intensity");
   m_CurvePlot->GetYAxis()->SetTitle("Index into Color Map");
   m_CurvePlot->GetXAxis()->SetBehavior(vtkAxis::FIXED);
@@ -575,4 +576,9 @@ IntensityCurveVTKRenderer
 {
   m_Model->GetMovingControlIdModel()->SetValue(
         m_Controls->GetCurrentPoint() + 1);
+}
+
+void IntensityCurveVTKRenderer::OnDevicePixelRatioChange(int old_ratio, int new_ratio)
+{
+  this->UpdateChartDevicePixelRatio(m_Chart, old_ratio, new_ratio);
 }

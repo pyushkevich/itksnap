@@ -47,7 +47,7 @@ class AbstractRenderer : public AbstractModel
 public:
 
   virtual void initializeGL() {}
-  virtual void resizeGL(int w, int h) {}
+  virtual void resizeGL(int w, int h, int device_pixel_ratio) {}
   virtual void paintGL() = 0;
 
   static void SetPlatformSupport(AbstractRendererPlatformSupport *support)

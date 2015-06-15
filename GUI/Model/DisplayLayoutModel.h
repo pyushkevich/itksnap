@@ -70,6 +70,12 @@ public:
   irisSimplePropertyAccessMacro(NumberOfGroundLevelLayers, int)
 
   /**
+   * Model describing the relative size of the thumbnails in thumbnail view,
+   * in percent.
+   */
+  irisRangedPropertyAccessMacro(ThumbnailRelativeSize, double)
+
+  /**
    * A model for the layout of the layers in a slice view. This model sets
    * the stacked/tiled state. If the state is set to tiled, the number of
    * tiles will be updated as the number of loaded images changes. This model
@@ -114,6 +120,9 @@ protected:
   // than overlayed on other layers
   SmartPtr<AbstractSimpleIntProperty> m_NumberOfGroundLevelLayersModel;
   bool GetNumberOfGroundLevelLayersValue(int &value);
+
+  // Thumbnail size
+  SmartPtr<ConcreteRangedDoubleProperty> m_ThumbnailRelativeSizeModel;
 
   virtual void OnUpdate();
 

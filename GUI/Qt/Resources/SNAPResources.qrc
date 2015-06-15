@@ -135,6 +135,11 @@
         <file>icons8_invisible_12.png</file>
         <file>icons8_film_reel_12.png</file>
         <file>icons8_film_reel_12@2x.png</file>
+        <file>layout_thumb_16.png</file>
+        <file>icons8_slr_camera_16@2x.png</file>
+        <file>icons8_slr_camera_16.png</file>
+        <file>icons8_slr_camera_12@2x.png</file>
+        <file>icons8_slr_camera_12.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

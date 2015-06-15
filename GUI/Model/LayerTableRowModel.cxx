@@ -402,8 +402,7 @@ bool LayerTableRowModel::GetLayerOpacityValueAndRange(int &value, NumericValueRa
 
   return true;
 }
-
-void LayerTableRowModel::SetLayerOpacityValue(int value)
+ void LayerTableRowModel::SetLayerOpacityValue(int value)
 {
   assert(m_Layer && m_Layer->IsSticky());
   m_Layer->SetAlpha(value / 100.0);

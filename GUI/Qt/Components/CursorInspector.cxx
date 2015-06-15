@@ -184,7 +184,7 @@ void CursorInspector::UpdateVoxelTableRow(int i, const LayerCurrentVoxelInfo &vi
   if(vi.isSelectedGroundLayer)
     {
     // item_layer->setIcon(QIcon(":/root/icons8_star_8.png"));
-    QFont font = item_layer->font(); font.setBold(true);
+    QFont font = item_layer->font(); font.setBold(true); font.setItalic(false);
     item_layer->setFont(font);
     item_layer->setToolTip(from_utf8(vi.LayerName));
     }
@@ -199,7 +199,7 @@ void CursorInspector::UpdateVoxelTableRow(int i, const LayerCurrentVoxelInfo &vi
     }
   else
     {
-    QFont font = item_layer->font(); font.setBold(false);
+    QFont font = item_layer->font(); font.setBold(false); font.setItalic(false);
     item_layer->setFont(font);
     item_layer->setToolTip(from_utf8(vi.LayerName));
     }

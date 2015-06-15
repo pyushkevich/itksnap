@@ -337,7 +337,7 @@ GenericSliceRenderer
 
 void
 GenericSliceRenderer
-::resizeGL(int w, int h)
+::resizeGL(int w, int h, int device_pixel_ratio)
 {
   // Set up projection matrix
   glMatrixMode(GL_PROJECTION);

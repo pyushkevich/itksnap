@@ -218,6 +218,10 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   // Activation
   activateOnFlag(this, m_GlobalUI, UIF_BASEIMG_LOADED);
 
+  // Activation for the tile/thumb controls
+  activateOnFlag(ui->btnToggleLayout, m_GlobalUI, UIF_MULTIPLE_BASE_LAYERS,
+                 QtWidgetActivator::HideInactive);
+
   // Set up activation for polygon buttons
   PolygonDrawingModel *pm = m_GlobalUI->GetPolygonDrawingModel(index);
 
@@ -482,13 +486,11 @@ void SliceViewPanel::UpdateExpandViewButton()
   LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
   if(ll == LAYOUT_TILED)
     {
-    ui->btnToggleLayout->setIcon(QIcon(":/root/layout_overlay_16.png"));
-    ui->btnToggleLayout->setToolTip("Render image overlays on top of each other");
+    ui->btnToggleLayout->setIcon(QIcon(":/root/layout_thumb_16.png"));
     }
   else if(ll == LAYOUT_STACKED)
     {
     ui->btnToggleLayout->setIcon(QIcon(":/root/layout_tile_16.png"));
-    ui->btnToggleLayout->setToolTip("Tile image overlays side by side");
     }
 }
 

@@ -8,6 +8,7 @@ class vtkRenderer;
 class vtkRenderWindow;
 class vtkGenericOpenGLRenderWindow;
 class vtkContextView;
+class vtkChart;
 
 /**
   This class provides support for rendering a VTK scene in OpenGL. It sets
@@ -44,6 +45,10 @@ protected:
 
   AbstractVTKSceneRenderer();
   virtual ~AbstractVTKSceneRenderer() {}
+
+  // Helper method for updating device pixel ratio (i.e. retina mode)
+  // for VTK charts
+  virtual void UpdateChartDevicePixelRatio(vtkChart *chart, int old_ratio, int new_ratio);
 };
 
 #endif // ABSTRACTVTKSCENERENDERER_H

@@ -42,6 +42,8 @@ protected:
 
   // Histogram rendering
   LayerHistogramPlotAssembly *m_HistogramAssembly;
+
+  void OnDevicePixelRatioChange(int old_ratio, int new_ratio);
 };
 
 #endif // THRESHOLDSETTINGSRENDERER_H

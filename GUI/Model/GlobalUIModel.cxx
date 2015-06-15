@@ -243,9 +243,6 @@ GlobalUIModel::GlobalUIModel()
   m_SegmentationVisibilityModel =
       NewNumericPropertyToggleAdaptor(m_SegmentationOpacityModel.GetPointer(), 0, 50);
 
-  // Simple toggle for whether controls for layer visibility and reorder are shown
-  m_LayerVisibilityEditableModel = NewSimpleConcreteProperty(false);
-
   // Listen to state changes from the slice coordinator
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), LinkedZoomUpdateEvent());
   Rebroadcast(m_SliceCoordinator, LinkedZoomUpdateEvent(), StateMachineChangeEvent());
@@ -256,6 +253,9 @@ GlobalUIModel::GlobalUIModel()
   // Rebroadcast image layer change events
   Rebroadcast(m_Driver, LayerChangeEvent(), LayerChangeEvent());
   Rebroadcast(m_Driver, LayerChangeEvent(), StateMachineChangeEvent());
+
+  // Rebroadcast image layer change events
+  Rebroadcast(m_Driver, WrapperMetadataChangeEvent(), StateMachineChangeEvent());
 
   // Rebroadcast toolbar model change events (TODO: needed?)
   Rebroadcast(m_Driver->GetGlobalState()->GetToolbarModeModel(),
@@ -324,6 +324,17 @@ bool GlobalUIModel::CheckState(UIState state)
       return m_Driver->IsSnakeModeActive();
     case UIF_LEVEL_SET_ACTIVE:
       return m_Driver->IsSnakeModeLevelSetActive();
+    case UIF_MULTIPLE_BASE_LAYERS:
+      {
+      LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers(
+                           MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE);
+      int n = 0;
+      for(; !it.IsAtEnd(); ++it)
+        if(it.GetLayer() && !it.GetLayer()->IsSticky())
+          ++n;
+
+      return n > 1;
+      }
     }
 
   return false;

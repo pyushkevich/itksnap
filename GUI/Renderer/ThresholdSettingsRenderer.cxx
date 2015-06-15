@@ -113,3 +113,10 @@ void ThresholdSettingsRenderer::OnUpdate()
 
 }
 
+void ThresholdSettingsRenderer::OnDevicePixelRatioChange(int old_ratio, int new_ratio)
+{
+  this->UpdateChartDevicePixelRatio(m_Chart, old_ratio, new_ratio);
+}
+
+
+

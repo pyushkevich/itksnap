@@ -794,8 +794,9 @@ void GenericSliceModel::UpdateViewportLayout()
       int k = n_base_layers;
 
       // This is a complicated calculation to make sure it all fits
+      double max_thumb_size = dlm->GetThumbnailRelativeSize() / 100.0;
       double thumb_wd =
-          std::min(0.16 * w - 2 * margin,
+          std::min(max_thumb_size * w - 2 * margin,
                    (h - (1.0 + k) * margin) * (w - 2.0 * margin) / ((h - margin) * (1.0 + k)));
 
       double thumb_hd = h * thumb_wd / (w - thumb_wd - 2.0 * margin);

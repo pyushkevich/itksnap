@@ -154,7 +154,6 @@ private:
 
   void ApplyColorMap();
   void UpdateBackgroundPalette();
-  void UpdateVisibilityControls();
   void UpdateColorMapMenu();
   void UpdateComponentMenu();
   void UpdateOverlaysMenu();

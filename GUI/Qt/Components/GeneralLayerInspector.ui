@@ -85,7 +85,7 @@ font-size:11px;
       <item row="1" column="1">
        <widget class="QLineEdit" name="inNickname">
         <property name="toolTip">
-         <string>This is the name that is used when referring to the image in ITK-SNAP.</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit this field to assign a short nickname to this image. This information can be saved in the workspace. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
@@ -98,6 +98,9 @@ font-size:11px;
       </item>
       <item row="0" column="1">
        <widget class="QLineEdit" name="outFilename">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the filename from which the image was loaded. This is a read-only field.  However, you can save the image to a different file using this dialog.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
         </property>
@@ -124,9 +127,9 @@ font-size:11px;
 }</string>
      </property>
      <property name="title">
-      <string>Secondary Image Display:</string>
+      <string>How to Display this Image Layer:</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0,0,0">
+     <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0,0,0" columnminimumwidth="105,0">
       <property name="leftMargin">
        <number>6</number>
       </property>
@@ -168,6 +171,15 @@ font-size:11px;
          </property>
          <item>
           <widget class="QSpinBox" name="inOpacityValue">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adjust the opacity of the image when it is displayed as a semi-transparent overlay.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="buttonSymbols">
             <enum>QAbstractSpinBox::NoButtons</enum>
            </property>
@@ -181,6 +193,9 @@ font-size:11px;
          </item>
          <item>
           <widget class="QSlider" name="inOpacity">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adjust the opacity of the image when it is displayed as a semi-transparent overlay.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="maximum">
             <number>100</number>
            </property>
@@ -204,7 +219,7 @@ font-size:11px;
             </size>
            </property>
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle the visibility of the overlay&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle the visibility of the image when it is displayed as a semi-transparent overlay.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -239,7 +254,7 @@ font-size:11px;
         <property name="styleSheet">
          <string notr="true"/>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,1,1">
+        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,1">
          <property name="spacing">
           <number>6</number>
          </property>
@@ -253,25 +268,18 @@ font-size:11px;
           <number>0</number>
          </property>
          <property name="bottomMargin">
-          <number>2</number>
+          <number>0</number>
          </property>
          <item>
-          <spacer name="horizontalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>2</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
           <widget class="QToolButton" name="btnUnpin">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
-            <string>Place this image layer earlier in the workspace. This affects the order in which the layers are layed out and rendered.</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Display this image side by side with the main image.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;This optoin is best suited for anatomical images, e.g., when displaying T1-weighted and T2-weighted MRI scans of the same subject.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Separate image</string>
@@ -302,8 +310,14 @@ font-size:11px;
          </item>
          <item>
           <widget class="QToolButton" name="btnPin">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
-            <string>Place this image layer earlier in the workspace. This affects the order in which the layers are layed out and rendered.</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Display this image as a semi-transparent overlay over other images.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;This option is best for statistical maps. You can control the overall opacity of the overlay in this window, or customize the color map for partial opacity effects. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Semi-transparent overlay</string>
@@ -363,7 +377,7 @@ font-size:11px;
          <item>
           <widget class="QToolButton" name="btnUp">
            <property name="toolTip">
-            <string>Place this image layer earlier in the workspace. This affects the order in which the layers are layed out and rendered.</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Place this image layer earlier in the workspace. This affects the order in which the layers are layed out and rendered. The order is most important when more than one semi-transparent overlay is loaded.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Move up</string>
@@ -386,7 +400,7 @@ font-size:11px;
          <item alignment="Qt::AlignRight">
           <widget class="QToolButton" name="btnDown">
            <property name="toolTip">
-            <string>Place this image layer later in the workspace. This affects the order in which the layers are layed out and rendered.</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Place this image layer later in the workspace. This affects the order in which the layers are layed out and rendered. The order is most important when more than one semi-transparent overlay is loaded.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Move down</string>
@@ -461,9 +475,9 @@ font-size:11px;
    <item>
     <widget class="QGroupBox" name="grpMulticomponent">
      <property name="title">
-      <string>Multi-component Visualization:</string>
+      <string>How to Visualize Multiple Image Components:</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout" columnminimumwidth="104,0">
+     <layout class="QGridLayout" name="gridLayout" columnminimumwidth="105,0">
       <property name="leftMargin">
        <number>6</number>
       </property>
@@ -527,14 +541,20 @@ font-size:11px;
           <widget class="QSpinBox" name="inComponent">
            <property name="minimumSize">
             <size>
-             <width>60</width>
+             <width>80</width>
              <height>0</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the image component to visualize.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QSlider" name="inComponentSlider">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the image component to visualize.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -549,7 +569,7 @@ font-size:11px;
             </size>
            </property>
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle the visibility of the overlay&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle animation mode.&lt;/p&gt;&lt;p&gt;When enabled, the display will automatically loop over the image components at one-second intervals.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>...</string>

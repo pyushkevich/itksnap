@@ -197,7 +197,7 @@ void ColorMapRenderer::paintGL()
 
 }
 
-void ColorMapRenderer::resizeGL(int w, int h)
+void ColorMapRenderer::resizeGL(int w, int h, int device_pixel_ratio)
 {
   // Instead of using the w/h passed in here, which are in physical pixel units,
   // we will use 'logical' pixel units on Retina-type displays. This makes the

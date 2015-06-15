@@ -185,12 +185,6 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   // Update the component menu
   UpdateComponentMenu();
 
-  // The page shown in this widget depends on whether the visibility editing
-  // is on or off
-  connectITK(m_Model->GetParentModel()->GetLayerVisibilityEditableModel(),
-             ValueChangedEvent());
-  UpdateVisibilityControls();
-
   // Update the overlays
   this->UpdateOverlaysMenu();
 }
@@ -320,10 +314,6 @@ bool LayerInspectorRowDelegate::eventFilter(QObject *, QEvent *evt)
 
 
   return false;
-}
-
-void LayerInspectorRowDelegate::UpdateVisibilityControls()
-{  
 }
 
 void LayerInspectorRowDelegate::UpdateColorMapMenu()
@@ -484,10 +474,6 @@ void LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
   if(bucket.HasEvent(WrapperMetadataChangeEvent(), m_Model->GetLayer()))
     {
     this->OnNicknameUpdate();
-    }
-  if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetParentModel()->GetLayerVisibilityEditableModel()))
-    {
-    this->UpdateVisibilityControls();
     }
   if(bucket.HasEvent(ColorMapModel::PresetUpdateEvent()))
     {

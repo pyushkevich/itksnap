@@ -49,7 +49,6 @@ LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
 
   tb->addAction(ui->actionOpenLayer);
   tb->addWidget(m_SaveSelectedButton);
-  tb->addAction(ui->actionEditVisibility);
   tb->addAction(ui->actionLayoutToggle);
 
   // Set up the action button
@@ -107,14 +106,10 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
         this, SLOT(onModelUpdate(const EventBucket &)));
 
 
-  // The button turning on and off the visibility/reorder/pinning controls
-  // on the layer rows is tied to a model in GenericUIModel
-  makeCoupling(
-        ui->actionEditVisibility,
-        model->GetLayerVisibilityEditableModel());
-
   // Set up the activation on the open layer button
   activateOnFlag(ui->actionOpenLayer, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+
+  activateOnFlag(ui->actionLayoutToggle, m_Model, UIF_MULTIPLE_BASE_LAYERS);
 }
 
 void LayerInspectorDialog::SetPageToContrastAdjustment()
@@ -407,13 +402,11 @@ LayerInspectorDialog::UpdateLayerLayoutAction()
 
   if(ll == LAYOUT_TILED)
     {
-    ui->actionLayoutToggle->setIcon(QIcon(":/root/layout_overlay_16.png"));
-    ui->actionLayoutToggle->setToolTip("Render image overlays on top of each other");
+    ui->actionLayoutToggle->setIcon(QIcon(":/root/layout_thumb_16.png"));
     }
   else if(ll == LAYOUT_STACKED)
     {
     ui->actionLayoutToggle->setIcon(QIcon(":/root/layout_tile_16.png"));
-    ui->actionLayoutToggle->setToolTip("Tile image overlays side by side");
     }
 }
 

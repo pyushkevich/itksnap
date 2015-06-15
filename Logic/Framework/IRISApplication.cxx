@@ -1725,6 +1725,11 @@ IRISApplication
   // Read and apply the project-level settings associated with the main image
   LoadMetaDataAssociatedWithLayer(layer, MAIN_ROLE, metadata);
 
+  // The main image may not be sticky, but in old versions of SNAP that was
+  // allowed, so we force override
+  if(layer->IsSticky())
+    layer->SetSticky(false);
+
   // Fire the dimensions change event
   InvokeEvent(MainImageDimensionsChangeEvent());
 
@@ -2151,7 +2156,9 @@ void IRISApplication::OpenProject(
 
     // Check if the main has been loaded
     if(role == MAIN_ROLE)
-      main_loaded = true;
+      {
+      main_loaded = true;      
+      }
     }
 
   // If main has not been loaded, throw an exception

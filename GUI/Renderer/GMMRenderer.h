@@ -41,6 +41,8 @@ protected:
   LayerHistogramPlotAssembly *m_HistogramAssembly;
 
   static unsigned int NUM_POINTS;
+
+  void OnDevicePixelRatioChange(int old_ratio, int new_ratio);
 };
 
 #endif // GMMRENDERER_H

@@ -50,6 +50,10 @@ DisplayLayoutModel::DisplayLayoutModel()
   // The derived model must react to changes to the internal values
   m_NumberOfGroundLevelLayersModel->Rebroadcast(
         this, LayerLayoutChangeEvent(), ValueChangedEvent());
+
+  // Thumbnail size
+  m_ThumbnailRelativeSizeModel = NewRangedConcreteProperty(16.0, 0.0, 40.0, 1.0);
+  Rebroadcast(m_ThumbnailRelativeSizeModel, ValueChangedEvent(), LayerLayoutChangeEvent());
 }
 
 void DisplayLayoutModel::SetParentModel(GlobalUIModel *parentModel)

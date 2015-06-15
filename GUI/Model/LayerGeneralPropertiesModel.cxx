@@ -373,18 +373,16 @@ LayerGeneralPropertiesModel::GetLayerAsVector()
 
 bool LayerGeneralPropertiesModel::GetIsStickyValue(bool &value)
 {
-  ImageWrapperBase *layer = this->GetLayer();
-  if(layer)
-    {
-    value = layer->IsSticky();
-    return true;
-    }
-  return false;
+  // Delegate to the row model for this
+  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  return trm ? trm->GetStickyModel()->GetValueAndDomain(value, NULL) : false;
 }
 
 void LayerGeneralPropertiesModel::SetIsStickyValue(bool value)
 {
-  this->GetLayer()->SetSticky(value);
+  // Delegate to the row model for this
+  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  trm->GetStickyModel()->SetValue(value);
 }
 
 
