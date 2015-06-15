@@ -171,13 +171,17 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   ApplyColorMap();
 
   // Listen to changes in all layer organization and metadata, as this affects the list
-  // of overlays shown
+  // of overlays shown in the context menu
   connectITK(m_Model->GetParentModel()->GetDriver(), LayerChangeEvent());
   connectITK(m_Model->GetParentModel()->GetDriver(), WrapperMetadataChangeEvent());
 
   // Listen to preset changes from the color map model
   connectITK(m_Model->GetParentModel()->GetColorMapModel(),
              ColorMapModel::PresetUpdateEvent());
+
+  // Listen to changes in the currently selected layer in GlobalState
+  connectITK(m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerIdModel(),
+              ValueChangedEvent());
 
   // Update the color map menu
   UpdateColorMapMenu();
@@ -204,7 +208,7 @@ ImageWrapperBase *LayerInspectorRowDelegate::GetLayer() const
 void LayerInspectorRowDelegate::UpdateBackgroundPalette()
 {
   // Set up a pallete for the background
-  QPalette* palette = new QPalette();
+  QPalette palette;
   QLinearGradient linearGradient(QPointF(0, 0), QPointF(0, this->height()));
 
   if(m_Selected && m_Hover)
@@ -228,8 +232,9 @@ void LayerInspectorRowDelegate::UpdateBackgroundPalette()
     linearGradient.setColorAt(1, QColor(255,255,255));
     }
 
-  palette->setBrush(QPalette::Window, *(new QBrush(linearGradient)));
-  ui->frame->setPalette(*palette);
+  QBrush brush(linearGradient);
+  palette.setBrush(QPalette::Window, brush);
+  ui->frame->setPalette(palette);
 
   // Also set the font for the label
   if(ui->outLayerNickname->font().bold() != m_Selected)
@@ -247,8 +252,14 @@ void LayerInspectorRowDelegate::setSelected(bool value)
     m_Selected = value;
     emit selectionChanged(value);
 
+    // Update selection in the model
+    m_Model->SetSelected(value);
+
     // Update the look and feel
     this->UpdateBackgroundPalette();
+
+    // Update!
+    this->update();
     }
 }
 
@@ -484,7 +495,11 @@ void LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
     {
     this->UpdateOverlaysMenu();
     }
-
+  if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerIdModel()))
+    {
+    unsigned long sid = m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerId();
+    this->setSelected(sid == m_Model->GetLayer()->GetUniqueId());
+    }
 }
 
 void LayerInspectorRowDelegate::mouseMoveEvent(QMouseEvent *)

@@ -173,7 +173,6 @@ void LayerTableRowModel::Initialize(GlobalUIModel *parentModel, ImageWrapperBase
               StateMachineChangeEvent());
 
   Rebroadcast(layer, WrapperMetadataChangeEvent(), StateMachineChangeEvent());
-
 }
 
 void LayerTableRowModel::MoveLayerUp()
@@ -195,6 +194,16 @@ SmartPtr<ImageIOWizardModel> LayerTableRowModel::CreateIOWizardModelForSave()
 bool LayerTableRowModel::IsMainLayer()
 {
   return m_LayerRole == MAIN_ROLE;
+}
+
+void LayerTableRowModel::SetSelected(bool selected)
+{
+  // If the layer is selected and is not sticky, we set is as the currently visible
+  // layer in the render views
+  if(selected && !m_Layer->IsSticky())
+    {
+    m_ParentModel->GetGlobalState()->SetSelectedLayerId(m_Layer->GetUniqueId());
+    }
 }
 
 void LayerTableRowModel::CloseLayer()

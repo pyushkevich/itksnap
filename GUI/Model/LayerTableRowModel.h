@@ -91,6 +91,11 @@ public:
   bool IsMainLayer();
 
   /**
+   * Mark the layer as selected
+   */
+  void SetSelected(bool selected);
+
+  /**
    * Close the current layer
    */
   void CloseLayer();
