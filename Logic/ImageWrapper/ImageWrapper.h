@@ -161,7 +161,7 @@ public:
    * source wrapper, otherwise, it's equivalent to SetImage()
    */ 
   virtual void InitializeToWrapper(
-    const ImageWrapperBase *source, ImageType *image, ImageBaseType *refSpace, ITKTransformType *tran);
+    const ImageWrapperBase *source, ImageType *image, ImageBaseType *refSpace= NULL, ITKTransformType *tran= NULL);
 
   /**
     Get a unique id for this wrapper. All wrappers ever created have
