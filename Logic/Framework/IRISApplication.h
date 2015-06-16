@@ -302,7 +302,7 @@ public:
   /**
    * Initialize JOIN Image data using region of interest extents
    */
-  void InitializeJOINImageData(const SNAPSegmentationROISettings &roi, int CnJMode,
+  void InitializeJOINImageData(const SNAPSegmentationROISettings &roi, int CnJMode, const char* FileName,
                                CommandType *progressCommand = NULL);
 
   /**

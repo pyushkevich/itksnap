@@ -24,6 +24,7 @@ void GlobalWSWizardModel::OnGlobalWSModeEnter()
   //// Initialize the image data
   m_Driver->InitializeJOINImageData(
         m_Driver->GetGlobalState()->GetSegmentationROISettings(), 1, //1: GWS; todo: use enum for selection state of CnJ
+	NULL,
         m_Parent->GetProgressCommand());
 
   m_Driver->SetCurrentImageDataToJOIN();
