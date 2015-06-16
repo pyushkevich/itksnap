@@ -366,7 +366,10 @@ void IRISSlicer<TInputImage, TOutputImage>
     szVol[m_SliceDirectionImageAxis] == 1 ? 0 : m_SliceIndex;
 
   // Get the offset of the first voxel
-  size_t iStart = dot_product(stride_image, xStartVoxel);
+  //size_t iStart = dot_product(stride_image, xStartVoxel);//overflows if any product is greater than uint32! see: http://itk.org/gitweb?p=ITK.git;a=blob;f=Modules/ThirdParty/VNL/src/vxl/core/vnl/vnl_sse.h;h=04f930ef05bb49036e1fa69d6fe9ae9a697e2d45;hb=HEAD#l189
+  size_t iStart = (size_t)stride_image[0]*(size_t)xStartVoxel[0]
+                + (size_t)stride_image[1]*(size_t)xStartVoxel[1]
+                + (size_t)stride_image[2]*(size_t)xStartVoxel[2];//doing it outside VNL, save but slower?
 
   // Get the size of the output region (whole slice)
   typename OutputImageType::RegionType rgn = outputPtr->GetBufferedRegion();
