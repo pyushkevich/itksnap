@@ -52,7 +52,7 @@ JOINImageData
 
 void 
 JOINImageData
-::InitializeJsrc(){
+::InitializeJsrc(JsrcImageType *newJsrcImage){
     // The Grey image wrapper should be present
     assert(m_MainImageWrapper->IsInitialized());
 
@@ -64,7 +64,10 @@ JOINImageData
         PushBackImageWrapper(JOIN_ROLE, m_JsrcWrapper.GetPointer());
 	}
 
-    m_JsrcWrapper->InitializeToWrapper(m_MainImageWrapper, (JSRType) 0);
+    if(newJsrcImage)
+ 	m_JsrcWrapper->InitializeToWrapper(m_MainImageWrapper, newJsrcImage);
+    else
+	m_JsrcWrapper->InitializeToWrapper(m_MainImageWrapper, (JSRType) 0);
     m_JsrcWrapper->SetSticky(true); //overlay, ie no separate tile
     m_JsrcWrapper->SetAlpha(0.5);
 

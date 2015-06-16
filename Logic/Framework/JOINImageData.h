@@ -72,7 +72,7 @@ public:
     */
   void UnloadAll();
 
-  void InitializeJsrc();
+  void InitializeJsrc(JsrcImageType *newJsrcImage= NULL);
   JsrcImageWrapper* GetJsrc();
   void SetJsrc(JsrcImageType *newJsrcImage);
   bool IsJsrcLoaded();
