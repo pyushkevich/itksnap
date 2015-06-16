@@ -253,7 +253,7 @@ IRISApplication
 
 void 
 IRISApplication
-::InitializeJOINImageData(const SNAPSegmentationROISettings &roi, int CnJMode,
+::InitializeJOINImageData(const SNAPSegmentationROISettings &roi, int CnJMode, const char* FileName,
                           CommandType *progressCommand)
 {
   assert(m_IRISImageData->IsMainLoaded());
@@ -261,11 +261,31 @@ IRISApplication
   // Create the JOIN image data object
   m_JOINImageData->InitializeToROI(m_IRISImageData, roi, progressCommand);
   
-  if(CnJMode == 1)//GWS
-        m_JOINImageData->InitializeWsrc();
+  if(CnJMode == 0){//CnJ with "current segementation"
+      m_JOINImageData->InitializeJsrc();//fills Jsrc with zeros
+  }
+  else if(CnJMode == 1){//GWS
+      m_JOINImageData->InitializeWsrc();
+      m_JOINImageData->InitializeJsrc();//fills Jsrc with zeros
+  }
+  else if(CnJMode == 2){//CnJ with "load from file"
+      assert(FileName);
+      typedef itk::ImageFileReader<JsrcImageWrapper::ImageType> ReaderType;
+      typename ReaderType::Pointer reader = ReaderType::New();
+      reader->SetFileName(FileName);
+      try{
+	  reader->Update();
+	  m_JOINImageData->InitializeJsrc(reader->GetOutput());
+	  }
+      catch(itk::ExceptionObject &ex){
+	  std::cerr << ex << std::endl;
+
+	  ////ToDo: return from CnJ if an error occures (e.g. file does not exist)
+	  m_JOINImageData->InitializeJsrc();//fills Jsrc with zeros
+	  }
+  }
 
   // Initialize the source and destination images of the JOIN image data
-  m_JOINImageData->InitializeJsrc();
   m_JOINImageData->InitializeJdst();
 
   // Pass the cleaned up segmentation image to SNAP

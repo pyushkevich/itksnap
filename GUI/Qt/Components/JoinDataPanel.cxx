@@ -63,6 +63,7 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 	//// Initialize the image data
 	driver->InitializeJOINImageData(
 	    driver->GetGlobalState()->GetSegmentationROISettings(), sel,
+	    NULL,
 	    m_Model->GetProgressCommand());
 
 	driver->CopySegementationToJsrc(
@@ -100,14 +101,16 @@ void JoinDataPanel::on_btnStartCnJ_clicked(){
 	//// Initialize the image data
 	driver->InitializeJOINImageData(
 	    driver->GetGlobalState()->GetSegmentationROISettings(), sel,
+	    ui->JsrcInputFileName->text().toUtf8().constData(),
 	    m_Model->GetProgressCommand());
 
-	driver->LoadImageToJsrc(ui->JsrcInputFileName->text().toUtf8().constData(),
-	    driver->GetGlobalState()->GetSegmentationROISettings(),
-	    m_Model->GetProgressCommand());
 	driver->SetCurrentImageDataToJOIN();
 
 	// set tiled layout to ease understanding the interaction mode
+	driver->GetJOINImageData()->SetJdstSticky(false);
+	//m_Model->SetJsrcVisibility(true);//crashes, seems to be default anyway
+	//m_Model->SetJdstVisibility(true);//crashes, seems to be default anyway
+	m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_STACKED);//only when coming from stacked view will the tiled view get reorganized
 	m_Model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
 	m_Model->SetSegmentationVisibility(true);
 	} break;
