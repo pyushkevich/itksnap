@@ -204,9 +204,9 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   // Listen to toolbar change events
   connectITK(m_GlobalUI, ToolbarModeChangeEvent());
 
-  // Listen to polygon state change events
-  connectITK(m_GlobalUI->GetPolygonDrawingModel(index),
-             StateMachineChangeEvent());
+  // Listen to polygon and annotation model state change events
+  connectITK(m_GlobalUI->GetPolygonDrawingModel(index), StateMachineChangeEvent());
+  connectITK(m_GlobalUI->GetAnnotationModel(index), StateMachineChangeEvent());
 
   // Listen to the Snake ROI model too
   connectITK(m_GlobalUI->GetSnakeROIModel(index),
@@ -594,3 +594,13 @@ void SliceViewPanel::OnHoveredLayerChange(const EventBucket &eb)
 
 
 
+
+void SliceViewPanel::on_actionAnnotationAcceptLine_triggered()
+{
+  m_GlobalUI->GetAnnotationModel(m_Index)->AcceptLine();
+}
+
+void SliceViewPanel::on_actionAnnotationClearLine_triggered()
+{
+  m_GlobalUI->GetAnnotationModel(m_Index)->CancelLine();
+}

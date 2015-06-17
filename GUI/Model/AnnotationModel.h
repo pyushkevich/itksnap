@@ -71,6 +71,8 @@ public:
 
   void AcceptLine();
 
+  void CancelLine();
+
   bool CheckState(UIState state);
 
 

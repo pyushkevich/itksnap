@@ -62,6 +62,10 @@ private slots:
 
   void OnHoveredLayerChange(const EventBucket &eb);
 
+  void on_actionAnnotationAcceptLine_triggered();
+
+  void on_actionAnnotationClearLine_triggered();
+
 private:
   Ui::SliceViewPanel *ui;
 

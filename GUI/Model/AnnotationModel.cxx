@@ -115,6 +115,12 @@ void AnnotationModel::AcceptLine()
   this->InvokeEvent(ModelUpdateEvent());
 }
 
+void AnnotationModel::CancelLine()
+{
+  m_FlagDrawingLine = false;
+  this->InvokeEvent(ModelUpdateEvent());
+}
+
 bool AnnotationModel::CheckState(AnnotationModel::UIState state)
 {
   switch(state)

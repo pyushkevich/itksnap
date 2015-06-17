@@ -108,6 +108,7 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   ui->btnPaintbrushInspector->setVisible(false);
   ui->btnPolygonInspector->setVisible(false);
   ui->btnSnakeInspector->setVisible(false);
+  ui->btnAnnotateInspector->setVisible(false);
 
 
   // Label selection button
