@@ -41,9 +41,9 @@ gl_draw_circle_with_border(double x, double y, double r,
 
 #ifdef __APPLE__
 
-#include <AvailabilityMacros.h>
+#include <Availability.h>
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_8
+#if __MAC_10_8
 
 #include <GLKit/GLKMatrix4.h>
 
