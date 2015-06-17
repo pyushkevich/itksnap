@@ -505,6 +505,92 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item>
+          <widget class="QWidget" name="pageAnnotateLineActive" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <property name="spacing">
+             <number>4</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <spacer name="horizontalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>313</width>
+                <height>17</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnAnnotationAcceptLine">
+              <property name="minimumSize">
+               <size>
+                <width>64</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>-1</pointsize>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string/>
+              </property>
+              <property name="text">
+               <string>accept</string>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextOnly</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnAnnotationClearLine">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>-1</pointsize>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Helvetica'; font-size:11px; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Clears the current polygon so you can start drawing from scratch&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>clear</string>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextOnly</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
           <widget class="QWidget" name="pagePolygonInactive" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <property name="spacing">
@@ -820,6 +906,42 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="shortcutContext">
     <enum>Qt::WidgetWithChildrenShortcut</enum>
+   </property>
+  </action>
+  <action name="actionAnnotationAcceptLine">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/popup_ok_16.png</normaloff>:/root/popup_ok_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Accept Polygon</string>
+   </property>
+   <property name="iconText">
+    <string>accept</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add the current line measurement to the annotation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Return</string>
+   </property>
+  </action>
+  <action name="actionAnnotationClearLine">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/popup_clear_16.png</normaloff>:/root/popup_clear_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clear measurement</string>
+   </property>
+   <property name="iconText">
+    <string>clear</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Cancels the current measurement&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
    </property>
   </action>
  </widget>

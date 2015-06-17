@@ -455,6 +455,35 @@ QWidget#widget {
              </widget>
             </item>
             <item>
+             <widget class="QToolButton" name="btnAnnotateInspector">
+              <property name="minimumSize">
+               <size>
+                <width>25</width>
+                <height>27</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Synchronization Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust synchronization of cursor, zoom and pan across multiple ITK-SNAP sessions running on one computer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/annotation_28.png</normaloff>:/root/annotation_28.png</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="autoExclusive">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -473,7 +502,7 @@ QWidget#widget {
          <item>
           <widget class="QStackedWidget" name="stack">
            <property name="currentIndex">
-            <number>7</number>
+            <number>0</number>
            </property>
            <widget class="CursorInspector" name="pageCursorInspector"/>
            <widget class="ZoomInspector" name="pageZoomInspector"/>

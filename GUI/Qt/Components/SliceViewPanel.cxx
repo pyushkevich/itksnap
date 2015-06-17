@@ -79,6 +79,9 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   ui->btnSplitNodes->setDefaultAction(ui->actionSplitSelected);
   ui->btnUndoLast->setDefaultAction(ui->actionUndo);
 
+  ui->btnAnnotationAcceptLine->setDefaultAction(ui->actionAnnotationAcceptLine);
+  ui->btnAnnotationClearLine->setDefaultAction(ui->actionAnnotationClearLine);
+
   this->addAction(ui->actionZoom_In);
   this->addAction(ui->actionZoom_Out);
 
@@ -121,6 +124,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   loPages->addWidget(ui->pagePolygonDraw);
   loPages->addWidget(ui->pagePolygonEdit);
   loPages->addWidget(ui->pagePolygonInactive);
+  loPages->addWidget(ui->pageAnnotateLineActive);
   delete ui->toolbar->layout();
   ui->toolbar->setLayout(loPages);
 
@@ -240,6 +244,12 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   activateOnAllFlags(ui->actionSplitSelected, pm, UIF_EDITING, UIF_HAVE_EDGE_SELECTION);
   activateOnAllFlags(ui->actionUndo, pm, UIF_DRAWING, UIF_HAVEPOLYGON);
   activateOnAllFlags(ui->actionClearPolygon, pm, UIF_EDITING, UIF_HAVEPOLYGON);
+
+  // Set up activation from the annotation model
+  AnnotationModel *am = m_GlobalUI->GetAnnotationModel(index);
+
+  activateOnFlag(ui->actionAnnotationAcceptLine, am, AnnotationModel::UIF_LINE_MODE_DRAWING);
+  activateOnFlag(ui->actionAnnotationClearLine, am, AnnotationModel::UIF_LINE_MODE_DRAWING);
 
   // Update the expand view button
   this->UpdateExpandViewButton();
@@ -411,8 +421,18 @@ void SliceViewPanel::OnToolbarModeChange()
         loPages->setCurrentWidget(ui->pagePolygonInactive); break;
       }
     }
+  else if(m_GlobalUI->GetGlobalState()->GetToolbarMode() == ANNOTATION_MODE)
+    {
+    AnnotationModel *am = m_GlobalUI->GetAnnotationModel(m_Index);
+    if(am->GetMode() == AnnotationModel::LINE_DRAWING && am->GetFlagDrawingLine())
+      loPages->setCurrentWidget(ui->pageAnnotateLineActive);
+    else
+      loPages->setCurrentWidget(ui->pageDefault);
+    }
   else
+    {
     loPages->setCurrentWidget(ui->pageDefault);
+    }
 }
 
 void SliceViewPanel::on_btnZoomToFit_clicked()
@@ -568,6 +588,7 @@ void SliceViewPanel::OnHoveredLayerChange(const EventBucket &eb)
     m_ContextToolButton->setDown(false);
     }
 }
+
 
 
 

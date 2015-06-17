@@ -1405,6 +1405,10 @@ color:rgb(103, 103, 103);
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/annotation_28.png</normaloff>:/root/annotation_28.png</iconset>
+   </property>
    <property name="text">
     <string>Annotation Tool</string>
    </property>

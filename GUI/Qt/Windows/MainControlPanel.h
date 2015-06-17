@@ -44,6 +44,8 @@ private slots:
 
   void on_btnSnakeInspector_clicked(bool checked);
 
+  void on_btnAnnotateInspector_clicked(bool checked);
+
 private:
   Ui::MainControlPanel *ui;
   GlobalUIModel *m_Model;

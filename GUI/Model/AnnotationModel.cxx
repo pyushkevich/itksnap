@@ -115,9 +115,29 @@ void AnnotationModel::AcceptLine()
   this->InvokeEvent(ModelUpdateEvent());
 }
 
+bool AnnotationModel::CheckState(AnnotationModel::UIState state)
+{
+  switch(state)
+    {
+    case AnnotationModel::UIF_LINE_MODE:
+      return m_Mode == LINE_DRAWING;
+      break;
+    case AnnotationModel::UIF_LINE_MODE_DRAWING:
+      return m_Mode == LINE_DRAWING && m_FlagDrawingLine;
+      break;
+    case AnnotationModel::UIF_EDITING_MODE:
+      return m_Mode == SELECT;
+      break;
+
+    }
+
+  return false;
+}
+
 AnnotationModel::AnnotationModel()
 {
   m_FlagDrawingLine = false;
+  Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
 }
 
 AnnotationModel::~AnnotationModel()

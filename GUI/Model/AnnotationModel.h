@@ -20,6 +20,14 @@ public:
 
   irisITKObjectMacro(AnnotationModel, AbstractModel)
 
+  // States
+  enum UIState {
+    UIF_LINE_MODE,
+    UIF_LINE_MODE_DRAWING,
+    UIF_EDITING_MODE
+  };
+
+
   FIRES(StateMachineChangeEvent)
 
   irisSetMacro(Parent, GenericSliceModel *)
@@ -62,6 +70,8 @@ public:
   bool ProcessReleaseEvent(const Vector3d &xSlice);
 
   void AcceptLine();
+
+  bool CheckState(UIState state);
 
 
 protected:

@@ -95,6 +95,7 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
 
   // The mode toolbar
   QToolBar *toolbar = new QToolBar(this);
+  toolbar->setIconSize(QSize(28, 28));
   ui->panelToolbarMode->layout()->addWidget(toolbar);  
   toolbar->addActions(parent->GetMainToolActionGroup()->actions());
 
@@ -162,7 +163,7 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     ui->btnPolygonInspector,
     ui->btnPaintbrushInspector,
     ui->btnSnakeInspector,
-    ui->btnSnakeInspector
+    ui->btnAnnotateInspector
   };
 
 
@@ -175,6 +176,7 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     ui->btnPaintbrushInspector->setVisible(mode == PAINTBRUSH_MODE);
     ui->btnPolygonInspector->setVisible(mode == POLYGON_DRAWING_MODE);
     ui->btnSnakeInspector->setVisible(mode == ROI_MODE);
+    ui->btnAnnotateInspector->setVisible(mode == ANNOTATION_MODE);
 
     // Click the button corresponding to the mode
     mode_inspector_btn[mode]->click();
@@ -255,4 +257,14 @@ void MainControlPanel::on_btnSnakeInspector_clicked(bool checked)
     ui->grpInspector->setTitle("Snake Inspector");
     }
 
+}
+
+
+void MainControlPanel::on_btnAnnotateInspector_clicked(bool checked)
+{
+  if(checked)
+    {
+    ui->stack->setCurrentWidget(ui->pageAnnotationTool);
+    ui->grpInspector->setTitle("Annotation Inspector");
+    }
 }

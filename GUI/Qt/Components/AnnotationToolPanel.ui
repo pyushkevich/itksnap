@@ -75,6 +75,9 @@
         <property name="checked">
          <bool>true</bool>
         </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonTextBesideIcon</enum>
         </property>
@@ -96,6 +99,9 @@
           <normaloff>:/root/icons8_cursor_16.png</normaloff>:/root/icons8_cursor_16.png</iconset>
         </property>
         <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
          <bool>true</bool>
         </property>
         <property name="toolButtonStyle">
