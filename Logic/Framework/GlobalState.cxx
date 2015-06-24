@@ -94,8 +94,6 @@ GlobalState
   m_PaintbrushSettings.watershed.level = 0.2;
   m_PaintbrushSettings.watershed.smooth_iterations = 15;
 
-  // Set annotation defaults
-  m_AnnotationSettings.shownOnAllSlices = false;
 
   m_PolygonDrawingContextMenuModel = NewSimpleConcreteProperty(false);
 
@@ -126,6 +124,10 @@ GlobalState
   m_SliceViewLayerLayoutModel = NewSimpleConcreteProperty(LAYOUT_STACKED);
 
   m_SelectedLayerIdModel = NewSimpleConcreteProperty(0ul);
+
+  // Set annotation defaults
+  m_AnnotationSettings.shownOnAllSlices = false;
+  m_AnnotationModeModel = NewSimpleConcreteProperty(ANNOTATION_RULER);
 }
 
 void GlobalState::SetDriver(IRISApplication *parent)

@@ -189,6 +189,7 @@ SET(LOGIC_CXX
   Logic/Framework/DefaultBehaviorSettings.cxx
   Logic/Framework/GenericImageData.cxx
   Logic/Framework/GlobalState.cxx
+  Logic/Framework/ImageAnnotationData.cxx
   Logic/Framework/ImageIODelegates.cxx
   Logic/Framework/IRISApplication.cxx
   Logic/Framework/IRISImageData.cxx
@@ -285,6 +286,7 @@ SET(LOGIC_HEADERS
   Logic/Framework/DefaultBehaviorSettings.h
   Logic/Framework/GenericImageData.h
   Logic/Framework/GlobalState.h
+  Logic/Framework/ImageAnnotationData.h
   Logic/Framework/ImageIODelegates.h
   Logic/Framework/IRISApplication.h
   Logic/Framework/IRISImageData.h

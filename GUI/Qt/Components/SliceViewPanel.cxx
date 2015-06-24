@@ -81,6 +81,8 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
 
   ui->btnAnnotationAcceptLine->setDefaultAction(ui->actionAnnotationAcceptLine);
   ui->btnAnnotationClearLine->setDefaultAction(ui->actionAnnotationClearLine);
+  ui->btnAnnotationSelectAll->setDefaultAction(ui->actionAnnotationSelectAll);
+  ui->btnAnnotationDeleteSelected->setDefaultAction(ui->actionAnnotationDelete);
 
   this->addAction(ui->actionZoom_In);
   this->addAction(ui->actionZoom_Out);
@@ -125,6 +127,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   loPages->addWidget(ui->pagePolygonEdit);
   loPages->addWidget(ui->pagePolygonInactive);
   loPages->addWidget(ui->pageAnnotateLineActive);
+  loPages->addWidget(ui->pageAnnotateSelect);
   delete ui->toolbar->layout();
   ui->toolbar->setLayout(loPages);
 
@@ -424,8 +427,10 @@ void SliceViewPanel::OnToolbarModeChange()
   else if(m_GlobalUI->GetGlobalState()->GetToolbarMode() == ANNOTATION_MODE)
     {
     AnnotationModel *am = m_GlobalUI->GetAnnotationModel(m_Index);
-    if(am->GetMode() == AnnotationModel::LINE_DRAWING && am->GetFlagDrawingLine())
+    if(am->IsDrawingRuler())
       loPages->setCurrentWidget(ui->pageAnnotateLineActive);
+    else if(am->GetAnnotationMode() == ANNOTATION_SELECT)
+      loPages->setCurrentWidget(ui->pageAnnotateSelect);
     else
       loPages->setCurrentWidget(ui->pageDefault);
     }
@@ -603,4 +608,14 @@ void SliceViewPanel::on_actionAnnotationAcceptLine_triggered()
 void SliceViewPanel::on_actionAnnotationClearLine_triggered()
 {
   m_GlobalUI->GetAnnotationModel(m_Index)->CancelLine();
+}
+
+void SliceViewPanel::on_actionAnnotationSelectAll_triggered()
+{
+  m_GlobalUI->GetAnnotationModel(m_Index)->SelectAllOnSlice();
+}
+
+void SliceViewPanel::on_actionAnnotationDelete_triggered()
+{
+  m_GlobalUI->GetAnnotationModel(m_Index)->DeleteSelectedOnSlice();
 }

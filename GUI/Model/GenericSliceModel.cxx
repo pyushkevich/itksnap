@@ -370,6 +370,20 @@ GenericSliceModel
   return uvPhysical;
 }
 
+Vector3f
+GenericSliceModel
+::MapPhysicalWindowToSlice(const Vector2f &uvPhysical)
+{
+  assert(IsSliceInitialized());
+
+  Vector3f xSlice;
+  xSlice[0] = uvPhysical[0] / m_SliceSpacing[0];
+  xSlice[1] = uvPhysical[1] / m_SliceSpacing[1];
+  xSlice[2] = this->GetCursorPositionInSliceCoordinates()[2];
+
+  return xSlice;
+}
+
 void
 GenericSliceModel
 ::ResetViewPosition()

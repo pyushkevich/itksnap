@@ -5,6 +5,7 @@
 #include "GlobalState.h"
 #include "IRISApplication.h"
 #include "SNAPAppearanceSettings.h"
+#include "ImageAnnotationData.h"
 #include <iomanip>
 
 void AnnotationRenderer::paintGL()
@@ -32,12 +33,8 @@ void AnnotationRenderer::paintGL()
       m_Model->GetParent()->MapWindowOffsetToSliceOffset(
         Vector2f(96.f, 12.f) * (float) vppr);
 
-  // Get the line list
-  typedef AnnotationModel::LineIntervalList::const_iterator LineIter;
-  const AnnotationModel::LineIntervalList &all_lines = m_Model->GetLines();
-
-  // Get the current slice position
-  float slice_z = m_Model->GetParent()->GetCursorPositionInSliceCoordinates()[2];
+  // Get the list of annotations
+  const ImageAnnotationData *adata = m_Model->GetAnnotations();
 
   // Push the line state
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
@@ -51,9 +48,9 @@ void AnnotationRenderer::paintGL()
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // Draw current line
-  if(m_Model->GetMode() == AnnotationModel::LINE_DRAWING && m_Model->GetFlagDrawingLine())
+  if(m_Model->IsDrawingRuler())
     {
-    const AnnotationModel::LineIntervalType &curr_line = m_Model->GetCurrentLine();
+    const AnnotationModel::LineSegment &curr_line = m_Model->GetCurrentLine();
 
     // Use the polygon drawing settings
     const OpenGLAppearanceElement *elt =
@@ -99,17 +96,20 @@ void AnnotationRenderer::paintGL()
           elt->GetNormalColor());
 
     // Compute and show the intersection angles of the drawing line with the other (visible) lines
-    for(LineIter it = all_lines.begin(); it!=all_lines.end(); it++)
+    for(ImageAnnotationData::AnnotationConstIterator it = adata->GetAnnotations().begin();
+        it != adata->GetAnnotations().end(); ++it)
       {
-      // Does this line appear on the current slice?
-      if(shownOnAllSlices || it->first[2] == slice_z)
+      const annot::LineSegmentAnnotation *lsa =
+          dynamic_cast<const annot::LineSegmentAnnotation *>(it->GetPointer());
+
+      if(lsa && m_Model->IsAnnotationVisible(lsa))
         {
         // Compute the dot product and no need for the third components that are zeros
-        double angle = m_Model->GetAngleBetweenLines(curr_line, *it);
+        double angle = m_Model->GetAngleWithCurrentLine(lsa);
         std::ostringstream oss_angle;
         oss_angle << std::setprecision(3) << angle << " " << "deg";
 
-        Vector3f line_center = (it->first + it->second)  * 0.5f;
+        Vector3f line_center = m_Model->GetAnnotationCenter(lsa);
 
         // Draw the angle text
         m_PlatformSupport->RenderTextInOpenGL(
@@ -119,30 +119,40 @@ void AnnotationRenderer::paintGL()
               font_info,
               AbstractRendererPlatformSupport::LEFT, AbstractRendererPlatformSupport::TOP,
               elt->GetNormalColor());
+
         }
       }
     } // Current line valid
 
-
-  // Draw each of the committed lines
-  glColor3d(1.,0.,0.);
-  glBegin(GL_POINTS);
-  for(LineIter it = all_lines.begin(); it!=all_lines.end(); it++)
+  // Draw each annotation
+  for(ImageAnnotationData::AnnotationConstIterator it = adata->GetAnnotations().begin();
+      it != adata->GetAnnotations().end(); ++it)
     {
-    if(shownOnAllSlices || it->first[2] == slice_z)
-      glVertex2d(0.5*(it->first[0] + it->second[0]), 0.5*(it->first[1] + it->second[1]));
-    }
-  glEnd();
-  glBegin(GL_LINES);
-  for(LineIter it = all_lines.begin(); it!=all_lines.end(); it++)
-    {
-    if(shownOnAllSlices || it->first[2] == slice_z)
+    if(m_Model->IsAnnotationVisible(*it))
       {
-      glVertex2d(it->first[0], it->first[1]);
-      glVertex2d(it->second[0], it->second[1]);
+      annot::LineSegmentAnnotation *lsa =
+          dynamic_cast<annot::LineSegmentAnnotation *>(it->GetPointer());
+      if(lsa)
+        {
+        Vector3f p1 = m_Model->GetParent()->MapImageToSlice(lsa->GetSegment().first);
+        Vector3f p2 = m_Model->GetParent()->MapImageToSlice(lsa->GetSegment().second);
+
+        if(lsa->GetSelected())
+          glColor3d(1.,1.,0.);
+        else
+          glColor3d(1.,0.,0.);
+
+        glBegin(GL_POINTS);
+        glVertex2d((p1[0] + p2[0]) * 0.5, (p1[1] + p2[1]) * 0.5);
+        glEnd();
+
+        glBegin(GL_LINES);
+        glVertex2d(p1[0], p1[1]);
+        glVertex2d(p2[0], p2[1]);
+        glEnd();
+        }
       }
     }
-  glEnd();
 
   glPopAttrib();
 }

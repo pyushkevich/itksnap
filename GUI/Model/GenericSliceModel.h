@@ -156,6 +156,11 @@ public:
   Vector2f MapSliceToPhysicalWindow(const Vector3f &xSlice);
 
   /**
+   * Map a point in PHYISCAL window coordinates to a point in slice coordinates
+   */
+  Vector3f MapPhysicalWindowToSlice(const Vector2f &uvPhysical);
+
+  /**
    * Map a point in slice coordinates to a point in the image coordinates
    */
   Vector3f MapSliceToImage(const Vector3f &xSlice);
@@ -332,6 +337,7 @@ public:
    */
   unsigned int MergeSliceSegmentation(
         itk::Image<unsigned char, 2> *drawing);
+
 
 protected:
 

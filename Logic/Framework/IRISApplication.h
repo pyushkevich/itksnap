@@ -70,7 +70,7 @@ class GaussianMixtureModel;
 class RandomForestClassifier;
 struct IRISDisplayGeometry;
 class LabelUseHistory;
-
+class ImageAnnotationData;
 
 template <class TTraits> class PresetManager;
 class ColorMapPresetTraits;
@@ -725,6 +725,8 @@ protected:
 
   // Auto-adjust contrast of a layer on load
   void AutoContrastLayerOnLoad(ImageWrapperBase *layer);
+
+
 };
 
 #endif // __IRISApplication_h_

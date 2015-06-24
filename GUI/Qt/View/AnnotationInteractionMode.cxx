@@ -31,12 +31,12 @@ void AnnotationInteractionMode::mousePressEvent(QMouseEvent *ev)
 {
   if(ev->button() == Qt::LeftButton)
     {
-    if(m_Model->ProcessPushEvent(m_XSlice))
+    if(m_Model->ProcessPushEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier))
       ev->accept();
     }
   else if(ev->button() == Qt::RightButton)
     {
-    if(m_Model->GetMode() == AnnotationModel::LINE_DRAWING && m_Model->GetFlagDrawingLine())
+    if(m_Model->IsDrawingRuler())
       m_Model->AcceptLine();
     }
 }
@@ -45,7 +45,7 @@ void AnnotationInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
   if(m_LeftDown)
     {
-    if(m_Model->ProcessDragEvent(m_XSlice))
+    if(m_Model->ProcessDragEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier))
       ev->accept();
     }
 }
@@ -54,7 +54,7 @@ void AnnotationInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
 {
   if(ev->button() == Qt::LeftButton)
     {
-    if(m_Model->ProcessReleaseEvent(m_XSlice))
+    if(m_Model->ProcessReleaseEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier))
       ev->accept();
     }
 }

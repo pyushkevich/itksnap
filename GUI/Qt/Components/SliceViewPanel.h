@@ -66,6 +66,10 @@ private slots:
 
   void on_actionAnnotationClearLine_triggered();
 
+  void on_actionAnnotationSelectAll_triggered();
+
+  void on_actionAnnotationDelete_triggered();
+
 private:
   Ui::SliceViewPanel *ui;
 

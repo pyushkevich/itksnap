@@ -5,11 +5,15 @@
 #include "PropertyModel.h"
 #include "SNAPCommon.h"
 #include "IRISException.h"
+#include "GlobalState.h"
+#include "ImageAnnotationData.h"
 
 #include <list>
 #include <utility>
+#include <set>
 
 class GenericSliceModel;
+
 
 /**
  * @brief The UI model for slice annotation
@@ -17,6 +21,12 @@ class GenericSliceModel;
 class AnnotationModel : public AbstractModel
 {
 public:
+
+  typedef annot::AbstractAnnotation AbstractAnnotation;
+  typedef annot::LineSegmentAnnotation LineSegmentAnnotation;
+  typedef annot::LandmarkAnnotation LandmarkAnnotation;
+
+  typedef annot::LineSegment LineSegment;
 
   irisITKObjectMacro(AnnotationModel, AbstractModel)
 
@@ -30,51 +40,52 @@ public:
 
   FIRES(StateMachineChangeEvent)
 
-  irisSetMacro(Parent, GenericSliceModel *)
   irisGetMacro(Parent, GenericSliceModel *)
 
-  /** Possible interaction modes for the annotation tool */
-  enum Mode {
-    LINE_DRAWING, SELECT, MOVE
-  };
-
-  /** Data structures describing line annotations */
-  typedef std::pair<Vector3f, Vector3f> LineIntervalType;
-  typedef std::list<LineIntervalType> LineIntervalList;
-
-  /** Set the current mode */
-  void SetMode(Mode mode);
-
-  /** Get the current mode */
-  irisGetMacro(Mode, Mode)
+  void SetParent(GenericSliceModel *model);
 
   /** Get the line drawing state */
   irisGetMacro(FlagDrawingLine, bool)
 
   /** Get the current line */
-  irisGetMacro(CurrentLine, const LineIntervalType &)
-
-  /** Get the lines previously drawn */
-  irisGetMacro(Lines, const LineIntervalList &)
+  irisGetMacro(CurrentLine, const LineSegment &)
 
   /** Get the physical length of current line */
   double GetCurrentLineLength();
 
   /** Compute angle between two lines */
-  double GetAngleBetweenLines(const LineIntervalType &l1, const LineIntervalType &l2);
+  double GetAngleWithCurrentLine(const annot::LineSegmentAnnotation *lsa);
 
-  bool ProcessPushEvent(const Vector3d &xSlice);
+  /** Helper function - get current annotation mode from GlobalState */
+  AnnotationMode GetAnnotationMode() const;
 
-  bool ProcessDragEvent(const Vector3d &xSlice);
+  /** Helper function - get annotation data from IRISApplication */
+  ImageAnnotationData *GetAnnotations();
 
-  bool ProcessReleaseEvent(const Vector3d &xSlice);
+  /** Test if an annotation is visible in this slice */
+  bool IsAnnotationVisible(const AbstractAnnotation *annot);
+
+
+  bool ProcessPushEvent(const Vector3d &xSlice, bool shift_mod);
+
+  bool ProcessDragEvent(const Vector3d &xSlice, bool shift_mod);
+
+  bool ProcessReleaseEvent(const Vector3d &xSlice, bool shift_mod);
+
+  bool IsDrawingRuler();
 
   void AcceptLine();
 
   void CancelLine();
 
+  void SelectAllOnSlice();
+
+  void DeleteSelectedOnSlice();
+
   bool CheckState(UIState state);
 
+
+  Vector3f GetAnnotationCenter(const AbstractAnnotation *annot);
 
 protected:
 
@@ -84,15 +95,17 @@ protected:
   // Parent model
   GenericSliceModel *m_Parent;
 
-  // Line intervals annotated by the user
-  LineIntervalList m_Lines;
-
   // Current state for line drawing
   bool m_FlagDrawingLine;
-  LineIntervalType m_CurrentLine;
+  LineSegment m_CurrentLine;
 
-  // Current mode
-  Mode m_Mode;
+  // Motion-related variables
+  Vector3f m_DragStart, m_DragLast;
+  bool m_MovingSelection;
+
+  double GetDistanceToLine(LineSegment &line, const Vector3d &point);
+  double GetPixelDistanceToAnnotation(const AbstractAnnotation *annot, const Vector3d &point);
+  void AdjustAngleToRoundDegree(LineSegment &ls, int n_degrees);
 };
 
 #endif // ANNOTATIONMODEL_H

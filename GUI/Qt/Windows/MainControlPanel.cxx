@@ -141,6 +141,7 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
   ui->pagePaintbrushTool->SetModel(m_Model->GetPaintbrushSettingsModel());
   ui->pageSnakeTool->SetModel(m_Model);
   ui->pagePolygonTool->SetModel(m_Model);
+  ui->pageAnnotationTool->SetModel(m_Model);
 
   m_LabelSelectionButton->SetModel(model);
   m_LabelSelectionPopup->SetModel(model);

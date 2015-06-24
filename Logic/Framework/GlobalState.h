@@ -122,6 +122,13 @@ enum ToolbarMode3DType
   SCALPEL_MODE
 };
 
+enum AnnotationMode
+{
+  ANNOTATION_RULER = 0,
+  ANNOTATION_SELECT,
+  ANNOTATION_LANDMARK
+};
+
 /** Layout of overlays in a slice view */
 enum LayerLayout {
   LAYOUT_STACKED = 0, LAYOUT_TILED
@@ -376,6 +383,11 @@ public:
 
   // --------------------- End Project support ----------------------------
 
+  /**
+   * Annotation mode
+   */
+  irisSimplePropertyAccessMacro(AnnotationMode, AnnotationMode)
+
 protected:
 
   GlobalState();
@@ -488,9 +500,6 @@ private:
   // Paintbrush settings
   PaintbrushSettings m_PaintbrushSettings;
 
-  // Annotation settings
-  AnnotationSettings m_AnnotationSettings;
-
   IRISApplication *m_Driver;
 
   // ------------------- Selected Image ID ---------------------------------
@@ -499,6 +508,11 @@ private:
   // ------------------- Project Related -----------------------------------
   SmartPtr<ConcreteSimpleStringProperty> m_ProjectFilenameModel;
 
+  // ------------------- Annotation Mode -----------------------------------
+  AnnotationSettings m_AnnotationSettings;
+
+  typedef ConcretePropertyModel<AnnotationMode> ConcreteAnnotationModeModel;
+  SmartPtr<ConcreteAnnotationModeModel> m_AnnotationModeModel;
 };
 
 #endif // __GlobalState_h_

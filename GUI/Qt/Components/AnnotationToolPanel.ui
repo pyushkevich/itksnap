@@ -37,7 +37,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="widget" native="true">
+    <widget class="QWidget" name="grpMode" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
        <number>4</number>
@@ -52,7 +52,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QToolButton" name="toolButton">
+       <widget class="QToolButton" name="btnRuler">
         <property name="minimumSize">
          <size>
           <width>150</width>
@@ -84,7 +84,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="toolButton_2">
+       <widget class="QToolButton" name="btnSelect">
         <property name="minimumSize">
          <size>
           <width>150</width>

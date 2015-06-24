@@ -2,6 +2,7 @@
 #define ANNOTATIONTOOLPANEL_H
 
 #include <QWidget>
+class GlobalUIModel;
 
 namespace Ui {
 class AnnotationToolPanel;
@@ -15,8 +16,11 @@ public:
   explicit AnnotationToolPanel(QWidget *parent = 0);
   ~AnnotationToolPanel();
 
+  void SetModel(GlobalUIModel *model);
+
 private:
   Ui::AnnotationToolPanel *ui;
+  GlobalUIModel *m_Model;
 };
 
 #endif // ANNOTATIONTOOLPANEL_H

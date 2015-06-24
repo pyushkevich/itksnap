@@ -1,0 +1,149 @@
+#ifndef IMAGEANNOTATIONDATA_H
+#define IMAGEANNOTATIONDATA_H
+
+#include "SNAPCommon.h"
+#include <utility>
+#include <string>
+#include <list>
+#include "itkDataObject.h"
+#include "itkObjectFactory.h"
+
+namespace annot
+{
+
+typedef Vector3f Point;
+
+/**
+ * @brief Slices where the annotation is displayed
+ */
+enum VisSlice {
+  SINGLE_SLICE = 0, ALL_SLICES
+};
+
+/**
+ * @brief Parent class for annotations
+ */
+class AbstractAnnotation : public itk::DataObject
+{
+public:
+  irisITKAbstractObjectMacro(AbstractAnnotation, itk::DataObject)
+
+  /** Whether this annotation is currently selected */
+  irisGetSetMacro(Selected, bool)
+
+  /** Whether this annotation is visible in all slices or just its own slice */
+  irisGetSetMacro(VisibleInAllSlices, bool)
+
+  /** Whether this annotation is visible in all ortho planes or just its own plane */
+  irisGetSetMacro(VisibleInAllPlanes, bool)
+
+  /** The image dimension to which this annotation belongs, or -1 if it's non-planar */
+  irisGetSetMacro(Plane, int)
+
+  /** Test whether the annotation is visible in the current plane */
+  bool IsVisible(int plane, int slice) const;
+
+  /** Get the slice this annotation belongs to for a particular plane */
+  virtual int GetSliceIndex(int plane) const = 0;
+
+  /** Move the annotation by given amount in physical space */
+  virtual void MoveBy(const Vector3f &offset) = 0;
+
+protected:
+
+  AbstractAnnotation() {}
+  ~AbstractAnnotation() {}
+
+  bool m_Selected;
+  bool m_VisibleInAllSlices;
+  bool m_VisibleInAllPlanes;
+
+  int m_Plane;
+  VisSlice m_SliceVisibility;
+};
+
+/** A simple line segment */
+typedef std::pair<Vector3f,Vector3f>           LineSegment;
+
+class LineSegmentAnnotation : public AbstractAnnotation
+{
+public:
+  irisITKObjectMacro(LineSegmentAnnotation, AbstractAnnotation)
+
+  typedef LineSegment                   ObjectType;
+
+  irisGetSetMacro(Segment, const LineSegment &)
+
+protected:
+
+  virtual int GetSliceIndex(int plane) const;
+  virtual void MoveBy(const Vector3f &offset);
+
+  LineSegment m_Segment;
+};
+
+/**
+ * @brief Text with location
+ */
+struct Landmark
+{
+  std::string Text;
+  Vector3f Pos;
+  Vector2f offset;
+};
+
+class LandmarkAnnotation : public AbstractAnnotation
+{
+public:
+  irisITKObjectMacro(LandmarkAnnotation, AbstractAnnotation)
+
+  typedef Landmark                   ObjectType;
+
+  irisGetMacro(Landmark, const Landmark &)
+
+
+protected:
+
+  virtual int GetSliceIndex(int plane) const;
+  virtual void MoveBy(const Vector3f &offset);
+
+  Landmark m_Landmark;
+};
+
+}
+
+
+/**
+ * This class describes a collection of image annotations
+ *
+ * Image annotations are defined in voxel coordinate space. This helps keep the
+ * annotations in place when header information changes. It also makes the internal
+ * logic simpler.
+ */
+class ImageAnnotationData : public itk::DataObject
+{
+public:
+  typedef annot::AbstractAnnotation AbstractAnnotation;
+  typedef SmartPtr<AbstractAnnotation> AnnotationPtr;
+  typedef std::list<AnnotationPtr> AnnotationList;
+  typedef AnnotationList::iterator AnnotationIterator;
+  typedef AnnotationList::const_iterator AnnotationConstIterator;
+
+  irisITKObjectMacro(ImageAnnotationData, itk::DataObject)
+
+  irisGetMacro(Annotations, const AnnotationList &)
+
+  AnnotationList &GetAnnotations() { return m_Annotations; }
+
+  void AddAnnotation(AbstractAnnotation *annot);
+
+  void Reset();
+
+protected:
+  ImageAnnotationData() {}
+  ~ImageAnnotationData() {}
+
+  AnnotationList m_Annotations;
+};
+
+#endif // IMAGEANNOTATIONDATA_H
