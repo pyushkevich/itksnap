@@ -12,6 +12,10 @@ void AnnotationRenderer::paintGL()
 {
   assert(m_Model);
 
+  // Not in thumbnail mode
+  if(m_ParentRenderer->IsThumbnailDrawing())
+    return;
+
   // Get appearance settings
   SNAPAppearanceSettings *as =
       m_Model->GetParent()->GetParentUI()->GetAppearanceSettings();

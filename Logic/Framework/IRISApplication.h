@@ -590,6 +590,17 @@ public:
 
   // --------------------- End project support ----------------------------
 
+  // --------------------- Annotation support ----------------------------
+
+  /**
+   * Read annotations from file
+   */
+  void LoadAnnotations(const char *filename);
+
+  /**
+   * Save annotations to file
+   */
+  void SaveAnnotations(const char *filename);
 
 protected:
 

@@ -2,6 +2,7 @@
 #include "AnnotationRenderer.h"
 #include "AnnotationModel.h"
 #include "GenericSliceView.h"
+#include "SliceViewPanel.h"
 
 AnnotationInteractionMode::AnnotationInteractionMode(GenericSliceView *parent)
   : SliceWindowInteractionDelegateWidget(parent)
@@ -29,10 +30,15 @@ void AnnotationInteractionMode::SetModel(AnnotationModel *model)
 
 void AnnotationInteractionMode::mousePressEvent(QMouseEvent *ev)
 {
+  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+
   if(ev->button() == Qt::LeftButton)
     {
     if(m_Model->ProcessPushEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier))
       ev->accept();
+
+    if(m_Model->IsMovingSelection())
+      panel->setCursor(Qt::ClosedHandCursor);
     }
   else if(ev->button() == Qt::RightButton)
     {
@@ -48,14 +54,41 @@ void AnnotationInteractionMode::mouseMoveEvent(QMouseEvent *ev)
     if(m_Model->ProcessDragEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier))
       ev->accept();
     }
+  else if(m_Model->GetAnnotationMode() == ANNOTATION_SELECT)
+    {
+    SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+    if(m_Model->IsHoveringOverAnnotation(m_XSlice))
+      {
+      panel->setCursor(Qt::OpenHandCursor);
+      }
+    else
+      {
+      panel->setCursor(Qt::ArrowCursor);
+      }
+
+    }
 }
 
 void AnnotationInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
 {
+  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+
   if(ev->button() == Qt::LeftButton)
     {
     if(m_Model->ProcessReleaseEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier))
       ev->accept();
+    }
+
+  if(m_Model->GetAnnotationMode() == ANNOTATION_SELECT)
+    {
+    if(m_Model->IsHoveringOverAnnotation(m_XSlice))
+      {
+      panel->setCursor(Qt::OpenHandCursor);
+      }
+    else
+      {
+      panel->setCursor(Qt::ArrowCursor);
+      }
     }
 }
 

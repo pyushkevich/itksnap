@@ -8,6 +8,8 @@
 #include "itkDataObject.h"
 #include "itkObjectFactory.h"
 
+class Registry;
+
 namespace annot
 {
 
@@ -49,6 +51,12 @@ public:
   /** Move the annotation by given amount in physical space */
   virtual void MoveBy(const Vector3f &offset) = 0;
 
+  /** Save the annotation data to registry */
+  virtual void Save(Registry &folder);
+
+  /** Load from the registry */
+  virtual void Load(Registry &folder);
+
 protected:
 
   AbstractAnnotation() {}
@@ -59,7 +67,6 @@ protected:
   bool m_VisibleInAllPlanes;
 
   int m_Plane;
-  VisSlice m_SliceVisibility;
 };
 
 /** A simple line segment */
@@ -74,10 +81,14 @@ public:
 
   irisGetSetMacro(Segment, const LineSegment &)
 
+  virtual void Save(Registry &folder);
+  virtual void Load(Registry &folder);
+
+  virtual void MoveBy(const Vector3f &offset);
+
 protected:
 
   virtual int GetSliceIndex(int plane) const;
-  virtual void MoveBy(const Vector3f &offset);
 
   LineSegment m_Segment;
 };
@@ -106,6 +117,9 @@ protected:
 
   virtual int GetSliceIndex(int plane) const;
   virtual void MoveBy(const Vector3f &offset);
+
+  virtual void Save(Registry &folder) {}
+  virtual void Load(Registry &folder) {}
 
   Landmark m_Landmark;
 };
@@ -138,6 +152,9 @@ public:
   void AddAnnotation(AbstractAnnotation *annot);
 
   void Reset();
+
+  void SaveAnnotations(Registry &reg);
+  void LoadAnnotations(Registry &reg);
 
 protected:
   ImageAnnotationData() {}

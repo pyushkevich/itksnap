@@ -181,6 +181,37 @@ double AnnotationModel
   return std::numeric_limits<double>::infinity();
 }
 
+AnnotationModel::AbstractAnnotation *
+AnnotationModel::GetAnnotationUnderCursor(const Vector3d &xSlice)
+{
+  ImageAnnotationData *adata = this->GetAnnotations();
+
+  // Current best annotation
+  AbstractAnnotation *asel = NULL;
+  double dist_min = std::numeric_limits<double>::infinity();
+  double dist_thresh = 5 * m_Parent->GetSizeReporter()->GetViewportPixelRatio();
+
+  // Loop over all annotations
+  for(ImageAnnotationData::AnnotationConstIterator it = adata->GetAnnotations().begin();
+      it != adata->GetAnnotations().end(); ++it)
+    {
+    AbstractAnnotation *a = *it;
+
+    // Test if annotation is visible in this plane
+    if(this->IsAnnotationVisible(a))
+      {
+      double dist = GetPixelDistanceToAnnotation(a, xSlice);
+      if(dist < dist_thresh && dist < dist_min)
+        {
+        asel = a;
+        dist_min = dist;
+        }
+      }
+    }
+
+  return asel;
+}
+
 bool AnnotationModel::ProcessPushEvent(const Vector3d &xSlice, bool shift_mod)
 {
   // Get the annotation data
@@ -205,27 +236,7 @@ bool AnnotationModel::ProcessPushEvent(const Vector3d &xSlice, bool shift_mod)
   else if(this->GetAnnotationMode() == ANNOTATION_SELECT)
     {
     // Current best annotation
-    AbstractAnnotation *asel = NULL;
-    double dist_min = std::numeric_limits<double>::infinity();
-    double dist_thresh = 5 * m_Parent->GetSizeReporter()->GetViewportPixelRatio();
-
-    // Loop over all annotations
-    for(ImageAnnotationData::AnnotationConstIterator it = adata->GetAnnotations().begin();
-        it != adata->GetAnnotations().end(); ++it)
-      {
-      AbstractAnnotation *a = *it;
-
-      // Test if annotation is visible in this plane
-      if(this->IsAnnotationVisible(a))
-        {
-        double dist = GetPixelDistanceToAnnotation(a, xSlice);
-        if(dist < dist_thresh && dist < dist_min)
-          {
-          asel = a;
-          dist_min = dist;
-          }
-        }
-      }
+    AbstractAnnotation *asel = this->GetAnnotationUnderCursor(xSlice);
 
     // If the shift modifier is on, we add to the selection
     if(shift_mod)
@@ -446,6 +457,11 @@ bool AnnotationModel::CheckState(AnnotationModel::UIState state)
     }
 
   return false;
+}
+
+bool AnnotationModel::IsHoveringOverAnnotation(const Vector3d &xSlice)
+{
+  return (this->GetAnnotationUnderCursor(xSlice) != NULL);
 }
 
 AnnotationModel::AnnotationModel()

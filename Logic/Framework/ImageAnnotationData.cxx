@@ -1,4 +1,6 @@
 #include "ImageAnnotationData.h"
+#include "Registry.h"
+#include "IRISException.h"
 
 namespace annot
 {
@@ -16,6 +18,22 @@ bool AbstractAnnotation::IsVisible(int plane, int slice) const
   return true;
 }
 
+void AbstractAnnotation::Save(Registry &folder)
+{
+  folder["Selected"] << m_Selected;
+  folder["VisibleInAllSlices"] << m_VisibleInAllSlices;
+  folder["VisibleInAllPlanes"] << m_VisibleInAllPlanes;
+  folder["Plane"] << m_Plane;
+}
+
+void AbstractAnnotation::Load(Registry &folder)
+{
+  m_Selected = folder["Selected"][false];
+  m_VisibleInAllSlices = folder["VisibleInAllSlices"][false];
+  m_VisibleInAllPlanes = folder["VisibleInAllPlanes"][false];
+  m_Plane = folder["Plane"][0];
+}
+
 int LineSegmentAnnotation::GetSliceIndex(int plane) const
 {
   // Just return the coordinate of the first point. It should be the same
@@ -24,6 +42,23 @@ int LineSegmentAnnotation::GetSliceIndex(int plane) const
   assert(m_Segment.first[plane] == m_Segment.second[plane]);
 
   return (int) (m_Segment.first[plane]);
+}
+
+void LineSegmentAnnotation::Save(Registry &folder)
+{
+  Superclass::Save(folder);
+  folder["Type"] << "LineSegmentAnnotation";
+  folder["Point1"] << to_double(m_Segment.first);
+  folder["Point2"] << to_double(m_Segment.second);
+}
+
+void LineSegmentAnnotation::Load(Registry &folder)
+{
+  Superclass::Load(folder);
+  m_Segment.first = to_float(folder["Point1"][Vector3d(0.0)]);
+  m_Segment.second = to_float(folder["Point2"][Vector3d(0.0)]);
+  if(m_Segment.first[this->m_Plane] != m_Segment.second[this->m_Plane])
+    throw IRISException("Invalid line segment annotation detected in file.");
 }
 
 void LineSegmentAnnotation::MoveBy(const Vector3f &offset)
@@ -56,6 +91,62 @@ void ImageAnnotationData::AddAnnotation(ImageAnnotationData::AbstractAnnotation 
 void ImageAnnotationData::Reset()
 {
   m_Annotations.clear();
+}
+
+void ImageAnnotationData::SaveAnnotations(Registry &reg)
+{
+  // Store the current format of the annotations
+  reg["Format"] << "ITK-SNAP Annotation File";
+
+  // Format date specifies the date this format was developed. If in the future
+  // the format changes in drastic ways, this allows the future code to recover.
+  reg["FormatDate"] << "20150624";
+
+  // Save the array of annotations
+  reg["Annotations.ArraySize"] << m_Annotations.size();
+  int i = 0;
+  for(AnnotationConstIterator it = m_Annotations.begin(); it != m_Annotations.end(); it++, i++)
+    {
+    AbstractAnnotation *ann = *it;
+    Registry &folder = reg.Folder(reg.Key("Annotations.Element[%d]", i));
+    ann->Save(folder);
+    }
+}
+
+
+void ImageAnnotationData::LoadAnnotations(Registry &reg)
+{
+  // Read the format
+  std::string format = reg["Format"][""];
+  std::string format_date = reg["FormatDate"][""];
+  if(format != "ITK-SNAP Annotation File" || format_date.length() != 8)
+    throw IRISException("Annotation file is not in the correct format.");
+
+  // Clear the annotations
+  m_Annotations.clear();
+
+  // Read the list of annotations
+  int n_annot = reg["Annotations.ArraySize"][0];
+  for(int i = 0; i < n_annot; i++)
+    {
+    Registry &folder = reg.Folder(reg.Key("Annotations.Element[%d]", i));
+
+    // Factory code
+    std::string type = folder["Type"][""];
+    AnnotationPtr ann;
+    if(type == "LineSegmentAnnotation")
+      {
+      SmartPtr<annot::LineSegmentAnnotation> line_ann =  annot::LineSegmentAnnotation::New();
+      ann = line_ann.GetPointer();
+      }
+
+    // Read the annotation
+    if(ann)
+      {
+      ann->Load(folder);
+      m_Annotations.push_back(ann);
+      }
+    }
 }
 
 

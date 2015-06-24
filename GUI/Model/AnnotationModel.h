@@ -50,6 +50,9 @@ public:
   /** Get the current line */
   irisGetMacro(CurrentLine, const LineSegment &)
 
+  /** Whether we are moving something now */
+  irisIsMacro(MovingSelection)
+
   /** Get the physical length of current line */
   double GetCurrentLineLength();
 
@@ -84,6 +87,8 @@ public:
 
   bool CheckState(UIState state);
 
+  bool IsHoveringOverAnnotation(const Vector3d &xSlice);
+
 
   Vector3f GetAnnotationCenter(const AbstractAnnotation *annot);
 
@@ -106,6 +111,7 @@ protected:
   double GetDistanceToLine(LineSegment &line, const Vector3d &point);
   double GetPixelDistanceToAnnotation(const AbstractAnnotation *annot, const Vector3d &point);
   void AdjustAngleToRoundDegree(LineSegment &ls, int n_degrees);
+  AbstractAnnotation *GetAnnotationUnderCursor(const Vector3d &xSlice);
 };
 
 #endif // ANNOTATIONMODEL_H

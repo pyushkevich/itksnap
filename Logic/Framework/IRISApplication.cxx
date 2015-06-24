@@ -85,6 +85,8 @@
 #include "RFClassificationEngine.h"
 #include "RandomForestClassifyImageFilter.h"
 #include "LabelUseHistory.h"
+#include "ImageAnnotationData.h"
+
 
 
 #include <stdio.h>
@@ -2202,6 +2204,25 @@ bool IRISApplication::IsProjectFile(const char *filename)
   {
   return false;
   }
+}
+
+
+void IRISApplication::SaveAnnotations(const char *filename)
+{
+  Registry reg;
+  m_CurrentImageData->GetAnnotations()->SaveAnnotations(reg);
+  reg.WriteToXMLFile(filename);
+
+  m_SystemInterface->GetHistoryManager()->UpdateHistory("Annotations", filename, true);
+}
+
+void IRISApplication::LoadAnnotations(const char *filename)
+{
+  Registry reg;
+  reg.ReadFromXMLFile(filename);
+  m_CurrentImageData->GetAnnotations()->LoadAnnotations(reg);
+
+  m_SystemInterface->GetHistoryManager()->UpdateHistory("Annotations", filename, true);
 }
 
 
