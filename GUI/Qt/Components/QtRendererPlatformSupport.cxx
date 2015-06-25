@@ -8,7 +8,7 @@
 #include <iostream>
 
 QRect
-QtRendererPlatformSupport::WorldRectangleToPixelRectangle(const QRect &world)
+QtRendererPlatformSupport::WorldRectangleToPixelRectangle(double wx, double wy, double ww, double wh)
 {
   // Viewport and such
   vnl_vector<int> viewport(4);
@@ -20,11 +20,11 @@ QtRendererPlatformSupport::WorldRectangleToPixelRectangle(const QRect &world)
   glGetDoublev(GL_MODELVIEW_MATRIX, model_view.data_block());
 
   vnl_vector<double> xw1(4), xs1, xw2(4), xs2;
-  xw1[0] = world.x(); xw1[1] = world.y();
+  xw1[0] = wx; xw1[1] = wy;
   xw1[2] = 0.0; xw1[3] = 1.0;
   xs1 = projection.transpose() * (model_view.transpose() * xw1);
 
-  xw2[0] = world.x() + world.width(); xw2[1] = world.y() + world.height();
+  xw2[0] = wx + ww; xw2[1] = wy + wh;
   xw2[2] = 0.0; xw2[3] = 1.0;
   xs2 = projection.transpose() * (model_view.transpose() * xw2);
 
@@ -45,14 +45,13 @@ QtRendererPlatformSupport::WorldRectangleToPixelRectangle(const QRect &world)
 
 void QtRendererPlatformSupport
 ::RenderTextInOpenGL(const char *text,
-                     int x, int y, int w, int h,
+                     double x, double y, double w, double h,
                      FontInfo font,
                      int align_horiz, int align_vert,
                      const Vector3d &rgbf)
 {
   // Map the coordinates to screen coordinates
-  QRect rWorld(QPoint(x, y), QSize(w, h));
-  QRect rScreen = this->WorldRectangleToPixelRectangle(rWorld);
+  QRect rScreen = this->WorldRectangleToPixelRectangle(x, y, w, h);
 
   // Create a pixmap to render the text
   QImage canvas(rScreen.width(), rScreen.height(), QImage::Format_ARGB32);

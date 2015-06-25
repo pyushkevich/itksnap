@@ -27,7 +27,7 @@ public:
 
   virtual void RenderTextInOpenGL(
       const char *text,
-      int x, int y, int w, int h,
+      double x, double y, double w, double h,
       FontInfo font,
       int align_horiz, int align_vert,
       const Vector3d &rgbf) = 0;
