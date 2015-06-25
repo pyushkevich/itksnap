@@ -11,51 +11,47 @@
 #include <QtActionGroupCoupling.h>
 #include <QActionGroup>
 #include <QMenu>
+#include <QToolButton>
 
-/*
- * A style sheet for making blue buttons with a drop down. For now we are
- * not going to use these, but may need them if more tools are added to
- * the main toolbox
-
-    QToolButton {
-    border-image: url(:/root/fltkbutton.png) repeat;
-    border-top-width: 8px;
-    border-bottom-width: 8px;
-    border-left-width: 3px;
-    border-right-width: 3px;
-    background-origin: content;
-    padding-top: -8px;
-    padding-bottom: -8px;
-    padding-left: -7px;
-    padding-right: 1px;
-    width:33px;
-    height:28px;
-    }
-
-    QToolButton[popupMode="0"]
-    {
-    width:28px;
-    padding-left: -2px;
-    padding-right: -2px;
-
-    }
-
-    QToolButton:pressed, QToolButton:checked {
-      border-image: url(:/root/fltkbutton_pressed.png) repeat;
-    }
-
-    QToolButton::menu-button {
-    border:0px;
-    margin:0px;
-    padding-top: 17px;
-    padding-right: 2px;
-    }
-
-    QToolButton::menu-arrow {
-    image: url(:/root/menu-arrow.png);
-    }
-
-    */
+// A style sheet for making blue buttons with a drop down. For now we are
+// not going to use these, but may need them if more tools are added to
+// the main toolbox
+static const char *ss_toolbutton_dropdown =
+    "QToolButton {"
+    "border-top-width: 8px;"
+    "border-bottom-width: 8px;"
+    "border-left-width: 3px;"
+    "border-right-width: 3px;"
+    "background-origin: content;"
+    "padding-top: -8px;"
+    "padding-bottom: -8px;"
+    "padding-left: -7px;"
+    "padding-right: 1px;"
+    "width:33px;"
+    "height:28px;"
+    "}"
+    ""
+    "QToolButton[popupMode=\"0\"]"
+    "{"
+    "width:28px;"
+    "padding-left: -2px;"
+    "padding-right: -2px;"
+    "}"
+    ""
+    "QToolButton:pressed, QToolButton:checked {"
+    "  border-image: url(:/root/fltkbutton_pressed.png) repeat;"
+    "}"
+    ""
+    "QToolButton::menu-button {"
+    "border:0px;"
+    "margin:0px;"
+    "padding-top: 17px;"
+    "padding-right: 2px;"
+    "}"
+    ""
+    "QToolButton::menu-arrow {"
+    "image: url(:/root/menu-arrow.png);"
+    "}";
 
 /*
  * Some commented out code for setting up a dropdown menu of actions
@@ -97,7 +93,30 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   QToolBar *toolbar = new QToolBar(this);
   toolbar->setIconSize(QSize(28, 28));
   ui->panelToolbarMode->layout()->addWidget(toolbar);  
-  toolbar->addActions(parent->GetMainToolActionGroup()->actions());
+
+  // Configure the toolbar's simple buttons
+  toolbar->addAction(FindUpstreamAction(this, "actionCrosshair"));
+  toolbar->addAction(FindUpstreamAction(this, "actionZoomPan"));
+
+  // Create a drop down button for choosing between polygon and annotation modes
+  m_DrawingDropdownButton = new QToolButton(this);
+  QMenu *tbDrawingMenu = new QMenu();
+  tbDrawingMenu->addAction(FindUpstreamAction(this, "actionPolygon"));
+  tbDrawingMenu->addAction(FindUpstreamAction(this, "actionPaintbrush"));
+  tbDrawingMenu->addAction(FindUpstreamAction(this, "actionAnnotation"));
+  m_DrawingDropdownButton->setMenu(tbDrawingMenu);
+  m_DrawingDropdownButton->setDefaultAction(FindUpstreamAction(this, "actionPolygon"));
+  m_DrawingDropdownButton->setPopupMode(QToolButton::MenuButtonPopup);
+  m_DrawingDropdownButton->setMinimumWidth(28);
+  m_DrawingDropdownButton->setMaximumWidth(38);
+  m_DrawingDropdownButton->setStyleSheet("padding-right:12px;");
+
+  connect(tbDrawingMenu, SIGNAL(triggered(QAction*)), this, SLOT(onDrawingButtonAction(QAction *)));
+
+  toolbar->addWidget(m_DrawingDropdownButton);
+  toolbar->addAction(FindUpstreamAction(this, "actionSnake"));
+
+  // toolbar->addActions(parent->GetMainToolActionGroup()->actions());
 
   // The action toolbar
   QToolBar *toolCmd = new QToolBar(this);
@@ -183,6 +202,11 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     // Click the button corresponding to the mode
     mode_inspector_btn[mode]->click();
     }
+}
+
+void MainControlPanel::onDrawingButtonAction(QAction *action)
+{
+  m_DrawingDropdownButton->setDefaultAction(action);
 }
 
 

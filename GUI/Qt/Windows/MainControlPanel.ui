@@ -91,10 +91,67 @@ QToolButton::pressed {
       <item>
        <widget class="QGroupBox" name="grpToolbox">
         <property name="styleSheet">
-         <string notr="true">
-QToolBar {
+         <string notr="true">QToolBar {
 	padding: 0px;
-}</string>
+}
+
+QToolButton { /* all types of tool button */
+    border: 1px solid rgba(255, 255, 255, 0);
+    border-radius: 3px;
+    padding: 0px;
+    margin: 0px;
+    height: 24px;
+}
+
+QToolButton:hover { /* all types of tool button */
+    border-color: #8f8f91;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                      stop: 0 #f6f7fa, stop: 1 #dadbde);
+}
+
+QToolButton[popupMode=&quot;1&quot;] { 
+  padding-right: 12px; 
+}
+
+/*QToolButton:pressed {
+    background-color: #bbbbbb;
+}*/
+
+QToolButton:checked {
+    border-color: #8f8f91;
+    background-color: #bbbbbb;
+}
+
+/* the subcontrols below are used only in the MenuButtonPopup mode */
+
+QToolButton::menu-button {
+    border: 1px solid rgba(255, 255, 255, 0);
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    width: 10px;
+}
+
+QToolButton::menu-button:hover {
+    border-color: #8f8f91;
+}
+
+QToolButton::menu-button:checked {
+    border-color: #8f8f91;
+}
+
+QToolButton::menu-button:pressed {
+    border-color: #8f8f91;
+}
+
+QToolButton::menu-arrow {
+image: url(:/root/menu-arrow_8.png);
+top:5px;
+}
+
+QToolButton::menu-arrow:open {
+    top: 6px; left: 0px; /* shift it a bit */
+}
+</string>
         </property>
         <property name="title">
          <string>Main Toolbar</string>
