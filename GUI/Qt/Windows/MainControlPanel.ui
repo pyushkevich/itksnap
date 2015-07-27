@@ -95,12 +95,15 @@ QToolButton::pressed {
 	padding: 0px;
 }
 
+
 QToolButton { /* all types of tool button */
     border: 1px solid rgba(255, 255, 255, 0);
     border-radius: 3px;
     padding: 0px;
     margin: 0px;
-    height: 24px;
+    height: 26px;
+    width: 26px;
+    icon-size: 28px;
 }
 
 QToolButton:hover { /* all types of tool button */
@@ -110,7 +113,7 @@ QToolButton:hover { /* all types of tool button */
 }
 
 QToolButton[popupMode=&quot;1&quot;] { 
-  padding-right: 12px; 
+  padding-right: 6px; 
 }
 
 /*QToolButton:pressed {
@@ -132,24 +135,30 @@ QToolButton::menu-button {
 }
 
 QToolButton::menu-button:hover {
-    border-color: #8f8f91;
+    border-top-color: #8f8f91;
+    border-bottom-color: #8f8f91;
+    border-right-color: #8f8f91;
 }
 
 QToolButton::menu-button:checked {
-    border-color: #8f8f91;
+    border-top-color: #8f8f91;
+    border-bottom-color: #8f8f91;
+    border-right-color: #8f8f91;
 }
 
 QToolButton::menu-button:pressed {
-    border-color: #8f8f91;
+    border-top-color: #8f8f91;
+    border-bottom-color: #8f8f91;
+    border-right-color: #8f8f91;
 }
 
 QToolButton::menu-arrow {
 image: url(:/root/menu-arrow_8.png);
-top:5px;
+top:11px;
 }
 
 QToolButton::menu-arrow:open {
-    top: 6px; left: 0px; /* shift it a bit */
+    top: 12px; left: 0px; /* shift it a bit */
 }
 </string>
         </property>
@@ -175,14 +184,17 @@ QToolButton::menu-arrow:open {
          <item>
           <widget class="QWidget" name="panelToolbarMode" native="true">
            <property name="styleSheet">
-            <string notr="true">QToolButton {
+            <string notr="true">QQQ_QToolButton {
 	width: 22px;
 	height: 22px;
 	icon-size: 22px;
 	padding: 1px;
 }</string>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <property name="spacing">
+             <number>0</number>
+            </property>
             <property name="leftMargin">
              <number>0</number>
             </property>

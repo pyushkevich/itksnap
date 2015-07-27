@@ -98,6 +98,10 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   toolbar->addAction(FindUpstreamAction(this, "actionCrosshair"));
   toolbar->addAction(FindUpstreamAction(this, "actionZoomPan"));
 
+  // QWidget *spacer1 = new QWidget();
+  // spacer1->setMinimumWidth(2);
+  // toolbar->addWidget(spacer1);
+
   // Create a drop down button for choosing between polygon and annotation modes
   m_DrawingDropdownButton = new QToolButton(this);
   QMenu *tbDrawingMenu = new QMenu();
@@ -107,13 +111,20 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   m_DrawingDropdownButton->setMenu(tbDrawingMenu);
   m_DrawingDropdownButton->setDefaultAction(FindUpstreamAction(this, "actionPolygon"));
   m_DrawingDropdownButton->setPopupMode(QToolButton::MenuButtonPopup);
-  m_DrawingDropdownButton->setMinimumWidth(28);
-  m_DrawingDropdownButton->setMaximumWidth(38);
-  m_DrawingDropdownButton->setStyleSheet("padding-right:12px;");
+  // m_DrawingDropdownButton->setMinimumWidth(28);
+  // m_DrawingDropdownButton->setMaximumWidth(38);
+  // m_DrawingDropdownButton->setStyleSheet("padding-right:12px;");
 
   connect(tbDrawingMenu, SIGNAL(triggered(QAction*)), this, SLOT(onDrawingButtonAction(QAction *)));
 
   toolbar->addWidget(m_DrawingDropdownButton);
+
+  // QWidget *spacer2 = new QWidget();
+  // spacer2->setMinimumWidth(2);
+  // toolbar->addWidget(spacer2);
+
+
+
   toolbar->addAction(FindUpstreamAction(this, "actionSnake"));
 
   // toolbar->addActions(parent->GetMainToolActionGroup()->actions());
