@@ -37,6 +37,7 @@ const char SNAPCurrentVersionReleaseDate[] = "@SNAP_VERSION_RELEASE_DATE@";
 const char SNAPBuildInfo[] =
     "Build date        @SNAP_VERSION_COMPILE_DATE@\n"
     "Git commit hash   @SNAP_VERSION_GIT_SHA1@\n"
+    "Git branch        @SNAP_VERSION_GIT_BRANCH@\n"
     "Build site name   @SITE@\n"
     "Build OS          @CMAKE_HOST_SYSTEM@ @CMAKE_HOST_SYSTEM_PROCESSOR@\n"
     "Build type        @CMAKE_BUILD_TYPE@\n"

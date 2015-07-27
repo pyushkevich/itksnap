@@ -78,6 +78,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/rpavlik/")
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC SNAP_VERSION_GIT_SHA1)
 
+# Get the current git branch
+execute_process(
+  COMMAND git rev-parse --abbrev-ref HEAD
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE SNAP_VERSION_GIT_BRANCH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
 #--------------------------------------------------------------------------------
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS 
 #--------------------------------------------------------------------------------
@@ -1230,7 +1238,8 @@ MARK_AS_ADVANCED(SCP_ARGUMENTS)
 SET(SCP_USERNAME "" CACHE STRING "SourceForge.net account id for uploads")
 MARK_AS_ADVANCED(SCP_USERNAME)
 
-SET(NIGHTLY_TARGET "itksnap-3.2-dev-nightly-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
+SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
+SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 
 SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/i/it/itk-snap/itk-snap")
 
@@ -1246,9 +1255,9 @@ ADD_CUSTOM_TARGET(upload_nightly
 
 ADD_CUSTOM_TARGET(upload_experimental 
   VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} 
-    ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental/
+    ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental/${EXPERIMENTAL_TARGET}
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
-  COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net to Experimental directory")
+  COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${EXPERIMENTAL_TARGET}")
 
 

@@ -121,8 +121,13 @@ void HistoryQListModel::Initialize(
   m_HistoryName = category;
 
   // Get the property models for the local and global histories
-  LatentITKEventNotifier::connect(model->GetDriver(), MainImageDimensionsChangeEvent(),
-                                  this, SLOT(onModelUpdate(EventBucket)));
+  HistoryManager::AbstractHistoryModel *hmodel =
+      m_Model->GetDriver()->GetHistoryManager()->GetGlobalHistoryModel(m_HistoryName);
+
+  LatentITKEventNotifier::connect(
+        hmodel, ValueChangedEvent(),
+        this, SLOT(onModelUpdate(EventBucket)));
+
   // Cache the history
   this->rebuildModel();
 }
@@ -130,12 +135,7 @@ void HistoryQListModel::Initialize(
 
 void HistoryQListModel::onModelUpdate(const EventBucket &bucket)
 {
-  // We only perform an update when the main image has been unloaded
-  // to reduce unnecessary work during image loading
-  if(!m_Model->GetDriver()->IsMainImageLoaded())
-    {
-    this->beginResetModel();
-    this->rebuildModel();
-    this->endResetModel();
-    }
+  this->beginResetModel();
+  this->rebuildModel();
+  this->endResetModel();
 }
