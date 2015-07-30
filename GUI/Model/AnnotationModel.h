@@ -34,6 +34,7 @@ public:
   enum UIState {
     UIF_LINE_MODE,
     UIF_LINE_MODE_DRAWING,
+    UIF_LANDMARK_MODE,
     UIF_EDITING_MODE
   };
 
@@ -56,6 +57,9 @@ public:
   /** Get the physical length of current line */
   double GetCurrentLineLength();
 
+  /** Get the length of the current line in logical (non-retina) screen pixel units */
+  double GetCurrentLineLengthInPixels();
+
   /** Compute angle between two lines */
   double GetAngleWithCurrentLine(const annot::LineSegmentAnnotation *lsa);
 
@@ -71,7 +75,7 @@ public:
 
   bool ProcessPushEvent(const Vector3d &xSlice, bool shift_mod);
 
-  bool ProcessDragEvent(const Vector3d &xSlice, bool shift_mod);
+  bool ProcessMoveEvent(const Vector3d &xSlice, bool shift_mod, bool drag);
 
   bool ProcessReleaseEvent(const Vector3d &xSlice, bool shift_mod);
 
@@ -89,6 +93,8 @@ public:
 
   bool IsHoveringOverAnnotation(const Vector3d &xSlice);
 
+  /** Set the text assigned to the current annotation */
+  irisGetSetMacro(CurrentAnnotationText, std::string)
 
   Vector3f GetAnnotationCenter(const AbstractAnnotation *annot);
 
@@ -107,6 +113,9 @@ protected:
   // Motion-related variables
   Vector3f m_DragStart, m_DragLast;
   bool m_MovingSelection;
+
+  // Text assigned to the currently drawn annotation
+  std::string m_CurrentAnnotationText;
 
   double GetDistanceToLine(LineSegment &line, const Vector3d &point);
   double GetPixelDistanceToAnnotation(const AbstractAnnotation *annot, const Vector3d &point);

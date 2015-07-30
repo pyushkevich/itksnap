@@ -78,7 +78,6 @@ static const char *ss_toolbutton_dropdown =
 
  */
 
-#include <QToolBar>
 #include <QWhatsThis>
 
 MainControlPanel::MainControlPanel(MainImageWindow *parent) :
@@ -89,11 +88,15 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
 
   m_Model = NULL;
 
-  // The mode toolbar
-  QToolBar *toolbar = new QToolBar(this);
-  toolbar->setIconSize(QSize(28, 28));
-  ui->panelToolbarMode->layout()->addWidget(toolbar);  
+  // Connect tool buttons to actions
+  ui->btnCrosshair->setDefaultAction(FindUpstreamAction(this, "actionCrosshair"));
+  ui->btnZoom->setDefaultAction(FindUpstreamAction(this, "actionZoomPan"));
+  ui->btnPolygon->setDefaultAction(FindUpstreamAction(this, "actionPolygon"));
+  ui->btnPaintbrush->setDefaultAction(FindUpstreamAction(this, "actionPaintbrush"));
+  ui->btnAnnotation->setDefaultAction(FindUpstreamAction(this, "actionAnnotation"));
+  ui->btnSnake->setDefaultAction(FindUpstreamAction(this, "actionSnake"));
 
+  /*
   // Configure the toolbar's simple buttons
   toolbar->addAction(FindUpstreamAction(this, "actionCrosshair"));
   toolbar->addAction(FindUpstreamAction(this, "actionZoomPan"));
@@ -129,10 +132,15 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
 
   // toolbar->addActions(parent->GetMainToolActionGroup()->actions());
 
+  */
+
+
+/*
   // The action toolbar
   QToolBar *toolCmd = new QToolBar(this);
   toolCmd->setIconSize(QSize(20,20));
   ui->panelToolbarAction->layout()->addWidget(toolCmd);
+  */
 
   // Hide the buttons that show up and disappear
   ui->btnPaintbrushInspector->setVisible(false);
@@ -142,23 +150,34 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
 
 
   // Label selection button
-  m_LabelSelectionButton = new LabelSelectionButton(this);
+  /*m_LabelSelectionButton = new LabelSelectionButton(this);
 
   toolCmd->addAction(FindUpstreamAction(this, "actionUndo"));
   toolCmd->addAction(FindUpstreamAction(this, "actionRedo"));
   toolCmd->addWidget(m_LabelSelectionButton);
-  toolCmd->addAction(FindUpstreamAction(this, "actionLayerInspector"));
+  toolCmd->addAction(FindUpstreamAction(this, "actionLayerInspector")); */
+
+  ui->btnUndo->setDefaultAction(FindUpstreamAction(this, "actionUndo"));
+  ui->btnRedo->setDefaultAction(FindUpstreamAction(this, "actionRedo"));
+  ui->btnLayerInspector->setDefaultAction(FindUpstreamAction(this, "actionLayerInspector"));
 
   // Add a shortcut for the button
-  m_LabelSelectionButton->setShortcut(QKeySequence("l"));
+  ui->btnLabelSelector->setShortcut(QKeySequence("l"));
 
   // Set up the label popup
   m_LabelSelectionPopup = new LabelSelectionPopup(this);
 
   // Set up the 3D toolbar
-  QToolBar *tool3D = new QToolBar(this);
-  ui->panelToolbarMode3D->layout()->addWidget(tool3D);
-  tool3D->addActions(parent->Get3DToolActionGroup()->actions());
+  ui->btnCross3D->setDefaultAction(FindUpstreamAction(this, "action3DCrosshair"));
+  ui->btnRotate3D->setDefaultAction(FindUpstreamAction(this, "action3DTrackball"));
+  ui->btnScalpel->setDefaultAction(FindUpstreamAction(this, "action3DScalpel"));
+  ui->btnSpray->setDefaultAction(FindUpstreamAction(this, "action3DSpray"));
+
+
+
+  //QToolBar *tool3D = new QToolBar(this);
+  //ui->panelToolbarMode3D->layout()->addWidget(tool3D);
+  //tool3D->addActions(parent->Get3DToolActionGroup()->actions());
 }
 
 void MainControlPanel::SetModel(GlobalUIModel *model)
@@ -173,7 +192,7 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
   ui->pagePolygonTool->SetModel(m_Model);
   ui->pageAnnotationTool->SetModel(m_Model);
 
-  m_LabelSelectionButton->SetModel(model);
+  ui->btnLabelSelector->SetModel(model);
   m_LabelSelectionPopup->SetModel(model);
 
   ui->labelInspector->SetModel(m_Model);

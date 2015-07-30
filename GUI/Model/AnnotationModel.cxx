@@ -3,6 +3,7 @@
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "ImageAnnotationData.h"
+#include "GlobalUIModel.h"
 #include <limits>
 
 void AnnotationModel::SetParent(GenericSliceModel *model)
@@ -20,6 +21,15 @@ double AnnotationModel::GetCurrentLineLength()
                 + (pt1InAna[1] - pt2InAna[1]) * (pt1InAna[1] - pt2InAna[1]);
   length = sqrt(length);
   return length;
+}
+
+double AnnotationModel::GetCurrentLineLengthInPixels()
+{
+  Vector2f screen_offset =
+      m_Parent->MapSliceToWindow(m_CurrentLine.first) -
+      m_Parent->MapSliceToWindow(m_CurrentLine.second);
+
+  return screen_offset.magnitude() / m_Parent->GetSizeReporter()->GetViewportPixelRatio();
 }
 
 double AnnotationModel::GetAngleWithCurrentLine(const annot::LineSegmentAnnotation *lsa)
@@ -218,10 +228,11 @@ bool AnnotationModel::ProcessPushEvent(const Vector3d &xSlice, bool shift_mod)
   ImageAnnotationData *adata = this->GetAnnotations();
 
   bool handled = false;
-  if(this->GetAnnotationMode() == ANNOTATION_RULER)
+  if(this->GetAnnotationMode() == ANNOTATION_RULER || this->GetAnnotationMode() == ANNOTATION_LANDMARK)
     {
     if(m_FlagDrawingLine)
       {
+      // Complete drawing line
       m_CurrentLine.second = to_float(xSlice);
       handled = true;
       }
@@ -233,6 +244,7 @@ bool AnnotationModel::ProcessPushEvent(const Vector3d &xSlice, bool shift_mod)
       handled = true;
       }
     }
+
   else if(this->GetAnnotationMode() == ANNOTATION_SELECT)
     {
     // Current best annotation
@@ -278,45 +290,13 @@ bool AnnotationModel::ProcessPushEvent(const Vector3d &xSlice, bool shift_mod)
   if(handled)
     InvokeEvent(ModelUpdateEvent());
   return handled;
-
-
-  /*
-   *
-   *     // Record the location
-    Vector3f xEvent = m_Parent->MapWindowToSlice(event.XSpace.extract(2));
-    // Handle different mouse buttons
-    if(Fl::event_button() == FL_LEFT_MOUSE)
-      // Move the second point around the first point which is fixed
-      m_CurrentLine.second = xEvent;
-    else if (Fl::event_button() == FL_MIDDLE_MOUSE)
-      {
-      // Translation of the segment
-      Vector3f delta = xEvent - m_CurrentLine.second;
-   m_CurrentLine.second = xEvent;
-      m_CurrentLine.first += delta;
-      }
-    else if(Fl::event_button() == FL_RIGHT_MOUSE)
-      {
-      // Commit the segment
-      m_Lines.push_back(m_CurrentLine);
-      m_FlagDrawingLine = false;
-      }
-    // Redraw
-    m_Parent->GetCanvas()->redraw();
-
-    // Even though no action may have been performed, we don't want other handlers
-    // to get the left and right mouse button events
-    return 1;
-    }
-  else
-    return 0;*/
 }
 
-bool AnnotationModel::ProcessDragEvent(const Vector3d &xSlice, bool shift_mod)
+bool AnnotationModel::ProcessMoveEvent(const Vector3d &xSlice, bool shift_mod, bool drag)
 {
   ImageAnnotationData *adata = this->GetAnnotations();
   bool handled = false;
-  if(this->GetAnnotationMode() == ANNOTATION_RULER)
+  if(this->GetAnnotationMode() == ANNOTATION_RULER || this->GetAnnotationMode() == ANNOTATION_LANDMARK)
     {
     if(m_FlagDrawingLine)
       {
@@ -325,7 +305,7 @@ bool AnnotationModel::ProcessDragEvent(const Vector3d &xSlice, bool shift_mod)
 
       // If shift pressed, adjust the line to have a integral angle with one of existing
       // lines
-      if(shift_mod)
+      if(this->GetAnnotationMode() == ANNOTATION_RULER  && shift_mod)
         {
         this->AdjustAngleToRoundDegree(m_CurrentLine, 5);
         }
@@ -333,7 +313,7 @@ bool AnnotationModel::ProcessDragEvent(const Vector3d &xSlice, bool shift_mod)
       handled = true;
       }
     }
-  else if(this->GetAnnotationMode() == ANNOTATION_SELECT && m_MovingSelection)
+  else if(this->GetAnnotationMode() == ANNOTATION_SELECT && m_MovingSelection && drag)
     {
 
     // Compute the amount to move the annotation by
@@ -369,7 +349,18 @@ bool AnnotationModel::ProcessDragEvent(const Vector3d &xSlice, bool shift_mod)
 
 bool AnnotationModel::ProcessReleaseEvent(const Vector3d &xSlice, bool shift_mod)
 {
-  return this->ProcessDragEvent(xSlice, shift_mod);
+  // Handle as a drag event
+  bool handled = this->ProcessMoveEvent(xSlice, shift_mod, true);
+
+  // If drawing line, complete the line drawing, as long as the line is long enough
+  if(m_FlagDrawingLine)
+    {
+    // If line is longer than a threshold of 5 pixel units, mark it as completed
+    if(this->GetCurrentLineLengthInPixels() > 5)
+      m_FlagDrawingLine = false;
+    }
+
+  return handled;
 }
 
 bool AnnotationModel::IsDrawingRuler()
@@ -379,21 +370,58 @@ bool AnnotationModel::IsDrawingRuler()
 
 void AnnotationModel::AcceptLine()
 {
-  // Create the line in image space
-  annot::LineSegment ls = std::make_pair(
-                            m_Parent->MapSliceToImage(m_CurrentLine.first),
-                            m_Parent->MapSliceToImage(m_CurrentLine.second));
-  // Add the line
-  SmartPtr<annot::LineSegmentAnnotation> lsa = annot::LineSegmentAnnotation::New();
-  lsa->SetSegment(ls);
-  lsa->SetPlane(m_Parent->GetSliceDirectionInImageSpace());
-  lsa->SetVisibleInAllPlanes(false);
-  lsa->SetVisibleInAllSlices(false);
+  // Get the length of the line in logical (non-retina) pixels
+  // Check that the length of the segment is at least 5 screen pixels
 
-  this->GetAnnotations()->AddAnnotation(lsa);
-  m_FlagDrawingLine = false;
 
-  this->InvokeEvent(ModelUpdateEvent());
+  if(this->GetAnnotationMode() == ANNOTATION_RULER)
+    {
+    // Create the line in image space
+    annot::LineSegment ls = std::make_pair(
+                              m_Parent->MapSliceToImage(m_CurrentLine.first),
+                              m_Parent->MapSliceToImage(m_CurrentLine.second));
+    // Add the line
+    SmartPtr<annot::LineSegmentAnnotation> lsa = annot::LineSegmentAnnotation::New();
+    lsa->SetSegment(ls);
+    lsa->SetPlane(m_Parent->GetSliceDirectionInImageSpace());
+    lsa->SetVisibleInAllPlanes(false);
+    lsa->SetVisibleInAllSlices(false);
+    lsa->SetColor(m_Parent->GetParentUI()->GetGlobalState()->GetAnnotationColor());
+
+    this->GetAnnotations()->AddAnnotation(lsa);
+    m_FlagDrawingLine = false;
+
+    this->InvokeEvent(ModelUpdateEvent());
+    }
+
+  else if(this->GetAnnotationMode() == ANNOTATION_LANDMARK)
+    {
+    // Create the line in image space
+    annot::Landmark lm;
+    lm.Text = this->GetCurrentAnnotationText();
+    lm.Pos = m_Parent->MapSliceToImage(m_CurrentLine.first);
+
+    // Set the default offset. The default offset corresponds to 5 screen pixels
+    // to the top right. We need to map this into image units
+    Vector2f xHeadWin = m_Parent->MapSliceToWindow(m_CurrentLine.first);
+    Vector2f xTailWin = m_Parent->MapSliceToWindow(m_CurrentLine.second);
+    Vector2f xHeadWinPhys = m_Parent->MapSliceToPhysicalWindow(m_CurrentLine.first);
+    Vector2f xTailWinPhys = m_Parent->MapSliceToPhysicalWindow(m_Parent->MapWindowToSlice(xTailWin));
+    lm.Offset = xTailWinPhys - xHeadWinPhys;
+
+    // Add the line
+    SmartPtr<annot::LandmarkAnnotation> lma = annot::LandmarkAnnotation::New();
+    lma->SetLandmark(lm);
+    lma->SetPlane(m_Parent->GetSliceDirectionInImageSpace());
+    lma->SetVisibleInAllPlanes(false);
+    lma->SetVisibleInAllSlices(false);
+    lma->SetColor(m_Parent->GetParentUI()->GetGlobalState()->GetAnnotationColor());
+
+
+    this->GetAnnotations()->AddAnnotation(lma);
+
+    this->InvokeEvent(ModelUpdateEvent());
+    }
 }
 
 void AnnotationModel::CancelLine()
@@ -447,8 +475,12 @@ bool AnnotationModel::CheckState(AnnotationModel::UIState state)
     case AnnotationModel::UIF_LINE_MODE:
       return this->GetAnnotationMode() == ANNOTATION_RULER;
       break;
+    case AnnotationModel::UIF_LANDMARK_MODE:
+      return this->GetAnnotationMode() == ANNOTATION_LANDMARK;
+      break;
     case AnnotationModel::UIF_LINE_MODE_DRAWING:
-      return this->IsDrawingRuler();
+      // return this->IsDrawingRuler();
+      return this->GetFlagDrawingLine();
       break;
     case AnnotationModel::UIF_EDITING_MODE:
       return this->GetAnnotationMode() == ANNOTATION_SELECT;

@@ -427,7 +427,7 @@ void SliceViewPanel::OnToolbarModeChange()
   else if(m_GlobalUI->GetGlobalState()->GetToolbarMode() == ANNOTATION_MODE)
     {
     AnnotationModel *am = m_GlobalUI->GetAnnotationModel(m_Index);
-    if(am->IsDrawingRuler())
+    if(am->GetFlagDrawingLine())
       loPages->setCurrentWidget(ui->pageAnnotateLineActive);
     else if(am->GetAnnotationMode() == ANNOTATION_SELECT)
       loPages->setCurrentWidget(ui->pageAnnotateSelect);

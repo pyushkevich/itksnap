@@ -147,6 +147,14 @@
         <file>annotation_28.png</file>
         <file>menu-arrow_8.png</file>
         <file>menu-arrow_8@2x.png</file>
+        <file>icons8_generic_text_16.png</file>
+        <file>icons8_generic_text_16@2x.png</file>
+        <file>icons8_mouse_scrolling_16.png</file>
+        <file>icons8_mouse_scrolling_16@2x.png</file>
+        <file>icons8_mouse_right_click_16@2x.png</file>
+        <file>icons8_mouse_right_click_16.png</file>
+        <file>icons8_mouse_left_click_16@2x.png</file>
+        <file>icons8_mouse_left_click_16.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

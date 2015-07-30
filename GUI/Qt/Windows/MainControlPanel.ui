@@ -91,12 +91,14 @@ QToolButton::pressed {
       <item>
        <widget class="QGroupBox" name="grpToolbox">
         <property name="styleSheet">
-         <string notr="true">QToolBar {
+         <string notr="true">/* *** STYLE WITH 28x28 buttons, dropdown menu option *** */
+
+/*
+QToolBar {
 	padding: 0px;
 }
 
-
-QToolButton { /* all types of tool button */
+QToolButton { 
     border: 1px solid rgba(255, 255, 255, 0);
     border-radius: 3px;
     padding: 0px;
@@ -106,7 +108,7 @@ QToolButton { /* all types of tool button */
     icon-size: 28px;
 }
 
-QToolButton:hover { /* all types of tool button */
+QToolButton:hover { 
     border-color: #8f8f91;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                       stop: 0 #f6f7fa, stop: 1 #dadbde);
@@ -116,16 +118,10 @@ QToolButton[popupMode=&quot;1&quot;] {
   padding-right: 6px; 
 }
 
-/*QToolButton:pressed {
-    background-color: #bbbbbb;
-}*/
-
 QToolButton:checked {
     border-color: #8f8f91;
     background-color: #bbbbbb;
 }
-
-/* the subcontrols below are used only in the MenuButtonPopup mode */
 
 QToolButton::menu-button {
     border: 1px solid rgba(255, 255, 255, 0);
@@ -158,9 +154,30 @@ top:11px;
 }
 
 QToolButton::menu-arrow:open {
-    top: 12px; left: 0px; /* shift it a bit */
+    top: 12px; left: 0px; 
 }
-</string>
+*/
+
+QToolButton { 
+    border: 1px solid rgba(255, 255, 255, 0);
+    border-radius: 3px;
+    padding: 0px;
+    margin: 0px;
+    height: 22px;
+    width: 22px;
+    icon-size: 24px;
+}
+
+QToolButton:hover { 
+    border-color: #8f8f91;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                      stop: 0 #f6f7fa, stop: 1 #dadbde);
+}
+
+QToolButton:checked {
+    border-color: #8f8f91;
+    background-color: #bbbbbb;
+}</string>
         </property>
         <property name="title">
          <string>Main Toolbar</string>
@@ -207,27 +224,110 @@ QToolButton::menu-arrow:open {
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <widget class="QToolButton" name="btnCrosshair">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/crosshair.gif</normaloff>:/root/crosshair.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnZoom">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/zoom.gif</normaloff>:/root/zoom.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnPolygon">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/poly.gif</normaloff>:/root/poly.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnPaintbrush">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/paintbrush.gif</normaloff>:/root/paintbrush.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnSnake">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/snake.gif</normaloff>:/root/snake.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnAnnotation">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/annotation_28.png</normaloff>:/root/annotation_28.png</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
          <item>
-          <widget class="Line" name="line">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="panelToolbarAction" native="true">
+          <widget class="QWidget" name="panelToolbarMode_3" native="true">
            <property name="styleSheet">
-            <string notr="true">QToolButton {
-	width: 16px;
-	height: 16px;
-	icon-size: 16px;
+            <string notr="true">QQQ_QToolButton {
+	width: 22px;
+	height: 22px;
+	icon-size: 22px;
 	padding: 1px;
 }</string>
            </property>
-           <layout class="QHBoxLayout" name="horizontalLayout">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <property name="spacing">
+             <number>2</number>
+            </property>
             <property name="leftMargin">
              <number>0</number>
             </property>
@@ -240,6 +340,137 @@ QToolButton::menu-arrow:open {
             <property name="bottomMargin">
              <number>0</number>
             </property>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="Line" name="line">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="panelToolbarAction" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>10</width>
+             <height>10</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QToolButton {
+	width: 16px;
+	height: 16px;
+	icon-size: 16px;
+	padding: 1px;
+}</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="btnUndo">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/icons8_undo-48.png</normaloff>:/root/icons8_undo-48.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnRedo">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/icons8_redo-48.png</normaloff>:/root/icons8_redo-48.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>8</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnLayerInspector">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/layer_Inspector_16.png</normaloff>:/root/layer_Inspector_16.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_9">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>8</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="LabelSelectionButton" name="btnLabelSelector">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/layer_Inspector_16.png</normaloff>:/root/layer_Inspector_16.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_8">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
            </layout>
           </widget>
          </item>
@@ -647,10 +878,25 @@ QToolBar {
       <item>
        <widget class="QGroupBox" name="grpToolbox3D">
         <property name="styleSheet">
-         <string notr="true">
+         <string notr="true">QToolButton { 
+    border: 1px solid rgba(255, 255, 255, 0);
+    border-radius: 3px;
+    padding: 0px;
+    margin: 0px;
+    height: 22px;
+    width: 22px;
+    icon-size: 24px;
+}
 
-QToolBar {
-	padding: 0px;
+QToolButton:hover { 
+    border-color: #8f8f91;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                      stop: 0 #f6f7fa, stop: 1 #dadbde);
+}
+
+QToolButton:checked {
+    border-color: #8f8f91;
+    background-color: #bbbbbb;
 }</string>
         </property>
         <property name="title">
@@ -675,14 +921,12 @@ QToolBar {
          <item>
           <widget class="QWidget" name="panelToolbarMode3D" native="true">
            <property name="styleSheet">
-            <string notr="true">QToolButton {
-	width: 22px;
-	height: 22px;
-	icon-size: 22px;
-	padding: 1px;
-}</string>
+            <string notr="true"/>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_7">
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <property name="spacing">
+             <number>0</number>
+            </property>
             <property name="leftMargin">
              <number>0</number>
             </property>
@@ -695,6 +939,63 @@ QToolBar {
             <property name="bottomMargin">
              <number>0</number>
             </property>
+            <item>
+             <widget class="QToolButton" name="btnRotate3D">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/rotate3d.gif</normaloff>:/root/rotate3d.gif</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnCross3D">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/crosshair3D.gif</normaloff>:/root/crosshair3D.gif</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnSpray">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/spray.gif</normaloff>:/root/spray.gif</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnScalpel">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../Resources/SNAPResources.qrc">
+                <normaloff>:/root/scalpel.gif</normaloff>:/root/scalpel.gif</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
            </layout>
           </widget>
          </item>
@@ -760,6 +1061,11 @@ QToolBar {
    <extends>QWidget</extends>
    <header>AnnotationToolPanel.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LabelSelectionButton</class>
+   <extends>QToolButton</extends>
+   <header>LabelSelectionButton.h</header>
   </customwidget>
  </customwidgets>
  <resources>

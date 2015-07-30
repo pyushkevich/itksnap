@@ -11,6 +11,8 @@ AnnotationInteractionMode::AnnotationInteractionMode(GenericSliceView *parent)
   m_Renderer->SetParentRenderer(
         static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
   m_Model = NULL;
+
+  m_ParentPanel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
 }
 
 AnnotationInteractionMode::~AnnotationInteractionMode()
@@ -28,66 +30,80 @@ void AnnotationInteractionMode::SetModel(AnnotationModel *model)
   connectITK(m_Model, ModelUpdateEvent());
 }
 
+#include <QInputDialog>
+#include "SNAPQtCommon.h"
+
 void AnnotationInteractionMode::mousePressEvent(QMouseEvent *ev)
 {
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
-
   if(ev->button() == Qt::LeftButton)
     {
     if(m_Model->ProcessPushEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier))
       ev->accept();
 
     if(m_Model->IsMovingSelection())
-      panel->setCursor(Qt::ClosedHandCursor);
-    }
-  else if(ev->button() == Qt::RightButton)
-    {
-    if(m_Model->IsDrawingRuler())
-      m_Model->AcceptLine();
+      m_ParentPanel->setCursor(Qt::ClosedHandCursor);
     }
 }
 
 void AnnotationInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
-  if(m_LeftDown)
+  if(m_RightDown || m_MiddleDown)
     {
-    if(m_Model->ProcessDragEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier))
-      ev->accept();
+    ev->ignore();
     }
-  else if(m_Model->GetAnnotationMode() == ANNOTATION_SELECT)
+  else
     {
-    SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
-    if(m_Model->IsHoveringOverAnnotation(m_XSlice))
+    if(m_Model->ProcessMoveEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier, m_LeftDown))
+      ev->accept();
+
+    // Adjust the cursor appearance based on mouse position and mode
+
+    if(m_Model->GetAnnotationMode() == ANNOTATION_SELECT && m_Model->IsHoveringOverAnnotation(m_XSlice))
       {
-      panel->setCursor(Qt::OpenHandCursor);
+      m_ParentPanel->setCursor(Qt::OpenHandCursor);
       }
     else
       {
-      panel->setCursor(Qt::ArrowCursor);
+      m_ParentPanel->setCursor(Qt::ArrowCursor);
       }
-
     }
 }
+
+#include <QTimer>
 
 void AnnotationInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
 {
   SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
 
-  if(ev->button() == Qt::LeftButton)
+  if(m_RightDown || m_MiddleDown)
+    {
+    ev->ignore();
+    }
+  else
     {
     if(m_Model->ProcessReleaseEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier))
+      {
       ev->accept();
-    }
 
-  if(m_Model->GetAnnotationMode() == ANNOTATION_SELECT)
-    {
-    if(m_Model->IsHoveringOverAnnotation(m_XSlice))
-      {
-      panel->setCursor(Qt::OpenHandCursor);
+      // If the user is done drawing the text annotation arrow
+      if(m_Model->GetAnnotationMode() == ANNOTATION_LANDMARK && m_Model->GetFlagDrawingLine() == false)
+        QTimer::singleShot(1, this, SLOT(onTextInputRequested()));
+
+      else if(m_Model->GetAnnotationMode() == ANNOTATION_RULER && m_Model->GetFlagDrawingLine() == false)
+        m_Model->AcceptLine();
       }
-    else
+
+    // Handle cursor changes
+    if(m_Model->GetAnnotationMode() == ANNOTATION_SELECT)
       {
-      panel->setCursor(Qt::ArrowCursor);
+      if(m_Model->IsHoveringOverAnnotation(m_XSlice))
+        {
+        panel->setCursor(Qt::OpenHandCursor);
+        }
+      else
+        {
+        panel->setCursor(Qt::ArrowCursor);
+        }
       }
     }
 }
@@ -100,6 +116,19 @@ void AnnotationInteractionMode::onAcceptAction()
 void AnnotationInteractionMode::onModelUpdate(const EventBucket &bucket)
 {
   this->update();
+}
+
+void AnnotationInteractionMode::onTextInputRequested()
+{
+  // Special handling in text annotation mode
+  bool ok;
+  QString text = QInputDialog::getText(this, "Text Annotation", "Enter annotation text:", QLineEdit::Normal,
+                                       QString(), &ok);
+  if(ok && text.length())
+    {
+    m_Model->SetCurrentAnnotationText(to_utf8(text));
+    m_Model->AcceptLine();
+    }
 }
 
 

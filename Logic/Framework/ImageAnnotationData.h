@@ -42,6 +42,9 @@ public:
   /** The image dimension to which this annotation belongs, or -1 if it's non-planar */
   irisGetSetMacro(Plane, int)
 
+  /** Get the color of the annotation */
+  irisGetSetMacro(Color, const Vector3d &)
+
   /** Test whether the annotation is visible in the current plane */
   bool IsVisible(int plane, int slice) const;
 
@@ -65,6 +68,8 @@ protected:
   bool m_Selected;
   bool m_VisibleInAllSlices;
   bool m_VisibleInAllPlanes;
+
+  Vector3d m_Color;
 
   int m_Plane;
 };
@@ -100,7 +105,7 @@ struct Landmark
 {
   std::string Text;
   Vector3f Pos;
-  Vector2f offset;
+  Vector2f Offset;
 };
 
 class LandmarkAnnotation : public AbstractAnnotation
@@ -110,7 +115,7 @@ public:
 
   typedef Landmark                   ObjectType;
 
-  irisGetMacro(Landmark, const Landmark &)
+  irisGetSetMacro(Landmark, const Landmark &)
 
 
 protected:
@@ -118,8 +123,8 @@ protected:
   virtual int GetSliceIndex(int plane) const;
   virtual void MoveBy(const Vector3f &offset);
 
-  virtual void Save(Registry &folder) {}
-  virtual void Load(Registry &folder) {}
+  virtual void Save(Registry &folder);
+  virtual void Load(Registry &folder);
 
   Landmark m_Landmark;
 };

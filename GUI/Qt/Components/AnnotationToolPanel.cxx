@@ -26,9 +26,12 @@ void AnnotationToolPanel::SetModel(GlobalUIModel *model)
 
   std::map<AnnotationMode, QAbstractButton *> mode_mapping;
   mode_mapping[ANNOTATION_RULER] = ui->btnRuler;
+  mode_mapping[ANNOTATION_LANDMARK] = ui->btnText;
   mode_mapping[ANNOTATION_SELECT] = ui->btnSelect;
   makeCheckableWidgetGroupCoupling(ui->grpMode, mode_mapping,
                                    m_Model->GetGlobalState()->GetAnnotationModeModel());
+
+  makeCoupling(ui->inColor, m_Model->GetGlobalState()->GetAnnotationColorModel());
 }
 
 void AnnotationToolPanel::on_btnOpen_clicked()

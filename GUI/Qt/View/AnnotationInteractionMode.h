@@ -8,6 +8,7 @@ class GenericSliceModel;
 class GenericSliceView;
 class AnnotationModel;
 class AnnotationRenderer;
+class SliceViewPanel;
 
 class AnnotationInteractionMode : public SliceWindowInteractionDelegateWidget
 {
@@ -32,10 +33,13 @@ public slots:
 
   void onModelUpdate(const EventBucket &bucket);
 
+  void onTextInputRequested();
+
 protected:
 
   AnnotationModel *m_Model;
   SmartPtr<AnnotationRenderer> m_Renderer;
+  SliceViewPanel *m_ParentPanel;
 };
 
 #endif // ANNOTATIONINTERACTIONMODE_H

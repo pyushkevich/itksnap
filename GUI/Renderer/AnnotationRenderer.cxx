@@ -51,8 +51,8 @@ void AnnotationRenderer::paintGL()
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  // Draw current line
-  if(m_Model->IsDrawingRuler())
+  // Draw current line - the current line can either be a ruler or an annotation arrow
+  if(m_Model->GetFlagDrawingLine())
     {
     const AnnotationModel::LineSegment &curr_line = m_Model->GetCurrentLine();
 
@@ -60,14 +60,24 @@ void AnnotationRenderer::paintGL()
     const OpenGLAppearanceElement *elt =
         as->GetUIElement(SNAPAppearanceSettings::POLY_DRAW_MAIN);
 
+    // Draw the line and the endpoints
+
     // Draw the current line
     glColor3d(1.,1.,0.);
     glBegin(GL_POINTS);
     glVertex2d(curr_line.first[0], curr_line.first[1]);
-    glVertex2d(0.5 * (curr_line.first[0] + curr_line.second[0]),
-               0.5 * (curr_line.first[1] + curr_line.second[1]));
+
+    // Midpoint only drawn in ruler mode
+    if(m_Model->GetAnnotationMode() == ANNOTATION_RULER)
+      {
+      glVertex2d(0.5 * (curr_line.first[0] + curr_line.second[0]),
+                 0.5 * (curr_line.first[1] + curr_line.second[1]));
+      }
+
     glVertex2d(curr_line.second[0], curr_line.second[1]);
     glEnd();
+
+    // Draw the line itself
     glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
     glEnable(GL_LINE_STIPPLE);
     glLineStipple(1, 0x9999);
@@ -77,55 +87,59 @@ void AnnotationRenderer::paintGL()
     glEnd();
     glPopAttrib();
 
-    // Compute the length of the drawing line
-    double length = m_Model->GetCurrentLineLength();
-    std::ostringstream oss_length;
-    oss_length << std::setprecision(4) << length << " " << "mm";
-
-    // Set up the rendering properties
-    AbstractRendererPlatformSupport::FontInfo font_info =
-          { AbstractRendererPlatformSupport::TYPEWRITER,
-            12 * vppr,
-            false };
-
-    Vector3f curr_center = (curr_line.first + curr_line.second) * 0.5f;
-
-    // Draw the length text
-    m_PlatformSupport->RenderTextInOpenGL(
-          oss_length.str().c_str(),
-          curr_center[0] + text_offset_slice[0], curr_center[1] + text_offset_slice[1],
-          text_width_slice[0], text_width_slice[1],
-          font_info,
-          AbstractRendererPlatformSupport::LEFT, AbstractRendererPlatformSupport::TOP,
-          elt->GetNormalColor());
-
-    // Compute and show the intersection angles of the drawing line with the other (visible) lines
-    for(ImageAnnotationData::AnnotationConstIterator it = adata->GetAnnotations().begin();
-        it != adata->GetAnnotations().end(); ++it)
+    // Decoration drawn only in ruler mode
+    if(m_Model->GetAnnotationMode() == ANNOTATION_RULER)
       {
-      const annot::LineSegmentAnnotation *lsa =
-          dynamic_cast<const annot::LineSegmentAnnotation *>(it->GetPointer());
+      // Compute the length of the drawing line
+      double length = m_Model->GetCurrentLineLength();
+      std::ostringstream oss_length;
+      oss_length << std::setprecision(4) << length << " " << "mm";
 
-      if(lsa && m_Model->IsAnnotationVisible(lsa))
+      // Set up the rendering properties
+      AbstractRendererPlatformSupport::FontInfo font_info =
+            { AbstractRendererPlatformSupport::TYPEWRITER,
+              12 * vppr,
+              false };
+
+      Vector3f curr_center = (curr_line.first + curr_line.second) * 0.5f;
+
+      // Draw the length text
+      m_PlatformSupport->RenderTextInOpenGL(
+            oss_length.str().c_str(),
+            curr_center[0] + text_offset_slice[0], curr_center[1] + text_offset_slice[1],
+            text_width_slice[0], text_width_slice[1],
+            font_info,
+            AbstractRendererPlatformSupport::LEFT, AbstractRendererPlatformSupport::TOP,
+            elt->GetNormalColor());
+
+      // Compute and show the intersection angles of the drawing line with the other (visible) lines
+      for(ImageAnnotationData::AnnotationConstIterator it = adata->GetAnnotations().begin();
+          it != adata->GetAnnotations().end(); ++it)
         {
-        // Compute the dot product and no need for the third components that are zeros
-        double angle = m_Model->GetAngleWithCurrentLine(lsa);
-        std::ostringstream oss_angle;
-        oss_angle << std::setprecision(3) << angle << " " << "deg";
+        const annot::LineSegmentAnnotation *lsa =
+            dynamic_cast<const annot::LineSegmentAnnotation *>(it->GetPointer());
 
-        Vector3f line_center = m_Model->GetAnnotationCenter(lsa);
+        if(lsa && m_Model->IsAnnotationVisible(lsa))
+          {
+          // Compute the dot product and no need for the third components that are zeros
+          double angle = m_Model->GetAngleWithCurrentLine(lsa);
+          std::ostringstream oss_angle;
+          oss_angle << std::setprecision(3) << angle << " " << "deg";
 
-        // Draw the angle text
-        m_PlatformSupport->RenderTextInOpenGL(
-              oss_angle.str().c_str(),
-              line_center[0] + text_offset_slice[0], line_center[1] + text_offset_slice[1],
-              text_width_slice[0], text_width_slice[1],
-              font_info,
-              AbstractRendererPlatformSupport::LEFT, AbstractRendererPlatformSupport::TOP,
-              elt->GetNormalColor());
+          Vector3f line_center = m_Model->GetAnnotationCenter(lsa);
 
+          // Draw the angle text
+          m_PlatformSupport->RenderTextInOpenGL(
+                oss_angle.str().c_str(),
+                line_center[0] + text_offset_slice[0], line_center[1] + text_offset_slice[1],
+                text_width_slice[0], text_width_slice[1],
+                font_info,
+                AbstractRendererPlatformSupport::LEFT, AbstractRendererPlatformSupport::TOP,
+                elt->GetNormalColor());
+
+          }
         }
-      }
+      } // Ruler mode
     } // Current line valid
 
   // Draw each annotation
@@ -144,7 +158,7 @@ void AnnotationRenderer::paintGL()
         if(lsa->GetSelected())
           glColor3d(1.,1.,0.);
         else
-          glColor3d(1.,0.,0.);
+          glColor3dv(lsa->GetColor().data_block());
 
         glBegin(GL_POINTS);
         glVertex2d((p1[0] + p2[0]) * 0.5, (p1[1] + p2[1]) * 0.5);
@@ -155,6 +169,85 @@ void AnnotationRenderer::paintGL()
         glVertex2d(p2[0], p2[1]);
         glEnd();
         }
+
+      annot::LandmarkAnnotation *lma =
+          dynamic_cast<annot::LandmarkAnnotation *>(it->GetPointer());
+      if(lma)
+        {
+        Vector3f xHeadSlice = m_Model->GetParent()->MapImageToSlice(lma->GetLandmark().Pos);
+        Vector2f xOffsetWinPhys = lma->GetLandmark().Offset;
+        std::string text = lma->GetLandmark().Text;
+
+        // Get the tail coordinate in slice units
+        Vector3f xTailSlice = m_Model->GetParent()->MapPhysicalWindowToSlice(
+              m_Model->GetParent()->MapSliceToPhysicalWindow(xHeadSlice) + xOffsetWinPhys);
+
+        if(lma->GetSelected())
+          glColor3d(1.,1.,0.);
+        else
+          glColor3dv(lma->GetColor().data_block());
+
+        glBegin(GL_LINES);
+        glVertex2d(xHeadSlice[0], xHeadSlice[1]);
+        glVertex2d(xTailSlice[0], xTailSlice[1]);
+        glEnd();
+
+        // Font properties
+        AbstractRendererPlatformSupport::FontInfo fi;
+        fi.type = AbstractRendererPlatformSupport::SANS;
+        fi.pixel_size = 10 * vppr;
+        fi.bold = false;
+
+        // Text box size in screen pixels
+        Vector2f xTextSizeWin;
+        xTextSizeWin[0] = this->m_PlatformSupport->MeasureTextWidth(text.c_str(), fi);
+        xTextSizeWin[1] = fi.pixel_size * vppr;
+
+        // Text box size in slice coordinate units
+        Vector3f xTextSizeSlice = m_Model->GetParent()->MapWindowOffsetToSliceOffset(xTextSizeWin);
+
+        // How to position the text
+        double xbox, ybox;
+        int align_horiz, align_vert;
+        if(fabs(xOffsetWinPhys[0]) >= fabs(xOffsetWinPhys[1]))
+          {
+          align_vert = AbstractRendererPlatformSupport::VCENTER;
+          ybox = xTailSlice[1] - xTextSizeSlice[1] / 2;
+          if(xOffsetWinPhys[0] >= 0)
+            {
+            align_horiz = AbstractRendererPlatformSupport::LEFT;
+            xbox = xTailSlice[0];
+            }
+          else
+            {
+            align_horiz = AbstractRendererPlatformSupport::RIGHT;
+            xbox = xTailSlice[0] - xTextSizeSlice[0];
+            }
+          }
+        else
+          {
+          align_horiz = AbstractRendererPlatformSupport::HCENTER;
+          xbox = xTailSlice[0] - xTextSizeSlice[0] / 2;
+          if(xOffsetWinPhys[1] >= 0)
+            {
+            align_vert = AbstractRendererPlatformSupport::BOTTOM;
+            ybox = xTailSlice[1];
+            }
+          else
+            {
+            align_vert = AbstractRendererPlatformSupport::TOP;
+            ybox = xTailSlice[1] - xTextSizeSlice[1];
+            }
+          }
+
+        // Draw the text at the right location
+        this->m_PlatformSupport->RenderTextInOpenGL(text.c_str(),
+                                                    xbox, ybox,
+                                                    xTextSizeSlice[0], xTextSizeSlice[1], fi,
+                                                    align_horiz, align_vert,
+                                                    lma->GetColor());
+        }
+
       }
     }
 

@@ -808,6 +808,9 @@ color:rgb(103, 103, 103);
    <property name="text">
     <string>Undo</string>
    </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Undo&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Undo the last modification to the segmentation image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
    </property>
@@ -819,6 +822,9 @@ color:rgb(103, 103, 103);
    </property>
    <property name="text">
     <string>Redo</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Redo&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Redo the last modification to the segmentation image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Z</string>
@@ -954,6 +960,9 @@ color:rgb(103, 103, 103);
    <property name="text">
     <string>Layer Inspector...</string>
    </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Layer Inspector&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Opens the layer inspector window used to adjust display properties of loaded image layers.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
    </property>
@@ -973,7 +982,7 @@ color:rgb(103, 103, 103);
     <string>Crosshair Tool</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Crosshair Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and drag the left mouse button to move the 3D cursor in the image. Use the right mouse button to zoom, and the middle mouse button to pan.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Crosshair Mode (1)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to change the position of the linked 3D cursor in the image. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Position the 3D cursor&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in/zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_scrolling_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>1</string>
@@ -991,7 +1000,7 @@ color:rgb(103, 103, 103);
     <string>Zoom/Pan Mode</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Zoom/Pan Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and drag the left mouse button to pan the slice views. Use the right mouse button to zoom in and out.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Zoom/Pan Mode (2)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Use the mouse to zoom in and out of the image, and to pan around when the image is zoomed in. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to pan around the image&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_scrolling_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>2</string>
@@ -1009,7 +1018,7 @@ color:rgb(103, 103, 103);
     <string>Polygon Drawing Mode</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Polygon Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Primary tool for manual segmentation. Use the mouse to draw polygons on the 2D slice views, then edit the polygons and fill them with segmentation labels.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Polygon Drawing Mode (3)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to perform manual segmentation by drawing and filling polygons in the three orthogonal image slices. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Add points to the polygon and edit completed polygon&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_scrolling_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>3</string>
@@ -1027,7 +1036,7 @@ color:rgb(103, 103, 103);
     <string>Paintbrush Mode</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Paintbrush Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;A tool for manual editing of segmentations. Hold the left mouse button and drag the mouse to draw with the currently selected label using one of the available brush shapes. Use the right mouse button to draw wuth the background label.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Paintbrush Mode (4)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to perform manual segmentation by drawing with a paintbrush-like tool. Different brush shapes are available, including an adaptive brush that adjusts itself to the image data. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Paint with foreground label&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Paint with background label&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_scrolling_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>4</string>
@@ -1045,7 +1054,7 @@ color:rgb(103, 103, 103);
     <string>Active Contour Segmentation Mode</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Active Contour Segmentation (Snake) Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Select a region of interest (ROI) for automatic segmentation. Use the mouse to move the boundaries of the ROI, then click the &amp;quot;Segment 3D&amp;quot; button to begin automatic segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Active Contour (aka &amp;quot;Snake&amp;quot;) Segmentation Mode (5)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to select the region of interest for semi-automatic active contour segmentation and start the semi-automatic segmentation wizard.&lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Adjust the boundaries of the region of interest&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out of the image&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_scrolling_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>5</string>
@@ -1071,7 +1080,7 @@ color:rgb(103, 103, 103);
     <string>3D Trackball Tool</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Trackball Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and drag the left mouse button to rotate the 3D scene. Use the right mouse button to zoom, and the middle mouse button to pan the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Trackball Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to manipulate the viewpoint in the 3D window. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to rotate the camera&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Shift+&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to pan the camera.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="action3DCrosshair">
@@ -1086,7 +1095,7 @@ color:rgb(103, 103, 103);
     <string>3D Crosshair Tool</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Crosshair Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click the left button over a segmentation surface in the 3D window to position the 3D cursor at that position.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Crosshair Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to place the linked 3D cursor on one of the surfaces rendered in the 3D window. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Click on a surface to place 3D cursor&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="action3DScalpel">
@@ -1101,7 +1110,7 @@ color:rgb(103, 103, 103);
     <string>3D Scalpel Tool</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Scalpel Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Left-click on two points in the 3D window to define a cutplane. Then click 'Accept' to relabel the segmentation on one side of the cutplane.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Scalpel Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to relabel parts of the 3D scene with a cutplane. Voxels on one side of the cutplane will be assigned the current foreground label. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to draw the cutplane; then to rotate it if needed. &lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="action3DSpray">
@@ -1116,7 +1125,7 @@ color:rgb(103, 103, 103);
     <string>3D Spray Paint Tool</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Spray Paint Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and hold the left mouse button to relabel voxels on the boundaries of segmented objects.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Spray Paint Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to add voxels to the surfaces of existing segmentations. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Press and hold to apply spray paint. &lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionOverlayVisibilityToggleAll">
@@ -1411,6 +1420,9 @@ color:rgb(103, 103, 103);
    </property>
    <property name="text">
     <string>Annotation Tool</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Annotation Mode (6)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to draw annotations (lines, text) on image slices and to measure distance and angles between points in a slice. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Use to draw and manipulate annotations&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_scrolling_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>6</string>

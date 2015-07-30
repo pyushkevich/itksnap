@@ -24,6 +24,7 @@ void AbstractAnnotation::Save(Registry &folder)
   folder["VisibleInAllSlices"] << m_VisibleInAllSlices;
   folder["VisibleInAllPlanes"] << m_VisibleInAllPlanes;
   folder["Plane"] << m_Plane;
+  folder["Color"] << m_Color;
 }
 
 void AbstractAnnotation::Load(Registry &folder)
@@ -32,6 +33,7 @@ void AbstractAnnotation::Load(Registry &folder)
   m_VisibleInAllSlices = folder["VisibleInAllSlices"][false];
   m_VisibleInAllPlanes = folder["VisibleInAllPlanes"][false];
   m_Plane = folder["Plane"][0];
+  m_Color = folder["Color"][Vector3d(1.0, 0.0, 0.0)];
 }
 
 int LineSegmentAnnotation::GetSliceIndex(int plane) const
@@ -77,6 +79,23 @@ int LandmarkAnnotation::GetSliceIndex(int plane) const
 void LandmarkAnnotation::MoveBy(const Vector3f &offset)
 {
   m_Landmark.Pos += offset;
+}
+
+void LandmarkAnnotation::Save(Registry &folder)
+{
+  Superclass::Save(folder);
+  folder["Type"] << "LandmarkAnnotation";
+  folder["Pos"] << to_double(m_Landmark.Pos);
+  folder["Offset"] << to_double(m_Landmark.Offset);
+  folder["Text"] << m_Landmark.Text;
+}
+
+void LandmarkAnnotation::Load(Registry &folder)
+{
+  Superclass::Load(folder);
+  m_Landmark.Pos = to_float(folder["Pos"][Vector3d(0.0)]);
+  m_Landmark.Offset = to_float(folder["Offset"][Vector2d(0.0)]);
+  m_Landmark.Text = folder["Text"]["??? Landmark"];
 }
 
 

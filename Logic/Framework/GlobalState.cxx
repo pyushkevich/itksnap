@@ -128,6 +128,8 @@ GlobalState
   // Set annotation defaults
   m_AnnotationSettings.shownOnAllSlices = false;
   m_AnnotationModeModel = NewSimpleConcreteProperty(ANNOTATION_RULER);
+
+  m_AnnotationColorModel = NewSimpleConcreteProperty(Vector3d(1, 0, 0));
 }
 
 void GlobalState::SetDriver(IRISApplication *parent)

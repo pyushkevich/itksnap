@@ -388,6 +388,11 @@ public:
    */
   irisSimplePropertyAccessMacro(AnnotationMode, AnnotationMode)
 
+  /**
+   * Color for Annotations
+   */
+  irisSimplePropertyAccessMacro(AnnotationColor, Vector3d)
+
 protected:
 
   GlobalState();
@@ -513,6 +518,8 @@ private:
 
   typedef ConcretePropertyModel<AnnotationMode> ConcreteAnnotationModeModel;
   SmartPtr<ConcreteAnnotationModeModel> m_AnnotationModeModel;
+
+  SmartPtr<ConcreteSimpleDoubleVec3Property> m_AnnotationColorModel;
 };
 
 #endif // __GlobalState_h_
