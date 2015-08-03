@@ -83,6 +83,8 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   ui->btnAnnotationClearLine->setDefaultAction(ui->actionAnnotationClearLine);
   ui->btnAnnotationSelectAll->setDefaultAction(ui->actionAnnotationSelectAll);
   ui->btnAnnotationDeleteSelected->setDefaultAction(ui->actionAnnotationDelete);
+  ui->btnAnnotationNext->setDefaultAction(ui->actionAnnotationNext);
+  ui->btnAnnotationPrevious->setDefaultAction(ui->actionAnnotationPrevious);
 
   this->addAction(ui->actionZoom_In);
   this->addAction(ui->actionZoom_Out);
@@ -618,4 +620,14 @@ void SliceViewPanel::on_actionAnnotationSelectAll_triggered()
 void SliceViewPanel::on_actionAnnotationDelete_triggered()
 {
   m_GlobalUI->GetAnnotationModel(m_Index)->DeleteSelectedOnSlice();
+}
+
+void SliceViewPanel::on_actionAnnotationNext_triggered()
+{
+  m_GlobalUI->GetAnnotationModel(m_Index)->GoToNextAnnotation();
+}
+
+void SliceViewPanel::on_actionAnnotationPrevious_triggered()
+{
+  m_GlobalUI->GetAnnotationModel(m_Index)->GoToPreviousAnnotation();
 }

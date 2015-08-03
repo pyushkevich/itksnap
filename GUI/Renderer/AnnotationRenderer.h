@@ -23,6 +23,9 @@ protected:
   virtual ~AnnotationRenderer() {}
 
   AnnotationModel *m_Model;
+private:
+
+  void DrawSelectionHandle(const Vector3f &xSlice);
 };
 
 #endif // ANNOTATIONRENDERER_H

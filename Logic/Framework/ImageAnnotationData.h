@@ -45,11 +45,17 @@ public:
   /** Get the color of the annotation */
   irisGetSetMacro(Color, const Vector3d &)
 
-  /** Test whether the annotation is visible in the current plane */
+  /** Test whether the annotation is visible in the current plane and given slice */
   bool IsVisible(int plane, int slice) const;
+
+  /** Test whether the annotation is visible in the current plane in some slice */
+  bool IsVisible(int plane) const;
 
   /** Get the slice this annotation belongs to for a particular plane */
   virtual int GetSliceIndex(int plane) const = 0;
+
+  /** Get the anchor point for the annotation in a given plane - used for sorting */
+  virtual Vector3f GetAnchorPoint(int plane) const = 0;
 
   /** Move the annotation by given amount in physical space */
   virtual void MoveBy(const Vector3f &offset) = 0;
@@ -95,6 +101,8 @@ protected:
 
   virtual int GetSliceIndex(int plane) const;
 
+  virtual Vector3f GetAnchorPoint(int plane) const;
+
   LineSegment m_Segment;
 };
 
@@ -121,6 +129,8 @@ public:
 protected:
 
   virtual int GetSliceIndex(int plane) const;
+  virtual Vector3f GetAnchorPoint(int plane) const;
+
   virtual void MoveBy(const Vector3f &offset);
 
   virtual void Save(Registry &folder);

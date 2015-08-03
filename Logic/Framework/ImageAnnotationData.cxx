@@ -18,6 +18,15 @@ bool AbstractAnnotation::IsVisible(int plane, int slice) const
   return true;
 }
 
+bool AbstractAnnotation::IsVisible(int plane) const
+{
+  // Check if the plane makes this annotation invisible
+  if(!m_VisibleInAllPlanes && plane != m_Plane)
+    return false;
+
+  return true;
+}
+
 void AbstractAnnotation::Save(Registry &folder)
 {
   folder["Selected"] << m_Selected;
@@ -44,6 +53,12 @@ int LineSegmentAnnotation::GetSliceIndex(int plane) const
   assert(m_Segment.first[plane] == m_Segment.second[plane]);
 
   return (int) (m_Segment.first[plane]);
+}
+
+Vector3f LineSegmentAnnotation::GetAnchorPoint(int plane) const
+{
+  // Use the midpoint
+  return (m_Segment.first + m_Segment.second) * 0.5f;
 }
 
 void LineSegmentAnnotation::Save(Registry &folder)
@@ -74,6 +89,11 @@ int LandmarkAnnotation::GetSliceIndex(int plane) const
   // Just return the coordinate of the first point. It should be the same
   // as the coordinate of the second point
   return (int) (m_Landmark.Pos[plane]);
+}
+
+Vector3f LandmarkAnnotation::GetAnchorPoint(int plane) const
+{
+  return m_Landmark.Pos;
 }
 
 void LandmarkAnnotation::MoveBy(const Vector3f &offset)
@@ -157,6 +177,11 @@ void ImageAnnotationData::LoadAnnotations(Registry &reg)
       {
       SmartPtr<annot::LineSegmentAnnotation> line_ann =  annot::LineSegmentAnnotation::New();
       ann = line_ann.GetPointer();
+      }
+    else if(type == "LandmarkAnnotation")
+      {
+      SmartPtr<annot::LandmarkAnnotation> lm_ann =  annot::LandmarkAnnotation::New();
+      ann = lm_ann.GetPointer();
       }
 
     // Read the annotation

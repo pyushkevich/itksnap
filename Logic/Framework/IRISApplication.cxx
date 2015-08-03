@@ -2058,6 +2058,10 @@ void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string pr
     // Save the metadata associated with the layer
     SaveMetaDataAssociatedWithLayer(layer, it.GetRole(), &folder);
     }
+
+  // Save the annotations in the workspace
+  Registry &ann_folder = preg.Folder("Annotations");
+  this->m_IRISImageData->GetAnnotations()->SaveAnnotations(ann_folder);
 }
 
 void IRISApplication::SaveProject(const std::string &proj_file)
@@ -2173,6 +2177,13 @@ void IRISApplication::OpenProject(
   // Update the history
   m_SystemInterface->GetHistoryManager()->
       UpdateHistory("Project", proj_file_full, false);
+
+  // Load the annotations
+  if(preg.HasFolder("Annotations"))
+    {
+    Registry &ann_folder = preg.Folder("Annotations");
+    m_IRISImageData->GetAnnotations()->LoadAnnotations(ann_folder);
+    }
 
   // Simulate saving the project into a registy that will be cached. This
   // allows us to check later whether the project state has changed.

@@ -155,10 +155,9 @@ void AnnotationRenderer::paintGL()
         Vector3f p1 = m_Model->GetParent()->MapImageToSlice(lsa->GetSegment().first);
         Vector3f p2 = m_Model->GetParent()->MapImageToSlice(lsa->GetSegment().second);
 
-        if(lsa->GetSelected())
-          glColor3d(1.,1.,0.);
-        else
-          glColor3dv(lsa->GetColor().data_block());
+        glColor3dv(lsa->GetColor().data_block());
+
+
 
         glBegin(GL_POINTS);
         glVertex2d((p1[0] + p2[0]) * 0.5, (p1[1] + p2[1]) * 0.5);
@@ -168,34 +167,42 @@ void AnnotationRenderer::paintGL()
         glVertex2d(p1[0], p1[1]);
         glVertex2d(p2[0], p2[1]);
         glEnd();
+
+        if(lsa->GetSelected())
+          {
+          this->DrawSelectionHandle(p1);
+          this->DrawSelectionHandle(p2);
+          }
+
         }
 
       annot::LandmarkAnnotation *lma =
           dynamic_cast<annot::LandmarkAnnotation *>(it->GetPointer());
       if(lma)
         {
-        Vector3f xHeadSlice = m_Model->GetParent()->MapImageToSlice(lma->GetLandmark().Pos);
-        Vector2f xOffsetWinPhys = lma->GetLandmark().Offset;
+        // Get the head and tail coordinate in slice units
+        Vector3f xHeadSlice, xTailSlice;
+        m_Model->GetLandmarkArrowPoints(lma->GetLandmark(), xHeadSlice, xTailSlice);
+
         std::string text = lma->GetLandmark().Text;
 
-        // Get the tail coordinate in slice units
-        Vector3f xTailSlice = m_Model->GetParent()->MapPhysicalWindowToSlice(
-              m_Model->GetParent()->MapSliceToPhysicalWindow(xHeadSlice) + xOffsetWinPhys);
-
-        if(lma->GetSelected())
-          glColor3d(1.,1.,0.);
-        else
-          glColor3dv(lma->GetColor().data_block());
+        glColor3dv(lma->GetColor().data_block());
 
         glBegin(GL_LINES);
         glVertex2d(xHeadSlice[0], xHeadSlice[1]);
         glVertex2d(xTailSlice[0], xTailSlice[1]);
         glEnd();
 
+        if(lma->GetSelected())
+          {
+          this->DrawSelectionHandle(xHeadSlice);
+          this->DrawSelectionHandle(xTailSlice);
+          }
+
         // Font properties
         AbstractRendererPlatformSupport::FontInfo fi;
         fi.type = AbstractRendererPlatformSupport::SANS;
-        fi.pixel_size = 10 * vppr;
+        fi.pixel_size = 12 * vppr;
         fi.bold = false;
 
         // Text box size in screen pixels
@@ -209,11 +216,11 @@ void AnnotationRenderer::paintGL()
         // How to position the text
         double xbox, ybox;
         int align_horiz, align_vert;
-        if(fabs(xOffsetWinPhys[0]) >= fabs(xOffsetWinPhys[1]))
+        if(fabs(lma->GetLandmark().Offset[0]) >= fabs(lma->GetLandmark().Offset[1]))
           {
           align_vert = AbstractRendererPlatformSupport::VCENTER;
           ybox = xTailSlice[1] - xTextSizeSlice[1] / 2;
-          if(xOffsetWinPhys[0] >= 0)
+          if(lma->GetLandmark().Offset[0] >= 0)
             {
             align_horiz = AbstractRendererPlatformSupport::LEFT;
             xbox = xTailSlice[0];
@@ -228,7 +235,7 @@ void AnnotationRenderer::paintGL()
           {
           align_horiz = AbstractRendererPlatformSupport::HCENTER;
           xbox = xTailSlice[0] - xTextSizeSlice[0] / 2;
-          if(xOffsetWinPhys[1] >= 0)
+          if(lma->GetLandmark().Offset[1] >= 0)
             {
             align_vert = AbstractRendererPlatformSupport::BOTTOM;
             ybox = xTailSlice[1];
@@ -252,6 +259,29 @@ void AnnotationRenderer::paintGL()
     }
 
   glPopAttrib();
+}
+
+void AnnotationRenderer::DrawSelectionHandle(const Vector3f &xSlice)
+{
+  // Determine the width of the line
+  float radius = 4 * m_Model->GetParent()->GetSizeReporter()->GetViewportPixelRatio();
+  Vector3f offset = m_Model->GetParent()->MapWindowOffsetToSliceOffset(Vector2f(radius, radius));
+
+  glColor4d(1, 1, 1, 0.5);
+  glBegin(GL_QUADS);
+  glVertex2d(xSlice[0] + offset[0], xSlice[1] + offset[1]);
+  glVertex2d(xSlice[0] + offset[0], xSlice[1] - offset[1]);
+  glVertex2d(xSlice[0] - offset[0], xSlice[1] - offset[1]);
+  glVertex2d(xSlice[0] - offset[0], xSlice[1] + offset[1]);
+  glEnd();
+
+  glColor3d(0, 0, 0);
+  glBegin(GL_LINE_LOOP);
+  glVertex2d(xSlice[0] + offset[0], xSlice[1] + offset[1]);
+  glVertex2d(xSlice[0] + offset[0], xSlice[1] - offset[1]);
+  glVertex2d(xSlice[0] - offset[0], xSlice[1] - offset[1]);
+  glVertex2d(xSlice[0] - offset[0], xSlice[1] + offset[1]);
+  glEnd();
 }
 
 AnnotationRenderer::AnnotationRenderer()

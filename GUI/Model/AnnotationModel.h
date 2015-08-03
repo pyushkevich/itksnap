@@ -89,6 +89,9 @@ public:
 
   void DeleteSelectedOnSlice();
 
+  void GoToNextAnnotation();
+  void GoToPreviousAnnotation();
+
   bool CheckState(UIState state);
 
   bool IsHoveringOverAnnotation(const Vector3d &xSlice);
@@ -97,6 +100,10 @@ public:
   irisGetSetMacro(CurrentAnnotationText, std::string)
 
   Vector3f GetAnnotationCenter(const AbstractAnnotation *annot);
+
+  void GetLandmarkArrowPoints(const annot::Landmark &lm, Vector3f &outHeadXSlice, Vector3f &outTailXSlice);
+
+
 
 protected:
 
@@ -117,10 +124,12 @@ protected:
   // Text assigned to the currently drawn annotation
   std::string m_CurrentAnnotationText;
 
+  double GetDistanceToLine(const Vector3f &x1, const Vector3f &x2, const Vector3d &point);
   double GetDistanceToLine(LineSegment &line, const Vector3d &point);
   double GetPixelDistanceToAnnotation(const AbstractAnnotation *annot, const Vector3d &point);
   void AdjustAngleToRoundDegree(LineSegment &ls, int n_degrees);
   AbstractAnnotation *GetAnnotationUnderCursor(const Vector3d &xSlice);
+  void GoToNextOrPrevAnnotation(int direction);
 };
 
 #endif // ANNOTATIONMODEL_H

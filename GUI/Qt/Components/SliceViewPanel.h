@@ -70,6 +70,10 @@ private slots:
 
   void on_actionAnnotationDelete_triggered();
 
+  void on_actionAnnotationNext_triggered();
+
+  void on_actionAnnotationPrevious_triggered();
+
 private:
   Ui::SliceViewPanel *ui;
 

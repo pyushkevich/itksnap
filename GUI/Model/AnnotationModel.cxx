@@ -121,10 +121,10 @@ Vector3f AnnotationModel::GetAnnotationCenter(const AbstractAnnotation *annot)
   return Vector3f(0.f);
 }
 
-double AnnotationModel::GetDistanceToLine(LineSegment &line, const Vector3d &point)
+double AnnotationModel::GetDistanceToLine(const Vector3f &x1, const Vector3f &x2, const Vector3d &point)
 {
-  Vector2f p0 = m_Parent->MapSliceToWindow(line.first);
-  Vector2f p1 = m_Parent->MapSliceToWindow(line.second);
+  Vector2f p0 = m_Parent->MapSliceToWindow(x1);
+  Vector2f p1 = m_Parent->MapSliceToWindow(x2);
   Vector2f x = m_Parent->MapSliceToWindow(to_float(point));
 
   float alpha = dot_product(x - p0, p1 - p0) / dot_product(p1 - p0, p1 - p0);
@@ -135,6 +135,13 @@ double AnnotationModel::GetDistanceToLine(LineSegment &line, const Vector3d &poi
 
   Vector2f px = p0 * (1.0f - alpha) + p1 * alpha;
   return (px - x).magnitude();
+
+}
+
+
+double AnnotationModel::GetDistanceToLine(LineSegment &line, const Vector3d &point)
+{
+  return GetDistanceToLine(line.first, line.second, point);
 }
 
 AnnotationMode AnnotationModel::GetAnnotationMode() const
@@ -165,27 +172,16 @@ double AnnotationModel
     const annot::LineSegment &seg = lsa->GetSegment();
     Vector3f s1 = m_Parent->MapImageToSlice(seg.first);
     Vector3f s2 = m_Parent->MapImageToSlice(seg.second);
-
-    Vector2f p0 = m_Parent->MapSliceToWindow(s1);
-    Vector2f p1 = m_Parent->MapSliceToWindow(s2);
-    Vector2f x = m_Parent->MapSliceToWindow(to_float(point));
-
-    float alpha = dot_product(x - p0, p1 - p0) / dot_product(p1 - p0, p1 - p0);
-    if(alpha < 0)
-      alpha = 0;
-    if(alpha > 1)
-      alpha = 1;
-
-    Vector2f px = p0 * (1.0f - alpha) + p1 * alpha;
-    return (px - x).magnitude();
+    return GetDistanceToLine(s1, s2, point);
     }
 
   const annot::LandmarkAnnotation *lma = dynamic_cast<const annot::LandmarkAnnotation *>(annot);
   if(lma)
     {
     const annot::Landmark &landmark = lma->GetLandmark();
-    Vector3f p1 = m_Parent->MapImageToSlice(landmark.Pos);
-
+    Vector3f s1, s2;
+    this->GetLandmarkArrowPoints(landmark, s1, s2);
+    return GetDistanceToLine(s1, s2, point);
     }
 
   return std::numeric_limits<double>::infinity();
@@ -387,6 +383,7 @@ void AnnotationModel::AcceptLine()
     lsa->SetVisibleInAllPlanes(false);
     lsa->SetVisibleInAllSlices(false);
     lsa->SetColor(m_Parent->GetParentUI()->GetGlobalState()->GetAnnotationColor());
+    lsa->SetSelected(false);
 
     this->GetAnnotations()->AddAnnotation(lsa);
     m_FlagDrawingLine = false;
@@ -416,7 +413,7 @@ void AnnotationModel::AcceptLine()
     lma->SetVisibleInAllPlanes(false);
     lma->SetVisibleInAllSlices(false);
     lma->SetColor(m_Parent->GetParentUI()->GetGlobalState()->GetAnnotationColor());
-
+    lma->SetSelected(false);
 
     this->GetAnnotations()->AddAnnotation(lma);
 
@@ -468,6 +465,141 @@ void AnnotationModel::DeleteSelectedOnSlice()
   this->InvokeEvent(ModelUpdateEvent());
 }
 
+void AnnotationModel::GoToNextAnnotation()
+{
+  this->GoToNextOrPrevAnnotation(1);
+}
+
+void AnnotationModel::GoToPreviousAnnotation()
+{
+  this->GoToNextOrPrevAnnotation(-1);
+}
+
+void AnnotationModel::GoToNextOrPrevAnnotation(int direction)
+{
+  // Create a list of all annotations in this slice view, sorted
+  typedef std::pair<long, AbstractAnnotation *> AnnotPair;
+  std::list<AnnotPair> annot_list;
+  typedef std::list<AnnotPair>::iterator AnnotIter;
+  typedef std::list<AnnotPair>::reverse_iterator AnnotRevIter;
+
+  // Find annotation that will serve as a reference point
+  AbstractAnnotation *ref_annot = NULL;
+  AbstractAnnotation *selected = NULL;
+
+  // Iterate through the annotations
+  ImageAnnotationData *adata = this->GetAnnotations();
+  for(ImageAnnotationData::AnnotationIterator it = adata->GetAnnotations().begin();
+      it != adata->GetAnnotations().end(); ++it)
+    {
+    AbstractAnnotation *a = *it;
+    if(a->IsVisible(m_Parent->GetSliceDirectionInImageSpace()))
+      {
+      // Create a pair for the current annotation
+      Vector3f ank_img = a->GetAnchorPoint(m_Parent->GetSliceDirectionInImageSpace());
+      Vector3f ank_slice = m_Parent->MapImageToSlice(ank_img);
+
+      long hash = ank_slice[2] * 100000000l + ank_slice[1] * 10000l + ank_slice[0];
+
+      AnnotPair pair = std::make_pair(hash, a);
+      annot_list.push_back(pair);
+
+      // If the annotation is on this slice and selected, us as a reference
+      if(this->IsAnnotationVisible(a) && a->GetSelected())
+        ref_annot = a;
+      }
+    }
+
+  // Test for degenerate cases
+  if(annot_list.size() == 1)
+    {
+    selected = annot_list.front().second;
+    }
+  else if(annot_list.size() > 1)
+    {
+    // Sort the annotations by slice, then by in-slice position
+    annot_list.sort();
+
+    // Find the reference annotation if it exists
+    if(ref_annot && direction > 0)
+      {
+      AnnotIter it_ref = annot_list.end();
+      for(AnnotIter it = annot_list.begin(); it!=annot_list.end(); ++it)
+        if(it->second == ref_annot)
+          it_ref = it;
+
+      ++it_ref;
+      if(it_ref == annot_list.end())
+        it_ref = annot_list.begin();
+
+      selected = it_ref->second;
+      }
+    else if(ref_annot && direction < 0)
+      {
+      AnnotRevIter it_ref = annot_list.rend();
+      for(AnnotRevIter it = annot_list.rbegin(); it!=annot_list.rend(); ++it)
+        if(it->second == ref_annot)
+          it_ref = it;
+
+      ++it_ref;
+      if(it_ref == annot_list.rend())
+        it_ref = annot_list.rbegin();
+
+      selected = it_ref->second;
+      }
+    else if(direction > 0)
+      {
+      // Start from the beginning and find something on the current slice or after it
+      for(AnnotIter it = annot_list.begin(); it!=annot_list.end(); ++it)
+        if(it->second->GetSliceIndex(m_Parent->GetSliceDirectionInImageSpace()) >=
+           m_Parent->GetSliceIndex())
+          {
+          selected = it->second;
+          break;
+          }
+
+      if(!selected)
+        selected = annot_list.front().second;
+      }
+    else
+      {
+      // Start from the beginning and find something on the current slice or after it
+      for(AnnotRevIter it = annot_list.rbegin(); it!=annot_list.rend(); --it)
+        if(it->second->GetSliceIndex(m_Parent->GetSliceDirectionInImageSpace()) <=
+           m_Parent->GetSliceIndex())
+          {
+          selected = it->second;
+          break;
+          }
+
+      if(!selected)
+        selected = annot_list.back().second;
+      }
+    }
+
+  // Deselect everything
+  for(ImageAnnotationData::AnnotationIterator it = adata->GetAnnotations().begin();
+      it != adata->GetAnnotations().end(); ++it)
+    {
+    (*it)->SetSelected(false);
+    }
+
+  // Select the clicked
+  if(selected)
+    {
+    // Select the next item
+    selected->SetSelected(true);
+
+    // Go to its plane
+    Vector3ui cursor = m_Parent->GetDriver()->GetCursorPosition();
+    cursor[m_Parent->GetSliceDirectionInImageSpace()] = selected->GetSliceIndex(m_Parent->GetSliceDirectionInImageSpace());
+    m_Parent->GetDriver()->SetCursorPosition(cursor);
+    }
+
+  // Fire event
+  this->InvokeEvent(ModelUpdateEvent());
+}
+
 bool AnnotationModel::CheckState(AnnotationModel::UIState state)
 {
   switch(state)
@@ -494,6 +626,17 @@ bool AnnotationModel::CheckState(AnnotationModel::UIState state)
 bool AnnotationModel::IsHoveringOverAnnotation(const Vector3d &xSlice)
 {
   return (this->GetAnnotationUnderCursor(xSlice) != NULL);
+}
+
+void AnnotationModel::GetLandmarkArrowPoints(const annot::Landmark &lm,
+                                             Vector3f &outHeadXSlice, Vector3f &outTailXSlice)
+{
+  // Get the head coordinates in slice units
+  outHeadXSlice = m_Parent->MapImageToSlice(lm.Pos);
+
+  // Get the tail coordinate in slice units
+  outTailXSlice = m_Parent->MapPhysicalWindowToSlice(
+        m_Parent->MapSliceToPhysicalWindow(outHeadXSlice) + lm.Offset);
 }
 
 AnnotationModel::AnnotationModel()
