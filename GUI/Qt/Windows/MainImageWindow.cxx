@@ -904,9 +904,30 @@ void MainImageWindow::LoadDroppedFile(QString file)
     }
 }
 
+#ifdef __APPLE__
+#include <CoreFoundation/CFError.h>
+#include <CoreFoundation/CFURL.h>
+#endif
+
 void MainImageWindow::dropEvent(QDropEvent *event)
 {
-  QString file = event->mimeData()->urls().first().toLocalFile();
+  QUrl url = event->mimeData()->urls().first();
+
+#ifdef __APPLE__
+  // TODO: this is a Yosemite bug fix - bug https://bugreports.qt.io/browse/QTBUG-40449
+  // Check if this is still necessary in future Qt versions (discovered in Qt 5.4)
+  if (url.url().startsWith("file:///.file/id="))
+    {
+    CFURLRef cfurl = url.toCFURL();
+    CFErrorRef error = 0;
+    CFURLRef absurl = CFURLCreateFilePathURL(kCFAllocatorDefault, cfurl, &error);
+    url = QUrl::fromCFURL(absurl);
+    CFRelease(cfurl);
+    CFRelease(absurl);
+    }
+#endif
+
+  QString file = url.toLocalFile();
   LoadDroppedFile(file);
   event->acceptProposedAction();
 }
