@@ -80,7 +80,7 @@ font-size: 12px;
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Split the screen space between three orthogonal slice views and the 3D view.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show three orthogonal slice views and the 3D view.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -358,7 +358,11 @@ font-size: 12px;
        <number>0</number>
       </property>
       <item>
-       <widget class="QDoubleSpinBox" name="inThumbSize"/>
+       <widget class="QDoubleSpinBox" name="inThumbSize">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the size of the thumbnails relative to window size.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
       </item>
       <item>
        <spacer name="horizontalSpacer_2">

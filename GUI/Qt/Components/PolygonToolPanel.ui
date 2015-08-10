@@ -179,6 +179,9 @@ p, li { white-space: pre-wrap; }
    </item>
    <item>
     <widget class="QCheckBox" name="chkInvertPolygon">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, polygon drawing operations are inverted, i.e., the outside of the polygon is filled with the active label.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
      <property name="text">
       <string>Invert polygon</string>
      </property>

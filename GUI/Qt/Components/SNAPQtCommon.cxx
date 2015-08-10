@@ -250,11 +250,18 @@ QIcon CreateLabelComboIcon(int w, int h, LabelType fg, DrawOverFilter bg, ColorL
 
 QString CreateLabelComboTooltip(LabelType fg, DrawOverFilter bg, ColorLabelTable *clt)
 {
+  /*
   return QString(
         "<html><head/><body>"
         "<p>Foreground label:<br><span style=\" font-weight:600;\">%1</span></p>"
         "<p>Background label:<br><span style=\" font-weight:600;\">%2</span></p>"
         "</body></html>").
+      arg(GetTitleForColorLabel(fg, clt)).arg(GetTitleForDrawOverFilter(bg, clt)); */
+
+  return QString(
+        "<html><body>"
+        "Set active label to <span style=\" font-weight:600;\">%1</span> "
+        " and the paint over mask to <span style=\" font-weight:600;\">%2</span>.").
       arg(GetTitleForColorLabel(fg, clt)).arg(GetTitleForDrawOverFilter(bg, clt));
 }
 
@@ -530,4 +537,35 @@ QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName)
 void UpdateFileDialogPathForCategory(const char *HistoryName, QString dir)
 {
   g_CategoryToLastPathMap[HistoryName] = QDir(dir);
+}
+
+void TranslateStringTooltipKeyModifiers(QString &tooltip)
+{
+  tooltip.replace("⇧⌘","Ctrl+Shift+");
+  tooltip.replace("⇧","Shift+");
+  tooltip.replace("⌘","Ctrl+");
+  tooltip.replace("⌥","Alt+");
+  tooltip.replace("⌃","Ctrl+");
+  tooltip.replace("⎋","Esc");
+}
+
+void TranslateChildTooltipKeyModifiers(QWidget *parent)
+{
+  // Get all the child widgets
+  QList<QWidget *> child_widgets = parent->findChildren<QWidget *>();
+  foreach(QWidget *child, child_widgets)
+    {
+    QString tooltip = child->toolTip();
+    TranslateStringTooltipKeyModifiers(tooltip);
+    child->setToolTip(tooltip);
+    }
+
+  // Get all the child actions
+  QList<QAction *> child_actions = parent->findChildren<QAction *>();
+  foreach(QAction *child, child_actions)
+    {
+    QString tooltip = child->toolTip();
+    TranslateStringTooltipKeyModifiers(tooltip);
+    child->setToolTip(tooltip);
+    }
 }

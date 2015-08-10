@@ -259,6 +259,12 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   this->HookupSecondaryShortcutToAction(QKeySequence(","), ui->actionForegroundLabelPrev);
   this->HookupSecondaryShortcutToAction(QKeySequence("."), ui->actionForegroundLabelNext);
   this->HookupShortcutToAction(QKeySequence("C"), ui->actionCenter_on_Cursor);
+
+  // Translate the tooltips in all the widgets. This changes the apple symbols that are currently
+  // hard coded in the tooltips into their Windows/Linux equivalents
+#ifndef __APPLE__
+  TranslateChildTooltipKeyModifiers(this);
+#endif
 }
 
 

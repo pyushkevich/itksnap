@@ -757,6 +757,9 @@ SET(UI_FORMS
 
 SET(UI_RESOURCES
   GUI/Qt/Resources/SNAPResources.qrc
+  GUI/Qt/Resources/SNAPResources_Linux.qrc
+  GUI/Qt/Resources/SNAPResources_MacOS.qrc
+  GUI/Qt/Resources/SNAPResources_Windows.qrc
   Testing/GUI/Qt/TestingScripts.qrc
 )
 

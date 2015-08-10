@@ -260,6 +260,9 @@ font-size: 11px;
           <pointsize>-1</pointsize>
          </font>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reset the region of interest to be the whole image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Reset ROI</string>
         </property>
@@ -306,7 +309,7 @@ font-size: 11px;
       <item>
        <widget class="QCheckBox" name="chkResample">
         <property name="toolTip">
-         <string>When this option is selected, you will have an option to change the resolution of the region of interest (i.e., subsample or supersample) before running automatic segmentation.</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;When checked, you will have an option to change the resolution of the region of interest (i.e., subsample or supersample) before running automatic segmentation.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Resample ROI</string>
@@ -352,6 +355,9 @@ font-size: 11px;
          <font>
           <pointsize>-1</pointsize>
          </font>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Press this button to start semi-automatic segmentation&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Segment 3D</string>

@@ -55,10 +55,15 @@ void LabelSelectionButton::UpdateAppearance()
   DrawOverFilter bg = m_Model->GetGlobalState()->GetDrawOverFilter();
 
   // Draw a split button
-  this->setIcon(CreateLabelComboIcon(22, 22, fg, bg, clt));
+  this->setIcon(CreateLabelComboIcon(20, 20, fg, bg, clt));
 
   // Update the tooltip
-  this->setToolTip(CreateLabelComboTooltip(fg, bg, clt));
+  QString tooltip = this->toolTip();
+  tooltip.replace(QRegularExpression("<!--FgStart-->.*<!--FgEnd-->"),
+                  QString("<!--FgStart-->%1<!--FgEnd-->").arg(GetTitleForColorLabel(fg, clt)));
+  tooltip.replace(QRegularExpression("<!--BgStart-->.*<!--BgEnd-->"),
+                  QString("<!--BgStart-->%1<!--BgEnd-->").arg(GetTitleForDrawOverFilter(bg, clt)));
+  this->setToolTip(tooltip);
 }
 
 
@@ -130,17 +135,13 @@ LabelSelectionButtonPopupMenu::LabelSelectionButtonPopupMenu(QWidget *parent)
 {
   // Add the foreground and background label selectors
   m_SubForeground = this->addMenu("Active label:");
-  m_SubBackground = this->addMenu("Draw over:");
+  m_SubBackground = this->addMenu("Paint over:");
   this->addSeparator();
 
   // Create a QAction wrapped around the recent labels menu
   ColorLabelQuickListWidgetAction *action = new ColorLabelQuickListWidgetAction(this);
   this->m_Recent = action->GetWidget();
   this->addAction(action);
-  this->addSeparator();
-
-  // Label editor window
-  this->addAction(FindUpstreamAction(this, "actionLabel_Editor"));
 
   this->setStyleSheet("font-size: 12px;");
 

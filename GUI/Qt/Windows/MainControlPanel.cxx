@@ -160,6 +160,7 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   ui->btnUndo->setDefaultAction(FindUpstreamAction(this, "actionUndo"));
   ui->btnRedo->setDefaultAction(FindUpstreamAction(this, "actionRedo"));
   ui->btnLayerInspector->setDefaultAction(FindUpstreamAction(this, "actionLayerInspector"));
+  ui->btnLabelEditor->setDefaultAction(FindUpstreamAction(this, "actionLabel_Editor"));
 
   // Add a shortcut for the button
   ui->btnLabelSelector->setShortcut(QKeySequence("l"));
