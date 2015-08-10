@@ -374,19 +374,16 @@ void GlobalUIModel::ToggleOverlayVisibility()
 {
   // Are we in tiled mode or in stack mode?
   GenericImageData *id = m_Driver->GetCurrentImageData();
-  bool stack =
-      (m_DisplayLayoutModel->GetSliceViewLayerLayoutModel()->GetValue()
-       == LAYOUT_STACKED);
 
   // Remember what layer is current in the general properties model
   ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
 
   // Apply the toggle for all overlays
-  for(LayerIterator it = id->GetLayers(OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+  for(LayerIterator it = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE); !it.IsAtEnd(); ++it)
     {
     // In stack mode, every overlay is affected. In tile mode, only stickly layers
     // are affected
-    if(stack || it.GetLayer()->IsSticky())
+    if(it.GetLayer()->IsSticky())
       {
       m_LayerGeneralPropertiesModel->SetLayer(it.GetLayer());
       m_LayerGeneralPropertiesModel->GetLayerVisibilityModel()->SetValue(
@@ -402,19 +399,16 @@ void GlobalUIModel::AdjustOverlayOpacity(int delta)
 {
   // Are we in tiled mode or in stack mode?
   GenericImageData *id = m_Driver->GetCurrentImageData();
-  bool stack =
-      (m_DisplayLayoutModel->GetSliceViewLayerLayoutModel()->GetValue()
-       == LAYOUT_STACKED);
 
   // Remember what layer is current in the general properties model
   ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
 
   // Apply the toggle for all overlays
-  for(LayerIterator it = id->GetLayers(OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+  for(LayerIterator it = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE); !it.IsAtEnd(); ++it)
     {
     // In stack mode, every overlay is affected. In tile mode, only stickly layers
     // are affected
-    if(stack || it.GetLayer()->IsSticky())
+    if(it.GetLayer()->IsSticky())
       {
       m_LayerGeneralPropertiesModel->SetLayer(it.GetLayer());
       int op = m_LayerGeneralPropertiesModel->GetLayerOpacityModel()->GetValue();
@@ -776,7 +770,7 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
       category = "Main Image";
       break;
     case OVERLAY_ROLE:
-      category = "Overlay Image";
+      category = "Additional Image Layer";
       break;
     case SNAP_ROLE:
       if(dynamic_cast<SpeedImageWrapper *>(layer))

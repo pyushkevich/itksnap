@@ -281,7 +281,7 @@ GenericImageData
 
   // Pass the image to a Grey image wrapper
   overlay->SetAlpha(0.5);
-  overlay->SetDefaultNickname("Overlay Image");
+  overlay->SetDefaultNickname("Image Layer");
 
   // Sync up spacing between the main and overlay image
   if(checkSpace)

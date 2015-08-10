@@ -435,6 +435,8 @@ color:rgb(103, 103, 103);
     <addaction name="separator"/>
     <addaction name="actionSave_as_Mesh"/>
     <addaction name="separator"/>
+    <addaction name="actionLabel_Editor"/>
+    <addaction name="separator"/>
     <addaction name="actionLoadLabels"/>
     <addaction name="actionSaveLabels"/>
     <addaction name="separator"/>
@@ -444,7 +446,7 @@ color:rgb(103, 103, 103);
    </widget>
    <widget class="QMenu" name="menuOverlay">
     <property name="title">
-     <string>Overlay</string>
+     <string>Layers</string>
     </property>
     <widget class="QMenu" name="menuOverlayAppearance">
      <property name="title">
@@ -457,7 +459,7 @@ color:rgb(103, 103, 103);
     </widget>
     <widget class="QMenu" name="menuRecent_Overlays">
      <property name="title">
-      <string>Recent Overlays</string>
+      <string>Recent Images</string>
      </property>
      <addaction name="actionRecentOverlay_1"/>
      <addaction name="actionRecentOverlay_2"/>
@@ -468,10 +470,9 @@ color:rgb(103, 103, 103);
     <addaction name="actionAdd_Overlay"/>
     <addaction name="menuRecent_Overlays"/>
     <addaction name="separator"/>
-    <addaction name="actionCoregister_Overlay"/>
-    <addaction name="separator"/>
     <addaction name="actionUnload_Last_Overlay"/>
-    <addaction name="actionUnload_All_Overlays"/>
+    <addaction name="separator"/>
+    <addaction name="actionLayerInspector"/>
     <addaction name="separator"/>
     <addaction name="menuOverlayAppearance"/>
    </widget>
@@ -508,7 +509,6 @@ color:rgb(103, 103, 103);
      <addaction name="actionAutoContrastGlobal"/>
      <addaction name="actionResetContrastGlobal"/>
     </widget>
-    <addaction name="actionLayerInspector"/>
     <addaction name="separator"/>
     <addaction name="menuContrast"/>
     <addaction name="actionColor_Map_Editor"/>
@@ -516,8 +516,6 @@ color:rgb(103, 103, 103);
     <addaction name="separator"/>
     <addaction name="menuActive_Main_Tool"/>
     <addaction name="menuActive_3D_Tool"/>
-    <addaction name="separator"/>
-    <addaction name="actionLabel_Editor"/>
     <addaction name="separator"/>
     <addaction name="actionReorient_Image"/>
     <addaction name="separator"/>
@@ -748,10 +746,10 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionAdd_Overlay">
    <property name="text">
-    <string>Add Overlay ...</string>
+    <string>Add Image Layer ...</string>
    </property>
    <property name="toolTip">
-    <string>Load an image to overlay over the images currently loaded into SNAP</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load an image to display alongside the main image. The dimensions of this image must match those of the main image. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+G</string>
@@ -945,15 +943,15 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionUnload_Last_Overlay">
    <property name="text">
-    <string>Remove Last Overlay</string>
+    <string>Unload Last Layer</string>
    </property>
    <property name="toolTip">
-    <string>Remove the last overlay that was loaded from the workspace</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unload the last image layer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionUnload_All_Overlays">
    <property name="text">
-    <string>Remove All Overlays</string>
+    <string>Unload all additional image layers</string>
    </property>
    <property name="toolTip">
     <string>Remove all overlays from the current workspace. Only the main image will remain open.</string>
@@ -1137,7 +1135,10 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionOverlayVisibilityToggleAll">
    <property name="text">
-    <string>Toggle Visibility (All)</string>
+    <string>Toggle Visibility of All Pinned Overlays</string>
+   </property>
+   <property name="iconText">
+    <string>Toggle Visibility of Sticky Layers</string>
    </property>
    <property name="toolTip">
     <string>Toggle Visibility (All)</string>
@@ -1148,7 +1149,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionOverlayVisibilityIncreaseAll">
    <property name="text">
-    <string>Increase Opacity (All)</string>
+    <string>Increase Opacity of All Pinned Overlays</string>
    </property>
    <property name="shortcut">
     <string>E</string>
@@ -1156,7 +1157,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionOverlayVisibilityDecreaseAll">
    <property name="text">
-    <string>Decrease Opacity (All)</string>
+    <string>Decrease Opacity of All Pinned Overlays</string>
    </property>
    <property name="shortcut">
     <string>Q</string>

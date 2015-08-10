@@ -1153,7 +1153,7 @@ void MainImageWindow::on_actionAdd_Overlay_triggered()
   delegate->Initialize(m_Model->GetDriver());
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
   model->InitializeForLoad(m_Model, delegate,
-                           "AnatomicImage", "Overlay Image");
+                           "AnatomicImage", "Additional Image Layer");
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);
