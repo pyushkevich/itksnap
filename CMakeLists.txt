@@ -79,6 +79,9 @@ include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC SNAP_VERSION_GIT_SHA1)
 
 # Get the current git branch
+if(NOT GIT_FOUND)
+  find_package(Git QUIET)
+endif()
 execute_process(
   COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
