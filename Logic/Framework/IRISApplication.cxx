@@ -1975,7 +1975,7 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
   if(role == MAIN_ROLE)
     {
     history = "AnatomicImage";
-    category = "Main Image";
+    category = "Image";
     }
 
   else if(role == LABEL_ROLE)
@@ -1987,7 +1987,7 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
   else if(role == OVERLAY_ROLE)
     {
     history = "AnatomicImage";
-    category = "Additional Image Layer";
+    category = "Image";
     }
 
   else if(role == SNAP_ROLE)

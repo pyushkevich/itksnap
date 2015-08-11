@@ -351,13 +351,23 @@ color:rgb(103, 103, 103);
     </property>
     <widget class="QMenu" name="menuRecent_Images">
      <property name="title">
-      <string>Recent Images</string>
+      <string>Recent Main Images</string>
      </property>
      <addaction name="actionRecent_1"/>
      <addaction name="actionRecent_2"/>
      <addaction name="actionRecent_3"/>
      <addaction name="actionRecent_4"/>
      <addaction name="actionRecent_5"/>
+    </widget>
+    <widget class="QMenu" name="menuRecent_Overlays">
+     <property name="title">
+      <string>Recent Added Images</string>
+     </property>
+     <addaction name="actionRecentOverlay_1"/>
+     <addaction name="actionRecentOverlay_2"/>
+     <addaction name="actionRecentOverlay_3"/>
+     <addaction name="actionRecentOverlay_4"/>
+     <addaction name="actionRecentOverlay_5"/>
     </widget>
     <widget class="QMenu" name="menuSave_Image">
      <property name="title">
@@ -404,9 +414,14 @@ color:rgb(103, 103, 103);
     <addaction name="actionOpenMain"/>
     <addaction name="menuRecent_Images"/>
     <addaction name="separator"/>
+    <addaction name="actionAdd_Overlay"/>
+    <addaction name="menuRecent_Overlays"/>
+    <addaction name="separator"/>
     <addaction name="menuSave_Image"/>
+    <addaction name="separator"/>
     <addaction name="menuExport"/>
     <addaction name="separator"/>
+    <addaction name="actionUnload_Last_Overlay"/>
     <addaction name="actionUnload_All"/>
     <addaction name="separator"/>
     <addaction name="actionNew_ITK_SNAP_Window"/>
@@ -435,46 +450,14 @@ color:rgb(103, 103, 103);
     <addaction name="separator"/>
     <addaction name="actionSave_as_Mesh"/>
     <addaction name="separator"/>
-    <addaction name="actionLabel_Editor"/>
-    <addaction name="separator"/>
     <addaction name="actionLoadLabels"/>
     <addaction name="actionSaveLabels"/>
+    <addaction name="separator"/>
+    <addaction name="actionLabel_Editor"/>
     <addaction name="separator"/>
     <addaction name="actionVolumesAndStatistics"/>
     <addaction name="separator"/>
     <addaction name="menuAppearance"/>
-   </widget>
-   <widget class="QMenu" name="menuOverlay">
-    <property name="title">
-     <string>Layers</string>
-    </property>
-    <widget class="QMenu" name="menuOverlayAppearance">
-     <property name="title">
-      <string>Appearance</string>
-     </property>
-     <addaction name="actionOverlayVisibilityToggleAll"/>
-     <addaction name="separator"/>
-     <addaction name="actionOverlayVisibilityIncreaseAll"/>
-     <addaction name="actionOverlayVisibilityDecreaseAll"/>
-    </widget>
-    <widget class="QMenu" name="menuRecent_Overlays">
-     <property name="title">
-      <string>Recent Images</string>
-     </property>
-     <addaction name="actionRecentOverlay_1"/>
-     <addaction name="actionRecentOverlay_2"/>
-     <addaction name="actionRecentOverlay_3"/>
-     <addaction name="actionRecentOverlay_4"/>
-     <addaction name="actionRecentOverlay_5"/>
-    </widget>
-    <addaction name="actionAdd_Overlay"/>
-    <addaction name="menuRecent_Overlays"/>
-    <addaction name="separator"/>
-    <addaction name="actionUnload_Last_Overlay"/>
-    <addaction name="separator"/>
-    <addaction name="actionLayerInspector"/>
-    <addaction name="separator"/>
-    <addaction name="menuOverlayAppearance"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -509,6 +492,8 @@ color:rgb(103, 103, 103);
      <addaction name="actionAutoContrastGlobal"/>
      <addaction name="actionResetContrastGlobal"/>
     </widget>
+    <addaction name="separator"/>
+    <addaction name="actionLayerInspector"/>
     <addaction name="separator"/>
     <addaction name="menuContrast"/>
     <addaction name="actionColor_Map_Editor"/>
@@ -560,6 +545,20 @@ color:rgb(103, 103, 103);
      <addaction name="separator"/>
      <addaction name="actionCenter_on_Cursor"/>
     </widget>
+    <widget class="QMenu" name="menuOverlayAppearance">
+     <property name="title">
+      <string>Overlaid Layer Opacity</string>
+     </property>
+     <addaction name="actionOverlayVisibilityToggleAll"/>
+     <addaction name="separator"/>
+     <addaction name="actionOverlayVisibilityIncreaseAll"/>
+     <addaction name="actionOverlayVisibilityDecreaseAll"/>
+    </widget>
+    <widget class="QMenu" name="menuType_Here">
+     <property name="title">
+      <string>Type Here</string>
+     </property>
+    </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
@@ -569,6 +568,9 @@ color:rgb(103, 103, 103);
     <addaction name="menuSlice_Annotations"/>
     <addaction name="separator"/>
     <addaction name="menuZoom"/>
+    <addaction name="separator"/>
+    <addaction name="menuOverlayAppearance"/>
+    <addaction name="menuType_Here"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -603,14 +605,13 @@ color:rgb(103, 103, 103);
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuSegmentation"/>
-   <addaction name="menuOverlay"/>
    <addaction name="menuProject"/>
    <addaction name="menuTools"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionOpenMain">
    <property name="text">
-    <string>Open Image ...</string>
+    <string>Open Main Image ...</string>
    </property>
    <property name="toolTip">
     <string>Open the main anatomy image that you wish to display or segment</string>
@@ -733,10 +734,10 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionUnload_All">
    <property name="text">
-    <string>Unload All Images</string>
+    <string>Close All Images</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+U</string>
+    <string>Ctrl+Shift+W</string>
    </property>
   </action>
   <action name="actionClear">
@@ -746,7 +747,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionAdd_Overlay">
    <property name="text">
-    <string>Add Image Layer ...</string>
+    <string>Add Another Image ...</string>
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load an image to display alongside the main image. The dimensions of this image must match those of the main image. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -943,10 +944,13 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionUnload_Last_Overlay">
    <property name="text">
-    <string>Unload Last Layer</string>
+    <string>Close Image XXX</string>
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unload the last image layer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
    </property>
   </action>
   <action name="actionUnload_All_Overlays">
@@ -1135,7 +1139,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionOverlayVisibilityToggleAll">
    <property name="text">
-    <string>Toggle Visibility of All Pinned Overlays</string>
+    <string>Toggle Visibility</string>
    </property>
    <property name="iconText">
     <string>Toggle Visibility of Sticky Layers</string>
@@ -1149,7 +1153,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionOverlayVisibilityIncreaseAll">
    <property name="text">
-    <string>Increase Opacity of All Pinned Overlays</string>
+    <string>Increase Opacity</string>
    </property>
    <property name="shortcut">
     <string>E</string>
@@ -1157,7 +1161,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionOverlayVisibilityDecreaseAll">
    <property name="text">
-    <string>Decrease Opacity of All Pinned Overlays</string>
+    <string>Decrease Opacity</string>
    </property>
    <property name="shortcut">
     <string>Q</string>

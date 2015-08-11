@@ -767,10 +767,10 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
   switch(role)
     {
     case MAIN_ROLE:
-      category = "Main Image";
+      category = "Image";
       break;
     case OVERLAY_ROLE:
-      category = "Additional Image Layer";
+      category = "Image";
       break;
     case SNAP_ROLE:
       if(dynamic_cast<SpeedImageWrapper *>(layer))
