@@ -165,4 +165,8 @@
         <file>snapres/RegionForcesExample.png</file>
         <file>snapres/SnakeParameterPreviewCurve.txt</file>
     </qresource>
+    <qresource prefix="/html">
+        <file alias="ModeTipTemplate">html/tooltips/ModeTipTemplate.html</file>
+        <file alias="TipTableRow">html/tooltips/TipTableRow.html</file>
+    </qresource>
 </RCC>

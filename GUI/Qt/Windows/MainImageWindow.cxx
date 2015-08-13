@@ -89,6 +89,81 @@
 #include <QDesktopWidget>
 #include <QShortcut>
 
+#include <QTextStream>
+
+QString read_tooltip_qt(const QString &filename)
+{
+  QFile file(filename);
+  file.open(QFile::ReadOnly);
+  QTextStream ts(&file);
+  QString result = ts.readAll();
+  file.close();;
+
+  return result;
+}
+
+class ModeTooltipBuilder
+{
+public:
+  ModeTooltipBuilder(QString title, QString descr)
+  {
+    m_Title = title;
+    m_Descr = descr;
+
+    // Read the HTML templates
+    if(m_RowTemplate.isEmpty())
+      {
+      m_RowTemplate = ReadResource(":/html/TipTableRow");
+      m_MainTemplate = ReadResource(":/html/ModeTipTemplate");
+      }
+  }
+
+  enum Action { LMB, RMB, SCROLL };
+
+  void addMouseAction(Action action, QString descr, QString modifier = "")
+  {
+    QString row = m_RowTemplate;
+    QString atext;
+    switch(action)
+      {
+      case ModeTooltipBuilder::LMB:
+        atext = "left_click"; break;
+      case ModeTooltipBuilder::RMB:
+        atext = "right_click"; break;
+      case ModeTooltipBuilder::SCROLL:
+        atext = "scrolling"; break;
+      }
+
+    QString fullrow = row.arg(atext).arg(descr).arg(modifier);
+    m_Rows.append(fullrow);
+  }
+
+  QString makeTooltip()
+  {
+    QString tooltip = m_MainTemplate;
+    return tooltip.arg(m_Title, m_Descr, m_Rows);
+  }
+
+private:
+
+  QString ReadResource(QString tag)
+  {
+    QFile file(tag);
+    file.open(QFile::ReadOnly);
+    QTextStream ts(&file);
+    QString result = ts.readAll();
+    file.close();
+    return result;
+  }
+
+
+  QString m_Title, m_Descr, m_Rows;
+  static QString m_RowTemplate, m_MainTemplate;
+};
+
+QString ModeTooltipBuilder::m_MainTemplate;
+QString ModeTooltipBuilder::m_RowTemplate;
+
 
 MainImageWindow::MainImageWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -259,6 +334,64 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   this->HookupSecondaryShortcutToAction(QKeySequence(","), ui->actionForegroundLabelPrev);
   this->HookupSecondaryShortcutToAction(QKeySequence("."), ui->actionForegroundLabelNext);
   this->HookupShortcutToAction(QKeySequence("C"), ui->actionCenter_on_Cursor);
+
+  // Generate tooltips for the complex actions
+  ModeTooltipBuilder ttCrosshair("Crosshair Mode (1)",
+                                 "Used to position the 3D cursor in the three orthogonal image slices.");
+  ttCrosshair.addMouseAction(ModeTooltipBuilder::LMB, "<b>Place and move the 3D cursor</b>");
+  ttCrosshair.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
+  ttCrosshair.addMouseAction(ModeTooltipBuilder::LMB, "Pan (hold & drag)","⌥");
+  ttCrosshair.addMouseAction(ModeTooltipBuilder::SCROLL, "Go to next/previous image slice");
+  ttCrosshair.addMouseAction(ModeTooltipBuilder::SCROLL, "Go to next/previous image component","⇧");
+  ui->actionCrosshair->setToolTip(ttCrosshair.makeTooltip());
+
+  ModeTooltipBuilder ttZoom("Zoom/Pan Mode (2)",
+                            "Used to zoom into the image and to pan around when zoomed in.");
+  ttZoom.addMouseAction(ModeTooltipBuilder::LMB, "<b>Pan (hold & drag)</b>");
+  ttZoom.addMouseAction(ModeTooltipBuilder::RMB, "<b>Zoom in and out (hold & drag)</b>");
+  ttZoom.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor","⌥");
+  ttZoom.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
+  ttZoom.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components","⇧");
+  ui->actionZoomPan->setToolTip(ttZoom.makeTooltip());
+
+  ModeTooltipBuilder ttPolygon("Polygon Mode (3)",
+                               "Used to perform manual segmentation by drawing and filling polygons in the three orthogonal image slices.");
+  ttPolygon.addMouseAction(ModeTooltipBuilder::LMB, "<b>Add points to the polygon and edit the completed polygon</b>");
+  ttPolygon.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
+  ttPolygon.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor","⌥");
+  ttPolygon.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
+  ttPolygon.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components","⇧");
+  ui->actionPolygon->setToolTip(ttPolygon.makeTooltip());
+
+  ModeTooltipBuilder ttPaintbrush("Paintbrush Mode (4)",
+                               "Used to perform manual segmentation by drawing with a paintbrush-like tool. "
+                               "Different brush shapes are available, including an adaptive brush that adjusts itself to the image data.");
+  ttPaintbrush.addMouseAction(ModeTooltipBuilder::LMB, "<b>Paint with the active label</b>");
+  ttPaintbrush.addMouseAction(ModeTooltipBuilder::RMB, "<b>Erase voxels painted with the active label</b>");
+  ttPaintbrush.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor","⌥");
+  ttPaintbrush.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
+  ttPaintbrush.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components","⇧");
+  ui->actionPaintbrush->setToolTip(ttPaintbrush.makeTooltip());
+
+  ModeTooltipBuilder ttSnake("Active Contour (aka \"Snake\") Segmentation Mode (5)",
+                             "Used to select the region of interest for semi-automatic active contour "
+                             "segmentation and start the semi-automatic segmentation wizard.");
+  ttSnake.addMouseAction(ModeTooltipBuilder::LMB, "<b>Adjust the boundaries of the region of interest</b>");
+  ttSnake.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
+  ttSnake.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor","⌥");
+  ttSnake.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
+  ttSnake.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components","⇧");
+  ui->actionSnake->setToolTip(ttSnake.makeTooltip());
+
+  ModeTooltipBuilder ttRuler("Image Annotation Mode (6)",
+                             "Used to draw annotations (lines, text) on image slices and to measure "
+                             "distances and angles between points in a slice.");
+  ttRuler.addMouseAction(ModeTooltipBuilder::LMB, "<b>Draw and edit annotations</b>");
+  ttRuler.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
+  ttRuler.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor","⌥");
+  ttRuler.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
+  ttRuler.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components","⇧");
+  ui->actionAnnotation->setToolTip(ttRuler.makeTooltip());
 
   // Translate the tooltips in all the widgets. This changes the apple symbols that are currently
   // hard coded in the tooltips into their Windows/Linux equivalents

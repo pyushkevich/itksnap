@@ -80,6 +80,10 @@ protected:
 
   // Widget to which wheel events are forwarded
   QWidget *m_WheelEventTarget;
+
+  // Internal used to emulate right/middle button
+  Qt::MouseButton GetButtonForEvent(QMouseEvent *ev);
+  Qt::MouseButton m_LastPressEmulatedButton;
 };
 
 #endif // CROSSHAIRSINTERACTIONMODE_H

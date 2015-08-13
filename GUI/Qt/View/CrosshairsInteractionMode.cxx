@@ -47,6 +47,7 @@ CrosshairsInteractionMode::CrosshairsInteractionMode(GenericSliceView *parent) :
 
   SetMouseButtonBehaviorToCrosshairsMode();
   setAttribute(Qt::WA_AcceptTouchEvents, true);
+
 }
 
 CrosshairsInteractionMode::~CrosshairsInteractionMode()
@@ -70,6 +71,23 @@ void CrosshairsInteractionMode
   m_BtnPan = Qt::LeftButton;
 }
 
+Qt::MouseButton
+CrosshairsInteractionMode
+::GetButtonForEvent(QMouseEvent *ev)
+{
+  if(ev->button() == Qt::RightButton)
+    return Qt::RightButton;
+  if(ev->button() == Qt::MidButton)
+    return Qt::MidButton;
+  else if(ev->button() == Qt::LeftButton && ev->modifiers() == Qt::ControlModifier)
+    return Qt::RightButton;
+  else if(ev->button() == Qt::LeftButton && ev->modifiers() == Qt::AltModifier)
+    return Qt::MidButton;
+  else if(ev->button() == Qt::LeftButton)
+    return Qt::LeftButton;
+  else return Qt::NoButton;
+}
+
 void CrosshairsInteractionMode
 ::SetModel(OrthogonalSliceCursorNavigationModel *model)
 {
@@ -80,20 +98,23 @@ void CrosshairsInteractionMode
 
 void CrosshairsInteractionMode::mousePressEvent(QMouseEvent *ev)
 {
+  // Get the button after emulation
+  Qt::MouseButton btn = this->GetButtonForEvent(ev);
+
   // We have to be careful to check that the event landed in the
   // region corresponding to an image view and not to a thumbnail
   if(this->IsMouseOverFullLayer())
     {
     // Use model to envoke event
-    if(ev->button() == m_BtnCursor)
+    if(btn == m_BtnCursor)
       {
       m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
       }
-    else if(ev->button() == m_BtnZoom)
+    else if(btn == m_BtnZoom)
       {
       m_Model->BeginZoom();
       }
-    else if(ev->button() == m_BtnPan)
+    else if(btn == m_BtnPan)
       {
       m_Model->BeginPan();
       }
@@ -101,6 +122,8 @@ void CrosshairsInteractionMode::mousePressEvent(QMouseEvent *ev)
     // Eat this event
     ev->accept();
     }
+
+  m_LastPressEmulatedButton = btn;
 }
 
 void CrosshairsInteractionMode::mouseMoveEvent(QMouseEvent *ev)
@@ -109,16 +132,16 @@ void CrosshairsInteractionMode::mouseMoveEvent(QMouseEvent *ev)
     {
     Vector3d dx = m_XSpace - m_LastPressXSpace;
 
-    if(m_LastPressButton == m_BtnCursor)
+    if(m_LastPressEmulatedButton == m_BtnCursor)
       {
       m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
       }
-    else if(m_LastPressButton == m_BtnZoom)
+    else if(m_LastPressEmulatedButton == m_BtnZoom)
       {
       double scaleFactor = pow(1.02, dx(1));
       m_Model->ProcessZoomGesture(scaleFactor);
       }
-    else if(m_LastPressButton == m_BtnPan)
+    else if(m_LastPressEmulatedButton == m_BtnPan)
       {
       m_Model->ProcessPanGesture(Vector2f(dx(0), dx(1)));
       }
@@ -135,17 +158,20 @@ void CrosshairsInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 
 void CrosshairsInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
 {
+  // Get the button after emulation
+  Qt::MouseButton btn = this->GetButtonForEvent(ev);
+
   if(isDragging())
     {
-      if(ev->button() == m_BtnCursor)
+      if(btn == m_BtnCursor)
       {
       m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
       }
-    else if(ev->button() == m_BtnZoom)
+    else if(btn == m_BtnZoom)
       {
       m_Model->EndZoom();
       }
-    else if(ev->button() == m_BtnPan)
+    else if(btn == m_BtnPan)
       {
       m_Model->EndPan();
       }
