@@ -248,8 +248,13 @@ bool AnnotationModel::ProcessPushEvent(const Vector3d &xSlice, bool shift_mod)
 
   else if(this->GetAnnotationMode() == ANNOTATION_SELECT)
     {
-    // Current best annotation
-    AbstractAnnotation *asel = this->GetAnnotationUnderCursor(xSlice);
+    // Check if for any of the selected annotations, the click is close to the drag handle
+    int handle_idx = -1;
+    AbstractAnnotation *asel = this->GetSelectedHandleUnderCusror(xSlice, handle_idx);
+
+    // Find closest annotation under the cursor
+    if(!asel)
+      asel = this->GetAnnotationUnderCursor(xSlice);
 
     // If the shift modifier is on, we add to the selection
     if(shift_mod)
@@ -258,7 +263,8 @@ bool AnnotationModel::ProcessPushEvent(const Vector3d &xSlice, bool shift_mod)
       if(asel)
         asel->SetSelected(!asel->GetSelected());
       }
-    else
+    // If not clicked on a selected handle, process as a select operation
+    else if(handle_idx < 0)
       {
       // Clear the selection
       for(ImageAnnotationData::AnnotationConstIterator it = adata->GetAnnotations().begin();
@@ -276,6 +282,8 @@ bool AnnotationModel::ProcessPushEvent(const Vector3d &xSlice, bool shift_mod)
       m_MovingSelection = true;
       m_DragStart = to_float(xSlice);
       m_DragLast = to_float(xSlice);
+      m_MovingSelectionHandle = handle_idx;
+      m_MovingSelectionHandleAnnot = asel;
       }
     else
       {
@@ -322,17 +330,22 @@ bool AnnotationModel::ProcessMoveEvent(const Vector3d &xSlice, bool shift_mod, b
     Vector3f p_now = m_Parent->MapSliceToImage(to_float(xSlice));
     Vector3f p_delta = p_now - p_last;
 
-    // Move the currently selected annotations
+    // Process the move command on selected annotations
     for(ImageAnnotationData::AnnotationIterator it = adata->GetAnnotations().begin();
         it != adata->GetAnnotations().end(); ++it)
       {
       AbstractAnnotation *a = *it;
 
       // Test if annotation is visible in this plane
-      if(a->GetSelected() && this->IsAnnotationVisible(a))
+      if(m_MovingSelectionHandle < 0 && a->GetSelected() && this->IsAnnotationVisible(a))
         {
         // Move the annotation by this amount
         a->MoveBy(p_delta);
+        }
+      else if(m_MovingSelectionHandle >= 0 && m_MovingSelectionHandleAnnot == a)
+        {
+        // Move the annotation handle by this amount
+        this->MoveAnnotationHandle(a, m_MovingSelectionHandle, p_delta);
         }
       }
 
@@ -603,6 +616,115 @@ void AnnotationModel::GoToNextOrPrevAnnotation(int direction)
 
   // Fire event
   this->InvokeEvent(ModelUpdateEvent());
+}
+
+bool AnnotationModel::TestPointInClickRadius(const Vector3f &xClickSlice,
+                                             const Vector3f &xPointSlice,
+                                             int logical_pixels)
+{
+  Vector2f clickW = m_Parent->MapSliceToWindow(xClickSlice);
+  Vector2f pointW = m_Parent->MapSliceToWindow(xPointSlice);
+  int vppr = m_Parent->GetSizeReporter()->GetViewportPixelRatio();
+
+  return
+      fabs(clickW[0] - pointW[0]) <= logical_pixels * vppr
+      &&
+      fabs(clickW[1] - pointW[1]) <= logical_pixels * vppr;
+}
+
+void AnnotationModel::MoveAnnotationHandle(
+    AnnotationModel::AbstractAnnotation *ann, int handle, const Vector3f &deltaPhys)
+{
+  // Draw all the line segments
+  annot::LineSegmentAnnotation *lsa =
+      dynamic_cast<annot::LineSegmentAnnotation *>(ann);
+  if(lsa)
+    {
+    annot::LineSegment ls = lsa->GetSegment();
+    if(handle == 0)
+      ls.first += deltaPhys;
+    else if(handle == 1)
+      ls.second += deltaPhys;
+    lsa->SetSegment(ls);
+    }
+
+  // Draw all the line segments
+  annot::LandmarkAnnotation *lma =
+      dynamic_cast<annot::LandmarkAnnotation *>(ann);
+  if(lma)
+    {
+    annot::Landmark lm = lma->GetLandmark();
+    if(handle == 0)
+      {
+      lm.Pos += deltaPhys;
+      }
+    else if(handle == 1)
+      {
+      Vector3f headXSlice = m_Parent->MapImageToSlice(lm.Pos);
+      Vector3f tailXSlice = m_Parent->MapPhysicalWindowToSlice(
+            m_Parent->MapSliceToPhysicalWindow(headXSlice) + lm.Offset);
+      Vector3f tailXImage = m_Parent->MapSliceToImage(tailXSlice);
+      Vector3f tailXImageMoved = tailXImage + deltaPhys;
+      Vector3f tailXSliceMoved = m_Parent->MapImageToSlice(tailXImageMoved);
+      Vector2f tailXPhysWinMoved = m_Parent->MapSliceToPhysicalWindow(tailXSliceMoved);
+      lm.Offset = tailXPhysWinMoved - m_Parent->MapSliceToPhysicalWindow(headXSlice);
+      }
+
+    lma->SetLandmark(lm);
+    }
+
+
+}
+
+annot::AbstractAnnotation *
+AnnotationModel::GetSelectedHandleUnderCusror(const Vector3d &xSlice, int &out_handle)
+{
+  // Get the annotation data
+  ImageAnnotationData *adata = this->GetAnnotations();
+
+  out_handle = -1;
+  for(ImageAnnotationData::AnnotationConstIterator it = adata->GetAnnotations().begin();
+      it != adata->GetAnnotations().end(); ++it)
+    {
+    if(this->IsAnnotationVisible(*it) && (*it)->GetSelected())
+      {
+      // Draw all the line segments
+      annot::LineSegmentAnnotation *lsa =
+          dynamic_cast<annot::LineSegmentAnnotation *>(it->GetPointer());
+      if(lsa)
+        {
+        // Draw the line
+        Vector3f p1 = m_Parent->MapImageToSlice(lsa->GetSegment().first);
+        Vector3f p2 = m_Parent->MapImageToSlice(lsa->GetSegment().second);
+
+        // Test if either of these points is close to the cursor
+        if(this->TestPointInClickRadius(to_float(xSlice), p1, 5))
+          out_handle = 0;
+        else if(this->TestPointInClickRadius(to_float(xSlice), p2, 5))
+          out_handle = 1;
+        }
+
+      annot::LandmarkAnnotation *lma =
+          dynamic_cast<annot::LandmarkAnnotation *>(it->GetPointer());
+      if(lma)
+        {
+        Vector3f xHeadSlice, xTailSlice;
+        annot::Landmark lm = lma->GetLandmark();
+        this->GetLandmarkArrowPoints(lm, xHeadSlice, xTailSlice);
+
+        // Test if either of these points is close to the cursor
+        if(this->TestPointInClickRadius(to_float(xSlice), xHeadSlice, 5))
+          out_handle = 0;
+        else if(this->TestPointInClickRadius(to_float(xSlice), xTailSlice, 5))
+          out_handle = 1;
+        }
+
+      if(out_handle >= 0)
+        return it->GetPointer();
+      }
+    }
+
+  return NULL;
 }
 
 bool AnnotationModel::CheckState(AnnotationModel::UIState state)

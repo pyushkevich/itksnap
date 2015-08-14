@@ -123,6 +123,8 @@ protected:
   // Motion-related variables
   Vector3f m_DragStart, m_DragLast;
   bool m_MovingSelection;
+  int m_MovingSelectionHandle;
+  annot::AbstractAnnotation *m_MovingSelectionHandleAnnot;
 
   // Text assigned to the currently drawn annotation
   std::string m_CurrentAnnotationText;
@@ -133,6 +135,15 @@ protected:
   void AdjustAngleToRoundDegree(LineSegment &ls, int n_degrees);
   AbstractAnnotation *GetAnnotationUnderCursor(const Vector3d &xSlice);
   void GoToNextOrPrevAnnotation(int direction);
+
+  annot::AbstractAnnotation *GetSelectedHandleUnderCusror(const Vector3d &xSlice, int &out_handle);
+
+  bool TestPointInClickRadius(const Vector3f &xClickSlice,
+                              const Vector3f &xPointSlice,
+                              int logical_pixels);
+
+  // Apply move command to annotation handle
+  void MoveAnnotationHandle(AbstractAnnotation *ann, int handle, const Vector3f &deltaPhys);
 };
 
 #endif // ANNOTATIONMODEL_H
