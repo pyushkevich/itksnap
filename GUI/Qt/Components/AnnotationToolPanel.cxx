@@ -3,6 +3,7 @@
 
 #include "QtAbstractButtonCoupling.h"
 #include "QtCheckableWidgetGroupCoupling.h"
+#include "QtSliderCoupling.h"
 #include "GlobalState.h"
 #include "GlobalUIModel.h"
 #include "QFileInfo"
@@ -32,6 +33,8 @@ void AnnotationToolPanel::SetModel(GlobalUIModel *model)
                                    m_Model->GetGlobalState()->GetAnnotationModeModel());
 
   makeCoupling(ui->inColor, m_Model->GetGlobalState()->GetAnnotationColorModel());
+  makeCoupling(ui->inOpacity, m_Model->GetGlobalState()->GetAnnotationAlphaModel());
+  makeCoupling((QAbstractButton *) ui->btnVisible, m_Model->GetGlobalState()->GetAnnotationVisibilityModel());
 }
 
 void AnnotationToolPanel::on_btnOpen_clicked()

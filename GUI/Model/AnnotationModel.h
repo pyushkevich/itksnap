@@ -54,6 +54,9 @@ public:
   /** Whether we are moving something now */
   irisIsMacro(MovingSelection)
 
+  /** Get the physical length of line segment */
+  double GetLineLength(const Vector3f &xSliceA, const Vector3f &xSliceB);
+
   /** Get the physical length of current line */
   double GetCurrentLineLength();
 

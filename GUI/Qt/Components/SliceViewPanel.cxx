@@ -381,6 +381,7 @@ void SliceViewPanel::OnToolbarModeChange()
   ovTiled.clear();
   ovTiled.push_back(m_SnakeModeRenderer);
   ovTiled.push_back(ui->imCrosshairs->GetRenderer());
+  ovTiled.push_back(ui->imAnnotation->GetRenderer());
   ovTiled.push_back(ui->imPolygon->GetRenderer());
 
   ovGlobal.clear();

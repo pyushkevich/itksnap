@@ -13,14 +13,19 @@ void AnnotationModel::SetParent(GenericSliceModel *model)
               ValueChangedEvent(), ModelUpdateEvent());
 }
 
-double AnnotationModel::GetCurrentLineLength()
+double AnnotationModel::GetLineLength(const Vector3f &xSliceA, const Vector3f &xSliceB)
 {
-  Vector2f pt1InAna = m_Parent->MapSliceToPhysicalWindow(m_CurrentLine.first);
-  Vector2f pt2InAna = m_Parent->MapSliceToPhysicalWindow(m_CurrentLine.second);
+  Vector2f pt1InAna = m_Parent->MapSliceToPhysicalWindow(xSliceA);
+  Vector2f pt2InAna = m_Parent->MapSliceToPhysicalWindow(xSliceB);
   double length = (pt1InAna[0] - pt2InAna[0]) * (pt1InAna[0] - pt2InAna[0])
                 + (pt1InAna[1] - pt2InAna[1]) * (pt1InAna[1] - pt2InAna[1]);
   length = sqrt(length);
   return length;
+}
+
+double AnnotationModel::GetCurrentLineLength()
+{
+  return GetLineLength(m_CurrentLine.first, m_CurrentLine.second);
 }
 
 double AnnotationModel::GetCurrentLineLengthInPixels()

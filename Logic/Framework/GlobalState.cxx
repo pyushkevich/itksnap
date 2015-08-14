@@ -37,6 +37,7 @@
 #include "IRISApplication.h"
 #include "MeshOptions.h"
 #include "DefaultBehaviorSettings.h"
+#include "NumericPropertyToggleAdaptor.h"
 
 GlobalState
 ::GlobalState()
@@ -130,6 +131,8 @@ GlobalState
   m_AnnotationModeModel = NewSimpleConcreteProperty(ANNOTATION_RULER);
 
   m_AnnotationColorModel = NewSimpleConcreteProperty(Vector3d(1, 0, 0));
+  m_AnnotationAlphaModel = NewRangedConcreteProperty(1.0, 0.0, 1.0, 0.01);
+  m_AnnotationVisibilityModel = NewNumericPropertyToggleAdaptor(m_AnnotationAlphaModel.GetPointer(), 0.0, 1.0);
 }
 
 void GlobalState::SetDriver(IRISApplication *parent)

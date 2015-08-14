@@ -13,6 +13,16 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QLabel {
+  font-size: 12px;
+}
+
+QToolButton {
+  font-size: 10px;
+}
+</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
     <number>4</number>
@@ -66,7 +76,7 @@
          <string>Line and Ruler Mode</string>
         </property>
         <property name="icon">
-         <iconset resource="../Resources/SNAPResources.qrc">
+         <iconset>
           <normaloff>:/root/icons8_ruler_16.png</normaloff>:/root/icons8_ruler_16.png</iconset>
         </property>
         <property name="checkable">
@@ -98,7 +108,7 @@
          <string>Text Annotation Mode</string>
         </property>
         <property name="icon">
-         <iconset resource="../Resources/SNAPResources.qrc">
+         <iconset>
           <normaloff>:/root/icons8_generic_text_16.png</normaloff>:/root/icons8_generic_text_16.png</iconset>
         </property>
         <property name="checkable">
@@ -130,7 +140,7 @@
          <string>Selection Mode</string>
         </property>
         <property name="icon">
-         <iconset resource="../Resources/SNAPResources.qrc">
+         <iconset>
           <normaloff>:/root/icons8_cursor_16.png</normaloff>:/root/icons8_cursor_16.png</iconset>
         </property>
         <property name="checkable">
@@ -217,6 +227,110 @@ font-size:12px;
     </widget>
    </item>
    <item>
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>10</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Overall annotation opacity:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="grpMode_3" native="true">
+     <property name="styleSheet">
+      <string notr="true">QLabel {
+font-size:12px;
+}</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>12</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QDoubleSlider" name="inOpacity">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adjust the opacity of all annotations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="tickPosition">
+         <enum>QSlider::NoTicks</enum>
+        </property>
+        <property name="tickInterval">
+         <number>25</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnVisible">
+        <property name="maximumSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Toggle the visibility of all annotations</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>:/root/icons8_invisible_12.png</normaloff>
+          <normalon>:/root/icons8_visible_12.png</normalon>:/root/icons8_invisible_12.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>12</width>
+          <height>12</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer_2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -269,7 +383,7 @@ font-size:12px;
          <string>...</string>
         </property>
         <property name="icon">
-         <iconset resource="../Resources/SNAPResources.qrc">
+         <iconset>
           <normaloff>:/root/open_22.png</normaloff>:/root/open_22.png</iconset>
         </property>
        </widget>
@@ -283,7 +397,7 @@ font-size:12px;
          <string>...</string>
         </property>
         <property name="icon">
-         <iconset resource="../Resources/SNAPResources.qrc">
+         <iconset>
           <normaloff>:/root/save_22.png</normaloff>:/root/save_22.png</iconset>
         </property>
        </widget>
@@ -295,14 +409,17 @@ font-size:12px;
  </widget>
  <customwidgets>
   <customwidget>
+   <class>QDoubleSlider</class>
+   <extends>QSlider</extends>
+   <header>QDoubleSlider.h</header>
+  </customwidget>
+  <customwidget>
    <class>QColorButtonWidget</class>
    <extends>QWidget</extends>
    <header location="global">QColorButtonWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../Resources/SNAPResources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

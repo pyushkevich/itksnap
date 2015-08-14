@@ -48,7 +48,7 @@ void QtRendererPlatformSupport
                      double x, double y, double w, double h,
                      FontInfo font,
                      int align_horiz, int align_vert,
-                     const Vector3d &rgbf)
+                     const Vector3d &rgbf, double alpha)
 {
   // Map the coordinates to screen coordinates
   QRect rScreen = this->WorldRectangleToPixelRectangle(x, y, w, h);
@@ -62,6 +62,7 @@ void QtRendererPlatformSupport
 
   QColor pen_color;
   pen_color.setRgbF(rgbf[0], rgbf[1], rgbf[2], 1.0);
+  pen_color.setAlphaF(alpha);
   painter.setPen(pen_color);
 
   int ah = Qt::AlignHCenter, av = Qt::AlignVCenter;
@@ -100,7 +101,12 @@ void QtRendererPlatformSupport
 
   glPushAttrib(GL_COLOR_BUFFER_BIT);
   glEnable(GL_BLEND);
-  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+  if(alpha <= 0.9)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  else
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
   glRasterPos2i(x,y);
   glDrawPixels(rScreen.width(),rScreen.height(), GL_RGBA, GL_UNSIGNED_BYTE, gl.bits());
   glPopAttrib();

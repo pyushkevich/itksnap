@@ -393,6 +393,10 @@ public:
    */
   irisSimplePropertyAccessMacro(AnnotationColor, Vector3d)
 
+  /** Opacity of the annotations */
+  irisRangedPropertyAccessMacro(AnnotationAlpha, double)
+  irisSimplePropertyAccessMacro(AnnotationVisibility, bool)
+
 protected:
 
   GlobalState();
@@ -520,6 +524,8 @@ private:
   SmartPtr<ConcreteAnnotationModeModel> m_AnnotationModeModel;
 
   SmartPtr<ConcreteSimpleDoubleVec3Property> m_AnnotationColorModel;
+  SmartPtr<ConcreteRangedDoubleProperty> m_AnnotationAlphaModel;
+  SmartPtr<AbstractSimpleBooleanProperty> m_AnnotationVisibilityModel;
 };
 
 #endif // __GlobalState_h_

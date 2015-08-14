@@ -12,7 +12,7 @@ public:
       double x, double y, double w, double h,
       FontInfo font,
       int align_horiz, int align_vert,
-      const Vector3d &rgbf);
+      const Vector3d &rgbf, double alpha = 1.0);
 
   virtual int MeasureTextWidth(const char *text, FontInfo font);
 

@@ -4,6 +4,7 @@
 #include "SNAPCommon.h"
 #include "GenericSliceRenderer.h"
 
+
 class AnnotationModel;
 
 class AnnotationRenderer : public SliceRendererDelegate
@@ -23,7 +24,8 @@ protected:
   virtual ~AnnotationRenderer() {}
 
   AnnotationModel *m_Model;
-private:
+  void DrawLineLength(const Vector3f &xSlice1, const Vector3f &xSlice2,
+                      const Vector3d &color, double alpha);
 
   void DrawSelectionHandle(const Vector3f &xSlice);
 };

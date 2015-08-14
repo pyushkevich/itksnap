@@ -8,6 +8,48 @@
 #include "ImageAnnotationData.h"
 #include <iomanip>
 
+void AnnotationRenderer::DrawLineLength(const Vector3f &xSlice1,
+                                        const Vector3f &xSlice2,
+                                        const Vector3d &color,
+                                        double alpha)
+{
+  // Compute the length of the drawing line
+  double length = m_Model->GetLineLength(xSlice1, xSlice2);
+
+  // Get the retina pixel ratio
+  int vppr = m_ParentRenderer->GetModel()->GetSizeReporter()->GetViewportPixelRatio();
+
+  // Shared settings for text drawing
+  Vector3f text_offset_slice =
+      m_Model->GetParent()->MapWindowOffsetToSliceOffset(
+        Vector2f(5.f, 5.f) * (float) vppr);
+
+  Vector3f text_width_slice =
+      m_Model->GetParent()->MapWindowOffsetToSliceOffset(
+        Vector2f(96.f, 12.f) * (float) vppr);
+
+  // TODO: support other units
+  std::ostringstream oss_length;
+  oss_length << std::setprecision(4) << length << " " << "mm";
+
+  // Set up the rendering properties
+  AbstractRendererPlatformSupport::FontInfo font_info =
+        { AbstractRendererPlatformSupport::TYPEWRITER,
+          12 * vppr,
+          false };
+
+  Vector3f curr_center = (xSlice1 + xSlice2) * 0.5f;
+
+  // Draw the length text
+  m_PlatformSupport->RenderTextInOpenGL(
+        oss_length.str().c_str(),
+        curr_center[0] + text_offset_slice[0], curr_center[1] + text_offset_slice[1],
+        text_width_slice[0], text_width_slice[1],
+        font_info,
+        AbstractRendererPlatformSupport::LEFT, AbstractRendererPlatformSupport::TOP,
+        color, alpha);
+}
+
 void AnnotationRenderer::paintGL()
 {
   assert(m_Model);
@@ -20,10 +62,15 @@ void AnnotationRenderer::paintGL()
   SNAPAppearanceSettings *as =
       m_Model->GetParent()->GetParentUI()->GetAppearanceSettings();
 
-  // Get the current annotation settings
-  AnnotationSettings annset = m_Model->GetParent()->GetDriver()->GetGlobalState()
-                          ->GetAnnotationSettings();
-  bool shownOnAllSlices = annset.shownOnAllSlices;
+  // Get the opacity of the annotations, and stop if it is zero
+  double alpha =
+      m_Model->GetParent()->GetParentUI()->GetGlobalState()->GetAnnotationAlpha();
+  if(alpha == 0)
+    return;
+
+  // Get the color for the annotations
+  Vector3d ann_color
+      = m_Model->GetParent()->GetDriver()->GetGlobalState()->GetAnnotationColor();
 
   // Get the retina pixel ratio
   int vppr = m_ParentRenderer->GetModel()->GetSizeReporter()->GetViewportPixelRatio();
@@ -63,7 +110,7 @@ void AnnotationRenderer::paintGL()
     // Draw the line and the endpoints
 
     // Draw the current line
-    glColor3d(1.,1.,0.);
+    glColor4d(ann_color[0], ann_color[1], ann_color[2],alpha);
     glBegin(GL_POINTS);
     glVertex2d(curr_line.first[0], curr_line.first[1]);
 
@@ -90,56 +137,9 @@ void AnnotationRenderer::paintGL()
     // Decoration drawn only in ruler mode
     if(m_Model->GetAnnotationMode() == ANNOTATION_RULER)
       {
-      // Compute the length of the drawing line
-      double length = m_Model->GetCurrentLineLength();
-      std::ostringstream oss_length;
-      oss_length << std::setprecision(4) << length << " " << "mm";
-
-      // Set up the rendering properties
-      AbstractRendererPlatformSupport::FontInfo font_info =
-            { AbstractRendererPlatformSupport::TYPEWRITER,
-              12 * vppr,
-              false };
-
-      Vector3f curr_center = (curr_line.first + curr_line.second) * 0.5f;
-
-      // Draw the length text
-      m_PlatformSupport->RenderTextInOpenGL(
-            oss_length.str().c_str(),
-            curr_center[0] + text_offset_slice[0], curr_center[1] + text_offset_slice[1],
-            text_width_slice[0], text_width_slice[1],
-            font_info,
-            AbstractRendererPlatformSupport::LEFT, AbstractRendererPlatformSupport::TOP,
-            elt->GetNormalColor());
-
-      // Compute and show the intersection angles of the drawing line with the other (visible) lines
-      for(ImageAnnotationData::AnnotationConstIterator it = adata->GetAnnotations().begin();
-          it != adata->GetAnnotations().end(); ++it)
-        {
-        const annot::LineSegmentAnnotation *lsa =
-            dynamic_cast<const annot::LineSegmentAnnotation *>(it->GetPointer());
-
-        if(lsa && m_Model->IsAnnotationVisible(lsa))
-          {
-          // Compute the dot product and no need for the third components that are zeros
-          double angle = m_Model->GetAngleWithCurrentLine(lsa);
-          std::ostringstream oss_angle;
-          oss_angle << std::setprecision(3) << angle << " " << "deg";
-
-          Vector3f line_center = m_Model->GetAnnotationCenter(lsa);
-
-          // Draw the angle text
-          m_PlatformSupport->RenderTextInOpenGL(
-                oss_angle.str().c_str(),
-                line_center[0] + text_offset_slice[0], line_center[1] + text_offset_slice[1],
-                text_width_slice[0], text_width_slice[1],
-                font_info,
-                AbstractRendererPlatformSupport::LEFT, AbstractRendererPlatformSupport::TOP,
-                elt->GetNormalColor());
-
-          }
-        }
-      } // Ruler mode
+      // Draw the current line length
+      DrawLineLength(curr_line.first, curr_line.second, ann_color, alpha);
+      }
     } // Current line valid
 
   // Draw each annotation
@@ -148,16 +148,16 @@ void AnnotationRenderer::paintGL()
     {
     if(m_Model->IsAnnotationVisible(*it))
       {
+      // Draw all the line segments
       annot::LineSegmentAnnotation *lsa =
           dynamic_cast<annot::LineSegmentAnnotation *>(it->GetPointer());
       if(lsa)
         {
+        // Draw the line
         Vector3f p1 = m_Model->GetParent()->MapImageToSlice(lsa->GetSegment().first);
         Vector3f p2 = m_Model->GetParent()->MapImageToSlice(lsa->GetSegment().second);
 
-        glColor3dv(lsa->GetColor().data_block());
-
-
+        glColor4d(lsa->GetColor()[0], lsa->GetColor()[1], lsa->GetColor()[2], alpha);
 
         glBegin(GL_POINTS);
         glVertex2d((p1[0] + p2[0]) * 0.5, (p1[1] + p2[1]) * 0.5);
@@ -174,6 +174,36 @@ void AnnotationRenderer::paintGL()
           this->DrawSelectionHandle(p2);
           }
 
+        // Draw length or angle
+        if(m_Model->IsDrawingRuler())
+          {
+          // Draw angle:
+          // Compute the dot product and no need for the third components that are zeros
+          double angle = m_Model->GetAngleWithCurrentLine(lsa);
+          std::ostringstream oss_angle;
+          oss_angle << std::setprecision(3) << angle << "°";
+
+          Vector3f line_center = m_Model->GetAnnotationCenter(lsa);
+
+          // Set up the rendering properties
+          AbstractRendererPlatformSupport::FontInfo font_info =
+                { AbstractRendererPlatformSupport::TYPEWRITER,
+                  12 * vppr,
+                  false };
+
+          // Draw the angle text
+          m_PlatformSupport->RenderTextInOpenGL(
+                oss_angle.str().c_str(),
+                line_center[0] + text_offset_slice[0], line_center[1] + text_offset_slice[1],
+              text_width_slice[0], text_width_slice[1],
+              font_info,
+              AbstractRendererPlatformSupport::LEFT, AbstractRendererPlatformSupport::TOP,
+              lsa->GetColor(), alpha);
+          }
+        else
+          {
+          this->DrawLineLength(p1, p2, lsa->GetColor(),alpha);
+          }
         }
 
       annot::LandmarkAnnotation *lma =
@@ -186,7 +216,7 @@ void AnnotationRenderer::paintGL()
 
         std::string text = lma->GetLandmark().Text;
 
-        glColor3dv(lma->GetColor().data_block());
+        glColor4d(lma->GetColor()[0], lma->GetColor()[1], lma->GetColor()[2], alpha);
 
         glBegin(GL_LINES);
         glVertex2d(xHeadSlice[0], xHeadSlice[1]);
@@ -252,7 +282,7 @@ void AnnotationRenderer::paintGL()
                                                     xbox, ybox,
                                                     xTextSizeSlice[0], xTextSizeSlice[1], fi,
                                                     align_horiz, align_vert,
-                                                    lma->GetColor());
+                                                    lma->GetColor(), alpha);
         }
 
       }
