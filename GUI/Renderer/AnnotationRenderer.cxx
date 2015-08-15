@@ -55,7 +55,7 @@ void AnnotationRenderer::paintGL()
   assert(m_Model);
 
   // Not in thumbnail mode
-  if(m_ParentRenderer->IsThumbnailDrawing())
+  if(m_ParentRenderer->IsDrawingZoomThumbnail() || m_ParentRenderer->IsDrawingLayerThumbnail())
     return;
 
   // Get appearance settings

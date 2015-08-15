@@ -32,7 +32,7 @@ PolygonDrawingRenderer
 ::paintGL()
 {
   assert(m_Model);
-  if(m_ParentRenderer->IsThumbnailDrawing())
+  if(m_ParentRenderer->IsDrawingZoomThumbnail() || m_ParentRenderer->IsDrawingLayerThumbnail())
     return;
 
   PolygonDrawingModel::PolygonState state = m_Model->GetState();

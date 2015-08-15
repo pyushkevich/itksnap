@@ -42,7 +42,8 @@
 GenericSliceRenderer
 ::GenericSliceRenderer()
 {
-  this->m_ThumbnailDrawing = false;
+  this->m_DrawingZoomThumbnail = false;
+  this->m_DrawingLayerThumbnail = false;
 }
 
 void
@@ -133,7 +134,7 @@ GenericSliceRenderer
 
   // Set up lighting attributes
   glPushAttrib(GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT |
-               GL_PIXEL_MODE_BIT | GL_TEXTURE_BIT );
+               GL_PIXEL_MODE_BIT | GL_TEXTURE_BIT | GL_COLOR_BUFFER_BIT);
 
   glDisable(GL_LIGHTING);
 
@@ -192,6 +193,9 @@ GenericSliceRenderer
       ImageWrapperBase *layer = id->FindLayer(vp.layer_id, false);
       if(layer && this->DrawImageLayers(layer, !vp.isThumbnail))
         {
+        // Set the thumbnail flag
+        m_DrawingLayerThumbnail = vp.isThumbnail;
+
         // We don't want to draw segmentation over the speed image and other
         // SNAP-mode layers.
         this->DrawSegmentationTexture();
@@ -297,6 +301,9 @@ GenericSliceRenderer
         }
       }
 
+    // No longer drawing thumbnails
+    m_DrawingLayerThumbnail = false;
+
     // Set the viewport and projection to original dimensions
     glViewport(0, 0, vp_full[0], vp_full[1]);
 
@@ -356,7 +363,7 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool dr
   GenericImageData *id = m_Model->GetImageData();
 
   // If drawing the thumbnail, only draw the main layer
-  if(m_ThumbnailDrawing)
+  if(m_DrawingZoomThumbnail)
     {
     DrawTextureForLayer(base_layer, false);
     return true;
@@ -432,7 +439,7 @@ void GenericSliceRenderer::DrawMainTexture()
     DrawTextureForLayer(id->GetMain(), false);
 
   // Draw each of the overlays
-  if (!m_ThumbnailDrawing)
+  if (!m_DrawingZoomThumbnail)
     {
     for(LayerIterator it(id, OVERLAY_ROLE); !it.IsAtEnd(); ++it)
       DrawTextureForLayer(it.GetLayer(), true);
@@ -468,7 +475,7 @@ void GenericSliceRenderer::DrawTextureForLayer(
       }
     else
       {
-      Vector3d clrBackground = m_ThumbnailDrawing
+      Vector3d clrBackground = m_DrawingZoomThumbnail
         ? as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL)->GetNormalColor()
         : Vector3d(1.0);
       tex->Draw(clrBackground);
@@ -504,13 +511,8 @@ void GenericSliceRenderer::DrawThumbnail()
   Vector2i tPos = m_Model->GetZoomThumbnailPosition();
   double tZoom = m_Model->GetThumbnailZoom();
 
-  // Current display layout
-  DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
-  Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
-  unsigned int rows = layout[0], cols = layout[1];
-
   // Indicate the fact that we are currently drawing in thumbnail mode
-  m_ThumbnailDrawing = true;
+  m_DrawingZoomThumbnail = true;
 
   // Set up the GL matrices
   glPushMatrix();
@@ -562,7 +564,7 @@ void GenericSliceRenderer::DrawThumbnail()
   glPopMatrix();
 
   // Indicate the fact that we are not drawing in thumbnail mode
-  m_ThumbnailDrawing = false;
+  m_DrawingZoomThumbnail = false;
   }
 
 GenericSliceRenderer::Texture *

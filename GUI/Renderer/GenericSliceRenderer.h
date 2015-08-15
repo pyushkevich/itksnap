@@ -70,7 +70,12 @@ public:
   virtual void paintGL();
 
   irisGetMacro(Model, GenericSliceModel *)
-  irisIsMacro(ThumbnailDrawing)
+
+  /** This flag is on while the zoom thumbnail is being painted */
+  irisIsMacro(DrawingZoomThumbnail)
+
+  /** This flag is on while the layer thumbnail is being painted */
+  irisIsMacro(DrawingLayerThumbnail)
 
   typedef std::list<SliceRendererDelegate *> RendererDelegateList;
 
@@ -119,7 +124,7 @@ protected:
   GenericSliceModel *m_Model;
 
   // Whether rendering to thumbnail or not
-  bool m_ThumbnailDrawing;
+  bool m_DrawingZoomThumbnail, m_DrawingLayerThumbnail;
 
   // A dynamic association between various image layers and texture objects
   typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;

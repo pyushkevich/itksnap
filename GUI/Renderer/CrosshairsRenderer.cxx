@@ -48,7 +48,7 @@ void CrosshairsRenderer::paintGL()
 
   // Get the line color, thickness and dash spacing for the crosshairs
   OpenGLAppearanceElement *elt =
-    this->GetParentRenderer()->IsThumbnailDrawing()
+    this->GetParentRenderer()->IsDrawingZoomThumbnail()
     ? as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_THUMB)
     : as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
 

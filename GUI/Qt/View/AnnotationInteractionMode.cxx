@@ -43,6 +43,10 @@ void AnnotationInteractionMode::mousePressEvent(QMouseEvent *ev)
     if(m_Model->IsMovingSelection())
       m_ParentPanel->setCursor(Qt::ClosedHandCursor);
     }
+  else
+    {
+    ev->ignore();
+    }
 }
 
 void AnnotationInteractionMode::mouseMoveEvent(QMouseEvent *ev)
@@ -74,12 +78,9 @@ void AnnotationInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 void AnnotationInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
 {
   SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  ev->ignore();
 
-  if(m_RightDown || m_MiddleDown)
-    {
-    ev->ignore();
-    }
-  else
+  if(ev->button() == Qt::LeftButton)
     {
     if(m_Model->ProcessReleaseEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier))
       {
