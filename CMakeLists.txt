@@ -88,6 +88,10 @@ MESSAGE(STATUS "   GIT Info: BRANCH ${SNAP_VERSION_GIT_BRANCH}, SHA: ${SNAP_VERS
 #--------------------------------------------------------------------------------
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS 
 #--------------------------------------------------------------------------------
+
+# Add option to build on qt 4.x
+OPTION(USE_QT4 "Compile using Qt version 4.8 for compatibility with older systems" OFF)
+
 IF(DEFINED InsightApplications_SOURCE_DIR)
   SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS FALSE CACHE BOOL 
 	"Is SNAP being built separate from InsightApplications?")
@@ -845,7 +849,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt
     ${SNAP_BINARY_DIR}
     ${OPENGL_INCLUDE_PATH}
-    ${SNAP_QT5_INCLUDE_DIRS}
+    ${SNAP_QT_INCLUDE_DIRS}
   )
 
 ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
@@ -909,9 +913,15 @@ SET(SNAP_EXTERNAL_LIBS
 #--------------------------------------------------------------------------------
 
 # Wrap the QT input files
-QT5_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
-QT5_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
-QT5_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
+IF(NOT USE_QT4)
+  QT5_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
+  QT5_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
+  QT5_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
+ELSE(NOT USE_QT4)
+  QT4_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
+  QT4_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
+  QT4_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
+ENDIF(NOT USE_QT4)
 
 # The SNAP logic library
 ADD_LIBRARY(itksnaplogic ${LOGIC_CXX} ${LOGIC_HEADERS})
@@ -929,7 +939,7 @@ ADD_LIBRARY(itksnapui_qt
 # two lines
 TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS})
 TARGET_LINK_LIBRARIES(itksnapui_model itksnaplogic ${SNAP_EXTERNAL_LIBS})
-TARGET_LINK_LIBRARIES(itksnapui_qt ${SNAP_QT5_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
+TARGET_LINK_LIBRARIES(itksnapui_qt ${SNAP_QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
 
 # Designate the SNAP internal libraries
 SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
@@ -1032,10 +1042,17 @@ SET(TEST_ORIENTATION_WIDGET_CXX
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/main.cxx
 )
 
-QT5_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS 
-  GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
-QT5_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS 
-  GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
+IF(NOT USE_QT4)
+  QT5_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS 
+    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
+  QT5_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS 
+    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
+ELSE(NOT USE_QT4)
+  QT4_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS 
+    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
+  QT4_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS 
+    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
+ENDIF(NOT USE_QT4)
 
 ADD_EXECUTABLE(Test_OrientationWidget
   ${TEST_ORIENTATION_WIDGET_CXX} ${TEST_ORIENTATION_WIDGET_HEADERS}
@@ -1109,14 +1126,24 @@ IF(APPLE)
   SET(CPACK_DMG_DS_STORE ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/dsstore.bin)
   SET(CPACK_DMG_BACKGROUND_IMAGE ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/background.png)
 
-  # Include the qt4 dependent libraries
-  include(DeployQt5)
+  IF(NOT USE_QT4)
 
-  # Make sure the GIF plugin is included
-  get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+    # Include the qt4 dependent libraries
+    include(DeployQt5)
 
-  # Install with the plugin
-  install_qt5_executable(${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
+    # Make sure the GIF plugin is included
+    get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+
+    # Install with the plugin
+    install_qt5_executable(${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
+
+  ELSE(NOT USE_QT4)
+
+    # Include the qt4 dependent libraries
+    include(DeployQt4)
+    install_qt4_executable(${SNAP_BUNDLE_NAME}.app "qsqlite;qgif")
+
+  ENDIF(NOT USE_QT4)
 
 ELSEIF(WIN32)
 
