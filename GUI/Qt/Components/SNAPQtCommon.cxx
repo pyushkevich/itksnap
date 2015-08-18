@@ -513,7 +513,12 @@ bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWid
 #include <QMap>
 #include <QDir>
 #include <GenericImageData.h>
-#include <QStandardPaths>
+
+#if QT_VERSION >= 0x050000
+  #include <QStandardPaths>
+#else
+  #include <QDesktopServices>
+#endif
 
 QMap<QString, QDir> g_CategoryToLastPathMap;
 
@@ -531,7 +536,11 @@ QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName)
     }
 
   // Use home directory
+#if QT_VERSION >= 0x050000
   return QStandardPaths::standardLocations(QStandardPaths::HomeLocation).first();
+#else
+  return QDesktopServices::storageLocation(QDesktopServices::HomeLocation);
+#endif
 }
 
 void UpdateFileDialogPathForCategory(const char *HistoryName, QString dir)

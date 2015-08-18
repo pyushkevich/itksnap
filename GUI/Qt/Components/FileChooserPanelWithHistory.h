@@ -120,6 +120,7 @@ private:
   QObject *m_oracleTarget;
   const char *m_oracleSlot;
   QString guessFormat(const QString &text);
+  void setCurrentFormatText(const QString &format);
 };
 
 #endif // FILECHOOSERPANELWITHHISTORY_H

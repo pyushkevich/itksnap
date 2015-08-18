@@ -1052,10 +1052,10 @@ void MainImageWindow::dropEvent(QDropEvent *event)
 {
   QUrl url = event->mimeData()->urls().first();
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && QT_VERSION >= 0x050000
   // TODO: this is a Yosemite bug fix - bug https://bugreports.qt.io/browse/QTBUG-40449
   // Check if this is still necessary in future Qt versions (discovered in Qt 5.4)
-  if (url.url().startsWith("file:///.file/id="))
+  if (url.toString().startsWith("file:///.file/id="))
     {
     CFURLRef cfurl = url.toCFURL();
     CFErrorRef error = 0;

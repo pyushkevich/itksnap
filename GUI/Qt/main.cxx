@@ -90,7 +90,12 @@ public:
     {
     this->setApplicationName("ITK-SNAP");
     this->setOrganizationName("itksnap.org");
+
+#if QT_VERSION >= 0x050000
+    // Allow @x2 pixmaps for icons for retina displays
     this->setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+#endif
+
     m_MainWindow = NULL;
 
     // Store the command-line arguments
@@ -221,7 +226,11 @@ public:
   CommandLineRequest()
     : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0) 
     {
+#if QT_VERSION >= 0x050000
     style = "fusion";
+#else
+    style = "plastique";
+#endif
     }
 };
 

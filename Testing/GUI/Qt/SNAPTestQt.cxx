@@ -5,7 +5,6 @@
 #include <QLineEdit>
 #include <QFile>
 #include <QTextStream>
-#include <QQmlEngine>
 #include <QDebug>
 #include <QPushButton>
 #include <QTimer>
@@ -13,6 +12,14 @@
 #include <QRegExp>
 #include <QApplication>
 #include "SNAPQtCommon.h"
+
+#if QT_VERSION >= 0x050000
+
+#else
+  #include <QScriptEngine>
+  #define QJSEngine QScriptEngine
+  #define QJSValue QScriptValue
+#endif
 
 using namespace std;
 
@@ -63,7 +70,9 @@ SNAPTestQt::LaunchTest(std::string test)
 
   // Create and run the thread
   TestWorker *worker = new TestWorker(this, from_utf8(test), m_ScriptEngine, m_Acceleration);
-  connect(worker, &TestWorker::finished, worker, &QObject::deleteLater);
+
+  connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
+
   worker->start();
 }
 

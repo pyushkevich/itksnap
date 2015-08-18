@@ -27,9 +27,9 @@
 #ifndef QTABSTRACTOPENGLBOX_H
 #define QTABSTRACTOPENGLBOX_H
 
-#include <QOpenGLWidget>
 #include <SNAPCommon.h>
 #include <SNAPEvents.h>
+#include <QtGlobal>
 
 class QMouseEvent;
 class EventBucket;
@@ -37,6 +37,14 @@ class QtInteractionDelegateWidget;
 class AbstractRenderer;
 
 namespace itk { class Object; }
+
+// Qt 4 compatibility
+#if QT_VERSION >= 0x050000
+  #include <QOpenGLWidget>
+#else
+  #include <QGLWidget>
+  #define QOpenGLWidget QGLWidget
+#endif
 
 class QtAbstractOpenGLBox : public QOpenGLWidget
 {
@@ -95,6 +103,11 @@ protected:
 
   // Whether a screenshot has been requested (non-empty string)
   QString m_ScreenshotRequest;
+
+#if QT_VERSION < 0x050000
+  float devicePixelRatio() const { return 1.0f; }
+#endif
+
 
 signals:
 

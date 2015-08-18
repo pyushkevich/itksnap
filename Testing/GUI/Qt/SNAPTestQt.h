@@ -7,6 +7,7 @@
 #include <QStringList>
 #include <QThread>
 #include <QVariant>
+#include <QModelIndex>
 
 class MainImageWindow;
 class GlobalUIModel;
@@ -14,6 +15,14 @@ class QJSEngine;
 class QQmlEngine;
 class QTimer;
 class QStringList;
+
+#if QT_VERSION >= 0x050000
+  class QJSEngine;
+#else
+  class QScriptEngine;
+  #define QJSEngine QScriptEngine
+#endif
+
 
 
 class TestWorker : public QThread

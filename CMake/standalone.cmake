@@ -13,7 +13,7 @@ INCLUDE (${VTK_USE_FILE})
 #############################################
 # REQUIRE QT                                #
 #############################################
-IF(NOT USE_QT4)
+IF(NOT SNAP_USE_QT4)
 
   FIND_PACKAGE(Qt5Widgets)
   FIND_PACKAGE(Qt5OpenGL)
@@ -38,7 +38,7 @@ IF(NOT USE_QT4)
   GET_FILENAME_COMPONENT(QT_BINARY_DIR "${Qt5Core_DIR}/../../../bin" ABSOLUTE)
   GET_FILENAME_COMPONENT(QT_LIBRARY_DIR "${Qt5Core_DIR}/../../" ABSOLUTE)
 
-ELSE(NOT USE_QT4)
+ELSE(NOT SNAP_USE_QT4)
 
   FIND_PACKAGE(Qt4 4.8 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
   INCLUDE(${QT_USE_FILE})
@@ -56,7 +56,7 @@ ELSE(NOT USE_QT4)
     ${QT_QTSCRIPTTOOLS_LIBRARY}
   )
 
-ENDIF(NOT USE_QT4)
+ENDIF(NOT SNAP_USE_QT4)
 
 # Look for OpenGL.
 FIND_PACKAGE(OpenGL REQUIRED)
