@@ -37,6 +37,9 @@ void OverlayRolePage::initializePage()
                               this->m_Model->GetParent()->GetColorMapModel());
 
   makeCoupling(ui->inOverlayColorMap, this->m_Model->GetStickyOverlayColorMapModel());
+
+  // Apply the settings?
+
 }
 
 bool OverlayRolePage::validatePage()

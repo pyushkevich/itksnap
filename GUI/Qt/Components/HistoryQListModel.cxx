@@ -68,30 +68,40 @@ void HistoryQListItem::onTimer()
     this->setIcon(QIcon(*pixmap));
   else
     {
-    // Load the icon using ITK to avoid this really annoying warning
-    // from the PNG library. The only problem is that QIcon caches
-    typedef itk::RGBAPixel<unsigned char> PNGPixelType;
-    typedef itk::Image<PNGPixelType, 2> PNGSliceType;
-    typedef itk::ImageFileReader<PNGSliceType> PNGReaderType;
-    SmartPtr<PNGReaderType> reader = PNGReaderType::New();
-    reader->SetFileName(to_utf8(m_IconFilename).c_str());
-    reader->Update();
-
-    // Need to load the icon
-    SmartPtr<PNGSliceType> slice = reader->GetOutput();
-    int w = slice->GetBufferedRegion().GetSize()[0];
-    int h = slice->GetBufferedRegion().GetSize()[1];
-    QImage image(w, h, QImage::Format_ARGB32);
-    PNGPixelType *input = slice->GetBufferPointer();
-    QRgb *output = reinterpret_cast<QRgb*>(image.bits());
-    for(int i = 0; i < slice->GetPixelContainer()->Size(); i++)
+    try
       {
-      *output++ = qRgba(input[i].GetRed(), input[i].GetGreen(), input[i].GetBlue(), input[i].GetAlpha());
-      }
+      // Load the icon using ITK to avoid this really annoying warning
+      // from the PNG library. The only problem is that QIcon caches
+      typedef itk::RGBAPixel<unsigned char> PNGPixelType;
+      typedef itk::Image<PNGPixelType, 2> PNGSliceType;
+      typedef itk::ImageFileReader<PNGSliceType> PNGReaderType;
+      SmartPtr<PNGReaderType> reader = PNGReaderType::New();
+      reader->SetFileName(to_utf8(m_IconFilename).c_str());
+      reader->Update();
 
-    QPixmap load_pixmap = QPixmap::fromImage(image);
-    this->setIcon(QIcon(load_pixmap));
-    QPixmapCache::insert(key, load_pixmap);
+      // Need to load the icon
+      SmartPtr<PNGSliceType> slice = reader->GetOutput();
+      int w = slice->GetBufferedRegion().GetSize()[0];
+      int h = slice->GetBufferedRegion().GetSize()[1];
+      QImage image(w, h, QImage::Format_ARGB32);
+      PNGPixelType *input = slice->GetBufferPointer();
+      QRgb *output = reinterpret_cast<QRgb*>(image.bits());
+      for(int i = 0; i < slice->GetPixelContainer()->Size(); i++)
+        {
+        *output++ = qRgba(input[i].GetRed(), input[i].GetGreen(), input[i].GetBlue(), input[i].GetAlpha());
+        }
+
+      QPixmap load_pixmap = QPixmap::fromImage(image);
+      this->setIcon(QIcon(load_pixmap));
+      QPixmapCache::insert(key, load_pixmap);
+      }
+    catch(itk::ExceptionObject &exc)
+      {
+      QPixmap dummy(128, 128);
+      dummy.fill(Qt::black);
+      this->setIcon(QIcon(dummy));
+      QPixmapCache::insert(key, dummy);
+      }
     }
 }
 

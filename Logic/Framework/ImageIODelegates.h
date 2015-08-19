@@ -42,7 +42,12 @@ public:
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void UnloadCurrentImage() = 0;
-  virtual void UpdateApplicationWithImage(GuidedNativeImageIO *io) = 0;
+
+  /**
+   * Update the application with the image contained in the Guided IO object and
+   * return a pointer to the loaded image layer
+   */
+  virtual ImageWrapperBase *UpdateApplicationWithImage(GuidedNativeImageIO *io) = 0;
 
   virtual bool GetUseRegistration() const { return false; }
   virtual bool IsOverlay() const { return false; }
@@ -77,7 +82,7 @@ public:
   irisITKObjectMacro(LoadMainImageDelegate, LoadAnatomicImageDelegate)
 
   void UnloadCurrentImage();
-  void UpdateApplicationWithImage(GuidedNativeImageIO *io);
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
 
 protected:
   LoadMainImageDelegate() {}
@@ -92,7 +97,7 @@ public:
   irisITKObjectMacro(LoadOverlayImageDelegate, LoadAnatomicImageDelegate)
 
   void UnloadCurrentImage();
-  void UpdateApplicationWithImage(GuidedNativeImageIO *io);
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
   void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
   virtual bool IsOverlay() const { return true; }
 
@@ -109,7 +114,7 @@ public:
   irisITKObjectMacro(LoadCoregisteredOverlayImageDelegate, LoadAnatomicImageDelegate)
 
   void UnloadCurrentImage();
-  void UpdateApplicationWithImage(GuidedNativeImageIO *io);
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
   void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
 
   virtual bool GetUseRegistration() const { return true; }
@@ -132,7 +137,7 @@ public:
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl);
   void UnloadCurrentImage();
-  void UpdateApplicationWithImage(GuidedNativeImageIO *io);
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
 
 protected:
   LoadSegmentationImageDelegate() {}

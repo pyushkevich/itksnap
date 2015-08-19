@@ -56,6 +56,9 @@ protected:
   void WarningMessage(const IRISWarningList &wl);
   ImageIOWizardModel *m_Model;
 
+  // Perform the actual save or load
+  bool PerformIO();
+
   // A qlabel for displaying error/warning messages. The children are
   // responsible for placing this control on their layouts
   QLabel *m_OutMessage;

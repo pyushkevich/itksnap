@@ -290,10 +290,14 @@ protected:
   GuidedNativeImageIO::RegistryArray m_DicomContents;
 
   // Overlay display behavior models
-  SmartPtr<ConcreteSimpleBooleanProperty> m_StickyOverlayModel;
+  SmartPtr<AbstractSimpleBooleanProperty> m_StickyOverlayModel;
+  bool GetStickyOverlayValue(bool &value);
+  void SetStickyOverlayValue(bool value);
 
   // Selected color map behavior model
-  SmartPtr<ConcreteSimpleStringProperty> m_StickyOverlayColorMapModel;
+  SmartPtr<AbstractSimpleStringProperty> m_StickyOverlayColorMapModel;
+  bool GetStickyOverlayColorMapValue(std::string &value);
+  void SetStickyOverlayColorMapValue(std::string value);
 
   // Registration models
   typedef ConcretePropertyModel<RegistrationMode, RegistrationModeDomain> RegistrationModeModel;
@@ -309,6 +313,9 @@ protected:
 
   // Renderer used to plot the metric
   SmartPtr<OptimizationProgressRenderer> m_RegistrationProgressRenderer;
+
+  // Pointer to the image layer that has been loaded
+  ImageWrapperBase *m_LoadedImage;
 };
 
 #endif // IMAGEIOWIZARDMODEL_H

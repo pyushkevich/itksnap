@@ -82,7 +82,7 @@ color:rgb(96, 96, 96);</string>
         <property name="sizeHint" stdset="0">
          <size>
           <width>20</width>
-          <height>2</height>
+          <height>5</height>
          </size>
         </property>
        </spacer>
@@ -166,6 +166,22 @@ color:rgb(96, 96, 96);</string>
        </widget>
       </item>
       <item>
+       <spacer name="verticalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>5</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
        <spacer name="verticalSpacer">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
@@ -177,20 +193,6 @@ color:rgb(96, 96, 96);</string>
          </size>
         </property>
        </spacer>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="chkMakeDefault">
-        <property name="text">
-         <string>Make these settings default when adding images</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="chkDoNotAsk">
-        <property name="text">
-         <string>Do not ask anymore</string>
-        </property>
-       </widget>
       </item>
       <item>
        <widget class="QWidget" name="widget_4" native="true">
@@ -207,20 +209,6 @@ color:rgb(96, 96, 96);</string>
          <property name="bottomMargin">
           <number>0</number>
          </property>
-         <item>
-          <widget class="QLabel" name="label_5">
-           <property name="styleSheet">
-            <string notr="true">font-size:10px;
-color:rgb(96, 96, 96);</string>
-           </property>
-           <property name="text">
-            <string>You will still be able to control this behavior under Preferences...</string>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
         </layout>
        </widget>
       </item>

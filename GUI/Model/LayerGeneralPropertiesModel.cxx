@@ -382,7 +382,11 @@ void LayerGeneralPropertiesModel::SetIsStickyValue(bool value)
 {
   // Delegate to the row model for this
   LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
-  trm->GetStickyModel()->SetValue(value);
+
+  // Calling this method will set the globally selected layer to the main layer
+  // because the globally selected layer cannot be sticky. However, we can still
+  // have a sticky layer selected in the layer inspector. So we override.
+  trm->GetStickyModel()->SetValue(value);  
 }
 
 

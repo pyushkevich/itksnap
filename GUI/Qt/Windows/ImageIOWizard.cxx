@@ -87,6 +87,35 @@ AbstractPage::WarningMessage(const IRISWarningList &wl)
     }
 }
 
+bool AbstractPage::PerformIO()
+{
+  // Get the selected format
+  QString format = this->field("Format").toString();
+  QString filename = this->field("Filename").toString();
+
+  ImageIOWizardModel::FileFormat fmt = m_Model->GetFileFormatByName(to_utf8(format));
+
+  try
+    {
+    QtCursorOverride curse(Qt::WaitCursor);
+    m_Model->SetSelectedFormat(fmt);
+    if(m_Model->IsLoadMode())
+      {
+      m_Model->LoadImage(to_utf8(filename));
+      }
+    else
+      {
+      m_Model->SaveImage(to_utf8(filename));
+      }
+    }
+  catch(IRISException &exc)
+    {
+    return ErrorMessage(exc);
+    }
+
+  return true;
+}
+
 bool
 AbstractPage::ErrorMessage(const char *subject, const char *detail)
 {
@@ -254,25 +283,7 @@ bool SelectFilePage::validatePage()
     }
 
   // Save or load the image
-  try
-    {
-    QtCursorOverride curse(Qt::WaitCursor);
-    m_Model->SetSelectedFormat(fmt);
-    if(m_Model->IsLoadMode())
-      {
-      m_Model->LoadImage(to_utf8(m_FilePanel->absoluteFilename()));
-      }
-    else
-      {
-      m_Model->SaveImage(to_utf8(m_FilePanel->absoluteFilename()));
-      }
-    }
-  catch(IRISException &exc)
-    {
-    return ErrorMessage(exc);
-    }
-
-  return true;
+  return this->PerformIO();
 }
 
 void SelectFilePage::onFilenameChanged(QString absoluteFilename)
