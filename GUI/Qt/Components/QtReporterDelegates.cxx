@@ -6,7 +6,6 @@
 
 #include <QPainter>
 #include <QPixmap>
-#include <QWindow>
 
 #include <QImage>
 #include "itkImage.h"
@@ -50,6 +49,8 @@ bool QtViewportReporter::CanReportSize()
   return m_ClientWidget != NULL;
 }
 
+#if QT_VERSION >= 0x050000
+
 Vector2ui QtViewportReporter::GetViewportSize()
 {
   // For retina displays, this method reports size in actual pixels, not abstract pixels
@@ -61,6 +62,36 @@ float QtViewportReporter::GetViewportPixelRatio()
 {
   return m_ClientWidget->devicePixelRatio();
 }
+
+#include <QStandardPaths>
+std::string QtSystemInfoDelegate::GetApplicationPermanentDataLocation()
+{
+  return to_utf8(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+}
+
+
+#else
+
+Vector2ui QtViewportReporter::GetViewportSize()
+{
+  // For retina displays, this method reports size in actual pixels, not abstract pixels
+  return Vector2ui(m_ClientWidget->width(), m_ClientWidget->height());
+}
+
+float QtViewportReporter::GetViewportPixelRatio()
+{
+  return 1.0f;
+}
+
+#include <QDesktopServices>
+std::string QtSystemInfoDelegate::GetApplicationPermanentDataLocation()
+{
+  return to_utf8(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+
+}
+
+
+#endif
 
 Vector2ui QtViewportReporter::GetLogicalViewportSize()
 {
@@ -110,12 +141,6 @@ std::string QtSystemInfoDelegate::GetApplicationDirectory()
 std::string QtSystemInfoDelegate::GetApplicationFile()
 {
   return to_utf8(QCoreApplication::applicationFilePath());
-}
-
-#include <QStandardPaths>
-std::string QtSystemInfoDelegate::GetApplicationPermanentDataLocation()
-{
-  return to_utf8(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
 }
 
 void QtSystemInfoDelegate

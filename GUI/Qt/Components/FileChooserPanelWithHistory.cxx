@@ -107,7 +107,7 @@ void FileChooserPanelWithHistory::parseFilters(const QString &activeFormat)
     }
 
   // Update the combo box
-  ui->inFormat->setCurrentText(m_defaultFormat);
+  this->setCurrentFormatText(m_defaultFormat);
 
   // Show or hide the format panel depending on the number of formats available
   ui->panelFormat->setVisible(m_Filter.size() > 1);
@@ -525,6 +525,20 @@ QString FileChooserPanelWithHistory::guessFormat(const QString &text)
   return newFormat;
 }
 
+void FileChooserPanelWithHistory::setCurrentFormatText(const QString &format)
+{
+#if QT_VERSION >= 0x050000
+  ui->inFormat->setCurrentText(format);
+#else
+  for(int i = 0; i < ui->inFormat->count(); i++)
+    if(ui->inFormat->itemText(i) == format)
+      {
+      ui->inFormat->setCurrentIndex(i);
+      break;
+      }
+#endif
+}
+
 void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
 {
   // The filename has changed. The first thing we do is to see if the filename has
@@ -534,7 +548,7 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
   if(format.length())
     {
     m_defaultFormat = format;
-    ui->inFormat->setCurrentText(format);
+    this->setCurrentFormatText(format);
     emit activeFormatChanged(format);
     }
 

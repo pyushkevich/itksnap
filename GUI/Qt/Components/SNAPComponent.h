@@ -41,6 +41,10 @@ protected:
 
   void disconnectITK(itk::Object *src, unsigned long tag);
 
+#if QT_VERSION < 0x050000
+  float devicePixelRatio() const { return 1.0f; }
+#endif
+
 };
 
 #endif // SNAPCOMPONENT_H

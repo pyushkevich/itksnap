@@ -102,8 +102,13 @@ CursorInspector::CursorInspector(QWidget *parent) :
   ui->tableVoxelUnderCursor->setFixedHeight(120);
   ui->tableVoxelUnderCursor->setContextMenuPolicy(Qt::CustomContextMenu);
 
+#if QT_VERSION >= 0x050000
   ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
   ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+#else
+  ui->tableVoxelUnderCursor->horizontalHeader()->setResizeMode(0, QHeaderView::Interactive);
+  ui->tableVoxelUnderCursor->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
+#endif
   ui->tableVoxelUnderCursor->setColumnWidth(0, 92);
   // ui->tableVoxelUnderCursor->setColumnWidth(1, 68);
 

@@ -317,7 +317,12 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
       if(!mode.UseRGB && mode.SelectedScalarRep == SCALAR_REP_COMPONENT)
         {
         static double delta_accum = 0.0;
+
+#if QT_VERSION >= 0x050000
         delta_accum += event->angleDelta().x() + event->angleDelta().y();
+#else
+        delta_accum += event->delta();
+#endif
 
         if(delta_accum <= -120.0 || delta_accum >= 120.0)
           {

@@ -133,6 +133,9 @@ QtRendererPlatformSupport
   return fm.width(QString::fromUtf8(text));
 }
 
+
+
+#if QT_VERSION >= 0x050000
 #include <QOpenGLTexture>
 
 void QtRendererPlatformSupport::LoadTexture(const char *url, GLuint &texture_id, Vector2ui &tex_size)
@@ -148,3 +151,11 @@ void QtRendererPlatformSupport::LoadTexture(const char *url, GLuint &texture_id,
   tex_size[0] = texture->width();
   tex_size[1] = texture->height();
 }
+#else
+void QtRendererPlatformSupport::LoadTexture(const char *url, GLuint &texture_id, Vector2ui &tex_size)
+{
+  // Seems like this is not even used anywhere
+}
+
+#endif
+

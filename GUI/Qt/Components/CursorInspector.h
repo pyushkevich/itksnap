@@ -6,6 +6,7 @@
 class CursorInspectionModel;
 class QTableWidgetItem;
 class QStandardItemModel;
+class QModelIndex;
 struct LayerCurrentVoxelInfo;
 
 namespace Ui {

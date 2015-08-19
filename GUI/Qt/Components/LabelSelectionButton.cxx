@@ -47,6 +47,9 @@ void LabelSelectionButton::onModelUpdate(const EventBucket &bucket)
   this->UpdateAppearance();
 }
 
+#if QT_VERSION < 0x050000
+#define QRegularExpression QRegExp
+#endif
 
 void LabelSelectionButton::UpdateAppearance()
 {

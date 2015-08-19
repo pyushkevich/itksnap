@@ -5,6 +5,13 @@
 #include "vtkCommand.h"
 #include "QtReporterDelegates.h"
 
+#if QT_VERSION >= 0x050000
+  #include <QOpenGLContext>
+#else
+  #include <QGLContext>
+  #define QOpenGLContext QGLContext
+#endif
+
 QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
   QtSimpleOpenGLBox(parent)
 {
@@ -37,7 +44,6 @@ void QtVTKRenderWindowBox::SetRenderer(AbstractRenderer *renderer)
   QtSimpleOpenGLBox::SetRenderer(renderer);
 }
 
-#include <QOpenGLContext>
 
 void
 QtVTKRenderWindowBox

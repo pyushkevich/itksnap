@@ -73,7 +73,6 @@ bool SliceWindowInteractionDelegateWidget::IsMouseOverFullLayer()
 
 
 #include <QDebug>
-#include <QWindow>
 
 Vector3d
 SliceWindowInteractionDelegateWidget

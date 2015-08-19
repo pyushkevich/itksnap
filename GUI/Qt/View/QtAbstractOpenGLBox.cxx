@@ -27,7 +27,6 @@
 #include "QtAbstractOpenGLBox.h"
 #include <QMouseEvent>
 #include <QStackedLayout>
-#include <QWindow>
 #include <QtInteractionDelegateWidget.h>
 #include "LatentITKEventNotifier.h"
 #include "SNAPOpenGL.h"
