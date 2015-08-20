@@ -104,10 +104,11 @@ signals:
 private slots:
   void on_btnMenu_pressed();
 
+  /*
   void on_btnMoveUp_clicked();
 
   void on_btnMoveDown_pressed();
-
+  */
   void on_actionSave_triggered();
 
   void on_actionClose_triggered();

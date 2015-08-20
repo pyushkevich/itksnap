@@ -14,7 +14,7 @@
 #include "SNAPQtCommon.h"
 
 #if QT_VERSION >= 0x050000
-
+  #include <QJSEngine>
 #else
   #include <QScriptEngine>
   #define QJSEngine QScriptEngine

@@ -545,6 +545,7 @@ void LayerInspectorRowDelegate::on_btnMenu_pressed()
   ui->btnMenu->setDown(false);
 }
 
+/*
 void LayerInspectorRowDelegate::on_btnMoveUp_clicked()
 {
   m_Model->MoveLayerUp();
@@ -554,6 +555,7 @@ void LayerInspectorRowDelegate::on_btnMoveDown_pressed()
 {
   m_Model->MoveLayerDown();
 }
+*/
 
 void LayerInspectorRowDelegate::on_actionSave_triggered()
 {
