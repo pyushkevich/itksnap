@@ -75,6 +75,21 @@ ColorMap::CMPoint
   m_RGBA[0][3] = 0;  m_RGBA[1][3] = 0;
   }
 
+
+// Continuous point with linear alpha
+ColorMap::CMPoint
+::CMPoint(double j, EltType r, EltType g, EltType b)
+{
+  m_Index = j;
+  m_Type = (j == 0.0 || j == 1.0) ? DISCONTINUOUS : CONTINUOUS;
+  EltType a = (EltType)(j * 255);
+
+  m_RGBA[0][0] = r;  m_RGBA[1][0] = r;
+  m_RGBA[0][1] = g;  m_RGBA[1][1] = g;
+  m_RGBA[0][2] = b;  m_RGBA[1][2] = b;
+  m_RGBA[0][3] = a;  m_RGBA[1][3] = a;
+}
+
 // Continuous point
 ColorMap::CMPoint
 ::CMPoint(double j, EltType r, EltType g, EltType b, EltType a)
@@ -316,22 +331,22 @@ ColorMap
   {
     case COLORMAP_GREY:
       m_CMPoints.push_back( CMPoint(0.0, 0x00, 0x00, 0x00, 0x00, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0, 0xff, 0xff, 0xff, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0, 0xff, 0xff, 0xff, 0xff, 0xff) );
       break;
 
     case COLORMAP_RED:
       m_CMPoints.push_back( CMPoint(0.0, 0x00, 0x00, 0x00, 0x00, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0, 0xff, 0x00, 0x00, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0, 0xff, 0x00, 0x00, 0xff, 0xff) );
       break;
 
     case COLORMAP_GREEN:
       m_CMPoints.push_back( CMPoint(0.0, 0x00, 0x00, 0x00, 0x00, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0, 0x00, 0xff, 0x00, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0, 0x00, 0xff, 0x00, 0xff, 0xff) );
       break;
 
     case COLORMAP_BLUE:
       m_CMPoints.push_back( CMPoint(0.0, 0x00, 0x00, 0x00, 0x00, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0, 0x00, 0x00, 0xff, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0, 0x00, 0x00, 0xff, 0xff, 0xff) );
       break;
 
     case COLORMAP_HOT:
@@ -340,38 +355,38 @@ ColorMap
       m_CMPoints.push_back( CMPoint(22.0 / 63.0, 0xd8, 0x00, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(28.0 / 63.0, 0xff, 0x3a, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(48.0 / 63.0, 0xff, 0xff, 0x00, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0        , 0xff, 0xff, 0xff, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0        , 0xff, 0xff, 0xff, 0xff, 0xff) );
       break;
 
     case COLORMAP_COOL:
       m_CMPoints.push_back( CMPoint(0.0, 0xff, 0x00, 0xff, 0x00, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0, 0x00, 0xff, 0xff, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0, 0x00, 0xff, 0xff, 0xff, 0xff) );
       break;
 
     case COLORMAP_SPRING:
       m_CMPoints.push_back( CMPoint(0.0, 0xff, 0x00, 0xff, 0x00, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0, 0xff, 0xff, 0x00, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0, 0xff, 0xff, 0x00, 0xff, 0xff) );
       break;
 
     case COLORMAP_SUMMER:
       m_CMPoints.push_back( CMPoint(0.0, 0x00, 0x80, 0x66, 0x00, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0, 0xff, 0xff, 0x66, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0, 0xff, 0xff, 0x66, 0xff, 0xff) );
       break;
 
     case COLORMAP_AUTUMN:
       m_CMPoints.push_back( CMPoint(0.0, 0xff, 0x00, 0x00, 0x00, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0, 0xff, 0xff, 0x00, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0, 0xff, 0xff, 0x00, 0xff, 0xff) );
       break;
 
     case COLORMAP_WINTER:
       m_CMPoints.push_back( CMPoint(0.0, 0x00, 0x00, 0xff, 0x00, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0, 0x00, 0xff, 0x80, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0, 0x00, 0xff, 0x80, 0xff, 0xff) );
       break;
 
     case COLORMAP_COPPER:
       m_CMPoints.push_back( CMPoint(0.0,    0x00, 0x00, 0xff, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(0.8334, 0xff, 0xaa, 0x6a, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0,    0xff, 0xcc, 0x80, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0,    0xff, 0xcc, 0x80, 0xff, 0xff) );
       break;
 
     case COLORMAP_HSV:
@@ -381,7 +396,7 @@ ColorMap
       m_CMPoints.push_back( CMPoint(0.5000, 0x00, 0xff, 0xff, 0xff) );
       m_CMPoints.push_back( CMPoint(0.6667, 0x00, 0x00, 0xff, 0xff) );
       m_CMPoints.push_back( CMPoint(0.8334, 0xff, 0x00, 0xff, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0,    0xff, 0x00, 0x00, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0,    0xff, 0x00, 0x00, 0xff, 0xff) );
       break;
 
     case COLORMAP_JET:
@@ -390,19 +405,19 @@ ColorMap
       m_CMPoints.push_back( CMPoint(0.36  , 0x00, 0xff, 0xff, 0xff) );
       m_CMPoints.push_back( CMPoint(0.6   , 0xff, 0xff, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(0.9   , 0xff, 0x00, 0x00, 0xff) );
-      m_CMPoints.push_back( CMPoint(1.0,    0x80, 0x00, 0x00, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0,    0x80, 0x00, 0x00, 0xff, 0xff) );
       break;
 
     case COLORMAP_BWR:
       m_CMPoints.push_back( CMPoint(0.0,    0x00, 0x00, 0xff, 0x00, 0xff) ); 
       m_CMPoints.push_back( CMPoint(0.5,    0xff, 0xff, 0xff, 0xff) ); 
-      m_CMPoints.push_back( CMPoint(1.0,    0xff, 0x00, 0x00, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0,    0xff, 0x00, 0x00, 0xff, 0xff) );
       break;
 
     case COLORMAP_RWB:
       m_CMPoints.push_back( CMPoint(0.0,    0xff, 0x00, 0x00, 0x00, 0xff) ); 
       m_CMPoints.push_back( CMPoint(0.5,    0xff, 0xff, 0xff, 0xff) ); 
-      m_CMPoints.push_back( CMPoint(1.0,    0x00, 0x00, 0xff, 0xff, 0x00) );
+      m_CMPoints.push_back( CMPoint(1.0,    0x00, 0x00, 0xff, 0xff, 0xff) );
       break;
 
     case COLORMAP_SPEED:

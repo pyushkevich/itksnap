@@ -436,7 +436,7 @@ void LayerInspectorRowDelegate::UpdateOverlaysMenu()
   m_OverlaysMenu->clear();
 
   // If the current layer is sticky, disable the menu
-  if(!m_Model->GetLayer()->IsSticky())
+  if(m_Model->GetLayer() && !m_Model->GetLayer()->IsSticky())
     {
     // Get the current image data
     GenericImageData *gid = m_Model->GetParentModel()->GetDriver()->GetCurrentImageData();

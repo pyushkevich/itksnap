@@ -94,6 +94,11 @@ public:
 
     CMPoint();
 
+    // Default way to construct color map points starting with SNAP 3.4
+    // Alpha equals the position in the color map, i.e., linear alpha across
+    // the color map. Points are discontinuous if index is 0/1
+    CMPoint(double, EltType r, EltType g, EltType b);
+
     // Continuous point
     CMPoint(double, EltType r, EltType g, EltType b, EltType a);
 
