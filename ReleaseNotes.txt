@@ -1,13 +1,91 @@
 ======================================
  InsightSNAP Release Notes
- Version 3.2.0
+ Version 3.4.0
 ======================================
 
 -----------------
 1. New Features
 -----------------
 
-1.1. New in Version 3.2.0
+1.1. New in Version 3.4.0 
+----------------------------------------------
+
+This release focused primarily on improving the user experience. The main
+changes have been in the area of user interface. We have made access to the new
+featues introduced in versions 3.0 and 3.2 more intuitive. We have been also
+busy working on new functionality such as registration within SNAP, small memory
+footprint, and image-derived features for classification, but these will become
+available in the 3.6 release. The focus of 3.4 is on usability.
+
+1.1.1. New functionality in this release
+
+ -  The controls for selecting segmentation labels have been brought back to the
+    main SNAP panel, where they were in versions 1 and 2. This will make the
+    interface more familiar to long-time users. 
+
+ -  The interface for loading and viewing additional image layers has been
+    extensively redesigned. When more than one anatomical image is loaded into
+    ITK-SNAP, the default behavior is to display one image at full size and the
+    rest of the images as thumbnails. Clicking the thumbnails makes them full
+    size. This new thumbnail mode is far more intuitive for working with
+    multiple images than the method of semi-transparent overlays employed in
+    previous versions. 
+
+ -  The IO dialog for opening additional images promts whether the user would
+    like the image to be shown side by side with an existing image or as a
+    semi-transparent overlay.
+
+ -  The thumbnails have a context menu button that provides fast access to
+    common image commands, such as adjusting contrast and color map.
+
+ -  The tiled display mode introduced in version 3.0 is also available as an
+    alternative to the thumbnail display.
+
+ -  The new thumbnail mode makes semi-automatic segmentation easier to work
+    with because one can switch easily between anatomical images and the
+    speed (blue and white) image during pre-segmentation, bubble placement
+    and contour evolution.
+
+ -  A new image annotation tool has been added to the main tool palette. This
+    tool can be used to measure distances on image slices, draw lines, measure
+    angles between lines, and place text annotations in specific points in the
+    3D image. Annotations can be exported and imported, allowing teams to
+    comment on medical images and segmentations. Annotations are automatically
+    saved in workspace files.
+
+ -  Command tooltips have been redesigned and now include information on the
+    shortcut key to activate each command. In addion, tooltips for the tools in
+    the main palette describe the actions of each mouse button.
+
+ -  Cleaned up the behavior of mouse buttons and mouse scrolling to be more
+    consistent between modes. Added Shift-scroll action, which scrolls through
+    timepoints in a 4D image and components in a 3D multi-component image.
+
+
+1.1.2. Programmatic Improvements
+
+ -  Refactored the software to allow multiple images that occupy different
+    anatomical space to be loaded in the same ITK-SNAP session. This
+    functionality has not yet been enabled, and will be rolled out it 3.4 as
+    part of the new image registration functionality.
+
+ -  Updated to Qt 5.4
+
+ -  Fixed font size and other rendering issues on Retina displays. Added
+    high-resolution icons for Retina.
+
+ -  Made it possible to build ITK-SNAP against older Qt version 4.8. In some
+    Linux environments, applications based on Qt5 do not work well over remote
+    connection (ssh -X, VNC, x2go, NX) because the way Qt and X11 interface was
+    changed drastically in Qt5. The fallback to Qt4 makes it possible to run the
+    new SNAP version in cluster environments.
+
+ -  Fixed problems with loading images > 4gb
+
+ -  Restored ability to build on 64 bit Windows
+
+
+1.2. New in Version 3.2.0
 ----------------------------------------------
 
 The main new feature introduced in this release is supervised classification.
@@ -15,7 +93,7 @@ The release also is built against Qt5 (3.0 used Qt4.8), which resulted in a lot
 of changes to compilation and packaging. Quite a few bugs have been fixed and
 the release should be more stable than 3.0.
 
-1.1.1. New functionality in this release
+1.2.1. New functionality in this release
 
  -  Added a supervised classification presegmentation mode. This mode allows
     the user to compute the speed image by marking examples of two or more
@@ -46,7 +124,7 @@ the release should be more stable than 3.0.
  -  Improved volumes & statistics computation speed and display formatting
 
 
-1.1.2. Bug Fixes
+1.2.2. Bug Fixes
  
  -  Fixed a bug with small bubbles not growing in snake mode.
 
@@ -60,7 +138,7 @@ the release should be more stable than 3.0.
  -  Fixed several dozen smaller bugs
 
 
-1.1.3. Programmatic Improvements
+1.2.3. Programmatic Improvements
 
  -  Migrated to Qt5 as well as up to date versions of ITK (4.5) and VTK (6.1)
 
@@ -71,14 +149,14 @@ the release should be more stable than 3.0.
 
 
 
-1.2. New in Version 3.0.0
+1.3. New in Version 3.0.0
 ----------------------------------------------
 
 This is a major new release of ITK-SNAP. The user interface has been completely
 rewritten using the Qt platform, and new functionality for multi-modal image
 segmentation has been added.
 
-1.2.1. New functionality for multi-modality image segmentation
+1.3.1. New functionality for multi-modality image segmentation
 
  -  SNAP is no longer limited to just scalar-valued and RGB-valued images. An
     image with any number of components can be loaded into SNAP. The GUI provides
@@ -106,7 +184,7 @@ segmentation has been added.
     The user selects the desired number of clusters (i.e., tissue classes) and
     once the clusters are initialized, chooses the cluster of interest.
 
-1.2.2. New features in the Qt-based GUI
+1.3.2. New features in the Qt-based GUI
 
  -  The graphical user interface (GUI) uses Qt, a much more powerful toolkit
     than the FLTK toolkit in the previous versions. The new GUI is much richer
@@ -152,7 +230,7 @@ segmentation has been added.
     filtering labels by name, assinging foreground/background labels directly
     from the dialog.
 
-1.2.3. Improvements to 3D rendering window
+1.3.3. Improvements to 3D rendering window
 
  -  The 3D rendering window now uses the VTK toolkit for rendering. This will
     make it easier to introduce new functionality (such as volume rendering)
@@ -172,7 +250,7 @@ segmentation has been added.
  -  The scalpel tool uses VTK's 3D cutplane widget that can be rotated and moved
     after the cut has been drawn.
 
-1.2.4. Other new features
+1.3.4. Other new features
 
  -  Reduced memory footprint for large images. The previous version of SNAP
     would allocate on the order of 6 bytes for every voxel in the main image.
@@ -188,7 +266,7 @@ segmentation has been added.
     lists all the series with their dimensions and other meta-data, making it
     easier to determine which series one wishes to load.
 
-1.2.5. Programmatic improvements
+1.3.5. Programmatic improvements
 
  -  The SNAP code has been extensively refactored. There is a new "model" layer
     separating the Qt GUI from the "logic" layer. This layer is agnostic to the
@@ -200,7 +278,7 @@ segmentation has been added.
     reduces the amount of Qt-aware code.
 
 
-1.3. New in Version 2.4.0
+1.4. New in Version 2.4.0
 ----------------------------------------------
 
 This is the last planned release of the FLTK-based version of ITK-SNAP. It adds
@@ -208,14 +286,14 @@ minimal new functionality and addressed a number of bugs reported in the last
 year. The subsequent releases of ITK-SNAP will be based on the Qt platform and
 will have the 3.x version number.
 
-1.3.1. New Features and UI Improvements
+1.4.1. New Features and UI Improvements
 
  -  Ported the dependency on ITK 3.20.1 to ITK 4.2 on all operating systems:
     Mac OS X, Linux, and Windows.
 
  -  ITK-SNAP can read and write MRC images now.
 
-1.3.2. Bug Fixes and Stability Improvements
+1.4.2. Bug Fixes and Stability Improvements
 
  -  Fixed a problem with the RAI code which was not updating after reorienting.
 
@@ -242,14 +320,14 @@ will have the 3.x version number.
 
 ======================================
 
-1.4. New in Version 2.2.0
+1.5. New in Version 2.2.0
 ----------------------------------------------
 
 This is largely a maintenance release, with a few usability enhancements based
 on user feedback. The main change programmatically is 64 bit support on Linux,
 MacOS and Windows.
 
-1.4.1. New Features and UI Improvements
+1.5.1. New Features and UI Improvements
 
  -  64 bit versions of the software are available for Linux, Windows and Mac.
     These versions are now built nightly and will be distributed on
@@ -312,7 +390,7 @@ MacOS and Windows.
 
  -  Ability to save segmentation mesh in active contour mode
 
-1.4.2. Bug Fixes and Stability Improvements
+1.5.2. Bug Fixes and Stability Improvements
 
  -  Fixed a problem with certain operations being very slow because of the way
     the progress bars were displayed. Preprocessing, mesh rendering and mesh
@@ -330,10 +408,10 @@ MacOS and Windows.
 
  -  Fixed problem with bubbles not being spherical for certain image orientations
 
-1.5. New in Version 2.0
+1.6. New in Version 2.0
 ----------------------------------------------
 
-1.5.1. New Features and UI Improvements
+1.6.1. New Features and UI Improvements
 
  -  Support for multiple image layers. Users can now load gray and RGB images
     as overlays on top of the main image layer. For example, one can display a
@@ -404,7 +482,7 @@ MacOS and Windows.
     modes, crosshair motion is accessible through MMB as well.
 
 
-1.5.2. Bug Fixes
+1.6.2. Bug Fixes
 
  -  Fixed an issue with SNAP reading certain types of image twice from disc. This should
     speed up the reading of floating point images, for example.
@@ -424,16 +502,16 @@ MacOS and Windows.
 
  -  Please see the bug tracker on itksnap.org for the full listing of bug fixes.
 
-1.5.3. Website Changes
+1.6.3. Website Changes
 
  -  The itksnap.org website has been Wikified. Content can now be edited on the fly.
 
 
 
-1.6. New in Version 1.8
+1.7. New in Version 1.8
 ----------------------------------------------
 
-1.6.1. New Features and UI Improvements
+1.7.1. New Features and UI Improvements
 
  -  Support for reading floating point images of arbitrary range. SNAP still
     represents gray images internally as signed short, but now it can load a
@@ -561,7 +639,7 @@ MacOS and Windows.
  -  Documented existing keyboard shortcuts and added some new ones. Available
     shortcuts can be listed by selecting Help->Shortcuts.
 
-1.6.2. Programmatic/Distribution Changes
+1.7.2. Programmatic/Distribution Changes
 
  -  SNAP is now built against ITK 3.8, offering several improvements, especially
     in how image orientation is handled.
@@ -574,23 +652,23 @@ MacOS and Windows.
     Some people complained about the latter. We can also make .rpm and .deb
     packages although these won't be posted for public download yet.
 
-1.6.3. Bug Fixes
+1.7.3. Bug Fixes
 
  -  Level set fix for ITK 3.8 fixes automatic segmentation's weird behavior
 
-1.7. New in Version 1.6.0.1
+1.8. New in Version 1.6.0.1
 ---------------------------
 
-1.7.1. Bug Fixes
+1.8.1. Bug Fixes
 
  -  Major bug in release 1.6.0 involving disabled cursor movement in snake
     segmentation mode has been resolved.
 
 
-1.8. New in Version 1.6.0
+1.9. New in Version 1.6.0
 -------------------------
 
-1.8.1. New Features and UI Improvements
+1.9.1. New Features and UI Improvements
 
  -  You can now save a sequence of all axial, coronal or sagittal slices with
     overlays as PNG files (File->Save->Screenshot Series).
@@ -639,11 +717,11 @@ MacOS and Windows.
 
  -  Shortened/simplified some of the menu items
 
-1.8.2. Bug Fixes
+1.9.2. Bug Fixes
 
  -  Various bugs have been fixed :)
 
-1.8.3. Distribution Changes
+1.9.3. Distribution Changes
 
  -  SNAP website fully migrated to sourceforge.net
 
@@ -653,10 +731,10 @@ MacOS and Windows.
  -  Linux binaries will be available starting with 1.6.0
 
 
-1.9. New in Version 1.4.1
+1.10. New in Version 1.4.1
 -------------------------
 
-1.9.1. New Features and UI Improvements
+1.10.1. New Features and UI Improvements
 
  -  Added paintbrush tool to the main toolbar. Paintbrush can be used to quickly
     touch up segmentations. Left mouse button paints with selected label, right
@@ -675,7 +753,7 @@ MacOS and Windows.
     different segmentation from the same viewpoint. Press 's' in the 3D window
     to save the camera state and 'r' to restore it.
 
-1.9.2. Bug Fixes
+1.10.2. Bug Fixes
 
  -  MAJOR: fixed bug that was causing crashes on Win32 during polygon drawing
     (thanks to Jeff Tsao for this bug fix!)
@@ -693,7 +771,7 @@ MacOS and Windows.
  -  Fixed crash when changing bubble radius and then going back to
     preprocessing mode
 
-1.9.3. Distribution Changes
+1.10.3. Distribution Changes
 
  -  Interim SNAP releases are now hosted on SourceForge. ITK repository will only
     be used to host major releases (like 1.6). This allows us to check stuff in
@@ -705,10 +783,10 @@ MacOS and Windows.
     own and the download size is reduced
 
 
-1.10. New in Version 1.4
+1.11. New in Version 1.4
 -----------------------
 
-1.10.1. New Features and User Interface Improvements
+1.11.1. New Features and User Interface Improvements
 
  -  New and improved label editor. You can easily switch between labels while in
     the editor and the interface for adding new labels is more intuitive. You
@@ -747,7 +825,7 @@ MacOS and Windows.
 
  -  The tutorial has been updated to reflect the new features.
 
-1.10.2. Bug Fixes.
+1.11.2. Bug Fixes.
 
  -  SNAP should crash a lot less than before
 
@@ -763,12 +841,12 @@ MacOS and Windows.
 
  -  Lots of other small bugs have been fixed!
 
-1.10.3. Programmatic Enhancements
+1.11.3. Programmatic Enhancements
 
  -  SNAP and IRIS now share the sameset of OpenGL windows. This should prevent
     crashes on some platforms.
 
-1.10.4. Other
+1.11.4. Other
 
  -  SNAP available as a universal (Intel/PPC) binary for MacOS at itksnap.org
 
@@ -816,18 +894,14 @@ MacOS and Windows.
     advection term.
 
 
-3. Known Issues
+2. Known Issues
 -----------------
 
- -  Some advanced features (annotation mode, label editor advanced tools) have
+ -  Some advanced features (label editor advanced tools, window shrinking) have
     not yet been ported to Qt. They will be ported in future versions, and
     expanded in the process. There is a plan to integrate SNAP and C3D which
     will provide much richer image processing support for images and segmentations.
 
  -  The cutplane in the scalpel tool is too big when the camera is zoomed in and
     it needs a flip button. Also with dark labels you can't see the handle.
-
-4. Wish List
------------------
- -  The ability to perform 2D level set segmentation in each slice view.
 
