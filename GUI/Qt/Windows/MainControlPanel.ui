@@ -230,7 +230,7 @@ QToolButton:checked {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/crosshair.gif</normaloff>:/root/crosshair.gif</iconset>
               </property>
               <property name="checkable">
@@ -247,7 +247,7 @@ QToolButton:checked {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/zoom.gif</normaloff>:/root/zoom.gif</iconset>
               </property>
               <property name="checkable">
@@ -261,7 +261,7 @@ QToolButton:checked {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/poly.gif</normaloff>:/root/poly.gif</iconset>
               </property>
               <property name="checkable">
@@ -275,7 +275,7 @@ QToolButton:checked {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/paintbrush.gif</normaloff>:/root/paintbrush.gif</iconset>
               </property>
               <property name="checkable">
@@ -289,7 +289,7 @@ QToolButton:checked {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/snake.gif</normaloff>:/root/snake.gif</iconset>
               </property>
               <property name="checkable">
@@ -303,7 +303,7 @@ QToolButton:checked {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/annotation_28.png</normaloff>:/root/annotation_28.png</iconset>
               </property>
               <property name="checkable">
@@ -352,12 +352,6 @@ QToolButton:checked {
          </item>
          <item>
           <widget class="QWidget" name="panelToolbarAction" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>10</width>
-             <height>10</height>
-            </size>
-           </property>
            <property name="styleSheet">
             <string notr="true">QToolButton {
 	width: 16px;
@@ -397,7 +391,7 @@ QToolButton::menu-arrow {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/icons8_undo-48.png</normaloff>:/root/icons8_undo-48.png</iconset>
               </property>
              </widget>
@@ -408,7 +402,7 @@ QToolButton::menu-arrow {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/icons8_redo-48.png</normaloff>:/root/icons8_redo-48.png</iconset>
               </property>
              </widget>
@@ -435,7 +429,7 @@ QToolButton::menu-arrow {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/layer_Inspector_16.png</normaloff>:/root/layer_Inspector_16.png</iconset>
               </property>
              </widget>
@@ -468,7 +462,7 @@ QToolButton::menu-arrow {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/layer_Inspector_16.png</normaloff>:/root/layer_Inspector_16.png</iconset>
               </property>
              </widget>
@@ -479,7 +473,7 @@ QToolButton::menu-arrow {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/layer_Inspector_16.png</normaloff>:/root/layer_Inspector_16.png</iconset>
               </property>
              </widget>
@@ -592,7 +586,7 @@ QWidget#widget {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/crosshair.gif</normaloff>:/root/crosshair.gif</iconset>
               </property>
               <property name="checkable">
@@ -624,7 +618,7 @@ QWidget#widget {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/zoom.gif</normaloff>:/root/zoom.gif</iconset>
               </property>
               <property name="checkable">
@@ -653,7 +647,7 @@ QWidget#widget {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/dl_toolbox.png</normaloff>:/root/dl_toolbox.png</iconset>
               </property>
               <property name="checkable">
@@ -682,7 +676,7 @@ QWidget#widget {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/network-wireless.png</normaloff>:/root/network-wireless.png</iconset>
               </property>
               <property name="checkable">
@@ -711,7 +705,7 @@ QWidget#widget {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/poly.gif</normaloff>:/root/poly.gif</iconset>
               </property>
               <property name="checkable">
@@ -740,7 +734,7 @@ QWidget#widget {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/paintbrush.gif</normaloff>:/root/paintbrush.gif</iconset>
               </property>
               <property name="checkable">
@@ -769,7 +763,7 @@ QWidget#widget {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/snake.gif</normaloff>:/root/snake.gif</iconset>
               </property>
               <property name="checkable">
@@ -798,7 +792,7 @@ QWidget#widget {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/annotation_28.png</normaloff>:/root/annotation_28.png</iconset>
               </property>
               <property name="checkable">
@@ -971,7 +965,7 @@ QToolButton:checked {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/rotate3d.gif</normaloff>:/root/rotate3d.gif</iconset>
               </property>
              </widget>
@@ -982,7 +976,7 @@ QToolButton:checked {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/crosshair3D.gif</normaloff>:/root/crosshair3D.gif</iconset>
               </property>
              </widget>
@@ -993,7 +987,7 @@ QToolButton:checked {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/spray.gif</normaloff>:/root/spray.gif</iconset>
               </property>
              </widget>
@@ -1004,7 +998,7 @@ QToolButton:checked {
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../Resources/SNAPResources.qrc">
+               <iconset>
                 <normaloff>:/root/scalpel.gif</normaloff>:/root/scalpel.gif</iconset>
               </property>
              </widget>
@@ -1094,8 +1088,6 @@ QToolButton:checked {
    <header>LabelSelectionButton.h</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../Resources/SNAPResources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
