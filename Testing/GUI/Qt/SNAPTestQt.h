@@ -103,6 +103,9 @@ public slots:
   void postMouseEvent(QObject *widget, double rel_x, double rel_y, QString eventType, QString button);
 
   void postKeyEvent(QObject *object, QString key);
+
+  void sleep(int milli_sec);
+
 protected:
 
   ReturnCode ListTests();

@@ -23,14 +23,14 @@ engine.validateFloatValue(readVoxelIntensity(1), -0.2263, 0.0001)
 
 //=== Go to bubble mode
 engine.findChild(snakepanel,"btnNextPreproc").click();
-thread.wait(1000);
+engine.sleep(1000);
 
 //=== Add a bubble
 engine.findChild(snakepanel,"btnAddBubble").click();
 
 //=== Go to snake mode
 engine.findChild(snakepanel,"btnBubbleNext").click();
-thread.wait(1000);
+engine.sleep(1000);
 
 //=== Validating level set image
 engine.validateValue(readVoxelIntensity(2), -4);
