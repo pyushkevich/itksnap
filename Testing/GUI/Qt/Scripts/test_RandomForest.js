@@ -46,7 +46,7 @@ engine.findChild(snakepanel,"btnClassifyClearExamples").click();
 
 //=== Go to bubble mode
 engine.findChild(snakepanel,"btnNextPreproc").click();
-thread.wait(1000);
+engine.sleep(1000);
 
 //=== Go back to the first seed 
 setCursor(20,8,13);
@@ -62,7 +62,7 @@ engine.findChild(snakepanel,"inBubbleRadius").value = 4;
 
 //=== Go to snake mode
 engine.findChild(snakepanel,"btnBubbleNext").click();
-thread.wait(1000);
+engine.sleep(1000);
 
 //=== Set step size
 engine.findChild(snakepanel,"inStepSize").value = 10;
@@ -76,7 +76,7 @@ for(var i = 0; i < 10; i++)
 
 //=== Finish snake mode
 engine.findChild(snakepanel,"btnEvolutionNext").click()
-thread.wait(1000)
+engine.sleep(1000)
 
 //=== Open volumes and statistics
 engine.findChild(mainwin,"actionVolumesAndStatistics").trigger();

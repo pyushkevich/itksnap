@@ -1001,6 +1001,11 @@ ENABLE_TESTING()
 
 include(BundleUtilities)
 
+# Acceleration factor for GUI tests
+SET(SNAP_GUI_TEST_ACCEL "1.0" CACHE STRING 
+    "Acceleration factor for GUI tests, use <1 on VMS and slow machines")
+MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
+
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
   Workspace
@@ -1021,7 +1026,7 @@ FOREACH(GUI_TEST ${GUI_TESTS})
   ENDIF(APPLE)
     
   # Add the test
-  ADD_TEST(${GUI_TEST} ${GUI_TEST_EXE} --test ${GUI_TEST} --testdir "${TESTDATA_DIR}")
+  ADD_TEST(${GUI_TEST} ${GUI_TEST_EXE} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}")
 
   # Set the environment for the test to include Qt
   FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)

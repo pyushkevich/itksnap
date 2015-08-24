@@ -4,7 +4,7 @@ function setCursor(x, y, z)
   engine.findChild(mainwin, "inCursorX").value = x;
   engine.findChild(mainwin, "inCursorY").value = y;
   engine.findChild(mainwin, "inCursorZ").value = z;
-  thread.wait(200);
+  engine.sleep(200);
 }
 
 function openMainImage(name)
@@ -18,11 +18,11 @@ function openMainImage(name)
 
   //=== Pressing the 'next' button
   engine.findChild(dialog, "qt_wizard_commit").click();
-  thread.wait(1000);
+  engine.sleep(1000);
 
   //=== Pressing the 'finish' button
   engine.findChild(dialog, "qt_wizard_finish").click();
-  thread.wait(1000);
+  engine.sleep(1000);
 }
 
 function openWorkspace(name)
@@ -36,7 +36,7 @@ function openWorkspace(name)
 
   //=== Accepting text
   dialog.accept();
-  thread.wait(1000);
+  engine.sleep(1000);
 }
 
 function enterSnakeMode(pos_x, pos_y, pos_z, size_x, size_y, size_z)
@@ -56,7 +56,7 @@ function enterSnakeMode(pos_x, pos_y, pos_z, size_x, size_y, size_z)
 
   //=== Pushing the Segment3D button
   engine.findChild(roipanel,"btnAuto").click();
-  thread.wait(1000);
+  engine.sleep(1000);
 }
 
 function enterSnakeModeFullROI()
@@ -71,7 +71,7 @@ function enterSnakeModeFullROI()
 
   //=== Pushing the Segment3D button
   engine.findChild(roipanel,"btnAuto").click();
-  thread.wait(1000);
+  engine.sleep(1000);
 }
 
 function readVoxelIntensity(layer_row)
