@@ -131,6 +131,7 @@ GenericSliceRenderer
 
   // Get the overall viewport
   Vector2ui vp_full = m_Model->GetSizeReporter()->GetViewportSize();
+  int vppr = m_Model->GetSizeReporter()->GetViewportPixelRatio();
 
   // Set up lighting attributes
   glPushAttrib(GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT |
@@ -225,7 +226,7 @@ GenericSliceRenderer
           SmartPtr<OpenGLAppearanceElement> elt = OpenGLAppearanceElement::New();
           elt->SetNormalColor(Vector3d(0.6, 0.54, 0.46));
           elt->SetActiveColor(Vector3d(1.0, 0.9, 0.1));
-          elt->SetLineThickness(3.0);
+          elt->SetLineThickness(1.5 * vppr);
           elt->SetVisible(true);
           elt->SetAlphaBlending(false);
 
