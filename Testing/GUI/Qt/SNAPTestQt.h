@@ -33,6 +33,7 @@ public:
   TestWorker(QObject *parent, QString script, QJSEngine *engine, double accel_factor);
 
   void run();
+  static void sleep_ms(unsigned int msec);
 
 public slots:
 
@@ -45,10 +46,6 @@ protected:
 
   // Acceleration factor
   double m_Acceleration;
-
-  void runScript(QString script_url);
-  void executeScriptlet(QString scriptlet);
-  void processDirective(QString line);
 };
 
 class SNAPTestQt : public QObject

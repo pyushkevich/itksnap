@@ -193,7 +193,8 @@ void SynchronizationModel::ReadIPCState()
 
       if(m_SyncZoomModel->GetValue()
          && gsm->IsSliceInitialized()
-         && gsm->GetViewZoom() != message.zoom_level[dir])
+         && gsm->GetViewZoom() != message.zoom_level[dir]
+         && static_cast<float>(message.zoom_level[dir]) > 0.0f)
         {
           gsm->SetViewZoom(message.zoom_level[dir]);
         }

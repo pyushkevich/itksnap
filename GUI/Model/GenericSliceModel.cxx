@@ -449,6 +449,14 @@ void GenericSliceModel::CenterViewOnCursor()
   this->SetViewPositionRelativeToCursor(offset);
 }
 
+void GenericSliceModel::SetViewZoom(float zoom)
+{
+  assert(zoom > 0);
+  m_ViewZoom = zoom;
+  this->Modified();
+  this->InvokeEvent(SliceModelGeometryChangeEvent());
+}
+
 void GenericSliceModel::ZoomInOrOut(float factor)
 {
   float oldzoom = m_ViewZoom;

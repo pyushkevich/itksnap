@@ -223,7 +223,7 @@ public:
 
   /** Set the zoom factor (number of pixels on the screen per millimeter in
    * image space */
-  irisSetWithEventMacro(ViewZoom, float, SliceModelGeometryChangeEvent)
+  void SetViewZoom(float zoom);
 
   /**
    * Zoom in/out by a specified factor. This method will 'stop' at the optimal
