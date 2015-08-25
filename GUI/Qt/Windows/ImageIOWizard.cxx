@@ -792,6 +792,10 @@ int ImageIOWizard::nextId() const
     pages.push_back(Page_Summary);
     pages.push_back(-1);
     }
+  else
+    {
+    pages.push_back(-1);
+    }
 
   // Find the page
   for(std::list<int>::const_iterator it = pages.begin(); it != pages.end(); ++it)
