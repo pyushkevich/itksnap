@@ -546,6 +546,12 @@ int main(int argc, char *argv[])
     // Set the initial directory. The fallthough is to set to the user's home
     // directory
     QString init_dir = QDir::homePath();
+    QString app_dir = QApplication::applicationDirPath();
+
+    // Also get the directory one up from the application dir (this is because
+    // on windows "run in" defaults to one up dir)
+    QDir app_up_qdir(app_dir); app_up_qdir.cdUp();
+    QString app_up_dir = app_up_qdir.path();
 
     // If the user provides a flag for the current directory, try using it but
     // only if this is a valid directory
@@ -558,7 +564,8 @@ int main(int argc, char *argv[])
         }
       }
     else if(QDir::currentPath().length() > 1 &&
-            QDir::currentPath() != QApplication::applicationDirPath())
+            QDir::currentPath() != app_dir &&
+            QDir::currentPath() != app_up_dir)
       {
       init_dir = QDir::currentPath();
       }

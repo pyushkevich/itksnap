@@ -59,8 +59,8 @@ SET(SNAP_VERSION_PATCH 0)
 SET(SNAP_VERSION_QUALIFIER "-beta")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20150807")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Aug 7, 2015")
+SET(SNAP_VERSION_RELEASE_DATE "20150826")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Aug 26, 2015")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
