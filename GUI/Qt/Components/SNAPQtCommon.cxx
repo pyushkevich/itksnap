@@ -514,12 +514,6 @@ bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWid
 #include <QDir>
 #include <GenericImageData.h>
 
-#if QT_VERSION >= 0x050000
-  #include <QStandardPaths>
-#else
-  #include <QDesktopServices>
-#endif
-
 QMap<QString, QDir> g_CategoryToLastPathMap;
 
 QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName)
@@ -535,12 +529,16 @@ QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName)
     return QFileInfo(fn).absolutePath();
     }
 
-  // Use home directory
-#if QT_VERSION >= 0x050000
-  return QStandardPaths::standardLocations(QStandardPaths::HomeLocation).first();
-#else
-  return QDesktopServices::storageLocation(QDesktopServices::HomeLocation);
-#endif
+  // Use the initial directory
+  if(model->GetGlobalState()->GetInitialDirectory().length())
+    {
+    // This directory should alrady be verified readable when assigned in main.cxx
+    QDir dir(from_utf8(model->GetGlobalState()->GetInitialDirectory()));
+    return dir.absolutePath();
+    }
+
+  // Last resort : use home directory
+  return QDir::homePath();
 }
 
 void UpdateFileDialogPathForCategory(const char *HistoryName, QString dir)

@@ -1912,8 +1912,10 @@ void MainImageWindow::on_actionDocumentation_Home_triggered()
 
 void MainImageWindow::on_actionNew_ITK_SNAP_Window_triggered()
 {
-  // Launch a new SNAP
+  // Launch a new SNAP in the relevant directory
   std::list<std::string> args;
+  args.push_back("--cwd");
+  args.push_back(to_utf8(GetFileDialogPath(m_Model, "MainImage")));
   m_Model->GetSystemInterface()->LaunchChildSNAPSimple(args);
 }
 

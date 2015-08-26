@@ -166,21 +166,22 @@ private:
 bool flag_snap_debug_events = false;
 #endif
 
-void usage()
+void usage(const char *progname)
 {
   // Print usage info and exit
   cout << "ITK-SnAP Command Line Usage:" << endl;
-  cout << "   snap [options] [main_image]" << endl;
+  cout << "   " << progname << " [options] [main_image]" << endl;
   cout << "Image Options:" << endl;
-  cout << "   -g FILE              : Load the greyscale image from FILE" << endl;
+  cout << "   -g FILE              : Load the main image from FILE" << endl;
   cout << "   -s FILE              : Load the segmentation image from FILE" << endl;
   cout << "   -l FILE              : Load label descriptions from FILE" << endl;
-  cout << "   -o FILE              : Load overlay image from FILE" << endl;
-  cout << "                        :   (-o option can be repeated multiple times)" << endl;
+  cout << "   -o FILE [FILE+]      : Load additional images from FILE" << endl;
+  cout << "                        :   (multiple files may be provided)" << endl;
   cout << "   -w FILE              : Load workspace from FILE" << endl;
   cout << "                        :   (-w cannot be mixed with -g,-s,-l,-o options)" << endl;
   cout << "Additional Options:" << endl;
   cout << "   -z FACTOR            : Specify initial zoom in screen pixels/mm" << endl;
+  cout << "   --cwd PATH           : Start with PATH as the initial directory" << endl;
   cout << "Debugging/Testing Options" << endl;
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events       : Dump information regarding UI events" << endl;
@@ -219,6 +220,9 @@ public:
   std::string xTestId;
   std::string fnTestDir;
   double xTestAccel;
+
+  // Current working directory
+  std::string cwd;
 
   // GUI related
   std::string style;
@@ -309,6 +313,9 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--testdir", 1);
   parser.AddOption("--testacc", 1);
 
+  // Current working directory
+  parser.AddOption("--cwd", 1);
+
   // This dummy option is actually used internally. It's a work-around for
   // a buggy behavior on MacOS, when execvp actually causes a file
   // open event to be fired, which causes the drop dialog to open
@@ -333,7 +340,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   // Need help?
   if(parseResult.IsOptionPresent("--help"))
     {
-    usage();
+    usage(argv[0]);
     return 1;
     }
 
@@ -347,6 +354,10 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
             "without the SNAP_DEBUG_EVENTS option. Please recompile." << endl;
 #endif
     }
+
+  // Initial directory
+  if(parseResult.IsOptionPresent("--cwd"))
+    argdata.cwd = parseResult.GetOptionParameter("--cwd");
 
   // Check if a workspace is being loaded
   if(parseResult.IsOptionPresent("--workspace"))
@@ -473,6 +484,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   return 0;
 }
 
+#include <QDir>
 
 int main(int argc, char *argv[])
 {  
@@ -530,6 +542,28 @@ int main(int argc, char *argv[])
     {
     SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
     IRISApplication *driver = gui->GetDriver();
+
+    // Set the initial directory. The fallthough is to set to the user's home
+    // directory
+    QString init_dir = QDir::homePath();
+
+    // If the user provides a flag for the current directory, try using it but
+    // only if this is a valid directory
+    if(argdata.cwd.size())
+      {
+      QDir dir(from_utf8(argdata.cwd));
+      if(dir.exists() && dir.isReadable())
+        {
+        init_dir = dir.absolutePath();
+        }
+      }
+    else if(QDir::currentPath().length() > 1 &&
+            QDir::currentPath() != QApplication::applicationDirPath())
+      {
+      init_dir = QDir::currentPath();
+      }
+
+    gui->GetGlobalState()->SetInitialDirectory(to_utf8(init_dir));
 
     // Load the user preferences
     gui->LoadUserPreferences();

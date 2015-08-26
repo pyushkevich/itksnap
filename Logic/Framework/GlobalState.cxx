@@ -118,6 +118,8 @@ GlobalState
   // Project stuff
   m_ProjectFilenameModel = NewSimpleConcreteProperty(std::string());
 
+  m_InitialDirectoryModel = NewSimpleConcreteProperty(std::string());
+
   // Initialize the properties
   m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
   m_ToolbarMode3DModel = NewSimpleConcreteProperty(TRACKBALL_MODE);

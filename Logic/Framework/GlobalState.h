@@ -373,6 +373,12 @@ public:
   /** Set/Get selected layer id */
   irisSimplePropertyAccessMacro(SelectedLayerId, unsigned long)
 
+  /**
+   * Initial directory where to open file/save dialogs. This MUST be set when
+   * SNAP is first started!
+   */
+  irisSimplePropertyAccessMacro(InitialDirectory, std::string)
+
   // ----------------------- Project support ------------------------------
 
   /**
@@ -508,6 +514,9 @@ private:
 
   // Paintbrush settings
   PaintbrushSettings m_PaintbrushSettings;
+
+  // Initial path for opening images
+  SmartPtr<ConcreteSimpleStringProperty> m_InitialDirectoryModel;
 
   IRISApplication *m_Driver;
 
