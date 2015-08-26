@@ -57,9 +57,13 @@ void ThumbnailInteractionMode
 
 void ThumbnailInteractionMode::mousePressEvent(QMouseEvent *ev)
 {
+  // Position of the press in real screen pixels (not logical)
+  float vppr = m_ParentModel->GetSizeReporter()->GetViewportPixelRatio();
+  Vector2ui vpsize = m_ParentModel->GetSizeReporter()->GetViewportSize();
+
   // Press position in screen pixels
-  Vector2i x(ev->pos().x(),
-             m_ParentModel->GetSizeReporter()->GetLogicalViewportSize()[1] - ev->pos().y());
+  Vector2i x((int)(ev->pos().x() * vppr),
+             (int)(vpsize[1] - ev->pos().y() * vppr));
 
   // Only react to left mouse button presses
   if(ev->button() == Qt::LeftButton && m_Model->CheckZoomThumbnail(x))
@@ -97,8 +101,11 @@ void ThumbnailInteractionMode::mouseMoveEvent(QMouseEvent *ev)
   ev->ignore();
   if(m_PanFlag)
     {
-    Vector2i dx(ev->pos().x() - m_LastPressPos.x(),
-                - (ev->pos().y() - m_LastPressPos.y()));
+    // The event reports coordinates in logical pixels, but the thumbnail is defined
+    // in physical units. So we need to deal with vppr
+    float vppr = m_ParentModel->GetSizeReporter()->GetViewportPixelRatio();
+    Vector2i dx((int) vppr * (ev->pos().x() - m_LastPressPos.x()),
+                (int) vppr * (- (ev->pos().y() - m_LastPressPos.y())));
     m_Model->ProcessThumbnailPanGesture(-dx);
     ev->accept();
     }

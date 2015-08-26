@@ -42,7 +42,7 @@ void PaintbrushInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
   ev->ignore();
 
-  if(isDragging())
+  if(this->isDragging())
     {
     if(m_Model->ProcessDragEvent(
          to_float(m_XSlice), to_float(m_LastPressXSlice),
@@ -51,7 +51,7 @@ void PaintbrushInteractionMode::mouseMoveEvent(QMouseEvent *ev)
       ev->accept();
       }
     }
-  else
+  else if(this->isHovering())
     {
     if(m_Model->ProcessMouseMoveEvent(to_float(m_XSlice)))
       ev->accept();

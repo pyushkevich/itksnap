@@ -35,6 +35,7 @@ void AnnotationInteractionMode::SetModel(AnnotationModel *model)
 
 void AnnotationInteractionMode::mousePressEvent(QMouseEvent *ev)
 {
+  ev->ignore();
   if(ev->button() == Qt::LeftButton)
     {
     if(m_Model->ProcessPushEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier))
@@ -43,24 +44,17 @@ void AnnotationInteractionMode::mousePressEvent(QMouseEvent *ev)
     if(m_Model->IsMovingSelection())
       m_ParentPanel->setCursor(Qt::ClosedHandCursor);
     }
-  else
-    {
-    ev->ignore();
-    }
 }
 
 void AnnotationInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
-  if(m_RightDown || m_MiddleDown)
-    {
-    ev->ignore();
-    }
-  else
-    {
-    if(m_Model->ProcessMoveEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier, m_LeftDown))
-      ev->accept();
+  ev->ignore();
 
-    // Adjust the cursor appearance based on mouse position and mode
+  // Nothing is pressed
+  if(this->isHovering())
+    {
+    if(m_Model->ProcessMoveEvent(m_XSlice, false, false))
+      ev->accept();
 
     if(m_Model->GetAnnotationMode() == ANNOTATION_SELECT && m_Model->IsHoveringOverAnnotation(m_XSlice))
       {
@@ -70,6 +64,13 @@ void AnnotationInteractionMode::mouseMoveEvent(QMouseEvent *ev)
       {
       m_ParentPanel->setCursor(Qt::ArrowCursor);
       }
+    }
+
+  // Left press was accepted
+  else if(this->isDragging())
+    {
+    if(m_Model->ProcessMoveEvent(m_XSlice, ev->modifiers() == Qt::ShiftModifier, true))
+      ev->accept();
     }
 }
 

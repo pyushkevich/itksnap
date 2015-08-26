@@ -34,9 +34,10 @@
 QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
   SNAPComponent(parent)
 {
-  m_LeftDown = false;
-  m_MiddleDown = false;
-  m_RightDown = false;
+  m_LeftStatus = NOT_PRESSED;
+  m_RightStatus = NOT_PRESSED;
+  m_MiddleStatus = NOT_PRESSED;
+
   m_Filtering = false;
 
   // The widget is hidden
@@ -110,31 +111,36 @@ void QtInteractionDelegateWidget::postprocessEvent(QEvent *ev)
 {
   QMouseEvent *emouse = static_cast<QMouseEvent *>(ev);
 
-  if(ev->isAccepted() && ev->type() == QEvent::MouseButtonPress)
+  if(ev->type() == QEvent::MouseButtonPress)
     {
-    m_LastPressPos = emouse->pos();
-    m_LastPressGlobalPos = emouse->globalPos();
-    m_LastPressButton = emouse->button();
-    m_LastPressXSpace = m_XSpace;
+    ButtonStatus status = PRESS_IGNORED;
+    if(ev->isAccepted())
+      {
+      m_LastPressPos = emouse->pos();
+      m_LastPressGlobalPos = emouse->globalPos();
+      m_LastPressButton = emouse->button();
+      m_LastPressXSpace = m_XSpace;
+      status = PRESS_ACCEPTED;
+      }
 
     // Store what buttons are up or down
     if(emouse->button() == Qt::LeftButton)
-      m_LeftDown = true;
+      m_LeftStatus = status;
     if(emouse->button() == Qt::RightButton)
-      m_RightDown = true;
+      m_RightStatus = status;
     if(emouse->button() == Qt::MiddleButton)
-      m_MiddleDown = true;
+      m_MiddleStatus = status;
     }
 
   else if (ev->type() == QEvent::MouseButtonRelease)
     {
     // Store what buttons are up or down
     if(emouse->button() == Qt::LeftButton)
-      m_LeftDown = false;
+      m_LeftStatus = NOT_PRESSED;
     if(emouse->button() == Qt::RightButton)
-      m_RightDown = false;
+      m_RightStatus = NOT_PRESSED;
     if(emouse->button() == Qt::MiddleButton)
-      m_MiddleDown = false;
+      m_MiddleStatus = NOT_PRESSED;
     }
 }
 
@@ -167,6 +173,22 @@ QtInteractionDelegateWidget
                modelMatrix,projMatrix,viewport,
                &xProjection[0], &xProjection[1], &xProjection[2]);
   return xProjection;
+}
+
+bool QtInteractionDelegateWidget::isDragging()
+{
+  return
+      m_LeftStatus == PRESS_ACCEPTED ||
+      m_RightStatus == PRESS_ACCEPTED ||
+      m_MiddleStatus == PRESS_ACCEPTED;
+}
+
+bool QtInteractionDelegateWidget::isHovering()
+{
+  return
+      m_LeftStatus == NOT_PRESSED &&
+      m_RightStatus == NOT_PRESSED &&
+      m_MiddleStatus == NOT_PRESSED;
 }
 
 double QtInteractionDelegateWidget::GetNumberOfPixelsMoved(QMouseEvent *ev)

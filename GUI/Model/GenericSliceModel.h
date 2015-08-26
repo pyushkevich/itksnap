@@ -404,7 +404,8 @@ protected:
   // least in default zoom
   unsigned int m_Margin;
 
-  // The position and size of the zoom thumbnail
+  // The position and size of the zoom thumbnail. These are in real pixel
+  // units on retina screens, not logical pixels.
   Vector2i m_ZoomThumbnailPosition, m_ZoomThumbnailSize;
 
   // The zoom level in the thumbnail

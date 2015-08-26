@@ -81,14 +81,12 @@ void PolygonDrawingInteractionMode::mousePressEvent(QMouseEvent *ev)
 void PolygonDrawingInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
   ev->ignore();
-  if(m_LeftDown)
+  if(this->m_LeftStatus == PRESS_ACCEPTED)
     {
     if(m_Model->ProcessDragEvent(m_XSlice(0), m_XSlice(1)))
-      {
       ev->accept();
-      }
     }
-  else if (!isDragging())
+  else if (this->isHovering())
     {
     if(m_Model->ProcessMouseMoveEvent(m_XSlice(0), m_XSlice(1)))
       {

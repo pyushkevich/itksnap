@@ -70,8 +70,16 @@ protected:
   virtual bool gestureEvent(QGestureEvent *ev)
     { return false; }
 
-  virtual bool isDragging()
-    { return m_LeftDown || m_RightDown || m_MiddleDown; }
+  /**
+   * Returns true when at least one mouse button is down and the corresponding
+   * press event was accepted by the widget
+   */
+  virtual bool isDragging();
+
+  /**
+   * Returns true if none of the mouse buttons are pressed.
+   */
+  virtual bool isHovering();
 
   // Return the number of pixels moved since last press
   double GetNumberOfPixelsMoved(QMouseEvent *ev);
@@ -86,13 +94,18 @@ protected:
   // Spatial coordinates of the last press event, current event
   Vector3d m_LastPressXSpace, m_XSpace;
 
+  // Status for a mouse button
+  enum ButtonStatus {
+    NOT_PRESSED = 0,      // The button is not pressed
+    PRESS_ACCEPTED,       // The button is pressed and press was accepted (dragging)
+    PRESS_IGNORED         // The button is pressed and press was ignored
+  };
+
   // Whether we are between a press and a release for a particular button
-  bool m_LeftDown, m_RightDown, m_MiddleDown;
+  ButtonStatus m_LeftStatus, m_RightStatus, m_MiddleStatus;
 
   // Whether we are currently filtering an event from another widget
   bool m_Filtering;
-
-
 };
 
 #endif // QTINTERACTIONDELEGATEWIDGET_H
