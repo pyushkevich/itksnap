@@ -68,7 +68,8 @@ PolygonDrawingRenderer
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
   // Set line and point drawing parameters
-  glPointSize(4);
+  float vppr = m_ParentRenderer->GetModel()->GetSizeReporter()->GetViewportPixelRatio();
+  glPointSize(3 * vppr);
 
   // Draw the line segments
   const PolygonDrawingModel::VertexList &vx = m_Model->GetVertices();
