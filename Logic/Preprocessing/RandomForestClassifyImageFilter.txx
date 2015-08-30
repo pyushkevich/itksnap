@@ -60,6 +60,9 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 {
   itk::ImageSource<TOutputImage>::GenerateInputRequestedRegion();
 
+  // TODO: this should not be hard-coded
+  typename InputImageType::SizeType radius; radius.Fill(2);
+
   for( itk::InputDataObjectIterator it( this ); !it.IsAtEnd(); it++ )
     {
     // Check whether the input is an image of the appropriate dimension
@@ -69,12 +72,16 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
       {
       InputImageRegionType inputRegion;
       this->CallCopyOutputRegionToInputRegion( inputRegion, this->GetOutput()->GetRequestedRegion() );
+      inputRegion.PadByRadius(radius);
+      inputRegion.Crop(input->GetLargestPossibleRegion());
       input->SetRequestedRegion(inputRegion);
       }
     else if(vecInput)
       {
       InputImageRegionType inputRegion;
       this->CallCopyOutputRegionToInputRegion( inputRegion, this->GetOutput()->GetRequestedRegion() );
+      inputRegion.PadByRadius(radius);
+      inputRegion.Crop(vecInput->GetLargestPossibleRegion());
       vecInput->SetRequestedRegion(inputRegion);
       }
     }
@@ -97,22 +104,37 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 {
   assert(m_Classifier);
 
-  // Create an iterator for the output
   OutputImagePointer outputPtr = this->GetOutput(0);
+
+  // TODO: this should not be hard-coded
+  typename InputImageType::SizeType radius; radius.Fill(2);
+
+  // Adjust the output region so that we don't touch image boundaries.
+  OutputImageRegionType crop_region = outputPtr->GetLargestPossibleRegion();
+  crop_region.ShrinkByRadius(radius);
+  OutputImageRegionType out_region = outputRegionForThread;
+  out_region.Crop(crop_region);
+
+  // Create an iterator for the output
   typedef itk::ImageRegionIterator<TOutputImage> OutputIter;
-  OutputIter it_out(outputPtr, outputRegionForThread);
+  OutputIter it_out(outputPtr, out_region);
 
   // Create a collection iterator for the inputs
   typedef ImageCollectionConstRegionIteratorWithIndex<
       TInputImage, TInputVectorImage> CollectionIter;
 
   // Configure the input collection iterator
-  CollectionIter cit(outputRegionForThread);
+  CollectionIter cit(out_region);
   for( itk::InputDataObjectIterator it( this ); !it.IsAtEnd(); it++ )
     cit.AddImage(it.GetInput());
 
+  // TODO: This is hard-coded
+  cit.SetRadius(radius);
+
   // Get the number of components
   int nComp = cit.GetTotalComponents();
+  int nPatch = cit.GetNeighborhoodSize();
+  int nColumns = nComp * nPatch;
 
   // Get the number of classes
   int nClass = m_Classifier->GetClassToLabelMapping().size();
@@ -123,7 +145,7 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
   // Create the MLdata representing each voxel (?)
   typedef Histogram<InputPixelType,LabelType> HistogramType;
   typedef MLData<InputPixelType,HistogramType *> TestingDataType;
-  TestingDataType testData(1, nComp);
+  TestingDataType testData(1, nColumns);
 
   // Get the number of trees
   int nTrees = m_Classifier->GetForest()->trees_.size();
@@ -143,8 +165,10 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
   for(; !it_out.IsAtEnd(); ++it_out, ++cit)
     {
     // Assign the data to the testData vector
+    int k = 0;
     for(int i = 0; i < nComp; i++)
-      testData.data[0][i] = cit.Value(i);
+      for(int j = 0; j < nPatch; j++)
+        testData.data[0][k++] = cit.NeighborValue(i,j);
 
     // Perform classification on this data
     m_Classifier->GetForest()->ApplyFast(testData, testResult, vIndex, vResult);

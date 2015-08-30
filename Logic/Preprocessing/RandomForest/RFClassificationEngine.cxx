@@ -48,9 +48,18 @@ void RFClassificationEngine:: TrainClassifier()
 {
   assert(m_DataSource && m_DataSource->IsMainLoaded());
 
+  typedef ImageCollectionConstRegionIteratorWithIndex<
+      AnatomicScalarImageWrapper::ImageType,
+      AnatomicImageWrapper::ImageType> CollectionIter;
+
   // TODO: in the future, we should only recompute the sample when we know
   // that the data has changed. However, currently, we are just going to
   // compute a new sample every time
+
+  // TODO: remove this hard-coded stuff
+  // Paul: temporary hard-coded neighborhood size
+  CollectionIter::SizeType radius;
+  radius.Fill(2);
 
   // Delete the sample
   if(m_Sample)
@@ -61,19 +70,21 @@ void RFClassificationEngine:: TrainClassifier()
   LabelImageWrapper::ImagePointer imgSeg = wrpSeg->GetImage();
   typedef itk::ImageRegionConstIterator<LabelImageWrapper::ImageType> LabelIter;
 
+  // Shrink the buffered region by radius because we can't handle BCs
+  itk::ImageRegion<3> reg = imgSeg->GetBufferedRegion();
+  reg.ShrinkByRadius(radius);
+
   // We need to iterate throught the label image once to determine the
   // number of samples to allocate.
   unsigned long nSamples = 0;
-  for(LabelIter lit(imgSeg, imgSeg->GetBufferedRegion()); !lit.IsAtEnd(); ++lit)
+  for(LabelIter lit(imgSeg, reg); !lit.IsAtEnd(); ++lit)
     if(lit.Value())
       nSamples++;
 
   // Create an iterator for going over all the anatomical image data
-  typedef ImageCollectionConstRegionIteratorWithIndex<
-      AnatomicScalarImageWrapper::ImageType,
-      AnatomicImageWrapper::ImageType> CollectionIter;
 
-  CollectionIter cit(imgSeg->GetBufferedRegion());
+  CollectionIter cit(reg);
+  cit.SetRadius(radius);
 
   // Add all the anatomical images to this iterator
   for(LayerIterator it = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
@@ -84,21 +95,25 @@ void RFClassificationEngine:: TrainClassifier()
 
   // Get the number of components
   int nComp = cit.GetTotalComponents();
+  int nPatch = cit.GetNeighborhoodSize();
+  int nColumns = nComp * nPatch;
 
   // Create a new sample
-  m_Sample = new SampleType(nSamples, nComp);
+  m_Sample = new SampleType(nSamples, nColumns);
 
   // Now fill out the samples
   int iSample = 0;
-  for(LabelIter lit(imgSeg, imgSeg->GetBufferedRegion()); !lit.IsAtEnd(); ++lit, ++cit)
+  for(LabelIter lit(imgSeg, reg); !lit.IsAtEnd(); ++lit, ++cit)
     {
     LabelType label = lit.Value();
     if(label)
       {
       // Fill in the data
       std::vector<GreyType> &column = m_Sample->data[iSample];
+      int k = 0;
       for(int i = 0; i < nComp; i++)
-        column[i] = cit.Value(i);
+        for(int j = 0; j < nPatch; j++)
+          column[k++] = cit.NeighborValue(i,j);
 
       // Fill in the label
       m_Sample->label[iSample] = label;
