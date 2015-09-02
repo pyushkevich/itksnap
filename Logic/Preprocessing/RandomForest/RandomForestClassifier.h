@@ -3,6 +3,7 @@
 
 #include <itkDataObject.h>
 #include <itkObjectFactory.h>
+#include <itkSize.h>
 #include <SNAPCommon.h>
 #include <map>
 
@@ -25,6 +26,7 @@ public:
   typedef AxisAlignedClassifier<GreyType, LabelType> RFAxisClassifierType;
   typedef DecisionForest<RFHistogramType, RFAxisClassifierType, GreyType> RandomForestType;
   typedef std::map<size_t, LabelType> MappingType;
+  typedef itk::Size<3> SizeType;
 
   // Reset the classifier
   void Reset();
@@ -37,6 +39,17 @@ public:
 
   // Get the foreground class
   irisGetMacro(ForegroundClass, size_t)
+
+  // Get the patch radius
+  irisGetMacro(PatchRadius, const SizeType &)
+
+  /** Whether coordinates of the voxels are used as features */
+  itkGetMacro(UseCoordinateFeatures, bool)
+  itkSetMacro(UseCoordinateFeatures, bool)
+
+  // Set the bias parameter (adjusts the mapping of FG probability to speed)
+  itkGetMacro(BiasParameter, double)
+  itkSetMacro(BiasParameter, double)
 
   // Get the label of the foreground class
   LabelType GetForegroundClassLabel() const;
@@ -64,12 +77,17 @@ protected:
   // The class that is currently active
   size_t m_ForegroundClass;
 
+  // The patch radius
+  SizeType m_PatchRadius;
+
+  // Whether coordinate features are used
+  bool m_UseCoordinateFeatures;
+
+  // Bias parameter
+  double m_BiasParameter;
+
   // Let the engine handle our data
   friend class RFClassificationEngine;
-
-  // TODO: make all that protected!
-
-
 };
 
 #endif // RANDOMFORESTCLASSIFIER_H

@@ -9,6 +9,9 @@ void RandomForestClassifier::Reset()
   m_Forest = new RandomForestType(true);
   m_ClassToLabelMapping.clear();
   m_ForegroundClass = 0;
+  m_BiasParameter = 0.5;
+  m_PatchRadius.Fill(0);
+  m_UseCoordinateFeatures = false;
 }
 
 LabelType RandomForestClassifier::GetForegroundClassLabel() const
@@ -41,7 +44,8 @@ bool RandomForestClassifier::IsValidClassifier() const
 
 RandomForestClassifier::RandomForestClassifier()
 {
-  m_Forest = new RandomForestType(true);
+  m_Forest = NULL;
+  this->Reset();
 }
 
 RandomForestClassifier::~RandomForestClassifier()

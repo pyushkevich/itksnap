@@ -261,6 +261,18 @@ public:
   /** Model for the forest size */
   irisRangedPropertyAccessMacro(ForestSize, int)
 
+  /** Model for whether patch contextual features are used */
+  irisSimplePropertyAccessMacro(ClassifierUsePatch, bool)
+
+  /** Model for the patch radius */
+  irisRangedPropertyAccessMacro(ClassifierPatchRadius, int)
+
+  /** Bias for the classifier */
+  irisRangedPropertyAccessMacro(ClassifierBias, double)
+
+  /** Whether coordinates are used as contextual features */
+  irisSimplePropertyAccessMacro(ClassifierUseCoordinates, bool)
+
   /** Train the random forest classifier when the user hits the 'train' button */
   void TrainClassifier();
 
@@ -431,6 +443,20 @@ protected:
   SmartPtr<AbstractRangedIntProperty> m_ForestSizeModel;
   bool GetForestSizeValueAndRange(int &value, NumericValueRange<int> *range);
   void SetForestSizeValue(int value);
+
+  SmartPtr<AbstractSimpleBooleanProperty> m_ClassifierUsePatchModel;
+  SmartPtr<AbstractRangedIntProperty> m_ClassifierPatchRadiusModel;
+  bool GetClassifierPatchRadiusValueAndRange(int &value, NumericValueRange<int> *range);
+  void SetClassifierPatchRadiusValue(int value);
+
+  SmartPtr<AbstractRangedDoubleProperty> m_ClassifierBiasModel;
+  bool GetClassifierBiasValueAndRange(double &value, NumericValueRange<double> *range);
+  void SetClassifierBiasValue(double value);
+
+  SmartPtr<AbstractSimpleBooleanProperty> m_ClassifierUseCoordinatesModel;
+  bool GetClassifierUseCoordinatesValue(bool &value);
+  void SetClassifierUseCoordinatesValue(bool value);
+
 
   // TODO: this should be handled through the ITK modified mechanism
   void TagRFPreprocessingFilterModified();

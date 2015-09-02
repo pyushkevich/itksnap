@@ -119,6 +119,8 @@ private slots:
 
   void on_btnEdgeDetail_clicked();
 
+  void on_btnClassifyDetail_clicked();
+
 private:
 
   SpeedImageDialog *m_SpeedDialog;

@@ -60,9 +60,6 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 {
   itk::ImageSource<TOutputImage>::GenerateInputRequestedRegion();
 
-  // TODO: this should not be hard-coded
-  typename InputImageType::SizeType radius; radius.Fill(2);
-
   for( itk::InputDataObjectIterator it( this ); !it.IsAtEnd(); it++ )
     {
     // Check whether the input is an image of the appropriate dimension
@@ -72,7 +69,7 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
       {
       InputImageRegionType inputRegion;
       this->CallCopyOutputRegionToInputRegion( inputRegion, this->GetOutput()->GetRequestedRegion() );
-      inputRegion.PadByRadius(radius);
+      inputRegion.PadByRadius(m_Classifier->GetPatchRadius());
       inputRegion.Crop(input->GetLargestPossibleRegion());
       input->SetRequestedRegion(inputRegion);
       }
@@ -80,7 +77,7 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
       {
       InputImageRegionType inputRegion;
       this->CallCopyOutputRegionToInputRegion( inputRegion, this->GetOutput()->GetRequestedRegion() );
-      inputRegion.PadByRadius(radius);
+      inputRegion.PadByRadius(m_Classifier->GetPatchRadius());
       inputRegion.Crop(vecInput->GetLargestPossibleRegion());
       vecInput->SetRequestedRegion(inputRegion);
       }
@@ -106,17 +103,22 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 
   OutputImagePointer outputPtr = this->GetOutput(0);
 
-  // TODO: this should not be hard-coded
-  typename InputImageType::SizeType radius; radius.Fill(2);
+  // Fill the output region with zeros
+  itk::ImageRegionIterator<OutputImageType> zit(outputPtr, outputRegionForThread);
+  for(; !zit.IsAtEnd(); ++zit)
+    zit.Set((OutputPixelType) 0);
 
   // Adjust the output region so that we don't touch image boundaries.
   OutputImageRegionType crop_region = outputPtr->GetLargestPossibleRegion();
-  crop_region.ShrinkByRadius(radius);
+  crop_region.ShrinkByRadius(m_Classifier->GetPatchRadius());
   OutputImageRegionType out_region = outputRegionForThread;
-  out_region.Crop(crop_region);
+  bool can_crop = out_region.Crop(crop_region);
+
+  if(!can_crop)
+    return;
 
   // Create an iterator for the output
-  typedef itk::ImageRegionIterator<TOutputImage> OutputIter;
+  typedef itk::ImageRegionIteratorWithIndex<TOutputImage> OutputIter;
   OutputIter it_out(outputPtr, out_region);
 
   // Create a collection iterator for the inputs
@@ -129,12 +131,16 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
     cit.AddImage(it.GetInput());
 
   // TODO: This is hard-coded
-  cit.SetRadius(radius);
+  cit.SetRadius(m_Classifier->GetPatchRadius());
 
   // Get the number of components
   int nComp = cit.GetTotalComponents();
   int nPatch = cit.GetNeighborhoodSize();
   int nColumns = nComp * nPatch;
+
+  // Are coordinate features used?
+  if(m_Classifier->GetUseCoordinateFeatures())
+    nColumns += 3;
 
   // Get the number of classes
   int nClass = m_Classifier->GetClassToLabelMapping().size();
@@ -170,25 +176,42 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
       for(int j = 0; j < nPatch; j++)
         testData.data[0][k++] = cit.NeighborValue(i,j);
 
+    // Add the coordinate features
+    if(m_Classifier->GetUseCoordinateFeatures())
+      for(int d = 0; d < 3; d++)
+        testData.data[0][k++] = it_out.GetIndex()[d];
+
     // Perform classification on this data
     m_Classifier->GetForest()->ApplyFast(testData, testResult, vIndex, vResult);
 
-    // Add up the predictions made by each tree for each class
-    double p = 0;
+    // New code: compute output map with a bias parameter. The bias parameter q is such
+    // that p_fore = q maps to 0 speed value. For the time being we just shift the linear
+    // mapping from p_fore to speed and cap speed between -1 and 1
+
+    // First we compute p_fore - for some reason not all trees in the forest have probabilities
+    // summing up to one (some are zero), so we need to use division
+    double p_fore_total = 0, p_total = 0;
     for(int i = 0; i < testResult.Size(); i++)
       {
+      HistogramType *hist = testResult[i][0];
+      p_fore_total += hist->prob_[activeClass];
       for(int j = 0; j < nClass; j++)
-        {
-        if(j == activeClass)
-          p += testResult[i][0]->prob_[j];
-        else
-          p -= testResult[i][0]->prob_[j];
-        }
+        p_total += hist->prob_[j];
       }
-    p /= testResult.Size();
 
-    // Presumably, at this point p stores the (p_fore - p_back) value
-    it_out.Set((OutputPixelType)(p * 0x7fff));
+    // Set output only if the total probability is non-zero
+    if(p_total > 0)
+      {
+      double q = m_Classifier->GetBiasParameter();
+      double p_fore = p_fore_total / p_total;
+      double speed = 2 * (p_fore - q);
+      if(speed < -1.0)
+        speed = -1.0;
+      else if(speed > 1.0)
+        speed = 1.0;
+
+      it_out.Set((OutputPixelType)(speed * 0x7fff));
+      }
     }
 }
 

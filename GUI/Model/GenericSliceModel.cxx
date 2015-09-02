@@ -899,7 +899,7 @@ ImageWrapperBase *GenericSliceModel::GetLayerForNthTile(int row, int col)
       if(it.GetRole() == MAIN_ROLE || !it.GetLayer()->IsSticky())
         {
         if(togo == 0)
-          return it.GetLayer()->IsDrawable() ? it.GetLayer() : NULL;
+          return it.GetLayer();
         togo--;
         }
       }

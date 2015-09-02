@@ -96,6 +96,14 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   makeCoupling(ui->inNumSamples, model->GetNumberOfGMMSamplesModel());
   makeCoupling(ui->inClusterXComponent, model->GetClusterPlottedComponentModel());
 
+  // Couple the classification widgets
+  makeCoupling(ui->inClassifierTreeNumber, m_Model->GetForestSizeModel());
+
+  makeCoupling(ui->inClassifyUsePatch, m_Model->GetClassifierUsePatchModel());
+  makeCoupling(ui->inClassifierPatchSize, m_Model->GetClassifierPatchRadiusModel());
+  makeCoupling(ui->inClassifyUseCoordinates, m_Model->GetClassifierUseCoordinatesModel());
+
+
   // Couple the tab pages to the current mode
   std::map<PreprocessingMode, QWidget *> preproc_page_map;
   preproc_page_map[PREPROCESS_THRESHOLD] = ui->tabThreshold;

@@ -221,9 +221,10 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
   makeCoupling(ui->inClusterCount, m_Model->GetNumberOfClustersModel());
   makeCoupling(ui->inClusterActive, m_Model->GetForegroundClusterModel());
 
+
   // Couple the classification controls
   makeCoupling(ui->inClassifyForeground, m_Model->GetForegroundClassColorLabelModel());
-  makeCoupling(ui->inClassifyTrees, m_Model->GetForestSizeModel());
+  makeCoupling(ui->inClassifyBias, m_Model->GetClassifierBiasModel());
 
   // Couple the edge preprocessing controls
   makeCoupling(ui->inEdgeScale, m_Model->GetEdgePreprocessingSigmaModel());
@@ -440,6 +441,7 @@ void SnakeWizardPanel::on_btnClassifyTrain_clicked()
 {
   try
   {
+    QtCursorOverride cursy(Qt::WaitCursor);
     m_Model->TrainClassifier();
   }
   catch (IRISException &exc)
@@ -470,6 +472,11 @@ void SnakeWizardPanel::onClassifyQuickLabelSelection()
 }
 
 void SnakeWizardPanel::on_btnEdgeDetail_clicked()
+{
+  m_SpeedDialog->ShowDialog();
+}
+
+void SnakeWizardPanel::on_btnClassifyDetail_clicked()
 {
   m_SpeedDialog->ShowDialog();
 }

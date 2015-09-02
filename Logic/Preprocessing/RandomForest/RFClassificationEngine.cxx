@@ -19,6 +19,8 @@ RFClassificationEngine::RFClassificationEngine()
   m_Sample = NULL;
   m_Classifier = RandomForestClassifier::New();
   m_ForestSize = 50;
+  m_PatchRadius.Fill(0);
+  m_UseCoordinateFeatures = false;
 }
 
 RFClassificationEngine::~RFClassificationEngine()
@@ -56,11 +58,6 @@ void RFClassificationEngine:: TrainClassifier()
   // that the data has changed. However, currently, we are just going to
   // compute a new sample every time
 
-  // TODO: remove this hard-coded stuff
-  // Paul: temporary hard-coded neighborhood size
-  CollectionIter::SizeType radius;
-  radius.Fill(2);
-
   // Delete the sample
   if(m_Sample)
     delete m_Sample;
@@ -68,11 +65,11 @@ void RFClassificationEngine:: TrainClassifier()
   // Get the segmentation image - which determines the samples
   LabelImageWrapper *wrpSeg = m_DataSource->GetSegmentation();
   LabelImageWrapper::ImagePointer imgSeg = wrpSeg->GetImage();
-  typedef itk::ImageRegionConstIterator<LabelImageWrapper::ImageType> LabelIter;
+  typedef itk::ImageRegionConstIteratorWithIndex<LabelImageWrapper::ImageType> LabelIter;
 
   // Shrink the buffered region by radius because we can't handle BCs
   itk::ImageRegion<3> reg = imgSeg->GetBufferedRegion();
-  reg.ShrinkByRadius(radius);
+  reg.ShrinkByRadius(m_PatchRadius);
 
   // We need to iterate throught the label image once to determine the
   // number of samples to allocate.
@@ -82,9 +79,8 @@ void RFClassificationEngine:: TrainClassifier()
       nSamples++;
 
   // Create an iterator for going over all the anatomical image data
-
   CollectionIter cit(reg);
-  cit.SetRadius(radius);
+  cit.SetRadius(m_PatchRadius);
 
   // Add all the anatomical images to this iterator
   for(LayerIterator it = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
@@ -97,6 +93,10 @@ void RFClassificationEngine:: TrainClassifier()
   int nComp = cit.GetTotalComponents();
   int nPatch = cit.GetNeighborhoodSize();
   int nColumns = nComp * nPatch;
+
+  // Are we using coordinate informtion
+  if(m_UseCoordinateFeatures)
+    nColumns += 3;
 
   // Create a new sample
   m_Sample = new SampleType(nSamples, nColumns);
@@ -114,6 +114,11 @@ void RFClassificationEngine:: TrainClassifier()
       for(int i = 0; i < nComp; i++)
         for(int j = 0; j < nPatch; j++)
           column[k++] = cit.NeighborValue(i,j);
+
+      // Add the coordinate features if used
+      if(m_UseCoordinateFeatures)
+        for(int d = 0; d < 3; d++)
+          column[k++] = lit.GetIndex()[d];
 
       // Fill in the label
       m_Sample->label[iSample] = label;
@@ -170,6 +175,11 @@ void RFClassificationEngine:: TrainClassifier()
 
   // Assign the foreground index to zero (default)
   m_Classifier->m_ForegroundClass = 0;
+
+  // Store the patch radius in the classifier - this remains fixed until
+  // training is repeated
+  m_Classifier->m_PatchRadius = m_PatchRadius;
+  m_Classifier->m_UseCoordinateFeatures = m_UseCoordinateFeatures;
 
   // Now maybe re-assign the old foreground label
   if(isOldForegroundLabelValid)

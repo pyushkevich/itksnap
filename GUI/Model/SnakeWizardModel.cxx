@@ -15,6 +15,7 @@
 #include "RFClassificationEngine.h"
 #include "RandomForestClassifier.h"
 #include "RandomForestClassifyImageFilter.h"
+#include "NumericPropertyToggleAdaptor.h"
 
 SnakeWizardModel::SnakeWizardModel()
 {
@@ -172,6 +173,31 @@ SnakeWizardModel::SnakeWizardModel()
         &Self::SetForestSizeValue,
         RFClassifierModifiedEvent(),
         RFClassifierModifiedEvent());
+
+  m_ClassifierPatchRadiusModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetClassifierPatchRadiusValueAndRange,
+        &Self::SetClassifierPatchRadiusValue,
+        RFClassifierModifiedEvent(),
+        RFClassifierModifiedEvent());
+
+  m_ClassifierUsePatchModel =
+      NewNumericPropertyToggleAdaptor(m_ClassifierPatchRadiusModel.GetPointer(), 0, 2);
+
+  m_ClassifierUseCoordinatesModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetClassifierUseCoordinatesValue,
+        &Self::SetClassifierUseCoordinatesValue,
+        RFClassifierModifiedEvent(),
+        RFClassifierModifiedEvent());
+
+  m_ClassifierBiasModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetClassifierBiasValueAndRange,
+        &Self::SetClassifierBiasValue,
+        RFClassifierModifiedEvent(),
+        RFClassifierModifiedEvent());
+
 
   // The domain of the foreground cluster model depends on the number of clusters
   m_ForegroundClusterModel->Rebroadcast(
@@ -400,6 +426,96 @@ void SnakeWizardModel::SetForestSizeValue(int value)
   assert(rfe);
 
   rfe->SetForestSize(value);
+
+  InvokeEvent(RFClassifierModifiedEvent());
+}
+
+bool SnakeWizardModel::GetClassifierPatchRadiusValueAndRange(int &value, NumericValueRange<int> *range)
+{
+  // Must have a classification engine
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  if(!rfe)
+    return false;
+
+  // Get the value
+  RFClassificationEngine::RadiusType radius = rfe->GetPatchRadius();
+  value = (int) radius[0];
+
+  if(range)
+    range->Set(0, 4, 1);
+
+  return true;
+}
+
+void SnakeWizardModel::SetClassifierPatchRadiusValue(int value)
+{
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  assert(rfe);
+  assert(value >= 0);
+
+  RFClassificationEngine::RadiusType radius;
+  radius.Fill((unsigned int) value);
+  rfe->SetPatchRadius(radius);
+
+  InvokeEvent(RFClassifierModifiedEvent());
+}
+
+bool SnakeWizardModel::GetClassifierBiasValueAndRange(double &value, NumericValueRange<double> *range)
+{
+  // Must have a classification engine
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  if(!rfe)
+    return false;
+
+  // Must have a classifier
+  RandomForestClassifier *rfc = rfe->GetClassifier();
+  if(!rfc)
+    return false;
+
+  // The classifier must be valid (2 or more classes)
+  if(!rfc->IsValidClassifier())
+    return false;
+
+  value = rfc->GetBiasParameter();
+  if(range)
+    range->Set(0.0, 1.0, 0.01);
+
+  return true;
+}
+
+void SnakeWizardModel::SetClassifierBiasValue(double value)
+{
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  assert(rfe);
+
+  RandomForestClassifier *rfc = rfe->GetClassifier();
+  assert(rfc);
+
+  rfc->SetBiasParameter(value);
+
+  InvokeEvent(RFClassifierModifiedEvent());
+
+  // TODO: this is a hack!
+  TagRFPreprocessingFilterModified();
+}
+
+bool SnakeWizardModel::GetClassifierUseCoordinatesValue(bool &value)
+{
+  // Must have a classification engine
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  if(!rfe)
+    return false;
+
+  value = rfe->GetUseCoordinateFeatures();
+  return true;
+}
+
+void SnakeWizardModel::SetClassifierUseCoordinatesValue(bool value)
+{
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  assert(rfe);
+  rfe->SetUseCoordinateFeatures(value);
+  InvokeEvent(RFClassifierModifiedEvent());
 }
 
 void SnakeWizardModel::OnBubbleModeEnter()
