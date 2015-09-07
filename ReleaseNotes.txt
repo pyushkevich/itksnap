@@ -10,12 +10,16 @@
 1.1. New in Version 3.4.0 
 ----------------------------------------------
 
-This release focused primarily on improving the user experience. The main
-changes have been in the area of user interface. We have made access to the new
-featues introduced in versions 3.0 and 3.2 more intuitive. We have been also
-busy working on new functionality such as registration within SNAP, small memory
-footprint, and image-derived features for classification, but these will become
-available in the 3.6 release. The focus of 3.4 is on usability.
+This release was largely focused on improving the user experience through extensive
+changes to the GUI. We made access to the new features introduced in versions 3.0 and
+3.2 more intuitive. The loading and display of multiple images has been extensively
+reworked and improved. In addition, we made the classification mode in the semi-
+automatic segmentation workflow more powerful by providing additional image and
+geometric features that the classifier can use to learn the patterns of difference
+between the classes labeled by the use. We have been alsobusy working on new
+functionality such as image registration within SNAP, and a smaller memory footprint,
+but these will become available in the 3.6 release. The main focus of 3.4 is
+on usability.
 
 1.1.1. New functionality in this release
 
@@ -60,6 +64,24 @@ available in the 3.6 release. The focus of 3.4 is on usability.
  -  Cleaned up the behavior of mouse buttons and mouse scrolling to be more
     consistent between modes. Added Shift-scroll action, which scrolls through
     timepoints in a 4D image and components in a 3D multi-component image.
+
+ -  Added the ability to generate "contextual" features in the classification
+    mode in the semi-automatic segmentation workflow. Two types of contextual
+    features are provided: neighboring intensity features, and coordinate
+    features. The former allow the classifier to learn patterns of textural
+    differences between regions in the image. When used, the classifier can
+    separate regions that have identical average intensity but different texture.
+    The coordinate features allow the classifier to learn geometrical information,
+    such as the location/extent of the structure of interest relative to the
+    background structures. This can be used to segment a structure that has
+    no intensity contrast with adjacent structures, simply by giving the classifer
+    hints as to the location of the boundary on a few slices. These new features
+    are available by pressing "More..." when in classification mode.
+
+ -  Added some extra controls when working in classificaiton mode, such as
+    setting the forest size and tree depth for the random forest classifier
+    and a slider for "classifier bias", which allows you to bias the classfier
+    output more toward the foreground class or background classes.
 
 
 1.1.2. Programmatic Improvements
