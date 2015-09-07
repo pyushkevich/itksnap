@@ -98,6 +98,7 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
 
   // Couple the classification widgets
   makeCoupling(ui->inClassifierTreeNumber, m_Model->GetForestSizeModel());
+  makeCoupling(ui->inClassifierTreeDepth, m_Model->GetTreeDepthModel());
 
   makeCoupling(ui->inClassifyUsePatch, m_Model->GetClassifierUsePatchModel());
   makeCoupling(ui->inClassifierPatchSize, m_Model->GetClassifierPatchRadiusModel());
@@ -163,4 +164,29 @@ void SpeedImageDialog::on_btnIterateTen_clicked()
 void SpeedImageDialog::on_btnTrain_clicked()
 {
   m_Model->TrainClassifier();
+}
+
+#include "ImageIODelegates.h"
+#include "ImageIOWizard.h"
+#include "ImageIOWizardModel.h"
+
+void SpeedImageDialog::on_btnClassifyLoad_clicked()
+{
+  // Create a model for IO
+  SmartPtr<LoadSegmentationImageDelegate> delegate = LoadSegmentationImageDelegate::New();
+  delegate->Initialize(m_Model->GetParent()->GetDriver());
+
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model->GetParent(), delegate, "ClassifierSamples", "Classifier Samples Image");
+
+  // Execute the IO wizard
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
+
+}
+
+void SpeedImageDialog::on_btnClassifySave_clicked()
+{
+
 }

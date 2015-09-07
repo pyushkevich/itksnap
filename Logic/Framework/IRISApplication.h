@@ -266,6 +266,16 @@ public:
    */
   void UpdateIRISSegmentationImage(GuidedNativeImageIO *io);
 
+  /**
+   * Update the SNAP image data with an external segmentation image (e.g.,
+   * loaded from a file).
+   *
+   * TODO: this should probably change when we allow multiple concurrent segmentation
+   * images to be used in SNAP mode.
+   */
+  void UpdateSNAPSegmentationImage(GuidedNativeImageIO *io);
+
+
   /** 
    * Clear the IRIS segmentation image
    */

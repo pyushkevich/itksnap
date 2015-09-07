@@ -19,6 +19,7 @@ RFClassificationEngine::RFClassificationEngine()
   m_Sample = NULL;
   m_Classifier = RandomForestClassifier::New();
   m_ForestSize = 50;
+  m_TreeDepth = 10;
   m_PatchRadius.Fill(0);
   m_UseCoordinateFeatures = false;
 }
@@ -141,7 +142,8 @@ void RFClassificationEngine:: TrainClassifier()
 
   // Set up the classifier parameters
   TrainingParameters params;
-  params.treeDepth = 10;
+  // TODO:
+  params.treeDepth = m_TreeDepth;
   params.treeNum = m_ForestSize;
   params.candidateNodeClassifierNum = 10;
   params.candidateClassifierThresholdNum = 10;
@@ -149,6 +151,14 @@ void RFClassificationEngine:: TrainClassifier()
   params.splitIG = 0.1;
   params.leafEntropy = 0.05;
   params.verbose = true;
+
+  // Cap the number of training voxels at some reasonable number
+  if(m_Sample->Size() > 10000)
+    params.subSamplePercent = 100 * 10000.0 / m_Sample->Size();
+  else
+    params.subSamplePercent = 0;
+
+
 
   // Create the classification engine
   typedef RandomForestClassifier::RFAxisClassifierType RFAxisClassifierType;

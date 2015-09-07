@@ -488,11 +488,11 @@ void GenericSliceRenderer::DrawTextureForLayer(
 void GenericSliceRenderer::DrawSegmentationTexture()
   {
   GenericImageData *id = m_Model->GetImageData();
+  double alpha = m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
 
-  if (id->IsSegmentationLoaded())
+  if (id->IsSegmentationLoaded() && alpha > 0)
     {
     Texture *texture = m_Texture[id->GetSegmentation()];
-    double alpha = m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
     texture->DrawTransparent(alpha);
     }
   }

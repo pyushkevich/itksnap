@@ -45,6 +45,10 @@ public:
   itkGetMacro(ForestSize, int)
   itkSetMacro(ForestSize, int)
 
+  /** Size of the random forest (main parameter) */
+  itkGetMacro(TreeDepth, int)
+  itkSetMacro(TreeDepth, int)
+
   /** Patch radius for sampling features */
   itkGetMacro(PatchRadius, const RadiusType &)
   itkSetMacro(PatchRadius, RadiusType)
@@ -73,6 +77,9 @@ protected:
 
   // Number of trees
   int m_ForestSize;
+
+  // Number of trees
+  int m_TreeDepth;
 
   // Patch radius
   RadiusType m_PatchRadius;

@@ -219,8 +219,12 @@ LoadSegmentationImageDelegate
 
 ImageWrapperBase *LoadSegmentationImageDelegate::UpdateApplicationWithImage(GuidedNativeImageIO *io)
 {
-  m_Driver->UpdateIRISSegmentationImage(io);
-  return m_Driver->GetIRISImageData()->GetSegmentation();
+  if(m_Driver->IsSnakeModeActive())
+    m_Driver->UpdateSNAPSegmentationImage(io);
+  else
+    m_Driver->UpdateIRISSegmentationImage(io);
+
+  return m_Driver->GetCurrentImageData()->GetSegmentation();
 }
 
 void

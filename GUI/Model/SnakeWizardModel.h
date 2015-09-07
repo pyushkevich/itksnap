@@ -59,6 +59,7 @@ public:
     UIF_LOWER_THRESHOLD_ENABLED,
     UIF_UPPER_THRESHOLD_ENABLED,
     UIF_EDGEPROCESSING_ENABLED,
+    UIF_CLASSIFIER_TRAINED,
     UIF_CAN_GENERATE_SPEED,
     UIF_SPEED_AVAILABLE,              // Has speed volume been computed?
     UIF_PREPROCESSING_ACTIVE,         // Is the preprocessing dialog open?
@@ -261,6 +262,9 @@ public:
   /** Model for the forest size */
   irisRangedPropertyAccessMacro(ForestSize, int)
 
+  /** Model for the forest size */
+  irisRangedPropertyAccessMacro(TreeDepth, int)
+
   /** Model for whether patch contextual features are used */
   irisSimplePropertyAccessMacro(ClassifierUsePatch, bool)
 
@@ -275,6 +279,9 @@ public:
 
   /** Train the random forest classifier when the user hits the 'train' button */
   void TrainClassifier();
+
+  /** Whether the classifier is trained and available for use */
+  bool IsClassifierTrained();
 
   /** Clear the classification examples (i.e., clear the classification) */
   void ClearSegmentation();
@@ -443,6 +450,10 @@ protected:
   SmartPtr<AbstractRangedIntProperty> m_ForestSizeModel;
   bool GetForestSizeValueAndRange(int &value, NumericValueRange<int> *range);
   void SetForestSizeValue(int value);
+
+  SmartPtr<AbstractRangedIntProperty> m_TreeDepthModel;
+  bool GetTreeDepthValueAndRange(int &value, NumericValueRange<int> *range);
+  void SetTreeDepthValue(int value);
 
   SmartPtr<AbstractSimpleBooleanProperty> m_ClassifierUsePatchModel;
   SmartPtr<AbstractRangedIntProperty> m_ClassifierPatchRadiusModel;

@@ -385,6 +385,39 @@ IRISApplication
 
 void
 IRISApplication
+::UpdateSNAPSegmentationImage(GuidedNativeImageIO *io)
+{
+  // This has to happen in 'pure' SNAP mode
+  assert(IsSnakeModeActive());
+
+  // Cast the image to label type
+  CastNativeImage<LabelImageType> caster;
+  LabelImageType::Pointer imgLabel = caster(io);
+
+  // The header of the label image is made to match that of the grey image
+  imgLabel->SetOrigin(m_CurrentImageData->GetMain()->GetImageBase()->GetOrigin());
+  imgLabel->SetSpacing(m_CurrentImageData->GetMain()->GetImageBase()->GetSpacing());
+  imgLabel->SetDirection(m_CurrentImageData->GetMain()->GetImageBase()->GetDirection());
+
+  // Update the iris data
+  m_CurrentImageData->SetSegmentationImage(imgLabel);
+
+  // Update filenames
+  m_CurrentImageData->GetSegmentation()->SetFileName(io->GetFileNameOfNativeImage());
+
+  // Set the loaded labels as valid
+  LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
+  LabelType *buffer = seg->GetBufferPointer();
+  LabelType *buffer_end = buffer + seg->GetPixelContainer()->Size();
+  while (buffer < buffer_end)
+    m_ColorLabelTable->SetColorLabelValid(*buffer++, true);
+
+  // Let the GUI know that segmentation changed
+  InvokeEvent(SegmentationChangeEvent());
+}
+
+void
+IRISApplication
 ::UpdateIRISSegmentationImage(GuidedNativeImageIO *io)
 {
   // This has to happen in 'pure' IRIS mode

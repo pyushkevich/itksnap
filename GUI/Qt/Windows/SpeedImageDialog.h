@@ -48,6 +48,10 @@ private slots:
 
   void on_btnTrain_clicked();
 
+  void on_btnClassifyLoad_clicked();
+
+  void on_btnClassifySave_clicked();
+
 private:
   Ui::SpeedImageDialog *ui;
 

@@ -174,6 +174,13 @@ SnakeWizardModel::SnakeWizardModel()
         RFClassifierModifiedEvent(),
         RFClassifierModifiedEvent());
 
+  m_TreeDepthModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetTreeDepthValueAndRange,
+        &Self::SetTreeDepthValue,
+        RFClassifierModifiedEvent(),
+        RFClassifierModifiedEvent());
+
   m_ClassifierPatchRadiusModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetClassifierPatchRadiusValueAndRange,
@@ -282,6 +289,8 @@ bool SnakeWizardModel::CheckState(SnakeWizardModel::UIState state)
       return ts && ts->IsUpperThresholdEnabled();
     case UIF_EDGEPROCESSING_ENABLED:
       return AreEdgePreprocessingModelsActive();
+    case UIF_CLASSIFIER_TRAINED:
+      return IsClassifierTrained();
     case UIF_CAN_GENERATE_SPEED:
       return CanGenerateSpeedVolume();
     case UIF_SPEED_AVAILABLE:
@@ -426,6 +435,30 @@ void SnakeWizardModel::SetForestSizeValue(int value)
   assert(rfe);
 
   rfe->SetForestSize(value);
+
+  InvokeEvent(RFClassifierModifiedEvent());
+}
+
+bool SnakeWizardModel::GetTreeDepthValueAndRange(int &value, NumericValueRange<int> *range)
+{
+  // Must have a classification engine
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  if(!rfe)
+    return false;
+
+  value = rfe->GetTreeDepth();
+  if(range)
+    range->Set(10, 100, 5);
+
+  return true;
+}
+
+void SnakeWizardModel::SetTreeDepthValue(int value)
+{
+  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  assert(rfe);
+
+  rfe->SetTreeDepth(value);
 
   InvokeEvent(RFClassifierModifiedEvent());
 }
@@ -1684,6 +1717,13 @@ void SnakeWizardModel::TrainClassifier()
 
   // TODO: this is a hack!
   TagRFPreprocessingFilterModified();
+}
+
+bool SnakeWizardModel::IsClassifierTrained()
+{
+  // Get the classification engine
+  RFClassificationEngine *rfengine = m_Driver->GetClassificationEngine();
+  return rfengine && rfengine->GetClassifier()->IsValidClassifier();
 }
 
 void SnakeWizardModel::ClearSegmentation()
