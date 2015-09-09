@@ -485,7 +485,6 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 }
 
 #include <QDir>
-#include <QSurfaceFormat>
 
 int main(int argc, char *argv[])
 {  
@@ -533,12 +532,6 @@ int main(int argc, char *argv[])
   // Force use of native OpenGL, since all of our functions and VTK use native
   // and cannot use ANGLE
   app.setAttribute(Qt::AA_UseDesktopOpenGL);
-
-  // Get the current OpenGL version
-  int opengl_major = QSurfaceFormat::defaultFormat().majorVersion();
-  int opengl_minor = QSurfaceFormat::defaultFormat().minorVersion();
-  QMessageBox::information(NULL, "OpenGL version", QString("OpenGL %1.%2").arg(opengl_major).arg(opengl_minor));
-  std::cout << "OpenGL version is " << opengl_major << "." << opengl_minor << std::endl;
 
   // Set the application style
   app.setStyle(QStyleFactory::create(argdata.style.c_str()));
