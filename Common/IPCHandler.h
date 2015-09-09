@@ -2,6 +2,7 @@
 #define IPCHANDLER_H
 
 #include <cstddef>
+#include <set>
 
 /**
  * Base class for IPCHandler. This class contains the definitions of the
@@ -73,6 +74,10 @@ protected:
   // Process ID and other values used by IPC
   long m_ProcessID, m_MessageID, m_LastSender, m_LastReceivedMessageID;
 
+  bool IsProcessRunning(int pid);
+
+  // List of known process ids, with status (0 = alive, -1 = dead)
+  std::set<long> m_KnownDeadPIDs;
 };
 
 

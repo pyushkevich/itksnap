@@ -664,6 +664,10 @@ void MainImageWindow::UpdateMainLayout()
 
 void MainImageWindow::UpdateCanvasDimensions()
 {
+  // We should not do this in fullscreen mode
+  if(QApplication::desktop()->isFullScreen())
+    return;
+
   // The desired window aspect ratio
   double windowAR = 1.0;
 
