@@ -121,7 +121,9 @@ bool IPCHandler::Read(void *target_ptr)
 bool IPCHandler::IsProcessRunning(int pid)
 {
 #ifdef WIN32
-
+  DWORD exitCode = 0;
+  GetExitCodeProcess(pid, &exitCode);
+  return (exitCode == STILL_ACTIVE);
 #else
   // Send signal 0 to the PID
   return (0 == kill(pid, 0));

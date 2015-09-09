@@ -303,7 +303,7 @@ ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
 template <class TImage, class TVectorImage>
 void
 ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
-::SetRadius(const ImageCollectionConstRegionIteratorWithIndex::SizeType &radius)
+::SetRadius(const SizeType &radius)
 {
   // Set the radius of the neighborhood
   m_Radius = radius;

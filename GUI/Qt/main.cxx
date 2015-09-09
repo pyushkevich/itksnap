@@ -485,6 +485,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 }
 
 #include <QDir>
+#include <QSurfaceFormat>
 
 int main(int argc, char *argv[])
 {  
@@ -528,6 +529,15 @@ int main(int argc, char *argv[])
   SNAPQApplication app(argc, argv);
   Q_INIT_RESOURCE(SNAPResources);
   Q_INIT_RESOURCE(TestingScripts);
+
+  // Force use of native OpenGL, since all of our functions and VTK use native
+  // and cannot use ANGLE
+  app.setAttribute(Qt::AA_UseDesktopOpenGL);
+
+  // Get the current OpenGL version
+  int opengl_major = QSurfaceFormat::defaultFormat().majorVersion();
+  int opengl_minor = QSurfaceFormat::defaultFormat().minorVersion();
+  std::cout << "OpenGL version is " << opengl_major << "." << opengl_minor << std::endl;
 
   // Set the application style
   app.setStyle(QStyleFactory::create(argdata.style.c_str()));
