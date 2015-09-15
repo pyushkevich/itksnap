@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>497</width>
-    <height>543</height>
+    <width>512</width>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -483,143 +483,6 @@ QGroupBox::title {
         <number>16</number>
        </property>
        <item>
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Random forest classifier settings:</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QWidget" name="widget_9" native="true">
-            <layout class="QFormLayout" name="formLayout">
-             <property name="verticalSpacing">
-              <number>2</number>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>4</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>4</number>
-             </property>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_18">
-               <property name="text">
-                <string>Number of trees:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QSpinBox" name="inClassifierTreeNumber">
-               <property name="minimumSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>100</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_19">
-               <property name="text">
-                <string>Tree depth:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QSpinBox" name="inClassifierTreeDepth">
-               <property name="minimumSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>100</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QLabel" name="label_20">
-               <property name="minimumSize">
-                <size>
-                 <width>250</width>
-                 <height>30</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">font-size:10px;
-color: rgb(64, 64, 64);</string>
-               </property>
-               <property name="text">
-                <string>Increase the tree depth when there are many features and complex patterns to be learned</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="label_23">
-               <property name="minimumSize">
-                <size>
-                 <width>250</width>
-                 <height>30</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">font-size:10px;
-color: rgb(64, 64, 64);</string>
-               </property>
-               <property name="text">
-                <string>More trees produce more accurate classification at the cost of more time.</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
         <widget class="QGroupBox" name="groupBox">
          <property name="title">
           <string>Additional features:</string>
@@ -737,7 +600,7 @@ color: rgb(64, 64, 64);</string>
 color: rgb(64, 64, 64);</string>
                </property>
                <property name="text">
-                <string>Can help segmentation of images with rich texture, but classification will be much slower</string>
+                <string>Can help you segment images with rich texture or complex patterns, but classification will be much slower</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -762,6 +625,183 @@ color: rgb(64, 64, 64);</string>
                </property>
                <property name="text">
                 <string>Allows you to provide geometrical hints to the segmentation, for example avoiding leaking into a certain region</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Random forest classifier settings:</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QWidget" name="widget_9" native="true">
+            <layout class="QGridLayout" name="gridLayout_6">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>4</number>
+             </property>
+             <item row="2" column="2" alignment="Qt::AlignVCenter">
+              <widget class="QLabel" name="label_25">
+               <property name="minimumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size:10px;
+color: rgb(64, 64, 64);</string>
+               </property>
+               <property name="text">
+                <string>Boost the contribution of the foreground class to the speed image</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0" alignment="Qt::AlignRight">
+              <widget class="QLabel" name="label_18">
+               <property name="text">
+                <string>Number of trees:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QDoubleSliderWithEditor" name="inClassifyBias">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="inClassifierTreeDepth">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLabel" name="label_23">
+               <property name="minimumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size:10px;
+color: rgb(64, 64, 64);</string>
+               </property>
+               <property name="text">
+                <string>More trees produce more accurate classification at the cost of more time.</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QSpinBox" name="inClassifierTreeNumber">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0" alignment="Qt::AlignRight">
+              <widget class="QLabel" name="label_24">
+               <property name="text">
+                <string>Classifier bias:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0" alignment="Qt::AlignRight">
+              <widget class="QLabel" name="label_19">
+               <property name="text">
+                <string>Tree depth:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLabel" name="label_20">
+               <property name="minimumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size:10px;
+color: rgb(64, 64, 64);</string>
+               </property>
+               <property name="text">
+                <string>Increase when there are many features and complex patterns to be learned</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>

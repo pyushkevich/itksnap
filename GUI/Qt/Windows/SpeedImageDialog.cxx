@@ -99,6 +99,10 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   // Couple the classification widgets
   makeCoupling(ui->inClassifierTreeNumber, m_Model->GetForestSizeModel());
   makeCoupling(ui->inClassifierTreeDepth, m_Model->GetTreeDepthModel());
+  makeCoupling(ui->inClassifyBias, m_Model->GetClassifierBiasModel());
+
+  activateOnFlag(ui->inClassifyBias, m_Model, SnakeWizardModel::UIF_CLASSIFIER_TRAINED);
+
 
   makeCoupling(ui->inClassifyUsePatch, m_Model->GetClassifierUsePatchModel());
   makeCoupling(ui->inClassifierPatchSize, m_Model->GetClassifierPatchRadiusModel());

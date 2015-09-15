@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>191</width>
-    <height>680</height>
+    <height>654</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -919,53 +919,147 @@ border-right: 0px;</string>
               <property name="verticalSpacing">
                <number>2</number>
               </property>
-              <item row="17" column="0" alignment="Qt::AlignHCenter">
-               <widget class="QDoubleSlider" name="inClassifyBias">
+              <item row="17" column="0">
+               <widget class="QWidget" name="widget_8" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                </layout>
+               </widget>
+              </item>
+              <item row="2" column="0" alignment="Qt::AlignHCenter">
+               <widget class="ColorLabelQuickListWidget" name="boxLabelQuickList" native="true">
                 <property name="minimumSize">
                  <size>
-                  <width>140</width>
-                  <height>0</height>
+                  <width>0</width>
+                  <height>20</height>
                  </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>140</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this slider to bias the classification result towards the foreground class or the background classes. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
                 </property>
                </widget>
               </item>
-              <item row="4" column="0" alignment="Qt::AlignHCenter">
-               <widget class="QPushButton" name="btnClassifyClearExamples">
+              <item row="3" column="0">
+               <spacer name="verticalSpacer_18">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>4</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="5" column="0">
+               <spacer name="verticalSpacer_14">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>10</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_25">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="minimumSize">
                  <size>
+                  <width>0</width>
+                  <height>56</height>
+                 </size>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">font-size:10px;
+color: rgb(64, 64, 64)</string>
+                </property>
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Next, train the classifier and select the tissue class that you wish to use for segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="15" column="0">
+               <spacer name="verticalSpacer_17">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>10</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="14" column="0" alignment="Qt::AlignHCenter">
+               <widget class="QComboBox" name="inClassifyForeground">
+                <property name="minimumSize">
+                 <size>
                   <width>140</width>
                   <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>140</width>
+                  <width>150</width>
                   <height>16777215</height>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all the examples of the tissue classes painted in the image. This is useful if you want to retrain your classifier using new examples. It is also a good idea to clear examples before pressing 'Next'.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the tissue class that you would like to perform segmentation on. The rest of the tissue classes you defined will be considered background.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
+               </widget>
+              </item>
+              <item row="12" column="0">
+               <spacer name="verticalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>10</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="13" column="0">
+               <widget class="QLabel" name="label_9">
                 <property name="text">
-                 <string>Clear Examples</string>
+                 <string>Foreground class:</string>
                 </property>
                </widget>
               </item>
@@ -994,82 +1088,6 @@ color: rgb(64, 64, 64)</string>
                  <bool>true</bool>
                 </property>
                </widget>
-              </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_25">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>56</height>
-                 </size>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">font-size:10px;
-color: rgb(64, 64, 64)</string>
-                </property>
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Next, train the classifier and select the tissue class that you wish to use for segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <spacer name="verticalSpacer_18">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Fixed</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>4</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="19" column="0">
-               <widget class="QWidget" name="widget_8" native="true">
-                <layout class="QHBoxLayout" name="horizontalLayout_7">
-                 <property name="leftMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                </layout>
-               </widget>
-              </item>
-              <item row="15" column="0">
-               <spacer name="verticalSpacer_17">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Fixed</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>10</height>
-                 </size>
-                </property>
-               </spacer>
               </item>
               <item row="7" column="0" alignment="Qt::AlignHCenter">
                <widget class="QPushButton" name="btnClassifyTrain">
@@ -1104,15 +1122,14 @@ color: rgb(64, 64, 64)</string>
                 </property>
                </widget>
               </item>
-              <item row="13" column="0">
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>Foreground class:</string>
+              <item row="4" column="0" alignment="Qt::AlignHCenter">
+               <widget class="QPushButton" name="btnClassifyClearExamples">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
                 </property>
-               </widget>
-              </item>
-              <item row="14" column="0" alignment="Qt::AlignHCenter">
-               <widget class="QComboBox" name="inClassifyForeground">
                 <property name="minimumSize">
                  <size>
                   <width>140</width>
@@ -1121,16 +1138,19 @@ color: rgb(64, 64, 64)</string>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>150</width>
+                  <width>140</width>
                   <height>16777215</height>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the tissue class that you would like to perform segmentation on. The rest of the tissue classes you defined will be considered background.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all the examples of the tissue classes painted in the image. This is useful if you want to retrain your classifier using new examples. It is also a good idea to clear examples before pressing 'Next'.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Clear Examples</string>
                 </property>
                </widget>
               </item>
-              <item row="18" column="0">
+              <item row="16" column="0">
                <spacer name="verticalSpacer_16">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
@@ -1146,14 +1166,7 @@ color: rgb(64, 64, 64)</string>
                 </property>
                </spacer>
               </item>
-              <item row="16" column="0">
-               <widget class="QLabel" name="label_24">
-                <property name="text">
-                 <string>Classifier bias:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="20" column="0" alignment="Qt::AlignHCenter">
+              <item row="18" column="0" alignment="Qt::AlignHCenter">
                <widget class="QPushButton" name="btnClassifyDetail">
                 <property name="minimumSize">
                  <size>
@@ -1172,48 +1185,6 @@ color: rgb(64, 64, 64)</string>
                 </property>
                 <property name="text">
                  <string>More ...</string>
-                </property>
-               </widget>
-              </item>
-              <item row="12" column="0">
-               <spacer name="verticalSpacer_6">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Fixed</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>10</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="5" column="0">
-               <spacer name="verticalSpacer_14">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Fixed</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>10</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="2" column="0">
-               <widget class="ColorLabelQuickListWidget" name="boxLabelQuickList" native="true">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
                 </property>
                </widget>
               </item>

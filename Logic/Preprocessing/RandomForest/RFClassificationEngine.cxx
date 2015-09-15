@@ -19,7 +19,7 @@ RFClassificationEngine::RFClassificationEngine()
   m_Sample = NULL;
   m_Classifier = RandomForestClassifier::New();
   m_ForestSize = 50;
-  m_TreeDepth = 10;
+  m_TreeDepth = 30;
   m_PatchRadius.Fill(0);
   m_UseCoordinateFeatures = false;
 }

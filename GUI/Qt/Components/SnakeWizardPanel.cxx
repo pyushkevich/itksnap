@@ -224,11 +224,9 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
 
   // Couple the classification controls
   makeCoupling(ui->inClassifyForeground, m_Model->GetForegroundClassColorLabelModel());
-  makeCoupling(ui->inClassifyBias, m_Model->GetClassifierBiasModel());
 
   // Set up activation on classification controls
   activateOnFlag(ui->inClassifyForeground, m_Model, SnakeWizardModel::UIF_CLASSIFIER_TRAINED);
-  activateOnFlag(ui->inClassifyBias, m_Model, SnakeWizardModel::UIF_CLASSIFIER_TRAINED);
 
   // Couple the edge preprocessing controls
   makeCoupling(ui->inEdgeScale, m_Model->GetEdgePreprocessingSigmaModel());

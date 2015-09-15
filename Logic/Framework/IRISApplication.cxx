@@ -533,9 +533,6 @@ IRISApplication
     double zSlice,
     const std::string &undoTitle)
 {
-  // Only in IRIS mode
-  assert(!IsSnakeModeActive());
-
   // Get the segmentation image
   LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
 
