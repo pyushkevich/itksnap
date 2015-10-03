@@ -238,6 +238,29 @@ public:
     }
 };
 
+
+/*
+ * Define customizations to the Plastique style to make it appear more like Fusion
+ */
+#if QT_VERSION < 0x050000
+#include <QProxyStyle>
+
+class FusionProxy : public QProxyStyle
+{
+public:
+
+  virtual void polish(QPalette &palette)
+  {
+    QColor fusion_gray(232, 232, 232);
+    palette = QPalette(fusion_gray);
+  }
+
+protected:
+};
+
+#endif
+
+
 /**
  This function decodes filenames in "SHORT" DOS format. It does nothing
  on non-Windows platforms
@@ -484,6 +507,8 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   return 0;
 }
 
+
+
 #include <QDir>
 
 int main(int argc, char *argv[])
@@ -536,6 +561,12 @@ int main(int argc, char *argv[])
 
   // Set the application style
   app.setStyle(QStyleFactory::create(argdata.style.c_str()));
+  if(argdata.style != "fusion")
+    {
+    QPalette fpal(QColor(232,232,232));
+    fpal.setColor(QPalette::Normal, QPalette::Highlight, QColor(70, 136, 228));
+    app.setPalette(fpal);
+    }
 
   // Before we can create any of the framework classes, we need to get some
   // platform-specific functionality to the SystemInterface
