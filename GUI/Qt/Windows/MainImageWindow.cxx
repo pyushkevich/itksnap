@@ -335,32 +335,36 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   this->HookupSecondaryShortcutToAction(QKeySequence("."), ui->actionForegroundLabelNext);
   this->HookupShortcutToAction(QKeySequence("C"), ui->actionCenter_on_Cursor);
 
+  // Common modifiers
+  const QString mod_option(QChar(0x2325));
+  const QString mod_shift(QChar(0x21e7));
+
   // Generate tooltips for the complex actions
   ModeTooltipBuilder ttCrosshair("Crosshair Mode (1)",
                                  "Used to position the 3D cursor in the three orthogonal image slices.");
   ttCrosshair.addMouseAction(ModeTooltipBuilder::LMB, "<b>Place and move the 3D cursor</b>");
   ttCrosshair.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
-  ttCrosshair.addMouseAction(ModeTooltipBuilder::LMB, "Pan (hold & drag)","⌥");
+  ttCrosshair.addMouseAction(ModeTooltipBuilder::LMB, "Pan (hold & drag)",mod_option);
   ttCrosshair.addMouseAction(ModeTooltipBuilder::SCROLL, "Go to next/previous image slice");
-  ttCrosshair.addMouseAction(ModeTooltipBuilder::SCROLL, "Go to next/previous image component","⇧");
+  ttCrosshair.addMouseAction(ModeTooltipBuilder::SCROLL, "Go to next/previous image component",mod_shift);
   ui->actionCrosshair->setToolTip(ttCrosshair.makeTooltip());
 
   ModeTooltipBuilder ttZoom("Zoom/Pan Mode (2)",
                             "Used to zoom into the image and to pan around when zoomed in.");
   ttZoom.addMouseAction(ModeTooltipBuilder::LMB, "<b>Pan (hold & drag)</b>");
   ttZoom.addMouseAction(ModeTooltipBuilder::RMB, "<b>Zoom in and out (hold & drag)</b>");
-  ttZoom.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor","⌥");
+  ttZoom.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor", mod_option);
   ttZoom.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
-  ttZoom.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components","⇧");
+  ttZoom.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components",mod_shift);
   ui->actionZoomPan->setToolTip(ttZoom.makeTooltip());
 
   ModeTooltipBuilder ttPolygon("Polygon Mode (3)",
                                "Used to perform manual segmentation by drawing and filling polygons in the three orthogonal image slices.");
   ttPolygon.addMouseAction(ModeTooltipBuilder::LMB, "<b>Add points to the polygon and edit the completed polygon</b>");
   ttPolygon.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
-  ttPolygon.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor","⌥");
+  ttPolygon.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor",mod_option);
   ttPolygon.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
-  ttPolygon.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components","⇧");
+  ttPolygon.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components",mod_shift);
   ui->actionPolygon->setToolTip(ttPolygon.makeTooltip());
 
   ModeTooltipBuilder ttPaintbrush("Paintbrush Mode (4)",
@@ -368,9 +372,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
                                "Different brush shapes are available, including an adaptive brush that adjusts itself to the image data.");
   ttPaintbrush.addMouseAction(ModeTooltipBuilder::LMB, "<b>Paint with the active label</b>");
   ttPaintbrush.addMouseAction(ModeTooltipBuilder::RMB, "<b>Erase voxels painted with the active label</b>");
-  ttPaintbrush.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor","⌥");
+  ttPaintbrush.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor",mod_option);
   ttPaintbrush.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
-  ttPaintbrush.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components","⇧");
+  ttPaintbrush.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components",mod_shift);
   ui->actionPaintbrush->setToolTip(ttPaintbrush.makeTooltip());
 
   ModeTooltipBuilder ttSnake("Active Contour (aka \"Snake\") Segmentation Mode (5)",
@@ -378,9 +382,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
                              "segmentation and start the semi-automatic segmentation wizard.");
   ttSnake.addMouseAction(ModeTooltipBuilder::LMB, "<b>Adjust the boundaries of the region of interest</b>");
   ttSnake.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
-  ttSnake.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor","⌥");
+  ttSnake.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor",mod_option);
   ttSnake.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
-  ttSnake.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components","⇧");
+  ttSnake.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components",mod_shift);
   ui->actionSnake->setToolTip(ttSnake.makeTooltip());
 
   ModeTooltipBuilder ttRuler("Image Annotation Mode (6)",
@@ -388,9 +392,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
                              "distances and angles between points in a slice.");
   ttRuler.addMouseAction(ModeTooltipBuilder::LMB, "<b>Draw and edit annotations</b>");
   ttRuler.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
-  ttRuler.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor","⌥");
+  ttRuler.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor",mod_option);
   ttRuler.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
-  ttRuler.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components","⇧");
+  ttRuler.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components",mod_shift);
   ui->actionAnnotation->setToolTip(ttRuler.makeTooltip());
 
   // Translate the tooltips in all the widgets. This changes the apple symbols that are currently
