@@ -358,15 +358,8 @@ void TestWorker::wait(unsigned int msec)
   msleep(msec);
 }
 
-void TestWorker::source(QString script_url)
+void TestWorker::readScript(QString script_url, QString &script)
 {
-  // The test may be a path to an actual file
-  if(!QFileInfo(script_url).isReadable())
-    script_url = QString(":/scripts/Scripts/test_%1.js").arg(script_url);
-
-  // Report which test we are accessing
-  qDebug() << "Running test: " << script_url;
-
   // Find the script file corresponding to the test
   QFile file(script_url);
   if(!file.open(QIODevice::ReadOnly))
@@ -377,7 +370,6 @@ void TestWorker::source(QString script_url)
 
   // Read the script
   QTextStream stream(&file);
-  QString script;
 
   // Read the script line by line, making substitutions
   while(!stream.atEnd())
@@ -385,6 +377,8 @@ void TestWorker::source(QString script_url)
     QString line = stream.readLine();
     QRegExp rxSleep("^\\s*$");
     QRegExp rxComment("//===\\s+(\\w+.*)");
+    // QRegExp rxInclude("include.*\\((\\w+.*)\\)");
+    QRegExp rxInclude("include.*\"(\\w+.*)\".*");
 
     if(rxSleep.indexIn(line) >= 0)
       {
@@ -394,6 +388,17 @@ void TestWorker::source(QString script_url)
       {
       line = QString("engine.print(\"%1\")").arg(rxComment.cap(1));
       }
+    else if(rxInclude.indexIn(line) >= 0)
+      {
+      QString child_url = rxInclude.cap(1);
+      if(!QFileInfo(child_url).isReadable())
+        child_url = QString(":/scripts/Scripts/test_%1.js").arg(child_url);
+
+      qDebug() << "Including : " << child_url;
+
+      this->readScript(child_url, script);
+      line = "";
+      }
 
     script += line;
     script += "\n";
@@ -401,6 +406,19 @@ void TestWorker::source(QString script_url)
 
   // Close the file
   file.close();
+}
+
+void TestWorker::source(QString script_url)
+{
+  // The test may be a path to an actual file
+  if(!QFileInfo(script_url).isReadable())
+    script_url = QString(":/scripts/Scripts/test_%1.js").arg(script_url);
+
+  // Report which test we are accessing
+  qDebug() << "Running test: " << script_url;
+
+  QString script;
+  this->readScript(script_url, script);
 
   // Execute it
   QJSValue rc = m_Engine->evaluate(script);

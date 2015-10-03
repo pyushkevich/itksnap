@@ -46,6 +46,8 @@ protected:
 
   // Acceleration factor
   double m_Acceleration;
+
+  void readScript(QString script_url, QString &script);
 };
 
 class SNAPTestQt : public QObject

@@ -1,5 +1,5 @@
 // Read the function library
-thread.source("Library");
+include("Library");
 
 // Open the test image
 openMainImage("MRIcrop-orig.gipl.gz");

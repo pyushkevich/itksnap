@@ -1,7 +1,7 @@
 // This script positions the cursor and checks image intensity
 
 // Call the open image script
-thread.source("Library")
+include("Library");
 
 // Open the test image
 openMainImage("MRIcrop-orig.gipl.gz");
