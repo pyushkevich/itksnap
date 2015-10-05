@@ -733,6 +733,9 @@ ImageIOWizard::ImageIOWizard(QWidget *parent) :
   // Give ourselves a name
   this->setObjectName("wizImageIO");
 
+  // Set consistent style on all systems
+  this->setWizardStyle(QWizard::ClassicStyle);
+
   // Add pages to the wizard
   setPage(Page_File, new SelectFilePage(this));
   setPage(Page_Summary, new SummaryPage(this));

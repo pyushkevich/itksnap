@@ -6,6 +6,7 @@ MeshExportWizard::MeshExportWizard(QWidget *parent) :
   ui(new Ui::MeshExportWizard)
 {
   ui->setupUi(this);
+  this->setWizardStyle(QWizard::ClassicStyle);
 }
 
 MeshExportWizard::~MeshExportWizard()
