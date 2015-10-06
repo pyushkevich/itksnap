@@ -24,6 +24,9 @@
 #include "GMMRenderer.h"
 #include "QtDoubleSliderWithEditorCoupling.h"
 #include "QtPagedWidgetCoupling.h"
+#include "ImageIODelegates.h"
+#include "ImageIOWizard.h"
+#include "ImageIOWizardModel.h"
 
 Q_DECLARE_METATYPE(SnakeWizardModel::LayerScalarRepIndex)
 
@@ -164,15 +167,6 @@ void SpeedImageDialog::on_btnIterateTen_clicked()
     m_Model->PerformClusteringIteration();
 }
 
-
-void SpeedImageDialog::on_btnTrain_clicked()
-{
-  m_Model->TrainClassifier();
-}
-
-#include "ImageIODelegates.h"
-#include "ImageIOWizard.h"
-#include "ImageIOWizardModel.h"
 
 void SpeedImageDialog::on_btnClassifyLoad_clicked()
 {

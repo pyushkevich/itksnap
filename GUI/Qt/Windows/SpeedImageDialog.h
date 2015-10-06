@@ -46,8 +46,6 @@ private slots:
 
   void on_btnIterateTen_clicked();
 
-  void on_btnTrain_clicked();
-
   void on_btnClassifyLoad_clicked();
 
   void on_btnClassifySave_clicked();
