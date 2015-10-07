@@ -43,6 +43,9 @@ QtAbstractOpenGLBox::QtAbstractOpenGLBox(QWidget *parent) :
 {
   m_NeedResizeOnNextRepaint = false;
   m_GrabFocusOnEntry = false;
+
+  this->setAttribute(Qt::WA_OpaquePaintEvent);
+  this->setAttribute(Qt::WA_NoSystemBackground);
 }
 
 void QtAbstractOpenGLBox::AttachSingleDelegate(QtInteractionDelegateWidget *delegate)
