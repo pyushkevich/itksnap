@@ -1523,6 +1523,9 @@ bool MainImageWindow::SaveSegmentation(bool interactive)
 
 void MainImageWindow::RaiseDialog(QDialog *dialog)
 {
+  // propagate the attributes.
+  dialog->setAttribute(Qt::WA_PaintOnScreen, this->testAttribute(Qt::WA_PaintOnScreen));
+
   dialog->show();
   dialog->activateWindow();
   dialog->raise();

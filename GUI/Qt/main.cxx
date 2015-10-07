@@ -182,7 +182,7 @@ void usage(const char *progname)
   cout << "Additional Options:" << endl;
   cout << "   -z FACTOR            : Specify initial zoom in screen pixels/mm" << endl;
   cout << "   --cwd PATH           : Start with PATH as the initial directory" << endl;
-  cout << "Debugging/Testing Options" << endl;
+  cout << "Debugging/Testing Options:" << endl;
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events       : Dump information regarding UI events" << endl;
 #endif // SNAP_DEBUG_EVENTS
@@ -190,6 +190,12 @@ void usage(const char *progname)
   cout << "   --test TESTID        : Execute a test. " << endl;
   cout << "   --testdir DIR        : Set the root directory for tests. " << endl;
   cout << "   --testacc factor     : Adjust the interval between test commands by factor (e.g., 0.5). " << endl;
+  cout << "Platform-Specific Options:" << endl;
+#if QT_VERSION < 0x050000
+#ifdef Q_WS_X11
+  cout << "   --x11-db             : Enable widget double buffering on X11. By default it is off." << endl;
+#endif
+#endif
 }
 
 void setupParser(CommandLineArgumentParser &parser)
@@ -216,6 +222,9 @@ public:
   // Whether the application is being launched from the console
   bool flagConsole;
 
+  // Whether widgets are double-buffered
+  bool flagX11DoubleBuffer;
+
   // Test-related stuff
   std::string xTestId;
   std::string fnTestDir;
@@ -228,7 +237,8 @@ public:
   std::string style;
 
   CommandLineRequest()
-    : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0) 
+    : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0),
+      flagX11DoubleBuffer(false)
     {
 #if QT_VERSION >= 0x050000
     style = "fusion";
@@ -346,6 +356,8 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   // Some qt stuff
   parser.AddOption("--style", 1);
+
+  parser.AddOption("--x11-db",0);
 
   // Obtain the result
   CommandLineArgumentParseResult parseResult;
@@ -504,6 +516,10 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   if(parseResult.IsOptionPresent("--style"))
     argdata.style = parseResult.GetOptionParameter("--style");
 
+  // Enable double buffering on X11
+  if(parseResult.IsOptionPresent("x11-db"))
+    argdata.flagX11DoubleBuffer = true;
+
   return 0;
 }
 
@@ -614,6 +630,16 @@ int main(int argc, char *argv[])
     // Create the main window
     MainImageWindow *mainwin = new MainImageWindow();
     mainwin->Initialize(gui);
+
+    // Disable double buffering in X11 to avoid flickering issues. The documentation
+    // says this only happens on X11. For the time being, we are only implementing this
+    // for Qt4 and X11
+#if QT_VERSION < 0x050000
+#ifdef Q_WS_X11
+    if(!argdata.flagX11DoubleBuffer)
+      mainwin->setAttribute(Qt::WA_PaintOnScreen);
+#endif
+#endif
 
     // Start parsing options
     IRISWarningList warnings;
