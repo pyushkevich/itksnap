@@ -267,6 +267,9 @@ font-size: 11px;
        <property name="buttonSymbols">
         <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
+       <property name="maximum">
+        <number>65536</number>
+       </property>
       </widget>
      </item>
      <item>
