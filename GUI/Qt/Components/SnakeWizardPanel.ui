@@ -1171,6 +1171,15 @@ color: rgb(64, 64, 64)</string>
               </item>
               <item row="14" column="0">
                <widget class="QListView" name="lstClassifyForeground">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Designate one or more classes as the &amp;quot;foreground&amp;quot; class(es). These are the classes that you want to apply segmentation to. The speed image is computed as the sum of probabilities of all the foreground classes, minus the sum of probabilities of the background classes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">QListView:!active
+{
+  selection-background-color: rgb(162, 204, 255);
+}</string>
+                </property>
                 <property name="editTriggers">
                  <set>QAbstractItemView::NoEditTriggers</set>
                 </property>

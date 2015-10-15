@@ -205,7 +205,7 @@ void RFClassificationEngine:: TrainClassifier()
       }
     if(m_Classifier->m_ClassWeights[it->first] < 0.0)
       n_back++;
-    else if(m_Classifier->m_ClassWeights[it->first] > 1.0)
+    else if(m_Classifier->m_ClassWeights[it->first] > 0.0)
       n_fore++;
     }
 

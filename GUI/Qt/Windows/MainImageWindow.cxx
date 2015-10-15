@@ -669,8 +669,14 @@ void MainImageWindow::UpdateMainLayout()
 void MainImageWindow::UpdateCanvasDimensions()
 {
   // We should not do this in fullscreen mode
-  if(QApplication::desktop()->isFullScreen())
+  Qt::WindowStates ws = this->windowState();
+  if(ws.testFlag(Qt::WindowFullScreen))
+    {
     return;
+    }
+
+  // Get the current desktop dimensions
+  QRect desktop = QApplication::desktop()->availableGeometry(this);
 
   // The desired window aspect ratio
   double windowAR = 1.0;
@@ -699,9 +705,6 @@ void MainImageWindow::UpdateCanvasDimensions()
   // Adjust the width of the screen to achieve desired aspect ratio
   int cw_width = static_cast<int>(windowAR * ui->centralwidget->height());
   int mw_width = this->width() + (cw_width - ui->centralwidget->width());
-
-  // Get the current desktop dimensions
-  QRect desktop = QApplication::desktop()->availableGeometry(this);
 
   // Adjust the width to be within the desktop dimensions
   mw_width = std::min(desktop.width(), mw_width);
@@ -1192,13 +1195,8 @@ void MainImageWindow::onSnakeWizardFinished()
   // Make the dock containing the wizard visible
   m_DockRight->setVisible(false);
 
-  // TODO: this way of handling the size of the main window after the right
-  // dock is hidden is rudimentary. I should learn how to use sizePolicy and
-  // sizeHint fields more effectively.
-
-  // Return to previous size
-  this->layout()->activate();
-  resize(m_SizeWithoutRightDock.width(), m_SizeWithoutRightDock.height());
+  // Auto-adjust the canvas size
+  this->UpdateCanvasDimensions();
 }
 
 void MainImageWindow::on_actionUnload_All_triggered()
