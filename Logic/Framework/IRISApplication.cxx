@@ -211,7 +211,7 @@ IRISApplication
   unsigned int nCopied = 0;
   while(!itLabel.IsAtEnd())
     {
-    if(itLabel.Value() != passThroughLabel)
+    if(itLabel.Value() != passThroughLabel || !roi.IsSeedWithCurrentSegmentation())
       itLabel.Value() = (LabelType) 0;
     else
       nCopied++;
@@ -2012,6 +2012,12 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
     {
     history = "LabelImage";
     category = "Segmentation Image";
+
+    if(this->IsSnakeModeActive() && this->GetPreprocessingMode() == PREPROCESS_RF)
+      {
+      history = "ClassifierSamples";
+      category = "Classifier Samples Image";
+      }
     }
 
   else if(role == OVERLAY_ROLE)
@@ -2038,6 +2044,7 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
   // Create delegate
   SmartPtr<DefaultSaveImageDelegate> delegate = DefaultSaveImageDelegate::New();
   delegate->Initialize(this, layer, history);
+  delegate->SetCategory(category);
 
   // Return the delegate
   return delegate.GetPointer();
