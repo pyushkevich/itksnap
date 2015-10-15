@@ -8,33 +8,15 @@ void RandomForestClassifier::Reset()
 
   m_Forest = new RandomForestType(true);
   m_ClassToLabelMapping.clear();
-  m_ForegroundClass = 0;
   m_BiasParameter = 0.5;
   m_PatchRadius.Fill(0);
   m_UseCoordinateFeatures = false;
+  m_ClassWeights.clear();
 }
 
-LabelType RandomForestClassifier::GetForegroundClassLabel() const
+void RandomForestClassifier::SetClassWeight(size_t class_id, double weight)
 {
-  MappingType::const_iterator it = m_ClassToLabelMapping.find(m_ForegroundClass);
-  if(it != m_ClassToLabelMapping.end())
-    return it->second;
-
-  // Default behavior - clear label
-  return 0;
-}
-
-void RandomForestClassifier::SetForegroundClassLabel(LabelType label)
-{
-  MappingType::const_iterator it = m_ClassToLabelMapping.begin();
-  for(; it != m_ClassToLabelMapping.end(); ++it)
-    {
-    if(it->second == label)
-      {
-      m_ForegroundClass = it->first;
-      return;
-      }
-    }
+  m_ClassWeights[class_id] = weight;
 }
 
 bool RandomForestClassifier::IsValidClassifier() const

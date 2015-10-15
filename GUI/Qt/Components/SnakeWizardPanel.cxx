@@ -145,7 +145,7 @@ void BubbleItemModel::onBubbleValuesUpdate()
 
 
 SnakeWizardPanel::SnakeWizardPanel(QWidget *parent) :
-    QWidget(parent),
+    SNAPComponent(parent),
     ui(new Ui::SnakeWizardPanel)
 {
   ui->setupUi(this);
@@ -170,6 +170,11 @@ SnakeWizardPanel::SnakeWizardPanel(QWidget *parent) :
 
   this->addAction(ui->actionIncreaseBubbleRadius);
   this->addAction(ui->actionDecreaseBubbleRadius);
+
+  // Create model for the classification foreground list view
+  QStandardItemModel *classify_fg_model = new QStandardItemModel(this);
+  classify_fg_model->setColumnCount(1);
+  ui->lstClassifyForeground->setModel(classify_fg_model);
 }
 
 SnakeWizardPanel::~SnakeWizardPanel()
@@ -221,12 +226,22 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
   makeCoupling(ui->inClusterCount, m_Model->GetNumberOfClustersModel());
   makeCoupling(ui->inClusterActive, m_Model->GetForegroundClusterModel());
 
-
-  // Couple the classification controls
-  makeCoupling(ui->inClassifyForeground, m_Model->GetForegroundClassColorLabelModel());
-
   // Set up activation on classification controls
-  activateOnFlag(ui->inClassifyForeground, m_Model, SnakeWizardModel::UIF_CLASSIFIER_TRAINED);
+  activateOnFlag(ui->lstClassifyForeground, m_Model, SnakeWizardModel::UIF_CLASSIFIER_TRAINED);
+
+  // Make the coupling for foreground label list (some complicated template magic here)
+  typedef DefaultWidgetValueTraits<
+      SnakeWizardModel::ClassifierLabelForegroundMap,
+      QAbstractItemView> ClassifyForegroundValueTraits;
+
+  typedef QStandardItemModelWidgetDomainTraits<
+      SnakeWizardModel::ClassifierLabelForegroundMapDomain,
+      SingleColumnColorLabelToQSIMCouplingRowTraits> ClassifyForegroundDomainTraits;
+
+  makeCoupling((QAbstractItemView *) ui->lstClassifyForeground,
+               m_Model->GetClassifierLabelForegroundModel(),
+               ClassifyForegroundValueTraits(),
+               ClassifyForegroundDomainTraits());
 
   // Couple the edge preprocessing controls
   makeCoupling(ui->inEdgeScale, m_Model->GetEdgePreprocessingSigmaModel());
@@ -473,6 +488,73 @@ void SnakeWizardPanel::onClassifyQuickLabelSelection()
   m_Model->GetParent()->GetGlobalState()->SetToolbarMode(PAINTBRUSH_MODE);
 }
 
+/*
+void SnakeWizardPanel::UpdateClassifierForegroundTable()
+{
+  m_IsClassifierForegroundTableChanging = true;
+
+  ui->lstClassifyForeground->clear();
+  if(m_Model->IsClassifierTrained())
+    {
+    SnakeWizardModel::ClassifierFBTable fbtab;
+    m_Model->GetClassifierForegroundBackgroundTable(fbtab);
+
+    if(m_ClassifierForegroundTableCached == fbtab)
+      return;
+    else
+      m_ClassifierForegroundTableCached = fbtab;
+
+    for(SnakeWizardModel::ClassifierFBTable::iterator it = fbtab.begin();
+        it != fbtab.end(); ++it)
+      {
+      QListWidgetItem *item = new QListWidgetItem(ui->lstClassifyForeground);
+      item->setText(from_utf8(it->second.title));
+      item->setIcon(CreateColorBoxIcon(16, 16,
+                                       QColor(255 * it->second.color[0],
+                                              255 * it->second.color[1],
+                                              255 * it->second.color[2])));
+      item->setData(Qt::UserRole, it->first);
+      item->setSelected(it->second.weight > 0.0);
+      }
+    }
+  else
+    {
+    m_ClassifierForegroundTableCached.clear();
+    }
+
+  m_IsClassifierForegroundTableChanging = false;
+}
+
+void SnakeWizardPanel::on_lstClassifyForeground_itemSelectionChanged()
+{
+  if(m_IsClassifierForegroundTableChanging)
+    return;
+
+  if(m_Model->IsClassifierTrained())
+    {
+    SnakeWizardModel::ClassifierFBTable fbtab;
+    for(int i = 0; i < ui->lstClassifyForeground->count(); i++)
+      {
+      QListWidgetItem *item = ui->lstClassifyForeground->item(i);
+      LabelType label = item->data(Qt::UserRole).value<LabelType>();
+      bool is_selected = item->isSelected();
+      fbtab[label].weight = is_selected ? 1.0 : -1.0;
+      }
+    m_Model->SetClassifierForegroundBackgroundTable(fbtab);
+    }
+}
+
+
+void SnakeWizardPanel::onModelUpdate(const EventBucket &bucket)
+{
+  if(bucket.HasEvent(SnakeWizardModel::RFClassifierModifiedEvent())
+     || bucket.HasEvent(SegmentationLabelChangeEvent()))
+    {
+    this->UpdateClassifierForegroundTable();
+    }
+}
+*/
+
 void SnakeWizardPanel::on_btnEdgeDetail_clicked()
 {
   m_SpeedDialog->ShowDialog();
@@ -482,3 +564,8 @@ void SnakeWizardPanel::on_btnClassifyDetail_clicked()
 {
   m_SpeedDialog->ShowDialog();
 }
+
+
+
+
+

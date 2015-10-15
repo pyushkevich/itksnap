@@ -272,18 +272,21 @@ protected:
   owns the data, as opposed to STLMapWrapperItemSetDomain, which references
   the data from another map. This implementation is useful for small domains
   where there is no cost in passing the domain by value.
+
+  This version does not support comparison between domains, and can not be used
+  in applications where the domain needs to be cached
   */
 template<class TVal, class TDesc>
-class SimpleItemSetDomain : public
+class SimpleNonAtomicItemSetDomain : public
     AbstractItemSetDomain<TVal, TDesc, typename std::map<TVal,TDesc>::const_iterator>
 {
 public:
   typedef std::map<TVal, TDesc> MapType;
   typedef typename MapType::const_iterator const_iterator;
-  typedef SimpleItemSetDomain<TVal, TDesc> Self;
+  typedef SimpleNonAtomicItemSetDomain<TVal, TDesc> Self;
   typedef AbstractItemSetDomain<TVal, TDesc, const_iterator> Superclass;
 
-  SimpleItemSetDomain() : Superclass() { }
+  SimpleNonAtomicItemSetDomain() : Superclass() { }
 
   const_iterator begin() const
     { return m_Map.begin(); }
@@ -311,20 +314,54 @@ public:
 
   const TDesc & operator [] (const TVal &key) const { return m_Map[key]; }
 
+  // Bogus - just compares to self
   virtual bool operator == (const Self &cmp) const
-    { return m_Map == cmp.m_Map; }
+    { return &m_Map == &cmp.m_Map; }
+
+  // Bogus - just compares to self
+  virtual bool operator != (const Self &cmp) const
+    { return &m_Map != &cmp.m_Map; }
+
+  // An atomic domain holds its own state, so it is possible to compare two
+  // atomic domains to determine if they are the same or different. Domains
+  // that store references to external objects are not atomic. This class is
+  // not atomic because it does not support comparisons
+  virtual bool isAtomic() { return false; }
+
+protected:
+  MapType m_Map;
+};
+
+/**
+  This is an item domain implementation that is just an stl::map, i.e., it
+  owns the data, as opposed to STLMapWrapperItemSetDomain, which references
+  the data from another map. This implementation is useful for small domains
+  where there is no cost in passing the domain by value.
+  */
+template<class TVal, class TDesc>
+class SimpleItemSetDomain : public
+    SimpleNonAtomicItemSetDomain<TVal, TDesc>
+{
+public:
+  typedef std::map<TVal, TDesc> MapType;
+  typedef typename MapType::const_iterator const_iterator;
+  typedef SimpleItemSetDomain<TVal, TDesc> Self;
+  typedef SimpleNonAtomicItemSetDomain<TVal, TDesc> Superclass;
+
+  SimpleItemSetDomain() : Superclass() { }
+
+  virtual bool operator == (const Self &cmp) const
+    { return this->m_Map == cmp.m_Map; }
 
   virtual bool operator != (const Self &cmp) const
-    { return m_Map != cmp.m_Map; }
+    { return this->m_Map != cmp.m_Map; }
 
   // An atomic domain holds its own state, so it is possible to compare two
   // atomic domains to determine if they are the same or different. Domains
   // that store references to external objects are not atomic.
   virtual bool isAtomic() { return true; }
-
-protected:
-  MapType m_Map;
 };
+
 
 /**
  * States that can be checked for property models. We place this enum outside

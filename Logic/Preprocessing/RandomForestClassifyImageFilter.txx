@@ -145,8 +145,8 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
   // Get the number of classes
   int nClass = m_Classifier->GetClassToLabelMapping().size();
 
-  // Get the current class
-  int activeClass = (int) m_Classifier->GetForegroundClass();
+  // Get the class weights (as they are assigned to foreground/background)
+  const RandomForestClassifier::WeightArray &class_weights = m_Classifier->GetClassWeights();
 
   // Create the MLdata representing each voxel (?)
   typedef Histogram<InputPixelType,LabelType> HistogramType;
@@ -194,9 +194,13 @@ RandomForestClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
     for(int i = 0; i < testResult.Size(); i++)
       {
       HistogramType *hist = testResult[i][0];
-      p_fore_total += hist->prob_[activeClass];
       for(int j = 0; j < nClass; j++)
-        p_total += hist->prob_[j];
+        {
+        double p = hist->prob_[j];
+        if(class_weights[j] > 0.0)
+          p_fore_total += p;
+        p_total += p;
+        }
       }
 
     // Set output only if the total probability is non-zero

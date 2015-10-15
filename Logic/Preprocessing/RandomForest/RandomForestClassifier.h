@@ -28,6 +28,9 @@ public:
   typedef std::map<size_t, LabelType> MappingType;
   typedef itk::Size<3> SizeType;
 
+  // A list of weights for each class - used to construct speed image
+  typedef std::vector<double> WeightArray;
+
   // Reset the classifier
   void Reset();
 
@@ -36,9 +39,6 @@ public:
 
   // Get the random forest
   irisGetMacro(Forest, RandomForestType *)
-
-  // Get the foreground class
-  irisGetMacro(ForegroundClass, size_t)
 
   // Get the patch radius
   irisGetMacro(PatchRadius, const SizeType &)
@@ -51,11 +51,11 @@ public:
   itkGetMacro(BiasParameter, double)
   itkSetMacro(BiasParameter, double)
 
-  // Get the label of the foreground class
-  LabelType GetForegroundClassLabel() const;
+  // Get a reference to the weight array
+  irisGetMacro(ClassWeights, const WeightArray &)
 
-  // Set the foreground class by label
-  void SetForegroundClassLabel(LabelType label);
+  // Set the weight for a class
+  void SetClassWeight(size_t class_id, double weight);
 
   // Test if the classifier is valid (has 2+ classes)
   bool IsValidClassifier() const;
@@ -74,8 +74,8 @@ protected:
   // Mapping of index to label (?)
   MappingType m_ClassToLabelMapping;
 
-  // The class that is currently active
-  size_t m_ForegroundClass;
+  // Weight of each class
+  WeightArray m_ClassWeights;
 
   // The patch radius
   SizeType m_PatchRadius;

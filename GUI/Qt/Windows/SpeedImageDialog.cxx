@@ -27,6 +27,7 @@
 #include "ImageIODelegates.h"
 #include "ImageIOWizard.h"
 #include "ImageIOWizardModel.h"
+#include "GenericImageData.h"
 
 Q_DECLARE_METATYPE(SnakeWizardModel::LayerScalarRepIndex)
 
@@ -186,5 +187,8 @@ void SpeedImageDialog::on_btnClassifyLoad_clicked()
 
 void SpeedImageDialog::on_btnClassifySave_clicked()
 {
-
+  SaveImageLayer(
+        m_Model->GetParent(),
+        m_Model->GetParent()->GetDriver()->GetCurrentImageData()->GetSegmentation(),
+        LABEL_ROLE, true, this);
 }

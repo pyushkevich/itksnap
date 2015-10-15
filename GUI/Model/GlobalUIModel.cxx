@@ -762,33 +762,9 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
   SmartPtr<AbstractSaveImageDelegate> delegate =
       m_Driver->CreateSaveDelegateForLayer(layer, role);
 
-  // Figure out the category name
-  std::string category;
-  switch(role)
-    {
-    case MAIN_ROLE:
-      category = "Image";
-      break;
-    case OVERLAY_ROLE:
-      category = "Image";
-      break;
-    case SNAP_ROLE:
-      if(dynamic_cast<SpeedImageWrapper *>(layer))
-        category = "Speed Image";
-      else if(dynamic_cast<LevelSetImageWrapper *>(layer))
-        category = "Level Set Image";
-      break;
-    case LABEL_ROLE:
-      category = "Segmentation Image";
-      break;
-    case NO_ROLE:
-    case ALL_ROLES:
-      break;
-    }
-
   // Create a model for IO
   SmartPtr<ImageIOWizardModel> modelIO = ImageIOWizardModel::New();
-  modelIO->InitializeForSave(this, delegate, category.c_str());
+  modelIO->InitializeForSave(this, delegate, delegate->GetCategory().c_str());
 
   return modelIO;
 }
