@@ -591,6 +591,16 @@ SNAPImageData
     // Copy metadata
     this->CopyLayerMetadata(this->GetLastOverlay(), lit.GetLayer());
     }
+
+  // Destroy the alternate image if there is none or if the ROI settings have changed
+  if(m_CompressedAlternateLabelImage && m_ROISettings != roi)
+    {
+    delete m_CompressedAlternateLabelImage;
+    m_CompressedAlternateLabelImage = NULL;
+    }
+
+  // Cache the ROI settings
+  m_ROISettings = roi;
 }
 
 void SNAPImageData::CopyLayerMetadata(

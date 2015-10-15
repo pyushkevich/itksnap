@@ -301,6 +301,10 @@ protected:
   typedef UndoDataManager<LabelType>::Delta CompressedLabelImageType;
   CompressedLabelImageType *m_CompressedAlternateLabelImage;
 
+  // Current ROI settings
+  SNAPSegmentationROISettings m_ROISettings;
+
+
   void SwapLabelImageWithCompressedAlternative();
 };
 
