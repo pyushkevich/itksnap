@@ -1449,8 +1449,8 @@ void SnakeWizardModel::OnEvolutionPageFinish()
   // Update IRIS with SNAP images
   m_Driver->UpdateIRISWithSnapImageData(NULL);
 
-  // Set an undo point
-  m_Driver->StoreUndoPoint("Automatic Segmentation");
+  // Set an undo point in IRIS, not SNAP!
+  m_Driver->GetIRISImageData()->StoreUndoPoint("Automatic Segmentation");
 
   // Return to IRIS mode
   m_Driver->SetCurrentImageDataToIRIS();

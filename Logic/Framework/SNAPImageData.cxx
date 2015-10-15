@@ -526,6 +526,10 @@ void SNAPImageData::SwapLabelImageWithCompressedAlternative()
     }
   save->FinishEncoding();
 
+  // Clear the undo manager
+  this->m_UndoManager.Clear();
+  this->m_UndoManager.SetCumulativeDelta(m_CompressedAlternateLabelImage);
+
   // Decompress the currently saved alternative
   if(m_CompressedAlternateLabelImage)
     {
@@ -536,7 +540,6 @@ void SNAPImageData::SwapLabelImageWithCompressedAlternative()
       for(size_t j = 0; j < m_CompressedAlternateLabelImage->GetRLELength(i); ++j, ++it_write)
         it_write.Value() = value;
       }
-    delete m_CompressedAlternateLabelImage;
     }
   else
     {
