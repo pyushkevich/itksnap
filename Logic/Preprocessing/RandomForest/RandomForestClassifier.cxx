@@ -21,7 +21,7 @@ void RandomForestClassifier::SetClassWeight(size_t class_id, double weight)
 
 bool RandomForestClassifier::IsValidClassifier() const
 {
-  return m_ClassToLabelMapping.size() >= 2;
+  return m_ClassToLabelMapping.size() >= 2 && m_Forest->GetForestSize() > 0;
 }
 
 RandomForestClassifier::RandomForestClassifier()

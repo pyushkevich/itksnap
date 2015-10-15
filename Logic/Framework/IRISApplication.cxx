@@ -211,7 +211,7 @@ IRISApplication
   unsigned int nCopied = 0;
   while(!itLabel.IsAtEnd())
     {
-    if(itLabel.Value() != passThroughLabel || !roi.IsSeedWithCurrentSegmentation())
+    if(itLabel.Value() != passThroughLabel)
       itLabel.Value() = (LabelType) 0;
     else
       nCopied++;
@@ -2012,12 +2012,6 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
     {
     history = "LabelImage";
     category = "Segmentation Image";
-
-    if(this->IsSnakeModeActive() && this->GetPreprocessingMode() == PREPROCESS_RF)
-      {
-      history = "ClassifierSamples";
-      category = "Classifier Samples Image";
-      }
     }
 
   else if(role == OVERLAY_ROLE)
@@ -2044,7 +2038,6 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
   // Create delegate
   SmartPtr<DefaultSaveImageDelegate> delegate = DefaultSaveImageDelegate::New();
   delegate->Initialize(this, layer, history);
-  delegate->SetCategory(category);
 
   // Return the delegate
   return delegate.GetPointer();
@@ -2527,7 +2520,8 @@ void IRISApplication::EnterRandomForestPreprocessingMode()
   bool can_use_saved_classifier =
       (m_LastUsedRFClassifier &&
        m_LastUsedRFClassifierComponents ==
-       m_ClassificationEngine->GetNumberOfComponents());
+       m_ClassificationEngine->GetNumberOfComponents() &&
+       m_LastUsedRFClassifier->IsValidClassifier());
 
   if(can_use_saved_classifier)
     {
@@ -2553,6 +2547,10 @@ void IRISApplication::EnterRandomForestPreprocessingMode()
   m_RandomForestPreviewWrapper->AttachInputs(m_SNAPImageData);
   m_RandomForestPreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());
   m_RandomForestPreviewWrapper->SetParameters(m_ClassificationEngine->GetClassifier());
+
+  // Switch segmentation to examples
+  m_SNAPImageData->SwitchLabelImageToExamples();
+  InvokeEvent(SegmentationChangeEvent());
 }
 
 #include "RandomForestClassifier.h"
@@ -2576,6 +2574,10 @@ void IRISApplication::LeaveRandomForestPreprocessingMode()
 
   // Clear the classification engine
   m_ClassificationEngine = NULL;
+
+  // Switch segmentation to examples
+  m_SNAPImageData->SwitchLabelImageToMainSegmentation();
+  InvokeEvent(SegmentationChangeEvent());
 }
 
 void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)

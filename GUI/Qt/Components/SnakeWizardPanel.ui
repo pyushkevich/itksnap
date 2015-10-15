@@ -1169,8 +1169,14 @@ color: rgb(64, 64, 64)</string>
                 </property>
                </widget>
               </item>
-              <item row="14" column="0">
+              <item row="14" column="0" alignment="Qt::AlignHCenter">
                <widget class="QListView" name="lstClassifyForeground">
+                <property name="maximumSize">
+                 <size>
+                  <width>165</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Designate one or more classes as the &amp;quot;foreground&amp;quot; class(es). These are the classes that you want to apply segmentation to. The speed image is computed as the sum of probabilities of all the foreground classes, minus the sum of probabilities of the background classes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -1561,7 +1567,7 @@ border-right: 0px;</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item alignment="Qt::AlignHCenter">
            <widget class="QTableView" name="tableBubbleList">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1571,7 +1577,7 @@ border-right: 0px;</string>
             </property>
             <property name="maximumSize">
              <size>
-              <width>155</width>
+              <width>165</width>
               <height>120</height>
              </size>
             </property>
