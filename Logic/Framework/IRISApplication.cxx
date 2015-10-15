@@ -211,7 +211,7 @@ IRISApplication
   unsigned int nCopied = 0;
   while(!itLabel.IsAtEnd())
     {
-    if(itLabel.Value() != passThroughLabel)
+    if(itLabel.Value() != passThroughLabel || !roi.IsSeedWithCurrentSegmentation())
       itLabel.Value() = (LabelType) 0;
     else
       nCopied++;

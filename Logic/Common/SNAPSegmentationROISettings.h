@@ -54,6 +54,7 @@ public:
   SNAPSegmentationROISettings()
     {
     m_InterpolationMethod = NEAREST_NEIGHBOR;
+    m_SeedWithCurrentSegmentation = false;
     }
 
   virtual ~SNAPSegmentationROISettings() {}
@@ -79,6 +80,12 @@ public:
   // Set the interpolation method used
   irisGetMacro(InterpolationMethod,InterpolationMethod)
 
+  // Check whether the current segmentation is used to seed level set
+  irisIsMacro(SeedWithCurrentSegmentation)
+
+  // Set whether the current segmentation is used to seed level set
+  irisSetMacro(SeedWithCurrentSegmentation, bool)
+
   bool operator == (const SNAPSegmentationROISettings &other) const;
   bool operator != (const SNAPSegmentationROISettings &other) const;
 
@@ -92,6 +99,9 @@ private:
   
   // The interpolation method used
   InterpolationMethod m_InterpolationMethod;
+
+  // Whether the current segmentation is used to seed level set
+  bool m_SeedWithCurrentSegmentation;
 };
 
 

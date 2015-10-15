@@ -234,6 +234,13 @@ GlobalUIModel::GlobalUIModel()
   m_SnakeROISizeModel->Rebroadcast(
         m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
 
+  m_SnakeROISeedWithCurrentSegmentationModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetSnakeROISeedWithCurrentSegmentationValue,
+        &Self::SetSnakeROISeedWithCurrentSegmentationValue);
+
+  m_SnakeROISeedWithCurrentSegmentationModel->RebroadcastFromSourceProperty(
+        m_Driver->GetGlobalState()->GetSegmentationROISettingsModel());
 
   // Segmentation opacity models
   m_SegmentationOpacityModel = wrapGetterSetterPairAsProperty(
@@ -658,6 +665,26 @@ void GlobalUIModel::SetSnakeROISizeValue(Vector3ui value)
 
   m_Driver->GetGlobalState()->SetSegmentationROI(roi);
 }
+
+bool GlobalUIModel::GetSnakeROISeedWithCurrentSegmentationValue(bool &value)
+{
+  // There has to be an image
+  if(!m_Driver->IsMainImageLoaded())
+    return false;
+
+  value = m_Driver->GetGlobalState()->GetSegmentationROISettings().IsSeedWithCurrentSegmentation();
+  return true;
+}
+
+void GlobalUIModel::SetSnakeROISeedWithCurrentSegmentationValue(bool value)
+{
+  SNAPSegmentationROISettings roi_settings =
+      m_Driver->GetGlobalState()->GetSegmentationROISettings();
+  roi_settings.SetSeedWithCurrentSegmentation(value);
+  m_Driver->GetGlobalState()->SetSegmentationROISettings(roi_settings);
+}
+
+
 
 bool
 GlobalUIModel::GetSegmentationOpacityValueAndRange(
