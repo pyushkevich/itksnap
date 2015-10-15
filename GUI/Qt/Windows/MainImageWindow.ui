@@ -230,7 +230,7 @@ color:rgb(103, 103, 103);
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap>:/root/logo_square_shadow.png</pixmap>
+                  <pixmap resource="../Resources/SNAPResources.qrc">:/root/logo_square_shadow.png</pixmap>
                  </property>
                 </widget>
                </item>
@@ -766,7 +766,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionLabel_Editor">
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/icons8_palette_16.png</normaloff>:/root/icons8_palette_16.png</iconset>
    </property>
    <property name="text">
@@ -808,7 +808,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionUndo">
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/icons8_undo-48.png</normaloff>:/root/icons8_undo-48.png</iconset>
    </property>
    <property name="text">
@@ -823,7 +823,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionRedo">
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/icons8_redo-48.png</normaloff>:/root/icons8_redo-48.png</iconset>
    </property>
    <property name="text">
@@ -963,7 +963,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionLayerInspector">
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/icons8_layers_16.png</normaloff>:/root/icons8_layers_16.png</iconset>
    </property>
    <property name="text">
@@ -984,7 +984,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/crosshair.gif</normaloff>:/root/crosshair.gif</iconset>
    </property>
    <property name="text">
@@ -1002,7 +1002,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/zoom.gif</normaloff>:/root/zoom.gif</iconset>
    </property>
    <property name="text">
@@ -1020,7 +1020,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/poly.gif</normaloff>:/root/poly.gif</iconset>
    </property>
    <property name="text">
@@ -1038,7 +1038,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/paintbrush.gif</normaloff>:/root/paintbrush.gif</iconset>
    </property>
    <property name="text">
@@ -1056,7 +1056,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/snake.gif</normaloff>:/root/snake.gif</iconset>
    </property>
    <property name="text">
@@ -1082,7 +1082,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/rotate3d.gif</normaloff>:/root/rotate3d.gif</iconset>
    </property>
    <property name="text">
@@ -1097,7 +1097,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/crosshair3D.gif</normaloff>:/root/crosshair3D.gif</iconset>
    </property>
    <property name="text">
@@ -1112,14 +1112,14 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/scalpel.gif</normaloff>:/root/scalpel.gif</iconset>
    </property>
    <property name="text">
     <string>3D Scalpel Tool</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Scalpel Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to relabel parts of the 3D scene with a cutplane. Voxels on one side of the cutplane will be assigned the current foreground label. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to draw the cutplane; then to rotate it if needed. &lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Scalpel Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to relabel parts of the 3D scene with a cutplane. Voxels on one side of the cutplane will be assigned the current foreground label. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Click once to start cutplane drawing. Click again in a different location to finish. Then hold and drag cutplane 3D widget to rotate.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="action3DSpray">
@@ -1127,7 +1127,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/spray.gif</normaloff>:/root/spray.gif</iconset>
    </property>
    <property name="text">
@@ -1427,7 +1427,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/annotation_28.png</normaloff>:/root/annotation_28.png</iconset>
    </property>
    <property name="text">
@@ -1467,7 +1467,9 @@ color:rgb(103, 103, 103);
   <tabstop>btnLoadWorkspace</tabstop>
   <tabstop>tabSplash</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../Resources/SNAPResources.qrc"/>
+ </resources>
  <connections/>
  <designerdata>
   <property name="gridDeltaX">

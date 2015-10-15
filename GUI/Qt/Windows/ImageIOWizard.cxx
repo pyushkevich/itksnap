@@ -737,7 +737,8 @@ ImageIOWizard::ImageIOWizard(QWidget *parent) :
   this->setWizardStyle(QWizard::ClassicStyle);
 
   // Use parent widget's attributes
-  this->setAttribute(Qt::WA_PaintOnScreen, parent->testAttribute(Qt::WA_PaintOnScreen));
+  if(parent)
+    this->setAttribute(Qt::WA_PaintOnScreen, parent->testAttribute(Qt::WA_PaintOnScreen));
 
   // Add pages to the wizard
   setPage(Page_File, new SelectFilePage(this));
