@@ -3,6 +3,9 @@
 
 #include <QWidget>
 #include <QAbstractItemModel>
+#include <QStandardItemModel>
+#include <SNAPComponent.h>
+#include <SnakeWizardModel.h>
 
 namespace Ui {
 class SnakeWizardPanel;
@@ -10,11 +13,13 @@ class SnakeWizardPanel;
 
 class SpeedImageDialog;
 class GlobalUIModel;
-class SnakeWizardModel;
 class QTimer;
 class SnakeParameterDialog;
 class QToolBar;
 
+/**
+ * A Qt Model that handles bubble selection
+ */
 class BubbleItemModel : public QAbstractTableModel
 {
   Q_OBJECT
@@ -43,9 +48,7 @@ private:
   SnakeWizardModel *m_Model;
 };
 
-
-
-class SnakeWizardPanel : public QWidget
+class SnakeWizardPanel : public SNAPComponent
 {
   Q_OBJECT
 

@@ -4,6 +4,7 @@
 #include <SNAPQtCommon.h>
 #include <QtSpinBoxCoupling.h>
 #include <QtWidgetArrayCoupling.h>
+#include <QtCheckBoxCoupling.h>
 #include <GlobalUIModel.h>
 #include <SnakeROIModel.h>
 #include <MainImageWindow.h>
@@ -41,6 +42,9 @@ void SnakeToolROIPanel::SetModel(GlobalUIModel *model)
   makeArrayCoupling(
         ui->inSizeX, ui->inSizeY, ui->inSizeZ,
         model->GetSnakeROISizeModel());
+
+  // Hook up the segmentation seeding option
+  makeCoupling(ui->chkCarryLabels, model->GetSnakeROISeedWithCurrentSegmentationModel());
 }
 
 void SnakeToolROIPanel::on_btnResetROI_clicked()

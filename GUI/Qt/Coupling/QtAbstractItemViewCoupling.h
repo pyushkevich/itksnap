@@ -24,7 +24,14 @@
 
 
 
-
+/**
+ * The default value traits for QAbstractItemView use the currentRow in the item view
+ * to represent a value. Each row is assigned a value of class TAtomic, and the value
+ * of the current row is considered to be the value of the widget.
+ *
+ * in other words, the model holds an item of type TAtomic and the widget selects a
+ * corresponding row in the widget
+ */
 template <class TAtomic>
 class DefaultWidgetValueTraits<TAtomic, QAbstractItemView>
     : public WidgetValueTraitsBase<TAtomic, QAbstractItemView *>
@@ -78,6 +85,79 @@ public:
   {
     QModelIndex index = w->model()->index(-1, 0);
     w->setCurrentIndex(index);
+  }
+};
+
+
+/**
+ * An alternative value traits for QAbstractItemView uses the selection of all rows in
+ * the view to represent a value. Thus value here is map from an atomic type to boolean,
+ * where the boolean stores the selection state.
+ *
+ * Under this coupling, the model stores a list of on/off items, and the user can use
+ * multiple selection to modify this list.
+ */
+template<class TItemIndex>
+class DefaultWidgetValueTraits< std::map<TItemIndex, bool>, QAbstractItemView>
+    : public WidgetValueTraitsBase<std::map<TItemIndex, bool>, QAbstractItemView *>
+{
+public:
+  typedef std::map<TItemIndex, bool> AtomicType;
+
+  const char *GetSignal()
+  {
+    return SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &));
+  }
+
+  virtual QObject *GetSignalEmitter(QObject *w)
+  {
+    QAbstractItemView *view = dynamic_cast<QAbstractItemView *>(w);
+    return view ? view->selectionModel() : NULL;
+  }
+
+  void ScanValuesRecursive(QAbstractItemView *w, QModelIndex parent, AtomicType &result)
+  {
+    for(int i = 0; i < w->model()->rowCount(parent); i++)
+      {
+      QModelIndex index = w->model()->index(i, 0, parent);
+      TItemIndex val = w->model()->data(index, Qt::UserRole).value<TItemIndex>();
+      result[val] = w->selectionModel()->isSelected(index);
+      ScanValuesRecursive(w, index, result);
+      }
+  }
+
+  void SetValuesRecursive(QAbstractItemView *w, QModelIndex parent, const AtomicType &mapping)
+  {
+    for(int i = 0; i < w->model()->rowCount(parent); i++)
+      {
+      QModelIndex index = w->model()->index(i, 0, parent);
+      TItemIndex val = w->model()->data(index, Qt::UserRole).value<TItemIndex>();
+      typename AtomicType::const_iterator it = mapping.find(val);
+      if(it != mapping.end())
+        w->selectionModel()->select(index, it->second ? QItemSelectionModel::Select
+                                                      : QItemSelectionModel::Deselect);
+
+      SetValuesRecursive(w, index, mapping);
+      }
+  }
+
+  AtomicType GetValue(QAbstractItemView *w)
+  {
+    AtomicType value_map;
+    ScanValuesRecursive(w, QModelIndex(), value_map);
+    return value_map;
+  }
+
+  void SetValue(QAbstractItemView *w, const AtomicType &value)
+  {
+    // Find the item in the model
+    SetValuesRecursive(w, QModelIndex(), value);
+  }
+
+  void SetValueToNull(QAbstractItemView *w)
+  {
+    if(w->selectionModel())
+      w->selectionModel()->clear();
   }
 };
 

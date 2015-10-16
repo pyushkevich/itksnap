@@ -77,6 +77,7 @@ GenericImageData
 
 GenericImageData
 ::GenericImageData()
+  : m_UndoManager(4,200000)
 {
   // Make main image wrapper point to grey wrapper initially
   m_MainImageWrapper = NULL;
@@ -224,6 +225,10 @@ GenericImageData
 
   m_LabelWrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
   SetSingleImageWrapper(LABEL_ROLE, m_LabelWrapper.GetPointer());
+
+  // Reset the undo manager
+  m_UndoManager.Clear();
+  m_UndoManager.SetCumulativeDelta(NULL);
 }
 
 void
@@ -338,6 +343,25 @@ GenericImageData
 
   // Sync up spacing between the main and label image
   m_LabelWrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
+
+  // Reset the undo manager
+  m_UndoManager.Clear();
+  m_UndoManager.SetCumulativeDelta(this->CompressLabelImage());
+}
+
+GenericImageData::UndoManagerType::Delta *
+GenericImageData
+::CompressLabelImage()
+{
+  UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
+  LabelImageType *seg = this->GetSegmentation()->GetImage();
+  LabelType *buffer = seg->GetBufferPointer();
+  LabelType *buffer_end = buffer + seg->GetPixelContainer()->Size();
+  while (buffer < buffer_end)
+    new_cumulative->Encode(*buffer++);
+
+  new_cumulative->FinishEncoding();
+  return new_cumulative;
 }
 
 bool
@@ -390,6 +414,176 @@ const ImageCoordinateGeometry &GenericImageData::GetImageGeometry() const
   assert(m_MainImageWrapper->IsInitialized());
   return m_MainImageWrapper->GetImageGeometry();
 }
+
+GenericImageData::UndoManagerType::Delta *
+GenericImageData::GetCumulativeUndoDelta()
+{
+  return m_UndoManager.GetCumulativeDelta();
+}
+
+void GenericImageData::StoreUndoPoint(const char *text)
+{
+  // Set the current state as the undo point. We store the difference between
+  // the last 'undo' image and the current segmentation image, and then copy
+  // the current segmentation image into the undo image
+  LabelImageWrapper *seg = this->GetSegmentation();
+  UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
+
+  LabelType *dseg = seg->GetVoxelPointer();
+  size_t n = seg->GetNumberOfVoxels();
+
+  // Create the Undo delta object
+  UndoManagerType::Delta *delta = new UndoManagerType::Delta();
+
+  // Get the old cumulative delta
+  UndoManagerType::Delta *old_cumulative = m_UndoManager.GetCumulativeDelta();
+
+  // Run over the old cumulative data
+  if(old_cumulative)
+    {
+    for(size_t i = 0; i < old_cumulative->GetNumberOfRLEs(); i++)
+      {
+      size_t rle_len = old_cumulative->GetRLELength(i);
+      LabelType rle_val = old_cumulative->GetRLEValue(i);
+
+      for(size_t j = 0; j < rle_len; j++)
+        {
+        delta->Encode(*dseg - rle_val);
+        new_cumulative->Encode(*dseg);
+        dseg++;
+        }
+      }
+
+    // Important last step!
+    delta->FinishEncoding();
+    new_cumulative->FinishEncoding();
+    }
+  else
+    {
+    LabelType *dseg_end = dseg + n;
+    for(; dseg < dseg_end; ++dseg)
+      {
+      // TODO: add code to duplicate
+      delta->Encode(*dseg);
+      }
+
+    delta->FinishEncoding();
+    *new_cumulative = *delta;
+    }
+
+  // Add the delta object
+  m_UndoManager.AppendDelta(delta);
+  m_UndoManager.SetCumulativeDelta(new_cumulative);
+}
+
+void GenericImageData::ClearUndoPoints()
+{
+  m_UndoManager.Clear();
+}
+
+bool
+GenericImageData
+::IsUndoPossible()
+{
+  return m_UndoManager.IsUndoPossible();
+}
+
+void
+GenericImageData
+::Undo()
+{
+  // In order to undo, we must take the 'current' delta and apply
+  // it to the image
+  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForUndo();
+  UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
+
+  LabelImageWrapper *imSeg = this->GetSegmentation();
+  LabelType *dseg = imSeg->GetVoxelPointer();
+
+  // Applying the delta means adding
+  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
+    {
+    size_t n = delta->GetRLELength(i);
+    LabelType d = delta->GetRLEValue(i);
+    if(d == 0)
+      {
+      for(size_t j = 0; j < n; j++)
+        {
+        cumulative->Encode(*dseg);
+        ++dseg;
+        }
+      }
+    else
+      {
+      for(size_t j = 0; j < n; j++)
+        {
+        *dseg -= d;
+        cumulative->Encode(*dseg);
+        ++dseg;
+        }
+      }
+    }
+
+  cumulative->FinishEncoding();
+  m_UndoManager.SetCumulativeDelta(cumulative);
+
+  // Set modified flags
+  imSeg->GetImage()->Modified();
+  InvokeEvent(SegmentationChangeEvent());
+}
+
+bool
+GenericImageData
+::IsRedoPossible()
+{
+  return m_UndoManager.IsRedoPossible();
+}
+
+void
+GenericImageData
+::Redo()
+{
+  // In order to undo, we must take the 'current' delta and apply
+  // it to the image
+  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForRedo();
+  LabelImageWrapper *imSeg = this->GetSegmentation();
+  LabelType *dseg = imSeg->GetVoxelPointer();
+
+  UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
+
+  // Applying the delta means adding
+  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
+    {
+    size_t n = delta->GetRLELength(i);
+    LabelType d = delta->GetRLEValue(i);
+    if(d == 0)
+      {
+      for(size_t j = 0; j < n; j++)
+        {
+        cumulative->Encode(*dseg);
+        ++dseg;
+        }
+      }
+    else
+      {
+      for(size_t j = 0; j < n; j++)
+        {
+        *dseg += d;
+        cumulative->Encode(*dseg);
+        ++dseg;
+        }
+      }
+    }
+
+  cumulative->FinishEncoding();
+  m_UndoManager.SetCumulativeDelta(cumulative);
+
+  // Set modified flags
+  imSeg->GetImage()->Modified();
+  InvokeEvent(SegmentationChangeEvent());
+}
+
+
 
 GenericImageData::RegionType
 GenericImageData

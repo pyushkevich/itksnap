@@ -234,6 +234,13 @@ GlobalUIModel::GlobalUIModel()
   m_SnakeROISizeModel->Rebroadcast(
         m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
 
+  m_SnakeROISeedWithCurrentSegmentationModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetSnakeROISeedWithCurrentSegmentationValue,
+        &Self::SetSnakeROISeedWithCurrentSegmentationValue);
+
+  m_SnakeROISeedWithCurrentSegmentationModel->RebroadcastFromSourceProperty(
+        m_Driver->GetGlobalState()->GetSegmentationROISettingsModel());
 
   // Segmentation opacity models
   m_SegmentationOpacityModel = wrapGetterSetterPairAsProperty(
@@ -659,6 +666,26 @@ void GlobalUIModel::SetSnakeROISizeValue(Vector3ui value)
   m_Driver->GetGlobalState()->SetSegmentationROI(roi);
 }
 
+bool GlobalUIModel::GetSnakeROISeedWithCurrentSegmentationValue(bool &value)
+{
+  // There has to be an image
+  if(!m_Driver->IsMainImageLoaded())
+    return false;
+
+  value = m_Driver->GetGlobalState()->GetSegmentationROISettings().IsSeedWithCurrentSegmentation();
+  return true;
+}
+
+void GlobalUIModel::SetSnakeROISeedWithCurrentSegmentationValue(bool value)
+{
+  SNAPSegmentationROISettings roi_settings =
+      m_Driver->GetGlobalState()->GetSegmentationROISettings();
+  roi_settings.SetSeedWithCurrentSegmentation(value);
+  m_Driver->GetGlobalState()->SetSegmentationROISettings(roi_settings);
+}
+
+
+
 bool
 GlobalUIModel::GetSegmentationOpacityValueAndRange(
     int &value, NumericValueRange<int> *domain)
@@ -762,33 +789,9 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
   SmartPtr<AbstractSaveImageDelegate> delegate =
       m_Driver->CreateSaveDelegateForLayer(layer, role);
 
-  // Figure out the category name
-  std::string category;
-  switch(role)
-    {
-    case MAIN_ROLE:
-      category = "Image";
-      break;
-    case OVERLAY_ROLE:
-      category = "Image";
-      break;
-    case SNAP_ROLE:
-      if(dynamic_cast<SpeedImageWrapper *>(layer))
-        category = "Speed Image";
-      else if(dynamic_cast<LevelSetImageWrapper *>(layer))
-        category = "Level Set Image";
-      break;
-    case LABEL_ROLE:
-      category = "Segmentation Image";
-      break;
-    case NO_ROLE:
-    case ALL_ROLES:
-      break;
-    }
-
   // Create a model for IO
   SmartPtr<ImageIOWizardModel> modelIO = ImageIOWizardModel::New();
-  modelIO->InitializeForSave(this, delegate, category.c_str());
+  modelIO->InitializeForSave(this, delegate, delegate->GetCategory().c_str());
 
   return modelIO;
 }

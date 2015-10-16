@@ -125,7 +125,6 @@ public:
   typedef itk::Image<LabelType,3> LabelImageType;
   typedef itk::Image<short ,3> SpeedImageType;
   typedef itk::Command CommandType;
-  typedef UndoDataManager<LabelType> UndoManagerType;
 
   // A drawing performed on a slice
   typedef itk::Image<unsigned char, 2> SliceBinaryImageType;
@@ -524,9 +523,7 @@ public:
   /** Redo (undo the undo) */
   void Redo();
 
-  irisGetMacro(UndoManager, const UndoManagerType &);
-
-  /** 
+  /**
    * Reorient the main image (and all overlays) 
    */
   void ReorientImage(vnl_matrix_fixed<double, 3, 3> inDirection);
@@ -643,13 +640,6 @@ protected:
 
   // Coordinate mapping between display space and anatomical space
   IRISDisplayGeometry m_DisplayGeometry;
-
-  // Undo data manager. Perhaps this should really be in IRISImageData, but
-  // there is a lot of stuff here that is ambiguous in this way. The manager
-  // stores 'deltas', i.e., differences between states of the segmentation
-  // image. These deltas are compressed, allowing us to store a bunch of 
-  // undo steps with little cost in performance or memory
-  UndoManagerType m_UndoManager;
 
   // Settings for the speed preprocessing. Still not sure this is the best
   // place to put this stuff!

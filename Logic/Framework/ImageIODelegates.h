@@ -169,12 +169,18 @@ public:
    */
   bool IsSaveSuccessful() { return m_SaveSuccessful; }
 
+  /**
+   * A user-readable category
+   */
+  irisGetSetMacro(Category, std::string)
+
 protected:
   AbstractSaveImageDelegate() {}
   virtual ~AbstractSaveImageDelegate() {}
 
   IRISApplication *m_Driver;
   bool m_SaveSuccessful;
+  std::string m_Category;
 };
 
 class DefaultSaveImageDelegate : public AbstractSaveImageDelegate
