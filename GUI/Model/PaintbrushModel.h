@@ -3,7 +3,6 @@
 
 #include "AbstractModel.h"
 #include "GlobalState.h"
-#include "itkFastMutexLock.h"
 
 class GenericSliceModel;
 class BrushWatershedPipeline;
@@ -36,12 +35,6 @@ public:
   // should be rendered
   Vector3f GetCenterOfPaintbrushInSliceSpace();
 
-  /**
-    Background loop for updating the watershed as the user moves the mouse around. This
-    allows real-time feedback on the adaptive brush shape. This loop is expected to run
-    in a separate thread
-    */
-  void AdaptiveBrushWorkerLoop();
 
 protected:
 
@@ -51,13 +44,6 @@ protected:
   // Mouse position in voxel coordinates
   Vector3ui m_MousePosition;
   bool m_MouseInside;
-
-  // Mouse position for the worker thread. There is the requested position and the
-  // position that is currently being processed
-  Vector3ui m_WorkerRequestMousePosition, m_WorkerProcessMousePosition;
-
-  // A mutex to keep worker thread from accessing the same data as the main thread
-  SmartPtr<itk::FastMutexLock> m_WorkerLock;
 
   // Mouse position in slice coordinates from which we need to draw the
   // next segment
