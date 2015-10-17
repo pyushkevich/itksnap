@@ -109,9 +109,13 @@ void LabelEditorDialog::SetModel(LabelEditorModel *model)
                  LabelEditorModel::UIF_EDITABLE_LABEL_SELECTED);
 
   // Set resizing behavior
+#if QT_VERSION >= 0x050000
   ui->lvLabels->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
   ui->lvLabels->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-
+#else
+  ui->lvLabels->horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+  ui->lvLabels->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
+#endif
 }
 
 void LabelEditorDialog::on_btnClose_clicked()

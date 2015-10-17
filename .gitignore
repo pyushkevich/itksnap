@@ -1,6 +1,6 @@
 # VIM swap files
 .*.sw?
-*.un~
+*~
 
 # MACOS files
 .DS_Store*
