@@ -133,8 +133,10 @@ SliceWindowInteractionDelegateWidget
                modelMatrix,projMatrix,viewport,
                &xProjection[0], &xProjection[1], &xProjection[2]);
 
-  // Get the within-cell coordinates
-  xProjection[0] = fmod(xProjection[0], (double) m_ParentModel->GetSize()[0]);
-  xProjection[1] = fmod(xProjection[1], (double) m_ParentModel->GetSize()[1]);
+  // Get the within-cell coordinates by subtracting the corner of the cell
+  xProjection[0] -= icol * m_ParentModel->GetSize()[0];
+  xProjection[1] -= flipY
+                    ? ((nrows - 1) - irow) * m_ParentModel->GetSize()[1]
+                    : irow * m_ParentModel->GetSize()[1];
   return xProjection;
 }
