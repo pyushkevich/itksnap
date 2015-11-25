@@ -498,7 +498,7 @@ void LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
   if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerIdModel()))
     {
     unsigned long sid = m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerId();
-    this->setSelected(sid == m_Model->GetLayer()->GetUniqueId());
+    this->setSelected(m_Model->GetLayer() && sid == m_Model->GetLayer()->GetUniqueId());
     }
 }
 

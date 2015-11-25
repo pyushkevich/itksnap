@@ -554,11 +554,6 @@ color:rgb(103, 103, 103);
      <addaction name="actionOverlayVisibilityIncreaseAll"/>
      <addaction name="actionOverlayVisibilityDecreaseAll"/>
     </widget>
-    <widget class="QMenu" name="menuType_Here">
-     <property name="title">
-      <string>Type Here</string>
-     </property>
-    </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
@@ -570,7 +565,6 @@ color:rgb(103, 103, 103);
     <addaction name="menuZoom"/>
     <addaction name="separator"/>
     <addaction name="menuOverlayAppearance"/>
-    <addaction name="menuType_Here"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
