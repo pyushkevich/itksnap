@@ -414,7 +414,7 @@ MainImageWindow::~MainImageWindow()
 void MainImageWindow::HookupShortcutToAction(const QKeySequence &ks, QAction *action)
 {
   // The bug/feature of single-key shortcuts not working is only in MacOS
-#ifdef __APPLE__
+#if QT_VERSION >= 0x050000 && defined __APPLE__
   QShortcut *short_S = new QShortcut(ks, this);
   connect(short_S, SIGNAL(activated()), action, SLOT(trigger()));
 #endif
