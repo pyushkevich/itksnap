@@ -190,7 +190,15 @@ font-size: 11px;
    <item>
     <widget class="QTableView" name="tableVoxelUnderCursor">
      <property name="styleSheet">
-      <string notr="true">font-size:10px;</string>
+      <string notr="true">QTableView
+{
+  font-size:10px;
+}
+
+QTableView:!active
+{
+  selection-background-color: rgb(162, 204, 255);
+}</string>
      </property>
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>

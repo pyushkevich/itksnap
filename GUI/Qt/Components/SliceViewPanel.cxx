@@ -539,16 +539,7 @@ void SliceViewPanel::on_btnScreenshot_clicked()
 
 void SliceViewPanel::on_btnToggleLayout_clicked()
 {
-  DisplayLayoutModel *dlm = m_GlobalUI->GetDisplayLayoutModel();
-  LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
-  if(ll == LAYOUT_TILED)
-    {
-    dlm->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_STACKED);
-    }
-  else
-    {
-    dlm->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
-    }
+  m_GlobalUI->GetDisplayLayoutModel()->ToggleSliceViewLayerLayout();
 }
 
 void SliceViewPanel::on_actionZoom_In_triggered()

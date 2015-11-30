@@ -76,6 +76,8 @@ SNAPImageData
 
   // Create the mutex lock
   m_LevelSetPipelineMutexLock = itk::FastMutexLock::New();
+
+  m_CompressedAlternateLabelImage = NULL;
 }
 
 
@@ -84,6 +86,9 @@ SNAPImageData
 {
   if(m_LevelSetDriver)
     delete m_LevelSetDriver;
+
+  if(m_CompressedAlternateLabelImage)
+    delete m_CompressedAlternateLabelImage;
 }
 
 void 
@@ -509,6 +514,54 @@ SNAPImageData
   return m_LevelSetDriver->GetLevelSetFunction();
 }
 
+void SNAPImageData::SwapLabelImageWithCompressedAlternative()
+{
+  // Create a compressed version of the current segmentation
+  CompressedLabelImageType *save = new CompressedLabelImageType();
+  LabelImageWrapper *liw = this->GetSegmentation();
+  for(LabelImageWrapper::ConstIterator iter(liw->GetImage(), liw->GetBufferedRegion());
+      !iter.IsAtEnd(); ++iter)
+    {
+    save->Encode(iter.Value());
+    }
+  save->FinishEncoding();
+
+  // Clear the undo manager
+  this->m_UndoManager.Clear();
+  this->m_UndoManager.SetCumulativeDelta(m_CompressedAlternateLabelImage);
+
+  // Decompress the currently saved alternative
+  if(m_CompressedAlternateLabelImage)
+    {
+    LabelImageWrapper::Iterator it_write(liw->GetImage(), liw->GetBufferedRegion());
+    for(size_t i = 0; i < m_CompressedAlternateLabelImage->GetNumberOfRLEs(); ++i)
+      {
+      LabelType value = m_CompressedAlternateLabelImage->GetRLEValue(i);
+      for(size_t j = 0; j < m_CompressedAlternateLabelImage->GetRLELength(i); ++j, ++it_write)
+        it_write.Value() = value;
+      }
+    }
+  else
+    {
+    liw->GetImage()->FillBuffer(0);
+    }
+
+  liw->GetImage()->Modified();
+  m_CompressedAlternateLabelImage = save;
+}
+
+void SNAPImageData::SwitchLabelImageToExamples()
+{
+  this->SwapLabelImageWithCompressedAlternative();
+  m_LabelImageInExampleMode = true;
+}
+
+void SNAPImageData::SwitchLabelImageToMainSegmentation()
+{
+  this->SwapLabelImageWithCompressedAlternative();
+  m_LabelImageInExampleMode = false;
+}
+
 void
 SNAPImageData
 ::InitializeToROI(GenericImageData *source,
@@ -541,6 +594,16 @@ SNAPImageData
     // Copy metadata
     this->CopyLayerMetadata(this->GetLastOverlay(), lit.GetLayer());
     }
+
+  // Destroy the alternate image if there is none or if the ROI settings have changed
+  if(m_CompressedAlternateLabelImage && m_ROISettings != roi)
+    {
+    delete m_CompressedAlternateLabelImage;
+    m_CompressedAlternateLabelImage = NULL;
+    }
+
+  // Cache the ROI settings
+  m_ROISettings = roi;
 }
 
 void SNAPImageData::CopyLayerMetadata(

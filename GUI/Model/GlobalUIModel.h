@@ -245,6 +245,9 @@ public:
   irisGetMacro(SnakeROIIndexModel, AbstractRangedUIntVec3Property *)
   irisGetMacro(SnakeROISizeModel, AbstractRangedUIntVec3Property *)
 
+  /** Get the model for the snake mode segmentation carry over behavior */
+  irisSimplePropertyAccessMacro(SnakeROISeedWithCurrentSegmentation, bool)
+
   /** A model for overall segmentation opacity (int, range 0..100) */
   irisRangedPropertyAccessMacro(SegmentationOpacity, int)
 
@@ -410,6 +413,11 @@ protected:
   bool GetSnakeROISizeValueAndRange(
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
   void SetSnakeROISizeValue(Vector3ui value);
+
+  // What happens to segmentation on entering snake mode
+  SmartPtr<AbstractSimpleBooleanProperty> m_SnakeROISeedWithCurrentSegmentationModel;
+  bool GetSnakeROISeedWithCurrentSegmentationValue(bool &value);
+  void SetSnakeROISeedWithCurrentSegmentationValue(bool value);
 
   // The model for the mesh export wizard
   SmartPtr<MeshExportModel> m_MeshExportModel;

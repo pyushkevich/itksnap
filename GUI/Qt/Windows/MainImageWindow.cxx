@@ -335,6 +335,10 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   this->HookupSecondaryShortcutToAction(QKeySequence("."), ui->actionForegroundLabelNext);
   this->HookupShortcutToAction(QKeySequence("C"), ui->actionCenter_on_Cursor);
 
+  this->HookupShortcutToAction(QKeySequence("\\"), ui->actionToggleLayerLayout);
+  this->HookupShortcutToAction(QKeySequence("["), ui->actionActivatePreviousLayer);
+  this->HookupShortcutToAction(QKeySequence("]"), ui->actionActivateNextLayer);
+
   // Common modifiers
   const QString mod_option(QChar(0x2325));
   const QString mod_shift(QChar(0x21e7));
@@ -414,7 +418,7 @@ MainImageWindow::~MainImageWindow()
 void MainImageWindow::HookupShortcutToAction(const QKeySequence &ks, QAction *action)
 {
   // The bug/feature of single-key shortcuts not working is only in MacOS
-#ifdef __APPLE__
+#if QT_VERSION >= 0x050000 && defined __APPLE__
   QShortcut *short_S = new QShortcut(ks, this);
   connect(short_S, SIGNAL(activated()), action, SLOT(trigger()));
 #endif
@@ -488,6 +492,14 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
         model->GetDisplayLayoutModel(), DisplayLayoutModel::DisplayLayoutChangeEvent(),
         this, SLOT(onModelUpdate(EventBucket)));
 
+  LatentITKEventNotifier::connect(
+        model->GetDisplayLayoutModel(), DisplayLayoutModel::LayerLayoutChangeEvent(),
+        this, SLOT(onModelUpdate(EventBucket)));
+
+  // Watch for changes in the selected layer
+  LatentITKEventNotifier::connect(
+        model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel(),
+        ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
 
   // Couple the visibility of each view panel to the correponding property
   // model in DisplayLayoutModel
@@ -516,6 +528,10 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionBackgroundLabelNext, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionBackgroundLabelPrev, m_Model, UIF_BASEIMG_LOADED);
 
+  activateOnFlag(ui->actionToggleLayerLayout, m_Model, UIF_MULTIPLE_BASE_LAYERS);
+  activateOnFlag(ui->actionActivateNextLayer, m_Model, UIF_MULTIPLE_BASE_LAYERS);
+  activateOnFlag(ui->actionActivatePreviousLayer, m_Model, UIF_MULTIPLE_BASE_LAYERS);
+
   // Add actions that are not on the menu
   activateOnFlag(ui->actionZoomToFitInAllViews, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionCenter_on_Cursor, m_Model, UIF_BASEIMG_LOADED);
@@ -537,9 +553,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Overlay action activations
   activateOnFlag(ui->actionAdd_Overlay, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnAllFlags(ui->actionUnload_Last_Overlay, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED, UIF_OVERLAY_LOADED);
+  // activateOnAllFlags(ui->actionUnload_Last_Overlay, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED, UIF_OVERLAY_LOADED);
   activateOnAllFlags(ui->actionUnload_All_Overlays, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED, UIF_OVERLAY_LOADED);
-  activateOnFlag(ui->menuOverlayAppearance, m_Model, UIF_OVERLAY_LOADED);
+  activateOnFlag(ui->actionOverlayVisibilityToggleAll, m_Model, UIF_OVERLAY_LOADED);
+  activateOnFlag(ui->actionOverlayVisibilityDecreaseAll, m_Model, UIF_OVERLAY_LOADED);
+  activateOnFlag(ui->actionOverlayVisibilityIncreaseAll, m_Model, UIF_OVERLAY_LOADED);
 
   // Workspace menu
   activateOnFlag(ui->actionOpenWorkspace, m_Model, UIF_IRIS_MODE);
@@ -592,6 +610,8 @@ void MainImageWindow::ShowFirstTime()
   this->UpdateRecentMenu();
   this->UpdateRecentProjectsMenu();
   this->UpdateWindowTitle();
+  this->UpdateLayerLayoutActions();
+  this->UpdateSelectedLayerActions();
 
   // Show the window
   this->show();
@@ -614,6 +634,7 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     {
     // Update the window title
     this->UpdateWindowTitle();
+    this->UpdateSelectedLayerActions();
     }
 
   if(b.HasEvent(LayerChangeEvent()) ||
@@ -635,6 +656,17 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
   if(b.HasEvent(DisplayLayoutModel::DisplayLayoutChangeEvent()))
     {
     this->UpdateCanvasDimensions();
+    }
+
+  if(b.HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent()))
+    {
+    this->UpdateLayerLayoutActions();
+    }
+
+  if(b.HasEvent(ValueChangedEvent(),
+                m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel()))
+    {
+    this->UpdateSelectedLayerActions();
     }
 }
 
@@ -669,8 +701,14 @@ void MainImageWindow::UpdateMainLayout()
 void MainImageWindow::UpdateCanvasDimensions()
 {
   // We should not do this in fullscreen mode
-  if(QApplication::desktop()->isFullScreen())
+  Qt::WindowStates ws = this->windowState();
+  if(ws.testFlag(Qt::WindowFullScreen))
+    {
     return;
+    }
+
+  // Get the current desktop dimensions
+  QRect desktop = QApplication::desktop()->availableGeometry(this);
 
   // The desired window aspect ratio
   double windowAR = 1.0;
@@ -700,9 +738,6 @@ void MainImageWindow::UpdateCanvasDimensions()
   int cw_width = static_cast<int>(windowAR * ui->centralwidget->height());
   int mw_width = this->width() + (cw_width - ui->centralwidget->width());
 
-  // Get the current desktop dimensions
-  QRect desktop = QApplication::desktop()->availableGeometry(this);
-
   // Adjust the width to be within the desktop dimensions
   mw_width = std::min(desktop.width(), mw_width);
 
@@ -718,6 +753,44 @@ void MainImageWindow::UpdateCanvasDimensions()
   this->move(left, this->pos().y());
 }
 
+
+void MainImageWindow::UpdateLayerLayoutActions()
+{
+  DisplayLayoutModel *dlm = m_Model->GetDisplayLayoutModel();
+  LayerLayout ll = dlm->GetSliceViewLayerLayoutModel()->GetValue();
+  if(ll == LAYOUT_TILED)
+    {
+    ui->actionToggleLayerLayout->setIcon(QIcon(":/root/layout_thumb_16.png"));
+    ui->actionToggleLayerLayout->setText("Enter Thumbnail Layout");
+    }
+  else if(ll == LAYOUT_STACKED)
+    {
+    ui->actionToggleLayerLayout->setIcon(QIcon(":/root/layout_tile_16.png"));
+    ui->actionToggleLayerLayout->setText("Enter Tiled Layout");
+    }
+}
+
+void MainImageWindow::UpdateSelectedLayerActions()
+{
+  // Find the selected layer
+  ImageWrapperBase *layer =
+      m_Model->GetDriver()->GetCurrentImageData()->FindLayer(
+        m_Model->GetGlobalState()->GetSelectedLayerId(), false);
+
+  if(layer)
+    {
+    ui->actionUnload_Last_Overlay->setVisible(true);
+    ui->actionUnload_Last_Overlay->setEnabled(true);
+    ui->actionUnload_Last_Overlay->setText(
+          QString("Close image \"%1\"").arg(from_utf8(layer->GetNickname())));
+    }
+  else
+    {
+    ui->actionUnload_Last_Overlay->setVisible(false);
+    ui->actionUnload_Last_Overlay->setEnabled(false);
+    ui->actionUnload_Last_Overlay->setText("Close selected image");
+    }
+}
 
 void MainImageWindow::UpdateRecentMenu()
 {
@@ -1072,6 +1145,55 @@ void MainImageWindow::dropEvent(QDropEvent *event)
     CFRelease(cfurl);
     CFRelease(absurl);
     }
+
+#elif defined(__APPLE__) && QT_VERSION < 0x050000
+
+  QString localFileQString = url.toLocalFile();
+  // [pzion 20150805] Work around
+  // https://bugreports.qt.io/browse/QTBUG-40449
+  if ( localFileQString.startsWith("/.file/id=") )
+    {
+    CFStringRef relCFStringRef =
+        CFStringCreateWithCString(
+          kCFAllocatorDefault,
+          localFileQString.toUtf8().constData(),
+          kCFStringEncodingUTF8
+          );
+    CFURLRef relCFURL =
+        CFURLCreateWithFileSystemPath(
+          kCFAllocatorDefault,
+          relCFStringRef,
+          kCFURLPOSIXPathStyle,
+          false // isDirectory
+          );
+    CFErrorRef error = 0;
+    CFURLRef absCFURL =
+        CFURLCreateFilePathURL(
+          kCFAllocatorDefault,
+          relCFURL,
+          &error
+          );
+    if ( !error )
+      {
+      static const CFIndex maxAbsPathCStrBufLen = 4096;
+      char absPathCStr[maxAbsPathCStrBufLen];
+      if ( CFURLGetFileSystemRepresentation(
+             absCFURL,
+             true, // resolveAgainstBase
+             reinterpret_cast<UInt8 *>( &absPathCStr[0] ),
+             maxAbsPathCStrBufLen
+             ) )
+        {
+        localFileQString = QString( absPathCStr );
+        }
+      }
+    CFRelease( absCFURL );
+    CFRelease( relCFURL );
+    CFRelease( relCFStringRef );
+
+    url = QUrl::fromLocalFile(localFileQString);
+    }
+
 #endif
 
   QString file = url.toLocalFile();
@@ -1192,13 +1314,8 @@ void MainImageWindow::onSnakeWizardFinished()
   // Make the dock containing the wizard visible
   m_DockRight->setVisible(false);
 
-  // TODO: this way of handling the size of the main window after the right
-  // dock is hidden is rudimentary. I should learn how to use sizePolicy and
-  // sizeHint fields more effectively.
-
-  // Return to previous size
-  this->layout()->activate();
-  resize(m_SizeWithoutRightDock.width(), m_SizeWithoutRightDock.height());
+  // Auto-adjust the canvas size
+  this->UpdateCanvasDimensions();
 }
 
 void MainImageWindow::on_actionUnload_All_triggered()
@@ -1947,13 +2064,43 @@ void MainImageWindow::changeEvent(QEvent *)
 
 void MainImageWindow::on_actionUnload_Last_Overlay_triggered()
 {
-  // What is the last overlay?
-  ImageWrapperBase *last = m_Model->GetDriver()->GetIRISImageData()->GetLastOverlay();
+  // Get the selected ID
+  unsigned long id_selected = m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId();
 
-  if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model, OVERLAY_ROLE))
+  // Find the actual layer
+  ImageWrapperBase *layer = m_Model->GetDriver()->GetCurrentImageData()->FindLayer(id_selected, false);
+
+  // Is this layer an overlay or a main image
+  if(layer && layer == m_Model->GetDriver()->GetCurrentImageData()->GetMain())
     {
-    m_Model->GetDriver()->UnloadOverlay(last);
+    // Prompt for unsaved changes
+    if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
+      {
+      // Unload the main image
+      m_Model->GetDriver()->UnloadMainImage();
+      }
     }
-
+  else
+    {
+    if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model, OVERLAY_ROLE))
+      {
+      m_Model->GetDriver()->UnloadOverlay(layer);
+      }
+    }
 }
 
+
+void MainImageWindow::on_actionToggleLayerLayout_triggered()
+{
+  m_Model->GetDisplayLayoutModel()->ToggleSliceViewLayerLayout();
+}
+
+void MainImageWindow::on_actionActivateNextLayer_triggered()
+{
+  m_Model->GetDisplayLayoutModel()->ActivateNextLayerInTiledMode();
+}
+
+void MainImageWindow::on_actionActivatePreviousLayer_triggered()
+{
+  m_Model->GetDisplayLayoutModel()->ActivatePrevLayerInTiledMode();
+}

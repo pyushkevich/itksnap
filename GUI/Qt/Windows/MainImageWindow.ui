@@ -545,19 +545,18 @@ color:rgb(103, 103, 103);
      <addaction name="separator"/>
      <addaction name="actionCenter_on_Cursor"/>
     </widget>
-    <widget class="QMenu" name="menuOverlayAppearance">
+    <widget class="QMenu" name="menuLayers">
      <property name="title">
-      <string>Overlaid Layer Opacity</string>
+      <string>Layers</string>
      </property>
-     <addaction name="actionOverlayVisibilityToggleAll"/>
+     <addaction name="actionToggleLayerLayout"/>
      <addaction name="separator"/>
+     <addaction name="actionActivateNextLayer"/>
+     <addaction name="actionActivatePreviousLayer"/>
+     <addaction name="separator"/>
+     <addaction name="actionOverlayVisibilityToggleAll"/>
      <addaction name="actionOverlayVisibilityIncreaseAll"/>
      <addaction name="actionOverlayVisibilityDecreaseAll"/>
-    </widget>
-    <widget class="QMenu" name="menuType_Here">
-     <property name="title">
-      <string>Type Here</string>
-     </property>
     </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
@@ -569,8 +568,7 @@ color:rgb(103, 103, 103);
     <addaction name="separator"/>
     <addaction name="menuZoom"/>
     <addaction name="separator"/>
-    <addaction name="menuOverlayAppearance"/>
-    <addaction name="menuType_Here"/>
+    <addaction name="menuLayers"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1139,7 +1137,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionOverlayVisibilityToggleAll">
    <property name="text">
-    <string>Toggle Visibility</string>
+    <string>Toggle Overlay Visibility</string>
    </property>
    <property name="iconText">
     <string>Toggle Visibility of Sticky Layers</string>
@@ -1153,7 +1151,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionOverlayVisibilityIncreaseAll">
    <property name="text">
-    <string>Increase Opacity</string>
+    <string>Increase Overlay Opacity</string>
    </property>
    <property name="shortcut">
     <string>E</string>
@@ -1161,7 +1159,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionOverlayVisibilityDecreaseAll">
    <property name="text">
-    <string>Decrease Opacity</string>
+    <string>Decrease Overlay Opacity</string>
    </property>
    <property name="shortcut">
     <string>Q</string>
@@ -1438,6 +1436,33 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>6</string>
+   </property>
+  </action>
+  <action name="actionToggleLayerLayout">
+   <property name="text">
+    <string>Thumbnail Layout</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle between thumbnail and tiled layouts.&lt;/p&gt;&lt;p&gt;In &lt;span style=&quot; font-weight:600;&quot;&gt;thumbnail&lt;/span&gt; layout, one image layer occupies most of the available screen space, and other loaded image layers are shown as thumbnails. In &lt;span style=&quot; font-weight:600;&quot;&gt;tiled&lt;/span&gt; layout, multiple image layers are shown side by side. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>\</string>
+   </property>
+  </action>
+  <action name="actionActivateNextLayer">
+   <property name="text">
+    <string>Activate Next Layer</string>
+   </property>
+   <property name="shortcut">
+    <string>]</string>
+   </property>
+  </action>
+  <action name="actionActivatePreviousLayer">
+   <property name="text">
+    <string>Activate Previous Layer</string>
+   </property>
+   <property name="shortcut">
+    <string>[</string>
    </property>
   </action>
  </widget>

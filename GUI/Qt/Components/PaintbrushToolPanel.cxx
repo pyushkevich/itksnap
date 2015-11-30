@@ -21,8 +21,26 @@ PaintbrushToolPanel::PaintbrushToolPanel(QWidget *parent) :
   ui->actionBrushDecrease->setShortcuts(
         ui->actionBrushDecrease->shortcuts() << QKeySequence('_'));
 
+  ui->actionGranularityIncrease->setShortcuts(
+        ui->actionGranularityIncrease->shortcuts() << QKeySequence(Qt::META + Qt::Key_Equal) << QKeySequence(Qt::META + Qt::Key_Plus));
+
+  ui->actionGranularityDecrease->setShortcuts(
+        ui->actionGranularityDecrease->shortcuts() << QKeySequence(Qt::META + Qt::Key_Underscore) << QKeySequence(Qt::META + Qt::Key_Minus));
+
+  ui->actionSmoothnessIncrease->setShortcuts(
+        ui->actionSmoothnessIncrease->shortcuts() << QKeySequence(Qt::ALT + Qt::Key_Equal) << QKeySequence(Qt::ALT + Qt::Key_Plus));
+
+  ui->actionSmoothnessDecrease->setShortcuts(
+        ui->actionSmoothnessDecrease->shortcuts() << QKeySequence(Qt::ALT + Qt::Key_Underscore) << QKeySequence(Qt::ALT + Qt::Key_Minus));
+
+
   addAction(ui->actionBrushIncrease);
   addAction(ui->actionBrushDecrease);
+  addAction(ui->actionGranularityDecrease);
+  addAction(ui->actionGranularityIncrease);
+  addAction(ui->actionSmoothnessDecrease);
+  addAction(ui->actionSmoothnessIncrease);
+  addAction(ui->actionBrushStyle);
 }
 
 PaintbrushToolPanel::~PaintbrushToolPanel()
@@ -55,4 +73,14 @@ void PaintbrushToolPanel::SetModel(PaintbrushSettingsModel *model)
 
   makeCoupling(ui->inGranularity, model->GetThresholdLevelModel());
   makeCoupling(ui->inSmoothness, model->GetSmoothingIterationsModel());
+}
+
+void PaintbrushToolPanel::on_actionBrushStyle_triggered()
+{
+  if(ui->btnSquare->isChecked())
+    ui->btnRound->setChecked(true);
+  else if(ui->btnRound->isChecked())
+    ui->btnWatershed->setChecked(true);
+  else if(ui->btnWatershed->isChecked())
+    ui->btnSquare->setChecked(true);
 }

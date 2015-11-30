@@ -52,6 +52,9 @@ void ThumbnailInteractionMode
   m_Model = model;
   m_PanFlag = false;
   this->SetParentModel(model->GetParent());
+
+  connectITK(m_Model->GetParent()->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel(),
+             ValueChangedEvent());
 }
 
 
@@ -143,6 +146,16 @@ void ThumbnailInteractionMode::onContextMenuRequested(const QPoint &pt)
     // Show the menu
     if(menu)
       menu->popup(QCursor::pos());
+    }
+}
+
+void ThumbnailInteractionMode::onModelUpdate(const EventBucket &bucket)
+{
+  if(bucket.HasEvent(ValueChangedEvent(),
+                     m_Model->GetParent()->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel()))
+    {
+    m_Model->GetParent()->SetHoveredImageLayerId(-1ul);
+    m_Model->GetParent()->SetHoveredImageIsThumbnail(false);
     }
 }
 

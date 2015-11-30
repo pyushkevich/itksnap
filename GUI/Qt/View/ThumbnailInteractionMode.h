@@ -50,6 +50,7 @@ public:
 public slots:
 
   void onContextMenuRequested(const QPoint &pt);
+  virtual void onModelUpdate(const EventBucket &bucket);
 
 private:
 

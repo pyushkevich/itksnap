@@ -51,6 +51,7 @@
 
 #include "SNAPLevelSetFunction.h"
 #include "itkImageAdaptor.h"
+#include "UndoDataManager.h"
 
 namespace itk {
   class Command;
@@ -211,6 +212,14 @@ public:
    */
   irisGetMacro(LevelSetPipelineMutexLock, itk::FastMutexLock *)
 
+  /** ====================================================================== */
+
+  /* SUPPORT FOR EXAMPLES */
+  void SwitchLabelImageToExamples();
+  void SwitchLabelImageToMainSegmentation();
+
+  /** Is the label image currently switched to example (squiggles) mode? */
+  irisIsMacro(LabelImageInExampleMode)
   
 protected:
 
@@ -284,6 +293,19 @@ protected:
   // SNAPImageData provides a mutex lock that prevents multiple threads from
   // causing the level set pipeline to update at once.
   SmartPtr<itk::FastMutexLock> m_LevelSetPipelineMutexLock;
+
+  // Are we in example mode
+  bool m_LabelImageInExampleMode;
+
+  // Compressed data for the example/main segmentation image
+  typedef UndoDataManager<LabelType>::Delta CompressedLabelImageType;
+  CompressedLabelImageType *m_CompressedAlternateLabelImage;
+
+  // Current ROI settings
+  SNAPSegmentationROISettings m_ROISettings;
+
+
+  void SwapLabelImageWithCompressedAlternative();
 };
 
 

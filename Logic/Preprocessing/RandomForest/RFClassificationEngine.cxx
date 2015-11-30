@@ -158,20 +158,27 @@ void RFClassificationEngine:: TrainClassifier()
   else
     params.subSamplePercent = 0;
 
-
-
   // Create the classification engine
   typedef RandomForestClassifier::RFAxisClassifierType RFAxisClassifierType;
   typedef Classification<GreyType, LabelType, RFAxisClassifierType> ClassificationType;
   ClassificationType classification;
 
   // Before resetting the classifier, we want to retain whatever the
-  // foreground label was.
-  bool isOldForegroundLabelValid = m_Classifier->IsValidClassifier();
-  LabelType oldForegroundLabel = 0;
+  // weighting of the classes was
+  std::map<LabelType, double> old_label_weights;
+  if(m_Classifier->IsValidClassifier())
+    {
+    // Get the class weights
+    const RandomForestClassifier::WeightArray &class_weights = m_Classifier->GetClassWeights();
 
-  if(isOldForegroundLabelValid)
-    oldForegroundLabel = m_Classifier->GetForegroundClassLabel();
+    // Convert them to label weights (since class to label mapping may change)
+    for(RandomForestClassifier::MappingType::const_iterator it =
+        m_Classifier->m_ClassToLabelMapping.begin();
+        it != m_Classifier->m_ClassToLabelMapping.end(); ++it)
+      {
+      old_label_weights[it->second] = class_weights[it->first];
+      }
+    }
 
   // Prepare the classifier
   m_Classifier->Reset();
@@ -183,25 +190,38 @@ void RFClassificationEngine:: TrainClassifier()
         m_Classifier->m_ValidLabel,
         m_Classifier->m_ClassToLabelMapping);
 
-  // Assign the foreground index to zero (default)
-  m_Classifier->m_ForegroundClass = 0;
+  // Reset the class weights to the number of classes and assign default
+  int n_classes = m_Classifier->m_ClassToLabelMapping.size(), n_fore = 0, n_back = 0;
+  m_Classifier->m_ClassWeights.resize(n_classes, -1.0);
+
+  // Apply the old weight assignments if possible. Keep track of the number of fore and back classes
+  for(RandomForestClassifier::MappingType::iterator it =
+      m_Classifier->m_ClassToLabelMapping.begin();
+      it != m_Classifier->m_ClassToLabelMapping.end(); ++it)
+    {
+    if(old_label_weights.find(it->second) != old_label_weights.end())
+      {
+      m_Classifier->m_ClassWeights[it->first] = old_label_weights[it->second];
+      }
+    if(m_Classifier->m_ClassWeights[it->first] < 0.0)
+      n_back++;
+    else if(m_Classifier->m_ClassWeights[it->first] > 0.0)
+      n_fore++;
+    }
+
+  // Make sure that we have at least one foreground class and at least one background class
+  if(n_classes >= 2)
+    {
+    if(n_fore == 0)
+      m_Classifier->m_ClassWeights.front() = 1.0;
+    if(n_back == 0)
+      m_Classifier->m_ClassWeights.back() = -1.0;
+    }
 
   // Store the patch radius in the classifier - this remains fixed until
   // training is repeated
   m_Classifier->m_PatchRadius = m_PatchRadius;
   m_Classifier->m_UseCoordinateFeatures = m_UseCoordinateFeatures;
-
-  // Now maybe re-assign the old foreground label
-  if(isOldForegroundLabelValid)
-    {
-    for(RandomForestClassifier::MappingType::const_iterator it =
-        m_Classifier->m_ClassToLabelMapping.begin();
-        it != m_Classifier->m_ClassToLabelMapping.end(); ++it)
-      {
-      if(it->second == oldForegroundLabel)
-        m_Classifier->m_ForegroundClass = it->first;
-      }
-    }
 }
 
 void RFClassificationEngine::SetClassifier(RandomForestClassifier *rf)

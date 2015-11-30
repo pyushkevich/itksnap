@@ -40,42 +40,14 @@ font-size: 11px;
     <number>0</number>
    </property>
    <item>
-    <widget class="QLabel" name="label">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>160</width>
-       <height>16777215</height>
-      </size>
-     </property>
+    <widget class="QLabel" name="label_5">
      <property name="font">
       <font>
        <pointsize>-1</pointsize>
       </font>
      </property>
-     <property name="styleSheet">
-      <string notr="true">* {
-font-size: 11px;
-}
-</string>
-     </property>
      <property name="text">
-      <string>This tool selects the region of interest (ROI) for automatic segmentation.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Line" name="line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <string>ROI for auto-segmentation:</string>
      </property>
     </widget>
    </item>
@@ -83,7 +55,7 @@ font-size: 11px;
     <widget class="QWidget" name="widget_6" native="true">
      <layout class="QGridLayout" name="gridLayout_3">
       <property name="leftMargin">
-       <number>0</number>
+       <number>12</number>
       </property>
       <property name="topMargin">
        <number>0</number>
@@ -94,21 +66,12 @@ font-size: 11px;
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <property name="spacing">
-       <number>4</number>
+      <property name="horizontalSpacing">
+       <number>3</number>
       </property>
-      <item row="0" column="0" rowspan="2" colspan="3">
-       <widget class="QLabel" name="label_3">
-        <property name="font">
-         <font>
-          <pointsize>-1</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>ROI corner position (x,y,z):</string>
-        </property>
-       </widget>
-      </item>
+      <property name="verticalSpacing">
+       <number>2</number>
+      </property>
       <item row="2" column="0">
        <widget class="QSpinBox" name="inIndexX">
         <property name="maximumSize">
@@ -116,6 +79,9 @@ font-size: 11px;
           <width>64</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The position of the 3D region of interest (ROI) for automatic segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -130,8 +96,23 @@ font-size: 11px;
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The position of the 3D region of interest (ROI) for automatic segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" rowspan="2" colspan="3">
+       <widget class="QLabel" name="label_3">
+        <property name="font">
+         <font>
+          <pointsize>-1</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Position (x,y,z):</string>
         </property>
        </widget>
       </item>
@@ -142,6 +123,9 @@ font-size: 11px;
           <width>64</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The position of the 3D region of interest (ROI) for automatic segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -155,7 +139,7 @@ font-size: 11px;
     <widget class="QWidget" name="widget_7" native="true">
      <layout class="QGridLayout" name="gridLayout_4">
       <property name="leftMargin">
-       <number>0</number>
+       <number>12</number>
       </property>
       <property name="topMargin">
        <number>0</number>
@@ -167,7 +151,7 @@ font-size: 11px;
        <number>0</number>
       </property>
       <property name="spacing">
-       <number>4</number>
+       <number>2</number>
       </property>
       <item row="0" column="0" rowspan="2" colspan="3">
        <widget class="QLabel" name="label_2">
@@ -177,7 +161,7 @@ font-size: 11px;
          </font>
         </property>
         <property name="text">
-         <string>ROI size (x,y,z):</string>
+         <string>Size (x,y,z):</string>
         </property>
        </widget>
       </item>
@@ -188,6 +172,9 @@ font-size: 11px;
           <width>64</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The size of the 3D region of interest (ROI) for automatic segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -202,6 +189,9 @@ font-size: 11px;
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The size of the 3D region of interest (ROI) for automatic segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
@@ -214,6 +204,9 @@ font-size: 11px;
           <width>64</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The size of the 3D region of interest (ROI) for automatic segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -280,9 +273,12 @@ font-size: 11px;
    </item>
    <item>
     <widget class="QWidget" name="widget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="styleSheet">
+      <string notr="true">font-size:12px;</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="leftMargin">
-       <number>0</number>
+       <number>12</number>
       </property>
       <property name="topMargin">
        <number>0</number>
@@ -294,19 +290,6 @@ font-size: 11px;
        <number>0</number>
       </property>
       <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>10</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
        <widget class="QCheckBox" name="chkResample">
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;When checked, you will have an option to change the resolution of the region of interest (i.e., subsample or supersample) before running automatic segmentation.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -316,8 +299,39 @@ font-size: 11px;
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="chkCarryLabels">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When checked, the existing segmentation will be carried over to the automatic segmentation mode and used to initialize the active contour. When unchecked, the active contour will be initialized with bubbles.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Initialize with current
+segmentation</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
+   </item>
+   <item>
+    <widget class="Line" name="line_3">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>1</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <widget class="QWidget" name="widget_2" native="true">
@@ -375,7 +389,7 @@ font-size: 11px;
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>40</height>
+       <height>1</height>
       </size>
      </property>
     </spacer>

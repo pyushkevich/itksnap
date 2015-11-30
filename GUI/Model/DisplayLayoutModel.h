@@ -70,6 +70,11 @@ public:
   irisSimplePropertyAccessMacro(NumberOfGroundLevelLayers, int)
 
   /**
+   * Get the list of ground level ids
+   */
+  bool GetGroundLevelLayerIds(std::vector<unsigned long> &ids);
+
+  /**
    * Model describing the relative size of the thumbnails in thumbnail view,
    * in percent.
    */
@@ -82,6 +87,17 @@ public:
    * actually just returns the model with the same name in the global state
    */
   AbstractPropertyModel<LayerLayout, TrivialDomain> *GetSliceViewLayerLayoutModel() const;
+
+  /**
+   * Toggle the stack/tiled state
+   */
+  void ToggleSliceViewLayerLayout();
+
+  /**
+   * Activate next or previous layer
+   */
+  void ActivateNextLayerInTiledMode();
+  void ActivatePrevLayerInTiledMode();
 
   /**
    * Read-only boolean property models that dictate what icon should be
