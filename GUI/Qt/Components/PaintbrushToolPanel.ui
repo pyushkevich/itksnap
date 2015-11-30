@@ -71,7 +71,7 @@ font-size:11px;
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Rectangular brush shape&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Square brush shape (⌘B to cycle)&lt;/span&gt;&lt;/p&gt;</string>
         </property>
         <property name="text">
          <string>square</string>
@@ -79,6 +79,9 @@ font-size:11px;
         <property name="icon">
          <iconset resource="../Resources/SNAPResources.qrc">
           <normaloff>:/root/brush_shape_square.png</normaloff>:/root/brush_shape_square.png</iconset>
+        </property>
+        <property name="shortcut">
+         <string>Ctrl+S</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -97,7 +100,7 @@ font-size:11px;
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Round brush shape&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Round brush shape (⌘B to cycle)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>round</string>
@@ -123,7 +126,7 @@ font-size:11px;
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adaptive brush (adjusts shape to follow image boundaries)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Adaptive brush (⌘B to cycle)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The brush adjusts itself to follow image boundaries.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>adaptive</string>
@@ -202,10 +205,16 @@ font-size:11px;
           <height>0</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&amp;lt;html&amp;gt;&amp;lt;head/&amp;gt;&amp;lt;body&amp;gt;&amp;lt;p&amp;gt;&amp;lt;span style=&amp;quot; font-weight:600;&amp;quot;&amp;gt;Brush Size (+, - keys)&amp;lt;/span&amp;gt;&amp;lt;/p&amp;gt;&amp;lt;p&amp;gt;Adjust the radius of the paintbrush.&amp;lt;/p&amp;gt;&amp;lt;/body&amp;gt;&amp;lt;/html&amp;gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
        </widget>
       </item>
       <item>
        <widget class="QSlider" name="inBrushSizeSlider">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Brush Size (+, - keys)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust the radius of the paintbrush.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -263,30 +272,39 @@ font-size:11px;
       <item row="0" column="0">
        <widget class="QCheckBox" name="chkVolumetric">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When checked, the brush is applied in all three dimensions: a rectangular brush creates a cube in the segmentation, and a round brush creates a sphere.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Toggle 3D brush mode (⇧⌘B, V)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;When checked, the brush is applied in all three dimensions: a rectangular brush creates a cube in the segmentation, and a round brush creates a sphere.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>3D</string>
+        </property>
+        <property name="shortcut">
+         <string>Ctrl+Shift+B, V</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
        <widget class="QCheckBox" name="chkIsotropic">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This option is relevant for images with anisotropic voxels (voxels with different x,y and z dimensions). When checked, the physical dimensions of the brush are kept as close to equal as possible. When not checked, the brush size is K x K voxels, regardless of the dimensions of the voxel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Toggle isotropic brush mode (⇧⌘B, I)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This option is relevant for images with anisotropic voxels (voxels with different x,y and z dimensions). When checked, the physical dimensions of the brush are kept as close to equal as possible. When not checked, the brush size is K x K voxels, regardless of the dimensions of the voxel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Isotropic</string>
+        </property>
+        <property name="shortcut">
+         <string>Ctrl+Shift+B, I</string>
         </property>
        </widget>
       </item>
       <item row="3" column="0" colspan="2">
        <widget class="QCheckBox" name="chkChase">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When checked, at the end of each paintbrush stroke, the position of the 3D image cursor is reset to the endpoint of the stroke.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Toggle cursor chasing mode (⇧⌘B, C)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;When checked, at the end of each paintbrush stroke, the position of the 3D image cursor is reset to the endpoint of the stroke.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Cursor chases brush</string>
+        </property>
+        <property name="shortcut">
+         <string>Ctrl+Shift+B, C</string>
         </property>
        </widget>
       </item>
@@ -375,7 +393,7 @@ font-size:11px;
          <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="inGranularity">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lower values of this parameter lead to oversegmentation, while higher values lead to undersegmentation. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Adaptive brush granularity (^+,^-)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Lower values of this parameter lead to oversegmentation, while higher values lead to undersegmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -392,7 +410,7 @@ font-size:11px;
          <item row="1" column="1">
           <widget class="QDoubleSpinBox" name="inSmoothness">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Larger values of this parameter produce smoother segments.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Adaptive brush smoothness (⌥+,⌥-)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Larger values of this parameter produce smoother segments.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -432,6 +450,40 @@ font-size:11px;
     <string>-</string>
    </property>
   </action>
+  <action name="actionGranularityIncrease">
+   <property name="text">
+    <string>GranularityIncrease</string>
+   </property>
+  </action>
+  <action name="actionGranularityDecrease">
+   <property name="text">
+    <string>GranularityDecrease</string>
+   </property>
+   <property name="toolTip">
+    <string>GranularityDecrease</string>
+   </property>
+  </action>
+  <action name="actionSmoothnessIncrease">
+   <property name="text">
+    <string>SmoothnessIncrease</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+Tab</string>
+   </property>
+  </action>
+  <action name="actionSmoothnessDecrease">
+   <property name="text">
+    <string>SmoothnessDecrease</string>
+   </property>
+  </action>
+  <action name="actionBrushStyle">
+   <property name="text">
+    <string>BrushStyle</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../Resources/SNAPResources.qrc"/>
@@ -466,6 +518,70 @@ font-size:11px;
     <hint type="destinationlabel">
      <x>40</x>
      <y>160</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionGranularityIncrease</sender>
+   <signal>triggered()</signal>
+   <receiver>inGranularity</receiver>
+   <slot>stepUp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>138</x>
+     <y>214</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionGranularityDecrease</sender>
+   <signal>triggered()</signal>
+   <receiver>inGranularity</receiver>
+   <slot>stepDown()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>138</x>
+     <y>214</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSmoothnessIncrease</sender>
+   <signal>triggered()</signal>
+   <receiver>inSmoothness</receiver>
+   <slot>stepUp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>138</x>
+     <y>241</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSmoothnessDecrease</sender>
+   <signal>triggered()</signal>
+   <receiver>inSmoothness</receiver>
+   <slot>stepDown()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>138</x>
+     <y>241</y>
     </hint>
    </hints>
   </connection>

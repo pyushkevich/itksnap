@@ -1145,6 +1145,55 @@ void MainImageWindow::dropEvent(QDropEvent *event)
     CFRelease(cfurl);
     CFRelease(absurl);
     }
+
+#elif defined(__APPLE__) && QT_VERSION < 0x050000
+
+  QString localFileQString = url.toLocalFile();
+  // [pzion 20150805] Work around
+  // https://bugreports.qt.io/browse/QTBUG-40449
+  if ( localFileQString.startsWith("/.file/id=") )
+    {
+    CFStringRef relCFStringRef =
+        CFStringCreateWithCString(
+          kCFAllocatorDefault,
+          localFileQString.toUtf8().constData(),
+          kCFStringEncodingUTF8
+          );
+    CFURLRef relCFURL =
+        CFURLCreateWithFileSystemPath(
+          kCFAllocatorDefault,
+          relCFStringRef,
+          kCFURLPOSIXPathStyle,
+          false // isDirectory
+          );
+    CFErrorRef error = 0;
+    CFURLRef absCFURL =
+        CFURLCreateFilePathURL(
+          kCFAllocatorDefault,
+          relCFURL,
+          &error
+          );
+    if ( !error )
+      {
+      static const CFIndex maxAbsPathCStrBufLen = 4096;
+      char absPathCStr[maxAbsPathCStrBufLen];
+      if ( CFURLGetFileSystemRepresentation(
+             absCFURL,
+             true, // resolveAgainstBase
+             reinterpret_cast<UInt8 *>( &absPathCStr[0] ),
+             maxAbsPathCStrBufLen
+             ) )
+        {
+        localFileQString = QString( absPathCStr );
+        }
+      }
+    CFRelease( absCFURL );
+    CFRelease( relCFURL );
+    CFRelease( relCFStringRef );
+
+    url = QUrl::fromLocalFile(localFileQString);
+    }
+
 #endif
 
   QString file = url.toLocalFile();
