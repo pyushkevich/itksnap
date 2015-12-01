@@ -340,6 +340,7 @@ private:
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "IRISSlicer.txx"
+#include "IRISSlicer_RLE.txx"
 #endif
 
 #endif //__IRISSlicer_h_
