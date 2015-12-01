@@ -383,9 +383,20 @@ IRISApplication
   // This has to happen in 'pure' SNAP mode
   assert(IsSnakeModeActive());
 
-  // Cast the image to label type
-  CastNativeImage<LabelImageType> caster;
-  LabelImageType::Pointer imgLabel = caster(io);
+  typedef itk::Image<LabelType, 3> UncompressedImageType;
+
+  // Cast the native to label type
+  CastNativeImage<UncompressedImageType> caster;
+  UncompressedImageType::Pointer imgUncompressed = caster(io);
+
+  //use specialized RoI filter to convert to RLEImage
+  typedef itk::RegionOfInterestImageFilter<UncompressedImageType, LabelImageType> inConverterType;
+  inConverterType::Pointer inConv = inConverterType::New();
+  inConv->SetInput(imgUncompressed);
+  inConv->SetRegionOfInterest(imgUncompressed->GetLargestPossibleRegion());
+  inConv->Update();
+  LabelImageType::Pointer imgLabel = inConv->GetOutput();
+  imgUncompressed = NULL; //deallocate intermediate image to save memory
 
   // The header of the label image is made to match that of the grey image
   imgLabel->SetOrigin(m_CurrentImageData->GetMain()->GetImageBase()->GetOrigin());
@@ -398,12 +409,13 @@ IRISApplication
   // Update filenames
   m_CurrentImageData->GetSegmentation()->SetFileName(io->GetFileNameOfNativeImage());
 
+  // TODO: this is inefficient with the new representation
   // Set the loaded labels as valid
   LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
-  LabelType *buffer = seg->GetBufferPointer();
-  LabelType *buffer_end = buffer + seg->GetPixelContainer()->Size();
-  while (buffer < buffer_end)
-    m_ColorLabelTable->SetColorLabelValid(*buffer++, true);
+  typedef itk::ImageRegionConstIterator<LabelImageType> IteratorType;
+  IteratorType it(seg, seg->GetBufferedRegion());
+  for(; !it.IsAtEnd(); ++it)
+    m_ColorLabelTable->SetColorLabelValid(it.Get(), true);
 
   // Let the GUI know that segmentation changed
   InvokeEvent(SegmentationChangeEvent());

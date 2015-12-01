@@ -129,7 +129,7 @@ ScalarImageWrapper<TTraits,TBase>
   m_CommonRepresentationPolicy.UpdateInputImage(newImage);
 
   // Update the VTK export pipeline
-  m_VTKExporter->SetInput(newImage);
+  // m_VTKExporter->SetInput(newImage);
 }
 
 template <class TTraits, class TBase>

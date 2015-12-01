@@ -355,10 +355,12 @@ GenericImageData
 {
   UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
   LabelImageType *seg = this->GetSegmentation()->GetImage();
-  LabelType *buffer = seg->GetBufferPointer();
-  LabelType *buffer_end = buffer + seg->GetPixelContainer()->Size();
-  while (buffer < buffer_end)
-    new_cumulative->Encode(*buffer++);
+
+  itk::ImageRegionConstIterator<LabelImageType> it(seg, seg->GetLargestPossibleRegion());
+  for (; !it.IsAtEnd(); ++it)
+    {
+    new_cumulative->Encode(it.Get());
+    }
 
   new_cumulative->FinishEncoding();
   return new_cumulative;
@@ -429,8 +431,8 @@ void GenericImageData::StoreUndoPoint(const char *text)
   LabelImageWrapper *seg = this->GetSegmentation();
   UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
 
-  LabelType *dseg = seg->GetVoxelPointer();
-  size_t n = seg->GetNumberOfVoxels();
+  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
+  IteratorType it(seg->GetImage(), seg->GetImage()->GetLargestPossibleRegion());
 
   // Create the Undo delta object
   UndoManagerType::Delta *delta = new UndoManagerType::Delta();
@@ -448,9 +450,10 @@ void GenericImageData::StoreUndoPoint(const char *text)
 
       for(size_t j = 0; j < rle_len; j++)
         {
-        delta->Encode(*dseg - rle_val);
-        new_cumulative->Encode(*dseg);
-        dseg++;
+        LabelType v = it.Get();
+        delta->Encode(v - rle_val);
+        new_cumulative->Encode(v);
+        ++it;
         }
       }
 
@@ -460,11 +463,10 @@ void GenericImageData::StoreUndoPoint(const char *text)
     }
   else
     {
-    LabelType *dseg_end = dseg + n;
-    for(; dseg < dseg_end; ++dseg)
+    for (; !it.IsAtEnd(); ++it)
       {
       // TODO: add code to duplicate
-      delta->Encode(*dseg);
+      delta->Encode(it.Get());
       }
 
     delta->FinishEncoding();
@@ -498,7 +500,9 @@ GenericImageData
   UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
 
   LabelImageWrapper *imSeg = this->GetSegmentation();
-  LabelType *dseg = imSeg->GetVoxelPointer();
+
+  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
+  IteratorType it(imSeg->GetImage(), imSeg->GetImage()->GetLargestPossibleRegion());
 
   // Applying the delta means adding
   for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
@@ -509,17 +513,19 @@ GenericImageData
       {
       for(size_t j = 0; j < n; j++)
         {
-        cumulative->Encode(*dseg);
-        ++dseg;
+        cumulative->Encode(it.Get());
+        ++it;
         }
       }
     else
       {
       for(size_t j = 0; j < n; j++)
         {
-        *dseg -= d;
-        cumulative->Encode(*dseg);
-        ++dseg;
+        LabelType v = it.Get();
+        v -= d;
+        it.Set(v);
+        cumulative->Encode(v);
+        ++it;
         }
       }
     }
@@ -547,7 +553,9 @@ GenericImageData
   // it to the image
   UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForRedo();
   LabelImageWrapper *imSeg = this->GetSegmentation();
-  LabelType *dseg = imSeg->GetVoxelPointer();
+
+  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
+  IteratorType it(imSeg->GetImage(), imSeg->GetImage()->GetLargestPossibleRegion());
 
   UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
 
@@ -560,17 +568,19 @@ GenericImageData
       {
       for(size_t j = 0; j < n; j++)
         {
-        cumulative->Encode(*dseg);
-        ++dseg;
+        cumulative->Encode(it.Get());
+        ++it;
         }
       }
     else
       {
       for(size_t j = 0; j < n; j++)
         {
-        *dseg += d;
-        cumulative->Encode(*dseg);
-        ++dseg;
+        LabelType v = it.Get();
+        v += d;
+        it.Set(v);
+        cumulative->Encode(v);
+        ++it;
         }
       }
     }

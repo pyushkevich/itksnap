@@ -538,7 +538,7 @@ void SNAPImageData::SwapLabelImageWithCompressedAlternative()
       {
       LabelType value = m_CompressedAlternateLabelImage->GetRLEValue(i);
       for(size_t j = 0; j < m_CompressedAlternateLabelImage->GetRLELength(i); ++j, ++it_write)
-        it_write.Value() = value;
+        it_write.Set(value);
       }
     }
   else
