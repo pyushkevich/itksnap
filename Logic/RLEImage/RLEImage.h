@@ -97,7 +97,7 @@ public:
     /** Allocate the image memory. The size of the image must
     * already be set, e.g. by calling SetRegions().
     * Pixel values are initialized using default constructor. */
-    virtual void Allocate(bool initialize = false) override;
+    virtual void Allocate(bool initialize = false);
 
     /** Restore the data object to its initial state. This means releasing
     * memory. */
