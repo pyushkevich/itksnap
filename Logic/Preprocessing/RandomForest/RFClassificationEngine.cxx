@@ -4,7 +4,7 @@
 #include "SNAPImageData.h"
 #include "ImageWrapper.h"
 #include "ImageCollectionToImageFilter.h"
-#include "itkImageRegionIterator.h"
+#include "RLEImageRegionIterator.h"
 
 // Includes from the random forest library
 typedef GreyType data_t;

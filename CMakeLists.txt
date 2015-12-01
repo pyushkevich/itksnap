@@ -316,6 +316,16 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
   Logic/ImageWrapper/ImageWrapperTraits.h
+  Logic/RLEImage/RLEImage.h
+  Logic/RLEImage/RLEImage.txx
+  Logic/RLEImage/RLEImageConstIterator.h
+  Logic/RLEImage/RLEImageIterator.h
+  Logic/RLEImage/RLEImageRegionConstIterator.h
+  Logic/RLEImage/RLEImageRegionIterator.h
+  Logic/RLEImage/RLEImageScanlineConstIterator.h
+  Logic/RLEImage/RLEImageScanlineIterator.h
+  Logic/RLEImage/RLERegionOfInterestImageFilter.h
+  Logic/RLEImage/RLERegionOfInterestImageFilter.txx
   Logic/ImageWrapper/InputSelectionImageFilter.h
   Logic/ImageWrapper/LabelToRGBAFilter.h
   Logic/ImageWrapper/NativeIntensityMappingPolicy.h
@@ -832,7 +842,11 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/GMM
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/RandomForest
+<<<<<<< HEAD
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/Texture
+=======
+    ${SNAP_SOURCE_DIR}/Logic/RLEImage
+>>>>>>> dev_3.6
     ${SNAP_SOURCE_DIR}/Logic/Slicing
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
@@ -861,10 +875,12 @@ ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 # Compiler-specific warinings
 #--------------------------------------------------------------------------------
 
-# Get rid of this ridiculous warning in VS8
-IF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Visual Studio 9" OR CMAKE_GENERATOR MATCHES "Visual Studio 10" )
+# Get rid of this ridiculous warning in VS8+
+IF( MSVC )
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
-ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 8" OR CMAKE_GENERATOR MATCHES "Visual Studio 9" OR CMAKE_GENERATOR MATCHES "Visual Studio 10" )
+  ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
+  ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
+ENDIF( MSVC )
   
 IF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Studio" )
   ADD_DEFINITIONS(-DNOMINMAX)
@@ -1014,6 +1030,73 @@ SET(GUI_TESTS
   RandomForest)
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
+set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)
+
+ADD_EXECUTABLE(SlicingPerformanceTest Testing/Logic/SlicingPerformanceTest.cxx)
+TARGET_LINK_LIBRARIES(SlicingPerformanceTest ${ITK_LIBRARIES})
+
+ADD_EXECUTABLE(testRLE Testing/Logic/testRLE.cxx)
+TARGET_LINK_LIBRARIES(testRLE ${ITK_LIBRARIES})
+
+ADD_EXECUTABLE(iteratorTests
+    Testing/Logic/itkRegionOfInterestImageFilterTest.cxx
+    Testing/Logic/itkIteratorTests.cxx
+    Testing/Logic/itkImageIteratorsForwardBackwardTest.cxx
+    Testing/Logic/itkImageIteratorTest.cxx
+    Testing/Logic/itkImageIteratorWithIndexTest.cxx
+    Testing/Logic/itkImageRegionConstIteratorWithOnlyIndexTest.cxx
+    Testing/Logic/itkImageRegionIteratorTest.cxx
+    Testing/Logic/itkImageScanlineIteratorTest1.cxx
+    Testing/Logic/iteratorTests.cxx)
+TARGET_LINK_LIBRARIES(iteratorTests ${ITK_LIBRARIES})
+
+add_test(NAME BasicSlicingTestX39 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/X39.nii.gz ${TEMP}/X39.nii.gz
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz
+        ${TEMP}/X39.nii.gz
+        X 39 irisRLE
+)
+
+add_test(NAME BasicSlicingTestY55 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/Y55.nii.gz ${TEMP}/Y55.nii.gz
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz
+        ${TEMP}/Y55.nii.gz
+        Y 55 irisRLE
+)
+
+add_test(NAME BasicSlicingTestZ32 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/Z32.nii.gz ${TEMP}/Z32.nii.gz
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz
+        ${TEMP}/Z32.nii.gz
+        Z 32 irisRLE
+)
+
+add_test(NAME SlicingPerformanceTestX300 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/X300.mha ${TEMP}/X300.mha
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/vb-seg.mha
+        ${TEMP}/X300.mha
+        X 300 irisRLE
+)
+
+add_test(NAME SlicingPerformanceTestY300 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/Y300.mha ${TEMP}/Y300.mha
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/vb-seg.mha
+        ${TEMP}/Y300.mha
+        Y 300 irisRLE
+)
+
+add_test(NAME SlicingPerformanceTestZ150 COMMAND itkTestDriver
+  --compare ${TESTDATA_DIR}/Z150.mha ${TEMP}/Z150.mha
+  $<TARGET_FILE:SlicingPerformanceTest>
+        ${TESTDATA_DIR}/vb-seg.mha
+        ${TEMP}/Z150.mha
+        Z 150 irisRLE
+)
 
 # Set up a test for each GUI test
 FOREACH(GUI_TEST ${GUI_TESTS})

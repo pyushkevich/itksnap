@@ -19,9 +19,7 @@
 #define __itkBSplineScatteredDataPointSetToImageFilter_txx
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
-#include "itkImageRegionConstIteratorWithIndex.h"
-#include "itkImageRegionIterator.h"
-#include "itkImageRegionIteratorWithIndex.h"
+#include "RLEImageRegionIterator.h"
 #include "itkImageDuplicator.h"
 #include "itkCastImageFilter.h"
 #include "itkNumericTraits.h"

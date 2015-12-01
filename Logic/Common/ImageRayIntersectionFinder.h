@@ -6,8 +6,8 @@
   Date:      $Date: 2009/01/23 20:09:38 $
   Version:   $Revision: 1.3 $
   Copyright (c) 2007 Paul A. Yushkevich
-  
-  This file is part of ITK-SNAP 
+
+  This file is part of ITK-SNAP
 
   ITK-SNAP is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
- 
+
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -29,7 +29,7 @@
 
   This software is distributed WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-  PURPOSE.  See the above copyright notices for more information. 
+  PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 #ifndef __ImageRayIntersectionFinder_h_
@@ -42,26 +42,26 @@
  * \class ImageRayIntersectionFinder
  * \brief An algorithm for testing ray hits against arbitrary images.
  * This algorithm traverses a ray until it finds a pixel that satisfies the
- * hit tester (a functor with operator () which returns 0 for no-hit and 
+ * hit tester (a functor with operator () which returns 0 for no-hit and
  * 1 for hit).
  */
-template <class TPixel, class THitTester>
+template <class TImage, class THitTester>
 class ImageRayIntersectionFinder
 {
 public:
     virtual ~ImageRayIntersectionFinder() {}
   /** Image type */
-  typedef itk::Image<TPixel,3> ImageType;
+  typedef TImage ImageType;
 
   /** Set the hit-test functor to evaluate for hits */
   irisSetMacro(HitTester,THitTester);
 
-  /** 
+  /**
    * Compute the intersection (index of the first pixel in the
-   * image that the ray crosses and which satisfies the THitTester's 
+   * image that the ray crosses and which satisfies the THitTester's
    * condition.
    *
-   * Returns: 1 on success, 0 on no hit and -1 if the ray misses the 
+   * Returns: 1 on success, 0 on no hit and -1 if the ray misses the
    * image completely.
    */
   int FindIntersection(ImageType *image,Vector3d xRayStart,

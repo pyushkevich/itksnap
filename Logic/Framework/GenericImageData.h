@@ -44,6 +44,7 @@
 #define __GenericImageData_h_
 
 #include "SNAPCommon.h"
+#include "RLEImageRegionIterator.h"
 #include "IRISException.h"
 #include "ImageWrapperTraits.h"
 #include <itkObject.h>

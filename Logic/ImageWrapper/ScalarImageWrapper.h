@@ -299,12 +299,12 @@ protected:
                                   ITKTransformType *tran = NULL);
 
 
-  typedef itk::VTKImageExport<ImageType> VTKExporter;
-  SmartPtr<VTKExporter> m_VTKExporter;
+  //typedef itk::VTKImageExport<ImageType> VTKExporter;
+  //SmartPtr<VTKExporter> m_VTKExporter;
 
   vtkSmartPointer<vtkImageImport> m_VTKImporter;
 
-  void SetupVTKImportExport();
+  //void SetupVTKImportExport();
 };
 
 #endif // __ScalarImageWrapper_h_

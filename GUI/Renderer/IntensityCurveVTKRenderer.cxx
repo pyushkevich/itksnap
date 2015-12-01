@@ -326,11 +326,11 @@ public:
   {
     this->MouseMoved = false;
 
-    if (mouse.Button == vtkContextMouseEvent::LEFT_BUTTON)
+    if (mouse.GetButton() == vtkContextMouseEvent::LEFT_BUTTON)
       {
       double pos[2];
-      pos[0] = mouse.Pos[0];
-      pos[1] = mouse.Pos[1];
+      pos[0] = mouse.GetPos()[0];
+      pos[1] = mouse.GetPos()[1];
       vtkIdType pointUnderMouse = this->FindPoint(pos);
       this->SetCurrentPoint(pointUnderMouse);
       return true;

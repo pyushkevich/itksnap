@@ -6,8 +6,8 @@
   Date:      $Date: 2007/12/30 04:05:15 $
   Version:   $Revision: 1.6 $
   Copyright (c) 2007 Paul A. Yushkevich
-  
-  This file is part of ITK-SNAP 
+
+  This file is part of ITK-SNAP
 
   ITK-SNAP is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
- 
+
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -29,7 +29,7 @@
 
   This software is distributed WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-  PURPOSE.  See the above copyright notices for more information. 
+  PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 #include "itkDefaultPixelAccessor.h"
@@ -57,7 +57,7 @@ IRISSlicer<TInputImage, TOutputImage>
   m_SliceDirectionImageAxis = 2;
   m_LineDirectionImageAxis = 1;
   m_PixelDirectionImageAxis = 0;
-  
+
   m_PixelTraverseForward = true;
   m_LineTraverseForward = true;
 
@@ -74,19 +74,19 @@ void IRISSlicer<TInputImage, TOutputImage>
   // Get pointers to the inputs and outputs
   typename Superclass::InputImageConstPointer inputPtr = this->GetInput();
   typename Superclass::OutputImagePointer outputPtr = this->GetOutput();
-  
+
   // The inputs and outputs should exist
   if (!outputPtr || !inputPtr) return;
 
   // Get the input's largest possible region
   InputImageRegionType inputRegion = inputPtr->GetLargestPossibleRegion();
-  
+
   // Arrays to specify the output spacing and origin
   double outputSpacing[2];
   double outputOrigin[2] = {0.0,0.0};
-  
+
   // Initialize the output image region
-  OutputImageRegionType outputRegion; 
+  OutputImageRegionType outputRegion;
   outputRegion.SetIndex(0,inputRegion.GetIndex(m_PixelDirectionImageAxis));
   outputRegion.SetSize(0,inputRegion.GetSize(m_PixelDirectionImageAxis));
   outputRegion.SetIndex(1,inputRegion.GetIndex(m_LineDirectionImageAxis));
@@ -95,7 +95,7 @@ void IRISSlicer<TInputImage, TOutputImage>
   // Set the origin and spacing
   outputSpacing[0] = inputPtr->GetSpacing()[m_PixelDirectionImageAxis];
   outputSpacing[1] = inputPtr->GetSpacing()[m_LineDirectionImageAxis];
-      
+
   // Set the region of the output slice
   outputPtr->SetLargestPossibleRegion(outputRegion);
 
@@ -115,11 +115,11 @@ void IRISSlicer<TInputImage, TOutputImage>
   // Set the index of the region in that dimension to the number of the slice
   destRegion.SetIndex(m_SliceDirectionImageAxis,m_SliceIndex);
 
-  // Compute the bounds of the input region for the other two dimensions (for 
-  // the case when the output region is not equal to the largest possible 
+  // Compute the bounds of the input region for the other two dimensions (for
+  // the case when the output region is not equal to the largest possible
   // region (i.e., we are requesting a partial slice)
 
-  // The size of the region does not depend of the direction of axis 
+  // The size of the region does not depend of the direction of axis
   // traversal
   destRegion.SetSize(m_PixelDirectionImageAxis,srcRegion.GetSize(0));
   destRegion.SetSize(m_LineDirectionImageAxis,srcRegion.GetSize(1));
@@ -133,8 +133,8 @@ void IRISSlicer<TInputImage, TOutputImage>
     {
     // This case is a bit trickier.  The axis direction is reversed, so
     // range [i,...,i+s-1] in the output image corresponds to the range
-    // [S-(i+s),S-(i+1)] in the input image, where i is the in-slice index, 
-    // S is the largest size of the input and s is the requested size of the 
+    // [S-(i+s),S-(i+1)] in the input image, where i is the in-slice index,
+    // S is the largest size of the input and s is the requested size of the
     // output
     destRegion.SetIndex(
       m_PixelDirectionImageAxis,
@@ -148,7 +148,7 @@ void IRISSlicer<TInputImage, TOutputImage>
     destRegion.SetIndex(m_LineDirectionImageAxis,srcRegion.GetIndex(1));
     }
   else
-    {    
+    {
     destRegion.SetIndex(
       m_LineDirectionImageAxis,
       this->GetInput()->GetLargestPossibleRegion().GetSize(m_LineDirectionImageAxis)
@@ -238,7 +238,7 @@ void IRISSlicer<TInputImage, TOutputImage>
     stride_image[m_PixelDirectionImageAxis];
   int sLine = (m_LineTraverseForward ? 1 : -1) *
     stride_image[m_LineDirectionImageAxis];
-  
+ 
   // We never take full line-strides, because as we iterate, we
   // take n pixel-strides before needing to worry about changing
   // the line. Therefore, we compute the step needed to go to the

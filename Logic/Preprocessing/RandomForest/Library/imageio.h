@@ -7,8 +7,7 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkImageRegionConstIterator.h"
-#include "itkImageRegionIterator.h"
+#include "RLEImageRegionIterator.h"
 #include "data.h"
 
 typedef std::vector<std::string> StringVector;

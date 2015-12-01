@@ -35,7 +35,7 @@
 #include "itkGradientImageFilter.h"
 #include "itkUnaryFunctorImageFilter.h"
 #include "itkMultiplyImageFilter.h"
-#include "itkImageRegionIterator.h"
+#include "RLEImageRegionIterator.h"
 #include "itkNumericTraits.h"
 #include "itkSimpleFastMutexLock.h"
 #include "itkMutexLockHolder.h"

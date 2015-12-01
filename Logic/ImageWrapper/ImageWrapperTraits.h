@@ -3,6 +3,7 @@
 
 #include "SNAPCommon.h"
 #include "ImageWrapperBase.h"
+#include "RLEImageRegionIterator.h"
 
 #include "CommonRepresentationPolicy.h"
 #include "DisplayMappingPolicy.h"
@@ -38,7 +39,7 @@ public:
   typedef ScalarImageWrapper<LabelImageWrapperTraits> WrapperType;
 
   typedef LabelType ComponentType;
-  typedef itk::Image<ComponentType, 3> ImageType;
+  typedef RLEImage<ComponentType> ImageType;
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef ColorLabelTableDisplayMappingPolicy<Self> DisplayMapping;

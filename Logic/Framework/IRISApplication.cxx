@@ -48,11 +48,9 @@
 #include "MeshManager.h"
 #include "MeshExportSettings.h"
 #include "SegmentationStatistics.h"
-#include "itkImageRegionIterator.h"
-#include "itkImageRegionConstIterator.h"
-#include "itkImageRegionIteratorWithIndex.h"
+#include "RLEImageRegionIterator.h"
+#include "RLERegionOfInterestImageFilter.h"
 #include "itkPasteImageFilter.h"
-#include "itkImageRegionIterator.h"
 #include "itkIdentityTransform.h"
 #include "itkResampleImageFilter.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
@@ -210,8 +208,8 @@ IRISApplication
   unsigned int nCopied = 0;
   while(!itLabel.IsAtEnd())
     {
-    if(itLabel.Value() != passThroughLabel || !roi.IsSeedWithCurrentSegmentation())
-      itLabel.Value() = (LabelType) 0;
+    if(itLabel.Get() != passThroughLabel || !roi.IsSeedWithCurrentSegmentation())
+      itLabel.Set((LabelType) 0);
     else
       nCopied++;
     ++itLabel;
@@ -418,9 +416,20 @@ IRISApplication
   // This has to happen in 'pure' IRIS mode
   assert(!IsSnakeModeActive());
 
-  // Cast the image to label type
-  CastNativeImage<LabelImageType> caster;
-  LabelImageType::Pointer imgLabel = caster(io);
+  typedef itk::Image<LabelType, 3> UncompressedImageType;
+
+  // Cast the native to label type
+  CastNativeImage<UncompressedImageType> caster;
+  UncompressedImageType::Pointer imgUncompressed = caster(io);
+
+  //use specialized RoI filter to convert to RLEImage
+  typedef itk::RegionOfInterestImageFilter<UncompressedImageType, LabelImageType> inConverterType;
+  inConverterType::Pointer inConv = inConverterType::New();
+  inConv->SetInput(imgUncompressed);
+  inConv->SetRegionOfInterest(imgUncompressed->GetLargestPossibleRegion());
+  inConv->Update();
+  LabelImageType::Pointer imgLabel = inConv->GetOutput();
+  imgUncompressed = NULL; //deallocate intermediate image to save memory
   
   // The header of the label image is made to match that of the grey image
   imgLabel->SetOrigin(m_CurrentImageData->GetMain()->GetImageBase()->GetOrigin());
@@ -437,6 +446,27 @@ IRISApplication
   m_SystemInterface->GetHistoryManager()->UpdateHistory(
         "LabelImage", io->GetFileNameOfNativeImage(), true);
 
+  /** 
+   * TODO: MERGE LEFTOVER, must go to GenericImageData
+<<<<<<< HEAD
+=======
+
+  // Reset the UNDO manager
+  m_UndoManager.Clear();
+
+  // Store the current segmentation image as the cumulative delta in the undo
+  // manager.
+  UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
+  LabelImageType *seg = m_IRISImageData->GetSegmentation()->GetImage();
+  itk::ImageRegionConstIterator<LabelImageType> it(seg, seg->GetLargestPossibleRegion());
+  for (; !it.IsAtEnd(); ++it)
+      new_cumulative->Encode(it.Get());
+
+  new_cumulative->FinishEncoding();
+  m_UndoManager.SetCumulativeDelta(new_cumulative);
+
+>>>>>>> dev_3.6
+  */
   // Now we can use the RLE encoding of the segmentation to quickly determine
   // which labels are valid
   // TODO: this will become unnecessary when we move to compressed segmentations!
@@ -485,11 +515,12 @@ void IRISApplication::UpdateSegmentationVoxel(const Vector3ui &pos)
 {
   // Get the segmentation image
   LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
-  LabelType &label = seg->GetPixel(to_itkIndex(pos));
+  itk::Index<3> iseg = to_itkIndex(pos);
+  const LabelType &label = seg->GetPixel(iseg);
   LabelType newlabel = DrawOverLabel(label);
   if(label != newlabel)
     {
-    label = newlabel;
+    seg->SetPixel(iseg, newlabel);
     m_SegmentationChangeCount++;
     }
 }
@@ -544,7 +575,7 @@ IRISApplication
       itk::Index<3> iseg = to_itkIndex(to_unsigned_int(idxImageFloat));
 
       // Access the voxel in the segmentation
-      LabelType &voxel = seg->GetPixel(iseg);
+      const LabelType &voxel = seg->GetPixel(iseg);
 
       // Apply the label to the voxel
       if(iMode == PAINT_OVER_ALL ||
@@ -554,7 +585,7 @@ IRISApplication
         {
         if(voxel != iDrawing)
           {
-          voxel = iDrawing;
+          seg->SetPixel(iseg, iDrawing);
           nUpdates++;
           }
         }
@@ -689,7 +720,7 @@ IRISApplication
   while(!itSource.IsAtEnd())
     {
     // Get the two voxels
-    LabelType &voxIRIS = itTarget.Value();    
+    LabelType voxIRIS = itTarget.Get();    
     float voxSNAP = itSource.Value();
 
     // Check that we're ok (debug mode only)
@@ -697,6 +728,7 @@ IRISApplication
 
     // Perform the merge
     voxIRIS = mergeTable[voxSNAP <= 0 ? 1 : 0][voxIRIS];
+    itTarget.Set(voxIRIS);
 
     // Iterate
     ++itSource;
@@ -735,6 +767,61 @@ IRISApplication
 {
   // Delegate to the image data
   m_CurrentImageData->StoreUndoPoint(text);
+  /** TODO: merge fully!
+=======
+  // Set the current state as the undo point. We store the difference between
+  // the last 'undo' image and the current segmentation image, and then copy
+  // the current segmentation image into the undo image
+  LabelImageType *seg = m_IRISImageData->GetSegmentation()->GetImage();
+  UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
+
+  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
+  IteratorType it(seg, seg->GetLargestPossibleRegion());
+
+  // Create the Undo delta object
+  UndoManagerType::Delta *delta = new UndoManagerType::Delta();
+
+  // Get the old cumulative delta
+  UndoManagerType::Delta *old_cumulative = m_UndoManager.GetCumulativeDelta();
+
+  // Run over the old cumulative data
+  if(old_cumulative)
+    {
+    for(size_t i = 0; i < old_cumulative->GetNumberOfRLEs(); i++)
+      {
+      size_t rle_len = old_cumulative->GetRLELength(i);
+      LabelType rle_val = old_cumulative->GetRLEValue(i);
+
+      for(size_t j = 0; j < rle_len; j++)
+        {
+        LabelType v = it.Get();
+        delta->Encode(v - rle_val);
+        new_cumulative->Encode(v);
+        ++it;
+        }
+      }
+
+    // Important last step!
+    delta->FinishEncoding();
+    new_cumulative->FinishEncoding();
+    }
+  else
+    {
+      for (; !it.IsAtEnd(); ++it)
+      {
+      // TODO: add code to duplicate
+      delta->Encode(it.Get());
+      }
+
+    delta->FinishEncoding();
+    *new_cumulative = *delta;
+    }
+
+  // Add the delta object
+  m_UndoManager.AppendDelta(delta);
+  m_UndoManager.SetCumulativeDelta(new_cumulative);
+>>>>>>> dev_3.6
+*/
 
   // TODO: I am not sure this is the best place for this code. I think it's a
   // good idea to migrate all of the code that deals with updating the
@@ -764,53 +851,55 @@ IRISApplication
   return m_CurrentImageData->IsUndoPossible();
 }
 
-/*
 void
 IRISApplication
 ::Undo()
 {
+  m_CurrentImageData->Undo();
+  /*
+=======
   // In order to undo, we must take the 'current' delta and apply
   // it to the image
   UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForUndo();
+  UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
 
-  LabelImageWrapper *imUndo = m_IRISImageData->GetUndoImage();
-  LabelImageWrapper *imSeg = m_IRISImageData->GetSegmentation();
-  LabelType *dundo = imUndo->GetVoxelPointer();
-  LabelType *dseg = imSeg->GetVoxelPointer();
+  LabelImageType *imSeg = m_IRISImageData->GetSegmentation()->GetImage();
+  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
+  IteratorType it(imSeg, imSeg->GetLargestPossibleRegion());
 
-  // Applying the delta means adding 
+  // Applying the delta means adding
   for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
     {
     size_t n = delta->GetRLELength(i);
     LabelType d = delta->GetRLEValue(i);
     if(d == 0)
       {
-      dundo += n;
-      dseg += n;
+      for(size_t j = 0; j < n; j++)
+        {
+        cumulative->Encode(it.Get());
+        ++it;
+        }
       }
     else
       {
       for(size_t j = 0; j < n; j++)
         {
-        *dundo -= d;
-        *dseg = *dundo;
-        ++dundo; ++dseg;
+        LabelType v = it.Get();
+        v -= d;
+        it.Set(v);
+        cumulative->Encode(v);
+        ++it;
         }
       }
     }
 
-  // Set modified flags
-  imSeg->GetImage()->Modified();
-  imUndo->GetImage()->Modified();
-  InvokeEvent(SegmentationChangeEvent());
-}
-*/
+  cumulative->FinishEncoding();
+  m_UndoManager.SetCumulativeDelta(cumulative);
 
-void
-IRISApplication
-::Undo()
-{
-  m_CurrentImageData->Undo();
+  // Set modified flags
+  imSeg->Modified();
+>>>>>>> dev_3.6
+*/
   InvokeEvent(SegmentationChangeEvent());
 }
 
@@ -826,6 +915,50 @@ IRISApplication
 ::Redo()
 {
   m_CurrentImageData->Redo();
+  /*
+=======
+  // In order to undo, we must take the 'current' delta and apply
+  // it to the image
+  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForRedo();
+  LabelImageType *imSeg = m_IRISImageData->GetSegmentation()->GetImage();
+  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
+  IteratorType it(imSeg, imSeg->GetLargestPossibleRegion());
+
+  UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
+
+  // Applying the delta means adding
+  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
+    {
+    size_t n = delta->GetRLELength(i);
+    LabelType d = delta->GetRLEValue(i);
+    if(d == 0)
+      {
+      for(size_t j = 0; j < n; j++)
+        {
+        cumulative->Encode(it.Get());
+        ++it;
+        }
+      }
+    else
+      {
+      for(size_t j = 0; j < n; j++)
+        {
+        LabelType v = it.Get();
+        v += d;
+        it.Set(v);
+        cumulative->Encode(v);
+        ++it;
+        }
+      }
+    }
+
+  cumulative->FinishEncoding();
+  m_UndoManager.SetCumulativeDelta(cumulative);
+
+  // Set modified flags
+  imSeg->Modified();
+>>>>>>> dev_3.6
+*/
   InvokeEvent(SegmentationChangeEvent());
 }
 
@@ -1204,7 +1337,7 @@ IRISApplication
   while(!it.IsAtEnd())
     {
     // Compute the distance to the plane
-    const long *index = it.GetIndex().GetIndex();
+	const IteratorType::IndexValueType *index = it.GetIndex().GetIndex();
     double distance = 
       index[0]*normal[0] + 
       index[1]*normal[1] + 

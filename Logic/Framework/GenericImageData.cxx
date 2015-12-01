@@ -35,7 +35,7 @@
 // ITK Includes
 #include "itkImage.h"
 #include "itkImageIterator.h"
-#include "itkImageRegionIterator.h"
+#include "RLEImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkMinimumMaximumImageCalculator.h"

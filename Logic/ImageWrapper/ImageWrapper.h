@@ -36,9 +36,9 @@
 #define __ImageWrapper_h_
 
 // Smart pointers have to be included from ITK, can't forward reference them
+#include "RLEImageScanlineIterator.h"
 #include "ImageWrapperBase.h"
 #include "ImageCoordinateGeometry.h"
-#include <itkImageRegionIterator.h>
 #include <itkVectorImage.h>
 #include <itkRGBAPixel.h>
 #include <DisplayMappingPolicy.h>
@@ -335,7 +335,7 @@ public:
   /**
    * This method exposes the scalar pointer in the image
    */
-  virtual InternalPixelType *GetVoxelPointer() const;
+  //virtual InternalPixelType *GetVoxelPointer() const;
 
   /** Number of voxels */
   virtual size_t GetNumberOfVoxels() const;
@@ -437,9 +437,6 @@ public:
    */
   irisIsMacro(PipelineReady)
   irisSetMacro(PipelineReady, bool)
-
-
-  virtual void* GetVoxelVoidPointer() const;
 
   /**
    * Set the filename of the image wrapper. If the wrapper does not have a

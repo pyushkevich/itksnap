@@ -6,8 +6,8 @@
   Date:      $Date: 2009/01/23 20:09:38 $
   Version:   $Revision: 1.4 $
   Copyright (c) 2007 Paul A. Yushkevich
-  
-  This file is part of ITK-SNAP 
+
+  This file is part of ITK-SNAP
 
   ITK-SNAP is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
- 
+
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -29,20 +29,20 @@
 
   This software is distributed WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-  PURPOSE.  See the above copyright notices for more information. 
+  PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 
 #include "itkImage.h"
 
-template <class TPixel, class THitTester>
+template <class TImage, class THitTester>
 int
-ImageRayIntersectionFinder<TPixel,THitTester>    
-::FindIntersection(ImageType *image,Vector3d point,
+ImageRayIntersectionFinder<TImage, THitTester>
+::FindIntersection(TImage *image, Vector3d point,
                    Vector3d ray,Vector3i &hit) const
 {
   typename ImageType::IndexType lIndex;
-  typename ImageType::SizeType size = 
+  typename ImageType::SizeType size =
     image->GetLargestPossibleRegion().GetSize();
 
   double delta[3][3] = {{0.,0.,0.},{0.,0.,0.},{0.,0.,0.}}, dratio[3]={0.,0.,0.};
@@ -99,8 +99,8 @@ ImageRayIntersectionFinder<TPixel,THitTester>
     lIndex[2] = (int)pz;
 
     // Get the pixel
-    TPixel hitPixel = image->GetPixel(lIndex);
-    
+    typename ImageType::PixelType hitPixel = image->GetPixel(lIndex);
+
     // Test if the pixel is a hit
     if(m_HitTester(hitPixel))
       {
@@ -146,7 +146,7 @@ ImageRayIntersectionFinder<TPixel,THitTester>
       delta[2][0] = dratio[2] * rx;
       }
 
-    // choose the shortest path 
+    // choose the shortest path
     if ( fabs(delta[0][0]) <= fabs(delta[1][0]) && fabs(delta[0][0]) <= fabs(delta[2][0]) )
       {
       dratio[0]   = delta[0][0]/rx;
@@ -164,7 +164,7 @@ ImageRayIntersectionFinder<TPixel,THitTester>
       pz += delta[1][2];
       }
     else
-      { //if (fabs(delta[2][0] <= fabs(delta[0][0] && fabs(delta[2][0] <= fabs(delta[0][0]) 
+      { //if (fabs(delta[2][0] <= fabs(delta[0][0] && fabs(delta[2][0] <= fabs(delta[0][0])
       delta[2][1] = dratio[2] * ry;
       px += delta[2][0];
       py += delta[2][1];

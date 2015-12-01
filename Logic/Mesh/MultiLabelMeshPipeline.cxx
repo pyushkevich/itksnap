@@ -46,9 +46,7 @@
 #include "MeshOptions.h"
 
 // ITK includes
-#include "itkRegionOfInterestImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
-#include "itkImageRegionConstIteratorWithIndex.h"
 
 using namespace std;
 
@@ -159,7 +157,7 @@ inline unsigned long rotl(unsigned long value, int shift)
 void MultiLabelMeshPipeline::UpdateMeshInfoHelper(
     MultiLabelMeshPipeline::MeshInfo *current_meshinfo,
     const itk::Index<3> &run_start,
-    itk::ImageLinearConstIteratorWithIndex<MultiLabelMeshPipeline::InputImageType> &it,
+    itk::ImageRegionConstIteratorWithIndex<MultiLabelMeshPipeline::InputImageType> &it,
     unsigned long pos)
 {
   // The end of the run, i.e., the last voxel that matched the label of run_start
@@ -220,59 +218,30 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
   // each pixel read, the code collects runs of pixels of the same label and
   // updates once the run ends (a pixel of another label is found or the end
   // of a line of pixels is reached). This makes for much more efficient code.
-  typedef itk::ImageLinearConstIteratorWithIndex<InputImageType> InputIterator;
+  typedef itk::ImageRegionConstIteratorWithIndex<InputImageType> InputIterator;
   InputIterator it(m_InputImage, m_InputImage->GetLargestPossibleRegion());
   while( !it.IsAtEnd() )
     {
-    // When starting a new line, we must record the pass through the
-    // last line and reset the current objects
-    if(current_label)
-      UpdateMeshInfoHelper(current_meshinfo, run_start, it, line_length);
-
-    // Reset the current objects
-    current_label = it.Get();
-    if(current_label)
-      {
-      current_meshinfo = &meshmap[current_label];
-      run_start = it.GetIndex();
-      }
-
-    // Take one step forward
-    ++it;
-
+    run_start = it.GetIndex();
+    const InputIterator::RLLine &line=*(it.rlLine);
+    int t = 0;
     // Iterate through the line
-    while(!it.IsAtEndOfLine())
+    for (int x = 0; x < line.size(); x++)
       {
-      // The the current label
-      LabelType label = it.Get();
-
-      // If the label does not match the current label, do the same deal
-      if(label != current_label)
+      run_start[0] = t;
+      current_label = line[x].second;
+      t += line[x].first;
+      if (current_label != 0)
         {
+        current_meshinfo = &meshmap[current_label];
         // Update the current mesh info
-        if(current_label)
-          UpdateMeshInfoHelper(current_meshinfo, run_start, it, it.GetIndex()[0]);
-
-        // Reset the current objects
-        current_label = it.Get();
-        if(current_label)
-          {
-          current_meshinfo = &meshmap[current_label];
-          run_start = it.GetIndex();
-          }
+        UpdateMeshInfoHelper(current_meshinfo, run_start, it, t);
+        current_meshinfo = &meshmap[current_label];
         }
-
-      // Go to the next voxel
-      ++it;
       }
-
-    // Go to the next line
-    it.NextLine();
+    ++(it.bi);
+    it.rlLine = &it.bi.Value();
     }
-
-  // At the end of the iteration, one more update!
-  if(current_label)
-    UpdateMeshInfoHelper(current_meshinfo, run_start, it, line_length);
 
   // At this point, meshmap has the number of voxels for every label, as well
   // as the checksum for every label and the extent for every label. Now we
