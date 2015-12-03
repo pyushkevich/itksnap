@@ -432,35 +432,6 @@ public:
   LabelType DrawOverLabel(LabelType iTarget);
 
   /**
-   * Method that signals the beginning of segmentation update operation. This
-   * method should be used in conjuction with UpdateSegmentationVoxel method
-   * to apply current drawing properties to a set of voxels
-   *
-   * These methods don't perform error checking - it's the user's responsibility
-   * to call them in the correct order. The methods are not currently reentrant
-   * (i.e., should not be used by multiple threads).
-   *
-   * TODO: this is currently only being used for spray paint. But this set of
-   * methods should be expanded with a method that works with itk iterators and
-   * should be made the main entrypoint for changing segmentations. This will
-   * especially be necessary for RLE segmentation management.
-   *
-   */
-  void BeginSegmentationUpdate(std::string undo_name);
-
-  /**
-   * Apply the current drawing label to a voxel. Depending on coverage mode
-   * and the voxel's current label, the label of the voxel may be changed
-   */
-  void UpdateSegmentationVoxel(const Vector3ui &pos);
-
-  /**
-   * Complete the segmentation update. Returns the actual number of voxels
-   * relabeled since BeginSegmentationUpdate();
-   */
-  int EndSegmentationUpdate();
-
-  /**
    * Really simple replacement of one label with another. Returns the 
    * number of voxels changed.
    */
@@ -475,7 +446,7 @@ public:
    * Cut the segmentation using a plane and relabed the segmentation
    * on the side of that plane
    */
-  void RelabelSegmentationWithCutPlane(
+  int RelabelSegmentationWithCutPlane(
     const Vector3d &normal, double intercept);
 
   /**
@@ -501,13 +472,6 @@ public:
     Save label descriptions to file
     */
   void SaveLabelDescriptions(const char *filename);
-
-  /**
-   * Store the current state as an undo point, allowing the user to revert
-   * to this state at a later point. The state in this context is just the
-   * segmentation image in IRIS.
-   */
-  void StoreUndoPoint(const char *text);
 
   /** 
    * Clear all the undo points, e.g., after an operation that can not be
@@ -613,6 +577,12 @@ public:
    */
   void SaveAnnotations(const char *filename);
 
+  /**
+   * Record the fact that the current active label and draw over label were used.
+   * This is to maintain a history of commonly used labels.
+   */
+  void RecordCurrentLabelUse();
+
 protected:
 
   IRISApplication();
@@ -707,10 +677,6 @@ protected:
 
   // Array of bubbles
   BubbleArray m_BubbleArray;
-
-  // State used in conjunction with BeginSegmentationUpdate/EndSegmentationUpdate
-  std::string m_SegmentationUpdateName;
-  unsigned int m_SegmentationChangeCount;
 
   // Save metadata for a layer to the associations file
   void SaveMetaDataAssociatedWithLayer(ImageWrapperBase *layer, int role,

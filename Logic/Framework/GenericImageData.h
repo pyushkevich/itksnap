@@ -143,6 +143,30 @@ public:
   }
 
   /**
+   * Similar but clear label is not affected (used in cutplane mode)
+   */
+  void PaintAsForegroundPreserveClear()
+  {
+    LabelType lOld = m_Iterator.Get();
+    if(lOld == 0)
+      return;
+
+    if(m_DrawOver.CoverageMode == PAINT_OVER_ALL ||
+       (m_DrawOver.CoverageMode == PAINT_OVER_ONE && lOld == m_DrawOver.DrawOverLabel) ||
+       (m_DrawOver.CoverageMode == PAINT_OVER_VISIBLE && lOld != 0))
+      {
+      if(lOld != m_ActiveLabel)
+        {
+        m_VoxelDelta += m_ActiveLabel - lOld;
+        m_Iterator.Set(m_ActiveLabel);
+        m_ChangedVoxels++;
+        }
+      }
+  }
+
+
+
+  /**
    * Reverse painting mode - applies clear label over active label (paintbrush RMB click)
    */
   void PaintAsBackground()

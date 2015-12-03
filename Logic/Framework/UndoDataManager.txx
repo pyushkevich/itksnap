@@ -76,7 +76,7 @@ UndoDataManager<TPixel>
 }
 
 template<typename TPixel>
-void
+int
 UndoDataManager<TPixel>
 ::CommitStaging(const char *text)
 {
@@ -99,6 +99,13 @@ UndoDataManager<TPixel>
   // Get the number of RLEs being added
   size_t n_new_rles = new_commit.GetNumberOfRLEs();
 
+  // If there are no new rles, the just bail out
+  if(n_new_rles == 0)
+    {
+    new_commit.DeleteDeltas();
+    return 0;
+    }
+
   // Check whether we need to prune from the back to keep total size under control
   CIterator itHead = m_CommitList.begin();
   while(m_CommitList.size() > m_MinCommits && m_TotalSize + n_new_rles > m_MaxTotalSize)
@@ -113,6 +120,9 @@ UndoDataManager<TPixel>
   m_CommitList.push_back(new_commit);
   m_Position = m_CommitList.end();
   m_TotalSize += n_new_rles;
+
+  // Return the number of RLEs
+  return n_new_rles;
 }
 
 template<typename TPixel>

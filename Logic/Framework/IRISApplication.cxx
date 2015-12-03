@@ -507,39 +507,6 @@ IRISApplication
   return iTarget;
 }
 
-void IRISApplication::BeginSegmentationUpdate(std::string undo_name)
-{
-  m_SegmentationUpdateName = undo_name;
-  m_SegmentationChangeCount = 0;
-}
-
-void IRISApplication::UpdateSegmentationVoxel(const Vector3ui &pos)
-{
-  // Get the segmentation image
-  LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
-  itk::Index<3> iseg = to_itkIndex(pos);
-  const LabelType &label = seg->GetPixel(iseg);
-  LabelType newlabel = DrawOverLabel(label);
-  if(label != newlabel)
-    {
-    seg->SetPixel(iseg, newlabel);
-    m_SegmentationChangeCount++;
-    }
-}
-
-int IRISApplication::EndSegmentationUpdate()
-{
-  if(m_SegmentationChangeCount > 0)
-    {
-    m_CurrentImageData->GetSegmentation()->GetImage()->Modified();
-    this->StoreUndoPoint(m_SegmentationUpdateName.c_str());
-    this->InvokeEvent(SegmentationChangeEvent());
-    }
-
-  m_SegmentationUpdateName = std::string();
-  return m_SegmentationChangeCount;
-}
-
 unsigned int
 IRISApplication
 ::UpdateSegmentationWithSliceDrawing(
@@ -551,58 +518,92 @@ IRISApplication
   // Get the segmentation image
   LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
 
-  // Drawing parameters
-  CoverageModeType iMode = m_GlobalState->GetDrawOverFilter().CoverageMode;
-  LabelType iDrawing = m_GlobalState->GetDrawingColorLabel();
-  LabelType iDrawOver = m_GlobalState->GetDrawOverFilter().DrawOverLabel;
-  bool invert = m_GlobalState->GetPolygonInvert();
+  // Turn the 2D region of the drawing into a 3D region in the segmentation
+  LabelImageType::IndexType ix0, ix1;
+  IRISApplication::SliceBinaryImageType::RegionType r_draw = drawing->GetBufferedRegion();
 
-  // Keep track of the number of pixels changed
-  unsigned int nUpdates = 0;
+  // Array of corners of the drawing region
+  Vector2ui corners[4];
+  corners[0][0] = r_draw.GetIndex()[0];
+  corners[0][1] = r_draw.GetIndex()[1];
+  corners[1][0] = r_draw.GetUpperIndex()[0];
+  corners[1][1] = r_draw.GetIndex()[1];
+  corners[2][0] = r_draw.GetIndex()[0];
+  corners[2][1] = r_draw.GetUpperIndex()[1];
+  corners[3][0] = r_draw.GetUpperIndex()[0];
+  corners[3][1] = r_draw.GetUpperIndex()[1];
 
-  // Iterate through the drawing
-  for (itk::ImageRegionIteratorWithIndex<SliceBinaryImageType>
-       it(drawing, drawing->GetBufferedRegion()); !it.IsAtEnd(); ++it)
+  // Compute 3D extents of the region
+  Vector3ui pos_min, pos_max;
+  for(int i = 0; i < 4; i++)
     {
-    // Get the current polygon pixel
-    SliceBinaryImageType::PixelType px = it.Get();
+    // Get the 3D coordinate of the corner
+    Vector3ui idxVol = to_unsigned_int(
+                         xfmSliceToImage.TransformPoint(
+                           Vector3f(corners[i][0] + 0.5, corners[i][1] + 0.5, zSlice)));
 
-    // Check for non-zero alpha of the pixel
-    if((px != 0) ^ invert)
+    if(i == 0)
       {
-      // Figure out the coordinate of the target image
-      itk::Index<2> idx = it.GetIndex();
-      Vector3f idxImageFloat = xfmSliceToImage.TransformPoint(
-            Vector3f(idx[0] + 0.5, idx[1] + 0.5, zSlice));
-      itk::Index<3> iseg = to_itkIndex(to_unsigned_int(idxImageFloat));
-
-      // Access the voxel in the segmentation
-      const LabelType &voxel = seg->GetPixel(iseg);
-
-      // Apply the label to the voxel
-      if(iMode == PAINT_OVER_ALL ||
-         (iMode == PAINT_OVER_ONE && voxel == iDrawOver) ||
-         (iMode == PAINT_OVER_VISIBLE &&
-          m_ColorLabelTable->GetColorLabel(voxel).IsVisible()))
+      pos_min = idxVol;
+      pos_max = idxVol;
+      }
+    else
+      {
+      for(int j = 0; j < 3; j++)
         {
-        if(voxel != iDrawing)
-          {
-          seg->SetPixel(iseg, iDrawing);
-          nUpdates++;
-          }
+        if(pos_min[j] > idxVol[j]) pos_min[j] = idxVol[j];
+        if(pos_max[j] < idxVol[j]) pos_max[j] = idxVol[j];
         }
       }
     }
 
-  // Has anything been changed?
-  if(nUpdates > 0)
+  // Define the volumetric region
+  LabelImageType::RegionType r_vol;
+  r_vol.SetIndex(to_itkIndex(pos_min));
+  r_vol.SetUpperIndex(to_itkIndex(pos_max));
+  r_vol.Crop(seg->GetBufferedRegion());
+
+  // Create an iterator for painting
+  SegmentationUpdateIterator itVol(seg, r_vol,
+                                   m_GlobalState->GetDrawingColorLabel(),
+                                   m_GlobalState->GetDrawOverFilter());
+
+  // Drawing parameters
+  bool invert = m_GlobalState->GetPolygonInvert();
+
+  // Inverse transform
+  ImageCoordinateTransform xfmImageToSlice = xfmSliceToImage.Inverse();
+
+  // Iterate over the volume region
+  for(; !itVol.IsAtEnd(); ++itVol)
     {
-    seg->Modified();
-    StoreUndoPoint(undoTitle.c_str());
+    // Find the coordinate of the voxel in the slice
+    itk::Index<3> idx_vol = itVol.GetIndex();
+    Vector3f x_slice = xfmImageToSlice.TransformPoint(Vector3f(idx_vol[0] + 0.5, idx_vol[1] + 0.5, idx_vol[2] + 0.5));
+    itk::Index<2> idx_slice;
+    idx_slice[0] = (int) x_slice[0];
+    idx_slice[1] = (int) x_slice[1];
+
+    // Check value
+    SliceBinaryImageType::PixelType px = drawing->GetPixel(idx_slice);
+    if((px != 0) ^ invert)
+      itVol.PaintAsForeground();
+
+
+    }
+
+  // Finalize
+  itVol.Finalize();
+
+  // Store update
+  if(itVol.GetNumberOfChangedVoxels() > 0)
+    {
+    m_CurrentImageData->StoreUndoPoint(undoTitle.c_str(), itVol.RelinquishDelta());
+    this->RecordCurrentLabelUse();
     InvokeEvent(SegmentationChangeEvent());
     }
 
-  return nUpdates;
+  return itVol.GetNumberOfChangedVoxels();
 }
 
 void 
@@ -690,55 +691,42 @@ IRISApplication
     // Change the source to the output
     source = fltSample->GetOutput();
     }  
-  
-  // Create iterators for copying from one to the other
+
+  // Creat the source iterator
   typedef itk::ImageRegionConstIterator<SourceImageType> SourceIteratorType;
-  typedef itk::ImageRegionIterator<TargetImageType> TargetIteratorType;
   SourceIteratorType itSource(source,source->GetLargestPossibleRegion());
-  TargetIteratorType itTarget(target,roi.GetROI());
 
-  // Figure out which color draws and which color is clear
-  unsigned int iClear = m_GlobalState->GetPolygonInvert() ? 1 : 0;
+  // Create the smart target iterator
+  SegmentationUpdateIterator itTarget(
+        target, roi.GetROI(),
+        m_GlobalState->GetDrawingColorLabel(), m_GlobalState->GetDrawOverFilter());
 
-  // Construct a merge table that contains an output intensity for every 
-  // possible combination of two input intensities (note that snap image only
-  // has two possible intensities
-  LabelType mergeTable[2][MAX_COLOR_LABELS];
-
-  // Perform the merge
-  for(unsigned int i=0;i<MAX_COLOR_LABELS;i++)
-    {
-    // Whe the SNAP image is clear, IRIS passes through to the output
-    // except for the IRIS voxels of the drawing color, which get cleared out
-    mergeTable[iClear][i] = (i!=m_GlobalState->GetDrawingColorLabel()) ? i : 0;
-
-    // If mode is paint over all, the victim is overridden
-    mergeTable[1-iClear][i] = DrawOverLabel((LabelType) i);
-    }
+  // Inversion state
+  bool invert = m_GlobalState->GetPolygonInvert();
 
   // Go through both iterators, copy the new over the old
-  itSource.GoToBegin();
-  itTarget.GoToBegin();
   while(!itSource.IsAtEnd())
     {
-    // Get the two voxels
-    LabelType voxIRIS = itTarget.Get();    
+    // Get the level set value
     float voxSNAP = itSource.Value();
-
-    // Check that we're ok (debug mode only)
-    assert(!itTarget.IsAtEnd());
-
-    // Perform the merge
-    voxIRIS = mergeTable[voxSNAP <= 0 ? 1 : 0][voxIRIS];
-    itTarget.Set(voxIRIS);
+    if((!invert && voxSNAP <= 0) || (invert && voxSNAP >= 0))
+      itTarget.PaintAsForeground();
 
     // Iterate
     ++itSource;
     ++itTarget;
     }
 
-  // The target has been modified
-  target->Modified();
+  // Finalize the segmentation
+  itTarget.Finalize();
+
+  // Store the undo delta
+  if(itTarget.GetNumberOfChangedVoxels() > 0)
+    {
+    m_IRISImageData->StoreUndoPoint("Automatic Segmentation", itTarget.RelinquishDelta());
+    RecordCurrentLabelUse();
+    InvokeEvent(SegmentationChangeEvent());
+    }
 }
 
 void
@@ -763,80 +751,15 @@ IRISApplication
 }
 
 
+
 void
 IRISApplication
-::StoreUndoPoint(const char *text)
+::RecordCurrentLabelUse()
 {
-  // Delegate to the image data
-  m_CurrentImageData->StoreUndoPoint(text);
-  /** TODO: merge fully!
-=======
-  // Set the current state as the undo point. We store the difference between
-  // the last 'undo' image and the current segmentation image, and then copy
-  // the current segmentation image into the undo image
-  LabelImageType *seg = m_IRISImageData->GetSegmentation()->GetImage();
-  UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
-
-  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
-  IteratorType it(seg, seg->GetLargestPossibleRegion());
-
-  // Create the Undo delta object
-  UndoManagerType::Delta *delta = new UndoManagerType::Delta();
-
-  // Get the old cumulative delta
-  UndoManagerType::Delta *old_cumulative = m_UndoManager.GetCumulativeDelta();
-
-  // Run over the old cumulative data
-  if(old_cumulative)
-    {
-    for(size_t i = 0; i < old_cumulative->GetNumberOfRLEs(); i++)
-      {
-      size_t rle_len = old_cumulative->GetRLELength(i);
-      LabelType rle_val = old_cumulative->GetRLEValue(i);
-
-      for(size_t j = 0; j < rle_len; j++)
-        {
-        LabelType v = it.Get();
-        delta->Encode(v - rle_val);
-        new_cumulative->Encode(v);
-        ++it;
-        }
-      }
-
-    // Important last step!
-    delta->FinishEncoding();
-    new_cumulative->FinishEncoding();
-    }
-  else
-    {
-      for (; !it.IsAtEnd(); ++it)
-      {
-      // TODO: add code to duplicate
-      delta->Encode(it.Get());
-      }
-
-    delta->FinishEncoding();
-    *new_cumulative = *delta;
-    }
-
-  // Add the delta object
-  m_UndoManager.AppendDelta(delta);
-  m_UndoManager.SetCumulativeDelta(new_cumulative);
->>>>>>> dev_3.6
-*/
-
-  // TODO: I am not sure this is the best place for this code. I think it's a
-  // good idea to migrate all of the code that deals with updating the
-  // segmentation image into one place, such as the LabelImageWrapper class.
-
-  // Along with the undo point, we would like to store the combination of
-  // the foreground and background label used for this update. This will
-  // help us keep track of the most recently used combinations.
   m_LabelUseHistory->RecordLabelUse(
         m_GlobalState->GetDrawingColorLabel(),
         m_GlobalState->GetDrawOverFilter());
 }
-
 
 void
 IRISApplication
@@ -1309,7 +1232,7 @@ IRISApplication
 }
 
 
-void 
+int
 IRISApplication
 ::RelabelSegmentationWithCutPlane(const Vector3d &normal, double intercept) 
 {
@@ -1317,20 +1240,10 @@ IRISApplication
   LabelImageWrapper::ImagePointer imgLabel = 
     m_CurrentImageData->GetSegmentation()->GetImage();
   
-  // Get an iterator for the image
-  typedef itk::ImageRegionIteratorWithIndex<
-    LabelImageWrapper::ImageType> IteratorType;
-  IteratorType it(imgLabel, imgLabel->GetBufferedRegion());
-
-  // Compute a label mapping table based on the color labels
-  LabelType table[MAX_COLOR_LABELS];
-  
-  // The clear label does not get painted over, no matter what
-  table[0] = 0;
-
-  // The other labels get painted over, depending on current settings
-  for(unsigned int i = 1; i < MAX_COLOR_LABELS; i++)
-    table[i] = DrawOverLabel(i);
+  // Create the smart target iterator
+  SegmentationUpdateIterator it(
+        imgLabel, imgLabel->GetBufferedRegion(),
+        m_GlobalState->GetDrawingColorLabel(), m_GlobalState->GetDrawOverFilter());
 
   // Adjust the intercept by 0.5 for voxel offset
   intercept -= 0.5 * (normal[0] + normal[1] + normal[2]);
@@ -1339,7 +1252,7 @@ IRISApplication
   while(!it.IsAtEnd())
     {
     // Compute the distance to the plane
-	const IteratorType::IndexValueType *index = it.GetIndex().GetIndex();
+    itk::Index<3> index = it.GetIndex();
     double distance = 
       index[0]*normal[0] + 
       index[1]*normal[1] + 
@@ -1347,22 +1260,24 @@ IRISApplication
 
     // Check the side of the plane
     if(distance > 0)
-      {
-      LabelType voxel = it.Value();
-      LabelType newvox = table[voxel];
-      if(voxel != newvox)
-        {
-        it.Set(newvox);
-        m_SegmentationChangeCount++;
-        }
-      }
+      it.PaintAsForegroundPreserveClear();
 
     // Next voxel
     ++it;
     }
-  
-  // Register that the image has been updated
-  imgLabel->Modified();
+
+  // Finalize
+  it.Finalize();
+
+  // Store the undo point if needed
+  if(it.GetNumberOfChangedVoxels() > 0)
+    {
+    m_CurrentImageData->StoreUndoPoint("3D scalpel", it.RelinquishDelta());
+    RecordCurrentLabelUse();
+    InvokeEvent(SegmentationChangeEvent());
+    }
+
+  return it.GetNumberOfChangedVoxels();
 }
 
 int 

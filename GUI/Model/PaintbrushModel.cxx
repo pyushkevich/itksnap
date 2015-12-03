@@ -283,7 +283,8 @@ PaintbrushModel
     // If the mouse is being released, we need to commit the drawing
     if(release)
       {
-      driver->StoreUndoPoint("Drawing with paintbrush");
+      driver->GetCurrentImageData()->StoreUndoPoint("Drawing with paintbrush");
+      driver->RecordCurrentLabelUse();
 
       // TODO: this is ugly. The code for applying a brush should really be
       // placed in the IRISApplication.
@@ -324,7 +325,8 @@ void PaintbrushModel::AcceptAtCursor()
   ApplyBrush(false, false);
 
   // We need to commit the drawing
-  driver->StoreUndoPoint("Drawing with paintbrush");
+  driver->GetCurrentImageData()->StoreUndoPoint("Drawing with paintbrush");
+  driver->RecordCurrentLabelUse();
 
   // TODO: this is ugly. The code for applying a brush should really be
   // placed in the IRISApplication.

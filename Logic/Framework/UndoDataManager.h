@@ -163,8 +163,8 @@ public:
   /** Add a delta to the staging list. The staging list must be committed */
   void AddDeltaToStaging(Delta *delta);
 
-  /** Commit the deltas in the staging list */
-  void CommitStaging(const char *text);
+  /** Commit the deltas in the staging list - returns total number of RLEs updated */
+  int CommitStaging(const char *text);
 
   /** Clear the undo stack (removes all commits) */
   void Clear();
