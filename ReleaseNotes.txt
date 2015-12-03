@@ -59,7 +59,8 @@ on usability.
 
  -  Command tooltips have been redesigned and now include information on the
     shortcut key to activate each command. In addion, tooltips for the tools in
-    the main palette describe the actions of each mouse button.
+    the main palette describe the actions of each mouse button. Many new shortcuts
+    have been added.
 
  -  Cleaned up the behavior of mouse buttons and mouse scrolling to be more
     consistent between modes. Added Shift-scroll action, which scrolls through
@@ -82,6 +83,13 @@ on usability.
     setting the forest size and tree depth for the random forest classifier
     and a slider for "classifier bias", which allows you to bias the classfier
     output more toward the foreground class or background classes.
+
+ -  Added the ability to select more than one class as the foreground class in
+    the random forest classification mode. This is powerful when the foreground
+    object has heterogeneous intensity.
+
+ -  Training examples drawn in random forest classificaiton mode are now retained
+    and can be reused to label multiple structures.
 
 
 1.1.2. Programmatic Improvements
