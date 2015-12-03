@@ -458,36 +458,26 @@ IRISApplication
   m_SystemInterface->GetHistoryManager()->UpdateHistory(
         "LabelImage", io->GetFileNameOfNativeImage(), true);
 
-  /** 
-   * TODO: MERGE LEFTOVER, must go to GenericImageData
-<<<<<<< HEAD
-=======
-
-  // Reset the UNDO manager
-  m_UndoManager.Clear();
-
-  // Store the current segmentation image as the cumulative delta in the undo
-  // manager.
-  UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
-  LabelImageType *seg = m_IRISImageData->GetSegmentation()->GetImage();
-  itk::ImageRegionConstIterator<LabelImageType> it(seg, seg->GetLargestPossibleRegion());
-  for (; !it.IsAtEnd(); ++it)
-      new_cumulative->Encode(it.Get());
-
-  new_cumulative->FinishEncoding();
-  m_UndoManager.SetCumulativeDelta(new_cumulative);
-
->>>>>>> dev_3.6
-  */
-  // Now we can use the RLE encoding of the segmentation to quickly determine
-  // which labels are valid
-  // TODO: this will become unnecessary when we move to compressed segmentations!
-  GenericImageData::UndoManagerType::Delta *new_cumulative =
-      m_IRISImageData->GetCumulativeUndoDelta();
-  for(size_t j = 0; j < new_cumulative->GetNumberOfRLEs(); j++)
+  // Iterate over the RLEs in the label image
+  LabelType last_label = 0;
+  typedef itk::ImageRegionConstIterator<LabelImageType::BufferType> RLLineIter;
+  RLLineIter rlit(m_IRISImageData->GetSegmentation()->GetImage()->GetBuffer(),
+                  m_IRISImageData->GetSegmentation()->GetImage()->GetBuffer()->GetBufferedRegion());
+  for(; !rlit.IsAtEnd(); ++rlit)
     {
-    LabelType label = new_cumulative->GetRLEValue(j);
-    m_ColorLabelTable->SetColorLabelValid(label, true);
+    // Get the line
+    const LabelImageType::RLLine &line = rlit.Value();
+
+    // Iterate over the entries
+    for(int i = 0; i < line.size(); i++)
+      {
+      LabelType label = line[i].second;
+      if(label != last_label)
+        {
+        m_ColorLabelTable->SetColorLabelValid(label, true);
+        last_label = label;
+        }
+      }
     }
 
   // Let the GUI know that segmentation changed

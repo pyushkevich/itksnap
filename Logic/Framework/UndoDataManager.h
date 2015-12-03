@@ -38,6 +38,7 @@
 #include <vector>
 #include <list>
 
+#include <RLEImage.h>
 
 /**
  * \class UndoDataManager
@@ -46,6 +47,8 @@
 template<typename TPixel> class UndoDataManager
 {
 public:
+
+  typedef itk::ImageRegion<3> RegionType;
 
   /**
    * The Delta class represents a difference between two images used in
@@ -59,6 +62,16 @@ public:
         {
         m_CurrentLength = 0;
         m_UniqueID = m_UniqueIDCounter++;
+        }
+
+      void SetRegion(const RegionType &region)
+        {
+        this->m_Region = region;
+        }
+
+      const RegionType &GetRegion()
+        {
+        return m_Region;
         }
       
       void Encode(const TPixel &value)
@@ -103,6 +116,7 @@ public:
         m_Array = other.m_Array;
         m_CurrentLength = other.m_CurrentLength;
         m_LastValue = other.m_LastValue;
+        m_Region = other.m_Region;
         return *this;
       }
 
@@ -113,49 +127,71 @@ public:
       size_t m_CurrentLength;
       TPixel m_LastValue;
 
+      // The delta is associated with an image region
+      RegionType m_Region;
+
       // Each delta is assigned a unique ID at creation
       unsigned long m_UniqueID;
       static unsigned long m_UniqueIDCounter;
     };
 
-  UndoDataManager(size_t nMinDeltas, size_t nMaxTotalSize);
-
-  void AppendDelta(Delta *delta);
-  void Clear();
-
-  bool IsUndoPossible();
-  Delta *GetDeltaForUndo();
-
-  bool IsRedoPossible();
-  Delta *GetDeltaForRedo();
-
-  Delta *GetCumulativeDelta()
-    { return m_CumulativeDelta; }
-
-  void SetCumulativeDelta(Delta *);
-
-  size_t GetNumberOfDeltas()
-    { return m_DeltaList.size(); }
-
-  /** 
-   * A state descriptor. This descriptor is used to compare the
-   * state of the undo queue between two time points. The idea is
-   * to know whether an image has changed from the time it was 
-   * saved or not. The state is basically the recording of all 
-   * deltas from the starting point to the current position
-   */
-  typedef std::list<unsigned long> StateDescriptor;
-  StateDescriptor GetState() const;
-
-private:
+  /** List of deltas and related iterators */
   typedef std::list<Delta *> DList;
   typedef typename DList::iterator DIterator;
   typedef typename DList::const_iterator DConstIterator;
-  DList m_DeltaList;
-  DIterator m_Position;
-  size_t m_TotalSize, m_MinDeltas, m_MaxTotalSize;
 
-  Delta *m_CumulativeDelta;
+  /**
+   * A "commit" to the undo system consists of one or more deltas. For example
+   * in paintbrush drawing, as you drag the paintbrush, deltas are generated, but
+   * these deltas are associated with a single commit. The commit owns the deltas
+   * and deletes them when it is itself deleted.
+   */
+  class Commit
+  {
+  public:
+    Commit(const DList &list, const char *name);
+    void DeleteDeltas();
+    size_t GetNumberOfRLEs() const;
+    const DList &GetDeltas() const { return m_Deltas; }
+  protected:
+    DList m_Deltas;
+    std::string m_Name;
+  };
+
+  UndoDataManager(size_t nMinCommits, size_t nMaxTotalSize);
+
+  /** Add a delta to the staging list. The staging list must be committed */
+  void AddDeltaToStaging(Delta *delta);
+
+  /** Commit the deltas in the staging list */
+  void CommitStaging(const char *text);
+
+  /** Clear the undo stack (removes all commits) */
+  void Clear();
+
+  bool IsUndoPossible();
+  const Commit &GetCommitForUndo();
+
+  bool IsRedoPossible();
+  const Commit &GetCommitForRedo();
+
+  size_t GetNumberOfCommits()
+    { return m_CommitList.size(); }
+
+private:
+
+  // Current staging list - where deltas are added
+  DList m_StagingList;
+
+  // List of commits typedefs
+  typedef std::list<Commit> CList;
+  typedef typename CList::iterator CIterator;
+  typedef typename CList::const_iterator CConstIterator;
+
+  // A list of commits
+  CList m_CommitList;
+  CIterator m_Position;
+  size_t m_TotalSize, m_MinCommits, m_MaxTotalSize;
 };
 
 #endif // __UndoDataManager_h_

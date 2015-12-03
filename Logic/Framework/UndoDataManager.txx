@@ -39,13 +39,12 @@ UndoDataManager<TPixel>::Delta::m_UniqueIDCounter = 0;
 
 template<typename TPixel>
 UndoDataManager<TPixel>
-::UndoDataManager(size_t nMinDeltas, size_t nMaxTotalSize)
+::UndoDataManager(size_t nMinCommits, size_t nMaxTotalSize)
 {
-  this->m_MinDeltas = nMinDeltas;
+  this->m_MinCommits = nMinCommits;
   this->m_MaxTotalSize = nMaxTotalSize;
   this->m_TotalSize = 0;
-  m_Position = m_DeltaList.begin();
-  m_CumulativeDelta = NULL;
+  m_Position = m_CommitList.begin();
 }
 
 template<typename TPixel>
@@ -53,46 +52,67 @@ void
 UndoDataManager<TPixel>
 ::Clear()
 {
-  // Delete all the deltas
-  m_Position = m_DeltaList.begin();
-  while(m_Position != m_DeltaList.end())
+  // Delete all the commits
+  m_Position = m_CommitList.begin();
+  while(m_Position != m_CommitList.end())
     {
-    delete *m_Position;
-    m_Position = m_DeltaList.erase(m_Position);
+    // Deallocate all the deltas in this commit
+    m_Position->DeleteDeltas();
+    m_Position = m_CommitList.erase(m_Position);
     }
   m_TotalSize = 0;
+
+  // Clear the staging list
+  m_StagingList.clear();
 }
 
 template<typename TPixel>
 void
 UndoDataManager<TPixel>
-::AppendDelta(Delta *delta)
+::AddDeltaToStaging(Delta *delta)
+{
+  // Just add the delta to the staging list
+  m_StagingList.push_back(delta);
+}
+
+template<typename TPixel>
+void
+UndoDataManager<TPixel>
+::CommitStaging(const char *text)
 {
   // If we are not currently pointing past the end of the delta
   // list, we should prune all the deltas from the current point
   // to the end. So that's the loop that we do
-  while(m_Position != m_DeltaList.end())
+  while(m_Position != m_CommitList.end())
     {
-    m_TotalSize -= (*m_Position)->GetNumberOfRLEs();
-    delete *m_Position;
-    m_Position = m_DeltaList.erase(m_Position);
+    m_TotalSize -= m_Position->GetNumberOfRLEs();
+    m_Position->DeleteDeltas();
+    m_Position = m_CommitList.erase(m_Position);
     }
 
-  // Check whether we need to prune from the back
-  DIterator itHead = m_DeltaList.begin();
-  while(m_DeltaList.size() > m_MinDeltas 
-    && m_TotalSize + delta->GetNumberOfRLEs() > m_MaxTotalSize)
+  // Create a commit that we will be adding
+  Commit new_commit(m_StagingList, text);
+
+  // Empty the staging list
+  m_StagingList.clear();
+
+  // Get the number of RLEs being added
+  size_t n_new_rles = new_commit.GetNumberOfRLEs();
+
+  // Check whether we need to prune from the back to keep total size under control
+  CIterator itHead = m_CommitList.begin();
+  while(m_CommitList.size() > m_MinCommits && m_TotalSize + n_new_rles > m_MaxTotalSize)
     {
-    m_TotalSize -= (*itHead)->GetNumberOfRLEs();
-    delete *itHead;
-    itHead = m_DeltaList.erase(itHead);
+    m_TotalSize -= itHead->GetNumberOfRLEs();
+    itHead->DeleteDeltas();
+    itHead = m_CommitList.erase(itHead);
     }
 
   // Now we have a well pruned list of deltas, and we can append
   // the current delta to it;
-  m_DeltaList.push_back(delta);
-  m_Position = m_DeltaList.end();
-  m_TotalSize += delta->GetNumberOfRLEs();
+  m_CommitList.push_back(new_commit);
+  m_Position = m_CommitList.end();
+  m_TotalSize += n_new_rles;
 }
 
 template<typename TPixel>
@@ -100,13 +120,13 @@ bool
 UndoDataManager<TPixel>
 ::IsUndoPossible()
 {
-  return (m_DeltaList.size() > 0 && m_Position != m_DeltaList.begin());
+  return (m_CommitList.size() > 0 && m_Position != m_CommitList.begin());
 }
 
 template<typename TPixel>
-typename UndoDataManager<TPixel>::Delta *
+const typename UndoDataManager<TPixel>::Commit &
 UndoDataManager<TPixel>
-::GetDeltaForUndo()
+::GetCommitForUndo()
 {
   // Can't be at the beginning
   assert(IsUndoPossible());
@@ -123,48 +143,63 @@ bool
 UndoDataManager<TPixel>
 ::IsRedoPossible()
 {
-  return (m_DeltaList.size() > 0 && m_Position != m_DeltaList.end());
+  return (m_CommitList.size() > 0 && m_Position != m_CommitList.end());
 }
 
 template<typename TPixel>
-typename UndoDataManager<TPixel>::Delta *
+const typename UndoDataManager<TPixel>::Commit &
 UndoDataManager<TPixel>
-::GetDeltaForRedo()
+::GetCommitForRedo()
 {
   // Can't be at the beginning
   assert(IsRedoPossible());
 
   // Return the delta at the current position
-  Delta *del = *m_Position;
+  const Commit &commit = *m_Position;
 
   // Move the position one delta to the end
   m_Position++;
 
   // Return the current delta
-  return del;
+  return commit;
 }
+
+
 
 template<typename TPixel>
-typename UndoDataManager<TPixel>::StateDescriptor
-UndoDataManager<TPixel>
-::GetState() const
+UndoDataManager<TPixel>::Commit::Commit(const UndoDataManager::DList &list, const char *name)
 {
-  StateDescriptor sd;
-  for(DConstIterator it = m_DeltaList.begin(); it != m_Position; ++it)
-    {
-    const Delta *delta = *it;
-    sd.push_back(delta->GetUniqueID());
-    }
-  return sd;
+  m_Deltas = list;
+  m_Name = name;
 }
-
 
 template<typename TPixel>
 void
-UndoDataManager<TPixel>
-::SetCumulativeDelta(Delta *delta)
+UndoDataManager<TPixel>::Commit::DeleteDeltas()
 {
-  if(m_CumulativeDelta)
-    delete m_CumulativeDelta;
-  m_CumulativeDelta = delta;
+  // Delete all the deltas
+  for(DIterator dit = m_Deltas.begin(); dit != m_Deltas.end(); ++dit)
+    {
+    if(*dit)
+      {
+      delete *dit;
+      *dit = NULL;
+      }
+    }
+}
+
+
+
+
+template<typename TPixel>
+size_t
+UndoDataManager<TPixel>::Commit::GetNumberOfRLEs() const
+{
+  size_t n = 0;
+  for(DConstIterator dit = m_Deltas.begin(); dit != m_Deltas.end(); ++dit)
+    {
+    if(*dit)
+      n += (*dit)->GetNumberOfRLEs();
+    }
+  return n;
 }

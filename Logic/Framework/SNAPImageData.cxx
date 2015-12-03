@@ -528,7 +528,6 @@ void SNAPImageData::SwapLabelImageWithCompressedAlternative()
 
   // Clear the undo manager
   this->m_UndoManager.Clear();
-  this->m_UndoManager.SetCumulativeDelta(m_CompressedAlternateLabelImage);
 
   // Decompress the currently saved alternative
   if(m_CompressedAlternateLabelImage)

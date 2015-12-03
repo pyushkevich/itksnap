@@ -84,49 +84,6 @@ public:
     return wctr == widx;
     }
 
-  bool UpdateLabelImage(
-    LabelImageType *ltrg,
-    CoverageModeType mode,
-    LabelType drawing_color,
-    LabelType overwrt_color)
-    {
-    // Get the watershed ID at the center voxel
-    unsigned long wid = wf->GetOutput()->GetPixel(vcenter);
-
-    // Keep track of changed voxels
-    bool flagChanged = false;
-
-    // Do the update
-    typedef itk::ImageRegionConstIterator<WatershedImageType> WIter;
-    typedef itk::ImageRegionIterator<LabelImageType> LIter;
-    WIter wit(wf->GetOutput(), wf->GetOutput()->GetBufferedRegion());
-    LIter sit(lsrc, lsrc->GetBufferedRegion());
-    LIter tit(ltrg, region);
-    for(; !wit.IsAtEnd(); ++sit,++tit,++wit)
-      {
-      LabelType pxLabel = sit.Get();
-      if(wit.Get() == wid)
-        {
-        // Standard paint mode
-        if (mode == PAINT_OVER_ALL ||
-          (mode == PAINT_OVER_ONE && pxLabel == overwrt_color) ||
-          (mode == PAINT_OVER_VISIBLE && pxLabel != 0))
-          {
-          pxLabel = drawing_color;
-          }
-        }
-      if(pxLabel != tit.Get())
-        {
-        tit.Set(pxLabel);
-        flagChanged = true;
-        }
-      }
-
-    if(flagChanged)
-      ltrg->Modified();
-    return flagChanged;
-    }
-
 private:
   typedef itk::RegionOfInterestImageFilter<GreyImageType, FloatImageType> ROIType;
   typedef itk::RegionOfInterestImageFilter<LabelImageType, LabelImageType> LROIType;
@@ -380,6 +337,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
   // Get the global objects
   IRISApplication *driver = m_Parent->GetDriver();
   GlobalState *gs = driver->GetGlobalState();
+  GenericImageData *gid = driver->GetCurrentImageData();
 
   // Get the segmentation image
   LabelImageWrapper *imgLabel = driver->GetCurrentImageData()->GetSegmentation();
@@ -418,13 +376,9 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
   // Crop the region by the buffered region
   xTestRegion.Crop(imgLabel->GetImage()->GetBufferedRegion());
 
-  // Flag to see if anything was changed
-  bool flagUpdate = false;
-
   // Special code for Watershed brush
   if(flagWatershed)
     {
-    GenericImageData *gid = driver->GetCurrentImageData();
 
     // Get the currently engaged layer
     ImageWrapperBase *context_layer = gid->FindLayer(m_ContextLayerId, false);
@@ -443,12 +397,14 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
   // Shift vector (different depending on whether the brush has odd/even diameter
   Vector3f offset = ComputeOffset();
 
-  // Iterate over the region
-  LabelImageWrapper::Iterator it(imgLabel->GetImage(), xTestRegion);
-  for(; !it.IsAtEnd(); ++it)
+  // Iterate over the region using
+  SegmentationUpdateIterator it_update(
+        imgLabel->GetImage(), xTestRegion, drawing_color, drawover);
+
+  for(; !it_update.IsAtEnd(); ++it_update)
     {
-    // Check if we are inside the sphere
-    LabelImageWrapper::ImageType::IndexType idx = it.GetIndex();
+    SegmentationUpdateIterator::IndexType idx = it_update.GetIndex();
+
     Vector3f xDelta =
         offset
         + to_float(Vector3l(idx.GetIndex()))
@@ -471,42 +427,24 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
       }
 
     // Paint the pixel
-    LabelType pxLabel = it.Get();
-
-    // Standard paint mode
-    if(!reverse_mode)
-      {
-      if(drawover.CoverageMode == PAINT_OVER_ALL ||
-        (drawover.CoverageMode == PAINT_OVER_ONE && pxLabel == drawover.DrawOverLabel) ||
-        (drawover.CoverageMode == PAINT_OVER_VISIBLE && pxLabel != 0))
-        {
-        it.Set(drawing_color);
-        if(pxLabel != drawing_color) flagUpdate = true;
-        }
-      }
-    // Background paint mode (clear label over current label)
+    if(reverse_mode)
+      it_update.PaintAsBackground();
     else
-      {
-      if(drawing_color != 0 && pxLabel == drawing_color)
-        {
-        it.Set(0);
-        if(pxLabel != 0) flagUpdate = true;
-        }
-      else if(drawing_color == 0 && drawover.CoverageMode == PAINT_OVER_ONE)
-        {
-        it.Set(drawover.DrawOverLabel);
-        if(pxLabel != drawover.DrawOverLabel) flagUpdate = true;
-        }
-      }
+      it_update.PaintAsForeground();
     }
 
-  // Image has been updated
-  if(flagUpdate)
-    {
-    imgLabel->GetImage()->Modified();
-    }
+  // Finalize the iteration
+  it_update.Finalize();
 
-  return flagUpdate;
+  // If nothing actually changed, return
+  if(it_update.GetNumberOfChangedVoxels() == 0)
+    return false;
+
+  // Send the delta for undo
+  gid->StoreIntermediateUndoDelta(it_update.RelinquishDelta());
+
+  // Changes were made
+  return true;
 }
 
 

@@ -228,7 +228,6 @@ GenericImageData
 
   // Reset the undo manager
   m_UndoManager.Clear();
-  m_UndoManager.SetCumulativeDelta(NULL);
 }
 
 void
@@ -346,7 +345,6 @@ GenericImageData
 
   // Reset the undo manager
   m_UndoManager.Clear();
-  m_UndoManager.SetCumulativeDelta(this->CompressLabelImage());
 }
 
 GenericImageData::UndoManagerType::Delta *
@@ -417,65 +415,19 @@ const ImageCoordinateGeometry &GenericImageData::GetImageGeometry() const
   return m_MainImageWrapper->GetImageGeometry();
 }
 
-GenericImageData::UndoManagerType::Delta *
-GenericImageData::GetCumulativeUndoDelta()
+void GenericImageData::StoreIntermediateUndoDelta(UndoManagerDelta *delta)
 {
-  return m_UndoManager.GetCumulativeDelta();
+  m_UndoManager.AddDeltaToStaging(delta);
 }
 
-void GenericImageData::StoreUndoPoint(const char *text)
+void GenericImageData::StoreUndoPoint(const char *text, UndoManagerDelta *delta)
 {
-  // Set the current state as the undo point. We store the difference between
-  // the last 'undo' image and the current segmentation image, and then copy
-  // the current segmentation image into the undo image
-  LabelImageWrapper *seg = this->GetSegmentation();
-  UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
+  // If there is a delta, add it to staging
+  if(delta)
+    m_UndoManager.AddDeltaToStaging(delta);
 
-  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
-  IteratorType it(seg->GetImage(), seg->GetImage()->GetLargestPossibleRegion());
-
-  // Create the Undo delta object
-  UndoManagerType::Delta *delta = new UndoManagerType::Delta();
-
-  // Get the old cumulative delta
-  UndoManagerType::Delta *old_cumulative = m_UndoManager.GetCumulativeDelta();
-
-  // Run over the old cumulative data
-  if(old_cumulative)
-    {
-    for(size_t i = 0; i < old_cumulative->GetNumberOfRLEs(); i++)
-      {
-      size_t rle_len = old_cumulative->GetRLELength(i);
-      LabelType rle_val = old_cumulative->GetRLEValue(i);
-
-      for(size_t j = 0; j < rle_len; j++)
-        {
-        LabelType v = it.Get();
-        delta->Encode(v - rle_val);
-        new_cumulative->Encode(v);
-        ++it;
-        }
-      }
-
-    // Important last step!
-    delta->FinishEncoding();
-    new_cumulative->FinishEncoding();
-    }
-  else
-    {
-    for (; !it.IsAtEnd(); ++it)
-      {
-      // TODO: add code to duplicate
-      delta->Encode(it.Get());
-      }
-
-    delta->FinishEncoding();
-    *new_cumulative = *delta;
-    }
-
-  // Add the delta object
-  m_UndoManager.AppendDelta(delta);
-  m_UndoManager.SetCumulativeDelta(new_cumulative);
+  // Commit the deltas
+  m_UndoManager.CommitStaging(text);
 }
 
 void GenericImageData::ClearUndoPoints()
@@ -494,47 +446,39 @@ void
 GenericImageData
 ::Undo()
 {
-  // In order to undo, we must take the 'current' delta and apply
-  // it to the image
-  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForUndo();
-  UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
+  // Get the commit for the undo
+  const UndoManagerType::Commit &commit = m_UndoManager.GetCommitForUndo();
 
-  LabelImageWrapper *imSeg = this->GetSegmentation();
-
+  // The label image that will undergo undo
   typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
-  IteratorType it(imSeg->GetImage(), imSeg->GetImage()->GetLargestPossibleRegion());
+  LabelImageType *imSeg = this->GetSegmentation()->GetImage();
 
-  // Applying the delta means adding
-  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
+  // Iterate over all the deltas in reverse order
+  UndoManagerType::DList::const_reverse_iterator dit = commit.GetDeltas().rbegin();
+  for(; dit != commit.GetDeltas().rend(); ++dit)
     {
-    size_t n = delta->GetRLELength(i);
-    LabelType d = delta->GetRLEValue(i);
-    if(d == 0)
+    // Apply the changes in the current delta
+    UndoManagerType::Delta *delta = *dit;
+
+    // Iterator for the relevant region in the label image
+    IteratorType lit(imSeg, delta->GetRegion());
+
+    // Iterate over the rles in the delta
+    for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
       {
+      size_t n = delta->GetRLELength(i);
+      LabelType d = delta->GetRLEValue(i);
       for(size_t j = 0; j < n; j++)
         {
-        cumulative->Encode(it.Get());
-        ++it;
-        }
-      }
-    else
-      {
-      for(size_t j = 0; j < n; j++)
-        {
-        LabelType v = it.Get();
-        v -= d;
-        it.Set(v);
-        cumulative->Encode(v);
-        ++it;
+        if(d != 0)
+          lit.Set(lit.Get() - d);
+        ++lit;
         }
       }
     }
 
-  cumulative->FinishEncoding();
-  m_UndoManager.SetCumulativeDelta(cumulative);
-
   // Set modified flags
-  imSeg->GetImage()->Modified();
+  imSeg->Modified();
   InvokeEvent(SegmentationChangeEvent());
 }
 
@@ -549,51 +493,41 @@ void
 GenericImageData
 ::Redo()
 {
-  // In order to undo, we must take the 'current' delta and apply
-  // it to the image
-  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForRedo();
-  LabelImageWrapper *imSeg = this->GetSegmentation();
+  // Get the commit for the redo
+  const UndoManagerType::Commit &commit = m_UndoManager.GetCommitForRedo();
 
+  // The label image that will undergo redo
   typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
-  IteratorType it(imSeg->GetImage(), imSeg->GetImage()->GetLargestPossibleRegion());
+  LabelImageType *imSeg = this->GetSegmentation()->GetImage();
 
-  UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
-
-  // Applying the delta means adding
-  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
+  // Iterate over all the deltas in reverse order
+  UndoManagerType::DList::const_iterator dit = commit.GetDeltas().begin();
+  for(; dit != commit.GetDeltas().end(); ++dit)
     {
-    size_t n = delta->GetRLELength(i);
-    LabelType d = delta->GetRLEValue(i);
-    if(d == 0)
+    // Apply the changes in the current delta
+    UndoManagerType::Delta *delta = *dit;
+
+    // Iterator for the relevant region in the label image
+    IteratorType lit(imSeg, delta->GetRegion());
+
+    // Iterate over the rles in the delta
+    for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
       {
+      size_t n = delta->GetRLELength(i);
+      LabelType d = delta->GetRLEValue(i);
       for(size_t j = 0; j < n; j++)
         {
-        cumulative->Encode(it.Get());
-        ++it;
-        }
-      }
-    else
-      {
-      for(size_t j = 0; j < n; j++)
-        {
-        LabelType v = it.Get();
-        v += d;
-        it.Set(v);
-        cumulative->Encode(v);
-        ++it;
+        if(d != 0)
+          lit.Set(lit.Get() + d);
+        ++lit;
         }
       }
     }
 
-  cumulative->FinishEncoding();
-  m_UndoManager.SetCumulativeDelta(cumulative);
-
   // Set modified flags
-  imSeg->GetImage()->Modified();
+  imSeg->Modified();
   InvokeEvent(SegmentationChangeEvent());
 }
-
-
 
 GenericImageData::RegionType
 GenericImageData
@@ -656,9 +590,8 @@ int GenericImageData::GetNumberOfOverlays()
 
 ImageWrapperBase *GenericImageData::GetLastOverlay()
 {
-  return m_Wrappers[OVERLAY_ROLE].back();
+    return m_Wrappers[OVERLAY_ROLE].back();
 }
-
 
 
 void GenericImageData::PushBackImageWrapper(LayerRole role,

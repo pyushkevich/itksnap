@@ -842,11 +842,8 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/GMM
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/RandomForest
-<<<<<<< HEAD
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/Texture
-=======
     ${SNAP_SOURCE_DIR}/Logic/RLEImage
->>>>>>> dev_3.6
     ${SNAP_SOURCE_DIR}/Logic/Slicing
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model

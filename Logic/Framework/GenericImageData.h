@@ -62,6 +62,166 @@ class GuidedNativeImageIO;
 class ImageAnnotationData;
 
 /**
+ * \class SegmentationUpdate
+ * \brief This class handles updates to the segmentation image at a high level.
+ */
+class SegmentationUpdateIterator
+{
+public:
+  typedef itk::Index<3>                                        IndexType;
+  typedef itk::ImageRegion<3>                                  RegionType;
+  typedef LabelImageWrapper::ImageType                         LabelImageType;
+  typedef itk::ImageRegionIterator<LabelImageType>             LabelIteratorType;
+
+  typedef UndoDataManager<LabelType>::Delta                    UndoDelta;
+
+  enum UpdateType {
+    FOREGROUND, BACKGROUND, SKIP
+  };
+
+  SegmentationUpdateIterator(LabelImageType *labelImage,
+                             const RegionType &region,
+                             LabelType active_label,
+                             DrawOverFilter draw_over)
+    : m_Region(region),
+      m_ActiveLabel(active_label),
+      m_DrawOver(draw_over),
+      m_Iterator(labelImage, region),
+      m_ChangedVoxels(0)
+  {
+    // Create the delta
+    m_Delta = new UndoDelta();
+    m_Delta->SetRegion(region);
+
+    // Set the voxel delta to zero
+    m_VoxelDelta = 0;
+  }
+
+  ~SegmentationUpdateIterator()
+  {
+    if(m_Delta)
+      delete m_Delta;
+  }
+
+  void operator ++()
+  {
+    // Encode the current voxel delta
+    m_Delta->Encode(m_VoxelDelta);
+    m_VoxelDelta = 0;
+
+    // Keep track of changed voxels
+    if(m_VoxelDelta != 0)
+      m_ChangedVoxels++;
+
+    // Update the internal iterator
+    ++m_Iterator;
+  }
+
+  const IndexType GetIndex()
+  {
+    return m_Iterator.GetIndex();
+  }
+
+  /**
+   * Default painting mode - applies active label using the current draw over mask
+   */
+  void PaintAsForeground()
+  {
+    LabelType lOld = m_Iterator.Get();
+
+    if(m_DrawOver.CoverageMode == PAINT_OVER_ALL ||
+       (m_DrawOver.CoverageMode == PAINT_OVER_ONE && lOld == m_DrawOver.DrawOverLabel) ||
+       (m_DrawOver.CoverageMode == PAINT_OVER_VISIBLE && lOld != 0))
+      {
+      if(lOld != m_ActiveLabel)
+        {
+        m_VoxelDelta += m_ActiveLabel - lOld;
+        m_Iterator.Set(m_ActiveLabel);
+        m_ChangedVoxels++;
+        }
+      }
+  }
+
+  /**
+   * Reverse painting mode - applies clear label over active label (paintbrush RMB click)
+   */
+  void PaintAsBackground()
+  {
+    LabelType lOld = m_Iterator.Get();
+
+    if(m_ActiveLabel != 0 && lOld == m_ActiveLabel)
+      {
+      m_VoxelDelta += 0 - lOld;
+      m_Iterator.Set(0);
+      m_ChangedVoxels++;
+      }
+  }
+
+  bool IsAtEnd()
+  {
+    return m_Iterator.IsAtEnd();
+  }
+
+  /**
+   * Call this method at the end of the iteration to finish encoding. This will also set the
+   * modified flag of the label image if there were any actual updates.
+   */
+  void Finalize()
+  {
+    m_Delta->FinishEncoding();
+    if(m_ChangedVoxels > 0)
+      m_Iterator.GetImage()->Modified();
+  }
+
+  // Keep delta from being deleted
+  UndoDelta *RelinquishDelta()
+  {
+    UndoDelta *delta = m_Delta;
+    m_Delta = NULL;
+    return delta;
+  }
+
+  // Get the number of changed voxels
+  unsigned long GetNumberOfChangedVoxels() const
+  {
+    return m_ChangedVoxels;
+  }
+
+  // Get the pointer to the detla
+  UndoDelta *GetDelta() const
+  {
+    return m_Delta;
+  }
+
+protected:
+
+  // Name of the segmentation update (for undo tracking)
+  std::string m_Title;
+
+  // Region over which update is performed
+  RegionType m_Region;
+
+  // Active label for the registration update
+  LabelType m_ActiveLabel;
+
+  // Coverage mode
+  DrawOverFilter m_DrawOver;
+
+  // RLE encoding of the segmentation update - for storing undo/redo points
+  UndoDelta *m_Delta;
+
+  // Iterator used internally
+  LabelIteratorType m_Iterator;
+
+  // Delta at the current location
+  LabelType m_VoxelDelta;
+
+  // Number of voxels actually modified
+  unsigned long m_ChangedVoxels;
+};
+
+
+/**
  * \class GenericImageData
  * \brief This class encapsulates the image data used by 
  * the IRIS component of SnAP.  
@@ -98,6 +258,7 @@ public:
 
   // Segmentation undo support
   typedef UndoDataManager<LabelType> UndoManagerType;
+  typedef UndoManagerType::Delta     UndoManagerDelta;
 
 
   /**
@@ -286,11 +447,19 @@ public:
   /** Get the list of annotations created by the user */
   irisGetMacro(Annotations, ImageAnnotationData *)
 
-  /** TODO: in 3.6 this will be unnecessary */
-  UndoManagerType::Delta *GetCumulativeUndoDelta();
+  /**
+   * Store an intermediate delta without committing it as an undo point
+   * Multiple deltas can be stored and then committed with StoreUndoPoint()
+   */
+  void StoreIntermediateUndoDelta(UndoManagerDelta *delta);
 
-  /** Store an undo point */
-  void StoreUndoPoint(const char *text);
+  /**
+   * Store an undo point. The first parameter is the description of the
+   * update, and the second parameter is the delta to be applied. The delta
+   * can be NULL. All deltas previously submitted with StoreIntermediateUndoDelta
+   * and the delta passed in to this method will be commited to this undo point.
+   */
+  void StoreUndoPoint(const char *text, UndoManagerDelta *delta = NULL);
 
   /** Clear all undo points */
   void ClearUndoPoints();
