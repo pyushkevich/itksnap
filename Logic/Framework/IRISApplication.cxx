@@ -1434,8 +1434,11 @@ IRISApplication
   assert(m_IRISImageData->IsMainLoaded());
   assert(io->IsNativeImageLoaded());
 
+  // TODO: use the metadata to determine whether to use overlay header or main
+  // header when the overlay image is the same size as the main image
+
   // Add the image as the current grayscale overlay
-  m_IRISImageData->AddOverlay(io);
+  m_IRISImageData->AddCoregOverlay(io);
   ImageWrapperBase *layer = m_IRISImageData->GetLastOverlay();
 
   // Set the filename of the overlay

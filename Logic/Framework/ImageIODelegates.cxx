@@ -79,6 +79,9 @@ LoadOverlayImageDelegate
   // Do the parent's check
   LoadAnatomicImageDelegate::ValidateHeader(io, wl);
 
+  // The check below is commented out because we no longer require the overlays
+  // to be in the same space as the main image
+  /*
   // Now check for dimensions mismatch
   GenericImageData *id = m_Driver->GetCurrentImageData();
 
@@ -94,6 +97,7 @@ LoadOverlayImageDelegate
                         szSeg[0], szSeg[1], szSeg[2],
         szMain[0], szMain[1], szMain[2]);
     }
+  */
 }
 
 
