@@ -896,7 +896,6 @@ SET(SNAP_VTK_LIBS
   vtkCommonCore
   vtkRenderingCore
   vtkRenderingFreeType
-  vtkRenderingFreeTypeOpenGL
   vtkRenderingOpenGL
   vtkRenderingVolume
   vtkRenderingVolumeOpenGL
