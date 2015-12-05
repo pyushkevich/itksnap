@@ -177,7 +177,7 @@ UndoDataManager<TPixel>
 
 
 template<typename TPixel>
-UndoDataManager<TPixel>::Commit::Commit(const UndoDataManager<TPixel>::DList &list, const char *name)
+UndoDataManager<TPixel>::Commit::Commit(const DList &list, const char *name)
 {
   m_Deltas = list;
   m_Name = name;

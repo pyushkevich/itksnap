@@ -68,6 +68,12 @@ public:
   /** Reset labels to defaults */
   void ResetLabels();
 
+  /** Bulk visibility update on the labels */
+  void SetAllLabelsVisibility(bool onoff);
+
+  /** Bulk 3D visibility update on the labels */
+  void SetAllLabelsVisibilityIn3D(bool onoff);
+
 protected:
 
   // Hidden constructor/destructor

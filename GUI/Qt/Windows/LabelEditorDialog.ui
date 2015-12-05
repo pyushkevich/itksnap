@@ -743,6 +743,26 @@ QGroupBox::title {
     <string>Restores label descriptions to the default values.</string>
    </property>
   </action>
+  <action name="actionHide_all_labels">
+   <property name="text">
+    <string>Hide all labels</string>
+   </property>
+  </action>
+  <action name="actionHide_all_labels_in_3D_window">
+   <property name="text">
+    <string>Hide all labels in 3D window</string>
+   </property>
+  </action>
+  <action name="actionShow_all_labels">
+   <property name="text">
+    <string>Show all labels</string>
+   </property>
+  </action>
+  <action name="actionShow_all_labels_in_3D_window">
+   <property name="text">
+    <string>Show all labels in 3D window</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

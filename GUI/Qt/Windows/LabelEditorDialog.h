@@ -36,6 +36,14 @@ private slots:
 
   void on_inLabelFilter_textChanged(const QString &arg1);
 
+  void on_actionHide_all_labels_triggered();
+
+  void on_actionHide_all_labels_in_3D_window_triggered();
+
+  void on_actionShow_all_labels_triggered();
+
+  void on_actionShow_all_labels_in_3D_window_triggered();
+
 private:
   Ui::LabelEditorDialog *ui;
 

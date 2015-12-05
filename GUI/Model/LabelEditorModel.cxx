@@ -328,6 +328,34 @@ void LabelEditorModel::ResetLabels()
   m_LabelTable->InitializeToDefaults();
 }
 
+void LabelEditorModel::SetAllLabelsVisibility(bool onoff)
+{
+  for(LabelType label = m_LabelTable->GetFirstValidLabel(); label != 0;
+      label = m_LabelTable->FindNextValidLabel(label, true) )
+    {
+    ColorLabel desc = m_LabelTable->GetColorLabel(label);
+    if(desc.IsVisible() != onoff)
+      {
+      desc.SetVisible(onoff);
+      m_LabelTable->SetColorLabel(label, desc);
+      }
+    }
+}
+
+void LabelEditorModel::SetAllLabelsVisibilityIn3D(bool onoff)
+{
+  for(LabelType label = m_LabelTable->GetFirstValidLabel(); label != 0;
+      label = m_LabelTable->FindNextValidLabel(label, true) )
+    {
+    ColorLabel desc = m_LabelTable->GetColorLabel(label);
+    if(desc.IsVisibleIn3D() != onoff)
+      {
+      desc.SetVisibleIn3D(onoff);
+      m_LabelTable->SetColorLabel(label, desc);
+      }
+    }
+}
+
 bool LabelEditorModel::ReassignLabelId(LabelType newid)
 {
   // Check if the ID is taken

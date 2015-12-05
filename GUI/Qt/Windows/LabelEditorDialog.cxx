@@ -38,6 +38,16 @@ LabelEditorDialog::LabelEditorDialog(QWidget *parent) :
   menu->addAction(FindUpstreamAction(this, "actionSaveLabels"));
   menu->addSeparator();
   menu->addAction(ui->actionResetLabels);
+  menu->addSeparator();
+
+
+  QMenu *menu_vis = new QMenu("Visibility", this);
+  menu->addMenu(menu_vis);
+  menu_vis->addAction(ui->actionHide_all_labels);
+  menu_vis->addAction(ui->actionHide_all_labels_in_3D_window);
+  menu_vis->addSeparator();
+  menu_vis->addAction(ui->actionShow_all_labels);
+  menu_vis->addAction(ui->actionShow_all_labels_in_3D_window);
 
   QStandardItemModel *simodel = new QStandardItemModel(this);
   simodel->setColumnCount(2);
@@ -207,4 +217,24 @@ void LabelEditorDialog::on_actionResetLabels_triggered()
 void LabelEditorDialog::on_inLabelFilter_textChanged(const QString &arg1)
 {
   m_LabelListFilterModel->setFilterFixedString(arg1);
+}
+
+void LabelEditorDialog::on_actionHide_all_labels_triggered()
+{
+  m_Model->SetAllLabelsVisibility(false);
+}
+
+void LabelEditorDialog::on_actionHide_all_labels_in_3D_window_triggered()
+{
+  m_Model->SetAllLabelsVisibilityIn3D(false);
+}
+
+void LabelEditorDialog::on_actionShow_all_labels_triggered()
+{
+  m_Model->SetAllLabelsVisibility(true);
+}
+
+void LabelEditorDialog::on_actionShow_all_labels_in_3D_window_triggered()
+{
+  m_Model->SetAllLabelsVisibilityIn3D(true);
 }
