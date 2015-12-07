@@ -269,13 +269,6 @@ ScalarImageWrapper<TTraits,TBase>
       this->GetImageToDisplayTransform(0).TransformVoxelIndex(this->GetSliceIndex());
 
   DisplaySliceType *slice = this->GetDisplaySlice(0);
-  ImageType *source = this->m_Slicer[0]->GetPreviewInput();
-
-  itk::ImageRegion<3> rgnSource;
-  if(source)
-    {
-    rgnSource = source->GetBufferedRegion();
-    }
 
   // Get the RGB value
   typename DisplaySliceType::IndexType idx2D = {{idxDisp[0], idxDisp[1]}};

@@ -55,6 +55,7 @@ public:
   typedef typename Superclass::ImageBaseType                     ImageBaseType;
   typedef typename Superclass::ImageType                             ImageType;
   typedef typename Superclass::ImagePointer                       ImagePointer;
+  typedef typename Superclass::PreviewImageType               PreviewImageType;
 
   // Pixel type
   typedef typename Superclass::PixelType                             PixelType;

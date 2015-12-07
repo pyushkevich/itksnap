@@ -55,7 +55,7 @@
  * directions, accomodating different positions of the display space origin in the
  * image space.
  */
-template <class TInputImage, class TOutputImage>
+template <class TInputImage, class TOutputImage, class TPreviewImage>
 class ITK_EXPORT IRISSlicer 
 : public itk::ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -71,10 +71,16 @@ public:
   typedef typename InputImageType::PixelType                   InputPixelType;
   typedef typename InputImageType::InternalPixelType       InputComponentType;
 
+  typedef TPreviewImage                                      PreviewImageType;
+  typedef typename InputImageType::ConstPointer           PreviewImagePointer;
+  typedef typename InputImageType::PixelType                 PreviewPixelType;
+  typedef typename InputImageType::InternalPixelType     PreviewComponentType;
+
   typedef TOutputImage                                        OutputImageType;
   typedef typename OutputImageType::Pointer                OutputImagePointer;
   typedef typename OutputImageType::PixelType                 OutputPixelType;
   typedef typename OutputImageType::InternalPixelType     OutputComponentType;
+
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self)
@@ -118,12 +124,12 @@ public:
     the data from the preview input. This is used in the speed preview
     framework, but could also be adapted for other features. Setting the
     preview input to NULL disables this feature. */
-  void SetPreviewInput(InputImageType *input);
+  void SetPreviewInput(PreviewImageType *input);
 
   /**
     Get the preview input.
     */
-  InputImageType *GetPreviewInput();
+  PreviewImageType *GetPreviewInput();
 
   /**
    * Indicate whether the main input should always be bypassed when the preview
@@ -168,6 +174,8 @@ protected:
    */
   virtual void GenerateData();
 
+  template <class TSourceImage> void DoGenerateData(const TSourceImage *source);
+
 private:
   IRISSlicer(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
@@ -201,89 +209,95 @@ private:
 };
 
 //specialization for run-length encoded image
-template< typename TPixel, typename CounterType, class TOutputImage>
-class ITK_EXPORT IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage>
+template< typename TPixel, typename CounterType, class TOutputImage, class TPreviewImage>
+class ITK_EXPORT IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage >
     : public itk::ImageToImageFilter<RLEImage<TPixel, 3, CounterType>, TOutputImage>
 {
 public:
-    /** Standard class typedefs. */
-    typedef IRISSlicer                                                     Self;
-    typedef RLEImage<TPixel, 3, CounterType>                     InputImageType;
-    typedef itk::ImageToImageFilter<InputImageType, TOutputImage>    Superclass;
-    typedef itk::SmartPointer<Self>                                     Pointer;
-    typedef itk::SmartPointer<const Self>                          ConstPointer;
+  /** Standard class typedefs. */
+  typedef IRISSlicer                                                     Self;
+  typedef RLEImage<TPixel, 3, CounterType>                     InputImageType;
+  typedef itk::ImageToImageFilter<InputImageType, TOutputImage>    Superclass;
+  typedef itk::SmartPointer<Self>                                     Pointer;
+  typedef itk::SmartPointer<const Self>                          ConstPointer;
 
-    typedef typename InputImageType::ConstPointer             InputImagePointer;
-    typedef typename InputImageType::PixelType                   InputPixelType;
-    typedef typename InputImageType::InternalPixelType       InputComponentType;
+  typedef typename InputImageType::ConstPointer             InputImagePointer;
+  typedef typename InputImageType::PixelType                   InputPixelType;
+  typedef typename InputImageType::InternalPixelType       InputComponentType;
 
-    typedef TOutputImage                                        OutputImageType;
-    typedef typename OutputImageType::Pointer                OutputImagePointer;
-    typedef typename OutputImageType::PixelType                 OutputPixelType;
-    typedef typename OutputImageType::InternalPixelType     OutputComponentType;
+  typedef TPreviewImage                                      PreviewImageType;
+  typedef typename PreviewImageType::ConstPointer         PreviewImagePointer;
+  typedef typename PreviewImageType::PixelType               PreviewPixelType;
+  typedef typename PreviewImageType::InternalPixelType   PreviewComponentType;
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self)
+  typedef TOutputImage                                        OutputImageType;
+  typedef typename OutputImageType::Pointer                OutputImagePointer;
+  typedef typename OutputImageType::PixelType                 OutputPixelType;
+  typedef typename OutputImageType::InternalPixelType     OutputComponentType;
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(IRISSlicer, ImageToImageFilter)
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self)
 
-    /** Some more typedefs. */
-    typedef typename InputImageType::RegionType             InputImageRegionType;
-    typedef typename OutputImageType::RegionType           OutputImageRegionType;
-    typedef itk::ImageSliceConstIteratorWithIndex<InputImageType>  InputIteratorType;
-    typedef itk::ImageRegionIteratorWithIndex<OutputImageType>  SimpleOutputIteratorType;
-    typedef itk::ImageLinearIteratorWithIndex<OutputImageType> OutputIteratorType;
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(IRISSlicer, ImageToImageFilter)
 
-    /** Set the current slice index */
-    itkSetMacro(SliceIndex, unsigned int);
-    itkGetMacro(SliceIndex, unsigned int);
+  /** Some more typedefs. */
+  typedef typename InputImageType::RegionType             InputImageRegionType;
+  typedef typename OutputImageType::RegionType           OutputImageRegionType;
+  typedef itk::ImageSliceConstIteratorWithIndex<InputImageType>  InputIteratorType;
+  typedef itk::ImageRegionIteratorWithIndex<OutputImageType>  SimpleOutputIteratorType;
+  typedef itk::ImageLinearIteratorWithIndex<OutputImageType> OutputIteratorType;
 
-    /** Set the image axis along which the subsequent slices lie */
-    itkSetMacro(SliceDirectionImageAxis, unsigned int);
-    itkGetMacro(SliceDirectionImageAxis, unsigned int);
+  /** Set the current slice index */
+  itkSetMacro(SliceIndex, unsigned int);
+  itkGetMacro(SliceIndex, unsigned int);
 
-    /** Set the image axis along which the subsequent lines in a slice lie */
-    itkSetMacro(LineDirectionImageAxis, unsigned int);
-    itkGetMacro(LineDirectionImageAxis, unsigned int);
+  /** Set the image axis along which the subsequent slices lie */
+  itkSetMacro(SliceDirectionImageAxis, unsigned int);
+  itkGetMacro(SliceDirectionImageAxis, unsigned int);
 
-    /** Set the image axis along which the subsequent pixels in a line lie */
-    itkSetMacro(PixelDirectionImageAxis, unsigned int);
-    itkGetMacro(PixelDirectionImageAxis, unsigned int);
+  /** Set the image axis along which the subsequent lines in a slice lie */
+  itkSetMacro(LineDirectionImageAxis, unsigned int);
+  itkGetMacro(LineDirectionImageAxis, unsigned int);
 
-    /** Set the direction of line traversal */
-    itkSetMacro(LineTraverseForward, bool);
-    itkGetMacro(LineTraverseForward, bool);
+  /** Set the image axis along which the subsequent pixels in a line lie */
+  itkSetMacro(PixelDirectionImageAxis, unsigned int);
+  itkGetMacro(PixelDirectionImageAxis, unsigned int);
 
-    /** Set the direction of pixel traversal */
-    itkSetMacro(PixelTraverseForward, bool);
-    itkGetMacro(PixelTraverseForward, bool);
+  /** Set the direction of line traversal */
+  itkSetMacro(LineTraverseForward, bool);
+  itkGetMacro(LineTraverseForward, bool);
 
-    /** Add a second `preview' input to the slicer. The slicer will check if
+  /** Set the direction of pixel traversal */
+  itkSetMacro(PixelTraverseForward, bool);
+  itkGetMacro(PixelTraverseForward, bool);
+
+  /** Add a second `preview' input to the slicer. The slicer will check if
     the preview input is newer than the main input, and if so, will obtain
     the data from the preview input. This is used in the speed preview
     framework, but could also be adapted for other features. Setting the
     preview input to NULL disables this feature. */
-    void SetPreviewInput(InputImageType *input);
+  void SetPreviewInput(PreviewImageType *input);
 
-    /**
+  /**
     Get the preview input.
     */
-    InputImageType *GetPreviewInput();
+  PreviewImageType *GetPreviewInput();
 
-    /**
+  /**
      * Indicate whether the main input should always be bypassed when the preview
      * input is present. If not, the slicer will use whichever input is newer.
      */
-    itkGetMacro(BypassMainInput, bool)
-    itkSetMacro(BypassMainInput, bool)
+  itkGetMacro(BypassMainInput, bool)
+  itkSetMacro(BypassMainInput, bool)
 
 protected:
-    IRISSlicer();
-    virtual ~IRISSlicer() {};
-    void PrintSelf(std::ostream &s, itk::Indent indent) const;
 
-    /**
+  IRISSlicer();
+  virtual ~IRISSlicer() {};
+  void PrintSelf(std::ostream &s, itk::Indent indent) const;
+
+  /**
     * IRISSlicer can produce an image which is a different
     * resolution than its input image.  As such, IRISSlicer
     * needs to provide an implementation for
@@ -292,70 +306,70 @@ protected:
     * below.
     *
     * \sa ProcessObject::GenerateOutputInformaton()  */
-    virtual void GenerateOutputInformation();
+  virtual void GenerateOutputInformation();
 
-    void GenerateInputRequestedRegion();
+  void GenerateInputRequestedRegion();
 
-    /**
+  /**
     * This method maps an input region to an output region
     */
-    virtual void CallCopyOutputRegionToInputRegion(InputImageRegionType &destRegion,
-        const OutputImageRegionType &srcRegion);
+  virtual void CallCopyOutputRegionToInputRegion(InputImageRegionType &destRegion,
+                                                 const OutputImageRegionType &srcRegion);
 
-    void GenerateData();
-    //void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-    //    itk::ThreadIdType threadId);
+  void GenerateData();
+  //void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
+  //    itk::ThreadIdType threadId);
 
-    /** Uncompresses a RLE line into a buffer pointed by out.
+  /** Uncompresses a RLE line into a buffer pointed by out.
     * After each pixel is written, adds stride to the pointer.
     * The buffer needs to have enough room.
     * No error checking is conducted. */
-    inline void uncompressLine(const typename InputImageType::RLLine & line,
-        TPixel *out, itk::SizeValueType stride)
-    {
-        //complete Run-Length Lines have to be buffered
-        itkAssertOrThrowMacro(this->GetInput()->GetBufferedRegion().GetSize(0)
-            == this->GetInput()->GetLargestPossibleRegion().GetSize(0),
-            "BufferedRegion must contain complete run-length lines!");
-        #ifdef _DEBUG
-        int debugCount = 0;
-        #endif
-        for (int x = 0; x < line.size(); x++)
-            for (CounterType r = 0; r < line[x].first; r++)
-            {
-                #ifdef _DEBUG
-                debugCount++;
-                assert(debugCount <= this->GetInput()->GetLargestPossibleRegion().GetSize(0));
-                #endif
-                *out = line[x].second;
-                out += stride;
-            }
-    }
+  inline void uncompressLine(const typename InputImageType::RLLine & line,
+                             TPixel *out, itk::SizeValueType stride)
+  {
+    //complete Run-Length Lines have to be buffered
+    itkAssertOrThrowMacro(this->GetInput()->GetBufferedRegion().GetSize(0)
+                          == this->GetInput()->GetLargestPossibleRegion().GetSize(0),
+                          "BufferedRegion must contain complete run-length lines!");
+#ifdef _DEBUG
+    int debugCount = 0;
+#endif
+    for (int x = 0; x < line.size(); x++)
+      for (CounterType r = 0; r < line[x].first; r++)
+        {
+#ifdef _DEBUG
+        debugCount++;
+        assert(debugCount <= this->GetInput()->GetLargestPossibleRegion().GetSize(0));
+#endif
+        *out = line[x].second;
+        out += stride;
+        }
+  }
 
 private:
-    IRISSlicer(const Self&); //purposely not implemented
-    void operator=(const Self&); //purposely not implemented
+  IRISSlicer(const Self&); //purposely not implemented
+  void operator=(const Self&); //purposely not implemented
 
-    // Current slice in each of the dimensions
-    unsigned int m_SliceIndex;
+  // Current slice in each of the dimensions
+  unsigned int m_SliceIndex;
 
-    // Image axis corresponding to the slice direction
-    unsigned int m_SliceDirectionImageAxis;
+  // Image axis corresponding to the slice direction
+  unsigned int m_SliceDirectionImageAxis;
 
-    // Image axis corresponding to the line direction
-    unsigned int m_LineDirectionImageAxis;
+  // Image axis corresponding to the line direction
+  unsigned int m_LineDirectionImageAxis;
 
-    // Image axis corresponding to the pixel direction  
-    unsigned int m_PixelDirectionImageAxis;
+  // Image axis corresponding to the pixel direction
+  unsigned int m_PixelDirectionImageAxis;
 
-    // Whether the line direction is reversed
-    bool m_LineTraverseForward;
+  // Whether the line direction is reversed
+  bool m_LineTraverseForward;
 
-    // Whether the pixel direction is reversed
-    bool m_PixelTraverseForward;
+  // Whether the pixel direction is reversed
+  bool m_PixelTraverseForward;
 
-    // Whether the main input should always be bypassed
-    bool m_BypassMainInput;
+  // Whether the main input should always be bypassed
+  bool m_BypassMainInput;
 
 };
 

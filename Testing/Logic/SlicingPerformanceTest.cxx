@@ -136,7 +136,7 @@ Seg3DImageType::Pointer cropNormal(Seg3DImageType::Pointer image)
 
 Seg2DImageType::Pointer cropIRIS(Seg3DImageType::Pointer image)
 {
-    typedef IRISSlicer<Seg3DImageType, Seg2DImageType> roiType;
+    typedef IRISSlicer<Seg3DImageType, Seg2DImageType, Seg3DImageType> roiType;
     roiType::Pointer roi = roiType::New();
     roi->SetInput(image);
     roi->SetSliceIndex(sliceIndex);
@@ -162,7 +162,7 @@ Seg2DImageType::Pointer cropIRIS(Seg3DImageType::Pointer image)
 
 Seg2DImageType::Pointer cropRLEiris(RLEImage3D::Pointer image)
 {
-    typedef IRISSlicer<RLEImage3D, Seg2DImageType> roiType;
+    typedef IRISSlicer<RLEImage3D, Seg2DImageType, RLEImage3D> roiType;
     roiType::Pointer roi = roiType::New();
     roi->SetInput(image);
     roi->SetSliceIndex(sliceIndex);

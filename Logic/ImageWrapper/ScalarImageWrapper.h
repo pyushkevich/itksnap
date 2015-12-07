@@ -77,6 +77,7 @@ public:
   typedef typename Superclass::ImagePointer                       ImagePointer;
   typedef typename Superclass::PixelType                             PixelType;
   typedef typename Superclass::CommonFormatImageType     CommonFormatImageType;
+  typedef typename Superclass::PreviewImageType               PreviewImageType;
 
   // Floating point image type
   typedef itk::Image<float, 3>                                  FloatImageType;

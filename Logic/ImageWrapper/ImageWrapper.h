@@ -45,7 +45,7 @@
 #include <itkSimpleDataObjectDecorator.h>
 
 // Forward declarations to IRIS classes
-template <class TInputImage, class TOutputImage> class IRISSlicer;
+template <class TInputImage, class TOutputImage, class TPreviewImage> class IRISSlicer;
 template <class TFunctor> class UnaryValueToValueFilter;
 
 class SNAPSegmentationROISettings;
@@ -100,6 +100,11 @@ public:
   // adaptor, the component type is the output type of the adaptor
   typedef typename TTraits::ComponentType                        ComponentType;
 
+  // This is the type of the intermediate 'preview' images used in the slicing
+  // pipeline. For regular image and vector image wrappers, this is the same as
+  // ImageType, but for adapter-based image wrappers, this is a concrete image
+  typedef itk::Image<PixelType, 3>                            PreviewImageType;
+
   // Slice image type
   typedef itk::Image<PixelType,2>                                    SliceType;
   typedef SmartPtr<SliceType>                                     SlicePointer;
@@ -110,11 +115,11 @@ public:
   typedef typename Superclass::DisplaySlicePointer         DisplaySlicePointer;
 
   // Slicer type
-  typedef IRISSlicer<ImageType, SliceType>                          SlicerType;
+  typedef IRISSlicer<ImageType, SliceType, PreviewImageType>        SlicerType;
   typedef SmartPtr<SlicerType>                                   SlicerPointer;
 
   // Preview source for preview pipelines
-  typedef itk::ImageSource<ImageType>                        PreviewFilterType;
+  typedef itk::ImageSource<PreviewImageType>                 PreviewFilterType;
 
   // Iterator types
   typedef typename itk::ImageRegionIterator<ImageType>                Iterator;
@@ -637,8 +642,11 @@ protected:
   /** Parent wrapper */
   ImageWrapperBase *m_ParentWrapper;
 
-
-  typedef itk::ResampleImageFilter<ImageType, ImageType, double, double> ResampleFilter;
+  /**
+   * Resampling filter data type. These filters are used when slicing is required in
+   * non-orthogonal directions
+   */
+  typedef itk::ResampleImageFilter<ImageType, PreviewImageType, double, double> ResampleFilter;
   SmartPtr<ResampleFilter> m_ResampleFilter[3];
 };
 

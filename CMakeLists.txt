@@ -379,6 +379,7 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/Texture/MomentTextures.h
   Logic/Slicing/IRISSlicer.h
   Logic/Slicing/IRISSlicer.txx
+  Logic/Slicing/IRISSlicer_RLE.txx
   Logic/Slicing/IntensityCurveInterface.h
   Logic/Slicing/IntensityCurveVTK.h
   Logic/Slicing/IntensityToColorLookupTableImageFilter.h

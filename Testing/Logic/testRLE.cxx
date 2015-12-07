@@ -69,7 +69,7 @@ void testIRISSlicer(shortRLEImage::Pointer rleImage, Seg3DImageType::Pointer itk
         << ".  Pixel forward: " << pixelForward << std::endl;;
 
     std::cout << "IRISSlicer<rle>: "; tp.Start();
-    typedef IRISSlicer<shortRLEImage, Seg2DImageType> slicerTypeRLE;
+    typedef IRISSlicer<shortRLEImage, Seg2DImageType, shortRLEImage> slicerTypeRLE;
     slicerTypeRLE::Pointer roiRLE = slicerTypeRLE::New();
     roiRLE->SetInput(rleImage);
     roiRLE->SetSliceIndex(sliceIndex);
@@ -83,7 +83,7 @@ void testIRISSlicer(shortRLEImage::Pointer rleImage, Seg3DImageType::Pointer itk
     tp.Stop(); std::cout << tp.GetMean() * 1000 << " ms " << std::endl; tp.Reset();
 
     std::cout << "IRISSlicer<itk>: "; tp.Start();
-    typedef IRISSlicer<Seg3DImageType, Seg2DImageType> slicerTypeITK;
+    typedef IRISSlicer<Seg3DImageType, Seg2DImageType, Seg3DImageType> slicerTypeITK;
     slicerTypeITK::Pointer roiITK = slicerTypeITK::New();
     roiITK->SetInput(itkImage);
     roiITK->SetSliceIndex(sliceIndex);

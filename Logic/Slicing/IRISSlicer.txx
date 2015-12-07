@@ -39,8 +39,8 @@
 #include "itkVectorImage.h"
 #include "itkVectorImageToImageAdaptor.h"
 
-template <class TInputImage, class TOutputImage>
-IRISSlicer<TInputImage, TOutputImage>
+template <class TInputImage, class TOutputImage, class TPreviewImage>
+IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
 ::IRISSlicer()
 {
   // Two inputs are allowed (second being the preview input)
@@ -67,8 +67,9 @@ IRISSlicer<TInputImage, TOutputImage>
   m_BypassMainInput = false;
 }
 
-template <class TInputImage, class TOutputImage>
-void IRISSlicer<TInputImage, TOutputImage>
+template <class TInputImage, class TOutputImage, class TPreviewImage>
+void
+IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
 ::GenerateOutputInformation()
 {
   // Get pointers to the inputs and outputs
@@ -104,8 +105,9 @@ void IRISSlicer<TInputImage, TOutputImage>
   outputPtr->SetOrigin(outputOrigin);
 }
 
-template <class TInputImage, class TOutputImage>
-void IRISSlicer<TInputImage, TOutputImage>
+template <class TInputImage, class TOutputImage, class TPreviewImage>
+void
+IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
 ::CallCopyOutputRegionToInputRegion(InputImageRegionType &destRegion,
                                     const OutputImageRegionType &srcRegion)
 {
@@ -156,9 +158,9 @@ void IRISSlicer<TInputImage, TOutputImage>
     }
 }
 
-template <class TInputImage, class TOutputImage>
+template <class TInputImage, class TOutputImage, class TPreviewImage>
 void
-IRISSlicer<TInputImage, TOutputImage>
+IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
 ::GenerateInputRequestedRegion()
 {
   // If there is a preview input, and the pipeline of the preview input is
@@ -200,22 +202,22 @@ IRISSlicer<TInputImage, TOutputImage>
 #include "itkImageRegionConstIterator.h"
 #include "itkImageConstIterator.h"
 
-template <class TInputImage, class TOutputImage>
-void IRISSlicer<TInputImage, TOutputImage>
-::GenerateData()
+// This method is templated to allow preview input and actual input to be different
+// types
+template <class TInputImage, class TOutputImage, class TPreviewImage>
+template <class TSourceImage>
+void
+IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
+::DoGenerateData(const TSourceImage *inputPtr)
 {
-  // Here's the input and output
-  const InputImageType *inputPtr = this->GetInput();
+  typedef typename TSourceImage::AccessorFunctorType AccessorFunctorType;
+  typedef typename TSourceImage::AccessorType AccessorType;
+  typedef typename TSourceImage::OffsetValueType OffsetType;
+  typedef typename TSourceImage::InternalPixelType ComponentType;
+
+  // The output image
   OutputImageType *outputPtr = this->GetOutput();
 
-  // Decide if we want to use the preview input instead
-  const InputImageType *preview =
-      (InputImageType *) this->GetInputs()[1].GetPointer();
-
-  if(preview)
-    if(m_BypassMainInput || preview->GetMTime() > inputPtr->GetMTime())
-      inputPtr = preview;
-  
   // Allocate (why is this necessary?)
   this->AllocateOutputs();
 
@@ -238,7 +240,7 @@ void IRISSlicer<TInputImage, TOutputImage>
     stride_image[m_PixelDirectionImageAxis];
   int sLine = (m_LineTraverseForward ? 1 : -1) *
     stride_image[m_LineDirectionImageAxis];
- 
+
   // We never take full line-strides, because as we iterate, we
   // take n pixel-strides before needing to worry about changing
   // the line. Therefore, we compute the step needed to go to the
@@ -248,11 +250,11 @@ void IRISSlicer<TInputImage, TOutputImage>
 
   // Determine the first voxel that we will traverse
   Vector3i xStartVoxel;
-  xStartVoxel[m_PixelDirectionImageAxis] = 
+  xStartVoxel[m_PixelDirectionImageAxis] =
     m_PixelTraverseForward ? 0 : szVol[m_PixelDirectionImageAxis] - 1;
-  xStartVoxel[m_LineDirectionImageAxis] = 
+  xStartVoxel[m_LineDirectionImageAxis] =
     m_LineTraverseForward ? 0 : szVol[m_LineDirectionImageAxis] - 1;
-  xStartVoxel[m_SliceDirectionImageAxis] = 
+  xStartVoxel[m_SliceDirectionImageAxis] =
     szVol[m_SliceDirectionImageAxis] == 1 ? 0 : m_SliceIndex;
 
   // Get the offset of the first voxel. As pointed out by Roman Grothausmann, the VNL
@@ -261,29 +263,20 @@ void IRISSlicer<TInputImage, TOutputImage>
   for(int i = 0; i < 3; i++)
     iStart += static_cast<long>(stride_image[i]) * static_cast<long>(xStartVoxel[i]);
 
-  // Get the size of the output region (whole slice)
-  typename OutputImageType::RegionType rgn = outputPtr->GetBufferedRegion();
-  size_t nPixel = rgn.GetSize()[0], nLine = rgn.GetSize()[1];
-
   // Get pointers to input and output data
-  const InputComponentType *pSource = inputPtr->GetBufferPointer();
+  const ComponentType *pSource = inputPtr->GetBufferPointer();
 
   // Set up the output iterator
   typedef itk::ImageLinearIteratorWithIndex<OutputImageType> OutIterType;
   OutIterType it_out(outputPtr, outputPtr->GetBufferedRegion());
 
   // Get the pixel accessor functor - for unified access to voxels
-  typedef typename InputImageType::AccessorFunctorType AccessorFunctorType;
-  typedef typename InputImageType::AccessorType AccessorType;
-  typedef typename InputImageType::OffsetValueType OffsetType;
   AccessorType accessor = inputPtr->GetPixelAccessor();
   AccessorFunctorType accessor_functor;
   accessor_functor.SetPixelAccessor(accessor);
   accessor_functor.SetBegin(pSource);
 
   // Position the source at the first component of the first voxel to traverse
-  // OffsetType offset =
-  const InputComponentType *pBegin = pSource;
   pSource += iStart;
 
   // Main loop: copy data from source to target
@@ -307,8 +300,32 @@ void IRISSlicer<TInputImage, TOutputImage>
     }
 }
 
-template <class TInputImage, class TOutputImage>
-void IRISSlicer<TInputImage, TOutputImage>
+template <class TInputImage, class TOutputImage, class TPreviewImage>
+void
+IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
+::GenerateData()
+{
+  // Here's the input and output
+  const InputImageType *inputPtr = this->GetInput();
+
+  // Decide if we want to use the preview input instead
+  const PreviewImageType *preview =
+      (PreviewImageType *) this->GetInputs()[1].GetPointer();
+
+  if(preview &&
+     (m_BypassMainInput || preview->GetMTime() > inputPtr->GetMTime()))
+    {
+    this->DoGenerateData(preview);
+    }
+  else
+    {
+    this->DoGenerateData(inputPtr);
+    }
+}
+
+template <class TInputImage, class TOutputImage, class TPreviewImage>
+void
+IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
 ::PrintSelf(std::ostream &os, itk::Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
@@ -321,17 +338,18 @@ void IRISSlicer<TInputImage, TOutputImage>
   os << indent << "Pixels Traversed Forward: " << m_PixelTraverseForward << std::endl;
 }
 
-template <class TInputImage, class TOutputImage>
-void IRISSlicer<TInputImage, TOutputImage>
-::SetPreviewInput(InputImageType *input)
+template <class TInputImage, class TOutputImage, class TPreviewImage>
+void
+IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
+::SetPreviewInput(PreviewImageType *input)
 {
   this->SetNthInput(1, input);
 }
 
-template <class TInputImage, class TOutputImage>
-typename IRISSlicer<TInputImage, TOutputImage>::InputImageType *
-IRISSlicer<TInputImage, TOutputImage>
+template <class TInputImage, class TOutputImage, class TPreviewImage>
+typename IRISSlicer<TInputImage, TOutputImage,TPreviewImage>::PreviewImageType *
+IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
 ::GetPreviewInput()
 {
-  return const_cast<InputImageType *>(this->GetInput(1));
+  return static_cast<PreviewImageType *>(itk::ProcessObject::GetInput(1));
 }
