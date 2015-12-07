@@ -1,9 +1,10 @@
 <RCC>
     <qresource prefix="/scripts">
-      <file>Scripts/test_Library.js</file>
-      <file>Scripts/test_ProbeIntensity.js</file>
-      <file>Scripts/test_RegionCompetition.js</file>
-      <file>Scripts/test_RandomForest.js</file>
-      <file>Scripts/test_Workspace.js</file>
+        <file>Scripts/test_Library.js</file>
+        <file>Scripts/test_ProbeIntensity.js</file>
+        <file>Scripts/test_RegionCompetition.js</file>
+        <file>Scripts/test_RandomForest.js</file>
+        <file>Scripts/test_Workspace.js</file>
+        <file>Scripts/test_DiffSpace.js</file>
     </qresource>
 </RCC>

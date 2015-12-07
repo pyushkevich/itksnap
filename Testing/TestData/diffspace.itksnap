@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--ITK-SNAP (itksnap.org) Project File
+
+This file can be moved/copied along with the images that it references
+as long as the relative location of the images to the project file is 
+the same. Do not modify the SaveLocation entry, or this will not work.
+-->
+<!DOCTYPE registry [
+<!ELEMENT registry (entry*,folder*)>
+<!ELEMENT folder (entry*,folder*)>
+<!ELEMENT entry EMPTY>
+<!ATTLIST folder key CDATA #REQUIRED>
+<!ATTLIST entry key CDATA #REQUIRED>
+<!ATTLIST entry value CDATA #REQUIRED>
+]>
+<registry>
+  <entry key="SaveLocation" value="/Users/pauly/tk/snapdata/7t" />
+  <entry key="Version" value="20151215" />
+  <folder key="Annotations" >
+    <entry key="Format" value="ITK-SNAP Annotation File" />
+    <entry key="FormatDate" value="20150624" />
+    <folder key="Annotations" >
+      <entry key="ArraySize" value="0" />
+    </folder>
+  </folder>
+  <folder key="Layers" >
+    <folder key="Layer[000]" >
+      <entry key="AbsolutePath" value="/Users/pauly/tk/snapdata/7t/t1_chunk.nii.gz" />
+      <entry key="Role" value="MainRole" />
+      <folder key="LayerMetaData" >
+        <entry key="Alpha" value="255" />
+        <entry key="CustomNickName" value="" />
+        <entry key="Sticky" value="0" />
+        <folder key="DisplayMapping" >
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Grayscale" />
+          </folder>
+          <folder key="Curve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.211209" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="0.422417" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+      </folder>
+      <folder key="ProjectMetaData" >
+        <entry key="GaussianBlurScale" value="1" />
+        <entry key="RemappingExponent" value="3" />
+        <entry key="RemappingSteepness" value="0.04" />
+        <folder key="Files" >
+          <folder key="Grey" >
+            <entry key="Dimensions" value="43 54 32" />
+            <entry key="Orientation" value="RPI" />
+          </folder>
+        </folder>
+        <folder key="IOHistory" >
+          <folder key="AnatomicImage" >
+            <entry key="ArraySize" value="3" />
+            <entry key="Element[0]" value="/Users/pauly/tk/snapdata/7t/t2_chunk.nii.gz" />
+            <entry key="Element[1]" value="/Users/pauly/tk/snapdata/7t/py01_t2star.nii.gz" />
+            <entry key="Element[2]" value="/Users/pauly/tk/snapdata/7t/multi_chunk.nii.gz" />
+          </folder>
+          <folder key="Project" >
+            <entry key="ArraySize" value="0" />
+          </folder>
+        </folder>
+        <folder key="IRIS" >
+          <entry key="SliceViewLayerLayout" value="Tiled" />
+          <folder key="BoundingBox" >
+            <entry key="InterpolationMethod" value="Nearest" />
+            <entry key="ResampleDimensions" value="43 54 32" />
+            <entry key="SeedWithCurrentSegmentation" value="0" />
+            <folder key="ROIBox[0]" >
+              <entry key="Index" value="0" />
+              <entry key="Size" value="43" />
+            </folder>
+            <folder key="ROIBox[1]" >
+              <entry key="Index" value="0" />
+              <entry key="Size" value="54" />
+            </folder>
+            <folder key="ROIBox[2]" >
+              <entry key="Index" value="0" />
+              <entry key="Size" value="32" />
+            </folder>
+          </folder>
+          <folder key="DisplayMapping" >
+            <folder key="ColorMap" >
+              <entry key="Preset" value="Grayscale" />
+            </folder>
+            <folder key="Curve" >
+              <entry key="NumberOfControlPoints" value="3" />
+              <folder key="ControlPoint[0]" >
+                <entry key="tValue" value="0" />
+                <entry key="xValue" value="0" />
+              </folder>
+              <folder key="ControlPoint[1]" >
+                <entry key="tValue" value="0.211209" />
+                <entry key="xValue" value="0.5" />
+              </folder>
+              <folder key="ControlPoint[2]" >
+                <entry key="tValue" value="0.422417" />
+                <entry key="xValue" value="1" />
+              </folder>
+            </folder>
+          </folder>
+          <folder key="LabelState" >
+            <entry key="CoverageMode" value="OverAll" />
+            <entry key="DrawingLabel" value="1" />
+            <entry key="OverwriteLabel" value="0" />
+            <entry key="PolygonInvert" value="0" />
+            <entry key="SegmentationAlpha" value="0.5" />
+          </folder>
+          <folder key="LabelTable" >
+            <entry key="NumberOfElements" value="6" />
+            <folder key="Element[0]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="255 0 0" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="1" />
+              <entry key="Label" value="Label 1" />
+            </folder>
+            <folder key="Element[1]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="0 255 0" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="2" />
+              <entry key="Label" value="Label 2" />
+            </folder>
+            <folder key="Element[2]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="0 0 255" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="3" />
+              <entry key="Label" value="Label 3" />
+            </folder>
+            <folder key="Element[3]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="255 255 0" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="4" />
+              <entry key="Label" value="Label 4" />
+            </folder>
+            <folder key="Element[4]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="0 255 255" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="5" />
+              <entry key="Label" value="Label 5" />
+            </folder>
+            <folder key="Element[5]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="255 0 255" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="6" />
+              <entry key="Label" value="Label 6" />
+            </folder>
+          </folder>
+          <folder key="MeshOptions" >
+            <entry key="DecimateFeatureAngle" value="45" />
+            <entry key="DecimateMaximumError" value="0.002" />
+            <entry key="DecimatePreserveTopology" value="1" />
+            <entry key="DecimateTargetReduction" value="0.95" />
+            <entry key="GaussianError" value="0.04" />
+            <entry key="GaussianStandardDeviation" value="0.8" />
+            <entry key="MeshSmoothingBoundarySmoothing" value="0" />
+            <entry key="MeshSmoothingConvergence" value="0" />
+            <entry key="MeshSmoothingFeatureAngle" value="45" />
+            <entry key="MeshSmoothingFeatureEdgeSmoothing" value="0" />
+            <entry key="MeshSmoothingIterations" value="200" />
+            <entry key="MeshSmoothingRelaxationFactor" value="0.01" />
+            <entry key="UseDecimation" value="0" />
+            <entry key="UseGaussianSmoothing" value="0" />
+            <entry key="UseMeshSmoothing" value="0" />
+          </folder>
+        </folder>
+        <folder key="SNAP" >
+          <folder key="SnakeParameters" >
+            <entry key="AdvectionSpeedExponent" value="0" />
+            <entry key="AdvectionWeight" value="0" />
+            <entry key="AutomaticTimeStep" value="1" />
+            <entry key="Clamp" value="1" />
+            <entry key="CurvatureSpeedExponent" value="-1" />
+            <entry key="CurvatureWeight" value="0.2" />
+            <entry key="Ground" value="5" />
+            <entry key="LaplacianSpeedExponent" value="0" />
+            <entry key="LaplacianWeight" value="0" />
+            <entry key="PropagationWeight" value="1" />
+            <entry key="SnakeType" value="RegionCompetition" />
+            <entry key="SolverAlgorithm" value="ParallelSparseField" />
+            <entry key="TimeStepFactor" value="1" />
+          </folder>
+        </folder>
+      </folder>
+    </folder>
+    <folder key="Layer[001]" >
+      <entry key="AbsolutePath" value="/Users/pauly/tk/snapdata/7t/t2_chunk.nii.gz" />
+      <entry key="Role" value="OverlayRole" />
+      <folder key="LayerMetaData" >
+        <entry key="Alpha" value="0.5" />
+        <entry key="CustomNickName" value="" />
+        <entry key="Sticky" value="0" />
+        <folder key="DisplayMapping" >
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Grayscale" />
+          </folder>
+          <folder key="Curve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.362159" />
+              <entry key="xValue" value="0.769688" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="0.897436" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+      </folder>
+    </folder>
+    <folder key="Layer[002]" >
+      <entry key="AbsolutePath" value="/Users/pauly/tk/snapdata/7t/multi_chunk.nii.gz" />
+      <entry key="Role" value="OverlayRole" />
+      <folder key="LayerMetaData" >
+        <entry key="Alpha" value="0.5" />
+        <entry key="CustomNickName" value="" />
+        <entry key="Sticky" value="0" />
+        <folder key="DisplayMapping" >
+          <entry key="SelectedComponent" value="1" />
+          <entry key="SelectedScalarRep" value="Component" />
+          <entry key="UseRGB" value="0" />
+          <folder key="Average" >
+            <folder key="ColorMap" >
+              <entry key="Preset" value="Black to green" />
+            </folder>
+            <folder key="Curve" >
+              <entry key="NumberOfControlPoints" value="3" />
+              <folder key="ControlPoint[0]" >
+                <entry key="tValue" value="0" />
+                <entry key="xValue" value="0" />
+              </folder>
+              <folder key="ControlPoint[1]" >
+                <entry key="tValue" value="0.5" />
+                <entry key="xValue" value="0.5" />
+              </folder>
+              <folder key="ControlPoint[2]" >
+                <entry key="tValue" value="1" />
+                <entry key="xValue" value="1" />
+              </folder>
+            </folder>
+          </folder>
+          <folder key="Component" >
+            <folder key="ColorMap" >
+              <entry key="Preset" value="Black to green" />
+            </folder>
+            <folder key="Curve" >
+              <entry key="NumberOfControlPoints" value="3" />
+              <folder key="ControlPoint[0]" >
+                <entry key="tValue" value="0.672489" />
+                <entry key="xValue" value="0" />
+              </folder>
+              <folder key="ControlPoint[1]" >
+                <entry key="tValue" value="0.865316" />
+                <entry key="xValue" value="0.535938" />
+              </folder>
+              <folder key="ControlPoint[2]" >
+                <entry key="tValue" value="0.958519" />
+                <entry key="xValue" value="1" />
+              </folder>
+            </folder>
+          </folder>
+          <folder key="Magnitude" >
+            <folder key="ColorMap" >
+              <entry key="Preset" value="Black to green" />
+            </folder>
+            <folder key="Curve" >
+              <entry key="NumberOfControlPoints" value="3" />
+              <folder key="ControlPoint[0]" >
+                <entry key="tValue" value="0" />
+                <entry key="xValue" value="0" />
+              </folder>
+              <folder key="ControlPoint[1]" >
+                <entry key="tValue" value="0.5" />
+                <entry key="xValue" value="0.5" />
+              </folder>
+              <folder key="ControlPoint[2]" >
+                <entry key="tValue" value="1" />
+                <entry key="xValue" value="1" />
+              </folder>
+            </folder>
+          </folder>
+          <folder key="Maximum" >
+            <folder key="ColorMap" >
+              <entry key="Preset" value="Black to green" />
+            </folder>
+            <folder key="Curve" >
+              <entry key="NumberOfControlPoints" value="3" />
+              <folder key="ControlPoint[0]" >
+                <entry key="tValue" value="0" />
+                <entry key="xValue" value="0" />
+              </folder>
+              <folder key="ControlPoint[1]" >
+                <entry key="tValue" value="0.5" />
+                <entry key="xValue" value="0.5" />
+              </folder>
+              <folder key="ControlPoint[2]" >
+                <entry key="tValue" value="1" />
+                <entry key="xValue" value="1" />
+              </folder>
+            </folder>
+          </folder>
+        </folder>
+      </folder>
+    </folder>
+  </folder>
+</registry>

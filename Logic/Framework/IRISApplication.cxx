@@ -1434,11 +1434,39 @@ IRISApplication
   assert(m_IRISImageData->IsMainLoaded());
   assert(io->IsNativeImageLoaded());
 
-  // TODO: use the metadata to determine whether to use overlay header or main
-  // header when the overlay image is the same size as the main image
+  // Test if the image is in the same size as the main image
+  ImageWrapperBase *main = this->m_IRISImageData->GetMain();
 
-  // Add the image as the current grayscale overlay
-  m_IRISImageData->AddCoregOverlay(io);
+  bool same_size = (main->GetSize() == io->GetDimensionsOfNativeImage());
+
+  // Now test the 3D geometry of the image to see if it occupies the same space
+  bool same_space = true;
+
+  // We use a tolerance for header comparisons here
+  double tol = 1e-5;
+
+  for(int i = 0; i < 3; i++)
+    {
+    if(fabs(io->GetNativeImage()->GetOrigin()[i] - main->GetImageBase()->GetOrigin()[i]) > tol)
+      same_space = false;
+    if(fabs(io->GetNativeImage()->GetSpacing()[i] - main->GetImageBase()->GetSpacing()[i]) > tol)
+      same_space = false;
+    for(int j = 0; j < 3; j++)
+      {
+      if(fabs(io->GetNativeImage()->GetDirection()[i][j] - main->GetImageBase()->GetDirection()[i][j]) > tol)
+        same_space = false;
+      }
+    }
+
+  // TODO: in situations where the size is the same and spacing is different, we may want to ask the
+  // user how to handle it, or at least display a warning?
+
+  // Call the correct method
+  if(same_size && same_space)
+    m_IRISImageData->AddOverlay(io);
+  else
+    m_IRISImageData->AddCoregOverlay(io);
+
   ImageWrapperBase *layer = m_IRISImageData->GetLastOverlay();
 
   // Set the filename of the overlay
