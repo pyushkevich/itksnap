@@ -159,8 +159,10 @@ void GenericSliceModel::OnUpdate()
       if(rezoom)
         this->SetViewZoom(m_OptimalZoom);
       }
-    }
 
+    // Update the viewport information in the upstream objects
+    this->UpdateUpstreamViewportGeometry();
+    }
 }
 
 void GenericSliceModel::ComputeOptimalZoom()
@@ -878,6 +880,77 @@ void GenericSliceModel::UpdateViewportLayout()
           m_ViewportLayout.vpList.push_back(vp);
           }
     }
+}
+
+void GenericSliceModel::UpdateUpstreamViewportGeometry()
+{
+  // In this function, we have to figure out where the active viewport
+  // is located in the physical image space of ITK-SNAP.
+  GenericImageData *gid = this->GetImageData();
+
+  // Get the display image spec corresponding to the current viewport
+  GenericImageData::ImageBaseType *dispimg = gid->GetDisplayViewportGeometry(this->GetId());
+
+  // Get the primary viewport - this is what affects everything else
+  SliceViewportLayout::SubViewport &vp = m_ViewportLayout.vpList.front();
+
+  // The size of the viewport is fairly easy
+  GenericImageData::RegionType region;
+  region.SetSize(0, vp.size[0]); region.SetSize(1, vp.size[1]); region.SetSize(2, 1);
+
+  // The spacing of the viewport in physical units. This refers to the size of each
+  // pixel. The easiest way to determine this is to map the edges of the viewport to
+  // physical image coordinates
+  Vector2f u[3];
+  Vector3f s[4];
+  Vector3d x[4];
+
+  // Define the corners of the viewport
+  u[0][0] = vp.pos[0]; u[0][1] = vp.pos[1];
+  u[1][0] = u[0][0] + vp.size[0]; u[1][1] = u[0][1];
+  u[2][0] = u[0][0]; u[2][1] = u[0][1] + vp.size[1];
+
+  // Map into slice coordinates, adding the third dimension
+  s[0] = this->MapPhysicalWindowToSlice(u[0]); s[0][2] -= 0.5;
+  s[1] = this->MapPhysicalWindowToSlice(u[1]); s[1][2] -= 0.5;
+  s[2] = this->MapPhysicalWindowToSlice(u[2]); s[2][2] -= 0.5;
+  s[3] = this->MapPhysicalWindowToSlice(u[0]); s[3][2] += 0.5;
+
+  // Now, map into image coordinates - these are the voxel coordinates of the main image
+  for(int i = 0; i < 4; i++)
+    {
+    itk::ContinuousIndex<double, 3> j = to_itkContinuousIndex(this->MapSliceToImage(s[i]));
+    itk::Point<double, 3> px;
+    gid->GetMain()->GetImageBase()->TransformContinuousIndexToPhysicalPoint(j, px);
+    x[i] = Vector3d(px);
+    }
+
+  // Finally, we have four points in physical space. From these we can assign
+  // all the parameters of the target image.
+
+  // Spacing - divide the length of each edge by the size in voxels
+  GenericImageData::ImageBaseType::SpacingType spacing;
+  spacing[0] = (x[1] - x[0]).magnitude() / vp.size[0];
+  spacing[1] = (x[2] - x[0]).magnitude() / vp.size[1];
+  spacing[2] = (x[3] - x[0]).magnitude();
+
+  // Origin - just the coordinates of the first point (although careful about the 0.5 offset!)
+  GenericImageData::ImageBaseType::PointType origin = to_itkPoint(x[0]);
+
+  // Direction cosines - these are the normalized directions
+  GenericImageData::ImageBaseType::DirectionType dir;
+  for(int col = 0; col < 3; col++)
+    {
+    Vector3d dirvec = (x[col+1] - x[0]).normalize();
+    for(int row = 0; row < 3; row++)
+      dir(row, col) = dirvec[row];
+    }
+
+  // Set all of the parameters for the reference image
+  dispimg->SetSpacing(spacing);
+  dispimg->SetOrigin(origin);
+  dispimg->SetDirection(dir);
+  dispimg->SetRegions(region);
 }
 
 ImageWrapperBase *GenericSliceModel::GetLayerForNthTile(int row, int col)

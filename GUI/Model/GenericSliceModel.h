@@ -433,6 +433,7 @@ protected:
 
   /** Update the state of the viewport based on current layout settings */
   void UpdateViewportLayout();
+  void UpdateUpstreamViewportGeometry();
 };
 
 #endif // GENERICSLICEMODEL_H

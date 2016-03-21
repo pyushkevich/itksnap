@@ -70,6 +70,7 @@
 #include "ScalarImageHistogram.h"
 #include "GuidedNativeImageIO.h"
 #include "itkTransform.h"
+#include "itkExtractImageFilter.h"
 
 
 #include <vnl/vnl_inverse.h>
@@ -783,8 +784,18 @@ ImageWrapper<TTraits,TBase>
       m_ResampleFilter[i] = ResampleFilter::New();
       m_ResampleFilter[i]->SetInput(newImage);
       m_ResampleFilter[i]->SetTransform(transform);
-      m_ResampleFilter[i]->SetOutputParametersFromImage(referenceSpace);
-      m_Slicer[i]->SetPreviewInput(m_ResampleFilter[i]->GetOutput());
+
+      // Create a collapsing filter
+      m_CollapseFilter[i] = CollapseSliceFilter::New();
+      m_CollapseFilter[i]->SetInput(m_ResampleFilter[i]->GetOutput());
+
+      // Create another set that work with the older slicers - this is temporary
+      // TODO: get rid of this
+      m_ResampleFilter[i+3] = ResampleFilter::New();
+      m_ResampleFilter[i+3]->SetInput(newImage);
+      m_ResampleFilter[i+3]->SetTransform(transform);
+      m_ResampleFilter[i+3]->SetOutputParametersFromImage(referenceSpace);
+      m_Slicer[i]->SetPreviewInput(m_ResampleFilter[i+3]->GetOutput());
       m_Slicer[i]->SetBypassMainInput(true);
       }
     }
@@ -1005,6 +1016,20 @@ ImageWrapper<TTraits,TBase>
   }
 }
 
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::SetDisplayViewportGeometry(
+    unsigned int index,
+    ImageBaseType *viewport_image)
+{
+  if(m_ReferenceSpace)
+    {
+    ResampleFilter *filter = m_ResampleFilter[index];
+    filter->SetReferenceImage(viewport_image);
+    }
+}
+
 
 template<class TTraits, class TBase>
 void
@@ -1144,7 +1169,16 @@ typename ImageWrapper<TTraits,TBase>::SliceType*
 ImageWrapper<TTraits,TBase>
 ::GetSlice(unsigned int dimension)
 {
-  return m_Slicer[dimension]->GetOutput();
+  if(m_ResampleFilter[dimension].IsNotNull())
+    {
+    typename CollapseSliceFilter::InputImageRegionType exregion;
+    exregion = m_ResampleFilter[dimension]->GetReferenceImage()->GetLargestPossibleRegion();
+    exregion.SetSize(2, 0);
+    m_CollapseFilter[dimension]->SetExtractionRegion(exregion);
+    return m_CollapseFilter[dimension]->GetOutput();
+    }
+  else
+    return m_Slicer[dimension]->GetOutput();
 }
 
 // template<class TTraits, class TBase>

@@ -155,6 +155,15 @@ public:
    */
   virtual void SetSliceIndex(const Vector3ui &) = 0;
 
+  /**
+   * Set the viewport rectangle onto which the three display slices
+   * will be rendered
+   */
+  virtual void SetDisplayViewportGeometry(
+      unsigned int index,
+      ImageBaseType *viewport_image) = 0;
+
+
   /** Return some image info independently of pixel type */
   irisVirtualGetMacro(ImageBase, ImageBaseType *)
 

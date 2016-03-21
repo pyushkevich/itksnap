@@ -57,6 +57,8 @@ namespace itk {
            typename TOutputImage,
            typename TInterpolatorPrecisionType,
            typename TTransformPrecisionType> class ResampleImageFilter;
+  template<typename TInputImage,
+           typename TOutputImage> class ExtractImageFilter;
 }
 
 #include <itkImageSource.h>
@@ -312,6 +314,10 @@ public:
    * in accordance with the transforms that are specified
    */
   virtual void SetSliceIndex(const Vector3ui &cursor);
+
+  virtual void SetDisplayViewportGeometry(
+      unsigned int index,
+      ImageBaseType *viewport_image);
 
   /**
    * Get an ITK pipeline object holding the minimum value in the image. For
@@ -644,10 +650,16 @@ protected:
 
   /**
    * Resampling filter data type. These filters are used when slicing is required in
-   * non-orthogonal directions
+   * non-orthogonal directions. There are four of these filters, and they are used to
+   * produce three display slices and also a complete image that matches the dimensions
+   * of the main image (this is for feature extraction, etc.)
    */
   typedef itk::ResampleImageFilter<ImageType, PreviewImageType, double, double> ResampleFilter;
-  SmartPtr<ResampleFilter> m_ResampleFilter[3];
+  SmartPtr<ResampleFilter> m_ResampleFilter[6];
+
+  // TODO: in the future replace this with a true in-place filter that collapses the last dimension
+  typedef itk::ExtractImageFilter<PreviewImageType, SliceType> CollapseSliceFilter;
+  SmartPtr<CollapseSliceFilter> m_CollapseFilter[3];
 };
 
 #endif // __ImageWrapper_h_

@@ -39,6 +39,8 @@
 
 #include "itkSize.h"
 #include "itkIndex.h"
+#include "itkContinuousIndex.h"
+#include "itkPoint.h"
 
 /**
  * Convert a VectorNi to itk::Size
@@ -66,6 +68,30 @@ to_itkIndex(const vnl_vector_fixed<T,VSize> &x)
 
   for(unsigned int i=0;i<VSize;i++)
     z[i] = static_cast<unsigned long>(x(i));
+
+  return z;
+}
+
+template <class T, unsigned int VSize>
+inline itk::ContinuousIndex<double, VSize>
+to_itkContinuousIndex(const vnl_vector_fixed<T,VSize> &x)
+{
+  itk::ContinuousIndex<double, VSize> z;
+
+  for(unsigned int i=0;i<VSize;i++)
+    z[i] = static_cast<double>(x(i));
+
+  return z;
+}
+
+template <class T, unsigned int VSize>
+inline itk::Point<double, VSize>
+to_itkPoint(const vnl_vector_fixed<T,VSize> &x)
+{
+  itk::Point<double, VSize> z;
+
+  for(unsigned int i=0;i<VSize;i++)
+    z[i] = static_cast<double>(x(i));
 
   return z;
 }

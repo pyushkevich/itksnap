@@ -263,6 +263,7 @@ public:
   // Image type definitions
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::ImageBase<3> ImageBaseType;
+  typedef SmartPtr<ImageBaseType> ImageBasePointer;
 
   /**
    * The type of anatomical images. For the time being, all anatomic images
@@ -461,6 +462,14 @@ public:
   virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom);
 
   /**
+   * Get a pointer to the display viewport geometry object corresponding
+   * to viewports 0, 1 or 2. Viewport geometry is represented by an ImageBase
+   * object. When the display viewport changes, this should be updated so
+   * that the slices can be correctly generated in the ImageWrappers
+   */
+  virtual ImageBaseType *GetDisplayViewportGeometry(int index);
+
+  /**
    * Set the direction matrix of all the images
    */
   virtual void SetDirectionMatrix(const vnl_matrix<double> &direction);
@@ -537,6 +546,10 @@ protected:
 
   // The display to anatomy transformation, which is stored by this object
   IRISDisplayGeometry m_DisplayGeometry;
+
+  // The complete specification of each display viewport as a 3D image in the same anatomical
+  // space as the 3D images. This specification is used to sample images onto the viewport.
+  ImageBasePointer m_DisplayViewportGeometry[3];
 
   // Image annotations - these are distinct from segmentations
   SmartPtr<ImageAnnotationData> m_Annotations;
