@@ -279,6 +279,8 @@ private slots:
 
   void on_actionActivatePreviousLayer_triggered();
 
+  void on_actionInterpolate_Labels_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

@@ -75,6 +75,29 @@ class MultiLabelMeshPipeline : public itk::Object
 {
 public:
 
+  // Cached information about a VTK mesh
+  struct MeshInfo
+  {
+    // The pointer to the mesh
+    vtkSmartPointer<vtkPolyData> Mesh;
+
+    // The checksum for the mesh
+    unsigned long CheckSum;
+
+    // The extents of the bounding box
+    Vector3i BoundingBox[2];
+
+    // The number of voxels
+    unsigned long Count;
+
+    MeshInfo();
+    ~MeshInfo();
+  };
+
+  // Collection of mesh data for labels present in the image
+  typedef std::map<LabelType, MeshInfo> MeshInfoMap;
+
+
   irisITKObjectMacro(MultiLabelMeshPipeline, itk::Object)
 
   /** Input image type */
@@ -89,6 +112,8 @@ public:
   unsigned long ComputeBoundingBoxes();
 
   unsigned long GetVoxelsInBoundingBox(LabelType label) const;
+
+  const MeshInfoMap& GetMeshInfo() { return m_MeshInfo; }
 
   /** Set the mesh options for this filter */
   void SetMeshOptions(const MeshOptions *options);
@@ -147,27 +172,6 @@ private:
   // standardized range
   ThresholdFilterPointer      m_ThrehsoldFilter;
 
-  // Cached information about a VTK mesh
-  struct MeshInfo
-  {
-    // The pointer to the mesh
-    vtkSmartPointer<vtkPolyData> Mesh;
-
-    // The checksum for the mesh
-    unsigned long CheckSum;
-
-    // The extents of the bounding box
-    Vector3i BoundingBox[2];
-
-    // The number of voxels
-    unsigned long Count;
-
-    MeshInfo();
-    ~MeshInfo();
-  };
-
-  // Collection of mesh data for labels present in the image
-  typedef std::map<LabelType, MeshInfo> MeshInfoMap;
   MeshInfoMap m_MeshInfo;
 
   // Set of bounding boxes

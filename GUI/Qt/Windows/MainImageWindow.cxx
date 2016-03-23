@@ -2104,3 +2104,8 @@ void MainImageWindow::on_actionActivatePreviousLayer_triggered()
 {
   m_Model->GetDisplayLayoutModel()->ActivatePrevLayerInTiledMode();
 }
+
+void MainImageWindow::on_actionInterpolate_Labels_triggered()
+{
+
+}
