@@ -236,8 +236,7 @@ SET(LOGIC_CXX
   Logic/Preprocessing/GMM/GaussianMixtureModel.cxx
   Logic/Preprocessing/GMM/KMeansPlusPlus.cxx
   Logic/Preprocessing/GMM/UnsupervisedClustering.cxx
-  Logic/Preprocessing/RandomForest/RFClassificationEngine.cxx
-  Logic/Preprocessing/RandomForest/RandomForestClassifier.cxx
+  Logic/Preprocessing/RFClassificationEngine.cxx
   Logic/Preprocessing/Texture/MomentTextures.cxx
   Logic/Slicing/IntensityCurveVTK.cxx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
@@ -362,8 +361,6 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/GMMClassifyImageFilter.h
   Logic/Preprocessing/GMMClassifyImageFilter.txx
   Logic/Preprocessing/PreprocessingFilterConfigTraits.h
-  Logic/Preprocessing/RandomForestClassifyImageFilter.h
-  Logic/Preprocessing/RandomForestClassifyImageFilter.txx
   Logic/Preprocessing/SlicePreviewFilterWrapper.h
   Logic/Preprocessing/SlicePreviewFilterWrapper.txx
   Logic/Preprocessing/SmoothBinaryThresholdImageFilter.h
@@ -374,8 +371,6 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/GMM/GaussianMixtureModel.h
   Logic/Preprocessing/GMM/KMeansPlusPlus.h
   Logic/Preprocessing/GMM/UnsupervisedClustering.h
-  Logic/Preprocessing/RandomForest/RFClassificationEngine.h
-  Logic/Preprocessing/RandomForest/RandomForestClassifier.h
   Logic/Preprocessing/Texture/MomentTextures.h
   Logic/Slicing/IRISSlicer.h
   Logic/Slicing/IRISSlicer.txx
@@ -847,10 +842,11 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Mesh
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/GMM
-    ${SNAP_SOURCE_DIR}/Logic/Preprocessing/RandomForest
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/Texture
     ${SNAP_SOURCE_DIR}/Logic/RLEImage
     ${SNAP_SOURCE_DIR}/Logic/Slicing
+    ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/RandomForest
+    ${SNAP_SOURCE_DIR}/Submodules/c3RandomForestClassifierd
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
     ${SNAP_SOURCE_DIR}/GUI/Renderer
@@ -928,6 +924,15 @@ SET(SNAP_EXTERNAL_LIBS
   ${SNAP_VTK_LIBS} 
   ${SNAP_SYSTEM_LIBS}
 )
+
+#--------------------------------------------------------------------------------
+# Include C3D Library as submodule
+#--------------------------------------------------------------------------------
+SET(CONVERT3D_SOURCE_DIR ${SNAP_SOURCE_DIR}/Submodules/c3d)
+SET(CONVERT3D_BINARY_DIR ${SNAP_BINARY_DIR}/Submodules/c3d)
+
+SET(CONVERT3D_BUILD_AS_SUBPROJECT ON)
+ADD_SUBDIRECTORY(${CONVERT3D_SOURCE_DIR})
 
 #--------------------------------------------------------------------------------
 # Define SNAP library targets (logic and UI)

@@ -61,17 +61,18 @@ class ThresholdSettings;
 class EdgePreprocessingSettings;
 class AbstractSlicePreviewFilterWrapper;
 class UnsupervisedClustering;
-class RFClassificationEngine;
 class ImageWrapperBase;
 class MeshManager;
 class AbstractLoadImageDelegate;
 class AbstractSaveImageDelegate;
 class IRISWarningList;
 class GaussianMixtureModel;
-class RandomForestClassifier;
 struct IRISDisplayGeometry;
 class LabelUseHistory;
 class ImageAnnotationData;
+
+template <class TPixel, class TLabel, int VDim> class RandomForestClassifier;
+template <class TPixel, class TLabel, int VDim> class RFClassificationEngine;
 
 template <class TTraits> class PresetManager;
 class ColorMapPresetTraits;
@@ -135,6 +136,10 @@ public:
 
   // Bubble array
   typedef std::vector<Bubble> BubbleArray;
+
+  // Classifier stuff
+  typedef RFClassificationEngine<GreyType, LabelType, 3> RFEngine;
+  typedef RandomForestClassifier<GreyType, LabelType, 3> RFClassifier;
 
   // Declare events fired by this object
   FIRES(CursorUpdateEvent)
@@ -516,7 +521,7 @@ public:
   irisGetMacro(ClusteringEngine, UnsupervisedClustering *)
 
   /** Get the object used to drive the supervised classification */
-  irisGetMacro(ClassificationEngine, RFClassificationEngine *)
+  irisGetMacro(ClassificationEngine, RFEngine *)
 
   /** Set the current snake mode. This method should be called instead of the
       method in GlobalState because when the snake mode is set, some changes
@@ -656,12 +661,12 @@ protected:
   SmartPtr<UnsupervisedClustering> m_ClusteringEngine;
 
   // The Random Foreset classification object
-  SmartPtr<RFClassificationEngine> m_ClassificationEngine;
+  SmartPtr<RFEngine> m_ClassificationEngine;
 
   // The last classifier used for random forest segmentation. This is reused during
   // repeated calls to the active contour segmentation, as long as the layers haven't
   // been updated.
-  SmartPtr<RandomForestClassifier> m_LastUsedRFClassifier;
+  SmartPtr<RFClassifier> m_LastUsedRFClassifier;
 
   // The number of components for the last used RF classifier
   int m_LastUsedRFClassifierComponents;

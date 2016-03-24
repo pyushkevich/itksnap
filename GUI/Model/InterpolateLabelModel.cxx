@@ -16,9 +16,9 @@ void InterpolateLabelModel::SetParentModel(GlobalUIModel *parent)
 {
   this->m_Parent = parent;
 
-  m_DrawingLabel->Initialize(parent->GetDriver()->GetColorLabelTable());
-  m_InterpolateLabel->Initialize(parent->GetDriver()->GetColorLabelTable());
-  m_DrawOverFilter->Initialize(parent->GetDriver()->GetColorLabelTable());
+  m_DrawingLabelModel->Initialize(parent->GetDriver()->GetColorLabelTable());
+  m_InterpolateLabelModel->Initialize(parent->GetDriver()->GetColorLabelTable());
+  m_DrawOverFilterModel->Initialize(parent->GetDriver()->GetColorLabelTable());
 }
 
 void InterpolateLabelModel::Interpolate()
@@ -27,47 +27,19 @@ void InterpolateLabelModel::Interpolate()
   LabelImageWrapper *liw =
       this->m_Parent->GetDriver()->GetCurrentImageData()->GetSegmentation();
 
-  // Use the multi-label mesh pipeline to generate the per-label bounding boxes
-  SmartPtr<MultiLabelMeshPipeline> mpipe = MultiLabelMeshPipeline::New();
-  mpipe->SetImage(liw);
-  mpipe->ComputeBoundingBoxes();
-
-  // Get the bounding boxes and related information for all the labels
-  MultiLabelMeshPipeline::MeshInfoMap mim = mpipe->GetMeshInfo();
-
-  // For now, just deal with a single label
-  LabelType l_interp = m_InterpolateLabel->GetValue();
-  if(mim.find(l_interp) == mim.end())
-    {
-    // TODO: complain to the user
-    return;
-    }
-
-  // Point to the mesh info
-  const MultiLabelMeshPipeline::MeshInfo &mi = mim.find(l_interp)->second;
-
-  // Convert bounding box to a region
-
-
-
-
-  // Start by finding the foreground region
+  // We will call C3D for this
 
 
 }
 
 InterpolateLabelModel::InterpolateLabelModel()
 {
-  m_InterpolateAll = NewSimpleConcreteProperty(false);
+  m_InterpolateAllModel = NewSimpleConcreteProperty(false);
 
-  m_DrawingLabel = ConcreteColorLabelPropertyModel::New();
-  m_InterpolateLabel = ConcreteColorLabelPropertyModel::New();
-  m_DrawOverFilter = ConcreteDrawOverFilterPropertyModel::New();
+  m_DrawingLabelModel = ConcreteColorLabelPropertyModel::New();
+  m_InterpolateLabelModel = ConcreteColorLabelPropertyModel::New();
+  m_DrawOverFilterModel = ConcreteDrawOverFilterPropertyModel::New();
 
-  m_Smoothing = new NewRangedConcreteProperty(3.0, 0.0, 20.0, 0.01);
-}
-
-InterpolateLabelModel::~InterpolateLabelModel()
-{
+  m_SmoothingModel = NewRangedConcreteProperty(3.0, 0.0, 20.0, 0.01);
 }
 

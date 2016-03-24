@@ -8,7 +8,7 @@
 
 class GlobalUIModel;
 
-class InterpolateLabelModel
+class InterpolateLabelModel : public AbstractModel
 {    
 public:
 
@@ -31,7 +31,7 @@ public:
   irisGenericPropertyAccessMacro(DrawOverFilter, DrawOverFilter, DrawOverLabelItemSetDomain)
 
   /** Smoothing factor */
-  irisRangedPropertyAccessMacro(Smoothing, bool)
+  irisRangedPropertyAccessMacro(Smoothing, double)
 
   /** Perform the actual interpolation */
   void Interpolate();
@@ -43,11 +43,11 @@ protected:
   virtual ~InterpolateLabelModel() {}
 
   // Models for the main things settable by the user
-  SmartPtr<ConcreteSimpleBooleanProperty> m_InterpolateAll;
-  SmartPtr<ConcreteColorLabelPropertyModel> m_InterpolateLabel;
-  SmartPtr<ConcreteColorLabelPropertyModel> m_DrawingLabel;
-  SmartPtr<ConcreteDrawOverFilterPropertyModel> m_DrawOverFilter;
-  SmartPtr<ConcreteRangedBooleanProperty> m_Smoothing;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_InterpolateAllModel;
+  SmartPtr<ConcreteColorLabelPropertyModel> m_InterpolateLabelModel;
+  SmartPtr<ConcreteColorLabelPropertyModel> m_DrawingLabelModel;
+  SmartPtr<ConcreteDrawOverFilterPropertyModel> m_DrawOverFilterModel;
+  SmartPtr<ConcreteRangedDoubleProperty> m_SmoothingModel;
 
   // The parent model
   GlobalUIModel *m_Parent;

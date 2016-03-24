@@ -424,7 +424,7 @@ void SnakeWizardModel::SetForegroundClassColorLabelValue(LabelType value)
 bool SnakeWizardModel::GetForestSizeValueAndRange(int &value, NumericValueRange<int> *range)
 {
   // Must have a classification engine
-  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   if(!rfe)
     return false;
 
@@ -437,7 +437,7 @@ bool SnakeWizardModel::GetForestSizeValueAndRange(int &value, NumericValueRange<
 
 void SnakeWizardModel::SetForestSizeValue(int value)
 {
-  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   assert(rfe);
 
   rfe->SetForestSize(value);
@@ -448,7 +448,7 @@ void SnakeWizardModel::SetForestSizeValue(int value)
 bool SnakeWizardModel::GetTreeDepthValueAndRange(int &value, NumericValueRange<int> *range)
 {
   // Must have a classification engine
-  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   if(!rfe)
     return false;
 
@@ -461,7 +461,7 @@ bool SnakeWizardModel::GetTreeDepthValueAndRange(int &value, NumericValueRange<i
 
 void SnakeWizardModel::SetTreeDepthValue(int value)
 {
-  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   assert(rfe);
 
   rfe->SetTreeDepth(value);
@@ -472,12 +472,12 @@ void SnakeWizardModel::SetTreeDepthValue(int value)
 bool SnakeWizardModel::GetClassifierPatchRadiusValueAndRange(int &value, NumericValueRange<int> *range)
 {
   // Must have a classification engine
-  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   if(!rfe)
     return false;
 
   // Get the value
-  RFClassificationEngine::RadiusType radius = rfe->GetPatchRadius();
+  IRISApplication::RFEngine::RadiusType radius = rfe->GetPatchRadius();
   value = (int) radius[0];
 
   if(range)
@@ -488,11 +488,11 @@ bool SnakeWizardModel::GetClassifierPatchRadiusValueAndRange(int &value, Numeric
 
 void SnakeWizardModel::SetClassifierPatchRadiusValue(int value)
 {
-  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   assert(rfe);
   assert(value >= 0);
 
-  RFClassificationEngine::RadiusType radius;
+  IRISApplication::RFEngine::RadiusType radius;
   radius.Fill((unsigned int) value);
   rfe->SetPatchRadius(radius);
 
@@ -502,12 +502,12 @@ void SnakeWizardModel::SetClassifierPatchRadiusValue(int value)
 bool SnakeWizardModel::GetClassifierBiasValueAndRange(double &value, NumericValueRange<double> *range)
 {
   // Must have a classification engine
-  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   if(!rfe)
     return false;
 
   // Must have a classifier
-  RandomForestClassifier *rfc = rfe->GetClassifier();
+  IRISApplication::RFClassifier *rfc = rfe->GetClassifier();
   if(!rfc)
     return false;
 
@@ -524,10 +524,10 @@ bool SnakeWizardModel::GetClassifierBiasValueAndRange(double &value, NumericValu
 
 void SnakeWizardModel::SetClassifierBiasValue(double value)
 {
-  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   assert(rfe);
 
-  RandomForestClassifier *rfc = rfe->GetClassifier();
+  IRISApplication::RFClassifier *rfc = rfe->GetClassifier();
   assert(rfc);
 
   rfc->SetBiasParameter(value);
@@ -541,7 +541,7 @@ void SnakeWizardModel::SetClassifierBiasValue(double value)
 bool SnakeWizardModel::GetClassifierUseCoordinatesValue(bool &value)
 {
   // Must have a classification engine
-  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   if(!rfe)
     return false;
 
@@ -551,7 +551,7 @@ bool SnakeWizardModel::GetClassifierUseCoordinatesValue(bool &value)
 
 void SnakeWizardModel::SetClassifierUseCoordinatesValue(bool value)
 {
-  RFClassificationEngine *rfe = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   assert(rfe);
   rfe->SetUseCoordinateFeatures(value);
   InvokeEvent(RFClassifierModifiedEvent());
@@ -562,7 +562,7 @@ bool SnakeWizardModel
     ClassifierLabelForegroundMap &value, ClassifierLabelForegroundMapDomain *range)
 {
   // Get the classification engine
-  RFClassificationEngine *rfengine = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfengine = m_Driver->GetClassificationEngine();
   if(!rfengine || !rfengine->GetClassifier()->IsValidClassifier())
     return false;
 
@@ -572,11 +572,11 @@ bool SnakeWizardModel
     range->clear();
 
   // Add all of the labels
-  RandomForestClassifier *rfc = rfengine->GetClassifier();
-  const RandomForestClassifier::WeightArray &wa = rfc->GetClassWeights();
+  IRISApplication::RFClassifier *rfc = rfengine->GetClassifier();
+  const IRISApplication::RFClassifier::WeightArray &wa = rfc->GetClassWeights();
   for(size_t i = 0; i < wa.size(); i++)
     {
-    RandomForestClassifier::MappingType::const_iterator itl = rfc->GetClassToLabelMapping().find(i);
+    IRISApplication::RFClassifier::MappingType::const_iterator itl = rfc->GetClassToLabelMapping().find(i);
     if(itl != rfc->GetClassToLabelMapping().end())
       {
       LabelType label = itl->second;
@@ -594,15 +594,15 @@ void SnakeWizardModel
     ClassifierLabelForegroundMap value)
 {
   // Get the classification engine
-  RFClassificationEngine *rfengine = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfengine = m_Driver->GetClassificationEngine();
   assert(rfengine && rfengine->GetClassifier()->IsValidClassifier());
 
   // Check if anything was actually modified - to avoid loops
   bool changed = false;
 
   // Update the weight of each class
-  RandomForestClassifier *rfc = rfengine->GetClassifier();
-  for(RandomForestClassifier::MappingType::const_iterator it = rfc->GetClassToLabelMapping().begin();
+  IRISApplication::RFClassifier *rfc = rfengine->GetClassifier();
+  for(IRISApplication::RFClassifier::MappingType::const_iterator it = rfc->GetClassToLabelMapping().begin();
       it != rfc->GetClassToLabelMapping().end(); ++it)
     {
     double old_weight = rfc->GetClassWeights()[it->first];
@@ -672,8 +672,8 @@ bool SnakeWizardModel::CanGenerateSpeedVolume()
       return true;
     case PREPROCESS_RF:
       {
-      RFClassificationEngine *cfe = m_Driver->GetClassificationEngine();
-      RandomForestClassifier *rfc = cfe->GetClassifier();
+      IRISApplication::RFEngine *cfe = m_Driver->GetClassificationEngine();
+      IRISApplication::RFClassifier *rfc = cfe->GetClassifier();
       return rfc->IsValidClassifier();
       }
     }
@@ -1605,7 +1605,7 @@ void SnakeWizardModel::TagRFPreprocessingFilterModified()
   // TODO: this is not the right way to do this! Make RandomForestClassifier an itkObject
   // and an inout to the filter, so we don't have to update the filter itself!!
   // THIS IS HACKY!!!
-  RFClassificationEngine *ce = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *ce = m_Driver->GetClassificationEngine();
   typedef SlicePreviewFilterWrapper<RFPreprocessingFilterConfigTraits>
                                             RFPreprocessingPreviewWrapperType;
   RFPreprocessingPreviewWrapperType *junk =
@@ -1779,13 +1779,13 @@ LabelType SnakeWizardModel::GetClassiferFirstForegroundLabel()
 void SnakeWizardModel::TrainClassifier()
 {
   // Get the classification engine
-  RFClassificationEngine *rfengine = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfengine = m_Driver->GetClassificationEngine();
 
   // Perform the classification
   rfengine->TrainClassifier();
 
   // Create a list of utilized labels
-  RandomForestClassifier *rfc = rfengine->GetClassifier();
+  IRISApplication::RFClassifier *rfc = rfengine->GetClassifier();
 
   // Fire the appropriate event
   InvokeEvent(RFClassifierModifiedEvent());
@@ -1797,7 +1797,7 @@ void SnakeWizardModel::TrainClassifier()
 bool SnakeWizardModel::IsClassifierTrained()
 {
   // Get the classification engine
-  RFClassificationEngine *rfengine = m_Driver->GetClassificationEngine();
+  IRISApplication::RFEngine *rfengine = m_Driver->GetClassificationEngine();
   return rfengine && rfengine->GetClassifier()->IsValidClassifier();
 }
 

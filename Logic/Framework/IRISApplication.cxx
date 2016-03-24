@@ -2418,7 +2418,7 @@ void IRISApplication::EnterGMMPreprocessingMode()
 void IRISApplication::EnterRandomForestPreprocessingMode()
 {
   // Create a random forest classification engine
-  m_ClassificationEngine = RFClassificationEngine::New();
+  m_ClassificationEngine = RFEngine::New();
   m_ClassificationEngine->SetDataSource(m_SNAPImageData);
 
   // Check if we can reuse the classifier from the last run
