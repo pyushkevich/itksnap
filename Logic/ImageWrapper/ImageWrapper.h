@@ -187,7 +187,7 @@ public:
    * Set the coordinate transformation between the display coordinates and
    * the anatomical coordinates. This affects the behavior of the slicers
    */
-  virtual void SetDisplayGeometry(IRISDisplayGeometry &dispGeom);
+  virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom);
 
   /** Get the display to anatomy coordinate mapping */
   irisGetMacro(DisplayGeometry, const IRISDisplayGeometry &)

@@ -171,7 +171,7 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, bool sameSpaceA
     SmartPtr<AnatomicImageWrapper> wrapper = AnatomicImageWrapper::New();
 
     // Set properties
-    wrapper->SetDisplayGeometry(m_DisplayGeometry);
+    wrapper->SetDisplayGeometry(m_Parent->GetDisplayGeometry());
     wrapper->SetImage(image, refSpace, transform);
     wrapper->SetNativeMapping(mapper);
     out_wrapper = wrapper.GetPointer();
@@ -194,7 +194,7 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, bool sameSpaceA
     SmartPtr<AnatomicScalarImageWrapper> wrapper = AnatomicScalarImageWrapper::New();
 
     // Set properties
-    wrapper->SetDisplayGeometry(m_DisplayGeometry);
+    wrapper->SetDisplayGeometry(m_Parent->GetDisplayGeometry());
     wrapper->SetImage(image, refSpace, transform);
     wrapper->SetNativeMapping(mapper);
     out_wrapper = wrapper.GetPointer();
@@ -390,12 +390,11 @@ GenericImageData
 
 void GenericImageData::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
 {
-  m_DisplayGeometry = dispGeom;
   for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
     if(lit.GetLayer())
       {
       // Set the direction matrix in the image
-      lit.GetLayer()->SetDisplayGeometry(m_DisplayGeometry);
+      lit.GetLayer()->SetDisplayGeometry(m_Parent->GetDisplayGeometry());
       }
 }
 

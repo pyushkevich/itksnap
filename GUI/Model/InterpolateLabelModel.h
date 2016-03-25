@@ -33,6 +33,15 @@ public:
   /** Smoothing factor */
   irisRangedPropertyAccessMacro(Smoothing, double)
 
+  /** Whether all the labels should be interpolated */
+  irisSimplePropertyAccessMacro(RetainScaffold, bool)
+
+  /** Whether all the labels should be interpolated */
+  irisSimplePropertyAccessMacro(UseLevelSet, bool)
+
+  /** Whether all the labels should be interpolated */
+  irisRangedPropertyAccessMacro(LevelSetCurvature, double)
+
   /** Perform the actual interpolation */
   void Interpolate();
 
@@ -47,7 +56,13 @@ protected:
   SmartPtr<ConcreteColorLabelPropertyModel> m_InterpolateLabelModel;
   SmartPtr<ConcreteColorLabelPropertyModel> m_DrawingLabelModel;
   SmartPtr<ConcreteDrawOverFilterPropertyModel> m_DrawOverFilterModel;
+
+  SmartPtr<ConcreteSimpleBooleanProperty> m_RetainScaffoldModel;
+
   SmartPtr<ConcreteRangedDoubleProperty> m_SmoothingModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_UseLevelSetModel;
+  SmartPtr<ConcreteRangedDoubleProperty> m_LevelSetCurvatureModel;
+
 
   // The parent model
   GlobalUIModel *m_Parent;

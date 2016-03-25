@@ -407,7 +407,7 @@ VectorImageWrapper<TTraits,TBase>
 template <class TTraits, class TBase>
 void
 VectorImageWrapper<TTraits,TBase>
-::SetDisplayGeometry(IRISDisplayGeometry &dispGeom)
+::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
 {
   Superclass::SetDisplayGeometry(dispGeom);
   for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)

@@ -362,7 +362,19 @@ void FileChooserPanelWithHistory::setActiveFormat(QString format)
 
   // In open mode, we don't tweak the extension
   if(m_openMode)
+    {
+    // If there was previously an error about an unspecified format,
+    // clear it because the user manually overrode by selecting a
+    // new format
+    // TODO: this is hacky!
+    if(ui->outError->text() == QString("Unable to recognize file format"))
+      {
+      ui->outError->clear();
+      }
+
+    emit activeFormatChanged(activeFormat());
     return;
+    }
 
   // Get the default new suffix
   QString newSuffix = m_Filter[format].front();
@@ -387,6 +399,7 @@ void FileChooserPanelWithHistory::setActiveFormat(QString format)
 
   // Highlight the filename
   highlightFilename();
+  emit activeFormatChanged(activeFormat());
 }
 
 void FileChooserPanelWithHistory::on_btnBrowse_clicked()

@@ -215,6 +215,23 @@ ScalarImageWrapper<TTraits, TBase>::CreateCastToFloatPipeline() const
   return output;
 }
 
+template<class TTraits, class TBase>
+SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::DoubleImageSource>
+ScalarImageWrapper<TTraits, TBase>::CreateCastToDoublePipeline() const
+{
+  // The kind of mini-pipeline that is created here depends on whether the
+  // internal image is a floating point image or not, and whether the native
+  // to intensity mapping is identity or not. We use template specialization to
+  // select the right behavior
+  typedef itk::UnaryFunctorImageFilter<ImageType, DoubleImageType, NativeIntensityMapping> FilterType;
+  SmartPtr<FilterType> filter = FilterType::New();
+  filter->SetInput(this->m_Image);
+  filter->SetFunctor(this->m_NativeMapping);
+
+  SmartPtr<DoubleImageSource> output = filter.GetPointer();
+  return output;
+}
+
 
 template<class TTraits, class TBase>
 double 

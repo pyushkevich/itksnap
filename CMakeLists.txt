@@ -86,6 +86,13 @@ get_git_branch(SNAP_VERSION_GIT_BRANCH)
 MESSAGE(STATUS "   GIT Info: BRANCH ${SNAP_VERSION_GIT_BRANCH}, SHA: ${SNAP_VERSION_GIT_SHA1}")
 
 #--------------------------------------------------------------------------------
+# ENSURE THAT SUBMODULES HAVE BEEN INITIALIZED AND UPDATED
+#--------------------------------------------------------------------------------
+if(NOT EXISTS "${SNAP_SOURCE_DIR}/Submodules/c3d/CMakeLists.txt")
+  MESSAGE(SEND_ERROR "Submodule c3d has not been initialized/updated. Git users, see README.git")
+endif()
+
+#--------------------------------------------------------------------------------
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS 
 #--------------------------------------------------------------------------------
 
@@ -675,7 +682,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/ImageIOWizard.h
   GUI/Qt/Windows/ImageIOWizard/OverlayRolePage.h
   GUI/Qt/Windows/ImageIOWizard/RegistrationPage.h
-  GUI/Qt/Windows/InterpolateLabelsDialog.cxx
+  GUI/Qt/Windows/InterpolateLabelsDialog.h
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
   GUI/Qt/Windows/LabelSelectionPopup.h
@@ -846,7 +853,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/RLEImage
     ${SNAP_SOURCE_DIR}/Logic/Slicing
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/RandomForest
-    ${SNAP_SOURCE_DIR}/Submodules/c3RandomForestClassifierd
+    ${SNAP_SOURCE_DIR}/Submodules/c3d/api
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
     ${SNAP_SOURCE_DIR}/GUI/Renderer
@@ -911,6 +918,11 @@ SET(SNAP_VTK_LIBS
   vtkIOLegacy
 )
 
+SET(SNAP_C3D_LIBS
+  cnd_api
+  cnd_driver
+  cnd_adapters)
+
 # System libraries
 SET(SNAP_SYSTEM_LIBS
   ${OPENGL_LIBRARIES}
@@ -920,6 +932,7 @@ SET(SNAP_SYSTEM_LIBS
 
 # Designate the external libraries used by SNAP
 SET(SNAP_EXTERNAL_LIBS 
+  ${SNAP_C3D_LIBS}
   ${SNAP_ITK_LIBS} 
   ${SNAP_VTK_LIBS} 
   ${SNAP_SYSTEM_LIBS}

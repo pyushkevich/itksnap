@@ -72,6 +72,7 @@ class GlobalDisplaySettings;
 class ImageIOWizardModel;
 class ImageWrapperBase;
 class ColorLabelQuickListModel;
+class InterpolateLabelModel;
 
 namespace itk
 {
@@ -230,6 +231,9 @@ public:
 
   /** Model for the list of recently used color labels */
   irisGetMacro(ColorLabelQuickListModel, ColorLabelQuickListModel *)
+
+  /** Model for the interpolate labels dialog */
+  irisGetMacro(InterpolateLabelModel, InterpolateLabelModel *)
 
   /**
     Check the state of the system. This class will issue StateChangeEvent()
@@ -396,6 +400,9 @@ protected:
 
   // Model for the quick list of recently used labels
   SmartPtr<ColorLabelQuickListModel> m_ColorLabelQuickListModel;
+
+  // Model for the label interpolation dialog
+  SmartPtr<InterpolateLabelModel> m_InterpolateLabelModel;
 
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;

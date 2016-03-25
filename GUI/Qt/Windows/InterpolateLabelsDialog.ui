@@ -24,14 +24,14 @@
       </font>
      </property>
      <property name="text">
-      <string>Label Interpolation</string>
+      <string>Interpolate Labels</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>This dialog is used to interpolate labels drawn sparsely, e.g., on every fifth slice. You can interpolate all labels or one label at a time. This operation can be undone.</string>
+      <string>This tool can be used to fill in sparsely drawn segmentations, called a scaffold. For example, you can label a structure on every fifth slice, and use this tool to fill in the segmentation in the slices in between. </string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -82,7 +82,11 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QComboBox" name="inLabelToInterpolate"/>
+       <widget class="QComboBox" name="inLabelToInterpolate">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_4">
@@ -104,6 +108,13 @@
       <item row="2" column="1">
        <widget class="QComboBox" name="inDrawOver"/>
       </item>
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="chkRetain">
+        <property name="text">
+         <string>Retain scaffold</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -113,22 +124,6 @@
       <string>Interpolation Parameters</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <widget class="QWidget" name="widget_4" native="true">
-        <layout class="QFormLayout" name="formLayout_2">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>Interpolation algorithm:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QComboBox" name="inAlgorithm"/>
-         </item>
-        </layout>
-       </widget>
-      </item>
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <widget class="QWidget" name="page">
@@ -154,6 +149,23 @@
           </item>
           <item row="0" column="1">
            <widget class="QDoubleSpinBox" name="inDistanceSmoothing"/>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="inLevelSetCurv"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Level set curvature term:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="chkUseLevelSet">
+            <property name="text">
+             <string>Use level set method</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

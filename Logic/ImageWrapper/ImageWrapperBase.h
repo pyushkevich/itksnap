@@ -125,7 +125,7 @@ public:
    * Set the coordinate transformation between the display coordinates and
    * the anatomical coordinates. This affects the behavior of the slicers
    */
-  virtual void SetDisplayGeometry(IRISDisplayGeometry &dispGeom) = 0;
+  virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom) = 0;
 
   /** Get the display to anatomy coordinate mapping */
   virtual const IRISDisplayGeometry &GetDisplayGeometry() const = 0;
@@ -411,6 +411,8 @@ public:
   typedef itk::Image<GreyType, 3>                      CommonFormatImageType;
   typedef itk::Image<float, 3>                                FloatImageType;
   typedef itk::ImageSource<FloatImageType>                  FloatImageSource;
+  typedef itk::Image<double, 3>                              DoubleImageType;
+  typedef itk::ImageSource<DoubleImageType>                DoubleImageSource;
 
   /**
    * An enum of export channel types. Export channels are used to present the
@@ -494,6 +496,9 @@ public:
     result in unnecessary duplication of memory.
     */
   virtual SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const = 0;
+
+  /** Same as CreateCastToFloatPipeline, but for double precision */
+  virtual SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const = 0;
 
   /**
    * Get the intensity curve used to map raw intensities to color map inputs.

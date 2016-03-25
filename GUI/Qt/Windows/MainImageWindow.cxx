@@ -71,6 +71,7 @@
 #include <DropActionDialog.h>
 #include <PreferencesDialog.h>
 #include "SaveModifiedLayersDialog.h"
+#include <InterpolateLabelsDialog.h>
 
 
 #include <QAbstractListModel>
@@ -210,6 +211,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   m_StatisticsDialog = new StatisticsDialog(this);
   m_StatisticsDialog->setModal(false);
+
+  m_InterpolateLabelsDialog = new InterpolateLabelsDialog(this);
+  m_InterpolateLabelsDialog->setModal(false);
 
   // Initialize the docked panels
   m_DockLeft = new QDockWidget(this);
@@ -449,6 +453,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_DropDialog->SetModel(model);
   m_StatisticsDialog->SetModel(model);
   m_PreferencesDialog->SetModel(model->GetGlobalPreferencesModel());
+  m_InterpolateLabelsDialog->SetModel(model->GetInterpolateLabelModel());
 
   // Initialize the docked panels
   m_ControlPanel->SetModel(model);
@@ -2107,5 +2112,5 @@ void MainImageWindow::on_actionActivatePreviousLayer_triggered()
 
 void MainImageWindow::on_actionInterpolate_Labels_triggered()
 {
-
+  RaiseDialog(m_InterpolateLabelsDialog);
 }

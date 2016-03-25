@@ -83,6 +83,10 @@ public:
   typedef itk::Image<float, 3>                                  FloatImageType;
   typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
 
+  // Double precision floating point image type
+  typedef itk::Image<double, 3>                                DoubleImageType;
+  typedef itk::ImageSource<DoubleImageType>                  DoubleImageSource;
+
   // Slice image type
   typedef typename Superclass::SliceType                             SliceType;
   typedef typename Superclass::SlicePointer                       SlicePointer;
@@ -231,6 +235,10 @@ public:
     floating point, and if necessary, converted to the native intensity range.
     */
   SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const;
+
+  /** Same as above, but casts to double. For compatibility with C3D, until we
+   * safely switch C3D to use float instead of double */
+  SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const;
 
   /**
    * Get an image cast to a common representation.
