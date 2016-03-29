@@ -44,9 +44,11 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkVectorCastImageFilter.h"
-#include "ThreadSpecificData.h"
-
 #include "SNAPAdvectionFieldImageFilter.h"
+
+#ifndef THREAD_SPECIFIC_DATA
+  #include "ThreadSpecificData.h"
+#endif
 
 /**
   \class SNAPLevelSetFunction
@@ -345,7 +347,11 @@ private:
     VectorType > m_VectorCast;
 
   /** The current value of the speed function */
+#ifndef THREAD_SPECIFIC_DATA
   ThreadSpecificData<ScalarValueType> m_CachedSpeed;
+#else
+  ScalarValueType m_CachedSpeed;
+#endif
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION
