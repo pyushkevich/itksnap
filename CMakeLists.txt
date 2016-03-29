@@ -352,8 +352,6 @@ SET(LOGIC_HEADERS
   Logic/LevelSet/SNAPLevelSetFunction.txx
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.h
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.txx
-  Logic/LevelSet/SignedDistanceFilter.h
-  Logic/LevelSet/SignedDistanceFilter.txx
   Logic/LevelSet/SnakeParameters.h
   Logic/Mesh/AllPurposeProgressAccumulator.h
   Logic/Mesh/GuidedMeshIO.h
