@@ -35,7 +35,7 @@
 #ifndef __SnakeParameters_h_
 #define __SnakeParameters_h_
 
-#include "SNAPCommon.h"
+#include "itkMacro.h"
 
 // TODO: implement this using AbstractPropertyContainerModel
 
@@ -89,56 +89,99 @@ public:
 
   /** Whether we wish to automatically compute optimal time step 
    * in level snake propagation */
-  irisGetMacro(AutomaticTimeStep,bool);
-  irisSetMacro(AutomaticTimeStep,bool);
+  itkGetConstMacro(AutomaticTimeStep,bool);
+  void SetAutomaticTimeStep( bool value )
+  {
+    this->m_AutomaticTimeStep = value;
+  }
 
   /** Time step factor in level snake propagation.  This is is only used if the
    * automatic computation is off, and represents the factor by which the auto
    * time step is multiplied */
-  irisGetMacro(TimeStepFactor,float);
-  irisSetMacro(TimeStepFactor,float);
+  itkGetConstMacro(TimeStepFactor,float);
+  void SetTimeStepFactor( float value )
+  {
+    this->m_TimeStepFactor = value;
+  }
 
   /** Clamp-to-ground parameter.  Obsolete in ITK implementation, kept for
     backward compatibility and regression testing */
-  irisGetMacro(Ground,float);
-  irisSetMacro(Ground,float);
+  itkGetConstMacro(Ground,float);
+  void SetGround( float value )
+  {
+    this->m_Ground = value;
+  }
 
   /** Whether to clamp or not.  Obsolete in ITK implementation, kept for
     backward compatibility and regression testing */
-  irisGetMacro(Clamp,bool);
-  irisSetMacro(Clamp,bool);
+  itkGetConstMacro(Clamp,bool);
+  void SetClamp( bool value )
+  {
+    this->m_Clamp = value;
+  }
 
   /** Which solver to use to run the equation */
-  irisGetMacro(Solver,SolverType);
-  irisSetMacro(Solver,SolverType);
+  itkGetConstMacro(Solver,SolverType);
+  void SetSolver( SolverType value )
+  {
+    this->m_Solver = value;
+  }
 
   /** Type of equation (well known parameter sets) */
-  irisGetMacro(SnakeType,SnakeType);
-  irisSetMacro(SnakeType,SnakeType);
+  itkGetConstMacro(SnakeType,SnakeType);
+  void SetSnakeType( SnakeType value )
+  {
+    this->m_SnakeType = value;
+  }
 
-  irisGetMacro(PropagationWeight,float);
-  irisSetMacro(PropagationWeight,float);
+  itkGetConstMacro(PropagationWeight,float);
+  void SetPropagationWeight( float value )
+  {
+    this->m_PropagationWeight = value;
+  }
   
-  irisGetMacro(PropagationSpeedExponent,int);
-  irisSetMacro(PropagationSpeedExponent,int);
+  itkGetConstMacro(PropagationSpeedExponent,int);
+  void SetPropagationSpeedExponent( int value )
+  {
+    this->m_PropagationSpeedExponent = value;
+  }
 
-  irisGetMacro(CurvatureWeight,float);
-  irisSetMacro(CurvatureWeight,float);
+  itkGetConstMacro(CurvatureWeight,float);
+  void SetCurvatureWeight( float value )
+  {
+    this->m_CurvatureWeight = value;
+  }
 
-  irisGetMacro(CurvatureSpeedExponent,int);
-  irisSetMacro(CurvatureSpeedExponent,int);
+  itkGetConstMacro(CurvatureSpeedExponent,int);
+  void SetCurvatureSpeedExponent( int value )
+  {
+    this->m_CurvatureSpeedExponent = value;
+  }
 
-  irisGetMacro(LaplacianWeight,float);
-  irisSetMacro(LaplacianWeight,float);
+  itkGetConstMacro(LaplacianWeight,float);
+  void SetLaplacianWeight( float value )
+  {
+    this->m_LaplacianWeight = value;
+  }
 
-  irisGetMacro(LaplacianSpeedExponent,int);
-  irisSetMacro(LaplacianSpeedExponent,int);
+  itkGetConstMacro(LaplacianSpeedExponent,int);
+  void SetLaplacianSpeedExponent( int value )
+  {
+    this->m_LaplacianSpeedExponent = value;
+  }
 
-  irisGetMacro(AdvectionWeight,float);
-  irisSetMacro(AdvectionWeight,float);
+  itkGetConstMacro(AdvectionWeight,float);
+  void SetAdvectionWeight( float value )
+  {
+    this->m_AdvectionWeight = value;
+  }
 
-  irisGetMacro(AdvectionSpeedExponent,int);
-  irisSetMacro(AdvectionSpeedExponent,int);
+  itkGetConstMacro(AdvectionSpeedExponent,int);
+  void SetAdvectionSpeedExponent( int value )
+  {
+    this->m_AdvectionSpeedExponent = value;
+  }
+
 private:
   float m_TimeStepFactor;
   float m_Ground;

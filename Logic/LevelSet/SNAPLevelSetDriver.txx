@@ -136,7 +136,7 @@ SNAPLevelSetDriver<VDimension>
 template<unsigned int VDimension>
 void 
 SNAPLevelSetDriver<VDimension>
-::AssignParametersToPhi(const SnakeParameters &p, bool irisNotUsed(firstTime))
+::AssignParametersToPhi(const SnakeParameters &p, bool itkNotUsed(firstTime))
 {
   // Set up the level set function
 
