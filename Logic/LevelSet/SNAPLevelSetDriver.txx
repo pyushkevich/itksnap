@@ -42,7 +42,6 @@
 //#endif
 
 #include "SNAPLevelSetDriver.h"
-#include "IRISVectorTypesToITKConversion.h"
 
 #include "itkCommand.h"
 #include "itkNarrowBandLevelSetImageFilter.h"

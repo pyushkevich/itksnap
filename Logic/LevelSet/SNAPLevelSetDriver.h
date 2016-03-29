@@ -35,7 +35,6 @@
 #ifndef __SNAPLevelSetDriver_h_
 #define __SNAPLevelSetDriver_h_
 
-#include "SNAPCommon.h"
 #include "SnakeParameters.h"
 #include "SNAPLevelSetFunction.h"
 // #include "SNAPLevelSetStopAndGoFilter.h"
@@ -156,7 +155,7 @@ public:
   void Restart();
 
   /** Get the level set function */
-  irisGetMacro(LevelSetFunction,LevelSetFunctionType *);
+  itkGetConstMacro(LevelSetFunction,LevelSetFunctionType *);
 
   /** Get the current state of the snake (level set and narrow band) */
   FloatImageType *GetCurrentState();
