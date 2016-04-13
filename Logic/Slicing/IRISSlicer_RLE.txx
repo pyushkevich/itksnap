@@ -241,8 +241,8 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
       if (m_LineDirectionImageAxis == 1) //y is line coordinate
         {
         assert(m_PixelDirectionImageAxis == 0); //x is pixel coordinate
-        uncompressLine(line, outSlice + sign(m_LineTraverseForward)*y*szVol[0],
-            sign(m_PixelTraverseForward) * 1);
+		int blop = sign(m_LineTraverseForward)*y*szVol[0];
+        uncompressLine(line, outSlice + blop, sign(m_PixelTraverseForward) * 1);
         }
       else if (m_LineDirectionImageAxis == 0) //x is line coordinate
         {
