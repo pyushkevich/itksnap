@@ -132,7 +132,7 @@ SNAPRegistryIO
   registry["Ground"] << in.GetGround();
   registry["Clamp"] << in.GetClamp();
   registry["PropagationWeight"] << in.GetPropagationWeight();
-  registry["PropagationSpeedExponent"][in.GetPropagationSpeedExponent()];
+  registry["PropagationSpeedExponent"] << in.GetPropagationSpeedExponent();
   registry["CurvatureWeight"] << in.GetCurvatureWeight();
   registry["CurvatureSpeedExponent"] << in.GetCurvatureSpeedExponent();
   registry["LaplacianWeight"] << in.GetLaplacianWeight();
