@@ -451,7 +451,7 @@ color: rgb(120, 120, 120)</string>
      <normalon>:/root/icons8_pin_16.png</normalon>:/root/icons8_pin_16.png</iconset>
    </property>
    <property name="text">
-    <string>Display as ovelay</string>
+    <string>Display as overlay</string>
    </property>
    <property name="toolTip">
     <string>Display the layer as a semi-transparent overlay on top of other image layers</string>
