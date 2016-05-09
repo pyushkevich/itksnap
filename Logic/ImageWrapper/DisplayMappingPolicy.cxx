@@ -574,10 +574,10 @@ MultiChannelDisplayMode::GetScalarRepNames()
 int MultiChannelDisplayMode::GetHashValue() const
 {
   if(UseRGB)
-    return 10000;
+    return 0x8000000;
 
   if(SelectedScalarRep != SCALAR_REP_COMPONENT)
-    return SelectedScalarRep * 100;
+    return 0x4000000 + SelectedScalarRep;
 
   return SelectedComponent;
 }
