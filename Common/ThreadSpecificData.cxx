@@ -1,6 +1,8 @@
 #include "ThreadSpecificData.h"
 #include "itkMultiThreader.h"
-#include "IRISException.h"
+#ifndef DONT_USE_IRIS_EXCEPTION
+  #include "IRISException.h"
+#endif
 
 #if defined(ITK_USE_PTHREADS)
 
@@ -17,7 +19,13 @@ ThreadSpecificDataSupport::ThreadSpecificDataSupport()
   // Create the key
   int rc = pthread_key_create(pkey, &ThreadSpecificDataSupport::Deleter);
   if(rc)
-    throw IRISException("pthread_key_create failed with rc = %d", rc);
+    {
+    #ifndef DONT_USE_IRIS_EXCEPTION
+      throw IRISException("pthread_key_create failed with rc = %d", rc);
+    #else
+      std::cerr << "pthread_key_create failed with rc =  " << rc;
+    #endif  
+    }
 
   // Store the key
   m_KeyPointer = pkey;
@@ -29,7 +37,13 @@ ThreadSpecificDataSupport::~ThreadSpecificDataSupport()
   pthread_key_t *pkey = (pthread_key_t *) m_KeyPointer;
   int rc = pthread_key_delete(pkey[0]);
   if(rc)
-    throw IRISException("pthread_key_delete failed with rc = %d", rc);
+    {
+    #ifndef DONT_USE_IRIS_EXCEPTION
+      throw IRISException("pthread_key_delete failed with rc = %d", rc);
+    #else
+      std::cerr << "pthread_key_delete failed with rc = " << rc;
+    #endif  
+    }
 }
 
 void *ThreadSpecificDataSupport::GetPtrCreateIfNeeded(size_t data_size)
@@ -41,7 +55,13 @@ void *ThreadSpecificDataSupport::GetPtrCreateIfNeeded(size_t data_size)
     pdata = malloc(data_size);
     int rc  = pthread_setspecific(pkey[0], pdata);
     if(rc)
-      throw IRISException("pthread_setspecific failed with rc = %d", rc);
+      {
+      #ifndef DONT_USE_IRIS_EXCEPTION
+        throw IRISException("pthread_setspecific failed with rc = %d", rc);
+      #else
+        std::cerr << "pthread_setspecific failed with rc: " << rc;
+      #endif  
+      }
     }
   return pdata;
 }
@@ -64,7 +84,13 @@ ThreadSpecificDataSupport::ThreadSpecificDataSupport()
   DWORD *key = new DWORD[1];
   key[0] = TlsAlloc();
   if(key[0] == TLS_OUT_OF_INDEXES)
-    throw IRISException("TlsAlloc failed with error %d", GetLastError());
+    {
+    #ifndef DONT_USE_IRIS_EXCEPTION
+      throw IRISException("TlsAlloc failed with error %d", GetLastError());
+    #else
+      std::cerr << "TlsAlloc failed with error: " << GetLastError();
+    #endif
+    }
   m_KeyPointer = key;
 }
 
@@ -89,11 +115,23 @@ void *ThreadSpecificDataSupport::GetPtrCreateIfNeeded(size_t data_size)
   if(!pdata)
     {
     if(GetLastError() != ERROR_SUCCESS)
-      throw IRISException("TlsGetValue failed with error %d", GetLastError());
-
+      {
+      #ifndef DONT_USE_IRIS_EXCEPTION
+        throw IRISException("TlsGetValue failed with error %d", GetLastError());
+      #else
+        std::cerr << "TlsGetValue failed with error: " << GetLastError();
+      #endif
+      }
+      
     pdata = malloc(data_size);
     if(!TlsSetValue(key[0], pdata))
-      throw IRISException("TlsSetValue failed with error %d", GetLastError());
+      {
+      #ifndef DONT_USE_IRIS_EXCEPTION
+        throw IRISException("TlsSetValue failed with error %d", GetLastError());
+      #else
+        std::cerr << "TlsSetValue failed with error : " << GetLastError();
+      #endif
+      }  
     }
 
   return pdata;
