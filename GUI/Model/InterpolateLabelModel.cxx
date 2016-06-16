@@ -16,9 +16,6 @@
 
 #include "ConvertAPI.h"
 
-
-#include <iostream> // JAV: remove later
-
 void InterpolateLabelModel::SetParentModel(GlobalUIModel *parent)
 {
   this->m_Parent = parent;
@@ -39,7 +36,7 @@ void InterpolateLabelModel::Interpolate()
   SmartPtr<DoubleImageSource> caster = liw->CreateCastToDoublePipeline();
   caster->Update();
 
-  // We will call C3D for this
+  // We might call C3D for this
   typedef ConvertAPI<double,3> APIType;
   APIType api;
   api.AddImage("S", caster->GetOutput());
@@ -47,26 +44,26 @@ void InterpolateLabelModel::Interpolate()
   // Create a command
   char command[4096];
 
-  bool rc;
+  bool rc = false;
   SmartPtr<APIType::ImageType> image;
 
   switch (this->GetInterpolationMethod())
   {
       case MORPHOLOGY:
       {
-          std::cout << "Using morphology-based method" << std::endl; // JAV - remove
           typedef itk::MorphologicalContourInterpolator<GenericImageData::LabelImageType> MCIType;
           SmartPtr<MCIType> mci = MCIType::New();
 
           mci->SetInput(id->GetSegmentation()->GetImage());
           mci->SetUseDistanceTransform(false);
 
-          if (!this->GetInterpolateAll()) // If we aren't interpolating all labels, set specific one to interpolate
+          if (!this->GetInterpolateAll())
             mci->SetLabel(this->GetInterpolateLabel());
 
           mci->SetUseDistanceTransform(this->GetMorphologyUseDistance());
           mci->Update();
 
+          // Need to get the output back into the same format the other methods output
           typedef itk::UnaryFunctorImageFilter<LabelImageWrapper::ImageType,
                                                LabelImageWrapper::DoubleImageType,
                                                LabelImageWrapper::NativeIntensityMapping> FilterType;
@@ -74,16 +71,15 @@ void InterpolateLabelModel::Interpolate()
           filter->SetInput(mci->GetOutput());
           filter->SetFunctor(liw->GetNativeMapping());
           filter->Update();
-          image = filter->GetOutput();
 
-          rc = 1;
+          image = filter->GetOutput();
+          rc = true;
 
           break;
       }
 
       case LEVEL_SET:
       {
-          std::cout << "Using level-set-based method" << std::endl; // JAV - remove
           sprintf(command,"c3d \
                -verbose -push S \
                -threshold %d %d 1 0 \
@@ -112,7 +108,6 @@ void InterpolateLabelModel::Interpolate()
 
       case DEFAULT:
       {
-          std::cout << "Using default method" << std::endl; // JAV - remove
           sprintf(command,"c3d \
                 -push S -info -thresh %d %d 1 0 -info -as R -trim 4vox -info -as T \
                 -dilate 0 0x1x1 -dilate 1 0x400x400 \
@@ -135,7 +130,6 @@ void InterpolateLabelModel::Interpolate()
   // Did we get a result?
   if(rc && image)
   {
-    std::cout << "Success" << std::endl; // JAV - remove
     SegmentationUpdateIterator it_trg(liw->GetImage(), liw->GetImage()->GetBufferedRegion(),
                                       this->GetDrawingLabel(), this->GetDrawOverFilter());
 

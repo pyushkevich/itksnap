@@ -25,14 +25,6 @@ InterpolateLabelsDialog::~InterpolateLabelsDialog()
 
 void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
 {
-//    std::map<GlobalDisplaySettings::UISliceLayout, QAbstractButton *> btnmap;
-//    btnmap[GlobalDisplaySettings::LAYOUT_ACS] = ui->btnACS;
-//    btnmap[GlobalDisplaySettings::LAYOUT_ASC] = ui->btnASC;
-//    btnmap[GlobalDisplaySettings::LAYOUT_CAS] = ui->btnCAS;
-//    btnmap[GlobalDisplaySettings::LAYOUT_CSA] = ui->btnCSA;
-//    btnmap[GlobalDisplaySettings::LAYOUT_SAC] = ui->btnSAC;
-//    btnmap[GlobalDisplaySettings::LAYOUT_SCA] = ui->btnSCA;
-//    makeRadioGroupCoupling(ui->grpLayoutRadio, btnmap, gds->GetSliceLayoutModel());
   m_Model = model;
 
   makeCoupling(ui->inActiveLabel, m_Model->GetDrawingLabelModel());
@@ -60,7 +52,6 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
   ui->interpolationMethod->addItem("Morphology", QVariant::fromValue(InterpolateLabelModel::MORPHOLOGY));
 
   makeCoupling(ui->interpolationMethod, m_Model->GetInterpolationMethodModel());
-//  connect(ui->interpolationMethod, SIGNAL(activated(int)), ui->stackedWidget, SLOT(setCurrentIndex(int)));
 }
 
 void InterpolateLabelsDialog::on_btnInterpolate_clicked()
