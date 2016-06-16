@@ -4,13 +4,21 @@
 #include <AbstractModel.h>
 #include <PropertyModel.h>
 
+#include "Registry.h"
+#include "AbstractPropertyContainerModel.h"
 #include "ColorLabelPropertyModel.h"
+
 
 class GlobalUIModel;
 
-class InterpolateLabelModel : public AbstractModel
+class InterpolateLabelModel : public AbstractPropertyContainerModel
 {    
 public:
+
+  enum InterpolationType
+  {
+      DEFAULT = 0, LEVEL_SET, MORPHOLOGY
+  };
 
   // Standard ITK stuff
   irisITKObjectMacro(InterpolateLabelModel, AbstractModel)
@@ -31,16 +39,26 @@ public:
   irisGenericPropertyAccessMacro(DrawOverFilter, DrawOverFilter, DrawOverLabelItemSetDomain)
 
   /** Smoothing factor */
-  irisRangedPropertyAccessMacro(Smoothing, double)
+  irisRangedPropertyAccessMacro(DefaultSmoothing, double)
+
+  irisRangedPropertyAccessMacro(LevelSetSmoothing, double)
 
   /** Whether all the labels should be interpolated */
   irisSimplePropertyAccessMacro(RetainScaffold, bool)
 
   /** Whether all the labels should be interpolated */
-  irisSimplePropertyAccessMacro(UseLevelSet, bool)
 
   /** Whether all the labels should be interpolated */
   irisRangedPropertyAccessMacro(LevelSetCurvature, double)
+
+  /** Whether to use signed distance transform for morphological interpolation */
+  irisSimplePropertyAccessMacro(MorphologyUseDistance, bool)
+
+  /** Whether to use optimal slice alignment for morphological interpolation */
+  irisSimplePropertyAccessMacro(MorphologyUseOptimalAlignment, bool)
+
+  /** Which interpolation method to use */
+  irisSimplePropertyAccessMacro(InterpolationMethod, InterpolationType)
 
   /** Perform the actual interpolation */
   void Interpolate();
@@ -59,9 +77,16 @@ protected:
 
   SmartPtr<ConcreteSimpleBooleanProperty> m_RetainScaffoldModel;
 
-  SmartPtr<ConcreteRangedDoubleProperty> m_SmoothingModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_UseLevelSetModel;
+  SmartPtr<ConcreteRangedDoubleProperty> m_DefaultSmoothingModel;
+
+  SmartPtr<ConcreteRangedDoubleProperty> m_LevelSetSmoothingModel;
   SmartPtr<ConcreteRangedDoubleProperty> m_LevelSetCurvatureModel;
+
+  SmartPtr<ConcreteSimpleBooleanProperty> m_MorphologyUseDistanceModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_MorphologyUseOptimalAlignmentModel;
+
+  typedef ConcretePropertyModel<InterpolationType, TrivialDomain> ConcreteInterpolationType;
+  SmartPtr<ConcreteInterpolationType> m_InterpolationMethodModel;
 
 
   // The parent model
