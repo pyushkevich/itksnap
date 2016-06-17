@@ -147,7 +147,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="pageDefault">
          <layout class="QFormLayout" name="formLayout_2">
@@ -191,6 +191,9 @@
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
            <widget class="QCheckBox" name="chkMorphologyUseDistance">
+            <property name="toolTip">
+             <string>Use an alternative signed distance function-based method.  Slightly faster, but can fail for twisted shapes.</string>
+            </property>
             <property name="text">
              <string>Use signed distance function</string>
             </property>
@@ -198,13 +201,26 @@
           </item>
           <item>
            <widget class="QCheckBox" name="chkMorphologyUseOptimalAlignment">
+            <property name="toolTip">
+             <string>Use optimal slice alignment instead of the default heuristic.  This can take a long time.</string>
+            </property>
             <property name="text">
-             <string>Use optimal slice alignment  </string>
+             <string>Use optimal slice alignment</string>
             </property>
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3"/>
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </widget>
