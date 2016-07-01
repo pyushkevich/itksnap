@@ -45,13 +45,19 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
   // Settings for morphology method
   makeCoupling(ui->chkMorphologyUseDistance, m_Model->GetMorphologyUseDistanceModel());
   makeCoupling(ui->chkMorphologyUseOptimalAlignment, m_Model->GetMorphologyUseOptimalAlignmentModel());
+  makeCoupling(ui->chkMorphologyInterpolateOneAxis, m_Model->GetMorphologyInterpolateOneAxisModel());
 
   ui->interpolationMethod->clear();
   ui->interpolationMethod->addItem("Default", QVariant::fromValue(InterpolateLabelModel::DEFAULT));
   ui->interpolationMethod->addItem("Level set", QVariant::fromValue(InterpolateLabelModel::LEVEL_SET));
   ui->interpolationMethod->addItem("Morphology", QVariant::fromValue(InterpolateLabelModel::MORPHOLOGY));
-
   makeCoupling(ui->interpolationMethod, m_Model->GetInterpolationMethodModel());
+
+  ui->morphologyInterpolationAxis->clear();
+  ui->morphologyInterpolationAxis->addItem("0",QVariant::fromValue(0));
+  ui->morphologyInterpolationAxis->addItem("1",QVariant::fromValue(1));
+  ui->morphologyInterpolationAxis->addItem("2",QVariant::fromValue(2));
+  makeCoupling(ui->morphologyInterpolationAxis, m_Model->GetMorphologyInterpolationAxisModel());
 }
 
 void InterpolateLabelsDialog::on_btnInterpolate_clicked()
