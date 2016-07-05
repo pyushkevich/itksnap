@@ -50,6 +50,7 @@ class MainControlPanel;
 class StatisticsDialog;
 class QActionGroup;
 class PreferencesDialog;
+class InterpolateLabelsDialog;
 class ImageIOWizard;
 class ImageIOWizardModel;
 
@@ -279,6 +280,8 @@ private slots:
 
   void on_actionActivatePreviousLayer_triggered();
 
+  void on_actionInterpolate_Labels_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);
@@ -353,6 +356,8 @@ private:
   StatisticsDialog *m_StatisticsDialog;
 
   PreferencesDialog *m_PreferencesDialog;
+
+  InterpolateLabelsDialog *m_InterpolateLabelsDialog;
 
   // A timer used to animate components
   QTimer *m_AnimateTimer;

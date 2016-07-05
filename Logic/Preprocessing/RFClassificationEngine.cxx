@@ -7,30 +7,30 @@
 #include "RLEImageRegionIterator.h"
 
 // Includes from the random forest library
-typedef GreyType data_t;
-typedef LabelType label_t;
-
 #include "Library/classification.h"
 #include "Library/data.h"
 
-RFClassificationEngine::RFClassificationEngine()
+template <class TPixel, class TLabel, int VDim>
+RFClassificationEngine<TPixel,TLabel,VDim>::RFClassificationEngine()
 {
   m_DataSource = NULL;
   m_Sample = NULL;
-  m_Classifier = RandomForestClassifier::New();
+  m_Classifier = ClassifierType::New();
   m_ForestSize = 50;
   m_TreeDepth = 30;
   m_PatchRadius.Fill(0);
   m_UseCoordinateFeatures = false;
 }
 
-RFClassificationEngine::~RFClassificationEngine()
+template <class TPixel, class TLabel, int VDim>
+RFClassificationEngine<TPixel,TLabel,VDim>::~RFClassificationEngine()
 {
   if(m_Sample)
     delete m_Sample;
 }
 
-void RFClassificationEngine::SetDataSource(SNAPImageData *imageData)
+template <class TPixel, class TLabel, int VDim>
+void RFClassificationEngine<TPixel,TLabel,VDim>::SetDataSource(SNAPImageData *imageData)
 {
   if(m_DataSource != imageData)
     {
@@ -42,12 +42,14 @@ void RFClassificationEngine::SetDataSource(SNAPImageData *imageData)
     }
 }
 
-void RFClassificationEngine::ResetClassifier()
+template <class TPixel, class TLabel, int VDim>
+void RFClassificationEngine<TPixel,TLabel,VDim>::ResetClassifier()
 {
   m_Classifier->Reset();
 }
 
-void RFClassificationEngine:: TrainClassifier()
+template <class TPixel, class TLabel, int VDim>
+void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
 {
   assert(m_DataSource && m_DataSource->IsMainLoaded());
 
@@ -159,7 +161,7 @@ void RFClassificationEngine:: TrainClassifier()
     params.subSamplePercent = 0;
 
   // Create the classification engine
-  typedef RandomForestClassifier::RFAxisClassifierType RFAxisClassifierType;
+  typedef typename ClassifierType::RFAxisClassifierType RFAxisClassifierType;
   typedef Classification<GreyType, LabelType, RFAxisClassifierType> ClassificationType;
   ClassificationType classification;
 
@@ -169,12 +171,12 @@ void RFClassificationEngine:: TrainClassifier()
   if(m_Classifier->IsValidClassifier())
     {
     // Get the class weights
-    const RandomForestClassifier::WeightArray &class_weights = m_Classifier->GetClassWeights();
+    const typename ClassifierType::WeightArray &class_weights = m_Classifier->GetClassWeights();
 
     // Convert them to label weights (since class to label mapping may change)
-    for(RandomForestClassifier::MappingType::const_iterator it =
-        m_Classifier->m_ClassToLabelMapping.begin();
-        it != m_Classifier->m_ClassToLabelMapping.end(); ++it)
+    for(typename ClassifierType::MappingType::const_iterator it =
+        m_Classifier->GetClassToLabelMapping().begin();
+        it != m_Classifier->GetClassToLabelMapping().end(); ++it)
       {
       old_label_weights[it->second] = class_weights[it->first];
       }
@@ -186,26 +188,26 @@ void RFClassificationEngine:: TrainClassifier()
   // Perform classifier training
   classification.Learning(
         params, *m_Sample,
-        *m_Classifier->m_Forest,
-        m_Classifier->m_ValidLabel,
-        m_Classifier->m_ClassToLabelMapping);
+        *m_Classifier->GetForest(),
+        m_Classifier->GetValidLabel(),
+        m_Classifier->GetClassToLabelMapping());
 
   // Reset the class weights to the number of classes and assign default
-  int n_classes = m_Classifier->m_ClassToLabelMapping.size(), n_fore = 0, n_back = 0;
-  m_Classifier->m_ClassWeights.resize(n_classes, -1.0);
+  int n_classes = m_Classifier->GetClassToLabelMapping().size(), n_fore = 0, n_back = 0;
+  m_Classifier->GetClassWeights().resize(n_classes, -1.0);
 
   // Apply the old weight assignments if possible. Keep track of the number of fore and back classes
-  for(RandomForestClassifier::MappingType::iterator it =
-      m_Classifier->m_ClassToLabelMapping.begin();
-      it != m_Classifier->m_ClassToLabelMapping.end(); ++it)
+  for(typename ClassifierType::MappingType::iterator it =
+      m_Classifier->GetClassToLabelMapping().begin();
+      it != m_Classifier->GetClassToLabelMapping().end(); ++it)
     {
     if(old_label_weights.find(it->second) != old_label_weights.end())
       {
-      m_Classifier->m_ClassWeights[it->first] = old_label_weights[it->second];
+      m_Classifier->GetClassWeights()[it->first] = old_label_weights[it->second];
       }
-    if(m_Classifier->m_ClassWeights[it->first] < 0.0)
+    if(m_Classifier->GetClassWeights()[it->first] < 0.0)
       n_back++;
-    else if(m_Classifier->m_ClassWeights[it->first] > 0.0)
+    else if(m_Classifier->GetClassWeights()[it->first] > 0.0)
       n_fore++;
     }
 
@@ -213,18 +215,19 @@ void RFClassificationEngine:: TrainClassifier()
   if(n_classes >= 2)
     {
     if(n_fore == 0)
-      m_Classifier->m_ClassWeights.front() = 1.0;
+      m_Classifier->GetClassWeights().front() = 1.0;
     if(n_back == 0)
-      m_Classifier->m_ClassWeights.back() = -1.0;
+      m_Classifier->GetClassWeights().back() = -1.0;
     }
 
   // Store the patch radius in the classifier - this remains fixed until
   // training is repeated
-  m_Classifier->m_PatchRadius = m_PatchRadius;
-  m_Classifier->m_UseCoordinateFeatures = m_UseCoordinateFeatures;
+  m_Classifier->SetPatchRadius(m_PatchRadius);
+  m_Classifier->SetUseCoordinateFeatures(m_UseCoordinateFeatures);
 }
 
-void RFClassificationEngine::SetClassifier(RandomForestClassifier *rf)
+template <class TPixel, class TLabel, int VDim>
+void RFClassificationEngine<TPixel,TLabel,VDim>::SetClassifier(ClassifierType *rf)
 {
   // Set the classifier
   m_Classifier = rf;
@@ -233,7 +236,8 @@ void RFClassificationEngine::SetClassifier(RandomForestClassifier *rf)
   m_ForestSize = m_Classifier->GetForest()->GetForestSize();
 }
 
-int RFClassificationEngine::GetNumberOfComponents() const
+template <class TPixel, class TLabel, int VDim>
+int RFClassificationEngine<TPixel,TLabel,VDim>::GetNumberOfComponents() const
 {
   assert(m_DataSource);
 
@@ -246,4 +250,5 @@ int RFClassificationEngine::GetNumberOfComponents() const
   return ncomp;
 }
 
-
+// Template instantiation
+template class RFClassificationEngine<GreyType, LabelType, 3>;

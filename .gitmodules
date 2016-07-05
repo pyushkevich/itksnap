@@ -1,0 +1,3 @@
+[submodule "Submodules/c3d"]
+	path = Submodules/c3d
+	url = http://git.code.sf.net/p/c3d/git

@@ -43,7 +43,6 @@
 #include "ColorMap.h"
 #include "ImageWrapperTraits.h"
 
-template<class TInputImage, class TOutputImage> class SignedDistanceFilter;
 template <class TSpeedImageType, class TImageType> class SNAPLevelSetFunction;
 template<class TFilter> class LevelSetExtensionFilter;
 

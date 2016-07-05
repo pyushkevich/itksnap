@@ -324,8 +324,7 @@ protected:
     * After each pixel is written, adds stride to the pointer.
     * The buffer needs to have enough room.
     * No error checking is conducted. */
-  inline void uncompressLine(const typename InputImageType::RLLine & line,
-                             TPixel *out, itk::SizeValueType stride)
+  inline void uncompressLine(const typename InputImageType::RLLine & line, TPixel *out, long stride)
   {
     //complete Run-Length Lines have to be buffered
     itkAssertOrThrowMacro(this->GetInput()->GetBufferedRegion().GetSize(0)

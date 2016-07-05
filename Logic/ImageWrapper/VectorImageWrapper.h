@@ -204,7 +204,7 @@ public:
 
   virtual void SetSliceIndex(const Vector3ui &cursor);
 
-  virtual void SetDisplayGeometry(IRISDisplayGeometry &dispGeom);
+  virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom);
 
   virtual void SetDirectionMatrix(const vnl_matrix<double> &direction);
 

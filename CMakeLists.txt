@@ -86,6 +86,13 @@ get_git_branch(SNAP_VERSION_GIT_BRANCH)
 MESSAGE(STATUS "   GIT Info: BRANCH ${SNAP_VERSION_GIT_BRANCH}, SHA: ${SNAP_VERSION_GIT_SHA1}")
 
 #--------------------------------------------------------------------------------
+# ENSURE THAT SUBMODULES HAVE BEEN INITIALIZED AND UPDATED
+#--------------------------------------------------------------------------------
+if(NOT EXISTS "${SNAP_SOURCE_DIR}/Submodules/c3d/CMakeLists.txt")
+  MESSAGE(SEND_ERROR "Submodule c3d has not been initialized/updated. Git users, see README.git")
+endif()
+
+#--------------------------------------------------------------------------------
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS 
 #--------------------------------------------------------------------------------
 
@@ -236,8 +243,7 @@ SET(LOGIC_CXX
   Logic/Preprocessing/GMM/GaussianMixtureModel.cxx
   Logic/Preprocessing/GMM/KMeansPlusPlus.cxx
   Logic/Preprocessing/GMM/UnsupervisedClustering.cxx
-  Logic/Preprocessing/RandomForest/RFClassificationEngine.cxx
-  Logic/Preprocessing/RandomForest/RandomForestClassifier.cxx
+  Logic/Preprocessing/RFClassificationEngine.cxx
   Logic/Preprocessing/Texture/MomentTextures.cxx
   Logic/Slicing/IntensityCurveVTK.cxx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
@@ -346,8 +352,6 @@ SET(LOGIC_HEADERS
   Logic/LevelSet/SNAPLevelSetFunction.txx
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.h
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.txx
-  Logic/LevelSet/SignedDistanceFilter.h
-  Logic/LevelSet/SignedDistanceFilter.txx
   Logic/LevelSet/SnakeParameters.h
   Logic/Mesh/AllPurposeProgressAccumulator.h
   Logic/Mesh/GuidedMeshIO.h
@@ -362,8 +366,6 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/GMMClassifyImageFilter.h
   Logic/Preprocessing/GMMClassifyImageFilter.txx
   Logic/Preprocessing/PreprocessingFilterConfigTraits.h
-  Logic/Preprocessing/RandomForestClassifyImageFilter.h
-  Logic/Preprocessing/RandomForestClassifyImageFilter.txx
   Logic/Preprocessing/SlicePreviewFilterWrapper.h
   Logic/Preprocessing/SlicePreviewFilterWrapper.txx
   Logic/Preprocessing/SmoothBinaryThresholdImageFilter.h
@@ -374,8 +376,6 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/GMM/GaussianMixtureModel.h
   Logic/Preprocessing/GMM/KMeansPlusPlus.h
   Logic/Preprocessing/GMM/UnsupervisedClustering.h
-  Logic/Preprocessing/RandomForest/RFClassificationEngine.h
-  Logic/Preprocessing/RandomForest/RandomForestClassifier.h
   Logic/Preprocessing/Texture/MomentTextures.h
   Logic/Slicing/IRISSlicer.h
   Logic/Slicing/IRISSlicer.txx
@@ -403,6 +403,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ImageInfoModel.cxx
   GUI/Model/ImageRegistrationManager.cxx
   GUI/Model/IntensityCurveModel.cxx
+  GUI/Model/InterpolateLabelModel.cxx
   GUI/Model/LabelEditorModel.cxx
   GUI/Model/LayerGeneralPropertiesModel.cxx
   GUI/Model/LayerTableRowModel.cxx
@@ -473,6 +474,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ImageIOWizardModel.h
   GUI/Model/ImageRegistrationManager.h
   GUI/Model/IntensityCurveModel.h
+  GUI/Model/InterpolateLabelModel.h
   GUI/Model/LabelEditorModel.h
   GUI/Model/LayerGeneralPropertiesModel.h
   GUI/Model/LayerSelectionModel.h
@@ -594,6 +596,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/ImageIOWizard.cxx
   GUI/Qt/Windows/ImageIOWizard/OverlayRolePage.cxx
   GUI/Qt/Windows/ImageIOWizard/RegistrationPage.cxx
+  GUI/Qt/Windows/InterpolateLabelsDialog.cxx
   GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
   GUI/Qt/Windows/LabelSelectionPopup.cxx
@@ -677,6 +680,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/ImageIOWizard.h
   GUI/Qt/Windows/ImageIOWizard/OverlayRolePage.h
   GUI/Qt/Windows/ImageIOWizard/RegistrationPage.h
+  GUI/Qt/Windows/InterpolateLabelsDialog.h
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
   GUI/Qt/Windows/LabelSelectionPopup.h
@@ -753,6 +757,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/ImageIODialog.ui
   GUI/Qt/Windows/ImageIOWizard/OverlayRolePage.ui
   GUI/Qt/Windows/ImageIOWizard/RegistrationPage.ui
+  GUI/Qt/Windows/InterpolateLabelsDialog.ui
   GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui
   GUI/Qt/Windows/LabelSelectionPopup.ui
@@ -842,10 +847,11 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Mesh
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/GMM
-    ${SNAP_SOURCE_DIR}/Logic/Preprocessing/RandomForest
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/Texture
     ${SNAP_SOURCE_DIR}/Logic/RLEImage
     ${SNAP_SOURCE_DIR}/Logic/Slicing
+    ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/RandomForest
+    ${SNAP_SOURCE_DIR}/Submodules/c3d/api
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
     ${SNAP_SOURCE_DIR}/GUI/Renderer
@@ -910,6 +916,11 @@ SET(SNAP_VTK_LIBS
   vtkIOLegacy
 )
 
+SET(SNAP_C3D_LIBS
+  cnd_api
+  cnd_driver
+  cnd_adapters)
+
 # System libraries
 SET(SNAP_SYSTEM_LIBS
   ${OPENGL_LIBRARIES}
@@ -919,10 +930,20 @@ SET(SNAP_SYSTEM_LIBS
 
 # Designate the external libraries used by SNAP
 SET(SNAP_EXTERNAL_LIBS 
+  ${SNAP_C3D_LIBS}
   ${SNAP_ITK_LIBS} 
   ${SNAP_VTK_LIBS} 
   ${SNAP_SYSTEM_LIBS}
 )
+
+#--------------------------------------------------------------------------------
+# Include C3D Library as submodule
+#--------------------------------------------------------------------------------
+SET(CONVERT3D_SOURCE_DIR ${SNAP_SOURCE_DIR}/Submodules/c3d)
+SET(CONVERT3D_BINARY_DIR ${SNAP_BINARY_DIR}/Submodules/c3d)
+
+SET(CONVERT3D_BUILD_AS_SUBPROJECT ON)
+ADD_SUBDIRECTORY(${CONVERT3D_SOURCE_DIR})
 
 #--------------------------------------------------------------------------------
 # Define SNAP library targets (logic and UI)

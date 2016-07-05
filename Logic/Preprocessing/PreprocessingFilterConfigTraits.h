@@ -40,12 +40,12 @@
 template <class TInput, class TOutput> class SmoothBinaryThresholdImageFilter;
 template <class TInput, class TOutput> class EdgePreprocessingImageFilter;
 template <class TInput, class TVectorInput, class TOutput> class GMMClassifyImageFilter;
-template <class TInput, class TVectorInput, class TOutput> class RandomForestClassifyImageFilter;
+template <class TInput, class TInputVector, class TOutput, class TLabel> class RandomForestClassifyImageFilter;
 
 class ThresholdSettings;
 class EdgePreprocessingSettings;
 class GaussianMixtureModel;
-class RandomForestClassifier;
+template <class TPixel, class TLabel, int VDim> class RandomForestClassifier;
 
 class SmoothBinaryThresholdFilterConfigTraits {
 public:
@@ -143,9 +143,9 @@ public:
   typedef SpeedImageWrapper                                  OutputWrapperType;
 
   typedef RandomForestClassifyImageFilter<
-    GreyScalarType, GreyVectorType, SpeedType>                      FilterType;
+    GreyScalarType, GreyVectorType, SpeedType, LabelType>           FilterType;
 
-  typedef RandomForestClassifier                                 ParameterType;
+  typedef RandomForestClassifier<GreyType,LabelType,3>           ParameterType;
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
   static void DetachInputs(FilterType *filter);

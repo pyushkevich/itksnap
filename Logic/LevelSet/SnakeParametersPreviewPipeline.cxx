@@ -38,7 +38,6 @@
 #include "GlobalState.h"
 
 #include "LevelSetExtensionFilter.h"
-#include "SignedDistanceFilter.h"
 #include "SNAPLevelSetFunction.h"
 #include "itkBSplineInterpolationWeightFunction.h"
 #include "itkBSplineKernelFunction.h"

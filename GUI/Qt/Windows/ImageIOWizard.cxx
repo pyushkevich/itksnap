@@ -544,6 +544,9 @@ RawPage::RawPage(QWidget *parent)
     {
     m_Dims[i] = new QSpinBox();
     connect(m_Dims[i], SIGNAL(valueChanged(int)), SLOT(onHeaderSizeChange()));
+
+    m_Spacing[i] = new QDoubleSpinBox();
+    m_Spacing[i]->setValue(1.0);
     }
 
   lo->addWidget(new QLabel("Image dimensions:"), 1, 0, 1, 1);
@@ -607,7 +610,19 @@ RawPage::RawPage(QWidget *parent)
   lo->addWidget(lbrace, 5, 3, 2, 1);
   lo->addWidget(new QLabel("should be equal"), 5, 4, 2, 2);
 
-  lo->addWidget(m_OutMessage, 7, 0, 1, 7);
+  // Add some space
+  lo->setRowMinimumHeight(6,16);
+
+  lo->addWidget(new QLabel("Voxel Spacing:"), 7, 0, 1, 1);
+  lo->addWidget(new QLabel("x:"), 7, 1, 1, 1);
+  lo->addWidget(m_Spacing[0], 7, 2, 1, 1);
+  lo->addWidget(new QLabel("y:"), 7, 3, 1, 1);
+  lo->addWidget(m_Spacing[1], 7, 4, 1, 1);
+  lo->addWidget(new QLabel("z:"), 7, 5, 1, 1);
+  lo->addWidget(m_Spacing[2], 7, 6, 1, 1);
+
+
+  lo->addWidget(m_OutMessage, 9, 0, 1, 7);
 
   // The output label
   lo->setColumnMinimumWidth(0, 140);
@@ -663,6 +678,13 @@ void RawPage::initializePage()
     m_Dims[i]->setRange(1, m_FileSize);
     }
 
+  // Set the spacing
+  Vector3d spc = hint["Raw.Spacing"][Vector3d(1.0)];
+  for(size_t i = 0; i < 3; i++)
+    {
+    m_Spacing[i]->setValue(spc[i]);
+    }
+
   // Set the data type (default to uchar)
   int ipt = (int) (GuidedNativeImageIO::GetPixelType(
         hint, GuidedNativeImageIO::PIXELTYPE_UCHAR) -
@@ -688,6 +710,10 @@ bool RawPage::validatePage()
   // Set the dimensions
   hint["Raw.Dimensions"] << Vector3i(
     m_Dims[0]->value(), m_Dims[1]->value(), m_Dims[2]->value());
+
+  // Set the spacing
+  hint["Raw.Spacing"] << Vector3d(
+    m_Spacing[0]->value(), m_Spacing[1]->value(), m_Spacing[2]->value());
 
   // Set the endianness
   hint["Raw.BigEndian"] << ( m_InEndian->currentIndex() == 0 );

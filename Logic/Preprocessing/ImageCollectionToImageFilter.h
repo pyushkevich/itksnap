@@ -38,7 +38,7 @@
 #include <itkImageSource.h>
 #include <itkImageToImageFilter.h>
 
-#include <itkImageRegionIteratorWithIndex.h>
+#include <itkImageRegionIterator.h>
 #include <itkConstNeighborhoodIterator.h>
 
 

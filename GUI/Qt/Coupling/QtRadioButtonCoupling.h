@@ -69,5 +69,16 @@ void makeRadioGroupCoupling(
   makeCheckableWidgetGroupCoupling(w, buttonMap, model);
 }
 
+/**
+  Really simple mode - you have two radio buttons and a boolean model
+ */
+inline void makeRadioGroupCoupling(
+    QAbstractButton *w_True, QAbstractButton *w_False, AbstractPropertyModel<bool> *model)
+{
+  std::map<bool, QAbstractButton *> buttonMap;
+  buttonMap[true] = w_True;
+  buttonMap[false] = w_False;
+  makeCheckableWidgetGroupCoupling(w_True->parentWidget(), buttonMap, model);
+}
 
 #endif // QTRADIOBUTTONCOUPLING_H

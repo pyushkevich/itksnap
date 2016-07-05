@@ -572,7 +572,7 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
-::SetDisplayGeometry(IRISDisplayGeometry &dispGeom)
+::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
 {
   // Set the display geometry
   m_DisplayGeometry = dispGeom;

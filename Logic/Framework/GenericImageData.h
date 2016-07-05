@@ -181,6 +181,22 @@ public:
       }
   }
 
+  /**
+   * More general method, replaces label with new_label if current label matches target_label,
+   * does not take into account Active/DrawOver state
+   */
+  void ReplaceLabel(LabelType target_label, LabelType new_label)
+  {
+    LabelType lOld = m_Iterator.Get();
+
+    if(lOld == target_label)
+      {
+      m_VoxelDelta += new_label - lOld;
+      m_Iterator.Set(new_label);
+      m_ChangedVoxels++;
+      }
+  }
+
   bool IsAtEnd()
   {
     return m_Iterator.IsAtEnd();

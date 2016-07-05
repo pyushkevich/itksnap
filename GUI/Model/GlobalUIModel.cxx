@@ -67,6 +67,7 @@
 #include "ImageIOWizardModel.h"
 #include "IntensityCurveInterface.h"
 #include "ColorLabelQuickListModel.h"
+#include "InterpolateLabelModel.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -194,6 +195,10 @@ GlobalUIModel::GlobalUIModel()
   // Quick list of color labels
   m_ColorLabelQuickListModel = ColorLabelQuickListModel::New();
   m_ColorLabelQuickListModel->SetParentModel(this);
+
+  // Interpolation dialog
+  m_InterpolateLabelModel = InterpolateLabelModel::New();
+  m_InterpolateLabelModel->SetParentModel(this);
 
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(
@@ -492,9 +497,10 @@ void GlobalUIModel::LoadUserPreferences()
   dbs->ReadFromRegistry(
         si->Folder("UserInterface.DefaultBehavior"));
 
-  // Read the global display properties
-  m_GlobalDisplaySettings->ReadFromRegistry(
-        si->Folder("SliceView.DisplaySettings"));
+  // Read the global display properties and apply them
+  SmartPtr<GlobalDisplaySettings> temp_gds = GlobalDisplaySettings::New();
+  temp_gds->ReadFromRegistry(si->Folder("SliceView.DisplaySettings"));
+  this->SetGlobalDisplaySettings(temp_gds);
 
   // Read the 3D mesh options
   m_Driver->GetGlobalState()->GetMeshOptions()->ReadFromRegistry(

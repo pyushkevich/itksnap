@@ -1,0 +1,9 @@
+*** GIT Users: Read This ***
+
+After cloning ITK-SNAP from Git, you need to execute the following commands
+to initialize the submodules. ITK-SNAP will not compile without submodules
+
+    git submodule init
+    git submodule update
+
+Alternatively, pass the '--recursive' option to git clone 

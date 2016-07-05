@@ -19,6 +19,7 @@ class QTreeWidget;
 class QTreeWidgetItem;
 class QTableWidget;
 class QSpinBox;
+class QDoubleSpinBox;
 class FileChooserPanelWithHistory;
 class OptimizationProgressRenderer;
 class QtVTKRenderWindowBox;
@@ -141,6 +142,7 @@ public slots:
 
 private:
   QSpinBox *m_Dims[3], *m_HeaderSize;
+  QDoubleSpinBox *m_Spacing[3];
   QComboBox *m_InFormat, *m_InEndian;
   QSpinBox *m_OutImpliedSize, *m_OutActualSize;
   unsigned long m_FileSize;

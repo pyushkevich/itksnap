@@ -208,7 +208,7 @@ RFPreprocessingFilterConfigTraits
     }
 
   // Set the classifier input
-  RFClassificationEngine *rfe = sid->GetParent()->GetClassificationEngine();
+  IRISApplication::RFEngine *rfe = sid->GetParent()->GetClassificationEngine();
   assert(rfe);
   filter->SetClassifier(rfe->GetClassifier());
 }

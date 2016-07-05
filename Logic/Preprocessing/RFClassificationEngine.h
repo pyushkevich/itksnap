@@ -3,19 +3,18 @@
 
 #include <itkObject.h>
 #include <itkObjectFactory.h>
-#include <itkSize.h>
 #include "SNAPCommon.h"
-#include "PropertyModel.h"
+#include <itkSize.h>
 
-class SNAPImageData;
-class RandomForestClassifier;
-
+template <class TPixel, class TLabel, int VDim> class RandomForestClassifier;
 template <class TData, class TLabel> class MLData;
+class SNAPImageData;
 
 /**
  * This class serves as the high-level interface between ITK-SNAP and the
  * random forest code.
  */
+template <class TPixel, class TLabel, int VDim>
 class RFClassificationEngine : public itk::Object
 {
 public:
@@ -24,7 +23,10 @@ public:
   irisITKObjectMacro(RFClassificationEngine, itk::Object)
 
   // Patch radius type
-  typedef itk::Size<3> RadiusType;
+  typedef itk::Size<VDim> RadiusType;
+
+  // Classifier type
+  typedef RandomForestClassifier<TPixel, TLabel, VDim> ClassifierType;
 
   /** Set the data source for the classification */
   void SetDataSource(SNAPImageData *imageData);
@@ -36,10 +38,10 @@ public:
   void TrainClassifier();
 
   /** Set the classifier */
-  void SetClassifier(RandomForestClassifier *rf);
+  void SetClassifier(ClassifierType *rf);
 
   /** Access the trained classifier */
-  itkGetMacro(Classifier, RandomForestClassifier *)
+  itkGetMacro(Classifier, ClassifierType *)
 
   /** Size of the random forest (main parameter) */
   itkGetMacro(ForestSize, int)
@@ -67,7 +69,7 @@ protected:
   virtual ~RFClassificationEngine();
 
   // The trained classifier
-  SmartPtr<RandomForestClassifier> m_Classifier;
+  SmartPtr<ClassifierType> m_Classifier;
 
   // The data source
   SNAPImageData *m_DataSource;

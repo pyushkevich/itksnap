@@ -401,12 +401,11 @@ GenericImageData
 
 void GenericImageData::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
 {
-  m_DisplayGeometry = dispGeom;
   for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
     if(lit.GetLayer())
       {
       // Set the direction matrix in the image
-      lit.GetLayer()->SetDisplayGeometry(m_DisplayGeometry);
+      lit.GetLayer()->SetDisplayGeometry(m_Parent->GetDisplayGeometry());
       }
 }
 
