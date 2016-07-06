@@ -279,7 +279,9 @@ ScalarImageWrapper<TTraits,TBase>
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
   // Make sure the display slice is updated
-  this->GetDisplaySlice(0)->GetSource()->UpdateLargestPossibleRegion();
+  // this->GetDisplaySlice(0)->GetSource()->UpdateLargestPossibleRegion();
+
+  this->GetDisplaySlice(0)->Update();
 
   // Find the correct voxel in the space of the first display slice
   Vector3ui idxDisp =
@@ -292,9 +294,10 @@ ScalarImageWrapper<TTraits,TBase>
   out_appearance = slice->GetPixel(idx2D);
 
   // Get the numerical value
-  PixelType val_raw = this->GetSlicer(0)->GetOutput()->GetPixel(idx2D);
-  out_value.set_size(1);
-  out_value[0] = this->m_NativeMapping(val_raw);
+  // TODO: fix this commented out code
+  // PixelType val_raw = this->GetSlicer(0)->GetOutput()->GetPixel(idx2D);
+  // out_value.set_size(1);
+  // out_value[0] = this->m_NativeMapping(val_raw);
 }
 
 //template<class TTraits, class TBase>

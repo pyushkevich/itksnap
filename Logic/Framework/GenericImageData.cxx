@@ -177,11 +177,11 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, bool sameSpaceA
 
     // Set properties
     wrapper->SetDisplayGeometry(m_DisplayGeometry);
+    wrapper->SetImage(image, refSpace, transform);
+    wrapper->SetNativeMapping(mapper);
     for(int i = 0; i < 3; i++)
       wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
 
-    wrapper->SetImage(image, refSpace, transform);
-    wrapper->SetNativeMapping(mapper);
     out_wrapper = wrapper.GetPointer();
     }
 
@@ -203,11 +203,12 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, bool sameSpaceA
 
     // Set properties
     wrapper->SetDisplayGeometry(m_DisplayGeometry);
+    wrapper->SetImage(image, refSpace, transform);
+    wrapper->SetNativeMapping(mapper);
+
     for(int i = 0; i < 3; i++)
       wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
 
-    wrapper->SetImage(image, refSpace, transform);
-    wrapper->SetNativeMapping(mapper);
     out_wrapper = wrapper.GetPointer();
     }
 

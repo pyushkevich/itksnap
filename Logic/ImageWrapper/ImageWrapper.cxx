@@ -92,6 +92,168 @@ public:
 
 
 /**
+ * A helper filter that combines reslicing and collapsing image dimension
+ * from 3D to 2D. In the future this should be replaced with a faster and
+ * more direct non-orthogonal slicer filter
+ */
+template <typename TInputImage, typename TOutputImage, typename TWorkingImage>
+class NonOrthogonalSlicerFilter
+    : public itk::ImageToImageFilter<TInputImage, TOutputImage>
+{
+public:
+  /** Standard class typedefs. */
+  typedef NonOrthogonalSlicerFilter                                      Self;
+  typedef itk::ImageToImageFilter<TInputImage, TOutputImage>       Superclass;
+  typedef itk::SmartPointer<Self>                                     Pointer;
+  typedef itk::SmartPointer<const Self>                          ConstPointer;
+
+  typedef TInputImage                                          InputImageType;
+  typedef typename InputImageType::ConstPointer             InputImagePointer;
+  typedef typename InputImageType::PixelType                   InputPixelType;
+  typedef typename InputImageType::InternalPixelType       InputComponentType;
+
+  typedef TOutputImage                                        OutputImageType;
+  typedef typename OutputImageType::Pointer                OutputImagePointer;
+  typedef typename OutputImageType::PixelType                 OutputPixelType;
+  typedef typename OutputImageType::InternalPixelType     OutputComponentType;
+
+  typedef TWorkingImage                                      WorkingImageType;
+
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self)
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(NonOrthogonalSlicerFilter, ImageToImageFilter)
+
+  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+
+  /** Internally used filters */
+  typedef itk::ResampleImageFilter<TInputImage, WorkingImageType, double, double> ResampleFilterType;
+  typedef itk::ExtractImageFilter<WorkingImageType, TOutputImage> CollapseFilterType;
+
+  typedef typename ResampleFilterType::ReferenceImageBaseType ReferenceImageBaseType;
+  typedef typename ResampleFilterType::TransformType             TransformType;
+
+  /** Some more typedefs. */
+  typedef typename InputImageType::RegionType             InputImageRegionType;
+  typedef typename OutputImageType::RegionType           OutputImageRegionType;
+
+  virtual void SetInput(const InputImageType *image)
+  {
+    Superclass::SetInput(image);
+    m_ResampleFilter->SetInput(image);
+  }
+
+  /** The reference image is a required input to this filter */
+  void SetReferenceImage(const ReferenceImageBaseType *image)
+  {
+    this->ProcessObject::SetInput("ReferenceImage",
+                                  const_cast<ReferenceImageBaseType *>(image));
+    m_ResampleFilter->SetReferenceImage(image);
+    m_ResampleFilter->SetUseReferenceImage(true);
+    this->Modified();
+  }
+
+  virtual void SetTransformInput(const itk::DataObjectDecorator<TransformType> *decorator)
+    {
+    this->ProcessObject::SetInput("Transform",
+                                  const_cast< itk::DataObjectDecorator<TransformType> *>(decorator));
+    m_ResampleFilter->SetTransform(decorator->Get());
+    this->Modified();
+    }
+
+  virtual void SetTransform(const TransformType *transform)
+    {
+    typedef itk::DataObjectDecorator< TransformType > DecoratorType;
+    const DecoratorType *oldInput =
+      itkDynamicCastInDebugMode< const DecoratorType * >(
+        this->ProcessObject::GetInput("Transform") );
+    if ( oldInput && oldInput->Get() == transform )
+      {
+      return;
+      }
+    typename DecoratorType::Pointer newInput = DecoratorType::New();
+    newInput->Set(transform);
+    this->SetTransformInput(newInput);
+    }
+
+
+  void GenerateData()
+  {
+    // Update the mini-pipeline filter
+    m_CollapseFilter->UpdateLargestPossibleRegion();
+
+    // Graft output
+    this->GetOutput()->Graft(m_CollapseFilter->GetOutput());
+  }
+
+protected:
+  NonOrthogonalSlicerFilter()
+  {
+    m_ResampleFilter = ResampleFilterType::New();
+    m_CollapseFilter = CollapseFilterType::New();
+
+    m_CollapseFilter->SetInput(m_ResampleFilter->GetOutput());
+    m_CollapseFilter->SetDirectionCollapseToIdentity();
+  }
+
+  void UpdateCollapseRegion()
+  {
+    // Make sure the correct information is stored in the collapse filter
+    typename CollapseFilterType::InputImageRegionType new_region, curr_region;
+    new_region = m_ResampleFilter->GetReferenceImage()->GetLargestPossibleRegion();
+    new_region.SetSize(2, 0);
+
+    if(new_region != m_CollapseFilter->GetExtractionRegion())
+      m_CollapseFilter->SetExtractionRegion(new_region);
+  }
+
+  virtual void VerifyInputInformation() { }
+
+  virtual void GenerateOutputInformation()
+  {
+    this->UpdateCollapseRegion();
+    m_CollapseFilter->UpdateOutputInformation();
+    this->GetOutput()->CopyInformation(m_CollapseFilter->GetOutput());
+  }
+
+  virtual void CallCopyOutputRegionToInputRegion(InputImageRegionType & destRegion,
+                                                 const OutputImageRegionType & srcRegion)
+  {
+    this->UpdateCollapseRegion();
+
+    typename CollapseFilterType::ExtractImageFilterRegionCopierType copier;
+    copier(destRegion, srcRegion, m_CollapseFilter->GetExtractionRegion());
+  }
+
+  virtual void GenerateInputRequestedRegion()
+  {
+    // call the superclass's implementation of this method
+    Superclass::GenerateInputRequestedRegion();
+
+    if ( !this->GetInput() )
+      {
+      return;
+      }
+
+    // get pointers to the input and output
+    InputImageType *inputPtr  =
+      const_cast< InputImageType * >( this->GetInput() );
+
+    // Request the entire input image
+    inputPtr->SetRequestedRegionToLargestPossibleRegion();
+  }
+
+private:
+
+  typename ResampleFilterType::Pointer m_ResampleFilter;
+  typename CollapseFilterType::Pointer m_CollapseFilter;
+
+};
+
+
+/**
  * Some functions in the image wrapper are only defined for 'concrete' image
  * wrappers, i.e., those that store an image or a vectorimage. These functions
  * involve copying subregions, filling the buffer, IO, etc. To handle this
@@ -780,14 +942,10 @@ ImageWrapper<TTraits,TBase>
       // Set the input to the dummy image
       m_Slicer[i]->SetInput(dummy);
 
-      // Create an itk reslicing filter
-      m_ResampleFilter[i] = ResampleFilter::New();
-      m_ResampleFilter[i]->SetInput(newImage);
-      m_ResampleFilter[i]->SetTransform(transform);
-
-      // Create a collapsing filter
-      m_CollapseFilter[i] = CollapseSliceFilter::New();
-      m_CollapseFilter[i]->SetInput(m_ResampleFilter[i]->GetOutput());
+      // Create an advanced slicer
+      m_AdvancedSlicer[i] = NonOrthogonalSlicerType::New();
+      m_AdvancedSlicer[i]->SetInput(newImage);
+      m_AdvancedSlicer[i]->SetTransform(transform);
 
       // Create another set that work with the older slicers - this is temporary
       // TODO: get rid of this
@@ -799,6 +957,7 @@ ImageWrapper<TTraits,TBase>
       m_Slicer[i]->SetBypassMainInput(true);
       }
     }
+
 
   // Update the image
   this->m_ReferenceSpace = referenceSpace;
@@ -1023,10 +1182,9 @@ ImageWrapper<TTraits,TBase>
     unsigned int index,
     ImageBaseType *viewport_image)
 {
-  if(m_ReferenceSpace)
+  if(m_AdvancedSlicer[index])
     {
-    ResampleFilter *filter = m_ResampleFilter[index];
-    filter->SetReferenceImage(viewport_image);
+    m_AdvancedSlicer[index]->SetReferenceImage(viewport_image);
     }
 }
 
@@ -1169,13 +1327,9 @@ typename ImageWrapper<TTraits,TBase>::SliceType*
 ImageWrapper<TTraits,TBase>
 ::GetSlice(unsigned int dimension)
 {
-  if(m_ResampleFilter[dimension].IsNotNull())
+  if(m_AdvancedSlicer[dimension].IsNotNull())
     {
-    typename CollapseSliceFilter::InputImageRegionType exregion;
-    exregion = m_ResampleFilter[dimension]->GetReferenceImage()->GetLargestPossibleRegion();
-    exregion.SetSize(2, 0);
-    m_CollapseFilter[dimension]->SetExtractionRegion(exregion);
-    return m_CollapseFilter[dimension]->GetOutput();
+    return m_AdvancedSlicer[dimension]->GetOutput();
     }
   else
     return m_Slicer[dimension]->GetOutput();
