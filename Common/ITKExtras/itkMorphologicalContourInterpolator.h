@@ -24,8 +24,6 @@
 #include "itkConnectedComponentImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 
-#include "ThreadPool.h"
-
 
 namespace itk
 {
@@ -70,11 +68,15 @@ namespace itk
 template< typename TImage >
 class MorphologicalContourInterpolator :public ImageToImageFilter < TImage, TImage >
 {
+    template< typename Any >
+    friend class MorphologicalContourInterpolatorParallelInvoker;
 public:
   /** Standard class typedefs. */
   typedef MorphologicalContourInterpolator         Self;
   typedef ImageToImageFilter< TImage, TImage >     Superclass;
   typedef SmartPointer< Self >                     Pointer;
+  typedef Image<typename TImage::PixelType,
+      TImage::ImageDimension - 1>                  SliceType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -182,16 +184,13 @@ protected:
   bool                       m_UseDistanceTransform;
   bool                       m_UseBallStructuringElement;
   bool                       m_UseCustomSlicePositions;
-  bool                       m_StopSpawning; //stop spawning new threads
   IdentifierType             m_MinAlignIters; //minimum number of iterations in align method
   IdentifierType             m_MaxAlignIters; //maximum number of iterations in align method
-  ::ThreadPool*              m_ThreadPool; //avoid name conflict
+  IdentifierType             m_ThreadCount; //for thread local instances
 
   /** Derived image typedefs. */
   typedef Image<bool, TImage::ImageDimension>      BoolImageType;
   typedef Image<float, TImage::ImageDimension - 1> FloatSliceType;
-  typedef Image<typename TImage::PixelType,
-    TImage::ImageDimension - 1>                    SliceType;
   typedef Image<bool, TImage::ImageDimension - 1>  BoolSliceType;
 
   /** Are these two slices equal? */
@@ -209,7 +208,8 @@ protected:
   /** Determines correspondances between two slices and calls apropriate methods. */
   void InterpolateBetweenTwo(int axis, TImage *out, typename TImage::PixelType label,
     typename TImage::IndexValueType i, typename TImage::IndexValueType j,
-    typename SliceType::Pointer iconn, typename SliceType::Pointer jconn);
+    typename SliceType::Pointer iconn, typename SliceType::Pointer jconn,
+    ThreadIdType threadId);
 
   /** If interpolation is done along more than one axis,
   the interpolations are merged using a modified "or" rule:
@@ -221,33 +221,38 @@ protected:
   /** Slice i has a region, slice j does not */
   void Extrapolate(int axis, TImage *out, typename TImage::PixelType label,
     typename TImage::IndexValueType i, typename TImage::IndexValueType j,
-    typename SliceType::Pointer iConn, typename TImage::PixelType iRegionId);
+    typename SliceType::Pointer iConn, typename TImage::PixelType iRegionId,
+    ThreadIdType threadId);
 
 
   /** Creates a signed distance field image. */
-  typename FloatSliceType::Pointer MaurerDM(typename BoolSliceType::Pointer inImage);
+  typename FloatSliceType::Pointer MaurerDM(
+    typename BoolSliceType::Pointer inImage, ThreadIdType threadId);
 
   /** A sequence of conditional dilations starting with begin and reaching end.
   begin and end must cover the same region (size and index the same) */
   std::vector<typename BoolSliceType::Pointer> GenerateDilationSequence(
-    typename BoolSliceType::Pointer begin, typename BoolSliceType::Pointer end);
+    typename BoolSliceType::Pointer begin, typename BoolSliceType::Pointer end,
+    ThreadIdType threadId);
 
   /** Finds an interpolating mask for these two aligned masks */
   typename BoolSliceType::Pointer FindMedianImageDilations(
     typename BoolSliceType::Pointer intersection,
-    typename BoolSliceType::Pointer iMask, typename BoolSliceType::Pointer jMask);
+    typename BoolSliceType::Pointer iMask, typename BoolSliceType::Pointer jMask,
+    ThreadIdType threadId);
 
   /** Finds an interpolating mask for these two aligned masks */
   typename BoolSliceType::Pointer FindMedianImageDistances(
     typename BoolSliceType::Pointer intersection,
-    typename BoolSliceType::Pointer iMask, typename BoolSliceType::Pointer jMask);
+    typename BoolSliceType::Pointer iMask, typename BoolSliceType::Pointer jMask,
+    ThreadIdType threadId);
 
   /** Build transition sequence and pick the median */
   void Interpolate1to1(int axis, TImage *out, typename TImage::PixelType label,
     typename TImage::IndexValueType i, typename TImage::IndexValueType j,
     typename SliceType::Pointer iConn, typename TImage::PixelType iRegionId,
     typename SliceType::Pointer jConn, typename TImage::PixelType jRegionId,
-    typename SliceType::IndexType translation, bool recursive);
+    typename SliceType::IndexType translation, bool recursive, ThreadIdType threadId);
 
   typedef std::vector<typename TImage::PixelType> PixelList;
 
@@ -256,7 +261,7 @@ protected:
     typename TImage::IndexValueType i, typename TImage::IndexValueType j,
     typename SliceType::Pointer iConn, typename TImage::PixelType iRegionId,
     typename SliceType::Pointer jConn, PixelList jRegionIds,
-    typename SliceType::IndexType translation);
+    typename SliceType::IndexType translation, ThreadIdType threadId);
 
   /** Crates a translated copy of part of the image which fits in the newRegion. */
   typename SliceType::Pointer TranslateImage(typename SliceType::Pointer image,
@@ -266,7 +271,7 @@ protected:
   The images must cover the same region */
   IdentifierType CardSymDifference(typename BoolSliceType::Pointer shape1,
     typename BoolSliceType::Pointer shape2);
-  
+
   /** Copied from ImageSource and changed to allocate a cleared buffer. */
   virtual void AllocateOutputs() ITK_OVERRIDE;
 
@@ -307,7 +312,7 @@ protected:
   typename SliceType::RegionType BoundingBox(itk::SmartPointer<SliceType> image);
 
   /** Expands a region to incorporate the provided index.
-  *   Assumes both a valid region and a valid index. 
+  *   Assumes both a valid region and a valid index.
   *   It can be invoked with 2D or 3D region, hence the additional template parameter. */
   template< typename T2 >
   void ExpandRegion(typename T2::RegionType &region, typename T2::IndexType index);
@@ -318,7 +323,7 @@ protected:
 
   /** Seed and mask must cover the same region (size and index the same). */
   typename BoolSliceType::Pointer Dilate1(typename BoolSliceType::Pointer seed,
-    typename BoolSliceType::Pointer mask);
+    typename BoolSliceType::Pointer mask, ThreadIdType threadId);
 
   typedef ExtractImageFilter< TImage, SliceType > RoiType;
   typename RoiType::Pointer m_RoI;
