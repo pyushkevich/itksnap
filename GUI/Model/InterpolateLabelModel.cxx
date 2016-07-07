@@ -16,6 +16,8 @@
 
 #include "ConvertAPI.h"
 
+#include <iostream> //JAV: remove
+
 void InterpolateLabelModel::SetParentModel(GlobalUIModel *parent)
 {
   this->m_Parent = parent;
@@ -59,6 +61,12 @@ void InterpolateLabelModel::Interpolate()
 
           if (!this->GetInterpolateAll())
             mci->SetLabel(this->GetInterpolateLabel());
+
+          if (this->GetMorphologyInterpolateOneAxis())
+          {
+              std::cout << this->GetMorphologyInterpolationAxis() << std::endl;
+              mci->SetAxis(this->GetMorphologyInterpolationAxis());
+          }
 
           mci->SetUseDistanceTransform(this->GetMorphologyUseDistance());
           mci->Update();
@@ -171,6 +179,8 @@ InterpolateLabelModel::InterpolateLabelModel()
 
   m_MorphologyUseDistanceModel = NewSimpleConcreteProperty(false);
   m_MorphologyUseOptimalAlignmentModel = NewSimpleConcreteProperty(false);
+  m_MorphologyInterpolateOneAxisModel = NewSimpleConcreteProperty(false);
+  m_MorphologyInterpolationAxisModel = NewSimpleConcreteProperty(-1);
 
   RegistryEnumMap<InterpolationType> emap_interp;
   emap_interp.AddPair(DEFAULT,"Default");

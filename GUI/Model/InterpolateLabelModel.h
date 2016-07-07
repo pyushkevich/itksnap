@@ -60,6 +60,10 @@ public:
   /** Which interpolation method to use */
   irisSimplePropertyAccessMacro(InterpolationMethod, InterpolationType)
 
+  /** Which axis to interpolate along */
+  irisSimplePropertyAccessMacro(MorphologyInterpolateOneAxis, bool)
+  irisSimplePropertyAccessMacro(MorphologyInterpolationAxis, int)
+
   /** Perform the actual interpolation */
   void Interpolate();
 
@@ -84,6 +88,8 @@ protected:
 
   SmartPtr<ConcreteSimpleBooleanProperty> m_MorphologyUseDistanceModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_MorphologyUseOptimalAlignmentModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_MorphologyInterpolateOneAxisModel;
+  SmartPtr<ConcreteSimpleIntProperty> m_MorphologyInterpolationAxisModel;
 
   typedef ConcretePropertyModel<InterpolationType, TrivialDomain> ConcreteInterpolationType;
   SmartPtr<ConcreteInterpolationType> m_InterpolationMethodModel;
