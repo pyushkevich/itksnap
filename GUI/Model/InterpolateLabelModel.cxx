@@ -16,8 +16,6 @@
 
 #include "ConvertAPI.h"
 
-#include <iostream> //JAV: remove
-
 void InterpolateLabelModel::SetParentModel(GlobalUIModel *parent)
 {
   this->m_Parent = parent;
