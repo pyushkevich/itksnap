@@ -278,7 +278,6 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.txx
   Common/ITKExtras/itkVoxBoCUBImageIO.h
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
-  Common/ITKExtras/ThreadPool.h
   Common/PresetManager.h
   Common/PresetManager.hxx
   Common/PropertyModel.h
