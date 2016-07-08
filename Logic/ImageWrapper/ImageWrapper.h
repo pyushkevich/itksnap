@@ -181,6 +181,11 @@ public:
   irisGetMacro(UniqueId, unsigned long)
 
   /**
+    Does this wrapper use the non-orthogonal slicing pipeline?
+    */
+  virtual bool IsSlicingOrthogonal() const;
+
+  /**
    * Clear the data associated with storing an image
    */
   virtual void Reset();

@@ -1007,7 +1007,13 @@ ImageWrapper<TTraits,TBase>
   SetSliceIndex(source->GetSliceIndex());
 }
 
-
+template<class TTraits, class TBase>
+bool
+ImageWrapper<TTraits,TBase>
+::IsSlicingOrthogonal() const
+{
+  return m_AdvancedSlicer[0].IsNull();
+}
 
 template<class TTraits, class TBase>
 void

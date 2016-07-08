@@ -159,9 +159,17 @@ void GenericSliceModel::OnUpdate()
       if(rezoom)
         this->SetViewZoom(m_OptimalZoom);
       }
+    }
 
-    // Update the viewport information in the upstream objects
-    this->UpdateUpstreamViewportGeometry();
+  if(m_EventBucket->HasEvent(MainImageDimensionsChangeEvent())
+     || m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent())
+     || m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent())
+     || m_EventBucket->HasEvent(ValueChangedEvent())
+     || m_EventBucket->HasEvent(CursorUpdateEvent()))
+    {
+    // Viewport geometry pretty much   depends on everything!
+    if(m_SliceInitialized && m_ViewZoom > 0)
+      this->UpdateUpstreamViewportGeometry();
     }
 }
 
@@ -911,10 +919,10 @@ void GenericSliceModel::UpdateUpstreamViewportGeometry()
   u[2][0] = u[0][0]; u[2][1] = u[0][1] + vp.size[1];
 
   // Map into slice coordinates, adding the third dimension
-  s[0] = this->MapPhysicalWindowToSlice(u[0]); s[0][2] -= 0.5;
-  s[1] = this->MapPhysicalWindowToSlice(u[1]); s[1][2] -= 0.5;
-  s[2] = this->MapPhysicalWindowToSlice(u[2]); s[2][2] -= 0.5;
-  s[3] = this->MapPhysicalWindowToSlice(u[0]); s[3][2] += 0.5;
+  s[0] = this->MapWindowToSlice(u[0]); s[0][2] -= 0.5;
+  s[1] = this->MapWindowToSlice(u[1]); s[1][2] -= 0.5;
+  s[2] = this->MapWindowToSlice(u[2]); s[2][2] -= 0.5;
+  s[3] = this->MapWindowToSlice(u[0]); s[3][2] += 0.5;
 
   // Now, map into image coordinates - these are the voxel coordinates of the main image
   for(int i = 0; i < 4; i++)

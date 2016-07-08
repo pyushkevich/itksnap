@@ -44,7 +44,8 @@ protected:
   SnakeParametersPreviewPipeline *m_Pipeline;
 
   /** A texture object used to store the image */
-  OpenGLSliceTexture<RGBAType> *m_Texture;
+  typedef OpenGLSliceTexture<RGBAType> Texture;
+  SmartPtr<Texture> m_Texture;
 
   /** Which force is being displayed? */
   DisplayMode m_ForceToDisplay;

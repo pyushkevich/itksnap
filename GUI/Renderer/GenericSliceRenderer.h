@@ -48,13 +48,6 @@ protected:
   GenericSliceRenderer *m_ParentRenderer;
 };
 
-struct OpenGLTextureAssociationFactory
-{
-  typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;
-  Texture *New(ImageWrapperBase *layer);
-  GenericSliceRenderer *m_Renderer;
-};
-
 class GenericSliceRenderer : public AbstractRenderer
 {
 public:
@@ -128,25 +121,12 @@ protected:
 
   // A dynamic association between various image layers and texture objects
   typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;
-  typedef LayerAssociation<Texture, ImageWrapperBase,
-                           OpenGLTextureAssociationFactory> TextureMap;
 
-  TextureMap m_Texture;
+  // Get (creating if necessary) and configure the texture for a given layer
+  Texture *GetTextureForLayer(ImageWrapperBase *iw);
 
   // A list of overlays that the user can configure
   RendererDelegateList m_TiledOverlays, m_GlobalOverlays;
-
-  // Internal method used by UpdateTextureMap()
-  // void AssociateTexture(ImageWrapperBase *iw, TextureMap &src, TextureMap &trg);
-
-  // Texture factory method
-  Texture *CreateTexture(ImageWrapperBase *iw);
-
-
-  // Update the texture map to mirror the current images in the model
-  void UpdateTextureMap();
-
-  friend struct OpenGLTextureAssociationFactory;
 };
 
 

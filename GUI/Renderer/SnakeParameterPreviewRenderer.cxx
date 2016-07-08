@@ -6,14 +6,13 @@
 SnakeParameterPreviewRenderer::SnakeParameterPreviewRenderer()
 {
   // Initialize the texture object
-  m_Texture = new OpenGLSliceTexture<RGBAType>;
+  m_Texture = Texture::New();
   m_Texture->SetGlComponents(4);
   m_Texture->SetGlFormat(GL_RGBA);
 }
 
 SnakeParameterPreviewRenderer::~SnakeParameterPreviewRenderer()
 {
-  delete m_Texture;
 }
 
 void SnakeParameterPreviewRenderer::initializeGL()

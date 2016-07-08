@@ -51,12 +51,6 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 {
   this->m_Model = model;
 
-  // Build the texture map
-  OpenGLTextureAssociationFactory texFactoryDelegate = { this };
-  m_Texture.SetDelegate(texFactoryDelegate);
-  m_Texture.SetSource(model->GetDriver());
-  this->UpdateTextureMap();
-
   // Record and rebroadcast changes in the model
   Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
 
@@ -106,12 +100,6 @@ void GenericSliceRenderer::OnUpdate()
 
   // Also make sure to update the display layout model
   m_Model->GetParentUI()->GetDisplayLayoutModel()->Update();
-
-  // Only update the texture map in response to "big" events
-  if(m_EventBucket->HasEvent(ModelUpdateEvent(), m_Model))
-    {
-    this->UpdateTextureMap();
-    }
 }
 
 void
@@ -166,6 +154,7 @@ GenericSliceRenderer
       glMatrixMode(GL_MODELVIEW);
       glPushMatrix();
       glLoadIdentity();
+
       glPushMatrix();
 
       // First set of transforms
@@ -427,8 +416,50 @@ bool GenericSliceRenderer::IsTiledMode() const
 
 
 
+GenericSliceRenderer::Texture *
+GenericSliceRenderer
+::GetTextureForLayer(ImageWrapperBase *layer)
+{
+  const char *user_data_ids[] = {
+    "OpenGLTexture[0]",
+    "OpenGLTexture[1]",
+    "OpenGLTexture[2]"
+  };
+  const char *user_data_id = user_data_ids[m_Model->GetId()];
 
+  // If layer uninitialized, return NULL
+  if(!layer->IsInitialized())
+    return NULL;
 
+  // Retrieve the texture
+  SmartPtr<Texture> tex = static_cast<Texture *>(layer->GetUserData(user_data_id));
+
+  // Get the image that should be associated with the texture
+  Texture::ImageType *slice = layer->GetDisplaySlice(m_Model->GetId()).GetPointer();
+
+  // If the texture does not exist - or if the image has changed for some reason, update it
+  if(!tex || tex->GetImage() != slice)
+    {
+    tex = Texture::New();
+    tex->SetDepth(4, GL_RGBA);
+    tex->SetImage(slice);
+
+    layer->SetUserData(user_data_id, tex.GetPointer());
+    }
+
+  // Configure the texture parameters
+  const GlobalDisplaySettings *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
+  GLint imode =
+      (gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR)
+      ? GL_LINEAR : GL_NEAREST;
+  tex->SetInterpolation(imode);
+
+  // Set the mip-mapping behaviour depending on whether the image wrapper is rendering
+  // in image space or in display space
+  tex->SetMipMapping(layer->IsSlicingOrthogonal());
+
+  return tex;
+}
 
 void GenericSliceRenderer::DrawMainTexture()
 {
@@ -464,7 +495,18 @@ void GenericSliceRenderer::DrawTextureForLayer(
       ? GL_LINEAR : GL_NEAREST;
 
   // Get the texture
-  Texture *tex = m_Texture[layer];
+  Texture *tex = this->GetTextureForLayer(layer);
+
+  // Set up the drawing mode
+  glPushMatrix();
+
+  // If a layer is sliced orthogonally, it's sliced in its native voxel space
+  // and we rely on OpenGL for scaling into display space
+  // Otherwise there is a 1:1 mapping from slice pixels to display pixels
+  if(!layer->IsSlicingOrthogonal())
+    {
+    glLoadIdentity();
+    }
 
   // Paint the texture with alpha
   if(tex)
@@ -482,6 +524,9 @@ void GenericSliceRenderer::DrawTextureForLayer(
       tex->Draw(clrBackground);
       }
     }
+
+  // Pop the matrix
+  glPopMatrix();
 }
 
 
@@ -492,7 +537,7 @@ void GenericSliceRenderer::DrawSegmentationTexture()
 
   if (id->IsSegmentationLoaded() && alpha > 0)
     {
-    Texture *texture = m_Texture[id->GetSegmentation()];
+    Texture *texture = this->GetTextureForLayer(id->GetSegmentation());
     texture->DrawTransparent(alpha);
     }
   }
@@ -568,69 +613,6 @@ void GenericSliceRenderer::DrawThumbnail()
   m_DrawingZoomThumbnail = false;
   }
 
-GenericSliceRenderer::Texture *
-GenericSliceRenderer::CreateTexture(ImageWrapperBase *iw)
-{
-  if(iw->IsInitialized())
-    {
-    Texture *texture = new Texture(4, GL_RGBA);
-    texture->SetImage(iw->GetDisplaySlice(m_Model->GetId()).GetPointer());
-
-    const GlobalDisplaySettings *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
-
-    GLint imode =
-        (gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR)
-        ? GL_LINEAR : GL_NEAREST;
-
-    texture->SetInterpolation(imode);
-    return texture;
-    }
-  else return NULL;
-}
-
-/*
-void GenericSliceRenderer::AssociateTexture(
-  ImageWrapperBase *iw, TextureMap &src, TextureMap &trg)
-{
-  if(iw->IsInitialized())
-    {
-    TextureMap::iterator it = src.find(iw);
-    Texture *texture;
-
-    if (it != src.end())
-      {
-      texture = it->second;
-      itk::ImageBase<2> *b1 = iw->GetDisplaySlice(m_Model->GetId()).GetPointer();
-      const itk::ImageBase<2> *b2 = texture->GetImage();
-      std::cout << "TEX1 " << b1 << "   TEX2" << b2 << std::endl;
-      src.erase(it);
-      }
-    else
-      {
-      texture = new Texture(4, GL_RGBA);
-      texture->SetImage(iw->GetDisplaySlice(m_Model->GetId()).GetPointer());
-      }
-
-    // Set the interpolation approach
-    SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
-    GLint imode = as->GetGreyInterpolationMode() == SNAPAppearanceSettings::LINEAR
-        ? GL_LINEAR : GL_NEAREST;
-    texture->SetInterpolation(imode);
-
-    // Store the texture association
-    trg[iw] = texture;
-    }
-}
-
-*/
-
-void GenericSliceRenderer::UpdateTextureMap()
-{
-  if(m_Model->IsSliceInitialized())
-    {
-    m_Texture.Update();
-    }
-}
 
 void GenericSliceRenderer::initializeGL()
 {
@@ -657,17 +639,4 @@ void GenericSliceRenderer::DrawGlobalOverlays()
     (*it)->paintGL();
     }
 }
-
-OpenGLTextureAssociationFactory::Texture *
-OpenGLTextureAssociationFactory
-::New(ImageWrapperBase *layer)
-{
-  return m_Renderer->CreateTexture(layer);
-}
-
-
-template class LayerAssociation<GenericSliceRenderer::Texture,
-                                ImageWrapperBase,
-                                OpenGLTextureAssociationFactory>;
-
 

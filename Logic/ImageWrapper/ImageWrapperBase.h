@@ -209,6 +209,13 @@ public:
   irisVirtualIsMacro(Drawable)
 
   /**
+   * Whether the layer is initialized to use orthogonal slicing or non-orthogonal
+   * slicing. There are two slicing pipelines, one for the images whose slicing
+   * directions are parallel to the display planes, and one for the opposite case.
+   */
+  irisVirtualIsMacro(SlicingOrthogonal)
+
+  /**
    * Get the buffered region of the image
    */
   virtual itk::ImageRegion<3> GetBufferedRegion() const = 0;
