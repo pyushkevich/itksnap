@@ -239,40 +239,27 @@
          <widget class="QComboBox" name="morphologyInterpolationAxis">
           <property name="geometry">
            <rect>
-            <x>160</x>
+            <x>30</x>
             <y>80</y>
-            <width>51</width>
+            <width>81</width>
             <height>26</height>
            </rect>
           </property>
           <item>
            <property name="text">
-            <string>1</string>
+            <string>Axial</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>2</string>
+            <string>Sagittal</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>3</string>
+            <string>Coronal</string>
            </property>
           </item>
-         </widget>
-         <widget class="QLabel" name="axisLabel">
-          <property name="geometry">
-           <rect>
-            <x>40</x>
-            <y>80</y>
-            <width>121</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Axis to interpolate:</string>
-          </property>
          </widget>
         </widget>
        </widget>

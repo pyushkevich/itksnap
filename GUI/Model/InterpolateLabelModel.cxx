@@ -56,7 +56,7 @@ void InterpolateLabelModel::Interpolate()
           typedef itk::MorphologicalContourInterpolator<GenericImageData::LabelImageType> MCIType;
           SmartPtr<MCIType> mci = MCIType::New();
 
-          mci->SetInput(id->GetSegmentation()->GetImage());
+          mci->SetInput(liw->GetImage());
           mci->SetUseDistanceTransform(false);
 
           if (!this->GetInterpolateAll())
@@ -64,8 +64,8 @@ void InterpolateLabelModel::Interpolate()
 
           if (this->GetMorphologyInterpolateOneAxis())
           {
-              std::cout << this->GetMorphologyInterpolationAxis() << std::endl;
-              mci->SetAxis(this->GetMorphologyInterpolationAxis());
+              int axis = this->m_Parent->GetDriver()->GetImageDirectionForAnatomicalDirection(this->GetMorphologyInterpolationAxis());
+              mci->SetAxis(axis);
           }
 
           mci->SetUseDistanceTransform(this->GetMorphologyUseDistance());
@@ -155,11 +155,8 @@ void InterpolateLabelModel::Interpolate()
     }
 
     id->StoreUndoPoint("Interpolate label", it_trg.RelinquishDelta());
-    id->InvokeEvent(SegmentationChangeEvent());
+    this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
    }
-
-
-
 
 }
 
@@ -172,6 +169,12 @@ InterpolateLabelModel::InterpolateLabelModel()
   m_DrawOverFilterModel = ConcreteDrawOverFilterPropertyModel::New();
   m_RetainScaffoldModel = NewSimpleConcreteProperty(false);
 
+  RegistryEnumMap<InterpolationType> emap_interp;
+  emap_interp.AddPair(DEFAULT,"Default");
+  emap_interp.AddPair(LEVEL_SET,"Level set");
+  emap_interp.AddPair(MORPHOLOGY,"Morphology");
+  m_InterpolationMethodModel = NewSimpleEnumProperty("InterpolationType", DEFAULT, emap_interp);
+
   m_DefaultSmoothingModel = NewRangedConcreteProperty(3.0, 0.0, 20.0, 0.01);
 
   m_LevelSetSmoothingModel = NewRangedConcreteProperty(3.0, 0.0, 20.0, 0.01);
@@ -180,13 +183,10 @@ InterpolateLabelModel::InterpolateLabelModel()
   m_MorphologyUseDistanceModel = NewSimpleConcreteProperty(false);
   m_MorphologyUseOptimalAlignmentModel = NewSimpleConcreteProperty(false);
   m_MorphologyInterpolateOneAxisModel = NewSimpleConcreteProperty(false);
-  m_MorphologyInterpolationAxisModel = NewSimpleConcreteProperty(-1);
 
-  RegistryEnumMap<InterpolationType> emap_interp;
-  emap_interp.AddPair(DEFAULT,"Default");
-  emap_interp.AddPair(LEVEL_SET,"Level set");
-  emap_interp.AddPair(MORPHOLOGY,"Morphology");
-
-  m_InterpolationMethodModel = NewSimpleEnumProperty("InterpolationType", DEFAULT, emap_interp);
-
+  RegistryEnumMap<AnatomicalDirection> emap_interp_axis;
+  emap_interp_axis.AddPair(ANATOMY_AXIAL,"Axial");
+  emap_interp_axis.AddPair(ANATOMY_SAGITTAL,"Sagittal");
+  emap_interp_axis.AddPair(ANATOMY_CORONAL,"Coronal");
+  m_MorphologyInterpolationAxisModel = NewSimpleEnumProperty("InterpolationAxis", ANATOMY_AXIAL, emap_interp_axis);
 }

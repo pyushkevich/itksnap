@@ -8,6 +8,7 @@
 #include "QtCheckBoxCoupling.h"
 
 Q_DECLARE_METATYPE(InterpolateLabelModel::InterpolationType)
+Q_DECLARE_METATYPE(AnatomicalDirection)
 
 InterpolateLabelsDialog::InterpolateLabelsDialog(QWidget *parent) :
   QDialog(parent),
@@ -54,9 +55,9 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
   makeCoupling(ui->interpolationMethod, m_Model->GetInterpolationMethodModel());
 
   ui->morphologyInterpolationAxis->clear();
-  ui->morphologyInterpolationAxis->addItem("0",QVariant::fromValue(0));
-  ui->morphologyInterpolationAxis->addItem("1",QVariant::fromValue(1));
-  ui->morphologyInterpolationAxis->addItem("2",QVariant::fromValue(2));
+  ui->morphologyInterpolationAxis->addItem("Axial",QVariant::fromValue(ANATOMY_AXIAL));
+  ui->morphologyInterpolationAxis->addItem("Sagittal",QVariant::fromValue(ANATOMY_SAGITTAL));
+  ui->morphologyInterpolationAxis->addItem("Coronal",QVariant::fromValue(ANATOMY_CORONAL));
   makeCoupling(ui->morphologyInterpolationAxis, m_Model->GetMorphologyInterpolationAxisModel());
 }
 

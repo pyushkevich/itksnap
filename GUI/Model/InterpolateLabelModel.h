@@ -38,22 +38,18 @@ public:
   /** Model for the label that will be drawn over */
   irisGenericPropertyAccessMacro(DrawOverFilter, DrawOverFilter, DrawOverLabelItemSetDomain)
 
-  /** Smoothing factor */
-  irisRangedPropertyAccessMacro(DefaultSmoothing, double)
-
-  irisRangedPropertyAccessMacro(LevelSetSmoothing, double)
-
-  /** Whether all the labels should be interpolated */
+  /** Whether the scaffold should be kept */
   irisSimplePropertyAccessMacro(RetainScaffold, bool)
 
-  /** Whether all the labels should be interpolated */
+  /** Smoothing factor */
+  irisRangedPropertyAccessMacro(DefaultSmoothing, double)
+  irisRangedPropertyAccessMacro(LevelSetSmoothing, double)
 
-  /** Whether all the labels should be interpolated */
+  /** Curvature parameter for level set method */
   irisRangedPropertyAccessMacro(LevelSetCurvature, double)
 
   /** Whether to use signed distance transform for morphological interpolation */
   irisSimplePropertyAccessMacro(MorphologyUseDistance, bool)
-
   /** Whether to use optimal slice alignment for morphological interpolation */
   irisSimplePropertyAccessMacro(MorphologyUseOptimalAlignment, bool)
 
@@ -62,7 +58,7 @@ public:
 
   /** Which axis to interpolate along */
   irisSimplePropertyAccessMacro(MorphologyInterpolateOneAxis, bool)
-  irisSimplePropertyAccessMacro(MorphologyInterpolationAxis, int)
+  irisSimplePropertyAccessMacro(MorphologyInterpolationAxis, AnatomicalDirection)
 
   /** Perform the actual interpolation */
   void Interpolate();
@@ -89,7 +85,8 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_MorphologyUseDistanceModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_MorphologyUseOptimalAlignmentModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_MorphologyInterpolateOneAxisModel;
-  SmartPtr<ConcreteSimpleIntProperty> m_MorphologyInterpolationAxisModel;
+  typedef ConcretePropertyModel<AnatomicalDirection, TrivialDomain> ConcreteInterpolationAxisType;
+  SmartPtr<ConcreteInterpolationAxisType> m_MorphologyInterpolationAxisModel;
 
   typedef ConcretePropertyModel<InterpolationType, TrivialDomain> ConcreteInterpolationType;
   SmartPtr<ConcreteInterpolationType> m_InterpolationMethodModel;
