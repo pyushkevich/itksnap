@@ -94,7 +94,13 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
   Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(), ModelUpdateEvent());
 
   // Listen to cursor update events and rebroadcast them for the child model
-  m_SliceIndexModel->Rebroadcast(model, CursorUpdateEvent(), ValueChangedEvent());
+  m_SliceIndexModel->Rebroadcast(m_Driver, CursorUpdateEvent(), ValueChangedEvent());
+
+  // Also rebroadcast the cursor change events as a model update event
+  Rebroadcast(m_Driver, CursorUpdateEvent(), ModelUpdateEvent());
+
+  // Rebroadcast our own zoom/map events as model update events
+  Rebroadcast(this, SliceModelGeometryChangeEvent(), ModelUpdateEvent());
 
   // Also listen for changes in the selected layer
   AbstractSimpleULongProperty *selLayerModel = m_Driver->GetGlobalState()->GetSelectedLayerIdModel();
@@ -165,10 +171,11 @@ void GenericSliceModel::OnUpdate()
      || m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent())
      || m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent())
      || m_EventBucket->HasEvent(ValueChangedEvent())
-     || m_EventBucket->HasEvent(CursorUpdateEvent()))
+     || m_EventBucket->HasEvent(CursorUpdateEvent())
+     || m_EventBucket->HasEvent(SliceModelGeometryChangeEvent()))
     {
     // Viewport geometry pretty much   depends on everything!
-    if(m_SliceInitialized && m_ViewZoom > 0)
+    if(m_SliceInitialized && m_ViewZoom > 1.e-7)
       this->UpdateUpstreamViewportGeometry();
     }
 }
@@ -914,15 +921,25 @@ void GenericSliceModel::UpdateUpstreamViewportGeometry()
   Vector3d x[4];
 
   // Define the corners of the viewport
-  u[0][0] = vp.pos[0]; u[0][1] = vp.pos[1];
-  u[1][0] = u[0][0] + vp.size[0]; u[1][1] = u[0][1];
-  u[2][0] = u[0][0]; u[2][1] = u[0][1] + vp.size[1];
+  double vp_x = vp.pos[0];
+  double vp_y = vp.pos[1];
+  double vs_x = vp.size[0];
+  double vs_y = vp.size[1];
+
+  u[0][0] = vp_x; u[0][1] = vp_y; u[1][0] = u[0][0] + vs_x; u[1][1] = u[0][1]; u[2][0] = u[0][0]; u[2][1] = u[0][1] + vs_y;
 
   // Map into slice coordinates, adding the third dimension
-  s[0] = this->MapWindowToSlice(u[0]); s[0][2] -= 0.5;
-  s[1] = this->MapWindowToSlice(u[1]); s[1][2] -= 0.5;
-  s[2] = this->MapWindowToSlice(u[2]); s[2][2] -= 0.5;
-  s[3] = this->MapWindowToSlice(u[0]); s[3][2] += 0.5;
+  s[0] = this->MapWindowToSlice(u[0]); // s[0][2] -= 1.0;
+  s[1] = this->MapWindowToSlice(u[1]); // s[1][2] -= 1.0;
+  s[2] = this->MapWindowToSlice(u[2]); // s[2][2] -= 1.0;
+  s[3] = this->MapWindowToSlice(u[0]);
+  s[3][2] += m_DisplayToImageTransform.GetCoordinateOrientation(2);
+
+  for(int i = 0; i < 4; i++)
+    {
+    s[i][0] -= this->m_SliceSpacing[0] / 2;
+    s[i][1] -= this->m_SliceSpacing[1] / 2;
+    }
 
   // Now, map into image coordinates - these are the voxel coordinates of the main image
   for(int i = 0; i < 4; i++)
@@ -942,8 +959,11 @@ void GenericSliceModel::UpdateUpstreamViewportGeometry()
   spacing[1] = (x[2] - x[0]).magnitude() / vp.size[1];
   spacing[2] = (x[3] - x[0]).magnitude();
 
-  // Origin - just the coordinates of the first point (although careful about the 0.5 offset!)
-  GenericImageData::ImageBaseType::PointType origin = to_itkPoint(x[0]);
+  // Origin - the coordinates of the first point, plus a half-voxel
+  Vector3d origin = x[0];
+  origin += (x[1] - x[0]) / (2.0 * vp.size[0]);
+  origin += (x[2] - x[0]) / (2.0 * vp.size[1]);
+  origin -= (x[3] - x[0]) / 2.0;
 
   // Direction cosines - these are the normalized directions
   GenericImageData::ImageBaseType::DirectionType dir;
@@ -956,9 +976,19 @@ void GenericSliceModel::UpdateUpstreamViewportGeometry()
 
   // Set all of the parameters for the reference image
   dispimg->SetSpacing(spacing);
-  dispimg->SetOrigin(origin);
+  dispimg->SetOrigin(to_itkPoint(origin));
   dispimg->SetDirection(dir);
   dispimg->SetRegions(region);
+
+  // Test that the continuous index (0,0,0) in the image maps to the continuous index that
+  // matches the slice index
+  itk::ContinuousIndex<double, 3> j_disp, j_img;
+  itk::Point<double, 3> px;
+  j_disp.Fill(0.0);
+  dispimg->TransformContinuousIndexToPhysicalPoint(j_disp, px);
+  gid->GetMain()->GetImageBase()->TransformPhysicalPointToContinuousIndex(px, j_img);
+  if(j_img[this->GetSliceDirectionInImageSpace()] != this->GetSliceIndex())
+    std::cout << "We have a problem" << std::endl;
 }
 
 ImageWrapperBase *GenericSliceModel::GetLayerForNthTile(int row, int col)
