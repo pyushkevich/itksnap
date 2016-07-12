@@ -194,6 +194,10 @@ protected:
     m_ResampleFilter = ResampleFilterType::New();
     m_CollapseFilter = CollapseFilterType::New();
 
+    typedef itk::NearestNeighborInterpolateImageFunction<InputImageType> NNType;
+    typename NNType::Pointer nnFunc = NNType::New();
+    m_ResampleFilter->SetInterpolator(nnFunc);
+
     m_CollapseFilter->SetInput(m_ResampleFilter->GetOutput());
     m_CollapseFilter->SetDirectionCollapseToIdentity();
   }

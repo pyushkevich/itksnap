@@ -84,6 +84,7 @@ OpenGLSliceTexture<TPixel>
     }
 }
 
+#include "itkImageFileWriter.h"
 
 template<class TPixel>
 void

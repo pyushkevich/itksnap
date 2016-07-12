@@ -58,7 +58,8 @@ itkEventMacro(SliceModelGeometryChangeEvent, IRISEvent)
 struct SliceViewportLayout
 {
 public:
-  struct SubViewport {
+  struct SubViewport
+  {
     // Size and position of the viewport
     Vector2ui pos, size;
 
