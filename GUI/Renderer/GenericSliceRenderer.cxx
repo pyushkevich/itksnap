@@ -181,7 +181,7 @@ GenericSliceRenderer
 
       // Draw the main layers for this row/column combination
       ImageWrapperBase *layer = id->FindLayer(vp.layer_id, false);
-      if(layer && this->DrawImageLayers(layer, !vp.isThumbnail))
+      if(layer && this->DrawImageLayers(layer, vp))
         {
         // Set the thumbnail flag
         m_DrawingLayerThumbnail = vp.isThumbnail;
@@ -347,7 +347,7 @@ GenericSliceRenderer
   glLoadIdentity();
 }
 
-bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool drawStickies)
+bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, const ViewportType &vp)
 {
   // Get the image data
   GenericImageData *id = m_Model->GetImageData();
@@ -355,7 +355,7 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool dr
   // If drawing the thumbnail, only draw the main layer
   if(m_DrawingZoomThumbnail)
     {
-    DrawTextureForLayer(base_layer, false);
+    DrawTextureForLayer(base_layer, vp, false);
     return true;
     }
 
@@ -363,10 +363,10 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool dr
   if(!this->IsTiledMode())
     {
     // Draw the base layer without transparency
-    DrawTextureForLayer(base_layer, false);
+    DrawTextureForLayer(base_layer, vp, false);
 
     // Now draw all the sticky layers on top
-    if(drawStickies)
+    if(!vp.isThumbnail)
       {
         for(LayerIterator it(id); !it.IsAtEnd(); ++it)
         {
@@ -376,7 +376,7 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool dr
            && layer->IsSticky()
            && layer->GetAlpha() > 0)
           {
-          DrawTextureForLayer(layer, true);
+          DrawTextureForLayer(layer, vp, true);
           }
         }
       }
@@ -386,10 +386,10 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool dr
   else
     {
     // Draw the particular layer
-    DrawTextureForLayer(base_layer, false);
+    DrawTextureForLayer(base_layer, vp, false);
 
     // Now draw all the non-sticky layers
-    if(drawStickies)
+    if(!vp.isThumbnail)
       {
       for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
         {
@@ -398,7 +398,7 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool dr
            && itov.GetLayer()->IsDrawable()
            && itov.GetLayer()->GetAlpha() > 0)
           {
-          DrawTextureForLayer(itov.GetLayer(), true);
+          DrawTextureForLayer(itov.GetLayer(), vp, true);
           }
         }
       }
@@ -461,25 +461,8 @@ GenericSliceRenderer
   return tex;
 }
 
-void GenericSliceRenderer::DrawMainTexture()
-{
-  // Get the image data
-  GenericImageData *id = m_Model->GetImageData();
-
-  // Draw the main texture
-  if (id->IsMainLoaded())
-    DrawTextureForLayer(id->GetMain(), false);
-
-  // Draw each of the overlays
-  if (!m_DrawingZoomThumbnail)
-    {
-    for(LayerIterator it(id, OVERLAY_ROLE); !it.IsAtEnd(); ++it)
-      DrawTextureForLayer(it.GetLayer(), true);
-    }
-}
-
 void GenericSliceRenderer::DrawTextureForLayer(
-    ImageWrapperBase *layer, bool use_transparency)
+    ImageWrapperBase *layer, const ViewportType &vp, bool use_transparency)
 {
   // Get the appearance settings pointer since we use it a lot
   SNAPAppearanceSettings *as =
@@ -506,6 +489,14 @@ void GenericSliceRenderer::DrawTextureForLayer(
   if(!layer->IsSlicingOrthogonal())
     {
     glLoadIdentity();
+    if(vp.isThumbnail)
+      {
+      double scale_x = vp.size[0] * 1.0 / m_Model->GetCanvasSize()[0];
+      double scale_y = vp.size[1] * 1.0 / m_Model->GetCanvasSize()[1];
+      double zoom = std::max(scale_x, scale_y);
+      glScalef(zoom, zoom, 0);
+      }
+
     }
 
   // Paint the texture with alpha
@@ -570,7 +561,11 @@ void GenericSliceRenderer::DrawThumbnail()
   glScalef(m_Model->GetSliceSpacing()[0],m_Model->GetSliceSpacing()[1],1.0);
 
   // Draw the Main image (the background will be picked automatically)
-  DrawMainTexture();
+  if (m_Model->GetImageData()->IsMainLoaded())
+    {
+    ViewportType vp = m_Model->GetViewportLayout().vpList.front();
+    DrawTextureForLayer(m_Model->GetImageData()->GetMain(), vp, false);
+    }
 
   // Draw the overlays that are shown on the thumbnail
   DrawTiledOverlays();

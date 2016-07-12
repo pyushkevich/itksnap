@@ -129,6 +129,10 @@ OpenGLSliceTexture<TPixel>
   glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_InterpolationMode );
   glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_InterpolationMode );
 
+  // TODO: figure out how this can be applied in a fully compatible way
+  // glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+  // glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
   // Turn off modulo-4 rounding in GL
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glPixelStorei(GL_PACK_ALIGNMENT, 1);

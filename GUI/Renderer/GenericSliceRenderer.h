@@ -86,9 +86,6 @@ public:
   RendererDelegateList &GetTiledOverlays()
     { return m_TiledOverlays; }
 
-  // This method can be used by the renderer delegates to draw a texture
-  void DrawTextureForLayer(ImageWrapperBase *layer, bool use_transparency);
-
   // A callback for when the model is reinitialized
   // void OnModelReinitialize();
 
@@ -100,17 +97,24 @@ protected:
 
   void OnUpdate();
 
-  void DrawMainTexture();
   void DrawSegmentationTexture();
   void DrawOverlayTexture();
   void DrawThumbnail();
   void DrawTiledOverlays();
   void DrawGlobalOverlays();
 
+  // Viewport object
+  typedef SliceViewportLayout::SubViewport ViewportType;
+
   // Draw the image and overlays either on top of each other or separately
   // in individual cells. Returns true if a layer was drawn, false if not,
   // i.e., the cell is outside of the range of available layers
-  bool DrawImageLayers(ImageWrapperBase *base_layer, bool drawStickes);
+  bool DrawImageLayers(
+      ImageWrapperBase *base_layer,
+      const ViewportType &vp);
+
+  // This method can be used by the renderer delegates to draw a texture
+  void DrawTextureForLayer(ImageWrapperBase *layer, const ViewportType &vp, bool use_transparency);
 
   bool IsTiledMode() const;
 

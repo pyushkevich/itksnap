@@ -261,6 +261,9 @@ GenericSliceModel
   // Compute the optimal zoom for this slice
   ComputeOptimalZoom();
 
+  // Set the zoom to optimal zoom for starters
+  m_ViewZoom = m_OptimalZoom;
+
   // Fire a modified event, forcing a repaint of the window
   InvokeEvent(ModelUpdateEvent());
 }
@@ -920,40 +923,31 @@ void GenericSliceModel::UpdateUpstreamViewportGeometry()
   Vector3f s[4];
   Vector3d x[4];
 
-  // Define the corners of the viewport
-  double vp_x = vp.pos[0];
-  double vp_y = vp.pos[1];
-  double vs_x = vp.size[0];
-  double vs_y = vp.size[1];
-
-  u[0][0] = vp_x; u[0][1] = vp_y; u[1][0] = u[0][0] + vs_x; u[1][1] = u[0][1]; u[2][0] = u[0][0]; u[2][1] = u[0][1] + vs_y;
+  // Define the corners of the viewport in screen pixel units
+  u[0][0] = 0;
+  u[0][1] = 0;
+  u[1][0] = u[0][0] + vp.size[0]; u[1][1] = u[0][1];
+  u[2][0] = u[0][0]; u[2][1] = u[0][1] + vp.size[1];
 
   // Map into slice coordinates, adding the third dimension
-  s[0] = this->MapWindowToSlice(u[0]); // s[0][2] -= 1.0;
-  s[1] = this->MapWindowToSlice(u[1]); // s[1][2] -= 1.0;
-  s[2] = this->MapWindowToSlice(u[2]); // s[2][2] -= 1.0;
+  s[0] = this->MapWindowToSlice(u[0]);
+  s[1] = this->MapWindowToSlice(u[1]);
+  s[2] = this->MapWindowToSlice(u[2]);
   s[3] = this->MapWindowToSlice(u[0]);
   s[3][2] += m_DisplayToImageTransform.GetCoordinateOrientation(2);
 
+  // Map these four points into the physical image space
   for(int i = 0; i < 4; i++)
     {
-    // s[i][0] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(0) * this->m_SliceSpacing[0] / 2;
-    // s[i][1] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(1) * this->m_SliceSpacing[1] / 2;
+    // Shift by half-voxel in the in-plane dimensions
     s[i][0] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(0) * 0.5;
     s[i][1] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(1) * 0.5;
-    }
 
-  // Now, map into image coordinates - these are the voxel coordinates of the main image
-  for(int i = 0; i < 4; i++)
-    {
     itk::ContinuousIndex<double, 3> j = to_itkContinuousIndex(this->MapSliceToImage(s[i]));
     itk::Point<double, 3> px;
     gid->GetMain()->GetImageBase()->TransformContinuousIndexToPhysicalPoint(j, px);
     x[i] = Vector3d(px);
     }
-
-  // Finally, we have four points in physical space. From these we can assign
-  // all the parameters of the target image.
 
   // Spacing - divide the length of each edge by the size in voxels
   GenericImageData::ImageBaseType::SpacingType spacing;
@@ -981,16 +975,6 @@ void GenericSliceModel::UpdateUpstreamViewportGeometry()
   dispimg->SetOrigin(to_itkPoint(origin));
   dispimg->SetDirection(dir);
   dispimg->SetRegions(region);
-
-  // Test that the continuous index (0,0,0) in the image maps to the continuous index that
-  // matches the slice index
-  itk::ContinuousIndex<double, 3> j_disp, j_img;
-  itk::Point<double, 3> px;
-  j_disp.Fill(0.0);
-  dispimg->TransformContinuousIndexToPhysicalPoint(j_disp, px);
-  gid->GetMain()->GetImageBase()->TransformPhysicalPointToContinuousIndex(px, j_img);
-  if(j_img[this->GetSliceDirectionInImageSpace()] != this->GetSliceIndex())
-    std::cout << "We have a problem" << std::endl;
 }
 
 ImageWrapperBase *GenericSliceModel::GetLayerForNthTile(int row, int col)

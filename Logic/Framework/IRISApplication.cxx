@@ -1460,16 +1460,10 @@ IRISApplication
 
   // TODO: in situations where the size is the same and spacing is different, we may want to ask the
   // user how to handle it, or at least display a warning?
-
-  // TODO: temporary override - force coreg only
-/*
-  // Call the correct method
-  if(same_size && same_space)
+  /*if(same_size && same_space)
     m_IRISImageData->AddOverlay(io);
-  else
+  else*/
     m_IRISImageData->AddCoregOverlay(io);
-    */
-  m_IRISImageData->AddCoregOverlay(io);
 
   ImageWrapperBase *layer = m_IRISImageData->GetLastOverlay();
 

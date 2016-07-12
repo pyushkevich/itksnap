@@ -50,8 +50,7 @@ template <class TFunctor> class UnaryValueToValueFilter;
 
 class SNAPSegmentationROISettings;
 template <typename TInputImage,
-          typename TOutputImage,
-          typename TWorkingImage> class NonOrthogonalSlicerFilter;
+          typename TOutputImage> class NonOrthogonalSlicer;
 
 namespace itk {
   template <unsigned int VDimension> class ImageBase;
@@ -667,7 +666,7 @@ protected:
   SmartPtr<ResampleFilter> m_ResampleFilter[6];
 
   // TODO: in the future replace this with a true in-place filter that collapses the last dimension
-  typedef NonOrthogonalSlicerFilter<ImageType, SliceType, PreviewImageType> NonOrthogonalSlicerType;
+  typedef NonOrthogonalSlicer<ImageType, SliceType> NonOrthogonalSlicerType;
   SmartPtr<NonOrthogonalSlicerType> m_AdvancedSlicer[3];
 };
 

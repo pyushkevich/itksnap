@@ -279,9 +279,9 @@ ScalarImageWrapper<TTraits,TBase>
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
   // Make sure the display slice is updated
-  // this->GetDisplaySlice(0)->GetSource()->UpdateLargestPossibleRegion();
+  this->GetDisplaySlice(0)->GetSource()->UpdateLargestPossibleRegion();
 
-  this->GetDisplaySlice(0)->Update();
+  // this->GetDisplaySlice(0)->Update();
 
   // Find the correct voxel in the space of the first display slice
   Vector3ui idxDisp =

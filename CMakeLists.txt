@@ -377,6 +377,8 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/GMM/KMeansPlusPlus.h
   Logic/Preprocessing/GMM/UnsupervisedClustering.h
   Logic/Preprocessing/Texture/MomentTextures.h
+  Logic/Slicing/ImageRegionConstIteratorWithIndexOverride.h
+  Logic/Slicing/FastLinearInterpolator.h
   Logic/Slicing/IRISSlicer.h
   Logic/Slicing/IRISSlicer.txx
   Logic/Slicing/IRISSlicer_RLE.txx
@@ -384,6 +386,8 @@ SET(LOGIC_HEADERS
   Logic/Slicing/IntensityCurveVTK.h
   Logic/Slicing/IntensityToColorLookupTableImageFilter.h
   Logic/Slicing/LookupTableIntensityMappingFilter.h
+  Logic/Slicing/NonOrthogonalSlicer.h
+  Logic/Slicing/NonOrthogonalSlicer.txx
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.h
 )
 
