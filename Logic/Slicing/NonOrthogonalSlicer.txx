@@ -191,7 +191,7 @@ NonOrthogonalSlicer<TInputImage, TOutputImage>
           ? fi.InterpolateNearestNeighbor(cixSample.GetDataPointer(), buffer)
           : fi.Interpolate(cixSample.GetDataPointer(), buffer);
 
-      if(status == FastInterpolator::INSIDE || status == FastInterpolator::BORDER)
+      if(status == FastInterpolator::INSIDE)
         {
         for(int k = 0; k < ncomp; k++)
           *outPixelPtr++ = static_cast<OutputComponentType>(buffer[k]);
@@ -199,8 +199,8 @@ NonOrthogonalSlicer<TInputImage, TOutputImage>
       else
         {
         // TODO: this is problematic!!!!
-        // for(int k = 0; k < ncomp; k++)
-        //  *outPixelPtr++ = itk::NumericTraits<OutputComponentType>::Zero;
+        for(int k = 0; k < ncomp; k++)
+          *outPixelPtr++ = 0; //itk::NumericTraits<OutputComponentType>::Zero;
         }
 
       // Update the sample location
