@@ -937,8 +937,10 @@ void GenericSliceModel::UpdateUpstreamViewportGeometry()
 
   for(int i = 0; i < 4; i++)
     {
-    s[i][0] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(0) * this->m_SliceSpacing[0] / 2;
-    s[i][1] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(1) * this->m_SliceSpacing[1] / 2;
+    // s[i][0] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(0) * this->m_SliceSpacing[0] / 2;
+    // s[i][1] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(1) * this->m_SliceSpacing[1] / 2;
+    s[i][0] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(0) * 0.5;
+    s[i][1] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(1) * 0.5;
     }
 
   // Now, map into image coordinates - these are the voxel coordinates of the main image
