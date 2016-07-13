@@ -50,12 +50,42 @@
 using itk::DataObjectDecorator;
 
 template <typename TPixel, unsigned int VDim, typename CounterType> class RLEImage;
+template <typename TImage, typename TFloat, unsigned int VDim> class FastLinearInterpolator;
 
 namespace itk
 {
 template <typename TImage, typename TAccessor> class ImageAdaptor;
 template <typename TPixelType, unsigned int Dimension> class VectorImageToImageAdaptor;
 }
+
+/**
+ * This is a helper traits class that can be used to modify the access of pixel
+ * data in the input image by the NonOrthogonalSlicer.
+ */
+template <typename TInputImage, typename TOutputImage>
+class NonOrthogonalSlicerPixelAccessTraitsWorker
+{
+public:
+  typedef typename TOutputImage::InternalPixelType OutputComponentType;
+
+  NonOrthogonalSlicerPixelAccessTraitsWorker(TInputImage *image);
+  ~NonOrthogonalSlicerPixelAccessTraitsWorker();
+
+  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
+
+protected:
+
+  // The interpolator object used internally
+  typedef FastLinearInterpolator<TInputImage, double, TInputImage::ImageDimension> Interpolator;
+  Interpolator m_Interpolator;
+
+  // Number of components
+  int m_NumComponents;
+
+  // Temporary buffer
+  double *m_Buffer;
+};
+
 
 /**
  * This is an alternative slicer that functions more or less like an ITK
@@ -66,12 +96,12 @@ template <typename TPixelType, unsigned int Dimension> class VectorImageToImageA
  * generated.
  */
 template <typename TInputImage, typename TOutputImage>
-class NonOrthogonalSlicerBase
+class NonOrthogonalSlicer
     : public itk::ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef NonOrthogonalSlicerBase                                        Self;
+  typedef NonOrthogonalSlicer                                            Self;
   typedef itk::ImageToImageFilter<TInputImage, TOutputImage>       Superclass;
   typedef itk::SmartPointer<Self>                                     Pointer;
   typedef itk::SmartPointer<const Self>                          ConstPointer;
@@ -90,7 +120,7 @@ public:
   itkNewMacro(Self)
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(NonOrthogonalSlicerBase, ImageToImageFilter)
+  itkTypeMacro(NonOrthogonalSlicer, ImageToImageFilter)
 
   itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
   itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
@@ -118,13 +148,14 @@ public:
 
 protected:
 
-  NonOrthogonalSlicerBase();
-  ~NonOrthogonalSlicerBase();
+  NonOrthogonalSlicer();
+  ~NonOrthogonalSlicer();
 
-  /*
+  /** The traits class */
+  typedef NonOrthogonalSlicerPixelAccessTraitsWorker<TInputImage, TOutputImage> WorkerType;
+
   virtual void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
                                     itk::ThreadIdType threadId);
-*/
 
   virtual void VerifyInputInformation() { }
 
@@ -137,160 +168,105 @@ private:
   bool m_UseNearestNeighbor;
 };
 
-/**
- * An actual implementation of the base class
- */
-template <typename TInputImage, typename TOutputImage>
-class NonOrthogonalSlicer
-    : public NonOrthogonalSlicerBase<TInputImage, TOutputImage>
-{
-public:
 
-  /** Standard class typedefs. */
-  typedef NonOrthogonalSlicer                                            Self;
-  typedef NonOrthogonalSlicerBase<TInputImage, TOutputImage>       Superclass;
-  typedef itk::SmartPointer<Self>                                     Pointer;
-  typedef itk::SmartPointer<const Self>                          ConstPointer;
-
-  typedef TInputImage                                          InputImageType;
-  typedef typename InputImageType::ConstPointer             InputImagePointer;
-  typedef typename InputImageType::PixelType                   InputPixelType;
-  typedef typename InputImageType::InternalPixelType       InputComponentType;
-
-  typedef TOutputImage                                        OutputImageType;
-  typedef typename OutputImageType::Pointer                OutputImagePointer;
-  typedef typename OutputImageType::PixelType                 OutputPixelType;
-  typedef typename OutputImageType::InternalPixelType     OutputComponentType;
-
-  typedef typename Superclass::ReferenceImageBaseType ReferenceImageBaseType;
-  typedef typename Superclass::TransformType TransformType;
-  typedef typename Superclass::InputImageRegionType InputImageRegionType;
-  typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
-
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
-  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
-
-  /** Method for creation through the object factory. */
-  itkNewMacro(Self)
-
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NonOrthogonalSlicer, NonOrthogonalSlicerBase)
-
-protected:
-  NonOrthogonalSlicer() {}
-  ~NonOrthogonalSlicer() {}
-
-  virtual void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                                    itk::ThreadIdType threadId);
-};
 
 
 /**
- * An specialization of the base class for RLE images
+ * An specialization of the traits class for RLE images
  */
 template <typename TPixel, typename CounterType, typename TOutputImage>
-class NonOrthogonalSlicer< RLEImage<TPixel, 3, CounterType>, TOutputImage>
-    : public NonOrthogonalSlicerBase<RLEImage<TPixel, 3, CounterType>, TOutputImage>
+class NonOrthogonalSlicerPixelAccessTraitsWorker<
+    RLEImage<TPixel, 3, CounterType>, TOutputImage>
 {
 public:
 
-  typedef RLEImage<TPixel, 3, CounterType>                     InputImageType;
+  typedef RLEImage<TPixel, 3, CounterType> InputImageType;
+  typedef typename TOutputImage::InternalPixelType OutputComponentType;
 
-  /** Standard class typedefs. */
-  typedef NonOrthogonalSlicer                                            Self;
-  typedef NonOrthogonalSlicerBase<InputImageType, TOutputImage>    Superclass;
-  typedef itk::SmartPointer<Self>                                     Pointer;
-  typedef itk::SmartPointer<const Self>                          ConstPointer;
+  NonOrthogonalSlicerPixelAccessTraitsWorker(InputImageType *adaptor) {}
+  ~NonOrthogonalSlicerPixelAccessTraitsWorker() {}
 
-  typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
-
-  /** Method for creation through the object factory. */
-  itkNewMacro(Self)
-
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NonOrthogonalSlicer, NonOrthogonalSlicerBase)
-
-protected:
-  NonOrthogonalSlicer() {}
-  ~NonOrthogonalSlicer() {}
-
-  virtual void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                                    itk::ThreadIdType threadId)
+  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr)
   {
-    // Do nothing - crash
     assert(0);
   }
 };
 
 
-template <typename TImage, typename TAccessor, typename TOutputImage>
-class NonOrthogonalSlicer< itk::ImageAdaptor<TImage, TAccessor>, TOutputImage>
-    : public NonOrthogonalSlicerBase<itk::ImageAdaptor<TImage, TAccessor>, TOutputImage>
+/**
+ * An specialization of the traits class for Image adapters
+ */
+template <typename TPixelType, unsigned int Dimension, typename TAccessor, typename TOutputImage>
+class NonOrthogonalSlicerPixelAccessTraitsWorker<
+    itk::ImageAdaptor<itk::VectorImage<TPixelType, Dimension>, TAccessor>, TOutputImage>
 {
 public:
 
-  typedef itk::ImageAdaptor<TImage, TAccessor>            InputImageType;
+  typedef itk::VectorImage<TPixelType, Dimension> VectorImageType;
+  typedef itk::ImageAdaptor<VectorImageType, TAccessor> AdaptorType;
+  typedef typename TOutputImage::InternalPixelType OutputComponentType;
 
-  /** Standard class typedefs. */
-  typedef NonOrthogonalSlicer                                            Self;
-  typedef NonOrthogonalSlicerBase<InputImageType, TOutputImage>    Superclass;
-  typedef itk::SmartPointer<Self>                                     Pointer;
-  typedef itk::SmartPointer<const Self>                          ConstPointer;
+  NonOrthogonalSlicerPixelAccessTraitsWorker(AdaptorType *adaptor);
+  ~NonOrthogonalSlicerPixelAccessTraitsWorker();
 
-  typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
-
-  /** Method for creation through the object factory. */
-  itkNewMacro(Self)
-
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NonOrthogonalSlicer, NonOrthogonalSlicerBase)
+  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
 
 protected:
-  NonOrthogonalSlicer() {}
-  ~NonOrthogonalSlicer() {}
 
-  virtual void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                                    itk::ThreadIdType threadId)
-  {
-    // Do nothing - crash
-    assert(0);
-  }
+  // The interpolator object used internally
+  typedef FastLinearInterpolator<VectorImageType, double, AdaptorType::ImageDimension> Interpolator;
+  Interpolator m_Interpolator;
+
+  // Number of components
+  int m_NumComponents;
+
+  // Temporary buffer for interpolation
+  double *m_Buffer;
+
+  // Temporary buffer for computing the derived quantity
+  typename VectorImageType::PixelType m_VectorPixel;
+
+  // A pointer to the adaptor
+  typename AdaptorType::Pointer m_Adaptor;
 };
 
 
+
+
+
+/**
+ * This is a helper traits class that can be used to modify the access of pixel
+ * data in the input image by the NonOrthogonalSlicer.
+ */
 template <typename TPixelType, unsigned int Dimension, typename TOutputImage>
-class NonOrthogonalSlicer< itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
-    : public NonOrthogonalSlicerBase<itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
+class NonOrthogonalSlicerPixelAccessTraitsWorker<
+    itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
 {
 public:
+  typedef itk::VectorImageToImageAdaptor<TPixelType, Dimension> AdaptorType;
+  typedef typename TOutputImage::InternalPixelType OutputComponentType;
 
-  typedef itk::VectorImageToImageAdaptor<TPixelType, Dimension>            InputImageType;
+  NonOrthogonalSlicerPixelAccessTraitsWorker(AdaptorType *adaptor);
+  ~NonOrthogonalSlicerPixelAccessTraitsWorker();
 
-  /** Standard class typedefs. */
-  typedef NonOrthogonalSlicer                                            Self;
-  typedef NonOrthogonalSlicerBase<InputImageType, TOutputImage>    Superclass;
-  typedef itk::SmartPointer<Self>                                     Pointer;
-  typedef itk::SmartPointer<const Self>                          ConstPointer;
-
-  typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
-
-  /** Method for creation through the object factory. */
-  itkNewMacro(Self)
-
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(NonOrthogonalSlicer, NonOrthogonalSlicerBase)
+  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
 
 protected:
-  NonOrthogonalSlicer() {}
-  ~NonOrthogonalSlicer() {}
 
-  virtual void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                                    itk::ThreadIdType threadId)
-  {
-    // Do nothing - crash
-    assert(0);
-  }
+  // The actual image type
+  typedef typename AdaptorType::InternalImageType InternalImageType;
+
+  // The interpolator object used internally
+  typedef FastLinearInterpolator<InternalImageType, double, AdaptorType::ImageDimension> Interpolator;
+  Interpolator m_Interpolator;
+
+  // Number of components
+  int m_NumComponents, m_ExtractComponent;
+
+  // Temporary buffer
+  double *m_Buffer;
 };
+
 
 
 #ifndef ITK_MANUAL_INSTANTIATION

@@ -48,21 +48,21 @@
 #include "ImageRegionConstIteratorWithIndexOverride.h"
 
 template <class TInputImage, class TOutputImage>
-NonOrthogonalSlicerBase<TInputImage, TOutputImage>
-::NonOrthogonalSlicerBase()
+NonOrthogonalSlicer<TInputImage, TOutputImage>
+::NonOrthogonalSlicer()
     : m_UseNearestNeighbor(false)
 {
 }
 
 template <class TInputImage, class TOutputImage>
-NonOrthogonalSlicerBase<TInputImage, TOutputImage>
-::~NonOrthogonalSlicerBase()
+NonOrthogonalSlicer<TInputImage, TOutputImage>
+::~NonOrthogonalSlicer()
 {
 }
 
 template <class TInputImage, class TOutputImage>
 void
-NonOrthogonalSlicerBase<TInputImage, TOutputImage>
+NonOrthogonalSlicer<TInputImage, TOutputImage>
 ::GenerateOutputInformation()
 {  
   // The output information can be left to defaults because it's in screen
@@ -93,7 +93,7 @@ NonOrthogonalSlicerBase<TInputImage, TOutputImage>
 
 template <class TInputImage, class TOutputImage>
 void
-NonOrthogonalSlicerBase<TInputImage, TOutputImage>
+NonOrthogonalSlicer<TInputImage, TOutputImage>
 ::GenerateInputRequestedRegion()
 {
   // get pointers to the input and output
@@ -131,15 +131,9 @@ NonOrthogonalSlicer<TInputImage, TOutputImage>
   // Determine the appropriate float/double type for the interpolator.
   typedef typename itk::NumericTraits<OutputComponentType>::MeasurementVectorType::ValueType FloatType;
 
-  // Create a fast interpolator for the input image
-  typedef FastLinearInterpolator<InputImageType, double, InputImageDimension> FastInterpolator;
-  FastInterpolator fi(input);
-
-  // The number of components per input pixel
-  int ncomp = fi.GetPointerIncrement();
-
-  // Allocate a temporary floating point buffer, which will be cast to output type
-  double *buffer = new double[ncomp];
+  // Create a fast interpolator for the input image - via the traits, allowing for
+  // partial specialization for imageadapters and other such things
+  WorkerType worker(input);
 
   // Whether to use nn
   bool use_nn = this->GetUseNearestNeighbor();
@@ -185,34 +179,154 @@ NonOrthogonalSlicer<TInputImage, TOutputImage>
     // Iterate over the line
     for(int i = 0; i < line_len; i++)
       {
-      // Perform the interpolation
-      typename FastInterpolator::InOut status =
-          use_nn
-          ? fi.InterpolateNearestNeighbor(cixSample.GetDataPointer(), buffer)
-          : fi.Interpolate(cixSample.GetDataPointer(), buffer);
-
-      if(status == FastInterpolator::INSIDE)
-        {
-        for(int k = 0; k < ncomp; k++)
-          *outPixelPtr++ = static_cast<OutputComponentType>(buffer[k]);
-        }
-      else
-        {
-        // TODO: this is problematic!!!!
-        for(int k = 0; k < ncomp; k++)
-          *outPixelPtr++ = 0; //itk::NumericTraits<OutputComponentType>::Zero;
-        }
+      // Delegate to the worker to actually process the voxel
+      worker.ProcessVoxel(cixSample.GetDataPointer(), use_nn, &outPixelPtr);
 
       // Update the sample location
       for(int d = 0; d < InputImageDimension; d++)
         cixSample[d] += cixStep[d];
       }
     }
+}
 
-  delete buffer;
+template <class TInputImage, class TOutputImage>
+NonOrthogonalSlicerPixelAccessTraitsWorker<TInputImage, TOutputImage>
+::NonOrthogonalSlicerPixelAccessTraitsWorker(TInputImage *image)
+  : m_Interpolator(image)
+{
+  m_NumComponents = m_Interpolator.GetPointerIncrement();
+  m_Buffer = new double[m_NumComponents];
+}
+
+template <class TInputImage, class TOutputImage>
+NonOrthogonalSlicerPixelAccessTraitsWorker<TInputImage, TOutputImage>
+::~NonOrthogonalSlicerPixelAccessTraitsWorker()
+{
+  delete m_Buffer;
+}
+
+template <class TInputImage, class TOutputImage>
+void
+NonOrthogonalSlicerPixelAccessTraitsWorker<TInputImage, TOutputImage>
+::ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr)
+{
+  // Perform the interpolation
+  typename Interpolator::InOut status =
+      use_nn
+      ? m_Interpolator.InterpolateNearestNeighbor(cix,  m_Buffer)
+      : m_Interpolator.Interpolate(cix, m_Buffer);
+
+  if(status == Interpolator::INSIDE)
+    {
+    for(int k = 0; k < m_NumComponents; k++)
+      *(*out_ptr)++ = static_cast<OutputComponentType>(m_Buffer[k]);
+    }
+  else
+    {
+    // TODO: this is problematic!!!!
+    for(int k = 0; k < m_NumComponents; k++)
+      *(*out_ptr)++ = 0; //itk::NumericTraits<OutputComponentType>::Zero;
+    }
 }
 
 
+/*
+ * Traits for the component extracting image adaptor
+ * TODO: these need to be optimized!
+ */
+template <typename TPixelType, unsigned int Dimension, typename TOutputImage>
+NonOrthogonalSlicerPixelAccessTraitsWorker<itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
+::NonOrthogonalSlicerPixelAccessTraitsWorker(AdaptorType *adaptor)
+  : m_Interpolator(adaptor, adaptor->GetBufferPointer(),
+                   adaptor->GetPixelAccessor().GetVectorLength())
+{
+  m_NumComponents = m_Interpolator.GetPointerIncrement();
+  m_Buffer = new double[m_NumComponents];
+  m_ExtractComponent = adaptor->GetPixelAccessor().GetExtractComponentIdx();
+}
+
+template <typename TPixelType, unsigned int Dimension, typename TOutputImage>
+NonOrthogonalSlicerPixelAccessTraitsWorker<itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
+::~NonOrthogonalSlicerPixelAccessTraitsWorker()
+{
+  delete m_Buffer;
+}
+
+template <typename TPixelType, unsigned int Dimension, typename TOutputImage>
+void
+NonOrthogonalSlicerPixelAccessTraitsWorker<itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
+::ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr)
+{
+  // TODO: this is hugely wasteful: we are interpolating a whole vector to only extract a single
+  // component. Need to modify the fast interpolator to support operating on a range of components
+
+  // Perform the interpolation
+  typename Interpolator::InOut status =
+      use_nn
+      ? m_Interpolator.InterpolateNearestNeighbor(cix, m_Buffer)
+      : m_Interpolator.Interpolate(cix, m_Buffer);
+
+  if(status == Interpolator::INSIDE)
+    {
+    *(*out_ptr)++ = static_cast<OutputComponentType>(m_Buffer[m_ExtractComponent]);
+    }
+  else
+    {
+    *(*out_ptr)++ = 0;
+    }
+}
+
+
+/*
+ * Traits for a generic image adaptor with a vector image base
+ */
+template <typename TPixelType, unsigned int Dimension, typename TAccessor, typename TOutputImage>
+NonOrthogonalSlicerPixelAccessTraitsWorker<
+  itk::ImageAdaptor<itk::VectorImage<TPixelType, Dimension>, TAccessor>, TOutputImage>
+::NonOrthogonalSlicerPixelAccessTraitsWorker(AdaptorType *adaptor)
+  : m_Interpolator(adaptor, adaptor->GetBufferPointer(),
+                    adaptor->GetPixelAccessor().GetVectorLength()),
+    m_VectorPixel(adaptor->GetPixelAccessor().GetVectorLength()),
+    m_Adaptor(adaptor)
+{
+  m_NumComponents = m_Interpolator.GetPointerIncrement();
+  m_Buffer = new double[m_NumComponents];
+}
+
+template <typename TPixelType, unsigned int Dimension, typename TAccessor, typename TOutputImage>
+NonOrthogonalSlicerPixelAccessTraitsWorker<
+  itk::ImageAdaptor<itk::VectorImage<TPixelType, Dimension>, TAccessor>, TOutputImage>
+::~NonOrthogonalSlicerPixelAccessTraitsWorker()
+{
+  delete m_Buffer;
+}
+
+template <typename TPixelType, unsigned int Dimension, typename TAccessor, typename TOutputImage>
+void
+NonOrthogonalSlicerPixelAccessTraitsWorker<
+  itk::ImageAdaptor<itk::VectorImage<TPixelType, Dimension>, TAccessor>, TOutputImage>
+::ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr)
+{
+  // Perform the interpolation
+  typename Interpolator::InOut status =
+      use_nn
+      ? m_Interpolator.InterpolateNearestNeighbor(cix, m_Buffer)
+      : m_Interpolator.Interpolate(cix, m_Buffer);
+
+  if(status == Interpolator::INSIDE)
+    {
+    // Cast to the vector pixel type
+    for(int i = 0; i < m_NumComponents; i++)
+      m_VectorPixel[i] = static_cast<OutputComponentType>(m_Buffer[i]);
+
+    // Apply the accessor
+    *(*out_ptr)++ = m_Adaptor->GetPixelAccessor().Get(m_VectorPixel);
+    }
+  else
+    {
+    *(*out_ptr)++ = 0;
+    }
+}
 
 
 

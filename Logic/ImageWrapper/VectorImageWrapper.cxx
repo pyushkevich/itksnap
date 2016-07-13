@@ -99,23 +99,33 @@ VectorImageWrapper<TTraits,TBase>
   MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
   if(mode.UseRGB)
     {
-    // Make sure the display slice is updated
-    this->GetDisplaySlice(0)->Update();
+    // Get the display slice
+    DisplaySliceType *display_slice = this->GetDisplaySlice(0);
 
-    // Find the correct voxel in the space of the first display slice
-    Vector3ui idxDisp =
-        this->GetImageToDisplayTransform(0).TransformVoxelIndex(this->GetSliceIndex());
+    // Make sure the display slice is updated
+    display_slice->GetSource()->UpdateLargestPossibleRegion();
+
+    // Map the location of the cursor into the display slice index.
+    Vector2d xDisp = this->MapImageIndexToDisplaySliceIndex(0, this->GetSliceIndex());
+
+    // Convert the location to an index.
+    // TODO: this is somewhat imperfect for non-orthogonal slicing, because we are not
+    // ideally interpolating the image at the cursor location. Instead we are using the
+    // intensity of the nearest voxel.
+    //
+    // TODO: we need to deal with cases when cursor is outside of the image for non-orthog
+    // slicing situations!
+    itk::Index<2> idxDisp = to_itkIndex(xDisp);
 
     // Get the RGB value
-    typename DisplaySliceType::IndexType idx2D = {{idxDisp[0], idxDisp[1]}};
-    out_appearance = this->GetDisplaySlice(0)->GetPixel(idx2D);
+    out_appearance = display_slice->GetPixel(idxDisp);
 
     // Get the value vector in native range
     out_value.set_size(this->GetNumberOfComponents());
     for(int i = 0; i < this->GetNumberOfComponents(); i++)
       {
       InternalPixelType p =
-          this->GetComponentWrapper(i)->GetSlicer(0)->GetOutput()->GetPixel(idx2D);
+          this->GetComponentWrapper(i)->GetSlice(0)->GetPixel(idxDisp);
       out_value[i] = this->m_NativeMapping(p);
       }
     }
@@ -401,6 +411,22 @@ VectorImageWrapper<TTraits,TBase>
   for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
     {
     it->second->SetSliceIndex(cursor);
+    }
+}
+
+template <class TTraits, class TBase>
+void
+VectorImageWrapper<TTraits,TBase>
+::SetDisplayViewportGeometry(
+    unsigned int index,
+    ImageBaseType *viewport_image)
+{
+  Superclass::SetDisplayViewportGeometry(index, viewport_image);
+
+  // Propagate to owned scalar wrappers
+  for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
+    {
+    it->second->SetDisplayViewportGeometry(index, viewport_image);
     }
 }
 

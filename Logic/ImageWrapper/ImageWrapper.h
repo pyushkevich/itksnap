@@ -217,8 +217,15 @@ public:
   irisGetMacro(ImageGeometry, const ImageCoordinateGeometry &)
 
 
-  /** Get the current slice index */
+  /** Get the current slice index - which really means cursor position */
   irisGetMacro(SliceIndex, Vector3ui)
+
+  /**
+   * Map a position in image space to a position in display slice space. This
+   * method returns a correct position regardless of whether the orthogonal or
+   * non-orthogonal slicing method is used
+   */
+  Vector2d MapImageIndexToDisplaySliceIndex(int display_id, const Vector3ui &pos);
 
   /** Return some image info independently of pixel type */
   ImageBaseType* GetImageBase() const { return m_Image; }

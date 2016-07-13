@@ -278,26 +278,31 @@ ScalarImageWrapper<TTraits,TBase>
 ::GetVoxelUnderCursorDisplayedValueAndAppearance(
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
-  // Make sure the display slice is updated
-  this->GetDisplaySlice(0)->GetSource()->UpdateLargestPossibleRegion();
-
-  // this->GetDisplaySlice(0)->Update();
-
-  // Find the correct voxel in the space of the first display slice
-  Vector3ui idxDisp =
-      this->GetImageToDisplayTransform(0).TransformVoxelIndex(this->GetSliceIndex());
-
+  // Get the display slice
   DisplaySliceType *slice = this->GetDisplaySlice(0);
 
-  // Get the RGB value
-  typename DisplaySliceType::IndexType idx2D = {{idxDisp[0], idxDisp[1]}};
-  out_appearance = slice->GetPixel(idx2D);
+  // Make sure the display slice is updated
+  slice->GetSource()->UpdateLargestPossibleRegion();
 
-  // Get the numerical value
-  // TODO: fix this commented out code
-  // PixelType val_raw = this->GetSlicer(0)->GetOutput()->GetPixel(idx2D);
-  // out_value.set_size(1);
-  // out_value[0] = this->m_NativeMapping(val_raw);
+  // Map the location of the cursor into the display slice index.
+  Vector2d xDisp = this->MapImageIndexToDisplaySliceIndex(0, this->GetSliceIndex());
+
+  // Convert the location to an index.
+  // TODO: this is somewhat imperfect for non-orthogonal slicing, because we are not
+  // ideally interpolating the image at the cursor location. Instead we are using the
+  // intensity of the nearest voxel.
+  //
+  // TODO: we need to deal with cases when cursor is outside of the image for non-orthog
+  // slicing situations!
+  itk::Index<2> idxDisp = to_itkIndex(xDisp);
+
+  // Get the RGB value
+  out_appearance = slice->GetPixel(idxDisp);
+
+  // The the raw value
+  PixelType val_raw = this->GetSlice(0)->GetPixel(idxDisp);
+  out_value.set_size(1);
+  out_value[0] = this->m_NativeMapping(val_raw);
 }
 
 //template<class TTraits, class TBase>

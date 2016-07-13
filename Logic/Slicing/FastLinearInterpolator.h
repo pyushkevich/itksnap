@@ -80,6 +80,7 @@ public:
   typedef typename ImageType::InternalPixelType                   InputComponentType;
   typedef FastLinearInterpolatorOutputTraits<TFloat, InputComponentType>  OutputTraits;
   typedef typename OutputTraits::OutputComponentType              OutputComponentType;
+  typedef FastWarpCompositeImageFilterInputImageTraits<TImage>    InputTraits;
 
   /** Determine the image dimension. */
   itkStaticConstMacro(ImageDimension, unsigned int, ImageType::ImageDimension );
@@ -95,11 +96,15 @@ public:
   FastLinearInterpolatorBase(ImageType *image)
   {
     buffer = image->GetBufferPointer();
-    nComp = FastWarpCompositeImageFilterInputImageTraits<TImage>::GetPointerIncrementSize(image);
-    def_value_store = new InputComponentType[nComp];
-    for(int i = 0; i < nComp; i++)
-      def_value_store[i] = itk::NumericTraits<InputComponentType>::Zero;
-    def_value = def_value_store;
+    nComp = InputTraits::GetPointerIncrementSize(image);
+    this->Initialize();
+  }
+
+  FastLinearInterpolatorBase(InputComponentType *buffer_ptr, int n_components)
+  {
+    buffer = buffer_ptr;
+    nComp = n_components;
+    this->Initialize();
   }
 
   ~FastLinearInterpolatorBase()
@@ -118,6 +123,14 @@ protected:
   InputComponentType *def_value_store;
 
   InOut status;
+
+  void Initialize()
+  {
+    def_value_store = new InputComponentType[nComp];
+    for(int i = 0; i < nComp; i++)
+      def_value_store[i] = itk::NumericTraits<InputComponentType>::Zero;
+    def_value = def_value_store;
+  }
 
 
   template <class TInput>
@@ -141,8 +154,12 @@ public:
   typedef typename Superclass::OutputComponentType     OutputComponentType;
   typedef typename Superclass::RealType                RealType;
   typedef typename Superclass::InOut                   InOut;
+  typedef itk::ImageBase<VDim>                         ImageBaseType;
 
   FastLinearInterpolator(ImageType *image) : Superclass(image) {}
+
+  FastLinearInterpolator(ImageBaseType *img, InputComponentType *buffer_ptr, int n_components)
+    : Superclass(buffer_ptr, n_components) {}
 
   InOut InterpolateWithGradient(RealType *cix, OutputComponentType *out, OutputComponentType **grad)
     { return Superclass::INSIDE; }
@@ -181,8 +198,17 @@ public:
   typedef typename Superclass::OutputComponentType           OutputComponentType;
   typedef typename Superclass::RealType                      RealType;
   typedef typename Superclass::InOut                         InOut;
+  typedef itk::ImageBase<3>                                  ImageBaseType;
 
   FastLinearInterpolator(ImageType *image) : Superclass(image)
+  {
+    xsize = image->GetLargestPossibleRegion().GetSize()[0];
+    ysize = image->GetLargestPossibleRegion().GetSize()[1];
+    zsize = image->GetLargestPossibleRegion().GetSize()[2];
+  }
+
+  FastLinearInterpolator(ImageBaseType *image, InputComponentType *buffer_ptr, int n_components)
+    : Superclass(buffer_ptr, n_components)
   {
     xsize = image->GetLargestPossibleRegion().GetSize()[0];
     ysize = image->GetLargestPossibleRegion().GetSize()[1];
@@ -552,8 +578,16 @@ public:
   typedef typename Superclass::OutputComponentType           OutputComponentType;
   typedef typename Superclass::RealType                      RealType;
   typedef typename Superclass::InOut                         InOut;
+  typedef itk::ImageBase<2>                                  ImageBaseType;
 
   FastLinearInterpolator(ImageType *image) : Superclass(image)
+  {
+    xsize = image->GetLargestPossibleRegion().GetSize()[0];
+    ysize = image->GetLargestPossibleRegion().GetSize()[1];
+  }
+
+  FastLinearInterpolator(ImageBaseType *image, InputComponentType *buffer_ptr, int n_components)
+    : Superclass(buffer_ptr, n_components)
   {
     xsize = image->GetLargestPossibleRegion().GetSize()[0];
     ysize = image->GetLargestPossibleRegion().GetSize()[1];

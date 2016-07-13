@@ -45,6 +45,11 @@ public:
     Superclass::SetVectorLength(l);
     }
 
+  VectorLengthType GetVectorLength() const
+  {
+    return Superclass::GetVectorLength();
+  }
+
   /**
    * Set the linear mapping from the vector image internal values to the
    * native data type. The mapping is native = internal * scale + shift
