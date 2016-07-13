@@ -231,17 +231,18 @@ NonOrthogonalSlicerPixelAccessTraitsWorker<TInputImage, TOutputImage>
 
 
 /*
- * Traits for the component extracting image adaptor
- * TODO: these need to be optimized!
+ * Traits for the component extracting image adaptor. Note that in the call to the
+ * constructor for the interpolator, we are passing the buffer pointer offset by
+ * the component index, and only requesting a single component to be sampled
  */
 template <typename TPixelType, unsigned int Dimension, typename TOutputImage>
 NonOrthogonalSlicerPixelAccessTraitsWorker<itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
 ::NonOrthogonalSlicerPixelAccessTraitsWorker(AdaptorType *adaptor)
-  : m_Interpolator(adaptor, adaptor->GetBufferPointer(),
-                   adaptor->GetPixelAccessor().GetVectorLength())
+  : m_Interpolator(adaptor,
+                   adaptor->GetBufferPointer() + adaptor->GetPixelAccessor().GetExtractComponentIdx(),
+                   adaptor->GetPixelAccessor().GetVectorLength(), 1)
 {
   m_NumComponents = m_Interpolator.GetPointerIncrement();
-  m_Buffer = new double[m_NumComponents];
   m_ExtractComponent = adaptor->GetPixelAccessor().GetExtractComponentIdx();
 }
 
@@ -249,7 +250,6 @@ template <typename TPixelType, unsigned int Dimension, typename TOutputImage>
 NonOrthogonalSlicerPixelAccessTraitsWorker<itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
 ::~NonOrthogonalSlicerPixelAccessTraitsWorker()
 {
-  delete m_Buffer;
 }
 
 template <typename TPixelType, unsigned int Dimension, typename TOutputImage>
@@ -257,18 +257,15 @@ void
 NonOrthogonalSlicerPixelAccessTraitsWorker<itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
 ::ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr)
 {
-  // TODO: this is hugely wasteful: we are interpolating a whole vector to only extract a single
-  // component. Need to modify the fast interpolator to support operating on a range of components
-
   // Perform the interpolation
   typename Interpolator::InOut status =
       use_nn
-      ? m_Interpolator.InterpolateNearestNeighbor(cix, m_Buffer)
-      : m_Interpolator.Interpolate(cix, m_Buffer);
+      ? m_Interpolator.InterpolateNearestNeighbor(cix, &m_BufferValue)
+      : m_Interpolator.Interpolate(cix, &m_BufferValue);
 
   if(status == Interpolator::INSIDE)
     {
-    *(*out_ptr)++ = static_cast<OutputComponentType>(m_Buffer[m_ExtractComponent]);
+    *(*out_ptr)++ = static_cast<OutputComponentType>(m_BufferValue);
     }
   else
     {

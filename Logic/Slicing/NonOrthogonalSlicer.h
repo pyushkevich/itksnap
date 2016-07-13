@@ -264,7 +264,7 @@ protected:
   int m_NumComponents, m_ExtractComponent;
 
   // Temporary buffer
-  double *m_Buffer;
+  double m_BufferValue;
 };
 
 

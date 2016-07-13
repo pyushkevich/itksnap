@@ -100,10 +100,21 @@ public:
     this->Initialize();
   }
 
-  FastLinearInterpolatorBase(InputComponentType *buffer_ptr, int n_components)
+  /**
+   * An alternative constuctor that takes as input the pointer to the raw pixels
+   * data, the number of components per pixel, and optionally the number of
+   * components that will be sampled (default value of 0 is to sample all of the
+   * components.
+   *
+   * If you want to sample every 5-th component, you should offset the buffer pointer
+   * by 5 and then set n_sampled to 1.
+   */
+  FastLinearInterpolatorBase(InputComponentType *buffer_ptr,
+                             int n_components, int n_sampled = 0)
   {
     buffer = buffer_ptr;
     nComp = n_components;
+    nSampled = n_sampled == 0 ? n_components : n_sampled;
     this->Initialize();
   }
 
@@ -114,8 +125,14 @@ public:
 
 protected:
 
-
+  // This is the number of components that separate voxels from each other
   int nComp;
+
+  // This is the number of sampled components - this may be different, for
+  // example if we are only interested in sampling the k-th component from
+  // a vector image
+  int nSampled;
+
   const InputComponentType *buffer;
 
   // Default value - for interpolation outside of the image bounds
@@ -126,8 +143,8 @@ protected:
 
   void Initialize()
   {
-    def_value_store = new InputComponentType[nComp];
-    for(int i = 0; i < nComp; i++)
+    def_value_store = new InputComponentType[nSampled];
+    for(int i = 0; i < nSampled; i++)
       def_value_store[i] = itk::NumericTraits<InputComponentType>::Zero;
     def_value = def_value_store;
   }
@@ -207,8 +224,18 @@ public:
     zsize = image->GetLargestPossibleRegion().GetSize()[2];
   }
 
-  FastLinearInterpolator(ImageBaseType *image, InputComponentType *buffer_ptr, int n_components)
-    : Superclass(buffer_ptr, n_components)
+  /**
+   * An alternative constuctor that takes as input the pointer to the raw pixels
+   * data, the number of components per pixel, and optionally the number of
+   * components that will be sampled (default value of 0 is to sample all of the
+   * components.
+   *
+   * If you want to sample every 5-th component, you should offset the buffer pointer
+   * by 5 and then set n_sampled to 1.
+   */
+  FastLinearInterpolator(ImageBaseType *image, InputComponentType *buffer_ptr,
+                         int n_components, int n_sampled = 0)
+    : Superclass(buffer_ptr, n_components, n_sampled)
   {
     xsize = image->GetLargestPossibleRegion().GetSize()[0];
     ysize = image->GetLargestPossibleRegion().GetSize()[1];
@@ -293,7 +320,7 @@ public:
     if(this->status != Superclass::OUTSIDE)
       {
       // Loop over the components
-      for(int iComp = 0; iComp < this->nComp; iComp++, grad++,
+      for(int iComp = 0; iComp < this->nSampled; iComp++, grad++,
           d000++, d001++, d010++, d011++,
           d100++, d101++, d110++, d111++)
         {
@@ -338,7 +365,7 @@ public:
     if(this->status != Superclass::OUTSIDE)
       {
       // Loop over the components
-      for(int iComp = 0; iComp < this->nComp; iComp++,
+      for(int iComp = 0; iComp < this->nSampled; iComp++,
           d000++, d001++, d010++, d011++,
           d100++, d101++, d110++, d111++)
         {
@@ -367,7 +394,7 @@ public:
         z0 >= 0 && z0 < zsize)
       {
       const InputComponentType *dp = dens(x0, y0, z0);
-      for(int iComp = 0; iComp < this->nComp; iComp++)
+      for(int iComp = 0; iComp < this->nSampled; iComp++)
         {
         out[iComp] = dp[iComp];
         }
@@ -398,7 +425,7 @@ public:
       RealType w000 = 1.0 - fx - fy + fxy - w001;
 
       // Loop over the components
-      for(int iComp = 0; iComp < this->nComp; iComp++,
+      for(int iComp = 0; iComp < this->nSampled; iComp++,
           d000++, d001++, d010++, d011++,
           d100++, d101++, d110++, d111++, fixptr++)
         {
@@ -418,7 +445,7 @@ public:
       }
     else
       {
-      for(int iComp = 0; iComp < this->nComp; iComp++, fixptr++)
+      for(int iComp = 0; iComp < this->nSampled; iComp++, fixptr++)
         {
         // Just this line in the histogram
         RealType *hist_line = hist[iComp][*fixptr];
@@ -455,7 +482,7 @@ public:
       out_grad[2] = 0.0;
 
       // Loop over the components
-      for(int iComp = 0; iComp < this->nComp; iComp++,
+      for(int iComp = 0; iComp < this->nSampled; iComp++,
           d000++, d001++, d010++, d011++,
           d100++, d101++, d110++, d111++, fixptr++)
         {
@@ -586,8 +613,9 @@ public:
     ysize = image->GetLargestPossibleRegion().GetSize()[1];
   }
 
-  FastLinearInterpolator(ImageBaseType *image, InputComponentType *buffer_ptr, int n_components)
-    : Superclass(buffer_ptr, n_components)
+  FastLinearInterpolator(ImageBaseType *image, InputComponentType *buffer_ptr,
+                         int n_components, int n_sampled = 0)
+    : Superclass(buffer_ptr, n_components, n_sampled)
   {
     xsize = image->GetLargestPossibleRegion().GetSize()[0];
     ysize = image->GetLargestPossibleRegion().GetSize()[1];
@@ -655,7 +683,7 @@ public:
     if(this->status != Superclass::OUTSIDE)
       {
       // Loop over the components
-      for(int iComp = 0; iComp < this->nComp; iComp++, grad++,
+      for(int iComp = 0; iComp < this->nSampled; iComp++, grad++,
           d00++, d01++, d10++, d11++)
         {
         // Interpolate the image intensity
@@ -684,7 +712,7 @@ public:
     if(this->status != Superclass::OUTSIDE)
       {
       // Loop over the components
-      for(int iComp = 0; iComp < this->nComp; iComp++,
+      for(int iComp = 0; iComp < this->nSampled; iComp++,
           d00++, d01++, d10++, d11++)
         {
         // Interpolate the image intensity
@@ -705,7 +733,7 @@ public:
     if (x0 >= 0 && x0 < xsize && y0 >= 0 && y0 < ysize)
       {
       const InputComponentType *dp = dens(x0, y0);
-      for(int iComp = 0; iComp < this->nComp; iComp++)
+      for(int iComp = 0; iComp < this->nSampled; iComp++)
         {
         out[iComp] = dp[iComp];
         }
@@ -732,7 +760,7 @@ public:
       RealType w00 = 1.0 - fx - fy + fxy;
 
       // Loop over the components
-      for(int iComp = 0; iComp < this->nComp; iComp++,
+      for(int iComp = 0; iComp < this->nSampled; iComp++,
           d00++, d01++, d10++, d11++, fixptr++)
         {
         // Just this line in the histogram
@@ -747,7 +775,7 @@ public:
       }
     else
       {
-      for(int iComp = 0; iComp < this->nComp; iComp++, fixptr++)
+      for(int iComp = 0; iComp < this->nSampled; iComp++, fixptr++)
         {
         // Just this line in the histogram
         RealType *hist_line = hist[iComp][*fixptr];
@@ -776,7 +804,7 @@ public:
       out_grad[1] = 0.0;
 
       // Loop over the components
-      for(int iComp = 0; iComp < this->nComp; iComp++,
+      for(int iComp = 0; iComp < this->nSampled; iComp++,
           d00++, d01++, d10++, d11++, fixptr++)
         {
         // Just this line in the histogram
