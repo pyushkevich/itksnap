@@ -68,6 +68,7 @@
 #include "IntensityCurveInterface.h"
 #include "ColorLabelQuickListModel.h"
 #include "InterpolateLabelModel.h"
+#include "RegistrationModel.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -199,6 +200,10 @@ GlobalUIModel::GlobalUIModel()
   // Interpolation dialog
   m_InterpolateLabelModel = InterpolateLabelModel::New();
   m_InterpolateLabelModel->SetParentModel(this);
+
+  // Registration model
+  m_RegistrationModel = RegistrationModel::New();
+  m_RegistrationModel->SetParentModel(this);
 
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(

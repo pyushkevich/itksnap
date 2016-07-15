@@ -97,6 +97,7 @@ public:
   {
     buffer = image->GetBufferPointer();
     nComp = InputTraits::GetPointerIncrementSize(image);
+    nSampled = nComp;
     this->Initialize();
   }
 

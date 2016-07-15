@@ -390,6 +390,16 @@ public:
   virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform);
 
   /**
+   * Get the ITK transform between this layer and its reference space
+   */
+  virtual ITKTransformType *GetITKTransform() const;
+
+  /**
+   * Get the reference space space in which this image is defined
+   */
+  virtual ImageBaseType* GetReferenceSpace() const;
+
+  /**
    * Extract a region of interest from the image wrapper, as a new wrapper of
    * the same type
    */
@@ -572,6 +582,9 @@ protected:
 
   /** The reference space - this is the space into which the image is sliced */
   SmartPtr<ImageBaseType> m_ReferenceSpace;
+
+  /** The transform relative to the reference space */
+  SmartPtr<ITKTransformType> m_Transform;
 
   /** The current cursor position (slice index) in image dimensions */
   Vector3ui m_SliceIndex;

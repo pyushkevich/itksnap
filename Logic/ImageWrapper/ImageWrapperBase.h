@@ -414,6 +414,16 @@ public:
    */
   virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) = 0;
 
+  /**
+   * Get the ITK transform between this image and the reference space
+   */
+  virtual ITKTransformType *GetITKTransform() const = 0;
+
+  /**
+   * Get the reference space space in which this image is defined
+   */
+  virtual ImageBaseType* GetReferenceSpace() const = 0;
+
 protected:
 
 };

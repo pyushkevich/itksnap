@@ -73,6 +73,7 @@ class ImageIOWizardModel;
 class ImageWrapperBase;
 class ColorLabelQuickListModel;
 class InterpolateLabelModel;
+class RegistrationModel;
 
 namespace itk
 {
@@ -234,6 +235,9 @@ public:
 
   /** Model for the interpolate labels dialog */
   irisGetMacro(InterpolateLabelModel, InterpolateLabelModel *)
+
+  /** Model for image registration */
+  irisGetMacro(RegistrationModel, RegistrationModel *)
 
   /**
     Check the state of the system. This class will issue StateChangeEvent()
@@ -403,6 +407,9 @@ protected:
 
   // Model for the label interpolation dialog
   SmartPtr<InterpolateLabelModel> m_InterpolateLabelModel;
+
+  // Model for image registration
+  SmartPtr<RegistrationModel> m_RegistrationModel;
 
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;

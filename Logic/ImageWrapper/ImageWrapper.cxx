@@ -805,6 +805,16 @@ ImageWrapper<TTraits,TBase>
   this->m_ImageBase = newImage;
   this->m_Image = newImage;
 
+  // Update the transforms
+  if(transform)
+    this->m_Transform = transform;
+  else
+    {
+    typedef itk::IdentityTransform<double, 3> IdTransformType;
+    typename IdTransformType::Pointer idTran = IdTransformType::New();
+    this->m_Transform = idTran.GetPointer();
+    }
+
   // Mark the image as Modified to enforce correct sequence of
   // operations with MinMaxCalc
   m_Image->Modified();
@@ -904,15 +914,45 @@ void
 ImageWrapper<TTraits,TBase>
 ::SetITKTransform(ImageBaseType *refSpace, ITKTransformType *transform)
 {
-  // TODO: this is a hack, to get around the display slices not updating...
-  Vector3ui index = this->GetSliceIndex();
-  UpdateImagePointer(m_Image, refSpace, transform);
-  this->SetSliceIndex(Vector3ui(0u));
-  this->SetSliceIndex(index);
-  this->InvokeEvent(WrapperDisplayMappingChangeEvent());
+  // Check if the reference space has changed
+  if(m_ReferenceSpace != refSpace)
+    {
+    // Force a reinitialization of this layer
+    this->UpdateImagePointer(m_Image, refSpace, transform);
+    }
+  else if(!this->IsSlicingOrthogonal())
+    {
+    // Simply update the transforms
+    for(int i = 0; i < 3; i++)
+      {
+      m_AdvancedSlicer[i]->SetTransform(transform);
+      m_ResampleFilter[i+3]->SetTransform(transform);
+      }
+    this->m_Transform = transform;
+    this->InvokeEvent(WrapperDisplayMappingChangeEvent());
+    }
+  else
+    {
+    // TODO: handle switching between orthogonal and non-orthogonal based on transform, etc.
+    }
+}
+
+template<class TTraits, class TBase>
+typename ImageWrapper<TTraits,TBase>::ITKTransformType *
+ImageWrapper<TTraits,TBase>
+::GetITKTransform() const
+{
+  return m_Transform;
 }
 
 
+template<class TTraits, class TBase>
+typename ImageWrapper<TTraits,TBase>::ImageBaseType *
+ImageWrapper<TTraits,TBase>
+::GetReferenceSpace() const
+{
+  return m_ReferenceSpace;
+}
 
 template<class TTraits, class TBase>
 void 

@@ -73,6 +73,8 @@ public:
 
   inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
 
+  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
+
 protected:
 
   // The interpolator object used internally
@@ -190,6 +192,8 @@ public:
   {
     assert(0);
   }
+
+  inline void SkipVoxels(int n, OutputComponentType **out_ptr) {}
 };
 
 
@@ -210,6 +214,7 @@ public:
   ~NonOrthogonalSlicerPixelAccessTraitsWorker();
 
   inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
+  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
 
 protected:
 
@@ -250,6 +255,7 @@ public:
   ~NonOrthogonalSlicerPixelAccessTraitsWorker();
 
   inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
+  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
 
 protected:
 

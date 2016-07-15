@@ -131,6 +131,16 @@ NonOrthogonalSlicer<TInputImage, TOutputImage>
   // Determine the appropriate float/double type for the interpolator.
   typedef typename itk::NumericTraits<OutputComponentType>::MeasurementVectorType::ValueType FloatType;
 
+  // Get the extents of the image cube that can be sampled
+  itk::ContinuousIndex<double, InputImageDimension> cixCubeStart, cixCubeEnd;
+  for(int d = 0; d < InputImageDimension; d++)
+    {
+    cixCubeStart[d] = input->GetBufferedRegion().GetIndex()[d] - 0.5;
+    cixCubeEnd[d] =
+        input->GetBufferedRegion().GetIndex()[d] +
+        input->GetBufferedRegion().GetSize()[d] - 0.5;
+    }
+
   // Create a fast interpolator for the input image - via the traits, allowing for
   // partial specialization for imageadapters and other such things
   WorkerType worker(input);
@@ -175,16 +185,73 @@ NonOrthogonalSlicer<TInputImage, TOutputImage>
     for(int d = 0; d < InputImageDimension; d++)
       cixStep[d] = cixNext[d] - cixSample[d];
 
-    // TODO: figure out the range of locations in the line to interpolate
-    // Iterate over the line
-    for(int i = 0; i < line_len; i++)
+    // Determine the starting and ending indices for the line
+    int kStart = 0, kEnd = line_len - 1;
+    bool skipLine = false;
+    for(int d = 0; d < InputImageDimension; d++)
       {
-      // Delegate to the worker to actually process the voxel
-      worker.ProcessVoxel(cixSample.GetDataPointer(), use_nn, &outPixelPtr);
+      double x0 = cixCubeStart[d], x1 = cixCubeEnd[d], dx = cixStep[d], x = cixSample[d];
 
-      // Update the sample location
-      for(int d = 0; d < InputImageDimension; d++)
-        cixSample[d] += cixStep[d];
+      if(dx == 0)
+        {
+        if(x < x0 || x > x1)
+          {
+          skipLine = true;
+          break;
+          }
+        }
+      else
+        {
+        double z0 = (x0 - x) / dx, z1 = (x1 - x) / dx;
+        if(z1 > z0)
+          {
+          kStart = std::max(kStart, (int) floor(z0));
+          kEnd = std::min(kEnd, (int) ceil(z1));
+          }
+        else
+          {
+          kStart = std::max(kStart, (int) floor(z1));
+          kEnd = std::min(kEnd, (int) ceil(z0));
+          }
+        }
+      }
+
+    if(kStart >= line_len || kEnd <= 0)
+      skipLine = true;
+
+    // Deal with skipped lines
+    if(skipLine)
+      {
+      worker.SkipVoxels(line_len, &outPixelPtr);
+      }
+    else
+      {
+      // Skip the starting voxels
+      if(kStart > 0)
+        {
+        // Skip the voxels
+        worker.SkipVoxels(kStart, &outPixelPtr);
+
+        // Update the sample location
+        for(int d = 0; d < InputImageDimension; d++)
+          cixSample[d] += kStart * cixStep[d];
+        }
+
+      // Process the voxels that cross the image cube
+      for(int i = kStart; i <= kEnd; i++)
+        {
+        worker.ProcessVoxel(cixSample.GetDataPointer(), use_nn, &outPixelPtr);
+
+        // Update the sample location
+        for(int d = 0; d < InputImageDimension; d++)
+          cixSample[d] += cixStep[d];
+        }
+
+      // Process the rest
+      if(kEnd < line_len - 1)
+        {
+        worker.SkipVoxels((line_len - 1) - kEnd, &outPixelPtr);
+        }
       }
     }
 }
@@ -228,6 +295,17 @@ NonOrthogonalSlicerPixelAccessTraitsWorker<TInputImage, TOutputImage>
       *(*out_ptr)++ = 0; //itk::NumericTraits<OutputComponentType>::Zero;
     }
 }
+
+template <class TInputImage, class TOutputImage>
+void
+NonOrthogonalSlicerPixelAccessTraitsWorker<TInputImage, TOutputImage>
+::SkipVoxels(int n, OutputComponentType **out_ptr)
+{
+  int n_total = n * m_NumComponents;
+  for(int k = 0; k < n_total; k++)
+    *(*out_ptr)++ = 0; //itk::NumericTraits<OutputComponentType>::Zero;
+}
+
 
 
 /*
@@ -273,6 +351,14 @@ NonOrthogonalSlicerPixelAccessTraitsWorker<itk::VectorImageToImageAdaptor<TPixel
     }
 }
 
+template <typename TPixelType, unsigned int Dimension, typename TOutputImage>
+void
+NonOrthogonalSlicerPixelAccessTraitsWorker<itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
+::SkipVoxels(int n, OutputComponentType **out_ptr)
+{
+  for(int i = 0; i < n; i++)
+    *(*out_ptr)++ = 0;
+}
 
 /*
  * Traits for a generic image adaptor with a vector image base
@@ -310,6 +396,8 @@ NonOrthogonalSlicerPixelAccessTraitsWorker<
       ? m_Interpolator.InterpolateNearestNeighbor(cix, m_Buffer)
       : m_Interpolator.Interpolate(cix, m_Buffer);
 
+  const typename VectorImageType::PixelType &vpref = m_VectorPixel;
+
   if(status == Interpolator::INSIDE)
     {
     // Cast to the vector pixel type
@@ -317,12 +405,24 @@ NonOrthogonalSlicerPixelAccessTraitsWorker<
       m_VectorPixel[i] = static_cast<OutputComponentType>(m_Buffer[i]);
 
     // Apply the accessor
-    *(*out_ptr)++ = m_Adaptor->GetPixelAccessor().Get(m_VectorPixel);
+    *(*out_ptr)++ =
+        m_Adaptor->GetPixelAccessor().Get(m_VectorPixel.GetDataPointer());
     }
   else
     {
     *(*out_ptr)++ = 0;
     }
+}
+
+
+template <typename TPixelType, unsigned int Dimension, typename TAccessor, typename TOutputImage>
+void
+NonOrthogonalSlicerPixelAccessTraitsWorker<
+  itk::ImageAdaptor<itk::VectorImage<TPixelType, Dimension>, TAccessor>, TOutputImage>
+::SkipVoxels(int n, OutputComponentType **out_ptr)
+{
+  for(int i = 0; i < n; i++)
+    *(*out_ptr)++ = 0;
 }
 
 

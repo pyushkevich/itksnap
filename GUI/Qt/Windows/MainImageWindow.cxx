@@ -58,8 +58,6 @@
 #include "DefaultBehaviorSettings.h"
 #include "SynchronizationModel.h"
 
-
-
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
 #include <QtWidgetCoupling.h>
@@ -72,7 +70,7 @@
 #include <PreferencesDialog.h>
 #include "SaveModifiedLayersDialog.h"
 #include <InterpolateLabelsDialog.h>
-
+#include "RegistrationDialog.h"
 
 #include <QAbstractListModel>
 #include <QItemDelegate>
@@ -214,6 +212,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   m_InterpolateLabelsDialog = new InterpolateLabelsDialog(this);
   m_InterpolateLabelsDialog->setModal(false);
+
+  m_RegistrationDialog = new RegistrationDialog(this);
+  m_RegistrationDialog->setModal(false);
 
   // Initialize the docked panels
   m_DockLeft = new QDockWidget(this);
@@ -454,6 +455,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_StatisticsDialog->SetModel(model);
   m_PreferencesDialog->SetModel(model->GetGlobalPreferencesModel());
   m_InterpolateLabelsDialog->SetModel(model->GetInterpolateLabelModel());
+  m_RegistrationDialog->SetModel(model->GetRegistrationModel());
 
   // Initialize the docked panels
   m_ControlPanel->SetModel(model);
@@ -589,7 +591,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionColor_Map_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionLabel_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionImage_Information, m_Model, UIF_BASEIMG_LOADED);
-  activateOnFlag(ui->actionLabel_Editor, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionRegistration, m_Model, UIF_IRIS_WITH_OVERLAY_LOADED);
 
   activateOnFlag(ui->actionReorient_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
@@ -2113,4 +2115,9 @@ void MainImageWindow::on_actionActivatePreviousLayer_triggered()
 void MainImageWindow::on_actionInterpolate_Labels_triggered()
 {
   RaiseDialog(m_InterpolateLabelsDialog);
+}
+
+void MainImageWindow::on_actionRegistration_triggered()
+{
+  RaiseDialog(m_RegistrationDialog);
 }
