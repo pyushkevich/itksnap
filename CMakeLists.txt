@@ -185,6 +185,7 @@ SET(LOGIC_CXX
   Common/CommandLineArgumentParser.cxx
   Common/EventBucket.cxx
   Common/HistoryManager.cxx
+  Common/ImageFunctions.cxx
   Common/IPCHandler.cxx
   Common/IRISException.cxx
   Common/Rebroadcaster.cxx
@@ -259,6 +260,7 @@ SET(LOGIC_HEADERS
   Common/CommandLineArgumentParser.h
   Common/Credits.h
   Common/HistoryManager.h
+  Common/ImageFunctions.h
   Common/IPCHandler.h
   Common/IRISException.h
   Common/IRISVectorTypes.h
@@ -408,6 +410,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ImageInfoModel.cxx
   GUI/Model/ImageRegistrationManager.cxx
   GUI/Model/IntensityCurveModel.cxx
+  GUI/Model/InteractiveRegistrationModel.cxx
   GUI/Model/InterpolateLabelModel.cxx
   GUI/Model/LabelEditorModel.cxx
   GUI/Model/LayerGeneralPropertiesModel.cxx
@@ -449,6 +452,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/PaintbrushRenderer.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
   GUI/Renderer/PolygonScanConvert.cxx
+  GUI/Renderer/RegistrationRenderer.cxx
   GUI/Renderer/SliceWindowDecorationRenderer.cxx
   GUI/Renderer/SnakeParameterPreviewRenderer.cxx
   GUI/Renderer/SnakeROIRenderer.cxx
@@ -480,6 +484,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ImageIOWizardModel.h
   GUI/Model/ImageRegistrationManager.h
   GUI/Model/IntensityCurveModel.h
+  GUI/Model/InteractiveRegistrationModel.h
   GUI/Model/InterpolateLabelModel.h
   GUI/Model/LabelEditorModel.h
   GUI/Model/LayerGeneralPropertiesModel.h
@@ -524,6 +529,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/PaintbrushRenderer.h
   GUI/Renderer/PolygonDrawingRenderer.h
   GUI/Renderer/PolygonScanConvert.h
+  GUI/Renderer/RegistrationRenderer.h
   GUI/Renderer/SliceWindowDecorationRenderer.h
   GUI/Renderer/SnakeParameterPreviewRenderer.h
   GUI/Renderer/SnakeROIRenderer.h
@@ -594,6 +600,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/QtVTKRenderWindowBox.cxx
   GUI/Qt/View/PaintbrushInteractionMode.cxx
   GUI/Qt/View/PolygonDrawingInteractionMode.cxx
+  GUI/Qt/View/RegistrationInteractionMode.cxx
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
   GUI/Qt/View/SnakeROIInteractionMode.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx
@@ -679,6 +686,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/QtVTKRenderWindowBox.h
   GUI/Qt/View/PaintbrushInteractionMode.h
   GUI/Qt/View/PolygonDrawingInteractionMode.h
+  GUI/Qt/View/RegistrationInteractionMode.h
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SnakeROIInteractionMode.h
   GUI/Qt/View/ThumbnailInteractionMode.h

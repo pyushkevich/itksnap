@@ -37,12 +37,12 @@
      <property name="currentIndex">
       <number>1</number>
      </property>
-     <widget class="QWidget" name="tabWidgetPage1" native="true">
+     <widget class="QWidget" name="tabWidgetPage1">
       <attribute name="title">
        <string>Automatic</string>
       </attribute>
      </widget>
-     <widget class="QWidget" name="tabWidgetPage2" native="true">
+     <widget class="QWidget" name="tabWidgetPage2">
       <attribute name="title">
        <string>Manual</string>
       </attribute>
@@ -70,13 +70,7 @@
           </property>
           <item>
            <widget class="QWidget" name="widget_2" native="true">
-            <layout class="QFormLayout" name="formLayout">
-             <property name="horizontalSpacing">
-              <number>4</number>
-             </property>
-             <property name="verticalSpacing">
-              <number>4</number>
-             </property>
+            <layout class="QGridLayout" name="gridLayout_2">
              <property name="leftMargin">
               <number>0</number>
              </property>
@@ -89,6 +83,9 @@
              <property name="bottomMargin">
               <number>0</number>
              </property>
+             <property name="spacing">
+              <number>4</number>
+             </property>
              <item row="0" column="0">
               <widget class="QLabel" name="label_4">
                <property name="text">
@@ -98,6 +95,13 @@
              </item>
              <item row="0" column="1">
               <widget class="QDoubleSpinBox" name="inRotX"/>
+             </item>
+             <item row="0" column="2">
+              <widget class="QDoubleSlider" name="inRotXSlider">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
              </item>
              <item row="1" column="0">
               <widget class="QLabel" name="label_5">
@@ -109,6 +113,13 @@
              <item row="1" column="1">
               <widget class="QDoubleSpinBox" name="inRotY"/>
              </item>
+             <item row="1" column="2">
+              <widget class="QDoubleSlider" name="inRotYSlider">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
              <item row="2" column="0">
               <widget class="QLabel" name="label_6">
                <property name="text">
@@ -119,27 +130,14 @@
              <item row="2" column="1">
               <widget class="QDoubleSpinBox" name="inRotZ"/>
              </item>
+             <item row="2" column="2">
+              <widget class="QDoubleSlider" name="inRotZSlider">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
             </layout>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton">
-            <property name="text">
-             <string>Set Center</string>
-            </property>
            </widget>
           </item>
          </layout>
@@ -168,13 +166,7 @@
           </property>
           <item>
            <widget class="QWidget" name="widget_3" native="true">
-            <layout class="QFormLayout" name="formLayout_2">
-             <property name="horizontalSpacing">
-              <number>4</number>
-             </property>
-             <property name="verticalSpacing">
-              <number>4</number>
-             </property>
+            <layout class="QGridLayout" name="gridLayout_3">
              <property name="leftMargin">
               <number>0</number>
              </property>
@@ -187,6 +179,9 @@
              <property name="bottomMargin">
               <number>0</number>
              </property>
+             <property name="spacing">
+              <number>4</number>
+             </property>
              <item row="0" column="0">
               <widget class="QLabel" name="label_7">
                <property name="text">
@@ -195,7 +190,14 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="inRotX_2"/>
+              <widget class="QDoubleSpinBox" name="inTranX"/>
+             </item>
+             <item row="0" column="2">
+              <widget class="QDoubleSlider" name="inTranXSlider">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
              </item>
              <item row="1" column="0">
               <widget class="QLabel" name="label_8">
@@ -205,7 +207,14 @@
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="inRotY_2"/>
+              <widget class="QDoubleSpinBox" name="inTranY"/>
+             </item>
+             <item row="1" column="2">
+              <widget class="QDoubleSlider" name="inTranYSlider">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
              </item>
              <item row="2" column="0">
               <widget class="QLabel" name="label_9">
@@ -215,31 +224,12 @@
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="inRotZ_2"/>
+              <widget class="QDoubleSpinBox" name="inTranZ"/>
              </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget_4" native="true">
-            <layout class="QVBoxLayout" name="verticalLayout">
-             <item>
-              <widget class="QPushButton" name="btnMatchCenters">
-               <property name="text">
-                <string>Match centers</string>
+             <item row="2" column="2">
+              <widget class="QDoubleSlider" name="inTranZSlider">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -250,9 +240,36 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="btnInteractiveTool">
+         <property name="text">
+          <string>Interactive Tool</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="pushButton_2">
          <property name="text">
-          <string>Reset</string>
+          <string>Reset to Identity</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>Set Center of Rotation</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnMatchCenters">
+         <property name="text">
+          <string>Match centers</string>
          </property>
         </widget>
        </item>
@@ -295,6 +312,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QDoubleSlider</class>
+   <extends>QSlider</extends>
+   <header location="global">QDoubleSlider.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

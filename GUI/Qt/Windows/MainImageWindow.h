@@ -40,6 +40,7 @@ class EventBucket;
 class QModelIndex;
 class QProgressDialog;
 class AboutDialog;
+class QStackedWidget;
 
 class LabelEditorDialog;
 class LayerInspectorDialog;
@@ -323,6 +324,9 @@ private:
 
   // Left and right docks
   QDockWidget *m_DockLeft, *m_DockRight;
+
+  // A stack widget for the right dock
+  QStackedWidget *m_RightDockStack;
 
   // Size before the right dock is shown
   QSize m_SizeWithoutRightDock;

@@ -40,6 +40,7 @@ class GenericSliceModel;
 class OrthogonalSliceCursorNavigationModel;
 class PolygonDrawingModel;
 class AnnotationModel;
+class InteractiveRegistrationModel;
 class SliceWindowCoordinator;
 class GuidedNativeImageIO;
 class SystemInterface;
@@ -174,6 +175,12 @@ public:
   AnnotationModel *GetAnnotationModel(unsigned int i) const
   {
     return m_AnnotationModel[i];
+  }
+
+  /** Get the interactive registration model for each slice */
+  InteractiveRegistrationModel *GetInteractiveRegistrationModel(unsigned int i) const
+  {
+    return m_InteractiveRegistrationModel[i];
   }
 
   /** Get the model for intensity curve navigation */
@@ -350,6 +357,9 @@ protected:
 
   // Models for annotation
   SmartPtr<AnnotationModel> m_AnnotationModel[3];
+
+  // Models for interactive registration
+  SmartPtr<InteractiveRegistrationModel> m_InteractiveRegistrationModel[3];
 
   // Window coordinator
   SmartPtr<SliceWindowCoordinator> m_SliceCoordinator;

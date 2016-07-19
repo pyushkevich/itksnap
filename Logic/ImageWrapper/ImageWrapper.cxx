@@ -108,6 +108,9 @@ public:
   typedef TImage ImageType;
   typedef typename TImage::PixelType PixelType;
 
+  typedef itk::ImageBase<TImage::ImageDimension> ImageBaseType;
+  typedef itk::Transform<double, TImage::ImageDimension, TImage::ImageDimension> TransformType;
+
   static void FillBuffer(ImageType *image, PixelType)
   {
     throw IRISException("FillBuffer unsupported for class %s",
@@ -121,7 +124,10 @@ public:
   }
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        ImageBaseType *ref_space,
+                                        TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
+                                        bool force_resampling,
                                         itk::Command *progressCommand)
   {
     throw IRISException("CopyRegion unsupported for class %s",
@@ -136,6 +142,8 @@ class ImageWrapperPartialSpecializationTraitsCommon
 public:
   typedef TImage ImageType;
   typedef typename TImage::PixelType PixelType;
+  typedef itk::ImageBase<TImage::ImageDimension> ImageBaseType;
+  typedef itk::Transform<double, TImage::ImageDimension, TImage::ImageDimension> TransformType;
 
   static void FillBuffer(ImageType *image, PixelType p)
   {
@@ -160,17 +168,20 @@ public:
   template <class TInterpolateFunction>
   static SmartPtr<ImageType> DeepCopyImageRegion(
       ImageType *image,
+      ImageBaseType *refspace,
+      TransformType *transform,
       TInterpolateFunction *interp,
       const SNAPSegmentationROISettings &roi,
+      bool force_resampling,
       itk::Command *progressCommand)
   {
     // Check if there is a difference in voxel size, i.e., user wants resampling
-    Vector3d vOldSpacing = image->GetSpacing();
-    Vector3d vOldOrigin = image->GetOrigin();
+    Vector3d vOldSpacing = refspace->GetSpacing();
+    Vector3d vOldOrigin = refspace->GetOrigin();
     Vector3i vROIIndex(roi.GetROI().GetIndex());
     Vector3ui vROISize(roi.GetROI().GetSize());
 
-    if(roi.IsResampling())
+    if(force_resampling || roi.IsResampling())
       {
       // Compute the number of voxels in the output
       typedef typename itk::ImageRegion<3> RegionType;
@@ -179,7 +190,7 @@ public:
       // We need to compute the new spacing and origin of the resampled
       // ROI piece. To do this, we need the direction matrix
       typedef typename ImageType::DirectionType DirectionType;
-      const DirectionType &dm = image->GetDirection();
+      const DirectionType &dm = refspace->GetDirection();
 
       // The spacing of the new ROI
       Vector3d vNewSpacing =
@@ -198,14 +209,14 @@ public:
 
       // Initialize the resampling filter
       fltSample->SetInput(image);
-      fltSample->SetTransform(itk::IdentityTransform<double,3>::New());
+      fltSample->SetTransform(transform);
       fltSample->SetInterpolator(interp);
 
       // Set the image sizes and spacing
       fltSample->SetSize(to_itkSize(roi.GetResampleDimensions()));
       fltSample->SetOutputSpacing(vNewSpacing.data_block());
       fltSample->SetOutputOrigin(vNewOrigin.data_block());
-      fltSample->SetOutputDirection(image->GetDirection());
+      fltSample->SetOutputDirection(refspace->GetDirection());
 
       // Set the progress bar
       if(progressCommand)
@@ -248,7 +259,10 @@ public:
   typedef ImageWrapperPartialSpecializationTraitsCommon<ImageType> Superclass;
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        typename Superclass::ImageBaseType *refspace,
+                                        typename Superclass::TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
+                                        bool force_resampling,
                                         itk::Command *progressCommand)
   {
     typedef itk::InterpolateImageFunction<ImageType> Interpolator;
@@ -283,7 +297,7 @@ public:
         break;
       };
 
-    return Superclass::template DeepCopyImageRegion<Interpolator>(image,interp,roi,progressCommand);
+    return Superclass::template DeepCopyImageRegion<Interpolator>(image,refspace,transform,interp,roi,force_resampling,progressCommand);
   }
 };
 
@@ -303,7 +317,10 @@ public:
   }
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        typename Superclass::ImageBaseType *refspace,
+                                        typename Superclass::TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
+                                        bool force_resampling,
                                         itk::Command *progressCommand)
   {
     typedef itk::InterpolateImageFunction<ImageType> Interpolator;
@@ -326,7 +343,7 @@ public:
         throw IRISException("Higher-order interpolation for vector images is unsupported.");
       };
 
-    return Superclass::template DeepCopyImageRegion<Interpolator>(image,interp,roi,progressCommand);
+    return Superclass::template DeepCopyImageRegion<Interpolator>(image,refspace,transform,interp,roi,force_resampling,progressCommand);
   }
 
 };
@@ -340,6 +357,8 @@ public:
   typedef RLEImage<TPixel, VDim, CounterType> ImageType;
   typedef itk::Image<TPixel, VDim> UncompressedType;
   typedef typename ImageType::PixelType PixelType;
+  typedef itk::ImageBase<VDim> ImageBaseType;
+  typedef itk::Transform<double, VDim, VDim> TransformType;
 
   static void FillBuffer(ImageType *image, PixelType p)
   {
@@ -372,8 +391,11 @@ public:
   template <class TInterpolateFunction>
   static SmartPtr<ImageType> DeepCopyImageRegion(
       ImageType *image,
+      ImageBaseType *ref_space,
+      TransformType *transform,
       TInterpolateFunction *interp,
       const SNAPSegmentationROISettings &roi,
+      bool force_resampling,
       itk::Command *progressCommand)
   {
       // Check if there is a difference in voxel size, i.e., user wants resampling
@@ -382,7 +404,7 @@ public:
       Vector3i vROIIndex(roi.GetROI().GetIndex());
       Vector3ui vROISize(roi.GetROI().GetSize());
 
-      if (roi.IsResampling())
+      if (force_resampling || roi.IsResampling())
       {
           // Compute the number of voxels in the output
           typedef typename itk::ImageRegion<3> RegionType;
@@ -391,7 +413,7 @@ public:
           // We need to compute the new spacing and origin of the resampled
           // ROI piece. To do this, we need the direction matrix
           typedef typename ImageType::DirectionType DirectionType;
-          const DirectionType &dm = image->GetDirection();
+          const DirectionType &dm = ref_space->GetDirection();
 
           // The spacing of the new ROI
           Vector3d vNewSpacing =
@@ -418,14 +440,14 @@ public:
 
           // Initialize the resampling filter
           fltSample->SetInput(imgUncompressed);
-          fltSample->SetTransform(itk::IdentityTransform<double, 3>::New());
+          fltSample->SetTransform(transform);
           fltSample->SetInterpolator(interp);
 
           // Set the image sizes and spacing
           fltSample->SetSize(to_itkSize(roi.GetResampleDimensions()));
           fltSample->SetOutputSpacing(vNewSpacing.data_block());
           fltSample->SetOutputOrigin(vNewOrigin.data_block());
-          fltSample->SetOutputDirection(image->GetDirection());
+          fltSample->SetOutputDirection(ref_space->GetDirection());
 
           // Set the progress bar
           if (progressCommand)
@@ -456,7 +478,10 @@ public:
   }
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        ImageBaseType *refspace,
+                                        TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
+                                        bool force_resampling,
                                         itk::Command *progressCommand)
   {
     //the interpolator will operate on uncompressed region
@@ -492,7 +517,7 @@ public:
           break;
       };
 
-    return Self::template DeepCopyImageRegion<Interpolator>(image, interp, roi, progressCommand);
+    return Self::template DeepCopyImageRegion<Interpolator>(image, refspace, transform, interp, roi, force_resampling, progressCommand);
   }
 };
 
@@ -1655,11 +1680,14 @@ ImageWrapper<TTraits,TBase>
 ::DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                  itk::Command *progressCommand) const
 {
+  // If the image in this wrapper is not the same as the reference space,
+  // we must force resampling to occur
+  bool force_resampling = !this->IsSlicingOrthogonal();
 
   // We use partial template specialization here because region copy is
   // only supported for images that are concrete (Image, VectorImage)
   typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
-  return Specialization::CopyRegion(m_Image, roi, progressCommand);
+  return Specialization::CopyRegion(m_Image, m_ReferenceSpace, m_Transform, roi, force_resampling, progressCommand);
 }
 
 

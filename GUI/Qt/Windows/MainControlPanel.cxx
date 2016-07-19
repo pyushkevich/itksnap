@@ -215,7 +215,8 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     ui->btnPolygonInspector,
     ui->btnPaintbrushInspector,
     ui->btnSnakeInspector,
-    ui->btnAnnotateInspector
+    ui->btnAnnotateInspector,
+    NULL
   };
 
 
@@ -231,7 +232,8 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     ui->btnAnnotateInspector->setVisible(mode == ANNOTATION_MODE);
 
     // Click the button corresponding to the mode
-    mode_inspector_btn[mode]->click();
+    if(mode_inspector_btn[mode])
+      mode_inspector_btn[mode]->click();
     }
 }
 

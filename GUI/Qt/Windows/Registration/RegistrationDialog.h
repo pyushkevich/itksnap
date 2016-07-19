@@ -2,7 +2,6 @@
 #define REGISTRATIONDIALOG_H
 
 #include <QDialog>
-#include <SNAPCommon.h>
 
 class RegistrationModel;
 
@@ -20,10 +19,15 @@ public:
 
   void SetModel(RegistrationModel *model);
 
+private slots:
+  void on_pushButton_clicked();
+
+  void on_pushButton_2_clicked();
+
 private:
   Ui::RegistrationDialog *ui;
 
-  SmartPtr<RegistrationModel> m_Model;
+  RegistrationModel *m_Model;
 };
 
 #endif // REGISTRATIONDIALOG_H

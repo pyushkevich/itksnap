@@ -66,6 +66,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
   append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_EDIT, "Outline (editing)");
   append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_DRAW_CLOSE, "Completion line");
 
+  QStandardItem *itemReg = append_category_item(model->invisibleRootItem(), "Registration Tool");
+  append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_WIDGETS, "Registration Widgets");
+
   ui->treeVisualElements->setModel(model);
   ui->treeVisualElements->expandAll();
 

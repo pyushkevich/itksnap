@@ -69,6 +69,7 @@
 #include "ColorLabelQuickListModel.h"
 #include "InterpolateLabelModel.h"
 #include "RegistrationModel.h"
+#include "InteractiveRegistrationModel.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -99,6 +100,10 @@ GlobalUIModel::GlobalUIModel()
   m_PaintbrushSettingsModel = PaintbrushSettingsModel::New();
   m_PaintbrushSettingsModel->SetParentModel(this);
 
+  // Registration model
+  m_RegistrationModel = RegistrationModel::New();
+  m_RegistrationModel->SetParentModel(this);
+
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)
     {
@@ -119,6 +124,10 @@ GlobalUIModel::GlobalUIModel()
 
     m_AnnotationModel[i] = AnnotationModel::New();
     m_AnnotationModel[i]->SetParent(m_SliceModel[i]);
+
+    m_InteractiveRegistrationModel[i] = InteractiveRegistrationModel::New();
+    m_InteractiveRegistrationModel[i]->SetParent(m_SliceModel[i]);
+    m_InteractiveRegistrationModel[i]->SetRegistrationModel(m_RegistrationModel);
     }
 
 
@@ -200,10 +209,6 @@ GlobalUIModel::GlobalUIModel()
   // Interpolation dialog
   m_InterpolateLabelModel = InterpolateLabelModel::New();
   m_InterpolateLabelModel->SetParentModel(this);
-
-  // Registration model
-  m_RegistrationModel = RegistrationModel::New();
-  m_RegistrationModel->SetParentModel(this);
 
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(

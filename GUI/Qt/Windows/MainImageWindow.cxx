@@ -229,13 +229,21 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_ControlPanel = new MainControlPanel(this);
   m_DockLeft->setWidget(m_ControlPanel);
 
+  // Set up the right hand side dock widget
   m_DockRight = new QDockWidget("Segment 3D", this);
-  m_SnakeWizard = new SnakeWizardPanel(this);
-  m_DockRight->setWidget(m_SnakeWizard);
+
   m_DockRight->setAllowedAreas(Qt::RightDockWidgetArea);
   m_DockRight->setFeatures(
         QDockWidget::DockWidgetFloatable |
         QDockWidget::DockWidgetMovable);
+
+  m_RightDockStack = new QStackedWidget(m_DockRight);
+  m_DockRight->setWidget(m_RightDockStack);
+
+  m_SnakeWizard = new SnakeWizardPanel(this);
+  m_RightDockStack->addWidget(m_SnakeWizard);
+  m_RightDockStack->addWidget(m_RegistrationDialog);
+
   this->addDockWidget(Qt::RightDockWidgetArea, m_DockRight);
 
   // Set up the recent items panels
@@ -1052,6 +1060,8 @@ void MainImageWindow::OpenSnakeWizard()
   m_SizeWithoutRightDock = this->size();
 
   // Make the dock containing the wizard visible
+  m_DockRight->setWindowTitle("Segment 3D");
+  m_RightDockStack->setCurrentWidget(m_SnakeWizard);
   m_DockRight->setVisible(true);
 }
 
@@ -2119,5 +2129,7 @@ void MainImageWindow::on_actionInterpolate_Labels_triggered()
 
 void MainImageWindow::on_actionRegistration_triggered()
 {
-  RaiseDialog(m_RegistrationDialog);
+  m_DockRight->setWindowTitle("Registration");
+  m_RightDockStack->setCurrentWidget(m_RegistrationDialog);
+  m_DockRight->setVisible(true);
 }
