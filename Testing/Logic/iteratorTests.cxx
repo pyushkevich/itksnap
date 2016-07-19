@@ -11,7 +11,7 @@ extern int itkRegionOfInterestImageFilterTest(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
 {
-    //itkImageRegionIteratorTest(argc, argv);
+    itkImageRegionIteratorTest(argc, argv);
     itkImageScanlineIteratorTest1(argc, argv);
     itkIteratorTests(argc, argv);
     itkImageIteratorTest(argc, argv);
